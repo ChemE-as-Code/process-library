@@ -4,6 +4,8 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-10-18 | layout/, DESIGN.md D-017/D-018/D-019/D-024/D-026, lists, reviews | S6: MAC compressor house B1, racks PR1/PR2, LIN tank volume check (372 m3 net / 400 working / ~440 gross), perlite tank relief wording, air/O2 ratio 5.2, PV-4101A = IGV output A, no check valves on backup risers (justified), AIA-2102 components (O2 F6 closed), S4 review status | S5 review findings and basic-engineering close-out |
+| 2026-10-18 | pid/P-04.xml, line and instrument lists | S6: truck fill LOX-4004/LIN-4004 (hose, check valve, TSV-4144/4145, HV-4146/4147, nozzle N6), FI-4148 for UIC-4103, FQI-4149 at GOX BL, LALL pump trips written beside the TSLL notes, LIN-3001 off-page label | S5 review findings 1-3, 5, 7 |
 | 2026-10-18 | reviews/2026-10-18-o2-safety-review.md, scripts/ | O2 review: status of F1..F7 after S5 (F6 open), EIGA references at document level (clause numbers open); untracked scripts/regen.sh removed (scripts/regen.py is the tool) | S4 review fixes 6 and 9 |
 | 2026-10-18 | layout/site-plan.yaml, layout/equipment-placement.yaml, DESIGN.md | plot plan: areas A1..A5, roads, vent area V1 downwind (~190 m) of the F-1101 intake; all equipment placed (sizes ASSUMED); D-025 | S4 review fix 7 |
 | 2026-10-18 | pid/P-01.xml, scripts/draft_P-01.py | crop check: S-1101 label off the silencer; E-1101/E-1102 CW/CWR labels in two rows under their arrows (were on the arrows and on the neighbour's line) | S4 review fix 8 (legibility) |

@@ -22,6 +22,19 @@ Scope: main, commits 96f44a7 (S3 review fixes) and 6fb6470 (P-04); all sheets an
 | 8 | P-02 | OPC_RG2001 note | "from P-03 WN-3002 (RG-2001)" crosses the FIC-2105 measuring line. | low | Move the note left/up. |
 | 9 | P-01 | line labels | P-01 still uses the stacked label form (generator not switched to LABEL_ROW); not reported as crossed, not rechecked here. | low | Check P-01 with --crop; switch if needed. |
 
+## Status of the findings (S6, 2026-10-18)
+| # | status | how |
+|---|---|---|
+| 1 | closed | O2 review F1..F7 closed in S5/S6, see the status table in the O2 safety review |
+| 2 | partly closed | FI-4148 now on GOX-4001 at the K-4101 suction as UIC-4103 input (D-024); the long UIC-4103 measuring line is kept, signal lines with the C&E matrix in detail engineering |
+| 3 | closed | trip outputs written beside TSHH-4104, PIC-4102, TSLL-4113/4114 and the new LALL trips (D-024) |
+| 4 | closed | PSV-4125 / PSV-4126 relieve into the drawn returns LOX-4003 / LIN-4003 |
+| 5 | accepted | vendor package, vendor P&ID referenced in detail engineering |
+| 6 | closed | PI-3121 on the HP column top (P-03) |
+| 7 | closed | PDI-2115A/B on the adsorbers, TSHH-2116 on RG-2002 (P-02) |
+| 8 | open (cosmetic) | not rechecked in S6 |
+| 9 | closed | P-01 label tidy after crop check (S-1101, E-1101/E-1102 CW/CWR) |
+
 ## Checked and fine
 - Off-page continuity: GOX-4001, GAN-4001 (P-03 E-3101 -> P-04 K-4101/K-4102), LOX-3001 (P-03 FV-3111 -> P-04 T-4101), LIN-3001 (P-03 -> T-4102), UN-3001 (P-04 GAN-4002 -> P-03 PV-3113), RG-2001 (P-03 -> P-02) carry the same line numbers and DN on both sheets.
 - S3 findings 1-4 fixed: line labels on one row (P-02, P-03), PSV-3114/3116 discharge arrows, K-3101 anti-surge (AIR-3006, UV-3120, UIC-3120) and discharge check valve, AIA-3103 on LOX-3001, LIC-3101 on the HP sump, E-3101 tag at the exchanger.
