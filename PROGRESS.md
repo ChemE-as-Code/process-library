@@ -4,6 +4,7 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-10-18 | reviews/2026-10-18-o2-safety-review.md, scripts/ | O2 review: status of F1..F7 after S5 (F6 open), EIGA references at document level (clause numbers open); untracked scripts/regen.sh removed (scripts/regen.py is the tool) | S4 review fixes 6 and 9 |
 | 2026-10-18 | layout/site-plan.yaml, layout/equipment-placement.yaml, DESIGN.md | plot plan: areas A1..A5, roads, vent area V1 downwind (~190 m) of the F-1101 intake; all equipment placed (sizes ASSUMED); D-025 | S4 review fix 7 |
 | 2026-10-18 | pid/P-01.xml, scripts/draft_P-01.py | crop check: S-1101 label off the silencer; E-1101/E-1102 CW/CWR labels in two rows under their arrows (were on the arrows and on the neighbour's line) | S4 review fix 8 (legibility) |
 | 2026-10-18 | pid/P-02.xml, scripts/draft_P-02.py, instrument list, DESIGN.md | PDI-2115A/B across the adsorber beds; TSHH-2116 on RG-2002 at the heater outlet | S4 review fix 8 |
