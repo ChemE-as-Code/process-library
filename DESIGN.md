@@ -355,3 +355,13 @@ CW utility system (not drawn in this project).
 Signal lines are drawn as dashed lines to the valve actuators; the DEXPI actuating-system objects
 (ActuatingSystem / ActuatingFunction) are added in detail engineering. Control valves carry their
 tag as the valve number (e.g. TV-1105).
+
+## D-022 P-02 drawing content (2026-10-18)
+Decision: adsorbers V-2101A/B in upflow adsorption (air in bottom, dry air out top) and
+counter-current downflow regeneration (RG-2002 in at the top, RG-2003 out at the bottom to
+S-2101). Eight switching valves XV-2101A/B..XV-2104A/B (actuated ball valves, sequenced by
+KS-2101; valve tags, not instrument-list items). AIR-1004 continues from P-01 to the adsorber inlet
+header. FV-2105 on RG-2001 (FIC-2105), TIC-2104 trims E-2101, TSHH-2107 on the heater element.
+Open for the next revision of P-02: heater bypass for the cooling step, pressurization /
+depressurization valves, PSV-2108 on the adsorbers (relief case list), crossing of RG-2002 over the
+AIR-2001 header (drawn as a plain crossing).
