@@ -123,6 +123,7 @@ Specific energy: ~0.71 kWh per Nm3 GOX delivered at 30 barg (MAC + GOX compresso
 | PSV-3116 | C-3101 HP column | MAC deadhead feed with GAN and liquid outlets blocked | outside cold box |
 | TSVs | trapped cryogenic liquid between valves (LOX, LIN, RL, LN lines) | heat-in of blocked liquid | to vent / drain vaporizer V-3101 |
 | PSV-3119 | K-3101 discharge, E-3104 (on AIR-3002 at the E-3104 outlet, upstream of the check valve) | blocked outlet (KT-3101 inlet XV-3117 closed) | atmosphere (air), local |
+| PSV-3123 | cold box casing (breathing valve, both directions) | purge PV-3113 failed open; casing vacuum on cool-down | VNT-3004, elevated (N2), AIA-3122 |
 | PSV-4122 | K-4101 discharge, E-4102 | blocked outlet at max. speed (ESD XV-4118 closed) | VNT-4002 via S-4101 |
 | PSV-4123 + vacuum breaker PSV-4142 | T-4101 LOX tank | loss of vacuum/insulation, fill overpressure, roll-over; vacuum on fast draw-off | VNT-4001 / own outlet, safe location |
 | PSV-4124 + vacuum breaker PSV-4143 | T-4102 LIN tank | as T-4101 | elevated (N2) |
@@ -415,7 +416,7 @@ S-3101 to an elevated vent (split range PIC-3110). Hydrocarbon protection (D-010
 AIA-3103 and LICA-3102 on the LP sump, LOX-3001 with the continuous purge FIC-3111/FV-3111 to the
 LOX tank, LOX-3002 drain via HV-3118 to the drain vaporizer V-3101 (vent VNT-3001 to a safe
 location). Relief: PSV-3114 (LP column), PSV-3116 (HP column), PSV-3119 (booster discharge).
-Casing purge UN-3001 via PV-3113 (PIC-3113).
+Casing purge UN-3001 via PV-3113 (PIC-3113); casing breather VNT-3004 via breathing valve PSV-3123 with AIA-3122 (O2) on the exhaust.
 S4 review fixes: line labels as one row "number DN" above or below a horizontal line (stacked only
 beside vertical lines), so no label is crossed by its own line (also P-02); PSV-3114 and PSV-3116
 discharge stubs end in "to atm." arrows (PSV-3114, O2-rich LP column: "outside cold box,
@@ -426,6 +427,7 @@ loop FIC-3107 are on the warm product headers at the compressor suctions, so the
 Crossings: with stacked columns the RL and LN loops through the subcooler interleave (RL 232 -> 106,
 LN 190 -> 76 on the column side), so they cross once below E-3102; LOX-3001 leaving the LP sump
 crosses the GOX-3001 riser once. Both crossings are plain crossings away from any tee.
+S5: PSV-3119 sits on AIR-3002 at the E-3104 outlet, upstream of the check valve, with a "to atm." arrow (it was drawn on the K-3101 casing).
 The compander K-3101 / KT-3101 is one machine (same shaft, D-003); the two casings are drawn apart
 because the booster is warm and the expander is in the cold box. Seal-gas and oil systems are in
 the vendor package (D-012, PDSLL-3115). DNs of GAN-3002, LN-3002, VNT lines ASSUMED.

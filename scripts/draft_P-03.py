@@ -59,7 +59,7 @@ equipment("C3101", "ProcessColumn", "C-3101", "ShapeASU_C3101", 300, 205,
            ("N7", "N7", 309, 179, 150), ("N8", "N8", 288, 205, 50)], (300, 214),
           inst=[("I1", 312, 229), ("I2", 312, 205)])
 equipment("K3101", "CentrifugalCompressor", "K-3101", "ShapeASU_Compressor", 50, 100,
-          [("N1", "N1", 38, 100, 250), ("N2", "N2", 62, 100, 200), ("N3", "N3", 55, 94, 80)], (50, 115))
+          [("N1", "N1", 38, 100, 250), ("N2", "N2", 62, 100, 200)], (50, 115))
 equipment("E3104", "TubularHeatExchanger", "E-3104", "ShapeASU_Cooler", 75, 125,
           [("N1", "N1", 72, 119.8, 200), ("N2", "N2", 78, 119.8, 200), ("N3", "N3", 72, 130.2, 150),
            ("N4", "N4", 78, 130.2, 150)], (90, 128))
@@ -87,14 +87,19 @@ PIPE_INST[("AIR-3005", 2, 1)] = [("I1", 32, 80)]
 system("AIR-3005", 250, "Dry air", [(None, (TA["id"], TA["nodes"][2]), [P(), E(TR)], None),
                                     (None, (TR["id"], TR["nodes"][1]), [P((32, 100))], N("K3101", "N1"))],
        (10, 93, "v"))
-PSV19 = valve("PSV3119", "SpringLoadedGlobeSafetyValve", 55, 82, 270, 80, "PSV-3119", lab=(-2, -3, "RightCenter"))
+# PSV-3119 on AIR-3002 at the E-3104 outlet, upstream of the check valve (S4 review)
+TP19 = tee("Tee_AIR3002_PSV", 78, 92, 270, 0, 200, 80)
+PSV19 = valve("PSV3119", "SpringLoadedGlobeSafetyValve", 84, 88, 270, 80, "PSV-3119", lab=(2, 4.5, "LeftCenter"))
+OPC_19 = offpage("OPC_PSV3119_atm", False, 90, 82, 270, 80, "to atm.", (90, 77, "CenterCenter"))
 TD = tee("Tee_AIR3002_R", 78, 72, 270, 180, 200, 150)
 CK = valve("CV_AIR3002", "SwingCheckValve", 93, 62, 0, 200)
 system("AIR-3002", 200, "Air", [(None, N("K3101", "N2"), [P((72, 100))], N("E3104", "N1")),
-                                (None, N("E3104", "N2"), [P(), E(TD)], None),
+                                (None, N("E3104", "N2"), [P(), E(TP19)], None),
+                                (None, (TP19["id"], TP19["nodes"][1]), [P(), E(TD)], None),
                                 (None, (TD["id"], TD["nodes"][1]), [P((78, 62)), I(CK), P((108, 62))],
                                  N("E3101", "N1")),
-                                (80, N("K3101", "N3"), [P(), E(PSV19)], None)], (80, 84, "v"))
+                                (80, (TP19["id"], TP19["nodes"][2]), [P((84, 92)), E(PSV19)], None),
+                                (80, (PSV19["id"], PSV19["nodes"][1]), [P((90, 88)), E(OPC_19)], None)], (80, 104, "v"))
 UV20 = valve("UV3120", "GlobeValve", 62, 72, 180, 150, "UV-3120", act=270, lab=(5, 4.5, "LeftCenter"))
 system("AIR-3006", 150, "Air", [(None, (TD["id"], TD["nodes"][2]), [P(), I(UV20), P(), E(TR, 2)], None)], (35, 70))
 for ln, nz, x, inflow, note, rot in [("CW-3001", "N3", 72, True, "CW", 270), ("CWR-3001", "N4", 78, False, "CWR", 90)]:
@@ -186,6 +191,13 @@ OPC_CB = offpage("OPC_UN3001_out", False, 200, 205, 0, 50, "to cold box casing",
 PIPE_INST[("UN-3001", 1, 2)] = [("I1", 185, 205)]
 system("UN-3001", 50, "Nitrogen", [(None, (OPC_UN["id"], OPC_UN["nodes"][0]), [P(), I(PV13), P(), E(OPC_CB)], None)],
        (150, 214))
+# cold box casing breather with O2 analyzer on its exhaust (O2 review F7)
+OPC_BI = offpage("OPC_VNT3004_in", True, 140, 186, 0, 50, "from cold box casing (breather)", (136, 192, "LeftCenter"))
+PSV23 = valve("PSV3123", "SpringLoadedGlobeSafetyValve", 175, 184, 270, 50, "PSV-3123", lab=(-2, 4, "RightCenter"))
+OPC_BO = offpage("OPC_VNT3004_atm", False, 182, 178, 270, 50, "to atm.", (186, 175, "LeftCenter"))
+PIPE_INST[("VNT-3004", 1, 1)] = [("I1", 158, 186)]
+system("VNT-3004", 50, "Nitrogen", [(None, (OPC_BI["id"], OPC_BI["nodes"][0]), [P(), E(PSV23)], None),
+                                    (None, (PSV23["id"], PSV23["nodes"][1]), [P((182, 184)), E(OPC_BO)], None)], (142, 184))
 
 # ---- instruments
 instrument("LIC-3101", 330, 229, "C3101_I1", "C3101_I1_Pos", tgt="left",
@@ -207,6 +219,7 @@ instrument("FIC-3111", 205, 170, "Line_LOX3001_S2", "Line_LOX3001_S2_P1_I1", tgt
            signal=[(205, 166.25), (205, 163), TOPS["FV3111"]])
 instrument("UIC-3120", 18, 80, "Line_AIR3005_S2", "Line_AIR3005_S2_P1_I1", tgt="right",
            signal=[(18, 76.25), (18, 62), (62, 62), TOPS["UV3120"]])
+instrument("AIA-3122", 158, 175, "Line_VNT3004_S1", "Line_VNT3004_S1_P1_I1")
 instrument("PIC-3113", 185, 225, "Line_UN3001_S1", "Line_UN3001_S1_P2_I1", tgt="top",
            signal=[(178.25, 225), (168, 225), (168, 220), (160, 220), (160, 197.8), TOPS["PV3113"]])
 
