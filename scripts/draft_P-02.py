@@ -27,7 +27,7 @@ for eid, tag, x, out, inn, lx in [("V2101A", "V-2101A", 90, 80, 100, 63), ("V210
     equipment(eid, "PressureVessel", tag, "ShapeASU_V2101", x, 140,
               [("N1", "N1", inn, BOT, 600), ("N2", "N2", out, TOP, 500), ("N3", "N3", inn, TOP, 600),
                ("N4", "N4", out, BOT, 600), ("N5", "N5", x, 105, 150)], (lx, 140),
-              inst=[("I1", x + 15, 150)] if x > 150 else ())
+              inst=[("I1", x + 15, 150), ("I2", x + 15, 128)] if x > 150 else [("I2", x - 15, 155)])
 equipment("E2101", "ElectricHeater", "E-2101", "ShapeASU_Cooler", 160, 108,
           [("N1", "N1", 160, 114, 500), ("N2", "N2", 160, 102, 600)], (176, 106), inst=[("I1", 166, 110)])
 equipment("F2101", "GasFilter", "F-2101", "ShapeASU_Filter", 300, 55,
@@ -37,7 +37,7 @@ PIPE_INST[("AIR-2001", 1, 1)] = [("I1", 80, 100)]
 PIPE_INST[("AIR-2001", 2, 1)] = [("I1", 240, 100)]
 PIPE_INST[("AIR-2001", 3, 1)] = [("I1", 260, 55), ("I2", 275, 55)]
 PIPE_INST[("RG-2001", 1, 1)] = [("I1", 120, 140)]
-PIPE_INST[("RG-2002", 2, 1)] = [("I1", 160, 87)]
+PIPE_INST[("RG-2002", 2, 1)] = [("I1", 160, 87), ("I2", 160, 84)]
 PIPE_INST[("RG-2003", 1, 1)] = [("I1", 80, 180)]
 PIPE_INST[("RG-2003", 5, 1)] = [("I1", 240, 180)]
 
@@ -126,6 +126,9 @@ instrument("TIC-2104", 185, 88, "Line_RG2002_S2", "Line_RG2002_S2_P1_I1", tgt="l
 instrument("FIC-2105", 118, 124, "Line_RG2001_S1", "Line_RG2001_S1_P1_I1",
            signal=[(124.75, 124), (128, 124), TOPS["FV2105"]])
 instrument("PDIA-2106", 318, 38, "F2101_I1", "F2101_I1_Pos", tgt="left")
+instrument("PDI-2115A", 58, 155, "V2101A_I2", "V2101A_I2_Pos", tgt="right")
+instrument("PDI-2115B", 272, 125, "V2101B_I2", "V2101B_I2_Pos", tgt="left")
+instrument("TSHH-2116", 124, 90, "Line_RG2002_S2", "Line_RG2002_S2_P1_I2", tgt="right")
 instrument("TSHH-2107", 185, 118, "E2101_I1", "E2101_I1_Pos", tgt="left")
 instrument("TI-2113A", 60, 95, "Line_AIR2001_S1", "Line_AIR2001_S1_P1_I1", tgt="right")
 instrument("TI-2113B", 260, 95, "Line_AIR2001_S2", "Line_AIR2001_S2_P1_I1", tgt="left")

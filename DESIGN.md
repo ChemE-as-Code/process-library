@@ -402,6 +402,9 @@ de-energised and XV-2109 opens, so cold waste N2 cools the bed; TI-2113A/B on th
 S-2101 discharges via an arrow "to atmosphere (safe location)" (waste N2, D-011). DN100 of the
 bypasses ASSUMED (repressurization in ~15 min).
 
+S5 (S4 review): PDI-2115A/B across each adsorber bed; TSHH-2116 on RG-2002 at the heater outlet trips
+E-2101 independently of TIC-2104 and the shell TSHH-2107.
+
 ## D-023 P-03 drawing content (2026-10-18)
 Decision: P-03 (scripts/draft_P-03.py) shows E-3101 with the warm end at the top and the cold end
 at the bottom; dry air AIR-2002 from P-02 with the booster branch AIR-3005 -> K-3101 -> E-3104 ->
