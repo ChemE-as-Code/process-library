@@ -4,6 +4,7 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-10-18 | layout/site-plan.yaml, layout/equipment-placement.yaml, DESIGN.md | plot plan: areas A1..A5, roads, vent area V1 downwind (~190 m) of the F-1101 intake; all equipment placed (sizes ASSUMED); D-025 | S4 review fix 7 |
 | 2026-10-18 | pid/P-01.xml, scripts/draft_P-01.py | crop check: S-1101 label off the silencer; E-1101/E-1102 CW/CWR labels in two rows under their arrows (were on the arrows and on the neighbour's line) | S4 review fix 8 (legibility) |
 | 2026-10-18 | pid/P-02.xml, scripts/draft_P-02.py, instrument list, DESIGN.md | PDI-2115A/B across the adsorber beds; TSHH-2116 on RG-2002 at the heater outlet | S4 review fix 8 |
 | 2026-10-18 | pid/P-03.xml, scripts/draft_P-03.py, lists, DESIGN.md | PSV-3119 redrawn on AIR-3002 at the E-3104 outlet upstream of the check valve, discharge arrow to atm.; cold box casing breather VNT-3004 / PSV-3123 with O2 analyzer AIA-3122 | S4 review fixes 3 and 5 (F7) |

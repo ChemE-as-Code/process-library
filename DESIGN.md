@@ -472,3 +472,16 @@ O2 review fixes (S4): globe-valve equalizing bypasses HV-4129 around XV-4118 and
 XV-4119 (exempt material); the ESD valves open only after the bypass has equalized the pressure
 (dP permissive), so no ball valve opens against 30 bar of GOX (EIGA Doc 13, adiabatic compression).
 Impingement-site materials recorded on GOX-4002 in the line list. PI-3121 on the HP column top.
+
+## D-025 Plot plan and vent location (2026-10-18)
+Decision: Plot 200 x 150 m (ASSUMED) in layout/: process row along the south (A1 MAC/precooling,
+A2 TSA, A3 cold box, A4 GOX/GAN compressors, west to east, in process order), storage A5 north of
+the central road with truck access from the north road, roads on all four sides of the process
+row for fire access. Prevailing wind ASSUMED from the south-west: the MAC intake F-1101 is at the
+upwind south-west corner, all vents and silencers (O2: S-4101, S-4102, VNT-4001, VNT-4006,
+VNT-3001, PSV-3114; N2: VNT-4004/4005/4007, S-3101, VNT-3004) are grouped in the reserved area V1
+at the downwind north-east corner, about 190 m from the intake, so neither O2-rich nor N2 vent gas
+nor hydrocarbons from the roads reach the intake (D-010 (5), D-011). The GOX compressor K-4101
+stands behind a fire wall; LOX/LIN pumps stand next to their tanks (short suction, NPSH).
+All dimensions ASSUMED; E-3103 is inside the C-3102 sump and has no own placement.
+Reason: Intake air quality (hydrocarbons, O2/N2 enrichment) and O2 fire separation drive an ASU plot.
