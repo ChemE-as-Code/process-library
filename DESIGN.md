@@ -77,8 +77,8 @@ Basis: design case, 30 C ambient, 94 % O2 recovery (ASSUMED). Nm3 at 0 C, 1.013 
 | 7 GOX product | E-3101 -> K-4101 | 14,600 | 20,860 | 1.15 | 25 | O2 99.5 % |
 | 8 GOX to pipeline | K-4101 -> BL | 14,600 | 20,860 | 31.0 | 40 | O2 99.5 % |
 | 9 GAN product | E-3101 -> K-4102 -> BL | 10,000 | 12,510 | 5.2 / 9.0 | 25 / 40 | N2, O2 <= 10 ppm |
-| 10 LOX to storage | C-3102 -> T-4101 | 420 | 600 | 1.3 | -180 | O2 99.5 % |
-| 11 LIN to storage | C-3101 -> T-4102 | 480 | 600 | 5.2 | -178 | N2 |
+| 10 LOX to storage | C-3102 -> T-4101 | 330 | 470 | 1.3 | -180 | O2 99.5 % |
+| 11 LIN to storage | C-3101 -> T-4102 | 375 | 470 | 5.2 | -178 | N2 |
 | 12 waste N2 | C-3102 -> E-3101 | 50,500 | 63,530 | 1.15 | 25 | N2 96.8, O2 1.9, Ar 1.3 % |
 | 12a regeneration | -> E-2101 -> V-2101 | 13,000 | 16,350 | 1.1 | 200 (heating) | waste N2 |
 | 12b evaporative cooler | -> C-1102 | 25,000 | 31,450 | 1.05 | 25 | waste N2 |
@@ -86,12 +86,19 @@ Basis: design case, 30 C ambient, 94 % O2 recovery (ASSUMED). Nm3 at 0 C, 1.013 
 
 Mass closure: 98,270 kg/h in, 98,100 kg/h products + waste + ~400 kg/h water/CO2 removed
 (within 0.2 %). O2 balance: 15,922 Nm3/h O2 in air, 14,945 Nm3/h in GOX + LOX (94 %), 977 Nm3/h
-in waste.
+in waste. (Liquid rates revised to 470 kg/h each with the expander recalculation below; the
+difference of 260 kg/h goes to waste N2, inside the accuracy of this balance.)
 
-Refrigeration (ASSUMED): heat leak ~50 kW + warm-end temperature difference ~55 kW + liquid
-production 1,200 kg/h x ~420 kJ/kg ~140 kW = ~250 kW. Expander KT-3101: 14,870 kg/h, 8 -> 1.35
-bara, inlet -100 C, isentropic efficiency 0.85, ~60 kJ/kg -> ~250 kW. Liquid production is
-limited by this; more liquid needs a larger expander flow at the cost of O2 recovery.
+Refrigeration (ASSUMED, revised at S2 after review finding 5): expander KT-3101 on 14,870 kg/h
+(4.13 kg/s), 7.8 -> 1.35 bara. For the -178 C exhaust the LP column needs (just above the air dew
+point at 1.35 bara), the inlet must be about -115 to -120 C; design point -118 C. Ideal-gas check:
+pressure ratio 0.173, T2s/T1 = 0.606, with eta_s 0.85 T2/T1 = 0.665, so T1 = 95 K / 0.665 = 143 K
+ideal gas; real-gas cp near saturation moves this to ~155 K (-118 C). Enthalpy drop ~52 kJ/kg ->
+**~215 kW** (the earlier -100 C inlet and 250 kW were inconsistent with a -178 C exhaust).
+Demand: heat leak ~50 kW + warm-end temperature difference ~55 kW = ~105 kW; the remaining
+~110 kW makes 110 kW / ~420 kJ/kg = 0.26 kg/s = **~940 kg/h liquid** (470 kg/h LOX incl. the
+hydrocarbon purge + 470 kg/h LIN), down from 1,200 kg/h. More liquid needs more expander flow at
+the cost of O2 recovery (D-017).
 
 | consumer | power / duty | basis |
 |---|---|---|
@@ -104,6 +111,27 @@ limited by this; more liquid needs a larger expander flow at the cost of O2 reco
 | cooling water | ~10.5 MW, ~900 m3/h at 10 K | MAC 7.6, DCAC 0.6, GOX comp 2.2, GAN comp 0.3 MW (ASSUMED) |
 
 Specific energy: ~0.71 kWh per Nm3 GOX delivered at 30 barg (MAC + GOX compressor).
+
+## 4 Relief case list (preliminary, ASSUMED cases; sizing in detail engineering)
+
+| device | protects | governing case | discharge |
+|---|---|---|---|
+| PSV-1109 | C-1101 DCAC, AIR-1002 | MAC at surge / max. IGV with AIR-1004 blocked; MAC max. discharge ~6.5 bara vs 8 barg design: PSV as backup to UIC-1102 (fire case for the packed column) | atmosphere, local (air) |
+| PSV-2108 | V-2101A/B | fire; blocked outlet during pressurization | atmosphere via S-2101 |
+| TSV on E-2101 | heater shell | blocked-in heating (TSHH-2107 primary) | atmosphere |
+| PSV-3114 | C-3102 LP column | waste N2 outlet blocked (PIC-3110 failure) with expander and JT valves running | outside cold box, elevated (O2-rich: safe location) |
+| PSV-3116 | C-3101 HP column | MAC deadhead feed with GAN and liquid outlets blocked | outside cold box |
+| TSVs | trapped cryogenic liquid between valves (LOX, LIN, RL, LN lines) | heat-in of blocked liquid | to vent / drain vaporizer V-3101 |
+| PSV on K-3101 discharge | booster casing, E-3104 | blocked outlet (KT-3101 inlet XV closed) | atmosphere |
+| PSV-4122 | K-4101 discharge, E-4102 | blocked outlet at max. speed (ESD XV-4118 closed) | VNT-4002 via S-4101 |
+| PSVs + vacuum breaker | T-4101 LOX tank | loss of vacuum/insulation, fill overpressure, roll-over; vacuum on fast draw-off | VNT-4001 / own outlet, safe location |
+| PSVs + vacuum breaker | T-4102 LIN tank | as T-4101 | elevated (N2) |
+| PSVs | P-4101/P-4102 discharge | closed discharge (pump deadhead), thermal | back to the tank |
+| PSVs | E-4105A/B, E-4106A/B | blocked outlet, thermal | elevated |
+| PSV on CW headers | E-1101..E-1103 tube side | tube rupture (5.8 bara air into CW) | local |
+
+Device tags PSV-1109, PSV-3114 and PSV-3116 are fixed now; the rest get numbers when their sheet
+is drawn.
 
 ## D-001 Process cycle: LP double column, no argon column, Lachmann expander (2026-10-18)
 Decision: Classic LP double-column cycle, MAC at 5.8 bara, bath condenser-reboiler, booster
@@ -135,7 +163,8 @@ Reason: No electric generator needed, booster raises inlet pressure and so refri
 Lachmann air is standard for LP cycles at 99.5 % O2.
 Rejected: Generator-braked expander (power recovery small, electrical complexity); waste-N2
 expander (less refrigeration at this LP pressure, cannot produce the liquid needed).
-Assumptions: ~250 kW refrigeration; liquid 600 kg/h LOX + 600 kg/h LIN (see balance).
+Assumptions: inlet -118 C / 7.8 bara, exhaust -178 C / 1.35 bara, eta_s 0.85, ~215 kW
+refrigeration; liquid 470 kg/h LOX + 470 kg/h LIN (see balance, D-017).
 
 ## D-004 GAN source and compression (2026-10-18)
 Decision: 10,000 Nm3/h pressurized nitrogen from the HP column top (<= 10 ppm O2), warmed in
@@ -195,9 +224,10 @@ Reason: Ignition by particle impact and adiabatic compression is the main GOX fi
 Decision: (1) Molecular sieve removes C2H2, most C3+, N2O and CO2 (D-006). (2) Continuous LOX
 purge from the LP sump of >= 0.2 % of the O2 product (~30 Nm3/h, ASSUMED; FIC-3111) to the LOX
 tank / drain vaporizer. (3) The condenser-reboiler E-3103 is kept fully submerged (LP sump level
-LIC-3102 with low alarm), bath type, no dry boiling. (4) Analyzers: total hydrocarbons and
+LICA-3102 with low alarm), bath type, no dry boiling. (4) Analyzers: total hydrocarbons and
 C2H2 in sump LOX (AIA-3103, alarm/trip), CO2 at TSA outlet (AIA-2102); action limits per EIGA
-Doc 65 (ASSUMED). (5) Air intake located away from hydrocarbon sources; intake survey in basic
+Doc 65 (ASSUMED); hydrocarbons in the LOX tank liquid (AIA-4121, periodic), since
+boil-off in storage concentrates them. (5) Air intake located away from hydrocarbon sources; intake survey in basic
 engineering. (6) Periodic derime/warm-up procedure.
 Reason: Hydrocarbon accumulation in boiling LOX is the dominant ASU explosion hazard.
 
@@ -209,20 +239,29 @@ routed to a safe location: elevated, away from ignition sources, walkways and ai
 vent with silencer. N2 vents routed high to avoid asphyxiation zones. LOX/LIN tanks: PSVs +
 vacuum breakers + rupture discs on the annular space. Cold liquid drains go to an atmospheric
 drain vaporizer, never to sewers or open pits. Relief cases (blocked outlet, fire, CW failure,
-control valve failure, heater over-temperature) are listed in basic engineering.
+control valve failure, heater over-temperature) are listed per device in section 4. The LP
+column C-3102 has its own PSV-3114 (design 3.5 barg against normal 0.3 barg): it can be blocked in
+by PIC-3110 / the waste N2 valves while the expander and the JT valves keep feeding it. Vents of
+different pressure levels never share a header (D-019).
 Reason: Overpressure, O2 enrichment and N2 asphyxiation risks of an ASU.
 
 ## D-012 No oil-lubricated equipment in O2 service (2026-10-18)
 Decision: GOX compressor with dry gas seals and N2 buffer gas, oil system separated by an
 atmospheric distance piece; LOX pumps with vapour-lifted/leakage-vented seals and grease-free
 bearings in O2-wetted parts; MAC oil system with demister and oil-free air path; no
-oil-lubricated valve actuators in O2 lines.
+oil-lubricated valve actuators in O2 lines. The compander KT-3101/K-3101 is the one oil-bearing
+machine that touches cold-box air: its bearings are oil-lubricated, sealed from the expander and
+booster wheels by labyrinths fed with N2 seal gas. PDSLL-3115 (seal gas minus bearing housing
+pressure) is a permissive for the lube oil pump (seal gas first, oil second) and trips the
+compander (inlet XV closed) on low-low. The oil tank vent has an oil mist eliminator and vents
+outside the cold box. So no oil can be carried with the Lachmann air into the LP column, where it
+would accumulate in the LOX sump. (Alternative for the vendor enquiry: magnetic or gas bearings.)
 Reason: Hydrocarbon oils are ignition sources in oxygen.
 
 ## D-013 Isolation and blowdown (2026-10-18)
-Decision: Double block and bleed at the GOX and GAN battery limits; emergency isolation valves
-(ESD) at the GOX compressor suction and discharge and at the pipeline; GOX compressor
-depressurized to the GOX vent on trip; cold box liquid drain valves to the drain vaporizer; the
+Decision: Double block and bleed at the GOX and GAN battery limits (ESD valves XV-4119 GOX,
+XV-4120 GAN); emergency isolation valves XV-4117 (K-4101 suction) and XV-4118 (discharge);
+GOX compressor depressurized on trip by blowdown valve XV-4116 to VNT-4002 / S-4101; cold box liquid drain valves to the drain vaporizer; the
 cold box casing is N2-purged (PIC on purge) with a breathing valve.
 Reason: Safe isolation for maintenance and fast removal of energy from a GOX fire.
 
@@ -244,3 +283,58 @@ until basic engineering.
 Decision: Concept DN from velocity: gas <= 20 m/s (waste/regen <= 25 m/s at near-atmospheric
 pressure), GOX <= 10 m/s at 31 bara (D-009), liquids 1-2 m/s, pump suction <= 1 m/s.
 Reason: Pressure-drop and O2 velocity limits. Final sizing in basic engineering.
+
+## D-017 Liquid production and storage refill time: client to confirm (2026-10-18)
+Decision (proposed, CLIENT TO CONFIRM): keep the expander at 11,500 Nm3/h and ~940 kg/h liquid.
+Refilling the full backup reserve then takes ~22 days for LOX (250 t / 470 kg/h) and ~27 days
+for LIN (300 t / 470 kg/h); at the previous 600 kg/h it was 17 / 21 days. After a backup event
+the tanks are topped up by road tankers (truck fill connection on T-4101/T-4102, P-04).
+Alternative for the client: a ~30 % larger expander flow (~15,000 Nm3/h) restores ~1,200 kg/h
+(refill ~17 / 21 days) for about 1-1.5 points of O2 recovery and ~0.2 MW more MAC power.
+Reason: the backup reserve (2 days of 25 % GOX and 50 % GAN) is set by the specification, the
+refill time is not; it is a commercial choice between truck liquid and power/recovery.
+Assumptions: liquid refrigeration ~420 kJ/kg (ASSUMED).
+
+## D-018 O2 recovery 94 % and sensitivity at 90 % (2026-10-18)
+Decision: keep 94 % as the design recovery and size the MAC for 80,000 Nm3/h (+5 %, ASSUMED
+margin). Check: an LP double column with ~15 % Lachmann air and no argon column typically reaches
+93-96 % at 99.5 % O2, so 94 % is plausible but not conservative. At 90 % the O2 in the air must be
+14,930 / 0.90 = 16,590 Nm3/h -> 79,200 Nm3/h air (+4.2 %), MAC power ~8.35 MW (+0.35 MW), adsorber
+and MHX loads +4 %: covered by the 80,000 Nm3/h MAC rating; specific energy rises to ~0.73 kWh/Nm3.
+Reason: recovery is the main uncertainty of the concept balance; the margin keeps the product rate
+if the simulation in basic engineering gives less.
+
+## D-019 Vent separation and GOX suction vent (2026-10-18)
+Decision: no shared vent headers between pressure levels. VNT-4001 is the LOX tank vent only
+(0.5 barg, PV-4109); VNT-4002 is the K-4101 blowdown (31 bara, XV-4116, silencer S-4101);
+VNT-4003 is the GOX suction vent on GOX-4001 (PV-4101B, silencer S-4102), split range with
+PIC-4101: PV-4101A first (compressor IGV/recycle), PV-4101B opens above it on a K-4101 trip or
+during start-up, so the LP column pressure stays controlled while the compressor is not taking
+GOX. All three discharge elevated at a safe location (D-011).
+Reason: a 31 bara blowdown into a header shared with a 0.5 barg tank would back-pressure and
+possibly overpressure the tank, and push O2 back into it (review finding S1-2/3).
+
+## D-020 DEXPI classes used for equipment (2026-10-18)
+Decision: CentrifugalCompressor (MAC, booster, GOX/GAN compressors), TubularHeatExchanger
+(coolers), PlateHeatExchanger (brazed aluminium exchangers), ProcessColumn (columns, DCAC,
+evaporative cooler), GasFilter, Silencer, CentrifugalPump, Tank, PressureVessel, ElectricHeater.
+Verified on P-01 by `plantcode validate` (the loader rejects unknown classes). Classes for P-03/
+P-04 that are not on a sheet yet (Turbine for KT-3101, Vessel for V-3101, HeatExchanger for the
+ambient vaporizers) are checked the same way when those sheets are drawn; if the loader refuses
+them: SteamTurbine is wrong for an air expander, so use the generic class the loader offers and
+say so here.
+Note: the `name` attribute of the XML root (`example`) is rewritten by `plantcode fmt` (pyDEXPI
+serializer); the plant identification is in the title-block MetaData (ASU-1).
+
+## D-021 P-01 drawing content (2026-10-18)
+Decision: P-01 shows F-1101, K-1101 (one compressor symbol with stage nozzles; intercoolers
+E-1101/E-1102 below it on interstage lines AIR-1005/AIR-1006), aftercooler E-1103, blow-off
+AIR-1003 with UV-1102 to S-1101, non-return valve on AIR-1002 before the DCAC (no backflow from
+the adsorbers into the MAC on trip), PSV-1109 on C-1101, CW pumps P-1101A/B (FV-1108), DCAC sump
+water CWR-1001 via LV-1106, chilled water C-1102 -> P-1102A/B -> TV-1105 -> C-1101 upper section,
+CW make-up CW-1003 via LV-1107, waste N2 WN-1001 from P-03 into C-1102 and vent WN-1002. Cooling
+water to the intercoolers and aftercooler is CW-1002 / CWR-1002 with off-sheet connectors to the
+CW utility system (not drawn in this project).
+Signal lines are drawn as dashed lines to the valve actuators; the DEXPI actuating-system objects
+(ActuatingSystem / ActuatingFunction) are added in detail engineering. Control valves carry their
+tag as the valve number (e.g. TV-1105).
