@@ -117,7 +117,7 @@ Specific energy: ~0.71 kWh per Nm3 GOX delivered at 30 barg (MAC + GOX compresso
 | device | protects | governing case | discharge |
 |---|---|---|---|
 | PSV-1109 | C-1101 DCAC, AIR-1002 | MAC at surge / max. IGV with AIR-1004 blocked; MAC max. discharge ~6.5 bara vs 8 barg design: PSV as backup to UIC-1102 (fire case for the packed column) | atmosphere, local (air) |
-| PSV-2108 | V-2101A/B | fire; blocked outlet during pressurization | atmosphere via S-2101 |
+| PSV-2108A/B | V-2101A, V-2101B (one each: each bed can be blocked in by its XVs) | fire; blocked outlet during repressurization | atmosphere, local at the bed top (dry air / N2) |
 | TSV on E-2101 | heater shell | blocked-in heating (TSHH-2107 primary) | atmosphere |
 | PSV-3114 | C-3102 LP column | waste N2 outlet blocked (PIC-3110 failure) with expander and JT valves running | outside cold box, elevated (O2-rich: safe location) |
 | PSV-3116 | C-3101 HP column | MAC deadhead feed with GAN and liquid outlets blocked | outside cold box |
@@ -130,7 +130,7 @@ Specific energy: ~0.71 kWh per Nm3 GOX delivered at 30 barg (MAC + GOX compresso
 | PSVs | E-4105A/B, E-4106A/B | blocked outlet, thermal | elevated |
 | PSV on CW headers | E-1101..E-1103 tube side | tube rupture (5.8 bara air into CW) | local |
 
-Device tags PSV-1109, PSV-3114 and PSV-3116 are fixed now; the rest get numbers when their sheet
+Device tags PSV-1109, PSV-2108A/B, PSV-3114 and PSV-3116 are fixed now; the rest get numbers when their sheet
 is drawn.
 
 ## D-001 Process cycle: LP double column, no argon column, Lachmann expander (2026-10-18)
@@ -336,6 +336,7 @@ instrument lists:
 | S-1101 | Silencer | AIR-1003 | P-01 |
 | PSV-1109 | SpringLoadedGlobeSafetyValve | AIR-1004 (C-1101 top) | P-01 |
 | S-2101 | Silencer | RG-2003 | P-02 |
+| PSV-2108A/B | SpringLoadedGlobeSafetyValve | AIR-2001 (V-2101A/B tops) | P-02 |
 | S-3101 | Silencer | WN-3003 | P-03 |
 | PSV-3114, PSV-3116 | SpringLoadedGlobeSafetyValve | C-3102, C-3101 tops | P-03 |
 | S-4101, S-4102 | Silencer | VNT-4002, VNT-4003 | P-04 |
@@ -351,7 +352,14 @@ the adsorbers into the MAC on trip), PSV-1109 on C-1101, CW pumps P-1101A/B (FV-
 water CWR-1001 via LV-1106, chilled water C-1102 -> P-1102A/B -> TV-1105 -> C-1101 upper section,
 CW make-up CW-1003 via LV-1107, waste N2 WN-1001 from P-03 into C-1102 and vent WN-1002. Cooling
 water to the intercoolers and aftercooler is CW-1002 / CWR-1002 with off-sheet connectors to the
-CW utility system (not drawn in this project).
+CW utility system (not drawn in this project). One line number per cooler (CW-1002/CWR-1002 E-1101,
+CW-1004/CWR-1003 E-1102, CW-1005/CWR-1004 E-1103) so from/to are exact.
+Rev after the S2 review: CW-1001 enters C-1101 on the right side (no crossing with AIR-1002), DCAC
+level instruments on the left side, CWR-1001 leaves to the left; mist eliminator drawn as a mesh pad
+at the C-1101 top (D-005); TIA-1110 (MAC vendor multipoint: stage discharges and intercooler
+outlets) and TIA-1111 on AIR-1002 after E-1103. LSHH-1106 trips the MAC only: no XV on AIR-1004,
+because the MAC trip stops the flow and the check valve on AIR-1002 prevents back-flow; a 600 mm
+XV in the wet air would add a failure point without extra protection.
 Signal lines are drawn as dashed lines to the valve actuators; the DEXPI actuating-system objects
 (ActuatingSystem / ActuatingFunction) are added in detail engineering. Control valves carry their
 tag as the valve number (e.g. TV-1105).
@@ -362,6 +370,16 @@ counter-current downflow regeneration (RG-2002 in at the top, RG-2003 out at the
 S-2101). Eight switching valves XV-2101A/B..XV-2104A/B (actuated ball valves, sequenced by
 KS-2101; valve tags, not instrument-list items). AIR-1004 continues from P-01 to the adsorber inlet
 header. FV-2105 on RG-2001 (FIC-2105), TIC-2104 trims E-2101, TSHH-2107 on the heater element.
-Open for the next revision of P-02: heater bypass for the cooling step, pressurization /
-depressurization valves, PSV-2108 on the adsorbers (relief case list), crossing of RG-2002 over the
-AIR-2001 header (drawn as a plain crossing).
+Rev after the S2 review: no line crosses another. With two beds and four external streams (feed in,
+product out, regeneration in, regeneration out) two of the four headers must lie inside the loop
+formed by the beds; the product header (top) and the regeneration outlet header with S-2101
+(bottom, then right) run outside, the feed-air and regeneration-gas inlets (off-page connectors
+from P-01 / P-03) sit between the beds. Air out at the outer top nozzles, regeneration in at the
+inner top nozzles, air in at the inner bottom, regeneration out at the outer bottom.
+Added: PSV-2108A/B on the bed tops; repressurization XV-2111A/B (DN100 globe, slow, bypassing the
+inlet XV-2101A/B) and depressurization XV-2112A/B (DN100 globe, bypassing XV-2104A/B to S-2101),
+all sequenced by KS-2101; heater bypass XV-2109 (butterfly, DN500) for the cooling step: E-2101 is
+de-energised and XV-2109 opens, so cold waste N2 cools the bed; TI-2113A/B on the dry-air outlets
+(hot bed on line) and TI-2114A/B on the regeneration outlets (heat pulse ends the heating step).
+S-2101 discharges via an arrow "to atmosphere (safe location)" (waste N2, D-011). DN100 of the
+bypasses ASSUMED (repressurization in ~15 min).

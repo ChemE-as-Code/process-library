@@ -138,7 +138,8 @@ def column_shape(sid, hw, hh, beds, extra=()):
 
 
 # DCAC 24 x 120, centre (205,110): CHW bed y 80..100, CW bed 125..142, mist eliminator 60
-column_shape("ShapeASU_C1101", 12, 60, [(-30, -10), (15, 32)], [(-50, "Dash")])
+column_shape("ShapeASU_C1101", 12, 60, [(-30, -10), (15, 32), (-53, -47)])
+SHP[-1] = SHP[-1].replace('</Components><Data property="Name">', text("ShapeASU_C1101_ME", -14, -50, "mist eliminator", 1.8, "RightCenter") + '</Components><Data property="Name">', 1)
 # evaporative cooler 20 x 90, centre (330,110): bed 82..138
 column_shape("ShapeASU_C1102", 10, 45, [(-28, 28)], [(-40, "Dash")])
 
@@ -184,8 +185,8 @@ def NUMATTR(cls):
 DIRS = {0: (1, 0), 90: (0, 1), 180: (-1, 0), 270: (0, -1)}
 
 
-def valve(vid, cls, x, y, rot, d, tag=None, act=None, shape_id=None, sc=0.4, half=2.0, srot=None):
-    """Inline valve; act = side of the actuator (0/90/180/270) for a control valve."""
+def valve(vid, cls, x, y, rot, d, tag=None, act=None, shape_id=None, sc=0.4, half=2.0, srot=None, lab=None):
+    """Inline valve; act = side of the actuator (0/90/180/270) for a control valve; lab = (dx, dy, align) of the tag."""
     dx, dy = DIRS[rot]
     n1, n2 = vid + "_N1", vid + "_N2"
     if cls == "SpringLoadedGlobeSafetyValve":         # inlet below, outlet to the right
@@ -213,6 +214,8 @@ def valve(vid, cls, x, y, rot, d, tag=None, act=None, shape_id=None, sc=0.4, hal
             if rot in (0, 180) and act == 90:
                 ox, oy = 5, -3
         al = "LeftCenter" if ox > 0 else "RightCenter"
+        if lab:
+            ox, oy, al = lab
         labs = label(vid + "_Label", "PipingComponentNumberLabel" if False else "ValveLabel",
                      [text(vid + "_LabelText", x + ox, y + oy, tag, 2.2, al, (vid, NUMATTR(cls)))])
     item = ('<Object id="%s" type="Plant/Piping.%s"><Components property="Nodes">%%s</Components>%s</Object>'
@@ -400,7 +403,7 @@ equipment("F1101", "GasFilter", "F-1101", "ShapeASU_Filter", 35, 70, [("N1", "N1
 equipment("K1101", "CentrifugalCompressor", "K-1101", "ShapeASU_Compressor", 85, 70,
           [("N1", "N1", 73, 70, 1400), ("N2", "N2", 77, 79.17, 900), ("N3", "N3", 82, 78.125, 900),
            ("N4", "N4", 87, 77.08, 700), ("N5", "N5", 92, 76.04, 700), ("N6", "N6", 97, 70, 600)], (58, 84),
-          inst=[("I1", 88, 63.1)])
+          inst=[("I1", 88, 63.1), ("I2", 96, 73.5)])
 for eid, tag, x, y, d, lab in [("E1101", "E-1101", 75, 115, 900, (60, 115)), ("E1102", "E-1102", 95, 115, 700, (110, 115))]:
     equipment(eid, "TubularHeatExchanger", tag, "ShapeASU_Cooler", x, y,
               [("N1", "N1", x - 3, y - 5.2, d), ("N2", "N2", x + 3, y - 5.2, d), ("N3", "N3", x - 3, y + 5.2, 300),
@@ -409,9 +412,9 @@ equipment("E1103", "TubularHeatExchanger", "E-1103", "ShapeASU_Cooler", 125, 70,
           [("N1", "N1", 119, 70, 600), ("N2", "N2", 131, 70, 600), ("N3", "N3", 122, 75.2, 300),
            ("N4", "N4", 128, 75.2, 300)], (125, 61))
 equipment("C1101", "ProcessColumn", "C-1101", "ShapeASU_C1101", 205, 110,
-          [("N1", "N1", 193, 150, 600), ("N2", "N2", 205, 50, 600), ("N3", "N3", 193, 120, 200),
+          [("N1", "N1", 193, 150, 600), ("N2", "N2", 205, 50, 600), ("N3", "N3", 217, 120, 200),
            ("N4", "N4", 217, 75, 150), ("N5", "N5", 205, 170, 250), ("N6", "N6", 196, 52.1, 150)], (222, 57),
-          inst=[("I1", 217, 165), ("I2", 217, 150)])
+          inst=[("I1", 193, 166), ("I2", 193, 158)])
 equipment("C1102", "ProcessColumn", "C-1102", "ShapeASU_C1102", 330, 110,
           [("N1", "N1", 340, 145, 700), ("N2", "N2", 330, 65, 700), ("N3", "N3", 340, 72, 150),
            ("N4", "N4", 330, 155, 150)], (346, 60), inst=[("I1", 340, 135)])
@@ -426,7 +429,8 @@ PIPE_INST[("AIR-1001", 1, 1)] = [("I1", 58, 70)]
 PIPE_INST[("AIR-1002", 1, 1)] = [("I1", 112, 70)]
 PIPE_INST[("AIR-1002", 3, 2)] = [("I1", 172, 70)]
 PIPE_INST[("AIR-1004", 1, 1)] = [("I1", 268, 30)]
-PIPE_INST[("CW-1001", 6, 1)] = [("I1", 180, 185)]
+PIPE_INST[("CW-1001", 6, 1)] = [("I1", 218, 200)]
+PIPE_INST[("AIR-1002", 3, 1)] = [("I1", 152, 70)]
 
 
 def N(eid, suf):
@@ -458,26 +462,26 @@ system("AIR-1004", 600, "Air", [(None, N("C1101", "N2"), [P((205, 30)), E(OPC_AI
                                 (150, N("C1101", "N6"), [P(), E(PSV)], None)], (290, 24))
 
 # ---- cooling water to the DCAC
-OPC_CW = offpage("OPC_CW1001", True, 110, 200, 0, 200, "CW supply", (100, 195, "CenterCenter"))
+OPC_CW = offpage("OPC_CW1001", True, 110, 200, 0, 200, "CW supply", (108, 194, "CenterCenter"))
 TCS = tee("Tee_CW1001_S", 125, 200, 0, 90, 200)
 TCD = tee("Tee_CW1001_D", 170, 200, 0, 90, 200)
 BV1 = valve("BV_P1101A_S", "BallValve", 129, 200, 0, 200)
 BV2 = valve("BV_P1101B_S", "BallValve", 129, 225, 0, 200)
 CV2 = valve("CV_P1101A_D", "SwingCheckValve", 158, 200, 0, 200)
 CV3 = valve("CV_P1101B_D", "SwingCheckValve", 158, 225, 0, 200)
-FV = valve("FV1108", "GlobeValve", 180, 160, 270, 200, "FV-1108", act=180)
+FV = valve("FV1108", "GlobeValve", 230, 150, 270, 200, "FV-1108", act=180)
 system("CW-1001", 200, "Cooling water",
        [(None, (OPC_CW["id"], OPC_CW["nodes"][0]), [P(), E(TCS)], None),
         (None, (TCS["id"], TCS["nodes"][1]), [P(), I(BV1), P()], N("P1101A", "N1")),
         (None, (TCS["id"], TCS["nodes"][2]), [P((125, 225)), I(BV2), P()], N("P1101B", "N1")),
         (None, N("P1101A", "N2"), [P(), I(CV2), P(), E(TCD)], None),
         (None, N("P1101B", "N2"), [P(), I(CV3), P((170, 225)), E(TCD, 2)], None),
-        (None, (TCD["id"], TCD["nodes"][1]), [P((180, 200)), I(FV), P((180, 120))], N("C1101", "N3"))], (106, 210))
+        (None, (TCD["id"], TCD["nodes"][1]), [P((230, 200)), I(FV), P((230, 120))], N("C1101", "N3"))], (106, 210))
 # ---- DCAC sump water return
-LV6 = valve("LV1106", "GlobeValve", 205, 185, 90, 250, "LV-1106", act=0)
-OPC_CWR = offpage("OPC_CWR1001", False, 300, 250, 0, 250, "CW return", (305, 245, "CenterCenter"))
+LV6 = valve("LV1106", "GlobeValve", 205, 176, 90, 250, "LV-1106", act=180)
+OPC_CWR = offpage("OPC_CWR1001", False, 90, 240, 90, 250, "CW return", (94, 247, "LeftCenter"))
 system("CWR-1001", 250, "Cooling water return",
-       [(None, N("C1101", "N5"), [P(), I(LV6), P((205, 250)), E(OPC_CWR)], None)], (230, 244))
+       [(None, N("C1101", "N5"), [P(), I(LV6), P((205, 182), (90, 182)), E(OPC_CWR)], None)], (150, 180))
 # ---- chilled water loop
 TSH = tee("Tee_CHW1001_S", 310, 200, 180, 90, 150)
 TDH = tee("Tee_CHW1001_D", 265, 200, 180, 90, 150)
@@ -501,17 +505,15 @@ system("CW-1003", 150, "Cooling water",
 OPC_WN = offpage("OPC_WN1001", True, 390, 145, 180, 700, "from P-03 WN-3002", (392, 140, "CenterCenter"))
 system("WN-1001", 700, "Waste nitrogen",
        [(None, (OPC_WN["id"], OPC_WN["nodes"][0]), [P()], N("C1102", "N1"))], (350, 152))
-OPC_ATM = offpage("OPC_WN1002", False, 330, 45, 270, 700, "to atmosphere (elevated)", (335, 33, "LeftCenter"))
-system("WN-1002", 700, "Waste nitrogen", [(None, N("C1102", "N2"), [P(), E(OPC_ATM)], None)], (332, 55))
+OPC_ATM = offpage("OPC_WN1002", False, 330, 52, 270, 700, "to atmosphere (elevated)", (334, 47, "LeftCenter"))
+system("WN-1002", 700, "Waste nitrogen", [(None, N("C1102", "N2"), [P(), E(OPC_ATM)], None)], (310, 58))
 # ---- cooling water to intercoolers and aftercooler (utility connections)
-cw_s, cwr_s = [], []
-for eid, x, y in [("E1101", 75, 115), ("E1102", 95, 115), ("E1103", 125, 70)]:
+for eid, x, y, cw, cwr in [("E1101", 75, 115, "CW-1002", "CWR-1002"), ("E1102", 95, 115, "CW-1004", "CWR-1003"),
+                           ("E1103", 125, 70, "CW-1005", "CWR-1004")]:
     oi = offpage("OPC_CW1002_" + eid, True, x - 3, y + 20, 270, 300, "CW", (x - 3, y + 32, "CenterCenter"))
     oo = offpage("OPC_CWR1002_" + eid, False, x + 3, y + 20, 90, 300, "CWR", (x + 3, y + 32, "CenterCenter"))
-    cw_s.append((None, (oi["id"], oi["nodes"][0]), [P()], N(eid, "N3")))
-    cwr_s.append((None, N(eid, "N4"), [P(), E(oo)], None))
-system("CW-1002", 300, "Cooling water", cw_s, (50, 138))
-system("CWR-1002", 300, "Cooling water return", cwr_s, (50, 146))
+    system(cw, 300, "Cooling water", [(None, (oi["id"], oi["nodes"][0]), [P()], N(eid, "N3"))], (x - 16, y + 14))
+    system(cwr, 300, "Cooling water return", [(None, N(eid, "N4"), [P(), E(oo)], None)], (x + 4.5, y + 22))
 
 # =============================================================================================
 # Instruments
@@ -524,12 +526,14 @@ instrument("UIC-1102", 112, 50, "Line_AIR1002_S1", "Line_AIR1002_S1_P1_I1",
 instrument("PIC-1103", 172, 52, "Line_AIR1002_S3", "Line_AIR1002_S3_P2_I1")
 instrument("TIC-1105", 268, 110, "Line_AIR1004_S1", "Line_AIR1004_S1_P1_I1", tgt="top",
            signal=[(261.25, 110), TOPS["TV1105"]])
-instrument("LIC-1106", 232, 165, "C1101_I1", "C1101_I1_Pos", tgt="left",
-           signal=[(232, 168.75), (232, 185), TOPS["LV1106"]])
-instrument("LSHH-1106", 232, 148, "C1101_I2", "C1101_I2_Pos", tgt="left")
+instrument("LIC-1106", 172, 170, "C1101_I1", "C1101_I1_Pos", tgt="right",
+           signal=[(172, 173.75), (172, 176), TOPS["LV1106"]])
+instrument("LSHH-1106", 172, 158, "C1101_I2", "C1101_I2_Pos", tgt="right")
 instrument("LIC-1107", 365, 120, "C1102_I1", "C1102_I1_Pos", tgt="left", signal=[(365, 116.25), TOPS["LV1107"]])
-instrument("FIC-1108", 164, 175, "Line_CW1001_S6", "Line_CW1001_S6_P1_I1", tgt="right",
-           signal=[(164, 171.25), (164, 160), TOPS["FV1108"]])
+instrument("FIC-1108", 218, 191, "Line_CW1001_S6", "Line_CW1001_S6_P1_I1",
+           signal=[(218, 187.25), (218, 184), (222.8, 184), TOPS["FV1108"]])
+instrument("TIA-1110", 128, 112, "K1101_I2", "K1101_I2_Pos", tgt="left")
+instrument("TIA-1111", 152, 88, "Line_AIR1002_S3", "Line_AIR1002_S3_P1_I1", tgt="top")
 
 # =============================================================================================
 path = sys.argv[1]
