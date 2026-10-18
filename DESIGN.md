@@ -124,14 +124,13 @@ Specific energy: ~0.71 kWh per Nm3 GOX delivered at 30 barg (MAC + GOX compresso
 | TSVs | trapped cryogenic liquid between valves (LOX, LIN, RL, LN lines) | heat-in of blocked liquid | to vent / drain vaporizer V-3101 |
 | PSV-3119 | K-3101 discharge, E-3104 | blocked outlet (KT-3101 inlet XV-3117 closed) | atmosphere (air), local |
 | PSV-4122 | K-4101 discharge, E-4102 | blocked outlet at max. speed (ESD XV-4118 closed) | VNT-4002 via S-4101 |
-| PSVs + vacuum breaker | T-4101 LOX tank | loss of vacuum/insulation, fill overpressure, roll-over; vacuum on fast draw-off | VNT-4001 / own outlet, safe location |
-| PSVs + vacuum breaker | T-4102 LIN tank | as T-4101 | elevated (N2) |
-| PSVs | P-4101/P-4102 discharge | closed discharge (pump deadhead), thermal | back to the tank |
-| PSVs | E-4105A/B, E-4106A/B | blocked outlet, thermal | elevated |
+| PSV-4123 + vacuum breaker | T-4101 LOX tank | loss of vacuum/insulation, fill overpressure, roll-over; vacuum on fast draw-off | VNT-4001 / own outlet, safe location |
+| PSV-4124 + vacuum breaker | T-4102 LIN tank | as T-4101 | elevated (N2) |
+| PSV-4125 / PSV-4126 | P-4101A/B / P-4102A/B discharge headers | closed discharge (pump deadhead), thermal | back to the tank |
+| PSV-4127 / PSV-4128 | E-4105A/B / E-4106A/B (no outlet isolation valve, so one PSV on each outlet header covers both) | blocked outlet, thermal | elevated |
 | PSV on CW headers | E-1101..E-1103 tube side | tube rupture (5.8 bara air into CW) | local |
 
-Device tags PSV-1109, PSV-2108A/B, PSV-3114, PSV-3116 and PSV-3119 are fixed now; the rest get numbers when their sheet
-is drawn.
+All PSV tags are fixed now (S4); the TSVs and the vacuum breakers get tags in detail engineering.
 
 ## D-001 Process cycle: LP double column, no argon column, Lachmann expander (2026-10-18)
 Decision: Classic LP double-column cycle, MAC at 5.8 bara, bath condenser-reboiler, booster
@@ -419,3 +418,31 @@ crosses the GOX-3001 riser once. Both crossings are plain crossings away from an
 The compander K-3101 / KT-3101 is one machine (same shaft, D-003); the two casings are drawn apart
 because the booster is warm and the expander is in the cold box. Seal-gas and oil systems are in
 the vendor package (D-012, PDSLL-3115). DNs of GAN-3002, LN-3002, VNT lines ASSUMED.
+
+## D-024 P-04 drawing content (2026-10-18)
+Decision: P-04 (scripts/draft_P-04.py, regenerate with scripts/regen.py) shows the GOX train along
+the top: GOX-4001 from P-03 E-3101 with AI-3104, the suction vent PV-4101B / S-4102 / VNT-4003
+(split range PIC-4101, which also acts on the K-4101 inlet guide vanes), the recycle return
+GOX-4003, suction ESD XV-4117, K-4101 (oil-free, dry gas seals with N2 buffer, TSHH-4104 fire
+detection) with the intercooler package E-4101 (GOX-4005), aftercooler E-4102, recycle take-off
+UV-4103 (UIC-4103), PSV-4122, blowdown XV-4116 and PSV-4122 into VNT-4002 / S-4101 (separate from
+the LOX tank vent VNT-4001, D-019), discharge ESD XV-4118, check valve, PIC-4102, the backup GOX
+riser GOX-4004 joining upstream of AI-4115 and the BL valve XV-4119. The GAN train (middle):
+GAN-4001 with AIA-3105 (O2 <= 10 ppm; high opens XV-3105 to VNT-4004 and closes XV-4120, so off-spec
+GAN never reaches the customer), FIC-3107 on the K-4102 guide vanes, PIC-4106, K-4102, E-4103, check
+valve, FIC-4105/FV-4105, the casing purge take-off UN-3001 to P-03 PV-3113, the backup GAN riser
+GAN-4003 and XV-4120. Storage (bottom): T-4102 (left) and T-4101 (right) filled by LIN-3001 /
+LOX-3001 from P-03, each with PICA vent valve (PV-4110 / PV-4109), tank PSV (PSV-4124 / PSV-4123),
+LIA, pumps A/B with check valves, a pump discharge header PSV relieving back to the tank
+(PSV-4126 / PSV-4125), ambient-air vaporizers A/B with manual inlet valves, an outlet header PSV
+(PSV-4128 / PSV-4127), TSLL (4114 / 4113) and the backup pressure valve PV-4112 / PV-4111 (PIC).
+AIA-4121 samples the LOX tank bottom: the continuous LOX purge (FIC-3111) carries the sump
+hydrocarbons into T-4101, where boil-off concentrates them (D-010).
+XV-4116..4120 and XV-3105 are actuated piping valves (logic in D-013), so they are tagged on the
+valves and no longer carried in the instrument list (same rule as the PSVs, D-020).
+Simplifications at basic engineering: E-4101 drawn as one intercooler loop for all stages (vendor
+package with its CW); DBB at the BLs drawn as the ESD valve only (block + bleed added in detail
+engineering); vacuum breakers and annular-space rupture discs of the tanks not drawn (relief case
+list). DNs of GOX-4005, CW-4001/4002, VNT-4004/4005 ASSUMED.
+Reason: one row per product train keeps the GOX and GAN trains free of crossings; the two backup
+risers run up at the outer edges of their storage blocks so they cross nothing.
