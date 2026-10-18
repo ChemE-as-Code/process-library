@@ -323,6 +323,23 @@ P-04 that are not on a sheet yet (Turbine for KT-3101, Vessel for V-3101, HeatEx
 ambient vaporizers) are checked the same way when those sheets are drawn; if the loader refuses
 them: SteamTurbine is wrong for an air expander, so use the generic class the loader offers and
 say so here.
+Turbine, Vessel and HeatExchanger are valid (generic) pyDEXPI classes (checked in the pyDEXPI
+class model at S2): KT-3101 stays Turbine (there is no expander class); V-3101 (atmospheric drain
+vaporizer) becomes Tank and the ambient vaporizers stay HeatExchanger when P-03/P-04 are drawn.
+Silencers (DEXPI `Silencer` is a PipeFitting) and safety valves (`SpringLoadedGlobeSafetyValve`)
+are piping components, not tagged plant items or instrument functions: they carry their tag as
+PipingComponentNumber / PositionNumber on the P&ID and are listed here, not in the equipment or
+instrument lists:
+
+| tag | class | line | sheet |
+|---|---|---|---|
+| S-1101 | Silencer | AIR-1003 | P-01 |
+| PSV-1109 | SpringLoadedGlobeSafetyValve | AIR-1004 (C-1101 top) | P-01 |
+| S-2101 | Silencer | RG-2003 | P-02 |
+| S-3101 | Silencer | WN-3003 | P-03 |
+| PSV-3114, PSV-3116 | SpringLoadedGlobeSafetyValve | C-3102, C-3101 tops | P-03 |
+| S-4101, S-4102 | Silencer | VNT-4002, VNT-4003 | P-04 |
+
 Note: the `name` attribute of the XML root (`example`) is rewritten by `plantcode fmt` (pyDEXPI
 serializer); the plant identification is in the title-block MetaData (ASU-1).
 
