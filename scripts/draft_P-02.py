@@ -9,6 +9,7 @@ import sys
 
 _src = open(os.path.join(os.path.dirname(__file__), "draft_P-01.py"), encoding="utf-8").read()
 exec(_src[:_src.index("# Equipment\n")])          # noqa: S102 - helpers only
+LABEL_ROW = True
 
 def N(eid, suf):
     return ("%s_%s" % (eid, suf), "%s_%s_Node" % (eid, suf))
@@ -60,7 +61,7 @@ system("AIR-2001", 500, "Dry air",
 OPC_DA = offpage("OPC_AIR2002", False, 390, 55, 0, 500, "to P-03 E-3101 / K-3101", (390, 50, "CenterCenter"))
 system("AIR-2002", 500, "Dry air", [(None, N("F2101", "N2"), [P(), E(OPC_DA)], None)], (330, 51))
 # ---- regeneration gas from P-03, FV-2105, E-2101 with bypass XV-2109 (cooling step), to the bed tops
-OPC_RG = offpage("OPC_RG2001", True, 112, 140, 0, 500, "from P-03 WN-3002", (108, 134, "LeftCenter"))
+OPC_RG = offpage("OPC_RG2001", True, 112, 140, 0, 500, "from P-03 WN-3002 (RG-2001)", (108, 134, "LeftCenter"))
 FV5 = valve("FV2105", "GlobeValve", 128, 140, 0, 500, "FV-2105", act=270, lab=(-1, 5, "LeftCenter"))
 TB = tee("Tee_RG2001_B", 145, 140, 0, 270, 500)
 XBP = xv("XV2109", 145, 118, 270, 500, "XV-2109", 180, (-7, 6, "RightCenter"), "ButterflyValve")

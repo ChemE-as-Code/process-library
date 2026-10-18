@@ -258,8 +258,9 @@ def offpage(cid, inflow, x, y, rot, d, note, note_at):
     return o
 
 
+LABEL_ROW = False   # P-02/P-03 set True (see system())
 TOPS = {}
-OBJ = {}            # off-page connectors by id (a segment starting at one owns it)
+OBJ = {}           # off-page connectors by id (a segment starting at one owns it)
 PIPE_INST = {}      # pipe id -> [(suffix, x, y)] instrumentation node positions on that pipe
 
 
@@ -332,12 +333,18 @@ def system(line, d, fluid, segments, lab):
                     % (gid, "".join(cdrw), "".join(idrw), gid))
     SYS.append('<Object id="%s" type="Plant/Piping.PipingNetworkSystem"><Components property="Segments">%s</Components>'
                '%s%s%s</Object>' % (sid, "".join(segx), s("FluidCode", fluid), s("LineNumber", line), dn(d)))
-    lx, ly = lab
+    lx, ly = lab[:2]
+    # LABEL_ROW: number and DN on one row above (lx, ly), so a line just below the label never crosses it;
+    # lab (x, y, "v") keeps the stacked form (DN under the number) for labels beside a vertical line.
+    if LABEL_ROW and len(lab) < 3:
+        dnx, dny = lx + 1.3 * len(line) + 1.5, ly
+    else:
+        dnx, dny = lx, ly + 2.8
     DRW.append('<Object id="%s_Drawing" type="Core/Diagram.RepresentationGroup"><Components property="Groups">%s%s'
                '</Components><References objects="#%s" property="Represents"/></Object>'
                % (sid, "".join(segd), label(sid + "_Label", "PipingNetworkSystemLabel",
                                            [text(sid + "_LabelNo", lx, ly, line, 2.2, "LeftBottom", (sid, "LineNumber")),
-                                            text(sid + "_LabelDN", lx, ly + 2.8, "DN %d" % d, 2.0, "LeftBottom",
+                                            text(sid + "_LabelDN", dnx, dny, "DN %d" % d, 2.0, "LeftBottom",
                                                  (sid, "NominalDiameterRepresentation"))]), sid))
 
 

@@ -165,6 +165,12 @@ Rejected: Generator-braked expander (power recovery small, electrical complexity
 expander (less refrigeration at this LP pressure, cannot produce the liquid needed).
 Assumptions: inlet -118 C / 7.8 bara, exhaust -178 C / 1.35 bara, eta_s 0.85, ~215 kW
 refrigeration; liquid 470 kg/h LOX + 470 kg/h LIN (see balance, D-017).
+Booster anti-surge (S4): recycle AIR-3006 from the E-3104 aftercooler outlet (cooled gas, so the
+recycle does not heat the suction) back to AIR-3005 through UV-3120 (fail open), controlled by
+UIC-3120 on the suction flow and pressure ratio; a check valve on AIR-3002 downstream of the
+recycle tee stops backflow from E-3101 on a booster trip. Recycle DN150 ASSUMED (~50 % flow).
+Reason: a centrifugal booster needs surge protection at start-up and turndown; the compander has
+no other flow path while XV-3117 is closed.
 
 ## D-004 GAN source and compression (2026-10-18)
 Decision: 10,000 Nm3/h pressurized nitrogen from the HP column top (<= 10 ppm O2), warmed in
@@ -399,7 +405,13 @@ S-3101 to an elevated vent (split range PIC-3110). Hydrocarbon protection (D-010
 AIA-3103 and LICA-3102 on the LP sump, LOX-3001 with the continuous purge FIC-3111/FV-3111 to the
 LOX tank, LOX-3002 drain via HV-3118 to the drain vaporizer V-3101 (vent VNT-3001 to a safe
 location). Relief: PSV-3114 (LP column), PSV-3116 (HP column), PSV-3119 (booster discharge).
-Casing purge UN-3001 via PV-3113 (PIC-3113). Product analyzers AI-3104 / AIA-3105 and the GAN flow
+Casing purge UN-3001 via PV-3113 (PIC-3113).
+S4 review fixes: line labels as one row "number DN" above or below a horizontal line (stacked only
+beside vertical lines), so no label is crossed by its own line (also P-02); PSV-3114 and PSV-3116
+discharge stubs end in "to atm." arrows (PSV-3114, O2-rich LP column: "outside cold box,
+elevated, safe location"); booster anti-surge AIR-3006 / UV-3120 / UIC-3120 and discharge check
+valve (D-003); AIA-3103 samples LOX-3001 at the sump outlet (the liquid that concentrates
+hydrocarbons); LIC-3101 tap on the HP sump, rich liquid RL-3001 leaves the HP column bottom. Product analyzers AI-3104 / AIA-3105 and the GAN flow
 loop FIC-3107 are on the warm product headers at the compressor suctions, so they are drawn on P-04.
 Crossings: with stacked columns the RL and LN loops through the subcooler interleave (RL 232 -> 106,
 LN 190 -> 76 on the column side), so they cross once below E-3102; LOX-3001 leaving the LP sump
