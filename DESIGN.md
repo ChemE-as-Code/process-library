@@ -122,7 +122,7 @@ Specific energy: ~0.71 kWh per Nm3 GOX delivered at 30 barg (MAC + GOX compresso
 | PSV-3114 | C-3102 LP column | waste N2 outlet blocked (PIC-3110 failure) with expander and JT valves running | outside cold box, elevated (O2-rich: safe location) |
 | PSV-3116 | C-3101 HP column | MAC deadhead feed with GAN and liquid outlets blocked | outside cold box |
 | TSVs | trapped cryogenic liquid between valves (LOX, LIN, RL, LN lines) | heat-in of blocked liquid | to vent / drain vaporizer V-3101 |
-| PSV on K-3101 discharge | booster casing, E-3104 | blocked outlet (KT-3101 inlet XV closed) | atmosphere |
+| PSV-3119 | K-3101 discharge, E-3104 | blocked outlet (KT-3101 inlet XV-3117 closed) | atmosphere (air), local |
 | PSV-4122 | K-4101 discharge, E-4102 | blocked outlet at max. speed (ESD XV-4118 closed) | VNT-4002 via S-4101 |
 | PSVs + vacuum breaker | T-4101 LOX tank | loss of vacuum/insulation, fill overpressure, roll-over; vacuum on fast draw-off | VNT-4001 / own outlet, safe location |
 | PSVs + vacuum breaker | T-4102 LIN tank | as T-4101 | elevated (N2) |
@@ -130,7 +130,7 @@ Specific energy: ~0.71 kWh per Nm3 GOX delivered at 30 barg (MAC + GOX compresso
 | PSVs | E-4105A/B, E-4106A/B | blocked outlet, thermal | elevated |
 | PSV on CW headers | E-1101..E-1103 tube side | tube rupture (5.8 bara air into CW) | local |
 
-Device tags PSV-1109, PSV-2108A/B, PSV-3114 and PSV-3116 are fixed now; the rest get numbers when their sheet
+Device tags PSV-1109, PSV-2108A/B, PSV-3114, PSV-3116 and PSV-3119 are fixed now; the rest get numbers when their sheet
 is drawn.
 
 ## D-001 Process cycle: LP double column, no argon column, Lachmann expander (2026-10-18)
@@ -338,7 +338,8 @@ instrument lists:
 | S-2101 | Silencer | RG-2003 | P-02 |
 | PSV-2108A/B | SpringLoadedGlobeSafetyValve | AIR-2001 (V-2101A/B tops) | P-02 |
 | S-3101 | Silencer | WN-3003 | P-03 |
-| PSV-3114, PSV-3116 | SpringLoadedGlobeSafetyValve | C-3102, C-3101 tops | P-03 |
+| PSV-3114, PSV-3116 | SpringLoadedGlobeSafetyValve | VNT-3002 (C-3102), VNT-3003 (C-3101) | P-03 |
+| PSV-3119 | SpringLoadedGlobeSafetyValve | AIR-3002 (K-3101 discharge) | P-03 |
 | S-4101, S-4102 | Silencer | VNT-4002, VNT-4003 | P-04 |
 
 Note: the `name` attribute of the XML root (`example`) is rewritten by `plantcode fmt` (pyDEXPI
@@ -383,3 +384,26 @@ de-energised and XV-2109 opens, so cold waste N2 cools the bed; TI-2113A/B on th
 (hot bed on line) and TI-2114A/B on the regeneration outlets (heat pulse ends the heating step).
 S-2101 discharges via an arrow "to atmosphere (safe location)" (waste N2, D-011). DN100 of the
 bypasses ASSUMED (repressurization in ~15 min).
+
+## D-023 P-03 drawing content (2026-10-18)
+Decision: P-03 (scripts/draft_P-03.py) shows E-3101 with the warm end at the top and the cold end
+at the bottom; dry air AIR-2002 from P-02 with the booster branch AIR-3005 -> K-3101 -> E-3104 ->
+AIR-3002 back to the warm end; booster air leaves E-3101 at mid height (AIR-3003, quick-closing
+XV-3117 tripped by SSHH-3108) to KT-3101 and enters the LP column as Lachmann air (AIR-3004,
+TIC-3109). The double column is drawn stacked: C-3101 below, C-3102 above, E-3103 in the LP sump
+(GAN-3002 vapour up, LN-3002 condensate back). Rich liquid RL-3001 and reflux LN-3001 pass the
+subcooler E-3102 (right) and LV-3101 / FV-3106; LIN-3001 is taken from subcooled LN-3001 to P-04.
+Waste N2 WN-3001 leaves the LP top, warms in E-3102 and E-3101 and is distributed at the right
+edge as WN-3002: RG-2001 to P-02, WN-1001 via PV-3110A to P-01, surplus WN-3003 via PV-3110B and
+S-3101 to an elevated vent (split range PIC-3110). Hydrocarbon protection (D-010) on the sheet:
+AIA-3103 and LICA-3102 on the LP sump, LOX-3001 with the continuous purge FIC-3111/FV-3111 to the
+LOX tank, LOX-3002 drain via HV-3118 to the drain vaporizer V-3101 (vent VNT-3001 to a safe
+location). Relief: PSV-3114 (LP column), PSV-3116 (HP column), PSV-3119 (booster discharge).
+Casing purge UN-3001 via PV-3113 (PIC-3113). Product analyzers AI-3104 / AIA-3105 and the GAN flow
+loop FIC-3107 are on the warm product headers at the compressor suctions, so they are drawn on P-04.
+Crossings: with stacked columns the RL and LN loops through the subcooler interleave (RL 232 -> 106,
+LN 190 -> 76 on the column side), so they cross once below E-3102; LOX-3001 leaving the LP sump
+crosses the GOX-3001 riser once. Both crossings are plain crossings away from any tee.
+The compander K-3101 / KT-3101 is one machine (same shaft, D-003); the two casings are drawn apart
+because the booster is warm and the expander is in the cold box. Seal-gas and oil systems are in
+the vendor package (D-012, PDSLL-3115). DNs of GAN-3002, LN-3002, VNT lines ASSUMED.
