@@ -57,7 +57,7 @@ equipment("C3101", "ProcessColumn", "C-3101", "ShapeASU_C3101", 300, 205,
           [("N1", "N1", 288, 226, 500), ("N2", "N2", 288, 190, 250), ("N3", "N3", 297, 176.3, 300),
            ("N4", "N4", 303, 176.3, 150), ("N5", "N5", 312, 190, 100), ("N6", "N6", 300, 235, 100),
            ("N7", "N7", 309, 179, 150), ("N8", "N8", 288, 205, 50)], (300, 214),
-          inst=[("I1", 312, 229)])
+          inst=[("I1", 312, 229), ("I2", 312, 205)])
 equipment("K3101", "CentrifugalCompressor", "K-3101", "ShapeASU_Compressor", 50, 100,
           [("N1", "N1", 38, 100, 250), ("N2", "N2", 62, 100, 200), ("N3", "N3", 55, 94, 80)], (50, 115))
 equipment("E3104", "TubularHeatExchanger", "E-3104", "ShapeASU_Cooler", 75, 125,
@@ -190,6 +190,7 @@ system("UN-3001", 50, "Nitrogen", [(None, (OPC_UN["id"], OPC_UN["nodes"][0]), [P
 # ---- instruments
 instrument("LIC-3101", 330, 229, "C3101_I1", "C3101_I1_Pos", tgt="left",
            signal=[(336.75, 229), (342, 229), (342, 116), (338, 116), TOPS["LV3101"]])
+instrument("PI-3121", 326, 205, "C3101_I2", "C3101_I2_Pos", tgt="left")
 instrument("PDI-3112", 326, 122, "C3102_I1", "C3102_I1_Pos", tgt="left")
 instrument("AIA-3103", 262, 145, "Line_LOX3001_S1", "Line_LOX3001_S1_P1_I1")
 instrument("LICA-3102", 326, 151, "C3102_I3", "C3102_I3_Pos", tgt="left")

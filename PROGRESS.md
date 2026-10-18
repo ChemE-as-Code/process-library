@@ -4,6 +4,7 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-10-18 | pid/P-04.xml, pid/P-03.xml, lists, DESIGN.md | O2 review F1/F2: equalizing bypasses HV-4129/HV-4130 around XV-4118/XV-4119, impingement-site materials on GOX-4002; PI-3121 on C-3101 (design review item 6) | O2 safety review |
 | 2026-10-18 | reviews/ | O2 safety review (EIGA 13/33/65 checklist, findings F1..F7) and S4 design review; all basic gates pass | stage S4 gates |
 | 2026-10-18 | pid/P-04.xml, lists, DESIGN.md | S4: P-04 drawn (scripts/draft_P-04.py): K-4101 + E-4101/E-4102 with suction vent, recycle, ESD XV-4116..4119, PSV-4122, blowdown to VNT-4002/S-4101; K-4102 + E-4103 with AIA-3105 divert XV-3105/VNT-4004, FIC-3107, UN-3001 take-off; T-4101/T-4102 with PICA, LIA, PSV-4123/4124, AIA-4121; P-4101A/B, P-4102A/B, E-4105A/B, E-4106A/B with PSV-4125..4128, backup PIC/TSLL; new lines GOX-4005, CW/CWR-4001/4002, VNT-4004/4005; XV-41xx moved out of the instrument list; relief case tags; D-024. validate: 0 warnings | stage S4 |
 | 2026-10-18 | pid/P-03.xml, pid/P-02.xml, lists, DESIGN.md | S3 review fixes (regenerated, scripts/regen.py): line labels one row so their lines no longer cross them; PSV-3114/3116 discharge stubs to atm. arrows; K-3101 anti-surge AIR-3006/UV-3120/UIC-3120 + discharge check valve; AIA-3103 on LOX-3001, LIC-3101 on HP sump; E-3101/E-3103 tags; P-02 connector 'from P-03 WN-3002 (RG-2001)'; D-003, D-023 | independent review of S3 |

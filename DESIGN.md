@@ -446,3 +446,7 @@ engineering); vacuum breakers and annular-space rupture discs of the tanks not d
 list). DNs of GOX-4005, CW-4001/4002, VNT-4004/4005 ASSUMED.
 Reason: one row per product train keeps the GOX and GAN trains free of crossings; the two backup
 risers run up at the outer edges of their storage blocks so they cross nothing.
+O2 review fixes (S4): globe-valve equalizing bypasses HV-4129 around XV-4118 and HV-4130 around
+XV-4119 (exempt material); the ESD valves open only after the bypass has equalized the pressure
+(dP permissive), so no ball valve opens against 30 bar of GOX (EIGA Doc 13, adiabatic compression).
+Impingement-site materials recorded on GOX-4002 in the line list. PI-3121 on the HP column top.

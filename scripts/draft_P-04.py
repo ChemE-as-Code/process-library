@@ -83,8 +83,8 @@ for pre, x0 in [("4106", 152), ("4105", 352)]:
 # ---- instrument sensing points on pipes
 PIPE_INST[("GOX-4001", 1, 1)] = [("I1", 28, 45)]
 PIPE_INST[("GOX-4001", 3, 2)] = [("I1", 88, 45)]
-PIPE_INST[("GOX-4002", 5, 3)] = [("I1", 240, 45)]
-PIPE_INST[("GOX-4002", 6, 1)] = [("I1", 318, 45)]
+PIPE_INST[("GOX-4002", 7, 2)] = [("I1", 240, 45)]
+PIPE_INST[("GOX-4002", 8, 1)] = [("I1", 318, 45)]
 PIPE_INST[("GAN-4001", 1, 1)] = [("I1", 26, 115)]
 PIPE_INST[("GAN-4001", 2, 1)] = [("I1", 60, 115), ("I2", 78, 115)]
 PIPE_INST[("GAN-4002", 2, 2)] = [("I1", 150, 115)]
@@ -123,19 +123,33 @@ for ln, nz, x, inflow, rot, lab, eq in [("CW-4001", "N3", 135, True, 270, (122, 
 TRY = tee("Tee_GOX4002_R", 155, 45, 0, 90, 200, 150)
 TPS = tee("Tee_GOX4002_PSV", 165, 45, 0, 270, 200, 80)
 TBD = tee("Tee_GOX4002_BD", 180, 45, 0, 270, 200, 150)
-XV18 = valve("XV4118", "BallValve", 195, 45, 0, 200, "XV-4118", act=270)
+XV18 = valve("XV4118", "BallValve", 195, 45, 0, 200, "XV-4118", act=270, lab=(0, 15, "CenterCenter"))
+# pressure-equalizing bypasses around the 31 bara ESD valves (O2 review F2, D-024): open first, XV opens on low dP
+TA1 = tee("Tee_GOX4002_EQ1", 189, 45, 0, 90, 200, 25)
+TA2 = tee("Tee_GOX4002_EQ2", 201, 45, 0, 90, 200, 25)
+TB1 = tee("Tee_GOX4002_EQ3", 339, 45, 0, 90, 200, 25)
+TB2 = tee("Tee_GOX4002_EQ4", 351, 45, 0, 90, 200, 25)
+HV29 = valve("HV4129", "GlobeValve", 195, 52, 0, 25, "HV-4129", lab=(0, 4.5, "CenterCenter"))
+HV30 = valve("HV4130", "GlobeValve", 345, 52, 0, 25, "HV-4130", lab=(0, 4.5, "CenterCenter"))
 CV1 = valve("CV_GOX4002", "SwingCheckValve", 208, 45, 0, 200)
 TBK = tee("Tee_GOX4002_BK", 300, 45, 0, 270, 200, 100)
-XV19 = valve("XV4119", "BallValve", 345, 45, 0, 200, "XV-4119", act=270)
-OPC_GX = offpage("OPC_GOX4002_BL", False, 380, 45, 0, 200, "to GOX pipeline, 30 barg (BL)", (376, 55, "RightCenter"))
+XV19 = valve("XV4119", "BallValve", 345, 45, 0, 200, "XV-4119", act=270, lab=(0, 15, "CenterCenter"))
+OPC_GX = offpage("OPC_GOX4002_BL", False, 380, 45, 0, 200, "to GOX pipeline, 30 barg (BL)", (388, 38, "RightCenter"))
 PS22 = psv("PSV4122", 165, 33, 80, "PSV-4122")
 system("GOX-4002", 200, "Oxygen", [(None, N("K4101", "N2"), [P()], N("E4102", "N1")),
                                    (None, N("E4102", "N2"), [P(), E(TRY)], None),
                                    (None, (TRY["id"], TRY["nodes"][1]), [P(), E(TPS)], None),
                                    (None, (TPS["id"], TPS["nodes"][1]), [P(), E(TBD)], None),
-                                   (None, (TBD["id"], TBD["nodes"][1]), [P(), I(XV18), P(), I(CV1), P(), E(TBK)], None),
-                                   (None, (TBK["id"], TBK["nodes"][1]), [P(), I(XV19), P(), E(OPC_GX)], None),
-                                   (80, (TPS["id"], TPS["nodes"][2]), [P(), E(PS22)], None)], (258, 43))
+                                   (None, (TBD["id"], TBD["nodes"][1]), [P(), E(TA1)], None),
+                                   (None, (TA1["id"], TA1["nodes"][1]), [P(), I(XV18), P(), E(TA2)], None),
+                                   (None, (TA2["id"], TA2["nodes"][1]), [P(), I(CV1), P(), E(TBK)], None),
+                                   (None, (TBK["id"], TBK["nodes"][1]), [P(), E(TB1)], None),
+                                   (None, (TB1["id"], TB1["nodes"][1]), [P(), I(XV19), P(), E(TB2)], None),
+                                   (None, (TB2["id"], TB2["nodes"][1]), [P(), E(OPC_GX)], None),
+                                   (80, (TPS["id"], TPS["nodes"][2]), [P(), E(PS22)], None),
+                                   (25, (TA1["id"], TA1["nodes"][2]), [P((189, 52)), I(HV29), P((201, 52)), E(TA2, 2)], None),
+                                   (25, (TB1["id"], TB1["nodes"][2]), [P((339, 52)), I(HV30), P((351, 52)), E(TB2, 2)], None)],
+       (258, 43))
 UV03 = valve("UV4103", "GlobeValve", 135, 80, 180, 150, "UV-4103", act=90, lab=(4, -3, "LeftCenter"))
 system("GOX-4003", 150, "Oxygen", [(None, (TRY["id"], TRY["nodes"][2]), [P((155, 80)), I(UV03), P((65, 80))],
                                     (TRC["id"], TRC["nodes"][2]))], (70, 78))
@@ -143,7 +157,7 @@ system("GOX-4003", 150, "Oxygen", [(None, (TRY["id"], TRY["nodes"][2]), [P((155,
 TV2 = tee("Tee_VNT4002", 180, 22, 0, 90, 150)
 _tv2 = TV2["xml"](0).replace(node("Tee_VNT4002_N1", 150), node("Tee_VNT4002_N1", 80))
 TV2["xml"] = lambda _d: _tv2     # PSV-4122 outlet side is DN80
-XV16 = valve("XV4116", "BallValve", 180, 34, 270, 150, "XV-4116", act=0, lab=(10, 3, "LeftCenter"))
+XV16 = valve("XV4116", "BallValve", 180, 34, 270, 150, "XV-4116", act=0, lab=(10, -3, "LeftCenter"))
 S41 = sil("S4101", 200, 22, 0, 150, "S-4101", 90, (0, -8, "CenterCenter"))
 OPC_V2 = offpage("OPC_VNT4002_atm", False, 215, 14, 270, 150, "to atm. (elevated, safe location)", (219, 10, "LeftCenter"))
 system("VNT-4002", 150, "Oxygen", [(None, (TBD["id"], TBD["nodes"][2]), [P(), I(XV16), P()], (TV2["id"], TV2["nodes"][2])),
@@ -245,8 +259,8 @@ instrument("PIC-4101", 88, 30, "Line_GOX4001_S3", "Line_GOX4001_S3_P2_I1",
 extra_signal("PIC-4101", [(94.75, 30), (101, 30), (101, 40.6)])          # K-4101 inlet guide vanes
 instrument("TSHH-4104", 110, 22, "K4101_I1", "K4101_I1_Pos")
 instrument("UIC-4103", 122, 97, "K4101_I2", "K4101_I2_Pos", tgt="top", signal=[(128.75, 97), (135, 97), TOPS["UV4103"]])
-instrument("PIC-4102", 240, 31, "Line_GOX4002_S5", "Line_GOX4002_S5_P3_I1")
-instrument("AI-4115", 318, 59, "Line_GOX4002_S6", "Line_GOX4002_S6_P1_I1", tgt="top")
+instrument("PIC-4102", 240, 31, "Line_GOX4002_S7", "Line_GOX4002_S7_P2_I1")
+instrument("AI-4115", 318, 59, "Line_GOX4002_S8", "Line_GOX4002_S8_P1_I1", tgt="top")
 instrument("AIA-3105", 26, 101, "Line_GAN4001_S1", "Line_GAN4001_S1_P1_I1",
            signal=[(32.75, 101), (32.8, 101), TOPS["XV3105"]])
 instrument("FIC-3107", 60, 101, "Line_GAN4001_S2", "Line_GAN4001_S2_P1_I1",
