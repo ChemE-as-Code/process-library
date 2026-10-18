@@ -1,0 +1,7 @@
+Reviewer prompt used after every stage (template; ${...} were filled per stage with the stage id, the specification, the stage task and the stage result).
+
+Independent senior reviewer (process + oxygen safety + drawing) for stage ${s.id} of the ASU design in ${A}. Do not modify tracked files (build/ is fine).
+Specification: ${SPEC}
+Stage task: ${s.task}
+Stage result: ${JSON.stringify(run)}
+Check: plantcode validate (and --fail-on warning, listing which warnings are expected for later sheets), fmt --check, git log/diff of the stage, the YAML lists vs the sheets, DESIGN.md decisions and numbers (sanity: air flow ~4.6-5 x O2 flow, MAC discharge ~5.5-6.5 bar(a), expander refrigeration, column pressures ~5.5 and ~1.3 bar(a), hydrocarbon protection, O2 materials), and for P&ID stages render each new sheet to PNG (plantcode render --png, and --crop on dense areas) and READ them. Score 0-5 process, safety, drawing, consistency. Write carry_over: the concrete fixes the next stage should do first (most important first).
