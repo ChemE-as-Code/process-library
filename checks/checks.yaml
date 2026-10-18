@@ -5,6 +5,47 @@ checks:
     stage: concept
     kind: files
     files: [process/design-basis.yaml]
+  - id: concept-lists
+    title: Equipment, line and instrument lists and design decisions exist
+    stage: concept
+    kind: files
+    files: [DESIGN.md, equipment/equipment-list.yaml, piping/line-list.yaml, control/instrument-list.yaml]
+  - id: assumptions-marked
+    title: Assumed values are marked ASSUMED in the design basis
+    stage: concept
+    kind: command
+    command: grep -q ASSUMED process/design-basis.yaml
+  # ---- ASU-specific gates
+  - id: o2-safety-philosophy
+    title: "O2 service: materials/cleaning and no-oil decisions recorded"
+    stage: concept
+    kind: command
+    command: grep -q '^## D-.*Oxygen service' DESIGN.md && grep -q '^## D-.*oil' DESIGN.md
+  - id: hydrocarbon-protection
+    title: "Hydrocarbon accumulation protection: decision, sump analyzer and LOX purge loop"
+    stage: concept
+    kind: command
+    command: grep -q '^## D-.*Hydrocarbon' DESIGN.md && grep -q 'AIA-3103' control/instrument-list.yaml && grep -q 'FIC-3111' control/instrument-list.yaml
+  - id: relief-philosophy
+    title: Relief, vent and blowdown philosophy recorded
+    stage: concept
+    kind: command
+    command: grep -q '^## D-.*Relief' DESIGN.md && grep -q '^## D-.*Isolation' DESIGN.md
+  - id: o2-safety-review
+    title: Oxygen safety review (EIGA Doc 13/33/65 checklist) recorded
+    stage: basic
+    kind: files
+    files: ["reviews/2*o2-safety*.md"]
+  - id: hydrocarbon-on-pid
+    title: Sump hydrocarbon analyzer and LOX purge drawn on the cold box sheet
+    stage: basic
+    kind: command
+    command: grep -q 'AIA' pid/P-03.xml && grep -q '3111' pid/P-03.xml
+  - id: relief-on-pid
+    title: Relief devices drawn on the cold box and product sheets
+    stage: basic
+    kind: command
+    command: grep -q 'SafetyValve' pid/P-03.xml && grep -q 'SafetyValve' pid/P-04.xml
   - id: pids-valid
     title: Every P&ID and list validates
     stage: basic
