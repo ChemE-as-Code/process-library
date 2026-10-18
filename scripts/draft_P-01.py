@@ -461,7 +461,8 @@ system("AIR-1002", 600, "Air",
         (None, N("E1103", "N2"), [P(), E(TBO)], None),
         (None, (TBO["id"], TBO["nodes"][1]), [P(), I(CV1), P((187, 70), (187, 150))], N("C1101", "N1"))], (163, 79))
 UV = valve("UV1102", "GlobeValve", 145, 52, 270, 300, "UV-1102", act=180)
-SIL = valve("S1101", "Silencer", 145, 28, 270, 300, "S-1101", shape_id="ShapeASU_Silencer", sc=1.0, half=6.0, srot=0)
+SIL = valve("S1101", "Silencer", 145, 28, 270, 300, "S-1101", shape_id="ShapeASU_Silencer", sc=1.0, half=6.0, srot=0,
+            lab=(7, 0, "LeftCenter"))
 system("AIR-1003", 300, "Air", [(None, (TBO["id"], TBO["nodes"][2]), [P(), I(UV), P(), E(SIL)], None)], (147, 42))
 PSV = valve("PSV1109", "SpringLoadedGlobeSafetyValve", 196, 40, 270, 150, "PSV-1109")
 OPC_AIR = offpage("OPC_AIR1004", False, 380, 30, 0, 600, "to P-02 V-2101A/B", (385, 25, "CenterCenter"))
@@ -519,8 +520,10 @@ for eid, x, y, cw, cwr in [("E1101", 75, 115, "CW-1002", "CWR-1002"), ("E1102", 
                            ("E1103", 125, 70, "CW-1005", "CWR-1004")]:
     oi = offpage("OPC_CW1002_" + eid, True, x - 3, y + 20, 270, 300, "CW", (x - 3, y + 32, "CenterCenter"))
     oo = offpage("OPC_CWR1002_" + eid, False, x + 3, y + 20, 90, 300, "CWR", (x + 3, y + 32, "CenterCenter"))
-    system(cw, 300, "Cooling water", [(None, (oi["id"], oi["nodes"][0]), [P()], N(eid, "N3"))], (x - 16, y + 14))
-    system(cwr, 300, "Cooling water return", [(None, N(eid, "N4"), [P(), E(oo)], None)], (x + 4.5, y + 22))
+    # E-1101/E-1102 sit 20 mm apart: their CW/CWR labels go in two rows under the arrows (S4 review)
+    lcw, lcwr = ((x - 16, y + 14), (x + 6.5, y + 16)) if eid == "E1103" else ((x - 8, y + 36), (x - 2, y + 43))
+    system(cw, 300, "Cooling water", [(None, (oi["id"], oi["nodes"][0]), [P()], N(eid, "N3"))], lcw)
+    system(cwr, 300, "Cooling water return", [(None, N(eid, "N4"), [P(), E(oo)], None)], lcwr)
 
 # =============================================================================================
 # Instruments
