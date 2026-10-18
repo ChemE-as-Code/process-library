@@ -122,15 +122,17 @@ Specific energy: ~0.71 kWh per Nm3 GOX delivered at 30 barg (MAC + GOX compresso
 | PSV-3114 | C-3102 LP column | waste N2 outlet blocked (PIC-3110 failure) with expander and JT valves running | outside cold box, elevated (O2-rich: safe location) |
 | PSV-3116 | C-3101 HP column | MAC deadhead feed with GAN and liquid outlets blocked | outside cold box |
 | TSVs | trapped cryogenic liquid between valves (LOX, LIN, RL, LN lines) | heat-in of blocked liquid | to vent / drain vaporizer V-3101 |
-| PSV-3119 | K-3101 discharge, E-3104 | blocked outlet (KT-3101 inlet XV-3117 closed) | atmosphere (air), local |
+| PSV-3119 | K-3101 discharge, E-3104 (on AIR-3002 at the E-3104 outlet, upstream of the check valve) | blocked outlet (KT-3101 inlet XV-3117 closed) | atmosphere (air), local |
 | PSV-4122 | K-4101 discharge, E-4102 | blocked outlet at max. speed (ESD XV-4118 closed) | VNT-4002 via S-4101 |
-| PSV-4123 + vacuum breaker | T-4101 LOX tank | loss of vacuum/insulation, fill overpressure, roll-over; vacuum on fast draw-off | VNT-4001 / own outlet, safe location |
-| PSV-4124 + vacuum breaker | T-4102 LIN tank | as T-4101 | elevated (N2) |
-| PSV-4125 / PSV-4126 | P-4101A/B / P-4102A/B discharge headers | closed discharge (pump deadhead), thermal | back to the tank |
+| PSV-4123 + vacuum breaker PSV-4142 | T-4101 LOX tank | loss of vacuum/insulation, fill overpressure, roll-over; vacuum on fast draw-off | VNT-4001 / own outlet, safe location |
+| PSV-4124 + vacuum breaker PSV-4143 | T-4102 LIN tank | as T-4101 | elevated (N2) |
+| PSV-4125 / PSV-4126 | P-4101A/B / P-4102A/B discharge headers | closed discharge (pump deadhead), thermal; also the TSV of LOX-4002 / LIN-4002 between the check valves and the vaporizer inlet valves | into the cool-down return LOX-4003 / LIN-4003 to the tank vapour space |
 | PSV-4127 / PSV-4128 | E-4105A/B / E-4106A/B (no outlet isolation valve, so one PSV on each outlet header covers both) | blocked outlet, thermal | elevated |
+| TSV-4140 / TSV-4141 | LOX-3001 / LIN-3001 between FV-3111 (P-03) and the manual tank inlet valve | heat-in of blocked liquid | atmosphere (LOX: safe location) |
+| XV-4133 / XV-4135 | GOX / GAN BL bleeds (DBB) | bleed between the two closed block valves | VNT-4006 safe location / VNT-4007 elevated |
 | PSV on CW headers | E-1101..E-1103 tube side | tube rupture (5.8 bara air into CW) | local |
 
-All PSV tags are fixed now (S4); the TSVs and the vacuum breakers get tags in detail engineering.
+All PSV tags are fixed (S4); TSV-4140/4141 and the vacuum breakers PSV-4142/4143 are drawn on P-04 (S5). Remaining TSVs (RL, LN in the cold box) get tags in detail engineering.
 
 ## D-001 Process cycle: LP double column, no argon column, Lachmann expander (2026-10-18)
 Decision: Classic LP double-column cycle, MAC at 5.8 bara, bath condenser-reboiler, booster
@@ -227,8 +229,10 @@ Reason: Ignition by particle impact and adiabatic compression is the main GOX fi
 
 ## D-010 Hydrocarbon accumulation protection (2026-10-18)
 Decision: (1) Molecular sieve removes C2H2, most C3+, N2O and CO2 (D-006). (2) Continuous LOX
-purge from the LP sump of >= 0.2 % of the O2 product (~30 Nm3/h, ASSUMED; FIC-3111) to the LOX
-tank / drain vaporizer. (3) The condenser-reboiler E-3103 is kept fully submerged (LP sump level
+purge from the LP sump: the whole LOX product through FIC-3111 (470 kg/h, about 330 Nm3/h, ~2.3 %
+of the O2 product) is the hydrocarbon purge to the LOX tank (drain vaporizer when the tank is
+unavailable); 0.2 % of the O2 product (~30 Nm3/h, ASSUMED per EIGA Doc 65) is the minimum, so
+FIC-3111 has a low-flow alarm at that value. (3) The condenser-reboiler E-3103 is kept fully submerged (LP sump level
 LICA-3102 with low alarm), bath type, no dry boiling. (4) Analyzers: total hydrocarbons and
 C2H2 in sump LOX (AIA-3103, alarm/trip), CO2 at TSA outlet (AIA-2102); action limits per EIGA
 Doc 65 (ASSUMED); hydrocarbons in the LOX tank liquid (AIA-4121, periodic), since
@@ -264,8 +268,13 @@ would accumulate in the LOX sump. (Alternative for the vendor enquiry: magnetic 
 Reason: Hydrocarbon oils are ignition sources in oxygen.
 
 ## D-013 Isolation and blowdown (2026-10-18)
-Decision: Double block and bleed at the GOX and GAN battery limits (ESD valves XV-4119 GOX,
-XV-4120 GAN); emergency isolation valves XV-4117 (K-4101 suction) and XV-4118 (discharge);
+Decision: Double block and bleed at the GOX and GAN battery limits: GOX XV-4119 + XV-4132 with
+bleed XV-4133 to VNT-4006 (safe location), GAN XV-4120 + XV-4134 with bleed XV-4135 to VNT-4007;
+the blocks fail closed, the bleeds fail open, so a trip isolates and vents the space between them;
+fail-closed tank outlet valves XV-4136 (T-4101) and XV-4137 (T-4102) for remote shut-off of the
+storage on a leak or fire; manual suction and discharge block valves on every pump (P-4101A/B,
+P-4102A/B) for maintenance isolation (an isolated pump is drained/warmed through its casing vent
+before both are closed, vendor); emergency isolation valves XV-4117 (K-4101 suction) and XV-4118 (discharge);
 GOX compressor depressurized on trip by blowdown valve XV-4116 to VNT-4002 / S-4101; cold box liquid drain valves to the drain vaporizer; the
 cold box casing is N2-purged (PIC on purge) with a breathing valve.
 Reason: Safe isolation for maintenance and fast removal of energy from a GOX fire.
@@ -275,7 +284,9 @@ Decision: On GOX or GAN header low pressure (PIC-4111 / PIC-4112) the standby LO
 or LIN pump P-4102A/B starts and supplies through ambient-air vaporizers E-4105A/B / E-4106A/B.
 Low outlet temperature trip TSLL-4113/4114 protects the carbon-steel pipeline from cold gas.
 Reason: Supply continuity during ASU trips (25 % GOX, 50 % GAN, 2 days, specification).
-Assumptions: Pumps cold-standby (kept cold by recirculation to the tank).
+Assumptions: Pumps cold-standby, kept cold by the cool-down / min-flow return LOX-4003 / LIN-4003
+(HV-4138 / HV-4139, continuous small flow, restriction orifice ASSUMED) to the tank vapour space;
+it also takes the pump minimum flow at start-up and the discharge PSV-4125 / PSV-4126.
 
 ## D-015 Empty sheet frames at stage concept (2026-10-18)
 Decision: pid/P-01..P-04.xml are created now as empty DEXPI frames (title block only), drafted in
@@ -441,9 +452,15 @@ hydrocarbons into T-4101, where boil-off concentrates them (D-010).
 XV-4116..4120 and XV-3105 are actuated piping valves (logic in D-013), so they are tagged on the
 valves and no longer carried in the instrument list (same rule as the PSVs, D-020).
 Simplifications at basic engineering: E-4101 drawn as one intercooler loop for all stages (vendor
-package with its CW); DBB at the BLs drawn as the ESD valve only (block + bleed added in detail
-engineering); vacuum breakers and annular-space rupture discs of the tanks not drawn (relief case
-list). DNs of GOX-4005, CW-4001/4002, VNT-4004/4005 ASSUMED.
+package with its CW); annular-space rupture discs of the tanks not drawn (relief case list).
+S4 review fixes (S5): K-4102 anti-surge GAN-4004 from the E-4103 outlet upstream of the check valve
+to the suction, UV-4131 fail open, UIC-4131 (same scheme as UIC-4103 on K-4101); true DBB at both
+BLs (D-013); fail-closed tank outlet XV-4136 / XV-4137; pump suction and discharge block valves;
+cool-down / min-flow returns LOX-4003 / LIN-4003 (D-014) with PSV-4125 / PSV-4126 relieving into
+them; manual tank inlet valves with TSV-4140 / TSV-4141 on LOX-3001 / LIN-3001; vacuum breakers
+PSV-4142 / PSV-4143 on the tank vent lines upstream of the PICA valves (connected to the vapour
+space). Trip outputs written beside TSHH-4104, PIC-4102 and TSLL-4113/4114 (cause and effect
+matrix in detail engineering). DNs of GOX-4005, CW-4001/4002, VNT-4004/4005 ASSUMED.
 Reason: one row per product train keeps the GOX and GAN trains free of crossings; the two backup
 risers run up at the outer edges of their storage blocks so they cross nothing.
 O2 review fixes (S4): globe-valve equalizing bypasses HV-4129 around XV-4118 and HV-4130 around
