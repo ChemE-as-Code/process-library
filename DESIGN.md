@@ -125,7 +125,7 @@ Specific energy: ~0.71 kWh per Nm3 GOX delivered at 30 barg (MAC + GOX compresso
 | PSV-3119 | K-3101 discharge, E-3104 (on AIR-3002 at the E-3104 outlet, upstream of the check valve) | blocked outlet (KT-3101 inlet XV-3117 closed) | atmosphere (air), local |
 | PSV-3123 | cold box casing (breathing valve, both directions) | purge PV-3113 failed open; casing vacuum on cool-down | VNT-3004, elevated (N2), AIA-3122 |
 | PSV-4122 | K-4101 discharge, E-4102 | blocked outlet at max. speed (ESD XV-4118 closed) | VNT-4002 via S-4101 |
-| PSV-4123 + vacuum breaker PSV-4142 | T-4101 LOX tank | loss of vacuum/insulation, fill overpressure, roll-over; vacuum on fast draw-off | VNT-4001 / own outlet, safe location |
+| PSV-4123 + vacuum breaker PSV-4142 | T-4101 LOX tank | heat-leak increase (perlite settling or wetting, outer-tank damage; the flat-bottom tank is perlite-insulated, not vacuum-jacketed), external fire, fill overpressure, roll-over; vacuum on fast draw-off | VNT-4001 / own outlet, safe location |
 | PSV-4124 + vacuum breaker PSV-4143 | T-4102 LIN tank | as T-4101 | elevated (N2) |
 | PSV-4125 / PSV-4126 | P-4101A/B / P-4102A/B discharge headers | closed discharge (pump deadhead), thermal; also the TSV of LOX-4002 / LIN-4002 between the check valves and the vaporizer inlet valves | into the cool-down return LOX-4003 / LIN-4003 to the tank vapour space |
 | PSV-4127 / PSV-4128 | E-4105A/B / E-4106A/B (no outlet isolation valve, so one PSV on each outlet header covers both) | blocked outlet, thermal | elevated |
@@ -311,6 +311,14 @@ Alternative for the client: a ~30 % larger expander flow (~15,000 Nm3/h) restore
 Reason: the backup reserve (2 days of 25 % GOX and 50 % GAN) is set by the specification, the
 refill time is not; it is a commercial choice between truck liquid and power/recovery.
 Assumptions: liquid refrigeration ~420 kJ/kg (ASSUMED).
+Tank volume check (S6): LIN reserve 2 d x 50 % x 10,000 Nm3/h = 240,000 Nm3 = 300 t; at
+0.807 t/m3 that is 372 m3 net. T-4102 is 400 m3 working (between the LALL pump heel and the
+max. fill level, +7.5 % margin) and ~440 m3 gross: heel ~12 m3 (pump NPSH) and ~6 % ullage
+(ASSUMED). LOX reserve 2 d x 25 % x 14,600 Nm3/h = 175,200 Nm3 = 250 t; at 1.141 t/m3 that is
+219 m3 net against 250 m3 working (+14 %), ~275 m3 gross (ASSUMED).
+Truck fill (S6): drawn on P-04 as LOX-4004 / LIN-4004: tanker hose coupling, check valve, TSV-4144 /
+TSV-4145 for the liquid trapped between check valve and block valve, block valve HV-4146 / HV-4147,
+fill nozzle N6. The LOX fill bay has a concrete (not asphalt) pad under the hose coupling (D-026).
 
 ## D-018 O2 recovery 94 % and sensitivity at 90 % (2026-10-18)
 Decision: keep 94 % as the design recovery and size the MAC for 80,000 Nm3/h (+5 %, ASSUMED
@@ -320,12 +328,18 @@ margin). Check: an LP double column with ~15 % Lachmann air and no argon column 
 and MHX loads +4 %: covered by the 80,000 Nm3/h MAC rating; specific energy rises to ~0.73 kWh/Nm3.
 Reason: recovery is the main uncertainty of the concept balance; the margin keeps the product rate
 if the simulation in basic engineering gives less.
+Air/O2 ratio: design air 14,930 / (0.94 x 0.2095) = 75,800 Nm3/h for 14,600 Nm3/h GOX gives
+5.2 Nm3 air per Nm3 GOX. The reason it is above the stoichiometric 1/0.2095 = 4.8: 6 % of the
+O2 leaves with the waste N2 and the GAN (recovery 94 %), and the GOX product is 99.5 % O2 while
+14,930 Nm3/h contained O2 includes the liquid make. The MAC rating 80,000 Nm3/h (ratio 5.5) adds
+the +5 % margin above (ASSUMED).
 
 ## D-019 Vent separation and GOX suction vent (2026-10-18)
 Decision: no shared vent headers between pressure levels. VNT-4001 is the LOX tank vent only
 (0.5 barg, PV-4109); VNT-4002 is the K-4101 blowdown (31 bara, XV-4116, silencer S-4101);
 VNT-4003 is the GOX suction vent on GOX-4001 (PV-4101B, silencer S-4102), split range with
-PIC-4101: PV-4101A first (compressor IGV/recycle), PV-4101B opens above it on a K-4101 trip or
+PIC-4101: output A first (to the K-4101 inlet guide vane actuator; there is no separate PV-4101A
+valve body, S6 correction), output B (PV-4101B) opens above it on a K-4101 trip or
 during start-up, so the LP column pressure stays controlled while the compressor is not taking
 GOX. All three discharge elevated at a safe location (D-011).
 Reason: a 31 bara blowdown into a header shared with a 0.5 barg tank would back-pressure and
@@ -472,6 +486,18 @@ O2 review fixes (S4): globe-valve equalizing bypasses HV-4129 around XV-4118 and
 XV-4119 (exempt material); the ESD valves open only after the bypass has equalized the pressure
 (dP permissive), so no ball valve opens against 30 bar of GOX (EIGA Doc 13, adiabatic compression).
 Impingement-site materials recorded on GOX-4002 in the line list. PI-3121 on the HP column top.
+S5 review fixes (S6): FI-4148 on GOX-4001 at the K-4101 suction is the flow input of UIC-4103
+(anti-surge needs suction flow and pressure ratio; the signal line is shown by the instrument list
+and drawn with the C&E matrix in detail engineering, ASSUMED); FQI-4149 totaliser beside AI-4115 at
+the GOX BL for billing. LALL on LIA-4107 / LIA-4108 trips P-4101A/B / P-4102A/B and closes XV-4136 /
+XV-4137 (dry-run protection of the pumps, written beside the TSLL trip notes). Truck fill lines
+LOX-4004 / LIN-4004 (D-017). No check valves on the backup risers GOX-4004 / GAN-4003: the
+vaporizers and risers are rated for the export header pressure (PN40 / PN16), so reverse flow
+from the header cannot overpressure them; reverse flow needs header pressure above pump discharge,
+which only occurs when the pumps are stopped, and then PV-4111 / PV-4112 are closed by PIC and by
+the TSLL / LALL trips (tight shut-off class V specified, ASSUMED). A swing check in GOX at 30 bar
+would add a flutter and particle-impact site in O2 service for no protective function. Revisit in
+HAZOP (open item).
 
 ## D-025 Plot plan and vent location (2026-10-18)
 Decision: Plot 200 x 150 m (ASSUMED) in layout/: process row along the south (A1 MAC/precooling,
@@ -485,3 +511,21 @@ nor hydrocarbons from the roads reach the intake (D-010 (5), D-011). The GOX com
 stands behind a fire wall; LOX/LIN pumps stand next to their tanks (short suction, NPSH).
 All dimensions ASSUMED; E-3103 is inside the C-3102 sump and has no own placement.
 Reason: Intake air quality (hydrocarbons, O2/N2 enrichment) and O2 fire separation drive an ASU plot.
+
+## D-026 Compressor house, pipe racks, cold box height and LOX storage distances (2026-10-18)
+Decision: (1) Building B1 (layout/building.yaml), 36 x 26 m, 12 m clear to the crane runway,
+houses K-1101 and its coolers E-1101/E-1102/E-1103; the intake filter F-1101 stays outside on the
+upwind side, the GOX compressor K-4101 stays in the open behind its fire wall (no enclosed room
+around an O2 compressor, D-012). (2) Pipe rack PR1 along the north side of the process row
+(y = 68, tiers 6 / 8 m, ASSUMED) carries air, GOX, GAN, waste N2, CW and utilities west to east in
+process order; PR2 branches north at x = 137 over the central road (6 m clearance) to the storage
+area for LOX-3001, LIN-3001 and the backup risers GOX-4004 / GAN-4003. O2 lines on the top tier at
+the rack edge, away from flanged flammable or oil lines (none in the ASU). (3) Cold box: C-3101
+(20 m) and C-3102 (30 m) are stacked, so the cold box is ~50 m tall plus ~3 m roof platform; its
+footprint (A3, x 110-140) keeps > 1 x height from the MAC house (wind/seismic toppling distance,
+ASSUMED). (4) LOX storage T-4101: >= 15 m to buildings and to the GOX compressor, >= 8 m to roads
+and site boundary, >= 15 m to any oil or flammable storage, no asphalt within 5 m of the fill
+coupling and LOX drains (concrete pad), drains not to sewers (EIGA Doc 127 practice, values
+ASSUMED). Placed: T-4101 edge ~26 m from road R2, ~24 m from R3; nearest building B1 > 60 m.
+Reason: noise and maintenance for the MAC, O2 fire separation, rack routing in process order with
+one crossing of the central road, and LOX spill / combustible-contact hazards near the tanks.

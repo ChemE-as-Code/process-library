@@ -47,7 +47,7 @@ independent reviewer. Limits marked ASSUMED in DESIGN.md are not verified agains
 | F3 | closed (S5) | fail-closed XV-4136 / XV-4137 at the tank outlets; manual suction and discharge block valves per pump; cool-down / min-flow returns LOX-4003 / LIN-4003 to the tank vapour space (D-014) |
 | F4 | closed (S5) | TSV-4140 / TSV-4141 on LOX-3001 / LIN-3001 (FV-3111 to the new tank inlet valve); PSV-4125 / PSV-4126 cover LOX-4002 / LIN-4002 from the check valves to the vaporizer inlet valves and now relieve into the return lines; vacuum breakers PSV-4142 / PSV-4143 |
 | F5 | closed (S5) | layout/site-plan.yaml vent area V1, ~190 m downwind of F-1101 (D-025) |
-| F6 | open | analyzer components of AIA-2102/2103 still to be stated in the instrument list |
+| F6 | closed (S6) | instrument list: AIA-2102 measures CO2 and N2O (two-channel NDIR), AIA-2103 the H2O dew point; C2H2 not continuous at the TSA outlet (held far beyond CO2 breakthrough, CO2 is the leading indicator), measured in the LP sump (AIA-3103) and LOX tank (AIA-4121) |
 | F7 | closed (S5) | casing breather VNT-3004 / PSV-3123 with AIA-3122 (P-03) |
 
 References: the findings cite EIGA Doc 13 (oxygen pipeline and piping systems: impingement
