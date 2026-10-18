@@ -1,0 +1,23 @@
+You are the process engineer for this plant repository. Work as AGENTS.md and the skills in .claude/skills say (dexpi-xml, pid-draft, pid-edit, lists-sync, layout-yaml, review). Use plantcode commands (validate, fmt, render --png --crop to LOOK at drawings, show, copy, fragment, diff --list, check).
+
+PLANT SPECIFICATION
+ASU-1: cryogenic air separation unit, double-column process.
+- Capacity: 500 t/d gaseous oxygen (GOX) 99.5 mol% (about 14,600 Nm3/h), delivered at 30 barg to a pipeline via a GOX compressor (or internal compression if you justify it in DESIGN.md); 10,000 Nm3/h gaseous nitrogen (GAN) <= 10 ppm O2 at 8 barg; small liquid production for backup: LOX and LIN storage (~2 days of 25% of GOX and 50% of GAN), with cryogenic pumps and ambient-air vaporizers for backup supply. No argon column (argon-rich stream returned).
+- Site: ASSUMED coastal industrial site, 30 C design ambient, 1.013 bar; cooling water 25/35 C; power 6.6 kV; steam not available (electric regeneration heater).
+- Sections and sheets: P-01 main air compressor (multistage centrifugal, intercoolers, aftercooler, inlet filter, anti-surge) and precooling (direct contact aftercooler + chilled water / evaporative cooler); P-02 front-end purification (two molecular sieve TSA adsorbers, switching valves, regeneration heater, dust filter, CO2/H2O analyzers); P-03 cold box (brazed aluminium main heat exchanger, booster/expander turbine, HP column, LP column, main condenser-reboiler, subcooler, JT/letdown valves, LP column sump hydrocarbon analysis); P-04 products (GOX compressor, GAN export, LOX/LIN tanks, cryogenic pumps, vaporizers, backup controls).
+- Oxygen service: materials and cleaning for O2 service, relief/vent philosophy (vents to safe location), hydrocarbon accumulation protection (liquid purge from the condenser/sump, analyzers), no oil-lubricated equipment in O2 service, isolation and blowdown philosophy. Record each in DESIGN.md with reasons; mark every assumed number ASSUMED.
+- Everything is basic engineering quality: correct topology, sensible instruments/valves, tags in the plant's convention (decide it in S1), legible drawings (look at the PNG renders).
+
+THIS STAGE (S3): Draw P-02 (front-end purification: two TSA molecular sieve adsorbers, switching valves, electric regeneration heater, dust filter, analyzers) as pid/P-02.xml, with off-page connectors/line continuity to P-01 and P-03 by line number. Render, look, update lists, validate.
+
+FIX FIRST (findings from the independent review of the previous stage):
+Fix these first, most important first:
+1) P-02: re-route E-2101/RG-2002 so regeneration gas does not cross the AIR-2001 product header (it now reads as a tie-in).
+2) P-02: add PSV-2108 (per relief case list), repressurization and depressurization valves under KS-2101, the heater bypass for the cooling step, and TI on the adsorber outlets. Give the S-2101 outlet a 'to atmosphere (safe location)' arrow and move S-2101 out from between the beds. Update the lists and D-022.
+3) P-01: move the 'to atmosphere (elevated)' label to the WN-1002 vent arrow above C-1102, because it now sits next to AIR-1004 'to P-02'. Remove the CW-1001/AIR-1002 crossing at the DCAC inlet.
+4) P-01: draw the C-1101 mist eliminator (D-005). Either add an XV on AIR-1004 for LSHH-1106 or change its note to MAC trip only. Add TI/TAH on the MAC stage and intercooler outlets and on AIR-1002.
+5) Line list: CW-1002/CWR-1002 serve E-1101..E-1103, so either split the numbers or correct to/from, and label each cooler's CW stubs.
+6) Confirm with --crop that the check valve on AIR-1002 and the pump valves have the correct classes.
+Then draw P-03, keeping D-010 (sump analyzer AIA-3103, LOX purge FIC-3111, LICA-3102) and PSV-3114/3116 on the sheet so the hydrocarbon-on-pid and relief-on-pid gates pass, and render it with --crop. All 90 current warnings are P-03/P-04 not-on-pid and are expected.
+
+Rules: you have a hard API budget of $7 for this session, so work efficiently (plan, then batch edits; do not re-read huge files; use plantcode show and grep). Commit your work in logical commits with clear messages BEFORE the budget runs out (commit at least once midway). Append to PROGRESS.md. Keep plantcode validate free of errors at every commit. End with a short summary of what you did and what is left.

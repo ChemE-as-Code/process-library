@@ -1,0 +1,23 @@
+You are the process engineer for this plant repository. Work as AGENTS.md and the skills in .claude/skills say (dexpi-xml, pid-draft, pid-edit, lists-sync, layout-yaml, review). Use plantcode commands (validate, fmt, render --png --crop to LOOK at drawings, show, copy, fragment, diff --list, check).
+
+PLANT SPECIFICATION
+ASU-1: cryogenic air separation unit, double-column process.
+- Capacity: 500 t/d gaseous oxygen (GOX) 99.5 mol% (about 14,600 Nm3/h), delivered at 30 barg to a pipeline via a GOX compressor (or internal compression if you justify it in DESIGN.md); 10,000 Nm3/h gaseous nitrogen (GAN) <= 10 ppm O2 at 8 barg; small liquid production for backup: LOX and LIN storage (~2 days of 25% of GOX and 50% of GAN), with cryogenic pumps and ambient-air vaporizers for backup supply. No argon column (argon-rich stream returned).
+- Site: ASSUMED coastal industrial site, 30 C design ambient, 1.013 bar; cooling water 25/35 C; power 6.6 kV; steam not available (electric regeneration heater).
+- Sections and sheets: P-01 main air compressor (multistage centrifugal, intercoolers, aftercooler, inlet filter, anti-surge) and precooling (direct contact aftercooler + chilled water / evaporative cooler); P-02 front-end purification (two molecular sieve TSA adsorbers, switching valves, regeneration heater, dust filter, CO2/H2O analyzers); P-03 cold box (brazed aluminium main heat exchanger, booster/expander turbine, HP column, LP column, main condenser-reboiler, subcooler, JT/letdown valves, LP column sump hydrocarbon analysis); P-04 products (GOX compressor, GAN export, LOX/LIN tanks, cryogenic pumps, vaporizers, backup controls).
+- Oxygen service: materials and cleaning for O2 service, relief/vent philosophy (vents to safe location), hydrocarbon accumulation protection (liquid purge from the condenser/sump, analyzers), no oil-lubricated equipment in O2 service, isolation and blowdown philosophy. Record each in DESIGN.md with reasons; mark every assumed number ASSUMED.
+- Everything is basic engineering quality: correct topology, sensible instruments/valves, tags in the plant's convention (decide it in S1), legible drawings (look at the PNG renders).
+
+THIS STAGE (S6): Basic-engineering close-out: write layout/site-plan.yaml, building.yaml (MAC compressor house), equipment-placement.yaml (layout-yaml skill; cold box ~50 m tall, safety distances for LOX storage, rack routing), sync all lists with the four sheets (lists-sync), run plantcode check, write reviews/<date>-basic-engineering.md (review skill) covering process, O2 safety and drawing quality, fix what is cheap, set plant.yaml stage to basic if the basic gates pass and sign off with plantcode check --stage basic --write. Validate clean.
+
+FIX FIRST (findings from the independent review of the previous stage):
+1) P-04: add GOX flow measurement. Put an FT on GOX-4001 at the K-4101 suction, used by UIC-4103 anti-surge, and a flow totaliser at the GOX BL beside AI-4115. Add both to the instrument list and D-024.
+2) P-04: draw the road-tanker fill connections that D-017 promises on T-4101 and T-4102: hose connection, check valve, block valve, TSV, into the fill nozzle. Give them line numbers LOX-4004/LIN-4004 and add them to the line list. Otherwise change D-017.
+3) Add pump low-low level protection: LALL on LIA-4107/4108 trips P-4101A/B / P-4102A/B and closes XV-4136/4137. Write the trip beside the bubbles.
+4) Add check valves on the backup risers GOX-4004 and GAN-4003 downstream of PV-4111/4112, or justify leaving them out.
+5) Resolve PV-4101A: no such valve is drawn, so label the IGV signal as output A or fix the notes in D-019 and the instrument list.
+6) DESIGN.md: show the LIN tank volume check (about 372 m3 net plus heel and ullage against 400 m3), fix the 'loss of vacuum' wording for the perlite flat-bottom tanks, and state the air/O2 ratio of 5.2 with the reason.
+7) Close O2 review F6 (AIA-2102/2103 components), add a status section to the S4 design review, and correct the LIN-3001 off-page label (it says LN-3001).
+8) Then render P-04 again, read the PNG and crops, run fmt and validate. Then write the basic-stage review record and run plantcode check --stage basic --write for sign-off.
+
+Rules: you have a hard API budget of $6 for this session, so work efficiently (plan, then batch edits; do not re-read huge files; use plantcode show and grep). Commit your work in logical commits with clear messages BEFORE the budget runs out (commit at least once midway). Append to PROGRESS.md. Keep plantcode validate free of errors at every commit. End with a short summary of what you did and what is left.

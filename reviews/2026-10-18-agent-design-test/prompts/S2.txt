@@ -1,0 +1,23 @@
+You are the process engineer for this plant repository. Work as AGENTS.md and the skills in .claude/skills say (dexpi-xml, pid-draft, pid-edit, lists-sync, layout-yaml, review). Use plantcode commands (validate, fmt, render --png --crop to LOOK at drawings, show, copy, fragment, diff --list, check).
+
+PLANT SPECIFICATION
+ASU-1: cryogenic air separation unit, double-column process.
+- Capacity: 500 t/d gaseous oxygen (GOX) 99.5 mol% (about 14,600 Nm3/h), delivered at 30 barg to a pipeline via a GOX compressor (or internal compression if you justify it in DESIGN.md); 10,000 Nm3/h gaseous nitrogen (GAN) <= 10 ppm O2 at 8 barg; small liquid production for backup: LOX and LIN storage (~2 days of 25% of GOX and 50% of GAN), with cryogenic pumps and ambient-air vaporizers for backup supply. No argon column (argon-rich stream returned).
+- Site: ASSUMED coastal industrial site, 30 C design ambient, 1.013 bar; cooling water 25/35 C; power 6.6 kV; steam not available (electric regeneration heater).
+- Sections and sheets: P-01 main air compressor (multistage centrifugal, intercoolers, aftercooler, inlet filter, anti-surge) and precooling (direct contact aftercooler + chilled water / evaporative cooler); P-02 front-end purification (two molecular sieve TSA adsorbers, switching valves, regeneration heater, dust filter, CO2/H2O analyzers); P-03 cold box (brazed aluminium main heat exchanger, booster/expander turbine, HP column, LP column, main condenser-reboiler, subcooler, JT/letdown valves, LP column sump hydrocarbon analysis); P-04 products (GOX compressor, GAN export, LOX/LIN tanks, cryogenic pumps, vaporizers, backup controls).
+- Oxygen service: materials and cleaning for O2 service, relief/vent philosophy (vents to safe location), hydrocarbon accumulation protection (liquid purge from the condenser/sump, analyzers), no oil-lubricated equipment in O2 service, isolation and blowdown philosophy. Record each in DESIGN.md with reasons; mark every assumed number ASSUMED.
+- Everything is basic engineering quality: correct topology, sensible instruments/valves, tags in the plant's convention (decide it in S1), legible drawings (look at the PNG renders).
+
+THIS STAGE (S2): Draw P-01 (main air compressor and precooling) as pid/P-01.xml starting from the empty-sheet snippet (pid-draft skill): equipment, lines, valves, instruments per the lists; use plantcode copy/fragment; render and look; update lists; validate clean (only not-on-pid warnings for later sheets).
+
+FIX FIRST (findings from the independent review of the previous stage):
+1) Fix the title block on all 4 frames before drawing. Today it shows pyDEXPI template data: Oil & Gas Inc, Dexpi City, Utilities, project P3.1415, and 'approved' by A. P. Prover on 2016-04-01. Set ASU-1, the ASSUMED site, section P-0x, rev A 'for review', empty approval fields, and rename model 'example'.
+2) Split VNT-4001. The LOX tank vent (0.5 barg tank) must not share a header with the 31 bara GOX compressor blowdown. Give each its own line, silencer and valve.
+3) Add a GOX suction vent PV on GOX-4001 for a K-4101 trip or startup (split range with PIC-4101), plus the GOX vent line and silencer. Put the LP column PSV in the relief philosophy.
+4) Compander KT-3101/K-3101: add seal gas PDSLL trip/permissive and oil mist protection in D-012 and the instrument list, so no oil reaches the LP column.
+5) Make the expander temperatures consistent: about -115 to -120 C inlet to reach a -178 C exhaust. Recompute refrigeration (about 215 kW?) and liquid output. Record the 17/21 day refill as a decision for the client to confirm (truck fill or a bigger expander), and check the 94 % recovery (sensitivity at 90 %).
+6) Fill in the lists while drafting: K-3101 suction line, warm waste N2 header and split/vent, cold box purge N2, vent silencers, D-013 ESD XVs, a LOX tank HC analyzer. Fix LIC/LICA-3102 in D-010 and size WN-1001 at DN700.
+7) Tighten the checks: grep for AIA-3103 exactly, and add a gate for a relief-case list. Verify the DEXPI classes (Turbine, Vessel, HeatExchanger) with the dexpi-xml skill.
+8) Then draw P-01..P-04. Render PNGs (with --crop on the cold box) and read them. The 124 not-on-pid warnings must go to 0.
+
+Rules: you have a hard API budget of $8 for this session, so work efficiently (plan, then batch edits; do not re-read huge files; use plantcode show and grep). Commit your work in logical commits with clear messages BEFORE the budget runs out (commit at least once midway). Append to PROGRESS.md. Keep plantcode validate free of errors at every commit. End with a short summary of what you did and what is left.

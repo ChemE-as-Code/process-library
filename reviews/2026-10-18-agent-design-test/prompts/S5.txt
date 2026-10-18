@@ -1,0 +1,32 @@
+You are the process engineer for this plant repository. Work as AGENTS.md and the skills in .claude/skills say (dexpi-xml, pid-draft, pid-edit, lists-sync, layout-yaml, review). Use plantcode commands (validate, fmt, render --png --crop to LOOK at drawings, show, copy, fragment, diff --list, check).
+
+PLANT SPECIFICATION
+ASU-1: cryogenic air separation unit, double-column process.
+- Capacity: 500 t/d gaseous oxygen (GOX) 99.5 mol% (about 14,600 Nm3/h), delivered at 30 barg to a pipeline via a GOX compressor (or internal compression if you justify it in DESIGN.md); 10,000 Nm3/h gaseous nitrogen (GAN) <= 10 ppm O2 at 8 barg; small liquid production for backup: LOX and LIN storage (~2 days of 25% of GOX and 50% of GAN), with cryogenic pumps and ambient-air vaporizers for backup supply. No argon column (argon-rich stream returned).
+- Site: ASSUMED coastal industrial site, 30 C design ambient, 1.013 bar; cooling water 25/35 C; power 6.6 kV; steam not available (electric regeneration heater).
+- Sections and sheets: P-01 main air compressor (multistage centrifugal, intercoolers, aftercooler, inlet filter, anti-surge) and precooling (direct contact aftercooler + chilled water / evaporative cooler); P-02 front-end purification (two molecular sieve TSA adsorbers, switching valves, regeneration heater, dust filter, CO2/H2O analyzers); P-03 cold box (brazed aluminium main heat exchanger, booster/expander turbine, HP column, LP column, main condenser-reboiler, subcooler, JT/letdown valves, LP column sump hydrocarbon analysis); P-04 products (GOX compressor, GAN export, LOX/LIN tanks, cryogenic pumps, vaporizers, backup controls).
+- Oxygen service: materials and cleaning for O2 service, relief/vent philosophy (vents to safe location), hydrocarbon accumulation protection (liquid purge from the condenser/sump, analyzers), no oil-lubricated equipment in O2 service, isolation and blowdown philosophy. Record each in DESIGN.md with reasons; mark every assumed number ASSUMED.
+- Everything is basic engineering quality: correct topology, sensible instruments/valves, tags in the plant's convention (decide it in S1), legible drawings (look at the PNG renders).
+
+THIS STAGE (S5): Draw P-04 (products: GOX compressor, GAN export, LOX/LIN tanks, cryogenic pumps, ambient vaporizers, backup controls) as pid/P-04.xml with line continuity to P-03. Render, look, update lists, validate.
+
+FIX FIRST (findings from the independent review of the previous stage):
+Fix first, in this order:
+1) P-04 K-4102: add anti-surge. Recycle from the E-4103 outlet (upstream of the check valve) to GAN-4001 with UV + UIC, fail open. Update the lists and DESIGN.
+2) O2 review F2-F4 on P-04/P-03:
+- GOX/GAN BL: second block valve plus bleed (true DBB, which D-013 already claims).
+- Fail-closed outlet XV on T-4101/T-4102 bottom outlets.
+- Suction and discharge block valves per pump (P-4101A/B, P-4102A/B).
+- Pump cool-down/min-flow return line to the tank vapour space; route PSV-4125/4126 into it.
+- TSVs on LOX-3001 (FV-3111 to tank), LIN-3001, LOX-4002 and LIN-4002 (check valve to vaporizer inlet).
+- Vacuum breakers on both tanks.
+3) P-03: redraw PSV-3119 on the AIR-3002 line (E-3104 outlet, upstream of the check valve) with a discharge arrow to atm. It now floats on the K-3101 casing.
+4) Consistency: set the LOX-3001/LIN-3001 line-list notes to 470 kg/h (not 600). In D-010, state that the LOX product through FIC-3111 (about 330 Nm3/h) is the HC purge and that 0.2 % is the minimum.
+5) Add an O2 AI on the cold box casing breather (F7). Draw or annotate the trip outputs of TSLL-4113/4114, TSHH-4104 and PIC-4102. Tidy the UIC-4103 line crossing E-4102 and the GOX-4005 label.
+6) Update the review files: F1/F2 status, EIGA clause numbers.
+7) layout/: equipment placement plus vent stacks vs the F-1101 intake.
+8) Crop-check P-01 labels. P-02: PDI on the adsorbers, TSHH on RG-2002.
+9) Remove the untracked scripts/regen.sh.
+Re-render P-03/P-04 with --crop and keep validate --fail-on warning at 0.
+
+Rules: you have a hard API budget of $7 for this session, so work efficiently (plan, then batch edits; do not re-read huge files; use plantcode show and grep). Commit your work in logical commits with clear messages BEFORE the budget runs out (commit at least once midway). Append to PROGRESS.md. Keep plantcode validate free of errors at every commit. End with a short summary of what you did and what is left.
