@@ -4,6 +4,7 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-10-19 | process/flowsheet.yaml, process/materials.yaml, process/BFD.xml, process/PFD.xml, checks/checks.yaml, reviews/2026-10-19-process-bfd-pfd.md | dry-air composition (ASSUMED, CO2-free after V-2101A/B) on S4, S5, S5B, S6; props --fill adds S4, S5, S6; sheets rebuilt; gate process-balances (mass balances, sheets current); review record of the BFD/PFD work | plantcode 0.5 process model, finishing the example |
 | 2026-10-18 | plant.yaml, checks/status.json, reviews/2026-10-18-basic-engineering.md | S6 sign-off: stage basic, all concept and basic gates pass, validate clean; review record with 7 open low/medium items for detail engineering | basic engineering close-out |
 | 2026-10-18 | layout/, DESIGN.md D-017/D-018/D-019/D-024/D-026, lists, reviews | S6: MAC compressor house B1, racks PR1/PR2, LIN tank volume check (372 m3 net / 400 working / ~440 gross), perlite tank relief wording, air/O2 ratio 5.2, PV-4101A = IGV output A, no check valves on backup risers (justified), AIA-2102 components (O2 F6 closed), S4 review status | S5 review findings and basic-engineering close-out |
 | 2026-10-18 | pid/P-04.xml, line and instrument lists | S6: truck fill LOX-4004/LIN-4004 (hose, check valve, TSV-4144/4145, HV-4146/4147, nozzle N6), FI-4148 for UIC-4103, FQI-4149 at GOX BL, LALL pump trips written beside the TSLL notes, LIN-3001 off-page label | S5 review findings 1-3, 5, 7 |

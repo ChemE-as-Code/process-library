@@ -27,6 +27,15 @@ checks:
     stage: basic
     kind: process-links
     level: error
+  # Mass balances clean and the generated sheets current. Not-evaluable balances (component
+  # balances of the air side and waste streams without a composition; the cold-box internals
+  # without flows) stay info: see reviews/2026-10-19-process-bfd-pfd.md.
+  - id: process-balances
+    title: No block or step mass balance error; BFD and PFD current
+    stage: concept
+    kind: validate
+    fail_on: warning
+    rules: [plantcode.process-balance, plantcode.process-schema, plantcode.generated-*]
   - id: process-calculated-current
     title: No stale calculated stream property
     stage: basic
