@@ -1,5 +1,5 @@
-# Components of ASU-1. Schema plantcode/process/v1. The property method is a placeholder until
-# `plantcode process props` (phase B) configures and validates it.
+# Components of ASU-1. Schema plantcode/process/v1. property_method is written by
+# `plantcode process props --fill` (method, validated range, package versions); do not edit it.
 schema: plantcode/process/v1
 kind: materials
 components:
@@ -13,4 +13,32 @@ templates:
   - {id: dry, title: Dry air and its products, components: [N2, O2, AR]}
 property_method:
   adapter: thermo
-  status: placeholder
+  status: configured
+  phase_models:
+    vle: phi-phi, Peng-Robinson for both phases
+    vapor_density: Peng-Robinson
+    liquid_density: COSTALD (chemicals COSTALD_mixture)
+    enthalpy: Peng-Robinson departure + ideal-gas heat capacities; ideal gas 298.15 K, 101.325 kPa = 0
+  eos: Peng-Robinson (thermo PRMIX)
+  binary_interaction: ChemSep PR kij (thermo IPDB 'ChemSep PR')
+  application_range:
+    temperature:
+    - 77.0
+    - 315.0
+    pressure:
+    - 100.0
+    - 3200.0
+    vle_pressure:
+    - 100.0
+    - 600.0
+    phases:
+    - vapor
+    - liquid
+    - two-phase
+    components:
+    - 7440-37-1
+    - 7727-37-9
+    - 7782-44-7
+  versions:
+    thermo: 0.6.1
+    chemicals: 1.5.2

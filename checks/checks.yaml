@@ -15,6 +15,24 @@ checks:
     stage: concept
     kind: command
     command: grep -q ASSUMED process/design-basis.yaml
+  # Process links (blocks, steps, streams -> equipment, lines, instruments, sheets): reported at
+  # concept, required at basic. Calculated stream properties must be current at basic.
+  - id: process-links-concept
+    title: Process links resolve (reported only)
+    stage: concept
+    kind: process-links
+    level: warning
+  - id: process-links
+    title: Every process link resolves against the lists and sheets
+    stage: basic
+    kind: process-links
+    level: error
+  - id: process-calculated-current
+    title: No stale calculated stream property
+    stage: basic
+    kind: validate
+    fail_on: warning
+    rules: [plantcode.process-calculated-stale]
   # ---- ASU-specific gates
   - id: o2-safety-philosophy
     title: "O2 service: materials/cleaning and no-oil decisions recorded"

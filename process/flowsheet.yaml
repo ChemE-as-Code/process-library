@@ -4,7 +4,9 @@
 schema: plantcode/process/v1
 kind: flowsheet
 title: ASU-1 (500 t/d GOX)
-units: {pressure: bar(a), temperature: °C, flow: kg/h, duty: kW, enthalpy: kJ/kmol}
+units:
+  {pressure: bar(a), temperature: °C, flow: kg/h, duty: kW, enthalpy: kJ/kmol,
+   enthalpy_reference: {state: ideal_gas, temperature: 298.15, pressure: 101.325}}
 cases:
   - {id: design, description: "Design case: 30 C ambient, 94 % O2 recovery (ASSUMED)", default: true}
 tolerance: {abs: 1.0, rel: 0.005}
@@ -86,7 +88,7 @@ steps:
     block: PUR
     title: Adsorbers
     class: Adsorbing
-    links: [{target: equipment, ref: V-2101}, {target: equipment, ref: V-2102}]
+    links: [{target: equipment, ref: V-2101A}, {target: equipment, ref: V-2101B}]
     ports:
       - {id: in, direction: in, delegates: in}
       - {id: regen_in, direction: in}
@@ -166,6 +168,7 @@ streams:
   # -- DESIGN.md section 3, streams 1-12c (values ASSUMED there unless a requirement) ----------
   - id: S1
     title: Air feed
+    links: [{target: line, ref: AIR-1001, sheet: P-01}, {target: instrument, ref: FIC-1101, sheet: P-01}]
     from: AIR.out
     to: K1101.in
     template: air
@@ -177,6 +180,7 @@ streams:
         composition: {basis: mole_fraction, values: {N2: 0.7808, O2: 0.2095, AR: 0.0093, H2O: 0.0, CO2: 0.0004}, provenance: assumed, source: "standard dry air; humidity not stated"}
   - id: S2
     title: Compressed air
+    links: [{target: line, ref: AIR-1002, sheet: P-01}]
     from: K1101.out
     to: C1101.in
     template: air
@@ -187,6 +191,7 @@ streams:
         temperature: {value: 40, provenance: assumed, source: "DESIGN.md 3, stream 2"}
   - id: S3
     title: Precooled air
+    links: [{target: line, ref: AIR-1004, sheet: P-01}]
     from: C1101.out
     to: V2101.in
     template: air
@@ -197,6 +202,10 @@ streams:
         temperature: {value: 12, provenance: assumed, source: "DESIGN.md 3, stream 3"}
   - id: S4
     title: Dry air to cold box
+    links:
+      - {target: line, ref: AIR-2001, sheet: P-02}
+      - {target: line, ref: AIR-2002, sheet: P-02}
+      - {target: instrument, ref: AIA-2102, sheet: P-02}
     from: V2101.out
     to: E3101.air
     template: dry
@@ -207,6 +216,7 @@ streams:
         temperature: {value: 15, provenance: assumed, source: "DESIGN.md 3, stream 4"}
   - id: S5
     title: HP column feed
+    links: [{target: line, ref: AIR-3001, sheet: P-03}]
     from: E3101.hp
     to: C3101.feed
     template: dry
@@ -217,6 +227,7 @@ streams:
         temperature: {value: -173, provenance: assumed, source: "DESIGN.md 3, stream 5"}
   - id: S5B
     title: Expander feed
+    links: [{target: line, ref: AIR-3003, sheet: P-03}]
     from: E3101.exp
     to: KT3101.in
     template: dry
@@ -225,6 +236,7 @@ streams:
         flow: {value: 14870, provenance: assumed, source: "DESIGN.md 3, stream 6 (11,500 Nm3/h)"}
   - id: S6
     title: Lachmann air
+    links: [{target: line, ref: AIR-3004, sheet: P-03}]
     from: KT3101.out
     to: C3102.lachmann
     template: dry
@@ -235,26 +247,31 @@ streams:
         temperature: {value: -178, provenance: assumed, source: "DESIGN.md 3, stream 6"}
   - id: S13
     title: Crude oxygen
+    links: [{target: line, ref: RL-3001, sheet: P-03}]
     from: C3101.crude
     to: C3102.crude
     template: dry
   - id: S14
     title: Cold HP nitrogen
+    links: [{target: line, ref: GAN-3001, sheet: P-03}]
     from: C3101.n2
     to: E3101.gan_c
     template: dry
   - id: S15
     title: Cold GOX
+    links: [{target: line, ref: GOX-3001, sheet: P-03}]
     from: C3102.gox
     to: E3101.gox_c
     template: dry
   - id: S16
     title: Cold waste nitrogen
+    links: [{target: line, ref: WN-3001, sheet: P-03}]
     from: C3102.waste
     to: E3101.waste_c
     template: dry
   - id: S17
     title: Warm waste nitrogen
+    links: [{target: line, ref: WN-3002, sheet: P-03}]
     from: E3101.waste
     to: X3101.in
     template: dry
@@ -264,8 +281,14 @@ streams:
         pressure: {value: 1.15, provenance: assumed, source: "DESIGN.md 3, stream 12"}
         temperature: {value: 25, provenance: assumed, source: "DESIGN.md 3, stream 12"}
         composition: {basis: mole_fraction, values: {N2: 0.968, O2: 0.019, AR: 0.013}, provenance: assumed, source: "DESIGN.md 3, stream 12"}
+        calculated:
+          molar_mass: {value: 28.2443, unit: kg/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: 42267958ea4f4c40}
+          density: {value: 1.31097, unit: kg/m3, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: 42267958ea4f4c40}
+          enthalpy: {value: -8.90734, unit: kJ/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: 42267958ea4f4c40}
+        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: 42267958ea4f4c40}
   - id: S7
     title: GOX product
+    links: [{target: line, ref: GOX-4001, sheet: P-04}, {target: instrument, ref: FI-4148, sheet: P-04}]
     from: E3101.gox
     to: K4101.in
     template: dry
@@ -274,8 +297,15 @@ streams:
         flow: {value: 20860, provenance: given, source: "plant.yaml: 500 t/d GOX; DESIGN.md 3, stream 7"}
         pressure: {value: 1.15, provenance: assumed, source: "DESIGN.md 3, stream 7"}
         temperature: {value: 25, provenance: assumed, source: "DESIGN.md 3, stream 7"}
+        composition: {basis: mole_fraction, values: {O2: 0.995, AR: 0.0045, N2: 0.0005}, provenance: assumed, source: "DESIGN.md 3, stream 7: O2 99.5 % (specification, D-001); rest Ar/N2 split ASSUMED (no argon column)"}
+        calculated:
+          molar_mass: {value: 32.0326, unit: kg/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: e8c0732ff4fbd914}
+          density: {value: 1.48758, unit: kg/m3, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: e8c0732ff4fbd914}
+          enthalpy: {value: -10.8572, unit: kJ/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: e8c0732ff4fbd914}
+        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: e8c0732ff4fbd914}
   - id: S8
     title: GOX to pipeline
+    links: [{target: line, ref: GOX-4002, sheet: P-04}, {target: instrument, ref: FQI-4149, sheet: P-04}]
     from: K4101.out
     to: GOXP.in
     template: dry
@@ -284,8 +314,15 @@ streams:
         flow: {value: 20860, provenance: given, source: "DESIGN.md 3, stream 8"}
         pressure: {value: 31.0, provenance: given, source: "plant.yaml: 30 barg; DESIGN.md 3, stream 8"}
         temperature: {value: 40, provenance: assumed, source: "DESIGN.md 3, stream 8"}
+        composition: {basis: mole_fraction, values: {O2: 0.995, AR: 0.0045, N2: 0.0005}, provenance: assumed, source: "= stream 7 (DESIGN.md 3: O2 99.5 %)"}
+        calculated:
+          molar_mass: {value: 32.0326, unit: kg/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: c19dd22243d654eb}
+          density: {value: 38.9548, unit: kg/m3, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: c19dd22243d654eb}
+          enthalpy: {value: 178.868, unit: kJ/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: c19dd22243d654eb}
+        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: c19dd22243d654eb}
   - id: S9
     title: GAN product
+    links: [{target: line, ref: GAN-4001, sheet: P-04}, {target: instrument, ref: AIA-3105, sheet: P-04}]
     from: E3101.gan
     to: K4102.in
     template: dry
@@ -294,8 +331,15 @@ streams:
         flow: {value: 12510, provenance: given, source: "plant.yaml: 10,000 Nm3/h GAN; DESIGN.md 3, stream 9"}
         pressure: {value: 5.2, provenance: assumed, source: "DESIGN.md 3, stream 9"}
         temperature: {value: 25, provenance: assumed, source: "DESIGN.md 3, stream 9"}
+        composition: {basis: mole_fraction, values: {N2: 0.99990, O2: 0.00001, AR: 0.00009}, provenance: assumed, source: "DESIGN.md 3, stream 9 / D-004: O2 <= 10 ppm (specification); Ar ASSUMED"}
+        calculated:
+          molar_mass: {value: 28.0145, unit: kg/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: 1bb662473f848c51}
+          density: {value: 5.88982, unit: kg/m3, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: 1bb662473f848c51}
+          enthalpy: {value: -39.7153, unit: kJ/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: 1bb662473f848c51}
+        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: 1bb662473f848c51}
   - id: S9B
     title: GAN to battery limit
+    links: [{target: line, ref: GAN-4002, sheet: P-04}, {target: instrument, ref: FIC-4105, sheet: P-04}]
     from: K4102.out
     to: GANP.in
     template: dry
@@ -304,8 +348,15 @@ streams:
         flow: {value: 12510, provenance: given, source: "DESIGN.md 3, stream 9"}
         pressure: {value: 9.0, provenance: given, source: "plant.yaml: 8 barg; DESIGN.md 3, stream 9"}
         temperature: {value: 40, provenance: assumed, source: "DESIGN.md 3, stream 9"}
+        composition: {basis: mole_fraction, values: {N2: 0.99990, O2: 0.00001, AR: 0.00009}, provenance: assumed, source: "= stream 9"}
+        calculated:
+          molar_mass: {value: 28.0145, unit: kg/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: b07c5d5f29c4dba2}
+          density: {value: 9.70856, unit: kg/m3, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: b07c5d5f29c4dba2}
+          enthalpy: {value: 375.419, unit: kJ/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: b07c5d5f29c4dba2}
+        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: b07c5d5f29c4dba2}
   - id: S10
     title: LOX to storage
+    links: [{target: line, ref: LOX-3001, sheet: P-03}]
     from: C3102.lox
     to: LOX.in
     template: dry
@@ -314,8 +365,11 @@ streams:
         flow: {value: 470, provenance: assumed, source: "DESIGN.md 3, stream 10 (D-017)"}
         pressure: {value: 1.3, provenance: assumed, source: "DESIGN.md 3, stream 10"}
         temperature: {value: -180, provenance: assumed, source: "DESIGN.md 3, stream 10"}
+        composition: {basis: mole_fraction, values: {O2: 0.995, AR: 0.0045, N2: 0.0005}, provenance: assumed, source: "DESIGN.md 3, stream 10: O2 99.5 %; as stream 7"}
+        phase: {value: liquid, provenance: given, source: "DESIGN.md 3, stream 10: LOX to storage T-4101"}
   - id: S11
     title: LIN to storage
+    links: [{target: line, ref: LIN-3001, sheet: P-03}]
     from: C3101.lin
     to: LIN.in
     template: dry
@@ -324,8 +378,11 @@ streams:
         flow: {value: 470, provenance: assumed, source: "DESIGN.md 3, stream 11 (D-017)"}
         pressure: {value: 5.2, provenance: assumed, source: "DESIGN.md 3, stream 11"}
         temperature: {value: -178, provenance: assumed, source: "DESIGN.md 3, stream 11"}
+        composition: {basis: mole_fraction, values: {N2: 0.99990, O2: 0.00001, AR: 0.00009}, provenance: assumed, source: "DESIGN.md 3, stream 11: N2 from the HP column top, as stream 9 (ASSUMED)"}
+        phase: {value: liquid, provenance: given, source: "DESIGN.md 3, stream 11: LIN to storage T-4102"}
   - id: S12A
     title: Waste N2 to regeneration
+    links: [{target: line, ref: RG-2001, sheet: P-02}]
     from: X3101.regen
     to: E2101.in
     template: dry
@@ -335,6 +392,7 @@ streams:
         pressure: {value: 1.1, provenance: assumed, source: "DESIGN.md 3, stream 12a"}
   - id: S12H
     title: Hot regeneration gas
+    links: [{target: line, ref: RG-2002, sheet: P-02}]
     from: E2101.out
     to: V2101.regen_in
     template: dry
@@ -344,6 +402,7 @@ streams:
         temperature: {value: 200, provenance: assumed, source: "DESIGN.md 3, stream 12a (heating)"}
   - id: S12B
     title: Waste N2 to evaporative cooler
+    links: [{target: line, ref: WN-1001, sheet: P-01}]
     from: X3101.evap
     to: C1102.in
     template: dry
@@ -354,6 +413,7 @@ streams:
         temperature: {value: 25, provenance: assumed, source: "DESIGN.md 3, stream 12b"}
   - id: S12C
     title: Waste N2 vent
+    links: [{target: line, ref: WN-3003, sheet: P-03}]
     from: X3101.vent
     to: VENT.v1
     template: dry
@@ -364,6 +424,7 @@ streams:
         temperature: {value: 25, provenance: assumed, source: "DESIGN.md 3, stream 12c"}
   - id: S12D
     title: Regeneration gas out (with water and CO2 removed)
+    links: [{target: line, ref: RG-2003, sheet: P-02}]
     from: V2101.regen_out
     to: VENT.v2
     template: air
@@ -372,6 +433,7 @@ streams:
         flow: {value: 16620, provenance: assumed, source: "12a 16,350 + 270 kg/h water/CO2 removed (DESIGN.md 3, mass closure)"}
   - id: S12E
     title: Evaporative cooler gas out
+    links: [{target: line, ref: WN-1002, sheet: P-01}]
     from: C1102.out
     to: VENT.v3
     template: air
