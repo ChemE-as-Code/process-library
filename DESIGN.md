@@ -79,7 +79,7 @@ Basis: design case, 30 C ambient, 94 % O2 recovery (ASSUMED). Nm3 at 0 C, 1.013 
 | 9 GAN product | E-3101 -> K-4102 -> BL | 10,000 | 12,510 | 5.2 / 9.0 | 25 / 40 | N2, O2 <= 10 ppm |
 | 10 LOX to storage | C-3102 -> T-4101 | 330 | 470 | 1.3 | -180 | O2 99.5 % |
 | 11 LIN to storage | C-3101 -> T-4102 | 375 | 470 | 5.2 | -178 | N2 |
-| 12 waste N2 | C-3102 -> E-3101 | 50,500 | 63,530 | 1.15 | 25 | N2 96.8, O2 1.9, Ar 1.3 % |
+| 12 waste N2 | C-3102 -> E-3101 | 50,500 | 63,530 | 1.15 | 25 | N2 96.7, O2 2.1, Ar 1.3 % (closes the cold-box O2/Ar balance) |
 | 12a regeneration | -> E-2101 -> V-2101 | 13,000 | 16,350 | 1.1 | 200 (heating) | waste N2 |
 | 12b evaporative cooler | -> C-1102 | 25,000 | 31,450 | 1.05 | 25 | waste N2 |
 | 12c vent | -> atm | 12,500 | 15,730 | 1.02 | 25 | waste N2 |
