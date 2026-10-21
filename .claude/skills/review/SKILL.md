@@ -68,8 +68,12 @@ check goes under "Not checked" in the record.
      report`: quote the counts in the record's `## Layout` section: lines routed / skipped /
      unrouted, the chains per method (every `direct` or `rack+direct` route is a finding or
      accepted with a reason) and per reason, the rack fill per tier, the model findings per
-     rule (`layout-clash-*`, `-headroom`, `-access-blocked`, `-zone-crossing`, `-separation`),
-     platforms `review_needed`;
+     rule (`layout-clash-*`, `-headroom`, `-access-blocked`, `-zone-crossing`, `-separation`,
+     and the engineering rules `-wall-penetration`, `-tier`, `-vent-outlet`, `-free-span`,
+     `-operability`, `-escape-ways`, `-escape-travel`, `-lifting`, `-laydown`, `-spacing`),
+     platforms, stairs, ladders and penetrations `review_needed`. For each engineering finding
+     say whether it is fixed, accepted (with the reason) or open; their criteria are ASSUMED
+     package values unless `criteria:` in the site plan cites the site's standard;
    - render and **read** the plot plan and at least two sections: `plantcode layout render
      --plan --png` (`build/layout-plan.png`), `--section y=<across the main rack> --png` and
      `--section x=<through the tallest structure or cold box> --png`, plus crops around what
@@ -79,7 +83,9 @@ check goes under "Not checked" in the record.
    - check against the design basis and `DESIGN.md`: separations kept (measured with
      `plantcode show <tag> --layout`, never estimated), roads and fire access, the air intake
      upwind of vents, pumps near their suction source, maintenance envelopes free, every
-     elevated valve, instrument and manway reachable (skill `structures-access`), escape routes,
+     elevated valve, instrument and manway reachable (skill `structures-access`), vent and
+     relief outlets above the walking levels, pipes through walls only in declared openings,
+     heavy items with a crane, a clear lane and laydown, escape routes,
      zones declared and still ASSUMED (skill `area-classification`), lines over roads and
      walkways at their headroom, oxygen and cryogenic lines on their own tier or edge (skill
      `pipe-routing`);

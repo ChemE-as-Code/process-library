@@ -94,14 +94,14 @@ Do not type it, and do not write a templating script for it (a generator script 
   original's nozzles, an actuating system's valve reference. Connect those by hand.
   `--print` shows the XML without writing. `--into` puts a copy into another parent (a valve
   into another segment's `Items`, its drawing into that segment's drawing). An instrument copied
-  with another measured variable (`--tag FI-4148` from `AI-3104`) gets the sensor `FT4148` (and
-  actuator `FV...`), not `AT4148`. Options that adapt the copy in the same command (repeat each
+  with another measured variable (`--tag FI-148` from `AI-104`) gets the sensor `FT148` (and
+  actuator `FV...`), not `AT148`. Options that adapt the copy in the same command (repeat each
   as needed):
 
   | option | does |
   |---|---|
-  | `--rename HV-4146=HV-4147` | an inner tag: in the copied data, the label texts and the ids that spell it (`Line_LIN4004_HV4147`) |
-  | `--renumber 4144:4145` | a number in the inner tags, label texts and ids (`TSV-4144` -> `TSV-4145`) |
+  | `--rename HV-146=HV-147` | an inner tag: in the copied data, the label texts and the ids that spell it (`Line_L105_HV147`) |
+  | `--renumber 144:145` | a number in the inner tags, label texts and ids (`TSV-144` -> `TSV-145`) |
   | `--set 'FluidCode=Liquid nitrogen'` | a data value on every copied object that has it (line and segments), and the labels showing it |
   | `--connect PIPE=ITEM:NODE` (`PIPE.target=...`) | a copied pipe's open end (old or new id), with its segment's end and the ConnectorLine's `Source`/`Target` |
   | `--sense-at ID[:X,Y]` | an instrument's `SensingLocation`; with X,Y a new `InstrumentationNodePosition` there in ID's drawing, where the measuring line starts |
@@ -121,12 +121,12 @@ Do not type it, and do not write a templating script for it (a generator script 
   | `segment` | `--from ITEM:NODE --to ITEM:NODE [--like SEGMENT] [--number S2] [--dn 80]` | `ID` with empty `Connections`/`Items` to fill, `ID_Drawing` |
   | `node` | `--dn 80 [--standard Din2448\|Iso6708\|none] [--at X,Y]` | `ID`, with `--at` `ID_Position` |
   | `label` | `--for ID --attribute TagName [--at X,Y]` | `ID` (label class from the object: `ValveLabel`, `EquipmentTagNameLabel`, ...) |
-  | `equipment` | `--class CentrifugalCompressor --tag K-1101 --at X,Y [--shape NAME] [--rotation R] [--scale S\|SX,SY] [--label-at X,Y] [--marker NAME:dy[:SY][:m] ...] --nozzle N1:dx,dy[:DN] ...` | `ID` with nozzles `ID_N1` (node `ID_N1_Node`), symbol, tag label; pipes attach at `ID_N1_Node_Position` |
+  | `equipment` | `--class CentrifugalCompressor --tag K-101 --at X,Y [--shape NAME] [--rotation R] [--scale S\|SX,SY] [--label-at X,Y] [--marker NAME:dy[:SY][:m] ...] --nozzle N1:dx,dy[:DN] ...` | `ID` with nozzles `ID_N1` (node `ID_N1_Node`), symbol, tag label; pipes attach at `ID_N1_Node_Position` |
   | `nozzle` | `--on EQUIP --at dx,dy [--dn 50] [--tag N7]` (needs the sheet) | `ID` with node `ID_Node`, into the equipment and its drawing |
-  | `instrument` | `--tag PIC-4101 --at X,Y --sense ITEM[:x,y] [--field]` | `ID` with sensor `ID_Sensor`, measuring line `ID_MeasuringLine`, bubble nodes `ID_Top`/`_Bottom`/`_Left`/`_Right` |
-  | `signal` | `--from INST --to VALVE\|INST[,VALVE...] [--fail-action FC\|FO\|FL] [--number PV-4111] [--points x,y;...]` (needs the sheet) | `ID` (SignalLineFunction, dashed line); to a valve also `ID_Actuating` and, if the valve has none, `<valve>_ActuatingSystem` |
+  | `instrument` | `--tag PIC-101 --at X,Y --sense ITEM[:x,y] [--field]` | `ID` with sensor `ID_Sensor`, measuring line `ID_MeasuringLine`, bubble nodes `ID_Top`/`_Bottom`/`_Left`/`_Right` |
+  | `signal` | `--from INST --to VALVE\|INST[,VALVE...] [--fail-action FC\|FO\|FL] [--number PV-111] [--points x,y;...]` (needs the sheet) | `ID` (SignalLineFunction, dashed line); to a valve also `ID_Actuating` and, if the valve has none, `<valve>_ActuatingSystem` |
   | `offpage` | `--in\|--out --at X,Y [--rotation R] [--dn 80] [--note TEXT] [--note-at X,Y]` | `ID` (Flow In/Out PipeOffPageConnector) with node `ID_N`, position `ID_N_Position` |
-  | `line` | `--number LOX-4101 --dn 100 [--fluid LOX] [--at X,Y]` (the label) | `ID` (PipingNetworkSystem) with empty `Segments`, `ID_Drawing` |
+  | `line` | `--number L-101 --dn 100 [--fluid Water] [--at X,Y]` (the label) | `ID` (PipingNetworkSystem) with empty `Segments`, `ID_Drawing` |
   | `note` | `--text TEXT --at X,Y` | `ID`, a Static text at the top of the diagram, owned by no object |
   | `shape` | `NAME` (e.g. `COLUMN_SHAPE`, `compressor`) | the catalogue Shape to paste, or "already as #ShapeN" |
 
@@ -141,14 +141,14 @@ Do not type it, and do not write a templating script for it (a generator script 
   Drafting a sheet takes no generator script: `equipment` (with its nozzles), `line` + `segment`
   + `valve`/`tee` + `pipe`, `offpage` at the sheet edges, `instrument` on a nozzle or segment,
   `signal` from a controller or switch to its valves, `note` for free text. With `--sheet`, the
-  comments name the holder's id and line (`into <Components property="Nozzles"> of T4101
+  comments name the holder's id and line (`into <Components property="Nozzles"> of T101
   (pid/P-04.xml:9229)`); paste each part there.
 
   - `equipment`/`nozzle` offsets are from the symbol's centre along the sheet axes and name a
     point on its outline; a nozzle with a DN gets a 4 mm stub outwards (along the axis the
     offset points) and its pipe attaches at the stub's end. A nozzle without a DN is an
     instrument connection: its `InstrumentationNodePosition` is where an `instrument --sense`
-    measuring line starts. A pipe's `--from`/`--to` ITEM is the **nozzle** (`T4101_N1`), not the
+    measuring line starts. A pipe's `--from`/`--to` ITEM is the **nozzle** (`T101_N1`), not the
     equipment.
   - `--class` is the DEXPI class; the symbol defaults by class (`shapes.md`, "default for").
     Beds and trays inside a column or adsorber are `--marker` symbols in the same drawing:
@@ -158,7 +158,7 @@ Do not type it, and do not write a templating script for it (a generator script 
   - `signal` to a valve models what a dashed line only shows: an `ActuatingFunction` in the
     instrument referencing the valve's `ActuatingSystem` (made with its `ControlledActuator`
     and `OperatedValveReference` when the valve has none) and a `SignalLineFunction` from the
-    instrument to it. A trip is one `signal` with several targets (`--to XV4136,PV4111`); a
+    instrument to it. A trip is one `signal` with several targets (`--to XV136,PV111`); a
     second signal to the same valve joins its actuating system. When several parts go into a
     block the holder lacks, only the first says "create it"; the others say "the ... part above
     creates": paste them into that one block (two blocks of one property lose objects). Signal
@@ -182,12 +182,12 @@ Use these before a hand edit: they find every coordinate, reference and label te
   equipment data table stays in its band (move it by its own id). ID may also be a drawing
   element (a label `Text`, to nudge only it).
 - `plantcode rename OLD NEW [--children]`: an id and every `#OLD`; `--children` also renames
-  `OLD_*`. Given a tag (`plantcode rename HV-4146 HV-4147 [--ids]`): the tag data
+  `OLD_*`. Given a tag (`plantcode rename HV-146 HV-147 [--ids]`): the tag data
   (`TagNamePrefix`/`SequenceNumber`/`Suffix` too; for an instrument category, letters, number
   and its sensor/actuator numbers) and the labels showing it; `--ids` also the ids that spell
   it. A tag (`PipingComponentNumber`, a safety valve's `PositionNumber`, ...) addresses the
   object like its id. When two objects share the tag, give the one to retag by its id with
-  `--tag`: `plantcode rename Inst_Y FI-4150 --tag` (the sensor becomes `FT4150`). Unknown ids,
+  `--tag`: `plantcode rename Inst_Y FI-150 --tag` (the sensor becomes `FT150`). Unknown ids,
   taken names and tags another valve or instrument already has exit 2.
 - `plantcode set ID PROP=VALUE...`: data values by their DEXPI name, in the type DEXPI gives
   them: `FluidCode=Nitrogen`, `OnHold=OnHold` (enumeration member),
@@ -300,14 +300,14 @@ left to right at y 154).
    tee's branch node and does not own the tee: only the segment that ends at its run-in node
    does.
 6. Labels: `fragment label --id Label_C9 --for Valve_P4711B_check --attribute PipingComponentNumber --sheet pid/P-01.xml`.
-7. **A copy of a line with its valves** (a second fill line beside LOX-4004) is one command:
-   `plantcode copy Line_LOX4004 --prefix Line_LIN4004 --tag LIN-4004 --offset 0,40 --rename HV-4146=HV-4147 --renumber 4144:4145 --set 'FluidCode=Liquid nitrogen' --connect Line_LOX4004_S2_P2=T4102_N7:T4102_N7_Node`
-   (`T4102_N7` a free nozzle added for the new line: `--connect` refuses a node another pipe
+7. **A copy of a line with its valves** (a second fill line beside L-104) is one command:
+   `plantcode copy Line_L104 --prefix Line_L105 --tag L-105 --offset 0,40 --rename HV-146=HV-147 --renumber 144:145 --set 'FluidCode=Water' --connect Line_L104_S2_P2=T102_N7:T102_N7_Node`
+   (`T102_N7` a free nozzle added for the new line: `--connect` refuses a node another pipe
    already ends at).
-   An instrument beside another: `plantcode copy Inst_AI3104 --prefix Inst_FI4148 --tag FI-4148 --offset 14,0 --sense-at Line_GOX4001_S1:318,45`
-   (the sensor becomes `FT4148`, its measuring line starts at a new node on the segment). Check
+   An instrument beside another: `plantcode copy Inst_AI104 --prefix Inst_FI148 --tag FI-148 --offset 14,0 --sense-at Line_L102_S1:318,45`
+   (the sensor becomes `FT148`, its measuring line starts at a new node on the segment). Check
    the `duplicate tags:` line of the report is `none`; nudge the result with
-   `plantcode move Inst_FI4148 --offset DX,DY` after the render.
+   `plantcode move Inst_FI148 --offset DX,DY` after the render.
 8. Remove an `Items` left empty, then the Loop. Expected: `plantcode.equipment-not-listed` for
    P4711B until `lists-sync` adds it; the new segments go into the line list's `segments` if
    their DN differs.
@@ -519,7 +519,7 @@ every line should be a change you meant, and every changed plant item should be 
 | `dexpi.load` "Reference 'X' ... not found" | `#X` names no object | fix the id or add the object |
 | `dexpi.load` unknown class / property | misspelt `type` or `property` | copy the spelling from a snippet |
 | `plantcode.duplicate-id` | copied snippet without renaming | `plantcode rename OLD NEW` (renames its references) |
-| `plantcode.duplicate-tag` | two piping components (`PipingComponentNumber`/`PositionNumber` such as `HV-4146`) or two instruments share a tag, e.g. after a copy | `plantcode rename ID HV-4147 --tag` (an instrument: `rename ID FI-4150 --tag`, its sensor and actuator follow), or copy again with `--rename`/`--renumber` |
+| `plantcode.duplicate-tag` | two piping components (`PipingComponentNumber`/`PositionNumber` such as `HV-146`) or two instruments share a tag, e.g. after a copy | `plantcode rename ID HV-147 --tag` (an instrument: `rename ID FI-150 --tag`, its sensor and actuator follow), or copy again with `--rename`/`--renumber` |
 | `plantcode.not-drawn` | conceptual object without a drawing | add a RepresentationGroup |
 | `plantcode.segment-ends` | segment Source/Target Item/Node is not where its pipes start/end (pyDEXPI's `pydexpi_segment_connectivity`, `..._reference_nodes_and_items_match`) | point the segment's SourceItem/SourceNode at where its pipes start, TargetItem/TargetNode at where they end (or, for an end item the segment owns, its other node; see Conventions) |
 | `plantcode.dn-mismatch` | a pipe joins nodes of different DN (also at a reducer port) | give both nodes the DN of the pipe; a reducer's own two nodes carry the two DNs |

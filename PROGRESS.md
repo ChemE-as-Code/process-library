@@ -4,6 +4,7 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-10-22 | .claude/skills | `plantcode skills update`: mto-estimate, electrical-cabling, hvac-ducts installed; dexpi-xml, lists-sync, pid-edit, process-design, review, layout-yaml, pipe-routing, structures-access updated (level of detail, access proposals, engineering rules, wall penetrations, vent risers) | framework skills for the layout detail milestone |
 | 2026-10-21 | reviews/2026-10-21-layout-rereview.md | Independent re-review (agent) of f2a7582: first review's #1-#4, #6, #7, #11, #14, #17 closed; new high rereview#1 (relief valves PSV-3114/3116 on the roof walkway), 2 medium, 5 low; #5, #8, #9 and four lows carried over | gate layout-review; fixes of the open findings next |
 | 2026-10-21 | layout/structures.yaml, layout/equipment-placement.yaml, layout/site-plan.yaml, layout/zones.yaml, piping/routing.yaml, layout/plant-model.yaml, DESIGN.md D-032 | After the layout review: PSV-3114/PSV-3116 on the cold box roof, casing 53 m, west ladders LD5..LD8, S-2101 placed, GOX/GAN BL at x = 176, PR2/PR3 tiers 6.5 / 8.5 m, intake-to-road and O2-vent-to-road separations, escape zone Z-ESC-CB1, E-2101 and C-3101 N7 nozzles; model rebuilt (plantcode routes around enclosures a line passes) | reviews/2026-10-21-layout.md findings #1-#4, #6, #7, #10, #11, #14, #17 |
 | 2026-10-21 | reviews/2026-10-21-layout.md | Independent layout review (agent) of 51f918d: 17 findings, 4 high | gate layout-review |

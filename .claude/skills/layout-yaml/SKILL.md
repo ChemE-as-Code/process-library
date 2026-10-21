@@ -35,9 +35,15 @@ A dimension not known yet may be estimated: mark it `notes: ASSUMED ...` (step 2
    (horizontal: over both heads or channels; optional `height`, the top of the shell, when it
    sits on saddles), or `{length, width, height}` (pumps, skids, plate exchangers, packages),
    with `head` and `support` where you know them. The DEXPI class in `type` picks the shape
-   family (column with skirt and heads, tank with roof, shell-and-tube exchanger with channel
-   and bundle-pull space, pump with base plate and motor, ...). Unknown sizes are fine to
-   estimate: say so (`notes: ASSUMED ...`) and record the basis in `DESIGN.md`. Where the P&ID
+   family (column with skirt and heads, tank with roof and spiral stair, shell-and-tube
+   exchanger with channel and bundle-pull space, end-suction pump with volute, coupling guard
+   and motor on a baseplate, integrally geared compressor, ...). For a machine,
+   `orientation: vertical` draws a vertical inline pump, and `variant` picks another drawing
+   (`cryogenic` for a pump with an insulated cold end, `blower`, `compander`, `expander`,
+   `machine` for a plain casing and motor); the model puts the machine's nozzles on its real
+   flanges, and items at grade on concrete plinths or foundations. Unknown sizes are fine to
+   estimate: say so (`notes: ASSUMED ...`) and record the basis in `DESIGN.md`. Give heavy
+   items their empty `weight` (t): the lifting rule needs a crane for 5 t and more. Where the P&ID
    states a size (capacity, cylinder or tube length, shell diameter) the two must agree
    (`plantcode.equipment-dimension-mismatch`).
    **Placing equipment** (`layout/equipment-placement.yaml`):
@@ -55,6 +61,10 @@ A dimension not known yet may be estimated: mark it `notes: ASSUMED ...` (step 2
      `mount: {building: B-1, level: GF}` and set `z` to that level's `elevation` (`layout-level`,
      0.05 m tolerance), keep the whole footprint inside the building and the item's height
      within the level's clear height;
+   - a containment around tanks is an area of `kind: bund` in the site plan with its
+     `wall_height` (inside the storage area); a building that has an overhead crane declares
+     `crane: {capacity_t, rail_elevation?}` in `layout/building.yaml` (the model adds the
+     runway, bridge and hook, and the roof, doors and louvres of a clad building);
    - `shape` only overrides what the dimensions give (`box`, `vertical_cylinder`,
      `horizontal_cylinder`, `sphere`); `size` is a stop-gap for an item without dimensions
      (`layout-size-from-placement`, info) and is ignored next to them (`layout-size-ignored`);
@@ -86,7 +96,12 @@ A dimension not known yet may be estimated: mark it `notes: ASSUMED ...` (step 2
    Use the `layout-line-length` estimates for line lengths, never guess them.
 6. **Spacing criteria** (toppling radius, distances to tanks, roads, the boundary) go into
    `separations:` of `site-plan.yaml` (see `layout/README.md`), so validate measures them
-   (`plantcode.layout-separation`). Model a cold box or fire wall as a building with its height,
+   (`plantcode.layout-separation`). Between equipment items the build also applies a package
+   spacing table by family or DEXPI class (fired equipment 15 m, pumps 1 m, machines 3 m,
+   columns 3 m, ..., every row ASSUMED: `plantcode.layout-spacing`); a separation naming both
+   items replaces the table for that pair, `criteria: {spacing_table: false}` switches it off.
+   The other layout criteria of the rules (operator height, escape travel, heavy lift, crane
+   reach) are overridden under the same `criteria:` key with the site standard's values. Model a cold box or fire wall as a building with its height,
    or a tagged box. Quote **measured** distances in `DESIGN.md`: `plantcode show <tag> --layout`
    prints them; never write a distance you have not measured.
 7. **Buildings** turn only in steps of 90 degrees, about their `origin` corner. Column grid
@@ -110,11 +125,13 @@ A dimension not known yet may be estimated: mark it `notes: ASSUMED ...` (step 2
    platform with `extent`, `bracing`, `stairs`, `ladders`, `enclosure` for a cold box casing or
    fire wall) and **zones** (`layout/zones.yaml`: keep-clear, laydown, maintenance, escape as
    explicit volumes; hazardous, oxygen-enriched and oxygen-deficient zones explicit or from
-   `sources`, skill `area-classification`). Forbidden zones (keep clear, laydown, maintenance,
-   escape) are obstacles for the router.
+   `sources`, skill `area-classification`; `crane_pad` where a mobile crane stands, with its
+   `reach_m`). Forbidden zones (keep clear, laydown, maintenance, escape, crane pad) are
+   obstacles for the router. An enclosure takes `openings` like a building; the build lists the
+   pipes through walls outside them as `penetrations` (`plantcode layout pin OWNER/LINE`).
 7e. **Pipe routes** (`piping/routing.yaml`): rules (rack tiers per fluid, battery limits, the
-   pipe-way elevation) and intent per line (`rack`, `tier`, `via`, `elevation`, `skip: reason`,
-   pinned `route`): skill `pipe-routing`.
+   pipe-way elevation, vent riser heights) and intent per line (`rack`, `tier`, `via`,
+   `elevation`, `skip: reason`, pinned `route`): skill `pipe-routing`.
 
 ## Validation and failure handling
 

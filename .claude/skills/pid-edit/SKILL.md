@@ -54,8 +54,8 @@ Read the `dexpi-xml` skill first if you have not in this session; its Convention
      with its valves):
      `plantcode copy <id or tag> --prefix NEWID --tag NEWTAG --offset DX,DY`. It copies the
      drawing too, renames every id and prints what it did not copy (the pipes at the original's
-     nozzles). In the same command give inner valves their own tags (`--rename HV-4146=HV-4147`,
-     `--renumber 4144:4145`), set the fluid (`--set 'FluidCode=Liquid nitrogen'`), connect an
+     nozzles). In the same command give inner valves their own tags (`--rename HV-146=HV-147`,
+     `--renumber 144:145`), set the fluid (`--set 'FluidCode=Liquid nitrogen'`), connect an
      open pipe end (`--connect PIPE=ITEM:NODE`) and an instrument's sensing point
      (`--sense-at SEGMENT:X,Y`); the report's `duplicate tags:` must say `none`. Connect the
      rest with fragments;
