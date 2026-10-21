@@ -32,11 +32,13 @@ review.
 ## Workflow and tools
 
 1. **Read the result first.** `plantcode layout report` lists each line (routed, partly routed,
-   skipped, unrouted with the reason), the chains per method (`astar`, `astar_coarse`, `rack`,
-   `rack+...`, `via`, `open`, `direct`, `pinned`) and per reason (`rack: across areas`, `rack:
-   crosses a road`, `local: pipe-way`, `local: pump run at grade`, ...), the battery limit ends
-   and the rack fill. `--json` gives the same per line. `direct` and `rack+direct` routes are
-   fallbacks (`review_needed`): treat each as a finding.
+   skipped, unrouted with the reason), the chains per method (`astar`, `astar_coarse`,
+   `astar_fine`, `rack`, `rack+...`, `via`, `open`, `direct`, `pinned`) and per reason (`rack:
+   across areas`, `rack: crosses a road`, `local: pipe-way`, `local: pump run at grade`, `local:
+   rack run too short`, ...), the battery limit ends and the rack fill. `--json` gives the same
+   per line. `direct` and `rack+direct` routes are fallbacks (`review_needed`): treat each as a
+   finding; most come from crowded nozzles (give them room with nozzle overrides) or an end
+   boxed in by steel and pipes.
 2. **Rules, in `piping/routing.yaml` `rules:`**:
    - `tiers`: which service runs on which tier, by `fluids` or line-number prefix (`lines`),
      optionally per `rack`. Typical: large process lines low, utilities and small lines high,
@@ -57,6 +59,10 @@ review.
      internal piping, an item not placed yet). The reason is shown in the report and counts for
      the `layout-3d` gate; "later" is not a reason;
    - `gravity: true` (or the fluid in `gravity_fluids`) checks a continuous fall.
+   Vent and relief lines end in a 1 m riser where the P&ID ends them; a silencer or safety
+   valve that discharges elsewhere (a vent stack area) is listed in
+   `piping/special-items.yaml` and placed in `layout/equipment-placement.yaml` by its tag:
+   the line is then routed to it.
 4. **Iterate on the lines you changed only**: `plantcode layout route --line L [--line M]`
    reroutes those and keeps every other route of the committed model; `plantcode layout build`
    reroutes all (needed after a placement change). Lines route in order of DN, largest first:

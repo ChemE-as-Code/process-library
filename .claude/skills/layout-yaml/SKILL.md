@@ -43,6 +43,9 @@ A dimension not known yet may be estimated: mark it `notes: ASSUMED ...` (step 2
    **Placing equipment** (`layout/equipment-placement.yaml`):
    - one entry per equipment-list tag, spelled exactly as in the list (`plantcode.layout-unknown-tag`
      otherwise); every listed item should get one (`layout-not-placed` is reported as info).
+     An internal of another item (a condenser-reboiler in a column sump) has no placement of
+     its own: accept its `layout-not-placed` finding in `checks/checks.yaml` with the reason,
+     and skip its internal lines in `piping/routing.yaml`;
      Silencers, vent stacks' relief valves and other items of `piping/special-items.yaml` may be
      placed too, by their tag (they are not reported as not placed); they have no
      dimensions, so they take `size` in the placement;

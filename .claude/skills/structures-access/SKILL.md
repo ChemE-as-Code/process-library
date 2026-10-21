@@ -55,7 +55,9 @@ review.
    otherwise (a structure next to it, a mobile platform for rare tasks), or wrong (a nozzle
    placed by default: give its real position first). Then `plantcode layout pin TAG/platform-1`
    or declare `access: {platforms: [{elevation, arc_deg, width}], ladder_side}` in the
-   placement. Rules of thumb (check them against the site's standard and the local
+   placement. An item reached from a structure (a column inside a cold box, whose valves and
+   instruments are brought out to the casing platforms) declares `access: {platforms: [],
+   notes: <how it is reached>}`: no platforms of its own, nothing proposed. Rules of thumb (check them against the site's standard and the local
    regulations, ASSUMED until then):
    - manways, operating valves, control valves, instruments read in the field and sample points
      above about 2.5 m get a platform; rarely used items may be reached by a mobile platform;
