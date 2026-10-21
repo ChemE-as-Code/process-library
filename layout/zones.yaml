@@ -1,0 +1,94 @@
+# Zones of the 3D layout. Schema: `plantcode schema zones`. Skill area-classification.
+# SCREENING ONLY: volumes from sources take plantcode's indicative radius table (every row
+# ASSUMED); no dispersion is modelled. An oxygen and inert vent study (EIGA guidance) by a
+# competent person replaces or confirms each zone (DESIGN.md D-031). The ASU handles no
+# flammables: no hazardous (Ex) zones.
+zones:
+  # ---- oxygen-enriched: no ignition sources, oil, grease or combustibles (asphalt, wood) inside
+  - id: Z-O2-V1
+    title: GOX silencer outlets in the vent area V1
+    kind: oxygen_enriched
+    sources:
+      - {item: S-4101, release_grade: primary, substance: oxygen, source_kind: vent}   # K-4101 blowdown on trip
+      - {item: S-4102, release_grade: primary, substance: oxygen, source_kind: vent}   # suction vent on trip / start-up
+    basis: "D-013, D-019, D-025: intermittent GOX vents; table row vent/primary/oxygen (ASSUMED)"
+  - id: Z-O2-VENTS
+    title: Oxygen vents and relief outlets at the plant items
+    kind: oxygen_enriched
+    sources:
+      - {item: VNT-4001, release_grade: continuous, substance: oxygen, source_kind: vent}      # LOX tank boil-off vent (PV-4109)
+      - {item: VNT-3001, release_grade: primary, substance: oxygen, source_kind: vent}         # drain vaporizer V-3101 vent
+      - {item: VNT-4006, release_grade: primary, substance: oxygen, source_kind: vent}         # GOX DBB bleed at the BL
+      - {item: VNT-3002, release_grade: secondary, substance: oxygen, source_kind: psv_outlet}  # PSV-3114 LP column, O2-rich (D-011)
+    basis: "D-011, D-019, section 4 relief case list; PSV-3114 treated as O2-rich as DESIGN.md states; table rows (ASSUMED)"
+  - id: Z-O2-SEALS
+    title: GOX compressor seals and LOX pump seals
+    kind: oxygen_enriched
+    sources:
+      - {item: K-4101, release_grade: secondary, substance: oxygen, source_kind: compressor_seal}
+      - {item: P-4101A, release_grade: secondary, substance: oxygen, source_kind: pump_seal}
+      - {item: P-4101B, release_grade: secondary, substance: oxygen, source_kind: pump_seal}
+    basis: "D-012: dry gas seals with N2 buffer, LOX pumps cold standby; table rows (ASSUMED)"
+  # ---- oxygen-deficient (asphyxiation): vents elevated, away from walkways and escape routes
+  - id: Z-N2-V1
+    title: Waste N2 surplus vent silencer S-3101 in the vent area V1
+    kind: oxygen_deficient
+    sources:
+      - {item: S-3101, release_grade: continuous, substance: waste nitrogen, source_kind: vent}
+    basis: "D-011, D-025: ~12,500 Nm3/h surplus waste N2 in normal operation (PV-3110B); table row vent/continuous/inert (ASSUMED)"
+  - id: Z-N2-VENTS
+    title: Nitrogen and waste nitrogen vents and relief outlets at the plant items
+    kind: oxygen_deficient
+    sources:
+      - {item: WN-1002, release_grade: continuous, substance: waste nitrogen, source_kind: vent}  # C-1102 top vent (wet N2)
+      - {item: RG-2003, release_grade: primary, substance: waste nitrogen, source_kind: vent}    # TSA regeneration gas vent
+      - {item: VNT-4004, release_grade: primary, substance: nitrogen, source_kind: vent}         # GAN compressor suction vent
+      - {item: VNT-4005, release_grade: continuous, substance: nitrogen, source_kind: vent}      # LIN tank boil-off vent (PV-4110)
+      - {item: VNT-4007, release_grade: primary, substance: nitrogen, source_kind: vent}         # GAN DBB bleed at the BL
+      - {item: VNT-3003, release_grade: secondary, substance: nitrogen, source_kind: psv_outlet} # PSV-3116 HP column
+    basis: "D-011, section 4; table rows (ASSUMED)"
+  - id: Z-N2-CASING
+    title: Cold box casing breather VNT-3004 (PSV-3123) on the casing roof
+    kind: oxygen_deficient
+    shape: sphere
+    centre: [127, 46, 50.5]
+    radius: 5
+    basis: "Casing purge N2 breathes out at the roof (D-013, O2 review F7); 5 m as an inert vent (table row vent/primary/inert, ASSUMED); the roof walkway RF is inside it: access to the roof with a personal O2 monitor and the purge isolated (D-031)"
+  - id: Z-N2-SEALS
+    title: LIN pump seals
+    kind: oxygen_deficient
+    sources:
+      - {item: P-4102A, release_grade: secondary, substance: nitrogen, source_kind: pump_seal}
+      - {item: P-4102B, release_grade: secondary, substance: nitrogen, source_kind: pump_seal}
+    basis: "cold N2 vapour collects at grade; table row pump_seal/secondary/inert (ASSUMED)"
+  # ---- maintenance, laydown and keep-clear areas (router obstacles)
+  - id: Z-CRANE-CB1
+    title: Crane pad and erection / maintenance lifting area of the cold box (west side)
+    kind: maintenance
+    shape: box
+    box: [106, 15, 0, 125, 34, 8]
+    basis: "Mobile crane for the cold box (columns, casing panels, perlite) and the compander rotor; 19 x 19 m pad, nothing above 0..8 m (ASSUMED, D-030)"
+  - id: Z-LAYDOWN-B1
+    title: Laydown in front of the MAC house roller door S1
+    kind: laydown
+    shape: box
+    box: [42, 13, 0, 52, 21.5, 5]
+    basis: "Truck access under the B1 crane for rotor, gearbox and bundle removal (ASSUMED, D-030)"
+  - id: Z-PULL-E1101
+    title: E-1101 bundle pull outside the B1 west roller door W1
+    kind: maintenance
+    shape: box
+    box: [29, 40.5, 0, 36, 43.5, 3]
+    basis: "Bundle pull length ~7 m through roller door W1 (ASSUMED)"
+  - id: Z-SIEVE
+    title: Adsorbent change-out area between V-2101A and V-2101B
+    kind: laydown
+    shape: box
+    box: [86, 34, 0, 104, 38, 3]
+    basis: "Bulk bags and vacuum truck access for alumina / 13X change-out (ASSUMED, D-030)"
+  - id: Z-TRUCK
+    title: LOX / LIN truck fill bay on the north road (concrete pad, no asphalt within 5 m of the LOX coupling)
+    kind: keep_clear
+    shape: box
+    box: [118, 133, 0, 160, 140, 4.5]
+    basis: "D-017, D-026 (4): tanker coupling LOX-4004 / LIN-4004 and the truck standing; EIGA Doc 127 practice (ASSUMED)"

@@ -668,3 +668,25 @@ Reason: the reviews asked for the cold box as a structure (~50 m), for its toppl
 for access to every elevated valve; a cold box column is never reached from platforms on its
 shell. Open: structural design, a site-specific toppling / dropped-object study, the access
 philosophy with the operator.
+
+## D-031 Oxygen-enriched and oxygen-deficient zones, keep-clear and maintenance zones (2026-10-21)
+Decision: layout/zones.yaml declares the zones of the 3D layout as a SCREENING (skill
+area-classification): volumes around release points from plantcode's indicative radius table,
+every one ASSUMED. Oxygen-enriched: Z-O2-V1 (silencers S-4101, S-4102; intermittent, primary
+grade), Z-O2-VENTS (LOX tank vent VNT-4001 continuous; VNT-3001 drain vaporizer and VNT-4006 GOX
+bleed primary; the PSV-3114 outlet VNT-3002 secondary, treated as O2-rich as section 4 and D-011
+state), Z-O2-SEALS (K-4101 dry gas seals, P-4101A/B seals, secondary). Oxygen-deficient: Z-N2-V1
+(S-3101 waste N2 surplus vent, continuous), Z-N2-VENTS (WN-1002 evaporative cooler top vent
+continuous, RG-2003 regeneration vent, VNT-4004 / VNT-4007 GAN vents and bleeds, VNT-4005 LIN
+tank vent continuous, the PSV-3116 outlet VNT-3003), Z-N2-CASING (the casing breather VNT-3004 on
+the cold box roof, an explicit 5 m sphere: the roof walkway RF is inside it, so the roof is
+entered with a personal O2 monitor and the purge isolated), Z-N2-SEALS (P-4102A/B seals). No
+hazardous (Ex) zones: the ASU handles no flammables. Keep-clear, laydown and maintenance zones
+(D-030 (6)) are router obstacles. No ignition sources, oil or asphalt inside the O2-enriched
+zones; the LOX truck fill pad is concrete (D-017).
+Reason: the layout gates and the review need the vent and seal zones in the model to check
+separations (intake F-1101 to the O2 vent zones >= 50 m, measured 90.7 m; Z-O2-V1 to the north
+road >= 10 m) and to keep walkways and escape routes out of them. Open: an oxygen and inert vent
+study (EIGA guidance on vent locations, prevailing wind) by a competent person replaces or
+confirms every zone before detail engineering; until then the zones stay ASSUMED and no equipment
+selection rests on them.
