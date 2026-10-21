@@ -1,14 +1,20 @@
 # Layout
 
-The 3D layout of the plant, as three optional YAML files. `plantcode validate` checks them
+The 3D layout of the plant, as optional YAML files and a generated model. `plantcode validate` checks them
 against their schemas and each other; `plantcode serve` shows them in 3D (Layout 3D in the
-viewer). The skill `.claude/skills/layout-yaml` says how to edit them.
+viewer). The skill `.claude/skills/layout-yaml` says how to edit them; `pipe-routing`,
+`structures-access` and `area-classification` cover routes, steel and access, and zones.
 
 | file | schema | holds |
 |---|---|---|
 | `site-plan.yaml` | `plantcode schema site_plan` | site boundary, plot areas, roads, pipe racks |
 | `building.yaml` | `plantcode schema building` | buildings and structures, their levels and column grid |
-| `equipment-placement.yaml` | `plantcode schema placement` | where each equipment-list item stands, and its shape |
+| `equipment-placement.yaml` | `plantcode schema placement` | where each equipment-list item stands, on which level, nozzle overrides |
+| `structures.yaml` | `plantcode schema structures` | steel frames: spans, levels (deck/platform), bracing, stairs, ladders, enclosure (cold box casing, fire wall) |
+| `zones.yaml` | `plantcode schema zones` | keep-clear, laydown, maintenance, escape, hazardous, oxygen-enriched/-deficient zones: a box/cylinder/sphere, or `sources` sized by plantcode's radius table (ASSUMED) |
+| `../piping/routing.yaml` | `plantcode schema routing` | router rules (rack tiers by fluid or line prefix, battery limits, pipe-way elevation, `local_max_m`, spacing, headroom, grid) and intent per line (`rack`, `tier`, `via`, `elevation`, pinned `route`, `skip`) |
+| `../piping/pipe-specs.yaml` | `plantcode schema pipe_specs` | pipe classes (material, colour) and insulation thickness by type and DN (optional) |
+| `plant-model.yaml` (generated) | `plantcode schema layout_model` | the 3D model `plantcode layout build` derives: parts, nozzles, envelopes, steel, platforms, zones, pipe routes, in-line items |
 
 Coordinates are metres in the site frame: **x east, y north, z up**, origin at the south-west
 corner of the site. Rotations are degrees, counterclockwise seen from above.
@@ -22,20 +28,57 @@ corner of the site. Rotations are degrees, counterclockwise seen from above.
   corner. `levels` are floors, platforms or roofs (`elevation`, `height`); `frame.grid_x` /
   `grid_y` are column lines as offsets from the origin.
 - A **placement** puts an equipment tag at `position: [x, y, z]`: the centre of its footprint,
-  `z` the bottom. `shape` is `box` (`size: [dx, dy, dz]`), `vertical_cylinder`
-  (`size: {diameter, height}`), `horizontal_cylinder` (`size: {diameter, length}`, axis along x
-  before rotation) or `sphere` (`size: {diameter}`). An item inside a building names its
-  `building` and `level`; its `z` is then the level's elevation.
+  `z` the bottom, turned by `rotation_deg` about the vertical (the item's own x: the axis of a
+  horizontal drum or exchanger, the shaft of a pump from suction to driver). Its **shape and
+  size come from the equipment list**: the DEXPI class in `type` picks the family (vessel,
+  column, tank, shell-and-tube or plate exchanger, pump, compressor, filter, stack, ...) and
+  `dimensions:` the overall size (`{diameter, height}` vertical, `{diameter, length}`
+  horizontal, `{length, width, height}` box-like; optional `head`, `support`, `weight`).
+  `shape: box | vertical_cylinder | horizontal_cylinder | sphere` overrides the shape; `size`
+  (`[dx, dy, dz]` or `{diameter, height | length}`) is only a fallback for an item without
+  dimensions (`layout-size-from-placement`, info) or of `piping/special-items.yaml`. An item
+  on a building level gives `mount: {building: B-1, level: GF}` (`{structure, level}` for a steel
+  structure); its `z` is then the level's elevation.
+- **Nozzles** come from the P&ID (name, DN, connected lines) and are placed on the item from
+  the side the P&ID draws them on. Override one with `nozzles: [{id: N1, angle_deg: 90,
+  elevation: 2.5}]` (vertical items: degrees ccw from the item's x, height above its bottom;
+  horizontal items: `along` the axis from the front end, `angle_deg` about it, 0 = top) or
+  `{id: N2, face: top, offset: [0.5, 0]}` (faces `top`, `bottom`, `north`, `south`, `east`,
+  `west`, `front` (= -x end), `back`, in the item's own frame; `offset` from the face centre).
+
+- A **structure** (`structures.yaml`) is an open frame from `origin` with bays `spans_x` x
+  `spans_y`, `levels: [{id, elevation, kind: deck | platform, extent?}]`, `bracing` (`none`,
+  `x`, `k`, one for all sides or per side), `stairs: [{id, from, to, side}]` (`from: grade` at
+  grade), `ladders: [{id, from, to, at: [x, y]}]` and an `enclosure: {walls, height, material}`.
+  Items on it give `mount: {structure: S-1, level: L1}` with `z` at the level's elevation.
+- **Access**: a vertical item's `access: {platforms: [{elevation, arc_deg?, width?}],
+  ladder_side}` declares its platforms; without it `layout build` proposes platforms for
+  nozzles and valves more than 2.5 m up (`review_needed`); `plantcode layout pin TAG/platform-1`
+  copies a proposal here.
+
+**The generated model.** `plantcode layout build` derives `layout/plant-model.yaml` (kind
+`layout_model`) from these files, the equipment list, the line list and the P&IDs: the parts of
+every item, its nozzles with point, direction and DN, maintenance envelopes (bundle pull, motor
+removal, pump access), steel, platforms, zones, a pipe route for every P&ID segment (with
+in-line valves) and the site geometry. Never edit it; change the inputs and rebuild.
+`plantcode layout report` lists routed and unrouted lines with the reasons and how and why each
+was routed, `plantcode layout route --line L` reroutes one line, `plantcode layout pin L` keeps a route, and `plantcode layout
+render --plan | --level ID | --section x=..` draws plans and sections into `build/`.
+`plantcode validate` says when it is outdated (`layout-model-outdated`), edited by hand
+(`layout-model-edited`) or missing (`layout-model-missing`).
 
 Rules (`plantcode.layout-*`): `outside-site`, `clash` (equipment boxes intersect, equipment in a
 building it is not placed in, equipment on a road, equipment reaching up into a rack's tiers,
 buildings on roads, under racks or overlapping each other), `unknown-tag`, `not-placed` (info),
 `level` (also items taller than their level), `area-overlap` (warning), `duplicate` (warning),
-`line-route` (warning), `line-length` and `line-unrouted` (info), `separation` (warning).
+`line-route` (warning), `line-length` and `line-unrouted` (info), `separation` (warning),
+`size-from-placement` (info: sizes that belong in the equipment list), `size-ignored` (warning:
+a placement size next to dimensions), `size-missing` (warning: neither, drawn at an assumed
+size), `nozzle-unknown` (error: an override naming a nozzle the P&ID does not have).
 A level without `height` reaches up to the next level (a top floor: 4 m); a building without
 levels counts as 6 m high. Numbers must be finite and ids not empty.
 
-Example (uncomment into the three files):
+Example (uncomment into the files):
 
 ```yaml
 # layout/site-plan.yaml
@@ -62,9 +105,13 @@ Example (uncomment into the three files):
 
 # layout/equipment-placement.yaml
 # equipment:
-#   - {tag: P-101, position: [16, 24.5, 0], shape: box, size: [2.0, 0.8, 1.0]}
-#   - {tag: E-101, position: [34, 31, 5], shape: horizontal_cylinder,
-#      size: {diameter: 0.8, length: 5}, building: B-1, level: PF}
+#   - {tag: P-101, position: [16, 24.5, 0]}
+#   - {tag: E-101, position: [34, 31, 5], mount: {building: B-1, level: PF},
+#      nozzles: [{id: N1, face: top, offset: [-1.5, 0]}]}
+
+# equipment/equipment-list.yaml (the sizes)
+#   - {tag: P-101, type: CentrifugalPump, dimensions: {length: 2.0, width: 0.8, height: 1.0}}
+#   - {tag: E-101, type: TubularHeatExchanger, dimensions: {diameter: 0.8, length: 5}}
 ```
 
 **Lines and racks.** Each line of `piping/line-list.yaml` whose ends (`from`, `to`: placed
@@ -73,7 +120,24 @@ such as a vent area) lie in different areas or more than `max_unsupported_length
 apart must be carried by racks: each end within `rack_reach` of a rack centreline (default:
 `max_unsupported_length`, since the run from an end to the rack is unsupported pipe), the racks
 connected (`layout-line-route`). Carried lines get a length estimate along the racks
-(`layout-line-length`, info).
+(`layout-line-length`, info). The router of `layout build` takes such lines over the racks too,
+and also lines whose straight run would cross a road or another area or that are longer than
+`local_max_m` (`piping/routing.yaml`, default 15 m); local lines run at the pipe-way elevation
+(`local_elevation_m`, default 3.5 m). Ends at the battery limit (`BL`, `CW`, `CWR`, ... in the
+line list) go to a `battery_limits:` point or rack end of `routing.yaml`, else the nearest free
+rack end, else the site edge:
+
+```yaml
+# piping/routing.yaml
+# rules:
+#   tiers:
+#     - {rack: PR-1, elevation: 7, fluids: [Cooling water, Cooling water return]}
+#   battery_limits:
+#     - {id: CW-plant, lines: ["CW-*", "CWR-*"], rack: PR-1, rack_end: start}
+#   local_elevation_m: 3.5        # ASSUMED pipe-way height in the areas
+# lines:
+#   - {line: 50-N-101, skip: field-run small bore at basic engineering}
+```
 
 **Separations and keep-clear radii.** State spacing criteria as data, not only in `DESIGN.md`
 prose, and they are measured (`layout-separation`):

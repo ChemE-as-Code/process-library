@@ -16,14 +16,24 @@ Design basis agreed (assumed values marked `ASSUMED`), block flow (`process/flow
 generated BFD, balances evaluable and clean), main equipment identified, the equipment, line and
 instrument lists and `DESIGN.md` started (gates `design-basis`, `concept-lists`,
 `assumptions-marked`, `process-concept`, `process-balances`; `process-links-concept` reports
-unresolved links).
+unresolved links). The plot plan: the site, its areas, roads and pipe racks, every
+equipment-list item placed and the spacing criteria declared as `separations:` (gate
+`layout-plot-plan`, skill `layout-yaml`).
 
 ## basic: Basic engineering
 PFD generated with no refinement pending and no stale calculated values (`process-basic`), every
 flowsheet link resolved (`process-links`), P&IDs complete and valid, equipment and line lists
-complete, design review done.
+complete, design review done. The 3D layout (gate `layout-3d`): `layout/plant-model.yaml`
+built from the current inputs and committed, every piped nozzle positioned (from the P&ID side
+or an override), every elevated item mounted on a building or structure level, every process
+line of DN 25 and above routed or skipped with a reason (utilities follow at detail), no clash
+or headroom finding left unaccepted, zones declared (`layout/zones.yaml`, skill
+`area-classification`), and a layout review (topic `layout`, gate `layout-review`) that cites
+the rendered plot plan and at least two sections (skills `pipe-routing`, `structures-access`,
+`review`).
 
 ## detail: Detail engineering
 Datasheets (one `equipment/datasheets/<TAG>.yaml` per equipment-list item, format in
 `equipment/datasheets/README.md`, `plantcode schema datasheet`; gate `datasheets`), instrument
-list, HAZOP actions closed.
+list, HAZOP actions closed. Every line routed, utilities and small bore included, still
+without clashes (gate `layout-detail`).

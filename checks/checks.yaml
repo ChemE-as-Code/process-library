@@ -43,6 +43,36 @@ checks:
     kind: validate
     fail_on: warning
     rules: [plantcode.process-calculated-stale]
+  # The 3D layout (layout/, skills layout-yaml, pipe-routing, structures-access,
+  # area-classification, review). A kind: layout-model gate checks the layout files and the
+  # generated layout/plant-model.yaml against each item of require (`plantcode schema checks`).
+  - id: layout-plot-plan
+    title: Plot plan - site, areas, roads, racks, every item placed, separations declared
+    stage: concept
+    kind: layout-model
+    require: [site, areas, roads, racks, placed, separations]
+  - id: layout-3d
+    title: 3D model current, nozzles resolved, elevated items mounted, process lines routed or skipped, no clashes, zones declared, plan and sections reviewed
+    stage: basic
+    kind: layout-model
+    require: [model-current, nozzles, mounted, routed, clashes, zones, drawings]
+    min_dn: 25                      # smaller lines are field-run at basic engineering
+    # utilities are routed at detail engineering (gate layout-detail)
+    exclude_fluids: [Cooling water, Cooling water return, Chilled water, Instrument air,
+                     Plant air, Utility nitrogen, Steam, Condensate]
+    sections: 2                     # the layout review cites the plot plan and two sections
+  - id: layout-review
+    title: A current, independent layout review is recorded
+    stage: basic
+    kind: review
+    topic: layout
+    require_kind: [human, agent]
+  - id: layout-detail
+    title: Every line routed, including utilities and small bore, no clashes
+    stage: detail
+    kind: layout-model
+    require: [model-current, nozzles, mounted, routed, clashes]
+    min_dn: 0
   # ---- ASU-specific gates
   - id: o2-safety-philosophy
     title: "O2 service: materials/cleaning and no-oil decisions recorded"

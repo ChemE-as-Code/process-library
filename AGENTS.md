@@ -35,7 +35,8 @@ This repository is a process plant design. The files are the design; there is no
 - One logical change per commit. Say what changed on which sheet and why. Append the change to
   `PROGRESS.md`.
 - Keep the lists in step with the P&IDs (skill `lists-sync`), and the 3D layout in `layout/`
-  in step with the equipment list (skill `layout-yaml`).
+  in step with the equipment list (skill `layout-yaml`; routes `pipe-routing`, steel and access
+  `structures-access`, zones `area-classification`).
 - Record decisions and assumptions in `DESIGN.md`, with the reason. Mark assumed values
   `ASSUMED` in the YAML or the decision text, never present a guess as data.
 - **Branches and merges.** Each stage, and any change larger than one fix, goes on its own
@@ -87,6 +88,9 @@ This repository is a process plant design. The files are the design; there is no
 | `plantcode set <id or tag> PROP=VALUE... [--print]` | data values by DEXPI name, typed (string, number, enumeration, `'50 mm'` quantity, `Stroke.Width`), and the label texts showing them; `PROP=` removes one |
 | `plantcode run [--fmt SHEET] SCRIPT [ARGS]` | run a Python script in plantcode's interpreter (pyDEXPI and `plantcode.domains.piping.authoring` import), cwd the repository root; arguments and exit code pass through; `--fmt` goes before SCRIPT (after it, it goes to the script) |
 | `plantcode regen [SHEET...] [--force \| --detach \| --list]` | rebuild generated sheets (frame -> script -> fmt); refuses a sheet edited by hand and names the items; `--detach` makes a sheet hand-maintained |
+| `plantcode layout build [--check] [--force]` | derive `layout/plant-model.yaml` (generated, never edited): equipment parts from `type` and `dimensions`, nozzles from the P&IDs with DN and lines, maintenance envelopes, steel, platforms, zones, a pipe route per P&ID segment with in-line items; prints clashes, headroom and access findings; rebuild after changing the layout, the lists or a P&ID (`layout-model-outdated`) |
+| `plantcode layout route [--line L] \| pin LINE\|TAG/platform-N \| report [--json]` | reroute some lines keeping the rest; copy a generated route or platform into `piping/routing.yaml` / the placement; routed and unrouted lines with reasons, lengths, how and why each was routed (counts per method and per reason), battery limit ends, rack fill, clash counts |
+| `plantcode layout render --plan [--level ID \| --z A,B] \| --section x=V\|y=V [--depth D] [--crop X0,Y0,X1,Y1] [--png]` | plot plan, level plans and sections of the model into `build/layout-*.svg\|png` |
 | `plantcode process build [SHEET...] [--force]` | generate the BFD and PFD from `process/*.yaml`; refuses while the flowsheet has errors, and over a sheet edited by hand unless `--force` |
 | `plantcode process streams [--case C] [--md \| --csv \| --json]` | the stream table (value, unit, provenance G/A/C per property, stale calculated values) and the balance of every block and step |
 | `plantcode process propagate --fill \| --check [--case C]` | compositions and flows through pass-through steps, mixers and splitters (`split:` fractions); separators and reactors only checked; never overwrites given or assumed values; `--check` writes nothing |
@@ -102,7 +106,7 @@ This repository is a process plant design. The files are the design; there is no
 | `process/design-basis.yaml` | `design_basis` |
 | `process/materials.yaml` | `process-materials` (components, templates, the property method `props --fill` records) |
 | `process/flowsheet.yaml` | `process-flowsheet` (units, cases, tolerance, feeds, products, blocks, steps, streams with per-case state and provenance, links, `layout.bfd`/`layout.pfd`) |
-| `equipment/equipment-list.yaml` | `equipment` (tag, type, service, sheet, design data, notes) |
+| `equipment/equipment-list.yaml` | `equipment` (tag, type, service, sheet, design data, `dimensions`, notes) |
 | `piping/line-list.yaml` | `lines` (number, from, to, nominal_diameter, ..., notes, `segments` with a DN each) |
 | `control/instrument-list.yaml` | `instruments` (tag as printed, service, sheet, notes) |
 | `control/cause-effect.yaml` | `interlocks` (id, cause tag and condition, effects with actions, sheet, sil): every trip, instead of literal sheet text |
@@ -113,6 +117,11 @@ This repository is a process plant design. The files are the design; there is no
 | `checks/status.json` (generated) | `status` |
 | `layout/site-plan.yaml` | `site_plan` (site box, areas, roads, pipe racks, `separations`, `max_unsupported_length`) |
 | `layout/building.yaml` | `building` (buildings, levels, column grid) |
-| `layout/equipment-placement.yaml` | `placement` (tag, position, shape, size, building, level) |
+| `layout/equipment-placement.yaml` | `placement` (tag, position, rotation, `mount` building/structure level, nozzle overrides, `access` platforms; size only without dimensions) |
+| `layout/structures.yaml` | `structures` (steel frames: spans, levels, bracing, stairs, ladders, enclosure) |
+| `layout/zones.yaml` | `zones` (keep-clear, laydown, maintenance, escape, hazardous, O2-enriched/-deficient; explicit or from release sources) |
+| `piping/routing.yaml` | `routing` (router rules: tiers, battery limits, pipe-way elevation, local and rack limits; per-line intent: rack, tier, via, elevation, pinned route, skip) |
+| `piping/pipe-specs.yaml` (optional) | `pipe_specs` (pipe classes, insulation thickness) |
+| `layout/plant-model.yaml` (generated by `plantcode layout build`) | `layout_model` |
 
 `plantcode schema <kind>` prints the full JSON Schema.
