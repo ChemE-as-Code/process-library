@@ -5,8 +5,21 @@ description: Change an existing P&ID sheet in pid/ - add, remove or modify equip
 
 # Editing a P&ID sheet
 
+## Purpose and when to use
+
+Any change to an existing sheet in `pid/`.
+
+Large restructures (many items, a whole new section) are often easier with a generator script
+using `plantcode.domains.piping.authoring`, run by `plantcode run`: see `pid-draft`.
+
+## Required inputs and missing inputs
+
+The sheet `pid/<sheet>.xml` and its entry in `plant.yaml` (`generator:` or not, below).
+
 Read the `dexpi-xml` skill first if you have not in this session; its Conventions and Recipes
 (insert a valve or a tee, remove an item, add an instrument, change a DN) cover most edits.
+
+## Workflow and tools
 
 1. **Find the place.** `plantcode show <id or tag>` (an XML id, `TagName`, printed instrument
    tag, `LineNumber` or `PipingComponentNumber`) prints the `file:start-end` of the object's
@@ -26,26 +39,47 @@ Read the `dexpi-xml` skill first if you have not in this session; its Convention
    conceptual model, and which groups, symbols, node positions, lines and label texts in the
    drawing follow. Removing something: every incoming reference `plantcode show` listed must be
    deleted or re-pointed.
-4. **Edit the file in place.** Use readable ids that say what the object is
+4. **Edit the file in place, with the Edit tool** -- never `sed -i`, `awk`, heredocs or a
+   `python3 -` rewrite, and one command per Bash call (no loops or `&&` chains; see
+   `AGENTS.md`). Use readable ids that say what the object is
    (`GlobeValve_FV101_bypass`). Let plantcode write the verbose XML (see `dexpi-xml`, "Writing
    the verbose parts"):
-   - **another one like an existing object** (a spare pump, a second identical valve):
+   - **change what is there**: `plantcode move <id> --offset DX,DY` (a symbol with its node
+     positions and labels; the attached lines follow), `plantcode rename OLD NEW [--children]`
+     (an id and every reference; or a tag and its labels; `rename <id> NEWTAG --tag` retags one
+     of two objects sharing a tag), `plantcode set <id> PROP=VALUE`
+     (one data value by its DEXPI name and the labels showing it). Add `--print` to see the
+     diff first. These come before any hand edit;
+   - **another one like an existing object** (a spare pump, a second identical valve, a line
+     with its valves):
      `plantcode copy <id or tag> --prefix NEWID --tag NEWTAG --offset DX,DY`. It copies the
      drawing too, renames every id and prints what it did not copy (the pipes at the original's
-     nozzles): connect the copy with fragments;
-   - **a new valve, tee, pipe, segment, node or label**: `plantcode fragment <kind> --id ...
+     nozzles). In the same command give inner valves their own tags (`--rename HV-4146=HV-4147`,
+     `--renumber 4144:4145`), set the fluid (`--set 'FluidCode=Liquid nitrogen'`), connect an
+     open pipe end (`--connect PIPE=ITEM:NODE`) and an instrument's sensing point
+     (`--sense-at SEGMENT:X,Y`); the report's `duplicate tags:` must say `none`. Connect the
+     rest with fragments;
+   - **a new valve, tee, pipe, segment, line, node or label, new equipment or a nozzle on
+     existing equipment, an instrument, a signal line (control loop or trip, with its actuating
+     system), an off-page connector or a free note**: `plantcode fragment <kind> --id ...
      --sheet pid/<sheet>.xml` and paste each part where its comment says;
    - **by hand**: re-pointing references (a pipe's or segment's ends, a ConnectorLine's
-     `Source`/`Target`), moving or deleting existing blocks, changing data and label texts.
+     `Source`/`Target`), moving `<Object>` blocks between parents, deleting blocks.
    Do not write a templating script or a deep-copy script for drawing XML; if copy or fragment
    cannot do something you need, say so in your report.
 5. **Format, validate, render**:
    ```sh
-   plantcode fmt pid/P-01.xml && plantcode validate
+   plantcode fmt pid/P-01.xml
+   plantcode validate
    plantcode render pid/P-01.xml --png --crop X0,Y0,X1,Y1
    ```
    Fix every `error`, then every new `warning`. Repeat until clean. Look at the PNG: symbols on
    their lines, lines meeting at node positions, labels readable and saying the right thing.
+   The drawing rules see what an eye misses: `line-through-label`, `line-crossing`,
+   `label-overlap` and `label-far-from-owner` findings come with `[crop X0,Y0,X1,Y1]`; render
+   that crop, fix the placement, and quote the `drawing <sheet>:` counts validate prints before
+   you write "no overlaps" anywhere. A crossing you cannot avoid is accepted with a reason in
+   `checks/checks.yaml` (`accept:`, by the finding's `[id ...]`), not left as a warning.
 6. **Review the change** before committing: `plantcode diff HEAD --list` prints one line per
    changed plant item (`<kind> <class> <id> [tag]: N added, M removed, K modified`). Every line
    should be an item you meant to change. `--list --verbose` lists each change under its item,
@@ -59,8 +93,29 @@ Read the `dexpi-xml` skill first if you have not in this session; its Convention
    Log the change in `PROGRESS.md` (date, sheet, what, why). `git diff` shows sheets as review
    text with the XML ids as written (after `plantcode git-setup`).
 
-Large restructures (many items, a whole new section) are often easier with a throwaway
-generator script: see `pid-draft`.
+**Generated sheets.** If the sheet's entry in `plant.yaml` has `generator:`, do not edit its
+XML: change the script and run `plantcode regen <sheet>` (validate warns
+`generated-sheet-drift` otherwise, and `regen` refuses to overwrite hand edits). If the XML has
+to become the source instead, run `plantcode regen --detach <sheet>` first, then edit the XML
+as above. A sheet without `generator:` is hand-maintained: a `scripts/draft_<sheet>.py` next
+to it is provenance only; never rerun it over the sheet.
+
+## Validation and failure handling
+
+Steps 5 and 6: format, validate and render until clean, then review the diff.
 
 Never delete a validation finding by deleting the content it is about unless that is the change
 you were asked for.
+
+## Outputs and provenance
+
+The edited sheet, the list changes (step 7), and a commit with its `PROGRESS.md` entry (step 8).
+
+## Required human judgment
+
+Whether each changed item in the diff was meant (step 6); a reason for an accepted crossing
+(step 5); what copy or fragment could not do goes in the report (step 4).
+
+## References
+
+Skills `dexpi-xml`, `lists-sync`, `pid-draft`.

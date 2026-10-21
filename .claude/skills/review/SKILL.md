@@ -5,15 +5,52 @@ description: Review the plant repository or a change to it - run validation and 
 
 # Reviewing
 
+## Purpose and when to use
+
+Review the plant repository or a branch and write the findings to `reviews/`. Sign off a stage
+only when asked (step 7).
+
+## Required inputs and missing inputs
+
+The commit to review and, for a branch, the default branch to diff against. What you cannot
+check goes under "Not checked" in the record.
+
+## Workflow and tools
+
 1. `plantcode validate` and `plantcode check`. Every failing check and every error is a finding.
    Read the last line of `validate`: it names the sheets, lists and cross-checks it ran; what it
    did not compare goes under "Not checked". `plantcode check` prints the gates and writes
-   nothing.
+   nothing. Title blocks: `plantcode.template-metadata` (sample or placeholder data such as
+   `Model name="example"`, `DEXPI Example C01`, `A. P. Prover`), `plantcode.titleblock-approval`
+   (an approver, approval date or status "approved" without a sign-off of the current stage in
+   `checks/status.json`, a checker without a review record in `reviews/`) and
+   `plantcode.titleblock-sheet` (SheetNumber or title disagree with `plant.yaml`) are findings;
+   a sheet must never show an approval nobody gave. `--ignore RULE` / `--only RULE` filter the
+   report; never filter with `grep -v`.
 2. For a branch: `plantcode diff main --list` gives one line per changed plant item with its
    counts (`--verbose` adds each change and the drawing that shows it, `--flat` one line per
    object); `plantcode diff main` writes `build/diff.html` to look at. Does every change have a
    reason in the commit messages and `PROGRESS.md`? Is any changed item `not drawn`?
-3. Engineering review of each changed sheet. Render the changed regions, `plantcode render
+3. **Drawing** of each changed sheet (each sheet, before a sign-off). Look for overlaps,
+   crossings and misplaced labels with evidence, not by impression:
+   - `plantcode validate` prints one `drawing <sheet>: N line-through-label, N line-crossing,
+     N label-overlap, N label-far-from-owner` line per sheet (`(+N accepted)` for accepted ones).
+     Each finding carries `[crop X0,Y0,X1,Y1]` and `[id ...]`: render it with
+     `plantcode render pid/<sheet>.xml --png --crop <crop> --scale 8` and look.
+     `plantcode render pid/<sheet>.xml --png --findings` marks them all on the sheet.
+   - **Quote the counts** in the record's `## Drawing` section, e.g.
+     `P-04: 0 line-through-label, 1 line-crossing (accepted: D-023), 2 label-far-from-owner`.
+     Every remaining finding is either a finding of the review or accepted with a reason (an
+     `accept:` entry in `checks/checks.yaml` with the finding's id; errors cannot be accepted,
+     only fixed). A statement such as "no
+     overlaps" is only allowed with these counts at 0.
+   - The lint does not see everything (an ambiguous but not overlapping tag, a symbol too small
+     to read, a wrong arrow). Sweep each sheet in tiles: `plantcode render pid/<sheet>.xml --png
+     --tiles auto` (or `--tiles 4x3`) writes `build/<sheet>_tile-<row><column>.png` and prints
+     each tile's `--crop ... --scale ...` (with `--findings`, accepted findings are grey and
+     marked `(accepted)`). Read every tile and name the tiles in the record (`P-04: A1-C3 read`);
+     what you did not read goes under "Not checked".
+4. **Engineering review** of each changed sheet. Render the changed regions, `plantcode render
    pid/<sheet>.xml --png --crop X0,Y0,X1,Y1` (`plantcode show <tag>` prints the drawing's region
    as `at X0,Y0,X1,Y1 mm`; the PNG is `build/<sheet>_crop-X0-Y0-X1-Y1.png`, and `--rev main`
    with the same crop gives the before picture), and read the XML of what you doubt: isolation valves around
@@ -21,19 +58,89 @@ description: Review the plant repository or a change to it - run validation and 
    be blocked in, drains and vents at low and high points, instruments for what the design basis
    says is controlled (`plantcode show <instrument tag>` prints its loop, signal and actuating
    chain), DN consistent along each line and with the line list (and with literal labels:
-   `plantcode.label-literal`). Note what you
-   checked and what you could not.
-4. Write `reviews/<YYYY-MM-DD>-<topic>.md`:
+   `plantcode.label-literal`). Off-page texts and trip notes name other tags in plain text:
+   `plantcode.offpage-mismatch` and `plantcode.label-tag-unknown` warn when one names a wrong
+   line, sheet or tag; the `plantcode.label-tag` infos list what each such text names, so check
+   they say what is meant. Note what you checked and what you could not.
+
+## Validation and failure handling
+
+Run `plantcode validate` after writing the record: it reports left-out previous findings and bad
+finding ids or statuses (`plantcode.review-*`).
+
+## Outputs and provenance
+
+5. Write `reviews/<YYYY-MM-DD>-<topic>.md` (format in `reviews/README.md`). It starts with front
+   matter that a `kind: review` gate reads; `reviewed_commit` is `git rev-parse HEAD` of what you
+   reviewed, `reviewer_kind` is `self` when you review your own work, `agent` for an independent
+   agent and `human` only for a person:
    ```markdown
+   ---
+   topic: design                      # the gate's topic: design, o2-safety, hazop, ...
+   reviewed_commit: <sha>
+   scope: [pid/P-01.xml, DESIGN.md]   # files or directories reviewed
+   reviewer: <name or agent>
+   reviewer_kind: human | agent | self
+   branch: <branch reviewed>
+   merge: pending                     # or the merge commit to the default branch
+   ---
    # Review: <topic>
-   Scope: <branch / sheets / stage>   Reviewer: <name or agent>   Date: <date>
    ## Findings
-   | # | sheet | item | finding | severity | proposed action |
+   | id | sheet | item | finding | severity | status | proposed action |
+   |---|---|---|---|---|---|---|
+   | <file stem>#1 | P-01 | T-101 | ... | high | open | ... |
+   ## Previous findings
+   | id | finding | severity | status | evidence |
+   |---|---|---|---|---|
+   | 2026-10-01-design#3 | ... | medium | closed 521473c | vent drawn, crop build/P-01_crop-... |
+   ## Drawing
+   <per sheet: the `drawing <sheet>:` counts from validate, each accepted finding with its
+   reason, the tiles read>
    ## Checked and fine
    ## Not checked
    ```
-5. Do not fix findings in the same commit as the review; each fix is its own change.
-6. **Signing off a stage** (only when asked to sign off, and only with no failing check):
-   `plantcode check --stage <stage> --write` writes `checks/status.json`; commit it together with
-   the review record. Do not run `--write` in an ordinary review, and never edit
-   `status.json` by hand.
+   - **Ids** are `<this file's name without .md>#<n>` (`2026-10-18-design#1`), never reused,
+     unique across the repository.
+   - **Severity**: `critical`, `high`, `medium` or `low`. A sign-off is refused while a
+     critical or high finding is open, or is closed by a commit that is not in HEAD's
+     history.
+   - **Status**, one of: `open`; `closed <commit>` (the commit that fixed it; required);
+     `accepted: <reason, by whom>`; `superseded by <id>`. There is no "partly closed": split the
+     finding into a closed one and a new open one.
+   - **Previous findings** is required: list every finding of earlier reviews of an overlapping
+     scope that is not closed or accepted yet, with its current status and the evidence (a
+     commit, a crop, a validate line). Find them with
+     `grep -h '| open |' reviews/*.md` and the earlier records' Previous findings sections;
+     `plantcode status` lists the open ones. `plantcode validate` reports a carried-over finding
+     you left out (`plantcode.review-previous-missing`), bad ids and statuses
+     (`plantcode.review-finding-id`, `review-finding-status`).
+   - A record is a snapshot: do not edit it after it is committed. The next review records
+     the new status of each finding.
+6. Do not fix findings in the same commit as the review; each fix is its own change. **Closing
+   a finding**: fix it in its own commit, then the next review lists it under Previous findings
+   as `closed <that commit>` with the evidence that it is fixed.
+
+## Required human judgment
+
+7. **Signing off a stage** (only when asked to sign off): you may not sign off your own review.
+   The sign-off rests on a record by someone else: a human, or an independent agent
+   (`reviewer_kind: agent`); a `self` record needs `approved_by: <human>`. A `kind: validate`
+   gate with `fail_on: warning` and the drawing `rules` (see `checks/checks.yaml`) fails while a
+   drawing finding is neither fixed nor accepted. Then
+   `plantcode check --stage <stage> --write --review reviews/<record>.md` runs the gates of every
+   stage up to `<stage>` and writes its entry to `checks/status.json` (commit, date, signer,
+   branch, review). It refuses, and writes nothing, when the tree is not committed, a gate
+   fails, the record is the signer's own or a critical/high finding is open: fix that, do not
+   work around it. Commit `status.json` alone, as the last commit of the stage. Do not run
+   `--write` in an ordinary review, and never edit `status.json` by hand.
+8. **Branch and merge.** Stage work is on a branch `stage/<stage>-<topic>`. The record names it
+   in `branch:` and quotes `plantcode diff main --list`; `merge:` is `pending` until the branch
+   is merged, then the merge commit (the next review records it). The sign-off commit is the
+   last on the branch, and the stage counts as signed off only once it is on the default
+   branch. A human or the reviewer merges, never the author; the author's summary says whether
+   a merge is pending.
+
+## References
+
+- `reviews/README.md` (record format), `checks/checks.yaml` (gates, accepted findings),
+  `checks/status.json` (sign-offs)
