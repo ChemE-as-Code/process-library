@@ -809,3 +809,21 @@ Reason: the lifting, operability and span rules need weights, cranes and pads to
 weights on erected-once items would only flag construction lifts, and moving 60 valves by pinned
 routes at basic engineering would be guesswork the piping layout redoes.
 Open: lifting study, valve-by-valve operability review, rack intermediate steel.
+
+## D-035 Material take-off and the example rates of the estimate (2026-10-22)
+Decision: the take-off of the 3D model is written to estimate/mto.csv|md (`plantcode assess mto
+--write`) and kept current by the basic gate `mto` (`require: [mto-current]`). At this model:
+4,501 m of pipe, 752 elbows, 70 tees, 1 reducer, 364 flanges and gasket sets, 105 valves, 5
+in-line items, 319 t of steel, 367 m2 of grating, 305 m2 of pipe insulation, 115 m3 of concrete
+(plinths and foundations). The estimate (estimate/rates.yaml, estimate/estimate.csv|md) uses
+EXAMPLE rates (`example: true`, currency XXX): ASU-1 has no cost source (no quotation, company
+cost database or published index was given), and an agent does not invent prices. The example
+file has the rows the ASU needs: oxygen and cryogenic classes PN25 / PN40 / PN63 priced apart
+from the carbon steel water and air lines, large-bore pipe (DN 500 and above) apart, safety and
+globe valves apart, erection factors for piping (with oxygen cleaning), steel and civil, indirects
+and contingency. The take-off leaves out what the model does not show: the cold box internals and
+casing (cold box vendor package), the machines, small bore and field-run lines, the rack
+intermediate steel (D-034), paving and piles.
+Reason: the take-off is a deliverable of the 3D model; pricing it needs a cost engineer's sources.
+Open: rates and factors from a cost source, then gate requirements `rates` and
+`estimate-current`; allowances for what the take-off does not count.
