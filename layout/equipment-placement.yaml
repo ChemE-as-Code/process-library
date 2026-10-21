@@ -29,24 +29,24 @@ equipment:
     position: [72, 52, 0]
     notes: "DCAC."
     access:
-      ladder_side: 180
-      notes: "Platforms reviewed from the build's proposals (D-030): the air inlet N1, the CW inlet N3 with the level and temperature tappings, the chilled water inlet N4, the top with the air outlets N2/N6 and PSV-1109. The sump outlet N5 is reached from grade."
+      ladder_side: 90
+      notes: "Platforms reviewed from the build's proposals (D-030): the air inlet N1, the CW inlet N3 with the level and temperature tappings, the chilled water inlet N4, the top with the air outlets N2/N6 and PSV-1109. The sump outlet N5 is reached from grade. Ladder on the north side and platforms over the north half (345..195 deg), which carries every nozzle (0, 90, 180 deg): no point more than a quarter turn from the ladder (D-033 (6))."
       platforms:
-        - {elevation: 6.3}
-        - {elevation: 11.3}
-        - {elevation: 18.8}
-        - {elevation: 23.9}
+        - {elevation: 6.3, arc_deg: [345, 195]}
+        - {elevation: 11.3, arc_deg: [345, 195]}
+        - {elevation: 18.8, arc_deg: [345, 195]}
+        - {elevation: 23.9, arc_deg: [345, 195]}
   - tag: C-1102
-    position: [55, 61, 0]
-    notes: "Evaporative cooler, clear of the 8 m wide rack PR1."
+    position: [55, 60, 0]
+    notes: "Evaporative cooler, clear of the 8 m wide rack PR1 and its columns with its foundation (1 m south, D-033 (6))."
     access:
-      ladder_side: 180
-      notes: "Platforms reviewed from the build's proposals (D-030): the waste N2 inlet N1, the mid-height tapping, the water inlet N3, the top vent N2. The sump outlet N4 is reached from grade."
+      ladder_side: 270
+      notes: "Platforms reviewed from the build's proposals (D-030): the waste N2 inlet N1, the mid-height tapping, the water inlet N3, the top vent N2. The sump outlet N4 is reached from grade. Every nozzle faces east (0 deg): ladder on the south side and platforms over 240..30 deg, no point more than a third of a turn from the ladder (D-033 (6))."
       platforms:
-        - {elevation: 4.7}
-        - {elevation: 11.3}
-        - {elevation: 18.5}
-        - {elevation: 21.0}
+        - {elevation: 4.7, arc_deg: [240, 30]}
+        - {elevation: 11.3, arc_deg: [240, 30]}
+        - {elevation: 18.5, arc_deg: [240, 30]}
+        - {elevation: 21.0, arc_deg: [240, 30]}
   - {tag: P-1101A, position: [66, 57, 0], notes: "DCAC CW pumps beside C-1101."}
   - {tag: P-1101B, position: [66, 60, 0]}
   - {tag: P-1102A, position: [48, 59.3, 0], rotation_deg: 180, notes: "Chilled water pumps, suction towards the C-1102 sump, access space clear of the PR1 columns."}
@@ -90,7 +90,12 @@ equipment:
     nozzles:
       - {id: N6, angle_deg: 0, elevation: 6.5}
       - {id: N7, angle_deg: 90, elevation: 2.4}
-    access: {platforms: [], notes: "Inside the perlite-filled casing: reached from the CB-1 platforms P20 to RF; the PSV-3114 outlet and the top nozzle from the roof walkway RF (D-030)."}
+      # risers in the 2.4 m gaps north and south of the column, not in the 0.9 m gap to the
+      # west casing wall (D-033 (4)): the PSV-3114 inlet north, the Lachmann air from the
+      # expander south of the cold box
+      - {id: N2, angle_deg: 90, elevation: 24.3}
+      - {id: N3, angle_deg: 270, elevation: 18.8}
+    access: {platforms: [], notes: "Inside the perlite-filled casing: reached from the CB-1 platforms P20 to RF; the PSV-3114 / PSV-3116 relief valves from the relief valve platform RV on the roof (D-030, D-033)."}
   - tag: E-3101
     position: [134.5, 42.5, 0]
     rotation_deg: 90
@@ -105,6 +110,9 @@ equipment:
       - {id: N7, face: north, offset: [-0.6, -3.2]}
       - {id: N8, face: north, offset: [0.6, -3.2]}
       - {id: N9, face: north, offset: [1.8, -3.2]}
+      # expander feed draw (AIR-3003) at mid height on the south end of the bank (own west face
+      # = site south), towards KT-3101 outside the south casing wall (D-033 (4))
+      - {id: N10, face: west, offset: [0, 1.0]}
   - tag: E-3102
     position: [139, 42.5, 20]
     mount: {structure: CB-1, level: E20}
@@ -135,6 +143,9 @@ equipment:
     position: [166.5, 29, 0]
     notes: "GOX compressor behind its fire/blast wall FW-4101, open to the east (EIGA Doc 27 practice, ASSUMED). Interstage and discharge nozzles on the north side towards the intercooler package and the aftercooler (the P&ID draws the interstage ones below and the discharge at the motor end)."
     nozzles:
+      # suction on top at the first stage: GOX-4001 comes over the fire wall and drops onto it,
+      # no penetration of the wall (the P&ID draws it at the side; D-033 (4))
+      - {id: N1, face: top, offset: [-3.5, 0]}
       - {id: N3, face: north, offset: [-2.5, 0]}
       - {id: N4, face: north, offset: [0.5, 0]}
       - {id: N2, face: north, offset: [3.5, 0]}
@@ -176,15 +187,15 @@ equipment:
   - {tag: E-4106A, position: [165, 125, 0], notes: "LIN ambient-air vaporizer."}
   - {tag: E-4106B, position: [170, 125, 0]}
   # ---- V1 vent area (north-east corner, downwind): O2 silencers north, N2 silencer south (D-025, D-029)
-  - {tag: S-4101, position: [186, 124, 0], size: {diameter: 1.0, height: 5}, notes: "GOX blowdown silencer, 16 m from the north road R3. ASSUMED size."}
-  - {tag: S-4102, position: [191, 124, 0], size: {diameter: 1.4, height: 6}, notes: "GOX suction vent silencer. ASSUMED size."}
+  - {tag: S-4101, position: [186, 124, 0], size: {diameter: 1.0, height: 7.5}, notes: "GOX blowdown silencer with its outlet stack, 7.5 m, so its O2 zone stays above grade (D-033 (5)); 16 m from the north road R3. ASSUMED size."}
+  - {tag: S-4102, position: [191, 124, 0], size: {diameter: 1.4, height: 7.5}, notes: "GOX suction vent silencer with its outlet stack, 7.5 m (D-033 (5)). ASSUMED size."}
   - {tag: S-3101, position: [190, 114, 0], size: {diameter: 2.0, height: 8}, notes: "Waste N2 surplus vent silencer, 10 m south of the O2 silencers. ASSUMED size."}
   # ---- relief valves and silencers that discharge away from their line's P&ID end (D-029)
-  - {tag: PSV-3114, position: [128, 46.1, 53], size: [0.8, 0.6, 1.5], mount: {structure: CB-1, level: RF},
-     notes: "LP column relief valve on the cold box roof, discharging upwards outside the casing (O2-rich, review 2026-10-21-layout#1). ASSUMED size."}
-  - {tag: PSV-3116, position: [131, 46.1, 53], size: [0.8, 0.6, 1.5], mount: {structure: CB-1, level: RF},
-     notes: "HP column relief valve on the cold box roof, 3 m from PSV-3114. ASSUMED size."}
-  - {tag: S-2101, position: [83, 36, 0], size: {diameter: 1.2, height: 6}, notes: "TSA regeneration / depressurization vent silencer west of the adsorbers, outlet 6 m up (O2-deficient, review 2026-10-21-layout#4). ASSUMED size."}
+  - {tag: PSV-3114, position: [128, 43, 53], size: [0.8, 0.6, 1.5], mount: {structure: CB-1, level: RV},
+     notes: "LP column relief valve on the relief valve platform RV south of the roof walkway, 3.6 m from ladder LD8; tailpipe VNT-3002 straight up above the walkway headroom plus its zone radius (O2-rich, D-033 (1), review 2026-10-21-layout-rereview#1). ASSUMED size."}
+  - {tag: PSV-3116, position: [131, 43, 53], size: [0.8, 0.6, 1.5], mount: {structure: CB-1, level: RV},
+     notes: "HP column relief valve on the platform RV, 3 m from PSV-3114, tailpipe VNT-3003 up as VNT-3002. ASSUMED size."}
+  - {tag: S-2101, position: [83, 36, 0], size: {diameter: 1.2, height: 10}, notes: "TSA regeneration / depressurization vent silencer west of the adsorbers on its stack, outlet 10 m up, above the adsorber tops (6.5 m) and their zone reach (O2-deficient, D-033 (5), review 2026-10-21-layout-rereview#5). ASSUMED size."}
 notes: >-
   E-3103 is the bath condenser inside the C-3102 sump and has no placement of its own (D-028).
   Silencers are placed by their tag of piping/special-items.yaml; relief valve outlets discharge

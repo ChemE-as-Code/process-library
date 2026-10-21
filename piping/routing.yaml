@@ -16,17 +16,37 @@ rules:
     # GOX and GAN product pipelines: battery limit beside PR1 near its east end, 11 m from the east
     # road R5 so the BL bleeds' zones stay off the road; the customer pipelines continue along
     # the rack from there (ASSUMED tie-ins, D-029, review 2026-10-21-layout#6)
-    - {id: GOX-pipeline, lines: [GOX-4002], point: [176.0, 63.2, 9.5]}
-    - {id: GAN-pipeline, lines: [GAN-4002], point: [176.0, 62.2, 9.5]}
+    # x = 171: the BL bleed outlets 16 m from the east road edge (O2 vent outlets >= 15 m from
+    # roads, D-025, D-033 (3))
+    - {id: GOX-pipeline, lines: [GOX-4002], point: [171.0, 63.2, 9.5]}
+    - {id: GAN-pipeline, lines: [GAN-4002], point: [171.0, 62.2, 9.5]}
     # road tanker couplings at the edge of the truck fill bay Z-TRUCK on the north road (the
     # hose reaches across the bay; D-017, D-026 (4))
     - {id: LOX-tanker, lines: [LOX-4004], point: [128, 132.4, 1.0]}
     - {id: LIN-tanker, lines: [LIN-4004], point: [153, 132.4, 1.0]}
+  # vent and relief outlets: each riser rises until its zone sphere (layout/zones.yaml, the
+  # line as source) clears every walking level up to the walkway headroom (D-011, D-033 (1),
+  # (3), (5)); the criterion is the ASSUMED screening radius until the vent study gives it
+  vents:
+    # PSV-3114 / PSV-3116 tailpipes from the relief valve platform RV on the cold box roof
+    - {lines: [VNT-3002, VNT-3003], max_rise_m: 8}
+    # GOX / GAN battery limit bleeds: above the PR1 top tier (9 m) and clear of grade
+    - {lines: [VNT-4006], rise_m: 5, max_rise_m: 10}
+    - {lines: [VNT-4007], rise_m: 9, max_rise_m: 12}
+    # the drain vaporizer vent, the evaporative cooler top vent (above its top platform)
+    - {lines: [VNT-3001, WN-1002], max_rise_m: 10}
 lines:
   # internals of the stacked double column: E-3103 sits in the C-3102 sump on top of C-3101
   - {line: GAN-3002, skip: "internal of the double column: HP top vapour rises straight into the condenser E-3103 in the C-3102 sump (D-028)"}
   - {line: LN-3002, skip: "internal of the double column: condensate from E-3103 runs back down into the C-3101 top (D-028)"}
   - {line: VNT-3004, skip: "casing breather PSV-3123 sits on the cold box casing roof and discharges there; no process nozzle (zone Z-N2-CASING)"}
+  # pinned and moved south of the compander skid (y 33.6 instead of 35.06 over KT-3101), clear
+  # of the rotor lift (review 2026-10-21-layout-rereview#6, D-033 (5))
+  - {line: CW-3001, segment: Line_CW3001_S1, route: [[30, 68.062, 5.084], [132.137, 68.062, 5.084], [132.137, 68.062, 3.916], [132.137, 49.062, 3.916], [129.137, 49.062, 3.916], [129.137, 48.062, 3.916], [125.5, 48.062, 3.916], [125.5, 33.6, 3.916], [130.137, 33.6, 3.916], [130.137, 31.684, 3.916], [132.637, 31.684, 3.916], [132.637, 31.684, 0.229], [132.137, 31.684, 0.229], [132.137, 30.5, 0.229], [132.137, 30.5, 0.566]]}
+  # MAC interstage to E-1102: east first at y 35.5, then north onto the shell top, so nothing
+  # runs over the E-1102 bundle pull west of its channel (review 2026-10-21-layout#12, D-033 (5))
+  - {line: AIR-1006, segment: Line_AIR1006_S1, route: [[47, 33, 3], [47, 35.5, 3], [47, 35.5, 3.856], [55.62, 35.5, 3.856], [55.62, 42, 3.856], [55.62, 42, 2.8]]}
+  - {line: AIR-1006, segment: Line_AIR1006_S2, route: [[58.94, 42, 2.8], [58.94, 42, 3.856], [58.94, 34.422, 3.856], [50, 34.422, 3.856], [50, 34.422, 3], [50, 33, 3]]}
 notes: >-
   Tier allocation, battery limits and the pipe-way elevation (router default 3.5 m) ASSUMED
   (DESIGN.md D-029). Stress, supports, drainage and operability are not checked by the router.

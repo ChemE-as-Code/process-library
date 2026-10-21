@@ -717,3 +717,62 @@ sleeves to be designed with the vendor), #9 (B1 wall penetrations outside the de
 detailed with the building), #12, #13, #15, #16.
 Reason: the review's high findings put cold lines and relief outlets where they cannot be, and
 the medium ones are cheap to fix in the layout files.
+
+## D-033 Layout changes for example-asu#2: relief valves, bleeds, walls, tiers, access (2026-10-22)
+Decision (reviews/2026-10-21-layout-rereview.md, example-asu#2; plantcode's engineering rules
+on the model, gate layout-rules): (1) rereview#1: PSV-3114 and PSV-3116 move off the roof
+walkway RF onto a relief valve platform RV (53 m, frame [0.5, 3.5, 6.5, 7.2]) south of it,
+3.6 m from ladder LD8 and off the way to the ladders and stairs. Their tailpipes VNT-3002 /
+VNT-3003 rise straight up (piping/routing.yaml `vents`) until the 3 m zone sphere clears the
+roof walking levels plus 2.2 m headroom: outlets at 58.25 m, 5.25 m above the deck. The zones
+take the tailpipe outlets as sources (the lines VNT-3002 / VNT-3003, `psv_outlet`). Reaction
+forces and tailpipe supports are for the piping stress engineer. (2) rereview#2: the toppling
+height is the height of the structure, the 53 m frame and casing; the separation CB-1 to B1
+stays 53 m (measured 54.0 m). The roof items (handrails, two relief valves and DN tailpipes on
+a light platform) do not topple with the casing as a rigid body; their failure is a dropped
+object on the cold box roof and around it, covered by the structural design of the platform
+and the tailpipe supports. Criterion 1 x height ASSUMED (D-026 (3)); a site-specific toppling
+study confirms it. (3) rereview#3 and #4 (O2 vents to roads): the GOX / GAN battery limits move
+from x 176 to x 171; the bleeds VNT-4006 / VNT-4007 rise above the PR1 top tier (outlets
+14.7 m, `vents` rules) so their 5 m zones stay above every walking level and grade, and the
+O2 bleed outlet is 16 m from the east road edge (D-025: O2 vent outlets >= 15 m from roads);
+separation Z-O2-VENTS to R5 now >= 10 m (15 m less the zone radius, measured >= 10 m). The
+intake criteria F-1101 to R4 / R1 (10 / 15 m) stay owner-practice values, ASSUMED, with no
+published distance claimed; the filter house draws 4-8 m above grade (ASSUMED) and the
+prevailing wind carries road exhaust away from it (D-025). Recorded as a deviation to confirm
+with the site's air quality survey. (4) Walls and tiers: B1 openings W2 (AIR-1001), E1
+(AIR-1003) and a pipe band N1 in the north wall (x 40.2-67.2, z 3.4-4.4) for the six CW / CWR
+lines and AIR-1002 (layout#9; E2 removed, unused). K-4101 suction N1 on the compressor top:
+GOX-4001 comes over the 7 m fire wall and drops onto it, no penetration (layout#8); the
+interstage loop GOX-4005 to the intercooler package E-4101 north of the wall crosses it in two
+declared fire-rated sleeves SL1 / SL2 (sealed sleeves designed with the vendor). Inside the
+cold box the PSV-3114 inlet (C-3102 N2) and the Lachmann air (C-3102 N3) leave the column north
+and south, into the 2.4 m gaps, not into the 0.9 m gap to the west casing wall, and the
+expander feed draw E-3101 N10 faces south towards KT-3101, so no line runs in a casing wall.
+The casing penetrations stay info findings for the casing penetration schedule. WN-3003 now
+lies on its 7 m tier (plantcode keeps a flat bottom of pipe where a smaller line continues a
+larger one on the rack). LIN-3001 crossing PR1 to PR2 (3 m) and the RG-2001 jog off the rack
+are accepted in the gate layout-rules with reasons (rereview#7). (5) Low findings: S-2101 on its
+stack, outlet 10 m (above the adsorber tops, rereview#5); the sieve change-out zone Z-SIEVE
+4.5 m high for the vacuum truck, so RG-2003 crosses it at 5.3 m; CW-3001 pinned south of the
+compander skid (rereview#6); AIR-1006 pinned east first, off the E-1102 bundle pull (layout#12);
+the GOX silencers S-4101 / S-4102 with 7.5 m outlet stacks and the drain vaporizer vent
+VNT-3001 at 7.2 m, so no O2 zone reaches grade; the WN-1002 top vent of C-1102 raised to
+27.6 m, above the top platform's headroom (layout#5). (6) Access: the cold box gets a stair
+tower on the east side above ST1 (ST2 to E20/P20, ST3, ST4, ST5 to the roof), pinned from the
+build's proposals: the floors at 20 m and up are entered with tools for valves, analysers and
+the relief valves, and the inert roof needs a quick way down; the ladders stay as second ways.
+C-1101 platforms over its north half with the ladder north (every nozzle at 0, 90 or 180 deg),
+C-1102 platforms over 240-30 deg with the ladder south (every nozzle east): no point more than
+7.5 m from the ladder. C-1102 moves 1 m south so its foundation clears the PR1 columns.
+(7) KT-3101 / K-3101 are the two ends of one compander skid: their separation is declared
+(0.05 m) instead of the 3 m machine spacing of the package table. (8) rereview#8: PR2 carries
+LOX-3001 and LIN-3001; the backup risers GOX-4004 / GAN-4003 run over PR3 (titles corrected;
+D-026 (2) is read with this). Kept as they are: the cryogenic pumps 6.5 m from their tanks
+(layout#13: room for the tank outlet valves, the pump removal and the bottom outlet's
+flexibility; suction head from the tank level, NPSH checked in detail engineering), the
+expander casing extension (layout#15, vendor arrangement in detail engineering).
+Reason: example-asu#2 lists the open findings of the second layout review; the new engineering
+rules (vent outlets, wall penetrations, tiers, escape, spacing) are now a basic gate.
+Open: tailpipe forces and supports, the vent study (D-031), the fire wall sleeves with the
+vendor, the operability findings (D-034).

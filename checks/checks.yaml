@@ -61,6 +61,21 @@ checks:
     exclude_fluids: [Cooling water, Cooling water return, Chilled water, Instrument air,
                      Plant air, Utility nitrogen, Steam, Condensate]
     sections: 2                     # the layout review cites the plot plan and two sections
+  # ASU: the engineering rules on the routes that the layout reviews found violated (vent
+  # outlets in zones over walking levels, pipes through walls and fire walls outside their
+  # openings, lines off their rack tier, escape and equipment spacing; D-033)
+  - id: layout-rules
+    title: "Vent outlets clear of walking levels, wall penetrations declared, lines on their tiers, escape and spacing kept"
+    stage: basic
+    kind: validate
+    fail_on: warning
+    rules: [plantcode.layout-vent-outlet, plantcode.layout-wall-penetration, plantcode.layout-tier,
+            plantcode.layout-escape-*, plantcode.layout-spacing, plantcode.layout-zone-crossing]
+    accept:
+      - id: "layout/plant-model.yaml#layout-tier:P-04/Line_LIN3001_S1@PR1"
+        reason: "LIN-3001 only crosses PR1 from the cold box riser to the PR2 junction (x 138.6-141.6, 3 m) at the passing elevation under the PR2 6.5 m tier, its tier on PR2; it does not run along PR1 (D-033 (4), review 2026-10-21-layout-rereview#7)"
+      - id: "layout/plant-model.yaml#layout-tier:P-02/Line_RG2001_S2@PR1"
+        reason: "RG-2001 leaves its 7 m lane past the rack bent and comes back 2.5 m under the tier before turning south to E-2101: the router's jog off the rack, not a run along PR1 (D-033 (4))"
   - id: layout-review
     title: A current, independent layout review is recorded
     stage: basic
