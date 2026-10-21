@@ -2,7 +2,7 @@
 
 A plant design kept as plain files in git: DEXPI 2.0.1 P&IDs in `pid/`, engineering lists as
 YAML, decisions and progress as Markdown. Edited by people and by coding agents (Claude Code),
-checked by [`plantcode`](https://github.com/process-intelligence-research/plantcode).
+checked by [`plantcode`](https://github.com/ChemE-as-Code/plantcode).
 
 | path | what |
 |---|---|
