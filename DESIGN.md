@@ -776,3 +776,36 @@ Reason: example-asu#2 lists the open findings of the second layout review; the n
 rules (vent outlets, wall penetrations, tiers, escape, spacing) are now a basic gate.
 Open: tailpipe forces and supports, the vent study (D-031), the fire wall sleeves with the
 vendor, the operability findings (D-034).
+
+## D-034 Weights, cranes and lifting; valve access and pipe spans left to detail engineering (2026-10-22)
+Decision: (1) Weights (`dimensions.weight`, empty, t, ASSUMED from typical sizes of the duty)
+are given to the items lifted whole in maintenance: the coolers and exchangers (E-1101/E-1102
+12, E-1103 9, E-3104 4, E-4101 8, E-4102 6, E-4103 4), the regeneration heater E-2101 8 and
+filter F-2101 4, the compander halves KT-3101 / K-3101 8 each, the GOX compressor K-4101 45 and
+the GAN compressor K-4102 25, the vaporizers E-4105A/B 6 and E-4106A/B 7, the pumps (1.5-2.5,
+below the 5 t lift threshold), and the cold box internals (left out by the rule). Columns,
+adsorbers, tanks, the filter house and the MAC train (~85 t) are erected once before the piping
+and get no weight: their lifts belong to the construction lifting plan, not to the layout's
+maintenance check. (2) The MAC house B1 gets an overhead crane of 40 t (heaviest maintenance
+lift the MAC motor, ~30 t ASSUMED; cooler bundles). (3) Crane pads (kind crane_pad, with reach)
+and laydown zones: the cold box pad Z-CRANE-CB1 (was a maintenance zone), Z-PAD-A2 / Z-LAYDOWN-A2
+for the heater and filter, Z-PAD-A4 / Z-LAYDOWN-A4 on the open east side of the fire wall,
+Z-PAD-A5 / Z-PAD-A5N with laydowns for the vaporizers. All ASSUMED; a lifting study with the
+crane contractor replaces them. (4) Ten lifting findings stay as warnings, each a case for that
+study: the lift of K-4101, E-4101 and K-4102 passes the 7 m fire wall FW-4101 (vertical lift above
+the wall, then slewing over its open east side); KT-3101 / K-3101 lie against the cold box south
+wall (braces in the lane; the rotor cartridges are pulled with a hoist, the halves lifted south);
+the lanes to E-2101, E-4102, E-4105A/B and E-4106B cross their own or their neighbours' outlet
+spools at the pipe-way, removed for the lift. (5) Operability: 71 findings (60 manual valves,
+11 transmitters more than 1.8 / 2 m above the floor below them). The router places in-line
+valves along the route in P&ID order, 1 m apart from the start, not where an operator stands;
+valve positions, chain wheels, extension spindles and extra platforms are set in the piping
+layout of detail engineering, valve by valve, from this list. Not accepted, kept visible.
+(6) Pipe spans: 26 lines (mostly DN 40-250 water and gas lines on the 6 m rack bents) span more
+than the ASSUMED table allows; the racks get intermediate steel (a stringer between the bents)
+for lines below DN 300, designed with the racks in detail engineering. Not accepted, kept
+visible.
+Reason: the lifting, operability and span rules need weights, cranes and pads to say anything;
+weights on erected-once items would only flag construction lifts, and moving 60 valves by pinned
+routes at basic engineering would be guesswork the piping layout redoes.
+Open: lifting study, valve-by-valve operability review, rack intermediate steel.
