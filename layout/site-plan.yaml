@@ -5,10 +5,10 @@ site: {name: "ASU-1 plot (ASSUMED coastal industrial site)", width: 200, depth: 
 areas:
   - {id: A1, title: "MAC and precooling (P-01)", box: [20, 15, 80, 72], kind: process}
   - {id: A2, title: "Front-end purification (P-02)", box: [80, 15, 110, 72], kind: process}
-  - {id: A3, title: "Cold box and compander (P-03)", box: [110, 15, 140, 72], kind: process}
-  - {id: A4, title: "GOX / GAN compressors (P-04)", box: [140, 15, 180, 72], kind: process}
+  - {id: A3, title: "Cold box and compander (P-03)", box: [110, 15, 145, 72], kind: process}
+  - {id: A4, title: "GOX / GAN compressors (P-04)", box: [145, 15, 185, 72], kind: process}
   - {id: A5, title: "LOX / LIN storage, pumps, vaporizers, truck loading (P-04)", box: [110, 85, 180, 137], kind: storage}
-  - {id: V1, title: "Vent stacks: S-4101/S-4102 GOX, VNT-4001 LOX tank, VNT-4006 GOX bleed, VNT-3001/PSV-3114 O2-rich; N2 vents VNT-4004/4005/4007, S-3101, VNT-3004 (elevated)",
+  - {id: V1, title: "Vent area: GOX silencers S-4101/S-4102 (north), waste N2 silencer S-3101 (south) (D-025, D-029)",
      box: [182, 112, 198, 137], kind: reserved}
 roads:
   - {id: R1, title: "South road (fire access process area)", points: [[0, 8], [200, 8]], width: 6}
@@ -17,9 +17,25 @@ roads:
   - {id: R4, title: "West road", points: [[9, 8], [9, 143]], width: 6}
   - {id: R5, title: "East road", points: [[190, 8], [190, 78.5]], width: 6}
 racks:
-  - {id: PR1, title: "Main rack along the process row: air, GOX, GAN, waste N2, CW, instrument air (D-026)", points: [[30, 68], [182, 68]], width: 6, levels: [6, 8]}
-  - {id: PR2, title: "Storage rack over the central road: LOX-3001, LIN-3001, GOX-4004, GAN-4003 (D-026)", points: [[137, 68], [137, 104]], width: 4, levels: [6, 8]}
+  - {id: PR1, title: "Main rack along the process row, 8 m wide: CW/CWR (5 m), air and waste N2 (7 m), O2, N2 and cryogenic lines (9 m, top tier) (D-026, D-029)", points: [[30, 68], [182, 68]], width: 8, levels: [5, 7, 9]}
+  - {id: PR2, title: "Storage rack over the central road: LOX-3001, LIN-3001, GOX-4004, GAN-4003 (D-026); joins PR1 at x = 143, east of the cold box risers (D-029)", points: [[143, 68], [143, 104]], width: 4, levels: [6, 8]}
+  - {id: PR3, title: "Vent rack from the PR1 east end over the central road to the vent area V1: VNT-4002, VNT-4003, WN-3003 (D-029)", points: [[182, 68], [182, 118]], width: 3, levels: [6, 8]}
+# lines reach a rack within 50 m: the run from an item to the rack is supported on sleepers or
+# local steel (ASSUMED, the router's default rack reach)
+rack_reach: 50
+separations:
+  - {from: CB-1, to: B1, min_m: 53, reason: "cold box toppling radius, 1 x height (50.5 m casing + roof walkway) kept clear of the occupied MAC house", basis: "D-026 (3), ASSUMED"}
+  - {from: CB-1, to: K-4101, min_m: 15, reason: "O2 compressor fire separation from the cold box; the toppling radius is not applied to K-4101, which stands behind its fire wall FW-4101 (D-030)", basis: "D-026, D-030, ASSUMED"}
+  - {from: T-4101, to: B1, min_m: 15, reason: "LOX storage to buildings", basis: "D-026 (4), EIGA Doc 127 practice, ASSUMED"}
+  - {from: T-4101, to: K-4101, min_m: 15, reason: "LOX storage to the GOX compressor", basis: "D-026 (4), ASSUMED"}
+  - {from: T-4101, to: R2, min_m: 8, reason: "LOX storage to roads", basis: "D-026 (4), ASSUMED"}
+  - {from: T-4101, to: R3, min_m: 8, reason: "LOX storage to roads", basis: "D-026 (4), ASSUMED"}
+  - {from: T-4101, to: site-boundary, min_m: 8, reason: "LOX storage to the site boundary", basis: "D-026 (4), ASSUMED"}
+  - {from: F-1101, to: Z-O2-VENTS, min_m: 50, reason: "MAC intake away from the small O2 vents and relief outlets at the items (tank boil-off, drain vaporizer, PSV-3114, GOX bleed), all downwind (D-029)", basis: "D-010 (5), D-025, ASSUMED"}
+  - {from: F-1101, to: Z-O2-V1, min_m: 100, reason: "MAC intake away from the GOX silencers", basis: "D-025, ASSUMED"}
+  - {from: Z-O2-V1, to: R3, min_m: 10, reason: "O2-enriched vent zone off the truck road (ignition sources); the outlets themselves >= 15 m from roads", basis: "D-025, ASSUMED"}
 notes: >-
   All dimensions ASSUMED (basic engineering). Distance F-1101 intake (25, 30) to the vent area V1
   (centre 190, 124.5): about 190 m, downwind of the intake; O2 vents also >= 15 m (ASSUMED) from
-  roads and ignition sources, N2 vents elevated above platforms (D-011, D-019, D-025).
+  roads and ignition sources, N2 vents elevated above platforms (D-011, D-019, D-025). Spacing
+  criteria as separations above; measured values in DESIGN.md D-030.

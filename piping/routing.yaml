@@ -1,0 +1,31 @@
+# Routing rules and intent for the 3D pipe routes. Schema: `plantcode schema routing`.
+# Skill pipe-routing. Basis in DESIGN.md D-029; every rule ASSUMED at basic engineering.
+rules:
+  tiers:
+    # PR1 (5 / 7 / 9 m): water utilities low, large warm process gas in the middle, oxygen and
+    # cryogenic lines on the top tier at the rack edge, away from everything else (D-026 (2))
+    - {rack: PR1, elevation: 5, fluids: [Cooling water, Cooling water return, Chilled water]}
+    - {rack: PR1, elevation: 7, fluids: [Air, Dry air, Waste nitrogen]}
+    - {rack: PR1, elevation: 9, fluids: [Oxygen, Liquid oxygen, Nitrogen, Liquid nitrogen, Rich liquid]}
+    # PR2 (6 / 8 m over the central road): oxygen top, nitrogen below
+    - {rack: PR2, elevation: 8, fluids: [Oxygen, Liquid oxygen]}
+    - {rack: PR2, elevation: 6, fluids: [Nitrogen, Liquid nitrogen, Waste nitrogen, Air]}
+  battery_limits:
+    # cooling water from and to the cooling water plant west of the plot (ASSUMED, D-029)
+    - {id: CW-plant, lines: ["CW-*", "CWR-*"], rack: PR1, rack_end: start}
+    # GOX and GAN product pipelines: battery limit just beyond the PR1 east end, west of the
+    # east road R5; the customer pipelines continue from there (ASSUMED tie-ins, D-029)
+    - {id: GOX-pipeline, lines: [GOX-4002], point: [185.0, 66.0, 9.2]}
+    - {id: GAN-pipeline, lines: [GAN-4002], point: [185.0, 64.5, 9.2]}
+    # road tanker couplings at the edge of the truck fill bay Z-TRUCK on the north road (the
+    # hose reaches across the bay; D-017, D-026 (4))
+    - {id: LOX-tanker, lines: [LOX-4004], point: [128, 132.4, 1.0]}
+    - {id: LIN-tanker, lines: [LIN-4004], point: [153, 132.4, 1.0]}
+lines:
+  # internals of the stacked double column: E-3103 sits in the C-3102 sump on top of C-3101
+  - {line: GAN-3002, skip: "internal of the double column: HP top vapour rises straight into the condenser E-3103 in the C-3102 sump (D-028)"}
+  - {line: LN-3002, skip: "internal of the double column: condensate from E-3103 runs back down into the C-3101 top (D-028)"}
+  - {line: VNT-3004, skip: "casing breather PSV-3123 sits on the cold box casing roof and discharges there; no process nozzle (zone Z-N2-CASING)"}
+notes: >-
+  Tier allocation, battery limits and the pipe-way elevation (router default 3.5 m) ASSUMED
+  (DESIGN.md D-029). Stress, supports, drainage and operability are not checked by the router.

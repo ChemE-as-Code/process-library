@@ -592,6 +592,40 @@ columns, the GOX and waste N2 silencers in the vent area V1 (D-029).
 Reason: the 3D model derives every shape from the equipment list; a layout review needs real
 envelopes, nozzles where the piping can reach them and maintenance spaces kept free.
 
+## D-029 Racks, tiers, battery limits, vent discharge points and pipe specs (2026-10-21)
+Decision: (1) Rack PR1 widened to 8 m with three tiers (layout/site-plan.yaml; D-026 (2) had 6 m
+and 6 / 8 m): 5 m cooling and chilled water, 7 m air, dry air and waste N2, 9 m (top) oxygen,
+nitrogen, LOX, LIN and rich liquid at the rack edge, away from the water lines. PR2 over the
+central road keeps 6 / 8 m (8 m oxygen and LOX, 6 m nitrogen and LIN) and joins PR1 at x = 143,
+east of the cold box risers (the joint at x = 137 lay right above them). New vent rack PR3
+(3 m wide, 6 / 8 m) from the PR1 east end over the central road to the vent area V1. Routing
+rules in piping/routing.yaml. With 6 m the air / waste N2 tier was 137 % full on the first
+build. (2) Battery limits: cooling water supply and return at the west end of PR1 (CW plant west
+of the plot, ASSUMED); the GOX and GAN product pipelines at [185, 66] / [185, 64.5], 9.2 m, just
+beyond the PR1 east end (customer tie-ins, ASSUMED); the LOX / LIN road tanker couplings at the
+south edge of the truck fill bay Z-TRUCK (y = 132.4, 1 m above grade). (3) Vent discharge
+points (amends D-025): the large vents go to V1 - the GOX blowdown silencer S-4101 and the GOX
+suction vent silencer S-4102 at [186, 124] / [191, 124] (16 m from the north road), the waste N2
+surplus silencer S-3101 10 m south of them - over PR1 and PR3 (piping/special-items.yaml lists
+them, the placement places them). The small vents and relief outlets discharge elevated at their
+item, as the P&IDs draw them: the tank boil-off vents VNT-4001 / VNT-4005 on the tank roofs,
+VNT-3001 at the drain vaporizer, the GOX / GAN BL bleeds VNT-4006 / VNT-4007 at the battery
+limit, PSV-3114 / PSV-3116 at the cold box, the TSA regeneration vent RG-2003 / S-2101 at the
+adsorbers, the evaporative cooler top vent WN-1002 and the MAC blow-off silencer S-1101 beside
+B1. All are downwind of the intake F-1101; the nearest O2 vent zone (VNT-3001 at V-3101) is
+90.7 m from it (layout-separation, >= 50 m ASSUMED). (4) Pipe classes and insulation in
+piping/pipe-specs.yaml: material by service under each PN class (D-009), colours for the model;
+insulation `cold box (perlite)` 0 mm on the pipe (the perlite fill insulates), `vacuum
+jacketed` 50 / 65 / 80 mm radial build-up of the jacket by DN, `cold (PUR)` 80 / 100 / 120 / 150 mm
+by DN (all ASSUMED). (5) Skipped lines: GAN-3002 and LN-3002 (internals of the double column,
+D-028), VNT-3004 (the casing breather sits on the casing roof, no process nozzle). The pipe-way
+for local runs stays at the router's 3.5 m (ASSUMED).
+Reason: the first build put 13 large lines on one 6 m tier and the GOX and waste N2 vents 1 m
+above their valves next to the compressors and the cold box; tier allocation by service keeps
+oxygen apart from the water lines and the big warm gas lines (D-026 (2)). Open: stress and
+supports (expansion of the cold lines, the DN900 waste N2 header), the CW plant location, the
+customer tie-in points, a vent dispersion study (D-031).
+
 ## D-030 Cold box and fire wall structures, MAC house walls, access, separations (2026-10-21)
 Decision: (1) Cold box CB-1 (layout/structures.yaml): steel frame 15 x 9 m (bays 6 / 5 / 4 m by
 9 m) with a casing all round, 50.5 m high (C-3101 + C-3102 stacked, D-026 (3)); west bay the
