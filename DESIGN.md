@@ -88,6 +88,8 @@ Mass closure: 98,270 kg/h in, 98,100 kg/h products + waste + ~400 kg/h water/CO2
 (within 0.2 %). O2 balance: 15,922 Nm3/h O2 in air, 14,945 Nm3/h in GOX + LOX (94 %), 977 Nm3/h
 in waste. (Liquid rates revised to 470 kg/h each with the expander recalculation below; the
 difference of 260 kg/h goes to waste N2, inside the accuracy of this balance.)
+This table is the concept seed. The closed basic-stage balance (streams 4, 5, 12, 12c and the
+regeneration gas revised, cold-box internal streams added) is in process/flowsheet.yaml (D-027).
 
 Refrigeration (ASSUMED, revised at S2 after review finding 5): expander KT-3101 on 14,870 kg/h
 (4.13 kg/s), 7.8 -> 1.35 bara. For the -178 C exhaust the LP column needs (just above the air dew
@@ -529,3 +531,26 @@ coupling and LOX drains (concrete pad), drains not to sewers (EIGA Doc 127 pract
 ASSUMED). Placed: T-4101 edge ~26 m from road R2, ~24 m from R3; nearest building B1 > 60 m.
 Reason: noise and maintenance for the MAC, O2 fire separation, rack routing in process order with
 one crossing of the central road, and LOX spill / combustible-contact hazards near the tanks.
+
+## D-027 Basic-stage stream balance closure (2026-10-21)
+Decision: close the component balances of PUR (V-2101A/B) and of the cold box (E-3101, C-3101,
+C-3102) in process/flowsheet.yaml with values derived from the section 3 table, all ASSUMED:
+(1) Air water content H2O 0.25 mol% = saturation at 12 C / 5.7 bara (stream 3 "saturated"); the
+flowsheet keeps the air mass constant through K-1101 and C-1101 (no condensate stream), which
+means ~59 % RH at 30 C ambient. (2) V-2101A/B remove 153 kg/h H2O + 60 kg/h CO2 = 213 kg/h (the
+table said ~270 / ~400): dry air S4 98,060 kg/h (was 98,000), N2 78.11, O2 20.96, Ar 0.93 %;
+regeneration gas out S12D 16,560 kg/h with that H2O and CO2 (cycle average; N2O and hydrocarbons
+neglected). (3) HP column feed S5 = S4 - S5B = 83,190 kg/h (the table had 83,400, which left out
+the TSA removal). (4) Cold streams S14 / S15 / S16 equal their warm products (E-3101 only warms
+them). (5) C-3101 bottoms S13 = S5 - S14 - S11 = 70,210 kg/h, O2 24.99 %: this flowsheet has no
+separate LN reflux stream, so S13 lumps the rich liquid (~35 % O2 in practice) and the LN reflux.
+(6) Waste N2 by difference S17 = S4 - S7 - S9 - S10 - S11 = 63,750 kg/h (was 63,530), N2 96.65,
+O2 2.09, Ar 1.26 % (table: 96.7 / 2.1 / 1.3); the extra 220 kg/h goes to the vent S12C
+15,950 kg/h, the regeneration and evaporative-cooler flows stay as sized.
+Reason: the basic gate needs evaluable component balances; the concept table was consistent only
+to ~0.3 % (stream 5 + 6 ignored the TSA removal, the 260 kg/h liquid revision stayed a residual).
+Deriving the open streams by balance from the stated products keeps every specification (GOX,
+GAN, LOX, LIN rates and purities) unchanged. O2 recovery on this basis (O2 in GOX + LOX / O2 in
+S4) is 93.4 %, against the 94 % of D-018: inside the accuracy of the concept balance, and D-018's
+MAC margin covers 90 %.
+Open: site humidity (D-005); a column simulation in detail engineering replaces (5) and (6).
