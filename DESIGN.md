@@ -827,3 +827,35 @@ intermediate steel (D-034), paving and piles.
 Reason: the take-off is a deliverable of the 3D model; pricing it needs a cost engineer's sources.
 Open: rates and factors from a cost source, then gate requirements `rates` and
 `estimate-current`; allowances for what the take-off does not count.
+
+## D-036 Substation and control building, motor list, junction boxes and cable trays (2026-10-22)
+Decision (electrical/electrical-list.yaml, electrical/tray-rules.yaml, skill
+electrical-cabling; all ASSUMED until the electrical engineer's load list and single-line
+diagram): (1) A substation and control building B2 (18 x 10 x 5 m, layout/building.yaml) at
+the upwind west end of PR1, north of the MAC house: the 8 MW / 6.6 kV MAC motor is fed from
+close by, the cables reach the plant on PR1, and the occupied control room is ~120 m from the
+nearest O2 vent and outside every O2-enriched and inert zone (D-025, D-031). It holds the 6.6 kV
+switchgear SWG-1, the LV MCC-1 and the control room CR-1; transformers TR-1 33 / 6.6 kV
+16 MVA and TR-2 6.6 / 0.4 kV 2.5 MVA stand outdoors beside it (not modelled). (2) Motors: MV
+above 200 kW (K-1101 8000 kW and K-4101 2300 kW from the equipment list, K-4102 315 kW), LV
+pumps estimated from their duties (P-1101A/B 45, P-1102A/B 18.5, P-4101A/B 15, P-4102A/B
+11 kW), each `assumed` with its basis; K-3101 has no motor (braked by the expander on its
+shaft). The regeneration heater E-2101 (1 MW) is a 690 V feeder from MCC-1 to its terminal box
+on the east face. (3) Nine junction boxes pinned from the build's proposals after review, two
+moved: JB-A1-1 out of the MAC house to its north side, JB-A2-1 out of V-2101B to the west end of
+the adsorbers, JB-A3-2 off the PR2 junction; the casing O2 analyser AIA-3122 is placed at the
+breather on the cold box roof. (4) Trays: ladder trays up to 1200 mm (the MV cables of the MAC
+and GOX compressor share the PR1 power tray over the first bays), fill 30 % power / 40 %
+instrument, 0.3 m power-instrument separation, trays 2 m above each rack's top pipe tier on
+steel of their own (PR1 11 m, PR2 / PR3 10.5 m), power and instrument lanes 0.3 of the rack
+width either side of its centreline. Where the PR2 instrument tray passes 0.27 m under the PR1
+power tray at the junction a steel cover plate separates them (accepted in checks.yaml).
+Result: 131 cables (12 power, 119 instrument and multipair), 46 tray runs, ~987 m of tray and
+~6,500 m of cable (electrical/cable-schedule.csv|md, `plantcode layout cables --write`); gate
+`electrical` (detail) passes. The MV cable to K-1101 drops from PR1 into the MAC house: its wall
+or roof entry is detailed with the building (not checked by the model).
+Reason: the layout reserves the tray space and the substation location now; cable sizes are
+catalogue placeholders for tray sizing only.
+Open: load list and single-line diagram, cable sizing, the transformer yard, a cable trench
+or tray entry into B1, hazardous-area and oxygen-zone cable glands (none needed in the ASU's
+zones as screened, D-031).
