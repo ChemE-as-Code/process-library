@@ -859,3 +859,25 @@ catalogue placeholders for tray sizing only.
 Open: load list and single-line diagram, cable sizing, the transformer yard, a cable trench
 or tray entry into B1, hazardous-area and oxygen-zone cable glands (none needed in the ASU's
 zones as screened, D-031).
+
+## D-037 Ventilation of the MAC house and the substation building (2026-10-22)
+Decision (layout/hvac.yaml, skill hvac-ducts; every number ASSUMED until the HVAC engineer's
+heat load calculation): (1) MAC house B1: 4 air changes, 44,928 m3/h, from ~150 kW of heat to
+the room air (gearbox, casings, warm piping; the 8 MW motor air-water cooled) at a 10 K rise;
+extract 90 % (slight overpressure against dust). Unit AHU-1 (50,000 m3/h, 12 x 3 x 3 m) along
+the south wall between the roller door S1 and the personnel door S2, south of the K-1101 base;
+outdoor air through louvre LV1 at the south end of the east wall, exhaust through LV2 in the
+south wall above the unit (louvre face velocity 2.5 / 1.8 m/s, at most 2.5); supply mains at
+9.3 m under the crane runway, extract mains below them. Ducts run along the hall in two supply
+and two extract rows; the overhead crane's hook path across them is a lifting-plan item (the
+model only lowers the ceiling). (2) Substation and control building B2: 10 air changes,
+9,000 m3/h, 80 % extracted (overpressure against the plant air), for ~30 kW of switchgear, MCC,
+drive and cabinet losses and the occupied control room; unit AHU-2 (10,000 m3/h) in the
+south-east corner, intake at the north end of the east wall, exhaust in the south wall above the
+unit, 8 m apart. The control room's own air conditioning, the gas-tight intake (the control room
+is outside every O2 and inert zone, D-036) and fire dampers are detail engineering. Result: 2
+units, 43 terminals, 52 duct runs, 246 m of duct, 736 m2 of duct sheet; gate `hvac` passes.
+Reason: the gate hvac needs every clad building ventilated, and the layout must reserve the
+duct, unit and louvre space now.
+Open: heat load calculation, cooling of the control and switchgear rooms, recirculation,
+dampers, fans and noise.
