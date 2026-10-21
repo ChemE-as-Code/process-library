@@ -554,3 +554,83 @@ GAN, LOX, LIN rates and purities) unchanged. O2 recovery on this basis (O2 in GO
 S4) is 93.4 %, against the 94 % of D-018: inside the accuracy of the concept balance, and D-018's
 MAC margin covers 90 %.
 Open: site humidity (D-005); a column simulation in detail engineering replaces (5) and (6).
+
+## D-028 Equipment dimensions, placement and nozzle positions for the 3D layout (2026-10-21)
+Decision: (1) Sizes move from the placement into `dimensions:` of equipment/equipment-list.yaml
+(overall sizes; heads, skirts, legs, saddles, base plates), all ASSUMED at basic engineering
+(vendor data in detail engineering): columns C-1101 4.0 x 25 m and C-1102 4.5 x 22 m on skirts;
+C-3101 4.2 x 20 m on its skirt and C-3102 4.2 x 30 m standing on it (stacked double column);
+V-2101A/B horizontal 4.5 x 18 m on 2 m saddles (bottom nozzles clear of grade); exchangers with
+their shell heights on saddles; E-3101 a bank of four brazed cores 4.8 x 2.4 x 8 m; E-3102
+two cores 3.0 x 1.5 x 4.5 m (the DN800 waste N2 headers need the length); pumps, compressors,
+vaporizers as boxes. (2) Storage tanks sized to the capacities of D-017 (the review measured
+the old envelopes at ~500 m3 for 275 m3 LOX and ~636 m3 for 440 m3 LIN): T-4101 inner tank 6.4 m
+x 8.6 m shell = 277 m3 gross, outer tank 7.4 m (0.5 m perlite annulus), 10.4 m overall with
+bottom insulation, top space and cone roof; T-4102 inner 7.2 m x 10.8 m = 440 m3, outer 8.2 m,
+12.6 m overall. The `dimensions` are the outer tank (what the layout needs); the capacity is the
+inner tank, stated in the notes. (3) E-3103, the bath condenser-reboiler, is an internal of the
+C-3102 sump with no placement of its own: its `layout-not-placed` finding is accepted in
+checks/checks.yaml, and its internal connections GAN-3002 / LN-3002 are skipped in
+piping/routing.yaml. Placing it inside C-3102 would only draw a clash with its own column.
+(4) Nozzle overrides where the P&ID side is not the real arrangement (layout/
+equipment-placement.yaml `nozzles:`): V-2101A/B feed in and regeneration gas out at the bottom,
+dry air out and regeneration gas in on top (the P&ID draws the horizontal adsorbers upright);
+K-1101 interstage nozzles on the north side towards the intercoolers and the discharge on top
+(drawn below the machine and at the motor end); K-4101 / K-4102 interstage and discharge on the
+north side (not at the motor end, which must stay free for motor removal); E-1103, E-4102,
+E-4103 process nozzles on the shell top (drawn at the ends, which would block the bundle pull);
+E-3101 warm-end headers spread in two rows over the top and cold-end headers low on the column
+side, E-3102 inlets low on its south side and outlets on top (the P&ID draws them 0.4 to 0.8 m
+apart, closer than their diameters); the compander nozzles on top and to the sides; tank bottom
+outlets towards the pumps; C-3101/C-3102 nozzles turned towards E-3101/E-3102 and LOX north to
+the rack. Pumps turned with their suction towards the vessel they draw from.
+(5) Moves: the cold box group to x 126-141 (D-030), the compander K-3101/KT-3101 against the
+cold box south wall with E-3104 south of it, K-4101 into its fire wall at x 161.5-171.5 with
+E-4101 north and E-4102 north-east of it, E-1102 1 m east and E-1103 north-east of K-1101 (bundle
+pulls clear of E-1101 and the K-1101 motor), C-1102 1 m south and P-1102A/B clear of the PR1
+columns, the GOX and waste N2 silencers in the vent area V1 (D-029).
+Reason: the 3D model derives every shape from the equipment list; a layout review needs real
+envelopes, nozzles where the piping can reach them and maintenance spaces kept free.
+
+## D-030 Cold box and fire wall structures, MAC house walls, access, separations (2026-10-21)
+Decision: (1) Cold box CB-1 (layout/structures.yaml): steel frame 15 x 9 m (bays 6 / 5 / 4 m by
+9 m) with a casing all round, 50.5 m high (C-3101 + C-3102 stacked, D-026 (3)); west bay the
+column stack, middle bay E-3101 on the base slab, east bay E-3102 on platform E20 (20 m, near the
+HP column top); access platforms along the north side at 10, 20, 30 and 40 m and a roof walkway
+RF at 50.5 m; a stair from grade to P10 on the east side, caged ladders offset between the
+platforms and a second way down from P10 by ladder LD0 at the west end (inert vents near the
+roof, D-011). East and south faces braced; the west and north faces carry the pipe penetrations
+and rely on the stiffened casing panels (ASSUMED, structural design to confirm). The columns
+have no platforms of their own (`access: {platforms: []}`): inside the perlite-filled casing,
+their valves and instruments are brought out to the casing platforms. Section sizes are
+plantcode's defaults by span (ASSUMED).
+(2) Fire wall FW-4101: reinforced concrete 0.3 m, 7 m high, on the west, south and north sides
+of K-4101, open to the east, away from the cold box, the rack and road R1 (EIGA Doc 27 practice
+for oxygen compressors, ASSUMED; D-012).
+(3) MAC house B1 clad all round: roller door W1 (west, E-1101 bundle pull), roller door S1
+(south, truck under the crane), personnel doors S2 and E3 on opposite sides (two ways out),
+pipe openings W2 (suction duct from F-1101), E1 / E2 (blow-off to S-1101, discharge to C-1101)
+and a louvred pipe band N1 for the cooling water from PR1.
+(4) Platforms of C-1101 at 6.3, 11.3, 18.8 and 23.9 m and of C-1102 at 4.7, 11.3, 18.5 and
+21.0 m above their bottoms, all round, ladders on the west side: reviewed from the build's
+proposals (process inlets, the mid-height tappings, the top outlets with PSV-1109); the sump
+outlets are reached from grade (ASSUMED access philosophy: operating valves, manways and field
+instruments above 2.5 m on platforms).
+(5) Separations (layout/site-plan.yaml, measured by plantcode validate and `plantcode show
+--layout`): cold box CB-1 to the MAC house B1 54.0 m >= 53 m (toppling radius 1 x height, 50.5 m
+casing + roof walkway, D-026 (3)) - kept by placing the cold box at x 126-141. CB-1 to K-4101
+21.4 m: the review's 53 m toppling radius is NOT applied to K-4101. The cold box steel and casing
+are designed for wind and seismic loads to code (structural design, detail engineering), so
+toppling is not a design case; the 1 x height distance is kept from the occupied building B1
+only, as D-026 (3) states. K-4101 is separated from the cold box by its fire wall FW-4101 and by
+at least 15 m (oxygen compressor fire separation, ASSUMED). Keeping 53 m would put K-4101 east of
+the east road. LOX tank T-4101 (D-026 (4)): to B1 77.9 m and to K-4101 > 15 m (validate measures
+both), roads R3 24.3 m and R2 26.8 m (>= 8 m), site boundary 34.3 m (>= 8 m).
+(6) Maintenance and laydown (layout/zones.yaml): crane pad Z-CRANE-CB1 west of the cold box (19 x
+19 m, nothing between 0 and 8 m) for the columns, casing panels and the compander rotor;
+Z-LAYDOWN-B1 in front of roller door S1; Z-PULL-E1101 outside W1; Z-SIEVE between V-2101A and
+V-2101B for the adsorbent change-out; Z-TRUCK, the LOX/LIN truck fill bay (D-031).
+Reason: the reviews asked for the cold box as a structure (~50 m), for its toppling distance and
+for access to every elevated valve; a cold box column is never reached from platforms on its
+shell. Open: structural design, a site-specific toppling / dropped-object study, the access
+philosophy with the operator.

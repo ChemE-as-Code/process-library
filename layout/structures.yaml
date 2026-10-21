@@ -1,0 +1,46 @@
+# Steel structures and walls. Schema: `plantcode schema structures`. Coordinates m, site frame;
+# levels, extents, ladders in the frame's own coordinates from its origin (south-west corner).
+# All sizes ASSUMED at basic engineering (structural design in detail engineering); member
+# sections are plantcode's defaults by span. Basis in DESIGN.md D-026 and D-030.
+structures:
+  - id: CB-1
+    title: "Cold box: steel frame with casing around C-3101/C-3102, E-3101 and E-3102"
+    origin: [126, 38]
+    spans_x: [6, 5, 4]          # west bay: column stack; middle bay: E-3101; east bay: E-3102, ladders
+    spans_y: [9]
+    levels:
+      - {id: P10, title: "Access platform 10 m (north side)", elevation: 10, kind: platform, extent: [0, 7.2, 15, 9]}
+      - {id: E20, title: "E-3102 support platform", elevation: 20, kind: platform, extent: [11, 2, 15, 7.2]}
+      - {id: P20, title: "Access platform 20 m (north side, joins E20)", elevation: 20, kind: platform, extent: [0, 7.2, 15, 9]}
+      - {id: P30, title: "Access platform 30 m (north side)", elevation: 30, kind: platform, extent: [0, 7.2, 15, 9]}
+      - {id: P40, title: "Access platform 40 m (north side)", elevation: 40, kind: platform, extent: [0, 7.2, 15, 9]}
+      - {id: RF, title: "Roof walkway on the casing (D-026: ~3 m roof platform)", elevation: 50.5, kind: platform, extent: [0, 7.2, 15, 9]}
+    # east and south faces braced; west and north faces carry the pipe penetrations and rely on
+    # the stiffened casing panels (ASSUMED, structural design to confirm)
+    bracing: {east: x, south: x, west: none, north: none}
+    stairs:
+      - {id: ST1, from: grade, to: P10, side: east, offset: 0.5}
+    ladders:
+      - {id: LD0, from: grade, to: P10, at: [0.5, 8.6], facing: north}
+      - {id: LD1, from: P10, to: P20, at: [14.5, 8.6], facing: north}
+      - {id: LD2, from: P20, to: P30, at: [13.5, 8.6], facing: north}
+      - {id: LD3, from: P30, to: P40, at: [14.5, 8.6], facing: north}
+      - {id: LD4, from: P40, to: RF, at: [13.5, 8.6], facing: north}
+    enclosure: {walls: all, height: 50.5, material: casing}
+    notes: >-
+      Casing 15 x 9 m, 50.5 m high (C-3101 20 m + C-3102 30 m stacked, D-026), perlite filled and
+      N2 purged (PV-3113, breather PSV-3123 / VNT-3004). Stair to the first platform, caged
+      ladders above (offset every 10 m), a second way down from P10 by ladder LD0 at the west
+      end (O2-deficient vents near the roof, D-011). Toppling radius 53 m kept clear of B1
+      (site-plan separations).
+  - id: FW-4101
+    title: "GOX compressor fire / blast wall around K-4101, open to the east"
+    origin: [160.5, 24]
+    spans_x: [12]
+    spans_y: [10]
+    levels: []
+    enclosure: {walls: [west, south, north], height: 7, material: fire_wall, thickness: 0.3}
+    notes: >-
+      Reinforced concrete wall 0.3 m, 7 m high (K-4101 5 m), on three sides; the open east side
+      faces away from the cold box, the rack and the road R1 (EIGA Doc 27 practice for oxygen
+      compressors, ASSUMED; D-012, D-026).

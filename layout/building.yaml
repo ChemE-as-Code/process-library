@@ -1,5 +1,5 @@
 # Buildings. Schema: `plantcode schema building`. Coordinates m, x east, y north, origin SW site corner.
-# All dimensions ASSUMED at basic engineering (vendor data in detail engineering); basis in DESIGN.md D-026.
+# All dimensions ASSUMED at basic engineering (vendor data in detail engineering); basis in DESIGN.md D-026, D-030.
 buildings:
   - id: B1
     title: "MAC compressor house (K-1101 with intercoolers E-1101/E-1102 and aftercooler E-1103)"
@@ -12,7 +12,21 @@ buildings:
     frame:
       grid_x: [0, 6, 12, 18, 24, 30, 36]
       grid_y: [0, 13, 26]
+    walls: all
+    wall_material: cladding
+    # offset: from the left end of the side seen from outside (west side: from its north end,
+    # south: from the west end, east: from the south end, north: from the east end)
+    openings:
+      - {id: W1, side: west, offset: 4, width: 4, height: 5, kind: roller_door}        # E-1101 bundle pull (y 42)
+      - {id: W2, side: west, offset: 16.5, width: 3, height: 3.5, sill: 1.0, kind: opening}  # AIR-1001 suction duct from F-1101
+      - {id: S1, side: south, offset: 8, width: 6, height: 7, kind: roller_door}       # maintenance access, truck under the crane
+      - {id: S2, side: south, offset: 28, width: 1.2, height: 2.2, kind: door}         # personnel door / escape
+      - {id: E1, side: east, offset: 6.5, width: 2, height: 2, sill: 3.0, kind: opening}    # AIR-1003 to S-1101
+      - {id: E2, side: east, offset: 12.5, width: 3, height: 3, sill: 0.5, kind: opening}   # AIR-1002 to C-1101
+      - {id: E3, side: east, offset: 20, width: 1.2, height: 2.2, kind: door}          # personnel door / escape
+      - {id: N1, side: north, offset: 6, width: 26, height: 2.5, sill: 5.5, kind: louvre}  # pipe band: CW/CWR from the rack PR1
 notes: >-
   Only the MAC train is housed (noise ~85 dB(A) at 1 m, weather protection, crane for rotor and
-  bundle pulls). The GOX compressor K-4101 stays in the open behind its fire wall so that an O2
-  fire vents to atmosphere and nobody works in an enclosed room around it (D-012, D-026).
+  bundle pulls). The GOX compressor K-4101 stays in the open behind its fire wall FW-4101 (layout/structures.yaml)
+  so that an O2 fire vents to atmosphere and nobody works in an enclosed room around it (D-012, D-026).
+  Two personnel doors on opposite sides (S2, E3) give two ways out.
