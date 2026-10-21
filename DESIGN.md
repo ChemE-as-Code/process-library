@@ -690,3 +690,30 @@ road >= 10 m) and to keep walkways and escape routes out of them. Open: an oxyge
 study (EIGA guidance on vent locations, prevailing wind) by a competent person replaces or
 confirms every zone before detail engineering; until then the zones stay ASSUMED and no equipment
 selection rests on them.
+
+## D-032 Layout changes after the independent layout review (2026-10-21)
+Decision (reviews/2026-10-21-layout.md): (#1) the relief valves PSV-3114 and PSV-3116 stand on
+the cold box roof RF (placed special items): VNT-3002 / VNT-3003 rise inside the casing to them
+and discharge 1 m above the roof; their zones take the valves as sources. C-3101 N7 (PSV-3116
+inlet) leaves the column on the north side (C-3102 stands on the HP column's top head). (#2)
+Lines passing the cold box casing, the fire wall or the MAC house no longer go through their
+walls (plantcode routes around enclosures a line does not start or end in): CW-3001 / CWR-3001
+reach E-3104 round the cold box. (#3) The casing is 53 m high (C-3102 top 50 m plus its top
+nozzle piping inside), roof walkway RF at 53 m; the toppling distance CB-1 to B1 stays 53 m (the
+casing roof), measured 54.0 m. (#4) The TSA regeneration / depressurization silencer S-2101 is
+placed west of the adsorbers with its outlet 6 m up; RG-2003 is routed to it and Z-N2-VENTS takes
+S-2101 as its source. (#6) The GOX / GAN battery limits move to x = 176 beside PR1, 11 m from the
+east road, with a separation of the O2 vent zones from R5 (>= 3 m). (#7) Lines reach their rack
+lane straight from the passing elevation, so LOX-3001 now runs on its oxygen tier (PR1 9 m, PR2
+8.5 m). (#10) Separations F-1101 to R4 >= 10 m (measured 10.0 m) and to R1 >= 15 m (17.0 m):
+the intake filter house draws at 4 to 8 m above the road (ASSUMED). (#11) Second caged ladders
+LD5..LD8 at the west end of CB-1 give every platform two ways down; escape zone Z-ESC-CB1 from
+the stair ST1 south to road R1. (#14) E-2101 gas inlet 1 m up on the west side. (#17) PR2 and
+PR3 tiers at 6.5 / 8.5 m (beam underside above the 6 m road headroom).
+Open, recorded for the next review: #5 (the C-1102 top platform lies in the continuous WN-1002
+vent zone: access with the vent isolated or an O2 monitor until the vent stack is extended in
+detail engineering), #8 (GOX compressor barrier penetrations and E-4101 outside it, sealed wall
+sleeves to be designed with the vendor), #9 (B1 wall penetrations outside the declared openings,
+detailed with the building), #12, #13, #15, #16.
+Reason: the review's high findings put cold lines and relief outlets where they cannot be, and
+the medium ones are cheap to fix in the layout files.
