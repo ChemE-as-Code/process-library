@@ -4,6 +4,7 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-10-21 | pid/P-03.xml, checks/checks.yaml | PIC-3110 and PIC-3113 signal lines rerouted (off RG-2001, UN-3001 and three labels); E-3102 bottom nozzles N1/N3 drawn swapped so LN-3001 and RL-3001 no longer cross; AIA-3122 bubble and VNT-3004 tapping 6 mm right; PV-3110A, AIR-3005, GAN-3002 labels moved; 3 unavoidable crossings (GOX/LOX, UIC-3120, LIC-3101) accepted with reasons; drawing only | gate drawing-clean: 14 findings on P-03 |
 | 2026-10-21 | pid/P-01.xml | Labels moved: AIR-1006 number/DN below the TIA-1110 signal line, PSV-1109 tag left of the valve (off AIR-1004), CWR-1001 number/DN above its pipe, CWR-1002/1003 number/DN 1.5 mm closer to their lines; drawing only | gate drawing-clean: 5 findings on P-01 |
 | 2026-10-21 | pid/P-02.xml | Labels moved: XV-2102A/B tags to the outer side of their actuators (off AIR-2001), off-page text "from P-03 WN-3002 (RG-2001)" below RG-2001 (off FIC-2105 signal line and FV-2105); drawing only | gate drawing-clean: 4 findings on P-02 |
 | 2026-10-21 | process/flowsheet.yaml, process/BFD.xml, process/PFD.xml, DESIGN.md D-027 | Balances closed (D-027, ASSUMED): air H2O 0.25 mol%; S4 98,060 kg/h; S12D 16,560 kg/h with H2O/CO2; S5 83,190; S13-S16 flows and compositions; S17 63,750 and vent S12C 15,950 by difference; propagate and props refilled, sheets rebuilt | gate process-basic: PUR, V2101, E3101, C3101, C3102 balances were not evaluable |
