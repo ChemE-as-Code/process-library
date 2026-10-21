@@ -1,49 +1,191 @@
 # Equipment placement. Schema: `plantcode schema placement`. Position = footprint centre, bottom elevation, m.
-# All sizes ASSUMED at basic engineering (vendor data in detail engineering); basis in DESIGN.md D-025.
+# Shapes and sizes come from the equipment list (type, dimensions). All positions ASSUMED at basic
+# engineering; basis in DESIGN.md D-025, D-026, D-028, D-029.
+# Nozzle overrides (nozzles:) where the P&ID side does not give the real arrangement (D-028).
 equipment:
   # ---- A1 MAC and precooling: intake at the upwind (south-west) corner
-  - {tag: F-1101, position: [25, 30, 0], shape: box, size: [6, 4, 8], notes: "MAC intake filter house, upwind, ~190 m from the vent area V1. ASSUMED size."}
-  - {tag: K-1101, position: [45, 30, 0], building: B1, level: L0, shape: box, size: [12, 6, 5], notes: "MAC train with gearbox and motor. ASSUMED."}
-  - {tag: E-1101, position: [42, 42, 0], building: B1, level: L0, shape: horizontal_cylinder, size: {diameter: 1.6, length: 8}, notes: "Intercooler 1, bundle pull to the west. ASSUMED."}
-  - {tag: E-1102, position: [54, 42, 0], building: B1, level: L0, shape: horizontal_cylinder, size: {diameter: 1.6, length: 8}, notes: "Intercooler 2. ASSUMED."}
-  - {tag: E-1103, position: [64, 30, 0], building: B1, level: L0, shape: horizontal_cylinder, size: {diameter: 1.4, length: 7}, notes: "Aftercooler. ASSUMED."}
-  - {tag: C-1101, position: [72, 52, 0], shape: vertical_cylinder, size: {diameter: 4, height: 25}, notes: "DCAC. ASSUMED."}
-  - {tag: C-1102, position: [55, 62, 0], shape: vertical_cylinder, size: {diameter: 4.5, height: 22}, notes: "Evaporative cooler. ASSUMED."}
-  - {tag: P-1101A, position: [66, 57, 0], shape: box, size: [2, 1, 1.2], notes: "ASSUMED."}
-  - {tag: P-1101B, position: [66, 60, 0], shape: box, size: [2, 1, 1.2], notes: "ASSUMED."}
-  - {tag: P-1102A, position: [48, 60, 0], shape: box, size: [2, 1, 1.2], notes: "ASSUMED."}
-  - {tag: P-1102B, position: [48, 63, 0], shape: box, size: [2, 1, 1.2], notes: "ASSUMED."}
-  # ---- A2 purification
-  - {tag: V-2101A, position: [95, 30, 0], shape: horizontal_cylinder, size: {diameter: 4.5, length: 18}, notes: "Horizontal radial/axial adsorber. ASSUMED."}
-  - {tag: V-2101B, position: [95, 42, 0], shape: horizontal_cylinder, size: {diameter: 4.5, length: 18}, notes: "ASSUMED."}
-  - {tag: E-2101, position: [92, 55, 0], shape: box, size: [3, 2, 3], notes: "Electric regeneration heater. ASSUMED."}
-  - {tag: F-2101, position: [102, 62, 0], shape: vertical_cylinder, size: {diameter: 1.5, height: 4}, notes: "Dust filter. ASSUMED."}
-  # ---- A3 cold box (E-3103 is inside the C-3102 sump, so not placed separately)
-  - {tag: C-3101, position: [125, 42, 0], shape: vertical_cylinder, size: {diameter: 4.2, height: 20}, notes: "HP column, inside the cold box. ASSUMED."}
-  - {tag: C-3102, position: [125, 42, 20], shape: vertical_cylinder, size: {diameter: 4.2, height: 30}, notes: "LP column stacked on the HP column, E-3103 in its sump. ASSUMED."}
-  - {tag: E-3101, position: [117, 54, 0], shape: box, size: [3, 3, 12], notes: "BAHX core bank in the cold box. ASSUMED."}
-  - {tag: E-3102, position: [133, 54, 0], shape: box, size: [1.5, 1.5, 4], notes: "Subcooler. ASSUMED."}
-  - {tag: K-3101, position: [115, 26, 0], shape: box, size: [4, 3, 3], notes: "Booster end of the compander skid. ASSUMED."}
-  - {tag: KT-3101, position: [120, 26, 0], shape: box, size: [3, 3, 3], notes: "Expander end, same skid. ASSUMED."}
-  - {tag: E-3104, position: [115, 33, 0], shape: horizontal_cylinder, size: {diameter: 1, length: 5}, notes: "Booster aftercooler. ASSUMED."}
-  - {tag: V-3101, position: [135, 28, 0], shape: vertical_cylinder, size: {diameter: 2, height: 4}, notes: "Drain vaporizer, outside the cold box. ASSUMED."}
-  # ---- A4 product compressors: GOX compressor with its own fire wall (oxygen, D-012)
-  - {tag: K-4101, position: [155, 30, 0], shape: box, size: [10, 6, 5], notes: "GOX compressor behind a fire/blast wall (EIGA Doc 27 practice, ASSUMED). ASSUMED."}
-  - {tag: E-4101, position: [155, 39, 0], shape: horizontal_cylinder, size: {diameter: 1.4, length: 6}, notes: "Intercooler package. ASSUMED."}
-  - {tag: E-4102, position: [170, 30, 0], shape: horizontal_cylinder, size: {diameter: 1.2, length: 5}, notes: "GOX aftercooler. ASSUMED."}
-  - {tag: K-4102, position: [155, 56, 0], shape: box, size: [8, 5, 4], notes: "GAN compressor. ASSUMED."}
-  - {tag: E-4103, position: [168, 56, 0], shape: horizontal_cylinder, size: {diameter: 1, length: 4}, notes: "GAN aftercooler. ASSUMED."}
+  - {tag: F-1101, position: [25, 30, 0], notes: "MAC intake filter house, upwind, ~190 m from the vent area V1."}
+  - tag: K-1101
+    position: [45, 30, 0]
+    mount: {building: B1, level: L0}
+    notes: "MAC train with gearbox and motor. Interstage nozzles on the north side towards the intercoolers (the P&ID draws them below the machine)."
+    nozzles:
+      - {id: N2, face: north, offset: [-4, 0.5]}
+      - {id: N3, face: north, offset: [-1, 0.5]}
+      - {id: N4, face: north, offset: [2, 0.5]}
+      - {id: N5, face: north, offset: [5, 0.5]}
+      - {id: N6, face: top, offset: [4.5, 0]}   # discharge on top, not at the motor end (P&ID: right side)
+  - {tag: E-1101, position: [42, 42, 0], mount: {building: B1, level: L0}, notes: "Intercooler 1, bundle pull to the west (roller door W1)."}
+  - {tag: E-1102, position: [57, 42, 0], mount: {building: B1, level: L0}, notes: "Intercooler 2, bundle pull to the west under the crane, clear of E-1101."}
+  - tag: E-1103
+    position: [64, 36, 0]
+    mount: {building: B1, level: L0}
+    notes: "Aftercooler north-east of K-1101: bundle pull to the west under the crane, clear of the K-1101 motor removal space. Air nozzles on the shell top (the P&ID draws them at the ends, which would block the bundle pull)."
+    nozzles:
+      - {id: N1, along: 1.8, angle_deg: 0}
+      - {id: N2, along: 6.2, angle_deg: 0}
+  - {tag: S-1101, position: [76, 30, 0], size: {diameter: 1.6, height: 6}, notes: "MAC blow-off silencer outside the east wall of B1, outlet elevated. ASSUMED size."}
+  - tag: C-1101
+    position: [72, 52, 0]
+    notes: "DCAC."
+    access:
+      ladder_side: 180
+      notes: "Platforms reviewed from the build's proposals (D-030): the air inlet N1, the CW inlet N3 with the level and temperature tappings, the chilled water inlet N4, the top with the air outlets N2/N6 and PSV-1109. The sump outlet N5 is reached from grade."
+      platforms:
+        - {elevation: 6.3}
+        - {elevation: 11.3}
+        - {elevation: 18.8}
+        - {elevation: 23.9}
+  - tag: C-1102
+    position: [55, 61, 0]
+    notes: "Evaporative cooler, clear of the 8 m wide rack PR1."
+    access:
+      ladder_side: 180
+      notes: "Platforms reviewed from the build's proposals (D-030): the waste N2 inlet N1, the mid-height tapping, the water inlet N3, the top vent N2. The sump outlet N4 is reached from grade."
+      platforms:
+        - {elevation: 4.7}
+        - {elevation: 11.3}
+        - {elevation: 18.5}
+        - {elevation: 21.0}
+  - {tag: P-1101A, position: [66, 57, 0], notes: "DCAC CW pumps beside C-1101."}
+  - {tag: P-1101B, position: [66, 60, 0]}
+  - {tag: P-1102A, position: [48, 59.3, 0], rotation_deg: 180, notes: "Chilled water pumps, suction towards the C-1102 sump, access space clear of the PR1 columns."}
+  - {tag: P-1102B, position: [48, 62, 0], rotation_deg: 180}
+  # ---- A2 purification: horizontal adsorbers, flow from the bottom up through the bed
+  - tag: V-2101A
+    position: [95, 30, 0]
+    notes: "Horizontal adsorber. Feed air in and regeneration gas out at the bottom, dry air out and regeneration gas in at the top (the P&ID draws the vessel upright)."
+    nozzles:
+      - {id: N1, along: 3, angle_deg: 180}
+      - {id: N4, along: 15, angle_deg: 180}
+      - {id: N2, along: 15, angle_deg: 0}
+      - {id: N3, along: 3, angle_deg: 0}
+      - {id: N5, along: 9, angle_deg: 0}
+  - tag: V-2101B
+    position: [95, 42, 0]
+    nozzles:
+      - {id: N1, along: 3, angle_deg: 180}
+      - {id: N4, along: 15, angle_deg: 180}
+      - {id: N2, along: 15, angle_deg: 0}
+      - {id: N3, along: 3, angle_deg: 0}
+      - {id: N5, along: 9, angle_deg: 0}
+  - tag: E-2101
+    position: [92, 55, 0]
+    notes: "Electric regeneration heater; gas inlet on the west side 1 m up (the P&ID draws it below the heater, at grade)."
+    nozzles:
+      - {id: N1, face: west, offset: [0, -0.5]}
+  - {tag: F-2101, position: [102, 62, 0], notes: "Dust filter."}
+  # ---- A3 cold box CB-1 (layout/structures.yaml) and the compander outside it
+  - tag: C-3101
+    position: [129, 42.5, 0]
+    notes: "HP column on its skirt inside the cold box. Nozzles towards E-3101 / E-3102 (east) and LOX north to the rack."
+    nozzles:
+      - {id: N1, angle_deg: 0, elevation: 5.8}
+      - {id: N2, angle_deg: 30, elevation: 15.1}
+      - {id: N7, angle_deg: 90, elevation: 18.8}   # PSV-3116 inlet: to the side, C-3102 stands on the top head
+    access: {platforms: [], notes: "Inside the perlite-filled casing: no platforms on the column; valves and instruments are brought out to the casing and reached from the CB-1 platforms P10 and P20 (D-030)."}
+  - tag: C-3102
+    position: [129, 42.5, 20]
+    notes: "LP column stacked on the HP column, E-3103 in its sump (D-028)."
+    nozzles:
+      - {id: N6, angle_deg: 0, elevation: 6.5}
+      - {id: N7, angle_deg: 90, elevation: 2.4}
+    access: {platforms: [], notes: "Inside the perlite-filled casing: reached from the CB-1 platforms P20 to RF; the PSV-3114 outlet and the top nozzle from the roof walkway RF (D-030)."}
+  - tag: E-3101
+    position: [134.5, 42.5, 0]
+    rotation_deg: 90
+    notes: "BAHX core bank on the cold box base slab in the middle bay of CB-1, warm end up; warm-end headers spread over the top in two rows (the P&ID draws them 0.8 m apart, closer than their diameters), cold-end headers on the column side (the P&ID draws them below the core)."
+    nozzles:
+      - {id: N3, face: top, offset: [-1.6, 0]}
+      - {id: N2, face: top, offset: [0, 0.6]}
+      - {id: N5, face: top, offset: [0, -0.6]}
+      - {id: N1, face: top, offset: [1.6, 0.6]}
+      - {id: N4, face: top, offset: [1.6, -0.6]}
+      - {id: N6, face: north, offset: [-1.8, -3.2]}
+      - {id: N7, face: north, offset: [-0.6, -3.2]}
+      - {id: N8, face: north, offset: [0.6, -3.2]}
+      - {id: N9, face: north, offset: [1.8, -3.2]}
+  - tag: E-3102
+    position: [139, 42.5, 20]
+    mount: {structure: CB-1, level: E20}
+    notes: "Subcooler on the cold box platform E20: inlet headers low on the south side (the P&ID draws them below the core), outlets on top, spread along the core (the P&ID draws them 0.4 m apart, closer than the DN800 waste N2 header)."
+    nozzles:
+      - {id: N1, face: south, offset: [-1.0, -1.75]}
+      - {id: N3, face: south, offset: [-0.4, -1.75]}
+      - {id: N6, face: south, offset: [0.7, -1.75]}
+      - {id: N2, face: top, offset: [-1.0, 0]}
+      - {id: N4, face: top, offset: [-0.4, 0]}
+      - {id: N5, face: top, offset: [0.7, 0]}
+  - tag: KT-3101
+    position: [128.5, 35.8, 0]
+    notes: "Expander end of the compander skid (same shaft as K-3101) against the cold box south wall, its cold end in the casing extension (D-023, D-029): inlet on top, exhaust north into the cold box."
+    nozzles:
+      - {id: N1, face: top, offset: [0, 0]}
+      - {id: N2, face: north, offset: [0, 0]}
+  - tag: K-3101
+    position: [132.1, 35.8, 0]
+    notes: "Booster end of the compander skid, beside the expander: suction on top, discharge south to E-3104."
+    nozzles:
+      - {id: N1, face: top, offset: [-0.8, 0]}
+      - {id: N2, face: south, offset: [0, 0]}
+  - {tag: E-3104, position: [133, 30.5, 0], notes: "Booster aftercooler south of the compander, bundle pull to the west."}
+  - {tag: V-3101, position: [122, 51, 0], notes: "Drain vaporizer, outside the cold box west wall."}
+  # ---- A4 product compressors: GOX compressor inside its fire wall FW-4101 (oxygen, D-012, D-026)
+  - tag: K-4101
+    position: [166.5, 29, 0]
+    notes: "GOX compressor behind its fire/blast wall FW-4101, open to the east (EIGA Doc 27 practice, ASSUMED). Interstage and discharge nozzles on the north side towards the intercooler package and the aftercooler (the P&ID draws the interstage ones below and the discharge at the motor end)."
+    nozzles:
+      - {id: N3, face: north, offset: [-2.5, 0]}
+      - {id: N4, face: north, offset: [0.5, 0]}
+      - {id: N2, face: north, offset: [3.5, 0]}
+  - {tag: E-4101, position: [166.5, 38.5, 0], notes: "Intercooler package north of the fire wall."}
+  - tag: E-4102
+    position: [178.5, 37, 0]
+    notes: "GOX aftercooler, bundle pull to the west; GOX nozzles on the shell top (the P&ID draws them at the ends)."
+    nozzles:
+      - {id: N1, along: 1.3, angle_deg: 0}
+      - {id: N2, along: 4.3, angle_deg: 0}
+  - tag: K-4102
+    position: [155, 56, 0]
+    notes: "GAN compressor; discharge on the north side, not at the motor end (P&ID: right side)."
+    nozzles:
+      - {id: N2, face: north, offset: [3, 0]}
+  - tag: E-4103
+    position: [168, 56, 0]
+    notes: "GAN aftercooler; GAN nozzles on the shell top (the P&ID draws them at the ends)."
+    nozzles:
+      - {id: N1, along: 1.1, angle_deg: 0}
+      - {id: N2, along: 3.4, angle_deg: 0}
   # ---- A5 storage: pumps next to their tank (short suction, NPSH), vaporizers in the open
-  - {tag: T-4101, position: [125, 112, 0], shape: vertical_cylinder, size: {diameter: 8, height: 10}, notes: "LOX tank ~250 m3 (2 d x 25 % GOX, D-017). ASSUMED."}
-  - {tag: T-4102, position: [150, 112, 0], shape: vertical_cylinder, size: {diameter: 9, height: 10}, notes: "LIN tank 400 m3 working, ~440 m3 gross (372 m3 net + heel + ullage, D-017). ASSUMED."}
-  - {tag: P-4101A, position: [122, 101, 0], shape: box, size: [1.5, 1, 1.5], notes: "ASSUMED."}
-  - {tag: P-4101B, position: [127, 101, 0], shape: box, size: [1.5, 1, 1.5], notes: "ASSUMED."}
-  - {tag: P-4102A, position: [147, 99.5, 0], shape: box, size: [1.5, 1, 1.5], notes: "ASSUMED."}
-  - {tag: P-4102B, position: [152, 99.5, 0], shape: box, size: [1.5, 1, 1.5], notes: "ASSUMED."}
-  - {tag: E-4105A, position: [165, 95, 0], shape: box, size: [3, 3, 8], notes: "LOX ambient-air vaporizer. ASSUMED."}
-  - {tag: E-4105B, position: [170, 95, 0], shape: box, size: [3, 3, 8], notes: "ASSUMED."}
-  - {tag: E-4106A, position: [165, 125, 0], shape: box, size: [3, 3, 8], notes: "LIN ambient-air vaporizer. ASSUMED."}
-  - {tag: E-4106B, position: [170, 125, 0], shape: box, size: [3, 3, 8], notes: "ASSUMED."}
+  - tag: T-4101
+    position: [125, 112, 0]
+    notes: "LOX tank. Bottom outlet towards the pumps (south)."
+    nozzles:
+      - {id: N4, angle_deg: 270, elevation: 0.5}
+  - tag: T-4102
+    position: [150, 112, 0]
+    notes: "LIN tank. Bottom outlet towards the pumps (south)."
+    nozzles:
+      - {id: N4, angle_deg: 270, elevation: 0.5}
+  - {tag: P-4101A, position: [122, 101, 0], rotation_deg: 270, notes: "Suction to the north (tank), motor to the south."}
+  - {tag: P-4101B, position: [127, 101, 0], rotation_deg: 270}
+  - {tag: P-4102A, position: [147, 99.5, 0], rotation_deg: 270}
+  - {tag: P-4102B, position: [152, 99.5, 0], rotation_deg: 270}
+  - {tag: E-4105A, position: [165, 95, 0], notes: "LOX ambient-air vaporizer."}
+  - {tag: E-4105B, position: [170, 95, 0]}
+  - {tag: E-4106A, position: [165, 125, 0], notes: "LIN ambient-air vaporizer."}
+  - {tag: E-4106B, position: [170, 125, 0]}
+  # ---- V1 vent area (north-east corner, downwind): O2 silencers north, N2 silencer south (D-025, D-029)
+  - {tag: S-4101, position: [186, 124, 0], size: {diameter: 1.0, height: 5}, notes: "GOX blowdown silencer, 16 m from the north road R3. ASSUMED size."}
+  - {tag: S-4102, position: [191, 124, 0], size: {diameter: 1.4, height: 6}, notes: "GOX suction vent silencer. ASSUMED size."}
+  - {tag: S-3101, position: [190, 114, 0], size: {diameter: 2.0, height: 8}, notes: "Waste N2 surplus vent silencer, 10 m south of the O2 silencers. ASSUMED size."}
+  # ---- relief valves and silencers that discharge away from their line's P&ID end (D-029)
+  - {tag: PSV-3114, position: [128, 46.1, 53], size: [0.8, 0.6, 1.5], mount: {structure: CB-1, level: RF},
+     notes: "LP column relief valve on the cold box roof, discharging upwards outside the casing (O2-rich, review 2026-10-21-layout#1). ASSUMED size."}
+  - {tag: PSV-3116, position: [131, 46.1, 53], size: [0.8, 0.6, 1.5], mount: {structure: CB-1, level: RF},
+     notes: "HP column relief valve on the cold box roof, 3 m from PSV-3114. ASSUMED size."}
+  - {tag: S-2101, position: [83, 36, 0], size: {diameter: 1.2, height: 6}, notes: "TSA regeneration / depressurization vent silencer west of the adsorbers, outlet 6 m up (O2-deficient, review 2026-10-21-layout#4). ASSUMED size."}
 notes: >-
-  Silencers and vent stacks are not equipment-list items; they stand in the reserved area V1 of
-  the site plan (north-east corner, downwind of F-1101). E-3103 is inside C-3102.
+  E-3103 is the bath condenser inside the C-3102 sump and has no placement of its own (D-028).
+  Silencers are placed by their tag of piping/special-items.yaml; relief valve outlets discharge
+  at the item they protect (DESIGN.md section 4).

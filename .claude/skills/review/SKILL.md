@@ -1,6 +1,6 @@
 ---
 name: review
-description: Review the plant repository or a change to it - run validation and the engineering-step checks, look at the rendered sheets and the diff, and write findings to reviews/. Use when asked to review, check, or sign off a stage or a branch.
+description: Review the plant repository or a change to it - run validation and the engineering-step checks, look at the rendered sheets, the 3D layout's plan and section drawings and the diff, and write findings to reviews/. Use when asked to review, check, or sign off a stage or a branch, or to review the layout.
 ---
 
 # Reviewing
@@ -62,6 +62,29 @@ check goes under "Not checked" in the record.
    `plantcode.offpage-mismatch` and `plantcode.label-tag-unknown` warn when one names a wrong
    line, sheet or tag; the `plantcode.label-tag` infos list what each such text names, so check
    they say what is meant. Note what you checked and what you could not.
+4a. **Layout review** (a record of `topic: layout`, its `scope` the `layout/` files,
+   `piping/routing.yaml` and `layout/plant-model.yaml`; gates `layout-3d` and `layout-review`):
+   - `plantcode layout build --check` (the committed model is current) and `plantcode layout
+     report`: quote the counts in the record's `## Layout` section: lines routed / skipped /
+     unrouted, the chains per method (every `direct` or `rack+direct` route is a finding or
+     accepted with a reason) and per reason, the rack fill per tier, the model findings per
+     rule (`layout-clash-*`, `-headroom`, `-access-blocked`, `-zone-crossing`, `-separation`),
+     platforms `review_needed`;
+   - render and **read** the plot plan and at least two sections: `plantcode layout render
+     --plan --png` (`build/layout-plan.png`), `--section y=<across the main rack> --png` and
+     `--section x=<through the tallest structure or cold box> --png`, plus crops around what
+     you doubt (`--crop X0,Y0,X1,Y1`). Name each PNG in the record (the `layout-3d` gate looks
+     for the plan and the sections there): `build/layout-plan.png`,
+     `build/layout-section-y68.png`, ...;
+   - check against the design basis and `DESIGN.md`: separations kept (measured with
+     `plantcode show <tag> --layout`, never estimated), roads and fire access, the air intake
+     upwind of vents, pumps near their suction source, maintenance envelopes free, every
+     elevated valve, instrument and manway reachable (skill `structures-access`), escape routes,
+     zones declared and still ASSUMED (skill `area-classification`), lines over roads and
+     walkways at their headroom, oxygen and cryogenic lines on their own tier or edge (skill
+     `pipe-routing`);
+   - what the model cannot show (stress, supports, structural design, the area classification
+     study) goes under "Not checked" with who must do it.
 
 ## Validation and failure handling
 
@@ -96,6 +119,9 @@ finding ids or statuses (`plantcode.review-*`).
    ## Drawing
    <per sheet: the `drawing <sheet>:` counts from validate, each accepted finding with its
    reason, the tiles read>
+   ## Layout
+   <layout reviews: the layout report counts, the plan and section PNGs read, accepted model
+   findings with their reason>
    ## Checked and fine
    ## Not checked
    ```
@@ -144,3 +170,5 @@ finding ids or statuses (`plantcode.review-*`).
 
 - `reviews/README.md` (record format), `checks/checks.yaml` (gates, accepted findings),
   `checks/status.json` (sign-offs)
+- skills `layout-yaml`, `pipe-routing`, `structures-access`, `area-classification` (layout
+  review)

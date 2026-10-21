@@ -1,0 +1,58 @@
+# Special piping items. Schema: `plantcode schema piping_items`.
+# Relief devices and silencers drawn on the P&IDs, with their governing case from DESIGN.md
+# section 4 (relief case list, ASSUMED cases, sizing in detail engineering). The silencers are
+# placed in the 3D layout (layout/equipment-placement.yaml) so their vent lines are routed to
+# where they discharge (D-025, D-029); relief valves sit on their line at the item they protect.
+piping_items:
+  # ---- silencers
+  - {tag: S-1101, type: Silencer, line: AIR-1003, sheet: P-01,
+     notes: "MAC anti-surge blow-off silencer (UV-1102), outside the MAC house east wall, outlet elevated. Air: no zone. ASSUMED 1.6 m x 6 m."}
+  - {tag: S-2101, type: Silencer, line: RG-2003, sheet: P-02,
+     notes: "TSA regeneration gas / depressurization vent silencer at the adsorbers (waste N2: O2-deficient zone Z-N2-VENTS)."}
+  - {tag: S-3101, type: Silencer, line: WN-3003, sheet: P-03,
+     notes: "Waste N2 surplus vent silencer (PV-3110B), in the vent area V1, outlet elevated (O2-deficient zone, D-011). ASSUMED 2.0 m x 8 m."}
+  - {tag: S-4101, type: Silencer, line: VNT-4002, sheet: P-04,
+     notes: "GOX compressor blowdown silencer (XV-4116), in the vent area V1 (O2-enriched zone, D-013, D-019). ASSUMED 1.0 m x 5 m."}
+  - {tag: S-4102, type: Silencer, line: VNT-4003, sheet: P-04,
+     notes: "GOX suction vent silencer (PV-4101B), in the vent area V1 (O2-enriched zone, D-019). ASSUMED 1.4 m x 6 m."}
+  # ---- relief devices (section 4)
+  - {tag: PSV-1109, type: SpringLoadedGlobeSafetyValve, line: AIR-1004, sheet: P-01,
+     relief_case: "MAC at surge / max. IGV with AIR-1004 blocked; backup to UIC-1102; fire on the packed column", notes: "Atmosphere, local (air)."}
+  - {tag: PSV-2108A, type: SpringLoadedGlobeSafetyValve, line: AIR-2001, sheet: P-02,
+     relief_case: "fire; blocked outlet during repressurization (V-2101A)", notes: "Atmosphere at the bed top."}
+  - {tag: PSV-2108B, type: SpringLoadedGlobeSafetyValve, line: AIR-2001, sheet: P-02,
+     relief_case: "fire; blocked outlet during repressurization (V-2101B)", notes: "Atmosphere at the bed top."}
+  - {tag: PSV-3114, type: SpringLoadedGlobeSafetyValve, line: VNT-3002, sheet: P-03,
+     relief_case: "C-3102 waste N2 outlet blocked (PIC-3110 failure) with expander and JT valves running", notes: "Outside the cold box, elevated (O2-rich: safe location, zone Z-O2-VENTS)."}
+  - {tag: PSV-3116, type: SpringLoadedGlobeSafetyValve, line: VNT-3003, sheet: P-03,
+     relief_case: "C-3101 MAC deadhead feed with GAN and liquid outlets blocked", notes: "Outside the cold box, elevated (N2, zone Z-N2-VENTS)."}
+  - {tag: PSV-3119, type: SpringLoadedGlobeSafetyValve, line: AIR-3002, sheet: P-03,
+     relief_case: "K-3101 discharge blocked (KT-3101 inlet XV-3117 closed)", notes: "Atmosphere (air), local."}
+  - {tag: PSV-3123, type: SpringLoadedGlobeSafetyValve, line: VNT-3004, sheet: P-03,
+     relief_case: "cold box casing: purge PV-3113 failed open; vacuum on cool-down (breathing valve)", notes: "On the casing roof, VNT-3004 elevated (N2, zone Z-N2-CASING)."}
+  - {tag: PSV-4122, type: SpringLoadedGlobeSafetyValve, line: GOX-4002, sheet: P-04,
+     relief_case: "K-4101 blocked outlet at max. speed (ESD XV-4118 closed)", notes: "To VNT-4002 via S-4101."}
+  - {tag: PSV-4123, type: SpringLoadedGlobeSafetyValve, line: VNT-4001, sheet: P-04,
+     relief_case: "T-4101 heat-leak increase, fire, fill overpressure, roll-over", notes: "Safe location (O2)."}
+  - {tag: PSV-4142, type: SpringLoadedGlobeSafetyValve, line: VNT-4001, sheet: P-04,
+     relief_case: "T-4101 vacuum on fast draw-off (vacuum breaker)", notes: ""}
+  - {tag: PSV-4124, type: SpringLoadedGlobeSafetyValve, line: VNT-4005, sheet: P-04,
+     relief_case: "T-4102 as T-4101", notes: "Elevated (N2)."}
+  - {tag: PSV-4143, type: SpringLoadedGlobeSafetyValve, line: VNT-4005, sheet: P-04,
+     relief_case: "T-4102 vacuum on fast draw-off (vacuum breaker)", notes: ""}
+  - {tag: PSV-4125, type: SpringLoadedGlobeSafetyValve, line: LOX-4002, sheet: P-04,
+     relief_case: "P-4101A/B closed discharge, thermal; TSV of LOX-4002", notes: "Into the cool-down return LOX-4003."}
+  - {tag: PSV-4126, type: SpringLoadedGlobeSafetyValve, line: LIN-4002, sheet: P-04,
+     relief_case: "P-4102A/B closed discharge, thermal; TSV of LIN-4002", notes: "Into the cool-down return LIN-4003."}
+  - {tag: PSV-4127, type: SpringLoadedGlobeSafetyValve, line: GOX-4004, sheet: P-04,
+     relief_case: "E-4105A/B blocked outlet, thermal", notes: "Elevated (O2)."}
+  - {tag: PSV-4128, type: SpringLoadedGlobeSafetyValve, line: GAN-4003, sheet: P-04,
+     relief_case: "E-4106A/B blocked outlet, thermal", notes: "Elevated (N2)."}
+  - {tag: TSV-4140, type: SpringLoadedGlobeSafetyValve, line: LOX-3001, sheet: P-04,
+     relief_case: "heat-in of blocked LOX between FV-3111 and the tank inlet valve", notes: "Atmosphere, safe location."}
+  - {tag: TSV-4141, type: SpringLoadedGlobeSafetyValve, line: LIN-3001, sheet: P-04,
+     relief_case: "heat-in of blocked LIN between the P-03 outlet valve and the tank inlet valve", notes: "Atmosphere."}
+  - {tag: TSV-4144, type: SpringLoadedGlobeSafetyValve, line: LOX-4004, sheet: P-04,
+     relief_case: "LOX trapped between the fill check valve and HV-4146", notes: ""}
+  - {tag: TSV-4145, type: SpringLoadedGlobeSafetyValve, line: LIN-4004, sheet: P-04,
+     relief_case: "LIN trapped between the fill check valve and HV-4147", notes: ""}

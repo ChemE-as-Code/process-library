@@ -554,3 +554,166 @@ GAN, LOX, LIN rates and purities) unchanged. O2 recovery on this basis (O2 in GO
 S4) is 93.4 %, against the 94 % of D-018: inside the accuracy of the concept balance, and D-018's
 MAC margin covers 90 %.
 Open: site humidity (D-005); a column simulation in detail engineering replaces (5) and (6).
+
+## D-028 Equipment dimensions, placement and nozzle positions for the 3D layout (2026-10-21)
+Decision: (1) Sizes move from the placement into `dimensions:` of equipment/equipment-list.yaml
+(overall sizes; heads, skirts, legs, saddles, base plates), all ASSUMED at basic engineering
+(vendor data in detail engineering): columns C-1101 4.0 x 25 m and C-1102 4.5 x 22 m on skirts;
+C-3101 4.2 x 20 m on its skirt and C-3102 4.2 x 30 m standing on it (stacked double column);
+V-2101A/B horizontal 4.5 x 18 m on 2 m saddles (bottom nozzles clear of grade); exchangers with
+their shell heights on saddles; E-3101 a bank of four brazed cores 4.8 x 2.4 x 8 m; E-3102
+two cores 3.0 x 1.5 x 4.5 m (the DN800 waste N2 headers need the length); pumps, compressors,
+vaporizers as boxes. (2) Storage tanks sized to the capacities of D-017 (the review measured
+the old envelopes at ~500 m3 for 275 m3 LOX and ~636 m3 for 440 m3 LIN): T-4101 inner tank 6.4 m
+x 8.6 m shell = 277 m3 gross, outer tank 7.4 m (0.5 m perlite annulus), 10.4 m overall with
+bottom insulation, top space and cone roof; T-4102 inner 7.2 m x 10.8 m = 440 m3, outer 8.2 m,
+12.6 m overall. The `dimensions` are the outer tank (what the layout needs); the capacity is the
+inner tank, stated in the notes. (3) E-3103, the bath condenser-reboiler, is an internal of the
+C-3102 sump with no placement of its own: its `layout-not-placed` finding is accepted in
+checks/checks.yaml, and its internal connections GAN-3002 / LN-3002 are skipped in
+piping/routing.yaml. Placing it inside C-3102 would only draw a clash with its own column.
+(4) Nozzle overrides where the P&ID side is not the real arrangement (layout/
+equipment-placement.yaml `nozzles:`): V-2101A/B feed in and regeneration gas out at the bottom,
+dry air out and regeneration gas in on top (the P&ID draws the horizontal adsorbers upright);
+K-1101 interstage nozzles on the north side towards the intercoolers and the discharge on top
+(drawn below the machine and at the motor end); K-4101 / K-4102 interstage and discharge on the
+north side (not at the motor end, which must stay free for motor removal); E-1103, E-4102,
+E-4103 process nozzles on the shell top (drawn at the ends, which would block the bundle pull);
+E-3101 warm-end headers spread in two rows over the top and cold-end headers low on the column
+side, E-3102 inlets low on its south side and outlets on top (the P&ID draws them 0.4 to 0.8 m
+apart, closer than their diameters); the compander nozzles on top and to the sides; tank bottom
+outlets towards the pumps; C-3101/C-3102 nozzles turned towards E-3101/E-3102 and LOX north to
+the rack. Pumps turned with their suction towards the vessel they draw from.
+(5) Moves: the cold box group to x 126-141 (D-030), the compander K-3101/KT-3101 against the
+cold box south wall with E-3104 south of it, K-4101 into its fire wall at x 161.5-171.5 with
+E-4101 north and E-4102 north-east of it, E-1102 1 m east and E-1103 north-east of K-1101 (bundle
+pulls clear of E-1101 and the K-1101 motor), C-1102 1 m south and P-1102A/B clear of the PR1
+columns, the GOX and waste N2 silencers in the vent area V1 (D-029).
+Reason: the 3D model derives every shape from the equipment list; a layout review needs real
+envelopes, nozzles where the piping can reach them and maintenance spaces kept free.
+
+## D-029 Racks, tiers, battery limits, vent discharge points and pipe specs (2026-10-21)
+Decision: (1) Rack PR1 widened to 8 m with three tiers (layout/site-plan.yaml; D-026 (2) had 6 m
+and 6 / 8 m): 5 m cooling and chilled water, 7 m air, dry air and waste N2, 9 m (top) oxygen,
+nitrogen, LOX, LIN and rich liquid at the rack edge, away from the water lines. PR2 over the
+central road keeps 6 / 8 m (8 m oxygen and LOX, 6 m nitrogen and LIN) and joins PR1 at x = 143,
+east of the cold box risers (the joint at x = 137 lay right above them). New vent rack PR3
+(3 m wide, 6 / 8 m) from the PR1 east end over the central road to the vent area V1. Routing
+rules in piping/routing.yaml. With 6 m the air / waste N2 tier was 137 % full on the first
+build. (2) Battery limits: cooling water supply and return at the west end of PR1 (CW plant west
+of the plot, ASSUMED); the GOX and GAN product pipelines at [185, 66] / [185, 64.5], 9.2 m, just
+beyond the PR1 east end (customer tie-ins, ASSUMED); the LOX / LIN road tanker couplings at the
+south edge of the truck fill bay Z-TRUCK (y = 132.4, 1 m above grade). (3) Vent discharge
+points (amends D-025): the large vents go to V1 - the GOX blowdown silencer S-4101 and the GOX
+suction vent silencer S-4102 at [186, 124] / [191, 124] (16 m from the north road), the waste N2
+surplus silencer S-3101 10 m south of them - over PR1 and PR3 (piping/special-items.yaml lists
+them, the placement places them). The small vents and relief outlets discharge elevated at their
+item, as the P&IDs draw them: the tank boil-off vents VNT-4001 / VNT-4005 on the tank roofs,
+VNT-3001 at the drain vaporizer, the GOX / GAN BL bleeds VNT-4006 / VNT-4007 at the battery
+limit, PSV-3114 / PSV-3116 at the cold box, the TSA regeneration vent RG-2003 / S-2101 at the
+adsorbers, the evaporative cooler top vent WN-1002 and the MAC blow-off silencer S-1101 beside
+B1. All are downwind of the intake F-1101; the nearest O2 vent zone (VNT-3001 at V-3101) is
+90.7 m from it (layout-separation, >= 50 m ASSUMED). (4) Pipe classes and insulation in
+piping/pipe-specs.yaml: material by service under each PN class (D-009), colours for the model;
+insulation `cold box (perlite)` 0 mm on the pipe (the perlite fill insulates), `vacuum
+jacketed` 50 / 65 / 80 mm radial build-up of the jacket by DN, `cold (PUR)` 80 / 100 / 120 / 150 mm
+by DN (all ASSUMED). (5) Skipped lines: GAN-3002 and LN-3002 (internals of the double column,
+D-028), VNT-3004 (the casing breather sits on the casing roof, no process nozzle). The pipe-way
+for local runs stays at the router's 3.5 m (ASSUMED).
+Reason: the first build put 13 large lines on one 6 m tier and the GOX and waste N2 vents 1 m
+above their valves next to the compressors and the cold box; tier allocation by service keeps
+oxygen apart from the water lines and the big warm gas lines (D-026 (2)). Open: stress and
+supports (expansion of the cold lines, the DN900 waste N2 header), the CW plant location, the
+customer tie-in points, a vent dispersion study (D-031).
+
+## D-030 Cold box and fire wall structures, MAC house walls, access, separations (2026-10-21)
+Decision: (1) Cold box CB-1 (layout/structures.yaml): steel frame 15 x 9 m (bays 6 / 5 / 4 m by
+9 m) with a casing all round, 50.5 m high (C-3101 + C-3102 stacked, D-026 (3)); west bay the
+column stack, middle bay E-3101 on the base slab, east bay E-3102 on platform E20 (20 m, near the
+HP column top); access platforms along the north side at 10, 20, 30 and 40 m and a roof walkway
+RF at 50.5 m; a stair from grade to P10 on the east side, caged ladders offset between the
+platforms and a second way down from P10 by ladder LD0 at the west end (inert vents near the
+roof, D-011). East and south faces braced; the west and north faces carry the pipe penetrations
+and rely on the stiffened casing panels (ASSUMED, structural design to confirm). The columns
+have no platforms of their own (`access: {platforms: []}`): inside the perlite-filled casing,
+their valves and instruments are brought out to the casing platforms. Section sizes are
+plantcode's defaults by span (ASSUMED).
+(2) Fire wall FW-4101: reinforced concrete 0.3 m, 7 m high, on the west, south and north sides
+of K-4101, open to the east, away from the cold box, the rack and road R1 (EIGA Doc 27 practice
+for oxygen compressors, ASSUMED; D-012).
+(3) MAC house B1 clad all round: roller door W1 (west, E-1101 bundle pull), roller door S1
+(south, truck under the crane), personnel doors S2 and E3 on opposite sides (two ways out),
+pipe openings W2 (suction duct from F-1101), E1 / E2 (blow-off to S-1101, discharge to C-1101)
+and a louvred pipe band N1 for the cooling water from PR1.
+(4) Platforms of C-1101 at 6.3, 11.3, 18.8 and 23.9 m and of C-1102 at 4.7, 11.3, 18.5 and
+21.0 m above their bottoms, all round, ladders on the west side: reviewed from the build's
+proposals (process inlets, the mid-height tappings, the top outlets with PSV-1109); the sump
+outlets are reached from grade (ASSUMED access philosophy: operating valves, manways and field
+instruments above 2.5 m on platforms).
+(5) Separations (layout/site-plan.yaml, measured by plantcode validate and `plantcode show
+--layout`): cold box CB-1 to the MAC house B1 54.0 m >= 53 m (toppling radius 1 x height, 50.5 m
+casing + roof walkway, D-026 (3)) - kept by placing the cold box at x 126-141. CB-1 to K-4101
+21.4 m: the review's 53 m toppling radius is NOT applied to K-4101. The cold box steel and casing
+are designed for wind and seismic loads to code (structural design, detail engineering), so
+toppling is not a design case; the 1 x height distance is kept from the occupied building B1
+only, as D-026 (3) states. K-4101 is separated from the cold box by its fire wall FW-4101 and by
+at least 15 m (oxygen compressor fire separation, ASSUMED). Keeping 53 m would put K-4101 east of
+the east road. LOX tank T-4101 (D-026 (4)): to B1 77.9 m and to K-4101 > 15 m (validate measures
+both), roads R3 24.3 m and R2 26.8 m (>= 8 m), site boundary 34.3 m (>= 8 m).
+(6) Maintenance and laydown (layout/zones.yaml): crane pad Z-CRANE-CB1 west of the cold box (19 x
+19 m, nothing between 0 and 8 m) for the columns, casing panels and the compander rotor;
+Z-LAYDOWN-B1 in front of roller door S1; Z-PULL-E1101 outside W1; Z-SIEVE between V-2101A and
+V-2101B for the adsorbent change-out; Z-TRUCK, the LOX/LIN truck fill bay (D-031).
+Reason: the reviews asked for the cold box as a structure (~50 m), for its toppling distance and
+for access to every elevated valve; a cold box column is never reached from platforms on its
+shell. Open: structural design, a site-specific toppling / dropped-object study, the access
+philosophy with the operator.
+
+## D-031 Oxygen-enriched and oxygen-deficient zones, keep-clear and maintenance zones (2026-10-21)
+Decision: layout/zones.yaml declares the zones of the 3D layout as a SCREENING (skill
+area-classification): volumes around release points from plantcode's indicative radius table,
+every one ASSUMED. Oxygen-enriched: Z-O2-V1 (silencers S-4101, S-4102; intermittent, primary
+grade), Z-O2-VENTS (LOX tank vent VNT-4001 continuous; VNT-3001 drain vaporizer and VNT-4006 GOX
+bleed primary; the PSV-3114 outlet VNT-3002 secondary, treated as O2-rich as section 4 and D-011
+state), Z-O2-SEALS (K-4101 dry gas seals, P-4101A/B seals, secondary). Oxygen-deficient: Z-N2-V1
+(S-3101 waste N2 surplus vent, continuous), Z-N2-VENTS (WN-1002 evaporative cooler top vent
+continuous, RG-2003 regeneration vent, VNT-4004 / VNT-4007 GAN vents and bleeds, VNT-4005 LIN
+tank vent continuous, the PSV-3116 outlet VNT-3003), Z-N2-CASING (the casing breather VNT-3004 on
+the cold box roof, an explicit 5 m sphere: the roof walkway RF is inside it, so the roof is
+entered with a personal O2 monitor and the purge isolated), Z-N2-SEALS (P-4102A/B seals). No
+hazardous (Ex) zones: the ASU handles no flammables. Keep-clear, laydown and maintenance zones
+(D-030 (6)) are router obstacles. No ignition sources, oil or asphalt inside the O2-enriched
+zones; the LOX truck fill pad is concrete (D-017).
+Reason: the layout gates and the review need the vent and seal zones in the model to check
+separations (intake F-1101 to the O2 vent zones >= 50 m, measured 90.7 m; Z-O2-V1 to the north
+road >= 10 m) and to keep walkways and escape routes out of them. Open: an oxygen and inert vent
+study (EIGA guidance on vent locations, prevailing wind) by a competent person replaces or
+confirms every zone before detail engineering; until then the zones stay ASSUMED and no equipment
+selection rests on them.
+
+## D-032 Layout changes after the independent layout review (2026-10-21)
+Decision (reviews/2026-10-21-layout.md): (#1) the relief valves PSV-3114 and PSV-3116 stand on
+the cold box roof RF (placed special items): VNT-3002 / VNT-3003 rise inside the casing to them
+and discharge 1 m above the roof; their zones take the valves as sources. C-3101 N7 (PSV-3116
+inlet) leaves the column on the north side (C-3102 stands on the HP column's top head). (#2)
+Lines passing the cold box casing, the fire wall or the MAC house no longer go through their
+walls (plantcode routes around enclosures a line does not start or end in): CW-3001 / CWR-3001
+reach E-3104 round the cold box. (#3) The casing is 53 m high (C-3102 top 50 m plus its top
+nozzle piping inside), roof walkway RF at 53 m; the toppling distance CB-1 to B1 stays 53 m (the
+casing roof), measured 54.0 m. (#4) The TSA regeneration / depressurization silencer S-2101 is
+placed west of the adsorbers with its outlet 6 m up; RG-2003 is routed to it and Z-N2-VENTS takes
+S-2101 as its source. (#6) The GOX / GAN battery limits move to x = 176 beside PR1, 11 m from the
+east road, with a separation of the O2 vent zones from R5 (>= 3 m). (#7) Lines reach their rack
+lane straight from the passing elevation, so LOX-3001 now runs on its oxygen tier (PR1 9 m, PR2
+8.5 m). (#10) Separations F-1101 to R4 >= 10 m (measured 10.0 m) and to R1 >= 15 m (17.0 m):
+the intake filter house draws at 4 to 8 m above the road (ASSUMED). (#11) Second caged ladders
+LD5..LD8 at the west end of CB-1 give every platform two ways down; escape zone Z-ESC-CB1 from
+the stair ST1 south to road R1. (#14) E-2101 gas inlet 1 m up on the west side. (#17) PR2 and
+PR3 tiers at 6.5 / 8.5 m (beam underside above the 6 m road headroom).
+Open, recorded for the next review: #5 (the C-1102 top platform lies in the continuous WN-1002
+vent zone: access with the vent isolated or an O2 monitor until the vent stack is extended in
+detail engineering), #8 (GOX compressor barrier penetrations and E-4101 outside it, sealed wall
+sleeves to be designed with the vendor), #9 (B1 wall penetrations outside the declared openings,
+detailed with the building), #12, #13, #15, #16.
+Reason: the review's high findings put cold lines and relief outlets where they cannot be, and
+the medium ones are cheap to fix in the layout files.

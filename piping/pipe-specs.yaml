@@ -1,0 +1,33 @@
+# Pipe classes and insulation for the 3D pipe routes. Schema: `plantcode schema pipe_specs`.
+# The line list's pressure_class is a PN rating; the material follows the service (D-009):
+# carbon steel for warm air, water and waste N2, stainless steel (or aluminium inside the cold
+# box) for cryogenic and oxygen lines. All ASSUMED at basic engineering (piping class
+# specification in detail engineering). OD by DN from plantcode's package table (ISO 4200).
+classes:
+  - {code: PN2.5, material: "CS (ducts and low-pressure waste N2)", rating: PN2.5, colour: "#8a8f98"}
+  - {code: PN6, material: "CS warm / Al 5083 in the cold box", rating: PN6, colour: "#6f8fb0"}
+  - {code: PN10, material: "CS warm air; SS 304L oxygen and cryogenic; Al in the cold box", rating: PN10, colour: "#4a7fb5"}
+  - {code: PN16, material: "CS cooling water; SS 304L cryogenic and nitrogen", rating: PN16, colour: "#3f9e74"}
+  - {code: PN25, material: "SS 304L cryogenic", rating: PN25, colour: "#b58b2a"}
+  - {code: PN40, material: "SS 316L / Monel oxygen (high pressure, D-009)", rating: PN40, colour: "#c0504d"}
+  - {code: PN63, material: "SS 304L cryogenic, pump discharge", rating: PN63, colour: "#9b59b6"}
+insulation:
+  - type: cold box (perlite)
+    thickness_mm: 0
+    notes: "Inside the cold box casing the perlite fill insulates; the pipe itself is bare."
+  - type: vacuum jacketed
+    rules:
+      - {dn_max: 50, thickness_mm: 50}
+      - {dn_max: 100, thickness_mm: 65}
+      - {thickness_mm: 80}
+    notes: "Outer jacket about two sizes up: radial build-up of the jacket (ASSUMED)."
+  - type: cold (PUR)
+    rules:
+      - {dn_max: 50, thickness_mm: 80}
+      - {dn_max: 150, thickness_mm: 100}
+      - {dn_max: 300, thickness_mm: 120}
+      - {thickness_mm: 150}
+    notes: "PUR/PIR with vapour barrier for liquid N2/O2 service at -196 C (ASSUMED, condensation control)."
+notes: >-
+  Warm lines without an insulation entry in the line list run bare. Thicknesses ASSUMED; the
+  insulation specification of detail engineering replaces them (DESIGN.md D-029).
