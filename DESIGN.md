@@ -1632,4 +1632,10 @@ Each change below was built, the model checked with `plantcode layout build` and
    No vent-outlet, egress-zone or separation finding is left; the other findings are
    unchanged. The core rule itself (outlets beside, not only above, a floor) is not changed:
    with the outlets declared as zone sources the existing zone test covers them.
+3. **VP-3 stair foot clear of K-4102 (review8#6).** The base landing of the VP-3 stair
+   (centre y 53.353, 1.8 x 0.9 m) reached 0.30 m into the K-4102 package box (y 53.5 ..
+   58.5, x up to 159). The stair keeps its west side and switchback and starts 1.2 m further
+   south (offset -3.653): base landing centre [159.55, 52.153], 0.9 m from the package
+   (0.8 m walkway, ASSUMED); its top landing (y 46.85 .. 47.75) still meets the platform
+   (y 46.95 .. 48.95); it stays east of the laydown Z-PAD-A4N (x up to 158). No finding added.
 
