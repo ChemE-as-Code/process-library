@@ -1016,6 +1016,19 @@ inlets, so no leg crosses the relief valve platform RV (0 headroom findings on R
 GOX-4004 S4 from the PSV-4127 tee had been a 0.3 m stub at the GOX-4002 backup tee, not joined
 to the vaporizer risers. It now runs along PR3 at 8.56 m to PR1 and onto the backup tee
 (pinned).
+(7) **Tray spans accepted one by one** (review5#8): the wildcard acceptance of every
+layout-tray-span finding is replaced by one entry per tray (17), each with its length and the
+number of cable-ladder posts at no more than 3 m (ASSUMED, the electrical standard detail;
+the two B2 room runs hang from the roof steel). A new tray-span finding now fails until it is
+accepted by name. The rereview#7 acceptance of a LIN-3001 tier finding that no longer exists
+is removed.
+(8) **No out-and-back loops at the vaporizers** (review5#10): the LOX and LIN pump discharge
+headers drop to 1.2 m south of E-4105A/B (y 92.5) and E-4106A/B (y 122), clear of the crane
+pads; the inlet valves stand there at 1.2 m, worked from grade, and each branch rises straight
+to its inlet (no loop round E-4105A / E-4106A, no high point in the liquid lines). The GOX
+vent VNT-4003 keeps its 1.1 m pocket on the PR1 top tier between the vent valve PV-4101B and
+the riser at the rack corner: the GOX from the cold box is dry (no liquid can collect), and a
+low-point drain would add an oxygen release point; no drain (justified, not removed).
 Reason: the fifth, independent layout review found the stair across the walking and hatch
 space of the platforms, lines at head height over P10 and over the tank roof access, and the
 breather zone over the roof ladder; the core rules now report each of these (core#61), and
