@@ -1029,6 +1029,15 @@ to its inlet (no loop round E-4105A / E-4106A, no high point in the liquid lines
 vent VNT-4003 keeps its 1.1 m pocket on the PR1 top tier between the vent valve PV-4101B and
 the riser at the rack corner: the GOX from the cold box is dry (no liquid can collect), and a
 low-point drain would add an oxygen release point; no drain (justified, not removed).
+(9) **Earlier review items** (review3#6, #7, #2, layout#15): the casing penetration schedule is
+declared: one opening per line leaving the casing (10, from the build's penetrations), and the
+cold internals GAN-3001 and RL-3001, which the router had taken out through the north wall and
+back in, are pinned inside the casing (0 layout-wall-penetration). The MAC house supply and
+extract mains follow the walls (terminals along the walls in duct order, within 1.2 m of
+them), outside the hook path of the 40 t crane over the hall. Not changed: the PSV-3114 /
+PSV-3116 tailpipe guides (review3#2: a guide off the RV platform steel, a pipe support detail
+for the stress engineer with the reaction forces) and the expander casing extension of
+KT-3101 (layout#15: vendor data, the cold box vendor's drawing).
 Reason: the fifth, independent layout review found the stair across the walking and hatch
 space of the platforms, lines at head height over P10 and over the tank roof access, and the
 breather zone over the roof ladder; the core rules now report each of these (core#61), and
