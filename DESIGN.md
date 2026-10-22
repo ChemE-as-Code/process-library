@@ -1265,3 +1265,65 @@ Result: 0 errors, 0 clashes, 0 lifting, 0 wall-penetration; operability 27, free
 support-missing 77 (before: 27 / 21 / 75). Gates: every concept and basic gate passes except
 layout-review. Take-off 4,710 m pipe, 726 elbows, 69 tees, 327.5 t steel, 375 m2 grating.
 
+## D-047 Valves out of reach: valve access platforms, two control valves moved to grade (2026-10-22)
+Decision (amends D-040 (6); review3#3). The 27 valves above 6 m that D-040 left open are
+answered valve by valve with the core's valve-platform proposals (`VP-n`), adapted where the
+proposal does not fit, or by moving the valve. Criteria (ASSUMED, as D-040, until the owner's
+standard confirms them):
+- **Reach**: a floor at most 1.8 m below the handwheel or lever and within 0.6 m of it in plan,
+  with a free 0.6 m standing square (the core's operability rule).
+- **Way down**: below 6 m a caged ladder; from 6 m a stair (one way down is enough for an
+  occasional-use valve platform within 7.5 m of it). The floor is set as low as the reach
+  allows where that brings it under 6 m (ladder, no stair): VP-1 at 5.6 m, VP-6 at 5.9 m.
+- **Nothing in it**: no pipe through a column, beam or flight, none less than 2.1 m over a
+  floor or landing, no structure in a laydown or crane lane, no floor or stair head inside a
+  vent zone. Each platform's stair side and position were chosen by building every variant
+  (four sides, two starts, shifts of 0.3 / 0.6 m) and keeping one that adds no finding.
+- **Prefer grade**: a control valve at the start of a segment whose route can drop to grade
+  is moved onto a riser at grade instead of getting a platform.
+- **Pins**: the routes of every line whose valves are served, and of the lines tee'd to them
+  (AIR-1004, AIR-2001, GAN-4001 .. 4004, GOX-4001 .. 4004, RG-2001 / 2002, UN-3001, VNT-4001 ..
+  4007, WN-1001 / 3002 / 3003), are pinned as routed: pinning only the valves' segments let
+  the router move the tees of the others (5 pipe-disconnected errors in the trials).
+Resolved (13 of 27):
+1. **Moved to grade**: FV-2105 (regeneration gas flow control, RG-2001): the P-03 / P-02 sheet
+   joint now lies at grade north of the cold box (x 134.9, y 57.6, 0.6 m), the line dips on
+   sleepers and rises at y 58.6, so the valve stands on the riser at 1.1 m (it sat inside PR1
+   between the 7 and 9 m tiers, where no platform fits). Dry waste N2: the low point needs no
+   drain. PV-3113 (casing purge, UN-3001): the sheet joint at grade south of PR1 (x 145.85,
+   y 63.3, 0.3 m), the valve on the riser at 1.55 m (it sat on the PR1 top tier).
+2. **Platforms** in `layout/structures.yaml`: VP-1 PV-3110B (5.6 m, ladder; extended west so
+   the ladder clears the CW-3001 riser), VP-2 PV-4101B (10.16 m, cut to 1.6 m south of the
+   UN-3001 lane), VP-3 XV-4117 (9.95 m), VP-4 XV-4116 and HV-4129 (one 7.2 m walkway at
+   8.65 m west of the GOX-4002 riser, instead of two proposals), VP-5 HV-4130 (8.35 m), VP-6
+   XV-4134 / XV-4135 (5.9 m, ladder), VP-7 UV-4103 (9.51 m), VP-8 PV-4111 and VP-9 PV-4112
+   (7.87 m on the west side of PR3, shifted off the VNT-4003 lane). The GAN BL bleed VNT-4007
+   now ends at 15.6 m (was 14.7 m), so its 5 m N2 zone clears VP-5.
+Open (14, kept as warnings; the build names each one's proposal):
+- **TSA switching valves** XV-2101A, XV-2102A/B, XV-2103A/B, XV-2111A on the adsorber top
+  piping (7.7 .. 8.8 m): every free-standing platform puts columns through the horizontal
+  adsorber shells or into the sieve change-out laydown Z-SIEVE, and the S-2101 vent zone
+  reaches the space between the vessels. A frame spanning the vessel with a small floor over
+  it reaches XV-2102A/B, but no stair position clears the top piping. The adsorber top piping
+  and its valve platforms go to the adsorber (TSA) supplier's arrangement.
+- **Tank boil-off valves** PV-4109 / PV-4110 (12.6 / 13.7 m on the west side of the tank
+  roofs): a platform there lies in the 5 m zone of the boil-off outlet itself. Needs the tank
+  supplier's west roof platform with the outlet raised to about 19 m (vent study, D-025).
+- **GOX / GAN battery limit**: XV-4118 (GOX ESD block on the riser at 10.6 m): the bypass
+  HV-4129 at 10.13 m runs across the only side a platform could take, and its stair would run
+  under it. XV-4119 (DBB block, handwheel 0.25 m north of the pipe at the PR1 edge), XV-4132
+  and the bleed valve XV-4133: in the 0.9 m between the GAN-4003 / GAN-4004 runs at 9.97 m and
+  the BL risers, with no stair position. These need the BL valve station re-arranged in the
+  piping layout (the operators turned to face VP-5, or the station dropped to grade south of
+  PR1, D-040 (6)).
+- **XV-3105** (off-spec GAN divert, on the VNT-4004 leg crossing PR1 at 9.9 m) and **PV-3110A**
+  (waste N2 vent, in the nest of the DN 600 / 700 WN-1001, WN-3002, WN-3003 lines north of the
+  cold box, where no column position clears them): need a PR1 rack walkway or the lines
+  re-arranged in detail engineering.
+Core: the stair proposed for a small valve platform topped out 2 .. 3 m off it, the next
+build gave a pinned platform's id to a new proposal, and `layout pin LINE` added a second pin
+for a segment pinned with its sheet; fixed in core feat/open-points (adac685).
+Result: operability 27 -> 14, 0 errors, 0 clashes, no new finding of any other rule. Take-off
+4,746 m pipe (+36 m: the two drops to grade), 376.9 t steel (+49.4 t: 9 platforms, 7 stairs,
+2 ladders), 508 m2 grating (+134 m2).
+
