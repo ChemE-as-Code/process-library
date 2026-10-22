@@ -1152,3 +1152,30 @@ stream links): they need the process simulation or the supplier and are not gues
 file keeps `draft: true`, so the detail-stage `datasheets` gate still fails, as it should: a
 datasheet with open values is not the detail deliverable.
 
+## D-043 Equipment estimate: published correlations escalated by a cited CEPCI (2026-10-22)
+Decision (amends D-035): the equipment is estimated by `plantcode assess equipment` from the
+correlations of Turton et al., Analysis, Synthesis, and Design of Chemical Processes, 5th ed.
+(2018), Appendix A (base CEPCI 397, 2001), escalated to the **2023 annual average CEPCI of
+797.9**: S. Jenkins, "2023 CEPCI annual average value decreases from previous year", Chemical
+Engineering, 25 March 2024 (chemengonline.com), the latest annual average the project could
+cite (`estimate/cost-basis.yaml`). Costs are in 2023 USD; a later index replaces it with its
+own citation. No size, material factor or bare module factor is invented: an item without
+one stays a finding.
+Coverage (`estimate/equipment-cost.md`, 39 items): bare module cost for 5 (C-1102 and the four
+LOX / LIN backup pumps, whose shaft power D-042 calculates), purchased cost only for 9 (C-1101
+'CS / SS packing', C-3101 / C-3102 aluminium, K-4101 'SS / Monel / copper alloys': no
+material factor; V-2101A/B horizontal vessels, KT-3101, T-4101 / T-4102: no bare module factor
+in the package data), not covered 25 (exchanger areas, the MAC / booster / GAN compressor fluid
+powers, the CW and chilled water pump powers not yet sized; the filters and the electric
+heater have no correlation; V-3101 12.6 m3 is below the fixed-roof tank range). Purchased
+equipment of the covered items USD 3.31 million, bare module of the 5 fully factored items USD
+2.20 million (2023). **Estimate class 5** (AACE International RP 18R-97: -20 % to -50 % low,
++30 % to +100 % high), and only for the items it covers.
+The bulk factor estimate of the take-off (`estimate/estimate.md`) still runs on the example
+rates of D-035 (`example: true`, currency XXX): it prices nothing until a cost engineer gives
+the unit rates with their source. Gate `mto` now also requires the equipment estimate to be
+current.
+Open: exchanger areas and machine powers (process simulation, suppliers), material and bare
+module factors for aluminium, Monel and the cold box (from the printed tables or quotations;
+the cold box is normally a vendor package quotation), the unit rates of the bulk estimate.
+
