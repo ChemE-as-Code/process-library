@@ -1421,4 +1421,15 @@ checked with `plantcode layout build` and `plantcode validate`, and committed on
    open tailpipe rises to 11.6 m, 3 m above the grating (ASSUMED, as for the other relief
    outlets beside walkways). No finding added (0 errors, the same warnings); take-off 577.0 t
    steel (-4.4 t), 498 m2 grating.
+3. **Rack bents out of road R2 (review7#2).** PR2 and PR3 had a bent 1 .. 1.5 m inside R2
+   (6 m spacing from their start at y 68), leaving about 4.4 m of the road. Each now has its
+   own bent spacing (`bent_spacing_m`, core fad8e7d): PR2 7.2 m (5 bays of 36 m), bents at
+   y 75.2 and 82.4; PR3 7.14 m (7 bays of 50 m), bents at y 75.1 and 82.3; R2 (y 75.5 ..
+   81.5) is spanned clear, as `layout-steel-in-way` (core fad8e7d) now confirms. The longer
+   bays are ASSUMED (the rack design sizes the beams); PR2's intermediate steel stays at
+   1.8 m, PR3's 8.5 m tier at 2.4 m, its 6.5 m tier (DN 100 and larger, 5.2 m and more) has
+   none, and no free span was added. LOX-3001 S1 drops off PR2 at y 101.225 (was 100.5, now
+   on an intermediate beam). The branch tray PT-M-P-4102B now crosses over the PR2 steel at
+   11.5 m, 9.7 m long (acceptance reason updated). Take-off 573.3 t steel (-3.7 t).
+   The new rule also reports the posts of review7 #3 .. #7 (16 findings), fixed below.
 
