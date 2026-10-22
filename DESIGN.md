@@ -1356,3 +1356,44 @@ is now supported and whose part off the rack has no support at all move from fre
 support-missing; D-049). Take-off 4,755 m pipe, 489 t steel (+112 t intermediate steel,
 582 members, 1,918 m), 513 m2 grating.
 
+## D-049 Pipe support steel off the racks (2026-10-22)
+Decision (review3#4, D-034 (6)). Every level run off the racks that spans farther than its
+DN's span (pipe-spans table, ASSUMED) gets the build's support proposals, declared in
+`pipe_supports` of `layout/structures.yaml`: 250 posts (T-posts from grade, HEB200 with a
+footing, ASSUMED; the stress engineer confirms each), pinned as proposed (234) or moved along
+the pipe where the proposed one stood in another pipe, an item, an access space or a lift lane
+(15 moved by 0.5 .. 2 m after building each shift and keeping the first that adds no finding;
+AIR-3005 S2 post-1 2.1 m east, out of the K-3101 lift lane from Z-PAD-A3S). LIN-3001 runs
+north at x 142.7 (0.6 m east of its 63a79fd route, D-048) so its posts stand clear of the
+CWR-3001 run under it; its first post stands inside the casing at the east sleeve. No
+proposal was pinned inside the cold box casing.
+Accepted (`checks/checks.yaml`, with the measured length in the reason): the 8 runs inside
+the perlite-filled casing (AIR-3002 S4, GAN-3001, LN-3001 S1 / S3, RL-3001 S1 / S2, WN-3001
+S2, WN-3002 S1), supported from the column and casing internal steel the cold box vendor
+designs with the internals; the LOX / LIN pump suctions LOX-4001 / LIN-4001 at 0.5 m on a
+concrete sleeper (below the 0.3 m top of steel from which posts are proposed).
+Open (kept as warnings and infos, each with what is in the way of the proposed post):
+- the GOX riser area at the battery limit: GOX-4002 S5 (7.6 m, DN 200) and S12 (22.3 m,
+  DN 80) run 0.5 m apart over VNT-4002 at x 180.3 .. 180.8: every post or stub stands in one of
+  the other two lines; a common T-post frame or brackets off VP-4 in the piping layout;
+- GOX-4001 on P-03 (18.6 m at 12.65 m north of the cold box): the post stands in AIR-2002;
+  UN-3001 on P-04 (7.0 m), GAN-4004 (6.2 m), CWR-4002 (5.4 m), CW-4001 (9.8 m) and CWR-1004
+  (11.7 m, the post stood in the P-1101B access space): posts land in the pipes below them;
+- LIN-4003 S1 (7.4 m, DN 25, at 8.1 m over T-4102), LIN-3001 S2 (4.2 m), LOX-3002 S1
+  (2.5 m, the post stood in V-3101), LOX-3001 on P-03 (2.6 m at the casing, 3.6 m on the PR1
+  top tier at the PR2 joint, where PR1's intermediate steel is cut for PR2's lanes).
+Core: support proposals were numbered from post-1 again after a post was pinned, so pinning
+one declared the id twice; fixed in core feat/open-points (e615eae).
+Result: free-span 21 -> 8, support-missing 77 -> 15 (10 accepted), 0 clashes, 0 errors.
+Take-off 4,757 m pipe, 581 t steel (+92.6 t support steel, 500 members, 1,510 m), 44.5 m3
+footings, 513 m2 grating.
+
+## D-050 Open after the open-points round (2026-10-22)
+- **PSV-3114 / PSV-3116 tailpipe guides** (review3#2): the guide off the relief valve
+  platform RV steel needs the relief reaction forces from the stress analysis (the relief
+  loads of the tailpipes on the roof steel); not modelled until those are known.
+- **KT-3101 expander casing extension** (layout#15): needs the cold box / compander vendor's
+  drawing; not modelled.
+- Operability: 14 valves (D-047); support: 8 free spans and 5 runs without support (D-049).
+- The layout-review gate is open: the next independent layout review covers D-046 .. D-049.
+
