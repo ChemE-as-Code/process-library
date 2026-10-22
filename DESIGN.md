@@ -1589,7 +1589,21 @@ Results and review against the design:
     ambient-air vaporizer is rated by its supplier. E-3102 / E-3103: duty, conditions and area
     TBD: they need the double-column internal balance.
 11. F-2101 operating conditions are S4's (S4 links the lines into and out of F-2101).
-Open (10 drafts, the datasheets gate stays failed, honestly): C-1101, C-1102, C-3101, C-3102
+Open (10 drafts, the datasheets gate stays failed): C-1101, C-1102, C-3101, C-3102
 (stages), E-3101 (area), E-3102, E-3103 (duty, area), E-4105A/B, E-4106A/B (duty, area). Their
 reasons are in each datasheet's notes (a later fill rewrites the TBD reasons with its own).
+
+## D-054 Equipment estimate coverage after the datasheet sizing (2026-10-23)
+Decision (amends D-043 / D-051 (1)): `plantcode assess equipment --write` rerun on the D-053
+datasheets. Coverage (39 items): bare module 3 (C-1102, P-4102A/B; unchanged), purchased cost
+only 22 (was 11: now also E-1101, E-1102, E-1103, E-3104, E-4101, E-4102, E-4103, K-4101,
+KT-3101 and P-1101A/B, P-1102A/B with their calculated areas and powers, no material or bare
+module factor for their mixed materials), not covered 14 (was 25). Purchased equipment of the
+covered items USD 4.00 million (was 3.31 million), bare module USD 2.10 million (unchanged), 2023
+USD, estimate class 5 as D-043, and only for the items it covers.
+Not covered, with the reason: K-1101 (5,778 kW gas power above the correlation's 450-3,000 kW;
+not extrapolated), K-3101 (161 kW) and K-4102 (229 kW) below it, E-3101 / E-3102 / E-3103 and
+the vaporizers E-4105A/B, E-4106A/B (no area, D-053), F-1101 / F-2101 / E-2101 (no correlation
+in the package data), V-3101 (12.6 m3 below the tank range). These need quotations (the cold
+box and the compander are normally vendor packages) or a correlation with a cited range.
 
