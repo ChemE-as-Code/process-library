@@ -1,7 +1,7 @@
 # ASU-1 flowsheet, seeded once from DESIGN.md section 3 (main-stream balance). From now on the
-# numbers live here; DESIGN.md keeps decisions and prose (`plantcode process streams --md`).
-# BFD and PFD: `plantcode process build` (never edit process/*.xml).
-schema: plantcode/process/v1
+# numbers live here; DESIGN.md keeps decisions and prose (`cheme process streams --md`).
+# BFD and PFD: `cheme process build` (never edit process/*.xml).
+schema: cheme/process/v1
 kind: flowsheet
 title: ASU-1 (500 t/d GOX)
 units:
@@ -258,7 +258,7 @@ streams:
         flow: {value: 98270, provenance: assumed, source: "DESIGN.md 3, stream 2"}
         pressure: {value: 5.8, provenance: assumed, source: "DESIGN.md 3, stream 2"}
         temperature: {value: 40, provenance: assumed, source: "DESIGN.md 3, stream 2"}
-        composition: {basis: mole_fraction, values: {N2: 0.7788, O2: 0.209, AR: 0.0093, H2O: 0.0025, CO2: 0.0004}, provenance: calculated, source: 'plantcode process propagate: pass-through K1101 from S1', fingerprint: 6d7d3d4c0a1de581}
+        composition: {basis: mole_fraction, values: {N2: 0.7788, O2: 0.209, AR: 0.0093, H2O: 0.0025, CO2: 0.0004}, provenance: calculated, source: 'cheme process propagate: pass-through K1101 from S1', fingerprint: 6d7d3d4c0a1de581}
   - id: S3
     title: Precooled air
     links: [{target: line, ref: AIR-1004, sheet: P-01}]
@@ -270,7 +270,7 @@ streams:
         flow: {value: 98270, provenance: assumed, source: "DESIGN.md 3, stream 3"}
         pressure: {value: 5.7, provenance: assumed, source: "DESIGN.md 3, stream 3"}
         temperature: {value: 12, provenance: assumed, source: "DESIGN.md 3, stream 3"}
-        composition: {basis: mole_fraction, values: {N2: 0.7788, O2: 0.209, AR: 0.0093, H2O: 0.0025, CO2: 0.0004}, provenance: calculated, source: 'plantcode process propagate: pass-through C1101 from S2', fingerprint: 76b3ff75449fd48c}
+        composition: {basis: mole_fraction, values: {N2: 0.7788, O2: 0.209, AR: 0.0093, H2O: 0.0025, CO2: 0.0004}, provenance: calculated, source: 'cheme process propagate: pass-through C1101 from S2', fingerprint: 76b3ff75449fd48c}
   - id: S4
     title: Dry air to cold box
     links:
@@ -287,10 +287,10 @@ streams:
         temperature: {value: 15, provenance: assumed, source: "DESIGN.md 3, stream 4"}
         composition: {basis: mole_fraction, values: {N2: 0.7811, O2: 0.2096, AR: 0.0093}, provenance: assumed, source: "ASSUMED (D-027): stream 3 with H2O and CO2 removed by the adsorbers (V-2101A/B), renormalised"}
         calculated:
-          molar_mass: {value: 28.9597, unit: kg/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: 1c8faf726644c98c}
-          density: {value: 6.79418, unit: kg/m3, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: 1c8faf726644c98c}
-          enthalpy: {value: -339.305, unit: kJ/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: 1c8faf726644c98c}
-        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: 1c8faf726644c98c}
+          molar_mass: {value: 28.9597, unit: kg/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: 1c8faf726644c98c}
+          density: {value: 6.79418, unit: kg/m3, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: 1c8faf726644c98c}
+          enthalpy: {value: -339.305, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: 1c8faf726644c98c}
+        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: 1c8faf726644c98c}
   # -- booster air (D-052): S4 splits at the AIR-3005 branch of AIR-2002; the booster K-3101
   # (braked by KT-3101) and its aftercooler E-3104 sit between the split and E-3101.
   - id: S4A
@@ -301,7 +301,7 @@ streams:
     state:
       design:
         flow: {value: 83190, provenance: assumed, source: "ASSUMED (D-027): = HP column feed S5 (E3101 only cools it)"}
-        composition: {basis: mole_fraction, values: {N2: 0.7811, O2: 0.2096, AR: 0.0093}, provenance: calculated, source: 'plantcode process propagate: splitter X3102 from S4', fingerprint: 5af5ba9102e58936}
+        composition: {basis: mole_fraction, values: {N2: 0.7811, O2: 0.2096, AR: 0.0093}, provenance: calculated, source: 'cheme process propagate: splitter X3102 from S4', fingerprint: 5af5ba9102e58936}
   - id: S4B
     title: Booster suction
     links: [{target: line, ref: AIR-3005, sheet: P-03}]
@@ -313,12 +313,12 @@ streams:
         flow: {value: 14870, provenance: assumed, source: "DESIGN.md 3, stream 6 (11,500 Nm3/h): the expander air, boosted first (D-003)"}
         pressure: {value: 5.6, provenance: assumed, source: "= S4 (DESIGN.md 3, stream 4); line list AIR-3005: 5.6 bara, 15 C"}
         temperature: {value: 15, provenance: assumed, source: "= S4 (DESIGN.md 3, stream 4); line list AIR-3005: 5.6 bara, 15 C"}
-        composition: {basis: mole_fraction, values: {N2: 0.7811, O2: 0.2096, AR: 0.0093}, provenance: calculated, source: 'plantcode process propagate: splitter X3102 from S4', fingerprint: 5af5ba9102e58936}
+        composition: {basis: mole_fraction, values: {N2: 0.7811, O2: 0.2096, AR: 0.0093}, provenance: calculated, source: 'cheme process propagate: splitter X3102 from S4', fingerprint: 5af5ba9102e58936}
         calculated:
-          molar_mass: {value: 28.9597, unit: kg/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: 1c8faf726644c98c}
-          density: {value: 6.79418, unit: kg/m3, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: 1c8faf726644c98c}
-          enthalpy: {value: -339.305, unit: kJ/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: 1c8faf726644c98c}
-        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: 1c8faf726644c98c}
+          molar_mass: {value: 28.9597, unit: kg/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: 1c8faf726644c98c}
+          density: {value: 6.79418, unit: kg/m3, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: 1c8faf726644c98c}
+          enthalpy: {value: -339.305, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: 1c8faf726644c98c}
+        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: 1c8faf726644c98c}
   - id: S4C
     title: Booster discharge
     links: [{target: line, ref: AIR-3002, sheet: P-03}]
@@ -329,8 +329,8 @@ streams:
       design:
         flow: {value: 14870, provenance: assumed, source: "= S4B"}
         pressure: {value: 8.0, provenance: assumed, source: "equipment list K-3101: 5.6 -> 8.0 bara; line list AIR-3002: 8.0 bara"}
-        temperature: {value: 54.6, provenance: assumed, source: "ASSUMED (D-053): booster discharge 327.7 K of equipment/datasheets/K-3101.yaml (plantcode datasheets fill, ideal gas, eta_s 0.80 ASSUMED)"}
-        composition: {basis: mole_fraction, values: {N2: 0.7811, O2: 0.2096, AR: 0.0093}, provenance: calculated, source: 'plantcode process propagate: pass-through K3101 from S4B', fingerprint: 147036c4c80282f9}
+        temperature: {value: 54.6, provenance: assumed, source: "ASSUMED (D-053): booster discharge 327.7 K of equipment/datasheets/K-3101.yaml (cheme datasheets fill, ideal gas, eta_s 0.80 ASSUMED)"}
+        composition: {basis: mole_fraction, values: {N2: 0.7811, O2: 0.2096, AR: 0.0093}, provenance: calculated, source: 'cheme process propagate: pass-through K3101 from S4B', fingerprint: 147036c4c80282f9}
   - id: S4D
     title: Boosted air to E-3101
     from: E3104.out
@@ -341,12 +341,12 @@ streams:
         flow: {value: 14870, provenance: assumed, source: "= S4B"}
         pressure: {value: 8.0, provenance: assumed, source: "ASSUMED (D-052): no pressure drop in E-3104; E-3101 takes it to 7.8 bara at the expander inlet (S5B)"}
         temperature: {value: 40, provenance: assumed, source: "ASSUMED (D-052): cooled to 40 C as the other aftercoolers (E-1103, E-4102, E-4103 in the equipment list), CW 25 -> 35 C (design basis)"}
-        composition: {basis: mole_fraction, values: {N2: 0.7811, O2: 0.2096, AR: 0.0093}, provenance: calculated, source: 'plantcode process propagate: pass-through E3104 from S4C', fingerprint: 673ca178f1f346c0}
+        composition: {basis: mole_fraction, values: {N2: 0.7811, O2: 0.2096, AR: 0.0093}, provenance: calculated, source: 'cheme process propagate: pass-through E3104 from S4C', fingerprint: 673ca178f1f346c0}
         calculated:
-          molar_mass: {value: 28.9597, unit: kg/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: aa4602e5626548a6}
-          density: {value: 8.92591, unit: kg/m3, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: aa4602e5626548a6}
-          enthalpy: {value: 378.479, unit: kJ/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: aa4602e5626548a6}
-        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: aa4602e5626548a6}
+          molar_mass: {value: 28.9597, unit: kg/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: aa4602e5626548a6}
+          density: {value: 8.92591, unit: kg/m3, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: aa4602e5626548a6}
+          enthalpy: {value: 378.479, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: aa4602e5626548a6}
+        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: aa4602e5626548a6}
   - id: S5
     title: HP column feed
     links: [{target: line, ref: AIR-3001, sheet: P-03}]
@@ -360,10 +360,10 @@ streams:
         temperature: {value: -173, provenance: assumed, source: "DESIGN.md 3, stream 5"}
         composition: {basis: mole_fraction, values: {N2: 0.7811, O2: 0.2096, AR: 0.0093}, provenance: assumed, source: "ASSUMED: as S4"}
         calculated:
-          molar_mass: {value: 28.9597, unit: kg/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: d985d08f875dbe35}
-          density: {value: 21.9379, unit: kg/m3, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: d985d08f875dbe35}
-          enthalpy: {value: -6024.46, unit: kJ/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: d985d08f875dbe35}
-        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: d985d08f875dbe35}
+          molar_mass: {value: 28.9597, unit: kg/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: d985d08f875dbe35}
+          density: {value: 21.9379, unit: kg/m3, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: d985d08f875dbe35}
+          enthalpy: {value: -6024.46, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: d985d08f875dbe35}
+        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: d985d08f875dbe35}
   - id: S5B
     title: Expander feed
     links: [{target: line, ref: AIR-3003, sheet: P-03}]
@@ -377,10 +377,10 @@ streams:
         temperature: {value: -118, provenance: assumed, source: "DESIGN.md 3 refrigeration (D-003): expander inlet design point -118 C; line list AIR-3003"}
         composition: {basis: mole_fraction, values: {N2: 0.7811, O2: 0.2096, AR: 0.0093}, provenance: assumed, source: "ASSUMED: as S4"}
         calculated:
-          molar_mass: {value: 28.9597, unit: kg/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: 8b253dab9225a3f8}
-          density: {value: 18.4626, unit: kg/m3, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: 8b253dab9225a3f8}
-          enthalpy: {value: -4349.44, unit: kJ/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: 8b253dab9225a3f8}
-        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: 8b253dab9225a3f8}
+          molar_mass: {value: 28.9597, unit: kg/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: 8b253dab9225a3f8}
+          density: {value: 18.4626, unit: kg/m3, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: 8b253dab9225a3f8}
+          enthalpy: {value: -4349.44, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: 8b253dab9225a3f8}
+        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: 8b253dab9225a3f8}
   - id: S6
     title: Lachmann air
     links: [{target: line, ref: AIR-3004, sheet: P-03}]
@@ -394,10 +394,10 @@ streams:
         temperature: {value: -178, provenance: assumed, source: "DESIGN.md 3, stream 6"}
         composition: {basis: mole_fraction, values: {N2: 0.7811, O2: 0.2096, AR: 0.0093}, provenance: assumed, source: "ASSUMED: as S4"}
         calculated:
-          molar_mass: {value: 28.9597, unit: kg/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: eebdc3e519084cfd}
-          density: {value: 5.11198, unit: kg/m3, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: eebdc3e519084cfd}
-          enthalpy: {value: -5961.93, unit: kJ/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: eebdc3e519084cfd}
-        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: eebdc3e519084cfd}
+          molar_mass: {value: 28.9597, unit: kg/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: eebdc3e519084cfd}
+          density: {value: 5.11198, unit: kg/m3, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: eebdc3e519084cfd}
+          enthalpy: {value: -5961.93, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: eebdc3e519084cfd}
+        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: eebdc3e519084cfd}
   - id: S13
     title: Crude oxygen
     links: [{target: line, ref: RL-3001, sheet: P-03}]
@@ -451,10 +451,10 @@ streams:
         temperature: {value: 25, provenance: assumed, source: "DESIGN.md 3, stream 12"}
         composition: {basis: mole_fraction, values: {N2: 0.9665, O2: 0.0209, AR: 0.0126}, provenance: assumed, source: "ASSUMED (D-027): cold-box component balance by difference (DESIGN.md 3: N2 96.7, O2 2.1, Ar 1.3 %)"}
         calculated:
-          molar_mass: {value: 28.2471, unit: kg/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: 81d5fa25c051633d}
-          density: {value: 1.3111, unit: kg/m3, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: 81d5fa25c051633d}
-          enthalpy: {value: -8.91112, unit: kJ/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: 81d5fa25c051633d}
-        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: 81d5fa25c051633d}
+          molar_mass: {value: 28.2471, unit: kg/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: 81d5fa25c051633d}
+          density: {value: 1.3111, unit: kg/m3, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: 81d5fa25c051633d}
+          enthalpy: {value: -8.91112, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: 81d5fa25c051633d}
+        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: 81d5fa25c051633d}
   - id: S7
     title: GOX product
     links: [{target: line, ref: GOX-4001, sheet: P-04}, {target: instrument, ref: FI-4148, sheet: P-04}]
@@ -468,10 +468,10 @@ streams:
         temperature: {value: 25, provenance: assumed, source: "DESIGN.md 3, stream 7"}
         composition: {basis: mole_fraction, values: {O2: 0.995, AR: 0.0045, N2: 0.0005}, provenance: assumed, source: "DESIGN.md 3, stream 7: O2 99.5 % (specification, D-001); rest Ar/N2 split ASSUMED (no argon column)"}
         calculated:
-          molar_mass: {value: 32.0326, unit: kg/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: e8c0732ff4fbd914}
-          density: {value: 1.48758, unit: kg/m3, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: e8c0732ff4fbd914}
-          enthalpy: {value: -10.8572, unit: kJ/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: e8c0732ff4fbd914}
-        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: e8c0732ff4fbd914}
+          molar_mass: {value: 32.0326, unit: kg/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: e8c0732ff4fbd914}
+          density: {value: 1.48758, unit: kg/m3, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: e8c0732ff4fbd914}
+          enthalpy: {value: -10.8572, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: e8c0732ff4fbd914}
+        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: e8c0732ff4fbd914}
   - id: S8
     title: GOX to pipeline
     links: [{target: line, ref: GOX-4002, sheet: P-04}, {target: instrument, ref: FQI-4149, sheet: P-04}]
@@ -485,10 +485,10 @@ streams:
         temperature: {value: 40, provenance: assumed, source: "DESIGN.md 3, stream 8"}
         composition: {basis: mole_fraction, values: {O2: 0.995, AR: 0.0045, N2: 0.0005}, provenance: assumed, source: "= stream 7 (DESIGN.md 3: O2 99.5 %)"}
         calculated:
-          molar_mass: {value: 32.0326, unit: kg/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: c19dd22243d654eb}
-          density: {value: 38.9548, unit: kg/m3, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: c19dd22243d654eb}
-          enthalpy: {value: 178.868, unit: kJ/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: c19dd22243d654eb}
-        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: c19dd22243d654eb}
+          molar_mass: {value: 32.0326, unit: kg/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: c19dd22243d654eb}
+          density: {value: 38.9548, unit: kg/m3, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: c19dd22243d654eb}
+          enthalpy: {value: 178.868, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: c19dd22243d654eb}
+        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: c19dd22243d654eb}
   - id: S9
     title: GAN product
     links: [{target: line, ref: GAN-4001, sheet: P-04}, {target: instrument, ref: AIA-3105, sheet: P-04}]
@@ -502,10 +502,10 @@ streams:
         temperature: {value: 25, provenance: assumed, source: "DESIGN.md 3, stream 9"}
         composition: {basis: mole_fraction, values: {N2: 0.99990, O2: 0.00001, AR: 0.00009}, provenance: assumed, source: "DESIGN.md 3, stream 9 / D-004: O2 <= 10 ppm (specification); Ar ASSUMED"}
         calculated:
-          molar_mass: {value: 28.0145, unit: kg/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: 1bb662473f848c51}
-          density: {value: 5.88982, unit: kg/m3, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: 1bb662473f848c51}
-          enthalpy: {value: -39.7153, unit: kJ/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: 1bb662473f848c51}
-        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: 1bb662473f848c51}
+          molar_mass: {value: 28.0145, unit: kg/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: 1bb662473f848c51}
+          density: {value: 5.88982, unit: kg/m3, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: 1bb662473f848c51}
+          enthalpy: {value: -39.7153, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: 1bb662473f848c51}
+        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: 1bb662473f848c51}
   - id: S9B
     title: GAN to battery limit
     links: [{target: line, ref: GAN-4002, sheet: P-04}, {target: instrument, ref: FIC-4105, sheet: P-04}]
@@ -519,10 +519,10 @@ streams:
         temperature: {value: 40, provenance: assumed, source: "DESIGN.md 3, stream 9"}
         composition: {basis: mole_fraction, values: {N2: 0.99990, O2: 0.00001, AR: 0.00009}, provenance: assumed, source: "= stream 9"}
         calculated:
-          molar_mass: {value: 28.0145, unit: kg/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: b07c5d5f29c4dba2}
-          density: {value: 9.70856, unit: kg/m3, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: b07c5d5f29c4dba2}
-          enthalpy: {value: 375.419, unit: kJ/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: b07c5d5f29c4dba2}
-        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: b07c5d5f29c4dba2}
+          molar_mass: {value: 28.0145, unit: kg/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: b07c5d5f29c4dba2}
+          density: {value: 9.70856, unit: kg/m3, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: b07c5d5f29c4dba2}
+          enthalpy: {value: 375.419, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: b07c5d5f29c4dba2}
+        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: b07c5d5f29c4dba2}
   - id: S10
     title: LOX to storage
     links: [{target: line, ref: LOX-3001, sheet: P-03}]
@@ -559,7 +559,7 @@ streams:
       design:
         flow: {value: 16350, provenance: assumed, source: "DESIGN.md 3, stream 12a"}
         pressure: {value: 1.1, provenance: assumed, source: "DESIGN.md 3, stream 12a"}
-        composition: {basis: mole_fraction, values: {N2: 0.9665, O2: 0.0209, AR: 0.0126}, provenance: calculated, source: 'plantcode process propagate: splitter X3101 from S17', fingerprint: 72aa244b08611e5b}
+        composition: {basis: mole_fraction, values: {N2: 0.9665, O2: 0.0209, AR: 0.0126}, provenance: calculated, source: 'cheme process propagate: splitter X3101 from S17', fingerprint: 72aa244b08611e5b}
   - id: S12H
     title: Hot regeneration gas
     links: [{target: line, ref: RG-2002, sheet: P-02}]
@@ -570,7 +570,7 @@ streams:
       design:
         flow: {value: 16350, provenance: assumed, source: "DESIGN.md 3, stream 12a"}
         temperature: {value: 200, provenance: assumed, source: "DESIGN.md 3, stream 12a (heating)"}
-        composition: {basis: mole_fraction, values: {N2: 0.9665, O2: 0.0209, AR: 0.0126}, provenance: calculated, source: 'plantcode process propagate: pass-through E2101 from S12A', fingerprint: 74ae5fb7e05e6729}
+        composition: {basis: mole_fraction, values: {N2: 0.9665, O2: 0.0209, AR: 0.0126}, provenance: calculated, source: 'cheme process propagate: pass-through E2101 from S12A', fingerprint: 74ae5fb7e05e6729}
   - id: S12B
     title: Waste N2 to evaporative cooler
     links: [{target: line, ref: WN-1001, sheet: P-01}]
@@ -582,12 +582,12 @@ streams:
         flow: {value: 31450, provenance: assumed, source: "DESIGN.md 3, stream 12b"}
         pressure: {value: 1.05, provenance: assumed, source: "DESIGN.md 3, stream 12b"}
         temperature: {value: 25, provenance: assumed, source: "DESIGN.md 3, stream 12b"}
-        composition: {basis: mole_fraction, values: {N2: 0.9665, O2: 0.0209, AR: 0.0126}, provenance: calculated, source: 'plantcode process propagate: splitter X3101 from S17', fingerprint: 72aa244b08611e5b}
+        composition: {basis: mole_fraction, values: {N2: 0.9665, O2: 0.0209, AR: 0.0126}, provenance: calculated, source: 'cheme process propagate: splitter X3101 from S17', fingerprint: 72aa244b08611e5b}
         calculated:
-          molar_mass: {value: 28.2471, unit: kg/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: e69c3bee5966ee82}
-          density: {value: 1.19703, unit: kg/m3, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: e69c3bee5966ee82}
-          enthalpy: {value: -8.13749, unit: kJ/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: e69c3bee5966ee82}
-        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: e69c3bee5966ee82}
+          molar_mass: {value: 28.2471, unit: kg/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: e69c3bee5966ee82}
+          density: {value: 1.19703, unit: kg/m3, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: e69c3bee5966ee82}
+          enthalpy: {value: -8.13749, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: e69c3bee5966ee82}
+        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: e69c3bee5966ee82}
   - id: S12C
     title: Waste N2 vent
     links: [{target: line, ref: WN-3003, sheet: P-03}]
@@ -599,12 +599,12 @@ streams:
         flow: {value: 15950, provenance: assumed, source: "ASSUMED (D-027): remainder of S17 after 12a and 12b (DESIGN.md 3 had 15,730)"}
         pressure: {value: 1.02, provenance: assumed, source: "DESIGN.md 3, stream 12c"}
         temperature: {value: 25, provenance: assumed, source: "DESIGN.md 3, stream 12c"}
-        composition: {basis: mole_fraction, values: {N2: 0.9665, O2: 0.0209, AR: 0.0126}, provenance: calculated, source: 'plantcode process propagate: splitter X3101 from S17', fingerprint: 72aa244b08611e5b}
+        composition: {basis: mole_fraction, values: {N2: 0.9665, O2: 0.0209, AR: 0.0126}, provenance: calculated, source: 'cheme process propagate: splitter X3101 from S17', fingerprint: 72aa244b08611e5b}
         calculated:
-          molar_mass: {value: 28.2471, unit: kg/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: 70d06bb2a4fdbefa}
-          density: {value: 1.16282, unit: kg/m3, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: 70d06bb2a4fdbefa}
-          enthalpy: {value: -7.90536, unit: kJ/kmol, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: 70d06bb2a4fdbefa}
-        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'plantcode process props: thermo 0.6.1, PR', fingerprint: 70d06bb2a4fdbefa}
+          molar_mass: {value: 28.2471, unit: kg/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: 70d06bb2a4fdbefa}
+          density: {value: 1.16282, unit: kg/m3, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: 70d06bb2a4fdbefa}
+          enthalpy: {value: -7.90536, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: 70d06bb2a4fdbefa}
+        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR', fingerprint: 70d06bb2a4fdbefa}
   - id: S12D
     title: Regeneration gas out (with water and CO2 removed)
     links: [{target: line, ref: RG-2003, sheet: P-02}]
@@ -624,7 +624,7 @@ streams:
     state:
       design:
         flow: {value: 31450, provenance: assumed, source: "= stream 12b (water uptake not stated)"}
-        composition: {basis: mole_fraction, values: {N2: 0.9665, O2: 0.0209, AR: 0.0126}, provenance: calculated, source: 'plantcode process propagate: pass-through C1102 from S12B', fingerprint: 39de410e6651ae6e}
+        composition: {basis: mole_fraction, values: {N2: 0.9665, O2: 0.0209, AR: 0.0126}, provenance: calculated, source: 'cheme process propagate: pass-through C1102 from S12B', fingerprint: 39de410e6651ae6e}
   # Energy streams of the utilities (POWER, CW).
   - id: E1
     title: MAC motor

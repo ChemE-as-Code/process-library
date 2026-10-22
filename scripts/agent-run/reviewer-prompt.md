@@ -11,11 +11,11 @@ ${TASK}
 Stage result (Claude Code JSON, tail):
 ${RESULT}
 
-Check: `plantcode status`, `plantcode validate` (and `--fail-on warning`, saying which warnings
-are expected for later sheets), `plantcode fmt --check`, `git log` / `plantcode diff main --list`
+Check: `cheme status`, `cheme validate` (and `--fail-on warning`, saying which warnings
+are expected for later sheets), `cheme fmt --check`, `git log` / `cheme diff main --list`
 of the stage, the YAML lists against the sheets, DESIGN.md decisions and numbers (sanity-check
-the main balances), `plantcode check --stage ${TARGET}`, and for P&ID stages render each new or
-changed sheet to PNG (`plantcode render --png`, `--crop` on dense areas) and READ the images:
+the main balances), `cheme check --stage ${TARGET}`, and for P&ID stages render each new or
+changed sheet to PNG (`cheme render --png`, `--crop` on dense areas) and READ the images:
 say only what you saw.
 
 Write two things:

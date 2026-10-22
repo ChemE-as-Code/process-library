@@ -1,6 +1,6 @@
 ---
 name: process-design
-description: Write the block flow diagram, process flow diagram, materials and stream table as YAML (process/materials.yaml, process/flowsheet.yaml), generate the BFD/PFD sheets with plantcode process build, check balances, fill stream properties, link to the lists and pin the layout. Use at the concept stage before any P&ID, and whenever a stream value, block or step changes.
+description: Write the block flow diagram, process flow diagram, materials and stream table as YAML (process/materials.yaml, process/flowsheet.yaml), generate the BFD/PFD sheets with cheme process build, check balances, fill stream properties, link to the lists and pin the layout. Use at the concept stage before any P&ID, and whenever a stream value, block or step changes.
 ---
 
 # Process design
@@ -8,16 +8,16 @@ description: Write the block flow diagram, process flow diagram, materials and s
 ## Purpose and when to use
 
 The source of truth is YAML; the BFD and PFD sheets are generated from it. Never edit
-`process/BFD.xml` or `process/PFD.xml`: `plantcode validate` reports
-`plantcode.generated-edited` (error) for a hand edit, `plantcode.generated-outdated` (warning)
-when the YAML changed since the last build and `plantcode.generated-version` (warning) after a
-plantcode upgrade. The fix for all three is `plantcode process build`.
+`process/BFD.xml` or `process/PFD.xml`: `cheme validate` reports
+`cheme.generated-edited` (error) for a hand edit, `cheme.generated-outdated` (warning)
+when the YAML changed since the last build and `cheme.generated-version` (warning) after a
+cheme-as-code upgrade. The fix for all three is `cheme process build`.
 
 Use it at the concept stage before any P&ID, and whenever a stream value, block or step changes.
 
 ## Required inputs and missing inputs
 
-| file | kind (`plantcode schema <kind>`) | holds |
+| file | kind (`cheme schema <kind>`) | holds |
 |---|---|---|
 | `process/materials.yaml` | `process-materials` | components, templates, the property method |
 | `process/flowsheet.yaml` | `process-flowsheet` | units, cases, tolerance, feeds, products, blocks, steps, streams, layout |
@@ -45,7 +45,7 @@ templates:
 ```
 
 Every stream names a `template`; its composition may only use the template's components
-(`plantcode.process-template`, `process-component`).
+(`cheme.process-template`, `process-component`).
 
 ### 3. The BFD: feeds, products, blocks, streams
 
@@ -72,7 +72,7 @@ Every stream names a `template`; its composition may only use the template's com
   ```
 
   `provenance` is `given` (needs a `source`: a document, a decision id), `assumed` (a guess:
-  also say why in `DESIGN.md`) or `calculated` (written by plantcode, never by hand). A value
+  also say why in `DESIGN.md`) or `calculated` (written by cheme-as-code, never by hand). A value
   without its own `unit` is in `units:`; pressure is absolute, a gauge value needs its own unit
   (`kPa(g)`), `Nm3/h` needs `units.normal_conditions`. Energy streams (`kind: energy`) carry a
   `duty`. Further cases (`cases:`) get their own `state` entries.
@@ -84,17 +84,17 @@ Every stream names a `template`; its composition may only use the template's com
 
 Then:
 
-1. `plantcode process build`, then `plantcode render process/BFD.xml --png` and look at it.
-2. `plantcode validate`. Fix every `plantcode.process-*` error (each names the YAML line).
+1. `cheme process build`, then `cheme render process/BFD.xml --png` and look at it.
+2. `cheme validate`. Fix every `cheme.process-*` error (each names the YAML line).
    Balances: each block's mass flow in and out must agree within `tolerance` (`|in - out| <= abs
-   + rel * max(in, out)`); `plantcode.process-balance` names the block and both sums.
+   + rel * max(in, out)`); `cheme.process-balance` names the block and both sums.
    `process-balance-not-evaluable` (info) names the missing values of the mass balance (flows,
    or a composition needed to convert a mole or volume flow); the concept gate
    `process-balances` fails on it, so give every boundary stream a flow (`assumed`, with the
    reason, where nothing better is known). `process-component-balance-not-evaluable` (info):
    the mass balance closes but compositions are missing; the concept gate accepts it, the basic
    gate `process-basic` does not, so add the compositions before basic engineering.
-3. `plantcode process streams` prints the stream table with a provenance letter per value
+3. `cheme process streams` prints the stream table with a provenance letter per value
    (G/A/C) and the balance of every block; `--md`, `--csv`, `--json`, `--case`.
 
 ### 4. Refine into the PFD
@@ -102,37 +102,42 @@ Then:
 Add `steps`, each in a `block`, with `ports` like a block's. A stream that crosses the block
 boundary **keeps its id**: move its end from `BLOCK.port` to `STEP.port` and give that step
 port `delegates: <block port>`. Streams between steps of one block are internal: drawn on the
-PFD only, never counted in the block's balance. `plantcode.process-refine-pending` (info) lists
+PFD only, never counted in the block's balance. `cheme.process-refine-pending` (info) lists
 block ports still used directly once a block has steps; `process-port-open` a port nothing uses.
 Add `{id: PFD, kind: pfd, ...}` to `plant.yaml` and build again; the BFD stays the same and so do
-its balances (compare `plantcode process streams` before and after). Steps check their own
+its balances (compare `cheme process streams` before and after). Steps check their own
 balance where their streams have flows.
 
 A large block can hold **nested blocks**: give a block `parent: P`. The PFD draws it inside P
 (with its own steps); the BFD shows only top-level blocks. Where a stream crosses P's boundary
 from inside the nested block, chain the delegation: the step port `delegates` the nested
 block's port, and that port `delegates: <port of P>`. A stream from the nested block to one of
-P's steps needs no delegation to P. `plantcode.process-delegation` names the port in the chain
+P's steps needs no delegation to P. `cheme.process-delegation` names the port in the chain
 that delegates nothing; a balance of P counts everything inside it. See
-`examples/process-nested/` in the plantcode repository.
+`examples/process-nested/` in the cheme-as-code repository.
 
 ### 5. Properties
 
-Type compositions and flows only where they are design inputs; `plantcode process propagate
+Type compositions and flows only where they are design inputs; `cheme process propagate
 --fill` derives the rest through steps their streams determine (by class): pass-through
 (`Compressing`, `Pumping`, `Cooling`, heating, `Filtering`, transporting, flow control, and
 `ExchangingThermalEnergy` with one material stream in and one out) keeps composition and flow;
 `Mixing` sums the mass flows and mixes the compositions; `SplittingMaterial` keeps the
 composition and splits the flow by `split: {outlet port: fraction}` on the step (else the one
 missing outlet flow is the mass balance remainder). Separators and reactors are never solved
-(`plantcode.process-propagate-not-solved` lists their streams lacking values): give those
-values yourself. Derived values are `calculated` with source `plantcode process propagate: ...`
+(`cheme.process-propagate-not-solved` lists their streams lacking values): give those
+values yourself. Derived values are `calculated` with source `cheme process propagate: ...`
 and a fingerprint; never edit them by hand (give the value as `assumed` instead, which propagate
 never overwrites), and rerun `--fill` when `validate` reports them stale. A component balance
 that becomes evaluable and fails is a design finding: correct the assumed values, and record it
 in `DESIGN.md`. Run propagate before `props --fill`.
 
-`plantcode process props --fill` (plantcode installed with the `props` extra) writes `phase` and
+`cheme process simulate --fill` solves the whole flowsheet in DWSIM, separators, exchangers,
+columns and recycles included, from the feeds and the specs in `process/simulation.yaml`; see
+the skill `process-simulation`. It writes what propagate cannot (temperatures, pressures, the
+outlets of separators) and reports where an assumed value contradicts the energy balance.
+
+`cheme process props --fill` (cheme-as-code installed with the `props` extra) writes `phase` and
 `calculated: {molar_mass, density, enthalpy}` with provenance `calculated`, a source and an
 input fingerprint, and records the method and package versions in `materials.yaml`. It never
 overwrites given or assumed values. The method is validated for N2/O2/Ar only: 77 to 315 K;
@@ -146,9 +151,9 @@ kij; liquid density COSTALD; enthalpy on ideal gas at 298.15 K, which needs
   refusal is usually a design finding: the stated temperature and pressure do not give that
   phase. Record it in `DESIGN.md`; do not change the numbers to make it pass. `--fill` exits 3
   when it refused a stream and names them on the summary line.
-- After an input changes, `validate` reports `plantcode.process-calculated-stale` until `--fill`
+- After an input changes, `validate` reports `cheme.process-calculated-stale` until `--fill`
   recalculates; a refused recalculation keeps the old values and they stay stale.
-- `plantcode process build` exports the calculated values and phase into the BFD/PFD stream
+- `cheme process build` exports the calculated values and phase into the BFD/PFD stream
   material states (density, specific enthalpy per kg, phases; molar mass as a description
   line). Stale values are left out of the sheets (the description names them): run `--fill`,
   then `build`, before handing a sheet on.
@@ -175,14 +180,14 @@ link in the same commit (skill `lists-sync`).
 ### 7. Layout
 
 The layout is generated (layers left to right, recycles routed back). To keep positions:
-`plantcode process layout --view bfd --pin` (or `--view pfd`, optionally only some ids) writes
+`cheme process layout --view bfd --pin` (or `--view pfd`, optionally only some ids) writes
 them into `layout.bfd` / `layout.pfd` of `flowsheet.yaml`, keyed by object id; later builds keep
 them, and you move a node by editing its numbers. A title rename moves nothing; a changed id is
 a new object and loses its pin.
 
 ## Validation and failure handling
 
-Run `plantcode validate` and fix every `plantcode.process-*` error. A failing balance or a refused
+Run `cheme validate` and fix every `cheme.process-*` error. A failing balance or a refused
 phase is a design finding: record it in `DESIGN.md`; do not change the numbers to make it pass.
 
 ## Outputs and provenance
@@ -191,19 +196,19 @@ phase is a design finding: record it in `DESIGN.md`; do not change the numbers t
 
 `DESIGN.md` keeps decisions and their reasons (`D-0xx`) and cites them as `source:`; the numbers
 live in the YAML only. Replace any hand-written stream table with
-`plantcode process streams --md` output, marked as generated, or a pointer to it. The P&IDs start
+`cheme process streams --md` output, marked as generated, or a pointer to it. The P&IDs start
 from the PFD (skill `pid-draft`): every step becomes equipment, every stream a line, and each gets
 its link back.
 
-Commit the YAML and the regenerated sheets together; `plantcode validate` must be clean.
+Commit the YAML and the regenerated sheets together; `cheme validate` must be clean.
 
 ## Required human judgment
 
 Separator and reactor values, assumed values and the decisions (`D-0xx`) in `DESIGN.md` are
-design choices: plantcode checks them but does not make them.
+design choices: cheme-as-code checks them but does not make them.
 
 ## References
 
-- `plantcode schema process-materials`, `plantcode schema process-flowsheet`
+- `cheme schema process-materials`, `cheme schema process-flowsheet`
 - skills `lists-sync` and `pid-draft`
-- `examples/process-nested/` in the plantcode repository
+- `examples/process-nested/` in the cheme-as-code repository

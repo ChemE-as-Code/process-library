@@ -2,7 +2,7 @@
 
 A repeatable way to let coding agents design this plant in stages, each followed by an
 independent reviewer agent. The full description, record layout and budget guidance are in
-plantcode's `docs/agent-design-run.md`.
+cheme-as-code's `docs/agent-design-run.md`.
 
 1. Write the plant specification into `spec.md`; adjust `stages.json` (stage id, target stage of
    `plant.yaml`, task, budgets).
@@ -17,9 +17,9 @@ plantcode's `docs/agent-design-run.md`.
    The runner uses the standard library only and runs on any python3 from 3.9 (macOS's
    `/usr/bin/python3`); `uv run python scripts/agent-run/run_stage.py ...` works too.
 4. A human merges the stage branch after reading the review; signs off with
-   `plantcode check --stage <stage> --write --review reviews/<record>.md`.
+   `cheme check --stage <stage> --write --review reviews/<record>.md`.
 
-The prompt's `THIS STAGE` comes from `plantcode status --json` (sheets already drawn are never
+The prompt's `THIS STAGE` comes from `cheme status --json` (sheets already drawn are never
 assigned again; failing gates), `FIX FIRST` from the previous review's `carry_over` and the open
 review findings. Outputs go to `build/agent-run/<stage>/`: `prompt.txt`, `launch.json`,
 `result.json`, `stderr.log`, and the reviewer's `review.json`.
