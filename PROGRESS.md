@@ -4,6 +4,7 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-10-23 | piping/routing.yaml, layout/structures.yaml, layout/plant-model.yaml, estimate/*, DESIGN.md D-051 (5) | GOX-4002 S1 turns north at x 173.5, west of crane pad Z-PAD-A4, its post on the new leg; pad clear of pipe and steel; 1 steel-in-way finding closed, none added | review7#4 |
 | 2026-10-23 | layout/structures.yaml, piping/routing.yaml, layout/plant-model.yaml, estimate/*, DESIGN.md D-051 (4) | RG-2002 S3 post out of Z-SIEVE (y 39.0); GAN-4003 S3 along y 117 with two new posts, out of Z-LAYDOWN-A5N and Z-LAD-PR3; AIR-3003 S1 post at the bend east of K-3101; 4 steel-in-way findings closed, none added | review7#5, #7 |
 | 2026-10-23 | layout/site-plan.yaml, piping/routing.yaml, checks/checks.yaml, layout/plant-model.yaml, estimate/*, DESIGN.md D-051 (3) | PR2 / PR3 bent spacing 7.2 / 7.14 m so their bents stand either side of road R2; LOX-3001 S1 drop moved off a PR2 intermediate beam; PT-M-P-4102B acceptance quotes 9.7 m; rebuilt with core fad8e7d (steel-in-way rule): 0 errors, 16 support-post findings to fix; 573.3 t steel | review7#2 |
 | 2026-10-23 | piping/routing.yaml, layout/structures.yaml, layout/plant-model.yaml, estimate/*, DESIGN.md D-051 (2) | PSV-4127 tee on GOX-4004 moved to y 89.5 so PV-4111 stands north of road R2 beside PV-4112; VP-8 and its stair removed from R2, VP-9 lengthened to 4.5 m serving both; PSV-4127 tailpipe to 11.6 m; no finding added; 577.0 t steel | review7#1 (high) |

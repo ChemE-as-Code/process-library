@@ -1442,4 +1442,10 @@ checked with `plantcode layout build` and `plantcode validate`, and committed on
    east of K-3101 (x 134.5): its crossbar had reached 0.35 m into the K-3101 package, and
    west of the package stands KT-3101 on the same skid; the 6.0 m to the riser is within the
    DN 150 gas span (6.4 m, ASSUMED table). 4 steel-in-way findings closed, none added.
+5. **GOX-4002 S1 off the crane pad Z-PAD-A4 (review7#4).** The pinned S1 from E-4102 ran east
+   at y 32.44 over the north-west corner of the K-4101 pad (x 174 .. 184, y 23 .. 35) at
+   3.6 m, and its post stood on the pad. It now leaves the open east side of FW-4101 to
+   x 173.5, turns north there, 0.4 m west of the pad, and runs east along y 37 to the same
+   end; its one post is the build's proposal on the new north leg (x 173.5, y 34.87), off
+   the pad. The 10 x 12 m pad is whole again for the K-4101 lift. Length unchanged.
 
