@@ -108,15 +108,15 @@ the cost of O2 recovery (D-017).
 
 | consumer | power / duty | basis |
 |---|---|---|
-| K-1101 MAC | 8.0 MW electric | 0.105 kWh/Nm3 air, 5.8 bara (ASSUMED) |
-| K-4101 GOX compressor | 2.3 MW electric | isothermal 1.48 MW / 0.65 (ASSUMED) |
-| K-4102 GAN compressor | 0.3 MW electric | 5.2 -> 9 bara, 1 stage (ASSUMED) |
+| K-1101 MAC | 6.14 MW electric (5.81 MW shaft) | simulated, D-057: 3 stages, 5.8 bara; motor 8.0 MW (rating) |
+| K-4101 GOX compressor | 2.33 MW electric (2.21 MW shaft) | simulated, D-057: 4 stages to 31 bara |
+| K-4102 GAN compressor | 0.25 MW electric (0.23 MW shaft) | simulated, D-057: 5.2 -> 9 bara, 1 stage |
 | E-2101 regeneration heater | 1.0 MW electric (peak) | 16,350 kg/h x 1.04 kJ/kgK x 185 K, ~1/3 of cycle |
 | pumps, chiller water, misc. | 0.3 MW electric | ASSUMED |
-| **total electric** | **~11.9 MW (average ~11.2 MW)** | 6.6 kV |
-| cooling water | ~10.5 MW, ~900 m3/h at 10 K | MAC 7.6, DCAC 0.6, GOX comp 2.2, GAN comp 0.3 MW (ASSUMED) |
+| **total electric** | **~10.0 MW (average ~9.4 MW)** | 6.6 kV (D-057; was ~11.9 / ~11.2) |
+| cooling water | ~8.7 MW, ~750 m3/h at 10 K | MAC 5.57, DCAC 0.79, GOX comp 2.17, GAN comp 0.18 MW (simulated, D-057) |
 
-Specific energy: ~0.71 kWh per Nm3 GOX delivered at 30 barg (MAC + GOX compressor).
+Specific energy: ~0.58 kWh per Nm3 GOX delivered at 30 barg (MAC + GOX compressor; D-057, was ~0.71).
 
 The utilities of this table are the energy streams of `process/flowsheet.yaml` (feed POWER,
 product CW; electric heater at its cycle average), which the LCA reads (`lca/`,
@@ -1805,3 +1805,34 @@ Rejected:
 - Substitution as the default: it needs real data for the avoided GAN, LOX and LIN, which come
   with the licensed database.
 
+## D-057 Energy consumption from the DWSIM simulation (2026-10-23)
+Decision: the energy consumption of the compressors and the cooling-water duties they and the
+DCAC reject are the simulated values (`cheme process simulate`, DWSIM 9.0.5, Peng-Robinson,
+`process/simulation.yaml`), no longer the section 3 estimates. The flowsheet's energy streams
+E1, E4, E5 (power) and Q1 to Q4 (cooling water) are `calculated`; E2 (DCAC pumps, chilled water,
+miscellaneous) and E3 (regeneration heater) stay ASSUMED, they are not simulated. The motor
+ratings do not change: K-1101 keeps its 8.0 MW, 6.6 kV motor (equipment list, electrical list,
+datasheet, the 30 t lift of D-055).
+| consumer | was (ASSUMED) | now (simulated) | basis |
+|---|---|---|---|
+| K-1101 MAC | 8.0 MW electric | 6,144 kW electric, 5,812 kW shaft | 3 stages, isentropic 0.82 per stage, intercooled to 40 C, 0.05 bar per cooler; drive 0.946 (motor 0.97 x gear and bearings 0.975) |
+| K-4101 GOX compressor | 2.3 MW electric | 2,331 kW electric, 2,205 kW shaft | 4 stages, 0.78, to 40 C; drive 0.946 |
+| K-4102 GAN compressor | 0.3 MW electric | 248 kW electric, 228 kW shaft | 1 stage, 0.80, aftercooler to 40 C; drive 0.92 |
+| cooling water, MAC | 7.6 MW | 5,570 kW | inter- and aftercoolers |
+| cooling water, DCAC | 0.6 MW | 793 kW | 40 -> 12 C at 5.7 bara |
+| cooling water, GOX and GAN compressors | 2.2 / 0.3 MW | 2,171 / 176 kW | |
+Totals: electric ~10.0 MW peak, ~9.4 MW average (was ~11.9 / ~11.2); cooling water ~8.7 MW,
+~750 m3/h at 10 K (was ~10.5 MW, ~900 m3/h), plus the motor and gear losses (~0.5 MW) to their
+oil and air coolers. Specific energy (MAC + GOX compressor): ~0.58 kWh per Nm3 GOX at 30 barg
+(was ~0.71).
+Reason: the 8.0 MW was a benchmark (0.105 kWh/Nm3 air) without a machine behind it; D-053's
+datasheet sizing found 5,778 kW gas power / 5,957 kW shaft for the same MAC, and the DWSIM
+simulation now gives 5,812 kW: two independent calculations agree within 3 %, the benchmark is
+26 % above them. The GOX compressor confirms its estimate (2,331 against 2,300 kW). Electric
+power, not shaft power, is what the utility balance and the LCA use, so each machine carries a
+drive efficiency (ASSUMED until the vendor's motor and gear data). The motor rating stays: it
+covers D-018's 90 % recovery case (more air) and the IGV range, and a smaller motor would ripple
+into the electrical list, cable sizing and the lifting study for a margin the vendor decides.
+Open: the humidity of S1 (D-053 (1): 0.25 mol% against the design basis 80 % RH) changes the
+MAC coolers' duty by ~0.9 MW once reconciled; the vendor's efficiencies replace the ASSUMED
+0.78 to 0.82. Rerun `cheme process simulate --fill` after either.
