@@ -1448,4 +1448,11 @@ checked with `plantcode layout build` and `plantcode validate`, and committed on
    x 173.5, turns north there, 0.4 m west of the pad, and runs east along y 37 to the same
    end; its one post is the build's proposal on the new north leg (x 173.5, y 34.87), off
    the pad. The 10 x 12 m pad is whole again for the K-4101 lift. Length unchanged.
+6. **LOX-3002 S1 posts clear of the LD0 / LD1 ladders (review7#3).** The route stays at
+   y 49.25 (HV-3118 on it is worked from P10, 0.55 m away), and the three posts move:
+   post-1 to x 128.4, east of LD1 (its crossbar had entered the LD1 cage 2.1 m above P10),
+   post-2 to x 126.3 and post-3 to x 124.3, so the spans are 2.1 / 2.0 / 1.8 m (DN 25 liquid
+   2.1 m, ASSUMED table). Nothing stands between the ladders now; the nearest column, post-2,
+   is 0.28 m outside the LD0 cage on its north side, below P10 where LD0 ends, and 1.05 m from
+   its rails. Section build/layout-section-y49.25_crop-120-0-134-16.png.
 
