@@ -881,3 +881,95 @@ Reason: the gate hvac needs every clad building ventilated, and the layout must 
 duct, unit and louvre space now.
 Open: heat load calculation, cooling of the control and switchgear rooms, recirculation,
 dampers, fans and noise.
+
+## D-038 Layout changes for the fourth layout review: casing access, tank vents, valves, trays, buildings (2026-10-22)
+Decision (reviews/2026-10-22-layout-review4.md #1-#11; amends D-025 (vent of VNT-4004),
+D-029 (3), D-030 (1), D-032, D-033 (6), D-034, D-036 and D-037; every value ASSUMED):
+(1) **Nobody stands inside the cold box casing** (review4#1). The access platforms P10, P20,
+P30, P40 (1.5 m wide) are cantilevered outside the north casing face (frame extent y 9.2 ..
+10.7, outside the 0.2 m wall), where the lines, valves and instruments leave the casing. A
+stacked stair ST1 .. ST5 stands outside them at their east end (x 134.7 .. 140.5) from grade
+to every platform and to the roof landing RF-out (53 m, outside the wall), which joins the
+casing roof walkway RF and the relief valve platform RV; caged ladders LD0 .. LD4 at their west
+end (offset 1 m between flights) are the second way down from every platform and the roof.
+The stair and the RF-out landing were pinned from the build's proposals. The old platforms
+inside the casing, the east stair tower that met none of them and the ladders inside the
+casing are gone. The escape route Z-ESC-CB1 starts at the foot of ST1 at the north-east corner
+and runs along the east casing face to the south road. E20 stays the steel support deck of
+E-3102 inside the casing, no access level (finding layout-access-enclosed accepted with that
+reason in checks.yaml).
+(2) **Tank vents and relief outlets away from the tank stairs** (review4#2). On T-4101 and
+T-4102 the boil-off vent / vacuum breaker nozzle N2 is on the west side of the roof (2.8 / 3.1 m
+off centre) and the relief valve nozzle N3 (PSV-4123 / PSV-4124) on the west shell at the top
+(angle 180 deg), opposite the spiral stair, its landing and the roof platform on the east side;
+a vents rule for VNT-4001 / VNT-4005 raises the outlets until their zones clear every walking
+level. No outlet is under a walking surface and no layout-vent-outlet finding remains.
+(3) **No valve inside the casing that cannot be worked** (review4#3). The warm compander
+piping stands outside the casing in a valve station east of K-3101 at 1 m: the booster
+discharge AIR-3002 tees for PSV-3119 (T1, its air tailpipe to 3.5 m) and for the anti-surge
+recycle AIR-3006 (T2, UV-3120 beside it), the check valve on the line into the casing; the
+booster suction AIR-3005 branches off AIR-2002 outside the north casing face and runs round
+the east face at 8.25 m to the booster, so no warm air line crosses the perlite (all pinned in
+piping/routing.yaml). E-3101 moved 1.1 m south (y 41.4) with its expander feed N10 low on the
+south end: XV-3117 stands just outside the south wall at 1.5 m, in the expander's casing
+extension (review layout#15, still not modelled), on AIR-3003 between the skid and the wall.
+E-3102 moved to the north end of E20 with the rich liquid and LN outlets on its north face:
+the JT valves LV-3101 and FV-3106 (extended bonnets) stand 0.4 m inside the north wall at the
+access hatch H1 (enclosure opening `kind: hatch`, 20.3 .. 21.5 m), worked from P20 outside.
+The warm-end nozzles of E-3101 were rearranged so GOX-4001 leaves north without crossing the
+GAN-4001 riser. No layout-operability finding inside the casing remains.
+(4) **Vents and trays** (review4#4): the off-spec GAN divert VNT-4004 (the whole GAN-4001 flow)
+goes to the vent area V1 as D-025 places it, on the PR1 top tier (lane y 69.5) and the PR3
+8.5 m tier (lane x 182.6), outlet riser at [189, 116.5] to 12 m; D-029 (3) keeps only the small
+vents at their items. The GOX battery limit bleed VNT-4006 rises 8 m to 17.1 m (pinned at the
+BL tee, the GOX-4002 run pinned as built) so its 5 m zone stays clear of the PR1 trays at 11 m
+and 16 m off the east road. The tray rules keep the default `avoid_zones` (oxygen-enriched,
+hazardous). The LOX pump motor trays end inside the pumps' own seal zone Z-O2-SEALS: stainless
+last tray length, halogen-free armoured cable with a non-combustible sheath, metal glands, no
+PVC or grease (accepted). Oxygen-deficient zones are no cable hazard and are not avoided.
+(5) **The large MV motors are not fed by tray over their items** (review4#5, review3#1): the
+GOX compressor motor cable runs on the PR1 power tray to a cable pit under the rack at x 169
+and from there ~40 m in a covered trench south to the open east side of FW-4101 and the motor
+terminal box (electrical list feeder K-4101-MV; the trench length is not in the schedule's
+185 m and is added in detail design), out of the K-4101 lift lane, which FW-4101 alone now
+blocks (the vertical lift over the wall, D-034 (4)). The 8 MW MAC motor is fed from SWG-1
+through the B2 cable cellar and a 2 m covered trench into the B1 floor trench (~25 m), no
+tray over the B1 roof or through its roller door (the motor is `skip`ped in the tray model with
+that reason). Branch trays off the racks (to the other motors, the heater, the junction boxes
+and B2's room exits) are carried on cable-ladder posts and brackets at no more than 3 m; the
+model holds no tray support steel off the racks (layout-tray-span accepted with that reason).
+(6) **B2 beside B1** (review4#6): B1 is `use: compressor`, B2 `use: substation`; the 15 m of the
+building spacing table is replaced by a declared separation (site-plan.yaml, 2 m): the two face
+each other only over x 36 .. 38, B2's south wall is a REI 120 masonry fire wall without doors
+or louvres (D1 and the switchgear roller door D2 moved to the north wall, the AHU-2 louvres to
+the east and north walls), the MAC house holds no flammable gas, and its noise (~85 dB(A)
+inside) is reduced by its cladding and the masonry wall to below the control room limit. A
+fire and noise assessment confirms it in detail engineering.
+(7) **Transformer yard** (review4#10): TR-1 (16 MVA) and TR-2 (2.5 MVA) stand in bunded bays
+west of B2 (zones Z-TR1 / Z-TR2, x 13 .. 19), separated by the fire wall FW-TR (REI 120, 5 m),
+with B2's west wall REI 90 behind them and the low-loader access from the west road R4; the
+switchgear delivery door moved off that face.
+(8) **Crane pad of the LOX vaporizers** (review4#7): Z-PAD-A5 moved off PR2 to open ground south
+of E-4105A/B (x 157 .. 177, y 83 .. 91, reach 20 m); the backup GOX lines GOX-4004 rise in the
+gaps beside the vaporizers and join north of them, so nothing crosses the lift lanes; no
+layout-pad-overlap and no vaporizer lifting finding remain. A pad Z-PAD-A4N south of the GAN
+compressor K-4102 replaces the lift over PR1 (its lane is now crossed only by the motor's own
+feed tray, a removable tray section for the lifting study).
+(9) **LOX pump discharge** (review4#9): LOX-4002 runs level at 4.0 m (the vaporizer inlet
+height) from the pumps under PR2 to E-4105A/B, without the 9.6 m run over open ground and its
+two high points.
+(10) The casing breather zone Z-N2-CASING is centred at the breather on the 53 m roof
+([127, 46, 53.5], review4#8). (11) The B1 roof title gives the 40 t crane (review4#11).
+Reason: the fourth, independent layout review found the cold box access inside the perlite,
+the tank relief and vent outlets at the generated tank stairs, valves inside the casing, a
+large N2 vent and the GOX bleed zone at the rack trays, an MV tray over a 45 t lift and a crane
+pad on a rack; the improved plantcode rules (access in casings, connected stairs, walking
+surfaces of tanks, hatches, trays in lift lanes and zones, building spacing, pad overlap) now
+see them, and the fixes above clear them.
+Result: validate 0 errors, 0 clashes; no escape, access, vent-outlet, building-spacing or
+pad-overlap finding; layout findings left: 8 lifting cases for the lifting study (review3#5),
+71 operability (review3#3), 23 free spans and 69 missing supports (review3#4); gates concept
+and basic pass except layout-review (a new independent review is needed).
+Open: the expander casing extension (layout#15), the trench routes in the cable schedule,
+tray support details, the B1 / B2 fire and noise assessment, transformer oil quantities and
+fire protection.

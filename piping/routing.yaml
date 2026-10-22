@@ -31,10 +31,13 @@ rules:
     # PSV-3114 / PSV-3116 tailpipes from the relief valve platform RV on the cold box roof
     - {lines: [VNT-3002, VNT-3003], max_rise_m: 8}
     # GOX / GAN battery limit bleeds: above the PR1 top tier (9 m) and clear of grade
-    - {lines: [VNT-4006], rise_m: 5, max_rise_m: 10}
     - {lines: [VNT-4007], rise_m: 9, max_rise_m: 12}
     # the drain vaporizer vent, the evaporative cooler top vent (above its top platform)
     - {lines: [VNT-3001, WN-1002], max_rise_m: 10}
+    # the LOX / LIN tank boil-off vents, vacuum breakers and relief tailpipes on the west side
+    # of the tank roofs: risers clear of the stair, landing and roof platform (D-038 (2))
+    - {lines: [VNT-4001, VNT-4005], max_rise_m: 8}
+    - {lines: [VNT-4006], rise_m: 5, max_rise_m: 10}
 lines:
   # internals of the stacked double column: E-3103 sits in the C-3102 sump on top of C-3101
   - {line: GAN-3002, skip: "internal of the double column: HP top vapour rises straight into the condenser E-3103 in the C-3102 sump (D-028)"}
@@ -43,6 +46,68 @@ lines:
   # pinned and moved south of the compander skid (y 33.6 instead of 35.06 over KT-3101), clear
   # of the rotor lift (review 2026-10-21-layout-rereview#6, D-033 (5))
   - {line: CW-3001, segment: Line_CW3001_S1, route: [[30, 68.062, 5.084], [132.137, 68.062, 5.084], [132.137, 68.062, 3.916], [132.137, 49.062, 3.916], [129.137, 49.062, 3.916], [129.137, 48.062, 3.916], [125.5, 48.062, 3.916], [125.5, 33.6, 3.916], [130.137, 33.6, 3.916], [130.137, 31.684, 3.916], [132.637, 31.684, 3.916], [132.637, 31.684, 0.229], [132.137, 31.684, 0.229], [132.137, 30.5, 0.229], [132.137, 30.5, 0.566]]}
+  # ---- compander warm valve station east of K-3101, outside the casing (D-038 (3),
+  # review4#3): the booster discharge tees for PSV-3119 (T1) and the anti-surge recycle (T2),
+  # the check valve and UV-3120 stand at grade level east of the skid; the booster suction
+  # AIR-3005 branches off AIR-2002 outside the north casing face (TA) and runs round the east
+  # face at 8.25 m, so no warm air line crosses the perlite
+  - {line: AIR-3002, segment: Line_AIR3002_S2, route: [[134.213, 30.5, 2.06], [134.213, 30.5, 2.3], [136.2, 30.5, 2.3], [136.2, 30.5, 1.0], [136.2, 32.5, 1.0]]}
+  - {line: AIR-3002, segment: Line_AIR3002_S3, route: [[136.2, 32.5, 1.0], [136.2, 34.5, 1.0]]}
+  # PSV-3119 on the T1 branch, its air tailpipe up to 3.5 m
+  - {line: AIR-3002, segment: Line_AIR3002_S5, route: [[136.2, 32.5, 1.0], [136.2, 32.5, 1.5]]}
+  - {line: AIR-3002, segment: Line_AIR3002_S6, route: [[136.2, 32.5, 1.5], [136.2, 32.5, 3.5]]}
+  # into the casing at 9 m through the south face between the bracing diagonals
+  - {line: AIR-3002, segment: Line_AIR3002_S4, route: [[136.2, 34.5, 1.0], [136.2, 37.0, 1.0], [136.2, 37.0, 9.0], [136.2, 44.4, 9.0], [133.9, 44.4, 9.0], [133.9, 43.6, 9.0], [133.9, 43.6, 8.26]]}
+  - {line: AIR-3006, segment: Line_AIR3006_S1, route: [[136.2, 34.5, 1.0], [138.8, 34.5, 1.0], [138.8, 34.5, 4.5]]}
+  - {line: AIR-3005, segment: Line_AIR3005_S1, route: [[133.414, 48.2, 8.254], [142.6, 48.2, 8.254], [142.6, 34.5, 8.254], [138.8, 34.5, 8.254], [138.8, 34.5, 4.5]]}
+  - {line: AIR-3005, segment: Line_AIR3005_S2, route: [[138.8, 34.5, 4.5], [138.8, 33.2, 4.5], [131.3, 33.2, 4.5], [131.3, 35.8, 4.5], [131.3, 35.8, 3.0]]}
+  # expander feed AIR-3003 out of the south casing face low: XV-3117 just outside the wall at
+  # 1.5 m, then between the skid and the wall onto the KT-3101 inlet (D-038 (3))
+  - {line: AIR-3003, segment: Line_AIR3003_S1, route: [[134.5, 38.766, 1.5], [134.5, 37.55, 1.5], [128.5, 37.55, 1.5], [128.5, 37.55, 3.6], [128.5, 35.8, 3.6], [128.5, 35.8, 3.0]]}
+  # rich liquid and LN from the E-3102 north face to the casing hatch H1 (LV-3101, FV-3106
+  # 0.4 m inside the north wall, worked from P20), then up along the wall to C-3102 (D-038 (3))
+  - {line: RL-3001, segment: Line_RL3001_S2, route: [[138.0, 45.257, 20.5], [138.0, 46.6, 20.5], [138.0, 46.6, 35.82], [131.6, 46.6, 35.82], [131.6, 42.5, 35.82], [131.307, 42.5, 35.82]]}
+  - {line: LN-3001, segment: Line_LN3001_S2, route: [[138.6, 45.257, 20.5], [138.6, 45.8, 20.5]]}
+  - {line: LN-3001, segment: Line_LN3001_S3, route: [[138.6, 45.8, 20.5], [138.6, 46.6, 20.5], [138.6, 46.6, 44.027], [131.6, 46.6, 44.027], [131.6, 42.5, 44.027], [131.307, 42.5, 44.027]]}
+  # off-spec GAN divert VNT-4004 (XV-3105, the whole GAN-4001 flow): a large vent, taken to the
+  # vent area V1 as D-025 places it, on the PR1 top tier (lane y 69.5) and the PR3 8.5 m tier
+  # (lane x 182.6), outlet riser at the east side of V1 at 12 m (D-038 (4), review4#4)
+  - {line: VNT-4004, segment: Line_VNT4004_S1, route: [[135.727, 64.794, 9.136], [135.727, 64.794, 9.9], [135.727, 69.5, 9.9], [135.727, 69.5, 9.084], [182.6, 69.5, 9.084], [182.6, 69.5, 8.584], [182.6, 116.5, 8.584], [189.0, 116.5, 8.584], [189.0, 116.5, 12.0]]}
+  # LOX pump discharge header to the vaporizers level at 4.0 m (the vaporizer inlet height),
+  # under PR2 and south of the LIN pumps: no high points or pockets in the LOX line, no run
+  # across open ground at 9.6 m (D-038 (9), review4#9)
+  - {line: LOX-4002, segment: Line_LOX4002_S1, route: [[121.84, 101.496, 1.4], [121.84, 101.496, 4.0], [126.794, 101.496, 4.0]]}
+  - {line: LOX-4002, segment: Line_LOX4002_S2, route: [[126.84, 101.496, 1.4], [126.84, 101.496, 1.7], [126.794, 101.496, 1.7], [126.794, 101.496, 4.0]]}
+  - {line: LOX-4002, segment: Line_LOX4002_S3, route: [[126.794, 101.496, 4.0], [128.794, 101.496, 4.0]]}
+  - {line: LOX-4002, segment: Line_LOX4002_S4, route: [[128.794, 101.496, 4.0], [130.794, 101.496, 4.0]]}
+  - {line: LOX-4002, segment: Line_LOX4002_S5, route: [[130.794, 101.496, 4.0], [139.0, 101.496, 4.0], [139.0, 95.0, 4.0], [162.5, 95.0, 4.0]]}
+  - {line: LOX-4002, segment: Line_LOX4002_S6, route: [[162.5, 95.0, 4.0], [163.32, 95.0, 4.0]]}
+  - {line: LOX-4002, segment: Line_LOX4002_S7, route: [[162.5, 95.0, 4.0], [162.5, 97.5, 4.0], [168.0, 97.5, 4.0], [168.0, 95.0, 4.0], [168.32, 95.0, 4.0]]}
+  # GOX BL bleed VNT-4006 at the battery limit tee on the PR1 top tier, 8 m up to 17.1 m: its
+  # 5 m zone stays clear of the PR1 trays at 11 m and 16 m off the east road (D-033 (3),
+  # D-038 (4), review4#4); the tee stays at x 171 with the BL leg pinned
+  # GOX-4002 from E-4102 up the east side and along the PR1 edge to the BL, pinned as built at
+  # 13e07b4 (the DBB valves and bleed bypass at y 64.16 / 63.66), so the bleed tee stays put
+  - {line: GOX-4002, segment: Line_GOX4002_S1, route: [[170.0, 32.0, 2.5], [170.0, 32.438, 2.5], [170.0, 32.438, 3.61], [177.3, 32.438, 3.61], [177.3, 37.0, 3.61], [177.3, 37.0, 2.26]]}
+  - {line: GOX-4002, segment: Line_GOX4002_S2, route: [[180.3, 37.0, 2.26], [180.3, 37.0, 9.818]]}
+  - {line: GOX-4002, segment: Line_GOX4002_S3, route: [[180.3, 37.0, 9.818], [180.3, 37.0, 10.129], [180.3, 44.247, 10.129]]}
+  - {line: GOX-4002, segment: Line_GOX4002_S4, route: [[180.3, 44.247, 10.129], [180.3, 51.805, 10.129]]}
+  - {line: GOX-4002, segment: Line_GOX4002_S5, route: [[180.3, 51.805, 10.129], [180.3, 59.363, 10.129]]}
+  - {line: GOX-4002, segment: Line_GOX4002_S6, route: [[180.3, 59.363, 10.129], [180.3, 64.16, 10.129], [180.3, 64.16, 9.11], [178.558, 64.16, 9.11]]}
+  - {line: GOX-4002, segment: Line_GOX4002_S7, route: [[178.558, 64.16, 9.11], [176.393, 64.16, 9.11]]}
+  - {line: GOX-4002, segment: Line_GOX4002_S8, route: [[176.393, 64.16, 9.11], [174.393, 64.16, 9.11]]}
+  - {line: GOX-4002, segment: Line_GOX4002_S9, route: [[174.393, 64.16, 9.11], [172.393, 64.16, 9.11]]}
+  - {line: GOX-4002, segment: Line_GOX4002_S10, route: [[172.393, 64.16, 9.11], [171.0, 64.16, 9.11]]}
+  - {line: GOX-4002, segment: Line_GOX4002_S11, route: [[171.0, 64.16, 9.11], [171.0, 63.2, 9.11], [171.0, 63.2, 9.5]]}
+  - {line: GOX-4002, segment: Line_GOX4002_S12, route: [[180.3, 44.247, 10.129], [180.3, 44.247, 9.552], [180.8, 44.247, 9.552], [180.8, 44.247, 10.552], [180.8, 68.247, 10.552], [180.634, 68.247, 10.552], [180.634, 68.384, 10.552], [180.634, 68.384, 8.544], [180.634, 71.737, 8.544], [180.634, 71.737, 8.584]]}
+  - {line: GOX-4002, segment: Line_GOX4002_S13, route: [[180.3, 59.363, 10.129], [178.8, 59.363, 10.129], [178.8, 64.363, 10.129], [178.558, 64.363, 10.129], [178.558, 64.16, 10.129], [178.558, 64.16, 9.11]]}
+  - {line: GOX-4002, segment: Line_GOX4002_S14, route: [[174.393, 64.16, 9.11], [174.393, 63.66, 9.11], [172.393, 63.66, 9.11], [172.393, 64.16, 9.11]]}
+  - {line: VNT-4006, segment: Line_VNT4006_S1, route: [[171.0, 64.16, 9.11], [171.0, 64.16, 17.11]]}
+  # backup GOX from the vaporizers: risers in the gaps beside E-4105A/B, joined north of them
+  # at 9.5 m, so nothing crosses over E-4105B in its lift lane from Z-PAD-A5 (D-038 (8))
+  - {line: GOX-4004, segment: Line_GOX4004_S1, route: [[166.707, 95.0, 4.0], [167.3, 95.0, 4.0], [167.3, 95.0, 9.471], [167.3, 99.0, 9.471], [172.3, 99.0, 9.471]]}
+  - {line: GOX-4004, segment: Line_GOX4004_S2, route: [[171.707, 95.0, 4.0], [172.3, 95.0, 4.0], [172.3, 95.0, 9.471], [172.3, 99.0, 9.471]]}
+  - {line: GOX-4004, segment: Line_GOX4004_S3, route: [[172.3, 99.0, 9.471], [181.358, 99.0, 9.471], [181.358, 99.0, 8.557], [181.358, 79.723, 8.557]]}
   # MAC interstage to E-1102: east first at y 35.5, then north onto the shell top, so nothing
   # runs over the E-1102 bundle pull west of its channel (review 2026-10-21-layout#12, D-033 (5))
   - {line: AIR-1006, segment: Line_AIR1006_S1, route: [[47, 33, 3], [47, 35.5, 3], [47, 35.5, 3.856], [55.62, 35.5, 3.856], [55.62, 42, 3.856], [55.62, 42, 2.8]]}

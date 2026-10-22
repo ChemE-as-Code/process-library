@@ -6,9 +6,10 @@ buildings:
     origin: [36, 22]
     width: 36
     depth: 26
+    use: compressor
     levels:
-      - {id: L0, title: "Grade floor (compressor on block foundation, coolers beside it)", elevation: 0, height: 12, kind: floor}
-      - {id: RF, title: "Roof (overhead crane runway below, 32 t ASSUMED)", elevation: 12, kind: roof}
+      - {id: L0, title: "Grade floor (compressor on block foundation, coolers beside it; MV cable trench to K-1101 from B2)", elevation: 0, height: 12, kind: floor}
+      - {id: RF, title: "Roof (overhead crane runway below, 40 t ASSUMED)", elevation: 12, kind: roof}
     frame:
       grid_x: [0, 6, 12, 18, 24, 30, 36]
       grid_y: [0, 13, 26]
@@ -40,6 +41,7 @@ buildings:
     origin: [20, 50]
     width: 18
     depth: 10
+    use: substation
     levels:
       - {id: L0, title: "Ground floor on a 1.2 m cable cellar (not modelled)", elevation: 0, height: 5, kind: floor}
       - {id: RF, title: "Roof", elevation: 5, kind: roof}
@@ -48,20 +50,26 @@ buildings:
       grid_y: [0, 10]
     walls: all
     wall_material: cladding
+    # the south wall facing B1 (2 m away over x 36 .. 38) is a REI 120 masonry fire wall without
+    # doors or louvres (site-plan separation B2-B1, D-038 (6)); the doors face north and east,
+    # away from the MAC house; the west wall behind the transformer yard is REI 90 (D-038 (7))
     openings:
-      - {id: D1, side: south, offset: 2, width: 1.2, height: 2.2, kind: door}           # control room entrance / escape
-      - {id: D2, side: west, offset: 3, width: 2.4, height: 3.0, kind: roller_door}     # switchgear delivery
+      - {id: D1, side: north, offset: 11, width: 1.2, height: 2.2, kind: door}          # control room entrance / escape
+      - {id: D2, side: north, offset: 14.6, width: 2.4, height: 3.0, kind: roller_door} # switchgear delivery from the central road R2, west of PR1
       - {id: D3, side: east, offset: 6, width: 1.2, height: 2.2, kind: door}            # MCC room escape, towards the plant
-      # AHU-2 louvres (layout/hvac.yaml, D-037): intake at the north end of the east wall,
-      # exhaust in the south wall above the unit, 8 m apart
-      - {id: LV1, side: east, offset: 7.5, width: 2.4, height: 1.5, sill: 3.0, kind: louvre}
-      - {id: LV2, side: south, offset: 15.4, width: 2.4, height: 1.5, sill: 3.0, kind: louvre}
+      # AHU-2 louvres (layout/hvac.yaml, D-037): intake at the south end of the east wall
+      # beside the unit, exhaust at the east end of the north wall, round the corner
+      - {id: LV1, side: east, offset: 0.5, width: 2.4, height: 1.5, sill: 3.0, kind: louvre}
+      - {id: LV2, side: north, offset: 0.5, width: 2.4, height: 1.5, sill: 3.0, kind: louvre}
 notes: >-
   Only the MAC train is housed (noise ~85 dB(A) at 1 m, weather protection, crane for rotor and
   bundle pulls). The GOX compressor K-4101 stays in the open behind its fire wall FW-4101 (layout/structures.yaml)
   so that an O2 fire vents to atmosphere and nobody works in an enclosed room around it (D-012, D-026).
   Two personnel doors on opposite sides (S2, E3) give two ways out. The substation and control
   building B2 stands at the upwind west end of PR1, north of the MAC house and 120 m from the
-  nearest O2 vent: the 6.6 kV MAC motor is fed close by, the cables run to the plant on PR1, and
-  no oxygen-enriched or inert zone reaches the occupied control room (D-036). Its transformers
-  stand outdoors on its west side (not modelled).
+  nearest O2 vent: the 6.6 kV MAC motor is fed close by (cable cellar and trench into B1), the
+  other cables run to the plant on PR1, and no oxygen-enriched or inert zone reaches the occupied
+  control room (D-036). B2 is 2 m from B1 behind its REI 120 south wall (declared separation,
+  D-038 (6)). Its transformers TR-1 / TR-2 stand in the transformer yard on its west side
+  (zones Z-TR1 / Z-TR2 with oil bunds, fire wall FW-TR between them, access from the west road
+  R4; D-038 (7)).
