@@ -96,6 +96,7 @@ This repository is a process plant design. The files are the design; there is no
 | `plantcode process propagate --fill \| --check [--case C]` | compositions and flows through pass-through steps, mixers and splitters (`split:` fractions); separators and reactors only checked; never overwrites given or assumed values; `--check` writes nothing |
 | `plantcode process props --fill \| --check [--case C]` | phase, molar mass, density, enthalpy (extra `props`), inside the validated range only; never overwrites given or assumed values; `--check` writes nothing |
 | `plantcode process layout [IDS...] [--view bfd\|pfd] [--pin]` | the generated positions; `--pin` writes them into `layout.<view>` of `flowsheet.yaml` |
+| `plantcode assess lca [--csv \| --inventory \| --json] [--write \| --check]` | the LCA of the operation per functional unit: the flowsheet's feeds and products (POWER and CW as energy streams) in the case of `lca/lca.yaml`, allocated between co-products, characterised with `lca/factors.yaml`; `--write` into `lca/` |
 | `plantcode fragment KIND --id ID [--sheet F] ...` | ready-to-paste XML, a CONCEPTUAL and a DRAWING part each saying where it goes; KIND `valve`, `tee`, `node`, `pipe`, `segment`, `line`, `label`, `equipment`, `nozzle`, `instrument`, `signal`, `offpage`, `note`, `shape` (`plantcode fragment --help`, skill `dexpi-xml`) |
 
 ## YAML files and their schema kind
@@ -112,6 +113,8 @@ This repository is a process plant design. The files are the design; there is no
 | `control/cause-effect.yaml` | `interlocks` (id, cause tag and condition, effects with actions, sheet, sil): every trip, instead of literal sheet text |
 | `piping/special-items.yaml` (optional) | `piping_items` (tag, type, line, sheet, set_pressure_barg, relief_case: safety valves, silencers) |
 | `checks/checks.yaml` | `checks` |
+| `lca/lca.yaml` | `lca` (goal and scope of the LCA: functional unit, case, allocation, categories, and the background of each feed, product and emitted component) |
+| `lca/factors.yaml` | `lca_factors` (characterised factors, each with status, source, year and licence; still the example) |
 | `equipment/datasheets/<TAG>.yaml` | `datasheet` (one per equipment item: conditions, materials, sizing basis, `assumed` values) |
 | `reviews/<date>-<topic>.md` front matter | `review` (topic, reviewed_commit, scope, reviewer, reviewer_kind) |
 | `checks/status.json` (generated) | `status` |
