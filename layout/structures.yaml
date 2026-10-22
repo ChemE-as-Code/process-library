@@ -131,8 +131,10 @@ structures:
   # structural and piping detail design confirms them). The routes of the valves' lines are
   # pinned in piping/routing.yaml, so the valves stay where the platforms reach them.
   # waste N2 vent valve PV-3110B on WN-3003 at the cold box: floor 5.6 m (handwheel 7.4 m),
-  # extended west so its ladder stands 1.2 m clear of the CW-3001 riser
-  - {id: VP-1, title: "valve access platform for PV-3110B", origin: [131.0, 60.3], spans_x: [1.95], spans_y: [2.0], levels: [{id: P1, elevation: 5.6, kind: platform, use: occasional}], ladders: [{id: ladder-to-P1, from: grade, to: P1, at: [0.4, 0.4], facing: north}], serves: [P-03/PV3110B]}
+  # extended west so its ladder stands clear of the CW-3001 riser; the caged ladder stands
+  # outside the south edge (0.2 m off it) with a through exit and a self-closing gate in the
+  # handrail (ISO 14122-4, ASSUMED), not through the floor (review7#9, D-051 (8))
+  - {id: VP-1, title: "valve access platform for PV-3110B", origin: [131.0, 60.3], spans_x: [1.95], spans_y: [2.0], levels: [{id: P1, elevation: 5.6, kind: platform, use: occasional}], ladders: [{id: ladder-to-P1, from: grade, to: P1, at: [0.4, -0.2], facing: south}], serves: [P-03/PV3110B]}
   # GOX vent valve PV-4101B on the PR1 south edge: cut to 1.6 m so its columns stay south of the
   # UN-3001 lane
   - {id: VP-2, title: "valve access platform for PV-4101B", origin: [155.42, 63.77], spans_x: [1.2], spans_y: [1.6], levels: [{id: P1, elevation: 10.16, kind: platform, use: occasional}], stairs: [{id: stair-to-P1, from: grade, to: P1, side: east, offset: -4.236}], serves: [P-04/PV4101B]}
@@ -144,8 +146,10 @@ structures:
   # GOX battery limit: the DBB bypass valve HV-4130
   - {id: VP-5, title: "valve access platform for HV-4130", origin: [172.39, 62.34], spans_x: [2.0], spans_y: [1.2], levels: [{id: P1, elevation: 8.35, kind: platform, use: occasional}], stairs: [{id: stair-to-P1, from: grade, to: P1, side: east, offset: -4.217}], serves: [P-04/HV4130]}
   # GAN battery limit: the ESD valve XV-4134 and the bleed valve XV-4135 on the risers, floor
-  # 5.9 m (handwheels 7.4 / 7.5 m) with a caged ladder (was proposed at 6.33 m with a stair)
-  - {id: VP-6, title: "valve access platform for XV-4134, XV-4135", origin: [170.22, 61.15], spans_x: [1.26], spans_y: [1.5], levels: [{id: P1, elevation: 5.9, kind: platform, use: occasional}], ladders: [{id: ladder-to-P1, from: grade, to: P1, at: [0.4, 0.4], facing: south}], serves: [P-04/XV4134, P-04/XV4135]}
+  # 5.9 m (handwheels 7.4 / 7.5 m) with a caged ladder (was proposed at 6.33 m with a stair),
+  # outside the south edge with a through exit and a self-closing gate (ISO 14122-4, ASSUMED),
+  # so its cage takes none of the 1.26 x 1.5 m floor (review7#9, D-051 (8))
+  - {id: VP-6, title: "valve access platform for XV-4134, XV-4135", origin: [170.22, 61.15], spans_x: [1.26], spans_y: [1.5], levels: [{id: P1, elevation: 5.9, kind: platform, use: occasional}], ladders: [{id: ladder-to-P1, from: grade, to: P1, at: [0.4, -0.2], facing: south}], serves: [P-04/XV4134, P-04/XV4135]}
   # GOX compressor anti-surge valve UV-4103 on the recycle GOX-4003
   - {id: VP-7, title: "valve access platform for UV-4103", origin: [182.37, 35.12], spans_x: [2.0], spans_y: [1.2], levels: [{id: P1, elevation: 9.51, kind: platform, use: occasional}], stairs: [{id: stair-to-P1, from: grade, to: P1, side: east, offset: -4.678}], serves: [P-04/UV4103]}
   # PR3 backup GOX / GAN pressure valves PV-4111 / PV-4112, west of the rack (shifted 0.3 m west
@@ -245,9 +249,12 @@ pipe_supports:
   - {id: P-03/Line_LOX3002_S1/post-2, kind: t_post, at: [126.3, 49.25], top: 12.183, from: grade, width: 1, rotation_deg: 90, serves: [P-03/Line_LOX3002_S1], notes: "proposal moved 0.55 m east, 2.1 m from post-1 (ASSUMED: check the support with the stress engineer; D-051 (6))"}
   - {id: P-03/Line_LOX3002_S1/post-3, kind: t_post, at: [124.3, 49.25], top: 12.183, from: grade, width: 1, rotation_deg: 90, serves: [P-03/Line_LOX3002_S1], notes: "proposal moved 0.18 m east (ASSUMED: check the support with the stress engineer; D-051 (6))"}
   - {id: P-03/Line_UN3001_S1/post-1, kind: t_post, at: [142.48, 65.809], top: 8.9, from: grade, width: 1, rotation_deg: 90, serves: [P-03/Line_UN3001_S1], notes: "pinned proposal (ASSUMED: check the support with the stress engineer)"}
-  - {id: P-03/Line_UN3001_S1/post-2, kind: stub, at: [131.1, 61.857], top: 10.26, from: steel, base: 5.6, rotation_deg: 0, serves: [P-03/Line_UN3001_S1], notes: "pinned proposal (ASSUMED: check the support with the stress engineer)"}
-  - {id: P-03/Line_UN3001_S1/post-3, kind: t_post, at: [131.1, 57.904], top: 10.26, from: grade, width: 1, rotation_deg: 0, serves: [P-03/Line_UN3001_S1], notes: "pinned proposal (ASSUMED: check the support with the stress engineer)"}
-  - {id: P-03/Line_UN3001_S1/post-4, kind: t_post, at: [131.1, 53.952], top: 10.26, from: grade, width: 1, rotation_deg: 0, serves: [P-03/Line_UN3001_S1], notes: "pinned proposal (ASSUMED: check the support with the stress engineer)"}
+  # UN-3001 S1 along x 131.1 at 10.4 m: four posts from grade (the stub on the VP-1 floor
+  # removed, and the VP-1 ladder kept clear), spans 3.2 .. 3.7 m (review7#8, D-051 (8))
+  - {id: P-03/Line_UN3001_S1/post-2, kind: t_post, at: [131.1, 62.6], top: 10.26, from: grade, width: 1, rotation_deg: 0, serves: [P-03/Line_UN3001_S1], notes: "post from grade north of VP-1 instead of the stub on its floor (ASSUMED: check the support with the stress engineer; D-051 (8))"}
+  - {id: P-03/Line_UN3001_S1/post-3, kind: t_post, at: [131.1, 58.9], top: 10.26, from: grade, width: 1, rotation_deg: 0, serves: [P-03/Line_UN3001_S1], notes: "proposal moved 1.0 m north, south of the VP-1 ladder (ASSUMED: check the support with the stress engineer; D-051 (8))"}
+  - {id: P-03/Line_UN3001_S1/post-4, kind: t_post, at: [131.1, 56.3], top: 10.26, from: grade, width: 1, rotation_deg: 0, serves: [P-03/Line_UN3001_S1], notes: "proposal moved 2.35 m north (ASSUMED: check the support with the stress engineer; D-051 (8))"}
+  - {id: P-03/Line_UN3001_S1/post-6, kind: t_post, at: [131.1, 53.2], top: 10.26, from: grade, width: 1, rotation_deg: 0, serves: [P-03/Line_UN3001_S1], notes: "added: 3.1 m to post-4, 3.2 m to the bend at y 50 (ASSUMED: check the support with the stress engineer; D-051 (8))"}
   - {id: P-03/Line_UN3001_S1/post-5, kind: t_post, at: [131.1, 47.3], top: 8.9, from: grade, width: 1, rotation_deg: 0, serves: [P-03/Line_UN3001_S1], notes: "pinned proposal (ASSUMED: check the support with the stress engineer)"}
   - {id: P-04/Line_CW4001_S1/post-1, kind: t_post, at: [177.59, 64.191], top: 3.786, from: grade, width: 1, rotation_deg: 0, serves: [P-04/Line_CW4001_S1], notes: "pinned proposal (ASSUMED: check the support with the stress engineer)"}
   - {id: P-04/Line_CW4001_S1/post-2, kind: t_post, at: [177.814, 60.303], top: 3.786, from: grade, width: 1, rotation_deg: 90, serves: [P-04/Line_CW4001_S1], notes: "pinned proposal (ASSUMED: check the support with the stress engineer)"}

@@ -1466,4 +1466,14 @@ checked with `plantcode layout build` and `plantcode validate`, and committed on
    AIR-3005 posts already stood east of the lane. Clear width computed over y 11 .. 50.6 at
    grade to 2.2 m: 1.25 m everywhere (was 1.19 m). 10 steel-in-way findings closed, none
    added.
+8. **VP-1 / VP-6 ladders and the UN-3001 stub on VP-1 (review7#8, #9).** The caged ladders of
+   VP-1 and VP-6 rose through their floors with no opening or gate, the VP-6 cage taking floor
+   from its 1.26 x 1.5 m platform. Both now stand outside the south edge, 0.2 m off it, at
+   the west end (VP-1 x 131.4, VP-6 x 170.62), with a through exit and a self-closing gate
+   in the handrail (ISO 14122-4 practice, ASSUMED; the gate is not modelled). The UN-3001 S1
+   support stub on the VP-1 floor is gone, so VP-1 carries no pipe load and the standing
+   square at PV-3110B is free: the run along x 131.1 at 10.4 m has four posts from grade at
+   y 62.6, 58.9 (south of the VP-1 ladder cage), 56.3 and 53.2, spans 3.2 .. 3.7 m (DN 50 gas
+   4.0 m, ASSUMED table). The ladders keep at least 0.2 m from every pipe and post
+   (ladder-clearance, steel-in-way); no finding added.
 
