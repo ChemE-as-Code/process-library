@@ -1607,3 +1607,13 @@ the vaporizers E-4105A/B, E-4106A/B (no area, D-053), F-1101 / F-2101 / E-2101 (
 in the package data), V-3101 (12.6 m3 below the tank range). These need quotations (the cold
 box and the compander are normally vendor packages) or a correlation with a cited range.
 
+## D-055 Changes for the eighth layout review and the sizing review (2026-10-23)
+Decision (reviews/2026-10-23-layout-review8.md and the review of core's `datasheets fill`).
+Each change below was built, the model checked with `plantcode layout build` and
+`plantcode validate`, and committed on its own.
+1. **Rebuilt with core feat/open-points 9518dfc.** The core sizing fixes change two generator
+   inputs (the property adapter `props.py`: K-values of a component absent from a product;
+   `pipe-od.yaml`: a corrected comment on where the ISO and ASME outside diameters differ), so
+   the BFD, PFD and the layout model are rebuilt. Only the generator fingerprints change: no
+   stream value, route, item or finding moved.
+
