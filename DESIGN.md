@@ -1476,4 +1476,19 @@ checked with `plantcode layout build` and `plantcode validate`, and committed on
    y 62.6, 58.9 (south of the VP-1 ladder cage), 56.3 and 53.2, spans 3.2 .. 3.7 m (DN 50 gas
    4.0 m, ASSUMED table). The ladders keep at least 0.2 m from every pipe and post
    (ladder-clearance, steel-in-way); no finding added.
+9. **LIN-4003 S3 clear of the LIN-4002 S4 posts (review7#10).** The insulated LIN pump
+   recycle ran north along x 144.34 at 3.57 m, 13 mm from the columns of the five LIN-4002 S4
+   posts at x 144.52. Its run moves 0.24 m west to x 144.1 (computed clearance to those posts
+   now 0.25 m), with its own posts 1 .. 7 respaced (1.95 m from y 103.1) and post-8 at the
+   bend, so no span exceeds 2.1 m (DN 25 liquid, ASSUMED table). The reviewer's alternative,
+   a lower crossbar on the LIN-4002 posts, is left to the support design: the model has one
+   crossbar per post. LIN-4003 S1 stays open for supports (D-049). No finding added.
+10. **Result.** Every review7 finding (#1 .. #10) is answered above; `layout-steel-in-way`
+    reports none. Model findings as at 898c280 (0 errors, 0 clashes, operability 14,
+    free-span 8, support-missing 15). Take-off 4,759 m pipe, 574.4 t steel. Still open, with
+    their reasons in D-050: review3#2 (PSV-3114 / PSV-3116 tailpipe guides: need the relief
+    reaction forces of the stress analysis), review3#3 (the 14 valves of D-047), review3#4
+    (8 free spans and 15 runs without support, 10 accepted, D-049), layout#15 (the KT-3101
+    casing extension waits for the vendor drawing). No stage sign-off; the next independent
+    layout review covers D-051.
 
