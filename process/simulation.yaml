@@ -1,0 +1,37 @@
+# DWSIM simulation of the warm end (`plantcode process simulate --check`; schema
+# `plantcode schema process-simulation`). The purification, the main heat exchanger, the
+# expander and the double column are left out (`exclude`): their streams stay as assumed in
+# process/flowsheet.yaml and are the feeds of the simulated part. Units as in the flowsheet.
+schema: plantcode/simulation/v1
+kind: simulation
+simulator: dwsim
+property_package: Peng-Robinson (PR)
+exclude: [PUR, E3101, KT3101, C3101, C3102, X3101, C1102]
+specs:
+  K1101:
+    outlet_pressure: {value: 5.8, provenance: assumed, source: "DESIGN.md 3, stream 2"}
+    efficiency: {value: 0.82, provenance: assumed, source: "isentropic per stage, centrifugal MAC"}
+    stages: 3
+    outlet_temperature: {value: 40, provenance: assumed, source: "DESIGN.md 3, stream 2; intercoolers E-1101, E-1102, aftercooler E-1103"}
+    pressure_drop: {value: 0.05, unit: bar, provenance: assumed, source: "per cooler"}
+  C1101:
+    outlet_temperature: {value: 12, provenance: assumed, source: "DESIGN.md 3, stream 3 (DCAC)"}
+    pressure_drop: {value: 0.1, unit: bar, provenance: assumed, source: "DESIGN.md 3, streams 2 and 3"}
+  X3102:
+    split: {bst: 0.1516}  # ASSUMED: 14,870 of 98,060 kg/h boosted (DESIGN.md 3, streams 4, 4B)
+  K3101:
+    outlet_pressure: {value: 8.0, provenance: assumed, source: "DESIGN.md 3, stream 4C"}
+    efficiency: {value: 0.80, provenance: assumed, source: "compander booster"}
+  E3104:
+    outlet_temperature: {value: 40, provenance: assumed, source: "DESIGN.md 3, stream 4D"}
+    pressure_drop: {value: 0, unit: bar, provenance: assumed, source: "DESIGN.md 3, streams 4C and 4D"}
+  K4101:
+    outlet_pressure: {value: 31.0, provenance: given, source: "GOX pipeline"}
+    efficiency: {value: 0.78, provenance: assumed, source: "oil-free GOX centrifugal"}
+    stages: 4
+    outlet_temperature: {value: 40, provenance: assumed, source: "intercooler package E-4101, aftercooler E-4102"}
+  K4102:
+    outlet_pressure: {value: 9.0, provenance: given, source: "GAN pipeline"}
+    efficiency: {value: 0.80, provenance: assumed, source: "single-stage centrifugal"}
+    stages: 1
+    outlet_temperature: {value: 40, provenance: assumed, source: "aftercooler E-4103"}
