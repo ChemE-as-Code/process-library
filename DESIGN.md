@@ -1237,3 +1237,31 @@ Not on a datasheet: the JT valve access hatch H1 is an opening of the cold box c
 `layout/structures.yaml` enclosure openings, D-038 (3)), not of an equipment-list item; it
 goes to the cold box vendor with the casing penetration schedule of D-039 (9).
 
+## D-046 Model rebuilt with the core's pipe-end check and lane-keeping pins (2026-10-22)
+Decision: the layout is rebuilt with core feat/open-points, whose router no longer pushes
+larger lines aside for a pinned route and whose new error rule `layout-pipe-disconnected`
+checks every pipe end against its nozzle, tee, connector or line (10 mm). 50 generated routes
+change by up to a few metres (the P-02 adsorber piping of AIR-1004, the RG-2001 / AIR-2002
+rack runs, the GOX / GAN lines at the battery limit, the CW mains by 0.2 .. 0.4 m); the rules
+check them like any route. The rebuild needed four fixes:
+1. **RG-2001 S3** (regeneration gas branch round E-2101, D-041) started 0.1 .. 0.7 m beside its
+   tee Tee_RG2001_B on the rack run (the committed model was already detached). It now starts
+   on the tee at [97.43, 68.06, 7.25] and moves 0.7 m south on the tier before it drops at
+   y 67.35 between the CW-3001 and CWR-3001 lanes (dropping at the tee hit both). The rack run
+   and the heater inlet (P-02 S1, S2, P-03 S1) are pinned as routed, so the tee no longer
+   moves between builds.
+2. **AIR-3005 S1** (booster suction, D-038 (3)) started 0.5 m east of its tee TA on AIR-2002.
+   AIR-2002 is pinned as routed (north along x 134.4 at 8.25 m, into the casing at x 132.9),
+   and AIR-3005 starts on its tee at [132.91, 48.2, 8.25].
+3. **AIR-2002 casing opening**: the rebuilt line enters the north casing face at 8.25 m,
+   not 6.7 m. The casing penetration schedule (D-039 (9)) takes the new sleeve height (sill
+   7.95 m, same offset and size) rather than a pinned dog-leg in front of the casing.
+4. **GOX-4003** (anti-surge recycle) had moved into the E-4102 lift lane from Z-PAD-A4 (rising
+   at x 181.6). It is pinned on its route of acc433c, up x 183.6 east of the lane, and the
+   lifting study is clear again.
+Stale acceptances: `validate` reports no `accept-stale` (no accepted finding quotes a length
+that has moved more than 0.1 m / 2 %) and no `accept-unused`.
+Result: 0 errors, 0 clashes, 0 lifting, 0 wall-penetration; operability 27, free-span 21,
+support-missing 77 (before: 27 / 21 / 75). Gates: every concept and basic gate passes except
+layout-review. Take-off 4,710 m pipe, 726 elbows, 69 tees, 327.5 t steel, 375 m2 grating.
+
