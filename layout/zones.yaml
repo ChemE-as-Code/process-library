@@ -20,7 +20,8 @@ zones:
       - {item: VNT-3001, release_grade: primary, substance: oxygen, source_kind: vent}         # drain vaporizer V-3101 vent
       - {item: VNT-4006, release_grade: primary, substance: oxygen, source_kind: vent}         # GOX DBB bleed at the BL
       - {item: VNT-3002, release_grade: secondary, substance: oxygen, source_kind: psv_outlet}  # PSV-3114 tailpipe outlet on the cold box roof, O2-rich (D-011, D-033)
-    basis: "D-011, D-019, section 4 relief case list; PSV-3114 (outlet VNT-3002) treated as O2-rich as DESIGN.md states; table rows (ASSUMED)"
+      - {item: GOX-4004, release_grade: secondary, substance: oxygen, source_kind: psv_outlet}  # PSV-4127 tailpipe outlet beside VP-9 (GOX-4004 S6, its only open end; D-055 (2))
+    basis: "D-011, D-019, section 4 relief case list; PSV-3114 (outlet VNT-3002) treated as O2-rich as DESIGN.md states; PSV-4127 on the GOX backup vaporizer header (D-055 (2)); table rows (ASSUMED)"
   - id: Z-O2-SEALS
     title: GOX compressor seals and LOX pump seals
     kind: oxygen_enriched
@@ -46,14 +47,15 @@ zones:
       - {item: VNT-4005, release_grade: continuous, substance: nitrogen, source_kind: vent}      # LIN tank boil-off vent (PV-4110)
       - {item: VNT-4007, release_grade: primary, substance: nitrogen, source_kind: vent}         # GAN DBB bleed at the BL
       - {item: VNT-3003, release_grade: secondary, substance: nitrogen, source_kind: psv_outlet} # PSV-3116 tailpipe outlet on the cold box roof (D-033)
-    basis: "D-011, section 4; table rows (ASSUMED)"
+      - {item: GAN-4003, release_grade: secondary, substance: nitrogen, source_kind: psv_outlet} # PSV-4128 tailpipe outlet beside VP-9 (GAN-4003 S6, its only open end; D-055 (2))
+    basis: "D-011, section 4; PSV-4128 on the GAN backup vaporizer header (D-055 (2)); table rows (ASSUMED)"
   - id: Z-N2-CASING
     title: Cold box casing breather VNT-3004 (PSV-3123) on the casing roof
     kind: oxygen_deficient
     shape: sphere
-    centre: [127, 46, 53.5]
+    centre: [140, 39, 53.5]
     radius: 5
-    basis: "Casing purge N2 breathes out at the breather PSV-3123 on the 53 m casing roof, 0.5 m above it (D-013, O2 review F7, D-032 #3, D-038 (10)); 5 m as an inert vent (table row vent/primary/inert, ASSUMED); the roof walkway RF, its headroom and the roof landing RF-out are inside it: access to the roof with a personal O2 monitor and the purge isolated (D-031)"
+    basis: "Casing purge N2 breathes out at the breather PSV-3123 on the 53 m casing roof, 0.5 m above it (D-013, O2 review F7, D-032 #3, D-038 (10)); the breather stands at the south-east roof corner, more than 5 m from the roof walkway RF, the relief valve platform RV, the roof landing RF-out, the stair head ST5 and the ladder head LD4 (D-039 (6), review5#6); 5 m as an inert vent (table row vent/primary/inert, ASSUMED); roof access still with a personal O2 monitor (D-031)"
   - id: Z-N2-SEALS
     title: LIN pump seals
     kind: oxygen_deficient
@@ -89,9 +91,23 @@ zones:
     title: Crane pad east of the GOX compressor, on the open side of its fire wall
     kind: crane_pad
     shape: box
-    box: [174, 18, 0, 184, 30, 1]
+    box: [174, 23, 0, 184, 35, 1]
     reach_m: 30
-    basis: "K-4101 (through the open east side of FW-4101), E-4101, E-4102, K-4102, E-4103 (ASSUMED, D-034)"
+    basis: "K-4101 lifted straight east out of the open side of FW-4101: the pad centred on the compressor's axis (y 29), the 8 m lane between the north and south walls (D-041); E-4102 beside it (ASSUMED, D-034, D-041)"
+  - id: Z-PAD-A4C
+    title: Crane pad north of the GOX intercooler package E-4101, south of PR1
+    kind: crane_pad
+    shape: box
+    box: [164, 42, 0, 174, 50, 1]
+    reach_m: 20
+    basis: "E-4101 lifted north, clear of the fire wall FW-4101 and the GOX-4001 suction along x 163 (ASSUMED, D-041)"
+  - id: Z-PAD-A3S
+    title: Crane pad south of the compander KT-3101 / K-3101
+    kind: crane_pad
+    shape: box
+    box: [123, 16, 0, 137, 24, 1]
+    reach_m: 20
+    basis: "the compander halves lifted south, away from the cold box casing and its bracing (the rotor cartridges are pulled with a hoist; ASSUMED, D-034, D-041)"
   - id: Z-PAD-A4N
     title: Crane pad south of the GAN compressor K-4102
     kind: crane_pad
@@ -149,12 +165,18 @@ zones:
     shape: box
     box: [86, 34, 0, 104, 38, 4.5]
     basis: "Bulk bags and vacuum truck access for alumina / 13X change-out; 4.5 m clear for the vacuum truck (ASSUMED, D-030, D-033 (5), review 2026-10-21-layout-rereview#5)"
+  - id: Z-LAD-PR3
+    title: Climbing and step-off space of the PR3 north end ladder (generated, base [180.9, 118.6])
+    kind: keep_clear
+    shape: box
+    box: [180.2, 118.0, 0, 181.7, 119.7, 10.0]
+    basis: "The caged ladder (rails x 180.675 / 181.125 to 9.6 m, cage y 118.6..119.3) with 0.25 m (rails) and 0.35 m (cage) round it, to the top of its handhold extension: no line runs through the climb, the toe space or the step-off onto the tier (layout-ladder-clearance 0.2 m, ASSUMED; D-044 (3), review6#4)"
   - id: Z-ESC-CB1
     title: Escape route from the foot of the cold box stair ST1 (north-east corner) along the east casing face south to the road R1
     kind: escape
     shape: box
-    box: [141.3, 11, 0, 143.5, 49.5, 2.2]
-    basis: "Kept clear of pipes up to the walkway headroom; the caged ladders LD0..LD4 at the west end of the north platforms are the second way (D-030 (1), D-038 (1), review 2026-10-21-layout#11, ASSUMED)"
+    box: [141.2, 11, 0, 142.45, 50.6, 2.2]
+    basis: "Kept clear of pipes and steel up to the walkway headroom: the 1.25 m lane between the east casing wall (x 141.2) and the posts of AIR-3005, CWR-3001 and LIN-3001 east of it, at least 1.2 m clear width (ASSUMED, the owner's escape route standard confirms it; D-051 (7)); the caged ladders LD0..LD4 at the west end of the north platforms are the second way (D-030 (1), D-038 (1), review 2026-10-21-layout#11, ASSUMED)"
   # ---- transformer yard west of B2 (D-038 (7)): oil-filled ONAN transformers in bunded bays,
   # a fire wall FW-TR between them (layout/structures.yaml), B2's west wall REI 90 behind them,
   # access and transformer exchange from the west road R4 (all ASSUMED, electrical engineer)

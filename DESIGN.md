@@ -977,3 +977,782 @@ and basic pass except layout-review (a new independent review is needed).
 Open: the expander casing extension (layout#15), the trench routes in the cable schedule,
 tray support details, the B1 / B2 fire and noise assessment, transformer oil quantities and
 fire protection.
+
+## D-039 Layout changes for the fifth layout review: stair, headroom, hatch, tank fills, breather (2026-10-22)
+Decision (reviews/2026-10-22-layout-review5.md, example-asu#4; amends D-038 (1), (2), (3),
+(10); every value ASSUMED; checked by the core rules of core#61: access headroom 2.1 m over
+every walking surface above grade, standing space in front of valves and hatches, landing
+width of stacked stairs, ways off a roof outside vent zones):
+(1) **The cold box stair stands beside the platforms, not on them** (review5#1, #3, #7). ST1 ..
+ST5 keep their place at the east end (x 134.7 .. 140.5) but stand out 1.7 m from the casing
+side (`out: 1.7`: the 0.2 m wall plus the 1.5 m platform), so their flights rise north of the
+platforms (y 48.7 .. 50.5) and land on the platform edge. The platforms in front of the
+casing face stay free: the walk from one flight to the next is the full 1.5 m platform (no
+layout-landing-width finding), the hatch H1 above P20 has free standing space in front of it
+(LV-3101 / FV-3106 worked through it; no operability finding at the hatch), and the pinned
+booster suction AIR-3005 at 8.25 m along y 48.2 runs under P10, 0.36 m clear of the stair box
+(no headroom finding). The escape zone Z-ESC-CB1 now starts at the stair foot (x 140.6, y up
+to 50.6). The perlite-retaining valve box at H1 (review5#3) is a vendor detail of the cold box
+casing: the hatch opening is the box's face; not modelled.
+(2) **Lines leaving the north face clear P10** (review5#2). GOX-4001 leaves at 12.65 m (bottom
+2.40 m above the P10 grating), GAN-4001 at 12.4 m (bottom 2.26 m), LOX-3001 at 12.3 m (bottom
+2.23 m) and falls all the way to the rack (no high point in the liquid line); its sample tee
+is just north of P10, so the LOX purge valve FV-3111 stands 0.5 m off the platform edge at
+10.8 m, worked from P10. The casing purge UN-3001 drops north of P10 and enters the casing
+under the P10 steel at 9.03 m (a dry-gas low point). The four P-03 segments are pinned by their
+sheet-qualified ids (core: a line on two sheets repeats its segment ids). The two step-overs
+on P10 are gone. The DCAC CW inlet C-1101 N3 moved to the south face (270 deg), outside the
+platform arcs, so CW-1001 no longer crosses platform-2 at 0.92 m; the DCAC top outlet AIR-1004
+is pinned 2.4 m above platform-4.
+(3) **Tank fills on the north side of the roofs** (review5#5): the fill nozzles N1 of T-4101 and
+T-4102 are on the north side of the roof (2.5 / 2.8 m off centre), away from the stair, its
+landing and the roof platform on the east side; LOX-3001 and LIN-3001 come over the roof from
+the north-west and cross no walking surface. The LIN pump recycle LIN-4003 is pinned as routed
+at 0530ede (north of the tank, clear of the stair).
+(4) **Breather away from the roof ladder** (review5#6): the casing breather PSV-3123 stands at
+the south-east roof corner (zone Z-N2-CASING centre [140, 39, 53.5], 5 m), more than 5 m from
+the roof walkway RF, the relief valve platform RV, the roof landing RF-out, the stair head ST5
+and the ladder head LD4: no layout-egress-zone finding.
+(5) **Relief valve inlets come up under the valves** (review5#9): the PSV-3114 / PSV-3116 inlet
+lines run inside the casing to 51.8 m and come up through the roof straight under the valve
+inlets, so no leg crosses the relief valve platform RV (0 headroom findings on RV).
+(6) **Backup GOX joined to the pipeline** (found by the core fix of chains at a pinned run):
+GOX-4004 S4 from the PSV-4127 tee had been a 0.3 m stub at the GOX-4002 backup tee, not joined
+to the vaporizer risers. It now runs along PR3 at 8.56 m to PR1 and onto the backup tee
+(pinned).
+(7) **Tray spans accepted one by one** (review5#8): the wildcard acceptance of every
+layout-tray-span finding is replaced by one entry per tray (17), each with its length and the
+number of cable-ladder posts at no more than 3 m (ASSUMED, the electrical standard detail;
+the two B2 room runs hang from the roof steel). A new tray-span finding now fails until it is
+accepted by name. The rereview#7 acceptance of a LIN-3001 tier finding that no longer exists
+is removed.
+(8) **No out-and-back loops at the vaporizers** (review5#10): the LOX and LIN pump discharge
+headers drop to 1.2 m south of E-4105A/B (y 92.5) and E-4106A/B (y 122), clear of the crane
+pads; the inlet valves stand there at 1.2 m, worked from grade, and each branch rises straight
+to its inlet (no loop round E-4105A / E-4106A, no high point in the liquid lines). The GOX
+vent VNT-4003 keeps its 1.1 m pocket on the PR1 top tier between the vent valve PV-4101B and
+the riser at the rack corner: the GOX from the cold box is dry (no liquid can collect), and a
+low-point drain would add an oxygen release point; no drain (justified, not removed).
+(9) **Earlier review items** (review3#6, #7, #2, layout#15): the casing penetration schedule is
+declared: one opening per line leaving the casing (10, from the build's penetrations), and the
+cold internals GAN-3001 and RL-3001, which the router had taken out through the north wall and
+back in, are pinned inside the casing (0 layout-wall-penetration). The MAC house supply and
+extract mains follow the walls (terminals along the walls in duct order, within 1.2 m of
+them), outside the hook path of the 40 t crane over the hall. Not changed: the PSV-3114 /
+PSV-3116 tailpipe guides (review3#2: a guide off the RV platform steel, a pipe support detail
+for the stress engineer with the reaction forces) and the expander casing extension of
+KT-3101 (layout#15: vendor data, the cold box vendor's drawing).
+Reason: the fifth, independent layout review found the stair across the walking and hatch
+space of the platforms, lines at head height over P10 and over the tank roof access, and the
+breather zone over the roof ladder; the core rules now report each of these (core#61), and
+the rebuilt model has 0 headroom, landing-width and egress-zone findings.
+Rejected: widening the platforms to 2.2 m over the stair bay (more steel on the unbraced north
+face, and the stair would still run across the hatch); moving the stair to the west end (the
+lines leaving the north face at x 129 .. 135 would cross it).
+Result (core feat/open-points): 214 of 218 segments routed, 0 clashes, 0 layout-headroom,
+0 landing-width, 0 egress-zone; take-off 4,671 m pipe, 724 elbows, 324 t steel.
+
+## D-040 Valves and transmitters out of reach: operating criteria (2026-10-22)
+Decision (review3#3, the 73 layout-operability findings of the core#61 rules; amends D-034;
+every limit ASSUMED until the owner's standard and the valve and instrument suppliers confirm
+it). A valve's handwheel or lever is within reach at most 1.8 m above a floor (a transmitter
+head 2 m), with a free 0.6 m standing square within 0.6 m in plan; the rules check it. What
+stays out of reach is answered by duty:
+(1) **Operated in normal operation or at every tanker load: within reach, no operator.** The
+LOX / LIN tanker fill isolation valves HV-4146 / HV-4147 now stand at 1.0 m: the fill lines
+run on sleepers at 1.0 m from the couplings to the tanks (pinned). The vaporizer inlet valves
+are at 1.2 m (D-039 (8)); FV-3111 is worked from P10 (D-039 (2)).
+(2) **Manual isolation in infrequent use** (maintenance, spare-pump changeover, column warm-up
+drain), handwheel valves: a chain wheel with the handwheel at most 6 m above a floor:
+BV-P1101A/B suction (DCAC CW pumps), HV-3118 (LOX drain, 2.3 m above P10), HV-4138 / HV-4139
+(pump minimum-flow returns). Never on control or emergency duty.
+(3) **Manual isolation in infrequent use, lever valves**: a gear operator with an extension
+spindle to a pedestal at a floor, at most 6 m: the chilled water pump suctions, the four LOX /
+LIN pump discharges (cold standby, D-012) and the tank inlet isolations HV_T4101_in (now at
+4.0 m: the LOX fill drops off PR2 at its north end to 4.0 m and rises over the tank roof) and
+HV_T4102_in.
+(4) **Actuated valves** (control and on/off, operated from the DCS / SIS): the local air set,
+the manual override and the positioner are brought to a pedestal at a floor within 6 m
+(declared `remote_operator`): FV-1108, LV-1106, LV-1107, TV-1105, UV-1102, XV-2101B,
+XV-2104B, XV-2109, XV-2111B, XV-2112B, FV-4105, UV-4131, XV-4120. Positioner and actuator
+maintenance from a mobile elevating work platform.
+(5) **Transmitters on equipment tappings**: mounted on a stand at a floor on impulse lines up
+to 6 m, capillary seals up to 10 m where longer (F-1101 DP, T-4102 upper tapping); the
+cryogenic tank level and pressure transmitters at grade (common LOX / LIN tank practice). All
+11 are declared.
+(6) **Open: 27 valves above 6 m need platforms or relocation in detail design** (not declared,
+the findings stay as warnings): the battery limit valve station of GOX-4002 / GAN-4002 at 9 ..
+10.7 m (HV-4129 and HV-4130 manual block valves, XV-4118, XV-4119, XV-4132 .. XV-4135): a BL
+valve platform beside the rack (the lines on the PR1 south edge leave no room for a platform
+below the 2.1 m headroom; proposal: drop the BL valve station to grade south of PR1); the TSA
+switching valves on the adsorber top piping at 7.2 .. 7.9 m (XV-2101A, XV-2102A/B,
+XV-2103A/B, XV-2111A) and FV-2105 on PR1: a valve platform between the adsorbers or the valves
+moved onto the risers; the tank boil-off control valves PV-4109 / PV-4110 on the west side of
+the tank roofs: a west roof platform with its own ladder; the rack valves PV-3113, PV-4101B,
+PV-4111, PV-4112, XV-3105, XV-4116, XV-4117, UV-4103 and the waste N2 valves PV-3110A/B
+(remote operator 6.7 m, over the limit): rack access platforms or the valves moved to the rack
+columns' risers near grade. Each is an actuated or infrequently used valve: none is operated by
+hand in normal operation.
+Reason: the core rules now accept a declared operator only within its limit and say why the
+rest does not fit; the criteria above are the usual practice for basic engineering and are
+listed so the owner can confirm or tighten them.
+Result: layout-operability 73 -> 27 (no transmitter left), 0 layout-operator-unknown.
+
+## D-041 Lifting study: crane pads, clear lanes, erection lifts (2026-10-22)
+Decision (review3#5, D-034 (4); every value ASSUMED). The study is `layout/lifting-study.md`
+and `.csv` (`plantcode layout lifting --write`, gate `lifting-study`): per heavy item (5 t or
+more, the weights of D-034) its crane, radius from the pad centre, gross load (x 1.1 dynamic,
++5 % rigging), load moment, chart capacity needed at 75 % utilisation, lift and hook height,
+lane and laydown. All 14 maintenance lifts have a crane and a clear lane:
+(1) E-1101, E-1102, E-1103 by the 40 t overhead crane of B1 (14 t gross at most).
+(2) K-4101 (45 t, 52 t gross, 69.3 t chart capacity at 12.5 m): lifted straight east out of the
+open side of FW-4101 from Z-PAD-A4, now centred on the compressor's axis (x 174 .. 184, y 23 ..
+35); the 8 m lane runs between the fire wall's north and south walls (the core's lane is the
+item's width across its travel, the load held on tag lines).
+(3) E-4101 from a new pad Z-PAD-A4C north of it (the GOX-4001 suction now drops onto K-4101
+along x 162, 1 m west, out of the lane); E-4102 from Z-PAD-A4 (the GOX-4002 outlet turns east
+off the shell before it rises). K-4102 (25 t) from Z-PAD-A4N: its motor cable comes in from
+the north at 1 m (feeder K-4102-M), not over the compressor.
+(4) The compander halves KT-3101 / K-3101 lifted south from a new pad Z-PAD-A3S (x 123 .. 137,
+y 16 .. 24), away from the cold box casing and its bracing; CW-3001 now crosses south of the
+skid at 2.5 m and CWR-3001 rises east of E-3104, out of the lane. The rotor cartridges are
+pulled with a hoist (vendor).
+(5) E-2101 from Z-PAD-A2: the regeneration gas branch RG-2001 S3 runs round the west of the
+heater and the heater cable comes in from the north. The LIN vaporizer outlets GAN-4003 are
+collected south of E-4106A/B at 4.5 m and rise east of them, so E-4106B lifts clear from
+Z-PAD-A5N. E-4105A/B unchanged.
+(6) **Erection lifts are not in the maintenance study**: items lifted once, before the piping
+and racks, by the erection crane: K-1101 train ~85 t (D-034), C-1101 ~55 t, C-1102 ~25 t,
+V-2101A/B ~49 t each, all ASSUMED order of magnitude: shell mass pi x D x L x t x 7.85 t/m3
+with the shell thickness from the thin-shell formula t = P R / (S E - 0.6 P) + 3 mm corrosion
+allowance (S 138 MPa, E 0.85, carbon steel, at least 8 mm; ASSUMED), times 1.3 for heads,
+nozzles, supports and internals (ASSUMED); the adsorbent and the packing are loaded after
+setting. The tanks T-4101 / T-4102 are field-erected; the cold box internals are set before
+the casing (vendor). The filter house F-1101 goes in as modules (weight TBD).
+(7) **Crane selection stays open (human judgement)**: no crane load chart is given
+(`layout/crane-chart.yaml` absent) and none is invented; the crane contractor chooses the
+crane against the capacity needed at each radius in the study and writes the lifting plan
+(ground bearing, outriggers, rigging, slewing clearances, wind, tandem lifts). The heaviest
+maintenance lift needs 69.3 t chart capacity at 12.5 m (K-4101).
+Reason: the lifting rule and the study need a pad within reach and a clear lane for every
+maintenance lift; the lane obstructions of review3#5 were lines and trays over the items and
+pads that did not face the item's way out.
+
+## D-042 Equipment datasheets: drafts from the lists, completed where the design gives a value (2026-10-22)
+Decision: `plantcode datasheets draft` wrote `equipment/datasheets/<TAG>.yaml` for all 39
+items (type, service, design conditions, material, dimensions from the equipment list; the
+nozzles from the P&IDs; inlet and outlet conditions of the linked flowsheet streams), each
+value with its source. Completed from the design where it gives a value (each marked
+`assumed: true` with its source): the DCAC and chilled water pump flows (list), the LOX / LIN
+backup pump flow, head and shaft power (calculated from the list's 5.2 t/h to 31 bara and
+6.3 t/h to 9 bara with the saturated-liquid densities of the NIST Chemistry WebBook, LOX 1141
+and LIN 806 kg/m3, a suction of 1.5 bara and a pump efficiency of 0.5, both ASSUMED), the
+compressor and expander powers of the section 3 utility table and D-003, the E-2101 and E-4103
+duties (section 3), the filter and vaporizer flows and the cooler outlet temperatures (list),
+and the sizing basis of the tanks, the backup pumps and the adsorbers. 66 values stay `TBD`
+(exchanger duties and areas, column stage counts, pump NPSH available, the CW / chilled water
+pump heads, most compressor fluid powers, the operating conditions of items no flowsheet
+stream links): they need the process simulation or the supplier and are not guessed. Every
+file keeps `draft: true`, so the detail-stage `datasheets` gate still fails, as it should: a
+datasheet with open values is not the detail deliverable.
+
+## D-043 Equipment estimate: published correlations escalated by a cited CEPCI (2026-10-22)
+Decision (amends D-035): the equipment is estimated by `plantcode assess equipment` from the
+correlations of Turton et al., Analysis, Synthesis, and Design of Chemical Processes, 5th ed.
+(2018), Appendix A (base CEPCI 397, 2001), escalated to the **2023 annual average CEPCI of
+797.9**: S. Jenkins, "2023 CEPCI annual average value decreases from previous year", Chemical
+Engineering, 25 March 2024 (chemengonline.com), the latest annual average the project could
+cite (`estimate/cost-basis.yaml`). Costs are in 2023 USD; a later index replaces it with its
+own citation. No size, material factor or bare module factor is invented: an item without
+one stays a finding.
+Coverage (`estimate/equipment-cost.md`, 39 items): bare module cost for 5 (C-1102 and the four
+LOX / LIN backup pumps, whose shaft power D-042 calculates), purchased cost only for 9 (C-1101
+'CS / SS packing', C-3101 / C-3102 aluminium, K-4101 'SS / Monel / copper alloys': no
+material factor; V-2101A/B horizontal vessels, KT-3101, T-4101 / T-4102: no bare module factor
+in the package data), not covered 25 (exchanger areas, the MAC / booster / GAN compressor fluid
+powers, the CW and chilled water pump powers not yet sized; the filters and the electric
+heater have no correlation; V-3101 12.6 m3 is below the fixed-roof tank range). Purchased
+equipment of the covered items USD 3.31 million, bare module of the 5 fully factored items USD
+2.20 million (2023). **Estimate class 5** (AACE International RP 18R-97: -20 % to -50 % low,
++30 % to +100 % high), and only for the items it covers.
+The bulk factor estimate of the take-off (`estimate/estimate.md`) still runs on the example
+rates of D-035 (`example: true`, currency XXX): it prices nothing until a cost engineer gives
+the unit rates with their source. Gate `mto` now also requires the equipment estimate to be
+current.
+Open: exchanger areas and machine powers (process simulation, suppliers), material and bare
+module factors for aluminium, Monel and the cold box (from the printed tables or quotations;
+the cold box is normally a vendor package quotation), the unit rates of the bulk estimate.
+
+## D-044 Layout changes for the sixth layout review: ladders, ring platforms, LIN high point, breather (2026-10-22)
+Decision: the fixes of reviews/2026-10-22-layout-review6.md #1..#5, #7 and #9, checked by the
+two rules core now has for them, `layout-ladder-clearance` (a pipe through a ladder's cage or
+less than 0.2 m from its rails, ASSUMED) and `layout-walkway-riser` (a riser through an item's
+ring platform that cuts the handrail or leaves less than 0.6 m of walkway, after ISO 14122-2,
+ASSUMED); both are added to the `layout-rules` gate. On the model of 521f5c2 they report all
+the review's cases (9 ladder, 7 walkway); now 0.
+1. **AIR-1004** (DCAC top outlet, DN600): from N2 east at 26.62 m (2.7 m above platform-4),
+   then north to the drop at [74.7, 54.7] (45 deg, r 3.82: 0.41 m outside the handrail and
+   2.5 m from the ladder at 90 deg), down to 7.3 m and north to the P-02 sheet end. It no
+   longer drops through the four walkways and ladder exits nor runs through the platform-1
+   ladder cage (review6#1). The 19 m drop is guided off the column (support by the stress
+   engineer).
+2. **CHW-1001** (chilled water inlet): N4 moved to 270 deg, 19.833 m (as N3 at 270 deg, 12.5 m),
+   so its riser rises in the gap of the platform arcs (195..345 deg) at [72, 48.35], 0.76 m
+   clear of the CW-1001 riser; it ran up the middle of the walkway (review6#2). The C-1101
+   datasheet gives the new orientation (D-045).
+3. **Rack end ladders**: LIN-3001 S2 leaves PR2 to the west at y 103 and runs north at x 139.6,
+   LOX-3001 S2 rises at x 140.2 (0.78 m from the cage), both clear of the PR2 end ladder
+   (review6#3). VNT-4002 S3 rises over the PR3 top tier at y 115.5 and turns east to S-4101; a
+   keep-clear zone Z-LAD-PR3 round the PR3 end ladder (0.25 m round the rails, 0.35 m round the
+   cage, to 10 m) keeps the rack-routed VNT-4003 off it (now 0.75 m and more, was 0.01 m), and
+   GAN-4003 S3 comes in along x 179.7 (0.79 m from the cage, was 0.24 m) (review6#4). Pinning
+   VNT-4003 instead moved the rack lanes of GOX-4001, UN-3001 and GOX-4003 on PR1 (the lane
+   allocation treats a pinned branch's riser as an obstacle), so it stays rack-routed.
+4. **CW-3001** under P10 at y 47.6: 0.32 m from the casing, 0.48 m behind the LD0 rungs (it ran
+   0.02 m behind them, review6#5).
+5. **LIN-4002**: level at 5.39 m from the pump risers to the tanks (S3 and S4 pinned). The
+   minimum-flow return LIN-4003 now leaves it at the S3 / S4 tee [144.52, 101.5] from below,
+   with HV-4139 on the drop; before, the route climbed to 6.61 m towards the LIN-4003 start,
+   which did not meet LIN-4002 at all (a detached branch, found by checking every pipe end).
+   No high point in the cryogenic liquid line (review6#7).
+6. **Casing breather access**: a declared roof strip RB (frame x 13.8..15, y 1.6..7.2, 53 m)
+   from the east end of RF along the east roof edge to 0.6 m from PSV-3123, for inspection,
+   test and replacement, entered only under the purge isolation and permit of D-031 with a
+   personal O2 monitor. It lies in the 5 m zone Z-N2-CASING by necessity and is no way down
+   (review6#9).
+Model: 0 clashes, 0 headroom, 0 ladder-clearance, 0 walkway-riser; operability 27, free-span
+21, support-missing 75 (unchanged, review3#3, #4). Take-off 4,717 m pipe, 738 elbows, 64 tees
+(the LIN-4003 branch now counted), 328 t steel (+3 t: the RB strip), 375 m2 grating.
+Open: the pipe stress and supports of the new AIR-1004 drop, the RB strip's structural detail.
+
+## D-045 Nozzle locations on the datasheets (2026-10-22)
+Decision (amends D-042): the datasheets of the items whose nozzle positions the layout decided
+give each nozzle's `face`, `orientation_deg` (plan direction from site east, counter-clockwise:
+of the axis for a side nozzle, of the offset from the centre for a top or bottom one),
+`offset_m` and `elevation_m` (above the item's base), with `location_source` naming the
+placement override and its decision: C-1101 (N3 and N4 at 270 deg, D-039 (2), D-044 (2)),
+T-4101 / T-4102 (fill N1 on the north side of the roof, vent N2 and relief N3 on the west side,
+D-038 (2), D-039 (5)), V-2101A/B (the five nozzles along the shell, top and bottom), C-3101
+(N1 east, N2 at 30 deg, N7 at 90 deg). `plantcode validate` compares them with the layout model
+(`plantcode.datasheet-nozzle-layout`, 0 findings), so a later move of a nozzle in the layout
+shows up on the datasheet that goes to the supplier (review6#8). The instrument tappings placed
+by default (I1..I3) are not given: their positions are not decided yet.
+Not on a datasheet: the JT valve access hatch H1 is an opening of the cold box casing (CB-1,
+`layout/structures.yaml` enclosure openings, D-038 (3)), not of an equipment-list item; it
+goes to the cold box vendor with the casing penetration schedule of D-039 (9).
+
+## D-046 Model rebuilt with the core's pipe-end check and lane-keeping pins (2026-10-22)
+Decision: the layout is rebuilt with core feat/open-points, whose router no longer pushes
+larger lines aside for a pinned route and whose new error rule `layout-pipe-disconnected`
+checks every pipe end against its nozzle, tee, connector or line (10 mm). 50 generated routes
+change by up to a few metres (the P-02 adsorber piping of AIR-1004, the RG-2001 / AIR-2002
+rack runs, the GOX / GAN lines at the battery limit, the CW mains by 0.2 .. 0.4 m); the rules
+check them like any route. The rebuild needed four fixes:
+1. **RG-2001 S3** (regeneration gas branch round E-2101, D-041) started 0.1 .. 0.7 m beside its
+   tee Tee_RG2001_B on the rack run (the committed model was already detached). It now starts
+   on the tee at [97.43, 68.06, 7.25] and moves 0.7 m south on the tier before it drops at
+   y 67.35 between the CW-3001 and CWR-3001 lanes (dropping at the tee hit both). The rack run
+   and the heater inlet (P-02 S1, S2, P-03 S1) are pinned as routed, so the tee no longer
+   moves between builds.
+2. **AIR-3005 S1** (booster suction, D-038 (3)) started 0.5 m east of its tee TA on AIR-2002.
+   AIR-2002 is pinned as routed (north along x 134.4 at 8.25 m, into the casing at x 132.9),
+   and AIR-3005 starts on its tee at [132.91, 48.2, 8.25].
+3. **AIR-2002 casing opening**: the rebuilt line enters the north casing face at 8.25 m,
+   not 6.7 m. The casing penetration schedule (D-039 (9)) takes the new sleeve height (sill
+   7.95 m, same offset and size) rather than a pinned dog-leg in front of the casing.
+4. **GOX-4003** (anti-surge recycle) had moved into the E-4102 lift lane from Z-PAD-A4 (rising
+   at x 181.6). It is pinned on its route of acc433c, up x 183.6 east of the lane, and the
+   lifting study is clear again.
+Stale acceptances: `validate` reports no `accept-stale` (no accepted finding quotes a length
+that has moved more than 0.1 m / 2 %) and no `accept-unused`.
+Result: 0 errors, 0 clashes, 0 lifting, 0 wall-penetration; operability 27, free-span 21,
+support-missing 77 (before: 27 / 21 / 75). Gates: every concept and basic gate passes except
+layout-review. Take-off 4,710 m pipe, 726 elbows, 69 tees, 327.5 t steel, 375 m2 grating.
+
+## D-047 Valves out of reach: valve access platforms, two control valves moved to grade (2026-10-22)
+Decision (amends D-040 (6); review3#3). The 27 valves above 6 m that D-040 left open are
+answered valve by valve with the core's valve-platform proposals (`VP-n`), adapted where the
+proposal does not fit, or by moving the valve. Criteria (ASSUMED, as D-040, until the owner's
+standard confirms them):
+- **Reach**: a floor at most 1.8 m below the handwheel or lever and within 0.6 m of it in plan,
+  with a free 0.6 m standing square (the core's operability rule).
+- **Way down**: below 6 m a caged ladder; from 6 m a stair (one way down is enough for an
+  occasional-use valve platform within 7.5 m of it). The floor is set as low as the reach
+  allows where that brings it under 6 m (ladder, no stair): VP-1 at 5.6 m, VP-6 at 5.9 m.
+- **Nothing in it**: no pipe through a column, beam or flight, none less than 2.1 m over a
+  floor or landing, no structure in a laydown or crane lane, no floor or stair head inside a
+  vent zone. Each platform's stair side and position were chosen by building every variant
+  (four sides, two starts, shifts of 0.3 / 0.6 m) and keeping one that adds no finding.
+- **Prefer grade**: a control valve at the start of a segment whose route can drop to grade
+  is moved onto a riser at grade instead of getting a platform.
+- **Pins**: the routes of every line whose valves are served, and of the lines tee'd to them
+  (AIR-1004, AIR-2001, GAN-4001 .. 4004, GOX-4001 .. 4004, RG-2001 / 2002, UN-3001, VNT-4001 ..
+  4007, WN-1001 / 3002 / 3003), are pinned as routed: pinning only the valves' segments let
+  the router move the tees of the others (5 pipe-disconnected errors in the trials).
+Resolved (13 of 27):
+1. **Moved to grade**: FV-2105 (regeneration gas flow control, RG-2001): the P-03 / P-02 sheet
+   joint now lies at grade north of the cold box (x 134.9, y 57.6, 0.6 m), the line dips on
+   sleepers and rises at y 58.6, so the valve stands on the riser at 1.1 m (it sat inside PR1
+   between the 7 and 9 m tiers, where no platform fits). Dry waste N2: the low point needs no
+   drain. PV-3113 (casing purge, UN-3001): the sheet joint at grade south of PR1 (x 145.85,
+   y 63.3, 0.3 m), the valve on the riser at 1.55 m (it sat on the PR1 top tier).
+2. **Platforms** in `layout/structures.yaml`: VP-1 PV-3110B (5.6 m, ladder; extended west so
+   the ladder clears the CW-3001 riser), VP-2 PV-4101B (10.16 m, cut to 1.6 m south of the
+   UN-3001 lane), VP-3 XV-4117 (9.95 m), VP-4 XV-4116 and HV-4129 (one 7.2 m walkway at
+   8.65 m west of the GOX-4002 riser, instead of two proposals), VP-5 HV-4130 (8.35 m), VP-6
+   XV-4134 / XV-4135 (5.9 m, ladder), VP-7 UV-4103 (9.51 m), VP-8 PV-4111 and VP-9 PV-4112
+   (7.87 m on the west side of PR3, shifted off the VNT-4003 lane). The GAN BL bleed VNT-4007
+   now ends at 15.6 m (was 14.7 m), so its 5 m N2 zone clears VP-5.
+Open (14, kept as warnings; the build names each one's proposal):
+- **TSA switching valves** XV-2101A, XV-2102A/B, XV-2103A/B, XV-2111A on the adsorber top
+  piping (7.7 .. 8.8 m): every free-standing platform puts columns through the horizontal
+  adsorber shells or into the sieve change-out laydown Z-SIEVE, and the S-2101 vent zone
+  reaches the space between the vessels. A frame spanning the vessel with a small floor over
+  it reaches XV-2102A/B, but no stair position clears the top piping. The adsorber top piping
+  and its valve platforms go to the adsorber (TSA) supplier's arrangement.
+- **Tank boil-off valves** PV-4109 / PV-4110 (12.6 / 13.7 m on the west side of the tank
+  roofs): a platform there lies in the 5 m zone of the boil-off outlet itself. Needs the tank
+  supplier's west roof platform with the outlet raised to about 19 m (vent study, D-025).
+- **GOX / GAN battery limit**: XV-4118 (GOX ESD block on the riser at 10.6 m): the bypass
+  HV-4129 at 10.13 m runs across the only side a platform could take, and its stair would run
+  under it. XV-4119 (DBB block, handwheel 0.25 m north of the pipe at the PR1 edge), XV-4132
+  and the bleed valve XV-4133: in the 0.9 m between the GAN-4003 / GAN-4004 runs at 9.97 m and
+  the BL risers, with no stair position. These need the BL valve station re-arranged in the
+  piping layout (the operators turned to face VP-5, or the station dropped to grade south of
+  PR1, D-040 (6)).
+- **XV-3105** (off-spec GAN divert, on the VNT-4004 leg crossing PR1 at 9.9 m) and **PV-3110A**
+  (waste N2 vent, in the nest of the DN 600 / 700 WN-1001, WN-3002, WN-3003 lines north of the
+  cold box, where no column position clears them): need a PR1 rack walkway or the lines
+  re-arranged in detail engineering.
+Core: the stair proposed for a small valve platform topped out 2 .. 3 m off it, the next
+build gave a pinned platform's id to a new proposal, and `layout pin LINE` added a second pin
+for a segment pinned with its sheet; fixed in core feat/open-points (adac685).
+Result: operability 27 -> 14, 0 errors, 0 clashes, no new finding of any other rule. Take-off
+4,746 m pipe (+36 m: the two drops to grade), 376.9 t steel (+49.4 t: 9 platforms, 7 stairs,
+2 ladders), 508 m2 grating (+134 m2).
+
+## D-048 Rack intermediate steel (2026-10-22)
+Decision (amends D-034 (6); review3#4). The racks get intermediate steel between the 6 m bents
+(`intermediate_supports` in `layout/site-plan.yaml`): stringers along both edges and beams
+across, HEB200 (ASSUMED; the rack design in detail engineering sizes them), on the tiers that
+carry lines too small for a 6 m span (pipe-spans table, ASSUMED):
+- **PR1**: the 5 m tier (cooling water DN 100 .. 250, 4.3 .. 5.8 m) and the 9 m top tier
+  (O2 / N2 / cryogenic lines down to DN 40 LOX / LIN, 2.1 m), a beam every 2.03 m (`spacing_m`
+  3: three pieces per 6.08 m bay). The 7 m tier (air and waste N2, DN 500 .. 800, spans 11.9 m
+  and more) needs none.
+- **PR2**: both tiers, every 2 m or less (`spacing_m` 2): LOX-3001 / LIN-3001 DN 40 at 2.1 m.
+- **PR3**: the 8.5 m tier (backup GOX-4004 / GAN-4003 DN 100, 5.2 m); not 6.5 m.
+Consequences: the PR3 west edge stringer at 8.3 .. 8.5 m stood in the standing space of the
+PV-4111 / PV-4112 platforms (D-047): VP-8 and VP-9 are raised to 8.6 m, above it (the
+handwheels 0.5 m above the grating, ASSUMED acceptable for actuated valves worked only in
+maintenance; stair from the west, three flights). The pinned drops of CHW-1001 (x 75.3, was
+74.57) and AIR-1004 on P-02 (x 89.6, was 89.0) moved off the new beams; LIN-3001 is pinned out
+through its east casing sleeve again (its rebuilt route had turned out through the north face,
+a casing penetration finding since D-047); the out-and-back loop of the pinned VNT-4002 S2 at
+the PR3 north end now dips 0.5 m under GAN-4003 and back instead of leaving the rack. Two
+tray-span acceptances quote the new lengths of the rerouted branch trays (PT-M-P-4101B 13.85 m,
+IT-JB-A1-1 13.75 m, both still within the posts they name).
+Core: at the PR2 joint both racks' bents were left out and the bays into it had no
+intermediate steel, so the PR1 lines spanned 6.08 m across it; fixed in core feat/open-points
+(6c059be: the main rack keeps its steel, only the tiers the branch's lanes cross are cut).
+Result: free-span 21 -> 4, 0 clashes, 0 errors; support-missing 77 -> 89 (runs whose rack part
+is now supported and whose part off the rack has no support at all move from free-span to
+support-missing; D-049). Take-off 4,755 m pipe, 489 t steel (+112 t intermediate steel,
+582 members, 1,918 m), 513 m2 grating.
+
+## D-049 Pipe support steel off the racks (2026-10-22)
+Decision (review3#4, D-034 (6)). Every level run off the racks that spans farther than its
+DN's span (pipe-spans table, ASSUMED) gets the build's support proposals, declared in
+`pipe_supports` of `layout/structures.yaml`: 250 posts (T-posts from grade, HEB200 with a
+footing, ASSUMED; the stress engineer confirms each), pinned as proposed (234) or moved along
+the pipe where the proposed one stood in another pipe, an item, an access space or a lift lane
+(15 moved by 0.5 .. 2 m after building each shift and keeping the first that adds no finding;
+AIR-3005 S2 post-1 2.1 m east, out of the K-3101 lift lane from Z-PAD-A3S). LIN-3001 runs
+north at x 142.7 (0.6 m east of its 63a79fd route, D-048) so its posts stand clear of the
+CWR-3001 run under it; its first post stands inside the casing at the east sleeve. No
+proposal was pinned inside the cold box casing.
+Accepted (`checks/checks.yaml`, with the measured length in the reason): the 8 runs inside
+the perlite-filled casing (AIR-3002 S4, GAN-3001, LN-3001 S1 / S3, RL-3001 S1 / S2, WN-3001
+S2, WN-3002 S1), supported from the column and casing internal steel the cold box vendor
+designs with the internals; the LOX / LIN pump suctions LOX-4001 / LIN-4001 at 0.5 m on a
+concrete sleeper (below the 0.3 m top of steel from which posts are proposed).
+Open (kept as warnings and infos, each with what is in the way of the proposed post):
+- the GOX riser area at the battery limit: GOX-4002 S5 (7.6 m, DN 200) and S12 (22.3 m,
+  DN 80) run 0.5 m apart over VNT-4002 at x 180.3 .. 180.8: every post or stub stands in one of
+  the other two lines; a common T-post frame or brackets off VP-4 in the piping layout;
+- GOX-4001 on P-03 (18.6 m at 12.65 m north of the cold box): the post stands in AIR-2002;
+  UN-3001 on P-04 (7.0 m), GAN-4004 (6.2 m), CWR-4002 (5.4 m), CW-4001 (9.8 m) and CWR-1004
+  (11.7 m, the post stood in the P-1101B access space): posts land in the pipes below them;
+- LIN-4003 S1 (7.4 m, DN 25, at 8.1 m over T-4102), LIN-3001 S2 (4.2 m), LOX-3002 S1
+  (2.5 m, the post stood in V-3101), LOX-3001 on P-03 (2.6 m at the casing, 3.6 m on the PR1
+  top tier at the PR2 joint, where PR1's intermediate steel is cut for PR2's lanes).
+Core: support proposals were numbered from post-1 again after a post was pinned, so pinning
+one declared the id twice; fixed in core feat/open-points (e615eae).
+Result: free-span 21 -> 8, support-missing 77 -> 15 (10 accepted), 0 clashes, 0 errors.
+Take-off 4,757 m pipe, 581 t steel (+92.6 t support steel, 500 members, 1,510 m), 44.5 m3
+footings, 513 m2 grating.
+
+## D-050 Open after the open-points round (2026-10-22)
+- **PSV-3114 / PSV-3116 tailpipe guides** (review3#2): the guide off the relief valve
+  platform RV steel needs the relief reaction forces from the stress analysis (the relief
+  loads of the tailpipes on the roof steel); not modelled until those are known.
+- **KT-3101 expander casing extension** (layout#15): needs the cold box / compander vendor's
+  drawing; not modelled.
+- Operability: 14 valves (D-047); support: 8 free spans and 5 runs without support (D-049).
+- The layout-review gate is open: the next independent layout review covers D-046 .. D-049.
+
+## D-051 Layout changes for the seventh layout review (2026-10-23)
+Decision (reviews/2026-10-23-layout-review7.md). Each change below was built, the model
+checked with `plantcode layout build` and `plantcode validate`, and committed on its own.
+1. **Rebuilt with core feat/open-points (73278c9, 844ead8, 01df35a).** A pinned route now
+   carries the racks and tier of its rack runs (36 pinned pipes regained them; before, a later
+   proposal could put a T-post from grade under a pinned tier run inside a rack); rack lanes
+   are on the millimetre, so pinning a route as generated moves no other line; a tee is cut
+   exactly where its run passes the branch's target (CW-1001's pump tee back at y 60.0, the
+   136 mm dog-leg of CW-1001 S3 gone); lanes of the CW / CWR lines shift by 1 .. 3 mm. The
+   LOX pumps P-4101A/B, 'SS / bronze', no longer get the stainless steel material factor (2.3):
+   no single material, so purchased cost only until a factor for the combination is given with
+   its source (bare module of the fully factored items USD 2.20 -> 2.10 million, 3 items).
+   No finding count changed: 0 errors, operability 14, free-span 8, support-missing 15.
+2. **VP-8 out of road R2 (review7#1).** PV-4111 (backup GOX pressure valve) stood 1.5 m south
+   of the PSV-4127 tee on GOX-4004 at y 78.2, inside R2 (y 75.5 .. 81.5), and its platform
+   VP-8 and three-flight stair stood on the carriageway, the fire access and the only link to
+   the east road R5. The PSV-4127 tee now lies at y 89.5 on the PR3 drop (GOX-4004 S3 ends
+   there, S4 starts there, the PSV branch S5 / S6 with it), so PV-4111 sits at y 88.0 beside
+   PV-4112 (y 86.1, GAN-4003), and VP-9 is lengthened north to 4.5 m (y 84.54 .. 89.04,
+   floor 8.6 m, its west stair as before) and serves both. VP-8 is removed; nothing of a
+   platform or stair is left in R2. PSV-4127 is now 0.25 m east of the VP-9 floor edge: its
+   open tailpipe rises to 11.6 m, 3 m above the grating (ASSUMED, as for the other relief
+   outlets beside walkways). No finding added (0 errors, the same warnings); take-off 577.0 t
+   steel (-4.4 t), 498 m2 grating.
+3. **Rack bents out of road R2 (review7#2).** PR2 and PR3 had a bent 1 .. 1.5 m inside R2
+   (6 m spacing from their start at y 68), leaving about 4.4 m of the road. Each now has its
+   own bent spacing (`bent_spacing_m`, core fad8e7d): PR2 7.2 m (5 bays of 36 m), bents at
+   y 75.2 and 82.4; PR3 7.14 m (7 bays of 50 m), bents at y 75.1 and 82.3; R2 (y 75.5 ..
+   81.5) is spanned clear, as `layout-steel-in-way` (core fad8e7d) now confirms. The longer
+   bays are ASSUMED (the rack design sizes the beams); PR2's intermediate steel stays at
+   1.8 m, PR3's 8.5 m tier at 2.4 m, its 6.5 m tier (DN 100 and larger, 5.2 m and more) has
+   none, and no free span was added. LOX-3001 S1 drops off PR2 at y 101.225 (was 100.5, now
+   on an intermediate beam). The branch tray PT-M-P-4102B now crosses over the PR2 steel at
+   11.5 m, 9.7 m long (acceptance reason updated). Take-off 573.3 t steel (-3.7 t).
+   The new rule also reports the posts of review7 #3 .. #7 (16 findings), fixed below.
+4. **Posts out of the laydowns and out of K-3101 (review7#5, #7).** RG-2002 S3 post-1 moves
+   4.5 m north along its pipe to y 39.0, out of the sieve change-out area Z-SIEVE (y 34 ..
+   38; at y 33.5, the reviewer's other choice, it stood in RG-2003). GAN-4003 S3 now runs from
+   its riser at x 172.257 south to y 117 and east along y 117 to PR3 (was east along y 121
+   and south along x 179.7, across the laydown Z-LAYDOWN-A5N and the end ladder's keep-clear
+   Z-LAD-PR3), 1.5 m from the PR3 end ladder; its two posts are the build's proposals for the
+   new run (x 172.7 and 177.1, same length 13.3 m). The AIR-3003 S1 post stands at the bend
+   east of K-3101 (x 134.5): its crossbar had reached 0.35 m into the K-3101 package, and
+   west of the package stands KT-3101 on the same skid; the 6.0 m to the riser is within the
+   DN 150 gas span (6.4 m, ASSUMED table). 4 steel-in-way findings closed, none added.
+5. **GOX-4002 S1 off the crane pad Z-PAD-A4 (review7#4).** The pinned S1 from E-4102 ran east
+   at y 32.44 over the north-west corner of the K-4101 pad (x 174 .. 184, y 23 .. 35) at
+   3.6 m, and its post stood on the pad. It now leaves the open east side of FW-4101 to
+   x 173.5, turns north there, 0.4 m west of the pad, and runs east along y 37 to the same
+   end; its one post is the build's proposal on the new north leg (x 173.5, y 34.87), off
+   the pad. The 10 x 12 m pad is whole again for the K-4101 lift. Length unchanged.
+6. **LOX-3002 S1 posts clear of the LD0 / LD1 ladders (review7#3).** The route stays at
+   y 49.25 (HV-3118 on it is worked from P10, 0.55 m away), and the three posts move:
+   post-1 to x 128.4, east of LD1 (its crossbar had entered the LD1 cage 2.1 m above P10),
+   post-2 to x 126.3 and post-3 to x 124.3, so the spans are 2.1 / 2.0 / 1.8 m (DN 25 liquid
+   2.1 m, ASSUMED table). Nothing stands between the ladders now; the nearest column, post-2,
+   is 0.28 m outside the LD0 cage on its north side, below P10 where LD0 ends, and 1.05 m from
+   its rails. Section build/layout-section-y49.25_crop-120-0-134-16.png.
+7. **Cold box escape route Z-ESC-CB1 kept clear (review7#6).** AIR-3005, CWR-3001 and
+   LIN-3001 run north over the route along x 142.2 .. 142.7, so their posts cannot leave it;
+   the route was declared 2.9 m wide (x 140.6 .. 143.5) and reached into the casing wall
+   (x 141.0 .. 141.2), leaving 1.19 m clear at y 40.2 and 45.3. Decision: the route is the
+   lane between the east casing wall and the posts, x 141.2 .. 142.45, 1.25 m clear from the
+   ST1 foot to road R1, against a minimum clear width of 1.2 m (ASSUMED; the owner's escape
+   route standard confirms it). The CWR-3001 posts 3 .. 5 stand 0.34 m east of their pipe
+   (x 142.55) with 1.2 m crossbars under it, LIN-3001 post-2 0.1 m east (x 142.6); the
+   AIR-3005 posts already stood east of the lane. Clear width computed over y 11 .. 50.6 at
+   grade to 2.2 m: 1.25 m everywhere (was 1.19 m). 10 steel-in-way findings closed, none
+   added.
+8. **VP-1 / VP-6 ladders and the UN-3001 stub on VP-1 (review7#8, #9).** The caged ladders of
+   VP-1 and VP-6 rose through their floors with no opening or gate, the VP-6 cage taking floor
+   from its 1.26 x 1.5 m platform. Both now stand outside the south edge, 0.2 m off it, at
+   the west end (VP-1 x 131.4, VP-6 x 170.62), with a through exit and a self-closing gate
+   in the handrail (ISO 14122-4 practice, ASSUMED; the gate is not modelled). The UN-3001 S1
+   support stub on the VP-1 floor is gone, so VP-1 carries no pipe load and the standing
+   square at PV-3110B is free: the run along x 131.1 at 10.4 m has four posts from grade at
+   y 62.6, 58.9 (south of the VP-1 ladder cage), 56.3 and 53.2, spans 3.2 .. 3.7 m (DN 50 gas
+   4.0 m, ASSUMED table). The ladders keep at least 0.2 m from every pipe and post
+   (ladder-clearance, steel-in-way); no finding added.
+9. **LIN-4003 S3 clear of the LIN-4002 S4 posts (review7#10).** The insulated LIN pump
+   recycle ran north along x 144.34 at 3.57 m, 13 mm from the columns of the five LIN-4002 S4
+   posts at x 144.52. Its run moves 0.24 m west to x 144.1 (computed clearance to those posts
+   now 0.25 m), with its own posts 1 .. 7 respaced (1.95 m from y 103.1) and post-8 at the
+   bend, so no span exceeds 2.1 m (DN 25 liquid, ASSUMED table). The reviewer's alternative,
+   a lower crossbar on the LIN-4002 posts, is left to the support design: the model has one
+   crossbar per post. LIN-4003 S1 stays open for supports (D-049). No finding added.
+10. **Result.** Every review7 finding (#1 .. #10) is answered above; `layout-steel-in-way`
+    reports none. Model findings as at 898c280 (0 errors, 0 clashes, operability 14,
+    free-span 8, support-missing 15). Take-off 4,759 m pipe, 574.4 t steel. Still open, with
+    their reasons in D-050: review3#2 (PSV-3114 / PSV-3116 tailpipe guides: need the relief
+    reaction forces of the stress analysis), review3#3 (the 14 valves of D-047), review3#4
+    (8 free spans and 15 runs without support, 10 accepted, D-049), layout#15 (the KT-3101
+    casing extension waits for the vendor drawing). No stage sign-off; the next independent
+    layout review covers D-051.
+
+## D-052 Booster air in the flowsheet; expander inlet state (2026-10-23)
+Decision: `process/flowsheet.yaml` carries the booster branch the P&ID P-03 draws. The dry
+air S4 splits (step X3102, at the AIR-3005 branch of AIR-2002) into the main air S4A to E-3101
+(83,190 kg/h = S5) and the booster suction S4B (14,870 kg/h = the expander air, 5.6 bara,
+15 C as S4); the booster K-3101 (own step K3101, linked to K-3101 only) raises it to 8.0 bara
+(S4C, equipment list and AIR-3002), the aftercooler E-3104 (own step) cools it to 40 C (S4D,
+ASSUMED: as the other aftercoolers of the equipment list, E-1103 / E-4102 / E-4103, with CW
+25 -> 35 C of the design basis; no pressure drop in E-3104, ASSUMED; E-3101 takes it to the
+7.8 bara of the expander inlet), and E-3101 gets a second warm inlet `bst`. The expander feed
+S5B now has the state of DESIGN.md 3 / D-003: 7.8 bara, -118 C. Why: the step KT3101 linked
+both KT-3101 and K-3101, so the K-3101 datasheet drafted the expander's streams (outlet
+1.35 bara, -178 C) as the booster's conditions, and neither machine could be sized from the
+flowsheet; the booster and its aftercooler are now separate items with their own streams.
+Rejected: keeping the lumped step (wrong booster conditions). Mass flows unchanged (every
+block and step balances, `plantcode process streams`); BFD and PFD rebuilt (this also clears
+the two `generated-version` warnings of the core update). Property check of S5B -> S6 at the
+given states: 55.7 kJ/kg, 230 kW for 14,870 kg/h (D-003 estimated ~52 kJ/kg, ~215 kW: 7 %
+apart, inside the concept accuracy).
+Noted, not changed: S10 (LOX, 1.3 bara, -180 C) and S11 (LIN, 5.2 bara, -178 C) are given as
+liquid, but the property method finds them just above their bubble points, i.e. vapour
+(`process-property-phase`, as before this change): the stream temperatures sit on the
+saturation line within the rounding of DESIGN.md 3 and should be set a few K subcooled when
+the cold-box balance is next revised.
+
+## D-053 Datasheet sizing: calculated values, sizing assumptions, what stays with the suppliers (2026-10-23)
+Decision (amends D-042): the 39 datasheets are sized with `plantcode datasheets fill` where a
+flowsheet node gives the streams, and by `scripts/datasheet_sizing.py` (provenance; run with
+`plantcode run`) where it does not; that script uses only plantcode's own methods (property
+adapter, `sizing`, line losses along the routed pipes of the layout model, Fenske / Underwood)
+and IAPWS-95 for water. Every value names its calculation and inputs; every value resting on an
+assumption below is `assumed: true`. 28 datasheets have no `TBD` left and are `draft: false`;
+11 stay drafts (below; counts corrected from 38 / 10, review8#9). Of the 66 TBD values of
+D-042, 47 are filled and 19 stay open; the fill added 16 TBD fields of its own (LMTD, minimum
+stages and reflux) on the 11 open drafts.
+Sizing assumptions (ASSUMED, concept values until the suppliers' figures):
+- compressors: isentropic efficiency 0.80 per stage; maximum pressure ratio 2.0 per stage (gives
+  the 3 MAC stages of section 1, 5 GOX stages against the list's 4-5, one booster and one GAN
+  stage); intercooled to 40 C (as the aftercoolers of the list); mechanical efficiency 0.97;
+  expander eta_s 0.85 (D-003). Isentropic, not polytropic, efficiencies are declared. The MAC
+  Cp/Cv 1.402 is the property adapter's for the dry air at the suction (the 0.25 mol% water of
+  S1 is outside the method and neglected). The motor inputs of section 3 (8.0 / 2.3 / 0.3 MW) are
+  kept as `electric_power_kw`, the motor and utility basis; `shaft_power_kw` is now calculated.
+- gas / cooling-water coolers: one shell, two tube passes (1-2, Bowman-Mueller-Nagle F), U 160
+  W/(m2 K), the middle of 'cooler, gases / water' of Sinnott, C&R Vol. 6, 4th ed., Table 12.1;
+  cooling water 25 -> 35 C (design basis); no area margin.
+- pumps: water pump efficiency 0.75; a 100 kPa allowance for the flow control valve, strainer
+  and the C-1101 liquid distributor; CW at the battery limit 4 barg (design basis); pipe schedule
+  40 for the water lines and 10S for the stainless cryogenic lines, commercial-steel roughness;
+  LOX / LIN pumps keep D-042's efficiency 0.5, densities and 1.5 bara suction.
+Results and review against the design:
+1. MAC K-1101: 3 x 1.791, 5,778 kW gas power, 5,957 kW shaft (isothermal 4.15 MW, isothermal
+   efficiency 0.70), 26 % below the 8.0 MW electric of section 3 (0.105 kWh/Nm3): inside the
+   concept accuracy, the 8.0 MW stays the motor and utility basis. Coolers (dry-gas sensible
+   duty): E-1101 1,612 kW / 334 m2, E-1102 1,947 kW / 361 m2, E-1103 1,947 kW / 361 m2; 5.5 MW and
+   476 m3/h CW in all, against the MAC's 7.6 MW of cooling water in section 3. Finding: the flowsheet's S1 carries 0.25 mol%
+   water (D-027), the design basis 80 % RH at 30 C (3.35 mol%); with the design basis humidity
+   ~690 kg/h of water condense in E-1102 and ~640 kg/h in E-1103 (+464 / +426 kW, IAPWS-95). The
+   S1 humidity is to be reconciled with the design basis before the cooler enquiry.
+2. GOX compressor K-4101: 5 x 1.933, 2,113 kW gas, 2,178 kW shaft against 2.3 MW electric
+   (consistent); the isothermal 1.48 MW of section 3 checks (1,477 kW). E-4101 four intercoolers
+   1,608 kW / 286 m2, E-4102 427 kW / 73 m2.
+3. GAN compressor K-4102: 1 x 1.731, 229 kW gas, 236 kW shaft against 0.3 MW electric; E-4103
+   175 kW / 40 m2 (replaces the 0.3 MW of the utility table, which was the whole machine's
+   cooling water).
+4. Compander: booster K-3101 5.6 -> 8.0 bara 161 kW gas, 166 kW shaft, discharge 54.6 C (set as
+   S4C, D-052); E-3104 59 kW / 24 m2, 5.1 m3/h CW (the line list's ~60 m3/h on CW-3001 is about
+   ten times what the duty needs). Expander KT-3101 (real gas, adapter): 204.6 kW gas, 198.5 kW
+   shaft, exhaust 101.1 K (-172 C) against the -178 C of S6. Findings, within the concept
+   accuracy, for the compander supplier: the exhaust is 6 K warmer than the LP column feed
+   assumes (a colder inlet or a higher efficiency closes it), and the booster takes 33 kW less
+   than the expander gives (the pair balances at a higher booster discharge).
+5. Main exchanger E-3101: duty 5,211 kW from the warm side (main air 4,536 kW, booster air 674
+   kW, adapter enthalpies). From saturated vapour the cold streams would take 5,866 kW; the
+   655 kW difference is the warming of GAN and waste N2 in the subcooler E-3102 plus the heat
+   leak, which the flowsheet does not carry. Area stays TBD: a multi-stream plate-fin exchanger
+   is sized from its composite curves by its supplier.
+6. Columns: HP column C-3101 Fenske 11.8 minimum stages, Underwood Rmin 1.21 (N2 / O2 keys,
+   rich liquid 38 % O2, alpha 2.56); LP column C-3102 Fenske 12.0 minimum stages for the Ar/O2
+   split (8.8 for N2/O2), a lower bound. The operating reflux is set by the double-column heat
+   integration, which the flowsheet lumps (S13, D-027), so no Gilliland count on a guessed
+   R/Rmin: theoretical stages, packing and diameters stay with a process simulation or the
+   cold box supplier.
+7. DCAC / evaporative cooler C-1101 / C-1102: not distillations; packing heights from heat and
+   mass transfer of the packing supplier: stages stay TBD.
+8. (Superseded by D-055 (5): the tanks on a plinth, NPSHa +0.34 / +0.31 m.) LOX / LIN backup
+   pumps: NPSH available at the tank outlet level is -0.16 m (LOX) and -0.19 m
+   (LIN): the pump suctions stand 0.15 m above the tank outlets T-4101/N4 and T-4102/N4 and the
+   liquid is saturated, so all NPSH comes from the liquid above the outlet nozzle. Requirement
+   (open): the low-low levels of LIA-4107 / LIA-4108 must hold NPSHr (supplier) + 0.2 m + margin
+   of liquid above N4. The D-042 heads (31 and 9 bara at the pump) do not yet include the
+   vaporizer and control valve drops downstream (lines: +0.5 m LOX, +1.5 m LIN, statics 3.5 /
+   4.0 m); to be raised with the vaporizer supplier's figures.
+9. DCAC CW pumps P-1101A/B: 31.1 / 31.9 m, NPSHa 53 m, 28 / 29 kW; chilled water pumps
+   P-1102A/B: 78.4 / 78.7 m, NPSHa 11.3 m, 28.5 / 28.6 kW (each pump along its own routed lines).
+10. Vaporizers E-4105A/B, E-4106A/B: duty and area TBD: the outlet temperature is not set,
+    vaporizing at 31 / 9 bara is outside the VLE range the property method is claimed for, and an
+    ambient-air vaporizer is rated by its supplier. E-3102 / E-3103: duty, conditions and area
+    TBD: they need the double-column internal balance.
+11. F-2101 operating conditions are S4's (S4 links the lines into and out of F-2101).
+Open (11 drafts, the datasheets gate stays failed): C-1101, C-1102, C-3101, C-3102
+(stages), E-3101 (area), E-3102, E-3103 (duty, area), E-4105A/B, E-4106A/B (duty, area). Their
+reasons are in each datasheet's notes (a later fill rewrites the TBD reasons with its own).
+
+## D-054 Equipment estimate coverage after the datasheet sizing (2026-10-23)
+Decision (amends D-043 / D-051 (1)): `plantcode assess equipment --write` rerun on the D-053
+datasheets. Coverage (39 items): bare module 3 (C-1102, P-4102A/B; unchanged), purchased cost
+only 22 (was 11: now also E-1101, E-1102, E-1103, E-3104, E-4101, E-4102, E-4103, K-4101,
+KT-3101 and P-1101A/B, P-1102A/B with their calculated areas and powers, no material or bare
+module factor for their mixed materials), not covered 14 (was 25). Purchased equipment of the
+covered items USD 4.00 million (was 3.31 million), bare module USD 2.10 million (unchanged), 2023
+USD, estimate class 5 as D-043, and only for the items it covers.
+Not covered, with the reason: K-1101 (5,778 kW gas power above the correlation's 450-3,000 kW;
+not extrapolated), K-3101 (161 kW) and K-4102 (229 kW) below it, E-3101 / E-3102 / E-3103 and
+the vaporizers E-4105A/B, E-4106A/B (no area, D-053), F-1101 / F-2101 / E-2101 (no correlation
+in the package data), V-3101 (12.6 m3 below the tank range). These need quotations (the cold
+box and the compander are normally vendor packages) or a correlation with a cited range.
+
+## D-055 Changes for the eighth layout review and the sizing review (2026-10-23)
+Decision (reviews/2026-10-23-layout-review8.md and the review of core's `datasheets fill`).
+Each change below was built, the model checked with `plantcode layout build` and
+`plantcode validate`, and committed on its own.
+1. **Rebuilt with core feat/open-points 9518dfc.** The core sizing fixes change two generator
+   inputs (the property adapter `props.py`: K-values of a component absent from a product;
+   `pipe-od.yaml`: a corrected comment on where the ISO and ASME outside diameters differ), so
+   the BFD, PFD and the layout model are rebuilt. Only the generator fingerprints change: no
+   stream value, route, item or finding moved.
+2. **Relief outlets beside VP-9 (review8#1, #5).** The lengthened VP-9 (D-051 (2)) had the
+   GAN relief outlet of PSV-4128 (GAN-4003 S6) 0.96 m above its 8.6 m grating and 0.46 m off
+   its east edge, and the GOX relief outlet of PSV-4127 (GOX-4004 S6) 3.0 m above it and
+   0.25 m off the edge; neither was a zone source. Both are now sources: PSV-4127 (line
+   GOX-4004, its only open end) in Z-O2-VENTS and PSV-4128 (line GAN-4003, its only open end)
+   in Z-N2-VENTS, secondary relief outlets with the 3 m spheres of the release-radii table
+   (ASSUMED). With them `layout-vent-outlet` reported that both zones reached the VP-9 floor
+   and stair and that the outlets need 13.8 m (8.6 m grating + 2.2 m walkway headroom + 3 m),
+   and `layout-egress-zone` that the VP-9 stair head lay in both zones; the GOX zone also
+   came 9.4 m from road R5 (separation 10 m, D-025). Both tailpipes now rise to 13.8 m (5.2 m
+   above the grating, guided off the VP-9 steel, ASSUMED: the guides are sized with the relief
+   reaction forces, as for PSV-3114 / PSV-3116, D-050); the GOX tailpipe first runs 1.1 m
+   north at 9.4 m to y 90.6, off the floor's corner, so its zone edge is 10 m or more from R5.
+   No vent-outlet, egress-zone or separation finding is left; the other findings are
+   unchanged. The core rule itself (outlets beside, not only above, a floor) is not changed:
+   with the outlets declared as zone sources the existing zone test covers them.
+3. **VP-3 stair foot clear of K-4102 (review8#6).** The base landing of the VP-3 stair
+   (centre y 53.353, 1.8 x 0.9 m) reached 0.30 m into the K-4102 package box (y 53.5 ..
+   58.5, x up to 159). The stair keeps its west side and switchback and starts 1.2 m further
+   south (offset -3.653): base landing centre [159.55, 52.153], 0.9 m from the package
+   (0.8 m walkway, ASSUMED); its top landing (y 46.85 .. 47.75) still meets the platform
+   (y 46.95 .. 48.95); it stays east of the laydown Z-PAD-A4N (x up to 158). No finding added.
+4. **Pipes clear of other lines' posts (review8#7).** Every declared support post now stands
+   0.1 m or more (clear gap, pipe outer surface with insulation to the steel face, ASSUMED
+   minimum until the stress engineer sets the movements) from every pipe it does not carry
+   (computed over all 251 declared posts; smallest now 0.10 m, GAN-4003 S4 over the GAN-4004
+   S1 post-1 crossbar):
+   - GAN-4001 S1 run and its post-1 0.1 m west (x 132.823): 0.12 m from WN-3002 (was 0.02 m;
+     WN-3002 runs beside it from y 54.8 to 62.8, so moving the post along the pipe does not
+     help, and north of y 60.3 VP-1 stands);
+   - RG-2003 S8 post-1 0.4 m west (x 104.2), clear of AIR-2001 S1 (was 0.04 m);
+   - UN-3001 S1 post-1 0.62 m east (x 143.1), out of the 0.33 m gap between CWR-3001 S1 and
+     LIN-3001 S1 (was 0.08 / 0.05 m);
+   - LOX-3001 S1 post-1 0.11 m east to the bend (x 143.0): 0.14 m from the cold LIN-3001 S1
+     riser (was 0.05 m); further west its column would meet the CWR-3001 run along y 67.794;
+   - AIR-1004 S1 post-1 0.6 m north (y 56.0), clear of RG-2001 S2 (was 0.05 m);
+   - CW-1001 S1 post-1 crossbar 0.7 m instead of 1 m: its end 0.14 m from CWR-1004 S1 (was
+     0.06 m);
+   - LIN-4004 S2 run 0.1 m west (x 154.474): 0.16 m from the LIN-4003 S2 post-2 / post-3
+     columns (was 0.06 m; the cold fill line runs the full length past both).
+   No finding added; take-off 4,767 m pipe, 574.4 t steel. Not changed: 20 generated post
+   proposals (`review_needed`, the build's proposals for the runs of D-049, not declared
+   steel: AIR-3002 S4, GOX-4001 S1, LN-3001 S3 (2), RL-3001 S2 (2), WN-3001 S2 in or at the
+   cold box; CW-4001 S1 (2), CWR-4002 S1, GAN-4004 S1, GOX-4002 S12 (4), GOX-4002 S5,
+   LIN-4003 S1 (3), UN-3001 S1 on P-04) come under 0.1 m of other pipes, some through them.
+   They are not steel of the design until declared; each is moved clear when it is taken
+   into `layout/structures.yaml` with the support design (D-049).
+5. **LOX / LIN tank outlets above the pump suctions (review8#4).** The tank outlets N4 stood at
+   0.5 m and the pump suctions N1 at 0.65 m: the suction lines ran level and rose 0.15 m into
+   the pumps, so vapour gathered at the pumps, and NPSHa at the outlet level was -0.16 m (LOX)
+   and -0.19 m (LIN) (D-053 (8)). Decision: T-4101 and T-4102 stand on a 0.5 m foundation
+   plinth (ASSUMED; the tank supplier's foundation design sets it, with the bottom heating or
+   air gap of a flat-bottom cryogenic tank), so N4 is at 1.0 m, 0.35 m above the pump
+   suctions. The suction lines LOX-4001 and LIN-4001 are pinned: level from N4 to the tee and
+   over each pump, then down into the suction (no point rises towards a pump; in the piping
+   design the level runs fall towards the pumps, 1:100 ASSUMED), so vapour returns to the tank.
+   Rejected: the pumps in a pit (cold, dense O2-enriched or inert vapour collects in a pit,
+   EIGA practice keeps cryogenic pumps at grade). Rerun of D-053 (8) (scripts/datasheet_sizing.py):
+   NPSHa at the outlet level +0.34 m (P-4101A/B) and +0.31 m (P-4102A/B), suction losses
+   0.013 .. 0.041 m; the datasheets carry it. The low-low levels stay the NPSH basis: they are
+   now the interlocks I-01 (LIA-4107) and I-02 (LIA-4108) of `control/cause-effect.yaml`
+   (trip the pumps, close XV-4136 / XV-4137, D-024), set to hold NPSHr - 0.34 / 0.31 m +
+   margin of liquid above N4 (SIL from the screening). With the tanks 0.5 m higher, every pinned
+   route at their nozzles is 0.5 m higher (LIN-3001 S2, LOX-3001 S2, LIN-4003 S2 (a 0.3 m rise
+   into N5), LOX-4004 S2, LIN-4004 S2, VNT-4001 S1..S5, VNT-4005 S1..S5; the vents keep their
+   height above the roofs and stay outside the vent-outlet rule), and the upper LOX tank
+   tapping T-4101/I3 (7.3 m) has a capillary seal to its stand at grade, as T-4102/I2 (its
+   impulse line would have been 6.3 m). The plinths are declared with the placement field
+   `plinth: 0.5` (core 72460f9): the model draws them as concrete solids 0.1 m wider than the
+   tanks (no ring wall) and the tanks' spiral stairs from grade; concrete take-off 131 -> 181
+   m3. Lifting study rewritten (no lift changed). Findings: instrument-no-interlock 15 -> 13;
+   nothing added; 4,770 m pipe, 574.4 t steel.
+6. **E-4101 laid out as the package D-053 sizes (review8#3).** D-053 (2) sizes E-4101 as four
+   1-2 intercoolers, 65.8 + 3 x 73.4 = 286 m2, while the list, the model and the lifting
+   study kept one 1.4 x 6 m shell of 8 t. Decision: the item is the intercooler package of
+   K-4101, four shells of about 1.2 m x 5 m (each as the 73 m2 aftercooler E-4102) in two
+   stacked pairs on one frame; envelope 6 x 2.8 x 3.2 m, 4 x 6 t = 24 t (ASSUMED by analogy
+   with E-4102, not a vendor figure; the compressor vendor's package drawing replaces it). The
+   list, the datasheet (dimensions, weight) and the placement (`shape: box`, same centre
+   [166.5, 38.5]) carry it; it fits between the fire wall FW-4101 (north face y 34.3) and the
+   crane pad Z-PAD-A4C (y 42). Its two nozzles are now on the package top (3.5 m), so the
+   interstage loop GOX-4005 S1 / S2 is pinned through the fire wall sleeves SL1 / SL2 at
+   3.66 m and over the package (the rebuilt route had left the sleeves); the post of GOX-4001
+   S3 moves 1.7 m south (y 35.5), out of the lift lane of the wider package. The P&ID keeps
+   one item with two connections: the interstage piping between the four shells is inside the
+   vendor's package. Lifting study: E-4101 24 t (27.7 t gross) from Z-PAD-A4C at 7.9 m,
+   37.0 t chart capacity needed, lane clear (was 8 t, 9.2 t gross, 12.3 t). No finding added.
+7. **The MAC motor in the lifting study (review8#10).** The 40 t B1 crane is set by the MAC
+   motor (~30 t ASSUMED, D-034), but K-1101 carried no weight, so the study did not show that
+   lift. The list now gives K-1101 `lift_weight: 30` (its heaviest maintenance lift, the 8 MW
+   motor, ASSUMED until the motor supplier's weight; core dde6871): the study lifts it under
+   the B1 crane, 30 x 1.1 x 1.05 = 34.65 t gross against 40 t, `building crane`, lane clear.
+   The train's own weight stays unlisted (installation lift by the compressor vendor).
+8. **Nozzle locations the layout decided, on every datasheet (review8#2).** 18 items have
+   nozzles placed by `layout/equipment-placement.yaml` (D-028), but only 6 datasheets gave
+   those locations. The other 12 now give `face`, `orientation_deg`, `offset_m` (top nozzles),
+   `elevation_m` and `location_source` for each of their 41 placed nozzles, computed from the
+   layout model with the conventions of `plantcode.datasheet-nozzle-layout`: K-1101 (N2..N6),
+   E-1103, E-2101, K-3101, KT-3101, K-4101, E-4102, K-4102, E-4103 and the drafts C-3102,
+   E-3101, E-3102. The along-face position of a side nozzle (which the check does not hold) is
+   written in its `location_source`. Core 9026acb now also reports a nozzle the placement
+   overrides without a location on its datasheet; `plantcode validate` reports none, and no
+   located nozzle differs from the model.
+9. **Datasheets after the review of core's sizing (core 9518dfc, 2af1bac).** The independent
+   hand check of the D-053 values (E-1101, E-3104, P-1101A, P-4101A, K-1101, K-4101, C-3101,
+   C-3102) found no numeric defect. What the core fixes change here:
+   - K-1101 and K-4101 refilled (`plantcode datasheets fill`, drafts for the run only): the
+     same values; their basis now says that the stream pressures are taken at the machine's
+     flanges and that no intercooler or aftercooler pressure drop is taken (ASSUMED; with a
+     declared intercooler temperature the text had dropped it). Only isentropic efficiencies
+     are declared, so the corrected polytropic route changes nothing.
+   - E-4101: the per-intercooler LMTD and F are numeric lists (were text with a unit), and the
+     GOX inlet pressures and temperatures one numeric value per intercooler.
+   - P-1101A/B, P-1102A/B rerun with scripts/datasheet_sizing.py: tees are now charged to the
+     stretch that ends at them and the inside diameter is the ASME OD less twice the wall;
+     heads 31.07 / 31.92 / 78.32 / 78.71 m (were 31.08 / 31.93 / 78.35 / 78.74), powers
+     28.13 / 28.90 / 28.44 / 28.58 kW; equipment estimate rerun (purchased USD 4,001,497, was
+     4,001,506).
+   - The columns: `k_values` now gives a component absent from a product its infinite-dilution
+     K, so a fill of C-3101 / C-3102 would no longer refuse the sharp N2 / Ar splits; their
+     minimum stages stay as D-053 (6) computed them (the script's Fenske / Underwood used the
+     trace argon of S14, not a zero).
+10. **Ids of the generated platform proposals (review8#8); D-053 counts (review8#9).** After
+    the declared VP-8 (PV-4111, D-047) was removed in D-051 (2), the build numbers its
+    generated proposals from the first free id: they are now VP-8 (XV-2101A) and VP-10 ..
+    VP-22, 14 proposals with `review_needed`, one per valve of the 14 operability warnings
+    (D-047). A generated id names a proposal only for the build it comes from; the record of
+    a proposal is the valve it serves (`serves`), and texts here name the valve, not the id.
+    The declared VP-8 of D-047 (2) is the removed PV-4111 platform; PV-4111 is served from
+    VP-9 (D-051 (2)). Not changed: making plantcode key generated ids to the valve served is a
+    core request, not part of this round. D-053's counts are corrected: 39 datasheets, 28
+    complete, 11 drafts (C-1101, C-1102, C-3101, C-3102, E-3101, E-3102, E-3103, E-4105A/B,
+    E-4106A/B), as the datasheets gate lists them.
+
