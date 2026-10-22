@@ -81,8 +81,8 @@ Basis: design case, 30 C ambient, 94 % O2 recovery (ASSUMED). Nm3 at 0 C, 1.013 
 | 7 GOX product | E-3101 -> K-4101 | 14,600 | 20,860 | 1.15 | 25 | O2 99.5 % |
 | 8 GOX to pipeline | K-4101 -> BL | 14,600 | 20,860 | 31.0 | 40 | O2 99.5 % |
 | 9 GAN product | E-3101 -> K-4102 -> BL | 10,000 | 12,510 | 5.2 / 9.0 | 25 / 40 | N2, O2 <= 10 ppm |
-| 10 LOX to storage | C-3102 -> T-4101 | 330 | 470 | 1.3 | -180 | O2 99.5 % |
-| 11 LIN to storage | C-3101 -> T-4102 | 375 | 470 | 5.2 | -178 | N2 |
+| 10 LOX to storage | C-3102 -> T-4101 | 330 | 470 | 1.3 | -183 | O2 99.5 % |
+| 11 LIN to storage | C-3101 -> T-4102 | 375 | 470 | 5.2 | -181 | N2 |
 | 12 waste N2 | C-3102 -> E-3101 | 50,500 | 63,530 | 1.15 | 25 | N2 96.7, O2 2.1, Ar 1.3 % (closes the cold-box O2/Ar balance) |
 | 12a regeneration | -> E-2101 -> V-2101 | 13,000 | 16,350 | 1.1 | 200 (heating) | waste N2 |
 | 12b evaporative cooler | -> C-1102 | 25,000 | 31,450 | 1.05 | 25 | waste N2 |
@@ -1759,4 +1759,49 @@ Each change below was built, the model checked with `plantcode layout build` and
     core request, not part of this round. D-053's counts are corrected: 39 datasheets, 28
     complete, 11 drafts (C-1101, C-1102, C-3101, C-3102, E-3101, E-3102, E-3103, E-4105A/B,
     E-4106A/B), as the datasheets gate lists them.
+
+## D-056 LCA: exergy allocation, subcooled liquids, supplies and uncertainty (2026-10-23)
+Decision:
+1. **Liquid products subcooled.** S10 (LOX) and S11 (LIN) are set 3 K below their former
+   temperatures, about 2.4 K below their bubble points: -183 C at 1.3 bara and -181 C at
+   5.2 bara (ASSUMED; section 3 and the T-4101 / T-4102 datasheets follow). Both sat on their
+   saturation lines, so the property method could not hold them liquid; now it calculates them
+   and the stated liquid phase holds. Flows are unchanged; the BFD and PFD are rebuilt.
+2. **Exergy allocation.** The LCA allocates by exergy. The products leave in different states
+   (GOX at 30 barg, GAN at 9 bara, LOX and LIN cold), and exergy charges each for the work it
+   holds. The exergy comes from the flowsheet (`cheme process props --fill`: chemical
+   exergy after Szargut plus physical exergy against 298.15 K, 1 atm):
+   - GOX: 385 kJ/kg;
+   - GAN: 219 kJ/kg;
+   - LOX: about 750 kJ/kg;
+   - LIN: about 710 kJ/kg.
+
+   This gives GOX 70 % of the burdens; mass allocation gives 61 %. Mass, substitution (example
+   substitutes) and no allocation are reported for comparison.
+3. **Supplies.** All ASSUMED until the supplier data are in:
+   - molecular sieve and alumina: 2 x 18 t every 6 years;
+   - lubricating oil: 2 t/a;
+   - maintenance: 1 %/a of steel, pipe, valves, insulation and equipment;
+   - transport by lorry: 500 km for the structural steel and equipment, 800 km for supplies
+     (rows counted in m or pieces carry no mass and are not transported);
+   - end of life: 90 % of the structural steel, the steel equipment and the aluminium
+     recycled (avoided-burden credit; pipe in m gets none).
+4. **Uncertainty.** A Monte Carlo of 2000 iterations (seed 1):
+   - assumed values: gsd2 1.35 (concept +/-30 %);
+   - calculated values: gsd2 1.1;
+   - given values: gsd2 1.05;
+   - example factors: pedigree (3, 3, 2, 3, 2).
+
+   The 95 % interval of the footprint is about 86 to 271 kg CO2-eq/t GOX (median 151) (example factors). The
+   electricity factor and the power demand dominate the sensitivity.
+
+Reason: the open points of the first LCA (PROGRESS.md, 2026-10-22) were exergy allocation and the missing inventory
+(adsorbent, maintenance, transport, end of life). The concept-stage spread belongs with the
+result.
+
+Rejected:
+- Mass allocation as the default: it ignores the compression to 30 barg and the cold of the
+  liquids.
+- Substitution as the default: it needs real data for the avoided GAN, LOX and LIN, which come
+  with the licensed database.
 
