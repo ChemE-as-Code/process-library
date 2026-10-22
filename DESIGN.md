@@ -1179,3 +1179,45 @@ Open: exchanger areas and machine powers (process simulation, suppliers), materi
 module factors for aluminium, Monel and the cold box (from the printed tables or quotations;
 the cold box is normally a vendor package quotation), the unit rates of the bulk estimate.
 
+## D-044 Layout changes for the sixth layout review: ladders, ring platforms, LIN high point, breather (2026-10-22)
+Decision: the fixes of reviews/2026-10-22-layout-review6.md #1..#5, #7 and #9, checked by the
+two rules core now has for them, `layout-ladder-clearance` (a pipe through a ladder's cage or
+less than 0.2 m from its rails, ASSUMED) and `layout-walkway-riser` (a riser through an item's
+ring platform that cuts the handrail or leaves less than 0.6 m of walkway, after ISO 14122-2,
+ASSUMED); both are added to the `layout-rules` gate. On the model of 521f5c2 they report all
+the review's cases (9 ladder, 7 walkway); now 0.
+1. **AIR-1004** (DCAC top outlet, DN600): from N2 east at 26.62 m (2.7 m above platform-4),
+   then north to the drop at [74.7, 54.7] (45 deg, r 3.82: 0.41 m outside the handrail and
+   2.5 m from the ladder at 90 deg), down to 7.3 m and north to the P-02 sheet end. It no
+   longer drops through the four walkways and ladder exits nor runs through the platform-1
+   ladder cage (review6#1). The 19 m drop is guided off the column (support by the stress
+   engineer).
+2. **CHW-1001** (chilled water inlet): N4 moved to 270 deg, 19.833 m (as N3 at 270 deg, 12.5 m),
+   so its riser rises in the gap of the platform arcs (195..345 deg) at [72, 48.35], 0.76 m
+   clear of the CW-1001 riser; it ran up the middle of the walkway (review6#2). The C-1101
+   datasheet gives the new orientation (D-045).
+3. **Rack end ladders**: LIN-3001 S2 leaves PR2 to the west at y 103 and runs north at x 139.6,
+   LOX-3001 S2 rises at x 140.2 (0.78 m from the cage), both clear of the PR2 end ladder
+   (review6#3). VNT-4002 S3 rises over the PR3 top tier at y 115.5 and turns east to S-4101; a
+   keep-clear zone Z-LAD-PR3 round the PR3 end ladder (0.25 m round the rails, 0.35 m round the
+   cage, to 10 m) keeps the rack-routed VNT-4003 off it (now 0.75 m and more, was 0.01 m), and
+   GAN-4003 S3 comes in along x 179.7 (0.79 m from the cage, was 0.24 m) (review6#4). Pinning
+   VNT-4003 instead moved the rack lanes of GOX-4001, UN-3001 and GOX-4003 on PR1 (the lane
+   allocation treats a pinned branch's riser as an obstacle), so it stays rack-routed.
+4. **CW-3001** under P10 at y 47.6: 0.32 m from the casing, 0.48 m behind the LD0 rungs (it ran
+   0.02 m behind them, review6#5).
+5. **LIN-4002**: level at 5.39 m from the pump risers to the tanks (S3 and S4 pinned). The
+   minimum-flow return LIN-4003 now leaves it at the S3 / S4 tee [144.52, 101.5] from below,
+   with HV-4139 on the drop; before, the route climbed to 6.61 m towards the LIN-4003 start,
+   which did not meet LIN-4002 at all (a detached branch, found by checking every pipe end).
+   No high point in the cryogenic liquid line (review6#7).
+6. **Casing breather access**: a declared roof strip RB (frame x 13.8..15, y 1.6..7.2, 53 m)
+   from the east end of RF along the east roof edge to 0.6 m from PSV-3123, for inspection,
+   test and replacement, entered only under the purge isolation and permit of D-031 with a
+   personal O2 monitor. It lies in the 5 m zone Z-N2-CASING by necessity and is no way down
+   (review6#9).
+Model: 0 clashes, 0 headroom, 0 ladder-clearance, 0 walkway-riser; operability 27, free-span
+21, support-missing 75 (unchanged, review3#3, #4). Take-off 4,717 m pipe, 738 elbows, 64 tees
+(the LIN-4003 branch now counted), 328 t steel (+3 t: the RB strip), 375 m2 grating.
+Open: the pipe stress and supports of the new AIR-1004 drop, the RB strip's structural detail.
+
