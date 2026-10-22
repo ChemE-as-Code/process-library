@@ -1327,3 +1327,32 @@ Result: operability 27 -> 14, 0 errors, 0 clashes, no new finding of any other r
 4,746 m pipe (+36 m: the two drops to grade), 376.9 t steel (+49.4 t: 9 platforms, 7 stairs,
 2 ladders), 508 m2 grating (+134 m2).
 
+## D-048 Rack intermediate steel (2026-10-22)
+Decision (amends D-034 (6); review3#4). The racks get intermediate steel between the 6 m bents
+(`intermediate_supports` in `layout/site-plan.yaml`): stringers along both edges and beams
+across, HEB200 (ASSUMED; the rack design in detail engineering sizes them), on the tiers that
+carry lines too small for a 6 m span (pipe-spans table, ASSUMED):
+- **PR1**: the 5 m tier (cooling water DN 100 .. 250, 4.3 .. 5.8 m) and the 9 m top tier
+  (O2 / N2 / cryogenic lines down to DN 40 LOX / LIN, 2.1 m), a beam every 2.03 m (`spacing_m`
+  3: three pieces per 6.08 m bay). The 7 m tier (air and waste N2, DN 500 .. 800, spans 11.9 m
+  and more) needs none.
+- **PR2**: both tiers, every 2 m or less (`spacing_m` 2): LOX-3001 / LIN-3001 DN 40 at 2.1 m.
+- **PR3**: the 8.5 m tier (backup GOX-4004 / GAN-4003 DN 100, 5.2 m); not 6.5 m.
+Consequences: the PR3 west edge stringer at 8.3 .. 8.5 m stood in the standing space of the
+PV-4111 / PV-4112 platforms (D-047): VP-8 and VP-9 are raised to 8.6 m, above it (the
+handwheels 0.5 m above the grating, ASSUMED acceptable for actuated valves worked only in
+maintenance; stair from the west, three flights). The pinned drops of CHW-1001 (x 75.3, was
+74.57) and AIR-1004 on P-02 (x 89.6, was 89.0) moved off the new beams; LIN-3001 is pinned out
+through its east casing sleeve again (its rebuilt route had turned out through the north face,
+a casing penetration finding since D-047); the out-and-back loop of the pinned VNT-4002 S2 at
+the PR3 north end now dips 0.5 m under GAN-4003 and back instead of leaving the rack. Two
+tray-span acceptances quote the new lengths of the rerouted branch trays (PT-M-P-4101B 13.85 m,
+IT-JB-A1-1 13.75 m, both still within the posts they name).
+Core: at the PR2 joint both racks' bents were left out and the bays into it had no
+intermediate steel, so the PR1 lines spanned 6.08 m across it; fixed in core feat/open-points
+(6c059be: the main rack keeps its steel, only the tiers the branch's lanes cross are cut).
+Result: free-span 21 -> 4, 0 clashes, 0 errors; support-missing 77 -> 89 (runs whose rack part
+is now supported and whose part off the rack has no support at all move from free-span to
+support-missing; D-049). Take-off 4,755 m pipe, 489 t steel (+112 t intermediate steel,
+582 members, 1,918 m), 513 m2 grating.
+
