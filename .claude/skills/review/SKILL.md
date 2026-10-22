@@ -70,7 +70,10 @@ check goes under "Not checked" in the record.
      accepted with a reason) and per reason, the rack fill per tier, the model findings per
      rule (`layout-clash-*`, `-headroom`, `-access-blocked`, `-zone-crossing`, `-separation`,
      and the engineering rules `-wall-penetration`, `-tier`, `-vent-outlet`, `-free-span`,
-     `-operability`, `-escape-ways`, `-escape-travel`, `-lifting`, `-laydown`, `-spacing`),
+     `-operability`, `-access-enclosed`, `-access-unconnected`, `-escape-ways`,
+     `-escape-travel`, `-landing-width`, `-egress-zone`, `-operator-unknown`, `-lifting`,
+     `-laydown`, `-pad-overlap`, `-spacing`, `-building-spacing`, `-zone-source`, and the
+     tray rules `-tray-zone`, `-tray-span`),
      platforms, stairs, ladders and penetrations `review_needed`. For each engineering finding
      say whether it is fixed, accepted (with the reason) or open; their criteria are ASSUMED
      package values unless `criteria:` in the site plan cites the site's standard;
@@ -85,7 +88,15 @@ check goes under "Not checked" in the record.
      upwind of vents, pumps near their suction source, maintenance envelopes free, every
      elevated valve, instrument and manway reachable (skill `structures-access`), vent and
      relief outlets above the walking levels, pipes through walls only in declared openings,
-     heavy items with a crane, a clear lane and laydown, escape routes,
+     heavy items with a crane, a clear lane and laydown (`plantcode layout lifting`: the
+     working radius, load moment and capacity needed per lift), escape routes; the
+     operators declared for valves and transmitters out of reach (`operators:` in
+     `piping/routing.yaml`): a chain wheel only on a valve that is really used rarely;
+     a rule that finds nothing is not proof: look in the sections for platforms, ladders and
+     valves inside a casing, stair towers whose landings meet no platform, relief tailpipes
+     under stairs and landings, trays over machines and in zones, crane pads on racks,
+     buildings close together, and report what no rule saw as a finding (and the missing rule
+     to plantcode);
      zones declared and still ASSUMED (skill `area-classification`), lines over roads and
      walkways at their headroom, oxygen and cryogenic lines on their own tier or edge (skill
      `pipe-routing`);

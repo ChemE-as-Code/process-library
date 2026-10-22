@@ -131,7 +131,12 @@ A dimension not known yet may be estimated: mark it `notes: ASSUMED ...` (step 2
    pipes through walls outside them as `penetrations` (`plantcode layout pin OWNER/LINE`).
 7e. **Pipe routes** (`piping/routing.yaml`): rules (rack tiers per fluid, battery limits, the
    pipe-way elevation, vent riser heights) and intent per line (`rack`, `tier`, `via`,
-   `elevation`, `skip: reason`, pinned `route`): skill `pipe-routing`.
+   `elevation`, `skip: reason`, pinned `route`): skill `pipe-routing`. `operators:` declares
+   how a valve or transmitter out of reach is worked (chain wheel, extension spindle, remote
+   operator, remote mount): skill `structures-access`.
+7f. **Crane charts** (`layout/crane-chart.yaml`, kind `crane_chart`, optional): the load chart
+   of a crane the project has chosen (radius against capacity, with its source), so
+   `plantcode layout lifting` checks each heavy lift's capacity; skill `structures-access`.
 
 ## Validation and failure handling
 

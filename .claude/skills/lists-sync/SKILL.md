@@ -102,6 +102,13 @@ The sheets in `pid/`, `equipment/equipment-list.yaml`, `piping/line-list.yaml`,
    (`plantcode.datasheet-mismatch`), its tag must be listed (`plantcode.datasheet-not-listed`);
    mark every value you have not calculated `assumed: true`. A retagged item renames its
    datasheet in the same commit.
+   `plantcode datasheets draft [--tag T] [--dry-run]` writes a draft for every listed item
+   without one (never over an existing file): type, service, design conditions and material
+   from the list, its dimensions, its nozzles from the P&IDs, the inlet and outlet conditions
+   of the flowsheet streams linked to it, every value with its `source`, unknowns `TBD`, a
+   vessel's volume from its dimensions `assumed: true`, and `draft: true`. Fill the TBDs from
+   the sizing (with the `sizing_basis`), check every derived value, then remove `draft: true`:
+   the `datasheets` gate does not count a draft.
 10. **Flowsheet links** (`process/flowsheet.yaml`, skill `process-design`): blocks, steps,
    streams, feeds and products link to equipment, lines, instruments and sheets
    (`links: [{target: equipment | line | instrument | sheet, ref: ..., sheet: ...}]`). A link

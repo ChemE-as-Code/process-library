@@ -55,6 +55,21 @@ review.
    height, sill, kind: opening}]}`, offset along the side from its left end seen from outside,
    sill above grade; or `plantcode layout pin OWNER/LINE`): the walls are cut around them. A
    fire wall's separation distances go in `separations:` of the site plan.
+   **Nobody stands inside a casing.** A perlite-filled, purged cold box has no walkable level
+   below the top of its walls: a level whose extent lies inside the frame and below the casing
+   height is no walking level and is finding `layout-access-enclosed` (so are ladders, stairs
+   and item platforms inside it); it does not count as a way down, and nothing is operable
+   from it. Put the access platforms outside the casing: a level's `extent` may reach up to
+   3 m outside the frame (a cantilevered platform, e.g. `[0, 9.2, 15, 10.7]` along the north
+   face of a 9 m deep casing with 0.2 m walls). The build proposes such a platform for every
+   level inside the casing (`S/<level>-out`, along the side the level runs longest on, outside
+   the wall, `review_needed`) and a landing at the casing roof on that side, with the stairs
+   and ladders to them outside the platforms: pin the platforms first (`plantcode layout pin
+   CB-1/P10-out`), then the stairs and ladders. Valves and instruments inside the casing are
+   not operable from outside (`layout-operability`): route them to the casing face and
+   declare an access `hatch` (`openings: [{..., kind: hatch}]`) within `casing_reach_m`
+   (1 m) of the item, with a platform outside within reach of the hatch, or bring the item
+   out of the casing.
 4. **Platforms and ladders of vertical items.** The build proposes a platform for every nozzle
    and in-line valve more than 2.5 m above the item's base (`review_needed: true`, `serves:`
    lists them). For each proposal decide: needed (operating or maintenance access), reachable
@@ -74,21 +89,57 @@ review.
    - every platform and deck has two ways out where the travel distance or the hazard (oxygen,
      inert vents, flammables) requires it; escape routes are declared as `escape` zones in
      `layout/zones.yaml` (kept clear of pipes up to the walkway headroom). The rules check it:
-     `layout-escape-ways` (a structure floor with fewer than two **declared** ways down:
-     proposals count once pinned; an item's platform whose far end is more than `dead_end_m`,
-     7.5 m, along it from its only ladder), `layout-escape-travel` (a floor at 6 m or more, or in
-     regular use, without a declared stair, or a point of it more than `stair_travel_m`, 25 m,
-     from its nearest stair);
+     `layout-escape-ways` (a structure floor with fewer than two **connected declared** ways
+     down to grade: a stair or ladder counts only when it is outside any casing, its top
+     landing reaches the floor (within 0.3 m in plan; a ladder's top within 0.8 m), its foot
+     stands on the floor below, and that floor has its own connected way down; proposals count
+     once pinned; an item's platform whose far end is more than `dead_end_m`, 7.5 m, along it
+     from its only ladder), `layout-access-unconnected` (a declared stair or ladder that does
+     not reach the levels it names: a stair tower beside the platforms serves none of them),
+     `layout-escape-travel` (a floor at 6 m or more, or in regular use, without a connected
+     declared stair, or a point of it more than `stair_travel_m`, 25 m, from its nearest
+     stair). Where the stair's top landing lands depends on its flights (an odd number ends at
+     the far end of its run, an even number at its start): check it in a section;
    - valves and instruments within reach: `layout-operability` flags a manual handwheel or lever
      more than 1.8 m (a transmitter more than 2 m) above the nearest floor below it within
-     0.6 m in plan; valves inside a closed casing are left out (extension spindles). Give it a
-     platform, move it, or record a chain wheel;
-   - headroom on platforms and walkways at least 2.1 to 2.2 m (`headroom_walkway_m`).
+     0.6 m in plan (stair landings, a tank's landing and roof platform count as floors; stair
+     flights do not: nobody operates a valve from the treads), and every in-line item inside a
+     casing (above). The operator also needs room to stand: a free 0.6 m square
+     (`standing_space_m`), as high as the access headroom, on that floor within reach; a stair
+     flight, a ladder, a column or another item in it blocks it, and the same holds in front
+     of a casing hatch (a stair flight rising across the hatch). Give it a platform, move the
+     valve or the stair, or declare its operator in `piping/routing.yaml` (below);
+   - **operators for what stays out of reach** (`operators:` in `piping/routing.yaml`, each
+     with its `basis`): `{item: <valve tag>, kind: chainwheel, use: infrequent}` for a
+     handwheel valve operated rarely (isolation for maintenance, not control or emergency
+     duty), handwheel at most `chainwheel_max_height_m` (6 m) above a floor; `{item, kind:
+     extension_spindle | remote_operator, length_m?}` to a pedestal at a floor, at most
+     `extension_max_m` (6 m); `{item: <transmitter tag> or TAG/NOZZLE, kind: remote_mount, via:
+     impulse | capillary, length_m?}` to a stand at a floor, at most `impulse_max_m` (6 m) or
+     `capillary_max_m` (10 m). The rule accepts what fits and says why the rest does not
+     (`layout-operability`); `layout-operator-unknown` names an entry that matches nothing. A
+     chain wheel on a valve used often, in emergency duty or on a lever is no answer: give it
+     a platform. The limits are ASSUMED: confirm them with the owner's standard and the valve
+     and instrument suppliers;
+   - headroom over every walking surface above grade at least `access_headroom_m` (2.1 m,
+     ASSUMED): `layout-headroom` flags a pipe lower than that over a structure floor, an item
+     platform, a stair tread or landing, a tank's stair or roof platform (escape routes at
+     grade keep `headroom_walkway_m`, 2.2 m). Look at the stair towers in a section: a line
+     leaving a casing face often crosses the stair beside it;
+   - stacked stairs (one per storey, each from the platform the last arrives at):
+     `layout-landing-width` flags a walk between the arriving stair's top landing and the next
+     stair's foot that is narrower beside the next flight than the stair width; widen the
+     platform over the stair bay or turn the stairs;
+   - ways off a roof or platform: `layout-egress-zone` flags a ladder head or a stair's top
+     landing inside an oxygen-deficient, oxygen-enriched or hazardous zone (a breather or vent
+     next to the roof ladder). Move the vent or the ladder.
 5. **Access proposals on structures and racks.** The build proposes (`source: generated`,
    `review_needed: true`, with a `reason`) a stair for every structure level at 6 m or higher,
-   or in regular use (`use: regular`; a deck's default), that has no stair down, stacked on the
-   frame's declared stair; a caged ladder while a floor (levels at one elevation whose extents
-   touch) has fewer than two ways down; a caged ladder at each free end of a rack, to its top
+   or in regular use (`use: regular`; a deck's default), that has no connected stair down:
+   stacked on the frame's declared stair where that reaches the level, else on a side the
+   level reaches, from the highest floor below its foot lands on; a caged ladder while a floor
+   (levels at one elevation within 0.3 m of each other, not across a casing wall) has fewer
+   than two connected ways down (outside the casing); a caged ladder at each free end of a rack, to its top
    tier; and a step-over where a low pipe (top within 0.75 m) crosses an escape route or a
    grating. Decide each one like a platform: pin it (`plantcode layout pin S-1/stair-to-L2`,
    `S-1/ladder-to-L2`, `RACK/ladder-start`), declare something else (a stair on another side,
@@ -105,9 +156,12 @@ review.
    item of `heavy_lift_t` (5 t) or more needs a crane: inside a building its overhead crane
    (`crane: {capacity_t}` at least the item's weight), outside a `crane_pad` zone (`kind:
    crane_pad`, a box where the mobile crane stands, with its `reach_m`) within reach, with the
-   lane from the pad over the item clear above the item's top (no pipes, racks, steel or roofs:
-   `layout-lifting`), and a `laydown` zone within reach that holds the item's footprint
-   (`layout-laydown`). Items inside a closed casing are left out.
+   lane from the pad over the item clear above the item's top (no pipes, cable trays, ducts,
+   racks, steel or roofs: `layout-lifting`; a tray over the item, even its own feed, blocks the
+   lift: bring the cable in from the side or at grade), and a `laydown` zone within reach that
+   holds the item's footprint (`layout-laydown`). Crane pads and laydown zones stand on open
+   ground: one overlapping a rack, a structure or a building is `layout-pad-overlap`. Items
+   inside a closed casing are left out.
 8. **Criteria.** The values above (operator height and reach, dead end, stair travel, heavy
    lift, crane reach, lane margin and clearance) are package defaults, ASSUMED. Where the site's
    standard says otherwise, put its values under `criteria:` in `layout/site-plan.yaml` and
@@ -120,7 +174,9 @@ review.
   objects generated, pinned or declared).
 - Gate `layout-3d` requirement `mounted`: every item above grade on a building or structure
   level, or stacked on another item.
-- `layout-escape-*`, `-operability`, `-lifting`, `-laydown`, `-wall-penetration` findings: fix
+- `layout-escape-*`, `-access-enclosed`, `-access-unconnected`, `-operability`, `-headroom`,
+  `-landing-width`, `-egress-zone`, `-operator-unknown`, `-lifting`, `-laydown`,
+  `-pad-overlap`, `-wall-penetration` findings: fix
   the cause, or accept the finding with the reason (an operating philosophy, a mobile crane
   plan) and record it in the layout review.
 - A frame that fails its schema (spans, levels, a stair to an unknown level) names the line;

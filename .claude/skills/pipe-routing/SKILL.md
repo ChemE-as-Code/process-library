@@ -55,7 +55,9 @@ review.
      `vents: [{lines: [VNT-*], fluids?, rise_m?, radius_m?, max_rise_m: 20}]` raises the
      outlets of the lines it matches until a sphere of `radius_m` around the outlet (default:
      the line's zone radius from `layout/zones.yaml`, when the line is a zone source) clears
-     every walking level (grade, structure floors, building levels) up to the walkway headroom.
+     every walking level (grade, structure floors and stair landings, item platforms, a
+     tank's spiral stair, landing and roof platform, step-overs, building levels; not the
+     levels inside a casing) up to the walkway headroom.
      Use it for oxygen, inert and flammable vents that must discharge above where people
      stand; the criterion (radius, headroom) is ASSUMED until the vent study gives it.
 3. **Intent per line or segment** (`lines:`, `{line, segment?}`; a segment by DEXPI id or
@@ -104,9 +106,16 @@ review.
      points) and keep pipes out of fire walls where you can: a fire-rated penetration is a
      design decision to record;
    - `layout-vent-outlet`: the zone sphere around a vent or relief outlet reaches a walking
-     level (grade, a platform, a roof walkway); the message gives the outlet height it needs.
-     Add a `vents` rule for the line (or raise the placed silencer or valve), or move it away
-     from the walking level;
+     level (grade, a platform, a roof walkway, a tank's stair, landing or roof platform); the
+     message gives the outlet height it needs. Also an open end directly under a walking
+     surface (within `vent_plan_clearance_m`, 1.5 m, in plan and `vent_overhead_m`, 6 m,
+     below it: a relief tailpipe under a stair landing discharges into the only way onto the
+     roof). Add a `vents` rule for the line (or raise the placed silencer or valve), turn the
+     tailpipe to the far side of the roof, or move the stair or platform;
+   - `layout-operability` on in-line items inside a casing: a valve, relief valve or
+     instrument inside a cold box cannot be operated or tested from outside. Route the line so
+     the item stands outside the casing (pin the route), or bring it to the casing face with a
+     declared `hatch` opening within 1 m and a platform outside (skill `structures-access`);
    - `layout-free-span` (warning) and `layout-support-missing` (info): a level run spans
      farther between supports than the DN's span (`pipe-spans.yaml`, after ASME B31.1, liquid
      or gas by the fluid's name), or has no support in the model at all (a local pipe-way
@@ -114,9 +123,21 @@ review.
      steel or to ride on a larger line; record which. The supports themselves (shoes, guides)
      are generated where a pipe rests on a beam;
    - `layout-operability`: a manual valve's handwheel or lever more than 1.8 m above the floor
-     below it (a transmitter more than 2 m), with no floor within 0.6 m in plan. Move the valve
-     on the route (a pinned route with the valve near a floor), add a platform (skill
-     `structures-access`), or record a chain wheel or extension spindle.
+     below it (a transmitter more than 2 m), with no floor within 0.6 m in plan, or no free
+     standing space there (a stair flight or steel in front of it). Move the valve on the route
+     (a pinned route with the valve near a floor), add a platform (skill
+     `structures-access`), or declare its operator under `operators:` in this file: a
+     `chainwheel` (a handwheel valve of `use: infrequent`, at most 6 m up), an
+     `extension_spindle` or `remote_operator` (at most 6 m long), a transmitter's
+     `remote_mount` (`via: impulse`, 6 m, or `capillary`, 10 m), each with its `basis`;
+   - `layout-headroom` over walking surfaces: a pipe lower than 2.1 m (`access_headroom_m`)
+     over a structure floor, a platform, a stair or landing, a tank's stair or roof platform.
+     Route it above the headroom or under the steel; a line leaving a casing face must clear
+     the stair tower and the platforms on that face. A pinned route is taken as it is: check
+     it against them before pinning;
+   - a pinned vent or relief route keeps its open end, so the zones derived from the line
+     (`layout/zones.yaml` sources) stay; `layout-zone-source` (also in `validate`, and failing
+     the `zones` requirement of gate `layout-3d`) means a source the model cannot place.
 7. **Pin what is good.** `plantcode layout pin LINE` (or a pipe id) copies the route into
    `piping/routing.yaml` (`route:`, `source: pinned`): later builds take it as it is, so a
    reviewed route stays reviewed. Pin a route only after looking at it; re-pin or delete the

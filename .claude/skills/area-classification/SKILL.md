@@ -61,7 +61,15 @@ oxygen, inert gases or flammables; when `plantcode validate` or `layout build` r
 4. **Separations against zones**: a site-plan separation may name a zone id (`from: Z-O2-VENT,
    to: R-1, min_m: 15, basis: ...`); `plantcode layout build` measures it
    (`layout-separation`). Routes through `keep_clear`, `laydown`, `maintenance` and `escape`
-   zones are avoided by the router; `layout-zone-crossing` reports what crosses a zone.
+   zones are avoided by the router; `layout-zone-crossing` reports what crosses a zone. Cable
+   trays inside an oxygen-enriched or hazardous zone are `layout-tray-zone` (the zone kinds in
+   `avoid_zones` of `electrical/tray-rules.yaml`): an ignition source and a combustible cable
+   sheath in an oxygen zone, or equipment not rated for a hazardous area. A vent or relief
+   zone that reaches a walking level is `layout-vent-outlet`; the walking levels include the
+   generated ones (a tank's spiral stair, its landing and roof platform, stair landings,
+   step-overs), and an outlet directly under a walking surface is a finding even without a
+   zone. Platforms and ladders inside a casing are no walking levels: a casing breather's
+   zone covers the roof walkway, not the platforms inside.
 5. **Look at the zones**: `plantcode layout render --plan --png` (zones are drawn with their
    ids), a section through a vent area (`--section x=.. --png`), and `plantcode serve`
    (Layout 3D: zones as transparent volumes). Check that every vent and relief outlet of the

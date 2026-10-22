@@ -1,6 +1,6 @@
 ---
 name: electrical-cabling
-description: Declare the electrical rooms, the motor list and the junction boxes in electrical/electrical-list.yaml, set the cable tray rules, and let plantcode layout build route the power and instrument trays and write the cable schedule. Use when the plant has motors or instruments to cable, before the detail-stage gate electrical, or when tray-fill, tray-separation, clash-tray, cable-missing or electrical-* findings appear.
+description: Declare the electrical rooms, the motor list and the junction boxes in electrical/electrical-list.yaml, set the cable tray rules, and let plantcode layout build route the power and instrument trays and write the cable schedule. Use when the plant has motors or instruments to cable, before the detail-stage gate electrical, or when tray-fill, tray-separation, clash-tray, tray-zone, tray-span, cable-missing or electrical-* findings appear.
 ---
 
 # Electrical cabling
@@ -50,8 +50,11 @@ detail stage (gate `electrical`).
 4. **Tray rules** (optional, `electrical/tray-rules.yaml`, `plantcode schema trays`): standard
    widths, depth, fill per system, the separation between power and instrument trays, the tray
    tier per rack (`tiers: [{rack, elevation}]`; default 1.5 m above the top pipe tier on steel
-   of its own), the branch elevation. Every default is ASSUMED: replace it by the project's
-   electrical standard and cite it.
+   of its own), the branch elevation, the zone kinds a tray may not run in (`avoid_zones`,
+   default `[oxygen_enriched, hazardous]`; add `oxygen_deficient` where the cables must stay
+   out of inert vent plumes), the longest tray run between supports (`support_span_m`, 6 m)
+   and how close steel must be to carry it (`support_reach_m`, 1 m). Every default is
+   ASSUMED: replace it by the project's electrical standard and cite it.
 5. **Build and look.** `plantcode layout build`, then `plantcode layout cables` (the schedule:
    from, to, size, trays, length, tray widths and fill) and a plan and sections through the
    rack (`plantcode layout render --plan --png`, `--section x=..`). Check: trays on their own
@@ -61,7 +64,13 @@ detail stage (gate `electrical`).
    instrument the model cannot place), `layout-cable-unrouted` (a tray with no clear way),
    `layout-tray-fill` (more cables than the largest width holds: a second tray, another room),
    `layout-tray-separation` (power and instrument trays too close: move one, or a metal divider
-   with an accepted finding), `layout-clash-tray`. Fix the cause and rebuild.
+   with an accepted finding), `layout-clash-tray`, `layout-tray-zone` (a tray inside an
+   oxygen-enriched or hazardous zone: move the lane or the release, or record the cable sheath
+   and glands chosen for the zone and accept it), `layout-tray-span` (a branch or room tray
+   running more than `support_span_m` with no steel near it: run it along a rack or a
+   structure, declare support steel, or bring the cable in at grade or in a trench). A tray
+   over a heavy item blocks its crane lift (`layout-lifting`, skill `structures-access`):
+   feed a big motor from the side, not over the machine. Fix the cause and rebuild.
 7. **Schedule.** `plantcode layout cables --write` writes `electrical/cable-schedule.csv` and
    `.md`; commit them with the model.
 
