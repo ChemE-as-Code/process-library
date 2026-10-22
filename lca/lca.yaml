@@ -25,3 +25,34 @@ flows:
   - {key: emission:AR, free: true, source: "atmospheric argon returned to the atmosphere"}
   - {key: emission:H2O, free: true, source: "water of the intake air removed in the TSA, returned"}
   - {key: emission:CO2, free: true, source: "atmospheric CO2 removed from the intake air in the TSA and returned unchanged: no net emission"}
+
+# Construction: the take-off of the 3D model (estimate/mto.csv) and the equipment's empty
+# weights (equipment list), spread over the GOX made in the plant's life. The first entry that
+# matches a row or item counts it.
+operation:
+  hours_per_year: 8400
+  life_years: 25
+  source: "design basis operating_hours_per_year 8400 (ASSUMED); 25 a service life ASSUMED"
+construction:
+  - {id: steel, title: Structural steel, takeoff: mto, category: steel, factor: steel-sections, source: "rack, structure, stair and platform steel of the take-off"}
+  - {id: pipe, title: Pipe, takeoff: mto, category: pipe, factor: pipe, source: "pipe length by DN of the take-off; one factor per m for all DN (screening)"}
+  - {id: concrete, title: Concrete, takeoff: mto, category: concrete, factor: concrete, source: "plinths, foundations, ring walls of the take-off"}
+  - {id: grating, title: Grating, takeoff: mto, category: grating, factor: grating, source: "platform grating of the take-off"}
+  - {id: insulation, title: Pipe insulation, takeoff: mto, category: insulation, factor: insulation, source: "cold and hot insulation of the take-off"}
+  - {id: valves, title: Valves, takeoff: mto, category: valve, factor: fitting, source: "valves of the take-off, per piece (screening)"}
+  - {id: flanges, title: Flanges, takeoff: mto, category: flange, factor: fitting, source: "per piece (screening)"}
+  - {id: gaskets, title: Gaskets, takeoff: mto, category: gasket, factor: fitting, source: "per piece (screening)"}
+  - {id: elbows, title: Elbows, takeoff: mto, category: elbow, factor: fitting, source: "per piece (screening)"}
+  - {id: tees, title: Tees, takeoff: mto, category: tee, factor: fitting, source: "per piece (screening)"}
+  - {id: reducers, title: Reducers, takeoff: mto, category: reducer, factor: fitting, source: "per piece (screening)"}
+  - {id: inline, title: In-line items, takeoff: mto, category: inline, factor: fitting, source: "per piece (screening)"}
+  - {id: equipment-al, title: Aluminium equipment, takeoff: equipment, equipment: {material: "Aluminium*"}, factor: aluminium, source: "brazed and finned aluminium exchangers, cold box internals"}
+  - {id: equipment-ss, title: Stainless steel equipment, takeoff: equipment, equipment: {material: "SS*"}, factor: stainless-steel, source: "stainless items (material starting SS)"}
+  - {id: equipment-cs, title: Carbon steel equipment, takeoff: equipment, equipment: {material: "*"}, factor: steel-sections, source: "the rest: carbon steel shells and casings, by empty weight (mixed materials counted as carbon steel)"}
+
+# Scenarios: the baseline against a lower-carbon grid (the question of the goal).
+scenarios:
+  - id: grid-2040
+    title: Grid electricity in 2040
+    factors: {electricity: electricity-2040}
+    source: "EXAMPLE: a decarbonised grid; replace with a published projection for the site's country"
