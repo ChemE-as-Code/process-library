@@ -1432,4 +1432,14 @@ checked with `plantcode layout build` and `plantcode validate`, and committed on
    on an intermediate beam). The branch tray PT-M-P-4102B now crosses over the PR2 steel at
    11.5 m, 9.7 m long (acceptance reason updated). Take-off 573.3 t steel (-3.7 t).
    The new rule also reports the posts of review7 #3 .. #7 (16 findings), fixed below.
+4. **Posts out of the laydowns and out of K-3101 (review7#5, #7).** RG-2002 S3 post-1 moves
+   4.5 m north along its pipe to y 39.0, out of the sieve change-out area Z-SIEVE (y 34 ..
+   38; at y 33.5, the reviewer's other choice, it stood in RG-2003). GAN-4003 S3 now runs from
+   its riser at x 172.257 south to y 117 and east along y 117 to PR3 (was east along y 121
+   and south along x 179.7, across the laydown Z-LAYDOWN-A5N and the end ladder's keep-clear
+   Z-LAD-PR3), 1.5 m from the PR3 end ladder; its two posts are the build's proposals for the
+   new run (x 172.7 and 177.1, same length 13.3 m). The AIR-3003 S1 post stands at the bend
+   east of K-3101 (x 134.5): its crossbar had reached 0.35 m into the K-3101 package, and
+   west of the package stands KT-3101 on the same skid; the 6.0 m to the riser is within the
+   DN 150 gas span (6.4 m, ASSUMED table). 4 steel-in-way findings closed, none added.
 
