@@ -973,3 +973,56 @@ and basic pass except layout-review (a new independent review is needed).
 Open: the expander casing extension (layout#15), the trench routes in the cable schedule,
 tray support details, the B1 / B2 fire and noise assessment, transformer oil quantities and
 fire protection.
+
+## D-039 Layout changes for the fifth layout review: stair, headroom, hatch, tank fills, breather (2026-10-22)
+Decision (reviews/2026-10-22-layout-review5.md, example-asu#4; amends D-038 (1), (2), (3),
+(10); every value ASSUMED; checked by the core rules of core#61: access headroom 2.1 m over
+every walking surface above grade, standing space in front of valves and hatches, landing
+width of stacked stairs, ways off a roof outside vent zones):
+(1) **The cold box stair stands beside the platforms, not on them** (review5#1, #3, #7). ST1 ..
+ST5 keep their place at the east end (x 134.7 .. 140.5) but stand out 1.7 m from the casing
+side (`out: 1.7`: the 0.2 m wall plus the 1.5 m platform), so their flights rise north of the
+platforms (y 48.7 .. 50.5) and land on the platform edge. The platforms in front of the
+casing face stay free: the walk from one flight to the next is the full 1.5 m platform (no
+layout-landing-width finding), the hatch H1 above P20 has free standing space in front of it
+(LV-3101 / FV-3106 worked through it; no operability finding at the hatch), and the pinned
+booster suction AIR-3005 at 8.25 m along y 48.2 runs under P10, 0.36 m clear of the stair box
+(no headroom finding). The escape zone Z-ESC-CB1 now starts at the stair foot (x 140.6, y up
+to 50.6). The perlite-retaining valve box at H1 (review5#3) is a vendor detail of the cold box
+casing: the hatch opening is the box's face; not modelled.
+(2) **Lines leaving the north face clear P10** (review5#2). GOX-4001 leaves at 12.65 m (bottom
+2.40 m above the P10 grating), GAN-4001 at 12.4 m (bottom 2.26 m), LOX-3001 at 12.3 m (bottom
+2.23 m) and falls all the way to the rack (no high point in the liquid line); its sample tee
+is just north of P10, so the LOX purge valve FV-3111 stands 0.5 m off the platform edge at
+10.8 m, worked from P10. The casing purge UN-3001 drops north of P10 and enters the casing
+under the P10 steel at 9.03 m (a dry-gas low point). The four P-03 segments are pinned by their
+sheet-qualified ids (core: a line on two sheets repeats its segment ids). The two step-overs
+on P10 are gone. The DCAC CW inlet C-1101 N3 moved to the south face (270 deg), outside the
+platform arcs, so CW-1001 no longer crosses platform-2 at 0.92 m; the DCAC top outlet AIR-1004
+is pinned 2.4 m above platform-4.
+(3) **Tank fills on the north side of the roofs** (review5#5): the fill nozzles N1 of T-4101 and
+T-4102 are on the north side of the roof (2.5 / 2.8 m off centre), away from the stair, its
+landing and the roof platform on the east side; LOX-3001 and LIN-3001 come over the roof from
+the north-west and cross no walking surface. The LIN pump recycle LIN-4003 is pinned as routed
+at 0530ede (north of the tank, clear of the stair).
+(4) **Breather away from the roof ladder** (review5#6): the casing breather PSV-3123 stands at
+the south-east roof corner (zone Z-N2-CASING centre [140, 39, 53.5], 5 m), more than 5 m from
+the roof walkway RF, the relief valve platform RV, the roof landing RF-out, the stair head ST5
+and the ladder head LD4: no layout-egress-zone finding.
+(5) **Relief valve inlets come up under the valves** (review5#9): the PSV-3114 / PSV-3116 inlet
+lines run inside the casing to 51.8 m and come up through the roof straight under the valve
+inlets, so no leg crosses the relief valve platform RV (0 headroom findings on RV).
+(6) **Backup GOX joined to the pipeline** (found by the core fix of chains at a pinned run):
+GOX-4004 S4 from the PSV-4127 tee had been a 0.3 m stub at the GOX-4002 backup tee, not joined
+to the vaporizer risers. It now runs along PR3 at 8.56 m to PR1 and onto the backup tee
+(pinned).
+Reason: the fifth, independent layout review found the stair across the walking and hatch
+space of the platforms, lines at head height over P10 and over the tank roof access, and the
+breather zone over the roof ladder; the core rules now report each of these (core#61), and
+the rebuilt model has 0 headroom, landing-width and egress-zone findings.
+Rejected: widening the platforms to 2.2 m over the stair bay (more steel on the unbraced north
+face, and the stair would still run across the hatch); moving the stair to the west end (the
+lines leaving the north face at x 129 .. 135 would cross it).
+Result (core feat/open-points): 214 of 218 segments routed, 0 clashes, 0 layout-headroom,
+0 landing-width, 0 egress-zone; take-off 4,671 m pipe, 724 elbows, 324 t steel.
+
