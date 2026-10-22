@@ -16,16 +16,16 @@ provenance:
     layout/hvac.yaml: sha256:5f4302f8704e1af9bf918942b99ec3c428d74a561858836eb62e7d2bdb903038
     layout/site-plan.yaml: sha256:93293e3f43b366aadbcd36818bb4b3eca2bb34307054effc0b12ea717b10b393
     layout/structures.yaml: sha256:9a84cf20af8ded0e03b739c8a8aed290280e5266a4b948b6ca576b672ef7aa20
-    layout/zones.yaml: sha256:c0d43b304915180d5214d0694bb56dcccd017bff073c2c05232e95c6d79b6ccb
+    layout/zones.yaml: sha256:282b64317a2953f5f085a8b006f4bd4f6d9bbd63ea498ea0ba7e8cbac3336161
     pid/P-01.xml: sha256:b8917b3781a578ef4a5ddbf550aaae6378a433dd7207be45b74fcd0234753453
     pid/P-02.xml: sha256:30e4c2096fe26741817b0004e51e738d666314020547f207cde4f7b738e63066
     pid/P-03.xml: sha256:f8dbcd52e0a3598483cd0ffac8e299337a78397b223c9cad33008e2d8b1977dd
     pid/P-04.xml: sha256:cec5baad8fc5221b044dd6e1fb55181630e8cd07922eec7029f3d52aa6423638
     piping/line-list.yaml: sha256:984c4fe73a74ef98fabce3f1d582b1d361cdb96be95bc880e8fbd2441c6bbfcc
     piping/pipe-specs.yaml: sha256:7b7215da430617cb534c3d0b99ec7f0fa80aeb478508d9cd8fa8e342431aa8ae
-    piping/routing.yaml: sha256:14b4cd76c52420a96c91c6f03a81f6960cc54b8ebe101fa0754ee12b6f890384
+    piping/routing.yaml: sha256:0b8ffb9366607e1faf62dd12addf439ba87eff2e86da5ba507dff395d674d8a2
     piping/special-items.yaml: sha256:c24515b469bf08e3f65e0d10fad4aa50cf09a2a04a495b90b9f3b4bab0250805
-  output_sha256: c4126ab647ba349b762c6dbe83a042c3b61b7a20bca3b3428966cee9b38db9b1
+  output_sha256: 038407df928b4b0669c03d27faf3a6fb03704265b0a9c39a79a2915c58d5af33
 units: m
 site:
   id: site
@@ -26864,8 +26864,8 @@ pipes:
   insulation_mm: 0.0
   class: {code: PN16, material: CS cooling water; SS 304L cryogenic and nitrogen, colour: '#3f9e74'}
   fluid: Nitrogen
-  points: [[181.572, 87.636, 9.057], [181.572, 87.636, 9.557]]
-  length: 0.5
+  points: [[181.572, 87.636, 9.057], [181.572, 87.636, 13.8]]
+  length: 4.743
   method: pinned
   open_ends: [end]
   ends:
@@ -27337,8 +27337,8 @@ pipes:
   insulation_mm: 0.0
   class: {code: PN40, material: 'SS 316L / Monel oxygen (high pressure, D-009)', colour: '#c0504d'}
   fluid: Oxygen
-  points: [[181.358, 89.5, 9.057], [181.358, 89.5, 11.6]]
-  length: 2.543
+  points: [[181.358, 89.5, 9.057], [181.358, 89.5, 9.4], [181.358, 90.6, 9.4], [181.358, 90.6, 13.8]]
+  length: 5.843
   method: pinned
   open_ends: [end]
   ends:
@@ -68669,7 +68669,17 @@ zones:
     substance_class: oxygen
     basis: 'O2 relief valve outlet, rare release: indicative 3 m (ASSUMED).'
     status: ASSUMED
-  basis: D-011, D-019, section 4 relief case list; PSV-3114 (outlet VNT-3002) treated as O2-rich as DESIGN.md states; table rows (ASSUMED)
+  - shape: sphere
+    source: generated
+    centre: [181.358, 90.6, 13.8]
+    radius: 3.0
+    item: GOX-4004
+    source_kind: psv_outlet
+    release_grade: secondary
+    substance_class: oxygen
+    basis: 'O2 relief valve outlet, rare release: indicative 3 m (ASSUMED).'
+    status: ASSUMED
+  basis: D-011, D-019, section 4 relief case list; PSV-3114 (outlet VNT-3002) treated as O2-rich as DESIGN.md states; PSV-4127 on the GOX backup vaporizer header (D-055 (2)); table rows (ASSUMED)
 - id: Z-O2-SEALS
   refs: {file: layout/zones.yaml}
   source: declared
@@ -68810,7 +68820,17 @@ zones:
     substance_class: inert
     basis: 'Inert relief valve outlet: indicative 3 m (ASSUMED).'
     status: ASSUMED
-  basis: D-011, section 4; table rows (ASSUMED)
+  - shape: sphere
+    source: generated
+    centre: [181.572, 87.636, 13.8]
+    radius: 3.0
+    item: GAN-4003
+    source_kind: psv_outlet
+    release_grade: secondary
+    substance_class: inert
+    basis: 'Inert relief valve outlet: indicative 3 m (ASSUMED).'
+    status: ASSUMED
+  basis: D-011, section 4; PSV-4128 on the GAN backup vaporizer header (D-055 (2)); table rows (ASSUMED)
 - id: Z-N2-CASING
   refs: {file: layout/zones.yaml}
   source: declared

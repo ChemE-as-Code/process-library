@@ -1616,4 +1616,20 @@ Each change below was built, the model checked with `plantcode layout build` and
    `pipe-od.yaml`: a corrected comment on where the ISO and ASME outside diameters differ), so
    the BFD, PFD and the layout model are rebuilt. Only the generator fingerprints change: no
    stream value, route, item or finding moved.
+2. **Relief outlets beside VP-9 (review8#1, #5).** The lengthened VP-9 (D-051 (2)) had the
+   GAN relief outlet of PSV-4128 (GAN-4003 S6) 0.96 m above its 8.6 m grating and 0.46 m off
+   its east edge, and the GOX relief outlet of PSV-4127 (GOX-4004 S6) 3.0 m above it and
+   0.25 m off the edge; neither was a zone source. Both are now sources: PSV-4127 (line
+   GOX-4004, its only open end) in Z-O2-VENTS and PSV-4128 (line GAN-4003, its only open end)
+   in Z-N2-VENTS, secondary relief outlets with the 3 m spheres of the release-radii table
+   (ASSUMED). With them `layout-vent-outlet` reported that both zones reached the VP-9 floor
+   and stair and that the outlets need 13.8 m (8.6 m grating + 2.2 m walkway headroom + 3 m),
+   and `layout-egress-zone` that the VP-9 stair head lay in both zones; the GOX zone also
+   came 9.4 m from road R5 (separation 10 m, D-025). Both tailpipes now rise to 13.8 m (5.2 m
+   above the grating, guided off the VP-9 steel, ASSUMED: the guides are sized with the relief
+   reaction forces, as for PSV-3114 / PSV-3116, D-050); the GOX tailpipe first runs 1.1 m
+   north at 9.4 m to y 90.6, off the floor's corner, so its zone edge is 10 m or more from R5.
+   No vent-outlet, egress-zone or separation finding is left; the other findings are
+   unchanged. The core rule itself (outlets beside, not only above, a floor) is not changed:
+   with the outlets declared as zone sources the existing zone test covers them.
 
