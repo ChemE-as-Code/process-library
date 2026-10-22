@@ -83,15 +83,15 @@ type_specific:
       efficiency 0.5 ASSUMED) -- equipment list: 6.3 t/h to 9 bara'
     assumed: true
   npsh_available_m:
-    value: -0.19
+    value: 0.31
     unit: m
-    source: 'scripts/datasheet_sizing.py (D-053 (8)): NPSHa = (p_tank - p_vap) / (rho g) + static - losses
-      with the liquid saturated at the tank pressure (p_tank = p_vap) and no liquid above the tank outlet:
-      static -0.15 m (T-4102/N4 at z 0.50 m, suction N1 at z 0.65 m, layout/plant-model.yaml) - suction loss
-      0.041 m (routed LIN-4001 S1, S2, schedule 10S ASSUMED, Darcy-Weisbach / Colebrook, rho 806 kg/m3
-      D-042, mu 0.141 mPa s thermo correlation ASSUMED; the two ball valves have no K in the table and are
-      not counted). The NPSH comes from the liquid above N4: the low-low level of LIA-4108 must hold at
-      least NPSHr (supplier) + 0.19 m + margin of liquid above N4 (DESIGN.md D-053)'
+    source: 'scripts/datasheet_sizing.py (D-053 (8), D-055 (5)): NPSHa = (p_tank - p_vap) / (rho g) + static
+      - losses with the liquid saturated at the tank pressure (p_tank = p_vap) and no liquid above the tank
+      outlet: static 0.35 m (T-4102/N4 at z 1.00 m, the tank on its 0.5 m plinth, suction N1 at z 0.65 m,
+      layout/plant-model.yaml) - suction loss 0.041 m (routed LIN-4001 S1, S2 falling to the pump, schedule
+      10S ASSUMED, Darcy-Weisbach / Colebrook, rho 806 kg/m3 D-042, mu 0.141 mPa s thermo correlation
+      ASSUMED; the two ball valves have no K in the table and are not counted). The liquid above N4 adds to
+      it; the low-low level of LIA-4108 must hold NPSHr (supplier) - 0.31 m + margin of liquid above N4'
     assumed: true
   shaft_power_kw:
     value: 3.3
@@ -106,6 +106,7 @@ sizing_basis:
   reference: DESIGN.md D-017 / equipment list
 notes: '6.3 t/h to 9 bara, cold standby. ASSUMED. Review (DESIGN.md D-053): the head takes 9 bara at the pump
   discharge (LIN-4002), the pressure of the GAN header it feeds; the routed discharge line to E-4106A adds
-  1.54 m and 4.0 m static (scripts/datasheet_sizing.py), and the vaporizer and control valve drops are not yet
+  1.50 m and 3.5 m static (scripts/datasheet_sizing.py), and the vaporizer and control valve drops are not yet
   known: the rated discharge pressure is to be raised by them with the vaporizer supplier''s figure. NPSH: the
-  pump suction stands 0.15 m above the tank outlet T-4102/N4.'
+  tank outlet T-4102/N4 stands 0.35 m above the pump suction (the tank on a 0.5 m plinth, the suction falling
+  to the pump, DESIGN.md D-055 (5)).'

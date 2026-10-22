@@ -1575,7 +1575,8 @@ Results and review against the design:
    cold box supplier.
 7. DCAC / evaporative cooler C-1101 / C-1102: not distillations; packing heights from heat and
    mass transfer of the packing supplier: stages stay TBD.
-8. LOX / LIN backup pumps: NPSH available at the tank outlet level is -0.16 m (LOX) and -0.19 m
+8. (Superseded by D-055 (5): the tanks on a plinth, NPSHa +0.34 / +0.31 m.) LOX / LIN backup
+   pumps: NPSH available at the tank outlet level is -0.16 m (LOX) and -0.19 m
    (LIN): the pump suctions stand 0.15 m above the tank outlets T-4101/N4 and T-4102/N4 and the
    liquid is saturated, so all NPSH comes from the liquid above the outlet nozzle. Requirement
    (open): the low-low levels of LIA-4107 / LIA-4108 must hold NPSHr (supplier) + 0.2 m + margin
@@ -1663,4 +1664,29 @@ Each change below was built, the model checked with `plantcode layout build` and
    LIN-4003 S1 (3), UN-3001 S1 on P-04) come under 0.1 m of other pipes, some through them.
    They are not steel of the design until declared; each is moved clear when it is taken
    into `layout/structures.yaml` with the support design (D-049).
+5. **LOX / LIN tank outlets above the pump suctions (review8#4).** The tank outlets N4 stood at
+   0.5 m and the pump suctions N1 at 0.65 m: the suction lines ran level and rose 0.15 m into
+   the pumps, so vapour gathered at the pumps, and NPSHa at the outlet level was -0.16 m (LOX)
+   and -0.19 m (LIN) (D-053 (8)). Decision: T-4101 and T-4102 stand on a 0.5 m foundation
+   plinth (ASSUMED; the tank supplier's foundation design sets it, with the bottom heating or
+   air gap of a flat-bottom cryogenic tank), so N4 is at 1.0 m, 0.35 m above the pump
+   suctions. The suction lines LOX-4001 and LIN-4001 are pinned: level from N4 to the tee and
+   over each pump, then down into the suction (no point rises towards a pump; in the piping
+   design the level runs fall towards the pumps, 1:100 ASSUMED), so vapour returns to the tank.
+   Rejected: the pumps in a pit (cold, dense O2-enriched or inert vapour collects in a pit,
+   EIGA practice keeps cryogenic pumps at grade). Rerun of D-053 (8) (scripts/datasheet_sizing.py):
+   NPSHa at the outlet level +0.34 m (P-4101A/B) and +0.31 m (P-4102A/B), suction losses
+   0.013 .. 0.041 m; the datasheets carry it. The low-low levels stay the NPSH basis: they are
+   now the interlocks I-01 (LIA-4107) and I-02 (LIA-4108) of `control/cause-effect.yaml`
+   (trip the pumps, close XV-4136 / XV-4137, D-024), set to hold NPSHr - 0.34 / 0.31 m +
+   margin of liquid above N4 (SIL from the screening). With the tanks 0.5 m higher, every pinned
+   route at their nozzles is 0.5 m higher (LIN-3001 S2, LOX-3001 S2, LIN-4003 S2 (a 0.3 m rise
+   into N5), LOX-4004 S2, LIN-4004 S2, VNT-4001 S1..S5, VNT-4005 S1..S5; the vents keep their
+   height above the roofs and stay outside the vent-outlet rule), and the upper LOX tank
+   tapping T-4101/I3 (7.3 m) has a capillary seal to its stand at grade, as T-4102/I2 (its
+   impulse line would have been 6.3 m). The plinths are declared with the placement field
+   `plinth: 0.5` (core 72460f9): the model draws them as concrete solids 0.1 m wider than the
+   tanks (no ring wall) and the tanks' spiral stairs from grade; concrete take-off 131 -> 181
+   m3. Lifting study rewritten (no lift changed). Findings: instrument-no-interlock 15 -> 13;
+   nothing added; 4,770 m pipe, 574.4 t steel.
 
