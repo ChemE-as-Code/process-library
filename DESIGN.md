@@ -1704,4 +1704,10 @@ Each change below was built, the model checked with `plantcode layout build` and
    one item with two connections: the interstage piping between the four shells is inside the
    vendor's package. Lifting study: E-4101 24 t (27.7 t gross) from Z-PAD-A4C at 7.9 m,
    37.0 t chart capacity needed, lane clear (was 8 t, 9.2 t gross, 12.3 t). No finding added.
+7. **The MAC motor in the lifting study (review8#10).** The 40 t B1 crane is set by the MAC
+   motor (~30 t ASSUMED, D-034), but K-1101 carried no weight, so the study did not show that
+   lift. The list now gives K-1101 `lift_weight: 30` (its heaviest maintenance lift, the 8 MW
+   motor, ASSUMED until the motor supplier's weight; core dde6871): the study lifts it under
+   the B1 crane, 30 x 1.1 x 1.05 = 34.65 t gross against 40 t, `building crane`, lane clear.
+   The train's own weight stays unlisted (installation lift by the compressor vendor).
 
