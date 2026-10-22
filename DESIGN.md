@@ -1134,3 +1134,21 @@ Reason: the lifting rule and the study need a pad within reach and a clear lane 
 maintenance lift; the lane obstructions of review3#5 were lines and trays over the items and
 pads that did not face the item's way out.
 
+## D-042 Equipment datasheets: drafts from the lists, completed where the design gives a value (2026-10-22)
+Decision: `plantcode datasheets draft` wrote `equipment/datasheets/<TAG>.yaml` for all 39
+items (type, service, design conditions, material, dimensions from the equipment list; the
+nozzles from the P&IDs; inlet and outlet conditions of the linked flowsheet streams), each
+value with its source. Completed from the design where it gives a value (each marked
+`assumed: true` with its source): the DCAC and chilled water pump flows (list), the LOX / LIN
+backup pump flow, head and shaft power (calculated from the list's 5.2 t/h to 31 bara and
+6.3 t/h to 9 bara with the saturated-liquid densities of the NIST Chemistry WebBook, LOX 1141
+and LIN 806 kg/m3, a suction of 1.5 bara and a pump efficiency of 0.5, both ASSUMED), the
+compressor and expander powers of the section 3 utility table and D-003, the E-2101 and E-4103
+duties (section 3), the filter and vaporizer flows and the cooler outlet temperatures (list),
+and the sizing basis of the tanks, the backup pumps and the adsorbers. 66 values stay `TBD`
+(exchanger duties and areas, column stage counts, pump NPSH available, the CW / chilled water
+pump heads, most compressor fluid powers, the operating conditions of items no flowsheet
+stream links): they need the process simulation or the supplier and are not guessed. Every
+file keeps `draft: true`, so the detail-stage `datasheets` gate still fails, as it should: a
+datasheet with open values is not the detail deliverable.
+
