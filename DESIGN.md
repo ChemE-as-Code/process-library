@@ -1756,3 +1756,45 @@ Each change below was built, the model checked with `plantcode layout build` and
     complete, 11 drafts (C-1101, C-1102, C-3101, C-3102, E-3101, E-3102, E-3103, E-4105A/B,
     E-4106A/B), as the datasheets gate lists them.
 
+## D-056 LCA: exergy allocation, subcooled liquids, supplies and uncertainty (2026-10-23)
+Decision:
+1. **Liquid products 3 K subcooled.** S10 (LOX) and S11 (LIN) are set 3 K below their former
+   temperatures: -183 C at 1.3 bara and -181 C at 5.2 bara (ASSUMED). This resolves D-052's
+   note that both sat on their saturation lines, so the property method can calculate them and
+   the stated liquid phase holds. Flows are unchanged; the BFD and PFD are rebuilt.
+2. **Exergy allocation.** The LCA allocates by exergy. The products leave in different states
+   (GOX at 30 barg, GAN at 9 bara, LOX and LIN cold), and exergy charges each for the work it
+   holds. The exergy comes from the flowsheet (`plantcode process props --fill`: chemical
+   exergy after Szargut plus physical exergy against 298.15 K, 1 atm):
+   - GOX: 385 kJ/kg;
+   - GAN: 219 kJ/kg;
+   - LOX: about 750 kJ/kg;
+   - LIN: about 710 kJ/kg.
+
+   This gives GOX 70 % of the burdens; mass allocation gives 61 %. Mass, substitution (example
+   substitutes) and no allocation are reported for comparison.
+3. **Supplies.** All ASSUMED until the supplier data are in:
+   - molecular sieve and alumina: 2 x 18 t every 6 years;
+   - lubricating oil: 2 t/a;
+   - maintenance: 1 %/a of steel, pipe, valves, insulation and equipment;
+   - transport by lorry: 500 km for construction, 800 km for supplies;
+   - end of life: 90 % of the steel and aluminium recycled (credit).
+4. **Uncertainty.** A Monte Carlo of 2000 iterations (seed 1):
+   - assumed values: gsd2 1.35 (concept +/-30 %);
+   - calculated values: gsd2 1.1;
+   - given values: gsd2 1.05;
+   - example factors: pedigree (3, 3, 2, 3, 2).
+
+   The 95 % interval of the footprint is about 82 to 284 kg CO2-eq/t GOX (example factors). The
+   electricity factor and the power demand dominate the sensitivity.
+
+Reason: the LCA review's open points (D-052) were exergy allocation and the missing inventory
+(adsorbent, maintenance, transport, end of life). The concept-stage spread belongs with the
+result.
+
+Rejected:
+- Mass allocation as the default: it ignores the compression to 30 barg and the cold of the
+  liquids.
+- Substitution as the default: it needs real data for the avoided GAN, LOX and LIN, which come
+  with the licensed database.
+
