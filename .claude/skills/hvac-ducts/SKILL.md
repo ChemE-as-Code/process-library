@@ -1,6 +1,6 @@
 ---
 name: hvac-ducts
-description: Declare the air handling units and the ventilated rooms of the plant's buildings in layout/hvac.yaml, and let plantcode layout build place the terminals, route the supply, extract, outdoor air and exhaust ducts inside the buildings and size them against the velocity limits. Use when the layout has clad buildings (compressor houses, substations, control rooms, analyser houses), before the detail-stage gate hvac, or when hvac-capacity, duct-unrouted, clash-duct or layout-hvac-ref findings appear.
+description: Declare the air handling units and the ventilated rooms of the plant's buildings in layout/hvac.yaml, and let cheme layout build place the terminals, route the supply, extract, outdoor air and exhaust ducts inside the buildings and size them against the velocity limits. Use when the layout has clad buildings (compressor houses, substations, control rooms, analyser houses), before the detail-stage gate hvac, or when hvac-capacity, duct-unrouted, clash-duct or layout-hvac-ref findings appear.
 ---
 
 # HVAC ducts
@@ -9,7 +9,7 @@ description: Declare the air handling units and the ventilated rooms of the plan
 
 Ventilate every clad building of the layout: an air handling unit per building (or several),
 the air changes of each room, and the ducts that carry the air, routed through the 3D model so
-the layout reserves their space under the ceiling and the louvres in the walls. `plantcode
+the layout reserves their space under the ceiling and the louvres in the walls. `cheme
 layout build` places the terminals, joins them into a supply and an extract tree per unit,
 ducts the outdoor air from the intake louvre and the exhaust to its opening, and sizes every
 piece of duct by its air at the velocity limit. Use this skill once the buildings, their
@@ -31,7 +31,7 @@ openings and the equipment inside them are placed, at the latest before the deta
 
 ## Workflow and tools
 
-1. **Units.** In `layout/hvac.yaml` (`plantcode schema hvac`) declare each unit under
+1. **Units.** In `layout/hvac.yaml` (`cheme schema hvac`) declare each unit under
    `units:` with its `building`, `position: [x, y]` (the centre, in the building, on a floor
    with room to service it), `rotation_deg`, `size` (default 4 x 2 x 2.2 m, ASSUMED),
    `capacity_m3h`, and the `intake` and `exhaust` opening ids of its building. The ports are
@@ -49,8 +49,8 @@ openings and the equipment inside them are placed, at the latest before the deta
    `ceiling_gap_m`, `spacing_m`, `sides_mm`, `max_aspect`, `terminal_max_m3h`,
    `louvre_free_area`. A room's `duct_elevation_m` moves its ducts. Replace every default you
    rely on with the project's HVAC basis and cite it.
-5. **Build and look.** `plantcode layout build`, then a level plan and sections through the
-   building (`plantcode layout render --plan --z 0,12 --png`, `--section x=..`). Check: ducts
+5. **Build and look.** `cheme layout build`, then a level plan and sections through the
+   building (`cheme layout render --plan --z 0,12 --png`, `--section x=..`). Check: ducts
    clear of the crane hook path and of the maintenance envelopes, terminals over the heat or
    the leak, the unit reachable, the louvres away from the exhausts of other buildings and
    from hazardous zones.
@@ -62,7 +62,7 @@ openings and the equipment inside them are placed, at the latest before the deta
 
 ## Validation and failure handling
 
-- `plantcode validate`: the schema, `layout-hvac-ref`, and the model findings above.
+- `cheme validate`: the schema, `layout-hvac-ref`, and the model findings above.
 - Gate `hvac` (`kind: layout-model`, `require: [model-current, hvac]`): every clad building
   has `layout/hvac.yaml` and ducts in the model, no capacity or unrouted finding is left
   unaccepted. Clash findings count under the `clashes` requirement of the layout gates.
@@ -87,6 +87,6 @@ not design the ventilation.
 
 ## References
 
-- `plantcode schema hvac`, `layout/README.md`
+- `cheme schema hvac`, `layout/README.md`
 - `docs/framework/layout-model.md` (HVAC sections, rules, drawings)
 - skills `layout-yaml`, `structures-access`, `area-classification`, `review`

@@ -2,7 +2,7 @@
 
 Reuses the helper functions of scripts/draft_P-01.py (everything above its "# Equipment" marker).
 After the first run the XML is the source of truth (AGENTS.md).
-Usage: python3 scripts/draft_P-02.py pid/P-02.xml && plantcode fmt pid/P-02.xml
+Usage: python3 scripts/draft_P-02.py pid/P-02.xml && cheme fmt pid/P-02.xml
 """
 import os
 import sys

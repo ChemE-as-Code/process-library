@@ -1,6 +1,6 @@
 ---
 name: mto-estimate
-description: Take off the bulk materials of the 3D layout model and price them - plantcode assess mto (pipe length by DN, class and insulation; elbows, tees, reducers, flanges and gaskets; valves by type and DN; steel tonnage by section; grating, insulation and concrete), plantcode assess estimate (unit rates from estimate/rates.yaml, then direct, indirect and contingency factors) and plantcode assess equipment (purchased and bare module equipment costs from the published Turton et al. CAPCOST correlations, escalated by the project's CEPCI). Use when an equipment cost estimate is asked for, when a material take-off, a bill of quantities, a bulk-material or factor estimate is asked for, when the gate mto fails, or after the layout model changed.
+description: Take off the bulk materials of the 3D layout model and price them - cheme assess mto (pipe length by DN, class and insulation; elbows, tees, reducers, flanges and gaskets; valves by type and DN; steel tonnage by section; grating, insulation and concrete), cheme assess estimate (unit rates from estimate/rates.yaml, then direct, indirect and contingency factors) and cheme assess equipment (purchased and bare module equipment costs from the published Turton et al. CAPCOST correlations, escalated by the project's CEPCI). Use when an equipment cost estimate is asked for, when a material take-off, a bill of quantities, a bulk-material or factor estimate is asked for, when the gate mto fails, or after the layout model changed.
 ---
 
 # Material take-off and estimate
@@ -8,9 +8,9 @@ description: Take off the bulk materials of the 3D layout model and price them -
 ## Purpose and when to use
 
 Turn the committed 3D model (`layout/plant-model.yaml`) into quantities, and the quantities into
-an estimate whose every number has a source. `plantcode assess mto` counts what the model shows;
-`plantcode assess estimate` prices those quantities with the project's own unit rates and
-applies the factor method. `plantcode assess equipment` costs the equipment list from the
+an estimate whose every number has a source. `cheme assess mto` counts what the model shows;
+`cheme assess estimate` prices those quantities with the project's own unit rates and
+applies the factor method. `cheme assess equipment` costs the equipment list from the
 published correlations of Turton et al. (CAPCOST, 5th ed. 2018, Appendix A; package data with
 the table and a cross-check per row): purchased cost, bare module cost, escalated by the cost
 index the project gives. Use it for a material take-off or bill of quantities, a factor
@@ -19,22 +19,23 @@ estimate of the bulk materials, a comparison of two layouts by their quantities,
 
 ## Required inputs and missing inputs
 
-- A current model: `plantcode layout build` without `layout-model-outdated`, and the lines
-  routed that the take-off should cover (`plantcode layout report`). An unrouted line has no
+- A current model: `cheme layout build` without `layout-model-outdated`, and the lines
+  routed that the take-off should cover (`cheme layout report`). An unrouted line has no
   length, fittings or flanges in the take-off.
-- `estimate/rates.yaml` (`plantcode schema rates`) for an estimate: the currency, the cost year,
+- `estimate/rates.yaml` (`cheme schema rates`) for an estimate: the currency, the cost year,
   one rate per take-off category (more where size, class or group change the price), and the
   factors. Every rate and factor needs `status` (`ASSUMED`, or `QUOTED` when a quotation backs
-  it), `source` and `year`. The file `plantcode init` writes is an **example** (`example: true`,
+  it), `source` and `year`. The file `cheme init` writes is an **example** (`example: true`,
   currency `XXX`): its numbers price nothing.
-- `estimate/cost-basis.yaml` (`plantcode schema cost_basis`) for the equipment estimate:
+- `estimate/cost-basis.yaml` (`cheme schema cost_basis`) for the equipment estimate:
   `cost_index: {value, year, source}` (the CEPCI of the estimate's year, as published: the
   package holds only the correlations' base, CEPCI 397 of 2001), `estimate_class` (AACE 18R-97,
   default 5), and per item where the lists cannot say it: `correlation`, `size` with
   `size_source`, `fm`/`fp`/`fbm` with `factor_source`, an own `cost` (a quotation, with
   currency, year, status, source) or `exclude: <reason>`. The size comes from the datasheet
   (`type_specific.area_m2`, `volume_m3`, `shaft_power_kw`, `fluid_power_kw`,
-  `gas_flow_m3_s`, `duty_kw`; drafts from the lists: `plantcode datasheets draft`), a vessel's
+  `gas_flow_m3_s`, `duty_kw`; drafts from the lists: `cheme datasheets draft`, calculated
+  sizes in them: `cheme datasheets fill`, skill `datasheets`), a vessel's
   volume else from its list dimensions (an upper bound, marked ASSUMED).
 - **Never invent a price.** When the project has no rate for a category, leave the rows unpriced
   (the estimate reports them) and ask for a source: a quotation, the company's cost database, a
@@ -43,14 +44,14 @@ estimate of the bulk materials, a comparison of two layouts by their quantities,
 
 ## Workflow and tools
 
-1. **Take off.** `plantcode assess mto` (Markdown), `--csv`, `--json`. Read the totals first, then
+1. **Take off.** `cheme assess mto` (Markdown), `--csv`, `--json`. Read the totals first, then
    the findings: `mto-section-unknown` (members whose section has no mass per metre: their steel
    is not in the tonnage), `mto-no-pipes`.
 2. **Check the counts against the model.** Look at the largest rows and at anything surprising:
    a DN with a long length but few pipes (a long rack run), many `bend <deg>` rows (pinned or
    skewed routes), a reducing tee whose branch is larger than its run (two lines meeting the
    wrong way), flanges much more than twice the valves plus the piped nozzles. Open the item in
-   the viewer or `plantcode layout render` before trusting it.
+   the viewer or `cheme layout render` before trusting it.
 3. **What the take-off does not count.** It counts the model: pipe as routed (no allowance for
    field routing, small bore or vents and drains not on the P&ID), fittings at the bends and
    junctions it draws (no olets, couplings, spectacle blinds, weldolets for instruments),
@@ -70,10 +71,10 @@ estimate of the bulk materials, a comparison of two layouts by their quantities,
    materials of those categories), `indirect` (engineering, construction management, on the
    direct cost), `contingency` (on direct plus indirect). State the estimate's class and
    accuracy in `basis:`; the factors must fit it.
-6. **Estimate.** `plantcode assess estimate` (Markdown), `--csv`, `--json`. Resolve
+6. **Estimate.** `cheme assess estimate` (Markdown), `--csv`, `--json`. Resolve
    `estimate-unpriced` (add a rate, or say why the rows stay unpriced), read
    `estimate-rate-unused` (a rate shadowed by an earlier one).
-6a. **Equipment.** `plantcode assess equipment` (Markdown), `--csv`, `--json`. Each item
+6a. **Equipment.** `cheme assess equipment` (Markdown), `--csv`, `--json`. Each item
    says which correlation it takes and why (the DEXPI class; a shell and tube exchanger is a
    fixed tube sheet one unless its class says U-tube or floating head), where its size comes
    from, Fp, Fm, FBM, the purchased and bare module cost. Resolve the findings, never by a
@@ -90,20 +91,20 @@ estimate of the bulk materials, a comparison of two layouts by their quantities,
    in a later, detailed estimate. State the class: AACE 18R-97 class 5 (an equipment-factored
    estimate on a concept or basic design: -20 % to -50 % low, +30 % to +100 % high) unless the
    definition supports a better one.
-7. **Write and gate.** `plantcode assess mto --write` and `plantcode assess estimate --write`
+7. **Write and gate.** `cheme assess mto --write` and `cheme assess estimate --write`
    write `estimate/mto.csv|md` and `estimate/estimate.csv|md`; commit them with the model. The
    gate `kind: mto` (`checks/checks.yaml`) requires `mto-current` (the CSV is what the current
    model gives), and once the project prices its plant `rates` (not an example, every row
-   priced) and `estimate-current`. `plantcode assess equipment --write` writes
+   priced) and `estimate-current`. `cheme assess equipment --write` writes
    `estimate/equipment-cost.csv|md`; the gate requirements `equipment-current` and
    `equipment-covered` (every item costed, its own cost, or excluded with a reason, and a cost
    index given) belong to `kind: mto` as well.
 
 ## Validation and failure handling
 
-- `plantcode validate` checks `estimate/rates.yaml` against its schema (a rate's unit must be
+- `cheme validate` checks `estimate/rates.yaml` against its schema (a rate's unit must be
   its category's; ids unique).
-- `plantcode assess mto --check` and `plantcode assess estimate --check` exit 1 when the
+- `cheme assess mto --check` and `cheme assess estimate --check` exit 1 when the
   written files are not what the current model and rates give: rewrite them, never edit them.
 - No model (`mto-model-missing`): build and commit the model first. No rates
   (`estimate-no-rates`): write them; the take-off alone still works.
@@ -135,7 +136,7 @@ like any other deliverable (skill `review`).
 
 ## References
 
-- `plantcode schema rates`, `plantcode schema cost_basis`, `estimate/README.md`,
+- `cheme schema rates`, `cheme schema cost_basis`, `estimate/README.md`,
   `docs/framework/mto.md` (rows, rules, the API, the equipment estimate)
 - R. Turton, J. A. Shaeiwitz, D. Bhattacharyya, W. B. Whiting, Analysis, Synthesis, and Design
   of Chemical Processes, 5th ed., 2018, Appendix A (the package data

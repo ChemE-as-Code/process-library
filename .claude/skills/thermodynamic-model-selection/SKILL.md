@@ -27,7 +27,7 @@ question for each): ask for exactly those and call again.
 ## Workflow and tools
 
 ```python
-from plantcode.domains.process.thermodynamics.model_selection import select_thermo_model
+from chemeascode.domains.process.thermodynamics.model_selection import select_thermo_model
 
 result = select_thermo_model(
     {"pressure_value": 5, "pressure_unit": "bar(a)", "is_polar": True, "is_electrolyte": False}
@@ -35,7 +35,7 @@ result = select_thermo_model(
 result.models, result.reasoning, result.triggered_rules, result.provided_facts, result.source
 ```
 
-There is no CLI command. Units go through `plantcode.foundation.units`; units other than K,
+There is no CLI command. Units go through `chemeascode.foundation.units`; units other than K,
 °C, Pa, kPa, MPa, bar and the `(a)`/`(g)` pressures need the `units` extra.
 
 ## Validation and failure handling
@@ -58,5 +58,5 @@ assumption so it can be reviewed. An engineer accepts or overrides the recommend
 
 ## References
 
-- `src/plantcode/domains/process/thermodynamics/model_selection_rules.yml`, the decision tree
+- `src/chemeascode/domains/process/thermodynamics/model_selection_rules.yml`, the decision tree
 - `phase-calculation`, `process-design`

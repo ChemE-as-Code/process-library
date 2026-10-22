@@ -1,6 +1,6 @@
 ---
 name: area-classification
-description: Declare the zones of the 3D layout in layout/zones.yaml - hazardous areas around flammable releases, oxygen-enriched and oxygen-deficient zones around oxygen and inert vents of an air separation or similar plant, and keep-clear, laydown, maintenance and escape zones - from explicit volumes or release sources with release grade and substance, sized by plantcode's ASSUMED radius table, then check separations and routes against them. Use when adding vents, relief outlets, seals or flanges handling oxygen, inerts or flammables, when a zone or separation finding appears, or before the layout review.
+description: Declare the zones of the 3D layout in layout/zones.yaml - hazardous areas around flammable releases, oxygen-enriched and oxygen-deficient zones around oxygen and inert vents of an air separation or similar plant, and keep-clear, laydown, maintenance and escape zones - from explicit volumes or release sources with release grade and substance, sized by cheme-as-code's ASSUMED radius table, then check separations and routes against them. Use when adding vents, relief outlets, seals or flanges handling oxygen, inerts or flammables, when a zone or separation finding appears, or before the layout review.
 ---
 
 # Area classification for the layout
@@ -12,7 +12,7 @@ the router keeps pipes out of the forbidden ones and the separation rules measur
 This is a **screening** classification for layout work, not an area classification study: the
 radii come from an indicative table marked ASSUMED, and no dispersion is modelled. Use it when
 the P&IDs gain vents, relief valves, pump or compressor seals or flanged equipment handling
-oxygen, inert gases or flammables; when `plantcode validate` or `layout build` report
+oxygen, inert gases or flammables; when `cheme validate` or `layout build` report
 `layout-zone-crossing` or `layout-separation`; and before the layout review.
 
 ## Required inputs and missing inputs
@@ -55,11 +55,11 @@ oxygen, inert gases or flammables; when `plantcode validate` or `layout build` r
      breathers and LIN/LAR pump seals: cold inert vapour collects at grade and in pits and
      trenches; vents go above platforms and away from walkways and escape routes;
    - the main air intake upwind of every vent (the prevailing wind is a design assumption in
-     `DESIGN.md`), with the distance measured (`plantcode show <tag> --layout`) and declared as a
+     `DESIGN.md`), with the distance measured (`cheme show <tag> --layout`) and declared as a
      `separation:` in the site plan (`from: <intake>, to: <zone id>, min_m: ...`);
    - liquid spills (LOX, LIN) spread at grade: keep drains, trenches and kerbs in mind.
 4. **Separations against zones**: a site-plan separation may name a zone id (`from: Z-O2-VENT,
-   to: R-1, min_m: 15, basis: ...`); `plantcode layout build` measures it
+   to: R-1, min_m: 15, basis: ...`); `cheme layout build` measures it
    (`layout-separation`). Routes through `keep_clear`, `laydown`, `maintenance` and `escape`
    zones are avoided by the router; `layout-zone-crossing` reports what crosses a zone. Cable
    trays inside an oxygen-enriched or hazardous zone are `layout-tray-zone` (the zone kinds in
@@ -70,16 +70,16 @@ oxygen, inert gases or flammables; when `plantcode validate` or `layout build` r
    step-overs), and an outlet directly under a walking surface is a finding even without a
    zone. Platforms and ladders inside a casing are no walking levels: a casing breather's
    zone covers the roof walkway, not the platforms inside.
-5. **Look at the zones**: `plantcode layout render --plan --png` (zones are drawn with their
-   ids), a section through a vent area (`--section x=.. --png`), and `plantcode serve`
+5. **Look at the zones**: `cheme layout render --plan --png` (zones are drawn with their
+   ids), a section through a vent area (`--section x=.. --png`), and `cheme serve`
    (Layout 3D: zones as transparent volumes). Check that every vent and relief outlet of the
    P&IDs has a zone or a reason why not.
 
 ## Validation and failure handling
 
-- `plantcode validate` checks the file against `plantcode schema zones` (a zone needs a shape or
-  sources, a hazardous shape a zone number); `plantcode layout build` reports
-  `plantcode.layout-zone-source` for a source it cannot find (an unplaced tag, a nozzle the P&ID
+- `cheme validate` checks the file against `cheme schema zones` (a zone needs a shape or
+  sources, a hazardous shape a zone number); `cheme layout build` reports
+  `cheme.layout-zone-source` for a source it cannot find (an unplaced tag, a nozzle the P&ID
   lacks, a line without open ends), a substance not in the table, or a source the table has no
   row of the zone's kind for: place the item, fix the name, set `source_kind` /
   `substance_class`, or give an explicit volume with its basis.
@@ -105,7 +105,7 @@ consequence modelling are out of scope here; their results come in as explicit v
 
 ## References
 
-- `plantcode schema zones`, `layout/README.md`, `docs/framework/layout-model.md` (zones)
-- the radius table `domains/safety/data/release-radii.yaml` (bundled with plantcode),
+- `cheme schema zones`, `layout/README.md`, `docs/framework/layout-model.md` (zones)
+- the radius table `domains/safety/data/release-radii.yaml` (bundled with cheme-as-code),
   `domains/safety/area_classification.py`
 - skills `layout-yaml`, `structures-access`, `review`

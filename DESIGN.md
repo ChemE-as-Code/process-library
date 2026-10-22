@@ -3,6 +3,10 @@
 One entry per decision: what was decided, why, what was rejected, and what it assumes.
 Numbers marked ASSUMED are concept estimates (about +/-30 %), not vendor or client data.
 
+The tool was renamed in core 0.7.0: `plantcode` is now `cheme-as-code` (command `cheme`, finding
+ids `cheme.<rule>`, schema ids `cheme/<kind>/v1`). The decisions below keep the names they were
+written with; read `plantcode <cmd>` as `cheme <cmd>` and `plantcode.<rule>` as `cheme.<rule>`.
+
 ## 1 Process description (stage concept)
 
 ASU-1 is a low-pressure double-column cryogenic air separation unit without an argon column.

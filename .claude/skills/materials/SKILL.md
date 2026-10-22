@@ -9,7 +9,7 @@ description: Define the components and material templates of a process in proces
 
 Materials are written as YAML, never through editor commands: `process/materials.yaml` holds
 the components and the templates, and each stream in `process/flowsheet.yaml` names a template
-and gives its composition. `plantcode process build` turns them into the DEXPI material
+and gives its composition. `cheme process build` turns them into the DEXPI material
 components, templates and states of the BFD/PFD sheets. Use this skill whenever components are
 added or identified, or a stream gets its material.
 
@@ -26,8 +26,8 @@ pseudocomponent or mixture without a CAS number keeps an empty `cas` and says wh
 ## Workflow and tools
 
 1. Look up identifiers and data with `property-retrieval`, e.g.
-   `plantcode chemistry props 64-17-5 -p name -p formula -p molecular_weight -p temperature_boil`.
-2. Edit `process/materials.yaml` (schema: `plantcode schema process-materials`):
+   `cheme chemistry props 64-17-5 -p name -p formula -p molecular_weight -p temperature_boil`.
+2. Edit `process/materials.yaml` (schema: `cheme schema process-materials`):
 
    ```yaml
    components:
@@ -43,11 +43,11 @@ pseudocomponent or mixture without a CAS number keeps an empty `cas` and says wh
 3. In `process/flowsheet.yaml`, give the stream its template and composition (see
    `process-design` for the stream fields); fractions of one composition sum to one on the
    stated basis.
-4. Run `plantcode validate` and `plantcode process build`.
+4. Run `cheme validate` and `cheme process build`.
 
 ## Validation and failure handling
 
-`plantcode validate` checks the schema, unknown component ids in templates and compositions,
+`cheme validate` checks the schema, unknown component ids in templates and compositions,
 and the balances; fix every finding before building. A component used by no template is
 harmless but usually a leftover. Do not change a component's `id` that streams use without
 changing them in the same edit.
@@ -67,4 +67,4 @@ commit message.
 ## References
 
 - `process-design` (the flowsheet and stream table), `property-retrieval` (identifiers and data).
-- `plantcode schema process-materials`, `plantcode schema process-flowsheet`.
+- `cheme schema process-materials`, `cheme schema process-flowsheet`.

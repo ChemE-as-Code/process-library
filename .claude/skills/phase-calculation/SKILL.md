@@ -10,7 +10,7 @@ description: Identify the phases of a pure component or mixture with a flash at 
 Runs a flash through thermo and reports the number of phases, their fractions and
 compositions. Use it to identify the phase of a stream or mixture. It is a calculation without a
 stated application range: stream properties written to `process/flowsheet.yaml` come from
-`plantcode process props` (see `process-design`), which uses one validated method.
+`cheme process props` (see `process-design`), which uses one validated method.
 
 ## Required inputs and missing inputs
 
@@ -25,7 +25,7 @@ If the temperature, pressure, composition or model is missing, ask for it.
 ## Workflow and tools
 
 ```python
-from plantcode.domains.process.thermodynamics.phase import phase_determination
+from chemeascode.domains.process.thermodynamics.phase import phase_determination
 
 result = phase_determination(
     components=["ethanol", "water"],
@@ -42,7 +42,7 @@ result = phase_determination(
 Models: `{"eos_model": "Peng-Robinson" | "Redlich-Kwong" | "Redlich-Kwong-Soave"}`, or
 `{"liquid_phase_model": "NRTL" | "Wilson" | "UNIFAC", "vapor_phase_model": <an EOS> |
 "ideal_gas"}`. The names are exact and case-sensitive. Needs the `props` extra
-(`pip install 'plantcode[props]'`). There is no CLI command.
+(`pip install 'cheme-as-code[props]'`). There is no CLI command.
 
 ## Validation and failure handling
 
@@ -67,4 +67,4 @@ needs confirmation from data.
 
 - `thermodynamic-model-selection`, `process-design`
 - Interaction parameters: thermo's ChemSep databases and
-  `src/plantcode/domains/process/thermodynamics/data/chemsep/` (SRK, Artistic License 2.0)
+  `src/chemeascode/domains/process/thermodynamics/data/chemsep/` (SRK, Artistic License 2.0)

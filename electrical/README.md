@@ -5,9 +5,9 @@ Electrical rooms, the motor list, junction boxes and the cable trays of the 3D m
 
 | file | what | written by |
 |---|---|---|
-| `electrical-list.yaml` | substations, transformers, rooms (`kind: mcc \| switchgear \| control \| rack_room`, in a building of `layout/building.yaml`), `defaults`, `motors` (power, voltage and room of the motors derived from the driven equipment), `feeders`, `junction_boxes`, `instruments` (`plantcode schema electrical`) | people |
-| `tray-rules.yaml` (optional) | tray widths, depth, fill, power/instrument separation, rack tray tiers (`plantcode schema trays`); every default is ASSUMED | people |
-| `cable-schedule.csv`, `cable-schedule.md` | every cable: from, to, size, trays, length | `plantcode layout cables --write` |
+| `electrical-list.yaml` | substations, transformers, rooms (`kind: mcc \| switchgear \| control \| rack_room`, in a building of `layout/building.yaml`), `defaults`, `motors` (power, voltage and room of the motors derived from the driven equipment), `feeders`, `junction_boxes`, `instruments` (`cheme schema electrical`) | people |
+| `tray-rules.yaml` (optional) | tray widths, depth, fill, power/instrument separation, rack tray tiers (`cheme schema trays`); every default is ASSUMED | people |
+| `cable-schedule.csv`, `cable-schedule.md` | every cable: from, to, size, trays, length | `cheme layout cables --write` |
 
 Example `electrical-list.yaml`:
 
@@ -21,5 +21,5 @@ junction_boxes:               # optional: without them one is proposed per area
   - {tag: JB-101, point: [24.0, 12.5, 1.2], instruments: ["*-1*"]}
 ```
 
-`plantcode layout build` places the trays and cables in `layout/plant-model.yaml`; never edit
+`cheme layout build` places the trays and cables in `layout/plant-model.yaml`; never edit
 the schedule by hand.

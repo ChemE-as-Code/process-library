@@ -16,4 +16,4 @@ for sheet in args:
     frame = subprocess.run(["git", "show", "9aa9b38:pid/%s.xml" % sheet], check=True, capture_output=True).stdout
     open(path, "wb").write(frame)
     subprocess.run([sys.executable, "scripts/draft_%s.py" % sheet, path], check=True)
-    subprocess.run(["plantcode", "fmt", path], check=True, capture_output=True)
+    subprocess.run(["cheme", "fmt", path], check=True, capture_output=True)

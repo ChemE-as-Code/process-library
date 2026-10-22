@@ -5,7 +5,7 @@ P&ID content is `kind: on-sheet` (tags and classes found in the model), never a 
 XML: DEXPI builds printed tags such as `AIA-3103` from several attributes, so grep finds ids,
 not tags.
 
-A stage is **reached** when its sign-off (`plantcode check --stage <stage> --write`, an entry in
+A stage is **reached** when its sign-off (`cheme check --stage <stage> --write`, an entry in
 `checks/status.json`) is on the default branch. Stage work is done on a branch
 `stage/<stage>-<topic>`; the sign-off is its last commit, and the branch is merged by a human or
 the reviewer, not by its author (see `AGENTS.md`). A sign-off left on an unmerged branch has not
@@ -34,6 +34,6 @@ the rendered plot plan and at least two sections (skills `pipe-routing`, `struct
 
 ## detail: Detail engineering
 Datasheets (one `equipment/datasheets/<TAG>.yaml` per equipment-list item, format in
-`equipment/datasheets/README.md`, `plantcode schema datasheet`; gate `datasheets`), instrument
+`equipment/datasheets/README.md`, `cheme schema datasheet`; gate `datasheets`), instrument
 list, HAZOP actions closed. Every line routed, utilities and small bore included, still
 without clashes (gate `layout-detail`).

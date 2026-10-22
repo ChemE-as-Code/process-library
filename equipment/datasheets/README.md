@@ -1,12 +1,12 @@
 # Datasheets
 
 One YAML file per equipment-list item: `equipment/datasheets/<TAG>.yaml`, schema
-`plantcode schema datasheet`. They are the detail-stage deliverable: the `datasheets` gate in
+`cheme schema datasheet`. They are the detail-stage deliverable: the `datasheets` gate in
 `checks/checks.yaml` fails until every item of `equipment/equipment-list.yaml` has a valid one.
 
-`plantcode validate` checks each file against the schema and the equipment list:
-`plantcode.datasheet-not-listed` (a tag not in the list), `plantcode.datasheet-mismatch` (design
-pressure or temperature, or type, other than the list says), `plantcode.datasheet-name` (file not
+`cheme validate` checks each file against the schema and the equipment list:
+`cheme.datasheet-not-listed` (a tag not in the list), `cheme.datasheet-mismatch` (design
+pressure or temperature, or type, other than the list says), `cheme.datasheet-name` (file not
 named after its tag). Change a value in the datasheet and the list in the same commit.
 
 - `operating` and `design`: conditions, by key with the unit in the name (`pressure_barg`,
