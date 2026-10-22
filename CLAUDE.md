@@ -1,0 +1,1 @@
+Engineering work happens in a process folder: start Claude Code in `processes/<id>/` (e.g. `processes/asu-1/`), where that project's `CLAUDE.md`, `AGENTS.md` and `.claude/` skills apply. At this root: the library tooling (`scripts/`, `schemas/`, `chemicals/`, `lci/`, `tests/`); see README.md and CONTRIBUTING.md.

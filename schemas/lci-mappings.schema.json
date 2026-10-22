@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atlas.cheme-as-code.org/schemas/lci-mappings/v1.json",
+  "title": "Atlas LCI mappings (lci/mappings.yaml)",
+  "description": "How build_lci.py links each exchange of a process's LCI dataset to a Brightway background: technosphere activities by name, reference product, unit and location (database chosen at install time), library-level screening proxies, biosphere flows by name and categories, and the curated decisions on atmospheric pass-through emissions.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "default_site_location", "technosphere"],
+  "properties": {
+    "schema": {"const": "cheme-as-code/lci-mappings/v1"},
+    "default_site_location": {
+      "description": "Location used for `location: site` when install() is given none.",
+      "type": "string", "minLength": 2
+    },
+    "technosphere": {
+      "description": "By chemical/utility slug or lca/factors.yaml factor id.",
+      "type": "object",
+      "propertyNames": {"$ref": "#/$defs/id"},
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source"],
+        "oneOf": [{"required": ["activity"]}, {"required": ["proxy"]}],
+        "properties": {
+          "activity": {"$ref": "#/$defs/activity"},
+          "proxy": {"$ref": "#/$defs/id", "description": "Id of an entry in `proxies`."},
+          "source": {"type": "string", "minLength": 3},
+          "notes": {"type": "string"}
+        }
+      }
+    },
+    "proxies": {
+      "type": "object",
+      "propertyNames": {"$ref": "#/$defs/id"},
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "reference_product", "unit", "location", "inputs", "source"],
+        "properties": {
+          "name": {"type": "string", "minLength": 3},
+          "reference_product": {"type": "string", "minLength": 1},
+          "unit": {"$ref": "#/$defs/unit"},
+          "location": {"type": "string", "minLength": 2},
+          "inputs": {
+            "type": "array", "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["use", "amount", "source"],
+              "properties": {
+                "use": {"$ref": "#/$defs/id", "description": "A technosphere entry with an activity (not a proxy)."},
+                "amount": {"type": "number"},
+                "source": {"type": "string", "minLength": 3}
+              }
+            }
+          },
+          "source": {"type": "string", "minLength": 3}
+        }
+      }
+    },
+    "biosphere": {
+      "description": "By emission component (emission:<component>), optionally <component>/<origin> (fossil, biogenic).",
+      "type": "object",
+      "propertyNames": {"pattern": "^[A-Za-z0-9_.\\-]+(/(fossil|biogenic))?$"},
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["flow", "source"],
+        "properties": {
+          "flow": {"$ref": "#/$defs/flow"},
+          "source": {"type": "string", "minLength": 3}
+        }
+      }
+    },
+    "pass_through": {
+      "description": "Free emissions of components taken from and returned to the environment: not exported, with the decision.",
+      "type": "object",
+      "propertyNames": {"pattern": "^[A-Za-z0-9_.\\-]+$"},
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["decision"],
+        "properties": {
+          "flow": {"$ref": "#/$defs/flow"},
+          "decision": {"type": "string", "minLength": 10}
+        }
+      }
+    },
+    "exchanges": {
+      "description": "Overrides by \"<process-id>/<key>\" or \"<key>\".",
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "minProperties": 1,
+        "properties": {
+          "use": {"$ref": "#/$defs/id"},
+          "chemical": {"$ref": "#/$defs/id"},
+          "source": {"type": "string"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"},
+    "unit": {"enum": ["kilogram", "kilowatt hour", "meter", "square meter", "cubic meter", "unit", "ton kilometer"]},
+    "activity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "reference_product", "unit", "location"],
+      "properties": {
+        "name": {"type": "string", "minLength": 3},
+        "reference_product": {"type": "string", "minLength": 1},
+        "unit": {"$ref": "#/$defs/unit"},
+        "location": {"type": "string", "minLength": 2, "description": "A location code, or `site` (install-time parameter)."}
+      }
+    },
+    "flow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "categories"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "categories": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+      }
+    }
+  }
+}

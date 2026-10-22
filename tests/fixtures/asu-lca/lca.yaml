@@ -1,0 +1,123 @@
+# TEST FIXTURE: copied unchanged (below this header) from ChemE-as-Code/example-asu lca/lca.yaml at commit 6b080cd03f9dd7f500075cc8986ec615ef59008e
+# (PR #11, LCA exergy allocation; in review, numbers may still change). Used by the Brightway round trip.
+# Goal and scope of the ASU-1 LCA. Schema: `cheme schema lca`. Outputs: `cheme assess lca
+# --write` (lca/inventory.csv, results.csv, results.md); never edit those by hand.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Cradle-to-gate carbon footprint of pipeline GOX at 30 barg for the concept stage: which
+  utilities dominate, and how the result depends on the electricity supply. Screening only:
+  flows and duties are concept estimates (+/-30 %), the factors are an example.
+functional_unit: {product: GOXP, amount: 1, unit: t}
+boundary: cradle-to-gate
+allocation:
+  method: exergy
+  coproducts: [GOXP, GANP, LOX, LIN]
+  source: >-
+    D-056: exergy allocation. All products come from one separation but leave in different
+    states (GOX compressed to 30 barg, GAN to 9 bara, the liquids cold): exergy charges each
+    for the work it holds, mass does not. The products' exergy is calculated from the
+    flowsheet (plantcode process props --fill). Mass and substitution are compared below.
+  # substitution (system expansion): what each co-product would otherwise be made by. EXAMPLE
+  # factors until the licensed database is available.
+  substitution:
+    GANP: {factor: nitrogen-gas, source: "EXAMPLE: pipeline nitrogen from a stand-alone plant"}
+    LOX: {factor: oxygen-liquid, source: "EXAMPLE: merchant liquid oxygen"}
+    LIN: {factor: nitrogen-liquid, source: "EXAMPLE: merchant liquid nitrogen"}
+flows:
+  - {key: feed:AIR, free: true, source: "ambient air: a resource taken from nature without burden"}
+  - {key: feed:POWER, factor: electricity, source: "grid supply at 33 kV (DESIGN.md D-036); no on-site generation"}
+  - {key: product:CW, factor: cooling-water, source: "heat rejected to the site cooling water system (pumping, fans, make-up)"}
+  - {key: product:VENT, emission: true, source: "waste N2 from the regeneration, the evaporative cooler and the vent, to atmosphere"}
+  - {key: emission:N2, free: true, source: "atmospheric N2 returned to the atmosphere"}
+  - {key: emission:O2, free: true, source: "atmospheric O2 returned to the atmosphere"}
+  - {key: emission:AR, free: true, source: "atmospheric argon returned to the atmosphere"}
+  - {key: emission:H2O, free: true, source: "water of the intake air removed in the TSA, returned"}
+  - {key: emission:CO2, free: true, source: "atmospheric CO2 removed from the intake air in the TSA and returned unchanged: no net emission"}
+
+# Construction: the take-off of the 3D model (estimate/mto.csv) and the equipment's empty
+# weights (equipment list), spread over the GOX made in the plant's life. The first entry that
+# matches a row or item counts it.
+operation:
+  hours_per_year: 8400
+  life_years: 25
+  source: "design basis operating_hours_per_year 8400 (ASSUMED); 25 a service life ASSUMED"
+construction:
+  - {id: steel, title: Structural steel, takeoff: mto, category: steel, factor: steel-sections, source: "rack, structure, stair and platform steel of the take-off"}
+  - {id: pipe, title: Pipe, takeoff: mto, category: pipe, factor: pipe, source: "pipe length by DN of the take-off; one factor per m for all DN (screening)"}
+  - {id: concrete, title: Concrete, takeoff: mto, category: concrete, factor: concrete, source: "plinths, foundations, ring walls of the take-off"}
+  - {id: grating, title: Grating, takeoff: mto, category: grating, factor: grating, source: "platform grating of the take-off"}
+  - {id: insulation, title: Pipe insulation, takeoff: mto, category: insulation, factor: insulation, source: "cold and hot insulation of the take-off"}
+  - {id: valves, title: Valves, takeoff: mto, category: valve, factor: fitting, source: "valves of the take-off, per piece (screening)"}
+  - {id: flanges, title: Flanges, takeoff: mto, category: flange, factor: fitting, source: "per piece (screening)"}
+  - {id: gaskets, title: Gaskets, takeoff: mto, category: gasket, factor: fitting, source: "per piece (screening)"}
+  - {id: elbows, title: Elbows, takeoff: mto, category: elbow, factor: fitting, source: "per piece (screening)"}
+  - {id: tees, title: Tees, takeoff: mto, category: tee, factor: fitting, source: "per piece (screening)"}
+  - {id: reducers, title: Reducers, takeoff: mto, category: reducer, factor: fitting, source: "per piece (screening)"}
+  - {id: inline, title: In-line items, takeoff: mto, category: inline, factor: fitting, source: "per piece (screening)"}
+  - {id: equipment-al, title: Aluminium equipment, takeoff: equipment, equipment: {material: "Aluminium*"}, factor: aluminium, source: "brazed and finned aluminium exchangers, cold box internals"}
+  - {id: equipment-ss, title: Stainless steel equipment, takeoff: equipment, equipment: {material: "SS*"}, factor: stainless-steel, source: "stainless items (material starting SS)"}
+  - {id: equipment-cs, title: Carbon steel equipment, takeoff: equipment, equipment: {material: "*"}, factor: steel-sections, source: "the rest: carbon steel shells and casings, by empty weight (mixed materials counted as carbon steel)"}
+
+# What the flowsheet and the take-off do not hold (D-056), all ASSUMED for the concept stage.
+consumables:
+  - id: molecular-sieve
+    title: Molecular sieve 13X and activated alumina (V-2101A/B)
+    unit: t
+    per_replacement: 36
+    every_years: 6
+    factor: adsorbent
+    uncertainty: {gsd2: 2.0, source: "ASSUMED bed inventory and life: wide"}
+    source: "ASSUMED: two beds of ~18 t (activated alumina under 13X, D-006) replaced every 6 years; to be confirmed by the adsorber supplier"
+  - id: lube-oil
+    title: Lubricating oil (K-1101, K-4101, K-4102, K-3101)
+    unit: t
+    per_year: 2
+    factor: lube-oil
+    uncertainty: {gsd2: 2.0, source: "ASSUMED"}
+    source: "ASSUMED: top-up and oil changes of the machines"
+maintenance:
+  fraction_per_year: 0.01
+  applies_to: [steel, pipe, valves, insulation, "equipment-*"]
+  source: "ASSUMED: 1 %/a of the construction materials as spare parts and repairs"
+transport:
+  - id: construction-to-site
+    applies_to: ["construction:steel", "construction:equipment-*"]
+    distance_km: 500
+    factor: lorry
+    source: "ASSUMED: structural steel and equipment by lorry, 500 km (the take-off rows counted in m or pieces carry no mass)"
+  - id: consumables-to-site
+    applies_to: ["consumable:*", "maintenance:steel", "maintenance:equipment-*"]
+    distance_km: 800
+    factor: lorry
+    source: "ASSUMED: adsorbent, oil and spares by lorry, 800 km"
+end_of_life:
+  - id: steel-recycling
+    applies_to: ["construction:steel", "construction:equipment-cs", "construction:equipment-ss", "maintenance:steel", "maintenance:equipment-cs", "maintenance:equipment-ss"]
+    fraction: 0.9
+    factor: steel-recycling
+    source: "ASSUMED: 90 % of the structural steel and the steel equipment recovered as scrap (avoided-burden credit); pipe is counted in m, not mass, and gets no credit"
+  - id: aluminium-recycling
+    applies_to: ["construction:equipment-al", "maintenance:equipment-al"]
+    fraction: 0.9
+    factor: aluminium-recycling
+    source: "ASSUMED: 90 % of the aluminium recovered"
+
+# Uncertainty: concept-stage accuracy (+/-30 %) on assumed values, less on calculated and given
+# ones; the example factors' own spread (pedigree: reliability 3, completeness 3, temporal 2,
+# geography 3, technology 2).
+uncertainty:
+  iterations: 2000
+  seed: 1
+  defaults:
+    assumed: {gsd2: 1.35, source: "concept estimate +/-30 % (design basis)"}
+    calculated: {gsd2: 1.1, source: "calculated from assumed inputs"}
+    given: {gsd2: 1.05, source: "design basis"}
+  factors: {pedigree: [3, 3, 2, 3, 2], source: "example factors: rough, not site-specific"}
+
+# Scenarios: the baseline against a lower-carbon grid (the question of the goal).
+scenarios:
+  - id: grid-2040
+    title: Grid electricity in 2040
+    factors: {electricity: electricity-2040}
+    source: "EXAMPLE: a decarbonised grid; replace with a published projection for the site's country"

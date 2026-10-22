@@ -1,0 +1,52 @@
+# ChemE-as-Code process library
+
+Versioned designs of chemical processes, one folder per process, kept as plain files in git. It
+is the source of the [Process Atlas](https://github.com/ChemE-as-Code/process-atlas)
+(atlas.cheme-as-code.org, not yet public) and of its Brightway LCI database.
+
+> Private. Formerly `ChemE-as-Code/example-asu`: the air separation unit that lived at the root
+> now lives in [`processes/asu-1/`](processes/asu-1/) with its full history
+> (`git log --follow processes/asu-1/<path>`).
+
+| path | what |
+|---|---|
+| `processes/<id>/process.yaml` | the Atlas manifest of a process (schema `schemas/process.schema.json`): title, families, inputs and outputs by chemical, maturity, review status, references |
+| `processes/<id>/plant.yaml` and the rest | optional: a cheme-as-code (plantcode) engineering project: P&IDs, BFD/PFD, lists, layout, LCA. Its own README says how to work in it |
+| `processes/<id>/lca/dataset.yaml`, `lca/datasets/*.yaml` | optional: unallocated LCI datasets (core's `lci_dataset`), the input of the LCI database |
+| `chemicals/chemicals.yaml` | chemical identity registry (CAS, InChIKey, ChEBI): the slugs processes name, which link them in the Atlas graph |
+| `lci/mappings.yaml` | how LCI exchanges link to Brightway background and biosphere data (by name; no licensed data) |
+| `schemas/` | JSON Schemas of process.yaml, the registry and the mappings |
+| `templates/process/` | starter folder for a new process |
+| `scripts/` | `build_catalog.py` (catalog for the Atlas), `build_lci.py` (Brightway workbook), `render_previews.py` and `export_snapshots.py` (drawings and viewer snapshots, via `cheme`) |
+| `python/` | `cheme-as-code-lci`, the one-call Brightway installer of the LCI database |
+| `tests/` | tests of the scripts, with a synthetic fixture library |
+
+## Processes
+
+| id | process | maturity | engineering project |
+|---|---|---|---|
+| [`asu-1`](processes/asu-1/) | Cryogenic air separation unit, 500 t/d GOX | basic engineering, not independently reviewed | yes (DEXPI P&IDs, BFD/PFD, 3D layout, MTO, LCA, DWSIM checks) |
+
+## Working on a process
+
+Each engineering project is self-contained: run `cheme` and Claude Code **in its folder**
+(`cd processes/asu-1`). `cheme` finds the plant by walking up to `plant.yaml`, and what its
+docs call "the repository root" is that folder. Once per clone, in a process folder:
+`cheme git-setup` (readable P&ID diffs and the pre-commit check of that plant).
+
+## Adding a process
+
+See [CONTRIBUTING.md](CONTRIBUTING.md): copy `templates/process/` to `processes/<id>/`, fill in
+`process.yaml`, add new chemicals to the registry. No change to the Atlas is needed.
+
+## Building the catalog and the LCI database
+
+```sh
+uv run scripts/build_catalog.py --library . --out dist [--artifacts <previews>] [--snapshots <snapshots>] [--strict]
+uv run scripts/build_lci.py --library . --out dist --version 0.1.0 [--strict]
+uv run --python 3.12 --with pytest --with pyyaml --with jsonschema --with openpyxl --with ./python --with bw2calc pytest -q tests
+```
+
+CI (`.github/workflows/validate.yml`): every `processes/*/plant.yaml` is validated with `cheme`
+in its folder; the library job runs the tests (including the Brightway round trip) and builds
+the catalog and the LCI database. Nothing is published.
