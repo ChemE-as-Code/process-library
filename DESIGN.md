@@ -1517,14 +1517,15 @@ saturation line within the rounding of DESIGN.md 3 and should be set a few K sub
 the cold-box balance is next revised.
 
 ## D-053 Datasheet sizing: calculated values, sizing assumptions, what stays with the suppliers (2026-10-23)
-Decision (amends D-042): the 38 datasheets are sized with `plantcode datasheets fill` where a
+Decision (amends D-042): the 39 datasheets are sized with `plantcode datasheets fill` where a
 flowsheet node gives the streams, and by `scripts/datasheet_sizing.py` (provenance; run with
 `plantcode run`) where it does not; that script uses only plantcode's own methods (property
 adapter, `sizing`, line losses along the routed pipes of the layout model, Fenske / Underwood)
 and IAPWS-95 for water. Every value names its calculation and inputs; every value resting on an
 assumption below is `assumed: true`. 28 datasheets have no `TBD` left and are `draft: false`;
-10 stay drafts (below). Of the 66 TBD values of D-042, 47 are filled and 19 stay open; the fill
-added 16 TBD fields of its own (LMTD, minimum stages and reflux) on the 10 open drafts.
+11 stay drafts (below; counts corrected from 38 / 10, review8#9). Of the 66 TBD values of
+D-042, 47 are filled and 19 stay open; the fill added 16 TBD fields of its own (LMTD, minimum
+stages and reflux) on the 11 open drafts.
 Sizing assumptions (ASSUMED, concept values until the suppliers' figures):
 - compressors: isentropic efficiency 0.80 per stage; maximum pressure ratio 2.0 per stage (gives
   the 3 MAC stages of section 1, 5 GOX stages against the list's 4-5, one booster and one GAN
@@ -1590,7 +1591,7 @@ Results and review against the design:
     ambient-air vaporizer is rated by its supplier. E-3102 / E-3103: duty, conditions and area
     TBD: they need the double-column internal balance.
 11. F-2101 operating conditions are S4's (S4 links the lines into and out of F-2101).
-Open (10 drafts, the datasheets gate stays failed): C-1101, C-1102, C-3101, C-3102
+Open (11 drafts, the datasheets gate stays failed): C-1101, C-1102, C-3101, C-3102
 (stages), E-3101 (area), E-3102, E-3103 (duty, area), E-4105A/B, E-4106A/B (duty, area). Their
 reasons are in each datasheet's notes (a later fill rewrites the TBD reasons with its own).
 
@@ -1739,4 +1740,15 @@ Each change below was built, the model checked with `plantcode layout build` and
      K, so a fill of C-3101 / C-3102 would no longer refuse the sharp N2 / Ar splits; their
      minimum stages stay as D-053 (6) computed them (the script's Fenske / Underwood used the
      trace argon of S14, not a zero).
+10. **Ids of the generated platform proposals (review8#8); D-053 counts (review8#9).** After
+    the declared VP-8 (PV-4111, D-047) was removed in D-051 (2), the build numbers its
+    generated proposals from the first free id: they are now VP-8 (XV-2101A) and VP-10 ..
+    VP-22, 14 proposals with `review_needed`, one per valve of the 14 operability warnings
+    (D-047). A generated id names a proposal only for the build it comes from; the record of
+    a proposal is the valve it serves (`serves`), and texts here name the valve, not the id.
+    The declared VP-8 of D-047 (2) is the removed PV-4111 platform; PV-4111 is served from
+    VP-9 (D-051 (2)). Not changed: making plantcode key generated ids to the valve served is a
+    core request, not part of this round. D-053's counts are corrected: 39 datasheets, 28
+    complete, 11 drafts (C-1101, C-1102, C-3101, C-3102, E-3101, E-3102, E-3103, E-4105A/B,
+    E-4106A/B), as the datasheets gate lists them.
 
