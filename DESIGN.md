@@ -1689,4 +1689,19 @@ Each change below was built, the model checked with `plantcode layout build` and
    tanks (no ring wall) and the tanks' spiral stairs from grade; concrete take-off 131 -> 181
    m3. Lifting study rewritten (no lift changed). Findings: instrument-no-interlock 15 -> 13;
    nothing added; 4,770 m pipe, 574.4 t steel.
+6. **E-4101 laid out as the package D-053 sizes (review8#3).** D-053 (2) sizes E-4101 as four
+   1-2 intercoolers, 65.8 + 3 x 73.4 = 286 m2, while the list, the model and the lifting
+   study kept one 1.4 x 6 m shell of 8 t. Decision: the item is the intercooler package of
+   K-4101, four shells of about 1.2 m x 5 m (each as the 73 m2 aftercooler E-4102) in two
+   stacked pairs on one frame; envelope 6 x 2.8 x 3.2 m, 4 x 6 t = 24 t (ASSUMED by analogy
+   with E-4102, not a vendor figure; the compressor vendor's package drawing replaces it). The
+   list, the datasheet (dimensions, weight) and the placement (`shape: box`, same centre
+   [166.5, 38.5]) carry it; it fits between the fire wall FW-4101 (north face y 34.3) and the
+   crane pad Z-PAD-A4C (y 42). Its two nozzles are now on the package top (3.5 m), so the
+   interstage loop GOX-4005 S1 / S2 is pinned through the fire wall sleeves SL1 / SL2 at
+   3.66 m and over the package (the rebuilt route had left the sleeves); the post of GOX-4001
+   S3 moves 1.7 m south (y 35.5), out of the lift lane of the wider package. The P&ID keeps
+   one item with two connections: the interstage piping between the four shells is inside the
+   vendor's package. Lifting study: E-4101 24 t (27.7 t gross) from Z-PAD-A4C at 7.9 m,
+   37.0 t chart capacity needed, lane clear (was 8 t, 9.2 t gross, 12.3 t). No finding added.
 
