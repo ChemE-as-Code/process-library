@@ -1397,3 +1397,17 @@ footings, 513 m2 grating.
 - Operability: 14 valves (D-047); support: 8 free spans and 5 runs without support (D-049).
 - The layout-review gate is open: the next independent layout review covers D-046 .. D-049.
 
+## D-051 Layout changes for the seventh layout review (2026-10-23)
+Decision (reviews/2026-10-23-layout-review7.md). Each change below was built, the model
+checked with `plantcode layout build` and `plantcode validate`, and committed on its own.
+1. **Rebuilt with core feat/open-points (73278c9, 844ead8, 01df35a).** A pinned route now
+   carries the racks and tier of its rack runs (36 pinned pipes regained them; before, a later
+   proposal could put a T-post from grade under a pinned tier run inside a rack); rack lanes
+   are on the millimetre, so pinning a route as generated moves no other line; a tee is cut
+   exactly where its run passes the branch's target (CW-1001's pump tee back at y 60.0, the
+   136 mm dog-leg of CW-1001 S3 gone); lanes of the CW / CWR lines shift by 1 .. 3 mm. The
+   LOX pumps P-4101A/B, 'SS / bronze', no longer get the stainless steel material factor (2.3):
+   no single material, so purchased cost only until a factor for the combination is given with
+   its source (bare module of the fully factored items USD 2.20 -> 2.10 million, 3 items).
+   No finding count changed: 0 errors, operability 14, free-span 8, support-missing 15.
+
