@@ -1048,3 +1048,49 @@ lines leaving the north face at x 129 .. 135 would cross it).
 Result (core feat/open-points): 214 of 218 segments routed, 0 clashes, 0 layout-headroom,
 0 landing-width, 0 egress-zone; take-off 4,671 m pipe, 724 elbows, 324 t steel.
 
+## D-040 Valves and transmitters out of reach: operating criteria (2026-10-22)
+Decision (review3#3, the 73 layout-operability findings of the core#61 rules; amends D-034;
+every limit ASSUMED until the owner's standard and the valve and instrument suppliers confirm
+it). A valve's handwheel or lever is within reach at most 1.8 m above a floor (a transmitter
+head 2 m), with a free 0.6 m standing square within 0.6 m in plan; the rules check it. What
+stays out of reach is answered by duty:
+(1) **Operated in normal operation or at every tanker load: within reach, no operator.** The
+LOX / LIN tanker fill isolation valves HV-4146 / HV-4147 now stand at 1.0 m: the fill lines
+run on sleepers at 1.0 m from the couplings to the tanks (pinned). The vaporizer inlet valves
+are at 1.2 m (D-039 (8)); FV-3111 is worked from P10 (D-039 (2)).
+(2) **Manual isolation in infrequent use** (maintenance, spare-pump changeover, column warm-up
+drain), handwheel valves: a chain wheel with the handwheel at most 6 m above a floor:
+BV-P1101A/B suction (DCAC CW pumps), HV-3118 (LOX drain, 2.3 m above P10), HV-4138 / HV-4139
+(pump minimum-flow returns). Never on control or emergency duty.
+(3) **Manual isolation in infrequent use, lever valves**: a gear operator with an extension
+spindle to a pedestal at a floor, at most 6 m: the chilled water pump suctions, the four LOX /
+LIN pump discharges (cold standby, D-012) and the tank inlet isolations HV_T4101_in (now at
+4.0 m: the LOX fill drops off PR2 at its north end to 4.0 m and rises over the tank roof) and
+HV_T4102_in.
+(4) **Actuated valves** (control and on/off, operated from the DCS / SIS): the local air set,
+the manual override and the positioner are brought to a pedestal at a floor within 6 m
+(declared `remote_operator`): FV-1108, LV-1106, LV-1107, TV-1105, UV-1102, XV-2101B,
+XV-2104B, XV-2109, XV-2111B, XV-2112B, FV-4105, UV-4131, XV-4120. Positioner and actuator
+maintenance from a mobile elevating work platform.
+(5) **Transmitters on equipment tappings**: mounted on a stand at a floor on impulse lines up
+to 6 m, capillary seals up to 10 m where longer (F-1101 DP, T-4102 upper tapping); the
+cryogenic tank level and pressure transmitters at grade (common LOX / LIN tank practice). All
+11 are declared.
+(6) **Open: 27 valves above 6 m need platforms or relocation in detail design** (not declared,
+the findings stay as warnings): the battery limit valve station of GOX-4002 / GAN-4002 at 9 ..
+10.7 m (HV-4129 and HV-4130 manual block valves, XV-4118, XV-4119, XV-4132 .. XV-4135): a BL
+valve platform beside the rack (the lines on the PR1 south edge leave no room for a platform
+below the 2.1 m headroom; proposal: drop the BL valve station to grade south of PR1); the TSA
+switching valves on the adsorber top piping at 7.2 .. 7.9 m (XV-2101A, XV-2102A/B,
+XV-2103A/B, XV-2111A) and FV-2105 on PR1: a valve platform between the adsorbers or the valves
+moved onto the risers; the tank boil-off control valves PV-4109 / PV-4110 on the west side of
+the tank roofs: a west roof platform with its own ladder; the rack valves PV-3113, PV-4101B,
+PV-4111, PV-4112, XV-3105, XV-4116, XV-4117, UV-4103 and the waste N2 valves PV-3110A/B
+(remote operator 6.7 m, over the limit): rack access platforms or the valves moved to the rack
+columns' risers near grade. Each is an actuated or infrequently used valve: none is operated by
+hand in normal operation.
+Reason: the core rules now accept a declared operator only within its limit and say why the
+rest does not fit; the criteria above are the usual practice for basic engineering and are
+listed so the owner can confirm or tighten them.
+Result: layout-operability 73 -> 27 (no transmitter left), 0 layout-operator-unknown.
+

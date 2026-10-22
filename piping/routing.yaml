@@ -156,6 +156,69 @@ lines:
   # runs over the E-1102 bundle pull west of its channel (review 2026-10-21-layout#12, D-033 (5))
   - {line: AIR-1006, segment: Line_AIR1006_S1, route: [[47, 33, 3], [47, 35.5, 3], [47, 35.5, 3.856], [55.62, 35.5, 3.856], [55.62, 42, 3.856], [55.62, 42, 2.8]]}
   - {line: AIR-1006, segment: Line_AIR1006_S2, route: [[58.94, 42, 2.8], [58.94, 42, 3.856], [58.94, 34.422, 3.856], [50, 34.422, 3.856], [50, 34.422, 3], [50, 33, 3]]}
+  # ---- valves brought within reach (D-040): the tanker fill lines run on sleepers at 1.0 m
+  # from the couplings to the tanks, so the fill isolation valves HV-4146 / HV-4147 (operated
+  # at every tanker load) stand at 1.0 m beside the tanks
+  - {line: LOX-4004, segment: Line_LOX4004_S1, route: [[128.0, 132.4, 1.0], [128.0, 121.449, 1.0]]}
+  - {line: LOX-4004, segment: Line_LOX4004_S2, route: [[128.0, 121.449, 1.0], [128.0, 114.9, 1.0], [129.5, 114.9, 1.0], [129.5, 112.0, 1.0], [129.174, 112.0, 1.0], [129.174, 112.0, 1.624], [128.874, 112.0, 1.624]]}
+  - {line: LIN-4004, segment: Line_LIN4004_S1, route: [[153.0, 132.4, 1.0], [153.0, 121.753, 1.0]]}
+  - {line: LIN-4004, segment: Line_LIN4004_S2, route: [[153.0, 121.753, 1.0], [153.0, 115.9, 1.0], [154.574, 115.9, 1.0], [154.574, 112.0, 1.0], [154.574, 112.0, 1.979], [154.274, 112.0, 1.979]]}
+  # the LOX fill drops off PR2 at its north end to 4.0 m, where the tank inlet isolation valve
+  # and the thermal relief tee stand (extension spindle to grade), then rises over the tank roof
+  - {line: LOX-3001, segment: P-04/Line_LOX3001_S1, route: [[143.0, 66.293, 10.022], [143.0, 67.978, 10.022], [141.124, 67.978, 10.022], [141.124, 68.0, 10.022], [141.124, 68.0, 8.574], [141.124, 100.5, 8.574], [141.124, 100.5, 4.0], [141.124, 101.225, 4.0]]}
+  - {line: LOX-3001, segment: P-04/Line_LOX3001_S2, route: [[141.124, 101.225, 4.0], [141.124, 103.626, 4.0], [141.124, 103.626, 9.522], [141.124, 116.5, 9.522], [125.0, 116.5, 9.522], [125.0, 116.5, 11.022], [125.0, 114.5, 11.022], [125.0, 114.5, 10.133]]}
+# Operators of the valves and transmitters that stay out of reach from a floor (D-040). The
+# criteria (ASSUMED, the owner's standard and the valve and instrument suppliers confirm them):
+# a chain wheel only on a handwheel valve in infrequent use (isolation for maintenance or a
+# spare-pump changeover, never control or emergency duty) with the handwheel at most 6 m above
+# a floor; an extension spindle (gear operator and spindle to a pedestal at a floor, at most
+# 6 m) on a lever valve in infrequent use; an actuated valve (control or on/off, operated from
+# the DCS / SIS) whose local air set, override and positioner are brought to a pedestal at a
+# floor within 6 m counts as remote_operator; a transmitter is mounted on a stand at a floor on
+# impulse lines up to 6 m (capillary seals up to 10 m where the impulse run is longer). Valves
+# used at every tanker load or in normal operation are within reach (moved on their routes).
+operators:
+  # manual isolation in infrequent use: chain wheels
+  - {item: P-01/BV_P1101A_S, kind: chainwheel, use: infrequent, basis: "DCAC CW pump A suction isolation, spare-pump changeover and maintenance only (D-040)"}
+  - {item: P-01/BV_P1101B_S, kind: chainwheel, use: infrequent, basis: "DCAC CW pump B suction isolation (D-040)"}
+  - {item: HV-3118, kind: chainwheel, use: infrequent, basis: "LOX drain to the drain vaporizer V-3101, opened only to drain the column for a warm-up; 2.3 m above P10 beside it (D-040)"}
+  - {item: HV-4138, kind: chainwheel, use: infrequent, basis: "LOX pump minimum-flow return isolation to T-4101, maintenance only (D-040)"}
+  - {item: HV-4139, kind: chainwheel, use: infrequent, basis: "LIN pump minimum-flow return isolation to T-4102, maintenance only (D-040)"}
+  # lever valves in infrequent use: extension spindles to a pedestal at grade
+  - {item: P-01/BV_P1102A_S, kind: extension_spindle, basis: "chilled water pump A suction isolation, changeover only (D-040)"}
+  - {item: P-01/BV_P1102B_S, kind: extension_spindle, basis: "chilled water pump B suction isolation, changeover only (D-040)"}
+  - {item: P-04/HV_P4101A_D, kind: extension_spindle, basis: "LOX pump A discharge isolation, cold-standby changeover only (D-012, D-040)"}
+  - {item: P-04/HV_P4101B_D, kind: extension_spindle, basis: "LOX pump B discharge isolation (D-040)"}
+  - {item: P-04/HV_P4102A_D, kind: extension_spindle, basis: "LIN pump A discharge isolation (D-040)"}
+  - {item: P-04/HV_P4102B_D, kind: extension_spindle, basis: "LIN pump B discharge isolation (D-040)"}
+  - {item: P-04/HV_T4101_in, kind: extension_spindle, basis: "LOX tank inlet isolation, normally open, closed only to isolate the tank (D-040)"}
+  - {item: P-04/HV_T4102_in, kind: extension_spindle, basis: "LIN tank inlet isolation, normally open (D-040)"}
+  # actuated valves: local air set, override and positioner at a pedestal at grade
+  - {item: FV-1108, kind: remote_operator, basis: "DCAC CW flow control valve, actuated (D-040)"}
+  - {item: LV-1106, kind: remote_operator, basis: "DCAC sump level control valve, actuated (D-040)"}
+  - {item: LV-1107, kind: remote_operator, basis: "evaporative cooler level control valve, actuated (D-040)"}
+  - {item: TV-1105, kind: remote_operator, basis: "chilled water temperature control valve, actuated (D-040)"}
+  - {item: UV-1102, kind: remote_operator, basis: "MAC anti-surge / blow-off valve, actuated (D-040)"}
+  - {item: XV-2101B, kind: remote_operator, basis: "TSA switching valve, actuated (sequence) (D-040)"}
+  - {item: XV-2104B, kind: remote_operator, basis: "TSA switching valve, actuated (D-040)"}
+  - {item: XV-2109, kind: remote_operator, basis: "regeneration gas valve, actuated (D-040)"}
+  - {item: XV-2111B, kind: remote_operator, basis: "TSA switching valve, actuated (D-040)"}
+  - {item: XV-2112B, kind: remote_operator, basis: "TSA switching valve, actuated (D-040)"}
+  - {item: FV-4105, kind: remote_operator, basis: "GAN product flow control valve, actuated (D-040)"}
+  - {item: UV-4131, kind: remote_operator, basis: "GAN compressor anti-surge valve, actuated (D-040)"}
+  - {item: XV-4120, kind: remote_operator, basis: "GAN battery limit ESD valve, actuated, fail-safe (D-040)"}
+  # transmitters on equipment tappings: on a stand at a floor
+  - {item: F-1101/I1, kind: remote_mount, via: capillary, basis: "air filter differential pressure, diaphragm seals and capillaries to a stand at grade (D-040)"}
+  - {item: C-1101/I1, kind: remote_mount, basis: "DCAC level / temperature tapping, impulse lines to a stand on platform-1 (D-040)"}
+  - {item: C-1101/I2, kind: remote_mount, basis: "DCAC upper tapping, impulse lines to a stand on platform-2 (D-040)"}
+  - {item: V-2101A/I2, kind: remote_mount, basis: "adsorber tapping, impulse lines to a stand at grade (D-040)"}
+  - {item: V-2101B/I1, kind: remote_mount, basis: "adsorber tapping, impulse lines to a stand at grade (D-040)"}
+  - {item: V-2101B/I2, kind: remote_mount, basis: "adsorber tapping, impulse lines to a stand at grade (D-040)"}
+  - {item: E-2101/I1, kind: remote_mount, basis: "regeneration heater tapping, impulse lines to a stand at grade (D-040)"}
+  - {item: T-4101/I2, kind: remote_mount, basis: "LOX tank tapping, impulse line to a stand at grade (cryogenic tank practice: the DP level transmitter at grade) (D-040)"}
+  - {item: T-4101/I3, kind: remote_mount, basis: "LOX tank upper tapping, impulse line to a stand at grade (D-040)"}
+  - {item: T-4102/I1, kind: remote_mount, basis: "LIN tank tapping, impulse line to a stand at grade (D-040)"}
+  - {item: T-4102/I2, kind: remote_mount, via: capillary, basis: "LIN tank upper tapping, 7.6 m up: capillary seal to a stand at grade (D-040)"}
 notes: >-
   Tier allocation, battery limits and the pipe-way elevation (router default 3.5 m) ASSUMED
   (DESIGN.md D-029). Stress, supports, drainage and operability are not checked by the router.
