@@ -1710,4 +1710,14 @@ Each change below was built, the model checked with `plantcode layout build` and
    motor, ASSUMED until the motor supplier's weight; core dde6871): the study lifts it under
    the B1 crane, 30 x 1.1 x 1.05 = 34.65 t gross against 40 t, `building crane`, lane clear.
    The train's own weight stays unlisted (installation lift by the compressor vendor).
+8. **Nozzle locations the layout decided, on every datasheet (review8#2).** 18 items have
+   nozzles placed by `layout/equipment-placement.yaml` (D-028), but only 6 datasheets gave
+   those locations. The other 12 now give `face`, `orientation_deg`, `offset_m` (top nozzles),
+   `elevation_m` and `location_source` for each of their 41 placed nozzles, computed from the
+   layout model with the conventions of `plantcode.datasheet-nozzle-layout`: K-1101 (N2..N6),
+   E-1103, E-2101, K-3101, KT-3101, K-4101, E-4102, K-4102, E-4103 and the drafts C-3102,
+   E-3101, E-3102. The along-face position of a side nozzle (which the check does not hold) is
+   written in its `location_source`. Core 9026acb now also reports a nozzle the placement
+   overrides without a location on its datasheet; `plantcode validate` reports none, and no
+   located nozzle differs from the model.
 
