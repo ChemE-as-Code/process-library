@@ -4,6 +4,7 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-10-23 | process/flowsheet.yaml, process/BFD.xml, process/PFD.xml, DESIGN.md D-052 | Booster branch in the flowsheet: split X3102, booster step K3101 (K-3101), aftercooler step E3104 (E-3104), streams S4A..S4D; KT3101 links KT-3101 only; S5B 7.8 bara / -118 C (D-003); BFD and PFD rebuilt (generated-version warnings cleared) | the lumped KT3101 step gave K-3101 the expander's conditions; booster and aftercooler need their own streams for sizing |
 | 2026-10-23 | layout/lifting-study.md | Lifting study rewritten for the current model (only the model hash changed: no lift, pad or lane result moved) | `plantcode layout lifting --check` after the D-051 rebuilds |
 | 2026-10-23 | piping/routing.yaml, layout/structures.yaml, layout/plant-model.yaml, estimate/*, DESIGN.md D-051 (9), (10) | LIN-4003 S3 run to x 144.1, 0.25 m clear of the LIN-4002 S4 posts (was 13 mm), its posts respaced; every review7 finding answered, steel-in-way 0; open items of D-050 unchanged; 4,759 m pipe, 574.4 t steel | review7#10 |
 | 2026-10-23 | layout/structures.yaml, layout/plant-model.yaml, estimate/*, DESIGN.md D-051 (8) | VP-1 and VP-6 ladders outside the south edge with a through exit and gate (ASSUMED), not through the floor; UN-3001 S1 stub on VP-1 replaced by posts from grade (four posts at y 62.6 .. 53.2); no finding added | review7#8, #9 |

@@ -1492,3 +1492,27 @@ checked with `plantcode layout build` and `plantcode validate`, and committed on
     casing extension waits for the vendor drawing). No stage sign-off; the next independent
     layout review covers D-051.
 
+## D-052 Booster air in the flowsheet; expander inlet state (2026-10-23)
+Decision: `process/flowsheet.yaml` carries the booster branch the P&ID P-03 draws. The dry
+air S4 splits (step X3102, at the AIR-3005 branch of AIR-2002) into the main air S4A to E-3101
+(83,190 kg/h = S5) and the booster suction S4B (14,870 kg/h = the expander air, 5.6 bara,
+15 C as S4); the booster K-3101 (own step K3101, linked to K-3101 only) raises it to 8.0 bara
+(S4C, equipment list and AIR-3002), the aftercooler E-3104 (own step) cools it to 40 C (S4D,
+ASSUMED: as the other aftercoolers of the equipment list, E-1103 / E-4102 / E-4103, with CW
+25 -> 35 C of the design basis; no pressure drop in E-3104, ASSUMED; E-3101 takes it to the
+7.8 bara of the expander inlet), and E-3101 gets a second warm inlet `bst`. The expander feed
+S5B now has the state of DESIGN.md 3 / D-003: 7.8 bara, -118 C. Why: the step KT3101 linked
+both KT-3101 and K-3101, so the K-3101 datasheet drafted the expander's streams (outlet
+1.35 bara, -178 C) as the booster's conditions, and neither machine could be sized from the
+flowsheet; the booster and its aftercooler are now separate items with their own streams.
+Rejected: keeping the lumped step (wrong booster conditions). Mass flows unchanged (every
+block and step balances, `plantcode process streams`); BFD and PFD rebuilt (this also clears
+the two `generated-version` warnings of the core update). Property check of S5B -> S6 at the
+given states: 55.7 kJ/kg, 230 kW for 14,870 kg/h (D-003 estimated ~52 kJ/kg, ~215 kW: 7 %
+apart, inside the concept accuracy).
+Noted, not changed: S10 (LOX, 1.3 bara, -180 C) and S11 (LIN, 5.2 bara, -178 C) are given as
+liquid, but the property method finds them just above their bubble points, i.e. vapour
+(`process-property-phase`, as before this change): the stream temperatures sit on the
+saturation line within the rounding of DESIGN.md 3 and should be set a few K subcooled when
+the cold-box balance is next revised.
+
