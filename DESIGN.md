@@ -1221,3 +1221,19 @@ Model: 0 clashes, 0 headroom, 0 ladder-clearance, 0 walkway-riser; operability 2
 (the LIN-4003 branch now counted), 328 t steel (+3 t: the RB strip), 375 m2 grating.
 Open: the pipe stress and supports of the new AIR-1004 drop, the RB strip's structural detail.
 
+## D-045 Nozzle locations on the datasheets (2026-10-22)
+Decision (amends D-042): the datasheets of the items whose nozzle positions the layout decided
+give each nozzle's `face`, `orientation_deg` (plan direction from site east, counter-clockwise:
+of the axis for a side nozzle, of the offset from the centre for a top or bottom one),
+`offset_m` and `elevation_m` (above the item's base), with `location_source` naming the
+placement override and its decision: C-1101 (N3 and N4 at 270 deg, D-039 (2), D-044 (2)),
+T-4101 / T-4102 (fill N1 on the north side of the roof, vent N2 and relief N3 on the west side,
+D-038 (2), D-039 (5)), V-2101A/B (the five nozzles along the shell, top and bottom), C-3101
+(N1 east, N2 at 30 deg, N7 at 90 deg). `plantcode validate` compares them with the layout model
+(`plantcode.datasheet-nozzle-layout`, 0 findings), so a later move of a nozzle in the layout
+shows up on the datasheet that goes to the supplier (review6#8). The instrument tappings placed
+by default (I1..I3) are not given: their positions are not decided yet.
+Not on a datasheet: the JT valve access hatch H1 is an opening of the cold box casing (CB-1,
+`layout/structures.yaml` enclosure openings, D-038 (3)), not of an equipment-list item; it
+goes to the cold box vendor with the casing penetration schedule of D-039 (9).
+
