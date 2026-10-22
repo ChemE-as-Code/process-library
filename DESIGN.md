@@ -1410,4 +1410,15 @@ checked with `plantcode layout build` and `plantcode validate`, and committed on
    no single material, so purchased cost only until a factor for the combination is given with
    its source (bare module of the fully factored items USD 2.20 -> 2.10 million, 3 items).
    No finding count changed: 0 errors, operability 14, free-span 8, support-missing 15.
+2. **VP-8 out of road R2 (review7#1).** PV-4111 (backup GOX pressure valve) stood 1.5 m south
+   of the PSV-4127 tee on GOX-4004 at y 78.2, inside R2 (y 75.5 .. 81.5), and its platform
+   VP-8 and three-flight stair stood on the carriageway, the fire access and the only link to
+   the east road R5. The PSV-4127 tee now lies at y 89.5 on the PR3 drop (GOX-4004 S3 ends
+   there, S4 starts there, the PSV branch S5 / S6 with it), so PV-4111 sits at y 88.0 beside
+   PV-4112 (y 86.1, GAN-4003), and VP-9 is lengthened north to 4.5 m (y 84.54 .. 89.04,
+   floor 8.6 m, its west stair as before) and serves both. VP-8 is removed; nothing of a
+   platform or stair is left in R2. PSV-4127 is now 0.25 m east of the VP-9 floor edge: its
+   open tailpipe rises to 11.6 m, 3 m above the grating (ASSUMED, as for the other relief
+   outlets beside walkways). No finding added (0 errors, the same warnings); take-off 577.0 t
+   steel (-4.4 t), 498 m2 grating.
 
