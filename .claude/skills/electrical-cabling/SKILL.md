@@ -1,6 +1,6 @@
 ---
 name: electrical-cabling
-description: Declare the electrical rooms, the motor list and the junction boxes in electrical/electrical-list.yaml, set the cable tray rules, and let plantcode layout build route the power and instrument trays and write the cable schedule. Use when the plant has motors or instruments to cable, before the detail-stage gate electrical, or when tray-fill, tray-separation, clash-tray, tray-zone, tray-span, cable-missing or electrical-* findings appear.
+description: Declare the electrical rooms, the motor list and the junction boxes in electrical/electrical-list.yaml, set the cable tray rules, and let cheme layout build route the power and instrument trays and write the cable schedule. Use when the plant has motors or instruments to cable, before the detail-stage gate electrical, or when tray-fill, tray-separation, clash-tray, tray-zone, tray-span, cable-missing or electrical-* findings appear.
 ---
 
 # Electrical cabling
@@ -9,7 +9,7 @@ description: Declare the electrical rooms, the motor list and the junction boxes
 
 Give every motor, electric consumer and instrument a cable from its room, routed in cable trays
 through the 3D model, so the layout reserves the space and the cable schedule has its lengths.
-`plantcode layout build` derives the motor list from the driven equipment, places the
+`cheme layout build` derives the motor list from the driven equipment, places the
 instruments where the P&IDs say they measure, groups them into junction boxes, routes the trays
 (rooms to racks, along their own rack tier, branches to the loads) and sizes them by their
 cables. Use this skill when the layout has its racks and buildings, at the latest before the
@@ -33,11 +33,11 @@ detail stage (gate `electrical`).
 
 ## Workflow and tools
 
-1. **Rooms.** In `electrical/electrical-list.yaml` (`plantcode schema electrical`) declare the
+1. **Rooms.** In `electrical/electrical-list.yaml` (`cheme schema electrical`) declare the
    substation and its transformers, and the rooms with their `kind` (`mcc`, `switchgear`,
    `control`, `rack_room`) and `building`. A room's cables leave its building on the side that
    faces the nearest rack; give `point: [x, y, z]` where the cable entry is elsewhere.
-2. **Motors.** Run `plantcode validate`: `electrical-motor-power` names every motor without a
+2. **Motors.** Run `cheme validate`: `electrical-motor-power` names every motor without a
    power, `electrical-motor-room` every one fed from no room. Give the power in the item's
    datasheet or under `motors: [{driven: P-101A, power_kw: 15, source: ...}]`; `voltage_v`,
    `room` and the motor `tag` only where the defaults (`defaults: {lv_room, mv_room,
@@ -47,7 +47,7 @@ detail stage (gate `electrical`).
    at the middle of its instruments (`review_needed`). Declare the boxes you want (`tag`,
    `point` or `area`, `instruments` patterns, `capacity`), an instrument's own `jb`, its
    `point` where the P&ID does not place it, or `skip` (wireless, local).
-4. **Tray rules** (optional, `electrical/tray-rules.yaml`, `plantcode schema trays`): standard
+4. **Tray rules** (optional, `electrical/tray-rules.yaml`, `cheme schema trays`): standard
    widths, depth, fill per system, the separation between power and instrument trays, the tray
    tier per rack (`tiers: [{rack, elevation}]`; default 1.5 m above the top pipe tier on steel
    of its own), the branch elevation, the zone kinds a tray may not run in (`avoid_zones`,
@@ -55,9 +55,9 @@ detail stage (gate `electrical`).
    out of inert vent plumes), the longest tray run between supports (`support_span_m`, 6 m)
    and how close steel must be to carry it (`support_reach_m`, 1 m). Every default is
    ASSUMED: replace it by the project's electrical standard and cite it.
-5. **Build and look.** `plantcode layout build`, then `plantcode layout cables` (the schedule:
+5. **Build and look.** `cheme layout build`, then `cheme layout cables` (the schedule:
    from, to, size, trays, length, tray widths and fill) and a plan and sections through the
-   rack (`plantcode layout render --plan --png`, `--section x=..`). Check: trays on their own
+   rack (`cheme layout render --plan --png`, `--section x=..`). Check: trays on their own
    tier, branches clear of walkways and access, junction boxes where people can reach them,
    rooms where the cables leave.
 6. **Findings.** `layout-cable-missing` (a motor not placed, a room without building, an
@@ -71,12 +71,12 @@ detail stage (gate `electrical`).
    structure, declare support steel, or bring the cable in at grade or in a trench). A tray
    over a heavy item blocks its crane lift (`layout-lifting`, skill `structures-access`):
    feed a big motor from the side, not over the machine. Fix the cause and rebuild.
-7. **Schedule.** `plantcode layout cables --write` writes `electrical/cable-schedule.csv` and
+7. **Schedule.** `cheme layout cables --write` writes `electrical/cable-schedule.csv` and
    `.md`; commit them with the model.
 
 ## Validation and failure handling
 
-- `plantcode validate`: the schema, `electrical-unknown-room|-substation|-tag|-jb`,
+- `cheme validate`: the schema, `electrical-unknown-room|-substation|-tag|-jb`,
   `electrical-duplicate`, `electrical-motor-power`, `electrical-motor-room`; the model findings
   above.
 - Gate `electrical` (`kind: layout-model`, `require: [model-current, cables, trays]`): the
@@ -103,6 +103,6 @@ does not design the electrical system. Every proposed junction box is a question
 
 ## References
 
-- `plantcode schema electrical`, `plantcode schema trays`, `electrical/README.md`
+- `cheme schema electrical`, `cheme schema trays`, `electrical/README.md`
 - `docs/framework/electrical.md`, `docs/framework/layout-model.md` (trays, cables)
 - skills `layout-yaml`, `pipe-routing`, `structures-access`, `mto-estimate`, `review`

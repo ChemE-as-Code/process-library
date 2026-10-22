@@ -1,15 +1,15 @@
 ---
 name: lists-sync
-description: Keep the equipment, line and instrument lists (YAML) consistent with the P&ID sheets and the flowsheet links - add missing items, flag removed ones, align types, sheets and nominal diameters. Use after any P&ID change that adds, removes or retags an item or changes a DN, or when plantcode validate reports equipment-*, line-*, instrument-* or process-link-unresolved findings.
+description: Keep the equipment, line and instrument lists (YAML) consistent with the P&ID sheets and the flowsheet links - add missing items, flag removed ones, align types, sheets and nominal diameters. Use after any P&ID change that adds, removes or retags an item or changes a DN, or when cheme validate reports equipment-*, line-*, instrument-* or process-link-unresolved findings.
 ---
 
 # Keeping the lists in step with the P&IDs
 
 ## Purpose and when to use
 
-The P&IDs and the lists describe the same plant. `plantcode validate` compares them and ends
+The P&IDs and the lists describe the same plant. `cheme validate` compares them and ends
 with a line naming what it compared (sheets, lists, cross-checks). The schemas are printed by
-`plantcode schema <kind>`; `plantcode schema` alone lists the kinds.
+`cheme schema <kind>`; `cheme schema` alone lists the kinds.
 
 ## Required inputs and missing inputs
 
@@ -18,19 +18,19 @@ The sheets in `pid/`, `equipment/equipment-list.yaml`, `piping/line-list.yaml`,
 
 ## Workflow and tools
 
-1. Run `plantcode validate` and collect the cross-check findings:
+1. Run `cheme validate` and collect the cross-check findings:
 
    | rule | meaning |
    |---|---|
-   | `plantcode.equipment-not-listed` / `equipment-not-on-pid` | equipment tag on a sheet and not in `equipment/equipment-list.yaml`, or the reverse |
-   | `plantcode.line-not-listed` / `line-not-on-pid` | `LineNumber` of a `PipingNetworkSystem` and `piping/line-list.yaml` disagree |
-   | `plantcode.line-dn-mismatch` | the list's `nominal_diameter` (or a segment's) differs from the sheet |
-   | `plantcode.instrument-not-listed` / `instrument-not-on-pid` | printed instrument tag (e.g. `PI-4712.01`) and `control/instrument-list.yaml` disagree |
-   | `plantcode.line-not-on-pid` with id `<line>/<segment>` | a listed segment whose `SegmentNumber` is not on the line's sheet |
-   | `plantcode.equipment-duplicate` / `line-duplicate` / `instrument-duplicate` | an entry listed twice; keep one |
-   | `plantcode.piping-item-not-listed` / `piping-item-not-on-pid` | a tagged safety valve, rupture disc, breather valve, flame arrestor or silencer and `piping/special-items.yaml` disagree |
-   | `plantcode.interlock-unknown-tag` / `instrument-no-interlock` | a cause or effect tag of `control/cause-effect.yaml` that is in no list and on no sheet; a trip instrument (HH/LL letters, or notes saying it trips) that causes no interlock |
-   | `plantcode.piping-item-type-mismatch` / `piping-item-line-mismatch` | the list's `type` or `line` differs from the sheet |
+   | `cheme.equipment-not-listed` / `equipment-not-on-pid` | equipment tag on a sheet and not in `equipment/equipment-list.yaml`, or the reverse |
+   | `cheme.line-not-listed` / `line-not-on-pid` | `LineNumber` of a `PipingNetworkSystem` and `piping/line-list.yaml` disagree |
+   | `cheme.line-dn-mismatch` | the list's `nominal_diameter` (or a segment's) differs from the sheet |
+   | `cheme.instrument-not-listed` / `instrument-not-on-pid` | printed instrument tag (e.g. `PI-4712.01`) and `control/instrument-list.yaml` disagree |
+   | `cheme.line-not-on-pid` with id `<line>/<segment>` | a listed segment whose `SegmentNumber` is not on the line's sheet |
+   | `cheme.equipment-duplicate` / `line-duplicate` / `instrument-duplicate` | an entry listed twice; keep one |
+   | `cheme.piping-item-not-listed` / `piping-item-not-on-pid` | a tagged safety valve, rupture disc, breather valve, flame arrestor or silencer and `piping/special-items.yaml` disagree |
+   | `cheme.interlock-unknown-tag` / `instrument-no-interlock` | a cause or effect tag of `control/cause-effect.yaml` that is in no list and on no sheet; a trip instrument (HH/LL letters, or notes saying it trips) that causes no interlock |
+   | `cheme.piping-item-type-mismatch` / `piping-item-line-mismatch` | the list's `type` or `line` differs from the sheet |
 
 2. **Equipment** on a P&ID but not in the list: add an entry with `tag`, `type` (the DEXPI
    class, e.g. `CentrifugalPump`), `sheet`, and what you can read from the P&ID (design pressure
@@ -46,10 +46,10 @@ The sheets in `pid/`, `equipment/equipment-list.yaml`, `piping/line-list.yaml`,
    drawing.
 4. **Lines**: one entry per `LineNumber` in `piping/line-list.yaml` with `number`, `from`, `to`,
    `nominal_diameter` (`DN50`), `fluid`, and `notes` for anything a reader should know (why it
-   is sized as it is, ASSUMED values). `plantcode show <LineNumber>` lists the line's segments
+   is sized as it is, ASSUMED values). `cheme show <LineNumber>` lists the line's segments
    and nodes with their DN. A line whose segments have different DNs (a reducer, a branch)
    gets `segments`, one entry for **every** segment whose DN differs from the line's (the
-   reference P&ID's line 47126; `SegmentNumber`s as `plantcode show 47126` prints them):
+   reference P&ID's line 47126; `SegmentNumber`s as `cheme show 47126` prints them):
    ```yaml
    - number: "47126"
      from: P4712                     # Nozzle9 of the reciprocating pump
@@ -94,38 +94,41 @@ The sheets in `pid/`, `equipment/equipment-list.yaml`, `piping/line-list.yaml`,
        sil: null
        notes: D-024
    ```
-   When a tag changes, change it here in the same commit. `plantcode cause-effect` writes the
+   When a tag changes, change it here in the same commit. `cheme cause-effect` writes the
    matrix to `build/cause-effect.html` and `.csv` for review.
 9. **Datasheets** (detail stage): one `equipment/datasheets/<TAG>.yaml` per equipment item,
-   format and a pump example in `equipment/datasheets/README.md` (`plantcode schema datasheet`).
+   format and a pump example in `equipment/datasheets/README.md` (`cheme schema datasheet`).
    Its `design.pressure_barg` / `temperature_degc` must match the equipment list
-   (`plantcode.datasheet-mismatch`), its tag must be listed (`plantcode.datasheet-not-listed`);
+   (`cheme.datasheet-mismatch`), its tag must be listed (`cheme.datasheet-not-listed`);
    mark every value you have not calculated `assumed: true`. A retagged item renames its
    datasheet in the same commit.
-   `plantcode datasheets draft [--tag T] [--dry-run]` writes a draft for every listed item
+   `cheme datasheets draft [--tag T] [--dry-run]` writes a draft for every listed item
    without one (never over an existing file): type, service, design conditions and material
    from the list, its dimensions, its nozzles from the P&IDs, the inlet and outlet conditions
    of the flowsheet streams linked to it, every value with its `source`, unknowns `TBD`, a
-   vessel's volume from its dimensions `assumed: true`, and `draft: true`. Fill the TBDs from
-   the sizing (with the `sizing_basis`), check every derived value, then remove `draft: true`:
-   the `datasheets` gate does not count a draft.
+   vessel's volume from its dimensions `assumed: true`, and `draft: true`.
+   `cheme datasheets fill [--tag T] [--param name=value]` then calculates the sizes a
+   draft leaves TBD (exchanger duty and area, pump head, NPSH and power, compressor stages and
+   power, column shortcut stages, vessel residence time) with their basis: skill `datasheets`.
+   Check every derived value, then remove `draft: true`: the `datasheets` gate does not count a
+   draft.
 10. **Flowsheet links** (`process/flowsheet.yaml`, skill `process-design`): blocks, steps,
    streams, feeds and products link to equipment, lines, instruments and sheets
    (`links: [{target: equipment | line | instrument | sheet, ref: ..., sheet: ...}]`). A link
    that resolves against no list entry (or a `sheet:` scope the list contradicts) is
-   `plantcode.process-link-unresolved`: info in `validate`, a warning in the concept gate
+   `cheme.process-link-unresolved`: info in `validate`, a warning in the concept gate
    `process-links-concept`, an error in the basic gate `process-links`. When an item is
    retagged, renumbered, moved to another sheet or removed, change the links in the same
    commit; when a P&ID adds equipment or a line for a PFD step or stream, add the link.
-   `plantcode check --stage basic` runs the `process-links` gate, which names every unresolved
+   `cheme check --stage basic` runs the `process-links` gate, which names every unresolved
    link and why; the viewer's stream table marks them too.
-11. `plantcode validate` again until no cross-check finding is left, then commit lists and sheet
+11. `cheme validate` again until no cross-check finding is left, then commit lists and sheet
    together.
 
 ## Validation and failure handling
 
-Run `plantcode validate` until no cross-check finding is left (step 11);
-`plantcode check --stage basic` names every unresolved flowsheet link (step 10).
+Run `cheme validate` until no cross-check finding is left (step 11);
+`cheme check --stage basic` names every unresolved flowsheet link (step 10).
 
 ## Outputs and provenance
 

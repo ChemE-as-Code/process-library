@@ -5,7 +5,7 @@ edited after it is committed; the next review carries its open findings forward.
 
 ## Front matter
 
-Every record starts with YAML front matter (`plantcode schema review`), which `kind: review`
+Every record starts with YAML front matter (`cheme schema review`), which `kind: review`
 gates in `checks/checks.yaml` read:
 
 ```yaml
@@ -37,7 +37,7 @@ basis:
   - {path: process/flowsheet.yaml, revision: <sha>, relation: analyses}
 ```
 
-`plantcode impact` lists the records whose scope or basis changed since, as review needed
+`cheme impact` lists the records whose scope or basis changed since, as review needed
 (info). It never changes a record or marks it invalid.
 
 ## Findings
@@ -63,12 +63,12 @@ basis:
 
 ## Listing open findings
 
-`plantcode status` counts and lists the open findings (`--json`: `reviews.open`). By hand:
+`cheme status` counts and lists the open findings (`--json`: `reviews.open`). By hand:
 
 ```sh
 grep -h '| open |' reviews/*.md
 ```
 
 then drop the ids that a later record's Previous findings lists as closed, accepted or
-superseded. `plantcode validate` reports an open finding the newest record does not carry
-forward (`plantcode.review-previous-missing`) and ids or statuses outside the format.
+superseded. `cheme validate` reports an open finding the newest record does not carry
+forward (`cheme.review-previous-missing`) and ids or statuses outside the format.

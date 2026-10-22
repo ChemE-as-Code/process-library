@@ -6,23 +6,23 @@
     python3 scripts/agent-run/run_stage.py stage S2 --budget 7 --dry-run   # print the prompt
 
 Standard library only, Python 3.9 or later (macOS's ``/usr/bin/python3`` runs it); run it from
-the plant repository root. It needs ``plantcode`` and ``claude`` (Claude Code) on PATH, or
-``PLANTCODE`` / ``CLAUDE_BIN`` naming them.
+the plant repository root. It needs ``cheme`` and ``claude`` (Claude Code) on PATH, or
+``CHEME`` / ``CLAUDE_BIN`` naming them.
 
 The prompt is built from the repository, not from a plan written in advance:
 
 - ``scripts/agent-run/spec.md``: the plant specification (one file, never repeated by hand);
 - ``scripts/agent-run/stages.json``: per stage its ``target`` (a plant.yaml stage), ``task`` and
   ``budget_usd``;
-- ``THIS STAGE``: the task, then what ``plantcode status --json`` says is still to do for the
+- ``THIS STAGE``: the task, then what ``cheme status --json`` says is still to do for the
   target stage -- the sheets already drawn (not to be drawn again), the empty or planned sheets,
   the failing gates of every stage up to the target;
-- ``FIX FIRST``: the open review findings (``plantcode status``) and the previous review's
+- ``FIX FIRST``: the open review findings (``cheme status``) and the previous review's
   ``carry_over`` list (``build/agent-run/<previous>/review.json``).
 
 Everything a run produces goes to ``build/agent-run/<stage>/`` (``--out``): ``prompt.txt``,
 ``launch.json`` (command, versions, time), ``result.json`` (Claude Code's JSON output) and
-``stderr.log``. Copy it into the run record (``docs/agent-design-run.md`` in plantcode).
+``stderr.log``. Copy it into the run record (``docs/agent-design-run.md`` in cheme-as-code).
 """
 
 from __future__ import annotations
@@ -58,10 +58,10 @@ def load_plan(path: Path) -> dict[str, dict]:
     return {stage["id"]: stage for stage in stages}
 
 
-def status(plantcode: str) -> dict:
-    result = run([plantcode, "status", "--json"])
+def status(cheme: str) -> dict:
+    result = run([cheme, "status", "--json"])
     if result.returncode != 0:
-        sys.exit(f"plantcode status failed: {result.stderr.strip()}")
+        sys.exit(f"cheme status failed: {result.stderr.strip()}")
     return json.loads(result.stdout)
 
 
@@ -96,7 +96,7 @@ def this_stage(stage: dict, data: dict) -> str:
     )
     v = data["validation"]
     lines.append(
-        f"plantcode validate now: {v['errors']} error(s), {v['warnings']} warning(s)"
+        f"cheme validate now: {v['errors']} error(s), {v['warnings']} warning(s)"
         + (
             " (not on a P&ID, by sheet: "
             + ", ".join(f"{k} {n}" for k, n in v["not_on_pid"].items())
@@ -157,7 +157,7 @@ def launch(args: argparse.Namespace, prompt: str, out: Path, budget: float, max_
         "budget_usd": budget,
         "max_turns": max_turns,
         "started": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
-        "plantcode": run([tool("PLANTCODE", "plantcode"), "--version"]).stdout.strip(),
+        "cheme": run([tool("CHEME", "cheme"), "--version"]).stdout.strip(),
         "head": run(["git", "rev-parse", "HEAD"]).stdout.strip(),
     }
     if args.dry_run:
@@ -193,7 +193,7 @@ def main(argv: list[str] | None = None) -> int:
     stage = plan[args.stage]
     spec = args.spec.read_text(encoding="utf-8").strip()
     out_root = args.out or Path("build") / "agent-run"
-    data = status(tool("PLANTCODE", "plantcode"))
+    data = status(tool("CHEME", "cheme"))
     values = {
         "STAGE": args.stage,
         "TARGET": stage["target"],

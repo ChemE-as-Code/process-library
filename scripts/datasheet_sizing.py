@@ -1,12 +1,12 @@
-"""Hand sizing of the datasheet values `plantcode datasheets fill` cannot reach (DESIGN.md D-053).
+"""Hand sizing of the datasheet values `cheme datasheets fill` cannot reach (DESIGN.md D-053).
 
 Provenance only: it prints each value with its basis; the values are written into
 equipment/datasheets/<TAG>.yaml by hand, with the source "scripts/datasheet_sizing.py <section>".
-It uses only plantcode's own methods (the property adapter, the sizing and line-loss functions,
+It uses only cheme-as-code's own methods (the property adapter, the sizing and line-loss functions,
 the fill's routed-pipe network) and IAPWS-95 for water (chemicals, the props extra), so the
 numbers are reproducible:
 
-    plantcode run scripts/datasheet_sizing.py
+    cheme run scripts/datasheet_sizing.py
 
 Every input that is an assumption is named here and in D-053.
 """
@@ -19,11 +19,11 @@ from pathlib import Path
 import yaml
 from chemicals import iapws
 from chemicals.viscosity import mu_IAPWS
-from plantcode.domains.equipment import sizing
-from plantcode.domains.equipment.fill import Param, _key, _Network, _route
-from plantcode.domains.process.model import load
-from plantcode.domains.process.props import Adapter, Inputs
-from plantcode.domains.process.separations import shortcut
+from chemeascode.domains.equipment import sizing
+from chemeascode.domains.equipment.fill import Param, _key, _Network, _route
+from chemeascode.domains.process.model import load
+from chemeascode.domains.process.props import Adapter, Inputs
+from chemeascode.domains.process.separations import shortcut
 
 ROOT = Path.cwd()
 R = sizing.R

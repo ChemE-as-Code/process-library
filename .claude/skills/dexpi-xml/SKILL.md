@@ -30,7 +30,7 @@ Use it before editing any `pid/*.xml` file.
 
 ## Required inputs and missing inputs
 
-The sheet to change (`pid/<sheet>.xml`) and the change asked for. `plantcode show <id or tag>`
+The sheet to change (`pid/<sheet>.xml`) and the change asked for. `cheme show <id or tag>`
 gives the line ranges to read; a symbol not in the catalogue is handled under "Symbols" below.
 
 ## Workflow and tools
@@ -75,13 +75,13 @@ A pipe is drawn by a group representing the `Pipe` with a `Static` holding one
 `Core/Diagram.ConnectorLine`: `Source` and `Target` reference the two **PipingNodePosition**
 objects (not the nodes), `InnerPoints` lists the bends, `Stroke` the line style.
 
-### Writing the verbose parts: `plantcode copy` and `plantcode fragment`
+### Writing the verbose parts: `cheme copy` and `cheme fragment`
 
 Most of a sheet's XML is drawing: a valve is ~60 lines of nodes, node positions and symbol.
 Do not type it, and do not write a templating script for it (a generator script uses the
-`plantcode.domains.piping.authoring` API with the same builders, run by `plantcode run`; skill `pid-draft`):
+`chemeascode.domains.piping.authoring` API with the same builders, run by `cheme run`; skill `pid-draft`):
 
-- `plantcode copy ID --prefix NEWID [--tag T] [--offset DX,DY] [--into PARENT] [--print]`
+- `cheme copy ID --prefix NEWID [--tag T] [--offset DX,DY] [--into PARENT] [--print]`
   duplicates an object with its parts and **everything that draws it** (symbol, nozzles, node
   positions, labels, data table), renames every id (`CentrifugalPump1` -> `NEWID`,
   `CentrifugalPump1_Drawing1` -> `NEWID_Drawing1`, `Nozzle1` -> `NEWID_Nozzle1`), sets the tag
@@ -107,8 +107,8 @@ Do not type it, and do not write a templating script for it (a generator script 
   | `--sense-at ID[:X,Y]` | an instrument's `SensingLocation`; with X,Y a new `InstrumentationNodePosition` there in ID's drawing, where the measuring line starts |
 
   Its report ends with `duplicate tags:` -- inner tags the copy shares with objects on the
-  P&IDs. `plantcode validate` fails on them (`plantcode.duplicate-tag`).
-- `plantcode fragment KIND --id ID [--sheet pid/<sheet>.xml] ...` prints a fragment with a
+  P&IDs. `cheme validate` fails on them (`cheme.duplicate-tag`).
+- `cheme fragment KIND --id ID [--sheet pid/<sheet>.xml] ...` prints a fragment with a
   `CONCEPTUAL` and a `DRAWING` part, each after a comment saying where to paste it (and a
   `SHAPE` part when the symbol is not in the catalogue yet). Pass `--sheet`: shape ids are then
   looked up in the sheet's catalogue, pipe ends in its node positions, label texts in its data.
@@ -164,50 +164,50 @@ Do not type it, and do not write a templating script for it (a generator script 
     creates": paste them into that one block (two blocks of one property lose objects). Signal
     and measuring lines are routed orthogonally out of the node, clear of the bubbles and of the
     equipment the nozzle is on; check the render and pass `--points` where a line still crosses
-    something. A signal that repeats an existing instrument-to-valve relation gets a WARNING. `plantcode show <valve>` then
+    something. A signal that repeats an existing instrument-to-valve relation gets a WARNING. `cheme show <valve>` then
     lists the instruments acting on it. If the valve's drawing has an actuator symbol already,
     only the attach point is added; remove a dashed PolyLine that drew the signal before.
   - Trip and interlock text goes in a `note` (or a signal line), not into an instrument's or
-    valve's drawing: there `plantcode.label-literal` reads it as a label of that object.
+    valve's drawing: there `cheme.label-literal` reads it as a label of that object.
 
-### Changing what is on a sheet: `plantcode move`, `rename` and `set`
+### Changing what is on a sheet: `cheme move`, `rename` and `set`
 
 Use these before a hand edit: they find every coordinate, reference and label text for you, run
-`plantcode fmt` afterwards, and `--print` shows the change as a diff without writing.
+`cheme fmt` afterwards, and `--print` shows the change as a diff without writing.
 
-- `plantcode move ID --offset DX,DY`: moves everything that draws ID (symbol, node positions,
+- `cheme move ID --offset DX,DY`: moves everything that draws ID (symbol, node positions,
   labels, bends of lines inside its group) and prints each coordinate it changed. Lines attached
   to its node positions follow by reference; their bends stay put and are listed as
   `stretched`, a straight line that is no longer horizontal or vertical as `now slanted`. An
   equipment data table stays in its band (move it by its own id). ID may also be a drawing
   element (a label `Text`, to nudge only it).
-- `plantcode rename OLD NEW [--children]`: an id and every `#OLD`; `--children` also renames
-  `OLD_*`. Given a tag (`plantcode rename HV-146 HV-147 [--ids]`): the tag data
+- `cheme rename OLD NEW [--children]`: an id and every `#OLD`; `--children` also renames
+  `OLD_*`. Given a tag (`cheme rename HV-146 HV-147 [--ids]`): the tag data
   (`TagNamePrefix`/`SequenceNumber`/`Suffix` too; for an instrument category, letters, number
   and its sensor/actuator numbers) and the labels showing it; `--ids` also the ids that spell
   it. A tag (`PipingComponentNumber`, a safety valve's `PositionNumber`, ...) addresses the
   object like its id. When two objects share the tag, give the one to retag by its id with
-  `--tag`: `plantcode rename Inst_Y FI-150 --tag` (the sensor becomes `FT150`). Unknown ids,
+  `--tag`: `cheme rename Inst_Y FI-150 --tag` (the sensor becomes `FT150`). Unknown ids,
   taken names and tags another valve or instrument already has exit 2.
-- `plantcode set ID PROP=VALUE...`: data values by their DEXPI name, in the type DEXPI gives
+- `cheme set ID PROP=VALUE...`: data values by their DEXPI name, in the type DEXPI gives
   them: `FluidCode=Nitrogen`, `OnHold=OnHold` (enumeration member),
   `InsulationThickness='50 mm'` and `UpperLimitDesignPressure='16 barg'` (value and unit),
   `Stroke.Width=0.5` (a value inside an aggregate, on a drawing element),
   `Text='to flare'` on a note's `Text`. `PROP=` removes the value. Every label whose template
-  shows the attribute gets its cached text updated, so `plantcode.label-stale` stays clean.
+  shows the attribute gets its cached text updated, so `cheme.label-stale` stays clean.
 
 Hand edits remain for what is short: re-pointing a `References` (a pipe's `TargetNode`, a
 segment's ends, a ConnectorLine's `Target`), moving an existing `<Object>` block into another
-segment, deleting blocks. After pasting: `plantcode fmt` re-indents everything.
+segment, deleting blocks. After pasting: `cheme fmt` re-indents everything.
 
 ### Symbols: scales and missing shapes
 
-The catalogue (`shapes.md`) holds the reference's shapes and the ones plantcode adds:
+The catalogue (`shapes.md`) holds the reference's shapes and the ones cheme-as-code adds:
 compressors (centrifugal, axial), turbine/expander, blower, column body with packed-bed and tray
 markers (`fragment equipment --marker`), gas filter, silencer (inline: `fragment valve --class Silencer`), air cooler, general
 and shell-and-tube exchangers, electric heater, ambient vaporizer, flat-bottom tank, plate-fin
 exchanger and gate valve. `empty-sheet.xml` has them all; for an older sheet,
-`plantcode fragment shape NAME --sheet pid/<sheet>.xml` prints the one to paste (or says it is
+`cheme fragment shape NAME --sheet pid/<sheet>.xml` prints the one to paste (or says it is
 there), and `fragment equipment` adds a SHAPE part by itself.
 
 Scales that stay legible on A3: equipment 1.0 (pumps 15 mm, vessels 20 x 25 mm; columns ScaleX
@@ -224,16 +224,16 @@ meaning.
 
 ### Recipes
 
-Start every recipe with `plantcode show <id or tag>`: it prints the `file:start-end` of the
+Start every recipe with `cheme show <id or tag>`: it prints the `file:start-end` of the
 object's `<Object>` block and of its drawing(s), its owner chain, and the ids it references and
 that reference it, each with a line number. Read those line ranges instead of the whole file.
-After every recipe: fmt, validate, `plantcode render --png --crop ...` around the change, and
-`plantcode diff HEAD --list` to check the change list is what you meant (see Loop).
+After every recipe: fmt, validate, `cheme render --png --crop ...` around the change, and
+`cheme diff HEAD --list` to check the change list is what you meant (see Loop).
 
 #### Insert a valve into an existing pipe
 
-`plantcode fragment valve --id ... --class ... --dn ... --at X,Y --rotation R --sheet ...` gives
-the valve and its drawing; `plantcode fragment pipe` the new pipe.
+`cheme fragment valve --id ... --class ... --dn ... --at X,Y --rotation R --sheet ...` gives
+the valve and its drawing; `cheme fragment pipe` the new pipe.
 
 1. conceptual: add the valve with two `PipingNode`s to the segment's `Items`; split the pipe into
    two (old pipe now ends at valve node 1, a new pipe starts at valve node 2). If the old pipe was
@@ -245,10 +245,10 @@ the valve and its drawing; `plantcode fragment pipe` the new pipe.
 
 #### Insert a tee and a branch (split a segment)
 
-`plantcode fragment tee`, `segment` and `pipe` write the new objects and their drawings;
+`cheme fragment tee`, `segment` and `pipe` write the new objects and their drawings;
 `snippets/tee-branch.xml` and `tee-branch-drawing.xml` show the same in the reference.
 
-1. `plantcode show <segment id>` and pick the pipe to split and the point on its line.
+1. `cheme show <segment id>` and pick the pipe to split and the point on its line.
 2. Split the segment at that pipe into **A** (from the old source to the tee) and **B** (from the
    tee to the old target):
    - A keeps the pipes before the split; the split pipe now ends at tee node 1 (run in). The tee
@@ -265,20 +265,20 @@ the valve and its drawing; `plantcode fragment pipe` the new pipe.
    group; a group for B with its pipes' ConnectorLines (move the moved items' groups into it);
    a group for the branch segment. The split ConnectorLine ends at the run-in node position; the
    new one starts at the run-out position.
-5. `plantcode validate`: `plantcode.segment-ends` catches ends that disagree with their pipes.
+5. `cheme validate`: `cheme.segment-ends` catches ends that disagree with their pipes.
 
 #### Parallel / spare equipment (a standby pump)
 
 Example: a spare P4711B beside P4711 (suction line 47121, discharge 47122, both DN 80, flowing
 left to right at y 154).
 
-1. `plantcode render pid/P-01.xml --png --crop ...` and pick free space: here 30 mm below.
-   `plantcode copy P4711 --prefix Pump_P4711B --tag P4711B --offset 0,30`. Note what it says is
+1. `cheme render pid/P-01.xml --png --crop ...` and pick free space: here 30 mm below.
+   `cheme copy P4711 --prefix Pump_P4711B --tag P4711B --offset 0,30`. Note what it says is
    not copied: `Pipe1`/`PipingNetworkSegment1` at `Nozzle1` (suction) and `Pipe2`/
    `PipingNetworkSegment2` at `Nozzle2` (discharge). The copy's nozzle nodes are
    `Pump_P4711B_PipingNode2` (N1) and `Pump_P4711B_PipingNode3` (N2).
 2. **Suction tee** on the duty pump's suction pipe (the tee recipe below, with fragments):
-   `plantcode fragment tee --id Tee_47121_P4711B --dn 80 --at 66,154 --branch down --sheet pid/P-01.xml`.
+   `cheme fragment tee --id Tee_47121_P4711B --dn 80 --at 66,154 --branch down --sheet pid/P-01.xml`.
    CONCEPTUAL into `PipingNetworkSegment1`'s `Items` (it now ends at the tee); point `Pipe1`'s
    and the segment's `TargetItem`/`TargetNode` at `Tee_47121_P4711B`/`Tee_47121_P4711B_N1`, and
    `Pipe1`'s ConnectorLine `Target` at `#Tee_47121_P4711B_N1_Position`. DRAWING into
@@ -301,14 +301,14 @@ left to right at y 154).
    does.
 6. Labels: `fragment label --id Label_C9 --for Valve_P4711B_check --attribute PipingComponentNumber --sheet pid/P-01.xml`.
 7. **A copy of a line with its valves** (a second fill line beside L-104) is one command:
-   `plantcode copy Line_L104 --prefix Line_L105 --tag L-105 --offset 0,40 --rename HV-146=HV-147 --renumber 144:145 --set 'FluidCode=Water' --connect Line_L104_S2_P2=T102_N7:T102_N7_Node`
+   `cheme copy Line_L104 --prefix Line_L105 --tag L-105 --offset 0,40 --rename HV-146=HV-147 --renumber 144:145 --set 'FluidCode=Water' --connect Line_L104_S2_P2=T102_N7:T102_N7_Node`
    (`T102_N7` a free nozzle added for the new line: `--connect` refuses a node another pipe
    already ends at).
-   An instrument beside another: `plantcode copy Inst_AI104 --prefix Inst_FI148 --tag FI-148 --offset 14,0 --sense-at Line_L102_S1:318,45`
+   An instrument beside another: `cheme copy Inst_AI104 --prefix Inst_FI148 --tag FI-148 --offset 14,0 --sense-at Line_L102_S1:318,45`
    (the sensor becomes `FT148`, its measuring line starts at a new node on the segment). Check
    the `duplicate tags:` line of the report is `none`; nudge the result with
-   `plantcode move Inst_FI148 --offset DX,DY` after the render.
-8. Remove an `Items` left empty, then the Loop. Expected: `plantcode.equipment-not-listed` for
+   `cheme move Inst_FI148 --offset DX,DY` after the render.
+8. Remove an `Items` left empty, then the Loop. Expected: `cheme.equipment-not-listed` for
    P4711B until `lists-sync` adds it; the new segments go into the line list's `segments` if
    their DN differs.
 
@@ -337,13 +337,13 @@ y 117 up to `Nozzle5`), all in `PipingNetworkSegment3`.
    which takes `Nozzle5`'s real node position from the sheet). The bypass pipes bend at the
    tees' height: `--points 170,127` and `--points 170,111`.
 4. Keep the ids of what you move: a moved object shows as `moved`/`modified` in
-   `plantcode diff --list`, a renamed one as removed plus added.
+   `cheme diff --list`, a renamed one as removed plus added.
 5. The Loop. Isolation valves either side of C1 and an `NC` note on the bypass valve are
    engineering decisions: add them or record why not in `DESIGN.md`.
 
 #### Remove an item cleanly
 
-1. `plantcode show <id or tag>`: note its block, its drawing(s) and **every incoming reference**.
+1. `cheme show <id or tag>`: note its block, its drawing(s) and **every incoming reference**.
    For equipment it also prints `connections:` (the segment and line at each nozzle, and what is
    at the other end) and `only for <tag>:` -- the segments, whole lines and branch tees that
    exist only for it and dangle once it is gone, with the instrument chains of their items. For
@@ -392,7 +392,7 @@ and `instrument-function-drawing.xml`.
 
 #### Change a line's DN everywhere
 
-1. `plantcode show <LineNumber>` lists the system, its segments, items, pipes and nodes with
+1. `cheme show <LineNumber>` lists the system, its segments, items, pipes and nodes with
    their DN and line numbers.
 2. Decide which segments change size, by `SegmentNumber`. A line often has branches of its own,
    smaller DN (line 47126 is DN 50 with DN 25 segments S2 drain, S5 and S9 instrument
@@ -403,17 +403,17 @@ and `instrument-function-drawing.xml`.
    changes), on each segment that changes, and on each `PipingNode` those segments' pipes connect
    -- the run in/run out nodes of the tees and the nodes of the nozzles at the run's ends. If the
    equipment nozzle keeps its size, put a reducer in the segment instead of changing that node.
-   `plantcode.dn-mismatch` does not notice a branch resized together with the run: check the
-   `plantcode show <LineNumber>` output again afterwards, segment by segment.
+   `cheme.dn-mismatch` does not notice a branch resized together with the run: check the
+   `cheme show <LineNumber>` output again afterwards, segment by segment.
 4. Update the cached `Text` of every label that shows the DN: the system label
    (`PipingNetworkSystemLabel`, e.g. `MNc 47126 75HB13 50`), segment labels, nozzle labels.
    `grep -n '<String>[^<]*\b50\b' pid/<sheet>.xml` inside the line's drawing groups finds them;
-   `plantcode.label-literal` (validate) warns about a literal label such as `DN = 25/50` that no
+   `cheme.label-literal` (validate) warns about a literal label such as `DN = 25/50` that no
    longer matches its object's nodes.
 5. Change `nominal_diameter` in `piping/line-list.yaml`, and list every segment whose DN differs
-   from it under `segments` (all of them, so `plantcode.line-dn-mismatch` compares each).
-6. `plantcode validate` must not report `plantcode.dn-mismatch`, `plantcode.label-stale`,
-   `plantcode.label-literal` warnings or `plantcode.line-dn-mismatch`.
+   from it under `segments` (all of them, so `cheme.line-dn-mismatch` compares each).
+6. `cheme validate` must not report `cheme.dn-mismatch`, `cheme.label-stale`,
+   `cheme.label-literal` warnings or `cheme.line-dn-mismatch`.
 
 ## Validation and failure handling
 
@@ -421,9 +421,9 @@ and `instrument-function-drawing.xml`.
 
 1. **Every `<Object>` has an id, unique in the document**, matching `[A-Za-z_][A-Za-z0-9_]*`
    (no hyphens, no dots). Use readable ids: `Pump_P101B`, `Pipe_P101B_suction`.
-   `plantcode fmt` names any object you leave without one.
+   `cheme fmt` names any object you leave without one.
 2. **References point at ids that exist.** Rename an id with
-   `plantcode rename OLD NEW [--children]`: it renames every `#OLD` too (`--children` also the
+   `cheme rename OLD NEW [--children]`: it renames every `#OLD` too (`--children` also the
    ids derived from it, `OLD_Drawing`, `OLD_Pos`, ...) and refuses a name that is taken.
 3. **A pipe connects two nodes.** Each `Plant/Piping.Pipe` has `SourceItem` + `SourceNode` and
    `TargetItem` + `TargetNode`. Nodes belong to items: a nozzle owns one `PipingNode`, an inline
@@ -445,12 +445,12 @@ and `instrument-function-drawing.xml`.
 
 ### Conventions
 
-`plantcode validate` checks the ones that name a rule id. The snippets are unmodified excerpts
+`cheme validate` checks the ones that name a rule id. The snippets are unmodified excerpts
 of the reference P&ID and follow them.
 
 - **Coordinates**: millimetres, origin top left, **Y grows downwards**. `--crop X0,Y0,X1,Y1` of
-  `plantcode render` takes the same numbers. Rotation is in degrees.
-- **Segment ends** (`plantcode.segment-ends`): `SourceItem`/`SourceNode` of a segment are the
+  `cheme render` takes the same numbers. Rotation is in degrees.
+- **Segment ends** (`cheme.segment-ends`): `SourceItem`/`SourceNode` of a segment are the
   first pipe's `SourceItem`/`SourceNode`; `TargetItem`/`TargetNode` are the last pipe's
   `TargetItem`/`TargetNode`. Prefer the node the last pipe ends at. Validate also accepts the
   reference convention: when the segment **owns** its end item (it is in the segment's `Items`,
@@ -480,12 +480,12 @@ of the reference P&ID and follow them.
 - **Nominal diameter is stated three times** on every `PipingNode`, segment and system:
   `NominalDiameterRepresentation` (`DN 50`), `NominalDiameterNumericalValueRepresentation`
   (`50`) and `NominalDiameterTypeRepresentation` (`DN`). Change all three together. Two nodes
-  joined by a pipe have the same DN unless one item is a reducer (`plantcode.dn-mismatch`).
+  joined by a pipe have the same DN unless one item is a reducer (`cheme.dn-mismatch`).
 - **Labels cache their text.** A `Core/Diagram.Text` holds a `TextTemplate` (fragments that name
   attributes) and the rendered `Text` string. When you change an attribute a label shows, update
-  the cached `Text` too (`plantcode.label-stale` finds the ones you missed). A label made of
+  the cached `Text` too (`cheme.label-stale` finds the ones you missed). A label made of
   literal text only (`DN = 25/50` on the reference's safety valve, the nozzle DN labels) follows
-  nothing: `plantcode.label-literal` reports it as info while it repeats the object's DN, a
+  nothing: `cheme.label-literal` reports it as info while it repeats the object's DN, a
   physical quantity or a string, and warns once it contradicts them.
 
 ### Loop
@@ -493,10 +493,10 @@ of the reference P&ID and follow them.
 After every change:
 
 ```sh
-plantcode fmt pid/<sheet>.xml
-plantcode validate
-plantcode render pid/<sheet>.xml --png --crop 240,120,320,180   # build/<sheet>_crop-240-120-320-180.png
-plantcode diff HEAD --list                                       # one line per changed plant item
+cheme fmt pid/<sheet>.xml
+cheme validate
+cheme render pid/<sheet>.xml --png --crop 240,120,320,180   # build/<sheet>_crop-240-120-320-180.png
+cheme diff HEAD --list                                       # one line per changed plant item
 ```
 
 Fix `error`s before anything else; each finding gives `file:line`, the rule and a hint. Look at
@@ -504,36 +504,36 @@ the PNG (crop with a margin of 20 mm around what you changed; `--scale` sets the
 A crop is written next to the full sheet under its own name, so `render --png` and
 `render --png --crop ...` (or `--rev HEAD --crop ...`, `build/<sheet>@HEAD_crop-...png`, for the
 before picture) never overwrite each other.
-`plantcode diff --list` prints a `<sheet>:` line, then one line per plant item a change belongs
+`cheme diff --list` prints a `<sheet>:` line, then one line per plant item a change belongs
 to: `<kind> <class> <id> [tag]: N added, M removed, K modified`, where `<kind>` is what happened
 to the item itself (`added`, `removed`, `modified`, or `changed` when only its parts or drawing
 did). Nozzles, nodes, labels and drawing elements count under their item, pipes and segments
 under their line. `--list --verbose` adds each change under its item, `--list --flat` prints one
 line per object instead (`<kind> <class> <id> [tag] (<domain>) <attrs> -> drawn as <owner>`):
 every line should be a change you meant, and every changed plant item should be drawn.
-`plantcode diff --json` gives the same as data (each change's `item`, and `items`).
+`cheme diff --json` gives the same as data (each change's `item`, and `items`).
 
 | finding | usual cause | fix |
 |---|---|---|
 | `xml.syntax` | unclosed tag, stray `&` | fix the XML at that line |
 | `dexpi.load` "Reference 'X' ... not found" | `#X` names no object | fix the id or add the object |
 | `dexpi.load` unknown class / property | misspelt `type` or `property` | copy the spelling from a snippet |
-| `plantcode.duplicate-id` | copied snippet without renaming | `plantcode rename OLD NEW` (renames its references) |
-| `plantcode.duplicate-tag` | two piping components (`PipingComponentNumber`/`PositionNumber` such as `HV-146`) or two instruments share a tag, e.g. after a copy | `plantcode rename ID HV-147 --tag` (an instrument: `rename ID FI-150 --tag`, its sensor and actuator follow), or copy again with `--rename`/`--renumber` |
-| `plantcode.not-drawn` | conceptual object without a drawing | add a RepresentationGroup |
-| `plantcode.segment-ends` | segment Source/Target Item/Node is not where its pipes start/end (pyDEXPI's `pydexpi_segment_connectivity`, `..._reference_nodes_and_items_match`) | point the segment's SourceItem/SourceNode at where its pipes start, TargetItem/TargetNode at where they end (or, for an end item the segment owns, its other node; see Conventions) |
-| `plantcode.dn-mismatch` | a pipe joins nodes of different DN (also at a reducer port) | give both nodes the DN of the pipe; a reducer's own two nodes carry the two DNs |
-| `plantcode.label-stale` | label text no longer what its template shows, or AttributeName misspelt | update the cached `Text`, or fix the AttributeName |
-| `plantcode.label-literal` warning | a literal-only label (`DN = 25/50`) contradicts its object's DN, a quantity or a string | correct the text, or show the attribute with an `AttributeRepresentation`; as info it only says the label repeats the data and must be changed with it |
+| `cheme.duplicate-id` | copied snippet without renaming | `cheme rename OLD NEW` (renames its references) |
+| `cheme.duplicate-tag` | two piping components (`PipingComponentNumber`/`PositionNumber` such as `HV-146`) or two instruments share a tag, e.g. after a copy | `cheme rename ID HV-147 --tag` (an instrument: `rename ID FI-150 --tag`, its sensor and actuator follow), or copy again with `--rename`/`--renumber` |
+| `cheme.not-drawn` | conceptual object without a drawing | add a RepresentationGroup |
+| `cheme.segment-ends` | segment Source/Target Item/Node is not where its pipes start/end (pyDEXPI's `pydexpi_segment_connectivity`, `..._reference_nodes_and_items_match`) | point the segment's SourceItem/SourceNode at where its pipes start, TargetItem/TargetNode at where they end (or, for an end item the segment owns, its other node; see Conventions) |
+| `cheme.dn-mismatch` | a pipe joins nodes of different DN (also at a reducer port) | give both nodes the DN of the pipe; a reducer's own two nodes carry the two DNs |
+| `cheme.label-stale` | label text no longer what its template shows, or AttributeName misspelt | update the cached `Text`, or fix the AttributeName |
+| `cheme.label-literal` warning | a literal-only label (`DN = 25/50`) contradicts its object's DN, a quantity or a string | correct the text, or show the attribute with an `AttributeRepresentation`; as info it only says the label repeats the data and must be changed with it |
 | `pydexpi_piping_node_single_connection` | two pipes on one node | give the item another node, or reroute |
-| `plantcode.dn-mismatch` | DN changed on one side of a pipe only | change all three DN properties on both nodes, or add a reducer |
-| `plantcode.label-stale` | data changed, cached label `Text` not | change data with `plantcode set` (it updates the labels), or set the `Text` to what the template renders |
-| `plantcode.line-*`, `plantcode.instrument-*` | sheet and list disagree | `lists-sync` skill |
+| `cheme.dn-mismatch` | DN changed on one side of a pipe only | change all three DN properties on both nodes, or add a reducer |
+| `cheme.label-stale` | data changed, cached label `Text` not | change data with `cheme set` (it updates the labels), or set the `Text` to what the template renders |
+| `cheme.line-*`, `cheme.instrument-*` | sheet and list disagree | `lists-sync` skill |
 
 ## Outputs and provenance
 
-The edited `pid/<sheet>.xml`, formatted by `plantcode fmt`, and the lists kept in step
-(`lists-sync`). `plantcode diff HEAD --list` shows which plant items the change touched.
+The edited `pid/<sheet>.xml`, formatted by `cheme fmt`, and the lists kept in step
+(`lists-sync`). `cheme diff HEAD --list` shows which plant items the change touched.
 
 ## Required human judgment
 
@@ -544,13 +544,13 @@ record why not in `DESIGN.md`. A substitute for a missing symbol is said in a `n
 
 ### Snippets (copy, then rename every id)
 
-To read how the reference does something. To write, prefer `plantcode copy` and
-`plantcode fragment` (above): they name every id for you.
+To read how the reference does something. To write, prefer `cheme copy` and
+`cheme fragment` (above): they name every id for you.
 
 
 | file | what |
 |---|---|
-| `snippets/empty-sheet.xml` | the frame `plantcode sheet new` starts from: metadata (empty, status "for review"), border, title block, full shape catalogue; use `sheet new` rather than copying it |
+| `snippets/empty-sheet.xml` | the frame `cheme sheet new` starts from: metadata (empty, status "for review"), border, title block, full shape catalogue; use `sheet new` rather than copying it |
 | `snippets/equipment-tank.xml`, `...-drawing.xml` | Tank with chambers and nozzles, and its drawing |
 | `snippets/equipment-pump.xml`, `...-drawing.xml` | centrifugal pump with two nozzles, and its drawing |
 | `snippets/piping-system-with-valve.xml`, `...-drawing.xml` | a line: nozzle -> globe valve -> nozzle, and its drawing |

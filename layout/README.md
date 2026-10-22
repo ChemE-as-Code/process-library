@@ -1,20 +1,20 @@
 # Layout
 
-The 3D layout of the plant, as optional YAML files and a generated model. `plantcode validate` checks them
-against their schemas and each other; `plantcode serve` shows them in 3D (Layout 3D in the
+The 3D layout of the plant, as optional YAML files and a generated model. `cheme validate` checks them
+against their schemas and each other; `cheme serve` shows them in 3D (Layout 3D in the
 viewer). The skill `.claude/skills/layout-yaml` says how to edit them; `pipe-routing`,
 `structures-access` and `area-classification` cover routes, steel and access, and zones.
 
 | file | schema | holds |
 |---|---|---|
-| `site-plan.yaml` | `plantcode schema site_plan` | site boundary, plot areas, roads, pipe racks |
-| `building.yaml` | `plantcode schema building` | buildings and structures, their levels and column grid |
-| `equipment-placement.yaml` | `plantcode schema placement` | where each equipment-list item stands, on which level, nozzle overrides |
-| `structures.yaml` | `plantcode schema structures` | steel frames: spans, levels (deck/platform), bracing, stairs, ladders, enclosure (cold box casing, fire wall) |
-| `zones.yaml` | `plantcode schema zones` | keep-clear, laydown, maintenance, escape, hazardous, oxygen-enriched/-deficient zones: a box/cylinder/sphere, or `sources` sized by plantcode's radius table (ASSUMED) |
-| `../piping/routing.yaml` | `plantcode schema routing` | router rules (rack tiers by fluid or line prefix, battery limits, pipe-way elevation, `local_max_m`, spacing, headroom, grid) and intent per line (`rack`, `tier`, `via`, `elevation`, pinned `route`, `skip`) |
-| `../piping/pipe-specs.yaml` | `plantcode schema pipe_specs` | pipe classes (material, colour) and insulation thickness by type and DN (optional) |
-| `plant-model.yaml` (generated) | `plantcode schema layout_model` | the 3D model `plantcode layout build` derives: parts, nozzles, envelopes, steel, platforms, zones, pipe routes, in-line items |
+| `site-plan.yaml` | `cheme schema site_plan` | site boundary, plot areas, roads, pipe racks |
+| `building.yaml` | `cheme schema building` | buildings and structures, their levels and column grid |
+| `equipment-placement.yaml` | `cheme schema placement` | where each equipment-list item stands, on which level, nozzle overrides |
+| `structures.yaml` | `cheme schema structures` | steel frames: spans, levels (deck/platform), bracing, stairs, ladders, enclosure (cold box casing, fire wall) |
+| `zones.yaml` | `cheme schema zones` | keep-clear, laydown, maintenance, escape, hazardous, oxygen-enriched/-deficient zones: a box/cylinder/sphere, or `sources` sized by cheme-as-code's radius table (ASSUMED) |
+| `../piping/routing.yaml` | `cheme schema routing` | router rules (rack tiers by fluid or line prefix, battery limits, pipe-way elevation, `local_max_m`, spacing, headroom, grid) and intent per line (`rack`, `tier`, `via`, `elevation`, pinned `route`, `skip`) |
+| `../piping/pipe-specs.yaml` | `cheme schema pipe_specs` | pipe classes (material, colour) and insulation thickness by type and DN (optional) |
+| `plant-model.yaml` (generated) | `cheme schema layout_model` | the 3D model `cheme layout build` derives: parts, nozzles, envelopes, steel, platforms, zones, pipe routes, in-line items |
 
 Coordinates are metres in the site frame: **x east, y north, z up**, origin at the south-west
 corner of the site. Rotations are degrees, counterclockwise seen from above.
@@ -53,21 +53,21 @@ corner of the site. Rotations are degrees, counterclockwise seen from above.
   Items on it give `mount: {structure: S-1, level: L1}` with `z` at the level's elevation.
 - **Access**: a vertical item's `access: {platforms: [{elevation, arc_deg?, width?}],
   ladder_side}` declares its platforms; without it `layout build` proposes platforms for
-  nozzles and valves more than 2.5 m up (`review_needed`); `plantcode layout pin TAG/platform-1`
+  nozzles and valves more than 2.5 m up (`review_needed`); `cheme layout pin TAG/platform-1`
   copies a proposal here.
 
-**The generated model.** `plantcode layout build` derives `layout/plant-model.yaml` (kind
+**The generated model.** `cheme layout build` derives `layout/plant-model.yaml` (kind
 `layout_model`) from these files, the equipment list, the line list and the P&IDs: the parts of
 every item, its nozzles with point, direction and DN, maintenance envelopes (bundle pull, motor
 removal, pump access), steel, platforms, zones, a pipe route for every P&ID segment (with
 in-line valves) and the site geometry. Never edit it; change the inputs and rebuild.
-`plantcode layout report` lists routed and unrouted lines with the reasons and how and why each
-was routed, `plantcode layout route --line L` reroutes one line, `plantcode layout pin L` keeps a route, and `plantcode layout
+`cheme layout report` lists routed and unrouted lines with the reasons and how and why each
+was routed, `cheme layout route --line L` reroutes one line, `cheme layout pin L` keeps a route, and `cheme layout
 render --plan | --level ID | --section x=..` draws plans and sections into `build/`.
-`plantcode validate` says when it is outdated (`layout-model-outdated`), edited by hand
+`cheme validate` says when it is outdated (`layout-model-outdated`), edited by hand
 (`layout-model-edited`) or missing (`layout-model-missing`).
 
-Rules (`plantcode.layout-*`): `outside-site`, `clash` (equipment boxes intersect, equipment in a
+Rules (`cheme.layout-*`): `outside-site`, `clash` (equipment boxes intersect, equipment in a
 building it is not placed in, equipment on a road, equipment reaching up into a rack's tiers,
 buildings on roads, under racks or overlapping each other), `unknown-tag`, `not-placed` (info),
 `level` (also items taller than their level), `area-overlap` (warning), `duplicate` (warning),
@@ -152,6 +152,6 @@ prose, and they are measured (`layout-separation`):
 `from`/`to` are placed tags, area, building, road or rack ids, or `site-boundary`;
 `min_factor_of_height` multiplies the height of the taller of the two (`height_of: from|to`
 to choose). Distances are between footprints (`measure: centre` between centres).
-`plantcode show <tag> --layout` prints measured distances to quote in `DESIGN.md`. Model an
+`cheme show <tag> --layout` prints measured distances to quote in `DESIGN.md`. Model an
 enclosure you measure from -- a cold box, a fire or blast wall -- as a building with a level of
 its height (and place the items inside it with `building:`), or as a tagged box placement.

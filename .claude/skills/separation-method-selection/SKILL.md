@@ -39,7 +39,7 @@ for a ternary the middle-key fraction. If one is missing, request it before call
 2. Call the function:
 
 ```python
-from plantcode.domains.process.separations.selection import (
+from chemeascode.domains.process.separations.selection import (
     select_binary_separation_methods,
     select_multicomponent_separation_methods,
 )
@@ -88,5 +88,5 @@ engineering decision.
 
 ## References
 
-- `src/plantcode/domains/process/separations/selection.py`: the matrices and the scoring
+- `src/chemeascode/domains/process/separations/selection.py`: the matrices and the scoring
 - `phase-calculation` (phase and azeotrope checks), `process-design`

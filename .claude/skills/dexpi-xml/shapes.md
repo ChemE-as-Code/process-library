@@ -29,9 +29,9 @@ Reuse these by id (`<References objects="#ShapeN" property="Shape"/>` in a Shape
 | Shape16 | INSTRUMENTATION_BUBBLE_SHAPE_FIELD | ProcessInstrumentationFunction1 |
 | Shape17 | INSTRUMENTATION_BUBBLE_SHAPE_CENTRAL | ProcessInstrumentationFunction2, ProcessInstrumentationFunction3, ProcessInstrumentationFunction4 |
 
-# Shapes plantcode adds
+# Shapes cheme-as-code adds
 
-Also in `empty-sheet.xml` (after the reference shapes). For a sheet made before they were added, `plantcode fragment shape NAME --sheet pid/<sheet>.xml` prints the Shape to paste into its catalogue, or says it is there already. The registration number is the shape's name, as the reference does for its shapes without a number, until the ISO 10628-2:2012 number is checked against the standard (not yet done for any added shape). Never invent a number, nor borrow one from a symbol of another name.
+Also in `empty-sheet.xml` (after the reference shapes). For a sheet made before they were added, `cheme fragment shape NAME --sheet pid/<sheet>.xml` prints the Shape to paste into its catalogue, or says it is there already. The registration number is the shape's name, as the reference does for its shapes without a number, until the ISO 10628-2:2012 number is checked against the standard (not yet done for any added shape). Never invent a number, nor borrow one from a symbol of another name.
 
 | id | name | ISO 10628 number | meaning | scale on A3 | default for |
 |---|---|---|---|---|---|

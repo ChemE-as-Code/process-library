@@ -6,7 +6,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-      # plantcode and pyDEXPI are private while in development. plantcode is read with the
+      # cheme-as-code and pyDEXPI are private while in development. cheme-as-code is read with the
       # fine-grained token in the secret PLANTCODE_READ_TOKEN (contents: read on
       # ChemE-as-Code/core), pyDEXPI with a read-only deploy key, private half in the
       # secret DEPLOY_KEY_PYDEXPI.
@@ -20,9 +20,9 @@ jobs:
           PLANTCODE_READ_TOKEN: ${{ secrets.PLANTCODE_READ_TOKEN }}
       - uses: astral-sh/setup-uv@v6
       - run: uv tool install git+https://github.com/ChemE-as-Code/core.git
-      - run: plantcode fmt --check
-      - run: plantcode validate
+      - run: cheme fmt --check
+      - run: cheme validate
       # Stage gates report progress (e.g. no design review recorded yet); they do not fail the build.
       - name: Engineering-step gates (informational)
-        run: plantcode check --no-write
+        run: cheme check --no-write
         continue-on-error: true

@@ -2,14 +2,14 @@
 
 A plant design kept as plain files in git: DEXPI 2.0.1 P&IDs in `pid/`, engineering lists as
 YAML, decisions and progress as Markdown. Edited by people and by coding agents (Claude Code),
-checked by [`plantcode`](https://github.com/ChemE-as-Code/core).
+checked by [`cheme-as-code`](https://github.com/ChemE-as-Code/core).
 
 | path | what |
 |---|---|
 | `plant.yaml` | name, stage, sheets |
 | `pid/` | P&ID sheets (DEXPI 2.0.1 XML) |
 | `process/design-basis.yaml` | capacity, feeds, products, utilities, site |
-| `process/materials.yaml`, `process/flowsheet.yaml` | components, blocks, steps and streams: the source of the generated BFD and PFD (`process/*.xml`, `plantcode process build`) |
+| `process/materials.yaml`, `process/flowsheet.yaml` | components, blocks, steps and streams: the source of the generated BFD and PFD (`process/*.xml`, `cheme process build`) |
 | `equipment/equipment-list.yaml`, `piping/line-list.yaml`, `control/instrument-list.yaml` | lists, consistent with the P&IDs |
 | `control/cause-effect.yaml` | interlocks and trips (cause and effect) |
 | `piping/special-items.yaml` (optional) | tagged piping components: safety valves, silencers, rupture discs (skill `lists-sync`) |
@@ -22,16 +22,16 @@ checked by [`plantcode`](https://github.com/ChemE-as-Code/core).
 ## Working here
 
 ```sh
-uv tool install plantcode           # once (see the plantcode README while it is private)
-plantcode git-setup                 # once per clone: readable P&ID diffs + pre-commit hook
-plantcode status                    # where the plant stands: sheets, findings, gates, sign-offs
-plantcode validate                  # after every change
-plantcode fmt                       # canonical XML, stable ids
-plantcode render [--png] [--crop]   # build/<sheet>[_crop-X0-Y0-X1-Y1].svg (or .png)
-plantcode render --png --tiles auto # build/<sheet>_tile-A1.png ... to read the whole sheet
-plantcode show <id or tag>          # where an object and its drawing are in the file
-plantcode diff main [--list]        # build/diff.html, or one line per changed plant item
-plantcode check                     # engineering-step gates (--write only at sign-off)
-plantcode process build             # BFD and PFD from process/*.yaml
-plantcode process streams           # stream table with provenance, block balances
+uv tool install cheme-as-code           # once (see the cheme-as-code README while it is private)
+cheme git-setup                 # once per clone: readable P&ID diffs + pre-commit hook
+cheme status                    # where the plant stands: sheets, findings, gates, sign-offs
+cheme validate                  # after every change
+cheme fmt                       # canonical XML, stable ids
+cheme render [--png] [--crop]   # build/<sheet>[_crop-X0-Y0-X1-Y1].svg (or .png)
+cheme render --png --tiles auto # build/<sheet>_tile-A1.png ... to read the whole sheet
+cheme show <id or tag>          # where an object and its drawing are in the file
+cheme diff main [--list]        # build/diff.html, or one line per changed plant item
+cheme check                     # engineering-step gates (--write only at sign-off)
+cheme process build             # BFD and PFD from process/*.yaml
+cheme process streams           # stream table with provenance, block balances
 ```

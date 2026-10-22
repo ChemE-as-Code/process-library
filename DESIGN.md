@@ -3,6 +3,10 @@
 One entry per decision: what was decided, why, what was rejected, and what it assumes.
 Numbers marked ASSUMED are concept estimates (about +/-30 %), not vendor or client data.
 
+The tool was renamed in core 0.7.0: `plantcode` is now `cheme-as-code` (command `cheme`, finding
+ids `cheme.<rule>`, schema ids `cheme/<kind>/v1`). The decisions below keep the names they were
+written with; read `plantcode <cmd>` as `cheme <cmd>` and `plantcode.<rule>` as `cheme.<rule>`.
+
 ## 1 Process description (stage concept)
 
 ASU-1 is a low-pressure double-column cryogenic air separation unit without an argon column.
@@ -1765,7 +1769,7 @@ Decision:
    and the stated liquid phase holds. Flows are unchanged; the BFD and PFD are rebuilt.
 2. **Exergy allocation.** The LCA allocates by exergy. The products leave in different states
    (GOX at 30 barg, GAN at 9 bara, LOX and LIN cold), and exergy charges each for the work it
-   holds. The exergy comes from the flowsheet (`plantcode process props --fill`: chemical
+   holds. The exergy comes from the flowsheet (`cheme process props --fill`: chemical
    exergy after Szargut plus physical exergy against 298.15 K, 1 atm):
    - GOX: 385 kJ/kg;
    - GAN: 219 kJ/kg;

@@ -1,9 +1,9 @@
 """Throwaway generator for pid/P-01.xml (MAC and precooling), stage S2.
 
 Writes the conceptual objects and their drawings into the empty sheet, in the XML form that
-`plantcode fragment` prints (stdlib only; pyDEXPI is not importable here). After the first run the
+`cheme fragment` prints (stdlib only; pyDEXPI is not importable here). After the first run the
 XML is the source of truth (AGENTS.md); later changes are edits to pid/P-01.xml.
-Usage: python3 scripts/draft_P-01.py pid/P-01.xml && plantcode fmt pid/P-01.xml
+Usage: python3 scripts/draft_P-01.py pid/P-01.xml && cheme fmt pid/P-01.xml
 """
 import math
 import sys
