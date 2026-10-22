@@ -15,6 +15,16 @@ bfd: {aggregate: true}
 
 feeds:
   - {id: AIR, title: Ambient air, ports: [{id: out, direction: out}]}
+  # Utilities as energy terminals (DESIGN.md section 3 utility table, average operation): the
+  # LCA counts them in kWh (lca/lca.yaml).
+  - id: POWER
+    title: Electric power (6.6 kV grid supply)
+    ports:
+      - {id: mac, direction: out, kind: energy}
+      - {id: aux, direction: out, kind: energy}
+      - {id: pur, direction: out, kind: energy}
+      - {id: gox, direction: out, kind: energy}
+      - {id: gan, direction: out, kind: energy}
 products:
   - {id: GOXP, title: GOX to pipeline, ports: [{id: in, direction: in}]}
   - {id: GANP, title: GAN to battery limit, ports: [{id: in, direction: in}]}
@@ -23,6 +33,13 @@ products:
   - id: VENT
     title: Vent to atmosphere
     ports: [{id: v1, direction: in}, {id: v2, direction: in}, {id: v3, direction: in}]
+  - id: CW
+    title: Cooling water return (heat rejected)
+    ports:
+      - {id: mac, direction: in, kind: energy}
+      - {id: dcac, direction: in, kind: energy}
+      - {id: gox, direction: in, kind: energy}
+      - {id: gan, direction: in, kind: energy}
 
 blocks:
   - id: MAC
@@ -34,6 +51,10 @@ blocks:
       - {id: evap, direction: in}
       - {id: out, direction: out}
       - {id: evap_out, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: power_aux, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+      - {id: cw_dcac, direction: out, kind: energy}
   - id: PUR
     title: Front-end purification (TSA)
     class: Adsorbing
@@ -43,6 +64,7 @@ blocks:
       - {id: regen, direction: in}
       - {id: out, direction: out}
       - {id: regen_out, direction: out}
+      - {id: power, direction: in, kind: energy}
   - id: CB
     title: Cold box
     class: SeparatingByThermalProcess
@@ -65,6 +87,10 @@ blocks:
       - {id: gan, direction: in}
       - {id: goxp, direction: out}
       - {id: ganp, direction: out}
+      - {id: power_gox, direction: in, kind: energy}
+      - {id: power_gan, direction: in, kind: energy}
+      - {id: cw_gox, direction: out, kind: energy}
+      - {id: cw_gan, direction: out, kind: energy}
 
 steps:
   - id: K1101
@@ -73,13 +99,21 @@ steps:
     class: Compressing
     method: CentrifugalMotion
     links: [{target: equipment, ref: K-1101}]
-    ports: [{id: in, direction: in, delegates: air}, {id: out, direction: out}]
+    ports:
+      - {id: in, direction: in, delegates: air}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
   - id: C1101
     block: MAC
     title: Direct contact aftercooler
     class: Cooling
     links: [{target: equipment, ref: C-1101}]
-    ports: [{id: in, direction: in}, {id: out, direction: out, delegates: out}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: out}
+      - {id: power, direction: in, kind: energy, delegates: power_aux}
+      - {id: cw, direction: out, kind: energy, delegates: cw_dcac}
   - id: C1102
     block: MAC
     title: Evaporative cooler
@@ -101,7 +135,10 @@ steps:
     title: Regeneration heater
     class: ExchangingThermalEnergy
     links: [{target: equipment, ref: E-2101}]
-    ports: [{id: in, direction: in, delegates: regen}, {id: out, direction: out}]
+    ports:
+      - {id: in, direction: in, delegates: regen}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
   - id: X3102
     block: CB
     title: Booster air split
@@ -180,13 +217,21 @@ steps:
     title: GOX compressor
     class: Compressing
     links: [{target: equipment, ref: K-4101}]
-    ports: [{id: in, direction: in, delegates: gox}, {id: out, direction: out, delegates: goxp}]
+    ports:
+      - {id: in, direction: in, delegates: gox}
+      - {id: out, direction: out, delegates: goxp}
+      - {id: power, direction: in, kind: energy, delegates: power_gox}
+      - {id: cw, direction: out, kind: energy, delegates: cw_gox}
   - id: K4102
     block: PRD
     title: GAN compressor
     class: Compressing
     links: [{target: equipment, ref: K-4102}]
-    ports: [{id: in, direction: in, delegates: gan}, {id: out, direction: out, delegates: ganp}]
+    ports:
+      - {id: in, direction: in, delegates: gan}
+      - {id: out, direction: out, delegates: ganp}
+      - {id: power, direction: in, kind: energy, delegates: power_gan}
+      - {id: cw, direction: out, kind: energy, delegates: cw_gan}
 
 streams:
   # -- DESIGN.md section 3, streams 1-12c (values ASSUMED there unless a requirement) ----------
@@ -580,3 +625,76 @@ streams:
       design:
         flow: {value: 31450, provenance: assumed, source: "= stream 12b (water uptake not stated)"}
         composition: {basis: mole_fraction, values: {N2: 0.9665, O2: 0.0209, AR: 0.0126}, provenance: calculated, source: 'plantcode process propagate: pass-through C1102 from S12B', fingerprint: 39de410e6651ae6e}
+  # Energy streams of the utilities (POWER, CW).
+  - id: E1
+    title: MAC motor
+    kind: energy
+    from: POWER.mac
+    to: K1101.power
+    state:
+      design:
+        duty: {value: 8000, provenance: assumed, source: "DESIGN.md section 3: K-1101 8.0 MW electric, 0.105 kWh/Nm3 air (ASSUMED)"}
+  - id: E2
+    title: DCAC water pumps, chilled water, miscellaneous
+    kind: energy
+    from: POWER.aux
+    to: C1101.power
+    state:
+      design:
+        duty: {value: 300, provenance: assumed, source: "DESIGN.md section 3: pumps, chiller water, misc. 0.3 MW (ASSUMED)"}
+  - id: E3
+    title: Regeneration heater, cycle average
+    kind: energy
+    from: POWER.pur
+    to: E2101.power
+    state:
+      design:
+        duty: {value: 333, provenance: assumed, source: "DESIGN.md section 3: E-2101 1.0 MW peak for ~1/3 of the cycle (ASSUMED)"}
+  - id: E4
+    title: GOX compressor motor
+    kind: energy
+    from: POWER.gox
+    to: K4101.power
+    state:
+      design:
+        duty: {value: 2300, provenance: assumed, source: "DESIGN.md section 3: K-4101 2.3 MW electric (ASSUMED)"}
+  - id: E5
+    title: GAN compressor motor
+    kind: energy
+    from: POWER.gan
+    to: K4102.power
+    state:
+      design:
+        duty: {value: 300, provenance: assumed, source: "DESIGN.md section 3: K-4102 0.3 MW electric (ASSUMED)"}
+  - id: Q1
+    title: MAC inter- and aftercoolers to cooling water
+    kind: energy
+    from: K1101.cw
+    to: CW.mac
+    state:
+      design:
+        duty: {value: 7600, provenance: assumed, source: "DESIGN.md section 3: cooling water MAC 7.6 MW (ASSUMED)"}
+  - id: Q2
+    title: DCAC to cooling water
+    kind: energy
+    from: C1101.cw
+    to: CW.dcac
+    state:
+      design:
+        duty: {value: 600, provenance: assumed, source: "DESIGN.md section 3: cooling water DCAC 0.6 MW (ASSUMED)"}
+  - id: Q3
+    title: GOX compressor coolers to cooling water
+    kind: energy
+    from: K4101.cw
+    to: CW.gox
+    state:
+      design:
+        duty: {value: 2200, provenance: assumed, source: "DESIGN.md section 3: cooling water GOX compressor 2.2 MW (ASSUMED)"}
+  - id: Q4
+    title: GAN compressor cooler to cooling water
+    kind: energy
+    from: K4102.cw
+    to: CW.gan
+    state:
+      design:
+        duty: {value: 300, provenance: assumed, source: "DESIGN.md section 3: cooling water GAN compressor 0.3 MW (ASSUMED)"}

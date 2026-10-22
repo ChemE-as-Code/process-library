@@ -114,6 +114,10 @@ the cost of O2 recovery (D-017).
 
 Specific energy: ~0.71 kWh per Nm3 GOX delivered at 30 barg (MAC + GOX compressor).
 
+The utilities of this table are the energy streams of `process/flowsheet.yaml` (feed POWER,
+product CW; electric heater at its cycle average), which the LCA reads (`lca/`,
+`plantcode assess lca`): change a power or duty there and rewrite the LCA.
+
 ## 4 Relief case list (preliminary, ASSUMED cases; sizing in detail engineering)
 
 | device | protects | governing case | discharge |
