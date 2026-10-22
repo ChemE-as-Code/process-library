@@ -4,6 +4,7 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-10-23 | layout/zones.yaml, layout/structures.yaml, layout/plant-model.yaml, estimate/*, DESIGN.md D-051 (7) | Escape route Z-ESC-CB1 declared as the 1.25 m lane between the casing wall and the pipe posts (min 1.2 m, ASSUMED); CWR-3001 posts 3..5 and LIN-3001 post-2 east of it; 10 steel-in-way findings closed, none added | review7#6 |
 | 2026-10-23 | layout/structures.yaml, layout/plant-model.yaml, estimate/*, DESIGN.md D-051 (6) | LOX-3002 S1 posts at x 128.4 / 126.3 / 124.3: none between the cold box ladders LD0 / LD1, no crossbar in the LD1 cage; 1 steel-in-way finding closed, none added | review7#3 |
 | 2026-10-23 | piping/routing.yaml, layout/structures.yaml, layout/plant-model.yaml, estimate/*, DESIGN.md D-051 (5) | GOX-4002 S1 turns north at x 173.5, west of crane pad Z-PAD-A4, its post on the new leg; pad clear of pipe and steel; 1 steel-in-way finding closed, none added | review7#4 |
 | 2026-10-23 | layout/structures.yaml, piping/routing.yaml, layout/plant-model.yaml, estimate/*, DESIGN.md D-051 (4) | RG-2002 S3 post out of Z-SIEVE (y 39.0); GAN-4003 S3 along y 117 with two new posts, out of Z-LAYDOWN-A5N and Z-LAD-PR3; AIR-3003 S1 post at the bend east of K-3101; 4 steel-in-way findings closed, none added | review7#5, #7 |

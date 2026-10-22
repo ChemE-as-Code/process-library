@@ -1455,4 +1455,15 @@ checked with `plantcode layout build` and `plantcode validate`, and committed on
    2.1 m, ASSUMED table). Nothing stands between the ladders now; the nearest column, post-2,
    is 0.28 m outside the LD0 cage on its north side, below P10 where LD0 ends, and 1.05 m from
    its rails. Section build/layout-section-y49.25_crop-120-0-134-16.png.
+7. **Cold box escape route Z-ESC-CB1 kept clear (review7#6).** AIR-3005, CWR-3001 and
+   LIN-3001 run north over the route along x 142.2 .. 142.7, so their posts cannot leave it;
+   the route was declared 2.9 m wide (x 140.6 .. 143.5) and reached into the casing wall
+   (x 141.0 .. 141.2), leaving 1.19 m clear at y 40.2 and 45.3. Decision: the route is the
+   lane between the east casing wall and the posts, x 141.2 .. 142.45, 1.25 m clear from the
+   ST1 foot to road R1, against a minimum clear width of 1.2 m (ASSUMED; the owner's escape
+   route standard confirms it). The CWR-3001 posts 3 .. 5 stand 0.34 m east of their pipe
+   (x 142.55) with 1.2 m crossbars under it, LIN-3001 post-2 0.1 m east (x 142.6); the
+   AIR-3005 posts already stood east of the lane. Clear width computed over y 11 .. 50.6 at
+   grade to 2.2 m: 1.25 m everywhere (was 1.19 m). 10 steel-in-way findings closed, none
+   added.
 
