@@ -1094,3 +1094,43 @@ rest does not fit; the criteria above are the usual practice for basic engineeri
 listed so the owner can confirm or tighten them.
 Result: layout-operability 73 -> 27 (no transmitter left), 0 layout-operator-unknown.
 
+## D-041 Lifting study: crane pads, clear lanes, erection lifts (2026-10-22)
+Decision (review3#5, D-034 (4); every value ASSUMED). The study is `layout/lifting-study.md`
+and `.csv` (`plantcode layout lifting --write`, gate `lifting-study`): per heavy item (5 t or
+more, the weights of D-034) its crane, radius from the pad centre, gross load (x 1.1 dynamic,
++5 % rigging), load moment, chart capacity needed at 75 % utilisation, lift and hook height,
+lane and laydown. All 14 maintenance lifts have a crane and a clear lane:
+(1) E-1101, E-1102, E-1103 by the 40 t overhead crane of B1 (14 t gross at most).
+(2) K-4101 (45 t, 52 t gross, 69.3 t chart capacity at 12.5 m): lifted straight east out of the
+open side of FW-4101 from Z-PAD-A4, now centred on the compressor's axis (x 174 .. 184, y 23 ..
+35); the 8 m lane runs between the fire wall's north and south walls (the core's lane is the
+item's width across its travel, the load held on tag lines).
+(3) E-4101 from a new pad Z-PAD-A4C north of it (the GOX-4001 suction now drops onto K-4101
+along x 162, 1 m west, out of the lane); E-4102 from Z-PAD-A4 (the GOX-4002 outlet turns east
+off the shell before it rises). K-4102 (25 t) from Z-PAD-A4N: its motor cable comes in from
+the north at 1 m (feeder K-4102-M), not over the compressor.
+(4) The compander halves KT-3101 / K-3101 lifted south from a new pad Z-PAD-A3S (x 123 .. 137,
+y 16 .. 24), away from the cold box casing and its bracing; CW-3001 now crosses south of the
+skid at 2.5 m and CWR-3001 rises east of E-3104, out of the lane. The rotor cartridges are
+pulled with a hoist (vendor).
+(5) E-2101 from Z-PAD-A2: the regeneration gas branch RG-2001 S3 runs round the west of the
+heater and the heater cable comes in from the north. The LIN vaporizer outlets GAN-4003 are
+collected south of E-4106A/B at 4.5 m and rise east of them, so E-4106B lifts clear from
+Z-PAD-A5N. E-4105A/B unchanged.
+(6) **Erection lifts are not in the maintenance study**: items lifted once, before the piping
+and racks, by the erection crane: K-1101 train ~85 t (D-034), C-1101 ~55 t, C-1102 ~25 t,
+V-2101A/B ~49 t each, all ASSUMED order of magnitude: shell mass pi x D x L x t x 7.85 t/m3
+with the shell thickness from the thin-shell formula t = P R / (S E - 0.6 P) + 3 mm corrosion
+allowance (S 138 MPa, E 0.85, carbon steel, at least 8 mm; ASSUMED), times 1.3 for heads,
+nozzles, supports and internals (ASSUMED); the adsorbent and the packing are loaded after
+setting. The tanks T-4101 / T-4102 are field-erected; the cold box internals are set before
+the casing (vendor). The filter house F-1101 goes in as modules (weight TBD).
+(7) **Crane selection stays open (human judgement)**: no crane load chart is given
+(`layout/crane-chart.yaml` absent) and none is invented; the crane contractor chooses the
+crane against the capacity needed at each radius in the study and writes the lifting plan
+(ground bearing, outriggers, rigging, slewing clearances, wind, tandem lifts). The heaviest
+maintenance lift needs 69.3 t chart capacity at 12.5 m (K-4101).
+Reason: the lifting rule and the study need a pad within reach and a clear lane for every
+maintenance lift; the lane obstructions of review3#5 were lines and trays over the items and
+pads that did not face the item's way out.
+
