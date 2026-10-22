@@ -4,6 +4,7 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-10-23 | layout/structures.yaml, piping/routing.yaml, layout/plant-model.yaml, estimate/*, DESIGN.md D-055 (4) | Eight pipe-to-foreign-post gaps under 0.1 m closed: GAN-4001 S1 and LIN-4004 S2 runs 0.1 m west, RG-2003 S8, UN-3001 S1, LOX-3001 S1 and AIR-1004 S1 posts moved along their pipes, CW-1001 S1 crossbar 0.7 m; every declared post 0.1 m or more from the pipes it does not carry; 20 generated proposals noted; no finding added | review8#7 |
 | 2026-10-23 | layout/structures.yaml, layout/plant-model.yaml, estimate/*, DESIGN.md D-055 (3) | VP-3 stair 1.2 m further south: its base landing 0.9 m clear of the K-4102 package (was 0.30 m into it); no finding added | review8#6 |
 | 2026-10-23 | layout/zones.yaml, piping/routing.yaml, layout/plant-model.yaml, estimate/*, DESIGN.md D-055 (2) | PSV-4127 (GOX-4004) a source of Z-O2-VENTS and PSV-4128 (GAN-4003) of Z-N2-VENTS; both tailpipes up to 13.8 m, the zone-free height above the VP-9 grating and stair, the GOX one 1.1 m north first (zone edge 10 m from R5); no finding added; 4,767 m pipe, 574.4 t steel | review8#1, #5 |
 | 2026-10-23 | process/BFD.xml, process/PFD.xml, layout/plant-model.yaml, DESIGN.md D-055 (1) | Rebuilt with core feat/open-points 9518dfc (sizing review fixes; props.py and pipe-od.yaml are generator inputs): only the generator fingerprints change, no stream, route, item or finding | generated-version and layout-model-version warnings of the core update |

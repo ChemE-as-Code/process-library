@@ -1638,4 +1638,29 @@ Each change below was built, the model checked with `plantcode layout build` and
    south (offset -3.653): base landing centre [159.55, 52.153], 0.9 m from the package
    (0.8 m walkway, ASSUMED); its top landing (y 46.85 .. 47.75) still meets the platform
    (y 46.95 .. 48.95); it stays east of the laydown Z-PAD-A4N (x up to 158). No finding added.
+4. **Pipes clear of other lines' posts (review8#7).** Every declared support post now stands
+   0.1 m or more (clear gap, pipe outer surface with insulation to the steel face, ASSUMED
+   minimum until the stress engineer sets the movements) from every pipe it does not carry
+   (computed over all 251 declared posts; smallest now 0.10 m, GAN-4003 S4 over the GAN-4004
+   S1 post-1 crossbar):
+   - GAN-4001 S1 run and its post-1 0.1 m west (x 132.823): 0.12 m from WN-3002 (was 0.02 m;
+     WN-3002 runs beside it from y 54.8 to 62.8, so moving the post along the pipe does not
+     help, and north of y 60.3 VP-1 stands);
+   - RG-2003 S8 post-1 0.4 m west (x 104.2), clear of AIR-2001 S1 (was 0.04 m);
+   - UN-3001 S1 post-1 0.62 m east (x 143.1), out of the 0.33 m gap between CWR-3001 S1 and
+     LIN-3001 S1 (was 0.08 / 0.05 m);
+   - LOX-3001 S1 post-1 0.11 m east to the bend (x 143.0): 0.14 m from the cold LIN-3001 S1
+     riser (was 0.05 m); further west its column would meet the CWR-3001 run along y 67.794;
+   - AIR-1004 S1 post-1 0.6 m north (y 56.0), clear of RG-2001 S2 (was 0.05 m);
+   - CW-1001 S1 post-1 crossbar 0.7 m instead of 1 m: its end 0.14 m from CWR-1004 S1 (was
+     0.06 m);
+   - LIN-4004 S2 run 0.1 m west (x 154.474): 0.16 m from the LIN-4003 S2 post-2 / post-3
+     columns (was 0.06 m; the cold fill line runs the full length past both).
+   No finding added; take-off 4,767 m pipe, 574.4 t steel. Not changed: 20 generated post
+   proposals (`review_needed`, the build's proposals for the runs of D-049, not declared
+   steel: AIR-3002 S4, GOX-4001 S1, LN-3001 S3 (2), RL-3001 S2 (2), WN-3001 S2 in or at the
+   cold box; CW-4001 S1 (2), CWR-4002 S1, GAN-4004 S1, GOX-4002 S12 (4), GOX-4002 S5,
+   LIN-4003 S1 (3), UN-3001 S1 on P-04) come under 0.1 m of other pipes, some through them.
+   They are not steel of the design until declared; each is moved clear when it is taken
+   into `layout/structures.yaml` with the support design (D-049).
 
