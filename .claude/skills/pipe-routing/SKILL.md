@@ -1,6 +1,6 @@
 ---
 name: pipe-routing
-description: Steer and review the generated pipe routes of the 3D model - routing intent in piping/routing.yaml (rack tiers per service, battery limits, the pipe-way elevation, via points, pins, skips with a reason), iterate with plantcode layout route, report and render --plan/--section, look at the PNGs, fix clashes and pin good routes. Use when lines are unrouted, run the wrong way, clash, or before a layout review or the layout-3d gate.
+description: Steer and review the generated pipe routes of the 3D model - routing intent in piping/routing.yaml (rack tiers per service, battery limits, the pipe-way elevation, vent riser heights, via points, pins, skips with a reason), iterate with plantcode layout route, report and render --plan/--section, look at the PNGs, fix clashes, tier, wall penetration, vent outlet and span findings, and pin good routes. Use when lines are unrouted, run the wrong way, clash, or before a layout review or the layout-3d gate.
 ---
 
 # Pipe routing
@@ -10,8 +10,9 @@ description: Steer and review the generated pipe routes of the 3D model - routin
 `plantcode layout build` routes one pipe per P&ID segment (DN, insulation, class from the line
 list and `piping/pipe-specs.yaml`). The router is deterministic and simple: it goes over the
 racks for lines between areas, across roads or longer than `local_max_m`, and runs local lines
-at the pipe-way elevation. It knows nothing of stress, drainage, operability or what the
-operators need to reach. This skill says how to give it the intent it lacks, how to check the
+at the pipe-way elevation. It knows nothing of stress or drainage; the rules on the model then
+screen what it produced (tiers, wall penetrations, vent outlets, spans between supports, valves
+within reach), each against an ASSUMED criterion. This skill says how to give it the intent it lacks, how to check the
 result, and when to stop iterating and pin. Use it when `plantcode layout report` shows lines
 unrouted or `direct`, when routes clash or look wrong in the drawings, and before the layout
 review.
@@ -49,7 +50,14 @@ review.
      PR1, rack_end: start | end | nearest}`. Without a rule: the line's `from_area`/`to_area`,
      else the free end of the nearest rack, else the site edge;
    - `local_elevation_m` (the pipe-way of an area), `local_max_m` (longer goes to the rack),
-     `grade_max_m`, `rack_reach_m`, `spacing_m`, headroom, `gravity_fluids`.
+     `grade_max_m`, `rack_reach_m`, `spacing_m`, headroom, `gravity_fluids`;
+   - `vent_rise_m` (default 1 m): how far an open vent or relief end rises above its stub;
+     `vents: [{lines: [VNT-*], fluids?, rise_m?, radius_m?, max_rise_m: 20}]` raises the
+     outlets of the lines it matches until a sphere of `radius_m` around the outlet (default:
+     the line's zone radius from `layout/zones.yaml`, when the line is a zone source) clears
+     every walking level (grade, structure floors, building levels) up to the walkway headroom.
+     Use it for oxygen, inert and flammable vents that must discharge above where people
+     stand; the criterion (radius, headroom) is ASSUMED until the vent study gives it.
 3. **Intent per line or segment** (`lines:`, `{line, segment?}`; a segment by DEXPI id or
    segment number):
    - `rack: PR2` or `tier: 8` to force the rack (and the tier);
@@ -59,8 +67,8 @@ review.
      internal piping, an item not placed yet). The reason is shown in the report and counts for
      the `layout-3d` gate; "later" is not a reason;
    - `gravity: true` (or the fluid in `gravity_fluids`) checks a continuous fall.
-   Vent and relief lines end in a 1 m riser where the P&ID ends them; a silencer or safety
-   valve that discharges elsewhere (a vent stack area) is listed in
+   Vent and relief lines end in a riser where the P&ID ends them (`vent_rise_m`, or a `vents`
+   rule); a silencer or safety valve that discharges elsewhere (a vent stack area) is listed in
    `piping/special-items.yaml` and placed in `layout/equipment-placement.yaml` by its tag:
    the line is then routed to it.
 4. **Iterate on the lines you changed only**: `plantcode layout route --line L [--line M]`
@@ -79,6 +87,36 @@ review.
    tier rule, add a via, change the pipe-way elevation. Rebuild after each step. A clash that is
    real but intended (a line resting on its own support steel) is accepted in the `layout-3d`
    gate with a reason, never silently left.
+6a. **The engineering findings on the routes** (each names the pipe, a `box`, the criterion and
+   a hint; the criteria are ASSUMED package values a plant overrides under `criteria:` in
+   `layout/site-plan.yaml`):
+   - `layout-tier`: a line runs along a rack on another tier than its `tiers` rule (or between
+     the tiers): its lane was taken or crossed. Free the tier (widen the rack, move other lines
+     with their own rule), give it `tier:`/`via:` intent, or change the rule; never leave a
+     line off its tier without saying why;
+   - `layout-wall-penetration`: a pipe through a building's cladding or a fire wall outside the
+     declared openings, passing through a building or enclosure it has no end in, or running in
+     a wall's plane (warning); into a casing outside a declared opening (info, for the casing
+     penetration schedule). The model's `penetrations` hold the opening each would need:
+     `plantcode layout pin OWNER/LINE` declares it in `layout/building.yaml` (`openings`) or
+     `layout/structures.yaml` (`enclosure: openings`), and the next build cuts the wall around
+     it. Prefer fewer, grouped openings (route lines through one declared opening with `via`
+     points) and keep pipes out of fire walls where you can: a fire-rated penetration is a
+     design decision to record;
+   - `layout-vent-outlet`: the zone sphere around a vent or relief outlet reaches a walking
+     level (grade, a platform, a roof walkway); the message gives the outlet height it needs.
+     Add a `vents` rule for the line (or raise the placed silencer or valve), or move it away
+     from the walking level;
+   - `layout-free-span` (warning) and `layout-support-missing` (info): a level run spans
+     farther between supports than the DN's span (`pipe-spans.yaml`, after ASME B31.1, liquid
+     or gas by the fluid's name), or has no support in the model at all (a local pipe-way
+     without steel). Small lines on a rack with bents 6 m apart usually need intermediate
+     steel or to ride on a larger line; record which. The supports themselves (shoes, guides)
+     are generated where a pipe rests on a beam;
+   - `layout-operability`: a manual valve's handwheel or lever more than 1.8 m above the floor
+     below it (a transmitter more than 2 m), with no floor within 0.6 m in plan. Move the valve
+     on the route (a pinned route with the valve near a floor), add a platform (skill
+     `structures-access`), or record a chain wheel or extension spindle.
 7. **Pin what is good.** `plantcode layout pin LINE` (or a pipe id) copies the route into
    `piping/routing.yaml` (`route:`, `source: pinned`): later builds take it as it is, so a
    reviewed route stays reviewed. Pin a route only after looking at it; re-pin or delete the
@@ -94,7 +132,9 @@ review.
   `connector ...: line ... is not in the line list` (add the line).
 - The `layout-3d` gate (`plantcode check --stage basic`) fails while a process line of DN 25
   and above is neither routed nor skipped, or a clash or headroom finding is not accepted; the
-  `layout-detail` gate requires every line, utilities included.
+  `layout-detail` gate requires every line, utilities included. A gate's `rules:` may add the
+  engineering rules (`plantcode.layout-tier`, `-wall-penetration`, `-vent-outlet`, ...); a
+  finding left as it is gets an acceptance with its reason.
 
 ## Outputs and provenance
 
@@ -108,7 +148,8 @@ assumed rules (tier allocation, battery limit points, pipe-way elevation) are ma
 The router does not decide, and you must not pretend it did:
 
 - tier allocation, rack width and spare space, which lines may share a support;
-- pipe stress and flexibility (expansion loops, hot and cold lines), supports and anchors;
+- pipe stress and flexibility (expansion loops, hot and cold lines), supports and anchors (the
+  span rule is a screening value, not a support design);
 - drainage and venting (low-point drains, pockets in two-phase and gravity lines), slug flow;
 - operability and maintenance: valve and instrument access, spectacle blinds, removal spools;
 - safety: oxygen-line velocity and material rules, cryogenic lines and their insulation, relief

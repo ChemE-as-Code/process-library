@@ -18,14 +18,16 @@ roads:
   - {id: R5, title: "East road", points: [[190, 8], [190, 78.5]], width: 6}
 racks:
   - {id: PR1, title: "Main rack along the process row, 8 m wide: CW/CWR (5 m), air and waste N2 (7 m), O2, N2 and cryogenic lines (9 m, top tier) (D-026, D-029)", points: [[30, 68], [182, 68]], width: 8, levels: [5, 7, 9]}
-  - {id: PR2, title: "Storage rack over the central road: LOX-3001, LIN-3001, GOX-4004, GAN-4003 (D-026); joins PR1 at x = 143, east of the cold box risers; tiers 6.5 / 8.5 m, beam underside above the 6 m road headroom (D-029)", points: [[143, 68], [143, 104]], width: 4, levels: [6.5, 8.5]}
-  - {id: PR3, title: "Vent rack from the PR1 east end over the central road to the vent area V1: VNT-4002, VNT-4003, WN-3003; tiers 6.5 / 8.5 m (D-029)", points: [[182, 68], [182, 118]], width: 3, levels: [6.5, 8.5]}
+  - {id: PR2, title: "Storage rack over the central road: LOX-3001, LIN-3001 (D-026, D-033 (8)); joins PR1 at x = 143, east of the cold box risers; tiers 6.5 / 8.5 m, beam underside above the 6 m road headroom (D-029)", points: [[143, 68], [143, 104]], width: 4, levels: [6.5, 8.5]}
+  - {id: PR3, title: "Vent rack from the PR1 east end over the central road to the vent area V1: VNT-4002, VNT-4003, WN-3003, and the backup risers GOX-4004 / GAN-4003 from the vaporizers; tiers 6.5 / 8.5 m (D-029, D-033 (8))", points: [[182, 68], [182, 118]], width: 3, levels: [6.5, 8.5]}
 # lines reach a rack within 50 m: the run from an item to the rack is supported on sleepers or
 # local steel (ASSUMED, the router's default rack reach)
 rack_reach: 50
 separations:
-  - {from: CB-1, to: B1, min_m: 53, reason: "cold box toppling radius, 1 x height (50.5 m casing + roof walkway) kept clear of the occupied MAC house", basis: "D-026 (3), ASSUMED"}
+  - {from: CB-1, to: B1, min_m: 53, reason: "cold box toppling radius, 1 x the height of the structure (the 53 m casing and frame) kept clear of the occupied MAC house; the light roof items (handrails, relief valves, tailpipes) are not part of the toppling height (D-033 (2))", basis: "D-026 (3), D-033 (2), ASSUMED"}
   - {from: CB-1, to: K-4101, min_m: 15, reason: "O2 compressor fire separation from the cold box; the toppling radius is not applied to K-4101, which stands behind its fire wall FW-4101 (D-030)", basis: "D-026, D-030, ASSUMED"}
+  - {from: KT-3101, to: K-3101, min_m: 0.05, reason: "expander and booster are the two ends of one compander skid on one shaft (D-023): no machine-to-machine spacing between them; the skid is lifted and serviced as one", basis: "D-033 (7), vendor arrangement ASSUMED"}
+  - {from: B2, to: B1, min_m: 2, reason: "substation and control building beside the MAC house: they face each other only over x 36-38 (B2's south-east corner), and B2's south wall is a REI 120 masonry fire wall without doors or louvres (B2 doors north and east, louvres north and east); the MAC house holds no flammable gas (air service), its lube oil console stands at the far south side of K-1101; noise: ~85 dB(A) inside B1 reduced by its cladding (~20 dB) and the B2 masonry wall (~45 dB) to well under the 45 dB(A) control room limit; the MV cables to K-1101 run in a 2 m trench between them", basis: "D-036, D-038 (6), building-spacing table row occupied-to-compressor 15 m replaced by the fire wall (ASSUMED, fire and noise assessment in detail engineering)"}
   - {from: T-4101, to: B1, min_m: 15, reason: "LOX storage to buildings", basis: "D-026 (4), EIGA Doc 127 practice, ASSUMED"}
   - {from: T-4101, to: K-4101, min_m: 15, reason: "LOX storage to the GOX compressor", basis: "D-026 (4), ASSUMED"}
   - {from: T-4101, to: R2, min_m: 8, reason: "LOX storage to roads", basis: "D-026 (4), ASSUMED"}
@@ -35,7 +37,7 @@ separations:
   - {from: F-1101, to: Z-O2-V1, min_m: 100, reason: "MAC intake away from the GOX silencers", basis: "D-025, ASSUMED"}
   - {from: F-1101, to: R4, min_m: 10, reason: "MAC intake off the west road (vehicle exhaust hydrocarbons; intake elevated, filter house 8 m)", basis: "D-010 (5), review 2026-10-21-layout#10, ASSUMED"}
   - {from: F-1101, to: R1, min_m: 15, reason: "MAC intake off the south road", basis: "D-010 (5), review 2026-10-21-layout#10, ASSUMED"}
-  - {from: Z-O2-VENTS, to: R5, min_m: 3, reason: "small O2 vents (GOX bleed at the BL) off the east road", basis: "D-029, review 2026-10-21-layout#6, ASSUMED"}
+  - {from: Z-O2-VENTS, to: R5, min_m: 10, reason: "O2 vent outlets >= 15 m from roads (D-025): with the 5 m vent zone radius the zone edge stays >= 10 m off the east road (GOX BL bleed VNT-4006)", basis: "D-025, D-033 (3), ASSUMED"}
   - {from: Z-O2-V1, to: R3, min_m: 10, reason: "O2-enriched vent zone off the truck road (ignition sources); the outlets themselves >= 15 m from roads", basis: "D-025, ASSUMED"}
 notes: >-
   All dimensions ASSUMED (basic engineering). Distance F-1101 intake (25, 30) to the vent area V1

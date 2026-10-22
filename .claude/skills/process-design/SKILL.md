@@ -160,8 +160,8 @@ kij; liquid density COSTALD; enthalpy on ideal gas at 298.15 K, which needs
 
 ```yaml
 links:
-  - {target: equipment, ref: K-2101}
-  - {target: line, ref: AIR-2001, sheet: P-02}
+  - {target: equipment, ref: K-201}
+  - {target: line, ref: A-201, sheet: P-02}
   - {target: instrument, ref: FIC-1101}
 ```
 

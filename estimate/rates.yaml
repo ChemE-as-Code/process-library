@@ -1,0 +1,51 @@
+# EXAMPLE RATES - THEY PRICE NOTHING. Schema: `plantcode schema rates`. Skill mto-estimate.
+#
+# ASU-1 has no cost data yet: no quotation, no company cost database, no published index was
+# given to the project, and plantcode holds none. This file is the shape of the ASU's factor
+# estimate of the bulk materials (DESIGN.md D-035): the rows the take-off of the ASU needs
+# (oxygen-service and cryogenic stainless pipe and valves separate from carbon steel water and
+# air lines, cold box internals left to the cold box vendor), each with a placeholder number in
+# no currency (XXX, ISO 4217 "no currency"). `plantcode assess estimate` warns while
+# `example: true` stands; the gate `mto` therefore requires only `mto-current`. A cost engineer
+# replaces every rate and factor with a sourced value (status QUOTED or ASSUMED, source, year),
+# sets the currency and removes `example: true`; then add `rates` and `estimate-current` to the
+# gate.
+#
+# The FIRST rate of a category whose where: filters all match prices a row: specific first.
+schema: plantcode/rates/v1
+example: true
+currency: XXX
+cost_year: 2026
+basis: "EXAMPLE: shape of a class 4 factor estimate of the ASU bulk materials from the 3D model (D-035); no number is a price"
+rates:
+  # pipe: oxygen and cryogenic service (PN25 and above here: stainless, cleaned for O2, D-009)
+  # before the carbon steel water and air classes
+  - {id: pipe-pn25, category: pipe, unit: m, rate: 6, where: {class: PN25}, status: ASSUMED, source: "EXAMPLE placeholder, not a price", year: 2026}
+  - {id: pipe-pn40, category: pipe, unit: m, rate: 6, where: {class: PN40}, status: ASSUMED, source: "EXAMPLE placeholder, not a price", year: 2026}
+  - {id: pipe-pn63, category: pipe, unit: m, rate: 6, where: {class: PN63}, status: ASSUMED, source: "EXAMPLE placeholder, not a price", year: 2026}
+  - {id: pipe-small, category: pipe, unit: m, rate: 1, where: {dn_max: 50}, status: ASSUMED, source: "EXAMPLE placeholder, not a price", year: 2026}
+  - {id: pipe-large, category: pipe, unit: m, rate: 4, where: {dn_min: 500}, status: ASSUMED, source: "EXAMPLE placeholder, not a price", year: 2026}
+  - {id: pipe, category: pipe, unit: m, rate: 2, status: ASSUMED, source: "EXAMPLE placeholder, not a price", year: 2026}
+  - {id: elbow, category: elbow, unit: ea, rate: 1, status: ASSUMED, source: "EXAMPLE placeholder, not a price", year: 2026}
+  - {id: tee, category: tee, unit: ea, rate: 1, status: ASSUMED, source: "EXAMPLE placeholder, not a price", year: 2026}
+  - {id: reducer, category: reducer, unit: ea, rate: 1, status: ASSUMED, source: "EXAMPLE placeholder, not a price", year: 2026}
+  - {id: flange, category: flange, unit: ea, rate: 1, status: ASSUMED, source: "EXAMPLE placeholder, not a price", year: 2026}
+  - {id: gasket, category: gasket, unit: ea, rate: 1, status: ASSUMED, source: "EXAMPLE placeholder, not a price", year: 2026}
+  - {id: safety-valve, category: valve, unit: ea, rate: 8, where: {item: "*Safety*"}, status: ASSUMED, source: "EXAMPLE placeholder, not a price", year: 2026}
+  # control valves are GlobeValve bodies in the take-off (their actuators are not separate):
+  # price them with the globe valves until the instrument index gives the control valves
+  - {id: globe-valve, category: valve, unit: ea, rate: 8, where: {item: GlobeValve}, status: ASSUMED, source: "EXAMPLE placeholder, not a price", year: 2026}
+  - {id: valve, category: valve, unit: ea, rate: 5, status: ASSUMED, source: "EXAMPLE placeholder, not a price", year: 2026}
+  - {id: inline, category: inline, unit: ea, rate: 5, status: ASSUMED, source: "EXAMPLE placeholder, not a price", year: 2026}
+  - {id: steel, category: steel, unit: t, rate: 10, status: ASSUMED, source: "EXAMPLE placeholder, not a price", year: 2026}
+  - {id: grating, category: grating, unit: m2, rate: 1, status: ASSUMED, source: "EXAMPLE placeholder, not a price", year: 2026}
+  - {id: insulation, category: insulation, unit: m2, rate: 1, status: ASSUMED, source: "EXAMPLE placeholder, not a price", year: 2026}
+  - {id: concrete, category: concrete, unit: m3, rate: 5, status: ASSUMED, source: "EXAMPLE placeholder, not a price", year: 2026}
+factors:
+  # direct: factor x the material cost of the categories in applies_to (all when empty)
+  - {id: piping-erection, title: "Piping erection, O2 cleaning and testing", kind: direct, factor: 1, applies_to: [pipe, elbow, tee, reducer, flange, gasket, valve, inline, insulation], status: ASSUMED, source: "EXAMPLE placeholder, not a factor", year: 2026}
+  - {id: steel-erection, title: "Steel and grating erection", kind: direct, factor: 1, applies_to: [steel, grating], status: ASSUMED, source: "EXAMPLE placeholder, not a factor", year: 2026}
+  - {id: civil, title: "Formwork, rebar and placing of the concrete", kind: direct, factor: 1, applies_to: [concrete], status: ASSUMED, source: "EXAMPLE placeholder, not a factor", year: 2026}
+  # indirect: factor x the direct cost; contingency: factor x direct plus indirect cost
+  - {id: indirects, title: "Engineering and construction management", kind: indirect, factor: 0.1, status: ASSUMED, source: "EXAMPLE placeholder, not a factor", year: 2026}
+  - {id: contingency, title: "Contingency", kind: contingency, factor: 0.1, status: ASSUMED, source: "EXAMPLE placeholder, not a factor", year: 2026}

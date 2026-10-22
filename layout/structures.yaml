@@ -9,43 +9,92 @@ structures:
     spans_x: [6, 5, 4]          # west bay: column stack; middle bay: E-3101; east bay: E-3102, ladders
     spans_y: [9]
     levels:
-      - {id: P10, title: "Access platform 10 m (north side)", elevation: 10, kind: platform, extent: [0, 7.2, 15, 9]}
-      - {id: E20, title: "E-3102 support platform", elevation: 20, kind: platform, extent: [11, 2, 15, 7.2]}
-      - {id: P20, title: "Access platform 20 m (north side, joins E20)", elevation: 20, kind: platform, extent: [0, 7.2, 15, 9]}
-      - {id: P30, title: "Access platform 30 m (north side)", elevation: 30, kind: platform, extent: [0, 7.2, 15, 9]}
-      - {id: P40, title: "Access platform 40 m (north side)", elevation: 40, kind: platform, extent: [0, 7.2, 15, 9]}
+      # access platforms cantilevered OUTSIDE the north casing face (wall 0.2 m, frame y 9.0 ..
+      # 9.2), 1.5 m wide, where the lines, valves and instruments leave the casing; nobody
+      # stands inside the perlite-filled, purged casing (D-038 (1), review4#1)
+      - {id: P10, title: "Access platform 10 m outside the north casing face", elevation: 10, kind: platform, extent: [0, 9.2, 15, 10.7]}
+      # E-3102 support deck inside the casing: steel only, no walking level (accepted, D-038 (1))
+      - {id: E20, title: "E-3102 support deck inside the casing (no access in operation)", elevation: 20, kind: platform, extent: [11, 2, 15, 7.2]}
+      - {id: P20, title: "Access platform 20 m outside the north casing face", elevation: 20, kind: platform, extent: [0, 9.2, 15, 10.7]}
+      - {id: P30, title: "Access platform 30 m outside the north casing face", elevation: 30, kind: platform, extent: [0, 9.2, 15, 10.7]}
+      - {id: P40, title: "Access platform 40 m outside the north casing face", elevation: 40, kind: platform, extent: [0, 9.2, 15, 10.7]}
       - {id: RF, title: "Roof walkway on the casing roof (D-026: ~50 m columns + ~3 m above)", elevation: 53, kind: platform, extent: [0, 7.2, 15, 9]}
+      # relief valve platform south of the walkway, off the way to the ladders (D-033 (1))
+      - {id: RV, title: "Relief valve platform PSV-3114 / PSV-3116 on the casing roof, joins RF", elevation: 53, kind: platform, extent: [0.5, 3.5, 6.5, 7.2]}
+      - {id: RF-out, title: "Landing outside the casing at 53 m (north side, joins RF, RV)", elevation: 53, kind: platform, extent: [0, 9.2, 15, 10.7]}
     # east and south faces braced; west and north faces carry the pipe penetrations and rely on
     # the stiffened casing panels (ASSUMED, structural design to confirm)
     bracing: {east: x, south: x, west: none, north: none}
+    # stair tower outside the north platforms (east end, x 134.7 .. 140.5, y 48.7 .. 50.5),
+    # pinned from the build's proposals: from grade to every platform and to the roof landing
+    # RF-out, which joins the roof walkway RF over the casing wall top; the floors at 20 m and
+    # above are entered for valves, analysers and the relief valves, with tools, and the
+    # oxygen-deficient roof needs a quick way down (D-033 (6), D-038 (1))
     stairs:
-      - {id: ST1, from: grade, to: P10, side: east, offset: 0.5}
+      - {id: ST1, from: grade, to: P10, side: north, offset: 0.5, width: 0.9}
+      - {id: ST2, from: P10, to: P20, side: north, offset: 0.5, width: 0.9}
+      - {id: ST3, from: P20, to: P30, side: north, offset: 0.5, width: 0.9}
+      - {id: ST4, from: P30, to: P40, side: north, offset: 0.5, width: 0.9}
+      - {id: ST5, from: P40, to: RF-out, side: north, offset: 0.5, width: 0.9}
+    # caged ladders at the west end of the north platforms, 13 m from the stair: the second way
+    # down from every platform and the roof, offset 1 m between flights (D-030 (1), D-038 (1))
     ladders:
-      - {id: LD0, from: grade, to: P10, at: [0.5, 8.6], facing: north}
-      - {id: LD1, from: P10, to: P20, at: [14.5, 8.6], facing: north}
-      - {id: LD2, from: P20, to: P30, at: [13.5, 8.6], facing: north}
-      - {id: LD3, from: P30, to: P40, at: [14.5, 8.6], facing: north}
-      - {id: LD4, from: P40, to: RF, at: [13.5, 8.6], facing: north}
-      # second ways down at the west end (D-030 (1), review 2026-10-21-layout#11)
-      - {id: LD5, from: P10, to: P20, at: [0.5, 8.6], facing: north}
-      - {id: LD6, from: P20, to: P30, at: [1.5, 8.6], facing: north}
-      - {id: LD7, from: P30, to: P40, at: [0.5, 8.6], facing: north}
-      - {id: LD8, from: P40, to: RF, at: [1.5, 8.6], facing: north}
-    enclosure: {walls: all, height: 53, material: casing}
+      - {id: LD0, from: grade, to: P10, at: [0.5, 10.2], facing: north}
+      - {id: LD1, from: P10, to: P20, at: [1.5, 10.2], facing: north}
+      - {id: LD2, from: P20, to: P30, at: [0.5, 10.2], facing: north}
+      - {id: LD3, from: P30, to: P40, at: [1.5, 10.2], facing: north}
+      - {id: LD4, from: P40, to: RF-out, at: [0.5, 10.2], facing: north}
+    enclosure:
+      walls: all
+      height: 53
+      material: casing
+      openings:
+        # access hatch for the JT valves LV-3101 / FV-3106 (extended bonnets, actuators at the
+        # hatch), 0.4 m inside the north wall above P20 (D-038 (3), review4#3)
+        - {id: H1, side: north, offset: 2.1, width: 1.2, height: 1.2, sill: 20.3, kind: hatch}
     notes: >-
       Casing 15 x 9 m, 53 m high (C-3101 20 m + C-3102 30 m stacked and the top nozzle piping
       inside, D-026), perlite filled and N2 purged (PV-3113, breather PSV-3123 / VNT-3004). The
-      relief valves PSV-3114 / PSV-3116 stand on the roof (layout/equipment-placement.yaml). Stair
-      to the first platform, caged ladders above at both ends (two ways down from every
-      platform; O2-deficient vents near the roof, D-011). Toppling radius 53 m kept clear of B1
-      (site-plan separations).
+      relief valves PSV-3114 / PSV-3116 stand on the relief valve platform RV south of the roof
+      walkway, their tailpipes rising above the walkway headroom plus their zone radius
+      (piping/routing.yaml vents, D-033). Nobody stands inside the casing: the access
+      platforms P10..P40 are cantilevered outside the north face, where the lines leave the
+      casing, with a stacked stair ST1..ST5 at their east end up to the roof landing RF-out
+      and caged ladders LD0..LD4 at their west end (two ways down from every platform and the
+      roof; O2-deficient vents near the roof, D-011, D-038 (1)). Toppling radius 53 m, the casing height, kept
+      clear of B1 (site-plan separations, D-033 (2)).
+  - id: FW-TR
+    title: "Fire wall between the transformers TR-1 and TR-2 in the yard west of B2"
+    origin: [13, 56.2]
+    spans_x: [6]
+    spans_y: [0.6]
+    levels: []
+    enclosure:
+      walls: [north]
+      height: 5
+      material: fire_wall
+      thickness: 0.3
+    notes: >-
+      Reinforced concrete wall 0.3 m (REI 120), 5 m high (above the TR-1 conservator), from the
+      B2 west wall to the R4 side of the bays, between the TR-1 and TR-2 oil bunds (IEC 61936-1
+      practice, ASSUMED; D-038 (7)).
   - id: FW-4101
     title: "GOX compressor fire / blast wall around K-4101, open to the east"
     origin: [160.5, 24]
     spans_x: [12]
     spans_y: [10]
     levels: []
-    enclosure: {walls: [west, south, north], height: 7, material: fire_wall, thickness: 0.3}
+    enclosure:
+      walls: [west, south, north]
+      height: 7
+      material: fire_wall
+      thickness: 0.3
+      # fire-rated wall sleeves for the interstage loop to the intercooler package E-4101
+      # north of the wall, from the build's penetrations (D-033 (4)); the GOX suction GOX-4001
+      # comes over the wall onto the top nozzle and needs none
+      openings:
+        - {id: SL1, side: north, offset: 8.25, width: 0.5, height: 0.45, sill: 3.45, kind: opening}  # GOX-4005 to E-4101
+        - {id: SL2, side: north, offset: 4.35, width: 0.45, height: 0.45, sill: 3.45, kind: opening} # GOX-4005 back from E-4101
     notes: >-
       Reinforced concrete wall 0.3 m, 7 m high (K-4101 5 m), on three sides; the open east side
       faces away from the cold box, the rack and the road R1 (EIGA Doc 27 practice for oxygen

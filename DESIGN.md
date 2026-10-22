@@ -717,3 +717,259 @@ sleeves to be designed with the vendor), #9 (B1 wall penetrations outside the de
 detailed with the building), #12, #13, #15, #16.
 Reason: the review's high findings put cold lines and relief outlets where they cannot be, and
 the medium ones are cheap to fix in the layout files.
+
+## D-033 Layout changes for example-asu#2: relief valves, bleeds, walls, tiers, access (2026-10-22)
+Decision (reviews/2026-10-21-layout-rereview.md, example-asu#2; plantcode's engineering rules
+on the model, gate layout-rules): (1) rereview#1: PSV-3114 and PSV-3116 move off the roof
+walkway RF onto a relief valve platform RV (53 m, frame [0.5, 3.5, 6.5, 7.2]) south of it,
+3.6 m from ladder LD8 and off the way to the ladders and stairs. Their tailpipes VNT-3002 /
+VNT-3003 rise straight up (piping/routing.yaml `vents`) until the 3 m zone sphere clears the
+roof walking levels plus 2.2 m headroom: outlets at 58.25 m, 5.25 m above the deck. The zones
+take the tailpipe outlets as sources (the lines VNT-3002 / VNT-3003, `psv_outlet`). Reaction
+forces and tailpipe supports are for the piping stress engineer. (2) rereview#2: the toppling
+height is the height of the structure, the 53 m frame and casing; the separation CB-1 to B1
+stays 53 m (measured 54.0 m). The roof items (handrails, two relief valves and DN tailpipes on
+a light platform) do not topple with the casing as a rigid body; their failure is a dropped
+object on the cold box roof and around it, covered by the structural design of the platform
+and the tailpipe supports. Criterion 1 x height ASSUMED (D-026 (3)); a site-specific toppling
+study confirms it. (3) rereview#3 and #4 (O2 vents to roads): the GOX / GAN battery limits move
+from x 176 to x 171; the bleeds VNT-4006 / VNT-4007 rise above the PR1 top tier (outlets
+14.7 m, `vents` rules) so their 5 m zones stay above every walking level and grade, and the
+O2 bleed outlet is 16 m from the east road edge (D-025: O2 vent outlets >= 15 m from roads);
+separation Z-O2-VENTS to R5 now >= 10 m (15 m less the zone radius, measured >= 10 m). The
+intake criteria F-1101 to R4 / R1 (10 / 15 m) stay owner-practice values, ASSUMED, with no
+published distance claimed; the filter house draws 4-8 m above grade (ASSUMED) and the
+prevailing wind carries road exhaust away from it (D-025). Recorded as a deviation to confirm
+with the site's air quality survey. (4) Walls and tiers: B1 openings W2 (AIR-1001), E1
+(AIR-1003) and a pipe band N1 in the north wall (x 40.2-67.2, z 3.4-4.4) for the six CW / CWR
+lines and AIR-1002 (layout#9; E2 removed, unused). K-4101 suction N1 on the compressor top:
+GOX-4001 comes over the 7 m fire wall and drops onto it, no penetration (layout#8); the
+interstage loop GOX-4005 to the intercooler package E-4101 north of the wall crosses it in two
+declared fire-rated sleeves SL1 / SL2 (sealed sleeves designed with the vendor). Inside the
+cold box the PSV-3114 inlet (C-3102 N2) and the Lachmann air (C-3102 N3) leave the column north
+and south, into the 2.4 m gaps, not into the 0.9 m gap to the west casing wall, and the
+expander feed draw E-3101 N10 faces south towards KT-3101, so no line runs in a casing wall.
+The casing penetrations stay info findings for the casing penetration schedule. WN-3003 now
+lies on its 7 m tier (plantcode keeps a flat bottom of pipe where a smaller line continues a
+larger one on the rack). LIN-3001 crossing PR1 to PR2 (3 m) and the RG-2001 jog off the rack
+are accepted in the gate layout-rules with reasons (rereview#7). (5) Low findings: S-2101 on its
+stack, outlet 10 m (above the adsorber tops, rereview#5); the sieve change-out zone Z-SIEVE
+4.5 m high for the vacuum truck, so RG-2003 crosses it at 5.3 m; CW-3001 pinned south of the
+compander skid (rereview#6); AIR-1006 pinned east first, off the E-1102 bundle pull (layout#12);
+the GOX silencers S-4101 / S-4102 with 7.5 m outlet stacks and the drain vaporizer vent
+VNT-3001 at 7.2 m, so no O2 zone reaches grade; the WN-1002 top vent of C-1102 raised to
+27.6 m, above the top platform's headroom (layout#5). (6) Access: the cold box gets a stair
+tower on the east side above ST1 (ST2 to E20/P20, ST3, ST4, ST5 to the roof), pinned from the
+build's proposals: the floors at 20 m and up are entered with tools for valves, analysers and
+the relief valves, and the inert roof needs a quick way down; the ladders stay as second ways.
+C-1101 platforms over its north half with the ladder north (every nozzle at 0, 90 or 180 deg),
+C-1102 platforms over 240-30 deg with the ladder south (every nozzle east): no point more than
+7.5 m from the ladder. C-1102 moves 1 m south so its foundation clears the PR1 columns.
+(7) KT-3101 / K-3101 are the two ends of one compander skid: their separation is declared
+(0.05 m) instead of the 3 m machine spacing of the package table. (8) rereview#8: PR2 carries
+LOX-3001 and LIN-3001; the backup risers GOX-4004 / GAN-4003 run over PR3 (titles corrected;
+D-026 (2) is read with this). Kept as they are: the cryogenic pumps 6.5 m from their tanks
+(layout#13: room for the tank outlet valves, the pump removal and the bottom outlet's
+flexibility; suction head from the tank level, NPSH checked in detail engineering), the
+expander casing extension (layout#15, vendor arrangement in detail engineering).
+Reason: example-asu#2 lists the open findings of the second layout review; the new engineering
+rules (vent outlets, wall penetrations, tiers, escape, spacing) are now a basic gate.
+Open: tailpipe forces and supports, the vent study (D-031), the fire wall sleeves with the
+vendor, the operability findings (D-034).
+
+## D-034 Weights, cranes and lifting; valve access and pipe spans left to detail engineering (2026-10-22)
+Decision: (1) Weights (`dimensions.weight`, empty, t, ASSUMED from typical sizes of the duty)
+are given to the items lifted whole in maintenance: the coolers and exchangers (E-1101/E-1102
+12, E-1103 9, E-3104 4, E-4101 8, E-4102 6, E-4103 4), the regeneration heater E-2101 8 and
+filter F-2101 4, the compander halves KT-3101 / K-3101 8 each, the GOX compressor K-4101 45 and
+the GAN compressor K-4102 25, the vaporizers E-4105A/B 6 and E-4106A/B 7, the pumps (1.5-2.5,
+below the 5 t lift threshold), and the cold box internals (left out by the rule). Columns,
+adsorbers, tanks, the filter house and the MAC train (~85 t) are erected once before the piping
+and get no weight: their lifts belong to the construction lifting plan, not to the layout's
+maintenance check. (2) The MAC house B1 gets an overhead crane of 40 t (heaviest maintenance
+lift the MAC motor, ~30 t ASSUMED; cooler bundles). (3) Crane pads (kind crane_pad, with reach)
+and laydown zones: the cold box pad Z-CRANE-CB1 (was a maintenance zone), Z-PAD-A2 / Z-LAYDOWN-A2
+for the heater and filter, Z-PAD-A4 / Z-LAYDOWN-A4 on the open east side of the fire wall,
+Z-PAD-A5 / Z-PAD-A5N with laydowns for the vaporizers. All ASSUMED; a lifting study with the
+crane contractor replaces them. (4) Ten lifting findings stay as warnings, each a case for that
+study: the lift of K-4101, E-4101 and K-4102 passes the 7 m fire wall FW-4101 (vertical lift above
+the wall, then slewing over its open east side); KT-3101 / K-3101 lie against the cold box south
+wall (braces in the lane; the rotor cartridges are pulled with a hoist, the halves lifted south);
+the lanes to E-2101, E-4102, E-4105A/B and E-4106B cross their own or their neighbours' outlet
+spools at the pipe-way, removed for the lift. (5) Operability: 71 findings (60 manual valves,
+11 transmitters more than 1.8 / 2 m above the floor below them). The router places in-line
+valves along the route in P&ID order, 1 m apart from the start, not where an operator stands;
+valve positions, chain wheels, extension spindles and extra platforms are set in the piping
+layout of detail engineering, valve by valve, from this list. Not accepted, kept visible.
+(6) Pipe spans: 26 lines (mostly DN 40-250 water and gas lines on the 6 m rack bents) span more
+than the ASSUMED table allows; the racks get intermediate steel (a stringer between the bents)
+for lines below DN 300, designed with the racks in detail engineering. Not accepted, kept
+visible.
+Reason: the lifting, operability and span rules need weights, cranes and pads to say anything;
+weights on erected-once items would only flag construction lifts, and moving 60 valves by pinned
+routes at basic engineering would be guesswork the piping layout redoes.
+Open: lifting study, valve-by-valve operability review, rack intermediate steel.
+
+## D-035 Material take-off and the example rates of the estimate (2026-10-22)
+Decision: the take-off of the 3D model is written to estimate/mto.csv|md (`plantcode assess mto
+--write`) and kept current by the basic gate `mto` (`require: [mto-current]`). At this model:
+4,501 m of pipe, 752 elbows, 70 tees, 1 reducer, 364 flanges and gasket sets, 105 valves, 5
+in-line items, 319 t of steel, 367 m2 of grating, 305 m2 of pipe insulation, 115 m3 of concrete
+(plinths and foundations). The estimate (estimate/rates.yaml, estimate/estimate.csv|md) uses
+EXAMPLE rates (`example: true`, currency XXX): ASU-1 has no cost source (no quotation, company
+cost database or published index was given), and an agent does not invent prices. The example
+file has the rows the ASU needs: oxygen and cryogenic classes PN25 / PN40 / PN63 priced apart
+from the carbon steel water and air lines, large-bore pipe (DN 500 and above) apart, safety and
+globe valves apart, erection factors for piping (with oxygen cleaning), steel and civil, indirects
+and contingency. The take-off leaves out what the model does not show: the cold box internals and
+casing (cold box vendor package), the machines, small bore and field-run lines, the rack
+intermediate steel (D-034), paving and piles.
+Reason: the take-off is a deliverable of the 3D model; pricing it needs a cost engineer's sources.
+Open: rates and factors from a cost source, then gate requirements `rates` and
+`estimate-current`; allowances for what the take-off does not count.
+
+## D-036 Substation and control building, motor list, junction boxes and cable trays (2026-10-22)
+Decision (electrical/electrical-list.yaml, electrical/tray-rules.yaml, skill
+electrical-cabling; all ASSUMED until the electrical engineer's load list and single-line
+diagram): (1) A substation and control building B2 (18 x 10 x 5 m, layout/building.yaml) at
+the upwind west end of PR1, north of the MAC house: the 8 MW / 6.6 kV MAC motor is fed from
+close by, the cables reach the plant on PR1, and the occupied control room is ~120 m from the
+nearest O2 vent and outside every O2-enriched and inert zone (D-025, D-031). It holds the 6.6 kV
+switchgear SWG-1, the LV MCC-1 and the control room CR-1; transformers TR-1 33 / 6.6 kV
+16 MVA and TR-2 6.6 / 0.4 kV 2.5 MVA stand outdoors beside it (not modelled). (2) Motors: MV
+above 200 kW (K-1101 8000 kW and K-4101 2300 kW from the equipment list, K-4102 315 kW), LV
+pumps estimated from their duties (P-1101A/B 45, P-1102A/B 18.5, P-4101A/B 15, P-4102A/B
+11 kW), each `assumed` with its basis; K-3101 has no motor (braked by the expander on its
+shaft). The regeneration heater E-2101 (1 MW) is a 690 V feeder from MCC-1 to its terminal box
+on the east face. (3) Nine junction boxes pinned from the build's proposals after review, two
+moved: JB-A1-1 out of the MAC house to its north side, JB-A2-1 out of V-2101B to the west end of
+the adsorbers, JB-A3-2 off the PR2 junction; the casing O2 analyser AIA-3122 is placed at the
+breather on the cold box roof. (4) Trays: ladder trays up to 1200 mm (the MV cables of the MAC
+and GOX compressor share the PR1 power tray over the first bays), fill 30 % power / 40 %
+instrument, 0.3 m power-instrument separation, trays 2 m above each rack's top pipe tier on
+steel of their own (PR1 11 m, PR2 / PR3 10.5 m), power and instrument lanes 0.3 of the rack
+width either side of its centreline. Where the PR2 instrument tray passes 0.27 m under the PR1
+power tray at the junction a steel cover plate separates them (accepted in checks.yaml).
+Result: 131 cables (12 power, 119 instrument and multipair), 46 tray runs, ~987 m of tray and
+~6,500 m of cable (electrical/cable-schedule.csv|md, `plantcode layout cables --write`); gate
+`electrical` (detail) passes. The MV cable to K-1101 drops from PR1 into the MAC house: its wall
+or roof entry is detailed with the building (not checked by the model).
+Reason: the layout reserves the tray space and the substation location now; cable sizes are
+catalogue placeholders for tray sizing only.
+Open: load list and single-line diagram, cable sizing, the transformer yard, a cable trench
+or tray entry into B1, hazardous-area and oxygen-zone cable glands (none needed in the ASU's
+zones as screened, D-031).
+
+## D-037 Ventilation of the MAC house and the substation building (2026-10-22)
+Decision (layout/hvac.yaml, skill hvac-ducts; every number ASSUMED until the HVAC engineer's
+heat load calculation): (1) MAC house B1: 4 air changes, 44,928 m3/h, from ~150 kW of heat to
+the room air (gearbox, casings, warm piping; the 8 MW motor air-water cooled) at a 10 K rise;
+extract 90 % (slight overpressure against dust). Unit AHU-1 (50,000 m3/h, 12 x 3 x 3 m) along
+the south wall between the roller door S1 and the personnel door S2, south of the K-1101 base;
+outdoor air through louvre LV1 at the south end of the east wall, exhaust through LV2 in the
+south wall above the unit (louvre face velocity 2.5 / 1.8 m/s, at most 2.5); supply mains at
+9.3 m under the crane runway, extract mains below them. Ducts run along the hall in two supply
+and two extract rows; the overhead crane's hook path across them is a lifting-plan item (the
+model only lowers the ceiling). (2) Substation and control building B2: 10 air changes,
+9,000 m3/h, 80 % extracted (overpressure against the plant air), for ~30 kW of switchgear, MCC,
+drive and cabinet losses and the occupied control room; unit AHU-2 (10,000 m3/h) in the
+south-east corner, intake at the north end of the east wall, exhaust in the south wall above the
+unit, 8 m apart. The control room's own air conditioning, the gas-tight intake (the control room
+is outside every O2 and inert zone, D-036) and fire dampers are detail engineering. Result: 2
+units, 43 terminals, 52 duct runs, 246 m of duct, 736 m2 of duct sheet; gate `hvac` passes.
+Reason: the gate hvac needs every clad building ventilated, and the layout must reserve the
+duct, unit and louvre space now.
+Open: heat load calculation, cooling of the control and switchgear rooms, recirculation,
+dampers, fans and noise.
+
+## D-038 Layout changes for the fourth layout review: casing access, tank vents, valves, trays, buildings (2026-10-22)
+Decision (reviews/2026-10-22-layout-review4.md #1-#11; amends D-025 (vent of VNT-4004),
+D-029 (3), D-030 (1), D-032, D-033 (6), D-034, D-036 and D-037; every value ASSUMED):
+(1) **Nobody stands inside the cold box casing** (review4#1). The access platforms P10, P20,
+P30, P40 (1.5 m wide) are cantilevered outside the north casing face (frame extent y 9.2 ..
+10.7, outside the 0.2 m wall), where the lines, valves and instruments leave the casing. A
+stacked stair ST1 .. ST5 stands outside them at their east end (x 134.7 .. 140.5) from grade
+to every platform and to the roof landing RF-out (53 m, outside the wall), which joins the
+casing roof walkway RF and the relief valve platform RV; caged ladders LD0 .. LD4 at their west
+end (offset 1 m between flights) are the second way down from every platform and the roof.
+The stair and the RF-out landing were pinned from the build's proposals. The old platforms
+inside the casing, the east stair tower that met none of them and the ladders inside the
+casing are gone. The escape route Z-ESC-CB1 starts at the foot of ST1 at the north-east corner
+and runs along the east casing face to the south road. E20 stays the steel support deck of
+E-3102 inside the casing, no access level (finding layout-access-enclosed accepted with that
+reason in checks.yaml).
+(2) **Tank vents and relief outlets away from the tank stairs** (review4#2). On T-4101 and
+T-4102 the boil-off vent / vacuum breaker nozzle N2 is on the west side of the roof (2.8 / 3.1 m
+off centre) and the relief valve nozzle N3 (PSV-4123 / PSV-4124) on the west shell at the top
+(angle 180 deg), opposite the spiral stair, its landing and the roof platform on the east side;
+a vents rule for VNT-4001 / VNT-4005 raises the outlets until their zones clear every walking
+level. No outlet is under a walking surface and no layout-vent-outlet finding remains.
+(3) **No valve inside the casing that cannot be worked** (review4#3). The warm compander
+piping stands outside the casing in a valve station east of K-3101 at 1 m: the booster
+discharge AIR-3002 tees for PSV-3119 (T1, its air tailpipe to 3.5 m) and for the anti-surge
+recycle AIR-3006 (T2, UV-3120 beside it), the check valve on the line into the casing; the
+booster suction AIR-3005 branches off AIR-2002 outside the north casing face and runs round
+the east face at 8.25 m to the booster, so no warm air line crosses the perlite (all pinned in
+piping/routing.yaml). E-3101 moved 1.1 m south (y 41.4) with its expander feed N10 low on the
+south end: XV-3117 stands just outside the south wall at 1.5 m, in the expander's casing
+extension (review layout#15, still not modelled), on AIR-3003 between the skid and the wall.
+E-3102 moved to the north end of E20 with the rich liquid and LN outlets on its north face:
+the JT valves LV-3101 and FV-3106 (extended bonnets) stand 0.4 m inside the north wall at the
+access hatch H1 (enclosure opening `kind: hatch`, 20.3 .. 21.5 m), worked from P20 outside.
+The warm-end nozzles of E-3101 were rearranged so GOX-4001 leaves north without crossing the
+GAN-4001 riser. No layout-operability finding inside the casing remains.
+(4) **Vents and trays** (review4#4): the off-spec GAN divert VNT-4004 (the whole GAN-4001 flow)
+goes to the vent area V1 as D-025 places it, on the PR1 top tier (lane y 69.5) and the PR3
+8.5 m tier (lane x 182.6), outlet riser at [189, 116.5] to 12 m; D-029 (3) keeps only the small
+vents at their items. The GOX battery limit bleed VNT-4006 rises 8 m to 17.1 m (pinned at the
+BL tee, the GOX-4002 run pinned as built) so its 5 m zone stays clear of the PR1 trays at 11 m
+and 16 m off the east road. The tray rules keep the default `avoid_zones` (oxygen-enriched,
+hazardous). The LOX pump motor trays end inside the pumps' own seal zone Z-O2-SEALS: stainless
+last tray length, halogen-free armoured cable with a non-combustible sheath, metal glands, no
+PVC or grease (accepted). Oxygen-deficient zones are no cable hazard and are not avoided.
+(5) **The large MV motors are not fed by tray over their items** (review4#5, review3#1): the
+GOX compressor motor cable runs on the PR1 power tray to a cable pit under the rack at x 169
+and from there ~40 m in a covered trench south to the open east side of FW-4101 and the motor
+terminal box (electrical list feeder K-4101-MV; the trench length is not in the schedule's
+185 m and is added in detail design), out of the K-4101 lift lane, which FW-4101 alone now
+blocks (the vertical lift over the wall, D-034 (4)). The 8 MW MAC motor is fed from SWG-1
+through the B2 cable cellar and a 2 m covered trench into the B1 floor trench (~25 m), no
+tray over the B1 roof or through its roller door (the motor is `skip`ped in the tray model with
+that reason). Branch trays off the racks (to the other motors, the heater, the junction boxes
+and B2's room exits) are carried on cable-ladder posts and brackets at no more than 3 m; the
+model holds no tray support steel off the racks (layout-tray-span accepted with that reason).
+(6) **B2 beside B1** (review4#6): B1 is `use: compressor`, B2 `use: substation`; the 15 m of the
+building spacing table is replaced by a declared separation (site-plan.yaml, 2 m): the two face
+each other only over x 36 .. 38, B2's south wall is a REI 120 masonry fire wall without doors
+or louvres (D1 and the switchgear roller door D2 moved to the north wall, the AHU-2 louvres to
+the east and north walls), the MAC house holds no flammable gas, and its noise (~85 dB(A)
+inside) is reduced by its cladding and the masonry wall to below the control room limit. A
+fire and noise assessment confirms it in detail engineering.
+(7) **Transformer yard** (review4#10): TR-1 (16 MVA) and TR-2 (2.5 MVA) stand in bunded bays
+west of B2 (zones Z-TR1 / Z-TR2, x 13 .. 19), separated by the fire wall FW-TR (REI 120, 5 m),
+with B2's west wall REI 90 behind them and the low-loader access from the west road R4; the
+switchgear delivery door moved off that face.
+(8) **Crane pad of the LOX vaporizers** (review4#7): Z-PAD-A5 moved off PR2 to open ground south
+of E-4105A/B (x 157 .. 177, y 83 .. 91, reach 20 m); the backup GOX lines GOX-4004 rise in the
+gaps beside the vaporizers and join north of them, so nothing crosses the lift lanes; no
+layout-pad-overlap and no vaporizer lifting finding remain. A pad Z-PAD-A4N south of the GAN
+compressor K-4102 replaces the lift over PR1 (its lane is now crossed only by the motor's own
+feed tray, a removable tray section for the lifting study).
+(9) **LOX pump discharge** (review4#9): LOX-4002 runs level at 4.0 m (the vaporizer inlet
+height) from the pumps under PR2 to E-4105A/B, without the 9.6 m run over open ground and its
+two high points.
+(10) The casing breather zone Z-N2-CASING is centred at the breather on the 53 m roof
+([127, 46, 53.5], review4#8). (11) The B1 roof title gives the 40 t crane (review4#11).
+Reason: the fourth, independent layout review found the cold box access inside the perlite,
+the tank relief and vent outlets at the generated tank stairs, valves inside the casing, a
+large N2 vent and the GOX bleed zone at the rack trays, an MV tray over a 45 t lift and a crane
+pad on a rack; the improved plantcode rules (access in casings, connected stairs, walking
+surfaces of tanks, hatches, trays in lift lanes and zones, building spacing, pad overlap) now
+see them, and the fixes above clear them.
+Result: validate 0 errors, 0 clashes; no escape, access, vent-outlet, building-spacing or
+pad-overlap finding; layout findings left: 8 lifting cases for the lifting study (review3#5),
+71 operability (review3#3), 23 free spans and 69 missing supports (review3#4); gates concept
+and basic pass except layout-review (a new independent review is needed).
+Open: the expander casing extension (layout#15), the trench routes in the cable schedule,
+tray support details, the B1 / B2 fire and noise assessment, transformer oil quantities and
+fire protection.

@@ -75,9 +75,9 @@ The sheets in `pid/`, `equipment/equipment-list.yaml`, `piping/line-list.yaml`,
    file exists, validate compares it with the sheets, and the layout may place them:
    ```yaml
    piping_items:
-     - {tag: PSV-4122, type: SpringLoadedGlobeSafetyValve, line: GOX-4002, sheet: P-04,
+     - {tag: PSV-201, type: SpringLoadedGlobeSafetyValve, line: G-201, sheet: P-04,
         set_pressure_barg: 34, relief_case: blocked outlet}
-     - {tag: S-4101, type: Silencer, line: VNT-4002, sheet: P-04}
+     - {tag: S-201, type: Silencer, line: VNT-201, sheet: P-04}
    ```
    The tag is the component's `PipingComponentNumber` (or `PositionNumber`) as printed.
 8. **Interlocks**: every trip is one entry of `control/cause-effect.yaml`, the one place that
@@ -85,11 +85,11 @@ The sheets in `pid/`, `equipment/equipment-list.yaml`, `piping/line-list.yaml`,
    ```yaml
    interlocks:
      - id: I-07
-       title: LIN tank low-low level
-       cause: {tag: LIA-4108, condition: LALL}
+       title: Tank low-low level
+       cause: {tag: LIA-301, condition: LALL}
        effects:
-         - {tag: P-4102A, action: stop}   # trip, stop, start, close, open, depressurize, alarm
-         - {tag: XV-4137, action: close}
+         - {tag: P-301A, action: stop}   # trip, stop, start, close, open, depressurize, alarm
+         - {tag: XV-301, action: close}
        sheet: P-04
        sil: null
        notes: D-024
