@@ -82,10 +82,20 @@ type_specific:
     source: 'equipment/equipment-list.yaml dimensions: pi/4 D^2 x height (overall, including heads and
       skirt: an upper bound)'
     assumed: true
+  minimum_stages:
+    value: 11.99
+    unit: ''
+    source: 'scripts/datasheet_sizing.py (D-053 (7)): Fenske between the waste N2 top S16 (130 kPa(a),
+      dew 80.15 K) and the GOX sump S15 (135 kPa(a), ASSUMED sump pressure, bubble 92.88 K), keys Ar/O2,
+      alpha 1.504 (geometric mean, property adapter thermo 0.6.1, PR): the argon-oxygen split governs
+      (keys N2/O2 give 8.77); a lower bound only: two feeds (crude S13, Lachmann air S6) and three products,
+      so no Underwood / Gilliland; Fenske, Ind. Eng. Chem. 24 (1932) 482'
+    assumed: true
   number_of_stages:
     value: TBD
     unit: ''
-    source: 'TBD: sizing (DESIGN.md, a supplier)'
+    source: 'TBD: the shortcut method needs a linked node with one feed and two products (C3102) (plantcode
+      datasheets fill)'
   process_streams:
   - stream: S6
     direction: in
@@ -107,6 +117,19 @@ type_specific:
     direction: out
     title: LOX to storage
     source: process/flowsheet.yaml (case design)
+  minimum_reflux_ratio:
+    value: TBD
+    unit: ''
+    source: 'TBD: the shortcut method needs a linked node with one feed and two products (C3102) (plantcode
+      datasheets fill)'
+  theoretical_stages:
+    value: TBD
+    unit: ''
+    source: 'TBD: the shortcut method needs a linked node with one feed and two products (C3102) (plantcode
+      datasheets fill)'
 sizing_basis: []
-notes: Structured packing, top 1.3 bara. O2 service in the lower section. Stands on C-3101 (stacked double
-  column), E-3103 in its sump. ASSUMED.
+notes: 'Structured packing, top 1.3 bara. O2 service in the lower section. Stands on C-3101 (stacked double
+  column), E-3103 in its sump. ASSUMED. Open (DESIGN.md D-053): two feeds (S13, S6), three products and argon
+  between the keys, so the one-feed shortcut method does not apply; Fenske gives 12.0 minimum stages for the
+  Ar/O2 split (a lower bound, scripts/datasheet_sizing.py). Theoretical stages, packing heights and diameter
+  from a process simulation or the cold box supplier.'

@@ -6,12 +6,27 @@
 tag: P-4102A
 type: CentrifugalPump
 service: LIN backup pump
-draft: true
+draft: false
 operating:
-  conditions:
-    value: TBD
-    unit: ''
-    source: 'TBD: no flowsheet stream links this item (links: in process/flowsheet.yaml)'
+  fluid:
+    value: LIN, saturated at the tank pressure
+    source: process/flowsheet.yaml stream S11 composition; T-4102 storage
+  suction_pressure:
+    value: 1.5
+    unit: bar(a)
+    source: DESIGN.md D-042 (ASSUMED suction 1.5 bara)
+    assumed: true
+  suction_temperature:
+    value: -192.4
+    unit: °C
+    source: 'scripts/datasheet_sizing.py (D-053 (8)): bubble point of S11 at 150 kPa(a), 80.77 K, property
+      adapter (thermo 0.6.1, PR)'
+    assumed: true
+  discharge_pressure:
+    value: 9.0
+    unit: bar(a)
+    source: 'piping/line-list.yaml LIN-4002: pump discharge to the vaporizers, 9 bara'
+    assumed: true
 design:
   pressure_barg:
     value: 15.0
@@ -68,9 +83,16 @@ type_specific:
       efficiency 0.5 ASSUMED) -- equipment list: 6.3 t/h to 9 bara'
     assumed: true
   npsh_available_m:
-    value: TBD
+    value: -0.19
     unit: m
-    source: 'TBD: sizing (DESIGN.md, a supplier)'
+    source: 'scripts/datasheet_sizing.py (D-053 (8)): NPSHa = (p_tank - p_vap) / (rho g) + static - losses
+      with the liquid saturated at the tank pressure (p_tank = p_vap) and no liquid above the tank outlet:
+      static -0.15 m (T-4102/N4 at z 0.50 m, suction N1 at z 0.65 m, layout/plant-model.yaml) - suction loss
+      0.041 m (routed LIN-4001 S1, S2, schedule 10S ASSUMED, Darcy-Weisbach / Colebrook, rho 806 kg/m3
+      D-042, mu 0.141 mPa s thermo correlation ASSUMED; the two ball valves have no K in the table and are
+      not counted). The NPSH comes from the liquid above N4: the low-low level of LIA-4108 must hold at
+      least NPSHr (supplier) + 0.19 m + margin of liquid above N4 (DESIGN.md D-053)'
+    assumed: true
   shaft_power_kw:
     value: 3.3
     unit: kW
@@ -82,4 +104,8 @@ sizing_basis:
 - parameter: rating
   value: 6.3 t/h LIN to 9 bara (the GAN backup, D-017)
   reference: DESIGN.md D-017 / equipment list
-notes: 6.3 t/h to 9 bara, cold standby. ASSUMED.
+notes: '6.3 t/h to 9 bara, cold standby. ASSUMED. Review (DESIGN.md D-053): the head takes 9 bara at the pump
+  discharge (LIN-4002), the pressure of the GAN header it feeds; the routed discharge line to E-4106A adds
+  1.54 m and 4.0 m static (scripts/datasheet_sizing.py), and the vaporizer and control valve drops are not yet
+  known: the rated discharge pressure is to be raised by them with the vaporizer supplier''s figure. NPSH: the
+  pump suction stands 0.15 m above the tank outlet T-4102/N4.'

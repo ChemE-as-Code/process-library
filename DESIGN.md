@@ -1516,3 +1516,80 @@ liquid, but the property method finds them just above their bubble points, i.e. 
 saturation line within the rounding of DESIGN.md 3 and should be set a few K subcooled when
 the cold-box balance is next revised.
 
+## D-053 Datasheet sizing: calculated values, sizing assumptions, what stays with the suppliers (2026-10-23)
+Decision (amends D-042): the 38 datasheets are sized with `plantcode datasheets fill` where a
+flowsheet node gives the streams, and by `scripts/datasheet_sizing.py` (provenance; run with
+`plantcode run`) where it does not; that script uses only plantcode's own methods (property
+adapter, `sizing`, line losses along the routed pipes of the layout model, Fenske / Underwood)
+and IAPWS-95 for water. Every value names its calculation and inputs; every value resting on an
+assumption below is `assumed: true`. 28 datasheets have no `TBD` left and are `draft: false`;
+10 stay drafts (below). Of the 66 TBD values of D-042, 47 are filled and 19 stay open; the fill
+added 16 TBD fields of its own (LMTD, minimum stages and reflux) on the 10 open drafts.
+Sizing assumptions (ASSUMED, concept values until the suppliers' figures):
+- compressors: isentropic efficiency 0.80 per stage; maximum pressure ratio 2.0 per stage (gives
+  the 3 MAC stages of section 1, 5 GOX stages against the list's 4-5, one booster and one GAN
+  stage); intercooled to 40 C (as the aftercoolers of the list); mechanical efficiency 0.97;
+  expander eta_s 0.85 (D-003). Isentropic, not polytropic, efficiencies are declared. The MAC
+  Cp/Cv 1.402 is the property adapter's for the dry air at the suction (the 0.25 mol% water of
+  S1 is outside the method and neglected). The motor inputs of section 3 (8.0 / 2.3 / 0.3 MW) are
+  kept as `electric_power_kw`, the motor and utility basis; `shaft_power_kw` is now calculated.
+- gas / cooling-water coolers: one shell, two tube passes (1-2, Bowman-Mueller-Nagle F), U 160
+  W/(m2 K), the middle of 'cooler, gases / water' of Sinnott, C&R Vol. 6, 4th ed., Table 12.1;
+  cooling water 25 -> 35 C (design basis); no area margin.
+- pumps: water pump efficiency 0.75; a 100 kPa allowance for the flow control valve, strainer
+  and the C-1101 liquid distributor; CW at the battery limit 4 barg (design basis); pipe schedule
+  40 for the water lines and 10S for the stainless cryogenic lines, commercial-steel roughness;
+  LOX / LIN pumps keep D-042's efficiency 0.5, densities and 1.5 bara suction.
+Results and review against the design:
+1. MAC K-1101: 3 x 1.791, 5,778 kW gas power, 5,957 kW shaft (isothermal 4.15 MW, isothermal
+   efficiency 0.70), 26 % below the 8.0 MW electric of section 3 (0.105 kWh/Nm3): inside the
+   concept accuracy, the 8.0 MW stays the motor and utility basis. Coolers (dry-gas sensible
+   duty): E-1101 1,612 kW / 334 m2, E-1102 1,947 kW / 361 m2, E-1103 1,947 kW / 361 m2; 5.5 MW and
+   476 m3/h CW in all, against the MAC's 7.6 MW of cooling water in section 3. Finding: the flowsheet's S1 carries 0.25 mol%
+   water (D-027), the design basis 80 % RH at 30 C (3.35 mol%); with the design basis humidity
+   ~690 kg/h of water condense in E-1102 and ~640 kg/h in E-1103 (+464 / +426 kW, IAPWS-95). The
+   S1 humidity is to be reconciled with the design basis before the cooler enquiry.
+2. GOX compressor K-4101: 5 x 1.933, 2,113 kW gas, 2,178 kW shaft against 2.3 MW electric
+   (consistent); the isothermal 1.48 MW of section 3 checks (1,477 kW). E-4101 four intercoolers
+   1,608 kW / 286 m2, E-4102 427 kW / 73 m2.
+3. GAN compressor K-4102: 1 x 1.731, 229 kW gas, 236 kW shaft against 0.3 MW electric; E-4103
+   175 kW / 40 m2 (replaces the 0.3 MW of the utility table, which was the whole machine's
+   cooling water).
+4. Compander: booster K-3101 5.6 -> 8.0 bara 161 kW gas, 166 kW shaft, discharge 54.6 C (set as
+   S4C, D-052); E-3104 59 kW / 24 m2, 5.1 m3/h CW (the line list's ~60 m3/h on CW-3001 is about
+   ten times what the duty needs). Expander KT-3101 (real gas, adapter): 204.6 kW gas, 198.5 kW
+   shaft, exhaust 101.1 K (-172 C) against the -178 C of S6. Findings, within the concept
+   accuracy, for the compander supplier: the exhaust is 6 K warmer than the LP column feed
+   assumes (a colder inlet or a higher efficiency closes it), and the booster takes 33 kW less
+   than the expander gives (the pair balances at a higher booster discharge).
+5. Main exchanger E-3101: duty 5,211 kW from the warm side (main air 4,536 kW, booster air 674
+   kW, adapter enthalpies). From saturated vapour the cold streams would take 5,866 kW; the
+   655 kW difference is the warming of GAN and waste N2 in the subcooler E-3102 plus the heat
+   leak, which the flowsheet does not carry. Area stays TBD: a multi-stream plate-fin exchanger
+   is sized from its composite curves by its supplier.
+6. Columns: HP column C-3101 Fenske 11.8 minimum stages, Underwood Rmin 1.21 (N2 / O2 keys,
+   rich liquid 38 % O2, alpha 2.56); LP column C-3102 Fenske 12.0 minimum stages for the Ar/O2
+   split (8.8 for N2/O2), a lower bound. The operating reflux is set by the double-column heat
+   integration, which the flowsheet lumps (S13, D-027), so no Gilliland count on a guessed
+   R/Rmin: theoretical stages, packing and diameters stay with a process simulation or the
+   cold box supplier.
+7. DCAC / evaporative cooler C-1101 / C-1102: not distillations; packing heights from heat and
+   mass transfer of the packing supplier: stages stay TBD.
+8. LOX / LIN backup pumps: NPSH available at the tank outlet level is -0.16 m (LOX) and -0.19 m
+   (LIN): the pump suctions stand 0.15 m above the tank outlets T-4101/N4 and T-4102/N4 and the
+   liquid is saturated, so all NPSH comes from the liquid above the outlet nozzle. Requirement
+   (open): the low-low levels of LIA-4107 / LIA-4108 must hold NPSHr (supplier) + 0.2 m + margin
+   of liquid above N4. The D-042 heads (31 and 9 bara at the pump) do not yet include the
+   vaporizer and control valve drops downstream (lines: +0.5 m LOX, +1.5 m LIN, statics 3.5 /
+   4.0 m); to be raised with the vaporizer supplier's figures.
+9. DCAC CW pumps P-1101A/B: 31.1 / 31.9 m, NPSHa 53 m, 28 / 29 kW; chilled water pumps
+   P-1102A/B: 78.4 / 78.7 m, NPSHa 11.3 m, 28.5 / 28.6 kW (each pump along its own routed lines).
+10. Vaporizers E-4105A/B, E-4106A/B: duty and area TBD: the outlet temperature is not set,
+    vaporizing at 31 / 9 bara is outside the VLE range the property method is claimed for, and an
+    ambient-air vaporizer is rated by its supplier. E-3102 / E-3103: duty, conditions and area
+    TBD: they need the double-column internal balance.
+11. F-2101 operating conditions are S4's (S4 links the lines into and out of F-2101).
+Open (10 drafts, the datasheets gate stays failed, honestly): C-1101, C-1102, C-3101, C-3102
+(stages), E-3101 (area), E-3102, E-3103 (duty, area), E-4105A/B, E-4106A/B (duty, area). Their
+reasons are in each datasheet's notes (a later fill rewrites the TBD reasons with its own).
+

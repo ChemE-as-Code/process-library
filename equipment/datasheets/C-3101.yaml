@@ -135,10 +135,27 @@ type_specific:
     source: 'equipment/equipment-list.yaml dimensions: pi/4 D^2 x height (overall, including heads and
       skirt: an upper bound)'
     assumed: true
+  minimum_stages:
+    value: 11.77
+    unit: ''
+    source: 'scripts/datasheet_sizing.py (D-053 (6)): Fenske, keys N2/O2 (Ar a non-key), distillate =
+      S14 (O2 10 ppm, D-004), bottoms rich liquid x_O2 0.38 (DESIGN.md 1) with N2 / Ar by balance (B/F
+      0.5516), alpha N2/O2 2.557 geometric mean of the top dew point (540 kPa(a), 94.96 K) and the bottom
+      bubble point (550 kPa(a), 99.42 K), property adapter (thermo 0.6.1, PR); Fenske, Ind. Eng. Chem.
+      24 (1932) 482'
+    assumed: true
+  minimum_reflux_ratio:
+    value: 1.208
+    unit: ''
+    source: 'scripts/datasheet_sizing.py (D-053 (6)): Underwood, theta 1.4001, feed S5 as saturated vapour
+      (q 0, ASSUMED: ''cooled close to its dew point'', DESIGN.md 1); Underwood, Chem. Eng. Prog. 44 (1948)
+      603; inputs as minimum_stages'
+    assumed: true
   number_of_stages:
     value: TBD
     unit: ''
-    source: 'TBD: sizing (DESIGN.md, a supplier)'
+    source: 'TBD: the shortcut method needs a linked node with one feed and two products (C3101) (plantcode
+      datasheets fill)'
   process_streams:
   - stream: S5
     direction: in
@@ -156,5 +173,14 @@ type_specific:
     direction: out
     title: LIN to storage
     source: process/flowsheet.yaml (case design)
+  theoretical_stages:
+    value: TBD
+    unit: ''
+    source: 'TBD: the shortcut method needs a linked node with one feed and two products (C3101) (plantcode
+      datasheets fill)'
 sizing_basis: []
-notes: Structured packing or sieve trays, top 5.4 bara. ASSUMED.
+notes: 'Structured packing or sieve trays, top 5.4 bara. ASSUMED. Open (DESIGN.md D-053): Fenske 11.8
+  minimum stages and Underwood Rmin 1.21 are calculated (scripts/datasheet_sizing.py); the operating reflux
+  is set by the condenser-reboiler E-3103 and the LP column, the double-column internal balance the flowsheet
+  does not carry (S13 lumps rich liquid and LN reflux, D-027), so a Gilliland stage count would rest on a
+  guessed R/Rmin: theoretical stages, packing and diameter from a process simulation or the cold box supplier.'

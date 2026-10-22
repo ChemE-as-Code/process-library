@@ -6,7 +6,7 @@
 tag: K-1101
 type: CentrifugalCompressor
 service: Main air compressor (MAC)
-draft: true
+draft: false
 operating:
   inlet_pressure:
     value: 1.01
@@ -101,14 +101,53 @@ type_specific:
     unit: m
     source: equipment/equipment-list.yaml dimensions
   fluid_power_kw:
-    value: TBD
+    value: 5778.0
     unit: kW
-    source: 'TBD: sizing (DESIGN.md, a supplier)'
+    source: 'plantcode datasheets fill: P = m sum(w) = 5778 kW, stage work 69.04, 71.32, 71.32 kJ/kg;
+      isentropic efficiency 0.8 (ASSUMED: DESIGN.md D-053 (ASSUMED per stage until the supplier''s guarantee));
+      3 stage(s) of ratio 1.791 (overall 5.743, max per stage 2.0 (ASSUMED: DESIGN.md D-053 (ASSUMED;
+      gives the 3 stages of DESIGN.md 1 and the equipment list))); m 98270 kg/h (process/flowsheet.yaml
+      stream S1 (case design)), 101 -> 580 kPa(a) (S2), suction 303.15 K; ideal gas, constant Cp/Cv 1.402
+      (ASSUMED: property adapter (thermo 0.6.1, PR; plantcode process props method) for the dry air of
+      S4 at 30 C, 1.01 bara; the 0.25 mol% water of S1 is outside the method and neglected (ASSUMED, DESIGN.md
+      D-053)), M 28.94 kg/kmol (ASSUMED: Z = 1; the real-gas route was refused: suction: component H2O
+      (7732-18-5) is outside the supported mixture (argon, nitrogen, oxygen)); intercooled to 40 (ASSUMED:
+      DESIGN.md D-053 (ASSUMED, as the aftercooler E-1103 ''air to 40 C'', CW 25 -> 35 C)) degC'
+    assumed: true
   shaft_power_kw:
+    value: 5957.0
+    unit: kW
+    source: 'plantcode datasheets fill: fluid power 5778 kW / 0.97 (ASSUMED: DESIGN.md D-053 (ASSUMED,
+      gear and bearings))'
+    assumed: true
+  electric_power_kw:
     value: 8000
     unit: kW
     source: 'DESIGN.md 3 utility table: 8.0 MW electric at 0.105 kWh/Nm3, 5.8 bara (ASSUMED; motor input,
-      the shaft power is the vendor''s)'
+      kept as the utility and motor basis; the calculated shaft power is below it, DESIGN.md D-053)'
+    assumed: true
+  isentropic_efficiency:
+    value: 0.8
+    source: DESIGN.md D-053 (ASSUMED per stage until the supplier's guarantee)
+    assumed: true
+  max_stage_pressure_ratio:
+    value: 2.0
+    source: DESIGN.md D-053 (ASSUMED; gives the 3 stages of DESIGN.md 1 and the equipment list)
+    assumed: true
+  intercooler_outlet_temperature_degc:
+    value: 40
+    unit: degC
+    source: DESIGN.md D-053 (ASSUMED, as the aftercooler E-1103 'air to 40 C', CW 25 -> 35 C)
+    assumed: true
+  heat_capacity_ratio:
+    value: 1.402
+    source: property adapter (thermo 0.6.1, PR; plantcode process props method) for the dry air of S4
+      at 30 C, 1.01 bara; the 0.25 mol% water of S1 is outside the method and neglected (ASSUMED, DESIGN.md
+      D-053)
+    assumed: true
+  mechanical_efficiency:
+    value: 0.97
+    source: DESIGN.md D-053 (ASSUMED, gear and bearings)
     assumed: true
   process_streams:
   - stream: S1
@@ -119,6 +158,52 @@ type_specific:
     direction: out
     title: Compressed air
     source: process/flowsheet.yaml (case design)
+  number_of_stages:
+    value: 3
+    unit: ''
+    source: 'plantcode datasheets fill: 3 stage(s) of ratio 1.791 (overall 5.743, max per stage 2.0 (ASSUMED:
+      DESIGN.md D-053 (ASSUMED; gives the 3 stages of DESIGN.md 1 and the equipment list)))'
+    assumed: true
+  stage_pressure_ratio:
+    value: 1.791
+    unit: ''
+    source: 'plantcode datasheets fill: 3 stage(s) of ratio 1.791 (overall 5.743, max per stage 2.0 (ASSUMED:
+      DESIGN.md D-053 (ASSUMED; gives the 3 stages of DESIGN.md 1 and the equipment list)))'
+    assumed: true
+  discharge_temperature_k:
+    value: 384.3
+    unit: K
+    source: 'plantcode datasheets fill: last stage outlet; isentropic efficiency 0.8 (ASSUMED: DESIGN.md
+      D-053 (ASSUMED per stage until the supplier''s guarantee)); 3 stage(s) of ratio 1.791 (overall 5.743,
+      max per stage 2.0 (ASSUMED: DESIGN.md D-053 (ASSUMED; gives the 3 stages of DESIGN.md 1 and the
+      equipment list))); m 98270 kg/h (process/flowsheet.yaml stream S1 (case design)), 101 -> 580 kPa(a)
+      (S2), suction 303.15 K; ideal gas, constant Cp/Cv 1.402 (ASSUMED: property adapter (thermo 0.6.1,
+      PR; plantcode process props method) for the dry air of S4 at 30 C, 1.01 bara; the 0.25 mol% water
+      of S1 is outside the method and neglected (ASSUMED, DESIGN.md D-053)), M 28.94 kg/kmol (ASSUMED:
+      Z = 1; the real-gas route was refused: suction: component H2O (7732-18-5) is outside the supported
+      mixture (argon, nitrogen, oxygen)); intercooled to 40 (ASSUMED: DESIGN.md D-053 (ASSUMED, as the
+      aftercooler E-1103 ''air to 40 C'', CW 25 -> 35 C)) degC'
+    assumed: true
+  intercooler_duties_kw:
+    value:
+    - 1611.0
+    - 1947.0
+    unit: kW
+    source: 'plantcode datasheets fill: m (h_stage_out - h_intercooled) per intercooler; intercooled to
+      40 (ASSUMED: DESIGN.md D-053 (ASSUMED, as the aftercooler E-1103 ''air to 40 C'', CW 25 -> 35 C))
+      degC; isentropic efficiency 0.8 (ASSUMED: DESIGN.md D-053 (ASSUMED per stage until the supplier''s
+      guarantee)); 3 stage(s) of ratio 1.791 (overall 5.743, max per stage 2.0 (ASSUMED: DESIGN.md D-053
+      (ASSUMED; gives the 3 stages of DESIGN.md 1 and the equipment list))); m 98270 kg/h (process/flowsheet.yaml
+      stream S1 (case design)), 101 -> 580 kPa(a) (S2), suction 303.15 K; ideal gas, constant Cp/Cv 1.402
+      (ASSUMED: property adapter (thermo 0.6.1, PR; plantcode process props method) for the dry air of
+      S4 at 30 C, 1.01 bara; the 0.25 mol% water of S1 is outside the method and neglected (ASSUMED, DESIGN.md
+      D-053)), M 28.94 kg/kmol (ASSUMED: Z = 1; the real-gas route was refused: suction: component H2O
+      (7732-18-5) is outside the supported mixture (argon, nitrogen, oxygen)); intercooled to 40 (ASSUMED:
+      DESIGN.md D-053 (ASSUMED, as the aftercooler E-1103 ''air to 40 C'', CW 25 -> 35 C)) degC'
+    assumed: true
 sizing_basis: []
-notes: Integrally geared, 3 stages, 76,000 Nm3/h, 1.0 -> 5.8 bara, ~8.0 MW, 6.6 kV motor, IGV + anti-surge
-  blow-off. Train with gearbox and motor on one base 12 x 6 x 5 m. ASSUMED.
+notes: 'Integrally geared, 3 stages, 76,000 Nm3/h, 1.0 -> 5.8 bara, ~8.0 MW, 6.6 kV motor, IGV + anti-surge
+  blow-off. Train with gearbox and motor on one base 12 x 6 x 5 m. ASSUMED. Review (DESIGN.md D-053): 3 stages
+  at eta_s 0.80, intercooled to 40 C, give 5,778 kW gas power and 5,957 kW shaft power (isothermal 4.15 MW,
+  isothermal efficiency 0.70), 26 % below the 8.0 MW electric (motor losses not deducted) of the DESIGN.md 3
+  utility table (0.105 kWh/Nm3), which is kept as the motor and utility basis until the supplier''s figure.'

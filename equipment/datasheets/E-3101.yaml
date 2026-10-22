@@ -90,17 +90,26 @@ type_specific:
     unit: t
     source: equipment/equipment-list.yaml dimensions
   duty_kw:
-    value: TBD
+    value: 5211
     unit: kW
-    source: 'TBD: sizing (DESIGN.md, a supplier)'
+    source: 'scripts/datasheet_sizing.py (D-053 (5)): warm side, Q = sum n (h_in - h_out): main air S4A
+      83,190 kg/h 15 C 5.6 bara -> S5 -173 C 5.5 bara (-339.3 -> -6024.5 kJ/kmol) 4,536 kW + booster air
+      S4D 14,870 kg/h 40 C 8.0 bara -> S5B -118 C 7.8 bara (378.5 -> -4349.4 kJ/kmol) 674 kW; enthalpies
+      by the property adapter (thermo 0.6.1, PR) at the flowsheet states (all ASSUMED, DESIGN.md 3 / D-052)'
+    assumed: true
   area_m2:
     value: TBD
     unit: m2
-    source: 'TBD: sizing (DESIGN.md, a supplier)'
+    source: 'TBD: no linked node has one material inlet and one outlet (E3101), so no side gives the duty
+      and temperatures (plantcode datasheets fill)'
   process_streams:
-  - stream: S4
+  - stream: S4A
     direction: in
-    title: Dry air to cold box
+    title: Main air to E-3101
+    source: process/flowsheet.yaml (case design)
+  - stream: S4D
+    direction: in
+    title: Boosted air to E-3101
     source: process/flowsheet.yaml (case design)
   - stream: S5
     direction: out
@@ -134,6 +143,16 @@ type_specific:
     direction: out
     title: GAN product
     source: process/flowsheet.yaml (case design)
+  lmtd_k:
+    value: TBD
+    unit: K
+    source: 'TBD: no linked node has one material inlet and one outlet (E3101), so no side gives the duty
+      and temperatures (plantcode datasheets fill)'
 sizing_basis: []
 notes: 'Streams: air, booster air, GOX, GAN, waste N2. Max design temperature 65 C. O2 service (D-009).
-  Bank of 4 cores ~1.2 x 1.2 x 7.3 m side by side with headers, standing vertical (warm end up). ASSUMED.'
+  Bank of 4 cores ~1.2 x 1.2 x 7.3 m side by side with headers, standing vertical (warm end up). ASSUMED.
+  Open (DESIGN.md D-053): the duty (5,211 kW, warm side) is calculated; the area of a multi-stream brazed
+  plate-fin exchanger follows from its composite curves and fin geometry in the supplier''s design (one LMTD
+  with a shell-and-tube U does not apply), and the cold inlet temperatures depend on the subcooler E-3102,
+  which the flowsheet does not carry. Check: from saturated vapour the cold streams would take 5,866 kW, 655
+  kW more than the warm side gives; that is the warming of GAN and waste N2 in E-3102 plus the heat leak.'

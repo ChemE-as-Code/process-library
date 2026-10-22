@@ -6,8 +6,19 @@
 tag: KT-3101
 type: Turbine
 service: Air expansion turbine (Lachmann)
-draft: true
+draft: false
 operating:
+  inlet_pressure:
+    value: 7.8
+    unit: bar(a)
+    source: 'process/flowsheet.yaml stream S5B (case design), assumed: DESIGN.md 3 refrigeration (D-003)'
+    assumed: true
+  inlet_temperature:
+    value: -118.0
+    unit: °C
+    source: 'process/flowsheet.yaml stream S5B (case design), assumed: DESIGN.md 3 refrigeration (D-003)
+      design point'
+    assumed: true
   inlet_flow:
     value: 14870.0
     unit: kg/h
@@ -79,14 +90,27 @@ type_specific:
     unit: t
     source: equipment/equipment-list.yaml dimensions
   fluid_power_kw:
-    value: 215
+    value: 204.6
     unit: kW
-    source: 'DESIGN.md D-003: ~215 kW refrigeration, 7.8 -> 1.35 bara, -118 -> -178 C, eta_s 0.85 (ASSUMED)'
+    source: 'plantcode datasheets fill: P = m sum(w) = 204.6 kW, stage work -49.54 kJ/kg; isentropic efficiency
+      0.85 (ASSUMED: DESIGN.md 3 refrigeration / D-003 (eta_s 0.85, ASSUMED)); one expansion stage, ratio
+      0.1731; m 14870 kg/h (process/flowsheet.yaml stream S5B (case design)), 780 -> 135 kPa(a) (S6),
+      suction 155.15 K; real gas, property adapter (enthalpy, entropy)'
+    assumed: true
+  isentropic_efficiency:
+    value: 0.85
+    source: DESIGN.md 3 refrigeration / D-003 (eta_s 0.85, ASSUMED)
+    assumed: true
+  mechanical_efficiency:
+    value: 0.97
+    source: DESIGN.md D-053 (ASSUMED, bearings of the compander shaft)
     assumed: true
   shaft_power_kw:
-    value: TBD
+    value: 198.5
     unit: kW
-    source: 'TBD: sizing (DESIGN.md, a supplier)'
+    source: 'plantcode datasheets fill: fluid power 204.6 kW x 0.97 (ASSUMED: DESIGN.md D-053 (ASSUMED,
+      bearings of the compander shaft))'
+    assumed: true
   process_streams:
   - stream: S5B
     direction: in
@@ -96,7 +120,19 @@ type_specific:
     direction: out
     title: Lachmann air
     source: process/flowsheet.yaml (case design)
+  discharge_temperature_k:
+    value: 101.1
+    unit: K
+    source: 'plantcode datasheets fill: last stage outlet; isentropic efficiency 0.85 (ASSUMED: DESIGN.md
+      3 refrigeration / D-003 (eta_s 0.85, ASSUMED)); one expansion stage, ratio 0.1731; m 14870 kg/h
+      (process/flowsheet.yaml stream S5B (case design)), 780 -> 135 kPa(a) (S6), suction 155.15 K; real
+      gas, property adapter (enthalpy, entropy)'
+    assumed: true
 sizing_basis: []
 notes: '7.8 -> 1.35 bara, inlet -118 C, exhaust -178 C, ~215 kW refrigeration (D-003). Overspeed trip
   SSHH-3108. Oil-lubricated bearings: N2 labyrinth seal gas with PDSLL-3115 permissive/trip, oil mist
-  eliminator on the oil tank vent outside the cold box (D-012). ASSUMED.'
+  eliminator on the oil tank vent outside the cold box (D-012). ASSUMED. Review (DESIGN.md D-053): at eta_s
+  0.85 the real-gas expansion from -118 C, 7.8 bara ends at 101.1 K (-172 C), 6 K warmer than the -178 C of
+  S6, with 204.6 kW (49.5 kJ/kg) against the ~215 kW of D-003; the S5B -> S6 states taken as given would
+  need 230 kW. Inside the concept accuracy; the compander supplier fixes the inlet temperature and the
+  efficiency.'

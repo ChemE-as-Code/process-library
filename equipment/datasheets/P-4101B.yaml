@@ -6,12 +6,27 @@
 tag: P-4101B
 type: CentrifugalPump
 service: LOX backup pump (spare)
-draft: true
+draft: false
 operating:
-  conditions:
-    value: TBD
-    unit: ''
-    source: 'TBD: no flowsheet stream links this item (links: in process/flowsheet.yaml)'
+  fluid:
+    value: LOX (O2 99.5 %), saturated at the tank pressure
+    source: process/flowsheet.yaml stream S10 composition; T-4101 storage
+  suction_pressure:
+    value: 1.5
+    unit: bar(a)
+    source: DESIGN.md D-042 (ASSUMED suction 1.5 bara)
+    assumed: true
+  suction_temperature:
+    value: -179.2
+    unit: °C
+    source: 'scripts/datasheet_sizing.py (D-053 (8)): bubble point of S10 at 150 kPa(a), 93.97 K, property
+      adapter (thermo 0.6.1, PR)'
+    assumed: true
+  discharge_pressure:
+    value: 31.0
+    unit: bar(a)
+    source: 'piping/line-list.yaml LOX-4002: pump discharge to the vaporizers, 31 bara'
+    assumed: true
 design:
   pressure_barg:
     value: 40.0
@@ -68,9 +83,16 @@ type_specific:
       0.5 (pump efficiency 0.5 ASSUMED) -- equipment list: as P-4101A'
     assumed: true
   npsh_available_m:
-    value: TBD
+    value: -0.16
     unit: m
-    source: 'TBD: sizing (DESIGN.md, a supplier)'
+    source: 'scripts/datasheet_sizing.py (D-053 (8)): NPSHa = (p_tank - p_vap) / (rho g) + static - losses
+      with the liquid saturated at the tank pressure (p_tank = p_vap) and no liquid above the tank outlet:
+      static -0.15 m (T-4101/N4 at z 0.50 m, suction N1 at z 0.65 m, layout/plant-model.yaml) - suction loss
+      0.013 m (routed LOX-4001 S1, S3, schedule 10S ASSUMED, Darcy-Weisbach / Colebrook, rho 1141 kg/m3
+      D-042, mu 0.177 mPa s thermo correlation ASSUMED; the two ball valves have no K in the table and are
+      not counted). The NPSH comes from the liquid above N4: the low-low level of LIA-4107 must hold at
+      least NPSHr (supplier) + 0.16 m + margin of liquid above N4 (DESIGN.md D-053)'
+    assumed: true
   shaft_power_kw:
     value: 7.5
     unit: kW
