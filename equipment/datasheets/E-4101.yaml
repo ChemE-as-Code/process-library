@@ -8,15 +8,35 @@ type: TubularHeatExchanger
 service: GOX compressor intercoolers (package)
 draft: false
 operating:
-  gox_inlet_pressures:
-    value: 2.22 / 4.30 / 8.31 / 16.06
+  gox_inlet_pressure_ic1:
+    value: 2.22
     unit: bar(a)
-    source: 'scripts/datasheet_sizing.py (D-053 (2)): K-4101 stage 1..4 outlets, 1.15 bara x 1.933^i (equipment/datasheets/K-4101.yaml)'
+    source: 'scripts/datasheet_sizing.py (D-053 (2)): K-4101 stage 1 outlet, 1.15 bara x 1.933 (equipment/datasheets/K-4101.yaml)'
     assumed: true
-  gox_inlet_temperatures:
-    value: 101.9 / 120.8 / 120.8 / 120.8
+  gox_inlet_pressure_ic2:
+    value: 4.3
+    unit: bar(a)
+    source: 'scripts/datasheet_sizing.py (D-053 (2)): K-4101 stage 2 outlet, 1.15 bara x 1.933^2'
+    assumed: true
+  gox_inlet_pressure_ic3:
+    value: 8.31
+    unit: bar(a)
+    source: 'scripts/datasheet_sizing.py (D-053 (2)): K-4101 stage 3 outlet, 1.15 bara x 1.933^3'
+    assumed: true
+  gox_inlet_pressure_ic4:
+    value: 16.06
+    unit: bar(a)
+    source: 'scripts/datasheet_sizing.py (D-053 (2)): K-4101 stage 4 outlet, 1.15 bara x 1.933^4'
+    assumed: true
+  gox_inlet_temperature_ic1:
+    value: 101.9
     unit: °C
-    source: 'scripts/datasheet_sizing.py (D-053 (2)): K-4101 stage 1..4 outlets 375.06 / 393.93 K (ideal gas, eta_s 0.80 ASSUMED)'
+    source: 'scripts/datasheet_sizing.py (D-053 (2)): K-4101 stage 1 outlet 375.06 K (ideal gas, eta_s 0.80 ASSUMED)'
+    assumed: true
+  gox_inlet_temperature_ic2_to_ic4:
+    value: 120.8
+    unit: °C
+    source: 'scripts/datasheet_sizing.py (D-053 (2)): K-4101 stage 2 .. 4 outlets 393.93 K (ideal gas, eta_s 0.80 ASSUMED, intercooled to 40 C)'
     assumed: true
   gox_outlet_temperature:
     value: 40
@@ -90,13 +110,13 @@ type_specific:
       adapter); = intercooler_duties_kw of equipment/datasheets/K-4101.yaml'
     assumed: true
   lmtd_k:
-    value: 34.72 / 40.59 / 40.59 / 40.59
+    value: [34.72, 40.59, 40.59, 40.59]
     unit: K
     source: 'scripts/datasheet_sizing.py (D-053 (2)): per intercooler, GOX 375.06 / 393.93 -> 313.15 K, CW
       298.15 -> 308.15 K'
     assumed: true
   lmtd_correction_f:
-    value: 0.8946 / 0.895 / 0.895 / 0.895
+    value: [0.8946, 0.895, 0.895, 0.895]
     unit: ''
     source: 'scripts/datasheet_sizing.py (D-053 (2)): 1-2 shell and tube (ASSUMED), Bowman, Mueller and Nagle,
       Trans. ASME 62 (1940) 283'

@@ -1720,4 +1720,23 @@ Each change below was built, the model checked with `plantcode layout build` and
    written in its `location_source`. Core 9026acb now also reports a nozzle the placement
    overrides without a location on its datasheet; `plantcode validate` reports none, and no
    located nozzle differs from the model.
+9. **Datasheets after the review of core's sizing (core 9518dfc, 2af1bac).** The independent
+   hand check of the D-053 values (E-1101, E-3104, P-1101A, P-4101A, K-1101, K-4101, C-3101,
+   C-3102) found no numeric defect. What the core fixes change here:
+   - K-1101 and K-4101 refilled (`plantcode datasheets fill`, drafts for the run only): the
+     same values; their basis now says that the stream pressures are taken at the machine's
+     flanges and that no intercooler or aftercooler pressure drop is taken (ASSUMED; with a
+     declared intercooler temperature the text had dropped it). Only isentropic efficiencies
+     are declared, so the corrected polytropic route changes nothing.
+   - E-4101: the per-intercooler LMTD and F are numeric lists (were text with a unit), and the
+     GOX inlet pressures and temperatures one numeric value per intercooler.
+   - P-1101A/B, P-1102A/B rerun with scripts/datasheet_sizing.py: tees are now charged to the
+     stretch that ends at them and the inside diameter is the ASME OD less twice the wall;
+     heads 31.07 / 31.92 / 78.32 / 78.71 m (were 31.08 / 31.93 / 78.35 / 78.74), powers
+     28.13 / 28.90 / 28.44 / 28.58 kW; equipment estimate rerun (purchased USD 4,001,497, was
+     4,001,506).
+   - The columns: `k_values` now gives a component absent from a product its infinite-dilution
+     K, so a fill of C-3101 / C-3102 would no longer refuse the sharp N2 / Ar splits; their
+     minimum stages stay as D-053 (6) computed them (the script's Fenske / Underwood used the
+     trace argon of S14, not a zero).
 

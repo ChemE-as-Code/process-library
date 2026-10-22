@@ -60,9 +60,8 @@ nozzles:
   orientation_deg: 180
   offset_m: 3.5
   elevation_m: 5.0
-  location_source: layout/equipment-placement.yaml (suction on top at the first stage, 3.5 m west
-    of the centre, GOX-4001 drops onto it over the fire wall, no penetration; D-033 (4),
-    D-055 (8))
+  location_source: layout/equipment-placement.yaml (suction on top at the first stage, 3.5 m west of the
+    centre, GOX-4001 drops onto it over the fire wall, no penetration; D-033 (4), D-055 (8))
 - name: N2
   dn: 200
   lines:
@@ -71,8 +70,8 @@ nozzles:
   face: side
   orientation_deg: 90
   elevation_m: 2.5
-  location_source: layout/equipment-placement.yaml (discharge on the north side, 3.5 m east of the
-    centre, towards E-4102; the P&ID draws it at the motor end; D-055 (8))
+  location_source: layout/equipment-placement.yaml (discharge on the north side, 3.5 m east of the centre,
+    towards E-4102; the P&ID draws it at the motor end; D-055 (8))
 - name: N3
   dn: 300
   lines:
@@ -81,8 +80,8 @@ nozzles:
   face: side
   orientation_deg: 90
   elevation_m: 2.5
-  location_source: layout/equipment-placement.yaml (interstage on the north side, 2.5 m west of the
-    centre, towards the intercooler package E-4101; the P&ID draws it below; D-055 (8))
+  location_source: layout/equipment-placement.yaml (interstage on the north side, 2.5 m west of the centre,
+    towards the intercooler package E-4101; the P&ID draws it below; D-055 (8))
 - name: N4
   dn: 300
   lines:
@@ -91,8 +90,8 @@ nozzles:
   face: side
   orientation_deg: 90
   elevation_m: 2.5
-  location_source: layout/equipment-placement.yaml (interstage on the north side, 0.5 m east of the
-    centre; D-055 (8))
+  location_source: layout/equipment-placement.yaml (interstage on the north side, 0.5 m east of the centre;
+    D-055 (8))
 - name: I1
   lines: []
   source: pid/P-04.xml
@@ -123,10 +122,12 @@ type_specific:
       73.63 kJ/kg; isentropic efficiency 0.8 (ASSUMED: DESIGN.md D-053 (ASSUMED per stage until the supplier''s
       guarantee)); 5 stage(s) of ratio 1.933 (overall 26.96, max per stage 2.0 (ASSUMED: DESIGN.md D-053
       (ASSUMED; gives 5 stages, the equipment list says 4-5))); m 20860 kg/h (process/flowsheet.yaml stream
-      S7 (case design)), 115 -> 3100 kPa(a) (S8), suction 298.15 K; ideal gas, constant Cp/Cv 1.398 at
-      the suction (property adapter), M 32.03 kg/kmol (ASSUMED: Z = 1; the real-gas route was refused:
-      isentropic outlet: temperature 359.05 K outside the claimed 77 to 315 K); intercooled to 40 (ASSUMED:
-      DESIGN.md D-053 (ASSUMED, as the aftercooler E-4102 ''GOX to 40 C'', CW 25 -> 35 C)) degC'
+      S7 (case design)), 115 -> 3100 kPa(a) (S8; the stream pressures taken at the machine''s flanges,
+      line losses not added), suction 298.15 K; ideal gas, constant Cp/Cv 1.398 at the suction (property
+      adapter), M 32.03 kg/kmol (ASSUMED: Z = 1; the real-gas route was refused: isentropic outlet: temperature
+      359.05 K outside the claimed 77 to 315 K); intercooled to 40 (ASSUMED: DESIGN.md D-053 (ASSUMED,
+      as the aftercooler E-4102 ''GOX to 40 C'', CW 25 -> 35 C)) degC, no intercooler or aftercooler pressure
+      drop (ASSUMED: the stage ratios split S8''s pressure)'
     assumed: true
   shaft_power_kw:
     value: 2178.0
@@ -190,11 +191,12 @@ type_specific:
     source: 'plantcode datasheets fill: last stage outlet; isentropic efficiency 0.8 (ASSUMED: DESIGN.md
       D-053 (ASSUMED per stage until the supplier''s guarantee)); 5 stage(s) of ratio 1.933 (overall 26.96,
       max per stage 2.0 (ASSUMED: DESIGN.md D-053 (ASSUMED; gives 5 stages, the equipment list says 4-5)));
-      m 20860 kg/h (process/flowsheet.yaml stream S7 (case design)), 115 -> 3100 kPa(a) (S8), suction
-      298.15 K; ideal gas, constant Cp/Cv 1.398 at the suction (property adapter), M 32.03 kg/kmol (ASSUMED:
-      Z = 1; the real-gas route was refused: isentropic outlet: temperature 359.05 K outside the claimed
-      77 to 315 K); intercooled to 40 (ASSUMED: DESIGN.md D-053 (ASSUMED, as the aftercooler E-4102 ''GOX
-      to 40 C'', CW 25 -> 35 C)) degC'
+      m 20860 kg/h (process/flowsheet.yaml stream S7 (case design)), 115 -> 3100 kPa(a) (S8; the stream
+      pressures taken at the machine''s flanges, line losses not added), suction 298.15 K; ideal gas,
+      constant Cp/Cv 1.398 at the suction (property adapter), M 32.03 kg/kmol (ASSUMED: Z = 1; the real-gas
+      route was refused: isentropic outlet: temperature 359.05 K outside the claimed 77 to 315 K); intercooled
+      to 40 (ASSUMED: DESIGN.md D-053 (ASSUMED, as the aftercooler E-4102 ''GOX to 40 C'', CW 25 -> 35
+      C)) degC, no intercooler or aftercooler pressure drop (ASSUMED: the stage ratios split S8''s pressure)'
     assumed: true
   intercooler_duties_kw:
     value:
@@ -205,13 +207,16 @@ type_specific:
     unit: kW
     source: 'plantcode datasheets fill: m (h_stage_out - h_intercooled) per intercooler; intercooled to
       40 (ASSUMED: DESIGN.md D-053 (ASSUMED, as the aftercooler E-4102 ''GOX to 40 C'', CW 25 -> 35 C))
-      degC; isentropic efficiency 0.8 (ASSUMED: DESIGN.md D-053 (ASSUMED per stage until the supplier''s
-      guarantee)); 5 stage(s) of ratio 1.933 (overall 26.96, max per stage 2.0 (ASSUMED: DESIGN.md D-053
-      (ASSUMED; gives 5 stages, the equipment list says 4-5))); m 20860 kg/h (process/flowsheet.yaml stream
-      S7 (case design)), 115 -> 3100 kPa(a) (S8), suction 298.15 K; ideal gas, constant Cp/Cv 1.398 at
-      the suction (property adapter), M 32.03 kg/kmol (ASSUMED: Z = 1; the real-gas route was refused:
-      isentropic outlet: temperature 359.05 K outside the claimed 77 to 315 K); intercooled to 40 (ASSUMED:
-      DESIGN.md D-053 (ASSUMED, as the aftercooler E-4102 ''GOX to 40 C'', CW 25 -> 35 C)) degC'
+      degC, no intercooler or aftercooler pressure drop (ASSUMED: the stage ratios split S8''s pressure);
+      isentropic efficiency 0.8 (ASSUMED: DESIGN.md D-053 (ASSUMED per stage until the supplier''s guarantee));
+      5 stage(s) of ratio 1.933 (overall 26.96, max per stage 2.0 (ASSUMED: DESIGN.md D-053 (ASSUMED;
+      gives 5 stages, the equipment list says 4-5))); m 20860 kg/h (process/flowsheet.yaml stream S7 (case
+      design)), 115 -> 3100 kPa(a) (S8; the stream pressures taken at the machine''s flanges, line losses
+      not added), suction 298.15 K; ideal gas, constant Cp/Cv 1.398 at the suction (property adapter),
+      M 32.03 kg/kmol (ASSUMED: Z = 1; the real-gas route was refused: isentropic outlet: temperature
+      359.05 K outside the claimed 77 to 315 K); intercooled to 40 (ASSUMED: DESIGN.md D-053 (ASSUMED,
+      as the aftercooler E-4102 ''GOX to 40 C'', CW 25 -> 35 C)) degC, no intercooler or aftercooler pressure
+      drop (ASSUMED: the stage ratios split S8''s pressure)'
     assumed: true
 sizing_basis: []
 notes: Oil-free, dry gas seals with N2 buffer, 4-5 stages, 1.15 -> 31 bara, 14,600 Nm3/h, ~2.3 MW, fire-safe
