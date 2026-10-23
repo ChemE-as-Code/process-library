@@ -16,36 +16,36 @@ operating:
     value: 5.85
     unit: bar(a)
     source: 'K-1101 stage 3 discharge = process/flowsheet.yaml stream S2 (5.8 bara) + 0.05 bar aftercooler
-      drop (process/simulation.yaml K1101, ASSUMED; scripts/datasheet_sizing.py section 1 (DESIGN.md D-063 (2)))'
+      drop (process/simulation.yaml K1101, ASSUMED; scripts/datasheet_sizing.py section 1 (DESIGN.md D-068 (2)))'
     assumed: true
   air_inlet_temperature:
     value: 111.7
     unit: °C
-    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-063 (2)): K-1101 stage 3 discharge 384.89 K (ideal gas, Cp/Cv 1.403
+    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-068 (2)): K-1101 stage 3 discharge 384.89 K (ideal gas, Cp/Cv 1.403
       at the suction, eta_s 0.82, process/simulation.yaml, ASSUMED; discharge_temperature_k of
       equipment/datasheets/K-1101.yaml)'
     assumed: true
   air_flow:
-    value: 99556
+    value: 112562
     unit: kg/h
-    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-063 (2)): S1 100,235 kg/h less the 679 kg/h condensed in E-1102;
-      leaves as S2 (98,837 kg/h in the DWSIM simulation, D-058)'
+    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-068 (2)): S1 113,329 kg/h less the 767 kg/h condensed in E-1102;
+      leaves as S2 (111,748 kg/h in the DWSIM simulation, D-066)'
     assumed: true
   condensate_flow:
-    value: 649
+    value: 734
     unit: kg/h
-    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-063 (2)): water above saturation at 40 C and 5.8 bara (IAPWS-95);
-      to the moisture separator drain, part of S1C (1,398 kg/h for E-1102 and E-1103 in the DWSIM
-      simulation, D-058)'
+    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-068 (2)): water above saturation at 40 C and 5.8 bara (IAPWS-95);
+      to the moisture separator drain, part of S1C (1,581 kg/h for E-1102 and E-1103 in the DWSIM
+      simulation, D-066)'
     assumed: true
   cooling_water_temperatures:
     value: 25 -> 35
     unit: °C
     source: process/design-basis.yaml utilities
   cooling_water_flow:
-    value: 210.7
+    value: 238.2
     unit: m3/h
-    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-063 (2)): Q / (cp 10 K), IAPWS-95 water at 30 C'
+    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-068 (2)): Q / (cp 10 K), IAPWS-95 water at 30 C'
     assumed: true
 design:
   pressure_barg:
@@ -122,12 +122,12 @@ type_specific:
     unit: t
     source: equipment/equipment-list.yaml dimensions
   duty_kw:
-    value: 2436
+    value: 2754
     unit: kW
-    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-063 (2)): sensible Q = n Cp (384.89 - 313.15 K) 2,002 kW (wet air
-      99,556 kg/h, dry-air Cp/Cv from the property adapter at the stage suction, water vapour IAPWS-95)
-      + 649 kg/h condensed x 2,406 kJ/kg (IAPWS-95 at 40 C) 434 kW. The three MAC coolers 6,585 kW against
-      the simulated Q1 6,686 kW (D-058)'
+    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-068 (2)): sensible Q = n Cp (384.89 - 313.15 K) 2,263 kW (wet air
+      112,562 kg/h, dry-air Cp/Cv from the property adapter at the stage suction, water vapour IAPWS-95)
+      + 734 kg/h condensed x 2,406 kJ/kg (IAPWS-95 at 40 C) 491 kW. The three MAC coolers 7,445 kW against
+      the simulated Q1 7,560 kW (D-066)'
     assumed: true
   lmtd_k:
     value: [44.95, 19.2]
@@ -152,18 +152,18 @@ type_specific:
       Engineering Vol. 6, 4th ed. (2005), Table 12.1, p. 637: cooler, gases / water (DESIGN.md D-053)'
     assumed: true
   area_m2:
-    value: 493.2
+    value: 557.6
     unit: m2
-    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-065 (2)): sum of the zones, A = Q / (U F dT):
-      desuperheating 1,679.2 kW / (160 x 0.9621 x 44.95 K) = 242.7 m2 + condensing 756.5 kW (434.0 kW latent)
-      / (160 x 0.9829 x 19.2 K) = 250.5 m2; no margin. The gas-cooler U in the condensing zone as well
+    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-065 (2), D-068 (2)): sum of the zones, A = Q / (U F dT):
+      desuperheating 1,898.5 kW / (160 x 0.9621 x 44.95 K) = 274.4 m2 + condensing 855.3 kW (490.7 kW latent)
+      / (160 x 0.9829 x 19.2 K) = 283.2 m2; no margin. The gas-cooler U in the condensing zone as well
       (ASSUMED; condensation raises the film coefficient, the supplier''s condensing-zone U may lower the
-      area). Was 449.8 m2 on the single gas LMTD (review10#1)'
+      area). 493.2 m2 at the D-058 air (+13 %, D-066)'
     assumed: true
 sizing_basis:
 - parameter: zone duties (enquiry basis for the MAC package)
-  value: desuperheating 111.7 -> 51.6 C 1,679 kW; condensing 51.6 -> 40 C 757 kW incl. 649 kg/h condensate
-  reference: DESIGN.md D-065 (2)
+  value: desuperheating 111.7 -> 51.6 C 1,899 kW; condensing 51.6 -> 40 C 855 kW incl. 734 kg/h condensate
+  reference: DESIGN.md D-065 (2), D-068 (2)
 - parameter: air dew point at the cooler inlet
   value: 51.6 C (2.30 mol% water at 5.80 bara, IAPWS-95)
   reference: DESIGN.md D-058, D-065 (2)
@@ -171,5 +171,5 @@ notes: 'Air to 40 C. ASSUMED. Condensing aftercooler (DESIGN.md D-058): integral
   air outlet, drain nozzle N5 to CD-1002 with gate valve HV-1113 and float trap ST-1113 on P-01, part of S1C
   (D-064). Separator type and pressure drop: supplier (MAC package). Enquiry requirements (D-065 (6)): a
   high-level alarm on the separator (switch or level transmitter to the DCS, supplier''s connection), the
-  float trap with integral strainer and test valve, sized for 649 kg/h at 5.8 bara with margin, no trap
+  float trap with integral strainer and test valve, sized for 734 kg/h at 5.8 bara with margin, no trap
   bypass (an open bypass blows compressed air to the drain).'

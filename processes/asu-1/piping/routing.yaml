@@ -4,7 +4,7 @@ rules:
   tiers:
     # PR1 (5 / 7 / 9 m): water utilities low, large warm process gas in the middle, oxygen and
     # cryogenic lines on the top tier at the rack edge, away from everything else (D-026 (2))
-    - {rack: PR1, elevation: 5, fluids: [Cooling water, Cooling water return, Chilled water]}
+    - {rack: PR1, elevation: 5, fluids: [Cooling water, Cooling water return, Chilled water, Chilled water return]}
     - {rack: PR1, elevation: 7, fluids: [Air, Dry air, Waste nitrogen]}
     - {rack: PR1, elevation: 9, fluids: [Oxygen, Liquid oxygen, Nitrogen, Liquid nitrogen, Rich liquid]}
     # PR2 (6.5 / 8.5 m over the central road): oxygen top, nitrogen below
@@ -37,7 +37,10 @@ rules:
     # GOX / GAN battery limit bleeds: above the PR1 top tier (9 m) and clear of grade
     - {lines: [VNT-4007], rise_m: 9, max_rise_m: 12}
     # the drain vaporizer vent, the evaporative cooler top vent (above its top platform)
-    - {lines: [VNT-3001, WN-1002], max_rise_m: 10}
+    - {lines: [VNT-3001], max_rise_m: 10}
+    # the C-1102 top vent with its D-071 zone radius 6.5 m (58,900 kg/h, DN900): its outlet
+    # rises until that sphere clears the 21 m top platform plus the walkway headroom
+    - {lines: [WN-1002], radius_m: 6.5, max_rise_m: 12}
     # the LOX / LIN tank boil-off vents, vacuum breakers and relief tailpipes on the west side
     # of the tank roofs: risers clear of the stair, landing and roof platform (D-038 (2))
     - {lines: [VNT-4001, VNT-4005], max_rise_m: 8}
@@ -62,7 +65,11 @@ lines:
   # the check valve and UV-3120 stand at grade level east of the skid; the booster suction
   # AIR-3005 branches off AIR-2002 outside the north casing face (TA) and runs round the east
   # face at 8.25 m, so no warm air line crosses the perlite
-  - {line: AIR-3002, segment: Line_AIR3002_S2, route: [[134.213, 30.5, 2.06], [134.213, 30.5, 2.3], [136.2, 30.5, 2.3], [136.2, 30.5, 1.0], [136.2, 32.5, 1.0]]}
+  # E-3104 -> E-3105 -> the T1 tee low (below the compander lift lane from Z-PAD-A3S, D-069)
+  # E-3104 -> E-3105 N1, now at the west end of the E-3105 shell (D-077): low between the two
+  # shells at 2.5 m, under the compander lift lane from Z-PAD-A3S
+  - {line: AIR-3002, segment: Line_AIR3002_S7, route: [[134.213, 30.5, 2.06], [134.213, 30.5, 2.5], [134.213, 29.25, 2.5], [131.7, 29.25, 2.5], [131.7, 28.0, 2.5], [131.7, 28.0, 1.96]]}
+  - {line: AIR-3002, segment: Line_AIR3002_S2, route: [[135.0, 28.0, 1.96], [135.0, 28.0, 2.6], [136.2, 28.0, 2.6], [136.2, 28.0, 1.0], [136.2, 32.5, 1.0]]}
   - {line: AIR-3002, segment: Line_AIR3002_S3, route: [[136.2, 32.5, 1.0], [136.2, 34.5, 1.0]]}
   # PSV-3119 on the T1 branch, its air tailpipe up to 3.5 m
   - {line: AIR-3002, segment: Line_AIR3002_S5, route: [[136.2, 32.5, 1.0], [136.2, 32.5, 1.5]]}
@@ -70,7 +77,7 @@ lines:
   # into the casing at 9 m through the south face between the bracing diagonals
   - {line: AIR-3002, segment: Line_AIR3002_S4, route: [[136.2, 34.5, 1.0], [136.2, 37.0, 1.0], [136.2, 37.0, 9.0], [136.2, 44.4, 9.0], [133.9, 44.4, 9.0], [133.9, 43.6, 9.0], [133.9, 43.6, 8.26]]}
   - {line: AIR-3006, segment: Line_AIR3006_S1, route: [[136.2, 34.5, 1.0], [138.8, 34.5, 1.0], [138.8, 34.5, 4.5]]}
-  - {line: AIR-3005, segment: Line_AIR3005_S1, route: [[132.914, 48.2, 8.254], [142.6, 48.2, 8.254], [142.6, 34.5, 8.254], [138.8, 34.5, 8.254], [138.8, 34.5, 4.5]]}
+  - {line: AIR-3005, segment: Line_AIR3005_S1, route: [[132.914, 48.2, 8.305], [133.6, 48.2, 8.305], [133.6, 48.2, 8.254], [142.6, 48.2, 8.254], [142.6, 34.5, 8.254], [138.8, 34.5, 8.254], [138.8, 34.5, 4.5]]}
   - {line: AIR-3005, segment: Line_AIR3005_S2, route: [[138.8, 34.5, 4.5], [138.8, 33.2, 4.5], [131.3, 33.2, 4.5], [131.3, 35.8, 4.5], [131.3, 35.8, 3.0]]}
   # expander feed AIR-3003 out of the south casing face low: XV-3117 just outside the wall at
   # 1.5 m, then between the skid and the wall onto the KT-3101 inlet (D-038 (3))
@@ -242,10 +249,13 @@ lines:
   # grade north of the cold box (x 134.9, y 57.6): RG-2001 dips onto sleepers there and rises
   # at y 58.6, so the flow control valve FV-2105 stands on the riser at 1.1 m, worked from
   # grade (it sat inside PR1 between the 7 and 9 m tiers; dry gas, no drain; D-047)
-  - {line: RG-2001, segment: Line_RG2001_S3, route: [[97.429, 68.055, 7.254], [97.429, 67.345, 7.254], [97.429, 67.345, 3.754], [88, 67.345, 3.754], [88, 46.953, 3.754], [92, 46.953, 3.754], [92, 46.953, 3.805]]}
-  - {line: RG-2001, segment: P-02/Line_RG2001_S1, route: [[134.914, 57.6, 0.6], [134.914, 58.6, 0.6], [134.914, 58.6, 4.246], [134.914, 66.555, 4.246], [134.914, 66.555, 5.746], [133.914, 66.555, 5.746], [133.914, 68.055, 5.746], [133.914, 68.055, 7.254], [97.429, 68.055, 7.254]]}
-  - {line: RG-2001, segment: Line_RG2001_S2, route: [[97.429, 68.055, 7.254], [91.584, 68.055, 7.254], [91.584, 68.055, 5.746], [91.584, 63, 5.746], [90.084, 63, 5.746], [90.084, 55, 5.746], [90.084, 55, 4.5], [89.084, 55, 4.5], [89.084, 55, 1], [90.1, 55, 1]]}
-  - {line: RG-2001, segment: P-03/Line_RG2001_S1, route: [[133.5, 54.8, 5.543], [135, 54.8, 5.543], [135, 54.8, 4.246], [135, 54.555, 4.246], [134.914, 54.555, 4.246], [134.914, 56.5, 4.246], [134.914, 56.5, 0.6], [134.914, 57.6, 0.6]]}
+  # D-072: RG-2001 DN600 (was DN500): the pinned elevations keep the pipe bottom on the beams and
+  # the top under the levels it passed under (+/- 0.051 m), the drop at y 67.29 (was 67.345); the
+  # AIR-2002 post column beside the sheet-joint riser moved 0.06 m west (layout/structures.yaml)
+  - {line: RG-2001, segment: Line_RG2001_S3, route: [[97.429, 68.055, 7.305], [97.429, 67.29, 7.305], [97.429, 67.29, 3.805], [88, 67.29, 3.805], [88, 46.953, 3.805], [92, 46.953, 3.805], [92, 46.953, 3.856]]}
+  - {line: RG-2001, segment: P-02/Line_RG2001_S1, route: [[134.914, 57.6, 0.65], [134.914, 58.6, 0.65], [134.914, 58.6, 4.195], [134.914, 66.555, 4.195], [134.914, 66.555, 5.695], [133.914, 66.555, 5.695], [133.914, 68.055, 5.695], [133.914, 68.055, 7.305], [97.429, 68.055, 7.305]]}
+  - {line: RG-2001, segment: Line_RG2001_S2, route: [[97.429, 68.055, 7.305], [91.584, 68.055, 7.305], [91.584, 68.055, 5.695], [91.584, 62.9, 5.695], [90.084, 62.9, 5.695], [90.084, 55, 5.695], [90.084, 55, 4.5], [89.084, 55, 4.5], [89.084, 55, 1], [90.1, 55, 1]]}
+  - {line: RG-2001, segment: P-03/Line_RG2001_S1, route: [[133.5, 54.8, 5.543], [135, 54.8, 5.543], [135, 54.8, 4.195], [135, 54.555, 4.195], [134.914, 54.555, 4.195], [134.914, 56.5, 4.195], [134.914, 56.5, 0.65], [134.914, 57.6, 0.65]]}
   - {line: GAN-4003, segment: Line_GAN4003_S1, route: [[166.957, 125, 4.5], [167.257, 125, 4.5], [167.257, 121, 4.5], [172.257, 121, 4.5]]}
   - {line: GAN-4003, segment: Line_GAN4003_S2, route: [[171.957, 125, 4.5], [172.257, 125, 4.5], [172.257, 121, 4.5]]}
   - {line: GAN-4003, segment: Line_GAN4003_S4, route: [[181.572, 87.636, 8.557], [181.572, 68, 8.557], [181.572, 68, 9.971], [181.572, 67.5, 9.971], [181.572, 67.5, 9.471], [181.572, 65.5, 9.471], [182, 65.5, 9.471], [182, 65.407, 9.471], [182, 65.407, 9.057], [169.4, 65.407, 9.057], [169.4, 65.407, 9.971], [169.4, 62.2, 9.971], [169.4, 62.2, 3.584]]}
@@ -266,14 +276,28 @@ lines:
   - {line: GOX-4003, segment: Line_GOX4003_S1, route: [[182.6, 37, 9.818], [182.6, 37, 10.052], [182.6, 36.5, 10.052], [183.6, 36.5, 10.052], [183.6, 65.971, 10.052], [182.116, 65.971, 10.052], [182.116, 65.971, 9.084], [163, 65.971, 9.084], [163, 65.971, 10.052], [163, 65.471, 10.052], [164, 65.471, 10.052], [164, 47.946, 10.052], [163, 47.946, 10.052], [163, 48.446, 10.052], [163, 48.446, 10.562]]}
   # the booster aftercooler CW return leaves E-3104 at grade and rises east of it, outside the
   # K-3101 lift lane from Z-PAD-A3S (D-041)
+  # E-3105 chilled water (D-069): CHW-3001 / CHWR-3001 on the PR1 5 m tier (x 144.5 / 144.8 since
+  # D-074, east of bent 19 and of the posts at x 140-143), down to 2.7 m and west to the trim cooler
+  # under the compander lift lane from Z-PAD-A3S (below the K-3101 top, 3 m) and above the
+  # escape-lane headroom (2.2 m); on the P-01 side CHWR-3001 joins CHWR-1001 at its tee
+  # D-074 (review11#3, #14): the drops come down at x 144.5 / 144.8, 1.2 m west of the crane pad
+  # Z-PAD-A4N (x 146 ..), and both grade runs at 2.7 m on shared T-posts (layout/structures.yaml)
+  - {line: CHW-3001, segment: P-01/Line_CHW3001_S1, route: [[49.337, 62.2, 3.916], [48.837, 62.2, 3.916], [48.837, 64.929, 3.916], [48.837, 64.929, 5.03], [144.5, 64.929, 5.03]]}
+  - {line: CHW-3001, segment: P-03/Line_CHW3001_S1, route: [[144.5, 64.929, 5.03], [144.5, 64.929, 2.7], [144.5, 26.6, 2.7], [135.3, 26.6, 2.7], [135.3, 26.6, 1.25], [135.3, 27.37, 1.25]]}
+  - {line: CHWR-3001, segment: P-03/Line_CHWR3001_S1, route: [[130.8, 27.37, 1.25], [130.8, 26.2, 1.25], [130.8, 26.2, 2.7], [144.8, 26.2, 2.7], [144.8, 64.5, 2.7], [144.8, 64.5, 5.03]]}
+  - {line: CHWR-3001, segment: P-01/Line_CHWR3001_S1, route: [[144.8, 64.5, 5.03], [76.2, 64.5, 5.03], [76.2, 64.5, 4.6], [76.2, 49.517, 4.6], [76.2, 49.517, 10.052], [72.665, 49.517, 10.052]]}
   - {line: CWR-3001, segment: P-03/Line_CWR3001_S1, route: [[134.213, 30.5, 0.566], [134.213, 30.5, 0.229], [134.213, 31.684, 0.229], [135.6, 31.684, 0.229], [135.6, 31.684, 3.916], [140.213, 31.684, 3.916], [140.213, 36.684, 3.916], [142.213, 36.684, 3.916], [142.213, 67.794, 3.916], [134.213, 67.794, 3.916], [134.213, 67.794, 5.084], [30.0, 67.794, 5.084]]}
   # AIR-2002 to the cold box pinned as routed: north along x 134.4 at 8.25 m, into the casing
   # at [132.9, 47.1, 8.25] through its declared opening (sill 7.95 m); the booster suction
   # AIR-3005 leaves its tee TA at [132.914, 48.2] outside the north face (it started 0.5 m east
   # of the tee, a detached branch)
-  - {line: AIR-2002, segment: P-02/Line_AIR2002_S1, route: [[103.15, 62, 2.3], [104.166, 62, 2.3], [104.166, 62, 5.746], [104.166, 66.129, 5.746], [104.166, 66.129, 7.254], [124.455, 66.129, 7.254]]}
-  - {line: AIR-2002, segment: P-03/Line_AIR2002_S1, route: [[124.455, 66.129, 7.254], [134.414, 66.129, 7.254], [134.414, 66.129, 8.254], [134.414, 51.129, 8.254], [132.914, 51.129, 8.254], [132.914, 48.2, 8.254]]}
-  - {line: AIR-2002, segment: Line_AIR2002_S2, route: [[132.914, 48.2, 8.254], [132.914, 44.629, 8.254], [132.414, 44.629, 8.254], [132.414, 41.629, 8.254], [132.4, 41.629, 8.254], [132.4, 41.4, 8.254], [132.4, 41.4, 9.416], [133.9, 41.4, 9.416], [133.9, 41.4, 8.4]]}
+  # (D-071: its PR1 lane moved from y 66.13 to 66.5 for the DN1000 WN-1001 beside it)
+  # D-073: AIR-2001 / AIR-2002 DN600 (was DN500): pipe bottoms kept on their beams and posts, tops
+  # under the levels they pass below (centres +/- 0.051 m); the AIR-2002 PR1 lane at y 66.55
+  # (0.14 m clear of WN-1001); AIR-3005 steps 0.051 m down beside the larger tee
+  - {line: AIR-2002, segment: P-02/Line_AIR2002_S1, route: [[103.15, 62, 2.3], [104.166, 62, 2.3], [104.166, 62, 5.695], [104.166, 66.55, 5.695], [104.166, 66.55, 7.305], [124.455, 66.55, 7.305]]}
+  - {line: AIR-2002, segment: P-03/Line_AIR2002_S1, route: [[124.455, 66.55, 7.305], [134.414, 66.55, 7.305], [134.414, 66.55, 8.305], [134.414, 51.129, 8.305], [132.914, 51.129, 8.305], [132.914, 48.2, 8.305]]}
+  - {line: AIR-2002, segment: Line_AIR2002_S2, route: [[132.914, 48.2, 8.305], [132.914, 44.629, 8.305], [132.414, 44.629, 8.305], [132.414, 41.629, 8.305], [132.4, 41.629, 8.305], [132.4, 41.4, 8.305], [132.4, 41.4, 9.467], [133.9, 41.4, 9.467], [133.9, 41.4, 8.4]]}
   - {line: AIR-1004, segment: P-01/Line_AIR1004_S2, route: [[71.1, 52, 25.127], [71.1, 52, 26.464]]}
   - {line: AIR-1004, segment: P-02/Line_AIR1004_S1, route: [[75.705, 64.355, 7.305], [89.6, 64.355, 7.305], [89.6, 64.355, 5.695], [89.6, 63.5, 5.695], [89, 63.5, 5.695], [89, 44.855, 5.695], [89, 44.855, 7.195], [89, 43.355, 7.195], [90, 43.355, 7.195], [90, 41.855, 7.195]]}
   - {line: AIR-1004, segment: P-02/Line_AIR1004_S2, route: [[90, 41.855, 7.195], [90, 34.908, 7.195]]}
@@ -284,9 +308,9 @@ lines:
   - {line: AIR-1004, segment: Line_AIR1004_S7, route: [[91, 38.855, 5.478], [91, 38.855, 3.805], [90, 38.855, 3.805], [90, 38.845, 3.805], [89, 38.845, 3.805], [89, 38.845, 1.772]]}
   - {line: AIR-1004, segment: Line_AIR1004_S8, route: [[89, 38.845, 1.772], [89, 38.845, 0.405], [89, 42, 0.405], [89, 42, 1.6]]}
   - {line: AIR-1004, segment: Line_AIR1004_S9, route: [[91, 38.855, 5.478], [88, 38.855, 5.478], [88, 38.855, 1.978], [88, 38.845, 1.978], [88, 38.845, 1.772], [89, 38.845, 1.772]]}
-  - {line: AIR-2001, segment: Line_AIR2001_S1, route: [[101, 30, 6.9], [101, 30, 7.916], [101, 27, 7.916], [101, 27, 3.754], [105, 27, 3.754], [105, 42, 3.754]]}
-  - {line: AIR-2001, segment: Line_AIR2001_S2, route: [[101, 42, 6.9], [101, 42, 7.916], [105, 42, 7.916], [105, 42, 3.754]]}
-  - {line: AIR-2001, segment: Line_AIR2001_S3, route: [[105, 42, 3.754], [105, 60.5, 3.754], [99.834, 60.5, 3.754], [99.834, 62, 3.754], [99.834, 62, 2.3], [100.85, 62, 2.3]]}
+  - {line: AIR-2001, segment: Line_AIR2001_S1, route: [[101, 30, 6.9], [101, 30, 7.967], [101, 27, 7.967], [101, 27, 3.805], [105, 27, 3.805], [105, 42, 3.805]]}
+  - {line: AIR-2001, segment: Line_AIR2001_S2, route: [[101, 42, 6.9], [101, 42, 7.967], [105, 42, 7.967], [105, 42, 3.805]]}
+  - {line: AIR-2001, segment: Line_AIR2001_S3, route: [[105, 42, 3.805], [105, 60.5, 3.805], [99.834, 60.5, 3.805], [99.834, 62, 3.805], [99.834, 62, 2.3], [100.85, 62, 2.3]]}
   - {line: AIR-2001, segment: Line_AIR2001_S4, route: [[95, 30, 6.734], [95, 30, 8.071]]}
   - {line: AIR-2001, segment: Line_AIR2001_S5, route: [[95, 42, 6.734], [95, 42, 8.071]]}
   # GAN-4001 S1 run 0.1 m west (x 132.823), so its post column stands 0.12 m clear of the
@@ -316,10 +340,15 @@ lines:
   # VP-9 stair (D-055 (2), review8#5; was 11.6 m, D-051 (2)); guided off the VP-9 steel
   # (ASSUMED, the guide is sized with the relief reaction forces)
   - {line: GOX-4004, segment: Line_GOX4004_S6, route: [[181.358, 89.5, 9.057], [181.358, 89.5, 9.4], [181.358, 90.6, 9.4], [181.358, 90.6, 13.8]]}
-  - {line: RG-2002, segment: Line_RG2002_S1, route: [[92, 55, 3.4], [92, 55, 3.805], [92, 46.953, 3.805]]}
-  - {line: RG-2002, segment: Line_RG2002_S2, route: [[92, 46.953, 3.805], [92, 45, 3.805], [92, 45, 7.305], [92, 42, 7.305]]}
-  - {line: RG-2002, segment: Line_RG2002_S3, route: [[92, 42, 7.305], [92, 27, 7.305], [92, 27, 3.805], [89, 27, 3.805], [89, 27, 8.12], [89, 30, 8.12], [89, 30, 6.9]]}
-  - {line: RG-2002, segment: Line_RG2002_S4, route: [[92, 42, 7.305], [92, 42, 8.12], [89, 42, 8.12], [89, 42, 6.9]]}
+  # D-072: the RG-2003 B-side depressurisation bypass (DN100, XV-2112B) pinned over the sieve
+  # change-out area Z-SIEVE at 6.057 m on its two posts, as it ran before the DN700 resize moved
+  # the generated tees (the router had taken it through the laydown at 3.6 m)
+  - {line: RG-2003, segment: Line_RG2003_S8, route: [[101, 38.794, 3.135], [100, 38.794, 3.135], [100, 38.794, 6.057], [105.8, 38.794, 6.057], [105.8, 33.985, 6.057], [105.8, 33.985, 5.356], [101, 33.985, 5.356]]}
+  # D-072: RG-2002 DN700 (was DN600), centres +0.051 m on the same supports
+  - {line: RG-2002, segment: Line_RG2002_S1, route: [[92, 55, 3.4], [92, 55, 3.856], [92, 46.953, 3.856]]}
+  - {line: RG-2002, segment: Line_RG2002_S2, route: [[92, 46.953, 3.856], [92, 45, 3.856], [92, 45, 7.356], [92, 42, 7.356]]}
+  - {line: RG-2002, segment: Line_RG2002_S3, route: [[92, 42, 7.356], [92, 27, 7.356], [92, 27, 3.856], [89, 27, 3.856], [89, 27, 8.171], [89, 30, 8.171], [89, 30, 6.9]]}
+  - {line: RG-2002, segment: Line_RG2002_S4, route: [[92, 42, 7.356], [92, 42, 8.171], [89, 42, 8.171], [89, 42, 6.9]]}
   - {line: UN-3001, segment: P-04/Line_UN3001_S1, route: [[169.4, 59.617, 3.584], [169.4, 59.617, 9.584], [169.9, 59.617, 9.584], [169.9, 59.617, 10.39], [168.9, 59.617, 10.39], [168.9, 65.594, 10.39], [168.9, 65.594, 9.03], [145.85, 65.594, 9.03], [145.85, 65.594, 9.89], [145.85, 63.3, 9.89], [145.85, 63.3, 0.3]]}
   # the LOX / LIN tank vents and reliefs 0.5 m higher with their tanks on the plinth (D-055 (5))
   - {line: VNT-4001, segment: Line_VNT4001_S1, route: [[122.2, 112, 10.613], [122.2, 112, 12.263]]}
@@ -338,11 +367,15 @@ lines:
   # GAN BL bleed outlet at 15.6 m (was 14.7): its 5 m N2 zone stays clear of the BL valve
   # platform (D-047)
   - {line: VNT-4007, segment: Line_VNT4007_S1, route: [[171, 62.2, 5.742], [171, 62.2, 15.6]]}
-  - {line: WN-1001, segment: P-01/Line_WN1001_S1, route: [[97.731, 65.419, 7.356], [59.072, 65.419, 7.356], [59.072, 65.419, 5.644], [59.072, 60, 5.644], [59.072, 60, 5.666], [57.65, 60, 5.666]]}
-  - {line: WN-1001, segment: P-03/Line_WN1001_S1, route: [[133.5, 59.8, 5.543], [135, 59.8, 5.543], [135, 59.8, 5.644], [135.516, 59.8, 5.644], [135.516, 65.419, 5.644], [134.016, 65.419, 5.644], [134.016, 65.419, 7.356], [97.731, 65.419, 7.356]]}
+  # WN-1001 DN1000 (D-071): on the PR1 7 m tier (bottom of pipe on the beams, centre 7.508) in
+  # its lane moved from y 65.42 to 65.6 (AIR-2002 moved north to 66.5, WN-3003 at 64.51), its
+  # legs off the rack at 5.85 m, clear of the 5 m tier lines below
+  - {line: WN-1001, segment: P-01/Line_WN1001_S1, route: [[97.731, 65.6, 7.508], [59.072, 65.6, 7.508], [59.072, 65.6, 5.85], [59.072, 60, 5.85], [59.072, 60, 5.666], [57.65, 60, 5.666]]}
+  - {line: WN-1001, segment: P-03/Line_WN1001_S1, route: [[133.5, 59.8, 5.543], [135, 59.8, 5.543], [135, 59.8, 5.85], [135.7, 59.8, 5.85], [135.7, 65.6, 5.85], [132.65, 65.6, 5.85], [132.65, 65.6, 7.508], [97.731, 65.6, 7.508]]}
   - {line: WN-3002, segment: Line_WN3002_S1, route: [[134.5, 39.8, 8.4], [134.5, 39.8, 10.228], [137.5, 39.8, 10.228], [137.5, 39.8, 5.543], [136.5, 39.8, 5.543], [136.5, 43.3, 5.543], [137, 43.3, 5.543], [137, 45.8, 5.543], [134, 45.8, 5.543], [134, 48.3, 5.543], [133.5, 48.3, 5.543], [133.5, 54.8, 5.543]]}
   - {line: WN-3002, segment: Line_WN3002_S2, route: [[133.5, 54.8, 5.543], [133.5, 59.8, 5.543]]}
-  - {line: WN-3003, segment: Line_WN3003_S1, route: [[133.5, 59.8, 5.543], [133.5, 62.8, 5.543], [134.5, 62.8, 5.543], [134.5, 64.507, 5.543], [134.5, 64.507, 7.305], [182, 64.507, 7.305], [182, 64.507, 5.543], [182, 68, 5.543], [182, 68, 6.805], [182.993, 68, 6.805], [182.993, 113, 6.805], [182.993, 113, 5.043], [188, 113, 5.043], [188, 113, 4], [189, 113, 4]]}
+  # WN-3003 DN900 (D-071): bottom of pipe on the PR1 7 m and PR3 6.5 m beams
+  - {line: WN-3003, segment: Line_WN3003_S1, route: [[133.5, 59.8, 5.543], [133.5, 62.8, 5.543], [133.5, 62.8, 5.7], [134.5, 62.8, 5.7], [134.5, 64.507, 5.7], [134.5, 64.507, 7.457], [182.0, 64.507, 7.457], [182.0, 64.507, 5.7], [182.0, 65.6, 5.7], [182.45, 65.6, 5.7], [182.45, 68, 5.7], [182.45, 68, 6.957], [183.0, 68, 6.957], [183.0, 113, 6.957], [183.0, 113, 5.043], [188, 113, 5.043], [188, 113, 4], [189, 113, 4]]}
 # Operators of the valves and transmitters that stay out of reach from a floor (D-040). The
 # criteria (ASSUMED, the owner's standard and the valve and instrument suppliers confirm them):
 # a chain wheel only on a handwheel valve in infrequent use (isolation for maintenance or a
@@ -373,6 +406,10 @@ operators:
   - {item: FV-1108, kind: remote_operator, basis: "DCAC CW flow control valve, actuated (D-040)"}
   - {item: LV-1106, kind: remote_operator, basis: "DCAC sump level control valve, actuated (D-040)"}
   - {item: LV-1107, kind: remote_operator, basis: "evaporative cooler level control valve, actuated (D-040)"}
+  - {item: PV-3110B, kind: remote_operator, basis: "C-1102 bypass / start-up vent valve, actuated (PIC-3110 split range); DN900 since D-071, its handwheel 2.6 m above VP-1: air set and positioner on VP-1 (D-071)"}
+  - {item: LV-1114, kind: remote_operator, basis: "DCAC chimney tray level control valve on CHWR-1001, actuated; air set and positioner on the C-1101 11.3 m platform beside it (D-069)"}
+  - {item: XV-1115, kind: remote_operator, basis: "tight-shut trip valve on CHWR-1001 (LSLL-1115, C&E I-03), actuated, fail closed; solenoid and limit switches reached from the C-1101 11.3 m platform beside it (D-076)"}
+  - {item: TV-3124, kind: remote_operator, basis: "E-3105 chilled-water temperature control valve, actuated; air set and positioner on a pedestal at grade beside E-3105 (D-069)"}
   - {item: TV-1105, kind: remote_operator, basis: "chilled water temperature control valve, actuated (D-040)"}
   - {item: UV-1102, kind: remote_operator, basis: "MAC anti-surge / blow-off valve, actuated (D-040)"}
   - {item: XV-2101B, kind: remote_operator, basis: "TSA switching valve, actuated (sequence) (D-040)"}

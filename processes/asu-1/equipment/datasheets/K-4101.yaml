@@ -116,32 +116,34 @@ type_specific:
     unit: t
     source: equipment/equipment-list.yaml dimensions
   fluid_power_kw:
-    value: 2184
+    value: 2140
     unit: kW
-    source: '`cheme process simulate` (DWSIM 9.0.5, Peng-Robinson; DESIGN.md D-061): K4101 compressor
-      power 2,183.8 kW, S7 1.15 bara 13 C -> S8 31 bara, 4 stages at isentropic efficiency 0.78, intercooled
-      to 40 C (process/simulation.yaml, ASSUMED). The 5-stage arrangement of this datasheet at the same
-      efficiency gives 2,154 kW (scripts/datasheet_sizing.py section 2 (DESIGN.md D-063 (5)), ideal gas with Cp/Cv at each stage
-      suction): 1.4 % apart'
+    source: '`cheme process simulate` (DWSIM 9.0.5, Peng-Robinson; DESIGN.md D-066, process/simulation-run.json):
+      K4101 compressor power 2,140.3 kW, S7 1.15 bara 13 C -> S8 31 bara, 5 stages (D-065 (7)) at isentropic
+      efficiency 0.78, intercooled to 40 C (process/simulation.yaml, ASSUMED). Cross-check
+      scripts/datasheet_sizing.py section 2 (DESIGN.md D-068 (3)), ideal gas with Cp/Cv at each stage suction:
+      2,154 kW (0.7 % apart)'
     assumed: true
   shaft_power_kw:
-    value: 2184
+    value: 2140
     unit: kW
-    source: '`cheme process simulate` (DESIGN.md D-061): K4101 shaft 2,183.8 kW = the compressor power; the
+    source: '`cheme process simulate` (DESIGN.md D-066): K4101 shaft 2,140.3 kW = the compressor power; the
       gear and bearing losses are in the drive efficiency below'
     assumed: true
   isothermal_power_kw:
     value: 1418
     unit: kW
-    source: 'scripts/datasheet_sizing.py section 2 (DESIGN.md D-063 (5)): n R T ln(31 / 1.15) for 20,860 kg/h GOX (M 32.03) at the
-      13 C suction (was 1,477 kW at 25 C); isothermal efficiency 0.65 on the compressor power'
+    source: 'scripts/datasheet_sizing.py section 2 (DESIGN.md D-068 (3)): n R T ln(31 / 1.15) for 20,860 kg/h GOX (M 32.02) at the
+      13 C suction; isothermal efficiency 0.66 on the compressor power'
     assumed: true
   electric_power_kw:
-    value: 2308
+    value: 2262
     unit: kW
     source: 'process/flowsheet.yaml energy stream E4 (calculated, `cheme process simulate`, DESIGN.md
-      D-061): 2,308.4 kW = shaft / drive efficiency 0.946. The motor stays rated 2.3 MW (equipment list,
-      electrical list)'
+      D-066): 2,262.5 kW = shaft / drive efficiency 0.946 (was 2,308 kW with 4 stages, D-061). 2,262.5 x 0.97
+      = 2,195 kW at the shaft of the motor, 2,414 kW with the 110 % API 617 driver margin, 5 % above a 2.3 MW
+      rating (D-068 (3)): the next size, 2.5 MW, is carried in the lists until the vendor confirms the motor
+      (D-075, ASSUMED)'
     assumed: true
   drive_efficiency:
     value: 0.946
@@ -163,12 +165,12 @@ type_specific:
     assumed: true
   heat_capacity_ratio:
     value:
-    - 1.3992
-    - 1.3982
-    - 1.4022
-    - 1.4098
-    - 1.4245
-    source: 'scripts/datasheet_sizing.py section 2 (DESIGN.md D-063 (5)): Cp/Cv of S7 at each stage suction (286.15 K 115 kPa(a);
+    - 1.399
+    - 1.398
+    - 1.4019
+    - 1.4095
+    - 1.4242
+    source: 'scripts/datasheet_sizing.py section 2 (DESIGN.md D-068 (3)): Cp/Cv of S7 at each stage suction (286.15 K 115 kPa(a);
       313.15 K 222 / 430 / 830 / 1,604 kPa(a)), property adapter (thermo 0.6.1, PR); replaces the single
       1.398 at 298.15 K of D-053'
     assumed: true
@@ -191,28 +193,28 @@ type_specific:
   stage_pressure_ratio:
     value: 1.933
     unit: ''
-    source: 'scripts/datasheet_sizing.py section 2 (DESIGN.md D-063 (5)): (31 / 1.15)^(1/5), no intercooler pressure drop
+    source: 'scripts/datasheet_sizing.py section 2 (DESIGN.md D-068 (3)): (31 / 1.15)^(1/5), no intercooler pressure drop
       (ASSUMED)'
     assumed: true
   discharge_temperature_k:
     value: 400.2
     unit: K
-    source: 'scripts/datasheet_sizing.py section 2 (DESIGN.md D-063 (5)): stage 5 discharge (ideal gas, Cp/Cv at the stage suction,
-      eta_s 0.78); stages 1 to 4: 362.0 / 396.0 / 396.7 / 397.9 K'
+    source: 'scripts/datasheet_sizing.py section 2 (DESIGN.md D-068 (3)): stage 5 discharge (ideal gas, Cp/Cv at the stage suction,
+      eta_s 0.78); stages 1 to 4: 362.0 / 396.0 / 396.6 / 397.8 K'
     assumed: true
   intercooler_duties_kw:
     value:
     - 257.6
-    - 437.6
-    - 437.9
-    - 438.5
+    - 437.7
+    - 438.0
+    - 438.6
     unit: kW
-    source: 'scripts/datasheet_sizing.py section 2 (DESIGN.md D-063 (5)): m cp (T_stage - 313.15 K) per intercooler, cp from the
-      stage suction Cp/Cv; aftercooler E-4102 439.6 kW. The five coolers 2,011 kW against the simulated Q3
-      2,086 kW of the 4-stage machine (D-061)'
+    source: 'scripts/datasheet_sizing.py section 2 (DESIGN.md D-068 (3)): m cp (T_stage - 313.15 K) per intercooler, cp from the
+      stage suction Cp/Cv; aftercooler E-4102 439.7 kW. The five coolers 2,012 kW against the simulated Q3
+      2,042 kW of the 5-stage machine (D-066)'
     assumed: true
 sizing_basis: []
-notes: 'Oil-free, dry gas seals with N2 buffer, 4-5 stages, 1.15 -> 31 bara, 14,600 Nm3/h, 2.3 MW motor, fire-safe
-  enclosure (D-002, D-012). ASSUMED. Powers from the DWSIM simulation (DESIGN.md D-057, D-061): 2,184 kW at the
-  compressor, 2,308 kW electric with the 13 C suction. Finding for the simulation: process/simulation.yaml
-  has 4 stages, this datasheet and the E-4101 package 5 (four intercoolers); within 1.4 % in power.'
+notes: 'Oil-free, dry gas seals with N2 buffer, 5 stages, 1.15 -> 31 bara, 14,600 Nm3/h GOX (99.71 % O2,
+  D-066), 2.5 MW motor (D-075, ASSUMED until the vendor confirms), fire-safe enclosure (D-002, D-012). ASSUMED. Powers from the DWSIM simulation (DESIGN.md
+  D-057, D-066): 2,140 kW at the compressor, 2,262 kW electric with the 13 C suction; the simulation now has
+  the 5 stages of this datasheet and the E-4101 package (D-065 (7)).'
