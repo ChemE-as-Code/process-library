@@ -3206,7 +3206,9 @@ Decision: the air pressures are set from the cold box back.
 - **S4** at E-3101 stays 5.6 bara, so the cold box does not change.
 - **S3 to S4: 28 kPa.** The DN700 lines take 17.4 kPa (D-073 (3), the longer bed path). The
   adsorber bed in adsorption takes ~8 kPa and F-2101 ~3 kPa (both ASSUMED, the suppliers'
-  allowables). S3 is therefore 5.88 bara.
+  allowables). S3 is therefore 5.88 bara. (Correction, D-088 (1): these parts add up to 28.4 kPa,
+  0.4 kPa more than the 28 kPa set; the routed check of D-080 (1) replaces the 17.4 kPa estimate and
+  leaves the budget short by 0.06 kPa, 4.1 kPa at the bound: a hold on S2.)
 - **The DCAC** keeps its 10 kPa (5 per section), so the MAC discharge S2 is 5.98 bara (was 5.8).
 
 Results (cheme process simulate):
@@ -3511,6 +3513,16 @@ Reason: D-065 (7) (c), core #102.
 Answers layout-review13#1 .. #5.
 
 Decision:
+- (1) **Front-end budget: a hold on the K-1101 discharge** (#1). D-079's own parts (17.4 + 8 + 3)
+  add up to 28.4 kPa against the 28 kPa it sets for S3 -> S4 (correction noted in D-079). The
+  routed DN700 lines take 17.1 kPa (section 10; bed B, D-073 basis 17.7 kPa), so lines + bed 8 +
+  F-2101 3 = 28.1 kPa: margin -0.055 kPa; the bound with every turn and the vessel nozzles counted
+  (21.1 kPa) gives -4.11 kPa. The K-1101 datasheet `outlet_pressure` (5.98 bara) now carries this as
+  a HOLD citing D-080 (1): S2 about 6.02 bara (+~27 kW electric at 6.74 kW/kPa; the 9.0 MW motor
+  holds, 8,121 + 27 kW against 9,000 kW) or the vessel nozzle losses inside the bed / F-2101
+  allowables. **Deferred:** raising S2 itself is an edit of process/flowsheet.yaml (S2 / S3 are
+  `assumed`, D-079) and process/simulation.yaml (the K1101 outlet pressure), which are the
+  simulation owner's and are not edited on this branch; the request of D-080 (1) stands.
 - (2) **Simulation run record refreshed** (#2). D-087's `props --fill` changed process/flowsheet.yaml
   after the run of 76112cd, so `scripts/datasheet_sizing.py` printed the record as STALE although
   D-080 (2) said the fingerprints matched (true at 33c49c0). `cheme process simulate --fill` was
