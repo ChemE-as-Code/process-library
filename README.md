@@ -17,7 +17,7 @@ is the source of the [Process Atlas](https://github.com/ChemE-as-Code/process-at
 | `lci/mappings.yaml` | how LCI exchanges link to Brightway background and biosphere data (by name; no licensed data) |
 | `schemas/` | JSON Schemas of process.yaml, the registry and the mappings |
 | `templates/process/` | starter folder for a new process |
-| `scripts/` | `build_catalog.py` (catalog for the Atlas), `build_lci.py` (Brightway workbook), `render_previews.py` and `export_snapshots.py` (drawings and viewer snapshots, via `cheme`) |
+| `scripts/` | `build_catalog.py` (catalog for the Atlas), `build_lci.py` (Brightway workbook), `render_previews.py` and `export_snapshots.py` (drawings and viewer snapshots, via `cheme`); `publication.py` (the rules of `--public`) |
 | `python/` | `cheme-as-code-lci`, the one-call Brightway installer of the LCI database |
 | `tests/` | tests of the scripts, with a synthetic fixture library |
 
@@ -42,11 +42,13 @@ See [CONTRIBUTING.md](CONTRIBUTING.md): copy `templates/process/` to `processes/
 ## Building the catalog and the LCI database
 
 ```sh
-uv run scripts/build_catalog.py --library . --out dist [--artifacts <previews>] [--snapshots <snapshots>] [--strict]
-uv run scripts/build_lci.py --library . --out dist --version 0.1.0 [--strict]
+uv run scripts/build_catalog.py --library . --out dist [--artifacts <previews>] [--snapshots <snapshots>] [--strict] [--public]
+uv run scripts/build_lci.py --library . --out dist --version 0.1.0 [--strict] [--public]
 uv run --python 3.12 --with pytest --with pyyaml --with jsonschema --with openpyxl --with ./python --with bw2calc pytest -q tests
 ```
 
 CI (`.github/workflows/validate.yml`): every `processes/*/plant.yaml` is validated with `cheme`
 in its folder; the library job runs the tests (including the Brightway round trip) and builds
-the catalog and the LCI database. Nothing is published.
+the catalog and the LCI database, and the public catalog (`--public`: only processes with
+`publication.status: public`, placeholder footprints withheld; see CONTRIBUTING.md). Nothing is
+published.

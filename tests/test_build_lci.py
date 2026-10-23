@@ -265,3 +265,23 @@ def test_cli(library: Path, tmp_path: Path, capsys) -> None:
     assert "3 activities from 2 process(es)" in capsys.readouterr().out
     assert (tmp_path / "out" / "lci" / "cheme-as-code-atlas-1.2.3.xlsx").is_file()
     assert build_lci.main(["--library", str(library), "--out", str(tmp_path / "x"), "--version", "bad/version"]) == 1
+
+
+def test_public_build_exports_only_published_processes(library: Path, tmp_path: Path) -> None:
+    report = build_lci.build(library, tmp_path / "out", "0.1.0", commit="fixture", public=True)
+    assert report.errors == []
+    index = _json(tmp_path / "out" / "lci" / "index.json")
+    assert sorted(index["processes"]) == ["fixture-electrolysis"]  # fixture-ammonia is internal
+    package = _json(tmp_path / "out" / "lci" / "datapackage.json")
+    assert [p["id"] for p in package["processes"]] == ["fixture-electrolysis"]
+    # the LCI carries no factors: placeholder factors stay a caveat, as in the preview build
+    assert any("placeholders" in c and c.startswith("fixture-electrolysis") for c in index["caveats"])
+    names = {a["name"] for a in _activities(tmp_path / "out" / "lci" / f"{DB}.xlsx").values()}
+    assert not any("mmonia" in name for name in names)
+
+
+def test_public_build_without_public_processes_writes_an_empty_database(library: Path, tmp_path: Path, capsys) -> None:
+    path = library / "processes" / "fixture-electrolysis" / "process.yaml"
+    path.write_text(path.read_text().replace("status: public", "status: candidate"))
+    assert build_lci.main(["--library", str(library), "--out", str(tmp_path / "out"), "--public"]) == 0
+    assert "from 0 process(es)" in capsys.readouterr().out
