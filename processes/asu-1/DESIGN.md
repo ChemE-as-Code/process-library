@@ -11,7 +11,7 @@ written with; read `plantcode <cmd>` as `cheme <cmd>` and `plantcode.<rule>` as 
 
 ASU-1 is a low-pressure double-column cryogenic air separation unit without an argon column.
 
-- **P-01 Main air compression and precooling.** Ambient air (76,000 Nm3/h, ASSUMED) passes the
+- **P-01 Main air compression and precooling.** Ambient air (85,840 Nm3/h dry, ASSUMED, D-066; concept 76,000) passes the
   self-cleaning inlet filter F-1101 and is compressed in the integrally geared, 3-stage
   centrifugal main air compressor K-1101 to 5.8 bara (ASSUMED) with intercoolers E-1101/E-1102
   and aftercooler E-1103 (cooling water). Inlet guide vanes control throughput; an anti-surge
@@ -46,7 +46,7 @@ ASU-1 is a low-pressure double-column cryogenic air separation unit without an a
 
 ```mermaid
 flowchart LR
-  AIR([Ambient air 76,000 Nm3/h]) --> F1101[F-1101 inlet filter]
+  AIR([Ambient air 85,840 Nm3/h]) --> F1101[F-1101 inlet filter]
   F1101 --> K1101[K-1101 MAC + E-1101..E-1103]
   K1101 --> C1101[C-1101 DCAC]
   C1102[C-1102 evaporative cooler] -- chilled water --> C1101
@@ -78,9 +78,9 @@ by the simulated double column). Nm3 at 0 C, 1.013 bar.
 | 2 compressed air | K-1101 -> C-1101 | 85,840 dry | 111,748 | 5.8 | 40 | air, saturated, H2O 1.16 mol% (simulated) |
 | 3c DCAC condensate | into the DCAC water | | 663 | | 12 | water (simulated, D-058) |
 | 3 precooled air | C-1101 -> V-2101 | 85,840 dry | 111,085 | 5.7 | 12 | air, saturated, H2O 0.21 mol% (simulated) |
-| 4 dry air to cold box | V-2101 -> E-3101 | 85,930 | 110,870 | 5.6 | 15 | dry, CO2 < 0.1 ppm (D-066) |
+| 4 dry air to cold box | V-2101 -> E-3101 | 85,810 | 110,870 | 5.6 | 15 | dry, CO2 < 0.1 ppm (D-066) |
 | 4E boosted air | E-3104 -> E-3105 -> E-3101 | 11,500 | 14,870 | 8.45 | 30 / 15 | air (D-067: cooling water, then chilled water) |
-| 5 HP column feed | E-3101 -> C-3101 | 74,400 | 96,000 | 5.5 | -173 | air near dew point (D-066) |
+| 5 HP column feed | E-3101 -> C-3101 | 74,300 | 96,000 | 5.5 | -173 | air near dew point (D-066) |
 | 6 Lachmann air | KT-3101 -> C-3102 | 11,500 | 14,870 | 1.35 | -178 | air |
 | 13 crude oxygen (rich liquid) | C-3101 -> E-3102 -> C-3102 | | 53,740 | 5.5 | -174 / -180 | N2 59.9, O2 38.5, Ar 1.7 % (simulated, D-066) |
 | 18 LN reflux | C-3101 -> E-3102 -> C-3102 | | 29,280 | 5.3 | -178 / -185 | N2, Ar 0.04 %, O2 0.5 ppm (simulated, D-066) |
@@ -94,13 +94,17 @@ by the simulated double column). Nm3 at 0 C, 1.013 bar.
 | 12b evaporative cooler | -> C-1102 | 45,900 | 58,074 | 1.05 | 13 (D-061) | waste N2: all not used for regeneration (D-067) |
 | 12c vent | -> atm | 0 | 0 | 1.02 | 13 (D-061) | start-up and bypass of C-1102 only (D-067) |
 
-Air feed (D-066, D-058): 113,329 kg/h wet in, of which 2,244 kg/h condense in the MAC coolers and the
-DCAC before the TSA (streams 1c, 3c). The rest of this paragraph is the concept seed (D-027): 98,270 kg/h in, 98,100 kg/h products + waste + ~400 kg/h water/CO2 removed
-(within 0.2 %). O2 balance: 15,922 Nm3/h O2 in air, 14,945 Nm3/h in GOX + LOX (94 %), 977 Nm3/h
-in waste. (Liquid rates revised to 470 kg/h each with the expander recalculation below; the
-difference of 260 kg/h goes to waste N2, inside the accuracy of this balance.)
-This table is the concept seed. The closed basic-stage balance (streams 4, 5, 12, 12c and the
-regeneration gas revised, cold-box internal streams added) is in process/flowsheet.yaml (D-027).
+Balance (D-066):
+- Air: 113,329 kg/h wet in. Of that, 2,244 kg/h condense in the MAC coolers and the DCAC before
+  the TSA (streams 1c, 3c), and the adsorbers remove 215 kg/h of H2O and CO2.
+- Cold box: 110,870 kg/h dry air in = 20,860 GOX + 12,510 GAN + 470 LOX + 470 LIN + 76,560 waste
+  N2.
+- O2: 17,985 Nm3/h in the air, 14,890 Nm3/h in GOX + LOX (82.8 %), 3,095 Nm3/h in the waste.
+- Nm3 at 0 C and 1.013 bar, from the flowsheet's molar masses.
+
+The table gives the main streams of process/flowsheet.yaml, where the full balance is
+(cold-box internal streams, D-027, D-059, D-066). The concept seed of D-027 (98,270 kg/h in, 94 %
+recovery) is history.
 
 Refrigeration (ASSUMED, revised at S2 after review finding 5): expander KT-3101 on 14,870 kg/h
 (4.13 kg/s), 7.8 -> 1.35 bara. For the -178 C exhaust the LP column needs (just above the air dew
@@ -120,14 +124,14 @@ on chilled water); the cold box then closes at a heat leak of ~75 kW against 50 
 
 | consumer | power / duty | basis |
 |---|---|---|
-| K-1101 MAC | 7.13 MW electric (6.75 MW shaft) | simulated, D-066 (85,930 Nm3/h dry), D-058 (wet air): 3 stages, 5.8 bara; motor 8.0 MW (rating: 110 % of shaft 7.42 MW, kept) |
+| K-1101 MAC | 7.13 MW electric (6.75 MW shaft) | simulated, D-066 (85,810 Nm3/h), D-058 (wet air): 3 stages, 5.8 bara; motor 9.0 MW (D-066; was 8.0) |
 | K-4101 GOX compressor | 2.26 MW electric (2.14 MW shaft) | simulated, D-061 (suction 13 C): 5 stages to 31 bara (D-065 (7)) |
 | K-4102 GAN compressor | 0.24 MW electric (0.22 MW shaft) | simulated, D-057, D-061 (suction 13 C): 5.2 -> 9 bara, 1 stage |
-| E-2101 regeneration heater | 1.13 MW electric (peak) | 18,486 kg/h x 1.04 kJ/kgK x 185 K, ~1/3 of cycle (D-066) |
+| E-2101 regeneration heater | 1.13 MW electric (peak) | 18,486 kg/h x 1.04 kJ/kgK x 185 K = 0.99 MW, plus the concept's 14 % margin; ~1/3 of cycle (D-066, ASSUMED) |
 | pumps, chiller water, misc. | 0.3 MW electric | ASSUMED |
 | **total electric** | **~11.1 MW (average ~10.3 MW)** | 6.6 kV (D-066; D-058 ~10.2 / ~9.5) |
-| cooling water | ~11.2 MW, ~965 m3/h at 10 K | MAC 7.56, DCAC 1.36, GOX comp 2.04, GAN comp 0.12, booster aftercooler E-3104 0.13 MW (simulated, D-066, D-067) |
-| chilled water (C-1102) | DCAC upper section + E-3105 0.06 MW | no machine: evaporative cooling by dry waste N2 (D-005, D-067) |
+| cooling water | ~10.6 MW, ~910 m3/h at 10 K | MAC 7.56, DCAC lower section 0.71, GOX comp 2.04, GAN comp 0.12, booster aftercooler E-3104 0.13 MW (simulated, D-066, D-067) |
+| chilled water (C-1102) | ~0.70 MW | DCAC upper section 0.64, E-3105 0.06 MW (simulated); no machine: evaporative cooling by dry waste N2, whose heat leaves with the waste (D-005, D-067) |
 
 Specific energy: ~0.64 kWh per Nm3 GOX delivered at 30 barg (MAC + GOX compressor; D-066, D-058 ~0.59).
 
@@ -206,6 +210,8 @@ Rejected: LP nitrogen + 3-stage compressor (more power); raising MAC pressure (p
 Assumptions: Pure N2 section at the HP column top is sufficient (to be verified by simulation).
 
 ## D-005 Precooling: DCAC with chilled water from an evaporative cooler (2026-10-18)
+Revised by D-067: all waste N2 not used for regeneration feeds C-1102, and its chilled water also
+trims the booster air (E-3105).
 Decision: Packed direct contact aftercooler C-1101 (cooling water lower, chilled water upper
 section), chilled water from evaporative cooler C-1102 using dry waste N2. Mist eliminator and
 level trip LSHH-1106 at the DCAC to prevent water carry-over to the adsorbers.
@@ -344,6 +350,8 @@ TSV-4145 for the liquid trapped between check valve and block valve, block valve
 fill nozzle N6. The LOX fill bay has a concrete (not asphalt) pad under the hose coupling (D-026).
 
 ## D-018 O2 recovery 94 % and sensitivity at 90 % (2026-10-18)
+Revised by D-066: the simulated double column needs ~83 % recovery (85,840 Nm3/h dry air) for
+99.5 % GOX.
 Decision: keep 94 % as the design recovery and size the MAC for 80,000 Nm3/h (+5 %, ASSUMED
 margin). Check: an LP double column with ~15 % Lachmann air and no argon column typically reaches
 93-96 % at 99.5 % O2, so 94 % is plausible but not conservative. At 90 % the O2 in the air must be
@@ -554,6 +562,8 @@ Reason: noise and maintenance for the MAC, O2 fire separation, rack routing in p
 one crossing of the central road, and LOX spill / combustible-contact hazards near the tanks.
 
 ## D-027 Basic-stage stream balance closure (2026-10-21)
+Revised by D-066 and D-067: the air, waste and regeneration flows, and the waste split (the vent
+is now a bypass).
 Decision: close the component balances of PUR (V-2101A/B) and of the cold box (E-3101, C-3101,
 C-3102) in process/flowsheet.yaml with values derived from the section 3 table, all ASSUMED:
 (1) Air water content H2O 0.25 mol% = saturation at 12 C / 5.7 bara (stream 3 "saturated"); the
@@ -2490,7 +2500,12 @@ t/d, the GAN product (from the HP column) and the 470 + 470 kg/h liquids stay; n
 
 Decision:
 - **HP column air.** S5 is 96,000 kg/h (+15 % against 83,190). Total dry air is 110,870 kg/h,
-  85,930 Nm3/h (was 98,060 kg/h, 76,000 Nm3/h). The expander air stays at 14,870 kg/h.
+  85,810 Nm3/h (85,840 Nm3/h at the intake with its CO2; was 98,060 kg/h, 76,000 Nm3/h). The
+  expander air stays at 14,870 kg/h.
+- **MAC K-1101.** Re-rated to about 90,000 Nm3/h dry (the 80,000 rating is exceeded), with a
+  9.0 MW motor (ASSUMED, was 8.0). The motor output at the design point is 7.13 MW electric x
+  0.97 = 6.92 MW, and about 7.25 MW at the rated flow. 110 % of that (API 617) is 7.97 MW,
+  which leaves an 8.0 MW motor no margin.
 - **LP column C-3102.** 59 stages. The crude oxygen moves to stage 14 and the Lachmann air to
   stage 16 (from 22 and 24). The stages above were pinched; the stages below strip argon.
 - **LN reflux.** 29,280 kg/h, 0.305 x the HP air. Above about 0.31, the GAN O2 rises steeply.
@@ -2501,7 +2516,18 @@ Decision:
   process/simulation.yaml (core #92). It is fitted to the Lemmon-Jacobsen Helmholtz mixture
   model of REFPROP/CoolProp: alpha(Ar/O2) is 1.558 at 1.30 bara and 1.547 at 1.40 bara near
   pure O2. DWSIM's own 0.0107 gives about 5 % less, which overstates how hard the argon is to
-  strip.
+  strip. The Helmholtz model is itself fitted to the Ar/O2 VLE literature (e.g. Clark, Din and
+  Robb; Narinskii; Wilson et al.). The primary data tables were not checked here.
+- **C-3102's top residual.** The simulation reports a 43.6 kW "top residual" for C-3102. DWSIM
+  has no column without a condenser, so cheme models C-3102's top as a full-reflux condenser
+  holding back 1 % of the top vapour. It condenses about 22 kmol/h of the 2,700 kmol/h waste
+  vapour and returns it as reflux, and the reboiler supplies those 43.6 kW in addition. The
+  real column (no condenser) therefore boils about 4,123 kW, not 4,166 kW. E-3103 is then
+  4,172 kW condensed against about 4,123 kW boiled: 49 kW (1.2 %) of condensation to spare.
+  That liquid stays in the column, and the E-3102 duty or the liquid products can take it. The
+  extra reflux is 0.8 % of the LN and makes the GOX at most marginally purer. The cold-box
+  refrigeration balance (D-067) is drawn around the cold box, so it does not depend on this
+  residual.
 
 Results (DWSIM 9.0.5, cheme process simulate):
 | | D-059 | D-066 |
@@ -2510,7 +2536,7 @@ Results (DWSIM 9.0.5, cheme process simulate):
 | LOX S10 | 98.0 % O2 | 99.81 % O2 |
 | GAN S14 / S9 | O2 0.9 ppm | O2 0.2 ppm |
 | waste N2 S16 / S17 | 63,750 kg/h, O2 3.0 % | 76,560 kg/h, O2 5.1 %, Ar 1.2 % |
-| O2 recovery (GOX + LOX) | 94 % assumed | 82.6 % |
+| O2 recovery (GOX + LOX) | 94 % assumed | 82.8 % |
 | MAC K-1101 | 6.31 MW electric | 7.13 MW electric (6.75 MW shaft) |
 | specific energy (MAC + GOX compressor) | 0.59 kWh/Nm3 | 0.64 kWh/Nm3 |
 | LCA climate change (example factors) | 129.5 kg CO2-eq/t GOX | 140.7 kg CO2-eq/t GOX |
@@ -2555,16 +2581,18 @@ Reason:
   - Pumped LOX. It is a different cycle, and the liquefied air takes the HP vapour.
 
 Open (lists and datasheets: repos-8a; the vendor):
-- K-1101 is re-rated to about 90,000 Nm3/h dry (+5 % on 85,930; the 80,000 rating is
-  exceeded). The 8.0 MW motor stays: 110 % of the 6.75 MW shaft is 7.42 MW. The vendor's stage
-  efficiency below 0.82 would eat that margin.
-- Grow by about 13 % with the air: F-1101, E-1101 to E-1103, C-1101 (DCAC 1,358 kW), the TSA
-  V-2101A/B (H2O 147, CO2 68 kg/h), the regeneration gas (18,486 kg/h) and E-2101 (1.13 MW
-  peak).
+- K-1101: about 90,000 Nm3/h dry, a 9.0 MW motor (see the decision). This ripples into the
+  electrical list (TR-1, starting, cable), the lifting study (motor weight, D-034, D-055) and
+  the datasheet. The vendor's stage efficiency and IGV range confirm it.
+- Grow by about 13 % with the air: F-1101, E-1101 to E-1103, C-1101 (DCAC: lower section
+  710 kW to cooling water, upper section 640 kW on chilled water; D-067), the TSA V-2101A/B
+  (H2O 147, CO2 68 kg/h), the regeneration gas (18,486 kg/h) and E-2101 (1.13 MW peak).
 - C-3101 sees +15 % vapour and C-3102 +20 % top vapour. E-3101 gets the larger air and waste
   flows. E-3102: 304 kW. E-3103: 4,170 kW.
-- 82.6 % recovery is a deliberate trade-off. The ASSUMED +/-30 % accuracy of the concept
+- 82.8 % recovery is a deliberate trade-off. The ASSUMED +/-30 % accuracy of the concept
   flows does not cover the VLE question above.
+- Core: a column without a condenser modelled with a smaller top residual (lower reflux steps
+  or a true no-condenser column).
 
 ## D-067 Cold-box refrigeration: the boosted air enters E-3101 at 15 C (2026-10-23)
 Closes D-061's refrigeration shortfall and revises D-005 (evaporative cooler routing) and D-027
@@ -2577,11 +2605,20 @@ Decision:
   is now an energy stream to cooling water (Q5).
 - **New trim cooler E-3105** (tag ASSUMED, not yet in the lists or on P-03). It takes the
   boosted air from 30 C to 15 C on chilled water from C-1102: 63 kW, chilled water 10 -> 20 C,
-  ~5.4 m3/h, about 55 m2. It is dry gas after the TSA, so there is no condensate. The flowsheet
-  carries it as step E3105 and stream S4E.
+  ~5.4 m3/h, about 55 m2. It is counter-current, because the temperatures cross (air out
+  15 C, water out 20 C). It is dry gas after the TSA, so there is no condensate. The air side
+  (8.45 bara) stays above the water side, so a tube leak cannot put water into the dry air.
+  The same holds for E-3104. The flowsheet carries it as step E3105 and stream S4E.
 - **Waste N2 routing.** All waste N2 not used for regeneration goes to the evaporative cooler
   C-1102: S12B is 58,074 kg/h. The vent S12C carries none in normal operation and is the
   start-up and bypass route.
+- **The DCAC in two sections.** C-1101 is now two flowsheet steps:
+  - the lower section (C1101) cools the air to 27 C on cooling water, 710 kW (Q2);
+  - the upper section (C1101U) cools it on to 12 C on the C-1102 chilled water, 640 kW, with no
+    cooling water.
+
+  Before, Q2 carried the whole DCAC duty to cooling water and the LCA counted the chilled
+  part twice.
 
 Results:
 - The cold box closes at a heat leak of +75.2 kW against the ASSUMED 50 kW, a margin of
@@ -2605,9 +2642,11 @@ Reason:
   - Cooling water plus a chilled trim costs ~1-2 kWe of pumping and no product.
 - **The chilled water.** The evaporative cooler could not carry even the D-058 DCAC upper
   section with 31,450 kg/h of N2: about 543 kW against 572-616 kW (pinch-checked
-  psychrometrics). With ~58,000 kg/h of dry N2 at 13 C (adiabatic saturation ~2.4 C), and
-  water fed from the DCAC sump at about 27 C, it gives about 1,000 kW of 10 C water. The
-  demand is the DCAC upper section of ~660-700 kW plus E-3105's 63 kW, a margin of about 30 %.
+  psychrometrics). With ~58,000 kg/h of dry N2 at 13 C (adiabatic saturation ~2.4 C), it gives
+  about 1,000 kW of 10 C water. This takes the chilled water returning from the DCAC upper
+  section warm (about 26 C) to the top of C-1102: the closed loop of P-01 (D-021), with no sump
+  water. The demand is the DCAC upper section, 640 kW simulated, plus E-3105's 63 kW: ~700 kW,
+  a margin of about 30 %.
 
 Open:
 - C-1102 packing, height and the 2 K approaches are for the supplier. The 10 C chilled water
@@ -2623,4 +2662,12 @@ Open:
   until it is back.
 - The C-1102 top vent WN-1002 now discharges about 58,000 kg/h of oxygen-deficient gas
   (5.1 % O2), 1.8 times as much as before. Re-check its O2-deficient zone (D-031) for the
-  larger flow.
+  larger flow. Re-check S-3101 / WN-3003 (Z-N2-V1) as well: no longer continuous, but up to
+  58 t/h intermittently on a C-1102 bypass.
+- **Waste-N2 hydraulics.** S12B grows 1.85-fold, so the pressure drop of WN-1001, the C-1102
+  packing and its distributor rises about 3.4-fold. The waste path sets the LP column top
+  pressure (1.30 bara assumed), which in turn sets the HP column and the MAC discharge
+  (5.8 bara). Check the path LP top -> E-3102 -> E-3101 -> WN-1001 -> C-1102 -> WN-1002, and
+  give the C-1102 supplier an allowable pressure drop.
+- **C-1102 water.** The evaporated water (~1.1-1.5 t/h at the D-067 duty) leaves with S12E,
+  and C-1102 needs make-up for it. S12E's water uptake is not in the flowsheet.
