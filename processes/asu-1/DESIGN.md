@@ -2208,3 +2208,272 @@ simulation and design basis stay with the parallel process-simulation work (D-05
    - **PSV-3114 / 3116 / 4127 / 4128 tailpipe guides** (review3#2): wait for the relief reaction
      forces of the stress analysis (D-050).
    - **KT-3101 casing extension** (2026-10-21-layout#15): waits for the vendor drawing (D-050).
+
+## D-063 Datasheets on the simulated states; the four cold-box drafts filled (2026-10-23)
+Decision (amends D-053, D-060 (3), (4), (6); closes review9#5 and the datasheet open points of
+D-058, D-059, D-061): every datasheet now rests on the merged flowsheet (80 % RH air, D-058; the
+double column, D-059; the balanced compander and the 13 C warm end, D-061). Powers and duties the
+DWSIM simulation gives (`cheme process simulate`, D-057 drive efficiencies) are written as such;
+what it does not give is calculated by `scripts/datasheet_sizing.py` (rewritten, below) and named
+by its section `D-063 (n)`. All 39 datasheets are final (`draft: false`); every open field is a
+`supplier` or `not_applicable` marker with its reason, and the datasheets gate passes.
+`process/flowsheet.yaml`, `simulation.yaml` and `design-basis.yaml` are not edited.
+1. **Sizing script.** The machines' Cp/Cv is the property adapter's at each stage's suction
+   (temperature and pressure) instead of one value at 298.15 K; water vapour in the MAC air is
+   mixed in on the molar Cp (IAPWS-95 at its partial pressure); the efficiencies, stage counts
+   and cooler drops are read from `process/simulation.yaml`; every stream state is read from the
+   flowsheet (the hard-coded E-3101 states and column pressures are gone). The pump sections are
+   unchanged and reproduce D-060 (5) (P-4102B 126.9 m, the D-060 figure 127.0 was rounded up; not
+   rewritten).
+2. **MAC K-1101 and coolers (D-058).** Datasheet powers from DWSIM: 5,968 kW at the compressor,
+   6,309 kW electric (E1); motor rating 8.0 MW unchanged. The script's cross-check, 3 stages of
+   1.822 with 0.05 bar per cooler, eta_s 0.82, gives 5,981 kW. Coolers (sensible + latent, IAPWS-95
+   condensation at 40 C): E-1101 1,673 kW / 346.5 m2 (no condensate); E-1102 2,476 kW / 459.1 m2
+   (679 kg/h); E-1103 2,436 kW / 449.8 m2 (649 kg/h); 6,585 kW in all against Q1 6,686 kW (1.5 %),
+   1,328 kg/h against S1C 1,398 kg/h (Peng-Robinson against IAPWS-95). The condensing part takes
+   the gas-cooler U on the gas LMTD (ASSUMED, conservative). CW 145 / 214 / 211 m3/h (~580 m3/h,
+   line list CW-1002; was ~650).
+3. **DCAC C-1101, evaporative cooler C-1102, TSA V-2101A/B.** C-1101 duty 1,201 kW (Q2, DWSIM;
+   the script's 1,187 kW cross-check), condensate S3C 587 kg/h, F 0.86 Pa^0.5. C-1102 with the
+   waste N2 at 13 C: adiabatic saturation 2.3 C (was 8.54 C at 25 C), so the 10 C chilled water
+   is now 7.7 K above the limit (D-060 (3)'s tall-packing finding falls away); F 0.49 Pa^0.5.
+   V-2101A/B: water load 150.6 kg/h (S3 saturated at 12 C, 5.7 bara, IAPWS-95, as D-058 asks;
+   Peng-Robinson's flowsheet composition gives 130 kg/h), CO2 59.9 kg/h; 602 kg water and 239 kg
+   CO2 per 4 h step; adsorbent masses `supplier` (working capacities). E-2101: 883 kW sensible from
+   13 C, inside the 1.0 MW peak.
+4. **Compander and E-3104 (D-061).** K-3101 185.9 kW gas / 191.6 kW shaft, 59.9 C discharge;
+   KT-3101 198.4 kW gas / 192.4 kW shaft, exhaust -178.0 C from S5B (script, real gas): 0.8 kW
+   margin, recorded on both sheets. E-3104 83.95 kW (DWSIM), 29.7 m2, CW 7.3 m3/h (CW-3001 /
+   CWR-3001; DN150 stays, D-060 (6)).
+5. **GOX and GAN compressors (D-061).** K-4101 2,184 kW at the compressor, 2,308 kW electric;
+   K-4102 218.6 / 237.6 kW. The datasheet keeps 5 stages (the four shells of the E-4101 package,
+   D-055 (6)); `process/simulation.yaml` models 4. At the simulation's eta_s 0.78 the 5-stage
+   machine takes 2,154 kW (1.4 % less) and rejects 2,011 kW to its coolers against the simulated
+   Q3 2,086 kW. Finding for the simulation owner: align the K4101 stages with the package. E-4101
+   1,572 kW / 280.4 m2 (four shells 59.2 / 74.1 / 73.8 / 73.3 m2), E-4102 439.6 kW / 72.2 m2,
+   E-4103 123.8 kW / 33.9 m2 (Q4 123.4 kW). Isothermal power at the 13 C suction 1,418 kW.
+6. **Main exchanger E-3101 and subcooler E-3102.** Composite curves on the D-061 states: warm side
+   5,242 kW (main air 4,536, booster air 705 kW); S14 / S15 enter as saturated vapour at their
+   simulated pressures 5.3 / 1.4 bara (D-061). From the LP column top (80.3 K) the waste N2 would
+   take 3,787 kW: the cold side is 293 kW over the warm side (D-061: ~295 kW), so E-3101 closes
+   only with the waste N2 first warmed to 95.8 K in E-3102 (heat leak neglected, ASSUMED). Then
+   E-3101: UA 721.6 kW/K, minimum approach 5.1 K near the cold end, 2 K to the main air and 27 K to
+   the booster air at the warm end (supplier to confirm, D-061); area `supplier`. E-3102: 293 kW
+   taken from the LN reflux S18 (66 kW, 4.4 K subcooled) and the crude S13 (227 kW, 9.3 K) to a
+   common -182.9 C outlet (ASSUMED, one core with a common cold header); UA 49.6 kW/K, minimum
+   approach 3.8 K at the warm end; area `supplier` (no cryogenic U row in the core's table, and
+   no flowsheet node links E-3102 for a fill); LMTD `not_applicable` (three streams). The
+   equipment list's GAN pass is not modelled. The subcooling is not in the column simulation
+   (D-059 open: tear stream), and the cold box stays ~78 kW short of refrigeration (D-061).
+7. **Condenser-reboiler E-3103 and the columns (D-059).** E-3103: 3,536 kW condensing at 94.7 K,
+   5.3 bara; 3,250 kW reboiling at 93.2 K, 1.4 bara; 1.5 K approach (= LMTD, both sides
+   isothermal, ASSUMED), UA ~2,300 kW/K; area `supplier`. C-3101: 40 theoretical stages, partial
+   condenser (E-3103), feed below the bottom stage, LIN from stage 2, reflux ratio 1.34 = 1.12 x
+   Rmin 1.19 (Underwood on S14 / S13, Fenske Nmin 14.4), -178.4 / -173.6 C at 5.3 / 5.5 bara.
+   C-3102: 59 theoretical stages, LN on 1, crude on 22, Lachmann air on 24, GOX vapour from the
+   sump, -192.9 / -180.0 C at 1.3 / 1.4 bara, Fenske Nmin 12.0 (Ar/O2) for the specification,
+   Rmin `not_applicable`; the simulated GOX 97.0 % O2 is written on the sheet beside the 99.5 %
+   specification (D-059, open). Real stages, packing heights and flooding diameters of both
+   columns are `supplier` markers (no HETP or flooding correlation in cheme-as-code is cleanly
+   sourced); the 4.2 m diameters stay the equipment list's ASSUMED values.
+8. **Lists.** Equipment list notes for K-1101, K-3101, KT-3101, K-4101, E-4101, K-4102; line list
+   CW-1002 (MAC CW total), CW-3001 / CWR-3001, CW-4001, AIR-3002, AIR-3003, AIR-3006, WN-1001,
+   WN-3002, GOX-4001 and GAN-4001 to the D-058 / D-061 states (velocities at 13 C: WN-1001 18 m/s,
+   WN-3002 20 m/s, GOX-4001 19 m/s). Cooling water in all ~10.2 MW, ~880 m3/h at 10 K (section 3).
+9. **Equipment estimate.** `cheme assess equipment --write`: coverage unchanged (bare module 3,
+   purchased only 22, not covered 14): E-3101 / E-3102 / E-3103 and the vaporizers have supplier
+   areas, K-4102 (219 kW) and K-3101 (186 kW) stay below the correlation's 450 kW, K-1101 (5,968
+   kW) above its 3,000 kW. Purchased equipment of the covered items USD 4.04 million (was 4.00
+   million). Layout model, lifting study, take-off, estimate and LCA rebuilt: only the list
+   fingerprints change.
+10. **Simulation check.** `cheme process simulate --check` after this pass (nothing in the
+   simulated inputs changed): converged, identical to the run before it; 0 errors, 7 warnings, 1
+   info. Every warning is a known, intended deviation:
+   - `process-sim-deviation` S15 x(Ar) 0.0297 against 0.0045 and S16 x(O2) 0.0298 against
+     0.0209, and S10 x(Ar) 0.0204 against 0.0045: the GOX / LOX purity gap and the re-derived
+     waste of D-059 (specifications kept as ASSUMED values);
+   - S10 93.17 K / 140 kPa(a) and S11 94.73 K / 530.5 kPa(a) against the stored 90.15 K / 130
+     kPa(a) and 92.15 K / 520 kPa(a): the column draws are saturated, the stored products are the
+     subcooled liquids of D-056 (the subcooling is not simulated);
+   - `process-sim-reboiler-unbalanced`: C-3101 condenses 3,536 kW, C-3102 reboils 3,250 kW, the
+     ~286 kW surplus of D-059;
+   - info `process-sim-energy-ignored` E2 (the DCAC pumps' power, not simulated, D-057).
+   Nothing to refill: `--fill` would write no value.
+Open: the TSA, tank and rack walkway arrangements (9 valves, D-060 (7)), the stress engineer's
+5 free spans (D-062 (4)), the suppliers' areas, packing and staging above, the 99.5 % GOX cycle
+(D-059) and the ~78 kW refrigeration shortfall (D-061) are decisions outside the datasheets.
+P-01 still draws no condensate drains for S1C / S3C (D-058; closed by D-064).
+
+## D-064 MAC and DCAC condensate drains on P-01 (2026-10-23)
+Decision:
+1. **MAC coolers: integral moisture separators.** E-1102 and E-1103 each have a moisture
+   separator (vane pack or demister) built into the air outlet. This is the usual MAC-package
+   arrangement and needs no separate vessel, tag or placement. Each separator drains through a
+   new nozzle N5 DN25 on the shell bottom at the air-outlet end. E-1101 gets no drain: no water
+   condenses there (6.2 kPa partial pressure against 7.4 kPa saturation at 40 C, E-1101
+   datasheet). The separator type and its pressure drop come from the supplier (MAC package).
+2. **Drain lines CD-1001 (E-1102) and CD-1002 (E-1103)**, new fluid code CD (condensate drain;
+   extends D-007). Each line runs from the drain nozzle through a manual gate valve and a float
+   trap to a drain hub at grade. From the hub the condensate goes into the clean (oil-free)
+   drain system: the MAC air path is oil-free (D-012), so it is not oily water.
+   - Flows: 679 kg/h at 3.21 bara and 649 kg/h at 5.8 bara, both at 40 C (IAPWS-95, the
+     E-1102 / E-1103 datasheets). Together that is the simulated S1C, 1,398 kg/h at 40 C
+     (D-058). The simulator gives S1C one pressure, 1.79 bara; each trap really works at its
+     own cooler's pressure.
+   - Sizing: DN25, PN10 (the coolers' 8 barg design). DN25 is the minimum drain size and
+     gives about 0.3 m/s (ASSUMED).
+   - Traps: float traps, model `Plant/Piping.SteamTrap`. Trap size and capacity come from the
+     supplier.
+   - Drawing: the cheme-as-code catalogue has no trap symbol. `STEAM_TRAP_SHAPE` (a square body
+     with the float) was added to P-01's catalogue. Its registration number is its name: the
+     ISO 10628-2 number is not checked.
+   - Method: the lines were drawn with the authoring API (`scripts/edit_P-01_drains.py`,
+     provenance only). The traps were built as ball valves and then re-classed by hand.
+   - Moves on P-01: TIA-1111 moved east to x 178 on AIR-1002 (still downstream of E-1103,
+     now after the check valve) to make room for CD-1002. The E-1102 label moved up 4 mm.
+3. **DCAC: no separate bleed.** The DCAC lower section is fed once-through from the cooling
+   water system (CW-1001 via P-1101A/B, and the chilled water from C-1102). The sump water
+   returns to CW return through LV-1106 under LIC-1106. The condensate S3C (587 kg/h, about
+   0.6 m3/h, simulated) is about 0.2 % of the ~250 m3/h sump outflow. It leaves with that
+   outflow, so LV-1106 is the DCAC water bleed, and the cooling-tower blowdown sets the
+   water's concentration. P-01 states this in a note. S3C now links to CWR-1001 and LIC-1106,
+   and S1C links to CD-1001 and CD-1002 (flowsheet links only; no stream value changed).
+4. **Layout:**
+   - Nozzle overrides put N5 on the shell bottom: E-1102 at along 7.2 m, E-1103 at along 6.5 m.
+   - The drain hubs are battery-limit points in `piping/routing.yaml`: (60.2, 45.0, 0.3)
+     north of E-1102 and (69.0, 36.0, 0.3) east of E-1103 (ASSUMED).
+   - The routes are 3.3 m and 2.3 m long at about 0.3 m elevation. The valves and traps sit clear of
+     the shells and can be worked from grade.
+   - No new clash, operability or support finding.
+   - The take-off gains two DN25 gate valves and two traps. LCA climate change for
+     construction: 33.7517 -> 33.7519 kg CO2-eq/t GOX.
+Reason: D-058 left the 1,985 kg/h of condensate (S1C + S3C) without a drawn outlet. An
+undrained intercooler floods its separator and carries water into the next stage or the DCAC.
+Rejected:
+- Separate knockout vessels after E-1102 / E-1103: they would add two tagged items, placements
+  and DN600 / DN700 spools inside the MAC package, which the package's integral separators
+  make unnecessary.
+- A level-controlled zero-loss drain (LT + XV) instead of each float trap: it saves the small
+  air loss of a float trap but needs two more instruments per cooler. Keep it as a supplier
+  alternative.
+- A separate DCAC blowdown: it would duplicate LV-1106.
+
+## D-065 Tenth layout review: MAC cooler zones, steel against steel, drains, citations (2026-10-23)
+Answers reviews/2026-10-23-layout-review10.md (the record itself is not edited). The flowsheet,
+simulation and design basis stay with the process-simulation work (D-058, D-059, D-061).
+1. **Citations of the sizing script (review10#4).** The datasheets cited the script as
+   `scripts/datasheet_sizing.py D-063 (n)` with the script's own section numbers, which are not
+   the numbered items of D-063. The script's headers now read `== section n (DESIGN.md D-063
+   (m))`, and every citation reads `scripts/datasheet_sizing.py section n (DESIGN.md D-063 (m))`:
+   section 1 MAC and coolers = D-063 (2); 2 GOX compressor and coolers, 3 GAN compressor = (5);
+   4 compander and E-3104 = (4); 5 E-3101 / E-3102 = (6); 6 HP column, 7 LP column = (7); 8 TSA,
+   9 DCAC / evaporative cooler = (3); 10 cooling water and line velocities = (8). The same in
+   the equipment list (E-4101) and the line list (CW-1002, CW-4001). No value changed. The
+   intro of D-063 ("named by its section `D-063 (n)`") is read with this mapping.
+2. **E-1102 / E-1103 sized by zones (amends D-063 (2); review10#1).** D-063 put the latent heat
+   at the single gas LMTD and called it conservative. It is not: the water condenses only below
+   its dew point, at the cold end, where the air-to-water difference is smallest. Script section
+   1 now sizes each condensing cooler in two zones against counter-current CW 25 -> 35 C taking
+   the same duty: (a) desuperheating from the stage discharge to the dew point (IAPWS-95 vapour
+   pressure at the cooler pressure), LMTD and 1-2 F of the zone; (b) condensing from the dew
+   point to 40 C along the equilibrium cooling curve (the gas kept saturated, as in the Silver /
+   Bell-Ghaly approach, ASSUMED), its mean temperature difference integrated over 400 intervals,
+   with the 1-2 F of its terminal temperatures. U 160 W/(m2 K), the D-053 gas-cooler value, in
+   both zones (ASSUMED; the condensing film only raises it, so the area errs on the large side).
+   | cooler | dew point | zone 1 | zone 2 (latent) | area | was |
+   |---|---|---|---|---|---|
+   | E-1102 (3.21 bara, 3.35 mol% H2O) | 47.2 C | 1,817 kW, 41.7 K, F 0.948, 287 m2 | 659 kW (454), 17.3 K, F 0.989, 240 m2 | 527.5 m2 | 459.1 |
+   | E-1103 (5.80 bara, 2.30 mol% H2O) | 51.6 C | 1,679 kW, 45.0 K, F 0.962, 243 m2 | 757 kW (434), 19.2 K, F 0.983, 251 m2 | 493.2 m2 | 449.8 |
+   The duties, condensate (679 / 649 kg/h) and CW flows are unchanged. The datasheets carry the
+   zone LMTDs and F as lists, the zone duties and the dew point as the enquiry basis of the MAC
+   package; the supplier's condensing-zone U replaces the assumed one. E-1101 condenses nothing
+   (D-064 (1)) and keeps its single-LMTD area. The reviewer's estimate (about 560 m2 for E-1102)
+   used F 0.89 in both zones; the zone F values above are higher. The equipment estimate is
+   rerun on the new areas: purchased equipment of the covered items USD 4.044 -> 4.057 million.
+3. **Condensate figures and MAC interstage pressures (corrects D-064 (2); review10#3).** D-064 (2)
+   said the two drains, 679 + 649 kg/h, are "together the simulated S1C, 1,398 kg/h". They add up
+   to 1,328 kg/h: the datasheets and the line list carry the IAPWS-95 condensate at 40 C and each
+   cooler's pressure (D-063 (2)), the flowsheet carries the DWSIM Peng-Robinson value 1,398 kg/h
+   (D-058); the 70 kg/h (5 %) between them is the property-method difference D-063 (2) records.
+   The drains, traps and DN25 lines are sized on the larger figure either way. The line list
+   notes of the MAC interstage lines were still on the concept pressures: AIR-1006 now gives
+   ~3.26 bara into E-1102 and ~3.21 bara out (was ~3.7), AIR-1005 ~1.84 / ~1.79 bara around
+   E-1101 (was ~2.2), both from the K-1101 stage discharges at the ratio 1.822 (D-063 (2)).
+4. **E-3101 operating block; datasheet headers (review10#5).** E-3101 had `operating: {}`; it now
+   carries the five passes in -> out: main air S4A -> S5, booster air S4D -> S5B, HP nitrogen
+   S14 -> S9 and GOX S15 -> S7 from saturated vapour at their simulated pressures (dew 94.73 /
+   93.28 K, the states the composite curves use, D-063 (6)), and waste N2 S16 -> S17 entering at
+   95.79 K after E-3102 (ASSUMED, the temperature that closes the balance; the flowsheet's S16 is
+   the C-3102 top at 80.27 K, and its `process_streams` entry now says so). The `supplier` marker
+   of its area gives its text under `reason:`, as E-3102 / E-3103 do. The 39 final datasheets
+   lose the generated "DRAFT datasheet ... remove `draft: true`" header; the new four-line header
+   names the draft's sources and says the sheet is final. No value changed.
+5. **Support steel against support steel (review10#2).** In seven places a member of one
+   declared support ran through a member of another; cheme-as-code has no rule that tests
+   steel against steel between declared supports (a request for core), so the new
+   `scripts/support_steel_scan.py` scans the model for it (and for support steel nearer than
+   0.1 m to a pipe it does not serve). Fixes in `layout/structures.yaml`:
+   - CW-1004 S1 post-1 and CWR-1003 S1 post-3 (x 58.12 / 58.94, both pipes at 3.84 m): one
+     common T-post at (58.53, 60.63) with a 1.4 m crossbar serving both lines; CWR-1003 S1
+     post-3 is removed. The column stands between the DN300 pipes, 0.15 m clear of each.
+   - LOX-4003 S1 post-2 and S3 post-5 (crossing crossbars at the S3 return leg): one common
+     T-post at (130.544, 110.05), 1 m crossbar under both legs (x 130.294 / 130.794 at 4.0 m),
+     serving S1 and S3; S3 post-5 is removed. Spans stay within the 2.1 m DN 25 limit (S1 1.92 m
+     from post-1; S3 about 2.1 m along the pipe from post-4).
+   - LIN-4003 S3 post-3 / post-6 / post-7: crossbars 0.4 m (were 1 m; the DN 25 jacketed pipe
+     is 0.13 m over its insulation), clear of the LIN-4002 S4 post-2 / post-4 columns at x 144.52.
+   - LIN-3001 S2 post-7: 0.21 m west along its pipe to x 143.55, its column 0.25 m clear of the
+     narrowed LIN-4003 S3 post-7 crossbar (spans 1.87 / 2.29 m between posts 6 and 8).
+   - CWR-3001 S1 post-6 and CWR-4002 S1 post-1: crossbars 0.5 m (were 1 m) under their DN150 /
+     DN100 pipes, 0.14 / 0.12 m clear of the LIN-3001 S1 post-7 and GAN-4004 S1 post-1 columns.
+   After the rebuild the scan finds no overlapping steel and no pipe-support member within
+   0.1 m of a foreign pipe. Two near places stay, not overlapping: the intended GOX-4002 S12
+   stub SP-6.5 standing on the GOX-4002 S4 post-1 crossbar (D-060 (2)) and LIN-4003 S2 post-3
+   beside LIN-4004 S2 post-5 (0.04 m). Findings unchanged: free-span 5, support-missing 16,
+   operability 9, no clash, steel-in-way or support-stub finding; two posts fewer in the
+   take-off (steel 578.8 -> 578.1 t, concrete 186.1 -> 185.8 m3; LCA climate change of the
+   construction share 33.7519 -> 33.7517 kg CO2-eq/t GOX). Observed, not changed: LIN-3001 S2 posts 6 .. 8 (top 13.026 m) stand 0.5 m below
+   their run since D-055 (5) raised the tank routes, so the model counts that run as
+   unsupported (the support-missing info); raising them leaves the 4.2 m end span D-060 (2)
+   kept as an info rather than a warning. It stays with the stress engineer (D-062 (4)).
+6. **MAC drain trap assemblies (amends D-064 (2), (4); review10#6).**
+   - Tags: the drain gate valves are HV-1112 (CD-1001) and HV-1113 (CD-1002), the float traps
+     ST-1112 / ST-1113 (`PipingComponentNumber`, labelled on P-01; the next free P-01 numbers,
+     one per drain; the project tags drain valves, e.g. HV-3118).
+   - Strainer and test point: each trap is specified as a float trap with an integral strainer
+     and an integral test valve on its outlet (a common float-trap build), stated in a P-01 note,
+     the line list and the E-1102 / E-1103 datasheets, instead of a separate Y-strainer and a
+     test branch on the DN25 drain. If the supplier's trap has no integral test valve, a DN15
+     test valve after the trap is added on P-01 at the vendor drawing review.
+   - No trap bypass: an open bypass would blow compressed air into the drain. A trap that fails
+     shut is found by the test valve and by the separator high-level alarm, and isolated with
+     the gate valve for replacement.
+   - Separator level: a high-level alarm per separator (switch or transmitter to the DCS) is a
+     requirement of the MAC package enquiry. The separators are integral to the coolers and
+     their level connections are the supplier's design (D-064 (1)), so the alarm is not drawn
+     or listed until the supplier's P&ID gives its tag and connection (vendor item).
+   - Layout: CD-1001 / CD-1002 are pinned in `piping/routing.yaml` with the valve and trap run
+     at 0.5 m (was 0.33 m; trap centres now 0.5 m, ASSUMED), then down into the hubs at 0.3 m.
+     The CD-1001 level run is 2.0 m, inside the 2.1 m DN 25 span, so no support is needed; no
+     new clash, support or operability finding.
+7. **Requests to the process-simulation owner (review10#7, #8; not edited here).**
+   `process/flowsheet.yaml`, `simulation.yaml` and `design-basis.yaml` belong to the
+   process-simulation work. This branch leaves them as they are and records three requests:
+   - (a) **Links on S1C and S3C (review10#7).** D-064 added `links:` to S1C (CD-1001, CD-1002)
+     and S3C (CWR-1001, LIC-1106) without the owner's agreement. They change no stream value,
+     the BFD / PFD only gain the link data, and `process-links` passes. The owner is asked to
+     confirm them as their change. If the owner rejects them, they are removed with the BFD /
+     PFD rebuilt; nothing else depends on them.
+   - (b) **S1 composition sums to 0.999999 (review10#8a).** N2 0.75459 + O2 0.20251 + Ar
+     0.009011 + H2O 0.0335 + CO2 0.000388 (D-058, ASSUMED values, rounded). It is a rounding
+     residue, but S1 is the simulation's feed: changing it makes the simulated S2, S3, S1C,
+     S3C, E1 and Q1 .. Q4 values stale (their fingerprints include S1) and needs the owner's
+     `cheme process simulate --fill` run. Request: round one fraction (e.g. N2 0.754591) so
+     the sum is 1, and rerun. Until then the BFD / PFD keep the two
+     `pydexpi_composition_fractions` warnings.
+   - (c) **S14 / S15 stored as liquid (review10#8b).** Both are saturated vapour draws (the
+     HP column top N2 and the LP column GOX), but `props --fill` flashes the stored states as
+     liquid (vf 0, 726 / 1,135 kg/m3) within 0.1 K of the dew point (D-061). Request: give
+     their vapour fraction 1 (or the dew-point state) in the flowsheet and refill the
+     properties. The E-3101 datasheet already takes them as saturated vapour (D-063 (6),
+     D-065 (4)).
