@@ -254,3 +254,33 @@ def test_stale_snapshot_and_wrong_schema(tmp_path: Path, monkeypatch: pytest.Mon
     manifest.write_text(manifest.read_text().replace("cheme/viewer-snapshot/v1", "cheme/viewer-snapshot/v9"))
     report = build_catalog.build(LIBRARY, tmp_path / "out2", PREVIEWS, commit="fixture", snapshots=snaps)
     assert any("viewer-snapshot/v9" in e for e in report.errors)
+
+
+def test_snapshot_staleness_follows_git_ancestry(tmp_path: Path) -> None:
+    """A later commit elsewhere keeps a snapshot current; a later change to the process does not."""
+    import subprocess
+
+    def git(*args: str) -> str:
+        return subprocess.run(["git", "-C", str(library), *args], check=True, capture_output=True, text=True).stdout.strip()
+
+    library = tmp_path / "library"
+    shutil.copytree(LIBRARY, library)
+    git("init", "-q", "-b", "main")
+    git("-c", "user.email=t@e", "-c", "user.name=t", "add", "-A")
+    git("-c", "user.email=t@e", "-c", "user.name=t", "commit", "-qm", "library")
+    snaps = tmp_path / "snaps"
+    shutil.copytree(SNAPSHOTS, snaps)
+    manifest_path = snaps / "fixture-electrolysis" / "manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+
+    def stale_after(change: Path) -> bool:
+        manifest["source"]["commit"] = git("rev-parse", "HEAD")  # exported now
+        manifest_path.write_text(json.dumps(manifest))
+        change.write_text(change.read_text() + "\n# later change\n")
+        git("-c", "user.email=t@e", "-c", "user.name=t", "commit", "-qam", f"change {change.name}")
+        out = tmp_path / f"out-{change.name}"
+        build_catalog.build(library, out, PREVIEWS, commit=None, snapshots=snaps)
+        return _json(out / "processes" / "fixture-electrolysis.json")["viewer"]["stale"]
+
+    assert stale_after(library / "chemicals" / "chemicals.yaml") is False
+    assert stale_after(library / "processes" / "fixture-electrolysis" / "process.yaml") is True

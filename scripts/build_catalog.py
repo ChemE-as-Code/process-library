@@ -100,6 +100,24 @@ def _git(library: Path, *args: str) -> str | None:
     return done.stdout.strip()
 
 
+def _behind(library: Path, made_from: str | None, source_commit: str | None) -> bool:
+    """Whether an artefact made from *made_from* misses the process's last change *source_commit*.
+
+    Current when the change is contained in that commit (equal or an ancestor); a later commit
+    elsewhere in the library does not make it stale.
+    """
+    if not made_from or not source_commit or made_from == source_commit:
+        return False
+    try:
+        done = subprocess.run(
+            ["git", "-C", str(library), "merge-base", "--is-ancestor", source_commit, made_from],
+            capture_output=True,
+        )
+    except OSError:
+        return True
+    return done.returncode != 0
+
+
 def _schema_errors(validator: Draft202012Validator, data: Any) -> list[str]:
     return [
         f"{'/'.join(map(str, e.absolute_path)) or '(root)'}: {e.message}"
@@ -387,10 +405,10 @@ def build(
         reps = _representations(folder, pid, plant, artifacts, out, where, report)
         source_commit = _git(library, "log", "-1", "--format=%H", "--", str(folder.relative_to(library))) if own_repo else None
         render = _render_info(artifacts, pid)
-        stale = bool(render and source_commit and render.get("source_commit") not in (None, source_commit))
+        stale = bool(render) and _behind(library, render.get("source_commit"), source_commit)
         viewer = _viewer(snapshots, pid, out, where, report) if plant else None
         if viewer:
-            viewer["stale"] = bool(source_commit and viewer["commit"] not in (None, source_commit))
+            viewer["stale"] = _behind(library, viewer["commit"], source_commit)
 
         detail = {
             "id": pid,
