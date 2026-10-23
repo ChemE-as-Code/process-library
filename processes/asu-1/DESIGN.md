@@ -1988,7 +1988,7 @@ humidity, double-column simulation, E-3102 / E-3103), which this round does not 
    - XV-3105 off-spec GAN divert (7.3 m to VP-1): a PR1 walkway or the VNT-4004 leg re-arranged.
    Result: operability 14 -> 9 warnings, no other finding count changes, 0 errors.
 
-## D-061 Ninth layout review: supports, lifting verdict, E-4101 bundle pull (2026-10-23)
+## D-062 Ninth layout review: supports, lifting verdict, E-4101 bundle pull (2026-10-23)
 Answers reviews/2026-10-23-layout-review9.md (the record itself is not edited). The flowsheet,
 simulation and design basis stay with the parallel process-simulation work (D-058, D-059).
 1. **Rebuilt with core fix/core-66 (52ac9b0).** cheme-as-code now (a) proposes a support stub on
