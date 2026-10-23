@@ -2370,3 +2370,23 @@ simulation and design basis stay with the process-simulation work (D-058, D-059,
    9 DCAC / evaporative cooler = (3); 10 cooling water and line velocities = (8). The same in
    the equipment list (E-4101) and the line list (CW-1002, CW-4001). No value changed. The
    intro of D-063 ("named by its section `D-063 (n)`") is read with this mapping.
+2. **E-1102 / E-1103 sized by zones (amends D-063 (2); review10#1).** D-063 put the latent heat
+   at the single gas LMTD and called it conservative. It is not: the water condenses only below
+   its dew point, at the cold end, where the air-to-water difference is smallest. Script section
+   1 now sizes each condensing cooler in two zones against counter-current CW 25 -> 35 C taking
+   the same duty: (a) desuperheating from the stage discharge to the dew point (IAPWS-95 vapour
+   pressure at the cooler pressure), LMTD and 1-2 F of the zone; (b) condensing from the dew
+   point to 40 C along the equilibrium cooling curve (the gas kept saturated, as in the Silver /
+   Bell-Ghaly approach, ASSUMED), its mean temperature difference integrated over 400 intervals,
+   with the 1-2 F of its terminal temperatures. U 160 W/(m2 K), the D-053 gas-cooler value, in
+   both zones (ASSUMED; the condensing film only raises it, so the area errs on the large side).
+   | cooler | dew point | zone 1 | zone 2 (latent) | area | was |
+   |---|---|---|---|---|---|
+   | E-1102 (3.21 bara, 3.35 mol% H2O) | 47.2 C | 1,817 kW, 41.7 K, F 0.948, 287 m2 | 659 kW (454), 17.3 K, F 0.989, 240 m2 | 527.5 m2 | 459.1 |
+   | E-1103 (5.80 bara, 2.30 mol% H2O) | 51.6 C | 1,679 kW, 45.0 K, F 0.962, 243 m2 | 757 kW (434), 19.2 K, F 0.983, 251 m2 | 493.2 m2 | 449.8 |
+   The duties, condensate (679 / 649 kg/h) and CW flows are unchanged. The datasheets carry the
+   zone LMTDs and F as lists, the zone duties and the dew point as the enquiry basis of the MAC
+   package; the supplier's condensing-zone U replaces the assumed one. E-1101 condenses nothing
+   (D-064 (1)) and keeps its single-LMTD area. The reviewer's estimate (about 560 m2 for E-1102)
+   used F 0.89 in both zones; the zone F values above are higher. The equipment estimate is
+   rerun on the new areas: purchased equipment of the covered items USD 4.044 -> 4.057 million.

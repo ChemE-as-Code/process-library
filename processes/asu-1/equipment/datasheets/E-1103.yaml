@@ -131,16 +131,20 @@ type_specific:
       the simulated Q1 6,686 kW (D-058)'
     assumed: true
   lmtd_k:
-    value: 37.82
+    value: [44.95, 19.2]
     unit: K
-    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-063 (2)): air 384.89 -> 313.15 K, CW 298.15 -> 308.15 K (on the
-      gas temperatures; the condensing part is counted at the same LMTD, ASSUMED: conservative)'
+    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-065 (2)), per zone: (1) desuperheating, air
+      384.89 -> 324.71 K (dew point of 2.30 mol% water, the E-1102 outlet saturated at 40 C, at 580 kPa(a),
+      IAPWS-95) against CW 301.26 -> 308.15 K, LMTD; (2) condensing, air 324.71 -> 313.15 K along the
+      equilibrium cooling curve (gas kept saturated) against CW 298.15 -> 301.26 K, mean temperature
+      difference sum dQ / sum (dQ / dT) over 400 intervals. The single gas LMTD 37.82 K of D-063 put the
+      latent heat at the hot-end differences and is not used'
     assumed: true
   lmtd_correction_f:
-    value: 0.8947
+    value: [0.9621, 0.9829]
     unit: ''
-    source: 'scripts/datasheet_sizing.py (D-053 (1)): 1-2 shell and tube (ASSUMED), Bowman, Mueller and Nagle,
-      Trans. ASME 62 (1940) 283'
+    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-065 (2)): per zone on its terminal temperatures,
+      1-2 shell and tube (ASSUMED), Bowman, Mueller and Nagle, Trans. ASME 62 (1940) 283'
     assumed: true
   overall_u_w_m2k:
     value: 160
@@ -149,12 +153,21 @@ type_specific:
       Engineering Vol. 6, 4th ed. (2005), Table 12.1, p. 637: cooler, gases / water (DESIGN.md D-053)'
     assumed: true
   area_m2:
-    value: 449.8
+    value: 493.2
     unit: m2
-    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-063 (2)): A = Q / (U F LMTD) = 2436 kW / (160 x 0.8947 x 37.82
-      K), no margin (the gas-cooler U for the condensing part as well, ASSUMED: conservative)'
+    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-065 (2)): sum of the zones, A = Q / (U F dT):
+      desuperheating 1,679.2 kW / (160 x 0.9621 x 44.95 K) = 242.7 m2 + condensing 756.5 kW (434.0 kW latent)
+      / (160 x 0.9829 x 19.2 K) = 250.5 m2; no margin. The gas-cooler U in the condensing zone as well
+      (ASSUMED; condensation raises the film coefficient, the supplier''s condensing-zone U may lower the
+      area). Was 449.8 m2 on the single gas LMTD (review10#1)'
     assumed: true
-sizing_basis: []
+sizing_basis:
+- parameter: zone duties (enquiry basis for the MAC package)
+  value: desuperheating 111.7 -> 51.6 C 1,679 kW; condensing 51.6 -> 40 C 757 kW incl. 649 kg/h condensate
+  reference: DESIGN.md D-065 (2)
+- parameter: air dew point at the cooler inlet
+  value: 51.6 C (2.30 mol% water at 5.80 bara, IAPWS-95)
+  reference: DESIGN.md D-058, D-065 (2)
 notes: 'Air to 40 C. ASSUMED. Condensing aftercooler (DESIGN.md D-058): integral moisture separator in the
   air outlet, drain nozzle N5 to CD-1002 with isolation valve and float trap on P-01, part of S1C (D-064).
   Separator type and pressure drop: supplier (MAC package).'

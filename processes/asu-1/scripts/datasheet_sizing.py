@@ -119,6 +119,65 @@ def cooler(name: str, duty: float, hot_in: float, hot_out: float) -> float:
     return area
 
 
+def zoned_cooler(name: str, r: dict, t_out: float = 313.15, n: int = 400) -> dict:
+    """Area of a condensing gas cooler by zones (D-065 (2)): desuperheating from the inlet to the
+    dew point of the water at the cooler pressure, then condensing below it along the
+    equilibrium cooling curve (the gas kept saturated, IAPWS-95 vapour pressure, as in the
+    Silver / Bell-Ghaly approach), against counter-current cooling water 25 -> 35 C taking the
+    same duty. Zone 1 by its LMTD and 1-2 F; zone 2 by the integrated mean temperature
+    difference (sum dQ / dT over n intervals) and the 1-2 F of its terminal temperatures. The
+    gas-cooler U of D-053 in both zones (ASSUMED; condensation raises the film coefficient, so
+    this errs on the large side). The duty equals sensible + latent of `machine` (same Cp, latent
+    heat at the outlet)."""
+    n_mol, xw, p, cp, t_in = r["n_kmol_h"], r["x_w"], r["p_cool"], r["cp"], r["t_out"]
+    n_w = n_mol * xw
+    n_other = n_mol - n_w
+    lam = latent_heat(t_out)
+
+    def vapour(t: float) -> float:  # kmol/h of water left as vapour at t, saturated gas
+        y = iapws.iapws95_Psat(t) / 1000.0 / p
+        return min(n_w, n_other * y / (1.0 - y))
+
+    def q_hot(t: float) -> float:  # kW given up by the air between t_in and t
+        return n_mol / 3600.0 * cp * (t_in - t) + (n_w - vapour(t)) * M_H2O / 3600.0 * lam
+
+    q_tot = q_hot(t_out)
+    t_dew = brentq(lambda t: iapws.iapws95_Psat(t) / 1000.0 - xw * p, 274.0, 450.0)
+
+    def t_cw(t: float) -> float:  # CW temperature opposite the air at t (CW out at the air inlet)
+        return CW_OUT - (CW_OUT - CW_IN) * q_hot(t) / q_tot
+
+    q1, t_mid = q_hot(t_dew), t_cw(t_dew)
+    d1 = sizing.lmtd(t_in, t_dew, t_mid, CW_OUT, "1-2")
+    f1 = sizing.correction_factor(t_in, t_dew, t_mid, CW_OUT, "1-2")
+    a1 = sizing.exchanger_area(q1, U.value, f1, d1)
+    ts = np.linspace(t_dew, t_out, n + 1)
+    ua = 0.0
+    for ta, tb in zip(ts[:-1], ts[1:]):
+        dq = q_hot(tb) - q_hot(ta)
+        dt = 0.5 * ((ta - t_cw(ta)) + (tb - t_cw(tb)))
+        ua += dq / dt
+    q2 = q_tot - q1
+    d2 = q2 / ua
+    f2 = sizing.correction_factor(t_dew, t_out, CW_IN, t_mid, "1-2")
+    a2 = sizing.exchanger_area(q2, U.value, f2, d2)
+    lat2 = (n_w - vapour(t_out)) * M_H2O / 3600.0 * lam
+    area = a1 + a2
+    print(
+        f"  {name} by zones (D-065 (2)): water {xw:.4g} mol fraction at {p:.4g} kPa(a), dew point "
+        f"{t_dew:.5g} K ({t_dew - 273.15:.4g} C, IAPWS-95)\n"
+        f"    zone 1 desuperheating {t_in:.5g} -> {t_dew:.5g} K: Q {q1:.5g} kW, CW {t_mid:.5g} -> "
+        f"{CW_OUT:.5g} K, LMTD {d1:.4g} K, F {f1:.4g}, A {a1:.4g} m2\n"
+        f"    zone 2 condensing {t_dew:.5g} -> {t_out:.5g} K: Q {q2:.5g} kW (latent {lat2:.4g} kW, "
+        f"{(n_w - vapour(t_out)) * M_H2O:.4g} kg/h), CW {CW_IN:.5g} -> {t_mid:.5g} K, integrated "
+        f"mean dT {d2:.4g} K ({n} intervals), F {f2:.4g}, A {a2:.4g} m2\n"
+        f"    total Q {q_tot:.5g} kW, A {area:.4g} m2 (U {U.value:g} W/(m2 K) in both zones), "
+        f"effective mean dT Q / (U A) = {q_tot * 1000.0 / (U.value * area):.4g} K"
+    )
+    return {"t_dew": t_dew, "q1": q1, "q2": q2, "a1": a1, "a2": a2, "area": area, "d1": d1,
+            "d2": d2, "f1": f1, "f2": f2, "t_mid": t_mid}
+
+
 def k_at(t: float, p: float, x: dict[str, float]) -> tuple[float, float]:
     """Cp/Cv and molar Cp kJ/(kmol K) at a stage suction: the property adapter for N2/O2/Ar,
     water vapour mixed in on the molar Cp (IAPWS-95 at its partial pressure); CO2 counted with
@@ -158,6 +217,8 @@ def machine(tag: str, stream_id: str, p_out: float, n: int, eta: float, cooled: 
         if cooled:
             row["sensible"] = n_mol / 3600.0 * cp * (st.outlet_temperature - cooled)
             p_c = p_dis - dp_cooler
+            # the cooler's wet-air state, for its zone sizing (D-065 (2))
+            row.update(n_kmol_h=n_mol, x_w=x.get("H2O", 0.0), p_cool=p_c)
             if condense and x.get("H2O", 0.0) > 0.0:
                 y_sat = iapws.iapws95_Psat(cooled) / 1000.0 / p_c
                 n_w = n_mol * x["H2O"]
@@ -204,6 +265,8 @@ for name, r in zip(("E-1101", "E-1102", "E-1103"), mac):
     q_mac += q
     cooler(f"{name} (sensible {r['sensible']:.4g} + latent {r['latent']:.4g} kW, "
            f"{r['condensed']:.4g} kg/h condensate)", q, r["t_out"], 313.15)
+    if r["condensed"] > 0.0:  # the single-LMTD area above is not conservative here (review10#1)
+        zoned_cooler(name, r)
 print(f"  coolers in all {q_mac:.5g} kW, condensate {sum(r['condensed'] for r in mac):.5g} kg/h; DWSIM "
       f"(D-058): Q1 6,686 kW, S1C {flow('S1C'):.6g} kg/h, compressor 5,968 kW")
 
