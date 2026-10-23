@@ -13,9 +13,16 @@ operating:
     source: 'process/flowsheet.yaml stream S12A (case design), assumed: DESIGN.md 3, stream 12a'
     assumed: true
   inlet_flow:
-    value: 16350.0
+    value: 18486.0
     unit: kg/h
-    source: 'process/flowsheet.yaml stream S12A (case design), assumed: DESIGN.md 3, stream 12a'
+    source: 'process/flowsheet.yaml stream S12A (case design), assumed: DESIGN.md D-066 (+13 % with the air;
+      was 16,350)'
+    assumed: true
+  inlet_temperature:
+    value: 13.0
+    unit: °C
+    source: 'process/flowsheet.yaml stream S17 (case design), assumed: the E-3101 warm end at 13 C (D-061),
+      split at X3101'
     assumed: true
   outlet_temperature:
     value: 200.0
@@ -23,9 +30,9 @@ operating:
     source: 'process/flowsheet.yaml stream S12H (case design), assumed: DESIGN.md 3, stream 12a (heating)'
     assumed: true
   outlet_flow:
-    value: 16350.0
+    value: 18486.0
     unit: kg/h
-    source: 'process/flowsheet.yaml stream S12H (case design), assumed: DESIGN.md 3, stream 12a'
+    source: 'process/flowsheet.yaml stream S12H (case design), assumed: DESIGN.md D-066'
     assumed: true
 design:
   pressure_barg:
@@ -42,7 +49,7 @@ materials:
     source: equipment/equipment-list.yaml
 nozzles:
 - name: N1
-  dn: 500
+  dn: 600
   lines:
   - RG-2001
   source: pid/P-02.xml
@@ -52,7 +59,7 @@ nozzles:
   location_source: layout/equipment-placement.yaml (gas inlet on the west side 1 m up; the P&ID
     draws it below the heater, at grade; D-055 (8))
 - name: N2
-  dn: 600
+  dn: 700
   lines:
   - RG-2002
   source: pid/P-02.xml
@@ -77,11 +84,21 @@ type_specific:
     unit: t
     source: equipment/equipment-list.yaml dimensions
   duty_kw:
-    value: 1000
+    value: 1130
     unit: kW
-    source: 'DESIGN.md 3 utility table: 16,350 kg/h x 1.04 kJ/kgK x 185 K, peak 1.0 MW (ASSUMED). With the
-      waste N2 leaving E-3101 at 13 C (D-061) the rise is 187 K: 883 kW sensible on the same cp, inside
-      the 1.0 MW peak (DESIGN.md D-063)'
+    source: 'DESIGN.md D-066: 1.13 MW peak (was 1.0 MW, +13 % with the regeneration gas). The gas alone takes
+      987 kW from 13 to 200 C (18,486 kg/h, ideal-gas Cp of thermo, scripts/datasheet_sizing.py section 8
+      (DESIGN.md D-068 (7))); the rest covers the heater and bed heat-up losses (ASSUMED). Cycle average 377
+      kW (flowsheet energy stream E3, ASSUMED)'
+    assumed: true
+  allowable_gas_pressure_drop_kpa:
+    value: 1.0
+    unit: kPa
+    source: 'DESIGN.md D-072, scripts/datasheet_sizing.py section 11: of the 10.1 kPa between the WN-3002 tee
+      (111.4 kPa(a)) and the atmosphere, the routed lines RG-2001 DN600 / RG-2002 DN700 / RG-2003 DN700 take
+      4.6 kPa, FV-2105 1.5, the adsorber in regeneration 1.5 and S-2101 1.0 kPa: 1.0 kPa (10 mbar) for the
+      heater gas side, nozzle to nozzle, at 18,486 kg/h heated 13 -> 200 C, so that the regeneration path keeps
+      the LP column top at 1.30 bara (enquiry requirement; the supplier states the drop of the element bundle)'
     assumed: true
   process_streams:
   - stream: S12A
@@ -93,5 +110,6 @@ type_specific:
     title: Hot regeneration gas
     source: process/flowsheet.yaml (case design)
 sizing_basis: []
-notes: ~1.0 MW, waste N2 13,000 Nm3/h to 200 C, over-temperature trip TSHH-2107. Heater with terminal
-  box 3 x 2 x 3 m. ASSUMED.
+notes: ~1.13 MW peak (DESIGN.md D-066), waste N2 18,486 kg/h (~14,600 Nm3/h) to 200 C, over-temperature
+  trip TSHH-2107. Heater with terminal box 3 x 2 x 3 m kept (ASSUMED; element bundle by the supplier).
+  690 V feeder from MCC-1 (electrical list, D-070).

@@ -2671,3 +2671,527 @@ Open:
   give the C-1102 supplier an allowable pressure drop.
 - **C-1102 water.** The evaporated water (~1.1-1.5 t/h at the D-067 duty) leaves with S12E,
   and C-1102 needs make-up for it. S12E's water uptake is not in the flowsheet.
+
+## D-068 Lists and datasheets on the D-066 / D-067 states (2026-10-23)
+Carries D-066 and D-067 into the equipment, line and instrument lists and the datasheets. The
+flowsheet, the simulation and the design basis are the simulation owner's and are not changed
+here. Every number below is printed by `cheme run scripts/datasheet_sizing.py` (section n)
+unless it is quoted from the DWSIM run (process/simulation-run.json, D-066 / D-067).
+
+Decision:
+- (1) **Sizing script.** scripts/datasheet_sizing.py reads the D-066 / D-067 stream states. Its
+  updated sections cite D-068 (n). A saturated stage suction (K-1101 stage 3, 3.35 % water after
+  E-1102) put the water partial pressure a hair above saturation, and IAPWS-95 returned the
+  liquid's Cp (Cp/Cv 1.385 instead of 1.4025). The water vapour Cp is now taken just below
+  saturation.
+- (2) **MAC K-1101** (section 1). S1 113,329 kg/h (85,840 Nm3/h dry at the intake). DWSIM gives
+  6,747 kW at the shaft and 7,133 kW electric; the script gives 6,763 kW gas power. Rated about
+  90,000 Nm3/h with a 9.0 MW motor (D-066): 7,478 kW electric pro rata at the rating, 7,254 kW
+  motor output, and 7,979 kW at 110 % (API 617 driver margin), so 12.8 % margin on 9.0 MW. The
+  coolers grow with the air:
+  | cooler | duty | condensate | area (U 160) | CW at 10 K |
+  |---|---|---|---|---|
+  | E-1101 | 1,892 kW | - | 391.8 m2 (was 346.5) | 164 m3/h |
+  | E-1102 | 2,799 kW | 767 kg/h | 596.4 m2 (zones, was 527.5) | 242 m3/h |
+  | E-1103 | 2,754 kW | 734 kg/h | 557.6 m2 (zones, was 493.2) | 238 m3/h |
+
+  In all 7,445 kW against the simulated Q1 7,560 kW. The envelopes and weights (D-028, D-034)
+  are kept: +13 % area lies inside the concept accuracy, and the MAC package vendor sets them.
+  The motor's electrical and lifting consequences are in D-070.
+- (3) **GOX / GAN compressors** (sections 2, 3). The simulation now has 5 GOX stages (D-065 (7)):
+  K-4101 2,140 kW shaft, 2,262 kW electric, Q3 2,042 kW. The script gives 2,154 kW, 0.7 % apart.
+  The 2.3 MW motor at 110 % is 2,414 kW, 5 % short: the vendor confirms the motor or the next
+  size. K-4102 is unchanged (238 kW).
+- (4) **Booster coolers** (section 4, counter-current, D-067).
+  - E-3104: 126.1 kW, 59.9 -> 30 C, LMTD 12.41 K, 63.5 m2, CW 10.9 m3/h (was 84 kW, 29.7 m2).
+  - E-3105 (new, D-069): 63.3 kW, 30 -> 15 C against chilled water 10 -> 20 C, LMTD 7.21 K,
+    54.8 m2, 5.44 m3/h. At the 18.5 C alarm it takes 48.5 kW.
+- (5) **Cold box exchangers** (section 5, property adapter, thermo PR).
+  - E-3101: warm side 5,835 kW (main air 5,235 + booster air 600 kW, now in at 15 C). The cold
+    side (S16B in at -178.87 C from the simulated E-3102) could take 126.4 kW more. The warm end
+    is 2 K for both airs, and UA is about 1,800 kW/K, an upper bound (was 722 kW/K).
+  - E-3102: simulated 304.1 kW, against 312.7 kW by the adapter. LN takes 116.6 kW to
+    -185.1 C, crude 187.6 kW to -180.1 C. UA 45 kW/K, minimum approach 5.2 K.
+  - E-3103: condenses 4,172 kW and reboils 4,166 kW at 1.44 K, UA about 2,900 kW/K.
+- (6) **Columns** (sections 6, 7).
+  - C-3101: 96,000 kg/h air (+15 % vapour), LN 29,280 kg/h, crude 53,740 kg/h. Rmin 1.20,
+    DWSIM reflux 1.391 (1.16 x Rmin), Nmin 15.9.
+  - C-3102: crude on 14, Lachmann air on 16, top vapour 76,560 kg/h (+20 %). Fenske Ar/O2 Nmin
+    10.9 against the simulated GOX.
+  - At the same capacity factor the 4.2 m diameters would become about 4.5 / 4.6 m. That is
+    the cold box supplier's rating; the equipment list keeps 4.2 m, ASSUMED.
+- (7) **Front end** (section 8).
+  - TSA V-2101A/B: 111,085 kg/h air, water 170.2 kg/h (IAPWS-95; PR 147 kg/h), CO2 67.7 kg/h,
+    i.e. 681 / 271 kg per 4 h step.
+  - E-2101: 18,486 kg/h, 1.13 MW peak (D-066). The gas alone takes 987 kW from 13 to 200 C
+    (thermo ideal-gas Cp; 200 C is above the adapter's range).
+  - F-1101 and AIR-1001: ~97,600 m3/h, 17.6 m/s in DN1400. F-1101 is rated 90,000 Nm3/h.
+- (8) **DCAC and chilled water** (sections 9, 12; D-067).
+  - C-1101: lower section 710 kW to 250 m3/h CW (it warms 2.4 K), upper section 640 kW to
+    34.4 m3/h chilled water, 10 -> 26 C (D-067). The adapter cross-check gives 676 / 623 kW.
+    Liquid load in the upper section 2.7 m3/(m2 h): the supplier confirms wetting.
+  - E-3105: 5.4 m3/h. Loop 39.9 m3/h, 703 kW, mixed return 25.2 C.
+  - C-1102 (58,074 kg/h dry waste N2): at 703 kW the gas leaves saturated at 20.3 C with
+    856 kg/h of water. At D-067's ~1,000 kW it leaves at 25.4 C with 1,173 kg/h (D-067
+    estimated 1.1-1.5 t/h). Make-up = evaporation less the 237 kg/h the DCAC upper section
+    condenses into the loop: 619 kg/h (937 at 1,000 kW), plus blowdown.
+  - C-1102 F-factor 0.91 Pa^0.5 (was 0.49), liquid load 2.5 m3/(m2 h).
+  - P-1102A/B and the loop drawing are in D-069.
+- (9) **Cooling water** (section 10): Q1 7,560 + Q2 710 + Q3 2,042 + Q4 123 + Q5 126 =
+  10,562 kW, 914 m3/h at 10 K.
+- (10) **Purities** (D-066): GOX 99.71 % O2 (0.29 % Ar), LOX 99.81 %, GAN 0.2 ppm O2 in the
+  C-3101, C-3102, E-3103, K-4101 and P-4101A/B datasheets and the AI-3104 note.
+
+Reason: the lists and datasheets still described the D-058 / D-061 plant, which reached 97 %
+GOX and was short of refrigeration.
+
+Open: the vendors confirm the enlarged items (the MAC and its coolers, the cold box columns and
+exchangers, C-1102). The K-4101 motor margin. The C-1101 upper-section and C-1102 wetting.
+
+## D-069 E-3105 and the closed chilled-water loop drawn, P-1102 re-selected (2026-10-23)
+Carries out D-067: the trim cooler E-3105 and the closed chilled-water loop of C-1102.
+
+Decision:
+- (1) **E-3105 on P-03.** It sits on AIR-3002 between E-3104 and the PSV-3119 tee, so
+  PSV-3119, the AIR-3006 recycle tee and the check valve are downstream of it. E-3104 and its
+  CW connectors are moved down the sheet to make room.
+  - The line number AIR-3002 is kept through both coolers: new segment S7 runs E-3104 ->
+    E-3105, and S2 runs E-3105 -> the PSV tee. The flowsheet links S4D and S4E to AIR-3002 and
+    the step E3105 to E-3105 and TICA-3124. Only links were added to the flowsheet.
+  - The symbol is the cooler shape of E-3104, turned so that the air passes the shell side
+    (N1 in, N2 out) and the chilled water the tube side (N4 in, N3 out), counter-current.
+  - TICA-3124 (TIC with TAH; set point 15 C, TAH 18.5 C, D-067) measures between E-3105 and
+    PSV-3119 and acts on TV-3124. TV-3124 sits on the chilled-water supply CHW-3001, upstream of
+    E-3105, and fails open; its actuating system is modelled in DEXPI.
+  - With the valve upstream and the return CHWR-3001 open to the C-1102 top (no block valve),
+    the water side stays at about the return line's head (~3.5 bara), below the 8.45 bara air.
+    D-067's "a tube leak cannot put water into the dry air" therefore holds.
+- (2) **The closed loop on P-01.**
+  - CHW-3001 (DN50, 5.4 m3/h) branches off CHW-1001 upstream of TV-1105 and goes off-sheet to
+    E-3105.
+  - A chimney tray under the C-1101 upper bed collects the chilled water with its 237 kg/h of
+    condensate. It is drawn off at the new nozzle N7 into CHWR-1001 (DN150, 34.4 m3/h at
+    ~26 C), through LV-1114 to the new nozzle N5 at the C-1102 top. LIC-1114 on the new
+    tapping I3 keeps a water seal on the tray; LV-1114 fails closed, so no 5.7 bara air blows
+    through to the atmospheric C-1102.
+  - CHWR-3001 from E-3105 joins CHWR-1001 downstream of LV-1114.
+  - CW-1003 via LV-1107 is now the make-up only: ~0.6 t/h at 703 kW, ~0.9 t/h at 1,000 kW,
+    plus blowdown (D-068 (8)); its DN150 is kept for now.
+  - CHWR-1001 crosses CHW-1001 once on the sheet. The crossing is accepted: the chimney tray
+    lies in the pocket closed by CHW-1001, the TIC-1105 measuring line and AIR-1004.
+- (3) **P-1102A/B re-selected** (sizing script, routed lines):
+  - rated 44 m3/h, 110 % of the 39.9 m3/h loop (ASSUMED margin);
+  - head 75.7 / 75.8 m to the DCAC upper section at 5.7 bara and 19.8 m, with the 100 kPa
+    allowance of D-053;
+  - NPSHa 11.8 m; 12.1 kW shaft at efficiency 0.75; 15 kW motor (was ~100 m3/h, 28.4 kW,
+    18.5 kW).
+  - The E-3105 branch needs less head; TV-3124 takes the excess.
+- (4) **Layout.**
+  - E-3105 stands 2.5 m south of E-3104 at (133, 28), parallel, with its bundle pull to the
+    west. The air nozzles are on top at the east end, the water nozzles on the south side.
+  - AIR-3002 S2 is pinned low (2.6 / 1.0 m) and CHW-3001 / CHWR-3001 run at 2.35 / 2.7 m.
+    Both stay under the compander lift lane from Z-PAD-A3S (K-3101 top 3 m) and above the
+    2.2 m escape-lane headroom.
+  - CHW-3001 / CHWR-3001 run on the PR1 5 m tier (the tier rule now includes "Chilled water
+    return") and come down at x 146.6 / 147, east of bent 19 and the post row at x 140-143.
+    CHWR-3001 joins the CHWR-1001 tee at 10 m beside C-1101. All four pieces are pinned in
+    piping/routing.yaml.
+  - C-1101 N7 is at 285 deg and 13.4 m, in the gap of the platform arcs; I3 is at 0 deg and
+    13.0 m, above the 11.3 m platform.
+  - LV-1114 and TV-3124 have remote operators. LIC-1114 / LV-1114 are on JB-A1-1;
+    TICA-3124 / TV-3124 are on JB-A3-2, because JB-A3-1 is full at 24.
+  - The model has no new clash or lifting finding.
+
+Reason: D-067 left E-3105, its chilled water and the return to C-1102 to be drawn. Without the
+tray return, the 703 kW loop would have dumped its water into the DCAC sump, and C-1102 would
+have needed ~40 m3/h of make-up instead of evaporation make-up.
+
+Open:
+- an independent low-low level protection on the chimney tray, and the C-1102 gas blow-by
+  relief case;
+- the C-1101 upper-section and C-1102 wetting at 2.5-2.7 m3/(m2 h), with the packing supplier;
+- the reduced DNs of CHW-1001 and CW-1003 and of LV-1107, in detail engineering;
+- supports for the new runs off the rack (free-span information, D-034 (6)).
+
+## D-070 The 9.0 MW MAC motor: supply, starting and the B1 crane (2026-10-23)
+Follows D-066 (K-1101 motor 9.0 MW, ASSUMED, was 8.0). Revises D-034 (2) and D-036 (2).
+
+Decision:
+- (1) **Motor list.** electrical/electrical-list.yaml: K-1101 is 9,000 kW at 6.6 kV, about
+  900 A at full load (pf 0.9, efficiency 0.97, ASSUMED). It is still fed by cable, not by tray,
+  from SWG-1 through the B2 cable cellar and a covered trench (D-038 (5)); the cable size is the
+  electrical engineer's. The E-2101 feeder is 1,130 kW (D-066), so the schedule's placeholder
+  current is 1,209 A on 3 x 4C x 300 mm2.
+- (2) **TR-1 stays 16 MVA** (ASSUMED until the load list):
+  - connected MV ratings 9,000 + 2,300 + 315 kW at pf 0.9 and efficiency 0.96, plus TR-2's
+    2.5 MVA, times the list's 0.85 load factor: 13.6 MVA;
+  - running load: MAC 7.13 + GOX compressor 2.26 + GAN compressor 0.24 MW electric
+    (simulated, D-066) plus about 1.4 MW of LV peak (E-2101 1.13 MW, pumps, auxiliaries) at
+    pf 0.9: about 12.3 MVA, 77 % of the rating.
+- (3) **Starting.** Direct on line, the 9 MW motor would draw about 6 x 10.3 = 62 MVA. On TR-1
+  (16 MVA, 8 % impedance, the IEC 60076-5 minimum for 6.3-25 MVA, infinite grid) that dips the
+  6.6 kV bus by about 62 / (200 + 62) = 24 %, more than motors and drives on the same bus
+  tolerate (about 15 %, ASSUMED). The 8 MW motor dipped it by about 22 %, which was not
+  recorded before. The MAC therefore gets a reduced-voltage start (soft starter, autotransformer
+  or a variable-speed drive, ASSUMED); the motor starting study chooses it with the grid's
+  short-circuit power.
+- (4) **B1 crane.** The heaviest maintenance lift, the motor, is now ~34 t (lift_weight,
+  ASSUMED: the 8 MW motor's ~30 t of D-034 pro rata to the rating). With the lifting study's
+  allowances that is 39.27 t against the 40 t crane, which carries it with 0.7 t to spare
+  (layout/lifting-study.md). A motor above about 34.6 t needs the next crane size (50 t); the
+  motor supplier's weight decides.
+- (5) The B1 ventilation basis (D-037, ~150 kW to the room air from a TEWAC motor) is kept.
+
+Reason: the motor rating changed with the air (D-066); its supply, starting and lift were
+sized on 8 MW.
+
+Open: the load list, single-line diagram, motor starting study, MV cable sizing and the motor
+supplier's weight.
+
+## D-071 Waste-N2 path: WN-1001 DN1000, WN-1002 DN900, WN-3003 bypass DN900, LP top pressure, zones (2026-10-23)
+Answers D-067's open items on the waste-N2 hydraulics, WN-1001, WN-3003 and the D-031 zones.
+
+Decision:
+- (1) **Line sizes** (P-01, P-03, line list, C-1102 datasheet).
+  - WN-1001 goes from DN700 to DN1000: 58,074 kg/h at 16.2 m/s (DN700: 33.6 m/s). PV-3110A,
+    the WN-3002 tee branch and C-1102 N1 become DN1000, with a 900 x 1000 reducer at the tee.
+  - WN-1002 goes from DN700 to DN900: ~58,900 kg/h wet at 21 m/s (DN700: 36 m/s, above the 25
+    m/s of D-016). C-1102 N2 becomes DN900.
+  - WN-3003 goes from DN600 to DN900 (PV-3110B, S-3101): 19.9 m/s for the full bypass (DN600:
+    46 m/s). PV-3110B was already drawn and stays the bypass valve: no flow in normal
+    operation, all of S12B intermittently.
+  - WN-3002 stays DN900: 76,560 kg/h, 25.3 m/s, at the D-016 limit.
+- (2) **Hydraulics** (scripts/datasheet_sizing.py section 11). Darcy-Weisbach with Colebrook
+  (cheme hydraulics), commercial steel, along the routed lengths and bends of
+  layout/plant-model.yaml. Elbow K 0.75 and tee K 0.4 / 1.0 (Perry's Table 6-4). Large pipes
+  take the ASME B36.10M OD with a 9.53 mm wall, ASSUMED: cheme's wall table ends at DN600.
+  | stretch | flow, kg/h | routed | drop |
+  |---|---|---|---|
+  | WN-3001 DN800 (cold, ~88 K) | 76,560 | 81.6 m | 2.1 kPa |
+  | WN-3002 DN900 | 76,560 | 34.5 m | 3.6 kPa |
+  | WN-1001 DN1000 (DN900 / DN700) | 58,074 | 95.5 m | 1.7 (2.6 / 7.5) kPa |
+  | WN-1002 DN900 (DN700) | 58,930 | 6.9 m | 0.4 (1.3) kPa with the exit |
+  | WN-3003 DN900 (DN800 / DN600), bypass | 58,074 | 116.6 m | 3.6 (6.0 / 20.3) kPa |
+
+  **The LP column top pressure of 1.30 bara holds**, on three conditions (C-1102 path; the
+  regeneration-gas path is checked in D-072, and holds with RG-2001 DN600 / RG-2002 / RG-2003 DN700):
+  - the flowsheet puts 15 kPa between the LP top (S16, 1.30 bara) and the E-3101 warm end
+    (S17, 1.15 bara). Less the 2.1 kPa of WN-3001, that leaves 12.9 kPa for the waste passages
+    of E-3102 and E-3101, which the cold box vendor confirms;
+  - from 115 kPa(a) at E-3101, WN-3002 and WN-1001 take 5.3 kPa, which leaves PV-3110A 4.7 kPa
+    at normal flow down to the 105 kPa(a) of S12B at C-1102;
+  - C-1102's packing, distributor and mist eliminator get 3.3 kPa (33 mbar) down to the
+    atmosphere through WN-1002. That allowable is now in the C-1102 datasheet for the supplier.
+
+  With WN-1001 at DN700, PV-3110A and C-1102 together would have only 2.2 kPa. The LP top would
+  then have to rise by several kPa: the assumption would not hold. In a full bypass through
+  WN-3003 at DN900, WN-3002 and WN-3003 take 7.2 kPa, which leaves 6.5 kPa for PV-3110B and the
+  S-3101 silencer at 58 t/h (supplier). At DN600 the line alone would take 24 kPa, lifting the
+  LP top by at least ~0.1 bar during a bypass.
+- (3) **Routing and rack fill.**
+  - WN-1001 is re-pinned on the PR1 7 m tier (centre 7.508, pipe bottom on the beams) in the
+    lane at y 65.6. AIR-2002's lane moves from y 66.13 to 66.5 to make room, and the WN-1001
+    risers are moved clear of PR1 bent 17, AIR-2002 and WN-3003.
+  - WN-1001 runs 3.0 m inside the rack footprint below the tier to reach its riser west of bent
+    17. The tier finding is accepted in checks/checks.yaml with that reason.
+  - WN-3003 is re-pinned for its DN900 (PR1 7 m, PR3 6.5 m); its PR3 down-leg is moved clear of
+    a VNT-4002 post and of VNT-4003.
+  - VP-1 moves 0.35 m west. PV-3110B, whose handwheel is now 2.6 m above VP-1, gets a remote
+    operator.
+  - Rack fill: PR1 7 m tier 3.55 of 8 m (44 %), PR3 6.5 m tier 1.44 of 3 m (48 %). The model
+    has no clash; pipe take-off 5,178 m.
+- (4) **Zones (D-031), re-checked with the new flows** (ASSUMED screening; the radius table
+  ignores the release rate):
+  - WN-1002 now vents ~58,900 kg/h (1.87 x). It leaves at about the same velocity through a 1.29
+    x larger outlet, so a jet's reach to a given dilution scales with the diameter: the new
+    explicit zone Z-N2-WN1002 is a 6.5 m sphere. The vent rule raises the outlet from 27.6 to
+    29.3 m. At the C-1102 top platform (21 m, within ~3 m of the axis) the sphere stays above the
+    2.2 m headroom.
+  - S-3101 (Z-N2-V1) no longer vents in normal operation, but takes up to ~46,000 Nm3/h in a
+    bypass (3.7 x the former 12,500). The new explicit zone Z-N2-V1B is a 10 m sphere
+    (5 m x 3.7^0.5, the outlet growing with the square root of the flow). It reaches grade
+    within 6 m of the silencer, up to 4 m south of the vent area V1: V1 stays fenced and is
+    entered with a personal O2 monitor.
+  - The layout model reports no walkway, escape or separation finding for either zone.
+
+Reason: D-067 grew the waste N2 to C-1102 1.85-fold and made WN-3003 the bypass, so the line
+sizes, the pressure balance that sets the LP column top and the inert-vent zones had to be
+checked.
+
+Open:
+- the cold box vendor's waste-passage drops (12.9 kPa allowed);
+- PV-3110A / PV-3110B sizing (4.7 kPa at normal flow, and the bypass);
+- C-1102 (3.3 kPa) and S-3101 at 58 t/h, with their suppliers;
+- the vent study (D-031) replaces the screening zones.
+
+## D-072 Regeneration-gas path: RG-2001 DN600, RG-2002 / RG-2003 DN700, allowables, LP top pressure (2026-10-23)
+Answers layout-review11#1: D-071 (2) checked the LP column top pressure along the C-1102 path
+only. The regeneration gas S12A (18,486 kg/h, D-066) leaves the same WN-3002 tee and goes to the
+atmosphere through RG-2001 (FV-2105), E-2101, RG-2002, the adsorber in regeneration with its
+switching valves, RG-2003 and S-2101.
+
+Decision:
+- (1) **Hydraulics** (scripts/datasheet_sizing.py section 11, the D-071 (2) method: Darcy-Weisbach
+  with Colebrook along the routed lengths and bends of layout/plant-model.yaml, elbow K 0.75, tee K
+  0.4 run / 1.0 branch). The hot gas (200 C, S12H) takes the ideal-gas density, as 200 C is above
+  the property adapter's range (D-068 (7)). The bed outlet is taken at 200 C too, its value at the
+  end of the heating step and the largest volume flow (ASSUMED bound; it starts near 13 C). The
+  tee lies at 115 - 3.6 (WN-3002) = 111.4 kPa(a), so the path has 10.1 kPa down to the atmosphere.
+  | line | routed (bed A / B) | before (DN) | now (DN) |
+  |---|---|---|---|
+  | RG-2001, 13 C, FV-2105 extra | 93 m, 19 bends | 5.2 kPa, 20.8 m/s (500) | 2.4 kPa, 14.3 m/s (600) |
+  | RG-2002, 200 C | 47 / 22 m | 2.0 / 1.3 kPa, 24.3 m/s (600) | 1.0 / 0.7 kPa, 17.7 m/s (700) |
+  | RG-2003, 200 C bound, S-2101 extra | 29 / 44 m | 1.9 / 2.9 kPa, 25.4 m/s (600) | 1.0 / 1.5 kPa, 18.5 m/s (700) |
+  | lines in all | | 9.1 / 9.4 kPa | 4.4 / 4.6 kPa |
+
+  As drawn before, the lines alone took 9.4 of the 10.1 kPa: FV-2105, the heater, the bed and the
+  silencer would have had 0.7 kPa. FV-2105 would have run wide open short of flow, or PV-3110A
+  would have had to close and lift the LP column top. **RG-2001 becomes DN600 and RG-2002 / RG-2003
+  DN700** on P-02 / P-03 (RG-2001 S1 .. S3 with FV-2105, XV-2109 and E-2101 N1; RG-2002 with
+  XV-2103A/B, E-2101 N2 and V-2101A/B N3; RG-2003 S1 .. S3, S5 .. S7, S9 with XV-2104A/B, S-2101
+  and V-2101A/B N4; the DN100 depressurisation bypasses stay). The velocities fall inside the 25 m/s
+  of D-016 for near-atmospheric waste gas.
+- (2) **Allowables** (ASSUMED allocation, the enquiry requirements):
+  - FV-2105 1.5 kPa at the normal flow (instrument list; the valve supplier sizes the trim);
+  - E-2101 gas side 1.0 kPa, nozzle to nozzle (datasheet);
+  - V-2101A/B in regeneration 1.5 kPa with the distributor, bed, bed support and XV-2103 / XV-2104
+    (datasheets). An Ergun screening with an ASSUMED 1.5 m bed of 3 mm beads (voidage 0.37, plan
+    area 0.85 D x (L - D) = 51.6 m2, 0.13 m/s at 200 C) gives 0.8 kPa;
+  - S-2101 1.0 kPa with the exit (special-items).
+  With the bed B lines (4.6 kPa) that is 9.6 of 10.1 kPa: a 0.5 kPa margin. In the cooling step the
+  gas bypasses E-2101 through XV-2109 cold and denser, at a lower drop.
+- (3) **The LP column top pressure of 1.30 bara holds on both paths**, on the conditions of D-071 (2)
+  and the allowables of (2). D-071 (2)'s statement now covers the regeneration path as well.
+- (4) **Layout.** The pinned RG-2001 routes keep their pipe bottoms on the beams and their tops
+  under the levels they pass below (centres +/- 0.051 m), the RG-2001 drop moves to y 67.29 (0.1 m
+  clear of CWR-3001) and its S2 lane to y 62.9 (clear of AIR-1004); the RG-2001 S2 post is 0.1 m
+  lower. RG-2002 keeps its route at +0.051 m. The RG-2003 B-side bypass (DN100) is pinned over
+  the sieve change-out area at 6.06 m on its two posts, as before: the router had taken it through
+  Z-SIEVE when the larger tees moved. The model has no clash.
+
+Reason: the regeneration gas shares the WN-3002 tee pressure with the C-1102 path; its lines,
+sized for the D-016 velocity only, took nearly all of it.
+
+Open:
+- the suppliers' drops: E-2101, the adsorbent bed and its distributor, S-2101, and FV-2105's trim;
+- the flowsheet's S12A at 1.10 bara (ASSUMED, simulation owner) lies 1.4 kPa below the tee pressure
+  of 111.4 kPa(a) found here; it does not change the balances, and the owner may update it.
+
+## D-073 Main air lines at the D-066 flow: AIR-2001 / AIR-2002 DN600, the front-end pressure budget (2026-10-23)
+Answers layout-review11#2: D-068 (9) re-checked the waste-N2, GOX and booster lines at the D-066
+flow, but not the main air lines.
+
+Decision:
+- (1) **Velocities** (scripts/datasheet_sizing.py section 10; DN as the diameter, the D-016
+  convention). Dry air S4, 110,870 kg/h at 15 C and 5.6 bara (6.79 kg/m3, property adapter):
+  AIR-2001 and AIR-2002 DN500 ran at 23.1 m/s to the AIR-3005 tee and 20.0 m/s after it, over the
+  20 m/s of D-016. **Both become DN600** (16.0 / 13.9 m/s) on P-02 / P-03, with XV-2102A/B, the
+  outlet tee, F-2101 N1 / N2, V-2101A/B N2 and E-3101 N2 (datasheets updated). AIR-1004 (DN600,
+  S3) runs at 15.6 m/s and stays.
+- (2) **MAC interstage legs.** AIR-1005 (DN900) and AIR-1006 (DN700) run at about 29 and 28 m/s at
+  the stage 1 / 2 discharge states of section 1 (99 C, 184 kPa(a); 111 C, 326 kPa(a); ideal gas).
+  They lie inside the MAC package: their sizes are the MAC supplier's, with the D-066 flow
+  (113,329 kg/h) as the enquiry basis. The line list says so.
+- (3) **Pressure drops** along the routed lines (Darcy-Weisbach with Colebrook, elbow K 0.75, tee
+  K 0.4 / 1.0, nozzle entry 1.0; the section 11 method):
+  | line | routed | DN500 | DN600 (now) | DN700 |
+  |---|---|---|---|---|
+  | AIR-1004, C-1101 -> V-2101A / B | 99 / 95 m, 18 / 20 bends | | 16.1 / 17.9 kPa | 8.4 / 9.3 kPa |
+  | AIR-2001, bed A / B -> F-2101 | 55 / 37 m | 15.4 / 12.7 kPa | 7.0 / 5.8 kPa | 3.6 / 3.0 kPa |
+  | AIR-2002, F-2101 -> E-3101 | 73 m | 21.5 kPa | 9.8 kPa | 5.1 kPa |
+  | lines C-1101 -> E-3101, longer bed | | | 33.5 kPa | 17.4 kPa |
+
+  The flowsheet allows 10 kPa from S3 (C-1101 outlet, 5.7 bara) to S4 (5.6 bara) for AIR-1004,
+  the adsorber in adsorption, AIR-2001, F-2101 and AIR-2002 (ASSUMED, simulation owner). At DN600
+  the lines alone take 33.5 kPa, before the bed and the filter (suppliers). The elbows are taken as
+  standard elbows (K 0.75); long-radius elbows on these large lines would lower the fitting losses,
+  which are about two thirds of the total.
+- (4) **Request to the simulation owner** (process/flowsheet.yaml and process/simulation.yaml are
+  not changed here): set the front-end pressure profile from these drops. Either the MAC discharge
+  (S2, 5.8 bara) rises by about 25-35 kPa, about 6.9 kW of MAC electric power per kPa (section 10,
+  pro rata to ln(p2/p1) of E1): roughly 170-240 kW; or the S3 -> S4 drop is raised and the cold
+  box pressures follow. The adsorber and F-2101 allowables in adsorption are to be set with it.
+- (5) **Owner decision:** DN700 for AIR-1004, AIR-2001 and AIR-2002 would save about 16 kPa, about
+  110 kW of MAC power (about 0.9 GWh a year at 8,000 h, ASSUMED), against larger pipe, valves
+  (XV-2101A/B, XV-2102A/B) and rack load. DN600 meets D-016; the choice is economic and waits for
+  the owner with the pressure profile of (4).
+- (6) **Layout.** AIR-2001 / AIR-2002 keep their pinned routes with the pipe bottoms on their
+  supports (centres +0.051 m); AIR-2002's PR1 lane moves from y 66.5 to 66.55 (0.14 m clear of the
+  DN1000 WN-1001), and AIR-3005 steps 0.051 m down beside the larger tee. PR1 7 m tier 3.75 of 8 m
+  (47 %). The model has no clash.
+
+Reason: D-066 raised the air by 13 %; the main air lines were sized on the D-016 velocity for the
+earlier flow, and their pressure drop was never set against the flowsheet's front-end pressures.
+
+Open: the simulation owner's pressure profile and the owner's DN600 / DN700 choice ((4), (5)); the
+adsorber and F-2101 drops in adsorption from their suppliers.
+
+## D-074 Chilled-water runs off the K-4102 crane pad and supported, a post moved off CWR-4002, PR3 north end in the bypass zone (2026-10-23)
+Answers layout-review11#3, #9, #12 and #14.
+
+Decision:
+- (1) **CHW-3001 / CHWR-3001 off the crane pad** (review11#3). The drops from the PR1 5 m tier
+  came down at x 146.6 / 147.0 and ran south across the west strip of Z-PAD-A4N (x 146 .. 158, y
+  42 .. 50), from which K-4102 is lifted by a mobile crane. They now come down at x 144.5 / 144.8,
+  1.2 m west of the pad, still east of bent 19, the post row at x 140-143 and the escape route
+  Z-ESC-CB1. Both grade runs are at 2.7 m (CHW-3001 was at 2.35 m): under the compander lift lane
+  from Z-PAD-A3S and above the 2.2 m escape headroom, as before (D-069 (4)). The two lines change
+  sides (CHWR-3001 east), so the pair never crosses. The cheme rules test a crane pad only as its
+  1 m box; a rule testing pipes and steel above a pad up to the crane's swing height is asked of
+  cheme-as-code (requested, not available here).
+- (2) **Supports** (review11#14), ASSUMED until the stress analysis:
+  - 16 shared T-posts under the pair at 2.7 m, at 3 m or less (the DN50 liquid span of the model):
+    12 along the north-south run at x 144.65 (y 29 .. 62), 4 along the east-west run at y 26.4
+    (x 143.5, 140.8, 138.0, 135.3; the one at 140.8 west of the escape route);
+  - on P-01 the proposed T-posts were pinned: three under CHWR-1001 S2 (x 74.67), three under
+    CHWR-3001 at x 76.2 (4.47 m), and one at (49.09, 63.32) whose crossbar carries CHW-3001 and
+    CHW-1001 S6 side by side.
+  The model reports no support-missing information for the chilled-water lines any more. On the
+  PR1 5 m tier the DN50 lanes (y 64.5 / 64.93) are in the model's tier (racks PR1, tier 5 m); they
+  lie within the y bands of CW-1004 and CWR-1002 further west, so the reported tier fill (4.90 of
+  8 m) counts their lanes once.
+- (3) **LIN-3001 post off CWR-4002** (review11#12). The rebuild of D-069 moved the generated
+  CWR-4002 lane on the PR1 5 m tier to y 69.22; the LIN-3001 S1 post-2 column stood 0.025 m from
+  it. The post moves 0.2 m north to y 69.6, still under LIN-3001; scripts/support_steel_scan.py
+  finds no member within 0.1 m of a pipe it does not serve. The scan is rerun after each rack
+  change in this pass.
+- (4) **PR3 north end** (review11#9). Z-N2-V1B (S-3101 in a full C-1102 bypass) reaches the PR3
+  north end, outside the fenced V1: the step-off from the PR3 end ladder onto the 8.5 m tier lies
+  9.0 m from its centre. D-071 (4)'s control is extended there: a sign at the PR3 end ladder, a
+  personal O2 monitor, and no work on PR3 north of y 105 while PV-3110B is open (zones.yaml basis).
+  The vent study (D-031) replaces the screening zone.
+
+Reason: review11#3, #9, #12, #14.
+
+Open: the supports with the stress engineer; the crane-swing rule with cheme-as-code; the vent
+study.
+
+## D-075 Motor holds carried at the next size: B1 crane 50 t, K-4101 motor 2.5 MW (2026-10-23)
+Answers layout-review11#5 and #6. Revises D-070 (4) and D-068 (3).
+
+Decision:
+- (1) **B1 crane 50 t** (review11#5). The 40 t crane carried the 9 MW MAC motor at 39.27 t with the
+  lifting study's allowances, 0.73 t (1.8 %) to spare, on a motor weight of ~34 t that is itself
+  ASSUMED (pro rata to the rating from the ASSUMED ~30 t of the 8 MW motor, D-070 (4)). That
+  margin is smaller than the uncertainty of a pro-rata weight, and the crane size sets the B1 crane
+  girders, columns and roof height. Until the motor supplier gives the weight, the next crane size,
+  50 t (ASSUMED), is carried in layout/building.yaml: the lifting study shows the motor at 39.27 t
+  against 50 t. The roof elevation (12 m) and the hook height (8.5 m) are kept; the structural
+  engineer checks the girders and the runway for 50 t. If the supplier's motor and its lifting
+  allowances stay below about 34.6 t, the owner may return to 40 t.
+- (2) **K-4101 motor 2.5 MW** (review11#6). At 2,262 kW electric (D-066), 2,195 kW at the motor
+  shaft and 2,414 kW with the API 617 110 % driver margin, the 2.3 MW motor was 5 % short. The
+  electrical list (K-4101, K-4101-MV), the equipment list and the K-4101 datasheet now carry the
+  next size, 2.5 MW (ASSUMED until the compressor vendor confirms the motor). TR-1: connected
+  ratings (9,000 + 2,500 + 315) kW / (0.9 x 0.96) + 2,500 kVA = 16.2 MVA, x 0.85 = 13.7 MVA (was
+  13.6); running load unchanged (~12.3 MVA): 16 MVA kept. The cable schedule now gives the feeder
+  as 3C x 150 mm2 (ASSUMED catalogue table, was 120 mm2).
+
+Reason: two ratings rested on margins smaller than the uncertainty of the assumed values they
+were set against; the vendors' figures are not yet available.
+
+Open: the motor supplier's weight (crane size), the compressor vendor's motor rating, the B1
+structural design for 50 t.
+
+## D-076 Chimney tray protection: LSLL-1115 / XV-1115, overflow downcomer, the tray drawn (2026-10-23)
+Answers layout-review11#4 (and #13, the labels in the same corner of P-01). Closes D-069's open
+item on an independent low-low level protection.
+
+Decision:
+- (1) **Blow-by** (review11#4 (a)). If the tray loses its seal (LIC-1114 fails, LV-1114 sticks
+  open), 5.7 bara air blows through CHWR-1001 into the atmospheric C-1102. The bound is choked flow
+  of S3 air through the full DN150 bore: 91.6 t/h (scripts/datasheet_sizing.py, before section 9;
+  discharge coefficient 1, schedule 40 bore ASSUMED), against the 58.1 t/h design gas of C-1102.
+  Protection, drawn on P-01:
+  - LSLL-1115 on its own tapping I4 of the C-1101 chimney tray (13.0 m, beside I3), independent
+    of LIC-1114;
+  - XV-1115, a tight-shut ball valve DN150 with actuator, fail closed, on CHWR-1001 downstream of
+    LV-1114 and upstream of the CHWR-3001 tee, so the E-3105 return stays open to C-1102;
+  - C&E I-03: LSLL-1115 closes XV-1115 (control/cause-effect.yaml); SIL from the screening.
+  The C-1102 blow-by relief case (91.6 t/h bound, less with LV-1114's trim) stays with the HAZOP:
+  whether C-1102 and WN-1002 take it or the SIF is credited is a process-safety decision.
+- (2) **Overflow** (review11#4 (b)). The C-1101 datasheet now specifies an overflow downcomer from
+  the chimney tray to the lower section, set above the LIC-1114 / LSLL-1115 range and rated for
+  the whole upper-section liquid, 38 m3/h (34.4 m3/h chilled water + 0.24 m3/h condensate, + 10 %,
+  ASSUMED). With LV-1114 failed closed or XV-1115 tripped the water overflows to the lower section
+  instead of flooding the upper bed; the sump bleeds it through LV-1106 to CWR-1001 and C-1102
+  takes make-up through LV-1107. The packing supplier designs the tray, seal and downcomer.
+- (3) **Drawing** (review11#4 (c), #13). The chimney tray is drawn inside the C-1101 symbol under
+  N7 (catalogue tray shape: the tray with its downcomer), with the text "chimney tray". The
+  LSLL-1115 measuring line crosses CHW-1001 once (accepted in checks/checks.yaml with its reason).
+  The TV-1105 tag now stands right of its valve under the actuator line, and the LV-1114 "F.C."
+  beside the LV-1114 actuator, so neither can be read as the other's.
+- (4) **Layout and lists.** I4 at 15 deg on C-1101 (equipment-placement, datasheet); XV-1115 has a
+  remote operator (solenoid and limit switches from the C-1101 11.3 m platform); LSLL-1115 and
+  XV-1115 on JB-A1-1 (21 of 24); instrument list LSLL-1115. The D-074 post under CHW-3001 at
+  (48.84, 63.3) stood in the P-1102B access space: it moves 1 m north with a 0.6 m crossbar, and
+  five more proposed posts are pinned under the chilled-water runs (CHWR-1001, CHWR-3001,
+  CHW-3001), so none of them has a free-span finding. The model has no clash.
+
+Reason: the closed loop of D-069 rested on one level loop between a 5.7 bara column and an
+atmospheric tower.
+
+Open: the SIL of I-03 and the C-1102 blow-by relief case (HAZOP); the tray and downcomer design
+(packing supplier).
+
+## D-077 E-3105 at standstill and for maintenance; its nozzles for true counter-current (2026-10-23)
+Answers layout-review11#7 and #8. Corrects D-069 (1)'s "a tube leak cannot put water into the
+dry air", which holds only while the booster runs.
+
+Decision:
+- (1) **Standstill** (review11#7). When the compander or the MAC stops and AIR-3002
+  depressurises, the E-3105 water side keeps the static head of the return riser to the C-1102
+  top (~20 m, ~2.9 bara) and, while P-1102A/B run, their head as well. A leaking tube can then put
+  water into the shell side ahead of E-3101.
+  - C&E I-04: a compander trip closes TV-3124, which takes the pump head off the leak (TV-3124 stays
+    fail open on instrument-air loss, D-069: a control valve, not tight shut).
+  - Restart permissive (operating procedure): the E-3105 shell-side low-point drain is checked
+    dry before air is readmitted; with water found, E-3105 is bypassed by stopping the booster
+    flow until it is repaired. The TSA dries only the air upstream of the booster, so this check
+    is what protects E-3101.
+- (2) **Maintenance isolation.** HV-3126, a DN50 ball valve, locked open (L.O.), on CHWR-3001 at
+  E-3105 (P-03). For work on E-3105, TV-3124 and HV-3126 are closed and the water side drained
+  at E-3105 (the supplier's drain and vent): the loop and the DCAC upper section keep running.
+  As HV-3126 is closed only with the water side drained, no liquid is trapped and no thermal
+  relief is needed. In operation it stays open, so the water side stays open to C-1102 (D-069).
+- (3) **Nozzles** (review11#8). The temperatures cross (air 30 -> 15 C, water 10 -> 20 C):
+  R = 1.5, P = 0.5, for which a 1-2 (U-tube) exchanger has no LMTD correction factor (the
+  logarithm's argument turns negative). E-3105 is therefore a one-pass straight-tube exchanger
+  with a floating head, the bundle pulled to the west:
+  - air in N1 on the shell top at the west end (1.2 m from the west channel end), out N2 at the
+    east end (4.5 m, unchanged), so the air crosses the whole bundle;
+  - chilled water in N4 on the east (floating) head and out N3 on the west channel, both on the
+    south side: water east to west against the air.
+  The placement, datasheet nozzle locations and the pinned routes follow: CHW-3001 drops at
+  x 135.3 to the east head, CHWR-3001 leaves the west channel at x 130.8 (one more shared post,
+  post-16 moved 0.5 m east); AIR-3002 S7 from E-3104 to the new N1 is pinned low between the
+  shells at 2.5 m, under the compander lift lane from Z-PAD-A3S (generated, it rose to 3.6 m and
+  pushed the K-3101 lift onto the cold box crane pad). The model has no clash; the lifting study
+  keeps K-3101 on Z-PAD-A3S.
+
+Reason: review11#7, #8.
+
+Open: the E-3105 supplier's drain, vent and floating-head design.
+
+## D-078 Figures and citations brought in line (2026-10-23)
+Answers layout-review11#10 and #11.
+
+Decision:
+- (1) **Figures** (review11#10), from scripts/datasheet_sizing.py:
+  - WN-3003 line-list note: at DN600 the bypass took 20.3 kPa at 45.7 m/s over the routed
+    116.6 m, at DN900 3.6 kPa (section 11; the note said 18 / 3.3 kPa).
+  - D-071 (2)'s "at DN600 the line alone would take 24 kPa" is corrected: WN-3003 alone would take
+    20.3 kPa; 24 kPa is WN-3002 (3.6) and WN-3003 (20.3) together in a full bypass.
+  - AIR-1006 line-list note: 767 kg/h condensate to CD-1001 (E-1102, D-068 (2); was 679 kg/h).
+  - Section 10 labels both AIR-3002 stretches "AIR-3002 (to E-3105)" and "AIR-3002 (after
+    E-3105)"; the line number AIR-3007 does not exist (D-069 (1)).
+- (2) **Citations** (review11#11). Each datasheet value now cites its section with the current
+  section header: section 1 D-068 (2) (E-1101, E-1102, E-1103, K-1101), section 2 D-068 (3)
+  (E-4101, E-4102, K-4101), section 4 D-068 (4) (K-3101, KT-3101); section 3 (K-4102, E-4103) stays
+  D-063 (5). The section 2 values were refreshed from the current run: K-4101 stage discharges
+  361.98 / 395.97 / 396.61 / 397.84 / 400.2 K, Cp/Cv 1.399 / 1.398 / 1.4019 / 1.4095 / 1.4242,
+  intercooler duties 257.6 / 437.7 / 438.0 / 438.6 kW (E-4101 1,572 kW, LMTD 30.39 / 41.21 / 41.4 /
+  41.77 K, 280.6 m2), E-4102 439.7 kW, LMTD 42.47 K, 72.28 m2. The section 1 and 4 values already
+  equalled the run. Section 10's header now cites D-073 as well, section 11's D-072.
+
+Reason: review11#10, #11.

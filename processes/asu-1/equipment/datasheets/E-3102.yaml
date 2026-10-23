@@ -7,34 +7,40 @@ type: PlateHeatExchanger
 service: Subcooler (rich liquid / LN against waste N2 and GAN)
 operating:
   ln_inlet:
-    value: 24530 kg/h, -178.44 C, 5.3 bara, saturated liquid
+    value: 29280 kg/h, -178.45 C, 5.3 bara, saturated liquid
     unit: ''
-    source: process/flowsheet.yaml stream S18 (LN reflux, calculated by `cheme process simulate`, DESIGN.md
-      D-059; flow ASSUMED 24,530 kg/h)
+    source: 'process/flowsheet.yaml stream S18 (LN reflux, calculated by `cheme process simulate`, DESIGN.md
+      D-066, 0.305 x the HP air; was 24,530 kg/h)'
     assumed: true
   crude_inlet:
-    value: 45680 kg/h, -173.59 C, 5.5 bara, saturated liquid (39.2 % O2)
+    value: 53740 kg/h, -173.68 C, 5.5 bara, saturated liquid (38.5 % O2)
     unit: ''
     source: process/flowsheet.yaml stream S13 (crude oxygen, calculated by `cheme process simulate`,
-      DESIGN.md D-059)
+      DESIGN.md D-066; was 45,680 kg/h)
     assumed: true
-  liquid_outlet_temperature:
-    value: -182.86
+  ln_outlet_temperature:
+    value: -185.1
     unit: °C
-    source: 'scripts/datasheet_sizing.py section 5 (DESIGN.md D-063 (6)): 90.29 K, LN and crude to a common outlet temperature
-      (ASSUMED: one core, common cold-end header) that takes the waste N2 duty below'
+    source: 'process/flowsheet.yaml stream S18B, process/simulation.yaml E3102 (DESIGN.md D-066: set to balance
+      the condenser-reboiler E-3103, ASSUMED)'
+    assumed: true
+  crude_outlet_temperature:
+    value: -180.1
+    unit: °C
+    source: 'process/flowsheet.yaml stream S13B, process/simulation.yaml E3102 (DESIGN.md D-066: set to balance
+      the condenser-reboiler E-3103, ASSUMED)'
     assumed: true
   waste_n2_inlet:
-    value: 63750 kg/h, -192.88 C, 1.3 bara, saturated vapour
+    value: 76560 kg/h, -192.29 C, 1.3 bara, saturated vapour
     unit: ''
     source: process/flowsheet.yaml stream S16 (C-3102 top, temperature calculated by `cheme process
-      simulate`, DESIGN.md D-059)
+      simulate`, DESIGN.md D-066; was 63,750 kg/h)
     assumed: true
   waste_n2_outlet_temperature:
-    value: -177.36
+    value: -178.87
     unit: °C
-    source: 'scripts/datasheet_sizing.py section 5 (DESIGN.md D-063 (6)): 95.79 K, the E-3101 inlet that closes the E-3101
-      balance (heat leak neglected, ASSUMED); no pressure drop (ASSUMED)'
+    source: 'process/flowsheet.yaml stream S16B (calculated by `cheme process simulate`, DESIGN.md D-066); no
+      pressure drop (ASSUMED)'
     assumed: true
 design:
   pressure_barg:
@@ -127,58 +133,60 @@ type_specific:
     unit: t
     source: equipment/equipment-list.yaml dimensions
   duty_kw:
-    value: 293.0
+    value: 304.1
     unit: kW
-    source: 'scripts/datasheet_sizing.py section 5 (DESIGN.md D-063 (6)): the waste N2 S16 warmed from 80.27 K (C-3102 top,
-      DWSIM) to 95.79 K, the E-3101 cold-side surplus over its warm side (5,535 - 5,242 kW, D-061: ~295 kW;
-      heat leak neglected, ASSUMED); property adapter enthalpies (thermo 0.6.1, PR)'
+    source: '`cheme process simulate` (DWSIM 9.0.5, Peng-Robinson; DESIGN.md D-066): E3102 304.06 kW, balanced
+      (imbalance 0). It closes the condenser-reboiler E-3103 (C-3101 condenses 4,172 kW, C-3102 reboils
+      4,166 kW). Cross-check scripts/datasheet_sizing.py section 5 (DESIGN.md D-068 (5)), property adapter
+      (thermo PR): hot side 304.2 kW, cold side S16 -> S16B 312.7 kW (2.8 % apart: DWSIM PR against thermo PR
+      near the waste N2 dew point)'
     assumed: true
   ln_duty_kw:
-    value: 65.6
+    value: 116.6
     unit: kW
-    source: 'scripts/datasheet_sizing.py section 5 (DESIGN.md D-063 (6)): S18 24,530 kg/h liquid 94.71 -> 90.29 K at 530 kPa(a)
-      (subcooled 4.4 K), property adapter'
+    source: 'scripts/datasheet_sizing.py section 5 (DESIGN.md D-068 (5)): S18 29,280 kg/h liquid 94.71 -> 88.05 K at 530 kPa(a)
+      (subcooled 6.7 K), property adapter'
     assumed: true
   crude_duty_kw:
-    value: 227.4
+    value: 187.6
     unit: kW
-    source: 'scripts/datasheet_sizing.py section 5 (DESIGN.md D-063 (6)): S13 45,680 kg/h liquid 99.56 -> 90.29 K at 550 kPa(a)
-      (subcooled 9.3 K), property adapter'
+    source: 'scripts/datasheet_sizing.py section 5 (DESIGN.md D-068 (5)): S13 53,740 kg/h liquid 99.47 -> 93.05 K at 550 kPa(a)
+      (subcooled 6.4 K), property adapter'
     assumed: true
   ua_kw_k:
-    value: 49.6
+    value: 45.1
     unit: kW/K
-    source: 'scripts/datasheet_sizing.py section 5 (DESIGN.md D-063 (6)): UA = sum dQ / LMTD over 600 intervals of the hot (S18 +
-      S13) and cold (S16) composite curves, counter-current (ASSUMED)'
+    source: 'scripts/datasheet_sizing.py section 5 (DESIGN.md D-068 (5)): UA = sum dQ / LMTD over 600 intervals of the hot (S18 ->
+      S18B + S13 -> S13B) and cold (S16 -> S16B) composite curves, counter-current (ASSUMED)'
     assumed: true
   minimum_approach_k:
-    value: 3.77
+    value: 5.19
     unit: K
-    source: 'scripts/datasheet_sizing.py section 5 (DESIGN.md D-063 (6)): at the warm end (crude in 99.56 K against waste N2 out
-      95.79 K); cold end 10.0 K'
+    source: 'scripts/datasheet_sizing.py section 5 (DESIGN.md D-068 (5)): at the warm end (crude in 99.47 K against waste N2 out
+      94.28 K); cold end 7.15 K'
     assumed: true
   area_m2:
     value: supplier
     unit: m2
     reason: 'brazed aluminium plate-fin supplier: fin geometry and layer arrangement along the composite
       curves; no typical overall coefficient for cryogenic liquid against low-pressure gas in cheme-as-code''s
-      table (cheme datasheets fill --list), and no flowsheet node links E-3102 for a fill. Enquiry basis:
-      293 kW (LN 66 kW, crude 227 kW), UA about 50 kW/K, minimum approach 3.8 K'
+      table (cheme datasheets fill --list). Enquiry basis (D-066): 304 kW (LN 117 kW to -185.1 C, crude 188 kW
+      to -180.1 C), UA about 45 kW/K, minimum approach 5.2 K; the supplier confirms the duty against the
+      composite curves (D-067)'
   lmtd_k:
     value: not_applicable
     unit: K
     reason: a three-stream exchanger (LN and crude against waste N2); one LMTD does not describe it, the
       composite curves do (ua_kw_k, minimum_approach_k)
 sizing_basis:
-- parameter: liquid outlet temperature
-  value: LN and crude leave at one common temperature (ASSUMED, one core with a common cold-end header)
-  reference: DESIGN.md D-063
+- parameter: liquid outlet temperatures
+  value: LN -185.1 C, crude -180.1 C (set to balance E-3103, ASSUMED)
+  reference: DESIGN.md D-066
 - parameter: duty
-  value: the waste N2 warming that closes the E-3101 balance (heat leak neglected, ASSUMED)
-  reference: DESIGN.md D-061, D-063
+  value: 304 kW, simulated (DWSIM) with the double column
+  reference: DESIGN.md D-066
 notes: 'Brazed aluminium, two cores side by side with headers (the DN800 waste N2 headers set the length).
-  Max 65 C. ASSUMED. DESIGN.md D-063: duty 293 kW from the E-3101 balance on the DWSIM column states
-  (D-059, D-061), split between LN (66 kW) and crude (227 kW) at a common outlet of -182.9 C; area the
-  supplier''s. Not in the flowsheet or the simulation yet (D-059 open: a tear stream); the subcooling changes
-  the LP column flash and boil-up (D-059 levers), so the column result stands without it. The equipment list
-  names GAN as a second cold stream: not modelled, the waste N2 alone takes the duty here.'
+  Max 65 C. ASSUMED. DESIGN.md D-066: in the flowsheet and the simulation (step E3102), 304 kW, LN to
+  -185.1 C and crude O2 to -180.1 C against the cold waste N2 (S16 -> S16B); it closes the E-3103 balance.
+  The area is the supplier''s. The equipment list names GAN as a second cold stream: not modelled, the
+  waste N2 alone takes the duty.'
