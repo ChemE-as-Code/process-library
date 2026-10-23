@@ -14,7 +14,7 @@ By phase (baseline):
 
 | category | operation | construction | maintenance | transport | end-of-life |
 |---|---|---|---|---|---|
-| Climate change | 129.079 | 0.559144 | 0.132316 | 0.00539743 | -0.296759 |
+| Climate change | 129.079 | 0.559139 | 0.132316 | 0.00539743 | -0.296759 |
 
 ## Uncertainty (baseline, Monte Carlo, 2000 iterations, seed 1)
 
@@ -69,7 +69,7 @@ Sensitivity, Climate change (kg CO2-eq) (Spearman rank correlation with the tota
 | maintenance:equipment-cs | 0.00296287 kg | 2 /kg (steel-sections) | 0.00592575 | 0.0% |
 | transport:consumables-to-site | 0.0539743 tkm | 0.1 /tkm (lorry) | 0.00539743 | 0.0% |
 | construction:grating | 8.00515e-05 m2 | 60 /m2 (grating) | 0.00480309 | 0.0% |
-| construction:elbows | 0.000121238 ea | 30 /ea (fitting) | 0.00363713 | 0.0% |
+| construction:elbows | 0.000121077 ea | 30 /ea (fitting) | 0.00363232 | 0.0% |
 | construction:flanges | 5.92575e-05 ea | 30 /ea (fitting) | 0.00177772 | 0.0% |
 | construction:gaskets | 5.92575e-05 ea | 30 /ea (fitting) | 0.00177772 | 0.0% |
 | construction:insulation | 5.11283e-05 m2 | 20 /m2 (insulation) | 0.00102257 | 0.0% |
@@ -106,7 +106,7 @@ Sensitivity, Climate change (kg CO2-eq) (Spearman rank correlation with the tota
 | construction:valves (input) | construction | 1.71366e-05 ea | calculated | factor:fitting |
 | construction:flanges (input) | construction | 5.92575e-05 ea | calculated | factor:fitting |
 | construction:gaskets (input) | construction | 5.92575e-05 ea | calculated | factor:fitting |
-| construction:elbows (input) | construction | 0.000121238 ea | calculated | factor:fitting |
+| construction:elbows (input) | construction | 0.000121077 ea | calculated | factor:fitting |
 | construction:tees (input) | construction | 1.15312e-05 ea | calculated | factor:fitting |
 | construction:reducers (input) | construction | 1.60155e-07 ea | calculated | factor:fitting |
 | construction:inline (input) | construction | 1.12109e-06 ea | calculated | factor:fitting |

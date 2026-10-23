@@ -2436,3 +2436,23 @@ simulation and design basis stay with the process-simulation work (D-058, D-059,
    their run since D-055 (5) raised the tank routes, so the model counts that run as
    unsupported (the support-missing info); raising them leaves the 4.2 m end span D-060 (2)
    kept as an info rather than a warning. It stays with the stress engineer (D-062 (4)).
+6. **MAC drain trap assemblies (amends D-064 (2), (4); review10#6).**
+   - Tags: the drain gate valves are HV-1112 (CD-1001) and HV-1113 (CD-1002), the float traps
+     ST-1112 / ST-1113 (`PipingComponentNumber`, labelled on P-01; the next free P-01 numbers,
+     one per drain; the project tags drain valves, e.g. HV-3118).
+   - Strainer and test point: each trap is specified as a float trap with an integral strainer
+     and an integral test valve on its outlet (a common float-trap build), stated in a P-01 note,
+     the line list and the E-1102 / E-1103 datasheets, instead of a separate Y-strainer and a
+     test branch on the DN25 drain. If the supplier's trap has no integral test valve, a DN15
+     test valve after the trap is added on P-01 at the vendor drawing review.
+   - No trap bypass: an open bypass would blow compressed air into the drain. A trap that fails
+     shut is found by the test valve and by the separator high-level alarm, and isolated with
+     the gate valve for replacement.
+   - Separator level: a high-level alarm per separator (switch or transmitter to the DCS) is a
+     requirement of the MAC package enquiry. The separators are integral to the coolers and
+     their level connections are the supplier's design (D-064 (1)), so the alarm is not drawn
+     or listed until the supplier's P&ID gives its tag and connection (vendor item).
+   - Layout: CD-1001 / CD-1002 are pinned in `piping/routing.yaml` with the valve and trap run
+     at 0.5 m (was 0.33 m; trap centres now 0.5 m, ASSUMED), then down into the hubs at 0.3 m.
+     The CD-1001 level run is 2.0 m, inside the 2.1 m DN 25 span, so no support is needed; no
+     new clash, support or operability finding.
