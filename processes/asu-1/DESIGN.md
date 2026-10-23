@@ -2037,3 +2037,25 @@ simulation and design basis stay with the parallel process-simulation work (D-05
    the zone, so a bundle comes out under it and is lifted from the end of the zone or by
    Z-PAD-A4C; the package supplier's drawing sets the pull side and length. No route or finding
    count changed.
+4. **Left open, with the reason (review9#5, review3#2 .. #4, 2026-10-21-layout#15).**
+   - **review9#5**: the E-3101, K-3101, KT-3101 and E-3104 datasheets and CW-3001 / CWR-3001
+     wait for the flowsheet changes requested in D-060 (6) (S4C 8.45 bara / 61.0 C, S4D 8.45
+     bara / 40 C, S5B 8.25 bara / -124.7 C, S6 unchanged at -178 C, S7 / S9 / S17 at 13 C;
+     E-3104 then 85 kW, CW ~7.4 m3/h, DN 50). `process/flowsheet.yaml` belongs to the
+     process-simulation work (D-058, D-059) and is not edited here.
+   - **Operability, 9 warnings** (review3#3): no change to D-060 (7). Access from a mobile
+     elevating work platform (D-040 (4)) to the actuators of XV-4118 / XV-4119 / XV-4132 /
+     XV-4133 is not modelled: the plan distance from each valve to the nearest road edge is
+     6.7 m (XV-4118, R5) and 11.3 .. 12.0 m (the other three, R2) (computed from the model), so
+     a lift stands inside the unit among the CW / CWR runs and the support posts at grade. Its
+     standing area needs the owner's work platform type (footprint, outreach) before it can be
+     declared as a keep-clear zone; inventing one would fix a size nobody has chosen. For the 9
+     open valves the distances are 18.5 .. 31.0 m (TSA), 28.0 m (tank roofs) and 10.0 m
+     (XV-3105).
+   - **Free span 5, support missing 16 (10 accepted)** (review3#4): the five free spans are the
+     stacked runs of D-060 (2) whose proposals stand in the lower pipe ("place it by hand",
+     no longer offered for pin, (1)): a bracket off the lower line's support or a common frame,
+     for the stress engineer.
+   - **PSV-3114 / 3116 / 4127 / 4128 tailpipe guides** (review3#2): wait for the relief reaction
+     forces of the stress analysis (D-050).
+   - **KT-3101 casing extension** (2026-10-21-layout#15): waits for the vendor drawing (D-050).
