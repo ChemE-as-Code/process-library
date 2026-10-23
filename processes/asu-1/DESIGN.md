@@ -2302,4 +2302,58 @@ by its section `D-063 (n)`. All 39 datasheets are final (`draft: false`); every 
 Open: the TSA, tank and rack walkway arrangements (9 valves, D-060 (7)), the stress engineer's
 5 free spans (D-062 (4)), the suppliers' areas, packing and staging above, the 99.5 % GOX cycle
 (D-059) and the ~78 kW refrigeration shortfall (D-061) are decisions outside the datasheets.
-P-01 still draws no condensate drains for S1C / S3C (D-058).
+P-01 still draws no condensate drains for S1C / S3C (D-058; closed by D-064).
+
+## D-064 MAC and DCAC condensate drains on P-01 (2026-10-23)
+Decision:
+1. **MAC coolers: integral moisture separators.** E-1102 and E-1103 each have a moisture
+   separator (vane pack or demister) built into the air outlet. This is the usual MAC-package
+   arrangement and needs no separate vessel, tag or placement. Each separator drains through a
+   new nozzle N5 DN25 on the shell bottom at the air-outlet end. E-1101 gets no drain: no water
+   condenses there (6.2 kPa partial pressure against 7.4 kPa saturation at 40 C, E-1101
+   datasheet). The separator type and its pressure drop come from the supplier (MAC package).
+2. **Drain lines CD-1001 (E-1102) and CD-1002 (E-1103)**, new fluid code CD (condensate drain;
+   extends D-007). Each line runs from the drain nozzle through a manual gate valve and a float
+   trap to a drain hub at grade. From the hub the condensate goes into the clean (oil-free)
+   drain system: the MAC air path is oil-free (D-012), so it is not oily water.
+   - Flows: 679 kg/h at 3.21 bara and 649 kg/h at 5.8 bara, both at 40 C (IAPWS-95, the
+     E-1102 / E-1103 datasheets). Together that is the simulated S1C, 1,398 kg/h at 40 C
+     (D-058). The simulator gives S1C one pressure, 1.79 bara; each trap really works at its
+     own cooler's pressure.
+   - Sizing: DN25, PN10 (the coolers' 8 barg design). DN25 is the minimum drain size and
+     gives about 0.3 m/s (ASSUMED).
+   - Traps: float traps, model `Plant/Piping.SteamTrap`. Trap size and capacity come from the
+     supplier.
+   - Drawing: the cheme-as-code catalogue has no trap symbol. `STEAM_TRAP_SHAPE` (a square body
+     with the float) was added to P-01's catalogue. Its registration number is its name: the
+     ISO 10628-2 number is not checked.
+   - Method: the lines were drawn with the authoring API (`scripts/edit_P-01_drains.py`,
+     provenance only). The traps were built as ball valves and then re-classed by hand.
+   - Moves on P-01: TIA-1111 moved east to x 178 on AIR-1002 (still downstream of E-1103,
+     now after the check valve) to make room for CD-1002. The E-1102 label moved up 4 mm.
+3. **DCAC: no separate bleed.** The DCAC lower section is fed once-through from the cooling
+   water system (CW-1001 via P-1101A/B, and the chilled water from C-1102). The sump water
+   returns to CW return through LV-1106 under LIC-1106. The condensate S3C (587 kg/h, about
+   0.6 m3/h, simulated) is about 0.2 % of the ~250 m3/h sump outflow. It leaves with that
+   outflow, so LV-1106 is the DCAC water bleed, and the cooling-tower blowdown sets the
+   water's concentration. P-01 states this in a note. S3C now links to CWR-1001 and LIC-1106,
+   and S1C links to CD-1001 and CD-1002 (flowsheet links only; no stream value changed).
+4. **Layout:**
+   - Nozzle overrides put N5 on the shell bottom: E-1102 at along 7.2 m, E-1103 at along 6.5 m.
+   - The drain hubs are battery-limit points in `piping/routing.yaml`: (60.2, 45.0, 0.3)
+     north of E-1102 and (69.0, 36.0, 0.3) east of E-1103 (ASSUMED).
+   - The routes are 3.3 m and 2.3 m long at about 0.3 m elevation. The valves and traps sit clear of
+     the shells and can be worked from grade.
+   - No new clash, operability or support finding.
+   - The take-off gains two DN25 gate valves and two traps. LCA climate change for
+     construction: 33.7517 -> 33.7519 kg CO2-eq/t GOX.
+Reason: D-058 left the 1,985 kg/h of condensate (S1C + S3C) without a drawn outlet. An
+undrained intercooler floods its separator and carries water into the next stage or the DCAC.
+Rejected:
+- Separate knockout vessels after E-1102 / E-1103: they would add two tagged items, placements
+  and DN600 / DN700 spools inside the MAC package, which the package's integral separators
+  make unnecessary.
+- A level-controlled zero-loss drain (LT + XV) instead of each float trap: it saves the small
+  air loss of a float trap but needs two more instruments per cooler. Keep it as a supplier
+  alternative.
+- A separate DCAC blowdown: it would duplicate LV-1106.
