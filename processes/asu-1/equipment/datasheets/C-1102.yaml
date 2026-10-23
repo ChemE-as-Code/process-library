@@ -6,7 +6,7 @@
 tag: C-1102
 type: ProcessColumn
 service: Evaporative cooler (chilled water)
-draft: true
+draft: false
 operating:
   inlet_pressure:
     value: 1.05
@@ -82,10 +82,45 @@ type_specific:
       skirt: an upper bound)'
     assumed: true
   number_of_stages:
-    value: TBD
+    value: not_applicable
     unit: ''
-    source: 'TBD: the shortcut method needs a linked node with one feed and two products (C1102) (cheme
-      datasheets fill)'
+    reason: an evaporative cooler (water cooled by evaporation into dry waste N2 on packing), not a
+      distillation; its packing is sized in transfer units (packing_height_m), not in stages
+  adiabatic_saturation_temperature_degc:
+    value: 8.54
+    unit: degC
+    source: 'scripts/datasheet_sizing.py (D-060 (3)): energy balance of S12B (dry, 25 C, 105 kPa(a), 31,450
+      kg/h) saturated with water fed at that temperature (N2 enthalpy property adapter, water IAPWS-95;
+      psychrometry, Perry''s 8th ed. Section 12): the lowest water temperature the dry waste N2 can reach'
+    assumed: true
+  gas_load_factor_pa05:
+    value: 0.502
+    unit: Pa^0.5
+    source: 'scripts/datasheet_sizing.py (D-060 (3)): F = u rho^0.5, 31,450 kg/h at 25 C, 105 kPa(a) (rho
+      1.197 kg/m3, property adapter), D 4.5 m (equipment list): u 0.459 m/s'
+    assumed: true
+  liquid_load_m3_m2h:
+    value: 6.29
+    unit: m3/(m2 h)
+    source: 'scripts/datasheet_sizing.py (D-060 (3)): 100 m3/h water over 15.9 m2'
+    assumed: true
+  duty_kw:
+    value: supplier
+    unit: kW
+    source: 'with the C-1101 packing supplier: the chilled-water duty is the C-1101 upper section''s, set by
+      the intermediate air temperature the supplier chooses (C-1101 total 778 kW, D-060 (3)); the waste N2
+      take-up of water follows from it'
+  packing_height_m:
+    value: supplier
+    unit: m
+    source: 'packing supplier: transfer units of the chosen packing. Enquiry basis: water cooled to 10 C by
+      31,450 kg/h dry waste N2 at 25 C, 1.05 bara; the 10 C outlet is 1.46 K above the N2''s adiabatic
+      saturation temperature (8.54 C), so the approach governs the height'
+  flooding_diameter_m:
+    value: supplier
+    unit: m
+    source: 'packing supplier''s hydraulic rating (no flooding correlation in cheme-as-code is cleanly
+      sourced); the 4.5 m of the equipment list (ASSUMED) runs at F 0.50 Pa^0.5 and 6.3 m3/(m2 h)'
   process_streams:
   - stream: S12B
     direction: in
@@ -96,21 +131,18 @@ type_specific:
     title: Evaporative cooler gas out
     source: process/flowsheet.yaml (case design)
   minimum_stages:
-    value: TBD
+    value: not_applicable
     unit: ''
-    source: 'TBD: the shortcut method needs a linked node with one feed and two products (C1102) (cheme
-      datasheets fill)'
+    reason: Fenske minimum stages apply to a distillation; an evaporative cooler has no key components
   minimum_reflux_ratio:
-    value: TBD
+    value: not_applicable
     unit: ''
-    source: 'TBD: the shortcut method needs a linked node with one feed and two products (C1102) (cheme
-      datasheets fill)'
+    reason: no reflux in an evaporative cooler
   theoretical_stages:
-    value: TBD
+    value: not_applicable
     unit: ''
-    source: 'TBD: the shortcut method needs a linked node with one feed and two products (C1102) (cheme
-      datasheets fill)'
+    reason: an evaporative cooler is sized in transfer units, not theoretical stages
 sizing_basis: []
-notes: 'Waste N2 25,000 Nm3/h cools water to ~10 C, top vent to atmosphere. ASSUMED. Open (DESIGN.md
-  D-053): an evaporative cooler, not a distillation, so the stage fields of the shortcut method do not apply;
-  the packing height follows from heat and mass transfer (transfer units) in the packing supplier''s design.'
+notes: 'Waste N2 25,000 Nm3/h cools water to ~10 C, top vent to atmosphere. ASSUMED. DESIGN.md D-060 (3):
+  adiabatic saturation limit 8.54 C and hydraulic loads calculated; duty, packing height and flooding diameter
+  are the packing supplier''s (markers); the stage fields do not apply (not a distillation).'

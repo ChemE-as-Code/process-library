@@ -1843,6 +1843,8 @@ covers D-018's 90 % recovery case (more air) and the IGV range, and a smaller mo
 into the electrical list, cable sizing and the lifting study for a margin the vendor decides.
 Open: the humidity of S1 (D-053 (1): 0.25 mol% against the design basis 80 % RH) changes the
 MAC coolers' duty by ~0.9 MW once reconciled; the vendor's efficiencies replace the ASSUMED
+0.78 to 0.82. Rerun `cheme process simulate --fill` after either.
+
 0.78 to 0.82. Rerun `cheme process simulate --fill` after either. (Humidity: D-058.)
 
 ## D-058 Inlet air humidity: 80 % RH, condensate drains simulated (2026-10-23)
@@ -1943,6 +1945,157 @@ Open:
 - Core: a column solver that follows a spec change from the converged profile. The variants
   above failed on DWSIM's own convergence: the mass-balance check at 1e-4, and iterations.
 
+## D-060 Issue #8 round: core#66 rebuild, supports, datasheet markers, pump heads, valves (2026-10-23)
+Numbered from D-060: D-058 and D-059 are kept for the parallel process-simulation work (inlet
+humidity, double-column simulation, E-3102 / E-3103), which this round does not touch
+(`process/flowsheet.yaml`, `simulation.yaml`, `design-basis.yaml` unchanged here).
+1. **Rebuilt with core fix/core-66 (f052dd8).** The layout model, lifting study, take-off,
+   estimates and cable schedule are rebuilt; only generator fingerprints and generated proposal
+   ids and reasons change: valve access platform proposals are now `VP-<first valve tag>`
+   (the pinned `VP-1` .. `VP-9` keep their ids), support proposals `<pipe>/SP-<arc in m>` (the
+   pinned `post-<k>` keep theirs). Proposed posts now keep 0.1 m (`support_pipe_clearance_m`,
+   ASSUMED) from the pipes they do not carry: of 35 proposals 6 moved along their pipe, 14 say
+   "place it by hand". The new vent-outlet check (open ends beside a walking surface,
+   `vent_side_clearance_m` 1.5 m) finds nothing. No route, item or finding count changes:
+   0 errors; free-span 8, support-missing 16 (10 accepted, D-049), operability 14.
+2. **Support posts placed with the clearance rule (amends D-049 Open).** Every generated
+   proposal that is not "place it by hand" was pinned in a trial copy and kept only if the
+   build added no finding: LOX-4003 S3 `SP-11.1` (T-post), LOX-3001 S1 `SP-12.2` (T-post at
+   the casing, 2.6 m span), and the five stubs of GOX-4002 S12 (`SP-6.5`, `SP-8.9`,
+   `SP-11.0`, `SP-15.4`, `SP-19.9`: the DN 80 backup tie-in over VNT-4002, standing on the
+   crossbars of the GOX-4002 S4 post-1 and the CW-4001 / CWR-4001 T-posts below it, 0.1 m or
+   more clear of S5 and VNT-4002, where D-049 found no place; the stress engineer confirms
+   that those posts carry the extra load).
+   Rejected: CWR-1004 `SP-29.7` (in the P-1101B access space), LOX-3002 `SP-15.2` (in
+   V-3101), LIN-3001 S2 `SP-35.5` (in T-4102; the other three alone leave a 4.2 m span, a
+   warning in place of the info), UN-3001 S1 `SP-9.4` (in CWR-4002; `SP-10.8` alone leaves
+   4.2 m > 4.0 m). The 14 "place it by hand" proposals are the 8 runs inside the casing
+   (accepted, D-049) and the stacked runs GOX-4001 / AIR-2002, CW-4001 / CWR-4001, CWR-4002 and
+   GAN-4004 / GAN-4002, GOX-4002 S5 / VNT-4002 and LIN-4003 S1 / S3, where one pipe runs
+   directly over the other: a post from grade stands in the lower pipe wherever it goes, so
+   each needs a bracket off the lower pipe's support or a common frame (stress engineer,
+   unchanged from D-049). Result: free-span 8 -> 5 (CWR-1004, LOX-3001 S2, CW-4001, CWR-4002,
+   GAN-4004), support-missing 16 (unchanged), 0 errors, 0 clashes; support steel 93.6 ->
+   96.5 t (577.2 t steel in all), 251 footings.
+3. **Sizing script on the public pump API.** `scripts/datasheet_sizing.py` no longer uses the
+   fill's private `_route` / `_Network`: pumps are sized with `chemeascode.domains.equipment.
+   pumps` (`network`, `route_line`, `size_pump`; the CW battery limit as
+   `pipe:P-01/Line_CW1001_S1:start`). It reproduces the D-053 / D-055 values of P-1101A/B and
+   P-1102A/B (31.07 / 31.92 / 78.32 / 78.71 m, NPSHa 53.26 / 53.52 / 11.31 / 11.31 m) and the
+   LOX / LIN NPSHa (0.34 / 0.34 / 0.31 / 0.31 m).
+4. **Datasheets finished with supplier / not-applicable markers (amends D-053 (5), (7), (10)).**
+   Seven of the 11 drafts are final (`draft: false`); every field left open is a marker with its
+   reason (`cheme.datasheet-marker` / `-open`: none). Calculations in `scripts/datasheet_sizing.py`.
+   - **C-1101 DCAC**: stage fields `not_applicable` (a direct contact cooler is sized in transfer
+     units, not stages). Calculated: duty 777.7 kW (dry gas 40 -> 12 C 773.8 kW, adapter; water
+     vapour and 0.14 kmol/h condensate 3.9 kW, IAPWS-95, at the flowsheet's 0.25 mol% water;
+     DWSIM's Q2 792.8 kW, 2 % apart); at the equipment list's 4.0 m (ASSUMED) the gas load
+     F = u rho^0.5 is 0.85 Pa^0.5 (u 0.34 m/s) and the liquid loads 19.9 (CW) / 8.0 (chilled
+     water) m3/(m2 h). `supplier`: both packing heights and the flooding diameter: no flooding or
+     mass-transfer correlation in cheme-as-code is cleanly sourced, and the transfer
+     coefficients belong to the chosen packing. The duty grows with the inlet humidity (D-058).
+   - **C-1102 evaporative cooler**: stage fields `not_applicable`. Calculated: the adiabatic
+     saturation temperature of the dry waste N2 (25 C, 1.05 bara), 8.54 C: the 10 C chilled
+     water is only 1.46 K above the thermodynamic limit, so the approach sets a tall packing
+     (finding for the packing supplier; a colder chilled water is not reachable). Gas load F
+     0.50 Pa^0.5, liquid load 6.3 m3/(m2 h) at 4.5 m. `supplier`: duty (set by the DCAC
+     upper section's split), packing height, flooding diameter.
+   - **E-3101**: `area_m2` `supplier` (plate-fin geometry), `lmtd_k` `not_applicable`
+     (five streams). Composite curves from the adapter enthalpies (every state single-phase and
+     inside the claimed range): warm side 5,211 kW (D-053 (5)). With the flowsheet's cold
+     outlets at 25 C the cold composite crosses the warm one at the warm end (the main air enters
+     at 15 C, only the 14.9 t/h booster air is warmer; -6.1 K in the warm-end tenth): S7, S9 and
+     S17 cannot leave E-3101 at 25 C (flowsheet change requested, (6)). With the cold outlets at
+     13 C (2 K warm-end approach, ASSUMED) and the cold inlets 11.6 K above their dew points so
+     that the balance closes (ASSUMED: the E-3102 outlet states wait for D-059; heat leak
+     neglected): UA 737.7 kW/K (sum of dQ / LMTD over 600 intervals), minimum approach 4.69 K at
+     the cold end. Written as `ua_kw_k` / `minimum_approach_k` (ASSUMED) and as the enquiry
+     basis of the area.
+   - **E-4105A/B, E-4106A/B ambient-air vaporizers**: duty from the stream states: liquid
+     saturated at 150 kPa(a) in the tank plus the pump's shaft work, to gas at -15 C (ASSUMED,
+     (5)) at the header pressure plus the valve drop: 493.8 kW (LOX, 3,200 kPa(a)) and
+     656.2 kW (LIN, 1,000 kPa(a)); every state single-phase and inside the claimed range (the
+     two-phase path is not needed for an enthalpy difference). `area_m2` `supplier` (free
+     convection on frosting fins: no typical-U row; rated by flow, climate and defrost cycle),
+     `lmtd_k` `not_applicable`.
+   - **C-3101, C-3102, E-3102, E-3103** stay drafts, waiting for the double-column simulation
+     (D-059); not filled here.
+   Datasheets gate: drafts 11 -> 4. Equipment estimate: unchanged coverage (the vaporizer and
+   E-3101 areas are the suppliers'); C-1101 / C-1102 are no longer sized from a draft.
+5. **LOX / LIN backup pump heads to the header (amends D-053 (8)).** The pumps deliver into the
+   GOX / GAN header at the product pressures (S8 31 bara, S9B 9 bara, given) through the
+   vaporizer, the backup pressure control valve and the gas line, so the head now counts them.
+   ASSUMED until the suppliers' figures: vaporizer pressure drop 50 kPa, PV-4111 / PV-4112
+   100 kPa at rated flow, gas at the vaporizer outlet -15 C (the -5 C minimum ambient of the
+   design basis less a 10 K approach). Calculated: the routed gas lines GOX-4004 / GAN-4003 to
+   the header tee (Darcy-Weisbach along the layout model, gas density from the property
+   adapter, Yoon-Thodos viscosity): 7.8 / 7.5 kPa (GOX, A / B) and 64.5 / 61.8 kPa (GAN, A / B).
+   Heads (`pumps.size_pump`, suction from the tank nozzle, discharge to the vaporizer inlet):
+   | pump | head, was | head, now | rated discharge | shaft power (eta 0.5) |
+   |---|---|---|---|---|
+   | P-4101A / B | 263.6 m | 281.2 / 281.2 m | 32.97 bara | 7.97 kW (was 7.5) |
+   | P-4102A / B | 94.9 m | 127.1 / 127.0 m | 11.54 / 11.53 bara | 4.36 kW (was 3.3) |
+   Within the design pressures of the pumps (40 / 15 barg) and of LOX-4002 (PN63) and LIN-4002
+   (PN25). NPSHa unchanged.
+6. **E-3104 cooling water; compander balance and E-3101 warm end: flowsheet changes requested,
+   not made.** `process/flowsheet.yaml` belongs to the parallel process-simulation work (D-058,
+   D-059), so this round only calculates and requests:
+   - **CW-3001 / CWR-3001**: the line list now gives ~5.1 m3/h for E-3104's 59 kW (25 -> 35 C,
+     D-053 (4)) instead of ~60 m3/h. DN150 stays until the E-3104 supplier gives its nozzles
+     (0.08 m/s; DN50 would carry 7 m3/h at about 1 m/s): changing it moves the P-03 DN labels
+     and the routed lines, a separate change.
+   - **Compander balance** (`scripts/datasheet_sizing.py` D-060 (7); booster ideal gas k 1.412,
+     eta_s 0.80, as the fill; expander real gas, eta_s 0.85; mechanical efficiency 0.97 each, all
+     ASSUMED as D-053). On the flowsheet states the booster takes 160.6 kW gas power but the
+     expander gives 204.6 kW: booster - 0.97^2 x expander = -32 kW, and the exhaust is -172.1 C
+     against S6's -178 C. A free-running compander settles where they balance. Balanced with S6
+     kept at -178 C (the LP column feed the column simulation uses):
+     | stream | now | requested |
+     |---|---|---|
+     | S4C booster discharge | 8.0 bara, 54.6 C | 8.45 bara, 61.0 C |
+     | S4D booster air to E-3101 | 8.0 bara, 40 C | 8.45 bara, 40 C |
+     | S5B expander feed | 7.8 bara, -118 C | 8.25 bara, -124.7 C |
+     | S6 Lachmann air | 1.35 bara, -178 C | unchanged |
+     Booster 186.7 kW, expander 198.5 kW gas power; E-3104 duty 59 -> 85 kW (CW ~7.4 m3/h). The
+     alternative, the expander inlet kept at -118 C, balances at 8.66 bara booster discharge
+     (63.8 C) with the exhaust at -174.1 C, i.e. S6 6 K warmer than the column feed assumes; not
+     recommended. All within the 11 barg design of K-3101, E-3104 and E-3101.
+   - **E-3101 warm end** ((4)): S7, S9 and S17 leave E-3101 at 25 C in the flowsheet, which the
+     warm composite cannot reach (the main air enters at 15 C); requested 13 C (2 K warm-end
+     approach, ASSUMED until the plate-fin supplier). This lowers the K-4101 / K-4102 suction
+     temperature (less power) and the waste N2 to the regeneration heater and C-1102 (12 K
+     colder; C-1102's adiabatic saturation limit then drops as well).
+   After these changes: `cheme process props --fill`, `cheme process simulate --fill` (energy
+   streams E1, E4, E5, Q1..Q4), `cheme assess lca --write`, then redo the E-3101 composite
+   curves, the K-3101 / KT-3101 / E-3104 datasheets and CW-3001 with this script.
+7. **Valves out of reach: 14 -> 9 (amends D-047 Open).** Each of the 14 proposals
+   (`VP-<valve tag>`, now stable) was pinned alone in a trial copy and built: every one adds
+   findings (TSA and PV-4109 platforms: 2 to 4 equipment-steel clashes, columns in the adsorber
+   shells or the tanks; the others pipe-steel clashes, headroom, vent-outlet or egress-zone
+   findings), so none is pinned. Chain wheels do not apply (all 14 are actuated, and all are
+   above the 6 m chain-wheel limit). All 14 are actuated valves (D-040 (4)): their local
+   override, air set and positioner go to a pedestal on a floor when the run is at most 6 m
+   (`remote_operator`, ASSUMED limit). Declared, measured from the handwheel to a pedestal 1 m
+   above the nearest platform (outside 0.6 m reach in plan, then vertical):
+   | valve | pedestal on | run |
+   |---|---|---|
+   | XV-4118 GOX ESD block | VP-4 (8.65 m) | 2.0 m |
+   | XV-4119 GOX BL double block | VP-5 (8.35 m) | 0.5 m |
+   | XV-4132 GOX BL double block | VP-5 | 1.2 m |
+   | XV-4133 GOX BL bleed | VP-5 | 2.4 m |
+   | PV-3110A waste N2 vent | VP-1 (5.6 m) | 2.6 m |
+   The physical run of each operator (gearbox, reach rod or air tubing) past the GAN-4003 /
+   GAN-4004 runs is for the piping layout to confirm. Open, 9, with the run they would need:
+   - TSA switching valves XV-2101A (6.8 m to grade), XV-2102A / B (7.5 m), XV-2103A (6.9 m),
+     XV-2103B (7.8 m), XV-2111A (6.7 m): no platform fits (D-047); the adsorber top piping and
+     its access go to the TSA supplier's arrangement;
+   - tank boil-off valves PV-4109 / PV-4110 (6.3 / 6.4 m to the tank roof platforms, 4.8 / 5.9 m
+     away in plan): the tank supplier's west roof platform with the outlet raised (D-047);
+     lowering the valves on the boil-off riser by 0.3 / 0.4 m would bring them within 6 m, for
+     the tank supplier's nozzle arrangement;
+   - XV-3105 off-spec GAN divert (7.3 m to VP-1): a PR1 walkway or the VNT-4004 leg re-arranged.
+   Result: operability 14 -> 9 warnings, no other finding count changes, 0 errors.
+
 ## D-061 Compander balance and E-3101 warm end (2026-10-23)
 Requested in the datasheet pass (D-060 (6), branch issue8); verified independently with
 Peng-Robinson (thermo 0.6.1, ChemSep kij) and DWSIM.
@@ -1984,3 +2137,74 @@ Limits and open points (for the cold-box vendor and the datasheets):
 - In thermo PR the stored column vapours S14 and S15 flash as liquid. They sit within 0.1 K
   of their dew points, so an E-3101 check from the stored enthalpies counts ~1.8 MW of latent
   heat that is not there. Take them as saturated vapour.
+## D-062 Ninth layout review: supports, lifting verdict, E-4101 bundle pull (2026-10-23)
+Answers reviews/2026-10-23-layout-review9.md (the record itself is not edited). The flowsheet,
+simulation and design basis stay with the parallel process-simulation work (D-058, D-059).
+1. **Rebuilt with core fix/core-66 (52ac9b0).** cheme-as-code now (a) proposes a support stub on
+   the steel below only when it is at most `support_stub_max_m` (1.5 m, ASSUMED) below and is not
+   another line's support steel, else a T-post from grade; (b) reports a declared stub taller
+   than that, or one on another line's post (`cheme.layout-support-stub`); (c) checks a
+   building's overhead crane on the gross load and says so in the lifting study; (d) no longer
+   offers `cheme layout pin` for a proposal that must be placed by hand (review9#2, #4 and the
+   rule review9#1 asked for). Rebuilt: the lifting study gives K-1101 (heaviest part, 34.65 t
+   gross), E-1101 / E-1102 (13.86 t) and E-1103 (10.4 t) "building crane 40 t carries it",
+   needed = gross load, utilisation 0.87 for the MAC motor (was "needed 46.2 t", the mobile
+   chart figure, with no verdict). The free-span / support-missing texts list the "place it by
+   hand" proposals apart (CW-4001 SP-163.2 / SP-166.5, CWR-4002 SP-7.8, GAN-4004 SP-9.5 and
+   the others). The UN-3001 S1 proposal SP-10.8 is now a T-post to place by hand (it stood on
+   another line's steel). The new rule finds the four GOX-4002 S12 stubs of D-060 (2) (two
+   warnings each: 6.6 .. 7.1 m tall, on the CW-4001 / CWR-4001 posts): fixed in (2).
+2. **GOX-4002 S12 on T-posts from grade (amends D-060 (2); review9#1).** The DN 80 backup tie-in
+   at 10.55 m (x 180.8, y 44.2 .. 68.2) no longer stands on the 1 m crossbars of the CW-4001 /
+   CWR-4001 T-posts (3.3 / 3.8 m, laid out for one DN 100 water line each). SP-8.9, SP-11.0,
+   SP-15.4 and SP-19.9 keep their ids and become T-posts from grade (HEB200, ASSUMED section;
+   crossbar 0.45 m so it keeps clear of GOX-4002 S4 / S5 / S6 at x 180.3), each moved along the
+   pipe to stand 0.3 m or more off the crossbars of the CW-4001 / CWR-4001 / VNT-4002 posts and
+   off the CW / CWR runs that cross x 180.8: y 50.4 / 53.9 / 57.9 / 61.45 (was 50.8 / 54.1 /
+   58.3 / 62.3). The scan for this also found the earlier GOX-4002 S12 post-5 (D-049) with its
+   column 0.02 m into the CWR-4001 post-7 crossbar (no rule tests steel against steel): moved to
+   y 66.8 (66.0 .. 66.5 stand in GOX-4003 / GOX-4004 / GAN-4003), and post-6 added at y 63.7,
+   the only clear column place between VNT-4002, WN-3003 and the CWR-4001 crossbars. SP-6.5
+   stays a 0.49 m stub on the GOX-4002 S4 post (its own line). Spans 2.5 / 3.5 / 4.0 / 3.55 /
+   2.25 / 3.1 m (DN 80 gas 4.6 m). Computed clear gaps of the six posts: 0.12 m or more to every
+   pipe and declared steel they do not carry (0.119 m crossbar to GOX-4002 S4 / S5 / S6, 0.133 m
+   column to CW-4001); SP-11.0 stands 0.05 m into the crossbar of the generated proposal
+   CW-4001 SP-166.5, which is "place it by hand" and is not built. Not chosen: brackets off the
+   VP-4 east columns (review9#1's first option): those columns end at the 8.65 m platform, 1.9 m
+   below the pipe, so a bracket needs a column extension through the platform edge; for the
+   stress engineer with the T-posts (six 10.4 m HEB200 columns beside VP-4 may be better tied to
+   it or replaced by a common frame over the water lines). Result: support-stub 8 -> 0,
+   free-span 5 (unchanged), 0 errors, no clash; support steel 96.5 -> 98.0 t (578.8 t steel,
+   256 footings); LCA rewritten (climate change 33.1124 -> 33.1128 kg CO2-eq/t GOX
+   construction share, operation unchanged).
+3. **E-4101 bundle pull kept clear (amends D-055 (6); review9#3).** The intercooler package
+   (`shape: box`) gets no generated maintenance envelope, so its pull space is declared:
+   `Z-PULL-E4101`, kind `maintenance`, x 158.0 .. 163.5, y 37.1 .. 39.9, z 0 .. 3.2 (5.5 m for
+   the ~5 m bundles, ASSUMED). West, because the east side holds the E-4102 bundle pull
+   (x 171.75 .. 176). The volume was free (review9: no pipe or steel in it); the router and the
+   steel-in-way rule now keep it free. GOX-4001 runs north-south at x ~162 above 3.2 m, over
+   the zone, so a bundle comes out under it and is lifted from the end of the zone or by
+   Z-PAD-A4C; the package supplier's drawing sets the pull side and length. No route or finding
+   count changed.
+4. **Left open, with the reason (review9#5, review3#2 .. #4, 2026-10-21-layout#15).**
+   - **review9#5**: the E-3101, K-3101, KT-3101 and E-3104 datasheets and CW-3001 / CWR-3001
+     wait for the flowsheet changes requested in D-060 (6) (S4C 8.45 bara / 61.0 C, S4D 8.45
+     bara / 40 C, S5B 8.25 bara / -124.7 C, S6 unchanged at -178 C, S7 / S9 / S17 at 13 C;
+     E-3104 then 85 kW, CW ~7.4 m3/h, DN 50). `process/flowsheet.yaml` belongs to the
+     process-simulation work (D-058, D-059) and is not edited here.
+   - **Operability, 9 warnings** (review3#3): no change to D-060 (7). Access from a mobile
+     elevating work platform (D-040 (4)) to the actuators of XV-4118 / XV-4119 / XV-4132 /
+     XV-4133 is not modelled: the plan distance from each valve to the nearest road edge is
+     6.7 m (XV-4118, R5) and 11.3 .. 12.0 m (the other three, R2) (computed from the model), so
+     a lift stands inside the unit among the CW / CWR runs and the support posts at grade. Its
+     standing area needs the owner's work platform type (footprint, outreach) before it can be
+     declared as a keep-clear zone; inventing one would fix a size nobody has chosen. For the 9
+     open valves the distances are 18.5 .. 31.0 m (TSA), 28.0 m (tank roofs) and 10.0 m
+     (XV-3105).
+   - **Free span 5, support missing 16 (10 accepted)** (review3#4): the five free spans are the
+     stacked runs of D-060 (2) whose proposals stand in the lower pipe ("place it by hand",
+     no longer offered for pin, (1)): a bracket off the lower line's support or a common frame,
+     for the stress engineer.
+   - **PSV-3114 / 3116 / 4127 / 4128 tailpipe guides** (review3#2): wait for the relief reaction
+     forces of the stress analysis (D-050).
+   - **KT-3101 casing extension** (2026-10-21-layout#15): waits for the vendor drawing (D-050).

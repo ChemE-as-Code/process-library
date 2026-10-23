@@ -6,12 +6,35 @@
 tag: E-4106B
 type: HeatExchanger
 service: LIN ambient-air vaporizer B
-draft: true
+draft: false
 operating:
   flow:
     value: 5000
     unit: Nm3/h
     source: equipment/equipment-list.yaml notes (as E-4106A)
+    assumed: true
+  mass_flow:
+    value: 6300
+    unit: kg/h
+    source: P-4102B datasheet (6.3 t/h LIN backup, D-017)
+    assumed: true
+  inlet_pressure:
+    value: 11.12
+    unit: bar(a)
+    source: 'scripts/datasheet_sizing.py (D-060 (5)): GAN header 9 bara + GAN-4003 line 61.8 kPa + PV-4112
+      100 kPa + vaporizer 50 kPa (ASSUMED)'
+    assumed: true
+  inlet_temperature:
+    value: -192.4
+    unit: °C
+    source: 'LIN saturated at 150 kPa(a) in T-4102 (80.77 K, property adapter); the pump''s losses warm it
+      slightly (not counted here; the duty counts the whole pump work)'
+    assumed: true
+  outlet_temperature:
+    value: -15
+    unit: °C
+    source: 'DESIGN.md D-060 (5): minimum ambient -5 C (process/design-basis.yaml site, ASSUMED) less a 10 K
+      approach (ASSUMED until the vaporizer supplier''s rating)'
     assumed: true
 design:
   pressure_barg:
@@ -55,20 +78,24 @@ type_specific:
     unit: t
     source: equipment/equipment-list.yaml dimensions
   duty_kw:
-    value: TBD
+    value: 656.2
     unit: kW
-    source: 'TBD: no flowsheet node links E-4106B (links: in process/flowsheet.yaml) (cheme datasheets
-      fill)'
+    source: 'scripts/datasheet_sizing.py (D-060 (5)): as E-4106A, Q = n (h_gas - h_liq) - pump shaft power
+      = 660.5 - 4.36 kW (P-4102B)'
+    assumed: true
   area_m2:
-    value: TBD
+    value: supplier
     unit: m2
-    source: 'TBD: no flowsheet node links E-4106B (links: in process/flowsheet.yaml) (cheme datasheets
-      fill)'
+    source: 'vaporizer supplier''s rating, as E-4106A (enquiry basis 656.2 kW, 6.3 t/h LIN at 11.1 bara,
+      outlet -15 C at -5 C ambient)'
   lmtd_k:
-    value: TBD
+    value: not_applicable
     unit: K
-    source: 'TBD: no flowsheet node links E-4106B (links: in process/flowsheet.yaml) (cheme datasheets
-      fill)'
-sizing_basis: []
-notes: 'As E-4106A. ASSUMED. Open (DESIGN.md D-053): as E-4106A (outlet temperature not set, 9 bara outside
-  the claimed VLE range, rated by the vaporizer supplier).'
+    reason: as E-4106A (ambient air in free convection on the other side; rated by the supplier's
+      frosting and defrost method, not by an LMTD)
+sizing_basis:
+- parameter: outlet temperature
+  value: -15 C (minimum ambient -5 C less 10 K, ASSUMED)
+  reference: DESIGN.md D-060 (5)
+notes: 'As E-4106A. ASSUMED. Duty from the stream states (DESIGN.md D-060 (4)); the area is the supplier''s
+  (marker).'
