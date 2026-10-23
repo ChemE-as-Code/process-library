@@ -1960,3 +1960,30 @@ humidity, double-column simulation, E-3102 / E-3103), which this round does not 
    After these changes: `cheme process props --fill`, `cheme process simulate --fill` (energy
    streams E1, E4, E5, Q1..Q4), `cheme assess lca --write`, then redo the E-3101 composite
    curves, the K-3101 / KT-3101 / E-3104 datasheets and CW-3001 with this script.
+7. **Valves out of reach: 14 -> 9 (amends D-047 Open).** Each of the 14 proposals
+   (`VP-<valve tag>`, now stable) was pinned alone in a trial copy and built: every one adds
+   findings (TSA and PV-4109 platforms: 2 to 4 equipment-steel clashes, columns in the adsorber
+   shells or the tanks; the others pipe-steel clashes, headroom, vent-outlet or egress-zone
+   findings), so none is pinned. Chain wheels do not apply (all 14 are actuated, and all are
+   above the 6 m chain-wheel limit). All 14 are actuated valves (D-040 (4)): their local
+   override, air set and positioner go to a pedestal on a floor when the run is at most 6 m
+   (`remote_operator`, ASSUMED limit). Declared, measured from the handwheel to a pedestal 1 m
+   above the nearest platform (outside 0.6 m reach in plan, then vertical):
+   | valve | pedestal on | run |
+   |---|---|---|
+   | XV-4118 GOX ESD block | VP-4 (8.65 m) | 2.0 m |
+   | XV-4119 GOX BL double block | VP-5 (8.35 m) | 0.5 m |
+   | XV-4132 GOX BL double block | VP-5 | 1.2 m |
+   | XV-4133 GOX BL bleed | VP-5 | 2.4 m |
+   | PV-3110A waste N2 vent | VP-1 (5.6 m) | 2.6 m |
+   The physical run of each operator (gearbox, reach rod or air tubing) past the GAN-4003 /
+   GAN-4004 runs is for the piping layout to confirm. Open, 9, with the run they would need:
+   - TSA switching valves XV-2101A (6.8 m to grade), XV-2102A / B (7.5 m), XV-2103A (6.9 m),
+     XV-2103B (7.8 m), XV-2111A (6.7 m): no platform fits (D-047); the adsorber top piping and
+     its access go to the TSA supplier's arrangement;
+   - tank boil-off valves PV-4109 / PV-4110 (6.3 / 6.4 m to the tank roof platforms, 4.8 / 5.9 m
+     away in plan): the tank supplier's west roof platform with the outlet raised (D-047);
+     lowering the valves on the boil-off riser by 0.3 / 0.4 m would bring them within 6 m, for
+     the tank supplier's nozzle arrangement;
+   - XV-3105 off-spec GAN divert (7.3 m to VP-1): a PR1 walkway or the VNT-4004 leg re-arranged.
+   Result: operability 14 -> 9 warnings, no other finding count changes, 0 errors.
