@@ -670,6 +670,17 @@ for tag, t, vflow, p_src, p_dst, src, dst in (
     )
     show_pump(duty)
 
+# D-076 (review11#4 (a)): air blow-by through the chimney-tray draw-off when the seal is lost, the bound
+# of the C-1102 relief case: choked ideal-gas flow of S3 air (dry, 12 C, 5.7 bara) through the full DN150
+# bore (ID 154.1 mm, schedule 40, ASSUMED; discharge coefficient 1, an upper bound)
+k_air = 1.4
+m_air = molar_mass(dry(fractions("S3")))
+g_choked = kpa("S3") * 1000.0 * math.sqrt(k_air * m_air / 1000.0 / (8.314 * kelvin("S3"))) * (
+    2.0 / (k_air + 1.0)) ** ((k_air + 1.0) / (2.0 * (k_air - 1.0)))
+a150 = math.pi / 4 * 0.1541 ** 2
+print(f"  CHWR-1001 blow-by bound (D-076): choked air {g_choked:.4g} kg/(m2 s) x {a150:.4g} m2 = "
+      f"{g_choked * a150 * 3.6:.3g} t/h (Cd 1), against the {flow('S12B') / 1000:.3g} t/h design gas of C-1102")
+
 print("== section 9 (DESIGN.md D-068 (8)) DCAC C-1101 (two sections, D-067) and evaporative cooler C-1102: duty and hydraulic loads")
 s2 = fractions("S2")
 d2 = dry(s2)

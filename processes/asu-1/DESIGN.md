@@ -3092,3 +3092,44 @@ were set against; the vendors' figures are not yet available.
 
 Open: the motor supplier's weight (crane size), the compressor vendor's motor rating, the B1
 structural design for 50 t.
+
+## D-076 Chimney tray protection: LSLL-1115 / XV-1115, overflow downcomer, the tray drawn (2026-10-23)
+Answers layout-review11#4 (and #13, the labels in the same corner of P-01). Closes D-069's open
+item on an independent low-low level protection.
+
+Decision:
+- (1) **Blow-by** (review11#4 (a)). If the tray loses its seal (LIC-1114 fails, LV-1114 sticks
+  open), 5.7 bara air blows through CHWR-1001 into the atmospheric C-1102. The bound is choked flow
+  of S3 air through the full DN150 bore: 91.6 t/h (scripts/datasheet_sizing.py, before section 9;
+  discharge coefficient 1, schedule 40 bore ASSUMED), against the 58.1 t/h design gas of C-1102.
+  Protection, drawn on P-01:
+  - LSLL-1115 on its own tapping I4 of the C-1101 chimney tray (13.0 m, beside I3), independent
+    of LIC-1114;
+  - XV-1115, a tight-shut ball valve DN150 with actuator, fail closed, on CHWR-1001 downstream of
+    LV-1114 and upstream of the CHWR-3001 tee, so the E-3105 return stays open to C-1102;
+  - C&E I-03: LSLL-1115 closes XV-1115 (control/cause-effect.yaml); SIL from the screening.
+  The C-1102 blow-by relief case (91.6 t/h bound, less with LV-1114's trim) stays with the HAZOP:
+  whether C-1102 and WN-1002 take it or the SIF is credited is a process-safety decision.
+- (2) **Overflow** (review11#4 (b)). The C-1101 datasheet now specifies an overflow downcomer from
+  the chimney tray to the lower section, set above the LIC-1114 / LSLL-1115 range and rated for
+  the whole upper-section liquid, 38 m3/h (34.4 m3/h chilled water + 0.24 m3/h condensate, + 10 %,
+  ASSUMED). With LV-1114 failed closed or XV-1115 tripped the water overflows to the lower section
+  instead of flooding the upper bed; the sump bleeds it through LV-1106 to CWR-1001 and C-1102
+  takes make-up through LV-1107. The packing supplier designs the tray, seal and downcomer.
+- (3) **Drawing** (review11#4 (c), #13). The chimney tray is drawn inside the C-1101 symbol under
+  N7 (catalogue tray shape: the tray with its downcomer), with the text "chimney tray". The
+  LSLL-1115 measuring line crosses CHW-1001 once (accepted in checks/checks.yaml with its reason).
+  The TV-1105 tag now stands right of its valve under the actuator line, and the LV-1114 "F.C."
+  beside the LV-1114 actuator, so neither can be read as the other's.
+- (4) **Layout and lists.** I4 at 15 deg on C-1101 (equipment-placement, datasheet); XV-1115 has a
+  remote operator (solenoid and limit switches from the C-1101 11.3 m platform); LSLL-1115 and
+  XV-1115 on JB-A1-1 (21 of 24); instrument list LSLL-1115. The D-074 post under CHW-3001 at
+  (48.84, 63.3) stood in the P-1102B access space: it moves 1 m north with a 0.6 m crossbar, and
+  five more proposed posts are pinned under the chilled-water runs (CHWR-1001, CHWR-3001,
+  CHW-3001), so none of them has a free-span finding. The model has no clash.
+
+Reason: the closed loop of D-069 rested on one level loop between a 5.7 bara column and an
+atmospheric tower.
+
+Open: the SIL of I-03 and the C-1102 blow-by relief case (HAZOP); the tray and downcomer design
+(packing supplier).
