@@ -3025,3 +3025,43 @@ earlier flow, and their pressure drop was never set against the flowsheet's fron
 
 Open: the simulation owner's pressure profile and the owner's DN600 / DN700 choice ((4), (5)); the
 adsorber and F-2101 drops in adsorption from their suppliers.
+
+## D-074 Chilled-water runs off the K-4102 crane pad and supported, a post moved off CWR-4002, PR3 north end in the bypass zone (2026-10-23)
+Answers layout-review11#3, #9, #12 and #14.
+
+Decision:
+- (1) **CHW-3001 / CHWR-3001 off the crane pad** (review11#3). The drops from the PR1 5 m tier
+  came down at x 146.6 / 147.0 and ran south across the west strip of Z-PAD-A4N (x 146 .. 158, y
+  42 .. 50), from which K-4102 is lifted by a mobile crane. They now come down at x 144.5 / 144.8,
+  1.2 m west of the pad, still east of bent 19, the post row at x 140-143 and the escape route
+  Z-ESC-CB1. Both grade runs are at 2.7 m (CHW-3001 was at 2.35 m): under the compander lift lane
+  from Z-PAD-A3S and above the 2.2 m escape headroom, as before (D-069 (4)). The two lines change
+  sides (CHWR-3001 east), so the pair never crosses. The cheme rules test a crane pad only as its
+  1 m box; a rule testing pipes and steel above a pad up to the crane's swing height is asked of
+  cheme-as-code (requested, not available here).
+- (2) **Supports** (review11#14), ASSUMED until the stress analysis:
+  - 16 shared T-posts under the pair at 2.7 m, at 3 m or less (the DN50 liquid span of the model):
+    12 along the north-south run at x 144.65 (y 29 .. 62), 4 along the east-west run at y 26.4
+    (x 143.5, 140.8, 138.0, 135.3; the one at 140.8 west of the escape route);
+  - on P-01 the proposed T-posts were pinned: three under CHWR-1001 S2 (x 74.67), three under
+    CHWR-3001 at x 76.2 (4.47 m), and one at (49.09, 63.32) whose crossbar carries CHW-3001 and
+    CHW-1001 S6 side by side.
+  The model reports no support-missing information for the chilled-water lines any more. On the
+  PR1 5 m tier the DN50 lanes (y 64.5 / 64.93) are in the model's tier (racks PR1, tier 5 m); they
+  lie within the y bands of CW-1004 and CWR-1002 further west, so the reported tier fill (4.90 of
+  8 m) counts their lanes once.
+- (3) **LIN-3001 post off CWR-4002** (review11#12). The rebuild of D-069 moved the generated
+  CWR-4002 lane on the PR1 5 m tier to y 69.22; the LIN-3001 S1 post-2 column stood 0.025 m from
+  it. The post moves 0.2 m north to y 69.6, still under LIN-3001; scripts/support_steel_scan.py
+  finds no member within 0.1 m of a pipe it does not serve. The scan is rerun after each rack
+  change in this pass.
+- (4) **PR3 north end** (review11#9). Z-N2-V1B (S-3101 in a full C-1102 bypass) reaches the PR3
+  north end, outside the fenced V1: the step-off from the PR3 end ladder onto the 8.5 m tier lies
+  9.0 m from its centre. D-071 (4)'s control is extended there: a sign at the PR3 end ladder, a
+  personal O2 monitor, and no work on PR3 north of y 105 while PV-3110B is open (zones.yaml basis).
+  The vent study (D-031) replaces the screening zone.
+
+Reason: review11#3, #9, #12, #14.
+
+Open: the supports with the stress engineer; the crane-swing rule with cheme-as-code; the vent
+study.
