@@ -3065,3 +3065,30 @@ Reason: review11#3, #9, #12, #14.
 
 Open: the supports with the stress engineer; the crane-swing rule with cheme-as-code; the vent
 study.
+
+## D-075 Motor holds carried at the next size: B1 crane 50 t, K-4101 motor 2.5 MW (2026-10-23)
+Answers layout-review11#5 and #6. Revises D-070 (4) and D-068 (3).
+
+Decision:
+- (1) **B1 crane 50 t** (review11#5). The 40 t crane carried the 9 MW MAC motor at 39.27 t with the
+  lifting study's allowances, 0.73 t (1.8 %) to spare, on a motor weight of ~34 t that is itself
+  ASSUMED (pro rata to the rating from the ASSUMED ~30 t of the 8 MW motor, D-070 (4)). That
+  margin is smaller than the uncertainty of a pro-rata weight, and the crane size sets the B1 crane
+  girders, columns and roof height. Until the motor supplier gives the weight, the next crane size,
+  50 t (ASSUMED), is carried in layout/building.yaml: the lifting study shows the motor at 39.27 t
+  against 50 t. The roof elevation (12 m) and the hook height (8.5 m) are kept; the structural
+  engineer checks the girders and the runway for 50 t. If the supplier's motor and its lifting
+  allowances stay below about 34.6 t, the owner may return to 40 t.
+- (2) **K-4101 motor 2.5 MW** (review11#6). At 2,262 kW electric (D-066), 2,195 kW at the motor
+  shaft and 2,414 kW with the API 617 110 % driver margin, the 2.3 MW motor was 5 % short. The
+  electrical list (K-4101, K-4101-MV), the equipment list and the K-4101 datasheet now carry the
+  next size, 2.5 MW (ASSUMED until the compressor vendor confirms the motor). TR-1: connected
+  ratings (9,000 + 2,500 + 315) kW / (0.9 x 0.96) + 2,500 kVA = 16.2 MVA, x 0.85 = 13.7 MVA (was
+  13.6); running load unchanged (~12.3 MVA): 16 MVA kept. The cable schedule now gives the feeder
+  as 3C x 150 mm2 (ASSUMED catalogue table, was 120 mm2).
+
+Reason: two ratings rested on margins smaller than the uncertainty of the assumed values they
+were set against; the vendors' figures are not yet available.
+
+Open: the motor supplier's weight (crane size), the compressor vendor's motor rating, the B1
+structural design for 50 t.
