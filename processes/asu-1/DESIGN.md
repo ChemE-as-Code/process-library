@@ -2390,3 +2390,12 @@ simulation and design basis stay with the process-simulation work (D-058, D-059,
    (D-064 (1)) and keeps its single-LMTD area. The reviewer's estimate (about 560 m2 for E-1102)
    used F 0.89 in both zones; the zone F values above are higher. The equipment estimate is
    rerun on the new areas: purchased equipment of the covered items USD 4.044 -> 4.057 million.
+3. **Condensate figures and MAC interstage pressures (corrects D-064 (2); review10#3).** D-064 (2)
+   said the two drains, 679 + 649 kg/h, are "together the simulated S1C, 1,398 kg/h". They add up
+   to 1,328 kg/h: the datasheets and the line list carry the IAPWS-95 condensate at 40 C and each
+   cooler's pressure (D-063 (2)), the flowsheet carries the DWSIM Peng-Robinson value 1,398 kg/h
+   (D-058); the 70 kg/h (5 %) between them is the property-method difference D-063 (2) records.
+   The drains, traps and DN25 lines are sized on the larger figure either way. The line list
+   notes of the MAC interstage lines were still on the concept pressures: AIR-1006 now gives
+   ~3.26 bara into E-1102 and ~3.21 bara out (was ~3.7), AIR-1005 ~1.84 / ~1.79 bara around
+   E-1101 (was ~2.2), both from the K-1101 stage discharges at the ratio 1.822 (D-063 (2)).
