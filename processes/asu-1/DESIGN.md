@@ -3412,3 +3412,38 @@ Reason: review3#3 (open since the third layout review).
 
 Open: the TSA supplier's top piping and valve arrangement (D-047); the tank supplier's nozzle
 arrangement; the PR1 walkway question for XV-3105.
+
+## D-085 Free spans and missing supports: posts declared, the rest accepted with reasons (2026-10-23)
+Answers layout-review3#4 (5 free spans, 17 runs without support in the model).
+
+Decision (all supports ASSUMED until the stress analysis, layout/structures.yaml `pipe_supports`):
+- (1) **Free spans closed by posts:**
+  - CWR-1004 S1 (DN300, 12.1 m): the build's post SP-29.9, moved 0.9 m north out of the P-1101B
+    access space (spans 7.0 / 2.0 m);
+  - CW-4001 S1 (DN100, 9.5 m): SP-150.9 pinned and posts 9 / 10 placed by hand at y 57.1 / 53.95,
+    their columns 0.8 m east of CWR-4001, which runs 0.45 m under CW-4001: the crossbars carry
+    CW-4001 and guide CWR-4001 (both lines served);
+  - CWR-4002 S1 (DN100, 5.4 m): post-3 by hand at y 59.9, 0.5 m crossbar clear of GAN-4004;
+  - GAN-4004 S1 (DN100, 6.2 m): post-2 by hand at (170.2, 58.4), 1.2 m south of the UN-3001 riser,
+    its column 0.8 m east of the GAN-4002 run at grade.
+- (2) **Missing supports closed:** UN-3001 S1 (P-04, 6.0 m at 10.39 m): post-7 at (168.2, 62.6);
+  LIN-3001 S2: three of the build's four supports (the fourth stood in T-4102).
+- (3) **Accepted with reasons** (checks/checks.yaml): free spans LOX-3001 S2 (3.6 m DN40 on the PR1
+  9 m tier: a clip or an added rack beam) and LIN-3001 S2 (the last 4.2 m over the T-4102 roof:
+  roof clips by the tank supplier); support-missing CHWR-3001 S1 on P-01 (hung from the C-1101
+  platform), LOX-3002 S1 (the proposal stood in V-3101: shell clip), GOX-4002 S5 (7.6 against 7.3
+  m: guided off VP-4), LIN-4003 S1 (clipped to the T-4102 stair) and GOX-4001 S1 (18.65 m north of
+  the cold box: a post was tried and stood in WN-3002 and GAN-4001; a bracket off the CB-1 north
+  frame). The cold-box internal runs and the pump suctions were accepted before (D-049).
+- (4) **Steel in the way:** the proposals for LOX-3002 and LIN-3001 that stood in V-3101 / T-4102
+  were not taken; scripts/support_steel_scan.py: 306 declared supports and platforms, 0 steel
+  pairs overlapping, 0 members within 0.1 m of a pipe they do not serve; no
+  `layout-steel-in-way` and no clash.
+
+Result: `layout-free-span` 5 -> 2 (both accepted), `layout-support-missing` 15 infos, all accepted;
+steel 593.1 -> 597.0 t.
+
+Reason: review3#4, open since the third layout review.
+
+Open: the supports, clips and guides with the stress engineer, the rack designer and the
+vessel / tank / cold box suppliers.
