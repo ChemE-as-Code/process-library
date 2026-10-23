@@ -3204,9 +3204,10 @@ outputs `estimate/tea.md`, `tea-cashflow.csv`, `tea-sensitivity.csv`, `tea-uncer
    needs for a 20 % IRR (Thunder Said Energy, "Costs of cryogenic air separation"): the price of
    buying it over the fence. USD 2023, real, pre-tax (the owner's tax position is not known).
 2. **Capital: an all-in benchmark, not the equipment estimate.** The equipment estimate has a
-   bare module cost for only 3 of 39 items (USD 2.10 M); 22 have a purchased cost only (USD 4.06 M)
-   and 14 none, among them the main air compressor K-1101 (5.97 MW, outside the correlation's
-   range) and the cold box internals. An allowance on that base would be invented. The ISBL is
+   bare module cost for only 3 of 40 items (USD 2.10 M); 23 have a purchased cost only (purchased
+   cost of the correlation items USD 4.10 M) and 14 none, among them the main air compressor
+   K-1101 (6.75 MW fluid power, D-066, outside the correlation's range) and the cold box
+   internals. An allowance on that base would be invented. The ISBL is
    therefore the benchmark of about $200 per t/a of oxygen capacity (same source), 182,500 t/a x
    200 = USD 36.5 M, ASSUMED, class 5. A market-report figure ($340 to 410 per t/a for a
    2,000 t/d plant) is the scenario `capex-market-report` (x 1.6). OSBL 0: the site supplies
@@ -3224,12 +3225,12 @@ outputs `estimate/tea.md`, `tea-cashflow.csv`, `tea-sensitivity.csv`, `tea-uncer
 4. **Rates.** The flowsheet's terminals in case `design`: LOX and LIN 470 kg/h each (the
    flowsheet), not the 600 kg/h of the design basis (D-010 purge and the simulated split). The
    TEA follows the flowsheet, as the LCA does.
-5. **Result.** LCOP of GOX 55.5 USD/t (Monte Carlo P10 44.9, P50 60.0, P90 76.8 USD/t;
-   P(LCOP <= 100) = 100 % of 2,000 samples). Electricity is about 37 USD/t of it. The capital
-   dominates (Spearman +0.78), then the power price (+0.38) and the GAN price (-0.35). The
-   decision turns at a power price of 178 USD/MWh (+122 %), at an ISBL of USD 89 M (+144 %),
-   or below 3,440 h/a. At the California power price the LCOP is 104 USD/t: **the location
-   decides the case**, so the site's power contract is the evidence worth buying first.
+5. **Result** (on the D-066 flowsheet: 10,310 kW power, 113,329 kg/h air). LCOP of GOX
+   58.6 USD/t (Monte Carlo P10 47.8, P50 63.1, P90 80.0 USD/t; P(LCOP <= 100) = 100 % of 2,000
+   samples). Electricity is about 40 USD/t of it. The capital dominates (Spearman +0.76), then
+   the power price (+0.40) and the GAN price (-0.35). The decision turns at a power price of
+   164 USD/MWh (+104 %), at an ISBL of USD 85 M (+134 %), or below 3,591 h/a. At the California
+   power price the LCOP is 111 USD/t: **the location decides the case**, so the site's power contract is the evidence worth buying first.
 6. **Open.**
    - The estimate is class 5, and stage basic expects class 4 (`tea-class-stage`): the main air
      compressor and cold box need quotations.
