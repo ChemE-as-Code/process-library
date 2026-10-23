@@ -3279,7 +3279,7 @@ Decision:
   - **Sizing script.** It now reads the simulated unit results (K1101 electric / shaft / cooling,
     C1101 / C1101U, K3101, E3104, E3105, E3102, the C3101 reflux, K4101, K4102) from the run
     record and prints whether the record's fingerprints match the current process files (they
-    do: run at 76112cd). The hard-coded E1 = 7,132.6 kW of D-066 and the other typed DWSIM
+    did at 33c49c0: run at 76112cd; D-087 made it stale, refreshed by D-088 (2)). The hard-coded E1 = 7,132.6 kW of D-066 and the other typed DWSIM
     numbers are gone. The pumps P-1101A/B and P-1102A/B discharge into the DCAC at S2 / S3 (was
     a typed 580 / 570 kPa(a)); the P-1102A/B rating stays the selected 44 m3/h (D-069), now 111 %
     of the 39.6 m3/h loop; the WN-1002 vent flow takes the computed evaporation.
@@ -3506,3 +3506,19 @@ Decision:
   (D-063 (6), D-065 (4)).
 
 Reason: D-065 (7) (c), core #102.
+
+## D-088 Review-13 low findings: run record, front-end hold, S12D, I-03 specification, E-3105 tag (2026-10-24)
+Answers layout-review13#1 .. #5.
+
+Decision:
+- (2) **Simulation run record refreshed** (#2). D-087's `props --fill` changed process/flowsheet.yaml
+  after the run of 76112cd, so `scripts/datasheet_sizing.py` printed the record as STALE although
+  D-080 (2) said the fingerprints matched (true at 33c49c0). `cheme process simulate --fill` was
+  rerun from the clean tree at 106d6fb: it wrote no stream value (0 streams) and only the record
+  process/simulation-run.json (fingerprints, commit, iterations 19). Every unit result is unchanged:
+  K1101 7,259.77 kW electric / 6,867.74 kW shaft / cooling 7,697.95 kW, C1101 -701.38 kW, C1101U
+  -635.31 kW, K3101 185.93 kW, K4101 2,262.49 kW, K4102 237.67 kW. The sizing script now prints
+  "current with process/*.yaml"; no datasheet value changes. The four `process-sim-deviation`
+  warnings (S10 / S11 assumed T, p) are the simulation owner's and unchanged.
+
+Reason: layout-review13.
