@@ -24,7 +24,19 @@ Errors (schema, unknown chemical, folder/id mismatch, broken artifact link) exit
 (a preview not rendered, an inventory key the LCA does not have) are printed, and fail the build
 with ``--strict``.
 
-    uv run build_catalog.py --library ../process-library --out dist [--artifacts build/previews]
+``catalog.json`` records the build's ``mode``: ``preview`` (the default: every process, as the
+library has it) or ``public`` (``--public``, for publication; rules in ``publication.py``):
+
+- only processes with ``publication.status: public``; the others are absent from every file;
+- ``repository`` is dropped unless its ``access`` is ``public``, ``publication.exclude`` always;
+- an LCA with placeholder factors keeps its goal, functional unit, boundary, allocation,
+  categories, inventory and sources, but not its ``totals`` and ``contributions``
+  (``values_withheld: placeholder-factors``; the summary's headline ``value`` is null);
+- a viewer snapshot is copied only if its manifest's ``excluded`` covers the publication
+  excludes (else an error), and for a placeholder LCA without its ``lca`` answer and LCA
+  result files.
+
+    uv run build_catalog.py --library ../process-library --out dist [--artifacts build/previews] [--public]
 """
 
 from __future__ import annotations
@@ -43,6 +55,8 @@ from typing import Any
 
 import yaml
 from jsonschema import Draft202012Validator
+
+from publication import LCA_RESULT_FILES, is_public, snapshot_excludes
 
 CATALOG_SCHEMA = "cheme-as-code/catalog/v1"
 HERE = Path(__file__).resolve().parent
@@ -311,10 +325,26 @@ def _render_info(artifacts: Path | None, pid: str) -> dict | None:
 
 
 SNAPSHOT_SCHEMA = "cheme/viewer-snapshot/v1"
+VALUES_WITHHELD = "placeholder-factors"
 
 
-def _viewer(snapshots: Path | None, pid: str, out: Path, where: str, report: Report) -> dict | None:
-    """The process's viewer snapshot (``cheme export-static``), copied into the output."""
+def _withhold_lca_values(manifest: dict, target: Path) -> None:
+    """Drop the snapshot's ``lca`` answer and LCA result files (footprint values) in *target*."""
+    withheld = {"lca", *(f"{endpoint}?path={path}" for path in LCA_RESULT_FILES for endpoint in ("file", "yaml"))}
+    entries = manifest.get("entries", {})
+    for key in sorted(withheld & entries.keys()):
+        (target / "data" / entries.pop(key)["file"]).unlink(missing_ok=True)
+    (target / "manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def _viewer(
+    snapshots: Path | None, pid: str, out: Path, where: str, report: Report, publish: dict | None = None
+) -> dict | None:
+    """The process's viewer snapshot (``cheme export-static``), copied into the output.
+
+    *publish* (public builds) holds the process manifest and whether its LCA factors are
+    placeholders: the snapshot must have been exported without the publication excludes.
+    """
     source = snapshots / pid if snapshots else None
     if source is None or not (source / "manifest.json").is_file():
         return None
@@ -322,8 +352,15 @@ def _viewer(snapshots: Path | None, pid: str, out: Path, where: str, report: Rep
     if manifest.get("schema") != SNAPSHOT_SCHEMA:
         report.error(where, f"viewer snapshot has schema {manifest.get('schema')!r}, expected {SNAPSHOT_SCHEMA}")
         return None
+    if publish is not None:
+        missing = sorted(set(snapshot_excludes(publish["manifest"])) - set(manifest.get("excluded") or []))
+        if missing:
+            report.error(where, f"snapshot was not exported for publication (excluded lacks {', '.join(missing)}; run export_snapshots.py --public)")
+            return None
     target = out / "snapshots" / pid
     shutil.copytree(source, target)
+    if publish is not None and publish["placeholder"]:
+        _withhold_lca_values(manifest, target)
     entries = manifest.get("entries", {})
     ok = {key for key, entry in entries.items() if entry.get("status") == 200}
     return {
@@ -344,7 +381,12 @@ def _viewer(snapshots: Path | None, pid: str, out: Path, where: str, report: Rep
 
 
 def build(
-    library: Path, out: Path, artifacts: Path | None, commit: str | None, snapshots: Path | None = None
+    library: Path,
+    out: Path,
+    artifacts: Path | None,
+    commit: str | None,
+    snapshots: Path | None = None,
+    public: bool = False,
 ) -> Report:
     report = Report()
     schemas = _schema_dir()
@@ -392,6 +434,8 @@ def build(
             for item in items:
                 if item["chemical"] not in chemicals:
                     report.error(where, f"chemistry.{group}: unknown chemical {item['chemical']!r} (add it to chemicals/chemicals.yaml)")
+        if public and not is_public(manifest):
+            continue
 
         plant = _yaml(folder / "plant.yaml") if (folder / "plant.yaml").is_file() else None
         lca = _lca(folder, where, report) if manifest.get("lca", {}).get("source", "auto") == "auto" and plant else None
@@ -406,7 +450,9 @@ def build(
         source_commit = _git(library, "log", "-1", "--format=%H", "--", str(folder.relative_to(library))) if own_repo else None
         render = _render_info(artifacts, pid)
         stale = bool(render) and _behind(library, render.get("source_commit"), source_commit)
-        viewer = _viewer(snapshots, pid, out, where, report) if plant else None
+        placeholder = bool(lca) and lca["factors_status"] == "placeholder"
+        publish = {"manifest": manifest, "placeholder": placeholder} if public else None
+        viewer = _viewer(snapshots, pid, out, where, report, publish) if plant else None
         if viewer:
             viewer["stale"] = _behind(library, viewer["commit"], source_commit)
 
@@ -448,6 +494,8 @@ def build(
                 "previews_stale": stale,
             },
         }
+        if public:
+            _publish(detail)
         details.append(detail)
         baseline = (lca or {}).get("totals", {}).get("baseline", {})
         headline = None
@@ -461,6 +509,8 @@ def build(
                 "functional_unit": lca["functional_unit"]["label"],
                 "factors_status": lca["factors_status"],
             }
+            if "values_withheld" in lca:
+                headline["values_withheld"] = lca["values_withheld"]
         summaries.append(
             {
                 "id": pid,
@@ -517,6 +567,7 @@ def build(
     library_info = {"commit": commit, "dirty": dirty}
     _write(out / "catalog.json", {
         "schema": CATALOG_SCHEMA,
+        "mode": "public" if public else "preview",
         "library": library_info,
         "processes": summaries,
         "families": [{"slug": f, "count": n} for f, n in sorted(families.items())],
@@ -542,6 +593,19 @@ def build(
     return report
 
 
+def _publish(detail: dict) -> None:
+    """Apply the public build's rules to one process's *detail* in place (module docstring)."""
+    repository = detail.get("repository")
+    if repository and repository.get("access") != "public":
+        detail["repository"] = None
+    if detail.get("publication"):
+        detail["publication"] = {k: v for k, v in detail["publication"].items() if k != "exclude"}
+    lca = detail.get("lca")
+    if lca and lca["factors_status"] == "placeholder":
+        del lca["totals"], lca["contributions"]
+        lca["values_withheld"] = VALUES_WITHHELD
+
+
 def _write(path: Path, data: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, indent=2, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8")
@@ -555,6 +619,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--snapshots", type=Path, help="viewer snapshots (cheme export-static): <dir>/<id>/manifest.json")
     parser.add_argument("--commit", help="library commit to record (default: git HEAD of --library)")
     parser.add_argument("--strict", action="store_true", help="fail on warnings too")
+    parser.add_argument("--public", action="store_true", help="build for publication: published processes only, placeholder footprints withheld")
     args = parser.parse_args(argv)
 
     report = build(
@@ -563,6 +628,7 @@ def main(argv: list[str] | None = None) -> int:
         args.artifacts.resolve() if args.artifacts else None,
         args.commit,
         args.snapshots.resolve() if args.snapshots else None,
+        args.public,
     )
     for message in report.warnings:
         print(f"warning: {message}", file=sys.stderr)
@@ -571,7 +637,7 @@ def main(argv: list[str] | None = None) -> int:
     failed = bool(report.errors or (args.strict and report.warnings))
     if not failed:
         count = len(json.loads((args.out / "catalog.json").read_text())["processes"])
-        print(f"catalog: {count} process(es) -> {args.out}")
+        print(f"catalog: {count} process(es) -> {args.out}{' (public)' if args.public else ''}")
     return 1 if failed else 0
 
 
