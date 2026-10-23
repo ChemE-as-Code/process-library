@@ -1929,3 +1929,34 @@ humidity, double-column simulation, E-3102 / E-3103), which this round does not 
    | P-4102A / B | 94.9 m | 127.1 / 127.0 m | 11.54 / 11.53 bara | 4.36 kW (was 3.3) |
    Within the design pressures of the pumps (40 / 15 barg) and of LOX-4002 (PN63) and LIN-4002
    (PN25). NPSHa unchanged.
+6. **E-3104 cooling water; compander balance and E-3101 warm end: flowsheet changes requested,
+   not made.** `process/flowsheet.yaml` belongs to the parallel process-simulation work (D-058,
+   D-059), so this round only calculates and requests:
+   - **CW-3001 / CWR-3001**: the line list now gives ~5.1 m3/h for E-3104's 59 kW (25 -> 35 C,
+     D-053 (4)) instead of ~60 m3/h. DN150 stays until the E-3104 supplier gives its nozzles
+     (0.08 m/s; DN50 would carry 7 m3/h at about 1 m/s): changing it moves the P-03 DN labels
+     and the routed lines, a separate change.
+   - **Compander balance** (`scripts/datasheet_sizing.py` D-060 (7); booster ideal gas k 1.412,
+     eta_s 0.80, as the fill; expander real gas, eta_s 0.85; mechanical efficiency 0.97 each, all
+     ASSUMED as D-053). On the flowsheet states the booster takes 160.6 kW gas power but the
+     expander gives 204.6 kW: booster - 0.97^2 x expander = -32 kW, and the exhaust is -172.1 C
+     against S6's -178 C. A free-running compander settles where they balance. Balanced with S6
+     kept at -178 C (the LP column feed the column simulation uses):
+     | stream | now | requested |
+     |---|---|---|
+     | S4C booster discharge | 8.0 bara, 54.6 C | 8.45 bara, 61.0 C |
+     | S4D booster air to E-3101 | 8.0 bara, 40 C | 8.45 bara, 40 C |
+     | S5B expander feed | 7.8 bara, -118 C | 8.25 bara, -124.7 C |
+     | S6 Lachmann air | 1.35 bara, -178 C | unchanged |
+     Booster 186.7 kW, expander 198.5 kW gas power; E-3104 duty 59 -> 85 kW (CW ~7.4 m3/h). The
+     alternative, the expander inlet kept at -118 C, balances at 8.66 bara booster discharge
+     (63.8 C) with the exhaust at -174.1 C, i.e. S6 6 K warmer than the column feed assumes; not
+     recommended. All within the 11 barg design of K-3101, E-3104 and E-3101.
+   - **E-3101 warm end** ((4)): S7, S9 and S17 leave E-3101 at 25 C in the flowsheet, which the
+     warm composite cannot reach (the main air enters at 15 C); requested 13 C (2 K warm-end
+     approach, ASSUMED until the plate-fin supplier). This lowers the K-4101 / K-4102 suction
+     temperature (less power) and the waste N2 to the regeneration heater and C-1102 (12 K
+     colder; C-1102's adiabatic saturation limit then drops as well).
+   After these changes: `cheme process props --fill`, `cheme process simulate --fill` (energy
+   streams E1, E4, E5, Q1..Q4), `cheme assess lca --write`, then redo the E-3101 composite
+   curves, the K-3101 / KT-3101 / E-3104 datasheets and CW-3001 with this script.
