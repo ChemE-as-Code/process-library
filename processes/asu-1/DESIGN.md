@@ -3549,5 +3549,30 @@ Decision:
   second row). Recommendation: the second row, so the regeneration gas carries the 165 kg/h the beds
   are sized to desorb (D-080 (2)); the ~22 kg/h difference is 0.12 % of the gas mass and changes no
   line or silencer hydraulics (RG-2003, S-2101) by a visible amount, so nothing downstream waits on it.
+- (4) **I-03 SIF specification basis** (#4), printed by scripts/datasheet_sizing.py ("I-03 SIF
+  timing", before section 9) and stated in the C-1101 datasheet (`chimney_tray_sif_basis`), the I-03
+  notes and the LSLL-1115 notes. All ASSUMED for the SRS and **for HAZOP / LOPA / SRS confirmation**;
+  the packing supplier confirms the tray levels, the valve supplier the LV-1114 capacity and the
+  XV-1115 stroke.
+  - **Levels** (tray floor 13.0 m, chimney tops 13.8 m, D-086): LIC-1114 set point 13.50 m;
+    LSLL-1115 trip **13.35 m** (0.25 m above the I4 tapping at 13.1 m, which is the low connection of
+    the level element, not the trip point); seal loss, when gas starts to be drawn into N7, taken at
+    **13.20 m**: the DN150 bore top (bottom flush with the floor, 13.15 m) + 0.05 m, with a vortex
+    breaker in N7 (enquiry requirement). The overflow downcomer weir lies between 13.50 m and the
+    chimney tops.
+  - **Hold-up.** Liquid area 9.43 m2 (the 12.57 m2 of the 4.0 m column less 25 % chimney risers).
+    Trip to seal loss: 0.15 m, 1.38 m3; set point to trip 1.41 m3.
+  - **Process safety time.** Initiating event LV-1114 failed open (D-083 (3)). Its trim is the valve
+    supplier's, so a rating requirement bounds it: fully open it passes at most twice the normal
+    draw-off, 69 m3/h against the 34.5 m3/h onto the tray (34.2 m3/h chilled water at 26 C, IAPWS-95,
+    + the 230 kg/h condensate). The net 34.5 m3/h takes the level from the set point to the trip in
+    148 s and from the trip to seal loss in **144 s** (the process safety time); if the inflow is lost
+    at the same time (P-1102 trip, a second independent failure) 72 s.
+  - **Response time.** At most half the process safety time (ASSUMED practice): the SIF (LSLL-1115
+    detection and any filter, logic, XV-1115 full closure) is to act in **15 s**: detection and logic
+    5 s, XV-1115 closing in **5 .. 10 s** (not faster, to limit surge in CHWR-1001; the piping
+    engineer checks it). This is inside 72 s, so even the double failure trips before the seal is
+    lost. A later trip would mean the D-083 blow-by case (94.5 t/h) until XV-1115 shuts, which the
+    open vent WN-1002 covers (D-083 (2)).
 
 Reason: layout-review13.

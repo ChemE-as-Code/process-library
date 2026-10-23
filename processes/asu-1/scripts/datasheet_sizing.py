@@ -704,6 +704,26 @@ g_choked = kpa("S3") * 1000.0 * math.sqrt(k_air * m_air / 1000.0 / (8.314 * kelv
 a150 = math.pi / 4 * 0.1541 ** 2
 print(f"  CHWR-1001 blow-by bound (D-076): choked air {g_choked:.4g} kg/(m2 s) x {a150:.4g} m2 = "
       f"{g_choked * a150 * 3.6:.3g} t/h (Cd 1), against the {flow('S12B') / 1000:.3g} t/h design gas of C-1102")
+# D-088 (4) (layout-review13#4): the I-03 SIF (LSLL-1115 -> XV-1115) timing. Chimney tray geometry of the
+# C-1101 datasheet (D-086, ASSUMED): floor 13.0 m, chimney tops 13.8 m, N7 (DN150) draws off at the floor.
+# ASSUMED for the SRS, all for HAZOP / LOPA / SRS confirmation and the packing and valve suppliers:
+# N7 bore bottom flush with the floor, its top at 13.0 + 0.1541 m; seal loss (gas drawn into N7) taken
+# at the bore top + 0.05 m vortex allowance with a vortex breaker in N7; LSLL-1115 trip at 13.35 m;
+# LIC-1114 set point 13.50 m; chimney risers 25 % of the tray area; LV-1114 failed fully open passes at
+# most twice the normal draw-off (a rating requirement on its trim); the inflow stays at normal
+TRAY_FLOOR, Z_TRIP, Z_SP = 13.0, 13.35, 13.50
+z_seal = TRAY_FLOOR + 0.1541 + 0.05
+a_liq = math.pi / 4.0 * 4.0 ** 2 * (1.0 - 0.25)  # C-1101 D 4.0 m (equipment list)
+rho26 = iapws.iapws95_rho(T_RET_DCAC, kpa("S3") * 1000.0)
+q_in = (m_dcac * 3600.0 + cond_u) / rho26  # m3/h onto the tray: chilled water + upper-section condensate
+q_open = 2.0 * q_in
+pst = (Z_TRIP - z_seal) * a_liq / (q_open - q_in) * 3600.0
+t_to_trip = (Z_SP - Z_TRIP) * a_liq / (q_open - q_in) * 3600.0
+print(f"  I-03 SIF timing (D-088 (4)): tray liquid area {a_liq:.4g} m2, inflow {q_in:.4g} m3/h (IAPWS-95 at "
+      f"{T_RET_DCAC - 273.15:g} C), LV-1114 full open {q_open:.4g} m3/h: net {q_open - q_in:.4g} m3/h; set point "
+      f"{Z_SP:g} m -> trip {Z_TRIP:g} m: {(Z_SP - Z_TRIP) * a_liq:.3g} m3, {t_to_trip:.0f} s; trip -> seal loss "
+      f"{z_seal:.3g} m: {(Z_TRIP - z_seal) * a_liq:.3g} m3, process safety time {pst:.0f} s; with the inflow "
+      f"also lost (2 x net) {pst / 2:.0f} s")
 
 print("== section 9 (DESIGN.md D-068 (8)) DCAC C-1101 (two sections, D-067) and evaporative cooler C-1102: duty and hydraulic loads")
 s2 = fractions("S2")
