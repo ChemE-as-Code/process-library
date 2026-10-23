@@ -3237,6 +3237,42 @@ simulation owner's and are not changed here. Every number is printed by `cheme r
 scripts/datasheet_sizing.py` (section n) or read from the run record process/simulation-run.json.
 
 Decision:
+- (1) **Main air lines DN700** (D-073 (5), D-079, review12#1, #2).
+  - **P&IDs.** AIR-1004 (P-01, P-02), AIR-2001 (P-02) and AIR-2002 (P-02, P-03) are DN700, with
+    everything on their main runs: the off-page connectors, the tees (Tee_AIR1004_A/A1/A2/B1/B2,
+    Tee_AIR2001_O, Tee_AIR2002_B; their DN100 / DN250 branch nodes keep their size), the switching
+    valves XV-2101A/B and XV-2102A/B, and the nozzles C-1101 N2, V-2101A/B N1 / N2, F-2101 N1 / N2
+    and E-3101 N2 (datasheets follow). The DN was set with cheme's `set` (labels refreshed). The
+    PSV-1109 / PSV-2108A/B branches, the DN100 repressurisation and AIR-3005 (DN250) are unchanged.
+    No other line lies on the C-1101 -> E-3101 path.
+  - **Layout.** Pinned routes re-levelled by 0.051 m (pipe bottoms on their beams and posts, tops
+    under the levels above); the AIR-2002 PR1 lane moves from y 66.55 to 66.65 (0.19 m clear of the
+    DN1000 WN-1001, 0.74 m of RG-2001); AIR-3005 starts at the tee's new centre; the AIR-1004 S1
+    post-1 crossbar 0.1 m lower. **CB-1 casing opening** for AIR-2002 now 0.85 x 0.85 m at offset
+    7.65 m, sill 7.95 m (the build's proposal for DN700; was 0.65 m for DN500, review12#2): the
+    wall-penetration info is gone. The model has no clash.
+  - **Darcy check of the routed DN700 lines** (section 10, the D-073 method: Colebrook, elbows K
+    0.75, tees 0.4 / 1.0, V-2101 nozzle entry 1.0; density at each line's own pressure on the D-079
+    profile, AIR-1004 at S3 5.88 bara): bed B (the longer path) AIR-1004 9.05 kPa (94.8 m, 20
+    bends), AIR-2001 2.96 kPa, AIR-2002 3.45 + 1.59 kPa: **17.1 kPa** (bed A 16.7). On the D-073
+    basis (every line at the S4 density) 17.7 kPa. A bound that counts every change of direction
+    as an elbow (jogs under 0.3 m and the turns between pipes included) and the vessel nozzles in
+    the lines (V-2101 outlet 0.5, F-2101 1.0 / 0.5, E-3101 inlet 1.0, ASSUMED) gives **21.1 kPa**
+    (bed A 20.0), the range of the independent review's 19.3-20.4 kPa.
+  - **Budget.** S3 -> S4 is 28 kPa (D-079): lines + bed 8 + F-2101 3 = 28.1 kPa at the D-073
+    convention, margin **-0.06 kPa**; at the bound 32.1 kPa, margin **-4.1 kPa**. The budget is
+    exceeded. **Request to the simulation owner** (the flowsheet is not edited here): raise S2 (and
+    S3) by 4 kPa to about 6.02 bara (~27 kW electric at 6.74 kW/kPa, section 10), or confirm that
+    the vessel nozzle losses lie inside the bed and filter allowables and take 0.1 kPa; the 9.0 MW
+    motor keeps its margin either way (+27 kW on 8,121 kW at 110 %). Long-radius elbows on the
+    DN700 lines (detail engineering) would lower the fitting losses, about two thirds of the line
+    drop.
+  - **F-2101.** Its 3 kPa is a **clean-element allowable** (datasheet, enquiry requirement), not the
+    operating drop. PDIA-2106 alarms at **5 kPa** (2 kPa above clean), which is the element change
+    criterion (ASSUMED until the filter supplier's change-out drop). Between change-outs the loading
+    element takes up to 2 kPa more from S4 (or ~13 kW at the MAC). The F-2101 datasheet also
+    corrects its inlet to S4 110,870 kg/h at ~5.68 bara (was 98,060 kg/h of D-027).
+  - **V-2101A/B** carry 8 kPa as their allowable in adsorption (flange to flange, ASSUMED, D-079).
 - (2) **Values on the D-079 state** (review12#1, D-079 open).
   - **Sizing script.** It now reads the simulated unit results (K1101 electric / shaft / cooling,
     C1101 / C1101U, K3101, E3104, E3105, E3102, the C3101 reflux, K4101, K4102) from the run
@@ -3271,5 +3307,9 @@ Decision:
     P-1101A, P-1102A; instrument list LIC-1114, LSLL-1115. The equipment estimate follows the
     cooler areas.
 
-Reason: D-079 changed the MAC discharge and the DCAC pressures in the flowsheet; the lists, the
-datasheets (the MAC enquiry basis among them) and the script still gave the 5.8 / 5.7 bara state.
+Reason: the owner chose DN700 (D-079 cites D-080 for it); D-079 changed the MAC discharge and
+the DCAC pressures in the flowsheet, and the lists, the datasheets (the MAC enquiry basis among
+them) and the script still gave the 5.8 / 5.7 bara state.
+
+Open: the simulation owner's answer to (1) (S2 +4 kPa or the nozzle losses inside the
+allowables); the adsorber, F-2101 clean and change-out drops from the suppliers.

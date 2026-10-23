@@ -14,7 +14,7 @@ By phase (baseline):
 
 | category | operation | construction | maintenance | transport | end-of-life |
 |---|---|---|---|---|---|
-| Climate change | 141.983 | 0.565969 | 0.133839 | 0.00543259 | -0.298734 |
+| Climate change | 141.983 | 0.565966 | 0.133839 | 0.00543257 | -0.298733 |
 
 ## Uncertainty (baseline, Monte Carlo, 2000 iterations, seed 1)
 
@@ -52,22 +52,22 @@ Sensitivity, Climate change (kg CO2-eq) (Spearman rank correlation with the tota
 | feed:POWER | 351.15 kWh | 0.4 /kWh (electricity) | 140.46 | 98.6% |
 | product:CW | 359.693 kWh | 0.004 /kWh (cooling-water) | 1.43877 | 1.0% |
 | construction:equipment-al | 0.0203472 kg | 10 /kg (aluminium) | 0.203472 | 0.1% |
-| construction:steel | 0.0937121 kg | 2 /kg (steel-sections) | 0.187424 | 0.1% |
+| construction:steel | 0.0937112 kg | 2 /kg (steel-sections) | 0.187422 | 0.1% |
 | end-of-life:aluminium-recycling | 0.0228906 kg | -7 /kg (aluminium-recycling) | -0.160234 | -0.1% |
-| end-of-life:steel-recycling | 0.1385 kg | -1 /kg (steel-recycling) | -0.1385 | -0.1% |
+| end-of-life:steel-recycling | 0.138499 kg | -1 /kg (steel-recycling) | -0.138499 | -0.1% |
 | construction:equipment-ss | 0.0169827 kg | 5 /kg (stainless-steel) | 0.0849133 | 0.1% |
 | consumable:molecular-sieve | 0.0240321 kg | 3 /kg (adsorbent) | 0.0720962 | 0.1% |
 | maintenance:equipment-al | 0.00508679 kg | 10 /kg (aluminium) | 0.0508679 | 0.0% |
-| maintenance:steel | 0.023428 kg | 2 /kg (steel-sections) | 0.0468561 | 0.0% |
-| construction:pipe | 0.000828961 m | 40 /m (pipe) | 0.0331584 | 0.0% |
+| maintenance:steel | 0.0234278 kg | 2 /kg (steel-sections) | 0.0468556 | 0.0% |
+| construction:pipe | 0.000828944 m | 40 /m (pipe) | 0.0331577 | 0.0% |
 | construction:equipment-cs | 0.0124166 kg | 2 /kg (steel-sections) | 0.0248331 | 0.0% |
 | maintenance:equipment-ss | 0.00424567 kg | 5 /kg (stainless-steel) | 0.0212283 | 0.0% |
 | consumable:lube-oil | 0.00801069 kg | 1.5 /kg (lube-oil) | 0.012016 | 0.0% |
 | construction:concrete | 3.06491e-05 m3 | 350 /m3 (concrete) | 0.0107272 | 0.0% |
-| maintenance:pipe | 0.00020724 m | 40 /m (pipe) | 0.00828961 | 0.0% |
-| transport:construction-to-site | 0.0717293 tkm | 0.1 /tkm (lorry) | 0.00717293 | 0.0% |
+| maintenance:pipe | 0.000207236 m | 40 /m (pipe) | 0.00828944 | 0.0% |
+| transport:construction-to-site | 0.0717288 tkm | 0.1 /tkm (lorry) | 0.00717288 | 0.0% |
 | maintenance:equipment-cs | 0.00310414 kg | 2 /kg (steel-sections) | 0.00620829 | 0.0% |
-| transport:consumables-to-site | 0.0543259 tkm | 0.1 /tkm (lorry) | 0.00543259 | 0.0% |
+| transport:consumables-to-site | 0.0543257 tkm | 0.1 /tkm (lorry) | 0.00543257 | 0.0% |
 | construction:grating | 8.00808e-05 m2 | 60 /m2 (grating) | 0.00480485 | 0.0% |
 | construction:elbows | 0.00012737 ea | 30 /ea (fitting) | 0.0038211 | 0.0% |
 | construction:flanges | 6.15221e-05 ea | 30 /ea (fitting) | 0.00184566 | 0.0% |
@@ -98,8 +98,8 @@ Sensitivity, Climate change (kg CO2-eq) (Spearman rank correlation with the tota
 | emission:H2O (output) | operation | 80.4588 kg | assumed | free |
 | emission:N2 (output) | operation | 2382.03 kg | assumed | free |
 | emission:O2 (output) | operation | 148.692 kg | assumed | free |
-| construction:steel (input) | construction | 0.0937121 kg | calculated | factor:steel-sections |
-| construction:pipe (input) | construction | 0.000828961 m | calculated | factor:pipe |
+| construction:steel (input) | construction | 0.0937112 kg | calculated | factor:steel-sections |
+| construction:pipe (input) | construction | 0.000828944 m | calculated | factor:pipe |
 | construction:concrete (input) | construction | 3.06491e-05 m3 | calculated | factor:concrete |
 | construction:grating (input) | construction | 8.00808e-05 m2 | calculated | factor:grating |
 | construction:insulation (input) | construction | 5.1147e-05 m2 | calculated | factor:insulation |
@@ -115,16 +115,16 @@ Sensitivity, Climate change (kg CO2-eq) (Spearman rank correlation with the tota
 | construction:equipment-cs (input) | construction | 0.0124166 kg | assumed | factor:steel-sections |
 | consumable:molecular-sieve (input) | operation | 0.0240321 kg | assumed | factor:adsorbent |
 | consumable:lube-oil (input) | operation | 0.00801069 kg | assumed | factor:lube-oil |
-| maintenance:steel (input) | maintenance | 0.023428 kg | calculated | factor:steel-sections |
-| maintenance:pipe (input) | maintenance | 0.00020724 m | calculated | factor:pipe |
+| maintenance:steel (input) | maintenance | 0.0234278 kg | calculated | factor:steel-sections |
+| maintenance:pipe (input) | maintenance | 0.000207236 m | calculated | factor:pipe |
 | maintenance:insulation (input) | maintenance | 1.27867e-05 m2 | calculated | factor:insulation |
 | maintenance:valves (input) | maintenance | 4.44593e-06 ea | calculated | factor:fitting |
 | maintenance:equipment-al (input) | maintenance | 0.00508679 kg | assumed | factor:aluminium |
 | maintenance:equipment-ss (input) | maintenance | 0.00424567 kg | assumed | factor:stainless-steel |
 | maintenance:equipment-cs (input) | maintenance | 0.00310414 kg | assumed | factor:steel-sections |
-| transport:construction-to-site (input) | construction | 0.0717293 tkm | assumed | factor:lorry |
-| transport:consumables-to-site (input) | transport | 0.0543259 tkm | assumed | factor:lorry |
-| end-of-life:steel-recycling (output) | end-of-life | 0.1385 kg | assumed | factor:steel-recycling |
+| transport:construction-to-site (input) | construction | 0.0717288 tkm | assumed | factor:lorry |
+| transport:consumables-to-site (input) | transport | 0.0543257 tkm | assumed | factor:lorry |
+| end-of-life:steel-recycling (output) | end-of-life | 0.138499 kg | assumed | factor:steel-recycling |
 | end-of-life:aluminium-recycling (output) | end-of-life | 0.0228906 kg | assumed | factor:aluminium-recycling |
 
 Co-products are listed with what is made alongside one functional unit.

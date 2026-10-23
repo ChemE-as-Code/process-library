@@ -791,16 +791,21 @@ MODEL = yaml.safe_load((ROOT / "layout/plant-model.yaml").read_text(encoding="ut
 PIPES = {p["id"]: p for p in MODEL.get("pipes", []) if isinstance(p, dict) and "id" in p}
 
 
-def route_of(pipe_ids):
-    """Length m and 90 deg bends of the routed pipes (layout/plant-model.yaml)."""
-    length, bends = 0.0, 0
+def route_of(pipe_ids, jog: float = 0.3, joins: bool = False):
+    """Length m and 90 deg bends of the routed pipes (layout/plant-model.yaml). By default jogs
+    under 0.3 m are not counted as bends (ASSUMED) nor the turns where one pipe of the path meets
+    the next; jog=0, joins=True counts every change of direction (D-080 (1), the bound)."""
+    length, bends, prev = 0.0, 0, None
     for pid in pipe_ids:
         pts = np.array(PIPES[pid]["points"], dtype=float)
         seg = np.diff(pts, axis=0)
         lens = np.linalg.norm(seg, axis=1)
-        keep = seg[lens > 0.3]  # jogs under 0.3 m are not counted as bends (ASSUMED)
+        keep = seg[lens > max(jog, 1e-6)]
         length += float(lens.sum())
+        if joins and prev is not None and len(keep) and abs(float(np.dot(prev, keep[0]))) < 1e-9:
+            bends += 1
         bends += sum(1 for a, b in zip(keep[:-1], keep[1:]) if abs(float(np.dot(a, b))) < 1e-9)
+        prev = keep[-1] if len(keep) else prev
     return length, bends
 
 
@@ -1005,13 +1010,31 @@ for bed, (p1004, k1004, p2001, k2001) in AIR_PATHS.items():
                       f"{p3:.4g} kPa(a): {dp3a:.3g} + {dp3b:.3g} kPa ({v3:.3g} m/s); lines {lines:.3g} kPa")
             else:
                 print(f"  bed {bed} DN{dn} on the D-073 basis (every line at S4 {rho4:.4g} kg/m3): lines {lines:.3g} kPa")
+# the bound (D-080 (1)): every change of direction a bend (jogs under 0.3 m and the turns where the
+# path passes from one pipe to the next included), the vessel nozzles in the lines as well: V-2101
+# outlet 0.5 (pipe entrance from a vessel), F-2101 in 1.0 / out 0.5, E-3101 in 1.0 (ASSUMED: these
+# are normally inside the vessels' own allowables), at S4 density
+for bed, (p1004, k1004, p2001, k2001) in AIR_PATHS.items():
+    (l1, b1), (l2, b2) = route_of(p1004, 0.0, True), route_of(p2001, 0.0, True)
+    (la, ba) = route_of(["P-02/Line_AIR2002_S1", "P-03/Line_AIR2002_S1"], 0.0, True)
+    (lb, bb) = route_of(["P-03/Line_AIR2002_S2"], 0.0, True)
+    dp1, _ = gas_line(flow("S3"), rho4, mu3, 700, l1, b1 * K_ELBOW + k1004)
+    dp2, _ = gas_line(flow("S4"), rho4, mu4, 700, l2, b2 * K_ELBOW + k2001 + 0.5 + 1.0)
+    dp3a, _ = gas_line(flow("S4"), rho4, mu4, 700, la, (ba + 1) * K_ELBOW + 0.5)
+    dp3b, _ = gas_line(flow("S4A"), rho4, mu4, 700, lb, bb * K_ELBOW + 0.4 + 1.0)
+    air_path[(bed, 700, "bound")] = dp1 + dp2 + dp3a + dp3b
+    print(f"  bed {bed} DN700 bound: {b1} + {b2} + {ba + 1} + {bb} bends, the vessel nozzles counted, S4 density: "
+          f"{dp1:.3g} + {dp2:.3g} + {dp3a:.3g} + {dp3b:.3g} = {dp1 + dp2 + dp3a + dp3b:.3g} kPa")
 for dn in (600, 700):
     worst = max(air_path[(b, dn, "local")] for b in AIR_PATHS)
     bound = max(air_path[(b, dn, "S4")] for b in AIR_PATHS)
     budget = kpa("S3") - kpa("S4")
     print(f"  front end DN{dn}, longer bed: lines {worst:.3g} kPa (D-073 basis {bound:.3g}) + bed {BED_DP:g} + F-2101 "
           f"{F2101_DP:g} = {worst + BED_DP + F2101_DP:.3g} kPa against S3 -> S4 {budget:g} kPa (D-079): margin "
-          f"{budget - worst - BED_DP - F2101_DP:+.3g} kPa (D-073 basis {budget - bound - BED_DP - F2101_DP:+.3g})")
+          f"{budget - worst - BED_DP - F2101_DP:+.3g} kPa (D-073 basis {budget - bound - BED_DP - F2101_DP:+.3g})"
+          + (f"; the bound {max(air_path[(b, 700, 'bound')] for b in AIR_PATHS):.3g} kPa: margin "
+             f"{budget - max(air_path[(b, 700, 'bound')] for b in AIR_PATHS) - BED_DP - F2101_DP:+.3g} kPa"
+             if dn == 700 else ""))
 # what one kPa more at the MAC discharge costs: electric power pro rata to ln(p2 / p1) of the three
 # stages (ideal-gas compression at the same efficiencies, D-066 E1)
 p_mac = kpa("S2") + spec("K1101", "pressure_drop") * 100.0
