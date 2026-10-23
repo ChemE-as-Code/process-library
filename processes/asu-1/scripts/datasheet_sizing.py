@@ -853,6 +853,20 @@ for dn in (600, 800, 900):
           f"S12B, D-067): {dp:.3g} kPa ({v:.3g} m/s); silencer S-3101 and PV-3110B extra")
 dp3002b, _ = darcy(m17, 112.0, 900, L3002, B3002 * K_ELBOW + 0.4)
 print(f"  (in bypass WN-3002 still carries {m17:g} kg/h: {dp3002b:.3g} kPa)")
+# D-083: the C-1102 relief case. The CHWR-1001 blow-by bound (choked S3 air through the full DN150 bore,
+# Cd 1, above) enters the C-1102 top with the design gas and its evaporated water; all of it leaves by
+# the open vent WN-1002 (DN900, no valve). Line loss as WN-1002 above (entry K 0.5, exit 1.0), the gas
+# taken as the waste-N2 density at 13 C (lower than air's: more loss, conservative). The column's own
+# internals are screened by its 3.3 kPa allowable at the design gas (datasheet, D-071) scaled with the
+# square of the total flow, as if all of it crossed the packing (it does not: the blow-by enters at the
+# distributor above the packing; ASSUMED bound)
+m_blow = g_choked * a150 * 3600.0
+m_relief = m12b + W_EVAP + m_blow
+dp_vent, v_vent = darcy(m_relief, 102.0, 900, L1002, B1002 * K_ELBOW + 0.5 + 1.0)
+dp_int = 3.3 * (m_relief / (m12b + W_EVAP)) ** 2
+print(f"  C-1102 blow-by relief (D-083): {m12b:g} + {W_EVAP:.4g} + {m_blow:.6g} = {m_relief:.6g} kg/h out of WN-1002 "
+      f"DN900: {dp_vent:.3g} kPa ({v_vent:.3g} m/s) + internals bound {dp_int:.3g} kPa = {dp_vent + dp_int:.3g} kPa(g) "
+      f"at the C-1102 top against its 1 barg design (equipment list): {100.0 / (dp_vent + dp_int):.2g} x margin")
 
 # D-072 (review11#1): the regeneration gas S12A takes the other branch of the WN-3002 tee and goes
 # to the atmosphere through RG-2001 (FV-2105), E-2101, RG-2002, the bed in regeneration with its

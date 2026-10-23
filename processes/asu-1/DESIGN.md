@@ -158,7 +158,8 @@ product CW; electric heater at its cycle average), which the LCA reads (`lca/`,
 | PSV-4127 / PSV-4128 | E-4105A/B / E-4106A/B (no outlet isolation valve, so one PSV on each outlet header covers both) | blocked outlet, thermal | elevated |
 | TSV-4140 / TSV-4141 | LOX-3001 / LIN-3001 between FV-3111 (P-03) and the manual tank inlet valve | heat-in of blocked liquid | atmosphere (LOX: safe location) |
 | XV-4133 / XV-4135 | GOX / GAN BL bleeds (DBB) | bleed between the two closed block valves | VNT-4006 safe location / VNT-4007 elevated |
-| PSV on CW headers | E-1101..E-1103 tube side | tube rupture (5.8 bara air into CW) | local |
+| PSV on CW headers | E-1101..E-1103 tube side | tube rupture (5.98 bara air into CW, D-079) | local |
+| WN-1002 open vent (no device, no valve) | C-1102 evaporative cooler (1 barg) | air blow-by through CHWR-1001 when the DCAC chimney tray loses its seal, 94.5 t/h bound + the design gas: ~25 kPa(g) at the top (D-083); I-03 (SIL 1 screening) limits the duration | elevated, WN-1002 (air / N2, zone Z-N2-WN1002) |
 
 All PSV tags are fixed (S4); TSV-4140/4141 and the vacuum breakers PSV-4142/4143 are drawn on P-04 (S5). Remaining TSVs (RL, LN in the cold box) get tags in detail engineering.
 
@@ -3313,3 +3314,60 @@ them) and the script still gave the 5.8 / 5.7 bara state.
 
 Open: the simulation owner's answer to (1) (S2 +4 kPa or the nozzle losses inside the
 allowables); the adsorber, F-2101 clean and change-out drops from the suppliers.
+
+## D-083 C-1102 blow-by relief case: the open vent WN-1002, screening LOPA of I-03 (2026-10-23)
+Answers layout-review12#7 and D-076's open item. (D-081 and D-082 are reserved for other
+branches.)
+
+Decision:
+- (1) **Case.** If the chimney-tray seal of C-1101 is lost (LIC-1114 fails, LV-1114 opens), S3 air
+  blows through CHWR-1001 into the top of the atmospheric C-1102 (design 1 barg). The bound is
+  choked flow of S3 air (12 C, 5.88 bara since D-079) through the full DN150 bore with a discharge
+  coefficient of 1 (ASSUMED upper bound; schedule 40 bore): **94.5 t/h** (was 91.6 t/h at 5.7
+  bara; scripts/datasheet_sizing.py, before section 9). LV-1114's trim would pass less; the bound
+  is kept because the trim is the valve supplier's.
+- (2) **Protection chosen: the open vent WN-1002 as the relief path; no added device.** Sized in
+  section 11: the design gas 58,074 kg/h + 851 kg/h evaporated + the 94.5 t/h bound, 153.4 t/h,
+  leave by WN-1002 (DN900, 6.9 m routed, entry K 0.5, exit K 1.0, waste-N2 density: more loss than
+  air) at **3.0 kPa** (56 m/s). The column internals are bounded by the 3.3 kPa allowable at the
+  design gas scaled with the square of the total flow, as if all of it crossed the packing (the
+  blow-by enters above it): 22.4 kPa. The C-1102 top stays below **~25 kPa(g) against 1 barg**:
+  C-1102 cannot be overpressured by the blow-by while WN-1002 is open. Hence:
+  - WN-1002 carries no valve, blind or flame arrester (note on P-01 at the vent, line list,
+    C-1102 datasheet); it is the C-1102 relief path in the relief case list (section 4);
+  - C-1102 enquiry requirement: the top nozzle, distributor and mist eliminator take 153 t/h for
+    the minutes until I-03 acts without mechanical damage (supplier confirms);
+  - the back-pressure on WN-1001 (up to ~25 kPa) upsets the LP column top for that time; the LP
+    column (3.5 barg design) and its PSV-3114 are not challenged;
+  - zone Z-N2-WN1002: the blow-by mixture (~14.9 mol% O2) needs less dilution than the design gas
+    (5.1 % O2) to reach 19.5 %, so the 6.5 m screening sphere covers it (zones.yaml basis).
+  Rejected: a restriction orifice in CHWR-1001 (a two-stage plate of ~37 mm bore would pass the
+  34 m3/h at ~200 kPa and hold the blow-by near 5 t/h) - it is not needed against overpressure,
+  costs ~200 kPa of the ~400 kPa the liquid has between the tray and the C-1102 top, and a water
+  orifice at that drop needs a cavitation check by its supplier; cheme-as-code also has no
+  restriction-orifice symbol to draw it with (`cheme fragment` offers valves and silencers only).
+  A relief valve on C-1102 would duplicate the open vent. No special item is added: the relief
+  path is an open line, not a tagged device.
+- (3) **Screening LOPA of I-03** (LSLL-1115 closes XV-1115), ASSUMED values from the generic tables
+  of CCPS, *Layer of Protection Analysis: Simplified Process Risk Assessment* (AIChE, 2001):
+  initiating events Table 5.1, independent protection layers Tables 6.3 / 6.5; SIL bands of
+  IEC 61511-1. The tolerable frequencies are ASSUMED (the owner's risk criteria are not given).
+  | scenario | initiating event | frequency /yr | IPLs credited | mitigated /yr | tolerable /yr (ASSUMED) | RRF needed |
+  |---|---|---|---|---|---|---|
+  | A: C-1102 overpressure (vessel failure, injury possible) | BPCS loop failure LIC-1114 / LV-1114 open | 0.1 | open vent without valve (passive), PFD 0.01 | 1E-3 | 1E-4 | 10 |
+  | B: loss of ~85 % of the process air through C-1102, C-1102 internals damage, water carried out of the 29 m vent, LP top upset (asset and production) | as A | 0.1 | none (the LIC-1114 alarm is not independent; the blow-by develops faster than a 10 min operator response) | 0.1 | 1E-2 | 10 |
+
+  Both need a risk reduction of about 10 beyond the credited layers: **I-03 target SIL 1**
+  (RRF 10-100, PFDavg 0.1-0.01). As drawn: 1oo1 LSLL-1115 on its own tapping I4, 1oo1 XV-1115
+  tight-shut fail closed, logic in the safety system, proof test yearly (ASSUMED), so the SIF
+  stays independent of the BPCS loop that initiates the event. Recorded as `sil` of I-03 in
+  control/cause-effect.yaml, **for HAZOP / LOPA confirmation**: the initiating frequency, the
+  IPL credits, the tolerable frequencies and whether scenario A is credible at all (the vent check
+  of (2) leaves only a blocked vent) are screening values.
+
+Reason: review12#7 asked for the relief case and the SIL before the basic-engineering sign-off;
+the blow-by bound and the vent hydraulics answer the overpressure question with numbers, and the
+LOPA gives the SIF its target.
+
+Open: HAZOP / LOPA confirmation of the SIL; the C-1102 supplier's confirmation of the top
+internals at 153 t/h; LV-1114's trim (a lower blow-by).
