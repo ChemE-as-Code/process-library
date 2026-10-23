@@ -3229,3 +3229,47 @@ Open:
   the ~11 kPa assumed here, raise S2 by the difference (~7 kW/kPa).
 - K-1101 datasheet and electrical list: 5.98 bara, 7,260 kW electric, 6,868 kW shaft
   (repos-8a).
+
+## D-080 Main air lines DN700 and the lists and datasheets on the D-079 state (2026-10-23)
+Carries the owner's DN700 choice (D-073 (5), D-079) and the D-079 pressures into the P&IDs, the
+lists, the layout and the datasheets. The flowsheet, the simulation and the design basis are the
+simulation owner's and are not changed here. Every number is printed by `cheme run
+scripts/datasheet_sizing.py` (section n) or read from the run record process/simulation-run.json.
+
+Decision:
+- (2) **Values on the D-079 state** (review12#1, D-079 open).
+  - **Sizing script.** It now reads the simulated unit results (K1101 electric / shaft / cooling,
+    C1101 / C1101U, K3101, E3104, E3105, E3102, the C3101 reflux, K4101, K4102) from the run
+    record and prints whether the record's fingerprints match the current process files (they
+    do: run at 76112cd). The hard-coded E1 = 7,132.6 kW of D-066 and the other typed DWSIM
+    numbers are gone. The pumps P-1101A/B and P-1102A/B discharge into the DCAC at S2 / S3 (was
+    a typed 580 / 570 kPa(a)); the P-1102A/B rating stays the selected 44 m3/h (D-069), now 111 %
+    of the 39.6 m3/h loop; the WN-1002 vent flow takes the computed evaporation.
+  - **MAC K-1101** (section 1, S2 5.98 bara): ratio 1.840 per stage, discharges 373.3 / 385.7 /
+    386.2 K; DWSIM 6,868 kW shaft, 7,260 kW electric (script 6,884 kW gas). **Motor check:**
+    7,611 kW electric pro rata at 90,000 Nm3/h, 7,383 kW output, 8,121 kW at 110 % (API 617)
+    against the 9.0 MW motor: 10.8 % margin (was 12.8 %). The 9.0 MW motor holds; TR-1 is set on
+    the motor rating and does not change.
+  - **MAC coolers:** E-1101 1,932 kW, 395.3 m2, CW 167 m3/h; E-1102 2,863 kW (801 kg/h condensed),
+    605.2 m2 by zones, 248 m3/h; E-1103 2,789 kW (728 kg/h), 557.5 m2 by zones, 241 m3/h. In all
+    7,584 kW against the simulated Q1 7,698 kW (CW ~666 m3/h).
+  - **DCAC C-1101:** in 5.98 bara, out 5.88 bara, S2 111,725 kg/h, S3 111,081 kg/h; DWSIM 701.4 kW
+    lower / 635.3 kW upper; condensate S3C 414 / S3CU 230 kg/h; gas F 0.956 Pa^0.5; upper
+    liquid 34.2 m3/h (2.72 m3/(m2 h)). The chimney-tray overflow stays 38 m3/h (37.9 computed).
+  - **C-1102 and the chilled-water loop** (section 12): loop 39.6 m3/h, demand 698.6 kW,
+    851 kg/h evaporated, make-up 621 kg/h.
+  - **TSA V-2101A/B** (section 8): S3 saturated at 12 C and 5.88 bara holds 165.0 kg/h water by
+    IAPWS-95 (was 170.2 at 5.7 bara; Peng-Robinson 143 kg/h), 660 kg per 4 h step; CO2 unchanged
+    (67.7 kg/h).
+  - **Pumps:** P-1101A/B 32.9 / 33.7 m, 29.8 / 30.5 kW shaft (45 kW motors hold); P-1102A/B 77.6 /
+    77.7 m, 12.4 kW shaft (15 kW motors hold).
+  - **Blow-by bound** (D-076): at S3 5.88 bara the choked flow through the DN150 bore is 94.5 t/h
+    (was 91.6 t/h at 5.7 bara); it is the C-1102 relief case of D-083.
+  - Datasheets K-1101, E-1101, E-1102, E-1103, C-1101, C-1102, V-2101A/B, P-1101A/B,
+    P-1102A/B; equipment list K-1101, C-1101, P-1102A; line list AIR-1002, AIR-1005, AIR-1006,
+    CW-1002, CHW-1001, CHWR-1001, CWR-1001, CW-1003, CD-1001, CD-1002; electrical list K-1101,
+    P-1101A, P-1102A; instrument list LIC-1114, LSLL-1115. The equipment estimate follows the
+    cooler areas.
+
+Reason: D-079 changed the MAC discharge and the DCAC pressures in the flowsheet; the lists, the
+datasheets (the MAC enquiry basis among them) and the script still gave the 5.8 / 5.7 bara state.
