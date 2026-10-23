@@ -3213,16 +3213,19 @@ outputs `estimate/tea.md`, `tea-cashflow.csv`, `tea-sensitivity.csv`, `tea-uncer
    edition: USD 250 to 300 M for a 2,000 t/d plant, no method or cost year stated) is the
    scenario `capex-market-report`, scaled to 500 t/d with the capacity exponent 0.6 (six-tenths
    rule, ASSUMED): 275 M x (500/2000)^0.6 = USD 119.7 M, $656 per t/a, x 3.28 on the base
-   (x 2.98 to 3.58 over the quoted range). At that capital the LCOP is 129 USD/t and the
+   (x 2.98 to 3.58 over the quoted range). At that capital the LCOP is 141 USD/t and the
    decision fails: the two published capital figures differ by a factor of three, which is why
    the ISBL dominates and needs a quotation. OSBL 0: the site supplies
    cooling water and power at the battery limit. Owner's cost and contingency are not decided;
    the Monte Carlo spreads the ISBL over the AACE class 5 range instead (x 0.5 to x 2.0).
 3. **Prices.** Power 80.4 USD/MWh (US EIA, industrial average 2023, QUOTED); the state averages
-   6.60 (Texas) and 18.64 cents/kWh (California) are scenarios. GAN 20 USD/t (Thunder Said,
-   ASSUMED). **No published price was found for LOX, LIN and cooling water**: they are left
-   unpriced (finding `tea-price-missing`), so LOX and LIN earn nothing and the cooling water
-   costs nothing. The first makes the LCOP conservative, the second optimistic. Air, vent and
+   6.60 (Texas) and 18.64 cents/kWh (California) are scenarios. **No market price was found for GAN, LOX, LIN and cooling water**: they are left
+   unpriced (finding `tea-price-missing`), so GAN, LOX and LIN earn nothing and the cooling
+   water costs nothing. The first makes the LCOP conservative, the second optimistic. The only
+   published GAN figure (Thunder Said, $20/t) is the nitrogen price an ASU feeding an ammonia
+   plant needs, with oxygen and argon sold as well: a break-even under another plant's revenue
+   mix, not a market price, so it is not booked; as revenue it would lower the LCOP by about
+   12 USD/t (2.10 M USD/a over 175,224 t/a of GOX). Air, vent and
    condensate are free. Maintenance 3 % and insurance and local taxes 2 % of fixed capital per
    year (Towler and Sinnott, typical ranges). Operating labour is not included yet. Discount
    rate 8 % real (screening, swing 6 to 12 %); construction over two years (40/60); working
@@ -3231,17 +3234,17 @@ outputs `estimate/tea.md`, `tea-cashflow.csv`, `tea-sensitivity.csv`, `tea-uncer
    flowsheet), not the 600 kg/h of the design basis (D-010 purge and the simulated split). The
    TEA follows the flowsheet, as the LCA does.
 5. **Result** (on the D-066 flowsheet: 10,310 kW power, 113,329 kg/h air). LCOP of GOX
-   58.6 USD/t (Monte Carlo P10 47.8, P50 63.1, P90 80.0 USD/t; P(LCOP <= 100) = 100 % of 2,000
-   samples). Electricity is about 40 USD/t of it. The capital dominates (Spearman +0.76), then
-   the power price (+0.40) and the GAN price (-0.35). The decision turns at a power price of
-   164 USD/MWh (+104 %), at an ISBL of USD 85 M (+134 %), or below 3,591 h/a. At the California
-   power price the LCOP is 111 USD/t, at the scaled market-report capital 129 USD/t: **the
+   70.6 USD/t (Monte Carlo P10 62.0, P50 75.8, P90 92.3 USD/t; P(LCOP <= 100) = 97 % of 2,000
+   samples). Electricity is about 40 USD/t of it. The capital dominates (Spearman +0.80), then
+   the power price (+0.37). The decision turns at a power price of 140 USD/MWh (+74 %), at an
+   ISBL of USD 71 M (+95 %), or below 4,305 h/a. At the California power price the LCOP is
+   123 USD/t, at the scaled market-report capital 141 USD/t: **the
    location and the capital decide the case**, so the site's power contract and a budget
    quotation for the main air compressor and cold box are the evidence worth buying first.
 6. **Open.**
    - The estimate is class 5, and stage basic expects class 4 (`tea-class-stage`): the main air
      compressor and cold box need quotations.
-   - Prices for LOX, LIN and cooling water are still to find.
+   - Market prices for GAN, LOX, LIN and cooling water are still to find.
    - Owner's cost, contingency, labour, the tax position and the owner's hurdle rate are still
      to decide.
    - The gate `kind: tea` waits until the cheme-as-code release that knows it is installed in

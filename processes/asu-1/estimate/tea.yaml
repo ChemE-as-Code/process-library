@@ -1,7 +1,10 @@
 # Premises of the techno-economic analysis (cheme assess tea; schema: cheme schema tea; skill
 # tea). Every number has its status, source and year; cheme-as-code ships no prices. Gaps are left
-# visible rather than filled: cooling water, LOX and LIN carry no published price yet (finding
-# tea-price-missing), so they count as 0 and the LCOP of GOX is conservative. DESIGN.md D-082.
+# visible rather than filled: cooling water, GAN, LOX and LIN carry no market price yet (finding
+# tea-price-missing), so they count as 0 and the LCOP of GOX carries no co-product credit.
+# GAN: the only published figure (Thunder Said Energy, $20/t) is the price an ASU feeding an
+# ammonia plant needs, with oxygen and argon sold as well: a break-even, not a market price, so
+# it is not booked as revenue (it would lower the LCOP by about 12 USD/t). DESIGN.md D-082.
 schema: cheme/tea/v1
 kind: tea
 currency: USD
@@ -60,14 +63,6 @@ prices:
     year: 2023
     uncertainty: {gsd2: 1.3, source: "state averages 2023 range 6.60 (TX) to 18.64 (CA) cents/kWh,
       EIA table_5c"}
-  - key: product:GANP
-    value: 20
-    unit: t
-    status: ASSUMED
-    source: "Thunder Said Energy, 'Costs of cryogenic air separation': 'a nitrogen price of $20/ton
-      is required for an air separation unit that feeds into an ammonia plant'"
-    year: 2024
-    uncertainty: {gsd2: 2.0, source: "one benchmark, no market series"}
 free:
   - {key: feed:AIR, reason: ambient air}
   - {key: product:VENT, reason: waste nitrogen vented to atmosphere}
