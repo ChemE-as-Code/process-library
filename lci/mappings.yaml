@@ -1,0 +1,207 @@
+# How the Atlas LCI export links each dataset exchange to a Brightway background.
+# Schema: schemas/lci-mappings.schema.json (cheme-as-code/lci-mappings/v1). Read by build_lci.py.
+# Staged here until process-library exists; then it lives at the library root as lci/mappings.yaml.
+#
+# Background activities are referenced by NAME ONLY (name, reference product, unit, location):
+# no ecoinvent data is shipped (licence). The database is chosen at install time
+# (cheme_as_code_lci.install(background=...)), not here. A location written as `site` is an
+# install-time parameter: install(location="FR") replaces it; without one, `default_site_location`
+# is used and the install report says so.
+#
+# The names follow ecoinvent 3.11 (cut-off) conventions. They have NOT been checked against a
+# licensed ecoinvent copy in this repository: install() reports any that do not link, and a
+# curator fixes them here.
+#
+# Lookup order for one exchange of a dataset (build_lci.py):
+#   1. `exchanges:` below ("<process-id>/<key>" or "<key>"): a curated override;
+#   2. the exchange's own `link` when it names a Brightway activity, a biosphere flow or another
+#      Atlas dataset (core's lca_dataset `link.activity` / `link.biosphere` / `link.dataset`);
+#   3. the chemical slug of the exchange (process.yaml `inventory_key`, or the key's id when it
+#      is a registry slug) in `technosphere:`;
+#   4. the exchange's `link.factor` id (a lca/factors.yaml id) in `technosphere:`.
+# Emissions (emission:<component>) are looked up by component in `biosphere:`; free emissions
+# must be listed in `pass_through:` with the decision. Anything not found fails the build.
+schema: cheme-as-code/lci-mappings/v1
+
+# ecoinvent has "market for electricity, medium voltage" per country, not for RER (that is a
+# "market group"). DE is only the default for an unstated site: pass install(location=...).
+default_site_location: DE
+
+technosphere:
+  # --- utilities -----------------------------------------------------------------------------
+  electricity:
+    activity: {name: "market for electricity, medium voltage", reference_product: "electricity, medium voltage", unit: kilowatt hour, location: site}
+    source: Grid supply at medium voltage (ASU-1 takes 33 kV, D-036); the country is the site's.
+  cooling-water:
+    proxy: cooling-water
+    source: >-
+      Datasets count cooling water as heat rejected (kWh). ecoinvent has no activity per kWh of
+      heat rejected, so a screening proxy (below) expresses it as the electricity of pumps and fans.
+
+  # --- construction materials, in the units the datasets use ------------------------------------
+  steel-sections:
+    activity: {name: "market for steel, low-alloyed, hot rolled", reference_product: "steel, low-alloyed, hot rolled", unit: kilogram, location: GLO}
+    source: Structural steel, carbon-steel shells and casings (ASU-1 construction:steel, equipment-cs).
+  stainless-steel:
+    activity: {name: "market for steel, chromium steel 18/8, hot rolled", reference_product: "steel, chromium steel 18/8, hot rolled", unit: kilogram, location: GLO}
+    source: Stainless equipment (material SS*).
+  aluminium:
+    activity: {name: "market for aluminium, primary, ingot", reference_product: "aluminium, primary, ingot", unit: kilogram, location: "IAI Area, EU27 & EFTA"}
+    source: Brazed aluminium exchangers and cold box internals; primary ingot (forming not counted, screening).
+  concrete:
+    activity: {name: "market for concrete, normal strength", reference_product: "concrete, normal strength", unit: cubic meter, location: RoW}
+    source: Plinths, foundations and ring walls (m3).
+  pipe:
+    proxy: pipe
+    source: Datasets count pipe in m of an average DN; ecoinvent has no per-m process pipe.
+  fitting:
+    proxy: fitting
+    source: Valves, flanges, gaskets, elbows, tees, reducers, in-line items are counted per piece.
+  grating:
+    proxy: grating
+    source: Platform grating is counted in m2.
+  insulation:
+    proxy: insulation
+    source: Pipe insulation is counted in m2 of pipe surface.
+
+  # --- consumables, transport, end of life ---------------------------------------------------
+  adsorbent:
+    activity: {name: "market for zeolite, powder", reference_product: "zeolite, powder", unit: kilogram, location: GLO}
+    source: Molecular sieve 13X and activated alumina of the TSA beds; zeolite powder as the proxy.
+  lube-oil:
+    activity: {name: "market for lubricating oil", reference_product: "lubricating oil", unit: kilogram, location: RER}
+    source: Machine lubricating oil top-up.
+  lorry:
+    activity: {name: "market for transport, freight, lorry, unspecified", reference_product: "transport, freight, lorry, unspecified", unit: ton kilometer, location: RER}
+    source: Road transport of construction materials, spares and consumables.
+  steel-recycling:
+    proxy: steel-scrap-credit
+    source: >-
+      The ASU study gives end-of-life steel a recycling credit. A cut-off background gives none (scrap
+      leaves burden-free), so the credit is an explicit proxy below; drop the exchange for a strict
+      cut-off model.
+  aluminium-recycling:
+    proxy: aluminium-scrap-credit
+    source: As steel-recycling, for aluminium.
+
+# Library-level screening proxies, written into the Atlas database itself as ordinary activities
+# (code proxy:<id>) whose inputs link to the background like any other exchange. They exist where
+# a dataset counts a flow in a unit ecoinvent has no activity for. Every amount is ASSUMED and
+# screening level: replace with a take-off by material when the data exists.
+#
+# The steel and aluminium masses were chosen to be plausible AND consistent with the ASU's example
+# factors (steel 2 kg CO2-eq/kg, aluminium 10 kg CO2-eq/kg), so that the export reproduces the
+# plantcode study when the background carries those example scores (the CI round trip). They are
+# not derived from an independent source; treat them as placeholders like the factors.
+proxies:
+  cooling-water:
+    name: "cooling water service, per kWh heat rejected (Atlas screening proxy)"
+    reference_product: "heat rejected to cooling water"
+    unit: kilowatt hour
+    location: GLO
+    inputs:
+      - {use: electricity, amount: 0.01, source: "~10 kWh of pump and fan electricity per MWh rejected (ASU-1 factors.yaml cooling-water)"}
+    source: Pumping and fans only; make-up water and treatment chemicals are not counted.
+  pipe:
+    name: "process pipe, average DN, per m (Atlas screening proxy)"
+    reference_product: "process pipe, installed"
+    unit: meter
+    location: GLO
+    inputs:
+      - {use: steel-sections, amount: 20.0, source: "ASSUMED 20 kg/m (DN100 sch. 40 ~16 kg/m, DN150 ~28 kg/m)"}
+    source: Pipe steel only; supports, welding and coating are not counted.
+  fitting:
+    name: "pipe fitting, flange or valve, average size, per piece (Atlas screening proxy)"
+    reference_product: "pipe fitting, installed"
+    unit: unit
+    location: GLO
+    inputs:
+      - {use: steel-sections, amount: 15.0, source: "ASSUMED 15 kg per piece, carbon steel (an average DN and type)"}
+    source: Valves of stainless or cast bodies are counted as carbon steel (screening).
+  grating:
+    name: "steel grating, per m2 (Atlas screening proxy)"
+    reference_product: "steel grating"
+    unit: square meter
+    location: GLO
+    inputs:
+      - {use: steel-sections, amount: 30.0, source: "ASSUMED 30 kg/m2 pressure-locked grating"}
+    source: Galvanising is not counted.
+  insulation:
+    name: "pipe insulation with aluminium cladding, per m2 (Atlas screening proxy)"
+    reference_product: "pipe insulation, installed"
+    unit: square meter
+    location: GLO
+    inputs:
+      - {use: aluminium, amount: 2.0, source: "ASSUMED 2 kg/m2 aluminium cladding (~0.7 mm sheet)"}
+    source: >-
+      Cladding only: the insulant itself (stone wool or PIR, ~5 kg/m2) is NOT counted yet; add it
+      when a background activity for it is curated.
+  steel-scrap-credit:
+    name: "steel scrap to recycling, avoided primary steel credit (Atlas screening proxy)"
+    reference_product: "steel scrap, for recycling"
+    unit: kilogram
+    location: GLO
+    inputs:
+      - {use: steel-sections, amount: -0.5, source: "ASSUMED net credit of 0.5 kg primary steel per kg scrap (avoided primary minus remelting)"}
+    source: End-of-life credit (avoided burden), as in the ASU study; not a cut-off system model.
+  aluminium-scrap-credit:
+    name: "aluminium scrap to recycling, avoided primary aluminium credit (Atlas screening proxy)"
+    reference_product: "aluminium scrap, for recycling"
+    unit: kilogram
+    location: GLO
+    inputs:
+      - {use: aluminium, amount: -0.7, source: "ASSUMED net credit of 0.7 kg primary aluminium per kg scrap"}
+    source: End-of-life credit (avoided burden), as in the ASU study; not a cut-off system model.
+
+# Emissions of the plant itself, by component (emission:<component>), to biosphere3 flows. None
+# of the ASU's emissions is a burden (see pass_through), so this list is for other processes.
+biosphere:
+  CO2/fossil:
+    flow: {name: "Carbon dioxide, fossil", categories: [air]}
+    source: Fossil CO2 from combustion or process chemistry.
+  CO2/biogenic:
+    flow: {name: "Carbon dioxide, non-fossil", categories: [air]}
+    source: Biogenic CO2.
+  CH4/fossil:
+    flow: {name: "Methane, fossil", categories: [air]}
+    source: Fossil methane slip or leaks.
+  H2:
+    flow: {name: Hydrogen, categories: [air]}
+    source: Hydrogen leaks and vents.
+
+# Free emissions that are atmospheric pass-through: components taken in with the ambient air and
+# returned to the atmosphere unchanged. DECISION: they are NOT exported as biosphere exchanges,
+# and the air intake (feed:AIR, free) is not exported as a resource either. Exporting one side
+# only would be wrong, and exporting both (resource "in air" + emission to air) is a net zero
+# that LCIA methods do not all treat as zero: e.g. returned CO2 written as "Carbon dioxide,
+# fossil" would count as a fossil emission (59.6 kg/h at ASU-1 — about 2 kg CO2-eq/t GOX if it
+# were), and methods that credit "Carbon dioxide, in air" but count only fossil CO2 at emission
+# would show a spurious credit. Core's study treats them as free in the same way, so the export
+# and plantcode agree. The `flow` given is the biosphere3 flow one would use to report them;
+# it is documentation, not exported. Each activity's comment lists what was left out.
+pass_through:
+  N2:
+    flow: {name: Nitrogen, categories: [air]}
+    decision: Atmospheric nitrogen returned to the atmosphere; no burden, not exported.
+  O2:
+    flow: {name: Oxygen, categories: [air]}
+    decision: Atmospheric oxygen returned to the atmosphere (the waste nitrogen's O2); no burden, not exported.
+  AR:
+    flow: {name: Argon-40, categories: [air]}
+    decision: Atmospheric argon, not recovered (no argon column), returned; no burden, not exported.
+  H2O:
+    flow: {name: Water, categories: [air]}
+    decision: >-
+      Intake air humidity removed in the TSA and returned; no burden, not exported (biosphere3
+      counts water to air in m3, the dataset in kg: another reason not to export it unconverted).
+  CO2:
+    flow: {name: "Carbon dioxide, in air", categories: [natural resource, in air]}
+    decision: >-
+      Atmospheric CO2 removed from the intake air by the TSA and returned unchanged. It is not
+      fossil and not a biogenic uptake: no net emission, not exported (never as "Carbon dioxide,
+      fossil").
+
+# Curated overrides by "<process-id>/<key>" or "<key>": `use` a technosphere entry, or give the
+# `chemical` slug of the exchange (for prefer_atlas linking) when process.yaml has no
+# inventory_key for it.
+exchanges: {}

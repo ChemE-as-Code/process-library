@@ -1,0 +1,56 @@
+# Process Atlas manifest of ASU-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets, layout and LCA results are derived from the
+# plantcode files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: asu-1
+title: Cryogenic air separation unit (500 t/d GOX)
+summary: >-
+  Double-column cryogenic air separation without argon column, producing 500 t/d gaseous oxygen
+  at 30 barg and 10,000 Nm3/h pipeline nitrogen, with LOX/LIN backup storage.
+description: |
+  ASU-1 separates atmospheric air in a double-column cold box. The main air compressor and a
+  direct-contact aftercooler feed a temperature-swing adsorption front end that removes water,
+  CO2 and hydrocarbons. A booster-braked expander provides refrigeration, with Lachmann air to
+  the low-pressure column. Products are GOX >= 99.5 mol% O2, compressed to 30 barg for a
+  pipeline, and GAN <= 10 ppm O2 at 8 barg. LOX and LIN tanks with cryogenic pumps and
+  ambient-air vaporizers back up both pipelines. There is no argon column; argon leaves with
+  the waste nitrogen.
+
+  All flows, pressures and duties are concept estimates (about +/-30 %); see the design basis
+  and DESIGN.md in the engineering files for every assumption.
+families: [air-separation, industrial-gases, cryogenic-separation]
+keywords: [ASU, GOX, GAN, LOX, LIN, double column, cold box, TSA, oxygen, nitrogen, cryogenic]
+maturity: basic-engineering
+validation:
+  status: unreviewed
+  notes: >-
+    Engineering gates of stage basic pass (plantcode checks) and design reviews are recorded in
+    reviews/, but no independent engineering review has been made.
+chemistry:
+  inputs:
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "76,000 Nm3/h, saturated at 30 C"}
+  outputs:
+    - {chemical: oxygen, role: main-product, inventory_key: "product:GOXP", note: "GOX >= 99.5 mol% O2 at 30 barg"}
+    - {chemical: nitrogen, role: co-product, inventory_key: "product:GANP", note: "GAN <= 10 ppm O2 at 8 barg"}
+    - {chemical: oxygen, role: co-product, inventory_key: "product:LOX", note: "LOX to backup storage"}
+    - {chemical: nitrogen, role: co-product, inventory_key: "product:LIN", note: "LIN to backup storage"}
+    - {chemical: argon, role: emission, inventory_key: "emission:AR", note: "Not recovered: leaves with the waste nitrogen vent"}
+    - {chemical: nitrogen, role: emission, inventory_key: "emission:N2", note: "Waste nitrogen vent after TSA regeneration and evaporative cooling"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "6.6 kV; MAC, GOX and GAN compressors, electric regeneration heater"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C, heat rejected"}
+basis:
+  capacity: "500 t/d GOX (14,600 Nm3/h) and 10,000 Nm3/h GAN; LOX and LIN 600 kg/h each"
+  operating_hours_per_year: 8400
+  location: Assumed coastal industrial site
+lca:
+  source: auto
+  notes: Screening-level cradle-to-gate carbon footprint; the characterisation factors are placeholders.
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/asu-1
+  access: private
+publication:
+  status: internal

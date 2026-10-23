@@ -1,0 +1,219 @@
+"""LCI export round trip through Brightway 2.5: build the workbook, install it with
+cheme_as_code_lci.install() into a temporary project against a stub background, and check that
+an LCA of 1 t GOX reproduces plantcode's own result for ASU-1.
+
+The project lives in a temporary BRIGHTWAY_DIR. biosphere3 is bw2io's default biosphere
+(``bw2io.create_default_biosphere3()``, packaged data, no network). The background is a STUB:
+one activity per background activity the mappings name, with a single "Carbon dioxide, fossil"
+emission equal to the ASU's example factor (lca/factors.yaml), characterised 1:1 by a stub
+method. So the background carries exactly plantcode's numbers, and any difference is a
+difference in the export (allocation, amounts, proxies, linking), not in the data.
+
+    uv run --python 3.12 --with pytest --with pyyaml --with jsonschema --with openpyxl \
+        --with ./python --with bw2calc pytest -m brightway tests
+"""
+
+from __future__ import annotations
+
+import csv
+import os
+import shutil
+import sys
+import tempfile
+from pathlib import Path
+
+import pytest
+
+pytestmark = pytest.mark.brightway
+
+# bw2data reads BRIGHTWAY_DIR when it is imported: set it first, never touch the user's projects.
+os.environ["BRIGHTWAY_DIR"] = tempfile.mkdtemp(prefix="atlas-lci-bw-")
+
+if os.environ.get("ATLAS_REQUIRE_BRIGHTWAY"):  # CI: a missing package is a failure, not a skip
+    import bw2calc as bc
+    import bw2data as bd
+    import bw2io as bi
+    import openpyxl  # noqa: F401
+    import yaml
+else:
+    yaml = pytest.importorskip("yaml")
+    pytest.importorskip("openpyxl")
+    bd = pytest.importorskip("bw2data")
+    bi = pytest.importorskip("bw2io")
+    bc = pytest.importorskip("bw2calc")
+
+KIT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(KIT / "scripts"))
+sys.path.insert(0, str(KIT / "python"))
+
+import build_lci  # noqa: E402
+from cheme_as_code_lci import install  # noqa: E402
+
+FIXTURES = KIT / "tests" / "fixtures"
+ASU = FIXTURES / "asu-lca"
+METHOD = ("atlas-test", "climate change", "stub GWP100")
+#: factors.yaml units -> the Brightway unit the mappings use, and the factor to it
+PER_UNIT = {"t": 1000.0, "MWh": 1000.0, "kg": 1.0, "kWh": 1.0, "m": 1.0, "m2": 1.0, "m3": 1.0, "ea": 1.0, "tkm": 1.0}
+
+
+@pytest.fixture(scope="module")
+def project():
+    bd.projects.set_current("atlas-lci-test")
+    if "biosphere3" not in bd.databases:
+        bi.create_default_biosphere3()
+    co2 = bd.get_node(database="biosphere3", name="Carbon dioxide, fossil", categories=("air",))
+    method = bd.Method(METHOD)
+    method.register(unit="kg CO2-eq")
+    method.write([(co2.key, 1.0)])
+    return co2
+
+
+def _stub_background(name: str, co2, activities: dict[tuple[str, str, str, str], tuple[float, int]]) -> None:
+    """*activities*: (name, reference product, unit, location) -> (score per unit, production).
+    A treatment activity has production -1; its score is per unit treated, as in core."""
+    if name in bd.databases:
+        del bd.databases[name]
+    data = {}
+    for number, ((act, product, unit, location), (score, production)) in enumerate(sorted(activities.items())):
+        code = f"stub-{number}"
+        data[(name, code)] = {
+            "name": act,
+            "reference product": product,
+            "unit": unit,
+            "location": location,
+            "type": "process",
+            "exchanges": [
+                {"input": (name, code), "amount": float(production), "type": "production"},
+                {"input": co2.key, "amount": float(score), "type": "biosphere"},
+            ],
+        }
+    bd.Database(name).write(data)
+
+
+def _score(code: str, database: str, amount: float = 1.0) -> float:
+    lca = bc.LCA({bd.get_node(database=database, code=code): amount}, METHOD)
+    lca.lci()
+    lca.lcia()
+    return float(lca.score)
+
+
+def _drop(name: str) -> None:
+    if name in bd.databases:
+        del bd.databases[name]
+
+
+# --- ASU-1: the acceptance test ----------------------------------------------------------------
+
+
+def _asu_library(tmp: Path) -> Path:
+    library = tmp / "library"
+    (library / "processes" / "asu-1" / "lca").mkdir(parents=True)
+    (library / "chemicals").mkdir()
+    shutil.copy(KIT / "processes" / "asu-1" / "process.yaml", library / "processes" / "asu-1")
+    shutil.copy(KIT / "chemicals" / "chemicals.yaml", library / "chemicals")
+    for name in ("dataset.yaml", "lca.yaml", "factors.yaml", "results.csv"):
+        shutil.copy(ASU / name, library / "processes" / "asu-1" / "lca")
+    return library  # no lci/: the builder uses the library's lci/mappings.yaml
+
+
+def test_asu_round_trip_reproduces_the_plantcode_baseline(project, tmp_path: Path) -> None:
+    co2 = project
+    out = tmp_path / "out"
+    report = build_lci.build(_asu_library(tmp_path), out, "test")
+    assert report.errors == []
+    workbook = out / "lci" / "cheme-as-code-atlas-test.xlsx"
+
+    mappings = build_lci.load_mappings(KIT / "lci" / "mappings.yaml")
+    factors = {f["id"]: f for f in yaml.safe_load((ASU / "factors.yaml").read_text())["factors"]}
+    stub = {}
+    for tid, entry in mappings["technosphere"].items():
+        if "activity" not in entry or tid not in factors:
+            continue
+        a = entry["activity"]
+        location = "FR" if a["location"] == "site" else a["location"]
+        factor = factors[tid]
+        stub[(a["name"], a["reference_product"], a["unit"], location)] = (factor["values"]["climate-change"] / PER_UNIT[factor["unit"]], 1)
+    _stub_background("stub-ecoinvent", co2, stub)
+    _drop("cheme-as-code-atlas-test")
+
+    result = install(workbook, background="stub-ecoinvent", location="FR")
+    assert result.unlinked == [], result.summary()
+    assert result.written and result.location == "FR" and not result.location_is_default
+    assert result.sign_flipped == [] and result.atlas_links == []
+
+    rows = list(csv.DictReader((ASU / "results.csv").open(encoding="utf-8")))
+    expected = next(float(r["impact"]) for r in rows if r["scenario"] == "baseline" and r["key"] == "total")
+    goxp = _score("asu-1:asu-1-500-t-d-gox:product:GOXP", "cheme-as-code-atlas-test", 1000.0)  # 1 t GOXP
+    # results.csv prints 6 significant digits (152.996): half a unit of the last digit, no more.
+    print(f"ASU-1 round trip: Brightway {goxp!r} kg CO2-eq per t GOXP, plantcode {expected}")
+    assert goxp == pytest.approx(expected, abs=5e-4), f"Brightway {goxp:.6f} vs plantcode {expected}"
+
+    # Allocation conserves the burden: the co-products together carry the unallocated total.
+    dataset = yaml.safe_load((ASU / "dataset.yaml").read_text())
+    amounts = {e["key"]: e["amount"] for e in dataset["exchanges"] if e["type"] == "product"}
+    per_hour = {k: _score(f"asu-1:asu-1-500-t-d-gox:{k}", "cheme-as-code-atlas-test", v) for k, v in amounts.items()}
+    shares = {k: v / sum(per_hour.values()) for k, v in per_hour.items()}
+    assert shares["product:GOXP"] == pytest.approx(0.701, abs=5e-4)  # results.md: exergy, GOXP 70.1 %
+
+
+def test_staged_mapping_flows_exist_in_biosphere3(project) -> None:
+    mappings = build_lci.load_mappings(KIT / "lci" / "mappings.yaml")
+    flows = [e["flow"] for e in mappings["biosphere"].values()] + [e["flow"] for e in mappings["pass_through"].values() if "flow" in e]
+    known = {(f["name"], tuple(f["categories"])) for f in bd.Database("biosphere3")}
+    missing = [f for f in flows if (f["name"], tuple(f["categories"])) not in known]
+    assert missing == []
+
+
+# --- fixture library: atlas linking, treatment sign, refusal, unlinked ------------------------------
+
+FIXTURE_STUB = {
+    ("market for electricity, medium voltage", "electricity, medium voltage", "kilowatt hour", "DE"): (0.4, 1),
+    ("market for water, deionised", "water, deionised", "kilogram", "RoW"): (0.001, 1),
+    ("market for hydrogen, gaseous", "hydrogen, gaseous", "kilogram", "GLO"): (10.0, 1),
+    ("market for nitrogen, liquid", "nitrogen, liquid", "kilogram", "RER"): (0.2, 1),
+    ("market for steel, low-alloyed, hot rolled", "steel, low-alloyed, hot rolled", "kilogram", "GLO"): (2.0, 1),
+    ("treatment of wastewater, average, wastewater treatment", "wastewater, average", "cubic meter", "RoW"): (0.5, -1),
+}
+
+
+def test_fixture_install_links_inside_the_atlas_and_flips_treatment_signs(project, tmp_path: Path) -> None:
+    co2 = project
+    out = tmp_path / "out"
+    assert build_lci.build(FIXTURES / "library", out, "fx").errors == []
+    _stub_background("stub-fixture", co2, FIXTURE_STUB)
+    _drop("cheme-as-code-atlas-fx")
+    db = "cheme-as-code-atlas-fx"
+
+    result = install(out / "lci", background="stub-fixture")  # the folder with index.json
+    assert result.unlinked == [], result.summary()
+    assert result.location == "DE" and result.location_is_default
+    assert len(result.atlas_links) == 1 and "Hydrogen at 30 bar" in result.atlas_links[0]
+    assert len(result.sign_flipped) == 2  # wastewater of the H2 and the O2 activity
+
+    # Brightway stores matrix amounts in single precision (bw_processing.create_array: float32,
+    # ~6e-8 relative), so a hand calculation agrees to about 1e-7, not to machine precision.
+    share = 41.7 / (41.7 + 333.6)  # mass allocation
+    h2 = share / 41.7 * (375.3 * 0.001 + 2293.5 * 0.4 + 0.25 * 0.5 + 0.5 * 2.0)  # H2 emission: CF 0
+    assert _score("fixture-electrolysis:fixture-electrolysis:product:H2", db) == pytest.approx(h2, rel=1e-6)
+    ammonia = "fixture-ammonia:fixture-ammonia-hb:product:ammonia"
+    assert _score(ammonia, db) == pytest.approx(0.178 * h2 + 0.823 * 0.2 + 0.4 * 0.4, rel=1e-6)
+
+    with pytest.raises(ValueError, match="overwrite=True"):
+        install(out / "lci", background="stub-fixture")
+    again = install(out / "lci", background="stub-fixture", prefer_atlas=False, overwrite=True)
+    assert again.ok and again.atlas_links == []
+    assert _score(ammonia, db) == pytest.approx(0.178 * 10.0 + 0.823 * 0.2 + 0.4 * 0.4, rel=1e-6)
+
+
+def test_fixture_install_reports_unlinked_exchanges_and_writes_nothing(project, tmp_path: Path) -> None:
+    co2 = project
+    out = tmp_path / "out"
+    assert build_lci.build(FIXTURES / "library", out, "fx2").errors == []
+    stub = {k: v for k, v in FIXTURE_STUB.items() if not k[0].startswith("market for nitrogen")}
+    _stub_background("stub-partial", co2, stub)
+    _drop("cheme-as-code-atlas-fx2")
+
+    result = install(out / "lci" / "cheme-as-code-atlas-fx2.xlsx", background="stub-partial", location="DE")
+    assert not result.written and "cheme-as-code-atlas-fx2" not in bd.databases
+    assert [(u["name"], u["atlas key"]) for u in result.unlinked] == [("market for nitrogen, liquid", "feed:nitrogen")]
+    assert "NOT WRITTEN" in result.summary()

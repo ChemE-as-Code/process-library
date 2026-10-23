@@ -1,9 +1,31 @@
 name: validate
 on: [pull_request, push]
+
+permissions:
+  contents: read
+
 jobs:
+  # Every process folder with a plant.yaml is a plantcode project, validated on its own.
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      plants: ${{ steps.find.outputs.plants }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - id: find
+        run: echo "plants=$(ls processes/*/plant.yaml | xargs -n1 dirname | jq -R . | jq -cs .)" >> "$GITHUB_OUTPUT"
+
   validate:
+    needs: discover
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        plant: ${{ fromJson(needs.discover.outputs.plants) }}
+    defaults:
+      run:
+        working-directory: ${{ matrix.plant }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       # cheme-as-code and pyDEXPI are private while in development. cheme-as-code is read with the
@@ -26,3 +48,26 @@ jobs:
       - name: Engineering-step gates (informational)
         run: cheme check --no-write
         continue-on-error: true
+
+  # The library contract: manifests, chemical registry, catalog and LCI database build strictly;
+  # the tooling's tests, including the Brightway round trip.
+  library:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: astral-sh/setup-uv@v6
+      - name: tooling tests
+        run: uv run --python 3.12 --with pytest --with pyyaml --with jsonschema --with openpyxl --with ./python --with bw2calc pytest -q tests
+        env:
+          ATLAS_REQUIRE_BRIGHTWAY: "1"
+      # errors fail; warnings (e.g. previews, which the Atlas build renders with cheme) are listed
+      - name: catalog
+        run: uv run scripts/build_catalog.py --library . --out dist
+      - name: LCI database (strict)
+        run: uv run scripts/build_lci.py --library . --out dist --version "ci-${GITHUB_SHA::7}" --strict
+      - uses: actions/upload-artifact@v4
+        with:
+          name: catalog
+          path: dist/
+          retention-days: 14

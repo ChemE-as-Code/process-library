@@ -1,0 +1,19 @@
+# TEST FIXTURE (synthetic numbers): an unallocated LCI dataset in core's lci_dataset format, as
+# `cheme assess lca --write` writes lca/dataset.yaml. Not engineering data.
+schema: cheme/lca/v1
+kind: lci_dataset
+id: fixture-electrolysis
+title: "Fixture: water electrolysis"
+scope: foreground
+basis: 1 h of operation
+exchanges:
+  - {key: feed:WATER, title: Deionised water, type: input, amount: 375.3, unit: kg, provenance: assumed}
+  - {key: feed:POWER, title: Stack and balance-of-plant power, type: input, amount: 2293.5, unit: kWh, link: {factor: electricity, source: fixture grid}}
+  - {key: product:H2, title: Hydrogen at 30 bar, type: product, amount: 41.7, unit: kg}
+  - {key: product:O2, title: Oxygen vented or sold, type: product, amount: 333.6, unit: kg}
+  - {key: emission:H2, title: Hydrogen losses, type: emission, amount: 0.2, unit: kg, cas: 1333-74-0, provenance: assumed}
+  - {key: emission:H2O, title: Water vapour, type: emission, amount: 1.5, unit: kg, free: true, cas: 7732-18-5, source: feed water evaporated}
+  - {key: waste:WASTEWATER, title: Blowdown to treatment, type: output, amount: 0.25, unit: m3, link: {factor: wastewater, source: fixture}}
+  - {key: construction:steel, title: Stack frames and skids, type: input, phase: construction, amount: 0.5, unit: kg, provenance: calculated, link: {factor: steel-sections, source: fixture}, uncertainty: {gsd2: 1.21}}
+allocation: {method: mass, coproducts: [H2, O2], source: fixture}
+provenance: {generator: hand-written fixture}

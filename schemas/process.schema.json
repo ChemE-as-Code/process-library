@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atlas.cheme-as-code.org/schemas/process/v1.json",
+  "title": "Process Atlas manifest (process.yaml)",
+  "description": "What the Process Atlas needs to list, find and link a process. It sits beside the engineering files of one process folder. For a plantcode project, plant.yaml stays the engineering manifest; anything the catalog builder can derive from it (sheets, layout, LCA results) is not repeated here.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "title", "summary", "families", "maturity", "validation", "chemistry"],
+  "properties": {
+    "schema": {"const": "cheme-as-code/process/v1"},
+    "id": {
+      "description": "Stable slug, equal to the folder name. Used in URLs; never reuse or rename once listed.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "title": {"type": "string", "minLength": 3, "maxLength": 120},
+    "summary": {"description": "One or two sentences for cards and search results.", "type": "string", "minLength": 20, "maxLength": 400},
+    "description": {"description": "Longer Markdown text for the process page.", "type": "string"},
+    "families": {
+      "description": "Process families, e.g. air-separation, industrial-gases. Lowercase slugs.",
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": {"$ref": "#/$defs/slug"}
+    },
+    "keywords": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 2}},
+    "maturity": {
+      "description": "How far the design has been taken. concept/screening are research-level; basic-engineering and later carry engineering deliverables.",
+      "enum": ["concept", "screening", "basic-engineering", "detail-engineering", "operating-reference"]
+    },
+    "validation": {
+      "description": "Who has checked the design. Automated checks passing is not a review.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": {"enum": ["unreviewed", "internally-reviewed", "peer-reviewed", "industry-validated"]},
+        "notes": {"type": "string"}
+      }
+    },
+    "chemistry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["inputs", "outputs"],
+      "properties": {
+        "inputs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/flow"}},
+        "outputs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/flow"}},
+        "utilities": {"type": "array", "items": {"$ref": "#/$defs/flow"}}
+      }
+    },
+    "basis": {
+      "description": "Design capacity in words and numbers, e.g. 500 t/d GOX.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["capacity"],
+      "properties": {
+        "capacity": {"type": "string"},
+        "operating_hours_per_year": {"type": "number", "exclusiveMinimum": 0},
+        "location": {"type": "string"}
+      }
+    },
+    "lca": {
+      "description": "How the catalog gets LCA data. auto: from lca/ of a plantcode project.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source"],
+      "properties": {
+        "source": {"enum": ["auto", "none"]},
+        "notes": {"type": "string"}
+      }
+    },
+    "authors": {"type": "array", "items": {"$ref": "#/$defs/person"}},
+    "maintainers": {"type": "array", "items": {"$ref": "#/$defs/person"}},
+    "references": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["title"],
+        "properties": {
+          "title": {"type": "string"},
+          "doi": {"type": "string", "pattern": "^10\\.\\S+/\\S+$"},
+          "url": {"type": "string", "format": "uri"},
+          "note": {"type": "string"}
+        }
+      }
+    },
+    "repository": {
+      "description": "Where the engineering files live, for 'open source files' links. path is relative to the library root.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["url"],
+      "properties": {
+        "url": {"type": "string", "format": "uri"},
+        "path": {"type": "string"},
+        "access": {"enum": ["private", "public"]}
+      }
+    },
+    "publication": {
+      "description": "Metadata only; not a gate for listing.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "status": {"enum": ["internal", "candidate", "public"]},
+        "license": {"type": "string"}
+      }
+    }
+  },
+  "$defs": {
+    "slug": {"type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"},
+    "flow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["chemical", "role"],
+      "properties": {
+        "chemical": {"description": "Slug in chemicals/chemicals.yaml.", "$ref": "#/$defs/slug"},
+        "role": {"enum": ["feedstock", "reactant", "main-product", "co-product", "by-product", "emission", "waste", "utility"]},
+        "note": {"type": "string"},
+        "inventory_key": {"description": "Row key in lca/inventory.csv (e.g. product:GOXP) when the flow has one.", "type": "string"}
+      }
+    },
+    "person": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": {"type": "string"},
+        "orcid": {"type": "string", "pattern": "^\\d{4}-\\d{4}-\\d{4}-\\d{3}[\\dX]$"},
+        "affiliation": {"type": "string"}
+      }
+    }
+  }
+}
