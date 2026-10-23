@@ -3220,7 +3220,7 @@ outputs `estimate/tea.md`, `tea-cashflow.csv`, `tea-sensitivity.csv`, `tea-uncer
    edition: USD 250 to 300 M for a 2,000 t/d plant, no method or cost year stated) is the
    scenario `capex-market-report`, scaled to 500 t/d with the capacity exponent 0.6 (six-tenths
    rule, ASSUMED): 275 M x (500/2000)^0.6 = USD 119.7 M, $656 per t/a, x 3.28 on the base
-   (x 2.98 to 3.58 over the quoted range). At that capital the LCOP is 141 USD/t and the
+   (x 2.98 to 3.58 over the quoted range). At that capital the LCOP is 144 USD/t and the
    decision fails: the two published capital figures differ by a factor of three, which is why
    the ISBL dominates and needs a quotation. OSBL 0: the site supplies
    cooling water and power at the battery limit. Owner's cost and contingency are not decided;
@@ -3234,25 +3234,29 @@ outputs `estimate/tea.md`, `tea-cashflow.csv`, `tea-sensitivity.csv`, `tea-uncer
    mix, not a market price, so it is not booked; as revenue it would lower the LCOP by about
    12 USD/t (2.10 M USD/a over 175,224 t/a of GOX). Air, vent and
    condensate are free. Maintenance 3 % and insurance and local taxes 2 % of fixed capital per
-   year (Towler and Sinnott, typical ranges). Operating labour is not included yet. Discount
+   year (Towler and Sinnott, typical ranges). Operating labour: one shift position around
+   the clock, 4.8 operators per position, at the US mean wage of chemical plant operators
+   (BLS, May 2023, $79,450) plus 25 % supervision (Towler and Sinnott), USD 0.48 M/a or
+   2.7 USD/t; wage only, without employer on-costs and plant overhead, so a lower bound; the
+   staffing is the owner's. Discount
    rate 8 % real (screening, swing 6 to 12 %); construction over two years (40/60); working
    capital 2 % of fixed capital. All ASSUMED where not stated otherwise.
 4. **Rates.** The flowsheet's terminals in case `design`: LOX and LIN 470 kg/h each (the
    flowsheet), not the 600 kg/h of the design basis (D-010 purge and the simulated split). The
    TEA follows the flowsheet, as the LCA does.
 5. **Result** (on the D-066 flowsheet: 10,310 kW power, 113,329 kg/h air). LCOP of GOX
-   70.6 USD/t (Monte Carlo P10 62.0, P50 75.8, P90 92.3 USD/t; P(LCOP <= 100) = 97 % of 2,000
+   73.3 USD/t (Monte Carlo P10 64.8, P50 78.6, P90 95.3 USD/t; P(LCOP <= 100) = 95 % of 2,000
    samples). Electricity is about 40 USD/t of it. The capital dominates (Spearman +0.80), then
-   the power price (+0.37). The decision turns at a power price of 140 USD/MWh (+74 %), at an
-   ISBL of USD 71 M (+95 %), or below 4,305 h/a. At the California power price the LCOP is
-   123 USD/t, at the scaled market-report capital 141 USD/t: **the
+   the power price (+0.37). The decision turns at a power price of 134 USD/MWh (+67 %), at an
+   ISBL of USD 68 M (+86 %), or below 4,684 h/a. At the California power price the LCOP is
+   126 USD/t, at the scaled market-report capital 144 USD/t: **the
    location and the capital decide the case**, so the site's power contract and a budget
    quotation for the main air compressor and cold box are the evidence worth buying first.
 6. **Open.**
    - The estimate is class 5, and stage basic expects class 4 (`tea-class-stage`): the main air
      compressor and cold box need quotations.
    - Market prices for GAN, LOX, LIN and cooling water are still to find.
-   - Owner's cost, contingency, labour, the tax position and the owner's hurdle rate are still
+   - Owner's cost, contingency, the staffing and employment on-costs, the tax position and the owner's hurdle rate are still
      to decide.
    - The gate `kind: tea` waits until the cheme-as-code release that knows it is installed in
      CI (checks/checks.yaml, commented).
