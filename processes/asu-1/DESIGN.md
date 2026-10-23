@@ -2408,3 +2408,31 @@ simulation and design basis stay with the process-simulation work (D-058, D-059,
    of its area gives its text under `reason:`, as E-3102 / E-3103 do. The 39 final datasheets
    lose the generated "DRAFT datasheet ... remove `draft: true`" header; the new four-line header
    names the draft's sources and says the sheet is final. No value changed.
+5. **Support steel against support steel (review10#2).** In seven places a member of one
+   declared support ran through a member of another; cheme-as-code has no rule that tests
+   steel against steel between declared supports (a request for core), so the new
+   `scripts/support_steel_scan.py` scans the model for it (and for support steel nearer than
+   0.1 m to a pipe it does not serve). Fixes in `layout/structures.yaml`:
+   - CW-1004 S1 post-1 and CWR-1003 S1 post-3 (x 58.12 / 58.94, both pipes at 3.84 m): one
+     common T-post at (58.53, 60.63) with a 1.4 m crossbar serving both lines; CWR-1003 S1
+     post-3 is removed. The column stands between the DN300 pipes, 0.15 m clear of each.
+   - LOX-4003 S1 post-2 and S3 post-5 (crossing crossbars at the S3 return leg): one common
+     T-post at (130.544, 110.05), 1 m crossbar under both legs (x 130.294 / 130.794 at 4.0 m),
+     serving S1 and S3; S3 post-5 is removed. Spans stay within the 2.1 m DN 25 limit (S1 1.92 m
+     from post-1; S3 about 2.1 m along the pipe from post-4).
+   - LIN-4003 S3 post-3 / post-6 / post-7: crossbars 0.4 m (were 1 m; the DN 25 jacketed pipe
+     is 0.13 m over its insulation), clear of the LIN-4002 S4 post-2 / post-4 columns at x 144.52.
+   - LIN-3001 S2 post-7: 0.21 m west along its pipe to x 143.55, its column 0.25 m clear of the
+     narrowed LIN-4003 S3 post-7 crossbar (spans 1.87 / 2.29 m between posts 6 and 8).
+   - CWR-3001 S1 post-6 and CWR-4002 S1 post-1: crossbars 0.5 m (were 1 m) under their DN150 /
+     DN100 pipes, 0.14 / 0.12 m clear of the LIN-3001 S1 post-7 and GAN-4004 S1 post-1 columns.
+   After the rebuild the scan finds no overlapping steel and no pipe-support member within
+   0.1 m of a foreign pipe. Two near places stay, not overlapping: the intended GOX-4002 S12
+   stub SP-6.5 standing on the GOX-4002 S4 post-1 crossbar (D-060 (2)) and LIN-4003 S2 post-3
+   beside LIN-4004 S2 post-5 (0.04 m). Findings unchanged: free-span 5, support-missing 16,
+   operability 9, no clash, steel-in-way or support-stub finding; two posts fewer in the
+   take-off (steel 578.8 -> 578.1 t, concrete 186.1 -> 185.8 m3; LCA climate change of the
+   construction share 33.7519 -> 33.7517 kg CO2-eq/t GOX). Observed, not changed: LIN-3001 S2 posts 6 .. 8 (top 13.026 m) stand 0.5 m below
+   their run since D-055 (5) raised the tank routes, so the model counts that run as
+   unsupported (the support-missing info); raising them leaves the 4.2 m end span D-060 (2)
+   kept as an info rather than a warning. It stays with the stress engineer (D-062 (4)).
