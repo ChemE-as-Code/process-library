@@ -37,7 +37,10 @@ rules:
     # GOX / GAN battery limit bleeds: above the PR1 top tier (9 m) and clear of grade
     - {lines: [VNT-4007], rise_m: 9, max_rise_m: 12}
     # the drain vaporizer vent, the evaporative cooler top vent (above its top platform)
-    - {lines: [VNT-3001, WN-1002], max_rise_m: 10}
+    - {lines: [VNT-3001], max_rise_m: 10}
+    # the C-1102 top vent with its D-071 zone radius 6.5 m (58,900 kg/h, DN900): its outlet
+    # rises until that sphere clears the 21 m top platform plus the walkway headroom
+    - {lines: [WN-1002], radius_m: 6.5, max_rise_m: 12}
     # the LOX / LIN tank boil-off vents, vacuum breakers and relief tailpipes on the west side
     # of the tank roofs: risers clear of the stair, landing and roof platform (D-038 (2))
     - {lines: [VNT-4001, VNT-4005], max_rise_m: 8}
@@ -280,8 +283,9 @@ lines:
   # at [132.9, 47.1, 8.25] through its declared opening (sill 7.95 m); the booster suction
   # AIR-3005 leaves its tee TA at [132.914, 48.2] outside the north face (it started 0.5 m east
   # of the tee, a detached branch)
-  - {line: AIR-2002, segment: P-02/Line_AIR2002_S1, route: [[103.15, 62, 2.3], [104.166, 62, 2.3], [104.166, 62, 5.746], [104.166, 66.129, 5.746], [104.166, 66.129, 7.254], [124.455, 66.129, 7.254]]}
-  - {line: AIR-2002, segment: P-03/Line_AIR2002_S1, route: [[124.455, 66.129, 7.254], [134.414, 66.129, 7.254], [134.414, 66.129, 8.254], [134.414, 51.129, 8.254], [132.914, 51.129, 8.254], [132.914, 48.2, 8.254]]}
+  # (D-071: its PR1 lane moved from y 66.13 to 66.5 for the DN1000 WN-1001 beside it)
+  - {line: AIR-2002, segment: P-02/Line_AIR2002_S1, route: [[103.15, 62, 2.3], [104.166, 62, 2.3], [104.166, 62, 5.746], [104.166, 66.5, 5.746], [104.166, 66.5, 7.254], [124.455, 66.5, 7.254]]}
+  - {line: AIR-2002, segment: P-03/Line_AIR2002_S1, route: [[124.455, 66.5, 7.254], [134.414, 66.5, 7.254], [134.414, 66.5, 8.254], [134.414, 51.129, 8.254], [132.914, 51.129, 8.254], [132.914, 48.2, 8.254]]}
   - {line: AIR-2002, segment: Line_AIR2002_S2, route: [[132.914, 48.2, 8.254], [132.914, 44.629, 8.254], [132.414, 44.629, 8.254], [132.414, 41.629, 8.254], [132.4, 41.629, 8.254], [132.4, 41.4, 8.254], [132.4, 41.4, 9.416], [133.9, 41.4, 9.416], [133.9, 41.4, 8.4]]}
   - {line: AIR-1004, segment: P-01/Line_AIR1004_S2, route: [[71.1, 52, 25.127], [71.1, 52, 26.464]]}
   - {line: AIR-1004, segment: P-02/Line_AIR1004_S1, route: [[75.705, 64.355, 7.305], [89.6, 64.355, 7.305], [89.6, 64.355, 5.695], [89.6, 63.5, 5.695], [89, 63.5, 5.695], [89, 44.855, 5.695], [89, 44.855, 7.195], [89, 43.355, 7.195], [90, 43.355, 7.195], [90, 41.855, 7.195]]}
@@ -347,11 +351,15 @@ lines:
   # GAN BL bleed outlet at 15.6 m (was 14.7): its 5 m N2 zone stays clear of the BL valve
   # platform (D-047)
   - {line: VNT-4007, segment: Line_VNT4007_S1, route: [[171, 62.2, 5.742], [171, 62.2, 15.6]]}
-  - {line: WN-1001, segment: P-01/Line_WN1001_S1, route: [[97.731, 65.419, 7.356], [59.072, 65.419, 7.356], [59.072, 65.419, 5.644], [59.072, 60, 5.644], [59.072, 60, 5.666], [57.65, 60, 5.666]]}
-  - {line: WN-1001, segment: P-03/Line_WN1001_S1, route: [[133.5, 59.8, 5.543], [135, 59.8, 5.543], [135, 59.8, 5.644], [135.516, 59.8, 5.644], [135.516, 65.419, 5.644], [134.016, 65.419, 5.644], [134.016, 65.419, 7.356], [97.731, 65.419, 7.356]]}
+  # WN-1001 DN1000 (D-071): on the PR1 7 m tier (bottom of pipe on the beams, centre 7.508) in
+  # its lane moved from y 65.42 to 65.6 (AIR-2002 moved north to 66.5, WN-3003 at 64.51), its
+  # legs off the rack at 5.85 m, clear of the 5 m tier lines below
+  - {line: WN-1001, segment: P-01/Line_WN1001_S1, route: [[97.731, 65.6, 7.508], [59.072, 65.6, 7.508], [59.072, 65.6, 5.85], [59.072, 60, 5.85], [59.072, 60, 5.666], [57.65, 60, 5.666]]}
+  - {line: WN-1001, segment: P-03/Line_WN1001_S1, route: [[133.5, 59.8, 5.543], [135, 59.8, 5.543], [135, 59.8, 5.85], [135.7, 59.8, 5.85], [135.7, 65.6, 5.85], [132.65, 65.6, 5.85], [132.65, 65.6, 7.508], [97.731, 65.6, 7.508]]}
   - {line: WN-3002, segment: Line_WN3002_S1, route: [[134.5, 39.8, 8.4], [134.5, 39.8, 10.228], [137.5, 39.8, 10.228], [137.5, 39.8, 5.543], [136.5, 39.8, 5.543], [136.5, 43.3, 5.543], [137, 43.3, 5.543], [137, 45.8, 5.543], [134, 45.8, 5.543], [134, 48.3, 5.543], [133.5, 48.3, 5.543], [133.5, 54.8, 5.543]]}
   - {line: WN-3002, segment: Line_WN3002_S2, route: [[133.5, 54.8, 5.543], [133.5, 59.8, 5.543]]}
-  - {line: WN-3003, segment: Line_WN3003_S1, route: [[133.5, 59.8, 5.543], [133.5, 62.8, 5.543], [134.5, 62.8, 5.543], [134.5, 64.507, 5.543], [134.5, 64.507, 7.305], [182, 64.507, 7.305], [182, 64.507, 5.543], [182, 68, 5.543], [182, 68, 6.805], [182.993, 68, 6.805], [182.993, 113, 6.805], [182.993, 113, 5.043], [188, 113, 5.043], [188, 113, 4], [189, 113, 4]]}
+  # WN-3003 DN900 (D-071): bottom of pipe on the PR1 7 m and PR3 6.5 m beams
+  - {line: WN-3003, segment: Line_WN3003_S1, route: [[133.5, 59.8, 5.543], [133.5, 62.8, 5.543], [133.5, 62.8, 5.7], [134.5, 62.8, 5.7], [134.5, 64.507, 5.7], [134.5, 64.507, 7.457], [182.0, 64.507, 7.457], [182.0, 64.507, 5.7], [182.0, 65.6, 5.7], [182.45, 65.6, 5.7], [182.45, 68, 5.7], [182.45, 68, 6.957], [183.0, 68, 6.957], [183.0, 113, 6.957], [183.0, 113, 5.043], [188, 113, 5.043], [188, 113, 4], [189, 113, 4]]}
 # Operators of the valves and transmitters that stay out of reach from a floor (D-040). The
 # criteria (ASSUMED, the owner's standard and the valve and instrument suppliers confirm them):
 # a chain wheel only on a handwheel valve in infrequent use (isolation for maintenance or a
@@ -382,6 +390,7 @@ operators:
   - {item: FV-1108, kind: remote_operator, basis: "DCAC CW flow control valve, actuated (D-040)"}
   - {item: LV-1106, kind: remote_operator, basis: "DCAC sump level control valve, actuated (D-040)"}
   - {item: LV-1107, kind: remote_operator, basis: "evaporative cooler level control valve, actuated (D-040)"}
+  - {item: PV-3110B, kind: remote_operator, basis: "C-1102 bypass / start-up vent valve, actuated (PIC-3110 split range); DN900 since D-071, its handwheel 2.6 m above VP-1: air set and positioner on VP-1 (D-071)"}
   - {item: LV-1114, kind: remote_operator, basis: "DCAC chimney tray level control valve on CHWR-1001, actuated; air set and positioner on the C-1101 11.3 m platform beside it (D-069)"}
   - {item: TV-3124, kind: remote_operator, basis: "E-3105 chilled-water temperature control valve, actuated; air set and positioner on a pedestal at grade beside E-3105 (D-069)"}
   - {item: TV-1105, kind: remote_operator, basis: "chilled water temperature control valve, actuated (D-040)"}

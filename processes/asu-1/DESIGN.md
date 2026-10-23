@@ -2847,3 +2847,78 @@ sized on 8 MW.
 
 Open: the load list, single-line diagram, motor starting study, MV cable sizing and the motor
 supplier's weight.
+
+## D-071 Waste-N2 path: WN-1001 DN1000, WN-1002 DN900, WN-3003 bypass DN900, LP top pressure, zones (2026-10-23)
+Answers D-067's open items on the waste-N2 hydraulics, WN-1001, WN-3003 and the D-031 zones.
+
+Decision:
+- (1) **Line sizes** (P-01, P-03, line list, C-1102 datasheet).
+  - WN-1001 goes from DN700 to DN1000: 58,074 kg/h at 16.2 m/s (DN700: 33.6 m/s). PV-3110A,
+    the WN-3002 tee branch and C-1102 N1 become DN1000, with a 900 x 1000 reducer at the tee.
+  - WN-1002 goes from DN700 to DN900: ~58,900 kg/h wet at 21 m/s (DN700: 36 m/s, above the 25
+    m/s of D-016). C-1102 N2 becomes DN900.
+  - WN-3003 goes from DN600 to DN900 (PV-3110B, S-3101): 19.9 m/s for the full bypass (DN600:
+    46 m/s). PV-3110B was already drawn and stays the bypass valve: no flow in normal
+    operation, all of S12B intermittently.
+  - WN-3002 stays DN900: 76,560 kg/h, 25.3 m/s, at the D-016 limit.
+- (2) **Hydraulics** (scripts/datasheet_sizing.py section 11). Darcy-Weisbach with Colebrook
+  (cheme hydraulics), commercial steel, along the routed lengths and bends of
+  layout/plant-model.yaml. Elbow K 0.75 and tee K 0.4 / 1.0 (Perry's Table 6-4). Large pipes
+  take the ASME B36.10M OD with a 9.53 mm wall, ASSUMED: cheme's wall table ends at DN600.
+  | stretch | flow, kg/h | routed | drop |
+  |---|---|---|---|
+  | WN-3001 DN800 (cold, ~88 K) | 76,560 | 81.6 m | 2.1 kPa |
+  | WN-3002 DN900 | 76,560 | 34.5 m | 3.6 kPa |
+  | WN-1001 DN1000 (DN900 / DN700) | 58,074 | 95.5 m | 1.7 (2.6 / 7.5) kPa |
+  | WN-1002 DN900 (DN700) | 58,930 | 6.9 m | 0.4 (1.3) kPa with the exit |
+  | WN-3003 DN900 (DN800 / DN600), bypass | 58,074 | 116.6 m | 3.6 (6.0 / 20.3) kPa |
+
+  **The LP column top pressure of 1.30 bara holds**, on three conditions:
+  - the flowsheet puts 15 kPa between the LP top (S16, 1.30 bara) and the E-3101 warm end
+    (S17, 1.15 bara). Less the 2.1 kPa of WN-3001, that leaves 12.9 kPa for the waste passages
+    of E-3102 and E-3101, which the cold box vendor confirms;
+  - from 115 kPa(a) at E-3101, WN-3002 and WN-1001 take 5.3 kPa, which leaves PV-3110A 4.7 kPa
+    at normal flow down to the 105 kPa(a) of S12B at C-1102;
+  - C-1102's packing, distributor and mist eliminator get 3.3 kPa (33 mbar) down to the
+    atmosphere through WN-1002. That allowable is now in the C-1102 datasheet for the supplier.
+
+  With WN-1001 at DN700, PV-3110A and C-1102 together would have only 2.2 kPa. The LP top would
+  then have to rise by several kPa: the assumption would not hold. In a full bypass through
+  WN-3003 at DN900, WN-3002 and WN-3003 take 7.2 kPa, which leaves 6.5 kPa for PV-3110B and the
+  S-3101 silencer at 58 t/h (supplier). At DN600 the line alone would take 24 kPa, lifting the
+  LP top by at least ~0.1 bar during a bypass.
+- (3) **Routing and rack fill.**
+  - WN-1001 is re-pinned on the PR1 7 m tier (centre 7.508, pipe bottom on the beams) in the
+    lane at y 65.6. AIR-2002's lane moves from y 66.13 to 66.5 to make room, and the WN-1001
+    risers are moved clear of PR1 bent 17, AIR-2002 and WN-3003.
+  - WN-1001 runs 3.0 m inside the rack footprint below the tier to reach its riser west of bent
+    17. The tier finding is accepted in checks/checks.yaml with that reason.
+  - WN-3003 is re-pinned for its DN900 (PR1 7 m, PR3 6.5 m); its PR3 down-leg is moved clear of
+    a VNT-4002 post and of VNT-4003.
+  - VP-1 moves 0.35 m west. PV-3110B, whose handwheel is now 2.6 m above VP-1, gets a remote
+    operator.
+  - Rack fill: PR1 7 m tier 3.55 of 8 m (44 %), PR3 6.5 m tier 1.44 of 3 m (48 %). The model
+    has no clash; pipe take-off 5,178 m.
+- (4) **Zones (D-031), re-checked with the new flows** (ASSUMED screening; the radius table
+  ignores the release rate):
+  - WN-1002 now vents ~58,900 kg/h (1.87 x). It leaves at about the same velocity through a 1.29
+    x larger outlet, so a jet's reach to a given dilution scales with the diameter: the new
+    explicit zone Z-N2-WN1002 is a 6.5 m sphere. The vent rule raises the outlet from 27.6 to
+    29.3 m. At the C-1102 top platform (21 m, within ~3 m of the axis) the sphere stays above the
+    2.2 m headroom.
+  - S-3101 (Z-N2-V1) no longer vents in normal operation, but takes up to ~46,000 Nm3/h in a
+    bypass (3.7 x the former 12,500). The new explicit zone Z-N2-V1B is a 10 m sphere
+    (5 m x 3.7^0.5, the outlet growing with the square root of the flow). It reaches grade
+    within 6 m of the silencer, up to 4 m south of the vent area V1: V1 stays fenced and is
+    entered with a personal O2 monitor.
+  - The layout model reports no walkway, escape or separation finding for either zone.
+
+Reason: D-067 grew the waste N2 to C-1102 1.85-fold and made WN-3003 the bypass, so the line
+sizes, the pressure balance that sets the LP column top and the inert-vent zones had to be
+checked.
+
+Open:
+- the cold box vendor's waste-passage drops (12.9 kPa allowed);
+- PV-3110A / PV-3110B sizing (4.7 kPa at normal flow, and the bypass);
+- C-1102 (3.3 kPa) and S-3101 at 58 t/h, with their suppliers;
+- the vent study (D-031) replaces the screening zones.

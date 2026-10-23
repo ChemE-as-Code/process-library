@@ -733,6 +733,87 @@ print(
     f"{283.15 - t_as:.3g} K above it"
 )
 
+print("== section 11 (DESIGN.md D-071 (2)) Waste-N2 path hydraulics along the routed lines (LP top pressure check)")
+import re as _re  # noqa: E402
+
+from chemeascode.domains.process import hydraulics as hy  # noqa: E402
+
+xw = fractions("S17")
+# Yoon-Thodos for the waste N2 (93.6 % N2) taken as nitrogen: the O2 / Ar fractions change it < 2 %
+MU_WN = Yoon_Thodos(286.15, critical.Tc("7727-37-9"), critical.Pc("7727-37-9"), 28.0134)
+ROUGH = 4.6e-5  # commercial steel, Moody (1944), as the routed-line method (ASSUMED)
+
+
+def rho_wn(p_kpa: float) -> float:
+    return adapter.flash(Inputs(286.15, p_kpa, xw)).density
+
+
+# cheme's wall table ends at DN 600: the large waste-N2 lines take the ASME B36.10M outside
+# diameter of their NPS and the standard wall 9.53 mm (ASSUMED, outside cheme's table)
+OD_LARGE = {600: 0.6096, 700: 0.7112, 800: 0.8128, 900: 0.9144, 1000: 1.016}
+K_ELBOW = hy.fitting_k("elbow_90").value
+MODEL = yaml.safe_load((ROOT / "layout/plant-model.yaml").read_text(encoding="utf-8"))
+PIPES = {p["id"]: p for p in MODEL.get("pipes", []) if isinstance(p, dict) and "id" in p}
+
+
+def route_of(pipe_ids):
+    """Length m and 90 deg bends of the routed pipes (layout/plant-model.yaml)."""
+    length, bends = 0.0, 0
+    for pid in pipe_ids:
+        pts = np.array(PIPES[pid]["points"], dtype=float)
+        seg = np.diff(pts, axis=0)
+        lens = np.linalg.norm(seg, axis=1)
+        keep = seg[lens > 0.3]  # jogs under 0.3 m are not counted as bends (ASSUMED)
+        length += float(lens.sum())
+        bends += sum(1 for a, b in zip(keep[:-1], keep[1:]) if abs(float(np.dot(a, b))) < 1e-9)
+    return length, bends
+
+
+def darcy(m_kg_h: float, p_kpa: float, dn: int, length: float, k: float) -> tuple[float, float]:
+    """kPa and m/s: Darcy-Weisbach, Colebrook friction factor (cheme hydraulics), ID = OD - 2 x
+    9.53 mm, commercial steel roughness."""
+    d = OD_LARGE[dn] - 2 * 0.00953
+    seg = hy.Segment(length, d, ROUGH, {"fittings": k})
+    loss = hy.line_loss(m_kg_h / 3600.0, rho_wn(p_kpa), MU_WN, [seg])
+    return loss.pressure_drop, loss.segments[0].velocity
+
+
+m17, m12b = flow("S17"), flow("S12B")
+print(f"  waste N2 at 13 C: rho {rho_wn(112.0):.4g} kg/m3 at 112 kPa(a) (property adapter), mu "
+      f"{MU_WN * 1e6:.4g} uPa s (Yoon-Thodos, nitrogen); elbows K {K_ELBOW} each, tee K 0.4 run / 1.0 "
+      f"branch (Perry's Table 6-4); control valves PV-3110A/B and the C-1102 internals not in the "
+      f"line loss")
+L3002, B3002 = route_of(["P-03/Line_WN3002_S1", "P-03/Line_WN3002_S2"])
+dp3002, v3002 = darcy(m17, 112.0, 900, L3002, B3002 * K_ELBOW + 0.4)
+print(f"  WN-3002 DN900 E-3101/N3 -> WN-1001 tee: {L3002:.4g} m, {B3002} bends, {m17:g} kg/h: "
+      f"{dp3002:.3g} kPa ({v3002:.3g} m/s)")
+L1001, B1001 = route_of(["P-03/Line_WN1001_S1", "P-01/Line_WN1001_S1"])
+for dn in (700, 900, 1000):
+    dp, v = darcy(m12b, 107.0, dn, L1001, B1001 * K_ELBOW + 1.0 + 1.0)  # tee branch + entry
+    print(f"  WN-1001 DN{dn} tee -> C-1102/N1: {L1001:.4g} m, {B1001} bends, {m12b:g} kg/h: {dp:.3g} "
+          f"kPa ({v:.3g} m/s; K: bends + tee branch 1.0 + nozzle entry 1.0)")
+L1002, B1002 = route_of(["P-01/Line_WN1002_S1"])
+for dn in (700, 900):
+    dp1002, v1002 = darcy(m12b + 856.0, 102.0, dn, L1002, B1002 * K_ELBOW + 0.5 + 1.0)
+    print(f"  WN-1002 DN{dn} C-1102 top vent: {L1002:.4g} m, {m12b + 856:g} kg/h wet (dry-gas "
+          f"density, ASSUMED): {dp1002:.3g} kPa ({v1002:.3g} m/s; K: entry 0.5 + exit 1.0)")
+# the cold waste N2 inside the cold box (WN-3001, DN800): density at the mean of S16 / S16B
+L3001, B3001 = route_of(["P-03/Line_WN3001_S1", "P-03/Line_WN3001_S2"])
+t_cold = 0.5 * (kelvin("S16") + kelvin("S16B"))
+rho_c = adapter.flash(Inputs(t_cold + 2.0, 130.0, fractions("S16"))).density
+mu_c = Yoon_Thodos(t_cold, critical.Tc("7727-37-9"), critical.Pc("7727-37-9"), 28.0134)
+seg_c = hy.Segment(L3001, OD_LARGE[800] - 2 * 0.00953, ROUGH, {"fittings": B3001 * K_ELBOW})
+lc = hy.line_loss(flow("S16") / 3600.0, rho_c, mu_c, [seg_c])
+print(f"  WN-3001 DN800 (cold, both segments, about {t_cold:.4g} K, rho {rho_c:.4g} kg/m3): {L3001:.4g} m, "
+      f"{B3001} bends, {flow('S16'):g} kg/h: {lc.pressure_drop:.3g} kPa ({lc.segments[0].velocity:.3g} m/s)")
+L3003, B3003 = route_of(["P-03/Line_WN3003_S1"])
+for dn in (600, 800, 900):
+    dp, v = darcy(m12b, 108.0, dn, L3003, B3003 * K_ELBOW + 0.4 + 1.0)
+    print(f"  bypass WN-3003 DN{dn} to S-3101: {L3003:.4g} m, {B3003} bends, {m12b:g} kg/h (all of "
+          f"S12B, D-067): {dp:.3g} kPa ({v:.3g} m/s); silencer S-3101 and PV-3110B extra")
+dp3002b, _ = darcy(m17, 112.0, 900, L3002, B3002 * K_ELBOW + 0.4)
+print(f"  (in bypass WN-3002 still carries {m17:g} kg/h: {dp3002b:.3g} kPa)")
+
 print("== section 10 (DESIGN.md D-068 (9)) Cooling water and line velocities")
 cw = {"MAC Q1 (DWSIM)": 7559.87, "DCAC lower Q2 (DWSIM)": 710.177, "GOX compressor Q3 (DWSIM)": 2042.02,
       "GAN compressor Q4 (DWSIM)": 123.368, "E-3104 Q5 (DWSIM)": 126.127}
