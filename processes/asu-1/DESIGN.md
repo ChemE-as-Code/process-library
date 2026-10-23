@@ -1836,3 +1836,17 @@ into the electrical list, cable sizing and the lifting study for a margin the ve
 Open: the humidity of S1 (D-053 (1): 0.25 mol% against the design basis 80 % RH) changes the
 MAC coolers' duty by ~0.9 MW once reconciled; the vendor's efficiencies replace the ASSUMED
 0.78 to 0.82. Rerun `cheme process simulate --fill` after either.
+
+## D-060 Issue #8 round: core#66 rebuild, supports, datasheet markers, pump heads, valves (2026-10-23)
+Numbered from D-060: D-058 and D-059 are kept for the parallel process-simulation work (inlet
+humidity, double-column simulation, E-3102 / E-3103), which this round does not touch
+(`process/flowsheet.yaml`, `simulation.yaml`, `design-basis.yaml` unchanged here).
+1. **Rebuilt with core fix/core-66 (f052dd8).** The layout model, lifting study, take-off,
+   estimates and cable schedule are rebuilt; only generator fingerprints and generated proposal
+   ids and reasons change: valve access platform proposals are now `VP-<first valve tag>`
+   (the pinned `VP-1` .. `VP-9` keep their ids), support proposals `<pipe>/SP-<arc in m>` (the
+   pinned `post-<k>` keep theirs). Proposed posts now keep 0.1 m (`support_pipe_clearance_m`,
+   ASSUMED) from the pipes they do not carry: of 35 proposals 6 moved along their pipe, 14 say
+   "place it by hand". The new vent-outlet check (open ends beside a walking surface,
+   `vent_side_clearance_m` 1.5 m) finds nothing. No route, item or finding count changes:
+   0 errors; free-span 8, support-missing 16 (10 accepted, D-049), operability 14.
