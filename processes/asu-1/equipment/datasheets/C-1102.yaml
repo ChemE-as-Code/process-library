@@ -15,8 +15,8 @@ operating:
   inlet_temperature:
     value: 13.0
     unit: °C
-    source: 'process/flowsheet.yaml stream S12B (case design), assumed: the E-3101 warm end at 13 C
-      (DESIGN.md D-061), outlet of the splitter X3101'
+    source: 'process/flowsheet.yaml stream S12B (case design), assumed: the E-3101 warm end at 13 C (DESIGN.md
+      D-061), outlet of the splitter X3101'
     assumed: true
   inlet_flow:
     value: 31450.0
@@ -42,6 +42,35 @@ materials:
   main:
     value: CS lined / PP packing
     source: equipment/equipment-list.yaml
+dimensions:
+  orientation: vertical
+  outside_diameter:
+    value: 4.5
+    unit: m
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.diameter'
+  overall_height:
+    value: 22.0
+    unit: m
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.height'
+  head:
+    value: ellipsoidal_2_1
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.head'
+  support:
+    type:
+      value: skirt
+      source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.support'
+    height:
+      value: 3.765
+      unit: m
+      source: 'cheme datasheets fill: layout/plant-model.yaml parts C-1102/shell, C-1102/skirt: the bottom
+        tangent line above the base (the 3D model''s proportions, not a design)'
+      assumed: true
+  tangent_length:
+    value: 17.11
+    unit: m
+    source: 'cheme datasheets fill: layout/plant-model.yaml part C-1102/shell: the generated shell between
+      the heads (the 3D model''s proportions, not a vessel design)'
+    assumed: true
 nozzles:
 - name: N1
   dn: 700
@@ -84,21 +113,21 @@ type_specific:
   number_of_stages:
     value: not_applicable
     unit: ''
-    reason: an evaporative cooler (water cooled by evaporation into dry waste N2 on packing), not a
-      distillation; its packing is sized in transfer units (packing_height_m), not in stages
+    reason: an evaporative cooler (water cooled by evaporation into dry waste N2 on packing), not a distillation;
+      its packing is sized in transfer units (packing_height_m), not in stages
   adiabatic_saturation_temperature_degc:
     value: 2.3
     unit: degC
-    source: 'scripts/datasheet_sizing.py section 9 (DESIGN.md D-063 (3)): energy balance of S12B (dry, 13 C, 105 kPa(a), 31,450
-      kg/h) saturated with water fed at that temperature (N2 enthalpy property adapter, water IAPWS-95;
-      psychrometry, Perry''s 8th ed. Section 12): the lowest water temperature the dry waste N2 can reach
-      (8.54 C with the former 25 C inlet, D-060 (3))'
+    source: 'scripts/datasheet_sizing.py section 9 (DESIGN.md D-063 (3)): energy balance of S12B (dry,
+      13 C, 105 kPa(a), 31,450 kg/h) saturated with water fed at that temperature (N2 enthalpy property
+      adapter, water IAPWS-95; psychrometry, Perry''s 8th ed. Section 12): the lowest water temperature
+      the dry waste N2 can reach (8.54 C with the former 25 C inlet, D-060 (3))'
     assumed: true
   gas_load_factor_pa05:
     value: 0.492
     unit: Pa^0.5
-    source: 'scripts/datasheet_sizing.py section 9 (DESIGN.md D-063 (3)): F = u rho^0.5, 31,450 kg/h at 13 C, 105 kPa(a) (rho
-      1.247 kg/m3, property adapter), D 4.5 m (equipment list): u 0.440 m/s'
+    source: 'scripts/datasheet_sizing.py section 9 (DESIGN.md D-063 (3)): F = u rho^0.5, 31,450 kg/h at
+      13 C, 105 kPa(a) (rho 1.247 kg/m3, property adapter), D 4.5 m (equipment list): u 0.440 m/s'
     assumed: true
   liquid_load_m3_m2h:
     value: 6.29
@@ -108,20 +137,20 @@ type_specific:
   duty_kw:
     value: supplier
     unit: kW
-    source: 'with the C-1101 packing supplier: the chilled-water duty is the C-1101 upper section''s, set by
-      the intermediate air temperature the supplier chooses (C-1101 total 1,201 kW, D-058); the waste N2
-      take-up of water follows from it'
+    source: 'with the C-1101 packing supplier: the chilled-water duty is the C-1101 upper section''s,
+      set by the intermediate air temperature the supplier chooses (C-1101 total 1,201 kW, D-058); the
+      waste N2 take-up of water follows from it'
   packing_height_m:
     value: supplier
     unit: m
-    source: 'packing supplier: transfer units of the chosen packing. Enquiry basis: water cooled to 10 C by
-      31,450 kg/h dry waste N2 at 13 C, 1.05 bara; the 10 C outlet is 7.7 K above the N2''s adiabatic
+    source: 'packing supplier: transfer units of the chosen packing. Enquiry basis: water cooled to 10
+      C by 31,450 kg/h dry waste N2 at 13 C, 1.05 bara; the 10 C outlet is 7.7 K above the N2''s adiabatic
       saturation temperature (2.3 C)'
   flooding_diameter_m:
     value: supplier
     unit: m
-    source: 'packing supplier''s hydraulic rating (no flooding correlation in cheme-as-code is cleanly
-      sourced); the 4.5 m of the equipment list (ASSUMED) runs at F 0.49 Pa^0.5 and 6.3 m3/(m2 h)'
+    source: packing supplier's hydraulic rating (no flooding correlation in cheme-as-code is cleanly sourced);
+      the 4.5 m of the equipment list (ASSUMED) runs at F 0.49 Pa^0.5 and 6.3 m3/(m2 h)
   process_streams:
   - stream: S12B
     direction: in
@@ -146,5 +175,5 @@ type_specific:
 sizing_basis: []
 notes: 'Waste N2 25,000 Nm3/h cools water to ~10 C, top vent to atmosphere. ASSUMED. DESIGN.md D-060 (3),
   D-063: adiabatic saturation limit 2.3 C (waste N2 at 13 C since D-061) and hydraulic loads calculated;
-  duty, packing height and flooding diameter are the packing supplier''s (markers); the stage fields do not
-  apply (not a distillation).'
+  duty, packing height and flooding diameter are the packing supplier''s (markers); the stage fields do
+  not apply (not a distillation).'

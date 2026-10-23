@@ -10,14 +10,14 @@ operating:
   inlet_pressure:
     value: 8.25
     unit: bar(a)
-    source: 'process/flowsheet.yaml stream S5B (case design), assumed: DESIGN.md D-061 (S4D 8.45 bara less
-      0.2 bar in E-3101; E-3104 without pressure drop)'
+    source: 'process/flowsheet.yaml stream S5B (case design), assumed: DESIGN.md D-061 (S4D 8.45 bara
+      less 0.2 bar in E-3101; E-3104 without pressure drop)'
     assumed: true
   inlet_temperature:
     value: -124.7
     unit: °C
-    source: 'process/flowsheet.yaml stream S5B (case design), assumed: DESIGN.md D-061, the inlet that gives
-      the -178 C exhaust at eta_s 0.85'
+    source: 'process/flowsheet.yaml stream S5B (case design), assumed: DESIGN.md D-061, the inlet that
+      gives the -178 C exhaust at eta_s 0.85'
     assumed: true
   inlet_flow:
     value: 14870.0
@@ -53,6 +53,28 @@ materials:
   main:
     value: SS / aluminium wheel
     source: equipment/equipment-list.yaml
+dimensions:
+  overall_length:
+    value: 3.0
+    unit: m
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.length'
+  overall_width:
+    value: 3.0
+    unit: m
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.width'
+  overall_height:
+    value: 3.0
+    unit: m
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.height'
+  axis_deg:
+    value: 0.0
+    unit: deg
+    source: 'cheme datasheets fill: layout/plant-model.yaml KT-3101 rotation_deg (layout/equipment-placement.yaml)'
+weights:
+  empty:
+    value: 8.0
+    unit: t
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.weight (empty)'
 nozzles:
 - name: N1
   dn: 150
@@ -62,8 +84,7 @@ nozzles:
   face: top
   offset_m: 0.0
   elevation_m: 3.0
-  location_source: layout/equipment-placement.yaml (expander inlet on top, on the centre;
-    D-055 (8))
+  location_source: layout/equipment-placement.yaml (expander inlet on top, on the centre; D-055 (8))
 - name: N2
   dn: 350
   lines:
@@ -72,8 +93,7 @@ nozzles:
   face: side
   orientation_deg: 90
   elevation_m: 1.5
-  location_source: layout/equipment-placement.yaml (exhaust north into the cold box; D-029,
-    D-055 (8))
+  location_source: layout/equipment-placement.yaml (exhaust north into the cold box; D-029, D-055 (8))
 - name: I1
   lines: []
   source: pid/P-03.xml
@@ -103,10 +123,10 @@ type_specific:
   fluid_power_kw:
     value: 198.4
     unit: kW
-    source: 'scripts/datasheet_sizing.py section 4 (DESIGN.md D-063 (4)): m (h_in - h_out), 14,870 kg/h, S5B 148.45 K 825 kPa(a)
-      -> 135 kPa(a), isentropic outlet from the property adapter''s entropy (thermo 0.6.1, PR), eta_s 0.85;
-      exhaust 95.14 K (-178.0 C) = S6. DESIGN.md D-061: 198.4 kW (PR); the refrigeration it gives the
-      cold box'
+    source: 'scripts/datasheet_sizing.py section 4 (DESIGN.md D-063 (4)): m (h_in - h_out), 14,870 kg/h,
+      S5B 148.45 K 825 kPa(a) -> 135 kPa(a), isentropic outlet from the property adapter''s entropy (thermo
+      0.6.1, PR), eta_s 0.85; exhaust 95.14 K (-178.0 C) = S6. DESIGN.md D-061: 198.4 kW (PR); the refrigeration
+      it gives the cold box'
     assumed: true
   isentropic_efficiency:
     value: 0.85
@@ -134,13 +154,14 @@ type_specific:
   discharge_temperature_k:
     value: 95.14
     unit: K
-    source: 'scripts/datasheet_sizing.py section 4 (DESIGN.md D-063 (4)): real-gas expansion of S5B at eta_s 0.85 (property
-      adapter); S6 -178 C. About 11 K above the dew point of the exhaust (-188.9 C at 1.35 bara, D-061)'
+    source: 'scripts/datasheet_sizing.py section 4 (DESIGN.md D-063 (4)): real-gas expansion of S5B at
+      eta_s 0.85 (property adapter); S6 -178 C. About 11 K above the dew point of the exhaust (-188.9
+      C at 1.35 bara, D-061)'
     assumed: true
 sizing_basis: []
-notes: '8.25 -> 1.35 bara, inlet -124.7 C, exhaust -178 C, 198 kW refrigeration (D-003, D-061). Overspeed trip
-  SSHH-3108. Oil-lubricated bearings: N2 labyrinth seal gas with PDSLL-3115 permissive/trip, oil mist
-  eliminator on the oil tank vent outside the cold box (D-012). ASSUMED. DESIGN.md D-061: the compander
-  balances with no margin (expander 192.4 kW against booster 191.6 kW on the shaft); the cold box is ~78 kW
-  short of refrigeration at 940 kg/h liquid (options in D-061: cool S4D towards 15 C, more expander flow,
-  ~670 kg/h less liquid). The compander supplier fixes the inlet temperature and the efficiency.'
+notes: '8.25 -> 1.35 bara, inlet -124.7 C, exhaust -178 C, 198 kW refrigeration (D-003, D-061). Overspeed
+  trip SSHH-3108. Oil-lubricated bearings: N2 labyrinth seal gas with PDSLL-3115 permissive/trip, oil
+  mist eliminator on the oil tank vent outside the cold box (D-012). ASSUMED. DESIGN.md D-061: the compander
+  balances with no margin (expander 192.4 kW against booster 191.6 kW on the shaft); the cold box is ~78
+  kW short of refrigeration at 940 kg/h liquid (options in D-061: cool S4D towards 15 C, more expander
+  flow, ~670 kg/h less liquid). The compander supplier fixes the inlet temperature and the efficiency.'

@@ -75,6 +75,40 @@ materials:
   main:
     value: Aluminium 5083
     source: equipment/equipment-list.yaml
+dimensions:
+  orientation: vertical
+  outside_diameter:
+    value: 4.2
+    unit: m
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.diameter'
+  overall_height:
+    value: 20.0
+    unit: m
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.height'
+  head:
+    value: ellipsoidal_2_1
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.head'
+  support:
+    type:
+      value: skirt
+      source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.support'
+    height:
+      value: 3.45
+      unit: m
+      source: 'cheme datasheets fill: layout/plant-model.yaml parts C-3101/shell, C-3101/skirt: the bottom
+        tangent line above the base (the 3D model''s proportions, not a design)'
+      assumed: true
+  tangent_length:
+    value: 15.5
+    unit: m
+    source: 'cheme datasheets fill: layout/plant-model.yaml part C-3101/shell: the generated shell between
+      the heads (the 3D model''s proportions, not a vessel design)'
+    assumed: true
+weights:
+  empty:
+    value: 25.0
+    unit: t
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.weight (empty)'
 nozzles:
 - name: N1
   dn: 500
@@ -176,17 +210,17 @@ type_specific:
   minimum_stages:
     value: 14.38
     unit: ''
-    source: 'scripts/datasheet_sizing.py section 6 (DESIGN.md D-063 (7)): Fenske, keys N2/O2 (Ar a non-key), distillate S14
-      (DWSIM: O2 0.9 ppm, D-059), bottoms S13 (DWSIM: 39.2 % O2), alpha N2/O2 2.565 geometric mean of the
-      top dew point (530 kPa(a), 94.72 K) and the bottom bubble point (550 kPa(a), 99.57 K), property adapter
-      (thermo 0.6.1, PR); Fenske, Ind. Eng. Chem. 24 (1932) 482'
+    source: 'scripts/datasheet_sizing.py section 6 (DESIGN.md D-063 (7)): Fenske, keys N2/O2 (Ar a non-key),
+      distillate S14 (DWSIM: O2 0.9 ppm, D-059), bottoms S13 (DWSIM: 39.2 % O2), alpha N2/O2 2.565 geometric
+      mean of the top dew point (530 kPa(a), 94.72 K) and the bottom bubble point (550 kPa(a), 99.57 K),
+      property adapter (thermo 0.6.1, PR); Fenske, Ind. Eng. Chem. 24 (1932) 482'
     assumed: true
   minimum_reflux_ratio:
     value: 1.19
     unit: ''
-    source: 'scripts/datasheet_sizing.py section 6 (DESIGN.md D-063 (7)): Underwood, theta 1.4017, feed S5 as saturated vapour
-      (q 0, ASSUMED: ''cooled close to its dew point'', DESIGN.md 1); Underwood, Chem. Eng. Prog. 44 (1948)
-      603; inputs as minimum_stages'
+    source: 'scripts/datasheet_sizing.py section 6 (DESIGN.md D-063 (7)): Underwood, theta 1.4017, feed
+      S5 as saturated vapour (q 0, ASSUMED: ''cooled close to its dew point'', DESIGN.md 1); Underwood,
+      Chem. Eng. Prog. 44 (1948) 603; inputs as minimum_stages'
     assumed: true
   reflux_ratio:
     value: 1.338
@@ -213,14 +247,15 @@ type_specific:
     assumed: true
   condenser:
     value: partial (E-3103, the condenser-reboiler in the C-3102 sump)
-    source: process/simulation.yaml C3101 condenser partial (DESIGN.md D-059); E-3103 condenses 3,536 kW
+    source: process/simulation.yaml C3101 condenser partial (DESIGN.md D-059); E-3103 condenses 3,536
+      kW
     assumed: true
   number_of_stages:
     value: supplier
     unit: ''
     reason: 'the number of real trays or the packed height follows from the cold box supplier''s tray
-      efficiency or HETP for the chosen internals; enquiry basis: 40 theoretical stages, reflux ratio 1.34,
-      the feed below the bottom stage, LIN drawn from stage 2'
+      efficiency or HETP for the chosen internals; enquiry basis: 40 theoretical stages, reflux ratio
+      1.34, the feed below the bottom stage, LIN drawn from stage 2'
   packing_height_m:
     value: supplier
     unit: m
@@ -229,8 +264,8 @@ type_specific:
   flooding_diameter_m:
     value: supplier
     unit: m
-    reason: 'cold box supplier''s hydraulic rating at the simulated vapour and liquid loads (no flooding
-      correlation in cheme-as-code is cleanly sourced); the 4.2 m of the equipment list is ASSUMED'
+    reason: cold box supplier's hydraulic rating at the simulated vapour and liquid loads (no flooding
+      correlation in cheme-as-code is cleanly sourced); the 4.2 m of the equipment list is ASSUMED
   process_streams:
   - stream: S5
     direction: in
@@ -257,6 +292,6 @@ sizing_basis:
   value: the DWSIM double-column simulation (Peng-Robinson, DWSIM default interaction parameters)
   reference: DESIGN.md D-059
 notes: 'Structured packing or sieve trays, top 5.3 bara. ASSUMED. DESIGN.md D-059, D-063: 40 theoretical
-  stages, reflux ratio 1.34 (1.12 x Rmin 1.19), top -178.4 C, bottom -173.6 C from the double-column
-  simulation; GAN at 0.9 ppm O2 meets D-004. Real stages, packing height and diameter are the cold box
-  supplier''s (markers). The vendor''s cycle for 99.5 % GOX (D-059) may change the column loads.'
+  stages, reflux ratio 1.34 (1.12 x Rmin 1.19), top -178.4 C, bottom -173.6 C from the double-column simulation;
+  GAN at 0.9 ppm O2 meets D-004. Real stages, packing height and diameter are the cold box supplier''s
+  (markers). The vendor''s cycle for 99.5 % GOX (D-059) may change the column loads.'

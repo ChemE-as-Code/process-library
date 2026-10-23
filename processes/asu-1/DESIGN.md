@@ -2477,3 +2477,33 @@ simulation and design basis stay with the process-simulation work (D-058, D-059,
      their vapour fraction 1 (or the dew-point state) in the flowsheet and refill the
      properties. The E-3101 datasheet already takes them as saturated vapour (D-063 (6),
      D-065 (4)).
+
+## D-066 Datasheet main dimensions, empty weights and outline drawings (2026-10-23)
+Decision (amends D-042, D-045): the 39 datasheets carry the main dimensions and the empty
+weight, and each has a generated outline drawing `equipment/datasheets/<TAG>.svg`, so the
+enquiry to a supplier shows the envelope the layout was built on. Tooling: cheme-as-code core
+main with core#95 (`cheme datasheets fill --dimensions`, `cheme datasheets drawing --write`).
+1. **Where the values come from.** `fill --dimensions` copies the equipment list's
+   `dimensions` (diameter, length, width, height, head, support, empty `weight`) and the plan
+   axis from `layout/equipment-placement.yaml`; nothing written by hand is overwritten and no
+   TBD is added. No value of the equipment list changed. Items the list gives no empty weight
+   for keep none (C-1101, C-1102, F-1101, K-1101 (only a `lift_weight`), T-4101, T-4102,
+   V-2101A/B); E-3103 has no dimensions of its own (internal of C-3102, D-028) and stays empty.
+2. **Tangent lengths and support heights are ASSUMED.** The list gives overall sizes only;
+   the tangent-to-tangent length and the skirt / saddle / leg height are read from the shells
+   the 3D model generates (`layout/plant-model.yaml`), marked `assumed: true` with that
+   source. They are the model's proportions, not a vessel design: the vessel and cold box
+   suppliers set them. Tangent lengths: C-1101 20.0, C-1102 17.11, C-3101 15.5, C-3102 27.9,
+   E-1101 / E-1102 6.64, E-1103 5.81, E-3104 4.15, E-4102 4.1, E-4103 3.27, F-2101 2.65,
+   T-4101 9.748, T-4102 11.88, V-2101A/B 15.75, V-3101 3.824 m. Support heights: C-1101 4.0,
+   C-1102 3.765, C-3101 3.45 (skirts), V-2101A/B 2.0, E-1101 / E-1102 / E-1103 / E-3104 /
+   E-4102 / E-4103 0.8 (saddles), F-2101 0.975 m (legs).
+3. **Drawings.** The SVGs are generated from the datasheets (never edited by hand) and carry
+   the datasheet's sha256; `cheme validate` warns `cheme.datasheet-drawing-stale` when one no
+   longer follows its datasheet, so rerun `cheme datasheets drawing --write` after a datasheet
+   change. They are DRAFT outlines: nozzle stubs without `projection_m` are drawn 0.3 m, saddle
+   positions are schematic, instrument tappings without a decided location (D-045) are listed
+   but not drawn.
+4. **Checks.** After the fill, `cheme validate` reports no `cheme.datasheet-dimension-mismatch`,
+   no datasheet nozzle finding against the P&IDs or the layout model and no stale drawing
+   (0 errors, 47 warnings, as before).
