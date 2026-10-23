@@ -72,9 +72,11 @@ Basis: design case, 30 C ambient, 94 % O2 recovery (ASSUMED). Nm3 at 0 C, 1.013 
 
 | stream | from -> to | Nm3/h | kg/h | p bara | T C | composition |
 |---|---|---|---|---|---|---|
-| 1 air feed | atm -> K-1101 | 76,000 | 98,270 | 1.01 | 30 | air, wet |
-| 2 compressed air | K-1101 -> C-1101 | 76,000 | 98,270 | 5.8 | 40 | air, saturated |
-| 3 precooled air | C-1101 -> V-2101 | 76,000 | 98,270 | 5.7 | 12 | air, saturated |
+| 1 air feed | atm -> K-1101 | 76,000 dry, 78,630 wet | 100,235 | 1.01 | 30 | air, 80 % RH, H2O 3.35 mol% (D-058) |
+| 1c MAC condensate | E-1102, E-1103 drains | | 1,398 | | 40 | water (simulated, D-058) |
+| 2 compressed air | K-1101 -> C-1101 | 76,000 dry | 98,837 | 5.8 | 40 | air, saturated, H2O 1.16 mol% (simulated) |
+| 3c DCAC condensate | into the DCAC water | | 587 | | 12 | water (simulated, D-058) |
+| 3 precooled air | C-1101 -> V-2101 | 76,000 dry | 98,270 | 5.7 | 12 | air, saturated, H2O 0.21 mol% (simulated) |
 | 4 dry air to cold box | V-2101 -> E-3101 | 76,000 | 98,000 | 5.6 | 15 | dry, CO2 < 0.1 ppm |
 | 5 HP column feed | E-3101 -> C-3101 | 64,500 | 83,400 | 5.5 | -173 | air near dew point |
 | 6 Lachmann air | KT-3101 -> C-3102 | 11,500 | 14,870 | 1.35 | -178 | air |
@@ -88,7 +90,8 @@ Basis: design case, 30 C ambient, 94 % O2 recovery (ASSUMED). Nm3 at 0 C, 1.013 
 | 12b evaporative cooler | -> C-1102 | 25,000 | 31,450 | 1.05 | 25 | waste N2 |
 | 12c vent | -> atm | 12,500 | 15,730 | 1.02 | 25 | waste N2 |
 
-Mass closure: 98,270 kg/h in, 98,100 kg/h products + waste + ~400 kg/h water/CO2 removed
+Air feed (D-058): 100,235 kg/h wet in, of which 1,985 kg/h condense in the MAC coolers and the
+DCAC before the TSA (streams 1c, 3c). From stream 3 on: 98,270 kg/h in, 98,100 kg/h products + waste + ~400 kg/h water/CO2 removed
 (within 0.2 %). O2 balance: 15,922 Nm3/h O2 in air, 14,945 Nm3/h in GOX + LOX (94 %), 977 Nm3/h
 in waste. (Liquid rates revised to 470 kg/h each with the expander recalculation below; the
 difference of 260 kg/h goes to waste N2, inside the accuracy of this balance.)
@@ -108,15 +111,15 @@ the cost of O2 recovery (D-017).
 
 | consumer | power / duty | basis |
 |---|---|---|
-| K-1101 MAC | 6.14 MW electric (5.81 MW shaft) | simulated, D-057: 3 stages, 5.8 bara; motor 8.0 MW (rating) |
+| K-1101 MAC | 6.31 MW electric (5.97 MW shaft) | simulated, D-057, D-058 (wet air): 3 stages, 5.8 bara; motor 8.0 MW (rating) |
 | K-4101 GOX compressor | 2.33 MW electric (2.21 MW shaft) | simulated, D-057: 4 stages to 31 bara |
 | K-4102 GAN compressor | 0.25 MW electric (0.23 MW shaft) | simulated, D-057: 5.2 -> 9 bara, 1 stage |
 | E-2101 regeneration heater | 1.0 MW electric (peak) | 16,350 kg/h x 1.04 kJ/kgK x 185 K, ~1/3 of cycle |
 | pumps, chiller water, misc. | 0.3 MW electric | ASSUMED |
-| **total electric** | **~10.0 MW (average ~9.4 MW)** | 6.6 kV (D-057; was ~11.9 / ~11.2) |
-| cooling water | ~8.7 MW, ~750 m3/h at 10 K | MAC 5.57, DCAC 0.79, GOX comp 2.17, GAN comp 0.18 MW (simulated, D-057) |
+| **total electric** | **~10.2 MW (average ~9.5 MW)** | 6.6 kV (D-058; D-057 ~10.0 / ~9.4) |
+| cooling water | ~10.2 MW, ~880 m3/h at 10 K | MAC 6.69, DCAC 1.20, GOX comp 2.17, GAN comp 0.18 MW (simulated, D-057, D-058) |
 
-Specific energy: ~0.58 kWh per Nm3 GOX delivered at 30 barg (MAC + GOX compressor; D-057, was ~0.71).
+Specific energy: ~0.59 kWh per Nm3 GOX delivered at 30 barg (MAC + GOX compressor; D-058, D-057 ~0.58).
 
 The utilities of this table are the energy streams of `process/flowsheet.yaml` (feed POWER,
 product CW; electric heater at its cycle average), which the LCA reads (`lca/`,
@@ -1835,4 +1838,34 @@ covers D-018's 90 % recovery case (more air) and the IGV range, and a smaller mo
 into the electrical list, cable sizing and the lifting study for a margin the vendor decides.
 Open: the humidity of S1 (D-053 (1): 0.25 mol% against the design basis 80 % RH) changes the
 MAC coolers' duty by ~0.9 MW once reconciled; the vendor's efficiencies replace the ASSUMED
-0.78 to 0.82. Rerun `cheme process simulate --fill` after either.
+0.78 to 0.82. Rerun `cheme process simulate --fill` after either. (Humidity: D-058.)
+
+## D-058 Inlet air humidity: 80 % RH, condensate drains simulated (2026-10-23)
+Decision: the design air is 30 C, 1.013 bara, 80 % RH (ASSUMED, design basis), 3.35 mol% H2O.
+The 76,000 Nm3/h are dry air. S1 is 100,235 kg/h wet (98,120 kg/h dry + 2,115 kg/h water,
+ASSUMED). The water that condenses leaves through two new condensate outlets of the flowsheet
+(product COND): S1C, the MAC inter- and aftercooler drains (E-1102, E-1103 moisture separators),
+and S3C, the DCAC condensate into its circulating water. S2 and S3's composition, S1C, S3C, E1, Q1
+and Q2 are `calculated` by `cheme process simulate --fill` (core's condensate outlets: a knockout
+after each cooler). The S3 flow (98,270 kg/h) stays ASSUMED: the simulated 98,250 kg/h is within
+0.02 %. S12D (the regeneration gas leaving the TSA) is re-derived from S3 (it carries the water
+and CO2 the TSA removes).
+| quantity | D-057 (S1 0.25 mol% H2O) | D-058 (80 % RH) |
+|---|---|---|
+| MAC condensate S1C | (none) | 1,398 kg/h (D-053 (1) IAPWS estimate 1,330 kg/h) |
+| DCAC condensate S3C | (none) | 587 kg/h |
+| E1 MAC electric / shaft | 6,144 / 5,812 kW | 6,308 / 5,968 kW |
+| Q1 MAC coolers | 5,570 kW | 6,686 kW |
+| Q2 DCAC | 793 kW | 1,201 kW |
+| electric total, peak / average | ~10.0 / ~9.4 MW | ~10.2 / ~9.5 MW |
+| cooling water | ~8.7 MW, ~750 m3/h | ~10.2 MW, ~880 m3/h |
+| specific energy (MAC + GOX) | ~0.58 kWh/Nm3 | ~0.59 kWh/Nm3 |
+Reason: the design basis said both "saturated" and 80 % RH; 80 % RH at the design ambient is the
+stated condition, and saturated air would be a further 0.8 mol%. The section 3 seed had no water
+in the mass flow, which put 2.1 t/h of condensate and ~1.5 MW of latent heat outside the balance.
+The motor rating (8.0 MW) and the cooling-water design margin still cover the change.
+Limit: Peng-Robinson underpredicts water at saturation by ~10 to 13 % (S2 1.16 against IAPWS
+1.27 mol%, S3 0.213 against 0.246 mol%). The TSA water load is therefore sized from IAPWS:
+~151 kg/h (PR 130 kg/h); the simulated S3 composition stays as the balance value.
+Open: P-01 shows no condensate drains yet: moisture separators and drain traps for E-1102 and
+E-1103 (to a condensate line, oily-water free, D-012), and the DCAC water bleed for the 587 kg/h.
