@@ -1987,3 +1987,21 @@ humidity, double-column simulation, E-3102 / E-3103), which this round does not 
      the tank supplier's nozzle arrangement;
    - XV-3105 off-spec GAN divert (7.3 m to VP-1): a PR1 walkway or the VNT-4004 leg re-arranged.
    Result: operability 14 -> 9 warnings, no other finding count changes, 0 errors.
+
+## D-061 Ninth layout review: supports, lifting verdict, E-4101 bundle pull (2026-10-23)
+Answers reviews/2026-10-23-layout-review9.md (the record itself is not edited). The flowsheet,
+simulation and design basis stay with the parallel process-simulation work (D-058, D-059).
+1. **Rebuilt with core fix/core-66 (52ac9b0).** cheme-as-code now (a) proposes a support stub on
+   the steel below only when it is at most `support_stub_max_m` (1.5 m, ASSUMED) below and is not
+   another line's support steel, else a T-post from grade; (b) reports a declared stub taller
+   than that, or one on another line's post (`cheme.layout-support-stub`); (c) checks a
+   building's overhead crane on the gross load and says so in the lifting study; (d) no longer
+   offers `cheme layout pin` for a proposal that must be placed by hand (review9#2, #4 and the
+   rule review9#1 asked for). Rebuilt: the lifting study gives K-1101 (heaviest part, 34.65 t
+   gross), E-1101 / E-1102 (13.86 t) and E-1103 (10.4 t) "building crane 40 t carries it",
+   needed = gross load, utilisation 0.87 for the MAC motor (was "needed 46.2 t", the mobile
+   chart figure, with no verdict). The free-span / support-missing texts list the "place it by
+   hand" proposals apart (CW-4001 SP-163.2 / SP-166.5, CWR-4002 SP-7.8, GAN-4004 SP-9.5 and
+   the others). The UN-3001 S1 proposal SP-10.8 is now a T-post to place by hand (it stood on
+   another line's steel). The new rule finds the four GOX-4002 S12 stubs of D-060 (2) (two
+   warnings each: 6.6 .. 7.1 m tall, on the CW-4001 / CWR-4001 posts): fixed in (2).
