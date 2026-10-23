@@ -1875,6 +1875,45 @@ humidity, double-column simulation, E-3102 / E-3103), which this round does not 
    `pipe:P-01/Line_CW1001_S1:start`). It reproduces the D-053 / D-055 values of P-1101A/B and
    P-1102A/B (31.07 / 31.92 / 78.32 / 78.71 m, NPSHa 53.26 / 53.52 / 11.31 / 11.31 m) and the
    LOX / LIN NPSHa (0.34 / 0.34 / 0.31 / 0.31 m).
+4. **Datasheets finished with supplier / not-applicable markers (amends D-053 (5), (7), (10)).**
+   Seven of the 11 drafts are final (`draft: false`); every field left open is a marker with its
+   reason (`cheme.datasheet-marker` / `-open`: none). Calculations in `scripts/datasheet_sizing.py`.
+   - **C-1101 DCAC**: stage fields `not_applicable` (a direct contact cooler is sized in transfer
+     units, not stages). Calculated: duty 777.7 kW (dry gas 40 -> 12 C 773.8 kW, adapter; water
+     vapour and 0.14 kmol/h condensate 3.9 kW, IAPWS-95, at the flowsheet's 0.25 mol% water;
+     DWSIM's Q2 792.8 kW, 2 % apart); at the equipment list's 4.0 m (ASSUMED) the gas load
+     F = u rho^0.5 is 0.85 Pa^0.5 (u 0.34 m/s) and the liquid loads 19.9 (CW) / 8.0 (chilled
+     water) m3/(m2 h). `supplier`: both packing heights and the flooding diameter: no flooding or
+     mass-transfer correlation in cheme-as-code is cleanly sourced, and the transfer
+     coefficients belong to the chosen packing. The duty grows with the inlet humidity (D-058).
+   - **C-1102 evaporative cooler**: stage fields `not_applicable`. Calculated: the adiabatic
+     saturation temperature of the dry waste N2 (25 C, 1.05 bara), 8.54 C: the 10 C chilled
+     water is only 1.46 K above the thermodynamic limit, so the approach sets a tall packing
+     (finding for the packing supplier; a colder chilled water is not reachable). Gas load F
+     0.50 Pa^0.5, liquid load 6.3 m3/(m2 h) at 4.5 m. `supplier`: duty (set by the DCAC
+     upper section's split), packing height, flooding diameter.
+   - **E-3101**: `area_m2` `supplier` (plate-fin geometry), `lmtd_k` `not_applicable`
+     (five streams). Composite curves from the adapter enthalpies (every state single-phase and
+     inside the claimed range): warm side 5,211 kW (D-053 (5)). With the flowsheet's cold
+     outlets at 25 C the cold composite crosses the warm one at the warm end (the main air enters
+     at 15 C, only the 14.9 t/h booster air is warmer; -6.1 K in the warm-end tenth): S7, S9 and
+     S17 cannot leave E-3101 at 25 C (flowsheet change requested, (6)). With the cold outlets at
+     13 C (2 K warm-end approach, ASSUMED) and the cold inlets 11.6 K above their dew points so
+     that the balance closes (ASSUMED: the E-3102 outlet states wait for D-059; heat leak
+     neglected): UA 737.7 kW/K (sum of dQ / LMTD over 600 intervals), minimum approach 4.69 K at
+     the cold end. Written as `ua_kw_k` / `minimum_approach_k` (ASSUMED) and as the enquiry
+     basis of the area.
+   - **E-4105A/B, E-4106A/B ambient-air vaporizers**: duty from the stream states: liquid
+     saturated at 150 kPa(a) in the tank plus the pump's shaft work, to gas at -15 C (ASSUMED,
+     (5)) at the header pressure plus the valve drop: 493.8 kW (LOX, 3,200 kPa(a)) and
+     656.2 kW (LIN, 1,000 kPa(a)); every state single-phase and inside the claimed range (the
+     two-phase path is not needed for an enthalpy difference). `area_m2` `supplier` (free
+     convection on frosting fins: no typical-U row; rated by flow, climate and defrost cycle),
+     `lmtd_k` `not_applicable`.
+   - **C-3101, C-3102, E-3102, E-3103** stay drafts, waiting for the double-column simulation
+     (D-059); not filled here.
+   Datasheets gate: drafts 11 -> 4. Equipment estimate: unchanged coverage (the vaporizer and
+   E-3101 areas are the suppliers'); C-1101 / C-1102 are no longer sized from a draft.
 5. **LOX / LIN backup pump heads to the header (amends D-053 (8)).** The pumps deliver into the
    GOX / GAN header at the product pressures (S8 31 bara, S9B 9 bara, given) through the
    vaporizer, the backup pressure control valve and the gas line, so the head now counts them.

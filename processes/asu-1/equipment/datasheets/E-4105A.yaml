@@ -6,12 +6,35 @@
 tag: E-4105A
 type: HeatExchanger
 service: LOX ambient-air vaporizer A
-draft: true
+draft: false
 operating:
   flow:
     value: 3650
     unit: Nm3/h
     source: 'equipment/equipment-list.yaml notes: 3,650 Nm3/h each, A/B switched for defrost'
+    assumed: true
+  mass_flow:
+    value: 5200
+    unit: kg/h
+    source: P-4101A datasheet (5.2 t/h LOX backup, D-017)
+    assumed: true
+  inlet_pressure:
+    value: 32.58
+    unit: bar(a)
+    source: 'scripts/datasheet_sizing.py (D-060 (5)): GOX header 31 bara + GOX-4004 line 7.8 kPa + PV-4111
+      100 kPa + vaporizer 50 kPa (ASSUMED)'
+    assumed: true
+  inlet_temperature:
+    value: -179.2
+    unit: °C
+    source: 'LOX saturated at 150 kPa(a) in T-4101 (93.97 K, property adapter); the pump''s losses warm it
+      slightly (not counted here; the duty counts the whole pump work)'
+    assumed: true
+  outlet_temperature:
+    value: -15
+    unit: °C
+    source: 'DESIGN.md D-060 (5): minimum ambient -5 C (process/design-basis.yaml site, ASSUMED) less a 10 K
+      approach (ASSUMED until the vaporizer supplier''s rating)'
     assumed: true
 design:
   pressure_barg:
@@ -55,23 +78,28 @@ type_specific:
     unit: t
     source: equipment/equipment-list.yaml dimensions
   duty_kw:
-    value: TBD
+    value: 493.8
     unit: kW
-    source: 'TBD: no flowsheet node links E-4105A (links: in process/flowsheet.yaml) (cheme datasheets
-      fill)'
+    source: 'scripts/datasheet_sizing.py (D-060 (5)): Q = n (h_gas - h_liq) - pump shaft power = 5,200 kg/h
+      / 32.03 kg/kmol x (-1554.91 - (-12683.0)) kJ/kmol - 7.97 kW: liquid S10 composition saturated at
+      150 kPa(a) in the tank, plus the pump work (adiabatic pump), to gas at -15 C and 3200 kPa(a); every
+      state single-phase and inside the property adapter''s claimed range (thermo, Peng-Robinson)'
+    assumed: true
   area_m2:
-    value: TBD
+    value: supplier
     unit: m2
-    source: 'TBD: no flowsheet node links E-4105A (links: in process/flowsheet.yaml) (cheme datasheets
-      fill)'
+    source: 'vaporizer supplier''s rating: a natural-draught ambient-air finned-tube vaporizer is rated
+      for its flow, the site climate and the defrost cycle (A/B switching); no row of the typical-U table
+      (Sinnott Table 12.1) covers frosting fins in free convection. Enquiry basis: 493.8 kW, 5.2 t/h LOX at
+      32.6 bara, outlet -15 C at -5 C ambient, O2 service'
   lmtd_k:
-    value: TBD
+    value: not_applicable
     unit: K
-    source: 'TBD: no flowsheet node links E-4105A (links: in process/flowsheet.yaml) (cheme datasheets
-      fill)'
-sizing_basis: []
+    reason: the air side is the ambient in free convection, not a stream with inlet and outlet
+      temperatures; the supplier rates the unit by its own frosting and defrost method, not by an LMTD
+sizing_basis:
+- parameter: outlet temperature
+  value: -15 C (minimum ambient -5 C less 10 K, ASSUMED)
+  reference: DESIGN.md D-060 (5)
 notes: '3,650 Nm3/h each (A/B switch for defrost), outlet low-temperature trip TSLL-4113. O2 service. ASSUMED.
-  Open (DESIGN.md D-053): the outlet temperature is not set in the design and vaporizing at 31 bara is outside
-  the VLE range the property method is claimed for (100-600 kPa(a)), so the duty is not calculated; an
-  ambient-air finned-tube vaporizer is rated by its supplier for flow, climate and defrost cycle (no row of
-  the typical-U table covers it).'
+  Duty from the stream states (DESIGN.md D-060 (4)); the area is the supplier''s (marker).'

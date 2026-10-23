@@ -6,7 +6,7 @@
 tag: C-1101
 type: ProcessColumn
 service: Direct contact aftercooler (DCAC)
-draft: true
+draft: false
 operating:
   inlet_pressure:
     value: 5.8
@@ -129,10 +129,52 @@ type_specific:
       skirt: an upper bound)'
     assumed: true
   number_of_stages:
-    value: TBD
+    value: not_applicable
     unit: ''
-    source: 'TBD: the shortcut method needs a linked node with one feed and two products (C1101) (cheme
-      datasheets fill)'
+    reason: a direct contact aftercooler (air cooled and dried by water on packing), not a distillation;
+      its packing is sized in transfer units (packing_height_lower_m / _upper_m), not in stages
+  duty_kw:
+    value: 777.7
+    unit: kW
+    source: 'scripts/datasheet_sizing.py (D-060 (3)): dry gas 3,385.9 kmol/h 40 C 580 kPa(a) -> 12 C 570
+      kPa(a) 773.8 kW (property adapter, thermo PR) + water vapour sensible 2.2 kW + 0.14 kmol/h condensed
+      1.7 kW (IAPWS-95, S2 x_H2O 0.0025); CO2 neglected. The DWSIM simulation gives 792.8 kW (Q2, D-057).
+      With the design basis humidity (80 % RH, D-058) the condensation in C-1101 grows'
+    assumed: true
+  gas_load_factor_pa05:
+    value: 0.854
+    unit: Pa^0.5
+    source: 'scripts/datasheet_sizing.py (D-060 (3)): F = u rho^0.5 at the bottom, 98,270 kg/h at 40 C,
+      580 kPa(a) (rho 6.466 kg/m3, property adapter, dry gas), D 4.0 m (equipment list): u 0.336 m/s'
+    assumed: true
+  liquid_load_lower_m3_m2h:
+    value: 19.9
+    unit: m3/(m2 h)
+    source: 'scripts/datasheet_sizing.py (D-060 (3)): 250 m3/h CW (P-1101A/B) over 12.57 m2'
+    assumed: true
+  liquid_load_upper_m3_m2h:
+    value: 7.96
+    unit: m3/(m2 h)
+    source: 'scripts/datasheet_sizing.py (D-060 (3)): 100 m3/h chilled water (P-1102A/B) over 12.57 m2'
+    assumed: true
+  packing_height_lower_m:
+    value: supplier
+    unit: m
+    source: 'packing supplier: the CW section''s height follows from the heat and mass transfer
+      coefficients of the chosen packing (transfer units). Enquiry basis: total duty 778 kW (40 -> 12 C),
+      CW 250 m3/h at 25 C, gas F 0.85 Pa^0.5, liquid load 19.9 m3/(m2 h), the section split at the
+      supplier''s choice of the intermediate air temperature'
+  packing_height_upper_m:
+    value: supplier
+    unit: m
+    source: 'packing supplier: the chilled water section''s height (transfer units of the chosen packing).
+      Enquiry basis: chilled water 100 m3/h at 10 C from C-1102, air leaving at 12 C (2 K approach), liquid
+      load 7.96 m3/(m2 h)'
+  flooding_diameter_m:
+    value: supplier
+    unit: m
+    source: 'packing supplier''s hydraulic rating (no flooding correlation in cheme-as-code is cleanly
+      sourced); the 4.0 m of the equipment list (ASSUMED) runs at F 0.85 Pa^0.5 and 19.9 m3/(m2 h)'
   process_streams:
   - stream: S2
     direction: in
@@ -143,22 +185,18 @@ type_specific:
     title: Precooled air
     source: process/flowsheet.yaml (case design)
   minimum_stages:
-    value: TBD
+    value: not_applicable
     unit: ''
-    source: 'TBD: the shortcut method needs a linked node with one feed and two products (C1101) (cheme
-      datasheets fill)'
+    reason: Fenske minimum stages apply to a distillation; a direct contact cooler has no key components
   minimum_reflux_ratio:
-    value: TBD
+    value: not_applicable
     unit: ''
-    source: 'TBD: the shortcut method needs a linked node with one feed and two products (C1101) (cheme
-      datasheets fill)'
+    reason: no reflux in a direct contact cooler
   theoretical_stages:
-    value: TBD
+    value: not_applicable
     unit: ''
-    source: 'TBD: the shortcut method needs a linked node with one feed and two products (C1101) (cheme
-      datasheets fill)'
+    reason: a direct contact cooler is sized in transfer units, not theoretical stages
 sizing_basis: []
 notes: 'Two packed sections (CW lower, chilled water upper), mist eliminator, air 40 -> 12 C. ASSUMED.
-  Open (DESIGN.md D-053): a direct contact cooler, not a distillation, so the stage fields of the shortcut
-  method do not apply; the packing heights of both sections follow from heat and mass transfer (transfer
-  units) in the packing supplier''s design.'
+  DESIGN.md D-060 (3): duty and hydraulic loads calculated; packing heights and the flooding diameter are the
+  packing supplier''s (markers); the stage fields do not apply (not a distillation).'
