@@ -6,6 +6,10 @@ schema: cheme/simulation/v1
 kind: simulation
 simulator: dwsim
 property_package: Peng-Robinson (PR)
+# D-066: DWSIM's PR Ar/O2 kij (0.0107) puts alpha(Ar/O2) near pure O2 ~5 % below the reference
+interaction_parameters:
+  - components: [AR, O2]
+    kij: {value: 0.0143, provenance: assumed, source: "D-066: fitted to the Lemmon-Jacobsen Ar/O2 Helmholtz mixture model (REFPROP, CoolProp 8): alpha 1.558 at 1.30 bara, 1.547 at 1.40 bara near pure O2"}
 exclude: [PUR, E3101, KT3101, X3101, C1102]
 specs:
   K1101:
@@ -19,13 +23,16 @@ specs:
     outlet_temperature: {value: 12, provenance: assumed, source: "DESIGN.md 3, stream 3 (DCAC)"}
     pressure_drop: {value: 0.1, unit: bar, provenance: assumed, source: "DESIGN.md 3, streams 2 and 3"}
   X3102:
-    split: {bst: 0.1516}  # ASSUMED: 14,870 of 98,060 kg/h boosted (DESIGN.md 3, streams 4, 4B)
+    split: {bst: 0.134121}  # ASSUMED (D-066): 14,870 of 110,870 kg/h boosted (streams 4, 4B)
   K3101:
     outlet_pressure: {value: 8.45, provenance: assumed, source: "D-061: 5.6 -> 8.45 bara, the compander balances on the shaft"}
     efficiency: {value: 0.80, provenance: assumed, source: "compander booster"}
   E3104:
-    outlet_temperature: {value: 40, provenance: assumed, source: "DESIGN.md 3, stream 4D"}
+    outlet_temperature: {value: 30, provenance: assumed, source: "D-067: counter-current on cooling water 25 -> 35 C, 5 K approach"}
     pressure_drop: {value: 0, unit: bar, provenance: assumed, source: "DESIGN.md 3, streams 4C and 4D"}
+  E3105:
+    outlet_temperature: {value: 15, provenance: assumed, source: "D-067: chilled-water trim to the main air temperature"}
+    pressure_drop: {value: 0, unit: bar, provenance: assumed, source: "D-067, as E-3104"}
   # The double column (D-059): C3101's condenser boils C3102's sump (E-3103, condenser-reboiler).
   C3101:
     stages: 40
@@ -35,13 +42,13 @@ specs:
     condenser_pressure: {value: 5.3, provenance: assumed, source: "DESIGN.md assumptions: HP column top 5.4 bara, less the condenser"}
     reboiler_pressure: {value: 5.5, provenance: assumed, source: "DESIGN.md 3, stream 5"}
     vapor_flow: {value: 12510, provenance: given, source: "GAN product, DESIGN.md 3, stream 9"}
-    condenser_spec: {flow: {value: 24530, provenance: assumed, source: "LN reflux to the LP column (D-059)"}}
+    condenser_spec: {flow: {value: 29280, provenance: assumed, source: "D-066: LN reflux to the LP column 0.305 x HP air (GAN O2 rises steeply above ~0.31)"}}
     outlets: {n2: vapor, ln: distillate, crude: bottoms}
     side_draws:
       lin: {stage: 2, phase: liquid, flow: {value: 470, provenance: assumed, source: "LIN product, DESIGN.md 3, stream 11 (D-017)"}}
   C3102:
     stages: 59
-    feed_stages: {reflux: 1, crude: 22, lachmann: 24}
+    feed_stages: {reflux: 1, crude: 14, lachmann: 16}  # D-066: the stages below the feeds strip argon
     condenser: none
     condenser_pressure: {value: 1.30, provenance: assumed, source: "DESIGN.md assumptions: LP column top 1.3 bara"}
     reboiler_pressure: {value: 1.40, provenance: assumed, source: "ASSUMED: 0.1 bar over the packing"}
@@ -50,11 +57,17 @@ specs:
     side_draws:
       gox: {stage: 59, phase: vapor, flow: {value: 20860, provenance: given, source: "GOX product, 500 t/d"}}
     heat_integration: {condenser_of: C3101}
+  # D-066: the subcooler sized so that C3102 reboils what C3101 condenses (E-3103 balanced)
+  E3102:
+    outlet_temperatures:
+      ln_in: {value: -185.1, provenance: assumed, source: "D-066: E-3103 balance"}
+      crude_in: {value: -180.1, provenance: assumed, source: "D-066: E-3103 balance"}
+    pairs: {ln_in: ln_out, crude_in: crude_out, waste_in: waste_out}
   K4101:
     outlet_pressure: {value: 31.0, provenance: given, source: "GOX pipeline"}
     efficiency: {value: 0.78, provenance: assumed, source: "oil-free GOX centrifugal"}
     drive_efficiency: {value: 0.946, provenance: assumed, source: "D-057: motor 0.97 x gear 0.975"}
-    stages: 4
+    stages: 5  # D-065 (7): E-4101 has four intercoolers, so five stages with the aftercooler
     outlet_temperature: {value: 40, provenance: assumed, source: "intercooler package E-4101, aftercooler E-4102"}
   K4102:
     outlet_pressure: {value: 9.0, provenance: given, source: "GAN pipeline"}
