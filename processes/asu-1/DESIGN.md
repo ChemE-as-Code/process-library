@@ -2028,3 +2028,12 @@ simulation and design basis stay with the parallel process-simulation work (D-05
    free-span 5 (unchanged), 0 errors, no clash; support steel 96.5 -> 98.0 t (578.8 t steel,
    256 footings); LCA rewritten (climate change 33.1124 -> 33.1128 kg CO2-eq/t GOX
    construction share, operation unchanged).
+3. **E-4101 bundle pull kept clear (amends D-055 (6); review9#3).** The intercooler package
+   (`shape: box`) gets no generated maintenance envelope, so its pull space is declared:
+   `Z-PULL-E4101`, kind `maintenance`, x 158.0 .. 163.5, y 37.1 .. 39.9, z 0 .. 3.2 (5.5 m for
+   the ~5 m bundles, ASSUMED). West, because the east side holds the E-4102 bundle pull
+   (x 171.75 .. 176). The volume was free (review9: no pipe or steel in it); the router and the
+   steel-in-way rule now keep it free. GOX-4001 runs north-south at x ~162 above 3.2 m, over
+   the zone, so a bundle comes out under it and is lifted from the end of the zone or by
+   Z-PAD-A4C; the package supplier's drawing sets the pull side and length. No route or finding
+   count changed.
