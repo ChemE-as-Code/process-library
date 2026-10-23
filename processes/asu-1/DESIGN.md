@@ -2357,3 +2357,16 @@ Rejected:
   air loss of a float trap but needs two more instruments per cooler. Keep it as a supplier
   alternative.
 - A separate DCAC blowdown: it would duplicate LV-1106.
+
+## D-065 Tenth layout review: MAC cooler zones, steel against steel, drains, citations (2026-10-23)
+Answers reviews/2026-10-23-layout-review10.md (the record itself is not edited). The flowsheet,
+simulation and design basis stay with the process-simulation work (D-058, D-059, D-061).
+1. **Citations of the sizing script (review10#4).** The datasheets cited the script as
+   `scripts/datasheet_sizing.py D-063 (n)` with the script's own section numbers, which are not
+   the numbered items of D-063. The script's headers now read `== section n (DESIGN.md D-063
+   (m))`, and every citation reads `scripts/datasheet_sizing.py section n (DESIGN.md D-063 (m))`:
+   section 1 MAC and coolers = D-063 (2); 2 GOX compressor and coolers, 3 GAN compressor = (5);
+   4 compander and E-3104 = (4); 5 E-3101 / E-3102 = (6); 6 HP column, 7 LP column = (7); 8 TSA,
+   9 DCAC / evaporative cooler = (3); 10 cooling water and line velocities = (8). The same in
+   the equipment list (E-4101) and the line list (CW-1002, CW-4001). No value changed. The
+   intro of D-063 ("named by its section `D-063 (n)`") is read with this mapping.

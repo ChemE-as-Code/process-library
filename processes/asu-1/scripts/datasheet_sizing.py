@@ -2,7 +2,9 @@
 D-060, D-063).
 
 Provenance only: it prints each value with its basis; the values are written into
-equipment/datasheets/<TAG>.yaml by hand, with the source "scripts/datasheet_sizing.py <section>".
+equipment/datasheets/<TAG>.yaml by hand, with the source "scripts/datasheet_sizing.py section n
+(DESIGN.md D-063 (m))": n is this script's section number printed in each "== section n" header,
+m the numbered item of DESIGN.md D-063 that records it (they differ, D-065 (1)).
 It uses only cheme-as-code's own methods (the property adapter, the sizing and line-loss functions,
 the public pump sizing `chemeascode.domains.equipment.pumps` along the routed pipes of the layout
 model), IAPWS-95 for water and the Yoon-Thodos gas viscosity (chemicals, the props extra), so the
@@ -191,7 +193,7 @@ def spec(step: str, key: str) -> float:
     return float(v["value"]) if isinstance(v, dict) else float(v)
 
 
-print("== D-063 (1) MAC K-1101 and coolers E-1101 / E-1102 / E-1103 (wet air, S1 80 % RH, D-058)")
+print("== section 1 (DESIGN.md D-063 (2)) MAC K-1101 and coolers E-1101 / E-1102 / E-1103 (wet air, S1 80 % RH, D-058)")
 mac, _, mac_power = machine("K-1101", "S1", kpa("S2") + spec("K1101", "pressure_drop") * 100.0,
                             3, spec("K1101", "efficiency"), 313.15,
                             dp_cooler=spec("K1101", "pressure_drop") * 100.0, condense=True)
@@ -205,7 +207,7 @@ for name, r in zip(("E-1101", "E-1102", "E-1103"), mac):
 print(f"  coolers in all {q_mac:.5g} kW, condensate {sum(r['condensed'] for r in mac):.5g} kg/h; DWSIM "
       f"(D-058): Q1 6,686 kW, S1C {flow('S1C'):.6g} kg/h, compressor 5,968 kW")
 
-print("== D-063 (2) GOX compressor K-4101 and coolers E-4101 (4 intercoolers) / E-4102")
+print("== section 2 (DESIGN.md D-063 (5)) GOX compressor K-4101 and coolers E-4101 (4 intercoolers) / E-4102")
 gox5, r5, p5 = machine("K-4101 (5 stages, datasheet)", "S7", kpa("S8"), 5,
                        spec("K4101", "efficiency"), 313.15)
 ic = [cooler(f"E-4101 intercooler {r['stage']}", r["sensible"], r["t_out"], 313.15)
@@ -222,12 +224,12 @@ print(f"  cooling, 5 stages {sum(r['sensible'] for r in gox5):.5g} kW, 4 stages 
       f"{sum(r['sensible'] for r in gox4):.5g} kW; DWSIM (D-061): 4 stages, compressor 2,184 kW, "
       f"cooling 2,086 kW")
 
-print("== D-063 (3) GAN compressor K-4102 and aftercooler E-4103")
+print("== section 3 (DESIGN.md D-063 (5)) GAN compressor K-4102 and aftercooler E-4103")
 gan, _, _ = machine("K-4102", "S9", kpa("S9B"), 1, spec("K4102", "efficiency"), 313.15)
 cooler("E-4103", gan[0]["sensible"], gan[0]["t_out"], 313.15)
 print("  DWSIM (D-061): compressor 218.6 kW, cooling 123.4 kW")
 
-print("== D-063 (4) Booster K-3101, aftercooler E-3104, expander KT-3101 (compander, D-061)")
+print("== section 4 (DESIGN.md D-063 (4)) Booster K-3101, aftercooler E-3104, expander KT-3101 (compander, D-061)")
 bst, _, w_b = machine("K-3101", "S4B", kpa("S4C"), 1, spec("K3101", "efficiency"), None)
 q3104 = 83.95  # DWSIM, D-061: E3104 -83.9536 kW (`cheme process simulate`)
 cooler(f"E-3104 (DWSIM duty, S4C {kelvin('S4C'):.5g} K -> S4D 313.15 K)", q3104, kelvin("S4C"), 313.15)
@@ -262,7 +264,7 @@ print(
 )
 
 
-print("== D-063 (5) Main heat exchanger E-3101 and subcooler E-3102: composite curves")
+print("== section 5 (DESIGN.md D-063 (6)) Main heat exchanger E-3101 and subcooler E-3102: composite curves")
 
 
 def _side(x: dict[str, float], n_kmol_s: float, t_in: float, t_out: float, p_in: float, p_out: float):
@@ -367,7 +369,7 @@ print(
     f"{ua2:.4g} kW/K"
 )
 
-print("== D-063 (6) HP column C-3101 Fenske / Underwood (N2 / O2 keys, Ar a non-key; DWSIM states)")
+print("== section 6 (DESIGN.md D-063 (7)) HP column C-3101 Fenske / Underwood (N2 / O2 keys, Ar a non-key; DWSIM states)")
 z = dry(fractions("S5"))
 xd, xb = fractions("S14"), fractions("S13")
 t_top, k_top = adapter.k_values(kpa("S14"), xd, 1.0)
@@ -382,7 +384,7 @@ print(
     f"reflux ratio 1.338 = {1.33766 / res.min_reflux:.3g} x Rmin; {shortcut.SOURCES}"
 )
 
-print("== D-063 (7) LP column C-3102 Fenske (minimum stages for the specification)")
+print("== section 7 (DESIGN.md D-063 (7)) LP column C-3102 Fenske (minimum stages for the specification)")
 top, bot = fractions("S16"), fractions("S15")
 t_top, k_top = adapter.k_values(kpa("S16"), top, 1.0)
 t_bot, k_bot = adapter.k_values(kpa("S15"), bot, 0.0)
@@ -395,7 +397,7 @@ for lk in ("N2", "AR"):
         f"Nmin {nmin:.4g}"
     )
 
-print("== D-063 (8) TSA V-2101A/B: water and CO2 load (S3 saturated at 12 C, IAPWS-95, D-058)")
+print("== section 8 (DESIGN.md D-063 (3)) TSA V-2101A/B: water and CO2 load (S3 saturated at 12 C, IAPWS-95, D-058)")
 x3 = fractions("S3")
 n3 = flow("S3") / molar_mass(x3)
 y_sat = iapws.iapws95_Psat(kelvin("S3")) / 1000.0 / kpa("S3")
@@ -513,7 +515,7 @@ for tag, t, vflow, p_src, p_dst, src, dst in (
     )
     show_pump(duty)
 
-print("== D-063 (9) DCAC C-1101 and evaporative cooler C-1102: duty and hydraulic loads")
+print("== section 9 (DESIGN.md D-063 (3)) DCAC C-1101 and evaporative cooler C-1102: duty and hydraulic loads")
 s2 = fractions("S2")
 n_tot = flow("S2") / molar_mass(s2)
 d2 = dry(s2)
@@ -573,7 +575,7 @@ print(
     f"{283.15 - t_as:.3g} K above it"
 )
 
-print("== D-063 (10) Cooling water and line velocities")
+print("== section 10 (DESIGN.md D-063 (8)) Cooling water and line velocities")
 cw = {"MAC Q1 (DWSIM)": 6686.41, "DCAC Q2 (DWSIM)": 1201.42, "GOX compressor Q3 (DWSIM)": 2085.58,
       "GAN compressor Q4 (DWSIM)": 123.36, "E-3104 (DWSIM)": 83.95}
 for name, q in cw.items():
