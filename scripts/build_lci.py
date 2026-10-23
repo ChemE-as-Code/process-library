@@ -38,7 +38,11 @@ Modelling rules (also written into every activity's ``comment``):
 Deterministic: sorted, no timestamps (the workbook's document properties and zip entry dates
 are fixed), so two runs on the same input are byte-identical.
 
-    uv run build_lci.py --library ../process-library --out dist [--version 0.1.0]
+``--public`` exports only the processes with ``publication.status: public`` (``publication.py``);
+an input another, unpublished process makes is then not linked to it. The LCI carries no
+characterisation factors, so placeholder factors stay a caveat, as in the preview build.
+
+    uv run build_lci.py --library ../process-library --out dist [--version 0.1.0] [--public]
 """
 
 from __future__ import annotations
@@ -61,6 +65,8 @@ from typing import Any
 import yaml
 from jsonschema import Draft202012Validator
 from openpyxl import Workbook
+
+from publication import is_public
 
 HERE = Path(__file__).resolve().parent
 DATAPACKAGE_SCHEMA = "cheme-as-code/lci-datapackage/v1"
@@ -314,7 +320,7 @@ class Process:
     chemicals: dict[str, str]  # inventory key -> chemical slug (process.yaml)
 
 
-def _discover(library: Path, report: Report) -> list[Process]:
+def _discover(library: Path, report: Report, public: bool = False) -> list[Process]:
     processes = []
     for manifest_path in sorted((library / "processes").glob("*/process.yaml")):
         folder = manifest_path.parent
@@ -328,6 +334,8 @@ def _discover(library: Path, report: Report) -> list[Process]:
         pid = manifest.get("id")
         if pid != folder.name:
             report.error(str(manifest_path.relative_to(library)), f"id {pid!r} differs from folder name {folder.name!r}")
+            continue
+        if public and not is_public(manifest):
             continue
         study = _yaml(folder / "lca" / "lca.yaml") if (folder / "lca" / "lca.yaml").is_file() else None
         factors = _yaml(folder / "lca" / "factors.yaml") if (folder / "lca" / "factors.yaml").is_file() else None
@@ -744,7 +752,7 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def build(library: Path, out: Path, version: str, commit: str | None = None, mappings_path: Path | None = None) -> Report:
+def build(library: Path, out: Path, version: str, commit: str | None = None, mappings_path: Path | None = None, public: bool = False) -> Report:
     report = Report()
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9.+_-]*", version):
         report.error("--version", f"{version!r}: letters, digits and . + _ - only")
@@ -768,7 +776,7 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
         commit = _git(library, "rev-parse", "HEAD")
     dirty = bool(_git(library, "status", "--porcelain")) if own_repo else None
 
-    processes = _discover(library, report)
+    processes = _discover(library, report, public)
     db_name = f"cheme-as-code-atlas-{version}"
     activities, proxies, by_process = build_activities(processes, mappings, registry, db_name, commit, version, report)
     if report.errors:
@@ -868,9 +876,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--commit", help="library commit to record (default: git HEAD of --library)")
     parser.add_argument("--mappings", type=Path, help="lci/mappings.yaml (default: <library>/lci/, else the staged copy)")
     parser.add_argument("--strict", action="store_true", help="fail on warnings too")
+    parser.add_argument("--public", action="store_true", help="published processes only (publication.status: public)")
     args = parser.parse_args(argv)
 
-    report = build(args.library.resolve(), args.out.resolve(), args.version, args.commit, args.mappings.resolve() if args.mappings else None)
+    report = build(args.library.resolve(), args.out.resolve(), args.version, args.commit, args.mappings.resolve() if args.mappings else None, args.public)
     for message in report.warnings:
         print(f"warning: {message}", file=sys.stderr)
     for message in report.errors:

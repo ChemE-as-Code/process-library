@@ -95,12 +95,18 @@
       }
     },
     "publication": {
-      "description": "Metadata only; not a gate for listing.",
+      "description": "Whether the process may be published. A public build (--public) lists only status public; the preview build lists every process.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "status": {"enum": ["internal", "candidate", "public"]},
-        "license": {"type": "string"}
+        "license": {"type": "string", "description": "SPDX identifier of the license the process is published under, e.g. CC-BY-4.0."},
+        "exclude": {
+          "description": "Globs of process-folder paths kept out of its published viewer snapshot, in addition to the defaults (CONTRIBUTING.md). ** spans directories, * stays in one, a plain name is the file at the folder root.",
+          "type": "array",
+          "items": {"type": "string", "minLength": 1, "pattern": "^(?!/)(?!.*//)"},
+          "uniqueItems": true
+        }
       }
     }
   },

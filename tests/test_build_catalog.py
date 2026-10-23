@@ -72,6 +72,7 @@ def test_fixture_library_builds(tmp_path: Path) -> None:
     assert catalog["schema"] == "cheme-as-code/catalog/v1"
     assert [p["id"] for p in catalog["processes"]] == ["fixture-ammonia", "fixture-electrolysis"]
     assert catalog["library"] == {"commit": "fixture", "dirty": None}
+    assert catalog["mode"] == "preview"
 
 
 def test_build_is_byte_identical(tmp_path: Path) -> None:
@@ -284,3 +285,180 @@ def test_snapshot_staleness_follows_git_ancestry(tmp_path: Path) -> None:
 
     assert stale_after(library / "chemicals" / "chemicals.yaml") is False
     assert stale_after(library / "processes" / "fixture-electrolysis" / "process.yaml") is True
+
+
+# --- public builds -----------------------------------------------------------------------------
+
+import publication  # noqa: E402
+
+ELECTROLYSIS = "processes/fixture-electrolysis/process.yaml"
+
+
+def _public(library: Path, out: Path, snapshots: Path | None = SNAPSHOTS) -> build_catalog.Report:
+    return build_catalog.build(library, out, PREVIEWS, commit="fixture", snapshots=snapshots, public=True)
+
+
+def _edit(library: Path, rel: str, change) -> None:
+    path = library / rel
+    data = yaml.safe_load(path.read_text())
+    change(data)
+    path.write_text(yaml.safe_dump(data))
+
+
+def test_public_build_lists_only_published_processes(tmp_path: Path) -> None:
+    report = _public(LIBRARY, tmp_path / "out")
+    assert report.errors == []
+    out = tmp_path / "out"
+    catalog = _json(out / "catalog.json")
+    assert catalog["mode"] == "public"
+    assert [p["id"] for p in catalog["processes"]] == ["fixture-electrolysis"]
+    assert sorted(p.name for p in (out / "processes").iterdir()) == ["fixture-electrolysis.json"]
+    # fixture-ammonia (internal) is gone from the chemicals' uses and the graph too
+    chemicals = {c["slug"]: c for c in _json(out / "chemicals.json")["chemicals"]}
+    assert chemicals["hydrogen"]["consumed_by"] == []
+    assert chemicals["ammonia"]["produced_by"] == []
+    text = "".join(p.read_text() for p in out.rglob("*.json"))
+    assert "fixture-ammonia" not in text
+    node_ids = {n["id"] for n in _json(out / "graph.json")["nodes"]}
+    assert "chemical:ammonia" not in node_ids and "chemical:hydrogen" in node_ids
+    assert catalog["chemical_count"] == len([n for n in node_ids if n.startswith("chemical:")])
+
+
+@pytest.mark.parametrize("status", ["internal", "candidate", None])
+def test_only_status_public_is_published(library: Path, tmp_path: Path, status) -> None:
+    _edit(library, ELECTROLYSIS, lambda m: m["publication"].update(status=status) if status else m.pop("publication"))
+    report = _public(library, tmp_path / "out")
+    assert report.errors == []
+    assert _json(tmp_path / "out" / "catalog.json")["processes"] == []
+    assert not (tmp_path / "out" / "snapshots").exists()
+    assert not (tmp_path / "out" / "artifacts").exists()
+
+
+def test_public_build_of_a_library_without_public_processes_succeeds(library: Path, tmp_path: Path, capsys) -> None:
+    _edit(library, ELECTROLYSIS, lambda m: m["publication"].update(status="internal"))
+    assert build_catalog.main(["--library", str(library), "--out", str(tmp_path / "out"), "--commit", "x", "--public"]) == 0
+    assert "0 process(es)" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(("access", "kept"), [("private", False), (None, False), ("public", True)])
+def test_repository_is_dropped_unless_public(library: Path, tmp_path: Path, access, kept: bool) -> None:
+    repository = {"url": "https://github.com/ChemE-as-Code/process-library", "path": "processes/fixture-electrolysis"}
+    if access:
+        repository["access"] = access
+    _edit(library, ELECTROLYSIS, lambda m: m.update(repository=repository))
+    _public(library, tmp_path / "pub")
+    detail = _json(tmp_path / "pub" / "processes" / "fixture-electrolysis.json")
+    assert detail["repository"] == (repository if kept else None)
+    if not kept:
+        assert "github.com" not in "".join(p.read_text() for p in (tmp_path / "pub").rglob("*.json"))
+    _build(library, tmp_path / "preview")  # the preview build shows the library as it is
+    assert _json(tmp_path / "preview" / "processes" / "fixture-electrolysis.json")["repository"] == repository
+
+
+def test_publication_excludes_are_not_published(tmp_path: Path) -> None:
+    _public(LIBRARY, tmp_path / "out")
+    detail = _json(tmp_path / "out" / "processes" / "fixture-electrolysis.json")
+    assert detail["publication"] == {"status": "public", "license": "CC-BY-4.0"}
+
+
+def test_placeholder_footprints_are_withheld(tmp_path: Path) -> None:
+    _build(LIBRARY, tmp_path / "preview")
+    _public(LIBRARY, tmp_path / "pub")
+    full = _json(tmp_path / "preview" / "processes" / "fixture-electrolysis.json")["lca"]
+    lca = _json(tmp_path / "pub" / "processes" / "fixture-electrolysis.json")["lca"]
+    assert lca["values_withheld"] == "placeholder-factors"
+    assert "totals" not in lca and "contributions" not in lca
+    for key in ("goal", "functional_unit", "boundary", "allocation", "backend", "factors_status", "categories", "inventory", "sources"):
+        assert lca[key] == full[key], key
+    assert lca["inventory"] and lca["categories"]
+
+    summary = _json(tmp_path / "pub" / "catalog.json")["processes"][0]["lca"]
+    preview = next(p for p in _json(tmp_path / "preview" / "catalog.json")["processes"] if p["id"] == "fixture-electrolysis")["lca"]
+    assert preview["value"] == 24.0 and "values_withheld" not in preview
+    assert summary == {**preview, "value": None, "values_withheld": "placeholder-factors"}
+
+
+def test_published_factors_are_shown(library: Path, tmp_path: Path) -> None:
+    _edit(library, "processes/fixture-electrolysis/lca/factors.yaml", lambda f: f.pop("example"))
+    rows = library / "processes" / "fixture-electrolysis" / "lca" / "results.csv"
+    rows.write_text(rows.read_text().replace("ASSUMED", "PUBLISHED"))
+    _public(library, tmp_path / "out")
+    lca = _json(tmp_path / "out" / "processes" / "fixture-electrolysis.json")["lca"]
+    assert lca["factors_status"] != "placeholder"
+    assert lca["totals"] == {"baseline": {"climate-change": 24.0}} and "values_withheld" not in lca
+    assert _json(tmp_path / "out" / "catalog.json")["processes"][0]["lca"]["value"] == 24.0
+
+
+def _snapshots(tmp_path: Path, change) -> Path:
+    snaps = tmp_path / "snaps"
+    shutil.copytree(SNAPSHOTS, snaps)
+    path = snaps / "fixture-electrolysis" / "manifest.json"
+    manifest = json.loads(path.read_text())
+    change(manifest, snaps / "fixture-electrolysis")
+    path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+    return snaps
+
+
+def test_the_fixture_snapshot_was_exported_for_publication() -> None:
+    manifest = _json(SNAPSHOTS / "fixture-electrolysis" / "manifest.json")
+    process = yaml.safe_load((LIBRARY / ELECTROLYSIS).read_text())
+    assert set(publication.snapshot_excludes(process)) <= set(manifest["excluded"])
+
+
+@pytest.mark.parametrize(
+    "change",
+    [
+        lambda m, _: m.pop("excluded"),  # an export before --exclude existed
+        lambda m, _: m["excluded"].remove("reviews/**"),  # a default missing
+        lambda m, _: m["excluded"].remove("docs/private/**"),  # the process's own glob missing
+    ],
+    ids=["none", "default", "own"],
+)
+def test_snapshot_not_exported_for_publication_is_an_error(tmp_path: Path, change) -> None:
+    snaps = _snapshots(tmp_path, change)
+    report = _public(LIBRARY, tmp_path / "out", snaps)
+    assert any("snapshot was not exported for publication" in e for e in report.errors), report.errors
+    assert not (tmp_path / "out" / "snapshots").exists()
+    assert _json(tmp_path / "out" / "processes" / "fixture-electrolysis.json")["viewer"] is None
+    # the preview build does not ask
+    assert build_catalog.build(LIBRARY, tmp_path / "preview", PREVIEWS, commit="x", snapshots=snaps).errors == []
+
+
+def _with_lca_answers(manifest: dict, folder: Path) -> None:
+    for key, name in [("lca", "lca.json"), ("file?path=lca/results.csv", "results.txt"), ("file?path=lca/lca.yaml", "study.txt")]:
+        (folder / "data" / name).write_text("climate-change,24.0\n")
+        manifest["entries"][key] = {"file": name, "status": 200, "type": "application/json"}
+
+
+def test_placeholder_lca_answers_are_removed_from_the_snapshot(tmp_path: Path) -> None:
+    snaps = _snapshots(tmp_path, _with_lca_answers)
+    assert _public(LIBRARY, tmp_path / "out", snaps).errors == []
+    target = tmp_path / "out" / "snapshots" / "fixture-electrolysis"
+    manifest = _json(target / "manifest.json")
+    assert "lca" not in manifest["entries"] and "file?path=lca/results.csv" not in manifest["entries"]
+    assert not (target / "data" / "lca.json").exists() and not (target / "data" / "results.txt").exists()
+    assert manifest["entries"]["file?path=lca/lca.yaml"]["file"] == "study.txt"  # the study is not a value
+    assert all((target / "data" / e["file"]).is_file() for e in manifest["entries"].values())
+    viewer = _json(tmp_path / "out" / "processes" / "fixture-electrolysis.json")["viewer"]
+    assert "lca" not in viewer["views"]
+    # the source snapshot is untouched, and the preview build keeps the answer
+    assert "lca" in _json(snaps / "fixture-electrolysis" / "manifest.json")["entries"]
+    build_catalog.build(LIBRARY, tmp_path / "preview", PREVIEWS, commit="x", snapshots=snaps)
+    assert "lca" in _json(tmp_path / "preview" / "processes" / "fixture-electrolysis.json")["viewer"]["views"]
+
+
+def test_published_lca_answer_stays_in_the_snapshot(library: Path, tmp_path: Path) -> None:
+    _edit(library, "processes/fixture-electrolysis/lca/factors.yaml", lambda f: f.pop("example"))
+    snaps = _snapshots(tmp_path, _with_lca_answers)
+    assert _public(library, tmp_path / "out", snaps).errors == []
+    manifest = _json(tmp_path / "out" / "snapshots" / "fixture-electrolysis" / "manifest.json")
+    assert "lca" in manifest["entries"] and "file?path=lca/results.csv" in manifest["entries"]
+
+
+def test_public_build_is_byte_identical(tmp_path: Path) -> None:
+    _public(LIBRARY, tmp_path / "a")
+    _public(LIBRARY, tmp_path / "b")
+    files = sorted(p.relative_to(tmp_path / "a") for p in (tmp_path / "a").rglob("*") if p.is_file())
+    assert files == sorted(p.relative_to(tmp_path / "b") for p in (tmp_path / "b").rglob("*") if p.is_file())
+    for rel in files:
+        assert (tmp_path / "a" / rel).read_bytes() == (tmp_path / "b" / rel).read_bytes(), rel
