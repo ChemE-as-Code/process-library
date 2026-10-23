@@ -2492,7 +2492,8 @@ simulation and design basis stay with the process-simulation work (D-058, D-059,
      liquid (vf 0, 726 / 1,135 kg/m3) within 0.1 K of the dew point (D-061). Request: give
      their vapour fraction 1 (or the dew-point state) in the flowsheet and refill the
      properties. The E-3101 datasheet already takes them as saturated vapour (D-063 (6),
-     D-065 (4)).
+     D-065 (4)). **Closed by D-087**: the owner stated S14 / S15 / S16 vapour (D-066), and
+     `props --fill` now fills them on the EOS vapour root (core #102).
 
 ## D-066 GOX 99.5 %: more air through the HP column, subcooler, feed stages, fitted Ar/O2 VLE (2026-10-23)
 Closes D-059 and revises D-018 and the design basis recovery. The 99.5 % O2 specification, the 500
@@ -3476,3 +3477,32 @@ Result: drawing findings unchanged (P-01 2, P-03 3, P-04 1 crossings, all accept
 no layout finding added; 0 errors.
 
 Reason: review12#3 .. #6.
+
+## D-087 Cold vapour streams S14 / S15 / S16 filled on the vapour root; D-065 (7) (c) closed (2026-10-24)
+Closes D-065 (7) (c) (review10#8b).
+
+Decision:
+- (1) **Fill.** The owner states S14 (HP column top N2), S15 (LP sump GOX) and S16 (LP column
+  top waste N2) as `vapor`, `assumed` (D-065 (7), D-066). Until now `props --fill` flashed them
+  at the simulated temperature, pressure and composition, found liquid (S14, S15) or two-phase
+  (S16) within 0.1 K of the dew point, and wrote nothing. The phase-constrained flash of
+  cheme-as-code (core #102, in the installed core main da8c09d) evaluates a stream of a stated
+  phase on that phase's EOS root (thermo 0.6.1, Peng-Robinson) when it is metastable by only a
+  small Gibbs energy; the values are marked `phase-constrained` in their `source`.
+  `cheme process props --fill` now writes, as `calculated`:
+  | stream | flash | dG/RT | M kg/kmol | rho kg/m3 | h kJ/kmol | exergy kJ/kmol |
+  |---|---|---|---|---|---|---|
+  | S14 | liquid | 0.00051 | 28.016 | 21.92 | -6,204.1 | 9,129.6 |
+  | S15 | liquid | 0.00093 | 32.022 | 6.017 | -6,043.6 | 8,933.4 |
+  | S16 | two-phase | 7.5e-07 | 28.366 | 5.760 | -6,381.8 | 6,053.7 |
+  The metastability is at most 0.1 % of RT, inside the accuracy of the cubic EOS near
+  saturation, so the vapour-root values are taken as the saturated vapour.
+- (2) Nothing else is written: the given and assumed values, the simulated states and the other
+  streams stay; S1 .. S3CU (H2O outside the N2 / O2 / Ar range) and S4C (333 K above the claimed
+  315 K) are still refused, S12A / S12H still lack a temperature / pressure (unchanged).
+- (3) The BFD / PFD are rebuilt (`cheme process build`; the PFD stream tables gain the three
+  property sets) and the LCA dataset fingerprint refreshed (`cheme assess lca --write`; no
+  result changed). No datasheet changes: E-3101 already takes S14 / S15 as saturated vapour
+  (D-063 (6), D-065 (4)).
+
+Reason: D-065 (7) (c), core #102.
