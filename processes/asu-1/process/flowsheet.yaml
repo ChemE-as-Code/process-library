@@ -33,6 +33,9 @@ products:
   - id: VENT
     title: Vent to atmosphere
     ports: [{id: v1, direction: in}, {id: v2, direction: in}, {id: v3, direction: in}]
+  - id: COND
+    title: Condensate (MAC cooler drains; DCAC condensate into its circulating water)
+    ports: [{id: mac, direction: in}, {id: dcac, direction: in}]
   - id: CW
     title: Cooling water return (heat rejected)
     ports:
@@ -51,6 +54,8 @@ blocks:
       - {id: evap, direction: in}
       - {id: out, direction: out}
       - {id: evap_out, direction: out}
+      - {id: cond_mac, direction: out}
+      - {id: cond_dcac, direction: out}
       - {id: power, direction: in, kind: energy}
       - {id: power_aux, direction: in, kind: energy}
       - {id: cw, direction: out, kind: energy}
@@ -102,6 +107,7 @@ steps:
     ports:
       - {id: in, direction: in, delegates: air}
       - {id: out, direction: out}
+      - {id: condensate, direction: out, delegates: cond_mac}
       - {id: power, direction: in, kind: energy, delegates: power}
       - {id: cw, direction: out, kind: energy, delegates: cw}
   - id: C1101
@@ -112,6 +118,7 @@ steps:
     ports:
       - {id: in, direction: in}
       - {id: out, direction: out, delegates: out}
+      - {id: condensate, direction: out, delegates: cond_dcac}
       - {id: power, direction: in, kind: energy, delegates: power_aux}
       - {id: cw, direction: out, kind: energy, delegates: cw_dcac}
   - id: C1102
@@ -243,10 +250,10 @@ streams:
     template: air
     state:
       design:
-        flow: {value: 98270, provenance: assumed, source: "DESIGN.md 3, stream 1 (76,000 Nm3/h)"}
+        flow: {value: 100235, provenance: assumed, source: "D-058: dry air 98,120 kg/h (75,925 Nm3/h, so that S3 stays 98,270 and S4 98,060) + 2,115 kg/h water at 80 % RH, 30 C"}
         pressure: {value: 1.01, provenance: assumed, source: "DESIGN.md 3, stream 1"}
         temperature: {value: 30, provenance: given, source: "DESIGN.md 3 basis: 30 C ambient"}
-        composition: {basis: mole_fraction, values: {N2: 0.7788, O2: 0.2090, AR: 0.0093, H2O: 0.0025, CO2: 0.0004}, provenance: assumed, source: "ASSUMED (D-027): standard dry air with H2O 0.25 mol% = saturation at 12 C / 5.7 bara (stream 3 'saturated'), ~59 % RH at 30 C; site humidity not stated"}
+        composition: {basis: mole_fraction, values: {N2: 0.75459, O2: 0.20251, AR: 0.009011, H2O: 0.0335, CO2: 0.000388}, provenance: assumed, source: "D-058: design basis 80 % RH at 30 C, 1.013 bara: p_H2O 3.40 kPa = 3.35 mol%; dry air as D-027 (N2 78.075, O2 20.953, Ar 0.932, CO2 0.040 %)"}
   - id: S2
     title: Compressed air
     links: [{target: line, ref: AIR-1002, sheet: P-01}]
@@ -255,10 +262,10 @@ streams:
     template: air
     state:
       design:
-        flow: {value: 98270, provenance: assumed, source: "DESIGN.md 3, stream 2"}
         pressure: {value: 5.8, provenance: assumed, source: "DESIGN.md 3, stream 2"}
         temperature: {value: 40, provenance: assumed, source: "DESIGN.md 3, stream 2"}
-        composition: {basis: mole_fraction, values: {N2: 0.7788, O2: 0.209, AR: 0.0093, H2O: 0.0025, CO2: 0.0004}, provenance: calculated, source: 'cheme process propagate: pass-through K1101 from S1', fingerprint: 6d7d3d4c0a1de581}
+        composition: {basis: mole_fraction, values: {N2: 0.771679, O2: 0.207096, AR: 0.00921507, H2O: 0.0116125, CO2: 0.000396769}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 84b966c3078940ec}
+        flow: {value: 98836.9, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 84b966c3078940ec}
   - id: S3
     title: Precooled air
     links: [{target: line, ref: AIR-1004, sheet: P-01}]
@@ -270,7 +277,29 @@ streams:
         flow: {value: 98270, provenance: assumed, source: "DESIGN.md 3, stream 3"}
         pressure: {value: 5.7, provenance: assumed, source: "DESIGN.md 3, stream 3"}
         temperature: {value: 12, provenance: assumed, source: "DESIGN.md 3, stream 3"}
-        composition: {basis: mole_fraction, values: {N2: 0.7788, O2: 0.209, AR: 0.0093, H2O: 0.0025, CO2: 0.0004}, provenance: calculated, source: 'cheme process propagate: pass-through C1101 from S2', fingerprint: 76b3ff75449fd48c}
+        composition: {basis: mole_fraction, values: {N2: 0.779082, O2: 0.209083, AR: 0.00930347, H2O: 0.0021309, CO2: 0.000400563}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 84b966c3078940ec}
+  - id: S1C
+    title: MAC cooler condensate (E-1102, E-1103 drains)
+    from: K1101.condensate
+    to: COND.mac
+    template: air
+    state:
+      design:
+        temperature: {value: 40.0509, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 84b966c3078940ec}
+        pressure: {value: 1.79003, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 84b966c3078940ec}
+        flow: {value: 1398.16, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 84b966c3078940ec}
+        composition: {basis: mole_fraction, values: {N2: 6.45813e-07, O2: 3.14944e-06, AR: 1.34427e-07, H2O: 0.999995, CO2: 7.98779e-07}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 84b966c3078940ec}
+  - id: S3C
+    title: DCAC condensate (into the circulating water)
+    from: C1101.condensate
+    to: COND.dcac
+    template: air
+    state:
+      design:
+        temperature: {value: 12.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 84b966c3078940ec}
+        pressure: {value: 5.7, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 84b966c3078940ec}
+        flow: {value: 586.664, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 84b966c3078940ec}
+        composition: {basis: mole_fraction, values: {N2: 2.75765e-07, O2: 2.1105e-06, AR: 8.73394e-08, H2O: 0.999996, CO2: 1.25477e-06}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 84b966c3078940ec}
   - id: S4
     title: Dry air to cold box
     links:
@@ -303,8 +332,8 @@ streams:
       design:
         flow: {value: 83190, provenance: assumed, source: "ASSUMED (D-027): = HP column feed S5 (E3101 only cools it)"}
         composition: {basis: mole_fraction, values: {N2: 0.7811, O2: 0.2096, AR: 0.0093}, provenance: calculated, source: 'cheme process propagate: splitter X3102 from S4', fingerprint: 5af5ba9102e58936}
-        pressure: {value: 5.6, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e0a54be25ace00dc}
-        temperature: {value: 15.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e0a54be25ace00dc}
+        pressure: {value: 5.6, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 84b966c3078940ec}
+        temperature: {value: 15.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 84b966c3078940ec}
   - id: S4B
     title: Booster suction
     links: [{target: line, ref: AIR-3005, sheet: P-03}]
@@ -638,8 +667,8 @@ streams:
     template: air
     state:
       design:
-        flow: {value: 16560, provenance: assumed, source: "ASSUMED (D-027): 12a 16,350 + 213 kg/h H2O (153) and CO2 (60) removed from stream 3, rounded"}
-        composition: {basis: mole_fraction, values: {N2: 0.9503, O2: 0.0206, AR: 0.0124, H2O: 0.0144, CO2: 0.0023}, provenance: assumed, source: "ASSUMED (D-027): S12H plus the H2O and CO2 of stream 3 (cycle average; N2O and hydrocarbons neglected)"}
+        flow: {value: 16540, provenance: assumed, source: "ASSUMED (D-027, D-058): 12a 16,350 + the H2O (130.3 kg/h) and CO2 (59.9 kg/h) of the simulated stream 3"}
+        composition: {basis: mole_fraction, values: {N2: 0.95235, O2: 0.020594, AR: 0.012416, H2O: 0.012316, CO2: 0.002315}, provenance: assumed, source: "ASSUMED (D-027, D-058): S12H plus the H2O and CO2 of stream 3 (cycle average; N2O and hydrocarbons neglected)"}
   - id: S12E
     title: Evaporative cooler gas out
     links: [{target: line, ref: WN-1002, sheet: P-01}]
@@ -658,7 +687,7 @@ streams:
     to: K1101.power
     state:
       design:
-        duty: {value: 6144.07, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e0a54be25ace00dc}
+        duty: {value: 6308.51, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 84b966c3078940ec}
   - id: E2
     title: DCAC water pumps, chilled water, miscellaneous
     kind: energy
@@ -682,7 +711,7 @@ streams:
     to: K4101.power
     state:
       design:
-        duty: {value: 2331.04, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e0a54be25ace00dc}
+        duty: {value: 2331.04, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 84b966c3078940ec}
   - id: E5
     title: GAN compressor motor
     kind: energy
@@ -690,7 +719,7 @@ streams:
     to: K4102.power
     state:
       design:
-        duty: {value: 247.811, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e0a54be25ace00dc}
+        duty: {value: 247.811, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 84b966c3078940ec}
   - id: Q1
     title: MAC inter- and aftercoolers to cooling water
     kind: energy
@@ -698,7 +727,7 @@ streams:
     to: CW.mac
     state:
       design:
-        duty: {value: 5570.34, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e0a54be25ace00dc}
+        duty: {value: 6686.41, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 84b966c3078940ec}
   - id: Q2
     title: DCAC to cooling water
     kind: energy
@@ -706,7 +735,7 @@ streams:
     to: CW.dcac
     state:
       design:
-        duty: {value: 792.848, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e0a54be25ace00dc}
+        duty: {value: 1201.42, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 84b966c3078940ec}
   - id: Q3
     title: GOX compressor coolers to cooling water
     kind: energy
@@ -714,7 +743,7 @@ streams:
     to: CW.gox
     state:
       design:
-        duty: {value: 2170.77, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e0a54be25ace00dc}
+        duty: {value: 2170.77, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 84b966c3078940ec}
   - id: Q4
     title: GAN compressor cooler to cooling water
     kind: energy
@@ -722,4 +751,4 @@ streams:
     to: CW.gan
     state:
       design:
-        duty: {value: 176.478, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e0a54be25ace00dc}
+        duty: {value: 176.478, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 84b966c3078940ec}
