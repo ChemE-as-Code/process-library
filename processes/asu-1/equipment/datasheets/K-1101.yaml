@@ -18,9 +18,10 @@ operating:
     unit: °C
     source: 'process/flowsheet.yaml stream S1 (case design), given: DESIGN.md 3 basis: 30 C ambient'
   inlet_flow:
-    value: 98270.0
+    value: 100235.0
     unit: kg/h
-    source: 'process/flowsheet.yaml stream S1 (case design), assumed: DESIGN.md 3, stream 1 (76,000 Nm3/h)'
+    source: 'process/flowsheet.yaml stream S1 (case design), assumed: 76,000 Nm3/h dry air at 80 % RH,
+      30 C (98,120 kg/h dry + 2,115 kg/h water, DESIGN.md D-058)'
     assumed: true
   outlet_pressure:
     value: 5.8
@@ -33,9 +34,17 @@ operating:
     source: 'process/flowsheet.yaml stream S2 (case design), assumed: DESIGN.md 3, stream 2'
     assumed: true
   outlet_flow:
-    value: 98270.0
+    value: 98836.9
     unit: kg/h
-    source: 'process/flowsheet.yaml stream S2 (case design), assumed: DESIGN.md 3, stream 2'
+    source: 'process/flowsheet.yaml stream S2 (case design), calculated by `cheme process simulate`
+      (DESIGN.md D-058): S1 less the condensate S1C 1,398 kg/h of the E-1102 / E-1103 drains'
+    assumed: true
+  condensate_flow:
+    value: 1398.2
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S1C (case design), calculated by `cheme process simulate`
+      (DESIGN.md D-058): E-1102 and E-1103 moisture separator drains, 40 C; this script''s IAPWS-95
+      split: E-1102 679 kg/h, E-1103 649 kg/h (scripts/datasheet_sizing.py D-063 (1))'
     assumed: true
 design:
   pressure_barg:
@@ -127,36 +136,34 @@ type_specific:
     unit: m
     source: equipment/equipment-list.yaml dimensions
   fluid_power_kw:
-    value: 5778.0
+    value: 5968
     unit: kW
-    source: 'cheme datasheets fill: P = m sum(w) = 5778 kW, stage work 69.04, 71.32, 71.32 kJ/kg;
-      isentropic efficiency 0.8 (ASSUMED: DESIGN.md D-053 (ASSUMED per stage until the supplier''s guarantee));
-      3 stage(s) of ratio 1.791 (overall 5.743, max per stage 2.0 (ASSUMED: DESIGN.md D-053 (ASSUMED;
-      gives the 3 stages of DESIGN.md 1 and the equipment list))); m 98270 kg/h (process/flowsheet.yaml
-      stream S1 (case design)), 101 -> 580 kPa(a) (S2; the stream pressures taken at the machine''s flanges,
-      line losses not added), suction 303.15 K; ideal gas, constant Cp/Cv 1.402 (ASSUMED: property adapter
-      (thermo 0.6.1, PR; cheme process props method) for the dry air of S4 at 30 C, 1.01 bara; the
-      0.25 mol% water of S1 is outside the method and neglected (ASSUMED, DESIGN.md D-053)), M 28.94 kg/kmol
-      (ASSUMED: Z = 1; the real-gas route was refused: suction: component H2O (7732-18-5) is outside the
-      supported mixture (argon, nitrogen, oxygen)); intercooled to 40 (ASSUMED: DESIGN.md D-053 (ASSUMED,
-      as the aftercooler E-1103 ''air to 40 C'', CW 25 -> 35 C)) degC, no intercooler or aftercooler pressure
-      drop (ASSUMED: the stage ratios split S2''s pressure)'
+    source: '`cheme process simulate` (DWSIM 9.0.5, Peng-Robinson; DESIGN.md D-058): K1101 compressor
+      power 5,967.85 kW for the wet air S1 (100,235 kg/h, 80 % RH), 3 stages at isentropic efficiency 0.82,
+      intercooled to 40 C, 0.05 bar per cooler (process/simulation.yaml, ASSUMED). Cross-check
+      scripts/datasheet_sizing.py D-063 (1), ideal gas with Cp/Cv at each stage suction: 5,981 kW'
     assumed: true
   shaft_power_kw:
-    value: 5957.0
+    value: 5968
     unit: kW
-    source: 'cheme datasheets fill: fluid power 5778 kW / 0.97 (ASSUMED: DESIGN.md D-053 (ASSUMED,
-      gear and bearings))'
+    source: '`cheme process simulate` (DESIGN.md D-058): K1101 shaft 5,967.85 kW = the compressor power;
+      the gear and bearing losses are in the drive efficiency below'
     assumed: true
   electric_power_kw:
-    value: 8000
+    value: 6309
     unit: kW
-    source: 'DESIGN.md 3 utility table: 8.0 MW electric at 0.105 kWh/Nm3, 5.8 bara (ASSUMED; motor input,
-      kept as the utility and motor basis; the calculated shaft power is below it, DESIGN.md D-053)'
+    source: 'process/flowsheet.yaml energy stream E1 (calculated, `cheme process simulate`, DESIGN.md
+      D-058): 6,308.5 kW = shaft / drive efficiency 0.946. The motor stays rated 8.0 MW (equipment list,
+      electrical list; D-057: it covers the 90 % recovery case of D-018 and the IGV range)'
+    assumed: true
+  drive_efficiency:
+    value: 0.946
+    source: process/simulation.yaml K1101 (ASSUMED, D-057; 6.6 kV motor 0.97 x integral gear and bearings
+      0.975)
     assumed: true
   isentropic_efficiency:
-    value: 0.8
-    source: DESIGN.md D-053 (ASSUMED per stage until the supplier's guarantee)
+    value: 0.82
+    source: process/simulation.yaml K1101 (ASSUMED per stage until the supplier's guarantee, D-057)
     assumed: true
   max_stage_pressure_ratio:
     value: 2.0
@@ -165,17 +172,22 @@ type_specific:
   intercooler_outlet_temperature_degc:
     value: 40
     unit: degC
-    source: DESIGN.md D-053 (ASSUMED, as the aftercooler E-1103 'air to 40 C', CW 25 -> 35 C)
+    source: process/simulation.yaml K1101 outlet_temperature (ASSUMED, as the aftercooler E-1103 'air to
+      40 C', CW 25 -> 35 C)
+    assumed: true
+  cooler_pressure_drop_bar:
+    value: 0.05
+    unit: bar
+    source: process/simulation.yaml K1101 pressure_drop (ASSUMED, per cooler)
     assumed: true
   heat_capacity_ratio:
-    value: 1.402
-    source: property adapter (thermo 0.6.1, PR; cheme process props method) for the dry air of S4
-      at 30 C, 1.01 bara; the 0.25 mol% water of S1 is outside the method and neglected (ASSUMED, DESIGN.md
-      D-053)
-    assumed: true
-  mechanical_efficiency:
-    value: 0.97
-    source: DESIGN.md D-053 (ASSUMED, gear and bearings)
+    value:
+    - 1.3984
+    - 1.3991
+    - 1.4025
+    source: 'scripts/datasheet_sizing.py D-063 (1): Cp/Cv at each stage suction (303.15 K 101 kPa(a);
+      313.15 K 179 / 321 kPa(a)): property adapter (thermo 0.6.1, PR) for N2 / O2 / Ar, water vapour mixed
+      in on the molar Cp (IAPWS-95 at its partial pressure); replaces the single 1.402 of D-053'
     assumed: true
   process_streams:
   - stream: S1
@@ -186,58 +198,42 @@ type_specific:
     direction: out
     title: Compressed air
     source: process/flowsheet.yaml (case design)
+  - stream: S1C
+    direction: out
+    title: MAC cooler condensate (E-1102, E-1103 drains)
+    source: process/flowsheet.yaml (case design)
   number_of_stages:
     value: 3
     unit: ''
-    source: 'cheme datasheets fill: 3 stage(s) of ratio 1.791 (overall 5.743, max per stage 2.0 (ASSUMED:
-      DESIGN.md D-053 (ASSUMED; gives the 3 stages of DESIGN.md 1 and the equipment list)))'
+    source: process/simulation.yaml K1101 stages 3 (DESIGN.md 1, the equipment list; max ratio 2.0 per stage,
+      D-053)
     assumed: true
   stage_pressure_ratio:
-    value: 1.791
+    value: 1.822
     unit: ''
-    source: 'cheme datasheets fill: 3 stage(s) of ratio 1.791 (overall 5.743, max per stage 2.0 (ASSUMED:
-      DESIGN.md D-053 (ASSUMED; gives the 3 stages of DESIGN.md 1 and the equipment list)))'
+    source: 'scripts/datasheet_sizing.py D-063 (1): equal ratios from 101 kPa(a) to 585 kPa(a) at the last
+      stage discharge, 5 kPa lost in each cooler (S2 5.8 bara after E-1103)'
     assumed: true
   discharge_temperature_k:
-    value: 384.3
+    value: 384.9
     unit: K
-    source: 'cheme datasheets fill: last stage outlet; isentropic efficiency 0.8 (ASSUMED: DESIGN.md
-      D-053 (ASSUMED per stage until the supplier''s guarantee)); 3 stage(s) of ratio 1.791 (overall 5.743,
-      max per stage 2.0 (ASSUMED: DESIGN.md D-053 (ASSUMED; gives the 3 stages of DESIGN.md 1 and the
-      equipment list))); m 98270 kg/h (process/flowsheet.yaml stream S1 (case design)), 101 -> 580 kPa(a)
-      (S2; the stream pressures taken at the machine''s flanges, line losses not added), suction 303.15
-      K; ideal gas, constant Cp/Cv 1.402 (ASSUMED: property adapter (thermo 0.6.1, PR; cheme process
-      props method) for the dry air of S4 at 30 C, 1.01 bara; the 0.25 mol% water of S1 is outside the
-      method and neglected (ASSUMED, DESIGN.md D-053)), M 28.94 kg/kmol (ASSUMED: Z = 1; the real-gas
-      route was refused: suction: component H2O (7732-18-5) is outside the supported mixture (argon, nitrogen,
-      oxygen)); intercooled to 40 (ASSUMED: DESIGN.md D-053 (ASSUMED, as the aftercooler E-1103 ''air
-      to 40 C'', CW 25 -> 35 C)) degC, no intercooler or aftercooler pressure drop (ASSUMED: the stage
-      ratios split S2''s pressure)'
+    source: 'scripts/datasheet_sizing.py D-063 (1): stage 3 discharge (ideal gas, Cp/Cv at the stage
+      suction, eta_s 0.82); stages 1 / 2: 372.1 / 384.4 K'
     assumed: true
   intercooler_duties_kw:
     value:
-    - 1611.0
-    - 1947.0
+    - 1673
+    - 2476
     unit: kW
-    source: 'cheme datasheets fill: m (h_stage_out - h_intercooled) per intercooler; intercooled to
-      40 (ASSUMED: DESIGN.md D-053 (ASSUMED, as the aftercooler E-1103 ''air to 40 C'', CW 25 -> 35 C))
-      degC, no intercooler or aftercooler pressure drop (ASSUMED: the stage ratios split S2''s pressure);
-      isentropic efficiency 0.8 (ASSUMED: DESIGN.md D-053 (ASSUMED per stage until the supplier''s guarantee));
-      3 stage(s) of ratio 1.791 (overall 5.743, max per stage 2.0 (ASSUMED: DESIGN.md D-053 (ASSUMED;
-      gives the 3 stages of DESIGN.md 1 and the equipment list))); m 98270 kg/h (process/flowsheet.yaml
-      stream S1 (case design)), 101 -> 580 kPa(a) (S2; the stream pressures taken at the machine''s flanges,
-      line losses not added), suction 303.15 K; ideal gas, constant Cp/Cv 1.402 (ASSUMED: property adapter
-      (thermo 0.6.1, PR; cheme process props method) for the dry air of S4 at 30 C, 1.01 bara; the
-      0.25 mol% water of S1 is outside the method and neglected (ASSUMED, DESIGN.md D-053)), M 28.94 kg/kmol
-      (ASSUMED: Z = 1; the real-gas route was refused: suction: component H2O (7732-18-5) is outside the
-      supported mixture (argon, nitrogen, oxygen)); intercooled to 40 (ASSUMED: DESIGN.md D-053 (ASSUMED,
-      as the aftercooler E-1103 ''air to 40 C'', CW 25 -> 35 C)) degC, no intercooler or aftercooler pressure
-      drop (ASSUMED: the stage ratios split S2''s pressure)'
+    source: 'scripts/datasheet_sizing.py D-063 (1): E-1101 sensible 1,673 kW; E-1102 sensible 2,022 kW +
+      679 kg/h condensed (454 kW, IAPWS-95 latent heat at 40 C); aftercooler E-1103 2,436 kW (2,002 + 434
+      kW, 649 kg/h). The three coolers 6,585 kW against the simulated Q1 6,686 kW (DESIGN.md D-058; 1.5 %
+      apart: Peng-Robinson water against IAPWS-95)'
     assumed: true
 sizing_basis: []
-notes: 'Integrally geared, 3 stages, 76,000 Nm3/h, 1.0 -> 5.8 bara, ~8.0 MW, 6.6 kV motor, IGV + anti-surge
-  blow-off. Train with gearbox and motor on one base 12 x 6 x 5 m. ASSUMED. Review (DESIGN.md D-053):
-  3 stages at eta_s 0.80, intercooled to 40 C, give 5,778 kW gas power and 5,957 kW shaft power (isothermal
-  4.15 MW, isothermal efficiency 0.70), 26 % below the 8.0 MW electric (motor losses not deducted) of
-  the DESIGN.md 3 utility table (0.105 kWh/Nm3), which is kept as the motor and utility basis until the
-  supplier''s figure.'
+notes: 'Integrally geared, 3 stages, 76,000 Nm3/h dry air at 80 % RH, 1.0 -> 5.8 bara, 8.0 MW 6.6 kV motor
+  (rating), IGV + anti-surge blow-off. Train with gearbox and motor on one base 12 x 6 x 5 m. ASSUMED.
+  Powers from the DWSIM simulation (DESIGN.md D-057, D-058): 5,968 kW at the compressor, 6,309 kW electric
+  at the drive efficiency 0.946; the motor rating stays 8.0 MW. Condensate S1C 1,398 kg/h from the E-1102 and
+  E-1103 moisture separators (DESIGN.md D-058; not drawn on P-01 yet). Stage temperatures and cooler duties
+  from scripts/datasheet_sizing.py D-063 (1).'

@@ -27,16 +27,16 @@ operating:
       the expander air, boosted first (D-003)'
     assumed: true
   outlet_pressure:
-    value: 8.0
+    value: 8.45
     unit: bar(a)
-    source: 'process/flowsheet.yaml stream S4C (case design), assumed: equipment list K-3101: 5.6 -> 8.0
-      bara; line list AIR-3002: 8.0 bara'
+    source: 'process/flowsheet.yaml stream S4C (case design), assumed: DESIGN.md D-061: 5.6 -> 8.45 bara,
+      where the compander balances on the shaft'
     assumed: true
   outlet_temperature:
-    value: 54.6
+    value: 59.9
     unit: °C
-    source: 'discharge_temperature_k 327.7 K below (cheme datasheets fill, ideal gas, eta_s 0.80 ASSUMED);
-      process/flowsheet.yaml stream S4C'
+    source: 'process/flowsheet.yaml stream S4C (case design), calculated by `cheme process simulate` (DWSIM,
+      Peng-Robinson, eta_s 0.80; DESIGN.md D-061): 59.93 C'
     assumed: true
   outlet_flow:
     value: 14870.0
@@ -96,25 +96,21 @@ type_specific:
     unit: t
     source: equipment/equipment-list.yaml dimensions
   fluid_power_kw:
-    value: 160.6
+    value: 185.9
     unit: kW
-    source: 'cheme datasheets fill: P = m sum(w) = 160.6 kW, stage work 38.87 kJ/kg; isentropic efficiency
-      0.8 (ASSUMED: DESIGN.md D-053 (ASSUMED until the compander supplier''s guarantee)); 1 stage(s) of
-      ratio 1.429 (overall 1.429, max per stage 2.0 (ASSUMED: DESIGN.md D-053 (ASSUMED; one stage)));
-      m 14870 kg/h (process/flowsheet.yaml stream S4B (case design)), 560 -> 800 kPa(a) (S4C), suction
-      288.15 K; ideal gas, constant Cp/Cv 1.412 at the suction (property adapter), M 28.96 kg/kmol (ASSUMED:
-      Z = 1; the real-gas route was refused: isentropic outlet: temperature 319.22 K outside the claimed
-      77 to 315 K)'
+    source: '`cheme process simulate` (DWSIM 9.0.5, Peng-Robinson; DESIGN.md D-061): K3101 185.877 kW,
+      S4B 5.6 bara 15 C -> S4C 8.45 bara, eta_s 0.80 (process/simulation.yaml, ASSUMED). Cross-check
+      scripts/datasheet_sizing.py D-063 (4), ideal gas with Cp/Cv 1.412 at the suction: 186.7 kW, 61.0 C'
     assumed: true
   shaft_power_kw:
-    value: 165.5
+    value: 191.6
     unit: kW
-    source: 'cheme datasheets fill: fluid power 160.6 kW / 0.97 (ASSUMED: DESIGN.md D-053 (ASSUMED,
-      bearings of the compander shaft))'
+    source: 'DESIGN.md D-061: gas power 185.9 kW / 0.97 (mechanical efficiency, ASSUMED); the expander
+      KT-3101 gives 192.4 kW on the shaft: 0.8 kW margin'
     assumed: true
   isentropic_efficiency:
     value: 0.8
-    source: DESIGN.md D-053 (ASSUMED until the compander supplier's guarantee)
+    source: process/simulation.yaml K3101 (ASSUMED until the compander supplier's guarantee)
     assumed: true
   max_stage_pressure_ratio:
     value: 2.0
@@ -123,6 +119,11 @@ type_specific:
   mechanical_efficiency:
     value: 0.97
     source: DESIGN.md D-053 (ASSUMED, bearings of the compander shaft)
+    assumed: true
+  heat_capacity_ratio:
+    value: 1.4124
+    source: 'scripts/datasheet_sizing.py D-063 (4): Cp/Cv of S4B at the suction, 288.15 K 560 kPa(a),
+      property adapter (thermo 0.6.1, PR)'
     assumed: true
   process_streams:
   - stream: S4B
@@ -136,27 +137,21 @@ type_specific:
   number_of_stages:
     value: 1
     unit: ''
-    source: 'cheme datasheets fill: 1 stage(s) of ratio 1.429 (overall 1.429, max per stage 2.0 (ASSUMED:
-      DESIGN.md D-053 (ASSUMED; one stage)))'
+    source: 'ratio 1.509 below the 2.0 maximum per stage (DESIGN.md D-053, ASSUMED)'
     assumed: true
   stage_pressure_ratio:
-    value: 1.429
+    value: 1.509
     unit: ''
-    source: 'cheme datasheets fill: 1 stage(s) of ratio 1.429 (overall 1.429, max per stage 2.0 (ASSUMED:
-      DESIGN.md D-053 (ASSUMED; one stage)))'
+    source: 'S4C / S4B = 8.45 / 5.6 (DESIGN.md D-061)'
     assumed: true
   discharge_temperature_k:
-    value: 327.7
+    value: 333.1
     unit: K
-    source: 'cheme datasheets fill: last stage outlet; isentropic efficiency 0.8 (ASSUMED: DESIGN.md
-      D-053 (ASSUMED until the compander supplier''s guarantee)); 1 stage(s) of ratio 1.429 (overall 1.429,
-      max per stage 2.0 (ASSUMED: DESIGN.md D-053 (ASSUMED; one stage))); m 14870 kg/h (process/flowsheet.yaml
-      stream S4B (case design)), 560 -> 800 kPa(a) (S4C), suction 288.15 K; ideal gas, constant Cp/Cv
-      1.412 at the suction (property adapter), M 28.96 kg/kmol (ASSUMED: Z = 1; the real-gas route was
-      refused: isentropic outlet: temperature 319.22 K outside the claimed 77 to 315 K)'
+    source: 'process/flowsheet.yaml stream S4C, calculated by `cheme process simulate` (DESIGN.md D-061):
+      59.93 C'
     assumed: true
 sizing_basis: []
-notes: 'Same shaft as KT-3101 (compander), 11,500 Nm3/h, 5.6 -> 8.0 bara. ASSUMED. Review (DESIGN.md D-053):
-  at eta_s 0.80 the booster takes 165.5 kW shaft power for 5.6 -> 8.0 bara, the expander gives 198.5 kW (KT-3101
-  shaft power): the compander balances at a higher booster discharge (or a lower expander power); the
-  compander supplier matches the two machines.'
+notes: 'Same shaft as KT-3101 (compander), 11,500 Nm3/h, 5.6 -> 8.45 bara. ASSUMED. DESIGN.md D-061: the
+  discharge is set where the booster absorbs what the expander gives: booster 191.6 kW, expander 192.4 kW on
+  the shaft (mechanical efficiency 0.97 each), 0.8 kW margin. No margin: a lower expander efficiency leaves the
+  booster short; the compander supplier matches the two machines.'

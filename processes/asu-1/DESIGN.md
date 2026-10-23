@@ -2208,3 +2208,98 @@ simulation and design basis stay with the parallel process-simulation work (D-05
    - **PSV-3114 / 3116 / 4127 / 4128 tailpipe guides** (review3#2): wait for the relief reaction
      forces of the stress analysis (D-050).
    - **KT-3101 casing extension** (2026-10-21-layout#15): waits for the vendor drawing (D-050).
+
+## D-063 Datasheets on the simulated states; the four cold-box drafts filled (2026-10-23)
+Decision (amends D-053, D-060 (3), (4), (6); closes review9#5 and the datasheet open points of
+D-058, D-059, D-061): every datasheet now rests on the merged flowsheet (80 % RH air, D-058; the
+double column, D-059; the balanced compander and the 13 C warm end, D-061). Powers and duties the
+DWSIM simulation gives (`cheme process simulate`, D-057 drive efficiencies) are written as such;
+what it does not give is calculated by `scripts/datasheet_sizing.py` (rewritten, below) and named
+by its section `D-063 (n)`. All 39 datasheets are final (`draft: false`); every open field is a
+`supplier` or `not_applicable` marker with its reason, and the datasheets gate passes.
+`process/flowsheet.yaml`, `simulation.yaml` and `design-basis.yaml` are not edited.
+1. **Sizing script.** The machines' Cp/Cv is the property adapter's at each stage's suction
+   (temperature and pressure) instead of one value at 298.15 K; water vapour in the MAC air is
+   mixed in on the molar Cp (IAPWS-95 at its partial pressure); the efficiencies, stage counts
+   and cooler drops are read from `process/simulation.yaml`; every stream state is read from the
+   flowsheet (the hard-coded E-3101 states and column pressures are gone). The pump sections are
+   unchanged and reproduce D-060 (5) (P-4102B 126.9 m, the D-060 figure 127.0 was rounded up; not
+   rewritten).
+2. **MAC K-1101 and coolers (D-058).** Datasheet powers from DWSIM: 5,968 kW at the compressor,
+   6,309 kW electric (E1); motor rating 8.0 MW unchanged. The script's cross-check, 3 stages of
+   1.822 with 0.05 bar per cooler, eta_s 0.82, gives 5,981 kW. Coolers (sensible + latent, IAPWS-95
+   condensation at 40 C): E-1101 1,673 kW / 346.5 m2 (no condensate); E-1102 2,476 kW / 459.1 m2
+   (679 kg/h); E-1103 2,436 kW / 449.8 m2 (649 kg/h); 6,585 kW in all against Q1 6,686 kW (1.5 %),
+   1,328 kg/h against S1C 1,398 kg/h (Peng-Robinson against IAPWS-95). The condensing part takes
+   the gas-cooler U on the gas LMTD (ASSUMED, conservative). CW 145 / 214 / 211 m3/h (~580 m3/h,
+   line list CW-1002; was ~650).
+3. **DCAC C-1101, evaporative cooler C-1102, TSA V-2101A/B.** C-1101 duty 1,201 kW (Q2, DWSIM;
+   the script's 1,187 kW cross-check), condensate S3C 587 kg/h, F 0.86 Pa^0.5. C-1102 with the
+   waste N2 at 13 C: adiabatic saturation 2.3 C (was 8.54 C at 25 C), so the 10 C chilled water
+   is now 7.7 K above the limit (D-060 (3)'s tall-packing finding falls away); F 0.49 Pa^0.5.
+   V-2101A/B: water load 150.6 kg/h (S3 saturated at 12 C, 5.7 bara, IAPWS-95, as D-058 asks;
+   Peng-Robinson's flowsheet composition gives 130 kg/h), CO2 59.9 kg/h; 602 kg water and 239 kg
+   CO2 per 4 h step; adsorbent masses `supplier` (working capacities). E-2101: 883 kW sensible from
+   13 C, inside the 1.0 MW peak.
+4. **Compander and E-3104 (D-061).** K-3101 185.9 kW gas / 191.6 kW shaft, 59.9 C discharge;
+   KT-3101 198.4 kW gas / 192.4 kW shaft, exhaust -178.0 C from S5B (script, real gas): 0.8 kW
+   margin, recorded on both sheets. E-3104 83.95 kW (DWSIM), 29.7 m2, CW 7.3 m3/h (CW-3001 /
+   CWR-3001; DN150 stays, D-060 (6)).
+5. **GOX and GAN compressors (D-061).** K-4101 2,184 kW at the compressor, 2,308 kW electric;
+   K-4102 218.6 / 237.6 kW. The datasheet keeps 5 stages (the four shells of the E-4101 package,
+   D-055 (6)); `process/simulation.yaml` models 4. At the simulation's eta_s 0.78 the 5-stage
+   machine takes 2,154 kW (1.4 % less) and rejects 2,011 kW to its coolers against the simulated
+   Q3 2,086 kW. Finding for the simulation owner: align the K4101 stages with the package. E-4101
+   1,572 kW / 280.4 m2 (four shells 59.2 / 74.1 / 73.8 / 73.3 m2), E-4102 439.6 kW / 72.2 m2,
+   E-4103 123.8 kW / 33.9 m2 (Q4 123.4 kW). Isothermal power at the 13 C suction 1,418 kW.
+6. **Main exchanger E-3101 and subcooler E-3102.** Composite curves on the D-061 states: warm side
+   5,242 kW (main air 4,536, booster air 705 kW); S14 / S15 enter as saturated vapour at their
+   simulated pressures 5.3 / 1.4 bara (D-061). From the LP column top (80.3 K) the waste N2 would
+   take 3,787 kW: the cold side is 293 kW over the warm side (D-061: ~295 kW), so E-3101 closes
+   only with the waste N2 first warmed to 95.8 K in E-3102 (heat leak neglected, ASSUMED). Then
+   E-3101: UA 721.6 kW/K, minimum approach 5.1 K near the cold end, 2 K to the main air and 27 K to
+   the booster air at the warm end (supplier to confirm, D-061); area `supplier`. E-3102: 293 kW
+   taken from the LN reflux S18 (66 kW, 4.4 K subcooled) and the crude S13 (227 kW, 9.3 K) to a
+   common -182.9 C outlet (ASSUMED, one core with a common cold header); UA 49.6 kW/K, minimum
+   approach 3.8 K at the warm end; area `supplier` (no cryogenic U row in the core's table, and
+   no flowsheet node links E-3102 for a fill); LMTD `not_applicable` (three streams). The
+   equipment list's GAN pass is not modelled. The subcooling is not in the column simulation
+   (D-059 open: tear stream), and the cold box stays ~78 kW short of refrigeration (D-061).
+7. **Condenser-reboiler E-3103 and the columns (D-059).** E-3103: 3,536 kW condensing at 94.7 K,
+   5.3 bara; 3,250 kW reboiling at 93.2 K, 1.4 bara; 1.5 K approach (= LMTD, both sides
+   isothermal, ASSUMED), UA ~2,300 kW/K; area `supplier`. C-3101: 40 theoretical stages, partial
+   condenser (E-3103), feed below the bottom stage, LIN from stage 2, reflux ratio 1.34 = 1.12 x
+   Rmin 1.19 (Underwood on S14 / S13, Fenske Nmin 14.4), -178.4 / -173.6 C at 5.3 / 5.5 bara.
+   C-3102: 59 theoretical stages, LN on 1, crude on 22, Lachmann air on 24, GOX vapour from the
+   sump, -192.9 / -180.0 C at 1.3 / 1.4 bara, Fenske Nmin 12.0 (Ar/O2) for the specification,
+   Rmin `not_applicable`; the simulated GOX 97.0 % O2 is written on the sheet beside the 99.5 %
+   specification (D-059, open). Real stages, packing heights and flooding diameters of both
+   columns are `supplier` markers (no HETP or flooding correlation in cheme-as-code is cleanly
+   sourced); the 4.2 m diameters stay the equipment list's ASSUMED values.
+8. **Lists.** Equipment list notes for K-1101, K-3101, KT-3101, K-4101, E-4101, K-4102; line list
+   CW-1002 (MAC CW total), CW-3001 / CWR-3001, CW-4001, AIR-3002, AIR-3003, AIR-3006, WN-1001,
+   WN-3002, GOX-4001 and GAN-4001 to the D-058 / D-061 states (velocities at 13 C: WN-1001 18 m/s,
+   WN-3002 20 m/s, GOX-4001 19 m/s). Cooling water in all ~10.2 MW, ~880 m3/h at 10 K (section 3).
+9. **Equipment estimate.** `cheme assess equipment --write`: coverage unchanged (bare module 3,
+   purchased only 22, not covered 14): E-3101 / E-3102 / E-3103 and the vaporizers have supplier
+   areas, K-4102 (219 kW) and K-3101 (186 kW) stay below the correlation's 450 kW, K-1101 (5,968
+   kW) above its 3,000 kW. Purchased equipment of the covered items USD 4.04 million (was 4.00
+   million). Layout model, lifting study, take-off, estimate and LCA rebuilt: only the list
+   fingerprints change.
+10. **Simulation check.** `cheme process simulate --check` after this pass (nothing in the
+   simulated inputs changed): converged, identical to the run before it; 0 errors, 7 warnings, 1
+   info. Every warning is a known, intended deviation:
+   - `process-sim-deviation` S15 x(Ar) 0.0297 against 0.0045 and S16 x(O2) 0.0298 against
+     0.0209, and S10 x(Ar) 0.0204 against 0.0045: the GOX / LOX purity gap and the re-derived
+     waste of D-059 (specifications kept as ASSUMED values);
+   - S10 93.17 K / 140 kPa(a) and S11 94.73 K / 530.5 kPa(a) against the stored 90.15 K / 130
+     kPa(a) and 92.15 K / 520 kPa(a): the column draws are saturated, the stored products are the
+     subcooled liquids of D-056 (the subcooling is not simulated);
+   - `process-sim-reboiler-unbalanced`: C-3101 condenses 3,536 kW, C-3102 reboils 3,250 kW, the
+     ~286 kW surplus of D-059;
+   - info `process-sim-energy-ignored` E2 (the DCAC pumps' power, not simulated, D-057).
+   Nothing to refill: `--fill` would write no value.
+Open: the TSA, tank and rack walkway arrangements (9 valves, D-060 (7)), the stress engineer's
+5 free spans (D-062 (4)), the suppliers' areas, packing and staging above, the 99.5 % GOX cycle
+(D-059) and the ~78 kW refrigeration shortfall (D-061) are decisions outside the datasheets.
+P-01 still draws no condensate drains for S1C / S3C (D-058).

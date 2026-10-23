@@ -19,9 +19,10 @@ operating:
     source: 'process/flowsheet.yaml stream S2 (case design), assumed: DESIGN.md 3, stream 2'
     assumed: true
   inlet_flow:
-    value: 98270.0
+    value: 98836.9
     unit: kg/h
-    source: 'process/flowsheet.yaml stream S2 (case design), assumed: DESIGN.md 3, stream 2'
+    source: 'process/flowsheet.yaml stream S2 (case design), calculated by `cheme process simulate`
+      (DESIGN.md D-058): wet air after the MAC condensate drains, 1.16 mol% water'
     assumed: true
   outlet_pressure:
     value: 5.7
@@ -36,7 +37,15 @@ operating:
   outlet_flow:
     value: 98270.0
     unit: kg/h
-    source: 'process/flowsheet.yaml stream S3 (case design), assumed: DESIGN.md 3, stream 3'
+    source: 'process/flowsheet.yaml stream S3 (case design), assumed: DESIGN.md 3, stream 3 (the simulated
+      98,250 kg/h is within 0.02 %, D-058)'
+    assumed: true
+  condensate_flow:
+    value: 586.7
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S3C (case design), calculated by `cheme process simulate`
+      (DESIGN.md D-058): condensate into the circulating water (bled with the DCAC sump water; IAPWS-95
+      gives 566 kg/h, scripts/datasheet_sizing.py D-063 (9))'
     assumed: true
 design:
   pressure_barg:
@@ -134,36 +143,36 @@ type_specific:
     reason: a direct contact aftercooler (air cooled and dried by water on packing), not a distillation;
       its packing is sized in transfer units (packing_height_lower_m / _upper_m), not in stages
   duty_kw:
-    value: 777.7
+    value: 1201
     unit: kW
-    source: 'scripts/datasheet_sizing.py (D-060 (3)): dry gas 3,385.9 kmol/h 40 C 580 kPa(a) -> 12 C 570
-      kPa(a) 773.8 kW (property adapter, thermo PR) + water vapour sensible 2.2 kW + 0.14 kmol/h condensed
-      1.7 kW (IAPWS-95, S2 x_H2O 0.0025); CO2 neglected. The DWSIM simulation gives 792.8 kW (Q2, D-057).
-      With the design basis humidity (80 % RH, D-058) the condensation in C-1101 grows'
+    source: 'process/flowsheet.yaml energy stream Q2 (calculated, `cheme process simulate`, DWSIM
+      Peng-Robinson, DESIGN.md D-058): 1,201.4 kW, air S2 40 C 5.8 bara -> S3 12 C 5.7 bara with the
+      condensate S3C. Cross-check scripts/datasheet_sizing.py D-063 (9): dry gas 774 kW (property adapter)
+      + water vapour 23 kW + 566 kg/h condensed 389 kW (IAPWS-95) = 1,187 kW'
     assumed: true
   gas_load_factor_pa05:
-    value: 0.854
+    value: 0.859
     unit: Pa^0.5
-    source: 'scripts/datasheet_sizing.py (D-060 (3)): F = u rho^0.5 at the bottom, 98,270 kg/h at 40 C,
-      580 kPa(a) (rho 6.466 kg/m3, property adapter, dry gas), D 4.0 m (equipment list): u 0.336 m/s'
+    source: 'scripts/datasheet_sizing.py D-063 (9): F = u rho^0.5 at the bottom, 98,837 kg/h (S2) at 40 C,
+      580 kPa(a) (rho 6.466 kg/m3, property adapter, dry gas), D 4.0 m (equipment list): u 0.338 m/s'
     assumed: true
   liquid_load_lower_m3_m2h:
     value: 19.9
     unit: m3/(m2 h)
-    source: 'scripts/datasheet_sizing.py (D-060 (3)): 250 m3/h CW (P-1101A/B) over 12.57 m2'
+    source: 'scripts/datasheet_sizing.py D-063 (9): 250 m3/h CW (P-1101A/B) over 12.57 m2'
     assumed: true
   liquid_load_upper_m3_m2h:
     value: 7.96
     unit: m3/(m2 h)
-    source: 'scripts/datasheet_sizing.py (D-060 (3)): 100 m3/h chilled water (P-1102A/B) over 12.57 m2'
+    source: 'scripts/datasheet_sizing.py D-063 (9): 100 m3/h chilled water (P-1102A/B) over 12.57 m2'
     assumed: true
   packing_height_lower_m:
     value: supplier
     unit: m
     source: 'packing supplier: the CW section''s height follows from the heat and mass transfer
-      coefficients of the chosen packing (transfer units). Enquiry basis: total duty 778 kW (40 -> 12 C),
-      CW 250 m3/h at 25 C, gas F 0.85 Pa^0.5, liquid load 19.9 m3/(m2 h), the section split at the
-      supplier''s choice of the intermediate air temperature'
+      coefficients of the chosen packing (transfer units). Enquiry basis: total duty 1,201 kW (40 -> 12 C,
+      587 kg/h condensed, D-058), CW 250 m3/h at 25 C, gas F 0.86 Pa^0.5, liquid load 19.9 m3/(m2 h), the
+      section split at the supplier''s choice of the intermediate air temperature'
   packing_height_upper_m:
     value: supplier
     unit: m
@@ -174,7 +183,7 @@ type_specific:
     value: supplier
     unit: m
     source: 'packing supplier''s hydraulic rating (no flooding correlation in cheme-as-code is cleanly
-      sourced); the 4.0 m of the equipment list (ASSUMED) runs at F 0.85 Pa^0.5 and 19.9 m3/(m2 h)'
+      sourced); the 4.0 m of the equipment list (ASSUMED) runs at F 0.86 Pa^0.5 and 19.9 m3/(m2 h)'
   process_streams:
   - stream: S2
     direction: in
@@ -198,5 +207,7 @@ type_specific:
     reason: a direct contact cooler is sized in transfer units, not theoretical stages
 sizing_basis: []
 notes: 'Two packed sections (CW lower, chilled water upper), mist eliminator, air 40 -> 12 C. ASSUMED.
-  DESIGN.md D-060 (3): duty and hydraulic loads calculated; packing heights and the flooding diameter are the
-  packing supplier''s (markers); the stage fields do not apply (not a distillation).'
+  DESIGN.md D-060 (3), D-063: duty from the DWSIM simulation with the 80 % RH inlet air (D-058), hydraulic
+  loads calculated; packing heights and the flooding diameter are the packing supplier''s (markers); the stage
+  fields do not apply (not a distillation). The 587 kg/h condensate leaves with the sump water (bleed not
+  drawn on P-01 yet, D-058).'

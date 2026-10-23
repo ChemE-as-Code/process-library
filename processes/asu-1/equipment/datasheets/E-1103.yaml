@@ -14,29 +14,39 @@ operating:
     source: 'equipment/equipment-list.yaml notes: air to 40 C'
     assumed: true
   air_inlet_pressure:
-    value: 5.8
+    value: 5.85
     unit: bar(a)
-    source: 'K-1101 stage 3 outlet = process/flowsheet.yaml stream S2 (no aftercooler pressure drop, ASSUMED)'
+    source: 'K-1101 stage 3 discharge = process/flowsheet.yaml stream S2 (5.8 bara) + 0.05 bar aftercooler
+      drop (process/simulation.yaml K1101, ASSUMED; scripts/datasheet_sizing.py D-063 (1))'
     assumed: true
   air_inlet_temperature:
-    value: 111.2
+    value: 111.7
     unit: °C
-    source: 'scripts/datasheet_sizing.py (D-053 (1)): K-1101 stage 3 outlet 384.34 K (ideal gas, eta_s 0.80 ASSUMED;
-      discharge_temperature_k of equipment/datasheets/K-1101.yaml)'
+    source: 'scripts/datasheet_sizing.py D-063 (1): K-1101 stage 3 discharge 384.89 K (ideal gas, Cp/Cv 1.403
+      at the suction, eta_s 0.82, process/simulation.yaml, ASSUMED; discharge_temperature_k of
+      equipment/datasheets/K-1101.yaml)'
     assumed: true
   air_flow:
-    value: 98270
+    value: 99556
     unit: kg/h
-    source: process/flowsheet.yaml stream S2 (case design)
+    source: 'scripts/datasheet_sizing.py D-063 (1): S1 100,235 kg/h less the 679 kg/h condensed in E-1102;
+      leaves as S2 (98,837 kg/h in the DWSIM simulation, D-058)'
+    assumed: true
+  condensate_flow:
+    value: 649
+    unit: kg/h
+    source: 'scripts/datasheet_sizing.py D-063 (1): water above saturation at 40 C and 5.8 bara (IAPWS-95);
+      to the moisture separator drain, part of S1C (1,398 kg/h for E-1102 and E-1103 in the DWSIM
+      simulation, D-058)'
     assumed: true
   cooling_water_temperatures:
     value: 25 -> 35
     unit: °C
     source: process/design-basis.yaml utilities
   cooling_water_flow:
-    value: 168.4
+    value: 210.7
     unit: m3/h
-    source: 'scripts/datasheet_sizing.py (D-053 (1)): Q / (cp 10 K), IAPWS-95 water at 30 C'
+    source: 'scripts/datasheet_sizing.py D-063 (1): Q / (cp 10 K), IAPWS-95 water at 30 C'
     assumed: true
 design:
   pressure_barg:
@@ -103,17 +113,18 @@ type_specific:
     unit: t
     source: equipment/equipment-list.yaml dimensions
   duty_kw:
-    value: 1947
+    value: 2436
     unit: kW
-    source: 'scripts/datasheet_sizing.py (D-053 (1)): Q = m cp (384.34 - 313.15 K), 98,270 kg/h, cp 1.002 kJ/(kg
-      K) (ideal gas, Cp/Cv 1.402 of K-1101). Dry-gas sensible duty: the S1 water (0.25 mol%) does not condense
-      at 40 C (with the 80 % RH of the design basis ~640 kg/h more would condense here, +426 kW, DESIGN.md
-      D-053)'
+    source: 'scripts/datasheet_sizing.py D-063 (1): sensible Q = n Cp (384.89 - 313.15 K) 2,002 kW (wet air
+      99,556 kg/h, dry-air Cp/Cv from the property adapter at the stage suction, water vapour IAPWS-95)
+      + 649 kg/h condensed x 2,406 kJ/kg (IAPWS-95 at 40 C) 434 kW. The three MAC coolers 6,585 kW against
+      the simulated Q1 6,686 kW (D-058)'
     assumed: true
   lmtd_k:
-    value: 37.65
+    value: 37.82
     unit: K
-    source: 'scripts/datasheet_sizing.py (D-053 (1)): air 384.34 -> 313.15 K, CW 298.15 -> 308.15 K'
+    source: 'scripts/datasheet_sizing.py D-063 (1): air 384.89 -> 313.15 K, CW 298.15 -> 308.15 K (on the
+      gas temperatures; the condensing part is counted at the same LMTD, ASSUMED: conservative)'
     assumed: true
   lmtd_correction_f:
     value: 0.8947
@@ -128,10 +139,11 @@ type_specific:
       Engineering Vol. 6, 4th ed. (2005), Table 12.1, p. 637: cooler, gases / water (DESIGN.md D-053)'
     assumed: true
   area_m2:
-    value: 361.3
+    value: 449.8
     unit: m2
-    source: 'scripts/datasheet_sizing.py (D-053 (1)): A = Q / (U F LMTD) = 1947 kW / (160 x 0.8947 x 37.65
-      K), no margin'
+    source: 'scripts/datasheet_sizing.py D-063 (1): A = Q / (U F LMTD) = 2436 kW / (160 x 0.8947 x 37.82
+      K), no margin (the gas-cooler U for the condensing part as well, ASSUMED: conservative)'
     assumed: true
 sizing_basis: []
-notes: Air to 40 C. ASSUMED.
+notes: 'Air to 40 C. ASSUMED. Condensing aftercooler (DESIGN.md D-058): moisture separator and drain trap
+  on the outlet, part of S1C; not drawn on P-01 yet.'

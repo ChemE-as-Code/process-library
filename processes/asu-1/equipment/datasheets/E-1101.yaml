@@ -9,33 +9,35 @@ service: MAC 1st intercooler
 draft: false
 operating:
   air_inlet_pressure:
-    value: 1.81
+    value: 1.84
     unit: bar(a)
-    source: 'scripts/datasheet_sizing.py (D-053 (1)): K-1101 stage 1 outlet, 1.01 bara x 1.791 (equipment/datasheets/K-1101.yaml)'
+    source: 'scripts/datasheet_sizing.py D-063 (1): K-1101 stage 1 discharge, 101 kPa(a) x 1.822 (equipment/datasheets/K-1101.yaml)'
     assumed: true
   air_inlet_temperature:
     value: 98.9
     unit: °C
-    source: 'scripts/datasheet_sizing.py (D-053 (1)): K-1101 stage 1 outlet 372.07 K (ideal gas, eta_s 0.80 ASSUMED)'
+    source: 'scripts/datasheet_sizing.py D-063 (1): K-1101 stage 1 discharge 372.05 K (ideal gas, Cp/Cv 1.398
+      at the suction, eta_s 0.82, process/simulation.yaml, ASSUMED)'
     assumed: true
   air_outlet_temperature:
     value: 40
     unit: °C
-    source: DESIGN.md D-053 (ASSUMED, the K-1101 intercooler outlet)
+    source: process/simulation.yaml K1101 (ASSUMED, the K-1101 intercooler outlet)
     assumed: true
   air_flow:
-    value: 98270
+    value: 100235
     unit: kg/h
-    source: process/flowsheet.yaml stream S1 (case design)
+    source: 'process/flowsheet.yaml stream S1 (case design), wet air at 80 % RH (DESIGN.md D-058): its water
+      does not condense here (6.2 kPa partial pressure against 7.4 kPa saturation at 40 C, IAPWS-95)'
     assumed: true
   cooling_water_temperatures:
     value: 25 -> 35
     unit: °C
     source: process/design-basis.yaml utilities
   cooling_water_flow:
-    value: 139.5
+    value: 144.8
     unit: m3/h
-    source: 'scripts/datasheet_sizing.py (D-053 (1)): Q / (cp 10 K), IAPWS-95 water at 30 C'
+    source: 'scripts/datasheet_sizing.py D-063 (1): Q / (cp 10 K), IAPWS-95 water at 30 C'
     assumed: true
 design:
   pressure_barg:
@@ -89,16 +91,18 @@ type_specific:
     unit: t
     source: equipment/equipment-list.yaml dimensions
   duty_kw:
-    value: 1612
+    value: 1673
     unit: kW
-    source: 'scripts/datasheet_sizing.py (D-053 (1)): Q = m cp (372.07 - 313.15 K), 98,270 kg/h, cp 1.002 kJ/(kg
-      K) (ideal gas, Cp/Cv 1.402 of K-1101); = the first intercooler duty of equipment/datasheets/K-1101.yaml.
-      Dry-gas sensible duty: the S1 water (0.25 mol%) does not condense at 40 C'
+    source: 'scripts/datasheet_sizing.py D-063 (1): Q = n Cp (372.05 - 313.15 K), S1 100,235 kg/h wet air
+      (3.35 mol% water, D-058), molar Cp of the dry air from the property adapter''s Cp/Cv at the suction
+      and of the water vapour from IAPWS-95; = the first intercooler duty of equipment/datasheets/K-1101.yaml.
+      No condensate at 40 C and 1.79 bara. The three MAC coolers 6,585 kW against the simulated Q1
+      6,686 kW (D-058)'
     assumed: true
   lmtd_k:
-    value: 33.75
+    value: 33.74
     unit: K
-    source: 'scripts/datasheet_sizing.py (D-053 (1)): air 372.07 -> 313.15 K, CW 298.15 -> 308.15 K'
+    source: 'scripts/datasheet_sizing.py D-063 (1): air 372.05 -> 313.15 K, CW 298.15 -> 308.15 K'
     assumed: true
   lmtd_correction_f:
     value: 0.8946
@@ -113,9 +117,9 @@ type_specific:
       Engineering Vol. 6, 4th ed. (2005), Table 12.1, p. 637: cooler, gases / water (DESIGN.md D-053)'
     assumed: true
   area_m2:
-    value: 333.6
+    value: 346.5
     unit: m2
-    source: 'scripts/datasheet_sizing.py (D-053 (1)): A = Q / (U F LMTD) = 1612 kW / (160 x 0.8946 x 33.75
+    source: 'scripts/datasheet_sizing.py D-063 (1): A = Q / (U F LMTD) = 1673 kW / (160 x 0.8946 x 33.74
       K), no margin'
     assumed: true
 sizing_basis: []

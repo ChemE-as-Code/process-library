@@ -14,9 +14,10 @@ operating:
     source: 'process/flowsheet.yaml stream S9 (case design), assumed: DESIGN.md 3, stream 9'
     assumed: true
   inlet_temperature:
-    value: 25.0
+    value: 13.0
     unit: °C
-    source: 'process/flowsheet.yaml stream S9 (case design), assumed: DESIGN.md 3, stream 9'
+    source: 'process/flowsheet.yaml stream S9 (case design), assumed: the E-3101 warm end at 13 C, 2 K below
+      the main air (DESIGN.md D-061)'
     assumed: true
   inlet_flow:
     value: 12510.0
@@ -87,39 +88,41 @@ type_specific:
     unit: t
     source: equipment/equipment-list.yaml dimensions
   fluid_power_kw:
-    value: 228.6
+    value: 218.6
     unit: kW
-    source: 'cheme datasheets fill: P = m sum(w) = 228.6 kW, stage work 65.78 kJ/kg; isentropic efficiency
-      0.8 (ASSUMED: DESIGN.md D-053 (ASSUMED until the supplier''s guarantee)); 1 stage(s) of ratio 1.731
-      (overall 1.731, max per stage 2.0 (ASSUMED: DESIGN.md D-053 (ASSUMED; one stage, as the equipment
-      list))); m 12510 kg/h (process/flowsheet.yaml stream S9 (case design)), 520 -> 900 kPa(a) (S9B),
-      suction 298.15 K; ideal gas, constant Cp/Cv 1.41 at the suction (property adapter), M 28.02 kg/kmol
-      (ASSUMED: Z = 1; the real-gas route was refused: isentropic outlet: temperature 348.89 K outside
-      the claimed 77 to 315 K)'
+    source: '`cheme process simulate` (DWSIM 9.0.5, Peng-Robinson; DESIGN.md D-061): K4102 compressor
+      power 218.6 kW, S9 5.2 bara 13 C -> S9B 9 bara, 1 stage at isentropic efficiency 0.80
+      (process/simulation.yaml, ASSUMED). Cross-check scripts/datasheet_sizing.py D-063 (3), ideal gas
+      with Cp/Cv 1.411 at the suction: 219.4 kW'
     assumed: true
   shaft_power_kw:
-    value: 235.7
+    value: 218.6
     unit: kW
-    source: 'cheme datasheets fill: fluid power 228.6 kW / 0.97 (ASSUMED: DESIGN.md D-053 (ASSUMED,
-      gear and bearings))'
+    source: '`cheme process simulate` (DESIGN.md D-061): K4102 shaft 218.6 kW = the compressor power; the
+      gear and bearing losses are in the drive efficiency below'
     assumed: true
   electric_power_kw:
-    value: 300
+    value: 237.6
     unit: kW
-    source: 'DESIGN.md 3 utility table: 0.3 MW electric, 5.2 -> 9 bara, 1 stage (ASSUMED; motor input,
-      kept as the utility and motor basis, DESIGN.md D-053)'
+    source: 'process/flowsheet.yaml energy stream E5 (calculated, `cheme process simulate`, DESIGN.md
+      D-061): 237.6 kW = shaft / drive efficiency 0.92. The motor stays rated 315 kW (electrical list)'
+    assumed: true
+  drive_efficiency:
+    value: 0.92
+    source: process/simulation.yaml K4102 (ASSUMED, D-057; LV motor 0.94 x gear 0.98)
     assumed: true
   isentropic_efficiency:
     value: 0.8
-    source: DESIGN.md D-053 (ASSUMED until the supplier's guarantee)
+    source: process/simulation.yaml K4102 (ASSUMED until the supplier's guarantee)
     assumed: true
   max_stage_pressure_ratio:
     value: 2.0
     source: DESIGN.md D-053 (ASSUMED; one stage, as the equipment list)
     assumed: true
-  mechanical_efficiency:
-    value: 0.97
-    source: DESIGN.md D-053 (ASSUMED, gear and bearings)
+  heat_capacity_ratio:
+    value: 1.4109
+    source: 'scripts/datasheet_sizing.py D-063 (3): Cp/Cv of S9 at the suction, 286.15 K 520 kPa(a),
+      property adapter (thermo 0.6.1, PR); replaces the 1.41 at 298.15 K of D-053'
     assumed: true
   process_streams:
   - stream: S9
@@ -133,25 +136,19 @@ type_specific:
   number_of_stages:
     value: 1
     unit: ''
-    source: 'cheme datasheets fill: 1 stage(s) of ratio 1.731 (overall 1.731, max per stage 2.0 (ASSUMED:
-      DESIGN.md D-053 (ASSUMED; one stage, as the equipment list)))'
+    source: process/simulation.yaml K4102 stages 1 (ratio 1.731 below the 2.0 maximum per stage, D-053)
     assumed: true
   stage_pressure_ratio:
     value: 1.731
     unit: ''
-    source: 'cheme datasheets fill: 1 stage(s) of ratio 1.731 (overall 1.731, max per stage 2.0 (ASSUMED:
-      DESIGN.md D-053 (ASSUMED; one stage, as the equipment list)))'
+    source: 'scripts/datasheet_sizing.py D-063 (3): 900 / 520 kPa(a)'
     assumed: true
   discharge_temperature_k:
-    value: 362.5
+    value: 348.1
     unit: K
-    source: 'cheme datasheets fill: last stage outlet; isentropic efficiency 0.8 (ASSUMED: DESIGN.md
-      D-053 (ASSUMED until the supplier''s guarantee)); 1 stage(s) of ratio 1.731 (overall 1.731, max
-      per stage 2.0 (ASSUMED: DESIGN.md D-053 (ASSUMED; one stage, as the equipment list))); m 12510 kg/h
-      (process/flowsheet.yaml stream S9 (case design)), 520 -> 900 kPa(a) (S9B), suction 298.15 K; ideal
-      gas, constant Cp/Cv 1.41 at the suction (property adapter), M 28.02 kg/kmol (ASSUMED: Z = 1; the
-      real-gas route was refused: isentropic outlet: temperature 348.89 K outside the claimed 77 to 315
-      K)'
+    source: 'scripts/datasheet_sizing.py D-063 (3): ideal gas, Cp/Cv 1.411 at the suction, eta_s 0.80
+      (75.0 C; was 362.5 K from the 25 C suction)'
     assumed: true
 sizing_basis: []
-notes: Oil-free gas path, 1 stage, 5.2 -> 9 bara, 10,000 Nm3/h, ~0.3 MW. ASSUMED.
+notes: 'Oil-free gas path, 1 stage, 5.2 -> 9 bara, 10,000 Nm3/h, 315 kW motor. ASSUMED. Powers from the DWSIM
+  simulation (DESIGN.md D-057, D-061): 218.6 kW at the compressor, 237.6 kW electric with the 13 C suction.'

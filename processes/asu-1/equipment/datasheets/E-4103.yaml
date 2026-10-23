@@ -19,10 +19,11 @@ operating:
     source: 'K-4102 outlet = process/flowsheet.yaml stream S9B (no aftercooler pressure drop, ASSUMED)'
     assumed: true
   gan_inlet_temperature:
-    value: 89.4
+    value: 75.0
     unit: °C
-    source: 'scripts/datasheet_sizing.py (D-053 (3)): K-4102 outlet 362.57 K (ideal gas, eta_s 0.80 ASSUMED;
-      discharge_temperature_k of equipment/datasheets/K-4102.yaml)'
+    source: 'scripts/datasheet_sizing.py D-063 (3): K-4102 discharge 348.11 K from the 13 C suction (ideal
+      gas, Cp/Cv 1.411 at the suction, eta_s 0.80 ASSUMED; discharge_temperature_k of
+      equipment/datasheets/K-4102.yaml)'
     assumed: true
   gan_flow:
     value: 12510
@@ -33,9 +34,9 @@ operating:
     unit: °C
     source: process/design-basis.yaml utilities
   cooling_water_flow:
-    value: 15.2
+    value: 10.7
     unit: m3/h
-    source: 'scripts/datasheet_sizing.py (D-053 (3)): Q / (cp 10 K), IAPWS-95 water at 30 C'
+    source: 'scripts/datasheet_sizing.py D-063 (3): Q / (cp 10 K), IAPWS-95 water at 30 C'
     assumed: true
 design:
   pressure_barg:
@@ -101,22 +102,21 @@ type_specific:
     unit: t
     source: equipment/equipment-list.yaml dimensions
   duty_kw:
-    value: 175.4
+    value: 123.8
     unit: kW
-    source: 'scripts/datasheet_sizing.py (D-053 (3)): Q = m cp (362.57 - 313.15 K), 12,510 kg/h, cp 1.021
-      kJ/(kg K) (ideal gas, Cp/Cv 1.41 of S9, property adapter). Replaces the 0.3 MW of the DESIGN.md 3
-      utility table (the cooling water of the whole GAN compressor, a concept figure) for the aftercooler
-      alone'
+    source: 'scripts/datasheet_sizing.py D-063 (3): Q = m cp (348.11 - 313.15 K), 12,510 kg/h, cp from the
+      property adapter''s Cp/Cv 1.411 of S9 at the suction (286.15 K, 520 kPa(a)); the DWSIM simulation
+      gives Q4 123.4 kW (D-061)'
     assumed: true
   lmtd_k:
-    value: 30.59
+    value: 25.47
     unit: K
-    source: 'scripts/datasheet_sizing.py (D-053 (3)): GAN 362.57 -> 313.15 K, CW 298.15 -> 308.15 K'
+    source: 'scripts/datasheet_sizing.py D-063 (3): GAN 348.11 -> 313.15 K, CW 298.15 -> 308.15 K'
     assumed: true
   lmtd_correction_f:
-    value: 0.895
+    value: 0.897
     unit: ''
-    source: 'scripts/datasheet_sizing.py (D-053 (3)): 1-2 shell and tube (ASSUMED), Bowman, Mueller and Nagle,
+    source: 'scripts/datasheet_sizing.py D-063 (3): 1-2 shell and tube (ASSUMED), Bowman, Mueller and Nagle,
       Trans. ASME 62 (1940) 283'
     assumed: true
   overall_u_w_m2k:
@@ -126,9 +126,9 @@ type_specific:
       Engineering Vol. 6, 4th ed. (2005), Table 12.1, p. 637: cooler, gases / water (DESIGN.md D-053)'
     assumed: true
   area_m2:
-    value: 40.05
+    value: 33.86
     unit: m2
-    source: 'scripts/datasheet_sizing.py (D-053 (3)): A = Q / (U F LMTD) = 175.4 kW / (160 x 0.895 x 30.59
+    source: 'scripts/datasheet_sizing.py D-063 (3): A = Q / (U F LMTD) = 123.8 kW / (160 x 0.897 x 25.47
       K), no margin'
     assumed: true
 sizing_basis: []
