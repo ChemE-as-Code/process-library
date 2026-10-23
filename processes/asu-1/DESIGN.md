@@ -2456,3 +2456,24 @@ simulation and design basis stay with the process-simulation work (D-058, D-059,
      at 0.5 m (was 0.33 m; trap centres now 0.5 m, ASSUMED), then down into the hubs at 0.3 m.
      The CD-1001 level run is 2.0 m, inside the 2.1 m DN 25 span, so no support is needed; no
      new clash, support or operability finding.
+7. **Requests to the process-simulation owner (review10#7, #8; not edited here).**
+   `process/flowsheet.yaml`, `simulation.yaml` and `design-basis.yaml` belong to the
+   process-simulation work. This branch leaves them as they are and records three requests:
+   - (a) **Links on S1C and S3C (review10#7).** D-064 added `links:` to S1C (CD-1001, CD-1002)
+     and S3C (CWR-1001, LIC-1106) without the owner's agreement. They change no stream value,
+     the BFD / PFD only gain the link data, and `process-links` passes. The owner is asked to
+     confirm them as their change. If the owner rejects them, they are removed with the BFD /
+     PFD rebuilt; nothing else depends on them.
+   - (b) **S1 composition sums to 0.999999 (review10#8a).** N2 0.75459 + O2 0.20251 + Ar
+     0.009011 + H2O 0.0335 + CO2 0.000388 (D-058, ASSUMED values, rounded). It is a rounding
+     residue, but S1 is the simulation's feed: changing it makes the simulated S2, S3, S1C,
+     S3C, E1 and Q1 .. Q4 values stale (their fingerprints include S1) and needs the owner's
+     `cheme process simulate --fill` run. Request: round one fraction (e.g. N2 0.754591) so
+     the sum is 1, and rerun. Until then the BFD / PFD keep the two
+     `pydexpi_composition_fractions` warnings.
+   - (c) **S14 / S15 stored as liquid (review10#8b).** Both are saturated vapour draws (the
+     HP column top N2 and the LP column GOX), but `props --fill` flashes the stored states as
+     liquid (vf 0, 726 / 1,135 kg/m3) within 0.1 K of the dew point (D-061). Request: give
+     their vapour fraction 1 (or the dew-point state) in the flowsheet and refill the
+     properties. The E-3101 datasheet already takes them as saturated vapour (D-063 (6),
+     D-065 (4)).
