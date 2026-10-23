@@ -2399,3 +2399,12 @@ simulation and design basis stay with the process-simulation work (D-058, D-059,
    notes of the MAC interstage lines were still on the concept pressures: AIR-1006 now gives
    ~3.26 bara into E-1102 and ~3.21 bara out (was ~3.7), AIR-1005 ~1.84 / ~1.79 bara around
    E-1101 (was ~2.2), both from the K-1101 stage discharges at the ratio 1.822 (D-063 (2)).
+4. **E-3101 operating block; datasheet headers (review10#5).** E-3101 had `operating: {}`; it now
+   carries the five passes in -> out: main air S4A -> S5, booster air S4D -> S5B, HP nitrogen
+   S14 -> S9 and GOX S15 -> S7 from saturated vapour at their simulated pressures (dew 94.73 /
+   93.28 K, the states the composite curves use, D-063 (6)), and waste N2 S16 -> S17 entering at
+   95.79 K after E-3102 (ASSUMED, the temperature that closes the balance; the flowsheet's S16 is
+   the C-3102 top at 80.27 K, and its `process_streams` entry now says so). The `supplier` marker
+   of its area gives its text under `reason:`, as E-3102 / E-3103 do. The 39 final datasheets
+   lose the generated "DRAFT datasheet ... remove `draft: true`" header; the new four-line header
+   names the draft's sources and says the sheet is final. No value changed.
