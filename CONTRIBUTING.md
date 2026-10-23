@@ -16,6 +16,23 @@
    `scripts/build_lci.py ... --strict` with an LCI dataset). CI runs the same, and the public
    build (`--public`, below).
 
+## Sources, licences and what may not be copied
+
+The library is published: process data and designs under
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) (LICENSE-DATA), code under MIT
+(LICENSE). Contribute only what may be published under these licences:
+
+- **Never copy third-party content**: tables, figures, drawings, P&IDs, datasheet or manual
+  text, screenshots or text from papers, books, standards, vendor documents or websites, and no
+  values from licensed databases (ecoinvent factors or results, commercial property data).
+- **Facts and numbers are fine in your own form, with their source** (`source:`/`provenance:`
+  fields, `references:` in `process.yaml`, DESIGN.md); estimates are marked ASSUMED.
+- **Draw and write everything yourself**: drawings are generated from the library's own files.
+- **Openly licensed material** only with its licence and attribution in a `NOTICE.md` next to it,
+  and only if that licence is compatible with CC BY 4.0 / MIT.
+
+By contributing you agree that your contribution is published under these licences.
+
 ## Publishing a process
 
 The Atlas has two builds. The preview build (the default) shows every process as the library
