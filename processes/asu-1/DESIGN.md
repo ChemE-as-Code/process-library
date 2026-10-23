@@ -80,15 +80,17 @@ Basis: design case, 30 C ambient, 94 % O2 recovery (ASSUMED). Nm3 at 0 C, 1.013 
 | 4 dry air to cold box | V-2101 -> E-3101 | 76,000 | 98,000 | 5.6 | 15 | dry, CO2 < 0.1 ppm |
 | 5 HP column feed | E-3101 -> C-3101 | 64,500 | 83,400 | 5.5 | -173 | air near dew point |
 | 6 Lachmann air | KT-3101 -> C-3102 | 11,500 | 14,870 | 1.35 | -178 | air |
-| 7 GOX product | E-3101 -> K-4101 | 14,600 | 20,860 | 1.15 | 25 | O2 99.5 % |
+| 13 crude oxygen (rich liquid) | C-3101 -> C-3102 | | 45,680 | 5.5 | -174 | N2 59.1, O2 39.2, Ar 1.6 % (simulated, D-059) |
+| 18 LN reflux | C-3101 -> C-3102 | | 24,530 | 5.3 | -178 | N2, Ar 0.12 %, O2 2 ppm (simulated, D-059) |
+| 7 GOX product | E-3101 -> K-4101 | 14,600 | 20,860 | 1.15 | 13 (D-061) | O2 99.5 % |
 | 8 GOX to pipeline | K-4101 -> BL | 14,600 | 20,860 | 31.0 | 40 | O2 99.5 % |
-| 9 GAN product | E-3101 -> K-4102 -> BL | 10,000 | 12,510 | 5.2 / 9.0 | 25 / 40 | N2, O2 <= 10 ppm |
+| 9 GAN product | E-3101 -> K-4102 -> BL | 10,000 | 12,510 | 5.2 / 9.0 | 13 / 40 (D-061) | N2, O2 <= 10 ppm |
 | 10 LOX to storage | C-3102 -> T-4101 | 330 | 470 | 1.3 | -183 | O2 99.5 % |
 | 11 LIN to storage | C-3101 -> T-4102 | 375 | 470 | 5.2 | -181 | N2 |
-| 12 waste N2 | C-3102 -> E-3101 | 50,500 | 63,530 | 1.15 | 25 | N2 96.7, O2 2.1, Ar 1.3 % (closes the cold-box O2/Ar balance) |
+| 12 waste N2 | C-3102 -> E-3101 | 50,500 | 63,530 | 1.15 | 13 (D-061) | N2 96.7, O2 2.1, Ar 1.3 % (closes the cold-box O2/Ar balance) |
 | 12a regeneration | -> E-2101 -> V-2101 | 13,000 | 16,350 | 1.1 | 200 (heating) | waste N2 |
-| 12b evaporative cooler | -> C-1102 | 25,000 | 31,450 | 1.05 | 25 | waste N2 |
-| 12c vent | -> atm | 12,500 | 15,730 | 1.02 | 25 | waste N2 |
+| 12b evaporative cooler | -> C-1102 | 25,000 | 31,450 | 1.05 | 13 (D-061) | waste N2 |
+| 12c vent | -> atm | 12,500 | 15,730 | 1.02 | 13 (D-061) | waste N2 |
 
 Air feed (D-058): 100,235 kg/h wet in, of which 1,985 kg/h condense in the MAC coolers and the
 DCAC before the TSA (streams 1c, 3c). From stream 3 on: 98,270 kg/h in, 98,100 kg/h products + waste + ~400 kg/h water/CO2 removed
@@ -108,16 +110,19 @@ Demand: heat leak ~50 kW + warm-end temperature difference ~55 kW = ~105 kW; the
 ~110 kW makes 110 kW / ~420 kJ/kg = 0.26 kg/s = **~940 kg/h liquid** (470 kg/h LOX incl. the
 hydrocarbon purge + 470 kg/h LIN), down from 1,200 kg/h. More liquid needs more expander flow at
 the cost of O2 recovery (D-017).
+Superseded by D-061 (PR, the compander balanced): booster 5.6 -> 8.45 bara, expander inlet
+8.25 bara / -124.7 C, 198.4 kW, exhaust -178 C. The demand above omits the booster air entering
+E-3101 at 40 C (~105 kW): the cold box is ~78 kW short at 940 kg/h liquid (D-061, open).
 
 | consumer | power / duty | basis |
 |---|---|---|
 | K-1101 MAC | 6.31 MW electric (5.97 MW shaft) | simulated, D-057, D-058 (wet air): 3 stages, 5.8 bara; motor 8.0 MW (rating) |
-| K-4101 GOX compressor | 2.33 MW electric (2.21 MW shaft) | simulated, D-057: 4 stages to 31 bara |
-| K-4102 GAN compressor | 0.25 MW electric (0.23 MW shaft) | simulated, D-057: 5.2 -> 9 bara, 1 stage |
+| K-4101 GOX compressor | 2.31 MW electric (2.18 MW shaft) | simulated, D-057, D-061 (suction 13 C): 4 stages to 31 bara |
+| K-4102 GAN compressor | 0.24 MW electric (0.22 MW shaft) | simulated, D-057, D-061 (suction 13 C): 5.2 -> 9 bara, 1 stage |
 | E-2101 regeneration heater | 1.0 MW electric (peak) | 16,350 kg/h x 1.04 kJ/kgK x 185 K, ~1/3 of cycle |
 | pumps, chiller water, misc. | 0.3 MW electric | ASSUMED |
 | **total electric** | **~10.2 MW (average ~9.5 MW)** | 6.6 kV (D-058; D-057 ~10.0 / ~9.4) |
-| cooling water | ~10.2 MW, ~880 m3/h at 10 K | MAC 6.69, DCAC 1.20, GOX comp 2.17, GAN comp 0.18 MW (simulated, D-057, D-058) |
+| cooling water | ~10.2 MW, ~875 m3/h at 10 K | MAC 6.69, DCAC 1.20, GOX comp 2.09, GAN comp 0.12, booster aftercooler E-3104 0.08 MW (simulated, D-057, D-058, D-061) |
 
 Specific energy: ~0.59 kWh per Nm3 GOX delivered at 30 barg (MAC + GOX compressor; D-058, D-057 ~0.58).
 
@@ -178,7 +183,7 @@ Reason: No electric generator needed, booster raises inlet pressure and so refri
 Lachmann air is standard for LP cycles at 99.5 % O2.
 Rejected: Generator-braked expander (power recovery small, electrical complexity); waste-N2
 expander (less refrigeration at this LP pressure, cannot produce the liquid needed).
-Assumptions: inlet -118 C / 7.8 bara, exhaust -178 C / 1.35 bara, eta_s 0.85, ~215 kW
+Assumptions (amended by D-061: inlet -124.7 C / 8.25 bara, 198 kW): inlet -118 C / 7.8 bara, exhaust -178 C / 1.35 bara, eta_s 0.85, ~215 kW
 refrigeration; liquid 470 kg/h LOX + 470 kg/h LIN (see balance, D-017).
 Booster anti-surge (S4): recycle AIR-3006 from the E-3104 aftercooler outlet (cooled gas, so the
 recycle does not heat the suction) back to AIR-3005 through UV-3120 (fail open), controlled by
@@ -1869,3 +1874,113 @@ Limit: Peng-Robinson underpredicts water at saturation by ~10 to 13 % (S2 1.16 a
 ~151 kg/h (PR 130 kg/h); the simulated S3 composition stays as the balance value.
 Open: P-01 shows no condensate drains yet: moisture separators and drain traps for E-1102 and
 E-1103 (to a condensate line, oily-water free, D-012), and the DCAC water bleed for the 587 kg/h.
+
+## D-059 Double column simulated; GOX purity 99.5 % not reached by the concept cycle (2026-10-23)
+Decision: C-3101 and C-3102 are simulated as rigorous columns (`process/simulation.yaml`, DWSIM
+9.0.5, Peng-Robinson), with E-3103 as the condenser-reboiler between them:
+- C-3101: 40 theoretical stages, the air enters below the bottom stage, no reboiler. Its partial
+  condenser gives the GAN vapour (12,510 kg/h) and the LN reflux. LIN is drawn from stage 2.
+- C-3102: 59 stages. LN on stage 1, crude oxygen on 22, Lachmann air on 24. GOX is drawn as vapour
+  from the sump, LOX as liquid.
+- The new stream S18 (LN-3001) carries the LN reflux, 24,530 kg/h ASSUMED. S13 is now the rich
+  liquid alone (D-027 lumped LN into it).
+- Calculated: S13, S18, the column outlet temperatures and pressures, and the GAN and LIN
+  compositions (S14, S11).
+- GAN S9/S9B take the simulated composition: O2 0.9 ppm, which meets D-004's 10 ppm.
+- The cold-box waste (S16, S17) is re-derived by difference with GOX and LOX at their
+  specification: N2 96.66, O2 2.09, Ar 1.25 %.
+
+The GOX and LOX compositions stay ASSUMED at 99.5 % O2, the design basis requirement. The
+simulation's values stand beside them as `cheme.process-sim-deviation` warnings.
+
+Results:
+| | simulated | assumed / required |
+|---|---|---|
+| GOX S15 | O2 97.0, Ar 3.0 % | O2 >= 99.5 % |
+| LOX S10 | O2 98.0, Ar 2.0 % | O2 >= 99.5 % |
+| waste S16 | O2 3.0, Ar 0.5 % | O2 2.1, Ar 1.25 % |
+| E-3103 | C-3101 condenses 3,536 kW at 94.7 K; C-3102 reboils 3,250 kW at 93.2 K (1.5 K approach) | |
+| C-3101 | reflux ratio 1.34; top -178.4 C, bottom -173.6 C | |
+| C-3102 | top -192.9 C, sump -180.0 C | |
+
+Reason: the concept cycle (15 % Lachmann air, 13 % of the air drawn from the HP top as GAN, no
+argon column) does not make 99.5 % GOX at 94 % recovery in this model. The LP bottom section is
+short of boil-up. With GOX drawn as vapour from the sump, its L/V is about 1.6, above the Ar/O2
+relative volatility (~1.5). Argon then pinches in the bottom section at about 2.6 % (D_Ar/(L -
+alpha V)) instead of rising to the argon bulge and leaving with the waste. O2 slips into the
+waste, and the fixed GOX flow fills up with argon.
+
+Levers tried on the solved model, each alone or as noted:
+| lever | GOX O2 |
+|---|---|
+| GOX 19,000 kg/h (recovery ~84 %) | 98.0 % |
+| Lachmann air 10,000 kg/h | 97.1 % |
+| LN and crude subcooled in E-3102 (~317 kW, which uses the 286 kW E-3103 has spare), GOX 20,000 kg/h | 98.1 % |
+| subcooling, GOX 19,000 kg/h (C-3102 would reboil 3,736 kW, more than E-3103 condenses) | 99.0 % |
+| +4.5 % air to the HP column (D-018's 90 % recovery case) and subcooling | 98.0 % |
+
+The LP column above 59 stages, the LN above 24,530 kg/h and a smaller GAN draw did not converge
+in DWSIM.
+
+The specification stays because it is the client's. The concept cycle changes in basic
+engineering instead, and the cold-box vendor's design must show 99.5 %. Ranked, the changes that
+add boil-up or take argon out are:
+1. E-3102 subcooling, modelled with the waste N2.
+2. More LP stages below the crude feed.
+3. An argon-rich waste draw or a crude argon column (revisits D-001).
+4. A lower O2 recovery, with more air (MAC rating 80,000 Nm3/h, D-018).
+The utilities and the LCA do not depend on the column result: their flows are the ASSUMED
+products.
+
+Limit: PR with DWSIM's default interaction parameters, not fitted to O2/Ar VLE data. Its Ar/O2
+volatility decides the size of the gap; check it against NIST data before sizing the columns.
+
+Open:
+- E-3102 in the flowsheet and the simulation: subcooler of LN and crude against waste N2. This
+  needs a tear stream.
+- The column stages for the C-3101 and C-3102 datasheets: 40 and 59 theoretical stages here.
+- The vendor's cycle for 99.5 %.
+- Core: a column solver that follows a spec change from the converged profile. The variants
+  above failed on DWSIM's own convergence: the mass-balance check at 1e-4, and iterations.
+
+## D-061 Compander balance and E-3101 warm end (2026-10-23)
+Requested in the datasheet pass (D-060 (6), branch issue8); verified independently with
+Peng-Robinson (thermo 0.6.1, ChemSep kij) and DWSIM.
+Decision:
+1. The booster K-3101 discharges at 8.45 bara instead of 8.0 (simulated: 185.9 kW gas, 59.9 C
+   discharge, S4C calculated). E-3104 cools it to 40 C: 84 kW, ~7.3 m3/h cooling water at 10 K.
+   The expander inlet S5B moves from 7.8 bara / -118 C to 8.25 bara / -124.7 C, which keeps the
+   -178 C exhaust S6. The expander gives 198.4 kW gas (PR, eta_s 0.85).
+2. The E-3101 warm-end outlets S7, S9 and S17 are at 13 C, 2 K below the main air S4A (15 C).
+   S12B and S12C follow as outlets of the splitter X3101.
+| | before | D-061 |
+|---|---|---|
+| booster / expander, gas | 160.6 / 204.6 kW | 185.9 / 198.4 kW |
+| booster / expander, shaft (0.97 mechanical each) | 165.6 / 198.5 kW | 191.6 / 192.4 kW |
+| expander exhaust from the stated inlet | -172.1 C | -178.0 C |
+| E-3104 | 59 kW | 84 kW |
+| K-4101 / K-4102 electric | 2,331 / 248 kW | 2,308 / 238 kW |
+Reason:
+- A compander only runs where the booster absorbs what the expander gives. The old pair left
+  33 kW over, and the stated inlet did not make the -178 C exhaust.
+- Products at 25 C were a temperature cross, not a loose approach. Warming them from 15 to 25 C
+  needs 272 kW. Above 15 C only the booster air (40 -> 15 C, 105 kW) can supply it.
+Limits and open points (for the cold-box vendor and the datasheets):
+- The shaft balance has no margin: 0.8 kW at 0.97 mechanical efficiency. A lower expander
+  efficiency leaves the booster short.
+- E-3104 is modelled without pressure drop. 0.1 bar moves the expander inlet ~0.45 K colder.
+- The refrigeration budget of section 3 (heat leak 50 + warm end 55 kW) omits the booster air
+  entering E-3101 at 40 C (+105 kW). The whole cold box closes only at a heat leak of -28 kW,
+  i.e. it is ~78 kW short at 940 kg/h liquid. Options:
+  - cool S4D towards 15 C;
+  - more expander flow;
+  - ~670 kg/h less liquid.
+- The exhaust is ~11 K above its dew point (-188.9 C at 1.35 bara), not "just above" it. A
+  colder exhaust would give more refrigeration.
+- E-3101 does not close without the waste N2 warming first in E-3102: ~295 kW cold-side
+  surplus, plus a ~50 kW leak (D-059, open).
+- The warm end has a 27 K booster-air-to-product difference. The brazed-aluminium supplier
+  should confirm it.
+- In thermo PR the stored column vapours S14 and S15 flash as liquid. They sit within 0.1 K
+  of their dew points, so an E-3101 check from the stored enthalpies counts ~1.8 MW of latent
+  heat that is not there. Take them as saturated vapour.
