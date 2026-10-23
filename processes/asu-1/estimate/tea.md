@@ -80,7 +80,7 @@ Cash flow by year: estimate/tea-cashflow.csv.
 | baseline | 36,500,000 | -101,541,020 |  | 58.63 | yes |
 | power-texas (Industrial power at the Texas 2023 average) | 36,500,000 | -89,214,918 |  | 51.51 | yes |
 | power-california (Industrial power at the California 2023 average) | 36,500,000 | -192,274,821 |  | 111 | no |
-| capex-market-report (Capital at the 2,000 t/d market-report benchmark) | 58,400,000 | -133,637,060 |  | 77.16 | yes |
+| capex-market-report (Capital at the market-report benchmark, scaled from 2,000 to 500 t/d) | 119,720,000 | -223,505,975 |  | 129.1 | no |
 
 ## What dominates the outcome (lcop, one input at a time)
 

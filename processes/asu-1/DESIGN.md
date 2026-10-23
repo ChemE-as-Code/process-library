@@ -3209,8 +3209,13 @@ outputs `estimate/tea.md`, `tea-cashflow.csv`, `tea-sensitivity.csv`, `tea-uncer
    K-1101 (6.75 MW fluid power, D-066, outside the correlation's range) and the cold box
    internals. An allowance on that base would be invented. The ISBL is
    therefore the benchmark of about $200 per t/a of oxygen capacity (same source), 182,500 t/a x
-   200 = USD 36.5 M, ASSUMED, class 5. A market-report figure ($340 to 410 per t/a for a
-   2,000 t/d plant) is the scenario `capex-market-report` (x 1.6). OSBL 0: the site supplies
+   200 = USD 36.5 M, ASSUMED, class 5. A market-report figure (Mordor Intelligence, 2026
+   edition: USD 250 to 300 M for a 2,000 t/d plant, no method or cost year stated) is the
+   scenario `capex-market-report`, scaled to 500 t/d with the capacity exponent 0.6 (six-tenths
+   rule, ASSUMED): 275 M x (500/2000)^0.6 = USD 119.7 M, $656 per t/a, x 3.28 on the base
+   (x 2.98 to 3.58 over the quoted range). At that capital the LCOP is 129 USD/t and the
+   decision fails: the two published capital figures differ by a factor of three, which is why
+   the ISBL dominates and needs a quotation. OSBL 0: the site supplies
    cooling water and power at the battery limit. Owner's cost and contingency are not decided;
    the Monte Carlo spreads the ISBL over the AACE class 5 range instead (x 0.5 to x 2.0).
 3. **Prices.** Power 80.4 USD/MWh (US EIA, industrial average 2023, QUOTED); the state averages
@@ -3230,7 +3235,9 @@ outputs `estimate/tea.md`, `tea-cashflow.csv`, `tea-sensitivity.csv`, `tea-uncer
    samples). Electricity is about 40 USD/t of it. The capital dominates (Spearman +0.76), then
    the power price (+0.40) and the GAN price (-0.35). The decision turns at a power price of
    164 USD/MWh (+104 %), at an ISBL of USD 85 M (+134 %), or below 3,591 h/a. At the California
-   power price the LCOP is 111 USD/t: **the location decides the case**, so the site's power contract is the evidence worth buying first.
+   power price the LCOP is 111 USD/t, at the scaled market-report capital 129 USD/t: **the
+   location and the capital decide the case**, so the site's power contract and a budget
+   quotation for the main air compressor and cold box are the evidence worth buying first.
 6. **Open.**
    - The estimate is class 5, and stage basic expects class 4 (`tea-class-stage`): the main air
      compressor and cold box need quotations.
