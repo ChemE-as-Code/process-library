@@ -12,6 +12,8 @@ jobs:
       plants: ${{ steps.find.outputs.plants }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 1  # the files only, no history (see "Repository size" in README.md)
       - id: find
         run: echo "plants=$(ls processes/*/plant.yaml | xargs -n1 dirname | jq -R . | jq -cs .)" >> "$GITHUB_OUTPUT"
 
@@ -28,6 +30,8 @@ jobs:
         working-directory: ${{ matrix.plant }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 1  # the files only, no history (see "Repository size" in README.md)
       # cheme-as-code and pyDEXPI are private while in development. cheme-as-code is read with the
       # fine-grained token in the secret PLANTCODE_READ_TOKEN (contents: read on
       # ChemE-as-Code/core), pyDEXPI with a read-only deploy key, private half in the
@@ -56,6 +60,11 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        # Full history here only: the catalog records each process folder's last commit
+        # (git log -1 -- processes/<id>) and whether previews and snapshots are behind it. A
+        # shallow clone would report HEAD for every folder. The other jobs need no history.
+        with:
+          fetch-depth: 0
       - uses: astral-sh/setup-uv@v6
       - name: tooling tests
         run: uv run --python 3.12 --with pytest --with pyyaml --with jsonschema --with openpyxl --with ./python --with bw2calc pytest -q tests
