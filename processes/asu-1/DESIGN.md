@@ -3172,3 +3172,26 @@ Decision:
 Reason: review11#7, #8.
 
 Open: the E-3105 supplier's drain, vent and floating-head design.
+
+## D-078 Figures and citations brought in line (2026-10-23)
+Answers layout-review11#10 and #11.
+
+Decision:
+- (1) **Figures** (review11#10), from scripts/datasheet_sizing.py:
+  - WN-3003 line-list note: at DN600 the bypass took 20.3 kPa at 45.7 m/s over the routed
+    116.6 m, at DN900 3.6 kPa (section 11; the note said 18 / 3.3 kPa).
+  - D-071 (2)'s "at DN600 the line alone would take 24 kPa" is corrected: WN-3003 alone would take
+    20.3 kPa; 24 kPa is WN-3002 (3.6) and WN-3003 (20.3) together in a full bypass.
+  - AIR-1006 line-list note: 767 kg/h condensate to CD-1001 (E-1102, D-068 (2); was 679 kg/h).
+  - Section 10 labels both AIR-3002 stretches "AIR-3002 (to E-3105)" and "AIR-3002 (after
+    E-3105)"; the line number AIR-3007 does not exist (D-069 (1)).
+- (2) **Citations** (review11#11). Each datasheet value now cites its section with the current
+  section header: section 1 D-068 (2) (E-1101, E-1102, E-1103, K-1101), section 2 D-068 (3)
+  (E-4101, E-4102, K-4101), section 4 D-068 (4) (K-3101, KT-3101); section 3 (K-4102, E-4103) stays
+  D-063 (5). The section 2 values were refreshed from the current run: K-4101 stage discharges
+  361.98 / 395.97 / 396.61 / 397.84 / 400.2 K, Cp/Cv 1.399 / 1.398 / 1.4019 / 1.4095 / 1.4242,
+  intercooler duties 257.6 / 437.7 / 438.0 / 438.6 kW (E-4101 1,572 kW, LMTD 30.39 / 41.21 / 41.4 /
+  41.77 K, 280.6 m2), E-4102 439.7 kW, LMTD 42.47 K, 72.28 m2. The section 1 and 4 values already
+  equalled the run. Section 10's header now cites D-073 as well, section 11's D-072.
+
+Reason: review11#10, #11.

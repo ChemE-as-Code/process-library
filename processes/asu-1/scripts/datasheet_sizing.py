@@ -904,7 +904,7 @@ ergun = depth * (150 * mu_h * (1 - eps) ** 2 * u_bed / (eps ** 3 * dp_p ** 2)
 print(f"  bed screening (Ergun, ASSUMED geometry): plan area {a_bed:.3g} m2, superficial {u_bed:.3g} m/s at 200 C: "
       f"{ergun:.3g} kPa for 1.5 m of 3 mm beads, inside the 1.5 kPa allowable with the distributor and valves")
 
-print("== section 10 (DESIGN.md D-068 (9)) Cooling water and line velocities")
+print("== section 10 (DESIGN.md D-068 (9), D-073) Cooling water and line velocities")
 cw = {"MAC Q1 (DWSIM)": 7559.87, "DCAC lower Q2 (DWSIM)": 710.177, "GOX compressor Q3 (DWSIM)": 2042.02,
       "GAN compressor Q4 (DWSIM)": 123.368, "E-3104 Q5 (DWSIM)": 126.127}
 for name, q in cw.items():
@@ -915,7 +915,8 @@ for line, sid, dn, mflow in (
         ("WN-1001", "S12B", 0.7, None), ("WN-1001", "S12B", 0.9, None), ("WN-1001", "S12B", 1.0, None),
         ("WN-3002", "S17", 0.9, None), ("WN-3003 (bypass, all of S12B)", "S12C", 0.6, flow("S12B")),
         ("WN-3003 (bypass, all of S12B)", "S12C", 0.9, flow("S12B")), ("GOX-4001", "S7", 0.5, None),
-        ("AIR-3002", "S4D", 0.2, None), ("AIR-3007", "S4E", 0.2, None), ("AIR-3003", "S5B", 0.15, None)):
+        ("AIR-3002 (to E-3105)", "S4D", 0.2, None), ("AIR-3002 (after E-3105)", "S4E", 0.2, None),
+        ("AIR-3003", "S5B", 0.15, None)):
     rho = adapter.flash(Inputs(kelvin(sid), kpa(sid), fractions(sid))).density
     q = (mflow if mflow is not None else flow(sid)) / rho / 3600.0
     print(f"  {line} ({sid} {kelvin(sid) - 273.15:.4g} C, {kpa(sid) / 100:.4g} bara): rho {rho:.4g} "
