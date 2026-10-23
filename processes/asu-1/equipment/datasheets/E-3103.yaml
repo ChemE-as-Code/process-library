@@ -6,12 +6,20 @@
 tag: E-3103
 type: PlateHeatExchanger
 service: Main condenser-reboiler (bath type)
-draft: true
 operating:
-  conditions:
-    value: TBD
+  condensing_side:
+    value: C-3101 top nitrogen, 94.71 K (-178.44 C), 5.3 bara
     unit: ''
-    source: 'TBD: no flowsheet stream links this item (links: in process/flowsheet.yaml)'
+    source: '`cheme process simulate` (DWSIM 9.0.5, Peng-Robinson; DESIGN.md D-059): C3101 partial
+      condenser, top 94.7111 K; condenser pressure 5.3 bara (process/simulation.yaml, ASSUMED)'
+    assumed: true
+  reboiling_side:
+    value: C-3102 sump oxygen, 93.17 K (-179.98 C), 1.4 bara
+    unit: ''
+    source: '`cheme process simulate` (DESIGN.md D-059): C3102 reboiler, bottom 93.1742 K; reboiler pressure
+      1.4 bara (process/simulation.yaml, ASSUMED). The simulated sump holds 97.0 % O2, not the 99.5 % of the
+      specification (D-059)'
+    assumed: true
 design:
   pressure_barg:
     value: 7.0
@@ -38,24 +46,43 @@ nozzles:
   source: pid/P-03.xml
 type_specific:
   duty_kw:
-    value: TBD
+    value: 3536
     unit: kW
-    source: 'TBD: no flowsheet node links E-3103 (links: in process/flowsheet.yaml) (cheme datasheets
-      fill)'
-  area_m2:
-    value: TBD
-    unit: m2
-    source: 'TBD: no flowsheet node links E-3103 (links: in process/flowsheet.yaml) (cheme datasheets
-      fill)'
+    source: '`cheme process simulate` (DWSIM, DESIGN.md D-059): C3101 condenser 3,535.6 kW, the nitrogen
+      condensed for the LN reflux S18 and the HP column reflux (reflux ratio 1.34)'
+    assumed: true
+  reboil_duty_kw:
+    value: 3250
+    unit: kW
+    source: '`cheme process simulate` (DESIGN.md D-059): C3102 reboiler 3,250.5 kW. The condenser gives
+      286 kW more than the reboiler takes (cheme.process-sim-reboiler-unbalanced): liquid the columns could
+      make, or the E-3102 subcooling of D-059 could use'
+    assumed: true
   lmtd_k:
-    value: TBD
+    value: 1.54
     unit: K
-    source: 'TBD: no flowsheet node links E-3103 (links: in process/flowsheet.yaml) (cheme datasheets
-      fill)'
-sizing_basis: []
+    source: '`cheme process simulate` (DESIGN.md D-059): 94.71 - 93.17 K; both sides condense and boil at
+      nearly constant temperature, so the mean difference is the approach (ASSUMED: no superheat or
+      subcooling in the bath, no static head in the sump)'
+    assumed: true
+  ua_kw_k:
+    value: 2296
+    unit: kW/K
+    source: 'Q / dT = 3,536 kW / 1.54 K (on the condensing duty)'
+    assumed: true
+  area_m2:
+    value: supplier
+    unit: m2
+    reason: 'bath condenser-reboiler supplier (brazed aluminium cores in the LP sump): the area follows from
+      its condensing and boiling coefficients at a 1.5 K approach, the bath level and the core geometry; no
+      typical coefficient for it in cheme-as-code''s table. Enquiry basis: 3,536 kW condensing at 94.7 K,
+      5.3 bara; 3,250 kW boiling at 93.2 K, 1.4 bara; UA about 2,300 kW/K'
+sizing_basis:
+- parameter: duty and temperatures
+  value: the DWSIM double-column simulation (40 / 59 theoretical stages, Peng-Robinson)
+  reference: DESIGN.md D-059
 notes: 'In LP column sump, kept submerged (D-010). N2 side 7 barg, O2 side 3.5 barg. O2 service. Internal
-  of C-3102: no dimensions and no placement of its own (D-028). ASSUMED. Open (DESIGN.md D-053): the condensed
-  HP nitrogen (= the LP column boil-up) is set by the reflux of both columns, which the flowsheet does not
-  carry; duty, conditions and area need the double-column internal balance (process simulation or the cold
-  box supplier). Waiting for the double-column simulation (DESIGN.md D-059); left a draft, not filled
-  (D-060 (4)).'
+  of C-3102: no dimensions and no placement of its own (D-028). ASSUMED. DESIGN.md D-059, D-063: duty and
+  temperatures from the double-column simulation, the area is the supplier''s. The PR model is not fitted to
+  O2 / Ar / N2 VLE (D-059 limit), so the supplier confirms the 1.5 K approach and the column pressures that
+  set it. The 286 kW surplus over the reboil is recorded in D-059.'

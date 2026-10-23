@@ -145,35 +145,36 @@ type_specific:
     unit: t
     source: equipment/equipment-list.yaml dimensions
   duty_kw:
-    value: 5211
+    value: 5242
     unit: kW
-    source: 'scripts/datasheet_sizing.py (D-053 (5)): warm side, Q = sum n (h_in - h_out): main air S4A
+    source: 'scripts/datasheet_sizing.py D-063 (5): warm side, Q = sum n (h_in - h_out): main air S4A
       83,190 kg/h 15 C 5.6 bara -> S5 -173 C 5.5 bara (-339.3 -> -6024.5 kJ/kmol) 4,536 kW + booster air
-      S4D 14,870 kg/h 40 C 8.0 bara -> S5B -118 C 7.8 bara (378.5 -> -4349.4 kJ/kmol) 674 kW; enthalpies
-      by the property adapter (thermo 0.6.1, PR) at the flowsheet states (all ASSUMED, DESIGN.md 3 / D-052)'
+      S4D 14,870 kg/h 40 C 8.45 bara -> S5B -124.7 C 8.25 bara (375.2 -> -4570.9 kJ/kmol) 705 kW (DESIGN.md
+      D-061); enthalpies by the property adapter (thermo 0.6.1, PR) at the flowsheet states'
     assumed: true
   area_m2:
     value: supplier
     unit: m2
     source: 'brazed aluminium plate-fin supplier: the area of a multi-stream plate-fin exchanger follows
-      from its fin geometry and layer arrangement along the composite curves. Enquiry basis (DESIGN.md D-060
-      (4)): duty 5,211 kW, UA about 740 kW/K and minimum approach about 4.7 K on the states recommended
-      there (cold outlets 13 C, cold inlets from the double-column balance, D-059)'
+      from its fin geometry and layer arrangement along the composite curves. Enquiry basis (DESIGN.md D-063):
+      duty 5,242 kW, UA about 720 kW/K, minimum approach 5.1 K near the cold end, cold outlets at 13 C (2 K
+      below the main air, D-061); the 27 K booster-air-to-product difference at the warm end to be confirmed
+      by the supplier (D-061)'
   ua_kw_k:
-    value: 737.7
+    value: 721.6
     unit: kW/K
-    source: 'scripts/datasheet_sizing.py (D-060 (4)): UA = sum dQ / LMTD over 600 intervals of the warm and
-      cold composite curves (property adapter enthalpies, thermo PR): warm S4A -> S5 and S4D -> S5B at the
-      flowsheet states (5,211 kW); cold S14 -> S9, S15 -> S7, S16 -> S17 with the outlets at 13 C (2 K under
-      the 15 C main air, ASSUMED, in place of the flowsheet''s 25 C, which cross the warm composite) and the
-      inlets 11.6 K above their dew points at 540 / 130 / 130 kPa(a) so that the balance closes (ASSUMED
-      until the double-column simulation, D-059, gives the E-3102 outlet states); minimum approach 4.69 K at
-      the cold end'
+    source: 'scripts/datasheet_sizing.py D-063 (5): UA = sum dQ / LMTD over 600 intervals of the warm and
+      cold composite curves (property adapter enthalpies, thermo PR): warm S4A -> S5 and S4D -> S5B (5,242
+      kW); cold S14 -> S9 and S15 -> S7 from saturated vapour at their simulated pressures 530 / 140 kPa(a)
+      (dew 94.73 / 93.28 K; D-061: the stored states flash as liquid within 0.1 K of the dew point), and
+      S16 -> S17 entering at 95.79 K after E-3102, the temperature that closes the balance (heat leak
+      neglected, ASSUMED); outlets at 13 C (S7, S9, S17, D-061)'
     assumed: true
   minimum_approach_k:
-    value: 4.69
+    value: 5.08
     unit: K
-    source: scripts/datasheet_sizing.py (D-060 (4)), the composite curves of ua_kw_k (same ASSUMED states)
+    source: 'scripts/datasheet_sizing.py D-063 (5), the composite curves of ua_kw_k (same states): 5.08 K
+      at 5,207 kW from the warm end; warm end 2 K to the main air, 27 K to the booster air; cold end 6.9 K'
     assumed: true
   process_streams:
   - stream: S4A
@@ -223,12 +224,19 @@ type_specific:
       composite curves do (ua_kw_k, minimum_approach_k)
 sizing_basis:
 - parameter: cold outlet temperatures
-  value: 13 C (2 K warm-end approach to the 15 C main air, ASSUMED)
-  reference: DESIGN.md D-060 (4), (6)
+  value: 13 C (2 K warm-end approach to the 15 C main air, ASSUMED; in the flowsheet since D-061)
+  reference: DESIGN.md D-061
+- parameter: cold inlet states
+  value: S14 / S15 saturated vapour at 5.3 / 1.4 bara (DWSIM column pressures); S16 after E-3102 at 95.8 K
+  reference: DESIGN.md D-059, D-061, D-063
+- parameter: heat leak
+  value: neglected in the exchanger balance (ASSUMED; the cold box budget is in D-061)
+  reference: DESIGN.md D-061
 notes: 'Streams: air, booster air, GOX, GAN, waste N2. Max design temperature 65 C. O2 service (D-009).
   Bank of 4 cores ~1.2 x 1.2 x 7.3 m side by side with headers, standing vertical (warm end up). ASSUMED.
-  Duty (5,211 kW, warm side) calculated (D-053 (5)); the area is the supplier''s (marker), UA and approach
-  from the composite curves (DESIGN.md D-060 (4)). Finding: at the flowsheet''s cold outlets of 25 C the cold
-  composite crosses the warm one at the warm end (the main air enters at 15 C), so S7 / S9 / S17 at 25 C
-  cannot leave E-3101; 13 C is recommended (D-060 (6)). The UA is to be redone with the cold inlet states of
-  the double-column simulation (D-059).'
+  Duty 5,242 kW (warm side), UA and approach from the composite curves on the D-061 states (DESIGN.md
+  D-063); the area is the supplier''s (marker). The exchanger closes only with the waste N2 warmed first in
+  the subcooler E-3102 (293 kW, 80.3 -> 95.8 K). The cold box as a whole is ~78 kW short of refrigeration at
+  940 kg/h liquid (D-061: the booster air enters at 40 C, +105 kW against the section 3 budget); options in
+  D-061 (cool S4D towards 15 C, more expander flow, less liquid). The 27 K difference between the booster air
+  in and the products out at the warm end is for the supplier to confirm.'
