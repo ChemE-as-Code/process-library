@@ -74,10 +74,10 @@ by the simulated double column). Nm3 at 0 C, 1.013 bar.
 | stream | from -> to | Nm3/h | kg/h | p bara | T C | composition |
 |---|---|---|---|---|---|---|
 | 1 air feed | atm -> K-1101 | 85,840 dry, 88,820 wet | 113,329 | 1.01 | 30 | air, 80 % RH, H2O 3.35 mol% (D-058, D-066) |
-| 1c MAC condensate | E-1102, E-1103 drains | | 1,581 | | 40 | water (simulated, D-058) |
-| 2 compressed air | K-1101 -> C-1101 | 85,840 dry | 111,748 | 5.8 | 40 | air, saturated, H2O 1.16 mol% (simulated) |
-| 3c DCAC condensate | into the DCAC water | | 663 | | 12 | water (simulated, D-058) |
-| 3 precooled air | C-1101 -> V-2101 | 85,840 dry | 111,085 | 5.7 | 12 | air, saturated, H2O 0.21 mol% (simulated) |
+| 1c MAC condensate | E-1102, E-1103 drains | | 1,604 | | 40 | water (simulated, D-058) |
+| 2 compressed air | K-1101 -> C-1101 | 85,840 dry | 111,725 | 5.98 (D-079) | 40 | air, saturated, H2O 1.12 mol% (simulated) |
+| 3c DCAC condensate | into the DCAC water | | 644 | | 27 / 12 | water (simulated, D-058; lower and upper section) |
+| 3 precooled air | C-1101 -> V-2101 | 85,840 dry | 111,081 | 5.88 (D-079) | 12 | air, saturated, H2O 0.21 mol% (simulated) |
 | 4 dry air to cold box | V-2101 -> E-3101 | 85,810 | 110,870 | 5.6 | 15 | dry, CO2 < 0.1 ppm (D-066) |
 | 4E boosted air | E-3104 -> E-3105 -> E-3101 | 11,500 | 14,870 | 8.45 | 30 / 15 | air (D-067: cooling water, then chilled water) |
 | 5 HP column feed | E-3101 -> C-3101 | 74,300 | 96,000 | 5.5 | -173 | air near dew point (D-066) |
@@ -95,8 +95,8 @@ by the simulated double column). Nm3 at 0 C, 1.013 bar.
 | 12c vent | -> atm | 0 | 0 | 1.02 | 13 (D-061) | start-up and bypass of C-1102 only (D-067) |
 
 Balance (D-066):
-- Air: 113,329 kg/h wet in. Of that, 2,244 kg/h condense in the MAC coolers and the DCAC before
-  the TSA (streams 1c, 3c), and the adsorbers remove 215 kg/h of H2O and CO2.
+- Air: 113,329 kg/h wet in. Of that, 2,248 kg/h condense in the MAC coolers and the DCAC before
+  the TSA (streams 1c, 3c), and the adsorbers remove 211 kg/h of H2O and CO2 (D-079).
 - Cold box: 110,870 kg/h dry air in = 20,860 GOX + 12,510 GAN + 470 LOX + 470 LIN + 76,560 waste
   N2.
 - O2: 17,985 Nm3/h in the air, 14,890 Nm3/h in GOX + LOX (82.8 %), 3,095 Nm3/h in the waste.
@@ -124,16 +124,16 @@ on chilled water); the cold box then closes at a heat leak of ~75 kW against 50 
 
 | consumer | power / duty | basis |
 |---|---|---|
-| K-1101 MAC | 7.13 MW electric (6.75 MW shaft) | simulated, D-066 (85,810 Nm3/h), D-058 (wet air): 3 stages, 5.8 bara; motor 9.0 MW (D-066; was 8.0) |
+| K-1101 MAC | 7.26 MW electric (6.87 MW shaft) | simulated, D-066 (85,810 Nm3/h), D-058 (wet air): 3 stages, 5.98 bara (D-079); motor 9.0 MW (D-066; was 8.0) |
 | K-4101 GOX compressor | 2.26 MW electric (2.14 MW shaft) | simulated, D-061 (suction 13 C): 5 stages to 31 bara (D-065 (7)) |
 | K-4102 GAN compressor | 0.24 MW electric (0.22 MW shaft) | simulated, D-057, D-061 (suction 13 C): 5.2 -> 9 bara, 1 stage |
 | E-2101 regeneration heater | 1.13 MW electric (peak) | 18,486 kg/h x 1.04 kJ/kgK x 185 K = 0.99 MW, plus the concept's 14 % margin; ~1/3 of cycle (D-066, ASSUMED) |
 | pumps, chiller water, misc. | 0.3 MW electric | ASSUMED |
-| **total electric** | **~11.1 MW (average ~10.3 MW)** | 6.6 kV (D-066; D-058 ~10.2 / ~9.5) |
-| cooling water | ~10.6 MW, ~910 m3/h at 10 K | MAC 7.56, DCAC lower section 0.71, GOX comp 2.04, GAN comp 0.12, booster aftercooler E-3104 0.13 MW (simulated, D-066, D-067) |
+| **total electric** | **~11.2 MW (average ~10.4 MW)** | 6.6 kV (D-066, D-079; D-058 ~10.2 / ~9.5) |
+| cooling water | ~10.7 MW, ~920 m3/h at 10 K | MAC 7.70, DCAC lower section 0.70, GOX comp 2.04, GAN comp 0.12, booster aftercooler E-3104 0.13 MW (simulated, D-066, D-067, D-079) |
 | chilled water (C-1102) | ~0.70 MW | DCAC upper section 0.64, E-3105 0.06 MW (simulated); no machine: evaporative cooling by dry waste N2, whose heat leaves with the waste (D-005, D-067) |
 
-Specific energy: ~0.64 kWh per Nm3 GOX delivered at 30 barg (MAC + GOX compressor; D-066, D-058 ~0.59).
+Specific energy: ~0.65 kWh per Nm3 GOX delivered at 30 barg (MAC + GOX compressor; D-066, D-079; D-058 ~0.59).
 
 The utilities of this table are the energy streams of `process/flowsheet.yaml` (feed POWER,
 product CW; electric heater at its cycle average), which the LCA reads (`lca/`,
@@ -3195,3 +3195,37 @@ Decision:
   equalled the run. Section 10's header now cites D-073 as well, section 11's D-072.
 
 Reason: review11#10, #11.
+
+## D-079 Front-end pressure profile: MAC discharge 5.98 bara (2026-10-23)
+Answers D-073 (4). It goes with the owner's choice of DN700 main air lines (AIR-1004, AIR-2001,
+AIR-2002; recorded by repos-8a from D-080), which saves ~16 kPa against DN600.
+
+Decision: the air pressures are set from the cold box back.
+- **S4** at E-3101 stays 5.6 bara, so the cold box does not change.
+- **S3 to S4: 28 kPa.** The DN700 lines take 17.4 kPa (D-073 (3), the longer bed path). The
+  adsorber bed in adsorption takes ~8 kPa and F-2101 ~3 kPa (both ASSUMED, the suppliers'
+  allowables). S3 is therefore 5.88 bara.
+- **The DCAC** keeps its 10 kPa (5 per section), so the MAC discharge S2 is 5.98 bara (was 5.8).
+
+Results (cheme process simulate):
+- **MAC:** 7,260 kW electric, 6,868 kW shaft (+127 kW against 5.8 bara, close to D-073's
+  6.9 kW/kPa). Cooling water of its coolers: 7,698 kW.
+- **Motor:** the 9.0 MW motor of D-066 still holds. Its output is 7.26 x 0.97 = 7.04 MW, about
+  7.38 MW at the rated flow, and 110 % of that is 8.12 MW.
+- **Water to the TSA:** the higher pressure condenses a little more water before the TSA. S3
+  carries 143 kg/h H2O (was 147), so the regeneration gas S12D is 18,697 kg/h.
+- **Plant:** electric peak ~11.2 MW and average ~10.4 MW, cooling water ~10.7 MW, specific
+  energy ~0.65 kWh/Nm3. LCA: 142.4 kg CO2-eq/t GOX (example factors; was 140.7).
+
+Reason:
+- At the D-066 flow the S3-S4 drop is about three times the 10 kPa the flowsheet allowed.
+- Raising S3 at the source (the MAC) keeps the cold-box pressures, columns and products
+  unchanged. Lowering the cold box instead would cut the HP column pressure and the
+  condenser-reboiler driving force.
+- DN700 instead of DN600 saves ~110 kW (~0.9 GWh a year).
+
+Open:
+- The adsorber and F-2101 drops in adsorption come from the suppliers. If they are larger than
+  the ~11 kPa assumed here, raise S2 by the difference (~7 kW/kPa).
+- K-1101 datasheet and electrical list: 5.98 bara, 7,260 kW electric, 6,868 kW shaft
+  (repos-8a).
