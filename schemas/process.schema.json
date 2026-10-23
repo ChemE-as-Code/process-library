@@ -22,6 +22,27 @@
       "items": {"$ref": "#/$defs/slug"}
     },
     "keywords": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 2}},
+    "facets": {
+      "description": "Optional classification for filtering in the Atlas. Lowercase slugs; list only what the design has.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "feedstock_basis": {
+          "description": "Where the process's material and energy inputs come from.",
+          "type": "array", "uniqueItems": true,
+          "items": {"enum": ["fossil", "biogenic", "atmospheric", "mineral", "recycled", "water", "electricity"]}
+        },
+        "product_classes": {
+          "description": "Classes of the products, e.g. industrial-gases, fuels, fertilizers, polymers, chemicals, materials.",
+          "type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/slug"}
+        },
+        "unit_operations": {
+          "description": "Unit operations in the design, e.g. cryogenic-distillation, adsorption, compression, reaction, electrolysis.",
+          "type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/slug"}
+        },
+        "region": {"description": "Region the design is for, e.g. generic, EU.", "type": "string", "minLength": 1}
+      }
+    },
     "maturity": {
       "description": "How far the design has been taken. concept/screening are research-level; basic-engineering and later carry engineering deliverables.",
       "enum": ["concept", "screening", "basic-engineering", "detail-engineering", "operating-reference"]
