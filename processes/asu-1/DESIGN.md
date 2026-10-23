@@ -3574,5 +3574,10 @@ Decision:
     engineer checks it). This is inside 72 s, so even the double failure trips before the seal is
     lost. A later trip would mean the D-083 blow-by case (94.5 t/h) until XV-1115 shuts, which the
     open vent WN-1002 covers (D-083 (2)).
+- (5) **E-3105 tag on P-03** (#5): moved from (66, 124), west of the K-3101 discharge line, to
+  (87, 143.3) below the exchanger's drain valves HV-3127 / HV-3128 and above the AIR-3002 DN 200
+  label, on the exchanger's side of the K-3101 discharge line with no process line between tag and
+  symbol (`cheme move`). Drawing counts unchanged (P-03: 3 accepted crossings, 0 overlaps,
+  0 label-far-from-owner); build/P-03_crop-60-95-120-155.png.
 
 Reason: layout-review13.
