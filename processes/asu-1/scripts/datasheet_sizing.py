@@ -910,6 +910,53 @@ for line, sid, dn, mflow in (
     print(f"  {line} ({sid} {kelvin(sid) - 273.15:.4g} C, {kpa(sid) / 100:.4g} bara): rho {rho:.4g} "
           f"kg/m3 (property adapter), {q:.4g} m3/s, {q / (math.pi / 4 * dn * dn):.3g} m/s in "
           f"{dn * 1000:g} mm (DN as the diameter, D-016)")
+# D-073 (review11#2): the main air lines at the D-066 flow, velocity and Darcy drop along the routed
+# lines (the section 11 method; adapter density at S4, 15 C, 5.6 bara; air viscosity Yoon-Thodos as
+# nitrogen, ASSUMED < 2 % off)
+x4 = fractions("S4")
+rho4 = adapter.flash(Inputs(kelvin("S4"), kpa("S4"), x4)).density
+mu4 = Yoon_Thodos(kelvin("S4"), critical.Tc("7727-37-9"), critical.Pc("7727-37-9"), 28.0134)
+air_dp = {}
+for line, pipes, m, k in (
+        ("AIR-2001 (bed A outlet -> F-2101)", ["P-02/Line_AIR2001_S1", "P-02/Line_AIR2001_S3"], flow("S4"), 0.4),
+        ("AIR-2001 (bed B outlet -> F-2101)", ["P-02/Line_AIR2001_S2", "P-02/Line_AIR2001_S3"], flow("S4"), 1.0),
+        ("AIR-2002 (F-2101 -> AIR-3005 tee)", ["P-02/Line_AIR2002_S1", "P-03/Line_AIR2002_S1"], flow("S4"), 0.0),
+        ("AIR-2002 (tee -> E-3101)", ["P-03/Line_AIR2002_S2"], flow("S4A"), 0.4)):
+    length, bends = route_of(pipes)
+    res = {dn: gas_line(m, rho4, mu4, dn, length, bends * K_ELBOW + k) for dn in (500, 600, 700)}
+    air_dp[line] = res
+    print(f"  {line}: {length:.4g} m, {bends} bends, {m:g} kg/h, rho {rho4:.4g} kg/m3: "
+          + "; ".join(f"DN{dn} {dp:.3g} kPa ({v:.3g} m/s in the ID; {m / rho4 / 3600 / (math.pi / 4 * (dn / 1000) ** 2):.3g}"
+                      f" m/s in DN as the diameter)" for dn, (dp, v) in res.items()))
+for dn in (500, 600, 700):
+    worst = max(air_dp[k][dn][0] for k in list(air_dp)[:2]) + sum(air_dp[k][dn][0] for k in list(air_dp)[2:])
+    print(f"  main air lines DN{dn}, longer bed: {worst:.3g} kPa from the adsorber outlet to E-3101 (S3 -> S4 in the "
+          f"flowsheet: {kpa('S3') - kpa('S4'):g} kPa for the bed, AIR-2001, F-2101 and AIR-2002, ASSUMED)")
+rho3 = adapter.flash(Inputs(kelvin("S3"), kpa("S3"), dry(fractions("S3")))).density
+print(f"  AIR-1004 (S3 12 C, 5.7 bara, saturated: dry-air density {rho3:.4g} kg/m3, property adapter): "
+      f"{flow('S3') / rho3 / 3600 / (math.pi / 4 * 0.36):.3g} m/s in 600 mm (DN as the diameter, D-016)")
+for bed, pipes, k in (("A", ["P-01/Line_AIR1004_S1", "P-02/Line_AIR1004_S1", "P-02/Line_AIR1004_S2",
+                             "P-02/Line_AIR1004_S3", "P-02/Line_AIR1004_S4"], 0.4 + 0.4 + 0.4 + 1.0),
+                      ("B", ["P-01/Line_AIR1004_S1", "P-02/Line_AIR1004_S1", "P-02/Line_AIR1004_S6",
+                             "P-02/Line_AIR1004_S7", "P-02/Line_AIR1004_S8"], 1.0 + 0.4 + 0.4 + 1.0)):
+    length, bends = route_of(pipes)
+    for dn in (600, 700):
+        dp, v = gas_line(flow("S3"), rho3, mu4, dn, length, bends * K_ELBOW + k)
+        print(f"  AIR-1004 DN{dn} C-1101 -> V-2101{bed}: {length:.4g} m, {bends} bends: {dp:.3g} kPa ({v:.3g} m/s; "
+              f"tees K {k:g} with the nozzle entry 1.0)")
+# what one kPa more at the MAC discharge costs: electric power pro rata to ln(p2 / p1) of the three
+# stages (ideal-gas compression at the same efficiencies, D-066 E1)
+p_mac = kpa("S2") + spec("K1101", "pressure_drop") * 100.0
+print(f"  MAC: +1 kPa at the discharge ({p_mac:g} kPa(a)) ~ {E1 / math.log(p_mac / kpa('S1')) / p_mac:.3g} kW electric "
+      f"(E1 {E1:g} kW pro rata to ln(p2/p1))")
+# the MAC interstage hot legs (MAC package): velocities at the section 1 stage discharge states, wet air
+# ideal gas (Z ~ 1 at 1.8-3.3 bara)
+for line, r, dn in (("AIR-1005", mac[0], 0.9), ("AIR-1006", mac[1], 0.7)):
+    rho = r["p_out"] * r["mw"] / (R * r["t_out"])
+    q = r["m_kg_h"] / rho / 3600.0
+    print(f"  {line} (K-1101 stage {r['stage']} discharge {r['t_out'] - 273.15:.4g} C, {r['p_out']:.4g} kPa(a), "
+          f"{r['m_kg_h']:.6g} kg/h): rho {rho:.4g} kg/m3 (ideal gas), {q:.4g} m3/s, "
+          f"{q / (math.pi / 4 * dn * dn):.3g} m/s in {dn * 1000:g} mm (DN as the diameter, D-016)")
 for line, v, dn in (("CHW-1001", v_dcac + v_3105, 0.15), ("CHWR-1001", v_dcac, 0.15),
                     ("CHW-3001 / CHWR-3001", v_3105, 0.05), ("CW-1003 make-up", 1.5, 0.15)):
     print(f"  {line}: {v:.4g} m3/h, {v / 3600 / (math.pi / 4 * dn * dn):.3g} m/s in {dn * 1000:g} mm")

@@ -2976,3 +2976,52 @@ Open:
 - the suppliers' drops: E-2101, the adsorbent bed and its distributor, S-2101, and FV-2105's trim;
 - the flowsheet's S12A at 1.10 bara (ASSUMED, simulation owner) lies 1.4 kPa below the tee pressure
   of 111.4 kPa(a) found here; it does not change the balances, and the owner may update it.
+
+## D-073 Main air lines at the D-066 flow: AIR-2001 / AIR-2002 DN600, the front-end pressure budget (2026-10-23)
+Answers layout-review11#2: D-068 (9) re-checked the waste-N2, GOX and booster lines at the D-066
+flow, but not the main air lines.
+
+Decision:
+- (1) **Velocities** (scripts/datasheet_sizing.py section 10; DN as the diameter, the D-016
+  convention). Dry air S4, 110,870 kg/h at 15 C and 5.6 bara (6.79 kg/m3, property adapter):
+  AIR-2001 and AIR-2002 DN500 ran at 23.1 m/s to the AIR-3005 tee and 20.0 m/s after it, over the
+  20 m/s of D-016. **Both become DN600** (16.0 / 13.9 m/s) on P-02 / P-03, with XV-2102A/B, the
+  outlet tee, F-2101 N1 / N2, V-2101A/B N2 and E-3101 N2 (datasheets updated). AIR-1004 (DN600,
+  S3) runs at 15.6 m/s and stays.
+- (2) **MAC interstage legs.** AIR-1005 (DN900) and AIR-1006 (DN700) run at about 29 and 28 m/s at
+  the stage 1 / 2 discharge states of section 1 (99 C, 184 kPa(a); 111 C, 326 kPa(a); ideal gas).
+  They lie inside the MAC package: their sizes are the MAC supplier's, with the D-066 flow
+  (113,329 kg/h) as the enquiry basis. The line list says so.
+- (3) **Pressure drops** along the routed lines (Darcy-Weisbach with Colebrook, elbow K 0.75, tee
+  K 0.4 / 1.0, nozzle entry 1.0; the section 11 method):
+  | line | routed | DN500 | DN600 (now) | DN700 |
+  |---|---|---|---|---|
+  | AIR-1004, C-1101 -> V-2101A / B | 99 / 95 m, 18 / 20 bends | | 16.1 / 17.9 kPa | 8.4 / 9.3 kPa |
+  | AIR-2001, bed A / B -> F-2101 | 55 / 37 m | 15.4 / 12.7 kPa | 7.0 / 5.8 kPa | 3.6 / 3.0 kPa |
+  | AIR-2002, F-2101 -> E-3101 | 73 m | 21.5 kPa | 9.8 kPa | 5.1 kPa |
+  | lines C-1101 -> E-3101, longer bed | | | 33.5 kPa | 17.4 kPa |
+
+  The flowsheet allows 10 kPa from S3 (C-1101 outlet, 5.7 bara) to S4 (5.6 bara) for AIR-1004,
+  the adsorber in adsorption, AIR-2001, F-2101 and AIR-2002 (ASSUMED, simulation owner). At DN600
+  the lines alone take 33.5 kPa, before the bed and the filter (suppliers). The elbows are taken as
+  standard elbows (K 0.75); long-radius elbows on these large lines would lower the fitting losses,
+  which are about two thirds of the total.
+- (4) **Request to the simulation owner** (process/flowsheet.yaml and process/simulation.yaml are
+  not changed here): set the front-end pressure profile from these drops. Either the MAC discharge
+  (S2, 5.8 bara) rises by about 25-35 kPa, about 6.9 kW of MAC electric power per kPa (section 10,
+  pro rata to ln(p2/p1) of E1): roughly 170-240 kW; or the S3 -> S4 drop is raised and the cold
+  box pressures follow. The adsorber and F-2101 allowables in adsorption are to be set with it.
+- (5) **Owner decision:** DN700 for AIR-1004, AIR-2001 and AIR-2002 would save about 16 kPa, about
+  110 kW of MAC power (about 0.9 GWh a year at 8,000 h, ASSUMED), against larger pipe, valves
+  (XV-2101A/B, XV-2102A/B) and rack load. DN600 meets D-016; the choice is economic and waits for
+  the owner with the pressure profile of (4).
+- (6) **Layout.** AIR-2001 / AIR-2002 keep their pinned routes with the pipe bottoms on their
+  supports (centres +0.051 m); AIR-2002's PR1 lane moves from y 66.5 to 66.55 (0.14 m clear of the
+  DN1000 WN-1001), and AIR-3005 steps 0.051 m down beside the larger tee. PR1 7 m tier 3.75 of 8 m
+  (47 %). The model has no clash.
+
+Reason: D-066 raised the air by 13 %; the main air lines were sized on the D-016 velocity for the
+earlier flow, and their pressure drop was never set against the flowsheet's front-end pressures.
+
+Open: the simulation owner's pressure profile and the owner's DN600 / DN700 choice ((4), (5)); the
+adsorber and F-2101 drops in adsorption from their suppliers.
