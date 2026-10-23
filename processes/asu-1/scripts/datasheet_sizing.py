@@ -4,7 +4,8 @@ D-060, D-063).
 Provenance only: it prints each value with its basis; the values are written into
 equipment/datasheets/<TAG>.yaml by hand, with the source "scripts/datasheet_sizing.py section n
 (DESIGN.md D-063 (m))": n is this script's section number printed in each "== section n" header,
-m the numbered item of DESIGN.md D-063 that records it (they differ, D-065 (1)).
+m the numbered item of DESIGN.md D-063 that records it (they differ, D-065 (1)). Since D-068 the
+sections rerun on the D-066 / D-067 states cite the item of D-068 that records them instead.
 It uses only cheme-as-code's own methods (the property adapter, the sizing and line-loss functions,
 the public pump sizing `chemeascode.domains.equipment.pumps` along the routed pipes of the layout
 model), IAPWS-95 for water and the Yoon-Thodos gas viscosity (chemicals, the props extra), so the
@@ -89,8 +90,11 @@ def h(stream_id: str, t: float | None = None, p: float | None = None) -> float:
 
 
 def water_cp_molar(t: float, p_partial_kpa: float) -> float:
-    """Ideal-gas-like molar Cp of water vapour, kJ/(kmol K), IAPWS-95 at its partial pressure."""
-    return iapws.iapws95_properties(t, max(p_partial_kpa, 0.05) * 1000.0)[5] / 1000.0 * M_H2O
+    """Ideal-gas-like molar Cp of water vapour, kJ/(kmol K), IAPWS-95 at its partial pressure,
+    held just below saturation (D-068 (1): a saturated suction rounded above Psat returned the
+    liquid's Cp)."""
+    p = min(max(p_partial_kpa, 0.05) * 1000.0, 0.999 * iapws.iapws95_Psat(t))
+    return iapws.iapws95_properties(t, p)[5] / 1000.0 * M_H2O
 
 
 def latent_heat(t: float) -> float:
@@ -254,7 +258,7 @@ def spec(step: str, key: str) -> float:
     return float(v["value"]) if isinstance(v, dict) else float(v)
 
 
-print("== section 1 (DESIGN.md D-063 (2)) MAC K-1101 and coolers E-1101 / E-1102 / E-1103 (wet air, S1 80 % RH, D-058)")
+print("== section 1 (DESIGN.md D-068 (2)) MAC K-1101 and coolers E-1101 / E-1102 / E-1103 (wet air, S1 80 % RH, D-058, D-066)")
 mac, _, mac_power = machine("K-1101", "S1", kpa("S2") + spec("K1101", "pressure_drop") * 100.0,
                             3, spec("K1101", "efficiency"), 313.15,
                             dp_cooler=spec("K1101", "pressure_drop") * 100.0, condense=True)
@@ -267,37 +271,69 @@ for name, r in zip(("E-1101", "E-1102", "E-1103"), mac):
            f"{r['condensed']:.4g} kg/h condensate)", q, r["t_out"], 313.15)
     if r["condensed"] > 0.0:  # the single-LMTD area above is not conservative here (review10#1)
         zoned_cooler(name, r)
-print(f"  coolers in all {q_mac:.5g} kW, condensate {sum(r['condensed'] for r in mac):.5g} kg/h; DWSIM "
-      f"(D-058): Q1 6,686 kW, S1C {flow('S1C'):.6g} kg/h, compressor 5,968 kW")
+print(f"  coolers in all {q_mac:.5g} kW, condensate {sum(r['condensed'] for r in mac):.5g} kg/h, gas power "
+      f"{mac_power:.5g} kW; DWSIM (D-066): Q1 7,559.9 kW, S1C {flow('S1C'):.6g} kg/h, shaft 6,747.4 kW, "
+      f"electric 7,132.6 kW")
+# D-066: the motor. Electric power at the design point and at the ~90,000 Nm3/h rating (flow
+# scaled, same pressure ratio), API 617 110 % of the rated power against the motor rating
+n_dry_s1 = flow("S1") / molar_mass(fractions("S1")) * (1.0 - fractions("S1")["H2O"])
+nm3_dry = n_dry_s1 * 22.414  # Nm3/h of dry air incl. CO2 at 0 C, 1.01325 bar
+E1 = 7132.608  # DWSIM, D-066: E1 = K1101 electric (simulation-run.json)
+rated = E1 * 90000.0 / nm3_dry
+print(f"  K-1101 rating: S1 dry air {nm3_dry:.6g} Nm3/h (22.414 Nm3/kmol); electric {E1:.6g} kW at the "
+      f"design point, {rated:.5g} kW pro rata at 90,000 Nm3/h; motor output = electric x motor efficiency "
+      f"0.97 (D-057): {rated * 0.97:.5g} kW; 110 % (API 617 driver margin) {rated * 0.97 * 1.1:.5g} kW "
+      f"against the 9,000 kW motor (D-066): {9000.0 / (rated * 0.97 * 1.1) - 1.0:+.1%}")
 
-print("== section 2 (DESIGN.md D-063 (5)) GOX compressor K-4101 and coolers E-4101 (4 intercoolers) / E-4102")
+print("== section 2 (DESIGN.md D-068 (3)) GOX compressor K-4101 and coolers E-4101 (4 intercoolers) / E-4102")
 gox5, r5, p5 = machine("K-4101 (5 stages, datasheet)", "S7", kpa("S8"), 5,
                        spec("K4101", "efficiency"), 313.15)
 ic = [cooler(f"E-4101 intercooler {r['stage']}", r["sensible"], r["t_out"], 313.15)
       for r in gox5[:-1]]
 print(f"  E-4101 total: Q {sum(r['sensible'] for r in gox5[:-1]):.5g} kW, A {sum(ic):.5g} m2")
 cooler("E-4102", gox5[-1]["sensible"], gox5[-1]["t_out"], 313.15)
-gox4, _, p4 = machine("K-4101 (4 stages, process/simulation.yaml)", "S7", kpa("S8"), 4,
-                      spec("K4101", "efficiency"), 313.15)
 n7 = flow("S7") / molar_mass(fractions("S7")) / 3600.0
 w_iso = n7 * R * kelvin("S7") * math.log(kpa("S8") / kpa("S7"))
 print(f"  isothermal n R T ln(p2/p1) at the {kelvin('S7'):.5g} K suction: {w_iso:.5g} kW; isothermal "
-      f"efficiency on DWSIM's 2,184 kW {w_iso / 2183.78:.3g}")
-print(f"  cooling, 5 stages {sum(r['sensible'] for r in gox5):.5g} kW, 4 stages "
-      f"{sum(r['sensible'] for r in gox4):.5g} kW; DWSIM (D-061): 4 stages, compressor 2,184 kW, "
-      f"cooling 2,086 kW")
+      f"efficiency on DWSIM's 2,140.3 kW shaft {w_iso / 2140.32:.3g}")
+print(f"  cooling, 5 stages {sum(r['sensible'] for r in gox5):.5g} kW; DWSIM (D-066, process/simulation.yaml "
+      f"5 stages): shaft 2,140.3 kW, electric 2,262.5 kW (E4), cooling 2,042.0 kW (Q3)")
 
 print("== section 3 (DESIGN.md D-063 (5)) GAN compressor K-4102 and aftercooler E-4103")
 gan, _, _ = machine("K-4102", "S9", kpa("S9B"), 1, spec("K4102", "efficiency"), 313.15)
 cooler("E-4103", gan[0]["sensible"], gan[0]["t_out"], 313.15)
-print("  DWSIM (D-061): compressor 218.6 kW, cooling 123.4 kW")
+print("  DWSIM (D-066): shaft 218.7 kW, electric 237.7 kW, cooling 123.4 kW")
 
-print("== section 4 (DESIGN.md D-063 (4)) Booster K-3101, aftercooler E-3104, expander KT-3101 (compander, D-061)")
+
+def counter_cooler(name: str, duty: float, hot_in: float, hot_out: float, c_in: float, c_out: float,
+                   water: str) -> float:
+    """Area of one counter-current gas cooler (D-067: the 1-2 shell crosses), U of D-053."""
+    dt = sizing.lmtd(hot_in, hot_out, c_in, c_out, "counter-current")
+    area = sizing.exchanger_area(duty, U.value, 1.0, dt)
+    w = iapws.iapws95_properties(0.5 * (c_in + c_out), 4.5e5)
+    m3h = duty / (w[5] / 1000.0 * (c_out - c_in)) / w[0] * 3600.0
+    print(
+        f"  {name}: Q {duty:.5g} kW, hot {hot_in:.5g} -> {hot_out:.5g} K, {water} {c_in:.5g} -> "
+        f"{c_out:.5g} K counter-current, LMTD {dt:.4g} K, U {U.value:g} W/(m2 K) (middle of "
+        f"{U.low:g}-{U.high:g}, {U.source}), A = Q / (U LMTD) = {area:.4g} m2; {water} {m3h:.4g} m3/h "
+        f"(IAPWS-95 at the mean water temperature)"
+    )
+    return area
+
+
+print("== section 4 (DESIGN.md D-068 (4)) Booster K-3101, aftercoolers E-3104 / E-3105, expander KT-3101 (compander, D-061, D-067)")
 bst, _, w_b = machine("K-3101", "S4B", kpa("S4C"), 1, spec("K3101", "efficiency"), None)
-q3104 = 83.95  # DWSIM, D-061: E3104 -83.9536 kW (`cheme process simulate`)
-cooler(f"E-3104 (DWSIM duty, S4C {kelvin('S4C'):.5g} K -> S4D 313.15 K)", q3104, kelvin("S4C"), 313.15)
-cooler("E-3104 (this script's booster discharge)", flow("S4B") / bst[0]["mw"] / 3600.0 * bst[0]["cp"]
-       * (bst[0]["t_out"] - 313.15), bst[0]["t_out"], 313.15)
+q3104 = 126.127  # DWSIM, D-067: E3104 -126.127 kW (Q5, `cheme process simulate`)
+q3105 = 63.2728  # DWSIM, D-067: E3105 -63.2728 kW
+counter_cooler(f"E-3104 (DWSIM duty Q5, S4C {kelvin('S4C'):.5g} K -> S4D {kelvin('S4D'):.5g} K)", q3104,
+               kelvin("S4C"), kelvin("S4D"), CW_IN, CW_OUT, "CW")
+CHW_IN, CHW_OUT_3105 = 283.15, 293.15  # D-067: chilled water 10 -> 20 C (ASSUMED)
+counter_cooler(f"E-3105 (DWSIM duty, S4D {kelvin('S4D'):.5g} K -> S4E {kelvin('S4E'):.5g} K)", q3105,
+               kelvin("S4D"), kelvin("S4E"), CHW_IN, CHW_OUT_3105, "chilled water")
+h_d = h("S4D")
+for t_trim in (291.65,):  # D-067: minimum acceptable trim outlet 18.5 C
+    q_min = flow("S4D") / molar_mass(fractions("S4D")) / 3600.0 * (h_d - h("S4D", t=t_trim))
+    print(f"  E-3105 at the 18.5 C alarm (D-067): Q {q_min:.4g} kW (property adapter)")
 air = fractions("S5B")
 mw_air = molar_mass(air)
 m_air = flow("S5B") / 3600.0
@@ -327,7 +363,7 @@ print(
 )
 
 
-print("== section 5 (DESIGN.md D-063 (6)) Main heat exchanger E-3101 and subcooler E-3102: composite curves")
+print("== section 5 (DESIGN.md D-068 (5)) Main heat exchanger E-3101 and subcooler E-3102: composite curves")
 
 
 def _side(x: dict[str, float], n_kmol_s: float, t_in: float, t_out: float, p_in: float, p_out: float):
@@ -376,9 +412,9 @@ def approach(warm, cold):
     return float(d.min()), float(q[i]), float(d[0]), float(d[-1]), ua
 
 
-warm = [side("S4A", "S5"), side("S4D", "S5B")]
+warm = [side("S4A", "S5"), side("S4E", "S5B")]
 q_warm = total(warm)
-for (a, b), s in zip((("S4A", "S5"), ("S4D", "S5B")), warm):
+for (a, b), s in zip((("S4A", "S5"), ("S4E", "S5B")), warm):
     print(f"  warm {a} -> {b}: {flow(a):g} kg/h, {s['t_in']:.5g} K {kpa(a):.4g} kPa(a) -> "
           f"{s['t_out']:.5g} K {kpa(b):.4g} kPa(a): {total([s]):.5g} kW")
 print(f"  warm side {q_warm:.5g} kW")
@@ -393,46 +429,34 @@ for (a, b), s in zip((("S14", "S9"), ("S15", "S7")), cold_fixed):
           f"{total([s]):.5g} kW")
 q_fixed = total(cold_fixed)
 t16 = kelvin("S16")
-waste_full = side("S16", "S17")
-print(f"  cold S16 -> S17 from the LP column top {t16:.5g} K: {total([waste_full]):.5g} kW; cold side "
-      f"{q_fixed + total([waste_full]):.5g} kW, surplus over the warm side "
-      f"{q_fixed + total([waste_full]) - q_warm:.4g} kW (heat leak neglected)")
-t_x = brentq(lambda t: q_fixed + total([side("S16", "S17", t_in=t)]) - q_warm, t16 + 0.1, 140.0)
-cold = cold_fixed + [side("S16", "S17", t_in=t_x)]
-dmin, qat, dwarm, dcold, ua = approach(warm, cold)
-q_3102 = total([_side(fractions("S16"), flow("S16") / molar_mass(fractions("S16")) / 3600.0, t16,
-                      t_x, kpa("S16"), kpa("S16"))])
+# D-066: E-3102 is simulated: the waste N2 enters E-3101 as S16B (no longer closed here)
+waste = side("S16B", "S17")
+q_cold = q_fixed + total([waste])
+print(f"  cold S16B -> S17 from the E-3102 outlet {kelvin('S16B'):.5g} K (DWSIM, D-066): "
+      f"{total([waste]):.5g} kW; cold side {q_cold:.5g} kW, warm side {q_warm:.5g} kW: the cold side "
+      f"can take {q_cold - q_warm:.4g} kW more (the margin for the heat leak into E-3101 and the warm-end "
+      f"approach; D-067 closes the whole cold box at a 75.2 kW leak)")
+dmin, qat, dwarm, dcold, ua = approach(warm, cold_fixed + [waste])
 print(
-    f"  balance closed by warming S16 in E-3102 to {t_x:.5g} K (no pressure drop, heat leak neglected; "
-    f"ASSUMED): E-3102 waste N2 duty {q_3102:.5g} kW; E-3101 duty {total(cold):.5g} kW, minimum "
-    f"approach {dmin:.3g} K at {qat:.4g} kW from the warm end, warm end {dwarm:.3g} K (booster air "
-    f"{kelvin('S4D'):.5g} K against the {kelvin('S7'):.5g} K outlets: "
-    f"{kelvin('S4D') - kelvin('S7'):.3g} K), cold end {dcold:.3g} K, UA = sum dQ / LMTD over 600 "
-    f"intervals {ua:.4g} kW/K"
+    f"  E-3101 duty {q_warm:.5g} kW (warm side), minimum approach {dmin:.3g} K at {qat:.4g} kW from "
+    f"the warm end, warm end {dwarm:.3g} K (booster air S4E {kelvin('S4E'):.5g} K / main air "
+    f"{kelvin('S4A'):.5g} K against the {kelvin('S7'):.5g} K outlets), cold end {dcold:.3g} K, UA = "
+    f"sum dQ / LMTD over 600 intervals (curves paired from the warm end) {ua:.4g} kW/K"
 )
-# E-3102: LN reflux S18 and crude S13 subcooled to a common outlet temperature (ASSUMED: one core,
-# common cold-end header) against the waste N2 duty above
-liquids = (("S18", "S18"), ("S13", "S13"))
-
-
-def hot_sides(t_c: float):
-    return [side(a, b, t_out=t_c, p_out=kpa(a)) for a, b in liquids]
-
-
-t_c = brentq(lambda t: total(hot_sides(t)) - q_3102, t16 + 0.5, kelvin("S18") - 0.01)
-hs = hot_sides(t_c)
-for (a, _), s in zip(liquids, hs):
-    print(f"  E-3102 hot {a}: {flow(a):g} kg/h liquid, {s['t_in']:.5g} -> {t_c:.5g} K at {kpa(a):.4g} "
-          f"kPa(a): {total([s]):.5g} kW (subcooled {s['t_in'] - t_c:.3g} K)")
-dmin2, qat2, dwarm2, dcold2, ua2 = approach(hs, [_side(fractions("S16"), flow("S16") / molar_mass(
-    fractions("S16")) / 3600.0, t16, t_x, kpa("S16"), kpa("S16"))])
+# E-3102 on the simulated states (D-066): LN S18 -> S18B, crude S13 -> S13B against S16 -> S16B
+hs = [side("S18", "S18B"), side("S13", "S13B")]
+for (a, b), s in zip((("S18", "S18B"), ("S13", "S13B")), hs):
+    print(f"  E-3102 hot {a} -> {b}: {flow(a):g} kg/h liquid, {s['t_in']:.5g} -> {s['t_out']:.5g} K at "
+          f"{kpa(a):.4g} kPa(a): {total([s]):.5g} kW (subcooled {s['t_in'] - s['t_out']:.3g} K)")
+c3102 = side("S16", "S16B")
+dmin2, qat2, dwarm2, dcold2, ua2 = approach(hs, [c3102])
 print(
-    f"  E-3102 cold S16 {t16:.5g} -> {t_x:.5g} K: {q_3102:.5g} kW; minimum approach {dmin2:.3g} K at "
-    f"{qat2:.4g} kW from the warm end, warm end {dwarm2:.3g} K, cold end {dcold2:.3g} K, UA "
-    f"{ua2:.4g} kW/K"
+    f"  E-3102 cold S16 {t16:.5g} -> S16B {kelvin('S16B'):.5g} K: {total([c3102]):.5g} kW (DWSIM 304.06 "
+    f"kW); hot side {total(hs):.5g} kW; minimum approach {dmin2:.3g} K at {qat2:.4g} kW from the warm "
+    f"end, warm end {dwarm2:.3g} K, cold end {dcold2:.3g} K, UA {ua2:.4g} kW/K"
 )
 
-print("== section 6 (DESIGN.md D-063 (7)) HP column C-3101 Fenske / Underwood (N2 / O2 keys, Ar a non-key; DWSIM states)")
+print("== section 6 (DESIGN.md D-068 (6)) HP column C-3101 Fenske / Underwood (N2 / O2 keys, Ar a non-key; DWSIM states)")
 z = dry(fractions("S5"))
 xd, xb = fractions("S14"), fractions("S13")
 t_top, k_top = adapter.k_values(kpa("S14"), xd, 1.0)
@@ -444,10 +468,10 @@ print(
     f"(dew {t_top:.4g} K); bottoms S13 {xb} at {kpa('S13'):.4g} kPa(a) (bubble {t_bot:.4g} K); alpha "
     f"N2/O2 {alphas['N2']:.4g}, Ar/O2 {alphas['AR']:.4g} (geometric mean top/bottom, property "
     f"adapter); Nmin {res.min_stages:.4g}, theta {res.theta:.5g}, Rmin {res.min_reflux:.4g}; DWSIM "
-    f"reflux ratio 1.338 = {1.33766 / res.min_reflux:.3g} x Rmin; {shortcut.SOURCES}"
+    f"reflux ratio 1.391 (D-066) = {1.39066 / res.min_reflux:.3g} x Rmin; {shortcut.SOURCES}"
 )
 
-print("== section 7 (DESIGN.md D-063 (7)) LP column C-3102 Fenske (minimum stages for the specification)")
+print("== section 7 (DESIGN.md D-068 (6)) LP column C-3102 Fenske (minimum stages for the specification)")
 top, bot = fractions("S16"), fractions("S15")
 t_top, k_top = adapter.k_values(kpa("S16"), top, 1.0)
 t_bot, k_bot = adapter.k_values(kpa("S15"), bot, 0.0)
@@ -460,7 +484,7 @@ for lk in ("N2", "AR"):
         f"Nmin {nmin:.4g}"
     )
 
-print("== section 8 (DESIGN.md D-063 (3)) TSA V-2101A/B: water and CO2 load (S3 saturated at 12 C, IAPWS-95, D-058)")
+print("== section 8 (DESIGN.md D-068 (7)) TSA V-2101A/B: water and CO2 load (S3 saturated at 12 C, IAPWS-95, D-058), E-2101, F-1101")
 x3 = fractions("S3")
 n3 = flow("S3") / molar_mass(x3)
 y_sat = iapws.iapws95_Psat(kelvin("S3")) / 1000.0 / kpa("S3")
@@ -475,6 +499,23 @@ print(
     f"{w_pr:.4g} kg/h); CO2 {co2:.4g} kg/h (x_CO2 {x3['CO2']:.3g}); per {CYCLE_H:g} h adsorption step: "
     f"water {w_iapws * CYCLE_H:.4g} kg, CO2 {co2 * CYCLE_H:.4g} kg"
 )
+# D-066: regeneration gas S12A 18,486 kg/h heated from the warm-end 13 C (S17) to 200 C (S12H)
+x12 = fractions("S12A")
+n12 = flow("S12A") / molar_mass(x12) / 3600.0
+# 200 C is above the property adapter's claimed range: ideal-gas Cp of thermo (the props extra)
+from thermo import HeatCapacityGas  # noqa: E402
+
+CAS = {"N2": "7727-37-9", "O2": "7782-44-7", "AR": "7440-37-1"}
+q_heat = n12 * sum(v * HeatCapacityGas(CASRN=CAS[k]).T_dependent_property_integral(
+    kelvin("S17"), 473.15) for k, v in x12.items())  # kmol/s x J/mol = kW
+print(f"  E-2101: S12A {flow('S12A'):g} kg/h {kelvin('S17') - 273.15:.3g} -> 200 C: gas duty {q_heat:.5g} "
+      f"kW (ideal-gas Cp, thermo HeatCapacityGas, mole-fraction mixing; the property adapter claims "
+      f"77-315 K only); D-066 gives 1.13 MW peak; cycle average E3 377 kW (flowsheet, ASSUMED)")
+# F-1101: intake air at 30 C, 1.01 bara (S1 wet), actual volume
+rho1 = adapter.flash(Inputs(kelvin("S1"), kpa("S1"), dry(fractions("S1")))).density
+print(f"  F-1101 / AIR-1001: S1 {flow('S1'):g} kg/h at {kelvin('S1') - 273.15:.3g} C, {kpa('S1'):g} kPa(a) "
+      f"(dry-air density {rho1:.4g} kg/m3, property adapter): {flow('S1') / rho1:.6g} m3/h actual, "
+      f"{flow('S1') / rho1 / 3600 / (math.pi / 4 * 1.4 ** 2):.3g} m/s in DN1400")
 
 
 def show_pump(duty: pumps.PumpDuty) -> None:
@@ -556,14 +597,65 @@ for tag, sid, mflow, rho, tank, vap, tie_in, header, cas, mw_gas in (
         f"{header + DP_VALVE:g} kPa(a), liquid saturated at 150 kPa(a); property adapter)"
     )
 
-print("== D-053 (9) DCAC cooling water pumps P-1101A/B and chilled water pumps P-1102A/B")
+print("== section 12 (DESIGN.md D-068 (8)) Chilled-water loop of C-1102 (D-067): flows, return, evaporation")
+CHW_SUPPLY = 283.15  # D-005 / D-067: chilled water 10 C, ASSUMED
+T_RET_DCAC = 299.15  # D-067: the DCAC upper section returns its water at about 26 C, ASSUMED
+Q_DCAC_U = 640.157  # DWSIM, D-067: C1101U -640.157 kW
+w_mid = iapws.iapws95_properties(0.5 * (CHW_SUPPLY + T_RET_DCAC), 5.0e5)
+m_dcac = Q_DCAC_U / (w_mid[5] / 1000.0 * (T_RET_DCAC - CHW_SUPPLY))  # kg/s
+w_3105 = iapws.iapws95_properties(0.5 * (CHW_SUPPLY + CHW_OUT_3105), 5.0e5)
+m_3105 = q3105 / (w_3105[5] / 1000.0 * (CHW_OUT_3105 - CHW_SUPPLY))
+rho10 = iapws.iapws95_rho(CHW_SUPPLY, 5.0e5)
+v_dcac, v_3105 = m_dcac * 3600 / rho10, m_3105 * 3600 / rho10
+cond_u = flow("S3CU")  # kg/h condensed in the upper section into the chilled water (DWSIM)
+t_mix = (m_dcac * T_RET_DCAC + m_3105 * CHW_OUT_3105) / (m_dcac + m_3105)
+q_chw = Q_DCAC_U + q3105
+print(
+    f"  DCAC upper section {Q_DCAC_U:.5g} kW, chilled water {CHW_SUPPLY - 273.15:g} -> "
+    f"{T_RET_DCAC - 273.15:g} C: {m_dcac:.4g} kg/s = {v_dcac:.4g} m3/h (+ its condensate S3CU {cond_u:.4g} "
+    f"kg/h); E-3105 {q3105:.4g} kW, 10 -> 20 C: {v_3105:.4g} m3/h; loop {v_dcac + v_3105:.4g} m3/h, "
+    f"{q_chw:.5g} kW; mixed return to C-1102 {t_mix - 273.15:.3g} C (IAPWS-95 cp at the mean "
+    f"temperatures)"
+)
+xn = fractions("S12B")
+n_n2 = flow("S12B") / molar_mass(xn)
+p12 = kpa("S12B")
+h_n2_in = adapter.flash(Inputs(kelvin("S12B"), p12, xn)).enthalpy
+
+
+def water_taken(t: float) -> float:
+    """kg/h of water the dry waste N2 holds when it leaves saturated at t K (IAPWS-95)."""
+    y = iapws.iapws95_Psat(t) / 1000.0 / p12
+    return n_n2 * y / (1.0 - y) * M_H2O
+
+
+def gas_duty(t: float) -> float:
+    """kW the waste N2 takes up leaving saturated at t K: sensible (property adapter) + latent."""
+    return (n_n2 * (adapter.flash(Inputs(t, p12, xn)).enthalpy - h_n2_in) / 3600.0
+            + water_taken(t) / 3600.0 * latent_heat(t))
+
+
+for q_case, label in ((q_chw, "the design demand"), (1000.0, "D-067's ~1,000 kW capability")):
+    t_g = brentq(lambda t: gas_duty(t) - q_case, kelvin("S12B") + 0.01, 314.0)
+    w = water_taken(t_g)
+    print(
+        f"  C-1102 at {label} {q_case:.5g} kW: S12B {flow('S12B'):g} kg/h dry at "
+        f"{kelvin('S12B') - 273.15:.3g} C leaves saturated at {t_g - 273.15:.3g} C (energy balance: "
+        f"N2 sensible, property adapter, + latent, IAPWS-95); water evaporated {w:.5g} kg/h; make-up "
+        f"= evaporation - upper-section condensate {cond_u:.4g} kg/h = {w - cond_u:.5g} kg/h (blowdown "
+        f"not included)"
+    )
+
+print("== D-053 (9), D-068 (8) DCAC cooling water pumps P-1101A/B and chilled water pumps P-1102A/B")
 allowance = 100.0  # kPa, D-053: control valve + liquid distributor + strainer, ASSUMED
 eta = 0.75  # D-053, ASSUMED
+V_P1102 = round((v_dcac + v_3105) * 1.1, 0)  # rated = 110 % of the loop flow, ASSUMED (D-068 (8))
+print(f"  P-1102A/B rated flow {V_P1102:g} m3/h = 110 % of {v_dcac + v_3105:.4g} m3/h (ASSUMED margin)")
 for tag, t, vflow, p_src, p_dst, src, dst in (
     ("P-1101A", 298.15, 250.0, 501.3, 580.0, "pipe:P-01/Line_CW1001_S1:start", "C-1101"),
     ("P-1101B", 298.15, 250.0, 501.3, 580.0, "pipe:P-01/Line_CW1001_S1:start", "C-1101"),
-    ("P-1102A", 283.15, 100.0, 105.0, 570.0, "C-1102", "C-1101"),
-    ("P-1102B", 283.15, 100.0, 105.0, 570.0, "C-1102", "C-1101"),
+    ("P-1102A", 283.15, V_P1102, 105.0, 570.0, "C-1102", "C-1101"),
+    ("P-1102B", 283.15, V_P1102, 105.0, 570.0, "C-1102", "C-1101"),
 ):
     rho = iapws.iapws95_rho(t, p_src * 1000.0)
     pv = iapws.iapws95_Psat(t) / 1000.0
@@ -578,33 +670,40 @@ for tag, t, vflow, p_src, p_dst, src, dst in (
     )
     show_pump(duty)
 
-print("== section 9 (DESIGN.md D-063 (3)) DCAC C-1101 and evaporative cooler C-1102: duty and hydraulic loads")
+print("== section 9 (DESIGN.md D-068 (8)) DCAC C-1101 (two sections, D-067) and evaporative cooler C-1102: duty and hydraulic loads")
 s2 = fractions("S2")
-n_tot = flow("S2") / molar_mass(s2)
 d2 = dry(s2)
-n_dry = n_tot * (1.0 - s2["H2O"])
-q_dry = n_dry * (adapter.flash(Inputs(kelvin("S2"), kpa("S2"), d2)).enthalpy
-                 - adapter.flash(Inputs(kelvin("S3"), kpa("S3"), d2)).enthalpy) / 3600.0
-y_out = iapws.iapws95_Psat(kelvin("S3")) / 1000.0 / kpa("S3")
-n_w_in = n_tot * s2["H2O"]
-n_w_out = n_dry * y_out / (1.0 - y_out)
-cond = max(0.0, n_w_in - n_w_out)
-q_vap = n_w_in * water_cp_molar(0.5 * (kelvin("S2") + kelvin("S3")), n_w_in / n_tot * kpa("S2")) \
-    * (kelvin("S2") - kelvin("S3")) / 3600.0
-q_cond = cond * M_H2O * latent_heat(kelvin("S3")) / 3600.0
-print(
-    f"  C-1101 duty: dry gas {n_dry:.6g} kmol/h {kelvin('S2'):.5g} K {kpa('S2'):.4g} kPa(a) -> "
-    f"{kelvin('S3'):.5g} K {kpa('S3'):.4g} kPa(a) {q_dry:.4g} kW (property adapter); water vapour "
-    f"{n_w_in:.4g} kmol/h (S2 x_H2O {s2['H2O']:.5f}, DWSIM) sensible {q_vap:.3g} kW; saturation at the "
-    f"outlet y {y_out:.5f} (IAPWS-95): {cond * M_H2O:.4g} kg/h condense, {q_cond:.4g} kW (latent "
-    f"{latent_heat(kelvin('S3')):.4g} kJ/kg at the outlet); total {q_dry + q_vap + q_cond:.5g} kW "
-    f"(CO2 with the dry gas); DWSIM (D-058): Q2 1,201 kW, S3C {flow('S3C'):.4g} kg/h"
-)
+
+
+def dcac_section(name: str, sin: str, sout: str, dwsim_kw: float, dwsim_cond: float) -> None:
+    x = fractions(sin)
+    n_tot = flow(sin) / molar_mass(x)
+    n_dry = n_tot * (1.0 - x["H2O"])
+    q_dry = n_dry * (adapter.flash(Inputs(kelvin(sin), kpa(sin), dry(x))).enthalpy
+                     - adapter.flash(Inputs(kelvin(sout), kpa(sout), dry(x))).enthalpy) / 3600.0
+    y_out = iapws.iapws95_Psat(kelvin(sout)) / 1000.0 / kpa(sout)
+    n_w_in = n_tot * x["H2O"]
+    n_w_out = n_dry * y_out / (1.0 - y_out)
+    cond = max(0.0, n_w_in - n_w_out)
+    q_vap = n_w_in * water_cp_molar(0.5 * (kelvin(sin) + kelvin(sout)), n_w_in / n_tot * kpa(sin)) \
+        * (kelvin(sin) - kelvin(sout)) / 3600.0
+    q_cond = cond * M_H2O * latent_heat(kelvin(sout)) / 3600.0
+    print(
+        f"  {name} {sin} -> {sout}: dry gas {n_dry:.6g} kmol/h {kelvin(sin):.5g} K {kpa(sin):.4g} kPa(a) "
+        f"-> {kelvin(sout):.5g} K {kpa(sout):.4g} kPa(a) {q_dry:.4g} kW (property adapter); water vapour "
+        f"sensible {q_vap:.3g} kW; outlet saturated y {y_out:.5f} (IAPWS-95): {cond * M_H2O:.4g} kg/h "
+        f"condense, {q_cond:.4g} kW; total {q_dry + q_vap + q_cond:.5g} kW; DWSIM (D-067) "
+        f"{dwsim_kw:.5g} kW, condensate {dwsim_cond:.4g} kg/h"
+    )
+
+
+dcac_section("C-1101 lower (cooling water)", "S2", "S3L", 710.177, flow("S3C"))
+dcac_section("C-1101 upper (chilled water)", "S3L", "S3", 640.157, flow("S3CU"))
 for tag, gflow, t, p, d, liquids_, xg in (
     ("C-1101 bottom", flow("S2"), kelvin("S2"), kpa("S2"), 4.0,
-     (("lower section CW", 250.0), ("upper section chilled water", 100.0)), d2),
-    ("C-1102", flow("S12B"), kelvin("S12B"), kpa("S12B"), 4.5, (("water", 100.0),),
-     fractions("S12B")),
+     (("lower section CW", 250.0), ("upper section chilled water", round(v_dcac, 1))), d2),
+    ("C-1102", flow("S12B"), kelvin("S12B"), kpa("S12B"), 4.5,
+     (("water", round(v_dcac + v_3105, 1)),), fractions("S12B")),
 ):
     rho_g = adapter.flash(Inputs(t, p, xg)).density
     area = math.pi / 4.0 * d * d
@@ -617,10 +716,6 @@ for tag, gflow, t, p, d, liquids_, xg in (
     )
 # lowest water temperature the dry waste N2 can reach: its adiabatic saturation temperature
 # (energy balance, liquid fed at that temperature), the bound of an evaporative cooler
-xn = fractions("S12B")
-n_n2 = flow("S12B") / molar_mass(xn)
-p12 = kpa("S12B")
-h_n2_in = adapter.flash(Inputs(kelvin("S12B"), p12, xn)).enthalpy
 
 
 def _as(t: float) -> float:
@@ -638,18 +733,25 @@ print(
     f"{283.15 - t_as:.3g} K above it"
 )
 
-print("== section 10 (DESIGN.md D-063 (8)) Cooling water and line velocities")
-cw = {"MAC Q1 (DWSIM)": 6686.41, "DCAC Q2 (DWSIM)": 1201.42, "GOX compressor Q3 (DWSIM)": 2085.58,
-      "GAN compressor Q4 (DWSIM)": 123.36, "E-3104 (DWSIM)": 83.95}
+print("== section 10 (DESIGN.md D-068 (9)) Cooling water and line velocities")
+cw = {"MAC Q1 (DWSIM)": 7559.87, "DCAC lower Q2 (DWSIM)": 710.177, "GOX compressor Q3 (DWSIM)": 2042.02,
+      "GAN compressor Q4 (DWSIM)": 123.368, "E-3104 Q5 (DWSIM)": 126.127}
 for name, q in cw.items():
     print(f"  {name}: {q:.6g} kW, {cw_flow(q):.4g} m3/h at 10 K")
-print(f"  total {sum(cw.values()):.6g} kW, {cw_flow(sum(cw.values())):.4g} m3/h at 10 K")
-for line, sid, dn in (("WN-1001", "S12B", 0.7), ("WN-3002", "S17", 0.9), ("GOX-4001", "S7", 0.5),
-                      ("AIR-3002", "S4D", 0.2), ("AIR-3003", "S5B", 0.15)):
+print(f"  total {sum(cw.values()):.6g} kW, {cw_flow(sum(cw.values())):.4g} m3/h at 10 K (the DCAC lower "
+      f"section's 250 m3/h of P-1101A/B is its own circulation, D-053)")
+for line, sid, dn, mflow in (
+        ("WN-1001", "S12B", 0.7, None), ("WN-1001", "S12B", 0.9, None), ("WN-1001", "S12B", 1.0, None),
+        ("WN-3002", "S17", 0.9, None), ("WN-3003 (bypass, all of S12B)", "S12C", 0.6, flow("S12B")),
+        ("WN-3003 (bypass, all of S12B)", "S12C", 0.9, flow("S12B")), ("GOX-4001", "S7", 0.5, None),
+        ("AIR-3002", "S4D", 0.2, None), ("AIR-3007", "S4E", 0.2, None), ("AIR-3003", "S5B", 0.15, None)):
     rho = adapter.flash(Inputs(kelvin(sid), kpa(sid), fractions(sid))).density
-    q = flow(sid) / rho / 3600.0
+    q = (mflow if mflow is not None else flow(sid)) / rho / 3600.0
     print(f"  {line} ({sid} {kelvin(sid) - 273.15:.4g} C, {kpa(sid) / 100:.4g} bara): rho {rho:.4g} "
           f"kg/m3 (property adapter), {q:.4g} m3/s, {q / (math.pi / 4 * dn * dn):.3g} m/s in "
           f"{dn * 1000:g} mm (DN as the diameter, D-016)")
+for line, v, dn in (("CHW-1001", v_dcac + v_3105, 0.15), ("CHWR-1001", v_dcac, 0.15),
+                    ("CHW-3001 / CHWR-3001", v_3105, 0.05), ("CW-1003 make-up", 1.5, 0.15)):
+    print(f"  {line}: {v:.4g} m3/h, {v / 3600 / (math.pi / 4 * dn * dn):.3g} m/s in {dn * 1000:g} mm")
 for key, (q, text) in vaporizer_duties.items():
     print(f"  (summary) {key} duty {q:.4g} kW ({text})")

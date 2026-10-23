@@ -17,10 +17,17 @@ operating:
     unit: °C
     source: 'process/flowsheet.yaml stream S1 (case design), given: DESIGN.md 3 basis: 30 C ambient'
   inlet_flow:
-    value: 100235.0
+    value: 113329.0
     unit: kg/h
-    source: 'process/flowsheet.yaml stream S1 (case design), assumed: 76,000 Nm3/h dry air at 80 % RH,
-      30 C (98,120 kg/h dry + 2,115 kg/h water, DESIGN.md D-058)'
+    source: 'process/flowsheet.yaml stream S1 (case design), assumed: D-058''s air scaled by 1.1306 (DESIGN.md
+      D-066): 85,840 Nm3/h dry air (110,937 kg/h) + 2,391 kg/h water at 80 % RH, 30 C'
+    assumed: true
+  rated_flow:
+    value: 90000
+    unit: Nm3/h
+    source: 'DESIGN.md D-066: MAC re-rated to about 90,000 Nm3/h dry air (the design point 85,840 Nm3/h at the
+      intake; the former 80,000 Nm3/h rating is exceeded). The vendor''s stage efficiency and IGV range
+      confirm it'
     assumed: true
   outlet_pressure:
     value: 5.8
@@ -33,17 +40,17 @@ operating:
     source: 'process/flowsheet.yaml stream S2 (case design), assumed: DESIGN.md 3, stream 2'
     assumed: true
   outlet_flow:
-    value: 98836.9
+    value: 111748.0
     unit: kg/h
     source: 'process/flowsheet.yaml stream S2 (case design), calculated by `cheme process simulate`
-      (DESIGN.md D-058): S1 less the condensate S1C 1,398 kg/h of the E-1102 / E-1103 drains'
+      (DESIGN.md D-066): S1 less the condensate S1C 1,581 kg/h of the E-1102 / E-1103 drains'
     assumed: true
   condensate_flow:
-    value: 1398.2
+    value: 1580.8
     unit: kg/h
     source: 'process/flowsheet.yaml stream S1C (case design), calculated by `cheme process simulate`
-      (DESIGN.md D-058): E-1102 and E-1103 moisture separator drains, 40 C; this script''s IAPWS-95
-      split: E-1102 679 kg/h, E-1103 649 kg/h (scripts/datasheet_sizing.py section 1 (DESIGN.md D-063 (2)))'
+      (DESIGN.md D-066): E-1102 and E-1103 moisture separator drains, 40 C; the IAPWS-95
+      split: E-1102 767 kg/h, E-1103 734 kg/h (scripts/datasheet_sizing.py section 1 (DESIGN.md D-068 (2)))'
     assumed: true
 design:
   pressure_barg:
@@ -135,25 +142,34 @@ type_specific:
     unit: m
     source: equipment/equipment-list.yaml dimensions
   fluid_power_kw:
-    value: 5968
+    value: 6747
     unit: kW
-    source: '`cheme process simulate` (DWSIM 9.0.5, Peng-Robinson; DESIGN.md D-058): K1101 compressor
-      power 5,967.85 kW for the wet air S1 (100,235 kg/h, 80 % RH), 3 stages at isentropic efficiency 0.82,
-      intercooled to 40 C, 0.05 bar per cooler (process/simulation.yaml, ASSUMED). Cross-check
-      scripts/datasheet_sizing.py section 1 (DESIGN.md D-063 (2)), ideal gas with Cp/Cv at each stage suction: 5,981 kW'
+    source: '`cheme process simulate` (DWSIM 9.0.5, Peng-Robinson; DESIGN.md D-066, process/simulation-run.json):
+      K1101 compressor power 6,747.4 kW for the wet air S1 (113,329 kg/h, 80 % RH), 3 stages at isentropic
+      efficiency 0.82, intercooled to 40 C, 0.05 bar per cooler (process/simulation.yaml, ASSUMED).
+      Cross-check scripts/datasheet_sizing.py section 1 (DESIGN.md D-068 (2)), ideal gas with Cp/Cv at each
+      stage suction: 6,763 kW'
     assumed: true
   shaft_power_kw:
-    value: 5968
+    value: 6747
     unit: kW
-    source: '`cheme process simulate` (DESIGN.md D-058): K1101 shaft 5,967.85 kW = the compressor power;
+    source: '`cheme process simulate` (DESIGN.md D-066): K1101 shaft 6,747.4 kW = the compressor power;
       the gear and bearing losses are in the drive efficiency below'
     assumed: true
   electric_power_kw:
-    value: 6309
+    value: 7133
     unit: kW
     source: 'process/flowsheet.yaml energy stream E1 (calculated, `cheme process simulate`, DESIGN.md
-      D-058): 6,308.5 kW = shaft / drive efficiency 0.946. The motor stays rated 8.0 MW (equipment list,
-      electrical list; D-057: it covers the 90 % recovery case of D-018 and the IGV range)'
+      D-066): 7,132.6 kW = shaft / drive efficiency 0.946'
+    assumed: true
+  motor_rating_kw:
+    value: 9000
+    unit: kW
+    source: 'DESIGN.md D-066 (ASSUMED, was 8,000): the motor output at the design point 7,133 x 0.97 = 6,919
+      kW; pro rata at the 90,000 Nm3/h rating 7,478 kW electric, 7,254 kW output; 110 % of that (API 617
+      driver margin) 7,979 kW, which leaves an 8.0 MW motor no margin and a 9.0 MW motor 12.8 %
+      (scripts/datasheet_sizing.py section 1 (DESIGN.md D-068 (2))). 6.6 kV; starting method and supply
+      in DESIGN.md D-070'
     assumed: true
   drive_efficiency:
     value: 0.946
@@ -221,18 +237,20 @@ type_specific:
     assumed: true
   intercooler_duties_kw:
     value:
-    - 1673
-    - 2476
+    - 1892
+    - 2799
     unit: kW
-    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-063 (2)): E-1101 sensible 1,673 kW; E-1102 sensible 2,022 kW +
-      679 kg/h condensed (454 kW, IAPWS-95 latent heat at 40 C); aftercooler E-1103 2,436 kW (2,002 + 434
-      kW, 649 kg/h). The three coolers 6,585 kW against the simulated Q1 6,686 kW (DESIGN.md D-058; 1.5 %
+    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-068 (2)): E-1101 sensible 1,892 kW; E-1102 sensible 2,286 kW +
+      767 kg/h condensed (513 kW, IAPWS-95 latent heat at 40 C); aftercooler E-1103 2,754 kW (2,263 + 491
+      kW, 734 kg/h). The three coolers 7,445 kW against the simulated Q1 7,560 kW (DESIGN.md D-066; 1.5 %
       apart: Peng-Robinson water against IAPWS-95)'
     assumed: true
 sizing_basis: []
-notes: 'Integrally geared, 3 stages, 76,000 Nm3/h dry air at 80 % RH, 1.0 -> 5.8 bara, 8.0 MW 6.6 kV motor
-  (rating), IGV + anti-surge blow-off. Train with gearbox and motor on one base 12 x 6 x 5 m. ASSUMED.
-  Powers from the DWSIM simulation (DESIGN.md D-057, D-058): 5,968 kW at the compressor, 6,309 kW electric
-  at the drive efficiency 0.946; the motor rating stays 8.0 MW. Condensate S1C 1,398 kg/h from the E-1102 and
-  E-1103 moisture separators (DESIGN.md D-058; not drawn on P-01 yet). Stage temperatures and cooler duties
-  from scripts/datasheet_sizing.py section 1 (DESIGN.md D-063 (2)).'
+notes: 'Integrally geared, 3 stages, rated about 90,000 Nm3/h dry air (design point 85,840 Nm3/h at 80 % RH,
+  DESIGN.md D-066), 1.0 -> 5.8 bara, 9.0 MW 6.6 kV motor (rating, was 8.0 MW), IGV + anti-surge blow-off.
+  Train with gearbox and motor on one base 12 x 6 x 5 m. ASSUMED. Powers from the DWSIM simulation
+  (DESIGN.md D-057, D-066): 6,747 kW at the compressor, 7,133 kW electric at the drive efficiency 0.946.
+  Condensate S1C 1,581 kg/h from the E-1102 and E-1103 moisture separators (CD-1001 / CD-1002, D-064).
+  Stage temperatures and cooler duties from scripts/datasheet_sizing.py section 1 (DESIGN.md D-068 (2)). The
+  vendor confirms the stage efficiency, the IGV range and the motor (D-066); the motor weight, ~34 t
+  ASSUMED, sets the B1 crane (D-070).'

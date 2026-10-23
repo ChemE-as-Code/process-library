@@ -8,39 +8,37 @@ service: Main heat exchanger (brazed aluminium plate-fin)
 draft: false
 operating:
   main_air:
-    value: 83190 kg/h, 15 C 5.6 bara (S4A) -> -173 C 5.5 bara (S5)
+    value: 96000 kg/h, 15 C 5.6 bara (S4A) -> -173 C 5.5 bara (S5)
     unit: ''
     source: process/flowsheet.yaml streams S4A (state calculated by `cheme process simulate`, flow
-      ASSUMED) and S5 (ASSUMED), case design; DESIGN.md D-061
+      ASSUMED) and S5 (ASSUMED), case design; DESIGN.md D-066 (was 83,190 kg/h)
     assumed: true
   booster_air:
-    value: 14870 kg/h, 40 C 8.45 bara (S4D) -> -124.7 C 8.25 bara (S5B)
+    value: 14870 kg/h, 15 C 8.45 bara (S4E) -> -124.7 C 8.25 bara (S5B)
     unit: ''
-    source: process/flowsheet.yaml streams S4D and S5B (ASSUMED), case design; DESIGN.md D-061
+    source: process/flowsheet.yaml streams S4E (after the trim cooler E-3105, DESIGN.md D-067; was 40 C) and
+      S5B (ASSUMED, D-061), case design
     assumed: true
   hp_nitrogen:
-    value: 12510 kg/h, saturated vapour 5.3 bara -178.42 C (S14) -> 13 C 5.2 bara (S9)
+    value: 12510 kg/h, saturated vapour 5.3 bara -178.43 C (S14) -> 13 C 5.2 bara (S9)
     unit: ''
-    source: 'scripts/datasheet_sizing.py section 5 (DESIGN.md D-063 (6)): S14 at its simulated pressure
-      (D-059) taken as saturated vapour, dew point 94.73 K by the property adapter; the flowsheet stores
-      S14 at -178.44 C as liquid (vf 0, request to the simulation owner, D-065 (7)); S9 13 C 5.2 bara
-      (ASSUMED, D-061)'
+    source: 'scripts/datasheet_sizing.py section 5 (DESIGN.md D-068 (5)): S14 stored as vapour at its simulated
+      pressure (D-065 (7), D-066), dew point 94.72 K by the property adapter; S9 13 C 5.2 bara (ASSUMED,
+      D-061)'
     assumed: true
   gox:
-    value: 20860 kg/h, saturated vapour 1.4 bara -179.87 C (S15) -> 13 C 1.15 bara (S7)
+    value: 20860 kg/h, saturated vapour 1.4 bara -179.86 C (S15) -> 13 C 1.15 bara (S7)
     unit: ''
-    source: 'scripts/datasheet_sizing.py section 5 (DESIGN.md D-063 (6)): S15 at its simulated pressure
-      (D-059) taken as saturated vapour, dew point 93.28 K by the property adapter; the flowsheet stores
-      S15 at -179.98 C as liquid (vf 0, request to the simulation owner, D-065 (7)); S7 13 C 1.15 bara
-      (ASSUMED, D-061)'
+    source: 'scripts/datasheet_sizing.py section 5 (DESIGN.md D-068 (5)): S15 stored as vapour at its simulated
+      pressure (D-065 (7), D-066), dew point 93.29 K by the property adapter; S7 13 C 1.15 bara (ASSUMED,
+      D-061)'
     assumed: true
   waste_n2:
-    value: 63750 kg/h, -177.36 C 1.3 bara (S16 after E-3102) -> 13 C 1.15 bara (S17)
+    value: 76560 kg/h, -178.87 C 1.3 bara (S16B, after E-3102) -> 13 C 1.15 bara (S17)
     unit: ''
-    source: 'scripts/datasheet_sizing.py section 5 (DESIGN.md D-063 (6)): S16 leaves the C-3102 top at
-      -192.88 C (80.27 K, process/flowsheet.yaml, D-059) and enters E-3101 after E-3102 at 95.79 K, the
-      temperature that closes the E-3101 balance (heat leak and E-3102 pressure drop neglected,
-      ASSUMED; E-3102 is not in the flowsheet, D-059 open); S17 13 C 1.15 bara (ASSUMED, D-061)'
+    source: 'process/flowsheet.yaml stream S16B (calculated by `cheme process simulate`, DESIGN.md D-066: the
+      subcooler E-3102 is now simulated, 304 kW, S16 -192.29 C from the C-3102 top); S17 13 C 1.15 bara
+      (ASSUMED, D-061); was 63,750 kg/h'
     assumed: true
 design:
   pressure_barg:
@@ -179,43 +177,46 @@ type_specific:
     unit: t
     source: equipment/equipment-list.yaml dimensions
   duty_kw:
-    value: 5242
+    value: 5835
     unit: kW
-    source: 'scripts/datasheet_sizing.py section 5 (DESIGN.md D-063 (6)): warm side, Q = sum n (h_in - h_out): main air S4A
-      83,190 kg/h 15 C 5.6 bara -> S5 -173 C 5.5 bara (-339.3 -> -6024.5 kJ/kmol) 4,536 kW + booster air
-      S4D 14,870 kg/h 40 C 8.45 bara -> S5B -124.7 C 8.25 bara (375.2 -> -4570.9 kJ/kmol) 705 kW (DESIGN.md
-      D-061); enthalpies by the property adapter (thermo 0.6.1, PR) at the flowsheet states'
+    source: 'scripts/datasheet_sizing.py section 5 (DESIGN.md D-068 (5)): warm side, Q = sum n (h_in - h_out): main air S4A
+      96,000 kg/h 15 C 5.6 bara -> S5 -173 C 5.5 bara 5,234.9 kW + booster air S4E 14,870 kg/h 15 C 8.45
+      bara -> S5B -124.7 C 8.25 bara 600.1 kW (DESIGN.md D-066, D-067); enthalpies by the property adapter
+      (thermo 0.6.1, PR) at the flowsheet states. The cold side (S14 -> S9 720.7, S15 -> S7 1,027.7, S16B ->
+      S17 4,213.0 kW) can take 126.4 kW more: the margin for the heat leak into the exchanger and its
+      warm-end approach (D-067 closes the whole cold box at a 75.2 kW leak)'
     assumed: true
   area_m2:
     value: supplier
     unit: m2
     reason: 'brazed aluminium plate-fin supplier: the area of a multi-stream plate-fin exchanger follows
-      from its fin geometry and layer arrangement along the composite curves. Enquiry basis (DESIGN.md D-063):
-      duty 5,242 kW, UA about 720 kW/K, minimum approach 5.1 K near the cold end, cold outlets at 13 C (2 K
-      below the main air, D-061); the 27 K booster-air-to-product difference at the warm end to be confirmed
-      by the supplier (D-061)'
+      from its fin geometry and layer arrangement along the composite curves. Enquiry basis (DESIGN.md D-066,
+      D-067, D-068 (5)): duty 5,835 kW, both airs in at 15 C and the products out at 13 C (2 K warm end; the
+      booster air no longer 27 K warmer), the waste N2 in at -178.9 C after E-3102; the supplier confirms the
+      2 K warm end and the 50 kW heat leak (D-067)'
   ua_kw_k:
-    value: 721.6
+    value: 1796
     unit: kW/K
-    source: 'scripts/datasheet_sizing.py section 5 (DESIGN.md D-063 (6)): UA = sum dQ / LMTD over 600 intervals of the warm and
-      cold composite curves (property adapter enthalpies, thermo PR): warm S4A -> S5 and S4D -> S5B (5,242
-      kW); cold S14 -> S9 and S15 -> S7 from saturated vapour at their simulated pressures 530 / 140 kPa(a)
-      (dew 94.73 / 93.28 K; D-061: the stored states flash as liquid within 0.1 K of the dew point), and
-      S16 -> S17 entering at 95.79 K after E-3102, the temperature that closes the balance (heat leak
-      neglected, ASSUMED); outlets at 13 C (S7, S9, S17, D-061)'
+    source: 'scripts/datasheet_sizing.py section 5 (DESIGN.md D-068 (5)): UA = sum dQ / LMTD over 600 intervals of the warm and
+      cold composite curves paired from the warm end (property adapter enthalpies, thermo PR): warm S4A ->
+      S5 and S4E -> S5B (5,835 kW); cold S14 -> S9 and S15 -> S7 from saturated vapour at 530 / 140 kPa(a),
+      S16B -> S17 from -178.87 C; outlets at 13 C (S7, S9, S17, D-061). An upper bound: the 2 K warm end
+      runs over the whole warm section and the cold side''s 126 kW surplus is left at the cold end (was 722
+      kW/K with the 40 C booster air, D-063)'
     assumed: true
   minimum_approach_k:
-    value: 5.08
+    value: 2.0
     unit: K
-    source: 'scripts/datasheet_sizing.py section 5 (DESIGN.md D-063 (6)), the composite curves of ua_kw_k (same states): 5.08 K
-      at 5,207 kW from the warm end; warm end 2 K to the main air, 27 K to the booster air; cold end 6.9 K'
+    source: 'scripts/datasheet_sizing.py section 5 (DESIGN.md D-068 (5)), the composite curves of ua_kw_k (same states): 2 K at
+      the warm end (both airs 15 C against the 13 C products, D-061, D-067); 2.05 K at the cold end of the
+      warm side'
     assumed: true
   process_streams:
   - stream: S4A
     direction: in
     title: Main air to E-3101
     source: process/flowsheet.yaml (case design)
-  - stream: S4D
+  - stream: S4E
     direction: in
     title: Boosted air to E-3101
     source: process/flowsheet.yaml (case design)
@@ -235,11 +236,10 @@ type_specific:
     direction: in
     title: Cold GOX
     source: process/flowsheet.yaml (case design)
-  - stream: S16
+  - stream: S16B
     direction: in
-    title: Cold waste nitrogen (enters after E-3102 at 95.8 K, operating.waste_n2; the flowsheet state is
-      the C-3102 top at 80.3 K)
-    source: process/flowsheet.yaml (case design); DESIGN.md D-063 (6)
+    title: Waste nitrogen from the subcooler
+    source: process/flowsheet.yaml (case design); DESIGN.md D-066
   - stream: S17
     direction: out
     title: Warm waste nitrogen
@@ -262,16 +262,16 @@ sizing_basis:
   value: 13 C (2 K warm-end approach to the 15 C main air, ASSUMED; in the flowsheet since D-061)
   reference: DESIGN.md D-061
 - parameter: cold inlet states
-  value: S14 / S15 saturated vapour at 5.3 / 1.4 bara (DWSIM column pressures); S16 after E-3102 at 95.8 K
-  reference: DESIGN.md D-059, D-061, D-063
+  value: S14 / S15 saturated vapour at 5.3 / 1.4 bara (DWSIM column pressures); S16B from E-3102 at -178.87 C
+  reference: DESIGN.md D-059, D-061, D-066
 - parameter: heat leak
-  value: neglected in the exchanger balance (ASSUMED; the cold box budget is in D-061)
-  reference: DESIGN.md D-061
+  value: the cold side's 126 kW surplus over the warm side (the cold box closes at a 75.2 kW leak against 50 kW ASSUMED)
+  reference: DESIGN.md D-067
 notes: 'Streams: air, booster air, GOX, GAN, waste N2. Max design temperature 65 C. O2 service (D-009).
-  Bank of 4 cores ~1.2 x 1.2 x 7.3 m side by side with headers, standing vertical (warm end up). ASSUMED.
-  Duty 5,242 kW (warm side), UA and approach from the composite curves on the D-061 states (DESIGN.md
-  D-063); the area is the supplier''s (marker). The exchanger closes only with the waste N2 warmed first in
-  the subcooler E-3102 (293 kW, 80.3 -> 95.8 K). The cold box as a whole is ~78 kW short of refrigeration at
-  940 kg/h liquid (D-061: the booster air enters at 40 C, +105 kW against the section 3 budget); options in
-  D-061 (cool S4D towards 15 C, more expander flow, less liquid). The 27 K difference between the booster air
-  in and the products out at the warm end is for the supplier to confirm.'
+  Bank of 4 cores ~1.2 x 1.2 x 7.3 m side by side with headers, standing vertical (warm end up), kept
+  (ASSUMED; +11 % duty and a closer warm end on the same bank: the supplier''s core count decides).
+  Duty 5,835 kW (warm side), UA and approach from the composite curves on the D-066 / D-067 states
+  (DESIGN.md D-068 (5)); the area is the supplier''s (marker). The booster air now enters at 15 C after the
+  trim cooler E-3105 (D-067), and the cold box closes at a 75.2 kW heat leak against the ASSUMED 50 kW. If
+  E-3105 is lost it closes at only +11.9 kW (turn the liquid production down). The supplier confirms the 2 K
+  warm end and the heat leak.'

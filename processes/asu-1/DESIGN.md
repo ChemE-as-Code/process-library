@@ -2671,3 +2671,79 @@ Open:
   give the C-1102 supplier an allowable pressure drop.
 - **C-1102 water.** The evaporated water (~1.1-1.5 t/h at the D-067 duty) leaves with S12E,
   and C-1102 needs make-up for it. S12E's water uptake is not in the flowsheet.
+
+## D-068 Lists and datasheets on the D-066 / D-067 states (2026-10-23)
+Carries D-066 and D-067 into the equipment, line and instrument lists and the datasheets. The
+flowsheet, the simulation and the design basis are the simulation owner's and are not changed
+here. Every number below is printed by `cheme run scripts/datasheet_sizing.py` (section n)
+unless it is quoted from the DWSIM run (process/simulation-run.json, D-066 / D-067).
+
+Decision:
+- (1) **Sizing script.** scripts/datasheet_sizing.py reads the D-066 / D-067 stream states. Its
+  updated sections cite D-068 (n). A saturated stage suction (K-1101 stage 3, 3.35 % water after
+  E-1102) put the water partial pressure a hair above saturation, and IAPWS-95 returned the
+  liquid's Cp (Cp/Cv 1.385 instead of 1.4025). The water vapour Cp is now taken just below
+  saturation.
+- (2) **MAC K-1101** (section 1). S1 113,329 kg/h (85,840 Nm3/h dry at the intake). DWSIM gives
+  6,747 kW at the shaft and 7,133 kW electric; the script gives 6,763 kW gas power. Rated about
+  90,000 Nm3/h with a 9.0 MW motor (D-066): 7,478 kW electric pro rata at the rating, 7,254 kW
+  motor output, and 7,979 kW at 110 % (API 617 driver margin), so 12.8 % margin on 9.0 MW. The
+  coolers grow with the air:
+  | cooler | duty | condensate | area (U 160) | CW at 10 K |
+  |---|---|---|---|---|
+  | E-1101 | 1,892 kW | - | 391.8 m2 (was 346.5) | 164 m3/h |
+  | E-1102 | 2,799 kW | 767 kg/h | 596.4 m2 (zones, was 527.5) | 242 m3/h |
+  | E-1103 | 2,754 kW | 734 kg/h | 557.6 m2 (zones, was 493.2) | 238 m3/h |
+
+  In all 7,445 kW against the simulated Q1 7,560 kW. The envelopes and weights (D-028, D-034)
+  are kept: +13 % area lies inside the concept accuracy, and the MAC package vendor sets them.
+  The motor's electrical and lifting consequences are in D-070.
+- (3) **GOX / GAN compressors** (sections 2, 3). The simulation now has 5 GOX stages (D-065 (7)):
+  K-4101 2,140 kW shaft, 2,262 kW electric, Q3 2,042 kW. The script gives 2,154 kW, 0.7 % apart.
+  The 2.3 MW motor at 110 % is 2,414 kW, 5 % short: the vendor confirms the motor or the next
+  size. K-4102 is unchanged (238 kW).
+- (4) **Booster coolers** (section 4, counter-current, D-067).
+  - E-3104: 126.1 kW, 59.9 -> 30 C, LMTD 12.41 K, 63.5 m2, CW 10.9 m3/h (was 84 kW, 29.7 m2).
+  - E-3105 (new, D-069): 63.3 kW, 30 -> 15 C against chilled water 10 -> 20 C, LMTD 7.21 K,
+    54.8 m2, 5.44 m3/h. At the 18.5 C alarm it takes 48.5 kW.
+- (5) **Cold box exchangers** (section 5, property adapter, thermo PR).
+  - E-3101: warm side 5,835 kW (main air 5,235 + booster air 600 kW, now in at 15 C). The cold
+    side (S16B in at -178.87 C from the simulated E-3102) could take 126.4 kW more. The warm end
+    is 2 K for both airs, and UA is about 1,800 kW/K, an upper bound (was 722 kW/K).
+  - E-3102: simulated 304.1 kW, against 312.7 kW by the adapter. LN takes 116.6 kW to
+    -185.1 C, crude 187.6 kW to -180.1 C. UA 45 kW/K, minimum approach 5.2 K.
+  - E-3103: condenses 4,172 kW and reboils 4,166 kW at 1.44 K, UA about 2,900 kW/K.
+- (6) **Columns** (sections 6, 7).
+  - C-3101: 96,000 kg/h air (+15 % vapour), LN 29,280 kg/h, crude 53,740 kg/h. Rmin 1.20,
+    DWSIM reflux 1.391 (1.16 x Rmin), Nmin 15.9.
+  - C-3102: crude on 14, Lachmann air on 16, top vapour 76,560 kg/h (+20 %). Fenske Ar/O2 Nmin
+    10.9 against the simulated GOX.
+  - At the same capacity factor the 4.2 m diameters would become about 4.5 / 4.6 m. That is
+    the cold box supplier's rating; the equipment list keeps 4.2 m, ASSUMED.
+- (7) **Front end** (section 8).
+  - TSA V-2101A/B: 111,085 kg/h air, water 170.2 kg/h (IAPWS-95; PR 147 kg/h), CO2 67.7 kg/h,
+    i.e. 681 / 271 kg per 4 h step.
+  - E-2101: 18,486 kg/h, 1.13 MW peak (D-066). The gas alone takes 987 kW from 13 to 200 C
+    (thermo ideal-gas Cp; 200 C is above the adapter's range).
+  - F-1101 and AIR-1001: ~97,600 m3/h, 17.6 m/s in DN1400. F-1101 is rated 90,000 Nm3/h.
+- (8) **DCAC and chilled water** (sections 9, 12; D-067).
+  - C-1101: lower section 710 kW to 250 m3/h CW (it warms 2.4 K), upper section 640 kW to
+    34.4 m3/h chilled water, 10 -> 26 C (D-067). The adapter cross-check gives 676 / 623 kW.
+    Liquid load in the upper section 2.7 m3/(m2 h): the supplier confirms wetting.
+  - E-3105: 5.4 m3/h. Loop 39.9 m3/h, 703 kW, mixed return 25.2 C.
+  - C-1102 (58,074 kg/h dry waste N2): at 703 kW the gas leaves saturated at 20.3 C with
+    856 kg/h of water. At D-067's ~1,000 kW it leaves at 25.4 C with 1,173 kg/h (D-067
+    estimated 1.1-1.5 t/h). Make-up = evaporation less the 237 kg/h the DCAC upper section
+    condenses into the loop: 619 kg/h (937 at 1,000 kW), plus blowdown.
+  - C-1102 F-factor 0.91 Pa^0.5 (was 0.49), liquid load 2.5 m3/(m2 h).
+  - P-1102A/B and the loop drawing are in D-069.
+- (9) **Cooling water** (section 10): Q1 7,560 + Q2 710 + Q3 2,042 + Q4 123 + Q5 126 =
+  10,562 kW, 914 m3/h at 10 K.
+- (10) **Purities** (D-066): GOX 99.71 % O2 (0.29 % Ar), LOX 99.81 %, GAN 0.2 ppm O2 in the
+  C-3101, C-3102, E-3103, K-4101 and P-4101A/B datasheets and the AI-3104 note.
+
+Reason: the lists and datasheets still described the D-058 / D-061 plant, which reached 97 %
+GOX and was short of refrigeration.
+
+Open: the vendors confirm the enlarged items (the MAC and its coolers, the cold box columns and
+exchangers, C-1102). The K-4101 motor margin. The C-1101 upper-section and C-1102 wetting.

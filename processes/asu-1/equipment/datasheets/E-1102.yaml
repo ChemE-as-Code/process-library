@@ -24,25 +24,25 @@ operating:
     source: process/simulation.yaml K1101 (ASSUMED, the K-1101 intercooler outlet)
     assumed: true
   air_flow:
-    value: 100235
+    value: 113329
     unit: kg/h
-    source: process/flowsheet.yaml stream S1 (case design), wet air at 80 % RH (DESIGN.md D-058)
+    source: process/flowsheet.yaml stream S1 (case design), wet air at 80 % RH (DESIGN.md D-058, D-066)
     assumed: true
   condensate_flow:
-    value: 679
+    value: 767
     unit: kg/h
-    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-063 (2)): water above saturation at 40 C and 3.21 bara (IAPWS-95);
-      to the moisture separator drain, part of S1C (1,398 kg/h for E-1102 and E-1103 in the DWSIM
-      simulation, D-058)'
+    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-068 (2)): water above saturation at 40 C and 3.21 bara (IAPWS-95);
+      to the moisture separator drain, part of S1C (1,581 kg/h for E-1102 and E-1103 in the DWSIM
+      simulation, D-066)'
     assumed: true
   cooling_water_temperatures:
     value: 25 -> 35
     unit: °C
     source: process/design-basis.yaml utilities
   cooling_water_flow:
-    value: 214.2
+    value: 242.2
     unit: m3/h
-    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-063 (2)): Q / (cp 10 K), IAPWS-95 water at 30 C'
+    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-068 (2)): Q / (cp 10 K), IAPWS-95 water at 30 C'
     assumed: true
 design:
   pressure_barg:
@@ -106,13 +106,13 @@ type_specific:
     unit: t
     source: equipment/equipment-list.yaml dimensions
   duty_kw:
-    value: 2476
+    value: 2799
     unit: kW
-    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-063 (2)): sensible Q = n Cp (384.42 - 313.15 K) 2,022 kW (wet air
-      100,235 kg/h, dry-air Cp/Cv from the property adapter at the stage suction, water vapour IAPWS-95)
-      + 679 kg/h condensed x 2,406 kJ/kg (IAPWS-95 at 40 C) 454 kW; = the second intercooler duty of
-      equipment/datasheets/K-1101.yaml. The three MAC coolers 6,585 kW against the simulated Q1 6,686 kW
-      (D-058)'
+    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-068 (2)): sensible Q = n Cp (384.42 - 313.15 K) 2,286 kW (wet air
+      113,329 kg/h, dry-air Cp/Cv from the property adapter at the stage suction, water vapour IAPWS-95)
+      + 767 kg/h condensed x 2,406 kJ/kg (IAPWS-95 at 40 C) 513 kW; = the second intercooler duty of
+      equipment/datasheets/K-1101.yaml. The three MAC coolers 7,439 kW against the simulated Q1 7,560 kW
+      (D-066)'
     assumed: true
   lmtd_k:
     value: [41.69, 17.33]
@@ -137,18 +137,18 @@ type_specific:
       Engineering Vol. 6, 4th ed. (2005), Table 12.1, p. 637: cooler, gases / water (DESIGN.md D-053)'
     assumed: true
   area_m2:
-    value: 527.5
+    value: 596.4
     unit: m2
-    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-065 (2)): sum of the zones, A = Q / (U F dT):
-      desuperheating 1,816.8 kW / (160 x 0.9483 x 41.69 K) = 287.2 m2 + condensing 659.1 kW (453.6 kW latent)
-      / (160 x 0.989 x 17.33 K) = 240.3 m2; no margin. The gas-cooler U in the condensing zone as well
+    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-065 (2), D-068 (2)): sum of the zones, A = Q / (U F dT):
+      desuperheating 2,054.2 kW / (160 x 0.9483 x 41.69 K) = 324.7 m2 + condensing 745.1 kW (512.8 kW latent)
+      / (160 x 0.989 x 17.33 K) = 271.7 m2; no margin. The gas-cooler U in the condensing zone as well
       (ASSUMED; condensation raises the film coefficient, the supplier''s condensing-zone U may lower the
-      area). Was 459.1 m2 on the single gas LMTD (review10#1)'
+      area). 527.5 m2 at the D-058 air (+13 %, D-066)'
     assumed: true
 sizing_basis:
 - parameter: zone duties (enquiry basis for the MAC package)
-  value: desuperheating 111.3 -> 47.2 C 1,817 kW; condensing 47.2 -> 40 C 659 kW incl. 679 kg/h condensate
-  reference: DESIGN.md D-065 (2)
+  value: desuperheating 111.3 -> 47.2 C 2,054 kW; condensing 47.2 -> 40 C 745 kW incl. 767 kg/h condensate
+  reference: DESIGN.md D-065 (2), D-068 (2)
 - parameter: air dew point at the cooler inlet
   value: 47.2 C (3.35 mol% water at 3.21 bara, IAPWS-95)
   reference: DESIGN.md D-058, D-065 (2)
@@ -156,5 +156,5 @@ notes: 'Cooling water tube side. ASSUMED. Condensing intercooler (DESIGN.md D-05
   separator in the air outlet, drain nozzle N5 to CD-1001 with gate valve HV-1112 and float trap ST-1112 on
   P-01, part of S1C (D-064). Separator type and pressure drop: supplier (MAC package). Enquiry requirements
   (D-065 (6)): a high-level alarm on the separator (switch or level transmitter to the DCS, supplier''s
-  connection), the float trap with integral strainer and test valve, sized for 679 kg/h at 3.21 bara with
+  connection), the float trap with integral strainer and test valve, sized for 767 kg/h at 3.21 bara with
   margin, no trap bypass (an open bypass blows compressed air to the drain).'
