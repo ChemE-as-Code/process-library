@@ -3532,5 +3532,22 @@ Decision:
   -635.31 kW, K3101 185.93 kW, K4101 2,262.49 kW, K4102 237.67 kW. The sizing script now prints
   "current with process/*.yaml"; no datasheet value changes. The four `process-sim-deviation`
   warnings (S10 / S11 assumed T, p) are the simulation owner's and unchanged.
+- (3) **S12D composition: deferred to the simulation owner** (#3). The `assumed` S12D mole
+  fractions of D-079 sum to 1.0000012, beyond the 1e-6 tolerance of the core's pyDEXPI check, so
+  the BFD and PFD carry 2 `pydexpi_composition_fractions` warnings; the source still cites D-066,
+  not D-079. Reason for deferring: S12D's flow and composition are `assumed` values in
+  process/flowsheet.yaml, the simulation owner's file, which is not edited by hand on this branch,
+  and neither `propagate --fill` nor `props --fill` overwrites an assumed value (the BFD / PFD
+  follow from the flowsheet, never by hand). For the owner, from S12H (18,486 kg/h, N2 0.936384 /
+  O2 0.0511732 / Ar 0.012443) + CO2 67.7 kg/h + the water (molar masses N2 28.0134, O2 31.9988,
+  Ar 39.948, H2O 18.01528, CO2 44.0095 kg/kmol):
+  | water basis | H2O kg/h | flow kg/h | N2 | O2 | Ar | H2O | CO2 |
+  |---|---:|---:|---:|---:|---:|---:|---:|
+  | PR, S3 as simulated (D-079, as now) | 143.1 | 18,697 | 0.9229557 | 0.0504394 | 0.0122646 | 0.0120137 | 0.0023266 |
+  | IAPWS-95, the TSA sizing basis (D-080 (2), section 8) | 165.0 | 18,719 | 0.9212619 | 0.0503468 | 0.0122421 | 0.0138269 | 0.0023223 |
+  Each row sums to 1 within 1e-9 (N2 closes the sum); source to cite D-079 (and D-080 (2) for the
+  second row). Recommendation: the second row, so the regeneration gas carries the 165 kg/h the beds
+  are sized to desorb (D-080 (2)); the ~22 kg/h difference is 0.12 % of the gas mass and changes no
+  line or silencer hydraulics (RG-2003, S-2101) by a visible amount, so nothing downstream waits on it.
 
 Reason: layout-review13.
