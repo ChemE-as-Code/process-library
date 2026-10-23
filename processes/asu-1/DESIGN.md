@@ -2005,3 +2005,26 @@ simulation and design basis stay with the parallel process-simulation work (D-05
    the others). The UN-3001 S1 proposal SP-10.8 is now a T-post to place by hand (it stood on
    another line's steel). The new rule finds the four GOX-4002 S12 stubs of D-060 (2) (two
    warnings each: 6.6 .. 7.1 m tall, on the CW-4001 / CWR-4001 posts): fixed in (2).
+2. **GOX-4002 S12 on T-posts from grade (amends D-060 (2); review9#1).** The DN 80 backup tie-in
+   at 10.55 m (x 180.8, y 44.2 .. 68.2) no longer stands on the 1 m crossbars of the CW-4001 /
+   CWR-4001 T-posts (3.3 / 3.8 m, laid out for one DN 100 water line each). SP-8.9, SP-11.0,
+   SP-15.4 and SP-19.9 keep their ids and become T-posts from grade (HEB200, ASSUMED section;
+   crossbar 0.45 m so it keeps clear of GOX-4002 S4 / S5 / S6 at x 180.3), each moved along the
+   pipe to stand 0.3 m or more off the crossbars of the CW-4001 / CWR-4001 / VNT-4002 posts and
+   off the CW / CWR runs that cross x 180.8: y 50.4 / 53.9 / 57.9 / 61.45 (was 50.8 / 54.1 /
+   58.3 / 62.3). The scan for this also found the earlier GOX-4002 S12 post-5 (D-049) with its
+   column 0.02 m into the CWR-4001 post-7 crossbar (no rule tests steel against steel): moved to
+   y 66.8 (66.0 .. 66.5 stand in GOX-4003 / GOX-4004 / GAN-4003), and post-6 added at y 63.7,
+   the only clear column place between VNT-4002, WN-3003 and the CWR-4001 crossbars. SP-6.5
+   stays a 0.49 m stub on the GOX-4002 S4 post (its own line). Spans 2.5 / 3.5 / 4.0 / 3.55 /
+   2.25 / 3.1 m (DN 80 gas 4.6 m). Computed clear gaps of the six posts: 0.12 m or more to every
+   pipe and declared steel they do not carry (0.119 m crossbar to GOX-4002 S4 / S5 / S6, 0.133 m
+   column to CW-4001); SP-11.0 stands 0.05 m into the crossbar of the generated proposal
+   CW-4001 SP-166.5, which is "place it by hand" and is not built. Not chosen: brackets off the
+   VP-4 east columns (review9#1's first option): those columns end at the 8.65 m platform, 1.9 m
+   below the pipe, so a bracket needs a column extension through the platform edge; for the
+   stress engineer with the T-posts (six 10.4 m HEB200 columns beside VP-4 may be better tied to
+   it or replaced by a common frame over the water lines). Result: support-stub 8 -> 0,
+   free-span 5 (unchanged), 0 errors, no clash; support steel 96.5 -> 98.0 t (578.8 t steel,
+   256 footings); LCA rewritten (climate change 33.1124 -> 33.1128 kg CO2-eq/t GOX
+   construction share, operation unchanged).
