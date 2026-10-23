@@ -2873,7 +2873,8 @@ Decision:
   | WN-1002 DN900 (DN700) | 58,930 | 6.9 m | 0.4 (1.3) kPa with the exit |
   | WN-3003 DN900 (DN800 / DN600), bypass | 58,074 | 116.6 m | 3.6 (6.0 / 20.3) kPa |
 
-  **The LP column top pressure of 1.30 bara holds**, on three conditions:
+  **The LP column top pressure of 1.30 bara holds**, on three conditions (C-1102 path; the
+  regeneration-gas path is checked in D-072, and holds with RG-2001 DN600 / RG-2002 / RG-2003 DN700):
   - the flowsheet puts 15 kPa between the LP top (S16, 1.30 bara) and the E-3101 warm end
     (S17, 1.15 bara). Less the 2.1 kPa of WN-3001, that leaves 12.9 kPa for the waste passages
     of E-3102 and E-3101, which the cold box vendor confirms;
@@ -2922,3 +2923,56 @@ Open:
 - PV-3110A / PV-3110B sizing (4.7 kPa at normal flow, and the bypass);
 - C-1102 (3.3 kPa) and S-3101 at 58 t/h, with their suppliers;
 - the vent study (D-031) replaces the screening zones.
+
+## D-072 Regeneration-gas path: RG-2001 DN600, RG-2002 / RG-2003 DN700, allowables, LP top pressure (2026-10-23)
+Answers layout-review11#1: D-071 (2) checked the LP column top pressure along the C-1102 path
+only. The regeneration gas S12A (18,486 kg/h, D-066) leaves the same WN-3002 tee and goes to the
+atmosphere through RG-2001 (FV-2105), E-2101, RG-2002, the adsorber in regeneration with its
+switching valves, RG-2003 and S-2101.
+
+Decision:
+- (1) **Hydraulics** (scripts/datasheet_sizing.py section 11, the D-071 (2) method: Darcy-Weisbach
+  with Colebrook along the routed lengths and bends of layout/plant-model.yaml, elbow K 0.75, tee K
+  0.4 run / 1.0 branch). The hot gas (200 C, S12H) takes the ideal-gas density, as 200 C is above
+  the property adapter's range (D-068 (7)). The bed outlet is taken at 200 C too, its value at the
+  end of the heating step and the largest volume flow (ASSUMED bound; it starts near 13 C). The
+  tee lies at 115 - 3.6 (WN-3002) = 111.4 kPa(a), so the path has 10.1 kPa down to the atmosphere.
+  | line | routed (bed A / B) | before (DN) | now (DN) |
+  |---|---|---|---|
+  | RG-2001, 13 C, FV-2105 extra | 93 m, 19 bends | 5.2 kPa, 20.8 m/s (500) | 2.4 kPa, 14.3 m/s (600) |
+  | RG-2002, 200 C | 47 / 22 m | 2.0 / 1.3 kPa, 24.3 m/s (600) | 1.0 / 0.7 kPa, 17.7 m/s (700) |
+  | RG-2003, 200 C bound, S-2101 extra | 29 / 44 m | 1.9 / 2.9 kPa, 25.4 m/s (600) | 1.0 / 1.5 kPa, 18.5 m/s (700) |
+  | lines in all | | 9.1 / 9.4 kPa | 4.4 / 4.6 kPa |
+
+  As drawn before, the lines alone took 9.4 of the 10.1 kPa: FV-2105, the heater, the bed and the
+  silencer would have had 0.7 kPa. FV-2105 would have run wide open short of flow, or PV-3110A
+  would have had to close and lift the LP column top. **RG-2001 becomes DN600 and RG-2002 / RG-2003
+  DN700** on P-02 / P-03 (RG-2001 S1 .. S3 with FV-2105, XV-2109 and E-2101 N1; RG-2002 with
+  XV-2103A/B, E-2101 N2 and V-2101A/B N3; RG-2003 S1 .. S3, S5 .. S7, S9 with XV-2104A/B, S-2101
+  and V-2101A/B N4; the DN100 depressurisation bypasses stay). The velocities fall inside the 25 m/s
+  of D-016 for near-atmospheric waste gas.
+- (2) **Allowables** (ASSUMED allocation, the enquiry requirements):
+  - FV-2105 1.5 kPa at the normal flow (instrument list; the valve supplier sizes the trim);
+  - E-2101 gas side 1.0 kPa, nozzle to nozzle (datasheet);
+  - V-2101A/B in regeneration 1.5 kPa with the distributor, bed, bed support and XV-2103 / XV-2104
+    (datasheets). An Ergun screening with an ASSUMED 1.5 m bed of 3 mm beads (voidage 0.37, plan
+    area 0.85 D x (L - D) = 51.6 m2, 0.13 m/s at 200 C) gives 0.8 kPa;
+  - S-2101 1.0 kPa with the exit (special-items).
+  With the bed B lines (4.6 kPa) that is 9.6 of 10.1 kPa: a 0.5 kPa margin. In the cooling step the
+  gas bypasses E-2101 through XV-2109 cold and denser, at a lower drop.
+- (3) **The LP column top pressure of 1.30 bara holds on both paths**, on the conditions of D-071 (2)
+  and the allowables of (2). D-071 (2)'s statement now covers the regeneration path as well.
+- (4) **Layout.** The pinned RG-2001 routes keep their pipe bottoms on the beams and their tops
+  under the levels they pass below (centres +/- 0.051 m), the RG-2001 drop moves to y 67.29 (0.1 m
+  clear of CWR-3001) and its S2 lane to y 62.9 (clear of AIR-1004); the RG-2001 S2 post is 0.1 m
+  lower. RG-2002 keeps its route at +0.051 m. The RG-2003 B-side bypass (DN100) is pinned over
+  the sieve change-out area at 6.06 m on its two posts, as before: the router had taken it through
+  Z-SIEVE when the larger tees moved. The model has no clash.
+
+Reason: the regeneration gas shares the WN-3002 tee pressure with the C-1102 path; its lines,
+sized for the D-016 velocity only, took nearly all of it.
+
+Open:
+- the suppliers' drops: E-2101, the adsorbent bed and its distributor, S-2101, and FV-2105's trim;
+- the flowsheet's S12A at 1.10 bara (ASSUMED, simulation owner) lies 1.4 kPa below the tee pressure
+  of 111.4 kPa(a) found here; it does not change the balances, and the owner may update it.

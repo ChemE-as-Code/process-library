@@ -733,7 +733,7 @@ print(
     f"{283.15 - t_as:.3g} K above it"
 )
 
-print("== section 11 (DESIGN.md D-071 (2)) Waste-N2 path hydraulics along the routed lines (LP top pressure check)")
+print("== section 11 (DESIGN.md D-071 (2), D-072) Waste-N2 and regeneration-gas path hydraulics along the routed lines (LP top pressure check)")
 import re as _re  # noqa: E402
 
 from chemeascode.domains.process import hydraulics as hy  # noqa: E402
@@ -813,6 +813,85 @@ for dn in (600, 800, 900):
           f"S12B, D-067): {dp:.3g} kPa ({v:.3g} m/s); silencer S-3101 and PV-3110B extra")
 dp3002b, _ = darcy(m17, 112.0, 900, L3002, B3002 * K_ELBOW + 0.4)
 print(f"  (in bypass WN-3002 still carries {m17:g} kg/h: {dp3002b:.3g} kPa)")
+
+# D-072 (review11#1): the regeneration gas S12A takes the other branch of the WN-3002 tee and goes
+# to the atmosphere through RG-2001 (FV-2105), E-2101, RG-2002, the bed in regeneration with its
+# switching valves XV-2103A/B and XV-2104A/B, RG-2003 and S-2101. Its line losses come out of the
+# same 115 kPa(a) at the E-3101 warm end (S17, ASSUMED) as the C-1102 path.
+OD_LARGE[500] = 0.508  # ASME B36.10M NPS 20
+
+
+def gas_line(m_kg_h: float, rho: float, mu: float, dn: int, length: float, k: float) -> tuple[float, float]:
+    """kPa and m/s for a gas of given density and viscosity (as darcy())."""
+    seg = hy.Segment(length, OD_LARGE[dn] - 2 * 0.00953, ROUGH, {"fittings": k})
+    loss = hy.line_loss(m_kg_h / 3600.0, rho, mu, [seg])
+    return loss.pressure_drop, loss.segments[0].velocity
+
+
+def ideal_rho(t: float, p_kpa: float, x: dict[str, float]) -> float:
+    """Ideal-gas density kg/m3: 200 C lies above the property adapter's range (D-068 (7))."""
+    return p_kpa * molar_mass(x) / (R * t)
+
+
+T_HOT = 473.15  # S12H 200 C (flowsheet, ASSUMED); the bed outlet is taken at 200 C too, its value at
+# the end of the heating step, the largest volume flow (ASSUMED bound: it starts near 13 C)
+m12a, m12d = flow("S12A"), flow("S12D")
+x12d = fractions("S12D")
+mu_n2 = lambda t: Yoon_Thodos(t, critical.Tc("7727-37-9"), critical.Pc("7727-37-9"), 28.0134)  # noqa: E731
+p_tee = kpa("S17") - dp3002
+print(f"  regeneration path (D-072): S12A {m12a:g} kg/h, S12D {m12d:g} kg/h out of the bed (water and CO2 "
+      f"desorbed); WN-3002 tee at {kpa('S17'):g} - {dp3002:.3g} = {p_tee:.4g} kPa(a); hot gas ideal-gas "
+      f"density (M {molar_mass(xw):.4g} / {molar_mass(x12d):.4g}), Yoon-Thodos viscosity (nitrogen)")
+rg_paths = {
+    "bed A": (["P-03/Line_RG2001_S1", "P-02/Line_RG2001_S1", "P-02/Line_RG2001_S2"],
+              ["P-02/Line_RG2002_S1", "P-02/Line_RG2002_S2", "P-02/Line_RG2002_S3"],
+              ["P-02/Line_RG2003_S1", "P-02/Line_RG2003_S2", "P-02/Line_RG2003_S3", "P-02/Line_RG2003_S9"],
+              # tees: RG-2002 J run + RG-2002 branch; RG-2003 A1 run + A2 run + RG-2003 run
+              1.0 + 0.4, 0.4 + 1.0, 0.4 + 0.4 + 0.4),
+    "bed B": (["P-03/Line_RG2001_S1", "P-02/Line_RG2001_S1", "P-02/Line_RG2001_S2"],
+              ["P-02/Line_RG2002_S1", "P-02/Line_RG2002_S2", "P-02/Line_RG2002_S4"],
+              ["P-02/Line_RG2003_S5", "P-02/Line_RG2003_S6", "P-02/Line_RG2003_S7", "P-02/Line_RG2003_S9"],
+              1.0 + 0.4, 0.4 + 1.0, 0.4 + 0.4 + 1.0),
+}
+rg_lines = {}
+for bed, (cold, hot_in, hot_out, k1, k2, k3) in rg_paths.items():
+    (l1, b1), (l2, b2), (l3, b3) = route_of(cold), route_of(hot_in), route_of(hot_out)
+    rows = []
+    for name, dns, length, bends, k, m, rho, mu in (
+            ("RG-2001 (13 C, FV-2105)", (500, 600), l1, b1, k1, m12a, rho_wn(110.0), MU_WN),
+            ("RG-2002 (200 C)", (600, 700), l2, b2, k2, m12a, ideal_rho(T_HOT, 107.0, xw), mu_n2(T_HOT)),
+            ("RG-2003 (200 C bound, S-2101)", (600, 700), l3, b3, k3, m12d, ideal_rho(T_HOT, 104.0, x12d),
+             mu_n2(T_HOT))):
+        res = {dn: gas_line(m, rho, mu, dn, length, bends * K_ELBOW + k) for dn in dns}
+        rows.append((name, length, bends, res))
+        print(f"  {bed} {name}: {length:.4g} m, {bends} bends, tees K {k:g}, rho {rho:.4g} kg/m3: "
+              + "; ".join(f"DN{dn} {dp:.3g} kPa ({v:.3g} m/s)" for dn, (dp, v) in res.items()))
+    rg_lines[bed] = rows
+for bed, rows in rg_lines.items():
+    for label, pick in (("before D-072 (DN500 / DN600 / DN600)", (500, 600, 600)),
+                        ("D-072 (DN600 / DN700 / DN700)", (600, 700, 700))):
+        lines_dp = sum(r[3][dn][0] for r, dn in zip(rows, pick))
+        print(f"  {bed} lines {label}: {lines_dp:.3g} kPa; left for FV-2105, E-2101, the bed with its "
+              f"switching valves and S-2101 down to 101.325 kPa(a): {p_tee - 101.325 - lines_dp:.3g} kPa")
+# the allowables written into the datasheets and special-items (D-072, ASSUMED allocation)
+ALLOW = {"FV-2105 at normal flow": 1.5, "E-2101 gas side": 1.0,
+         "V-2101A/B in regeneration (distributor, bed, support, XV-2103 / XV-2104)": 1.5,
+         "S-2101 with the exit": 1.0}
+worst = max(sum(r[3][dn][0] for r, dn in zip(rows, (600, 700, 700))) for rows in rg_lines.values())
+print(f"  allowables (D-072): " + ", ".join(f"{k} {v:g} kPa" for k, v in ALLOW.items())
+      + f"; sum {sum(ALLOW.values()):g} kPa + worst lines {worst:.3g} kPa = {sum(ALLOW.values()) + worst:.3g} kPa "
+      f"against {p_tee - 101.325:.3g} kPa: margin {p_tee - 101.325 - worst - sum(ALLOW.values()):.3g} kPa")
+# screening of the bed allowable: Ergun (Perry's 8th ed. Section 6, packed beds) for the hot gas through
+# a horizontal bed, ASSUMED: plan area 0.85 D x (L - D) of the 4.5 m x 18 m vessel, 1.5 m of alumina +
+# 13X beads 3 mm, voidage 0.37 (the adsorbent supplier sets the bed)
+a_bed = 0.85 * 4.5 * (18.0 - 4.5)
+rho_h, mu_h = ideal_rho(T_HOT, 105.0, xw), mu_n2(T_HOT)
+u_bed = m12a / 3600.0 / rho_h / a_bed
+eps, dp_p, depth = 0.37, 0.003, 1.5
+ergun = depth * (150 * mu_h * (1 - eps) ** 2 * u_bed / (eps ** 3 * dp_p ** 2)
+                 + 1.75 * rho_h * (1 - eps) * u_bed ** 2 / (eps ** 3 * dp_p)) / 1000.0
+print(f"  bed screening (Ergun, ASSUMED geometry): plan area {a_bed:.3g} m2, superficial {u_bed:.3g} m/s at 200 C: "
+      f"{ergun:.3g} kPa for 1.5 m of 3 mm beads, inside the 1.5 kPa allowable with the distributor and valves")
 
 print("== section 10 (DESIGN.md D-068 (9)) Cooling water and line velocities")
 cw = {"MAC Q1 (DWSIM)": 7559.87, "DCAC lower Q2 (DWSIM)": 710.177, "GOX compressor Q3 (DWSIM)": 2042.02,
