@@ -1869,3 +1869,24 @@ humidity, double-column simulation, E-3102 / E-3103), which this round does not 
    unchanged from D-049). Result: free-span 8 -> 5 (CWR-1004, LOX-3001 S2, CW-4001, CWR-4002,
    GAN-4004), support-missing 16 (unchanged), 0 errors, 0 clashes; support steel 93.6 ->
    96.5 t (577.2 t steel in all), 251 footings.
+3. **Sizing script on the public pump API.** `scripts/datasheet_sizing.py` no longer uses the
+   fill's private `_route` / `_Network`: pumps are sized with `chemeascode.domains.equipment.
+   pumps` (`network`, `route_line`, `size_pump`; the CW battery limit as
+   `pipe:P-01/Line_CW1001_S1:start`). It reproduces the D-053 / D-055 values of P-1101A/B and
+   P-1102A/B (31.07 / 31.92 / 78.32 / 78.71 m, NPSHa 53.26 / 53.52 / 11.31 / 11.31 m) and the
+   LOX / LIN NPSHa (0.34 / 0.34 / 0.31 / 0.31 m).
+5. **LOX / LIN backup pump heads to the header (amends D-053 (8)).** The pumps deliver into the
+   GOX / GAN header at the product pressures (S8 31 bara, S9B 9 bara, given) through the
+   vaporizer, the backup pressure control valve and the gas line, so the head now counts them.
+   ASSUMED until the suppliers' figures: vaporizer pressure drop 50 kPa, PV-4111 / PV-4112
+   100 kPa at rated flow, gas at the vaporizer outlet -15 C (the -5 C minimum ambient of the
+   design basis less a 10 K approach). Calculated: the routed gas lines GOX-4004 / GAN-4003 to
+   the header tee (Darcy-Weisbach along the layout model, gas density from the property
+   adapter, Yoon-Thodos viscosity): 7.8 / 7.5 kPa (GOX, A / B) and 64.5 / 61.8 kPa (GAN, A / B).
+   Heads (`pumps.size_pump`, suction from the tank nozzle, discharge to the vaporizer inlet):
+   | pump | head, was | head, now | rated discharge | shaft power (eta 0.5) |
+   |---|---|---|---|---|
+   | P-4101A / B | 263.6 m | 281.2 / 281.2 m | 32.97 bara | 7.97 kW (was 7.5) |
+   | P-4102A / B | 94.9 m | 127.1 / 127.0 m | 11.54 / 11.53 bara | 4.36 kW (was 3.3) |
+   Within the design pressures of the pumps (40 / 15 barg) and of LOX-4002 (PN63) and LIN-4002
+   (PN25). NPSHa unchanged.

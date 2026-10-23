@@ -23,9 +23,10 @@ operating:
       adapter (thermo 0.6.1, PR)'
     assumed: true
   discharge_pressure:
-    value: 9.0
+    value: 11.54
     unit: bar(a)
-    source: 'piping/line-list.yaml LIN-4002: pump discharge to the vaporizers, 9 bara'
+    source: 'scripts/datasheet_sizing.py (D-060 (5)): 150 kPa(a) + rho g H (127.1 m): the GAN header 9 bara
+      plus the GAN-4003 line, PV-4112 and vaporizer drops (ASSUMED) and the static head to E-4106A'
     assumed: true
 design:
   pressure_barg:
@@ -72,15 +73,18 @@ type_specific:
     value: 7.82
     unit: m3/h
     source: 'calculated: 6.3 t/h / 806 kg/m3 (NIST Chemistry WebBook, saturated liquid at 1 atm (LOX 1141,
-      LIN 806 kg/m3)); head from 1.5 bara suction (ASSUMED) to 9.0 bara; shaft power = dp x Q / 0.5 (pump
-      efficiency 0.5 ASSUMED) -- equipment list: 6.3 t/h to 9 bara'
+      LIN 806 kg/m3)) -- equipment list: 6.3 t/h'
     assumed: true
   differential_head_m:
-    value: 94.9
+    value: 127.1
     unit: m
-    source: 'calculated: 6.3 t/h / 806 kg/m3 (NIST Chemistry WebBook, saturated liquid at 1 atm (LOX 1141,
-      LIN 806 kg/m3)); head from 1.5 bara suction (ASSUMED) to 9.0 bara; shaft power = dp x Q / 0.5 (pump
-      efficiency 0.5 ASSUMED) -- equipment list: 6.3 t/h to 9 bara'
+    source: 'scripts/datasheet_sizing.py (D-060 (5)), chemeascode pumps.size_pump: H = (1114.5 - 150) kPa
+      / (rho g) 122.03 m + static 3.5 m (T-4102/N4 z 1.0 m to E-4106A/N1 z 4.5 m, layout/plant-model.yaml)
+      + suction loss 0.041 m + discharge loss 1.501 m (routed LIN-4001 / LIN-4002, schedule 10S ASSUMED,
+      Darcy-Weisbach / Colebrook) = 127.1 m; 1114.5 kPa(a) at the vaporizer inlet = GAN header 900 kPa(a)
+      (S9B, 9 bara given) + GAN-4003 routed gas line 64.5 kPa (N2 at -15 C, Yoon-Thodos viscosity) +
+      PV-4112 100 kPa + vaporizer 50 kPa (both ASSUMED until the valve and vaporizer suppliers'' figures);
+      rho 806 kg/m3 (D-042)'
     assumed: true
   npsh_available_m:
     value: 0.31
@@ -94,19 +98,16 @@ type_specific:
       it; the low-low level of LIA-4108 must hold NPSHr (supplier) - 0.31 m + margin of liquid above N4'
     assumed: true
   shaft_power_kw:
-    value: 3.3
+    value: 4.36
     unit: kW
-    source: 'calculated: 6.3 t/h / 806 kg/m3 (NIST Chemistry WebBook, saturated liquid at 1 atm (LOX 1141,
-      LIN 806 kg/m3)); head from 1.5 bara suction (ASSUMED) to 9.0 bara; shaft power = dp x Q / 0.5 (pump
-      efficiency 0.5 ASSUMED) -- equipment list: 6.3 t/h to 9 bara'
+    source: 'scripts/datasheet_sizing.py (D-060 (5)): P = m g H / eta = 1.75 kg/s x 9.80665 m/s2 x 127.1
+      m / 0.5 (pump efficiency 0.5 ASSUMED, D-042)'
     assumed: true
 sizing_basis:
 - parameter: rating
   value: 6.3 t/h LIN to 9 bara (the GAN backup, D-017)
   reference: DESIGN.md D-017 / equipment list
-notes: '6.3 t/h to 9 bara, cold standby. ASSUMED. Review (DESIGN.md D-053): the head takes 9 bara at the pump
-  discharge (LIN-4002), the pressure of the GAN header it feeds; the routed discharge line to E-4106A adds
-  1.50 m and 3.5 m static (scripts/datasheet_sizing.py), and the vaporizer and control valve drops are not yet
-  known: the rated discharge pressure is to be raised by them with the vaporizer supplier''s figure. NPSH: the
-  tank outlet T-4102/N4 stands 0.35 m above the pump suction (the tank on a 0.5 m plinth, the suction falling
+notes: '6.3 t/h, cold standby. ASSUMED. Head (DESIGN.md D-060 (5)): to the 9 bara GAN header through LIN-4002,
+  E-4106A, PV-4112 and GAN-4003, 11.54 bara rated discharge; the 50 kPa vaporizer and 100 kPa control valve
+  drops are ASSUMED until the suppliers'' figures. NPSH: the tank outlet T-4102/N4 stands 0.35 m above the pump suction (the tank on a 0.5 m plinth, the suction falling
   to the pump, DESIGN.md D-055 (5)).'

@@ -23,9 +23,10 @@ operating:
       adapter (thermo 0.6.1, PR)'
     assumed: true
   discharge_pressure:
-    value: 31.0
+    value: 32.97
     unit: bar(a)
-    source: 'piping/line-list.yaml LOX-4002: pump discharge to the vaporizers, 31 bara'
+    source: 'scripts/datasheet_sizing.py (D-060 (5)): 150 kPa(a) + rho g H (281.2 m): the GOX header 31 bara
+      plus the GOX-4004 line, PV-4111 and vaporizer drops (ASSUMED) and the static head to E-4105A'
     assumed: true
 design:
   pressure_barg:
@@ -72,15 +73,18 @@ type_specific:
     value: 4.56
     unit: m3/h
     source: 'calculated: 5.2 t/h / 1141 kg/m3 (NIST Chemistry WebBook, saturated liquid at 1 atm (LOX
-      1141, LIN 806 kg/m3)); head from 1.5 bara suction (ASSUMED) to 31.0 bara; shaft power = dp x Q /
-      0.5 (pump efficiency 0.5 ASSUMED) -- equipment list: 5.2 t/h to 31 bara'
+      1141, LIN 806 kg/m3)) -- equipment list: 5.2 t/h'
     assumed: true
   differential_head_m:
-    value: 263.6
+    value: 281.2
     unit: m
-    source: 'calculated: 5.2 t/h / 1141 kg/m3 (NIST Chemistry WebBook, saturated liquid at 1 atm (LOX
-      1141, LIN 806 kg/m3)); head from 1.5 bara suction (ASSUMED) to 31.0 bara; shaft power = dp x Q /
-      0.5 (pump efficiency 0.5 ASSUMED) -- equipment list: 5.2 t/h to 31 bara'
+    source: 'scripts/datasheet_sizing.py (D-060 (5)), chemeascode pumps.size_pump: H = (3257.8 - 150) kPa
+      / (rho g) 277.75 m + static 3.0 m (T-4101/N4 z 1.0 m to E-4105A/N1 z 4.0 m, layout/plant-model.yaml)
+      + suction loss 0.014 m + discharge loss 0.476 m (routed LOX-4001 / LOX-4002, schedule 10S ASSUMED,
+      Darcy-Weisbach / Colebrook) = 281.2 m; 3257.8 kPa(a) at the vaporizer inlet = GOX header 3100 kPa(a)
+      (S8, 31 bara given) + GOX-4004 routed gas line 7.8 kPa (O2 at -15 C, Yoon-Thodos viscosity) +
+      PV-4111 100 kPa + vaporizer 50 kPa (both ASSUMED until the valve and vaporizer suppliers'' figures);
+      rho 1141 kg/m3 (D-042)'
     assumed: true
   npsh_available_m:
     value: 0.34
@@ -94,19 +98,17 @@ type_specific:
       it; the low-low level of LIA-4107 must hold NPSHr (supplier) - 0.34 m + margin of liquid above N4'
     assumed: true
   shaft_power_kw:
-    value: 7.5
+    value: 7.97
     unit: kW
-    source: 'calculated: 5.2 t/h / 1141 kg/m3 (NIST Chemistry WebBook, saturated liquid at 1 atm (LOX
-      1141, LIN 806 kg/m3)); head from 1.5 bara suction (ASSUMED) to 31.0 bara; shaft power = dp x Q /
-      0.5 (pump efficiency 0.5 ASSUMED) -- equipment list: 5.2 t/h to 31 bara'
+    source: 'scripts/datasheet_sizing.py (D-060 (5)): P = m g H / eta = 1.444 kg/s x 9.80665 m/s2 x 281.2
+      m / 0.5 (pump efficiency 0.5 ASSUMED, D-042)'
     assumed: true
 sizing_basis:
 - parameter: rating
   value: 5.2 t/h LOX to 31 bara (the GOX backup at 25 % for 2 d, D-017)
   reference: DESIGN.md D-017 / equipment list
-notes: '5.2 t/h to 31 bara, cold standby, O2 service, no oil in wetted parts (D-012). ASSUMED. Review (DESIGN.md
-  D-053): the head takes 31 bara at the pump discharge (LOX-4002), the pressure of the GOX header it feeds; the
-  routed discharge line to E-4105A adds 0.48 m and 3.0 m static (scripts/datasheet_sizing.py), and the
-  vaporizer and PV-4111 drops are not yet known: the rated discharge pressure is to be raised by them with the
-  vaporizer supplier''s figure. NPSH: the tank outlet T-4101/N4 stands 0.35 m above the pump suction (the
-  tank on a 0.5 m plinth, the suction falling to the pump, DESIGN.md D-055 (5)).'
+notes: '5.2 t/h, cold standby, O2 service, no oil in wetted parts (D-012). ASSUMED. Head (DESIGN.md D-060 (5)):
+  to the 31 bara GOX header through LOX-4002, E-4105A, PV-4111 and GOX-4004, 32.97 bara rated discharge;
+  the 50 kPa vaporizer and 100 kPa control valve drops are ASSUMED until the suppliers'' figures. NPSH: the
+  tank outlet T-4101/N4 stands 0.35 m above the pump suction (the tank on a 0.5 m plinth, the suction falling
+  to the pump, DESIGN.md D-055 (5)).'
