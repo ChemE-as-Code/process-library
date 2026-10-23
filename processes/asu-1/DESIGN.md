@@ -3371,3 +3371,44 @@ LOPA gives the SIF its target.
 
 Open: HAZOP / LOPA confirmation of the SIL; the C-1102 supplier's confirmation of the top
 internals at 153 t/h; LV-1114's trim (a lower blow-by).
+
+## D-084 The nine valves out of reach: TSA valve platforms, tank boil-off valves lowered, XV-3105 accepted (2026-10-23)
+Answers layout-review3#3 (the 9 `layout-operability` warnings left by D-060 (7)).
+
+Decision:
+- (1) **TSA switching valves** XV-2101A, XV-2111A, XV-2103A, XV-2103B, XV-2102B, XV-2102A (all
+  actuated, KS-2101 sequence; their handwheels 7.7 .. 8.9 m). D-047 found no free-standing frame
+  over the adsorbers. Instead two small platforms at **5.9 m** (below 6 m, so a caged ladder is the
+  way down, as VP-6), each valve's override, air set and positioner on a pedestal on them
+  (`remote_operator`, as the B-side valves of D-040; runs within the 6 m limit):
+  - **VP-TSA-B**, 5.8 x 1.4 m in the strip between the sieve change-out lane Z-SIEVE (y 34 .. 38)
+    and V-2101B (x 92.8 .. 98.6, y 38.15 .. 39.55), clear of RG-2002 along x 92 and the RG-2003
+    S8 riser at x 100; ladder at its east end facing east. Serves XV-2101A, XV-2111A, XV-2103A,
+    XV-2103B, XV-2102B.
+  - **VP-TSA-E**, 1.5 x 2.5 m east of the V-2101A head (x 104.3 .. 105.8, y 28 .. 30.5),
+    straddling AIR-2001 along x 105 at 3.86 m; ladder on its east side. Serves XV-2102A.
+  RG-2003 is pinned as routed before (the router would have moved its tees round the new steel).
+  The lane Z-SIEVE and the S-2101 vent zone stay clear.
+- (2) **Tank boil-off valves.** PV-4109: the VNT-4001 tee 1.2 m lower (11.06 m), outlets unchanged,
+  so PV-4109 drops 0.6 m to about 12.5 m. PV-4110: the VNT-4005 tee straight above the nozzle
+  at 13.0 m (was 13.41 m on a slope 0.83 m west) and the PV-4110 branch rising straight from it,
+  its outlet 1.66 m further east at the same 14.06 m (5 m zone still clear of the T-4102 roof
+  platform), the vacuum-breaker branch 0.5 m west beside it; PV-4110 sits at about 13.5 m, 1.4 m
+  nearer the roof platform. Both actuated: air set and positioner on a pedestal on the tank roof
+  platform (`remote_operator`), within 6 m. The tank supplier confirms the nozzle arrangement.
+- (3) **XV-3105** (off-spec GAN divert, lever 10.1 m on VNT-4004 where it leaves GAN-4001 on the
+  PR1 9 m tier): accepted in checks/checks.yaml with its reason. It is actuated (AIA-3105 opens
+  it); its solenoid, limit switches and air set go to a pedestal at grade south of PR1 by tubing
+  and cable, and its lever (maintenance override only) is reached by a mobile elevating work
+  platform from grade (ASSUMED owner practice). No fixed platform fits: the build's proposal
+  stands in WN-1001, WN-3003, CHW-3001 and the rack; a floor cantilevered under the 9 m tier lacks
+  the 2.1 m headroom; the rack schema has no walkway. A PR1 top-tier walkway is for the rack
+  designer.
+
+Result: `layout-operability` 9 -> 0 warnings (1 accepted as info); steel 584.9 -> 593.1 t,
+grating 499.8 -> 511.7 m2; no clash, no new finding of any other rule; support steel scan 0.
+
+Reason: review3#3 (open since the third layout review).
+
+Open: the TSA supplier's top piping and valve arrangement (D-047); the tank supplier's nozzle
+arrangement; the PR1 walkway question for XV-3105.
