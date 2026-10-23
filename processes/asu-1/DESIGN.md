@@ -80,6 +80,8 @@ Basis: design case, 30 C ambient, 94 % O2 recovery (ASSUMED). Nm3 at 0 C, 1.013 
 | 4 dry air to cold box | V-2101 -> E-3101 | 76,000 | 98,000 | 5.6 | 15 | dry, CO2 < 0.1 ppm |
 | 5 HP column feed | E-3101 -> C-3101 | 64,500 | 83,400 | 5.5 | -173 | air near dew point |
 | 6 Lachmann air | KT-3101 -> C-3102 | 11,500 | 14,870 | 1.35 | -178 | air |
+| 13 crude oxygen (rich liquid) | C-3101 -> C-3102 | | 45,680 | 5.5 | -174 | N2 59.1, O2 39.2, Ar 1.6 % (simulated, D-059) |
+| 18 LN reflux | C-3101 -> C-3102 | | 24,530 | 5.3 | -178 | N2, Ar 0.12 %, O2 2 ppm (simulated, D-059) |
 | 7 GOX product | E-3101 -> K-4101 | 14,600 | 20,860 | 1.15 | 25 | O2 99.5 % |
 | 8 GOX to pipeline | K-4101 -> BL | 14,600 | 20,860 | 31.0 | 40 | O2 99.5 % |
 | 9 GAN product | E-3101 -> K-4102 -> BL | 10,000 | 12,510 | 5.2 / 9.0 | 25 / 40 | N2, O2 <= 10 ppm |
@@ -1869,3 +1871,71 @@ Limit: Peng-Robinson underpredicts water at saturation by ~10 to 13 % (S2 1.16 a
 ~151 kg/h (PR 130 kg/h); the simulated S3 composition stays as the balance value.
 Open: P-01 shows no condensate drains yet: moisture separators and drain traps for E-1102 and
 E-1103 (to a condensate line, oily-water free, D-012), and the DCAC water bleed for the 587 kg/h.
+
+## D-059 Double column simulated; GOX purity 99.5 % not reached by the concept cycle (2026-10-23)
+Decision: C-3101 and C-3102 are simulated as rigorous columns (`process/simulation.yaml`, DWSIM
+9.0.5, Peng-Robinson), with E-3103 as the condenser-reboiler between them:
+- C-3101: 40 theoretical stages, the air enters below the bottom stage, no reboiler. Its partial
+  condenser gives the GAN vapour (12,510 kg/h) and the LN reflux. LIN is drawn from stage 2.
+- C-3102: 59 stages. LN on stage 1, crude oxygen on 22, Lachmann air on 24. GOX is drawn as vapour
+  from the sump, LOX as liquid.
+- The new stream S18 (LN-3001) carries the LN reflux, 24,530 kg/h ASSUMED. S13 is now the rich
+  liquid alone (D-027 lumped LN into it).
+- Calculated: S13, S18, the column outlet temperatures and pressures, and the GAN and LIN
+  compositions (S14, S11).
+- GAN S9/S9B take the simulated composition: O2 0.9 ppm, which meets D-004's 10 ppm.
+- The cold-box waste (S16, S17) is re-derived by difference with GOX and LOX at their
+  specification: N2 96.66, O2 2.09, Ar 1.25 %.
+
+The GOX and LOX compositions stay ASSUMED at 99.5 % O2, the design basis requirement. The
+simulation's values stand beside them as `cheme.process-sim-deviation` warnings.
+
+Results:
+| | simulated | assumed / required |
+|---|---|---|
+| GOX S15 | O2 97.0, Ar 3.0 % | O2 >= 99.5 % |
+| LOX S10 | O2 98.0, Ar 2.0 % | O2 >= 99.5 % |
+| waste S16 | O2 3.0, Ar 0.5 % | O2 2.1, Ar 1.25 % |
+| E-3103 | C-3101 condenses 3,536 kW at 94.7 K; C-3102 reboils 3,250 kW at 93.2 K (1.5 K approach) | |
+| C-3101 | reflux ratio 1.34; top -178.4 C, bottom -173.6 C | |
+| C-3102 | top -192.9 C, sump -180.0 C | |
+
+Reason: the concept cycle (15 % Lachmann air, 13 % of the air drawn from the HP top as GAN, no
+argon column) does not make 99.5 % GOX at 94 % recovery in this model. The LP bottom section is
+short of boil-up. With GOX drawn as vapour from the sump, its L/V is about 1.6, above the Ar/O2
+relative volatility (~1.5). Argon then pinches in the bottom section at about 2.6 % (D_Ar/(L -
+alpha V)) instead of rising to the argon bulge and leaving with the waste. O2 slips into the
+waste, and the fixed GOX flow fills up with argon.
+
+Levers tried on the solved model, each alone or as noted:
+| lever | GOX O2 |
+|---|---|
+| GOX 19,000 kg/h (recovery ~84 %) | 98.0 % |
+| Lachmann air 10,000 kg/h | 97.1 % |
+| LN and crude subcooled in E-3102 (~317 kW, which uses the 286 kW E-3103 has spare), GOX 20,000 kg/h | 98.1 % |
+| subcooling, GOX 19,000 kg/h (C-3102 would reboil 3,736 kW, more than E-3103 condenses) | 99.0 % |
+| +4.5 % air to the HP column (D-018's 90 % recovery case) and subcooling | 98.0 % |
+
+The LP column above 59 stages, the LN above 24,530 kg/h and a smaller GAN draw did not converge
+in DWSIM.
+
+The specification stays because it is the client's. The concept cycle changes in basic
+engineering instead, and the cold-box vendor's design must show 99.5 %. Ranked, the changes that
+add boil-up or take argon out are:
+1. E-3102 subcooling, modelled with the waste N2.
+2. More LP stages below the crude feed.
+3. An argon-rich waste draw or a crude argon column (revisits D-001).
+4. A lower O2 recovery, with more air (MAC rating 80,000 Nm3/h, D-018).
+The utilities and the LCA do not depend on the column result: their flows are the ASSUMED
+products.
+
+Limit: PR with DWSIM's default interaction parameters, not fitted to O2/Ar VLE data. Its Ar/O2
+volatility decides the size of the gap; check it against NIST data before sizing the columns.
+
+Open:
+- E-3102 in the flowsheet and the simulation: subcooler of LN and crude against waste N2. This
+  needs a tear stream.
+- The column stages for the C-3101 and C-3102 datasheets: 40 and 59 theoretical stages here.
+- The vendor's cycle for 99.5 %.
+- Core: a column solver that follows a spec change from the converged profile. The variants
+  above failed on DWSIM's own convergence: the mass-balance check at 1e-4, and iterations.
