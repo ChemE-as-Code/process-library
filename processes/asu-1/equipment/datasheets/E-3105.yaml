@@ -1,0 +1,196 @@
+# Datasheet, written by hand on the pattern of E-3104 (DESIGN.md D-067, D-069) from equipment/equipment-list.yaml, pid/P-03.xml, process/flowsheet.yaml.
+# Final (`draft: false`): every value says where it comes from (source); assumed: true marks a
+# value derived on an assumption, to confirm; a `supplier` or `not_applicable` value gives its
+# reason. Schema: `cheme schema datasheet`.
+tag: E-3105
+type: TubularHeatExchanger
+service: Booster air trim cooler (chilled water)
+draft: false
+operating:
+  inlet_pressure:
+    value: 8.45
+    unit: bar(a)
+    source: 'process/flowsheet.yaml stream S4D (case design), assumed: DESIGN.md D-052, D-061, no pressure
+      drop in E-3104'
+    assumed: true
+  inlet_temperature:
+    value: 30.0
+    unit: °C
+    source: 'process/flowsheet.yaml stream S4D (case design), assumed: DESIGN.md D-067, the E-3104 outlet'
+    assumed: true
+  inlet_flow:
+    value: 14870.0
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S4D (case design), assumed: = S4B'
+    assumed: true
+  outlet_pressure:
+    value: 8.45
+    unit: bar(a)
+    source: 'process/flowsheet.yaml stream S4E (case design), calculated by `cheme process simulate`
+      (process/simulation.yaml E3105: no pressure drop, ASSUMED as E-3104, D-067)'
+    assumed: true
+  outlet_temperature:
+    value: 15.0
+    unit: °C
+    source: 'process/flowsheet.yaml stream S4E (case design), assumed: DESIGN.md D-067, trimmed to the main
+      air temperature; TICA-3124 holds it (set point 15 C, TAH 18.5 C: the minimum acceptable trim, at which
+      the cold box closes at +60.4 kW, D-067)'
+    assumed: true
+  outlet_flow:
+    value: 14870.0
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S4E (case design), calculated by `cheme process simulate`'
+    assumed: true
+  chilled_water_temperatures:
+    value: 10 -> 20
+    unit: °C
+    source: 'DESIGN.md D-067: chilled water from C-1102 at 10 C (ASSUMED, D-005), returned at 20 C'
+    assumed: true
+  chilled_water_flow:
+    value: 5.44
+    unit: m3/h
+    source: 'scripts/datasheet_sizing.py section 4 (DESIGN.md D-068 (4)): Q / (cp 10 K), IAPWS-95 water at the
+      mean 15 C; D-067: ~5.4 m3/h'
+    assumed: true
+  chilled_water_pressure:
+    value: 3.5
+    unit: bar(a)
+    source: 'DESIGN.md D-069: TV-3124 on the supply (CHW-3001) upstream of E-3105 and the return CHWR-3001 open
+      to the C-1102 top, so the water side stays at about the return line''s static and friction head
+      (~1 bara + ~25 m, ASSUMED), below the 8.45 bara air: a tube leak cannot put water into the dry air
+      (D-067)'
+    assumed: true
+design:
+  pressure_barg:
+    value: 11.0
+    unit: barg
+    source: equipment/equipment-list.yaml
+  temperature_degc:
+    value: 120.0
+    unit: degC
+    source: equipment/equipment-list.yaml
+materials:
+  main:
+    value: CS shell / SS tubes
+    source: equipment/equipment-list.yaml
+nozzles:
+- name: N1
+  dn: 200
+  lines:
+  - AIR-3002
+  source: pid/P-03.xml
+  face: top
+  orientation_deg: 0
+  offset_m: 1.1
+  elevation_m: 1.7
+  location_source: layout/equipment-placement.yaml (air in on the shell top, 3.6 m from the front end; D-069)
+- name: N2
+  dn: 200
+  lines:
+  - AIR-3002
+  source: pid/P-03.xml
+  face: top
+  orientation_deg: 0
+  offset_m: 2.0
+  elevation_m: 1.7
+  location_source: layout/equipment-placement.yaml (air out on the shell top, 4.5 m from the front end; D-069)
+- name: N3
+  dn: 50
+  lines:
+  - CHWR-3001
+  source: pid/P-03.xml
+  face: side
+  orientation_deg: 270
+  elevation_m: 1.25
+  location_source: layout/equipment-placement.yaml (chilled water out on the south side, 2.2 m from the front end; D-069)
+- name: N4
+  dn: 50
+  lines:
+  - CHW-3001
+  source: pid/P-03.xml
+  face: side
+  orientation_deg: 270
+  elevation_m: 1.25
+  location_source: layout/equipment-placement.yaml (chilled water in on the south side, 4.0 m from the front end; D-069)
+type_specific:
+  diameter_m:
+    value: 0.9
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  height_m:
+    value: 1.7
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  length_m:
+    value: 5.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  weight_t:
+    value: 3.5
+    unit: t
+    source: equipment/equipment-list.yaml dimensions
+  duty_kw:
+    value: 63.3
+    unit: kW
+    source: '`cheme process simulate` (DWSIM 9.0.5, Peng-Robinson; DESIGN.md D-067): E3105 63.27 kW, S4D 30 C ->
+      S4E 15 C at 8.45 bara, 14,870 kg/h. At the 18.5 C alarm it takes 48.5 kW (property adapter,
+      scripts/datasheet_sizing.py section 4 (DESIGN.md D-068 (4)))'
+    assumed: true
+  area_m2:
+    value: 54.82
+    unit: m2
+    source: 'scripts/datasheet_sizing.py section 4 (DESIGN.md D-068 (4)): A = Q / (U LMTD) = 63.27 kW / (160 x 7.213 K),
+      counter-current (F 1), U 160 W/(m2 K) ASSUMED as design typical (middle of 20-300), Sinnott, Coulson &
+      Richardson''s Chemical Engineering Vol. 6, 4th ed. (2005), Table 12.1, p. 637: cooler, gases / water; no
+      margin. D-067: about 55 m2'
+    assumed: true
+  arrangement:
+    value: counter-current
+    source: 'DESIGN.md D-067: the temperatures cross (air out 15 C, water out 20 C), so the exchanger is
+      counter-current'
+    assumed: true
+  u_service:
+    value: cooler/gases-water
+    source: DESIGN.md D-053 (ASSUMED; air at 8 bara against water)
+    assumed: true
+  utility_inlet_temperature_degc:
+    value: 10
+    unit: degC
+    source: DESIGN.md D-067, chilled water supply 10 C (ASSUMED, D-005)
+    assumed: true
+  utility_outlet_temperature_degc:
+    value: 20
+    unit: degC
+    source: DESIGN.md D-067, chilled water return 20 C
+    assumed: true
+  process_streams:
+  - stream: S4D
+    direction: in
+    title: Boosted air to the trim cooler
+    source: process/flowsheet.yaml (case design)
+  - stream: S4E
+    direction: out
+    title: Boosted air to E-3101
+    source: process/flowsheet.yaml (case design)
+  lmtd_k:
+    value: 7.213
+    unit: K
+    source: 'scripts/datasheet_sizing.py section 4 (DESIGN.md D-068 (4)): counter-current LMTD, hot 303.15 -> 288.15 K (S4D ->
+      S4E), chilled water 283.15 -> 293.15 K: 10 K at the warm end, 5 K at the cold end'
+    assumed: true
+  lmtd_correction_f:
+    value: 1.0
+    unit: ''
+    source: 'DESIGN.md D-067: counter-current, no correction'
+    assumed: true
+  overall_u_w_m2k:
+    value: 160.0
+    unit: W/(m2 K)
+    source: 'U 160 W/(m2 K) ASSUMED as design typical (middle of 20-300), Sinnott, Coulson & Richardson''s
+      Chemical Engineering Vol. 6, 4th ed. (2005), Table 12.1, p. 637: cooler, gases / water (DESIGN.md D-053)'
+    assumed: true
+sizing_basis: []
+notes: 'Chilled-water trim of the boosted air, counter-current (DESIGN.md D-067, D-069). Outside the cold box,
+  beside E-3104. Dry gas after the TSA: no condensate. Tag ASSUMED in D-067, listed now (D-069). If E-3105 is
+  lost the cold box closes at only +11.9 kW: turn down the liquid production until it is back (D-067).
+  Dimensions and weight ASSUMED by analogy with E-3104 (64 m2 in a 1.0 x 5 m shell, 4 t).'

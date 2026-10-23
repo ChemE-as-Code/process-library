@@ -2748,6 +2748,71 @@ GOX and was short of refrigeration.
 Open: the vendors confirm the enlarged items (the MAC and its coolers, the cold box columns and
 exchangers, C-1102). The K-4101 motor margin. The C-1101 upper-section and C-1102 wetting.
 
+## D-069 E-3105 and the closed chilled-water loop drawn, P-1102 re-selected (2026-10-23)
+Carries out D-067: the trim cooler E-3105 and the closed chilled-water loop of C-1102.
+
+Decision:
+- (1) **E-3105 on P-03.** It sits on AIR-3002 between E-3104 and the PSV-3119 tee, so
+  PSV-3119, the AIR-3006 recycle tee and the check valve are downstream of it. E-3104 and its
+  CW connectors are moved down the sheet to make room.
+  - The line number AIR-3002 is kept through both coolers: new segment S7 runs E-3104 ->
+    E-3105, and S2 runs E-3105 -> the PSV tee. The flowsheet links S4D and S4E to AIR-3002 and
+    the step E3105 to E-3105 and TICA-3124. Only links were added to the flowsheet.
+  - The symbol is the cooler shape of E-3104, turned so that the air passes the shell side
+    (N1 in, N2 out) and the chilled water the tube side (N4 in, N3 out), counter-current.
+  - TICA-3124 (TIC with TAH; set point 15 C, TAH 18.5 C, D-067) measures between E-3105 and
+    PSV-3119 and acts on TV-3124. TV-3124 sits on the chilled-water supply CHW-3001, upstream of
+    E-3105, and fails open; its actuating system is modelled in DEXPI.
+  - With the valve upstream and the return CHWR-3001 open to the C-1102 top (no block valve),
+    the water side stays at about the return line's head (~3.5 bara), below the 8.45 bara air.
+    D-067's "a tube leak cannot put water into the dry air" therefore holds.
+- (2) **The closed loop on P-01.**
+  - CHW-3001 (DN50, 5.4 m3/h) branches off CHW-1001 upstream of TV-1105 and goes off-sheet to
+    E-3105.
+  - A chimney tray under the C-1101 upper bed collects the chilled water with its 237 kg/h of
+    condensate. It is drawn off at the new nozzle N7 into CHWR-1001 (DN150, 34.4 m3/h at
+    ~26 C), through LV-1114 to the new nozzle N5 at the C-1102 top. LIC-1114 on the new
+    tapping I3 keeps a water seal on the tray; LV-1114 fails closed, so no 5.7 bara air blows
+    through to the atmospheric C-1102.
+  - CHWR-3001 from E-3105 joins CHWR-1001 downstream of LV-1114.
+  - CW-1003 via LV-1107 is now the make-up only: ~0.6 t/h at 703 kW, ~0.9 t/h at 1,000 kW,
+    plus blowdown (D-068 (8)); its DN150 is kept for now.
+  - CHWR-1001 crosses CHW-1001 once on the sheet. The crossing is accepted: the chimney tray
+    lies in the pocket closed by CHW-1001, the TIC-1105 measuring line and AIR-1004.
+- (3) **P-1102A/B re-selected** (sizing script, routed lines):
+  - rated 44 m3/h, 110 % of the 39.9 m3/h loop (ASSUMED margin);
+  - head 75.7 / 75.8 m to the DCAC upper section at 5.7 bara and 19.8 m, with the 100 kPa
+    allowance of D-053;
+  - NPSHa 11.8 m; 12.1 kW shaft at efficiency 0.75; 15 kW motor (was ~100 m3/h, 28.4 kW,
+    18.5 kW).
+  - The E-3105 branch needs less head; TV-3124 takes the excess.
+- (4) **Layout.**
+  - E-3105 stands 2.5 m south of E-3104 at (133, 28), parallel, with its bundle pull to the
+    west. The air nozzles are on top at the east end, the water nozzles on the south side.
+  - AIR-3002 S2 is pinned low (2.6 / 1.0 m) and CHW-3001 / CHWR-3001 run at 2.35 / 2.7 m.
+    Both stay under the compander lift lane from Z-PAD-A3S (K-3101 top 3 m) and above the
+    2.2 m escape-lane headroom.
+  - CHW-3001 / CHWR-3001 run on the PR1 5 m tier (the tier rule now includes "Chilled water
+    return") and come down at x 146.6 / 147, east of bent 19 and the post row at x 140-143.
+    CHWR-3001 joins the CHWR-1001 tee at 10 m beside C-1101. All four pieces are pinned in
+    piping/routing.yaml.
+  - C-1101 N7 is at 285 deg and 13.4 m, in the gap of the platform arcs; I3 is at 0 deg and
+    13.0 m, above the 11.3 m platform.
+  - LV-1114 and TV-3124 have remote operators. LIC-1114 / LV-1114 are on JB-A1-1;
+    TICA-3124 / TV-3124 are on JB-A3-2, because JB-A3-1 is full at 24.
+  - The model has no new clash or lifting finding.
+
+Reason: D-067 left E-3105, its chilled water and the return to C-1102 to be drawn. Without the
+tray return, the 703 kW loop would have dumped its water into the DCAC sump, and C-1102 would
+have needed ~40 m3/h of make-up instead of evaporation make-up.
+
+Open:
+- an independent low-low level protection on the chimney tray, and the C-1102 gas blow-by
+  relief case;
+- the C-1101 upper-section and C-1102 wetting at 2.5-2.7 m3/(m2 h), with the packing supplier;
+- the reduced DNs of CHW-1001 and CW-1003 and of LV-1107, in detail engineering;
+- supports for the new runs off the rack (free-span information, D-034 (6)).
+
 ## D-070 The 9.0 MW MAC motor: supply, starting and the B1 crane (2026-10-23)
 Follows D-066 (K-1101 motor 9.0 MW, ASSUMED, was 8.0). Revises D-034 (2) and D-036 (2).
 
