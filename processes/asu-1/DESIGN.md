@@ -3447,3 +3447,32 @@ Reason: review3#4, open since the third layout review.
 
 Open: the supports, clips and guides with the stress engineer, the rack designer and the
 vessel / tank / cold box suppliers.
+
+## D-086 Review-12 low findings: LSLL-1115 tapping, chimney-tray elevations, E-3105 drains and vent, WN-1002 label (2026-10-23)
+Answers layout-review12#3, #4, #5 and #6.
+
+Decision:
+- (1) **LSLL-1115 tapping on P-01** (#3). The I4 connection is drawn at the chimney tray beside
+  LIC-1114's I3, below the upper bed (was in the bed); its measuring line steps up beside the
+  column to its old run, so the accepted crossing with CHW-1001 stays the only one.
+- (2) **Chimney-tray elevations** (#4), stated in the C-1101 datasheet (`chimney_tray_elevations`)
+  and the placement, ASSUMED for the enquiry (the packing supplier designs the tray): tray floor
+  **13.0 m**, chimney tops **13.8 m** (0.8 m liquid range); N7 draws off at the tray floor (was
+  13.4 m, 0.4 m above the tappings); I3 / I4 at **13.1 m**, 0.1 m above the floor, inside the
+  liquid range, with the transmitters' reference connections in the gas above the chimney tops;
+  the overflow downcomer between the level range and the chimney tops. I3 / I4 are 1.8 m above
+  the 11.3 m platform (within the 2 m transmitter reach).
+- (3) **E-3105 drains and vent on P-03** (#5): N5 shell-side low-point drain with HV-3127 (AIR-3002
+  S9, the restart check of D-077 (1)), N6 water-side drain at the bottom of the west channel with
+  HV-3128 (CHWR-3001 S2), N7 water-side high-point vent on the east head with HV-3129 (CHW-3001
+  S2), all DN25 ball valves, closed and capped (ASSUMED); in the datasheet, the placement and the
+  line list; stubs pinned straight down / up out of the bundle-pull space; HV-3129 reached by an
+  extension spindle (used only when the water side is filled). The E-3105, TV-3124 and AIR-3002
+  labels moved to make room.
+- (4) **WN-1002 label** (#6) moved right of the vent line below the "to atmosphere" arrow, off the
+  CHWR-1001 riser.
+
+Result: drawing findings unchanged (P-01 2, P-03 3, P-04 1 crossings, all accepted; 0 overlaps);
+no layout finding added; 0 errors.
+
+Reason: review12#3 .. #6.
