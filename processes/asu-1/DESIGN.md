@@ -2747,3 +2747,38 @@ GOX and was short of refrigeration.
 
 Open: the vendors confirm the enlarged items (the MAC and its coolers, the cold box columns and
 exchangers, C-1102). The K-4101 motor margin. The C-1101 upper-section and C-1102 wetting.
+
+## D-070 The 9.0 MW MAC motor: supply, starting and the B1 crane (2026-10-23)
+Follows D-066 (K-1101 motor 9.0 MW, ASSUMED, was 8.0). Revises D-034 (2) and D-036 (2).
+
+Decision:
+- (1) **Motor list.** electrical/electrical-list.yaml: K-1101 is 9,000 kW at 6.6 kV, about
+  900 A at full load (pf 0.9, efficiency 0.97, ASSUMED). It is still fed by cable, not by tray,
+  from SWG-1 through the B2 cable cellar and a covered trench (D-038 (5)); the cable size is the
+  electrical engineer's. The E-2101 feeder is 1,130 kW (D-066), so the schedule's placeholder
+  current is 1,209 A on 3 x 4C x 300 mm2.
+- (2) **TR-1 stays 16 MVA** (ASSUMED until the load list):
+  - connected MV ratings 9,000 + 2,300 + 315 kW at pf 0.9 and efficiency 0.96, plus TR-2's
+    2.5 MVA, times the list's 0.85 load factor: 13.6 MVA;
+  - running load: MAC 7.13 + GOX compressor 2.26 + GAN compressor 0.24 MW electric
+    (simulated, D-066) plus about 1.4 MW of LV peak (E-2101 1.13 MW, pumps, auxiliaries) at
+    pf 0.9: about 12.3 MVA, 77 % of the rating.
+- (3) **Starting.** Direct on line, the 9 MW motor would draw about 6 x 10.3 = 62 MVA. On TR-1
+  (16 MVA, 8 % impedance, the IEC 60076-5 minimum for 6.3-25 MVA, infinite grid) that dips the
+  6.6 kV bus by about 62 / (200 + 62) = 24 %, more than motors and drives on the same bus
+  tolerate (about 15 %, ASSUMED). The 8 MW motor dipped it by about 22 %, which was not
+  recorded before. The MAC therefore gets a reduced-voltage start (soft starter, autotransformer
+  or a variable-speed drive, ASSUMED); the motor starting study chooses it with the grid's
+  short-circuit power.
+- (4) **B1 crane.** The heaviest maintenance lift, the motor, is now ~34 t (lift_weight,
+  ASSUMED: the 8 MW motor's ~30 t of D-034 pro rata to the rating). With the lifting study's
+  allowances that is 39.27 t against the 40 t crane, which carries it with 0.7 t to spare
+  (layout/lifting-study.md). A motor above about 34.6 t needs the next crane size (50 t); the
+  motor supplier's weight decides.
+- (5) The B1 ventilation basis (D-037, ~150 kW to the room air from a TEWAC motor) is kept.
+
+Reason: the motor rating changed with the air (D-066); its supply, starting and lift were
+sized on 8 MW.
+
+Open: the load list, single-line diagram, motor starting study, MV cable sizing and the motor
+supplier's weight.
