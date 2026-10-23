@@ -3133,3 +3133,42 @@ atmospheric tower.
 
 Open: the SIL of I-03 and the C-1102 blow-by relief case (HAZOP); the tray and downcomer design
 (packing supplier).
+
+## D-077 E-3105 at standstill and for maintenance; its nozzles for true counter-current (2026-10-23)
+Answers layout-review11#7 and #8. Corrects D-069 (1)'s "a tube leak cannot put water into the
+dry air", which holds only while the booster runs.
+
+Decision:
+- (1) **Standstill** (review11#7). When the compander or the MAC stops and AIR-3002
+  depressurises, the E-3105 water side keeps the static head of the return riser to the C-1102
+  top (~20 m, ~2.9 bara) and, while P-1102A/B run, their head as well. A leaking tube can then put
+  water into the shell side ahead of E-3101.
+  - C&E I-04: a compander trip closes TV-3124, which takes the pump head off the leak (TV-3124 stays
+    fail open on instrument-air loss, D-069: a control valve, not tight shut).
+  - Restart permissive (operating procedure): the E-3105 shell-side low-point drain is checked
+    dry before air is readmitted; with water found, E-3105 is bypassed by stopping the booster
+    flow until it is repaired. The TSA dries only the air upstream of the booster, so this check
+    is what protects E-3101.
+- (2) **Maintenance isolation.** HV-3126, a DN50 ball valve, locked open (L.O.), on CHWR-3001 at
+  E-3105 (P-03). For work on E-3105, TV-3124 and HV-3126 are closed and the water side drained
+  at E-3105 (the supplier's drain and vent): the loop and the DCAC upper section keep running.
+  As HV-3126 is closed only with the water side drained, no liquid is trapped and no thermal
+  relief is needed. In operation it stays open, so the water side stays open to C-1102 (D-069).
+- (3) **Nozzles** (review11#8). The temperatures cross (air 30 -> 15 C, water 10 -> 20 C):
+  R = 1.5, P = 0.5, for which a 1-2 (U-tube) exchanger has no LMTD correction factor (the
+  logarithm's argument turns negative). E-3105 is therefore a one-pass straight-tube exchanger
+  with a floating head, the bundle pulled to the west:
+  - air in N1 on the shell top at the west end (1.2 m from the west channel end), out N2 at the
+    east end (4.5 m, unchanged), so the air crosses the whole bundle;
+  - chilled water in N4 on the east (floating) head and out N3 on the west channel, both on the
+    south side: water east to west against the air.
+  The placement, datasheet nozzle locations and the pinned routes follow: CHW-3001 drops at
+  x 135.3 to the east head, CHWR-3001 leaves the west channel at x 130.8 (one more shared post,
+  post-16 moved 0.5 m east); AIR-3002 S7 from E-3104 to the new N1 is pinned low between the
+  shells at 2.5 m, under the compander lift lane from Z-PAD-A3S (generated, it rose to 3.6 m and
+  pushed the K-3101 lift onto the cold box crane pad). The model has no clash; the lifting study
+  keeps K-3101 on Z-PAD-A3S.
+
+Reason: review11#7, #8.
+
+Open: the E-3105 supplier's drain, vent and floating-head design.
