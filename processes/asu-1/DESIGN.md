@@ -1850,3 +1850,22 @@ humidity, double-column simulation, E-3102 / E-3103), which this round does not 
    "place it by hand". The new vent-outlet check (open ends beside a walking surface,
    `vent_side_clearance_m` 1.5 m) finds nothing. No route, item or finding count changes:
    0 errors; free-span 8, support-missing 16 (10 accepted, D-049), operability 14.
+2. **Support posts placed with the clearance rule (amends D-049 Open).** Every generated
+   proposal that is not "place it by hand" was pinned in a trial copy and kept only if the
+   build added no finding: LOX-4003 S3 `SP-11.1` (T-post), LOX-3001 S1 `SP-12.2` (T-post at
+   the casing, 2.6 m span), and the five stubs of GOX-4002 S12 (`SP-6.5`, `SP-8.9`,
+   `SP-11.0`, `SP-15.4`, `SP-19.9`: the DN 80 backup tie-in over VNT-4002, standing on the
+   crossbars of the GOX-4002 S4 post-1 and the CW-4001 / CWR-4001 T-posts below it, 0.1 m or
+   more clear of S5 and VNT-4002, where D-049 found no place; the stress engineer confirms
+   that those posts carry the extra load).
+   Rejected: CWR-1004 `SP-29.7` (in the P-1101B access space), LOX-3002 `SP-15.2` (in
+   V-3101), LIN-3001 S2 `SP-35.5` (in T-4102; the other three alone leave a 4.2 m span, a
+   warning in place of the info), UN-3001 S1 `SP-9.4` (in CWR-4002; `SP-10.8` alone leaves
+   4.2 m > 4.0 m). The 14 "place it by hand" proposals are the 8 runs inside the casing
+   (accepted, D-049) and the stacked runs GOX-4001 / AIR-2002, CW-4001 / CWR-4001, CWR-4002 and
+   GAN-4004 / GAN-4002, GOX-4002 S5 / VNT-4002 and LIN-4003 S1 / S3, where one pipe runs
+   directly over the other: a post from grade stands in the lower pipe wherever it goes, so
+   each needs a bracket off the lower pipe's support or a common frame (stress engineer,
+   unchanged from D-049). Result: free-span 8 -> 5 (CWR-1004, LOX-3001 S2, CW-4001, CWR-4002,
+   GAN-4004), support-missing 16 (unchanged), 0 errors, 0 clashes; support steel 93.6 ->
+   96.5 t (577.2 t steel in all), 251 footings.
