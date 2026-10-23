@@ -3201,15 +3201,22 @@ The first TEA of the plant (`estimate/tea.yaml`, `cheme assess tea`, skill `tea`
 outputs `estimate/tea.md`, `tea-cashflow.csv`, `tea-sensitivity.csv`, `tea-uncertainty.csv`).
 1. **Decision.** Take ASU-1 into FEED as the 500 t/d GOX pipeline supply if its levelised cost of
    GOX (LCOP) is at most 100 USD/t with 80 % confidence. 100 USD/t is the oxygen price a new ASU
-   needs for a 20 % IRR (Thunder Said Energy, "Costs of cryogenic air separation"): the price of
-   buying it over the fence. USD 2023, real, pre-tax (the owner's tax position is not known).
+   needs for a 20 % IRR with nitrogen and argon also sold (Thunder Said Energy, "Cryogenic air
+   separation: costs and energy economics?", data file last updated before 2025, no cost year
+   stated; taken as USD 2023, see item 2): the price of buying it over the fence from a supplier
+   with that revenue mix. ASU-1 makes no argon and books no co-product credit, so the test is
+   strict on ASU-1. USD 2023, real, pre-tax (the owner's tax position is not known). The source
+   is in the comment above `decision.threshold` (the schema has no source field there).
 2. **Capital: an all-in benchmark, not the equipment estimate.** The equipment estimate has a
    bare module cost for only 3 of 40 items (USD 2.10 M); 23 have a purchased cost only (purchased
    cost of the correlation items USD 4.10 M) and 14 none, among them the main air compressor
    K-1101 (6.75 MW fluid power, D-066, outside the correlation's range) and the cold box
    internals. An allowance on that base would be invented. The ISBL is
    therefore the benchmark of about $200 per t/a of oxygen capacity (same source), 182,500 t/a x
-   200 = USD 36.5 M, ASSUMED, class 5. A market-report figure (Mordor Intelligence, 2026
+   200 = USD 36.5 M, ASSUMED, class 5. The source states no cost year; its companion report is
+   dated 2023-05-31 and the data file "last updated before 2025". It is taken as USD 2023 and
+   not escalated: dated 2024 instead, the CEPCI factor would be about 1.00 (797.9 in 2023,
+   monthly values just below 800 through 2024), far inside the class 5 range. A market-report figure (Mordor Intelligence, 2026
    edition: USD 250 to 300 M for a 2,000 t/d plant, no method or cost year stated) is the
    scenario `capex-market-report`, scaled to 500 t/d with the capacity exponent 0.6 (six-tenths
    rule, ASSUMED): 275 M x (500/2000)^0.6 = USD 119.7 M, $656 per t/a, x 3.28 on the base
