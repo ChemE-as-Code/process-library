@@ -55,8 +55,11 @@ construction:
   - {id: reducers, title: Reducers, takeoff: mto, category: reducer, factor: fitting, source: "per piece (screening)"}
   - {id: inline, title: In-line items, takeoff: mto, category: inline, factor: fitting, source: "per piece (screening)"}
   - {id: equipment-al, title: Aluminium equipment, takeoff: equipment, equipment: {material: "Aluminium*"}, factor: aluminium, source: "brazed and finned aluminium exchangers, cold box internals"}
-  - {id: equipment-ss, title: Stainless steel equipment, takeoff: equipment, equipment: {material: "SS*"}, factor: stainless-steel, source: "stainless items (material starting SS)"}
-  - {id: equipment-cs, title: Carbon steel equipment, takeoff: equipment, equipment: {material: "*"}, factor: steel-sections, source: "the rest: carbon steel shells and casings, by empty weight (mixed materials counted as carbon steel)"}
+  # carbon steel before stainless: an item with any carbon steel part (SS inner / CS outer tanks
+  # T-4101 / T-4102, the SS sheath / CS shell heater E-2101) is counted as carbon steel, as
+  # mixed materials are; one material per item is all the equipment take-off counts (D-081 (5))
+  - {id: equipment-cs, title: Carbon steel equipment, takeoff: equipment, equipment: {material: "*CS*"}, factor: steel-sections, source: "carbon steel shells and casings, by empty weight (mixed materials with a carbon steel part counted as carbon steel, D-081 (5))"}
+  - {id: equipment-ss, title: Stainless steel equipment, takeoff: equipment, equipment: {material: "SS*"}, factor: stainless-steel, source: "stainless items (material starting SS, no carbon steel part)"}
 
 # What the flowsheet and the take-off do not hold (D-056), all ASSUMED for the concept stage.
 consumables:

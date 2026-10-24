@@ -658,40 +658,16 @@ exchanges:
   - E-4106A
   - E-4106B
   source: brazed and finned aluminium exchangers, cold box internals
-- key: construction:equipment-ss
-  title: Stainless steel equipment
-  type: input
-  phase: construction
-  amount: 0.7952380952380952
-  unit: kg
-  link:
-    factor: stainless-steel
-    source: stainless items (material starting SS)
-  streams:
-  - E-2101
-  - F-2101
-  - KT-3101
-  - V-3101
-  - K-4101
-  - E-4101
-  - E-4102
-  - T-4101
-  - T-4102
-  - P-4101A
-  - P-4101B
-  - P-4102A
-  - P-4102B
-  source: stainless items (material starting SS)
 - key: construction:equipment-cs
   title: Carbon steel equipment
   type: input
   phase: construction
-  amount: 1.8404761904761904
+  amount: 2.169047619047619
   unit: kg
   link:
     factor: steel-sections
-    source: 'the rest: carbon steel shells and casings, by empty weight (mixed materials counted as carbon
-      steel)'
+    source: carbon steel shells and casings, by empty weight (mixed materials with a carbon steel part
+      counted as carbon steel, D-081 (5))
   streams:
   - F-1101
   - K-1101
@@ -706,12 +682,36 @@ exchanges:
   - P-1102B
   - V-2101A
   - V-2101B
+  - E-2101
   - E-3104
   - E-3105
   - K-4102
   - E-4103
-  source: 'the rest: carbon steel shells and casings, by empty weight (mixed materials counted as carbon
-    steel)'
+  - T-4101
+  - T-4102
+  source: carbon steel shells and casings, by empty weight (mixed materials with a carbon steel part counted
+    as carbon steel, D-081 (5))
+- key: construction:equipment-ss
+  title: Stainless steel equipment
+  type: input
+  phase: construction
+  amount: 0.4666666666666667
+  unit: kg
+  link:
+    factor: stainless-steel
+    source: stainless items (material starting SS, no carbon steel part)
+  streams:
+  - F-2101
+  - KT-3101
+  - V-3101
+  - K-4101
+  - E-4101
+  - E-4102
+  - P-4101A
+  - P-4101B
+  - P-4102A
+  - P-4102B
+  source: stainless items (material starting SS, no carbon steel part)
 - key: consumable:molecular-sieve
   title: Molecular sieve 13X and activated alumina (V-2101A/B)
   type: input
@@ -930,40 +930,16 @@ exchanges:
   - E-4106A
   - E-4106B
   source: 'ASSUMED: 1 %/a of the construction materials as spare parts and repairs'
-- key: maintenance:equipment-ss
-  title: 'Maintenance: Stainless steel equipment'
-  type: input
-  phase: maintenance
-  amount: 0.1988095238095238
-  unit: kg
-  link:
-    factor: stainless-steel
-    source: stainless items (material starting SS)
-  streams:
-  - E-2101
-  - F-2101
-  - KT-3101
-  - V-3101
-  - K-4101
-  - E-4101
-  - E-4102
-  - T-4101
-  - T-4102
-  - P-4101A
-  - P-4101B
-  - P-4102A
-  - P-4102B
-  source: 'ASSUMED: 1 %/a of the construction materials as spare parts and repairs'
 - key: maintenance:equipment-cs
   title: 'Maintenance: Carbon steel equipment'
   type: input
   phase: maintenance
-  amount: 0.4601190476190476
+  amount: 0.5422619047619047
   unit: kg
   link:
     factor: steel-sections
-    source: 'the rest: carbon steel shells and casings, by empty weight (mixed materials counted as carbon
-      steel)'
+    source: carbon steel shells and casings, by empty weight (mixed materials with a carbon steel part
+      counted as carbon steel, D-081 (5))
   streams:
   - F-1101
   - K-1101
@@ -978,10 +954,34 @@ exchanges:
   - P-1102B
   - V-2101A
   - V-2101B
+  - E-2101
   - E-3104
   - E-3105
   - K-4102
   - E-4103
+  - T-4101
+  - T-4102
+  source: 'ASSUMED: 1 %/a of the construction materials as spare parts and repairs'
+- key: maintenance:equipment-ss
+  title: 'Maintenance: Stainless steel equipment'
+  type: input
+  phase: maintenance
+  amount: 0.11666666666666668
+  unit: kg
+  link:
+    factor: stainless-steel
+    source: stainless items (material starting SS, no carbon steel part)
+  streams:
+  - F-2101
+  - KT-3101
+  - V-3101
+  - K-4101
+  - E-4101
+  - E-4102
+  - P-4101A
+  - P-4101B
+  - P-4102A
+  - P-4102B
   source: 'ASSUMED: 1 %/a of the construction materials as spare parts and repairs'
 - key: transport:construction-to-site
   title: Transport (500 km)
@@ -996,8 +996,8 @@ exchanges:
   streams:
   - construction:steel
   - construction:equipment-al
-  - construction:equipment-ss
   - construction:equipment-cs
+  - construction:equipment-ss
   source: 'ASSUMED: structural steel and equipment by lorry, 500 km (the take-off rows counted in m or
     pieces carry no mass)'
 - key: transport:consumables-to-site
@@ -1014,8 +1014,8 @@ exchanges:
   - consumable:lube-oil
   - maintenance:steel
   - maintenance:equipment-al
-  - maintenance:equipment-ss
   - maintenance:equipment-cs
+  - maintenance:equipment-ss
   source: 'ASSUMED: adsorbent, oil and spares by lorry, 800 km'
 - key: end-of-life:steel-recycling
   title: 'End of life: steel-recycling'
@@ -1029,11 +1029,11 @@ exchanges:
       credit); pipe is counted in m, not mass, and gets no credit'
   streams:
   - construction:steel
-  - construction:equipment-ss
   - construction:equipment-cs
+  - construction:equipment-ss
   - maintenance:steel
-  - maintenance:equipment-ss
   - maintenance:equipment-cs
+  - maintenance:equipment-ss
   source: 'ASSUMED: 90 % of the structural steel and the steel equipment recovered as scrap (avoided-burden
     credit); pipe is counted in m, not mass, and gets no credit'
 - key: end-of-life:aluminium-recycling
@@ -1077,6 +1077,6 @@ provenance:
   files:
     equipment/equipment-list.yaml: sha256:7bdac1d3acfe32becef6c88376a4585fe4b9af86b69df683e4412954aee5516f
     estimate/mto.csv: sha256:ca5ae04d2ed7126deb02f0e7999cdb1adadf1887d1035a6830b44626a9225b6e
-    lca/lca.yaml: sha256:3adbfc7eaf1f2219d95ae09bab12bf229fb25be0d9d9f266f6c3517ed8a94f5e
+    lca/lca.yaml: sha256:2fbdc17f3161def753ee4d667fc42124a5df33b4b7ff354af6a854d2ed6e86cb
     process/flowsheet.yaml: sha256:0017d59880eecae9cd7e13b285dc48460a928774b6097389b6b253b5717b7d39
     process/materials.yaml: sha256:dfc7b8a7effda54264d98c4961f95828a5e8f1614615f371ace69139a429b404

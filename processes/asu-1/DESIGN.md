@@ -3394,6 +3394,17 @@ shows the envelope the layout was built on. Tooling: cheme-as-code 0.8.0
    of the list and the datasheet, except K-1101, which lifts its 34 t motor out of the 89 t
    train. The LCA construction phase rises from 0.57 to 0.72 kg CO2-eq per t GOX (total
    142.77 -> 142.89; operation 142.36 unchanged).
+   LCA material of the tanks (PR #22 review): `lca/lca.yaml` counts mixed materials as carbon
+   steel, but its `SS*` entry came first and took the whole 26 / 35 t of the SS inner / CS outer
+   tanks (and the 8 t of the SS sheath / CS shell heater E-2101) as stainless steel. The carbon
+   steel entry (`*CS*`) now comes before the stainless one, so every item with a carbon steel
+   part is counted as carbon steel, as the file says: construction 0.721 -> 0.688, maintenance
+   0.172 -> 0.163, total 142.89 -> 142.85 kg CO2-eq per t GOX. The equipment take-off counts one
+   material per item (cheme-as-code 0.8.0 has no split by weight), so the tanks' SS inner plate
+   (9.8 + 13.4 t, x 1.15 = 26.7 t) is now counted at the carbon steel factor: about 0.013 kg
+   CO2-eq per t GOX too little in construction (plus 1 %/a of it in maintenance), where the old
+   mapping counted the 33.6 t of CS outer plate about 0.016 too high. Both are below 0.02 % of
+   the total; a split needs a material fraction per item in the take-off (core suggestion).
 6. **Tangent lengths: accepted as basic-engineering envelopes** (ASSUMED, the suppliers
    confirm), after checking each against the process datasheets; none was inconsistent, so none
    changed:
