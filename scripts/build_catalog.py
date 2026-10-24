@@ -38,6 +38,8 @@ library has it) or ``public`` (``--public``, for publication; rules in ``publica
   unit, boundary, allocation, categories, inventory, class and sources, but not its ``totals``
   and ``contributions`` (``values_withheld: <reason>``; the summary's headline ``value`` is
   null);
+- an LCA's ``data_sources`` (from core's run manifest) stay in every build: the attribution its
+  sources' licences ask for travels with the numbers;
 - a viewer snapshot is copied only if its manifest's ``excluded`` covers the publication
   excludes (else an error), and for a withheld LCA without its ``lca`` answer and LCA result
   files.
@@ -164,6 +166,10 @@ def _sheets(plant: dict) -> list[dict]:
     ]
 
 
+#: What the catalog gives of each LCA data source (core's run manifest background.sources).
+DATA_SOURCE_FIELDS = ("id", "title", "provider", "version", "url", "licence", "publication", "attribution")
+
+
 def _lca(folder: Path, where: str, report: Report) -> dict | None:
     """Functional unit, totals per scenario and category, contributions and inventory."""
     lca_dir = folder / "lca"
@@ -210,9 +216,12 @@ def _lca(folder: Path, where: str, report: Report) -> dict | None:
     totals = {s: {**sums.get(s, {}), **stated.get(s, {})} for s in sums.keys() | stated.keys()}
 
     run = {}
+    sources: list[dict] = []
     if (lca_dir / "manifest.json").is_file():
         try:
-            run = (json.loads((lca_dir / "manifest.json").read_text(encoding="utf-8")) or {}).get("result") or {}
+            manifest_data = json.loads((lca_dir / "manifest.json").read_text(encoding="utf-8")) or {}
+            run = manifest_data.get("result") or {}
+            sources = (manifest_data.get("background") or {}).get("sources") or []
         except ValueError:
             report.warn(where, "lca/manifest.json does not parse: rewrite it with cheme assess lca --write")
     withheld = lca_withheld(folder)
@@ -245,6 +254,11 @@ def _lca(folder: Path, where: str, report: Report) -> dict | None:
         },
         "publishable": withheld is None,
         "withheld_reason": withheld,
+        # the background data the numbers rest on, with what their licences ask a user of the
+        # numbers to show (OGL-3.0, CC BY: the attribution), from core's run manifest
+        "data_sources": [
+            {key: s.get(key, "") for key in DATA_SOURCE_FIELDS} for s in sources
+        ],
         "categories": [
             {
                 "id": cid,

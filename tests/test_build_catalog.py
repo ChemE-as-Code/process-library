@@ -565,3 +565,26 @@ def test_a_stale_run_manifest_withholds(library: Path, tmp_path: Path) -> None:
     run["background"] = {"backend": "brightway"}
     path.write_text(json.dumps(run))
     assert lca_withheld(folder) == "stale-run-manifest"
+
+
+
+def test_data_sources_carry_the_attribution(library: Path, tmp_path: Path) -> None:
+    _edit(library, "processes/fixture-electrolysis/lca/factors.yaml", lambda f: f.pop("example"))
+    _run_manifest(library, "fixture-electrolysis")
+    path = library / "processes" / "fixture-electrolysis" / "lca" / "manifest.json"
+    run = json.loads(path.read_text())
+    run["background"] = {
+        "backend": "factors",
+        "sources": [
+            {"id": "desnz-ghg-2026", "title": "UK GHG Conversion Factors 2026", "provider": "DESNZ",
+             "version": "2026 v1.2", "url": "https://www.gov.uk/", "licence": "OGL-3.0",
+             "attribution": "Contains public sector information licensed under the OGL v3.0.",
+             "checksum": "sha256:x", "publication": "public"}
+        ],
+    }
+    path.write_text(json.dumps(run))
+    _public(library, tmp_path / "out")
+    lca = _json(tmp_path / "out" / "processes" / "fixture-electrolysis.json")["lca"]
+    (source,) = lca["data_sources"]
+    assert source["licence"] == "OGL-3.0" and "OGL v3.0" in source["attribution"]
+    assert "checksum" not in source and lca["totals"]
