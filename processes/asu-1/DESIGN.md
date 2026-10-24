@@ -158,7 +158,7 @@ product CW; electric heater at its cycle average), which the LCA reads (`lca/`,
 | PSV-4127 / PSV-4128 | E-4105A/B / E-4106A/B (no outlet isolation valve, so one PSV on each outlet header covers both) | blocked outlet, thermal | elevated |
 | TSV-4140 / TSV-4141 | LOX-3001 / LIN-3001 between FV-3111 (P-03) and the manual tank inlet valve | heat-in of blocked liquid | atmosphere (LOX: safe location) |
 | XV-4133 / XV-4135 | GOX / GAN BL bleeds (DBB) | bleed between the two closed block valves | VNT-4006 safe location / VNT-4007 elevated |
-| PSV on CW headers | E-1101..E-1103 tube side | tube rupture (5.98 bara air into CW, D-079) | local |
+| PSV on CW headers | E-1101..E-1103 tube side | tube rupture (6.02 bara air into CW, D-089) | local |
 | WN-1002 open vent (no device, no valve) | C-1102 evaporative cooler (1 barg) | air blow-by through CHWR-1001 when the DCAC chimney tray loses its seal, 94.5 t/h bound + the design gas: ~25 kPa(g) at the top (D-083); I-03 (SIL 1 screening) limits the duration | elevated, WN-1002 (air / N2, zone Z-N2-WN1002) |
 
 All PSV tags are fixed (S4); TSV-4140/4141 and the vacuum breakers PSV-4142/4143 are drawn on P-04 (S5). Remaining TSVs (RL, LN in the cold box) get tags in detail engineering.
@@ -3681,3 +3681,60 @@ Reason:
 
 Open: the adsorber and F-2101 pressure drops in adsorption come from the suppliers. Above the
 ~11 kPa assumed, raise S2 by the difference, at ~6.9 kW/kPa.
+
+## D-090 Lists, datasheets and estimates on the D-089 state (2026-10-24)
+Carries D-089 (S2 6.02 / S3 5.92 bara, S3 111,080 kg/h, S12D 18,696 kg/h) into the lists, the
+datasheets, the equipment estimate and the TEA. The flowsheet, the simulation and the design basis
+are not changed. Every number is printed by `cheme run scripts/datasheet_sizing.py` (record at
+543e898, "current with process/*.yaml") or read from process/simulation-run.json. Answers the
+D-089 review's low finding #3 (downstream documents on the D-079 values).
+
+Decision:
+- (1) **Values on the D-089 state.**
+  - **K-1101.** `outlet_pressure` 6.02 bara; the HOLD of D-080 (1) / D-088 (1) is **lifted**
+    (D-089). 7,288 kW electric, 6,894 kW shaft (run record 7,287.56 / 6,894.03 kW; script gas power
+    6,910 kW). Against D-079 that is +27.8 kW electric and +26.3 kW shaft. Ratio 1.844 per stage to
+    607 kPa(a); stage discharges 373.6 / 386.0 / 386.5 K. **Motor check:** 7,640 kW electric pro rata
+    at 90,000 Nm3/h, 7,411 kW output, 8,152 kW at 110 % (API 617) against the 9.0 MW motor: 10.4 %
+    margin (was 10.8 %). The 9.0 MW motor holds.
+  - **MAC coolers:** E-1101 1,941 kW, 396.1 m2, CW 167.9 m3/h; E-1102 2,877 kW (808 kg/h condensed),
+    607.0 m2 by zones, 248.9 m3/h; E-1103 2,797 kW (726 kg/h), 557.4 m2 by zones, 242.0 m3/h. In all
+    7,614 kW against the simulated Q1 7,728 kW (CW ~669 m3/h). The areas change by at most 1.8 m2.
+  - **DCAC C-1101:** in 6.02, out 5.92 bara; S2 111,720 kg/h, S3 111,080 kg/h; DWSIM 699.5 kW lower /
+    634.3 kW upper; condensate S3C 411 / S3CU 228 kg/h; gas F 0.953 Pa^0.5; upper liquid 34.1 m3/h
+    (2.71 m3/(m2 h)). The chimney-tray overflow stays 38 m3/h (37.8 computed). I-03: inflow 34.4
+    m3/h; the levels and times of D-088 (4) are unchanged (148 / 144 / 72 s).
+  - **C-1102 and the chilled-water loop:** loop 39.55 m3/h, demand 697.6 kW, 850 kg/h evaporated,
+    make-up 621 kg/h. Blow-by bound (D-076, D-083) at S3 5.92 bara: 95.1 t/h (was 94.5); WN-1002
+    passes 154.1 t/h at 3.0 kPa, ~26 kPa(g) at the C-1102 top against 1 barg (3.9 x margin).
+  - **Pumps:** P-1101A/B 33.3 / 34.1 m, 30.1 / 30.9 kW shaft (45 kW motors hold); P-1102A/B 78.0 /
+    78.1 m, 12.5 kW shaft (15 kW motors hold); the P-1102 rating of 44 m3/h is 111 % of the loop.
+  - **TSA V-2101A/B.** The beds **stay sized on 165.0 kg/h** of water (IAPWS-95 at the 5.88 bara of
+    D-079, D-080 (2)). At the D-089 state IAPWS-95 gives 163.9 kg/h (S3 saturated at 12 C, 5.92 bara,
+    y 0.00237), so the sizing load is 0.7 % above it. It is 16 % above the 142.1 kg/h of the
+    simulated stream 3 (Peng-Robinson) that the regeneration gas S12D carries (D-089). CO2 67.7 kg/h
+    unchanged; 660 kg of water per 4 h step (655.5 kg at the D-089 IAPWS load).
+  - **Front end** (section 10, D-089 pressures): the routed DN700 lines take 16.9 kPa (bed B; D-073
+    basis 17.7 kPa), so lines + bed 8 + F-2101 3 = 27.9 kPa against the 32 kPa S3 -> S4, a margin of
+    **+4.1 kPa**. The bound (every turn and the vessel nozzles, at the S4 density) is still 21.1 kPa.
+    It leaves **-0.11 kPa**, because D-089 rounded 21.1 + 8 + 3 = 32.1 kPa down to 32. That is ~0.7 kW
+    at the MAC (6.7 kW/kPa) and below the accuracy of the ASSUMED allowables. It is noted, not
+    acted on: the bound is taken at the lowest density on the path. F-2101 inlet ~5.72 bara (was 5.68).
+  - **TR-1:** running load ~12.4 MVA (MAC 7.29 + GOX 2.26 + GAN 0.24 MW electric simulated + LV ~1.4
+    MW, pf 0.9), ~78 % of the 16 MVA rating. The note still carried the MAC 7.13 MW of D-066 (~12.3
+    MVA). The rating is unchanged.
+  - Datasheets K-1101, E-1101, E-1102, E-1103, C-1101, C-1102, V-2101A/B, F-2101, P-1101A/B,
+    P-1102A/B; equipment list K-1101, C-1101, P-1102A; line list AIR-1002, AIR-1004, AIR-1005,
+    AIR-1006, AIR-2002, CHW-1001, CHWR-1001, CWR-1001, WN-1002, CW-1002, CW-1003, CD-1001, CD-1002;
+    electrical list TR-1, K-1101, P-1101A, P-1102A; instrument list LIC-1114, LSLL-1115; C&E I-03;
+    S-2101 (S12D 18,696 kg/h); the relief case list (section 4: tube rupture at 6.02 bara);
+    sizing-script comments and the budget label. layout/plant-model.yaml rebuilt (input fingerprints
+    and two motor-basis texts only).
+- (2) **Notes on D-089** (review low findings #1, #2, not changed here because D-089 is the decision
+  of the simulation owner's branch): the "+28 kW against D-079" is the electric increment (+27.8 kW,
+  6.95 kW/kPa); the shaft increment is +26.3 kW (6.57 kW/kPa). Stream 2 in the section 3 table
+  carries H2O 1.12 mol% as simulated (0.0112061); the table prints 1.11.
+
+Reason: D-089 changed S2, S3 and S12D in the flowsheet and the simulation. The lists, the
+datasheets (the MAC enquiry basis among them, still on HOLD at 5.98 bara), the electrical list
+and the estimate still gave the D-079 state.

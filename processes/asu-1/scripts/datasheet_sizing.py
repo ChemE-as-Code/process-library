@@ -293,7 +293,7 @@ print(f"  coolers in all {q_mac:.5g} kW, condensate {sum(r['condensed'] for r in
 # scaled, same pressure ratio), API 617 110 % of the rated power against the motor rating
 n_dry_s1 = flow("S1") / molar_mass(fractions("S1")) * (1.0 - fractions("S1")["H2O"])
 nm3_dry = n_dry_s1 * 22.414  # Nm3/h of dry air incl. CO2 at 0 C, 1.01325 bar
-E1 = sim("K1101", "duty_kW")  # E1 = K1101 electric, the run record (D-079: S2 5.98 bara)
+E1 = sim("K1101", "duty_kW")  # E1 = K1101 electric, the run record (D-089: S2 6.02 bara; D-079 5.98)
 rated = E1 * 90000.0 / nm3_dry
 print(f"  K-1101 rating: S1 dry air {nm3_dry:.6g} Nm3/h (22.414 Nm3/kmol); electric {E1:.6g} kW at the "
       f"design point, {rated:.5g} kW pro rata at 90,000 Nm3/h; motor output = electric x motor efficiency "
@@ -674,7 +674,7 @@ V_P1102 = 44.0  # the selected rating (D-068 (8), D-069): 110 % of the D-067 loo
 print(f"  P-1102A/B rated flow {V_P1102:g} m3/h (selected, D-069) = {V_P1102 / (v_dcac + v_3105):.1%} of the "
       f"{v_dcac + v_3105:.4g} m3/h loop (110 % ASSUMED margin as the minimum)")
 # D-080 (2): the pumps discharge into the DCAC at the column's gas pressure: the lower section at S2,
-# the upper section at S3 (D-079: 5.98 / 5.88 bara; was 5.8 / 5.7)
+# the upper section at S3 (D-089: 6.02 / 5.92 bara; D-079 5.98 / 5.88, before it 5.8 / 5.7)
 for tag, t, vflow, p_src, p_dst, src, dst in (
     ("P-1101A", 298.15, 250.0, 501.3, kpa("S2"), "pipe:P-01/Line_CW1001_S1:start", "C-1101"),
     ("P-1101B", 298.15, 250.0, 501.3, kpa("S2"), "pipe:P-01/Line_CW1001_S1:start", "C-1101"),
@@ -695,7 +695,7 @@ for tag, t, vflow, p_src, p_dst, src, dst in (
     show_pump(duty)
 
 # D-076 (review11#4 (a)): air blow-by through the chimney-tray draw-off when the seal is lost, the bound
-# of the C-1102 relief case: choked ideal-gas flow of S3 air (dry, 12 C, 5.88 bara since D-079) through the full DN150
+# of the C-1102 relief case: choked ideal-gas flow of S3 air (dry, 12 C, 5.92 bara since D-089) through the full DN150
 # bore (ID 154.1 mm, schedule 40, ASSUMED; discharge coefficient 1, an upper bound)
 k_air = 1.4
 m_air = molar_mass(dry(fractions("S3")))
@@ -989,8 +989,8 @@ for line, sid, dn, mflow in (
 # D-073 (review11#2), D-080 (1): the main air lines C-1101 -> E-3101 at the D-066 flow, velocity and
 # Darcy drop along the routed lines (the section 11 method: Colebrook, elbows K 0.75, tees K 0.4 run /
 # 1.0 branch, the V-2101 nozzle entry 1.0; the ball valves XV-2101 / XV-2102 not counted). Density by
-# the property adapter at each line's own pressure on the D-079 profile: AIR-1004 at S3 (dry air of
-# S3, 12 C, 5.88 bara at the C-1101 outlet); AIR-2001 after AIR-1004 and the bed's ~8 kPa, AIR-2002
+# the property adapter at each line's own pressure on the D-079 / D-089 profile: AIR-1004 at S3 (dry air of
+# S3, 12 C, 5.92 bara at the C-1101 outlet, D-089); AIR-2001 after AIR-1004 and the bed's ~8 kPa, AIR-2002
 # after F-2101's 3 kPa (dry air of S4 at 15 C, D-079, ASSUMED allowables). The D-073 basis (all three
 # lines at S4, 5.6 bara: the lowest density, a bound) is printed beside it. Air viscosity Yoon-Thodos as
 # nitrogen (ASSUMED < 2 % off).
@@ -1064,7 +1064,7 @@ for dn in (600, 700):
     bound = max(air_path[(b, dn, "S4")] for b in AIR_PATHS)
     budget = kpa("S3") - kpa("S4")
     print(f"  front end DN{dn}, longer bed: lines {worst:.3g} kPa (D-073 basis {bound:.3g}) + bed {BED_DP:g} + F-2101 "
-          f"{F2101_DP:g} = {worst + BED_DP + F2101_DP:.3g} kPa against S3 -> S4 {budget:g} kPa (D-079): margin "
+          f"{F2101_DP:g} = {worst + BED_DP + F2101_DP:.3g} kPa against S3 -> S4 {budget:g} kPa (D-079, D-089): margin "
           f"{budget - worst - BED_DP - F2101_DP:+.3g} kPa (D-073 basis {budget - bound - BED_DP - F2101_DP:+.3g})"
           + (f"; the bound {max(air_path[(b, 700, 'bound')] for b in AIR_PATHS):.3g} kPa: margin "
              f"{budget - max(air_path[(b, 700, 'bound')] for b in AIR_PATHS) - BED_DP - F2101_DP:+.3g} kPa"

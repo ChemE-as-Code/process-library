@@ -5,7 +5,7 @@
 substations:
   - {id: SS-1, title: "Main substation in the substation and control building B2", building: B2, incoming_kv: 33}
 transformers:
-  - {tag: TR-1, substation: SS-1, rating_kva: 16000, primary_kv: 33, secondary_v: 6600, feeds: [SWG-1], notes: "MAC 9.0 MW (D-066, was 8) + GOX compressor 2.5 MW (D-075, was 2.3) + GAN 0.315 MW + LV transformer 2.5 MVA, ~0.85 load factor (ASSUMED): 13.7 MVA on the connected ratings at pf 0.9 / efficiency 0.96, running load ~12.3 MVA (MAC 7.13 + GOX 2.26 + GAN 0.24 MW electric simulated, LV ~1.4 MW peak); 16 MVA kept (D-070). The 9 MW MAC motor needs a reduced-voltage start (ASSUMED, motor starting study, D-070)"}
+  - {tag: TR-1, substation: SS-1, rating_kva: 16000, primary_kv: 33, secondary_v: 6600, feeds: [SWG-1], notes: "MAC 9.0 MW (D-066, was 8) + GOX compressor 2.5 MW (D-075, was 2.3) + GAN 0.315 MW + LV transformer 2.5 MVA, ~0.85 load factor (ASSUMED): 13.7 MVA on the connected ratings at pf 0.9 / efficiency 0.96, running load ~12.4 MVA (MAC 7.29 at the 6.02 bara of D-089 + GOX 2.26 + GAN 0.24 MW electric simulated, LV ~1.4 MW peak, at pf 0.9; ~78 % of 16 MVA; D-090, was ~12.3 MVA on the MAC 7.13 MW of D-066); 16 MVA kept (D-070). The 9 MW MAC motor needs a reduced-voltage start (ASSUMED, motor starting study, D-070)"}
   - {tag: TR-2, substation: SS-1, rating_kva: 2500, primary_kv: 6.6, secondary_v: 400, feeds: [MCC-1], notes: "Pumps, heater, lighting, HVAC, small power (ASSUMED)"}
 rooms:
   - {id: SWG-1, kind: switchgear, title: "6.6 kV switchgear", building: B2, substation: SS-1, voltage_v: 6600}
@@ -20,15 +20,15 @@ motors:
   # north of B1; review3#1: no tray over the B1 roof); the GOX compressor motor by tray along
   # PR1 to a cable pit under the rack and from there in a covered trench to the open east side
   # of FW-4101 (feeder K-4101-MV below; review4#5: no tray over K-4101 in its lift path)
-  - {driven: K-1101, power_kw: 9000, assumed: true, source: "equipment list K-1101: 9.0 MW, 6.6 kV motor (D-066, ASSUMED; was 8.0 MW, D-002); 7,260 kW electric / 6,868 kW shaft simulated at the 5.98 bara discharge (D-079), 8,121 kW at 110 % of the rated flow (D-080 (2)): 9.0 MW holds",
+  - {driven: K-1101, power_kw: 9000, assumed: true, source: "equipment list K-1101: 9.0 MW, 6.6 kV motor (D-066, ASSUMED; was 8.0 MW, D-002); 7,288 kW electric / 6,894 kW shaft simulated at the 6.02 bara discharge (D-089), 8,152 kW at 110 % of the rated flow (D-090): 9.0 MW holds (10.4 % margin)",
      skip: "MV cable 6.6 kV, 9 MW (~900 A full load at pf 0.9, efficiency 0.97; cable size by the electrical engineer), from SWG-1 through the B2 cable cellar and a 2 m covered trench into the B1 floor trench to the motor terminal box, about 25 m (ASSUMED); no tray (D-038 (5))"}
   - {driven: K-4101, power_kw: 2500, assumed: true, source: "equipment list K-4101: 2.5 MW, the next motor size above 2.3 MW, carried until the vendor confirms (D-075; 2,414 kW with the API 617 110 % margin)",
      skip: "fed as K-4101-MV (feeders): tray along PR1 to the cable pit under the rack, then a covered trench to the motor (D-038 (5))"}
   - {driven: K-4102, power_kw: 315, assumed: true, source: "equipment list K-4102: ~0.3 MW; next standard motor 315 kW (ASSUMED)",
      skip: "fed as K-4102-M (feeders): terminal box on the motor's north face, the tray drops north of the compressor, out of its lift lane (D-041)"}
-  - {driven: P-1101A, power_kw: 45, assumed: true, source: "~250 m3/h at ~40 m head: ~39 kW shaft; standard 45 kW (ASSUMED); datasheet 32.9 / 33.7 m, 29.8 / 30.5 kW shaft at the 5.98 bara DCAC (D-080 (2)): 45 kW holds"}
+  - {driven: P-1101A, power_kw: 45, assumed: true, source: "~250 m3/h at ~40 m head: ~39 kW shaft; standard 45 kW (ASSUMED); datasheet 33.3 / 34.1 m, 30.1 / 30.9 kW shaft at the 6.02 bara DCAC (D-090): 45 kW holds"}
   - {driven: P-1101B, power_kw: 45, assumed: true, source: "as P-1101A (ASSUMED)"}
-  - {driven: P-1102A, power_kw: 15, assumed: true, source: "re-selected (D-069): 44 m3/h at ~78 m head (5.88 bara, D-079), ~12.4 kW shaft at eta 0.75 (P-1102A datasheet, D-080 (2)); next standard 15 kW (ASSUMED; was 18.5 kW for ~100 m3/h)"}
+  - {driven: P-1102A, power_kw: 15, assumed: true, source: "re-selected (D-069): 44 m3/h at ~78 m head (5.92 bara, D-089), ~12.5 kW shaft at eta 0.75 (P-1102A datasheet, D-090); next standard 15 kW (ASSUMED; was 18.5 kW for ~100 m3/h)"}
   - {driven: P-1102B, power_kw: 15, assumed: true, source: "as P-1102A (ASSUMED)"}
   - {driven: P-4101A, power_kw: 15, assumed: true, source: "5.2 t/h LOX to 31 bara: ~4.6 m3/h x 30 bar ~4 kW hydraulic, low pump efficiency at this duty; 15 kW (ASSUMED)"}
   - {driven: P-4101B, power_kw: 15, assumed: true, source: "as P-4101A (ASSUMED)"}
