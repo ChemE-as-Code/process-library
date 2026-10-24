@@ -85,8 +85,8 @@ agent record does not make any study `assessed` or `reviewed`.
 ## Previous findings
 | id | finding | severity | status | evidence |
 |---|---|---|---|---|
-| 2026-10-24-hazop-review2#1 | H04-S07 asset residual lowered severity and likelihood on the same safeguard. | low | closed | Closed before this branch, on origin/main. In study.yaml the H04-S07 asset residual is 4/C (high), and `rate` reports it current. |
-| 2026-10-24-hazop-review2#2 | A PROGRESS.md row was missing for the hazop-review1 #13 / #14 revision. | low | closed | PROGRESS.md has the row ("row added later, for bacc295 and 575447f"). 169dc8b and 5e263b4 each add their own row. |
+| 2026-10-24-hazop-review2#1 | H04-S07 asset residual lowered severity and likelihood on the same safeguard. | low | closed 169dc8b | In study.yaml the H04-S07 asset residual is 4/C (high), and `rate` reports it current. |
+| 2026-10-24-hazop-review2#2 | A PROGRESS.md row was missing for the hazop-review1 #13 / #14 revision. | low | closed 169dc8b | PROGRESS.md has the row ("row added later, for bacc295 and 575447f"). 169dc8b and 5e263b4 each add their own row. |
 
 ## Checked and fine
 - **Analysed inputs:** the sha256 of every `analysed:` path in the four studies matches the
