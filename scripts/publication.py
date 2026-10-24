@@ -29,10 +29,11 @@ DEFAULT_EXCLUDE = (
 #: every published snapshot, as it names the repository (maybe private) and the excludes; the
 #: catalog publishes what of it may be public.
 MANIFEST = "process.yaml"
-#: core's LCA result files (``cheme assess lca --write``): footprint values and what they lack,
+#: core's LCA result files (``cheme assess lca --write``, and the per-scenario records of
+#: ``cheme assess lca-scenarios --write``, a glob): footprint values and what they lack,
 #: excluded from the snapshot of a process whose LCA may not be published, like the ``lca``
 #: answer (core's ``export-static`` withholds the same).
-LCA_RESULT_FILES = ("lca/results.csv", "lca/results.md", "lca/gaps.csv", "lca/uncertainty.csv")
+LCA_RESULT_FILES = ("lca/results.csv", "lca/results.md", "lca/gaps.csv", "lca/uncertainty.csv", "lca/scenarios/**")
 #: core's run manifest of the LCA: the result's class and publication policy.
 LCA_MANIFEST = "lca/manifest.json"
 

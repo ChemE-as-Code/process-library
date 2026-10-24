@@ -319,7 +319,9 @@ LINK_FIELDS = (
 
 
 def _record_stale(folder: Path, record: dict) -> bool:
-    """Whether a scenario record's input fingerprints no longer match the files (core's rule)."""
+    """Whether a scenario record's input file fingerprints no longer match the files. The
+    mapping, background profiles and software are checked by core (``cheme assess
+    lca-scenarios --check`` in CI), not here."""
     import hashlib
 
     for rel, sha in ((record.get("inputs") or {}).get("files") or {}).items():
@@ -348,6 +350,10 @@ def _scenarios(folder: Path, where: str, report: Report, lca_withheld_reason: st
             continue
         if data.get("schema") != SCENARIO_SCHEMA:
             report.warn(where, f"{path.relative_to(folder)}: schema {data.get('schema')!r}, expected {SCENARIO_SCHEMA}")
+            continue
+        missing = [k for k in ("id", "scenario", "design_case", "foreground", "linked_inventory", "impacts") if not isinstance(data.get(k), (dict, str))]
+        if missing:
+            report.warn(where, f"{path.relative_to(folder)}: not a complete scenario record (no {', '.join(missing)}); skipped")
             continue
         records.append((path, data))
     if not records:
@@ -508,9 +514,14 @@ SNAPSHOT_SCHEMA = "cheme/viewer-snapshot/v1"
 
 def _withhold_lca_values(manifest: dict, target: Path) -> None:
     """Drop the snapshot's ``lca`` answer and LCA result files (footprint values) in *target*."""
-    withheld = {"lca", *(f"{endpoint}?path={path}" for path in LCA_RESULT_FILES for endpoint in ("file", "yaml"))}
+    from fnmatch import fnmatchcase
+
+    def result_file(key: str) -> bool:
+        endpoint, _, path = key.partition("?path=")
+        return endpoint in ("file", "yaml") and any(fnmatchcase(path, glob.replace("**", "*")) for glob in LCA_RESULT_FILES)
+
     entries = manifest.get("entries", {})
-    for key in sorted(withheld & entries.keys()):
+    for key in sorted(k for k in entries if k == "lca" or result_file(k)):
         (target / "data" / entries.pop(key)["file"]).unlink(missing_ok=True)
     (target / "manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
@@ -791,6 +802,8 @@ def _publish(detail: dict) -> None:
         if scenario["withheld_reason"]:
             del scenario["totals"]
             scenario["values_withheld"] = scenario["withheld_reason"]
+            # the same scenario's sum from results.csv, when the LCA itself is not withheld
+            (lca.get("totals") or {}).pop(scenario["id"], None)
 
 
 def _copy_record(folder: Path, scenario: dict, out: Path, public: bool) -> None:
@@ -799,7 +812,9 @@ def _copy_record(folder: Path, scenario: dict, out: Path, public: bool) -> None:
     when they may not be published (geography, states and gaps hold none)."""
     data = json.loads((folder / "lca" / "scenarios" / Path(scenario["record"]).name).read_text(encoding="utf-8"))
     if public and scenario["withheld_reason"]:
-        data["impacts"].pop("totals", None)
+        # no impact number of any kind: the totals and the sum of what was characterised
+        for key in ("totals", "characterised_sum"):
+            data["impacts"].pop(key, None)
         data["impacts"]["values_withheld"] = scenario["withheld_reason"]
     _write(out / scenario["record"], data)
 

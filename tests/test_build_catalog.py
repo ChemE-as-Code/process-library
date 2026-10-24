@@ -640,7 +640,7 @@ def test_public_build_withholds_scenario_values_not_their_evidence(tmp_path: Pat
         assert scenario["values_withheld"] == "placeholder-factors"
         assert scenario["links"]
         record = _json(tmp_path / "out" / scenario["record"])
-        assert "totals" not in record["impacts"]
+        assert "totals" not in record["impacts"] and "characterised_sum" not in record["impacts"]
         assert record["impacts"]["values_withheld"] == "placeholder-factors"
 
 
@@ -682,3 +682,42 @@ def test_lca_totals_drop_scenario_categories_a_record_says_are_not_computable(tm
     lca = build_catalog._lca(KIT / "processes" / "asu-1", "asu-1", report)
     assert lca["totals"]["de-grid"] == {}
     assert lca["totals"]["nl-grid"]["climate-change"] == lca["totals"]["baseline"]["climate-change"]
+
+
+def test_a_withheld_scenario_loses_its_lca_totals_too(tmp_path: Path, library: Path) -> None:
+    detail = {
+        "repository": None,
+        "publication": None,
+        "lca": {
+            "publishable": True,
+            "totals": {"baseline": {"gwp": 1.0}, "nl": {"gwp": 2.0}},
+            "scenarios": [
+                {"id": "baseline", "withheld_reason": None, "totals": {"gwp": 1.0}},
+                {"id": "nl", "withheld_reason": "restricted-sources", "totals": {"gwp": 2.0}},
+            ],
+        },
+    }
+    build_catalog._publish(detail)
+    assert detail["lca"]["totals"] == {"baseline": {"gwp": 1.0}}
+    assert "totals" not in detail["lca"]["scenarios"][1]
+
+
+def test_snapshot_withholding_covers_scenario_records(tmp_path: Path) -> None:
+    target = tmp_path / "snap"
+    (target / "data").mkdir(parents=True)
+    entries = {}
+    for key in ("lca", "file?path=lca/results.csv", "file?path=lca/scenarios/nl.json", "file?path=lca/dataset.yaml"):
+        name = key.replace("?", "_").replace("/", "_")
+        (target / "data" / name).write_text("x")
+        entries[key] = {"file": name}
+    manifest = {"entries": entries}
+    build_catalog._withhold_lca_values(manifest, target)
+    assert set(manifest["entries"]) == {"file?path=lca/dataset.yaml"}
+
+
+def test_a_malformed_scenario_record_is_a_warning(tmp_path: Path, library: Path) -> None:
+    bad = library / "processes" / "fixture-electrolysis" / "lca" / "scenarios" / "broken.json"
+    bad.write_text(json.dumps({"schema": "cheme/lca-scenario/v1", "id": "x"}))
+    report = _build(library, tmp_path / "out")
+    assert report.errors == []
+    assert any("broken.json: not a complete scenario record" in w for w in report.warnings)
