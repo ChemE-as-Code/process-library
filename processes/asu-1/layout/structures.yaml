@@ -87,6 +87,35 @@ structures:
       and caged ladders LD0..LD4 at their west end (two ways down from every platform and the
       roof; O2-deficient vents near the roof, D-011, D-038 (1)). Toppling radius 53 m, the casing height, kept
       clear of B1 (site-plan separations, D-033 (2)).
+  # D-091 (3) (layout#15): ASSUMED envelope allowance for the cold box casing extension around the
+  # expander end KT-3101 of the compander. No vendor drawing will come, so it is sized from the
+  # usual arrangement: the expander's cold end (wheel, nozzle ring, inlet volute, exhaust
+  # diffuser and the cold inlet and exhaust connections) sits in a perlite-filled casing bolted to
+  # the cold box, and the bearing housing passes through its wall towards the warm booster end.
+  # Here: the whole 3 x 3 x 3 m expander end plus 0.5 m perlite allowance on its free west and
+  # south sides, as high as the expander end (3 m), with the inlet AIR-3003 entering through its
+  # roof at N1 (a taller casing put its walls into the lift lanes of KT-3101 and K-3101 from
+  # Z-PAD-A3S); the east wall stands in the 0.1 m gap to the booster K-3101 (the bearing
+  # housing / shaft wall), with the AIR-3003 sleeve where the inlet run from XV-3117 comes in.
+  # Open to the north, where it joins the CB-1 south casing wall (y 37.8). No levels, so no
+  # steel of its own: the walls are the casing panels. The roof panels are removable for the
+  # maintenance lift (ASSUMED)
+  - id: CB-1X
+    title: "Cold box casing extension around the expander end KT-3101 (ASSUMED envelope)"
+    origin: [126.6, 33.8]
+    spans_x: [3.4]
+    spans_y: [4.0]
+    levels: []
+    enclosure:
+      walls: [west, south, east]
+      height: 3.0
+      material: casing
+      thickness: 0.1
+      openings: [{id: AIR-3003, side: east, offset: 3.6, width: 0.3, height: 0.3, sill: 1.35, kind: opening}]
+    notes: >-
+      ASSUMED envelope allowance (D-091 (3)): 3.4 x 4.0 m in plan, 3 m high, against the CB-1
+      south wall; perlite filled and purged with the cold box (D-031). It replaces the vendor's
+      casing extension drawing, which will not come.
   - id: FW-TR
     title: "Fire wall between the transformers TR-1 and TR-2 in the yard west of B2"
     origin: [13, 56.2]
@@ -487,3 +516,18 @@ pipe_supports:
   - {id: P-04/Line_LIN3001_S2/SP-29.3, kind: stub, at: [141.68, 114.8], top: 13.526, from: steel, base: 13.026, rotation_deg: 90, serves: [P-04/Line_LIN3001_S2], notes: "pinned proposal (D-085) (ASSUMED: check the support with the stress engineer)"}
   - {id: P-04/Line_LIN3001_S2/SP-31.4, kind: t_post, at: [143.76, 114.8], top: 13.526, from: grade, width: 1, rotation_deg: 90, serves: [P-04/Line_LIN3001_S2], notes: "pinned proposal (D-085) (ASSUMED: check the support with the stress engineer)"}
   - {id: P-04/Line_LIN3001_S2/SP-33.4, kind: stub, at: [145.84, 114.8], top: 13.526, from: steel, base: 13.026, rotation_deg: 90, serves: [P-04/Line_LIN3001_S2], notes: "pinned proposal (D-085) (ASSUMED: check the support with the stress engineer)"}
+  # D-091 (2) (review3#2): PSV-3114 / PSV-3116 open tailpipes on the relief valve platform RV,
+  # screened after the API 520 Part II open-discharge method instead of a stress analysis (none
+  # will be done). Design reactions (warm bound, ASSUMED rates): PSV-3114 9.3 kN, PSV-3116
+  # 14.6 kN, axial (downwards) on the straight vertical exits. cheme-as-code 0.8.0 generates
+  # guides only on horizontal rack runs, so the guide and the axial support are declared as
+  # support steel here, two T-posts on the RV platform steel between the valves: RV-TPG, the
+  # lateral guide, its crossbar 0.5 m below the open ends (57.75 m); RV-TPS, the axial support,
+  # its crossbar at 55.3 m (2.1 m headroom over the RV floor at 53 m), where a lug welded to each
+  # tailpipe bears on it (dynamic load factor 2 ASSUMED: 19 / 29 kN). Both stand on the tailpipe
+  # axis y 43.0, RV-TPG's column continuing from the RV-TPS crossbar, and each crossbar ends
+  # 0.22 m off the DN150 pipe surfaces, in line with the load (review19#4; the guide lugs and the
+  # bearing brackets are not modelled, D-091 O6). Every size ASSUMED (structural detail design
+  # confirms them)
+  - {id: RV-TPG, kind: t_post, at: [129.5, 43.0], top: 57.75, from: steel, base: 55.3, width: 2.4, rotation_deg: 0, serves: [P-03/Line_VNT3002_S2, P-03/Line_VNT3003_S2], notes: "D-091 (2): lateral guide of the PSV-3114 / PSV-3116 tailpipes at 57.75 m (0.5 m below the open ends at 58.25 m), design load the full reaction laterally, 9.3 / 14.6 kN (ASSUMED); column continued from the RV-TPS crossbar at 55.3 m, on the tailpipe axis between the valves"}
+  - {id: RV-TPS, kind: t_post, at: [129.5, 43.0], top: 55.3, from: steel, base: 53.0, width: 2.4, rotation_deg: 0, serves: [P-03/Line_VNT3002_S2, P-03/Line_VNT3003_S2], notes: "D-091 (2): axial support of the PSV-3114 / PSV-3116 tailpipes, a lug on each tailpipe at 55.3 m bearing on the crossbar ends, 9.3 x 2 = 19 kN / 14.6 x 2 = 29 kN downwards (dynamic load factor 2 ASSUMED), so the reaction does not load the valve bodies; on the tailpipe axis y 43.0, so the bearing is in line (review19#4)"}
