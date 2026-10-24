@@ -171,7 +171,7 @@ def install(
     if name in bd.databases and not overwrite:
         raise ValueError(f"database {name!r} exists in project {bd.projects.current!r}; pass overwrite=True to replace it")
     default_site = str(importer.metadata.get("atlas default site location") or "GLO")
-    report = InstallReport(name, str(path), background, bio, location or default_site, location is None, prefer_atlas, verified=bool(expect))
+    report = InstallReport(name, str(path), background, bio, location or default_site, location is None, prefer_atlas, verified=any((expect or {}).values()))
 
     for ds in importer.data:
         for exc in ds["exchanges"]:

@@ -541,3 +541,27 @@ def test_public_build_keeps_facets(tmp_path: Path) -> None:
 def test_bad_facets_are_schema_errors(library: Path, tmp_path: Path, facets: dict) -> None:
     _edit(library, "processes/fixture-ammonia/process.yaml", lambda m: m.update(facets=facets))
     assert any("facets" in e for e in _build(library, tmp_path / "out").errors)
+
+
+def test_a_stale_run_manifest_withholds(library: Path, tmp_path: Path) -> None:
+    import hashlib
+
+    from publication import lca_withheld
+
+    folder = library / "processes" / "fixture-electrolysis"
+    _edit(library, "processes/fixture-electrolysis/lca/factors.yaml", lambda f: f.pop("example"))
+    _run_manifest(library, "fixture-electrolysis")
+    path = folder / "lca" / "manifest.json"
+    run = json.loads(path.read_text())
+    lca = (folder / "lca" / "lca.yaml").read_bytes()
+    run["inputs"] = {"lca/lca.yaml": "sha256:" + hashlib.sha256(lca).hexdigest()}
+    path.write_text(json.dumps(run))
+    assert lca_withheld(folder) is None
+    # the scope changed after the run: the manifest describes another run
+    (folder / "lca" / "lca.yaml").write_text((folder / "lca" / "lca.yaml").read_text() + "\n# changed\n")
+    assert lca_withheld(folder) == "stale-run-manifest"
+    # another backend than the run's
+    run["inputs"] = {}
+    run["background"] = {"backend": "brightway"}
+    path.write_text(json.dumps(run))
+    assert lca_withheld(folder) == "stale-run-manifest"

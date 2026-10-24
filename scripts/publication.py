@@ -54,9 +54,15 @@ def lca_withheld(folder: Path) -> str | None:
     (``lca/manifest.json``, written by ``cheme assess lca --write``): its result must be
     ``publishable`` (every source ``public``, or ``restricted`` with the study's reviewed
     decision). Placeholder factors are never published, and without a manifest (an LCA written
-    by an older core) nothing says the sources permit it, so the values are withheld too.
+    by an older core) nothing says the sources permit it, so the values are withheld too. A
+    manifest whose input fingerprints (``inputs``: path -> sha256 with normalised line endings)
+    no longer match the files, or whose backend is not the scope's, describes another run:
+    ``stale-run-manifest``.
     """
+    import hashlib
     import json
+
+    import yaml
 
     if not (folder / "lca" / "lca.yaml").is_file():
         return None
@@ -66,9 +72,20 @@ def lca_withheld(folder: Path) -> str | None:
     if not path.is_file():
         return "no-run-manifest"
     try:
-        result = (json.loads(path.read_text(encoding="utf-8")) or {}).get("result") or {}
-    except (OSError, ValueError):
+        run = json.loads(path.read_text(encoding="utf-8")) or {}
+        scope = yaml.safe_load((folder / "lca" / "lca.yaml").read_text(encoding="utf-8")) or {}
+    except (OSError, ValueError, yaml.YAMLError):
         return "no-run-manifest"
+    for rel, sha in (run.get("inputs") or {}).items():
+        target = folder / rel
+        if not target.is_file():
+            return "stale-run-manifest"
+        content = target.read_bytes().replace(b"\r\n", b"\n")
+        if "sha256:" + hashlib.sha256(content).hexdigest() != sha:
+            return "stale-run-manifest"
+    if (run.get("background") or {}).get("backend", "factors") != scope.get("backend", "factors"):
+        return "stale-run-manifest"
+    result = run.get("result") or {}
     if result.get("publishable") is True:
         return None
     return f"{result.get('publication') or 'unknown'}-sources"

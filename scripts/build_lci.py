@@ -636,7 +636,8 @@ def build_activities(processes: list[Process], mappings: dict, registry: dict[st
                     entry["categories"] = "::".join(target["categories"])
                 else:
                     alternative, others = linker.atlas_alternative(process, exchange, target["unit"])
-                    if others:
+                    # an input linked explicitly (link.dataset) has chosen its producer
+                    if others and target.get("database") != db_name:
                         report.warn(
                             f"{process.pid}: {exchange['key']}",
                             f"several Atlas producers: {alternative['name']} is used, not {', '.join(others)}; link one explicitly (link.dataset) to choose",

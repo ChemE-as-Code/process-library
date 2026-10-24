@@ -33,7 +33,7 @@ library has it) or ``public`` (``--public``, for publication; rules in ``publica
 - only processes with ``publication.status: public``; the others are absent from every file;
 - ``repository`` is dropped unless its ``access`` is ``public``, ``publication.exclude`` always;
 - an LCA whose values may not be published (``publication.lca_withheld``: placeholder
-  factors, no run manifest ``lca/manifest.json``, or a result core's policy marks not
+  factors, no or a stale run manifest ``lca/manifest.json``, or a result core's policy marks not
   publishable, e.g. restricted sources such as a licensed database) keeps its goal, functional
   unit, boundary, allocation, categories, inventory, class and sources, but not its ``totals``
   and ``contributions`` (``values_withheld: <reason>``; the summary's headline ``value`` is
@@ -211,7 +211,10 @@ def _lca(folder: Path, where: str, report: Report) -> dict | None:
 
     run = {}
     if (lca_dir / "manifest.json").is_file():
-        run = (json.loads((lca_dir / "manifest.json").read_text(encoding="utf-8")) or {}).get("result") or {}
+        try:
+            run = (json.loads((lca_dir / "manifest.json").read_text(encoding="utf-8")) or {}).get("result") or {}
+        except ValueError:
+            report.warn(where, "lca/manifest.json does not parse: rewrite it with cheme assess lca --write")
     withheld = lca_withheld(folder)
     example = bool((factors or {}).get("example"))
     if example:
