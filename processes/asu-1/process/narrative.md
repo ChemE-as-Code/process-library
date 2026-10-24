@@ -37,7 +37,7 @@ sections:
     sequences: [SEQ-BACKUP-GOX, SEQ-BACKUP-GAN, SEQ-SHUTDOWN]
     interlocks: [I-01, I-02]
 unresolved:
-  - the turndown range of the plant and how fast the load may change (D-018)
+  - the turndown range of the plant and how fast the load may change (not defined yet)
   - the suppliers' start-up procedures (MAC, compander, cold box, product compressors), which set the step times of the sequences
 ---
 
@@ -73,7 +73,8 @@ the air leaving the DCAC by the chilled-water valve TV-1105. The levels are held
 
 The seal's low-low protection is the trip I-03, on its own tapping.
 
-**Modes.** Start-up (SEQ-MAC-START) runs on blow-off before the machine is loaded. Until the
+**Modes.** Start-up (SEQ-MAC-START) first circulates the water and establishes the chimney-tray
+seal, then starts the MAC on blow-off and loads it in steps. Until the
 cold box sends waste nitrogen, C-1102 makes no chilled water, so the upper DCAC section runs warm
 and TIC-1105 stays in manual. Shutdown is SEQ-SHUTDOWN.
 
@@ -115,11 +116,14 @@ refrigeration (D-003, D-067).
 - **Columns:**
   - LIC-3101 passes the rich liquid to the LP column at the rate it collects.
   - FIC-3106 sets the LN reflux, the main purity handle together with the air flow.
-  - PIC-3110 holds the LP column pressure on the waste nitrogen: first to C-1102 (PV-3110A), the
-    surplus to the vent (PV-3110B).
+  - PIC-3110 acts on the LP column pressure through the waste nitrogen: first to C-1102
+    (PV-3110A), the surplus to the vent (PV-3110B). PIC-4101 on the GOX suction acts on the same
+    pressure; which of the two holds it and what sets the GOX draw is open (control philosophy,
+    H04-A23).
 - **Refrigeration:**
   - SIC-3108 holds the compander speed.
-  - TIC-3109 limits the expander outlet temperature through a low select, so no liquid forms.
+  - TIC-3109 watches the expander outlet temperature against a low limit, so no liquid forms; what
+    it acts on is open (H03-A18).
   - TICA-3124 holds the boosted air at 15 C into E-3101. The cold box's refrigeration margin
     depends on it.
 - **Hydrocarbon safety (D-010):**
@@ -144,24 +148,28 @@ supply both headers when the ASU does not (D-014).
 
 **Normal operation.**
 - **GOX train:**
-  - PIC-4101 holds the GOX suction, and with it the LP column, in split range: the guide vanes
-    first, the suction vent PV-4101B above them (D-019).
+  - PIC-4101 holds the GOX suction in split range: the guide vanes first, the suction vent
+    PV-4101B above them (D-019). With K-4101 stopped it holds the LP column by the vent.
   - PIC-4102 holds the export pressure.
   - UIC-4103 is the anti-surge, on the suction flow FI-4148.
 - **GAN train:**
   - FIC-3107 sets the GAN product on the K-4102 guide vanes.
-  - FIC-4105 holds the export flow.
+  - FIC-4105 on FV-4105, in series on the discharge, sets the same flow. Which of the two keeps
+    that job, and what holds the GAN export pressure, is open (control philosophy).
   - UIC-4131 is the anti-surge.
 - **Tanks:** PICA-4109 and PICA-4110 vent the tanks' boil-off.
 
-**Modes.** On low header pressure, PIC-4111 or PIC-4112 starts the standby pump
-(SEQ-BACKUP-GOX, SEQ-BACKUP-GAN). The low-low tank levels trip the pumps (I-01, I-02). The low
-vaporizer outlet temperature protects the carbon-steel pipeline (TSLL-4113, TSLL-4114).
+**Modes.** On low header pressure, the standby pump starts and PIC-4111 or PIC-4112 holds the
+header (SEQ-BACKUP-GOX, SEQ-BACKUP-GAN); once the ASU supplies again the operator hands back.
+The low-low tank levels trip the pumps (I-01, I-02). The low vaporizer outlet temperature is
+meant to protect the carbon-steel pipeline (TSLL-4113, TSLL-4114; not yet in the C&E,
+H04-A01).
 
 ## Open points
 
-- The turndown range and the rate of load changes (D-018).
+- The turndown range and the rate of load changes are not defined yet.
 - The suppliers' start-up procedures, which set the step times of the sequences.
-- Thirteen trips in the instrument list are not yet in the cause-and-effect list. They are the
-  machine trips of K-1101, K-3101/KT-3101 and K-4101, the DCAC high-high level, the TSA
-  analyzer and heater trips, and the vaporizer low temperatures.
+- Two control conflicts: the LP column pressure and the GOX draw, and the GAN flow (control
+  philosophy).
+- The trips named in the instrument list are not yet in the cause-and-effect list (D-094 lists
+  them; HAZOP action H04-A01 and others).

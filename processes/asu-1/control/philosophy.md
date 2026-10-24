@@ -4,31 +4,31 @@ objectives:
   - {id: OBJ-1, title: "GOX to the pipeline at the specified rate, pressure and purity", loops: [FIC-1101, FIC-3106, PIC-4101, PIC-4102]}
   - {id: OBJ-2, title: GAN to the customer below 10 ppm O2, loops: [FIC-3107, FIC-4105, FIC-3106]}
   - {id: OBJ-3, title: No hydrocarbon accumulation in liquid oxygen, loops: [FIC-3111, LICA-3102, TIC-1105]}
-  - {id: OBJ-4, title: The cold box's refrigeration balance held, loops: [SIC-3108, TIC-3109, TICA-3124]}
+  - {id: OBJ-4, title: The cold box's refrigeration balance held, loops: [SIC-3108, TICA-3124]}
   - {id: OBJ-5, title: Supply continuity from storage when the ASU stops, loops: [PIC-4111, PIC-4112]}
   - {id: OBJ-6, title: No air into the atmospheric evaporative cooler, loops: [LIC-1114]}
 failures:
   - id: F-AIR
     title: Loss of instrument air
-    response: "Each valve goes to its fail position. Those stated so far: LV-1114 and XV-1115 closed (the chimney-tray seal holds), TV-3124 open (the trim is kept), UV-3120 and UV-4131 open (the anti-surge recycles). Most control valves have no fail position yet; for each, the HAZOP has to show the plant goes to a safe state, then the position is fixed."
+    response: "Each valve goes to its fail position. Stated so far: LV-1114 and XV-1115 closed (the chimney-tray seal holds); UV-3120 and UV-4131 open (the anti-surge recycles); TV-3124 open, which keeps the trim but means I-04 cannot close it on air loss (H03-A12, D-077). Most control valves have no fail position yet (HAZOP actions H01-A6, H02-A6, H03-A1, H04-A14); for each the HAZOP has to show the plant reaches a safe state before the position is fixed."
     loops: [LIC-1114, TICA-3124, UIC-3120, UIC-4131]
-    interlocks: [I-03]
+    interlocks: [I-03, I-04]
   - id: F-POWER
     title: Loss of electric power
-    response: "The machines stop and the plant takes the shutdown path without the controls (SEQ-SHUTDOWN). The backup supply needs power for its pumps: whether they have an emergency supply is open."
-    sequences: [SEQ-SHUTDOWN, SEQ-BACKUP-GOX, SEQ-BACKUP-GAN]
+    response: "The machines stop at once; the valves go to their fail positions and the C&E trips act. No operator sequence runs (SEQ-SHUTDOWN is the planned stop, not this). The backup supply needs power for its pumps: whether they have an emergency supply is open (H04-A14)."
+    sequences: [SEQ-BACKUP-GOX, SEQ-BACKUP-GAN]
   - id: F-CW
     title: Loss of cooling water
-    response: "The MAC coolers and the DCAC lower section warm up (TIA-1110, TIA-1111 alarms); the MAC vendor's protection trips K-1101; the customers go to the backup supply."
+    response: "The MAC coolers and the DCAC lower section warm up: TIA-1110 and TIA-1111 alarm (TAH ASSUMED). The design has no automatic MAC trip on cooling water; the operator unloads and stops the MAC (SEQ-SHUTDOWN), and the customers go to the backup supply. Whether a trip is needed is open."
     loops: [FIC-1108, TIC-1105]
-    sequences: [SEQ-BACKUP-GOX, SEQ-BACKUP-GAN]
+    sequences: [SEQ-SHUTDOWN, SEQ-BACKUP-GOX, SEQ-BACKUP-GAN]
   - id: F-CHW
     title: Loss of chilled water (C-1102, P-1102A/B)
-    response: "The TSA inlet warms (TIC-1105 high) and the booster air leaves E-3105 above 18.5 C (TICA-3124 high): turn the liquid production down to keep the cold box in balance (D-067, D-069)."
+    response: "The TSA inlet warms (TIC-1105 high) and the booster air leaves E-3105 above 18.5 C (TICA-3124 high). The design's answer is to turn the liquid production down (D-067, D-069), but there is no loop for it yet: LIN-3001 has no flow control (H03-A7) and the LOX product is the hydrocarbon purge."
     loops: [TIC-1105, TICA-3124]
   - id: F-COMPANDER
     title: Compander trip
-    response: "I-04 shuts the chilled water to E-3105; refrigeration is lost and the cold box warms slowly. Before the restart the E-3105 shell side is drained and checked dry (D-077)."
+    response: "I-04 shuts the chilled water to E-3105; refrigeration is lost and the cold box warms slowly. Before the restart E-3105 is drained and E-3104 checked (D-077, H03-A11)."
     loops: [TICA-3124, SIC-3108]
     sequences: [SEQ-COMPANDER-TRIP]
     interlocks: [I-04]
@@ -39,12 +39,12 @@ failures:
     sequences: [SEQ-BACKUP-GOX]
   - id: F-TSA
     title: TSA breakthrough (CO2 at the adsorber outlet)
-    response: "AIA-2102 alarms at 1 ppm CO2; on high-high the beds are switched early or the MAC trips, so no CO2 or acetylene reaches the cold box (D-006, D-010)."
+    response: "AIA-2102 alarms at 1 ppm CO2 (ASSUMED). The intended answer to high-high (an early bed switch, or stopping the air to the cold box, D-006, D-010) is not yet a C&E interlock (H02-A1); until it is, it is an operator action on the alarm."
     loops: [TIC-2104, FIC-2105]
     sequences: [SEQ-TSA]
   - id: F-HC
     title: Hydrocarbons rising in the LP sump
-    response: "AIA-3103 alarms; keep or raise the LOX purge (FIC-3111), keep E-3103 submerged (LICA-3102), find the source (TSA, intake). The action limits and what they trip are open (EIGA Doc 65, ASSUMED)."
+    response: "AIA-3103 alarms; keep the LOX purge flowing (FIC-3111), keep E-3103 submerged (LICA-3102), find the source (TSA, intake). The action limits and what they trip are open (EIGA Doc 65, ASSUMED)."
     loops: [FIC-3111, LICA-3102]
   - id: F-LEVEL
     title: Low-low level in a product tank
@@ -53,8 +53,10 @@ failures:
     interlocks: [I-01, I-02]
 unresolved:
   - the fail positions of most control valves and of the machines' guide vanes (vendors, HAZOP)
-  - thirteen trips of the instrument list not yet in the cause-and-effect list
-  - whether the backup pumps have an emergency power supply
+  - who sets the split between GOX and waste N2, and the GAN flow handled by two loops in series (see control/loops.yaml PIC-3110 and FIC-3107)
+  - the trips named in the instrument list but not yet in the cause-and-effect list (H04-A01, H02-A1, H02-A2)
+  - a loop for the liquid production (H03-A7), which the chilled-water and compander failures rely on
+  - whether the backup pumps have an emergency power supply (H04-A14)
   - the hydrocarbon action limits of AIA-3103 and AIA-4121 and what they trip
 ---
 
@@ -75,8 +77,10 @@ In order of priority when they conflict:
 3. **OBJ-1 and OBJ-2:** the GOX and GAN products at their specification. Off-spec GAN is diverted
    to the vent, never sent to the customer.
 4. **OBJ-5:** supply continuity from storage when the ASU stops.
-5. **OBJ-4:** the refrigeration balance, which carries the liquid production. It is the first
-   thing given up: the liquid production is turned down before the products are touched.
+5. **OBJ-4:** the refrigeration balance, which carries the liquid production. The design gives
+   up the liquid production first (D-067). That needs a handle the plant does not have yet:
+   LIN-3001 has no flow control (H03-A7), and the LOX product is the hydrocarbon purge, which
+   must not be cut.
 
 ## Control hierarchy
 
@@ -89,21 +93,28 @@ There are three layers, kept apart:
 3. **Protective functions:** the interlocks of the cause-and-effect list. They act whatever the
    loops do.
 
-A regulatory loop is never counted as a safeguard. Where a loop and an interlock share a
-device, the register says so: TICA-3124 and I-04 share TV-3124, a control valve. That is
-acceptable only because I-04 is not a SIF (D-077). Independence and SIL are judged in the HAZOP
-and LOPA, not here.
+**Loops and safeguards.**
+- A regulatory loop is not an interlock and never stands in for one.
+- The HAZOP may credit a loop as a safeguard at most one order of magnitude, and nothing where
+  it shares a device with the cause (the D-093 credit convention).
+- Where a loop and an interlock share a device, the register says so. TICA-3124 and I-04 share
+  TV-3124, a control valve; that is acceptable only because I-04 is not a SIF (D-077).
+- Independence and SIL are judged in the HAZOP and the LOPA, not here.
 
-The plant's throughput is set by the air flow (FIC-1101). The columns follow it. The purities
-are trimmed by the LN reflux (FIC-3106). The LP column pressure is held by the waste nitrogen
-(PIC-3110) and by the GOX suction (PIC-4101).
+**What sets what.**
+- The air flow (FIC-1101) sets the plant's throughput, and the columns follow it.
+- The LN reflux (FIC-3106) trims the purities.
+- Who holds the LP column pressure and who sets the GOX draw is not settled yet. PIC-3110 (waste
+  nitrogen) and PIC-4101 (GOX suction) both act on that pressure. The decision belongs with
+  HAZOP actions H04-A23 and H03-A4, because a GOX over-draw boils the LP sump down (H04-S75).
+- The same holds for the GAN flow, set by two loops in series (FIC-3107 and FIC-4105).
 
 ## Normal operation and disturbances
 
 - **Ambient temperature and humidity.** These change the precooling. TIC-1105 holds the TSA
   inlet temperature, and the chilled-water margin is what limits it at 30 C ambient (D-005).
 - **The customers' demand.** A changing GOX draw moves the GOX header. The operator follows with
-  the air flow in steps the columns can take; the turndown range is still open (D-018).
+  the air flow in steps the columns can take; the turndown range is not defined yet.
 - **A TSA bed switch.** This gives a short pressure and flow swing into the cold box; the
   repressurisation step limits it.
 - **Chilled-water upsets.** These reach the cold box through E-3105, so TICA-3124 alarms before
@@ -116,15 +127,16 @@ are trimmed by the LN reflux (FIC-3106). The LP column pressure is held by the w
   - the TSA cycle (KS-2101);
   - the backup pump start on low header pressure;
   - the anti-surge controls;
-  - every trip.
+  - the trips of the C&E.
 - **Operator:**
   - the plant load and the purity set points;
   - the start-up and shutdown steps, and every mode change of the main machines;
   - the reset of a trip once its cause has cleared;
-  - the check of E-3105 before a compander restart;
-  - the decision to turn the liquid production down;
+  - the checks of E-3105 and E-3104 before a compander restart;
+  - the hand-back from the backup supply;
   - the coordination with the customers before a planned stop.
-- **Trip resets:** all trips latch and are reset by hand.
+- **Trip resets (proposed):** latched, reset by hand. The C&E does not state reset behaviour yet
+  (H01-A3, H04-A01); the MAC's reset is its vendor's.
 
 ## Equipment and utility failures
 
@@ -142,16 +154,20 @@ The front matter lists the failures and their designed responses, by id:
 
 For instrument air, the fail position of each valve is the design decision still to be made for
 most of them. The rule proposed here: a valve fails to the position that keeps the process
-safe for the next hour without the operator, as LV-1114 (closed) and TV-3124 (open) already do.
+safe for the next hour without the operator, as LV-1114 (closed) does. TV-3124 (open) keeps the
+trim but defeats I-04 on air loss (H03-A12), so it is not an example to follow without that
+check.
 
 ## Assumptions and open points
 
 - The fail positions of most control valves and of the machines' guide vanes are open; the
-  register records each one as unresolved, not as a default.
-- Thirteen trips named in the instrument list are not yet in the cause-and-effect list. They are
-  the machine trips, the DCAC high-high level, the TSA trips and the vaporizer low temperatures.
-  The sequences refer to them by tag until they are added.
-- The step times, cool-down rates and machine start-up steps are the suppliers'.
+  register records each one as unresolved, with the HAZOP action that decides it.
+- Two control conflicts are open: the LP column pressure and the GOX draw (PIC-3110 and
+  PIC-4101), and the GAN flow (FIC-3107 and FIC-4105).
+- The liquid production has no handle yet (H03-A7).
+- Trips named in the instrument list are not yet in the cause-and-effect list (H04-A01, H02-A1,
+  H02-A2). The sequences refer to them by tag until they are added.
+- The step times, cool-down rates and machine start-up steps are the suppliers'. The times in
+  the sequences are placeholders.
 - The hydrocarbon action limits are ASSUMED per EIGA Doc 65 until the analyzer and process
   review.
-- Whether the backup pumps need an emergency power supply is open (F-POWER).

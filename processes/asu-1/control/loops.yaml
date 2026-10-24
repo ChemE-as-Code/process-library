@@ -29,7 +29,7 @@ loops:
       - {type: override, loop: PIC-1103, select: low,
          notes: "both move the IGV; the lower output wins, so discharge pressure limits the flow (ASSUMED selector)"}
     rationale: The air flow is the master of the whole plant; the columns follow it. The GOX demand sets it (operator set point at basic engineering; a GOX-header cascade is for detail engineering).
-    operator: Changes the plant load in steps the columns can follow (D-018 turndown not yet defined).
+    operator: Changes the plant load in steps the columns can follow (the turndown range is not defined yet).
     unresolved:
       - fail position of the K-1101 inlet guide vanes (MAC vendor)
       - whether the set point comes from the GOX header pressure in cascade (detail engineering)
@@ -45,15 +45,14 @@ loops:
     final_elements:
       - {tag: K-1101, kind: drive}
     targets:
-      - {kind: high, value: 6.02, unit: bar(a), provenance: calculated, origin: simulated,
-         source: "S2 at the DN700 bound (D-079, D-089)", cases: [design], stream: S2, property: pressure}
+      - {kind: high, unresolved: "the override limit, above the normal discharge pressure (S2 6.02 bara at the DN700 bound, D-079 / D-089) by the MAC vendor's margin"}
     modes: [manual, auto]
     normal_mode: auto
     links:
       - {type: override, loop: FIC-1101, select: low}
-    rationale: An override, not a second set point; it acts only when the discharge pressure reaches its limit.
+    rationale: An override, not a second set point; it acts only when the discharge pressure reaches its limit, which must lie above the normal operating pressure.
     unresolved:
-      - the override margin above the normal discharge pressure (MAC vendor)
+      - the override limit and margin (MAC vendor)
   - id: UIC-1102
     title: MAC anti-surge
     purpose: Keep K-1101 out of surge at start-up, turndown and trips by blowing off to S-1101.
@@ -198,10 +197,10 @@ loops:
     modes: [manual, auto]
     normal_mode: auto
     alarms:
-      - {tag: FIC-2105, condition: FAL, response: "The heater is tripped on low flow (instrument list); check FV-2105 and the waste N2 split, then let KS-2101 resume the heating step."}
+      - {tag: FIC-2105, condition: FAL, response: "Switch the heater off if it is still on; check FV-2105 and the waste N2 split, then let KS-2101 resume the heating step."}
     unresolved:
       - FV-2105 fail position (HAZOP action H02-A6, with the TSA switching valves)
-      - the low-flow heater trip (instrument list) is not yet an interlock of control/cause-effect.yaml
+      - "the low-flow heater trip (instrument list) is not yet an interlock of control/cause-effect.yaml, and it would use this control transmitter, which is not independent (H02-A2)"
   # ---- CB: cold box (P-03) -----------------------------------------------------------------
   - id: LIC-3101
     title: HP column sump level
@@ -267,8 +266,6 @@ loops:
       - {kind: setpoint, unresolved: the compander speed of its vendor}
     modes: [manual, auto]
     normal_mode: auto
-    links:
-      - {type: override, loop: TIC-3109, select: low}
     rationale: The overspeed trip SSHH-3108 (2oo3) closes XV-3117 and is independent of this loop.
     unresolved:
       - SSHH-3108 trips the expander (instrument list) but is not yet an interlock of control/cause-effect.yaml
@@ -281,18 +278,13 @@ loops:
     variable: temperature
     measurement: [{tag: TIC-3109}]
     controller: TIC-3109
-    action: direct
-    final_elements:
-      - {tag: KT-3101, kind: other}
     targets:
-      - {kind: setpoint, value: -178, unit: °C, provenance: assumed, source: "S6 (D-003, D-061)",
-         cases: [design], stream: S6, property: temperature}
-      - {kind: low, unresolved: the dew point margin at 1.35 bara (vendor and process)}
+      - {kind: low, unresolved: "the minimum exhaust superheat above the dew point at 1.35 bara (S6 -178 C in the design case; compander supplier, H03-A18)"}
     modes: [manual, auto]
     normal_mode: auto
-    links:
-      - {type: override, loop: SIC-3108, select: low}
-    rationale: As the outlet cools the output falls; the low select then closes the nozzles before liquid forms (ASSUMED scheme, vendor to confirm).
+    rationale: A low limit, not a set point. What it acts on is open (H03-A18); the design names no final element.
+    unresolved:
+      - what TIC-3109 acts on and its action (compander supplier, H03-A18)
   - id: UIC-3120
     title: Booster anti-surge
     purpose: Keep the booster K-3101 out of surge at start-up and turndown (D-003).
@@ -326,9 +318,9 @@ loops:
          cases: [design], stream: S16, property: pressure}
     modes: [manual, auto]
     normal_mode: auto
-    interlocks: []
     rationale: Higher pressure opens the waste path, so direct acting. PSV-3114 protects the LP column if both valves are shut while the expander and the JT valves keep feeding it (D-011).
     unresolved:
+      - "who sets the split between GOX and waste N2: PIC-3110 here and PIC-4101 (GOX suction) both act on the LP column pressure, so in normal operation two controllers fight over one pressure. One must hold the pressure and the GOX draw be set otherwise (a flow set point, or PIC-4101 as a high limit only). Decision with H04-A23 (an independent limit on the GOX draw) and H03-A4 (LICA-3102 low-low), which H04-S75 rates high"
       - fail positions of PV-3110A/B (closed would block the LP column in; PSV-3114 is the protection, D-011; HAZOP action H03-A1)
       - the split point between PV-3110A and PV-3110B (ASSUMED 50 %)
   - id: FIC-3111
@@ -353,7 +345,7 @@ loops:
     rationale: A safety-relevant regulatory loop, but not a safeguard; the protection layers are the TSA, the analyzers and the submergence (D-010).
     operator: Keeps the purge on even when the LOX tank is full (drain vaporizer).
     unresolved:
-      - FV-3111 fail position (open keeps the purge; HAZOP action H03-A1)
+      - "FV-3111 fail position: closed stops the purge, open draws more LOX than the column makes and can uncover E-3103 (H03-S33); neither is safe without a limit (HAZOP action H03-A1)"
   - id: PIC-3113
     title: Cold box casing purge pressure
     purpose: Keep the casing above atmospheric with dry N2, no moist air ingress (D-013).
@@ -369,7 +361,7 @@ loops:
     modes: [manual, auto]
     normal_mode: auto
     alarms:
-      - {tag: AIA-3122, condition: AAH, response: "O2 above 23 % at the breather: a cold-box leak enriches the casing; find it, keep the purge on (EIGA Doc 65, D-010)."}
+      - {tag: AIA-3122, condition: AAH, response: "O2 above 23 % (ASSUMED, instrument list) at the breather: a cold-box leak enriches the casing; find it, keep the purge on (EIGA Doc 65, D-010)."}
     unresolved:
       - PV-3113 fail position (HAZOP action H03-A1)
   - id: TICA-3124
@@ -390,7 +382,7 @@ loops:
     modes: [manual, auto]
     normal_mode: auto
     alarms:
-      - {tag: TICA-3124, condition: TAH, response: "Above 18.5 C the cold box loses its margin: check the chilled water (P-1102A/B, C-1102) and turn the liquid production down (D-067, D-069)."}
+      - {tag: TICA-3124, condition: TAH, response: "Above 18.5 C the cold box loses its margin: check the chilled water (P-1102A/B, C-1102). Turning the liquid production down (D-067, D-069) has no loop yet: LIN-3001 has no flow control (H03-A7) and the LOX product is the hydrocarbon purge."}
     interlocks: [I-04]
     rationale: TV-3124 fails open, so a lost signal keeps the trim; I-04 closes it on a compander trip (D-077).
   # ---- PRD: product compression, storage and backup (P-04) ----------------------------------
@@ -411,8 +403,9 @@ loops:
          cases: [design], stream: S7, property: pressure}
     modes: [manual, auto]
     normal_mode: auto
-    rationale: Output A first opens the IGVs; above them PV-4101B vents, on a K-4101 trip and at start-up (D-019). The split point is ASSUMED.
+    rationale: Output A first opens the IGVs; above them PV-4101B vents, on a K-4101 trip and at start-up (D-019). The split point is ASSUMED. Through the IGVs this loop sets the GOX draw, which takes liquid from the LP sump if it exceeds what the column makes (H04-S75).
     unresolved:
+      - "its role beside PIC-3110, which also holds the LP column pressure: see PIC-3110 (H04-A23, H03-A4)"
       - fail positions of the IGV actuator and PV-4101B (open vents the GOX, closed blocks the LP column in; HAZOP action H04-A14)
   - id: PIC-4102
     title: GOX export pressure
@@ -461,6 +454,7 @@ loops:
     modes: [manual, auto]
     normal_mode: auto
     unresolved:
+      - "FIC-3107 (guide vanes, suction) and FIC-4105 (FV-4105 in series on the discharge) both set the same GAN flow: two flow loops on one flow fight. One must get another job, e.g. FV-4105 or the guide vanes on the GAN export pressure, which no loop holds now (S9B 9 bara); with PIC-4106 on the same guide vanes and the independent limit H04-A22 asks for"
       - fail position of the K-4102 inlet guide vanes (vendor)
       - how PIC-4106 (suction pressure) and FIC-3107 share the guide vanes (override or limit; vendor)
   - id: PIC-4106
@@ -470,11 +464,10 @@ loops:
     measurement: [{tag: PIC-4106}]
     controller: PIC-4106
     targets:
-      - {kind: low, value: 5.2, unit: bar(a), provenance: assumed, source: "S9 (D-004)",
-         cases: [design], stream: S9, property: pressure}
+      - {kind: low, unresolved: "the suction low limit, below the normal 5.2 bara (S9, D-004) by a margin that protects the HP column top"}
     modes: [manual, auto]
     unresolved:
-      - what it acts on (K-4102 guide vanes as a low limit, ASSUMED) and its action
+      - "what it acts on (the K-4102 guide vanes as a low limit, the third claimant on them beside FIC-3107; see FIC-3107) and its action"
   - id: UIC-4131
     title: GAN compressor anti-surge
     section: PRD
@@ -503,6 +496,7 @@ loops:
     modes: [manual, auto]
     normal_mode: auto
     unresolved:
+      - "its job beside FIC-3107, which sets the same flow upstream: see FIC-3107"
       - FV-4105 fail position
   - id: PICA-4109
     title: LOX tank pressure
@@ -515,7 +509,7 @@ loops:
     final_elements:
       - {tag: PV-4109, kind: valve}
     targets:
-      - {kind: setpoint, value: 0.5, unit: bar(g), provenance: assumed, source: "VNT-4001 at 0.5 barg (D-019)"}
+      - {kind: setpoint, unresolved: "below the T-4101 design pressure (0.5 barg, equipment list) and the PSV-4123 set pressure by the tank supplier's margin; the 0.5 barg of D-019 is the vent's pressure level, not a set point"}
     modes: [manual, auto]
     normal_mode: auto
     alarms:

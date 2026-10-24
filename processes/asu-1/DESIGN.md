@@ -4378,30 +4378,61 @@ HAZOP draft (D-093):
 - `control/loops.yaml`: the 31 regulatory loops of the instrument list. Each gives its
   measurement, the final element it moves (the valve tags drawn on the P&IDs; the inlet guide
   vanes of K-1101, K-4101 and K-4102 and the expander nozzles by the machine tag), the
-  controller action, and the set point with its unit and provenance. 15 set points name their
-  design-case stream, and `cheme validate` keeps them equal to it. The split ranges are PIC-3110
-  (PV-3110A to C-1102 first, PV-3110B to the vent) and PIC-4101 (the K-4101 guide vanes first,
-  PV-4101B above, D-019). The overrides are PIC-1103 / FIC-1101 on the MAC guide vanes and
-  TIC-3109 / SIC-3108 on the expander nozzles. Their low selects and the 50 % split points are
-  ASSUMED.
-- `control/sequences.yaml`: MAC start, the TSA cycle (KS-2101), cold box cool-down and product
-  start, the compander trip and restart (with the D-077 E-3105 check as a restart condition),
-  the GOX and GAN backup (D-014), and normal shutdown. Trips are named by their C&E id;
-  permissives are separate from them.
+  controller action, and the set point with its unit and provenance. 12 set points name their
+  design-case stream, and `cheme validate` keeps them equal to it. Override and alarm limits
+  must lie beyond the normal values, so they stay unresolved instead of being set at them. The
+  split ranges are PIC-3110 (PV-3110A to C-1102 first, PV-3110B to the vent) and PIC-4101 (the
+  K-4101 guide vanes first, PV-4101B above, D-019). The one override is PIC-1103 / FIC-1101 on
+  the MAC guide vanes. Its low select and the 50 % split points are ASSUMED.
+- `control/sequences.yaml`: MAC start (water and chimney-tray seal first, H01-A10), the TSA
+  cycle (KS-2101), cold box cool-down and product start (the LOX purge from the first liquid,
+  D-010; anti-surge in auto and the GOX dP equalised before the machines and valves, D-024),
+  the compander trip and restart (the D-077 E-3105 check), the GOX and GAN backup with the
+  hand-back (D-014), and normal shutdown. Trips are named by their C&E id and their actions
+  stay with the C&E; permissives are separate from them. Every timeout is an ASSUMED
+  placeholder.
 - `process/narrative.md`: four sections (MAC, PUR, CB, PRD) on the flowsheet blocks.
-  `control/philosophy.md`: the objectives in priority order (hydrocarbon safety first, the
-  liquid production given up first), the control hierarchy, and nine equipment and utility
-  failures with their designed response.
-- What the design does not state stays open (`unresolved`), never defaulted. This covers most
-  fail positions, the vendors' surge lines, the sump level ranges, the step times, and what
-  PIC-4102, PIC-4106 and LICA-3102 act on. At basic engineering these are info findings; at
-  detail the core gate `control-complete` requires them.
+  `control/philosophy.md`: the objectives in priority order (hydrocarbon safety first), the
+  control hierarchy, and nine equipment and utility failures with their designed response.
+- What the design does not state stays open (`unresolved`), never defaulted. This covers:
+  - most fail positions;
+  - the vendors' surge lines and the override limits;
+  - the sump level ranges and the tank vent set points;
+  - the step times;
+  - what PIC-4102, PIC-4106, TIC-3109 and LICA-3102 act on.
 
-Found while writing it:
-- Thirteen trips named in the instrument list are not in `control/cause-effect.yaml`: VIA-1104,
-  LSHH-1106, AIA-2102, FIC-2105, TSHH-2116, TSHH-2107, SIC-3108, SSHH-3108, PDSLL-3115,
-  PIC-4101, TSHH-4104, TSLL-4113 and TSLL-4114. Validate already reports them
-  (`instrument-no-interlock`). The sequences refer to them by tag until they are added.
+  At basic engineering these are info findings; at detail the core gate `control-complete`
+  requires them.
+
+Found while writing it, and in the independent control review (reviews/2026-10-24-control-review1.md):
+- **Two control conflicts the design has not settled.**
+  - PIC-3110 (waste N2) and PIC-4101 (GOX suction) both act on the LP column pressure, so
+    nothing sets the split between GOX and waste N2. This is the over-draw mechanism of
+    H04-S75; it is decided with H04-A23 and H03-A4.
+  - FIC-3107 (K-4102 guide vanes) and FIC-4105 (FV-4105, in series on the discharge) set the
+    same GAN flow, and no loop holds the GAN export pressure.
+
+  Both are recorded on the loops as unresolved, not resolved by invention.
+- **The liquid production has no handle.** The response to a lost trim or a compander trip is to
+  turn the liquid production down (D-067), but LIN-3001 has no flow control (H03-A7) and the LOX
+  product is the hydrocarbon purge.
+- **Start-up needs a regeneration gas source** before the cold box makes waste N2 (H02-S34,
+  H02-A10).
+- **Trips in the instrument list are not in `control/cause-effect.yaml`.** Validate reports 13
+  instruments (`instrument-no-interlock`); the trip functions behind them are:
+  - the MAC vibration trip (VIA-1104);
+  - the DCAC high-high level (LSHH-1106);
+  - the TSA CO2 high-high (AIA-2102);
+  - the regeneration heater's low-flow trip (FIC-2105) and its two over-temperature trips
+    (TSHH-2116, TSHH-2107);
+  - the expander overspeed (SSHH-3108, named in SIC-3108's notes);
+  - the compander seal-gas trip (PDSLL-3115);
+  - the K-4101 suction vent on a trip (PIC-4101's notes);
+  - the K-4101 fire trip (TSHH-4104);
+  - the vaporizer low temperatures (TSLL-4113, TSLL-4114).
+
+  The trip output beside PIC-4102 (D-024) is a further one that validate does not catch. The
+  sequences refer to these trips by tag until they are added (H04-A01, H02-A1, H02-A2).
 - TICA-3124 and the interlock I-04 share TV-3124 (`control-shared-element`). This is accepted
   only because I-04 is not a SIF (D-077).
 - The HAZOP (D-093) asks for the same open items: the fail positions (actions H01-A6, H02-A6,
