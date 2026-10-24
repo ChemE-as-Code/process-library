@@ -4223,6 +4223,9 @@ Rejected:
   zero (core#138: never silent zeros).
 
 ## D-093 HAZOP of ASU-1 (draft, proposed by agent) (2026-10-24)
+Revised by D-098 (H-04 reassessed for D-095 / D-096, inputs re-stamped after D-097; the counts
+in (3) are D-098's (5) now).
+
 Answers the items D-076, D-083 and D-088 hand to the HAZOP. Every entry below and in the four
 study files is a proposal by an agent (`status: proposed`, `by: agent`); nothing is accepted.
 
@@ -4593,3 +4596,416 @@ For the HAZOP owner (H-04): the reassessment after this branch covers the follow
 
 Reason: control-review3 #1 and #2. A pipeline customer needs a held pressure, and a column
 must not be over-drawn.
+
+## D-097 Calculation maturity: air feed recomposed (still assumed), TSA as a component split, whole-plant simulation, claim at concept (2026-10-24)
+Open point (1), the design air, closed by D-099 (owner decision: design specification; level
+balanced, claim screening).
+
+Requested by the user (the owner of process/flowsheet.yaml, simulation.yaml and
+design-basis.yaml) to close the gaps `cheme maturity` reported (core docs/framework/maturity.md).
+Before: level none (sourced.boundary and balanced.model-basis failed; predictive coverage,
+model basis, property package, energy closure and exchangers failed or missing). After: level
+**none** (sourced.boundary fails: the air feed rests on assumed values, see (1)); every
+requirement of balanced passes, so the level becomes **balanced** (library maturity
+**screening**) once the design air is fixed as a design specification. Revised after
+maturity-review1 (see "Revised" at the end).
+
+Decision:
+- (1) **S1 air feed recomposed, still ASSUMED** (sourced.boundary).
+  - Composition: the sea-level dry-air fractions of the U.S. Standard Atmosphere 1976 (the same
+    as ISO 2533) for N2 78.084, O2 20.9476 and Ar 0.934 mol%. The minor gases (Ne, He, Kr, Xe,
+    H2, CH4; about 27 ppm together) are left out. CO2 is 420 ppm, the value under
+    `contaminants_ASSUMED` in the design basis, instead of the standard's older value; D-058
+    itself uses the D-027 set (CO2 0.040 %), so the change from 400 to 420 ppm is made here,
+    in D-097. The set is renormalised. Water is the D-058 design air (30 C, 80 % RH ASSUMED,
+    1.013 bara): 0.8 x 4.247 kPa (IAPWS-95 saturation pressure at 30 C) / 101.3 kPa =
+    3.354 mol%. Result: N2 0.75459, O2 0.20243, Ar 0.00903, H2O 0.03354, CO2 0.00041 (was the
+    D-027 set, CO2 388 ppm wet).
+  - Flow: 113,335 kg/h (was 113,329). This is D-066's design air rate of 110,870 kg/h of
+    CO2-free dry air (85,810 Nm3/h; 85,840 with the CO2; S4, ASSUMED), plus the 71 kg/h of CO2
+    and the 2,394 kg/h of water of that composition.
+  - Both stay `assumed`. The dry-air fractions are a published standard, but the water (the
+    80 % RH), the CO2 level and the air rate are ASSUMED in the design basis, in D-058 and in
+    S4. No decision fixes the design air (condition, CO2 level and rate) as a design
+    specification. A first version of this decision tagged S1 `given` and cited D-058 for it;
+    D-058 marks the design air ASSUMED itself, so that was withdrawn (maturity-review1#1, #4).
+  - The design basis traces (hydrocarbons 5 ppm as CH4, C2H2 50 ppb, N2O 0.33 ppm) are not
+    flowsheet components. They are carried by D-006 and D-010, not by the balance.
+  - **For the owner:** sourced.boundary passes, and the level becomes balanced, once the owner
+    records a decision that fixes the design air (30 C, 80 % RH, 1.013 bara, CO2 420 ppm, and
+    the rate) as a design specification, and the ASSUMED marks in design-basis.yaml and on S4
+    are removed with it. An agent cannot make that decision.
+- (2) **TSA as a sourced component split** (balanced.model-basis). V2101 had two inlets and two
+  outlets, and DWSIM's component separator takes one stream in and two out. The TSA cycle is
+  therefore written as a steady-state, cycle-average pair:
+  - V2101 (adsorption, `component_separator`) takes all H2O and CO2 out of S3, which leave as
+    the new S2W (213 kg/h);
+  - the new step M2101 (regeneration, a mixer, linked to V-2101A/B) puts them into the hot
+    regeneration gas S12H, giving S12D.
+
+  The recoveries are written on the dry air (N2, O2, Ar 1; H2O, CO2 0), so S4F has exactly no
+  water (DWSIM gives the unspecified outlet the remainder). `basis_source` is D-006 (the TSA removes H2O, CO2, N2O and C2H2) and D-066 (S4 dry,
+  CO2 < 0.1 ppm). Removal is taken as complete and N2, O2 and Ar co-adsorption is neglected
+  (ASSUMED). The component separator has no pressure drop and no heat of adsorption, so the
+  new step F2101 (F-2101, a heater in the simulation) takes the front-end 0.32 bar (bed,
+  filter and DN700 lines; D-079, D-089) from S3 5.92 to S4 5.6 bara and warms the air to S4's
+  15 C (ASSUMED: ~3 K heat of adsorption in the bed). The component separator V2101 reports an
+  energy imbalance of **100.8 kW**: the latent and adsorption heat of the 213 kg/h it removes,
+  which leaves the model there. F2101 returns **96.9 kW** of it to the air (110,870 kg/h x
+  ~1.04 kJ/kg K x 3 K). The new stream S4F links to AIR-2001 like S4.
+- (3) **Coverage.** The main heat exchanger E3101 is now simulated as a multi-stream exchanger.
+  It is specified by its outlets: S5 -173 C, S5B -124.7 C, S7 and S9 at 13 C (D-061: 2 K
+  below the main air S4A at 15 C), and the waste N2 closes the energy balance. Its pressure
+  drops are from DESIGN.md 3, and its min_approach is declared at D-061's 2 K. Also simulated:
+  the expander KT3101 (8.25 -> 1.35 bara, eta_s 0.85, D-061), the waste split X3101 (18,486 of
+  76,560 kg/h to regeneration, none vented), the regeneration heater E2101 (to 200 C, the
+  heating step of D-006) and M2101. The recycle is torn at S5, S5B and S16, so the columns
+  start from their flowsheet feeds. Without F2101, S5 left E3101 at 5.82 bara (the front-end
+  drop missing), closer to its dew point at -173 C, and the HP column did not converge.
+
+  Only the evaporative cooler C1102 stays excluded. It exchanges water and heat with the
+  chilled-water loop of C-1101's upper section and E-3105, and the flowsheet carries that loop
+  as no stream (D-067: the heat leaves with the waste N2). A unit-to-unit energy stream does not
+  translate, and its N2 side alone would show neither the water uptake nor the duty. So
+  predictive.coverage stays failed until the loop is drawn as streams.
+- (4) **Property package.** `method_selection` is recorded with the thermodynamic-model-selection
+  facts (Carlson's tree): 31 bara (the GOX discharge), **polar** (water is a component, and the
+  near-pure condensates S1C, S3C, S3CU and the adsorbed S2W are simulated with it),
+  interaction parameters available (DWSIM's PR set, Ar/O2 refitted in D-066), no
+  electrolytes, no pseudocomponents. The tree then recommends Peng-Robinson with Wong-Sandler
+  mixing rules; plain Peng-Robinson is recorded as a `substitution`: the cryogenic part, where
+  the column and exchanger results matter, is non-polar N2/O2/Ar, and the water is only in the
+  warm end, at most 3.4 mol%. Limitation: PR gives water at saturation 10-13 % low (D-058);
+  the adsorbers are sized on the IAPWS-95 load (D-080). predictive.property-package passes on
+  the recorded substitution and lists it as a limitation. The substitution is proposed by the
+  agent; the owner of simulation.yaml is to accept it. (The first version recorded
+  `is_polar: false`, which core allows only when every compound is non-polar;
+  maturity-review1#2.)
+- (5) **Energy closure of the flowsheet** (balanced, not required). The PRD, K4101 and K4102
+  residuals (-141, -122 and -19 kW) are no error. E4 and E5 carry the electric power, and the
+  motor and gear losses (drive efficiency 0.946 and 0.92) leave as heat to the room, not to
+  the cooling water: 2,262 - 2,140 = 122 kW and 238 - 219 = 19 kW, the residuals exactly. The
+  run record's audit, which works on shaft power, closes K4101 and K4102.
+
+Results (DWSIM 9.0.5, run recorded with the energy audit):
+- Converged, 19 simulated units. Energy audit: every evaluable unit closes (E3102 -1.0 kW
+  within tolerance). The plant closure is `unsupported` for two reasons: the component
+  separator V2101, whose duty sign core does not establish, and C3102's top residual (43.6 kW,
+  the condenser-less top, D-066). predictive.energy-closure therefore stays unsupported. No
+  crossed exchanger and no infeasible utility level.
+  - E3101: least approach 2.00 K at the warm end (hot 288.15 K / cold 286.15 K), against the
+    declared min_approach of 2 K (D-061): ok. (Before the F2101 heat of adsorption it was
+    0.37 K, with the main air at 11.9 C.)
+  - E3102: 5.19 K (no min_approach declared; only crosses checked).
+- Products are unchanged within the precision: GOX 99.707 % O2, LOX 99.809 %. MAC 7,288 kW
+  electric. K3101 185.9 kW against KT3101 198.5 kW gas, as in D-061 (booster suction 15 C,
+  outlet 59.9 C).
+- F2101 96.9 kW (the heat of adsorption returned to the air; V2101's 100.8 kW sink).
+- E2101 1,020 kW in the heating step (S12A 7.2 to 200 C). E3 stays 377 kW ASSUMED: the cycle
+  average, used by the LCA and the TEA.
+- Deviations from given and assumed values (none overwritten; simulate reports them):
+  - S17, S12B and S12C 7.2 C against 13 C: the waste N2 takes the cold box's refrigeration
+    surplus, about 130 kW (76,560 kg/h x ~1.04 kJ/kg K x 5.8 K). The model has no heat leak
+    (~75 kW, D-067); the rest is within the concept accuracy of the expander and the column
+    specs. It also lifts E2101's heating-step duty above the 13 C basis.
+  - S12A, S12B and S12C 1.15 bara against 1.10 / 1.05 / 1.02: the splitter has no pressure
+    drop; the assumed values include the line drops. So the stream table shows S12A at the
+    assumed 1.10 bara and the downstream S12H at the simulated 1.15 bara: an apparent rise
+    across E2101 that is only the assumed line drop (maturity-review1#6).
+  - S10 and S11: the D-056 subcooling to storage (as before).
+  - E3: cycle average against heating step, as above.
+
+  These are model limits, not errors; review them with the cold-box vendor.
+- S12D's D-089 hand derivation (ASSUMED 18,696 kg/h with 67.7 kg/h CO2 from the former S1) is
+  replaced by the simulated M2101 outlet, the same sum: 18,699 kg/h, 70.8 kg/h CO2, 178 C. Its
+  old composition no longer closed the CO2 balance at 420 ppm. This is the only assumed value
+  removed. S12D is **for the balance only**: it mixes the heating-step gas (200 C) with the
+  cycle-average desorbed load, so it describes neither the heating step nor the cycle average
+  (maturity-review1#7). RG-2003 is sized at the 200 C bound, and the adsorbers on 165 kg/h of
+  water (IAPWS-95, D-080 (2)); nothing uses S12D's 178 C.
+
+Maturity after (cheme maturity, checks/maturity.json):
+- level **none**: sourced.boundary fails on the assumed S1 flow and composition ((1)).
+- every balanced requirement passes (balanced.energy-closure, not required, fails on the drive
+  losses above).
+- predictive: these pass: simulation-spec, run-record, current, converged, solver, balances,
+  property-package (on the recorded substitution), stream-properties and exchangers (E3101
+  against its declared 2 K). These do not:
+  - coverage fails (C1102);
+  - model-basis fails (V2101 is a specified split; no adsorption model in core);
+  - property-regime is unsupported (core claims no regime for the DWSIM PR route);
+  - energy-closure is unsupported (component separator and condenser-less column top).
+- engineering: its own requirements pass, but it is not reached below predictive.
+
+**Manifest claim.** process.yaml `maturity` goes from basic-engineering to **concept**. The
+evidence supports no level (core's mapping: none), and concept is the lowest value the
+manifest schema allows, so `cheme maturity` keeps the warning cheme.maturity-claim-exceeds
+until the design air is fixed ((1)); then balanced supports screening. The deliverables of
+basic engineering exist (P&IDs, lists, datasheets, layout, estimate, LCA, HAZOP draft), and
+the basic gates pass, but basic-engineering needs the engineering level, which needs
+predictive. Predictive is blocked by coverage (C1102), the model basis (V2101), the plant
+energy closure (V2101, the C3102 top) and the property regime (unsupported in core for every
+repository today), not by the property regime alone. The validation notes and the library
+README say so. `checks/maturity.json` is written by `cheme maturity --write` and committed
+with the claim.
+
+Not changed: datasheets (no maturity requirement needs them; engineering.consistency is
+unsupported), the HAZOP (its hazop-input-changed warnings on process/flowsheet.yaml are for
+D-098), P&IDs, lists.
+
+Revised after maturity-review1 (same branch, before merge):
+- #1, #4: S1 back to `assumed`; the CO2 420 ppm cited to D-097 and the design basis, not
+  D-058; level none, claim concept ((1), Manifest claim).
+- #2: `is_polar: true` with a recorded substitution ((4)).
+- #3, #5: F2101 a heater to S4's 15 C (the heat of adsorption, 96.9 kW against V2101's
+  100.8 kW), E3101 min_approach 2 K declared (D-061) and met.
+- #6: S4 now agrees with S4F's model (15 C); the S12A pressure is explained under Results.
+- #7: S12D noted as for the balance only.
+- #8: the process.yaml comment and the chemistry note (85,810 dry, 85,840 with the CO2)
+  corrected.
+
+Open:
+- the owner's decision on the design air ((1)): without it the level stays none;
+- the owner's acceptance of the PR substitution ((4));
+- the chilled-water loop as streams, so C1102 can be simulated;
+- a sourced heat of adsorption (vendor) in place of the ASSUMED 3 K;
+- a heat leak in the cold-box model: the flowsheet has no step that could take it (a heater
+  on the cold box needs a new step and energy stream), so the waste N2 still carries ~130 kW;
+- the E3101 min_approach from the vendor (2 K is D-061's design value);
+- core: an adsorption model or an audited component separator, a condenser-less column top, and
+  a declared PR regime.
+
+## D-098 HAZOP reassessed for the D-095 / D-096 product control and the D-097 flowsheet (2026-10-24)
+Revises D-093. Every entry stays a proposal by an agent (`status: proposed`, `by: agent`);
+nothing is accepted. The studies report `hazop-input-changed` for P-04 and the instrument list
+(D-095, D-096: the product loops changed and the instruments were retagged) and for the
+flowsheet (D-097). The reassessment follows the list at the end of D-096. The credit
+convention of each study's `assessment_basis` is unchanged.
+
+Decision:
+- (1) **H-04, revised by stable id** (no id renumbered, none removed):
+  - **H04-N1**: the design intent now states the D-095 / D-096 control. PIC-3110 holds the LP
+    column pressure. PIC-4102 sets the K-4101 guide vanes through a low select with FIC-4148
+    (maximum draw) and PIC-4150 (suction low limit). PIC-4101 is the vent on PV-4101B. PIC-4150
+    is added to the members.
+  - **H04-S01, H04-S03**: the "output A / output B" wording is gone; the vent causes belong to
+    PIC-4101 alone (PT-4101 upstream of XV-4117). The ratings are unchanged.
+  - **H04-S02, H04-S75**: the over-draw cause is no longer PIC-4101. In the low select one loop
+    failing high is masked by the others, so the credible single causes are:
+    - FT-4148 reading low, or PT-4150 reading high, while PIC-4102 asks for more;
+    - the selector, its output stage or the vane positioner failing high.
+
+    FIC-4148 and PIC-4150 are not credited (same control system, and PIC-4150 acts late,
+    D-096). UIC-4103 shares FT-4148 with the cause. The ratings are unchanged: S02 3/D -> 3/D
+    high, S75 5/C -> 5/B high (LICA-3102 alarm only).
+  - **H04-S05**: FT-4148 reading high now also makes the FIC-4148 limit close the guide vanes,
+    which drives the machine towards surge. Rating unchanged.
+  - **H04-SG05, H04-SG06**: SG05 is PIC-4102 as the guide-vane master with its high-high trip.
+    The loop and the trip share one transmitter and take one order together, so H04-S13
+    stays 4/A. SG06 notes that FT-4148 now also sets the maximum draw, so it is not credited
+    where FT-4148 is part of the cause.
+  - **H04-N3, H04-N4, H04-N5**: the intents state PIC-4102 as the master, FIC-3107 as the
+    cascade slave of PIC-4105, and PV-4105 as normally fully open.
+  - **H04-S27**: the old FIC-4105 / FV-4105 scenario was renamed in D-095 but kept the flow
+    loop's meaning. It is now PIC-4105 failing high, or a falling GAN header pressure, which
+    raises FIC-3107's set point through the cascade. A failed-open PV-4105 changes nothing.
+    The FIC-3107 set-point clamp is in the same control system and is not credited. Rating
+    unchanged, 3/D high.
+  - **H04-S20, H04-S24**: S20 names FIC-3107 as the cascade slave. S24 notes that PIC-4105 may
+    open the vanes further against a closed PV-4105 (its tap position is open, D-095). Ratings
+    unchanged.
+  - **H04-A14, A15, A22, A23**:
+    - A14 adds PV-4105 and the guide vanes to the fail-position list.
+    - A15 adds an alarm when PIC-4102 runs on its FIC-4148 limit or the backup starts while
+      K-4101 runs.
+    - A22 now asks for a limit independent of the PIC-4105 / FIC-3107 cascade.
+    - A23 now asks for a limit independent of the guide-vane low select, not of PIC-4101.
+  - **H04-S07** (hazop-review2#1): asset residual 4/B -> **4/C**, high. The trip and the
+    blowdown lower the severity only. With this, review2#1 is closed (process-library#36).
+- (2) **New entries in H-04** (all proposed, by agent; ratings proposed):
+  - **H04-S76** (H04-N1-HF), the turndown vent. When the customer takes less, the vanes close
+    and PIC-4101 vents the excess through PV-4101B / VNT-4003. That is an oxygen release in
+    normal operation for as long as the turndown lasts. People 3/E -> 3/C, medium: the elevated
+    safe-location vent is a passive feature and gets two orders (revised to one order, 3/D
+    high, in (7)).
+  - **H04-S77** (H04-N3-LK), the header leak. PIC-4102 opens the vanes by design up to the
+    FIC-4148 limit, then PIC-4111 starts the backup, so the leak is fed and can go unnoticed.
+    People 4/C -> 4/C, high (nothing credited), with H04-A15.
+  - **H04-N1-RS / H04-S78**: PIC-4150 at a restart. It reads the blown-down casing and holds the
+    vanes shut, so the limit may be forced and left forced, or it may wind up. Asset 2/D ->
+    2/D, medium.
+  - **H04-A26**: decide whether the turndown vent is acceptable, together with the zones owner
+    (D-031).
+  - **H04-A27**: PIC-4150 restart handling and anti-windup.
+- (3) **H-01 .. H-03 checked** for bases that cite a changed stream value or control (the old
+  tags, PIC-4101, FI-4148, FIC-4105, and the D-097 values S1, CO2, S4, S12A..D, S17, the
+  booster outlet).
+  - No scenario basis cites them, and no rating changes.
+  - Design intents updated to the D-097 flowsheet:
+    - H-02 H02-N2: CO2 load 70.8 kg/h at 420 ppm (was 67.7);
+    - H-02, regeneration node: 283 kg CO2 desorbed per step (was 271);
+    - H-02, regeneration vent: 18,699 kg/h through S-2101 (was 18,696);
+    - H-03 H03-N1: booster outlet 59.9 C and 185.9 kW simulated, as D-061, now that the TSA
+      heat of adsorption warms the air to 15 C (D-097 revised; the first run gave 56.4 C from an
+      11.9 C suction);
+    - H-03 H03-N3: waste N2 7.2 C in the model, which has no heat leak, against the 13 C
+      assumed, with the 2 K warm-end approach of D-061 met (first run: 3.4 C and 0.37 K). These
+      are model limits (D-097), not a design change.
+  - The H03-N8-GOX note names the guide-vane low select instead of PIC-4101.
+  - The assumed S4 15 C and S17 13 C that the intents cite are unchanged in the flowsheet.
+- (4) **Re-stamped**: `cheme safety hazop stamp <id> --write` for H-01 .. H-04. The new
+  revisions are the instrument list and the flowsheet in all four studies, and P-04 in H-04.
+  For H-04, `control/loops.yaml` and `control/sequences.yaml` are now analysed inputs
+  (`--input`, hazop-review3#5): the low select, the PIC-4105 -> FIC-3107 cascade with its clamp
+  and the SEQ-CB-START restart handling the reassessed scenarios rest on exist only there, not on
+  P-04, so a change to them (a ratio limit, the anti-windup) now raises hazop-input-changed.
+  Then `cheme safety hazop rate <id> --write` for all four. `cheme safety hazop check`: H-01 ..
+  H-04 all `draft`, 0 errors, 0 warnings. The only info is `hazop-unresolved`, with 104 / 77 /
+  109 / 163 proposals (453 in total).
+- (5) **Counts** (worst band as in D-093 (3): residual where rated, else initial, worst
+  category):
+
+  | study | nodes | deviations | scenarios | safeguards | actions | worst band: high / medium / low | proposals not accepted |
+  |---|---|---|---|---|---|---|---|
+  | H-01 | 9 | 32 | 43 | 27 | 25 | 11 / 14 / 18 | 104 |
+  | H-02 | 10 | 40 | 37 | 16 | 14 | 13 / 14 / 10 | 77 |
+  | H-03 | 12 | 52 | 52 | 23 | 22 | 23 / 19 / 10 | 109 |
+  | H-04 | 13 | 68 | 86 | 35 | 29 | 39 / 31 / 16 | 163 |
+  | total | 44 | 192 | 218 | 101 | 90 | 86 / 78 / 54 | 453 |
+
+  - H-04 changes from 31 / 28 / 16 (D-093): H04-S07 moves from medium to high, H04-S77 adds a
+    high, H04-S76 and H04-S78 add two mediums; then (7): H04-S76 moves from medium to high,
+    H04-S79, S80, S84, S85 and S86 add five highs, H04-S81, S82 and S83 add three mediums.
+  - No scenario ends very-high; 9 start very-high before safeguards (H04-S80 added).
+  - Every high scenario has at least one action.
+- (7) **Revised after hazop-review3** (all proposed, by agent; bands by `rate --write`):
+  - #1 (high): new **H04-S79** (asset, column upset, 3/E -> 3/E high) and **H04-S80** (main
+    condenser, people and asset 5/D -> 5/C high) under H04-N1-LP. The cause needs no failure:
+    with the cold box below its design make (MAC or air turndown, hot-day air limit, TSA
+    switchover dip, purity upset) and the customer at the design rate, PIC-4102 opens the vanes
+    up to the FIC-4148 limit, which is fixed at the design make and so above the actual make.
+    S80 follows the convention of H04-S75 / H03-S33: the cause frequency E, one order lower for
+    the draw to run on until E-3103 is uncovered with enough hydrocarbon present. Without that
+    order the team would rate 5/E -> 5/D, very-high. New action **H04-A28**: the GOX limit and
+    the GAN clamp as ratios to the air flow (D-096's open point); A23 names S79 / S80. The S77
+    note no longer says the column cannot be over-drawn by the leak.
+  - #2: new **H04-S82** (PT-4102 low or the PIC-4102 output high while the customer takes less:
+    export pressure to the K-4101 maximum, the HH trip on the same transmitter defeated; people
+    4/D -> 4/B medium on PSV-4122 only) and **H04-S83** (PT-4102 high: vanes closed, GOX vented
+    through PV-4101B for hours, backup started; people 3/D -> 3/C, asset 2/D -> 2/C). New action
+    **H04-A29**: an independent transmitter for the K-4101 discharge HH trip.
+  - #3: H04-S27 is now the PIC-4105 loop failure only (rating unchanged, 3/D high). New
+    **H04-S84** (GAN demand above design at the design make: the clamp is not the cause and is
+    credited one order, 3/E -> 3/D high) and **H04-S85** (reduced HP column make with the design
+    GAN demand: the clamp at the design draw is the cause, 3/E -> 3/E high; H04-A28).
+  - #4: new deviation **H04-N5-LK** with **H04-S86**, the GAN header leak fed by the cascade and
+    then the LIN backup, people (O2-deficient atmosphere) 4/C -> 4/C high; H04-A15 extended to
+    GAN (alarm on FIC-3107 at its clamp, on a LIN backup start while K-4102 runs).
+  - #5: loops.yaml and sequences.yaml stamped as H-04 inputs ((4)).
+  - #6: H04-S76 people residual 3/C -> **3/D** (high): one order for the vent until H04-A26
+    confirms the zone for a release of hours. The turndown split between PIC-4101 and PIC-3110 is
+    rated as new **H04-S81** (asset 2/E -> 2/E medium, H04-A26). The instrument list's PIC-4101
+    note now states the turndown venting of D-096.
+  - #7: the H04-S02 / S75 causes and the S02 note restate the masking consistently: at the
+    design make PIC-4102 failing high or PT-4150 reading high is masked by a healthy FIC-4148;
+    FT-4148 reading low and a failure after the selector are not; at a reduced make the limit
+    itself is above the make (S79, S80). Ratings unchanged.
+- (6) **process-library#36**:
+  - review2#1 is fixed in (1).
+  - review2#2: PROGRESS.md now has the missing row for bacc295 / 575447f (hazop-review1#13 /
+    #14, 78 / 75 / 54) and a row for this change.
+  - No other low finding of #36 is open.
+
+Open:
+- Everything in D-093 (8): the team, the matrix, the sessions, and a human review record.
+- The new actions H04-A26 .. H04-A29. The D-096 open points that the HAZOP depends on:
+  - the fail positions of the guide vanes, PV-4101B and PV-4105;
+  - PIC-4105's tap position;
+  - the anti-surge flow of K-4101 (FT-4148 does not see the recycle);
+  - the maximum draw and the GAN clamp as ratios to the air flow (H04-A28).
+- `control/loops.yaml` and `control/sequences.yaml` are analysed inputs of H-04 only. Whether
+  H-01 .. H-03 should depend on them too is for the team: their scenarios were not reassessed
+  against the loop register, so they were not stamped with it.
+- The low select, the cascade and its clamp are still not drawn on P-04 (D-096 Open).
+- A confirming independent review of the HAZOP after this change.
+
+Reason: D-096 asks the H-04 owner to reassess the product control. The studies must describe the
+plant as drawn and simulated before the team works through them.
+
+## D-099 Design air and design air rate fixed as the design specification (owner decision), maturity balanced, claim screening (2026-10-24)
+Owner decision, made by the user (the project owner) on 2026-10-24 in answer to the question
+D-097 (1) left open. It closes that open point.
+
+Decision:
+- (1) **Design air.** The design air is the project's **design specification**, no longer an
+  assumption:
+  - 30 C, 1.013 bara and 80 % RH at the design site;
+  - 420 ppm CO2;
+  - the dry-air composition of the U.S. Standard Atmosphere 1976 / ISO 2533 (N2 78.084, O2
+    20.9476, Ar 0.934 mol%; the minor gases, about 27 ppm, left out as in D-097).
+
+  A site survey later confirms these values; it does not make them assumptions again. If the
+  survey finds other values, that is a change of the specification, made by a new decision.
+- (2) **Design air rate.** 85,840 Nm3/h dry air (85,810 Nm3/h CO2-free; D-066) is the sizing
+  specification of the plant. The rate follows from the owner's choice of design rate. The O2
+  recovery behind it (~83 %, D-066) stays **ASSUMED**, as D-066 says. If the simulated
+  recovery differs, the products change at this fixed air rate; the rate is not recalculated.
+- (3) **Files.**
+  - `process/design-basis.yaml`: the air feed's composition, water and CO2, conditions and
+    rate, and the site's design ambient and atmospheric pressure are marked DESIGN SPECIFICATION
+    (D-099). The dry-air fractions are now written with the standard's figures (78.084 /
+    20.9476 / 0.934; were rounded to 78.08 / 20.95 / 0.93). The trace contaminants moved to
+    their own key `trace_contaminants_ASSUMED`.
+  - `process/flowsheet.yaml`: S1's flow (113,335 kg/h) and composition (N2 0.7545933, O2
+    0.2024348, Ar 0.0090261, H2O 0.03354, CO2 0.0004059; the D-097 values, unchanged) are
+    `provenance: given`. The source names D-099, the standard for the dry air and IAPWS-95 for
+    the water at 30 C / 80 % RH. S4's flow (110,870 kg/h, the CO2-free dry air at the design
+    rate) is `given` with D-099 too, as D-097 (1) asked. Its split into S5 and S4B stays
+    ASSUMED (D-066). S4's composition stays assumed: it is the older D-027 set, not the
+    standard's.
+  - No value changed, so `cheme process simulate` was not rerun. predictive.current still
+    passes: the run record's fingerprints are unaffected by the provenance and source change.
+- (4) **What stays ASSUMED** (not covered by this decision):
+  - the trace levels: hydrocarbons 5 ppm as CH4, C2H2 50 ppb, N2O 0.33 ppm;
+  - the minimum ambient (-5 C), the elevation (5 m), the air quality, seismic and wind;
+  - the location itself (coastal industrial site);
+  - the O2 recovery (~83 %) and every other entry under `assumptions` in the design basis;
+  - S1's pressure, 1.01 bara (DESIGN.md 3, stream 1). It stays assumed: it is the suction
+    after the intake losses, rounded, not the 1.013 bara ambient;
+  - every other stream value marked assumed.
+
+Maturity after (cheme maturity, checks/maturity.json):
+- level **balanced**, which supports library maturity **screening**:
+  - sourced passes; sourced.boundary now passes;
+  - every balanced requirement passes. balanced.energy-closure (not required) still fails on
+    the drive losses, D-097 (5).
+- predictive fails, as in D-097:
+  - coverage fails (C1102);
+  - model-basis fails (V2101 is a specified split);
+  - property-regime is unsupported;
+  - energy-closure is unsupported.
+- engineering: its own requirements pass, but it is not reached below predictive.
+- `process.yaml` `maturity` goes from concept to **screening**. It now matches the evidence, so
+  `cheme maturity` no longer warns cheme.maturity-claim-exceeds. The validation notes and the
+  library README row say so.
+
+Regenerated: `cheme process build` (BFD, PFD); `cheme assess tea|lca|mto|estimate|equipment
+--write` (only the TEA and the LCA tables changed: feed:AIR is now `given`); `cheme maturity
+--write`. The layout model and the lifting study are current; nothing there changed.
+
+HAZOP: the design basis and the flowsheet are analysed inputs of H-01 .. H-04. No scenario
+basis cites the design air as ASSUMED, and no rating changes. The H01-N1 design intent now
+names the design air (30 C, 80 % RH, 1.013 bara, 85,840 Nm3/h dry) and CO2 420 ppm as the
+design specification (D-099). The traces and the -5 C minimum ambient stay ASSUMED there.
+All four studies were re-stamped (`stamp --write`) and rated (`rate --write`). `cheme safety
+hazop check`: H-01 .. H-04 `draft`, 0 errors, 0 warnings. Every entry stays `proposed`.
+
+Open:
+- the site survey that confirms the design air;
+- the O2 recovery (D-066, ASSUMED) and the rest of D-097's Open list (PR substitution, C1102,
+  heat of adsorption, cold-box heat leak, E3101 approach, core models);
+- an independent review of this change.
+
+Reason: the owner fixes the design air and the design air rate, so they are the design basis
+and not estimates. With them the air feed is sourced, and the calculation evidence supports the
+level that `cheme maturity` reports.

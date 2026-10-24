@@ -25,15 +25,27 @@ facets:
   product_classes: [industrial-gases]
   unit_operations: [compression, adsorption, cryogenic-distillation, heat-exchange, expansion]
   region: generic
-maturity: basic-engineering
+# D-097, D-099: what the calculation evidence supports. The owner fixed the design air (30 C,
+# 1.013 bara, 80 % RH, 420 ppm CO2, standard dry air) and the design air rate as the design
+# specification (D-099), so the S1 air feed is given with a source and cheme maturity reaches
+# balanced, which supports screening. basic-engineering needs the engineering level, which
+# needs predictive: coverage (C1102), the TSA model basis (V2101), the plant energy closure and
+# the property regime (unsupported in core today) all block it.
+maturity: screening
 validation:
   status: unreviewed
   notes: >-
-    Engineering gates of stage basic pass (ChemE-as-Code checks) and design reviews are recorded in
-    reviews/, but no independent engineering review has been made.
+    The deliverables of basic engineering exist (P&IDs, lists, datasheets, layout, estimate, LCA,
+    HAZOP draft) and the engineering gates of stage basic pass (ChemE-as-Code checks). The
+    calculation evidence reaches balanced, which supports screening (cheme maturity,
+    checks/maturity.json): the air feed is the owner's design specification (D-099), the
+    balances close, and the whole plant but the evaporative cooler is simulated in DWSIM.
+    Predictive is not reached: the evaporative cooler is not simulated, the TSA is a specified
+    component split, and the plant energy closure and property regime are unsupported (D-097).
+    Design reviews are recorded in reviews/; no independent engineering review has been made.
 chemistry:
   inputs:
-    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "76,000 Nm3/h, saturated at 30 C"}
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "85,810 Nm3/h dry CO2-free air, 85,840 Nm3/h with the CO2 (D-066), at 30 C, 1.013 bara and 80 % RH (D-058); the owner's design specification (D-099)"}
   outputs:
     - {chemical: oxygen, role: main-product, inventory_key: "product:GOXP", note: "GOX >= 99.5 mol% O2 at 30 barg"}
     - {chemical: nitrogen, role: co-product, inventory_key: "product:GANP", note: "GAN <= 10 ppm O2 at 8 barg"}
