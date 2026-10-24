@@ -3730,7 +3730,20 @@ Decision:
     S-2101 (S12D 18,696 kg/h); the relief case list (section 4: tube rupture at 6.02 bara);
     sizing-script comments and the budget label. layout/plant-model.yaml rebuilt (input fingerprints
     and two motor-basis texts only).
-- (2) **Notes on D-089** (review low findings #1, #2, not changed here because D-089 is the decision
+- (2) **Estimate, TEA and LCA rerun** (`cheme assess equipment --write`, `cheme assess tea --write`,
+  `cheme assess lca --write`).
+  - **Equipment estimate:** K-1101 at 6,894 kW (still outside the correlation's 450-3,000 kW range,
+    not costed, as before); E-1101..E-1103 at 396.1 / 607.0 / 557.4 m2 and the four DCAC pumps at
+    their new shaft powers. Purchased equipment of the correlation items USD 4,104,941 -> 4,105,426
+    (+485); bare module unchanged at 2,099,909. The TEA's ISBL is the given USD 36.5 M (D-082), so the
+    estimate does not move it.
+  - **TEA:** POWER 10,436.9 -> 10,464.7 kWh/h (+27.8 kW, the MAC). LCOP **73.83 -> 73.94 USD/t**
+    (P10 65.3, P50 79.2, P90 95.9 USD/t; P(LCOP <= 100) = 94 %, unchanged; the decision holds). The
+    decision turns at a power price of 132.3 USD/MWh (was 132.7) or an ISBL of USD 67.3 M (was 67.4
+    M). Scenarios: Texas power 66.7, California power 127.1, market-report capital 144.4 USD/t.
+  - **LCA:** 142.8 kg CO2-eq/t GOX (example factors) as in D-089; only the equipment-list fingerprint
+    of lca/dataset.yaml changes.
+- (3) **Notes on D-089** (review low findings #1, #2, not changed here because D-089 is the decision
   of the simulation owner's branch): the "+28 kW against D-079" is the electric increment (+27.8 kW,
   6.95 kW/kPa); the shaft increment is +26.3 kW (6.57 kW/kPa). Stream 2 in the section 3 table
   carries H2O 1.12 mol% as simulated (0.0112061); the table prints 1.11.
