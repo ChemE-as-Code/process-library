@@ -8,10 +8,11 @@ service: Adsorber outlet dust filter
 draft: false
 operating:
   inlet_pressure:
-    value: 5.6
+    value: 5.68
     unit: bar(a)
-    source: 'process/flowsheet.yaml stream S4 (case design; S4 links AIR-2001 to and AIR-2002 from F-2101),
-      assumed: DESIGN.md 3, stream 4'
+    source: 'scripts/datasheet_sizing.py section 10 (DESIGN.md D-080 (1)): S3 5.88 bara (D-079) less AIR-1004
+      DN700 (9.1 kPa, to bed B), the bed in adsorption (8 kPa, ASSUMED) and AIR-2001 DN700 (3.0 kPa); the
+      flowsheet stream S4 (5.6 bara) is at E-3101'
     assumed: true
   inlet_temperature:
     value: 15
@@ -19,9 +20,23 @@ operating:
     source: 'process/flowsheet.yaml stream S4 (case design), assumed: DESIGN.md 3, stream 4'
     assumed: true
   inlet_flow:
-    value: 98060
+    value: 110870
     unit: kg/h
-    source: 'process/flowsheet.yaml stream S4 (case design), assumed (D-027)'
+    source: 'process/flowsheet.yaml stream S4 (case design), assumed (D-066; was 98,060 of D-027)'
+    assumed: true
+  allowable_pressure_drop_clean_kpa:
+    value: 3.0
+    unit: kPa
+    source: 'DESIGN.md D-079, D-080 (1): flange to flange with a clean element at 110,870 kg/h, ~5.68 bara, 15 C
+      (ASSUMED, part of the 28 kPa S3 -> S4 budget; enquiry requirement, the supplier states the clean drop of
+      the chosen element)'
+    assumed: true
+  dirty_filter_alarm_kpa:
+    value: 5.0
+    unit: kPa
+    source: 'DESIGN.md D-080 (1): PDIA-2106 high alarm and element replacement criterion, 2 kPa above the clean
+      allowable (ASSUMED until the supplier''s recommended change-out drop; the 2 kPa cost ~13 kW of MAC power
+      or 0.02 bar at E-3101 while the element loads)'
     assumed: true
 design:
   pressure_barg:
@@ -38,12 +53,12 @@ materials:
     source: equipment/equipment-list.yaml
 nozzles:
 - name: N1
-  dn: 600
+  dn: 700
   lines:
   - AIR-2001
   source: pid/P-02.xml
 - name: N2
-  dn: 600
+  dn: 700
   lines:
   - AIR-2002
   source: pid/P-02.xml
@@ -64,4 +79,5 @@ type_specific:
     unit: t
     source: equipment/equipment-list.yaml dimensions
 sizing_basis: []
-notes: Retains sieve fines upstream of E-3101. ASSUMED.
+notes: 'Retains sieve fines upstream of E-3101. ASSUMED. Nozzles DN700 with the main air lines (D-080 (1)). The
+  3 kPa is a clean-element allowable; PDIA-2106 alarms at 5 kPa, where the element is changed (D-080 (1)).'
