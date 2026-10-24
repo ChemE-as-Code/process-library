@@ -1425,8 +1425,11 @@ footings, 513 m2 grating.
   platform RV steel needs the relief reaction forces from the stress analysis (the relief
   loads of the tailpipes on the roof steel); not modelled until those are known. Closed by
   D-091 (2): screening forces, guide RV-TPG and axial support RV-TPS, no stress analysis.
+  Still open from it: D-091 O1 (DN250 / SS 304L tailpipes in the model, relief sizing), O5
+  (local-discharge outlet supports) and O6 (guide and bearing lugs).
 - **KT-3101 expander casing extension** (layout#15): needs the cold box / compander vendor's
   drawing; not modelled. Closed by D-091 (3): ASSUMED envelope CB-1X, no vendor drawing.
+  Still open from it: D-091 O2 (AIR-3003 roof hood and insulation) and O3 (envelope check).
 - Operability: 14 valves (D-047); support: 8 free spans and 5 runs without support (D-049).
 - The layout-review gate is open: the next independent layout review covers D-046 .. D-049.
 
@@ -3983,7 +3986,8 @@ and the estimate still gave the D-079 state.
 
 ## D-091 Open low items closed without vendor data or a stress analysis (2026-10-24)
 Owner decision: there is no vendor data and there will be none, and no detailed stress analysis
-will be done in this study. The four open low items are closed here with screening decisions.
+will be done in this study. The four open low items are closed here with screening decisions,
+and (5) and the list of what stays open answer review 19 of this change.
 Values that are assumed are marked ASSUMED. Each item is to be confirmed in detail engineering,
 if the project goes on to it.
 
@@ -3999,10 +4003,11 @@ Decision:
     uncertain by much more than 0.1 kPa (10 % of the bound lines alone is 2.1 kPa);
   - if it were real, the MAC would run 0.107 kPa higher: 0.74 kW electric at 6.95 kW/kPa
     (D-090 (3)), 0.01 % of its 7,288 kW. That is below the resolution of the TEA and the LCA;
-  - the simulation owner had agreed to accept it and meant to write 32.1 kPa in D-089 next
-    time. That owner is not available, and process/flowsheet.yaml, simulation.yaml and
-    design-basis.yaml are theirs, so they are not changed here. If S3 -> S4 is ever reset to
-    32.1 kPa (S2 ~6.021 bara), this acceptance falls away.
+  - the acceptance is the project owner's decision of 2026-10-24; nothing in the repository
+    records a view of the simulation owner on it (D-090 (1) only noted the overrun). The
+    simulation owner is not available, and process/flowsheet.yaml, simulation.yaml and
+    design-basis.yaml are theirs, so they are not changed here. If the simulation owner later
+    resets S3 -> S4 to 32.1 kPa (S2 ~6.021 bara), this acceptance falls away (open item O4).
   No check finding or gate covers the budget, so `checks/checks.yaml` gets no acceptance. The
   rule of D-089 still holds: if the suppliers' bed and F-2101 drops exceed the 11 kPa assumed,
   raise S2 by the difference.
@@ -4027,7 +4032,7 @@ Decision:
     |---|---|---|---|---|
     | PSV-3114 (VNT-3002, 4.5 m vertical) | 76,560 kg/h, stream 12 waste N2: the blocked waste N2 outlet relieves what the LP column makes | 4.86 bara (C-3102 3.5 barg), 94 K / 288 K, M 28.3 | DN150, choked, 1.31 / 2.29 bara | **4.4 / 9.3 kN** |
     | PSV-3116 (VNT-3003, 4.5 m vertical) | 110,870 kg/h, stream 4: all the dry air into the cold box (deadhead bound) | 8.71 bara (C-3101 7 barg), 103 K / 288 K, N2 | DN150, choked, 2.00 / 3.34 bara | **7.9 / 14.6 kN** |
-    | PSV-4123 (VNT-4001, 0.65 m vertical) | 13,800 kg/h: choked flow through the DN80 inlet bore at relief (a bound; no tank relief rate is set) | 1.56 bara (T-4101 0.5 barg), 95 K / 288 K, O2 | DN80, 1.01 / 1.44 bara | **0.6 / 1.4 kN** |
+    | PSV-4123 (VNT-4001, 0.65 m vertical) | 13,800 kg/h: an upper bound from the choked-flow formula through the DN80 inlet bore at relief (the flow is subcritical: 1.563 / 1.013 = 1.54, below the critical ratio ~1.89; no tank relief rate is set) | 1.56 bara (T-4101 0.5 barg), 95 K / 288 K, O2 | DN80, 1.01 / 1.44 bara | **0.6 / 1.4 kN** |
     | PSV-4124 (VNT-4005, 0.65 m vertical) | 13,900 kg/h, the same bound | 1.56 bara (T-4102 0.5 barg), 82 K / 288 K, N2 | DN80, 1.01 / 1.55 bara | **0.6 / 1.5 kN** |
 
     The other relief valves discharging to atmosphere have no tailpipe in the 3D model (local
@@ -4036,31 +4041,36 @@ Decision:
     PSV-2108A/B 16.4 kN each (111,080 kg/h, stream 3); PSV-3119 2.4 kN (14,870 kg/h, the booster
     flow, 60 C); PSV-4127 2.9 kN (20,860 kg/h, the GOX product rate); PSV-4128 1.9 kN
     (12,510 kg/h, the GAN product rate). Each outlet is supported at its outlet elbow on the
-    line's own support steel in piping detail design. The vacuum breakers PSV-4142 / PSV-4143
+    line's own support steel in piping detail design (open item O5 below). The vacuum breakers PSV-4142 / PSV-4143
     draw air in and the TSVs pass liquid in small amounts, so they are not screened.
   - **Supports in the model** (`layout/structures.yaml` `pipe_supports`). cheme-as-code 0.8.0
     generates shoes and guides only where a horizontal run crosses a beam. A guide on a
     vertical tailpipe is not an object it models, so the steel is declared as support steel
     and the guide and bearing parts are recorded here. Two T-posts stand on the RV platform
     steel (53 m) between the valves:
-    - **RV-TPG**, the lateral guide, at [129.5, 43.0]. Its crossbar is at 57.75 m, 0.5 m below
-      the open ends (58.25 m), and ends 0.2 m off each tailpipe, where a guide lug takes the
-      pipe. Design load: the full reaction laterally, 9.3 / 14.6 kN (ASSUMED). That covers an
-      exit that is not truly axial.
-    - **RV-TPS**, the axial support, at [129.5, 42.7]. Its crossbar is at 55.3 m, which keeps
-      2.1 m of headroom over the RV floor. A lug welded to each tailpipe bears on it, so the
+    - **RV-TPS**, the axial support, at [129.5, 43.0] on the tailpipe axis (the tailpipes
+      stand at x 128.0 and 131.0, y 43.0). Its crossbar is at 55.3 m, which keeps 2.1 m of
+      headroom over the RV floor. A lug welded to each tailpipe bears on its end, so the
       downward reaction does not load the valve bodies. Design load: reaction x dynamic load
       factor 2 (ASSUMED), 19 kN (PSV-3114) and 29 kN (PSV-3116).
+    - **RV-TPG**, the lateral guide, on the same column: its column continues from the RV-TPS
+      crossbar (55.3 m) to its own crossbar at 57.75 m, 0.5 m below the open ends (58.25 m).
+      Design load: the full reaction laterally, 9.3 / 14.6 kN (ASSUMED). That covers an exit
+      that is not truly axial.
+    Both 2.4 m crossbars lie on the tailpipe axis and end 0.22 m clear of the DN150 pipe
+    surfaces (0.16 m for the DN250 of (5)). Each guide lug and bearing bracket reaches 0.16 to
+    0.22 m along the axis, in line with the load, so the crossbar ends take no torsion. (The
+    first placement of RV-TPS at y 42.7 put the bearing 0.3 m off the axis; review19#4.) The
+    lugs and brackets are not modelled (open item O6).
     The rebuilt model has no new clash, headroom, access or steel-in-way finding. The take-off
-    gains 4 HEB200 members (+0.70 t of support steel), and the estimate and the LCA follow.
+    gains 4 HEB200 members (+0.56 t of support steel; +0.70 t before RV-TPG was set on the
+    RV-TPS crossbar), and the estimate and the LCA follow.
   - **Tank PSVs:** the tailpipes are 0.65 m long and the reaction is at most 1.5 kN, axial.
     They are carried by the tank roof nozzle and the roof steel, which are the tank supplier's
     roof fittings, so no steel is added. The tank supplier designs for these loads.
   - **What the screening shows about the tailpipe size:** at these bound rates, a DN150 exit
-    builds up 1.0 to 2.3 bar(g) at the outlet. That is far above the ~10 % of set a conventional
-    valve tolerates, so DN150 is too small for the bound rates, or the rates are too high. The
-    rates, the valve orifices and the tailpipe sizes stay with the relief sizing (section 4
-    heading). A larger tailpipe lowers the force, so the supports above stay on the safe side.
+    builds up 0.30 / 1.28 barg (cold / warm) at PSV-3114 and 0.99 / 2.33 barg at PSV-3116,
+    that is 8 / 36 % and 14 / 33 % of set. Decided in (5).
 - (3) **KT-3101 casing extension modelled as an ASSUMED envelope** (layout#15; D-050). No
   vendor drawing will come. The placement note said the expander's cold end is "in the casing
   extension", but CB-1 had none: the compander stood 0.5 m south of the casing wall (y 37.8).
@@ -4078,10 +4088,19 @@ Decision:
   - **Height:** a first try at 4.5 m, to enclose the cold inlet AIR-3003 over the expander's
     top, put walls above the machines' tops into the lift lanes of KT-3101 and K-3101 from
     Z-PAD-A3S (two new lifting findings). At 3 m, the expander's height, those lanes stay
-    clear. The inlet AIR-3003 enters through the roof at N1, and its run from XV-3117 (outside
-    CB-1, 1.5 m up) enters through a sleeve in the east wall, declared with `cheme layout pin
-    CB-1X/AIR-3003` (0.3 x 0.3 m, sill 1.35 m). XV-3117 stays outside the casings, where it can
-    be reached. The exhaust AIR-3004 runs north inside the extension into CB-1.
+    clear. The inlet AIR-3003 runs from XV-3117 (outside CB-1, 1.5 m up) about 4.4 m west to
+    a sleeve in the east wall, declared with `cheme layout pin CB-1X/AIR-3003` (0.3 x 0.3 m,
+    sill 1.35 m). Inside, it rises at (128.5, 37.55) to 3.6 m, runs 1.75 m south 0.6 m above
+    the casing top and drops into N1 at 3.0 m. So about 3 m of the cold inlet is above the
+    3 m casing, not inside it (review19#5). The model has no casing roof, so no rule sees it.
+    Decision: the part above the roof is enclosed in a perlite-filled **roof hood** (about
+    2.4 x 0.6 x 0.8 m, ASSUMED). The hood is part of the casing roof and is lifted off with the
+    roof panels before the maintenance lift. A reroute does not help, because N1 is on the
+    expander's top, level with the casing roof. The ~4.4 m from XV-3117 to the sleeve stays
+    outside the casings, so that XV-3117 can be reached. It gets cold insulation (PUR, 100 mm
+    for DN150 by the pipe-specs rule, ASSUMED). Neither the hood nor this insulation is
+    modelled, because the line carries one insulation type (open item O2). The exhaust
+    AIR-3004 runs north inside the extension into CB-1.
   - **Check:** the rebuilt model has no new clash, keep-clear, access, lifting, operability or
     wall-penetration finding (`cheme validate`: 0 errors, the same finding set as before the
     change). The lifting study, take-off, estimate and LCA change only in their model
@@ -4101,3 +4120,44 @@ Decision:
     values taken from the layout model (axis, support elevation, stands_on) are the plant's
     own placement decisions and stay unmarked. Drawings regenerated with `cheme datasheets
     drawing --write` (25 SVGs).
+
+- (5) **PSV-3114 / PSV-3116 tailpipes: DN250, and SS 304L for VNT-3002** (review19#2, #3).
+  No more detailed relief sizing will be done in this study, so the outlet side is decided on
+  the bound rates of (2).
+  - **Size:** the built-up back pressure at a DN150 exit (up to 36 % of set) is far above the
+    ~10 % a conventional spring-loaded valve tolerates, so its capacity and stability would be
+    in doubt. The tailpipes (valve outlet to the open end) are therefore **DN250** (sch 10S,
+    264.6 mm bore, ASSUMED). `cheme run scripts/psv_reaction.py` gives an exit at atmospheric
+    pressure for PSV-3114 and at most 0.25 barg (4 % of 7 barg) for PSV-3116. The friction of
+    ~4.5 m of straight pipe still adds to that, and the total stays under 10 %. The valves stay
+    conventional; if a valve's outlet flange is smaller, an expander follows it. At DN250 the
+    reactions fall to 2.1 / 6.0 kN (PSV-3114) and 4.7 / 11.1 kN (PSV-3116), so RV-TPG and
+    RV-TPS, sized on the DN150 values, stay on the safe side.
+  - **Material:** the cold case relieves at 94 K (PSV-3114) and 103 K (PSV-3116), and that
+    gas reaches the tailpipe outside the cold box. VNT-3002 is class PN6, carbon steel when
+    warm, which is brittle at about -179 C. So the **VNT-3002 tailpipe outside the cold box is
+    SS 304L**, as the PN16 class already gives VNT-3003. The PN6 class text in
+    `piping/pipe-specs.yaml` and the VNT-3002 note in the line list say so. The cost
+    difference on ~5 m of pipe is below the resolution of the estimate.
+  - **Model:** cheme-as-code 0.8.0 carries one DN and one class per line, and VNT-3002 and
+    VNT-3003 run from the column to the valve and on to the open end. So the model still
+    draws the tailpipes at DN150 and does not split the class (open item O1 below).
+Remaining open after D-091, tracked here and in D-050. None of them stops the study; each is
+for detail engineering, if the project goes on to it:
+- **O1** (review19#2, #3): model the PSV-3114 / PSV-3116 tailpipes at DN250, and the VNT-3002
+  tailpipe in SS 304L, as outlet lines of their own on P-03 and in the line list (or once the
+  tool carries a DN and class per segment). The relief sizing confirms the rates, the
+  orifices and the built-up back pressure with the tailpipe friction. Owner: piping and
+  relief sizing.
+- **O2** (review19#5): the AIR-3003 roof hood over CB-1X and the cold insulation from XV-3117
+  to the sleeve, which are not in the model. Owner: layout and cold box.
+- **O3** (D-091 (3)): the CB-1X envelope and its roof panels against a supplier drawing, if
+  one ever comes. Owner: layout.
+- **O4** (D-091 (1)): the simulation owner states the S3 -> S4 allowance or resets it (32 kPa
+  accepted with the 0.107 kPa bound overrun). Owner: simulation owner.
+- **O5** (review19#7): the outlet-elbow supports of the local-discharge PSVs on the line's own
+  steel, for the bounds in (2): PSV-1109 17.2 kN, PSV-2108A/B 16.4 kN each, PSV-3119 2.4 kN,
+  PSV-4127 2.9 kN, PSV-4128 1.9 kN. Owner: piping supports.
+- **O6** (review19#7): the guide lugs at the RV-TPG crossbar ends and the bearing lugs and
+  brackets of RV-TPS, sized for the loads in (2). They are not modelled, because
+  cheme-as-code 0.8.0 has no object for them. Owner: piping supports.

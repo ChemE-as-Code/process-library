@@ -19,6 +19,8 @@ R = 8314.46  # J/(kmol K)
 PA = 101325.0  # Pa
 K = 1.40  # air, N2, O2 (ASSUMED ideal-gas value)
 ID150, ID80 = 0.1627, 0.0847  # DN150 / DN80 schedule 10S bores, m (ASSUMED)
+ID250 = 0.2646  # DN250 schedule 10S bore, m (ASSUMED): the upsized tailpipe of D-091 (5)
+SET_BARG = {"PSV-3114": 3.5, "PSV-3116": 7.0}  # set = design pressure (equipment list)
 
 
 def force(w_kgh: float, t: float, m: float, d_exit: float | None = None) -> tuple[float, float, str]:
@@ -44,7 +46,9 @@ def force(w_kgh: float, t: float, m: float, d_exit: float | None = None) -> tupl
 
 
 def bore_flow(p1: float, t: float, m: float, d: float) -> float:
-    """Choked mass flow (kg/h) through a bore d at p1 (Pa), t (K): the most a valve can pass."""
+    """Mass flow (kg/h) through a bore d at p1 (Pa), t (K) from the choked-flow formula. At the
+    tank relief pressure (1.563 / 1.013 = 1.54, below the critical ratio ~1.89 for k = 1.4) the
+    flow is subcritical, so this is an upper bound on what the bore can pass (conservative)."""
     g = p1 * math.sqrt(K * m / (R * t)) * (2 / (K + 1)) ** ((K + 1) / (2 * (K - 1)))
     return g * math.pi / 4 * d**2 * 3600
 
@@ -70,6 +74,17 @@ if __name__ == "__main__":
             f, v, state = force(w, t, m, d)
             print(f"{tag}: {w:,.0f} kg/h, {p1} bara, {t} K, exit {d * 1000:.1f} mm: "
                   f"v {v:.0f} m/s, {state}, F {f / 1000:.2f} kN")
+    # built-up back pressure at the exit as a share of set (D-091 (5)): DN150 as modelled and
+    # DN250 upsized; a conventional valve tolerates about 10 % (exit pressure only, the friction
+    # of the tailpipe adds to it)
+    for tag, w, p1, temps, m, _ in CASES[:2]:
+        for d in (ID150, ID250):
+            for t in temps:
+                f, _, state = force(w, t, m, d)
+                pe = float(state.split(", ")[1].split()[0])
+                bp = max(pe - PA / 1e5, 0.0)
+                print(f"{tag} back pressure, exit {d * 1000:.1f} mm, {t} K: {bp:.2f} barg, "
+                      f"{bp / SET_BARG[tag] * 100:.0f} % of set {SET_BARG[tag]} barg, F {f / 1000:.2f} kN")
     for tag, w, t, m in BOUNDS:
         f, v, _ = force(w, t, m)
         print(f"{tag}: {w:,} kg/h, {t} K: v* {v:.0f} m/s, F <= {f / 1000:.2f} kN (any exit area)")
