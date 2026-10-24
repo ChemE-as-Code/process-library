@@ -74,10 +74,10 @@ by the simulated double column). Nm3 at 0 C, 1.013 bar.
 | stream | from -> to | Nm3/h | kg/h | p bara | T C | composition |
 |---|---|---|---|---|---|---|
 | 1 air feed | atm -> K-1101 | 85,840 dry, 88,820 wet | 113,329 | 1.01 | 30 | air, 80 % RH, H2O 3.35 mol% (D-058, D-066) |
-| 1c MAC condensate | E-1102, E-1103 drains | | 1,604 | | 40 | water (simulated, D-058) |
-| 2 compressed air | K-1101 -> C-1101 | 85,840 dry | 111,725 | 5.98 (D-079) | 40 | air, saturated, H2O 1.12 mol% (simulated) |
-| 3c DCAC condensate | into the DCAC water | | 644 | | 27 / 12 | water (simulated, D-058; lower and upper section) |
-| 3 precooled air | C-1101 -> V-2101 | 85,840 dry | 111,081 | 5.88 (D-079) | 12 | air, saturated, H2O 0.21 mol% (simulated) |
+| 1c MAC condensate | E-1102, E-1103 drains | | 1,609 | | 40 | water (simulated, D-058) |
+| 2 compressed air | K-1101 -> C-1101 | 85,840 dry | 111,720 | 6.02 (D-089) | 40 | air, saturated, H2O 1.11 mol% (simulated) |
+| 3c DCAC condensate | into the DCAC water | | 640 | | 27 / 12 | water (simulated, D-058; lower and upper section) |
+| 3 precooled air | C-1101 -> V-2101 | 85,840 dry | 111,080 | 5.92 (D-089) | 12 | air, saturated, H2O 0.21 mol% (simulated) |
 | 4 dry air to cold box | V-2101 -> E-3101 | 85,810 | 110,870 | 5.6 | 15 | dry, CO2 < 0.1 ppm (D-066) |
 | 4E boosted air | E-3104 -> E-3105 -> E-3101 | 11,500 | 14,870 | 8.45 | 30 / 15 | air (D-067: cooling water, then chilled water) |
 | 5 HP column feed | E-3101 -> C-3101 | 74,300 | 96,000 | 5.5 | -173 | air near dew point (D-066) |
@@ -95,8 +95,8 @@ by the simulated double column). Nm3 at 0 C, 1.013 bar.
 | 12c vent | -> atm | 0 | 0 | 1.02 | 13 (D-061) | start-up and bypass of C-1102 only (D-067) |
 
 Balance (D-066):
-- Air: 113,329 kg/h wet in. Of that, 2,248 kg/h condense in the MAC coolers and the DCAC before
-  the TSA (streams 1c, 3c), and the adsorbers remove 211 kg/h of H2O and CO2 (D-079).
+- Air: 113,329 kg/h wet in. Of that, 2,249 kg/h condense in the MAC coolers and the DCAC before
+  the TSA (streams 1c, 3c), and the adsorbers remove 210 kg/h of H2O and CO2 (D-089).
 - Cold box: 110,870 kg/h dry air in = 20,860 GOX + 12,510 GAN + 470 LOX + 470 LIN + 76,560 waste
   N2.
 - O2: 17,985 Nm3/h in the air, 14,890 Nm3/h in GOX + LOX (82.8 %), 3,095 Nm3/h in the waste.
@@ -124,16 +124,16 @@ on chilled water); the cold box then closes at a heat leak of ~75 kW against 50 
 
 | consumer | power / duty | basis |
 |---|---|---|
-| K-1101 MAC | 7.26 MW electric (6.87 MW shaft) | simulated, D-066 (85,810 Nm3/h), D-058 (wet air): 3 stages, 5.98 bara (D-079); motor 9.0 MW (D-066; was 8.0) |
+| K-1101 MAC | 7.29 MW electric (6.89 MW shaft) | simulated, D-066 (85,810 Nm3/h), D-058 (wet air): 3 stages, 6.02 bara (D-079, D-089); motor 9.0 MW (D-066; was 8.0) |
 | K-4101 GOX compressor | 2.26 MW electric (2.14 MW shaft) | simulated, D-061 (suction 13 C): 5 stages to 31 bara (D-065 (7)) |
 | K-4102 GAN compressor | 0.24 MW electric (0.22 MW shaft) | simulated, D-057, D-061 (suction 13 C): 5.2 -> 9 bara, 1 stage |
 | E-2101 regeneration heater | 1.13 MW electric (peak) | 18,486 kg/h x 1.04 kJ/kgK x 185 K = 0.99 MW, plus the concept's 14 % margin; ~1/3 of cycle (D-066, ASSUMED) |
 | pumps, chiller water, misc. | 0.3 MW electric | ASSUMED |
-| **total electric** | **~11.2 MW (average ~10.4 MW)** | 6.6 kV (D-066, D-079; D-058 ~10.2 / ~9.5) |
-| cooling water | ~10.7 MW, ~920 m3/h at 10 K | MAC 7.70, DCAC lower section 0.70, GOX comp 2.04, GAN comp 0.12, booster aftercooler E-3104 0.13 MW (simulated, D-066, D-067, D-079) |
+| **total electric** | **~11.2 MW (average ~10.5 MW)** | 6.6 kV (D-066, D-079, D-089; D-058 ~10.2 / ~9.5) |
+| cooling water | ~10.7 MW, ~920 m3/h at 10 K | MAC 7.73, DCAC lower section 0.70, GOX comp 2.04, GAN comp 0.12, booster aftercooler E-3104 0.13 MW (simulated, D-066, D-067, D-089) |
 | chilled water (C-1102) | ~0.70 MW | DCAC upper section 0.64, E-3105 0.06 MW (simulated); no machine: evaporative cooling by dry waste N2, whose heat leaves with the waste (D-005, D-067) |
 
-Specific energy: ~0.65 kWh per Nm3 GOX delivered at 30 barg (MAC + GOX compressor; D-066, D-079; D-058 ~0.59).
+Specific energy: ~0.65 kWh per Nm3 GOX delivered at 30 barg (MAC + GOX compressor; D-066, D-089; D-058 ~0.59).
 
 The utilities of this table are the energy streams of `process/flowsheet.yaml` (feed POWER,
 product CW; electric heater at its cycle average), which the LCA reads (`lca/`,
@@ -158,7 +158,7 @@ product CW; electric heater at its cycle average), which the LCA reads (`lca/`,
 | PSV-4127 / PSV-4128 | E-4105A/B / E-4106A/B (no outlet isolation valve, so one PSV on each outlet header covers both) | blocked outlet, thermal | elevated |
 | TSV-4140 / TSV-4141 | LOX-3001 / LIN-3001 between FV-3111 (P-03) and the manual tank inlet valve | heat-in of blocked liquid | atmosphere (LOX: safe location) |
 | XV-4133 / XV-4135 | GOX / GAN BL bleeds (DBB) | bleed between the two closed block valves | VNT-4006 safe location / VNT-4007 elevated |
-| PSV on CW headers | E-1101..E-1103 tube side | tube rupture (5.98 bara air into CW, D-079) | local |
+| PSV on CW headers | E-1101..E-1103 tube side | tube rupture (6.02 bara air into CW, D-089) | local |
 | WN-1002 open vent (no device, no valve) | C-1102 evaporative cooler (1 barg) | air blow-by through CHWR-1001 when the DCAC chimney tray loses its seal, 94.5 t/h bound + the design gas: ~25 kPa(g) at the top (D-083); I-03 (SIL 1 screening) limits the duration | elevated, WN-1002 (air / N2, zone Z-N2-WN1002) |
 
 All PSV tags are fixed (S4); TSV-4140/4141 and the vacuum breakers PSV-4142/4143 are drawn on P-04 (S5). Remaining TSVs (RL, LN in the cold box) get tags in detail engineering.
@@ -3646,3 +3646,108 @@ Decision:
   0 label-far-from-owner); build/P-03_crop-60-95-120-155.png.
 
 Reason: layout-review13.
+
+## D-089 Front-end pressure at the DN700 bound; S12D on the simulated water (2026-10-24)
+Answers D-080 (1) and D-088 (1) and (3). It amends D-079.
+
+Decision:
+- **S3 to S4: 32 kPa** (D-079 had 28). The DN700 main air lines are taken at their bound,
+  21.1 kPa with every turn and the vessel nozzles counted (D-080 (1), D-088 (1); routed
+  17.1 kPa). The adsorber bed in adsorption takes ~8 kPa and F-2101 ~3 kPa as a clean-filter
+  allowable (both ASSUMED, the suppliers').
+- **Pressures:** S3 is 5.92 bara and the MAC discharge S2 6.02 bara (were 5.88 and 5.98). S4
+  stays 5.6 bara and the cold box is unchanged. This lifts the hold on the K-1101 datasheet
+  outlet pressure (D-088 (1)).
+- **S12D** follows the water of the simulated stream 3. The adsorbers remove 142.1 kg/h H2O and
+  67.7 kg/h CO2, so S12D is 18,696 kg/h with mole fractions N2 0.9230308, O2 0.0504434,
+  Ar 0.0122656, H2O 0.0119348 and CO2 0.0023254. These sum to 1 (N2 closes the sum), which
+  clears the two pyDEXPI composition warnings on the BFD and PFD. S3 is 111,080 kg/h.
+
+Results (cheme process simulate):
+- **MAC:** 7,288 kW electric, 6,894 kW shaft (+28 kW against D-079), coolers 7,728 kW.
+- **Motor:** the 9.0 MW motor holds. Its output is 7.29 x 0.97 = 7.07 MW, about 7.41 MW at the
+  rated flow, and 110 % of that is 8.15 MW.
+- **DCAC:** 699 kW to cooling water and 634 kW on chilled water.
+- **Plant:** electric ~11.2 MW peak, ~10.5 MW average. LCA: 142.8 kg CO2-eq/t GOX (example
+  factors; was 142.4).
+
+Reason:
+- At the DN700 bound the D-079 profile was 4.1 kPa short (D-088 (1)). Closing it at the MAC costs
+  28 kW and keeps the cold box as it is.
+- **S12D on the simulated water, not IAPWS.** The recommended IAPWS-95 row (165 kg/h water) would
+  put more water into S12D than the simulated S3 brings to the adsorbers (142 kg/h, Peng-Robinson
+  water). That breaks the V-2101 component balance, which `cheme validate` checks. The beds stay
+  sized on IAPWS-95's 165 kg/h (D-080 (2)), which keeps a ~16 % margin on the water load.
+
+Open: the adsorber and F-2101 pressure drops in adsorption come from the suppliers. Above the
+~11 kPa assumed, raise S2 by the difference, at ~6.9 kW/kPa.
+
+## D-090 Lists, datasheets and estimates on the D-089 state (2026-10-24)
+Carries D-089 (S2 6.02 / S3 5.92 bara, S3 111,080 kg/h, S12D 18,696 kg/h) into the lists, the
+datasheets, the equipment estimate and the TEA. The flowsheet, the simulation and the design basis
+are not changed. Every number is printed by `cheme run scripts/datasheet_sizing.py` (record at
+543e898, "current with process/*.yaml") or read from process/simulation-run.json. Answers the
+D-089 review's low finding #3 (downstream documents on the D-079 values).
+
+Decision:
+- (1) **Values on the D-089 state.**
+  - **K-1101.** `outlet_pressure` 6.02 bara; the HOLD of D-080 (1) / D-088 (1) is **lifted**
+    (D-089). 7,288 kW electric, 6,894 kW shaft (run record 7,287.56 / 6,894.03 kW; script gas power
+    6,910 kW). Against D-079 that is +27.8 kW electric and +26.3 kW shaft. Ratio 1.844 per stage to
+    607 kPa(a); stage discharges 373.6 / 386.0 / 386.5 K. **Motor check:** 7,640 kW electric pro rata
+    at 90,000 Nm3/h, 7,411 kW output, 8,152 kW at 110 % (API 617) against the 9.0 MW motor: 10.4 %
+    margin (was 10.8 %). The 9.0 MW motor holds.
+  - **MAC coolers:** E-1101 1,941 kW, 396.1 m2, CW 167.9 m3/h; E-1102 2,877 kW (808 kg/h condensed),
+    607.0 m2 by zones, 248.9 m3/h; E-1103 2,797 kW (726 kg/h), 557.4 m2 by zones, 242.0 m3/h. In all
+    7,614 kW against the simulated Q1 7,728 kW (CW ~669 m3/h). The areas change by at most 1.8 m2.
+  - **DCAC C-1101:** in 6.02, out 5.92 bara; S2 111,720 kg/h, S3 111,080 kg/h; DWSIM 699.5 kW lower /
+    634.3 kW upper; condensate S3C 411 / S3CU 228 kg/h; gas F 0.953 Pa^0.5; upper liquid 34.1 m3/h
+    (2.71 m3/(m2 h)). The chimney-tray overflow stays 38 m3/h (37.8 computed). I-03: inflow 34.4
+    m3/h; the levels and times of D-088 (4) are unchanged (148 / 144 / 72 s).
+  - **C-1102 and the chilled-water loop:** loop 39.55 m3/h, demand 697.6 kW, 850 kg/h evaporated,
+    make-up 621 kg/h. Blow-by bound (D-076, D-083) at S3 5.92 bara: 95.1 t/h (was 94.5); WN-1002
+    passes 154.1 t/h at 3.0 kPa, ~26 kPa(g) at the C-1102 top against 1 barg (3.9 x margin).
+  - **Pumps:** P-1101A/B 33.3 / 34.1 m, 30.1 / 30.9 kW shaft (45 kW motors hold); P-1102A/B 78.0 /
+    78.1 m, 12.5 kW shaft (15 kW motors hold); the P-1102 rating of 44 m3/h is 111 % of the loop.
+  - **TSA V-2101A/B.** The beds **stay sized on 165.0 kg/h** of water (IAPWS-95 at the 5.88 bara of
+    D-079, D-080 (2)). At the D-089 state IAPWS-95 gives 163.9 kg/h (S3 saturated at 12 C, 5.92 bara,
+    y 0.00237), so the sizing load is 0.7 % above it. It is 16 % above the 142.1 kg/h of the
+    simulated stream 3 (Peng-Robinson) that the regeneration gas S12D carries (D-089). CO2 67.7 kg/h
+    unchanged; 660 kg of water per 4 h step (655.5 kg at the D-089 IAPWS load).
+  - **Front end** (section 10, D-089 pressures): the routed DN700 lines take 16.9 kPa (bed B; D-073
+    basis 17.7 kPa), so lines + bed 8 + F-2101 3 = 27.9 kPa against the 32 kPa S3 -> S4, a margin of
+    **+4.1 kPa**. The bound (every turn and the vessel nozzles, at the S4 density) is still 21.1 kPa.
+    It leaves **-0.11 kPa**, because D-089 rounded 21.1 + 8 + 3 = 32.1 kPa down to 32. That is ~0.7 kW
+    at the MAC (6.7 kW/kPa) and below the accuracy of the ASSUMED allowables. It is noted, not
+    acted on: the bound is taken at the lowest density on the path. F-2101 inlet ~5.72 bara (was 5.68).
+  - **TR-1:** running load ~12.4 MVA (MAC 7.29 + GOX 2.26 + GAN 0.24 MW electric simulated + LV ~1.4
+    MW, pf 0.9), ~78 % of the 16 MVA rating. The note still carried the MAC 7.13 MW of D-066 (~12.3
+    MVA). The rating is unchanged.
+  - Datasheets K-1101, E-1101, E-1102, E-1103, C-1101, C-1102, V-2101A/B, F-2101, P-1101A/B,
+    P-1102A/B; equipment list K-1101, C-1101, P-1102A; line list AIR-1002, AIR-1004, AIR-1005,
+    AIR-1006, AIR-2002, CHW-1001, CHWR-1001, CWR-1001, WN-1002, CW-1002, CW-1003, CD-1001, CD-1002;
+    electrical list TR-1, K-1101, P-1101A, P-1102A; instrument list LIC-1114, LSLL-1115; C&E I-03;
+    S-2101 (S12D 18,696 kg/h); the relief case list (section 4: tube rupture at 6.02 bara);
+    sizing-script comments and the budget label. layout/plant-model.yaml rebuilt (input fingerprints
+    and two motor-basis texts only).
+- (2) **Estimate, TEA and LCA rerun** (`cheme assess equipment --write`, `cheme assess tea --write`,
+  `cheme assess lca --write`).
+  - **Equipment estimate:** K-1101 at 6,894 kW (still outside the correlation's 450-3,000 kW range,
+    not costed, as before); E-1101..E-1103 at 396.1 / 607.0 / 557.4 m2 and the four DCAC pumps at
+    their new shaft powers. Purchased equipment of the correlation items USD 4,104,941 -> 4,105,426
+    (+485); bare module unchanged at 2,099,909. The TEA's ISBL is the given USD 36.5 M (D-082), so the
+    estimate does not move it.
+  - **TEA:** POWER 10,436.9 -> 10,464.7 kWh/h (+27.8 kW, the MAC). LCOP **73.83 -> 73.94 USD/t**
+    (P10 65.3, P50 79.2, P90 95.9 USD/t; P(LCOP <= 100) = 94 %, unchanged; the decision holds). The
+    decision turns at a power price of 132.3 USD/MWh (was 132.7) or an ISBL of USD 67.3 M (was 67.4
+    M). Scenarios: Texas power 66.7, California power 127.1, market-report capital 144.4 USD/t.
+  - **LCA:** 142.8 kg CO2-eq/t GOX (example factors) as in D-089; only the equipment-list fingerprint
+    of lca/dataset.yaml changes.
+- (3) **Notes on D-089** (review low findings #1, #2, not changed here because D-089 is the decision
+  of the simulation owner's branch): the "+28 kW against D-079" is the electric increment (+27.8 kW,
+  6.95 kW/kPa); the shaft increment is +26.3 kW (6.57 kW/kPa). Stream 2 in the section 3 table
+  carries H2O 1.12 mol% as simulated (0.0112061); the table prints 1.11.
+
+Reason: D-089 changed S2, S3 and S12D in the flowsheet and the simulation. The lists, the
+datasheets (the MAC enquiry basis among them, still on HOLD at 5.98 bara), the electrical list
+and the estimate still gave the D-079 state.
