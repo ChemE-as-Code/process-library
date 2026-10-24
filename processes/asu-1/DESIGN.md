@@ -3439,6 +3439,11 @@ shows the envelope the layout was built on. Tooling: cheme-as-code 0.8.0
    `support.stands_on` / `elevation`); the nozzle schedule falling back to the `lines:` remains
    a core suggestion. Skills update and the next independent layout / datasheet review are
    separate changes.
+9. **review14#1 (low, carried): the I-03 supplier requirements on the entries the suppliers
+   read.** The LIC-1114 instrument-list entry (the list's only entry for LV-1114) now states the
+   LV-1114 limit, fully open at most 2 x the normal 34.4 m3/h = 69 m3/h, and the C-1101 N7
+   nozzle carries the vortex breaker in its `service` (shown on the nozzle schedule of the
+   drawing), both citing D-088 (4); no value changed.
 
 ## D-082 Techno-economic analysis: premises and first result (2026-10-23)
 The first TEA of the plant (`estimate/tea.yaml`, `cheme assess tea`, skill `tea`; written
