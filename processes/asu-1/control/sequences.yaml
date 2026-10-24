@@ -57,7 +57,7 @@ sequences:
         - {tag: P-1101B, action: stop}
         - {tag: P-1102A, action: stop}
         - {tag: P-1102B, action: stop}
-      notes: "The MAC trip actions are the vendor's and the C&E's; the running DCAC pumps stop after the MAC (H01-A4). Nothing downstream runs yet, so no shutdown sequence follows. An I-03 trip does not stop the MAC: it closes XV-1115, and the start holds at S2 until the seal is back."
+      notes: "The MAC trip actions are the vendor's and the C&E's; the running DCAC pumps stop after the MAC (H01-A4). Nothing downstream runs yet, so no shutdown sequence follows. An I-03 trip does not stop the MAC: it closes XV-1115. Before S2 the start waits for the seal (S2's entry); after S2 the operator holds the MAC on blow-off until LIC-1114 has the seal back and I-03 is reset."
     reset: {latching: true, manual: true,
             condition: {text: the MAC vendor's trip reset after the cause has cleared},
             restart: {all: [{tag: LIC-1106, state: "within range"}, {loop: LIC-1114, state: "seal established"}]}}

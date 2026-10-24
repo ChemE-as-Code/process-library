@@ -4376,6 +4376,8 @@ the node and deviation notes (WN-1001 temperature and O2 bound, H03-N7-OC; cold 
 gas, H02-N2-LT).
 
 ## D-094 Control intent: loop register, sequences, narrative and control philosophy (2026-10-24)
+Revised by D-095 and D-096 (the control conflicts it recorded, decided by the user).
+
 Decision: the plant's control intent is written down in the formats of core#140, next to the
 HAZOP draft (D-093):
 - `control/loops.yaml`: the 31 regulatory loops of the instrument list. Each gives its
@@ -4536,7 +4538,7 @@ Carried out:
   cascade is drawn; the instrument list and the loops state them. The drawing counts are
   unchanged.
 - **Other files:** the instrument list (PIC-4150 added; PIC-4101, PIC-4102, FIC-4148,
-  FIC-3107 and PIC-4105 rewritten) and the electrical list (PIC-4150 on JB-A3-2). The layout
+  FIC-3107 and PIC-4105 rewritten) and the electrical list (after the tag swap: PIC-4101 on JB-A3-2 with FIC-4148, PIC-4150 on JB-A4-1). The layout
   model and the cable schedule were rebuilt.
 - **Loops:** PIC-4102 is the master; FIC-4148 and PIC-4150 are the limits; PIC-4101 is the
   vent; PIC-4105 is the cascade master and FIC-3107 the cascade slave.
@@ -4562,15 +4564,31 @@ Open:
 - The fail positions of the guide vanes, PV-4101B and PV-4105. Whether PV-3110A/B and PV-4101B
   together take the full GOX make on a K-4101 trip.
 - Where the GAN goes while K-4102 stands (failure F-GANC).
+- **PIC-4101's set-point window** (control-review5 #1). With PIC-3110 holding the LP column
+  pressure, the suction pressure runs from about 1.15 bara at the design draw up towards the LP
+  column pressure at zero draw. PIC-4101's set point must lie inside that band to vent at
+  turndown or on a trip. While it vents, PIC-4101 and PIC-3110 together set the split between
+  GOX and waste N2 at turndown, so the vent is for transients and turndown, not for steady
+  operation. A vent at turndown also makes VNT-4003 a normal-operation O2 release, which is for
+  the zones owner (D-031).
 
 For the HAZOP owner (H-04): the reassessment after this branch covers the following.
-- H04-N1, H04-S02 and H04-S75 still name "PIC-4101 output A" as the cause of an over-draw; it
-  is now PIC-4102 or FIC-4148 failing high on the guide vanes.
+- H04-N1, H04-S01, H04-S02, H04-S03 and H04-S75 still use the "output A / output B" wording.
+  - The over-draw cause is no longer PIC-4101. In the low select, one loop failing high is
+    masked by the others. The credible single causes are FT-4148 reading low or PT-4150 reading
+    high while PIC-4102 asks for more, or the selector, the output stage or the vane positioner
+    failing high.
+  - The vent causes now belong to PIC-4101 alone.
 - H04-A23 asks for a limit "independent of PIC-4101"; that now means independent of the
   guide-vane low select.
-- PIC-4150 is in no node yet.
-- A new cause: a header leak lowers the pipeline pressure, so PIC-4102 opens the vanes by
-  design, up to the FIC-4148 limit.
+- H04-SG06 credits FT-4148 for the anti-surge; the same transmitter now also sets the maximum
+  draw.
+- PIC-4150 is in no node yet. After a trip it reads the blown-down casing (XV-4117 shut), which
+  holds the vanes shut until the restart.
+- New causes:
+  - a header leak lowers the pipeline pressure, so PIC-4102 opens the vanes by design, up to the
+    FIC-4148 limit;
+  - the turndown vent through PV-4101B.
 - The old FIC-4105 / FV-4105 flow scenarios are now PIC-4105 / PV-4105 in name only.
 
 Reason: control-review3 #1 and #2. A pipeline customer needs a held pressure, and a column

@@ -171,5 +171,9 @@ H04-A01).
 - The role of PV-4105 and the signal drawn to it, the anti-surge flow measurement of K-4101
   (FT-4148 does not see the recycle), and the maximum GOX draw as a ratio to the air flow
   (D-096).
+- PIC-4101's set-point window and the GOX vent at turndown (an O2 release at VNT-4003), the
+  anti-windup and bumpless transfer of the low select and the GAN cascade, where the GAN goes
+  while K-4102 stands, and whether the waste and vent valves take the full GOX make on a
+  K-4101 trip (D-096).
 - The trips named in the instrument list are not yet in the cause-and-effect list (D-094 lists
   them; HAZOP action H04-A01 and others).

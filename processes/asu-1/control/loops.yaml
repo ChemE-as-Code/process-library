@@ -318,7 +318,7 @@ loops:
          cases: [design], stream: S16, property: pressure}
     modes: [manual, auto]
     normal_mode: auto
-    rationale: The LP column pressure master (D-095); the GOX draw is set by flow (FIC-4148), and PIC-4101 only limits the suction. Higher pressure opens the waste path, so direct acting. PSV-3114 protects the LP column if both valves are shut while the expander and the JT valves keep feeding it (D-011).
+    rationale: The LP column pressure master (D-095); the GOX draw follows PIC-4102's pipeline pressure, limited by FIC-4148 and PIC-4150, and PIC-4101 only vents the GOX K-4101 does not take (D-096). Higher pressure opens the waste path, so direct acting. PSV-3114 protects the LP column if both valves are shut while the expander and the JT valves keep feeding it (D-011).
     unresolved:
       - fail positions of PV-3110A/B (closed would block the LP column in; PSV-3114 is the protection, D-011; HAZOP action H03-A1)
       - the split point between PV-3110A and PV-3110B (ASSUMED 50 %)
@@ -412,7 +412,7 @@ loops:
       - the trip output beside PIC-4102 (D-024) is not yet an interlock of control/cause-effect.yaml (HAZOP action H04-A01)
   - id: FIC-4148
     title: GOX maximum draw (limit)
-    purpose: Limit the GOX draw to what the column makes, as a limit in the guide-vane low select (D-096).
+    purpose: Limit the GOX draw to the design GOX make (a fixed value), as a limit in the guide-vane low select (D-096).
     section: PRD
     cases: [design]
     variable: flow
@@ -464,7 +464,7 @@ loops:
     final_elements:
       - {tag: PV-4101B, kind: valve}
     targets:
-      - {kind: setpoint, unresolved: "above the normal suction pressure of 1.15 bara (S7, D-002), below the LP column relief case (D-011)"}
+      - {kind: setpoint, unresolved: "inside the band from the normal suction pressure at the design draw (about 1.15 bara, S7) up to the suction pressure the LP column gives at zero draw (PIC-3110), so it vents at turndown and on a trip; far below the LP column relief case (D-011). See D-096 Open"}
     modes: [manual, auto]
     normal_mode: auto
     rationale: "One job only since D-096: the guide vanes are PIC-4102's, limited by FIC-4148 and PIC-4150. Its transmitter PT-4101 taps upstream of the suction ESD XV-4117 (S1), so it sees the column side when XV-4117 is shut (start-up, trip). The LP column pressure is PIC-3110's (D-095). When the customer takes less GOX, PIC-4102 closes the guide vanes, the suction pressure rises and PIC-4101 vents the excess; its set point therefore lies above the suction pressure that PIC-3110's LP column pressure gives in normal operation."
