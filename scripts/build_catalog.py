@@ -20,6 +20,9 @@ byte-identical:
 - ``graph.json``: process and chemical nodes, input/output edges
 - ``artifacts/<id>/<sheet>.svg``: preview drawings copied from ``--artifacts``
 
+Summaries and details carry the manifest's ``facets`` (feedstock basis, product classes, unit
+operations, region), always with every key: a missing list is ``[]``, a missing region null.
+
 Errors (schema, unknown chemical, folder/id mismatch, broken artifact link) exit 1. Warnings
 (a preview not rendered, an inventory key the LCA does not have) are printed, and fail the build
 with ``--strict``.
@@ -137,6 +140,15 @@ def _schema_errors(validator: Draft202012Validator, data: Any) -> list[str]:
         f"{'/'.join(map(str, e.absolute_path)) or '(root)'}: {e.message}"
         for e in sorted(validator.iter_errors(data), key=lambda e: list(map(str, e.absolute_path)))
     ]
+
+
+FACET_LISTS = ("feedstock_basis", "product_classes", "unit_operations")
+
+
+def _facets(manifest: dict) -> dict:
+    """The manifest's ``facets``, always complete: missing lists are [], a missing region None."""
+    facets = manifest.get("facets") or {}
+    return {**{key: list(facets.get(key, [])) for key in FACET_LISTS}, "region": facets.get("region")}
 
 
 # --- plantcode project files ---------------------------------------------------------------
@@ -430,6 +442,7 @@ def build(
             report.error(where, f"id {pid!r} differs from folder name {folder.name!r}")
             continue
         flows = {k: manifest["chemistry"].get(k, []) for k in ("inputs", "outputs", "utilities")}
+        facets = _facets(manifest)
         for group, items in flows.items():
             for item in items:
                 if item["chemical"] not in chemicals:
@@ -463,6 +476,7 @@ def build(
             "description": manifest.get("description", ""),
             "families": manifest["families"],
             "keywords": manifest.get("keywords", []),
+            "facets": facets,
             "maturity": manifest["maturity"],
             "validation": manifest["validation"],
             "chemistry": flows,
@@ -518,6 +532,7 @@ def build(
                 "summary": manifest["summary"],
                 "families": manifest["families"],
                 "keywords": manifest.get("keywords", []),
+                "facets": facets,
                 "maturity": manifest["maturity"],
                 "validation": manifest["validation"]["status"],
                 "inputs": sorted({f["chemical"] for f in flows["inputs"]}),
