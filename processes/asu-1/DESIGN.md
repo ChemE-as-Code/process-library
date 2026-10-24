@@ -1423,7 +1423,8 @@ footings, 513 m2 grating.
 ## D-050 Open after the open-points round (2026-10-22)
 - **PSV-3114 / PSV-3116 tailpipe guides** (review3#2): the guide off the relief valve
   platform RV steel needs the relief reaction forces from the stress analysis (the relief
-  loads of the tailpipes on the roof steel); not modelled until those are known.
+  loads of the tailpipes on the roof steel); not modelled until those are known. Closed by
+  D-091 (2): screening forces, guide RV-TPG and axial support RV-TPS, no stress analysis.
 - **KT-3101 expander casing extension** (layout#15): needs the cold box / compander vendor's
   drawing; not modelled.
 - Operability: 14 valves (D-047); support: 8 free spans and 5 runs without support (D-049).
@@ -4005,3 +4006,58 @@ Decision:
   No check finding or gate covers the budget, so `checks/checks.yaml` gets no acceptance. The
   rule of D-089 still holds: if the suppliers' bed and F-2101 drops exceed the 11 kPa assumed,
   raise S2 by the difference.
+- (2) **PSV tailpipes: screening reaction forces, a guide and an axial support** (review3#2;
+  D-050, D-062 (4)). No stress analysis will be done, so the tailpipes are screened instead.
+  A formal pipe stress analysis is outside the scope of this study.
+  - **Method:** the open-discharge reaction force of API 520 Part II (sizing, selection and
+    installation of pressure-relieving devices, the installation part), applied in our own
+    form. The force is the momentum of the exit flow plus the exit area times the exit static
+    pressure above atmosphere. The exit is choked: v* = (2 k R T / ((k + 1) M))^0.5, and the
+    exit pressure follows from the mass flux. It assumes ideal gas and an adiabatic tailpipe
+    without friction, which is conservative. At a fixed rate the force falls as the exit area
+    grows, so a larger tailpipe than the one modelled stays inside these values. The numbers
+    below are printed by `cheme run scripts/psv_reaction.py`.
+  - **Relieving conditions (ASSUMED):** set pressure = design pressure of the protected item
+    (equipment list), relieving at 110 % of set. The temperature is taken at the cold
+    relieving vapour and, as a warm bound, at 15 C (gas that has warmed in the outlet piping).
+    The warm bound gives the larger force and is the design value. Exit bore is schedule 10S
+    (ASSUMED): DN150 162.7 mm, DN80 84.7 mm.
+
+    | PSV | rate (basis) | relieving | exit | force cold / warm |
+    |---|---|---|---|---|
+    | PSV-3114 (VNT-3002, 4.5 m vertical) | 76,560 kg/h, stream 12 waste N2: the blocked waste N2 outlet relieves what the LP column makes | 4.86 bara (C-3102 3.5 barg), 94 K / 288 K, M 28.3 | DN150, choked, 1.31 / 2.29 bara | **4.4 / 9.3 kN** |
+    | PSV-3116 (VNT-3003, 4.5 m vertical) | 110,870 kg/h, stream 4: all the dry air into the cold box (deadhead bound) | 8.71 bara (C-3101 7 barg), 103 K / 288 K, N2 | DN150, choked, 2.00 / 3.34 bara | **7.9 / 14.6 kN** |
+    | PSV-4123 (VNT-4001, 0.65 m vertical) | 13,800 kg/h: choked flow through the DN80 inlet bore at relief (a bound; no tank relief rate is set) | 1.56 bara (T-4101 0.5 barg), 95 K / 288 K, O2 | DN80, 1.01 / 1.44 bara | **0.6 / 1.4 kN** |
+    | PSV-4124 (VNT-4005, 0.65 m vertical) | 13,900 kg/h, the same bound | 1.56 bara (T-4102 0.5 barg), 82 K / 288 K, N2 | DN80, 1.01 / 1.55 bara | **0.6 / 1.5 kN** |
+
+    The other relief valves discharging to atmosphere have no tailpipe in the 3D model (local
+    discharges at the valve). Their area-independent bound, W v* (1 + 1/k) at the warm
+    temperature, with ASSUMED rates: PSV-1109 17.2 kN (111,720 kg/h, stream 2, 40 C);
+    PSV-2108A/B 16.4 kN each (111,080 kg/h, stream 3); PSV-3119 2.4 kN (14,870 kg/h, the booster
+    flow, 60 C); PSV-4127 2.9 kN (20,860 kg/h, the GOX product rate); PSV-4128 1.9 kN
+    (12,510 kg/h, the GAN product rate). Each outlet is supported at its outlet elbow on the
+    line's own support steel in piping detail design. The vacuum breakers PSV-4142 / PSV-4143
+    draw air in and the TSVs pass liquid in small amounts, so they are not screened.
+  - **Supports in the model** (`layout/structures.yaml` `pipe_supports`). cheme-as-code 0.8.0
+    generates shoes and guides only where a horizontal run crosses a beam. A guide on a
+    vertical tailpipe is not an object it models, so the steel is declared as support steel
+    and the guide and bearing parts are recorded here. Two T-posts stand on the RV platform
+    steel (53 m) between the valves:
+    - **RV-TPG**, the lateral guide, at [129.5, 43.0]. Its crossbar is at 57.75 m, 0.5 m below
+      the open ends (58.25 m), and ends 0.2 m off each tailpipe, where a guide lug takes the
+      pipe. Design load: the full reaction laterally, 9.3 / 14.6 kN (ASSUMED). That covers an
+      exit that is not truly axial.
+    - **RV-TPS**, the axial support, at [129.5, 42.7]. Its crossbar is at 55.3 m, which keeps
+      2.1 m of headroom over the RV floor. A lug welded to each tailpipe bears on it, so the
+      downward reaction does not load the valve bodies. Design load: reaction x dynamic load
+      factor 2 (ASSUMED), 19 kN (PSV-3114) and 29 kN (PSV-3116).
+    The rebuilt model has no new clash, headroom, access or steel-in-way finding. The take-off
+    gains 4 HEB200 members (+0.70 t of support steel), and the estimate and the LCA follow.
+  - **Tank PSVs:** the tailpipes are 0.65 m long and the reaction is at most 1.5 kN, axial.
+    They are carried by the tank roof nozzle and the roof steel, which are the tank supplier's
+    roof fittings, so no steel is added. The tank supplier designs for these loads.
+  - **What the screening shows about the tailpipe size:** at these bound rates, a DN150 exit
+    builds up 1.0 to 2.3 bar(g) at the outlet. That is far above the ~10 % of set a conventional
+    valve tolerates, so DN150 is too small for the bound rates, or the rates are too high. The
+    rates, the valve orifices and the tailpipe sizes stay with the relief sizing (section 4
+    heading). A larger tailpipe lowers the force, so the supports above stay on the safe side.
