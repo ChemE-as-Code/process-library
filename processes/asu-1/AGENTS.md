@@ -114,7 +114,7 @@ This repository is a process plant design. The files are the design; there is no
 | `piping/special-items.yaml` (optional) | `piping_items` (tag, type, line, sheet, set_pressure_barg, relief_case: safety valves, silencers) |
 | `checks/checks.yaml` | `checks` |
 | `lca/lca.yaml` | `lca` (goal and scope of the LCA: functional unit, case, allocation, categories, and the background of each feed, product and emitted component) |
-| `lca/factors.yaml` | `lca_factors` (characterised factors, each with status, source, year and licence; the open profile desnz-ghg-2026 and the ASU's own estimates, D-091) |
+| `lca/factors.yaml` | `lca_factors` (characterised factors, each with status, source, year and licence; the open profile desnz-ghg-2026 and the ASU's own estimates, D-092) |
 | `equipment/datasheets/<TAG>.yaml` | `datasheet` (one per equipment item: conditions, materials, sizing basis, `assumed` values) |
 | `reviews/<date>-<topic>.md` front matter | `review` (topic, reviewed_commit, scope, reviewer, reviewer_kind) |
 | `checks/status.json` (generated) | `status` |

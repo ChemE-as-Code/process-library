@@ -8,11 +8,11 @@ Optional, as the process matures:
 
 | add | the Atlas then shows |
 |---|---|
-| `plant.yaml` and the plantcode project files (`plantcode init`) | the process is an engineering project: sheets, gates, design basis |
+| `plant.yaml` and the ChemE-as-Code project files (`cheme init`) | the process is an engineering project: sheets, gates, design basis |
 | `pid/*.xml`, `process/BFD.xml`, `process/PFD.xml` (listed in `plant.yaml`) | drawing previews, later the interactive Viewer |
 | `process/flowsheet.yaml` | flowsheet and stream table |
 | `layout/plant-model.yaml` | 3D layout (in the Viewer) |
-| `lca/` with results (`plantcode assess lca --write`) | footprint per functional unit, contributions, inventory |
+| `lca/` with results (`cheme assess lca --write`) | footprint per functional unit, contributions, inventory |
 | `checks/status.json` | engineering gate status |
 
 Keep sources and assumptions with the data. The `maturity` and `validation` fields are what tell
