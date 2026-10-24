@@ -1,0 +1,1664 @@
+# HAZOP study H-04: a DRAFT until the team has accepted every entry and a
+# human review record covers it (cheme safety hazop check). Schema: cheme schema
+# hazop-study; workflow: safety/README.md and the skill hazop-study.
+schema: cheme/hazop-study/v1
+kind: hazop-study
+id: H-04
+title: Products, storage and backup supply
+scope: >-
+  Sheet P-04 (pid/P-04.xml) as drawn: the GOX compressor K-4101 with its intercoolers E-4101,
+  aftercooler E-4102, recycle GOX-4003, vent VNT-4002 / S-4101, inlet vent VNT-4003 / S-4102 and
+  relief PSV-4122 to the GOX export GOX-4002; the GAN compressor K-4102 with E-4103, recycle
+  GAN-4004 and vents VNT-4004 / VNT-4007 to the GAN export GAN-4002; the LOX tank T-4101 and
+  LIN tank T-4102 with their reliefs and vacuum breakers (PSV-4123, PSV-4142, PSV-4124,
+  PSV-4143), tanker fill lines LOX-4004 / LIN-4004 (TSV-4144, TSV-4145), the backup pumps
+  P-4101A/B and P-4102A/B (interlocks I-01, I-02), the ambient-air vaporizers E-4105A/B and
+  E-4106A/B with PSV-4125..PSV-4128 and the backup lines GOX-4004 / GAN-4003 into the export
+  headers; the thermal reliefs TSV-4140 / TSV-4141 on the liquid rundown. Off-page connections:
+  GOX-4001 and GAN-4001 from E-3101, LOX-3001 from C-3102 and LIN-3001 from C-3101 on P-03
+  (H-03); the GAN header supplies the cold box casing purge UN-3001 on P-03 (H-03). Battery
+  limits: GOX-4002 and GAN-4002 to the customer, CW-4001 / CW-4002 and their returns, the
+  tanker connections (the tanker itself is not studied). Not covered: the compressor packages'
+  internals (supplier), the customer's pipeline and the road tanker.
+modes:
+  - {id: normal, title: Normal operation, description: "GOX and GAN compressed to export, LOX/LIN make to storage, backup on standby."}
+  - {id: startup, title: Start-up, description: "Compressors started on recycle and vent, cold box cooldown, first product, tanks cooled down."}
+  - {id: shutdown, title: Shutdown and trip, description: "Compressor trip, cold box trip with the export switched to backup."}
+  - {id: backup, title: Backup supply, description: "Cold box down; LOX/LIN pumped from the tanks and vaporized into the export headers."}
+  - {id: tanker-fill, title: Tanker unloading, description: "Filling T-4101 / T-4102 from a road tanker."}
+  - {id: warmup, title: Warm-up and derime, description: "Of the cold box, with the product lines warm and the backup supplying."}
+  - {id: maintenance, title: Maintenance, description: "Isolation, purging, pump change-over, vaporizer defrost, work on oxygen equipment."}
+  - {id: power-fail, title: Power failure, description: "Total or partial loss of power, and of instrument air where it follows."}
+analysed:
+  - {path: pid/P-04.xml, revision: 'sha256:c06f81101caad81404d0694aa8ba27aad670b2bdfd5e884f0d3f39c1dc66efe5', relation: analyses}
+  - {path: control/cause-effect.yaml, revision: 'sha256:b9c8e56cbc49b1b9d9595e39b02fbaa24fdffdf137d402bcd253b329b9299ca5', relation: analyses}
+  - {path: control/instrument-list.yaml, revision: 'sha256:328523d1bcb51ae744867889f922f4bf01c619efaf155f01d0e275bffc6b3d2f', relation: analyses}
+  - {path: equipment/equipment-list.yaml, revision: 'sha256:7dd6ae258db62812479ac0e0e7c520b82a46de4f02ee2020db2f5d4013870490', relation: analyses}
+  - {path: piping/line-list.yaml, revision: 'sha256:3643188e55a2e5b9128b4b6c25a3e8b71bbd07e4fdb3fbe0d47ade72261f1485', relation: analyses}
+  - {path: piping/special-items.yaml, revision: 'sha256:8071c9646730d15356f23923163a5416205ea568dbb9592a61fb49e9d19077d0', relation: analyses}
+  - {path: process/design-basis.yaml, revision: 'sha256:db3372d4b36b2577ddeab2c14f7ca16db622a3d5d32dddc006ff9a1551ff0281', relation: analyses}
+  - {path: process/flowsheet.yaml, revision: 'sha256:0017d59880eecae9cd7e13b285dc48460a928774b6097389b6b253b5717b7d39', relation: analyses}
+risk_matrix: safety/risk-matrix.yaml
+assessment_basis: >-
+  IEC 61882 guide words applied to the parameters of each node's design intent, in every mode
+  that applies. Each scenario (one cause, one consequence) is rated per category of
+  safety/risk-matrix.yaml (people, environment, asset incl. production loss): initial with no
+  safeguard credited (likelihood of the cause), residual with only the safeguards named in the
+  scenario that exist in the files (an alarm with operator response, a control loop, an
+  interlock of control/cause-effect.yaml, a relief device, a check valve, a recorded mechanical
+  design feature). Ratings are proposed by an agent at basic engineering from the files and
+  DESIGN.md, with basis and evidence, for the team to accept or change; no frequency is
+  calculated and no LOPA credit is taken here. The matrix itself is a proposal (ASSUMED).
+  Credit convention for the residual likelihood (one matrix letter is one order of
+  magnitude; a proposal for the team, not a LOPA): a relief device whose listed case covers the
+  cause, or a passive feature that removes the path (an open vent without valve, an elevated
+  vent outside its zone), up to two orders; an alarm with operator response, a control loop, a
+  check valve, an administrative lock, a trip that is drawn but not in the C&E (kind other), or
+  an interlock whose SIL is not confirmed, one order each; nothing for a safeguard that shares
+  a transmitter, valve or logic with the cause or that the cause defeats, nor for a relief
+  device whose listed case does not cover the cause.
+team: []            # not named yet: the owner names the facilitator, scribe and members
+notes: >-
+  Team not named: the owner names the facilitator, scribe and members (process, operations,
+  instrument and control, mechanical, safety, and the GOX / GAN compressor and vaporizer
+  suppliers as needed). No session has been held: every node, scenario, safeguard, rating and
+  action in this file is a proposal by an agent (status proposed, by agent).
+nodes:
+  # ---------------------------------------------------------------- GOX train
+  - id: H04-N1
+    title: GOX-4001 suction header to K-4101, suction vent PV-4101B / S-4102
+    design_intent: >-
+      Carry the GOX product (14,600 Nm3/h, 99.71 % O2, 1.15 bara, 13 C, ~19 m/s in DN500 SS)
+      from E-3101 (P-03) through the suction ESD valve XV-4117 to K-4101. PIC-4101 holds the
+      suction (and so the LP column) pressure: output A on the K-4101 inlet guide vanes, output B
+      opens PV-4101B to vent through S-4102 / VNT-4003 (elevated, safe location) on a K-4101
+      trip and at start-up (D-019). AI-3104 (purity) and FI-4148 (anti-surge flow input) measure
+      on this line. Oxygen service, cleaned to D-009.
+    members: [GOX-4001, XV-4117, PIC-4101, PV-4101B, S-4102, VNT-4003, AI-3104, FI-4148, K-4101]
+    modes: [normal, startup, shutdown, power-fail, maintenance]
+    status: proposed
+    by: agent
+    deviations:
+      - id: H04-N1-HP
+        guide_word: more
+        parameter: pressure
+        scenarios:
+          - id: H04-S01
+            cause: "K-4101 trips (or XV-4117 closes) and PV-4101B fails to open (PIC-4101 output B, positioner or actuator failure)."
+            consequence: "The GOX make backs up into the LP column C-3102 (P-03): its pressure rises towards the 3.5 barg design; the column upsets and, without relief, the LP column could be overpressured inside the cold box."
+            refs: [K-4101, XV-4117, PV-4101B, PIC-4101, GOX-4001]
+            modes: [normal, shutdown, power-fail]
+            safeguards: [H04-SG35]
+            actions: [H04-A20, H04-A14]
+            status: proposed
+            by: agent
+            notes: "Cause on this sheet, consequence in H-03 (C-3102 and PSV-3114 on P-03, relief case of PSV-3114 per DESIGN.md section 4: waste N2 outlet blocked). The K-4101 trip with PV-4101B stuck closed is to be confirmed as a PSV-3114 case."
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: D, basis: "Overpressure of the LP column in the cold box (matrix 4: equipment rupture); a K-4101 trip with one control valve failing to open is a single loop failure (D).", evidence: [D-011, D-019, K-4101, PV-4101B], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
+                - {category: asset, severity: "4", likelihood: D, basis: "Damage to the LP column or cold box internals, weeks down (matrix 4).", evidence: [D-011, D-019], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d6c65b3d1b5e620d}}
+              residual:
+                - {category: people, severity: "4", likelihood: C, basis: "PIC-3110 (P-03) opening PV-3110B to S-3101 credited as one control layer, independent of PIC-4101; PSV-3114 not credited until its relief case covers this cause (H04-A20, H03-A20).", evidence: [PIC-3110, PV-3110B, PSV-3114], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+                - {category: asset, severity: "3", likelihood: D, basis: "With PIC-3110 venting through PV-3110B the column upsets: restart of days (matrix 3). PIC-3110 lowers the severity, so it is not credited for the likelihood as well (D).", evidence: [PIC-3110], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+      - id: H04-N1-LP
+        guide_word: less
+        parameter: pressure
+        scenarios:
+          - id: H04-S02
+            cause: "PIC-4101 fails high on its output A: the K-4101 guide vanes open and the machine draws more than the cold box makes."
+            consequence: "GOX-4001 and the LP column pressure fall: column hydraulics upset, GOX purity falls, and K-4101 runs towards surge at the low suction pressure."
+            refs: [PIC-4101, K-4101, GOX-4001]
+            modes: [normal, startup]
+            safeguards: [H04-SG06]
+            actions: [H04-A23]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: D, basis: "Product off-spec and a cold box upset of days with the backup partly covering (matrix 3); single loop failure (D).", evidence: [D-019, PIC-4101], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+              residual:
+                - {category: asset, severity: "3", likelihood: D, basis: "Nothing credited for the draw-down: UIC-4103 only keeps K-4101 out of surge and recycles to the suction, it does not limit the GOX drawn from the column or the purity loss.", evidence: [UIC-4103, PIC-4101], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+          - id: H04-S75
+            cause: "PIC-4101 fails high on its output A (as H04-S02): K-4101 draws more GOX than the column makes."
+            consequence: "The LP sump boils down to feed the extra draw: the level falls and E-3103 is partly uncovered, dry boiling with hydrocarbon and N2O deposition: main condenser explosion (the mechanism of H03-S33)."
+            refs: [PIC-4101, K-4101, GOX-4001, LICA-3102, E-3103]
+            modes: [normal, startup]
+            safeguards: [H04-SG37]
+            actions: [H04-A23]
+            status: proposed
+            by: agent
+            notes: "Hand-over of H03-N8-GOX (more GOX draw). Consequence on P-03, rated here because the cause is on P-04."
+            risk:
+              initial:
+                - {category: people, severity: "5", likelihood: C, basis: "Main condenser explosion (matrix 5); a loop failure (D) that runs on until E-3103 is uncovered with enough hydrocarbon present (C), as H03-S33.", evidence: [D-010, PIC-4101, LICA-3102], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: b6ef4d2263633cd5}}
+                - {category: asset, severity: "5", likelihood: C, basis: "Loss of the cold box.", evidence: [D-010], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 20579213de92d430}}
+              residual:
+                - {category: people, severity: "5", likelihood: B, basis: "LICA-3102 low alarm with operator response credited (one order); UIC-4103 does not limit the draw-down; no independent low-low level or suction low-pressure limit.", evidence: [LICA-3102, D-010], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: feea7693498b1f1a}}
+                - {category: asset, severity: "5", likelihood: B, basis: "As people.", evidence: [LICA-3102], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 6dd05b6d428d45d5}}
+      - id: H04-N1-HF
+        guide_word: more
+        parameter: flow
+        notes: "More flow to the vent: PV-4101B opening in normal operation."
+        scenarios:
+          - id: H04-S03
+            cause: "PV-4101B fails open in normal operation (PIC-4101 output B fault)."
+            consequence: "Up to the full GOX make vents through S-4102 / VNT-4003: an oxygen-enriched plume at the vent area V1; K-4101 suction pressure falls (surge, see H04-S02) and the export drops."
+            refs: [PV-4101B, PIC-4101, S-4102, VNT-4003]
+            modes: [normal]
+            safeguards: [H04-SG28, H04-SG06]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: D, basis: "Oxygen-enriched clothing fire risk for a person near the vent outlet (matrix 3); single loop failure (D).", evidence: [D-019, D-025, VNT-4003], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 4d13f9682edc5284}}
+                - {category: asset, severity: "2", likelihood: D, basis: "Lost GOX export for hours, backup starts on PIC-4111 (matrix 2).", evidence: [D-014], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5975c38759944df0}}
+              residual:
+                - {category: people, severity: "3", likelihood: B, basis: "The vent discharges elevated at a safe location in the fenced vent area V1 (D-019, D-025, zone Z-O2-V1): exposure needs a person at the outlet height.", evidence: [D-019, D-025, D-031], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 497803bd7408e5b6}}
+                - {category: asset, severity: "2", likelihood: C, basis: "UIC-4103 protects K-4101; the backup covers part of the GOX.", evidence: [UIC-4103, PIC-4111], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5d4b96d05607d5a4}}
+      - id: H04-N1-CO
+        guide_word: as-well-as
+        parameter: composition
+        scenarios:
+          - id: H04-S04
+            cause: "Particles or hydrocarbon contamination left in GOX-4001 or XV-4117 after construction or maintenance (cleaning to D-009 not achieved or not verified)."
+            consequence: "Particle impact or contaminant ignition at the K-4101 inlet guide vanes or first impeller: oxygen fire, burn-through of the casing, GOX jet fire at the machine behind its fire wall."
+            refs: [GOX-4001, XV-4117, K-4101]
+            modes: [startup, maintenance]
+            safeguards: [H04-SG03, H04-SG26, H04-SG27, H04-SG36]
+            actions: [H04-A13, H04-A18, H04-A24]
+            status: proposed
+            by: agent
+            notes: "No suction strainer is drawn on GOX-4001; whether the K-4101 package has one is a supplier question (H04-A13)."
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, basis: "Oxygen fire at the machine with an operator nearby (matrix 4); contamination after maintenance is credible once in the plant life (C).", evidence: [D-002, D-009, K-4101], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+                - {category: asset, severity: "5", likelihood: C, basis: "Loss of the GOX compressor, months down (matrix 5).", evidence: [D-002], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 20579213de92d430}}
+              residual:
+                - {category: people, severity: "4", likelihood: B, basis: "Fire wall FW-4101 on three sides (D-026, D-030) shields the cold box side and the walkways but not a person at the open east side; TSHH-4104 trips, isolates and blows the machine down (trip not in the C&E, one order); the ignition itself is not prevented.", evidence: [TSHH-4104, D-026, D-030, D-013], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
+                - {category: asset, severity: "5", likelihood: B, basis: "TSHH-4104 limits the fire duration but a GOX compressor fire usually destroys the stage; oxygen-compatible materials (D-002, D-009) reduce the ignition probability.", evidence: [TSHH-4104, D-009], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 6dd05b6d428d45d5}}
+      - id: H04-N1-LT
+        guide_word: less
+        parameter: temperature
+        notes: "Cold GOX from E-3101 (warm-end temperature low) has its cause on P-03 (H-03). GOX-4001 is SS, so cold gas does not embrittle the line; the effect on K-4101 is a supplier question. No cause on this sheet."
+  - id: H04-N2
+    title: K-4101 GOX compressor with E-4101 intercoolers, E-4102 aftercooler and recycle GOX-4003
+    design_intent: >-
+      Compress 14,600 Nm3/h GOX from 1.15 to 31 bara in five oil-free stages (2.5 MW motor, dry
+      gas seals with N2 buffer, in the open behind its fire wall FW-4101 (D-026, D-030; D-002 and the
+      datasheet say fire-safe enclosure, H04-A24), Monel / copper alloy in the high-velocity
+      zones), intercooled in the E-4101 package (GOX-4005) and aftercooled in E-4102 to 40 C with
+      cooling water CW-4001 / CWR-4001 (25 / 35 C, ~4 barg); design 34 barg / 150 C. UIC-4103
+      (FI-4148 and pressure ratio) keeps the machine out of surge through UV-4103 and the recycle
+      GOX-4003 from the E-4102 outlet to the suction. TSHH-4104 detects a fire (stage
+      temperature) and trips K-4101, the ESD valves and the blowdown.
+    members: [K-4101, E-4101, E-4102, GOX-4005, GOX-4003, UV-4103, UIC-4103, TSHH-4104, CW-4001, CWR-4001]
+    modes: [normal, startup, shutdown, power-fail, maintenance]
+    status: proposed
+    by: agent
+    deviations:
+      - id: H04-N2-LF
+        guide_word: less
+        parameter: flow
+        scenarios:
+          - id: H04-S05
+            cause: "UIC-4103 or UV-4103 fails (valve stuck closed, FI-4148 reading high) while the customer reduces off-take or at turndown."
+            consequence: "K-4101 surges: flow reversal and rubbing of impellers or labyrinths in oxygen, metal ignition, oxygen fire and destruction of the machine."
+            refs: [UIC-4103, UV-4103, FI-4148, K-4101, GOX-4003]
+            modes: [normal, startup, shutdown]
+            safeguards: [H04-SG03, H04-SG27, H04-SG36]
+            actions: [H04-A13, H04-A24]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: D, basis: "Oxygen fire at the compressor (matrix 4); single loop failure (D).", evidence: [D-002, UIC-4103], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
+                - {category: asset, severity: "5", likelihood: D, basis: "Loss of K-4101, months down (matrix 5).", evidence: [D-002], status: proposed, by: agent, band: {value: very-high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 383056181dc74e6a}}
+              residual:
+                - {category: people, severity: "4", likelihood: B, basis: "Fire wall FW-4101 on three sides (D-026, D-030) shields the cold box side and the walkways but not a person at the open east side (one order); TSHH-4104 trip with ESD and blowdown (not in the C&E, one order); no independent surge detection trip is in the files (H04-A13).", evidence: [TSHH-4104, D-026, D-030, D-013], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
+                - {category: asset, severity: "5", likelihood: C, basis: "TSHH-4104 acts after ignition; nothing on the sheet stops surge independently of UIC-4103.", evidence: [TSHH-4104], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 20579213de92d430}}
+      - id: H04-N2-HT
+        guide_word: more
+        parameter: temperature
+        scenarios:
+          - id: H04-S06
+            cause: "Loss or reduction of cooling water CW-4001 to E-4102 (CW pump trip, valve closed, fouling); the E-4101 package water likewise."
+            consequence: "GOX leaves E-4102 at the last-stage discharge temperature (above 100 C) into GOX-4002 and the customer pipeline: less margin against ignition of seats, gaskets and soft goods in oxygen; design temperature of the export line possibly exceeded."
+            refs: [CW-4001, CWR-4001, E-4102, E-4101, GOX-4002]
+            modes: [normal]
+            safeguards: [H04-SG03]
+            actions: [H04-A12]
+            status: proposed
+            by: agent
+            notes: "No temperature measurement is drawn at the E-4102 outlet or on GOX-4002. TSHH-4104 is a stage temperature: it is credited for the intercooler water loss only, not for the aftercooler."
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: D, basis: "Oxygen fire at a valve downstream of the aftercooler (matrix 4); a cooling water upset is a utility failure (D).", evidence: [D-009, E-4102], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
+                - {category: asset, severity: "4", likelihood: D, basis: "Fire damage to the discharge line and BL station, weeks down (matrix 4).", evidence: [E-4102], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d6c65b3d1b5e620d}}
+              residual:
+                - {category: people, severity: "4", likelihood: C, basis: "TSHH-4104 trips K-4101 when the intercooler water is lost too (common supply); with the aftercooler alone nothing on the sheet detects it.", evidence: [TSHH-4104], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+                - {category: asset, severity: "4", likelihood: C, basis: "As for people.", evidence: [TSHH-4104], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 544760766051af8c}}
+          - id: H04-S07
+            cause: "Ignition inside K-4101 (contaminated or worn dry gas seal, particle impact, rub after a bearing failure)."
+            consequence: "Oxygen fire in the machine, burn-through and GOX jet fire at the machine behind its fire wall; injury to anyone at the machine."
+            refs: [K-4101, TSHH-4104]
+            modes: [normal, startup]
+            safeguards: [H04-SG03, H04-SG27, H04-SG26, H04-SG36]
+            actions: [H04-A01, H04-A02, H04-A13, H04-A24]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, basis: "Matrix 4 (an oxygen fire on a person); GOX compressor fires have happened in the industry and are credible once in the plant life (C).", evidence: [D-002, D-012], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+                - {category: asset, severity: "5", likelihood: C, basis: "Loss of the compressor and enclosure, months down (matrix 5).", evidence: [D-002], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 20579213de92d430}}
+              residual:
+                - {category: people, severity: "4", likelihood: B, basis: "Fire wall FW-4101 on three sides (D-026, D-030) shields the cold box side and the walkways but not a person at the open east side; TSHH-4104 trip (not in the C&E, one order) with XV-4117 / XV-4118 closing and XV-4116 blowing the machine down removes the oxygen.", evidence: [TSHH-4104, XV-4116, XV-4117, XV-4118, D-026, D-030], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
+                - {category: asset, severity: "4", likelihood: B, basis: "The trip and blowdown limit the fire to the machine: weeks to replace a stage (matrix 4).", evidence: [TSHH-4104, D-013], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d508cded1fd37f0d}}
+      - id: H04-N2-CO
+        guide_word: as-well-as
+        parameter: composition
+        scenarios:
+          - id: H04-S08
+            cause: "Loss of the N2 buffer gas to the K-4101 dry gas seals, or failure of the separation between bearing housing and gas path."
+            consequence: "Bearing oil mist reaches the oxygen side of the seals or the gas path: hydrocarbon in oxygen, ignition and oxygen fire at the seal."
+            refs: [K-4101]
+            modes: [normal, startup, shutdown]
+            safeguards: [H04-SG27, H04-SG03]
+            actions: [H04-A13]
+            status: proposed
+            by: agent
+            notes: "Seal and buffer gas system is supplier scope (excluded from the study); the cause is kept so the team can ask the supplier which trips protect it."
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, basis: "Matrix 4; buffer gas loss is a credible upset in the plant life (C).", evidence: [D-012], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+                - {category: asset, severity: "5", likelihood: C, basis: "Loss of the compressor (matrix 5).", evidence: [D-012], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 20579213de92d430}}
+              residual:
+                - {category: people, severity: "4", likelihood: B, basis: "Atmospheric distance piece and N2 buffer (D-012), TSHH-4104 trip; buffer gas trips not in the files yet.", evidence: [D-012, TSHH-4104], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
+                - {category: asset, severity: "5", likelihood: B, basis: "As for people; the trip acts after ignition.", evidence: [D-012, TSHH-4104], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 6dd05b6d428d45d5}}
+          - id: H04-S09
+            cause: "Tube leak in E-4102 (or an E-4101 intercooler): GOX at up to 31 bara into the cooling water at ~4 barg."
+            consequence: "Oxygen carried with CWR-4001 to the cooling water return and released at the return or cooling tower; after a shutdown, cooling water and its solids enter the oxygen side (corrosion, contamination of the cleaned system)."
+            refs: [E-4102, E-4101, CWR-4001]
+            modes: [normal, shutdown]
+            actions: [H04-A21]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "2", likelihood: C, basis: "Oxygen-enriched pocket at the CW return, small rate (matrix 2).", evidence: [E-4102], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec3f1ae5a6a9b78e}}
+                - {category: asset, severity: "3", likelihood: C, basis: "Re-cleaning of the oxygen side and exchanger repair, days down (matrix 3).", evidence: [D-009], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915}}
+              residual:
+                - {category: people, severity: "2", likelihood: C, basis: "No safeguard on the sheet.", evidence: [E-4102], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec3f1ae5a6a9b78e}}
+                - {category: asset, severity: "3", likelihood: C, basis: "No safeguard on the sheet.", evidence: [E-4102], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915}}
+      - id: H04-N2-HP
+        guide_word: more
+        parameter: pressure
+        scenarios:
+          - id: H04-S10
+            cause: "XV-4118 closes spuriously while K-4101 runs at maximum speed."
+            consequence: "Blocked outlet: K-4101 discharge, E-4102 and GOX-4002 up to XV-4118 rise to the machine's maximum pressure above the 34 barg design; rupture and GOX release."
+            refs: [XV-4118, K-4101, E-4102, GOX-4002]
+            modes: [normal]
+            safeguards: [H04-SG10]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: D, basis: "Rupture of oxygen equipment at 31 bara (matrix 4); spurious ESD valve closure (D).", evidence: [PSV-4122, XV-4118], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
+                - {category: asset, severity: "4", likelihood: D, basis: "Aftercooler and line damage, weeks (matrix 4).", evidence: [E-4102], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d6c65b3d1b5e620d}}
+              residual:
+                - {category: people, severity: "4", likelihood: B, basis: "PSV-4122 sized for this case (blocked outlet at max. speed, XV-4118 closed) credited as one relief device (two orders); UIC-4103 does not limit the discharge pressure and is not credited.", evidence: [PSV-4122], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
+                - {category: asset, severity: "2", likelihood: D, basis: "Relief to S-4101 and a trip, under a day on backup (matrix 2). PSV-4122 lowers the severity, so it is not credited for the likelihood as well (D).", evidence: [PSV-4122], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5975c38759944df0}}
+      - id: H04-N2-RF
+        guide_word: reverse
+        parameter: flow
+        scenarios:
+          - id: H04-S11
+            cause: "K-4101 trips and the discharge check valve does not close (stuck, damaged) while XV-4118 is not commanded closed."
+            consequence: "GOX from the export header and customer pipeline flows back through E-4102 and the compressor: reverse rotation, heating and possible ignition; the header volume then blows down through XV-4116 to S-4101."
+            refs: [K-4101, XV-4118, XV-4116, GOX-4002, {sheet: P-04, object: CV_GOX4002}]
+            modes: [shutdown, power-fail]
+            safeguards: [H04-SG19]
+            actions: [H04-A01]
+            status: proposed
+            by: agent
+            notes: "The P&ID writes the ESD action only beside TSHH-4104; which trips close XV-4117 / XV-4118 and open XV-4116 is not stated for every K-4101 trip (H04-A01)."
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, basis: "Oxygen fire at the machine (matrix 4); a trip with a failed check valve (C).", evidence: [D-013], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+                - {category: asset, severity: "4", likelihood: C, basis: "Machine damage, weeks (matrix 4).", evidence: [K-4101], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 544760766051af8c}}
+              residual:
+                - {category: people, severity: "4", likelihood: B, basis: "The discharge check valve on GOX-4002 credited; XV-4118 not credited until its trip is in the C&E.", evidence: [CV_GOX4002, D-024], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
+                - {category: asset, severity: "4", likelihood: B, basis: "As for people.", evidence: [CV_GOX4002], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d508cded1fd37f0d}}
+      - id: H04-N2-PF
+        guide_word: "no"
+        parameter: power
+        scenarios:
+          - id: H04-S12
+            cause: "Total power failure: K-4101, K-4102 and the standby backup pumps P-4101A/B and P-4102A/B all lose supply."
+            consequence: "GOX and GAN export stop and the backup cannot start: the customer loses both products for the duration of the outage and the restart."
+            refs: [K-4101, K-4102, P-4101A, P-4101B, P-4102A, P-4102B]
+            modes: [power-fail]
+            actions: [H04-A14]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: D, basis: "Supply shortfall to the customer for hours to days (matrix 3); grid outages a few times in the plant life (D).", evidence: [D-014], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+              residual:
+                - {category: asset, severity: "3", likelihood: D, basis: "No emergency power for the backup pumps is in the files.", evidence: [D-014], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+  - id: H04-N3
+    title: GOX-4002 discharge and export to the battery limit, blowdown VNT-4002 / S-4101
+    design_intent: >-
+      Deliver the GOX at 31 bara and 40 C (DN200, ~5 m/s, PN40, SS to the BL ESD valve) from the
+      E-4102 outlet through the discharge ESD XV-4118 (equalising bypass HV-4129), the check
+      valve and the PIC-4102 measuring point (export pressure 30 barg, HH trips K-4101), past
+      the backup tie-in GOX-4004, AI-4115 and FQI-4149 (custody), through the double block and
+      bleed XV-4119 (bypass HV-4130) / XV-4132 with bleed XV-4133 to VNT-4006 to the customer
+      pipeline. PSV-4122 and the blowdown XV-4116 discharge through VNT-4002 and S-4101 at an
+      elevated safe location (D-013, D-019).
+    members: [GOX-4002, XV-4118, HV-4129, PIC-4102, AI-4115, FQI-4149, XV-4119, HV-4130, XV-4132, XV-4133, VNT-4006, XV-4116, PSV-4122, VNT-4002, S-4101, {sheet: P-04, object: CV_GOX4002}]
+    modes: [normal, startup, shutdown, backup, maintenance]
+    status: proposed
+    by: agent
+    deviations:
+      - id: H04-N3-HP
+        guide_word: more
+        parameter: pressure
+        scenarios:
+          - id: H04-S13
+            cause: "The customer stops taking GOX (or XV-4119 / XV-4132 closes spuriously) while K-4101 runs."
+            consequence: "GOX-4002 pressure rises to the K-4101 maximum; without unloading, overpressure of the export header and E-4102 and surge of K-4101."
+            refs: [XV-4119, XV-4132, GOX-4002, PIC-4102, K-4101]
+            modes: [normal]
+            safeguards: [H04-SG05, H04-SG10]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: D, basis: "Rupture of oxygen equipment (matrix 4); customer upsets several times in the plant life (D).", evidence: [PIC-4102, PSV-4122], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
+              residual:
+                - {category: people, severity: "4", likelihood: A, basis: "PSV-4122 (two orders) and the PIC-4102 high-high trip of K-4101 (independent of the cause, drawn on P-04 but not in the C&E: one order); UIC-4103 does not limit the pressure and is not credited.", evidence: [PSV-4122, PIC-4102], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 2aae4706e67ac517}}
+      - id: H04-N3-LK
+        guide_word: other-than
+        parameter: containment
+        scenarios:
+          - id: H04-S14
+            cause: "Flange, gasket or instrument connection leak on GOX-4002 (rack or BL valve station at 9 to 10.7 m)."
+            consequence: "A GOX jet and an oxygen-enriched atmosphere around the rack and BL station; a person in it can suffer a clothing fire; an ignition source in the jet starts a metal fire."
+            refs: [GOX-4002, XV-4119, XV-4132]
+            modes: [normal, backup]
+            actions: [H04-A15]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, basis: "Oxygen fire on a person (matrix 4); flange leak on 31 bara gas, credible in the plant life (C).", evidence: [D-009, D-040], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+              residual:
+                - {category: people, severity: "4", likelihood: C, basis: "No leak detection or remote isolation on demand is in the files; the BL station is out of normal reach (D-040), so exposure is limited but not by a safeguard.", evidence: [D-040], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+      - id: H04-N3-SU
+        guide_word: before
+        parameter: sequence
+        notes: "Opening an ESD ball valve before its bypass has equalised the pressure."
+        scenarios:
+          - id: H04-S15
+            cause: "At a restart XV-4118 or XV-4119 is opened against the full differential (HV-4129 / HV-4130 not used, dP permissive overridden or not implemented)."
+            consequence: "Fast pressurisation of the downstream volume: adiabatic compression and particle impact at the ball valve seat and the first elbow, ignition of the soft seat, oxygen fire at the valve station."
+            refs: [XV-4118, XV-4119, HV-4129, HV-4130, GOX-4002]
+            modes: [startup, backup]
+            safeguards: [H04-SG25, H04-SG26]
+            actions: [H04-A01]
+            status: proposed
+            by: agent
+            notes: "The dP permissive is described in D-024 but has no tagged instrument and is not in control/cause-effect.yaml, so it is not credited."
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: D, basis: "Oxygen fire at the valve station (matrix 4); an operating error at restart (D).", evidence: [D-009, D-024], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
+                - {category: asset, severity: "4", likelihood: D, basis: "Valve station and line repair, weeks (matrix 4).", evidence: [D-024], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d6c65b3d1b5e620d}}
+              residual:
+                - {category: people, severity: "4", likelihood: B, basis: "Equalising globe bypasses HV-4129 / HV-4130 and Monel / copper alloy bodies at the impingement sites (line list GOX-4002) make ignition less likely.", evidence: [HV-4129, HV-4130, D-024, D-009], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
+                - {category: asset, severity: "4", likelihood: B, basis: "As for people.", evidence: [D-024], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d508cded1fd37f0d}}
+      - id: H04-N3-HV
+        guide_word: more
+        parameter: velocity
+        scenarios:
+          - id: H04-S16
+            cause: "XV-4116 opens to blow down K-4101 with the discharge at 31 bara (trip, or opened spuriously in operation)."
+            consequence: "Choked flow through XV-4116 and high velocity into VNT-4002 and S-4101: particle impact ignition in the valve or silencer, fire at the elevated vent."
+            refs: [XV-4116, VNT-4002, S-4101]
+            modes: [shutdown, normal]
+            safeguards: [H04-SG26, H04-SG28]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: C, basis: "Fire at an elevated vent with nobody normally nearby (matrix 3).", evidence: [D-013, D-019], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 735c5dd00688eefe}}
+                - {category: asset, severity: "3", likelihood: C, basis: "Valve and silencer replacement (matrix 3).", evidence: [S-4101], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915}}
+              residual:
+                - {category: people, severity: "3", likelihood: B, basis: "Monel / copper alloy XV-4116 (line list GOX-4002) and the elevated safe-location outlet.", evidence: [XV-4116, D-009, D-019], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 497803bd7408e5b6}}
+                - {category: asset, severity: "3", likelihood: B, basis: "Oxygen-compatible materials at the impingement site.", evidence: [D-009], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 96d32a0543b3b03e}}
+      - id: H04-N3-CO
+        guide_word: other-than
+        parameter: composition
+        scenarios:
+          - id: H04-S17
+            cause: "Off-spec GOX in backup supply: T-4101 holds LOX below 99.5 % O2 (a wrong or off-spec tanker delivery) and it is vaporised into GOX-4002."
+            consequence: "GOX below the 99.5 % specification at the BL; AI-3104 and AI-4115 indicate but neither has an alarm, so the customer receives it unnoticed."
+            refs: [AI-4115, AI-3104, GOX-4004, T-4101]
+            modes: [backup]
+            actions: [H04-A17, H04-A04]
+            status: proposed
+            by: agent
+            notes: "Low purity from the cold box has its cause on P-03 (H-03); the measurement and the missing alarm are here."
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: C, basis: "Customer product off specification, claim and supply shortfall (matrix 3).", evidence: [AI-4115], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915}}
+              residual:
+                - {category: asset, severity: "3", likelihood: C, basis: "No alarm on AI-3104 or AI-4115.", evidence: [AI-4115], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915}}
+      - id: H04-N3-MT
+        guide_word: other-than
+        parameter: maintenance
+        scenarios:
+          - id: H04-S18
+            cause: "Work on the GOX BL station or the export line with the DBB not set (one block valve closed, bleed XV-4133 closed) or a block valve passing."
+            consequence: "GOX reaches the work location: oxygen-enriched atmosphere at the work, clothing fire on hot work or a spark."
+            refs: [XV-4119, XV-4132, XV-4133, VNT-4006]
+            modes: [maintenance]
+            safeguards: [H04-SG18]
+            actions: [H04-A18]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, basis: "Oxygen fire on a person (matrix 4).", evidence: [D-013], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+              residual:
+                - {category: people, severity: "4", likelihood: B, basis: "True DBB with fail-closed blocks and fail-open bleed to VNT-4006 (D-013); the work permit and atmosphere test are not written yet (H04-A18).", evidence: [XV-4119, XV-4132, XV-4133, D-013], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
+      - id: H04-N3-LT
+        guide_word: less
+        parameter: temperature
+        notes: "Cold GOX into GOX-4002 comes from the backup vaporizers: see H04-N9 (H04-S48, H04-S49)."
+  # ---------------------------------------------------------------- GAN train
+  - id: H04-N4
+    title: GAN-4001 suction, K-4102 GAN compressor with E-4103 and recycle GAN-4004, off-spec divert XV-3105
+    design_intent: >-
+      Compress 10,000 Nm3/h GAN (O2 <= 10 ppm, from E-3101 at 5.2 bara, 13 C) to 9 bara in the
+      single-stage K-4102 (315 kW, design 11 barg / 150 C), FIC-3107 on the guide vanes and
+      PIC-4106 on the suction; aftercool in E-4103 to 40 C with CW-4002 / CWR-4002. UIC-4131 keeps
+      K-4102 out of surge through UV-4131 (fail open) and GAN-4004 from the E-4103 outlet.
+      AIA-3105 (alarm 10 ppm O2) opens XV-3105 to VNT-4004 (elevated) and closes XV-4120 so
+      off-spec GAN never reaches the customer.
+    members: [GAN-4001, AIA-3105, XV-3105, VNT-4004, FIC-3107, PIC-4106, K-4102, E-4103, CW-4002, CWR-4002, GAN-4004, UV-4131, UIC-4131]
+    modes: [normal, startup, shutdown, power-fail]
+    status: proposed
+    by: agent
+    deviations:
+      - id: H04-N4-LF
+        guide_word: less
+        parameter: flow
+        scenarios:
+          - id: H04-S19
+            cause: "UIC-4131 fails or UV-4131 sticks closed while the customer reduces the GAN off-take."
+            consequence: "K-4102 surges: bearing and impeller damage, trip, loss of the GAN export."
+            refs: [UIC-4131, UV-4131, K-4102]
+            modes: [normal, startup]
+            actions: [H04-A13]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: D, basis: "Machine damage 0.1 to 1 MEUR, days with the backup at 50 % GAN (matrix 3).", evidence: [K-4102], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+              residual:
+                - {category: asset, severity: "3", likelihood: D, basis: "No independent surge protection is on the sheet (supplier machine protection, H04-A13).", evidence: [K-4102], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+          - id: H04-S20
+            cause: "PIC-4106 or FIC-3107 fails high: the guide vanes open and K-4102 draws the HP column down."
+            consequence: "HP column pressure falls (P-03): column upset, GAN and GOX purity lost, cold box trip."
+            refs: [PIC-4106, FIC-3107, K-4102, GAN-4001]
+            modes: [normal]
+            actions: [H04-A22]
+            status: proposed
+            by: agent
+            notes: "Consequence on P-03 (H-03)."
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: D, basis: "Cold box upset of days (matrix 3); single loop failure (D).", evidence: [PIC-4106], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+              residual:
+                - {category: asset, severity: "3", likelihood: D, basis: "No independent safeguard on this sheet; the team to say which P-03 measurements alarm.", evidence: [PIC-4106], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+      - id: H04-N4-HF
+        guide_word: more
+        parameter: flow
+        notes: "More flow to the vent: XV-3105 opening."
+        scenarios:
+          - id: H04-S21
+            cause: "XV-3105 opens spuriously (AIA-3105 false high or valve failure)."
+            consequence: "Up to the full GAN make vents at VNT-4004 and XV-4120 closes: the GAN export is lost; a nitrogen plume at the vent, oxygen-deficient atmosphere if it reaches a platform."
+            refs: [XV-3105, AIA-3105, VNT-4004, XV-4120]
+            modes: [normal]
+            safeguards: [H04-SG28, H04-SG14]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: D, basis: "Asphyxiation of a person in the plume (matrix 4); spurious analyser trip (D).", evidence: [D-011, VNT-4004], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
+                - {category: asset, severity: "2", likelihood: D, basis: "GAN on backup until reset (matrix 2).", evidence: [D-014], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5975c38759944df0}}
+              residual:
+                - {category: people, severity: "4", likelihood: B, basis: "VNT-4004 discharges elevated away from walkways (D-011, D-025); XV-3105 is reached only by ladder (D-084).", evidence: [D-011, D-025, D-084], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
+                - {category: asset, severity: "2", likelihood: C, basis: "PIC-4112 starts the LIN backup.", evidence: [PIC-4112, D-014], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5d4b96d05607d5a4}}
+      - id: H04-N4-CO
+        guide_word: as-well-as
+        parameter: composition
+        scenarios:
+          - id: H04-S22
+            cause: "AIA-3105 reads low (drift, sample line fault) while the O2 in GAN rises in a column upset (P-03)."
+            consequence: "O2-contaminated GAN goes to the customer and to the cold box casing purge UN-3001; the customer's inerting is compromised."
+            refs: [AIA-3105, GAN-4001, GAN-4002, UN-3001]
+            modes: [normal, startup]
+            actions: [H04-A16]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: C, basis: "Off-spec inert gas at the customer, claim (matrix 3); analyser failure coinciding with an upset (C).", evidence: [AIA-3105], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915}}
+              residual:
+                - {category: asset, severity: "3", likelihood: C, basis: "Single analyser, no second measurement at the BL.", evidence: [AIA-3105], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915}}
+      - id: H04-N4-HT
+        guide_word: more
+        parameter: temperature
+        scenarios:
+          - id: H04-S23
+            cause: "Loss of cooling water CW-4002 to E-4103."
+            consequence: "Hot GAN to the customer and the casing purge UN-3001, and back to the K-4102 suction through GAN-4004 when recycling: machine overheating."
+            refs: [CW-4002, E-4103, GAN-4002, GAN-4004]
+            modes: [normal]
+            actions: [H04-A12]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "2", likelihood: D, basis: "Trip and short outage on backup (matrix 2).", evidence: [E-4103], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5975c38759944df0}}
+              residual:
+                - {category: asset, severity: "2", likelihood: D, basis: "No temperature measurement on the E-4103 outlet.", evidence: [E-4103], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5975c38759944df0}}
+      - id: H04-N4-HP
+        guide_word: more
+        parameter: pressure
+        scenarios:
+          - id: H04-S24
+            cause: "FV-4105 fails closed or XV-4120 closes while K-4102 runs, with the HP column (suction) at its upper pressure."
+            consequence: "Blocked outlet: K-4102 discharge, E-4103 and GAN-4002 up to the valve rise to the machine's maximum; no relief device is drawn on the K-4102 discharge (design 11 barg)."
+            refs: [FV-4105, XV-4120, K-4102, E-4103, GAN-4002]
+            modes: [normal]
+            safeguards: [H04-SG07]
+            actions: [H04-A06]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: D, basis: "Rupture of a nitrogen exchanger (missile, asphyxiation) (matrix 4) if the maximum discharge exceeds the design; single valve failure (D).", evidence: [K-4102, E-4103], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
+              residual:
+                - {category: people, severity: "4", likelihood: C, basis: "UIC-4131 recycles on low flow; whether the maximum discharge stays below 11 barg is not shown (H04-A06).", evidence: [UIC-4131], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+      - id: H04-N4-RF
+        guide_word: reverse
+        parameter: flow
+        scenarios:
+          - id: H04-S25
+            cause: "K-4102 trips and its discharge check valve does not close while the header is held by the customer or the backup."
+            consequence: "GAN flows back through E-4103 and K-4102 to the suction and the HP column: reverse rotation and machine damage, HP column pressurised from the header."
+            refs: [K-4102, E-4103, GAN-4002, {sheet: P-04, object: CV_GAN4002}]
+            modes: [shutdown, power-fail, backup]
+            safeguards: [H04-SG20]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: C, basis: "Machine damage (matrix 3).", evidence: [K-4102], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915}}
+              residual:
+                - {category: asset, severity: "3", likelihood: B, basis: "Check valve on GAN-4002 downstream of E-4103.", evidence: [CV_GAN4002], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 96d32a0543b3b03e}}
+  - id: H04-N5
+    title: GAN-4002 export to the battery limit and casing purge take-off UN-3001
+    design_intent: >-
+      Deliver 10,000 Nm3/h GAN at 9 bara and 40 C (DN150, PN16) through the check valve and
+      FV-4105 (FIC-4105) and the double block and bleed XV-4120 / XV-4134 with bleed XV-4135 to
+      VNT-4007 (elevated) to the customer pipeline at 8 barg; supply the cold box casing purge
+      UN-3001 (to PV-3113 on P-03) from the header upstream of XV-4120; receive the backup GAN
+      GAN-4003.
+    members: [GAN-4002, FIC-4105, FV-4105, UN-3001, XV-4120, XV-4134, XV-4135, VNT-4007, {sheet: P-04, object: CV_GAN4002}]
+    modes: [normal, backup, shutdown, maintenance, power-fail]
+    status: proposed
+    by: agent
+    deviations:
+      - id: H04-N5-NF
+        guide_word: "no"
+        parameter: flow
+        scenarios:
+          - id: H04-S26
+            cause: "K-4102 trips and the LIN backup does not start (P-4102A/B warm, power failure, T-4102 at low-low)."
+            consequence: "The GAN header depressurises and the casing purge UN-3001 stops: moist air can enter the cold box casing and oxygen from small cold leaks is no longer swept out of the perlite (H-03)."
+            refs: [K-4102, UN-3001, GAN-4002, PIC-4112]
+            modes: [shutdown, power-fail, backup]
+            safeguards: [H04-SG14]
+            actions: [H04-A08, H04-A14]
+            status: proposed
+            by: agent
+            notes: "Consequence on P-03 (casing, PIC-3113 / PV-3113, H-03)."
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: C, basis: "Moisture in the casing and perlite, a warm-up and dry-out of days (matrix 3).", evidence: [D-013, UN-3001], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915}}
+              residual:
+                - {category: asset, severity: "3", likelihood: B, basis: "PIC-4112 starts the LIN backup on low header pressure, the casing breather limits air ingress (H-03).", evidence: [PIC-4112, D-014], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 96d32a0543b3b03e}}
+      - id: H04-N5-HF
+        guide_word: more
+        parameter: flow
+        scenarios:
+          - id: H04-S27
+            cause: "FIC-4105 / FV-4105 fails open."
+            consequence: "K-4102 runs to its maximum flow, FIC-3107 opens the guide vanes and the HP column is drawn down (see H04-S20): column upset."
+            refs: [FIC-4105, FV-4105, K-4102]
+            modes: [normal]
+            safeguards: []
+            actions: [H04-A22]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: D, basis: "Cold box upset of days (matrix 3); single loop failure (D).", evidence: [FV-4105], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+              residual:
+                - {category: asset, severity: "3", likelihood: D, basis: "Nothing credited: no PIC-4106 action on the K-4102 guide vanes is recorded in the instrument list or the C&E.", evidence: [PIC-4106, FV-4105], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+      - id: H04-N5-MT
+        guide_word: other-than
+        parameter: maintenance
+        scenarios:
+          - id: H04-S28
+            cause: "Work on the GAN BL station or the export line with the DBB not set or a block valve passing."
+            consequence: "Nitrogen at the work location: asphyxiation of the worker."
+            refs: [XV-4120, XV-4134, XV-4135, VNT-4007]
+            modes: [maintenance]
+            safeguards: [H04-SG18]
+            actions: [H04-A18]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, basis: "Fatality by asphyxiation (matrix 4).", evidence: [D-013], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+              residual:
+                - {category: people, severity: "4", likelihood: B, basis: "True DBB, fail-closed blocks, fail-open bleed XV-4135 to VNT-4007 elevated (D-013).", evidence: [XV-4120, XV-4134, XV-4135, D-013], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
+  # ---------------------------------------------------------------- LOX storage and backup
+  - id: H04-N6
+    title: T-4101 LOX tank with rundown LOX-3001, boil-off vent VNT-4001 and reliefs
+    design_intent: >-
+      Store LOX (99.5 % O2, 250 m3 working, ~275 m3 gross, flat-bottom double wall, perlite
+      insulated, design 0.5 barg / -196 C) received from LOX-3001 (470 kg/h continuous, the
+      LP sump hydrocarbon purge, through the manual tank inlet valve with TSV-4140) and from the
+      tanker fill LOX-4004. PICA-4109 holds the tank pressure by venting the boil-off through
+      PV-4109 to VNT-4001 (elevated, safe location); PSV-4123 relieves overpressure, PSV-4142
+      breaks vacuum. LIA-4107 indicates the level with a low alarm and LALL (I-01). AIA-4121
+      analyses hydrocarbons in the tank bottom liquid periodically.
+    members: [T-4101, LOX-3001, TSV-4140, {sheet: P-04, object: HV_T4101_in}, VNT-4001, PV-4109, PICA-4109, PSV-4123, PSV-4142, LIA-4107, AIA-4121]
+    modes: [normal, backup, tanker-fill, startup, maintenance, power-fail]
+    status: proposed
+    by: agent
+    deviations:
+      - id: H04-N6-HL
+        guide_word: more
+        parameter: level
+        scenarios:
+          - id: H04-S29
+            cause: "The continuous rundown LOX-3001 fills T-4101 while no backup is drawn and the level is not watched (LIA-4107 has a low alarm only)."
+            consequence: "Liquid reaches the roof nozzles: LOX is discharged through PV-4109 / VNT-4001 or PSV-4123 at the elevated outlet, rains out as oxygen-rich liquid near the tank and embrittles the vent line."
+            refs: [LOX-3001, T-4101, LIA-4107, VNT-4001, PSV-4123]
+            modes: [normal]
+            actions: [H04-A03]
+            status: proposed
+            by: agent
+            notes: "At 470 kg/h the working volume fills in about 22 days (D-017), so the deviation develops slowly; but there is no high level alarm in the files."
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, basis: "LOX rain-out on a person or on combustibles (matrix 4); a missed level over weeks (C).", evidence: [D-017, LIA-4107], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+                - {category: asset, severity: "3", likelihood: C, basis: "Vent line and roof damage (matrix 3).", evidence: [T-4101], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915}}
+              residual:
+                - {category: people, severity: "4", likelihood: C, basis: "No high level alarm or trip on T-4101 or the rundown.", evidence: [LIA-4107], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+                - {category: asset, severity: "3", likelihood: C, basis: "As above.", evidence: [LIA-4107], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915}}
+      - id: H04-N6-HP
+        guide_word: more
+        parameter: pressure
+        scenarios:
+          - id: H04-S30
+            cause: "PV-4109 fails closed or PICA-4109 fails (transmitter reads low)."
+            consequence: "Boil-off and rundown flash accumulate: the inner tank exceeds its 0.5 barg design, the roof or shell fails and LOX is released."
+            refs: [PV-4109, PICA-4109, T-4101]
+            modes: [normal, backup, tanker-fill]
+            safeguards: [H04-SG11]
+            actions: [H04-A25]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "5", likelihood: D, basis: "Failure of a 250 m3 LOX tank (matrix 5: a tank failure); single loop failure (D).", evidence: [T-4101, PV-4109], status: proposed, by: agent, band: {value: very-high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 6f208be6591d5202}}
+                - {category: asset, severity: "5", likelihood: D, basis: "Loss of the tank and the backup, months (matrix 5).", evidence: [T-4101], status: proposed, by: agent, band: {value: very-high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 383056181dc74e6a}}
+              residual:
+                - {category: people, severity: "5", likelihood: B, basis: "PSV-4123 sized for heat-leak, fill overpressure and roll-over (DESIGN.md section 4) credited as one relief device (two orders); the PICA-4109 alarm is not credited, the cause includes its transmitter.", evidence: [PSV-4123, D-011], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: feea7693498b1f1a}}
+                - {category: asset, severity: "5", likelihood: B, basis: "As for people.", evidence: [PSV-4123], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 6dd05b6d428d45d5}}
+          - id: H04-S31
+            cause: "Heat leak increase: perlite settling or wetting, outer tank damage, or an external fire at the tank (vehicle fire in the bay)."
+            consequence: "Boil-off above the capacity of PV-4109: tank overpressure and failure."
+            refs: [T-4101, PV-4109]
+            modes: [normal, backup, tanker-fill]
+            safeguards: [H04-SG11]
+            actions: [H04-A19]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "5", likelihood: C, basis: "Tank failure (matrix 5); heat leak degradation or a fire in the plant life (C).", evidence: [D-011], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: b6ef4d2263633cd5}}
+              residual:
+                - {category: people, severity: "5", likelihood: A, basis: "PSV-4123 is sized for heat leak and external fire (DESIGN.md section 4).", evidence: [PSV-4123, D-011], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 61d9d3ab4bf99bc9}}
+      - id: H04-N6-LP
+        guide_word: less
+        parameter: pressure
+        scenarios:
+          - id: H04-S32
+            cause: "PV-4109 fails open (or PICA-4109 reads high) while P-4101A/B draw liquid in backup."
+            consequence: "The tank pressure falls below atmospheric: the inner tank roof buckles; humid air drawn in freezes in the vent and contaminates the LOX."
+            refs: [PV-4109, PICA-4109, T-4101, P-4101A, P-4101B]
+            modes: [backup]
+            safeguards: [H04-SG12]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "4", likelihood: D, basis: "Inner tank damage, weeks to repair and no LOX backup (matrix 4).", evidence: [T-4101], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d6c65b3d1b5e620d}}
+              residual:
+                - {category: asset, severity: "4", likelihood: B, basis: "Vacuum breaker PSV-4142 on the vapour space credited (two orders); the PICA-4109 low alarm is not credited, the cause includes a high-reading PICA-4109.", evidence: [PSV-4142], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d508cded1fd37f0d}}
+      - id: H04-N6-CO
+        guide_word: as-well-as
+        parameter: composition
+        scenarios:
+          - id: H04-S33
+            cause: "Hydrocarbons carried in with the LP sump purge (LOX-3001) concentrate in T-4101 as the LOX boils off over weeks of storage, most at low level."
+            consequence: "Acetylene and heavier hydrocarbons reach their solubility limit and deposit; ignition in the tank or in the pump suction gives a hydrocarbon-oxygen explosion or fire."
+            refs: [LOX-3001, T-4101, AIA-4121, P-4101A]
+            modes: [normal, backup]
+            safeguards: [H04-SG23]
+            actions: [H04-A07]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "5", likelihood: C, basis: "Explosion in an oxygen tank (matrix 5); boil-off concentration is a known mechanism (EIGA Doc 65) (C).", evidence: [D-010, AIA-4121], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: b6ef4d2263633cd5}}
+                - {category: asset, severity: "5", likelihood: C, basis: "Loss of the tank (matrix 5).", evidence: [D-010], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 20579213de92d430}}
+              residual:
+                - {category: people, severity: "5", likelihood: B, basis: "AIA-4121 periodic analysis with alarm and the molecular sieve upstream (D-006, D-010); sampling frequency and response not yet defined (H04-A07).", evidence: [AIA-4121, D-010], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: feea7693498b1f1a}}
+                - {category: asset, severity: "5", likelihood: B, basis: "As for people.", evidence: [AIA-4121], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 6dd05b6d428d45d5}}
+      - id: H04-N6-TP
+        guide_word: more
+        parameter: pressure
+        notes: "Trapped liquid in the rundown line."
+        scenarios:
+          - id: H04-S34
+            cause: "The manual tank inlet valve is closed while FV-3111 (P-03) is closed: LOX trapped in LOX-3001 warms."
+            consequence: "Thermal overpressure of LOX-3001 (PN16): rupture and a cold oxygen release at the tank."
+            refs: [LOX-3001, {sheet: P-04, object: HV_T4101_in}, TSV-4140]
+            modes: [maintenance, shutdown]
+            safeguards: [H04-SG13]
+            actions: [H04-A10]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: D, basis: "Cold oxygen release at a line rupture (matrix 3); valves closed for maintenance a few times (D).", evidence: [D-011], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 4d13f9682edc5284}}
+              residual:
+                - {category: people, severity: "3", likelihood: B, basis: "TSV-4140 relieves the trapped liquid to atmosphere (safe location per the special-items list), one relief device (two orders).", evidence: [TSV-4140], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 497803bd7408e5b6}}
+      - id: H04-N6-VT
+        guide_word: as-well-as
+        parameter: release
+        notes: "Normal oxygen boil-off at the vent."
+        scenarios:
+          - id: H04-S35
+            cause: "Normal boil-off through PV-4109 / VNT-4001 while a person works at the PV-4109 roof platform (D-084)."
+            consequence: "Oxygen-enriched atmosphere at the platform: clothing fire if an ignition source is present."
+            refs: [PV-4109, VNT-4001]
+            modes: [normal, maintenance]
+            safeguards: [H04-SG28]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: D, basis: "Oxygen-enriched clothing fire without lasting harm (matrix 3).", evidence: [D-084], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 4d13f9682edc5284}}
+              residual:
+                - {category: people, severity: "3", likelihood: B, basis: "VNT-4001 discharges above the roof at a safe location (D-011, D-019); the platform is used for infrequent maintenance only.", evidence: [D-011, D-019, D-084], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 497803bd7408e5b6}}
+      - id: H04-N6-MT
+        guide_word: other-than
+        parameter: maintenance
+        scenarios:
+          - id: H04-S36
+            cause: "T-4101 or its piping opened for inspection after warm-up without purging the oxygen out."
+            consequence: "Oxygen-enriched atmosphere inside: a worker's clothing ignites on a spark or hot work."
+            refs: [T-4101]
+            modes: [maintenance]
+            actions: [H04-A18]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, basis: "Oxygen fire on a person (matrix 4).", evidence: [T-4101], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+              residual:
+                - {category: people, severity: "4", likelihood: C, basis: "No entry or purge procedure in the files.", evidence: [T-4101], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+  - id: H04-N7
+    title: LOX tanker fill LOX-4004 to T-4101
+    design_intent: >-
+      Unload LOX from a road tanker (pressure transfer or a tanker-mounted oxygen-service pump)
+      through the hose coupling, the check valve, the block valve HV-4146 (1.0 m, within reach)
+      and nozzle N6 into T-4101; TSV-4144 relieves liquid trapped between the check valve and
+      HV-4146. Oxygen service, concrete pad under the coupling (D-017).
+    members: [LOX-4004, HV-4146, TSV-4144, T-4101, {sheet: P-04, object: CV_LOX4004}]
+    modes: [tanker-fill]
+    status: proposed
+    by: agent
+    deviations:
+      - id: H04-N7-HL
+        guide_word: more
+        parameter: level
+        scenarios:
+          - id: H04-S37
+            cause: "The fill is continued past the maximum level (level not watched, LIA-4107 misread, no high level alarm)."
+            consequence: "T-4101 overfills: LOX leaves at VNT-4001 / PSV-4123 and rains out around the tank and the bay; with the vent liquid-locked the tank pressure rises."
+            refs: [LOX-4004, HV-4146, T-4101, LIA-4107, VNT-4001]
+            modes: [tanker-fill]
+            safeguards: [H04-SG11]
+            actions: [H04-A03, H04-A04]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: D, basis: "LOX rain-out on the driver or on combustibles (matrix 4); an operating error in an unloading (D, a few fills a year).", evidence: [D-017], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
+                - {category: environment, severity: "2", likelihood: D, basis: "Fog cloud and cold damage on site (matrix 2).", evidence: [D-017], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: f2e2b55da7babe28}}
+              residual:
+                - {category: people, severity: "4", likelihood: C, basis: "PSV-4123 protects against the overpressure but not the overfill; no high level alarm or fill trip.", evidence: [PSV-4123], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+                - {category: environment, severity: "2", likelihood: D, basis: "As above.", evidence: [PSV-4123], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: f2e2b55da7babe28}}
+      - id: H04-N7-HP
+        guide_word: more
+        parameter: pressure
+        scenarios:
+          - id: H04-S38
+            cause: "At the end of the transfer the tanker's pressurising gas blows through the fill line into T-4101."
+            consequence: "Vapour surge into the tank: pressure above 0.5 barg design, tank failure."
+            refs: [LOX-4004, T-4101]
+            modes: [tanker-fill]
+            safeguards: [H04-SG11]
+            actions: [H04-A04, H04-A25]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "5", likelihood: D, basis: "Tank failure (matrix 5); a routine end-of-transfer error (D).", evidence: [D-011], status: proposed, by: agent, band: {value: very-high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 6f208be6591d5202}}
+              residual:
+                - {category: people, severity: "5", likelihood: B, basis: "PSV-4123 sized for fill overpressure (DESIGN.md section 4) credited (two orders); the PICA-4109 alarm is not credited for a gas blow-through at the end of the transfer, which is faster than an operator can respond.", evidence: [PSV-4123], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: feea7693498b1f1a}}
+          - id: H04-S39
+            cause: "Tanker LOX colder (denser) than the tank content is filled at the bottom nozzle N6: the tank stratifies."
+            consequence: "Roll-over: sudden boil-off surge that exceeds PV-4109 and loads PSV-4123."
+            refs: [LOX-4004, T-4101, PV-4109]
+            modes: [tanker-fill]
+            safeguards: [H04-SG11]
+            actions: [H04-A04]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "5", likelihood: C, basis: "Tank failure (matrix 5); stratification after a fill of a different liquid (C).", evidence: [D-011], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: b6ef4d2263633cd5}}
+              residual:
+                - {category: people, severity: "5", likelihood: A, basis: "PSV-4123 sized for roll-over (DESIGN.md section 4).", evidence: [PSV-4123], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 61d9d3ab4bf99bc9}}
+      - id: H04-N7-CO
+        guide_word: other-than
+        parameter: composition
+        scenarios:
+          - id: H04-S40
+            cause: "Wrong or contaminated product unloaded (LIN or argon instead of LOX, LOX with hydrocarbons or oil from a tanker pump)."
+            consequence: "Off-spec LOX in T-4101 sent as backup GOX to the customer (H04-S17); hydrocarbons in the tank add to H04-S33."
+            refs: [LOX-4004, T-4101, AIA-4121]
+            modes: [tanker-fill, backup]
+            safeguards: [H04-SG23]
+            actions: [H04-A04]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, basis: "Hydrocarbon contamination in an oxygen tank, fire risk (matrix 4).", evidence: [D-017], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+                - {category: asset, severity: "3", likelihood: C, basis: "Tank content off-spec, drained and refilled (matrix 3).", evidence: [T-4101], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915}}
+              residual:
+                - {category: people, severity: "4", likelihood: B, basis: "AIA-4121 analysis of the tank liquid (periodic, not tied to fills yet).", evidence: [AIA-4121], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
+                - {category: asset, severity: "3", likelihood: C, basis: "Detection after the fill does not avoid the loss.", evidence: [AIA-4121], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915}}
+      - id: H04-N7-LK
+        guide_word: other-than
+        parameter: containment
+        scenarios:
+          - id: H04-S41
+            cause: "Hose or coupling failure during the transfer, or the hose disconnected with pressure in it."
+            consequence: "LOX spill at the fill bay: cold burns, oxygen-enriched clothing, and fire or explosion if LOX soaks into asphalt, oil or tanker diesel."
+            refs: [LOX-4004, HV-4146]
+            modes: [tanker-fill]
+            safeguards: [H04-SG22, H04-SG24]
+            actions: [H04-A04, H04-A19]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: D, basis: "Oxygen fire or engulfing spill on the driver (matrix 4); hose failures in routine unloading (D).", evidence: [D-017, D-026], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
+              residual:
+                - {category: people, severity: "4", likelihood: B, basis: "The check valve on LOX-4004 stops the tank draining back; the concrete pad under the coupling avoids LOX on asphalt (D-017).", evidence: [CV_LOX4004, D-017], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
+          - id: H04-S42
+            cause: "HV-4146 closed after the fill with LOX left between it and the check valve."
+            consequence: "The trapped LOX warms: TSV-4144 lifts and releases oxygen locally at the fill bay; without it the line ruptures."
+            refs: [LOX-4004, HV-4146, TSV-4144]
+            modes: [tanker-fill]
+            safeguards: [H04-SG13]
+            actions: [H04-A10]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: E, basis: "Cold oxygen release at a line rupture (matrix 3); after every fill (E).", evidence: [D-017], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: a76362ddeef33873}}
+              residual:
+                - {category: people, severity: "3", likelihood: C, basis: "TSV-4144 relieves (two orders); its outlet 'to atm.' at the bay can enrich the area where the driver stands (H04-A10).", evidence: [TSV-4144], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 735c5dd00688eefe}}
+  - id: H04-N8
+    title: LOX backup pumps P-4101A/B with suction LOX-4001, discharge LOX-4002 and cool-down return LOX-4003
+    design_intent: >-
+      On low GOX header pressure (PIC-4111) start the standby P-4101A or B (5.2 t/h, 33.0 bara
+      rated, cold standby, O2 service, no oil in wetted parts) from T-4101 through the fail-closed
+      outlet XV-4136 and LOX-4001 (DN80, <= 1 m/s), discharging through the check valves into
+      LOX-4002 (PN63) to the vaporizers. A continuous small flow through HV-4138 and LOX-4003
+      keeps the pumps cold and takes the minimum flow; PSV-4125 relieves the discharge header into
+      LOX-4003. I-01 (LIA-4107 LALL) trips the pumps and closes XV-4136.
+    members: [LOX-4001, XV-4136, P-4101A, P-4101B, LOX-4002, LOX-4003, HV-4138, PSV-4125, {sheet: P-04, object: CV_P4101A}, {sheet: P-04, object: CV_P4101B}]
+    modes: [backup, normal, startup, maintenance, power-fail]
+    status: proposed
+    by: agent
+    deviations:
+      - id: H04-N8-LL
+        guide_word: less
+        parameter: level
+        scenarios:
+          - id: H04-S43
+            cause: "Extended backup draws T-4101 down to the pump heel (backup longer than the 2-day reserve, refill not arranged)."
+            consequence: "The pump loses NPSH, cavitates and runs dry: seal and bearing heating in LOX, ignition and a pump fire."
+            refs: [T-4101, LIA-4107, P-4101A, P-4101B]
+            modes: [backup]
+            safeguards: [H04-SG01, H04-SG15]
+            actions: [H04-A02]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, basis: "LOX pump fire (matrix 4); a long backup event in the plant life (C).", evidence: [D-024, D-055], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+                - {category: asset, severity: "3", likelihood: C, basis: "Pump destroyed (matrix 3).", evidence: [P-4101A], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915}}
+              residual:
+                - {category: people, severity: "4", likelihood: A, basis: "LIA-4107 low alarm, then I-01 trips the pumps and closes XV-4136 (SIL not yet assigned, H04-A02).", evidence: [I-01, LIA-4107], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 2aae4706e67ac517}}
+                - {category: asset, severity: "3", likelihood: B, basis: "As for people.", evidence: [I-01], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 96d32a0543b3b03e}}
+      - id: H04-N8-HT
+        guide_word: more
+        parameter: temperature
+        scenarios:
+          - id: H04-S44
+            cause: "The standby pump is warm when PIC-4111 starts it (HV-4138 closed, return blocked by ice, cool-down not established)."
+            consequence: "Vapour-locked pump fails to deliver, runs dry and cavitates: no backup GOX, and a seal or rub ignition in oxygen."
+            refs: [P-4101A, P-4101B, HV-4138, LOX-4003, PIC-4111]
+            modes: [backup, startup]
+            actions: [H04-A08]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, basis: "LOX pump fire (matrix 4).", evidence: [D-014], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+                - {category: asset, severity: "3", likelihood: D, basis: "Supply shortfall to the customer when the cold box trips (matrix 3); a missed cool-down (D).", evidence: [D-014], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+              residual:
+                - {category: people, severity: "4", likelihood: C, basis: "No pump temperature or return flow indication, no start permissive in the files.", evidence: [HV-4138], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+                - {category: asset, severity: "3", likelihood: D, basis: "As above; the spare pump has the same cause.", evidence: [HV-4138], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+      - id: H04-N8-NF
+        guide_word: "no"
+        parameter: flow
+        scenarios:
+          - id: H04-S45
+            cause: "PV-4111 closed or both vaporizer inlet valves closed while a pump runs."
+            consequence: "The pump runs on the LOX-4003 minimum flow only or against a closed discharge: heating, vaporisation and damage."
+            refs: [PV-4111, {sheet: P-04, object: HV_E4105A}, {sheet: P-04, object: HV_E4105B}, P-4101A]
+            modes: [backup]
+            safeguards: [H04-SG16, H04-SG31]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: D, basis: "Pump seal failure with LOX release (matrix 3).", evidence: [P-4101A], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 4d13f9682edc5284}}
+                - {category: asset, severity: "3", likelihood: D, basis: "Pump damage (matrix 3).", evidence: [P-4101A], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+              residual:
+                - {category: people, severity: "3", likelihood: B, basis: "PSV-4125 (closed-discharge case) relieves into LOX-4003 and the minimum flow return to the tank.", evidence: [PSV-4125, LOX-4003, D-014], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 497803bd7408e5b6}}
+                - {category: asset, severity: "3", likelihood: B, basis: "As for people.", evidence: [PSV-4125], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 96d32a0543b3b03e}}
+      - id: H04-N8-TP
+        guide_word: more
+        parameter: pressure
+        notes: "Trapped liquid in the suction line."
+        scenarios:
+          - id: H04-S46
+            cause: "XV-4136 closes (I-01, ESD or air failure) while the pump suction block valves are closed, or a pump is isolated with both block valves shut before it is drained."
+            consequence: "LOX trapped in LOX-4001 or in the pump casing warms: thermal overpressure, rupture of the suction line or casing, cold oxygen release."
+            refs: [XV-4136, LOX-4001, P-4101A, P-4101B]
+            modes: [maintenance, backup, power-fail]
+            actions: [H04-A09]
+            status: proposed
+            by: agent
+            notes: "No TSV is drawn on LOX-4001. With the pump valves open the liquid has a path through the pump to PSV-4125 / LOX-4003; with them closed it has none."
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: C, basis: "Cold oxygen release at the pumps (matrix 3).", evidence: [D-011, D-013], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 735c5dd00688eefe}}
+              residual:
+                - {category: people, severity: "3", likelihood: C, basis: "No relief device on this volume.", evidence: [D-011], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 735c5dd00688eefe}}
+      - id: H04-N8-RF
+        guide_word: reverse
+        parameter: flow
+        scenarios:
+          - id: H04-S47
+            cause: "The running pump stops while the vaporizer side is pressurised and its discharge check valve passes."
+            consequence: "Backflow through the stopped pump to T-4101: reverse rotation, warm fluid into the tank."
+            refs: [P-4101A, P-4101B, LOX-4002, {sheet: P-04, object: CV_P4101A}, {sheet: P-04, object: CV_P4101B}]
+            modes: [backup, shutdown]
+            safeguards: [H04-SG17]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: C, basis: "Pump damage (matrix 3).", evidence: [P-4101A], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915}}
+              residual:
+                - {category: asset, severity: "3", likelihood: B, basis: "Check valve on each pump discharge.", evidence: [CV_P4101A, CV_P4101B], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 96d32a0543b3b03e}}
+      - id: H04-N8-LK
+        guide_word: other-than
+        parameter: containment
+        scenarios:
+          - id: H04-S74
+            cause: "Pump seal leak or flange leak at P-4101A/B or on LOX-4001 / LOX-4002."
+            consequence: "LOX spill and an oxygen-enriched atmosphere at the pumps: clothing fire, cold burns, ignition of combustible surfaces."
+            refs: [P-4101A, P-4101B, LOX-4001, LOX-4002, XV-4136]
+            modes: [backup, normal]
+            safeguards: [H04-SG27]
+            actions: [H04-A19]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: D, basis: "Oxygen fire on a person or an engulfing spill (matrix 4); seal leaks are frequent on cryogenic pumps (D).", evidence: [D-012, D-031], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
+              residual:
+                - {category: people, severity: "4", likelihood: C, basis: "Vapour-lifted, leakage-vented seals (D-012) and remote closure of the fail-closed XV-4136 (D-013) by the operator; no detection or spill containment in the files.", evidence: [D-012, D-013, XV-4136], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+  - id: H04-N9
+    title: LOX vaporizers E-4105A/B, backup GOX riser GOX-4004 and PV-4111 into GOX-4002
+    design_intent: >-
+      Vaporise up to 3,650 Nm3/h LOX at about 33 bara in the ambient-air vaporizer A or B (the
+      other defrosting; manual inlet valves at 1.2 m), outlet close to ambient; PSV-4127 on the
+      outlet header (blocked outlet, thermal); TSLL-4113 stops P-4101A/B and closes PV-4111 on a
+      cold outlet to protect the carbon steel pipeline; PIC-4111 controls the header pressure
+      through PV-4111 and starts the backup on low pressure. GOX-4004 (DN100, PN40) joins GOX-4002
+      upstream of AI-4115; no check valve on the riser (D-024).
+    members: [E-4105A, E-4105B, {sheet: P-04, object: HV_E4105A}, {sheet: P-04, object: HV_E4105B}, PSV-4127, TSLL-4113, GOX-4004, PV-4111, PIC-4111]
+    modes: [backup, normal, startup, maintenance]
+    status: proposed
+    by: agent
+    deviations:
+      - id: H04-N9-LT
+        guide_word: less
+        parameter: temperature
+        scenarios:
+          - id: H04-S48
+            cause: "The duty vaporizer ices up during a long backup at low ambient (-5 C) or both are run without defrost switching."
+            consequence: "Cold GOX (well below 0 C) passes PV-4111 into GOX-4002 and the carbon steel customer pipeline: brittle fracture and a GOX release."
+            refs: [E-4105A, E-4105B, GOX-4004, PV-4111, GOX-4002]
+            modes: [backup]
+            safeguards: [H04-SG02]
+            actions: [H04-A01, H04-A02, H04-A11]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, basis: "Pipeline fracture with a GOX release (matrix 4); a long backup in cold weather (C).", evidence: [D-014], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+                - {category: asset, severity: "4", likelihood: C, basis: "Customer pipeline repair, weeks (matrix 4).", evidence: [D-014], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 544760766051af8c}}
+              residual:
+                - {category: people, severity: "4", likelihood: B, basis: "TSLL-4113 stops the pumps and closes PV-4111 (trip written on P-04, not yet in the C&E, no SIL).", evidence: [TSLL-4113, D-014], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
+                - {category: asset, severity: "4", likelihood: B, basis: "As for people.", evidence: [TSLL-4113], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d508cded1fd37f0d}}
+          - id: H04-S49
+            cause: "PIC-4111 fails or PV-4111 fails open: the flow rises above the vaporizer rating (3,650 Nm3/h) when the header pressure falls."
+            consequence: "Cold GOX into the export header and pipeline: brittle fracture (as H04-S48)."
+            refs: [PIC-4111, PV-4111, E-4105A, GOX-4004]
+            modes: [backup]
+            safeguards: [H04-SG02]
+            actions: [H04-A01, H04-A02]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: D, basis: "Matrix 4; single loop failure (D).", evidence: [D-014], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
+              residual:
+                - {category: people, severity: "4", likelihood: C, basis: "TSLL-4113 trip credited one order only: drawn on P-04 and in the instrument list, not in the C&E, no SIL or SRS (H04-A01, H04-A02).", evidence: [TSLL-4113], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+      - id: H04-N9-HP
+        guide_word: more
+        parameter: pressure
+        scenarios:
+          - id: H04-S50
+            cause: "PV-4111 closed with the pump stopped and LOX left in the vaporizer and outlet header (blocked outlet) warming up."
+            consequence: "Trapped liquid vaporises: pressure above the 40 barg design of the vaporizer, tube rupture and an oxygen release."
+            refs: [E-4105A, E-4105B, PV-4111, PSV-4127]
+            modes: [backup, shutdown]
+            safeguards: [H04-SG09]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: D, basis: "Rupture at about 40 bar (matrix 4); after each backup event (D).", evidence: [D-011], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
+              residual:
+                - {category: people, severity: "4", likelihood: B, basis: "PSV-4127 on the outlet header (blocked outlet, thermal; no isolation valve between the vaporizers and it), one relief device (two orders).", evidence: [PSV-4127], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
+          - id: H04-S51
+            cause: "PV-4111 fails open with a pump at shut-off and the customer not taking GOX."
+            consequence: "GOX-4002 and the customer pipeline rise towards the pump shut-off pressure, above the 30 barg delivery pressure; the customer's pipeline design pressure is not known here."
+            refs: [PV-4111, P-4101A, GOX-4002]
+            modes: [backup]
+            safeguards: [H04-SG09]
+            actions: [H04-A05]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: C, basis: "Overpressure of the customer pipeline (matrix 3, assumed below its burst).", evidence: [P-4101A], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915}}
+              residual:
+                - {category: asset, severity: "3", likelihood: B, basis: "PSV-4127 sees the header pressure with PV-4111 open; its set pressure against the customer design to be confirmed (H04-A05).", evidence: [PSV-4127], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 96d32a0543b3b03e}}
+      - id: H04-N9-RF
+        guide_word: reverse
+        parameter: flow
+        scenarios:
+          - id: H04-S52
+            cause: "With the pumps stopped in normal operation PV-4111 passes (no check valve on GOX-4004, D-024)."
+            consequence: "31 bara GOX backs into the vaporizers and LOX-4002; PSV-4125 then relieves warm GOX into LOX-4003 and the T-4101 vapour space, raising the tank pressure and boil-off; at the next start the pump meets a warm, gas-filled discharge."
+            refs: [PV-4111, GOX-4004, E-4105A, LOX-4002, PSV-4125, T-4101]
+            modes: [normal]
+            safeguards: [H04-SG30, H04-SG17, H04-SG11]
+            actions: [H04-A05]
+            status: proposed
+            by: agent
+            notes: "The open item of D-024 handed to the HAZOP: no check valve on the backup risers, relying on the PV-4111 shut-off class V (ASSUMED)."
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: D, basis: "Tank overpressure trend and an oxygen release at the tank relief (matrix 3); a control valve passing over months (D).", evidence: [D-024], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 4d13f9682edc5284}}
+                - {category: asset, severity: "3", likelihood: D, basis: "Backup unavailable when needed (matrix 3).", evidence: [D-024], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+              residual:
+                - {category: people, severity: "3", likelihood: B, basis: "Vaporizers and riser rated for the header pressure (D-024), PSV-4123 protects the tank.", evidence: [D-024, PSV-4123], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 497803bd7408e5b6}}
+                - {category: asset, severity: "3", likelihood: C, basis: "Nothing detects the backflow; the pump discharge check valves only stop it at the pumps.", evidence: [CV_P4101A], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915}}
+      - id: H04-N9-SU
+        guide_word: early
+        parameter: sequence
+        notes: "Fast opening of PV-4111 on the auto-start."
+        scenarios:
+          - id: H04-S53
+            cause: "PIC-4111 opens PV-4111 quickly on the auto-start while GOX-4004 is depressurised (or the header pressurises the dead-end riser)."
+            consequence: "Rapid pressurisation: adiabatic compression and particle impact at PV-4111 and the tie-in to GOX-4002, ignition and an oxygen fire."
+            refs: [PIC-4111, PV-4111, GOX-4004, GOX-4002]
+            modes: [backup]
+            safeguards: [H04-SG26]
+            actions: [H04-A20]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, basis: "Oxygen fire at the valve (matrix 4); each backup start (C).", evidence: [D-009], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+              residual:
+                - {category: people, severity: "4", likelihood: B, basis: "PV-4111 in Monel / copper alloy (line list GOX-4002, D-009).", evidence: [PV-4111, D-009], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
+  # ---------------------------------------------------------------- LIN storage and backup
+  - id: H04-N10
+    title: T-4102 LIN tank with rundown LIN-3001, boil-off vent VNT-4005 and reliefs
+    design_intent: >-
+      Store LIN (400 m3 working, ~440 m3 gross, flat-bottom double wall, perlite insulated, design
+      0.5 barg / -196 C) received from LIN-3001 (470 kg/h subcooled, through the manual tank inlet
+      valve with TSV-4141) and from the tanker fill LIN-4004. PICA-4110 vents the boil-off
+      through PV-4110 to VNT-4005 (elevated, N2); PSV-4124 relieves, PSV-4143 breaks vacuum;
+      LIA-4108 with LALL (I-02).
+    members: [T-4102, LIN-3001, TSV-4141, {sheet: P-04, object: HV_T4102_in}, VNT-4005, PV-4110, PICA-4110, PSV-4124, PSV-4143, LIA-4108]
+    modes: [normal, backup, tanker-fill, maintenance, power-fail]
+    status: proposed
+    by: agent
+    deviations:
+      - id: H04-N10-HL
+        guide_word: more
+        parameter: level
+        scenarios:
+          - id: H04-S54
+            cause: "The rundown LIN-3001 fills T-4102 unwatched (no high level alarm on LIA-4108)."
+            consequence: "LIN leaves through VNT-4005 / PSV-4124: liquid nitrogen rain-out near the tank and a nitrogen cloud at grade (asphyxiation, cold burns)."
+            refs: [LIN-3001, T-4102, LIA-4108, VNT-4005]
+            modes: [normal]
+            actions: [H04-A03]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, basis: "Asphyxiation in a nitrogen cloud (matrix 4).", evidence: [D-017, LIA-4108], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+              residual:
+                - {category: people, severity: "4", likelihood: C, basis: "No high level alarm or trip.", evidence: [LIA-4108], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+      - id: H04-N10-HP
+        guide_word: more
+        parameter: pressure
+        scenarios:
+          - id: H04-S55
+            cause: "PV-4110 fails closed or PICA-4110 fails; or a heat leak increase or external fire."
+            consequence: "T-4102 above its 0.5 barg design: tank failure and a LIN release of up to 440 m3."
+            refs: [PV-4110, PICA-4110, T-4102]
+            modes: [normal, backup, tanker-fill]
+            safeguards: [H04-SG11]
+            actions: [H04-A25]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "5", likelihood: D, basis: "Tank failure, nitrogen cloud over the site (matrix 5); single loop failure (D).", evidence: [T-4102], status: proposed, by: agent, band: {value: very-high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 6f208be6591d5202}}
+              residual:
+                - {category: people, severity: "5", likelihood: B, basis: "PSV-4124 (cases as T-4101) credited as one relief device (two orders); the PICA-4110 alarm is not credited, the cause includes its transmitter.", evidence: [PSV-4124], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: feea7693498b1f1a}}
+      - id: H04-N10-LP
+        guide_word: less
+        parameter: pressure
+        scenarios:
+          - id: H04-S56
+            cause: "PV-4110 fails open while P-4102A/B draw liquid in backup."
+            consequence: "Vacuum in T-4102: the inner roof buckles; humid air is drawn in."
+            refs: [PV-4110, T-4102, P-4102A]
+            modes: [backup]
+            safeguards: [H04-SG12]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "4", likelihood: D, basis: "Inner tank damage, weeks without LIN backup (matrix 4).", evidence: [T-4102], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d6c65b3d1b5e620d}}
+              residual:
+                - {category: asset, severity: "4", likelihood: B, basis: "Vacuum breaker PSV-4143 credited (two orders); the PICA-4110 alarm is not credited, PV-4110 is its own loop's valve.", evidence: [PSV-4143], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d508cded1fd37f0d}}
+      - id: H04-N10-TP
+        guide_word: more
+        parameter: pressure
+        notes: "Trapped liquid in the rundown line."
+        scenarios:
+          - id: H04-S57
+            cause: "The manual tank inlet valve and the P-03 outlet valve both closed with LIN in LIN-3001."
+            consequence: "Thermal overpressure of LIN-3001; TSV-4141 relieves to atmosphere ('to atm.', not elevated): nitrogen at the tank top or at grade."
+            refs: [LIN-3001, TSV-4141]
+            modes: [maintenance, shutdown]
+            safeguards: [H04-SG13]
+            actions: [H04-A10]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: D, basis: "Line rupture, cold nitrogen release (matrix 3).", evidence: [D-011], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 4d13f9682edc5284}}
+              residual:
+                - {category: people, severity: "3", likelihood: B, basis: "TSV-4141 relieves; the local outlet still releases nitrogen near people.", evidence: [TSV-4141], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 497803bd7408e5b6}}
+      - id: H04-N10-MT
+        guide_word: other-than
+        parameter: maintenance
+        scenarios:
+          - id: H04-S58
+            cause: "T-4102, its piping or the nitrogen-purged equipment opened or entered without the nitrogen purged out to air."
+            consequence: "Oxygen-deficient atmosphere: asphyxiation of the worker (and of a rescuer)."
+            refs: [T-4102]
+            modes: [maintenance]
+            actions: [H04-A18]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "5", likelihood: C, basis: "Entrant and a rescuer asphyxiated (matrix 5: several fatalities, the usual outcome of an N2 entry accident); an entry with the atmosphere not made safe, once in the plant life (C). Same basis in H01-S36, H02-S35, H03-S47 and H04-S58.", evidence: [T-4102], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: b6ef4d2263633cd5}}
+              residual:
+                - {category: people, severity: "5", likelihood: C, basis: "No entry procedure in the files.", evidence: [T-4102], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: b6ef4d2263633cd5}}
+  - id: H04-N11
+    title: LIN tanker fill LIN-4004 to T-4102
+    design_intent: >-
+      Unload LIN from a road tanker through the hose coupling, the check valve, HV-4147 (1.0 m)
+      and nozzle N6 into T-4102; TSV-4145 relieves liquid trapped between the check valve and
+      HV-4147.
+    members: [LIN-4004, HV-4147, TSV-4145, T-4102, {sheet: P-04, object: CV_LIN4004}]
+    modes: [tanker-fill]
+    status: proposed
+    by: agent
+    deviations:
+      - id: H04-N11-HL
+        guide_word: more
+        parameter: level
+        scenarios:
+          - id: H04-S59
+            cause: "The fill is continued past the maximum level."
+            consequence: "LIN overflows through VNT-4005 / PSV-4124: nitrogen rain-out and cloud at the bay."
+            refs: [LIN-4004, HV-4147, T-4102, LIA-4108]
+            modes: [tanker-fill]
+            safeguards: [H04-SG11]
+            actions: [H04-A03, H04-A04]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: D, basis: "Asphyxiation of the driver (matrix 4); an unloading error (D).", evidence: [D-017], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
+              residual:
+                - {category: people, severity: "4", likelihood: C, basis: "PSV-4124 covers the overpressure, not the overfill; no high level alarm.", evidence: [PSV-4124], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+      - id: H04-N11-HP
+        guide_word: more
+        parameter: pressure
+        scenarios:
+          - id: H04-S60
+            cause: "Tanker pressurising gas blows through at the end of the transfer, or a colder LIN load stratifies and rolls over."
+            consequence: "T-4102 overpressure and failure."
+            refs: [LIN-4004, T-4102]
+            modes: [tanker-fill]
+            safeguards: [H04-SG11]
+            actions: [H04-A04, H04-A25]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "5", likelihood: D, basis: "Tank failure (matrix 5).", evidence: [D-011], status: proposed, by: agent, band: {value: very-high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 6f208be6591d5202}}
+              residual:
+                - {category: people, severity: "5", likelihood: B, basis: "PSV-4124 sized for fill overpressure and roll-over credited (two orders); the PICA-4110 alarm is not credited for a roll-over, which develops faster than an operator can respond.", evidence: [PSV-4124], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: feea7693498b1f1a}}
+      - id: H04-N11-CO
+        guide_word: other-than
+        parameter: composition
+        scenarios:
+          - id: H04-S61
+            cause: "LOX (or an oxygen-contaminated liquid) unloaded into T-4102 by mistake."
+            consequence: "Oxygen-rich 'GAN' in backup to the customer and into the cold box casing purge UN-3001: an oxygen-enriched casing and perlite (fire risk), and a hazard at the customer who uses the GAN for inerting. GAN-4003 joins GAN-4002 downstream of AIA-3105, so the backup GAN is not analysed."
+            refs: [LIN-4004, T-4102, GAN-4003, UN-3001, AIA-3105]
+            modes: [tanker-fill, backup]
+            actions: [H04-A04, H04-A16]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, basis: "Loss of inerting at the customer or oxygen enrichment of the casing (matrix 4).", evidence: [D-024, AIA-3105], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+                - {category: asset, severity: "3", likelihood: C, basis: "Tank and header off-spec (matrix 3).", evidence: [T-4102], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915}}
+              residual:
+                - {category: people, severity: "4", likelihood: C, basis: "No analyser sees the backup GAN; no fill procedure in the files.", evidence: [GAN-4003], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+                - {category: asset, severity: "3", likelihood: C, basis: "As above.", evidence: [GAN-4003], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915}}
+      - id: H04-N11-LK
+        guide_word: other-than
+        parameter: containment
+        scenarios:
+          - id: H04-S62
+            cause: "Hose or coupling failure during the transfer."
+            consequence: "LIN spill at the bay: cold burns and an oxygen-deficient cloud around the driver."
+            refs: [LIN-4004, HV-4147]
+            modes: [tanker-fill]
+            safeguards: [H04-SG22]
+            actions: [H04-A04, H04-A19]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: D, basis: "Asphyxiation or engulfing spill (matrix 4); hose failures in routine unloading (D).", evidence: [D-017], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
+              residual:
+                - {category: people, severity: "4", likelihood: C, basis: "The check valve on LIN-4004 stops the tank draining back; the tanker side spill is not limited by anything in the files.", evidence: [CV_LIN4004], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+          - id: H04-S63
+            cause: "HV-4147 closed after the fill with LIN left between it and the check valve."
+            consequence: "TSV-4145 lifts and releases nitrogen at grade at the bay; without it the line ruptures."
+            refs: [LIN-4004, HV-4147, TSV-4145]
+            modes: [tanker-fill]
+            safeguards: [H04-SG13]
+            actions: [H04-A10]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: E, basis: "Line rupture with cold nitrogen (matrix 3); after every fill (E).", evidence: [D-017], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: a76362ddeef33873}}
+              residual:
+                - {category: people, severity: "3", likelihood: C, basis: "TSV-4145 relieves (two orders); small local nitrogen release.", evidence: [TSV-4145], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 735c5dd00688eefe}}
+  - id: H04-N12
+    title: LIN backup pumps P-4102A/B with suction LIN-4001, discharge LIN-4002 and cool-down return LIN-4003
+    design_intent: >-
+      On low GAN header pressure (PIC-4112) start the standby P-4102A or B (6.3 t/h, 11.5 bara
+      rated, cold standby) from T-4102 through the fail-closed XV-4137 and LIN-4001 (DN80),
+      discharging through the check valves into LIN-4002 (PN25) to the vaporizers; HV-4139 and
+      LIN-4003 keep the pumps cold and take the minimum flow; PSV-4126 relieves into LIN-4003.
+      I-02 (LIA-4108 LALL) trips the pumps and closes XV-4137.
+    members: [LIN-4001, XV-4137, P-4102A, P-4102B, LIN-4002, LIN-4003, HV-4139, PSV-4126, {sheet: P-04, object: CV_P4102A}, {sheet: P-04, object: CV_P4102B}]
+    modes: [backup, normal, startup, maintenance, power-fail]
+    status: proposed
+    by: agent
+    deviations:
+      - id: H04-N12-LL
+        guide_word: less
+        parameter: level
+        scenarios:
+          - id: H04-S64
+            cause: "Extended backup draws T-4102 down to the pump heel."
+            consequence: "The pump cavitates and runs dry: seal and bearing damage, LIN leak."
+            refs: [T-4102, LIA-4108, P-4102A, P-4102B]
+            modes: [backup]
+            safeguards: [H04-SG32, H04-SG15]
+            actions: [H04-A02]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: C, basis: "Pump destroyed (matrix 3).", evidence: [D-024], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915}}
+              residual:
+                - {category: asset, severity: "3", likelihood: A, basis: "LIA-4108 alarm and I-02 trip with XV-4137 closing.", evidence: [I-02, LIA-4108], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 029d875319f0a595}}
+      - id: H04-N12-HT
+        guide_word: more
+        parameter: temperature
+        scenarios:
+          - id: H04-S65
+            cause: "The standby pump is warm when PIC-4112 starts it (HV-4139 closed or return iced)."
+            consequence: "The pump fails to deliver: no backup GAN, the GAN header and the casing purge UN-3001 depressurise (H04-S26)."
+            refs: [P-4102A, P-4102B, HV-4139, LIN-4003, PIC-4112]
+            modes: [backup, startup]
+            actions: [H04-A08]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: D, basis: "Supply shortfall of GAN and loss of the casing purge (matrix 3); a missed cool-down (D).", evidence: [D-014], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+              residual:
+                - {category: asset, severity: "3", likelihood: D, basis: "No start permissive or cool-down indication in the files.", evidence: [HV-4139], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+      - id: H04-N12-NF
+        guide_word: "no"
+        parameter: flow
+        scenarios:
+          - id: H04-S66
+            cause: "PV-4112 closed or both vaporizer inlet valves closed while a pump runs."
+            consequence: "Pump deadheaded: heating, vaporisation and damage."
+            refs: [PV-4112, {sheet: P-04, object: HV_E4106A}, {sheet: P-04, object: HV_E4106B}, P-4102A]
+            modes: [backup]
+            safeguards: [H04-SG16, H04-SG31]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: D, basis: "Pump damage (matrix 3).", evidence: [P-4102A], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+              residual:
+                - {category: asset, severity: "3", likelihood: B, basis: "PSV-4126 into LIN-4003 and the minimum flow return.", evidence: [PSV-4126, LIN-4003], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 96d32a0543b3b03e}}
+      - id: H04-N12-TP
+        guide_word: more
+        parameter: pressure
+        notes: "Trapped liquid in the suction line."
+        scenarios:
+          - id: H04-S67
+            cause: "XV-4137 closes while the pump suction block valves are closed, or a pump is isolated full of LIN."
+            consequence: "Thermal overpressure of LIN-4001 or the pump casing: rupture, cold nitrogen release at the pumps."
+            refs: [XV-4137, LIN-4001, P-4102A, P-4102B]
+            modes: [maintenance, backup, power-fail]
+            actions: [H04-A09]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: C, basis: "Cold nitrogen release (matrix 3).", evidence: [D-011, D-013], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 735c5dd00688eefe}}
+              residual:
+                - {category: people, severity: "3", likelihood: C, basis: "No relief device on this volume.", evidence: [D-011], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 735c5dd00688eefe}}
+      - id: H04-N12-LK
+        guide_word: other-than
+        parameter: containment
+        scenarios:
+          - id: H04-S68
+            cause: "Seal leak at P-4102A/B or a flange leak on LIN-4001 / LIN-4002."
+            consequence: "Nitrogen accumulates at the pumps (zone Z-N2-SEALS, D-031): asphyxiation of an operator working at the pumps."
+            refs: [P-4102A, P-4102B, LIN-4001, LIN-4002]
+            modes: [backup, normal, maintenance]
+            actions: [H04-A19]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: D, basis: "Asphyxiation (matrix 4); seal leaks on cryogenic pumps (D).", evidence: [D-031], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
+              residual:
+                - {category: people, severity: "4", likelihood: D, basis: "Nothing credited: the open-air installation is not a recorded safeguard and no fixed oxygen-deficiency detection is in the files (H04-A19).", evidence: [D-031], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
+      - id: H04-N12-RF
+        guide_word: reverse
+        parameter: flow
+        scenarios:
+          - id: H04-S69
+            cause: "The running LIN pump stops while LIN-4002 is pressurised and its discharge check valve passes."
+            consequence: "Backflow through the stopped pump to T-4102: reverse rotation."
+            refs: [P-4102A, P-4102B, LIN-4002, {sheet: P-04, object: CV_P4102A}, {sheet: P-04, object: CV_P4102B}]
+            modes: [backup, shutdown]
+            safeguards: [H04-SG33]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "2", likelihood: C, basis: "Pump damage (matrix 2).", evidence: [P-4102A], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5d4b96d05607d5a4}}
+              residual:
+                - {category: asset, severity: "2", likelihood: B, basis: "Check valve on each discharge.", evidence: [CV_P4102A, CV_P4102B], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: a148c713397132d0}}
+  - id: H04-N13
+    title: LIN vaporizers E-4106A/B, backup GAN riser GAN-4003 and PV-4112 into GAN-4002
+    design_intent: >-
+      Vaporise up to 5,000 Nm3/h LIN at about 11.5 bara in E-4106A or B (the other defrosting);
+      PSV-4128 on the outlet header; TSLL-4114 stops P-4102A/B and closes PV-4112 on a cold
+      outlet; PIC-4112 controls the header pressure through PV-4112 and starts the backup on low
+      pressure; GAN-4003 (DN100, PN16) joins GAN-4002 downstream of the K-4102 check valve and
+      AIA-3105, and supplies the casing purge UN-3001 in backup.
+    members: [E-4106A, E-4106B, {sheet: P-04, object: HV_E4106A}, {sheet: P-04, object: HV_E4106B}, PSV-4128, TSLL-4114, GAN-4003, PV-4112, PIC-4112]
+    modes: [backup, normal, startup, maintenance]
+    status: proposed
+    by: agent
+    deviations:
+      - id: H04-N13-LT
+        guide_word: less
+        parameter: temperature
+        scenarios:
+          - id: H04-S70
+            cause: "The duty vaporizer ices up in a long backup at low ambient, or PIC-4112 / PV-4112 fails open above the vaporizer rating."
+            consequence: "Cold GAN into GAN-4002, the casing purge and the carbon steel customer pipeline: brittle fracture and a nitrogen release."
+            refs: [E-4106A, E-4106B, PV-4112, PIC-4112, GAN-4003, GAN-4002]
+            modes: [backup]
+            safeguards: [H04-SG04]
+            actions: [H04-A01, H04-A02, H04-A11]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, basis: "Pipeline fracture with a nitrogen release near people (matrix 4).", evidence: [D-014], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+                - {category: asset, severity: "4", likelihood: C, basis: "Pipeline repair, weeks (matrix 4).", evidence: [D-014], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 544760766051af8c}}
+              residual:
+                - {category: people, severity: "4", likelihood: B, basis: "TSLL-4114 stops the pumps and closes PV-4112 (on P-04, not yet in the C&E).", evidence: [TSLL-4114], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
+                - {category: asset, severity: "4", likelihood: B, basis: "As for people.", evidence: [TSLL-4114], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d508cded1fd37f0d}}
+      - id: H04-N13-HP
+        guide_word: more
+        parameter: pressure
+        scenarios:
+          - id: H04-S71
+            cause: "PV-4112 closed with LIN trapped in the vaporizer and outlet header (pump stopped)."
+            consequence: "Trapped liquid vaporises: overpressure of E-4106A/B above 15 barg, tube rupture."
+            refs: [E-4106A, E-4106B, PV-4112, PSV-4128]
+            modes: [backup, shutdown]
+            safeguards: [H04-SG34]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: D, basis: "Rupture (matrix 4).", evidence: [D-011], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
+              residual:
+                - {category: people, severity: "4", likelihood: B, basis: "PSV-4128 on the outlet header (blocked outlet, thermal), one relief device (two orders).", evidence: [PSV-4128], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
+          - id: H04-S72
+            cause: "PV-4112 fails open with a LIN pump at shut-off and the customer not taking GAN."
+            consequence: "GAN-4002 rises towards the pump shut-off pressure above the 8 barg delivery; E-4103 (11 barg) is behind the K-4102 check valve, the customer pipeline design is not known here."
+            refs: [PV-4112, P-4102A, GAN-4002]
+            modes: [backup]
+            safeguards: [H04-SG34, H04-SG20]
+            actions: [H04-A05]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: C, basis: "Overpressure of the customer pipeline (matrix 3).", evidence: [P-4102A], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915}}
+              residual:
+                - {category: asset, severity: "3", likelihood: B, basis: "PSV-4128 sees the header pressure with PV-4112 open; set pressure to confirm (H04-A05).", evidence: [PSV-4128], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 96d32a0543b3b03e}}
+      - id: H04-N13-RF
+        guide_word: reverse
+        parameter: flow
+        scenarios:
+          - id: H04-S73
+            cause: "With the pumps stopped PV-4112 passes (no check valve on GAN-4003, D-024)."
+            consequence: "9 bara GAN backs into E-4106A/B and LIN-4002; PSV-4126 relieves warm GAN into LIN-4003 and T-4102: tank pressure rises, and the pump meets a warm discharge at the next start."
+            refs: [PV-4112, GAN-4003, LIN-4002, PSV-4126, T-4102]
+            modes: [normal]
+            safeguards: [H04-SG30, H04-SG33, H04-SG11]
+            actions: [H04-A05]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: D, basis: "Backup unavailable when needed (matrix 3); a control valve passing (D).", evidence: [D-024], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+              residual:
+                - {category: asset, severity: "3", likelihood: C, basis: "Riser rated for the header (D-024) and PSV-4124 on the tank; nothing detects the backflow.", evidence: [D-024, PSV-4124], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915}}
+safeguards:
+  - {id: H04-SG01, title: "I-01: LIA-4107 LALL trips P-4101A/B and closes XV-4136", kind: interlock, interlock: I-01, refs: [LIA-4107, P-4101A, P-4101B, XV-4136], status: proposed, by: agent, notes: "sil null in the C&E (H04-A02)."}
+  - {id: H04-SG02, title: "TSLL-4113 low vaporizer outlet temperature stops P-4101A/B and closes PV-4111", kind: other, refs: [TSLL-4113, P-4101A, P-4101B, PV-4111], status: proposed, by: agent, notes: "Trip written on P-04 and in the instrument list (D-014), not yet an interlock of control/cause-effect.yaml (H04-A01). Credited as kind other, like the E-2101 trips (H-02) and the compander trips (H-03), not as an interlock."}
+  - {id: H04-SG03, title: "TSHH-4104 fire detection trips K-4101, closes XV-4117 / XV-4118, opens blowdown XV-4116", kind: other, refs: [TSHH-4104, K-4101, XV-4117, XV-4118, XV-4116], status: proposed, by: agent, notes: "Trip written on P-04 and in the instrument list (D-013), not yet in control/cause-effect.yaml (H04-A01). Credited as kind other, like the E-2101 trips (H-02) and the compander trips (H-03), not as an interlock."}
+  - {id: H04-SG04, title: "TSLL-4114 low vaporizer outlet temperature stops P-4102A/B and closes PV-4112", kind: other, refs: [TSLL-4114, P-4102A, P-4102B, PV-4112], status: proposed, by: agent, notes: "Not yet in control/cause-effect.yaml (H04-A01). Credited as kind other, like the E-2101 trips (H-02) and the compander trips (H-03), not as an interlock."}
+  - {id: H04-SG05, title: "PIC-4102 export pressure control; high-high trips K-4101", kind: other, refs: [PIC-4102, K-4101], status: proposed, by: agent, notes: "The HH trip is written on P-04, not yet in control/cause-effect.yaml (H04-A01). Credited as kind other, like the E-2101 trips (H-02) and the compander trips (H-03), not as an interlock."}
+  - {id: H04-SG06, title: "UIC-4103 anti-surge control of K-4101 through UV-4103 and GOX-4003", kind: control, refs: [UIC-4103, UV-4103, FI-4148], status: proposed, by: agent}
+  - {id: H04-SG07, title: "UIC-4131 anti-surge control of K-4102 through UV-4131 (fail open) and GAN-4004", kind: control, refs: [UIC-4131, UV-4131], status: proposed, by: agent}
+  - {id: H04-SG09, title: "PSV-4127 on the E-4105A/B outlet header", kind: relief, refs: [PSV-4127], status: proposed, by: agent}
+  - {id: H04-SG10, title: "PSV-4122 on the K-4101 discharge (blocked outlet at max. speed)", kind: relief, refs: [PSV-4122], status: proposed, by: agent}
+  - {id: H04-SG11, title: "Tank pressure reliefs PSV-4123 (T-4101) and PSV-4124 (T-4102)", kind: relief, refs: [PSV-4123, PSV-4124], status: proposed, by: agent, notes: "Cases: heat leak, external fire, fill overpressure, roll-over (DESIGN.md section 4). Pressure relief only, no protection against liquid overfill."}
+  - {id: H04-SG12, title: "Vacuum breakers PSV-4142 (T-4101) and PSV-4143 (T-4102)", kind: relief, refs: [PSV-4142, PSV-4143], status: proposed, by: agent}
+  - {id: H04-SG13, title: "Thermal reliefs TSV-4140, TSV-4141, TSV-4144, TSV-4145 on trapped cryogenic liquid", kind: relief, refs: [TSV-4140, TSV-4141, TSV-4144, TSV-4145], status: proposed, by: agent}
+  - {id: H04-SG14, title: "PIC-4112 auto-start of the LIN backup on low GAN header pressure", kind: control, refs: [PIC-4112, P-4102A, P-4102B], status: proposed, by: agent}
+  - {id: H04-SG15, title: "LIA-4107 / LIA-4108 low level alarms with operator response", kind: alarm, refs: [LIA-4107, LIA-4108], status: proposed, by: agent, notes: "The instrument list states a low alarm on LIA-4107; LIA-4108 is an LIA with LALL, its low alarm ASSUMED from the tag."}
+  - {id: H04-SG16, title: "PSV-4125 / PSV-4126 on the pump discharge headers into LOX-4003 / LIN-4003", kind: relief, refs: [PSV-4125, PSV-4126], status: proposed, by: agent}
+  - {id: H04-SG17, title: "Discharge check valves of P-4101A/B", kind: check-valve, refs: [{sheet: P-04, object: CV_P4101A}, {sheet: P-04, object: CV_P4101B}], status: proposed, by: agent}
+  - {id: H04-SG18, title: "Double block and bleed at the GOX and GAN battery limits (blocks fail closed, bleeds fail open)", kind: mechanical, refs: [XV-4119, XV-4132, XV-4133, XV-4120, XV-4134, XV-4135], status: proposed, by: agent, notes: "D-013."}
+  - {id: H04-SG19, title: "Check valve on GOX-4002 downstream of XV-4118", kind: check-valve, refs: [{sheet: P-04, object: CV_GOX4002}], status: proposed, by: agent}
+  - {id: H04-SG20, title: "Check valve on GAN-4002 downstream of E-4103", kind: check-valve, refs: [{sheet: P-04, object: CV_GAN4002}], status: proposed, by: agent}
+  - {id: H04-SG21, title: "PICA-4109 / PICA-4110 tank pressure control and alarms (PV-4109 / PV-4110)", kind: alarm, refs: [PICA-4109, PICA-4110, PV-4109, PV-4110], status: proposed, by: agent, notes: "Alarm set points not in the files (ASSUMED high and low). Listed, not credited: each T-4101 / T-4102 pressure cause either includes the PICA transmitter or valve or develops faster than an operator can respond (H04-A25)."}
+  - {id: H04-SG22, title: "Check valves on the tanker fill lines LOX-4004 / LIN-4004", kind: check-valve, refs: [{sheet: P-04, object: CV_LOX4004}, {sheet: P-04, object: CV_LIN4004}], status: proposed, by: agent}
+  - {id: H04-SG23, title: "AIA-4121 hydrocarbon (THC, C2H2) analysis of the T-4101 bottom liquid with alarm (periodic)", kind: alarm, refs: [AIA-4121], status: proposed, by: agent, notes: "Periodic sample to the analyser house (D-010); frequency and limits open (H04-A07)."}
+  - {id: H04-SG24, title: "Concrete (non-combustible) pad under the LOX fill coupling", kind: mechanical, refs: [LOX-4004], status: proposed, by: agent, notes: "D-017, D-026."}
+  - {id: H04-SG25, title: "Equalising globe bypasses HV-4129 / HV-4130 around XV-4118 / XV-4119", kind: mechanical, refs: [HV-4129, HV-4130], status: proposed, by: agent, notes: "D-024. The dP permissive described there has no tagged instrument and is not credited."}
+  - {id: H04-SG26, title: "Oxygen service design: cleaning to EIGA Doc 13 / 33, velocity limits, Monel / copper alloy at impingement sites", kind: mechanical, refs: [GOX-4001, GOX-4002, XV-4116, XV-4118, XV-4119, PV-4111, UV-4103], status: proposed, by: agent, notes: "D-009, D-016, line list GOX-4002."}
+  - {id: H04-SG27, title: "K-4101 oil-free with dry gas seals, N2 buffer, atmospheric distance piece", kind: mechanical, refs: [K-4101], status: proposed, by: agent, notes: "D-002, D-012; supplier scope."}
+  - {id: H04-SG28, title: "Vents discharge elevated at safe locations, separate per pressure level", kind: mechanical, refs: [VNT-4001, VNT-4002, VNT-4003, VNT-4004, VNT-4005, S-4101, S-4102], status: proposed, by: agent, notes: "D-011, D-019, D-025."}
+  - {id: H04-SG30, title: "Vaporizers and backup risers rated for the export header pressure", kind: mechanical, refs: [E-4105A, E-4105B, GOX-4004, E-4106A, E-4106B, GAN-4003], status: proposed, by: agent, notes: "D-024."}
+  - {id: H04-SG31, title: "Continuous cool-down / minimum flow returns LOX-4003 / LIN-4003 (HV-4138 / HV-4139)", kind: mechanical, refs: [LOX-4003, LIN-4003, HV-4138, HV-4139], status: proposed, by: agent, notes: "D-014; restriction orifice in detail engineering (ASSUMED)."}
+  - {id: H04-SG32, title: "I-02: LIA-4108 LALL trips P-4102A/B and closes XV-4137", kind: interlock, interlock: I-02, refs: [LIA-4108, P-4102A, P-4102B, XV-4137], status: proposed, by: agent, notes: "sil null in the C&E (H04-A02)."}
+  - {id: H04-SG33, title: "Discharge check valves of P-4102A/B", kind: check-valve, refs: [{sheet: P-04, object: CV_P4102A}, {sheet: P-04, object: CV_P4102B}], status: proposed, by: agent}
+  - {id: H04-SG34, title: "PSV-4128 on the E-4106A/B outlet header", kind: relief, refs: [PSV-4128], status: proposed, by: agent}
+  - {id: H04-SG35, title: "LP column pressure control PIC-3110 (P-03), PV-3110B to S-3101", kind: control, refs: [PIC-3110, PV-3110B], status: proposed, by: agent, notes: "Studied in H-03 (H03-SG15); credited here for a cause on P-04."}
+  - {id: H04-SG36, title: "Fire wall FW-4101 on the west, south and north sides of K-4101, open to the east", kind: mechanical, refs: [K-4101], status: proposed, by: agent, notes: "D-026 (1), D-030 (2); FW-4101 is a layout structure (layout/structures.yaml), not a plant tag, so the ref is the machine it shields."}
+  - {id: H04-SG37, title: "LICA-3102 LP sump level low alarm (P-03)", kind: alarm, refs: [LICA-3102], status: proposed, by: agent, notes: "Studied in H-03 (H03-SG17); credited here for a cause on P-04."}
+actions:
+  - {id: H04-A01, text: "Enter the trips drawn on P-04 into control/cause-effect.yaml with cause, effects and fail-safe positions: TSHH-4104 (K-4101 trip, XV-4117 / XV-4118 close, XV-4116 open), the actions of every other K-4101 trip, PIC-4102 high-high, TSLL-4113 / TSLL-4114 (pumps stop, PV-4111 / PV-4112 close), AIA-3105 (XV-3105 open, XV-4120 close) and the dP permissive of XV-4118 / XV-4119 with its measurement. One update of control/cause-effect.yaml and one LOPA / SIL session answer H01-A3, H01-A8, H02-A1, H02-A2, H03-A2, H03-A3, H04-A01, H04-A02 and H04-A13; this action names the functions of this sheet.", owner: instrument and control engineer, status: proposed, by: agent}
+  - {id: H04-A02, text: "SIL screening / LOPA for I-01 and I-02 (sil null), TSLL-4113 / TSLL-4114 (cold gas into the carbon steel pipelines) and TSHH-4104, with the initiating frequencies and tolerable targets agreed by the team. One update of control/cause-effect.yaml and one LOPA / SIL session answer H01-A3, H01-A8, H02-A1, H02-A2, H03-A2, H03-A3, H04-A01, H04-A02 and H04-A13; this action names the functions of this sheet.", owner: process safety engineer, status: proposed, by: agent}
+  - {id: H04-A03, text: "Add high level alarms and an independent high-high level on T-4101 / T-4102; consider an actuated fill isolation on LOX-4004 / LIN-4004 closed by the high-high, and a defined response for the rundowns LOX-3001 / LIN-3001 (the LOX purge must keep flowing, D-010: to the drain vaporizer).", owner: process engineer, status: proposed, by: agent}
+  - {id: H04-A04, text: "Write the tanker unloading procedure: product identity and analysis certificate checked (sample before unloading), product-specific non-interchangeable couplings, attended transfer watching LIA-4107 / LIA-4108, hose inspection and cool-down, stop before pressurising gas blows through, top or bottom fill against stratification, oxygen cleanliness and no ignition sources at the LOX bay.", owner: operations, status: proposed, by: agent}
+  - {id: H04-A05, text: "Close the D-024 open item: confirm the PV-4111 / PV-4112 tight shut-off, the consequence of backflow through PSV-4125 / PSV-4126 into the tanks, the PSV-4127 / PSV-4128 set pressures against the pump shut-off and the customers' pipeline design pressures; decide whether an oxygen-compatible non-return or an actuated tight-shut valve is needed on GOX-4004 / GAN-4003.", owner: process engineer, status: proposed, by: agent}
+  - {id: H04-A06, text: "Confirm the K-4102 maximum discharge pressure (HP column at its relief set pressure, surge line, maximum speed) against the 11 barg design of E-4103 and GAN-4002; add a relief device on the K-4102 discharge if it can be exceeded.", owner: process engineer, status: proposed, by: agent}
+  - {id: H04-A07, text: "Define the AIA-4121 sampling frequency (and a sample after each LOX tanker fill), the THC / C2H2 action limits per EIGA Doc 65 and the response (dilution, draining through the drain vaporizer); consider a continuous analyser.", owner: process engineer, status: proposed, by: agent}
+  - {id: H04-A08, text: "Make the readiness of the cold standby pumps visible: temperature on the P-4101A/B and P-4102A/B casings or flow indication on LOX-4003 / LIN-4003, an auto-start permissive and a failed-start alarm.", owner: instrument and control engineer, status: proposed, by: agent}
+  - {id: H04-A09, text: "Confirm a thermal relief path for LOX-4001 / LIN-4001 between XV-4136 / XV-4137 and the pump suction block valves and for an isolated pump in every valve line-up (D-011); add TSVs where none exists and write the pump isolation procedure (drain and warm through the casing vent before closing both valves, D-013).", owner: process engineer, status: proposed, by: agent}
+  - {id: H04-A10, text: "Route the outlets of TSV-4140, TSV-4141, TSV-4144 and TSV-4145 ('to atm.') to locations where oxygen or nitrogen cannot reach the driver, operator or a walkway (elevated, safe location), and record them in the relief case list.", owner: piping engineer, status: proposed, by: agent}
+  - {id: H04-A11, text: "Confirm with the vaporizer supplier the E-4105A/B and E-4106A/B duty for a continuous 2-day backup at -5 C minimum ambient with A/B defrost switching; write the switching procedure and consider a low outlet temperature alarm ahead of the TSLL trips.", owner: process engineer, status: proposed, by: agent}
+  - {id: H04-A12, text: "Add outlet temperature indication with high alarm on E-4102 (GOX-4002) and E-4103 (GAN-4002), and consider a high-high trip of K-4101 on the aftercooler outlet.", owner: process engineer, status: proposed, by: agent}
+  - {id: H04-A13, text: "Obtain from the K-4101 / K-4102 suppliers their machine protection (vibration, axial position, surge detection, buffer and seal gas pressure, suction strainer) and enter its trips in control/cause-effect.yaml. One update of control/cause-effect.yaml and one LOPA / SIL session answer H01-A3, H01-A8, H02-A1, H02-A2, H03-A2, H03-A3, H04-A01, H04-A02 and H04-A13; this action names the functions of this sheet.", owner: mechanical engineer, status: proposed, by: agent}
+  - {id: H04-A14, text: "Decide the power supply of the backup system (emergency power for P-4101A/B, P-4102A/B and their controls) against the customer's continuity requirement, and confirm the fail positions of PV-4101B, PV-4109 .. PV-4112, UV-4103, XV-4116 .. XV-4118 and XV-3105, which the files do not state. One plant-wide fail-position list (P-01 .. P-04) answers H01-A6, H02-A6, H03-A1 and H04-A14; this action names the valves of this sheet.", owner: electrical and instrument engineer, status: proposed, by: agent}
+  - {id: H04-A15, text: "Consider leak detection for GOX-4002 (flow balance FI-4148 against FQI-4149, pressure decay) and the remote isolation it triggers.", owner: process engineer, status: proposed, by: agent}
+  - {id: H04-A16, text: "Analyse the O2 content of the GAN actually exported, including the backup GAN from T-4102 (GAN-4003 joins downstream of AIA-3105): an analyser at the GAN battery limit or on T-4102.", owner: process engineer, status: proposed, by: agent}
+  - {id: H04-A17, text: "Give AI-3104 / AI-4115 a low purity alarm and agree the off-spec response with the customer.", owner: process engineer, status: proposed, by: agent}
+  - {id: H04-A18, text: "Write the maintenance and entry procedures for oxygen and nitrogen equipment (tanks, pumps, vaporizers, BL stations): isolation, purge to air, atmosphere test, personal O2 monitors, and cleaning verification before an oxygen system goes back into service (D-009). One site procedure for positive isolation and entry into equipment that can hold N2 answers H01-A15, H02-A10, H03-A15 and H04-A18; this action names the equipment of this sheet.", owner: operations, status: proposed, by: agent}
+  - {id: H04-A19, text: "Define spill containment and surfaces under the LOX / LIN tanks, pumps and fill bays (non-combustible under all LOX equipment, not only the fill coupling), and fixed oxygen-enrichment / oxygen-deficiency detection at the pumps and tanker bays.", owner: process engineer, status: proposed, by: agent}
+  - {id: H04-A20, text: "Confirm that the PSV-3114 relief case covers a K-4101 trip with PV-4101B failing to open (the relief case review is H03-A20); limit the opening rate of PV-4111 on the backup auto-start (EIGA Doc 13) so the riser and tie-in are not pressurised fast.", owner: process engineer, status: proposed, by: agent}
+  - {id: H04-A22, text: "Give the K-4102 suction (PIC-4106) a low pressure alarm and a limit on the guide vane opening independent of FIC-3107 / FIC-4105, or credit the LIC-3101 level alarms that H03-A8 proposes, once they exist.", owner: instrument and control engineer, status: proposed, by: agent}
+  - {id: H04-A21, text: "Consider detection of GOX in the E-4101 / E-4102 cooling water return (gas detector or vent pot on CWR-4001) for a tube leak.", owner: process engineer, status: proposed, by: agent}
+  - {id: H04-A23, text: "Limit the GOX draw of K-4101 independently of PIC-4101: a K-4101 suction or LP column low-pressure alarm and a limit or trip on the guide-vane opening, so a failed PIC-4101 cannot boil the LP sump down (H04-S75). With H03-A4 (LICA-3102 low alarm set point and an independent low-low level), which the same LOPA session decides.", owner: instrument and control engineer, status: proposed, by: agent}
+  - {id: H04-A24, text: "Resolve the K-4101 arrangement: D-002, the equipment list and the K-4101 datasheet say fire-safe enclosure, D-026 (1) and D-030 (2) put the machine in the open behind the fire wall FW-4101. Record one arrangement, and with it an exclusion zone at the open east side with no one at the machine while it runs on oxygen (EIGA Doc 27 practice), so the people credit rests on the fire wall and the zone.", owner: process safety engineer, status: proposed, by: agent}
+  - {id: H04-A25, text: "Give T-4101 and T-4102 a high-pressure alarm on a transmitter independent of PICA-4109 / PICA-4110, record the PICA alarm set points, and confirm PSV-4123 / PSV-4124 capacity for PV-4109 / PV-4110 failed closed and for a roll-over; consider a high-high pressure that stops the rundown and the tanker fill.", owner: instrument and control engineer, status: proposed, by: agent}

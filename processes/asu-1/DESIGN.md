@@ -4218,3 +4218,156 @@ Rejected:
 - Keeping the example factors: no source, nothing real.
 - Mapping the flows without an open factor `free` or dropping them: that would count them as
   zero (core#138: never silent zeros).
+
+## D-093 HAZOP of ASU-1 (draft, proposed by agent) (2026-10-24)
+Answers the items D-076, D-083 and D-088 hand to the HAZOP. Every entry below and in the four
+study files is a proposal by an agent (`status: proposed`, `by: agent`); nothing is accepted.
+
+Decision:
+- (1) **Scope.** The plant as drawn on P-01 .. P-04 with the lists, `control/cause-effect.yaml`,
+  the design basis and the flowsheet at the revisions in each study's `analysed:`. One study per
+  sheet: **H-01** main air compressor and precooling (P-01), **H-02** front-end purification
+  (TSA, P-02), **H-03** cold box (P-03), **H-04** products, storage and backup supply (P-04).
+  Not covered: the machine packages' internals (MAC, compander, K-4101 / K-4102: the
+  suppliers'), the cooling water and power systems, area classification, noise, fire and
+  explosion consequence modelling. No P&ID, list, flowsheet, design basis, layout, datasheet or
+  C&E was changed for the HAZOP: what is missing is an action.
+- (2) **Method.** IEC 61882 guide words on the parameters of each node's design intent, in the
+  modes that apply (normal, start-up, shutdown and trip, warm-up / derime, TSA switching,
+  maintenance, power failure). One scenario is one cause and one consequence. Ratings per
+  category (people, environment, asset and production) of the proposed 5x5 matrix
+  `safety/risk-matrix.yaml` (ASSUMED, itself a proposal): initial without safeguards, residual
+  with only the safeguards the files hold (alarm with operator response, control loop,
+  interlock of the C&E by id, relief device of the special-items list, check valve on the P&ID,
+  mechanical feature recorded here or in the datasheets). A trip that is drawn but is not in the
+  C&E (LSHH-1106, the AIA-2102 high-high action, the E-2101 trips, SSHH-3108, PDSLL-3115,
+  TSHH-4104, TSLL-4113 / 4114, PIC-4102 HH) is credited as `other` or as its alarm, never as an
+  interlock. **Credit convention** (written into each study's `assessment_basis`; one matrix
+  letter is one order of magnitude; a proposal for the team, not a LOPA): a relief device whose
+  listed case covers the cause, or a passive feature that removes the path (open vent without
+  valve, elevated vent outside its zone), up to two orders; an alarm with operator response, a
+  control loop, a check valve, an administrative lock, a trip not in the C&E, or an interlock
+  whose SIL is not confirmed, one order each; nothing for a safeguard that shares a
+  transmitter, valve or logic with the cause or that the cause defeats, nor for a relief device
+  whose listed case does not cover the cause (PSV-3114 for the HP blow-through and the K-4101
+  trip, PSV-3116 for the heat-in of a standstill: H03-A20, H04-A20). Bands are written only by
+  `cheme safety hazop rate --write`. Oxygen service follows EIGA Doc 13 / 33, hydrocarbon
+  protection EIGA Doc 65, oxygen compressor siting EIGA Doc 27 practice (by name; no text
+  taken from them).
+- (3) **The four studies** (`cheme safety hazop check`: all four `draft`, 0 errors, 0 warnings):
+
+  | study | nodes | deviations | scenarios | safeguards | actions | worst band: high / medium / low | proposals not accepted |
+  |---|---|---|---|---|---|---|---|
+  | H-01 | 9 | 32 | 43 | 27 | 25 | 11 / 14 / 18 | 104 |
+  | H-02 | 10 | 40 | 37 | 16 | 14 | 13 / 14 / 10 | 77 |
+  | H-03 | 12 | 52 | 52 | 23 | 22 | 23 / 19 / 10 | 109 |
+  | H-04 | 13 | 66 | 75 | 35 | 25 | 31 / 28 / 16 | 148 |
+  | total | 44 | 190 | 207 | 101 | 86 | 78 / 75 / 54 | 438 |
+
+  "Worst band" is the policy band of a scenario (residual where rated, else initial, worst
+  category). No scenario ends very-high; 8 start very-high before safeguards. H02-S32 has no
+  residual rating: the valve fail positions are not defined (H02-A6). Every high scenario has
+  at least one action. Interfaces: a cause at an off-page connection is analysed in the study
+  of the sheet where it lies and referenced by id from the other (e.g. TSA breakthrough H-02 ->
+  H-03; MAC trip reverse flow H01-S11 -> H-02; cold waste N2 H03-S13 -> H-01 / H-02; C-1102
+  back-pressure H01-S21 -> H03-N7; more GOX draw H03-N8-GOX -> H04-S75). Common actions share
+  one wording across the studies: the plant-wide valve fail-position list (H01-A6, H02-A6,
+  H03-A1, H04-A14), one C&E update and LOPA session (H01-A3 / A8, H02-A1 / A2, H03-A2 / A3,
+  H04-A01 / A02 / A13) and one isolation and entry procedure (H01-A15, H02-A10, H03-A15,
+  H04-A18).
+- (4) **Highest residual risks** (all high, severity 5 or people 4):
+  - main condenser E-3103 hydrocarbon / N2O accumulation: H03-S33 (FV-3111 fails open, E-3103
+    uncovered), H03-S34 (refrigeration deficit), H03-S35 (LOX purge lost), H03-S51 (AIA-3103,
+    the only sump analyser, fails low or stale, 5/C), H03-S49 (warm-up before the LOX is
+    drained, 5/C), H03-S50 (long cold standstill after a power failure), H03-S18 (compander
+    seal gas lost, oil to the sump; its trip is not in the C&E), H04-S75 (K-4101 over-draws GOX
+    on a PIC-4101 failure and boils the sump down), and from the front end H02-S10 (AIA-2102
+    fails during a breakthrough: the single CO2 analyser), H02-S22 (heating ended early),
+    H02-S27 (adsorption step overruns), H02-S33 (KS-2101 restart in a default step); H04-S33
+    (hydrocarbons concentrate in T-4101, periodic analysis only);
+  - overpressure of columns and tanks: H03-S29 (PIC-3110 closes both waste N2 valves, PSV-3114
+    the only layer, 5/B), H03-S25 (HP gas through LV-3101, PSV-3114 not confirmed for it),
+    H03-S22 (HP column heat-in in a standstill), H03-S52 (RL / LN liquid blocked in, no TSV
+    drawn), H04-S01 (K-4101 trip with PV-4101B closed), H04-S30 / S55 (T-4101 / T-4102 tank
+    pressure control fails, PSV-4123 / PSV-4124 the only layer, 5/B), H04-S38 / S60 (tanker
+    gas blow-through or roll-over), H01-S43 (C-1102 with WN-1002 blocked and PIC-3110 failed:
+    nothing protects C-1102 against the LP column pressure);
+  - oxygen compressor K-4101: H04-S04 (particles ignite), H04-S05 (surge without independent
+    trip, 5/C), H04-S08 (seal buffer lost, oil to the O2 side); the people credit rests on the
+    fire wall FW-4101, as D-026 places the machine, not on the "fire-safe enclosure" of D-002
+    and the datasheet (H04-A24);
+  - asphyxiation: entry into N2-filled equipment, rated alike as entrant and rescuer (5/C):
+    H01-S36 (C-1102 without positive isolation of WN-1001), H02-S35, H03-S47, H04-S58; and
+    H04-S68 (LIN pump seal leak, no fixed detection). The oxygen-enriched entry case H04-S36
+    (clothing fire inside T-4101 not purged, 4/C) is an enrichment, not an asphyxiation, case;
+  - overpressure of the TSA regeneration side by air from a pressurised bed: H02-S19 / S29
+    (E-2101 3.5 barg design, no relief drawn although section 4 asks for one);
+  - cryogenic: H04-S29 / S37 / S54 / S59 (tank overfill, no high level alarm), H04-S61 / S62
+    (wrong product or hose failure at the tanker bay), H04-S49 (cold GOX into the carbon steel
+    pipeline, TSLL-4113 not in the C&E), H04-S74 (pump seal leak).
+- (5) **The C-1102 blow-by relief case (D-076, D-083).** Rated in H-01 as H01-S20 (C-1102
+  overpressure, people 4/D initial, 4/A low residual: open vent WN-1002 and I-03 must both fail),
+  H01-S21 (process air through C-1102, internals, LP top upset: asset 3/D -> 3/C medium, I-03 at
+  its screening SIL 1), H01-S22 (O2-deficient plume, 3/D -> 3/B low), H01-S33 (vent
+  obstructed: C-1102 dead-ended at the LP top pressure, which PIC-3110 holds by diverting
+  through PV-3110B, 2/C -> 2/B low) and H01-S43 (vent obstructed and PIC-3110 failed: C-1102
+  rises towards the PSV-3114 set pressure of about 3.5 barg, far above its 1 barg design; 4/C
+  high, nothing credited). PSV-3114 protects C-3102, not C-1102. Proposal: **accept D-083's
+  open vent WN-1002 as the C-1102 relief path for the blow-by**, on the conditions of H01-A9:
+  the C-1102 supplier confirms the top internals at ~153 t/h, "no blind, cover or valve on
+  WN-1002" is a maintenance rule with a screen that cannot block it, and the back-pressure on
+  the LP column top is an upset only (recorded in H03-N7). The open vent is not the whole
+  relief case: a blocked vent leads to overpressure with a blow-by (H01-S20) or with a
+  PIC-3110 failure (H01-S43). H01-A25 asks for protection of C-1102 against the LP column
+  pressure that depends on neither WN-1002 nor PIC-3110, and for the case in the relief list.
+- (6) **I-03 SIL / LOPA (D-083 (3), D-088).** The HAZOP finds D-083's two LOPA scenarios as
+  drawn (A = H01-S20, B = H01-S21) and nothing that changes the screening target **SIL 1**.
+  It does not confirm the SIL: H01-A8 asks for the LOPA with the owner's risk criteria (the
+  BPCS initiating frequency, the credit for the open vent, the tolerable frequencies), then the
+  SRS (trip 13.35 m, 144 s process safety time, response <= 15 s, yearly proof test) and the
+  LV-1114 trim limit as a valve-supplier requirement. H01-A10 adds the start-up rule (tray
+  seal before loading, I-03 reset only above the trip level, no bypass under pressure).
+- (7) **Actions by priority** (proposed; the order is by the worst scenario each closes, its
+  policy band and severity):
+  - **Priority 1, high band at severity 5:** H03-A3 / H02-A1 (LOPA and SIFs for the main
+    condenser protection: AIA-3103 high-high, sump level, AIA-2102 high-high, a second CO2
+    measurement), H03-A24 (AIA-3103 diagnostics, periodic sump sample, rule for operation with
+    the analyser out), H03-A4 (LICA-3102 alarms, independent low-low), H04-A23 (K-4101 draw
+    limited independently of PIC-4101), H03-A5 (minimum LOX purge route when T-4101 is
+    unavailable), H03-A16 (warm-up / derime and standstill procedure), H03-A2 (compander trips
+    into the C&E), H03-A19 (LP column high pressure alarm independent of PIC-3110), H02-A7 and
+    H02-A13 (TSA sequence and breakthrough margins with the supplier), H02-A6 / H03-A1 (fail
+    positions, KS-2101 restart logic), H04-A07 (AIA-4121 limits and frequency), H04-A13
+    (K-4101 / K-4102 machine protection into the C&E), H04-A24 (K-4101 enclosure or fire wall,
+    exclusion zone), H04-A25 (independent tank high-pressure alarm, PSV-4123 / PSV-4124 cases),
+    H04-A04 (tanker unloading procedure), H01-A15 / H02-A10 / H03-A15 / H04-A18 (positive
+    isolation and entry).
+  - **Priority 2, high band at severity 4:** H01-A9 and H01-A25 (C-1102 relief case and its
+    protection against the LP column pressure), H02-A3, H02-A4, H02-A5 (E-2101 relief, KS-2101
+    permissives, bed pressure transmitters), H01-A3, H01-A4, H01-A7, H01-A21 (DCAC flooding
+    and carry-over, MAC trip back-flow), H03-A20 (relief case review: PSV-3114 blow-through,
+    PSV-3116 heat-in, RL / LN TSVs), H04-A20 (PSV-3114 for the K-4101 trip), H04-A01 / A02
+    (trips into the C&E, SIL of I-01 / I-02 and of TSLL-4113 / 4114), H01-A6, H02-A9, H03-A6,
+    H03-A10, H03-A11, H03-A14, H03-A17, H04-A03, H04-A06, H04-A08, H04-A12, H04-A14, H04-A15,
+    H04-A16, H04-A19.
+  - **Priority 3, high band at severity 3:** H01-A5, H01-A10, H01-A11, H01-A13, H03-A8,
+    H04-A22.
+  - **Priority 4, medium or low (ALARP statement or improvement):** the rest, among them the
+    D-083 item H01-A8 above, H02-A14 (regeneration flow alarms), H04-A05 (D-024 open item).
+- (8) **Status.** The studies are `draft`: 438 proposals wait for the team, no review record
+  covers them, and the matrix is ASSUMED. Revised after the independent review hazop-review1
+  (relief and trip credits made consistent, safeguards that the cause defeats withdrawn, the
+  C-1102 / PIC-3110 case, the GOX over-draw, the AIA-3103 failure and the RL / LN trapped
+  liquid added). Before a study can be `assessed` the owner names the
+  team (facilitator, scribe, process, operations, instrument and control, mechanical, safety,
+  the MAC / TSA / cold box / compressor suppliers), accepts or replaces the matrix, and holds
+  the sessions in which the team accepts, changes or deletes each node, scenario, safeguard,
+  rating and action; then the bands are rated again and a human review record is written
+  (skill hazop-review). No HAZOP gate is set in `checks/checks.yaml` yet.
+
+Reason: D-076 and D-083 leave the C-1102 relief case and the I-03 SIL to the HAZOP, and a
+basic-engineering package needs a HAZOP draft that the owner's team can work through.
+
+Open: everything in (8); the actions of (7); the team's answer to the questions recorded in
+the node and deviation notes (WN-1001 temperature and O2 bound, H03-N7-OC; cold regeneration
+gas, H02-N2-LT).
