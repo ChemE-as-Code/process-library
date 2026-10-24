@@ -1,0 +1,60 @@
+# HAZOP study H-01: a DRAFT until the team has accepted every entry and a
+# human review record covers it (cheme safety hazop check). Schema: cheme schema
+# hazop-study; workflow: safety/README.md and the skill hazop-study.
+schema: cheme/hazop-study/v1
+kind: hazop-study
+id: H-01
+title: Main air compressor and precooling
+scope: >-
+  Sheet P-01 (pid/P-01.xml) as drawn: the MAC inlet filter F-1101 and suction duct AIR-1001,
+  the main air compressor K-1101 with its intercoolers E-1101, E-1102, aftercooler E-1103, the
+  interstage lines AIR-1005/AIR-1006, the anti-surge blow-off AIR-1003 to silencer S-1101 and
+  the condensate drains CD-1001/CD-1002; the direct contact aftercooler C-1101 with the cooling
+  water pumps P-1101A/B (CW-1001, CWR-1001) and the chilled-water loop: the evaporative cooler
+  C-1102, the chilled water pumps P-1102A/B, CHW-1001 and CHWR-1001 (the chimney-tray return
+  through LV-1114 and XV-1115, interlock I-03), the make-up CW-1003 and the waste N2 vent
+  WN-1002 to atmosphere; the relief PSV-1109 on AIR-1004. Battery limits: cooling water
+  supply and return CW-1002/1004/1005 and CWR-1002/1003/1004 (BL, the CW system is not
+  studied), the drains to the clean drain hub. Off-page connections: AIR-1004 precooled air
+  continues on P-02 to V-2101A/B (H-02); WN-1001 waste N2 comes from WN-3002 on P-03 (H-03);
+  CHW-3001 / CHWR-3001 branch to and return from E-3105 on P-03 (studied in H-03 from their
+  tee on P-01). Not covered: the MAC package internals beyond the P&ID (lube oil, seal and
+  machine protection are the supplier's), the CW and power systems, the area classification
+  and noise (separate studies).
+modes:
+  - {id: normal, title: Normal operation, description: "Design case (D-066 flows), GOX 500 t/d."}
+  - {id: startup, title: Start-up, description: "MAC start against the blow-off, loading, precooling in service, cold box cooldown downstream."}
+  - {id: shutdown, title: Shutdown and trip, description: "Planned unloading and stop, MAC trip, plant trip."}
+  - {id: warmup, title: Warm-up and derime, description: "Air supply to the warm-up and derime of the cold box."}
+  - {id: regen-switch, title: TSA switching, description: "Adsorber repressurization and switch-over on P-02, seen by the MAC as a flow and pressure swing."}
+  - {id: maintenance, title: Maintenance, description: "Isolation, draining, a pump changed over to its spare, entry to the columns."}
+  - {id: power-fail, title: Power failure, description: "Total or partial loss of power, and of instrument air where it follows."}
+analysed:
+  - {path: pid/P-01.xml, revision: 'sha256:c3b9a332a2200a9738e68801bf15e1f94c58264fbbd1e506c03c7045725ba5af', relation: analyses}
+  - {path: control/cause-effect.yaml, revision: 'sha256:b9c8e56cbc49b1b9d9595e39b02fbaa24fdffdf137d402bcd253b329b9299ca5', relation: analyses}
+  - {path: control/instrument-list.yaml, revision: 'sha256:328523d1bcb51ae744867889f922f4bf01c619efaf155f01d0e275bffc6b3d2f', relation: analyses}
+  - {path: equipment/equipment-list.yaml, revision: 'sha256:7dd6ae258db62812479ac0e0e7c520b82a46de4f02ee2020db2f5d4013870490', relation: analyses}
+  - {path: piping/line-list.yaml, revision: 'sha256:3643188e55a2e5b9128b4b6c25a3e8b71bbd07e4fdb3fbe0d47ade72261f1485', relation: analyses}
+  - {path: piping/special-items.yaml, revision: 'sha256:8071c9646730d15356f23923163a5416205ea568dbb9592a61fb49e9d19077d0', relation: analyses}
+  - {path: process/design-basis.yaml, revision: 'sha256:db3372d4b36b2577ddeab2c14f7ca16db622a3d5d32dddc006ff9a1551ff0281', relation: analyses}
+  - {path: process/flowsheet.yaml, revision: 'sha256:0017d59880eecae9cd7e13b285dc48460a928774b6097389b6b253b5717b7d39', relation: analyses}
+risk_matrix: safety/risk-matrix.yaml
+assessment_basis: >-
+  IEC 61882 guide words applied to the parameters of each node's design intent, in every mode
+  that applies. Each scenario (one cause, one consequence) is rated per category of
+  safety/risk-matrix.yaml (people, environment, asset incl. production loss): initial with no
+  safeguard credited (likelihood of the cause), residual with only the safeguards named in the
+  scenario that exist in the files (an alarm with operator response, a control loop, an
+  interlock of control/cause-effect.yaml, a relief device, a check valve, a recorded mechanical
+  design feature). Ratings are proposed by an agent at basic engineering from the files and
+  DESIGN.md, with basis and evidence, for the team to accept or change; no frequency is
+  calculated and no LOPA credit is taken here. The matrix itself is a proposal (ASSUMED).
+team: []            # not named yet: the owner names the facilitator, scribe and members
+notes: >-
+  Team not named: the owner names the facilitator, scribe and members (process, operations,
+  instrument and control, mechanical, safety, and the MAC / cold box / TSA suppliers as
+  needed). No session has been held: every node, scenario, safeguard, rating and action in
+  this file is a proposal by an agent (status proposed, by agent).
+nodes: []
+safeguards: []
+actions: []

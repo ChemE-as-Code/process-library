@@ -1,0 +1,58 @@
+# HAZOP study H-03: a DRAFT until the team has accepted every entry and a
+# human review record covers it (cheme safety hazop check). Schema: cheme schema
+# hazop-study; workflow: safety/README.md and the skill hazop-study.
+schema: cheme/hazop-study/v1
+kind: hazop-study
+id: H-03
+title: Cold box
+scope: >-
+  Sheet P-03 (pid/P-03.xml) as drawn: the cold box CB-1 with the main heat exchanger E-3101, the
+  subcooler E-3102, the HP column C-3101, the LP column C-3102 and the main condenser-reboiler
+  E-3103 (LOX sump), the expander-braked booster K-3101 with E-3104 and the chilled-water trim
+  cooler E-3105 (CHW-3001 / CHWR-3001, interlock I-04), the expansion turbine KT-3101, the cold
+  liquid drain vaporizer V-3101 and its vent VNT-3001, the casing purge UN-3001 and breathing
+  valve PSV-3123, and the reliefs PSV-3114, PSV-3116, PSV-3119. Off-page connections:
+  AIR-2002 dry air from F-2101 and AIR-3005 to K-3101 (from P-02, H-02); RG-2001 regeneration
+  gas to E-2101 (P-02, H-02); WN-3002 / WN-1001 waste N2 to C-1102 on P-01 (H-01) and WN-3003
+  to silencer S-3101; GOX-4001 and GAN-4001 to the product compressors, LOX-3001 and LIN-3001
+  to the storage tanks on P-04 (H-04); UN-3001 casing purge from the GAN header on P-04 (H-04).
+  Battery limits: CW-3001 / CWR-3001 to E-3104. Not covered: the compander's machine
+  protection internals (supplier), the cold box structure and perlite (supplier), the GOX
+  and GAN compressors (H-04).
+modes:
+  - {id: normal, title: Normal operation, description: "Design case, GOX 500 t/d, LOX/LIN make to storage."}
+  - {id: startup, title: Start-up and cooldown, description: "Cooldown of the cold box with the expander, liquid accumulation, column stabilisation, first product."}
+  - {id: shutdown, title: Shutdown and trip, description: "Planned stop, MAC or expander trip, a cold standstill with liquid held, liquid drain to V-3101."}
+  - {id: warmup, title: Warm-up and derime, description: "Warm-up of the cold box with dry warm gas to remove ice, CO2 and hydrocarbons; liquid drained first."}
+  - {id: regen-switch, title: TSA switching, description: "Waste N2 drawn as regeneration gas, and the air flow and purity swing at a bed switch-over."}
+  - {id: maintenance, title: Maintenance, description: "Isolation, purging, work at or inside the cold box casing, perlite removal."}
+  - {id: power-fail, title: Power failure, description: "Total or partial loss of power, and of instrument air where it follows; the cold box held cold."}
+analysed:
+  - {path: pid/P-03.xml, revision: 'sha256:e633f6e71bb6a9926e184eeab53287e44529b4cd209fb0a87cfbbe5a7db09974', relation: analyses}
+  - {path: control/cause-effect.yaml, revision: 'sha256:b9c8e56cbc49b1b9d9595e39b02fbaa24fdffdf137d402bcd253b329b9299ca5', relation: analyses}
+  - {path: control/instrument-list.yaml, revision: 'sha256:328523d1bcb51ae744867889f922f4bf01c619efaf155f01d0e275bffc6b3d2f', relation: analyses}
+  - {path: equipment/equipment-list.yaml, revision: 'sha256:7dd6ae258db62812479ac0e0e7c520b82a46de4f02ee2020db2f5d4013870490', relation: analyses}
+  - {path: piping/line-list.yaml, revision: 'sha256:3643188e55a2e5b9128b4b6c25a3e8b71bbd07e4fdb3fbe0d47ade72261f1485', relation: analyses}
+  - {path: piping/special-items.yaml, revision: 'sha256:8071c9646730d15356f23923163a5416205ea568dbb9592a61fb49e9d19077d0', relation: analyses}
+  - {path: process/design-basis.yaml, revision: 'sha256:db3372d4b36b2577ddeab2c14f7ca16db622a3d5d32dddc006ff9a1551ff0281', relation: analyses}
+  - {path: process/flowsheet.yaml, revision: 'sha256:0017d59880eecae9cd7e13b285dc48460a928774b6097389b6b253b5717b7d39', relation: analyses}
+risk_matrix: safety/risk-matrix.yaml
+assessment_basis: >-
+  IEC 61882 guide words applied to the parameters of each node's design intent, in every mode
+  that applies. Each scenario (one cause, one consequence) is rated per category of
+  safety/risk-matrix.yaml (people, environment, asset incl. production loss): initial with no
+  safeguard credited (likelihood of the cause), residual with only the safeguards named in the
+  scenario that exist in the files (an alarm with operator response, a control loop, an
+  interlock of control/cause-effect.yaml, a relief device, a check valve, a recorded mechanical
+  design feature). Ratings are proposed by an agent at basic engineering from the files and
+  DESIGN.md, with basis and evidence, for the team to accept or change; no frequency is
+  calculated and no LOPA credit is taken here. The matrix itself is a proposal (ASSUMED).
+team: []            # not named yet: the owner names the facilitator, scribe and members
+notes: >-
+  Team not named: the owner names the facilitator, scribe and members (process, operations,
+  instrument and control, mechanical, safety, and the MAC / cold box / TSA suppliers as
+  needed). No session has been held: every node, scenario, safeguard, rating and action in
+  this file is a proposal by an agent (status proposed, by agent).
+nodes: []
+safeguards: []
+actions: []

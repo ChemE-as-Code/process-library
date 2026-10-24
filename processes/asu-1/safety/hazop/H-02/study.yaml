@@ -1,0 +1,55 @@
+# HAZOP study H-02: a DRAFT until the team has accepted every entry and a
+# human review record covers it (cheme safety hazop check). Schema: cheme schema
+# hazop-study; workflow: safety/README.md and the skill hazop-study.
+schema: cheme/hazop-study/v1
+kind: hazop-study
+id: H-02
+title: Front-end purification (TSA)
+scope: >-
+  Sheet P-02 (pid/P-02.xml) as drawn: the molecular sieve adsorbers V-2101A/B with their
+  switching valves, the adsorber outlet header AIR-2001 with the CO2 / H2O analyzers and the
+  reliefs PSV-2108A/B, the dust filter F-2101 and the dry air line AIR-2002 to the cold box;
+  the regeneration gas path: RG-2001 from E-3101, the electric heater E-2101 with its bypass
+  XV-2109, RG-2002 to the bed in regeneration, and RG-2003 to atmosphere through silencer
+  S-2101. Off-page connections: AIR-1004 precooled air from C-1101 on P-01 (H-01); AIR-2002 to
+  E-3101 and its branch AIR-3005 to K-3101 on P-03 (H-03); RG-2001 waste N2 from E-3101 on
+  P-03 (H-03). Battery limits: the RG-2003 vent to atmosphere, power to E-2101. Not covered:
+  the adsorbent's own data (supplier), the switching sequence logic beyond what the P&ID and
+  the C&E show (to be asked of the TSA supplier), the power system.
+modes:
+  - {id: normal, title: Normal operation, description: "One bed adsorbing, the other regenerating (heating or cooling step)."}
+  - {id: startup, title: Start-up, description: "First pressurization, first regeneration of a new or wet bed, cold box cooldown downstream."}
+  - {id: shutdown, title: Shutdown and trip, description: "MAC trip, plant trip, a bed left under pressure."}
+  - {id: warmup, title: Warm-up and derime, description: "Dry air supply and hot gas for the warm-up and derime of the cold box."}
+  - {id: regen-switch, title: TSA regeneration and switching, description: "Depressurization, heating, cooling, repressurization and switch-over of the beds."}
+  - {id: maintenance, title: Maintenance, description: "Isolation, adsorbent change-out, vessel entry."}
+  - {id: power-fail, title: Power failure, description: "Total or partial loss of power, and of instrument air where it follows."}
+analysed:
+  - {path: pid/P-02.xml, revision: 'sha256:f6b4904d694ef94994fa3c5af7e903503134e9b9415e93794cdb4fe44e33ade6', relation: analyses}
+  - {path: control/cause-effect.yaml, revision: 'sha256:b9c8e56cbc49b1b9d9595e39b02fbaa24fdffdf137d402bcd253b329b9299ca5', relation: analyses}
+  - {path: control/instrument-list.yaml, revision: 'sha256:328523d1bcb51ae744867889f922f4bf01c619efaf155f01d0e275bffc6b3d2f', relation: analyses}
+  - {path: equipment/equipment-list.yaml, revision: 'sha256:7dd6ae258db62812479ac0e0e7c520b82a46de4f02ee2020db2f5d4013870490', relation: analyses}
+  - {path: piping/line-list.yaml, revision: 'sha256:3643188e55a2e5b9128b4b6c25a3e8b71bbd07e4fdb3fbe0d47ade72261f1485', relation: analyses}
+  - {path: piping/special-items.yaml, revision: 'sha256:8071c9646730d15356f23923163a5416205ea568dbb9592a61fb49e9d19077d0', relation: analyses}
+  - {path: process/design-basis.yaml, revision: 'sha256:db3372d4b36b2577ddeab2c14f7ca16db622a3d5d32dddc006ff9a1551ff0281', relation: analyses}
+  - {path: process/flowsheet.yaml, revision: 'sha256:0017d59880eecae9cd7e13b285dc48460a928774b6097389b6b253b5717b7d39', relation: analyses}
+risk_matrix: safety/risk-matrix.yaml
+assessment_basis: >-
+  IEC 61882 guide words applied to the parameters of each node's design intent, in every mode
+  that applies. Each scenario (one cause, one consequence) is rated per category of
+  safety/risk-matrix.yaml (people, environment, asset incl. production loss): initial with no
+  safeguard credited (likelihood of the cause), residual with only the safeguards named in the
+  scenario that exist in the files (an alarm with operator response, a control loop, an
+  interlock of control/cause-effect.yaml, a relief device, a check valve, a recorded mechanical
+  design feature). Ratings are proposed by an agent at basic engineering from the files and
+  DESIGN.md, with basis and evidence, for the team to accept or change; no frequency is
+  calculated and no LOPA credit is taken here. The matrix itself is a proposal (ASSUMED).
+team: []            # not named yet: the owner names the facilitator, scribe and members
+notes: >-
+  Team not named: the owner names the facilitator, scribe and members (process, operations,
+  instrument and control, mechanical, safety, and the MAC / cold box / TSA suppliers as
+  needed). No session has been held: every node, scenario, safeguard, rating and action in
+  this file is a proposal by an agent (status proposed, by agent).
+nodes: []
+safeguards: []
+actions: []

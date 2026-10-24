@@ -1,0 +1,75 @@
+# PROPOSED risk matrix for the ASU-1 HAZOP studies (safety/hazop/H-01..H-04).
+# Drafted by an agent at basic engineering (ASSUMED): the grades, cell bands and action policy
+# are a proposal for the owner's HAZOP team to accept, change or replace with the operating
+# company's own risk matrix procedure. Until then every rating against it is a proposal too.
+# Schema: cheme schema risk-matrix. Bands: lowest risk first (that list is the band order).
+schema: cheme/risk-matrix/v1
+kind: risk-matrix
+id: asu-1-5x5-proposed
+title: ASU-1 5x5 risk matrix (proposed, ASSUMED)
+source: >-
+  ASSUMED: proposed by an agent for ASU-1 at basic engineering, in the usual 5x5 form of
+  process-industry HAZOP risk ranking (IEC 61882 leaves the criteria to the organisation; ISO
+  31000 for risk criteria). Not derived from a company procedure: the owner's team must accept
+  it, or replace it with the company's matrix and its revision, before any study is assessed.
+bands:
+  - {id: low, title: Low, description: "Broadly acceptable. No action required; keep the safeguards as they are."}
+  - {id: medium, title: Medium, description: "Tolerable if as low as reasonably practicable. No action is required by the policy; the team records why the risk is ALARP or proposes an improvement."}
+  - {id: high, title: High, description: "Not tolerable as it stands. An action is required: an added or upgraded independent safeguard, a design change, or a LOPA / SIL study that shows the residual risk is medium or lower.", requires_action: true}
+  - {id: very-high, title: Very high, description: "Intolerable. An action is required before start-up: a design change or an independent protection layer; operation in this band is not accepted.", requires_action: true}
+likelihood:  # least likely first; frequency of the cause (initial) or of the outcome with the credited safeguards (residual)
+  - {code: A, title: Remote, description: "Below about 1e-4 per year: not known to have happened in the industrial gases industry, or would need several independent failures."}
+  - {code: B, title: Unlikely, description: "About 1e-4 to 1e-3 per year: has happened in the industry, not expected at this plant in its life."}
+  - {code: C, title: Possible, description: "About 1e-3 to 1e-2 per year: could happen once in the life of the plant."}
+  - {code: D, title: Likely, description: "About 1e-2 to 1e-1 per year: expected to happen a few times in the life of the plant (e.g. a single control loop or equipment failure)."}
+  - {code: E, title: Frequent, description: "Above about 1e-1 per year: expected about once a year or more often (e.g. an operating error in a routine task, a utility upset)."}
+severity:  # least severe first
+  - code: "1"
+    title: Negligible
+    descriptions:
+      people: "First aid case at most; brief exposure to a cold surface or an enriched or deficient atmosphere without effect."
+      environment: "Release of air gases or water contained on site; no effect off site, not reportable."
+      asset: "Damage below about 10 kEUR, or a production loss covered in full by the LOX/LIN backup without customer effect."
+  - code: "2"
+    title: Minor
+    descriptions:
+      people: "Medical treatment or restricted work case (a minor cold burn, a minor injury); no lost time."
+      environment: "Small on-site release needing clean-up (compressor lube oil, cooling water, a noise or fog nuisance at the fence); not reportable."
+      asset: "Damage about 10 to 100 kEUR, or a shutdown of up to one day with the customer supplied from the backup."
+  - code: "3"
+    title: Serious
+    descriptions:
+      people: "Lost-time injury or reversible health effect (cryogenic burn, hypoxia with recovery, an oxygen-enriched clothing fire without lasting harm)."
+      environment: "Reportable release or permit breach; short-term effect off site (fog cloud across a road, noise, oily water to the drain)."
+      asset: "Damage about 100 kEUR to 1 MEUR (a compressor stage, a pump, a heat exchanger), or a shutdown of days with a supply shortfall to the customer."
+  - code: "4"
+    title: Major
+    descriptions:
+      people: "One fatality or a permanent disability (asphyxiation in N2, an oxygen fire on a person, a cryogenic spill engulfing a person, an equipment rupture)."
+      environment: "Significant release off site with remediation, or a lasting local effect; notification of the authority."
+      asset: "Damage about 1 to 10 MEUR (e.g. a main heat exchanger or column section, the MAC), or a shutdown of weeks."
+  - code: "5"
+    title: Catastrophic
+    descriptions:
+      people: "Several fatalities, or harm to the public off site (main condenser or cold box explosion, a tank failure)."
+      environment: "Major, lasting damage off site."
+      asset: "Damage above about 10 MEUR or loss of the cold box or the plant; a shutdown of months."
+categories:
+  - {id: people, title: People (workers and public)}
+  - {id: environment, title: Environment}
+  - {id: asset, title: Asset and production loss}
+cells:  # severity -> likelihood -> band, shared by all categories
+  "1": {A: low, B: low, C: low, D: low, E: medium}
+  "2": {A: low, B: low, C: low, D: medium, E: medium}
+  "3": {A: low, B: low, C: medium, D: high, E: high}
+  "4": {A: low, B: medium, C: high, D: high, E: very-high}
+  "5": {A: medium, B: high, C: high, D: very-high, E: very-high}
+notes: >-
+  PROPOSED by an agent (ASSUMED), status proposed: the HAZOP team or the owner accepts it before
+  any rating counts. Action policy: a scenario whose worst band (residual where rated, else
+  initial, over its categories) is high or very-high requires an action (requires_action:
+  true); very-high is not accepted for start-up; medium needs the team's ALARP statement,
+  without a mandatory action; low needs nothing. Likelihood in the initial rating is the cause
+  frequency without safeguards; a residual rating credits only the safeguards the team names,
+  and for a SIL-rated trip (I-03) the LOPA sets the credit, not this matrix. Money values in
+  EUR at 2026 prices, order of magnitude only.

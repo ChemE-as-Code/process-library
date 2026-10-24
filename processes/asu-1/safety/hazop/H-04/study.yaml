@@ -1,0 +1,60 @@
+# HAZOP study H-04: a DRAFT until the team has accepted every entry and a
+# human review record covers it (cheme safety hazop check). Schema: cheme schema
+# hazop-study; workflow: safety/README.md and the skill hazop-study.
+schema: cheme/hazop-study/v1
+kind: hazop-study
+id: H-04
+title: Products, storage and backup supply
+scope: >-
+  Sheet P-04 (pid/P-04.xml) as drawn: the GOX compressor K-4101 with its intercoolers E-4101,
+  aftercooler E-4102, recycle GOX-4003, vent VNT-4002 / S-4101, inlet vent VNT-4003 / S-4102 and
+  relief PSV-4122 to the GOX export GOX-4002; the GAN compressor K-4102 with E-4103, recycle
+  GAN-4004 and vents VNT-4004 / VNT-4007 to the GAN export GAN-4002; the LOX tank T-4101 and
+  LIN tank T-4102 with their reliefs and vacuum breakers (PSV-4123, PSV-4142, PSV-4124,
+  PSV-4143), tanker fill lines LOX-4004 / LIN-4004 (TSV-4144, TSV-4145), the backup pumps
+  P-4101A/B and P-4102A/B (interlocks I-01, I-02), the ambient-air vaporizers E-4105A/B and
+  E-4106A/B with PSV-4125..PSV-4128 and the backup lines GOX-4004 / GAN-4003 into the export
+  headers; the thermal reliefs TSV-4140 / TSV-4141 on the liquid rundown. Off-page connections:
+  GOX-4001 and GAN-4001 from E-3101, LOX-3001 from C-3102 and LIN-3001 from C-3101 on P-03
+  (H-03); the GAN header supplies the cold box casing purge UN-3001 on P-03 (H-03). Battery
+  limits: GOX-4002 and GAN-4002 to the customer, CW-4001 / CW-4002 and their returns, the
+  tanker connections (the tanker itself is not studied). Not covered: the compressor packages'
+  internals (supplier), the customer's pipeline and the road tanker.
+modes:
+  - {id: normal, title: Normal operation, description: "GOX and GAN compressed to export, LOX/LIN make to storage, backup on standby."}
+  - {id: startup, title: Start-up, description: "Compressors started on recycle and vent, cold box cooldown, first product, tanks cooled down."}
+  - {id: shutdown, title: Shutdown and trip, description: "Compressor trip, cold box trip with the export switched to backup."}
+  - {id: backup, title: Backup supply, description: "Cold box down; LOX/LIN pumped from the tanks and vaporized into the export headers."}
+  - {id: tanker-fill, title: Tanker unloading, description: "Filling T-4101 / T-4102 from a road tanker."}
+  - {id: warmup, title: Warm-up and derime, description: "Of the cold box, with the product lines warm and the backup supplying."}
+  - {id: maintenance, title: Maintenance, description: "Isolation, purging, pump change-over, vaporizer defrost, work on oxygen equipment."}
+  - {id: power-fail, title: Power failure, description: "Total or partial loss of power, and of instrument air where it follows."}
+analysed:
+  - {path: pid/P-04.xml, revision: 'sha256:c06f81101caad81404d0694aa8ba27aad670b2bdfd5e884f0d3f39c1dc66efe5', relation: analyses}
+  - {path: control/cause-effect.yaml, revision: 'sha256:b9c8e56cbc49b1b9d9595e39b02fbaa24fdffdf137d402bcd253b329b9299ca5', relation: analyses}
+  - {path: control/instrument-list.yaml, revision: 'sha256:328523d1bcb51ae744867889f922f4bf01c619efaf155f01d0e275bffc6b3d2f', relation: analyses}
+  - {path: equipment/equipment-list.yaml, revision: 'sha256:7dd6ae258db62812479ac0e0e7c520b82a46de4f02ee2020db2f5d4013870490', relation: analyses}
+  - {path: piping/line-list.yaml, revision: 'sha256:3643188e55a2e5b9128b4b6c25a3e8b71bbd07e4fdb3fbe0d47ade72261f1485', relation: analyses}
+  - {path: piping/special-items.yaml, revision: 'sha256:8071c9646730d15356f23923163a5416205ea568dbb9592a61fb49e9d19077d0', relation: analyses}
+  - {path: process/design-basis.yaml, revision: 'sha256:db3372d4b36b2577ddeab2c14f7ca16db622a3d5d32dddc006ff9a1551ff0281', relation: analyses}
+  - {path: process/flowsheet.yaml, revision: 'sha256:0017d59880eecae9cd7e13b285dc48460a928774b6097389b6b253b5717b7d39', relation: analyses}
+risk_matrix: safety/risk-matrix.yaml
+assessment_basis: >-
+  IEC 61882 guide words applied to the parameters of each node's design intent, in every mode
+  that applies. Each scenario (one cause, one consequence) is rated per category of
+  safety/risk-matrix.yaml (people, environment, asset incl. production loss): initial with no
+  safeguard credited (likelihood of the cause), residual with only the safeguards named in the
+  scenario that exist in the files (an alarm with operator response, a control loop, an
+  interlock of control/cause-effect.yaml, a relief device, a check valve, a recorded mechanical
+  design feature). Ratings are proposed by an agent at basic engineering from the files and
+  DESIGN.md, with basis and evidence, for the team to accept or change; no frequency is
+  calculated and no LOPA credit is taken here. The matrix itself is a proposal (ASSUMED).
+team: []            # not named yet: the owner names the facilitator, scribe and members
+notes: >-
+  Team not named: the owner names the facilitator, scribe and members (process, operations,
+  instrument and control, mechanical, safety, and the GOX / GAN compressor and vaporizer
+  suppliers as needed). No session has been held: every node, scenario, safeguard, rating and
+  action in this file is a proposal by an agent (status proposed, by agent).
+nodes: []
+safeguards: []
+actions: []
