@@ -34,7 +34,7 @@ failures:
     interlocks: [I-04]
   - id: F-GOXC
     title: GOX compressor trip
-    response: "PIC-4101 vents the GOX through PV-4101B so the LP column pressure stays controlled (D-019); the GOX header falls and the LOX backup starts (SEQ-BACKUP-GOX)."
+    response: "PIC-4101 vents the GOX that K-4101 no longer takes through PV-4101B (D-019), while PIC-3110 keeps holding the LP column pressure (D-095); the GOX loops go to manual; the GOX header falls and the LOX backup starts (SEQ-BACKUP-GOX)."
     loops: [PIC-4101, PIC-4111]
     sequences: [SEQ-BACKUP-GOX]
   - id: F-TSA
@@ -105,12 +105,14 @@ There are three layers, kept apart:
 - The air flow (FIC-1101) sets the plant's throughput, and the columns follow it.
 - The LN reflux (FIC-3106) trims the purities.
 - The LP column pressure is held by the waste nitrogen (PIC-3110, D-095).
-- The GOX draw is set by flow (FIC-4148 on the K-4101 guide vanes). PIC-4101 only limits the
-  suction: its low select throttles the draw before an over-draw boils the LP sump down
-  (H04-S75), and its vent takes the GOX when K-4101 does not. The independent limit of HAZOP
-  action H04-A23 comes on top of it.
-- The GAN flow is set by FIC-3107 on the K-4102 guide vanes, and its export pressure by
-  PIC-4105 on PV-4105 (D-095).
+- **The products: pressure as master, flow as limit (D-096).**
+  - PIC-4102 holds the GOX pipeline pressure on the K-4101 guide vanes, through a low select
+    with two limits: the maximum draw FIC-4148 and the suction low limit PIC-4150.
+  - PIC-4101 only vents the GOX that K-4101 does not take.
+  - PIC-4105 holds the GAN export pressure by setting FIC-3107's set point (cascade).
+- **The limits are not protection layers.** They sit in the same control system as the loops
+  they limit. PIC-4150 acts late, because an over-draw shows first in the LP sump level and
+  the GOX purity. The independent limit of HAZOP action H04-A23 is still needed.
 
 ## Normal operation and disturbances
 
@@ -166,7 +168,9 @@ check.
 - The fail positions of most control valves and of the machines' guide vanes are open; the
   register records each one as unresolved, with the HAZOP action that decides it.
 - The two control conflicts found in the control review (the LP column pressure and the GOX
-  draw; the GAN flow) are decided in D-095. Their limits (H04-A22, H04-A23) remain open.
+  draw; the GAN flow) are decided in D-095 and D-096: pressure as master, flow as limit. Open:
+  the independent limits (H04-A22, H04-A23), the role of PV-4105, the anti-surge flow
+  measurement of K-4101, and the maximum GOX draw as a ratio to the air flow.
 - The liquid production has no handle yet (H03-A7).
 - Trips named in the instrument list are not yet in the cause-and-effect list (H04-A01, H02-A1,
   H02-A2). The sequences refer to them by tag until they are added.

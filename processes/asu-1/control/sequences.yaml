@@ -53,8 +53,9 @@ sequences:
       condition: {any: [{tag: K-1101, state: tripped}, {interlock: I-03, state: tripped}]}
       actions:
         - {loop: FIC-1101, action: manual}
-      notes: The MAC trip actions are the vendor's and the C&E's; after a MAC stop the DCAC pumps stop (SEQ-SHUTDOWN, H01-A4).
-      then: SEQ-SHUTDOWN
+        - {tag: P-1101A, action: stop}
+        - {tag: P-1102A, action: stop}
+      notes: "The MAC trip actions are the vendor's and the C&E's; the DCAC pumps stop after the MAC (H01-A4). Nothing downstream runs yet, so no shutdown sequence follows."
     reset: {latching: true, manual: true,
             condition: {text: the MAC vendor's trip reset after the cause has cleared},
             restart: {all: [{tag: LIC-1106, state: "within range"}, {loop: LIC-1114, state: "seal established"}]}}
@@ -173,7 +174,7 @@ sequences:
         complete:
           all:
             - {tag: AI-3104, state: "GOX at least 99.5 % O2"}
-            - {tag: AIA-3105, state: "GAN below 10 ppm O2 (XV-3105 closed)"}
+            - {tag: AIA-3105, state: "GAN below 10 ppm O2 (it is still diverted through XV-3105 to VNT-4004)"}
             - {tag: AIA-3103, state: "below the action limit (EIGA Doc 65, ASSUMED)"}
         timeout: {value: 48, unit: h}
         on_timeout: abort
@@ -189,8 +190,8 @@ sequences:
           - {tag: XV-4117, action: open}    # the suction ESD: inside the recycle loop
           - {tag: K-4101, action: start, by: operator}
           - {tag: K-4102, action: start, by: operator}
-          - {loop: FIC-3107, action: auto}
         complete: {all: [{tag: K-4101, state: at speed}, {tag: K-4102, state: at speed}]}
+        operator: Both machines run on their recycles with the guide vanes in manual; the flow and pressure loops go to auto only once their outlets are open (S7).
       - id: S7
         title: Open the GOX and GAN trains to the battery limits
         entry: {text: "the dP across XV-4118 and XV-4119 equalised through HV-4129 and HV-4130 (D-024, EIGA Doc 13; the dP measurement is H04-A01's)"}
@@ -202,10 +203,14 @@ sequences:
           - {tag: XV-4135, action: close}   # the GAN BL bleed
           - {tag: XV-4120, action: open}
           - {tag: XV-4134, action: open}
-          - {loop: FIC-4148, action: auto, by: operator}
-          - {loop: PIC-4105, action: auto}
-        complete: {all: [{loop: PIC-4101, state: "PV-4101B closed (K-4101 takes the GOX)"}, {loop: FIC-4148, state: at set point}]}
-        operator: No ball valve opens against 30 bar of GOX (D-024). Off-spec GAN still goes to XV-3105 / VNT-4004 until AIA-3105 is below 10 ppm.
+          - {tag: XV-3105, action: close}   # the off-spec GAN divert, AIA-3105 below 10 ppm
+          - {loop: FIC-4148, action: auto}
+          - {loop: PIC-4150, action: auto}
+          - {loop: PIC-4102, action: auto, by: operator}
+          - {loop: FIC-3107, action: cascade, by: operator}
+          - {loop: PIC-4105, action: auto, by: operator}
+        complete: {all: [{loop: PIC-4101, state: "PV-4101B closed (K-4101 takes the GOX)"}, {loop: PIC-4102, state: at set point}, {loop: PIC-4105, state: at set point}]}
+        operator: No ball valve opens against 30 bar of GOX (D-024). The limits FIC-4148 and PIC-4150 go to auto before PIC-4102 takes the guide vanes.
         next: end
     abort:
       condition: {any: [{tag: K-3101, state: tripped}, {tag: SSHH-3108, state: tripped}]}
@@ -362,10 +367,15 @@ sequences:
       - id: S2
         title: Stop the product compressors
         actions:
+          - {loop: PIC-4102, action: manual}
+          - {loop: FIC-4148, action: manual}
+          - {loop: PIC-4150, action: manual}
+          - {loop: PIC-4105, action: manual}
+          - {loop: FIC-3107, action: manual}
           - {tag: K-4101, action: stop}
           - {tag: K-4102, action: stop}
-        complete: {loop: PIC-4101, state: "PV-4101B venting the GOX (LP column pressure held)"}
-        operator: The GOX blowdown of K-4101 is the vendor's stop sequence (XV-4116, D-013).
+        complete: {loop: PIC-4101, state: "PV-4101B venting the GOX that K-4101 no longer takes"}
+        operator: "The GOX blowdown of K-4101 is the vendor's stop sequence (XV-4116, D-013). The LP column pressure stays PIC-3110's (D-095); PIC-4101 only vents the GOX."
       - id: S3
         title: Stop the compander
         actions:

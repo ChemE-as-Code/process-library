@@ -33,7 +33,7 @@ sections:
     blocks: [PRD, K4101, K4102]
     cases: [design]
     modes: [normal, startup, shutdown, backup supply]
-    loops: [FIC-4148, PIC-4101, PIC-4102, UIC-4103, FIC-3107, PIC-4106, UIC-4131, PIC-4105, PICA-4109, PICA-4110, PIC-4111, PIC-4112]
+    loops: [PIC-4102, FIC-4148, PIC-4150, PIC-4101, UIC-4103, FIC-3107, PIC-4106, UIC-4131, PIC-4105, PICA-4109, PICA-4110, PIC-4111, PIC-4112]
     sequences: [SEQ-BACKUP-GOX, SEQ-BACKUP-GAN, SEQ-SHUTDOWN]
     interlocks: [I-01, I-02]
 unresolved:
@@ -147,15 +147,13 @@ supply both headers when the ASU does not (D-014).
 
 **Normal operation.**
 - **GOX train:**
-  - FIC-4148 sets the GOX draw on the K-4101 guide vanes (D-095).
-  - PIC-4101 limits the GOX suction in split range: as a low select on the guide vanes it
-    throttles an over-draw, and above it the suction vent PV-4101B takes the GOX when K-4101
-    does not (D-019).
-  - PIC-4102 holds the export pressure.
+  - PIC-4102 holds the pipeline pressure on the K-4101 guide vanes, through a low select with
+    the maximum draw FIC-4148 and the suction low limit PIC-4150 (D-096).
+  - PIC-4101 vents the GOX through PV-4101B when K-4101 does not take it (D-019).
   - UIC-4103 is the anti-surge, on the suction flow (FT-4148).
 - **GAN train:**
-  - FIC-3107 sets the GAN product on the K-4102 guide vanes.
-  - PIC-4105 holds the GAN export pressure on PV-4105 (D-095).
+  - PIC-4105 holds the GAN export pressure by setting the set point of FIC-3107 on the K-4102
+    guide vanes (cascade, D-096).
   - UIC-4131 is the anti-surge.
 - **Tanks:** PICA-4109 and PICA-4110 vent the tanks' boil-off.
 
@@ -169,6 +167,9 @@ H04-A01).
 
 - The turndown range and the rate of load changes are not defined yet.
 - The suppliers' start-up procedures, which set the step times of the sequences.
-- The limits on the GOX draw and the GAN guide vanes (H04-A23, H04-A22).
+- The independent limits on the GOX draw and the GAN guide vanes (H04-A23, H04-A22).
+- The role of PV-4105 and the signal drawn to it, the anti-surge flow measurement of K-4101
+  (FT-4148 does not see the recycle), and the maximum GOX draw as a ratio to the air flow
+  (D-096).
 - The trips named in the instrument list are not yet in the cause-and-effect list (D-094 lists
   them; HAZOP action H04-A01 and others).

@@ -4448,6 +4448,9 @@ change with its own reviews. (D-095 changes the instrument list and P-04 for the
 decisions.)
 
 ## D-095 LP column pressure on the waste N2, GOX draw on flow, GAN export pressure on PV-4105 (2026-10-24)
+Revised by D-096: the products run with pressure as master and flow as limit, and PIC-4101 is
+split into the vent PIC-4101 and the low limit PIC-4150.
+
 Decided by the user (the project owner) on the two control conflicts that the control review
 found (reviews/2026-10-24-control-review1.md #1, #2) and that D-094 left open.
 
@@ -4489,3 +4492,57 @@ Open:
 
 Reason: in the drawn design, two controllers fought over the LP column pressure and two over
 the GAN flow, while nothing set the GOX/waste split or the GAN export pressure.
+
+## D-096 Products on pressure, flow as limit; PIC-4101 split into the vent and the low limit PIC-4150 (2026-10-24)
+Decided by the user (the project owner) on control-review3 #1 and #2. These showed that D-095,
+as built, held neither export pressure, and that one split-range PIC-4101 could not be both a
+low limit and a vent.
+
+Decision:
+- (1) **GOX: pressure as master.** PIC-4102 holds the 30 barg pipeline pressure on the K-4101
+  inlet guide vanes, through a low select with two limits:
+  - FIC-4148, the maximum draw (the design GOX make);
+  - the new PIC-4150, the suction low limit.
+
+  So the GOX draw follows the customer but never exceeds what the column makes. When a limit
+  holds the vanes, the pipeline pressure falls and the backup starts (D-014).
+- (2) **GAN: pressure as master.** PIC-4105 holds the GAN export pressure by setting FIC-3107's
+  set point (cascade); FIC-3107 moves the K-4102 guide vanes. PV-4105 stays an actuated valve,
+  normally fully open.
+- (3) **PIC-4101 split in two.**
+  - PIC-4101 keeps only the vent PV-4101B. Its set point is above the normal suction pressure,
+    so it vents only when K-4101 does not take the GOX (D-019).
+  - PIC-4150 is the low limit, on its own transmitter PT-4150 on GOX-4001 (S1).
+
+  D-019's split range on PIC-4101 no longer exists.
+
+Carried out:
+- **P-04:** PIC-4150 copied from PIC-4101 with `cheme copy`. It sits below GOX-4001 beside
+  FIC-4148, and its measuring line goes to its own tap on S1. Its output to the guide vanes is
+  not drawn, like FIC-4148's (the label D-019 put at the vanes). The drawing counts are
+  unchanged.
+- **Other files:** the instrument list (PIC-4150 added; PIC-4101, PIC-4102, FIC-4148,
+  FIC-3107 and PIC-4105 rewritten) and the electrical list (PIC-4150 on JB-A3-2). The layout
+  model and the cable schedule were rebuilt.
+- **Loops:** PIC-4102 is the master; FIC-4148 and PIC-4150 are the limits; PIC-4101 is the
+  vent; PIC-4105 is the cascade master and FIC-3107 the cascade slave.
+- **Sequences:**
+  - the product loops go to auto only once the battery limits are open (SEQ-CB-START S7), the
+    limits before the master;
+  - XV-3105 closes when the GAN is on specification;
+  - the loops go to manual before the machines stop (SEQ-SHUTDOWN S2);
+  - a MAC start-up abort stops the DCAC pumps and runs no shutdown.
+
+Not credited: FIC-4148 and PIC-4150 sit in the same control system as PIC-4102, and PIC-4150
+acts late (an over-draw shows first in the LP sump level and the GOX purity). Neither is a
+protection layer; HAZOP action H04-A23 remains.
+
+Open:
+- The role of PV-4105 and the signal drawn to it on P-04.
+- The anti-surge flow of K-4101: FT-4148 is upstream of the vent and recycle tees, so it does
+  not see the recycle (D-024).
+- The maximum draw as a ratio to the air flow.
+- The fail positions of the guide vanes, PV-4101B and PV-4105.
+
+Reason: control-review3 #1 and #2. A pipeline customer needs a held pressure, and a column
+must not be over-drawn.
