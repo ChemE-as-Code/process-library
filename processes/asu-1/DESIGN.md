@@ -3506,8 +3506,11 @@ shows the envelope the layout was built on. Tooling: cheme-as-code 0.8.0
 9. **review14#1 (low, carried): the I-03 supplier requirements on the entries the suppliers
    read.** The LIC-1114 instrument-list entry (the list's only entry for LV-1114) now states the
    LV-1114 limit, fully open at most 2 x the normal 34.4 m3/h = 69 m3/h, and the C-1101 N7
-   nozzle carries the vortex breaker in its `service` (shown on the nozzle schedule of the
-   drawing), both citing D-088 (4); no value changed.
+   nozzle carries the vortex breaker, both citing D-088 (4); no value changed. The N7
+   `service` is "Draw-off, vortex breaker", short enough for the drawing's nozzle schedule
+   (the schedule cuts a service at 25 characters, and the first, longer text showed neither the
+   breaker nor the purpose, review17#2); its line column gives CHWR-1001, and the full
+   requirement (seal-loss level 13.20 m = N7 bore top + 0.05 m) is in the datasheet's `notes`.
 10. **The field-erected tanks are not crane lifts (owner decision, 2026-10-24).** T-4101 and
     T-4102 are flat-bottom double-wall tanks erected plate by plate on their foundations and
     never lifted whole, so the lifting study, which covers real crane lifts, no longer shows
