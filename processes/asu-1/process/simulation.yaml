@@ -1,16 +1,30 @@
-# DWSIM simulation of the warm end and the double column (`cheme process simulate --check`;
-# schema `cheme schema process-simulation`). The purification, the main heat exchanger and the
-# expander are left out (`exclude`): their streams stay as assumed in process/flowsheet.yaml
-# and are the feeds of the simulated part (S5, S6 into the columns). Units as in the flowsheet.
+# DWSIM simulation of the whole plant (`cheme process simulate --check`; schema `cheme schema
+# process-simulation`), D-097. Only the evaporative cooler C1102 is left out (`exclude`): it
+# exchanges water and heat with the chilled-water loop, which the flowsheet carries as no stream
+# (D-067), so its N2 side alone would show neither. Units as in the flowsheet.
 schema: cheme/simulation/v1
 kind: simulation
 simulator: dwsim
 property_package: Peng-Robinson (PR)
+# D-097: the facts of the thermodynamic-model-selection skill (Carlson's tree): a non-polar,
+# non-electrolyte mixture without pseudocomponents up to 31 bara (the GOX discharge). Water is
+# polar but only in the warm end, at most 3.4 mol%, and it leaves as near-pure condensate and in
+# the TSA (judgment, D-097). Recommended: Peng-Robinson, SRK, LKP and the Boston-Mathias forms.
+method_selection:
+  facts:
+    pressure_value: 31
+    pressure_unit: bar(a)
+    is_polar: false
+    is_electrolyte: false
+    has_pseudocomponents: false
 # D-066: DWSIM's PR Ar/O2 kij (0.0107) puts alpha(Ar/O2) near pure O2 ~5 % below the reference
 interaction_parameters:
   - components: [AR, O2]
     kij: {value: 0.0143, provenance: assumed, source: "D-066: fitted to the Lemmon-Jacobsen Ar/O2 Helmholtz mixture model (REFPROP, CoolProp 8): alpha 1.558 at 1.30 bara, 1.547 at 1.40 bara near pure O2"}
-exclude: [PUR, E3101, KT3101, X3101, C1102]
+exclude: [C1102]
+# D-097: the cold box torn where the air enters the columns (their flowsheet values are the
+# first guess), and the subcooler loop at the LP column's waste N2
+tear_streams: [S5, S5B, S16]
 specs:
   K1101:
     outlet_pressure: {value: 6.02, provenance: assumed, source: "D-079, D-089: the front-end pressure profile with the DN700 main air lines at their bound (S4 5.6 bara stays)"}
@@ -25,6 +39,24 @@ specs:
   C1101U:  # DCAC upper section, chilled water from C-1102 (D-067)
     outlet_temperature: {value: 12, provenance: assumed, source: "DESIGN.md 3, stream 3 (DCAC)"}
     pressure_drop: {value: 0.05, unit: bar, provenance: assumed, source: "DESIGN.md 3, streams 2 and 3: 0.1 bar over both sections"}
+  # D-097: the TSA (D-006) as a component separator: the adsorption step takes all H2O and CO2
+  # out of the air (S4 dry, CO2 < 0.1 ppm, D-066); N2, O2 and Ar co-adsorption is neglected.
+  V2101:
+    unit: component_separator
+    # stated on the dry air (all N2, O2, Ar; no H2O, CO2), so its H2O and CO2 are exactly zero
+    recoveries: {N2: 1.0, O2: 1.0, AR: 1.0, H2O: 0.0, CO2: 0.0}
+    recovery_outlet: out
+    basis_source: "D-006 (the TSA removes H2O, CO2, N2O and C2H2 before the cold box) and D-066 (S4 dry air, CO2 < 0.1 ppm): removal to specification, taken as complete; co-adsorption of N2, O2 and Ar neglected (ASSUMED)"
+    operating_basis: "2-bed TSA, alumina + 13X, adsorption at 5.92 bara and 12 C (S3), ~4 h cycle (ASSUMED, D-006); cycle average"
+  F2101:
+    unit: valve  # a pressure drop only: the dust F-2101 takes out is not a flowsheet component
+    pressure_drop: {value: 0.32, unit: bar, provenance: assumed, source: "D-079, D-089: S3 5.92 -> S4 5.6 bara (adsorber bed ~8, F-2101 ~3 kPa, DN700 lines to E-3101 21 kPa)"}
+  M2101: {}  # the regeneration gas takes up what V2101 adsorbs (cycle average)
+  E2101:
+    outlet_temperature: {value: 200, provenance: assumed, source: "D-006: regeneration with waste N2 heated to 200 C (the heating step; E3 is the cycle average, D-097)"}
+    pressure_drop: {value: 0, unit: bar, provenance: assumed, source: "ASSUMED: within the RG-2001 / RG-2002 budget (D-072)"}
+  X3101:
+    split: {regen: 0.241458, vent: 0}  # ASSUMED (D-066, D-067): 18,486 of 76,560 kg/h to regeneration, none vented
   X3102:
     split: {bst: 0.134121}  # ASSUMED (D-066): 14,870 of 110,870 kg/h boosted (streams 4, 4B)
   K3101:
@@ -36,6 +68,26 @@ specs:
   E3105:
     outlet_temperature: {value: 15, provenance: assumed, source: "D-067: chilled-water trim to the main air temperature"}
     pressure_drop: {value: 0, unit: bar, provenance: assumed, source: "D-067, as E-3104"}
+  # D-097: the main heat exchanger as a multi-stream exchanger. The air leaves at the HP column
+  # feed and the expander inlet, the products at D-061's 13 C warm end; the waste N2 closes the
+  # energy balance (no heat leak in the model, so the refrigeration surplus shows there).
+  E3101:
+    pairs: {air: hp, bst: exp, gox_c: gox, gan_c: gan, waste_c: waste}
+    outlet_temperatures:
+      air: {value: -173, provenance: assumed, source: "DESIGN.md 3, stream 5 (air near its dew point, D-066)"}
+      bst: {value: -124.7, provenance: assumed, source: "D-061: expander inlet S5B"}
+      gox_c: {value: 13, provenance: assumed, source: "D-061: warm end 2 K below the main air S4A"}
+      gan_c: {value: 13, provenance: assumed, source: "D-061: warm end 2 K below the main air S4A"}
+    pressure_drops:
+      air: {value: 0.1, unit: bar, provenance: assumed, source: "DESIGN.md 3, streams 4 and 5 (5.6 -> 5.5 bara)"}
+      bst: {value: 0.2, unit: bar, provenance: assumed, source: "D-061: 8.45 -> 8.25 bara"}
+      gox_c: {value: 0.25, unit: bar, provenance: assumed, source: "DESIGN.md 3, streams 15 and 7 (1.4 -> 1.15 bara)"}
+      gan_c: {value: 0.1, unit: bar, provenance: assumed, source: "DESIGN.md 3, streams 14 and 9 (5.3 -> 5.2 bara)"}
+      waste_c: {value: 0.15, unit: bar, provenance: assumed, source: "DESIGN.md 3, streams 16 and 17 (1.3 -> 1.15 bara)"}
+  KT3101:
+    unit: expander
+    outlet_pressure: {value: 1.35, provenance: assumed, source: "D-061: expander 8.25 -> 1.35 bara (DESIGN.md 3, stream 6)"}
+    efficiency: {value: 0.85, provenance: assumed, source: "D-061: eta_s 0.85, turbo-expander"}
   # The double column (D-059): C3101's condenser boils C3102's sump (E-3103, condenser-reboiler).
   C3101:
     stages: 40
