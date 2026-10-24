@@ -60,7 +60,7 @@ dimensions:
     source: 'cheme datasheets fill: layout/plant-model.yaml V-2101A rotation_deg (layout/equipment-placement.yaml)'
 nozzles:
 - name: N1
-  dn: 600
+  dn: 700
   lines:
   - AIR-1004
   source: pid/P-02.xml
@@ -71,7 +71,7 @@ nozzles:
   location_source: layout/equipment-placement.yaml (3 m from the west end of the shell, feed air in at
     the bottom)
 - name: N2
-  dn: 500
+  dn: 700
   lines:
   - AIR-2001
   source: pid/P-02.xml
@@ -81,7 +81,7 @@ nozzles:
   elevation_m: 6.5
   location_source: layout/equipment-placement.yaml (15 m from the west end, dry air out at the top)
 - name: N3
-  dn: 600
+  dn: 700
   lines:
   - RG-2002
   source: pid/P-02.xml
@@ -92,7 +92,7 @@ nozzles:
   location_source: layout/equipment-placement.yaml (3 m from the west end, regeneration gas in at the
     top)
 - name: N4
-  dn: 600
+  dn: 700
   lines:
   - RG-2003
   source: pid/P-02.xml
@@ -133,36 +133,62 @@ type_specific:
       skirt: an upper bound)'
     assumed: true
   water_load_kg_h:
-    value: 150.6
+    value: 165.0
     unit: kg/h
-    source: 'scripts/datasheet_sizing.py section 8 (DESIGN.md D-063 (3)): S3 98,270 kg/h saturated at
-      12 C, 5.7 bara, y_H2O 0.00246 (IAPWS-95; DESIGN.md D-058: the TSA is sized on IAPWS, Peng-Robinson''s
-      130 kg/h of the flowsheet composition is ~13 % low)'
+    source: 'scripts/datasheet_sizing.py section 8 (DESIGN.md D-080 (2), kept by D-089 and D-090): S3
+      saturated at 12 C, 5.88 bara (D-079), y_H2O 0.00239 (IAPWS-95; DESIGN.md D-058: the TSA is sized
+      on IAPWS). The beds stay sized on it: at the D-089 state (S3 111,080 kg/h, 5.92 bara) IAPWS-95 gives
+      163.9 kg/h (y 0.00237), so 165.0 kg/h is 0.7 % above it, and 16 % above the 142.1 kg/h of the simulated
+      stream 3 (Peng-Robinson, ~13 % below IAPWS) that the regeneration gas S12D carries (D-089); 170.2
+      kg/h at the 5.7 bara of D-066'
     assumed: true
   co2_load_kg_h:
-    value: 59.85
+    value: 67.66
     unit: kg/h
-    source: 'scripts/datasheet_sizing.py section 8 (DESIGN.md D-063 (3)): S3 x_CO2 0.000401 (process/flowsheet.yaml,
-      calculated; the design basis 420 ppm CO2 on dry air, ASSUMED)'
+    source: 'scripts/datasheet_sizing.py section 8 (DESIGN.md D-090): S3 111,080 kg/h, x_CO2 0.000401
+      (process/flowsheet.yaml, calculated; the design basis 420 ppm CO2 on dry air, ASSUMED); D-066: 68
+      kg/h'
     assumed: true
   water_per_adsorption_step_kg:
-    value: 602
+    value: 660
     unit: kg
-    source: 'scripts/datasheet_sizing.py section 8 (DESIGN.md D-063 (3)): 150.6 kg/h x 4 h adsorption
-      step (equipment list, ASSUMED)'
+    source: 'scripts/datasheet_sizing.py section 8 (DESIGN.md D-080 (2)): 165.0 kg/h x 4 h adsorption
+      step (equipment list, ASSUMED); 655.5 kg at the D-089 IAPWS-95 load (D-090)'
     assumed: true
   co2_per_adsorption_step_kg:
-    value: 239
+    value: 271
     unit: kg
-    source: 'scripts/datasheet_sizing.py section 8 (DESIGN.md D-063 (3)): 59.85 kg/h x 4 h adsorption
+    source: 'scripts/datasheet_sizing.py section 8 (DESIGN.md D-068 (7)): 67.66 kg/h x 4 h adsorption
       step (equipment list, ASSUMED)'
     assumed: true
   adsorbent_mass_kg:
     value: supplier
     unit: kg
     reason: 'the alumina and 13X quantities follow from the adsorbent supplier''s working capacities at
-      12 C and 5.7 bara and the CO2 breakthrough margin; enquiry basis: water 150.6 kg/h, CO2 59.85 kg/h,
-      4 h adsorption, regeneration with waste N2 at 200 C (S12H)'
+      12 C and 5.92 bara and the CO2 breakthrough margin; enquiry basis: air 111,080 kg/h, water 165.0
+      kg/h, CO2 67.7 kg/h (+13 % on D-063, D-066), 4 h adsorption, regeneration with 18,486 kg/h waste
+      N2 at 200 C (S12H)'
+  allowable_regeneration_pressure_drop_kpa:
+    value: 1.5
+    unit: kPa
+    source: 'DESIGN.md D-072, scripts/datasheet_sizing.py section 11: the regeneration gas leaves the
+      WN-3002 tee at 111.4 kPa(a) (S17 115 kPa(a), ASSUMED, less WN-3002 3.6 kPa); the routed lines RG-2001
+      DN600 / RG-2002 DN700 / RG-2003 DN700 take 4.6 kPa (bed B, the longer), FV-2105 1.5, E-2101 1.0
+      and S-2101 1.0 kPa: 1.5 kPa (15 mbar) for the vessel in regeneration at 18,486 kg/h and 200 C (inlet
+      distributor, alumina + 13X bed, bed support, switching valves XV-2103A/B and XV-2104A/B), with a
+      0.5 kPa margin, so that the regeneration path keeps the LP column top at 1.30 bara (enquiry requirement;
+      Ergun screening with an ASSUMED 1.5 m bed of 3 mm beads gives 0.8 kPa; the supplier states the drop
+      of the chosen bed)'
+    assumed: true
+  allowable_adsorption_pressure_drop_kpa:
+    value: 8.0
+    unit: kPa
+    source: 'DESIGN.md D-079, D-080 (1), D-089: flange to flange in adsorption (XV-2101 / XV-2102, distributor,
+      bed, support) at 111,080 kg/h, 12 C, ~5.83 bara, part of the 32 kPa S3 -> S4 budget of D-089 with
+      the DN700 lines (routed 16.9 kPa, bound 21.1 kPa) and F-2101 (3 kPa clean). ASSUMED: the adsorbent
+      supplier states the drop of the chosen bed; more than 8 kPa raises the MAC discharge by the difference
+      (~6.7 kW/kPa)'
+    assumed: true
   process_streams:
   - stream: S3
     direction: in

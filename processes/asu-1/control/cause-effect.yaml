@@ -23,6 +23,24 @@ interlocks:
     sheet: P-04
     sil: null
     notes: "D-024, D-055 (5): set so the liquid above T-4102/N4 holds NPSHr of P-4102A/B (supplier) - 0.31 m (NPSHa at the outlet level, datasheets) + margin (ASSUMED until the supplier's NPSHr); SIL from the screening"
+  # the DCAC chimney tray water seal against air blow-by into the atmospheric C-1102 (D-076)
+  - id: I-03
+    title: DCAC chimney tray level low-low (air blow-by to C-1102)
+    cause: {tag: LSLL-1115, condition: LSLL}
+    effects:
+      - {tag: XV-1115, action: close}
+    sheet: P-01
+    sil: "1 (screening LOPA, D-083: ASSUMED initiating frequency and tolerable frequencies; for HAZOP / LOPA confirmation)"
+    notes: "D-076: LSLL-1115 on its own tapping closes the tight-shut XV-1115 (fail closed) on CHWR-1001 before the seal on the chimney tray is lost; independent of LIC-1114 / LV-1114. The chilled water then overflows through the tray downcomer to the lower section (C-1101 datasheet). D-083: C-1102 relief case covered by the open vent WN-1002 (~26 kPa(g) against 1 barg at the 95.1 t/h blow-by bound of S3 5.92 bara, D-089 / D-090; was ~25 kPa(g), 94.5 t/h); screening LOPA (CCPS 2001 generic values) gives RRF >= 10: SIL 1, 1oo1 LSLL-1115 / 1oo1 XV-1115, proof test yearly (ASSUMED). D-088 (4), SRS basis (ASSUMED, for HAZOP / LOPA / SRS confirmation; C-1101 datasheet chimney_tray_sif_basis): trip at 13.35 m (LIC-1114 set point 13.50 m, seal loss 13.20 m); with LV-1114 failed open (at most 2 x the normal 34.4 m3/h, D-090) the process safety time is 144 s (72 s with the inflow also lost); SIF response time at most 15 s, XV-1115 closing in 5 .. 10 s"
+  # E-3105 at standstill: no pumped chilled water against a depressurised booster air side (D-077)
+  - id: I-04
+    title: Compander trip - chilled water to E-3105 shut
+    cause: {tag: K-3101, condition: "trip (compander machine protection, D-012)"}
+    effects:
+      - {tag: TV-3124, action: close}
+    sheet: P-03
+    sil: null
+    notes: "D-077: with the booster stopped AIR-3002 depressurises while the water side stays at the return riser's static head (~2.9 bara); closing TV-3124 takes the P-1102 head (~7 bar) off a tube leak. TV-3124 is a control valve, not tight shut: the restart permissive is the E-3105 shell-side drain checked dry (operating procedure). Not a SIF"
 #  - id: I-01
 #    title: LIN tank low-low level
 #    cause: {tag: LIA-101, condition: LALL}

@@ -13,9 +13,9 @@ operating:
       condenser, D-059)
     assumed: true
   top_temperature:
-    value: -178.44
+    value: -178.45
     unit: °C
-    source: '`cheme process simulate` (DWSIM, DESIGN.md D-059): C3101 top 94.71 K'
+    source: '`cheme process simulate` (DWSIM, DESIGN.md D-066): C3101 top 94.705 K'
     assumed: true
   bottom_pressure:
     value: 5.5
@@ -23,23 +23,24 @@ operating:
     source: process/simulation.yaml C3101 reboiler_pressure (ASSUMED, = S5)
     assumed: true
   bottom_temperature:
-    value: -173.59
+    value: -173.68
     unit: °C
-    source: '`cheme process simulate` (DWSIM, DESIGN.md D-059): C3101 bottom 99.56 K (S13)'
+    source: '`cheme process simulate` (DWSIM, DESIGN.md D-066): C3101 bottom 99.468 K (S13)'
     assumed: true
   gan_vapour_flow:
     value: 12510.0
     unit: kg/h
-    source: process/flowsheet.yaml stream S14 (given, GAN product; D-059 O2 0.9 ppm)
+    source: process/flowsheet.yaml stream S14 (given, GAN product; D-066 O2 0.2 ppm)
   ln_reflux_flow:
-    value: 24530.0
+    value: 29280.0
     unit: kg/h
-    source: process/flowsheet.yaml stream S18 (ASSUMED, D-059)
+    source: 'process/simulation.yaml C3101 condenser_spec (ASSUMED, D-066: 0.305 x the HP air; above about
+      0.31 the GAN O2 rises steeply); was 24,530'
     assumed: true
   crude_flow:
-    value: 45680.0
+    value: 53740.0
     unit: kg/h
-    source: process/flowsheet.yaml stream S13 (calculated, D-059; 39.2 % O2)
+    source: process/flowsheet.yaml stream S13 (calculated, D-066; 38.5 % O2); was 45,680
     assumed: true
   lin_side_draw_flow:
     value: 470.0
@@ -57,10 +58,10 @@ operating:
     source: 'process/flowsheet.yaml stream S5 (case design), assumed: DESIGN.md 3, stream 5'
     assumed: true
   inlet_flow:
-    value: 83190.0
+    value: 96000.0
     unit: kg/h
-    source: 'process/flowsheet.yaml stream S5 (case design), assumed: ASSUMED (D-027): stream 4 less expander
-      air S5B (DESIGN.md 3 had 83,400, which ignored the TSA removal)'
+    source: 'process/flowsheet.yaml stream S5 (case design), assumed: DESIGN.md D-066, the HP column air
+      for GOX 99.5 % with margin (+15 % on the former 83,190 kg/h)'
     assumed: true
 design:
   pressure_barg:
@@ -208,25 +209,32 @@ type_specific:
       skirt: an upper bound)'
     assumed: true
   minimum_stages:
-    value: 14.38
+    value: 15.94
     unit: ''
-    source: 'scripts/datasheet_sizing.py section 6 (DESIGN.md D-063 (7)): Fenske, keys N2/O2 (Ar a non-key),
-      distillate S14 (DWSIM: O2 0.9 ppm, D-059), bottoms S13 (DWSIM: 39.2 % O2), alpha N2/O2 2.565 geometric
-      mean of the top dew point (530 kPa(a), 94.72 K) and the bottom bubble point (550 kPa(a), 99.57 K),
+    source: 'scripts/datasheet_sizing.py section 6 (DESIGN.md D-068 (6)): Fenske, keys N2/O2 (Ar a non-key),
+      distillate S14 (DWSIM: O2 0.2 ppm, D-066), bottoms S13 (DWSIM: 38.5 % O2), alpha N2/O2 2.564 geometric
+      mean of the top dew point (530 kPa(a), 94.71 K) and the bottom bubble point (550 kPa(a), 99.47 K),
       property adapter (thermo 0.6.1, PR); Fenske, Ind. Eng. Chem. 24 (1932) 482'
     assumed: true
   minimum_reflux_ratio:
-    value: 1.19
+    value: 1.2
     unit: ''
-    source: 'scripts/datasheet_sizing.py section 6 (DESIGN.md D-063 (7)): Underwood, theta 1.4017, feed
+    source: 'scripts/datasheet_sizing.py section 6 (DESIGN.md D-068 (6)): Underwood, theta 1.4018, feed
       S5 as saturated vapour (q 0, ASSUMED: ''cooled close to its dew point'', DESIGN.md 1); Underwood,
       Chem. Eng. Prog. 44 (1948) 603; inputs as minimum_stages'
     assumed: true
   reflux_ratio:
-    value: 1.338
+    value: 1.391
     unit: ''
-    source: '`cheme process simulate` (DWSIM, DESIGN.md D-059): C3101 reflux ratio 1.33766, 1.12 x the
+    source: '`cheme process simulate` (DWSIM, DESIGN.md D-066): C3101 reflux ratio 1.39066, 1.16 x the
       Underwood minimum'
+    assumed: true
+  vapour_load_change:
+    value: 15
+    unit: '%'
+    source: 'DESIGN.md D-066: the HP column air S5 96,000 against 83,190 kg/h (+15.4 %); at the same capacity
+      factor the 4.2 m column becomes about 4.5 m (D x sqrt(1.154), ASSUMED scaling), for the cold box
+      supplier''s rating'
     assumed: true
   theoretical_stages:
     value: 40
@@ -247,7 +255,7 @@ type_specific:
     assumed: true
   condenser:
     value: partial (E-3103, the condenser-reboiler in the C-3102 sump)
-    source: process/simulation.yaml C3101 condenser partial (DESIGN.md D-059); E-3103 condenses 3,536
+    source: process/simulation.yaml C3101 condenser partial (DESIGN.md D-066); E-3103 condenses 4,172
       kW
     assumed: true
   number_of_stages:
@@ -255,7 +263,7 @@ type_specific:
     unit: ''
     reason: 'the number of real trays or the packed height follows from the cold box supplier''s tray
       efficiency or HETP for the chosen internals; enquiry basis: 40 theoretical stages, reflux ratio
-      1.34, the feed below the bottom stage, LIN drawn from stage 2'
+      1.39, 96,000 kg/h air below the bottom stage, LN 29,280 kg/h, LIN drawn from stage 2'
   packing_height_m:
     value: supplier
     unit: m
@@ -265,7 +273,8 @@ type_specific:
     value: supplier
     unit: m
     reason: cold box supplier's hydraulic rating at the simulated vapour and liquid loads (no flooding
-      correlation in cheme-as-code is cleanly sourced); the 4.2 m of the equipment list is ASSUMED
+      correlation in cheme-as-code is cleanly sourced); the 4.2 m of the equipment list is ASSUMED and
+      sees 15 % more vapour since D-066 (about 4.5 m at the same capacity factor)
   process_streams:
   - stream: S5
     direction: in
@@ -289,9 +298,10 @@ type_specific:
     source: process/flowsheet.yaml (case design)
 sizing_basis:
 - parameter: stages, reflux, temperatures
-  value: the DWSIM double-column simulation (Peng-Robinson, DWSIM default interaction parameters)
-  reference: DESIGN.md D-059
-notes: 'Structured packing or sieve trays, top 5.3 bara. ASSUMED. DESIGN.md D-059, D-063: 40 theoretical
-  stages, reflux ratio 1.34 (1.12 x Rmin 1.19), top -178.4 C, bottom -173.6 C from the double-column simulation;
-  GAN at 0.9 ppm O2 meets D-004. Real stages, packing height and diameter are the cold box supplier''s
-  (markers). The vendor''s cycle for 99.5 % GOX (D-059) may change the column loads.'
+  value: the DWSIM double-column simulation (Peng-Robinson, Ar/O2 kij 0.0143 fitted to the REFPROP mixture
+    model)
+  reference: DESIGN.md D-066
+notes: 'Structured packing or sieve trays, top 5.3 bara. ASSUMED. DESIGN.md D-066, D-068 (6): 40 theoretical
+  stages, 96,000 kg/h air (+15 % vapour), reflux ratio 1.39 (1.16 x Rmin 1.20), LN 29,280 kg/h, top -178.45
+  C, bottom -173.68 C from the double-column simulation; GAN at 0.2 ppm O2 meets D-004. Real stages, packing
+  height and diameter are the cold box supplier''s (markers).'

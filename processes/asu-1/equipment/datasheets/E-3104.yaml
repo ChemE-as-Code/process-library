@@ -17,7 +17,7 @@ operating:
     value: 59.9
     unit: °C
     source: 'process/flowsheet.yaml stream S4C (case design), calculated by `cheme process simulate` (DWSIM,
-      DESIGN.md D-061): 59.93 C'
+      DESIGN.md D-066): 59.93 C'
     assumed: true
   inlet_flow:
     value: 14870.0
@@ -32,16 +32,21 @@ operating:
       8.25 bara at the expander inlet (S5B)'
     assumed: true
   outlet_temperature:
-    value: 40.0
+    value: 30.0
     unit: °C
-    source: 'process/flowsheet.yaml stream S4D (case design), assumed: ASSUMED (D-052): cooled to 40 C
-      as the other aftercoolers (E-1103, E-4102, E-4103 in the equipment list), CW 25 -> 35 C (design
-      basis)'
+    source: 'process/flowsheet.yaml stream S4D (case design), assumed: DESIGN.md D-067, counter-current
+      on cooling water 25 -> 35 C, 5 K approach (was 40 C); the trim cooler E-3105 takes it on to 15 C'
     assumed: true
   outlet_flow:
     value: 14870.0
     unit: kg/h
     source: 'process/flowsheet.yaml stream S4D (case design), assumed: = S4B'
+    assumed: true
+  cooling_water_flow:
+    value: 10.9
+    unit: m3/h
+    source: 'scripts/datasheet_sizing.py section 4 (DESIGN.md D-068 (4)): Q / (cp 10 K), IAPWS-95 water
+      at the mean 30 C; D-067: ~10.8 m3/h (was 7.3)'
     assumed: true
 design:
   pressure_barg:
@@ -138,23 +143,24 @@ type_specific:
     unit: t
     source: equipment/equipment-list.yaml dimensions
   duty_kw:
-    value: 83.95
+    value: 126.1
     unit: kW
-    source: '`cheme process simulate` (DWSIM 9.0.5, Peng-Robinson; DESIGN.md D-061): E3104 83.95 kW, S4C
-      59.93 C -> S4D 40 C at 8.45 bara, 14,870 kg/h. CW 7.26 m3/h at 10 K (IAPWS-95, scripts/datasheet_sizing.py
-      section 4, DESIGN.md D-063 (4)); the script''s ideal-gas booster discharge (61.0 C) gives 85.2 kW'
+    source: '`cheme process simulate` (DWSIM 9.0.5, Peng-Robinson; DESIGN.md D-067): E3104 126.13 kW,
+      S4C 59.93 C -> S4D 30 C at 8.45 bara, 14,870 kg/h; energy stream Q5 to cooling water (was 83.95
+      kW to 40 C)'
     assumed: true
   area_m2:
-    value: 29.67
+    value: 63.54
     unit: m2
-    source: 'scripts/datasheet_sizing.py section 4 (DESIGN.md D-063 (4)): A = Q / (U F LMTD) = 83.95 kW
-      / (160 x 0.9046 x 19.55 K), U 160 W/(m2 K) ASSUMED as design typical (middle of 20-300), Sinnott,
-      Coulson & Richardson''s Chemical Engineering Vol. 6, 4th ed. (2005), Table 12.1, p. 637: cooler,
-      gases / water; no margin'
+    source: 'scripts/datasheet_sizing.py section 4 (DESIGN.md D-068 (4)): A = Q / (U LMTD) = 126.13 kW
+      / (160 x 12.41 K), counter-current (F 1), U 160 W/(m2 K) ASSUMED as design typical (middle of 20-300),
+      Sinnott, Coulson & Richardson''s Chemical Engineering Vol. 6, 4th ed. (2005), Table 12.1, p. 637:
+      cooler, gases / water; no margin. D-067: about 64 m2 (was 29.7 m2)'
     assumed: true
   arrangement:
-    value: 1-2
-    source: DESIGN.md D-053 (ASSUMED; shell and tube, one shell, cooling water in two tube passes)
+    value: counter-current
+    source: 'DESIGN.md D-067: a single 1-2 shell crosses (air out 30 C against cooling water out 35 C),
+      so the exchanger is counter-current (one tube pass, or 1-2 shells in series, by the supplier)'
     assumed: true
   u_service:
     value: cooler/gases-water
@@ -175,27 +181,28 @@ type_specific:
     source: process/flowsheet.yaml (case design)
   - stream: S4D
     direction: out
-    title: Boosted air to E-3101
+    title: Boosted air to the trim cooler
     source: process/flowsheet.yaml (case design)
   lmtd_k:
-    value: 19.55
+    value: 12.41
     unit: K
-    source: 'scripts/datasheet_sizing.py section 4 (DESIGN.md D-063 (4)): LMTD, 1-2 (DESIGN.md D-053,
-      ASSUMED), hot 333.08 -> 313.15 K (S4C -> S4D), cooling water 298.15 -> 308.15 K (process/design-basis.yaml
-      utilities)'
+    source: 'scripts/datasheet_sizing.py section 4 (DESIGN.md D-068 (4)): counter-current LMTD, hot 333.08
+      -> 303.15 K (S4C -> S4D), cooling water 298.15 -> 308.15 K (process/design-basis.yaml utilities):
+      24.93 K at the hot end, 5 K at the cold end'
     assumed: true
   lmtd_correction_f:
-    value: 0.9046
+    value: 1.0
     unit: ''
-    source: 'scripts/datasheet_sizing.py section 4 (DESIGN.md D-063 (4)): F, 1 shell pass (Bowman, Mueller
-      and Nagle, Trans. ASME 62 (1940) 283-294), same temperatures'
+    source: 'DESIGN.md D-067: counter-current, no correction'
     assumed: true
   overall_u_w_m2k:
     value: 160.0
     unit: W/(m2 K)
-    source: 'cheme datasheets fill: U 160 W/(m2 K) ASSUMED as design typical (middle of 20-300), Sinnott,
-      Coulson & Richardson''s Chemical Engineering Vol. 6, 4th ed. (2005), Table 12.1, p. 637: cooler,
-      gases / water'
+    source: 'U 160 W/(m2 K) ASSUMED as design typical (middle of 20-300), Sinnott, Coulson & Richardson''s
+      Chemical Engineering Vol. 6, 4th ed. (2005), Table 12.1, p. 637: cooler, gases / water (DESIGN.md
+      D-053)'
     assumed: true
 sizing_basis: []
-notes: Cooling water. Outside cold box. ASSUMED.
+notes: Cooling water, counter-current (DESIGN.md D-067). Outside cold box. The air side (8.45 bara) stays
+  above the cooling water, so a tube leak cannot put water into the dry air (D-067). ASSUMED. Followed
+  by the chilled-water trim cooler E-3105 (D-069).

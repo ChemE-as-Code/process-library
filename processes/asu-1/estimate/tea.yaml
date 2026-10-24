@@ -1,0 +1,156 @@
+# Premises of the techno-economic analysis (cheme assess tea; schema: cheme schema tea; skill
+# tea). Every number has its status, source and year; cheme-as-code ships no prices. Gaps are left
+# visible rather than filled: cooling water, GAN, LOX and LIN carry no market price yet (finding
+# tea-price-missing), so they count as 0 and the LCOP of GOX carries no co-product credit.
+# GAN: the only published figure (Thunder Said Energy, $20/t) is the price an ASU feeding an
+# ammonia plant needs, with oxygen and argon sold as well: a break-even, not a market price, so
+# it is not booked as revenue (it would lower the LCOP by about 12 USD/t). DESIGN.md D-082.
+schema: cheme/tea/v1
+kind: tea
+currency: USD
+cost_year: 2023
+decision:
+  question: Take ASU-1 from basic engineering into FEED as the 500 t/d GOX pipeline supply?
+  metric: lcop
+  # Thunder Said Energy, 'Cryogenic air separation: costs and energy economics?' (data file,
+  # no cost year stated, updated before 2025; companion report 'Industrial gases: air
+  # separation units', 2023-05-31; taken as USD 2023, see capex.isbl.value) puts the oxygen price at which a new
+  # ASU earns about a 20 % IRR at roughly USD 100 per tonne, with nitrogen and argon also sold
+  # (paraphrased). It stands for the price of buying GOX over the fence from a supplier
+  # with that revenue mix. ASU-1 makes no argon and books no co-product credit (prices:), so its
+  # LCOP meets a bar set with credits it does not have: the test is strict on ASU-1, not lenient.
+  # ASSUMED, DESIGN.md D-082.
+  threshold: 100
+  confidence: 0.8
+  alternatives:
+    - buy GOX over the fence from an industrial gas company at about the threshold price
+    - a smaller ASU without liquid production (no LOX/LIN, no liquefier duty)
+basis:
+  product: GOXP
+  specification: GOX 99.5 mol% O2, 30 barg at the battery limit (process/design-basis.yaml)
+  boundary: ambient air intake to the GOX, GAN, LOX and LIN battery limits; cooling water and
+    6.6 kV power supplied by the site (not in the capital cost)
+  scale: 500 t/d O2 (14,600 Nm3/h GOX, 10,000 Nm3/h GAN)
+  location: assumed coastal industrial site, United States (prices at the US average)
+case: design
+capex:
+  isbl:
+    # The equipment estimate covers 3 of 40 items with a bare module cost; the main air
+    # compressor K-1101 (6.75 MW, outside the correlation's range) and the cold box internals are
+    # not costed (estimate/equipment-cost.md). An all-in benchmark per tonne of capacity is used
+    # instead; the equipment estimate stays the cross-check.
+    source: given
+    value:
+      value: 36.5e6
+      status: ASSUMED
+      source: "Thunder Said Energy, 'Cryogenic air separation: costs and energy economics?' (data
+        file, updated before 2025, no cost year stated; companion report 'Industrial
+        gases: air separation units' dated 2023-05-31) gives an average all-in capital of about USD 200 per t/a of
+        oxygen capacity (paraphrased); x 500 t/d x 365 d = 182,500 t/a. Taken as USD 2023, not escalated: if
+        it were of 2024 the CEPCI factor would be about 1.00 (2023 annual 797.9, cost-basis.yaml;
+        2024 monthly values stayed just below 800, Chemical Engineering CEPCI
+        updates 2024), far inside the class 5 range"
+      year: 2023
+    estimate_class: 5
+  osbl:
+    value: 0
+    source: the site supplies cooling water and power at the battery limit (basis.boundary); the
+      all-in benchmark per tonne of capacity holds the plant's own offsites
+  # owner's cost and contingency: not decided yet (findings tea-capex-missing); the Monte Carlo
+  # spreads the ISBL over the AACE class 5 range instead.
+operation:
+  hours_per_year: 8400
+  life_years: 25
+  source: design basis operating_hours_per_year 8400 (ASSUMED); 25 a service life ASSUMED, as
+    lca/lca.yaml
+prices:
+  - key: feed:POWER
+    value: 80.4
+    unit: MWh
+    status: QUOTED
+    source: "US EIA, Electricity sales, revenue and average price, 2023 data, Table 4: average
+      price to the industrial sector, US total, 8.04 cents/kWh"
+    year: 2023
+    uncertainty: {gsd2: 1.3, source: "state averages 2023 range 6.60 (TX) to 18.64 (CA) cents/kWh,
+      EIA table_5c"}
+free:
+  - {key: feed:AIR, reason: ambient air}
+  - {key: product:VENT, reason: waste nitrogen vented to atmosphere}
+  - {key: product:COND, reason: "compressor cooler condensate to the site drain, no charge assumed"}
+fixed_opex:
+  maintenance:
+    value: 0.03
+    status: ASSUMED
+    source: Towler and Sinnott, Chemical Engineering Design, fixed costs of production, maintenance
+      typically 3 to 5 % of ISBL per year (low end for rotating equipment under contract)
+  labour:
+    # One operator position around the clock for a largely automated, remotely supervised ASU.
+    # Wage only: employer on-costs (benefits, payroll taxes) and plant overhead are not included,
+    # so the labour cost is a lower bound. The owner decides the staffing. DESIGN.md D-082.
+    operators:
+      value: 4.8
+      status: ASSUMED
+      source: one shift position (ASSUMED) x 4.8 operators per position for continuous operation
+        (Towler and Sinnott, Chemical Engineering Design, fixed costs of production, operating
+        labour)
+    cost_per_operator:
+      value: 79450
+      # ASSUMED as the cost per person: the wage is a published series, its use as the full
+      # employment cost is not (and the row's status would otherwise carry the operators too).
+      status: ASSUMED
+      source: "US Bureau of Labor Statistics, Occupational Employment and Wages, May 2023,
+        51-8091 Chemical Plant and System Operators: national mean annual wage $79,450 (wage
+        only)"
+      year: 2023
+    supervision:
+      value: 0.25
+      status: ASSUMED
+      source: Towler and Sinnott, Chemical Engineering Design, fixed costs of production,
+        supervision typically 25 % of operating labour
+  insurance_tax:
+    value: 0.02
+    status: ASSUMED
+    source: Towler and Sinnott, Chemical Engineering Design, fixed costs of production, property
+      taxes and insurance typically 1 to 2 % of fixed capital per year
+finance:
+  discount_rate:
+    value: 0.08
+    status: ASSUMED
+    source: screening real discount rate; the owner's hurdle rate is not given yet
+    swing: {low: 0.75, high: 1.5, source: 6 to 12 % real}
+  # Pre-tax (no tax_rate): the owner's tax position is not known. Construction over two years
+  # (40/60), working capital 2 % of fixed capital (spares, no product inventory to finance):
+  # ASSUMED, DESIGN.md D-082.
+  construction: [0.4, 0.6]
+  working_capital: {value: 0.02, status: ASSUMED, source: spares and consumables only}
+uncertainty:
+  iterations: 2000
+  seed: 1
+  defaults:
+    ASSUMED: {gsd2: 1.5}
+    QUOTED: {gsd2: 1.1}
+  rates:
+    calculated: {gsd2: 1.05}
+    assumed: {gsd2: 1.1}
+sensitivity:
+  swing: {low: 0.8, high: 1.2, source: +-20 % for inputs without a distribution}
+scenarios:
+  - id: power-texas
+    title: Industrial power at the Texas 2023 average
+    prices: {feed:POWER: 66.0}
+    source: US EIA table_5c, Texas industrial 2023, 6.60 cents/kWh
+  - id: power-california
+    title: Industrial power at the California 2023 average
+    prices: {feed:POWER: 186.4}
+    source: US EIA table_5c, California industrial 2023, 18.64 cents/kWh
+  - id: capex-market-report
+    title: Capital at the market-report benchmark, scaled from 2,000 to 500 t/d
+    # 275 M USD (mid of 250 to 300) x (500/2000)^0.6 = 119.7 M USD, i.e. $656/Tpa against the
+    # $200/Tpa of the base: x 3.28 (the range 250 to 300 M gives x 2.98 to x 3.58, $596 to
+    # $716/Tpa). DESIGN.md D-082.
+    scale: {capex:isbl: 3.28}
+    source: "Mordor Intelligence, Air Separation Unit market report, 2026 edition (page updated
+      2026-09-11): a 2,000 t/d plant costs about USD 250 to 300 million (paraphrased), no method
+      and no cost year stated, not escalated to 2023; scaled to 500 t/d with the capacity
+      exponent 0.6 (six-tenths rule, Towler and Sinnott, Chemical Engineering Design, ch. 7),
+      ASSUMED"

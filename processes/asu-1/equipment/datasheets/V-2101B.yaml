@@ -60,7 +60,7 @@ dimensions:
     source: 'cheme datasheets fill: layout/plant-model.yaml V-2101B rotation_deg (layout/equipment-placement.yaml)'
 nozzles:
 - name: N1
-  dn: 600
+  dn: 700
   lines:
   - AIR-1004
   source: pid/P-02.xml
@@ -71,7 +71,7 @@ nozzles:
   location_source: layout/equipment-placement.yaml (3 m from the west end of the shell, feed air in at
     the bottom)
 - name: N2
-  dn: 500
+  dn: 700
   lines:
   - AIR-2001
   source: pid/P-02.xml
@@ -81,7 +81,7 @@ nozzles:
   elevation_m: 6.5
   location_source: layout/equipment-placement.yaml (15 m from the west end, dry air out at the top)
 - name: N3
-  dn: 600
+  dn: 700
   lines:
   - RG-2002
   source: pid/P-02.xml
@@ -92,7 +92,7 @@ nozzles:
   location_source: layout/equipment-placement.yaml (3 m from the west end, regeneration gas in at the
     top)
 - name: N4
-  dn: 600
+  dn: 700
   lines:
   - RG-2003
   source: pid/P-02.xml
@@ -136,36 +136,52 @@ type_specific:
       skirt: an upper bound)'
     assumed: true
   water_load_kg_h:
-    value: 150.6
+    value: 165.0
     unit: kg/h
-    source: 'scripts/datasheet_sizing.py section 8 (DESIGN.md D-063 (3)): S3 98,270 kg/h saturated at
-      12 C, 5.7 bara, y_H2O 0.00246 (IAPWS-95; DESIGN.md D-058: the TSA is sized on IAPWS, Peng-Robinson''s
-      130 kg/h of the flowsheet composition is ~13 % low)'
+    source: 'scripts/datasheet_sizing.py section 8 (DESIGN.md D-080 (2), kept by D-089 and D-090): as
+      V-2101A. The beds stay sized on 165.0 kg/h (IAPWS-95 at the 5.88 bara of D-079): at the D-089 state
+      (S3 111,080 kg/h, 5.92 bara) IAPWS-95 gives 163.9 kg/h (+0.7 % margin) and the simulated stream
+      3 142.1 kg/h (Peng-Robinson, +16 % margin; the water S12D carries, D-089)'
     assumed: true
   co2_load_kg_h:
-    value: 59.85
+    value: 67.66
     unit: kg/h
-    source: 'scripts/datasheet_sizing.py section 8 (DESIGN.md D-063 (3)): S3 x_CO2 0.000401 (process/flowsheet.yaml,
-      calculated; the design basis 420 ppm CO2 on dry air, ASSUMED)'
+    source: 'scripts/datasheet_sizing.py section 8 (DESIGN.md D-090): S3 111,080 kg/h, x_CO2 0.000401
+      (process/flowsheet.yaml, calculated; the design basis 420 ppm CO2 on dry air, ASSUMED); D-066: 68
+      kg/h'
     assumed: true
   water_per_adsorption_step_kg:
-    value: 602
+    value: 660
     unit: kg
-    source: 'scripts/datasheet_sizing.py section 8 (DESIGN.md D-063 (3)): 150.6 kg/h x 4 h adsorption
+    source: 'scripts/datasheet_sizing.py section 8 (DESIGN.md D-080 (2)): 165.0 kg/h x 4 h adsorption
       step (equipment list, ASSUMED)'
     assumed: true
   co2_per_adsorption_step_kg:
-    value: 239
+    value: 271
     unit: kg
-    source: 'scripts/datasheet_sizing.py section 8 (DESIGN.md D-063 (3)): 59.85 kg/h x 4 h adsorption
+    source: 'scripts/datasheet_sizing.py section 8 (DESIGN.md D-068 (7)): 67.66 kg/h x 4 h adsorption
       step (equipment list, ASSUMED)'
     assumed: true
   adsorbent_mass_kg:
     value: supplier
     unit: kg
     reason: 'the alumina and 13X quantities follow from the adsorbent supplier''s working capacities at
-      12 C and 5.7 bara and the CO2 breakthrough margin; enquiry basis: water 150.6 kg/h, CO2 59.85 kg/h,
-      4 h adsorption, regeneration with waste N2 at 200 C (S12H)'
+      12 C and 5.92 bara and the CO2 breakthrough margin; enquiry basis: air 111,080 kg/h, water 165.0
+      kg/h, CO2 67.7 kg/h (+13 % on D-063, D-066), 4 h adsorption, regeneration with 18,486 kg/h waste
+      N2 at 200 C (S12H)'
+  allowable_regeneration_pressure_drop_kpa:
+    value: 1.5
+    unit: kPa
+    source: 'DESIGN.md D-072, scripts/datasheet_sizing.py section 11: as V-2101A (1.5 kPa for the vessel
+      in regeneration with its switching valves XV-2103B / XV-2104B; bed B has the longer RG-2003 route,
+      4.6 kPa of line loss)'
+    assumed: true
+  allowable_adsorption_pressure_drop_kpa:
+    value: 8.0
+    unit: kPa
+    source: 'DESIGN.md D-079, D-080 (1), D-089: as V-2101A (8 kPa flange to flange in adsorption, ASSUMED;
+      the bed B path is the longer one of the 32 kPa S3 -> S4 budget)'
+    assumed: true
   process_streams:
   - stream: S3
     direction: in

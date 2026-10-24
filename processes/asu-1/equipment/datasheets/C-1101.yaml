@@ -8,9 +8,10 @@ service: Direct contact aftercooler (DCAC)
 draft: false
 operating:
   inlet_pressure:
-    value: 5.8
+    value: 6.02
     unit: bar(a)
-    source: 'process/flowsheet.yaml stream S2 (case design), assumed: DESIGN.md 3, stream 2'
+    source: 'process/flowsheet.yaml stream S2 (case design), assumed: DESIGN.md D-089 (front-end pressure
+      profile at the DN700 bound; D-079 5.98, before it 5.8)'
     assumed: true
   inlet_temperature:
     value: 40.0
@@ -18,15 +19,22 @@ operating:
     source: 'process/flowsheet.yaml stream S2 (case design), assumed: DESIGN.md 3, stream 2'
     assumed: true
   inlet_flow:
-    value: 98836.9
+    value: 111720.0
     unit: kg/h
     source: 'process/flowsheet.yaml stream S2 (case design), calculated by `cheme process simulate` (DESIGN.md
-      D-058): wet air after the MAC condensate drains, 1.16 mol% water'
+      D-089): wet air after the MAC condensate drains, 1.12 mol% water'
+    assumed: true
+  intermediate_temperature:
+    value: 27.0
+    unit: °C
+    source: 'process/flowsheet.yaml stream S3L (case design), assumed: DESIGN.md D-067, the lower section
+      on cooling water (25 C supply), 2 K approach; the air between the sections'
     assumed: true
   outlet_pressure:
-    value: 5.7
+    value: 5.92
     unit: bar(a)
-    source: 'process/flowsheet.yaml stream S3 (case design), assumed: DESIGN.md 3, stream 3'
+    source: 'process/flowsheet.yaml stream S3 (case design), assumed: DESIGN.md D-089 (5 kPa per section;
+      D-079 5.88, before it 5.7)'
     assumed: true
   outlet_temperature:
     value: 12.0
@@ -34,17 +42,25 @@ operating:
     source: 'process/flowsheet.yaml stream S3 (case design), assumed: DESIGN.md 3, stream 3'
     assumed: true
   outlet_flow:
-    value: 98270.0
+    value: 111080.0
     unit: kg/h
-    source: 'process/flowsheet.yaml stream S3 (case design), assumed: DESIGN.md 3, stream 3 (the simulated
-      98,250 kg/h is within 0.02 %, D-058)'
+    source: 'process/flowsheet.yaml stream S3 (case design), assumed: DESIGN.md D-089, S4 110,870 kg/h
+      + the 210 kg/h H2O and CO2 the adsorbers remove (142.1 kg/h H2O at 5.92 bara, the simulated stream
+      3)'
     assumed: true
   condensate_flow:
-    value: 586.7
+    value: 411.5
     unit: kg/h
     source: 'process/flowsheet.yaml stream S3C (case design), calculated by `cheme process simulate` (DESIGN.md
-      D-058): condensate into the circulating water (bled with the DCAC sump water; IAPWS-95 gives 566
-      kg/h, scripts/datasheet_sizing.py section 9 (DESIGN.md D-063 (3)))'
+      D-089): condensed in the lower section into the cooling water (bled with the DCAC sump water by
+      LV-1106; IAPWS-95 gives 367 kg/h, scripts/datasheet_sizing.py section 9 (DESIGN.md D-090))'
+    assumed: true
+  condensate_flow_upper:
+    value: 228.3
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S3CU (case design), calculated by `cheme process simulate`
+      (DESIGN.md D-089): condensed in the upper section into the chilled water, returned with it to C-1102
+      (IAPWS-95 gives 207 kg/h, scripts/datasheet_sizing.py section 9 (DESIGN.md D-090))'
     assumed: true
 design:
   pressure_barg:
@@ -99,7 +115,7 @@ nozzles:
   elevation_m: 7.333
   location_source: layout/plant-model.yaml (the side the P&ID draws it on)
 - name: N2
-  dn: 600
+  dn: 700
   lines:
   - AIR-1004
   source: pid/P-01.xml
@@ -144,13 +160,73 @@ nozzles:
   offset_m: 0.9
   elevation_m: 24.893
   location_source: layout/plant-model.yaml (top head, PSV-1109 west of N2)
+- name: N7
+  dn: 150
+  lines:
+  - CHWR-1001
+  source: pid/P-01.xml (chimney tray draw-off under the upper bed, D-069)
+  face: side
+  orientation_deg: 285
+  elevation_m: 13.0
+  location_source: layout/equipment-placement.yaml (south face in the gap of the platform arcs, at the
+    chimney tray floor 13.0 m, 0.5 m above N3; D-069, D-086)
 - name: I1
   lines: []
   source: pid/P-01.xml
 - name: I2
   lines: []
   source: pid/P-01.xml
+- name: I3
+  lines: []
+  source: pid/P-01.xml (LIC-1114 chimney tray level, D-069)
+  face: side
+  orientation_deg: 0
+  elevation_m: 13.1
+  location_source: layout/equipment-placement.yaml (east side, 0.1 m above the chimney tray floor, 1.8
+    m above the 11.3 m platform; D-069, D-086)
+- name: I4
+  lines: []
+  source: pid/P-01.xml (LSLL-1115 chimney tray level low-low, own tapping, D-076)
+  face: side
+  orientation_deg: 15
+  elevation_m: 13.1
+  location_source: layout/equipment-placement.yaml (beside I3, 15 deg north of east, 0.1 m above the chimney
+    tray floor; D-076, D-086)
 type_specific:
+  chimney_tray_elevations:
+    value: 'tray floor 13.0 m, chimney tops 13.8 m above the column bottom; liquid range 0.8 m: N7 draws
+      off at the floor, the level tappings I3 (LIC-1114) and I4 (LSLL-1115) 0.1 m above it, the transmitters''
+      reference (high) connections in the gas above the chimney tops, the overflow downcomer set above
+      the LIC-1114 / LSLL-1115 range and below the chimney tops'
+    source: 'DESIGN.md D-086 (layout-review12#4): ASSUMED geometry for the enquiry; the packing supplier
+      designs the tray, its seal and the downcomer within it'
+    assumed: true
+  chimney_tray_overflow:
+    value: 'overflow downcomer from the chimney tray to the lower section, set above the LIC-1114 / LSLL-1115
+      range, rated for the whole upper-section liquid: 38 m3/h (34.1 m3/h chilled water + 0.23 m3/h condensate,
+      + 10 % = 37.8 m3/h, ASSUMED; D-080 (2), D-090) with LV-1114 or XV-1115 closed'
+    source: 'DESIGN.md D-076 (layout-review11#4 (b)): when LV-1114 fails closed (instrument air) or XV-1115
+      trips, the chilled water overflows to the lower section instead of flooding the upper bed (carry-over
+      into AIR-1004 and the TSA); the lower section then bleeds it through LV-1106 / CWR-1001 and C-1102
+      takes make-up through LV-1107 (CW-1003). The packing supplier designs the tray, its seal and the
+      downcomer'
+    assumed: true
+  chimney_tray_sif_basis:
+    value: 'I-03 (LSLL-1115 -> XV-1115, SIL 1): LIC-1114 set point 13.50 m; LSLL-1115 trip 13.35 m (0.35
+      m above the floor, 0.25 m above the I4 tapping); seal loss taken at 13.20 m (N7 DN150 bore top 13.15
+      m + 0.05 m, vortex breaker in N7); liquid area 9.43 m2 (risers 25 %); LV-1114 failed open passes
+      at most 2 x the normal 34.4 m3/h (69 m3/h, a rating requirement on its trim; 34.5 before D-089,
+      D-090): set point -> trip 1.41 m3 in 148 s, trip -> seal loss 1.38 m3, process safety time 144 s
+      (72 s with the inflow also lost); SIF response time (LSLL-1115 detection + logic + XV-1115 full
+      closure) at most 15 s: XV-1115 closes in 5 .. 10 s (not faster: surge in CHWR-1001), detection and
+      logic 5 s; overflow downcomer weir above 13.50 m and below the 13.8 m chimney tops'
+    source: 'scripts/datasheet_sizing.py (I-03 SIF timing, before section 9; DESIGN.md D-088 (4)), C-1101
+      D 4.0 m (equipment list), the tray elevations above (D-086); ASSUMED for the SRS: the set point,
+      trip and seal-loss levels, the riser fraction, the LV-1114 capacity limit, the response-time split
+      and the factor of 2 between the process safety time and the SIF response time. For HAZOP / LOPA
+      / SRS confirmation; the packing supplier confirms the tray levels and the N7 vortex breaker, the
+      valve supplier the LV-1114 capacity and the XV-1115 stroke'
+    assumed: true
   diameter_m:
     value: 4.0
     unit: m
@@ -171,50 +247,64 @@ type_specific:
     reason: a direct contact aftercooler (air cooled and dried by water on packing), not a distillation;
       its packing is sized in transfer units (packing_height_lower_m / _upper_m), not in stages
   duty_kw:
-    value: 1201
+    value: 1334
     unit: kW
-    source: 'process/flowsheet.yaml energy stream Q2 (calculated, `cheme process simulate`, DWSIM Peng-Robinson,
-      DESIGN.md D-058): 1,201.4 kW, air S2 40 C 5.8 bara -> S3 12 C 5.7 bara with the condensate S3C.
-      Cross-check scripts/datasheet_sizing.py section 9 (DESIGN.md D-063 (3)): dry gas 774 kW (property
-      adapter) + water vapour 23 kW + 566 kg/h condensed 389 kW (IAPWS-95) = 1,187 kW'
+    source: 'process/flowsheet.yaml energy stream Q2 and step C1101U (calculated, `cheme process simulate`,
+      DWSIM Peng-Robinson, DESIGN.md D-089): lower section 699.5 kW to cooling water (S2 40 C 6.02 bara
+      -> S3L 27 C 5.97 bara) + upper section 634.3 kW to the C-1102 chilled water (S3L -> S3 12 C 5.92
+      bara). Cross-check scripts/datasheet_sizing.py section 9 (DESIGN.md D-090), IAPWS-95 water: 660
+      + 614 kW'
+    assumed: true
+  duty_lower_kw:
+    value: 699
+    unit: kW
+    source: 'process/flowsheet.yaml energy stream Q2 (DWSIM, DESIGN.md D-089): 699.5 kW to the 250 m3/h
+      of cooling water (P-1101A/B), which warms 2.4 K'
+    assumed: true
+  duty_upper_kw:
+    value: 634
+    unit: kW
+    source: '`cheme process simulate` step C1101U (DESIGN.md D-089): 634.3 kW to the chilled water, 10
+      -> 26 C (D-067, ASSUMED): 34.1 m3/h (scripts/datasheet_sizing.py section 12 (DESIGN.md D-090))'
     assumed: true
   gas_load_factor_pa05:
-    value: 0.859
+    value: 0.953
     unit: Pa^0.5
-    source: 'scripts/datasheet_sizing.py section 9 (DESIGN.md D-063 (3)): F = u rho^0.5 at the bottom,
-      98,837 kg/h (S2) at 40 C, 580 kPa(a) (rho 6.466 kg/m3, property adapter, dry gas), D 4.0 m (equipment
-      list): u 0.338 m/s'
+    source: 'scripts/datasheet_sizing.py section 9 (DESIGN.md D-090): F = u rho^0.5 at the bottom, 111,720
+      kg/h (S2) at 40 C, 602 kPa(a) (rho 6.712 kg/m3, property adapter, dry gas), D 4.0 m (equipment list):
+      u 0.368 m/s'
     assumed: true
   liquid_load_lower_m3_m2h:
     value: 19.9
     unit: m3/(m2 h)
-    source: 'scripts/datasheet_sizing.py section 9 (DESIGN.md D-063 (3)): 250 m3/h CW (P-1101A/B) over
-      12.57 m2'
+    source: 'scripts/datasheet_sizing.py section 9 (DESIGN.md D-090): 250 m3/h CW (P-1101A/B) over 12.57
+      m2'
     assumed: true
   liquid_load_upper_m3_m2h:
-    value: 7.96
+    value: 2.71
     unit: m3/(m2 h)
-    source: 'scripts/datasheet_sizing.py section 9 (DESIGN.md D-063 (3)): 100 m3/h chilled water (P-1102A/B)
-      over 12.57 m2'
+    source: 'scripts/datasheet_sizing.py section 9 (DESIGN.md D-090): 34.1 m3/h chilled water (10 -> 26
+      C, D-067) over 12.57 m2; low for packing wetting: the supplier confirms the packing and distributor
+      for it, or a recirculation of the upper section'
     assumed: true
   packing_height_lower_m:
     value: supplier
     unit: m
     source: 'packing supplier: the CW section''s height follows from the heat and mass transfer coefficients
-      of the chosen packing (transfer units). Enquiry basis: total duty 1,201 kW (40 -> 12 C, 587 kg/h
-      condensed, D-058), CW 250 m3/h at 25 C, gas F 0.86 Pa^0.5, liquid load 19.9 m3/(m2 h), the section
-      split at the supplier''s choice of the intermediate air temperature'
+      of the chosen packing (transfer units). Enquiry basis: 699 kW (40 -> 27 C, 411 kg/h condensed, D-089),
+      CW 250 m3/h at 25 C, gas F 0.95 Pa^0.5, liquid load 19.9 m3/(m2 h)'
   packing_height_upper_m:
     value: supplier
     unit: m
     source: 'packing supplier: the chilled water section''s height (transfer units of the chosen packing).
-      Enquiry basis: chilled water 100 m3/h at 10 C from C-1102, air leaving at 12 C (2 K approach), liquid
-      load 7.96 m3/(m2 h)'
+      Enquiry basis: 634 kW, air 27 -> 12 C, chilled water 34.1 m3/h at 10 C from C-1102 returning at
+      ~26 C (D-067) from a chimney tray to C-1102 (CHWR-1001, D-069), 228 kg/h condensed into it, liquid
+      load 2.71 m3/(m2 h) (D-089, D-090)'
   flooding_diameter_m:
     value: supplier
     unit: m
     source: packing supplier's hydraulic rating (no flooding correlation in cheme-as-code is cleanly sourced);
-      the 4.0 m of the equipment list (ASSUMED) runs at F 0.86 Pa^0.5 and 19.9 m3/(m2 h)
+      the 4.0 m of the equipment list (ASSUMED) runs at F 0.95 Pa^0.5 and 19.9 m3/(m2 h)
   process_streams:
   - stream: S2
     direction: in
@@ -237,8 +327,10 @@ type_specific:
     unit: ''
     reason: a direct contact cooler is sized in transfer units, not theoretical stages
 sizing_basis: []
-notes: 'Two packed sections (CW lower, chilled water upper), mist eliminator, air 40 -> 12 C. ASSUMED.
-  DESIGN.md D-060 (3), D-063: duty from the DWSIM simulation with the 80 % RH inlet air (D-058), hydraulic
-  loads calculated; packing heights and the flooding diameter are the packing supplier''s (markers); the
-  stage fields do not apply (not a distillation). The 587 kg/h condensate leaves with the sump water (bleed
-  not drawn on P-01 yet, D-058).'
+notes: 'Two packed sections (CW lower to 27 C, chilled water upper to 12 C, DESIGN.md D-067), mist eliminator,
+  air 40 -> 12 C, 6.02 -> 5.92 bara (D-089). ASSUMED. DESIGN.md D-060 (3), D-063, D-068 (8), D-080 (2),
+  D-090: duties from the DWSIM simulation (D-066 air, D-067 sections, D-089 pressures), hydraulic loads
+  calculated; packing heights and the flooding diameter are the packing supplier''s (markers); the stage
+  fields do not apply (not a distillation). The lower section''s 411 kg/h condensate leaves with the sump
+  water (LV-1106, D-064); a chimney tray under the upper bed collects the chilled water with its 228 kg/h
+  condensate and returns it to C-1102 (CHWR-1001, LIC-1114 / LV-1114, D-069).'
