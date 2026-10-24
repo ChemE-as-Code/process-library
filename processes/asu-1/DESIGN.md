@@ -4129,8 +4129,12 @@ Decision:
     in doubt. The tailpipes (valve outlet to the open end) are therefore **DN250** (sch 10S,
     264.6 mm bore, ASSUMED). `cheme run scripts/psv_reaction.py` gives an exit at atmospheric
     pressure for PSV-3114 and at most 0.25 barg (4 % of 7 barg) for PSV-3116. The friction of
-    ~4.5 m of straight pipe still adds to that, and the total stays under 10 %. The valves stay
-    conventional; if a valve's outlet flange is smaller, an expander follows it. At DN250 the
+    ~4.5 m of straight pipe adds to that: a Fanno-flow estimate (review19#8) keeps the cold
+    cases at about 3 % of set or less, but the warm (288 K) bound cases reach about 9 to 10 %
+    of set at PSV-3114 and 12 to 13 % at PSV-3116. The credible relief cases are the cold ones,
+    so the valves stay conventional; if a valve's outlet flange is smaller, an expander follows
+    it. Should the warm case prove credible, PSV-3116 takes a balanced-bellows valve or a DN300
+    tailpipe (O1). At DN250 the
     reactions fall to 2.1 / 6.0 kN (PSV-3114) and 4.7 / 11.1 kN (PSV-3116), so RV-TPG and
     RV-TPS, sized on the DN150 values, stay on the safe side.
   - **Material:** the cold case relieves at 94 K (PSV-3114) and 103 K (PSV-3116), and that
@@ -4142,13 +4146,15 @@ Decision:
   - **Model:** cheme-as-code 0.8.0 carries one DN and one class per line, and VNT-3002 and
     VNT-3003 run from the column to the valve and on to the open end. So the model still
     draws the tailpipes at DN150 and does not split the class (open item O1 below).
+
 Remaining open after D-091, tracked here and in D-050. None of them stops the study; each is
 for detail engineering, if the project goes on to it:
 - **O1** (review19#2, #3): model the PSV-3114 / PSV-3116 tailpipes at DN250, and the VNT-3002
   tailpipe in SS 304L, as outlet lines of their own on P-03 and in the line list (or once the
   tool carries a DN and class per segment). The relief sizing confirms the rates, the
-  orifices and the built-up back pressure with the tailpipe friction. Owner: piping and
-  relief sizing.
+  orifices and the built-up back pressure with the tailpipe friction; if the warm (288 K) case
+  is credible, PSV-3116 takes a balanced-bellows valve or a DN300 tailpipe (review19#8).
+  Owner: piping and relief sizing.
 - **O2** (review19#5): the AIR-3003 roof hood over CB-1X and the cold insulation from XV-3117
   to the sleeve, which are not in the model. Owner: layout and cold box.
 - **O3** (D-091 (3)): the CB-1X envelope and its roof panels against a supplier drawing, if
