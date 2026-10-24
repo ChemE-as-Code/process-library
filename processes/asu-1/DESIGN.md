@@ -3979,3 +3979,29 @@ Decision:
 Reason: D-089 changed S2, S3 and S12D in the flowsheet and the simulation. The lists, the
 datasheets (the MAC enquiry basis among them, still on HOLD at 5.98 bara), the electrical list
 and the estimate still gave the D-079 state.
+
+## D-091 Open low items closed without vendor data or a stress analysis (2026-10-24)
+Owner decision: there is no vendor data and there will be none, and no detailed stress analysis
+will be done in this study. The four open low items are closed here with screening decisions.
+Values that are assumed are marked ASSUMED. Each item is to be confirmed in detail engineering,
+if the project goes on to it.
+
+Decision:
+- (1) **Front-end budget at the DN700 bound accepted** (review15#2; D-089, D-090 (1)). The bound
+  case is lines 21.107 kPa + bed 8 kPa + F-2101 3 kPa = 32.107 kPa against the S3 -> S4
+  allowance of 32 kPa, so it is 0.107 kPa over (sizing script section 10, at 42cb69a). The
+  routed case is 16.9 + 8 + 3 = 27.9 kPa, a margin of +4.06 kPa. The 0.107 kPa is **accepted**
+  as within the accuracy of the screening hydraulics, and S3 -> S4 stays 32 kPa:
+  - it is 0.33 % of the allowance and 0.02 % of the S3 pressure (592 kPa(a));
+  - the bound counts every turn and the vessel nozzles at the lowest density on the path (S4).
+    The fitting K values and the ASSUMED bed (8 kPa) and F-2101 (3 kPa) allowables are each
+    uncertain by much more than 0.1 kPa (10 % of the bound lines alone is 2.1 kPa);
+  - if it were real, the MAC would run 0.107 kPa higher: 0.74 kW electric at 6.95 kW/kPa
+    (D-090 (3)), 0.01 % of its 7,288 kW. That is below the resolution of the TEA and the LCA;
+  - the simulation owner had agreed to accept it and meant to write 32.1 kPa in D-089 next
+    time. That owner is not available, and process/flowsheet.yaml, simulation.yaml and
+    design-basis.yaml are theirs, so they are not changed here. If S3 -> S4 is ever reset to
+    32.1 kPa (S2 ~6.021 bara), this acceptance falls away.
+  No check finding or gate covers the budget, so `checks/checks.yaml` gets no acceptance. The
+  rule of D-089 still holds: if the suppliers' bed and F-2101 drops exceed the 11 kPa assumed,
+  raise S2 by the difference.
