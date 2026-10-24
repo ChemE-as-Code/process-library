@@ -14,7 +14,8 @@ operating:
   source_pressure:
     value: 1.05
     unit: bar(a)
-    source: 'C-1102 sump at its gas inlet pressure, process/flowsheet.yaml stream S12B (ASSUMED: DESIGN.md 3)'
+    source: 'C-1102 sump at its gas inlet pressure, process/flowsheet.yaml stream S12B (ASSUMED: DESIGN.md
+      3)'
     assumed: true
   destination_pressure:
     value: 5.92
@@ -39,6 +40,41 @@ materials:
   main:
     value: CS / SS impeller
     source: equipment/equipment-list.yaml
+dimensions:
+  overall_length:
+    value: 2.0
+    unit: m
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.length; ASSUMED at basic
+      engineering (equipment list header, DESIGN.md D-028): the supplier sets it'
+    assumed: true
+  overall_width:
+    value: 0.8
+    unit: m
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.width; ASSUMED at basic
+      engineering (equipment list header, DESIGN.md D-028): the supplier sets it'
+    assumed: true
+  overall_height:
+    value: 1.1
+    unit: m
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.height; ASSUMED at basic
+      engineering (equipment list header, DESIGN.md D-028): the supplier sets it'
+    assumed: true
+  support:
+    type:
+      value: base_plate
+      source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.support'
+  axis_deg:
+    value: 180.0
+    unit: deg
+    source: 'cheme datasheets fill: layout/plant-model.yaml P-1102A rotation_deg (layout/equipment-placement.yaml)'
+weights:
+  empty:
+    value: 1.5
+    unit: t
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.weight (empty); ASSUMED
+      (equipment list header, DESIGN.md D-034): typical size of the duty, the item''s basis in its list
+      note; the supplier gives the weight'
+    assumed: true
 nozzles:
 - name: N1
   dn: 150
@@ -70,34 +106,36 @@ type_specific:
   flow_m3_h:
     value: 44
     unit: m3/h
-    source: 'scripts/datasheet_sizing.py section 12 (DESIGN.md D-068 (8), D-069, D-080 (2), D-090): rated 110 % (ASSUMED) of the
-      closed chilled-water loop of D-067, kept: now 111 % of DCAC upper section 34.1 m3/h (634 kW, 10 -> 26 C,
-      D-089) + E-3105 5.4 m3/h (63 kW, 10 -> 20 C) = 39.6 m3/h; was ~100 m3/h'
+    source: 'scripts/datasheet_sizing.py section 12 (DESIGN.md D-068 (8), D-069, D-080 (2), D-090): rated
+      110 % (ASSUMED) of the closed chilled-water loop of D-067, kept: now 111 % of DCAC upper section
+      34.1 m3/h (634 kW, 10 -> 26 C, D-089) + E-3105 5.4 m3/h (63 kW, 10 -> 20 C) = 39.6 m3/h; was ~100
+      m3/h'
     assumed: true
   differential_head_m:
     value: 77.97
     unit: m
-    source: 'scripts/datasheet_sizing.py (D-053 (9), D-090): H = (592 - 105) kPa / (rho g) 49.68 m + static 17.43 m
-      (C-1101/N4 at z 19.83 m - C-1102/N4 at z 2.41 m, layout/plant-model.yaml; liquid level not counted)
-      + line losses 0.67 m (suction 0.12, discharge 0.55 m; Darcy-Weisbach / Colebrook along the routed
-      CHW-1001 at the whole 44 m3/h, schedule 40, commercial steel roughness, fittings K of Perry''s 7th ed.
-      Table 6-4; the suction ball valve has no K there and is not counted) + allowance 100 kPa 10.2 m for
-      the control valve, strainer and the C-1101 liquid distributor (ASSUMED, D-053); water IAPWS-95 at 10
-      C. The DCAC path governs; the E-3105 branch (CHW-3001, return open to the C-1102 top) needs less and
-      TV-3124 takes the excess'
+    source: 'scripts/datasheet_sizing.py (D-053 (9), D-090): H = (592 - 105) kPa / (rho g) 49.68 m + static
+      17.43 m (C-1101/N4 at z 19.83 m - C-1102/N4 at z 2.41 m, layout/plant-model.yaml; liquid level not
+      counted) + line losses 0.67 m (suction 0.12, discharge 0.55 m; Darcy-Weisbach / Colebrook along
+      the routed CHW-1001 at the whole 44 m3/h, schedule 40, commercial steel roughness, fittings K of
+      Perry''s 7th ed. Table 6-4; the suction ball valve has no K there and is not counted) + allowance
+      100 kPa 10.2 m for the control valve, strainer and the C-1101 liquid distributor (ASSUMED, D-053);
+      water IAPWS-95 at 10 C. The DCAC path governs; the E-3105 branch (CHW-3001, return open to the C-1102
+      top) needs less and TV-3124 takes the excess'
     assumed: true
   npsh_available_m:
     value: 11.78
     unit: m
-    source: 'scripts/datasheet_sizing.py (D-053 (9), D-068 (8)): NPSHa = (105 - 1.23) kPa / (rho g) + 1.31 m (C-1102/N4
-      z 2.41 m above suction N1 z 1.10 m; liquid level not counted) - suction losses 0.12 m; p_vap IAPWS-95
-      at 10 C'
+    source: 'scripts/datasheet_sizing.py (D-053 (9), D-068 (8)): NPSHa = (105 - 1.23) kPa / (rho g) +
+      1.31 m (C-1102/N4 z 2.41 m above suction N1 z 1.10 m; liquid level not counted) - suction losses
+      0.12 m; p_vap IAPWS-95 at 10 C'
     assumed: true
   shaft_power_kw:
     value: 12.46
     unit: kW
-    source: 'scripts/datasheet_sizing.py (D-053 (9), D-090): P = m g H / eta = 12.22 kg/s x 9.80665 x 77.97 m / 0.75
-      (pump efficiency ASSUMED, D-053); 15 kW motor (electrical list, D-069; was 18.5 kW)'
+    source: 'scripts/datasheet_sizing.py (D-053 (9), D-090): P = m g H / eta = 12.22 kg/s x 9.80665 x
+      77.97 m / 0.75 (pump efficiency ASSUMED, D-053); 15 kW motor (electrical list, D-069; was 18.5 kW)'
     assumed: true
 sizing_basis: []
-notes: Re-selected for the closed chilled-water loop of D-067 (D-069), 44 m3/h at ~78 m (D-080 (2)), duty. ASSUMED.
+notes: Re-selected for the closed chilled-water loop of D-067 (D-069), 44 m3/h at ~78 m (D-080 (2)), duty.
+  ASSUMED.

@@ -60,8 +60,8 @@ operating:
   inlet_flow:
     value: 96000.0
     unit: kg/h
-    source: 'process/flowsheet.yaml stream S5 (case design), assumed: DESIGN.md D-066, the HP column air for
-      GOX 99.5 % with margin (+15 % on the former 83,190 kg/h)'
+    source: 'process/flowsheet.yaml stream S5 (case design), assumed: DESIGN.md D-066, the HP column air
+      for GOX 99.5 % with margin (+15 % on the former 83,190 kg/h)'
     assumed: true
 design:
   pressure_barg:
@@ -76,6 +76,47 @@ materials:
   main:
     value: Aluminium 5083
     source: equipment/equipment-list.yaml
+dimensions:
+  orientation: vertical
+  outside_diameter:
+    value: 4.2
+    unit: m
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.diameter; ASSUMED at basic
+      engineering (equipment list header, DESIGN.md D-028): the supplier sets it'
+    assumed: true
+  overall_height:
+    value: 20.0
+    unit: m
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.height; ASSUMED at basic
+      engineering (equipment list header, DESIGN.md D-028): the supplier sets it'
+    assumed: true
+  head:
+    value: ellipsoidal_2_1
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.head'
+  support:
+    type:
+      value: skirt
+      source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.support'
+    height:
+      value: 3.45
+      unit: m
+      source: 'cheme datasheets fill: layout/plant-model.yaml parts C-3101/shell, C-3101/skirt: the bottom
+        tangent line above the base (the 3D model''s proportions, not a design)'
+      assumed: true
+  tangent_length:
+    value: 15.5
+    unit: m
+    source: 'cheme datasheets fill: layout/plant-model.yaml part C-3101/shell: the generated shell between
+      the heads (the 3D model''s proportions, not a vessel design)'
+    assumed: true
+weights:
+  empty:
+    value: 25.0
+    unit: t
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.weight (empty); ASSUMED
+      (equipment list header, DESIGN.md D-034): typical size of the duty, the item''s basis in its list
+      note, cross-checked in D-081 (5); the supplier gives the weight'
+    assumed: true
 nozzles:
 - name: N1
   dn: 500
@@ -177,17 +218,17 @@ type_specific:
   minimum_stages:
     value: 15.94
     unit: ''
-    source: 'scripts/datasheet_sizing.py section 6 (DESIGN.md D-068 (6)): Fenske, keys N2/O2 (Ar a non-key), distillate S14
-      (DWSIM: O2 0.2 ppm, D-066), bottoms S13 (DWSIM: 38.5 % O2), alpha N2/O2 2.564 geometric mean of the
-      top dew point (530 kPa(a), 94.71 K) and the bottom bubble point (550 kPa(a), 99.47 K), property adapter
-      (thermo 0.6.1, PR); Fenske, Ind. Eng. Chem. 24 (1932) 482'
+    source: 'scripts/datasheet_sizing.py section 6 (DESIGN.md D-068 (6)): Fenske, keys N2/O2 (Ar a non-key),
+      distillate S14 (DWSIM: O2 0.2 ppm, D-066), bottoms S13 (DWSIM: 38.5 % O2), alpha N2/O2 2.564 geometric
+      mean of the top dew point (530 kPa(a), 94.71 K) and the bottom bubble point (550 kPa(a), 99.47 K),
+      property adapter (thermo 0.6.1, PR); Fenske, Ind. Eng. Chem. 24 (1932) 482'
     assumed: true
   minimum_reflux_ratio:
     value: 1.2
     unit: ''
-    source: 'scripts/datasheet_sizing.py section 6 (DESIGN.md D-068 (6)): Underwood, theta 1.4018, feed S5 as saturated vapour
-      (q 0, ASSUMED: ''cooled close to its dew point'', DESIGN.md 1); Underwood, Chem. Eng. Prog. 44 (1948)
-      603; inputs as minimum_stages'
+    source: 'scripts/datasheet_sizing.py section 6 (DESIGN.md D-068 (6)): Underwood, theta 1.4018, feed
+      S5 as saturated vapour (q 0, ASSUMED: ''cooled close to its dew point'', DESIGN.md 1); Underwood,
+      Chem. Eng. Prog. 44 (1948) 603; inputs as minimum_stages'
     assumed: true
   reflux_ratio:
     value: 1.391
@@ -198,9 +239,9 @@ type_specific:
   vapour_load_change:
     value: 15
     unit: '%'
-    source: 'DESIGN.md D-066: the HP column air S5 96,000 against 83,190 kg/h (+15.4 %); at the same
-      capacity factor the 4.2 m column becomes about 4.5 m (D x sqrt(1.154), ASSUMED scaling), for the cold
-      box supplier''s rating'
+    source: 'DESIGN.md D-066: the HP column air S5 96,000 against 83,190 kg/h (+15.4 %); at the same capacity
+      factor the 4.2 m column becomes about 4.5 m (D x sqrt(1.154), ASSUMED scaling), for the cold box
+      supplier''s rating'
     assumed: true
   theoretical_stages:
     value: 40
@@ -221,14 +262,15 @@ type_specific:
     assumed: true
   condenser:
     value: partial (E-3103, the condenser-reboiler in the C-3102 sump)
-    source: process/simulation.yaml C3101 condenser partial (DESIGN.md D-066); E-3103 condenses 4,172 kW
+    source: process/simulation.yaml C3101 condenser partial (DESIGN.md D-066); E-3103 condenses 4,172
+      kW
     assumed: true
   number_of_stages:
     value: supplier
     unit: ''
     reason: 'the number of real trays or the packed height follows from the cold box supplier''s tray
-      efficiency or HETP for the chosen internals; enquiry basis: 40 theoretical stages, reflux ratio 1.39,
-      96,000 kg/h air below the bottom stage, LN 29,280 kg/h, LIN drawn from stage 2'
+      efficiency or HETP for the chosen internals; enquiry basis: 40 theoretical stages, reflux ratio
+      1.39, 96,000 kg/h air below the bottom stage, LN 29,280 kg/h, LIN drawn from stage 2'
   packing_height_m:
     value: supplier
     unit: m
@@ -237,9 +279,9 @@ type_specific:
   flooding_diameter_m:
     value: supplier
     unit: m
-    reason: 'cold box supplier''s hydraulic rating at the simulated vapour and liquid loads (no flooding
+    reason: cold box supplier's hydraulic rating at the simulated vapour and liquid loads (no flooding
       correlation in cheme-as-code is cleanly sourced); the 4.2 m of the equipment list is ASSUMED and
-      sees 15 % more vapour since D-066 (about 4.5 m at the same capacity factor)'
+      sees 15 % more vapour since D-066 (about 4.5 m at the same capacity factor)
   process_streams:
   - stream: S5
     direction: in
@@ -263,9 +305,10 @@ type_specific:
     source: process/flowsheet.yaml (case design)
 sizing_basis:
 - parameter: stages, reflux, temperatures
-  value: the DWSIM double-column simulation (Peng-Robinson, Ar/O2 kij 0.0143 fitted to the REFPROP mixture model)
+  value: the DWSIM double-column simulation (Peng-Robinson, Ar/O2 kij 0.0143 fitted to the REFPROP mixture
+    model)
   reference: DESIGN.md D-066
 notes: 'Structured packing or sieve trays, top 5.3 bara. ASSUMED. DESIGN.md D-066, D-068 (6): 40 theoretical
-  stages, 96,000 kg/h air (+15 % vapour), reflux ratio 1.39 (1.16 x Rmin 1.20), LN 29,280 kg/h, top
-  -178.45 C, bottom -173.68 C from the double-column simulation; GAN at 0.2 ppm O2 meets D-004. Real stages,
-  packing height and diameter are the cold box supplier''s (markers).'
+  stages, 96,000 kg/h air (+15 % vapour), reflux ratio 1.39 (1.16 x Rmin 1.20), LN 29,280 kg/h, top -178.45
+  C, bottom -173.68 C from the double-column simulation; GAN at 0.2 ppm O2 meets D-004. Real stages, packing
+  height and diameter are the cold box supplier''s (markers).'

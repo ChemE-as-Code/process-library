@@ -25,9 +25,9 @@ operating:
   rated_flow:
     value: 90000
     unit: Nm3/h
-    source: 'DESIGN.md D-066: MAC re-rated to about 90,000 Nm3/h dry air (the design point 85,840 Nm3/h at the
-      intake; the former 80,000 Nm3/h rating is exceeded). The vendor''s stage efficiency and IGV range
-      confirm it'
+    source: 'DESIGN.md D-066: MAC re-rated to about 90,000 Nm3/h dry air (the design point 85,840 Nm3/h
+      at the intake; the former 80,000 Nm3/h rating is exceeded). The vendor''s stage efficiency and IGV
+      range confirm it'
     assumed: true
   outlet_pressure:
     value: 6.02
@@ -35,12 +35,11 @@ operating:
     source: 'process/flowsheet.yaml stream S2 (case design), assumed: DESIGN.md D-089 (front-end pressure
       profile set from the cold box back: S4 5.6 bara + 32 kPa for the DN700 main air lines at their bound,
       the adsorber bed and F-2101 + 10 kPa for the DCAC; D-079 had 5.98 with 28 kPa, before it 5.8). Enquiry
-      basis after E-1103. The HOLD of D-080 (1) / D-088 (1) is lifted by D-089 (DESIGN.md D-090):
-      scripts/datasheet_sizing.py section 10 at 6.02 / 5.92 bara gives the routed DN700 lines 16.9 kPa +
-      bed 8 + F-2101 3 = 27.9 kPa against the 32 kPa S3 -> S4, margin +4.1 kPa; the bound with every turn
-      and the vessel nozzles counted (21.1 kPa at the S4 density) leaves -0.11 kPa (~0.7 kW at the MAC).
-      S2 still rises by any excess of the adsorber and F-2101 suppliers'' drops over the ~11 kPa assumed
-      (~6.7 kW electric per kPa)'
+      basis after E-1103. The HOLD of D-080 (1) / D-088 (1) is lifted by D-089 (DESIGN.md D-090): scripts/datasheet_sizing.py
+      section 10 at 6.02 / 5.92 bara gives the routed DN700 lines 16.9 kPa + bed 8 + F-2101 3 = 27.9 kPa
+      against the 32 kPa S3 -> S4, margin +4.1 kPa; the bound with every turn and the vessel nozzles counted
+      (21.1 kPa at the S4 density) leaves -0.11 kPa (~0.7 kW at the MAC). S2 still rises by any excess
+      of the adsorber and F-2101 suppliers'' drops over the ~11 kPa assumed (~6.7 kW electric per kPa)'
     assumed: true
   outlet_temperature:
     value: 40.0
@@ -50,15 +49,15 @@ operating:
   outlet_flow:
     value: 111720.0
     unit: kg/h
-    source: 'process/flowsheet.yaml stream S2 (case design), calculated by `cheme process simulate`
-      (DESIGN.md D-089): S1 less the condensate S1C 1,609 kg/h of the E-1102 / E-1103 drains'
+    source: 'process/flowsheet.yaml stream S2 (case design), calculated by `cheme process simulate` (DESIGN.md
+      D-089): S1 less the condensate S1C 1,609 kg/h of the E-1102 / E-1103 drains'
     assumed: true
   condensate_flow:
     value: 1609.5
     unit: kg/h
-    source: 'process/flowsheet.yaml stream S1C (case design), calculated by `cheme process simulate`
-      (DESIGN.md D-089): E-1102 and E-1103 moisture separator drains, 40 C; the IAPWS-95
-      split: E-1102 808 kg/h, E-1103 726 kg/h (scripts/datasheet_sizing.py section 1 (DESIGN.md D-090))'
+    source: 'process/flowsheet.yaml stream S1C (case design), calculated by `cheme process simulate` (DESIGN.md
+      D-089): E-1102 and E-1103 moisture separator drains, 40 C; the IAPWS-95 split: E-1102 808 kg/h,
+      E-1103 726 kg/h (scripts/datasheet_sizing.py section 1 (DESIGN.md D-090))'
     assumed: true
 design:
   pressure_barg:
@@ -73,6 +72,38 @@ materials:
   main:
     value: CS / SS impellers
     source: equipment/equipment-list.yaml
+dimensions:
+  overall_length:
+    value: 12.0
+    unit: m
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.length; ASSUMED at basic
+      engineering (equipment list header, DESIGN.md D-028): the supplier sets it'
+    assumed: true
+  overall_width:
+    value: 6.0
+    unit: m
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.width; ASSUMED at basic
+      engineering (equipment list header, DESIGN.md D-028): the supplier sets it'
+    assumed: true
+  overall_height:
+    value: 5.0
+    unit: m
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.height; ASSUMED at basic
+      engineering (equipment list header, DESIGN.md D-028): the supplier sets it'
+    assumed: true
+  axis_deg:
+    value: 0.0
+    unit: deg
+    source: 'cheme datasheets fill: layout/plant-model.yaml K-1101 rotation_deg (layout/equipment-placement.yaml)'
+weights:
+  empty:
+    value: 89.0
+    unit: t
+    source: 'DESIGN.md D-081 (5), equipment list dimensions.weight: the train on its base (compressor,
+      gearbox, motor), D-034''s ~85 t with the 8 MW motor plus the 4 t the 9 MW motor adds (30 -> 34 t,
+      D-070); the heaviest maintenance lift is the motor (lift_weight 34 t). ASSUMED: the compressor
+      supplier gives the weight'
+    assumed: true
 nozzles:
 - name: N1
   dn: 1400
@@ -153,10 +184,10 @@ type_specific:
     value: 6894
     unit: kW
     source: '`cheme process simulate` (DWSIM 9.0.5, Peng-Robinson; DESIGN.md D-089, process/simulation-run.json):
-      K1101 compressor power 6,894.0 kW for the wet air S1 (113,329 kg/h, 80 % RH) to S2 6.02 bara, 3 stages
-      at isentropic efficiency 0.82, intercooled to 40 C, 0.05 bar per cooler (process/simulation.yaml,
-      ASSUMED). Cross-check scripts/datasheet_sizing.py section 1 (DESIGN.md D-090), ideal gas with
-      Cp/Cv at each stage suction: 6,910 kW'
+      K1101 compressor power 6,894.0 kW for the wet air S1 (113,329 kg/h, 80 % RH) to S2 6.02 bara, 3
+      stages at isentropic efficiency 0.82, intercooled to 40 C, 0.05 bar per cooler (process/simulation.yaml,
+      ASSUMED). Cross-check scripts/datasheet_sizing.py section 1 (DESIGN.md D-090), ideal gas with Cp/Cv
+      at each stage suction: 6,910 kW'
     assumed: true
   shaft_power_kw:
     value: 6894
@@ -174,11 +205,10 @@ type_specific:
   motor_rating_kw:
     value: 9000
     unit: kW
-    source: 'DESIGN.md D-066 (ASSUMED, was 8,000), checked again at D-089: the motor output at the design point
-      7,288 x 0.97 = 7,069 kW; pro rata at the 90,000 Nm3/h rating 7,640 kW electric, 7,411 kW output; 110 %
-      of that (API 617 driver margin) 8,152 kW against 9,000 kW: 10.4 % margin
-      (scripts/datasheet_sizing.py section 1 (DESIGN.md D-090)). 6.6 kV; starting method and supply
-      in DESIGN.md D-070'
+    source: 'DESIGN.md D-066 (ASSUMED, was 8,000), checked again at D-089: the motor output at the design
+      point 7,288 x 0.97 = 7,069 kW; pro rata at the 90,000 Nm3/h rating 7,640 kW electric, 7,411 kW output;
+      110 % of that (API 617 driver margin) 8,152 kW against 9,000 kW: 10.4 % margin (scripts/datasheet_sizing.py
+      section 1 (DESIGN.md D-090)). 6.6 kV; starting method and supply in DESIGN.md D-070'
     assumed: true
   drive_efficiency:
     value: 0.946
@@ -196,8 +226,8 @@ type_specific:
   intercooler_outlet_temperature_degc:
     value: 40
     unit: degC
-    source: process/simulation.yaml K1101 outlet_temperature (ASSUMED, as the aftercooler E-1103 'air to
-      40 C', CW 25 -> 35 C)
+    source: process/simulation.yaml K1101 outlet_temperature (ASSUMED, as the aftercooler E-1103 'air
+      to 40 C', CW 25 -> 35 C)
     assumed: true
   cooler_pressure_drop_bar:
     value: 0.05
@@ -209,9 +239,10 @@ type_specific:
     - 1.3984
     - 1.3992
     - 1.4027
-    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-090): Cp/Cv at each stage suction (303.15 K 101 kPa(a);
-      313.15 K 181.2 / 329.2 kPa(a)): property adapter (thermo 0.6.1, PR) for N2 / O2 / Ar, water vapour mixed
-      in on the molar Cp (IAPWS-95 at its partial pressure); replaces the single 1.402 of D-053'
+    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-090): Cp/Cv at each stage suction (303.15
+      K 101 kPa(a); 313.15 K 181.2 / 329.2 kPa(a)): property adapter (thermo 0.6.1, PR) for N2 / O2 /
+      Ar, water vapour mixed in on the molar Cp (IAPWS-95 at its partial pressure); replaces the single
+      1.402 of D-053'
     assumed: true
   process_streams:
   - stream: S1
@@ -229,38 +260,37 @@ type_specific:
   number_of_stages:
     value: 3
     unit: ''
-    source: process/simulation.yaml K1101 stages 3 (DESIGN.md 1, the equipment list; max ratio 2.0 per stage,
-      D-053)
+    source: process/simulation.yaml K1101 stages 3 (DESIGN.md 1, the equipment list; max ratio 2.0 per
+      stage, D-053)
     assumed: true
   stage_pressure_ratio:
     value: 1.844
     unit: ''
-    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-090): equal ratios from 101 kPa(a) to 607 kPa(a) at the last
-      stage discharge, 5 kPa lost in each cooler (S2 6.02 bara after E-1103, D-089)'
+    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-090): equal ratios from 101 kPa(a) to
+      607 kPa(a) at the last stage discharge, 5 kPa lost in each cooler (S2 6.02 bara after E-1103, D-089)'
     assumed: true
   discharge_temperature_k:
     value: 386.5
     unit: K
-    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-090): stage 3 discharge (ideal gas, Cp/Cv at the stage
-      suction, eta_s 0.82); stages 1 / 2: 373.6 / 386.0 K'
+    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-090): stage 3 discharge (ideal gas, Cp/Cv
+      at the stage suction, eta_s 0.82); stages 1 / 2: 373.6 / 386.0 K'
     assumed: true
   intercooler_duties_kw:
     value:
     - 1941
     - 2877
     unit: kW
-    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-090): E-1101 sensible 1,941 kW; E-1102 sensible 2,337 kW +
-      808 kg/h condensed (540 kW, IAPWS-95 latent heat at 40 C); aftercooler E-1103 2,797 kW (2,312 + 486
-      kW, 726 kg/h). The three coolers 7,614 kW against the simulated Q1 7,728 kW (DESIGN.md D-089; 1.5 %
-      apart: Peng-Robinson water against IAPWS-95)'
+    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-090): E-1101 sensible 1,941 kW; E-1102
+      sensible 2,337 kW + 808 kg/h condensed (540 kW, IAPWS-95 latent heat at 40 C); aftercooler E-1103
+      2,797 kW (2,312 + 486 kW, 726 kg/h). The three coolers 7,614 kW against the simulated Q1 7,728 kW
+      (DESIGN.md D-089; 1.5 % apart: Peng-Robinson water against IAPWS-95)'
     assumed: true
 sizing_basis: []
-notes: 'Integrally geared, 3 stages, rated about 90,000 Nm3/h dry air (design point 85,840 Nm3/h at 80 % RH,
-  DESIGN.md D-066), 1.0 -> 6.02 bara (D-089), 9.0 MW 6.6 kV motor (rating, was 8.0 MW), IGV + anti-surge
+notes: 'Integrally geared, 3 stages, rated about 90,000 Nm3/h dry air (design point 85,840 Nm3/h at 80
+  % RH, DESIGN.md D-066), 1.0 -> 6.02 bara (D-089), 9.0 MW 6.6 kV motor (rating, was 8.0 MW), IGV + anti-surge
   blow-off. Train with gearbox and motor on one base 12 x 6 x 5 m. ASSUMED. Powers from the DWSIM simulation
   (DESIGN.md D-057, D-089): 6,894 kW at the compressor, 7,288 kW electric at the drive efficiency 0.946;
-  motor check 8,152 kW (110 % at the rating) against 9,000 kW.
-  Condensate S1C 1,609 kg/h from the E-1102 and E-1103 moisture separators (CD-1001 / CD-1002, D-064).
-  Stage temperatures and cooler duties from scripts/datasheet_sizing.py section 1 (DESIGN.md D-090). The
-  vendor confirms the stage efficiency, the IGV range and the motor (D-066); the motor weight, ~34 t
-  ASSUMED, sets the B1 crane (D-070).'
+  motor check 8,152 kW (110 % at the rating) against 9,000 kW. Condensate S1C 1,609 kg/h from the E-1102
+  and E-1103 moisture separators (CD-1001 / CD-1002, D-064). Stage temperatures and cooler duties from
+  scripts/datasheet_sizing.py section 1 (DESIGN.md D-090). The vendor confirms the stage efficiency, the
+  IGV range and the motor (D-066); the motor weight, ~34 t ASSUMED, sets the B1 crane (D-070).'

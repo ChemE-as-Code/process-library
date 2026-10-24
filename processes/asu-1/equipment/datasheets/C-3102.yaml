@@ -44,9 +44,9 @@ operating:
   gox_purity_simulated:
     value: 99.71
     unit: mol% O2
-    source: '`cheme process simulate` (DESIGN.md D-066): S15 O2 99.71, Ar 0.29 %, against the 99.5 % of the
-      design basis (process/design-basis.yaml): met with a 1,700 kg/h (1.8 %) HP-air margin on the fitted
-      Ar/O2 kij; was 97.0 % (D-059)'
+    source: '`cheme process simulate` (DESIGN.md D-066): S15 O2 99.71, Ar 0.29 %, against the 99.5 % of
+      the design basis (process/design-basis.yaml): met with a 1,700 kg/h (1.8 %) HP-air margin on the
+      fitted Ar/O2 kij; was 97.0 % (D-059)'
     assumed: true
   lox_purity_simulated:
     value: 99.81
@@ -66,6 +66,50 @@ materials:
   main:
     value: Aluminium 5083
     source: equipment/equipment-list.yaml
+dimensions:
+  orientation: vertical
+  outside_diameter:
+    value: 4.2
+    unit: m
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.diameter; ASSUMED at basic
+      engineering (equipment list header, DESIGN.md D-028): the supplier sets it'
+    assumed: true
+  overall_height:
+    value: 30.0
+    unit: m
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.height; ASSUMED at basic
+      engineering (equipment list header, DESIGN.md D-028): the supplier sets it'
+    assumed: true
+  head:
+    value: ellipsoidal_2_1
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.head'
+  support:
+    type:
+      value: none
+      source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.support'
+    elevation:
+      value: 20.0
+      unit: m
+      source: 'cheme datasheets fill: layout/plant-model.yaml C-3102 position z (layout/equipment-placement.yaml):
+        the base above grade'
+    stands_on:
+      value: C-3101
+      source: 'cheme datasheets fill: layout/plant-model.yaml: the top of C-3101 at the base of C-3102,
+        under its plan outline'
+  tangent_length:
+    value: 27.9
+    unit: m
+    source: 'cheme datasheets fill: layout/plant-model.yaml part C-3102/shell: the generated shell between
+      the heads (the 3D model''s proportions, not a vessel design)'
+    assumed: true
+weights:
+  empty:
+    value: 30.0
+    unit: t
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.weight (empty); ASSUMED
+      (equipment list header, DESIGN.md D-034): typical size of the duty, the item''s basis in its list
+      note, cross-checked in D-081 (5); the supplier gives the weight'
+    assumed: true
 nozzles:
 - name: N1
   dn: 800
@@ -80,8 +124,8 @@ nozzles:
   face: side
   orientation_deg: 90
   elevation_m: 24.3
-  location_source: layout/equipment-placement.yaml (PSV-3114 inlet north, in the 2.4 m gap to the
-    north casing wall; elevation above the column's base on C-3101; D-033 (4), D-055 (8))
+  location_source: layout/equipment-placement.yaml (PSV-3114 inlet north, in the 2.4 m gap to the north
+    casing wall; elevation above the column's base on C-3101; D-033 (4), D-055 (8))
 - name: N3
   dn: 350
   lines:
@@ -90,8 +134,8 @@ nozzles:
   face: side
   orientation_deg: 270
   elevation_m: 18.8
-  location_source: layout/equipment-placement.yaml (Lachmann air from the expander, south; D-033
-    (4), D-055 (8))
+  location_source: layout/equipment-placement.yaml (Lachmann air from the expander, south; D-033 (4),
+    D-055 (8))
 - name: N4
   dn: 100
   lines:
@@ -119,8 +163,7 @@ nozzles:
   face: side
   orientation_deg: 90
   elevation_m: 2.4
-  location_source: layout/equipment-placement.yaml (LOX draw north towards the rack; D-028, D-055
-    (8))
+  location_source: layout/equipment-placement.yaml (LOX draw north towards the rack; D-028, D-055 (8))
 - name: I1
   lines: []
   source: pid/P-03.xml
@@ -149,11 +192,11 @@ type_specific:
   minimum_stages:
     value: 10.92
     unit: ''
-    source: 'scripts/datasheet_sizing.py section 7 (DESIGN.md D-068 (6)): Fenske between the waste N2 top S16 (130 kPa(a), dew
-      80.87 K) and the simulated GOX S15 (99.71 % O2, 140 kPa(a), bubble 93.27 K), keys Ar/O2, alpha 1.500
-      (geometric mean, property adapter thermo 0.6.1, PR); a lower bound only. The keys N2/O2 give 32.1 on
-      the simulated GOX''s numerically-zero N2 (1e-17) and are not used; Fenske, Ind. Eng. Chem. 24 (1932)
-      482'
+    source: 'scripts/datasheet_sizing.py section 7 (DESIGN.md D-068 (6)): Fenske between the waste N2
+      top S16 (130 kPa(a), dew 80.87 K) and the simulated GOX S15 (99.71 % O2, 140 kPa(a), bubble 93.27
+      K), keys Ar/O2, alpha 1.500 (geometric mean, property adapter thermo 0.6.1, PR); a lower bound only.
+      The keys N2/O2 give 32.1 on the simulated GOX''s numerically-zero N2 (1e-17) and are not used; Fenske,
+      Ind. Eng. Chem. 24 (1932) 482'
     assumed: true
   theoretical_stages:
     value: 59
@@ -171,8 +214,8 @@ type_specific:
     value: 20
     unit: '%'
     source: 'DESIGN.md D-066: the top vapour (waste N2 S16 76,560 against 63,750 kg/h) +20 %; at the same
-      capacity factor the 4.2 m column becomes about 4.6 m (D x sqrt(1.20), ASSUMED scaling), for the cold box
-      supplier''s rating'
+      capacity factor the 4.2 m column becomes about 4.6 m (D x sqrt(1.20), ASSUMED scaling), for the
+      cold box supplier''s rating'
     assumed: true
   gox_draw:
     value: vapour from the sump (stage 59)
@@ -193,9 +236,9 @@ type_specific:
   flooding_diameter_m:
     value: supplier
     unit: m
-    reason: 'cold box supplier''s hydraulic rating at the simulated vapour and liquid loads (no flooding
+    reason: cold box supplier's hydraulic rating at the simulated vapour and liquid loads (no flooding
       correlation in cheme-as-code is cleanly sourced); the 4.2 m of the equipment list is ASSUMED and
-      sees 20 % more top vapour since D-066 (about 4.6 m at the same capacity factor)'
+      sees 20 % more top vapour since D-066 (about 4.6 m at the same capacity factor)
   process_streams:
   - stream: S6
     direction: in
@@ -228,10 +271,11 @@ type_specific:
       kg/h), and with three feeds and three products the one-feed Underwood minimum does not apply
 sizing_basis:
 - parameter: stages, feeds, temperatures
-  value: the DWSIM double-column simulation (Peng-Robinson, Ar/O2 kij 0.0143 fitted to the REFPROP mixture model)
+  value: the DWSIM double-column simulation (Peng-Robinson, Ar/O2 kij 0.0143 fitted to the REFPROP mixture
+    model)
   reference: DESIGN.md D-066
-notes: 'Structured packing, top 1.3 bara (ASSUMED; held by the waste-N2 path, D-071). O2 service in the lower
-  section. Stands on C-3101 (stacked double column), E-3103 in its sump. ASSUMED. DESIGN.md D-066, D-068 (6):
-  59 theoretical stages with LN on 1, crude on 14 and Lachmann air on 16; top -192.3 C, sump -179.9 C; GOX
-  99.71 % O2, LOX 99.81 %, waste N2 76,560 kg/h (+20 % top vapour). Packing heights and diameter are the cold
-  box supplier''s (markers).'
+notes: 'Structured packing, top 1.3 bara (ASSUMED; held by the waste-N2 path, D-071). O2 service in the
+  lower section. Stands on C-3101 (stacked double column), E-3103 in its sump. ASSUMED. DESIGN.md D-066,
+  D-068 (6): 59 theoretical stages with LN on 1, crude on 14 and Lachmann air on 16; top -192.3 C, sump
+  -179.9 C; GOX 99.71 % O2, LOX 99.81 %, waste N2 76,560 kg/h (+20 % top vapour). Packing heights and
+  diameter are the cold box supplier''s (markers).'

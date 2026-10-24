@@ -1149,7 +1149,7 @@ pulled with a hoist (vendor).
 heater and the heater cable comes in from the north. The LIN vaporizer outlets GAN-4003 are
 collected south of E-4106A/B at 4.5 m and rise east of them, so E-4106B lifts clear from
 Z-PAD-A5N. E-4105A/B unchanged.
-(6) **Erection lifts are not in the maintenance study**: items lifted once, before the piping
+(6) **Erection lifts are not in the maintenance study** (weights superseded by D-081 (5)): items lifted once, before the piping
 and racks, by the erection crane: K-1101 train ~85 t (D-034), C-1101 ~55 t, C-1102 ~25 t,
 V-2101A/B ~49 t each, all ASSUMED order of magnitude: shell mass pi x D x L x t x 7.85 t/m3
 with the shell thickness from the thin-shell formula t = P R / (S E - 0.6 P) + 3 mm corrosion
@@ -3317,6 +3317,234 @@ them) and the script still gave the 5.8 / 5.7 bara state.
 
 Open: the simulation owner's answer to (1) (S2 +4 kPa or the nozzle losses inside the
 allowables); the adsorber, F-2101 clean and change-out drops from the suppliers.
+
+## D-081 Datasheet main dimensions, empty weights and outline drawings (2026-10-23)
+Decision (amends D-042, D-045; numbered D-066 on its branch, renumbered when main's D-066 to
+D-090 were merged): the datasheets carry the main dimensions and the empty weight, and each has
+a generated outline drawing `equipment/datasheets/<TAG>.svg`, so the enquiry to a supplier
+shows the envelope the layout was built on. Tooling: cheme-as-code 0.8.0
+(`cheme datasheets fill --dimensions`, `cheme datasheets drawing --write`).
+1. **Where the values come from.** `fill --dimensions` copies the equipment list's
+   `dimensions` (diameter, length, width, height, head, support, empty `weight`) and the plan
+   axis from `layout/equipment-placement.yaml`, and for an item placed above grade its base
+   elevation and what it stands on (`support.elevation`, `support.stands_on`: C-3102 on C-3101
+   at 20.0 m, E-3102 at 20.0 m, T-4101 / T-4102 on their 0.5 m foundations); nothing written
+   by hand is overwritten and no TBD is added. The fill changed no value of the equipment list.
+   Every size and weight it copies is the list's ASSUMED value (list header: sizes D-028,
+   weights D-034 or (5)), but cheme-as-code 0.8.0's fill writes them without `assumed: true`;
+   after review17#1 each copied outside diameter, overall length, width and height and each
+   empty weight carries `assumed: true` with that source (140 fields on 39 datasheets; the (5)
+   weights had it already), so the drawings print them with the `*` ASSUMED mark. Core
+   suggestion: `fill --dimensions` carries the list's ASSUMED status.
+   At the fill the list gave no empty weight for C-1101, C-1102, F-1101, K-1101 (only a
+   `lift_weight`), T-4101, T-4102 and V-2101A/B, so their datasheets had none; (5) has since
+   given each an ASSUMED empty weight in the list and in the datasheet (52, 36, 10, 89, 26, 35
+   and 61 t each). E-3103 has no dimensions of its own (internal
+   of C-3102, D-028) and states `dimensions: {housed_in: C-3102}`, so its drawing says
+   "housed in C-3102" instead of an empty dimension list. Rerun on the merged state (main to
+   D-090, E-3105 added by D-069): 39 of 40 datasheets filled, the values of the branch
+   unchanged. `plant.yaml` requires cheme-as-code >= 0.8: these fields are 0.8.0's, and a 0.7
+   build rejects them as schema errors rather than asking for the upgrade.
+2. **Tangent lengths and support heights are ASSUMED.** The list gives overall sizes only;
+   the tangent-to-tangent length and the skirt / saddle / leg height are read from the shells
+   the 3D model generates (`layout/plant-model.yaml`), marked `assumed: true` with that
+   source. They are the model's proportions, not a vessel design: the vessel and cold box
+   suppliers set them. Tangent lengths: C-1101 20.0, C-1102 17.11, C-3101 15.5, C-3102 27.9,
+   E-1101 / E-1102 6.64, E-1103 5.81, E-3104 4.15, E-3105 4.175, E-4102 4.1, E-4103 3.27,
+   F-2101 2.65, T-4101 9.748, T-4102 11.88, V-2101A/B 15.75, V-3101 3.824 m. Support heights:
+   C-1101 4.0, C-1102 3.765, C-3101 3.45 (skirts), V-2101A/B 2.0, E-1101 / E-1102 / E-1103 /
+   E-3104 / E-3105 / E-4102 / E-4103 0.8 (saddles), F-2101 0.975 m (legs).
+3. **Drawings.** The SVGs are generated from the datasheets (never edited by hand) and carry
+   the datasheet's sha256; `cheme validate` warns `cheme.datasheet-drawing-stale` when one no
+   longer follows its datasheet, so rerun `cheme datasheets drawing --write` after a datasheet
+   change. They are DRAFT outlines: nozzle stubs without `projection_m` are drawn 0.3 m, saddle
+   positions are schematic, nozzles without a location on the datasheet are listed but not
+   drawn ((8)). **"datasheet final" in the title block is not an issue status** (review17#4):
+   the generator prints the datasheet's `draft: false`, which means every value has its source
+   (the `datasheets` gate counts only such datasheets), not that the drawing is issued or
+   approved. cheme-as-code 0.8.0 has no drawing status or revision field (the datasheet schema
+   holds only `draft`, and `drawing` takes no status option), and setting `draft: true` would
+   take the datasheets out of the gate, so the outlines carry no "for enquiry" mark of their
+   own: they are DRAFT outlines for enquiry, not approved for construction, until a revision
+   and approval are given. Core suggestion: a drawing status / revision printed next to the
+   datasheet's.
+   **Shell-and-tube exchangers drawn without channel and bonnet (deferred, PR #22 review).**
+   cheme-as-code 0.8.0 draws a horizontal item as the T-T shell between two heads of its `head`
+   type; the datasheet schema has no channel or bonnet. The layout model builds each of these
+   exchangers as bonnet + channel + shell + rear head, the overall length of the list. The
+   drawn outline is therefore shorter than the "overall" dimension written on it, whose
+   dimension line spans only the drawn outline: E-1101 / E-1102 drawn 7.44 m against 8 m
+   overall (model: bonnet 0.2 + channel 0.76 + shell 6.64 + rear head 0.4 m), E-1103 6.51 /
+   7 m (0.175 + 0.665 + 5.81 + 0.35), E-3104 4.65 / 5 m (0.125 + 0.475 + 4.15 + 0.25), E-3105
+   4.625 / 5 m (0.113 + 0.487 + 4.175 + 0.225), E-4102 4.70 / 5 m (0.15 + 0.45 + 4.1 + 0.3),
+   E-4103 3.77 / 4 m (0.125 + 0.355 + 3.27 + 0.25). The drawing centres the shell, so a
+   nozzle placed from the item's centre (`axial_m`, `offset_m`) sits up to half the difference
+   (0.28 m on E-1101 / E-1102) off its place on the shell, and a nozzle on the channel or
+   floating head (E-3105 N3, N6, N7) is drawn at or beyond the drawn head. The overall length
+   and the T-T in the drawing's table are right (the list's and the model's); for the channel and bonnet
+   the enquiry refers to `layout/plant-model.yaml` (parts `<TAG>/bonnet`, `/channel`). Not
+   fixed here: no datasheet field can express it without misstating the T-T or the overall
+   length. Core suggestion: a channel / bonnet length on the datasheet, drawn at the front
+   head.
+4. **Checks.** After the fill, `cheme validate` reports no `cheme.datasheet-dimension-mismatch`,
+   no datasheet nozzle finding against the P&IDs or the layout model and no stale drawing.
+5. **Empty weights of the erected-once items (amends D-034 (1), D-041 (6)).** D-034 gave weights only to
+   the items lifted whole in maintenance, so the LCA construction inventory counted the
+   columns, adsorbers, tanks, the filter house and the MAC train as zero. They now carry an
+   ASSUMED empty weight in the equipment list (`dimensions.weight`, which the LCA and the
+   datasheet fill read) and in the datasheets (with the basis, `assumed: true`):
+   - Pressure vessels and columns: wall thickness `e = P Di / (2 J f - P)` plus corrosion
+     allowance (Sinnott, Coulson & Richardson's Chemical Engineering Vol. 6, 4th ed., 2005,
+     Section 13.5), shell and heads by the dead-weight relation `W = Cw pi rho Dm (Hv + 0.8 Dm) t`
+     with `Cw` 1.15 for manways, supports and fittings (same, Section 13.8), steel 7,850 kg/m3;
+     ASSUMED inputs: joint factor J 0.85, design stress f of carbon steel 125 N/mm2 at 120 C and
+     100 N/mm2 at 250 C, 3 mm corrosion allowance, 12 mm minimum for a 4.5 m shell. C-1101
+     18 mm (8 barg) -> 47 t + skirt 5 t = **52 t**; C-1102 12 mm (2 mm for 1 barg) -> 32 t +
+     skirt 4 t = **36 t**; V-2101A/B 25 mm (8 barg, 250 C) -> **61 t** each. Packing, lining
+     and adsorbent are not included (supplier quantities; the adsorbent is a consumable in
+     `lca/lca.yaml`).
+   - Flat-bottom double-wall tanks: plate areas at 5 mm shell (the hydrostatic thickness is
+     3.9 / 4.1 mm; 5 mm is API 650's minimum shell plate below 15 m diameter), 6 mm bottoms,
+     5 mm roofs, SS inner and CS outer tank, x 1.15 for stiffeners, nozzles and internal
+     piping: T-4101 9.8 + 12.6 -> **26 t**, T-4102 13.4 + 16.6 -> **35 t**; perlite and the
+     bottom insulation not included.
+   - F-1101: 3 mm galvanized casing over the 208 m2 of the 6 x 4 x 8 m house = 4.9 t, doubled
+     (factor ASSUMED) for frame, hoppers, tube sheet, walkway and cartridges: **10 t**.
+   - K-1101: D-034's train of ~85 t with the 8 MW motor, +4 t for the 9 MW motor (30 -> 34 t,
+     D-070): **89 t** empty; its `lift_weight` stays the motor, 34 t, below the empty weight as it
+     must be (the lifting study lifts the motor, not the train).
+   - Cross-check of the existing cold box weights by the same relation (aluminium 5083, 2,700
+     kg/m3, f ~85 N/mm2 ASSUMED): C-3101 shell ~16 t at 20 mm plus its packing, C-3102 ~15 t at
+     12 mm plus packing and E-3103: the listed 25 / 30 t are of the right order and are kept.
+     E-3103 (brazed aluminium cores in the C-3102 sump) stays without a weight: the supplier's
+     (`cheme.lca-equipment-weight` names it, counted 0).
+   **These weights supersede the erection weights of D-041 (6)** (review17#3; amends D-041 (6),
+   whose text stays as history): C-1101 ~55 -> 52 t, C-1102 ~25 -> 36 t, V-2101A/B ~49 -> 61 t
+   each, F-1101 TBD -> 10 t, the K-1101 train ~85 -> 89 t. They govern the lifting study, the
+   basis handed to the construction lifting plan and the LCA, because they follow a stated
+   design-code wall thickness (design stress at the design temperature, joint factor, corrosion
+   allowance, 12 mm minimum for the 4.5 m shell) where D-041 (6) took an order-of-magnitude
+   shell mass at one stress (138 MPa) and 8 mm minimum: hence C-1102 +44 % (12 against 8 mm)
+   and V-2101A/B +24 % (100 N/mm2 at 250 C, 25 mm). Basis, as D-041 (6) also said: the vessel as
+   set, without packing, adsorbent or lining (loaded after setting); the 1.15 factor covers
+   manways, nozzles, supports and fittings, and D-041's x 1.3 for "internals" is not carried.
+   Shop-installed internals (packing supports, the C-1101 chimney tray, distributors) add to the
+   lift: the construction lifting plan uses the vessel supplier's shipping weight, which
+   replaces both figures.
+   Lifting: the lifting study lifts every item of 5 t or more outside the cold box casing, so the
+   new weights add C-1101, C-1102, F-1101 and V-2101A/B as rows (the tanks first too; (10)
+   takes them out). They are shop-built erection lifts, not maintenance lifts (D-034: set once
+   before the piping). The five findings these rows raise (no crane pad near F-1101, C-1102;
+   the V-2101A/B lanes crossed by piping built after them; no laydown for C-1102) are accepted
+   in `checks/checks.yaml` with that reason; the construction lifting plan sets those lifts.
+   Every other row is unchanged: each lifted weight equals the empty weight of the list and the
+   datasheet, except K-1101, which lifts its 34 t motor out of the 89 t train. The LCA construction phase rises from 0.57 to 0.72 kg CO2-eq per t GOX (total
+   142.77 -> 142.89; operation 142.36 unchanged).
+   LCA material of the tanks (PR #22 review): `lca/lca.yaml` counts mixed materials as carbon
+   steel, but its `SS*` entry came first and took the whole 26 / 35 t of the SS inner / CS outer
+   tanks (and the 8 t of the SS sheath / CS shell heater E-2101) as stainless steel. The carbon
+   steel entry (`*CS*`) now comes before the stainless one, so every item with a carbon steel
+   part is counted as carbon steel, as the file says: construction 0.721 -> 0.688, maintenance
+   0.172 -> 0.163, total 142.89 -> 142.85 kg CO2-eq per t GOX. The equipment take-off counts one
+   material per item (cheme-as-code 0.8.0 has no split by weight), so the tanks' SS inner plate
+   (9.8 + 13.4 t, x 1.15 = 26.7 t) is now counted at the carbon steel factor: about 0.013 kg
+   CO2-eq per t GOX too little in construction (plus 1 %/a of it in maintenance), where the old
+   mapping counted the 33.6 t of CS outer plate about 0.016 too high. Both are below 0.02 % of
+   the total; a split needs a material fraction per item in the take-off (core suggestion).
+6. **Tangent lengths: accepted as basic-engineering envelopes** (ASSUMED, the suppliers
+   confirm), after checking each against the process datasheets; none was inconsistent, so none
+   changed:
+   - Columns against stages and packing: C-3101 15.5 m T-T for 40 theoretical stages and
+     C-3102 27.9 m for 59 stages hold the packed heights at an HETP up to about 0.3 m (12 m and
+     17.7 m; ASSUMED order for the structured packing of air separation columns, the packing
+     heights stay the cold box supplier's markers) with ~2 m (C-3101 sump) and ~4 m (C-3102
+     sump with E-3103) and the distributors and collectors of four sections; at a larger HETP
+     the cold box supplier lengthens the shells inside the casing. C-1101 20.0 m and C-1102
+     17.11 m: their packing heights are supplier markers (transfer units, D-068 (8)); C-1101
+     holds the chimney tray at 13.0 / 13.8 m of D-086 with the upper bed above it.
+   - Shell-and-tube exchangers against their areas: a full bundle of 25.4 mm tubes on a
+     1.25 triangular pitch, two passes (bundle relation of Sinnott Section 12.5), in the listed
+     shell less 0.09 m and over the T-T less 0.1 m of tube sheets holds 1.2 to 5 times the
+     required area: E-1101 1,070 / 396 m2, E-1102 1,070 / 607, E-1103 683 / 557, E-3104 217 / 64,
+     E-3105 168 / 55, E-4102 332 / 72, E-4103 170 / 34 m2. The envelopes are upper bounds; the
+     supplier's tube length and count set the shell.
+   - Tanks against D-028 / D-017: T-4101 9.75 m and T-4102 11.88 m are the outer tanks'
+     shells; the inner tanks 6.4 x 8.6 m (277 m3 gross) and 7.2 x 10.8 m (440 m3) fit in them
+     with 1.1 m of bottom insulation and top space, as D-028 sized them.
+   - V-2101A/B 15.75 m, V-3101 3.82 m and F-2101 2.65 m follow from their listed overall
+     sizes and heads with no further process constraint at this stage.
+7. **Exchanger saddle height 0.8 m: kept, with this basis.** The 0.8 m is the list's overall
+   height less the shell diameter (D-028: "height = top of shell on its saddles"), the
+   underside of the shell above the floor or paving. None of these exchangers feeds a pump
+   suction (E-1101..E-1103, E-3104, E-3105, E-4102, E-4103 cool gases against cooling or
+   chilled water), so NPSH sets no elevation. In the layout model (`layout/plant-model.yaml`,
+   its generated neck and flange per DN, ASSUMED) the bottom nozzles' flange faces lie 0.49 to
+   0.63 m above the floor: the cooling water nozzles N3 / N4 of E-1101 / E-1102 / E-1103 at
+   0.49 m, of E-3104 at 0.57 m and of E-4102 / E-4103 at 0.59 m; the DN25 drains E-1102 N5,
+   E-1103 N5 and E-3105 N5 / N6 at 0.633 m, 0.167 m below the shell. Their datasheets carry
+   that 0.167 m as `projection_m` (ASSUMED, from the model), so their drawings show the stubs as
+   the model has them and not on the drawings' 0.3 m default. That height takes the shell and
+   channel drain valves with a drain funnel under them and the E-1102 / E-1103 separator
+   drains: N5 -> HV-1112 / HV-1113 -> float traps ST-1112 / ST-1113 on the 0.5 m runs of
+   CD-1001 / CD-1002 (D-065 (6)); the traps discharge on the air pressure, so the 0.13 m from
+   the drain flange down to those runs is enough fall. A higher setting would raise the bundles and their
+   top nozzles against the routed and pinned air lines without a process reason. The supplier
+   confirms the saddle height with the nozzle projections. E-3105's datasheet gave N5 / N6 / N7
+   no `offset_m` and N3 / N4 no `axial_m`, so its drawing put N7 (and N5 / N6 under it) on the
+   middle of the shell and left N3 / N4 off; they now carry the positions of the placement as
+   the model builds them (N3 -2.2, N4 +2.3 m along the axis, N5 1.5, N6 2.3, N7 2.4 m off the
+   centre), no position changed.
+8. **The rest of the PR #22 checklist.** Nozzle service, rating and facing stay "-" on the
+   schedules: a later datasheet pass gives them with the piping classes, not invented here.
+   Nozzles undrawn (listed with a dagger, "location not given"), corrected after the PR #22
+   review, which found the earlier text named only the tappings and C-3102:
+   - the instrument tappings `I*` without a decided location (D-045);
+   - every nozzle of the items drawn as box outlines (below), whose view draws no nozzles even
+     where the datasheet locates them: E-2101, E-3101, E-3102, E-4101, E-4105A/B, E-4106A/B,
+     F-1101, K-1101, K-3101, K-4101, K-4102, KT-3101 and the pumps P-1101A/B, P-1102A/B,
+     P-4101A/B, P-4102A/B;
+   - E-3103 N1 / N2 (housed in C-3102, (1));
+   - process nozzles of round items whose position no decision sets: C-1102 N1..N5, C-3102
+     N1, N4, N5, E-1101 N1..N4, E-1102 N1..N4, E-1103 N3 / N4, E-3104 N1..N4, E-4102 N3 / N4,
+     E-4103 N3 / N4, F-2101 N1 / N2, V-3101 N1 / N2. The layout model places all of them, but there they are
+     the generator's default from the side the P&ID draws them on (`basis: pid` in
+     `layout/plant-model.yaml`), not an override in `layout/equipment-placement.yaml`. The
+     datasheets carry only the placement's decided locations (`location_source`), so these
+     stay off the drawings. The layout was built on the model's positions (routes, and the
+     C-1102 platforms reviewed around N1, N2, N3 and the mid-height tapping, D-030), so until
+     a nozzle orientation pass with the piping study fixes them as placement overrides, the
+     enquiry refers to the model
+     for them; that pass puts them on the datasheets. Deferred, not fixed here: copying the
+     generated positions to the supplier would present defaults as decisions.
+   Project, client / site and revision stay empty in the
+   title blocks: `plant.yaml` has no project block and none was given. Plate exchangers,
+   machines, pumps, filters and E-4101 stay box outlines (the list gives L x W x H). Nozzle stub
+   lengths and saddle positions stay schematic (DRAFT drawings). With cheme-as-code 0.8.0 the
+   two core items are closed (`housed_in`, (1); C-3102 drawn on C-3101 at 20.0 m by
+   `support.stands_on` / `elevation`); the nozzle schedule falling back to the `lines:` remains
+   a core suggestion. Skills update and the next independent layout / datasheet review are
+   separate changes.
+9. **review14#1 (low, carried): the I-03 supplier requirements on the entries the suppliers
+   read.** The LIC-1114 instrument-list entry (the list's only entry for LV-1114) now states the
+   LV-1114 limit, fully open at most 2 x the normal 34.4 m3/h = 69 m3/h, and the C-1101 N7
+   nozzle carries the vortex breaker, both citing D-088 (4); no value changed. The N7
+   `service` is "Draw-off, vortex breaker", short enough for the drawing's nozzle schedule
+   (the schedule cuts a service at 25 characters, and the first, longer text showed neither the
+   breaker nor the purpose, review17#2); its line column gives CHWR-1001, and the full
+   requirement (seal-loss level 13.20 m = N7 bore top + 0.05 m) is in the datasheet's `notes`.
+10. **The field-erected tanks are not crane lifts (owner decision, 2026-10-24).** T-4101 and
+    T-4102 are flat-bottom double-wall tanks erected plate by plate on their foundations and
+    never lifted whole, so the lifting study, which covers real crane lifts, no longer shows
+    them as 26 / 35 t whole-tank lifts. Each carries `dimensions.lift_weight: 0.5` in the
+    equipment list: its heaviest maintenance lift, a roof fitting (relief / vacuum valve,
+    manway cover), 0.5 t ASSUMED (owner's figure, the tank supplier confirms it). That is
+    under the study's 5 t heavy-lift threshold, so the tanks drop out of the study (hoist or
+    small crane, no pad or lane study) and the two acceptances that covered their rows
+    (`layout-lifting:T-4101`, `layout-laydown:laydown-T-4102`) are removed from
+    `checks/checks.yaml`. The empty weights of (5) stay for the LCA and the datasheets. The
+    shop-built items (C-1101, C-1102, V-2101A/B, F-1101) stay as erection lifts with their
+    acceptances; K-1101 stays the maintenance lift of its 34 t motor. Plate handling during
+    tank erection is the tank erector's.
 
 ## D-082 Techno-economic analysis: premises and first result (2026-10-23)
 The first TEA of the plant (`estimate/tea.yaml`, `cheme assess tea`, skill `tea`; written

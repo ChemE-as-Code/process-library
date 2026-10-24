@@ -25,8 +25,8 @@ operating:
   discharge_pressure:
     value: 32.97
     unit: bar(a)
-    source: 'scripts/datasheet_sizing.py (D-060 (5)): 150 kPa(a) + rho g H (281.2 m): the GOX header 31 bara
-      plus the GOX-4004 line, PV-4111 and vaporizer drops (ASSUMED) and the static head to E-4105B'
+    source: 'scripts/datasheet_sizing.py (D-060 (5)): 150 kPa(a) + rho g H (281.2 m): the GOX header 31
+      bara plus the GOX-4004 line, PV-4111 and vaporizer drops (ASSUMED) and the static head to E-4105B'
     assumed: true
 design:
   pressure_barg:
@@ -41,6 +41,41 @@ materials:
   main:
     value: SS / bronze
     source: equipment/equipment-list.yaml
+dimensions:
+  overall_length:
+    value: 1.6
+    unit: m
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.length; ASSUMED at basic
+      engineering (equipment list header, DESIGN.md D-028): the supplier sets it'
+    assumed: true
+  overall_width:
+    value: 0.9
+    unit: m
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.width; ASSUMED at basic
+      engineering (equipment list header, DESIGN.md D-028): the supplier sets it'
+    assumed: true
+  overall_height:
+    value: 1.4
+    unit: m
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.height; ASSUMED at basic
+      engineering (equipment list header, DESIGN.md D-028): the supplier sets it'
+    assumed: true
+  support:
+    type:
+      value: base_plate
+      source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.support'
+  axis_deg:
+    value: 270.0
+    unit: deg
+    source: 'cheme datasheets fill: layout/plant-model.yaml P-4101B rotation_deg (layout/equipment-placement.yaml)'
+weights:
+  empty:
+    value: 2.0
+    unit: t
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.weight (empty); ASSUMED
+      (equipment list header, DESIGN.md D-034): typical size of the duty, the item''s basis in its list
+      note; the supplier gives the weight'
+    assumed: true
 nozzles:
 - name: N1
   dn: 80
@@ -78,24 +113,25 @@ type_specific:
   differential_head_m:
     value: 281.2
     unit: m
-    source: 'scripts/datasheet_sizing.py (D-060 (5)), chemeascode pumps.size_pump: H = (3257.5 - 150) kPa
-      / (rho g) 277.72 m + static 3.0 m (T-4101/N4 z 1.0 m to E-4105B/N1 z 4.0 m, layout/plant-model.yaml)
+    source: 'scripts/datasheet_sizing.py (D-060 (5)), chemeascode pumps.size_pump: H = (3257.5 - 150)
+      kPa / (rho g) 277.72 m + static 3.0 m (T-4101/N4 z 1.0 m to E-4105B/N1 z 4.0 m, layout/plant-model.yaml)
       + suction loss 0.013 m + discharge loss 0.499 m (routed LOX-4001 / LOX-4002, schedule 10S ASSUMED,
       Darcy-Weisbach / Colebrook) = 281.2 m; 3257.5 kPa(a) at the vaporizer inlet = GOX header 3100 kPa(a)
-      (S8, 31 bara given) + GOX-4004 routed gas line 7.5 kPa (O2 at -15 C, Yoon-Thodos viscosity) +
-      PV-4111 100 kPa + vaporizer 50 kPa (both ASSUMED until the valve and vaporizer suppliers'' figures);
-      rho 1141 kg/m3 (D-042)'
+      (S8, 31 bara given) + GOX-4004 routed gas line 7.5 kPa (O2 at -15 C, Yoon-Thodos viscosity) + PV-4111
+      100 kPa + vaporizer 50 kPa (both ASSUMED until the valve and vaporizer suppliers'' figures); rho
+      1141 kg/m3 (D-042)'
     assumed: true
   npsh_available_m:
     value: 0.34
     unit: m
-    source: 'scripts/datasheet_sizing.py (D-053 (8), D-055 (5)): NPSHa = (p_tank - p_vap) / (rho g) + static
-      - losses with the liquid saturated at the tank pressure (p_tank = p_vap) and no liquid above the tank
-      outlet: static 0.35 m (T-4101/N4 at z 1.00 m, the tank on its 0.5 m plinth, suction N1 at z 0.65 m,
-      layout/plant-model.yaml) - suction loss 0.013 m (routed LOX-4001 S1, S3 falling to the pump, schedule
-      10S ASSUMED, Darcy-Weisbach / Colebrook, rho 1141 kg/m3 D-042, mu 0.177 mPa s thermo correlation
-      ASSUMED; the two ball valves have no K in the table and are not counted). The liquid above N4 adds to
-      it; the low-low level of LIA-4107 must hold NPSHr (supplier) - 0.34 m + margin of liquid above N4'
+    source: 'scripts/datasheet_sizing.py (D-053 (8), D-055 (5)): NPSHa = (p_tank - p_vap) / (rho g) +
+      static - losses with the liquid saturated at the tank pressure (p_tank = p_vap) and no liquid above
+      the tank outlet: static 0.35 m (T-4101/N4 at z 1.00 m, the tank on its 0.5 m plinth, suction N1
+      at z 0.65 m, layout/plant-model.yaml) - suction loss 0.013 m (routed LOX-4001 S1, S3 falling to
+      the pump, schedule 10S ASSUMED, Darcy-Weisbach / Colebrook, rho 1141 kg/m3 D-042, mu 0.177 mPa s
+      thermo correlation ASSUMED; the two ball valves have no K in the table and are not counted). The
+      liquid above N4 adds to it; the low-low level of LIA-4107 must hold NPSHr (supplier) - 0.34 m +
+      margin of liquid above N4'
     assumed: true
   shaft_power_kw:
     value: 7.97

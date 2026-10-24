@@ -14,7 +14,8 @@ operating:
   source_pressure:
     value: 1.05
     unit: bar(a)
-    source: 'C-1102 sump at its gas inlet pressure, process/flowsheet.yaml stream S12B (ASSUMED: DESIGN.md 3)'
+    source: 'C-1102 sump at its gas inlet pressure, process/flowsheet.yaml stream S12B (ASSUMED: DESIGN.md
+      3)'
     assumed: true
   destination_pressure:
     value: 5.92
@@ -39,6 +40,41 @@ materials:
   main:
     value: CS / SS impeller
     source: equipment/equipment-list.yaml
+dimensions:
+  overall_length:
+    value: 2.0
+    unit: m
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.length; ASSUMED at basic
+      engineering (equipment list header, DESIGN.md D-028): the supplier sets it'
+    assumed: true
+  overall_width:
+    value: 0.8
+    unit: m
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.width; ASSUMED at basic
+      engineering (equipment list header, DESIGN.md D-028): the supplier sets it'
+    assumed: true
+  overall_height:
+    value: 1.1
+    unit: m
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.height; ASSUMED at basic
+      engineering (equipment list header, DESIGN.md D-028): the supplier sets it'
+    assumed: true
+  support:
+    type:
+      value: base_plate
+      source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.support'
+  axis_deg:
+    value: 180.0
+    unit: deg
+    source: 'cheme datasheets fill: layout/plant-model.yaml P-1102B rotation_deg (layout/equipment-placement.yaml)'
+weights:
+  empty:
+    value: 1.5
+    unit: t
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.weight (empty); ASSUMED
+      (equipment list header, DESIGN.md D-034): typical size of the duty, the item''s basis in its list
+      note; the supplier gives the weight'
+    assumed: true
 nozzles:
 - name: N1
   dn: 150
@@ -75,25 +111,26 @@ type_specific:
   differential_head_m:
     value: 78.06
     unit: m
-    source: 'scripts/datasheet_sizing.py (D-053 (9), D-090): H = (592 - 105) kPa / (rho g) 49.68 m + static 17.43 m
-      (C-1101/N4 at z 19.83 m - C-1102/N4 at z 2.41 m, layout/plant-model.yaml; liquid level not counted)
-      + line losses 0.75 m (suction 0.12, discharge 0.64 m; Darcy-Weisbach / Colebrook along the routed
-      CHW-1001 S1, S3, S5, S7, S6, schedule 40, commercial steel roughness, fittings K of Perry''s 7th ed.
-      Table 6-4; the suction ball valve has no K there and is not counted) + allowance 100 kPa 10.2 m for
-      the control valve, strainer and the C-1101 liquid distributor (ASSUMED, D-053); water IAPWS-95 at 10 C'
+    source: 'scripts/datasheet_sizing.py (D-053 (9), D-090): H = (592 - 105) kPa / (rho g) 49.68 m + static
+      17.43 m (C-1101/N4 at z 19.83 m - C-1102/N4 at z 2.41 m, layout/plant-model.yaml; liquid level not
+      counted) + line losses 0.75 m (suction 0.12, discharge 0.64 m; Darcy-Weisbach / Colebrook along
+      the routed CHW-1001 S1, S3, S5, S7, S6, schedule 40, commercial steel roughness, fittings K of Perry''s
+      7th ed. Table 6-4; the suction ball valve has no K there and is not counted) + allowance 100 kPa
+      10.2 m for the control valve, strainer and the C-1101 liquid distributor (ASSUMED, D-053); water
+      IAPWS-95 at 10 C'
     assumed: true
   npsh_available_m:
     value: 11.77
     unit: m
-    source: 'scripts/datasheet_sizing.py (D-053 (9), D-068 (8)): NPSHa = (105 - 1.23) kPa / (rho g) + 1.31 m (C-1102/N4
-      z 2.41 m above suction N1 z 1.10 m; liquid level not counted) - suction losses 0.12 m; p_vap IAPWS-95
-      at 10 C'
+    source: 'scripts/datasheet_sizing.py (D-053 (9), D-068 (8)): NPSHa = (105 - 1.23) kPa / (rho g) +
+      1.31 m (C-1102/N4 z 2.41 m above suction N1 z 1.10 m; liquid level not counted) - suction losses
+      0.12 m; p_vap IAPWS-95 at 10 C'
     assumed: true
   shaft_power_kw:
     value: 12.47
     unit: kW
-    source: 'scripts/datasheet_sizing.py (D-053 (9), D-090): P = m g H / eta = 12.22 kg/s x 9.80665 x 78.06 m / 0.75
-      (pump efficiency ASSUMED, D-053); 15 kW motor (electrical list, D-069)'
+    source: 'scripts/datasheet_sizing.py (D-053 (9), D-090): P = m g H / eta = 12.22 kg/s x 9.80665 x
+      78.06 m / 0.75 (pump efficiency ASSUMED, D-053); 15 kW motor (electrical list, D-069)'
     assumed: true
 sizing_basis: []
 notes: Auto-start standby. ASSUMED.

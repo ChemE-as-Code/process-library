@@ -10,13 +10,14 @@ operating:
   air_inlet_pressure:
     value: 3.34
     unit: bar(a)
-    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-090): K-1101 stage 2 discharge, (186.2 - 5 kPa) x 1.844 = 334.2 kPa(a) (equipment/datasheets/K-1101.yaml, S2 6.02 bara, D-089)'
+    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-090): K-1101 stage 2 discharge, (186.2
+      - 5 kPa) x 1.844 = 334.2 kPa(a) (equipment/datasheets/K-1101.yaml, S2 6.02 bara, D-089)'
     assumed: true
   air_inlet_temperature:
     value: 112.8
     unit: °C
-    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-090): K-1101 stage 2 discharge 385.99 K (ideal gas, Cp/Cv 1.399
-      at the suction, eta_s 0.82, process/simulation.yaml, ASSUMED)'
+    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-090): K-1101 stage 2 discharge 385.99
+      K (ideal gas, Cp/Cv 1.399 at the suction, eta_s 0.82, process/simulation.yaml, ASSUMED)'
     assumed: true
   air_outlet_temperature:
     value: 40
@@ -31,9 +32,9 @@ operating:
   condensate_flow:
     value: 808
     unit: kg/h
-    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-090): water above saturation at 40 C and 3.29 bara (IAPWS-95);
-      to the moisture separator drain, part of S1C (1,609 kg/h for E-1102 and E-1103 in the DWSIM
-      simulation, D-089)'
+    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-090): water above saturation at 40 C and
+      3.29 bara (IAPWS-95); to the moisture separator drain, part of S1C (1,609 kg/h for E-1102 and E-1103
+      in the DWSIM simulation, D-089)'
     assumed: true
   cooling_water_temperatures:
     value: 25 -> 35
@@ -42,7 +43,8 @@ operating:
   cooling_water_flow:
     value: 248.9
     unit: m3/h
-    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-090): Q / (cp 10 K), IAPWS-95 water at 30 C'
+    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-090): Q / (cp 10 K), IAPWS-95 water at
+      30 C'
     assumed: true
 design:
   pressure_barg:
@@ -57,6 +59,58 @@ materials:
   main:
     value: CS shell / SS tubes
     source: equipment/equipment-list.yaml
+dimensions:
+  orientation: horizontal
+  outside_diameter:
+    value: 1.6
+    unit: m
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.diameter; ASSUMED at basic
+      engineering (equipment list header, DESIGN.md D-028): the supplier sets it'
+    assumed: true
+  overall_length:
+    value: 8.0
+    unit: m
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.length; ASSUMED at basic
+      engineering (equipment list header, DESIGN.md D-028): the supplier sets it'
+    assumed: true
+  overall_height:
+    value: 2.4
+    unit: m
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.height (top of the shell on
+      its supports); ASSUMED at basic engineering (equipment list header, DESIGN.md D-028): the supplier
+      sets it'
+    assumed: true
+  head:
+    value: ellipsoidal_2_1
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.head'
+  support:
+    type:
+      value: saddles
+      source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.support'
+    height:
+      value: 0.8
+      unit: m
+      source: 'cheme datasheets fill: layout/plant-model.yaml part E-1102/shell: underside of the shell
+        above the base (the 3D model''s proportions, not a design)'
+      assumed: true
+  tangent_length:
+    value: 6.64
+    unit: m
+    source: 'cheme datasheets fill: layout/plant-model.yaml part E-1102/shell: the generated shell between
+      the heads (the 3D model''s proportions, not a vessel design)'
+    assumed: true
+  axis_deg:
+    value: 0.0
+    unit: deg
+    source: 'cheme datasheets fill: layout/plant-model.yaml E-1102 rotation_deg (layout/equipment-placement.yaml)'
+weights:
+  empty:
+    value: 12.0
+    unit: t
+    source: 'cheme datasheets fill: equipment/equipment-list.yaml dimensions.weight (empty); ASSUMED
+      (equipment list header, DESIGN.md D-034): typical size of the duty, the item''s basis in its list
+      note; the supplier gives the weight'
+    assumed: true
 nozzles:
 - name: N1
   dn: 700
@@ -87,7 +141,11 @@ nozzles:
   orientation_deg: 0
   offset_m: 3.2
   elevation_m: 0.8
-  location_source: layout/equipment-placement.yaml (shell bottom at the air-outlet end, DESIGN.md D-064)
+  projection_m: 0.167
+  location_source: layout/equipment-placement.yaml (shell bottom at the air-outlet end, DESIGN.md D-064);
+    projection from layout/plant-model.yaml E-1102/N5 (flange face at 0.633 m, shell underside 0.8 m;
+    the model's DN25 neck and flange, D-081 (7))
+  assumed: true
 type_specific:
   diameter_m:
     value: 1.6
@@ -108,24 +166,28 @@ type_specific:
   duty_kw:
     value: 2877
     unit: kW
-    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-090): sensible Q = n Cp (385.99 - 313.15 K) 2,337 kW (wet air
-      113,329 kg/h, dry-air Cp/Cv from the property adapter at the stage suction, water vapour IAPWS-95)
-      + 808 kg/h condensed x 2,406 kJ/kg (IAPWS-95 at 40 C) 540 kW; = the second intercooler duty of
-      equipment/datasheets/K-1101.yaml. The three MAC coolers 7,614 kW against the simulated Q1 7,728 kW
-      (D-089)'
+    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-090): sensible Q = n Cp (385.99 - 313.15
+      K) 2,337 kW (wet air 113,329 kg/h, dry-air Cp/Cv from the property adapter at the stage suction,
+      water vapour IAPWS-95) + 808 kg/h condensed x 2,406 kJ/kg (IAPWS-95 at 40 C) 540 kW; = the second
+      intercooler duty of equipment/datasheets/K-1101.yaml. The three MAC coolers 7,614 kW against the
+      simulated Q1 7,728 kW (D-089)'
     assumed: true
   lmtd_k:
-    value: [42.56, 17.54]
+    value:
+    - 42.56
+    - 17.54
     unit: K
-    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-065 (2), D-090), per zone: (1) desuperheating, air
-      385.99 -> 320.88 K (dew point of 3.35 mol% water at 329.2 kPa(a), IAPWS-95) against CW 300.89 -> 308.15
-      K, LMTD; (2) condensing, air 320.88 -> 313.15 K along the equilibrium cooling curve (gas kept
-      saturated) against CW 298.15 -> 300.89 K, mean temperature difference sum dQ / sum (dQ / dT) over 400
-      intervals. The single gas LMTD (38.16 K) puts the latent heat at the hot-end differences and is
-      not used'
+    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-065 (2), D-090), per zone: (1) desuperheating,
+      air 385.99 -> 320.88 K (dew point of 3.35 mol% water at 329.2 kPa(a), IAPWS-95) against CW 300.89
+      -> 308.15 K, LMTD; (2) condensing, air 320.88 -> 313.15 K along the equilibrium cooling curve (gas
+      kept saturated) against CW 298.15 -> 300.89 K, mean temperature difference sum dQ / sum (dQ / dT)
+      over 400 intervals. The single gas LMTD (38.16 K) puts the latent heat at the hot-end differences
+      and is not used'
     assumed: true
   lmtd_correction_f:
-    value: [0.9502, 0.9881]
+    value:
+    - 0.9502
+    - 0.9881
     unit: ''
     source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-065 (2)): per zone on its terminal temperatures,
       1-2 shell and tube (ASSUMED), Bowman, Mueller and Nagle, Trans. ASME 62 (1940) 283'
@@ -139,12 +201,12 @@ type_specific:
   area_m2:
     value: 607.0
     unit: m2
-    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-065 (2), D-090): sum of the zones, A = Q / (U F dT):
-      desuperheating 2,088.6 kW / (160 x 0.9502 x 42.56 K) = 322.8 m2 + condensing 788.2 kW (540.1 kW latent)
-      / (160 x 0.9881 x 17.54 K) = 284.2 m2; no margin. The gas-cooler U in the condensing zone as well
-      (ASSUMED; condensation raises the film coefficient, the supplier''s condensing-zone U may lower the
-      area). 605.2 m2 at the 5.98 bara discharge of D-079, 596.4 m2 at 5.8 bara of D-066, 527.5 m2 at the
-      D-058 air'
+    source: 'scripts/datasheet_sizing.py section 1 (DESIGN.md D-065 (2), D-090): sum of the zones, A =
+      Q / (U F dT): desuperheating 2,088.6 kW / (160 x 0.9502 x 42.56 K) = 322.8 m2 + condensing 788.2
+      kW (540.1 kW latent) / (160 x 0.9881 x 17.54 K) = 284.2 m2; no margin. The gas-cooler U in the condensing
+      zone as well (ASSUMED; condensation raises the film coefficient, the supplier''s condensing-zone
+      U may lower the area). 605.2 m2 at the 5.98 bara discharge of D-079, 596.4 m2 at 5.8 bara of D-066,
+      527.5 m2 at the D-058 air'
     assumed: true
 sizing_basis:
 - parameter: zone duties (enquiry basis for the MAC package)
@@ -154,8 +216,8 @@ sizing_basis:
   value: 47.7 C (3.35 mol% water at 3.29 bara, IAPWS-95)
   reference: DESIGN.md D-058, D-065 (2)
 notes: 'Cooling water tube side. ASSUMED. Condensing intercooler (DESIGN.md D-058): integral moisture
-  separator in the air outlet, drain nozzle N5 to CD-1001 with gate valve HV-1112 and float trap ST-1112 on
-  P-01, part of S1C (D-064). Separator type and pressure drop: supplier (MAC package). Enquiry requirements
+  separator in the air outlet, drain nozzle N5 to CD-1001 with gate valve HV-1112 and float trap ST-1112
+  on P-01, part of S1C (D-064). Separator type and pressure drop: supplier (MAC package). Enquiry requirements
   (D-065 (6)): a high-level alarm on the separator (switch or level transmitter to the DCS, supplier''s
   connection), the float trap with integral strainer and test valve, sized for 808 kg/h at 3.29 bara with
   margin, no trap bypass (an open bypass blows compressed air to the drain).'
