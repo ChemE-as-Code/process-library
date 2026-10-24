@@ -3332,8 +3332,11 @@ shows the envelope the layout was built on. Tooling: cheme-as-code 0.8.0
    by hand is overwritten and no TBD is added. No value of the equipment list changed. Items
    the list gives no empty weight for keep none (C-1101, C-1102, F-1101, K-1101 (only a
    `lift_weight`), T-4101, T-4102, V-2101A/B); E-3103 has no dimensions of its own (internal
-   of C-3102, D-028) and stays empty. Rerun on the merged state (main to D-090, E-3105 added
-   by D-069): 39 of 40 datasheets filled, the values of the branch unchanged.
+   of C-3102, D-028) and states `dimensions: {housed_in: C-3102}`, so its drawing says
+   "housed in C-3102" instead of an empty dimension list. Rerun on the merged state (main to
+   D-090, E-3105 added by D-069): 39 of 40 datasheets filled, the values of the branch
+   unchanged. `plant.yaml` requires cheme-as-code >= 0.8: these fields are 0.8.0's, and a 0.7
+   build rejects them as schema errors rather than asking for the upgrade.
 2. **Tangent lengths and support heights are ASSUMED.** The list gives overall sizes only;
    the tangent-to-tangent length and the skirt / saddle / leg height are read from the shells
    the 3D model generates (`layout/plant-model.yaml`), marked `assumed: true` with that
