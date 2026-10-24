@@ -4,6 +4,12 @@
    listed (it is the Atlas URL).
 2. Fill in `process.yaml`. Be honest about `maturity` (how far the design is taken) and
    `validation.status` (who has checked it): passing automated checks is not a review.
+   Optional `facets` let the Atlas filter processes; list only what the design has:
+   `feedstock_basis` (any of `fossil`, `biogenic`, `atmospheric`, `mineral`, `recycled`,
+   `water`, `electricity`), `product_classes` (slugs, e.g. `industrial-gases`, `fuels`,
+   `fertilizers`, `polymers`, `chemicals`, `materials`), `unit_operations` (slugs, e.g.
+   `cryogenic-distillation`, `adsorption`, `compression`, `reaction`, `electrolysis`) and
+   `region` (e.g. `generic`, `EU`). Reuse the slugs other processes already use.
 3. Every chemical under `chemistry` must be a slug of `chemicals/chemicals.yaml`; add new ones in
    the same change, with CAS, InChIKey and ChEBI where they exist. Grade and phase (GOX, LOX) go
    in the flow's `note`, not in the registry.

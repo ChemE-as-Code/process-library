@@ -462,3 +462,52 @@ def test_public_build_is_byte_identical(tmp_path: Path) -> None:
     assert files == sorted(p.relative_to(tmp_path / "b") for p in (tmp_path / "b").rglob("*") if p.is_file())
     for rel in files:
         assert (tmp_path / "a" / rel).read_bytes() == (tmp_path / "b" / rel).read_bytes(), rel
+
+
+# --- facets ------------------------------------------------------------------------------------
+
+EMPTY_FACETS = {"feedstock_basis": [], "product_classes": [], "unit_operations": [], "region": None}
+
+
+def test_facets_are_in_summary_and_detail(tmp_path: Path) -> None:
+    _build(LIBRARY, tmp_path / "out")
+    summaries = {p["id"]: p for p in _json(tmp_path / "out" / "catalog.json")["processes"]}
+    electrolysis = {
+        "feedstock_basis": ["water", "electricity"],
+        "product_classes": ["industrial-gases", "fuels"],
+        "unit_operations": ["electrolysis"],
+        "region": "generic",
+    }
+    assert summaries["fixture-electrolysis"]["facets"] == electrolysis
+    assert _json(tmp_path / "out" / "processes" / "fixture-electrolysis.json")["facets"] == electrolysis
+    # partial facets are completed: missing lists [], missing region null
+    ammonia = {**EMPTY_FACETS, "product_classes": ["fertilizers"], "unit_operations": ["reaction"]}
+    assert summaries["fixture-ammonia"]["facets"] == ammonia
+    assert _json(tmp_path / "out" / "processes" / "fixture-ammonia.json")["facets"] == ammonia
+
+
+def test_process_without_facets_gets_empty_facets(library: Path, tmp_path: Path) -> None:
+    _edit(library, "processes/fixture-ammonia/process.yaml", lambda m: m.pop("facets"))
+    assert _build(library, tmp_path / "out").errors == []
+    summary = next(p for p in _json(tmp_path / "out" / "catalog.json")["processes"] if p["id"] == "fixture-ammonia")
+    assert summary["facets"] == EMPTY_FACETS
+    assert _json(tmp_path / "out" / "processes" / "fixture-ammonia.json")["facets"] == EMPTY_FACETS
+
+
+def test_public_build_keeps_facets(tmp_path: Path) -> None:
+    _build(LIBRARY, tmp_path / "preview")
+    _public(LIBRARY, tmp_path / "pub")
+    preview = next(p for p in _json(tmp_path / "preview" / "catalog.json")["processes"] if p["id"] == "fixture-electrolysis")
+    assert _json(tmp_path / "pub" / "catalog.json")["processes"][0]["facets"] == preview["facets"]
+    rel = Path("processes") / "fixture-electrolysis.json"
+    assert _json(tmp_path / "pub" / rel)["facets"] == _json(tmp_path / "preview" / rel)["facets"]
+
+
+@pytest.mark.parametrize(
+    "facets",
+    [{"feedstock_basis": ["coal"]}, {"unit_operations": ["Cryogenic Distillation"]}, {"colour": "green"}],
+    ids=["bad-feedstock", "not-a-slug", "unknown-key"],
+)
+def test_bad_facets_are_schema_errors(library: Path, tmp_path: Path, facets: dict) -> None:
+    _edit(library, "processes/fixture-ammonia/process.yaml", lambda m: m.update(facets=facets))
+    assert any("facets" in e for e in _build(library, tmp_path / "out").errors)

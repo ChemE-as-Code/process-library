@@ -52,3 +52,24 @@ in its folder; the library job runs the tests (including the Brightway round tri
 the catalog and the LCI database, and the public catalog (`--public`: only processes with
 `publication.status: public`, placeholder footprints withheld; see CONTRIBUTING.md). Nothing is
 published.
+
+## Repository size
+
+A DEXPI P&ID is 1 to 3 MB of XML (ASU-1's folder is about 14 MB), and every revision stays in
+the history, so the clone grows with each process and each P&ID change. To keep that cheap:
+
+- **Shallow clones where no history is needed.** CI checks out with `fetch-depth: 1`, except
+  the library job, which builds the catalog: its git facts (each folder's last commit, whether
+  previews and snapshots are behind it) need the history, so it uses `fetch-depth: 0`. A
+  catalog built from a shallow clone gives every folder the head commit. For work on one
+  process, a shallow sparse clone is enough:
+  `git clone --depth 1 --filter=blob:none --sparse <url> && git sparse-checkout set processes/<id>`.
+- **Keep generated output out of git.** `build/` and `dist/` are ignored: previews, viewer
+  snapshots (about 14 MB per process) and the catalog are rebuilt from the sources.
+  `export_snapshots.py --cache DIR` reuses a snapshot until its folder, the `cheme` version or
+  the export options change.
+- **Git LFS only for large generated binaries** that must be versioned (renders, meshes,
+  spreadsheets exported for others), should they ever be committed. Never for the DEXPI XML or
+  other engineering sources: they must stay text, diffable (`diff=dexpi`, `.gitattributes`) and
+  reviewable. Blobs committed before a file moves to LFS stay in the history unless it is
+  rewritten (`git lfs migrate`), so decide before the first commit.
