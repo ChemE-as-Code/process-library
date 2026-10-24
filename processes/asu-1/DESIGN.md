@@ -4593,3 +4593,22 @@ For the HAZOP owner (H-04): the reassessment after this branch covers the follow
 
 Reason: control-review3 #1 and #2. A pipeline customer needs a held pressure, and a column
 must not be over-drawn.
+
+## D-097 Regional LCI background scenarios on the one design case (2026-10-24)
+The LCA gains two regional background scenarios on the same 500 t/d design case (core#172):
+`nl-grid` and `de-grid` (`lca/lca.yaml`, records in `lca/scenarios/`). They change the
+background only; flows, duties and capacity stay those of the design case, whose declared
+capacity is now recorded on the flowsheet case (`capacity`, `provenance: assumed`).
+
+- No openly licensed NL or DE grid factor is packaged with core, and none is invented here.
+- NL: the UK DESNZ 2026 grid is a declared proxy (`proxy:`), read as screening. Both grids are
+  gas-heavy; the proxy is disclosed, not relabelled NL.
+- DE: electricity and cooling water are declared `missing:`. The UK value would understate a
+  more coal-intensive grid, so a proxy is not defensible. The DE total is therefore marked not
+  comparable with the baseline (it lacks the dominant contributor), never a lower footprint.
+- The construction, transport and recycling mappings stay the UK ones in both; core names them
+  in each record's warnings.
+- Superseded when an openly licensed grid factor for the site's country is chosen (D-092).
+
+Reason: show the ASU in the Process Atlas for a site country without copying the project or
+claiming a regional footprint the data cannot support.

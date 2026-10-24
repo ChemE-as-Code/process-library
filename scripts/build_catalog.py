@@ -19,6 +19,8 @@ byte-identical:
 - ``chemicals.json``: the registry, each with the processes that make and use it
 - ``graph.json``: process and chemical nodes, input/output edges
 - ``artifacts/<id>/<sheet>.svg``: preview drawings copied from ``--artifacts``
+- ``scenarios/<id>/<scenario>.json``: core's per-scenario LCA records (``cheme assess
+  lca-scenarios --write``), for Brightway jobs and other consumers
 
 Summaries and details carry the manifest's ``facets`` (feedstock basis, product classes, unit
 operations, region), always with every key: a missing list is ``[]``, a missing region null.
@@ -38,6 +40,11 @@ library has it) or ``public`` (``--public``, for publication; rules in ``publica
   unit, boundary, allocation, categories, inventory, class and sources, but not its ``totals``
   and ``contributions`` (``values_withheld: <reason>``; the summary's headline ``value`` is
   null);
+- an LCA's design cases and regional scenarios (core's ``lca/scenarios/<id>.json`` records)
+  keep their geography, year, electricity, links and states in every build; a scenario whose
+  values may not be published (the LCA withheld, the record stale, or its own policy not
+  publishable) loses its ``totals`` (``values_withheld``), here and in its copied record
+  ``scenarios/<id>/<scenario>.json``;
 - an LCA's ``data_sources`` (from core's run manifest) stay in every build: the attribution its
   sources' licences ask for travels with the numbers;
 - a viewer snapshot is copied only if its manifest's ``excluded`` covers the publication
@@ -67,6 +74,8 @@ from jsonschema import Draft202012Validator
 from publication import LCA_RESULT_FILES, is_public, lca_withheld, snapshot_excludes
 
 CATALOG_SCHEMA = "cheme-as-code/catalog/v1"
+#: core's per-scenario LCA record (``cheme assess lca-scenarios``).
+SCENARIO_SCHEMA = "cheme/lca-scenario/v1"
 HERE = Path(__file__).resolve().parent
 #: A preview larger than this is listed but not copied; the page offers the source instead.
 MAX_PREVIEW_BYTES = 5_000_000
@@ -233,6 +242,15 @@ def _lca(folder: Path, where: str, report: Report) -> dict | None:
     else:
         factors_status = "mixed"
     allocation = study.get("allocation") or {}
+    scenario_part = _scenarios(folder, where, report, withheld)
+    # a scenario record says which totals are computable: a category whose data the baseline
+    # has is missing there (or all of whose contributions are gaps) has no total, never the
+    # lower sum results.csv gives
+    for scenario in scenario_part.get("scenarios", []):
+        if scenario["id"] in totals:
+            totals[scenario["id"]] = {
+                cat: value for cat, value in totals[scenario["id"]].items() if scenario["totals"].get(cat) is not None
+            }
     return {
         "goal": study.get("goal", ""),
         "functional_unit": {
@@ -289,7 +307,123 @@ def _lca(folder: Path, where: str, report: Report) -> dict | None:
         "sources": sorted(
             str(p.relative_to(folder)) for p in lca_dir.glob("*") if p.suffix in {".yaml", ".csv", ".md"}
         ),
+        **scenario_part,
     }
+
+
+#: What the catalog keeps of each exchange's link in a scenario record (core's linked inventory).
+LINK_FIELDS = (
+    "key", "title", "phase", "amount", "unit", "state", "background", "baseline", "replaced",
+    "location", "year", "status", "source_id", "note",
+)
+
+
+def _record_stale(folder: Path, record: dict) -> bool:
+    """Whether a scenario record's input fingerprints no longer match the files (core's rule)."""
+    import hashlib
+
+    for rel, sha in ((record.get("inputs") or {}).get("files") or {}).items():
+        target = folder / rel
+        if not target.is_file():
+            return True
+        content = target.read_bytes().replace(b"\r\n", b"\n")
+        if "sha256:" + hashlib.sha256(content).hexdigest() != sha:
+            return True
+    return False
+
+
+def _scenarios(folder: Path, where: str, report: Report, lca_withheld_reason: str | None) -> dict:
+    """The design cases and regional background scenarios of core's records
+    (``lca/scenarios/<id>.json``, ``cheme assess lca-scenarios --write``, schema
+    :data:`SCENARIO_SCHEMA`): one entry per scenario, the baseline first, each with its design
+    case, geography, year, electricity, foreground relation, linked exchanges (state: linked,
+    proxy, missing, ...), characterised totals per functional unit with the allocation, and
+    whether its values may be published (``withheld_reason``). No record: no scenarios."""
+    records = []
+    for path in sorted((folder / "lca" / "scenarios").glob("*.json")):
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except ValueError:
+            report.warn(where, f"{path.relative_to(folder)} does not parse: rewrite it with cheme assess lca-scenarios --write")
+            continue
+        if data.get("schema") != SCENARIO_SCHEMA:
+            report.warn(where, f"{path.relative_to(folder)}: schema {data.get('schema')!r}, expected {SCENARIO_SCHEMA}")
+            continue
+        records.append((path, data))
+    if not records:
+        return {}
+    records.sort(key=lambda r: (r[1]["scenario"]["kind"] != "baseline", r[1]["scenario"]["id"]))
+    cases: dict[str, dict] = {}
+    scenarios = []
+    for path, data in records:
+        case = data["design_case"]
+        foreground = data["foreground"]
+        known = cases.setdefault(
+            case["id"],
+            {
+                **case,
+                "foreground": {
+                    "layer": foreground["layer"],
+                    "basis": foreground["basis"],
+                    "boundary": foreground.get("boundary", ""),
+                    "fingerprint": foreground["fingerprint"],
+                    "exchanges": foreground["exchanges"],
+                },
+            },
+        )
+        if known["foreground"]["fingerprint"] != foreground["fingerprint"]:
+            report.warn(where, f"{path.relative_to(folder)}: case {case['id']} has another foreground than the other records (rewrite them together)")
+        stale = _record_stale(folder, data)
+        if stale:
+            report.warn(where, f"{path.relative_to(folder)} is stale: its inputs changed (cheme assess lca-scenarios --write)")
+        publication = data.get("publication") or {}
+        withheld = (
+            lca_withheld_reason
+            or ("stale-scenario-record" if stale else None)
+            or (None if publication.get("publishable") else f"{publication.get('policy') or 'unknown'}-sources")
+        )
+        impacts = data["impacts"]
+        scenario = data["scenario"]
+        scenarios.append(
+            {
+                "id": scenario["id"],
+                "record_id": data["id"],
+                "kind": scenario["kind"],
+                "title": scenario.get("title"),
+                "location": scenario.get("location"),
+                "year": scenario.get("year"),
+                "electricity": scenario.get("electricity"),
+                "source": scenario.get("source"),
+                "design_case": case["id"],
+                "relation": foreground["relation"],
+                "foreground_fingerprint": foreground["fingerprint"],
+                "layers": {
+                    "foreground": foreground["layer"],
+                    "linked_inventory": data["linked_inventory"]["layer"],
+                    "impacts": impacts["layer"],
+                },
+                "functional_unit": impacts["functional_unit"],
+                "allocation": impacts["allocation"],
+                "categories": impacts["categories"],
+                "totals": impacts["totals"],
+                "partial_categories": impacts.get("partial_categories", []),
+                "comparable": impacts.get("comparable", True),
+                "dropped": impacts.get("dropped", []),
+                "classification": impacts["classification"],
+                "reasons": impacts["reasons"],
+                "links": [{k: link.get(k) for k in LINK_FIELDS} for link in data["linked_inventory"]["exchanges"]],
+                "gaps": len({(g["key"], g["category"]) for g in data.get("gaps", [])}),
+                "notes": data.get("notes", []),
+                "warnings": [w["message"] for w in data.get("warnings", []) if w.get("level") != "info"],
+                "publication": publication,
+                "stale": stale,
+                "withheld_reason": withheld,
+                "record": f"scenarios/{folder.name}/{path.name}",
+            }
+        )
+    # the technology/configuration every case and scenario shares
+    technology = records[0][1].get("process", {}).get("technology")
+    return {"technology": technology, "design_cases": list(cases.values()), "scenarios": scenarios}
 
 
 def _gates(folder: Path) -> dict | None:
@@ -542,6 +676,8 @@ def build(
         }
         if public:
             _publish(detail)
+        for scenario in (lca or {}).get("scenarios", []):
+            _copy_record(folder, scenario, out, public)
         details.append(detail)
         baseline = (lca or {}).get("totals", {}).get("baseline", {})
         headline = None
@@ -651,6 +787,21 @@ def _publish(detail: dict) -> None:
     if lca and not lca["publishable"]:
         del lca["totals"], lca["contributions"]
         lca["values_withheld"] = lca["withheld_reason"]
+    for scenario in (lca or {}).get("scenarios", []):
+        if scenario["withheld_reason"]:
+            del scenario["totals"]
+            scenario["values_withheld"] = scenario["withheld_reason"]
+
+
+def _copy_record(folder: Path, scenario: dict, out: Path, public: bool) -> None:
+    """Core's full scenario record, for Brightway jobs and other consumers, at
+    ``scenarios/<process>/<scenario>.json``; in a public build without its impact numbers
+    when they may not be published (geography, states and gaps hold none)."""
+    data = json.loads((folder / "lca" / "scenarios" / Path(scenario["record"]).name).read_text(encoding="utf-8"))
+    if public and scenario["withheld_reason"]:
+        data["impacts"].pop("totals", None)
+        data["impacts"]["values_withheld"] = scenario["withheld_reason"]
+    _write(out / scenario["record"], data)
 
 
 def _write(path: Path, data: Any) -> None:

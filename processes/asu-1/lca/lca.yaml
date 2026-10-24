@@ -125,5 +125,29 @@ uncertainty:
     given: {gsd2: 1.05, source: "design basis"}
   factors: {pedigree: [2, 3, 1, 4, 3], source: "DESNZ 2026 company-reporting factors as proxies for an undecided site (D-092)"}
 
-# Scenarios: none until a published, openly licensed grid projection for the site's country is
-# chosen (D-092); the former grid-2040 example had no source.
+# Regional background scenarios (core#172, docs/framework/lci-scenarios.md): the same 500 t/d
+# design case and foreground, contextualised for a site country. No openly licensed NL or DE
+# grid factor is packaged with core yet, and none is invented here: NL uses the UK grid as a
+# declared proxy (both are gas-heavy grids of similar intensity, read as screening), DE declares
+# the electricity missing (its grid is more coal-intensive: the UK value would understate it).
+# The construction and transport factors stay the UK ones; core names them in each record.
+# A projection for the site's country follows when one is chosen (D-092).
+scenarios:
+  - id: nl-grid
+    title: "Site in the Netherlands: grid electricity (UK grid as declared proxy)"
+    location: NL
+    year: 2026
+    electricity: grid-average
+    proxy:
+      "feed:POWER": "UK grid average (DESNZ 2026) stands in for the NL grid: no openly licensed NL factor packaged yet; screening only"
+      "product:CW": "cooling water estimate on the UK grid stands in for NL"
+    source: "D-092: site country not decided; UK DESNZ 2026 factors as declared proxies"
+  - id: de-grid
+    title: "Site in Germany: grid electricity (no open factor yet)"
+    location: DE
+    year: 2026
+    electricity: grid-average
+    missing:
+      "feed:POWER": "no openly licensed DE grid factor packaged; the UK value would understate a more coal-intensive grid"
+      "product:CW": "the cooling water estimate rests on grid electricity, missing for DE"
+    source: "D-092: site country not decided; electricity declared missing rather than proxied"

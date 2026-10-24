@@ -1,0 +1,177 @@
+{
+  "schema": "cheme/lca-scenario/v1",
+  "id": "fixture-electrolysis/part-load/part-load",
+  "scenario": {
+    "id": "part-load",
+    "kind": "design-case",
+    "title": "Part load (separately computed case)",
+    "location": null,
+    "year": 2026,
+    "electricity": null,
+    "source": "SYNTHETIC fixture",
+    "replaces": {},
+    "missing": {},
+    "proxy": {}
+  },
+  "process": {
+    "dataset": "fixture-electrolysis",
+    "title": "Fixture: water electrolysis",
+    "technology": "PEM electrolysis (fixture)"
+  },
+  "design_case": {
+    "id": "part-load",
+    "description": "Part load, separately computed (synthetic): higher specific power",
+    "capacity": "0.6 t/d H2",
+    "provenance": "assumed",
+    "applicability": null,
+    "source": null,
+    "extrapolated": false
+  },
+  "foreground": {
+    "layer": "foreground",
+    "relation": "design-case",
+    "scope": "foreground",
+    "basis": "1 h of operation",
+    "boundary": "gate-to-gate foreground of the plant",
+    "fingerprint": "sha256:0b942f107e58213cede6d4d927ec616491100b29d883f8b1f1dcf5a2d81e0aba",
+    "exchanges": [
+      {
+        "key": "feed:WATER",
+        "title": "Deionised water",
+        "type": "input",
+        "phase": "operation",
+        "amount": 375.3,
+        "unit": "kg",
+        "provenance": "assumed"
+      },
+      {
+        "key": "feed:POWER",
+        "title": "Stack and balance-of-plant power",
+        "type": "input",
+        "phase": "operation",
+        "amount": 2500.0,
+        "unit": "kWh",
+        "provenance": "assumed"
+      },
+      {
+        "key": "product:H2",
+        "title": "Hydrogen at 30 bar",
+        "type": "product",
+        "phase": "operation",
+        "amount": 41.7,
+        "unit": "kg",
+        "provenance": "assumed"
+      },
+      {
+        "key": "product:O2",
+        "title": "Oxygen vented or sold",
+        "type": "product",
+        "phase": "operation",
+        "amount": 333.6,
+        "unit": "kg",
+        "provenance": "assumed"
+      }
+    ]
+  },
+  "linked_inventory": {
+    "layer": "linked-inventory",
+    "backend": "factors",
+    "basis": "1 h of operation",
+    "exchanges": [
+      {
+        "key": "feed:WATER",
+        "title": "Deionised water",
+        "phase": "operation",
+        "amount": 375.3,
+        "unit": "kg",
+        "state": "free",
+        "background": null,
+        "baseline": "free",
+        "replaced": false,
+        "location": null,
+        "year": null,
+        "status": null,
+        "source_id": null,
+        "note": null
+      },
+      {
+        "key": "feed:POWER",
+        "title": "Stack and balance-of-plant power",
+        "phase": "operation",
+        "amount": 2500.0,
+        "unit": "kWh",
+        "state": "proxy",
+        "background": "electricity",
+        "baseline": "factor:electricity",
+        "replaced": false,
+        "location": "GB",
+        "year": 2026,
+        "status": "PROXY",
+        "source_id": "fixture",
+        "note": "fixture grid for an undecided site"
+      }
+    ]
+  },
+  "impacts": {
+    "layer": "characterized-impact",
+    "functional_unit": {
+      "product": "H2",
+      "amount": 1,
+      "unit": "kg",
+      "kg": 1
+    },
+    "allocation": {
+      "method": "mass",
+      "shares": {
+        "H2": 0.111111,
+        "O2": 0.888889
+      }
+    },
+    "categories": [
+      {
+        "id": "climate-change",
+        "unit": "kg CO2-eq",
+        "method": "IPCC 2021 GWP100"
+      }
+    ],
+    "totals": {
+      "climate-change": 2.664535
+    },
+    "characterised_sum": {
+      "climate-change": 2.664535
+    },
+    "partial_categories": [],
+    "comparable": true,
+    "dropped": [],
+    "dropped_by_category": {},
+    "classification": "screening",
+    "reasons": [
+      "factors ASSUMED",
+      "climate categories only: a carbon footprint, not a multi-impact LCA"
+    ]
+  },
+  "gaps": [],
+  "notes": [
+    "design case part-load: the foreground was derived from that flowsheet case, not scaled from the baseline"
+  ],
+  "warnings": [],
+  "publication": {
+    "policy": "public",
+    "publishable": true,
+    "restricted_by": []
+  },
+  "inputs": {
+    "files": {
+      "lca/dataset.yaml": "sha256:61425f56f810504fb70a2508f1a7ea308928dfad8de01a5702693908dfa12103",
+      "lca/lca.yaml": "sha256:b200060ba8b4a534bd83e50c7b36c6ddb5ec65869bf9cf13077bdaa325152825"
+    },
+    "mapping": "sha256:fixture",
+    "scenario": "sha256:12d7968a013eb73b06670ba14ab6ebb391849a015d0a6659dab60d8e5c250ccf",
+    "background": {
+      "backend": "factors"
+    },
+    "software": {
+      "cheme-as-code": "0.8"
+    }
+  }
+}
