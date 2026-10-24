@@ -34,9 +34,14 @@ failures:
     interlocks: [I-04]
   - id: F-GOXC
     title: GOX compressor trip
-    response: "PIC-4101 vents the GOX that K-4101 no longer takes through PV-4101B (D-019), while PIC-3110 keeps holding the LP column pressure (D-095); the GOX loops go to manual; the GOX header falls and the LOX backup starts (SEQ-BACKUP-GOX)."
-    loops: [PIC-4101, PIC-4111]
+    response: "PIC-4101 vents the GOX that K-4101 no longer takes through PV-4101B (D-019), while PIC-3110 keeps holding the LP column pressure (D-095). The trip puts PIC-4102, FIC-4148 and PIC-4150 to tracking (proposed: the control system forces them to manual on the machine's stop signal, so they do not wind up). The GOX header falls and the LOX backup starts (SEQ-BACKUP-GOX). Whether PV-3110A/B and PV-4101B together take the full GOX make is open (their sizing)."
+    loops: [PIC-4101, PIC-3110, PIC-4102, FIC-4148, PIC-4150, PIC-4111]
     sequences: [SEQ-BACKUP-GOX]
+  - id: F-GANC
+    title: GAN compressor trip
+    response: "K-4102 stops; GAN from the HP column top backs up and the HP column pressure rises, so the column's balance changes and the LP column purity is upset. The trip puts PIC-4105 and FIC-3107 to tracking (proposed, as F-GOXC). The GAN header falls and the LIN backup starts (SEQ-BACKUP-GAN). Where the GAN goes while K-4102 stands (the off-spec vent XV-3105 / VNT-4004, or back through the main exchanger) is open."
+    loops: [PIC-4105, FIC-3107, PIC-4112]
+    sequences: [SEQ-BACKUP-GAN]
   - id: F-TSA
     title: TSA breakthrough (CO2 at the adsorber outlet)
     response: "AIA-2102 alarms at 1 ppm CO2 (ASSUMED). The intended answer to high-high (an early bed switch, or stopping the air to the cold box, D-006, D-010) is not yet a C&E interlock (H02-A1); until it is, it is an operator action on the alarm."
@@ -153,6 +158,7 @@ The front matter lists the failures and their designed responses, by id:
 - **F-CHW:** loss of chilled water.
 - **F-COMPANDER:** compander trip.
 - **F-GOXC:** GOX compressor trip.
+- **F-GANC:** GAN compressor trip.
 - **F-TSA:** TSA breakthrough.
 - **F-HC:** hydrocarbons in the sump.
 - **F-LEVEL:** tank low-low level.

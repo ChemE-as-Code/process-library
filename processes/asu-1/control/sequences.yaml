@@ -50,12 +50,14 @@ sequences:
         operator: "There is no isolation or vent between C-1101 and the cold box (AIR-2002): any air the MAC sends past UV-1102 goes through the TSA into the cold box. So the MAC stays on blow-off until SEQ-CB-START admits air; the path of the air through the warm cold box at the start of the cool-down is the cold box supplier's."
         next: end
     abort:
-      condition: {any: [{tag: K-1101, state: tripped}, {interlock: I-03, state: tripped}]}
+      condition: {tag: K-1101, state: tripped}
       actions:
         - {loop: FIC-1101, action: manual}
         - {tag: P-1101A, action: stop}
+        - {tag: P-1101B, action: stop}
         - {tag: P-1102A, action: stop}
-      notes: "The MAC trip actions are the vendor's and the C&E's; the DCAC pumps stop after the MAC (H01-A4). Nothing downstream runs yet, so no shutdown sequence follows."
+        - {tag: P-1102B, action: stop}
+      notes: "The MAC trip actions are the vendor's and the C&E's; the running DCAC pumps stop after the MAC (H01-A4). Nothing downstream runs yet, so no shutdown sequence follows. An I-03 trip does not stop the MAC: it closes XV-1115, and the start holds at S2 until the seal is back."
     reset: {latching: true, manual: true,
             condition: {text: the MAC vendor's trip reset after the cause has cleared},
             restart: {all: [{tag: LIC-1106, state: "within range"}, {loop: LIC-1114, state: "seal established"}]}}
@@ -207,8 +209,8 @@ sequences:
           - {loop: FIC-4148, action: auto}
           - {loop: PIC-4150, action: auto}
           - {loop: PIC-4102, action: auto, by: operator}
+          - {loop: PIC-4105, action: auto, by: operator}   # initialised to FIC-3107's set point (bumpless)
           - {loop: FIC-3107, action: cascade, by: operator}
-          - {loop: PIC-4105, action: auto, by: operator}
         complete: {all: [{loop: PIC-4101, state: "PV-4101B closed (K-4101 takes the GOX)"}, {loop: PIC-4102, state: at set point}, {loop: PIC-4105, state: at set point}]}
         operator: No ball valve opens against 30 bar of GOX (D-024). The limits FIC-4148 and PIC-4150 go to auto before PIC-4102 takes the guide vanes.
         next: end
