@@ -32,12 +32,15 @@ library has it) or ``public`` (``--public``, for publication; rules in ``publica
 
 - only processes with ``publication.status: public``; the others are absent from every file;
 - ``repository`` is dropped unless its ``access`` is ``public``, ``publication.exclude`` always;
-- an LCA with placeholder factors keeps its goal, functional unit, boundary, allocation,
-  categories, inventory and sources, but not its ``totals`` and ``contributions``
-  (``values_withheld: placeholder-factors``; the summary's headline ``value`` is null);
+- an LCA whose values may not be published (``publication.lca_withheld``: placeholder
+  factors, no run manifest ``lca/manifest.json``, or a result core's policy marks not
+  publishable, e.g. restricted sources such as a licensed database) keeps its goal, functional
+  unit, boundary, allocation, categories, inventory, class and sources, but not its ``totals``
+  and ``contributions`` (``values_withheld: <reason>``; the summary's headline ``value`` is
+  null);
 - a viewer snapshot is copied only if its manifest's ``excluded`` covers the publication
-  excludes (else an error), and for a placeholder LCA without its ``lca`` answer and LCA
-  result files.
+  excludes (else an error), and for a withheld LCA without its ``lca`` answer and LCA result
+  files.
 
     uv run build_catalog.py --library ../process-library --out dist [--artifacts build/previews] [--public]
 """
@@ -59,7 +62,7 @@ from typing import Any
 import yaml
 from jsonschema import Draft202012Validator
 
-from publication import LCA_RESULT_FILES, is_public, snapshot_excludes
+from publication import LCA_RESULT_FILES, is_public, lca_withheld, snapshot_excludes
 
 CATALOG_SCHEMA = "cheme-as-code/catalog/v1"
 HERE = Path(__file__).resolve().parent
@@ -206,6 +209,10 @@ def _lca(folder: Path, where: str, report: Report) -> dict | None:
     contributions.sort(key=lambda c: (c["category"], -abs(c["impact"]), c["key"]))
     totals = {s: {**sums.get(s, {}), **stated.get(s, {})} for s in sums.keys() | stated.keys()}
 
+    run = {}
+    if (lca_dir / "manifest.json").is_file():
+        run = (json.loads((lca_dir / "manifest.json").read_text(encoding="utf-8")) or {}).get("result") or {}
+    withheld = lca_withheld(folder)
     example = bool((factors or {}).get("example"))
     if example:
         factors_status = "placeholder"
@@ -226,6 +233,15 @@ def _lca(folder: Path, where: str, report: Report) -> dict | None:
         "allocation": allocation.get("method"),
         "backend": study.get("backend", "factors"),
         "factors_status": factors_status,
+        # core's classification (complete, screening, partial, unavailable) and policy
+        "result": {
+            "classification": run.get("classification"),
+            "label": run.get("label"),
+            "gaps": run.get("gaps"),
+            "publication": run.get("publication"),
+        },
+        "publishable": withheld is None,
+        "withheld_reason": withheld,
         "categories": [
             {
                 "id": cid,
@@ -337,7 +353,6 @@ def _render_info(artifacts: Path | None, pid: str) -> dict | None:
 
 
 SNAPSHOT_SCHEMA = "cheme/viewer-snapshot/v1"
-VALUES_WITHHELD = "placeholder-factors"
 
 
 def _withhold_lca_values(manifest: dict, target: Path) -> None:
@@ -354,8 +369,8 @@ def _viewer(
 ) -> dict | None:
     """The process's viewer snapshot (``cheme export-static``), copied into the output.
 
-    *publish* (public builds) holds the process manifest and whether its LCA factors are
-    placeholders: the snapshot must have been exported without the publication excludes.
+    *publish* (public builds) holds the process manifest and whether its LCA values are
+    withheld: the snapshot must have been exported without the publication excludes.
     """
     source = snapshots / pid if snapshots else None
     if source is None or not (source / "manifest.json").is_file():
@@ -371,7 +386,7 @@ def _viewer(
             return None
     target = out / "snapshots" / pid
     shutil.copytree(source, target)
-    if publish is not None and publish["placeholder"]:
+    if publish is not None and publish["withhold"]:
         _withhold_lca_values(manifest, target)
     entries = manifest.get("entries", {})
     ok = {key for key, entry in entries.items() if entry.get("status") == 200}
@@ -463,8 +478,8 @@ def build(
         source_commit = _git(library, "log", "-1", "--format=%H", "--", str(folder.relative_to(library))) if own_repo else None
         render = _render_info(artifacts, pid)
         stale = bool(render) and _behind(library, render.get("source_commit"), source_commit)
-        placeholder = bool(lca) and lca["factors_status"] == "placeholder"
-        publish = {"manifest": manifest, "placeholder": placeholder} if public else None
+        withhold = bool(lca) and not lca["publishable"]
+        publish = {"manifest": manifest, "withhold": withhold} if public else None
         viewer = _viewer(snapshots, pid, out, where, report, publish) if plant else None
         if viewer:
             viewer["stale"] = _behind(library, viewer["commit"], source_commit)
@@ -616,9 +631,9 @@ def _publish(detail: dict) -> None:
     if detail.get("publication"):
         detail["publication"] = {k: v for k, v in detail["publication"].items() if k != "exclude"}
     lca = detail.get("lca")
-    if lca and lca["factors_status"] == "placeholder":
+    if lca and not lca["publishable"]:
         del lca["totals"], lca["contributions"]
-        lca["values_withheld"] = VALUES_WITHHELD
+        lca["values_withheld"] = lca["withheld_reason"]
 
 
 def _write(path: Path, data: Any) -> None:
@@ -634,7 +649,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--snapshots", type=Path, help="viewer snapshots (cheme export-static): <dir>/<id>/manifest.json")
     parser.add_argument("--commit", help="library commit to record (default: git HEAD of --library)")
     parser.add_argument("--strict", action="store_true", help="fail on warnings too")
-    parser.add_argument("--public", action="store_true", help="build for publication: published processes only, placeholder footprints withheld")
+    parser.add_argument("--public", action="store_true", help="build for publication: published processes only, footprints the LCA's publication policy does not permit withheld")
     args = parser.parse_args(argv)
 
     report = build(

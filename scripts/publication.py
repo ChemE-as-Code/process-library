@@ -29,9 +29,12 @@ DEFAULT_EXCLUDE = (
 #: every published snapshot, as it names the repository (maybe private) and the excludes; the
 #: catalog publishes what of it may be public.
 MANIFEST = "process.yaml"
-#: core's LCA result files (``cheme assess lca --write``): footprint values, excluded from the
-#: snapshot of a process whose factors are placeholders, like the ``lca`` answer.
-LCA_RESULT_FILES = ("lca/results.csv", "lca/results.md", "lca/uncertainty.csv")
+#: core's LCA result files (``cheme assess lca --write``): footprint values and what they lack,
+#: excluded from the snapshot of a process whose LCA may not be published, like the ``lca``
+#: answer (core's ``export-static`` withholds the same).
+LCA_RESULT_FILES = ("lca/results.csv", "lca/results.md", "lca/gaps.csv", "lca/uncertainty.csv")
+#: core's run manifest of the LCA: the result's class and publication policy.
+LCA_MANIFEST = "lca/manifest.json"
 
 
 def is_public(manifest: dict[str, Any] | None) -> bool:
@@ -42,6 +45,33 @@ def snapshot_excludes(manifest: dict[str, Any] | None) -> list[str]:
     """The globs a published snapshot of this process must be exported without (sorted)."""
     own = ((manifest or {}).get("publication") or {}).get("exclude") or []
     return sorted({*DEFAULT_EXCLUDE, MANIFEST, *own})
+
+
+def lca_withheld(folder: Path) -> str | None:
+    """Why the process's LCA values may not be published, or None when they may.
+
+    The rule follows core's publication policy, read from the committed run manifest
+    (``lca/manifest.json``, written by ``cheme assess lca --write``): its result must be
+    ``publishable`` (every source ``public``, or ``restricted`` with the study's reviewed
+    decision). Placeholder factors are never published, and without a manifest (an LCA written
+    by an older core) nothing says the sources permit it, so the values are withheld too.
+    """
+    import json
+
+    if not (folder / "lca" / "lca.yaml").is_file():
+        return None
+    if placeholder_factors(folder):
+        return "placeholder-factors"
+    path = folder / LCA_MANIFEST
+    if not path.is_file():
+        return "no-run-manifest"
+    try:
+        result = (json.loads(path.read_text(encoding="utf-8")) or {}).get("result") or {}
+    except (OSError, ValueError):
+        return "no-run-manifest"
+    if result.get("publishable") is True:
+        return None
+    return f"{result.get('publication') or 'unknown'}-sources"
 
 
 def placeholder_factors(folder: Path) -> bool:

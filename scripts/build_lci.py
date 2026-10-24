@@ -482,13 +482,20 @@ class Linker:
     def _own(self, row: dict) -> dict:
         return {"name": row["name"], "reference product": row["reference product"], "unit": row["unit"], "location": row["location"], "database": self.db_name}
 
-    def atlas_alternative(self, process: Process, exchange: dict, unit: str) -> dict | None:
-        """The Atlas activity of another process that makes this input's chemical."""
+    def atlas_alternative(self, process: Process, exchange: dict, unit: str) -> tuple[dict | None, list[str]]:
+        """The Atlas activity of another process that makes this input's chemical, and the other
+        candidates when several do (the first by process id and name is taken: deterministic,
+        and reported, so that a second producer never replaces the first silently)."""
         if exchange["type"] != "input":
-            return None
+            return None, []
         chemical = _chemical(process, exchange, self.mappings, self.registry)
-        candidates = [row for pid, row in self.producers.get(chemical or "", []) if pid != process.pid and row["unit"] == unit]
-        return candidates[0] if candidates else None
+        candidates = sorted(
+            ((pid, row) for pid, row in self.producers.get(chemical or "", []) if pid != process.pid and row["unit"] == unit),
+            key=lambda c: (c[0], c[1]["name"]),
+        )
+        if not candidates:
+            return None, []
+        return candidates[0][1], [f"{pid}: {row['name']}" for pid, row in candidates[1:]]
 
 
 # --- activities ------------------------------------------------------------------------------
@@ -628,7 +635,12 @@ def build_activities(processes: list[Process], mappings: dict, registry: dict[st
                 if kind == "biosphere":
                     entry["categories"] = "::".join(target["categories"])
                 else:
-                    alternative = linker.atlas_alternative(process, exchange, target["unit"])
+                    alternative, others = linker.atlas_alternative(process, exchange, target["unit"])
+                    if others:
+                        report.warn(
+                            f"{process.pid}: {exchange['key']}",
+                            f"several Atlas producers: {alternative['name']} is used, not {', '.join(others)}; link one explicitly (link.dataset) to choose",
+                        )
                     if alternative is not None and target.get("database") != db_name:
                         entry.update({"atlas activity": alternative["name"], "atlas reference product": alternative["reference product"], "atlas location": alternative["location"]})
                 entry.update(_uncertainty(exchange, amount))

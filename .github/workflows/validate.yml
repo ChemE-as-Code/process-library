@@ -78,8 +78,13 @@ jobs:
         run: uv run scripts/build_catalog.py --library . --out dist-public --public
       - name: LCI database (strict)
         run: uv run scripts/build_lci.py --library . --out dist --version "ci-${GITHUB_SHA::7}" --strict
+      # only what may be published leaves the runner: the public catalog (footprints withheld by
+      # each LCA's publication policy) and the foreground LCI (no characterisation factors);
+      # the preview catalog, which holds every footprint, stays in the job
       - uses: actions/upload-artifact@v4
         with:
           name: catalog
-          path: dist/
+          path: |
+            dist-public/
+            dist/lci/
           retention-days: 14
