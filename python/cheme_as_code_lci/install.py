@@ -32,6 +32,11 @@ TECHNOSPHERE_FIELDS = ("name", "reference product", "unit", "location")
 BIOSPHERE_FIELDS = ("name", "categories", "unit")
 
 
+#: Metadata keys of ``bd.databases[name]`` that identify a background database (as core's
+#: ``brightway.expect``).
+IDENTITY = ("provider", "version", "system_model")
+
+
 @dataclass
 class InstallReport:
     """What ``install`` did. ``unlinked`` is empty and ``written`` true on success."""
@@ -43,6 +48,9 @@ class InstallReport:
     location: str
     location_is_default: bool
     prefer_atlas: bool
+    #: Whether the background's provider, version and system model were checked (``expect``)
+    #: against its metadata, not only its name.
+    verified: bool = False
     activities: int = 0
     exchanges: int = 0
     #: "<activity> <- <atlas activity>": inputs linked inside the Atlas (prefer_atlas)
@@ -125,12 +133,19 @@ def install(
     location: str | None = None,
     prefer_atlas: bool = True,
     overwrite: bool = False,
+    expect: dict[str, str] | None = None,
 ) -> InstallReport:
     """Import the Atlas workbook into the current project, linked to *background* (e.g. your
     ecoinvent database) and *biosphere* (default ``biosphere3``, else the one ``*biosphere``
     database). *location* is the plant site for site-specific inputs such as grid electricity.
     Refuses to replace an existing database of the same name unless *overwrite*. Writes only
-    when every exchange is linked; the report lists any that are not."""
+    when every exchange is linked; the report lists any that are not.
+
+    *expect* (``{"provider": "ecoinvent", "version": "3.10", "system_model": "cutoff"}``, any
+    of them) is checked against the background's metadata (``bd.databases[background]``): a
+    local database name alone does not identify a database, and the mappings are written for
+    one provider, version and system model. A mismatch refuses; without *expect* the report
+    says the background was matched by name only (``verified`` false)."""
     import bw2data as bd
     import bw2io as bi
     from bw2io.strategies import link_iterable_by_fields
@@ -139,13 +154,24 @@ def install(
     if background not in bd.databases:
         raise ValueError(f"no background database {background!r} in project {bd.projects.current!r}")
     bio = _biosphere(bd, biosphere)
+    meta = bd.databases[background]
+    for key, want in (expect or {}).items():
+        if key not in IDENTITY:
+            raise ValueError(f"expect: unknown key {key!r} (one of {', '.join(IDENTITY)})")
+        found = str(meta.get(key) or "")
+        if want and found != want:
+            raise ValueError(
+                f"background {background!r} records {key} {found or '(none)'!r}, expected {want!r}; "
+                f"import that database, or, when it is that one, record it: "
+                f"bd.databases[{background!r}][{key!r}] = {want!r}; bd.databases.flush()"
+            )
 
     importer = bi.ExcelImporter(str(path))
     name = importer.db_name
     if name in bd.databases and not overwrite:
         raise ValueError(f"database {name!r} exists in project {bd.projects.current!r}; pass overwrite=True to replace it")
     default_site = str(importer.metadata.get("atlas default site location") or "GLO")
-    report = InstallReport(name, str(path), background, bio, location or default_site, location is None, prefer_atlas)
+    report = InstallReport(name, str(path), background, bio, location or default_site, location is None, prefer_atlas, verified=any((expect or {}).values()))
 
     for ds in importer.data:
         for exc in ds["exchanges"]:
