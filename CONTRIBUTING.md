@@ -51,9 +51,12 @@ has it. The public build (`--public` of `build_catalog.py`, `build_lci.py` and
 - `publication.license` names the license it is published under (an SPDX id, e.g.
   `CC-BY-4.0`). There is no default: state it when you set `public`.
 - `repository` is shown only when its `access` is `public`.
-- An LCA with placeholder factors (`lca/factors.yaml` `example: true`) is shown without its
-  footprint values (totals, contributions, the headline value, the viewer's LCA answer and
-  `lca/results.*`, `lca/uncertainty.csv`); its goal, functional unit, boundary and inventory stay.
+- An LCA's footprint values (totals, contributions, the headline value, the viewer's LCA answer
+  and `lca/results.*`, `lca/gaps.csv`, `lca/uncertainty.csv`) are shown only when core's
+  committed run manifest (`lca/manifest.json`) says the result is publishable under its sources'
+  terms and is current (`scripts/publication.py` `lca_withheld`); placeholder factors, a missing
+  or stale manifest and restricted or local sources withhold them. Its goal, functional unit,
+  boundary, inventory, class and data sources (with their attribution) stay.
 - The viewer snapshot is exported without these paths, which always apply in public builds:
   `.claude/**`, `AGENTS.md`, `CLAUDE.md`, `reviews/**`, `PROGRESS.md`, `scripts/agent-run/**`,
   `**/.gitattributes` (kept in `scripts/publication.py`; change both together), and
