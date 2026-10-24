@@ -1426,7 +1426,7 @@ footings, 513 m2 grating.
   loads of the tailpipes on the roof steel); not modelled until those are known. Closed by
   D-091 (2): screening forces, guide RV-TPG and axial support RV-TPS, no stress analysis.
 - **KT-3101 expander casing extension** (layout#15): needs the cold box / compander vendor's
-  drawing; not modelled.
+  drawing; not modelled. Closed by D-091 (3): ASSUMED envelope CB-1X, no vendor drawing.
 - Operability: 14 valves (D-047); support: 8 free spans and 5 runs without support (D-049).
 - The layout-review gate is open: the next independent layout review covers D-046 .. D-049.
 
@@ -4061,3 +4061,28 @@ Decision:
     valve tolerates, so DN150 is too small for the bound rates, or the rates are too high. The
     rates, the valve orifices and the tailpipe sizes stay with the relief sizing (section 4
     heading). A larger tailpipe lowers the force, so the supports above stay on the safe side.
+- (3) **KT-3101 casing extension modelled as an ASSUMED envelope** (layout#15; D-050). No
+  vendor drawing will come. The placement note said the expander's cold end is "in the casing
+  extension", but CB-1 had none: the compander stood 0.5 m south of the casing wall (y 37.8).
+  - **Basis (ASSUMED, typical expander-booster arrangement):** the expander's cold end sits in
+    a perlite-filled casing bolted to the cold box. That covers the wheel, the nozzle ring, the
+    inlet volute, the exhaust diffuser and the cold inlet and exhaust connections. The bearing
+    housing passes through the casing wall to the warm booster on the same shaft. The model's
+    expander end KT-3101 (3 x 3 x 3 m, equipment list) is taken whole as the cold part.
+  - **Envelope:** structure CB-1X in `layout/structures.yaml`, x 126.6 .. 130.0 (walls to
+    126.5 / 130.1), y 33.8 .. 37.8, 3 m high, casing panels 0.1 m, open to the north where it
+    joins the CB-1 south wall. That is the expander end plus 0.5 m of perlite on its free west
+    and south sides. The east wall stands in the 0.1 m gap to the booster K-3101 and is the
+    wall the shaft passes through. It has no levels and no steel of its own. It is purged with
+    the cold box (D-031). The roof panels are removable for the maintenance lift.
+  - **Height:** a first try at 4.5 m, to enclose the cold inlet AIR-3003 over the expander's
+    top, put walls above the machines' tops into the lift lanes of KT-3101 and K-3101 from
+    Z-PAD-A3S (two new lifting findings). At 3 m, the expander's height, those lanes stay
+    clear. The inlet AIR-3003 enters through the roof at N1, and its run from XV-3117 (outside
+    CB-1, 1.5 m up) enters through a sleeve in the east wall, declared with `cheme layout pin
+    CB-1X/AIR-3003` (0.3 x 0.3 m, sill 1.35 m). XV-3117 stays outside the casings, where it can
+    be reached. The exhaust AIR-3004 runs north inside the extension into CB-1.
+  - **Check:** the rebuilt model has no new clash, keep-clear, access, lifting, operability or
+    wall-penetration finding (`cheme validate`: 0 errors, the same finding set as before the
+    change). The lifting study, take-off, estimate and LCA change only in their model
+    fingerprints: the casing panels carry no take-off.
