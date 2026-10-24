@@ -4597,31 +4597,41 @@ For the HAZOP owner (H-04): the reassessment after this branch covers the follow
 Reason: control-review3 #1 and #2. A pipeline customer needs a held pressure, and a column
 must not be over-drawn.
 
-## D-097 Calculation maturity: sourced air feed, TSA as a component split, whole-plant simulation, claim at screening (2026-10-24)
+## D-097 Calculation maturity: air feed recomposed (still assumed), TSA as a component split, whole-plant simulation, claim at concept (2026-10-24)
 Requested by the user (the owner of process/flowsheet.yaml, simulation.yaml and
 design-basis.yaml) to close the gaps `cheme maturity` reported (core docs/framework/maturity.md).
 Before: level none (sourced.boundary and balanced.model-basis failed; predictive coverage,
 model basis, property package, energy closure and exchangers failed or missing). After: level
-**balanced**, which supports the library maturity **screening**.
+**none** (sourced.boundary fails: the air feed rests on assumed values, see (1)); every
+requirement of balanced passes, so the level becomes **balanced** (library maturity
+**screening**) once the design air is fixed as a design specification. Revised after
+maturity-review1 (see "Revised" at the end).
 
 Decision:
-- (1) **S1 air feed given with a source** (sourced.boundary).
+- (1) **S1 air feed recomposed, still ASSUMED** (sourced.boundary).
   - Composition: the sea-level dry-air fractions of the U.S. Standard Atmosphere 1976 (the same
     as ISO 2533) for N2 78.084, O2 20.9476 and Ar 0.934 mol%. The minor gases (Ne, He, Kr, Xe,
-    H2, CH4; about 27 ppm together) are left out. CO2 is the design basis's 420 ppm (D-058)
-    instead of the standard's older value. The set is renormalised. Water is the D-058 design air
-    (30 C, 80 % RH, 1.013 bara): 0.8 x 4.247 kPa (IAPWS-95 saturation pressure at 30 C) /
-    101.3 kPa = 3.354 mol%. Result: N2 0.75459, O2 0.20243, Ar 0.00903, H2O 0.03354,
-    CO2 0.00041 (was the D-027 set, CO2 388 ppm wet).
-  - Flow: 113,335 kg/h (was 113,329, assumed). This is D-066's design air rate of 110,870 kg/h
-    of CO2-free dry air (85,810 Nm3/h; 85,840 with the CO2), plus the 71 kg/h of CO2 and the
-    2,394 kg/h of water of that composition.
-  - Both are now `given`. The design air condition itself (30 C, 80 % RH) is a project design
-    specification (D-058), not site data. The design basis still marks the RH and the
-    contaminants ASSUMED until a site survey confirms them; if the survey differs, the feed
-    changes with it. The design basis traces (hydrocarbons 5 ppm as CH4, C2H2 50 ppb, N2O
-    0.33 ppm) are not flowsheet components. They are carried by D-006 and D-010, not by the
-    balance.
+    H2, CH4; about 27 ppm together) are left out. CO2 is 420 ppm, the value under
+    `contaminants_ASSUMED` in the design basis, instead of the standard's older value; D-058
+    itself uses the D-027 set (CO2 0.040 %), so the change from 400 to 420 ppm is made here,
+    in D-097. The set is renormalised. Water is the D-058 design air (30 C, 80 % RH ASSUMED,
+    1.013 bara): 0.8 x 4.247 kPa (IAPWS-95 saturation pressure at 30 C) / 101.3 kPa =
+    3.354 mol%. Result: N2 0.75459, O2 0.20243, Ar 0.00903, H2O 0.03354, CO2 0.00041 (was the
+    D-027 set, CO2 388 ppm wet).
+  - Flow: 113,335 kg/h (was 113,329). This is D-066's design air rate of 110,870 kg/h of
+    CO2-free dry air (85,810 Nm3/h; 85,840 with the CO2; S4, ASSUMED), plus the 71 kg/h of CO2
+    and the 2,394 kg/h of water of that composition.
+  - Both stay `assumed`. The dry-air fractions are a published standard, but the water (the
+    80 % RH), the CO2 level and the air rate are ASSUMED in the design basis, in D-058 and in
+    S4. No decision fixes the design air (condition, CO2 level and rate) as a design
+    specification. A first version of this decision tagged S1 `given` and cited D-058 for it;
+    D-058 marks the design air ASSUMED itself, so that was withdrawn (maturity-review1#1, #4).
+  - The design basis traces (hydrocarbons 5 ppm as CH4, C2H2 50 ppb, N2O 0.33 ppm) are not
+    flowsheet components. They are carried by D-006 and D-010, not by the balance.
+  - **For the owner:** sourced.boundary passes, and the level becomes balanced, once the owner
+    records a decision that fixes the design air (30 C, 80 % RH, 1.013 bara, CO2 420 ppm, and
+    the rate) as a design specification, and the ASSUMED marks in design-basis.yaml and on S4
+    are removed with it. An agent cannot make that decision.
 - (2) **TSA as a sourced component split** (balanced.model-basis). V2101 had two inlets and two
   outlets, and DWSIM's component separator takes one stream in and two out. The TSA cycle is
   therefore written as a steady-state, cycle-average pair:
@@ -4633,12 +4643,17 @@ Decision:
   The recoveries are written on the dry air (N2, O2, Ar 1; H2O, CO2 0), so S4F has exactly no
   water (DWSIM gives the unspecified outlet the remainder). `basis_source` is D-006 (the TSA removes H2O, CO2, N2O and C2H2) and D-066 (S4 dry,
   CO2 < 0.1 ppm). Removal is taken as complete and N2, O2 and Ar co-adsorption is neglected
-  (ASSUMED). The component separator has no pressure drop, so the new step F2101 (F-2101, a
-  valve in the simulation) takes the front-end 0.32 bar (bed, filter and DN700 lines; D-079,
-  D-089) from S3 5.92 to S4 5.6 bara. The new stream S4F links to AIR-2001 like S4.
+  (ASSUMED). The component separator has no pressure drop and no heat of adsorption, so the
+  new step F2101 (F-2101, a heater in the simulation) takes the front-end 0.32 bar (bed,
+  filter and DN700 lines; D-079, D-089) from S3 5.92 to S4 5.6 bara and warms the air to S4's
+  15 C (ASSUMED: ~3 K heat of adsorption in the bed). The component separator V2101 reports an
+  energy imbalance of **100.8 kW**: the latent and adsorption heat of the 213 kg/h it removes,
+  which leaves the model there. F2101 returns **96.9 kW** of it to the air (110,870 kg/h x
+  ~1.04 kJ/kg K x 3 K). The new stream S4F links to AIR-2001 like S4.
 - (3) **Coverage.** The main heat exchanger E3101 is now simulated as a multi-stream exchanger.
-  It is specified by its outlets: S5 -173 C, S5B -124.7 C, S7 and S9 at 13 C (D-061), and the
-  waste N2 closes the energy balance. Its pressure drops are from DESIGN.md 3. Also simulated:
+  It is specified by its outlets: S5 -173 C, S5B -124.7 C, S7 and S9 at 13 C (D-061: 2 K
+  below the main air S4A at 15 C), and the waste N2 closes the energy balance. Its pressure
+  drops are from DESIGN.md 3, and its min_approach is declared at D-061's 2 K. Also simulated:
   the expander KT3101 (8.25 -> 1.35 bara, eta_s 0.85, D-061), the waste split X3101 (18,486 of
   76,560 kg/h to regeneration, none vented), the regeneration heater E2101 (to 200 C, the
   heating step of D-006) and M2101. The recycle is torn at S5, S5B and S16, so the columns
@@ -4651,11 +4666,18 @@ Decision:
   translate, and its N2 side alone would show neither the water uptake nor the duty. So
   predictive.coverage stays failed until the loop is drawn as streams.
 - (4) **Property package.** `method_selection` is recorded with the thermodynamic-model-selection
-  facts (Carlson's tree): 31 bara (the GOX discharge), non-polar, no electrolytes, no
-  pseudocomponents. The tree recommends Peng-Robinson (also SRK, LKP and the Boston-Mathias
-  forms), so the package passes. Treating the mixture as non-polar is a judgment for review:
-  water is polar, but it is only in the warm end, at most 3.4 mol%, and it leaves as near-pure
-  condensate and in the TSA (PR's ~10 % low water at saturation, D-058, stays).
+  facts (Carlson's tree): 31 bara (the GOX discharge), **polar** (water is a component, and the
+  near-pure condensates S1C, S3C, S3CU and the adsorbed S2W are simulated with it),
+  interaction parameters available (DWSIM's PR set, Ar/O2 refitted in D-066), no
+  electrolytes, no pseudocomponents. The tree then recommends Peng-Robinson with Wong-Sandler
+  mixing rules; plain Peng-Robinson is recorded as a `substitution`: the cryogenic part, where
+  the column and exchanger results matter, is non-polar N2/O2/Ar, and the water is only in the
+  warm end, at most 3.4 mol%. Limitation: PR gives water at saturation 10-13 % low (D-058);
+  the adsorbers are sized on the IAPWS-95 load (D-080). predictive.property-package passes on
+  the recorded substitution and lists it as a limitation. The substitution is proposed by the
+  agent; the owner of simulation.yaml is to accept it. (The first version recorded
+  `is_polar: false`, which core allows only when every compound is non-polar;
+  maturity-review1#2.)
 - (5) **Energy closure of the flowsheet** (balanced, not required). The PRD, K4101 and K4102
   residuals (-141, -122 and -19 kW) are no error. E4 and E5 carry the electric power, and the
   motor and gear losses (drive efficiency 0.946 and 0.92) leave as heat to the room, not to
@@ -4668,23 +4690,25 @@ Results (DWSIM 9.0.5, run recorded with the energy audit):
   separator V2101, whose duty sign core does not establish, and C3102's top residual (43.6 kW,
   the condenser-less top, D-066). predictive.energy-closure therefore stays unsupported. No
   crossed exchanger and no infeasible utility level.
-  - E3101: least approach 0.37 K at the warm end, against 2 K in D-061. No min_approach is
-    declared, so only crosses are checked.
-  - E3102: 5.19 K.
+  - E3101: least approach 2.00 K at the warm end (hot 288.15 K / cold 286.15 K), against the
+    declared min_approach of 2 K (D-061): ok. (Before the F2101 heat of adsorption it was
+    0.37 K, with the main air at 11.9 C.)
+  - E3102: 5.19 K (no min_approach declared; only crosses checked).
 - Products are unchanged within the precision: GOX 99.707 % O2, LOX 99.809 %. MAC 7,288 kW
-  electric. K3101 183.9 kW against KT3101 198.5 kW gas (D-061: 185.9 / 198.4; the booster
-  suction is now 12 C, see below).
-- E2101 1,040 kW in the heating step. E3 stays 377 kW ASSUMED: the cycle average, used by the
-  LCA and the TEA.
+  electric. K3101 185.9 kW against KT3101 198.5 kW gas, as in D-061 (booster suction 15 C,
+  outlet 59.9 C).
+- F2101 96.9 kW (the heat of adsorption returned to the air; V2101's 100.8 kW sink).
+- E2101 1,020 kW in the heating step (S12A 7.2 to 200 C). E3 stays 377 kW ASSUMED: the cycle
+  average, used by the LCA and the TEA.
 - Deviations from given and assumed values (none overwritten; simulate reports them):
-  - S4 and S4B 11.9 C against 15 C ASSUMED: the component split leaves at its inlet temperature,
-    and the heat of adsorption (~3 K) is not modelled. This also explains E3101's 0.37 K warm
-    end.
-  - S17, S12B and S12C 3.4 C against 13 C: the waste N2 takes the cold box's refrigeration
-    surplus, about 210 kW. The model has no heat leak (~75 kW, D-067), and the main air enters
-    3 K colder.
+  - S17, S12B and S12C 7.2 C against 13 C: the waste N2 takes the cold box's refrigeration
+    surplus, about 130 kW (76,560 kg/h x ~1.04 kJ/kg K x 5.8 K). The model has no heat leak
+    (~75 kW, D-067); the rest is within the concept accuracy of the expander and the column
+    specs. It also lifts E2101's heating-step duty above the 13 C basis.
   - S12A, S12B and S12C 1.15 bara against 1.10 / 1.05 / 1.02: the splitter has no pressure
-    drop; the assumed values include the line drops.
+    drop; the assumed values include the line drops. So the stream table shows S12A at the
+    assumed 1.10 bara and the downstream S12H at the simulated 1.15 bara: an apparent rise
+    across E2101 that is only the assumed line drop (maturity-review1#6).
   - S10 and S11: the D-056 subcooling to storage (as before).
   - E3: cycle average against heating step, as above.
 
@@ -4692,37 +4716,59 @@ Results (DWSIM 9.0.5, run recorded with the energy audit):
 - S12D's D-089 hand derivation (ASSUMED 18,696 kg/h with 67.7 kg/h CO2 from the former S1) is
   replaced by the simulated M2101 outlet, the same sum: 18,699 kg/h, 70.8 kg/h CO2, 178 C. Its
   old composition no longer closed the CO2 balance at 420 ppm. This is the only assumed value
-  removed. The adsorbers stay sized on 165 kg/h of water (IAPWS-95, D-080 (2)).
+  removed. S12D is **for the balance only**: it mixes the heating-step gas (200 C) with the
+  cycle-average desorbed load, so it describes neither the heating step nor the cycle average
+  (maturity-review1#7). RG-2003 is sized at the 200 C bound, and the adsorbers on 165 kg/h of
+  water (IAPWS-95, D-080 (2)); nothing uses S12D's 178 C.
 
 Maturity after (cheme maturity, checks/maturity.json):
-- sourced and balanced reached (balanced.energy-closure, not required, fails on the drive
+- level **none**: sourced.boundary fails on the assumed S1 flow and composition ((1)).
+- every balanced requirement passes (balanced.energy-closure, not required, fails on the drive
   losses above).
 - predictive: these pass: simulation-spec, run-record, current, converged, solver, balances,
-  property-package, stream-properties and exchangers. These do not:
+  property-package (on the recorded substitution), stream-properties and exchangers (E3101
+  against its declared 2 K). These do not:
   - coverage fails (C1102);
   - model-basis fails (V2101 is a specified split; no adsorption model in core);
   - property-regime is unsupported (core claims no regime for the DWSIM PR route);
   - energy-closure is unsupported (component separator and condenser-less column top).
 - engineering: its own requirements pass, but it is not reached below predictive.
 
-**Manifest claim.** process.yaml `maturity` goes from basic-engineering to **screening**, the
-highest the balanced level supports (core's mapping). The deliverables of basic engineering
-exist (P&IDs, lists, datasheets, layout, estimate, LCA, HAZOP draft), and the basic gates
-pass. But the calculation evidence supports screening, because the predictive level is
-unsupported in core for every repository today (predictive.property-regime). The
-basic-engineering claim returns when core supports it and coverage and the TSA basis are
-closed. The validation notes and the library README say so. `checks/maturity.json` is
-written by `cheme maturity --write` and committed with the claim.
+**Manifest claim.** process.yaml `maturity` goes from basic-engineering to **concept**. The
+evidence supports no level (core's mapping: none), and concept is the lowest value the
+manifest schema allows, so `cheme maturity` keeps the warning cheme.maturity-claim-exceeds
+until the design air is fixed ((1)); then balanced supports screening. The deliverables of
+basic engineering exist (P&IDs, lists, datasheets, layout, estimate, LCA, HAZOP draft), and
+the basic gates pass, but basic-engineering needs the engineering level, which needs
+predictive. Predictive is blocked by coverage (C1102), the model basis (V2101), the plant
+energy closure (V2101, the C3102 top) and the property regime (unsupported in core for every
+repository today), not by the property regime alone. The validation notes and the library
+README say so. `checks/maturity.json` is written by `cheme maturity --write` and committed
+with the claim.
 
 Not changed: datasheets (no maturity requirement needs them; engineering.consistency is
 unsupported), the HAZOP (its hazop-input-changed warnings on process/flowsheet.yaml are for
 D-098), P&IDs, lists.
 
+Revised after maturity-review1 (same branch, before merge):
+- #1, #4: S1 back to `assumed`; the CO2 420 ppm cited to D-097 and the design basis, not
+  D-058; level none, claim concept ((1), Manifest claim).
+- #2: `is_polar: true` with a recorded substitution ((4)).
+- #3, #5: F2101 a heater to S4's 15 C (the heat of adsorption, 96.9 kW against V2101's
+  100.8 kW), E3101 min_approach 2 K declared (D-061) and met.
+- #6: S4 now agrees with S4F's model (15 C); the S12A pressure is explained under Results.
+- #7: S12D noted as for the balance only.
+- #8: the process.yaml comment and the chemistry note (85,810 dry, 85,840 with the CO2)
+  corrected.
+
 Open:
+- the owner's decision on the design air ((1)): without it the level stays none;
+- the owner's acceptance of the PR substitution ((4));
 - the chilled-water loop as streams, so C1102 can be simulated;
-- a TSA heat of adsorption (or a sourced S4 temperature);
-- a heat leak in the cold-box model;
-- a declared E3101 min_approach once the vendor gives it;
+- a sourced heat of adsorption (vendor) in place of the ASSUMED 3 K;
+- a heat leak in the cold-box model: the flowsheet has no step that could take it (a heater
+  on the cold box needs a new step and energy stream), so the waste N2 still carries ~130 kW;
+- the E3101 min_approach from the vendor (2 K is D-061's design value);
 - core: an adsorption model or an audited component separator, a condenser-less column top, and
   a declared PR regime.
 

@@ -6,17 +6,24 @@ schema: cheme/simulation/v1
 kind: simulation
 simulator: dwsim
 property_package: Peng-Robinson (PR)
-# D-097: the facts of the thermodynamic-model-selection skill (Carlson's tree): a non-polar,
-# non-electrolyte mixture without pseudocomponents up to 31 bara (the GOX discharge). Water is
-# polar but only in the warm end, at most 3.4 mol%, and it leaves as near-pure condensate and in
-# the TSA (judgment, D-097). Recommended: Peng-Robinson, SRK, LKP and the Boston-Mathias forms.
+# D-097 (maturity-review1#2): the facts of the thermodynamic-model-selection skill (Carlson's
+# tree): no electrolytes, no pseudocomponents, up to 31 bara (the GOX discharge). The mixture is
+# polar: water is a component, and the near-pure condensates S1C, S3C, S3CU and the adsorbed
+# S2W are simulated with it. Peng-Robinson is kept as a recorded substitution.
 method_selection:
   facts:
     pressure_value: 31
     pressure_unit: bar(a)
-    is_polar: false
+    is_polar: true
+    interaction_parameters_available: true  # DWSIM's PR kij set, Ar/O2 refitted (D-066)
     is_electrolyte: false
     has_pseudocomponents: false
+  substitution: >-
+    Peng-Robinson for an air separation unit: the cryogenic part (N2, O2, Ar, where the column
+    and exchanger results matter) is non-polar, and the polar water is only in the warm end, at
+    most 3.4 mol%, removed as near-pure condensate and in the TSA. Known limitation: PR gives
+    water at saturation 10-13 % low (D-058); the adsorbers are sized on the IAPWS-95 water load
+    (D-080). Proposed by the agent in D-097; for the owner of simulation.yaml to accept.
 # D-066: DWSIM's PR Ar/O2 kij (0.0107) puts alpha(Ar/O2) near pure O2 ~5 % below the reference
 interaction_parameters:
   - components: [AR, O2]
@@ -48,8 +55,12 @@ specs:
     recovery_outlet: out
     basis_source: "D-006 (the TSA removes H2O, CO2, N2O and C2H2 before the cold box) and D-066 (S4 dry air, CO2 < 0.1 ppm): removal to specification, taken as complete; co-adsorption of N2, O2 and Ar neglected (ASSUMED)"
     operating_basis: "2-bed TSA, alumina + 13X, adsorption at 5.92 bara and 12 C (S3), ~4 h cycle (ASSUMED, D-006); cycle average"
+  # D-097 (maturity-review1#3, #5): the front-end pressure drop and the heat of adsorption.
+  # V2101 drops the latent and adsorption heat of what it removes (its 100.8 kW imbalance);
+  # in the bed that heat warms the air by ~3 K, so F2101 returns it as a heater to S4's 15 C.
   F2101:
-    unit: valve  # a pressure drop only: the dust F-2101 takes out is not a flowsheet component
+    unit: heater  # the dust F-2101 takes out is not a flowsheet component
+    outlet_temperature: {value: 15, provenance: assumed, source: "ASSUMED (D-097): S3 12 C + ~3 K heat of adsorption in the TSA bed (DESIGN.md 3, stream 4)"}
     pressure_drop: {value: 0.32, unit: bar, provenance: assumed, source: "D-079, D-089: S3 5.92 -> S4 5.6 bara (adsorber bed ~8, F-2101 ~3 kPa, DN700 lines to E-3101 21 kPa)"}
   M2101: {}  # the regeneration gas takes up what V2101 adsorbs (cycle average)
   E2101:
@@ -73,6 +84,7 @@ specs:
   # energy balance (no heat leak in the model, so the refrigeration surplus shows there).
   E3101:
     pairs: {air: hp, bst: exp, gox_c: gox, gan_c: gan, waste_c: waste}
+    min_approach: {value: 2, unit: K, provenance: assumed, source: "D-061: E-3101 warm end 2 K (the products 2 K below the main air S4A)"}
     outlet_temperatures:
       air: {value: -173, provenance: assumed, source: "DESIGN.md 3, stream 5 (air near its dew point, D-066)"}
       bst: {value: -124.7, provenance: assumed, source: "D-061: expander inlet S5B"}
