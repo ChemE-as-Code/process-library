@@ -3359,7 +3359,15 @@ shows the envelope the layout was built on. Tooling: cheme-as-code 0.8.0
    longer follows its datasheet, so rerun `cheme datasheets drawing --write` after a datasheet
    change. They are DRAFT outlines: nozzle stubs without `projection_m` are drawn 0.3 m, saddle
    positions are schematic, nozzles without a location on the datasheet are listed but not
-   drawn ((8)).
+   drawn ((8)). **"datasheet final" in the title block is not an issue status** (review17#4):
+   the generator prints the datasheet's `draft: false`, which means every value has its source
+   (the `datasheets` gate counts only such datasheets), not that the drawing is issued or
+   approved. cheme-as-code 0.8.0 has no drawing status or revision field (the datasheet schema
+   holds only `draft`, and `drawing` takes no status option), and setting `draft: true` would
+   take the datasheets out of the gate, so the outlines carry no "for enquiry" mark of their
+   own: they are DRAFT outlines for enquiry, not approved for construction, until a revision
+   and approval are given. Core suggestion: a drawing status / revision printed next to the
+   datasheet's.
    **Shell-and-tube exchangers drawn without channel and bonnet (deferred, PR #22 review).**
    cheme-as-code 0.8.0 draws a horizontal item as the T-T shell between two heads of its `head`
    type; the datasheet schema has no channel or bonnet. The layout model builds each of these
