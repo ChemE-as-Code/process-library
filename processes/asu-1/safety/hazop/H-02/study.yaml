@@ -50,6 +50,914 @@ notes: >-
   instrument and control, mechanical, safety, and the MAC / cold box / TSA suppliers as
   needed). No session has been held: every node, scenario, safeguard, rating and action in
   this file is a proposal by an agent (status proposed, by agent).
-nodes: []
-safeguards: []
-actions: []
+nodes:
+  # ------------------------------------------------------------------------------------------
+  - id: H02-N1
+    title: Feed air inlet AIR-1004 with the inlet valves XV-2101A/B and the repressurization valves XV-2111A/B
+    design_intent: >-
+      Take the precooled, water-saturated air S3 from C-1101 (111,080 kg/h, 5.92 bara, 12 C,
+      D-089) through AIR-1004 DN700 to the bottom of the bed on line through its inlet valve
+      XV-2101A or XV-2101B (open on the adsorbing bed, closed on the other), and repressurize
+      the regenerated bed slowly (about 15 min) through the DN100 globe valve XV-2111A or
+      XV-2111B that bypasses its inlet valve (D-022).
+    members:
+      - {tag: AIR-1004, sheet: P-02}
+      - XV-2101A
+      - XV-2101B
+      - XV-2111A
+      - XV-2111B
+      - KS-2101
+    modes: [normal, startup, shutdown, regen-switch, power-fail]
+    status: proposed
+    by: agent
+    notes: >-
+      Off-page: AIR-1004 comes from C-1101 on P-01 (study H-01). Causes there (MAC trip, DCAC
+      carry-over or flooding, chilled-water loss with hot air, oil from the MAC) are H-01's;
+      their consequences in the TSA are noted under the deviations below.
+    deviations:
+      - id: H02-N1-NF
+        guide_word: "no"
+        parameter: flow
+        scenarios:
+          - id: H02-S1
+            cause: "XV-2101A/B of the adsorbing bed closes spuriously (actuator or KS-2101 output fault) while the other bed is not on line."
+            consequence: "The air path is blocked: the MAC runs against a closed valve toward surge, and the cold box loses its feed air, so the columns lose pressure and refrigeration and GOX supply stops; plant trip, customer on the LOX backup."
+            refs: [XV-2101A, XV-2101B, KS-2101]
+            modes: [normal, regen-switch]
+            safeguards: [H02-SG14, H02-SG15]
+            actions: [H02-A6]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: D, basis: "Single valve or sequence output failure (matrix D); MAC driven into surge with stage damage possible and days with a supply shortfall (matrix 3).", evidence: [XV-2101A, KS-2101, D-005], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+              residual:
+                - {category: asset, severity: "2", likelihood: D, basis: "UIC-1102 anti-surge (blow-off to S-1101) and PSV-1109 on P-01 keep the MAC and the DCAC safe; what remains is a plant trip and a restart within a day on the backup (matrix 2).", evidence: [UIC-1102, PSV-1109, D-014], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5975c38759944df0}}
+      - id: H02-N1-MF
+        guide_word: more
+        parameter: flow
+        description: "More flow into the bed being repressurized."
+        scenarios:
+          - id: H02-S2
+            cause: "XV-2101A/B (DN700) is opened on a depressurized bed instead of the DN100 repressurization valve XV-2111A/B (step skipped in KS-2101, or the sequence run in manual)."
+            consequence: "Fast repressurization: a high upflow velocity lifts and attrits the sieve, damages the bed screens and sends dust to F-2101; the air flow to the bed on line and to the cold box dips (HP column pressure dip, MAC pushed toward surge)."
+            refs: [XV-2101A, XV-2101B, XV-2111A, XV-2111B, KS-2101]
+            modes: [regen-switch, startup]
+            actions: [H02-A4, H02-A5]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: D, basis: "Sequence or operator error in a routine step (D); sieve damage and an adsorbent top-up or change-out, 0.1 to 1 MEUR with days down (3).", evidence: [D-022, KS-2101], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+              residual:
+                - {category: asset, severity: "3", likelihood: D, basis: "No safeguard independent of KS-2101: the slow DN100 bypass helps only when the sequence uses it, and no bed pressure is measured on P-02 to block the large valve.", evidence: [D-022, XV-2111A], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+      - id: H02-N1-RF
+        guide_word: reverse
+        parameter: flow
+        notes: >-
+          Reverse flow from the cold box through the beds toward C-1101 on a MAC trip has its
+          cause on P-01 (H-01); the check valve on AIR-1002 (P-01, D-005) stops it there (H01-S11, action H01-A21). No
+          cause on P-02 alone; a bed vented while on line is H02-S33.
+      - id: H02-N1-AW
+        guide_word: as-well-as
+        parameter: composition
+        description: "Liquid water or oil with the feed air."
+        notes: >-
+          Causes on P-01 (H-01): DCAC flooding or demister failure carries free water into
+          AIR-1004 (LSHH-1106, D-005); MAC oil carry-over (D-012). Consequence here: the alumina
+          layer saturates, the water front reaches the 13X and the bed loses its CO2 capacity, so
+          CO2 and hydrocarbons break through early (the chain of H02-S5). AIR-1004 has no water
+          knock-out or drain on P-02. H-01 rates the carry-over at its cause (H01-S13 .. H01-S15,
+          actions H01-A3, H01-A4, H01-A7); no separate knock-out is proposed here.
+      - id: H02-N1-HT
+        guide_word: more
+        parameter: temperature
+        notes: >-
+          Cause on P-01 (H-01): chilled-water or DCAC failure raises the air temperature (TIC-1105,
+          TIA-1111; H01-S9, H01-S17, H01-S26, H01-S27). Consequence here: higher water load and lower sieve capacity, early
+          breakthrough. The TSA has no inlet temperature measurement on P-02.
+  # ------------------------------------------------------------------------------------------
+  - id: H02-N2
+    title: Adsorber V-2101A/B in adsorption (upflow)
+    design_intent: >-
+      Remove water (outlet dew point below -70 C, AIA-2103), CO2 (outlet below 0.1 ppm, alarm
+      1 ppm at AIA-2102), N2O, C2H2 and most heavier hydrocarbons from 111,080 kg/h of air at
+      12 C and about 5.83 bara for an adsorption step of about 4 h (water load 165 kg/h, CO2
+      67.7 kg/h; alumina under 13X), at no more than 8 kPa bed pressure drop. Vessels designed
+      for 8 barg and 250 C, minimum design temperature 0 C; PSV-2108A/B on the bed tops for the
+      fire and blocked-in cases.
+    members: [V-2101A, V-2101B, PDI-2115A, PDI-2115B, PSV-2108A, PSV-2108B]
+    modes: [normal, startup, regen-switch]
+    status: proposed
+    by: agent
+    deviations:
+      - id: H02-N2-PO
+        guide_word: part-of
+        parameter: composition
+        description: "Adsorption incomplete: H2O, CO2, N2O or hydrocarbons pass the bed on line."
+        scenarios:
+          - id: H02-S3
+            cause: "The adsorbent has lost capacity over time (hydrothermal ageing, fouling, attrition) so the CO2 front reaches the bed outlet within the fixed step time."
+            consequence: "CO2 and N2O, then C2H2 and other hydrocarbons, enter the cold box and accumulate in the LP column sump at the main condenser E-3103: solid deposits in the boiling passages, dry boiling and a hydrocarbon explosion of the condenser and cold box (EIGA Doc 65)."
+            refs: [V-2101A, V-2101B, AIA-2102]
+            modes: [normal]
+            safeguards: [H02-SG1, H02-SG17]
+            actions: [H02-A1, H02-A13]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "5", likelihood: C, basis: "Capacity loss of the sieve could happen once in the plant life (C); a main condenser explosion with several fatalities (matrix 5).", evidence: [D-006, D-010], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: b6ef4d2263633cd5}}
+                - {category: asset, severity: "5", likelihood: C, basis: "Loss of the cold box, months down (5).", evidence: [D-010], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 20579213de92d430}}
+              residual:
+                - {category: people, severity: "5", likelihood: A, basis: "A slow loss of capacity shows first as a CO2 rise at AIA-2102 (alarm 1 ppm, operator shortens the cycle) and the LP sump LOX is analysed by AIA-3103 (P-03) with action limits; both have to fail for the outcome.", evidence: [AIA-2102, AIA-3103, D-010], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 61d9d3ab4bf99bc9}}
+                - {category: asset, severity: "5", likelihood: A, basis: "As for people.", evidence: [AIA-2102, AIA-3103], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: a617a5430a81f857}}
+          - id: H02-S4
+            cause: "Flow bypasses part of the bed: bed support grid or screen failure, an uneven bed surface after a pressure shock (H02-S2, H02-S32), adsorbent migration."
+            consequence: "Air channels past the sieve: water and CO2 break through early and freeze in the E-3101 passages (rising pressure drop, warm-up and derime of the cold box)."
+            refs: [V-2101A, V-2101B, PDI-2115A, PDI-2115B]
+            modes: [normal]
+            safeguards: [H02-SG1, H02-SG2]
+            actions: [H02-A8]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: C, basis: "Internals failure once in the plant life (C); cold box derime and a supply shortfall of days (3).", evidence: [V-2101A, D-006], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915}}
+              residual:
+                - {category: asset, severity: "3", likelihood: B, basis: "AIA-2102 CO2 and AIA-2103 dew point alarms let the operator switch beds before the cold box is loaded; PDI-2115A/B are indications without alarm and are not credited.", evidence: [AIA-2102, AIA-2103], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 96d32a0543b3b03e}}
+          - id: H02-S5
+            cause: "A new or not fully activated bed (first fill, after change-out, or after a long shutdown open to humid air) is put on line without a complete initial regeneration."
+            consequence: "Water and CO2 break through during the cold box cool-down and freeze in E-3101; the cool-down has to be repeated after a derime."
+            refs: [V-2101A, V-2101B, E-2101]
+            modes: [startup, maintenance]
+            safeguards: [H02-SG1, H02-SG2]
+            actions: [H02-A7]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: C, basis: "Start-up error once in the plant life (C); derime and days of delay (3).", evidence: [D-006], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915}}
+              residual:
+                - {category: asset, severity: "3", likelihood: B, basis: "AIA-2102 and AIA-2103 alarms stop the cool-down before much is deposited.", evidence: [AIA-2102, AIA-2103], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 96d32a0543b3b03e}}
+      - id: H02-N2-HP
+        guide_word: more
+        parameter: pressure
+        notes: >-
+          Blocked in on the air side the bed reaches at most the MAC discharge (about 6.5 bara,
+          DESIGN.md section 4), below the 8 barg design: no overpressure from the process side.
+          Air onto the regeneration side is H02-S25 / H02-S38.
+        scenarios:
+          - id: H02-S6
+            cause: "External fire at the adsorbers while a bed is blocked in by its switching valves."
+            consequence: "Gas expansion and a weakened shell: rupture of the adsorber."
+            refs: [V-2101A, V-2101B, PSV-2108A, PSV-2108B]
+            modes: [normal, maintenance, shutdown]
+            safeguards: [H02-SG10]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, basis: "Little flammable inventory in area A2 (air and waste N2 only, E-2101 electrical): a fire is unlikely (B); a vessel rupture kills one person nearby (4).", evidence: [D-011, V-2101A], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
+              residual:
+                - {category: people, severity: "4", likelihood: A, basis: "PSV-2108A/B sized for the fire case on each bed top.", evidence: [PSV-2108A, PSV-2108B, D-011], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 2aae4706e67ac517}}
+      - id: H02-N2-HDP
+        guide_word: more
+        parameter: differential pressure
+        scenarios:
+          - id: H02-S7
+            cause: "Sieve dusting, fines or fouling raise the bed pressure drop above the 8 kPa allowance."
+            consequence: "The MAC discharge rises by the difference (about 6.7 kW per kPa) or the air flow falls; the bed internals carry a higher load and may collapse."
+            refs: [V-2101A, V-2101B, PDI-2115A, PDI-2115B]
+            modes: [normal]
+            actions: [H02-A8]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "2", likelihood: C, basis: "Gradual fouling once in the plant life (C); energy and a planned adsorbent replacement (2).", evidence: [D-079, D-089], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5d4b96d05607d5a4}}
+              residual:
+                - {category: asset, severity: "2", likelihood: C, basis: "PDI-2115A/B indicate only (no alarm); nothing is credited.", evidence: [PDI-2115A, PDI-2115B], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5d4b96d05607d5a4}}
+      - id: H02-N2-LT
+        guide_word: less
+        parameter: temperature
+        notes: >-
+          The adsorbers have a minimum design temperature of 0 C (equipment list). Cold
+          regeneration gas from an E-3101 warm-end upset has its cause on P-03 (H-03); P-02 has no
+          temperature measurement on RG-2001. Question for the team: is a waste N2 temperature
+          below 0 C credible at the WN-3002 tee, and is a low-temperature alarm on RG-2001 needed?
+          Handed to H-03, where the cause lies: H03-S13 (exchanger imbalance, cold waste N2 at the
+          warm end), with H03-A10 (warm-end low-temperature alarms on WN-3002).
+  # ------------------------------------------------------------------------------------------
+  - id: H02-N3
+    title: Adsorber outlet header AIR-2001 with the outlet valves XV-2102A/B and the analyzers AIA-2102, AIA-2103
+    design_intent: >-
+      Collect the dry air (110,870 kg/h, about 5.71 bara, 12 to 15 C, TI-2113A/B high alarm
+      45 C) from the bed on line through its outlet valve XV-2102A/B (closed on the bed in
+      regeneration) and send it to F-2101; monitor CO2 and N2O (AIA-2102, alarms 1 ppm / 0.1 ppm)
+      and the dew point (AIA-2103, alarm -70 C) of the product.
+    members: [AIR-2001, XV-2102A, XV-2102B, AIA-2102, AIA-2103, TI-2113A, TI-2113B]
+    modes: [normal, startup, regen-switch, power-fail]
+    status: proposed
+    by: agent
+    deviations:
+      - id: H02-N3-NF
+        guide_word: "no"
+        parameter: flow
+        scenarios:
+          - id: H02-S8
+            cause: "XV-2102A/B of the bed on line closes spuriously (actuator or KS-2101 output)."
+            consequence: "As H02-S1: the MAC runs toward surge against a blocked outlet and the cold box loses its air; plant trip, customer on the backup."
+            refs: [XV-2102A, XV-2102B, KS-2101]
+            modes: [normal, regen-switch]
+            safeguards: [H02-SG14, H02-SG15, H02-SG16]
+            actions: [H02-A6]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: D, basis: "Single valve failure (D); MAC surge damage and days with a shortfall (3).", evidence: [XV-2102A, D-005], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+              residual:
+                - {category: asset, severity: "2", likelihood: D, basis: "UIC-1102 and PSV-1109 (P-01) protect the MAC; the bed stays below its 8 barg design; a trip and restart within a day remains (2).", evidence: [UIC-1102, PSV-1109, V-2101A], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5975c38759944df0}}
+      - id: H02-N3-RF
+        guide_word: reverse
+        parameter: flow
+        scenarios:
+          - id: H02-S9
+            cause: "XV-2102A/B of the bed in regeneration (at about 1.1 bara) opens spuriously during the heating or cooling step."
+            consequence: "Dry air flows back from AIR-2001 into the regenerating bed and out through RG-2003 and S-2101 to atmosphere: the cold box loses most of its air (trip), the vent and silencer take a flow far above their 18.7 t/h rating (noise, silencer damage)."
+            refs: [XV-2102A, XV-2102B, RG-2003, S-2101]
+            modes: [regen-switch]
+            actions: [H02-A4]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "2", likelihood: D, basis: "Single valve or sequence failure (D); plant trip and silencer repair, restart within a day on the backup (2).", evidence: [S-2101, D-072], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5975c38759944df0}}
+              residual:
+                - {category: asset, severity: "2", likelihood: D, basis: "No safeguard independent of KS-2101 on P-02.", evidence: [KS-2101], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5975c38759944df0}}
+      - id: H02-N3-AW
+        guide_word: as-well-as
+        parameter: composition
+        description: "Contaminants in the product air not detected."
+        scenarios:
+          - id: H02-S10
+            cause: "AIA-2102 fails low or stale (sample line blocked, drift, analyzer out of service for calibration) while a breakthrough develops; it is the only CO2 / N2O measurement at the TSA outlet."
+            consequence: "A breakthrough goes undetected: CO2, N2O and hydrocarbons accumulate in the LP sump at E-3103 toward a condenser explosion (as H02-S3)."
+            refs: [AIA-2102, AIR-2001]
+            modes: [normal]
+            safeguards: [H02-SG17]
+            actions: [H02-A1]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "5", likelihood: C, basis: "Analyzer unavailable during a breakthrough once in the plant life (C); condenser explosion (5).", evidence: [AIA-2102, D-010], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: b6ef4d2263633cd5}}
+                - {category: asset, severity: "5", likelihood: C, basis: "Loss of the cold box (5).", evidence: [D-010], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 20579213de92d430}}
+              residual:
+                - {category: people, severity: "5", likelihood: B, basis: "Only AIA-3103 (LP sump LOX, P-03) remains; AIA-2103 is not a leading indicator for CO2 or hydrocarbons, the water front sits in the alumina layer.", evidence: [AIA-3103, D-010], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: feea7693498b1f1a}}
+                - {category: asset, severity: "5", likelihood: B, basis: "As for people.", evidence: [AIA-3103], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 6dd05b6d428d45d5}}
+  # ------------------------------------------------------------------------------------------
+  - id: H02-N4
+    title: Dust filter F-2101 and the dry air line AIR-2002 to E-3101 and AIR-3005
+    design_intent: >-
+      Retain sieve fines from the dry air (clean pressure drop 3 kPa, high alarm and element
+      change at 5 kPa, PDIA-2106) and deliver 110,870 kg/h of dry air at 5.6 bara and 15 C
+      through AIR-2002 DN700 (about 11.8 m/s) to E-3101 and, via the AIR-3005 branch on P-03, to
+      the booster K-3101.
+    members: [F-2101, PDIA-2106, AIR-2002]
+    modes: [normal, startup, warmup, maintenance]
+    status: proposed
+    by: agent
+    notes: >-
+      Off-page: AIR-2002 to E-3101 and AIR-3005 to K-3101 on P-03 (H-03). F-2101 is a single
+      filter without a spare, a bypass or isolation valves on P-02.
+    deviations:
+      - id: H02-N4-HDP
+        guide_word: more
+        parameter: differential pressure
+        scenarios:
+          - id: H02-S11
+            cause: "F-2101 elements plug with sieve dust (after pressure shocks or with an ageing bed)."
+            consequence: "The air flow to the cold box falls or the MAC discharge rises; the element can collapse at a high differential and release the collected dust downstream (H02-S12); the element can be changed only with the plant stopped."
+            refs: [F-2101, PDIA-2106]
+            modes: [normal]
+            safeguards: [H02-SG12]
+            actions: [H02-A9]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "2", likelihood: D, basis: "Plugging a few times in the plant life (D); an unplanned stop of up to a day (2).", evidence: [F-2101, D-080], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5975c38759944df0}}
+              residual:
+                - {category: asset, severity: "2", likelihood: B, basis: "PDIA-2106 high alarm at 5 kPa lets the element change be planned before collapse.", evidence: [PDIA-2106, D-079], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: a148c713397132d0}}
+      - id: H02-N4-AW
+        guide_word: as-well-as
+        parameter: composition
+        description: "Sieve dust passes the filter."
+        scenarios:
+          - id: H02-S12
+            cause: "F-2101 element collapse or rupture, a leaking element seal, or a wrong element fitted after maintenance."
+            consequence: "Sieve dust enters the E-3101 passages (distributor fouling, erosion), the booster and expander wheels via AIR-3005 (erosion, imbalance) and the columns; particles in the oxygen-rich sections are an ignition-by-impact concern (EIGA Doc 13 / Doc 33)."
+            refs: [F-2101, AIR-2002]
+            modes: [normal, startup]
+            actions: [H02-A9]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "4", likelihood: C, basis: "Element failure once in the plant life (C); damage to the main heat exchanger or the compander, 1 to 10 MEUR or weeks (4).", evidence: [F-2101, D-009], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 544760766051af8c}}
+              residual:
+                - {category: asset, severity: "4", likelihood: C, basis: "PDIA-2106 has a high alarm only: a sudden fall of the differential at a rupture is not alarmed; nothing is credited.", evidence: [PDIA-2106], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 544760766051af8c}}
+      - id: H02-N4-RF
+        guide_word: reverse
+        parameter: flow
+        notes: >-
+          On a MAC trip (cause on P-01, H-01) the cold box air flows back through AIR-2002, F-2101
+          and the bed until the AIR-1002 check valve holds: the elements see a reverse
+          differential. Question for the filter supplier (H02-A9): are the elements rated for it?
+      - id: H02-N4-NF
+        guide_word: "no"
+        parameter: flow
+        notes: "No cause on P-02 beyond the switching valves (H02-S1, H02-S8); a blocked E-3101 is H-03's."
+  # ------------------------------------------------------------------------------------------
+  - id: H02-N5
+    title: Regeneration gas supply RG-2001 with FV-2105 / FIC-2105 and the heater bypass XV-2109
+    design_intent: >-
+      Take 18,486 kg/h of waste N2 at about 1.1 bara and 13 C from the WN-3002 tee (P-03) at the
+      FIC-2105 set point through RG-2001 DN600 (14.3 m/s); about 10 kPa are available to
+      atmosphere along the whole regeneration path, FV-2105 1.5 kPa (D-072). During heating all
+      gas passes E-2101 with XV-2109 closed; during cooling E-2101 is de-energised and XV-2109
+      opens. FIC-2105 low flow trips E-2101.
+    members: [RG-2001, FV-2105, FIC-2105, XV-2109]
+    modes: [normal, regen-switch, startup, warmup, power-fail]
+    status: proposed
+    by: agent
+    notes: >-
+      Off-page: RG-2001 comes from the WN-3002 tee at the E-3101 warm end on P-03 (H-03). The
+      waste N2 composition (O2 content) and temperature are set there and not measured on P-02.
+    deviations:
+      - id: H02-N5-LF
+        guide_word: less
+        parameter: flow
+        scenarios:
+          - id: H02-S13
+            cause: "FV-2105 fails closed or FIC-2105 fails low during the heating step."
+            consequence: "E-2101 stays energised with little or no gas: element sheaths overheat and fail (heater damage)."
+            refs: [FV-2105, FIC-2105, E-2101]
+            modes: [normal, regen-switch]
+            safeguards: [H02-SG8, H02-SG7]
+            actions: [H02-A2]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: D, basis: "Control valve or loop failure (D); heater element bundle, 0.1 to 1 MEUR (3).", evidence: [E-2101, FIC-2105], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+              residual:
+                - {category: asset, severity: "3", likelihood: B, basis: "The FIC-2105 low-flow trip of E-2101 and the element trip TSHH-2107 (instrument list, not yet in the C&E) de-energise the heater.", evidence: [FIC-2105, TSHH-2107], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 96d32a0543b3b03e}}
+          - id: H02-S14
+            cause: "FV-2105 fails closed or FIC-2105 fails low during the heating step (the heater trips on low flow)."
+            consequence: "The bed in regeneration is not heated through; if the sequence switches on time an under-regenerated bed goes on line and CO2, N2O and hydrocarbons break through early (the chain of H02-S3)."
+            refs: [FV-2105, FIC-2105, TI-2114A, TI-2114B]
+            modes: [normal, regen-switch]
+            safeguards: [H02-SG4, H02-SG1, H02-SG17]
+            actions: [H02-A7, H02-A14]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "5", likelihood: C, basis: "The loop failure (D) leads to the outcome only if the sequence then switches regardless (C); condenser explosion (5).", evidence: [D-010, FIC-2105], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: b6ef4d2263633cd5}}
+              residual:
+                - {category: people, severity: "5", likelihood: A, basis: "The heating step ends only on the heat pulse at TI-2114A/B (KS-2101), and AIA-2102 and AIA-3103 alarm a breakthrough; the sequence is not the cause here.", evidence: [TI-2114A, AIA-2102, AIA-3103], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 61d9d3ab4bf99bc9}}
+          - id: H02-S15
+            cause: "XV-2109 opens (fails open or wrong step) during the heating step."
+            consequence: "Most of the regeneration gas bypasses E-2101 through the DN500 butterfly valve: the heater elements are starved and overheat, and the bed is heated with mixed gas well below 200 C (incomplete regeneration)."
+            refs: [XV-2109, E-2101, TIC-2104]
+            modes: [normal, regen-switch]
+            safeguards: [H02-SG7, H02-SG4]
+            actions: [H02-A2]
+            status: proposed
+            by: agent
+            notes: "FIC-2105 measures the total flow upstream of the bypass, so its low-flow trip does not see this case."
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: D, basis: "Valve or sequence failure (D); heater elements, 0.1 to 1 MEUR (3).", evidence: [XV-2109, E-2101], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+              residual:
+                - {category: asset, severity: "3", likelihood: C, basis: "Only TSHH-2107 on the element (instrument list, not in the C&E) protects the heater; TSHH-2116 on the mixed outlet reads low.", evidence: [TSHH-2107], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915}}
+      - id: H02-N5-MF
+        guide_word: more
+        parameter: flow
+        scenarios:
+          - id: H02-S16
+            cause: "FV-2105 fails open or FIC-2105 fails high."
+            consequence: "More waste N2 is drawn to the TSA and less to C-1102 (chilled water warms, H-01); the regeneration path pressure drop rises and lifts the WN-3002 tee and the LP column top pressure (PIC-3110 on P-03 compensates); at full heater power the outlet stays below 200 C and the bed is regenerated less."
+            refs: [FV-2105, FIC-2105, E-2101]
+            modes: [normal]
+            actions: [H02-A14]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "2", likelihood: D, basis: "Loop failure (D); a process upset, reduced production for hours (2).", evidence: [D-072, D-067], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5975c38759944df0}}
+              residual:
+                - {category: asset, severity: "2", likelihood: D, basis: "No alarm on FIC-2105 high flow; PIC-3110 is control on P-03, not credited here.", evidence: [FIC-2105], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5975c38759944df0}}
+      - id: H02-N5-PC
+        guide_word: other-than
+        parameter: composition
+        notes: >-
+          O2-enriched waste gas from an LP column upset (cause on P-03, H-03) would pass the 200 C
+          electric heater elements. P-02 has no O2 measurement on RG-2001. Question for the team
+          and the heater supplier: the highest credible O2 content of the regeneration gas and
+          whether E-2101 needs oxygen-service cleaning or an O2 permissive. Handed to H-03, where
+          the cause lies; H-03 answers in the notes of H03-N7-OC.
+      - id: H02-N5-LT
+        guide_word: less
+        parameter: temperature
+        notes: "Cold waste N2 from P-03 (H-03): see H02-N2-LT."
+  # ------------------------------------------------------------------------------------------
+  - id: H02-N6
+    title: Regeneration heater E-2101 and the hot gas line RG-2002 to the bed inlet valves XV-2103A/B
+    design_intent: >-
+      Heat 18,486 kg/h of waste N2 from 13 C to 200 C (1.13 MW peak, thyristor control by
+      TIC-2104) at about 1.1 bara with 1 kPa gas-side pressure drop; E-2101 designed for 3.5 barg
+      and 260 C, element trip TSHH-2107, outlet trip TSHH-2116; RG-2002 DN700 PN6 carries the hot
+      gas to the top of the bed in regeneration through its XV-2103A/B (closed on the bed on
+      line).
+    members: [E-2101, TIC-2104, TSHH-2107, TSHH-2116, RG-2002, XV-2103A, XV-2103B]
+    modes: [normal, regen-switch, startup, power-fail]
+    status: proposed
+    by: agent
+    deviations:
+      - id: H02-N6-HT
+        guide_word: more
+        parameter: temperature
+        scenarios:
+          - id: H02-S17
+            cause: "TIC-2104 fails high or the thyristor fails shorted (full power)."
+            consequence: "Regeneration gas well above 200 C: the 250 C design of V-2101A/B and the 260 C of E-2101 are exceeded, the sieve is damaged hydrothermally, bed internals, gaskets and the valve seats overheat."
+            refs: [TIC-2104, E-2101, V-2101A, V-2101B]
+            modes: [normal, regen-switch]
+            safeguards: [H02-SG6, H02-SG7]
+            actions: [H02-A2]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: D, basis: "Control loop failure (D); adsorbent change-out and repairs, 0.1 to 1 MEUR (3).", evidence: [TIC-2104, V-2101A], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+              residual:
+                - {category: asset, severity: "3", likelihood: B, basis: "TSHH-2116 on RG-2002 (independent of TIC-2104) and TSHH-2107 on the element trip E-2101 (instrument list; not yet in the C&E).", evidence: [TSHH-2116, TSHH-2107, D-022], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 96d32a0543b3b03e}}
+      - id: H02-N6-LT
+        guide_word: less
+        parameter: temperature
+        scenarios:
+          - id: H02-S18
+            cause: "E-2101 trips or loses power, or TIC-2104 fails low, during the heating step."
+            consequence: "The heat pulse does not reach the bed outlet; if the bed returns to adsorption under-regenerated, CO2, N2O and hydrocarbons break through early (the chain of H02-S3)."
+            refs: [E-2101, TIC-2104, TI-2114A, TI-2114B]
+            modes: [normal, regen-switch, power-fail]
+            safeguards: [H02-SG4, H02-SG1, H02-SG17]
+            actions: [H02-A7]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "5", likelihood: C, basis: "Heater trips are expected (D), but the outcome needs the sequence to switch regardless (C); condenser explosion (5).", evidence: [E-2101, D-010], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: b6ef4d2263633cd5}}
+              residual:
+                - {category: people, severity: "5", likelihood: A, basis: "The heating step ends on the TI-2114A/B heat pulse; AIA-2102 and AIA-3103 alarm a breakthrough.", evidence: [TI-2114A, AIA-2102, AIA-3103], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 61d9d3ab4bf99bc9}}
+      - id: H02-N6-HP
+        guide_word: more
+        parameter: pressure
+        scenarios:
+          - id: H02-S19
+            cause: "XV-2103A/B of the bed on line (about 5.8 bara) opens spuriously (actuator or KS-2101 output)."
+            consequence: "High-pressure air flows back into RG-2002, E-2101 (3.5 barg design) and RG-2001 (PN6, no check valve) toward the WN-3002 tee, the E-3101 waste passages and the LP column top (P-03), and out through the other bed to S-2101: overpressure and possible rupture of the heater shell; the cold box loses air."
+            refs: [XV-2103A, XV-2103B, E-2101, RG-2002, RG-2001]
+            modes: [normal, regen-switch]
+            safeguards: [H02-SG18]
+            actions: [H02-A3, H02-A4, H02-A5]
+            status: proposed
+            by: agent
+            notes: "DESIGN.md section 4 lists a TSV on the E-2101 shell (blocked-in heating), but it is not drawn on P-02 nor in piping/special-items.yaml, so it is not credited."
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: D, basis: "Single valve or output failure (D); rupture of the heater shell with one fatality nearby (4).", evidence: [E-2101, XV-2103A, D-022], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
+                - {category: asset, severity: "3", likelihood: D, basis: "Heater and RG line damage, plant trip of days (3).", evidence: [E-2101], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+              residual:
+                - {category: people, severity: "4", likelihood: D, basis: "No relief on E-2101 and no interlock on P-02 or in the C&E; PSV-3114 protects only the LP column on P-03.", evidence: [PSV-3114, E-2101], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
+                - {category: asset, severity: "3", likelihood: D, basis: "As for people.", evidence: [E-2101], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+      - id: H02-N6-NF
+        guide_word: "no"
+        parameter: flow
+        scenarios:
+          - id: H02-S20
+            cause: "XV-2103A/B of the bed to be regenerated fails to open (or XV-2104A/B fails to open) at the start of the heating step."
+            consequence: "The regeneration path is dead-ended: E-2101 sees no flow (element overheat if energised); the regeneration gas backs up to the WN-3002 tee and lifts the LP column top pressure until PIC-3110 (P-03) diverts it; the bed is not regenerated."
+            refs: [XV-2103A, XV-2103B, XV-2104A, XV-2104B, E-2101]
+            modes: [regen-switch]
+            safeguards: [H02-SG8, H02-SG7, H02-SG4]
+            actions: [H02-A2]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: D, basis: "Valve failure on demand (D); heater elements (3).", evidence: [E-2101, D-072], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+              residual:
+                - {category: asset, severity: "3", likelihood: B, basis: "FIC-2105 low-flow trip and TSHH-2107 de-energise E-2101; the missing heat pulse at TI-2114A/B holds the step.", evidence: [FIC-2105, TSHH-2107, TI-2114A], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 96d32a0543b3b03e}}
+      - id: H02-N6-OT
+        guide_word: other-than
+        parameter: surface temperature
+        scenarios:
+          - id: H02-S21
+            cause: "Operators work at RG-2002, E-2101, the bed tops or RG-2003 (valve operation, sampling, inspection) while the lines carry gas at up to 200 C."
+            consequence: "Contact burns from uninsulated hot surfaces."
+            refs: [RG-2002, E-2101, RG-2003]
+            modes: [normal, regen-switch, maintenance]
+            actions: [H02-A12]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "2", likelihood: D, basis: "Routine access near hot lines (D); a minor burn (2).", evidence: [D-084, RG-2002], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 86926c67044825b3}}
+              residual:
+                - {category: people, severity: "2", likelihood: D, basis: "No personnel protection is recorded in the files for these lines.", evidence: [RG-2002], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 86926c67044825b3}}
+  # ------------------------------------------------------------------------------------------
+  - id: H02-N7
+    title: Adsorber V-2101A/B in regeneration (heating and cooling, counter-current)
+    design_intent: >-
+      With the bed off line and depressurized to about 1.1 bara, pass the regeneration gas
+      downward (RG-2002 in at the top, RG-2003 out at the bottom): heat with 200 C waste N2 until
+      the heat pulse reaches the outlet (TI-2114A/B about 110 C), then cool with unheated waste
+      N2 (E-2101 off, XV-2109 open) to near the feed temperature; desorb about 660 kg H2O and
+      271 kg CO2 per step; bed pressure drop at most 1.5 kPa (D-072).
+    members: [V-2101A, V-2101B, TI-2114A, TI-2114B, KS-2101]
+    modes: [normal, regen-switch, startup]
+    status: proposed
+    by: agent
+    deviations:
+      - id: H02-N7-LH
+        guide_word: less
+        parameter: heat input
+        scenarios:
+          - id: H02-S22
+            cause: "TI-2114A/B reads high (false heat-pulse arrival) and KS-2101 ends the heating step early."
+            consequence: "The lower part of the 13X layer stays loaded: the bed goes back on line under-regenerated and CO2, N2O and hydrocarbons break through early (the chain of H02-S3)."
+            refs: [TI-2114A, TI-2114B, KS-2101]
+            modes: [normal, regen-switch]
+            safeguards: [H02-SG1, H02-SG17]
+            actions: [H02-A7, H02-A1]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "5", likelihood: D, basis: "A single temperature element failure ends the step (D); condenser explosion (5).", evidence: [TI-2114A, D-010], status: proposed, by: agent, band: {value: very-high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 6f208be6591d5202}}
+              residual:
+                - {category: people, severity: "5", likelihood: B, basis: "AIA-2102 alarm with operator response and AIA-3103 in the LP sump; no second heat-pulse criterion is recorded.", evidence: [AIA-2102, AIA-3103], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: feea7693498b1f1a}}
+      - id: H02-N7-HP
+        guide_word: more
+        parameter: pressure
+        description: "Back-pressure on the regeneration side."
+        scenarios:
+          - id: H02-S23
+            cause: "S-2101 internals collapse or the RG-2003 outlet is restricted (debris, rain cap) during regeneration."
+            consequence: "The regeneration path loses its 10 kPa margin: the flow falls and the WN-3002 tee and the LP column top pressure rise (PIC-3110 diverts on P-03); the bed is regenerated less. The pressure cannot exceed the waste N2 supply pressure, so no overpressure."
+            refs: [S-2101, RG-2003]
+            modes: [normal]
+            safeguards: [H02-SG8, H02-SG4]
+            actions: [H02-A14]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "2", likelihood: C, basis: "Silencer failure once in the plant life (C); reduced production for hours (2).", evidence: [S-2101, D-072], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5d4b96d05607d5a4}}
+              residual:
+                - {category: asset, severity: "2", likelihood: B, basis: "FIC-2105 control holds or trips on low flow; the heat pulse at TI-2114A/B holds the step.", evidence: [FIC-2105, TI-2114A], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: a148c713397132d0}}
+      - id: H02-N7-AW
+        guide_word: as-well-as
+        parameter: composition
+        notes: >-
+          A heavily water-loaded bed (after a carry-over, cause on P-01, H-01) heated quickly to
+          200 C steams the 13X (hydrothermal ageing): capacity loss, see H02-S3. The supplier's
+          heating-rate limit for a wet bed is asked in H02-A7.
+  # ------------------------------------------------------------------------------------------
+  - id: H02-N8
+    title: Regeneration and depressurization outlet XV-2104A/B, XV-2112A/B, RG-2003 and silencer S-2101 to atmosphere
+    design_intent: >-
+      Depressurize the bed taken off line from about 5.8 to 1.1 bara slowly through its DN100
+      globe valve XV-2112A/B; then pass the regeneration gas (waste N2, O2-deficient, wet with the
+      desorbed water and CO2, up to 200 C) through XV-2104A/B and RG-2003 DN700 and the silencer
+      S-2101 (1 kPa, 18,696 kg/h) to atmosphere at a safe location (zone Z-N2-VENTS, D-011).
+      XV-2104A/B and XV-2112A/B stay closed on the bed on line.
+    members: [XV-2104A, XV-2104B, XV-2112A, XV-2112B, RG-2003, S-2101]
+    modes: [normal, regen-switch, startup, power-fail]
+    status: proposed
+    by: agent
+    deviations:
+      - id: H02-N8-MF
+        guide_word: more
+        parameter: flow
+        scenarios:
+          - id: H02-S24
+            cause: "XV-2104A/B (DN700) opens on the bed still at about 5.8 bara instead of XV-2112A/B (step skipped or XV-2112 stuck while the sequence runs on time)."
+            consequence: "Fast blowdown of a 286 m3 bed: the downflow crushes and attrits the sieve and can lift or tear the bed screens; S-2101 is overloaded far beyond its rating (noise, internals damage); a burst of gas and dust at the vent."
+            refs: [XV-2104A, XV-2104B, XV-2112A, XV-2112B, S-2101]
+            modes: [regen-switch]
+            safeguards: [H02-SG11]
+            actions: [H02-A4, H02-A5]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: D, basis: "Sequence or valve failure in a step run six times a day (D); adsorbent change-out, silencer repair (3).", evidence: [D-022, S-2101], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+              residual:
+                - {category: asset, severity: "3", likelihood: D, basis: "The DN100 bypass limits the rate only when used; no bed pressure permissive exists on P-02.", evidence: [XV-2112A, D-022], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+          - id: H02-S25
+            cause: "XV-2104A/B or XV-2112A/B of the bed on line opens spuriously during adsorption."
+            consequence: "The on-line bed vents the feed air to atmosphere through RG-2003 and S-2101: the cold box loses its air (trip), the bed is blown down at full MAC flow (sieve damage), the silencer is overloaded."
+            refs: [XV-2104A, XV-2104B, XV-2112A, XV-2112B, S-2101]
+            modes: [normal]
+            actions: [H02-A4, H02-A6]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: D, basis: "Single valve failure (D); sieve and silencer damage and days with a shortfall (3).", evidence: [XV-2104A, S-2101], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+              residual:
+                - {category: asset, severity: "3", likelihood: D, basis: "No safeguard independent of KS-2101.", evidence: [KS-2101], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+      - id: H02-N8-OT
+        guide_word: other-than
+        parameter: location (release)
+        description: "Waste N2 released where people are."
+        scenarios:
+          - id: H02-S26
+            cause: "The regeneration gas (O2-deficient waste N2, about 18.5 t/h) leaves S-2101 continuously during regeneration, in calm weather, with people at the TSA valves, platforms or in the sieve laydown area."
+            consequence: "Asphyxiation in an oxygen-deficient atmosphere near the vent outlet or in a low point where the cold gas collects."
+            refs: [S-2101, RG-2003]
+            modes: [normal, regen-switch, maintenance]
+            safeguards: [H02-SG13]
+            actions: [H02-A11]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, basis: "Continuous release beside a routine work area (C); one fatality (4).", evidence: [D-011, D-031, S-2101], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+              residual:
+                - {category: people, severity: "4", likelihood: B, basis: "The outlet is routed to a safe location with the O2-deficient zone Z-N2-VENTS declared (D-011, D-031); dispersion against the TSA platforms is not shown in the files.", evidence: [S-2101, D-011, D-031, D-084], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
+      - id: H02-N8-HT
+        guide_word: more
+        parameter: temperature
+        notes: >-
+          Heating continued past the heat pulse (TI-2114A/B failing low) sends up to 200 C gas to
+          RG-2003 and S-2101, both rated for 200 C (special-items list); wasted energy only.
+  # ------------------------------------------------------------------------------------------
+  - id: H02-N9
+    title: Switching sequence KS-2101 (depressurize, heat, cool, repressurize, change-over)
+    design_intent: >-
+      For each bed: adsorption about 4 h; then depressurize through XV-2112A/B, heat (XV-2103 and
+      XV-2104 open, E-2101 on, XV-2109 closed) until the heat pulse at TI-2114A/B, cool (E-2101
+      off, XV-2109 open), repressurize through XV-2111A/B (about 15 min), then change over by
+      opening XV-2101/XV-2102 of the fresh bed before closing those of the spent bed. At no time
+      is a bed under air pressure connected to the regeneration side, and the air path is never
+      closed.
+    members: [KS-2101, XV-2101A, XV-2101B, XV-2102A, XV-2102B, XV-2103A, XV-2103B, XV-2104A, XV-2104B, XV-2109, XV-2111A, XV-2111B, XV-2112A, XV-2112B]
+    modes: [regen-switch, normal, startup, power-fail]
+    status: proposed
+    by: agent
+    notes: >-
+      KS-2101 is basic process control; no switching-valve position feedback, bed pressure
+      transmitter or switching permissive is shown on P-02 or in the C&E. The sequence logic
+      beyond the P&ID is the TSA supplier's (scope).
+    deviations:
+      - id: H02-N9-LA
+        guide_word: late
+        parameter: change-over
+        scenarios:
+          - id: H02-S27
+            cause: "The adsorption step overruns: KS-2101 timer fault, or the change-over held (operator hold, the regenerated bed not ready) beyond the CO2 breakthrough time."
+            consequence: "CO2 and N2O, then C2H2 and heavier hydrocarbons, pass into the cold box and accumulate in the LP sump at E-3103: deposits, dry boiling and a condenser explosion (EIGA Doc 65)."
+            refs: [KS-2101, V-2101A, V-2101B, AIA-2102]
+            modes: [normal, regen-switch]
+            safeguards: [H02-SG1, H02-SG17]
+            actions: [H02-A1, H02-A13]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "5", likelihood: D, basis: "A sequence fault or an operator hold is expected a few times in the plant life (D); condenser explosion with several fatalities (5).", evidence: [KS-2101, D-010], status: proposed, by: agent, band: {value: very-high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 6f208be6591d5202}}
+                - {category: asset, severity: "5", likelihood: D, basis: "Loss of the cold box (5).", evidence: [D-010], status: proposed, by: agent, band: {value: very-high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 383056181dc74e6a}}
+              residual:
+                - {category: people, severity: "5", likelihood: B, basis: "AIA-2102 alarm (operator switches or trips; the high-high action of D-010 is not in the C&E, so it counts as an alarm) and AIA-3103 in the LP sump; the sequence itself is the cause and gets no credit.", evidence: [AIA-2102, AIA-3103, D-010], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: feea7693498b1f1a}}
+                - {category: asset, severity: "5", likelihood: B, basis: "As for people.", evidence: [AIA-2102, AIA-3103], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 6dd05b6d428d45d5}}
+      - id: H02-N9-EA
+        guide_word: early
+        parameter: change-over
+        scenarios:
+          - id: H02-S28
+            cause: "Change-over before the cooling step is complete (KS-2101 timing, or the cycle shortened by the operator after a CO2 alarm on the other bed)."
+            consequence: "A hot bed goes on line: a pulse of hot dry air reaches the E-3101 warm end (thermal stress in the brazed aluminium exchanger, refrigeration loss), and the hot sieve adsorbs poorly, so CO2 breaks through."
+            refs: [KS-2101, TI-2113A, TI-2113B, AIR-2002]
+            modes: [regen-switch]
+            safeguards: [H02-SG3, H02-SG1]
+            actions: [H02-A7]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "4", likelihood: D, basis: "Timing or operator error (D); E-3101 damage, 1 to 10 MEUR or weeks (4).", evidence: [E-3101, D-022], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d6c65b3d1b5e620d}}
+              residual:
+                - {category: asset, severity: "4", likelihood: B, basis: "TI-2113A/B high alarm at 45 C (via KS-2101) and the AIA-2102 CO2 alarm; the operator switches back or slows the change-over.", evidence: [TI-2113A, TI-2113B, AIA-2102], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d508cded1fd37f0d}}
+      - id: H02-N9-BE
+        guide_word: before
+        parameter: sequence
+        scenarios:
+          - id: H02-S29
+            cause: "XV-2103A/B of the bed taken off line opens before the bed is depressurized (XV-2112 stuck closed while the sequence runs on time)."
+            consequence: "The 5.8 bara bed discharges back through RG-2002 into E-2101 (3.5 barg design) and RG-2001 (no check valve) toward the WN-3002 tee and the LP column top on P-03: overpressure of the heater shell and the regeneration lines."
+            refs: [XV-2103A, XV-2103B, XV-2112A, XV-2112B, E-2101, RG-2001]
+            modes: [regen-switch]
+            safeguards: [H02-SG18]
+            actions: [H02-A3, H02-A4, H02-A5]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: D, basis: "Valve failure in a step run six times a day (D); heater shell rupture (4).", evidence: [E-2101, D-022], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
+              residual:
+                - {category: people, severity: "4", likelihood: D, basis: "No relief on E-2101 and no permissive; nothing credited on P-02.", evidence: [E-2101], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
+          - id: H02-S30
+            cause: "XV-2102A/B of the regenerated bed opens before repressurization is complete (XV-2111 slow or stuck while the sequence runs on time)."
+            consequence: "Dry air flows back from AIR-2001 into the low-pressure bed: the cold box feed flow and pressure dip sharply (HP column pressure and level upsets, liquid flashing, compander upset), the MAC is pushed toward surge, and the bed gets a pressure shock from the top."
+            refs: [XV-2102A, XV-2102B, XV-2111A, XV-2111B, KS-2101]
+            modes: [regen-switch]
+            safeguards: [H02-SG14]
+            actions: [H02-A4, H02-A5]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: D, basis: "Valve or sequence failure in a routine step (D); plant trip, sieve damage, days with a shortfall (3).", evidence: [KS-2101, D-022], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+              residual:
+                - {category: asset, severity: "3", likelihood: C, basis: "UIC-1102 (P-01) keeps the MAC out of surge; the column upset and the bed shock remain.", evidence: [UIC-1102], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915}}
+      - id: H02-N9-AF
+        guide_word: after
+        parameter: sequence
+        scenarios:
+          - id: H02-S31
+            cause: "The spent bed's XV-2101/XV-2102 close although the fresh bed's XV-2101 or XV-2102 failed to open (break before make)."
+            consequence: "Both beds are isolated: the MAC runs toward surge against a blocked line and the cold box loses its air; plant trip."
+            refs: [XV-2101A, XV-2101B, XV-2102A, XV-2102B, KS-2101]
+            modes: [regen-switch]
+            safeguards: [H02-SG14, H02-SG15, H02-SG16]
+            actions: [H02-A4]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: D, basis: "Valve failure on demand at each change-over (D); MAC surge damage, days (3).", evidence: [KS-2101, D-005], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+              residual:
+                - {category: asset, severity: "2", likelihood: D, basis: "UIC-1102 and PSV-1109 (P-01) protect the MAC; a trip and restart within a day on the backup (2).", evidence: [UIC-1102, PSV-1109], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5975c38759944df0}}
+      - id: H02-N9-OT
+        guide_word: other-than
+        parameter: sequence
+        description: "Loss of power or instrument air, or a controller restart, during the sequence."
+        scenarios:
+          - id: H02-S32
+            cause: "Power or instrument-air failure during any step: the switching valves, XV-2109 and FV-2105 go to fail positions that are not stated on P-02 or in the lists."
+            consequence: "Depending on the fail positions: a bed under air pressure connected to the regeneration side (as H02-S19), the bed on line vented (as H02-S25), or both beds isolated (as H02-S31)."
+            refs: [KS-2101, XV-2101A, XV-2102A, XV-2103A, XV-2104A, XV-2109, FV-2105]
+            modes: [power-fail]
+            actions: [H02-A6]
+            status: proposed
+            by: agent
+            notes: "No residual rating: the outcome depends on the fail positions the team has to set first (H02-A6)."
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: D, basis: "Utility failure a few times in the plant life (D); valve-position dependent damage and a trip of days (3).", evidence: [KS-2101], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+                - {category: people, severity: "4", likelihood: C, basis: "Only if a fail position connects a pressurized bed to E-2101 (C); heater shell rupture (4).", evidence: [E-2101], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+          - id: H02-S33
+            cause: "KS-2101 restarts after a power dip or a controller reset in a default step instead of the step it was in (for example a change-over to a bed whose heating was interrupted)."
+            consequence: "An under-regenerated or hot bed goes on line: CO2, N2O and hydrocarbons break through into the cold box (the chain of H02-S3)."
+            refs: [KS-2101, E-2101]
+            modes: [power-fail, startup]
+            safeguards: [H02-SG1, H02-SG17, H02-SG3]
+            actions: [H02-A6, H02-A7]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "5", likelihood: C, basis: "Restart after a power dip once in the plant life with a wrong step (C); condenser explosion (5).", evidence: [KS-2101, D-010], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: b6ef4d2263633cd5}}
+              residual:
+                - {category: people, severity: "5", likelihood: B, basis: "AIA-2102 and TI-2113A/B alarms and AIA-3103 in the LP sump.", evidence: [AIA-2102, TI-2113A, AIA-3103], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: feea7693498b1f1a}}
+      - id: H02-N9-NF
+        guide_word: "no"
+        parameter: regeneration gas
+        description: "No regeneration gas while the cold box is not producing waste N2."
+        scenarios:
+          - id: H02-S34
+            cause: "During a cold box warm-up and derime, or a start-up before the cold box makes waste N2, no gas reaches RG-2001 (the only regeneration source drawn on P-02) while the TSA keeps supplying dry air."
+            consequence: "The beds cannot be regenerated: when the bed on line is exhausted, wet and CO2-laden air enters the cold box being dried or cooled, and the derime or cool-down is spoiled."
+            refs: [RG-2001, V-2101A, V-2101B]
+            modes: [warmup, startup]
+            safeguards: [H02-SG1, H02-SG2]
+            actions: [H02-A10]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: D, basis: "Every long warm-up or slow start-up (D); a repeated derime, days with a shortfall (3).", evidence: [RG-2001, D-010], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+              residual:
+                - {category: asset, severity: "3", likelihood: B, basis: "AIA-2102 and AIA-2103 alarms stop the warm-up air before the cold box is wetted.", evidence: [AIA-2102, AIA-2103], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 96d32a0543b3b03e}}
+  # ------------------------------------------------------------------------------------------
+  - id: H02-N10
+    title: Isolation, adsorbent change-out and entry of V-2101A/B and F-2101
+    design_intent: >-
+      Isolate one bed (or the whole TSA and F-2101 at a plant stop) from the 5.9 bara air and the
+      waste N2 for inspection, adsorbent top-up or change-out (about 18 t a bed, laydown Z-SIEVE)
+      and element change, purge it with air and enter it only with a safe atmosphere.
+    members: [V-2101A, V-2101B, F-2101, XV-2101A, XV-2102A, XV-2103A, XV-2104A]
+    modes: [maintenance]
+    status: proposed
+    by: agent
+    deviations:
+      - id: H02-N10-OT
+        guide_word: other-than
+        parameter: composition (vessel atmosphere)
+        scenarios:
+          - id: H02-S35
+            cause: "Entry into V-2101A/B or F-2101 after regeneration or cooling with waste N2, or with a passing XV-2103/XV-2104 letting waste N2 in (only single valve isolation is drawn)."
+            consequence: "The entrant, and a rescuer following, are asphyxiated in an oxygen-deficient atmosphere."
+            refs: [V-2101A, V-2101B, F-2101, XV-2103A, XV-2104A]
+            modes: [maintenance]
+            actions: [H02-A10]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: D, basis: "Vessel entries at every change-out and inspection (D); a known cause of fatalities in the industry, one or more deaths (4).", evidence: [D-011, V-2101A], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
+              residual:
+                - {category: people, severity: "4", likelihood: D, basis: "No positive isolation points or entry procedure are recorded in the files; nothing credited.", evidence: [V-2101A], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
+      - id: H02-N10-HP
+        guide_word: more
+        parameter: pressure
+        scenarios:
+          - id: H02-S36
+            cause: "Work on an isolated bed or on F-2101 while the other bed runs at 5.9 bara, with a switching valve passing or moved by KS-2101 in automatic."
+            consequence: "Gas under pressure escapes when a manway or flange is opened: injury by the released cover or the jet."
+            refs: [V-2101A, V-2101B, XV-2101A, XV-2102A, KS-2101]
+            modes: [maintenance]
+            actions: [H02-A10]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, basis: "Passing or wrongly moved valve during maintenance once in the plant life (C); one fatality (4).", evidence: [D-013, KS-2101], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+              residual:
+                - {category: people, severity: "4", likelihood: C, basis: "No safeguard recorded in the files.", evidence: [V-2101A], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+      - id: H02-N10-AW
+        guide_word: as-well-as
+        parameter: composition (adsorbent handling)
+        scenarios:
+          - id: H02-S37
+            cause: "Fresh activated sieve or alumina comes into contact with humid air or water while handled, and dust is released during loading and unloading."
+            consequence: "Local heating from the heat of adsorption (burns), dust exposure of eyes and lungs."
+            refs: [V-2101A, V-2101B]
+            modes: [maintenance]
+            actions: [H02-A10]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "2", likelihood: D, basis: "At every change-out (D); medical treatment case (2).", evidence: [V-2101A], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 86926c67044825b3}}
+              residual:
+                - {category: people, severity: "2", likelihood: D, basis: "No procedure recorded in the files.", evidence: [V-2101A], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 86926c67044825b3}}
+safeguards:
+  - {id: H02-SG1, title: "AIA-2102 CO2 / N2O high alarm at the TSA outlet (1 ppm / 0.1 ppm, ASSUMED); the operator shortens the cycle, switches beds or trips the MAC (D-010)", kind: alarm, refs: [AIA-2102], status: proposed, by: agent, notes: "The high-high forced switch / MAC trip of D-010 is in the instrument list only, not in control/cause-effect.yaml: credited as an alarm with operator response (H02-A1)."}
+  - {id: H02-SG2, title: "AIA-2103 dew point high alarm at the TSA outlet (-70 C, ASSUMED)", kind: alarm, refs: [AIA-2103], status: proposed, by: agent}
+  - {id: H02-SG3, title: "TI-2113A/B dry air outlet high temperature alarm (45 C, ASSUMED) via KS-2101: hot bed on line", kind: alarm, refs: [TI-2113A, TI-2113B], status: proposed, by: agent}
+  - {id: H02-SG4, title: "Heating step ended by the heat pulse at TI-2114A/B (KS-2101), not by time alone", kind: control, refs: [TI-2114A, TI-2114B, KS-2101], status: proposed, by: agent, notes: "Instrument list: the heat-pulse arrival ends the heating step. Whether KS-2101 holds the change-over until the pulse has arrived is the supplier's logic (H02-A7)."}
+  - {id: H02-SG6, title: "TSHH-2116 regeneration gas outlet high-high temperature trips E-2101 (independent of TIC-2104)", kind: other, refs: [TSHH-2116, E-2101], status: proposed, by: agent, notes: "Trip in the instrument list (S4 review), not in control/cause-effect.yaml: kind other until it is declared there (H02-A2)."}
+  - {id: H02-SG7, title: "TSHH-2107 E-2101 element over-temperature trip (independent of TIC-2104)", kind: other, refs: [TSHH-2107, E-2101], status: proposed, by: agent, notes: "Instrument list and equipment list; not in control/cause-effect.yaml (H02-A2)."}
+  - {id: H02-SG8, title: "FIC-2105 regeneration gas flow control with low-flow trip of E-2101", kind: control, refs: [FIC-2105, FV-2105, E-2101], status: proposed, by: agent, notes: "The low-flow trip is in the instrument list, not in the C&E, and uses the control transmitter (H02-A2)."}
+  - {id: H02-SG10, title: "PSV-2108A / PSV-2108B on the adsorber tops (fire; blocked outlet during repressurization)", kind: relief, refs: [PSV-2108A, PSV-2108B], status: proposed, by: agent}
+  - {id: H02-SG11, title: "Depressurization and repressurization through DN100 globe valves XV-2112A/B and XV-2111A/B (slow, about 15 min, D-022)", kind: mechanical, refs: [XV-2112A, XV-2112B, XV-2111A, XV-2111B], status: proposed, by: agent, notes: "Limits the rate only while the sequence uses these valves; no credit when the large valve is opened instead."}
+  - {id: H02-SG12, title: "PDIA-2106 F-2101 high differential pressure alarm (5 kPa, ASSUMED): element change", kind: alarm, refs: [PDIA-2106], status: proposed, by: agent}
+  - {id: H02-SG13, title: "RG-2003 / S-2101 discharge to atmosphere at a safe location, O2-deficient zone Z-N2-VENTS declared (D-011, D-031)", kind: mechanical, refs: [S-2101, RG-2003], status: proposed, by: agent}
+  - {id: H02-SG14, title: "UIC-1102 MAC anti-surge control, blow-off UV-1102 to S-1101 (P-01)", kind: control, refs: [UIC-1102], status: proposed, by: agent}
+  - {id: H02-SG15, title: "PSV-1109 on AIR-1004 (P-01): MAC at surge with AIR-1004 blocked", kind: relief, refs: [PSV-1109], status: proposed, by: agent}
+  - {id: H02-SG16, title: "V-2101A/B designed for 8 barg, above the MAC maximum discharge (about 6.5 bara)", kind: mechanical, refs: [V-2101A, V-2101B], status: proposed, by: agent}
+  - {id: H02-SG17, title: "AIA-3103 hydrocarbons (THC, C2H2) in the LP sump LOX, alarm and action limits per EIGA Doc 65 (P-03)", kind: alarm, refs: [AIA-3103], status: proposed, by: agent, notes: "Downstream, independent of the TSA instruments; studied in H-03 with the LOX purge FIC-3111 (D-010)."}
+  - {id: H02-SG18, title: "PSV-3114 on the LP column C-3102 (P-03): waste N2 outlet blocked", kind: relief, refs: [PSV-3114], status: proposed, by: agent, notes: "Protects the LP column against reverse air through RG-2001 only; not E-2101 or the RG lines, so no residual credit in H02-S19 / H02-S29."}
+actions:
+  - {id: H02-A1, text: "Declare the AIA-2102 CO2 high-high action of D-010 (forced bed switch / MAC trip) as an interlock in control/cause-effect.yaml and set its SIL by LOPA against the main condenser explosion scenarios (H02-S3, H02-S10, H02-S27); consider a second, independent CO2 measurement (or bed-outlet sampling with automatic validation), since the single analyzer is the only TSA breakthrough detection. One update of control/cause-effect.yaml and one LOPA / SIL session answer H01-A3, H01-A8, H02-A1, H02-A2, H03-A2, H03-A3, H04-A01, H04-A02 and H04-A13; this action names the functions of this sheet.", owner: process safety engineer, status: proposed, by: agent}
+  - {id: H02-A2, text: "Declare the E-2101 trips (TSHH-2107 element, TSHH-2116 outlet, FIC-2105 low flow) in control/cause-effect.yaml with a SIL screening; give the low-flow trip its own transmitter or a heater-side flow switch, because FIC-2105 is upstream of the XV-2109 bypass and is also the control transmitter. One update of control/cause-effect.yaml and one LOPA / SIL session answer H01-A3, H01-A8, H02-A1, H02-A2, H03-A2, H03-A3, H04-A01, H04-A02 and H04-A13; this action names the functions of this sheet.", owner: instrument and control engineer, status: proposed, by: agent}
+  - {id: H02-A3, text: "Draw and list the E-2101 shell relief that DESIGN.md section 4 asks for (it is not on P-02 nor in piping/special-items.yaml), and size it for the reverse-air case of a pressurized bed (about 5.8 bara against the 3.5 barg design) unless that case is excluded by H02-A4; alternatively raise the E-2101 and RG line design pressure to the air side's.", owner: process engineer, status: proposed, by: agent}
+  - {id: H02-A4, text: "Specify switching permissives in KS-2101 with valve position feedback: XV-2103/XV-2104 open only on a depressurized bed, XV-2101/XV-2102 open only after pressure equalisation, make-before-break at change-over, and a discrepancy alarm that stops the sequence; decide with LOPA whether the high-to-low-pressure protection of the regeneration side must be a SIF independent of KS-2101.", owner: instrument and control engineer, status: proposed, by: agent}
+  - {id: H02-A5, text: "Add a pressure transmitter with alarm on each adsorber (none is drawn on P-02) for the depressurization and repressurization end-of-step permissives of H02-A4.", owner: process engineer, status: proposed, by: agent}
+  - {id: H02-A6, text: "Set and record the fail positions on loss of power or instrument air of XV-2101..XV-2104A/B, XV-2111A/B, XV-2112A/B, XV-2109 and FV-2105, chosen so that no step can connect the air side to the regeneration side, vent the bed on line or isolate both beds; specify the KS-2101 restart logic after a power dip (resume or hold in a safe step, never a default change-over). One plant-wide fail-position list (P-01 .. P-04) answers H01-A6, H02-A6, H03-A1 and H04-A14; this action names the valves of this sheet.", owner: instrument and control engineer, status: proposed, by: agent}
+  - {id: H02-A7, text: "Ask the TSA supplier for the sequence logic and confirm: change-over only after the heat pulse at TI-2114A/B and a completed cooling step; a second regeneration-complete criterion (heater energy or time at temperature); the initial regeneration of a new or wet bed; the heating-rate limit for a water-loaded bed.", owner: process engineer (with the TSA supplier), status: proposed, by: agent}
+  - {id: H02-A8, text: "Give PDI-2115A/B high and low alarms (bed fouling or dusting; a sudden fall for channelling or a support failure).", owner: instrument and control engineer, status: proposed, by: agent}
+  - {id: H02-A9, text: "F-2101: confirm with the filter supplier the element collapse rating (forward and reverse, a MAC trip reverses the flow), add a low-differential alarm or a downstream check for element failure, and decide whether a duplex filter or isolation valves are needed so that elements can be changed without a plant stop.", owner: process engineer, status: proposed, by: agent}
+  - {id: H02-A10, text: "Provide positive isolation points (spectacle blinds or spool pieces) on AIR-1004, AIR-2001, RG-2002 and RG-2003 at each adsorber and at F-2101, and a lock-out of the KS-2101 outputs; write the vessel entry procedure (air purge, O2 measurement, permit, standby and rescue) and the adsorbent handling procedure. Also define a regeneration gas source for warm-up and start-up when the cold box makes no waste N2 (H02-S34). One site procedure for positive isolation and entry into equipment that can hold N2 answers H01-A15, H02-A10, H03-A15 and H04-A18; this action names the equipment of this sheet.", owner: operations / process engineer, status: proposed, by: agent}
+  - {id: H02-A11, text: "Confirm the S-2101 outlet height and the dispersion of the waste N2 against the TSA valve platforms, ladders and the Z-SIEVE laydown (D-084), with signage and personal O2 monitors for work in zone Z-N2-VENTS.", owner: safety engineer, status: proposed, by: agent}
+  - {id: H02-A12, text: "Specify personnel protection (insulation or guards) on RG-2002, E-2101, the bed tops and RG-2003 where they can reach 200 C within reach of platforms and grade.", owner: piping engineer, status: proposed, by: agent}
+  - {id: H02-A13, text: "Confirm with the adsorbent supplier the breakthrough margin of C2H2, N2O, C2H4 and C3 hydrocarbons relative to CO2 at the design and the off-design (warm, wet) feed, so that the AIA-2102 alarm leads every hazardous breakthrough (EIGA Doc 65), and the action limits. DCAC carry-over into AIR-1004 is H-01's (H01-S13 .. H01-S15, H01-A3 / H01-A7).", owner: process engineer (with the TSA supplier), status: proposed, by: agent}
+  - {id: H02-A14, text: "Give FIC-2105 low and high flow alarms and a minimum-flow permissive before E-2101 is energised. It is also the regeneration-gas flow alarm H03-A19 refers to (a wrong PV-3110A / PV-3110B position, H03-S31).", owner: instrument and control engineer, status: proposed, by: agent}
