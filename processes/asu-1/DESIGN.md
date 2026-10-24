@@ -4598,6 +4598,9 @@ Reason: control-review3 #1 and #2. A pipeline customer needs a held pressure, an
 must not be over-drawn.
 
 ## D-097 Calculation maturity: air feed recomposed (still assumed), TSA as a component split, whole-plant simulation, claim at concept (2026-10-24)
+Open point (1), the design air, closed by D-099 (owner decision: design specification; level
+balanced, claim screening).
+
 Requested by the user (the owner of process/flowsheet.yaml, simulation.yaml and
 design-basis.yaml) to close the gaps `cheme maturity` reported (core docs/framework/maturity.md).
 Before: level none (sourced.boundary and balanced.model-basis failed; predictive coverage,
@@ -4928,3 +4931,81 @@ Open:
 
 Reason: D-096 asks the H-04 owner to reassess the product control. The studies must describe the
 plant as drawn and simulated before the team works through them.
+
+## D-099 Design air and design air rate fixed as the design specification (owner decision), maturity balanced, claim screening (2026-10-24)
+Owner decision, made by the user (the project owner) on 2026-10-24 in answer to the question
+D-097 (1) left open. It closes that open point.
+
+Decision:
+- (1) **Design air.** The design air is the project's **design specification**, no longer an
+  assumption:
+  - 30 C, 1.013 bara and 80 % RH at the design site;
+  - 420 ppm CO2;
+  - the dry-air composition of the U.S. Standard Atmosphere 1976 / ISO 2533 (N2 78.084, O2
+    20.9476, Ar 0.934 mol%; the minor gases, about 27 ppm, left out as in D-097).
+
+  A site survey later confirms these values; it does not make them assumptions again. If the
+  survey finds other values, that is a change of the specification, made by a new decision.
+- (2) **Design air rate.** 85,840 Nm3/h dry air (85,810 Nm3/h CO2-free; D-066) is the sizing
+  specification of the plant. The rate follows from the owner's choice of design rate. The O2
+  recovery behind it (~83 %, D-066) stays **ASSUMED**, as D-066 says. If the simulated
+  recovery differs, the products change at this fixed air rate; the rate is not recalculated.
+- (3) **Files.**
+  - `process/design-basis.yaml`: the air feed's composition, water and CO2, conditions and
+    rate, and the site's design ambient and atmospheric pressure are marked DESIGN SPECIFICATION
+    (D-099). The dry-air fractions are now written with the standard's figures (78.084 /
+    20.9476 / 0.934; were rounded to 78.08 / 20.95 / 0.93). The trace contaminants moved to
+    their own key `trace_contaminants_ASSUMED`.
+  - `process/flowsheet.yaml`: S1's flow (113,335 kg/h) and composition (N2 0.7545933, O2
+    0.2024348, Ar 0.0090261, H2O 0.03354, CO2 0.0004059; the D-097 values, unchanged) are
+    `provenance: given`. The source names D-099, the standard for the dry air and IAPWS-95 for
+    the water at 30 C / 80 % RH. S4's flow (110,870 kg/h, the CO2-free dry air at the design
+    rate) is `given` with D-099 too, as D-097 (1) asked. Its split into S5 and S4B stays
+    ASSUMED (D-066). S4's composition stays assumed: it is the older D-027 set, not the
+    standard's.
+  - No value changed, so `cheme process simulate` was not rerun. predictive.current still
+    passes: the run record's fingerprints are unaffected by the provenance and source change.
+- (4) **What stays ASSUMED** (not covered by this decision):
+  - the trace levels: hydrocarbons 5 ppm as CH4, C2H2 50 ppb, N2O 0.33 ppm;
+  - the minimum ambient (-5 C), the elevation (5 m), the air quality, seismic and wind;
+  - the location itself (coastal industrial site);
+  - the O2 recovery (~83 %) and every other entry under `assumptions` in the design basis;
+  - S1's pressure, 1.01 bara (DESIGN.md 3, stream 1). It stays assumed: it is the suction
+    after the intake losses, rounded, not the 1.013 bara ambient;
+  - every other stream value marked assumed.
+
+Maturity after (cheme maturity, checks/maturity.json):
+- level **balanced**, which supports library maturity **screening**:
+  - sourced passes; sourced.boundary now passes;
+  - every balanced requirement passes. balanced.energy-closure (not required) still fails on
+    the drive losses, D-097 (5).
+- predictive fails, as in D-097:
+  - coverage fails (C1102);
+  - model-basis fails (V2101 is a specified split);
+  - property-regime is unsupported;
+  - energy-closure is unsupported.
+- engineering: its own requirements pass, but it is not reached below predictive.
+- `process.yaml` `maturity` goes from concept to **screening**. It now matches the evidence, so
+  `cheme maturity` no longer warns cheme.maturity-claim-exceeds. The validation notes and the
+  library README row say so.
+
+Regenerated: `cheme process build` (BFD, PFD); `cheme assess tea|lca|mto|estimate|equipment
+--write` (only the TEA and the LCA tables changed: feed:AIR is now `given`); `cheme maturity
+--write`. The layout model and the lifting study are current; nothing there changed.
+
+HAZOP: the design basis and the flowsheet are analysed inputs of H-01 .. H-04. No scenario
+basis cites the design air as ASSUMED, and no rating changes. The H01-N1 design intent now
+names the design air (30 C, 80 % RH, 1.013 bara, 85,840 Nm3/h dry) and CO2 420 ppm as the
+design specification (D-099). The traces and the -5 C minimum ambient stay ASSUMED there.
+All four studies were re-stamped (`stamp --write`) and rated (`rate --write`). `cheme safety
+hazop check`: H-01 .. H-04 `draft`, 0 errors, 0 warnings. Every entry stays `proposed`.
+
+Open:
+- the site survey that confirms the design air;
+- the O2 recovery (D-066, ASSUMED) and the rest of D-097's Open list (PR substitution, C1102,
+  heat of adsorption, cold-box heat leak, E3101 approach, core models);
+- an independent review of this change.
+
+Reason: the owner fixes the design air and the design air rate, so they are the design basis
+and not estimates. With them the air feed is sourced, and the calculation evidence supports the
+level that `cheme maturity` reports.

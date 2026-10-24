@@ -42,7 +42,7 @@ Class 5 accuracy: 18,250,000 to 29,200,000 (low end), 47,450,000 to 73,000,000 (
 
 | flow | rate | provenance | price | per year | status | source | year |
 |---|---|---|---|---|---|---|---|
-| feed:AIR | 113335 kg/h | assumed | free: ambient air |  |  |  |  |
+| feed:AIR | 113335 kg/h | given | free: ambient air |  |  |  |  |
 | feed:POWER | 10465 kWh/h | assumed | 80.4 USD/MWh | 7,067,675 | QUOTED | US EIA, Electricity sales, revenue and average price, 2023 data, Table 4: average price to the industrial sector, US total, 8.04 cents/kWh | 2023 |
 | product:GOXP | 20860 kg/h | assumed | **no price** |  |  |  |  |
 | product:GANP | 12510 kg/h | assumed | **no price** |  |  |  |  |

@@ -25,7 +25,7 @@ is the source of the [Process Atlas](https://github.com/ChemE-as-Code/process-at
 
 | id | process | maturity | engineering project |
 |---|---|---|---|
-| [`asu-1`](processes/asu-1/) | Cryogenic air separation unit, 500 t/d GOX | concept (calculation level none until the assumed design air is fixed, then balanced; basic-engineering deliverables present), not independently reviewed | yes (DEXPI P&IDs, BFD/PFD, 3D layout, MTO, LCA, DWSIM checks) |
+| [`asu-1`](processes/asu-1/) | Cryogenic air separation unit, 500 t/d GOX | screening (calculation level balanced since the owner fixed the design air as the design specification, D-099; basic-engineering deliverables present, predictive simulation not reached), not independently reviewed | yes (DEXPI P&IDs, BFD/PFD, 3D layout, MTO, LCA, DWSIM checks) |
 
 ## Working on a process
 

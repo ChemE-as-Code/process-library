@@ -69,7 +69,7 @@ Sensitivity, Climate change (kg CO2-eq) (Spearman rank correlation with the tota
 
 | flow | phase | per functional unit | provenance | background |
 |---|---|---|---|---|
-| feed:AIR (input) | operation | 3813.15 kg | assumed | free |
+| feed:AIR (input) | operation | 3813.15 kg | given | free |
 | feed:POWER (input) | operation | 352.096 kWh | assumed | factor:desnz-ghg-2026:electricity-gb |
 | product:GOXP (output) | operation | 1000 kg | assumed | coproduct |
 | product:GANP (output) | operation | 599.712 kg | assumed | coproduct |
