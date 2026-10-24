@@ -3394,6 +3394,51 @@ shows the envelope the layout was built on. Tooling: cheme-as-code 0.8.0
    of the list and the datasheet, except K-1101, which lifts its 34 t motor out of the 89 t
    train. The LCA construction phase rises from 0.57 to 0.72 kg CO2-eq per t GOX (total
    142.77 -> 142.89; operation 142.36 unchanged).
+6. **Tangent lengths: accepted as basic-engineering envelopes** (ASSUMED, the suppliers
+   confirm), after checking each against the process datasheets; none was inconsistent, so none
+   changed:
+   - Columns against stages and packing: C-3101 15.5 m T-T for 40 theoretical stages and
+     C-3102 27.9 m for 59 stages hold the packed heights at an HETP up to about 0.3 m (12 m and
+     17.7 m; ASSUMED order for the structured packing of air separation columns, the packing
+     heights stay the cold box supplier's markers) with ~2 m (C-3101 sump) and ~4 m (C-3102
+     sump with E-3103) and the distributors and collectors of four sections; at a larger HETP
+     the cold box supplier lengthens the shells inside the casing. C-1101 20.0 m and C-1102
+     17.11 m: their packing heights are supplier markers (transfer units, D-068 (8)); C-1101
+     holds the chimney tray at 13.0 / 13.8 m of D-086 with the upper bed above it.
+   - Shell-and-tube exchangers against their areas: a full bundle of 25.4 mm tubes on a
+     1.25 triangular pitch, two passes (bundle relation of Sinnott Section 12.5), in the listed
+     shell less 0.09 m and over the T-T less 0.1 m of tube sheets holds 1.2 to 5 times the
+     required area: E-1101 1,070 / 396 m2, E-1102 1,070 / 607, E-1103 683 / 557, E-3104 217 / 64,
+     E-3105 168 / 55, E-4102 332 / 72, E-4103 170 / 34 m2. The envelopes are upper bounds; the
+     supplier's tube length and count set the shell.
+   - Tanks against D-028 / D-017: T-4101 9.75 m and T-4102 11.88 m are the outer tanks'
+     shells; the inner tanks 6.4 x 8.6 m (277 m3 gross) and 7.2 x 10.8 m (440 m3) fit in them
+     with 1.1 m of bottom insulation and top space, as D-028 sized them.
+   - V-2101A/B 15.75 m, V-3101 3.82 m and F-2101 2.65 m follow from their listed overall
+     sizes and heads with no further process constraint at this stage.
+7. **Exchanger saddle height 0.8 m: kept, with this basis.** The 0.8 m is the list's overall
+   height less the shell diameter (D-028: "height = top of shell on its saddles"), the
+   underside of the shell above the floor or paving. None of these exchangers feeds a pump
+   suction (E-1101..E-1103, E-3104, E-3105, E-4102, E-4103 cool gases against cooling or
+   chilled water), so NPSH sets no elevation. Bottom nozzles on 0.3 m stubs (the drawings'
+   default projection, ASSUMED) end 0.5 m above the floor, which takes the shell and channel
+   drain valves with a drain funnel under them and the
+   E-1102 / E-1103 separator drains: N5 -> HV-1112 / HV-1113 -> float traps ST-1112 / ST-1113 on
+   the 0.5 m runs of CD-1001 / CD-1002 (D-065 (6)); the traps discharge on the air pressure, so
+   0.3 m of fall below the shell is enough. A higher setting would raise the bundles and their
+   top nozzles against the routed and pinned air lines without a process reason. The supplier
+   confirms the saddle height with the nozzle projections.
+8. **The rest of the PR #22 checklist.** Nozzle service, rating and facing stay "-" on the
+   schedules: a later datasheet pass gives them with the piping classes, not invented here.
+   Nozzles without a decided location (instrument tappings, D-045; C-3102 N1, N4, N5) stay
+   listed with a dagger and undrawn. Project, client / site and revision stay empty in the
+   title blocks: `plant.yaml` has no project block and none was given. Plate exchangers,
+   machines, pumps, filters and E-4101 stay box outlines (the list gives L x W x H). Nozzle stub
+   lengths and saddle positions stay schematic (DRAFT drawings). With cheme-as-code 0.8.0 the
+   two core items are closed (`housed_in`, (1); C-3102 drawn on C-3101 at 20.0 m by
+   `support.stands_on` / `elevation`); the nozzle schedule falling back to the `lines:` remains
+   a core suggestion. Skills update and the next independent layout / datasheet review are
+   separate changes.
 
 ## D-082 Techno-economic analysis: premises and first result (2026-10-23)
 The first TEA of the plant (`estimate/tea.yaml`, `cheme assess tea`, skill `tea`; written
