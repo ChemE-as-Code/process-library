@@ -3318,6 +3318,71 @@ them) and the script still gave the 5.8 / 5.7 bara state.
 Open: the simulation owner's answer to (1) (S2 +4 kPa or the nozzle losses inside the
 allowables); the adsorber, F-2101 clean and change-out drops from the suppliers.
 
+## D-082 Techno-economic analysis: premises and first result (2026-10-23)
+The first TEA of the plant (`estimate/tea.yaml`, `cheme assess tea`, skill `tea`; written
+outputs `estimate/tea.md`, `tea-cashflow.csv`, `tea-sensitivity.csv`, `tea-uncertainty.csv`).
+1. **Decision.** Take ASU-1 into FEED as the 500 t/d GOX pipeline supply if its levelised cost of
+   GOX (LCOP) is at most 100 USD/t with 80 % confidence. 100 USD/t is the oxygen price a new ASU
+   needs for a 20 % IRR with nitrogen and argon also sold (Thunder Said Energy, "Cryogenic air
+   separation: costs and energy economics?", data file last updated before 2025, no cost year
+   stated; taken as USD 2023, see item 2): the price of buying it over the fence from a supplier
+   with that revenue mix. ASU-1 makes no argon and books no co-product credit, so the test is
+   strict on ASU-1. USD 2023, real, pre-tax (the owner's tax position is not known). The source
+   is in the comment above `decision.threshold` (the schema has no source field there).
+2. **Capital: an all-in benchmark, not the equipment estimate.** The equipment estimate has a
+   bare module cost for only 3 of 40 items (USD 2.10 M); 23 have a purchased cost only (purchased
+   cost of the correlation items USD 4.10 M) and 14 none, among them the main air compressor
+   K-1101 (6.75 MW fluid power, D-066, outside the correlation's range) and the cold box
+   internals. An allowance on that base would be invented. The ISBL is
+   therefore the benchmark of about $200 per t/a of oxygen capacity (same source), 182,500 t/a x
+   200 = USD 36.5 M, ASSUMED, class 5. The source states no cost year; its companion report is
+   dated 2023-05-31 and the data file "last updated before 2025". It is taken as USD 2023 and
+   not escalated: dated 2024 instead, the CEPCI factor would be about 1.00 (797.9 in 2023,
+   monthly values just below 800 through 2024), far inside the class 5 range. A market-report figure (Mordor Intelligence, 2026
+   edition: USD 250 to 300 M for a 2,000 t/d plant, no method or cost year stated) is the
+   scenario `capex-market-report`, scaled to 500 t/d with the capacity exponent 0.6 (six-tenths
+   rule, ASSUMED): 275 M x (500/2000)^0.6 = USD 119.7 M, $656 per t/a, x 3.28 on the base
+   (x 2.98 to 3.58 over the quoted range). At that capital the LCOP is 144 USD/t and the
+   decision fails: the two published capital figures differ by a factor of three, which is why
+   the ISBL dominates and needs a quotation. OSBL 0: the site supplies
+   cooling water and power at the battery limit. Owner's cost and contingency are not decided;
+   the Monte Carlo spreads the ISBL over the AACE class 5 range instead (x 0.5 to x 2.0).
+3. **Prices.** Power 80.4 USD/MWh (US EIA, industrial average 2023, QUOTED); the state averages
+   6.60 (Texas) and 18.64 cents/kWh (California) are scenarios. **No market price was found for GAN, LOX, LIN and cooling water**: they are left
+   unpriced (finding `tea-price-missing`), so GAN, LOX and LIN earn nothing and the cooling
+   water costs nothing. The first makes the LCOP conservative, the second optimistic. The only
+   published GAN figure (Thunder Said, $20/t) is the nitrogen price an ASU feeding an ammonia
+   plant needs, with oxygen and argon sold as well: a break-even under another plant's revenue
+   mix, not a market price, so it is not booked; as revenue it would lower the LCOP by about
+   12 USD/t (2.10 M USD/a over 175,224 t/a of GOX). Air, vent and
+   condensate are free. Maintenance 3 % and insurance and local taxes 2 % of fixed capital per
+   year (Towler and Sinnott, typical ranges). Operating labour: one shift position around
+   the clock, 4.8 operators per position, at the US mean wage of chemical plant operators
+   (BLS, May 2023, $79,450) plus 25 % supervision (Towler and Sinnott), USD 0.48 M/a or
+   2.7 USD/t; wage only, without employer on-costs and plant overhead, so a lower bound; the
+   staffing is the owner's. Discount
+   rate 8 % real (screening, swing 6 to 12 %); construction over two years (40/60); working
+   capital 2 % of fixed capital. All ASSUMED where not stated otherwise.
+4. **Rates.** The flowsheet's terminals in case `design`: LOX and LIN 470 kg/h each (the
+   flowsheet), not the 600 kg/h of the design basis (D-010 purge and the simulated split). The
+   TEA follows the flowsheet, as the LCA does.
+5. **Result** (on the D-066 flowsheet: 10,310 kW power, 113,329 kg/h air). LCOP of GOX
+   73.3 USD/t (Monte Carlo P10 64.8, P50 78.6, P90 95.3 USD/t; P(LCOP <= 100) = 95 % of 2,000
+   samples). Electricity is about 40 USD/t of it. The capital dominates (Spearman +0.80), then
+   the power price (+0.37). The decision turns at a power price of 134 USD/MWh (+67 %), at an
+   ISBL of USD 68 M (+86 %), or below 4,684 h/a. At the California power price the LCOP is
+   126 USD/t, at the scaled market-report capital 144 USD/t: **the
+   location and the capital decide the case**, so the site's power contract and a budget
+   quotation for the main air compressor and cold box are the evidence worth buying first.
+6. **Open.**
+   - The estimate is class 5, and stage basic expects class 4 (`tea-class-stage`): the main air
+     compressor and cold box need quotations.
+   - Market prices for GAN, LOX, LIN and cooling water are still to find.
+   - Owner's cost, contingency, the staffing and employment on-costs, the tax position and the owner's hurdle rate are still
+     to decide.
+   - The gate `kind: tea` is not in checks/checks.yaml yet: core main now has `cheme assess tea`, and
+     the gate goes in with the next layout review (checks.yaml is in the layout review's scope).
+   - Source quotations in estimate/tea.yaml are paraphrased (licence rule of the library AGENTS.md).
 ## D-083 C-1102 blow-by relief case: the open vent WN-1002, screening LOPA of I-03 (2026-10-23)
 Answers layout-review12#7 and D-076's open item. (D-081 and D-082 are reserved for other
 branches.)
