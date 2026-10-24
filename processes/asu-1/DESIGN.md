@@ -4086,3 +4086,18 @@ Decision:
     wall-penetration finding (`cheme validate`: 0 errors, the same finding set as before the
     change). The lifting study, take-off, estimate and LCA change only in their model
     fingerprints: the casing panels carry no take-off.
+- (4) **Datasheets: the tank erection basis and the list-derived shape types** (issue
+  process-library#32; review18#1, #2).
+  - (a) The T-4101 and T-4102 datasheet notes now carry D-081 (10). Each tank is field-erected
+    plate by plate and never lifted whole. Its heaviest crane lift is a roof fitting (relief /
+    vacuum valve, manway cover) of ~0.5 t, ASSUMED (the owner's figure), and the tank supplier
+    confirms it and the erection method. The empty weights (26 / 35 t) stay for the foundation
+    and the LCA. The supplier reads the datasheet, so it is now asked to confirm the figure.
+  - (b) The 17 `dimensions.head` values (ellipsoidal_2_1, cone_roof) and 25
+    `dimensions.support.type` values (skirt, saddles, legs, base_plate, none) that `cheme
+    datasheets fill` copied from the equipment list are marked `assumed: true`. Their source
+    now says they are the list's choice at basic engineering (D-028) and the supplier sets
+    them. This is the same treatment 0b950c8 gave the sizes (D-081 (1)). No value changed. The
+    values taken from the layout model (axis, support elevation, stands_on) are the plant's
+    own placement decisions and stay unmarked. Drawings regenerated with `cheme datasheets
+    drawing --write` (25 SVGs).
