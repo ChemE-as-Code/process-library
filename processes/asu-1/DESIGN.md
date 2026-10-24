@@ -3329,9 +3329,11 @@ shows the envelope the layout was built on. Tooling: cheme-as-code 0.8.0
    axis from `layout/equipment-placement.yaml`, and for an item placed above grade its base
    elevation and what it stands on (`support.elevation`, `support.stands_on`: C-3102 on C-3101
    at 20.0 m, E-3102 at 20.0 m, T-4101 / T-4102 on their 0.5 m foundations); nothing written
-   by hand is overwritten and no TBD is added. No value of the equipment list changed. Items
-   the list gives no empty weight for keep none (C-1101, C-1102, F-1101, K-1101 (only a
-   `lift_weight`), T-4101, T-4102, V-2101A/B); E-3103 has no dimensions of its own (internal
+   by hand is overwritten and no TBD is added. The fill changed no value of the equipment list.
+   At the fill the list gave no empty weight for C-1101, C-1102, F-1101, K-1101 (only a
+   `lift_weight`), T-4101, T-4102 and V-2101A/B, so their datasheets had none; (5) has since
+   given each an ASSUMED empty weight in the list and in the datasheet (52, 36, 10, 89, 26, 35
+   and 61 t each). E-3103 has no dimensions of its own (internal
    of C-3102, D-028) and states `dimensions: {housed_in: C-3102}`, so its drawing says
    "housed in C-3102" instead of an empty dimension list. Rerun on the merged state (main to
    D-090, E-3105 added by D-069): 39 of 40 datasheets filled, the values of the branch
@@ -3350,8 +3352,26 @@ shows the envelope the layout was built on. Tooling: cheme-as-code 0.8.0
    the datasheet's sha256; `cheme validate` warns `cheme.datasheet-drawing-stale` when one no
    longer follows its datasheet, so rerun `cheme datasheets drawing --write` after a datasheet
    change. They are DRAFT outlines: nozzle stubs without `projection_m` are drawn 0.3 m, saddle
-   positions are schematic, instrument tappings without a decided location (D-045) are listed
-   but not drawn.
+   positions are schematic, nozzles without a location on the datasheet are listed but not
+   drawn ((8)).
+   **Shell-and-tube exchangers drawn without channel and bonnet (deferred, PR #22 review).**
+   cheme-as-code 0.8.0 draws a horizontal item as the T-T shell between two heads of its `head`
+   type; the datasheet schema has no channel or bonnet. The layout model builds each of these
+   exchangers as bonnet + channel + shell + rear head, the overall length of the list. The
+   drawn outline is therefore shorter than the "overall" dimension written on it, whose
+   dimension line spans only the drawn outline: E-1101 / E-1102 drawn 7.44 m against 8 m
+   overall (model: bonnet 0.2 + channel 0.76 + shell 6.64 + rear head 0.4 m), E-1103 6.51 /
+   7 m (0.175 + 0.665 + 5.81 + 0.35), E-3104 4.65 / 5 m (0.125 + 0.475 + 4.15 + 0.25), E-3105
+   4.625 / 5 m (0.113 + 0.487 + 4.175 + 0.225), E-4102 4.70 / 5 m (0.15 + 0.45 + 4.1 + 0.3),
+   E-4103 3.77 / 4 m (0.125 + 0.355 + 3.27 + 0.25). The drawing centres the shell, so a
+   nozzle placed from the item's centre (`axial_m`, `offset_m`) sits up to half the difference
+   (0.28 m on E-1101 / E-1102) off its place on the shell, and a nozzle on the channel or
+   floating head (E-3105 N3, N6, N7) is drawn at or beyond the drawn head. The overall length
+   and the T-T in the drawing's table are right (the list's and the model's); for the channel and bonnet
+   the enquiry refers to `layout/plant-model.yaml` (parts `<TAG>/bonnet`, `/channel`). Not
+   fixed here: no datasheet field can express it without misstating the T-T or the overall
+   length. Core suggestion: a channel / bonnet length on the datasheet, drawn at the front
+   head.
 4. **Checks.** After the fill, `cheme validate` reports no `cheme.datasheet-dimension-mismatch`,
    no datasheet nozzle finding against the P&IDs or the layout model and no stale drawing.
 5. **Empty weights of the erected-once items (amends D-034 (1)).** D-034 gave weights only to
@@ -3450,8 +3470,27 @@ shows the envelope the layout was built on. Tooling: cheme-as-code 0.8.0
    centre), no position changed.
 8. **The rest of the PR #22 checklist.** Nozzle service, rating and facing stay "-" on the
    schedules: a later datasheet pass gives them with the piping classes, not invented here.
-   Nozzles without a decided location (instrument tappings, D-045; C-3102 N1, N4, N5) stay
-   listed with a dagger and undrawn. Project, client / site and revision stay empty in the
+   Nozzles undrawn (listed with a dagger, "location not given"), corrected after the PR #22
+   review, which found the earlier text named only the tappings and C-3102:
+   - the instrument tappings `I*` without a decided location (D-045);
+   - every nozzle of the items drawn as box outlines (below), whose view draws no nozzles even
+     where the datasheet locates them: E-2101, E-3101, E-3102, E-4101, E-4105A/B, E-4106A/B,
+     F-1101, K-1101, K-3101, K-4101, K-4102, KT-3101 and the pumps P-1101A/B, P-1102A/B,
+     P-4101A/B, P-4102A/B;
+   - E-3103 N1 / N2 (housed in C-3102, (1));
+   - process nozzles of round items whose position no decision sets: C-1102 N1..N5, C-3102
+     N1, N4, N5, E-1101 N1..N4, E-1102 N1..N4, E-1103 N3 / N4, E-3104 N1..N4, E-4102 N3 / N4,
+     E-4103 N3 / N4, F-2101 N1 / N2, V-3101 N1 / N2. The layout model places all of them, but there they are
+     the generator's default from the side the P&ID draws them on (`basis: pid` in
+     `layout/plant-model.yaml`), not an override in `layout/equipment-placement.yaml`. The
+     datasheets carry only the placement's decided locations (`location_source`), so these
+     stay off the drawings. The layout was built on the model's positions (routes, and the
+     C-1102 platforms reviewed around N1, N2, N3 and the mid-height tapping, D-030), so until
+     a nozzle orientation pass with the piping study fixes them as placement overrides, the
+     enquiry refers to the model
+     for them; that pass puts them on the datasheets. Deferred, not fixed here: copying the
+     generated positions to the supplier would present defaults as decisions.
+   Project, client / site and revision stay empty in the
    title blocks: `plant.yaml` has no project block and none was given. Plate exchangers,
    machines, pumps, filters and E-4101 stay box outlines (the list gives L x W x H). Nozzle stub
    lengths and saddle positions stay schematic (DRAFT drawings). With cheme-as-code 0.8.0 the
