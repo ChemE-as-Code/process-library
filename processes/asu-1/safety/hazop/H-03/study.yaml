@@ -47,6 +47,14 @@ assessment_basis: >-
   design feature). Ratings are proposed by an agent at basic engineering from the files and
   DESIGN.md, with basis and evidence, for the team to accept or change; no frequency is
   calculated and no LOPA credit is taken here. The matrix itself is a proposal (ASSUMED).
+  Credit convention for the residual likelihood (one matrix letter is one order of
+  magnitude; a proposal for the team, not a LOPA): a relief device whose listed case covers the
+  cause, or a passive feature that removes the path (an open vent without valve, an elevated
+  vent outside its zone), up to two orders; an alarm with operator response, a control loop, a
+  check valve, an administrative lock, a trip that is drawn but not in the C&E (kind other), or
+  an interlock whose SIL is not confirmed, one order each; nothing for a safeguard that shares
+  a transmitter, valve or logic with the cause or that the cause defeats, nor for a relief
+  device whose listed case does not cover the cause.
 team: []            # not named yet: the owner names the facilitator, scribe and members
 notes: >-
   Team not named: the owner names the facilitator, scribe and members (process, operations,
@@ -137,7 +145,7 @@ nodes:
               initial:
                 - {category: asset, severity: "2", likelihood: D, basis: "Bearing damage 10-100 kEUR; every compander trip (D).", evidence: [D-003], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5975c38759944df0}}
               residual:
-                - {category: asset, severity: "2", likelihood: B, basis: "Swing check valve on AIR-3002 downstream of the recycle tee credited (D-003).", evidence: [D-003, AIR-3002], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: a148c713397132d0}}
+                - {category: asset, severity: "2", likelihood: C, basis: "Swing check valve on AIR-3002 downstream of the recycle tee credited (check valve, one order; D-003).", evidence: [D-003, AIR-3002], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5d4b96d05607d5a4}}
       - id: H03-N1-HT
         guide_word: more
         parameter: temperature
@@ -202,14 +210,14 @@ nodes:
             consequence: "Boosted air enters E-3101 at 30 C instead of 15 C: +60 kW into the cold box, LOX/LIN make reduced (D-067)."
             refs: [TV-3124, TICA-3124, CHW-3001]
             modes: [normal]
-            safeguards: [H03-SG4]
+            safeguards: []
             status: proposed
             by: agent
             risk:
               initial:
                 - {category: asset, severity: "2", likelihood: D, basis: "Liquid production loss, GOX unaffected (matrix 2).", evidence: [D-067, D-069], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5975c38759944df0}}
               residual:
-                - {category: asset, severity: "2", likelihood: C, basis: "TICA-3124 high alarm credited where the cause is the supply, not the TICA itself.", evidence: [TICA-3124], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5d4b96d05607d5a4}}
+                - {category: asset, severity: "2", likelihood: D, basis: "Nothing credited: the cause includes a TICA-3124 fault, and the TICA-3124 high alarm is on the same measurement; production effect only.", evidence: [TICA-3124], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5975c38759944df0}}
       - id: H03-N2-MCHW
         guide_word: more
         parameter: flow
@@ -277,7 +285,7 @@ nodes:
               initial:
                 - {category: asset, severity: "2", likelihood: C, basis: "Exchanger repair 10-100 kEUR.", evidence: [D-077], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5d4b96d05607d5a4}}
               residual:
-                - {category: asset, severity: "2", likelihood: A, basis: "HV-3126 locked open, closed only with the water side drained (D-077) credited.", evidence: [HV-3126, D-077], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 025945a27a93f0d2}}
+                - {category: asset, severity: "2", likelihood: B, basis: "HV-3126 locked open, closed only with the water side drained (D-077), credited as an administrative lock (one order).", evidence: [HV-3126, D-077], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: a148c713397132d0}}
       - id: H03-N2-PF
         guide_word: other-than
         parameter: utilities
@@ -414,8 +422,8 @@ nodes:
                 - {category: people, severity: "4", likelihood: D, basis: "One fatality from fragments or a cold release (matrix 4); a control loop or brake-load failure (D).", evidence: [SIC-3108, D-003], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
                 - {category: asset, severity: "4", likelihood: D, basis: "Compander and cold box piping, weeks down.", evidence: [KT-3101], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d6c65b3d1b5e620d}}
               residual:
-                - {category: people, severity: "4", likelihood: B, basis: "SSHH-3108 2oo3 overspeed trip closing XV-3117 credited as one independent layer (machine protection, not in the C&E yet).", evidence: [SSHH-3108, XV-3117], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
-                - {category: asset, severity: "4", likelihood: B, basis: "As people.", evidence: [SSHH-3108, XV-3117], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d508cded1fd37f0d}}
+                - {category: people, severity: "4", likelihood: C, basis: "SSHH-3108 2oo3 overspeed trip closing XV-3117 credited one order only: machine protection drawn and listed but not in the C&E, no SIL or SRS (H03-A2).", evidence: [SSHH-3108, XV-3117], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+                - {category: asset, severity: "4", likelihood: C, basis: "As people.", evidence: [SSHH-3108, XV-3117], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 544760766051af8c}}
       - id: H03-N4-LT
         guide_word: less
         parameter: temperature
@@ -454,8 +462,8 @@ nodes:
                 - {category: people, severity: "5", likelihood: C, basis: "Main condenser explosion (matrix 5); seal gas loss with oil carry-over (C).", evidence: [D-012, PDSLL-3115], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: b6ef4d2263633cd5}}
                 - {category: asset, severity: "5", likelihood: C, basis: "Loss of the cold box.", evidence: [D-012], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 20579213de92d430}}
               residual:
-                - {category: people, severity: "5", likelihood: A, basis: "PDSLL-3115 permissive (no oil before seal gas) and trip (closes the expander inlet, stops the compander) credited (D-012).", evidence: [PDSLL-3115, XV-3117, D-012], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 61d9d3ab4bf99bc9}}
-                - {category: asset, severity: "5", likelihood: A, basis: "As people.", evidence: [PDSLL-3115, D-012], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: a617a5430a81f857}}
+                - {category: people, severity: "5", likelihood: B, basis: "PDSLL-3115 permissive (no oil before seal gas) and trip (closes the expander inlet, stops the compander) credited one order only: not in the C&E, no SIL or SRS (H03-A2; D-012).", evidence: [PDSLL-3115, XV-3117, D-012], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: feea7693498b1f1a}}
+                - {category: asset, severity: "5", likelihood: B, basis: "As people.", evidence: [PDSLL-3115, XV-3117, D-012], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 6dd05b6d428d45d5}}
       - id: H03-N4-NF
         guide_word: "no"
         parameter: flow
@@ -534,7 +542,7 @@ nodes:
             consequence: "C-3101 pressure rises above its 7 barg design as the liquid boils off: rupture of the aluminium column inside the cold box."
             refs: [C-3101, PSV-3116]
             modes: [shutdown, power-fail]
-            safeguards: [H03-SG13, H03-SG12]
+            safeguards: [H03-SG12]
             actions: [H03-A20]
             status: proposed
             by: agent
@@ -543,8 +551,8 @@ nodes:
                 - {category: people, severity: "4", likelihood: C, basis: "Column rupture with cold release (matrix 4); every long standstill without venting (C).", evidence: [C-3101, D-011], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
                 - {category: asset, severity: "4", likelihood: C, basis: "Column section, weeks down.", evidence: [C-3101], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 544760766051af8c}}
               residual:
-                - {category: people, severity: "4", likelihood: A, basis: "PSV-3116 credited for the heat-in case, to be confirmed as a listed relief case (A20); PI-3121 alarm.", evidence: [PSV-3116, PI-3121], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 2aae4706e67ac517}}
-                - {category: asset, severity: "4", likelihood: A, basis: "As people.", evidence: [PSV-3116], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: f6e5e0b5a5d2327f}}
+                - {category: people, severity: "4", likelihood: C, basis: "Nothing credited: PSV-3116's listed case is the MAC deadhead, the heat-in case is unconfirmed (H03-A20); the PI-3121 alarm is not credited in a standstill that may follow a power failure, and the files do not say it stays powered.", evidence: [PSV-3116, PI-3121], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+                - {category: asset, severity: "4", likelihood: C, basis: "As people.", evidence: [PSV-3116], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 544760766051af8c}}
           - id: H03-S23
             cause: "Neon and helium from the air accumulate in the N2 side of E-3103: no non-condensables vent is drawn on GAN-3002 / E-3103."
             consequence: "Condensing surface blanketed: HP pressure rises, LP boil-up falls, production and purity loss."
@@ -586,7 +594,7 @@ nodes:
             consequence: "HP vapour at 5.4 bara blows through RL-3001, E-3102 and LV-3101 into the LP column (3.5 barg design): LP column overpressure and rupture, column upset."
             refs: [LV-3101, LIC-3101, RL-3001, C-3102]
             modes: [normal, startup]
-            safeguards: [H03-SG15, H03-SG16]
+            safeguards: [H03-SG15]
             actions: [H03-A20]
             status: proposed
             by: agent
@@ -595,8 +603,8 @@ nodes:
                 - {category: people, severity: "4", likelihood: D, basis: "LP column rupture inside the cold box (matrix 4); single loop failure (D).", evidence: [LV-3101, D-011], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
                 - {category: asset, severity: "4", likelihood: D, basis: "Column and cold box damage.", evidence: [C-3102], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d6c65b3d1b5e620d}}
               residual:
-                - {category: people, severity: "4", likelihood: B, basis: "PIC-3110 opening PV-3110A/B and PSV-3114 credited; PSV-3114's listed case is the blocked waste N2 outlet, the blow-through case is to be confirmed (A20).", evidence: [PIC-3110, PSV-3114], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
-                - {category: asset, severity: "4", likelihood: B, basis: "As people.", evidence: [PSV-3114], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d508cded1fd37f0d}}
+                - {category: people, severity: "4", likelihood: C, basis: "PIC-3110 opening PV-3110A / PV-3110B credited as one control layer (independent of LV-3101); PSV-3114 not credited: its listed case is the blocked waste N2 outlet, the HP blow-through case is unconfirmed (H03-A20).", evidence: [PIC-3110, PSV-3114], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+                - {category: asset, severity: "4", likelihood: C, basis: "As people.", evidence: [PIC-3110, PSV-3114], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 544760766051af8c}}
   # ---------------------------------------------------------------- N6 RL / LN / LIN
   - id: H03-N6
     title: Rich liquid and LN reflux through the subcooler E-3102, LIN product draw
@@ -645,6 +653,28 @@ nodes:
                 - {category: asset, severity: "2", likelihood: D, basis: "Production loss, backup supplies (matrix 2).", evidence: [FIC-3106], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5975c38759944df0}}
               residual:
                 - {category: asset, severity: "2", likelihood: D, basis: "Production effect only; ALARP statement by the team.", evidence: [FIC-3106], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5975c38759944df0}}
+      - id: H03-N6-HP
+        guide_word: more
+        parameter: pressure
+        description: Liquid blocked in on RL-3001 / LN-3001 or in the E-3102 passages.
+        scenarios:
+          - id: H03-S52
+            cause: "Liquid blocked in on RL-3001 or LN-3001 or in the E-3102 passages: LV-3101 or FV-3106 closed at a trip (fail positions not defined, H03-A1) with the upstream side cut off from the HP column (an isolation added in detail engineering, or a passage plugged by CO2 / H2O ice after a TSA breakthrough), and heat leaks in."
+            consequence: "The trapped cryogen vaporises: pressure above the PN16 line or E-3102 design, rupture inside the cold box and a cryogenic leak into the perlite (as H03-S45)."
+            refs: [RL-3001, LN-3001, E-3102, LV-3101, FV-3106]
+            modes: [shutdown, maintenance, warmup]
+            safeguards: []
+            actions: [H03-A20]
+            status: proposed
+            by: agent
+            notes: "DESIGN.md section 4 lists TSVs for the RL and LN lines but leaves them untagged for detail engineering; none is drawn on P-03. On P-03 as drawn each line has one valve, so the blocked-in case needs a second closure, as in the cause."
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, basis: "Line rupture and cryogenic leak into the casing, casing rupture or perlite eruption near a person (matrix 4, as H03-S45); a blocked-in segment once in the plant life (C).", evidence: [RL-3001, LN-3001, D-011], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+                - {category: asset, severity: "4", likelihood: C, basis: "Cold box repair, weeks down (matrix 4).", evidence: [E-3102], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 544760766051af8c}}
+              residual:
+                - {category: people, severity: "4", likelihood: C, basis: "Nothing credited: the RL / LN thermal reliefs of DESIGN.md section 4 are not tagged or drawn (H03-A20).", evidence: [RL-3001, LN-3001], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+                - {category: asset, severity: "4", likelihood: C, basis: "As people.", evidence: [RL-3001, LN-3001], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 544760766051af8c}}
       - id: H03-N6-LT
         guide_word: less
         parameter: subcooling
@@ -706,8 +736,8 @@ nodes:
                 - {category: people, severity: "5", likelihood: D, basis: "Cold box rupture with O2-rich release (matrix 5); single loop failure (D).", evidence: [PIC-3110, D-011], status: proposed, by: agent, band: {value: very-high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 6f208be6591d5202}}
                 - {category: asset, severity: "5", likelihood: D, basis: "Loss of the cold box.", evidence: [C-3102], status: proposed, by: agent, band: {value: very-high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 383056181dc74e6a}}
               residual:
-                - {category: people, severity: "5", likelihood: A, basis: "PSV-3114 (governing case: waste N2 outlet blocked by PIC-3110, section 4) credited; no independent LP pressure alarm.", evidence: [PSV-3114, D-011], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 61d9d3ab4bf99bc9}}
-                - {category: asset, severity: "5", likelihood: A, basis: "As people.", evidence: [PSV-3114], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: a617a5430a81f857}}
+                - {category: people, severity: "5", likelihood: B, basis: "PSV-3114 (governing case: waste N2 outlet blocked by PIC-3110, DESIGN.md section 4) credited as one relief device (two orders); no independent LP pressure alarm (H03-A19).", evidence: [PSV-3114, D-011], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: feea7693498b1f1a}}
+                - {category: asset, severity: "5", likelihood: B, basis: "As people.", evidence: [PSV-3114, D-011], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 6dd05b6d428d45d5}}
       - id: H03-N7-LP
         guide_word: less
         parameter: pressure
@@ -847,6 +877,23 @@ nodes:
               residual:
                 - {category: people, severity: "5", likelihood: B, basis: "FIC-3111 low-flow alarm (0.2 % of O2) and AIA-3103 alarm credited as alarms with operator response; no trip in the C&E although D-010 says alarm/trip.", evidence: [FIC-3111, AIA-3103, D-010], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: feea7693498b1f1a}}
                 - {category: asset, severity: "5", likelihood: B, basis: "As people.", evidence: [FIC-3111, AIA-3103], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 6dd05b6d428d45d5}}
+          - id: H03-S51
+            cause: "AIA-3103 fails low or reads a stale value (analyser fault, blocked or vaporising sample line, calibration drift) while hydrocarbons or N2O enter with the air (intake plume, TSA breakthrough, H-01 / H-02)."
+            consequence: "The accumulation in the sump LOX is not seen and no action is taken: hydrocarbons and N2O exceed their limits, solids deposit in E-3103: main condenser explosion."
+            refs: [AIA-3103, E-3103, C-3102, FIC-3111]
+            modes: [normal, startup]
+            safeguards: []
+            actions: [H03-A24, H03-A3]
+            status: proposed
+            by: agent
+            notes: "AIA-3103 is the only measurement of the sump LOX on P-03; the T-4101 sample AIA-4121 (P-04) is periodic and sees the product, not the sump. The continuous LOX purge (N9) is part of the design case and is not credited again here."
+            risk:
+              initial:
+                - {category: people, severity: "5", likelihood: C, basis: "Main condenser explosion (matrix 5); an analyser failure (D) that coincides with an ingress episode large enough to reach the limits (C).", evidence: [D-010, AIA-3103], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: b6ef4d2263633cd5}}
+                - {category: asset, severity: "5", likelihood: C, basis: "Loss of the cold box.", evidence: [D-010], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 20579213de92d430}}
+              residual:
+                - {category: people, severity: "5", likelihood: C, basis: "Nothing credited: no analyser diagnostics, second measurement or periodic sump sample are in the files.", evidence: [AIA-3103], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: b6ef4d2263633cd5}}
+                - {category: asset, severity: "5", likelihood: C, basis: "As people.", evidence: [AIA-3103], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 20579213de92d430}}
       - id: H03-N8-HL
         guide_word: more
         parameter: level
@@ -868,7 +915,7 @@ nodes:
       - id: H03-N8-GOX
         guide_word: more
         parameter: flow
-        notes: "More GOX draw (K-4101, PIC-4101) and the resulting GOX-3001 velocity are causes in H-04; GOX-3001 is DN500 low-pressure gas, O2-clean (D-009)."
+        notes: "More GOX draw (K-4101, PIC-4101) and the resulting GOX-3001 velocity are causes in H-04; GOX-3001 is DN500 low-pressure gas, O2-clean (D-009). The sump draw-down by a K-4101 over-draw, with E-3103 uncovered, is rated in H04-S75."
   # ---------------------------------------------------------------- N9 LOX product / purge
   - id: H03-N9
     title: LOX product and hydrocarbon purge LOX-3001 through FV-3111
@@ -899,7 +946,7 @@ nodes:
               initial:
                 - {category: people, severity: "4", likelihood: D, basis: "Fatality from an O2-enriched fire or spill (matrix 4); routine valve closure (D).", evidence: [D-011, LOX-3001], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
               residual:
-                - {category: people, severity: "4", likelihood: A, basis: "TSV-4140 (relief case: blocked LOX between FV-3111 and the tank inlet valve) credited.", evidence: [TSV-4140, D-011], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 2aae4706e67ac517}}
+                - {category: people, severity: "4", likelihood: B, basis: "TSV-4140 (relief case: blocked LOX between FV-3111 and the tank inlet valve) credited as one relief device (two orders).", evidence: [TSV-4140, D-011], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
       - id: H03-N9-LOC
         guide_word: other-than
         parameter: containment
@@ -1053,7 +1100,7 @@ nodes:
               initial:
                 - {category: asset, severity: "3", likelihood: D, basis: "Casing repair (matrix 3); valve failure (D).", evidence: [PSV-3123], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
               residual:
-                - {category: asset, severity: "3", likelihood: A, basis: "PSV-3123 (listed case: purge PV-3113 failed open) credited.", evidence: [PSV-3123], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 029d875319f0a595}}
+                - {category: asset, severity: "3", likelihood: B, basis: "PSV-3123 (listed case: purge PV-3113 failed open) credited as one relief device (two orders).", evidence: [PSV-3123], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 96d32a0543b3b03e}}
           - id: H03-S45
             cause: "Internal cryogenic leak into the perlite (LOX, LIN or liquid air from a flange, a cracked core or a line inside the cold box)."
             consequence: "Rapid vaporisation in the casing beyond the breather capacity: casing rupture and perlite eruption, cold spill, brittle fracture of the carbon steel casing; with LOX, oxygen-enriched perlite."
@@ -1108,9 +1155,9 @@ nodes:
             by: agent
             risk:
               initial:
-                - {category: people, severity: "4", likelihood: D, basis: "Fatality (matrix 4); confined-space entry in every major maintenance (D).", evidence: [D-013], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
+                - {category: people, severity: "5", likelihood: C, basis: "Entrant and a rescuer asphyxiated (matrix 5: several fatalities, the usual outcome of an N2 entry accident); an entry with the atmosphere not made safe, once in the plant life (C). Same basis in H01-S36, H02-S35, H03-S47 and H04-S58.", evidence: [D-013], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: b6ef4d2263633cd5}}
               residual:
-                - {category: people, severity: "4", likelihood: D, basis: "No entry or perlite procedure, isolation point or personal monitoring in the files: nothing credited.", evidence: [UN-3001], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
+                - {category: people, severity: "5", likelihood: C, basis: "No entry or perlite procedure, isolation point or personal monitoring in the files: nothing credited.", evidence: [UN-3001], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: b6ef4d2263633cd5}}
   # ---------------------------------------------------------------- N12 sequences
   - id: H03-N12
     title: Cold box start-up, warm-up and standstill sequences
@@ -1198,7 +1245,7 @@ safeguards:
   - {id: H03-SG9, title: "Seal gas permissive and trip PDSLL-3115 (oil pump only with seal gas; trip closes the expander inlet)", kind: other, refs: [PDSLL-3115, XV-3117], status: proposed, by: agent, notes: "Permissive and trip recorded in the instrument list and D-012; not in control/cause-effect.yaml, so not kind interlock until it is (action H03-A2)."}
   - {id: H03-SG10, title: "Expander outlet low temperature limit TIC-3109", kind: control, refs: [TIC-3109], status: proposed, by: agent}
   - {id: H03-SG12, title: "PI-3121 HP column top pressure high alarm (below the PSV-3116 set)", kind: alarm, refs: [PI-3121], status: proposed, by: agent}
-  - {id: H03-SG13, title: "PSV-3116 on C-3101 (VNT-3003)", kind: relief, refs: [PSV-3116], status: proposed, by: agent}
+  - {id: H03-SG13, title: "PSV-3116 on C-3101 (VNT-3003)", kind: relief, refs: [PSV-3116], status: proposed, by: agent, notes: "Listed case: MAC deadhead with the GAN and liquid outlets blocked (DESIGN.md section 4). Not credited for the heat-in of a long standstill (H03-S22) until H03-A20 confirms that case."}
   - {id: H03-SG15, title: "LP column pressure control PIC-3110 (PV-3110A / PV-3110B split range)", kind: control, refs: [PIC-3110, PV-3110A, PV-3110B], status: proposed, by: agent}
   - {id: H03-SG16, title: "PSV-3114 on C-3102 (VNT-3002), discharge outside the cold box", kind: relief, refs: [PSV-3114], status: proposed, by: agent}
   - {id: H03-SG17, title: "LICA-3102 LP sump level low alarm (condenser submergence)", kind: alarm, refs: [LICA-3102], status: proposed, by: agent}
@@ -1230,5 +1277,6 @@ actions:
   - {id: H03-A17, text: "Obtain the supplier's cool-down and temperature-difference limits for E-3101, E-3102 and E-3103 and write them into the start-up procedure.", owner: cold box supplier, status: proposed, by: agent}
   - {id: H03-A18, text: "Confirm what TIC-3109 acts on and the expander's minimum exhaust superheat and liquid tolerance with the supplier.", owner: compander supplier, status: proposed, by: agent}
   - {id: H03-A19, text: "Add an LP column high pressure alarm independent of PIC-3110. The regeneration-gas flow alarm that shows a wrong PV-3110A / PV-3110B position (H03-S31) is H02-A14 (FIC-2105 low flow) and is not raised again here.", owner: instrument and control engineer, status: proposed, by: agent}
-  - {id: H03-A20, text: "Relief case review: confirm PSV-3114 for HP gas blow-through on LV-3101 failed open, and PSV-3116 / PSV-3114 for a long cold standstill (heat-in); tag and draw the cold box TSVs (RL, LN) the relief list leaves to detail engineering. Also PSV-3114 for a K-4101 trip with PV-4101B failing to open (cause on P-04, H04-A20).", owner: process engineer, status: proposed, by: agent}
+  - {id: H03-A20, text: "Relief case review: confirm PSV-3114 for HP gas blow-through on LV-3101 failed open, and PSV-3116 / PSV-3114 for a long cold standstill (heat-in); tag and draw the cold box TSVs (RL, LN; H03-S52) the relief list leaves to detail engineering. Also PSV-3114 for a K-4101 trip with PV-4101B failing to open (cause on P-04, H04-A20).", owner: process engineer, status: proposed, by: agent}
   - {id: H03-A23, text: "Add a non-condensables (Ne / He) vent on the N2 side of E-3103 / GAN-3002.", owner: process engineer, status: proposed, by: agent}
+  - {id: H03-A24, text: "Make an AIA-3103 failure visible and covered: analyser diagnostics with sample-flow, stale-value and calibration alarms, a periodic laboratory sample of the sump LOX as cross-check (EIGA Doc 65), and a written rule for operation with AIA-3103 out of service (time limit, increased LOX purge, sampling frequency). With H03-A3 (whether AIA-3103 high-high becomes a SIF, which would need a second measurement).", owner: process engineer, status: proposed, by: agent}

@@ -49,6 +49,14 @@ assessment_basis: >-
   design feature). Ratings are proposed by an agent at basic engineering from the files and
   DESIGN.md, with basis and evidence, for the team to accept or change; no frequency is
   calculated and no LOPA credit is taken here. The matrix itself is a proposal (ASSUMED).
+  Credit convention for the residual likelihood (one matrix letter is one order of
+  magnitude; a proposal for the team, not a LOPA): a relief device whose listed case covers the
+  cause, or a passive feature that removes the path (an open vent without valve, an elevated
+  vent outside its zone), up to two orders; an alarm with operator response, a control loop, a
+  check valve, an administrative lock, a trip that is drawn but not in the C&E (kind other), or
+  an interlock whose SIL is not confirmed, one order each; nothing for a safeguard that shares
+  a transmitter, valve or logic with the cause or that the cause defeats, nor for a relief
+  device whose listed case does not cover the cause.
 team: []            # not named yet: the owner names the facilitator, scribe and members
 notes: >-
   Team not named: the owner names the facilitator, scribe and members (process, operations,
@@ -515,7 +523,7 @@ nodes:
             consequence: "Air blow-by through CHWR-1001 into C-1102 from the first minute (as H01-S21), C-1102 internals damage and loss of the start-up."
             refs: [XV-1115, LSLL-1115, C-1101, C-1102]
             modes: [startup]
-            safeguards: [H01-SG-I03]
+            safeguards: []
             actions: [H01-A10]
             status: proposed
             by: agent
@@ -523,7 +531,7 @@ nodes:
               initial:
                 - {category: asset, severity: "3", likelihood: D, basis: "C-1102 internals, days (matrix 3); an operating error in a start-up done a few times a year (D).", evidence: [D-076, I-03], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
               residual:
-                - {category: asset, severity: "3", likelihood: C, basis: "I-03 holds XV-1115 closed while LSLL-1115 is low unless it is bypassed; no written start-up permissive yet.", evidence: [I-03], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915}}
+                - {category: asset, severity: "3", likelihood: D, basis: "Not credited: the cause resets or bypasses I-03, so I-03 cannot act; no written start-up permissive (H01-A10).", evidence: [I-03, D-076], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
       - id: H01-N5-D3
         guide_word: "no"
         parameter: flow
@@ -716,10 +724,10 @@ nodes:
         scenarios:
           - id: H01-S33
             cause: "WN-1002 obstructed (a blind or cover left after maintenance, a bird nest, ice at the outlet in winter)."
-            consequence: "C-1102 pressure rises to the LP column top pressure (~0.3 barg, within its 1 barg design); the LP column top and its PSV-3114 take the waste N2; with a blow-by at the same time (H01-S20) C-1102 is overpressured."
-            refs: [WN-1002, C-1102, PSV-3114]
+            consequence: "C-1102 is dead-ended on WN-1001: its pressure follows the LP column top, which PIC-3110 (P-03) holds at ~0.3 barg by diverting the waste N2 through PV-3110B to S-3101, within the 1 barg design of C-1102; the chilled water loses its evaporative cooling. With a blow-by at the same time (H01-S20) or a PIC-3110 failure (H01-S43) C-1102 is overpressured. PSV-3114 (set at about 3.5 barg for C-3102) does not protect C-1102."
+            refs: [WN-1002, C-1102, PIC-3110, PV-3110B]
             modes: [normal, startup]
-            safeguards: [H01-SG-PSV3114]
+            safeguards: [H01-SG-PIC3110]
             actions: [H01-A9]
             status: proposed
             by: agent
@@ -727,7 +735,24 @@ nodes:
               initial:
                 - {category: asset, severity: "2", likelihood: C, basis: "Cold-box upset and trip (matrix 2); an obstructed vent once in plant life (C).", evidence: [D-083, WN-1002], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5d4b96d05607d5a4}}
               residual:
-                - {category: asset, severity: "2", likelihood: B, basis: "PSV-3114 on the LP column relieves the waste N2 path (section 4).", evidence: [PSV-3114], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: a148c713397132d0}}
+                - {category: asset, severity: "2", likelihood: B, basis: "PIC-3110 / PV-3110B split range diverts the waste N2 to S-3101 and holds the LP top pressure, so C-1102 stays within design and the cold box is not upset (control loop, independent of the vent, one order); nothing reveals the obstruction.", evidence: [PIC-3110, PV-3110B, D-083], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: a148c713397132d0}}
+          - id: H01-S43
+            cause: "WN-1002 obstructed (as H01-S33) and PIC-3110 fails or its split range is wrong, so that PV-3110A stays open and PV-3110B does not open."
+            consequence: "C-1102 rises with the LP column top towards the PSV-3114 set pressure (about 3.5 barg, the relief of C-3102), far above the 1 barg design of C-1102 and the PN2.5 of WN-1001: C-1102 ruptures with a person nearby."
+            refs: [WN-1002, C-1102, WN-1001, PIC-3110, PV-3110A, PV-3110B, PSV-3114]
+            modes: [normal, startup]
+            safeguards: []
+            actions: [H01-A9, H01-A25]
+            status: proposed
+            by: agent
+            notes: "PSV-3114 protects C-3102, not C-1102. P-01 has no pressure instrument and no relief device on C-1102 or WN-1001, so an obstruction can stay unnoticed until PIC-3110 fails."
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, basis: "C-1102 rupture with a person nearby (matrix 4); an obstruction that can stay unnoticed for months, together with a PIC-3110 loop failure (D), gives about 1e-3 to 1e-2 per year (C).", evidence: [WN-1002, PIC-3110, PSV-3114, D-083], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+                - {category: asset, severity: "4", likelihood: C, basis: "C-1102 destroyed and the chilled water lost, weeks down (matrix 4).", evidence: [C-1102, D-083], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 544760766051af8c}}
+              residual:
+                - {category: people, severity: "4", likelihood: C, basis: "Nothing in the files protects C-1102 against the LP column pressure: PSV-3114 is set for C-3102, and C-1102 has no pressure alarm or relief device.", evidence: [PSV-3114, D-083], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+                - {category: asset, severity: "4", likelihood: C, basis: "As people.", evidence: [PSV-3114], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 544760766051af8c}}
       - id: H01-N7-D3
         guide_word: as-well-as
         parameter: composition
@@ -777,7 +802,7 @@ nodes:
             by: agent
             risk:
               initial:
-                - {category: people, severity: "5", likelihood: C, basis: "Entrant and rescuer fatalities (matrix 5); entry into a tower fed by an N2 line, once in plant life (C).", evidence: [D-011, WN-1001], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: b6ef4d2263633cd5}}
+                - {category: people, severity: "5", likelihood: C, basis: "Entrant and a rescuer asphyxiated (matrix 5: several fatalities, the usual outcome of an N2 entry accident); an entry with the atmosphere not made safe, once in the plant life (C). Same basis in H01-S36, H02-S35, H03-S47 and H04-S58.", evidence: [D-011, WN-1001], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: b6ef4d2263633cd5}}
               residual:
                 - {category: people, severity: "5", likelihood: C, basis: "No positive isolation, O2 monitoring or entry procedure is in the files.", evidence: [WN-1001], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: b6ef4d2263633cd5}}
           - id: H01-S37
@@ -911,7 +936,7 @@ safeguards:
   - {id: H01-SG-AIA3103, title: "AIA-3103 hydrocarbon (THC, C2H2) alarm in the LP sump LOX", kind: alarm, refs: [AIA-3103], status: proposed, by: agent, notes: "D-010 (4); action limits per EIGA Doc 65 (ASSUMED)."}
   - {id: H01-SG-AIA2102, title: "AIA-2102 CO2 / N2O alarm at the adsorber outlet", kind: alarm, refs: [AIA-2102], status: proposed, by: agent, notes: "Its high-high bed switch / MAC trip is not in control/cause-effect.yaml: credited as an alarm only."}
   - {id: H01-SG-AIA2103, title: "AIA-2103 H2O dew point alarm at the adsorber outlet", kind: alarm, refs: [AIA-2103], status: proposed, by: agent}
-  - {id: H01-SG-VIA1104, title: "VIA-1104 vibration and bearing alarm with machine trip (MAC machine protection)", kind: alarm, refs: [VIA-1104], status: proposed, by: agent, notes: "Trip on high-high in the supplier's machine protection, not in the C&E."}
+  - {id: H01-SG-VIA1104, title: "VIA-1104 vibration and bearing alarm (MAC machine protection; its trip is not credited)", kind: alarm, refs: [VIA-1104], status: proposed, by: agent, notes: "Trip on high-high in the supplier's machine protection, not in the C&E."}
   - {id: H01-SG-UIC1102, title: "UIC-1102 anti-surge control on the blow-off UV-1102", kind: control, refs: [UIC-1102, UV-1102], status: proposed, by: agent}
   - {id: H01-SG-PIC1103, title: "PIC-1103 discharge pressure override on IGV and blow-off", kind: control, refs: [PIC-1103], status: proposed, by: agent}
   - {id: H01-SG-TIA1110, title: "TIA-1110 high temperature alarms on the stage discharges and intercooler outlets", kind: alarm, refs: [TIA-1110], status: proposed, by: agent}
@@ -930,7 +955,7 @@ safeguards:
   - {id: H01-SG-SEP1102, title: "E-1102 integral moisture separator with drain trap", kind: mechanical, refs: [E-1102, ST-1112], status: proposed, by: agent, notes: "D-064."}
   - {id: H01-SG-C1102MIST, title: "C-1102 top mist eliminator", kind: mechanical, refs: [C-1102], status: proposed, by: agent, notes: "D-083 enquiry requirement (top nozzle, distributor and mist eliminator)."}
   - {id: H01-SG-TICA3124, title: "TICA-3124 booster air temperature high alarm after E-3105", kind: alarm, refs: [TICA-3124], status: proposed, by: agent}
-  - {id: H01-SG-PSV3114, title: "PSV-3114 on the LP column (waste N2 outlet blocked)", kind: relief, refs: [PSV-3114], status: proposed, by: agent}
+  - {id: H01-SG-PIC3110, title: "LP column pressure control PIC-3110 (P-03): split range PV-3110A to C-1102, PV-3110B to S-3101", kind: control, refs: [PIC-3110, PV-3110A, PV-3110B], status: proposed, by: agent, notes: "Studied in H-03 (H03-SG15); credited here only where its own failure is not the cause."}
 actions:
   - {id: H01-A1, text: "Carry out the air-intake survey the design basis requires (hydrocarbons, C2H2, CO2, N2O sources around F-1101, prevailing wind) and decide on a continuous intake hydrocarbon / CO2 analyser with alarm at F-1101 and an operating response to an intake plume (with H-03).", owner: process engineer, status: proposed, by: agent}
   - {id: H01-A2, text: "Confirm with the filter supplier the F-1101 cartridge collapse rating and its behaviour in coastal fog, salt and hoar frost at -5 C; consider anti-icing (inlet heating) if the rating is not met.", owner: mechanical engineer, status: proposed, by: agent}
@@ -940,7 +965,7 @@ actions:
   - {id: H01-A6, text: "State the fail positions of UV-1102, FV-1108, LV-1106, TV-1105 and LV-1107 on P-01 and in the instrument list (proposed: UV-1102 open, LV-1106 closed) and check each against H01-S12, S13, S16, S17 and S27. One plant-wide fail-position list (P-01 .. P-04) answers H01-A6, H02-A6, H03-A1 and H04-A14; this action names the valves of this sheet.", owner: instrument and control engineer, status: proposed, by: agent}
   - {id: H01-A7, text: "Add a differential pressure indication with high alarm across the C-1101 packed sections to detect flooding.", owner: instrument and control engineer, status: proposed, by: agent}
   - {id: H01-A8, text: "Confirm the I-03 SIL by LOPA with the owner's risk criteria: the BPCS initiating frequency, the credit for the open vent WN-1002, the tolerable frequencies of D-083; then write the SRS (trip 13.35 m, 144 s process safety time, response <= 15 s, yearly proof test) and make the LV-1114 trim limit (<= 2 x 34.4 m3/h) a valve-supplier requirement. One update of control/cause-effect.yaml and one LOPA / SIL session answer H01-A3, H01-A8, H02-A1, H02-A2, H03-A2, H03-A3, H04-A01, H04-A02 and H04-A13; this action names the functions of this sheet.", owner: process safety engineer, status: proposed, by: agent}
-  - {id: H01-A9, text: "Close the C-1102 blow-by relief case: proposal to accept WN-1002 as the open relief path (D-083) with I-03 limiting the duration; get the C-1102 supplier's confirmation of the top internals at ~153 t/h; make 'no blind, cover or valve on WN-1002' a maintenance rule with a bird / weather screen that cannot block it; H-03 to rate the WN-1001 back-pressure on the LP column.", owner: process safety engineer, status: proposed, by: agent}
+  - {id: H01-A9, text: "Close the C-1102 blow-by relief case: proposal to accept WN-1002 as the open relief path (D-083) with I-03 limiting the duration; get the C-1102 supplier's confirmation of the top internals at ~153 t/h; make 'no blind, cover or valve on WN-1002' a maintenance rule with a bird / weather screen that cannot block it; H-03 to rate the WN-1001 back-pressure on the LP column. The open vent is not the whole relief case: with WN-1002 blocked C-1102 also depends on PIC-3110 (H01-S43), which H01-A25 answers.", owner: process safety engineer, status: proposed, by: agent}
   - {id: H01-A10, text: "Write the start-up sequence for the precooling: chimney-tray seal established before the MAC loads C-1101; I-03 reset only above the trip level, no bypass while C-1101 is under pressure.", owner: operations, status: proposed, by: agent}
   - {id: H01-A11, text: "Add a C-1102 sump low level alarm and a low-low trip of P-1102A/B, independent of LIC-1107; check the hold-up time of the C-1102 sump against the loss of the 34 m3/h return.", owner: process engineer, status: proposed, by: agent}
   - {id: H01-A12, text: "Add a high level alarm to LIC-1114 and have the packing supplier confirm the overflow downcomer capacity with an allowance for fouling and debris.", owner: process engineer, status: proposed, by: agent}
@@ -956,3 +981,4 @@ actions:
   - {id: H01-A22, text: "Intercooler tube leaks: specify leak detection for E-1101 / E-1102 (water into air) with the MAC supplier, and tag and draw the CW-side relief for E-1103 (PSV on CW headers, section 4) or confirm the CW return design pressure.", owner: mechanical engineer, status: proposed, by: agent}
   - {id: H01-A23, text: "Have the MAC supplier guarantee the oil-free air path (seal buffer, oil vent location away from F-1101) and define periodic oil-in-air checks after AIR-1002.", owner: mechanical engineer, status: proposed, by: agent}
   - {id: H01-A24, text: "Check that the cooling water to the DCAC cannot carry oil from other users (oil coolers on the shared CW system) and define CW quality monitoring for hydrocarbons.", owner: process engineer, status: proposed, by: agent}
+  - {id: H01-A25, text: "Protect C-1102 against the LP column top pressure independently of WN-1002 and PIC-3110: a relief device on C-1102 or WN-1001 set below the 1 barg design, a second open vent, or a C-1102 / WN-1001 high-pressure alarm and trip that closes PV-3110A; add the case (WN-1002 blocked, PIC-3110 failed, H01-S43) to the relief case list in DESIGN.md section 4, with H03-A20.", owner: process safety engineer, status: proposed, by: agent}
