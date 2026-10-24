@@ -179,7 +179,7 @@ def _sheets(plant: dict) -> list[dict]:
 DATA_SOURCE_FIELDS = ("id", "title", "provider", "version", "url", "licence", "publication", "attribution")
 
 
-def _lca(folder: Path, where: str, report: Report) -> dict | None:
+def _lca(folder: Path, where: str, report: Report, capacity: str | None = None) -> dict | None:
     """Functional unit, totals per scenario and category, contributions and inventory."""
     lca_dir = folder / "lca"
     if not (lca_dir / "lca.yaml").is_file():
@@ -242,7 +242,7 @@ def _lca(folder: Path, where: str, report: Report) -> dict | None:
     else:
         factors_status = "mixed"
     allocation = study.get("allocation") or {}
-    scenario_part = _scenarios(folder, where, report, withheld)
+    scenario_part = _scenarios(folder, where, report, withheld, capacity)
     # a scenario record says which totals are computable: a category whose data the baseline
     # has is missing there (or all of whose contributions are gaps) has no total, never the
     # lower sum results.csv gives
@@ -334,7 +334,7 @@ def _record_stale(folder: Path, record: dict) -> bool:
     return False
 
 
-def _scenarios(folder: Path, where: str, report: Report, lca_withheld_reason: str | None) -> dict:
+def _scenarios(folder: Path, where: str, report: Report, lca_withheld_reason: str | None, capacity: str | None = None) -> dict:
     """The design cases and regional background scenarios of core's records
     (``lca/scenarios/<id>.json``, ``cheme assess lca-scenarios --write``, schema
     :data:`SCENARIO_SCHEMA`): one entry per scenario, the baseline first, each with its design
@@ -427,6 +427,13 @@ def _scenarios(folder: Path, where: str, report: Report, lca_withheld_reason: st
                 "record": f"scenarios/{folder.name}/{path.name}",
             }
         )
+    # one design case without a declared capacity: the manifest's documented capacity, with its
+    # source (it describes that one design, never another case)
+    if len(cases) == 1 and capacity:
+        (only,) = cases.values()
+        if not only.get("capacity"):
+            only["capacity"] = capacity
+            only["capacity_source"] = "process.yaml basis.capacity"
     # the technology/configuration every case and scenario shares
     technology = records[0][1].get("process", {}).get("technology")
     return {"technology": technology, "design_cases": list(cases.values()), "scenarios": scenarios}
@@ -628,7 +635,8 @@ def build(
             continue
 
         plant = _yaml(folder / "plant.yaml") if (folder / "plant.yaml").is_file() else None
-        lca = _lca(folder, where, report) if manifest.get("lca", {}).get("source", "auto") == "auto" and plant else None
+        capacity = (manifest.get("basis") or {}).get("capacity")
+        lca = _lca(folder, where, report, capacity) if manifest.get("lca", {}).get("source", "auto") == "auto" and plant else None
         if lca:
             keys = {row["key"] for row in lca["inventory"]}
             for group, items in flows.items():

@@ -30,12 +30,12 @@ modes:
 analysed:
   - {path: pid/P-03.xml, revision: 'sha256:e633f6e71bb6a9926e184eeab53287e44529b4cd209fb0a87cfbbe5a7db09974', relation: analyses}
   - {path: control/cause-effect.yaml, revision: 'sha256:b9c8e56cbc49b1b9d9595e39b02fbaa24fdffdf137d402bcd253b329b9299ca5', relation: analyses}
-  - {path: control/instrument-list.yaml, revision: 'sha256:328523d1bcb51ae744867889f922f4bf01c619efaf155f01d0e275bffc6b3d2f', relation: analyses}
+  - {path: control/instrument-list.yaml, revision: 'sha256:faa49c1f80b17ec93d52133f0e027cb54446579b9511f38da9f70c19e5113ba8', relation: analyses}
   - {path: equipment/equipment-list.yaml, revision: 'sha256:7dd6ae258db62812479ac0e0e7c520b82a46de4f02ee2020db2f5d4013870490', relation: analyses}
   - {path: piping/line-list.yaml, revision: 'sha256:3643188e55a2e5b9128b4b6c25a3e8b71bbd07e4fdb3fbe0d47ade72261f1485', relation: analyses}
   - {path: piping/special-items.yaml, revision: 'sha256:8071c9646730d15356f23923163a5416205ea568dbb9592a61fb49e9d19077d0', relation: analyses}
-  - {path: process/design-basis.yaml, revision: 'sha256:db3372d4b36b2577ddeab2c14f7ca16db622a3d5d32dddc006ff9a1551ff0281', relation: analyses}
-  - {path: process/flowsheet.yaml, revision: 'sha256:0017d59880eecae9cd7e13b285dc48460a928774b6097389b6b253b5717b7d39', relation: analyses}
+  - {path: process/design-basis.yaml, revision: 'sha256:0498974de4c64d23299e4a93fc56382beeae4c20493d14612a3c0912288757e0', relation: analyses}
+  - {path: process/flowsheet.yaml, revision: 'sha256:2e6a47f90612a61e9e806d83cca6e80fbc44a58ccc8a43eb0a2eddd30eaca4a3', relation: analyses}
 risk_matrix: safety/risk-matrix.yaml
 assessment_basis: >-
   IEC 61882 guide words applied to the parameters of each node's design intent, in every mode
@@ -67,7 +67,8 @@ nodes:
     title: Booster K-3101 with its anti-surge recycle and discharge to E-3104
     design_intent: >-
       Compress 11,500 Nm3/h dry air from AIR-3005 (5.6 bara, 15 C) to 8.45 bara (59.9 C) on the
-      expander's power (191.6 kW, D-061), keep the booster out of surge by recycling cooled air
+      expander's power (191.6 kW, D-061; the D-097 simulation, with the TSA heat of adsorption
+      warming the air to 15 C, gives 59.9 C and 185.9 kW), keep the booster out of surge by recycling cooled air
       from the E-3104 outlet through AIR-3006 / UV-3120 (UIC-3120, fail open), and send the air
       through E-3104 and E-3105 into AIR-3002; PSV-3119 and the check valve on AIR-3002
       downstream of the recycle tee protect the discharge (D-003).
@@ -312,7 +313,9 @@ nodes:
       Cool 96,000 kg/h dry air (AIR-2002, ~5.6 bara) to -173 C near its dew point for the HP
       column (AIR-3001) and the boosted air (AIR-3002, 8.45 bara, 15 C) to -124.7 C for the
       expander (AIR-3003), against GOX (GOX-3001 -> GOX-4001, ~1.3 bara), GAN (GAN-3001 ->
-      GAN-4001) and waste N2 (WN-3001 -> WN-3002, 76,560 kg/h, 1.15 bara, 13 C at the warm end).
+      GAN-4001) and waste N2 (WN-3001 -> WN-3002, 76,560 kg/h, 1.15 bara, 13 C at the warm end;
+      the D-097 simulation, which has no heat leak, gives 7.2 C, with the 2 K warm-end approach
+      of D-061 met).
       Brazed aluminium plate-fin, 11 barg, -196 / +65 C design, O2 service (D-009, D-066, D-067).
     members: [E-3101, AIR-2002, AIR-3001, AIR-3002, AIR-3003, GOX-3001, GOX-4001, GAN-3001, GAN-4001, WN-3001, WN-3002]
     modes: [normal, startup, shutdown, warmup, regen-switch]
@@ -915,7 +918,7 @@ nodes:
       - id: H03-N8-GOX
         guide_word: more
         parameter: flow
-        notes: "More GOX draw (K-4101, PIC-4101) and the resulting GOX-3001 velocity are causes in H-04; GOX-3001 is DN500 low-pressure gas, O2-clean (D-009). The sump draw-down by a K-4101 over-draw, with E-3103 uncovered, is rated in H04-S75."
+        notes: "More GOX draw (K-4101 on the guide-vane low select of PIC-4102, FIC-4148 and PIC-4150, D-096; PIC-4101 is now the suction vent only) and the resulting GOX-3001 velocity are causes in H-04 (H04-S02); GOX-3001 is DN500 low-pressure gas, O2-clean (D-009). The sump draw-down by a K-4101 over-draw, with E-3103 uncovered, is rated in H04-S75."
   # ---------------------------------------------------------------- N9 LOX product / purge
   - id: H03-N9
     title: LOX product and hydrocarbon purge LOX-3001 through FV-3111

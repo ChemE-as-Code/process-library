@@ -721,3 +721,10 @@ def test_a_malformed_scenario_record_is_a_warning(tmp_path: Path, library: Path)
     report = _build(library, tmp_path / "out")
     assert report.errors == []
     assert any("broken.json: not a complete scenario record" in w for w in report.warnings)
+
+
+def test_a_single_undeclared_design_case_shows_the_documented_capacity() -> None:
+    report = build_catalog.Report()
+    lca = build_catalog._lca(KIT / "processes" / "asu-1", "asu-1", report, "500 t/d GOX")
+    (case,) = lca["design_cases"]
+    assert (case["capacity"], case["capacity_source"]) == ("500 t/d GOX", "process.yaml basis.capacity")

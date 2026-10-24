@@ -14,6 +14,7 @@ templates:
 property_method:
   adapter: thermo
   status: configured
+  package: air-pr-chemsep
   phase_models:
     vle: phi-phi, Peng-Robinson for both phases
     vapor_density: Peng-Robinson
@@ -42,3 +43,14 @@ property_method:
   versions:
     thermo: 0.6.1
     chemicals: 1.5.2
+  benchmark:
+    test: tests/test_process_props.py
+    reference: NIST WebBook reference equations of state (Span 2000 N2, Schmidt-Wagner 1985 O2, Lemmon
+      2000 air and N2/O2/Ar mixture), values in tests/data/process_props_references.yaml
+    tolerances:
+      air_density_rel: 0.005
+      gas_density_rel: 0.01
+      saturation_temperature_abs_K: 0.3
+      liquid_density_rel: 0.015
+      two_phase_temperature_abs_K: 0.3
+      vapor_fraction_abs: 0.03

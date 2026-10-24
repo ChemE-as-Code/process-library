@@ -42,15 +42,15 @@ Class 5 accuracy: 18,250,000 to 29,200,000 (low end), 47,450,000 to 73,000,000 (
 
 | flow | rate | provenance | price | per year | status | source | year |
 |---|---|---|---|---|---|---|---|
-| feed:AIR | 113329 kg/h | assumed | free: ambient air |  |  |  |  |
-| feed:POWER | 10464.7 kWh/h | assumed | 80.4 USD/MWh | 7,067,453 | QUOTED | US EIA, Electricity sales, revenue and average price, 2023 data, Table 4: average price to the industrial sector, US total, 8.04 cents/kWh | 2023 |
+| feed:AIR | 113335 kg/h | given | free: ambient air |  |  |  |  |
+| feed:POWER | 10465 kWh/h | assumed | 80.4 USD/MWh | 7,067,675 | QUOTED | US EIA, Electricity sales, revenue and average price, 2023 data, Table 4: average price to the industrial sector, US total, 8.04 cents/kWh | 2023 |
 | product:GOXP | 20860 kg/h | assumed | **no price** |  |  |  |  |
 | product:GANP | 12510 kg/h | assumed | **no price** |  |  |  |  |
 | product:LOX | 470 kg/h | assumed | **no price** |  |  |  |  |
 | product:LIN | 470 kg/h | assumed | **no price** |  |  |  |  |
-| product:VENT | 76770 kg/h | assumed | free: waste nitrogen vented to atmosphere |  |  |  |  |
-| product:COND | 2249.28 kg/h | calculated | free: compressor cooler condensate to the site drain, no charge assumed |  |  |  |  |
-| product:CW | 10719.1 kWh/h | calculated | **no price** |  |  |  |  |
+| product:VENT | 76772.8 kg/h | assumed | free: waste nitrogen vented to atmosphere |  |  |  |  |
+| product:COND | 2252.29 kg/h | calculated | free: compressor cooler condensate to the site drain, no charge assumed |  |  |  |  |
+| product:CW | 10721.4 kWh/h | calculated | **no price** |  |  |  |  |
 
 ## Fixed operating cost (per year)
 
@@ -65,9 +65,9 @@ Class 5 accuracy: 18,250,000 to 29,200,000 (low end), 47,450,000 to 73,000,000 (
 | result | value |
 |---|---|
 | revenue per year | 0 USD |
-| variable cost per year | 7,067,453 USD |
+| variable cost per year | 7,067,675 USD |
 | fixed cost per year | 2,301,700 USD |
-| NPV | -128,060,198 USD (without revenue from GOXP: it has no price) |
+| NPV | -128,062,401 USD (without revenue from GOXP: it has no price) |
 | IRR | none (without revenue from GOXP: it has no price) |
 | LCOP of GOXP | 73.94 USD/t |
 | discounted payback | never |
@@ -78,10 +78,10 @@ Cash flow by year: estimate/tea-cashflow.csv.
 
 | scenario | fixed capital | NPV | IRR | LCOP | meets |
 |---|---|---|---|---|---|
-| baseline | 36,500,000 | -128,060,198 |  | 73.94 | yes |
-| power-texas (Industrial power at the Texas 2023 average) | 36,500,000 | -115,548,843 |  | 66.72 | yes |
-| power-california (Industrial power at the California 2023 average) | 36,500,000 | -220,157,678 |  | 127.1 | no |
-| capex-market-report (Capital at the market-report benchmark, scaled from 2,000 to 500 t/d) | 119,720,000 | -250,025,154 |  | 144.4 | no |
+| baseline | 36,500,000 | -128,062,401 |  | 73.94 | yes |
+| power-texas (Industrial power at the Texas 2023 average) | 36,500,000 | -115,550,651 |  | 66.72 | yes |
+| power-california (Industrial power at the California 2023 average) | 36,500,000 | -220,162,785 |  | 127.1 | no |
+| capex-market-report (Capital at the market-report benchmark, scaled from 2,000 to 500 t/d) | 119,720,000 | -250,027,356 |  | 144.4 | no |
 
 ## What dominates the outcome (lcop, one input at a time)
 
@@ -92,7 +92,7 @@ Cash flow by year: estimate/tea-cashflow.csv.
 | price:feed:POWER | 80.4 USD/MWh | x 0.8453 .. x 1.183 | 67.7 USD/t | 81.33 USD/t | P10/P90 |
 | finance:discount_rate | 0.08 fraction | x 0.75 .. x 1.5 | 70.41 USD/t | 81.8 USD/t | swing |
 | rate:product:GOXP | 20860 kg/h | x 0.9408 .. x 1.063 | 78.6 USD/t | 69.56 USD/t | P10/P90 |
-| rate:feed:POWER | 10464.7 kWh/h | x 0.9408 .. x 1.063 | 71.55 USD/t | 76.48 USD/t | P10/P90 |
+| rate:feed:POWER | 10465 kWh/h | x 0.9408 .. x 1.063 | 71.55 USD/t | 76.48 USD/t | P10/P90 |
 | opex:maintenance | 0.03 fraction | x 0.7712 .. x 1.297 | 72.51 USD/t | 75.8 USD/t | P10/P90 |
 | opex:insurance_tax | 0.02 fraction | x 0.7712 .. x 1.297 | 72.99 USD/t | 75.18 USD/t | P10/P90 |
 | opex:labour | 476,700 USD/a | x 0.7712 .. x 1.297 | 73.32 USD/t | 74.75 USD/t | P10/P90 |
@@ -102,11 +102,11 @@ Cash flow by year: estimate/tea-cashflow.csv.
 | metric | deterministic | P10 | P50 | P90 | mean |
 |---|---|---|---|---|---|
 | fixed_capital (USD) | 3.65e+07 | 2.82e+07 | 4.192e+07 | 5.923e+07 | 4.28e+07 |
-| lcop (USD/t) | 73.94 | 65.28 | 79.16 | 95.92 | 79.95 |
+| lcop (USD/t) | 73.94 | 65.28 | 79.16 | 95.93 | 79.95 |
 
 Drivers of lcop (Spearman rank correlation):
 
-- capex:isbl: +0.80
+- capex:isbl: +0.79
 - price:feed:POWER: +0.38
 - rate:product:GOXP: -0.30
 - rate:feed:POWER: +0.16
@@ -119,14 +119,14 @@ Drivers of lcop (Spearman rank correlation):
 | input | base | turns at | change |
 |---|---|---|---|
 | price:feed:POWER | 80.4 USD/MWh | 132.3 USD/MWh | +65% |
-| rate:feed:POWER | 10464.7 kWh/h | 1.723e+04 kWh/h | +65% |
+| rate:feed:POWER | 10465 kWh/h | 1.723e+04 kWh/h | +65% |
 | rate:product:GOXP | 20860 kg/h | 1.542e+04 kg/h | -26% |
-| capex:isbl | 36,500,000 USD | 67,294,867 USD | +84% |
+| capex:isbl | 36,500,000 USD | 67,293,364 USD | +84% |
 | opex:maintenance | 0.03 fraction | 0.1551 fraction | +417% |
-| opex:labour | 476,700 USD/a | 5,042,855 USD/a | +958% |
-| opex:insurance_tax | 0.02 fraction | 0.1451 fraction | +626% |
+| opex:labour | 476,700 USD/a | 5,042,632 USD/a | +958% |
+| opex:insurance_tax | 0.02 fraction | 0.1451 fraction | +625% |
 | operation:hours_per_year | 8400 h/a | 4731 h/a | -44% |
-| finance:discount_rate | 0.08 fraction | 0.201 fraction | +151% |
+| finance:discount_rate | 0.08 fraction | 0.2009 fraction | +151% |
 
 ## Findings
 
