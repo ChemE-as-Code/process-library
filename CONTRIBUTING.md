@@ -52,7 +52,7 @@ has it. The public build (`--public` of `build_catalog.py`, `build_lci.py` and
   `CC-BY-4.0`). There is no default: state it when you set `public`.
 - `repository` is shown only when its `access` is `public`.
 - An LCA's footprint values (totals, contributions, the headline value, the viewer's LCA answer
-  and `lca/results.*`, `lca/gaps.csv`, `lca/uncertainty.csv`) are shown only when core's
+  and `lca/results.*`, `lca/gaps.csv`, `lca/uncertainty.csv`, `lca/scenarios/*.json`) are shown only when core's
   committed run manifest (`lca/manifest.json`) says the result is publishable under its sources'
   terms and is current (`scripts/publication.py` `lca_withheld`); placeholder factors, a missing
   or stale manifest and restricted or local sources withhold them. Its goal, functional unit,

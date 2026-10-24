@@ -13,6 +13,7 @@ is the source of the [Process Atlas](https://github.com/ChemE-as-Code/process-at
 | `processes/<id>/process.yaml` | the Atlas manifest of a process (schema `schemas/process.schema.json`): title, families, inputs and outputs by chemical, maturity, review status, references |
 | `processes/<id>/plant.yaml` and the rest | optional: a cheme-as-code (plantcode) engineering project: P&IDs, BFD/PFD, lists, layout, LCA. Its own README says how to work in it |
 | `processes/<id>/lca/dataset.yaml`, `lca/datasets/*.yaml` | optional: unallocated LCI datasets (core's `lci_dataset`), the input of the LCI database |
+| `processes/<id>/lca/scenarios/<id>.json` | optional: core's per-scenario records (`cheme assess lca-scenarios --write`): the design case, regional background scenarios (geography, year, electricity), linked exchanges and their states, totals per functional unit; the catalog publishes them (see below) |
 | `chemicals/chemicals.yaml` | chemical identity registry (CAS, InChIKey, ChEBI): the slugs processes name, which link them in the Atlas graph |
 | `lci/mappings.yaml` | how LCI exchanges link to Brightway background and biosphere data (by name; no licensed data) |
 | `schemas/` | JSON Schemas of process.yaml, the registry and the mappings |
@@ -46,6 +47,17 @@ uv run scripts/build_catalog.py --library . --out dist [--artifacts <previews>] 
 uv run scripts/build_lci.py --library . --out dist --version 0.1.0 [--strict] [--public]
 uv run --python 3.12 --with pytest --with pyyaml --with jsonschema --with openpyxl --with ./python --with bw2calc pytest -q tests
 ```
+
+**Design cases and regional scenarios.** One engineering project serves several operating
+cases (flowsheet `cases:`, each with its declared `capacity`) and several geographical
+backgrounds (`scenarios:` in `lca/lca.yaml` with `location`, `year`, `electricity`, `missing:`,
+`proxy:`; core docs/framework/lci-scenarios.md). No folder is copied per region or capacity.
+Run `cheme assess lca-scenarios --write` in the process folder and commit `lca/scenarios/`; the
+catalog gives each process `lca.design_cases` and `lca.scenarios` and copies the records to
+`scenarios/<id>/<scenario>.json`. A scenario whose values may not be published, or whose record
+is stale, keeps its geography, states and gaps but loses its totals. ASU-1 has `nl-grid` (the UK
+grid as a declared proxy) and `de-grid` (electricity declared missing): no regional factor is
+invented, and a scenario missing data the baseline has is marked not comparable.
 
 CI (`.github/workflows/validate.yml`): every `processes/*/plant.yaml` is validated with `cheme`
 in its folder; the library job runs the tests (including the Brightway round trip) and builds

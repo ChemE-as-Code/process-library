@@ -48,6 +48,9 @@ jobs:
       - run: uv tool install git+https://github.com/ChemE-as-Code/core.git
       - run: cheme fmt --check
       - run: cheme validate
+      # core's per-scenario LCA records (lca/scenarios/<id>.json, core#172) must be current
+      - name: LCA scenario records current
+        run: if [ -d lca/scenarios ]; then cheme assess lca-scenarios --check; fi
       # Stage gates report progress (e.g. no design review recorded yet); they do not fail the build.
       - name: Engineering-step gates (informational)
         run: cheme check --no-write

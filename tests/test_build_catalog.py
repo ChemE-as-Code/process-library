@@ -588,3 +588,143 @@ def test_data_sources_carry_the_attribution(library: Path, tmp_path: Path) -> No
     (source,) = lca["data_sources"]
     assert source["licence"] == "OGL-3.0" and "OGL v3.0" in source["attribution"]
     assert "checksum" not in source and lca["totals"]
+
+
+# -- design cases and regional scenarios (core#172) -----------------------------------------
+
+
+def _scenarios(out: Path) -> dict:
+    return _json(out / "processes" / "fixture-electrolysis.json")["lca"]
+
+
+def test_scenarios_reuse_one_design_and_keep_their_states(tmp_path: Path, library: Path) -> None:
+    assert _build(library, tmp_path / "out").errors == []
+    lca = _scenarios(tmp_path / "out")
+    assert [c["id"] for c in lca["design_cases"]] == ["design", "part-load"]
+    assert lca["technology"] == "PEM electrolysis (fixture)"
+    design = lca["design_cases"][0]
+    assert design["capacity"] == "1 t/d H2" and design["foreground"]["basis"] == "1 h of operation"
+    by_id = {s["id"]: s for s in lca["scenarios"]}
+    assert list(by_id) == ["baseline", "de-grid", "nl-grid", "part-load"]
+    # a region swap keeps the design case and the foreground
+    for sid in ("nl-grid", "de-grid"):
+        assert by_id[sid]["design_case"] == "design"
+        assert by_id[sid]["relation"] == "unchanged"
+        assert by_id[sid]["foreground_fingerprint"] == by_id["baseline"]["foreground_fingerprint"]
+    assert by_id["part-load"]["relation"] == "design-case"
+    assert by_id["part-load"]["foreground_fingerprint"] != by_id["baseline"]["foreground_fingerprint"]
+    nl_power = next(l for l in by_id["nl-grid"]["links"] if l["key"] == "feed:POWER")
+    assert (nl_power["state"], nl_power["location"], nl_power["replaced"]) == ("linked", "NL", True)
+    # missing regional data: a missing state and a non-comparable total, never a zero footprint
+    de = by_id["de-grid"]
+    assert next(l for l in de["links"] if l["key"] == "feed:POWER")["state"] == "missing"
+    assert (de["comparable"], de["dropped"]) == (False, ["feed:POWER"])
+    assert de["totals"] == {"climate-change": None}
+    assert de["layers"] == {
+        "foreground": "foreground",
+        "linked_inventory": "linked-inventory",
+        "impacts": "characterized-impact",
+    }
+    assert de["allocation"]["method"] == "mass" and de["functional_unit"]["product"] == "H2"
+    # the full core record is copied for other consumers
+    record = _json(tmp_path / "out" / de["record"])
+    assert record["schema"] == "cheme/lca-scenario/v1" and record["id"] == de["record_id"]
+
+
+def test_public_build_withholds_scenario_values_not_their_evidence(tmp_path: Path, library: Path) -> None:
+    assert build_catalog.build(library, tmp_path / "out", PREVIEWS, commit="fixture", public=True).errors == []
+    lca = _scenarios(tmp_path / "out")
+    for scenario in lca["scenarios"]:
+        # the fixture's factors are placeholders: no numbers, but geography, states and gaps stay
+        assert "totals" not in scenario
+        assert scenario["values_withheld"] == "placeholder-factors"
+        assert scenario["links"]
+        record = _json(tmp_path / "out" / scenario["record"])
+        assert "totals" not in record["impacts"] and "characterised_sum" not in record["impacts"]
+        assert record["impacts"]["values_withheld"] == "placeholder-factors"
+
+
+def test_a_stale_scenario_record_is_flagged_and_withheld(tmp_path: Path, library: Path) -> None:
+    lca_yaml = library / "processes" / "fixture-electrolysis" / "lca" / "lca.yaml"
+    lca_yaml.write_text(lca_yaml.read_text() + "# changed\n")
+    report = _build(library, tmp_path / "out")
+    assert any("nl-grid.json is stale" in w for w in report.warnings)
+    nl = next(s for s in _scenarios(tmp_path / "out")["scenarios"] if s["id"] == "nl-grid")
+    assert nl["stale"] is True
+
+
+def test_a_process_without_scenario_records_has_no_scenarios(tmp_path: Path, library: Path) -> None:
+    shutil.rmtree(library / "processes" / "fixture-electrolysis" / "lca" / "scenarios")
+    assert _build(library, tmp_path / "out").errors == []
+    lca = _scenarios(tmp_path / "out")
+    assert "scenarios" not in lca and "design_cases" not in lca and "technology" not in lca
+
+
+def test_the_asu_publishes_regional_scenarios_without_invented_factors() -> None:
+    folder = KIT / "processes" / "asu-1" / "lca" / "scenarios"
+    records = {p.stem: _json(p) for p in folder.glob("*.json")}
+    assert set(records) == {"baseline", "nl-grid", "de-grid"}
+    fingerprints = {r["foreground"]["fingerprint"] for r in records.values()}
+    assert len(fingerprints) == 1  # one 500 t/d design, one foreground
+    assert {r["design_case"]["id"] for r in records.values()} == {"design"}
+    power = {k: next(l for l in r["linked_inventory"]["exchanges"] if l["key"] == "feed:POWER") for k, r in records.items()}
+    # NL: the UK grid, declared a proxy, never relabelled NL; DE: declared missing
+    assert (power["nl-grid"]["state"], power["nl-grid"]["location"]) == ("proxy", "GB")
+    assert power["de-grid"]["state"] == "missing"
+    assert records["de-grid"]["impacts"]["comparable"] is False
+    assert records["de-grid"]["impacts"]["totals"] == {"climate-change": None}
+    assert not build_catalog._record_stale(KIT / "processes" / "asu-1", records["nl-grid"])
+
+
+def test_lca_totals_drop_scenario_categories_a_record_says_are_not_computable(tmp_path: Path) -> None:
+    # the ASU's results.csv sums DE without its electricity; the catalog must not show that sum
+    report = build_catalog.Report()
+    lca = build_catalog._lca(KIT / "processes" / "asu-1", "asu-1", report)
+    assert lca["totals"]["de-grid"] == {}
+    assert lca["totals"]["nl-grid"]["climate-change"] == lca["totals"]["baseline"]["climate-change"]
+
+
+def test_a_withheld_scenario_loses_its_lca_totals_too(tmp_path: Path, library: Path) -> None:
+    detail = {
+        "repository": None,
+        "publication": None,
+        "lca": {
+            "publishable": True,
+            "totals": {"baseline": {"gwp": 1.0}, "nl": {"gwp": 2.0}},
+            "scenarios": [
+                {"id": "baseline", "withheld_reason": None, "totals": {"gwp": 1.0}},
+                {"id": "nl", "withheld_reason": "restricted-sources", "totals": {"gwp": 2.0}},
+            ],
+        },
+    }
+    build_catalog._publish(detail)
+    assert detail["lca"]["totals"] == {"baseline": {"gwp": 1.0}}
+    assert "totals" not in detail["lca"]["scenarios"][1]
+
+
+def test_snapshot_withholding_covers_scenario_records(tmp_path: Path) -> None:
+    target = tmp_path / "snap"
+    (target / "data").mkdir(parents=True)
+    entries = {}
+    for key in ("lca", "file?path=lca/results.csv", "file?path=lca/scenarios/nl.json", "file?path=lca/dataset.yaml"):
+        name = key.replace("?", "_").replace("/", "_")
+        (target / "data" / name).write_text("x")
+        entries[key] = {"file": name}
+    manifest = {"entries": entries}
+    build_catalog._withhold_lca_values(manifest, target)
+    assert set(manifest["entries"]) == {"file?path=lca/dataset.yaml"}
+
+
+def test_a_malformed_scenario_record_is_a_warning(tmp_path: Path, library: Path) -> None:
+    bad = library / "processes" / "fixture-electrolysis" / "lca" / "scenarios" / "broken.json"
+    bad.write_text(json.dumps({"schema": "cheme/lca-scenario/v1", "id": "x"}))
+    report = _build(library, tmp_path / "out")
+    assert report.errors == []
+    assert any("broken.json: not a complete scenario record" in w for w in report.warnings)
+
+
+def test_a_single_undeclared_design_case_shows_the_documented_capacity() -> None:
+    report = build_catalog.Report()
+    lca = build_catalog._lca(KIT / "processes" / "asu-1", "asu-1", report, "500 t/d GOX")
+    (case,) = lca["design_cases"]
+    assert (case["capacity"], case["capacity_source"]) == ("500 t/d GOX", "process.yaml basis.capacity")
