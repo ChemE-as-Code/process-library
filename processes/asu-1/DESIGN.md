@@ -3330,6 +3330,12 @@ shows the envelope the layout was built on. Tooling: cheme-as-code 0.8.0
    elevation and what it stands on (`support.elevation`, `support.stands_on`: C-3102 on C-3101
    at 20.0 m, E-3102 at 20.0 m, T-4101 / T-4102 on their 0.5 m foundations); nothing written
    by hand is overwritten and no TBD is added. The fill changed no value of the equipment list.
+   Every size and weight it copies is the list's ASSUMED value (list header: sizes D-028,
+   weights D-034 or (5)), but cheme-as-code 0.8.0's fill writes them without `assumed: true`;
+   after review17#1 each copied outside diameter, overall length, width and height and each
+   empty weight carries `assumed: true` with that source (140 fields on 39 datasheets; the (5)
+   weights had it already), so the drawings print them with the `*` ASSUMED mark. Core
+   suggestion: `fill --dimensions` carries the list's ASSUMED status.
    At the fill the list gave no empty weight for C-1101, C-1102, F-1101, K-1101 (only a
    `lift_weight`), T-4101, T-4102 and V-2101A/B, so their datasheets had none; (5) has since
    given each an ASSUMED empty weight in the list and in the datasheet (52, 36, 10, 89, 26, 35
