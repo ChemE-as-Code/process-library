@@ -1,33 +1,40 @@
-# EXAMPLE FACTORS - THEY CHARACTERISE NOTHING. Schema: `cheme schema lca_factors`.
-# Round placeholders to show the shape; replace each with a dataset value (status PUBLISHED or
-# EPD, its source, reference year and licence) and remove `example: true`. With an ecoinvent
-# licence, the values come from its market activities for the site's country.
+# The ASU's characterised factors (D-091). Schema: `cheme schema lca_factors`.
+#
+# Background: the packaged open profile desnz-ghg-2026 (UK Government GHG Conversion Factors
+# 2026, DESNZ, Open Government Licence v3.0; ids desnz-ghg-2026:<id>, see core
+# docs/framework/lca.md). It is climate change only and UK: the site's country is not decided
+# (design basis: ASSUMED coastal industrial site), so lca/lca.yaml marks each use a proxy and
+# the result is a screening carbon footprint. Below are the ASU's own estimates derived from it,
+# each with its basis. Flows no open factor covers are declared missing in lca/lca.yaml: they
+# are gaps (lca/gaps.csv), never 0. With a licensed database, rerun the same foreground with
+# backend: brightway locally; those results are not published (core docs/framework/lca.md).
 schema: cheme/lca/v1
 kind: lca_factors
-example: true
+include: [desnz-ghg-2026]
 categories:
-  # elementary: the plant's own emissions mapped elementary are characterised by IPCC 2021 GWP100
-  - {id: climate-change, title: Climate change, unit: kg CO2-eq, method: IPCC 2021 GWP100, elementary: ipcc2021-gwp100}
+  # elementary: the plant's own emissions mapped elementary are characterised by IPCC 2021
+  # GWP100 (AR6); the DESNZ factors are AR4/AR5, a method mix the results report
+  - {id: climate-change, title: Climate change, unit: kg CO2-eq, method: "GWP100 (DESNZ 2026: AR4/AR5; direct emissions: IPCC 2021)", elementary: ipcc2021-gwp100}
 factors:
-  - {id: electricity, title: "EXAMPLE grid electricity, medium voltage", unit: kWh, values: {climate-change: 0.4}, status: ASSUMED, source: "EXAMPLE placeholder of a European grid mix", year: 2026}
-  - {id: cooling-water, title: "EXAMPLE cooling water system, per heat rejected", unit: MWh, values: {climate-change: 4.0}, status: ASSUMED, source: "EXAMPLE placeholder: ~10 kWh electricity per MWh rejected (pumps, fans) x 0.4", year: 2026}
-  - {id: electricity-2040, title: "EXAMPLE grid electricity in 2040", unit: kWh, values: {climate-change: 0.1}, status: ASSUMED, source: "EXAMPLE placeholder of a decarbonised grid", year: 2040}
-  # construction materials
-  - {id: steel-sections, title: "EXAMPLE steel, sections and plate", unit: t, values: {climate-change: 2000}, status: ASSUMED, source: "EXAMPLE placeholder", year: 2026}
-  - {id: stainless-steel, title: "EXAMPLE stainless steel", unit: t, values: {climate-change: 5000}, status: ASSUMED, source: "EXAMPLE placeholder", year: 2026}
-  - {id: aluminium, title: "EXAMPLE aluminium, primary", unit: t, values: {climate-change: 10000}, status: ASSUMED, source: "EXAMPLE placeholder", year: 2026}
-  - {id: pipe, title: "EXAMPLE installed pipe, per m", unit: m, values: {climate-change: 40}, status: ASSUMED, source: "EXAMPLE placeholder (an average DN)", year: 2026}
-  - {id: concrete, title: "EXAMPLE reinforced concrete", unit: m3, values: {climate-change: 350}, status: ASSUMED, source: "EXAMPLE placeholder", year: 2026}
-  - {id: grating, title: "EXAMPLE galvanised grating", unit: m2, values: {climate-change: 60}, status: ASSUMED, source: "EXAMPLE placeholder", year: 2026}
-  - {id: insulation, title: "EXAMPLE pipe insulation with cladding", unit: m2, values: {climate-change: 20}, status: ASSUMED, source: "EXAMPLE placeholder", year: 2026}
-  - {id: fitting, title: "EXAMPLE fitting, flange or valve, per piece", unit: ea, values: {climate-change: 30}, status: ASSUMED, source: "EXAMPLE placeholder (an average size)", year: 2026}
-  # consumables, transport, end of life
-  - {id: adsorbent, title: "EXAMPLE zeolite / alumina adsorbent", unit: kg, values: {climate-change: 3.0}, status: ASSUMED, source: "EXAMPLE placeholder", year: 2026}
-  - {id: lube-oil, title: "EXAMPLE lubricating oil", unit: kg, values: {climate-change: 1.5}, status: ASSUMED, source: "EXAMPLE placeholder", year: 2026}
-  - {id: lorry, title: "EXAMPLE lorry transport", unit: tkm, values: {climate-change: 0.1}, status: ASSUMED, source: "EXAMPLE placeholder", year: 2026}
-  - {id: steel-recycling, title: "EXAMPLE steel scrap to recycling (credit)", unit: kg, values: {climate-change: -1.0}, status: ASSUMED, source: "EXAMPLE placeholder: avoided primary steel", year: 2026}
-  - {id: aluminium-recycling, title: "EXAMPLE aluminium scrap to recycling (credit)", unit: kg, values: {climate-change: -7.0}, status: ASSUMED, source: "EXAMPLE placeholder: avoided primary aluminium", year: 2026}
-  # substitutes of the co-products (system expansion)
-  - {id: nitrogen-gas, title: "EXAMPLE nitrogen, gaseous, from a stand-alone plant", unit: kg, values: {climate-change: 0.15}, status: ASSUMED, source: "EXAMPLE placeholder", year: 2026}
-  - {id: oxygen-liquid, title: "EXAMPLE oxygen, liquid, merchant", unit: kg, values: {climate-change: 0.45}, status: ASSUMED, source: "EXAMPLE placeholder", year: 2026}
-  - {id: nitrogen-liquid, title: "EXAMPLE nitrogen, liquid, merchant", unit: kg, values: {climate-change: 0.4}, status: ASSUMED, source: "EXAMPLE placeholder", year: 2026}
+  - id: cooling-water
+    title: Cooling water system, per heat rejected
+    unit: MWh
+    values: {climate-change: 1.8436}
+    status: ESTIMATE
+    source: "10 kWh electricity per MWh rejected (pumps and fans, ASSUMED) x desnz-ghg-2026:electricity-gb 0.18436 kg CO2e/kWh"
+    source_id: desnz-ghg-2026
+    year: 2026
+    location: GB
+    basis: "the circulating pumps' and cooling-tower fans' electricity only, ~10 kWh/MWh rejected (ASSUMED, concept stage); make-up water and chemicals not counted"
+    validity: "a recirculating cooling water system with a mechanical-draught tower on the UK grid; not for once-through or air cooling"
+  - id: concrete-m3
+    title: Concrete, per m3
+    unit: m3
+    values: {climate-change: 285.13}
+    status: ESTIMATE
+    source: "desnz-ghg-2026:concrete 118.80307 kg CO2e/t x 2.4 t/m3 (ASSUMED density of reinforced concrete)"
+    source_id: desnz-ghg-2026
+    year: 2026
+    location: GB
+    basis: "DESNZ primary concrete per t times an ASSUMED density of 2.4 t/m3; the reinforcing steel is not included"
+    validity: "plain or lightly reinforced structural concrete; heavily reinforced foundations are higher"

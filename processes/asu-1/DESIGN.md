@@ -3979,3 +3979,47 @@ Decision:
 Reason: D-089 changed S2, S3 and S12D in the flowsheet and the simulation. The lists, the
 datasheets (the MAC enquiry basis among them, still on HOLD at 5.98 bara), the electrical list
 and the estimate still gave the D-079 state.
+
+## D-091 LCA on open background data, gaps declared (2026-10-24)
+The LCA's example factors (`example: true`, round placeholders) are replaced by open data that
+may be published, following core#138. Core 0.8 with the source registry, gaps and publication
+policy (`cheme assess lca --coverage`) computes it.
+
+Decision:
+- (1) **Background.** The packaged open profile `desnz-ghg-2026`: UK Government GHG Conversion
+  Factors 2026 (DESNZ, flat file v1.2), Open Government Licence v3.0, publication `public`. It
+  is climate change only and UK. The site's country is not decided (design basis: ASSUMED
+  coastal industrial site), so every use is marked a proxy (`proxy:`) and `lca/lca.yaml` gives
+  no `location`: the geography is reported as not checked.
+  - Grid electricity: `electricity-gb`, 0.18436 kg CO2e/kWh at the consumer (generation, T&D,
+    well-to-tank).
+  - Structural steel and steel equipment: `metals-construction` (primary construction metals),
+    for stainless steel likely an underestimate; aluminium equipment: `aluminium-cans-foil`.
+  - Lorry transport: `lorry-hgv-gb`, average non-refrigerated HGV with well-to-tank.
+- (2) **Own estimates** (status ESTIMATE, basis and validity in `lca/factors.yaml`): cooling
+  water 10 kWh electricity per MWh rejected x the grid factor = 1.8436 kg CO2e/MWh (ASSUMED
+  pumps and fans only); concrete 118.80 kg CO2e/t x 2.4 t/m3 (ASSUMED density) = 285.13 kg
+  CO2e/m3, reinforcement not included.
+- (3) **Declared missing** (`missing:`, gaps in `lca/gaps.csv`, never 0): pipe per m, grating
+  and insulation per m2, valves and fittings per piece (the take-off gives no mass), molecular
+  sieve and alumina, lubricating oil, the steel and aluminium recycling credits (DESNZ: its
+  material factors are not suitable for recycling benefits) and the substitutes of GAN, LOX and
+  LIN (so the allocation comparison reports substitution as not applicable).
+- (4) **Scenario grid-2040 removed.** It used an example factor without a source; it returns
+  with a published, openly licensed grid projection for the site's country.
+- (5) **Result.** 66.7 kg CO2-eq per t GOX (95 % 33 .. 133, Monte Carlo 2000, seed 1): a
+  *partial screening carbon footprint* (17 gaps, proxies and estimates, climate only,
+  geography not checked). Electricity is 97 % of it (64.9 kg). The example factors gave 142.9;
+  the difference is mostly the grid factor (0.4 example, 0.184 UK 2026), not the design.
+- (6) **Publication.** Every source is public: the result may be published with the DESNZ
+  attribution, which `lca/results.md` carries. A licensed rerun (ecoinvent through Brightway)
+  uses the same foreground (`lca/dataset.yaml`) locally and stays restricted.
+
+Reason: the example factors characterised nothing and could not be published; open data with
+their terms recorded give a usable, publishable screening result, and the gaps show what it
+does not cover instead of counting it as zero.
+
+Rejected:
+- Keeping the example factors: no source, nothing real.
+- Mapping the flows without an open factor `free` or dropping them: that would count them as
+  zero (core#138: never silent zeros).

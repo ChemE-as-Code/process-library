@@ -9,6 +9,10 @@ description: Unallocated foreground LCI of ASU-1 (500 t/d GOX), case design, der
   by cheme assess lca.
 scope: foreground
 basis: 1 h of operation
+year: 2026
+boundary: gate-to-gate foreground of the plant with its construction
+technology: cryogenic double-column air separation, 500 t/d GOX, pumped liquid products, TSA front end
+rights: 'CC-BY-4.0: the ChemE-as-Code process library''s own concept design (LICENSE-DATA)'
 exchanges:
 - key: feed:AIR
   title: Ambient air
@@ -25,8 +29,9 @@ exchanges:
   amount: 10464.719
   unit: kWh
   link:
-    factor: electricity
+    factor: desnz-ghg-2026:electricity-gb
     source: grid supply at 33 kV (DESIGN.md D-036); no on-site generation
+    proxy: UK grid at the consumer (incl. T&D, WTT) for a site whose country is not decided (D-091)
   streams:
   - E1
   - E2
@@ -196,8 +201,9 @@ exchanges:
   unit: kg
   provenance: calculated
   link:
-    factor: steel-sections
+    factor: desnz-ghg-2026:metals-construction
     source: rack, structure, stair and platform steel of the take-off
+    proxy: UK construction metals (primary) for rack and structure steel
   streams:
   - steel HEB600 crane building
   - steel FL70x12 steel ladder
@@ -227,8 +233,8 @@ exchanges:
   unit: m
   provenance: calculated
   link:
-    factor: pipe
-    source: pipe length by DN of the take-off; one factor per m for all DN (screening)
+    source: pipe length by DN of the take-off
+    missing: no open factor per m of pipe; the take-off gives length by DN, not mass
   streams:
   - pipe DN25 PN10 bare
   - pipe DN25 PN16 bare
@@ -276,7 +282,7 @@ exchanges:
   - pipe DN900 PN6 bare
   - pipe DN1000 PN2.5 bare
   - pipe DN1400 PN2.5 bare
-  source: pipe length by DN of the take-off; one factor per m for all DN (screening)
+  source: pipe length by DN of the take-off
 - key: construction:concrete
   title: Concrete
   type: input
@@ -285,7 +291,7 @@ exchanges:
   unit: m3
   provenance: calculated
   link:
-    factor: concrete
+    factor: concrete-m3
     source: plinths, foundations, ring walls of the take-off
   streams:
   - concrete foundation equipment
@@ -303,8 +309,8 @@ exchanges:
   unit: m2
   provenance: calculated
   link:
-    factor: grating
     source: platform grating of the take-off
+    missing: no open factor per m2 of grating
   streams:
   - grating equipment
   - grating platform
@@ -320,8 +326,8 @@ exchanges:
   unit: m2
   provenance: calculated
   link:
-    factor: insulation
     source: cold and hot insulation of the take-off
+    missing: the take-off gives m2; the open insulation factor is per t
   streams:
   - insulation pipe insulation DN25 insulation 50 mm cold pipe
   - insulation pipe insulation DN25 insulation 80 mm cold pipe
@@ -338,8 +344,8 @@ exchanges:
   unit: ea
   provenance: calculated
   link:
-    factor: fitting
-    source: valves of the take-off, per piece (screening)
+    source: valves of the take-off, per piece
+    missing: no open factor per piece
   streams:
   - valve BallValve DN25 PN16
   - valve BallValve DN25 PN40
@@ -394,7 +400,7 @@ exchanges:
   - valve SwingCheckValve DN200 PN16
   - valve SwingCheckValve DN200 PN40
   - valve SwingCheckValve DN600 PN10
-  source: valves of the take-off, per piece (screening)
+  source: valves of the take-off, per piece
 - key: construction:flanges
   title: Flanges
   type: input
@@ -403,8 +409,8 @@ exchanges:
   unit: ea
   provenance: calculated
   link:
-    factor: fitting
-    source: per piece (screening)
+    source: per piece
+    missing: no open factor per piece
   streams:
   - flange weld neck flange DN25 PN10
   - flange weld neck flange DN25 PN16
@@ -448,7 +454,7 @@ exchanges:
   - flange weld neck flange DN900 PN6
   - flange weld neck flange DN1000 PN2.5
   - flange weld neck flange DN1400 PN2.5
-  source: per piece (screening)
+  source: per piece
 - key: construction:gaskets
   title: Gaskets
   type: input
@@ -457,8 +463,8 @@ exchanges:
   unit: ea
   provenance: calculated
   link:
-    factor: fitting
-    source: per piece (screening)
+    source: per piece
+    missing: no open factor per piece
   streams:
   - gasket gasket and bolt set DN25 PN10
   - gasket gasket and bolt set DN25 PN16
@@ -502,7 +508,7 @@ exchanges:
   - gasket gasket and bolt set DN900 PN6
   - gasket gasket and bolt set DN1000 PN2.5
   - gasket gasket and bolt set DN1400 PN2.5
-  source: per piece (screening)
+  source: per piece
 - key: construction:elbows
   title: Elbows
   type: input
@@ -511,8 +517,8 @@ exchanges:
   unit: ea
   provenance: calculated
   link:
-    factor: fitting
-    source: per piece (screening)
+    source: per piece
+    missing: no open factor per piece
   streams:
   - elbow bend 180 DN150 PN16
   - elbow elbow 90 DN25 PN10
@@ -554,7 +560,7 @@ exchanges:
   - elbow elbow 90 DN900 PN6
   - elbow elbow 90 DN1000 PN2.5
   - elbow elbow 90 DN1400 PN2.5
-  source: per piece (screening)
+  source: per piece
 - key: construction:tees
   title: Tees
   type: input
@@ -563,8 +569,8 @@ exchanges:
   unit: ea
   provenance: calculated
   link:
-    factor: fitting
-    source: per piece (screening)
+    source: per piece
+    missing: no open factor per piece
   streams:
   - tee reducing tee DN40x25 PN16
   - tee reducing tee DN40x25 PN25
@@ -607,7 +613,7 @@ exchanges:
   - tee DN600 PN6
   - tee DN700 PN10
   - tee DN700 PN6
-  source: per piece (screening)
+  source: per piece
 - key: construction:reducers
   title: Reducers
   type: input
@@ -616,11 +622,11 @@ exchanges:
   unit: ea
   provenance: calculated
   link:
-    factor: fitting
-    source: per piece (screening)
+    source: per piece
+    missing: no open factor per piece
   streams:
   - reducer DN150x80 PN40
-  source: per piece (screening)
+  source: per piece
 - key: construction:inline
   title: In-line items
   type: input
@@ -629,15 +635,15 @@ exchanges:
   unit: ea
   provenance: calculated
   link:
-    factor: fitting
-    source: per piece (screening)
+    source: per piece
+    missing: no open factor per piece
   streams:
   - inline Silencer DN150 PN40
   - inline Silencer DN300 PN10
   - inline Silencer DN700 PN6
   - inline Silencer DN900 PN6
   - inline SteamTrap DN25 PN10
-  source: per piece (screening)
+  source: per piece
 - key: construction:equipment-al
   title: Aluminium equipment
   type: input
@@ -645,8 +651,9 @@ exchanges:
   amount: 0.6047619047619047
   unit: kg
   link:
-    factor: aluminium
+    factor: desnz-ghg-2026:aluminium-cans-foil
     source: brazed and finned aluminium exchangers, cold box internals
+    proxy: UK primary aluminium of cans and foil (excl. forming) for brazed exchanger aluminium
   streams:
   - E-3101
   - E-3102
@@ -665,9 +672,10 @@ exchanges:
   amount: 2.169047619047619
   unit: kg
   link:
-    factor: steel-sections
+    factor: desnz-ghg-2026:metals-construction
     source: carbon steel shells and casings, by empty weight (mixed materials with a carbon steel part
       counted as carbon steel, D-081 (5))
+    proxy: UK construction metals (primary) for carbon steel shells and casings
   streams:
   - F-1101
   - K-1101
@@ -698,8 +706,9 @@ exchanges:
   amount: 0.4666666666666667
   unit: kg
   link:
-    factor: stainless-steel
+    factor: desnz-ghg-2026:metals-construction
     source: stainless items (material starting SS, no carbon steel part)
+    proxy: 'UK construction metals (primary) for stainless steel: likely an underestimate (alloying elements)'
   streams:
   - F-2101
   - KT-3101
@@ -718,9 +727,9 @@ exchanges:
   amount: 0.7142857142857143
   unit: kg
   link:
-    factor: adsorbent
     source: 'ASSUMED: two beds of ~18 t (activated alumina under 13X, D-006) replaced every 6 years; to
       be confirmed by the adsorber supplier'
+    missing: no open factor for 13X molecular sieve or activated alumina production
   uncertainty:
     gsd2: 2.0
     source: 'ASSUMED bed inventory and life: wide'
@@ -732,8 +741,8 @@ exchanges:
   amount: 0.23809523809523808
   unit: kg
   link:
-    factor: lube-oil
     source: 'ASSUMED: top-up and oil changes of the machines'
+    missing: no open factor for lubricating oil production
   uncertainty:
     gsd2: 2.0
     source: ASSUMED
@@ -746,8 +755,9 @@ exchanges:
   unit: kg
   provenance: calculated
   link:
-    factor: steel-sections
+    factor: desnz-ghg-2026:metals-construction
     source: rack, structure, stair and platform steel of the take-off
+    proxy: UK construction metals (primary) for rack and structure steel
   streams:
   - steel HEB600 crane building
   - steel FL70x12 steel ladder
@@ -777,8 +787,8 @@ exchanges:
   unit: m
   provenance: calculated
   link:
-    factor: pipe
-    source: pipe length by DN of the take-off; one factor per m for all DN (screening)
+    source: pipe length by DN of the take-off
+    missing: no open factor per m of pipe; the take-off gives length by DN, not mass
   streams:
   - pipe DN25 PN10 bare
   - pipe DN25 PN16 bare
@@ -835,8 +845,8 @@ exchanges:
   unit: m2
   provenance: calculated
   link:
-    factor: insulation
     source: cold and hot insulation of the take-off
+    missing: the take-off gives m2; the open insulation factor is per t
   streams:
   - insulation pipe insulation DN25 insulation 50 mm cold pipe
   - insulation pipe insulation DN25 insulation 80 mm cold pipe
@@ -853,8 +863,8 @@ exchanges:
   unit: ea
   provenance: calculated
   link:
-    factor: fitting
-    source: valves of the take-off, per piece (screening)
+    source: valves of the take-off, per piece
+    missing: no open factor per piece
   streams:
   - valve BallValve DN25 PN16
   - valve BallValve DN25 PN40
@@ -917,8 +927,9 @@ exchanges:
   amount: 0.15119047619047618
   unit: kg
   link:
-    factor: aluminium
+    factor: desnz-ghg-2026:aluminium-cans-foil
     source: brazed and finned aluminium exchangers, cold box internals
+    proxy: UK primary aluminium of cans and foil (excl. forming) for brazed exchanger aluminium
   streams:
   - E-3101
   - E-3102
@@ -937,9 +948,10 @@ exchanges:
   amount: 0.5422619047619047
   unit: kg
   link:
-    factor: steel-sections
+    factor: desnz-ghg-2026:metals-construction
     source: carbon steel shells and casings, by empty weight (mixed materials with a carbon steel part
       counted as carbon steel, D-081 (5))
+    proxy: UK construction metals (primary) for carbon steel shells and casings
   streams:
   - F-1101
   - K-1101
@@ -969,8 +981,9 @@ exchanges:
   amount: 0.11666666666666668
   unit: kg
   link:
-    factor: stainless-steel
+    factor: desnz-ghg-2026:metals-construction
     source: stainless items (material starting SS, no carbon steel part)
+    proxy: 'UK construction metals (primary) for stainless steel: likely an underestimate (alloying elements)'
   streams:
   - F-2101
   - KT-3101
@@ -990,9 +1003,10 @@ exchanges:
   amount: 3.0416809523809523
   unit: tkm
   link:
-    factor: lorry
+    factor: desnz-ghg-2026:lorry-hgv-gb
     source: 'ASSUMED: structural steel and equipment by lorry, 500 km (the take-off rows counted in m
       or pieces carry no mass)'
+    proxy: UK average non-refrigerated HGV, average laden, incl. WTT
   streams:
   - construction:steel
   - construction:equipment-al
@@ -1007,8 +1021,9 @@ exchanges:
   amount: 1.9785771428571428
   unit: tkm
   link:
-    factor: lorry
+    factor: desnz-ghg-2026:lorry-hgv-gb
     source: 'ASSUMED: adsorbent, oil and spares by lorry, 800 km'
+    proxy: UK average non-refrigerated HGV, average laden, incl. WTT
   streams:
   - consumable:molecular-sieve
   - consumable:lube-oil
@@ -1024,9 +1039,10 @@ exchanges:
   amount: 6.163425
   unit: kg
   link:
-    factor: steel-recycling
     source: 'ASSUMED: 90 % of the structural steel and the steel equipment recovered as scrap (avoided-burden
       credit); pipe is counted in m, not mass, and gets no credit'
+    missing: 'no open recycling credit: the DESNZ material factors are not suitable for recycling benefits
+      (methodology 12.1)'
   streams:
   - construction:steel
   - construction:equipment-cs
@@ -1043,8 +1059,9 @@ exchanges:
   amount: 0.6803571428571429
   unit: kg
   link:
-    factor: aluminium-recycling
     source: 'ASSUMED: 90 % of the aluminium recovered'
+    missing: 'no open recycling credit: the DESNZ material factors are not suitable for recycling benefits
+      (methodology 12.1)'
   streams:
   - construction:equipment-al
   - maintenance:equipment-al
@@ -1058,14 +1075,14 @@ allocation:
   - LIN
   substitution:
     GANP:
-      factor: nitrogen-gas
-      source: 'EXAMPLE: pipeline nitrogen from a stand-alone plant'
+      source: pipeline nitrogen from a stand-alone plant
+      missing: no open dataset of pipeline nitrogen from a stand-alone plant
     LOX:
-      factor: oxygen-liquid
-      source: 'EXAMPLE: merchant liquid oxygen'
+      source: merchant liquid oxygen
+      missing: no open dataset of merchant liquid oxygen
     LIN:
-      factor: nitrogen-liquid
-      source: 'EXAMPLE: merchant liquid nitrogen'
+      source: merchant liquid nitrogen
+      missing: no open dataset of merchant liquid nitrogen
   source: 'D-056: exergy allocation. All products come from one separation but leave in different states
     (GOX compressed to 30 barg, GAN to 9 bara, the liquids cold): exergy charges each for the work it
     holds, mass does not. The products'' exergy is calculated from the flowsheet (cheme process props
@@ -1077,6 +1094,6 @@ provenance:
   files:
     equipment/equipment-list.yaml: sha256:7dd6ae258db62812479ac0e0e7c520b82a46de4f02ee2020db2f5d4013870490
     estimate/mto.csv: sha256:ca5ae04d2ed7126deb02f0e7999cdb1adadf1887d1035a6830b44626a9225b6e
-    lca/lca.yaml: sha256:2fbdc17f3161def753ee4d667fc42124a5df33b4b7ff354af6a854d2ed6e86cb
+    lca/lca.yaml: sha256:c5de92db47c54d02198e8fd449f39ad9151bcebbcc01eb86e02c09a86deba45a
     process/flowsheet.yaml: sha256:0017d59880eecae9cd7e13b285dc48460a928774b6097389b6b253b5717b7d39
     process/materials.yaml: sha256:dfc7b8a7effda54264d98c4961f95828a5e8f1614615f371ace69139a429b404
