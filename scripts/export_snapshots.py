@@ -17,12 +17,16 @@ and, when its LCA factors are placeholders, for core's LCA result files. The cat
 ``--source <id>=<path>`` exports a process from another checkout instead of its library folder
 (the interim example-asu arrangement, so the snapshot keeps the git history and commit).
 
-``--cache DIR`` keeps each snapshot with the key it was exported under (``DIR/<id>/key.json``
-beside ``DIR/<id>/snapshot/``): the process folder's last commit (``git log -1 -- <folder>``),
-the tool's ``--version`` and the export arguments (``--public`` and the excludes). When the key
-matches, the cached snapshot is copied to ``<out>/<id>`` instead of exporting (an export takes
-about a minute). A folder with uncommitted changes, outside git, or a tool without a version is
-always exported and not cached. Each process is reported as ``cached`` or ``exported``.
+``--cache DIR`` keeps each snapshot with the key it was exported under, one entry per process
+and mode (``DIR/<id>/<preview|public>/key.json`` beside ``.../snapshot/``, so preview and public
+runs sharing a cache do not evict each other): the process folder's last commit (``git log -1 --
+<folder>``), the tool's ``--version`` and the export arguments (``--public`` and the excludes).
+When the key matches, the cached snapshot is copied to ``<out>/<id>`` instead of exporting (an
+export takes about a minute). A folder with uncommitted changes, outside git, or a tool without a
+version is always exported and not cached. Each process is reported as ``cached`` or ``exported``.
+A cached snapshot keeps the repository-wide facts of its export (the library's head, branches and
+dirty state); only the folder's own content is guaranteed current. The tool version does not
+change with an editable checkout's code, so clear the cache after changing an unreleased tool.
 
 The command is ``cheme`` unless ``--cli`` (or ``$CHEME_CLI``) names another, e.g.
 ``"uv run --project ../core cheme"``. A process whose export fails is reported and skipped; the
@@ -68,10 +72,16 @@ def _cache_key(folder: Path, tool: str | None, public: bool, excludes: list[str]
     return {"commit": commit, "tool": tool, "args": {"public": public, "exclude": excludes}}
 
 
+def _entry(cache: Path, pid: str, key: dict) -> Path:
+    return cache / pid / ("public" if key["args"]["public"] else "preview")
+
+
 def _cached(cache: Path, pid: str, key: dict | None) -> Path | None:
     """The cached snapshot of *pid* when it was exported under *key*."""
-    entry = cache / pid
-    if key is None or not (entry / "key.json").is_file() or not (entry / "snapshot" / "manifest.json").is_file():
+    if key is None:
+        return None
+    entry = _entry(cache, pid, key)
+    if not (entry / "key.json").is_file() or not (entry / "snapshot" / "manifest.json").is_file():
         return None
     try:
         stored = json.loads((entry / "key.json").read_text(encoding="utf-8"))
@@ -81,7 +91,7 @@ def _cached(cache: Path, pid: str, key: dict | None) -> Path | None:
 
 
 def _store(cache: Path, pid: str, key: dict, snapshot: Path) -> None:
-    entry = cache / pid
+    entry = _entry(cache, pid, key)
     shutil.rmtree(entry, ignore_errors=True)
     shutil.copytree(snapshot, entry / "snapshot")
     # written last: an interrupted store leaves no key, so the entry is a miss

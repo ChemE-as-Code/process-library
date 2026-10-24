@@ -118,13 +118,13 @@ BOTH = ["fixture-ammonia", "fixture-electrolysis"]
 def test_cache_hit_copies_the_snapshot_without_exporting(repo: Path, tmp_path: Path, monkeypatch, capsys) -> None:
     calls, report = _cached_run(repo, tmp_path, monkeypatch, capsys)
     assert sorted(calls) == BOTH and set(report.values()) == {"exported"}
-    assert (tmp_path / "cache" / "fixture-electrolysis" / "key.json").is_file()
+    assert (tmp_path / "cache" / "fixture-electrolysis" / "preview" / "key.json").is_file()
     shutil.rmtree(tmp_path / "snaps")
     calls, report = _cached_run(repo, tmp_path, monkeypatch, capsys)
     assert calls == {} and report == {pid: "cached" for pid in BOTH}
     for pid in BOTH:  # the output layout is unchanged
         assert (tmp_path / "snaps" / pid / "manifest.json").is_file()
-    key = json.loads((tmp_path / "cache" / "fixture-electrolysis" / "key.json").read_text())
+    key = json.loads((tmp_path / "cache" / "fixture-electrolysis" / "preview" / "key.json").read_text())
     assert key["tool"] == "cheme-as-code 0.0.0" and key["args"] == {"public": False, "exclude": []}
     assert len(key["commit"]) == 40
 
@@ -156,20 +156,22 @@ def test_cache_misses_when_the_arguments_change(repo: Path, tmp_path: Path, monk
     assert sorted(calls) == ["fixture-electrolysis"] and report["fixture-electrolysis"] == "exported"
     calls, report = _cached_run(repo, tmp_path, monkeypatch, capsys, "--public")
     assert calls == {} and report["fixture-electrolysis"] == "cached"
-    key = json.loads((tmp_path / "cache" / "fixture-electrolysis" / "key.json").read_text())
+    calls, report = _cached_run(repo, tmp_path, monkeypatch, capsys)  # the preview entry is kept
+    assert calls == {} and report["fixture-electrolysis"] == "cached"
+    key = json.loads((tmp_path / "cache" / "fixture-electrolysis" / "public" / "key.json").read_text())
     assert key["args"]["public"] is True and "docs/private/**" in key["args"]["exclude"]
 
 
 def test_dirty_folder_is_always_exported_and_not_cached(repo: Path, tmp_path: Path, monkeypatch, capsys) -> None:
     _cached_run(repo, tmp_path, monkeypatch, capsys)
-    stored = (tmp_path / "cache" / "fixture-electrolysis" / "key.json").read_text()
+    stored = (tmp_path / "cache" / "fixture-electrolysis" / "preview" / "key.json").read_text()
     plant = repo / "processes" / "fixture-electrolysis" / "plant.yaml"
     original = plant.read_text()
     plant.write_text(original + "\n# uncommitted\n")
     calls, report = _cached_run(repo, tmp_path, monkeypatch, capsys)
     assert sorted(calls) == ["fixture-electrolysis"]
     assert report == {"fixture-ammonia": "cached", "fixture-electrolysis": "exported"}
-    assert (tmp_path / "cache" / "fixture-electrolysis" / "key.json").read_text() == stored
+    assert (tmp_path / "cache" / "fixture-electrolysis" / "preview" / "key.json").read_text() == stored
     (repo / "processes" / "fixture-electrolysis" / "new.md").write_text("untracked\n")
     plant.write_text(original)
     assert sorted(_cached_run(repo, tmp_path, monkeypatch, capsys)[0]) == ["fixture-electrolysis"]
@@ -181,4 +183,4 @@ def test_library_outside_git_is_exported_and_not_cached(library: Path, tmp_path:
     for _ in range(2):
         calls, report = _cached_run(library, tmp_path, monkeypatch, capsys)
         assert sorted(calls) == BOTH and set(report.values()) == {"exported"}
-    assert not any((tmp_path / "cache").glob("*/key.json"))
+    assert not any((tmp_path / "cache").glob("*/*/key.json"))

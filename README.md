@@ -60,8 +60,9 @@ the history, so the clone grows with each process and each P&ID change. To keep 
 
 - **Shallow clones where no history is needed.** CI checks out with `fetch-depth: 1`, except
   the library job, which builds the catalog: its git facts (each folder's last commit, whether
-  previews and snapshots are behind it) need the history, so it uses `fetch-depth: 0`. The Atlas
-  build does the same: shallow for files, full history only where it builds the catalog. For work on one process, a shallow sparse clone is enough:
+  previews and snapshots are behind it) need the history, so it uses `fetch-depth: 0`. A
+  catalog built from a shallow clone gives every folder the head commit. For work on one
+  process, a shallow sparse clone is enough:
   `git clone --depth 1 --filter=blob:none --sparse <url> && git sparse-checkout set processes/<id>`.
 - **Keep generated output out of git.** `build/` and `dist/` are ignored: previews, viewer
   snapshots (about 14 MB per process) and the catalog are rebuilt from the sources.
