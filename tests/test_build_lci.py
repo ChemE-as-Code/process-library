@@ -285,3 +285,17 @@ def test_public_build_without_public_processes_writes_an_empty_database(library:
     path.write_text(path.read_text().replace("status: public", "status: candidate"))
     assert build_lci.main(["--library", str(library), "--out", str(tmp_path / "out"), "--public"]) == 0
     assert "from 0 process(es)" in capsys.readouterr().out
+
+
+def test_a_second_atlas_producer_is_reported_not_chosen_silently(library: Path, tmp_path: Path) -> None:
+    # a second hydrogen producer beside fixture-electrolysis: the ammonia input has two
+    source = library / "processes" / "fixture-electrolysis"
+    twin = library / "processes" / "fixture-electrolysis-b"
+    shutil.copytree(source, twin)
+    for rel in ("process.yaml", "lca/dataset.yaml"):
+        path = twin / rel
+        path.write_text(path.read_text().replace("id: fixture-electrolysis", "id: fixture-electrolysis-b"))
+    report = _build(library, tmp_path / "out")
+    assert report.errors == [], report.errors
+    (warning,) = [w for w in report.warnings if "several Atlas producers" in w]
+    assert "fixture-ammonia" in warning and "fixture-electrolysis-b:" in warning

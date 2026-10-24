@@ -298,6 +298,14 @@ def _public(library: Path, out: Path, snapshots: Path | None = SNAPSHOTS) -> bui
     return build_catalog.build(library, out, PREVIEWS, commit="fixture", snapshots=snapshots, public=True)
 
 
+def _run_manifest(library: Path, pid: str, publication: str = "public", publishable: bool = True) -> None:
+    """core's run manifest (lca/manifest.json) with the result's policy (only what is read)."""
+    path = library / "processes" / pid / "lca" / "manifest.json"
+    result = {"classification": "screening", "label": "screening carbon footprint", "gaps": 0,
+              "publication": publication, "publishable": publishable}
+    path.write_text(json.dumps({"schema": "cheme/lca-manifest/v1", "result": result}))
+
+
 def _edit(library: Path, rel: str, change) -> None:
     path = library / rel
     data = yaml.safe_load(path.read_text())
@@ -382,11 +390,32 @@ def test_published_factors_are_shown(library: Path, tmp_path: Path) -> None:
     _edit(library, "processes/fixture-electrolysis/lca/factors.yaml", lambda f: f.pop("example"))
     rows = library / "processes" / "fixture-electrolysis" / "lca" / "results.csv"
     rows.write_text(rows.read_text().replace("ASSUMED", "PUBLISHED"))
+    # without core's run manifest nothing says the sources permit publication
     _public(library, tmp_path / "out")
     lca = _json(tmp_path / "out" / "processes" / "fixture-electrolysis.json")["lca"]
+    assert lca["values_withheld"] == "no-run-manifest" and "totals" not in lca
+    _run_manifest(library, "fixture-electrolysis")
+    _public(library, tmp_path / "out2")
+    lca = _json(tmp_path / "out2" / "processes" / "fixture-electrolysis.json")["lca"]
     assert lca["factors_status"] != "placeholder"
     assert lca["totals"] == {"baseline": {"climate-change": 24.0}} and "values_withheld" not in lca
-    assert _json(tmp_path / "out" / "catalog.json")["processes"][0]["lca"]["value"] == 24.0
+    assert lca["result"]["label"] == "screening carbon footprint" and lca["publishable"]
+    assert _json(tmp_path / "out2" / "catalog.json")["processes"][0]["lca"]["value"] == 24.0
+
+
+def test_restricted_sources_are_withheld(library: Path, tmp_path: Path) -> None:
+    # e.g. a licensed database behind the results: published factors do not make them public
+    _edit(library, "processes/fixture-electrolysis/lca/factors.yaml", lambda f: f.pop("example"))
+    _run_manifest(library, "fixture-electrolysis", "restricted", publishable=False)
+    snaps = _snapshots(tmp_path, _with_lca_answers)
+    assert _public(library, tmp_path / "out", snaps).errors == []
+    lca = _json(tmp_path / "out" / "processes" / "fixture-electrolysis.json")["lca"]
+    assert lca["values_withheld"] == "restricted-sources"
+    assert "totals" not in lca and "contributions" not in lca
+    summary = _json(tmp_path / "out" / "catalog.json")["processes"][0]["lca"]
+    assert summary["value"] is None and summary["values_withheld"] == "restricted-sources"
+    manifest = _json(tmp_path / "out" / "snapshots" / "fixture-electrolysis" / "manifest.json")
+    assert "lca" not in manifest["entries"] and "file?path=lca/results.csv" not in manifest["entries"]
 
 
 def _snapshots(tmp_path: Path, change) -> Path:
@@ -449,6 +478,7 @@ def test_placeholder_lca_answers_are_removed_from_the_snapshot(tmp_path: Path) -
 
 def test_published_lca_answer_stays_in_the_snapshot(library: Path, tmp_path: Path) -> None:
     _edit(library, "processes/fixture-electrolysis/lca/factors.yaml", lambda f: f.pop("example"))
+    _run_manifest(library, "fixture-electrolysis")
     snaps = _snapshots(tmp_path, _with_lca_answers)
     assert _public(library, tmp_path / "out", snaps).errors == []
     manifest = _json(tmp_path / "out" / "snapshots" / "fixture-electrolysis" / "manifest.json")
@@ -511,3 +541,27 @@ def test_public_build_keeps_facets(tmp_path: Path) -> None:
 def test_bad_facets_are_schema_errors(library: Path, tmp_path: Path, facets: dict) -> None:
     _edit(library, "processes/fixture-ammonia/process.yaml", lambda m: m.update(facets=facets))
     assert any("facets" in e for e in _build(library, tmp_path / "out").errors)
+
+
+def test_a_stale_run_manifest_withholds(library: Path, tmp_path: Path) -> None:
+    import hashlib
+
+    from publication import lca_withheld
+
+    folder = library / "processes" / "fixture-electrolysis"
+    _edit(library, "processes/fixture-electrolysis/lca/factors.yaml", lambda f: f.pop("example"))
+    _run_manifest(library, "fixture-electrolysis")
+    path = folder / "lca" / "manifest.json"
+    run = json.loads(path.read_text())
+    lca = (folder / "lca" / "lca.yaml").read_bytes()
+    run["inputs"] = {"lca/lca.yaml": "sha256:" + hashlib.sha256(lca).hexdigest()}
+    path.write_text(json.dumps(run))
+    assert lca_withheld(folder) is None
+    # the scope changed after the run: the manifest describes another run
+    (folder / "lca" / "lca.yaml").write_text((folder / "lca" / "lca.yaml").read_text() + "\n# changed\n")
+    assert lca_withheld(folder) == "stale-run-manifest"
+    # another backend than the run's
+    run["inputs"] = {}
+    run["background"] = {"backend": "brightway"}
+    path.write_text(json.dumps(run))
+    assert lca_withheld(folder) == "stale-run-manifest"

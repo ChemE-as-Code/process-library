@@ -2,7 +2,7 @@
 cheme_as_code_lci.install() into a temporary project against a stub background, and check that
 an LCA of 1 t GOX reproduces plantcode's own result for ASU-1.
 
-The project lives in a temporary BRIGHTWAY_DIR. biosphere3 is bw2io's default biosphere
+The project lives in a temporary BRIGHTWAY2_DIR. biosphere3 is bw2io's default biosphere
 (``bw2io.create_default_biosphere3()``, packaged data, no network). The background is a STUB:
 one activity per background activity the mappings name, with a single "Carbon dioxide, fossil"
 emission equal to the ASU's example factor (lca/factors.yaml), characterised 1:1 by a stub
@@ -26,8 +26,8 @@ import pytest
 
 pytestmark = pytest.mark.brightway
 
-# bw2data reads BRIGHTWAY_DIR when it is imported: set it first, never touch the user's projects.
-os.environ["BRIGHTWAY_DIR"] = tempfile.mkdtemp(prefix="atlas-lci-bw-")
+# bw2data reads BRIGHTWAY2_DIR when it is imported: set it first, never touch the user's projects.
+os.environ["BRIGHTWAY2_DIR"] = tempfile.mkdtemp(prefix="atlas-lci-bw-")
 
 if os.environ.get("ATLAS_REQUIRE_BRIGHTWAY"):  # CI: a missing package is a failure, not a skip
     import bw2calc as bc
@@ -202,7 +202,23 @@ def test_fixture_install_links_inside_the_atlas_and_flips_treatment_signs(projec
         install(out / "lci", background="stub-fixture")
     again = install(out / "lci", background="stub-fixture", prefer_atlas=False, overwrite=True)
     assert again.ok and again.atlas_links == []
+    assert not again.verified  # matched by name only
     assert _score(ammonia, db) == pytest.approx(0.178 * 10.0 + 0.823 * 0.2 + 0.4 * 0.4, rel=1e-6)
+
+
+def test_install_checks_the_background_identity(project, tmp_path: Path) -> None:
+    import bw2data as bd
+
+    out = tmp_path / "out"
+    assert build_lci.build(FIXTURES / "library", out, "fx").errors == []
+    _stub_background("stub-identity", project, FIXTURE_STUB)
+    _drop("cheme-as-code-atlas-fx")
+    with pytest.raises(ValueError, match="records version '\\(none\\)', expected '3.10'"):
+        install(out / "lci", background="stub-identity", expect={"version": "3.10"})
+    bd.databases["stub-identity"]["version"] = "3.10"
+    bd.databases.flush()
+    report = install(out / "lci", background="stub-identity", expect={"version": "3.10"})
+    assert report.ok and report.verified
 
 
 def test_fixture_install_reports_unlinked_exchanges_and_writes_nothing(project, tmp_path: Path) -> None:

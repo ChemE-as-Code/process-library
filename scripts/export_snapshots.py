@@ -11,7 +11,8 @@ engineering files (``--public`` reads only ``process.yaml`` and ``lca/factors.ya
 
 ``--public`` exports only the processes whose ``process.yaml`` has ``publication.status:
 public``, each with ``--exclude`` for the default and the process's own globs (``publication.py``)
-and, when its LCA factors are placeholders, for core's LCA result files. The catalog's
+and, when its LCA may not be published (``publication.lca_withheld``: placeholder factors, no run
+manifest, or sources whose policy does not permit it), for core's LCA result files. The catalog's
 ``--public`` build refuses a snapshot whose manifest does not record these excludes.
 
 ``--source <id>=<path>`` exports a process from another checkout instead of its library folder
@@ -48,7 +49,7 @@ from pathlib import Path
 
 import yaml
 
-from publication import LCA_RESULT_FILES, is_public, placeholder_factors, snapshot_excludes
+from publication import LCA_RESULT_FILES, is_public, lca_withheld, snapshot_excludes
 
 
 def _run(*command: str) -> str | None:
@@ -129,7 +130,7 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"{pid}: not public, skipped")
                 continue
             excludes = snapshot_excludes(manifest)
-            if placeholder_factors(folder):
+            if lca_withheld(folder):
                 excludes = sorted({*excludes, *LCA_RESULT_FILES})
         key = _cache_key(folder, tool, args.public, excludes) if cache else None
         hit = _cached(cache, pid, key) if cache else None

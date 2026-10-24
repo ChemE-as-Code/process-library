@@ -1,13 +1,18 @@
 # Goal and scope of the ASU-1 LCA. Schema: `cheme schema lca`. Outputs: `cheme assess lca
-# --write` (lca/inventory.csv, results.csv, results.md); never edit those by hand.
+# --write` (lca/inventory.csv, results.csv, results.md, gaps.csv, dataset.yaml, manifest.json,
+# uncertainty.csv); never edit those by hand.
 schema: cheme/lca/v1
 kind: lca
 goal: >-
   Cradle-to-gate carbon footprint of pipeline GOX at 30 barg for the concept stage: which
-  utilities dominate, and how the result depends on the electricity supply. Screening only:
-  flows and duties are concept estimates (+/-30 %), the factors are an example.
+  utilities dominate. A screening carbon footprint on open background data (UK DESNZ 2026 as a
+  proxy for an undecided site, D-092): flows and duties are concept estimates (+/-30 %), and
+  the flows no open factor covers are listed as gaps.
 functional_unit: {product: GOXP, amount: 1, unit: t}
 boundary: cradle-to-gate
+year: 2026
+technology: "cryogenic double-column air separation, 500 t/d GOX, pumped liquid products, TSA front end"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
 allocation:
   method: exergy
   coproducts: [GOXP, GANP, LOX, LIN]
@@ -16,15 +21,16 @@ allocation:
     states (GOX compressed to 30 barg, GAN to 9 bara, the liquids cold): exergy charges each
     for the work it holds, mass does not. The products' exergy is calculated from the
     flowsheet (cheme process props --fill). Mass and substitution are compared below.
-  # substitution (system expansion): what each co-product would otherwise be made by. EXAMPLE
-  # factors until the licensed database is available.
+  # substitution (system expansion): what each co-product would otherwise be made by. No open
+  # dataset of merchant nitrogen or oxygen is packaged: declared missing, so the comparison
+  # says substitution does not apply (D-092).
   substitution:
-    GANP: {factor: nitrogen-gas, source: "EXAMPLE: pipeline nitrogen from a stand-alone plant"}
-    LOX: {factor: oxygen-liquid, source: "EXAMPLE: merchant liquid oxygen"}
-    LIN: {factor: nitrogen-liquid, source: "EXAMPLE: merchant liquid nitrogen"}
+    GANP: {missing: "no open dataset of pipeline nitrogen from a stand-alone plant", source: "pipeline nitrogen from a stand-alone plant"}
+    LOX: {missing: "no open dataset of merchant liquid oxygen", source: "merchant liquid oxygen"}
+    LIN: {missing: "no open dataset of merchant liquid nitrogen", source: "merchant liquid nitrogen"}
 flows:
   - {key: feed:AIR, free: true, source: "ambient air: a resource taken from nature without burden"}
-  - {key: feed:POWER, factor: electricity, source: "grid supply at 33 kV (DESIGN.md D-036); no on-site generation"}
+  - {key: feed:POWER, factor: "desnz-ghg-2026:electricity-gb", proxy: "UK grid at the consumer (incl. T&D, WTT) for a site whose country is not decided (D-092)", source: "grid supply at 33 kV (DESIGN.md D-036); no on-site generation"}
   - {key: product:CW, factor: cooling-water, source: "heat rejected to the site cooling water system (pumping, fans, make-up)"}
   - {key: product:VENT, emission: true, source: "waste N2 from the regeneration, the evaporative cooler and the vent, to atmosphere"}
   - {key: product:COND, emission: true, source: "condensed intake-air moisture (MAC cooler drains, DCAC) to the site drain: water and dissolved air returned (D-058)"}
@@ -42,24 +48,24 @@ operation:
   life_years: 25
   source: "design basis operating_hours_per_year 8400 (ASSUMED); 25 a service life ASSUMED"
 construction:
-  - {id: steel, title: Structural steel, takeoff: mto, category: steel, factor: steel-sections, source: "rack, structure, stair and platform steel of the take-off"}
-  - {id: pipe, title: Pipe, takeoff: mto, category: pipe, factor: pipe, source: "pipe length by DN of the take-off; one factor per m for all DN (screening)"}
-  - {id: concrete, title: Concrete, takeoff: mto, category: concrete, factor: concrete, source: "plinths, foundations, ring walls of the take-off"}
-  - {id: grating, title: Grating, takeoff: mto, category: grating, factor: grating, source: "platform grating of the take-off"}
-  - {id: insulation, title: Pipe insulation, takeoff: mto, category: insulation, factor: insulation, source: "cold and hot insulation of the take-off"}
-  - {id: valves, title: Valves, takeoff: mto, category: valve, factor: fitting, source: "valves of the take-off, per piece (screening)"}
-  - {id: flanges, title: Flanges, takeoff: mto, category: flange, factor: fitting, source: "per piece (screening)"}
-  - {id: gaskets, title: Gaskets, takeoff: mto, category: gasket, factor: fitting, source: "per piece (screening)"}
-  - {id: elbows, title: Elbows, takeoff: mto, category: elbow, factor: fitting, source: "per piece (screening)"}
-  - {id: tees, title: Tees, takeoff: mto, category: tee, factor: fitting, source: "per piece (screening)"}
-  - {id: reducers, title: Reducers, takeoff: mto, category: reducer, factor: fitting, source: "per piece (screening)"}
-  - {id: inline, title: In-line items, takeoff: mto, category: inline, factor: fitting, source: "per piece (screening)"}
-  - {id: equipment-al, title: Aluminium equipment, takeoff: equipment, equipment: {material: "Aluminium*"}, factor: aluminium, source: "brazed and finned aluminium exchangers, cold box internals"}
+  - {id: steel, title: Structural steel, takeoff: mto, category: steel, factor: "desnz-ghg-2026:metals-construction", proxy: "UK construction metals (primary) for rack and structure steel", source: "rack, structure, stair and platform steel of the take-off"}
+  - {id: pipe, title: Pipe, takeoff: mto, category: pipe, missing: "no open factor per m of pipe; the take-off gives length by DN, not mass", source: "pipe length by DN of the take-off"}
+  - {id: concrete, title: Concrete, takeoff: mto, category: concrete, factor: concrete-m3, source: "plinths, foundations, ring walls of the take-off"}
+  - {id: grating, title: Grating, takeoff: mto, category: grating, missing: "no open factor per m2 of grating", source: "platform grating of the take-off"}
+  - {id: insulation, title: Pipe insulation, takeoff: mto, category: insulation, missing: "the take-off gives m2; the open insulation factor is per t", source: "cold and hot insulation of the take-off"}
+  - {id: valves, title: Valves, takeoff: mto, category: valve, missing: "no open factor per piece", source: "valves of the take-off, per piece"}
+  - {id: flanges, title: Flanges, takeoff: mto, category: flange, missing: "no open factor per piece", source: "per piece"}
+  - {id: gaskets, title: Gaskets, takeoff: mto, category: gasket, missing: "no open factor per piece", source: "per piece"}
+  - {id: elbows, title: Elbows, takeoff: mto, category: elbow, missing: "no open factor per piece", source: "per piece"}
+  - {id: tees, title: Tees, takeoff: mto, category: tee, missing: "no open factor per piece", source: "per piece"}
+  - {id: reducers, title: Reducers, takeoff: mto, category: reducer, missing: "no open factor per piece", source: "per piece"}
+  - {id: inline, title: In-line items, takeoff: mto, category: inline, missing: "no open factor per piece", source: "per piece"}
+  - {id: equipment-al, title: Aluminium equipment, takeoff: equipment, equipment: {material: "Aluminium*"}, factor: "desnz-ghg-2026:aluminium-cans-foil", proxy: "UK primary aluminium of cans and foil (excl. forming) for brazed exchanger aluminium", source: "brazed and finned aluminium exchangers, cold box internals"}
   # carbon steel before stainless: an item with any carbon steel part (SS inner / CS outer tanks
   # T-4101 / T-4102, the SS sheath / CS shell heater E-2101) is counted as carbon steel, as
   # mixed materials are; one material per item is all the equipment take-off counts (D-081 (5))
-  - {id: equipment-cs, title: Carbon steel equipment, takeoff: equipment, equipment: {material: "*CS*"}, factor: steel-sections, source: "carbon steel shells and casings, by empty weight (mixed materials with a carbon steel part counted as carbon steel, D-081 (5))"}
-  - {id: equipment-ss, title: Stainless steel equipment, takeoff: equipment, equipment: {material: "SS*"}, factor: stainless-steel, source: "stainless items (material starting SS, no carbon steel part)"}
+  - {id: equipment-cs, title: Carbon steel equipment, takeoff: equipment, equipment: {material: "*CS*"}, factor: "desnz-ghg-2026:metals-construction", proxy: "UK construction metals (primary) for carbon steel shells and casings", source: "carbon steel shells and casings, by empty weight (mixed materials with a carbon steel part counted as carbon steel, D-081 (5))"}
+  - {id: equipment-ss, title: Stainless steel equipment, takeoff: equipment, equipment: {material: "SS*"}, factor: "desnz-ghg-2026:metals-construction", proxy: "UK construction metals (primary) for stainless steel: likely an underestimate (alloying elements)", source: "stainless items (material starting SS, no carbon steel part)"}
 
 # What the flowsheet and the take-off do not hold (D-056), all ASSUMED for the concept stage.
 consumables:
@@ -68,14 +74,14 @@ consumables:
     unit: t
     per_replacement: 36
     every_years: 6
-    factor: adsorbent
+    missing: "no open factor for 13X molecular sieve or activated alumina production"
     uncertainty: {gsd2: 2.0, source: "ASSUMED bed inventory and life: wide"}
     source: "ASSUMED: two beds of ~18 t (activated alumina under 13X, D-006) replaced every 6 years; to be confirmed by the adsorber supplier"
   - id: lube-oil
     title: Lubricating oil (K-1101, K-4101, K-4102, K-3101)
     unit: t
     per_year: 2
-    factor: lube-oil
+    missing: "no open factor for lubricating oil production"
     uncertainty: {gsd2: 2.0, source: "ASSUMED"}
     source: "ASSUMED: top-up and oil changes of the machines"
 maintenance:
@@ -86,28 +92,30 @@ transport:
   - id: construction-to-site
     applies_to: ["construction:steel", "construction:equipment-*"]
     distance_km: 500
-    factor: lorry
+    factor: "desnz-ghg-2026:lorry-hgv-gb"
+    proxy: "UK average non-refrigerated HGV, average laden, incl. WTT"
     source: "ASSUMED: structural steel and equipment by lorry, 500 km (the take-off rows counted in m or pieces carry no mass)"
   - id: consumables-to-site
     applies_to: ["consumable:*", "maintenance:steel", "maintenance:equipment-*"]
     distance_km: 800
-    factor: lorry
+    factor: "desnz-ghg-2026:lorry-hgv-gb"
+    proxy: "UK average non-refrigerated HGV, average laden, incl. WTT"
     source: "ASSUMED: adsorbent, oil and spares by lorry, 800 km"
 end_of_life:
   - id: steel-recycling
     applies_to: ["construction:steel", "construction:equipment-cs", "construction:equipment-ss", "maintenance:steel", "maintenance:equipment-cs", "maintenance:equipment-ss"]
     fraction: 0.9
-    factor: steel-recycling
+    missing: "no open recycling credit: the DESNZ material factors are not suitable for recycling benefits (methodology 12.1)"
     source: "ASSUMED: 90 % of the structural steel and the steel equipment recovered as scrap (avoided-burden credit); pipe is counted in m, not mass, and gets no credit"
   - id: aluminium-recycling
     applies_to: ["construction:equipment-al", "maintenance:equipment-al"]
     fraction: 0.9
-    factor: aluminium-recycling
+    missing: "no open recycling credit: the DESNZ material factors are not suitable for recycling benefits (methodology 12.1)"
     source: "ASSUMED: 90 % of the aluminium recovered"
 
 # Uncertainty: concept-stage accuracy (+/-30 %) on assumed values, less on calculated and given
-# ones; the example factors' own spread (pedigree: reliability 3, completeness 3, temporal 2,
-# geography 3, technology 2).
+# ones; the factors' spread as company-reporting factors used as proxies (pedigree: reliability
+# 2, completeness 3, temporal 1, geography 4 (UK for an undecided site), technology 3).
 uncertainty:
   iterations: 2000
   seed: 1
@@ -115,11 +123,7 @@ uncertainty:
     assumed: {gsd2: 1.35, source: "concept estimate +/-30 % (design basis)"}
     calculated: {gsd2: 1.1, source: "calculated from assumed inputs"}
     given: {gsd2: 1.05, source: "design basis"}
-  factors: {pedigree: [3, 3, 2, 3, 2], source: "example factors: rough, not site-specific"}
+  factors: {pedigree: [2, 3, 1, 4, 3], source: "DESNZ 2026 company-reporting factors as proxies for an undecided site (D-092)"}
 
-# Scenarios: the baseline against a lower-carbon grid (the question of the goal).
-scenarios:
-  - id: grid-2040
-    title: Grid electricity in 2040
-    factors: {electricity: electricity-2040}
-    source: "EXAMPLE: a decarbonised grid; replace with a published projection for the site's country"
+# Scenarios: none until a published, openly licensed grid projection for the site's country is
+# chosen (D-092); the former grid-2040 example had no source.

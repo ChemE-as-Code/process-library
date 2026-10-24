@@ -79,8 +79,22 @@ def test_public_exports_published_processes_with_the_publication_excludes(librar
 def test_public_with_published_factors_keeps_the_lca_results(library: Path, tmp_path: Path, monkeypatch) -> None:
     factors = library / "processes" / "fixture-electrolysis" / "lca" / "factors.yaml"
     factors.write_text(factors.read_text().replace("example: true", "example: false"))
+    # core's run manifest says the result may be published
+    (factors.parent / "manifest.json").write_text(
+        json.dumps({"result": {"publication": "public", "publishable": True}})
+    )
     call = _run(library, tmp_path, monkeypatch, "--public")["fixture-electrolysis"]
     assert _excludes(call) == sorted({*DEFAULT_EXCLUDE, MANIFEST, "docs/private/**"})
+
+
+def test_public_with_restricted_sources_excludes_the_lca_results(library: Path, tmp_path: Path, monkeypatch) -> None:
+    factors = library / "processes" / "fixture-electrolysis" / "lca" / "factors.yaml"
+    factors.write_text(factors.read_text().replace("example: true", "example: false"))
+    (factors.parent / "manifest.json").write_text(
+        json.dumps({"result": {"publication": "restricted", "publishable": False}})
+    )
+    call = _run(library, tmp_path, monkeypatch, "--public")["fixture-electrolysis"]
+    assert set(LCA_RESULT_FILES) <= set(_excludes(call))
 
 
 def test_defaults_match_contributing() -> None:
