@@ -4412,7 +4412,7 @@ Found while writing it, and in the independent control review (reviews/2026-10-2
   - FIC-3107 (K-4102 guide vanes) and FIC-4105 (FV-4105, in series on the discharge) set the
     same GAN flow, and no loop holds the GAN export pressure.
 
-  Both are recorded on the loops as unresolved, not resolved by invention.
+  Both were first recorded as unresolved, not resolved by invention. They are decided in D-095.
 - **The liquid production has no handle.** The response to a lost trim or a compander trip is to
   turn the liquid production down (D-067), but LIN-3001 has no flow control (H03-A7) and the LOX
   product is the hydrocarbon purge.
@@ -4442,6 +4442,50 @@ Found while writing it, and in the independent control review (reviews/2026-10-2
 Reason: the HAZOP and the detail design need the operating intent stated once, by id, against
 the lists and the operating case, instead of scattered in the instrument notes.
 
-Not changed: `control/cause-effect.yaml` and `control/instrument-list.yaml`. They are inputs of
-the layout reviews and the HAZOP studies, so adding the missing trips is a separate change with
-its own reviews.
+Not changed by D-094: `control/cause-effect.yaml` and `control/instrument-list.yaml`. They are
+inputs of the layout reviews and the HAZOP studies, so adding the missing trips is a separate
+change with its own reviews. (D-095 changes the instrument list and P-04 for the two control
+decisions.)
+
+## D-095 LP column pressure on the waste N2, GOX draw on flow, GAN export pressure on PV-4105 (2026-10-24)
+Decided by the user (the project owner) on the two control conflicts that the control review
+found (reviews/2026-10-24-control-review1.md #1, #2) and that D-094 left open.
+
+Decision:
+- (1) **The LP column pressure is held by the waste nitrogen (PIC-3110).** The GOX draw is set
+  by flow: FI-4148 becomes the controller FIC-4148 on the K-4101 inlet guide vanes. Its
+  transmitter FT-4148 stays the anti-surge input of UIC-4103.
+  PIC-4101 becomes a limit:
+  - output A enters a low select with FIC-4148 on the guide vanes, so a falling suction
+    pressure (a GOX over-draw that boils the LP sump down, HAZOP H04-S75) throttles the draw;
+  - output B vents through PV-4101B when K-4101 does not take the GOX (D-019, unchanged).
+
+  This is the usual practice for LP double-column cycles: the column pressure on the waste
+  path, the product on flow.
+- (2) **The GAN flow is FIC-3107's on the K-4102 guide vanes.** FIC-4105 / FV-4105, a second
+  flow loop in series on the discharge, become PIC-4105 / PV-4105 and hold the GAN export
+  pressure (9 bara, S9B).
+
+Carried out:
+- P-04 retagged with `cheme rename`. The bubbles and the valve label render as FIC-4148,
+  PIC-4105 and PV-4105, and the transmitter numbers follow (PT4105; FT4148 is unchanged). No
+  geometry changed. The FIC-4148 signal to the guide vanes is not drawn, as PIC-4101's
+  output A is not (a label, D-019).
+- Changed with the retag: the instrument list, the electrical list, `piping/routing.yaml`
+  (PV-4105's operator), and the two flowsheet links (S7, S9B). The BFD, the PFD, the layout
+  model and the cable schedule were rebuilt.
+- HAZOP H-04: its references were renamed to the new tags. Whether each scenario still means
+  the same (PV-4105 is now a pressure valve) is for the study's reassessment and re-stamp
+  (`hazop-input-changed`).
+- Loops: FIC-4148 is new; PIC-4101 is rewritten as a limit; PIC-4105 replaces FIC-4105. The
+  sequences put FIC-4148 and PIC-4105 in auto when the trains open (SEQ-CB-START S7).
+
+Open:
+- How one split-range controller realises both PIC-4101's low limit and its high vent without
+  winding up (external reset feedback; control engineer, detail).
+- The independent limits HAZOP actions H04-A23 (GOX draw) and H04-A22 (K-4102 guide vanes) ask
+  for.
+- Whether PIC-4105's tap is upstream or downstream of PV-4105.
+
+Reason: in the drawn design, two controllers fought over the LP column pressure and two over
+the GAN flow, while nothing set the GOX/waste split or the GAN export pressure.

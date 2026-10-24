@@ -318,9 +318,8 @@ loops:
          cases: [design], stream: S16, property: pressure}
     modes: [manual, auto]
     normal_mode: auto
-    rationale: Higher pressure opens the waste path, so direct acting. PSV-3114 protects the LP column if both valves are shut while the expander and the JT valves keep feeding it (D-011).
+    rationale: The LP column pressure master (D-095); the GOX draw is set by flow (FIC-4148), and PIC-4101 only limits the suction. Higher pressure opens the waste path, so direct acting. PSV-3114 protects the LP column if both valves are shut while the expander and the JT valves keep feeding it (D-011).
     unresolved:
-      - "who sets the split between GOX and waste N2: PIC-3110 here and PIC-4101 (GOX suction) both act on the LP column pressure, so in normal operation two controllers fight over one pressure. One must hold the pressure and the GOX draw be set otherwise (a flow set point, or PIC-4101 as a high limit only). Decision with H04-A23 (an independent limit on the GOX draw) and H03-A4 (LICA-3102 low-low), which H04-S75 rates high"
       - fail positions of PV-3110A/B (closed would block the LP column in; PSV-3114 is the protection, D-011; HAZOP action H03-A1)
       - the split point between PV-3110A and PV-3110B (ASSUMED 50 %)
   - id: FIC-3111
@@ -386,9 +385,33 @@ loops:
     interlocks: [I-04]
     rationale: TV-3124 fails open, so a lost signal keeps the trim; I-04 closes it on a compander trip (D-077).
   # ---- PRD: product compression, storage and backup (P-04) ----------------------------------
+  - id: FIC-4148
+    title: GOX product flow (the GOX draw)
+    purpose: Set the GOX draw from the cold box on the K-4101 guide vanes; the LP column pressure is PIC-3110's (D-095).
+    section: PRD
+    cases: [design]
+    variable: flow
+    measurement: [{tag: FIC-4148}]
+    controller: FIC-4148
+    action: reverse
+    final_elements:
+      - {tag: K-4101, kind: drive}      # the K-4101 inlet guide vanes
+    targets:
+      - {kind: setpoint, value: 20860, unit: kg/h, provenance: given, source: "500 t/d GOX (specification)",
+         cases: [design], stream: S7, property: flow}
+    modes: [manual, auto]
+    normal_mode: auto
+    links:
+      - {type: override, loop: PIC-4101, select: low,
+         notes: "PIC-4101's output A is a low limit on the same guide vanes: a falling suction pressure (over-draw) throttles the draw (H04-S75)"}
+    rationale: The GOX draw is set by flow, so the column's pressure and the GOX demand no longer fight over one handle (D-095). Its transmitter FT-4148 is also the anti-surge input of UIC-4103.
+    operator: Sets the GOX draw from the customer's demand and the air flow; a draw above what the column makes boils the LP sump down.
+    unresolved:
+      - fail position of the K-4101 inlet guide vanes (vendor, HAZOP action H04-A14)
+      - the independent limit on the GOX draw (H04-A23) and the LP sump low-low (H03-A4)
   - id: PIC-4101
-    title: GOX compressor suction pressure (split range IGV / vent)
-    purpose: Hold the GOX suction, and with it the LP column pressure, whether or not K-4101 takes the GOX (D-019).
+    title: GOX suction pressure limit (split range IGV low limit / vent)
+    purpose: "Limit the GOX suction pressure both ways: throttle the GOX draw when the suction falls (output A, low select with FIC-4148) and vent through PV-4101B when K-4101 does not take the GOX (output B; trip, start-up, D-019)."
     section: PRD
     cases: [design]
     variable: pressure
@@ -396,16 +419,17 @@ loops:
     controller: PIC-4101
     action: direct
     final_elements:
-      - {tag: K-4101, kind: drive, range: [0, 50]}           # output A: the inlet guide vanes
+      - {tag: K-4101, kind: drive, range: [0, 50]}           # output A: the inlet guide vanes, through the low select
       - {tag: PV-4101B, kind: valve, range: [50, 100]}       # output B: the suction vent to S-4102
     targets:
-      - {kind: setpoint, value: 1.15, unit: bar(a), provenance: assumed, source: D-002,
-         cases: [design], stream: S7, property: pressure}
+      - {kind: setpoint, unresolved: "the suction pressure limits: the low limit below the normal 1.15 bara (S7, D-002), the vent above it, both clear of PIC-3110's LP column pressure (D-095)"}
     modes: [manual, auto]
     normal_mode: auto
-    rationale: Output A first opens the IGVs; above them PV-4101B vents, on a K-4101 trip and at start-up (D-019). The split point is ASSUMED. Through the IGVs this loop sets the GOX draw, which takes liquid from the LP sump if it exceeds what the column makes (H04-S75).
+    links:
+      - {type: override, loop: FIC-4148, select: low}
+    rationale: A limit, not the LP column pressure master (D-095). The split point is ASSUMED.
     unresolved:
-      - "its role beside PIC-3110, which also holds the LP column pressure: see PIC-3110 (H04-A23, H03-A4)"
+      - how one split-range controller realises both a low limit and a high vent without winding up (external reset feedback; control engineer, detail)
       - fail positions of the IGV actuator and PV-4101B (open vents the GOX, closed blocks the LP column in; HAZOP action H04-A14)
   - id: PIC-4102
     title: GOX export pressure
@@ -427,7 +451,7 @@ loops:
     title: GOX compressor anti-surge
     section: PRD
     variable: other
-    measurement: [{tag: FI-4148, role: suction flow}, {tag: UIC-4103}]
+    measurement: [{tag: FIC-4148, role: "suction flow (its transmitter FT-4148)"}, {tag: UIC-4103}]
     controller: UIC-4103
     final_elements:
       - {tag: UV-4103, kind: valve}
@@ -453,10 +477,10 @@ loops:
          cases: [design], stream: S9, property: flow}
     modes: [manual, auto]
     normal_mode: auto
+    rationale: The one GAN flow loop; the export pressure is PIC-4105's on PV-4105 downstream (D-095).
     unresolved:
-      - "FIC-3107 (guide vanes, suction) and FIC-4105 (FV-4105 in series on the discharge) both set the same GAN flow: two flow loops on one flow fight. One must get another job, e.g. FV-4105 or the guide vanes on the GAN export pressure, which no loop holds now (S9B 9 bara); with PIC-4106 on the same guide vanes and the independent limit H04-A22 asks for"
       - fail position of the K-4102 inlet guide vanes (vendor)
-      - how PIC-4106 (suction pressure) and FIC-3107 share the guide vanes (override or limit; vendor)
+      - how PIC-4106 (suction pressure) limits the guide vanes beside FIC-3107 (override or limit; vendor), and the independent limit H04-A22 asks for
   - id: PIC-4106
     title: GAN compressor suction pressure
     section: PRD
@@ -467,7 +491,7 @@ loops:
       - {kind: low, unresolved: "the suction low limit, below the normal 5.2 bara (S9, D-004) by a margin that protects the HP column top"}
     modes: [manual, auto]
     unresolved:
-      - "what it acts on (the K-4102 guide vanes as a low limit, the third claimant on them beside FIC-3107; see FIC-3107) and its action"
+      - "what it acts on (the K-4102 guide vanes as a low limit beside FIC-3107; see FIC-3107) and its action"
   - id: UIC-4131
     title: GAN compressor anti-surge
     section: PRD
@@ -480,24 +504,26 @@ loops:
       - {kind: setpoint, unresolved: the surge control line of the K-4102 vendor}
     modes: [manual, auto]
     normal_mode: auto
-  - id: FIC-4105
-    title: GAN export flow
+  - id: PIC-4105
+    title: GAN export pressure
+    purpose: Hold the GAN delivered to the customer at its export pressure (D-095).
     section: PRD
     cases: [design]
-    variable: flow
-    measurement: [{tag: FIC-4105}]
-    controller: FIC-4105
+    variable: pressure
+    measurement: [{tag: PIC-4105}]
+    controller: PIC-4105
     action: reverse
     final_elements:
-      - {tag: FV-4105, kind: valve}
+      - {tag: PV-4105, kind: valve}
     targets:
-      - {kind: setpoint, value: 12510, unit: kg/h, provenance: given, source: "specification, D-004",
-         cases: [design], stream: S9B, property: flow}
+      - {kind: setpoint, value: 9, unit: bar(a), provenance: given, source: "GAN at the battery limit (specification, D-004)",
+         cases: [design], stream: S9B, property: pressure}
     modes: [manual, auto]
     normal_mode: auto
+    rationale: Was FIC-4105 / FV-4105, a second flow loop in series with FIC-3107 on the same flow (control-review1#2). The flow is FIC-3107's on the guide vanes; this loop throttles PV-4105 to hold the export pressure, so a rising pressure closes it (reverse).
     unresolved:
-      - "its job beside FIC-3107, which sets the same flow upstream: see FIC-3107"
-      - FV-4105 fail position
+      - PV-4105 fail position (HAZOP action H04-A14)
+      - whether the tap measures upstream or downstream of PV-4105 (it senses on GAN-4002 segment S3, which holds the valve; detail engineering)
   - id: PICA-4109
     title: LOX tank pressure
     purpose: Vent the boil-off of T-4101 to a safe location (D-011, D-019).

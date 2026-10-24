@@ -134,7 +134,7 @@ sequences:
           - {loop: PIC-3110, action: auto}
           - {loop: PIC-4101, action: auto}
         complete: {loop: PIC-3110, state: in auto}
-        operator: "The MAC is loaded from blow-off as the cold box takes the air. With K-4101 stopped, PIC-4101 vents the GOX on PV-4101B (D-019). PIC-3110 and PIC-4101 both act on the LP column pressure; until that conflict is decided (control/loops.yaml PIC-3110), give them set points far enough apart that only one acts."
+        operator: "The MAC is loaded from blow-off as the cold box takes the air. PIC-3110 holds the LP column pressure (D-095); with K-4101 stopped, PIC-4101 vents the GOX on PV-4101B above its limit (D-019)."
       - id: S2
         title: Start the compander
         entry: {tag: E-3105, state: "shell side checked dry (D-077)"}
@@ -202,7 +202,9 @@ sequences:
           - {tag: XV-4135, action: close}   # the GAN BL bleed
           - {tag: XV-4120, action: open}
           - {tag: XV-4134, action: open}
-        complete: {loop: PIC-4101, state: "PV-4101B closed (K-4101 takes the GOX)"}
+          - {loop: FIC-4148, action: auto, by: operator}
+          - {loop: PIC-4105, action: auto}
+        complete: {all: [{loop: PIC-4101, state: "PV-4101B closed (K-4101 takes the GOX)"}, {loop: FIC-4148, state: at set point}]}
         operator: No ball valve opens against 30 bar of GOX (D-024). Off-spec GAN still goes to XV-3105 / VNT-4004 until AIA-3105 is below 10 ppm.
         next: end
     abort:
@@ -327,7 +329,7 @@ sequences:
         title: Supply until the ASU returns
         actions:
           - {text: the backup holds the GAN header}
-        complete: {loop: FIC-4105, state: "GAN delivered by K-4102 to the header, PV-4112 throttling back"}
+        complete: {loop: PIC-4105, state: "GAN export pressure held by K-4102 delivering, PV-4112 throttling back"}
         operator: XV-4120 is open throughout the backup; the hand-back starts only when K-4102 delivers.
       - id: S3
         title: Hand back to the ASU

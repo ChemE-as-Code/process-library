@@ -1,8 +1,8 @@
 ---
 schema: cheme/control_philosophy/v1
 objectives:
-  - {id: OBJ-1, title: "GOX to the pipeline at the specified rate, pressure and purity", loops: [FIC-1101, FIC-3106, PIC-4101, PIC-4102]}
-  - {id: OBJ-2, title: GAN to the customer below 10 ppm O2, loops: [FIC-3107, FIC-4105, FIC-3106]}
+  - {id: OBJ-1, title: "GOX to the pipeline at the specified rate, pressure and purity", loops: [FIC-1101, FIC-3106, FIC-4148, PIC-4102]}
+  - {id: OBJ-2, title: GAN to the customer below 10 ppm O2, loops: [FIC-3107, PIC-4105, FIC-3106]}
   - {id: OBJ-3, title: No hydrocarbon accumulation in liquid oxygen, loops: [FIC-3111, LICA-3102, TIC-1105]}
   - {id: OBJ-4, title: The cold box's refrigeration balance held, loops: [SIC-3108, TICA-3124]}
   - {id: OBJ-5, title: Supply continuity from storage when the ASU stops, loops: [PIC-4111, PIC-4112]}
@@ -53,7 +53,7 @@ failures:
     interlocks: [I-01, I-02]
 unresolved:
   - the fail positions of most control valves and of the machines' guide vanes (vendors, HAZOP)
-  - who sets the split between GOX and waste N2, and the GAN flow handled by two loops in series (see control/loops.yaml PIC-3110 and FIC-3107)
+  - the independent limit on the GOX draw (H04-A23) and the LP sump low-low (H03-A4)
   - the trips named in the instrument list but not yet in the cause-and-effect list (H04-A01, H02-A1, H02-A2)
   - a loop for the liquid production (H03-A7), which the chilled-water and compander failures rely on
   - whether the backup pumps have an emergency power supply (H04-A14)
@@ -104,10 +104,13 @@ There are three layers, kept apart:
 **What sets what.**
 - The air flow (FIC-1101) sets the plant's throughput, and the columns follow it.
 - The LN reflux (FIC-3106) trims the purities.
-- Who holds the LP column pressure and who sets the GOX draw is not settled yet. PIC-3110 (waste
-  nitrogen) and PIC-4101 (GOX suction) both act on that pressure. The decision belongs with
-  HAZOP actions H04-A23 and H03-A4, because a GOX over-draw boils the LP sump down (H04-S75).
-- The same holds for the GAN flow, set by two loops in series (FIC-3107 and FIC-4105).
+- The LP column pressure is held by the waste nitrogen (PIC-3110, D-095).
+- The GOX draw is set by flow (FIC-4148 on the K-4101 guide vanes). PIC-4101 only limits the
+  suction: its low select throttles the draw before an over-draw boils the LP sump down
+  (H04-S75), and its vent takes the GOX when K-4101 does not. The independent limit of HAZOP
+  action H04-A23 comes on top of it.
+- The GAN flow is set by FIC-3107 on the K-4102 guide vanes, and its export pressure by
+  PIC-4105 on PV-4105 (D-095).
 
 ## Normal operation and disturbances
 
@@ -162,8 +165,8 @@ check.
 
 - The fail positions of most control valves and of the machines' guide vanes are open; the
   register records each one as unresolved, with the HAZOP action that decides it.
-- Two control conflicts are open: the LP column pressure and the GOX draw (PIC-3110 and
-  PIC-4101), and the GAN flow (FIC-3107 and FIC-4105).
+- The two control conflicts found in the control review (the LP column pressure and the GOX
+  draw; the GAN flow) are decided in D-095. Their limits (H04-A22, H04-A23) remain open.
 - The liquid production has no handle yet (H03-A7).
 - Trips named in the instrument list are not yet in the cause-and-effect list (H04-A01, H02-A1,
   H02-A2). The sequences refer to them by tag until they are added.
