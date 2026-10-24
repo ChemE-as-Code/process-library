@@ -4223,6 +4223,9 @@ Rejected:
   zero (core#138: never silent zeros).
 
 ## D-093 HAZOP of ASU-1 (draft, proposed by agent) (2026-10-24)
+Revised by D-098 (H-04 reassessed for D-095 / D-096, inputs re-stamped after D-097; the counts
+in (3) are D-098's (5) now).
+
 Answers the items D-076, D-083 and D-088 hand to the HAZOP. Every entry below and in the four
 study files is a proposal by an agent (`status: proposed`, `by: agent`); nothing is accepted.
 
@@ -4722,3 +4725,116 @@ Open:
 - a declared E3101 min_approach once the vendor gives it;
 - core: an adsorption model or an audited component separator, a condenser-less column top, and
   a declared PR regime.
+
+## D-098 HAZOP reassessed for the D-095 / D-096 product control and the D-097 flowsheet (2026-10-24)
+Revises D-093. Every entry stays a proposal by an agent (`status: proposed`, `by: agent`);
+nothing is accepted. The studies report `hazop-input-changed` for P-04 and the instrument list
+(D-095, D-096: the product loops changed and the instruments were retagged) and for the
+flowsheet (D-097). The reassessment follows the list at the end of D-096. The credit
+convention of each study's `assessment_basis` is unchanged.
+
+Decision:
+- (1) **H-04, revised by stable id** (no id renumbered, none removed):
+  - **H04-N1**: the design intent now states the D-095 / D-096 control. PIC-3110 holds the LP
+    column pressure. PIC-4102 sets the K-4101 guide vanes through a low select with FIC-4148
+    (maximum draw) and PIC-4150 (suction low limit). PIC-4101 is the vent on PV-4101B. PIC-4150
+    is added to the members.
+  - **H04-S01, H04-S03**: the "output A / output B" wording is gone; the vent causes belong to
+    PIC-4101 alone (PT-4101 upstream of XV-4117). The ratings are unchanged.
+  - **H04-S02, H04-S75**: the over-draw cause is no longer PIC-4101. In the low select one loop
+    failing high is masked by the others, so the credible single causes are:
+    - FT-4148 reading low, or PT-4150 reading high, while PIC-4102 asks for more;
+    - the selector, its output stage or the vane positioner failing high.
+
+    FIC-4148 and PIC-4150 are not credited (same control system, and PIC-4150 acts late,
+    D-096). UIC-4103 shares FT-4148 with the cause. The ratings are unchanged: S02 3/D -> 3/D
+    high, S75 5/C -> 5/B high (LICA-3102 alarm only).
+  - **H04-S05**: FT-4148 reading high now also makes the FIC-4148 limit close the guide vanes,
+    which drives the machine towards surge. Rating unchanged.
+  - **H04-SG05, H04-SG06**: SG05 is PIC-4102 as the guide-vane master with its high-high trip.
+    The loop and the trip share one transmitter and take one order together, so H04-S13
+    stays 4/A. SG06 notes that FT-4148 now also sets the maximum draw, so it is not credited
+    where FT-4148 is part of the cause.
+  - **H04-N3, H04-N4, H04-N5**: the intents state PIC-4102 as the master, FIC-3107 as the
+    cascade slave of PIC-4105, and PV-4105 as normally fully open.
+  - **H04-S27**: the old FIC-4105 / FV-4105 scenario was renamed in D-095 but kept the flow
+    loop's meaning. It is now PIC-4105 failing high, or a falling GAN header pressure, which
+    raises FIC-3107's set point through the cascade. A failed-open PV-4105 changes nothing.
+    The FIC-3107 set-point clamp is in the same control system and is not credited. Rating
+    unchanged, 3/D high.
+  - **H04-S20, H04-S24**: S20 names FIC-3107 as the cascade slave. S24 notes that PIC-4105 may
+    open the vanes further against a closed PV-4105 (its tap position is open, D-095). Ratings
+    unchanged.
+  - **H04-A14, A15, A22, A23**:
+    - A14 adds PV-4105 and the guide vanes to the fail-position list.
+    - A15 adds an alarm when PIC-4102 runs on its FIC-4148 limit or the backup starts while
+      K-4101 runs.
+    - A22 now asks for a limit independent of the PIC-4105 / FIC-3107 cascade.
+    - A23 now asks for a limit independent of the guide-vane low select, not of PIC-4101.
+  - **H04-S07** (hazop-review2#1): asset residual 4/B -> **4/C**, high. The trip and the
+    blowdown lower the severity only. With this, review2#1 is closed (process-library#36).
+- (2) **New entries in H-04** (all proposed, by agent; ratings proposed):
+  - **H04-S76** (H04-N1-HF), the turndown vent. When the customer takes less, the vanes close
+    and PIC-4101 vents the excess through PV-4101B / VNT-4003. That is an oxygen release in
+    normal operation for as long as the turndown lasts. People 3/E -> 3/C, medium: the elevated
+    safe-location vent is a passive feature and gets two orders.
+  - **H04-S77** (H04-N3-LK), the header leak. PIC-4102 opens the vanes by design up to the
+    FIC-4148 limit, then PIC-4111 starts the backup, so the leak is fed and can go unnoticed.
+    People 4/C -> 4/C, high (nothing credited), with H04-A15.
+  - **H04-N1-RS / H04-S78**: PIC-4150 at a restart. It reads the blown-down casing and holds the
+    vanes shut, so the limit may be forced and left forced, or it may wind up. Asset 2/D ->
+    2/D, medium.
+  - **H04-A26**: decide whether the turndown vent is acceptable, together with the zones owner
+    (D-031).
+  - **H04-A27**: PIC-4150 restart handling and anti-windup.
+- (3) **H-01 .. H-03 checked** for bases that cite a changed stream value or control (the old
+  tags, PIC-4101, FI-4148, FIC-4105, and the D-097 values S1, CO2, S4, S12A..D, S17, the
+  booster outlet).
+  - No scenario basis cites them, and no rating changes.
+  - Design intents updated to the D-097 flowsheet:
+    - H-02 H02-N2: CO2 load 70.8 kg/h at 420 ppm (was 67.7);
+    - H-02, regeneration node: 283 kg CO2 desorbed per step (was 271);
+    - H-02, regeneration vent: 18,699 kg/h through S-2101 (was 18,696);
+    - H-03 H03-N1: booster outlet 56.4 C simulated against 59.9 C at D-061's 15 C suction;
+    - H-03 H03-N3: waste N2 3.4 C and a 0.37 K warm-end approach in the model, which has no
+      heat leak, against the 13 C assumed. These are model limits (D-097), not a design change.
+  - The H03-N8-GOX note names the guide-vane low select instead of PIC-4101.
+  - The assumed S4 15 C and S17 13 C that the intents cite are unchanged in the flowsheet.
+- (4) **Re-stamped**: `cheme safety hazop stamp <id> --write` for H-01 .. H-04 with the inputs as
+  recorded (no input added). The new revisions are the instrument list and the flowsheet in all
+  four studies, and P-04 in H-04. Then `cheme safety hazop rate <id> --write` for all four.
+  `cheme safety hazop check`: H-01 .. H-04 all `draft`, 0 errors, 0 warnings. The only info is
+  `hazop-unresolved`, with 104 / 77 / 109 / 153 proposals (443 in total).
+- (5) **Counts** (worst band as in D-093 (3): residual where rated, else initial, worst
+  category):
+
+  | study | nodes | deviations | scenarios | safeguards | actions | worst band: high / medium / low | proposals not accepted |
+  |---|---|---|---|---|---|---|---|
+  | H-01 | 9 | 32 | 43 | 27 | 25 | 11 / 14 / 18 | 104 |
+  | H-02 | 10 | 40 | 37 | 16 | 14 | 13 / 14 / 10 | 77 |
+  | H-03 | 12 | 52 | 52 | 23 | 22 | 23 / 19 / 10 | 109 |
+  | H-04 | 13 | 67 | 78 | 35 | 27 | 33 / 29 / 16 | 153 |
+  | total | 44 | 191 | 210 | 101 | 88 | 80 / 76 / 54 | 443 |
+
+  - H-04 changes from 31 / 28 / 16: H04-S07 moves from medium to high, H04-S77 adds a high,
+    and H04-S76 and H04-S78 add two mediums.
+  - No scenario ends very-high; 8 start very-high before safeguards.
+  - Every high scenario has at least one action.
+- (6) **process-library#36**:
+  - review2#1 is fixed in (1).
+  - review2#2: PROGRESS.md now has the missing row for bacc295 / 575447f (hazop-review1#13 /
+    #14, 78 / 75 / 54) and a row for this change.
+  - No other low finding of #36 is open.
+
+Open:
+- Everything in D-093 (8): the team, the matrix, the sessions, and a human review record.
+- The new actions H04-A26 and H04-A27. The D-096 open points that the HAZOP depends on:
+  - the fail positions of the guide vanes, PV-4101B and PV-4105;
+  - PIC-4105's tap position;
+  - the anti-surge flow of K-4101 (FT-4148 does not see the recycle).
+- `control/loops.yaml` and `control/sequences.yaml` are not analysed inputs of any study. Adding
+  them is for the team (`cheme safety hazop stamp <id> --input ...`).
+- A confirming independent review of the HAZOP after this change.
+
+Reason: D-096 asks the H-04 owner to reassess the product control. The studies must describe the
+plant as drawn and simulated before the team works through them.
