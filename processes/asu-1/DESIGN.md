@@ -3342,10 +3342,10 @@ shows the envelope the layout was built on. Tooling: cheme-as-code 0.8.0
    the 3D model generates (`layout/plant-model.yaml`), marked `assumed: true` with that
    source. They are the model's proportions, not a vessel design: the vessel and cold box
    suppliers set them. Tangent lengths: C-1101 20.0, C-1102 17.11, C-3101 15.5, C-3102 27.9,
-   E-1101 / E-1102 6.64, E-1103 5.81, E-3104 4.15, E-4102 4.1, E-4103 3.27, F-2101 2.65,
-   T-4101 9.748, T-4102 11.88, V-2101A/B 15.75, V-3101 3.824 m. Support heights: C-1101 4.0,
-   C-1102 3.765, C-3101 3.45 (skirts), V-2101A/B 2.0, E-1101 / E-1102 / E-1103 / E-3104 /
-   E-4102 / E-4103 0.8 (saddles), F-2101 0.975 m (legs).
+   E-1101 / E-1102 6.64, E-1103 5.81, E-3104 4.15, E-3105 4.175, E-4102 4.1, E-4103 3.27,
+   F-2101 2.65, T-4101 9.748, T-4102 11.88, V-2101A/B 15.75, V-3101 3.824 m. Support heights:
+   C-1101 4.0, C-1102 3.765, C-3101 3.45 (skirts), V-2101A/B 2.0, E-1101 / E-1102 / E-1103 /
+   E-3104 / E-3105 / E-4102 / E-4103 0.8 (saddles), F-2101 0.975 m (legs).
 3. **Drawings.** The SVGs are generated from the datasheets (never edited by hand) and carry
    the datasheet's sha256; `cheme validate` warns `cheme.datasheet-drawing-stale` when one no
    longer follows its datasheet, so rerun `cheme datasheets drawing --write` after a datasheet
@@ -3420,14 +3420,23 @@ shows the envelope the layout was built on. Tooling: cheme-as-code 0.8.0
    height less the shell diameter (D-028: "height = top of shell on its saddles"), the
    underside of the shell above the floor or paving. None of these exchangers feeds a pump
    suction (E-1101..E-1103, E-3104, E-3105, E-4102, E-4103 cool gases against cooling or
-   chilled water), so NPSH sets no elevation. Bottom nozzles on 0.3 m stubs (the drawings'
-   default projection, ASSUMED) end 0.5 m above the floor, which takes the shell and channel
-   drain valves with a drain funnel under them and the
-   E-1102 / E-1103 separator drains: N5 -> HV-1112 / HV-1113 -> float traps ST-1112 / ST-1113 on
-   the 0.5 m runs of CD-1001 / CD-1002 (D-065 (6)); the traps discharge on the air pressure, so
-   0.3 m of fall below the shell is enough. A higher setting would raise the bundles and their
+   chilled water), so NPSH sets no elevation. In the layout model (`layout/plant-model.yaml`,
+   its generated neck and flange per DN, ASSUMED) the bottom nozzles' flange faces lie 0.49 to
+   0.63 m above the floor: the cooling water nozzles N3 / N4 of E-1101 / E-1102 / E-1103 at
+   0.49 m, of E-3104 at 0.57 m and of E-4102 / E-4103 at 0.59 m; the DN25 drains E-1102 N5,
+   E-1103 N5 and E-3105 N5 / N6 at 0.633 m, 0.167 m below the shell. Their datasheets carry
+   that 0.167 m as `projection_m` (ASSUMED, from the model), so their drawings show the stubs as
+   the model has them and not on the drawings' 0.3 m default. That height takes the shell and
+   channel drain valves with a drain funnel under them and the E-1102 / E-1103 separator
+   drains: N5 -> HV-1112 / HV-1113 -> float traps ST-1112 / ST-1113 on the 0.5 m runs of
+   CD-1001 / CD-1002 (D-065 (6)); the traps discharge on the air pressure, so the 0.13 m from
+   the drain flange down to those runs is enough fall. A higher setting would raise the bundles and their
    top nozzles against the routed and pinned air lines without a process reason. The supplier
-   confirms the saddle height with the nozzle projections.
+   confirms the saddle height with the nozzle projections. E-3105's datasheet gave N5 / N6 / N7
+   no `offset_m` and N3 / N4 no `axial_m`, so its drawing put N7 (and N5 / N6 under it) on the
+   middle of the shell and left N3 / N4 off; they now carry the positions of the placement as
+   the model builds them (N3 -2.2, N4 +2.3 m along the axis, N5 1.5, N6 2.3, N7 2.4 m off the
+   centre), no position changed.
 8. **The rest of the PR #22 checklist.** Nozzle service, rating and facing stay "-" on the
    schedules: a later datasheet pass gives them with the piping classes, not invented here.
    Nozzles without a decided location (instrument tappings, D-045; C-3102 N1, N4, N5) stay
