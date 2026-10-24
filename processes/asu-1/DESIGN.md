@@ -4207,11 +4207,11 @@ Decision:
 
   | study | nodes | deviations | scenarios | safeguards | actions | worst band: high / medium / low | proposals not accepted |
   |---|---|---|---|---|---|---|---|
-  | H-01 | 9 | 32 | 43 | 27 | 25 | 10 / 14 / 19 | 104 |
+  | H-01 | 9 | 32 | 43 | 27 | 25 | 11 / 14 / 18 | 104 |
   | H-02 | 10 | 40 | 37 | 16 | 14 | 13 / 14 / 10 | 77 |
   | H-03 | 12 | 52 | 52 | 23 | 22 | 23 / 19 / 10 | 109 |
   | H-04 | 13 | 66 | 75 | 35 | 25 | 31 / 28 / 16 | 148 |
-  | total | 44 | 190 | 207 | 101 | 86 | 77 / 75 / 55 | 438 |
+  | total | 44 | 190 | 207 | 101 | 86 | 78 / 75 / 54 | 438 |
 
   "Worst band" is the policy band of a scenario (residual where rated, else initial, worst
   category). No scenario ends very-high; 8 start very-high before safeguards. H02-S32 has no
