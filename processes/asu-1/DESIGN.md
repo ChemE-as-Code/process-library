@@ -4371,3 +4371,43 @@ basic-engineering package needs a HAZOP draft that the owner's team can work thr
 Open: everything in (8); the actions of (7); the team's answer to the questions recorded in
 the node and deviation notes (WN-1001 temperature and O2 bound, H03-N7-OC; cold regeneration
 gas, H02-N2-LT).
+
+## D-094 Control intent: loop register, sequences, narrative and control philosophy (2026-10-24)
+Decision: the plant's control intent is written down in the formats of core#140, next to the
+HAZOP draft (D-093):
+- `control/loops.yaml`: the 31 regulatory loops of the instrument list. Each gives its
+  measurement, the final element it moves (the valve tags drawn on the P&IDs; the inlet guide
+  vanes of K-1101, K-4101 and K-4102 and the expander nozzles by the machine tag), the
+  controller action, and the set point with its unit and provenance. 15 set points name their
+  design-case stream, and `cheme validate` keeps them equal to it. The split ranges are PIC-3110
+  (PV-3110A to C-1102 first, PV-3110B to the vent) and PIC-4101 (the K-4101 guide vanes first,
+  PV-4101B above, D-019). The overrides are PIC-1103 / FIC-1101 on the MAC guide vanes and
+  TIC-3109 / SIC-3108 on the expander nozzles. Their low selects and the 50 % split points are
+  ASSUMED.
+- `control/sequences.yaml`: MAC start, the TSA cycle (KS-2101), cold box cool-down and product
+  start, the compander trip and restart (with the D-077 E-3105 check as a restart condition),
+  the GOX and GAN backup (D-014), and normal shutdown. Trips are named by their C&E id;
+  permissives are separate from them.
+- `process/narrative.md`: four sections (MAC, PUR, CB, PRD) on the flowsheet blocks.
+  `control/philosophy.md`: the objectives in priority order (hydrocarbon safety first, the
+  liquid production given up first), the control hierarchy, and nine equipment and utility
+  failures with their designed response.
+- What the design does not state stays open (`unresolved`), never defaulted. This covers most
+  fail positions, the vendors' surge lines, the sump level ranges, the step times, and what
+  PIC-4102, PIC-4106 and LICA-3102 act on. At basic engineering these are info findings; at
+  detail the core gate `control-complete` requires them.
+
+Found while writing it:
+- Thirteen trips named in the instrument list are not in `control/cause-effect.yaml`: VIA-1104,
+  LSHH-1106, AIA-2102, FIC-2105, TSHH-2116, TSHH-2107, SIC-3108, SSHH-3108, PDSLL-3115,
+  PIC-4101, TSHH-4104, TSLL-4113 and TSLL-4114. Validate already reports them
+  (`instrument-no-interlock`). The sequences refer to them by tag until they are added.
+- TICA-3124 and the interlock I-04 share TV-3124 (`control-shared-element`). This is accepted
+  only because I-04 is not a SIF (D-077).
+
+Reason: the HAZOP and the detail design need the operating intent stated once, by id, against
+the lists and the operating case, instead of scattered in the instrument notes.
+
+Not changed: `control/cause-effect.yaml` and `control/instrument-list.yaml`. They are inputs of
+the layout reviews and the HAZOP studies, so adding the missing trips is a separate change with
+its own reviews.
