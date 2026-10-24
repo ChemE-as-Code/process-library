@@ -3405,14 +3405,13 @@ shows the envelope the layout was built on. Tooling: cheme-as-code 0.8.0
      E-3103 (brazed aluminium cores in the C-3102 sump) stays without a weight: the supplier's
      (`cheme.lca-equipment-weight` names it, counted 0).
    Lifting: the lifting study lifts every item of 5 t or more outside the cold box casing, so the
-   new weights add C-1101, C-1102, F-1101, V-2101A/B, T-4101 and T-4102 as rows. They are
-   erection lifts, not maintenance lifts (D-034: set once before the piping; the tanks are
-   field-erected plate by plate and never lifted whole). The seven findings these rows raise
-   (no crane pad near F-1101, C-1102, T-4101; the V-2101A/B lanes crossed by piping built after
-   them; no laydown for C-1102, T-4102) are accepted in `checks/checks.yaml` with that reason; the construction lifting plan
-   sets those lifts. Every other row is unchanged: each lifted weight equals the empty weight
-   of the list and the datasheet, except K-1101, which lifts its 34 t motor out of the 89 t
-   train. The LCA construction phase rises from 0.57 to 0.72 kg CO2-eq per t GOX (total
+   new weights add C-1101, C-1102, F-1101 and V-2101A/B as rows (the tanks first too; (10)
+   takes them out). They are shop-built erection lifts, not maintenance lifts (D-034: set once
+   before the piping). The five findings these rows raise (no crane pad near F-1101, C-1102;
+   the V-2101A/B lanes crossed by piping built after them; no laydown for C-1102) are accepted
+   in `checks/checks.yaml` with that reason; the construction lifting plan sets those lifts.
+   Every other row is unchanged: each lifted weight equals the empty weight of the list and the
+   datasheet, except K-1101, which lifts its 34 t motor out of the 89 t train. The LCA construction phase rises from 0.57 to 0.72 kg CO2-eq per t GOX (total
    142.77 -> 142.89; operation 142.36 unchanged).
    LCA material of the tanks (PR #22 review): `lca/lca.yaml` counts mixed materials as carbon
    steel, but its `SS*` entry came first and took the whole 26 / 35 t of the SS inner / CS outer
@@ -3503,6 +3502,19 @@ shows the envelope the layout was built on. Tooling: cheme-as-code 0.8.0
    LV-1114 limit, fully open at most 2 x the normal 34.4 m3/h = 69 m3/h, and the C-1101 N7
    nozzle carries the vortex breaker in its `service` (shown on the nozzle schedule of the
    drawing), both citing D-088 (4); no value changed.
+10. **The field-erected tanks are not crane lifts (owner decision, 2026-10-24).** T-4101 and
+    T-4102 are flat-bottom double-wall tanks erected plate by plate on their foundations and
+    never lifted whole, so the lifting study, which covers real crane lifts, no longer shows
+    them as 26 / 35 t whole-tank lifts. Each carries `dimensions.lift_weight: 0.5` in the
+    equipment list: its heaviest maintenance lift, a roof fitting (relief / vacuum valve,
+    manway cover), 0.5 t ASSUMED (owner's figure, the tank supplier confirms it). That is
+    under the study's 5 t heavy-lift threshold, so the tanks drop out of the study (hoist or
+    small crane, no pad or lane study) and the two acceptances that covered their rows
+    (`layout-lifting:T-4101`, `layout-laydown:laydown-T-4102`) are removed from
+    `checks/checks.yaml`. The empty weights of (5) stay for the LCA and the datasheets. The
+    shop-built items (C-1101, C-1102, V-2101A/B, F-1101) stay as erection lifts with their
+    acceptances; K-1101 stays the maintenance lift of its 34 t motor. Plate handling during
+    tank erection is the tank erector's.
 
 ## D-082 Techno-economic analysis: premises and first result (2026-10-23)
 The first TEA of the plant (`estimate/tea.yaml`, `cheme assess tea`, skill `tea`; written
