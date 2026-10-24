@@ -4181,18 +4181,25 @@ Decision:
   no `location`: the geography is reported as not checked.
   - Grid electricity: `electricity-gb`, 0.18436 kg CO2e/kWh at the consumer (generation, T&D,
     well-to-tank).
-  - Structural steel and steel equipment: `metals-construction` (primary construction metals),
-    for stainless steel likely an underestimate; aluminium equipment: `aluminium-cans-foil`.
+  - Structural steel and steel equipment: `metals-construction` (primary construction metals,
+    a mix of metals): for carbon steel likely an overestimate, for stainless steel likely an
+    underestimate (alloying elements); aluminium equipment: `aluminium-cans-foil`.
   - Lorry transport: `lorry-hgv-gb`, average non-refrigerated HGV with well-to-tank.
 - (2) **Own estimates** (status ESTIMATE, basis and validity in `lca/factors.yaml`): cooling
   water 10 kWh electricity per MWh rejected x the grid factor = 1.8436 kg CO2e/MWh (ASSUMED
-  pumps and fans only); concrete 118.80 kg CO2e/t x 2.4 t/m3 (ASSUMED density) = 285.13 kg
-  CO2e/m3, reinforcement not included.
+  pumps and fans of the site cooling water system only; the plant's own DCAC water pumps and
+  chilled water are in E2 of the flowsheet, so they are not counted twice); concrete 118.80
+  kg CO2e/t x 2.4 t/m3 (ASSUMED density) = 285.13 kg CO2e/m3. The reinforcing steel of the
+  concrete is not in the take-off and so not counted (an open item, like the gaps below).
 - (3) **Declared missing** (`missing:`, gaps in `lca/gaps.csv`, never 0): pipe per m, grating
   and insulation per m2, valves and fittings per piece (the take-off gives no mass), molecular
   sieve and alumina, lubricating oil, the steel and aluminium recycling credits (DESNZ: its
-  material factors are not suitable for recycling benefits) and the substitutes of GAN, LOX and
-  LIN (so the allocation comparison reports substitution as not applicable).
+  material factors are not suitable for recycling benefits). These are the 17 gaps of
+  `lca/gaps.csv` (10 construction, 2 consumables, 3 maintenance, 2 end of life). The
+  substitutes of GAN, LOX and LIN are also declared missing; they are not gaps of the result
+  (exergy allocation), but the allocation comparison reports substitution as not applicable.
+  E-3103 has no weight in the equipment list and counts as 0 in the construction (warning
+  `lca-equipment-weight`): an open item until its weight is given.
 - (4) **Scenario grid-2040 removed.** It used an example factor without a source; it returns
   with a published, openly licensed grid projection for the site's country.
 - (5) **Result.** 66.7 kg CO2-eq per t GOX (95 % 33 .. 133, Monte Carlo 2000, seed 1): a
