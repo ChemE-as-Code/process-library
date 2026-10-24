@@ -3354,6 +3354,46 @@ shows the envelope the layout was built on. Tooling: cheme-as-code 0.8.0
    but not drawn.
 4. **Checks.** After the fill, `cheme validate` reports no `cheme.datasheet-dimension-mismatch`,
    no datasheet nozzle finding against the P&IDs or the layout model and no stale drawing.
+5. **Empty weights of the erected-once items (amends D-034 (1)).** D-034 gave weights only to
+   the items lifted whole in maintenance, so the LCA construction inventory counted the
+   columns, adsorbers, tanks, the filter house and the MAC train as zero. They now carry an
+   ASSUMED empty weight in the equipment list (`dimensions.weight`, which the LCA and the
+   datasheet fill read) and in the datasheets (with the basis, `assumed: true`):
+   - Pressure vessels and columns: wall thickness `e = P Di / (2 J f - P)` plus corrosion
+     allowance (Sinnott, Coulson & Richardson's Chemical Engineering Vol. 6, 4th ed., 2005,
+     Section 13.5), shell and heads by the dead-weight relation `W = Cw pi rho Dm (Hv + 0.8 Dm) t`
+     with `Cw` 1.15 for manways, supports and fittings (same, Section 13.8), steel 7,850 kg/m3;
+     ASSUMED inputs: joint factor J 0.85, design stress f of carbon steel 125 N/mm2 at 120 C and
+     100 N/mm2 at 250 C, 3 mm corrosion allowance, 12 mm minimum for a 4.5 m shell. C-1101
+     18 mm (8 barg) -> 47 t + skirt 5 t = **52 t**; C-1102 12 mm (2 mm for 1 barg) -> 32 t +
+     skirt 4 t = **36 t**; V-2101A/B 25 mm (8 barg, 250 C) -> **61 t** each. Packing, lining
+     and adsorbent are not included (supplier quantities; the adsorbent is a consumable in
+     `lca/lca.yaml`).
+   - Flat-bottom double-wall tanks: plate areas at 5 mm shell (the hydrostatic thickness is
+     3.9 / 4.1 mm; 5 mm is API 650's minimum shell plate below 15 m diameter), 6 mm bottoms,
+     5 mm roofs, SS inner and CS outer tank, x 1.15 for stiffeners, nozzles and internal
+     piping: T-4101 9.8 + 12.6 -> **26 t**, T-4102 13.4 + 16.6 -> **35 t**; perlite and the
+     bottom insulation not included.
+   - F-1101: 3 mm galvanized casing over the 208 m2 of the 6 x 4 x 8 m house = 4.9 t, doubled
+     (factor ASSUMED) for frame, hoppers, tube sheet, walkway and cartridges: **10 t**.
+   - K-1101: D-034's train of ~85 t with the 8 MW motor, +4 t for the 9 MW motor (30 -> 34 t,
+     D-070): **89 t** empty; its `lift_weight` stays the motor, 34 t, below the empty weight as it
+     must be (the lifting study lifts the motor, not the train).
+   - Cross-check of the existing cold box weights by the same relation (aluminium 5083, 2,700
+     kg/m3, f ~85 N/mm2 ASSUMED): C-3101 shell ~16 t at 20 mm plus its packing, C-3102 ~15 t at
+     12 mm plus packing and E-3103: the listed 25 / 30 t are of the right order and are kept.
+     E-3103 (brazed aluminium cores in the C-3102 sump) stays without a weight: the supplier's
+     (`cheme.lca-equipment-weight` names it, counted 0).
+   Lifting: the lifting study lifts every item of 5 t or more outside the cold box casing, so the
+   new weights add C-1101, C-1102, F-1101, V-2101A/B, T-4101 and T-4102 as rows. They are
+   erection lifts, not maintenance lifts (D-034: set once before the piping; the tanks are
+   field-erected plate by plate and never lifted whole). The seven findings these rows raise
+   (no crane pad near F-1101, C-1102, T-4101; the V-2101A/B lanes crossed by piping built after
+   them; no laydown for C-1102, T-4102) are accepted in `checks/checks.yaml` with that reason; the construction lifting plan
+   sets those lifts. Every other row is unchanged: each lifted weight equals the empty weight
+   of the list and the datasheet, except K-1101, which lifts its 34 t motor out of the 89 t
+   train. The LCA construction phase rises from 0.57 to 0.72 kg CO2-eq per t GOX (total
+   142.77 -> 142.89; operation 142.36 unchanged).
 
 ## D-082 Techno-economic analysis: premises and first result (2026-10-23)
 The first TEA of the plant (`estimate/tea.yaml`, `cheme assess tea`, skill `tea`; written
