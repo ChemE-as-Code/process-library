@@ -69,7 +69,7 @@ loops:
     normal_mode: auto
     rationale: Vendor package (instrument list); the blow-off is the only flow path while the plant takes no air.
     unresolved:
-      - controller action and UV-1102 fail position (MAC vendor; blow-off valves usually fail open)
+      - controller action and UV-1102 fail position (MAC vendor; HAZOP action H01-A6 proposes open)
   - id: TIC-1105
     title: DCAC air outlet temperature
     purpose: Cool the air to the TSA design temperature; the TSA capacity depends on it (D-005, D-006).
@@ -90,7 +90,7 @@ loops:
       - {tag: TIC-1105, condition: TAH, response: "Check the chilled water (C-1102, P-1102A/B) and the waste N2 to C-1102; a warm TSA inlet shortens the adsorption step: tell the TSA operator (KS-2101)."}
     rationale: More chilled water through TV-1105 lowers the air temperature, so the controller is direct acting.
     unresolved:
-      - TV-1105 fail position, and the TAH value
+      - TV-1105 fail position (HAZOP action H01-A6), and the TAH value
   - id: LIC-1106
     title: DCAC sump level
     purpose: Hold the water level in the DCAC sump; a high level would carry water to the TSA (D-005).
@@ -109,7 +109,7 @@ loops:
       - {tag: LIC-1106, condition: LAH, response: "Check LV-1106 and the circulating water pumps P-1101A/B; the high-high level LSHH-1106 trips the MAC."}
     rationale: The trip LSHH-1106 has its own tapping and is independent of this loop (instrument list).
     unresolved:
-      - LV-1106 fail position
+      - LV-1106 fail position (HAZOP action H01-A6 proposes closed)
       - LSHH-1106 trips the MAC (instrument list) but is not yet an interlock of control/cause-effect.yaml
   - id: LIC-1107
     title: Evaporative cooler sump level (make-up)
@@ -127,7 +127,7 @@ loops:
     normal_mode: auto
     rationale: LV-1107 is the make-up only (~0.6 t/h at 703 kW, D-069 (2)); a rising level closes it.
     unresolved:
-      - LV-1107 fail position
+      - LV-1107 fail position (HAZOP action H01-A6)
   - id: FIC-1108
     title: Cooling water to the DCAC lower section
     section: MAC
@@ -142,7 +142,7 @@ loops:
     modes: [manual, auto]
     normal_mode: auto
     unresolved:
-      - FV-1108 fail position
+      - FV-1108 fail position (HAZOP action H01-A6)
   - id: LIC-1114
     title: DCAC chimney tray level (water seal)
     purpose: Keep a water seal on the chimney tray so no 5.92 bara air blows through to the atmospheric C-1102 (D-069, D-076).
@@ -200,7 +200,7 @@ loops:
     alarms:
       - {tag: FIC-2105, condition: FAL, response: "The heater is tripped on low flow (instrument list); check FV-2105 and the waste N2 split, then let KS-2101 resume the heating step."}
     unresolved:
-      - FV-2105 fail position
+      - FV-2105 fail position (HAZOP action H02-A6, with the TSA switching valves)
       - the low-flow heater trip (instrument list) is not yet an interlock of control/cause-effect.yaml
   # ---- CB: cold box (P-03) -----------------------------------------------------------------
   - id: LIC-3101
@@ -218,7 +218,7 @@ loops:
     modes: [manual, auto]
     normal_mode: auto
     unresolved:
-      - LV-3101 fail position (cold box supplier)
+      - LV-3101 fail position (cold box supplier; HAZOP action H03-A1)
   - id: LICA-3102
     title: LP column sump level (condenser submergence)
     purpose: Keep E-3103 fully submerged, no dry boiling (D-010 (3)).
@@ -252,7 +252,7 @@ loops:
     rationale: The LN reflux sets the LP column's top purity (GAN and waste); it is the main purity handle with the air flow.
     operator: Adjusts the set point on the GAN and waste purities (AIA-3105, AI-3104).
     unresolved:
-      - FV-3106 fail position
+      - FV-3106 fail position (HAZOP action H03-A1)
   - id: SIC-3108
     title: Expander speed
     purpose: Hold the compander speed; the expander produces the refrigeration (D-003).
@@ -329,7 +329,7 @@ loops:
     interlocks: []
     rationale: Higher pressure opens the waste path, so direct acting. PSV-3114 protects the LP column if both valves are shut while the expander and the JT valves keep feeding it (D-011).
     unresolved:
-      - fail positions of PV-3110A/B (closed would block the LP column in; PSV-3114 is the protection, D-011)
+      - fail positions of PV-3110A/B (closed would block the LP column in; PSV-3114 is the protection, D-011; HAZOP action H03-A1)
       - the split point between PV-3110A and PV-3110B (ASSUMED 50 %)
   - id: FIC-3111
     title: LOX purge from the LP sump (hydrocarbon protection)
@@ -353,7 +353,7 @@ loops:
     rationale: A safety-relevant regulatory loop, but not a safeguard; the protection layers are the TSA, the analyzers and the submergence (D-010).
     operator: Keeps the purge on even when the LOX tank is full (drain vaporizer).
     unresolved:
-      - FV-3111 fail position (open keeps the purge)
+      - FV-3111 fail position (open keeps the purge; HAZOP action H03-A1)
   - id: PIC-3113
     title: Cold box casing purge pressure
     purpose: Keep the casing above atmospheric with dry N2, no moist air ingress (D-013).
@@ -371,7 +371,7 @@ loops:
     alarms:
       - {tag: AIA-3122, condition: AAH, response: "O2 above 23 % at the breather: a cold-box leak enriches the casing; find it, keep the purge on (EIGA Doc 65, D-010)."}
     unresolved:
-      - PV-3113 fail position
+      - PV-3113 fail position (HAZOP action H03-A1)
   - id: TICA-3124
     title: E-3105 boosted air outlet temperature (trim cooler)
     purpose: Hold the boosted air at 15 C into E-3101; the cold box's refrigeration balance depends on it (D-067).
@@ -413,7 +413,7 @@ loops:
     normal_mode: auto
     rationale: Output A first opens the IGVs; above them PV-4101B vents, on a K-4101 trip and at start-up (D-019). The split point is ASSUMED.
     unresolved:
-      - fail positions of the IGV actuator and PV-4101B (open vents the GOX, closed blocks the LP column in)
+      - fail positions of the IGV actuator and PV-4101B (open vents the GOX, closed blocks the LP column in; HAZOP action H04-A14)
   - id: PIC-4102
     title: GOX export pressure
     section: PRD
@@ -429,7 +429,7 @@ loops:
     rationale: The export pressure is held by the K-4101 machine control; D-024 notes a trip output beside PIC-4102.
     unresolved:
       - what PIC-4102 acts on (the K-4101 vendor control, IGV or recycle) and its action
-      - the trip output beside PIC-4102 (D-024) is not yet an interlock of control/cause-effect.yaml
+      - the trip output beside PIC-4102 (D-024) is not yet an interlock of control/cause-effect.yaml (HAZOP action H04-A01)
   - id: UIC-4103
     title: GOX compressor anti-surge
     section: PRD

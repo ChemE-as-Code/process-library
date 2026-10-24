@@ -4404,6 +4404,9 @@ Found while writing it:
   (`instrument-no-interlock`). The sequences refer to them by tag until they are added.
 - TICA-3124 and the interlock I-04 share TV-3124 (`control-shared-element`). This is accepted
   only because I-04 is not a SIF (D-077).
+- The HAZOP (D-093) asks for the same open items: the fail positions (actions H01-A6, H02-A6,
+  H03-A1, H04-A14) and the missing trips (H04-A01). The register's open points name these
+  actions, so they are closed where the HAZOP decides them.
 
 Reason: the HAZOP and the detail design need the operating intent stated once, by id, against
 the lists and the operating case, instead of scattered in the instrument notes.
