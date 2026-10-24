@@ -16,7 +16,6 @@ sequences:
       - {tag: K-1101, state: "vendor start permissives healthy (lube oil, VIA-1104, seal air)"}
       - {loop: UIC-1102, state: "in auto with UV-1102 open"}
       - {loop: FIC-1101, state: in manual}
-      - {interlock: I-03, state: "reset, with the chimney-tray level above its trip level (H01-A10)"}
       - {unresolved: cooling water and the 9.0 MW motor's start conditions (D-070) from the utilities and the MAC vendor}
     interlocks: [I-03]
     steps:
@@ -36,6 +35,7 @@ sequences:
         operator: "The chilled-water loop circulates warm until the cold box sends waste N2 to C-1102; the seal only needs the water (H01-A10). No bypass of I-03 while C-1101 is under pressure."
       - id: S2
         title: Start the MAC on blow-off
+        entry: {interlock: I-03, state: "reset, with the chimney-tray level above its trip level (H01-A10)"}
         actions:
           - {tag: K-1101, action: start, by: operator}
         complete: {tag: K-1101, state: at speed}
@@ -43,15 +43,14 @@ sequences:
         on_timeout: abort
         operator: The blow-off UV-1102 is upstream of C-1101; the DCAC is not loaded yet.
       - id: S3
-        title: Load the MAC to the start-up flow
+        title: Hold on blow-off
         actions:
           - {loop: PIC-1103, action: auto}
-          - {loop: FIC-1101, action: auto, by: operator}
-        complete: {loop: FIC-1101, state: "at the start-up flow the TSA and the cold box vent can take"}
-        operator: "Load in steps the chimney-tray seal follows (LIC-1114). Full load comes only with the cold box (SEQ-CB-START); until then the excess leaves through UV-1102."
+        complete: {loop: UIC-1102, state: "stable on blow-off, the MAC at its minimum load"}
+        operator: "There is no isolation or vent between C-1101 and the cold box (AIR-2002): any air the MAC sends past UV-1102 goes through the TSA into the cold box. So the MAC stays on blow-off until SEQ-CB-START admits air; the path of the air through the warm cold box at the start of the cool-down is the cold box supplier's."
         next: end
     abort:
-      condition: {any: [{tag: K-1101, state: tripped}, {loop: LIC-1114, state: "level falling below its set point"}]}
+      condition: {any: [{tag: K-1101, state: tripped}, {interlock: I-03, state: tripped}]}
       actions:
         - {loop: FIC-1101, action: manual}
       notes: The MAC trip actions are the vendor's and the C&E's; after a MAC stop the DCAC pumps stop (SEQ-SHUTDOWN, H01-A4).
@@ -69,9 +68,6 @@ sequences:
     section: PUR
     cases: [design]
     equipment: [V-2101A, V-2101B, E-2101]
-    permissives:
-      - {loop: FIC-2105, state: "regeneration gas available"}
-      - {unresolved: "the regeneration gas source at start-up, before the cold box makes waste N2 (H02-S34, H02-A10)"}
     steps:
       - id: S1
         title: Adsorb on one bed, depressurise the other
@@ -81,6 +77,7 @@ sequences:
         operator: "AIA-2102 (CO2) and AIA-2103 (dew point) watch the bed on line (AIR-2001): a CO2 rise means breakthrough of that bed (alarm 1 ppm, -70 C dew point, both ASSUMED)."
       - id: S2
         title: Heat
+        entry: {loop: FIC-2105, state: "regeneration gas available (waste N2; at the first start a source still to be defined, H02-S34, H02-A10)"}
         actions:
           - {loop: TIC-2104, action: auto}
           - {loop: FIC-2105, action: auto}
@@ -126,16 +123,18 @@ sequences:
       - {tag: PDSLL-3115, state: "seal gas established (before the lube oil, D-012)"}
       - {loop: UIC-3120, state: "in auto with UV-3120 open"}
       - {loop: PIC-3113, state: in auto}
+      - {unresolved: "the N2 for the casing purge at the first start, before the plant makes GAN (UN-3001 takes it from the GAN export or the backup header, D-024)"}
       - {unresolved: the cold box supplier's cool-down rates and hold points}
     interlocks: [I-04]
     steps:
       - id: S1
         title: Air into the cold box
         actions:
+          - {loop: FIC-1101, action: auto, by: operator}
           - {loop: PIC-3110, action: auto}
           - {loop: PIC-4101, action: auto}
         complete: {loop: PIC-3110, state: in auto}
-        operator: With K-4101 stopped, PIC-4101 vents the GOX on PV-4101B (D-019); PIC-3110 holds the LP column on the waste N2.
+        operator: "The MAC is loaded from blow-off as the cold box takes the air. With K-4101 stopped, PIC-4101 vents the GOX on PV-4101B (D-019). PIC-3110 and PIC-4101 both act on the LP column pressure; until that conflict is decided (control/loops.yaml PIC-3110), give them set points far enough apart that only one acts."
       - id: S2
         title: Start the compander
         entry: {tag: E-3105, state: "shell side checked dry (D-077)"}
@@ -150,15 +149,21 @@ sequences:
         actions:
           - {loop: TICA-3124, action: auto}
           - {loop: TIC-1105, action: auto}
+          - {loop: FIC-3111, action: setpoint,
+             setpoint: {value: 43, unit: kg/h, provenance: assumed, source: "the purge minimum, 0.2 % of the O2 product (D-010)"}}
           - {loop: FIC-3111, action: auto}
-        complete: {all: [{tag: LIC-3101, state: level appears}, {loop: FIC-3111, state: "flowing above its low alarm as soon as liquid collects in the LP sump"}]}
-        operator: "The cool-down takes days; the rates are the supplier's. The LOX purge (FIC-3111) runs from the first liquid in the LP sump, never after it has filled (D-010). TIC-1105 goes to auto once C-1102 gives chilled water."
+        complete: {all: [{tag: LIC-3101, state: level appears}, {loop: FIC-3111, state: "flowing at its minimum as soon as liquid collects in the LP sump"}]}
+        operator: "The cool-down takes days; the rates are the supplier's (H03-A5). The LOX purge runs from the first liquid at its minimum, never after the sump has filled and never at the 470 kg/h design rate, which would empty the sump (D-010); its route (T-4101 or the drain vaporizer V-3101) is open. TIC-1105 goes to auto once C-1102 gives chilled water."
       - id: S4
         title: Columns in operation
         actions:
           - {loop: LIC-3101, action: auto}
           - {loop: FIC-3106, action: auto}
+          - {loop: FIC-3111, action: setpoint,
+             setpoint: {value: 470, unit: kg/h, provenance: assumed, source: "D-010, D-017",
+                        cases: [design], stream: S10, property: flow}}
         complete: {tag: LICA-3102, state: "above LAL (E-3103 submerged)"}
+        operator: The purge goes to its design rate only once the LP sump holds E-3103 submerged.
       - id: S5
         title: Product purities
         actions:
@@ -174,27 +179,31 @@ sequences:
         on_timeout: abort
         operator: A hydrocarbon excursion (AIA-3103) is handled as failure F-HC of the control philosophy, not by this sequence.
       - id: S6
-        title: Start the product compressors
+        title: Start the product compressors on recycle
         entry:
           all:
             - {loop: UIC-4103, state: "in auto with UV-4103 open"}
             - {loop: UIC-4131, state: "in auto with UV-4131 open"}
         actions:
+          - {tag: XV-4116, action: close}   # the K-4101 blowdown (D-013)
+          - {tag: XV-4117, action: open}    # the suction ESD: inside the recycle loop
           - {tag: K-4101, action: start, by: operator}
           - {tag: K-4102, action: start, by: operator}
           - {loop: FIC-3107, action: auto}
         complete: {all: [{tag: K-4101, state: at speed}, {tag: K-4102, state: at speed}]}
       - id: S7
-        title: Open the GOX train to the pipeline
+        title: Open the GOX and GAN trains to the battery limits
         entry: {text: "the dP across XV-4118 and XV-4119 equalised through HV-4129 and HV-4130 (D-024, EIGA Doc 13; the dP measurement is H04-A01's)"}
         actions:
-          - {tag: XV-4133, action: close}   # the BL bleed of the double block and bleed (D-013)
-          - {tag: XV-4117, action: open}
+          - {tag: XV-4133, action: close}   # the GOX BL bleed of the double block and bleed (D-013)
           - {tag: XV-4118, action: open}
           - {tag: XV-4119, action: open}
           - {tag: XV-4132, action: open}
+          - {tag: XV-4135, action: close}   # the GAN BL bleed
+          - {tag: XV-4120, action: open}
+          - {tag: XV-4134, action: open}
         complete: {loop: PIC-4101, state: "PV-4101B closed (K-4101 takes the GOX)"}
-        operator: No ball valve opens against 30 bar of GOX (D-024).
+        operator: No ball valve opens against 30 bar of GOX (D-024). Off-spec GAN still goes to XV-3105 / VNT-4004 until AIA-3105 is below 10 ppm.
         next: end
     abort:
       condition: {any: [{tag: K-3101, state: tripped}, {tag: SSHH-3108, state: tripped}]}
@@ -235,7 +244,6 @@ sequences:
         actions:
           - {tag: K-3101, action: start, by: operator}
           - {loop: SIC-3108, action: auto}
-          - {loop: TIC-3109, action: auto}
           - {loop: TICA-3124, action: auto}
         complete: {loop: SIC-3108, state: at set point}
         timeout: {value: 30, unit: min}
@@ -275,7 +283,8 @@ sequences:
         title: Supply until the ASU returns
         actions:
           - {text: the backup holds the GOX header}
-        complete: {all: [{tag: K-4101, state: running}, {tag: XV-4119, state: open}]}
+        complete: {loop: PIC-4102, state: "export pressure held by K-4101 delivering, PV-4111 throttling back"}
+        operator: XV-4119 is open throughout (the backup riser joins upstream of it, D-024); the hand-back starts only when K-4101 delivers to the header, not when it merely runs.
       - id: S3
         title: Hand back to the ASU
         actions:
@@ -318,7 +327,8 @@ sequences:
         title: Supply until the ASU returns
         actions:
           - {text: the backup holds the GAN header}
-        complete: {all: [{tag: K-4102, state: running}, {tag: XV-4120, state: open}]}
+        complete: {loop: FIC-4105, state: "GAN delivered by K-4102 to the header, PV-4112 throttling back"}
+        operator: XV-4120 is open throughout the backup; the hand-back starts only when K-4102 delivers.
       - id: S3
         title: Hand back to the ASU
         actions:
@@ -360,18 +370,18 @@ sequences:
           - {tag: K-3101, action: stop}
         complete: {tag: K-3101, state: stopped}
       - id: S4
-        title: Hold the TSA
-        actions:
-          - {text: "KS-2101 holds the cycle with the bed on line isolated; E-2101 off"}
-        complete: {tag: KS-2101, state: on hold}
-      - id: S5
-        title: Stop the MAC, then the DCAC water
+        title: Stop the MAC
         actions:
           - {loop: FIC-1101, action: manual}
           - {tag: K-1101, action: stop}
+        complete: {tag: K-1101, state: stopped}
+      - id: S5
+        title: Hold the TSA, then stop the DCAC water
+        actions:
+          - {text: "KS-2101 holds the cycle with the bed on line isolated; E-2101 off"}
           - {tag: P-1101A, action: stop}
           - {tag: P-1102A, action: stop}
-        complete: {all: [{tag: K-1101, state: stopped}, {tag: P-1101A, state: stopped}]}
+        complete: {all: [{tag: KS-2101, state: on hold}, {tag: P-1101A, state: stopped}]}
         operator: "The DCAC pumps stop after the MAC, so C-1101 cannot flood a depressurised column (H01-A4). The cold box keeps its liquid for a warm restart; a derime is a separate procedure (D-010 (6))."
         next: end
     abort:

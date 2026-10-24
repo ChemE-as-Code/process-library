@@ -95,11 +95,12 @@ regeneration gas S12A in and S12D out.
 4. repressurise;
 5. switch.
 
-A bed goes back on line only with CO2 and the dew point below their limits (AIA-2102,
-AIA-2103).
+AIA-2102 (CO2) and AIA-2103 (dew point) watch the bed on line; a rising CO2 means that bed is
+breaking through.
 
-**Modes.** The cycle runs continuously. On a CO2 high-high the beds are switched early, or the MAC
-trips (D-010).
+**Modes.** The cycle runs continuously. The intended answer to a CO2 high-high (an early bed
+switch, or stopping the air to the cold box, D-010) is not yet an interlock (H02-A1); until
+then it is an operator action on the alarm.
 
 ## CB Cold box
 
@@ -134,8 +135,8 @@ refrigeration (D-003, D-067).
 
 **Modes.** Cool-down and start-up (SEQ-CB-START) take days and end with the product compressors.
 A compander trip (SEQ-COMPANDER-TRIP) loses the refrigeration. The trip I-04 shuts the chilled
-water to E-3105, and before the restart the E-3105 shell side is drained and checked dry
-(D-077). Normal shutdown keeps the liquid in the cold box for a warm restart.
+water to E-3105, and before the restart the E-3105 shell side is drained and checked dry and
+E-3104 is checked (D-077, H03-A11). Normal shutdown keeps the liquid in the cold box for a warm restart.
 
 ## PRD Product compression, storage and backup
 
