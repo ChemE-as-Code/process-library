@@ -4823,7 +4823,8 @@ Decision:
   - **H04-S76** (H04-N1-HF), the turndown vent. When the customer takes less, the vanes close
     and PIC-4101 vents the excess through PV-4101B / VNT-4003. That is an oxygen release in
     normal operation for as long as the turndown lasts. People 3/E -> 3/C, medium: the elevated
-    safe-location vent is a passive feature and gets two orders.
+    safe-location vent is a passive feature and gets two orders (revised to one order, 3/D
+    high, in (7)).
   - **H04-S77** (H04-N3-LK), the header leak. PIC-4102 opens the vanes by design up to the
     FIC-4148 limit, then PIC-4111 starts the backup, so the leak is fed and can go unnoticed.
     People 4/C -> 4/C, high (nothing credited), with H04-A15.
@@ -4841,16 +4842,23 @@ Decision:
     - H-02 H02-N2: CO2 load 70.8 kg/h at 420 ppm (was 67.7);
     - H-02, regeneration node: 283 kg CO2 desorbed per step (was 271);
     - H-02, regeneration vent: 18,699 kg/h through S-2101 (was 18,696);
-    - H-03 H03-N1: booster outlet 56.4 C simulated against 59.9 C at D-061's 15 C suction;
-    - H-03 H03-N3: waste N2 3.4 C and a 0.37 K warm-end approach in the model, which has no
-      heat leak, against the 13 C assumed. These are model limits (D-097), not a design change.
+    - H-03 H03-N1: booster outlet 59.9 C and 185.9 kW simulated, as D-061, now that the TSA
+      heat of adsorption warms the air to 15 C (D-097 revised; the first run gave 56.4 C from an
+      11.9 C suction);
+    - H-03 H03-N3: waste N2 7.2 C in the model, which has no heat leak, against the 13 C
+      assumed, with the 2 K warm-end approach of D-061 met (first run: 3.4 C and 0.37 K). These
+      are model limits (D-097), not a design change.
   - The H03-N8-GOX note names the guide-vane low select instead of PIC-4101.
   - The assumed S4 15 C and S17 13 C that the intents cite are unchanged in the flowsheet.
-- (4) **Re-stamped**: `cheme safety hazop stamp <id> --write` for H-01 .. H-04 with the inputs as
-  recorded (no input added). The new revisions are the instrument list and the flowsheet in all
-  four studies, and P-04 in H-04. Then `cheme safety hazop rate <id> --write` for all four.
-  `cheme safety hazop check`: H-01 .. H-04 all `draft`, 0 errors, 0 warnings. The only info is
-  `hazop-unresolved`, with 104 / 77 / 109 / 153 proposals (443 in total).
+- (4) **Re-stamped**: `cheme safety hazop stamp <id> --write` for H-01 .. H-04. The new
+  revisions are the instrument list and the flowsheet in all four studies, and P-04 in H-04.
+  For H-04, `control/loops.yaml` and `control/sequences.yaml` are now analysed inputs
+  (`--input`, hazop-review3#5): the low select, the PIC-4105 -> FIC-3107 cascade with its clamp
+  and the SEQ-CB-START restart handling the reassessed scenarios rest on exist only there, not on
+  P-04, so a change to them (a ratio limit, the anti-windup) now raises hazop-input-changed.
+  Then `cheme safety hazop rate <id> --write` for all four. `cheme safety hazop check`: H-01 ..
+  H-04 all `draft`, 0 errors, 0 warnings. The only info is `hazop-unresolved`, with 104 / 77 /
+  109 / 163 proposals (453 in total).
 - (5) **Counts** (worst band as in D-093 (3): residual where rated, else initial, worst
   category):
 
@@ -4859,13 +4867,46 @@ Decision:
   | H-01 | 9 | 32 | 43 | 27 | 25 | 11 / 14 / 18 | 104 |
   | H-02 | 10 | 40 | 37 | 16 | 14 | 13 / 14 / 10 | 77 |
   | H-03 | 12 | 52 | 52 | 23 | 22 | 23 / 19 / 10 | 109 |
-  | H-04 | 13 | 67 | 78 | 35 | 27 | 33 / 29 / 16 | 153 |
-  | total | 44 | 191 | 210 | 101 | 88 | 80 / 76 / 54 | 443 |
+  | H-04 | 13 | 68 | 86 | 35 | 29 | 39 / 31 / 16 | 163 |
+  | total | 44 | 192 | 218 | 101 | 90 | 86 / 78 / 54 | 453 |
 
-  - H-04 changes from 31 / 28 / 16: H04-S07 moves from medium to high, H04-S77 adds a high,
-    and H04-S76 and H04-S78 add two mediums.
-  - No scenario ends very-high; 8 start very-high before safeguards.
+  - H-04 changes from 31 / 28 / 16 (D-093): H04-S07 moves from medium to high, H04-S77 adds a
+    high, H04-S76 and H04-S78 add two mediums; then (7): H04-S76 moves from medium to high,
+    H04-S79, S80, S84, S85 and S86 add five highs, H04-S81, S82 and S83 add three mediums.
+  - No scenario ends very-high; 9 start very-high before safeguards (H04-S80 added).
   - Every high scenario has at least one action.
+- (7) **Revised after hazop-review3** (all proposed, by agent; bands by `rate --write`):
+  - #1 (high): new **H04-S79** (asset, column upset, 3/E -> 3/E high) and **H04-S80** (main
+    condenser, people and asset 5/D -> 5/C high) under H04-N1-LP. The cause needs no failure:
+    with the cold box below its design make (MAC or air turndown, hot-day air limit, TSA
+    switchover dip, purity upset) and the customer at the design rate, PIC-4102 opens the vanes
+    up to the FIC-4148 limit, which is fixed at the design make and so above the actual make.
+    S80 follows the convention of H04-S75 / H03-S33: the cause frequency E, one order lower for
+    the draw to run on until E-3103 is uncovered with enough hydrocarbon present. Without that
+    order the team would rate 5/E -> 5/D, very-high. New action **H04-A28**: the GOX limit and
+    the GAN clamp as ratios to the air flow (D-096's open point); A23 names S79 / S80. The S77
+    note no longer says the column cannot be over-drawn by the leak.
+  - #2: new **H04-S82** (PT-4102 low or the PIC-4102 output high while the customer takes less:
+    export pressure to the K-4101 maximum, the HH trip on the same transmitter defeated; people
+    4/D -> 4/B medium on PSV-4122 only) and **H04-S83** (PT-4102 high: vanes closed, GOX vented
+    through PV-4101B for hours, backup started; people 3/D -> 3/C, asset 2/D -> 2/C). New action
+    **H04-A29**: an independent transmitter for the K-4101 discharge HH trip.
+  - #3: H04-S27 is now the PIC-4105 loop failure only (rating unchanged, 3/D high). New
+    **H04-S84** (GAN demand above design at the design make: the clamp is not the cause and is
+    credited one order, 3/E -> 3/D high) and **H04-S85** (reduced HP column make with the design
+    GAN demand: the clamp at the design draw is the cause, 3/E -> 3/E high; H04-A28).
+  - #4: new deviation **H04-N5-LK** with **H04-S86**, the GAN header leak fed by the cascade and
+    then the LIN backup, people (O2-deficient atmosphere) 4/C -> 4/C high; H04-A15 extended to
+    GAN (alarm on FIC-3107 at its clamp, on a LIN backup start while K-4102 runs).
+  - #5: loops.yaml and sequences.yaml stamped as H-04 inputs ((4)).
+  - #6: H04-S76 people residual 3/C -> **3/D** (high): one order for the vent until H04-A26
+    confirms the zone for a release of hours. The turndown split between PIC-4101 and PIC-3110 is
+    rated as new **H04-S81** (asset 2/E -> 2/E medium, H04-A26). The instrument list's PIC-4101
+    note now states the turndown venting of D-096.
+  - #7: the H04-S02 / S75 causes and the S02 note restate the masking consistently: at the
+    design make PIC-4102 failing high or PT-4150 reading high is masked by a healthy FIC-4148;
+    FT-4148 reading low and a failure after the selector are not; at a reduced make the limit
+    itself is above the make (S79, S80). Ratings unchanged.
 - (6) **process-library#36**:
   - review2#1 is fixed in (1).
   - review2#2: PROGRESS.md now has the missing row for bacc295 / 575447f (hazop-review1#13 /
@@ -4874,12 +4915,15 @@ Decision:
 
 Open:
 - Everything in D-093 (8): the team, the matrix, the sessions, and a human review record.
-- The new actions H04-A26 and H04-A27. The D-096 open points that the HAZOP depends on:
+- The new actions H04-A26 .. H04-A29. The D-096 open points that the HAZOP depends on:
   - the fail positions of the guide vanes, PV-4101B and PV-4105;
   - PIC-4105's tap position;
-  - the anti-surge flow of K-4101 (FT-4148 does not see the recycle).
-- `control/loops.yaml` and `control/sequences.yaml` are not analysed inputs of any study. Adding
-  them is for the team (`cheme safety hazop stamp <id> --input ...`).
+  - the anti-surge flow of K-4101 (FT-4148 does not see the recycle);
+  - the maximum draw and the GAN clamp as ratios to the air flow (H04-A28).
+- `control/loops.yaml` and `control/sequences.yaml` are analysed inputs of H-04 only. Whether
+  H-01 .. H-03 should depend on them too is for the team: their scenarios were not reassessed
+  against the loop register, so they were not stamped with it.
+- The low select, the cascade and its clamp are still not drawn on P-04 (D-096 Open).
 - A confirming independent review of the HAZOP after this change.
 
 Reason: D-096 asks the H-04 owner to reassess the product control. The studies must describe the
