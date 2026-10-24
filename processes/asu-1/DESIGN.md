@@ -1149,7 +1149,7 @@ pulled with a hoist (vendor).
 heater and the heater cable comes in from the north. The LIN vaporizer outlets GAN-4003 are
 collected south of E-4106A/B at 4.5 m and rise east of them, so E-4106B lifts clear from
 Z-PAD-A5N. E-4105A/B unchanged.
-(6) **Erection lifts are not in the maintenance study**: items lifted once, before the piping
+(6) **Erection lifts are not in the maintenance study** (weights superseded by D-081 (5)): items lifted once, before the piping
 and racks, by the erection crane: K-1101 train ~85 t (D-034), C-1101 ~55 t, C-1102 ~25 t,
 V-2101A/B ~49 t each, all ASSUMED order of magnitude: shell mass pi x D x L x t x 7.85 t/m3
 with the shell thickness from the thin-shell formula t = P R / (S E - 0.6 P) + 3 mm corrosion
@@ -3380,7 +3380,7 @@ shows the envelope the layout was built on. Tooling: cheme-as-code 0.8.0
    head.
 4. **Checks.** After the fill, `cheme validate` reports no `cheme.datasheet-dimension-mismatch`,
    no datasheet nozzle finding against the P&IDs or the layout model and no stale drawing.
-5. **Empty weights of the erected-once items (amends D-034 (1)).** D-034 gave weights only to
+5. **Empty weights of the erected-once items (amends D-034 (1), D-041 (6)).** D-034 gave weights only to
    the items lifted whole in maintenance, so the LCA construction inventory counted the
    columns, adsorbers, tanks, the filter house and the MAC train as zero. They now carry an
    ASSUMED empty weight in the equipment list (`dimensions.weight`, which the LCA and the
@@ -3410,6 +3410,19 @@ shows the envelope the layout was built on. Tooling: cheme-as-code 0.8.0
      12 mm plus packing and E-3103: the listed 25 / 30 t are of the right order and are kept.
      E-3103 (brazed aluminium cores in the C-3102 sump) stays without a weight: the supplier's
      (`cheme.lca-equipment-weight` names it, counted 0).
+   **These weights supersede the erection weights of D-041 (6)** (review17#3; amends D-041 (6),
+   whose text stays as history): C-1101 ~55 -> 52 t, C-1102 ~25 -> 36 t, V-2101A/B ~49 -> 61 t
+   each, F-1101 TBD -> 10 t, the K-1101 train ~85 -> 89 t. They govern the lifting study, the
+   basis handed to the construction lifting plan and the LCA, because they follow a stated
+   design-code wall thickness (design stress at the design temperature, joint factor, corrosion
+   allowance, 12 mm minimum for the 4.5 m shell) where D-041 (6) took an order-of-magnitude
+   shell mass at one stress (138 MPa) and 8 mm minimum: hence C-1102 +44 % (12 against 8 mm)
+   and V-2101A/B +24 % (100 N/mm2 at 250 C, 25 mm). Basis, as D-041 (6) also said: the vessel as
+   set, without packing, adsorbent or lining (loaded after setting); the 1.15 factor covers
+   manways, nozzles, supports and fittings, and D-041's x 1.3 for "internals" is not carried.
+   Shop-installed internals (packing supports, the C-1101 chimney tray, distributors) add to the
+   lift: the construction lifting plan uses the vessel supplier's shipping weight, which
+   replaces both figures.
    Lifting: the lifting study lifts every item of 5 t or more outside the cold box casing, so the
    new weights add C-1101, C-1102, F-1101 and V-2101A/B as rows (the tanks first too; (10)
    takes them out). They are shop-built erection lifts, not maintenance lifts (D-034: set once
