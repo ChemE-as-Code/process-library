@@ -39,7 +39,7 @@ instruments:
   - {tag: AIA-3105, service: O2 trace in GAN product, sheet: P-04, notes: "Alarm 10 ppm; opens XV-3105 (GAN divert to VNT-4004) and closes XV-4120. Moved to P-04: measured on GAN-4001 at the K-4102 suction, where the divert-to-vent valve is."}
   - {tag: AIA-3122, service: O2 in cold box casing breather exhaust, sheet: P-03, notes: "Alarm high 23 % O2 (ASSUMED): O2 enrichment of the casing from a cold-box leak (EIGA Doc 65, O2 review F7); low alarm 19.5 % at the breather marks N2 escape for personnel."}
   - {tag: FIC-3106, service: LN reflux flow to LP column, sheet: P-03, notes: "Acts on FV-3106."}
-  - {tag: FIC-3107, service: GAN product flow, sheet: P-04, notes: "Moved to P-04: acts on the K-4102 inlet guide vanes."}
+  - {tag: FIC-3107, service: GAN product flow, sheet: P-04, notes: "Moved to P-04: acts on the K-4102 inlet guide vanes; its set point comes from PIC-4105 in cascade (D-096)."}
   - {tag: SIC-3108, service: Expander KT-3101 speed, sheet: P-03, notes: "Inlet nozzle control; SSHH-3108 overspeed trip closes the quick-closing inlet valve."}
   - {tag: SSHH-3108, service: Expander overspeed trip, sheet: P-03, notes: "Independent speed probes, 2oo3."}
   - {tag: TIC-3109, service: Expander outlet temperature, sheet: P-03, notes: "Low limit avoids liquid at expander outlet."}
@@ -52,11 +52,11 @@ instruments:
   - {tag: TICA-3124, service: E-3105 boosted air outlet temperature (trim cooler), sheet: P-03, notes: "TIC with high alarm: set point 15 C, TAH 18.5 C (the minimum acceptable trim, cold box +60.4 kW, D-067); acts on TV-3124 (fail open) on the chilled-water supply CHW-3001. On loss of E-3105 the liquid production is turned down (D-067, D-069)."}
   - {tag: UIC-3120,service: Booster K-3101 anti-surge, sheet: P-03, notes: "Flow at the suction (AIR-3005) and pressure ratio; opens recycle valve UV-3120 (fail open) on AIR-3006. Discharge check valve downstream of the recycle tee (D-003)."}
   # ---- P-04
-  - {tag: PIC-4101, service: GOX compressor suction pressure, sheet: P-04, notes: "Split range: output A to the K-4101 inlet guide vane actuator (no separate PV-4101A valve body; label 'IGV (output A)' in D-019) and PV-4101B suction vent to S-4102 on K-4101 trip and start-up; protects LP column pressure (D-019)."}
-  - {tag: PIC-4102, service: GOX export pressure, sheet: P-04, notes: "30 barg."}
-  - {tag: UIC-4103, service: GOX compressor anti-surge, sheet: P-04, notes: "Recycle via GOX-4003 (UV-4103). Flow input FI-4148 on GOX-4001 at the K-4101 suction (D-024)."}
+  - {tag: PIC-4101, service: GOX compressor suction pressure (vent), sheet: P-04, notes: "Acts on PV-4101B, the suction vent to S-4102, with its set point above the normal suction pressure: it vents the GOX on a K-4101 trip and at start-up (D-019). Its transmitter PT-4101 taps GOX-4001 upstream of the suction ESD XV-4117 (S1), so it still sees the column side when XV-4117 is shut. No longer split range: the guide vanes are PIC-4102's, limited by FIC-4148 and PIC-4150 (D-096). The signal to PV-4101B is not drawn. The LP column pressure is PIC-3110's (D-095)."}
+  - {tag: PIC-4102, service: GOX export pressure, sheet: P-04, notes: "30 barg. Holds the pipeline pressure on the K-4101 inlet guide vanes, through a low select with the limits FIC-4148 (maximum draw) and PIC-4150 (suction low limit) (D-096)."}
+  - {tag: UIC-4103, service: GOX compressor anti-surge, sheet: P-04, notes: "Recycle via GOX-4003 (UV-4103). Flow input FIC-4148 (its transmitter FT-4148) on GOX-4001 at the K-4101 suction (D-024)."}
   - {tag: TSHH-4104, service: GOX compressor stage temperature trip (fire detection), sheet: P-04, notes: "Trips K-4101, closes ESD valves, depressurizes to vent (D-013)."}
-  - {tag: FIC-4105, service: GAN export flow, sheet: P-04, notes: ""}
+  - {tag: PIC-4105, service: GAN export pressure, sheet: P-04, notes: "Holds the GAN export pressure (9 bara, S9B) as the master of FIC-3107 (cascade: its output is FIC-3107's set point, D-096). PV-4105 on GAN-4002 stays as an actuated valve, normally fully open; its role (back-pressure or isolation) and the drawn signal to it are for detail engineering. Was FIC-4105 / FV-4105 (D-095)."}
   - {tag: UIC-4131, service: GAN compressor anti-surge, sheet: P-04, notes: "Acts on UV-4131 (fail open) in recycle GAN-4004 from the E-4103 outlet to the K-4102 suction."}
   - {tag: PIC-4106, service: GAN compressor suction pressure, sheet: P-04, notes: ""}
   - {tag: LIA-4107, service: LOX tank level, sheet: P-04, notes: "Low alarm: backup reserve. LALL trips P-4101A/B and closes XV-4136 (pump dry-run protection, D-024)."}
@@ -69,5 +69,6 @@ instruments:
   - {tag: TSLL-4114, service: LIN vaporizer outlet low temperature trip, sheet: P-04, notes: "Stops P-4102A/B."}
   - {tag: AI-4115, service: GOX export purity, sheet: P-04, notes: "Custody / quality at BL."}
   - {tag: FQI-4149, service: GOX export flow totaliser at BL, sheet: P-04, notes: "Custody / billing, beside AI-4115 on GOX-4002 (D-024). Element type in detail engineering, O2-clean."}
-  - {tag: FI-4148, service: GOX compressor suction flow, sheet: P-04, notes: "On GOX-4001 at the K-4101 suction; input to UIC-4103 anti-surge (D-024). O2-clean."}
+  - {tag: FIC-4148, service: GOX product flow (GOX draw), sheet: P-04, notes: "On GOX-4001 at the K-4101 suction: the maximum GOX draw, a limit in the low select on the K-4101 inlet guide vanes with PIC-4102 (master) and PIC-4150 (D-096); also the flow input to UIC-4103 anti-surge (D-024). Was FI-4148. O2-clean."}
+  - {tag: PIC-4150, service: GOX suction pressure low limit, sheet: P-04, notes: "Own transmitter PT-4150 on GOX-4001 at the K-4101 suction, between XV-4117 and the machine (S3); its signal is drawn to the guide vanes. It throttles the guide vanes through the low select with PIC-4102 and FIC-4148 when the suction pressure falls (a GOX over-draw, HAZOP H04-S75). It sits in the same control system as the loops it limits, so it is not an independent layer (H04-A23 remains) (D-096)."}
   - {tag: AIA-4121, service: "Hydrocarbons (THC, C2H2) in LOX tank liquid", sheet: P-04, notes: "Sample from tank bottom to the analyzer house, periodic; alarm per EIGA Doc 65 (ASSUMED). Tank liquid can concentrate hydrocarbons by boil-off (D-010)."}

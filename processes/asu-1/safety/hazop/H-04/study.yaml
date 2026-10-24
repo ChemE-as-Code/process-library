@@ -72,9 +72,9 @@ nodes:
       from E-3101 (P-03) through the suction ESD valve XV-4117 to K-4101. PIC-4101 holds the
       suction (and so the LP column) pressure: output A on the K-4101 inlet guide vanes, output B
       opens PV-4101B to vent through S-4102 / VNT-4003 (elevated, safe location) on a K-4101
-      trip and at start-up (D-019). AI-3104 (purity) and FI-4148 (anti-surge flow input) measure
+      trip and at start-up (D-019). AI-3104 (purity) and FIC-4148 (anti-surge flow input) measure
       on this line. Oxygen service, cleaned to D-009.
-    members: [GOX-4001, XV-4117, PIC-4101, PV-4101B, S-4102, VNT-4003, AI-3104, FI-4148, K-4101]
+    members: [GOX-4001, XV-4117, PIC-4101, PV-4101B, S-4102, VNT-4003, AI-3104, FIC-4148, K-4101]
     modes: [normal, startup, shutdown, power-fail, maintenance]
     status: proposed
     by: agent
@@ -188,7 +188,7 @@ nodes:
       datasheet say fire-safe enclosure, H04-A24), Monel / copper alloy in the high-velocity
       zones), intercooled in the E-4101 package (GOX-4005) and aftercooled in E-4102 to 40 C with
       cooling water CW-4001 / CWR-4001 (25 / 35 C, ~4 barg); design 34 barg / 150 C. UIC-4103
-      (FI-4148 and pressure ratio) keeps the machine out of surge through UV-4103 and the recycle
+      (FIC-4148 and pressure ratio) keeps the machine out of surge through UV-4103 and the recycle
       GOX-4003 from the E-4102 outlet to the suction. TSHH-4104 detects a fire (stage
       temperature) and trips K-4101, the ESD valves and the blowdown.
     members: [K-4101, E-4101, E-4102, GOX-4005, GOX-4003, UV-4103, UIC-4103, TSHH-4104, CW-4001, CWR-4001]
@@ -201,9 +201,9 @@ nodes:
         parameter: flow
         scenarios:
           - id: H04-S05
-            cause: "UIC-4103 or UV-4103 fails (valve stuck closed, FI-4148 reading high) while the customer reduces off-take or at turndown."
+            cause: "UIC-4103 or UV-4103 fails (valve stuck closed, FIC-4148 reading high) while the customer reduces off-take or at turndown."
             consequence: "K-4101 surges: flow reversal and rubbing of impellers or labyrinths in oxygen, metal ignition, oxygen fire and destruction of the machine."
-            refs: [UIC-4103, UV-4103, FI-4148, K-4101, GOX-4003]
+            refs: [UIC-4103, UV-4103, FIC-4148, K-4101, GOX-4003]
             modes: [normal, startup, shutdown]
             safeguards: [H04-SG03, H04-SG27, H04-SG36]
             actions: [H04-A13, H04-A24]
@@ -581,9 +581,9 @@ nodes:
         parameter: pressure
         scenarios:
           - id: H04-S24
-            cause: "FV-4105 fails closed or XV-4120 closes while K-4102 runs, with the HP column (suction) at its upper pressure."
+            cause: "PV-4105 fails closed or XV-4120 closes while K-4102 runs, with the HP column (suction) at its upper pressure."
             consequence: "Blocked outlet: K-4102 discharge, E-4103 and GAN-4002 up to the valve rise to the machine's maximum; no relief device is drawn on the K-4102 discharge (design 11 barg)."
-            refs: [FV-4105, XV-4120, K-4102, E-4103, GAN-4002]
+            refs: [PV-4105, XV-4120, K-4102, E-4103, GAN-4002]
             modes: [normal]
             safeguards: [H04-SG07]
             actions: [H04-A06]
@@ -615,11 +615,11 @@ nodes:
     title: GAN-4002 export to the battery limit and casing purge take-off UN-3001
     design_intent: >-
       Deliver 10,000 Nm3/h GAN at 9 bara and 40 C (DN150, PN16) through the check valve and
-      FV-4105 (FIC-4105) and the double block and bleed XV-4120 / XV-4134 with bleed XV-4135 to
+      PV-4105 (PIC-4105) and the double block and bleed XV-4120 / XV-4134 with bleed XV-4135 to
       VNT-4007 (elevated) to the customer pipeline at 8 barg; supply the cold box casing purge
       UN-3001 (to PV-3113 on P-03) from the header upstream of XV-4120; receive the backup GAN
       GAN-4003.
-    members: [GAN-4002, FIC-4105, FV-4105, UN-3001, XV-4120, XV-4134, XV-4135, VNT-4007, {sheet: P-04, object: CV_GAN4002}]
+    members: [GAN-4002, PIC-4105, PV-4105, UN-3001, XV-4120, XV-4134, XV-4135, VNT-4007, {sheet: P-04, object: CV_GAN4002}]
     modes: [normal, backup, shutdown, maintenance, power-fail]
     status: proposed
     by: agent
@@ -648,9 +648,9 @@ nodes:
         parameter: flow
         scenarios:
           - id: H04-S27
-            cause: "FIC-4105 / FV-4105 fails open."
+            cause: "PIC-4105 / PV-4105 fails open."
             consequence: "K-4102 runs to its maximum flow, FIC-3107 opens the guide vanes and the HP column is drawn down (see H04-S20): column upset."
-            refs: [FIC-4105, FV-4105, K-4102]
+            refs: [PIC-4105, PV-4105, K-4102]
             modes: [normal]
             safeguards: []
             actions: [H04-A22]
@@ -658,9 +658,9 @@ nodes:
             by: agent
             risk:
               initial:
-                - {category: asset, severity: "3", likelihood: D, basis: "Cold box upset of days (matrix 3); single loop failure (D).", evidence: [FV-4105], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+                - {category: asset, severity: "3", likelihood: D, basis: "Cold box upset of days (matrix 3); single loop failure (D).", evidence: [PV-4105], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
               residual:
-                - {category: asset, severity: "3", likelihood: D, basis: "Nothing credited: no PIC-4106 action on the K-4102 guide vanes is recorded in the instrument list or the C&E.", evidence: [PIC-4106, FV-4105], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+                - {category: asset, severity: "3", likelihood: D, basis: "Nothing credited: no PIC-4106 action on the K-4102 guide vanes is recorded in the instrument list or the C&E.", evidence: [PIC-4106, PV-4105], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
       - id: H04-N5-MT
         guide_word: other-than
         parameter: maintenance
@@ -1606,7 +1606,7 @@ safeguards:
   - {id: H04-SG03, title: "TSHH-4104 fire detection trips K-4101, closes XV-4117 / XV-4118, opens blowdown XV-4116", kind: other, refs: [TSHH-4104, K-4101, XV-4117, XV-4118, XV-4116], status: proposed, by: agent, notes: "Trip written on P-04 and in the instrument list (D-013), not yet in control/cause-effect.yaml (H04-A01). Credited as kind other, like the E-2101 trips (H-02) and the compander trips (H-03), not as an interlock."}
   - {id: H04-SG04, title: "TSLL-4114 low vaporizer outlet temperature stops P-4102A/B and closes PV-4112", kind: other, refs: [TSLL-4114, P-4102A, P-4102B, PV-4112], status: proposed, by: agent, notes: "Not yet in control/cause-effect.yaml (H04-A01). Credited as kind other, like the E-2101 trips (H-02) and the compander trips (H-03), not as an interlock."}
   - {id: H04-SG05, title: "PIC-4102 export pressure control; high-high trips K-4101", kind: other, refs: [PIC-4102, K-4101], status: proposed, by: agent, notes: "The HH trip is written on P-04, not yet in control/cause-effect.yaml (H04-A01). Credited as kind other, like the E-2101 trips (H-02) and the compander trips (H-03), not as an interlock."}
-  - {id: H04-SG06, title: "UIC-4103 anti-surge control of K-4101 through UV-4103 and GOX-4003", kind: control, refs: [UIC-4103, UV-4103, FI-4148], status: proposed, by: agent}
+  - {id: H04-SG06, title: "UIC-4103 anti-surge control of K-4101 through UV-4103 and GOX-4003", kind: control, refs: [UIC-4103, UV-4103, FIC-4148], status: proposed, by: agent}
   - {id: H04-SG07, title: "UIC-4131 anti-surge control of K-4102 through UV-4131 (fail open) and GAN-4004", kind: control, refs: [UIC-4131, UV-4131], status: proposed, by: agent}
   - {id: H04-SG09, title: "PSV-4127 on the E-4105A/B outlet header", kind: relief, refs: [PSV-4127], status: proposed, by: agent}
   - {id: H04-SG10, title: "PSV-4122 on the K-4101 discharge (blocked outlet at max. speed)", kind: relief, refs: [PSV-4122], status: proposed, by: agent}
@@ -1651,13 +1651,13 @@ actions:
   - {id: H04-A12, text: "Add outlet temperature indication with high alarm on E-4102 (GOX-4002) and E-4103 (GAN-4002), and consider a high-high trip of K-4101 on the aftercooler outlet.", owner: process engineer, status: proposed, by: agent}
   - {id: H04-A13, text: "Obtain from the K-4101 / K-4102 suppliers their machine protection (vibration, axial position, surge detection, buffer and seal gas pressure, suction strainer) and enter its trips in control/cause-effect.yaml. One update of control/cause-effect.yaml and one LOPA / SIL session answer H01-A3, H01-A8, H02-A1, H02-A2, H03-A2, H03-A3, H04-A01, H04-A02 and H04-A13; this action names the functions of this sheet.", owner: mechanical engineer, status: proposed, by: agent}
   - {id: H04-A14, text: "Decide the power supply of the backup system (emergency power for P-4101A/B, P-4102A/B and their controls) against the customer's continuity requirement, and confirm the fail positions of PV-4101B, PV-4109 .. PV-4112, UV-4103, XV-4116 .. XV-4118 and XV-3105, which the files do not state. One plant-wide fail-position list (P-01 .. P-04) answers H01-A6, H02-A6, H03-A1 and H04-A14; this action names the valves of this sheet.", owner: electrical and instrument engineer, status: proposed, by: agent}
-  - {id: H04-A15, text: "Consider leak detection for GOX-4002 (flow balance FI-4148 against FQI-4149, pressure decay) and the remote isolation it triggers.", owner: process engineer, status: proposed, by: agent}
+  - {id: H04-A15, text: "Consider leak detection for GOX-4002 (flow balance FIC-4148 against FQI-4149, pressure decay) and the remote isolation it triggers.", owner: process engineer, status: proposed, by: agent}
   - {id: H04-A16, text: "Analyse the O2 content of the GAN actually exported, including the backup GAN from T-4102 (GAN-4003 joins downstream of AIA-3105): an analyser at the GAN battery limit or on T-4102.", owner: process engineer, status: proposed, by: agent}
   - {id: H04-A17, text: "Give AI-3104 / AI-4115 a low purity alarm and agree the off-spec response with the customer.", owner: process engineer, status: proposed, by: agent}
   - {id: H04-A18, text: "Write the maintenance and entry procedures for oxygen and nitrogen equipment (tanks, pumps, vaporizers, BL stations): isolation, purge to air, atmosphere test, personal O2 monitors, and cleaning verification before an oxygen system goes back into service (D-009). One site procedure for positive isolation and entry into equipment that can hold N2 answers H01-A15, H02-A10, H03-A15 and H04-A18; this action names the equipment of this sheet.", owner: operations, status: proposed, by: agent}
   - {id: H04-A19, text: "Define spill containment and surfaces under the LOX / LIN tanks, pumps and fill bays (non-combustible under all LOX equipment, not only the fill coupling), and fixed oxygen-enrichment / oxygen-deficiency detection at the pumps and tanker bays.", owner: process engineer, status: proposed, by: agent}
   - {id: H04-A20, text: "Confirm that the PSV-3114 relief case covers a K-4101 trip with PV-4101B failing to open (the relief case review is H03-A20); limit the opening rate of PV-4111 on the backup auto-start (EIGA Doc 13) so the riser and tie-in are not pressurised fast.", owner: process engineer, status: proposed, by: agent}
-  - {id: H04-A22, text: "Give the K-4102 suction (PIC-4106) a low pressure alarm and a limit on the guide vane opening independent of FIC-3107 / FIC-4105, or credit the LIC-3101 level alarms that H03-A8 proposes, once they exist.", owner: instrument and control engineer, status: proposed, by: agent}
+  - {id: H04-A22, text: "Give the K-4102 suction (PIC-4106) a low pressure alarm and a limit on the guide vane opening independent of FIC-3107 / PIC-4105, or credit the LIC-3101 level alarms that H03-A8 proposes, once they exist.", owner: instrument and control engineer, status: proposed, by: agent}
   - {id: H04-A21, text: "Consider detection of GOX in the E-4101 / E-4102 cooling water return (gas detector or vent pot on CWR-4001) for a tube leak.", owner: process engineer, status: proposed, by: agent}
   - {id: H04-A23, text: "Limit the GOX draw of K-4101 independently of PIC-4101: a K-4101 suction or LP column low-pressure alarm and a limit or trip on the guide-vane opening, so a failed PIC-4101 cannot boil the LP sump down (H04-S75). With H03-A4 (LICA-3102 low alarm set point and an independent low-low level), which the same LOPA session decides.", owner: instrument and control engineer, status: proposed, by: agent}
   - {id: H04-A24, text: "Resolve the K-4101 arrangement: D-002, the equipment list and the K-4101 datasheet say fire-safe enclosure, D-026 (1) and D-030 (2) put the machine in the open behind the fire wall FW-4101. Record one arrangement, and with it an exclusion zone at the open east side with no one at the machine while it runs on oxygen (EIGA Doc 27 practice), so the people credit rests on the fire wall and the zone.", owner: process safety engineer, status: proposed, by: agent}
