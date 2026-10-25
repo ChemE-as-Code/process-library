@@ -447,13 +447,14 @@ for (a, b), s in zip((("S14", "S9"), ("S15", "S7")), cold_fixed):
           f"{total([s]):.5g} kW")
 q_fixed = total(cold_fixed)
 t16 = kelvin("S16")
-# D-066: E-3102 is simulated: the waste N2 enters E-3101 as S16B (no longer closed here)
-waste = side("S16B", "S17")
+# D-066: E-3102 is simulated; D-103: the waste N2 enters E-3101 as S16C, S16B after the lumped
+# cold-box heat in-leak HL3101 (50 kW, ASSUMED), and leaves at the simulated S17
+waste = side("S16C", "S17")
 q_cold = q_fixed + total([waste])
-print(f"  cold S16B -> S17 from the E-3102 outlet {kelvin('S16B'):.5g} K (DWSIM, D-066): "
-      f"{total([waste]):.5g} kW; cold side {q_cold:.5g} kW, warm side {q_warm:.5g} kW: the cold side "
-      f"can take {q_cold - q_warm:.4g} kW more (the margin for the heat leak into E-3101 and the warm-end "
-      f"approach; D-067 closes the whole cold box at a 75.2 kW leak)")
+print(f"  cold S16C -> S17 from {kelvin('S16C'):.5g} K (E-3102 outlet S16B {kelvin('S16B'):.5g} K plus "
+      f"the 50 kW heat in-leak HL3101, DWSIM, D-103) to {kelvin('S17'):.5g} K (simulated): "
+      f"{total([waste]):.5g} kW; cold side {q_cold:.5g} kW, warm side {q_warm:.5g} kW (balance "
+      f"{q_cold - q_warm:.3g} kW)")
 dmin, qat, dwarm, dcold, ua = approach(warm, cold_fixed + [waste])
 print(
     f"  E-3101 duty {q_warm:.5g} kW (warm side), minimum approach {dmin:.3g} K at {qat:.4g} kW from "
@@ -518,7 +519,8 @@ print(
     f"{w_pr:.4g} kg/h); CO2 {co2:.4g} kg/h (x_CO2 {x3['CO2']:.3g}); per {CYCLE_H:g} h adsorption step: "
     f"water {w_iapws * CYCLE_H:.4g} kg, CO2 {co2 * CYCLE_H:.4g} kg"
 )
-# D-066: regeneration gas S12A 18,486 kg/h heated from the warm-end 13 C (S17) to 200 C (S12H)
+# D-066: regeneration gas S12A 18,486 kg/h heated from the warm end (S17; simulated since D-103,
+# was the assumed 13 C) to 200 C (S12H)
 x12 = fractions("S12A")
 n12 = flow("S12A") / molar_mass(x12) / 3600.0
 # 200 C is above the property adapter's claimed range: ideal-gas Cp of thermo (the props extra)

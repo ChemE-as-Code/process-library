@@ -121,6 +121,8 @@ Superseded by D-061 (PR, the compander balanced): booster 5.6 -> 8.45 bara, expa
 E-3101 at 40 C (~105 kW): the cold box is ~78 kW short at 940 kg/h liquid (D-061). Closed by
 D-067: the boosted air enters E-3101 at 15 C (E-3104 to 30 C on cooling water, E-3105 to 15 C
 on chilled water); the cold box then closes at a heat leak of ~75 kW against 50 kW ASSUMED.
+Confirmed by D-104 as the governing balance: the whole-plant simulation shows ~130 kW, but ~49 kW
+of that is refrigeration only its column model has (C-3102's top residual, the E-3103 mismatch).
 
 | consumer | power / duty | basis |
 |---|---|---|
@@ -2635,6 +2637,9 @@ Results:
   (40 C) at -30.2 kW. Basis: thermo PR enthalpy balance, HP air 96,000 kg/h, expander
   198.4 kW, products at 13 C, LOX/LIN 470 + 470 kg/h.
 - The minimum acceptable trim outlet is 18.5 C, which gives +60.4 kW.
+- (D-104) These closures are total leak capacities. They stay the governing basis: D-104
+  reproduces the +75.2 kW from the simulated streams and explains why the whole-plant
+  simulation shows ~130 kW. Against the 50 kW leak, the loss of E-3105 is a ~38 kW deficit.
 
 Reason:
 - **The cause.** D-061 found the booster air bringing ~105 kW of heat above 15 C into the
@@ -2668,7 +2673,7 @@ Open:
   the booster air and the products is now 2 K) and the E-3102 duty against the composite
   curves.
 - If E-3105 is lost, the cold box closes at only +11.9 kW: turn down the liquid production
-  until it is back.
+  until it is back (D-104: by about 330 kg/h against the 50 kW leak).
 - The C-1102 top vent WN-1002 now discharges about 58,000 kg/h of oxygen-deficient gas
   (5.1 % O2), 1.8 times as much as before. Re-check its O2-deficient zone (D-031) for the
   larger flow. Re-check S-3101 / WN-3003 (Z-N2-V1) as well: no longer continuous, but up to
@@ -4558,7 +4563,8 @@ protection layer; HAZOP action H04-A23 remains.
 
 Open:
 - The role of PV-4105 and the signal drawn to it on P-04. Drawing the low select, the cascade
-  and PIC-4101's signal to PV-4101B.
+  and PIC-4101's signal to PV-4101B. (D-101 drew the low select UY-4151 and the cascade and
+  removed the line to PV-4105; PV-4105's role and PIC-4101's signal stay open.)
 - The anti-surge flow of K-4101: FT-4148 is upstream of the vent and recycle tees, so it does
   not see the recycle (D-024).
 - The maximum draw as a ratio to the air flow. The clamp on FIC-3107's cascade set point (the
@@ -5028,8 +5034,379 @@ evidence stamped against it stays current.
 
 Reason: show the ASU in the Process Atlas for a site country without copying the project or
 claiming a regional footprint the data cannot support.
+## D-101 Product control drawn on P-04: the guide-vane low select UY-4151 and the GAN cascade (2026-10-25)
+Decided by the agent on the owner's delegation of 2026-10-25 ("resolve all of these issues, make
+good decisions"). These are not the owner's own engineering judgement; the owner may reverse any
+of them. Closes the D-096 open point "drawing the low select and the cascade" (D-098 lists it
+too). The control itself is D-096's; this decision only draws it and chooses the tag.
 
-## D-101 Regional scenarios on the sourced EEA grid factors (2026-10-25)
+Decision:
+- (1) **Low select UY-4151.** A DCS function block (a computing relay with the ISA 5.1 '<'
+  function) passes the lowest of PIC-4102 (pipeline pressure master), FIC-4148 (maximum draw)
+  and PIC-4150 (suction low limit) to the K-4101 inlet guide vanes.
+  - Tag: no Y (relay / compute) tag existed in the lists. U (multivariable) + Y (relay) because
+    the block combines a pressure and a flow; the number 4151 is the next free one of section 41
+    (D-007 pattern). It has no transmitter and no field device, so it needs no cable.
+  - Drawing: a central (DCS) bubble above PIC-4150 beside K-4101, with a '<' note at its upper
+    left. Three dashed signal lines (SignalLineFunctions in the model) come in: PIC-4150 from
+    below, FIC-4148 from the left, PIC-4102 from above. One dashed line goes out to the guide
+    vanes at the K-4101 inlet. It replaces PIC-4150's former direct line to the vanes, which was
+    drawn only. PIC-4150 moved 3 mm down to make room. The vanes have no DEXPI actuator object,
+    so the output stays a drawn line, as FIC-3107's line to the K-4102 vanes is.
+- (2) **Cascade PIC-4105 -> FIC-3107.** Both bubbles are on P-04 (FIC-3107 moved there under
+  D-096), so no off-page connector is needed. A dashed signal line (SignalLineFunction) runs from
+  the top of PIC-4105 over the K-4102 area into the top of FIC-3107. FIC-3107's own line to the
+  K-4102 vanes now leaves the bubble 3 mm right of its top, so the two do not overlap.
+- (3) **PV-4105 loses its drawn signal.** PIC-4105's only output is FIC-3107's set point
+  (D-096), so the line drawn from PIC-4105 to PV-4105 was wrong and was removed. PV-4105 stays
+  an actuated valve, normally fully open. Its role (back-pressure at start-up or isolation) and
+  what operates it stay open for detail engineering (loops.yaml PIC-4105).
+
+Carried out:
+- **P-04:**
+  - new: UY-4151 with its drawing;
+  - new SignalLineFunctions: PIC-4102, FIC-4148 and PIC-4150 to UY-4151, and PIC-4105 to
+    FIC-3107;
+  - removed: the drawn lines from PIC-4150 to the vanes and from PIC-4105 to PV-4105;
+  - the S-4101 tag label moved 2.5 mm up, so the PIC-4102 signal passes between it and the
+    silencer.
+- **Crossings:** the signal lines cross three pipes, each once:
+  - FIC-4148 -> UY-4151 crosses GOX-4001 and the GOX-4003 recycle riser;
+  - PIC-4102 -> UY-4151 crosses the VNT-4002 stack.
+
+  Each is accepted with its reason in checks/checks.yaml (drawing-clean). The cascade crosses
+  UIC-4103's measuring and signal lines (signal over signal, not a drawing finding). No route
+  between the two bubbles misses them, because the UIC-4103 loop spans from K-4101 down to
+  UV-4103.
+- **Lists:**
+  - instrument list: UY-4151 is new; the notes of PIC-4102, FIC-4148, PIC-4150, PIC-4105 and
+    FIC-3107 now name the drawn function;
+  - loops.yaml: the rationales of PIC-4102, PIC-4150 and PIC-4105 now name it, and the PV-4105
+    open point is reworded.
+- **Layout:** the layout model was rebuilt (P-04 and the instrument list are among its sources).
+
+Not changed: the signal from PIC-4101 to PV-4101B is still not drawn (D-096 Open). A route
+from PIC-4101, below GOX-4001, to PV-4101B at the S-4102 vent has to pass FIC-4148 and AI-3104.
+It is left for the next P-04 revision. Not credited: UY-4151 is in the same control system as
+the loops it selects, so it is not a protection layer (H04-A23 remains).
+
+Open:
+- the HAZOP H-04 input stamp. P-04 changed, so the HAZOP revision (D-102) re-stamps it;
+- an independent review of this drawing change;
+- anti-windup of the select and bumpless transfer (D-096 Open, control engineer).
+
+Reason: D-096 put the product control on the instrument list and in the loops, but a P&ID
+reader saw PIC-4150 alone on the guide vanes and PIC-4105 on PV-4105. Neither is the control
+that was decided.
+## D-102 HAZOP H-01 .. H-04 revised for D-101 and D-103, re-stamped; team-session pack (2026-10-25)
+Decided by the agent on the owner's delegation of 2026-10-25 ("resolve all of these issues, make
+good decisions"). These are not the owner's own engineering judgement, and none of it is a HAZOP
+team's acceptance: every node, scenario, safeguard, rating and action stays `status: proposed,
+by: agent`. Closes the HAZOP open points of D-101 (H-04 input stamp) and D-103 (all four studies
+reporting hazop-input-changed, H03-N3 citing the 7.2 C waste N2).
+
+What changed in the analysed inputs since the D-099 stamps: P-04 (UY-4151 and the cascade drawn,
+the PIC-4105 -> PV-4105 line removed, D-101), the instrument list and loops.yaml (the same), the
+line list (WN-1001 / WN-3002 notes at 9.5 C) and the flowsheet (heat in-leak HL3101, S12B/S12C/S17
+at 9.49 C, D-103). The P&IDs P-01 .. P-03, the C&E, the equipment list, the special items, the
+design basis and sequences.yaml did not change.
+
+Decision:
+- (1) **Revised, by id** (nothing renumbered):
+  - H04-N1: design intent names the drawn low select UY-4151, UY-4151 added to the members, a
+    node note on what D-101 drew (hazop-review3#5 had found the control only in loops.yaml);
+    H04-S02 and H04-S75 cause UY-4151 and reference it; ratings unchanged, because the control
+    is D-096's and only its drawing changed.
+  - H04-N3 and H04-A23 name UY-4151; H04-N5 says the cascade is drawn and that PV-4105 has no
+    drawn signal; H04-S24 adds PV-4105 left closed after a start-up as a cause (no controller is
+    defined), mode startup and action H04-A14 (fail position); ratings unchanged.
+  - H03-N3: the waste N2 warm end is the simulated 9.5 C with the 50 kW leak (was "13 C; the
+    simulation without leak gives 7.2 C"). H03-A10: the WN-3002 low alarm is set against the
+    9.5 C normal warm end and trended as a heat-leak indicator.
+  - H02-N5, H02-N6: waste N2 at 9.5 C; E-2101 gas duty about 1.01 MW inside the 1.13 MW peak.
+  - H01-N7: WN-1001 at 9.5 C, adiabatic saturation about 0.3 C, make-up 0.56-0.88 t/h.
+- (2) **New scenarios** (the selector is one function block common to PIC-4102, FIC-4148 and
+  PIC-4150, so under the studies' credit convention its failure is a cause and it is never a
+  safeguard):
+  - H04-S87 (H04-N3-HP): UY-4151 output high or frozen at turndown, export header overpressure;
+    PSV-4122 credited two orders; the PIC-4102 high-high trip not credited until H04-A01 places
+    it in a logic apart from the selector. People 4/D high -> 4/B medium.
+  - H04-S88 (H04-N1-HF): UY-4151 output low, vanes close, GOX vented for hours and the LOX backup
+    starts; PIC-4101 and PIC-4111 are outside the selector. People 3/D high -> 3/C medium; asset
+    2/D medium -> 2/C low.
+  - H04-S89 (new deviation H04-N1-SL, other-than control): reset windup of PIC-4102 behind a
+    holding limit, a step opening of the vanes when the limit releases. Asset 2/E medium, nothing
+    credited (anti-windup is D-096 Open).
+  - H03-S53 (new deviation H03-N11-HL, more heat in-leak): a leak above the ~130 kW expander
+    margin (perlite settlement, wet perlite, damaged insulation): refrigeration deficit and
+    reduced make. Asset 2/C low, nothing credited.
+  - H01-S44 (new deviation H01-N7-LT): C-1102 water towards freezing when the water load drops
+    and the waste N2 comes colder than normal; the margin to 0 C is now about 0.3 K at the
+    simulated inlet. Asset 2/C low, nothing credited.
+- (3) **New actions**: H04-A30 (specify and test UY-4151: anti-windup and bumpless transfer, a
+  defined action on a bad input or block fault, limit-active and output-versus-vane deviation
+  alarms), H03-A25 (cold box supplier: confirm the heat in-leak, the perlite top-up provision and
+  the expander margin as the insulation limit), H01-A26 (C-1102 water low-temperature alarm and
+  a bypass rule when the chilled water stops; packing ice tolerance).
+- (4) **Re-stamped** all four studies (`cheme safety hazop stamp <id> --write`) after the
+  reassessment above, then `rate --write`. `cheme safety hazop check`: H-01 .. H-04 draft, 0
+  errors, 0 warnings each (the info items are the team's: proposals not accepted, the matrix
+  proposed).
+- (5) **Counts** (worst band per scenario: residual where rated, else initial, as the matrix's
+  action policy reads): 223 scenarios (was 218), 86 high, 81 medium, 56 low, none very-high; 9
+  very-high initial (unchanged); every high scenario has an action. H-01 44, H-02 37, H-03 53,
+  H-04 89 scenarios; 93 actions.
+- (6) **Team session.** An agent cannot hold the HAZOP session or accept its entries.
+  safety/hazop/SESSION.md is the pack for the owner: the roles (no names), an agenda per study
+  and node (about 18.5 h of worksheet plus a 3 h opening block), the decisions to take first (the
+  matrix, the credit convention, the 9 very-high initial scenarios and all 86 high scenarios with
+  their proposed actions), and how to record acceptance in the files and get to a human review.
+
+Open:
+- the HAZOP team session itself, the matrix acceptance and the human review (the owner's);
+- the review of this revision, the D-101 drawing and D-103 on `stage/basic-close-open`.
+
+Reason: the studies must describe the plant as drawn and simulated before the team sees them;
+stamping without reassessing would hide the change (skill hazop-review).
+## D-103 Cold-box heat leak in the simulation, simulated against assumed values, PR substitution accepted (2026-10-25)
+Decided by the agent on the owner's delegation of 2026-10-25 ("resolve all of these issues, make
+good decisions"). These are not the owner's own engineering judgement; the owner may reverse any
+of them. (Numbered D-103 because D-100 was already taken by the LCI scenarios; D-101 and D-102
+are reserved for the P&ID and HAZOP changes of the same request.) Closes the D-097 open points
+"heat leak in the cold-box model" and "owner's acceptance of the PR substitution", and
+maturity-review2#10 and #11.
+
+Decision:
+- (1) **Cold-box heat in-leak, 50 kW (ASSUMED), in the simulation.**
+  - Model: a new flowsheet step HL3101 (ExchangingThermalEnergy, a DWSIM heater with a duty) on
+    the cold waste N2 between the subcooler E-3102 and the main heat exchanger E-3101: S16B now
+    runs E3102 -> HL3101, the new model stream S16C HL3101 -> E3101 (both on WN-3001). It has no
+    equipment and no P&ID object. D-097 said a heat leak needed a new step; this is it.
+  - Why there: the leak finally costs refrigeration, and in this model the refrigeration
+    balance shows at the free stream of E3101 (the waste N2 warm end). Charged there it changes
+    no column or subcooler specification. Limitation: the leak into the columns themselves (most
+    of the casing area) would also trim their internal reflux slightly; that is neglected.
+  - Size, an engineering estimate: the CB-1 casing is 15 x 9 x 53 m (layout/structures.yaml),
+    about 2,800 m2 with roof and base. Loose-fill expanded perlite in dry nitrogen has a
+    conductivity of the order of 0.03-0.05 W/m K between ambient and liquid-nitrogen
+    temperature (the range Barron, Cryogenic Systems, 2nd ed., gives for non-evacuated
+    powders); take 0.04 W/m K, ~1 m of perlite between the cold equipment and the casing and a
+    mean difference of ~180 K (30 C ambient against columns at 80-100 K and an exchanger from
+    15 to -176 C): ~7 W/m2, ~20 kW by conduction. Pipe and instrument penetrations, supports,
+    valve extension spindles and the purge gas add to that; an allowance of x 2.5 gives
+    ~50 kW. This is the DESIGN.md section 3 concept value (50 kW ASSUMED), so the earlier budget
+    stands. The cold-box vendor confirms it (D-067 open point).
+- (2) **Result** (DWSIM 9.0.5, PR, `cheme process simulate --fill`):
+  - converged, 20 simulated units (C1102 still excluded); every evaluable unit closes; the plant
+    closure stays unsupported (V2101, the C3102 top), as in D-097;
+  - HL3101 50 kW: S16C -176.6 C (S16B -178.9 C);
+  - the waste N2 leaves E3101 at **9.49 C** (S17; was 7.2 C without the leak, against the
+    D-061 design 13 C). E3101 5,833 kW, least approach 2.00 K at the warm end (air 15 C against
+    the 13 C products), E3102 5.19 K; no cross, no utility out of range;
+  - E2101 heating step 1,008 kW (was 1,020 kW from 7.2 C);
+  - columns, products, machines and every other duty unchanged (the leak is downstream of the
+    columns in the solve): GOX 99.71 % O2, MAC 7,288 kW, K3101 185.9 kW, KT3101 198.5 kW.
+- (3) **The expander still balances the refrigeration; flow and specs kept.** With the 50 kW
+  leak the cold box still has ~78 kW of refrigeration more than a 13 C waste warm end needs
+  (76,560 kg/h x ~1.04 kJ/kg K x 3.5 K). In the simulation KT-3101 (14,870 kg/h, 198.5 kW,
+  D-061) covers a leak up to ~130 kW before the waste N2 warm end would reach 13 C. **Corrected
+  by D-104:** ~49 kW of that is refrigeration only the column model has (C-3102's top residual
+  and the E-3103 duty mismatch); the governing cold-box balance closes at ~75 kW (D-067), 1.5 x
+  the estimate, and losing E-3105 leaves a deficit of ~38 kW against the 50 kW leak, not a
+  positive margin. It is
+  not cut to the estimate: the leak itself is ASSUMED, the margin serves the cool-down, the
+  liquid production (D-017) and the loss of E-3105 (booster air at 30 C, about 63 kW more heat),
+  and the compander, the Lachmann feed of the LP column (D-066) and their
+  datasheets would all move for a margin a vendor may take back. In operation the expander nozzles
+  turn the flow down or more liquid is made. The 5.5 K warm end of the waste N2 is the visible
+  cost.
+- (4) **Simulated against assumed values** (each `process-sim-deviation`):
+  - S17, S12B, S12C temperature: **adopt the simulation.** The 13 C was the D-061 design
+    target for the warm end, not a specification; the assumed values are removed and `--fill`
+    wrote 9.49 C (calculated). S12A already took it.
+  - S10, S11 temperature and pressure: **keep** as the delivery specification of D-056: LOX
+    -183 C 1.3 bara and LIN -181 C 5.2 bara, subcooled ~2.4 K so the liquid holds to the tanks.
+    The simulation gives the column draws (LP sump -179.9 C / 93.27 K 1.40 bara, HP draw
+    -178.4 C 5.3 bara), a different point of the same line. No modelled equipment provides the
+    subcooling; D-104 names who does.
+  - S12A, S12B, S12C pressure: **keep** (1.10, 1.05, 1.02 bara). They are the pressures at
+    E-2101, C-1102 and the vent after the WN-3002 / RG-2001 / WN-1001 / WN-3003 line drops
+    (D-071, D-072); the splitter X3101 has no line losses and gives 1.15 bara.
+  - E3 duty: **keep** 377 kW, the cycle average the TEA and the LCA use (D-066); the simulation
+    gives the 1,008 kW heating step (E2101 to 200 C).
+  - No other deviation is left (the earlier list's S16, E2 and E3102 report none: E2 is not
+    simulated, info only; S16 and E3102 are calculated).
+- (5) **E3101 min_approach 1.99 K.** The outlet specs put the warm end at exactly 2 K (15 C air
+  against 13 C products), and the solved approach came out 1.9999999 K with the leak, which
+  core flags as below 2 K. The check is now 1.99 K, the D-061 2 K design with 0.01 K for
+  round-off; the design value is unchanged.
+- (6) **Peng-Robinson substitution accepted** (method_selection.substitution; the schema has
+  no accepted_by field, so the acceptance is written in the text): PR with the D-066 Ar/O2 kij
+  is suitable for N2/O2/Ar vapour-liquid equilibrium at these conditions (1.3-5.5 bara,
+  80-100 K), and water appears only at the warm end and in the condensates, where the duties
+  are small. The limitation stays listed (water saturation 10-13 % low; adsorbers sized on
+  IAPWS-95, D-080). core still reports the substitution as info.
+- (7) **Datasheets refilled** (`cheme datasheets fill` with draft set and reset; the new
+  sizing_scope and the rating, mechanical design, corrosion allowance and relief fields are
+  marked supplier; C-1102 relief not_applicable per D-083; the list-derived dimensions keep their
+  ASSUMED marks of review17#1); scripts/datasheet_sizing.py rerun (section 5 on S16C):
+  - E-2101: inlet 9.49 C (simulated); the gas takes 1,006 kW to 200 C (was 987 kW from 13 C);
+    the 1,130 kW peak is kept, now ~11 % above the gas duty.
+  - E-3101: waste N2 S16C -176.6 -> S17 9.5 C; the cold side balances the 5,835 kW warm side
+    within 0.3 kW; UA 1,001 kW/K (was 1,796, an upper bound with 126 kW of surplus at the cold
+    end; now the surplus opens the cold end to 6.9 K). The 4-core bank is kept.
+  - C-1102: inlet 9.49 C; adiabatic saturation 0.3 C (was 2.3 C); 791 kg/h evaporated and
+    563 kg/h make-up at the 698 kW demand (was 850 / 621). The colder dry gas does not reduce
+    the chilled-water capability.
+  - V-2101A/B: CO2 70.78 kg/h (was 67.66, the D-090 composition), 283 kg per 4 h step; source
+    reworded to the 420 ppm design specification of D-099 (maturity-review2#10).
+  - Line list WN-1001 and WN-3002 notes give the 9.5 C flows (both slightly lower than at 13 C;
+    sizing kept). Outline drawings regenerated.
+- (8) **Case text** (maturity-review2#11): the design case reads the D-099 design air and the
+  ~83 % O2 recovery (D-066, ASSUMED), not 94 %.
+
+Regenerated: `cheme process build` (BFD, PFD: the new step HL3101 and stream S16C), `process
+props --fill`, `layout build`, `layout lifting --write` (unchanged), `assess
+mto|estimate|equipment|tea|lca --write` (only the LCA dataset and manifest fingerprints
+changed), `cheme maturity --write`: level **balanced** (screening), as in D-099; predictive
+still fails on coverage (C1102) and model basis (V2101), property regime and energy closure
+unsupported; predictive.exchangers passes. `cheme validate`: 0 errors. `cheme check`: 30 of 31
+gates pass; layout-review fails until an independent layout review covers the changed
+datasheets, line list and layout model.
+
+Open:
+- the HAZOP: process/flowsheet.yaml changed, so H-01 .. H-04 report hazop-input-changed;
+  H03-N3 cites the 7.2 C waste N2 (now 9.49 C with the leak). For the HAZOP revision (D-102);
+- an independent layout review (the layout-review gate) and a review of this decision;
+- the cold-box vendor: the heat leak, the E-3101 warm end and the expander margin;
+- C1102 and V2101 for predictive (D-097), unchanged; core's build fails on the
+  SupplyingThermalEnergy class (its method field), so HL3101 is an ExchangingThermalEnergy step.
+## D-104 Cold-box refrigeration: the two balances reconciled, the ~75 kW one governs; LOX / LIN subcooling named (2026-10-25)
+Decided by the agent on the owner's delegation of 2026-10-25 ("resolve all of these issues, make
+good decisions"). These are not the owner's own engineering judgement; the owner may reverse any
+of them. (The decisions of this round are D-104 .. D-106; D-100 .. D-103 were already taken.)
+Closes maturity-review3#1 - #4; #5 (branch behind main) is closed by merging origin/main.
+
+Decision:
+- (1) **Why the simulation shows ~130 kW and D-067 ~75 kW.** Balance drawn around the cold box
+  from the stream table (enthalpies of `props --fill`, thermo PR, at the simulated states; S10 /
+  S11 at their delivery states; KT-3101 198.5 kW out):
+  - E3101, KT3101 and HL3101 each close within 0.1 kW on these enthalpies, so the exchanger and
+    the expander are consistent with DWSIM.
+  - The column section (C3101, C3102, E3102) does not: its outlets carry ~51 kW less enthalpy than
+    its inlets. That is the refrigeration only the column model has: C-3102's top residual
+    (43.6 kW, the full-reflux condenser that stands in for the condenser-less top, D-066) and the
+    E-3103 mismatch (C3101 condenser 4,171.7 kW against C3102 reboiler 4,166.4 kW, 5.3 kW): 48.9 kW.
+    The subcooling of the delivered LOX / LIN (see (4)) is ~1.4 kW; ~1 kW is left, within the
+    property round-off.
+  - So around the cold box the simulated plant closes at a leak of -1.4 kW, not the 50 kW it
+    carries; with the waste N2 at 13 C it closes at **+75.2 kW**, D-067's value reproduced. The
+    simulation's ~130 kW (D-103 (3)) is that plus the ~49 kW of column-model refrigeration.
+- (2) **The ~75 kW balance governs** (1.5 x the 50 kW estimate, 25 kW margin): the real cold
+  box has no heat sink at the C-3102 top and E-3103 condenses what it boils. The ~130 kW is the
+  model's figure and is not used for margins. DESIGN.md section 3, D-067 and D-103 (3) now say so.
+- (3) **Consequences:**
+  - with the 50 kW leak, the plant is expected to run with the waste N2 warm end at ~11.9 C
+    (25 kW / (21.27 kg/s x 1.04 kJ/kg K) = 1.1 K below 13 C), between the simulated 9.49 C and the
+    13 C design target. S17 / S12 keep the simulated 9.49 C (calculated): it is the conservative
+    side for the E-2101 heating duty and the C-1102 freezing margin (H01-S44);
+  - **E-3105 lost** (booster air at 30 C, +63.3 kW, the E3105 duty): the cold box closes at a
+    total leak of ~12 kW (D-067's +11.9 kW), a **deficit of ~38 kW** against the 50 kW, not the
+    "still positive" margin D-103 (3) gave; on the simulation's basis ~65 kW, ~15 kW over the leak.
+    The liquid production is turned down by ~330 kg/h (38 kW / ~420 kJ/kg, D-061; ASSUMED) until
+    E-3105 is back;
+  - the expander flow stays at 14,870 kg/h (D-103 (3)), now with more reason: the governing margin
+    is 25 kW, and it is gone with E-3105;
+  - the cold-box vendor gets both bases and both cases (E-3101 datasheet, H03-A25).
+- (4) **LOX / LIN subcooling (maturity-review3#4).** The delivered S10 (-183 C) and S11 (-181 C)
+  are ~3.1 K and ~2.6 K below the simulated draws (LP sump -179.9 C / 93.27 K, corrected in
+  D-103 (4) from -180.1 C; HP draw -178.4 C); no modelled equipment provides that. Named as the
+  cold-box vendor's scope: a LOX and a LIN pass in the subcooler E-3102 against the waste N2,
+  ~0.7 kW each (ASSUMED), not in the model. Written into the S10 / S11 sources and the E-3102
+  datasheet.
+
+Carried out: DESIGN.md section 3, D-067 (results and open point), D-103 (3) and (4); the E-3101
+datasheet (sizing basis "heat leak" and "warm-end" rows, notes, one basis), the E-3105 and E-3102
+notes; process/flowsheet.yaml S10 / S11 sources. Regenerated: the three outline drawings, `process
+build` (source fingerprint only), `layout build`. No stream value changed, so the simulation, the
+props and the assessments stand.
+
+Open:
+- core: a condenser-less column top without a residual duty, so the whole-plant simulation
+  closes around the cold box (D-066 open point). Until then the whole-plant simulation
+  overstates the refrigeration by ~49 kW, and the governing margin is the boundary balance;
+- the cold-box vendor: the heat leak, the 2 K warm end, the LOX / LIN subcooling passes.
+
+Reason: the expander flow, the vendor enquiry and the E-3105 contingency all depend on which
+balance holds; the model's own artefact must not be read as margin.
+## D-105 P-04 drawing fixes after pid-review1: PV-4105 noted as operator-set, UY-4151 output and note, cascade line jump (2026-10-25)
+Decided by the agent on the owner's delegation of 2026-10-25 ("resolve all of these issues, make
+good decisions"). These are not the owner's own engineering judgement; the owner may reverse any
+of them. Closes pid-review1#1 - #5; #6 is a core gap, raised as core issue #296.
+
+Decision:
+- (1) **PV-4105 role** (pid-review1#1, #2). PV-4105 stays an actuated valve on GAN-4002 that the
+  operator sets from the DCS: fully open in normal operation, used only to hold back-pressure on
+  the K-4102 discharge while the GAN header is pressurised at start-up. No controller acts on it
+  (D-096, D-101). P-04 carries the note "NO, operator set (D-105)" under its tag, in its own
+  representation group. The tag stays PV-4105 for now: a retag to HV-4105 with a hand station,
+  or removal of the valve, is left to detail engineering with the HAZOP action H04-A31 (D-106),
+  because a retag touches the lists, the cable schedule, the layout and three HAZOP studies for no
+  change in function. piping/routing.yaml, the instrument list (PIC-4105), loops.yaml,
+  control/philosophy.md and process/narrative.md say the same.
+- (2) **UY-4151 output** (pid-review1#3): the line to the K-4101 vanes now leaves the bubble at
+  its lower right (93.65, 23.65) instead of the right midline, so it no longer reads as
+  FIC-4148's line passing straight through.
+- (3) **The '<' note** (pid-review1#4) moved into Inst_UY4151_Drawing, so it moves with the
+  bubble. The select function stays loose text in the drawing; the model data that carries it are
+  the instrument list and the loops.yaml override links (known limit).
+- (4) **Cascade crossing** (pid-review1#5): PIC-4105 -> FIC-3107 has a line jump (a 1.3 mm
+  hop, downwards to clear UV-4103's actuator) where it crosses UIC-4103's dashed signal to
+  UV-4103. The solid UIC-4103 measuring line is crossed plainly (solid over dashed reads
+  unambiguously).
+- (5) **Guide-vane outputs** (pid-review1#6, informational): no change on the sheet; core has
+  no actuator object for compressor guide vanes. Raised as ChemE-as-Code/core#296.
+
+Checked: `cheme validate`: 0 errors; P-04 still 4 line crossings (all accepted), 0 labels
+through lines, 0 overlaps. Crops looked at: UY-4151 (build/P-04_crop-65-10-110-40.png), the jump
+(build/P-04_crop-115-82-145-98.png), PV-4105 (build/P-04_crop-140-100-190-128.png). Layout model
+rebuilt.
+
+Open: an independent review of this drawing change; PV-4105's role confirmed or the valve
+removed (H04-A31).
+## D-106 HAZOP revised after hazop-review5, D-104 and D-105; re-stamped (2026-10-25)
+Decided by the agent on the owner's delegation of 2026-10-25 ("resolve all of these issues, make
+good decisions"). These are not the owner's own engineering judgement, and none of it is a HAZOP
+team's acceptance: every entry stays `status: proposed, by: agent`. Closes hazop-review5#1 - #4.
+
+Decision:
+- (1) **H03-S53 / H03-A10 / H03-A25** (hazop-review5#1 and D-104): the cause is a leak above
+  ~75 kW on the governing balance (was ~130 kW); the N11-HL node note explains the two figures;
+  H03-A10 adds a WN-3002 high alarm or a warm-end delta-T deviation alarm, trended with the column
+  levels, since its low alarms do not see a rising leak, and the S53 note no longer implies they
+  would; H03-A25 gives the vendor both bases and the E-3105-lost case. Likelihood C -> D (a leak
+  1.5 x an ASSUMED estimate, or E-3105 out of service alone, is expected a few times in the plant
+  life): asset 2/D, **low -> medium** initial and residual (`rate --write`).
+- (2) **SESSION.md** (hazop-review5#2): six half-days (3 h opening + 18.5 h worksheet = ~21.5 h),
+  split session 0 decisions, 1 H-01, 2 H-02, 3 H-03, 4 and 5 H-04; section 3.5 updated.
+- (3) **H04-S24 / H04-A31** (hazop-review5#3, D-105): new action H04-A31 (confirm PV-4105's
+  start-up role or remove it; open indication, a not-fully-open alarm with K-4102 running, the
+  line-up check in the start-up sequence, the HV retag); S24 lists it; ratings unchanged. The
+  stale "no HAZOP action lists it yet" notes in loops.yaml now cite H04-A14.
+- (4) **H01-A26** (hazop-review5#4): the C-1102 freeze bypass is a defined operating mode of
+  PIC-3110's split range, which keeps holding the LP column top; PV-3110B is never positioned by
+  hand; cross-referenced to H03-S29, H03-S31 and H03-A19.
+- (5) **Re-stamped** H-01 .. H-04 (`stamp --write`: flowsheet S10 / S11 sources, instrument list,
+  loops.yaml, P-04 per D-104 / D-105; reassessed above, nothing else touched), then `rate --write`.
+  `cheme safety hazop check`: all draft, 0 errors, 0 warnings.
+- (6) **Counts** (worst band, residual where rated): 223 scenarios, 86 high, **82 medium, 55
+  low**, none very-high; 9 very-high initial; 94 actions; every high scenario has an action.
+
+Open: the team session, the matrix acceptance and a human review (the owner's); an independent
+review of this revision.
+
+
+## D-107 Regional scenarios on the sourced EEA grid factors (2026-10-25)
 Supersedes the proxy and missing declarations of D-100. Core now packages open grid factors
 (core#268), so `nl-grid` and `de-grid` link `eea-ener038-2024:electricity-nl` (0.245 kg
 CO2e/kWh) and `electricity-de` (0.291), the EEA ENER038 2024 values. EEA re-use is CC BY under
@@ -5051,3 +5428,20 @@ its legal notice, so the results stay publishable.
 
 Reason: replace declared proxies and missing data with sourced regional factors, and disclose
 the remaining scope difference.
+
+## D-108 Motor feeder cables at the motor power factor; tray-span acceptances re-checked (2026-10-25)
+Core sizes a `feeders:` cable at the load power factor and takes 1.0 when none is given. That
+shrank the K-4101-MV cable (6.6 kV, 2.5 MW) to 3C x 95 mm2, which carries 228 A against the
+motor current of about 280 A. K-4101-MV and K-4102-M now carry `power_factor: 0.78`
+(motor power factor 0.85 x efficiency 0.92, ASSUMED; the vendor confirms it with the motor
+data). The cables are back to 3C x 150 and 3C x 35 mm2. E-2101 is a resistive heater and stays
+at 1.0; its margin is small (945.5 A against about 948.8 A derated), so a heater change needs
+the cable checked again.
+
+The tray-span acceptances for PT-SWG-1 (now 9.5 m) and PT-MCC-1 (6.6 m) said the trays run
+inside B2. They leave the B2 north wall at 3 m and run level about 10 m north to a riser at the west
+end of PR1. The reasons now say so; the support (wall brackets for the first metre, then
+free-standing posts at 6 m or less and a riser column) stays ASSUMED and unmodelled.
+
+Reason: avoid an undersized MV cable that the electrical gate does not flag, and keep the
+acceptances true to the model.
