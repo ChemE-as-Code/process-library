@@ -27,7 +27,7 @@ from mkdocs.structure.files import File
 
 log = logging.getLogger("mkdocs.hooks.library")
 
-OPTIONAL = {"system-model.md", "governance.md", "coverage.md"}
+OPTIONAL = {"system-model.md", "governance.md", "coverage.md", "benchmarks.md"}
 
 _root = Path(".")
 _blob = ""  # GitHub URL prefix of repository files
@@ -132,10 +132,13 @@ def _schema_page(path: Path) -> tuple[str, str]:
 
 
 def _property_names(node) -> set[str]:
-    """Every property name declared anywhere in a schema."""
+    """Every property name declared anywhere in a schema. A ``properties`` map holds schemas only,
+    which tells it from a field that is itself named ``properties`` (chemicals.schema.json)."""
     names = set()
     if isinstance(node, dict):
-        names |= set(node.get("properties", {}) if isinstance(node.get("properties"), dict) else ())
+        fields = node.get("properties")
+        if isinstance(fields, dict) and all(isinstance(v, dict) for v in fields.values()):
+            names |= set(fields)
         for value in node.values():
             names |= _property_names(value)
     elif isinstance(node, list):

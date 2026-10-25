@@ -61,7 +61,7 @@ def test_registry_matches_the_schema_and_covers_the_staged_manifests() -> None:
     assert slugs == sorted(slugs) and len(slugs) == len(set(slugs))
     for manifest in (KIT / "processes").glob("*/process.yaml"):
         chemistry = yaml.safe_load(manifest.read_text())["chemistry"]
-        used = {f["chemical"] for flows in chemistry.values() for f in flows}
+        used = {f["chemical"].split("/")[0] for flows in chemistry.values() for f in flows}
         assert used <= set(slugs), manifest
 
 
