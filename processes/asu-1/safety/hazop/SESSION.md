@@ -49,8 +49,8 @@ No one is named here.
 
 Estimated at 5 minutes per node plus 4 minutes per scenario: the worksheet is pre-filled, so the
 team confirms, changes or deletes rows rather than brainstorming from blank. Add time for any
-deviation the team adds. About 18.5 hours of worksheet in all, plus the opening block: plan five
-half-day sessions of about 4 hours.
+deviation the team adds. About 18.5 hours of worksheet in all, plus the 3-hour opening block:
+about 21.5 hours, so plan six half-day sessions of about 3 to 4.5 hours (split below).
 
 ### Session 0: decisions first (about 3 hours)
 
@@ -115,9 +115,10 @@ half-day sessions of about 4 hours.
 | H-04 | H04-N13 | LIN vaporizers E-4106A/B and PV-4112 | 3 | 4 | 21 |
 | H-04 | | **study total** | | **89** | **421** |
 
-A suggested split: session 1 H-01 and H-02 (about 7 h, or two half days), session 2 H-03,
-sessions 3 and 4 H-04 (N1 to N5 with the instrument and control engineer and the compressor
-supplier, then N6 to N13 with operations and the vaporizer supplier).
+A suggested split into six half days: session 0 the decisions (about 3 h), session 1 H-01
+(about 3.7 h), session 2 H-02 (about 3.3 h), session 3 H-03 (about 4.5 h, a long half day),
+sessions 4 and 5 H-04 (about 7 h in all: N1 to N5 with the instrument and control engineer and
+the compressor supplier, then N6 to N13 with operations and the vaporizer supplier).
 
 ## 3. Decisions to take first
 
@@ -237,7 +238,7 @@ due date), changes it, or rejects it with a reason (`rejected`, `response`). Man
 | H04-S14 | Flange or instrument connection leak on GOX-4002 | high | high | H04-A15 | process engineer |
 | H04-S19 | UIC-4131 fails or UV-4131 sticks closed at reduced GAN off-take | high | high | H04-A13 | mechanical engineer |
 | H04-S20 | FIC-3107 or PIC-4106 fails high: K-4102 draws the HP column down | high | high | H04-A22 | instrument and control engineer |
-| H04-S24 | PV-4105 fails or is left closed, or XV-4120 closes: K-4102 blocked outlet | high | high | H04-A06, H04-A14 | electrical and instrument engineer; process engineer |
+| H04-S24 | PV-4105 fails or is left closed, or XV-4120 closes: K-4102 blocked outlet | high | high | H04-A06, H04-A14, H04-A31 | electrical and instrument engineer; process engineer; instrument and control engineer |
 | H04-S27 | PIC-4105 fails high and raises FIC-3107's set point | high | high | H04-A22 | instrument and control engineer |
 | H04-S29 | LOX rundown fills T-4101 unwatched | high | high | H04-A03 | process engineer |
 | H04-S30 | (see 3.3) | very-high | high | H04-A25 | |
@@ -274,10 +275,16 @@ safeguards and the rating bases.
 - H04-S87, H04-S88, H04-S89: failures of the drawn low select UY-4151 (output high or frozen,
   output low, reset windup), with action H04-A30 (selector specification and test).
 - H03-S53 and action H03-A25: heat in-leak above the expander margin (the 50 kW leak of D-103 is
-  ASSUMED; the expander covers about 130 kW).
+  ASSUMED; on the governing balance the expander covers about 75 kW, the simulation's 130 kW
+  includes about 49 kW of column-model refrigeration, D-104). Rated medium since D-106
+  (likelihood D); H03-A10 now asks for a WN-3002 high or deviation alarm.
 - H01-S44 and action H01-A26: C-1102 water towards freezing, since the waste N2 is now 9.5 C
   with an adiabatic saturation temperature of about 0.3 C (D-103).
-- H04-S24 revised: PV-4105 has no drawn controller since D-101.
+- H04-S24 revised: PV-4105 has no drawn controller since D-101; D-105 makes it an operator-set
+  start-up valve, normally fully open, and D-106 adds H04-A31 (confirm the role, open indication
+  and line-up check, or remove the valve).
+- H01-A26 revised (D-106): the C-1102 freeze bypass is an operating mode of PIC-3110's split
+  range, never PV-3110B positioned by hand (with H03-A19).
 
 ## 4. How to record acceptance in the files
 

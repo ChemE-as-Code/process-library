@@ -30,15 +30,15 @@ modes:
   - {id: maintenance, title: Maintenance, description: "Isolation, purging, pump change-over, vaporizer defrost, work on oxygen equipment."}
   - {id: power-fail, title: Power failure, description: "Total or partial loss of power, and of instrument air where it follows."}
 analysed:
-  - {path: pid/P-04.xml, revision: 'sha256:9781af4f808691c07722e514835e0a3257fac5ed8ead97d5ca4ca74ddc75836c', relation: analyses}
+  - {path: pid/P-04.xml, revision: 'sha256:c53c7d1325f4ed7b8f1ee9ec37b7f0049345c8bdd3de9ca976b3031e6444e80c', relation: analyses}
   - {path: control/cause-effect.yaml, revision: 'sha256:b9c8e56cbc49b1b9d9595e39b02fbaa24fdffdf137d402bcd253b329b9299ca5', relation: analyses}
-  - {path: control/instrument-list.yaml, revision: 'sha256:d384cbb7440bedc87dca90fe7bf7321fac76e55f74d5065b96387425626cceab', relation: analyses}
+  - {path: control/instrument-list.yaml, revision: 'sha256:83c2b4787e31e82922d70b9756e79709ca2a65934bad9ab54f73763f29188826', relation: analyses}
   - {path: equipment/equipment-list.yaml, revision: 'sha256:7dd6ae258db62812479ac0e0e7c520b82a46de4f02ee2020db2f5d4013870490', relation: analyses}
   - {path: piping/line-list.yaml, revision: 'sha256:c1ba2f0448cfa47af8ef8dc45ad1b99a30c3a6885994d6088b3803e47f09031b', relation: analyses}
   - {path: piping/special-items.yaml, revision: 'sha256:8071c9646730d15356f23923163a5416205ea568dbb9592a61fb49e9d19077d0', relation: analyses}
   - {path: process/design-basis.yaml, revision: 'sha256:0498974de4c64d23299e4a93fc56382beeae4c20493d14612a3c0912288757e0', relation: analyses}
-  - {path: process/flowsheet.yaml, revision: 'sha256:a4255acac7b000f5d3cafacbb23b24de1eef9435a2a05fcc47314b5a22f286eb', relation: analyses}
-  - {path: control/loops.yaml, revision: 'sha256:0c759433dc06e085d443ed75f4e178fb1b483ef964584502f8eddf5a19be3faf', relation: analyses}
+  - {path: process/flowsheet.yaml, revision: 'sha256:55cd2ae5678e325e705eedf0b15cce079e9c606f611e4c853f84fd12fe6d439b', relation: analyses}
+  - {path: control/loops.yaml, revision: 'sha256:8bd1d0e7b81231c800ec84cc117410dc73390ebb2e0ef83c90eceeb94fe826a2', relation: analyses}
   - {path: control/sequences.yaml, revision: 'sha256:f576a5b3fb45996ccf19bde07cfda0268c70eeb2cab5b1a167a9034beee36778', relation: analyses}
 risk_matrix: safety/risk-matrix.yaml
 assessment_basis: >-
@@ -785,10 +785,10 @@ nodes:
             refs: [PV-4105, XV-4120, K-4102, E-4103, GAN-4002]
             modes: [normal, startup]
             safeguards: [H04-SG07]
-            actions: [H04-A06, H04-A14]
+            actions: [H04-A06, H04-A14, H04-A31]
             status: proposed
             by: agent
-            notes: "Revised for D-101 (D-102): the drawn signal from PIC-4105 to PV-4105 was removed, because PIC-4105's only output is FIC-3107's set point. With no controller defined, PV-4105 left closed after a start-up (a back-pressure role) is a further cause of the same blocked outlet; its fail position is in H04-A14. Ratings unchanged."
+            notes: "Revised for D-101 (D-102): the drawn signal from PIC-4105 to PV-4105 was removed, because PIC-4105's only output is FIC-3107's set point. With no controller defined, PV-4105 left closed after a start-up (a back-pressure role) is a further cause of the same blocked outlet; its fail position is in H04-A14. D-105 states the valve's role (operator set from the DCS, normally fully open, noted on P-04) and D-106 adds H04-A31 (role, start-up line-up check, or removal). Ratings unchanged."
             risk:
               initial:
                 - {category: people, severity: "4", likelihood: D, basis: "Rupture of a nitrogen exchanger (missile, asphyxiation) (matrix 4) if the maximum discharge exceeds the design; single valve failure (D).", evidence: [K-4102, E-4103], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
@@ -1918,3 +1918,4 @@ actions:
   - {id: H04-A29, text: "Give the K-4101 discharge high-high trip its own transmitter, independent of PT-4102 (or a 2oo3 vote), and a deviation alarm between PT-4102 and it, so a PT-4102 reading low does not defeat both the pressure control and the trip (H04-S82) and a reading high is found before the GOX vents for hours (H04-S83); confirm PSV-4122's case for the guide vanes fully open at the FIC-4148 limit.", owner: instrument and control engineer, status: proposed, by: agent}
   - {id: H04-A25, text: "Give T-4101 and T-4102 a high-pressure alarm on a transmitter independent of PICA-4109 / PICA-4110, record the PICA alarm set points, and confirm PSV-4123 / PSV-4124 capacity for PV-4109 / PV-4110 failed closed and for a roll-over; consider a high-high pressure that stops the rundown and the tanker fill.", owner: instrument and control engineer, status: proposed, by: agent}
   - {id: H04-A30, text: "Specify the low select UY-4151 (D-101) for detail engineering: external reset feedback (anti-windup) to PIC-4102, FIC-4148 and PIC-4150 and bumpless transfer between them (H04-S89, the D-096 open point); its action on a bad-quality input or a block fault (drive the vanes to a defined safe position and alarm, never hold the last value or pass the highest, H04-S87, H04-S88); an alarm when a limit holds the vanes and a deviation alarm between the selector output and the vane position; and a function test of the selector in the FAT and before start-up. The selector is not a protection layer: the independent limit stays H04-A23.", owner: instrument and control engineer, status: proposed, by: agent}
+  - {id: H04-A31, text: "Confirm the role of PV-4105 (D-105: an actuated valve the operator sets from the DCS, normally fully open, used only to hold back-pressure on the K-4102 discharge while the GAN header is pressurised at start-up), or remove it if detail engineering finds no need for it. If it stays: give it a position (open) indication and an alarm when it is not fully open with K-4102 running, put 'PV-4105 fully open' into the start-up line-up check before K-4102 exports (control/sequences.yaml), and consider retagging it HV-4105 with a hand station, since no pressure controller acts on it (H04-S24).", owner: instrument and control engineer, status: proposed, by: agent}
