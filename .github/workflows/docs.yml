@@ -1,0 +1,19 @@
+name: docs
+# Builds the MkDocs site to check it (links, includes, nav). Build only: nothing is deployed.
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 1
+      - uses: astral-sh/setup-uv@v6
+      - run: uv run --no-project --python 3.12 --with-requirements requirements-docs.txt mkdocs build --strict

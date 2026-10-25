@@ -1,9 +1,19 @@
 # Test fixture registry: synthetic, for the catalog builder and Atlas tests only.
-schema: cheme-as-code/chemicals/v1
+schema: cheme-as-code/chemicals/v2
 chemicals:
   - {slug: ammonia, name: Ammonia, kind: substance, formula: NH3}
   - {slug: electricity, name: Electricity, kind: utility}
-  - {slug: hydrogen, name: Hydrogen, kind: substance, formula: H2}
+  - slug: hydrogen
+    name: Hydrogen
+    kind: substance
+    formula: H2
+    cas: 1333-74-0
+    properties:
+      molar_mass: {value: 2.016, unit: g/mol, source: fixture}
+      lhv: {value: 119.96, unit: MJ/kg, source: fixture}
+    grades:
+      - {slug: gaseous-30bar, name: "Hydrogen, gaseous, 30 bar", phase: gas, state: {pressure: {value: 30, unit: bara}}, crosswalk: {ecoinvent: ["fixture hydrogen, gaseous"]}}
+      - {slug: liquid, name: "Hydrogen, liquid", phase: liquid}
   - {slug: nitrogen, name: Nitrogen, kind: substance, formula: N2}
   - {slug: oxygen, name: Oxygen, kind: substance, formula: O2}
   - {slug: unused-solvent, name: Unused solvent, kind: substance}

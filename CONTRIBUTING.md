@@ -11,13 +11,22 @@
    `cryogenic-distillation`, `adsorption`, `compression`, `reaction`, `electrolysis`) and
    `region` (e.g. `generic`, `EU`). Reuse the slugs other processes already use.
 3. Every chemical under `chemistry` must be a slug of `chemicals/chemicals.yaml`; add new ones in
-   the same change, with CAS, InChIKey and ChEBI where they exist. Grade and phase (GOX, LOX) go
-   in the flow's `note`, not in the registry.
+   the same change, with CAS, InChIKey and ChEBI where they exist, and properties only with a
+   source. A product in a defined state and purity (GOX at 30 barg, LOX) is a registry grade:
+   name it as `chemical: oxygen/lox` (add the grade under the substance's `grades` if it is
+   new). The graph joins by substance; the LCI export names the grade. Rules:
+   [docs/registry.md](docs/registry.md). `families` take slugs of `taxonomy/families.yaml`
+   (mapped to ISIC Rev.4); a new family goes there and into the `process.schema.json` enum
+   together. Add the process to its entry in `coverage.yaml` (`covered_by`,
+   [docs/coverage.md](docs/coverage.md)).
 4. Optional, as the process matures:
    - a cheme-as-code engineering project in the same folder (`cheme init`, then P&IDs, process
      YAML, layout, LCA): the catalog derives its sheets, gates, design basis and LCA results;
    - an LCI dataset (`lca/dataset.yaml`, written by `cheme assess lca --write`, or hand-written
      `lca/datasets/*.yaml`), and if it needs new background links, entries in `lci/mappings.yaml`.
+     A multi-output process needs an allocation that follows the hierarchy of
+     [docs/system-model.md](docs/system-model.md) (often a curated `allocation:` entry in the
+     mappings), and recycling or energy-recovery outputs a `cutoff_exclusions:` decision.
 5. Check: `uv run scripts/build_catalog.py --library . --out dist --strict` (and
    `scripts/build_lci.py ... --strict` with an LCI dataset). CI runs the same, and the public
    build (`--public`, below).
@@ -72,3 +81,22 @@ publication: {status: public, license: CC-BY-4.0, exclude: ["docs/private/**"]}
 
 Do not rewrite another process's engineering files; change them through that process's own
 review (its `DESIGN.md`, `reviews/`).
+
+## Issues
+
+Open points of a process are tracked as issues, so they are not lost between sessions:
+
+- **Process work** uses the form "Process work item". It asks what is open, **when to do it**
+  and **when not** (and why), what it waits for, the references (decisions, review findings,
+  HAZOP actions) and when it is done. The form's Process field sets the label `process:<id>`
+  (workflow `issue-process-label`). Filter by `label:process:asu-1`. When you add a process
+  folder, add its id to the form's dropdown.
+- **Library work** (schemas, catalog builder, LCI database, Atlas data) uses "Library work
+  item", labelled `scope:library`.
+- What an open item waits for is a label:
+  - `waiting:input` for vendor, client or a HAZOP / LOPA session;
+  - `waiting:work` for another issue or branch.
+- An open point recorded in a process's files (`unresolved:` in `control/*.yaml`, Open in a
+  DESIGN.md decision) names its issue, and the issue names the files. Close the issue only once
+  the files no longer carry the point.
+

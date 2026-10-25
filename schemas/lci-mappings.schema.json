@@ -2,12 +2,16 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://atlas.cheme-as-code.org/schemas/lci-mappings/v1.json",
   "title": "Atlas LCI mappings (lci/mappings.yaml)",
-  "description": "How build_lci.py links each exchange of a process's LCI dataset to a Brightway background: technosphere activities by name, reference product, unit and location (database chosen at install time), library-level screening proxies, biosphere flows by name and categories, and the curated decisions on atmospheric pass-through emissions.",
+  "description": "How build_lci.py links each exchange of a process's LCI dataset to a Brightway background: technosphere activities by name, reference product, unit and location (database chosen at install time), library-level screening proxies, biosphere flows by name and categories, and the curated decisions on atmospheric pass-through emissions; the declared system model of the default build (cut-off), the flows it excludes, the substitution variant's extra links and proxies, and the curated allocation per process (docs/system-model.md).",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema", "default_site_location", "technosphere"],
+  "required": ["schema", "system_model", "default_site_location", "technosphere"],
   "properties": {
     "schema": {"const": "cheme-as-code/lci-mappings/v1"},
+    "system_model": {
+      "description": "The system model of the default build (docs/system-model.md): attributional cut-off. A substitution build is a labelled variant (--system-model substitution).",
+      "enum": ["cutoff"]
+    },
     "default_site_location": {
       "description": "Location used for `location: site` when install() is given none.",
       "type": "string", "minLength": 2
@@ -16,47 +20,12 @@
       "description": "By chemical/utility slug or lca/factors.yaml factor id.",
       "type": "object",
       "propertyNames": {"$ref": "#/$defs/id"},
-      "additionalProperties": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["source"],
-        "oneOf": [{"required": ["activity"]}, {"required": ["proxy"]}],
-        "properties": {
-          "activity": {"$ref": "#/$defs/activity"},
-          "proxy": {"$ref": "#/$defs/id", "description": "Id of an entry in `proxies`."},
-          "source": {"type": "string", "minLength": 3},
-          "notes": {"type": "string"}
-        }
-      }
+      "additionalProperties": {"$ref": "#/$defs/technosphere_entry"}
     },
     "proxies": {
       "type": "object",
       "propertyNames": {"$ref": "#/$defs/id"},
-      "additionalProperties": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["name", "reference_product", "unit", "location", "inputs", "source"],
-        "properties": {
-          "name": {"type": "string", "minLength": 3},
-          "reference_product": {"type": "string", "minLength": 1},
-          "unit": {"$ref": "#/$defs/unit"},
-          "location": {"type": "string", "minLength": 2},
-          "inputs": {
-            "type": "array", "minItems": 1,
-            "items": {
-              "type": "object",
-              "additionalProperties": false,
-              "required": ["use", "amount", "source"],
-              "properties": {
-                "use": {"$ref": "#/$defs/id", "description": "A technosphere entry with an activity (not a proxy)."},
-                "amount": {"type": "number"},
-                "source": {"type": "string", "minLength": 3}
-              }
-            }
-          },
-          "source": {"type": "string", "minLength": 3}
-        }
-      }
+      "additionalProperties": {"$ref": "#/$defs/proxy"}
     },
     "biosphere": {
       "description": "By emission component (emission:<component>), optionally <component>/<origin> (fossil, biogenic).",
@@ -86,6 +55,52 @@
         }
       }
     },
+    "cutoff_exclusions": {
+      "description": "Technosphere ids the cut-off model leaves out of the producer's system (material recycling, energy recovery): not exported in a cut-off build, with the decision.",
+      "type": "object",
+      "propertyNames": {"$ref": "#/$defs/id"},
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["decision"],
+        "properties": {"decision": {"type": "string", "minLength": 10}}
+      }
+    },
+    "substitution": {
+      "description": "The substitution variant only: technosphere entries and proxies (avoided-burden credits) added to the cut-off ones.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "technosphere": {"type": "object", "propertyNames": {"$ref": "#/$defs/id"}, "additionalProperties": {"$ref": "#/$defs/technosphere_entry"}},
+        "proxies": {"type": "object", "propertyNames": {"$ref": "#/$defs/id"}, "additionalProperties": {"$ref": "#/$defs/proxy"}}
+      }
+    },
+    "allocation": {
+      "description": "The database's allocation by \"<process-id>\" or \"<process-id>/<dataset-id>\", with the step of the hierarchy (docs/system-model.md) that justifies it.",
+      "type": "object",
+      "propertyNames": {"pattern": "^[a-z0-9]+(-[a-z0-9]+)*(/[A-Za-z0-9_.\\-]+)?$"},
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["method", "rule", "reason"],
+        "properties": {
+          "method": {"enum": ["mass", "economic", "energy", "exergy", "shares"]},
+          "rule": {"enum": ["physical-exergy", "physical-energy", "economic", "mass", "co2-cutoff", "pcr", "deviation"]},
+          "reason": {"type": "string", "minLength": 10},
+          "shares": {
+            "description": "Share of the burdens per product name, for method shares (else the study's or dataset's shares are used).",
+            "type": "object",
+            "additionalProperties": {"type": "number", "minimum": 0}
+          },
+          "product": {
+            "description": "rule co2-cutoff: the product name of the CO2 co-product, whose share of the main process must be 0 (hierarchy step 4: its conditioning is a separate dataset).",
+            "type": "string", "minLength": 1
+          }
+        },
+        "if": {"properties": {"rule": {"const": "co2-cutoff"}}},
+        "then": {"required": ["product"], "properties": {"method": {"const": "shares"}}}
+      }
+    },
     "exchanges": {
       "description": "Overrides by \"<process-id>/<key>\" or \"<key>\".",
       "type": "object",
@@ -96,12 +111,50 @@
         "properties": {
           "use": {"$ref": "#/$defs/id"},
           "chemical": {"$ref": "#/$defs/id"},
+          "properties_reason": {"type": "string", "minLength": 10, "description": "Why a product's allocation property (exergy, energy) may differ from the chemicals registry's (build_lci.py property_checks)."},
           "source": {"type": "string"}
         }
       }
     }
   },
   "$defs": {
+    "technosphere_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source"],
+      "oneOf": [{"required": ["activity"]}, {"required": ["proxy"]}],
+      "properties": {
+        "activity": {"$ref": "#/$defs/activity"},
+        "proxy": {"$ref": "#/$defs/id", "description": "Id of an entry in `proxies`."},
+        "source": {"type": "string", "minLength": 3},
+        "notes": {"type": "string"}
+      }
+    },
+    "proxy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "reference_product", "unit", "location", "inputs", "source"],
+      "properties": {
+        "name": {"type": "string", "minLength": 3},
+        "reference_product": {"type": "string", "minLength": 1},
+        "unit": {"$ref": "#/$defs/unit"},
+        "location": {"type": "string", "minLength": 2},
+        "inputs": {
+          "type": "array", "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["use", "amount", "source"],
+            "properties": {
+              "use": {"$ref": "#/$defs/id", "description": "A technosphere entry with an activity (not a proxy)."},
+              "amount": {"type": "number"},
+              "source": {"type": "string", "minLength": 3}
+            }
+          }
+        },
+        "source": {"type": "string", "minLength": 3}
+      }
+    },
     "id": {"type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"},
     "unit": {"enum": ["kilogram", "kilowatt hour", "meter", "square meter", "cubic meter", "unit", "ton kilometer"]},
     "activity": {
