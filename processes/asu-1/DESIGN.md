@@ -5439,8 +5439,9 @@ at 1.0; its margin is small (945.5 A against about 948.8 A derated), so a heater
 the cable checked again.
 
 The tray-span acceptances for PT-SWG-1 (now 9.5 m) and PT-MCC-1 (6.6 m) said the trays run
-inside B2. They run level at 3 m outside B2, along its north wall. The reasons now say so;
-the support (wall brackets and posts at 6 m or less) stays ASSUMED and unmodelled.
+inside B2. They leave the B2 north wall at 3 m and run level about 10 m north to a riser at the west
+end of PR1. The reasons now say so; the support (wall brackets for the first metre, then
+free-standing posts at 6 m or less and a riser column) stays ASSUMED and unmodelled.
 
 Reason: avoid an undersized MV cable that the electrical gate does not flag, and keep the
 acceptances true to the model.
