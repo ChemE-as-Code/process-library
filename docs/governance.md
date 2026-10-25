@@ -15,7 +15,7 @@ Three things carry a semantic version, `MAJOR.MINOR.PATCH`:
 | what | where it is recorded |
 |---|---|
 | the **database release** | `--version` of `build_lci.py`: the database name `cheme-as-code-atlas-<version>`, `datapackage.json` `version`, `index.json` |
-| each **dataset** | the dataset's own `version` field (once core#179 adds it); `datapackage.json` `processes[].datasets[].version` and `version_source` |
+| each **dataset** | the dataset's own `version` field (core#179); `datapackage.json` `processes[].datasets[].version` and `version_source` |
 | the **methodology** | the header of [system-model.md](system-model.md) and `METHODOLOGY_VERSION` in `build_lci.py` (a test keeps them equal); `datapackage.json` `system_model.methodology.version` and each dataset's `methodology_version` |
 
 What raises which part:
@@ -34,10 +34,11 @@ A release's version is at least as high as the largest change in it: a release w
 dataset change is a MAJOR release. Versions below 1.0.0 are screening releases: the data may
 change in any release, and they are not for decision support.
 
-A dataset that records no version is reported as `0.1.0` with `version_source: initial`. core
-will add and write dataset UUIDs, versions, the review record and `valid_until` (core#179).
-Until then core's dataset schema refuses these fields, so every dataset is reported as `0.1.0`,
-`unreviewed`, with no `valid_until`; the build reads the fields as soon as core writes them.
+A dataset that records no version is reported as `0.1.0` with `version_source: initial`. Core's
+dataset contract v2 (`schema: cheme/lci_dataset/v2`, core#179) has the dataset's `uuid`,
+`version`, `methodology_version`, `review`, `valid_until`, `superseded_by` and `system_model`;
+the build reads them and records them per dataset in `datapackage.json`. A dataset that states no
+`methodology_version` is reported under the build's (`methodology_version_source: build`).
 The process manifest has no version of its own (`schemas/process.schema.json`).
 
 ## 2. Change reports
@@ -108,22 +109,24 @@ The LCI review is separate from the engineering design review (`process.yaml`
 `validation.status` and `processes/<id>/reviews/`): a well-engineered design can still have a poor
 inventory, and the reverse.
 
-Levels, to be recorded in the dataset's `review` field once core#179 adds it
-(`datapackage.json` shows `{"status": "unreviewed"}` when there is none):
+Levels, recorded in the dataset's `review` field (a list of records, each `type`: `none`,
+`internal`, `independent-external` or `panel`, with reviewer, scope, date and report).
+`datapackage.json` shows `{"status": "unreviewed"}` when there is none, else the strongest type
+and the records:
 
 | status | who | when |
 |---|---|---|
 | `unreviewed` | nobody | default |
 | `internal` | a plausibility review by someone who did not compile the dataset | before a dataset enters a release at 1.0.0 or above |
-| `external` | an independent reviewer outside the team that made the dataset | before a dataset is promoted as reviewed or used for public claims |
+| `independent-external` | an independent reviewer outside the team that made the dataset | before a dataset is promoted as reviewed or used for public claims |
 | `panel` | a panel per ISO 14071 (chair plus at least two independent experts) | comparative assertions disclosed to the public, as ISO 14044 requires |
 
 **Independence:** a reviewer did not contribute to the dataset, its design or its funding, and
 has no commercial interest in its results. The record states the reviewer's affiliation.
 
-**Review record** (in the dataset; core#179 defines the field): status, reviewers (name,
-affiliation), date, dataset version reviewed, scope (the checklist items covered), the report
-(a file in `processes/<id>/reviews/` or a link), and open findings. A new MAJOR or MINOR dataset
+**Review record** (in the dataset, core#179): type, reviewer (name, affiliation), date, scope
+(the checklist items covered) and the report (a file in `processes/<id>/reviews/` or a link). The
+dataset version reviewed and open findings go in the report. A new MAJOR or MINOR dataset
 version resets the status to `unreviewed` unless the reviewer confirms the change.
 
 **Checklist** (ISO 14044 and the scope of an ILCD-style dataset review):
@@ -159,7 +162,11 @@ version resets the status to `unreviewed` unless the reviewer confirms the chang
   a MAJOR change of the database.
 - The change report lists a removed or superseded dataset with its successor.
 
-The build does not read `superseded_by` yet (follow-up, with core#179's UUIDs).
+The build reads `superseded_by` (`{id, version}`): the deprecated dataset stays in the database
+and its activities are named, commented and listed with a pointer to the successor's activities;
+`datapackage.json` has `deprecated` and `superseded_by` per dataset, and `install()` reports the
+deprecated activities ([lci/README.md](https://github.com/ChemE-as-Code/process-library/blob/main/lci/README.md), "Governance fields and deprecated datasets"). The change
+report does not yet list a superseded dataset with its successor (follow-up).
 
 ## 6. Data contribution policy (DRAFT for TU Delft legal)
 

@@ -291,12 +291,12 @@ def test_the_price_ratio_needs_every_coproduct_in_kg() -> None:
 
 
 def test_every_dataset_has_a_version_and_a_review_record(library: Path, tmp_path: Path) -> None:
-    _edit(_dataset(library), lambda d: d.update(version="1.2.0", review={"status": "internal", "by": "test"}))
+    _edit(_dataset(library), lambda d: d.update(version="1.2.0", review=[{"type": "internal", "reviewer": "test"}]))
     build_lci.build(library, tmp_path / "out", "0.1.0", commit="fixture")
     package = _json(tmp_path / "out" / "lci" / "datapackage.json")
     datasets = {d["id"]: d for p in package["processes"] for d in p["datasets"]}
     assert (datasets["fixture-electrolysis"]["version"], datasets["fixture-electrolysis"]["version_source"]) == ("1.2.0", "dataset")
-    assert datasets["fixture-electrolysis"]["review"] == {"status": "internal", "by": "test"}
+    assert datasets["fixture-electrolysis"]["review"] == {"status": "internal", "records": [{"type": "internal", "reviewer": "test"}]}
     assert (datasets["fixture-ammonia-hb"]["version"], datasets["fixture-ammonia-hb"]["version_source"]) == ("0.1.0", "initial")
     assert datasets["fixture-ammonia-hb"]["review"] == {"status": "unreviewed"}
     assert all(d["methodology_version"] == build_lci.METHODOLOGY_VERSION and len(d["content_sha256"]) == 64 for d in datasets.values())
