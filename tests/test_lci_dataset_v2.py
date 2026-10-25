@@ -123,7 +123,7 @@ def test_the_content_hash_is_that_of_the_dataset_as_written(library: Path, tmp_p
     assert _dataset_entry(tmp_path)["content_sha256"] != before
 
 
-@pytest.mark.parametrize("unit", ["Nm3", "Sm3", "ea*h", "ea*a"])
+@pytest.mark.parametrize("unit", ["ea*h", "ea*a"])
 def test_units_without_a_brightway_counterpart_are_refused_with_the_reason(library: Path, tmp_path: Path, unit: str) -> None:
     _edit(library, lambda d: d["exchanges"][0].update(unit=unit))
     errors = _build(library, tmp_path).errors
@@ -221,6 +221,31 @@ def test_a_basic_uncertainty_is_the_floor_of_the_pedigree_lognormal(library: Pat
     _build(library, tmp_path)
     water = _exchange(_activities(tmp_path)[H2], "resource:WATER")
     assert water["scale"] == pytest.approx(math.log(build_lci.pedigree_gsd2([4, 3, 1, 5, 3], 1.5)) / 2)
+
+
+def test_a_pedigree_without_a_basic_uncertainty_is_refused(library: Path, tmp_path: Path) -> None:
+    _edit(library, lambda d: next(e for e in d["exchanges"] if e["key"] == "resource:WATER").pop("basic_uncertainty"))
+    errors = _build(library, tmp_path).errors
+    assert any("resource:WATER" in e and "pedigree without basic_uncertainty" in e for e in errors), errors
+
+
+def test_gas_volumes_keep_their_reference_state_unit(library: Path, tmp_path: Path) -> None:
+    assert build_lci.BW_UNITS["Sm3"] == "standard cubic meter" and build_lci.BW_UNITS["Nm3"] == "normal cubic meter"
+    assert build_lci.UNIT_SCALING["Sm3"] == ("Sm3", 1.0) and build_lci.UNIT_SCALING["Nm3"] == ("Nm3", 1.0)
+
+
+def test_per_unit_is_not_applied_to_an_exchange_in_the_lists_unit(library: Path, tmp_path: Path) -> None:
+    assert _build(library, tmp_path).errors == []
+    in_kg = _exchange(_activities(tmp_path)[H2], "resource:WATER")["amount"]  # 375.3 kg x 0.001 m3/kg
+    _edit(library, lambda d: next(e for e in d["exchanges"] if e["key"] == "resource:WATER").update(amount=0.3753, unit="m3"))
+    assert _build(library, tmp_path / "m3").errors == []
+    assert _exchange(_activities(tmp_path / "m3")[H2], "resource:WATER")["amount"] == pytest.approx(in_kg)
+
+
+def test_per_unit_refuses_an_exchange_in_another_unit(library: Path, tmp_path: Path) -> None:
+    _edit(library, lambda d: next(e for e in d["exchanges"] if e["key"] == "resource:WATER").update(unit="MJ"))
+    errors = _build(library, tmp_path).errors
+    assert any("resource:WATER" in e and "per kg" in e for e in errors), errors
 
 
 # --- carriers and product state -----------------------------------------------------------------

@@ -39,7 +39,7 @@ Modelling rules (``docs/system-model.md``; also written into every activity's ``
 - the v2 contract (core#294): a ``resource`` exchange and an emission are biosphere exchanges
   identified by the biosphere3 UUID of their ``flow:`` identity (``atlas flow uuid``), name and
   categories as fallback; units are brought to one per kind (g, t to kg ...) or refused when
-  Brightway has none (Nm3, Sm3, ea*h, ea*a); the pedigree is exported (``atlas pedigree``) with
+  Brightway has none (ea*h, ea*a); the pedigree is exported (``atlas pedigree``) with
   the lognormal it implies when the exchange has no distribution of its own; a dataset's version,
   methodology version, review, valid_until, system model and ``superseded_by`` (a deprecated
   dataset stays in the database with a pointer) are read, and its rating from ``lca/manifest.json``;
@@ -130,11 +130,13 @@ UNIT_SCALING = {
     "ea": ("ea", 1.0),
     "tkm": ("tkm", 1.0),
     "kBq": ("kBq", 1.0),
+    # biosphere3 and bw2io count gas volumes at a reference state in these units (e.g. Gas, natural in
+    # Sm3); the reference state is core's (Nm3: 0 C, 1.01325 bar) and is not converted here
+    "Nm3": ("Nm3", 1.0),
+    "Sm3": ("Sm3", 1.0),
 }
 #: Units of core's table that Brightway has no counterpart for. Refused, with the reason.
 UNSUPPORTED_UNITS = {
-    "Nm3": "a gas volume at a reference state has no Brightway unit (ecoinvent counts gases in kg or m3 at ambient state); state the amount in kg",
-    "Sm3": "a gas volume at a reference state has no Brightway unit (ecoinvent counts gases in kg or m3 at ambient state); state the amount in kg",
     "ea*h": "item-hours (rented equipment) have no Brightway unit; state the equipment's share as items (ea) or its burden in a background activity",
     "ea*a": "item-years have no Brightway unit; state the equipment's share as items (ea) or its burden in a background activity",
 }
@@ -150,6 +152,8 @@ BW_UNITS = {
     "ea": "unit",
     "tkm": "ton kilometer",
     "kBq": "kilo Becquerel",
+    "Nm3": "normal cubic meter",  # bw2io units.py
+    "Sm3": "standard cubic meter",
 }
 EXCHANGE_TYPES = ("product", "input", "output", "emission", "resource")
 #: Ciroth, Muller, Weidema, Lesage (2016), Int J LCA 21:1338-1348: the empirically based
@@ -162,8 +166,6 @@ PEDIGREE_FACTORS = (
     ("geographical correlation", (1.00, 1.04, 1.08, 1.11, 1.11)),
     ("further technological correlation", (1.00, 1.18, 1.65, 2.08, 2.80)),
 )
-#: The basic uncertainty (gsd2) under the pedigree when a dataset states none (core's default).
-BASIC_UNCERTAINTY = 1.05
 UUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 KEY = re.compile(r"^[a-z][a-z-]*:[A-Za-z0-9_.\-]+$")
 PROPORTIONAL = ("mass", "economic", "energy", "exergy", "shares")
@@ -421,6 +423,13 @@ def _quality_problems(exchange: dict) -> list[str]:
         if not (isinstance(scores, list) and len(scores) == 5 and all(isinstance(x, int) and not isinstance(x, bool) and 1 <= x <= 5 for x in scores)):
             problems.append("pedigree.scores is not five integers from 1 to 5")
     basic = exchange.get("basic_uncertainty")
+    if pedigree is not None and basic is None:
+        # core's table of basic uncertainties by exchange type (quality.BASIC) is not copied here, and
+        # core fills the field in every dataset it generates: a hand-written pedigree must state it
+        problems.append("pedigree without basic_uncertainty: state it (core's quality.basic_uncertainty for the exchange type)")
+    own = exchange.get("uncertainty")
+    if isinstance(own, dict) and own.get("pedigree") and not own.get("gsd2") and not own.get("basic"):
+        problems.append("uncertainty.pedigree without gsd2 or basic: state the basic uncertainty")
     if basic is not None and (isinstance(basic, bool) or not isinstance(basic, (int, float)) or basic < 1):
         problems.append("basic_uncertainty is not a number of at least 1")
     for number, flow in enumerate(_flow_identities(exchange)):
@@ -672,7 +681,7 @@ def resolve_successors(processes: list[Process], report: Report) -> None:
             if not target:
                 continue
             candidates = [(p, d) for p in [process, *[q for q in processes if q is not process]] for d in p.datasets if d.data["id"] == target["id"] and d is not dataset]
-            found = next(iter(candidates), None)
+            found = next((c for c in candidates if _dataset_version(c[1])[0] == str(target["version"])), next(iter(candidates), None))
             entry: dict[str, Any] = {"id": target["id"], "version": str(target["version"]), "process": None, "resolved": found is not None, "activities": []}
             if found is None:
                 report.warn(dataset.path, f"superseded_by {target['id']} {target['version']} is not a dataset of this build: the pointer is kept, but names nothing here")
@@ -886,12 +895,22 @@ class Linker:
             if not flow.get("name") or not flow.get("categories"):
                 raise BuildError(f"{where}: flow identity {identity['uuid']} has no name and categories (give them in the dataset, or in lci/mappings.yaml biosphere)")
             list_unit, factor = UNIT_SCALING[identity.get("unit") or unit]
+            per_unit = float(identity.get("per_unit", 1.0))
+            if unit == list_unit:
+                amount_factor = 1.0  # the amount is already in the list's unit; per_unit is per kg
+            elif unit == "kg":
+                amount_factor = per_unit * factor
+            else:
+                raise BuildError(
+                    f"{where}: flow identity {identity['uuid']} is in {list_unit} (per_unit {per_unit:g} per kg) but the exchange is in {unit}: "
+                    "state the amount in kg or in the list's unit"
+                )
             return {
                 "name": flow["name"],
                 "categories": list(flow["categories"]),
                 "unit": BW_UNITS[list_unit],
                 "atlas flow uuid": identity["uuid"],
-                "amount factor": float(identity.get("per_unit", 1.0)) * factor,
+                "amount factor": amount_factor,
             }
         if link.get("biosphere"):
             flow = link["biosphere"]
@@ -932,7 +951,7 @@ class Linker:
 # --- activities ------------------------------------------------------------------------------
 
 
-def pedigree_gsd2(scores: list[int], basic: float = BASIC_UNCERTAINTY) -> float:
+def pedigree_gsd2(scores: list[int], basic: float) -> float:
     """The squared geometric standard deviation of pedigree *scores* on a *basic* uncertainty,
     combined as in ecoinvent: ``exp(sqrt(ln(basic)^2 + sum(ln(U_i)^2)))`` (core's
     ``foundation.uncertainty.pedigree_gsd2``)."""
@@ -945,17 +964,17 @@ def _uncertainty(exchange: dict, amount: float) -> dict:
     The exchange's own lognormal (a gsd2, or pedigree scores on a basic uncertainty) comes first,
     then the gsd2 of its pedigree (core#178: no exchange of a v2 dataset goes without one); the
     study's default distributions (lca.yaml) are not known to the dataset. Another distribution
-    kind of the exchange has no lognormal and writes none."""
+    kind of the exchange (normal, triangular, uniform) is not exported; ``build`` warns."""
     given = exchange.get("uncertainty") or {}
     pedigree = exchange.get("pedigree") or {}
     if given:
         gsd2 = given.get("gsd2")
         if given.get("distribution", "lognormal") == "lognormal" and not gsd2 and given.get("pedigree"):
-            gsd2 = pedigree_gsd2(given["pedigree"], given.get("basic") or BASIC_UNCERTAINTY)
+            gsd2 = pedigree_gsd2(given["pedigree"], given["basic"]) if given.get("basic") else None
         if given.get("distribution", "lognormal") != "lognormal":
             gsd2 = None
     elif pedigree.get("scores"):
-        gsd2 = pedigree_gsd2(pedigree["scores"], exchange.get("basic_uncertainty") or BASIC_UNCERTAINTY)
+        gsd2 = pedigree_gsd2(pedigree["scores"], exchange["basic_uncertainty"])
     else:
         gsd2 = None
     if not gsd2 or amount <= 0:
@@ -1258,6 +1277,9 @@ def build_activities(processes: list[Process], mappings: dict, products: reg.Reg
                     if alternative is not None and target.get("database") != db_name:
                         entry.update({"atlas activity": alternative["name"], "atlas reference product": alternative["reference product"], "atlas location": alternative["location"]})
                 entry.update(_uncertainty(exchange, amount))
+                kind_of = (exchange.get("uncertainty") or {}).get("distribution", "lognormal")
+                if kind_of != "lognormal":
+                    report.warn(f"{dataset.path} {exchange['key']}", f"uncertainty distribution {kind_of!r} (and the pedigree) is not exported: Brightway sees this exchange as deterministic")
                 entry.update(_pedigree_column(exchange))
                 carrier = _carrier_text(exchange.get("carrier"))
                 if carrier:

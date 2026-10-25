@@ -157,7 +157,7 @@ read. They are part of the review checklist ([governance.md](governance.md)).
   lognormal (ecoinvent pedigree matrix, factors of Ciroth et al. 2016; core#178), each dataset's
   data quality rating from `lca/manifest.json` (TfS DQR, PEF-style indicators, primary data share),
   and elementary flows by their biosphere3 UUID (core#175). Units follow core's table; gas
-  volumes at a reference state have no Brightway unit and are refused (core#177). EF 3.1 UUIDs
+  volumes at a reference state keep `Nm3` or `Sm3` (bw2io's normal and standard cubic meter, core#177). EF 3.1 UUIDs
   are not recorded by core yet. The biogenic carbon rules (core#181) are part of this
   methodology once core implements them; they will raise the methodology version.
 

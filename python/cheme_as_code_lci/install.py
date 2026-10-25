@@ -46,7 +46,7 @@ PEDIGREE_KEYS = ("reliability", "completeness", "temporal correlation", "geograp
 #: The system models the Atlas builds (build_lci.py SYSTEM_MODELS), for the report.
 SYSTEM_MODELS = {
     "cutoff": "attributional, cut-off",
-    "substitution": "attributional, substitution variant (avoided-burden credits at end of life)",
+    "substitution": "attributional, substitution variant (avoided-burden credits for recovered materials, energy and exported co-products)",
 }
 
 

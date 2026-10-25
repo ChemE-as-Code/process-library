@@ -113,17 +113,19 @@ build); governance (versions, change reports, releases, review) is
   their `emission:*` exchanges), and free pass-through emissions (below).
 - **Uncertainty and pedigree:** an exchange with a lognormal `gsd2` gets Brightway's lognormal
   (type 2, `scale = ln(gsd2)/2`). An exchange without its own distribution gets the lognormal of
-  its pedigree on its `basic_uncertainty` (default 1.05), `gsd2 = exp(sqrt(ln(basic)^2 +
+  its pedigree on its `basic_uncertainty` (required: the build refuses a pedigree without one; core fills it from its table by exchange type), `gsd2 = exp(sqrt(ln(basic)^2 +
   sum(ln(U_i)^2)))` with the empirically based factors of Ciroth et al. (2016), as core
-  computes it. The five scores are written in the `atlas pedigree` column (`r,c,t,g,f`);
+  computes it. Normal, triangular and uniform distributions are not exported (a warning names
+  the exchange; Brightway sees it as deterministic). The five scores are written in the `atlas pedigree` column (`r,c,t,g,f`);
   `install()` turns them into Brightway's `pedigree` field. The study's default distributions
   (`lca/lca.yaml` `uncertainty.defaults`) are not known to the dataset and are not applied, so
   a Monte Carlo in Brightway can differ from core's where a study default wins there.
 - **Units.** Quantities are brought to one unit per kind before allocation: g and t to kg, MWh to
   kWh, GJ to MJ, km to m, L to m3; m2*a (land occupation) becomes `square meter-year` and kBq
-  `kilo Becquerel`, biosphere3's units. Gas volumes at a reference state (`Nm3`, `Sm3`) and
-  item-time (`ea*h`, `ea*a`) have no Brightway unit: the build refuses them with the reason
-  (state the amount in kg, or as items). An amount is never converted to a unit the linked
+  `kilo Becquerel`, biosphere3's units. Gas volumes at a reference state keep their unit
+  (`Nm3` is bw2io's `normal cubic meter`, `Sm3` its `standard cubic meter`; biosphere3 counts
+  `Gas, natural` in Sm3), without conversion between the two. Item-time (`ea*h`, `ea*a`) has no
+  Brightway unit: the build refuses it with the reason (state the amount as items). An amount is never converted to a unit the linked
   activity does not count in: a mapping in kWh refuses an exchange in MJ.
 - **Carriers and product state.** A `carrier` (kind, temperature, pressure, level, LHV) is
   written in the exchange's `atlas carrier` column and a product's `state` (phase, pressure,

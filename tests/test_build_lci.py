@@ -212,8 +212,7 @@ def _edit_dataset(library: Path, change) -> None:
     ("change", "message"),
     [
         (lambda d: d.update(kind="lca"), "kind is 'lca'"),
-        (lambda d: d["exchanges"][0].update(unit="Nm3"), "unit Nm3: a gas volume at a reference state has no Brightway unit"),
-            (lambda d: d["exchanges"][0].update(unit="ea*h"), "unit ea*h: item-hours"),
+                    (lambda d: d["exchanges"][0].update(unit="ea*h"), "unit ea*h: item-hours"),
             (lambda d: d["exchanges"][0].update(unit="barrel"), "unit 'barrel' is not one of"),
         (lambda d: d["exchanges"].append(dict(d["exchanges"][0])), "appear twice: feed:WATER"),
         (lambda d: d["exchanges"][0].update(key="WATER"), "is not <kind>:<id>"),
