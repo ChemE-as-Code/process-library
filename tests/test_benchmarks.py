@@ -89,6 +89,13 @@ def test_expression_errors(expression: str, message: str) -> None:
         bm.compute(expression, {"feed:POWER": (1.0, "kWh"), "product:GOXP": (1.0, "kg")})
 
 
+def test_syntax_check_allows_a_divisor_that_is_zero_only_when_every_key_is_1() -> None:
+    # a net-output denominator is a normal KPI; at load, with every key 1, it is 0
+    expression = "feed:POWER / (product:GOXP - product:LOX)"
+    assert bm.compute(expression) == (1.0, {})
+    assert bm.compute(expression, {"feed:POWER": (10.0, "kWh"), "product:GOXP": (20.0, "kg"), "product:LOX": (5.0, "kg")}) == (10 / 15, {"kWh": 1, "kg": -1})
+
+
 def test_units_of_inventory_without_pint_spelling_must_match() -> None:
     assert bm.convert(3.0, {"tkm": 1, "kg": -1}, "tkm/kg") == 3.0
     with pytest.raises(bm.ExpressionError, match="does not convert"):
@@ -128,6 +135,7 @@ def test_no_benchmarks_folder_means_no_registry(tmp_path: Path) -> None:
         (lambda d: d["kpis"]["specific-power-gox"]["references"][0].update(range=[600, 400]), "range is reversed"),
         (lambda d: d["datasets"][0]["kpis"]["specific-power-gox"].pop("reference"), "reference must be one of air-liquide-yango-2017"),
         (lambda d: d["datasets"][0]["kpis"]["cooling-duty-gox"].update(reference="air-liquide-yango-2017"), "the KPI has no references"),
+        (lambda d: d["datasets"][0]["kpis"]["cooling-duty-gox"].update(out_of_range_reason="a reason for a KPI that has no range"), "out_of_range_reason, but the KPI has no range"),
         (lambda d: d["datasets"][0]["kpis"].update({"recovery": {"expression": "product:GOXP / feed:AIR"}}), "unknown KPI 'recovery'"),
         (lambda d: d["datasets"][0]["kpis"]["specific-power-gox"].update(expression="feed:POWER // product:GOXP"), "unexpected '/'"),
         (lambda d: d["datasets"].append(d["datasets"][0]), "listed twice"),
@@ -175,6 +183,11 @@ def test_asu_kpis_in_the_datapackage(tmp_path: Path) -> None:
     cooling = kpis["cooling-duty-gox"]
     assert cooling["status"] == "no-reference" and cooling["reference"] is None and "2026-10-25" in cooling["no_open_reference"]
     assert cooling["value"] == pytest.approx(amounts["product:CW"] / amounts["product:GOXP"] * 3.6)
+    recovery = kpis["o2-recovery"]
+    o2_in_air = (amounts["feed:AIR"] - amounts["emission:H2O"]) * 0.2314
+    assert recovery["value"] == pytest.approx(100 * (1 - amounts["emission:O2"] / o2_in_air))
+    assert 80 < recovery["value"] < 86  # DESIGN.md D-066: ~83 %
+    assert recovery["status"] == "explained" and "D-066" in recovery["reason"] and "allocated" not in recovery
 
 
 @needs_core
@@ -211,7 +224,7 @@ def test_without_core_a_conversion_is_unchecked_and_fails_strict(tmp_path: Path,
     library = _library(tmp_path)
     report = build_lci.build(library, tmp_path / "out", "0.1.0", commit="fixture")
     assert report.errors == []
-    assert len(report.warnings) == 2 and all("needs core's foundation.units" in w for w in report.warnings)
+    assert len(report.warnings) == 3 and all("needs core's foundation.units" in w for w in report.warnings)
     statuses = {k["status"] for k in _json(tmp_path / "out" / "lci" / "datapackage.json")["processes"][0]["datasets"][0]["benchmarks"]}
     assert statuses == {"unchecked"}
 
@@ -219,7 +232,7 @@ def test_without_core_a_conversion_is_unchecked_and_fails_strict(tmp_path: Path,
 @needs_core
 def test_a_public_process_needs_two_kpis_and_bindings_need_a_dataset(tmp_path: Path) -> None:
     library = _library(tmp_path)
-    _edit_benchmarks(library, lambda d: d["datasets"][0]["kpis"].pop("cooling-duty-gox"))
+    _edit_benchmarks(library, lambda d: [d["datasets"][0]["kpis"].pop(k) for k in ("cooling-duty-gox", "o2-recovery")])
     (warning,) = build_lci.build(library, tmp_path / "out", "0.1.0", commit="fixture").warnings
     assert warning.startswith("asu-1: 1 benchmarked KPI(s); a public process needs at least 2")
 
@@ -228,6 +241,41 @@ def test_a_public_process_needs_two_kpis_and_bindings_need_a_dataset(tmp_path: P
     warnings = build_lci.build(library, tmp_path / "out2", "0.1.0", commit="fixture").warnings
     assert "benchmarks: datasets asu-1/asu-1-old: no such LCI dataset in the library (renamed?)" in warnings
     assert any(w.startswith("asu-1: 0 benchmarked KPI(s)") for w in warnings)
+
+
+@needs_core
+@pytest.mark.parametrize(
+    "per, message",
+    [
+        ("product:GOX", "per product:GOX is not a product exchange of the dataset"),
+        ("feed:POWER", "per feed:POWER is not a product exchange of the dataset"),
+    ],
+)
+def test_a_wrong_per_is_a_warning(tmp_path: Path, per: str, message: str) -> None:
+    library = _library(tmp_path)
+    _edit_benchmarks(library, lambda d: d["datasets"][0]["kpis"]["specific-power-gox"].update(per=per))
+    (warning,) = build_lci.build(library, tmp_path / "out", "0.1.0", commit="fixture").warnings
+    assert message in warning
+
+
+@needs_core
+def test_a_per_without_an_allocation_share_is_a_warning() -> None:
+    registry, _ = bm.load(KIT / "benchmarks", SCHEMA, FAMILIES)
+    dataset = yaml.safe_load((KIT / "processes" / "asu-1" / "lca" / "dataset.yaml").read_text(encoding="utf-8"))
+    results, warnings = bm.evaluate(registry, "asu-1", dataset, {"product:GANP": 1.0})
+    assert any("per product:GOXP has no allocation share" in w for w in warnings)
+    assert all("allocated" not in k for k in results)
+
+
+@needs_core
+def test_a_binding_outside_the_process_families_is_a_warning(tmp_path: Path) -> None:
+    library = _library(tmp_path)
+    manifest = library / "processes" / "asu-1" / "process.yaml"
+    text = manifest.read_text(encoding="utf-8")
+    manifest.write_text(text.replace("families: [air-separation, ", "families: ["), encoding="utf-8")
+    message = "asu-1: benchmarks/air-separation.yaml binds asu-1, but process.yaml families does not list 'air-separation'"
+    assert message in build_lci.build(library, tmp_path / "out", "0.1.0", commit="fixture").warnings
+    assert message in build_catalog.build(library, tmp_path / "cat", None, "fixture").warnings
 
 
 def test_a_library_without_benchmarks_builds_as_before(tmp_path: Path) -> None:
@@ -249,7 +297,7 @@ def test_catalog_carries_the_same_kpis(tmp_path: Path) -> None:
     assert [{k: v for k, v in b.items() if k != "dataset"} for b in detail["benchmarks"]] == [{k: v for k, v in b.items() if k != "allocated"} for b in lci]
     assert {b["dataset"] for b in detail["benchmarks"]} == {"asu-1-500-t-d-gox"}
     summary = _json(tmp_path / "cat" / "catalog.json")["processes"][0]
-    assert summary["benchmarks"] == {"inside": 1, "no-reference": 1}
+    assert summary["benchmarks"] == {"explained": 1, "inside": 1, "no-reference": 1}
 
     mis = _library(tmp_path / "mis", MIS_SCALED)
     report = build_catalog.build(mis, tmp_path / "cat2", None, "fixture")

@@ -10,7 +10,8 @@ any hand-written ``lca/datasets/*.yaml`` of a manifest-only process; ``process.y
 title, maturity and the chemical slug of each inventory key; ``lca/lca.yaml`` for the study's
 allocation and functional unit. Linking comes from ``lci/mappings.yaml`` (library root, else the
 staged copy beside this script; schema ``schemas/lci-mappings.schema.json``). YAML files only:
-chemeascode is never imported.
+chemeascode is never imported, except ``foundation.units`` for the benchmark unit conversion
+(``benchmarks.convert``, lazily).
 
 Output (``--out``; ``<out>/lci/`` is replaced):
 
@@ -801,9 +802,9 @@ def property_checks(process: Process, dataset: Dataset, products: reg.Registry, 
 
 def benchmark_results(processes: list[Process], benchmarks: bm.Registry | None, public: bool, report: Report) -> dict[str, list[dict]]:
     """Each dataset's KPIs (``benchmarks.evaluate``, with its allocation shares), by dataset path.
-    In a library with a benchmark registry, a public process with fewer than
-    ``benchmarks.MIN_KPIS`` KPIs is a warning, and so, outside ``--public``, is a binding that
-    names no dataset of the library."""
+    In a library with a benchmark registry, these are warnings: a public process with fewer than
+    ``benchmarks.MIN_KPIS`` KPIs, a process bound under a family its process.yaml does not list,
+    and, outside ``--public``, a binding that names no dataset of the library."""
     if benchmarks is None:
         return {}
     results = {}
@@ -811,7 +812,10 @@ def benchmark_results(processes: list[Process], benchmarks: bm.Registry | None, 
         for dataset in process.datasets:
             results[dataset.path], warnings = bm.evaluate(benchmarks, process.pid, dataset.data, dataset.shares)
             report.warnings.extend(warnings)
-        count = bm.kpi_count(benchmarks, process.pid, [d.data["id"] for d in process.datasets])
+        ids = [d.data["id"] for d in process.datasets]
+        for text in bm.family_mismatches(benchmarks, process.pid, ids, process.manifest.get("families") or []):
+            report.warn(process.pid, text)
+        count = bm.kpi_count(benchmarks, process.pid, ids)
         if is_public(process.manifest) and count < bm.MIN_KPIS:
             report.warn(
                 process.pid,

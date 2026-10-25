@@ -75,8 +75,9 @@ datasets:
   package's single unit system. Adding exchanges of different units is an error. Without core
   installed (`cheme-as-code[units]`), a KPI whose unit differs from its expression's unit is
   `unchecked`. That is a warning, so `--strict` builds need core.
-- `per` names the product the KPI refers to. `build_lci.py` records `allocated`, the value times
-  that product's allocation share. ASU-1's GOX carries about 70 % of the burdens under exergy
+- `per` names the product the KPI refers to. It must be a `product:` exchange of the dataset;
+  otherwise the build warns. `build_lci.py` records `allocated`, the value times that product's
+  allocation share. A KPI that is not per unit of a product (a recovery, a yield) has no `per`. ASU-1's GOX carries about 70 % of the burdens under exergy
   allocation, so 502 kWh/t unallocated becomes about 352 kWh/t allocated.
 
 Each result has a status:
@@ -90,13 +91,18 @@ Each result has a status:
 | `unchecked` | not computable here (missing exchange, unit not convertible, core missing) | warning |
 
 An explanation is required for every value outside its range. It is written as
-`out_of_range_reason` on the KPI in the binding (`benchmarks/<family>.yaml`), and never by editing
-the process's own files. A reason left on a value that is now inside is reported as stale.
+`out_of_range_reason` on the KPI in the binding (`benchmarks/<family>.yaml`), so the build can
+check it. When the process's DESIGN.md records the decision behind the value, the reason names
+that decision (for example `D-066 in processes/asu-1/DESIGN.md`) instead of repeating it; the
+explanation may live in DESIGN.md or a dataset note, but the link to it is always the
+`out_of_range_reason`. A reason left on a value that is now inside is reported as stale. A KPI
+with `no_open_reference` has no range, so an `out_of_range_reason` on it is a registry error.
 
 **Coverage.** In a library with a `benchmarks/` folder, every public process with an LCI dataset
 needs at least two KPIs, each with a source or a recorded `no_open_reference`. Otherwise both
 builds warn. A binding that names no dataset of the library (for example after a rename) is a
-warning too.
+warning too, and so is a binding under a family that the process's `process.yaml` does not list
+in `families`.
 
 ## Where the results go
 
@@ -114,6 +120,7 @@ Both additions are additive: no existing field changes.
 | KPI | ASU-1 | reference | status |
 |---|---|---|---|
 | specific power per t GOX | 502 kWh/t (99.5 % O2, 30 barg, 500 t/d, external compression) | 400 to 600 kWh/t, Air Liquide Yango standard ASU (99.5 to 99.8 % O2, up to 42 barg, 330 to 770 t/d, internal compression), brochure 2017 | inside |
+| O2 recovery | 82.8 % | 97.85 %, typical state-of-the-art cryogenic ASU at 99.5 % O2, Pfaff and Kather 2009, p. 496 (a single value) | explained (D-066: no argon column, simulated double column) |
 | cooling-water duty per t GOX | 1.85 GJ/t | no open reference found (2026-10-25) | no-reference |
 
 The power reference is a manufacturer's published specification. It is independent of the
@@ -121,7 +128,14 @@ library but not peer reviewed. It is the only open source found that states a ra
 high-purity oxygen at pipeline pressure. Open peer-reviewed figures exist for near-atmospheric
 delivery (Pfaff and Kather 2009, Energy Procedia 1:495–502, about 0.25 kWh per kg O2 at
 99.5 %), but they do not apply at 30 barg and are single values. A BREF, IEA or peer-reviewed
-range for pressurised high-purity oxygen should replace or join it when one is found.
+range for pressurised high-purity oxygen should replace or join it when one is found. The
+brochure does not say whether its figure covers the whole plant's power per t O2 or how
+co-products count; `basis: unallocated` is our reading of it.
+
+The O2 recovery reference is a single typical value, recorded as a zero-width range, so every
+dataset's recovery needs its own explanation until a source states a range. ASU-1's 82.8 % is
+well below it: the simulated double column without an argon column needs more air for 99.5 %
+GOX (DESIGN.md D-066, which revised the concept's 94 % of D-018).
 
 `tests/fixtures/benchmarks/asu-1-mis-scaled.yaml` is a deliberately wrong copy of the dataset,
 with the power in Wh labelled kWh. Its 501,700 kWh/t falls outside the range, so the strict LCI

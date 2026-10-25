@@ -13,7 +13,8 @@ docs/benchmarks.md.
   unit through core's ``foundation.units`` (the package's one unit system) and compares them with
   the chosen reference: ``inside``, ``outside``, ``explained`` (outside, with an
   ``out_of_range_reason``), ``no-reference`` or ``unchecked`` (not computable here);
-- :func:`kpi_count` and :func:`unused_bindings` are the coverage checks of the builds.
+- :func:`kpi_count`, :func:`unused_bindings` and :func:`family_mismatches` are the coverage
+  checks of the builds.
 
 Both builders call it, so the catalog and ``datapackage.json`` report the same results.
 Core is optional: without it a KPI whose unit differs from its expression's is ``unchecked``,
@@ -83,7 +84,8 @@ Quantity = tuple[float, dict[str, int]]  # value, unit exponents ({"kWh": 1, "kg
 
 def compute(expression: str, amounts: dict[str, tuple[float, str]] | None = None) -> Quantity:
     """The expression's value and unit, the keys taken from *amounts* (``key -> (amount,
-    unit)``). With *amounts* None, only the syntax is checked (every key counts as 1)."""
+    unit)``). With *amounts* None, only the syntax is checked: every key counts as 1, and a
+    divisor that is zero there (``product:A - product:B``) is not an error."""
     items = tokens(expression)
     position = 0
 
@@ -133,10 +135,10 @@ def compute(expression: str, amounts: dict[str, tuple[float, str]] | None = None
             other, other_unit = atom()
             if op == "*":
                 value, unit = value * other, combine(unit, other_unit, 1)
-            elif other == 0:
+            elif other == 0 and amounts is not None:
                 raise ExpressionError(f"{expression!r}: division by zero")
             else:
-                value, unit = value / other, combine(unit, other_unit, -1)
+                value, unit = (value / other if other else value), combine(unit, other_unit, -1)
         return value, unit
 
     def sum_() -> Quantity:
@@ -234,6 +236,8 @@ def load(folder: Path, schema_path: Path, families: dict[str, dict]) -> tuple[Re
                     problems.append(f"{at}: kpis.{kid}: reference must be one of {', '.join(sorted(ids))}")
                 if not ids and "reference" in evaluation:
                     problems.append(f"{at}: kpis.{kid}: the KPI has no references (no_open_reference)")
+                if not ids and "out_of_range_reason" in evaluation:
+                    problems.append(f"{at}: kpis.{kid}: out_of_range_reason, but the KPI has no range (no_open_reference)")
                 try:
                     compute(evaluation["expression"])
                 except ExpressionError as failure:
@@ -278,10 +282,15 @@ def evaluate(registry: Registry, pid: str, dataset: dict, shares: dict[str, floa
                 results.append(result)
                 continue
             result["value"] = _number(value)
-            if evaluation.get("per"):
-                result["per"] = evaluation["per"]
-                if shares and evaluation["per"] in shares:
-                    result["allocated"] = _number(value * shares[evaluation["per"]])
+            per = evaluation.get("per")
+            if per:
+                result["per"] = per
+                if not per.startswith("product:") or per not in amounts:
+                    warnings.append(f"{at}: per {per} is not a product exchange of the dataset")
+                elif shares is not None and per not in shares:
+                    warnings.append(f"{at}: per {per} has no allocation share, so no allocated value is recorded")
+                elif shares:
+                    result["allocated"] = _number(value * shares[per])
             if reference is None:
                 result["status"] = "no-reference"
             else:
@@ -301,6 +310,17 @@ def evaluate(registry: Registry, pid: str, dataset: dict, shares: dict[str, floa
                     )
             results.append(result)
     return results, warnings
+
+
+def family_mismatches(registry: Registry, pid: str, dataset_ids: list[str], families: list[str]) -> list[str]:
+    """The benchmark families bound to the process's datasets that its process.yaml
+    ``families`` does not list, each as a warning text."""
+    bound = sorted({family for did in dataset_ids for family, _ in registry.bindings.get((pid, did), [])})
+    return [
+        f"benchmarks/{family}.yaml binds {pid}, but process.yaml families does not list {family!r}"
+        for family in bound
+        if family not in families
+    ]
 
 
 def kpi_count(registry: Registry, pid: str, dataset_ids: list[str]) -> int:

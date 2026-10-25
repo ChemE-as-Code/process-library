@@ -8,7 +8,8 @@ A library holds one folder per process, ``processes/<id>/``, with a ``process.ya
 ``schemas/process.schema.json``) and, for a plantcode project, its engineering files beside it.
 Chemicals are named once in ``chemicals/chemicals.yaml``.
 
-The builder reads checked-in files only; it never imports or runs plantcode. Preview SVGs are
+The builder reads checked-in files only; it never imports or runs plantcode (core), except
+core's ``foundation.units`` for the benchmark unit conversion (``benchmarks.convert``, lazily). Preview SVGs are
 rendered beforehand by ``render_previews.py`` into an artifacts directory, which is optional.
 
 Output (``--out``), all JSON with sorted keys, no timestamps, so two runs on the same commit are
@@ -459,7 +460,8 @@ def _scenarios(folder: Path, where: str, report: Report, lca_withheld_reason: st
 def _benchmarks(folder: Path, pid: str, manifest: dict, benchmarks: bm.Registry | None, seen: set[tuple[str, str]], report: Report) -> list[dict]:
     """The process's KPIs over its LCI datasets (``benchmarks.evaluate``, unallocated: the
     allocated values are build_lci's), each with its ``dataset`` id; adds each dataset to
-    *seen*. A public process with fewer than ``benchmarks.MIN_KPIS`` is a warning."""
+    *seen*. A public process with fewer than ``benchmarks.MIN_KPIS``, or bound under a family its
+    process.yaml does not list, is a warning."""
     if benchmarks is None:
         return []
     results, ids = [], []
@@ -472,6 +474,8 @@ def _benchmarks(folder: Path, pid: str, manifest: dict, benchmarks: bm.Registry 
         found, warnings = bm.evaluate(benchmarks, pid, data)
         results.extend({"dataset": data["id"], **k} for k in found)
         report.warnings.extend(warnings)
+    for text in bm.family_mismatches(benchmarks, pid, ids, manifest.get("families") or []):
+        report.warn(pid, text)
     count = bm.kpi_count(benchmarks, pid, ids)
     if ids and is_public(manifest) and count < bm.MIN_KPIS:
         report.warn(pid, f"{count} benchmarked KPI(s); a public process needs at least {bm.MIN_KPIS}, each with a source or a recorded no_open_reference (benchmarks/<family>.yaml, docs/benchmarks.md)")

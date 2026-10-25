@@ -4,7 +4,7 @@
 # Ranges are facts from cited open sources, recorded in our own form in the KPI's unit, with the
 # conditions the source states. Never invent a range: a KPI without an open source records
 # no_open_reference (what was searched, and when). An out-of-range value needs an
-# out_of_range_reason here; the process's own files are not edited for it.
+# out_of_range_reason here, which may name the DESIGN.md decision that explains it.
 schema: cheme-as-code/benchmarks/v1
 family: air-separation
 
@@ -17,7 +17,9 @@ kpis:
       regeneration, auxiliaries) per t of gaseous oxygen delivered at the product pressure and
       purity, unallocated: co-products (nitrogen, liquids) carry no share, as specific power is
       reported in the literature. Compare only with a reference at the same product pressure and
-      purity: compression to 30 barg alone adds of the order of 100 kWh/t.
+      purity: compression to 30 barg alone adds of the order of 100 kWh/t (ASU-1's GOX
+      compressor K-4101 draws 2.26 MW for 20.86 t/h, about 108 kWh/t: processes/asu-1/DESIGN.md,
+      utilities table; an estimate for this plant, not a literature value).
     references:
       - id: air-liquide-yango-2017
         range: [400, 600]
@@ -38,11 +40,43 @@ kpis:
         note: >-
           A manufacturer's published specification, not peer reviewed; it is independent of this
           library's datasets and the only open source found that states a range for high-purity
-          oxygen at pipeline pressure. Per t of oxygen as the brochure states it. Replace or add a
+          oxygen at pipeline pressure. Per t of oxygen as the brochure states it ("Specific
+          energy: 400 to 600 kWh/t"). The brochure does not say whether this is the whole plant's
+          power or how co-product liquids and nitrogen compression count: basis unallocated is our
+          interpretation, not a statement of the source. Replace or add a
           BREF, IEA or peer-reviewed range for these conditions when one is found. Open
           peer-reviewed figures for near-atmospheric delivery (e.g. about 0.25 kWh per kg O2 at
           99.5 % in Pfaff and Kather 2009, Energy Procedia 1:495-502) do not apply to 30 barg
           and are single values, not ranges.
+
+  o2-recovery:
+    title: Oxygen recovery (O2 in the products per O2 in the air feed)
+    unit: "%"
+    description: >-
+      The share of the oxygen entering with the air that leaves in the products (the rest leaves
+      with the waste nitrogen). Molar and mass ratios are the same for one species. A low recovery
+      means more air compressed per t of oxygen, so it explains a high specific power.
+    references:
+      - id: pfaff-kather-2009
+        range: [97.85, 97.85]
+        basis: unallocated
+        conditions:
+          technology: cryogenic double column, typical state of the art
+          product: gaseous oxygen
+          purity: 99.5 vol% O2
+          pressure: approximately atmospheric
+          year: 2009
+        source:
+          citation: "Pfaff, I., Kather, A. (2009) Comparative thermodynamic analysis and integration issues of CCS steam power plants based on oxy-combustion with cryogenic or membrane based air separation. Energy Procedia 1:495-502, doi:10.1016/j.egypro.2009.01.066"
+          url: https://doi.org/10.1016/j.egypro.2009.01.066
+          locator: p. 496, section 2.1
+          kind: peer-reviewed
+          accessed: "2026-10-25"
+        note: >-
+          A single typical value (the paper cites it from its reference 6), recorded as a
+          zero-width range: no open source found states a range, so every value differs from it
+          and needs an out_of_range_reason. The paper defines recovery as the molar flow of O2 in
+          the oxygen product per O2 entering with the air.
 
   cooling-duty-gox:
     title: Cooling-water duty (heat rejected) per t of gaseous oxygen product
@@ -72,6 +106,18 @@ datasets:
         expression: feed:POWER / product:GOXP
         per: product:GOXP
         reference: air-liquide-yango-2017
+      o2-recovery:
+        # O2 in the air: the dry air (feed minus its water, all of which leaves as emission:H2O)
+        # times 0.2314, the O2 mass fraction of dry air (20.946 mol% O2, M = 28.964 g/mol, ISO
+        # 2533:1975 standard atmosphere). O2 not recovered: emission:O2 (the waste N2 vent); the
+        # O2 in GAN and LIN is below 1 ppm and neglected.
+        expression: 1 - emission:O2 / ((feed:AIR - emission:H2O) * 0.2314)
+        reference: pfaff-kather-2009
+        out_of_range_reason: >-
+          ASU-1 has no argon column and its simulated double column reaches 99.5 % GOX only with
+          more air, at about 83 % recovery (D-066 in processes/asu-1/DESIGN.md, which revised the
+          concept's 94 % of D-018). The design keeps this recovery and re-rates the main air
+          compressor for the larger air flow (D-066); no argon column (D-001).
       cooling-duty-gox:
         expression: product:CW / product:GOXP
         per: product:GOXP
