@@ -5428,3 +5428,19 @@ its legal notice, so the results stay publishable.
 
 Reason: replace declared proxies and missing data with sourced regional factors, and disclose
 the remaining scope difference.
+
+## D-108 Motor feeder cables at the motor power factor; tray-span acceptances re-checked (2026-10-25)
+Core sizes a `feeders:` cable at the load power factor and takes 1.0 when none is given. That
+shrank the K-4101-MV cable (6.6 kV, 2.5 MW) to 3C x 95 mm2, which carries 228 A against the
+motor current of about 280 A. K-4101-MV and K-4102-M now carry `power_factor: 0.78`
+(motor power factor 0.85 x efficiency 0.92, ASSUMED; the vendor confirms it with the motor
+data). The cables are back to 3C x 150 and 3C x 35 mm2. E-2101 is a resistive heater and stays
+at 1.0; its margin is small (945.5 A against about 948.8 A derated), so a heater change needs
+the cable checked again.
+
+The tray-span acceptances for PT-SWG-1 (now 9.5 m) and PT-MCC-1 (6.6 m) said the trays run
+inside B2. They run level at 3 m outside B2, along its north wall. The reasons now say so;
+the support (wall brackets and posts at 6 m or less) stays ASSUMED and unmodelled.
+
+Reason: avoid an undersized MV cable that the electrical gate does not flag, and keep the
+acceptances true to the model.
