@@ -4,6 +4,7 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-10-25 | reviews/2026-10-25-layout-review27.md | Independent agent layout review 27 of stage/basic-close-open at a6130d6 (content of 41904e7): model, lifting study and cable schedule current; D-108 feeder currents recomputed, tray fill below 0.3, tray-span acceptances checked against the model; one low accepted | replaces the stale layout-review26 for the layout-review gate |
 | 2026-10-25 | reviews/2026-10-25-hazop-review5.md | Independent agent review 5 of the HAZOP (H-01 .. H-04, SESSION.md) at 41904e7: all draft, 0 errors, 0 warnings, no hazop-input-changed, every entry proposed by agent; no new finding | review of branch stage/basic-close-open (D-102, D-106) |
 | 2026-10-25 | reviews/2026-10-25-pid-review1.md | Independent agent P&ID review 1 of P-04 at 41904e7 (UY-4151 low select, GAN cascade, D-101 / D-105): crops read, 4 line-crossings all accepted, no new finding that needs a fix (one low accepted) | review of branch stage/basic-close-open |
 | 2026-10-25 | reviews/2026-10-25-maturity-review3.md | Independent agent review 3 of the calculation maturity (flowsheet, simulation, design basis, process.yaml, D-100 .. D-108) at 41904e7: level balanced, claim screening; no new finding; maturity-review1#9, review2#10 and #11 closed | review of branch stage/basic-close-open (D-103 heat leak, S17 from the simulation, PR substitution) |
