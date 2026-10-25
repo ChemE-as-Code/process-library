@@ -50,7 +50,7 @@ to handle.
 | file | |
 |---|---|
 | `lci/cheme-as-code-atlas-<version>.xlsx` | the database `cheme-as-code-atlas-<version>`: an `about` sheet (skipped by the importer), a `database` sheet, one sheet per process, a `proxies` sheet |
-| `lci/datapackage.json` | version, library commit, per process: title, maturity, review, data status (exchanges by provenance), factor status of the study, allocation and shares, functional unit, activities (each with its `chemical` slug and registry `grade`, null when none), and per dataset its `property_checks` (below) |
+| `lci/datapackage.json` | version, library commit, per process: title, maturity, review, data status (exchanges by provenance), factor status of the study, allocation and shares, functional unit, activities (each with its `chemical` slug and registry `grade`, null when none), and per dataset its `property_checks` and `benchmarks` (below) |
 | `lci/index.json` | what the Atlas site reads: file names, sizes, sha256, activities per process, caveats, system model |
 | `lci/changes.json`, `lci/CHANGES.md` | with `--previous`: the change report against the earlier build (below) |
 
@@ -109,6 +109,11 @@ build); governance (versions, change reports, releases, review) is
   `match`, `mismatch`, `overridden` (a `properties_reason` in `lci/mappings.yaml`) or
   `unchecked` (no registry value, or a product not counted in kg). A mismatch over 2 % is a
   warning, so it fails `--strict` ([registry rules](https://github.com/ChemE-as-Code/process-library/blob/main/docs/registry.md), "Study properties against the registry").
+- **Benchmarks.** Each dataset's KPIs of the benchmark registry (`benchmarks/<family>.yaml`,
+  e.g. ASU-1's specific power per t GOX) are recorded in `datapackage.json` with their value,
+  allocated value, status (`inside`, `outside`, `explained`, `no-reference`, `unchecked`) and
+  reference. A value outside its range without an `out_of_range_reason`, and a public process
+  with fewer than two KPIs, are warnings, so they fail `--strict` ([benchmarks](https://github.com/ChemE-as-Code/process-library/blob/main/docs/benchmarks.md)).
 
 ## Linking (`lci/mappings.yaml`)
 

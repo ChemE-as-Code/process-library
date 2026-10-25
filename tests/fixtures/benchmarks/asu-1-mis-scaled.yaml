@@ -1,0 +1,51 @@
+# TEST FIXTURE, deliberately wrong: ASU-1's dataset (processes/asu-1/lca/dataset.yaml) cut to the
+# exchanges the benchmarks use, with the power written in Wh but labelled kWh (1000 times too
+# large: about 501,700 kWh/t GOX instead of 502). The strict LCI build must fail on it
+# (tests/test_benchmarks.py). Never a dataset of the library.
+schema: cheme/lca/v1
+kind: lci_dataset
+id: asu-1-500-t-d-gox
+title: ASU-1 (500 t/d GOX), mis-scaled test fixture
+scope: foreground
+basis: 1 h of operation
+year: 2026
+exchanges:
+- key: feed:AIR
+  title: Ambient air
+  type: input
+  amount: 113335.0
+  unit: kg
+  free: true
+- key: feed:POWER
+  title: Electric power, in Wh but labelled kWh (the deliberate error)
+  type: input
+  amount: 10465049.0
+  unit: kWh
+  link:
+    factor: desnz-ghg-2026:electricity-gb
+- key: product:GOXP
+  title: GOX to pipeline
+  type: product
+  amount: 20860.0
+  unit: kg
+- key: product:CW
+  title: Cooling water return (heat rejected)
+  type: output
+  amount: 10721.438
+  unit: kWh
+  link:
+    factor: cooling-water
+- key: emission:H2O
+  title: H2O to the environment
+  type: emission
+  amount: 2394.412565526445
+  unit: kg
+  free: true
+  cas: 7732-18-5
+- key: emission:O2
+  title: O2 to the environment
+  type: emission
+  amount: 4418.110179076738
+  unit: kg
+  free: true
+  cas: 7782-44-7

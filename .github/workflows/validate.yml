@@ -61,6 +61,8 @@ jobs:
   library:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      CORE: "cheme-as-code[units] @ git+https://github.com/ChemE-as-Code/core.git"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         # Full history here only: the catalog records each process folder's last commit
@@ -68,21 +70,33 @@ jobs:
         # shallow clone would report HEAD for every folder. The other jobs need no history.
         with:
           fetch-depth: 0
+      # The benchmarks (benchmarks/, docs/benchmarks.md) convert units through core's
+      # foundation.units: core is read with the token of the validate job, pyDEXPI (its
+      # dependency) with the deploy key.
+      - uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555  # v0.10.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_KEY_PYDEXPI }}
+      - run: |
+          git config --global url."git@github.com:process-intelligence-research/".insteadOf "https://github.com/process-intelligence-research/"
+          git config --global url."https://x-access-token:${PLANTCODE_READ_TOKEN}@github.com/ChemE-as-Code/core".insteadOf "https://github.com/ChemE-as-Code/core"
+        env:
+          PLANTCODE_READ_TOKEN: ${{ secrets.PLANTCODE_READ_TOKEN }}
       - uses: astral-sh/setup-uv@v6
       - name: tooling tests
-        run: uv run --python 3.12 --with pytest --with pyyaml --with jsonschema --with openpyxl --with ./python --with bw2calc pytest -q tests
+        run: uv run --python 3.12 --with pytest --with pyyaml --with jsonschema --with openpyxl --with ./python --with bw2calc --with "$CORE" pytest -q tests
         env:
           ATLAS_REQUIRE_BRIGHTWAY: "1"
+          ATLAS_REQUIRE_CORE: "1"
       # errors fail; warnings (e.g. previews, which the Atlas build renders with cheme) are listed
       - name: catalog
-        run: uv run scripts/build_catalog.py --library . --out dist
+        run: uv run --with "$CORE" scripts/build_catalog.py --library . --out dist
       # the public build: only processes with publication.status public (none may be today)
       - name: catalog (public)
-        run: uv run scripts/build_catalog.py --library . --out dist-public --public
+        run: uv run --with "$CORE" scripts/build_catalog.py --library . --out dist-public --public
       - name: LCI database (strict)
-        run: uv run scripts/build_lci.py --library . --out dist --version "ci-${GITHUB_SHA::7}" --strict
+        run: uv run --with "$CORE" scripts/build_lci.py --library . --out dist --version "ci-${GITHUB_SHA::7}" --strict
       - name: LCI database (public)
-        run: uv run scripts/build_lci.py --library . --out dist-public --version "ci-${GITHUB_SHA::7}" --public
+        run: uv run --with "$CORE" scripts/build_lci.py --library . --out dist-public --version "ci-${GITHUB_SHA::7}" --public
       # only what may be published leaves the runner: the public catalog (footprints withheld by
       # each LCA's publication policy) and the public foreground LCI (published processes only,
       # no characterisation factors); the preview builds stay in the job
