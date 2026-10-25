@@ -10,7 +10,8 @@ any hand-written ``lca/datasets/*.yaml`` of a manifest-only process; ``process.y
 title, maturity and the chemical slug of each inventory key; ``lca/lca.yaml`` for the study's
 allocation and functional unit. Linking comes from ``lci/mappings.yaml`` (library root, else the
 staged copy beside this script; schema ``schemas/lci-mappings.schema.json``). YAML files only:
-chemeascode is never imported.
+chemeascode is never imported, except ``foundation.units`` for the benchmark unit conversion
+(``benchmarks.convert``, lazily).
 
 Output (``--out``; ``<out>/lci/`` is replaced):
 
@@ -48,10 +49,16 @@ Modelling rules (``docs/system-model.md``; also written into every activity's ``
   not depend on it. ``datapackage.json`` activities carry ``chemical`` and ``grade``;
 - each product's study ``exergy`` and ``energy`` are checked against the registry
   (``property_checks``, recorded per dataset in ``datapackage.json``); a mismatch over 2 %
-  without a ``properties_reason`` is a warning.
+  without a ``properties_reason`` is a warning;
+- each dataset's KPIs of the benchmark registry (``benchmarks/<family>.yaml``, ``benchmarks.py``)
+  are evaluated and recorded per dataset in ``datapackage.json`` (``benchmarks``): a value outside
+  its reference range without an ``out_of_range_reason``, a KPI not evaluated (a unit conversion
+  needs core's ``foundation.units``) and, in a library with a ``benchmarks/`` folder, a public
+  process with fewer than two KPIs are warnings.
 
 Errors (exit 1): ``chemicals/chemicals.yaml`` failing its schema or ``registry.check`` (checked
-first, before any process is read), an unknown grade, a dataset that fails validation, an
+first, before any process is read), a benchmark file failing its schema or ``benchmarks.load``,
+an unknown grade, a dataset that fails validation, an
 allocation that cannot be exported, an exchange without a mapping. Warnings fail ``--strict``.
 
 Deterministic: sorted, no timestamps (the workbook's document properties and zip entry dates
@@ -86,6 +93,7 @@ import yaml
 from jsonschema import Draft202012Validator
 from openpyxl import Workbook
 
+import benchmarks as bm
 import registry as reg
 from publication import is_public
 
@@ -792,6 +800,34 @@ def property_checks(process: Process, dataset: Dataset, products: reg.Registry, 
     return checks
 
 
+def benchmark_results(processes: list[Process], benchmarks: bm.Registry | None, public: bool, report: Report) -> dict[str, list[dict]]:
+    """Each dataset's KPIs (``benchmarks.evaluate``, with its allocation shares), by dataset path.
+    In a library with a benchmark registry, these are warnings: a public process with fewer than
+    ``benchmarks.MIN_KPIS`` KPIs, a process bound under a family its process.yaml does not list,
+    and, outside ``--public``, a binding that names no dataset of the library."""
+    if benchmarks is None:
+        return {}
+    results = {}
+    for process in processes:
+        for dataset in process.datasets:
+            results[dataset.path], warnings = bm.evaluate(benchmarks, process.pid, dataset.data, dataset.shares)
+            report.warnings.extend(warnings)
+        ids = [d.data["id"] for d in process.datasets]
+        for text in bm.family_mismatches(benchmarks, process.pid, ids, process.manifest.get("families") or []):
+            report.warn(process.pid, text)
+        count = bm.kpi_count(benchmarks, process.pid, ids)
+        if is_public(process.manifest) and count < bm.MIN_KPIS:
+            report.warn(
+                process.pid,
+                f"{count} benchmarked KPI(s); a public process needs at least {bm.MIN_KPIS}, each with a source or a "
+                "recorded no_open_reference (benchmarks/<family>.yaml, docs/benchmarks.md)",
+            )
+    if not public:
+        for name in bm.unused_bindings(benchmarks, {(p.pid, d.data["id"]) for p in processes for d in p.datasets}):
+            report.warn("benchmarks", f"datasets {name}: no such LCI dataset in the library (renamed?)")
+    return results
+
+
 def _factors_status(factors: dict | None) -> str:
     if not factors:
         return "none"
@@ -1306,6 +1342,13 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
     if report.errors:
         return report
     products = reg.load(data)
+    families_path = library / "taxonomy" / "families.yaml"
+    taxonomy = reg.load_families(families_path if families_path.is_file() else _base_dir("schemas").parent / "taxonomy" / "families.yaml")
+    benchmarks, problems = bm.load(library / "benchmarks", _base_dir("schemas") / "benchmarks.schema.json", taxonomy)
+    for message in problems:
+        report.errors.append(message)
+    if report.errors:
+        return report
     model = system_model or mappings["system_model"]
     if model not in SYSTEM_MODELS:
         report.error("--system-model", f"{model!r} is not one of {', '.join(SYSTEM_MODELS)}")
@@ -1322,6 +1365,7 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
     excluded: list[dict] = []
     activities, proxies, by_process = build_activities(processes, profile(mappings, model), products, db_name, commit, version, report, model, excluded)
     checks = {d.path: property_checks(p, d, products, mappings, report) for p in processes for d in p.datasets}
+    kpis = benchmark_results(processes, benchmarks, public, report)
     if report.errors:
         return report
     if not activities:
@@ -1366,7 +1410,7 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
                 "factors_status": _factors_status(process.factors),
                 "functional_unit": _functional_unit(process.study),
                 "allocation": {"method": first.allocation.get("method", "mass"), "source": first.allocation_source, "rule": first.rule},
-                "datasets": [{**_dataset_entry(d), "property_checks": checks.get(d.path, [])} for d in process.datasets],
+                "datasets": [{**_dataset_entry(d), "property_checks": checks.get(d.path, []), "benchmarks": kpis.get(d.path, [])} for d in process.datasets],
                 "activities": activity_list(by_process.get(process.pid, [])),
             }
         )
