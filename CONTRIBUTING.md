@@ -11,13 +11,25 @@
    `cryogenic-distillation`, `adsorption`, `compression`, `reaction`, `electrolysis`) and
    `region` (e.g. `generic`, `EU`). Reuse the slugs other processes already use.
 3. Every chemical under `chemistry` must be a slug of `chemicals/chemicals.yaml`; add new ones in
-   the same change, with CAS, InChIKey and ChEBI where they exist. Grade and phase (GOX, LOX) go
-   in the flow's `note`, not in the registry.
+   the same change, with CAS, InChIKey and ChEBI where they exist, and properties only with a
+   source. A product in a defined state and purity (GOX at 30 barg, LOX) is a registry grade:
+   name it as `chemical: oxygen/lox` (add the grade under the substance's `grades` if it is
+   new). The graph joins by substance; the LCI export names the grade. Rules:
+   [docs/registry.md](docs/registry.md). `families` take slugs of `taxonomy/families.yaml`
+   (mapped to ISIC Rev.4); a new family goes there and into the `process.schema.json` enum
+   together. Add the process to its entry in `coverage.yaml` (`covered_by`,
+   [docs/coverage.md](docs/coverage.md)).
 4. Optional, as the process matures:
    - a cheme-as-code engineering project in the same folder (`cheme init`, then P&IDs, process
      YAML, layout, LCA): the catalog derives its sheets, gates, design basis and LCA results;
    - an LCI dataset (`lca/dataset.yaml`, written by `cheme assess lca --write`, or hand-written
      `lca/datasets/*.yaml`), and if it needs new background links, entries in `lci/mappings.yaml`.
+     A multi-output process needs an allocation that follows the hierarchy of
+     [docs/system-model.md](docs/system-model.md) (often a curated `allocation:` entry in the
+     mappings), and recycling or energy-recovery outputs a `cutoff_exclusions:` decision.
+   - benchmarks for its LCI dataset: a public process needs at least two KPIs in
+     `benchmarks/<family>.yaml`, each with a range from a cited open source or a recorded
+     `no_open_reference` ([docs/benchmarks.md](docs/benchmarks.md)). Never invent a range.
 5. Check: `uv run scripts/build_catalog.py --library . --out dist --strict` (and
    `scripts/build_lci.py ... --strict` with an LCI dataset). CI runs the same, and the public
    build (`--public`, below).

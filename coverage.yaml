@@ -1,0 +1,768 @@
+# Coverage roadmap of the process library: which products and processes, in which order, with
+# which technology variants. Schema: schemas/coverage.schema.json; reading guide and criteria:
+# docs/coverage.md. The catalog build writes coverage.json from it (covering processes and how
+# many of the top `summary_top` entries are covered, at which tiers).
+#
+# Rules: production volumes are orders of magnitude only (Mt/a bands), each with its source;
+# "n/a" means not yet sourced, never "small". Relevance is a qualitative judgement from the
+# sources named. Open sources are citations only: nothing is copied from them. `tier` is the
+# planned entry tier (core#182): 0 stoichiometric, 1 sourced conceptual data, 2 flowsheet.
+# `next: true` marks the next batch: the working plan accepted on 2026-10-25 (process-library#47).
+# It is a plan, not a commitment; a change to it is a change to this file.
+schema: cheme-as-code/coverage/v1
+summary_top: 50
+
+criteria:
+  - {id: volume, title: Global production volume (order of magnitude), note: "bands of Mt/a from the cited statistic; n/a until sourced"}
+  - {id: relevance, title: GHG and other burdens, note: "high where the product is a large CO2, N2O or energy burden in the cited sources (IPCC 2006 Vol. 3, IEA reports)"}
+  - {id: reach, title: Value-chain reach, note: "how many other entries it feeds (feeds:), and whether the Atlas graph needs it to link processes"}
+  - {id: sources, title: Open sources, note: "EU BREFs, IPCC guidelines, IEA reports and peer-reviewed designs that make Tier 1 or 2 possible without licensed data"}
+
+sources:
+  usgs-mcs-2024: "U.S. Geological Survey (2024) Mineral Commodity Summaries 2024 (world production tables by commodity)"
+  iea-ammonia-2021: "IEA (2021) Ammonia Technology Roadmap"
+  iea-ghr-2023: "IEA (2023) Global Hydrogen Review 2023"
+  iea-petchem-2018: "IEA (2018) The Future of Petrochemicals (primary chemicals production)"
+  plasticseurope-2023: "Plastics Europe (2023) Plastics - the fast Facts 2023"
+  ipcc-2006-v3: "IPCC (2006) Guidelines for National Greenhouse Gas Inventories, Vol. 3 Industrial Processes and Product Use, ch. 3 Chemical industry and ch. 4 Metal industry; 2019 Refinement"
+  bref-lvic-aaf: "European Commission JRC (2007) BREF Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF)"
+  bref-lvic-s: "European Commission JRC (2007) BREF Large Volume Inorganic Chemicals - Solids and Others (LVIC-S)"
+  bref-sic: "European Commission JRC (2007) BREF Speciality Inorganic Chemicals (SIC)"
+  bref-lvoc: "European Commission JRC (2017) BREF Large Volume Organic Chemical Industry (LVOC)"
+  bref-cak: "European Commission JRC (2014) BREF Production of Chlor-alkali (CAK)"
+  bref-pol: "European Commission JRC (2007) BREF Production of Polymers (POL)"
+  bref-ref: "European Commission JRC (2015) BREF Refining of Mineral Oil and Gas (REF)"
+  bref-clm: "European Commission JRC (2013) BREF Production of Cement, Lime and Magnesium Oxide (CLM)"
+  bref-is: "European Commission JRC (2013) BREF Iron and Steel Production (IS)"
+  bref-nfm: "European Commission JRC (2017) BREF Non-Ferrous Metals Industries (NFM)"
+  bref-lcp: "European Commission JRC (2017) BREF Large Combustion Plants (LCP)"
+  bref-cww: "European Commission JRC (2016) BREF Common Waste Water and Waste Gas Treatment in the Chemical Sector (CWW)"
+  bref-wi: "European Commission JRC (2019) BREF Waste Incineration (WI)"
+  bref-wt: "European Commission JRC (2018) BREF Waste Treatment (WT)"
+  idaes-hda: "IDAES process modelling framework, toluene hydrodealkylation (HDA) flowsheet example (open source)"
+  euro-chlor: "Euro Chlor, eco-profile and PCR methodology for chlor-alkali products (sector rule, decision 5 of the system model)"
+  plasticseurope-eco: "Plastics Europe, Eco-profiles and Environmental Product Declarations methodology (sector rule for steam cracker products)"
+  hischier-2005: "Hischier et al. (2005) Int J LCA 10:59, screening estimates for chemicals (Tier 0 defaults, as reported in)"
+
+entries:
+  # --- 1-10 ----------------------------------------------------------------------------------
+  - rank: 1
+    id: ammonia
+    title: Ammonia
+    chemical: ammonia
+    family: ammonia
+    volume: {band: "100-1000", source: iea-ammonia-2021}
+    relevance: {ghg: high, other: [NOx, natural gas use], note: "largest CO2 emitter among bulk chemicals in the IEA roadmap; process CO2 co-product (decision 4)"}
+    variants:
+      - {id: smr, title: Natural-gas steam reforming, market_mix: true}
+      - {id: smr-ccs, title: Steam reforming with capture of process CO2}
+      - {id: coal-gasification, title: Coal gasification, market_mix: true}
+      - {id: electrolytic, title: Electrolytic hydrogen plus ASU nitrogen (e-ammonia)}
+    feeds: [nitric-acid, urea, ammonium-nitrate, ammonium-sulfate, npk-fertilizers, acrylonitrile, caprolactam]
+    open_sources: [bref-lvic-aaf, iea-ammonia-2021, ipcc-2006-v3]
+    tier: 2
+    next: true
+    note: "First reactive process: exercises element balances (core#174), combustion and flue gas outside the stream table (core#176) and steam and cooling water as library utilities (#45)."
+  - rank: 2
+    id: hydrogen
+    title: Hydrogen
+    chemical: hydrogen
+    family: hydrogen
+    volume: {band: "10-100", source: iea-ghr-2023, note: "near the top of the band"}
+    relevance: {ghg: high, note: "almost all from unabated fossil routes in the IEA review"}
+    variants:
+      - {id: smr, title: Steam methane reforming, market_mix: true}
+      - {id: smr-ccs, title: SMR with CCS}
+      - {id: atr-ccs, title: Autothermal reforming with CCS}
+      - {id: coal-gasification, title: Coal gasification, market_mix: true}
+      - {id: pem, title: PEM electrolysis}
+      - {id: alkaline, title: Alkaline electrolysis}
+      - {id: soec, title: Solid oxide electrolysis}
+      - {id: by-product, title: By-product of chlor-alkali and steam cracking, market_mix: true}
+    feeds: [ammonia, methanol, hydrotreating, hydrocracking, e-fuels, iron-steel, toluene-hda]
+    open_sources: [iea-ghr-2023, bref-lvic-aaf]
+    tier: 2
+    next: true
+  - rank: 3
+    id: air-separation
+    title: Oxygen, nitrogen and argon by air separation
+    chemical: oxygen
+    family: air-separation
+    volume: {band: "n/a"}
+    relevance: {ghg: medium, note: electricity only; large reach}
+    variants:
+      - {id: cryogenic, title: Cryogenic distillation, market_mix: true}
+      - {id: psa-vsa, title: PSA/VSA oxygen}
+      - {id: membrane, title: Membrane nitrogen}
+    feeds: [ammonia, ethylene-oxide, iron-steel, e-fuels, methanol]
+    open_sources: [ipcc-2006-v3]
+    tier: 2
+    covered_by: [{process: asu-1, tier: 2, note: "cryogenic, 500 t/d GOX, no argon column"}]
+  - rank: 4
+    id: ethylene
+    title: Ethylene and propylene by steam cracking
+    chemical: ethylene
+    family: olefins
+    volume: {band: "100-1000", source: iea-petchem-2018, note: ethylene}
+    relevance: {ghg: high, note: "the most energy-intensive step of the organic chain in the IEA report"}
+    variants:
+      - {id: naphtha, title: Naphtha cracking, market_mix: true}
+      - {id: ethane, title: Ethane cracking, market_mix: true}
+      - {id: lpg, title: Propane and butane cracking}
+      - {id: mto, title: Methanol to olefins}
+      - {id: bio-ethanol, title: Bio-ethanol dehydration}
+    feeds: [ethylene-oxide, polyethylene, vcm, styrene, propylene-oxide, polypropylene, butadiene, btx]
+    open_sources: [bref-lvoc, plasticseurope-eco]
+    tier: 1
+  - rank: 5
+    id: methanol
+    title: Methanol
+    chemical: methanol
+    family: methanol
+    volume: {band: "n/a"}
+    relevance: {ghg: high, note: "coal-based routes dominate in some regions"}
+    variants:
+      - {id: natural-gas, title: Natural-gas reforming, market_mix: true}
+      - {id: coal, title: Coal gasification, market_mix: true}
+      - {id: e-methanol, title: CO2 hydrogenation with electrolytic hydrogen}
+      - {id: biomass, title: Biomass gasification}
+    feeds: [formaldehyde, acetic-acid, mto-olefins, e-fuels]
+    open_sources: [bref-lvoc, iea-petchem-2018]
+    tier: 2
+    next: true
+  - rank: 6
+    id: nitric-acid
+    title: Nitric acid
+    chemical: nitric-acid
+    family: nitric-acid
+    volume: {band: "n/a"}
+    relevance: {ghg: high, other: [N2O, NOx], note: "N2O from ammonia oxidation (IPCC 2006 Vol. 3, 3.3)"}
+    variants:
+      - {id: dual-pressure, title: Dual-pressure process, market_mix: true}
+      - {id: mono-pressure, title: Mono-pressure process}
+      - {id: n2o-abatement, title: With secondary or tertiary N2O abatement, market_mix: true}
+    feeds: [ammonium-nitrate, npk-fertilizers, adipic-acid]
+    open_sources: [bref-lvic-aaf, ipcc-2006-v3]
+    tier: 2
+    next: true
+  - rank: 7
+    id: urea
+    title: Urea
+    chemical: urea
+    family: fertilizers
+    volume: {band: "n/a"}
+    relevance: {ghg: medium, note: "consumes ammonia-plant CO2, released again at application"}
+    variants:
+      - {id: co2-stripping, title: CO2 stripping, market_mix: true}
+      - {id: nh3-stripping, title: Ammonia stripping, market_mix: true}
+    feeds: []
+    open_sources: [bref-lvic-aaf]
+    tier: 1
+    next: true
+  - rank: 8
+    id: chlor-alkali
+    title: Chlorine, caustic soda and hydrogen (chlor-alkali)
+    chemical: chlorine
+    family: chlor-alkali
+    volume: {band: "n/a"}
+    relevance: {ghg: medium, other: [electricity, mercury (legacy cells)]}
+    variants:
+      - {id: membrane, title: Membrane cell, market_mix: true}
+      - {id: diaphragm, title: Diaphragm cell, market_mix: true}
+      - {id: mercury, title: Mercury cell (phased out in the EU), note: legacy}
+    feeds: [vcm, propylene-oxide, mdi-tdi, hydrogen]
+    open_sources: [bref-cak, euro-chlor]
+    tier: 2
+    next: true
+    note: "Euro Chlor's sector rule overrides the allocation hierarchy (decision 5)."
+  - rank: 9
+    id: sulfuric-acid
+    title: Sulfuric acid
+    chemical: sulfuric-acid
+    family: sulfuric-acid
+    volume: {band: "n/a"}
+    relevance: {ghg: low, other: [SO2], note: "net steam exporter from sulfur burning"}
+    variants:
+      - {id: sulfur-burning, title: Double contact from sulfur burning, market_mix: true}
+      - {id: metallurgical, title: From smelter off-gas, market_mix: true}
+    feeds: [phosphoric-acid, ammonium-sulfate, titanium-dioxide, caprolactam]
+    open_sources: [bref-lvic-aaf]
+    tier: 1
+  - rank: 10
+    id: cement-clinker
+    title: Cement clinker
+    chemical: cement-clinker
+    family: cement-lime
+    volume: {band: "1000-10000", source: usgs-mcs-2024, note: cement}
+    relevance: {ghg: high, note: "process CO2 from calcination (IPCC 2006 Vol. 3, 2.2)"}
+    variants:
+      - {id: dry-kiln, title: Dry kiln with preheater and precalciner, market_mix: true}
+      - {id: dry-kiln-ccs, title: With carbon capture}
+    feeds: [carbon-capture]
+    open_sources: [bref-clm, ipcc-2006-v3]
+    tier: 1
+  # --- 11-20 ---------------------------------------------------------------------------------
+  - rank: 11
+    id: iron-steel
+    title: Iron and steel
+    chemical: steel
+    family: iron-steel
+    volume: {band: "1000-10000", source: usgs-mcs-2024}
+    relevance: {ghg: high}
+    variants:
+      - {id: bf-bof, title: Blast furnace and basic oxygen furnace, market_mix: true}
+      - {id: dri-gas-eaf, title: Natural-gas DRI and EAF, market_mix: true}
+      - {id: dri-h2-eaf, title: Hydrogen DRI and EAF}
+      - {id: scrap-eaf, title: Scrap EAF, market_mix: true}
+    feeds: []
+    open_sources: [bref-is, ipcc-2006-v3]
+    tier: 1
+  - rank: 12
+    id: refinery-distillation
+    title: Crude oil distillation (atmospheric and vacuum)
+    family: refining
+    volume: {band: "n/a"}
+    relevance: {ghg: high, note: start of the fossil fuel and feedstock chain}
+    feeds: [catalytic-reforming, hydrotreating, fcc, hydrocracking, ethylene]
+    open_sources: [bref-ref]
+    tier: 1
+  - rank: 13
+    id: steam-generation
+    title: Steam generation (boiler, CHP)
+    chemical: steam
+    family: steam-and-heat
+    volume: {band: "n/a"}
+    relevance: {ghg: high, note: "the main fuel use of chemical sites"}
+    variants:
+      - {id: gas-boiler, title: Natural-gas boiler, market_mix: true}
+      - {id: chp, title: Gas turbine CHP, market_mix: true}
+      - {id: electric-boiler, title: Electric boiler}
+      - {id: heat-pump, title: Steam-generating heat pump}
+    feeds: [ammonia, methanol, ethylene-oxide, styrene, bioethanol]
+    open_sources: [bref-lcp]
+    tier: 2
+    next: true
+    note: "Utility dataset (#45)."
+  - rank: 14
+    id: ethylene-oxide
+    title: Ethylene oxide and ethylene glycols
+    chemical: ethylene-oxide
+    family: oxygenates
+    volume: {band: "n/a"}
+    relevance: {ghg: medium, note: "CO2 from over-oxidation"}
+    variants:
+      - {id: oxygen-based, title: Oxygen-based direct oxidation, market_mix: true}
+      - {id: air-based, title: Air-based direct oxidation}
+      - {id: omega, title: Ethylene carbonate route to MEG}
+    feeds: [pet]
+    open_sources: [bref-lvoc]
+    tier: 1
+  - rank: 15
+    id: polyethylene
+    title: Polyethylene (HDPE, LLDPE, LDPE)
+    chemical: polyethylene
+    family: polyolefins
+    volume: {band: "n/a", note: "plastics in total are in the 100-1000 Mt/a band (plasticseurope-2023); per polymer to be sourced"}
+    relevance: {ghg: medium, other: [end of life]}
+    variants:
+      - {id: hdpe-slurry, title: HDPE slurry, market_mix: true}
+      - {id: lldpe-gas-phase, title: LLDPE gas phase, market_mix: true}
+      - {id: ldpe-high-pressure, title: LDPE high pressure, market_mix: true}
+    feeds: [plastic-pyrolysis]
+    open_sources: [bref-pol, plasticseurope-eco]
+    tier: 1
+  - rank: 16
+    id: polypropylene
+    title: Polypropylene
+    chemical: polypropylene
+    family: polyolefins
+    volume: {band: "n/a"}
+    relevance: {ghg: medium, other: [end of life]}
+    feeds: [plastic-pyrolysis]
+    open_sources: [bref-pol, plasticseurope-eco]
+    tier: 1
+  - rank: 17
+    id: propylene-pdh
+    title: Propylene by propane dehydrogenation
+    chemical: propylene
+    family: olefins
+    volume: {band: "n/a"}
+    relevance: {ghg: medium}
+    variants:
+      - {id: pdh, title: Propane dehydrogenation, market_mix: true}
+      - {id: fcc, title: FCC propylene, market_mix: true}
+      - {id: metathesis, title: Olefin metathesis}
+    feeds: [polypropylene, propylene-oxide, acrylonitrile, cumene-phenol]
+    open_sources: [bref-lvoc]
+    tier: 1
+  - rank: 18
+    id: btx
+    title: Benzene, toluene and xylenes
+    chemical: benzene
+    family: aromatics
+    volume: {band: "n/a"}
+    relevance: {ghg: medium}
+    variants:
+      - {id: reformate, title: Extraction from catalytic reformate, market_mix: true}
+      - {id: pygas, title: Extraction from pyrolysis gasoline, market_mix: true}
+      - {id: hda, title: Toluene hydrodealkylation}
+    feeds: [styrene, cumene-phenol, terephthalic-acid, caprolactam, mdi-tdi]
+    open_sources: [bref-lvoc, bref-ref]
+    tier: 1
+  - rank: 19
+    id: soda-ash
+    title: Soda ash
+    chemical: sodium-carbonate
+    family: soda-ash
+    volume: {band: "10-100", source: usgs-mcs-2024}
+    relevance: {ghg: medium, other: [calcium chloride effluent (Solvay)]}
+    variants:
+      - {id: solvay, title: Solvay (ammonia-soda) process, market_mix: true}
+      - {id: trona, title: Natural trona, market_mix: true}
+      - {id: hou, title: Hou process with ammonium chloride}
+    feeds: []
+    open_sources: [bref-lvic-s]
+    tier: 1
+  - rank: 20
+    id: terephthalic-acid
+    title: Purified terephthalic acid
+    chemical: terephthalic-acid
+    family: oxygenates
+    volume: {band: "n/a"}
+    relevance: {ghg: medium}
+    feeds: [pet]
+    open_sources: [bref-lvoc]
+    tier: 1
+  # --- 21-30 ---------------------------------------------------------------------------------
+  - rank: 21
+    id: ammonium-nitrate
+    title: Ammonium nitrate and calcium ammonium nitrate
+    chemical: ammonium-nitrate
+    family: fertilizers
+    volume: {band: "n/a"}
+    relevance: {ghg: medium, note: "carries the N2O of its nitric acid"}
+    feeds: [npk-fertilizers]
+    open_sources: [bref-lvic-aaf]
+    tier: 1
+  - rank: 22
+    id: wastewater-treatment
+    title: Wastewater treatment (activated sludge)
+    family: wastewater-treatment
+    volume: {band: "n/a"}
+    relevance: {ghg: medium, other: [CH4, N2O, eutrophication]}
+    feeds: []
+    open_sources: [bref-cww, ipcc-2006-v3]
+    tier: 2
+    next: true
+    note: "Utility dataset (#45); named in #13."
+  - rank: 23
+    id: cooling-water
+    title: Cooling water system
+    chemical: cooling-water
+    family: utilities
+    volume: {band: "n/a"}
+    relevance: {ghg: low, other: [water use]}
+    feeds: [air-separation, ammonia, methanol]
+    open_sources: []
+    tier: 2
+    next: true
+    note: "Utility dataset (#45); replaces the screening proxy in lci/mappings.yaml."
+  - rank: 24
+    id: phosphoric-acid
+    title: Phosphoric acid (wet process)
+    chemical: phosphoric-acid
+    family: phosphoric-acid
+    volume: {band: "n/a"}
+    relevance: {ghg: low, other: [phosphogypsum]}
+    variants:
+      - {id: dihydrate, title: Dihydrate process, market_mix: true}
+      - {id: hemihydrate, title: Hemihydrate process}
+    feeds: [npk-fertilizers]
+    open_sources: [bref-lvic-aaf]
+    tier: 1
+  - rank: 25
+    id: vcm
+    title: Vinyl chloride monomer (balanced EDC process)
+    chemical: vinyl-chloride
+    family: chlorinated-organics
+    volume: {band: "n/a"}
+    relevance: {ghg: medium, other: [chlorinated emissions]}
+    feeds: [pvc]
+    open_sources: [bref-lvoc]
+    tier: 1
+  - rank: 26
+    id: pvc
+    title: Polyvinyl chloride
+    chemical: polyvinyl-chloride
+    family: polymers
+    volume: {band: "n/a"}
+    relevance: {ghg: medium}
+    variants: [{id: suspension, title: Suspension polymerisation, market_mix: true}, {id: emulsion, title: Emulsion polymerisation}]
+    feeds: []
+    open_sources: [bref-pol]
+    tier: 1
+  - rank: 27
+    id: styrene
+    title: Styrene (via ethylbenzene)
+    chemical: styrene
+    family: styrenics
+    volume: {band: "n/a"}
+    relevance: {ghg: medium, note: steam-intensive dehydrogenation}
+    variants: [{id: eb-dehydrogenation, title: Ethylbenzene dehydrogenation, market_mix: true}, {id: po-sm, title: PO/SM co-production, market_mix: true}]
+    feeds: [polystyrene]
+    open_sources: [bref-lvoc]
+    tier: 1
+  - rank: 28
+    id: pet
+    title: Polyethylene terephthalate
+    chemical: polyethylene-terephthalate
+    family: polymers
+    volume: {band: "n/a"}
+    relevance: {ghg: medium}
+    feeds: [plastic-pyrolysis]
+    open_sources: [bref-pol]
+    tier: 1
+  - rank: 29
+    id: catalytic-reforming
+    title: Catalytic reforming
+    family: refining
+    volume: {band: "n/a"}
+    relevance: {ghg: medium, note: "refinery hydrogen source"}
+    feeds: [btx, hydrotreating]
+    open_sources: [bref-ref]
+    tier: 1
+  - rank: 30
+    id: hydrotreating
+    title: Hydrotreating and hydrodesulfurisation
+    family: refining
+    volume: {band: "n/a"}
+    relevance: {ghg: medium}
+    feeds: [sulfur-recovery]
+    open_sources: [bref-ref]
+    tier: 1
+  # --- 31-40 ---------------------------------------------------------------------------------
+  - rank: 31
+    id: fcc
+    title: Fluid catalytic cracking
+    family: refining
+    volume: {band: "n/a"}
+    relevance: {ghg: high, note: coke burn in the regenerator}
+    feeds: [propylene-pdh]
+    open_sources: [bref-ref]
+    tier: 1
+  - rank: 32
+    id: bioethanol
+    title: Bioethanol
+    chemical: ethanol
+    family: bioethanol
+    volume: {band: "n/a"}
+    relevance: {ghg: medium, other: [land use], note: "biogenic carbon must be traced"}
+    variants:
+      - {id: corn-dry-mill, title: Corn dry milling, market_mix: true}
+      - {id: sugarcane, title: Sugarcane, market_mix: true}
+      - {id: lignocellulosic, title: Lignocellulosic}
+    feeds: [bio-ethylene, carbon-capture]
+    open_sources: []
+    tier: 1
+    note: "Separation of ethanol and water is named in #13."
+  - rank: 33
+    id: adipic-acid
+    title: Adipic acid
+    chemical: adipic-acid
+    family: oxygenates
+    volume: {band: "n/a"}
+    relevance: {ghg: high, other: [N2O], note: "N2O from nitric acid oxidation (IPCC 2006 Vol. 3, 3.4)"}
+    feeds: []
+    open_sources: [bref-lvoc, ipcc-2006-v3]
+    tier: 1
+  - rank: 34
+    id: acetic-acid
+    title: Acetic acid (methanol carbonylation)
+    chemical: acetic-acid
+    family: oxygenates
+    volume: {band: "n/a"}
+    relevance: {ghg: low}
+    feeds: []
+    open_sources: [bref-lvoc]
+    tier: 1
+  - rank: 35
+    id: formaldehyde
+    title: Formaldehyde
+    chemical: formaldehyde
+    family: oxygenates
+    volume: {band: "n/a"}
+    relevance: {ghg: low}
+    variants: [{id: silver, title: Silver catalyst, market_mix: true}, {id: metal-oxide, title: Metal oxide catalyst, market_mix: true}]
+    feeds: [mdi-tdi]
+    open_sources: [bref-lvoc]
+    tier: 1
+  - rank: 36
+    id: propylene-oxide
+    title: Propylene oxide
+    chemical: propylene-oxide
+    family: oxygenates
+    volume: {band: "n/a"}
+    relevance: {ghg: medium}
+    variants:
+      - {id: chlorohydrin, title: Chlorohydrin, market_mix: true}
+      - {id: hppo, title: Hydrogen peroxide (HPPO), market_mix: true}
+      - {id: po-sm, title: PO/SM co-production, market_mix: true}
+    feeds: []
+    open_sources: [bref-lvoc]
+    tier: 1
+  - rank: 37
+    id: butadiene
+    title: Butadiene (C4 extraction)
+    chemical: butadiene
+    family: olefins
+    volume: {band: "n/a"}
+    relevance: {ghg: low}
+    feeds: []
+    open_sources: [bref-lvoc]
+    tier: 0
+  - rank: 38
+    id: cumene-phenol
+    title: Cumene, phenol and acetone
+    chemical: phenol
+    family: oxygenates
+    volume: {band: "n/a"}
+    relevance: {ghg: low}
+    feeds: []
+    open_sources: [bref-lvoc]
+    tier: 0
+  - rank: 39
+    id: carbon-capture
+    title: CO2 capture and conditioning
+    chemical: carbon-dioxide
+    family: carbon-capture
+    volume: {band: "n/a"}
+    relevance: {ghg: high, note: "the conditioning burden of a CO2 co-product (decision 4); CCU source types"}
+    variants:
+      - {id: high-purity, title: "High-purity source (ammonia, ethanol) conditioning"}
+      - {id: amine-post-combustion, title: Amine post-combustion capture}
+      - {id: dac, title: Direct air capture}
+    feeds: [e-fuels, methanol, urea]
+    open_sources: [ipcc-2006-v3]
+    tier: 1
+  - rank: 40
+    id: lime
+    title: Lime
+    chemical: calcium-oxide
+    family: cement-lime
+    volume: {band: "100-1000", source: usgs-mcs-2024}
+    relevance: {ghg: high, note: "process CO2 from calcination"}
+    feeds: [soda-ash, iron-steel]
+    open_sources: [bref-clm, ipcc-2006-v3]
+    tier: 0
+  # --- 41-50 ---------------------------------------------------------------------------------
+  - rank: 41
+    id: aluminium
+    title: Primary aluminium
+    chemical: aluminium
+    family: aluminium
+    volume: {band: "10-100", source: usgs-mcs-2024}
+    relevance: {ghg: high, other: [PFC], note: "electricity and anode effects (IPCC 2006 Vol. 3, 4.4)"}
+    feeds: []
+    open_sources: [bref-nfm, ipcc-2006-v3]
+    tier: 0
+  - rank: 42
+    id: npk-fertilizers
+    title: NPK fertilisers
+    family: fertilizers
+    volume: {band: "n/a"}
+    relevance: {ghg: medium}
+    variants: [{id: nitrophosphate, title: Nitrophosphate route, market_mix: true}, {id: mixed-acid, title: Mixed acid route, market_mix: true}]
+    feeds: []
+    open_sources: [bref-lvic-aaf]
+    tier: 0
+  - rank: 43
+    id: ammonium-sulfate
+    title: Ammonium sulfate
+    chemical: ammonium-sulfate
+    family: fertilizers
+    volume: {band: "n/a"}
+    relevance: {ghg: low, note: "also a caprolactam co-product"}
+    feeds: []
+    open_sources: [bref-lvic-aaf]
+    tier: 0
+  - rank: 44
+    id: toluene-hda
+    title: Benzene by toluene hydrodealkylation
+    chemical: benzene
+    family: aromatics
+    volume: {band: "n/a"}
+    relevance: {ghg: low, note: "a case study with an open reference flowsheet (#42)"}
+    feeds: []
+    open_sources: [idaes-hda]
+    tier: 2
+    next: true
+  - rank: 45
+    id: e-fuels
+    title: Synthetic fuels from H2 and CO2 (Fischer-Tropsch, methanol-to-fuels)
+    family: synthetic-fuels
+    volume: {band: "n/a", note: emerging}
+    relevance: {ghg: high, note: "credible only with low-carbon electricity; CO2 source type matters"}
+    variants: [{id: rwgs-ft, title: Reverse water-gas shift and Fischer-Tropsch}, {id: mtj, title: Methanol to jet}]
+    feeds: []
+    open_sources: []
+    tier: 1
+  - rank: 46
+    id: plastic-pyrolysis
+    title: Plastic waste pyrolysis
+    family: chemical-recycling
+    volume: {band: "n/a", note: emerging}
+    relevance: {ghg: medium, note: "cut-off for the waste input (system model)"}
+    feeds: [ethylene]
+    open_sources: [bref-wt]
+    tier: 1
+  - rank: 47
+    id: hydrocracking
+    title: Hydrocracking
+    family: refining
+    volume: {band: "n/a"}
+    relevance: {ghg: medium}
+    feeds: []
+    open_sources: [bref-ref]
+    tier: 0
+  - rank: 48
+    id: sulfur-recovery
+    title: Sulfur recovery (Claus)
+    chemical: sulfur
+    family: sulfuric-acid
+    volume: {band: "10-100", source: usgs-mcs-2024, note: "sulfur in all forms"}
+    relevance: {ghg: low, other: [SO2]}
+    feeds: [sulfuric-acid]
+    open_sources: [bref-ref]
+    tier: 0
+  - rank: 49
+    id: bio-ethylene
+    title: Bio-ethylene by ethanol dehydration
+    chemical: ethylene
+    family: bio-based-chemicals
+    volume: {band: "n/a", note: emerging}
+    relevance: {ghg: medium, note: biogenic carbon in the product}
+    feeds: [polyethylene]
+    open_sources: []
+    tier: 0
+  - rank: 50
+    id: waste-incineration
+    title: Waste incineration with energy recovery
+    family: waste-treatment
+    volume: {band: "n/a"}
+    relevance: {ghg: medium, note: "modelled from the waste composition (Doka 2003 approach)"}
+    feeds: [steam-generation]
+    open_sources: [bref-wi]
+    tier: 1
+  # --- 51 and on: the long tail -------------------------------------------------------------
+  - rank: 51
+    id: caprolactam
+    title: Caprolactam
+    chemical: caprolactam
+    family: nitrogen-organics
+    volume: {band: "n/a"}
+    relevance: {ghg: medium, other: [N2O]}
+    feeds: []
+    open_sources: [bref-lvoc]
+    tier: 0
+  - rank: 52
+    id: acrylonitrile
+    title: Acrylonitrile (propylene ammoxidation)
+    chemical: acrylonitrile
+    family: nitrogen-organics
+    volume: {band: "n/a"}
+    relevance: {ghg: low, other: [HCN by-product]}
+    feeds: []
+    open_sources: [bref-lvoc]
+    tier: 0
+  - rank: 53
+    id: mdi-tdi
+    title: Isocyanates (MDI, TDI)
+    family: nitrogen-organics
+    volume: {band: "n/a"}
+    relevance: {ghg: medium, other: [phosgene]}
+    feeds: []
+    open_sources: [bref-lvoc]
+    tier: 0
+  - rank: 54
+    id: polystyrene
+    title: Polystyrene
+    chemical: polystyrene
+    family: polymers
+    volume: {band: "n/a"}
+    relevance: {ghg: low}
+    feeds: []
+    open_sources: [bref-pol]
+    tier: 0
+  - rank: 55
+    id: biogas
+    title: Biogas and biomethane
+    chemical: methane
+    family: biogas
+    volume: {band: "n/a"}
+    relevance: {ghg: medium, other: [CH4 slip]}
+    variants: [{id: anaerobic-digestion, title: Anaerobic digestion}, {id: upgrading, title: Upgrading to biomethane}]
+    feeds: [steam-generation, hydrogen]
+    open_sources: [bref-wt]
+    tier: 0
+  - rank: 56
+    id: hydrogen-peroxide
+    title: Hydrogen peroxide (anthraquinone process)
+    chemical: hydrogen-peroxide
+    family: inorganic-chemicals
+    volume: {band: "n/a"}
+    relevance: {ghg: low}
+    feeds: [propylene-oxide]
+    open_sources: [bref-lvic-s]
+    tier: 0
+  - rank: 57
+    id: titanium-dioxide
+    title: Titanium dioxide
+    chemical: titanium-dioxide
+    family: inorganic-chemicals
+    volume: {band: "n/a"}
+    relevance: {ghg: medium, other: [acid waste (sulfate route)]}
+    variants: [{id: sulfate, title: Sulfate process, market_mix: true}, {id: chloride, title: Chloride process, market_mix: true}]
+    feeds: []
+    open_sources: [bref-lvic-s]
+    tier: 0
+  - rank: 58
+    id: power-generation
+    title: Electricity generation (on-site and grid technologies)
+    chemical: electricity
+    family: power-generation
+    volume: {band: "n/a"}
+    relevance: {ghg: high, note: "linked from the background by default (medium voltage)"}
+    feeds: [air-separation, chlor-alkali, hydrogen, aluminium]
+    open_sources: [bref-lcp]
+    tier: 0
+  - rank: 59
+    id: demineralised-water
+    title: Demineralised water
+    chemical: water
+    family: utilities
+    volume: {band: "n/a"}
+    relevance: {ghg: low}
+    feeds: [steam-generation, hydrogen]
+    open_sources: [bref-cww]
+    tier: 1
+    note: "Utility dataset (#45)."
+  - rank: 60
+    id: refrigeration
+    title: Refrigeration and compressed air
+    family: utilities
+    volume: {band: "n/a"}
+    relevance: {ghg: low, other: [refrigerant leaks (HFCs)]}
+    feeds: []
+    open_sources: []
+    tier: 0
+    note: "Utility dataset (#45). Never cut HFC leaks (cut-off criteria)."
+  - rank: 61
+    id: mto-olefins
+    title: Methanol to olefins
+    chemical: ethylene
+    family: olefins
+    volume: {band: "n/a"}
+    relevance: {ghg: high, note: "coal-based methanol in some regions"}
+    feeds: [polyethylene, polypropylene]
+    open_sources: []
+    tier: 0

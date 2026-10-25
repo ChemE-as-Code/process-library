@@ -8,16 +8,22 @@ A library holds one folder per process, ``processes/<id>/``, with a ``process.ya
 ``schemas/process.schema.json``) and, for a plantcode project, its engineering files beside it.
 Chemicals are named once in ``chemicals/chemicals.yaml``.
 
-The builder reads checked-in files only; it never imports or runs plantcode. Preview SVGs are
+The builder reads checked-in files only; it never imports or runs plantcode (core), except
+core's ``foundation.units`` for the benchmark unit conversion (``benchmarks.convert``, lazily). Preview SVGs are
 rendered beforehand by ``render_previews.py`` into an artifacts directory, which is optional.
 
 Output (``--out``), all JSON with sorted keys, no timestamps, so two runs on the same commit are
 byte-identical:
 
-- ``catalog.json``: the list of processes (summaries), families, library commit
-- ``processes/<id>.json``: one process in full
-- ``chemicals.json``: the registry, each with the processes that make and use it
-- ``graph.json``: process and chemical nodes, input/output edges
+- ``catalog.json``: the list of processes (summaries), families (with their taxonomy title,
+  group and ISIC Rev.4 / NACE Rev. 2 classes, ``taxonomy/families.yaml``), library commit
+- ``processes/<id>.json``: one process in full; each flow names its chemical by slug and its
+  ``grade`` (null when none: registry.py ``flow_grade``)
+- ``chemicals.json``: the registry, each with the processes that make and use it, and so does
+  each of its grades
+- ``graph.json``: process and chemical nodes (by slug, never by grade), input/output edges
+- ``coverage.json``: when the library has a ``coverage.yaml``, the coverage roadmap with each
+  entry's covering processes and how many of the top entries are covered, at which tiers
 - ``artifacts/<id>/<sheet>.svg``: preview drawings copied from ``--artifacts``
 - with ``--issues`` (``fetch_issues.py`` output): each process's open issues as engineering
   items (type, gate, discipline, source, status), the closed count and links to the list and to
@@ -26,12 +32,22 @@ byte-identical:
 - ``scenarios/<id>/<scenario>.json``: core's per-scenario LCA records (``cheme assess
   lca-scenarios --write``), for Brightway jobs and other consumers
 
+Each process with LCI datasets (``lca/dataset.yaml``, ``lca/datasets/*.yaml``) gets its
+``benchmarks``: the KPIs of the benchmark registry (``benchmarks/<family>.yaml``,
+``benchmarks.py``), unallocated, with their reference and status, as in the LCI build's
+``datapackage.json``; the summary counts them by status. A value outside its range without an
+``out_of_range_reason``, a KPI not evaluated, a public process with fewer than two KPIs and a
+binding that names no dataset are warnings.
+
 Summaries and details carry the manifest's ``facets`` (feedstock basis, product classes, unit
 operations, region), always with every key: a missing list is ``[]``, a missing region null.
 
-Errors (schema, unknown chemical, folder/id mismatch, broken artifact link) exit 1. Warnings
-(a preview not rendered, an inventory key the LCA does not have) are printed, and fail the build
-with ``--strict``.
+Errors (schema, a benchmark file failing its schema or ``benchmarks.load``, unknown chemical
+or grade, a family outside the taxonomy, a registry check of ``registry.check``: CAS check
+digit, InChIKey, properties against the formula, duplicate crosswalk names; folder/id mismatch,
+broken artifact link) exit 1. Warnings (a preview not rendered, an inventory key the LCA does
+not have, a registry ``flow_grades`` key that no process flow has, the benchmark warnings
+above) are printed, and fail the build with ``--strict``.
 
 ``catalog.json`` records the build's ``mode``: ``preview`` (the default: every process, as the
 library has it) or ``public`` (``--public``, for publication; rules in ``publication.py``):
@@ -76,6 +92,8 @@ from typing import Any
 import yaml
 from jsonschema import Draft202012Validator
 
+import benchmarks as bm
+import registry as reg
 from publication import LCA_RESULT_FILES, is_public, lca_withheld, snapshot_excludes
 
 CATALOG_SCHEMA = "cheme-as-code/catalog/v1"
@@ -444,6 +462,31 @@ def _scenarios(folder: Path, where: str, report: Report, lca_withheld_reason: st
     return {"technology": technology, "design_cases": list(cases.values()), "scenarios": scenarios}
 
 
+def _benchmarks(folder: Path, pid: str, manifest: dict, benchmarks: bm.Registry | None, seen: set[tuple[str, str]], report: Report) -> list[dict]:
+    """The process's KPIs over its LCI datasets (``benchmarks.evaluate``, unallocated: the
+    allocated values are build_lci's), each with its ``dataset`` id; adds each dataset to
+    *seen*. A public process with fewer than ``benchmarks.MIN_KPIS``, or bound under a family its
+    process.yaml does not list, is a warning."""
+    if benchmarks is None:
+        return []
+    results, ids = [], []
+    for path in bm.dataset_files(folder):
+        data = _yaml(path)
+        if not isinstance(data, dict) or data.get("kind") != "lci_dataset" or not isinstance(data.get("id"), str):
+            continue  # build_lci validates datasets
+        ids.append(data["id"])
+        seen.add((pid, data["id"]))
+        found, warnings = bm.evaluate(benchmarks, pid, data)
+        results.extend({"dataset": data["id"], **k} for k in found)
+        report.warnings.extend(warnings)
+    for text in bm.family_mismatches(benchmarks, pid, ids, manifest.get("families") or []):
+        report.warn(pid, text)
+    count = bm.kpi_count(benchmarks, pid, ids)
+    if ids and is_public(manifest) and count < bm.MIN_KPIS:
+        report.warn(pid, f"{count} benchmarked KPI(s); a public process needs at least {bm.MIN_KPIS}, each with a source or a recorded no_open_reference (benchmarks/<family>.yaml, docs/benchmarks.md)")
+    return results
+
+
 def _gates(folder: Path) -> dict | None:
     path = folder / "checks" / "status.json"
     if not path.is_file():
@@ -607,11 +650,22 @@ def build(
         report.error(str(registry_path), "missing chemical registry")
         return report
     registry = _yaml(registry_path)
-    for message in _schema_errors(chem_validator, registry):
+    registry_problems = _schema_errors(chem_validator, registry)
+    for message in registry_problems:
         report.error("chemicals/chemicals.yaml", message)
     chemicals = {c["slug"]: c for c in registry.get("chemicals", [])}
     if len(chemicals) != len(registry.get("chemicals", [])):
         report.error("chemicals/chemicals.yaml", "duplicate slug")
+    # the checks beyond the schema need a registry the schema accepts
+    products = reg.load(registry) if not registry_problems else reg.Registry(chemicals)
+    for message in reg.check(products) if not registry_problems else []:
+        report.error("chemicals/chemicals.yaml", message)
+    families_path = library / "taxonomy" / "families.yaml"
+    taxonomy = reg.load_families(families_path if families_path.is_file() else _schema_dir().parent / "taxonomy" / "families.yaml")
+    benchmarks, problems = bm.load(library / "benchmarks", schemas / "benchmarks.schema.json", taxonomy)
+    for message in problems:
+        report.errors.append(message)
+    benchmarked: set[tuple[str, str]] = set()
 
     # Git facts only when the library is a checkout of its own, not a folder inside another repo
     # (a test fixture, the interim assembled library).
@@ -625,6 +679,7 @@ def build(
     (out / "processes").mkdir(parents=True)
 
     summaries, details = [], []
+    flow_keys: set[str] = set()
     for manifest_path in sorted((library / "processes").glob("*/process.yaml")):
         folder = manifest_path.parent
         where = str(manifest_path.relative_to(library))
@@ -641,9 +696,19 @@ def build(
         flows = {k: manifest["chemistry"].get(k, []) for k in ("inputs", "outputs", "utilities")}
         facets = _facets(manifest)
         for group, items in flows.items():
-            for item in items:
-                if item["chemical"] not in chemicals:
-                    report.error(where, f"chemistry.{group}: unknown chemical {item['chemical']!r} (add it to chemicals/chemicals.yaml)")
+            for number, item in enumerate(items):
+                slug, grade, problem = reg.flow_grade(products, pid, item)
+                if item.get("inventory_key"):
+                    flow_keys.add(f"{pid}/{item['inventory_key']}")
+                if slug not in chemicals:
+                    report.error(where, f"chemistry.{group}: unknown chemical {slug!r} (add it to chemicals/chemicals.yaml)")
+                elif problem:
+                    report.error(where, f"chemistry.{group}: {problem}")
+                # the graph joins by slug; the grade travels beside it
+                items[number] = {**item, "chemical": slug, "grade": grade}
+        for family in manifest["families"]:
+            if taxonomy and family not in taxonomy:
+                report.error(where, f"family {family!r} is not in taxonomy/families.yaml")
         if public and not is_public(manifest):
             continue
 
@@ -657,6 +722,7 @@ def build(
                     key = item.get("inventory_key")
                     if key and keys and key not in keys:
                         report.warn(where, f"chemistry.{group}: inventory_key {key!r} is not in lca/inventory.csv")
+        kpis = _benchmarks(folder, pid, manifest, benchmarks, benchmarked, report)
         reps = _representations(folder, pid, plant, artifacts, out, where, report)
         source_commit = _git(library, "log", "-1", "--format=%H", "--", str(folder.relative_to(library))) if own_repo else None
         render = _render_info(artifacts, pid)
@@ -700,6 +766,7 @@ def build(
             "gates": _gates(folder) if plant else None,
             "lca": lca,
             "issues": _issues(issues_data, pid, forms),
+            "benchmarks": kpis,
             "provenance": {
                 "library_commit": commit,
                 "source_commit": source_commit,
@@ -746,11 +813,19 @@ def build(
                 "open_issues": None if issues_data is None else sum(
                     1 for i in issues_data["issues"] if pid in i.get("processes", []) and i["state"] == "open"
                 ),
+                "benchmarks": {status: sum(1 for k in kpis if k["status"] == status) for status in sorted({k["status"] for k in kpis})},
             }
         )
 
+    if benchmarks is not None and not public:
+        for name in bm.unused_bindings(benchmarks, benchmarked):
+            report.warn("benchmarks", f"datasets {name}: no such LCI dataset in the library (renamed?)")
+    for key in reg.unused_flow_grades(products, flow_keys):
+        report.warn("chemicals/chemicals.yaml", f"flow_grades.{key}: no process has a flow with this inventory key (renamed, or the flow names its grade now?)")
+
     # chemicals with their producers and consumers; graph
     uses: dict[str, dict[str, list]] = {slug: {"produced_by": [], "consumed_by": []} for slug in chemicals}
+    grade_uses: dict[tuple[str, str], dict[str, set]] = {key: {"produced_by": set(), "consumed_by": set()} for key in products.grades}
     nodes, edges = [], set()
     for d in details:
         nodes.append({"id": f"process:{d['id']}", "type": "process", "label": d["title"], "maturity": d["maturity"], "families": d["families"]})
@@ -761,6 +836,8 @@ def build(
                     continue
                 outgoing = group == "outputs"
                 uses[slug]["produced_by" if outgoing else "consumed_by"].append({"process": d["id"], "role": item["role"]})
+                if (slug, item["grade"]) in grade_uses:
+                    grade_uses[(slug, item["grade"])]["produced_by" if outgoing else "consumed_by"].add((d["id"], item["role"]))
                 edge = (f"process:{d['id']}", f"chemical:{slug}") if outgoing else (f"chemical:{slug}", f"process:{d['id']}")
                 edges.add((*edge, item["role"]))
     used = {slug for slug, u in uses.items() if u["produced_by"] or u["consumed_by"]}
@@ -777,6 +854,11 @@ def build(
     for chem in chemical_list:
         for key in ("produced_by", "consumed_by"):
             chem[key] = [{"process": p, "role": r} for p, r in chem[key]]
+        if chem.get("grades"):
+            chem["grades"] = [
+                {**g, **{key: [{"process": p, "role": r} for p, r in sorted(grade_uses[(chem["slug"], g["slug"])][key])] for key in ("produced_by", "consumed_by")}}
+                for g in chem["grades"]
+            ]
 
     families: dict[str, int] = defaultdict(int)
     for s in summaries:
@@ -789,11 +871,13 @@ def build(
         "mode": "public" if public else "preview",
         "library": library_info,
         "processes": summaries,
-        "families": [{"slug": f, "count": n} for f, n in sorted(families.items())],
+        "families": [_family(f, n, taxonomy) for f, n in sorted(families.items())],
         "chemical_count": len(used),
     })
     for d in details:
         _write(out / "processes" / f"{d['id']}.json", d)
+    if (library / "coverage.yaml").is_file():
+        _write(out / "coverage.json", _coverage(library / "coverage.yaml", details, taxonomy, chemicals, report))
     _write(out / "chemicals.json", {"schema": CATALOG_SCHEMA, "library": library_info, "chemicals": chemical_list})
     _write(out / "graph.json", {
         "schema": CATALOG_SCHEMA,
@@ -861,6 +945,72 @@ def _issues(data: dict | None, pid: str, forms: dict[str, str]) -> dict | None:
         "open_by_gate": by_gate,
         "list_url": f"{web}/issues?q={label}",
         "new": new or {"choose": f"{web}/issues/new/choose"},
+    }
+
+
+def _family(slug: str, count: int, taxonomy: dict[str, dict]) -> dict:
+    """A family of catalog.json: its slug and process count, with the taxonomy's title, group and
+    ISIC Rev.4 / NACE Rev. 2 classes (null when the library has no taxonomy)."""
+    entry = taxonomy.get(slug) or {}
+    return {"slug": slug, "count": count, "title": entry.get("title"), "group": entry.get("group"), "isic": entry.get("isic", []), "nace": entry.get("nace", [])}
+
+
+#: What "the top N" of coverage.json's summary are ranked by (docs/coverage.md, "Ranking criteria").
+SUMMARY_BASIS = "rank: judgement on volume, GHG and other burdens, value-chain reach and open sources; not production volume alone"
+
+
+def _coverage(path: Path, details: list[dict], taxonomy: dict[str, dict], chemicals: dict[str, dict], report: Report) -> dict:
+    """``coverage.json``: the roadmap of ``coverage.yaml`` (schema ``schemas/coverage.schema.json``)
+    with each entry's covering processes of this build and a summary: how many of the top
+    ``summary_top`` entries are covered, at which tiers. An entry's ``covered_by`` names a process
+    and the tier it reaches; a process left out of this build (``--public``) does not count."""
+    where = path.name
+    data = _yaml(path) or {}
+    validator = Draft202012Validator(json.loads((_schema_dir() / "coverage.schema.json").read_text()))
+    problems = _schema_errors(validator, data)
+    for message in problems:
+        report.error(where, message)
+    if problems:
+        return {"schema": CATALOG_SCHEMA, "entries": [], "summary": None}
+    built = {d["id"]: d for d in details}
+    entries, ids = [], set()
+    for entry in sorted(data["entries"], key=lambda e: e["rank"]):
+        at = f"{where} {entry['id']}"
+        if entry["id"] in ids:
+            report.error(at, "id appears twice")
+        ids.add(entry["id"])
+        if taxonomy and entry["family"] not in taxonomy:
+            report.error(at, f"family {entry['family']!r} is not in taxonomy/families.yaml")
+        cited = [entry["volume"].get("source"), *entry.get("open_sources", [])]
+        for source in sorted({s for s in cited if s and s not in data.get("sources", {})}):
+            report.error(at, f"cites unknown source {source!r} (add it to sources:)")
+        covered = []
+        for cover in entry.get("covered_by", []):
+            process = built.get(cover["process"])
+            if not (path.parent / "processes" / cover["process"] / "process.yaml").is_file():
+                report.error(at, f"covered_by unknown process {cover['process']!r}")
+            if process is None:
+                continue
+            made = {f["chemical"] for f in process["chemistry"]["outputs"] if f["role"] in ("main-product", "co-product")}
+            if entry.get("chemical") in chemicals and entry["chemical"] not in made:
+                report.warn(at, f"covered_by {cover['process']}, which does not make {entry['chemical']}")
+            covered.append(cover)
+        entries.append({**entry, "covered_by": covered})
+    for entry in entries:
+        for link in entry.get("feeds", []):
+            if link not in ids:
+                report.error(f"{where} {entry['id']}", f"feeds unknown entry {link!r}")
+    top = data.get("summary_top", 50)
+    ranked = entries[:top]
+    tiers: dict[str, int] = defaultdict(int)
+    for entry in ranked:
+        if entry["covered_by"]:
+            tiers[str(max(c["tier"] for c in entry["covered_by"]))] += 1
+    return {
+        "schema": CATALOG_SCHEMA,
+        "criteria": data.get("criteria", []),
+        "entries": entries,
+        "summary": {"basis": SUMMARY_BASIS, "top": len(ranked), "covered": sum(1 for e in ranked if e["covered_by"]), "by_tier": dict(sorted(tiers.items()))},
     }
 
 

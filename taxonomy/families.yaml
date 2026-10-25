@@ -1,0 +1,75 @@
+# Process-family taxonomy of the library. process.yaml `families` and coverage.yaml `family`
+# take their slugs from here; schemas/process.schema.json lists the same slugs as an enum (a test
+# keeps the two equal: add a family here and to the enum in the same change).
+#
+# Each family maps to the ISIC Rev.4 classes (UN, 2008) and NACE Rev. 2 classes (Eurostat, 2008)
+# of the activities it belongs to. A technology family (cryogenic-separation, electrolysis) maps
+# to the classes of the products it mostly makes. On-site utilities are classified as the
+# activity they would be as a stand-alone supplier (steam: 3530); inside a site, the host
+# activity's class applies (ISIC Rev.4, treatment of ancillary activities).
+#
+# `group` gathers families for the Atlas filter and the coverage roadmap (docs/coverage.md).
+schema: cheme-as-code/families/v1
+
+groups:
+  - {slug: gases-and-hydrogen, title: Industrial gases and hydrogen}
+  - {slug: inorganics, title: Inorganic chemicals}
+  - {slug: fertilizers, title: Fertilisers and nitrogen compounds}
+  - {slug: petrochemicals, title: Petrochemicals and organic intermediates}
+  - {slug: polymers, title: Polymers}
+  - {slug: fuels-and-refining, title: Fuels and refining}
+  - {slug: bio-based, title: Bio-based chemicals and fuels}
+  - {slug: recycling-and-capture, title: Recycling and carbon capture}
+  - {slug: materials, title: "Cement, lime and metals"}
+  - {slug: utilities, title: Utilities and environmental services}
+
+families:
+  # --- industrial gases and hydrogen -----------------------------------------------------------
+  - {slug: air-separation, title: Air separation, group: gases-and-hydrogen, isic: ["2011"], nace: ["20.11"]}
+  - {slug: industrial-gases, title: Industrial gases, group: gases-and-hydrogen, isic: ["2011"], nace: ["20.11"]}
+  - {slug: cryogenic-separation, title: Cryogenic separation, group: gases-and-hydrogen, isic: ["2011"], nace: ["20.11"], note: technology family}
+  - {slug: hydrogen, title: Hydrogen, group: gases-and-hydrogen, isic: ["2011"], nace: ["20.11"]}
+  - {slug: electrolysis, title: Electrolysis, group: gases-and-hydrogen, isic: ["2011"], nace: ["20.11", "20.13"], note: "technology family: water electrolysis (20.11) and chlor-alkali (20.13)"}
+  # --- inorganics ------------------------------------------------------------------------------
+  - {slug: sulfuric-acid, title: Sulfuric acid and sulfur, group: inorganics, isic: ["2011"], nace: ["20.13"]}
+  - {slug: chlor-alkali, title: Chlor-alkali, group: inorganics, isic: ["2011"], nace: ["20.13"]}
+  - {slug: soda-ash, title: Soda ash, group: inorganics, isic: ["2011"], nace: ["20.13"]}
+  - {slug: phosphoric-acid, title: Phosphoric acid, group: inorganics, isic: ["2011"], nace: ["20.13"]}
+  - {slug: inorganic-chemicals, title: Other inorganic chemicals, group: inorganics, isic: ["2011"], nace: ["20.12", "20.13"], note: "e.g. hydrogen peroxide, titanium dioxide"}
+  # --- fertilizers -----------------------------------------------------------------------------
+  - {slug: ammonia, title: Ammonia, group: fertilizers, isic: ["2012"], nace: ["20.15"]}
+  - {slug: nitric-acid, title: Nitric acid, group: fertilizers, isic: ["2012"], nace: ["20.15"]}
+  - {slug: fertilizers, title: Fertilisers, group: fertilizers, isic: ["2012"], nace: ["20.15"], note: "urea, ammonium nitrate and sulfate, NPK"}
+  # --- petrochemicals --------------------------------------------------------------------------
+  - {slug: olefins, title: "Olefins (steam cracking, PDH, MTO)", group: petrochemicals, isic: ["2011"], nace: ["20.14"]}
+  - {slug: aromatics, title: Aromatics (BTX), group: petrochemicals, isic: ["2011", "1920"], nace: ["20.14", "19.20"], note: "from reformate (refinery, 19.20) or pyrolysis gasoline (20.14)"}
+  - {slug: methanol, title: Methanol, group: petrochemicals, isic: ["2011"], nace: ["20.14"]}
+  - {slug: syngas, title: Synthesis gas, group: petrochemicals, isic: ["2011"], nace: ["20.14", "20.11"], note: "reforming and gasification as a technology family"}
+  - {slug: oxygenates, title: Oxygenated intermediates, group: petrochemicals, isic: ["2011"], nace: ["20.14"], note: "ethylene oxide and glycols, acetic acid, formaldehyde, propylene oxide, phenol and acetone, terephthalic acid, adipic acid"}
+  - {slug: chlorinated-organics, title: Chlorinated organics, group: petrochemicals, isic: ["2011"], nace: ["20.14"], note: "EDC, VCM"}
+  - {slug: nitrogen-organics, title: Nitrogen-containing organics, group: petrochemicals, isic: ["2011"], nace: ["20.14"], note: "acrylonitrile, caprolactam, isocyanates"}
+  - {slug: styrenics, title: Styrene and ethylbenzene, group: petrochemicals, isic: ["2011"], nace: ["20.14"]}
+  # --- polymers --------------------------------------------------------------------------------
+  - {slug: polymers, title: Polymers, group: polymers, isic: ["2013"], nace: ["20.16"]}
+  - {slug: polyolefins, title: Polyolefins, group: polymers, isic: ["2013"], nace: ["20.16"]}
+  # --- fuels and refining ----------------------------------------------------------------------
+  - {slug: refining, title: Petroleum refining, group: fuels-and-refining, isic: ["1920"], nace: ["19.20"]}
+  - {slug: fuels, title: Fuels, group: fuels-and-refining, isic: ["1920", "2011"], nace: ["19.20", "20.14"]}
+  - {slug: synthetic-fuels, title: Synthetic fuels (e-fuels), group: fuels-and-refining, isic: ["1920", "2011"], nace: ["19.20", "20.14"], note: "Fischer-Tropsch and methanol-to-fuels from H2 and CO2"}
+  # --- bio-based -------------------------------------------------------------------------------
+  - {slug: bioethanol, title: Bioethanol, group: bio-based, isic: ["2011"], nace: ["20.14"], note: fermentation ethanol for fuel and chemicals}
+  - {slug: bio-based-chemicals, title: Bio-based chemicals, group: bio-based, isic: ["2011"], nace: ["20.14"]}
+  - {slug: biogas, title: Biogas and biomethane, group: bio-based, isic: ["3520"], nace: ["35.21"]}
+  # --- recycling and capture -------------------------------------------------------------------
+  - {slug: chemical-recycling, title: Chemical recycling, group: recycling-and-capture, isic: ["3830"], nace: ["38.32"]}
+  - {slug: carbon-capture, title: CO2 capture and conditioning, group: recycling-and-capture, isic: ["2011"], nace: ["20.11"], note: "CO2 as a product is an industrial gas (20.11); capture inside a plant takes the plant's class"}
+  # --- materials -------------------------------------------------------------------------------
+  - {slug: cement-lime, title: Cement and lime, group: materials, isic: ["2394"], nace: ["23.51", "23.52"]}
+  - {slug: iron-steel, title: Iron and steel, group: materials, isic: ["2410"], nace: ["24.10"]}
+  - {slug: aluminium, title: Aluminium, group: materials, isic: ["2420"], nace: ["24.42"]}
+  # --- utilities and environmental services ----------------------------------------------------
+  - {slug: power-generation, title: Power generation, group: utilities, isic: ["3510"], nace: ["35.11"]}
+  - {slug: steam-and-heat, title: Steam and heat, group: utilities, isic: ["3530"], nace: ["35.30"]}
+  - {slug: utilities, title: Other site utilities, group: utilities, isic: ["3530", "3600"], nace: ["35.30", "36.00"], note: "cooling water, refrigeration, compressed air, demineralised water"}
+  - {slug: wastewater-treatment, title: Wastewater treatment, group: utilities, isic: ["3700"], nace: ["37.00"]}
+  - {slug: waste-treatment, title: Waste incineration and treatment, group: utilities, isic: ["3821", "3822"], nace: ["38.21", "38.22"]}
