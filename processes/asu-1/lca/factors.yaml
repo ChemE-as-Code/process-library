@@ -10,7 +10,7 @@
 # backend: brightway locally; those results are not published (core docs/framework/lca.md).
 schema: cheme/lca/v1
 kind: lca_factors
-include: [desnz-ghg-2026]
+include: [desnz-ghg-2026, eea-ener038-2024]
 categories:
   # elementary: the plant's own emissions mapped elementary are characterised by IPCC 2021
   # GWP100 (AR6); the DESNZ factors are AR4/AR5, a method mix the results report
@@ -38,3 +38,27 @@ factors:
     location: GB
     basis: "DESNZ primary concrete per t times an ASSUMED density of 2.4 t/m3; the reinforcing steel is not included"
     validity: "plain or lightly reinforced structural concrete; heavily reinforced foundations are higher"
+  # the cooling water estimate (10 kWh electricity per MWh rejected, ASSUMED) on each regional
+  # grid of the EEA profile, for the regional scenarios (D-107)
+  - id: cooling-water-nl
+    title: Cooling water system, per heat rejected, NL grid
+    unit: MWh
+    values: {climate-change: 2.45}
+    status: ESTIMATE
+    source: "10 kWh electricity per MWh rejected (pumps and fans, ASSUMED) x eea-ener038-2024:electricity-nl 0.245 kg CO2e/kWh"
+    source_id: eea-ener038-2024
+    year: 2024
+    location: NL
+    basis: "the circulating pumps' and cooling-tower fans' electricity only, ~10 kWh/MWh rejected (ASSUMED, concept stage), on the NL grid at generation (EEA, direct emissions); make-up water and chemicals not counted"
+    validity: "a recirculating cooling water system with a mechanical-draught tower in the Netherlands; not for once-through or air cooling"
+  - id: cooling-water-de
+    title: Cooling water system, per heat rejected, DE grid
+    unit: MWh
+    values: {climate-change: 2.91}
+    status: ESTIMATE
+    source: "10 kWh electricity per MWh rejected (pumps and fans, ASSUMED) x eea-ener038-2024:electricity-de 0.291 kg CO2e/kWh"
+    source_id: eea-ener038-2024
+    year: 2024
+    location: DE
+    basis: "the circulating pumps' and cooling-tower fans' electricity only, ~10 kWh/MWh rejected (ASSUMED, concept stage), on the DE grid at generation (EEA, direct emissions); make-up water and chemicals not counted"
+    validity: "a recirculating cooling water system with a mechanical-draught tower in Germany; not for once-through or air cooling"

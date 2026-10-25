@@ -1,0 +1,105 @@
+name: "Action item"
+description: "An action from a review, a HAZOP or a design meeting: owner, the gate it must close before, close-out evidence."
+title: "[<process id>] "
+labels: ["type:action"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The labels process:, discipline:, gate: and source: are set from the fields below.
+        Close the issue only once the close-out evidence is verified.
+  - type: dropdown
+    id: process
+    attributes:
+      label: "Process"
+      description: "The folder under processes/. Add a new process here when its folder is created."
+      options:
+        - "asu-1"
+    validations:
+      required: true
+  - type: dropdown
+    id: discipline
+    attributes:
+      label: "Discipline"
+      description: "The discipline(s) responsible."
+      multiple: true
+      options:
+        - "process"
+        - "control"
+        - "piping"
+        - "mechanical"
+        - "electrical"
+        - "layout"
+        - "safety"
+        - "civil"
+    validations:
+      required: true
+  - type: dropdown
+    id: gate
+    attributes:
+      label: "Close before gate"
+      description: "The stage gate this must be closed before (checks.yaml stage); the gate fails while it is open."
+      options:
+        - "concept"
+        - "basic"
+        - "detail"
+        - "none"
+    validations:
+      required: true
+  - type: dropdown
+    id: source
+    attributes:
+      label: "Source"
+      description: "Where it comes from."
+      options:
+        - "design-review"
+        - "hazop"
+        - "layout-review"
+        - "control-review"
+        - "vendor"
+        - "client"
+        - "internal"
+    validations:
+      required: true
+  - type: textarea
+    id: action
+    attributes:
+      label: "Action"
+      description: "What has to be done, in the reviewer's or HAZOP team's words where there are some. Name the tags, sheets and files."
+    validations:
+      required: true
+  - type: textarea
+    id: owner
+    attributes:
+      label: "Action by"
+      description: "The role or party responsible (process engineer, control engineer, vendor, client)."
+    validations:
+      required: false
+  - type: textarea
+    id: when
+    attributes:
+      label: "When to do it"
+      description: "The trigger, e.g. 'after the HAZOP re-stamp', 'with the vendor enquiry', 'at the next change of P-04'."
+    validations:
+      required: true
+  - type: textarea
+    id: not-before
+    attributes:
+      label: "Not before (and why)"
+      description: "What doing it earlier would cost or break: invented data, a stale review, a conflict with another branch."
+    validations:
+      required: true
+  - type: textarea
+    id: refs
+    attributes:
+      label: "References"
+      description: "Review findings (reviews/...#N), HAZOP actions, DESIGN.md decisions (D-NNN), tags, sheets, files."
+    validations:
+      required: false
+  - type: textarea
+    id: close-out
+    attributes:
+      label: "Close-out evidence"
+      description: "What shows it is done: the files changed, the review record or the decision. Close only after verification by the originator or reviewer."
+    validations:
+      required: true

@@ -660,7 +660,7 @@ def test_a_process_without_scenario_records_has_no_scenarios(tmp_path: Path, lib
     assert "scenarios" not in lca and "design_cases" not in lca and "technology" not in lca
 
 
-def test_the_asu_publishes_regional_scenarios_without_invented_factors() -> None:
+def test_the_asu_publishes_regional_scenarios_on_sourced_factors() -> None:
     folder = KIT / "processes" / "asu-1" / "lca" / "scenarios"
     records = {p.stem: _json(p) for p in folder.glob("*.json")}
     assert set(records) == {"baseline", "nl-grid", "de-grid"}
@@ -668,20 +668,29 @@ def test_the_asu_publishes_regional_scenarios_without_invented_factors() -> None
     assert len(fingerprints) == 1  # one 500 t/d design, one foreground
     assert {r["design_case"]["id"] for r in records.values()} == {"design"}
     power = {k: next(l for l in r["linked_inventory"]["exchanges"] if l["key"] == "feed:POWER") for k, r in records.items()}
-    # NL: the UK grid, declared a proxy, never relabelled NL; DE: declared missing
-    assert (power["nl-grid"]["state"], power["nl-grid"]["location"]) == ("proxy", "GB")
-    assert power["de-grid"]["state"] == "missing"
-    assert records["de-grid"]["impacts"]["comparable"] is False
-    assert records["de-grid"]["impacts"]["totals"] == {"climate-change": None}
+    # NL and DE: the packaged EEA 2024 factors of their own country, declared proxies for the
+    # scope (generation-based, no T&D or upstream) against the UK baseline at the consumer (D-101)
+    for sid, code in (("nl-grid", "NL"), ("de-grid", "DE")):
+        assert power[sid]["background"] == f"eea-ener038-2024:electricity-{code.lower()}"
+        assert (power[sid]["state"], power[sid]["location"], power[sid]["year"]) == ("proxy", code, 2024)
+        assert power[sid]["replaced"] is True
+        assert records[sid]["impacts"]["comparable"] is True
+        assert records[sid]["impacts"]["totals"]["climate-change"] > records["baseline"]["impacts"]["totals"]["climate-change"]
     assert not build_catalog._record_stale(KIT / "processes" / "asu-1", records["nl-grid"])
 
 
-def test_lca_totals_drop_scenario_categories_a_record_says_are_not_computable(tmp_path: Path) -> None:
-    # the ASU's results.csv sums DE without its electricity; the catalog must not show that sum
+def test_lca_totals_drop_scenario_categories_a_record_says_are_not_computable(tmp_path: Path, library: Path) -> None:
+    # a record whose total is null (data the baseline has is missing there): the catalog must not
+    # show results.csv's lower sum for it
+    folder = library / "processes" / "fixture-electrolysis"
+    (folder / "lca" / "results.csv").write_text(
+        (folder / "lca" / "results.csv").read_text()
+        + "de-grid,climate-change,kg CO2-eq,total,,,,,0.05,1.0000,,,,\n"
+    )
     report = build_catalog.Report()
-    lca = build_catalog._lca(KIT / "processes" / "asu-1", "asu-1", report)
+    lca = build_catalog._lca(folder, "fixture", report)
     assert lca["totals"]["de-grid"] == {}
-    assert lca["totals"]["nl-grid"]["climate-change"] == lca["totals"]["baseline"]["climate-change"]
+    assert lca["totals"]["baseline"]
 
 
 def test_a_withheld_scenario_loses_its_lca_totals_too(tmp_path: Path, library: Path) -> None:
@@ -728,3 +737,97 @@ def test_a_single_undeclared_design_case_shows_the_documented_capacity() -> None
     lca = build_catalog._lca(KIT / "processes" / "asu-1", "asu-1", report, "500 t/d GOX")
     (case,) = lca["design_cases"]
     assert (case["capacity"], case["capacity_source"]) == ("500 t/d GOX", "process.yaml basis.capacity")
+
+
+# -- issues (fetch_issues.py output) ---------------------------------------------------------------
+
+ISSUES = {
+    "schema": "process-library/issues/v1",
+    "repository": "o/library",
+    "private": True,
+    "web": "https://github.com/o/library",
+    "issues": [
+        {"number": 1, "title": "Fail positions", "state": "open", "status": "open", "type": "hold", "gate": "basic",
+         "disciplines": ["control"], "source": "hazop", "waiting": "input", "processes": ["fixture-electrolysis"],
+         "url": "https://github.com/o/library/issues/1", "updated": "2026-10-25T00:00:00Z", "closed": None},
+        {"number": 2, "title": "Old action", "state": "closed", "status": "closed", "type": "action", "gate": "concept",
+         "disciplines": [], "source": None, "waiting": None, "processes": ["fixture-electrolysis"],
+         "url": "https://github.com/o/library/issues/2", "updated": "2026-10-25T00:00:00Z", "closed": "2026-10-25T00:00:00Z"},
+        {"number": 3, "title": "Elsewhere", "state": "open", "status": "open", "type": "tq", "gate": None,
+         "disciplines": [], "source": None, "waiting": None, "processes": ["fixture-ammonia"],
+         "url": "https://github.com/o/library/issues/3", "updated": "2026-10-25T00:00:00Z", "closed": None},
+    ],
+}
+
+
+def _with_issues(library: Path, tmp_path: Path, public: bool = False) -> Path:
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    issues = tmp_path / "issues.json"
+    issues.write_text(json.dumps(ISSUES))
+    forms = library / ".github" / "ISSUE_TEMPLATE"
+    forms.mkdir(parents=True, exist_ok=True)
+    (forms / "2-engineering-hold.yml").write_text('name: Engineering hold\nlabels: ["type:hold"]\nbody: []\n')
+    out = tmp_path / ("public" if public else "out")
+    report = build_catalog.build(library, out, PREVIEWS, commit="fixture", public=public, issues=issues)
+    assert not report.errors, report.errors
+    return out
+
+
+def test_without_issues_nothing_is_added(tmp_path: Path) -> None:
+    out = tmp_path / "out"
+    _build(LIBRARY, out)
+    assert _json(out / "processes" / "fixture-electrolysis.json")["issues"] is None
+    assert all(p["open_issues"] is None for p in _json(out / "catalog.json")["processes"])
+
+
+def test_each_process_gets_its_open_items(library: Path, tmp_path: Path) -> None:
+    out = _with_issues(library, tmp_path)
+    issues = _json(out / "processes" / "fixture-electrolysis.json")["issues"]
+    assert [i["number"] for i in issues["open"]] == [1]
+    assert issues["open"][0]["type"] == "hold" and issues["open"][0]["gate"] == "basic"
+    assert issues["closed_count"] == 1 and issues["open_by_gate"] == {"basic": {"hold": 1}}
+    assert issues["new"]["hold"].startswith("https://github.com/o/library/issues/new?template=2-engineering-hold.yml")
+    assert "process=fixture-electrolysis" in issues["new"]["hold"]
+    summaries = {p["id"]: p for p in _json(out / "catalog.json")["processes"]}
+    assert summaries["fixture-electrolysis"]["open_issues"] == 1
+    assert summaries["fixture-ammonia"]["open_issues"] == 1
+
+
+def test_public_build_keeps_titles_but_no_links_into_a_private_repository(library: Path, tmp_path: Path) -> None:
+    out = _with_issues(library, tmp_path, public=True)
+    issues = _json(out / "processes" / "fixture-electrolysis.json")["issues"]
+    assert issues["open"][0]["title"] == "Fail positions" and issues["open"][0]["url"] is None
+    assert issues["new"] is None and issues["list_url"] is None and issues["repository"] is None
+
+
+def test_issues_build_is_byte_identical(library: Path, tmp_path: Path) -> None:
+    first = _with_issues(library, tmp_path / "a")
+    second = _with_issues(library, tmp_path / "b")
+    name = "processes/fixture-electrolysis.json"
+    assert (first / name).read_bytes() == (second / name).read_bytes()
+
+
+def test_issues_of_another_schema_are_refused(library: Path, tmp_path: Path) -> None:
+    issues = tmp_path / "issues.json"
+    issues.write_text(json.dumps({**ISSUES, "schema": "x"}))
+    report = build_catalog.build(library, tmp_path / "out", PREVIEWS, commit="fixture", issues=issues)
+    assert report.errors
+
+
+def test_fetched_issue_counts_at_its_earliest_gate():
+    import fetch_issues
+
+    item = {
+        "number": 9, "title": "t", "state": "open", "html_url": "u", "updated_at": "", "closed_at": None,
+        "labels": [{"name": n} for n in ("process:p", "type:hold", "gate:detail", "gate:basic")],
+    }
+    assert fetch_issues.record(item)["gate"] == "basic"
+
+
+def test_issue_forms_are_read_as_yaml(tmp_path: Path):
+    forms = tmp_path / ".github" / "ISSUE_TEMPLATE"
+    forms.mkdir(parents=True)
+    (forms / "a.yml").write_text("name: A\nlabels: [type:action, other]\nbody: []\n")
+    (forms / "b.yml").write_text('name: B\nlabels: "type:hold"\nbody: []\n')
+    (forms / "config.yml").write_text("blank_issues_enabled: true\n")
+    assert build_catalog._issue_forms(tmp_path) == {"action": "a.yml", "hold": "b.yml"}

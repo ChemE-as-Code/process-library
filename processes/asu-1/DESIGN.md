@@ -5404,3 +5404,27 @@ Decision:
 
 Open: the team session, the matrix acceptance and a human review (the owner's); an independent
 review of this revision.
+
+
+## D-107 Regional scenarios on the sourced EEA grid factors (2026-10-25)
+Supersedes the proxy and missing declarations of D-100. Core now packages open grid factors
+(core#268), so `nl-grid` and `de-grid` link `eea-ener038-2024:electricity-nl` (0.245 kg
+CO2e/kWh) and `electricity-de` (0.291), the EEA ENER038 2024 values. EEA re-use is CC BY under
+its legal notice, so the results stay publishable.
+
+- Scope differs from the baseline: EEA counts direct emissions per kWh of gross generation, with
+  no T&D losses and no upstream. The UK baseline factor (DESNZ) is at the consumer, with T&D and
+  well-to-tank. Each regional electricity factor is therefore declared a proxy for grid supply
+  at the consumer. The results stay screening and are lower than a like-for-like factor would
+  give.
+- The cooling water estimate (10 kWh per MWh rejected, ASSUMED) is recomputed on each regional
+  grid: `cooling-water-nl` 2.45 and `cooling-water-de` 2.91 kg CO2e/MWh, ESTIMATE.
+- The result per t GOX (exergy allocation) is 88.3 kg CO2e for NL and 104.7 kg CO2e for DE,
+  against 66.7 kg CO2e for the UK baseline. Both remain partial (construction gaps) and
+  screening.
+- The construction, transport and recycling mappings stay the UK ones; each record names them.
+- Not used: Ember's life-cycle factors, which would be closer in scope to the baseline but are
+  partly projected for 2025, and UBA (terms unclear).
+
+Reason: replace declared proxies and missing data with sourced regional factors, and disclose
+the remaining scope difference.
