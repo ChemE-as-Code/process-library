@@ -5093,6 +5093,76 @@ Open:
 Reason: D-096 put the product control on the instrument list and in the loops, but a P&ID
 reader saw PIC-4150 alone on the guide vanes and PIC-4105 on PV-4105. Neither is the control
 that was decided.
+## D-102 HAZOP H-01 .. H-04 revised for D-101 and D-103, re-stamped; team-session pack (2026-10-25)
+Decided by the agent on the owner's delegation of 2026-10-25 ("resolve all of these issues, make
+good decisions"). These are not the owner's own engineering judgement, and none of it is a HAZOP
+team's acceptance: every node, scenario, safeguard, rating and action stays `status: proposed,
+by: agent`. Closes the HAZOP open points of D-101 (H-04 input stamp) and D-103 (all four studies
+reporting hazop-input-changed, H03-N3 citing the 7.2 C waste N2).
+
+What changed in the analysed inputs since the D-099 stamps: P-04 (UY-4151 and the cascade drawn,
+the PIC-4105 -> PV-4105 line removed, D-101), the instrument list and loops.yaml (the same), the
+line list (WN-1001 / WN-3002 notes at 9.5 C) and the flowsheet (heat in-leak HL3101, S12B/S12C/S17
+at 9.49 C, D-103). The P&IDs P-01 .. P-03, the C&E, the equipment list, the special items, the
+design basis and sequences.yaml did not change.
+
+Decision:
+- (1) **Revised, by id** (nothing renumbered):
+  - H04-N1: design intent names the drawn low select UY-4151, UY-4151 added to the members, a
+    node note on what D-101 drew (hazop-review3#5 had found the control only in loops.yaml);
+    H04-S02 and H04-S75 cause UY-4151 and reference it; ratings unchanged, because the control
+    is D-096's and only its drawing changed.
+  - H04-N3 and H04-A23 name UY-4151; H04-N5 says the cascade is drawn and that PV-4105 has no
+    drawn signal; H04-S24 adds PV-4105 left closed after a start-up as a cause (no controller is
+    defined), mode startup and action H04-A14 (fail position); ratings unchanged.
+  - H03-N3: the waste N2 warm end is the simulated 9.5 C with the 50 kW leak (was "13 C; the
+    simulation without leak gives 7.2 C"). H03-A10: the WN-3002 low alarm is set against the
+    9.5 C normal warm end and trended as a heat-leak indicator.
+  - H02-N5, H02-N6: waste N2 at 9.5 C; E-2101 gas duty about 1.01 MW inside the 1.13 MW peak.
+  - H01-N7: WN-1001 at 9.5 C, adiabatic saturation about 0.3 C, make-up 0.56-0.88 t/h.
+- (2) **New scenarios** (the selector is one function block common to PIC-4102, FIC-4148 and
+  PIC-4150, so under the studies' credit convention its failure is a cause and it is never a
+  safeguard):
+  - H04-S87 (H04-N3-HP): UY-4151 output high or frozen at turndown, export header overpressure;
+    PSV-4122 credited two orders; the PIC-4102 high-high trip not credited until H04-A01 places
+    it in a logic apart from the selector. People 4/D high -> 4/B medium.
+  - H04-S88 (H04-N1-HF): UY-4151 output low, vanes close, GOX vented for hours and the LOX backup
+    starts; PIC-4101 and PIC-4111 are outside the selector. People 3/D high -> 3/C medium; asset
+    2/D medium -> 2/C low.
+  - H04-S89 (new deviation H04-N1-SL, other-than control): reset windup of PIC-4102 behind a
+    holding limit, a step opening of the vanes when the limit releases. Asset 2/E medium, nothing
+    credited (anti-windup is D-096 Open).
+  - H03-S53 (new deviation H03-N11-HL, more heat in-leak): a leak above the ~130 kW expander
+    margin (perlite settlement, wet perlite, damaged insulation): refrigeration deficit and
+    reduced make. Asset 2/C low, nothing credited.
+  - H01-S44 (new deviation H01-N7-LT): C-1102 water towards freezing when the water load drops
+    and the waste N2 comes colder than normal; the margin to 0 C is now about 0.3 K at the
+    simulated inlet. Asset 2/C low, nothing credited.
+- (3) **New actions**: H04-A30 (specify and test UY-4151: anti-windup and bumpless transfer, a
+  defined action on a bad input or block fault, limit-active and output-versus-vane deviation
+  alarms), H03-A25 (cold box supplier: confirm the heat in-leak, the perlite top-up provision and
+  the expander margin as the insulation limit), H01-A26 (C-1102 water low-temperature alarm and
+  a bypass rule when the chilled water stops; packing ice tolerance).
+- (4) **Re-stamped** all four studies (`cheme safety hazop stamp <id> --write`) after the
+  reassessment above, then `rate --write`. `cheme safety hazop check`: H-01 .. H-04 draft, 0
+  errors, 0 warnings each (the info items are the team's: proposals not accepted, the matrix
+  proposed).
+- (5) **Counts** (worst band per scenario: residual where rated, else initial, as the matrix's
+  action policy reads): 223 scenarios (was 218), 86 high, 81 medium, 56 low, none very-high; 9
+  very-high initial (unchanged); every high scenario has an action. H-01 44, H-02 37, H-03 53,
+  H-04 89 scenarios; 93 actions.
+- (6) **Team session.** An agent cannot hold the HAZOP session or accept its entries.
+  safety/hazop/SESSION.md is the pack for the owner: the roles (no names), an agenda per study
+  and node (about 18.5 h of worksheet plus a 3 h opening block), the decisions to take first (the
+  matrix, the credit convention, the 9 very-high initial scenarios and all 86 high scenarios with
+  their proposed actions), and how to record acceptance in the files and get to a human review.
+
+Open:
+- the HAZOP team session itself, the matrix acceptance and the human review (the owner's);
+- the review of this revision, the D-101 drawing and D-103 on `stage/basic-close-open`.
+
+Reason: the studies must describe the plant as drawn and simulated before the team sees them;
+stamping without reassessing would hide the change (skill hazop-review).
 ## D-103 Cold-box heat leak in the simulation, simulated against assumed values, PR substitution accepted (2026-10-25)
 Decided by the agent on the owner's delegation of 2026-10-25 ("resolve all of these issues, make
 good decisions"). These are not the owner's own engineering judgement; the owner may reverse any

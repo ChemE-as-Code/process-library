@@ -32,12 +32,12 @@ modes:
 analysed:
   - {path: pid/P-01.xml, revision: 'sha256:c3b9a332a2200a9738e68801bf15e1f94c58264fbbd1e506c03c7045725ba5af', relation: analyses}
   - {path: control/cause-effect.yaml, revision: 'sha256:b9c8e56cbc49b1b9d9595e39b02fbaa24fdffdf137d402bcd253b329b9299ca5', relation: analyses}
-  - {path: control/instrument-list.yaml, revision: 'sha256:faa49c1f80b17ec93d52133f0e027cb54446579b9511f38da9f70c19e5113ba8', relation: analyses}
+  - {path: control/instrument-list.yaml, revision: 'sha256:d384cbb7440bedc87dca90fe7bf7321fac76e55f74d5065b96387425626cceab', relation: analyses}
   - {path: equipment/equipment-list.yaml, revision: 'sha256:7dd6ae258db62812479ac0e0e7c520b82a46de4f02ee2020db2f5d4013870490', relation: analyses}
-  - {path: piping/line-list.yaml, revision: 'sha256:3643188e55a2e5b9128b4b6c25a3e8b71bbd07e4fdb3fbe0d47ade72261f1485', relation: analyses}
+  - {path: piping/line-list.yaml, revision: 'sha256:c1ba2f0448cfa47af8ef8dc45ad1b99a30c3a6885994d6088b3803e47f09031b', relation: analyses}
   - {path: piping/special-items.yaml, revision: 'sha256:8071c9646730d15356f23923163a5416205ea568dbb9592a61fb49e9d19077d0', relation: analyses}
   - {path: process/design-basis.yaml, revision: 'sha256:0498974de4c64d23299e4a93fc56382beeae4c20493d14612a3c0912288757e0', relation: analyses}
-  - {path: process/flowsheet.yaml, revision: 'sha256:2e6a47f90612a61e9e806d83cca6e80fbc44a58ccc8a43eb0a2eddd30eaca4a3', relation: analyses}
+  - {path: process/flowsheet.yaml, revision: 'sha256:a4255acac7b000f5d3cafacbb23b24de1eef9435a2a05fcc47314b5a22f286eb', relation: analyses}
 risk_matrix: safety/risk-matrix.yaml
 assessment_basis: >-
   IEC 61882 guide words applied to the parameters of each node's design intent, in every mode
@@ -691,7 +691,7 @@ nodes:
   # ---------------------------------------------------------------- N7 evaporative cooler
   - id: H01-N7
     title: Evaporative cooler C-1102 - waste N2 WN-1001, vent WN-1002, make-up CW-1003 / LV-1107
-    design_intent: "Cool the returned water to ~10 C by evaporation into 58,074 kg/h dry waste N2 (WN-1001, ~1.07 bara, 13 C, 5.1 % O2) at atmospheric pressure (1 barg / 60 C design, lined CS, PP packing), vent the wet N2 by the open elevated vent WN-1002 (no valve, blind or arrester: the C-1102 relief path, D-083), and hold the sump level with LIC-1107 / LV-1107 by make-up from CW-1003 (~0.6-0.95 t/h, up to 1.5 t/h)."
+    design_intent: "Cool the returned water to ~10 C by evaporation into 58,074 kg/h dry waste N2 (WN-1001, ~1.07 bara, 9.5 C simulated with the cold-box heat in-leak, D-103, against the former 13 C design target; 5.1 % O2; adiabatic saturation about 0.3 C) at atmospheric pressure (1 barg / 60 C design, lined CS, PP packing), vent the wet N2 by the open elevated vent WN-1002 (no valve, blind or arrester: the C-1102 relief path, D-083), and hold the sump level with LIC-1107 / LV-1107 by make-up from CW-1003 (~0.56-0.88 t/h with the 9.5 C inlet, D-103; was 0.6-0.95 t/h at 13 C; up to 1.5 t/h)."
     members: [C-1102, WN-1001, WN-1002, CW-1003, LV-1107, LIC-1107, CHWR-1001]
     modes: [normal, startup, shutdown, warmup, maintenance]
     status: proposed
@@ -819,6 +819,27 @@ nodes:
                 - {category: people, severity: "4", likelihood: C, basis: "One fatality (matrix 4); routine work near an N2 vent (C).", evidence: [D-011, D-071], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
               residual:
                 - {category: people, severity: "4", likelihood: B, basis: "Elevated outlet and the zone Z-N2-WN1002 (D-071 (4)); no O2 detection or access control recorded.", evidence: [D-071], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
+      - id: H01-N7-LT
+        guide_word: less
+        parameter: temperature
+        description: "Water on the packing and in the sump colder than the ~10 C design, towards freezing."
+        notes: "New for D-103 (HAZOP revision D-102): with the cold-box heat in-leak the waste N2 reaches C-1102 at 9.5 C instead of the 13 C design target, and its adiabatic saturation temperature falls from 2.3 C to 0.3 C (C-1102 datasheet). The colder gas does not reduce the chilled-water capability, but the margin to freezing is now small."
+        scenarios:
+          - id: H01-S44
+            cause: "The water heat load on C-1102 drops while the dry waste N2 keeps flowing: the chilled-water return CHWR-1001 stops (the return cut off as in H01-S24, or the chilled-water circulation P-1102A/B stopped) or runs at a low load in winter, and the waste N2 comes colder than normal from a warm-end imbalance (H03-S13)."
+            consequence: "The water held on the packing and in the sump cools towards the gas's adiabatic saturation (about 0.3 C) and, with a colder waste N2, below 0 C: ice on the PP packing and the distributor, a rising gas pressure drop (back-pressure on WN-1001 and the LP column top, H01-S33 mechanism), damaged packing and a delayed restart."
+            refs: [C-1102, WN-1001, CHWR-1001, P-1102A, P-1102B, LV-1114]
+            modes: [normal, shutdown, startup]
+            safeguards: []
+            actions: [H01-A26]
+            status: proposed
+            by: agent
+            notes: "The gas cannot cool the water below its adiabatic saturation temperature, so at the simulated 9.5 C the water stays just above 0 C; freezing needs a colder gas as well (H03-S13, whose action H03-A10 adds the warm-end low alarms). Nothing on P-01 measures the C-1102 water temperature."
+            risk:
+              initial:
+                - {category: asset, severity: "2", likelihood: C, basis: "Packing repair and a restart delayed by a day or two (matrix 2); a chilled-water stop or a low winter load together with a cold warm end, once in the plant life (C).", evidence: [D-103, C-1102, CHWR-1001], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5d4b96d05607d5a4, inputs: {matrix: 8b8a7609d110e869, severity: '2', likelihood: C}}}
+              residual:
+                - {category: asset, severity: "2", likelihood: C, basis: "Nothing credited: no C-1102 water temperature measurement and no rule to bypass the waste N2 to WN-3003 when the chilled water stops; H03-A10 is proposed, not in the files.", evidence: [C-1102], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5d4b96d05607d5a4, inputs: {matrix: 8b8a7609d110e869, severity: '2', likelihood: C}}}
   # ---------------------------------------------------------------- N8 DCAC CW pumps
   - id: H01-N8
     title: DCAC cooling water pumps P-1101A/B and CW-1001
@@ -982,3 +1003,4 @@ actions:
   - {id: H01-A23, text: "Have the MAC supplier guarantee the oil-free air path (seal buffer, oil vent location away from F-1101) and define periodic oil-in-air checks after AIR-1002.", owner: mechanical engineer, status: proposed, by: agent}
   - {id: H01-A24, text: "Check that the cooling water to the DCAC cannot carry oil from other users (oil coolers on the shared CW system) and define CW quality monitoring for hydrocarbons.", owner: process engineer, status: proposed, by: agent}
   - {id: H01-A25, text: "Protect C-1102 against the LP column top pressure independently of WN-1002 and PIC-3110: a relief device on C-1102 or WN-1001 set below the 1 barg design, a second open vent, or a C-1102 / WN-1001 high-pressure alarm and trip that closes PV-3110A; add the case (WN-1002 blocked, PIC-3110 failed, H01-S43) to the relief case list in DESIGN.md section 4, with H03-A20.", owner: process safety engineer, status: proposed, by: agent}
+  - {id: H01-A26, text: "Give C-1102 a water (sump or chilled-water supply) low-temperature alarm, for example at 3 C (ASSUMED), and a rule to bypass the waste N2 to WN-3003 through PV-3110B when the chilled-water circulation stops or the water nears freezing; confirm with the packing supplier the PP packing's tolerance to ice (H01-S44). With H03-A10 for the warm-end low alarm on WN-3002.", owner: process engineer, status: proposed, by: agent}
