@@ -19,8 +19,12 @@
 #   3. the chemical slug of the exchange (process.yaml `inventory_key`, or the key's id when it
 #      is a registry slug) in `technosphere:`;
 #   4. the exchange's `link.factor` id (a lca/factors.yaml id) in `technosphere:`.
-# Emissions (emission:<component>) are looked up by component in `biosphere:`; free emissions
-# must be listed in `pass_through:` with the decision. Anything not found fails the build. An id
+# Emissions and resources (emission:<component>, resource:<component>) are linked to the
+# biosphere by, in this order: the biosphere3 UUID of the exchange's `flow:` identity (core's
+# elementary-flow crosswalk; an entry of `biosphere:` keyed by that UUID may correct the name and
+# categories), `link.biosphere`, the component in `biosphere:` (<component>/<origin>, else
+# <component>). The installer links by UUID first and falls back to name, categories and unit.
+# Free emissions must be listed in `pass_through:` with the decision. Anything not found fails the build. An id
 # found in `cutoff_exclusions:` instead of `technosphere:` is left out of a cut-off build with its
 # decision (docs/system-model.md).
 schema: cheme-as-code/lci-mappings/v1
@@ -202,7 +206,9 @@ substitution:
 # question; the export uses the method recorded here. `rule` names the step of the hierarchy
 # that justifies it: physical-exergy, physical-energy, economic, mass, co2-cutoff (method shares,
 # `product:` names the CO2 co-product, whose share must be 0), pcr, or deviation (any
-# proportional method, with the reason; the only way to keep a method outside the hierarchy).
+# proportional method, with the reason). A study or dataset states a deviation itself with
+# `allocation.deviation` (core allows it in lca.yaml and in the dataset); an entry here wins
+# over it and is needed only when the library overrides the study.
 # `shares:` may give the shares for method shares. Without an entry, the build applies the WBCSD
 # price-ratio rule when prices per kg are known and reports a finding otherwise.
 allocation:
@@ -219,13 +225,13 @@ allocation:
 # of the ASU's emissions is a burden (see pass_through), so this list is for other processes.
 biosphere:
   CO2/fossil:
-    flow: {name: "Carbon dioxide, fossil", categories: [air]}
+    flow: {name: "Carbon dioxide, fossil", categories: [air], uuid: 349b29d1-3e58-4c66-98b9-9d1a076efd2e}
     source: Fossil CO2 from combustion or process chemistry.
   CO2/biogenic:
-    flow: {name: "Carbon dioxide, non-fossil", categories: [air]}
+    flow: {name: "Carbon dioxide, non-fossil", categories: [air], uuid: eba59fd6-f37e-41dc-9ca3-c7ea22d602c7}
     source: Biogenic CO2.
   CH4/fossil:
-    flow: {name: "Methane, fossil", categories: [air]}
+    flow: {name: "Methane, fossil", categories: [air], uuid: 0795345f-c7ae-410c-ad25-1845784c75f5}
     source: Fossil methane slip or leaks.
   H2:
     flow: {name: Hydrogen, categories: [air]}

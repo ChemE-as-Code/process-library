@@ -98,7 +98,7 @@ def test_fixture_build_writes_workbook_datapackage_and_index(library: Path, tmp_
     assert electrolysis["maturity"] == "concept" and electrolysis["factors_status"] == "placeholder"
     assert electrolysis["allocation"] == {"method": "mass", "source": "study", "rule": "mass"}
     assert electrolysis["functional_unit"] == {"product": "H2", "amount": 1, "unit": "kg"}
-    assert electrolysis["datasets"][0]["data_status"] == {"given": 0, "calculated": 1, "assumed": 7}
+    assert electrolysis["datasets"][0]["data_status"] == {"given": 0, "calculated": 1, "assumed": 8}
     ammonia = next(p for p in package["processes"] if p["id"] == "fixture-ammonia")
     assert ammonia["allocation"] == {"method": "mass", "source": "default", "rule": "single-output"} and ammonia["functional_unit"] is None
     assert ammonia["datasets"][0]["path"] == "processes/fixture-ammonia/lca/datasets/ammonia.yaml"
@@ -212,7 +212,8 @@ def _edit_dataset(library: Path, change) -> None:
     ("change", "message"),
     [
         (lambda d: d.update(kind="lca"), "kind is 'lca'"),
-        (lambda d: d["exchanges"][0].update(unit="t"), "unit 't'"),
+                    (lambda d: d["exchanges"][0].update(unit="ea*h"), "unit ea*h: item-hours"),
+            (lambda d: d["exchanges"][0].update(unit="barrel"), "unit 'barrel' is not one of"),
         (lambda d: d["exchanges"].append(dict(d["exchanges"][0])), "appear twice: feed:WATER"),
         (lambda d: d["exchanges"][0].update(key="WATER"), "is not <kind>:<id>"),
         (lambda d: d.update(scope="linked"), "only foreground"),
@@ -303,6 +304,8 @@ def test_a_second_atlas_producer_is_reported_not_chosen_silently(library: Path, 
     for rel in ("process.yaml", "lca/dataset.yaml"):
         path = twin / rel
         path.write_text(path.read_text().replace("id: fixture-electrolysis", "id: fixture-electrolysis-b"))
+    manifest = twin / "process.yaml"  # a second process of the same title would not be installable
+    manifest.write_text(manifest.read_text().replace("Fixture: water electrolysis", "Fixture: water electrolysis B", 1))
     report = _build(library, tmp_path / "out")
     assert report.errors == [], report.errors
     (warning,) = [w for w in report.warnings if "several Atlas producers" in w]

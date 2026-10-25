@@ -16,7 +16,7 @@ from pathlib import Path
 FOLDER = Path(__file__).parent / "library" / "processes" / "fixture-electrolysis"
 FINGERPRINTED = ("lca/dataset.yaml", "lca/lca.yaml")
 DATASET = "fixture-electrolysis"
-FU = {"product": "H2", "amount": 1, "unit": "kg", "kg": 1}
+FU = {"product": "H2", "amount": 1, "unit": "kg", "kg": 1, "reference_amount": {"value": 1, "unit": "kg"}}
 SHARE = 41.7 / (41.7 + 333.6)
 CATEGORIES = [{"id": "climate-change", "unit": "kg CO2-eq", "method": "IPCC 2021 GWP100"}]
 
