@@ -660,7 +660,7 @@ def test_a_process_without_scenario_records_has_no_scenarios(tmp_path: Path, lib
     assert "scenarios" not in lca and "design_cases" not in lca and "technology" not in lca
 
 
-def test_the_asu_publishes_regional_scenarios_without_invented_factors() -> None:
+def test_the_asu_publishes_regional_scenarios_on_sourced_factors() -> None:
     folder = KIT / "processes" / "asu-1" / "lca" / "scenarios"
     records = {p.stem: _json(p) for p in folder.glob("*.json")}
     assert set(records) == {"baseline", "nl-grid", "de-grid"}
@@ -668,20 +668,29 @@ def test_the_asu_publishes_regional_scenarios_without_invented_factors() -> None
     assert len(fingerprints) == 1  # one 500 t/d design, one foreground
     assert {r["design_case"]["id"] for r in records.values()} == {"design"}
     power = {k: next(l for l in r["linked_inventory"]["exchanges"] if l["key"] == "feed:POWER") for k, r in records.items()}
-    # NL: the UK grid, declared a proxy, never relabelled NL; DE: declared missing
-    assert (power["nl-grid"]["state"], power["nl-grid"]["location"]) == ("proxy", "GB")
-    assert power["de-grid"]["state"] == "missing"
-    assert records["de-grid"]["impacts"]["comparable"] is False
-    assert records["de-grid"]["impacts"]["totals"] == {"climate-change": None}
+    # NL and DE: the packaged EEA 2024 factors of their own country, declared proxies for the
+    # scope (generation-based, no T&D or upstream) against the UK baseline at the consumer (D-101)
+    for sid, code in (("nl-grid", "NL"), ("de-grid", "DE")):
+        assert power[sid]["background"] == f"eea-ener038-2024:electricity-{code.lower()}"
+        assert (power[sid]["state"], power[sid]["location"], power[sid]["year"]) == ("proxy", code, 2024)
+        assert power[sid]["replaced"] is True
+        assert records[sid]["impacts"]["comparable"] is True
+        assert records[sid]["impacts"]["totals"]["climate-change"] > records["baseline"]["impacts"]["totals"]["climate-change"]
     assert not build_catalog._record_stale(KIT / "processes" / "asu-1", records["nl-grid"])
 
 
-def test_lca_totals_drop_scenario_categories_a_record_says_are_not_computable(tmp_path: Path) -> None:
-    # the ASU's results.csv sums DE without its electricity; the catalog must not show that sum
+def test_lca_totals_drop_scenario_categories_a_record_says_are_not_computable(tmp_path: Path, library: Path) -> None:
+    # a record whose total is null (data the baseline has is missing there): the catalog must not
+    # show results.csv's lower sum for it
+    folder = library / "processes" / "fixture-electrolysis"
+    (folder / "lca" / "results.csv").write_text(
+        (folder / "lca" / "results.csv").read_text()
+        + "de-grid,climate-change,kg CO2-eq,total,,,,,0.05,1.0000,,,,\n"
+    )
     report = build_catalog.Report()
-    lca = build_catalog._lca(KIT / "processes" / "asu-1", "asu-1", report)
+    lca = build_catalog._lca(folder, "fixture", report)
     assert lca["totals"]["de-grid"] == {}
-    assert lca["totals"]["nl-grid"]["climate-change"] == lca["totals"]["baseline"]["climate-change"]
+    assert lca["totals"]["baseline"]
 
 
 def test_a_withheld_scenario_loses_its_lca_totals_too(tmp_path: Path, library: Path) -> None:
