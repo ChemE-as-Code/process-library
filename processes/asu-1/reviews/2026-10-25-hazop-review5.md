@@ -26,7 +26,8 @@ No new finding.
 ## Previous findings
 | id | finding | severity | status | evidence |
 |---|---|---|---|---|
-| 2026-10-24-hazop-review3#1 .. #7 | see hazop-review4 | - | closed 5e263b4 | All closed already (hazop-review4); nothing reopened. |
+
+None open: hazop-review3#1 .. #7 were closed (hazop-review4) and nothing is reopened.
 
 ## Checked and fine
 - `cheme safety hazop check`: H-01 .. H-04 all `draft`, 0 errors, 0 warnings (2 info each:
