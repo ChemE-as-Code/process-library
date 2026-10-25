@@ -85,7 +85,7 @@ def test_cutoff_build_has_no_credits_and_records_the_exclusions(asu_library: Pat
     goxp = activities[GOXP]
     assert not [e for e in goxp["exchanges"] if e.get("atlas key") in END_OF_LIFE]
     comment = goxp["meta"]["comment"]
-    assert "System model: attributional, cut-off (docs/system-model.md, methodology 1.0.0)." in comment
+    assert "System model: attributional, cut-off (docs/system-model.md, methodology 1.1.0)." in comment
     assert "Excluded by the cut-off system model (no credit): end-of-life:steel-recycling (End-of-life steel scrap" in comment
     assert goxp["meta"]["atlas system model"] == "cutoff"
 

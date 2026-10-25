@@ -247,6 +247,8 @@ def _grade_the_fixture_hydrogen(library: Path) -> None:
                     item["chemical"] = "hydrogen/gaseous-30bar"
     _edit(library / "processes" / "fixture-electrolysis" / "process.yaml", change)
     _edit(library / "processes" / "fixture-ammonia" / "process.yaml", change)
+    # the hydrogen market follows its supplier's grade (a market of the substance has no supplier now)
+    _edit(library / "markets" / "hydrogen.yaml", lambda data: data["markets"][0].update(product="hydrogen/gaseous-30bar"))
 
 
 def test_catalog_aggregates_grades_by_slug(library: Path, tmp_path: Path) -> None:

@@ -1,8 +1,10 @@
 # System model of the Atlas LCI database
 
-Methodology version: **1.0.0** (the version `build_lci.py` records as `METHODOLOGY_VERSION` in
+Methodology version: **1.1.0** (the version `build_lci.py` records as `METHODOLOGY_VERSION` in
 every `datapackage.json` and activity comment; versioning rules in
-[governance.md](governance.md)).
+[governance.md](governance.md)). 1.1.0 adds the market layer and the compatibility check of
+Atlas-to-Atlas links ([markets.md](markets.md), #49), a MINOR change: the plant activities are
+unchanged.
 
 > **Status: draft for decision.** An agent drafted this document from the coordinator's decisions
 > of 2026-10-25 (process-library#52). The owner and an LCA expert decide on it. Until they have,
@@ -151,7 +153,13 @@ read. They are part of the review checklist ([governance.md](governance.md)).
   at the reference year. A dataset will record a `valid_until` year (core#179); `datapackage.json`
   carries it (null until core writes it).
 - **Atmospheric pass-through** (components taken in with the air and returned unchanged) is not
-  exported, as decided in `lci/mappings.yaml` `pass_through:`.
+  exported, as decided in `lci/mappings.yaml` `pass_through:`. The same holds for an
+  atmospheric gas a market loses on the way (oxygen, nitrogen or argon boil-off).
+- **Markets and chaining:** an input that another Atlas process makes links, with
+  `prefer_atlas`, to the market of its grade (distribution and losses included), or to a plant
+  only when pinned; a producer of another grade is refused, and every Atlas-to-Atlas link
+  records its compatibility (grade, unit, system model, allocation, boundary).
+  [markets.md](markets.md) has the layers, the rules and the first markets.
 - **Data quality, nomenclature, carbon:** the pedigree matrix and TfS DQR (core#178), EF 3.1
   flow identifiers (core#175, core#177) and the biogenic carbon rules (core#181) are part of
   this methodology once core implements them; they will raise the methodology version.
@@ -188,7 +196,7 @@ Two published chemical LCI databases show what users expect from the documentati
 | change report per release | `build_lci.py --previous` (exchange level today; [governance.md](governance.md)) |
 | external critical review of the methodology | planned: the review procedure in [governance.md](governance.md) |
 | mass and elemental balances per technology dataset | from the flowsheet for engineered processes; to be checked by the build (follow-up) |
-| layered model: plant, site, production and consumption mixes, simplified extension layer | planned (core#182, #47, #49): tiered generation and market datasets |
+| layered model: plant, site, production and consumption mixes, simplified extension layer | markets (technology, production mix, consumption mix) in [markets.md](markets.md); the site layer is documented there and built with a second process; tiered generation planned (core#182, #47) |
 | biogenic carbon content always reported | planned (core#181) |
 | several data-quality schemes and a primary data share | planned (core#178): pedigree, TfS DQR, PEF-style indicators, PDS |
 | per-dataset documentation of included and excluded stages | activity comments and `datapackage.json` today; ILCD export planned (#51) |

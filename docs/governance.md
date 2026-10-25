@@ -22,7 +22,7 @@ What raises which part:
 
 - **MAJOR:** a change of functional unit, system boundary or system model; a change of
   allocation method of a dataset; removal or renaming of an activity code (codes are
-  `<process>:<dataset>:<product key>` and `proxy:<id>`); a methodology change that changes results
+  `<process>:<dataset>:<product key>`, `market:<product>:<region>` and `proxy:<id>`); a methodology change that changes results
   of existing datasets by design.
 - **MINOR:** new datasets or activities; new exchanges; re-estimated amounts (a better
   estimate, a new design revision); new background links; a methodology addition that leaves

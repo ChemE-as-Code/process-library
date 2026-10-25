@@ -27,6 +27,11 @@
      A multi-output process needs an allocation that follows the hierarchy of
      [docs/system-model.md](docs/system-model.md) (often a curated `allocation:` entry in the
      mappings), and recycling or energy-recovery outputs a `cutoff_exclusions:` decision.
+   - a market for each product other processes consume: add the process as a supplier of the
+     product's market in `markets/<substance>.yaml` (or a new market), with its production
+     volume and the transport and losses to the consumer, each with a source or marked ASSUMED
+     ([docs/markets.md](docs/markets.md)). An Atlas input whose grade has no market is linked at
+     the plant gate, which is a build warning.
    - benchmarks for its LCI dataset: a public process needs at least two KPIs in
      `benchmarks/<family>.yaml`, each with a range from a cited open source or a recorded
      `no_open_reference` ([docs/benchmarks.md](docs/benchmarks.md)). Never invent a range.
