@@ -131,13 +131,17 @@ def test_asu_round_trip_reproduces_the_plantcode_baseline(project, tmp_path: Pat
 
     mappings = build_lci.load_mappings(KIT / "lci" / "mappings.yaml")
     factors = {f["id"]: f for f in yaml.safe_load((ASU / "factors.yaml").read_text())["factors"]}
+    # ASU-1's power links at high voltage (33 kV, D-036); the study's example factor for it is
+    # still named electricity.
+    factor_of = {"electricity-high-voltage": "electricity"}
     stub = {}
     for tid, entry in mappings["technosphere"].items():
-        if "activity" not in entry or tid not in factors:
+        fid = factor_of.get(tid, tid)
+        if "activity" not in entry or fid not in factors:
             continue
         a = entry["activity"]
         location = "FR" if a["location"] == "site" else a["location"]
-        factor = factors[tid]
+        factor = factors[fid]
         stub[(a["name"], a["reference_product"], a["unit"], location)] = (factor["values"]["climate-change"] / PER_UNIT[factor["unit"]], 1)
     _stub_background("stub-ecoinvent", co2, stub)
     _drop(variant)

@@ -11,7 +11,8 @@ Rev.4 classes. Rules in docs/registry.md.
 - :func:`check` is the build-time validation beyond the schema: CAS check digits, standard
   InChIKeys, molar mass, elemental composition and carbon content against the formula
   (IUPAC 2021 atomic weights), mixture compositions, unique crosswalk names and
-  ``flow_grades`` that name a known grade;
+  ``flow_grades`` that name a known grade; :func:`unused_flow_grades` finds the entries whose
+  ``<process>/<inventory_key>`` no flow has (the catalog build warns);
 - :func:`compare_property` compares a study's allocation property with the registry's.
 
 Every script imports it from beside itself (``scripts/`` is on ``sys.path`` when one runs).
@@ -41,7 +42,8 @@ COMPOSITION_TOLERANCE = 0.5
 #: A study's allocation property may differ from the registry's by this share before it is a
 #: finding (docs/registry.md, "Study properties").
 STUDY_TOLERANCE = 0.02
-#: Study property (core's ProductProperties, per kg) -> (registry property, factor to kJ/kg).
+#: Study property (core's ProductProperties, per unit of the product; compared only for a product
+#: counted in kg) -> (registry property, factor to kJ/kg).
 STUDY_PROPERTIES = {"exergy": ("exergy", 1.0), "energy": ("lhv", 1000.0)}
 
 ELEMENT = re.compile(r"([A-Z][a-z]?)(\d*)")
@@ -210,18 +212,28 @@ def check(registry: Registry) -> list[str]:
     return problems
 
 
+def unused_flow_grades(registry: Registry, flow_keys: set[str]) -> list[str]:
+    """The ``flow_grades`` keys that name no ``<process>/<inventory_key>`` of a flow in
+    *flow_keys*: left over after a rename, or after the process named the grade itself."""
+    return sorted(set(registry.flow_grades) - flow_keys)
+
+
 # --- studies ---------------------------------------------------------------------------------
 
 
-def compare_property(registry: Registry, slug: str, grade: str | None, name: str, study_value: float | None) -> dict | None:
-    """A study's allocation property (core's ``ProductProperties`` field *name*, per kg) against
-    the registry: ``{property, study, registry, unit, status}`` with status ``match``,
-    ``mismatch`` or ``unchecked`` (the registry has no value), or None when the study has none."""
+def compare_property(registry: Registry, slug: str, grade: str | None, name: str, study_value: float | None, unit: str = "kg") -> dict | None:
+    """A study's allocation property (core's ``ProductProperties`` field *name*, per *unit* of
+    the product) against the registry: ``{property, study, registry, unit, status}`` with status
+    ``match``, ``mismatch`` or ``unchecked`` (the registry has no value, or the product is not
+    counted in kg: the registry's values are per kg, and a volume or a piece is not converted),
+    or None when the study has none."""
     if study_value is None or name not in STUDY_PROPERTIES:
         return None
     registry_name, factor = STUDY_PROPERTIES[name]
     entry = registry.properties(slug, grade).get(registry_name)
-    result = {"property": name, "study": study_value, "registry": None, "unit": "kJ/kg", "status": "unchecked"}
+    result = {"property": name, "study": study_value, "registry": None, "unit": f"kJ/{unit}", "status": "unchecked"}
+    if unit != "kg":
+        return {**result, "note": f"the product is counted in {unit}; the registry's values are per kg"}
     if entry is None:
         return result
     expected = entry["value"] * factor

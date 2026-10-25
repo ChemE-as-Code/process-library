@@ -41,7 +41,18 @@ Modelling rules (``docs/system-model.md``; also written into every activity's ``
 - a technosphere amount is the quantity of the linked activity's reference product, as in
   core's study; the installer flips the sign for a treatment activity (production -1);
 - an input whose chemical another Atlas process produces names that activity too, so the
-  installer can link it inside the Atlas (``prefer_atlas``).
+  installer can link it inside the Atlas (``prefer_atlas``), preferring a producer of the same
+  registry grade;
+- a product's reference product is its registry grade's name when its flow has one
+  (``registry.flow_grade``), else the substance's name with the exchange title; activity codes do
+  not depend on it. ``datapackage.json`` activities carry ``chemical`` and ``grade``;
+- each product's study ``exergy`` and ``energy`` are checked against the registry
+  (``property_checks``, recorded per dataset in ``datapackage.json``); a mismatch over 2 %
+  without a ``properties_reason`` is a warning.
+
+Errors (exit 1): ``chemicals/chemicals.yaml`` failing its schema or ``registry.check`` (checked
+first, before any process is read), an unknown grade, a dataset that fails validation, an
+allocation that cannot be exported, an exchange without a mapping. Warnings fail ``--strict``.
 
 Deterministic: sorted, no timestamps (the workbook's document properties and zip entry dates
 are fixed), so two runs on the same input are byte-identical.
@@ -753,7 +764,8 @@ def _product_rows(process: Process, dataset: Dataset, products: reg.Registry) ->
 
 def property_checks(process: Process, dataset: Dataset, products: reg.Registry, mappings: dict, report: Report) -> list[dict]:
     """Each product's allocation properties (exergy, energy) against the registry grade's or
-    substance's (``registry.compare_property``). A mismatch is a warning unless
+    substance's (``registry.compare_property``; a product not counted in kg is ``unchecked``,
+    as the registry's values are per kg). A mismatch is a warning unless
     ``lci/mappings.yaml`` gives the exchange a ``properties_reason``; then it is ``overridden``."""
     checks = []
     for exchange in dataset.data["exchanges"]:
@@ -764,7 +776,7 @@ def property_checks(process: Process, dataset: Dataset, products: reg.Registry, 
         override = mappings["exchanges"].get(f"{process.pid}/{exchange['key']}") or mappings["exchanges"].get(exchange["key"]) or {}
         given = _properties(exchange, dataset.allocation)
         for name in sorted(reg.STUDY_PROPERTIES):
-            result = reg.compare_property(products, chemical, grade, name, given.get(name))
+            result = reg.compare_property(products, chemical, grade, name, given.get(name), exchange["unit"])
             if result is None:
                 continue
             if result["status"] == "mismatch" and override.get("properties_reason"):

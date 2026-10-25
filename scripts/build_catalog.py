@@ -33,7 +33,8 @@ operations, region), always with every key: a missing list is ``[]``, a missing 
 Errors (schema, unknown chemical or grade, a family outside the taxonomy, a registry check of
 ``registry.check``: CAS check digit, InChIKey, properties against the formula, duplicate
 crosswalk names; folder/id mismatch, broken artifact link) exit 1. Warnings
-(a preview not rendered, an inventory key the LCA does not have) are printed, and fail the build
+(a preview not rendered, an inventory key the LCA does not have, a registry ``flow_grades``
+key that no process flow has) are printed, and fail the build
 with ``--strict``.
 
 ``catalog.json`` records the build's ``mode``: ``preview`` (the default: every process, as the
@@ -627,6 +628,7 @@ def build(
     (out / "processes").mkdir(parents=True)
 
     summaries, details = [], []
+    flow_keys: set[str] = set()
     for manifest_path in sorted((library / "processes").glob("*/process.yaml")):
         folder = manifest_path.parent
         where = str(manifest_path.relative_to(library))
@@ -645,6 +647,8 @@ def build(
         for group, items in flows.items():
             for number, item in enumerate(items):
                 slug, grade, problem = reg.flow_grade(products, pid, item)
+                if item.get("inventory_key"):
+                    flow_keys.add(f"{pid}/{item['inventory_key']}")
                 if slug not in chemicals:
                     report.error(where, f"chemistry.{group}: unknown chemical {slug!r} (add it to chemicals/chemicals.yaml)")
                 elif problem:
@@ -755,6 +759,9 @@ def build(
             }
         )
 
+    for key in reg.unused_flow_grades(products, flow_keys):
+        report.warn("chemicals/chemicals.yaml", f"flow_grades.{key}: no process has a flow with this inventory key (renamed, or the flow names its grade now?)")
+
     # chemicals with their producers and consumers; graph
     uses: dict[str, dict[str, list]] = {slug: {"produced_by": [], "consumed_by": []} for slug in chemicals}
     grade_uses: dict[tuple[str, str], dict[str, set]] = {key: {"produced_by": set(), "consumed_by": set()} for key in products.grades}
@@ -835,6 +842,10 @@ def _family(slug: str, count: int, taxonomy: dict[str, dict]) -> dict:
     return {"slug": slug, "count": count, "title": entry.get("title"), "group": entry.get("group"), "isic": entry.get("isic", []), "nace": entry.get("nace", [])}
 
 
+#: What "the top N" of coverage.json's summary are ranked by (docs/coverage.md, "Ranking criteria").
+SUMMARY_BASIS = "rank: judgement on volume, GHG and other burdens, value-chain reach and open sources; not production volume alone"
+
+
 def _coverage(path: Path, details: list[dict], taxonomy: dict[str, dict], chemicals: dict[str, dict], report: Report) -> dict:
     """``coverage.json``: the roadmap of ``coverage.yaml`` (schema ``schemas/coverage.schema.json``)
     with each entry's covering processes of this build and a summary: how many of the top
@@ -886,7 +897,7 @@ def _coverage(path: Path, details: list[dict], taxonomy: dict[str, dict], chemic
         "schema": CATALOG_SCHEMA,
         "criteria": data.get("criteria", []),
         "entries": entries,
-        "summary": {"top": len(ranked), "covered": sum(1 for e in ranked if e["covered_by"]), "by_tier": dict(sorted(tiers.items()))},
+        "summary": {"basis": SUMMARY_BASIS, "top": len(ranked), "covered": sum(1 for e in ranked if e["covered_by"]), "by_tier": dict(sorted(tiers.items()))},
     }
 
 

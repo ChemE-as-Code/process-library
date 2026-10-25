@@ -321,6 +321,32 @@ def test_property_without_a_registry_value_is_unchecked() -> None:
     assert reg.compare_property(products, "argon", None, "energy", None) is None
 
 
+def test_property_of_a_product_not_in_kg_is_unchecked(library: Path, tmp_path: Path) -> None:
+    products = reg.load(_yaml(REGISTRY))
+    result = reg.compare_property(products, "hydrogen", None, "energy", 10800.0, "m3")
+    assert (result["status"], result["unit"], result["registry"]) == ("unchecked", "kJ/m3", None)
+
+    def to_m3(data):  # about 10 800 kJ per m3 of hydrogen: no mismatch against 119 960 kJ/kg
+        for exchange in data["exchanges"]:
+            if exchange["key"] == "product:H2":
+                exchange.update(unit="m3", amount=464.0, properties={"energy": 10800.0, "source": "fixture"})
+        data["allocation"] = {"method": "shares", "shares": {"H2": 0.9, "O2": 0.1}, "source": "fixture"}  # mass cannot weigh m3
+    _edit(library / "processes" / "fixture-electrolysis" / "lca" / "dataset.yaml", to_m3)
+    _edit(library / "processes" / "fixture-electrolysis" / "lca" / "lca.yaml", lambda d: d.update(allocation={"method": "shares", "shares": {"H2": 0.9, "O2": 0.1}}))
+    report = build_lci.build(library, tmp_path / "out", "0.1.0", commit="fixture")
+    assert report.errors == [] and not any("differs from the registry" in w for w in report.warnings), (report.errors, report.warnings)
+    checks = next(p for p in _json(tmp_path / "out" / "lci" / "datapackage.json")["processes"] if p["id"] == "fixture-electrolysis")["datasets"][0]["property_checks"]
+    assert [(c["key"], c["status"], c["unit"]) for c in checks] == [("product:H2", "unchecked", "kJ/m3")]
+
+
+def test_unused_flow_grades_are_a_catalog_warning(library: Path, tmp_path: Path) -> None:
+    _edit(library / "chemicals" / "chemicals.yaml", lambda d: d.setdefault("flow_grades", {}).update({"fixture-electrolysis/product:H2-renamed": "hydrogen/gaseous-30bar"}))
+    assert reg.unused_flow_grades(reg.load(_yaml(library / "chemicals" / "chemicals.yaml")), {"fixture-electrolysis/product:H2"}) == ["fixture-electrolysis/product:H2-renamed"]
+    report = build_catalog.build(library, tmp_path / "out", None, commit="fixture")
+    assert report.errors == []
+    assert any("flow_grades.fixture-electrolysis/product:H2-renamed: no process has a flow" in w for w in report.warnings), report.warnings
+
+
 # --- taxonomy --------------------------------------------------------------------------------
 
 
@@ -376,7 +402,7 @@ def test_coverage_json_counts_the_covered_top_entries(library: Path, tmp_path: P
     report = build_catalog.build(library, tmp_path / "out", None, commit="fixture")
     coverage = _json(tmp_path / "out" / "coverage.json")
     # asu-1 is not in the fixture library: its entry counts as uncovered here
-    assert coverage["summary"] == {"top": 50, "covered": 1, "by_tier": {"2": 1}}
+    assert coverage["summary"] == {"basis": build_catalog.SUMMARY_BASIS, "top": 50, "covered": 1, "by_tier": {"2": 1}}
     assert any("covered_by unknown process 'asu-1'" in e for e in report.errors)
     assert [e["id"] for e in coverage["entries"]][:3] == ["ammonia", "hydrogen", "air-separation"]
 

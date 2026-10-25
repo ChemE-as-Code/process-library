@@ -143,13 +143,18 @@ one registry entry (substance or grade). The EF names are still empty (follow-up
 - the same crosswalk name on two entries, a duplicate grade, or a `flow_grades` entry naming an
   unknown grade.
 
+The catalog build also warns (failing `--strict`) for a `flow_grades` key that no process flow
+has: an entry left behind after an inventory key was renamed, or after the process named the
+grade itself.
+
 ## Study properties against the registry
 
 `build_lci.py` compares each product's allocation properties in the study (core's
-`ProductProperties`: `exergy` and `energy`, per kg) with the registry's grade (or substance)
+`ProductProperties`: `exergy` and `energy`, per unit of the product) with the registry's grade (or substance)
 values: `exergy` with `exergy`, and `energy` with `lhv`. Each comparison goes into the
 datapackage (`datasets[].property_checks`) as `match`, `mismatch`, `overridden` or `unchecked`
-(the registry has no value). A difference of more than 2 % is a build warning, which fails
+(the registry has no value, or the product is not counted in kg: the registry's values are per
+kg, and a product in m3, kWh or pieces is not converted). A difference of more than 2 % is a build warning, which fails
 `--strict`, unless `lci/mappings.yaml` gives the exchange a `properties_reason`:
 
 ```yaml

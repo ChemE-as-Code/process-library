@@ -31,7 +31,7 @@ schema: cheme-as-code/lci-mappings/v1
 # negative (avoided) technosphere exchange in a cut-off build.
 system_model: cutoff
 
-# ecoinvent has "market for electricity, medium voltage" per country, not for RER (that is a
+# ecoinvent has "market for electricity, medium/high voltage" per country, not for RER (that is a
 # "market group"). DE is only the default for an unstated site: pass install(location=...).
 default_site_location: DE
 
@@ -39,7 +39,16 @@ technosphere:
   # --- utilities -----------------------------------------------------------------------------
   electricity:
     activity: {name: "market for electricity, medium voltage", reference_product: "electricity, medium voltage", unit: kilowatt hour, location: site}
-    source: Grid supply at medium voltage (ASU-1 takes 33 kV, D-036); the country is the site's.
+    source: >-
+      The library default for industrial power whose supply voltage the design does not state:
+      grid supply at medium voltage (ecoinvent: 1 to 24 kV; coordinator decision, process-library#52).
+      The country is the site's.
+  electricity-high-voltage:
+    activity: {name: "market for electricity, high voltage", reference_product: "electricity, high voltage", unit: kilowatt hour, location: site}
+    source: >-
+      Grid supply at high voltage (ecoinvent: above 24 kV), for a design that states a supply above
+      24 kV (an exchanges override names it). The reference product is the crosswalk name of the
+      registry grade electricity/high-voltage. The country is the site's.
   cooling-water:
     proxy: cooling-water
     source: >-
@@ -268,7 +277,12 @@ exchanges:
   # asu-1 (D-092) characterises with open factors (desnz-ghg-2026:*, own estimates) and declares
   # flows without an open factor missing: in the open study; for a licensed background the
   # exchanges keep the ecoinvent mappings they had (by the former example factor ids).
-  "asu-1/feed:POWER": {use: electricity, source: "the ecoinvent mapping of the former factor electricity (asu-1 D-092)"}
+  "asu-1/feed:POWER":
+    use: electricity-high-voltage
+    source: >-
+      ASU-1 takes its power from the grid at 33 kV (asu-1 D-036), which ecoinvent counts as high
+      voltage (above 24 kV), so it does not take the library's medium-voltage default. Before
+      D-092 the exchange used the factor electricity (medium voltage).
   "asu-1/construction:steel": {use: steel-sections, source: "the ecoinvent mapping of the former factor steel-sections (asu-1 D-092)"}
   "asu-1/construction:pipe": {use: pipe, source: "the ecoinvent mapping of the former factor pipe (asu-1 D-092)"}
   "asu-1/construction:concrete": {use: concrete, source: "the ecoinvent mapping of the former factor concrete (asu-1 D-092)"}

@@ -7,6 +7,9 @@ technology variants. It turns "all industrial processes" into a plan that can be
 The source is [`coverage.yaml`](https://github.com/ChemE-as-Code/process-library/blob/main/coverage.yaml) (schema `schemas/coverage.schema.json`). The
 catalog build reads it and writes `coverage.json`: each entry with the library processes that
 cover it, plus a summary the Atlas can show ("N of the top 50 are covered, at these tiers").
+The top 50 are the first 50 by `rank`, a judgement on the four criteria below, not by
+production volume alone: most volumes are not sourced yet. `coverage.json` says so in
+`summary.basis`.
 The table below is generated from `coverage.yaml`. `tests/test_registry.py` checks that the two
 agree.
 
@@ -54,9 +57,11 @@ Every entry has a `family` from [`taxonomy/families.yaml`](https://github.com/Ch
 taxonomy that `process.yaml` `families` is validated against. The taxonomy maps each family to
 ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity class.
 
-## Proposed next 10 (to be confirmed with the owner)
+## Next 10 (working plan, accepted 2026-10-25)
 
-`next: true` marks a proposal, not a decision. The owner picks the batch explicitly (#47):
+`next: true` marks the next batch. The list was accepted as the working plan on 2026-10-25
+(#47). It is a plan, not a commitment: the order can change, and a change goes through
+`coverage.yaml`.
 
 1. **ammonia** (SMR): the first reactive process. It exercises element balances with carbon
    (core#174), combustion and flue gas outside the stream table (core#176), the CO2 co-product
