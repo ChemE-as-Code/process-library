@@ -121,6 +121,8 @@ Superseded by D-061 (PR, the compander balanced): booster 5.6 -> 8.45 bara, expa
 E-3101 at 40 C (~105 kW): the cold box is ~78 kW short at 940 kg/h liquid (D-061). Closed by
 D-067: the boosted air enters E-3101 at 15 C (E-3104 to 30 C on cooling water, E-3105 to 15 C
 on chilled water); the cold box then closes at a heat leak of ~75 kW against 50 kW ASSUMED.
+Confirmed by D-104 as the governing balance: the whole-plant simulation shows ~130 kW, but ~49 kW
+of that is refrigeration only its column model has (C-3102's top residual, the E-3103 mismatch).
 
 | consumer | power / duty | basis |
 |---|---|---|
@@ -2635,6 +2637,9 @@ Results:
   (40 C) at -30.2 kW. Basis: thermo PR enthalpy balance, HP air 96,000 kg/h, expander
   198.4 kW, products at 13 C, LOX/LIN 470 + 470 kg/h.
 - The minimum acceptable trim outlet is 18.5 C, which gives +60.4 kW.
+- (D-104) These closures are total leak capacities. They stay the governing basis: D-104
+  reproduces the +75.2 kW from the simulated streams and explains why the whole-plant
+  simulation shows ~130 kW. Against the 50 kW leak, the loss of E-3105 is a ~38 kW deficit.
 
 Reason:
 - **The cause.** D-061 found the booster air bringing ~105 kW of heat above 15 C into the
@@ -2668,7 +2673,7 @@ Open:
   the booster air and the products is now 2 K) and the E-3102 duty against the composite
   curves.
 - If E-3105 is lost, the cold box closes at only +11.9 kW: turn down the liquid production
-  until it is back.
+  until it is back (D-104: by about 330 kg/h against the 50 kW leak).
 - The C-1102 top vent WN-1002 now discharges about 58,000 kg/h of oxygen-deficient gas
   (5.1 % O2), 1.8 times as much as before. Re-check its O2-deficient zone (D-031) for the
   larger flow. Re-check S-3101 / WN-3003 (Z-N2-V1) as well: no longer continuous, but up to
@@ -5203,11 +5208,15 @@ Decision:
     columns in the solve): GOX 99.71 % O2, MAC 7,288 kW, K3101 185.9 kW, KT3101 198.5 kW.
 - (3) **The expander still balances the refrigeration; flow and specs kept.** With the 50 kW
   leak the cold box still has ~78 kW of refrigeration more than a 13 C waste warm end needs
-  (76,560 kg/h x ~1.04 kJ/kg K x 3.5 K). KT-3101 (14,870 kg/h, 198.5 kW, D-061) covers a leak
-  up to ~130 kW before the waste N2 warm end would reach 13 C, i.e. 2.6 x the estimate. It is
+  (76,560 kg/h x ~1.04 kJ/kg K x 3.5 K). In the simulation KT-3101 (14,870 kg/h, 198.5 kW,
+  D-061) covers a leak up to ~130 kW before the waste N2 warm end would reach 13 C. **Corrected
+  by D-104:** ~49 kW of that is refrigeration only the column model has (C-3102's top residual
+  and the E-3103 duty mismatch); the governing cold-box balance closes at ~75 kW (D-067), 1.5 x
+  the estimate, and losing E-3105 leaves a deficit of ~38 kW against the 50 kW leak, not a
+  positive margin. It is
   not cut to the estimate: the leak itself is ASSUMED, the margin serves the cool-down, the
-  liquid production (D-017) and the loss of E-3105 (booster air at 30 C, about 65 kW more heat:
-  still positive), and the compander, the Lachmann feed of the LP column (D-066) and their
+  liquid production (D-017) and the loss of E-3105 (booster air at 30 C, about 63 kW more heat),
+  and the compander, the Lachmann feed of the LP column (D-066) and their
   datasheets would all move for a margin a vendor may take back. In operation the expander nozzles
   turn the flow down or more liquid is made. The 5.5 K warm end of the waste N2 is the visible
   cost.
@@ -5217,8 +5226,9 @@ Decision:
     wrote 9.49 C (calculated). S12A already took it.
   - S10, S11 temperature and pressure: **keep** as the delivery specification of D-056: LOX
     -183 C 1.3 bara and LIN -181 C 5.2 bara, subcooled ~2.4 K so the liquid holds to the tanks.
-    The simulation gives the column draws (LP sump -180.1 C 1.40 bara, HP draw -178.4 C 5.3
-    bara), a different point of the same line.
+    The simulation gives the column draws (LP sump -179.9 C / 93.27 K 1.40 bara, HP draw
+    -178.4 C 5.3 bara), a different point of the same line. No modelled equipment provides the
+    subcooling; D-104 names who does.
   - S12A, S12B, S12C pressure: **keep** (1.10, 1.05, 1.02 bara). They are the pressures at
     E-2101, C-1102 and the vent after the WN-3002 / RG-2001 / WN-1001 / WN-3003 line drops
     (D-071, D-072); the splitter X3101 has no line losses and gives 1.15 bara.
@@ -5271,3 +5281,126 @@ Open:
 - the cold-box vendor: the heat leak, the E-3101 warm end and the expander margin;
 - C1102 and V2101 for predictive (D-097), unchanged; core's build fails on the
   SupplyingThermalEnergy class (its method field), so HL3101 is an ExchangingThermalEnergy step.
+## D-104 Cold-box refrigeration: the two balances reconciled, the ~75 kW one governs; LOX / LIN subcooling named (2026-10-25)
+Decided by the agent on the owner's delegation of 2026-10-25 ("resolve all of these issues, make
+good decisions"). These are not the owner's own engineering judgement; the owner may reverse any
+of them. (The decisions of this round are D-104 .. D-106; D-100 .. D-103 were already taken.)
+Closes maturity-review3#1 - #4; #5 (branch behind main) is closed by merging origin/main.
+
+Decision:
+- (1) **Why the simulation shows ~130 kW and D-067 ~75 kW.** Balance drawn around the cold box
+  from the stream table (enthalpies of `props --fill`, thermo PR, at the simulated states; S10 /
+  S11 at their delivery states; KT-3101 198.5 kW out):
+  - E3101, KT3101 and HL3101 each close within 0.1 kW on these enthalpies, so the exchanger and
+    the expander are consistent with DWSIM.
+  - The column section (C3101, C3102, E3102) does not: its outlets carry ~51 kW less enthalpy than
+    its inlets. That is the refrigeration only the column model has: C-3102's top residual
+    (43.6 kW, the full-reflux condenser that stands in for the condenser-less top, D-066) and the
+    E-3103 mismatch (C3101 condenser 4,171.7 kW against C3102 reboiler 4,166.4 kW, 5.3 kW): 48.9 kW.
+    The subcooling of the delivered LOX / LIN (see (4)) is ~1.4 kW; ~1 kW is left, within the
+    property round-off.
+  - So around the cold box the simulated plant closes at a leak of -1.4 kW, not the 50 kW it
+    carries; with the waste N2 at 13 C it closes at **+75.2 kW**, D-067's value reproduced. The
+    simulation's ~130 kW (D-103 (3)) is that plus the ~49 kW of column-model refrigeration.
+- (2) **The ~75 kW balance governs** (1.5 x the 50 kW estimate, 25 kW margin): the real cold
+  box has no heat sink at the C-3102 top and E-3103 condenses what it boils. The ~130 kW is the
+  model's figure and is not used for margins. DESIGN.md section 3, D-067 and D-103 (3) now say so.
+- (3) **Consequences:**
+  - with the 50 kW leak, the plant is expected to run with the waste N2 warm end at ~11.9 C
+    (25 kW / (21.27 kg/s x 1.04 kJ/kg K) = 1.1 K below 13 C), between the simulated 9.49 C and the
+    13 C design target. S17 / S12 keep the simulated 9.49 C (calculated): it is the conservative
+    side for the E-2101 heating duty and the C-1102 freezing margin (H01-S44);
+  - **E-3105 lost** (booster air at 30 C, +63.3 kW, the E3105 duty): the cold box closes at a
+    total leak of ~12 kW (D-067's +11.9 kW), a **deficit of ~38 kW** against the 50 kW, not the
+    "still positive" margin D-103 (3) gave; on the simulation's basis ~65 kW, ~15 kW over the leak.
+    The liquid production is turned down by ~330 kg/h (38 kW / ~420 kJ/kg, D-061; ASSUMED) until
+    E-3105 is back;
+  - the expander flow stays at 14,870 kg/h (D-103 (3)), now with more reason: the governing margin
+    is 25 kW, and it is gone with E-3105;
+  - the cold-box vendor gets both bases and both cases (E-3101 datasheet, H03-A25).
+- (4) **LOX / LIN subcooling (maturity-review3#4).** The delivered S10 (-183 C) and S11 (-181 C)
+  are ~3.1 K and ~2.6 K below the simulated draws (LP sump -179.9 C / 93.27 K, corrected in
+  D-103 (4) from -180.1 C; HP draw -178.4 C); no modelled equipment provides that. Named as the
+  cold-box vendor's scope: a LOX and a LIN pass in the subcooler E-3102 against the waste N2,
+  ~0.7 kW each (ASSUMED), not in the model. Written into the S10 / S11 sources and the E-3102
+  datasheet.
+
+Carried out: DESIGN.md section 3, D-067 (results and open point), D-103 (3) and (4); the E-3101
+datasheet (sizing basis "heat leak" and "warm-end" rows, notes, one basis), the E-3105 and E-3102
+notes; process/flowsheet.yaml S10 / S11 sources. Regenerated: the three outline drawings, `process
+build` (source fingerprint only), `layout build`. No stream value changed, so the simulation, the
+props and the assessments stand.
+
+Open:
+- core: a condenser-less column top without a residual duty, so the whole-plant simulation
+  closes around the cold box (D-066 open point). Until then the whole-plant simulation
+  overstates the refrigeration by ~49 kW, and the governing margin is the boundary balance;
+- the cold-box vendor: the heat leak, the 2 K warm end, the LOX / LIN subcooling passes.
+
+Reason: the expander flow, the vendor enquiry and the E-3105 contingency all depend on which
+balance holds; the model's own artefact must not be read as margin.
+## D-105 P-04 drawing fixes after pid-review1: PV-4105 noted as operator-set, UY-4151 output and note, cascade line jump (2026-10-25)
+Decided by the agent on the owner's delegation of 2026-10-25 ("resolve all of these issues, make
+good decisions"). These are not the owner's own engineering judgement; the owner may reverse any
+of them. Closes pid-review1#1 - #5; #6 is a core gap, raised as core issue #296.
+
+Decision:
+- (1) **PV-4105 role** (pid-review1#1, #2). PV-4105 stays an actuated valve on GAN-4002 that the
+  operator sets from the DCS: fully open in normal operation, used only to hold back-pressure on
+  the K-4102 discharge while the GAN header is pressurised at start-up. No controller acts on it
+  (D-096, D-101). P-04 carries the note "NO, operator set (D-105)" under its tag, in its own
+  representation group. The tag stays PV-4105 for now: a retag to HV-4105 with a hand station,
+  or removal of the valve, is left to detail engineering with the HAZOP action H04-A31 (D-106),
+  because a retag touches the lists, the cable schedule, the layout and three HAZOP studies for no
+  change in function. piping/routing.yaml, the instrument list (PIC-4105), loops.yaml,
+  control/philosophy.md and process/narrative.md say the same.
+- (2) **UY-4151 output** (pid-review1#3): the line to the K-4101 vanes now leaves the bubble at
+  its lower right (93.65, 23.65) instead of the right midline, so it no longer reads as
+  FIC-4148's line passing straight through.
+- (3) **The '<' note** (pid-review1#4) moved into Inst_UY4151_Drawing, so it moves with the
+  bubble. The select function stays loose text in the drawing; the model data that carries it are
+  the instrument list and the loops.yaml override links (known limit).
+- (4) **Cascade crossing** (pid-review1#5): PIC-4105 -> FIC-3107 has a line jump (a 1.3 mm
+  hop, downwards to clear UV-4103's actuator) where it crosses UIC-4103's dashed signal to
+  UV-4103. The solid UIC-4103 measuring line is crossed plainly (solid over dashed reads
+  unambiguously).
+- (5) **Guide-vane outputs** (pid-review1#6, informational): no change on the sheet; core has
+  no actuator object for compressor guide vanes. Raised as ChemE-as-Code/core#296.
+
+Checked: `cheme validate`: 0 errors; P-04 still 4 line crossings (all accepted), 0 labels
+through lines, 0 overlaps. Crops looked at: UY-4151 (build/P-04_crop-65-10-110-40.png), the jump
+(build/P-04_crop-115-82-145-98.png), PV-4105 (build/P-04_crop-140-100-190-128.png). Layout model
+rebuilt.
+
+Open: an independent review of this drawing change; PV-4105's role confirmed or the valve
+removed (H04-A31).
+## D-106 HAZOP revised after hazop-review5, D-104 and D-105; re-stamped (2026-10-25)
+Decided by the agent on the owner's delegation of 2026-10-25 ("resolve all of these issues, make
+good decisions"). These are not the owner's own engineering judgement, and none of it is a HAZOP
+team's acceptance: every entry stays `status: proposed, by: agent`. Closes hazop-review5#1 - #4.
+
+Decision:
+- (1) **H03-S53 / H03-A10 / H03-A25** (hazop-review5#1 and D-104): the cause is a leak above
+  ~75 kW on the governing balance (was ~130 kW); the N11-HL node note explains the two figures;
+  H03-A10 adds a WN-3002 high alarm or a warm-end delta-T deviation alarm, trended with the column
+  levels, since its low alarms do not see a rising leak, and the S53 note no longer implies they
+  would; H03-A25 gives the vendor both bases and the E-3105-lost case. Likelihood C -> D (a leak
+  1.5 x an ASSUMED estimate, or E-3105 out of service alone, is expected a few times in the plant
+  life): asset 2/D, **low -> medium** initial and residual (`rate --write`).
+- (2) **SESSION.md** (hazop-review5#2): six half-days (3 h opening + 18.5 h worksheet = ~21.5 h),
+  split session 0 decisions, 1 H-01, 2 H-02, 3 H-03, 4 and 5 H-04; section 3.5 updated.
+- (3) **H04-S24 / H04-A31** (hazop-review5#3, D-105): new action H04-A31 (confirm PV-4105's
+  start-up role or remove it; open indication, a not-fully-open alarm with K-4102 running, the
+  line-up check in the start-up sequence, the HV retag); S24 lists it; ratings unchanged. The
+  stale "no HAZOP action lists it yet" notes in loops.yaml now cite H04-A14.
+- (4) **H01-A26** (hazop-review5#4): the C-1102 freeze bypass is a defined operating mode of
+  PIC-3110's split range, which keeps holding the LP column top; PV-3110B is never positioned by
+  hand; cross-referenced to H03-S29, H03-S31 and H03-A19.
+- (5) **Re-stamped** H-01 .. H-04 (`stamp --write`: flowsheet S10 / S11 sources, instrument list,
+  loops.yaml, P-04 per D-104 / D-105; reassessed above, nothing else touched), then `rate --write`.
+  `cheme safety hazop check`: all draft, 0 errors, 0 warnings.
+- (6) **Counts** (worst band, residual where rated): 223 scenarios, 86 high, **82 medium, 55
+  low**, none very-high; 9 very-high initial; 94 actions; every high scenario has an action.
+
+Open: the team session, the matrix acceptance and a human review (the owner's); an independent
+review of this revision.

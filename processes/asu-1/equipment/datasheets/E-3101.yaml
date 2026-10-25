@@ -214,7 +214,8 @@ type_specific:
       by the property adapter (thermo 0.6.1, PR) at the flowsheet states. The cold side (S14 -> S9 720.7,
       S15 -> S7 1,027.7, S16C -> S17 4,086.3 kW) balances it within 0.3 kW: since D-103 the cold-box heat
       in-leak (50 kW, ASSUMED) is in the model and the waste N2 leaves at the simulated 9.49 C; the
-      refrigeration left over (~78 kW) shows as its 5.5 K warm-end approach'
+      refrigeration left over in the simulation (~78 kW) shows as its 5.5 K warm-end approach; on the
+      governing cold-box balance it is ~25 kW (D-104)'
     assumed: true
   area_m2:
     value: supplier
@@ -324,9 +325,11 @@ sizing_basis:
   reference: DESIGN.md D-059, D-061, D-066, D-103
 - parameter: heat leak
   value: 50 kW into the whole cold box (ASSUMED, casing conduction estimate x 2.5), in the simulation as
-    HL3101; the refrigeration left over (~78 kW) covers a leak up to ~130 kW before the waste N2 warm end
-    reaches 13 C
-  reference: DESIGN.md D-067, D-103
+    HL3101. On the governing cold-box balance (D-067, D-104) the cold box closes at a total leak of ~75 kW
+    with the waste N2 at 13 C (1.5 x the estimate); with E-3105 lost at ~12 kW, a ~38 kW deficit against
+    the 50 kW. The simulation shows ~130 kW (~65 kW with E-3105 lost), because its column model has ~49 kW
+    of refrigeration the plant does not (C-3102 top residual, E-3103 mismatch)
+  reference: DESIGN.md D-067, D-103, D-104
 - parameter: sizing_scope
   value: preliminary
   reference: 'cheme datasheets fill: the values it writes are preliminary process sizing (short-cut methods,
@@ -338,6 +341,9 @@ notes: 'Streams: air, booster air, GOX, GAN, waste N2. Max design temperature 65
   5,835 kW (warm side), UA and approach from the composite curves on the D-066 / D-067 states (DESIGN.md
   D-068 (5)); the area is the supplier''s (marker). The booster air now enters at 15 C after the trim
   cooler E-3105 (D-067). Since D-103 the ASSUMED 50 kW heat leak is in the simulation and the waste N2
-  leaves at 9.5 C; the cold box would close at a ~130 kW leak (the 13 C warm end). If
-  E-3105 is lost it closes at only +11.9 kW (turn the liquid production down). The supplier confirms the
-  2 K warm end and the heat leak.'
+  leaves at 9.5 C. On the governing cold-box balance (D-067, D-104) the cold box closes at a total leak of
+  ~75 kW (13 C warm end), and at ~12 kW if E-3105 is lost: against the 50 kW that is a ~38 kW deficit, so
+  the liquid production is turned down by ~330 kg/h until E-3105 is back. The simulation shows ~130 kW and
+  ~65 kW for the same two cases (~49 kW of column-model refrigeration, D-104); the plant is expected to run
+  between the simulated 9.5 C and ~11.9 C waste warm end. The supplier confirms the 2 K warm end and the
+  heat leak.'
