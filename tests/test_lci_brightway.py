@@ -2,6 +2,10 @@
 cheme_as_code_lci.install() into a temporary project against a stub background, and check that
 an LCA of 1 t GOX reproduces plantcode's own result for ASU-1.
 
+plantcode's study gives end-of-life recycling a credit, so the study is reproduced by the
+substitution variant of the export; the default cut-off database must differ from it by exactly
+those credits (docs/system-model.md).
+
 The project lives in a temporary BRIGHTWAY2_DIR. biosphere3 is bw2io's default biosphere
 (``bw2io.create_default_biosphere3()``, packaged data, no network). The background is a STUB:
 one activity per background activity the mappings name, with a single "Carbon dioxide, fossil"
@@ -119,9 +123,11 @@ def _asu_library(tmp: Path) -> Path:
 def test_asu_round_trip_reproduces_the_plantcode_baseline(project, tmp_path: Path) -> None:
     co2 = project
     out = tmp_path / "out"
-    report = build_lci.build(_asu_library(tmp_path), out, "test")
+    library = _asu_library(tmp_path)
+    report = build_lci.build(library, out, "test", system_model="substitution")
     assert report.errors == []
-    workbook = out / "lci" / "cheme-as-code-atlas-test.xlsx"
+    variant = "cheme-as-code-atlas-test-substitution"
+    workbook = out / "lci" / f"{variant}.xlsx"
 
     mappings = build_lci.load_mappings(KIT / "lci" / "mappings.yaml")
     factors = {f["id"]: f for f in yaml.safe_load((ASU / "factors.yaml").read_text())["factors"]}
@@ -134,7 +140,7 @@ def test_asu_round_trip_reproduces_the_plantcode_baseline(project, tmp_path: Pat
         factor = factors[tid]
         stub[(a["name"], a["reference_product"], a["unit"], location)] = (factor["values"]["climate-change"] / PER_UNIT[factor["unit"]], 1)
     _stub_background("stub-ecoinvent", co2, stub)
-    _drop("cheme-as-code-atlas-test")
+    _drop(variant)
 
     result = install(workbook, background="stub-ecoinvent", location="FR")
     assert result.unlinked == [], result.summary()
@@ -143,7 +149,7 @@ def test_asu_round_trip_reproduces_the_plantcode_baseline(project, tmp_path: Pat
 
     rows = list(csv.DictReader((ASU / "results.csv").open(encoding="utf-8")))
     expected = next(float(r["impact"]) for r in rows if r["scenario"] == "baseline" and r["key"] == "total")
-    goxp = _score("asu-1:asu-1-500-t-d-gox:product:GOXP", "cheme-as-code-atlas-test", 1000.0)  # 1 t GOXP
+    goxp = _score("asu-1:asu-1-500-t-d-gox:product:GOXP", variant, 1000.0)  # 1 t GOXP
     # results.csv prints 6 significant digits (152.996): half a unit of the last digit, no more.
     print(f"ASU-1 round trip: Brightway {goxp!r} kg CO2-eq per t GOXP, plantcode {expected}")
     assert goxp == pytest.approx(expected, abs=5e-4), f"Brightway {goxp:.6f} vs plantcode {expected}"
@@ -151,9 +157,25 @@ def test_asu_round_trip_reproduces_the_plantcode_baseline(project, tmp_path: Pat
     # Allocation conserves the burden: the co-products together carry the unallocated total.
     dataset = yaml.safe_load((ASU / "dataset.yaml").read_text())
     amounts = {e["key"]: e["amount"] for e in dataset["exchanges"] if e["type"] == "product"}
-    per_hour = {k: _score(f"asu-1:asu-1-500-t-d-gox:{k}", "cheme-as-code-atlas-test", v) for k, v in amounts.items()}
+    per_hour = {k: _score(f"asu-1:asu-1-500-t-d-gox:{k}", variant, v) for k, v in amounts.items()}
     shares = {k: v / sum(per_hour.values()) for k, v in per_hour.items()}
     assert shares["product:GOXP"] == pytest.approx(0.701, abs=5e-4)  # results.md: exergy, GOXP 70.1 %
+
+    # The default cut-off database: the same result without the recycling credits, no more.
+    goxp_activity = build_lci.read_workbook(workbook)["asu-1:asu-1-500-t-d-gox:product:GOXP"]
+    credits = sum(
+        _score(code, variant, e["amount"] * 1000.0)
+        for e in goxp_activity["exchanges"]
+        if (code := {"steel-recycling": "proxy:steel-scrap-credit", "aluminium-recycling": "proxy:aluminium-scrap-credit"}.get(str(e.get("atlas key")).removeprefix("end-of-life:")))
+    )
+    assert credits < 0
+    assert build_lci.build(library, tmp_path / "cutoff", "test").errors == []
+    _drop("cheme-as-code-atlas-test")
+    cutoff = install(tmp_path / "cutoff" / "lci", background="stub-ecoinvent", location="FR")
+    assert cutoff.unlinked == [], cutoff.summary()
+    goxp_cutoff = _score("asu-1:asu-1-500-t-d-gox:product:GOXP", "cheme-as-code-atlas-test", 1000.0)
+    print(f"ASU-1 cut-off: {goxp_cutoff!r} kg CO2-eq per t GOXP (credits {credits!r})")
+    assert goxp_cutoff == pytest.approx(goxp - credits, rel=1e-6)
 
 
 def test_staged_mapping_flows_exist_in_biosphere3(project) -> None:

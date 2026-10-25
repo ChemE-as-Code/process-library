@@ -20,8 +20,16 @@
 #      is a registry slug) in `technosphere:`;
 #   4. the exchange's `link.factor` id (a lca/factors.yaml id) in `technosphere:`.
 # Emissions (emission:<component>) are looked up by component in `biosphere:`; free emissions
-# must be listed in `pass_through:` with the decision. Anything not found fails the build.
+# must be listed in `pass_through:` with the decision. Anything not found fails the build. An id
+# found in `cutoff_exclusions:` instead of `technosphere:` is left out of a cut-off build with its
+# decision (docs/system-model.md).
 schema: cheme-as-code/lci-mappings/v1
+
+# The system model of the default build (docs/system-model.md): attributional, cut-off. Avoided-
+# burden credits live only in `substitution:` below and are written only into a build made with
+# --system-model substitution, a separate database with its own name. build_lci.py refuses a
+# negative (avoided) technosphere exchange in a cut-off build.
+system_model: cutoff
 
 # ecoinvent has "market for electricity, medium voltage" per country, not for RER (that is a
 # "market group"). DE is only the default for an unstated site: pass install(location=...).
@@ -74,16 +82,6 @@ technosphere:
   lorry:
     activity: {name: "market for transport, freight, lorry, unspecified", reference_product: "transport, freight, lorry, unspecified", unit: ton kilometer, location: RER}
     source: Road transport of construction materials, spares and consumables.
-  steel-recycling:
-    proxy: steel-scrap-credit
-    source: >-
-      The ASU study gives end-of-life steel a recycling credit. A cut-off background gives none (scrap
-      leaves burden-free), so the credit is an explicit proxy below; drop the exchange for a strict
-      cut-off model.
-  aluminium-recycling:
-    proxy: aluminium-scrap-credit
-    source: As steel-recycling, for aluminium.
-
 # Library-level screening proxies, written into the Atlas database itself as ordinary activities
 # (code proxy:<id>) whose inputs link to the background like any other exchange. They exist where
 # a dataset counts a flow in a unit ecoinvent has no activity for. Every amount is ASSUMED and
@@ -92,7 +90,8 @@ technosphere:
 # The steel and aluminium masses were chosen to be plausible AND consistent with the ASU's example
 # factors (steel 2 kg CO2-eq/kg, aluminium 10 kg CO2-eq/kg), so that the export reproduces the
 # plantcode study when the background carries those example scores (the CI round trip). They are
-# not derived from an independent source; treat them as placeholders like the factors.
+# not derived from an independent source; treat them as placeholders like the factors. A test
+# reproduction does not define the published database (docs/system-model.md).
 proxies:
   cooling-water:
     name: "cooling water service, per kWh heat rejected (Atlas screening proxy)"
@@ -136,22 +135,74 @@ proxies:
     source: >-
       Cladding only: the insulant itself (stone wool or PIR, ~5 kg/m2) is NOT counted yet; add it
       when a background activity for it is curated.
-  steel-scrap-credit:
-    name: "steel scrap to recycling, avoided primary steel credit (Atlas screening proxy)"
-    reference_product: "steel scrap, for recycling"
-    unit: kilogram
-    location: GLO
-    inputs:
-      - {use: steel-sections, amount: -0.5, source: "ASSUMED net credit of 0.5 kg primary steel per kg scrap (avoided primary minus remelting)"}
-    source: End-of-life credit (avoided burden), as in the ASU study; not a cut-off system model.
-  aluminium-scrap-credit:
-    name: "aluminium scrap to recycling, avoided primary aluminium credit (Atlas screening proxy)"
-    reference_product: "aluminium scrap, for recycling"
-    unit: kilogram
-    location: GLO
-    inputs:
-      - {use: aluminium, amount: -0.7, source: "ASSUMED net credit of 0.7 kg primary aluminium per kg scrap"}
-    source: End-of-life credit (avoided burden), as in the ASU study; not a cut-off system model.
+
+# Flows the cut-off model leaves out of the producer's system (docs/system-model.md, "Wastes and
+# recyclables"): material sent to recycling leaves burden-free, the recycler carries the
+# recycling, and the producer gets no credit. An exchange that resolves to one of these ids is
+# not exported in a cut-off build; the decision is written into the activity comment and
+# datapackage.json (system_model.excluded). In a substitution build it is linked through
+# `substitution.technosphere`.
+cutoff_exclusions:
+  steel-recycling:
+    decision: >-
+      End-of-life steel scrap sent to recycling. Cut-off: the scrap leaves burden-free, the
+      recycling belongs to the secondary steel that uses it, and no avoided-primary credit is
+      given. ASU-1's dataset (end-of-life:steel-recycling) keeps the credit for the study's own
+      question; the database leaves it out (database decision, process-library#52).
+  aluminium-recycling:
+    decision: >-
+      End-of-life aluminium scrap sent to recycling. Cut-off, as steel-recycling: no credit in
+      the default build (process-library#52).
+
+# The substitution variant (--system-model substitution): a separate database,
+# cheme-as-code-atlas-<version>-substitution, never mixed into the default build. It adds the
+# avoided-burden credits of end-of-life recycling as the ASU study models them. Multi-
+# functionality is still handled by the allocation hierarchy (`allocation:` below): bw2io's
+# Excel format has one activity per co-product, so system expansion of co-products is not
+# exported.
+substitution:
+  technosphere:
+    steel-recycling:
+      proxy: steel-scrap-credit
+      source: >-
+        The ASU study gives end-of-life steel a recycling credit (avoided burden). Substitution
+        variant only.
+    aluminium-recycling:
+      proxy: aluminium-scrap-credit
+      source: As steel-recycling, for aluminium. Substitution variant only.
+  proxies:
+    steel-scrap-credit:
+      name: "steel scrap to recycling, avoided primary steel credit (Atlas screening proxy)"
+      reference_product: "steel scrap, for recycling"
+      unit: kilogram
+      location: GLO
+      inputs:
+        - {use: steel-sections, amount: -0.5, source: "ASSUMED net credit of 0.5 kg primary steel per kg scrap (avoided primary minus remelting)"}
+      source: End-of-life credit (avoided burden), as in the ASU study; substitution variant only.
+    aluminium-scrap-credit:
+      name: "aluminium scrap to recycling, avoided primary aluminium credit (Atlas screening proxy)"
+      reference_product: "aluminium scrap, for recycling"
+      unit: kilogram
+      location: GLO
+      inputs:
+        - {use: aluminium, amount: -0.7, source: "ASSUMED net credit of 0.7 kg primary aluminium per kg scrap"}
+      source: End-of-life credit (avoided burden), as in the ASU study; substitution variant only.
+
+# Multi-functionality in the database (docs/system-model.md, "Multi-functionality"), by
+# "<process-id>" or "<process-id>/<dataset-id>". The study keeps its own choice for its own
+# question; the export uses the method recorded here. `rule` names the step of the hierarchy
+# that justifies it: physical-exergy, physical-energy, economic, mass, co2-cutoff, pcr, or
+# deviation (any proportional method, with the reason). Without an entry, the build applies the
+# WBCSD price-ratio rule when prices are known and reports a finding otherwise.
+allocation:
+  asu-1:
+    method: exergy
+    rule: physical-exergy
+    reason: >-
+      One cryogenic separation of air; GOX, GAN, LOX and LIN leave it in different thermodynamic
+      states (compressed gas, gas at 9 bara, cold liquids), so exergy is the underlying physical
+      relationship (hierarchy step 2a). Same method as the study (asu-1 DESIGN.md D-056), so the
+      database and the study agree. Economic allocation would need prices (#46).
 
 # Emissions of the plant itself, by component (emission:<component>), to biosphere3 flows. None
 # of the ASU's emissions is a burden (see pass_through), so this list is for other processes.
@@ -235,5 +286,6 @@ exchanges:
   "asu-1/maintenance:equipment-ss": {use: stainless-steel, source: "the ecoinvent mapping of the former factor stainless-steel (asu-1 D-092)"}
   "asu-1/transport:construction-to-site": {use: lorry, source: "the ecoinvent mapping of the former factor lorry (asu-1 D-092)"}
   "asu-1/transport:consumables-to-site": {use: lorry, source: "the ecoinvent mapping of the former factor lorry (asu-1 D-092)"}
-  "asu-1/end-of-life:steel-recycling": {use: steel-recycling, source: "the ecoinvent mapping of the former factor steel-recycling (asu-1 D-092)"}
-  "asu-1/end-of-life:aluminium-recycling": {use: aluminium-recycling, source: "the ecoinvent mapping of the former factor aluminium-recycling (asu-1 D-092)"}
+  # end of life: excluded under cut-off (cutoff_exclusions), a credit in the substitution variant
+  "asu-1/end-of-life:steel-recycling": {use: steel-recycling, source: "cut-off: excluded, no credit (cutoff_exclusions.steel-recycling, process-library#52); substitution: the credit proxy"}
+  "asu-1/end-of-life:aluminium-recycling": {use: aluminium-recycling, source: "cut-off: excluded, no credit (cutoff_exclusions.aluminium-recycling, process-library#52); substitution: the credit proxy"}

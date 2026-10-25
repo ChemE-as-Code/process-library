@@ -96,11 +96,11 @@ def test_fixture_build_writes_workbook_datapackage_and_index(library: Path, tmp_
     package = _json(out / "lci" / "datapackage.json")
     electrolysis = next(p for p in package["processes"] if p["id"] == "fixture-electrolysis")
     assert electrolysis["maturity"] == "concept" and electrolysis["factors_status"] == "placeholder"
-    assert electrolysis["allocation"] == {"method": "mass", "source": "study"}
+    assert electrolysis["allocation"] == {"method": "mass", "source": "study", "rule": "mass"}
     assert electrolysis["functional_unit"] == {"product": "H2", "amount": 1, "unit": "kg"}
     assert electrolysis["datasets"][0]["data_status"] == {"given": 0, "calculated": 1, "assumed": 7}
     ammonia = next(p for p in package["processes"] if p["id"] == "fixture-ammonia")
-    assert ammonia["allocation"] == {"method": "mass", "source": "default"} and ammonia["functional_unit"] is None
+    assert ammonia["allocation"] == {"method": "mass", "source": "default", "rule": "single-output"} and ammonia["functional_unit"] is None
     assert ammonia["datasets"][0]["path"] == "processes/fixture-ammonia/lca/datasets/ammonia.yaml"
 
 
@@ -174,14 +174,15 @@ def test_asu_exports_four_exergy_allocated_activities(tmp_path: Path) -> None:
     assert report.errors == []
     package = _json(tmp_path / "out" / "lci" / "datapackage.json")
     asu = package["processes"][0]
-    assert asu["allocation"] == {"method": "exergy", "source": "study"}
+    # the database's rule (lci/mappings.yaml allocation): exergy, hierarchy step 2a, as the study
+    assert asu["allocation"] == {"method": "exergy", "source": "mappings", "rule": "physical-exergy"}
+    assert asu["datasets"][0]["allocation"]["follows_hierarchy"] is True
     assert asu["datasets"][0]["allocation"]["shares"]["product:GOXP"] == pytest.approx(0.701, abs=5e-4)
     assert [a["reference_product"] for a in asu["activities"]] == [
         "Oxygen, GOX to pipeline", "Nitrogen, GAN to battery limit", "Oxygen, LOX to storage", "Nitrogen, LIN to storage"
     ]
-    assert sorted(p["code"] for p in package["proxies"]) == [
-        "proxy:aluminium-scrap-credit", "proxy:cooling-water", "proxy:fitting", "proxy:grating",
-        "proxy:insulation", "proxy:pipe", "proxy:steel-scrap-credit",
+    assert sorted(p["code"] for p in package["proxies"]) == [  # no credit proxies under cut-off
+        "proxy:cooling-water", "proxy:fitting", "proxy:grating", "proxy:insulation", "proxy:pipe",
     ]
     goxp = _activities(tmp_path / "out" / "lci" / "cheme-as-code-atlas-0.1.0.xlsx")["asu-1:asu-1-500-t-d-gox:product:GOXP"]
     assert not [e for e in goxp["exchanges"] if e["type"] == "biosphere"]  # every emission is pass-through

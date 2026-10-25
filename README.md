@@ -15,7 +15,8 @@ is the source of the [Process Atlas](https://github.com/ChemE-as-Code/process-at
 | `processes/<id>/lca/dataset.yaml`, `lca/datasets/*.yaml` | optional: unallocated LCI datasets (core's `lci_dataset`), the input of the LCI database |
 | `processes/<id>/lca/scenarios/<id>.json` | optional: core's per-scenario records (`cheme assess lca-scenarios --write`): the design case, regional background scenarios (geography, year, electricity), linked exchanges and their states, totals per functional unit; the catalog publishes them (see below) |
 | `chemicals/chemicals.yaml` | chemical identity registry (CAS, InChIKey, ChEBI): the slugs processes name, which link them in the Atlas graph |
-| `lci/mappings.yaml` | how LCI exchanges link to Brightway background and biosphere data (by name; no licensed data) |
+| `lci/mappings.yaml` | how LCI exchanges link to Brightway background and biosphere data (by name; no licensed data), the system model (cut-off), its exclusions and the substitution variant, and the database's allocation per process |
+| `docs/` | `system-model.md` (the LCI database's methodology: system model, allocation hierarchy, cut-off rules) and `governance.md` (versions, change reports, releases and DOIs, review, contribution policy draft) |
 | `schemas/` | JSON Schemas of process.yaml, the registry and the mappings |
 | `templates/process/` | starter folder for a new process |
 | `scripts/` | `build_catalog.py` (catalog for the Atlas), `build_lci.py` (Brightway workbook), `render_previews.py` and `export_snapshots.py` (drawings and viewer snapshots, via `cheme`); `publication.py` (the rules of `--public`) |
@@ -44,7 +45,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md): copy `templates/process/` to `processes/
 
 ```sh
 uv run scripts/build_catalog.py --library . --out dist [--artifacts <previews>] [--snapshots <snapshots>] [--strict] [--public]
-uv run scripts/build_lci.py --library . --out dist --version 0.1.0 [--strict] [--public]
+uv run scripts/build_lci.py --library . --out dist --version 0.1.0 [--strict] [--public] [--system-model substitution] [--previous <earlier build>]
 uv run --python 3.12 --with pytest --with pyyaml --with jsonschema --with openpyxl --with ./python --with bw2calc pytest -q tests
 ```
 
@@ -63,7 +64,9 @@ CI (`.github/workflows/validate.yml`): every `processes/*/plant.yaml` is validat
 in its folder; the library job runs the tests (including the Brightway round trip) and builds
 the catalog and the LCI database, and the public catalog (`--public`: only processes with
 `publication.status: public`, placeholder footprints withheld; see CONTRIBUTING.md). Nothing is
-published.
+published. `.github/workflows/release.yml` (started by hand) drafts an LCI release with its
+change report and archive metadata as a workflow artifact; it publishes nothing, as the release
+decision is the owner's (docs/governance.md).
 
 ## Repository size
 
