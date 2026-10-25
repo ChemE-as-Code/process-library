@@ -50,7 +50,7 @@ to handle.
 | file | |
 |---|---|
 | `lci/cheme-as-code-atlas-<version>.xlsx` | the database `cheme-as-code-atlas-<version>`: an `about` sheet (skipped by the importer), a `database` sheet, one sheet per process, a `proxies` sheet |
-| `lci/datapackage.json` | version, library commit, per process: title, maturity, review, data status (exchanges by provenance), factor status of the study, allocation and shares, functional unit, activities |
+| `lci/datapackage.json` | version, library commit, per process: title, maturity, review, data status (exchanges by provenance), factor status of the study, allocation and shares, functional unit, activities (each with its `chemical` slug and registry `grade`, null when none), and per dataset its `property_checks` (below) |
 | `lci/index.json` | what the Atlas site reads: file names, sizes, sha256, activities per process, caveats, system model |
 | `lci/changes.json`, `lci/CHANGES.md` | with `--previous`: the change report against the earlier build (below) |
 
@@ -98,6 +98,17 @@ build); governance (versions, change reports, releases, review) is
   their `emission:*` exchanges), and free pass-through emissions (below).
 - **Uncertainty:** an exchange with a lognormal `gsd2` gets Brightway's lognormal (type 2,
   `scale = ln(gsd2)/2`); pedigree scores are not exported.
+- **Reference product.** A product whose flow has a grade in the chemicals registry
+  (`chemical: <slug>/<grade>` in `process.yaml`, or the registry's `flow_grades`) is named after
+  the grade: ASU-1's `Oxygen, GOX to pipeline` is now `Oxygen, gaseous, >= 99.5 mol%, 30 barg`.
+  Without a grade it is the substance's name with the exchange title, as before. Activity codes do
+  not change, so match on the code, not on the name. An input whose grade another Atlas process
+  makes prefers that producer.
+- **Property checks.** Each product's study `exergy` and `energy` (per kg) are compared with its
+  grade's (else its substance's) registry `exergy` and `lhv`. `datapackage.json` records each as
+  `match`, `mismatch`, `overridden` (a `properties_reason` in `lci/mappings.yaml`) or
+  `unchecked` (no registry value, or a product not counted in kg). A mismatch over 2 % is a
+  warning, so it fails `--strict` ([registry rules](https://github.com/ChemE-as-Code/process-library/blob/main/docs/registry.md), "Study properties against the registry").
 
 ## Linking (`lci/mappings.yaml`)
 
@@ -108,7 +119,9 @@ Emissions by component in `biosphere:`. A missing mapping fails the build.
 
 Decisions for ASU-1:
 
-- **Electricity:** market for electricity, medium voltage, at the site's location.
+- **Electricity:** market for electricity, high voltage, at the site's location: ASU-1 takes
+  its power at 33 kV (D-036), which ecoinvent counts as high voltage (above 24 kV). Medium voltage
+  stays the library default for a process that does not state its supply voltage.
 - **Materials** as the dataset counts them: steel (low-alloyed, hot rolled), stainless (18/8),
   aluminium (primary ingot), concrete (m3), zeolite for the adsorbent, lubricating oil, lorry
   transport.
@@ -152,6 +165,11 @@ uv run scripts/build_lci.py --library <process-library> --out <dir> --version 0.
 `<dir>/lci/` is replaced; nothing else in `<dir>` is touched. Mappings come from
 `<library>/lci/mappings.yaml`, else this staged copy. Two runs on the same input are
 byte-identical (the workbook's document dates and zip entry dates are fixed).
+
+The build first validates `chemicals/chemicals.yaml` against its schema and the registry checks
+(`scripts/registry.py` `check`: CAS check digits, InChIKeys, properties against the formula,
+duplicate crosswalk names, unknown `flow_grades` grades) and stops on any problem, before it
+reads a process.
 
 ## Change reports
 

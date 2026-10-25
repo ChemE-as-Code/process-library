@@ -144,7 +144,9 @@ read. They are part of the review checklist ([governance.md](governance.md)).
 ## 6. Other conventions
 
 - **Electricity:** industrial power links to the medium-voltage market of the site's country
-  by default (`install(location=...)`).
+  by default (`install(location=...)`). A process whose design states a supply above 24 kV links
+  to the high-voltage market instead, through an `exchanges` override in `lci/mappings.yaml`
+  (ASU-1: 33 kV, D-036).
 - **Data freshness:** primary data at most 5 years old and secondary data at most 10 years old
   at the reference year. A dataset will record a `valid_until` year (core#179); `datapackage.json`
   carries it (null until core writes it).

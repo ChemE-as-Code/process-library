@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atlas.cheme-as-code.org/schemas/coverage/v1.json",
+  "title": "Coverage roadmap (coverage.yaml)",
+  "description": "The ranked list of products and processes the library plans to cover, with ranking criteria, technology variants, value-chain links, open sources and the planned entry tier. docs/coverage.md explains it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "entries"],
+  "properties": {
+    "schema": {"const": "cheme-as-code/coverage/v1"},
+    "summary_top": {"description": "How many top-ranked entries the coverage summary counts.", "type": "integer", "minimum": 1},
+    "criteria": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["id", "title"], "properties": {"id": {"type": "string"}, "title": {"type": "string"}, "note": {"type": "string"}}}},
+    "sources": {
+      "description": "Sources cited by entries, by id (citations only).",
+      "type": "object",
+      "additionalProperties": {"type": "string", "minLength": 5}
+    },
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["rank", "id", "title", "family", "volume", "relevance", "tier"],
+        "properties": {
+          "rank": {"type": "integer", "minimum": 1},
+          "id": {"$ref": "#/$defs/slug"},
+          "title": {"type": "string"},
+          "chemical": {"description": "Main product's registry slug (or the slug it will get).", "$ref": "#/$defs/slug"},
+          "family": {"$ref": "#/$defs/slug"},
+          "volume": {
+            "description": "Global production as an order of magnitude only, Mt/a, with its source; n/a when not yet sourced.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["band"],
+            "properties": {
+              "band": {"enum": ["<1", "1-10", "10-100", "100-1000", "1000-10000", "n/a"]},
+              "source": {"type": "string"},
+              "note": {"type": "string"}
+            },
+            "if": {"properties": {"band": {"const": "n/a"}}},
+            "then": {},
+            "else": {"required": ["source"]}
+          },
+          "relevance": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["ghg"],
+            "properties": {
+              "ghg": {"enum": ["high", "medium", "low", "n/a"]},
+              "other": {"type": "array", "items": {"type": "string"}},
+              "note": {"type": "string"}
+            }
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "title"],
+              "properties": {
+                "id": {"$ref": "#/$defs/slug"},
+                "title": {"type": "string"},
+                "market_mix": {"description": "Needed for a production or consumption mix (process-library#49).", "type": "boolean"},
+                "note": {"type": "string"}
+              }
+            }
+          },
+          "feeds": {"description": "Ids of entries this one supplies (value-chain links).", "type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/slug"}},
+          "open_sources": {"type": "array", "items": {"type": "string"}},
+          "tier": {"description": "Planned entry tier (core#182): 0 stoichiometric, 1 sourced conceptual data, 2 flowsheet design.", "enum": [0, 1, 2]},
+          "covered_by": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["process", "tier"],
+              "properties": {"process": {"$ref": "#/$defs/slug"}, "tier": {"enum": [0, 1, 2]}, "note": {"type": "string"}}
+            }
+          },
+          "next": {"description": "In the next batch: the working plan accepted on 2026-10-25 (process-library#47).", "type": "boolean"},
+          "note": {"type": "string"}
+        }
+      }
+    }
+  },
+  "$defs": {"slug": {"type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"}}
+}
