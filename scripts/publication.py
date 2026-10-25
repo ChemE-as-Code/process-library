@@ -57,7 +57,8 @@ def lca_withheld(folder: Path) -> str | None:
     decision). Placeholder factors are never published, and without a manifest (an LCA written
     by an older core) nothing says the sources permit it, so the values are withheld too. A
     manifest whose input fingerprints (``inputs``: path -> sha256 with normalised line endings)
-    no longer match the files, or whose backend is not the scope's, describes another run:
+    no longer match the files, whose ``results`` fingerprint (sha256 of ``lca/results.csv``,
+    when the manifest has one) is not the committed file's, or whose backend is not the scope's, describes another run:
     ``stale-run-manifest``.
     """
     import hashlib
@@ -83,6 +84,16 @@ def lca_withheld(folder: Path) -> str | None:
             return "stale-run-manifest"
         content = target.read_bytes().replace(b"\r\n", b"\n")
         if "sha256:" + hashlib.sha256(content).hexdigest() != sha:
+            return "stale-run-manifest"
+    # the committed results.csv is the text this run wrote (manifests of core before the
+    # fingerprint have no "results" and are not checked)
+    recorded = run.get("results")
+    if recorded is not None:
+        csv_path = folder / "lca" / "results.csv"
+        if not csv_path.is_file():
+            return "stale-run-manifest"
+        text = csv_path.read_bytes().replace(b"\r\n", b"\n")
+        if "sha256:" + hashlib.sha256(text).hexdigest() != recorded:
             return "stale-run-manifest"
     if (run.get("background") or {}).get("backend", "factors") != scope.get("backend", "factors"):
         return "stale-run-manifest"
