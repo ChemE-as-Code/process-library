@@ -1,0 +1,112 @@
+name: "Engineering hold"
+description: "A value or decision the design does not have yet (HOLD): what is held, what it waits for, what is assumed meanwhile."
+title: "[<process id>] "
+labels: ["type:hold"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The labels process:, discipline:, gate: and source: are set from the fields below.
+        Close the issue only once the close-out evidence is verified.
+  - type: dropdown
+    id: process
+    attributes:
+      label: "Process"
+      description: "The folder under processes/. Add a new process here when its folder is created."
+      options:
+        - "asu-1"
+    validations:
+      required: true
+  - type: dropdown
+    id: discipline
+    attributes:
+      label: "Discipline"
+      description: "The discipline(s) responsible."
+      multiple: true
+      options:
+        - "process"
+        - "control"
+        - "piping"
+        - "mechanical"
+        - "electrical"
+        - "layout"
+        - "safety"
+        - "civil"
+    validations:
+      required: true
+  - type: dropdown
+    id: gate
+    attributes:
+      label: "Close before gate"
+      description: "The stage gate this must be closed before (checks.yaml stage); the gate fails while it is open."
+      options:
+        - "concept"
+        - "basic"
+        - "detail"
+        - "none"
+    validations:
+      required: true
+  - type: dropdown
+    id: source
+    attributes:
+      label: "Source"
+      description: "Where it comes from."
+      options:
+        - "design-review"
+        - "hazop"
+        - "layout-review"
+        - "control-review"
+        - "vendor"
+        - "client"
+        - "internal"
+    validations:
+      required: true
+  - type: textarea
+    id: held
+    attributes:
+      label: "What is on hold"
+      description: "The values or decisions missing, and where the files carry them (unresolved: entries, ASSUMED values, Open items of a decision)."
+    validations:
+      required: true
+  - type: textarea
+    id: waiting-for
+    attributes:
+      label: "Waiting for"
+      description: "Vendor data, the client, a HAZOP / LOPA session, another issue or branch."
+    validations:
+      required: true
+  - type: textarea
+    id: meanwhile
+    attributes:
+      label: "Meanwhile (assumption or workaround)"
+      description: "What the design assumes until the hold is lifted, and its provenance."
+    validations:
+      required: false
+  - type: textarea
+    id: when
+    attributes:
+      label: "When to do it"
+      description: "The trigger, e.g. 'after the HAZOP re-stamp', 'with the vendor enquiry', 'at the next change of P-04'."
+    validations:
+      required: true
+  - type: textarea
+    id: not-before
+    attributes:
+      label: "Not before (and why)"
+      description: "What doing it earlier would cost or break: invented data, a stale review, a conflict with another branch."
+    validations:
+      required: true
+  - type: textarea
+    id: refs
+    attributes:
+      label: "References"
+      description: "Review findings (reviews/...#N), HAZOP actions, DESIGN.md decisions (D-NNN), tags, sheets, files."
+    validations:
+      required: false
+  - type: textarea
+    id: close-out
+    attributes:
+      label: "Close-out evidence"
+      description: "What shows it is done: the files changed, the review record or the decision. Close only after verification by the originator or reviewer."
+    validations:
+      required: true

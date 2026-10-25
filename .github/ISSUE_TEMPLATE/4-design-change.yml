@@ -1,0 +1,112 @@
+name: "Design change (MoC)"
+description: "A change to the design basis or to issued drawings and lists: reason, documents affected, re-reviews needed."
+title: "[<process id>] "
+labels: ["type:change"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The labels process:, discipline:, gate: and source: are set from the fields below.
+        Close the issue only once the close-out evidence is verified.
+  - type: dropdown
+    id: process
+    attributes:
+      label: "Process"
+      description: "The folder under processes/. Add a new process here when its folder is created."
+      options:
+        - "asu-1"
+    validations:
+      required: true
+  - type: dropdown
+    id: discipline
+    attributes:
+      label: "Discipline"
+      description: "The discipline(s) responsible."
+      multiple: true
+      options:
+        - "process"
+        - "control"
+        - "piping"
+        - "mechanical"
+        - "electrical"
+        - "layout"
+        - "safety"
+        - "civil"
+    validations:
+      required: true
+  - type: dropdown
+    id: gate
+    attributes:
+      label: "Close before gate"
+      description: "The stage gate this must be closed before (checks.yaml stage); the gate fails while it is open."
+      options:
+        - "concept"
+        - "basic"
+        - "detail"
+        - "none"
+    validations:
+      required: true
+  - type: dropdown
+    id: source
+    attributes:
+      label: "Source"
+      description: "Where it comes from."
+      options:
+        - "design-review"
+        - "hazop"
+        - "layout-review"
+        - "control-review"
+        - "vendor"
+        - "client"
+        - "internal"
+    validations:
+      required: true
+  - type: textarea
+    id: change
+    attributes:
+      label: "Change"
+      description: "What changes and why."
+    validations:
+      required: true
+  - type: textarea
+    id: affected
+    attributes:
+      label: "Documents affected"
+      description: "P&IDs, lists, flowsheet, layout, datasheets, C&E, HAZOP studies."
+    validations:
+      required: true
+  - type: textarea
+    id: rereviews
+    attributes:
+      label: "Re-reviews and approvals"
+      description: "Which reviews must be repeated (layout review, HAZOP re-stamp, control review) and who approves the change."
+    validations:
+      required: true
+  - type: textarea
+    id: when
+    attributes:
+      label: "When to do it"
+      description: "The trigger, e.g. 'after the HAZOP re-stamp', 'with the vendor enquiry', 'at the next change of P-04'."
+    validations:
+      required: true
+  - type: textarea
+    id: not-before
+    attributes:
+      label: "Not before (and why)"
+      description: "What doing it earlier would cost or break: invented data, a stale review, a conflict with another branch."
+    validations:
+      required: true
+  - type: textarea
+    id: refs
+    attributes:
+      label: "References"
+      description: "Review findings (reviews/...#N), HAZOP actions, DESIGN.md decisions (D-NNN), tags, sheets, files."
+    validations:
+      required: false
+  - type: textarea
+    id: close-out
+    attributes:
+      label: "Close-out evidence"
+      description: "What shows it is done: the files changed, the review record or the decision. Close only after verification by the originator or reviewer."
+    validations:
+      required: true
