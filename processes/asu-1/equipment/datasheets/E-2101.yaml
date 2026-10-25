@@ -19,11 +19,11 @@ operating:
       air; was 16,350)'
     assumed: true
   inlet_temperature:
-    value: 13.0
+    value: 9.49
     unit: °C
-    source: 'process/flowsheet.yaml stream S17 (case design), assumed: the E-3101 warm end at 13 C (D-061),
-      split at X3101'
-    assumed: true
+    source: 'process/flowsheet.yaml stream S12A (case design), calculated by `cheme process simulate`:
+      the E-3101 warm end S17 with the 50 kW cold-box heat in-leak (DESIGN.md D-103; was the assumed 13
+      C of D-061), split at X3101'
   outlet_temperature:
     value: 200.0
     unit: °C
@@ -113,10 +113,11 @@ type_specific:
   duty_kw:
     value: 1130
     unit: kW
-    source: 'DESIGN.md D-066: 1.13 MW peak (was 1.0 MW, +13 % with the regeneration gas). The gas alone
-      takes 987 kW from 13 to 200 C (18,486 kg/h, ideal-gas Cp of thermo, scripts/datasheet_sizing.py
-      section 8 (DESIGN.md D-068 (7))); the rest covers the heater and bed heat-up losses (ASSUMED). Cycle
-      average 377 kW (flowsheet energy stream E3, ASSUMED)'
+    source: 'DESIGN.md D-066: 1.13 MW peak (was 1.0 MW, +13 % with the regeneration gas), kept (D-103).
+      The gas alone takes 1,006 kW from the simulated 9.5 to 200 C (18,486 kg/h, ideal-gas Cp of thermo,
+      scripts/datasheet_sizing.py section 8; DWSIM E2101 1,008 kW; was 987 kW from the assumed 13 C);
+      the remaining ~120 kW (11 %) covers the heater and bed heat-up losses (ASSUMED). Cycle average 377
+      kW (flowsheet energy stream E3, ASSUMED, kept in D-103)'
     assumed: true
   allowable_gas_pressure_drop_kpa:
     value: 1.0
@@ -124,7 +125,7 @@ type_specific:
     source: 'DESIGN.md D-072, scripts/datasheet_sizing.py section 11: of the 10.1 kPa between the WN-3002
       tee (111.4 kPa(a)) and the atmosphere, the routed lines RG-2001 DN600 / RG-2002 DN700 / RG-2003
       DN700 take 4.6 kPa, FV-2105 1.5, the adsorber in regeneration 1.5 and S-2101 1.0 kPa: 1.0 kPa (10
-      mbar) for the heater gas side, nozzle to nozzle, at 18,486 kg/h heated 13 -> 200 C, so that the
+      mbar) for the heater gas side, nozzle to nozzle, at 18,486 kg/h heated 9.5 -> 200 C, so that the
       regeneration path keeps the LP column top at 1.30 bara (enquiry requirement; the supplier states
       the drop of the element bundle)'
     assumed: true
@@ -137,7 +138,34 @@ type_specific:
     direction: out
     title: Hot regeneration gas
     source: process/flowsheet.yaml (case design)
-sizing_basis: []
+  rating:
+    value: supplier
+    unit: ''
+    source: 'awaited from the supplier or the named study (D-103); unsupported in cheme-as-code: no fired-heater or heater rating (radiant/convection sections,
+      tube wall): from the supplier''s rating (docs/framework/sizing.md) (cheme datasheets fill)'
+  mechanical_design:
+    value: supplier
+    unit: ''
+    source: 'awaited from the supplier or the named study (D-103); unsupported in cheme-as-code: no mechanical design to a code (wall thickness, MAWP,
+      nozzle loads): from the supplier or a mechanical calculation (docs/framework/sizing.md) (cheme datasheets
+      fill)'
+  corrosion_allowance_mm:
+    value: supplier
+    unit: mm
+    source: 'awaited from the supplier or the named study (D-103); unsupported in cheme-as-code: no material selection or corrosion allowance: the material
+      is the equipment list''s, given; the allowance from a materials/corrosion review (docs/framework/sizing.md)
+      (cheme datasheets fill)'
+  relief_protection:
+    value: supplier
+    unit: ''
+    source: 'awaited from the supplier or the named study (D-103); unsupported in cheme-as-code: no relief scenarios or device sizing (API 520/521, ISO
+      4126): from a relief study (docs/framework/sizing.md) (cheme datasheets fill)'
+sizing_basis:
+- parameter: sizing_scope
+  value: preliminary
+  reference: 'cheme datasheets fill: the values it writes are preliminary process sizing (short-cut methods,
+    declared or typical parameters), not a rating or a design to a code; not calculated: rating, mechanical
+    code, materials corrosion, relief, dynamics controls (docs/framework/sizing.md)'
 notes: ~1.13 MW peak (DESIGN.md D-066), waste N2 18,486 kg/h (~14,600 Nm3/h) to 200 C, over-temperature
   trip TSHH-2107. Heater with terminal box 3 x 2 x 3 m kept (ASSUMED; element bundle by the supplier).
   690 V feeder from MCC-1 (electrical list, D-070).

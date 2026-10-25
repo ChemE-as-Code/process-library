@@ -34,11 +34,12 @@ operating:
       (ASSUMED, D-061)'
     assumed: true
   waste_n2:
-    value: 76560 kg/h, -178.87 C 1.3 bara (S16B, after E-3102) -> 13 C 1.15 bara (S17)
+    value: 76560 kg/h, -176.64 C 1.3 bara (S16C) -> 9.49 C 1.15 bara (S17)
     unit: ''
-    source: 'process/flowsheet.yaml stream S16B (calculated by `cheme process simulate`, DESIGN.md D-066:
-      the subcooler E-3102 is now simulated, 304 kW, S16 -192.29 C from the C-3102 top); S17 13 C 1.15
-      bara (ASSUMED, D-061); was 63,750 kg/h'
+    source: 'process/flowsheet.yaml streams S16C and S17 (calculated by `cheme process simulate`): S16B
+      -178.87 C after the subcooler E-3102 (304 kW, D-066) plus the lumped 50 kW cold-box heat in-leak
+      HL3101 (DESIGN.md D-103, ASSUMED); S17 now the simulated warm end (was the assumed 13 C of D-061),
+      1.15 bara ASSUMED; was 63,750 kg/h'
     assumed: true
 design:
   pressure_barg:
@@ -211,33 +212,36 @@ type_specific:
       h_out): main air S4A 96,000 kg/h 15 C 5.6 bara -> S5 -173 C 5.5 bara 5,234.9 kW + booster air S4E
       14,870 kg/h 15 C 8.45 bara -> S5B -124.7 C 8.25 bara 600.1 kW (DESIGN.md D-066, D-067); enthalpies
       by the property adapter (thermo 0.6.1, PR) at the flowsheet states. The cold side (S14 -> S9 720.7,
-      S15 -> S7 1,027.7, S16B -> S17 4,213.0 kW) can take 126.4 kW more: the margin for the heat leak
-      into the exchanger and its warm-end approach (D-067 closes the whole cold box at a 75.2 kW leak)'
+      S15 -> S7 1,027.7, S16C -> S17 4,086.3 kW) balances it within 0.3 kW: since D-103 the cold-box heat
+      in-leak (50 kW, ASSUMED) is in the model and the waste N2 leaves at the simulated 9.49 C; the
+      refrigeration left over (~78 kW) shows as its 5.5 K warm-end approach'
     assumed: true
   area_m2:
     value: supplier
     unit: m2
     reason: 'brazed aluminium plate-fin supplier: the area of a multi-stream plate-fin exchanger follows
       from its fin geometry and layer arrangement along the composite curves. Enquiry basis (DESIGN.md
-      D-066, D-067, D-068 (5)): duty 5,835 kW, both airs in at 15 C and the products out at 13 C (2 K
-      warm end; the booster air no longer 27 K warmer), the waste N2 in at -178.9 C after E-3102; the
-      supplier confirms the 2 K warm end and the 50 kW heat leak (D-067)'
+      D-066, D-067, D-068 (5), D-103): duty 5,835 kW, both airs in at 15 C and the products out at 13
+      C (2 K warm end; the booster air no longer 27 K warmer), the waste N2 in at -176.6 C (after E-3102
+      and the lumped heat in-leak) and out at 9.5 C; the supplier confirms the 2 K warm end and the 50
+      kW heat leak (D-067, D-103)'
   ua_kw_k:
-    value: 1796
+    value: 1001
     unit: kW/K
-    source: 'scripts/datasheet_sizing.py section 5 (DESIGN.md D-068 (5)): UA = sum dQ / LMTD over 600
-      intervals of the warm and cold composite curves paired from the warm end (property adapter enthalpies,
-      thermo PR): warm S4A -> S5 and S4E -> S5B (5,835 kW); cold S14 -> S9 and S15 -> S7 from saturated
-      vapour at 530 / 140 kPa(a), S16B -> S17 from -178.87 C; outlets at 13 C (S7, S9, S17, D-061). An
-      upper bound: the 2 K warm end runs over the whole warm section and the cold side''s 126 kW surplus
-      is left at the cold end (was 722 kW/K with the 40 C booster air, D-063)'
+    source: 'scripts/datasheet_sizing.py section 5 (DESIGN.md D-068 (5), rerun on the D-103 states): UA
+      = sum dQ / LMTD over 600 intervals of the warm and cold composite curves paired from the warm end
+      (property adapter enthalpies, thermo PR): warm S4A -> S5 and S4E -> S5B (5,835 kW); cold S14 -> S9
+      and S15 -> S7 from saturated vapour at 530 / 140 kPa(a) to 13 C (D-061), S16C -> S17 from -176.64
+      to the simulated 9.49 C. Was 1,796 kW/K, an upper bound with the cold side''s 126 kW surplus left
+      at the cold end; with the heat leak in the model the curves balance and the surplus refrigeration
+      opens the cold end to 6.9 K (722 kW/K with the 40 C booster air, D-063)'
     assumed: true
   minimum_approach_k:
     value: 2.0
     unit: K
-    source: 'scripts/datasheet_sizing.py section 5 (DESIGN.md D-068 (5)), the composite curves of ua_kw_k
-      (same states): 2 K at the warm end (both airs 15 C against the 13 C products, D-061, D-067); 2.05
-      K at the cold end of the warm side'
+    source: 'scripts/datasheet_sizing.py section 5 (DESIGN.md D-068 (5), rerun on the D-103 states), the
+      composite curves of ua_kw_k: 2 K at the warm end (both airs 15 C against the 13 C products, D-061,
+      D-067); 6.87 K at the cold end; DWSIM E3101 2.00 K (process/simulation-run.json)'
     assumed: true
   process_streams:
   - stream: S4A
@@ -264,10 +268,11 @@ type_specific:
     direction: in
     title: Cold GOX
     source: process/flowsheet.yaml (case design)
-  - stream: S16B
+  - stream: S16C
     direction: in
-    title: Waste nitrogen from the subcooler
-    source: process/flowsheet.yaml (case design); DESIGN.md D-066
+    title: Waste nitrogen to the main heat exchanger (with the cold-box heat in-leak)
+    source: process/flowsheet.yaml (case design); DESIGN.md D-066, D-103 (S16B from E-3102 plus the lumped
+      heat in-leak HL3101)
   - stream: S17
     direction: out
     title: Warm waste nitrogen
@@ -285,23 +290,54 @@ type_specific:
     unit: K
     reason: a multi-stream plate-fin exchanger with five streams; one LMTD does not describe it, the composite
       curves do (ua_kw_k, minimum_approach_k)
+  rating:
+    value: supplier
+    unit: ''
+    source: 'awaited from the supplier or the named study (D-103); unsupported in cheme-as-code: no thermal-hydraulic rating (tube count and layout, film
+      coefficients, fouling, pressure drop, vibration; TEMA): from the supplier''s rating (docs/framework/sizing.md)
+      (cheme datasheets fill)'
+  mechanical_design:
+    value: supplier
+    unit: ''
+    source: 'awaited from the supplier or the named study (D-103); unsupported in cheme-as-code: no mechanical design to a code (wall thickness, MAWP,
+      nozzle loads): from the supplier or a mechanical calculation (docs/framework/sizing.md) (cheme datasheets
+      fill)'
+  corrosion_allowance_mm:
+    value: supplier
+    unit: mm
+    source: 'awaited from the supplier or the named study (D-103); unsupported in cheme-as-code: no material selection or corrosion allowance: the material
+      is the equipment list''s, given; the allowance from a materials/corrosion review (docs/framework/sizing.md)
+      (cheme datasheets fill)'
+  relief_protection:
+    value: supplier
+    unit: ''
+    source: 'awaited from the supplier or the named study (D-103); unsupported in cheme-as-code: no relief scenarios or device sizing (API 520/521, ISO
+      4126): from a relief study (docs/framework/sizing.md) (cheme datasheets fill)'
 sizing_basis:
 - parameter: cold outlet temperatures
-  value: 13 C (2 K warm-end approach to the 15 C main air, ASSUMED; in the flowsheet since D-061)
-  reference: DESIGN.md D-061
+  value: GOX and GAN 13 C (2 K warm-end approach to the 15 C main air, ASSUMED; in the flowsheet since D-061);
+    waste N2 9.49 C (simulated, D-103)
+  reference: DESIGN.md D-061, D-103
 - parameter: cold inlet states
-  value: S14 / S15 saturated vapour at 5.3 / 1.4 bara (DWSIM column pressures); S16B from E-3102 at -178.87
-    C
-  reference: DESIGN.md D-059, D-061, D-066
+  value: S14 / S15 saturated vapour at 5.3 / 1.4 bara (DWSIM column pressures); S16C at -176.64 C (S16B
+    from E-3102 at -178.87 C plus the lumped heat in-leak)
+  reference: DESIGN.md D-059, D-061, D-066, D-103
 - parameter: heat leak
-  value: the cold side's 126 kW surplus over the warm side (the cold box closes at a 75.2 kW leak against
-    50 kW ASSUMED)
-  reference: DESIGN.md D-067
+  value: 50 kW into the whole cold box (ASSUMED, casing conduction estimate x 2.5), in the simulation as
+    HL3101; the refrigeration left over (~78 kW) covers a leak up to ~130 kW before the waste N2 warm end
+    reaches 13 C
+  reference: DESIGN.md D-067, D-103
+- parameter: sizing_scope
+  value: preliminary
+  reference: 'cheme datasheets fill: the values it writes are preliminary process sizing (short-cut methods,
+    declared or typical parameters), not a rating or a design to a code; not calculated: rating, mechanical
+    code, materials corrosion, relief, dynamics controls (docs/framework/sizing.md)'
 notes: 'Streams: air, booster air, GOX, GAN, waste N2. Max design temperature 65 C. O2 service (D-009).
   Bank of 4 cores ~1.2 x 1.2 x 7.3 m side by side with headers, standing vertical (warm end up), kept
   (ASSUMED; +11 % duty and a closer warm end on the same bank: the supplier''s core count decides). Duty
   5,835 kW (warm side), UA and approach from the composite curves on the D-066 / D-067 states (DESIGN.md
   D-068 (5)); the area is the supplier''s (marker). The booster air now enters at 15 C after the trim
-  cooler E-3105 (D-067), and the cold box closes at a 75.2 kW heat leak against the ASSUMED 50 kW. If
+  cooler E-3105 (D-067). Since D-103 the ASSUMED 50 kW heat leak is in the simulation and the waste N2
+  leaves at 9.5 C; the cold box would close at a ~130 kW leak (the 13 C warm end). If
   E-3105 is lost it closes at only +11.9 kW (turn the liquid production down). The supplier confirms the
   2 K warm end and the heat leak.'
