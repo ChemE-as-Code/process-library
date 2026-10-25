@@ -32,6 +32,8 @@ from typing import Any
 API = "https://api.github.com"
 SCHEMA = "process-library/issues/v1"
 TYPES = ("action", "hold", "tq", "change")
+GATES = ("concept", "basic", "detail")
+MAX_PAGES = 50
 
 
 def _token() -> str | None:
@@ -64,6 +66,9 @@ def record(item: dict[str, Any]) -> dict[str, Any]:
     def tagged(prefix: str) -> list[str]:
         return sorted(n[len(prefix):] for n in names if n.startswith(prefix))
 
+    # two gate: labels (one left by an edit) count at the earlier; an unknown one first (core's
+    # project/issues.py does the same, so the Atlas and the gates agree)
+    gates = sorted(tagged("gate:"), key=lambda g: (GATES.index(g) + 1 if g in GATES else 0, g))
     statuses = tagged("status:")
     types = [t for t in tagged("type:") if t in TYPES]
     first = lambda values: values[0] if values else None  # noqa: E731
@@ -73,7 +78,7 @@ def record(item: dict[str, Any]) -> dict[str, Any]:
         "state": item["state"],
         "status": "closed" if item["state"] == "closed" else first(statuses) or "open",
         "type": first(types),
-        "gate": first(tagged("gate:")),
+        "gate": first(gates),
         "disciplines": tagged("discipline:"),
         "source": first(tagged("source:")),
         "waiting": first(tagged("waiting:")),
@@ -87,7 +92,7 @@ def record(item: dict[str, Any]) -> dict[str, Any]:
 def fetch(repository: str, token: str) -> dict[str, Any]:
     meta = _get(f"{API}/repos/{repository}", token)
     issues = []
-    for page in range(1, 51):
+    for page in range(1, MAX_PAGES + 1):
         query = urllib.parse.urlencode({"state": "all", "per_page": 100, "page": page})
         batch = _get(f"{API}/repos/{repository}/issues?{query}", token)
         issues += [
@@ -96,6 +101,8 @@ def fetch(repository: str, token: str) -> dict[str, Any]:
         ]
         if len(batch) < 100:
             break
+    else:
+        raise SystemExit(f"error: {repository} has more than {MAX_PAGES * 100} issues and pull requests")
     return {
         "schema": SCHEMA,
         "repository": repository,

@@ -94,8 +94,11 @@ are open.
 - **Fields set labels** (workflow `issue-labels`): Process → `process:<id>`, Discipline →
   `discipline:` (process, control, piping, mechanical, electrical, layout, safety, civil), Close
   before gate → `gate:` (concept, basic, detail), Source → `source:` (design-review, hazop,
-  layout-review, control-review, vendor, client, internal). When you add a process folder, add
-  its id to every form's Process dropdown; the workflow creates its label.
+  layout-review, control-review, vendor, client, internal). It acts for members and
+  collaborators only, since these labels hold stage gates: an outside issue is triaged and
+  labelled by hand. Values outside the vocabulary are ignored, and an edit replaces the labels
+  of these fields. A new engineering hold gets `waiting:input`. When you add a process folder,
+  add its id to every form's Process dropdown; the workflow creates its label.
 - **Status:** an open item without a status label is open; `status:in-progress` while someone
   works it; `status:for-verification` once the close-out evidence is in, for a second person to
   check. Only the checker closes it. What an open item waits for: `waiting:input` (vendor,

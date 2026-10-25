@@ -2,36 +2,75 @@
 # design change) from its fields: process:<id>, discipline:<d> (one per discipline), gate:<stage>
 # and source:<s>. A process label is created on first use; the other labels are the fixed
 # vocabulary (CONTRIBUTING.md, Issues). Issues written by hand are labelled by hand.
+#
+# Only for issues opened by members and collaborators: these labels hold stage gates (core's
+# `kind: issues`), so an outside issue is triaged by hand first. Values outside the vocabulary
+# are ignored. On an edit, the labels of these four fields are replaced, so a moved gate does not
+# leave the old one behind. A new engineering hold is waiting:input until someone says otherwise.
 name: issue-labels
 on:
   issues:
     types: [opened, edited]
 permissions:
   issues: write
+  contents: read
 jobs:
   label:
+    if: contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/github-script@v7
         with:
           script: |
-            const body = context.payload.issue.body || "";
+            const issue = context.payload.issue;
+            const body = issue.body || "";
+            const { owner, repo } = context.repo;
+            const vocabulary = {
+              discipline: ["process", "control", "piping", "mechanical", "electrical", "layout", "safety", "civil"],
+              gate: ["concept", "basic", "detail"],
+              source: ["design-review", "hazop", "layout-review", "control-review", "vendor", "client", "internal"],
+            };
             const field = (heading) => {
               const m = body.match(new RegExp(`### ${heading}\\s*\\n+([^#]*)`));
-              if (!m) return [];
+              if (!m) return null;  // not a form issue: leave its labels alone
               return m[1].split(/[,\n]/).map((s) => s.trim()).filter((s) => s && s !== "_No response_" && s !== "none");
             };
-            const labels = [
-              ...field("Process").map((v) => `process:${v}`),
-              ...field("Discipline").map((v) => `discipline:${v}`),
-              ...field("Close before gate").map((v) => `gate:${v}`),
-              ...field("Source").map((v) => `source:${v}`),
-            ];
-            if (!labels.length) return;
-            const { owner, repo } = context.repo;
-            for (const name of labels.filter((l) => l.startsWith("process:"))) {
+            const fields = {
+              process: field("Process"),
+              discipline: field("Discipline"),
+              gate: field("Close before gate"),
+              source: field("Source"),
+            };
+            if (Object.values(fields).every((v) => v === null)) return;
+            const wanted = [];
+            for (const id of fields.process || []) {
+              if (!/^[a-z0-9][a-z0-9-]*$/.test(id)) continue;
+              try { await github.rest.repos.getContent({ owner, repo, path: `processes/${id}/process.yaml` }); }
+              catch { core.warning(`no process ${id}: label not set`); continue; }
+              wanted.push(`process:${id}`);
+            }
+            for (const [prefix, allowed] of Object.entries(vocabulary)) {
+              for (const v of fields[prefix] || []) {
+                if (allowed.includes(v)) wanted.push(`${prefix}:${v}`);
+                else core.warning(`${prefix}:${v} is not in the vocabulary: label not set`);
+              }
+            }
+            const current = (issue.labels || []).map((l) => l.name);
+            const managed = Object.keys(fields).filter((k) => fields[k] !== null);
+            for (const name of current) {
+              const prefix = name.split(":")[0];
+              if (managed.includes(prefix) && !wanted.includes(name)) {
+                await github.rest.issues.removeLabel({ owner, repo, issue_number: issue.number, name });
+              }
+            }
+            for (const name of wanted.filter((l) => l.startsWith("process:"))) {
               try { await github.rest.issues.getLabel({ owner, repo, name }); }
               catch { await github.rest.issues.createLabel({ owner, repo, name, color: "0e8a16",
                 description: `Work on processes/${name.slice(8)}/` }); }
             }
-            await github.rest.issues.addLabels({ owner, repo, issue_number: context.payload.issue.number, labels });
+            if (context.payload.action === "opened" && current.includes("type:hold")
+                && !current.some((l) => l.startsWith("waiting:"))) {
+              wanted.push("waiting:input");
+            }
+            const add = wanted.filter((l) => !current.includes(l));
+            if (add.length) await github.rest.issues.addLabels({ owner, repo, issue_number: issue.number, labels: add });

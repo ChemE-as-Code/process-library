@@ -820,10 +820,11 @@ def _issue_forms(library: Path) -> dict[str, str]:
     forms: dict[str, str] = {}
     folder = library / ".github" / "ISSUE_TEMPLATE"
     for path in sorted(folder.glob("*.yml")) if folder.is_dir() else []:
-        for line in path.read_text(encoding="utf-8").splitlines():
-            if line.startswith("labels:") and "type:" in line:
-                kind = line.split("type:", 1)[1].split('"', 1)[0].strip()
-                forms.setdefault(kind, path.name)
+        form = _yaml(path)
+        labels = form.get("labels", []) if isinstance(form, dict) else []
+        for label in [labels] if isinstance(labels, str) else labels:
+            if str(label).startswith("type:"):
+                forms.setdefault(str(label)[len("type:"):].strip(), path.name)
     return forms
 
 

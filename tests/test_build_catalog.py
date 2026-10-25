@@ -803,3 +803,22 @@ def test_issues_of_another_schema_are_refused(library: Path, tmp_path: Path) -> 
     issues.write_text(json.dumps({**ISSUES, "schema": "x"}))
     report = build_catalog.build(library, tmp_path / "out", PREVIEWS, commit="fixture", issues=issues)
     assert report.errors
+
+
+def test_fetched_issue_counts_at_its_earliest_gate():
+    import fetch_issues
+
+    item = {
+        "number": 9, "title": "t", "state": "open", "html_url": "u", "updated_at": "", "closed_at": None,
+        "labels": [{"name": n} for n in ("process:p", "type:hold", "gate:detail", "gate:basic")],
+    }
+    assert fetch_issues.record(item)["gate"] == "basic"
+
+
+def test_issue_forms_are_read_as_yaml(tmp_path: Path):
+    forms = tmp_path / ".github" / "ISSUE_TEMPLATE"
+    forms.mkdir(parents=True)
+    (forms / "a.yml").write_text("name: A\nlabels: [type:action, other]\nbody: []\n")
+    (forms / "b.yml").write_text('name: B\nlabels: "type:hold"\nbody: []\n')
+    (forms / "config.yml").write_text("blank_issues_enabled: true\n")
+    assert build_catalog._issue_forms(tmp_path) == {"action": "a.yml", "hold": "b.yml"}
