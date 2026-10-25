@@ -55,9 +55,10 @@ backgrounds (`scenarios:` in `lca/lca.yaml` with `location`, `year`, `electricit
 Run `cheme assess lca-scenarios --write` in the process folder and commit `lca/scenarios/`; the
 catalog gives each process `lca.design_cases` and `lca.scenarios` and copies the records to
 `scenarios/<id>/<scenario>.json`. A scenario whose values may not be published, or whose record
-is stale, keeps its geography, states and gaps but loses its totals. ASU-1 has `nl-grid` (the UK
-grid as a declared proxy) and `de-grid` (electricity declared missing): no regional factor is
-invented, and a scenario missing data the baseline has is marked not comparable.
+is stale, keeps its geography, states and gaps but loses its totals. ASU-1 has `nl-grid` and
+`de-grid` on core's packaged EEA 2024 grid factors (D-101). These are declared proxies for scope,
+because they are generation-based while the baseline is at the consumer. A scenario missing data
+the baseline has would be marked not comparable.
 
 CI (`.github/workflows/validate.yml`): every `processes/*/plant.yaml` is validated with `cheme`
 in its folder; the library job runs the tests (including the Brightway round trip) and builds
