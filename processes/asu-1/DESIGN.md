@@ -5028,3 +5028,111 @@ evidence stamped against it stays current.
 
 Reason: show the ASU in the Process Atlas for a site country without copying the project or
 claiming a regional footprint the data cannot support.
+## D-103 Cold-box heat leak in the simulation, simulated against assumed values, PR substitution accepted (2026-10-25)
+Decided by the agent on the owner's delegation of 2026-10-25 ("resolve all of these issues, make
+good decisions"). These are not the owner's own engineering judgement; the owner may reverse any
+of them. (Numbered D-103 because D-100 was already taken by the LCI scenarios; D-101 and D-102
+are reserved for the P&ID and HAZOP changes of the same request.) Closes the D-097 open points
+"heat leak in the cold-box model" and "owner's acceptance of the PR substitution", and
+maturity-review2#10 and #11.
+
+Decision:
+- (1) **Cold-box heat in-leak, 50 kW (ASSUMED), in the simulation.**
+  - Model: a new flowsheet step HL3101 (ExchangingThermalEnergy, a DWSIM heater with a duty) on
+    the cold waste N2 between the subcooler E-3102 and the main heat exchanger E-3101: S16B now
+    runs E3102 -> HL3101, the new model stream S16C HL3101 -> E3101 (both on WN-3001). It has no
+    equipment and no P&ID object. D-097 said a heat leak needed a new step; this is it.
+  - Why there: the leak finally costs refrigeration, and in this model the refrigeration
+    balance shows at the free stream of E3101 (the waste N2 warm end). Charged there it changes
+    no column or subcooler specification. Limitation: the leak into the columns themselves (most
+    of the casing area) would also trim their internal reflux slightly; that is neglected.
+  - Size, an engineering estimate: the CB-1 casing is 15 x 9 x 53 m (layout/structures.yaml),
+    about 2,800 m2 with roof and base. Loose-fill expanded perlite in dry nitrogen has a
+    conductivity of the order of 0.03-0.05 W/m K between ambient and liquid-nitrogen
+    temperature (the range Barron, Cryogenic Systems, 2nd ed., gives for non-evacuated
+    powders); take 0.04 W/m K, ~1 m of perlite between the cold equipment and the casing and a
+    mean difference of ~180 K (30 C ambient against columns at 80-100 K and an exchanger from
+    15 to -176 C): ~7 W/m2, ~20 kW by conduction. Pipe and instrument penetrations, supports,
+    valve extension spindles and the purge gas add to that; an allowance of x 2.5 gives
+    ~50 kW. This is the DESIGN.md section 3 concept value (50 kW ASSUMED), so the earlier budget
+    stands. The cold-box vendor confirms it (D-067 open point).
+- (2) **Result** (DWSIM 9.0.5, PR, `cheme process simulate --fill`):
+  - converged, 20 simulated units (C1102 still excluded); every evaluable unit closes; the plant
+    closure stays unsupported (V2101, the C3102 top), as in D-097;
+  - HL3101 50 kW: S16C -176.6 C (S16B -178.9 C);
+  - the waste N2 leaves E3101 at **9.49 C** (S17; was 7.2 C without the leak, against the
+    D-061 design 13 C). E3101 5,833 kW, least approach 2.00 K at the warm end (air 15 C against
+    the 13 C products), E3102 5.19 K; no cross, no utility out of range;
+  - E2101 heating step 1,008 kW (was 1,020 kW from 7.2 C);
+  - columns, products, machines and every other duty unchanged (the leak is downstream of the
+    columns in the solve): GOX 99.71 % O2, MAC 7,288 kW, K3101 185.9 kW, KT3101 198.5 kW.
+- (3) **The expander still balances the refrigeration; flow and specs kept.** With the 50 kW
+  leak the cold box still has ~78 kW of refrigeration more than a 13 C waste warm end needs
+  (76,560 kg/h x ~1.04 kJ/kg K x 3.5 K). KT-3101 (14,870 kg/h, 198.5 kW, D-061) covers a leak
+  up to ~130 kW before the waste N2 warm end would reach 13 C, i.e. 2.6 x the estimate. It is
+  not cut to the estimate: the leak itself is ASSUMED, the margin serves the cool-down, the
+  liquid production (D-017) and the loss of E-3105 (booster air at 30 C, about 65 kW more heat:
+  still positive), and the compander, the Lachmann feed of the LP column (D-066) and their
+  datasheets would all move for a margin a vendor may take back. In operation the expander nozzles
+  turn the flow down or more liquid is made. The 5.5 K warm end of the waste N2 is the visible
+  cost.
+- (4) **Simulated against assumed values** (each `process-sim-deviation`):
+  - S17, S12B, S12C temperature: **adopt the simulation.** The 13 C was the D-061 design
+    target for the warm end, not a specification; the assumed values are removed and `--fill`
+    wrote 9.49 C (calculated). S12A already took it.
+  - S10, S11 temperature and pressure: **keep** as the delivery specification of D-056: LOX
+    -183 C 1.3 bara and LIN -181 C 5.2 bara, subcooled ~2.4 K so the liquid holds to the tanks.
+    The simulation gives the column draws (LP sump -180.1 C 1.40 bara, HP draw -178.4 C 5.3
+    bara), a different point of the same line.
+  - S12A, S12B, S12C pressure: **keep** (1.10, 1.05, 1.02 bara). They are the pressures at
+    E-2101, C-1102 and the vent after the WN-3002 / RG-2001 / WN-1001 / WN-3003 line drops
+    (D-071, D-072); the splitter X3101 has no line losses and gives 1.15 bara.
+  - E3 duty: **keep** 377 kW, the cycle average the TEA and the LCA use (D-066); the simulation
+    gives the 1,008 kW heating step (E2101 to 200 C).
+  - No other deviation is left (the earlier list's S16, E2 and E3102 report none: E2 is not
+    simulated, info only; S16 and E3102 are calculated).
+- (5) **E3101 min_approach 1.99 K.** The outlet specs put the warm end at exactly 2 K (15 C air
+  against 13 C products), and the solved approach came out 1.9999999 K with the leak, which
+  core flags as below 2 K. The check is now 1.99 K, the D-061 2 K design with 0.01 K for
+  round-off; the design value is unchanged.
+- (6) **Peng-Robinson substitution accepted** (method_selection.substitution; the schema has
+  no accepted_by field, so the acceptance is written in the text): PR with the D-066 Ar/O2 kij
+  is suitable for N2/O2/Ar vapour-liquid equilibrium at these conditions (1.3-5.5 bara,
+  80-100 K), and water appears only at the warm end and in the condensates, where the duties
+  are small. The limitation stays listed (water saturation 10-13 % low; adsorbers sized on
+  IAPWS-95, D-080). core still reports the substitution as info.
+- (7) **Datasheets refilled** (`cheme datasheets fill` with draft set and reset; the new
+  sizing_scope and the rating, mechanical design, corrosion allowance and relief fields are
+  marked supplier; C-1102 relief not_applicable per D-083; the list-derived dimensions keep their
+  ASSUMED marks of review17#1); scripts/datasheet_sizing.py rerun (section 5 on S16C):
+  - E-2101: inlet 9.49 C (simulated); the gas takes 1,006 kW to 200 C (was 987 kW from 13 C);
+    the 1,130 kW peak is kept, now ~11 % above the gas duty.
+  - E-3101: waste N2 S16C -176.6 -> S17 9.5 C; the cold side balances the 5,835 kW warm side
+    within 0.3 kW; UA 1,001 kW/K (was 1,796, an upper bound with 126 kW of surplus at the cold
+    end; now the surplus opens the cold end to 6.9 K). The 4-core bank is kept.
+  - C-1102: inlet 9.49 C; adiabatic saturation 0.3 C (was 2.3 C); 791 kg/h evaporated and
+    563 kg/h make-up at the 698 kW demand (was 850 / 621). The colder dry gas does not reduce
+    the chilled-water capability.
+  - V-2101A/B: CO2 70.78 kg/h (was 67.66, the D-090 composition), 283 kg per 4 h step; source
+    reworded to the 420 ppm design specification of D-099 (maturity-review2#10).
+  - Line list WN-1001 and WN-3002 notes give the 9.5 C flows (both slightly lower than at 13 C;
+    sizing kept). Outline drawings regenerated.
+- (8) **Case text** (maturity-review2#11): the design case reads the D-099 design air and the
+  ~83 % O2 recovery (D-066, ASSUMED), not 94 %.
+
+Regenerated: `cheme process build` (BFD, PFD: the new step HL3101 and stream S16C), `process
+props --fill`, `layout build`, `layout lifting --write` (unchanged), `assess
+mto|estimate|equipment|tea|lca --write` (only the LCA dataset and manifest fingerprints
+changed), `cheme maturity --write`: level **balanced** (screening), as in D-099; predictive
+still fails on coverage (C1102) and model basis (V2101), property regime and energy closure
+unsupported; predictive.exchangers passes. `cheme validate`: 0 errors. `cheme check`: 30 of 31
+gates pass; layout-review fails until an independent layout review covers the changed
+datasheets, line list and layout model.
+
+Open:
+- the HAZOP: process/flowsheet.yaml changed, so H-01 .. H-04 report hazop-input-changed;
+  H03-N3 cites the 7.2 C waste N2 (now 9.49 C with the leak). For the HAZOP revision (D-102);
+- an independent layout review (the layout-review gate) and a review of this decision;
+- the cold-box vendor: the heat leak, the E-3101 warm end and the expander margin;
+- C1102 and V2101 for predictive (D-097), unchanged; core's build fails on the
+  SupplyingThermalEnergy class (its method field), so HL3101 is an ExchangingThermalEnergy step.
