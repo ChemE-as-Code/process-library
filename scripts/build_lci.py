@@ -977,9 +977,14 @@ def _uncertainty(exchange: dict, amount: float) -> dict:
         gsd2 = pedigree_gsd2(pedigree["scores"], exchange["basic_uncertainty"])
     else:
         gsd2 = None
-    if not gsd2 or amount <= 0:
+    if not gsd2 or amount == 0:
         return {}
-    return {"uncertainty type": 2, "loc": _number(math.log(amount)), "scale": _number(math.log(gsd2) / 2)}
+    # a negative amount (a credit of the substitution variant) is the lognormal of its magnitude
+    # with Brightway's (stats_arrays) ``negative`` flag
+    spec = {"uncertainty type": 2, "loc": _number(math.log(abs(amount))), "scale": _number(math.log(gsd2) / 2)}
+    if amount < 0:
+        spec["negative"] = True
+    return spec
 
 
 def _pedigree_column(exchange: dict) -> dict:

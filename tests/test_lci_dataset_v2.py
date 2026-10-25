@@ -202,6 +202,15 @@ def test_pedigree_gsd2_follows_ciroth_et_al_2016() -> None:
     assert build_lci.pedigree_gsd2([4, 2, 2, 5, 3], 1.05) == pytest.approx(math.exp(math.sqrt(sum(terms))))
 
 
+def test_a_negative_amount_keeps_its_lognormal_with_the_negative_flag() -> None:
+    exchange = {"pedigree": {"scores": [2, 2, 2, 2, 2]}, "basic_uncertainty": 1.05}
+    credit = build_lci._uncertainty(exchange, -2.0)
+    assert credit["negative"] is True and credit["loc"] == pytest.approx(math.log(2.0))
+    assert credit["scale"] == pytest.approx(math.log(build_lci.pedigree_gsd2([2, 2, 2, 2, 2], 1.05)) / 2)
+    assert "negative" not in build_lci._uncertainty(exchange, 2.0)
+    assert build_lci._uncertainty(exchange, 0.0) == {}
+
+
 def test_the_pedigree_is_exported_with_its_lognormal(library: Path, tmp_path: Path) -> None:
     assert _build(library, tmp_path).errors == []
     water = _exchange(_activities(tmp_path)[H2], "resource:WATER")

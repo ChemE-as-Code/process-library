@@ -266,7 +266,7 @@ def install(
                 if sum(e["amount"] for e in node.production()) < 0:
                     exc["amount"] = -exc["amount"]
                     if exc.get("uncertainty type") == 2:
-                        exc["negative"] = True
+                        exc["negative"] = exc["amount"] < 0
                     report.sign_flipped.append(f"{_label(ds)}: {exc['name']}")
     report.biosphere_by_name -= report.biosphere_by_uuid  # counted above: every linked biosphere exchange
     if report.unlinked:
