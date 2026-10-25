@@ -175,7 +175,8 @@ check.
   register records each one as unresolved, with the HAZOP action that decides it.
 - The two control conflicts found in the control review (the LP column pressure and the GOX
   draw; the GAN flow) are decided in D-095 and D-096: pressure as master, flow as limit. Open:
-  the independent limits (H04-A22, H04-A23), the role of PV-4105, the anti-surge flow
+  the independent limits (H04-A22, H04-A23), the confirmation of PV-4105 as an operator-set
+  start-up valve (D-105, H04-A31), the anti-surge flow
   measurement of K-4101, and the maximum GOX draw as a ratio to the air flow.
 - The liquid production has no handle yet (H03-A7).
 - Trips named in the instrument list are not yet in the cause-and-effect list (H04-A01, H02-A1,
