@@ -1,0 +1,71 @@
+name: Process work item
+description: Engineering work on one process (processes/<id>/), with when to do it and when not to.
+title: "[<process id>] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        One item of engineering work on one process: an open point, a review or HAZOP action,
+        a missing piece of design. Say what it is, **when** it should be done and **when not**,
+        so it is neither forgotten nor done too early (on guessed data, or in the middle of
+        someone else's change). Filter by process with the label `process:<id>`, which is set
+        from the field below.
+  - type: dropdown
+    id: process
+    attributes:
+      label: Process
+      description: The folder under processes/. Add a new process here when its folder is created.
+      options:
+        - asu-1
+    validations:
+      required: true
+  - type: dropdown
+    id: stage
+    attributes:
+      label: Stage it belongs to
+      description: The engineering stage at which this has to be done (plant.yaml stages).
+      options:
+        - concept
+        - basic
+        - detail
+        - not tied to a stage
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What
+      description: What is open, in a few sentences. Name the files, tags and ids.
+    validations:
+      required: true
+  - type: textarea
+    id: when
+    attributes:
+      label: When to do it
+      description: The trigger, e.g. "after the HAZOP re-stamp", "with the vendor enquiry", "at the next change of P-04".
+    validations:
+      required: true
+  - type: textarea
+    id: not-before
+    attributes:
+      label: When not (and why)
+      description: What doing it now would cost or break, e.g. inventing data, staling a review, conflicting with another branch.
+    validations:
+      required: true
+  - type: textarea
+    id: inputs
+    attributes:
+      label: Blocked by / inputs needed
+      description: Other issues, other people's work, vendor or client data, a HAZOP or LOPA session.
+  - type: textarea
+    id: refs
+    attributes:
+      label: References
+      description: DESIGN.md decisions (D-NNN), review findings (reviews/...#N), HAZOP actions, files.
+  - type: textarea
+    id: done
+    attributes:
+      label: Done when
+      description: What has to be true to close it, e.g. "the open point is gone from control/loops.yaml and cheme validate reports no cheme.control-incomplete for it".
+    validations:
+      required: true

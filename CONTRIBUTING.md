@@ -72,3 +72,22 @@ publication: {status: public, license: CC-BY-4.0, exclude: ["docs/private/**"]}
 
 Do not rewrite another process's engineering files; change them through that process's own
 review (its `DESIGN.md`, `reviews/`).
+
+## Issues
+
+Open points of a process are tracked as issues, so they are not lost between sessions:
+
+- **Process work** uses the form "Process work item". It asks what is open, **when to do it**
+  and **when not** (and why), what it waits for, the references (decisions, review findings,
+  HAZOP actions) and when it is done. The form's Process field sets the label `process:<id>`
+  (workflow `issue-process-label`). Filter by `label:process:asu-1`. When you add a process
+  folder, add its id to the form's dropdown.
+- **Library work** (schemas, catalog builder, LCI database, Atlas data) uses "Library work
+  item", labelled `scope:library`.
+- What an open item waits for is a label:
+  - `waiting:input` for vendor, client or a HAZOP / LOPA session;
+  - `waiting:work` for another issue or branch.
+- An open point recorded in a process's files (`unresolved:` in `control/*.yaml`, Open in a
+  DESIGN.md decision) names its issue, and the issue names the files. Close the issue only once
+  the files no longer carry the point.
+
