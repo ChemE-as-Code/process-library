@@ -1,0 +1,95 @@
+# Theme, palette and extensions follow ChemE-as-Code/core's mkdocs.yml. Built in CI to check it
+# (.github/workflows/docs.yml); not published.
+site_name: ChemE-as-Code process library
+site_description: "Versioned designs of chemical processes, one folder per process: the source of the Process Atlas and its Brightway LCI database."
+site_url: https://docs.cheme-as-code.org/process-library/
+repo_url: https://github.com/ChemE-as-Code/process-library
+repo_name: ChemE-as-Code/process-library
+edit_uri: edit/main/docs/
+copyright: Process Intelligence Research. Data and designs CC BY 4.0, code MIT.
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - navigation.indexes
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - toc.follow
+
+extra_css:
+  - assets/extra.css
+
+
+# includes.py: pages include sections of README.md, CONTRIBUTING.md, lci/README.md and the process
+# READMEs (single sources). library.py: one page per process and per JSON Schema, generated.
+hooks:
+  - docs/hooks/includes.py
+  - docs/hooks/library.py
+
+exclude_docs: |
+  hooks/
+
+watch:
+  - README.md
+  - CONTRIBUTING.md
+  - lci/README.md
+  - python/README.md
+  - schemas
+  - processes
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+# "Processes" and "Schemas" get their generated pages appended by docs/hooks/library.py.
+# The methodology pages are optional there: an entry is dropped while its file does not exist.
+nav:
+  - Home: index.md
+  - Contributing: contributing.md
+  - Building and CI: building.md
+  - Processes:
+      - processes/index.md
+  - Process manifest:
+      - manifest.md
+      - Schemas: []
+  - LCI export: lci.md
+  - Methodology:
+      - System model: system-model.md
+      - Governance: governance.md
+      - Coverage: coverage.md
