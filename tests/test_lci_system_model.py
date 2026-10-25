@@ -185,12 +185,45 @@ def test_unprovable_allocation_is_a_finding_and_kept(library: Path, tmp_path: Pa
     assert "hierarchy rule unresolved" in build_lci.read_workbook(tmp_path / "out" / "lci" / "cheme-as-code-atlas-0.1.0.xlsx")[H2]["meta"]["comment"]
 
 
-def test_a_recorded_deviation_keeps_the_study_method(library: Path, tmp_path: Path) -> None:
-    _edit(_study(library), lambda s: s["allocation"].update(prices={"H2": 5.0, "O2": 0.5}, deviation="test: the PCR of this sector prescribes mass"))
+def test_a_curated_deviation_keeps_the_study_method(library: Path, tmp_path: Path) -> None:
+    # core's allocation schema has no deviation field: a deviation is a curated rule only
+    _edit(_study(library), lambda s: s["allocation"].update(prices={"H2": 5.0, "O2": 0.5}))
+    _edit(library / "lci" / "mappings.yaml", lambda m: m.update(allocation={"fixture-electrolysis": {
+        "method": "mass", "rule": "deviation", "reason": "test: the PCR of this sector prescribes mass"}}))
     report = build_lci.build(library, tmp_path / "out", "0.1.0", commit="fixture")
     assert report.errors == [] and report.warnings == []
     entry = _electrolysis(tmp_path / "out")
-    assert (entry["method"], entry["rule"], entry["reason"]) == ("mass", "deviation", "test: the PCR of this sector prescribes mass")
+    assert (entry["method"], entry["source"], entry["rule"], entry["reason"]) == ("mass", "mappings", "deviation", "test: the PCR of this sector prescribes mass")
+
+
+def _ammonia_with_co2() -> dict:
+    return {"id": "nh3", "exchanges": [
+        {"key": "product:NH3", "type": "product", "amount": 1.0, "unit": "kg"},
+        {"key": "product:CO2", "type": "product", "amount": 1.25, "unit": "kg"},
+    ]}
+
+
+def _mappings(**allocation) -> dict:
+    return {"allocation": allocation}
+
+
+def test_co2_cutoff_gives_the_co2_no_share_of_the_main_process(library: Path) -> None:
+    path = library / "lci" / "mappings.yaml"
+    _edit(path, lambda m: m.update(allocation={"fixture-ammonia": {"method": "mass", "rule": "co2-cutoff", "product": "CO2", "reason": "test: CO2 by mass"}}))
+    with pytest.raises(build_lci.BuildError, match="method: .shares. was expected"):
+        build_lci.load_mappings(path)  # only shares can express the cut before conditioning
+    _edit(path, lambda m: m.update(allocation={"fixture-ammonia": {"method": "shares", "rule": "co2-cutoff", "reason": "test: no product named"}}))
+    with pytest.raises(build_lci.BuildError, match="product"):
+        build_lci.load_mappings(path)
+
+    entry = {"method": "shares", "rule": "co2-cutoff", "product": "CO2", "reason": "test: cut before conditioning", "shares": {"NH3": 1, "CO2": 0}}
+    choice = build_lci.choose_allocation("p", _ammonia_with_co2(), None, _mappings(p=entry))
+    assert (choice.rule, choice.finding) == ("co2-cutoff", None)
+    assert build_lci.shares(_ammonia_with_co2(), choice.allocation, "p") == {"product:NH3": 1.0, "product:CO2": 0.0}
+    with pytest.raises(build_lci.BuildError, match="share of 0.5"):
+        build_lci.choose_allocation("p", _ammonia_with_co2(), None, _mappings(p={**entry, "shares": {"NH3": 0.5, "CO2": 0.5}}))
+    with pytest.raises(build_lci.BuildError, match="not a product"):
+        build_lci.choose_allocation("p", _ammonia_with_co2(), None, _mappings(p={**entry, "product": "carbon-dioxide"}))
 
 
 def test_a_curated_rule_overrides_the_study_and_is_checked(library: Path, tmp_path: Path) -> None:
@@ -218,6 +251,40 @@ def test_minor_coproducts_do_not_enter_the_price_ratio() -> None:
     ]}
     assert build_lci.price_ratio(dataset, {"prices": {"A": 1.0, "B": 2.0, "C": 100.0}}) == pytest.approx(2.0)
     assert build_lci.price_ratio(dataset, {"prices": {"A": 1.0, "C": 100.0}}) is None  # B has no price
+
+
+def test_an_unpriced_minor_coproduct_has_no_economic_weight() -> None:
+    dataset = {"id": "d", "exchanges": [
+        {"key": "product:A", "type": "product", "amount": 100.0, "unit": "kg"},
+        {"key": "product:B", "type": "product", "amount": 100.0, "unit": "kg"},
+        {"key": "product:C", "type": "product", "amount": 0.5, "unit": "kg"},  # below 1 %, no price
+    ]}
+    choice = build_lci.choose_allocation("p", dataset, {"method": "economic", "prices": {"A": 10.0, "B": 1.0}}, _mappings())
+    assert (choice.allocation["method"], choice.finding) == ("economic", None)
+    weights = build_lci.shares(dataset, choice.allocation, "p")
+    assert weights["product:C"] == 0.0 and weights["product:A"] == pytest.approx(10 / 11)
+
+
+def test_one_major_coproduct_left_gives_mass() -> None:
+    dataset = {"id": "d", "exchanges": [
+        {"key": "product:A", "type": "product", "amount": 100.0, "unit": "kg"},
+        {"key": "product:B", "type": "product", "amount": 0.5, "unit": "kg"},
+    ]}
+    assert build_lci.price_ratio(dataset, {"prices": {"A": 1.0, "B": 50.0}}) == 1.0
+    choice = build_lci.choose_allocation("p", dataset, {"method": "mass"}, _mappings())
+    assert (choice.rule, choice.finding) == ("mass", None)
+
+
+def test_the_price_ratio_needs_every_coproduct_in_kg() -> None:
+    dataset = {"id": "d", "exchanges": [
+        {"key": "product:H2", "type": "product", "amount": 1.0, "unit": "kg"},
+        {"key": "product:STEAM", "type": "product", "amount": 10.0, "unit": "MJ"},
+    ]}
+    study = {"method": "energy", "prices": {"H2": 3.0, "STEAM": 0.01}, "properties": {"H2": {"energy": 120.0}, "STEAM": {"energy": 1.0}}}
+    assert build_lci.price_ratio(dataset, study) is None  # per kg against per MJ: no ratio
+    choice = build_lci.choose_allocation("p", dataset, study, _mappings())
+    assert choice.allocation["method"] == "energy" and choice.rule == "unresolved"
+    assert "STEAM is not counted in kg" in choice.finding
 
 
 # --- governance: versions and change report -----------------------------------------------------
@@ -271,6 +338,27 @@ def test_two_consecutive_builds_produce_a_change_report(library: Path, tmp_path:
     assert "No activity changed." in (tmp_path / "v3" / "lci" / "CHANGES.md").read_text()
 
 
+def test_an_allocation_change_alone_needs_a_new_dataset_version(library: Path, tmp_path: Path) -> None:
+    # the dataset file stays the same; the allocation changes through the mappings and the study
+    assert build_lci.build(library, tmp_path / "v1", "0.1.0", commit="one").errors == []
+    _edit(library / "lci" / "mappings.yaml", lambda m: m.update(allocation={"fixture-electrolysis": {
+        "method": "shares", "rule": "deviation", "reason": "test: shares from a sector agreement"}}))
+    _edit(_study(library), lambda s: s["allocation"].update(shares={"H2": 0.6, "O2": 0.4}))
+    assert build_lci.build(library, tmp_path / "v2", "0.2.0", commit="two", previous=tmp_path / "v1").errors == []
+    electrolysis = next(d for d in _json(tmp_path / "v2" / "lci" / "changes.json")["datasets"] if d["dataset"] == "fixture-electrolysis")
+    assert electrolysis["content_changed"] is False and electrolysis["allocation_changed"] is True
+    assert electrolysis["status"] == "changed" and electrolysis["version_not_raised"] is True
+    assert electrolysis["allocation"] == ["mass", "shares"]
+    assert "allocation changed, version not raised" in (tmp_path / "v2" / "lci" / "CHANGES.md").read_text()
+
+    # same method, other shares
+    _edit(_study(library), lambda s: s["allocation"].update(shares={"H2": 0.7, "O2": 0.3}))
+    assert build_lci.build(library, tmp_path / "v3", "0.3.0", commit="three", previous=tmp_path / "v2").errors == []
+    electrolysis = next(d for d in _json(tmp_path / "v3" / "lci" / "changes.json")["datasets"] if d["dataset"] == "fixture-electrolysis")
+    assert electrolysis["status"] == "changed" and "allocation" not in electrolysis and electrolysis["version_not_raised"] is True
+    assert "allocation shares changed" in (tmp_path / "v3" / "lci" / "CHANGES.md").read_text()
+
+
 def test_change_report_inputs_are_checked(library: Path, tmp_path: Path) -> None:
     report = build_lci.build(library, tmp_path / "out", "0.1.0", commit="x", previous=tmp_path / "nothing")
     assert any("no datapackage.json" in e for e in report.errors)
@@ -292,6 +380,7 @@ def test_release_metadata_is_drafted_not_published(tmp_path: Path) -> None:
     cff = yaml.safe_load((tmp_path / "archive" / "CITATION.cff").read_text())
     assert cff["version"] == "0.2.0" and str(cff["date-released"]) == "2026-11-01"
     assert cff["authors"] == yaml.safe_load((KIT / "CITATION.cff").read_text())["authors"]
+    assert cff["title"] == zenodo["title"] and "LCI database" in cff["message"]  # one work, not the whole library
     assert "version" not in yaml.safe_load((KIT / "CITATION.cff").read_text())  # the repository's file is not changed
     assert release_metadata.main(["--version", "v1", "--out", str(tmp_path)]) == 1
     workflow = (KIT / ".github" / "workflows" / "release.yml").read_text()

@@ -3,7 +3,8 @@
 # dependencies = []
 # ///
 """Draft the archive metadata of an Atlas LCI release: ``.zenodo.json`` and ``CITATION.cff`` with
-the release's version and date, written into the release folder for the owner to check.
+the release's version and date, written into the release folder for the owner to check. Both
+describe the same work, the LCI database (the title of ``.zenodo.json``), not the whole library.
 
 Nothing is uploaded, tagged or published: the release decision is the owner's
 (docs/governance.md, "Releases and DOIs"). The repository's own files are not changed; the DOI
@@ -32,12 +33,28 @@ def zenodo(source: Path, version: str, released: str) -> dict:
     return data
 
 
-def citation(source: Path, version: str, released: str) -> str:
-    """CITATION.cff with ``version`` and ``date-released`` set (text edit, so the file keeps its
-    comments and layout)."""
-    lines = [line for line in source.read_text(encoding="utf-8").splitlines() if not re.match(r"^(version|date-released):", line)]
-    at = next(i for i, line in enumerate(lines) if line.startswith("title:")) + 1
-    lines[at:at] = [f"version: {version}", f"date-released: '{released}'"]
+def citation(source: Path, version: str, released: str, title: str) -> str:
+    """The repository's CITATION.cff turned into the citation of the LCI database release: its
+    ``title`` and ``message`` name the database (the root file cites the whole library, code
+    included, which the release's version does not describe), with ``version`` and
+    ``date-released`` set. A text edit, so the file keeps its comments and layout."""
+    lines, skipping = [], False
+    for line in source.read_text(encoding="utf-8").splitlines():
+        if re.match(r"^[A-Za-z-]+:", line):
+            skipping = bool(re.match(r"^(version|date-released|message):", line))
+        elif skipping and (line.startswith(" ") or not line.strip()):
+            continue
+        if not skipping:
+            lines.append(line)
+    at = next(i for i, line in enumerate(lines) if line.startswith("title:"))
+    lines[at:at + 1] = [
+        "message: >-",
+        f"  If you use the {title}, please cite this release as below.",
+        "  It is licensed under CC BY 4.0 (LICENSE-DATA of the ChemE-as-Code process library).",
+        f"title: {title}",
+        f"version: {version}",
+        f"date-released: '{released}'",
+    ]
     return "\n".join(lines) + "\n"
 
 
@@ -55,7 +72,7 @@ def main(argv: list[str] | None = None) -> int:
     archive.mkdir(parents=True, exist_ok=True)
     data = zenodo(args.root / ".zenodo.json", args.version, args.date)
     (archive / ".zenodo.json").write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    (archive / "CITATION.cff").write_text(citation(args.root / "CITATION.cff", args.version, args.date), encoding="utf-8")
+    (archive / "CITATION.cff").write_text(citation(args.root / "CITATION.cff", args.version, args.date, data["title"]), encoding="utf-8")
     print(f"drafted {archive / '.zenodo.json'} and {archive / 'CITATION.cff'} for {args.version}: nothing was published")
     return 0
 

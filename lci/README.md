@@ -82,9 +82,10 @@ build); governance (versions, change reports, releases, review) is
   hand-written `processes/<id>/lca/datasets/*.yaml` of a manifest-only process.
 - **Co-products.** One single-output activity per co-product, per 1 unit (kg) of it, allocated
   by the hierarchy of docs/system-model.md: a curated rule in `lci/mappings.yaml` `allocation:`
-  first; else the study's (`lca/lca.yaml`) or the dataset's method if it is the WBCSD
-  price-ratio choice (economic above a ratio of 5, else mass) or records a `deviation:`; else the
-  price-ratio choice, with a finding; else the given method, with a finding. Findings are
+  first (a deviation from the hierarchy is such a rule, `rule: deviation`); else the study's
+  (`lca/lca.yaml`) or the dataset's method if it is the WBCSD price-ratio choice (economic above
+  a ratio of 5 of the prices per kg, else mass); else the price-ratio choice, with a finding;
+  else the given method, with a finding. Findings are
   warnings (`--strict` fails). Proportional methods (mass, economic, energy, exergy, shares)
   only; substitution and `none` are refused. The unallocated multi-output form is not exported
   (bw2io's Excel importer has no clean representation of it).
@@ -156,7 +157,8 @@ byte-identical (the workbook's document dates and zip entry dates are fixed).
 
 `--previous <dir>` (a folder holding an earlier build's `lci/`, or that `lci/` itself; not the
 output folder) writes `lci/changes.json` and `lci/CHANGES.md`: per dataset its status (by content
-hash), version before and after and whether a changed dataset's version was raised; per
+hash and its allocation method and shares), version before and after and whether a changed
+dataset's version was raised; per
 activity the exchanges added, removed and changed (amount with relative change, or link). The
 report is **exchange level only**: no impact delta is computed, because the CI stub background
 (below) is built from one process's example factors inside the Brightway test and is not a

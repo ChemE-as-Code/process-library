@@ -86,8 +86,19 @@
         "properties": {
           "method": {"enum": ["mass", "economic", "energy", "exergy", "shares"]},
           "rule": {"enum": ["physical-exergy", "physical-energy", "economic", "mass", "co2-cutoff", "pcr", "deviation"]},
-          "reason": {"type": "string", "minLength": 10}
-        }
+          "reason": {"type": "string", "minLength": 10},
+          "shares": {
+            "description": "Share of the burdens per product name, for method shares (else the study's or dataset's shares are used).",
+            "type": "object",
+            "additionalProperties": {"type": "number", "minimum": 0}
+          },
+          "product": {
+            "description": "rule co2-cutoff: the product name of the CO2 co-product, whose share of the main process must be 0 (hierarchy step 4: its conditioning is a separate dataset).",
+            "type": "string", "minLength": 1
+          }
+        },
+        "if": {"properties": {"rule": {"const": "co2-cutoff"}}},
+        "then": {"required": ["product"], "properties": {"method": {"const": "shares"}}}
       }
     },
     "exchanges": {

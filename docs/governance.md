@@ -15,7 +15,7 @@ Three things carry a semantic version, `MAJOR.MINOR.PATCH`:
 | what | where it is recorded |
 |---|---|
 | the **database release** | `--version` of `build_lci.py`: the database name `cheme-as-code-atlas-<version>`, `datapackage.json` `version`, `index.json` |
-| each **dataset** | the dataset's own `version` field; `datapackage.json` `processes[].datasets[].version` and `version_source` |
+| each **dataset** | the dataset's own `version` field (once core#179 adds it); `datapackage.json` `processes[].datasets[].version` and `version_source` |
 | the **methodology** | the header of [system-model.md](system-model.md) and `METHODOLOGY_VERSION` in `build_lci.py` (a test keeps them equal); `datapackage.json` `system_model.methodology.version` and each dataset's `methodology_version` |
 
 What raises which part:
@@ -34,18 +34,23 @@ A release's version is at least as high as the largest change in it: a release w
 dataset change is a MAJOR release. Versions below 1.0.0 are screening releases: the data may
 change in any release, and they are not for decision support.
 
-A dataset that records no version is reported as `0.1.0` with `version_source: initial` (the
-process's `version` is used when it has one). core will write dataset UUIDs and versions
-(core#179); until then, the curator sets `version` in hand-written datasets.
+A dataset that records no version is reported as `0.1.0` with `version_source: initial`. core
+will add and write dataset UUIDs, versions, the review record and `valid_until` (core#179).
+Until then core's dataset schema refuses these fields, so every dataset is reported as `0.1.0`,
+`unreviewed`, with no `valid_until`; the build reads the fields as soon as core writes them.
+The process manifest has no version of its own (`schemas/process.schema.json`).
 
 ## 2. Change reports
 
 `build_lci.py --previous <earlier build>` compares the new build with an earlier one and writes
 `lci/changes.json` and `lci/CHANGES.md`:
 
-- per **dataset**: added, removed, changed or unchanged (by a sha256 of its content), the version
-  before and after, an allocation method change, and `version_not_raised` when the content
-  changed but the version did not (a governance error to fix before release);
+- per **dataset**: added, removed, changed or unchanged (by a sha256 of its content and by its
+  allocation method and shares, which also change with the study's prices or a curated rule),
+  the version before and after, an allocation change, and `version_not_raised` when the content
+  or the allocation changed but the version did not (a governance error to fix before release).
+  The dataset status does not cover changes of the links alone (a new mapping or cut-off
+  exclusion): those show in the activity section;
 - per **activity**: activities added and removed, and per activity the exchanges added,
   removed and changed (amount before and after with the relative change, or the link: name,
   reference product, unit, location, categories);
@@ -72,7 +77,10 @@ token) drafts a release:
    in it;
 4. drafts the archive metadata (`scripts/release_metadata.py`): `.zenodo.json` and
    `CITATION.cff` with the version and date, in `release/archive/`;
-5. uploads everything as a workflow artifact (30 days), visible only to repository members.
+5. uploads everything as a workflow artifact (30 days). Its visibility follows the
+   repository's: only repository members can download it while the repository is private, but
+   any signed-in GitHub user can once it is public. The artifact holds the `--public` build
+   only.
 
 It does not tag, create a GitHub release, deposit on Zenodo, mint a DOI or deploy, and it never
 reads or sets `DEPLOY_ENABLED`.
@@ -84,7 +92,10 @@ When the owner decides to release:
 - [ ] tag the commit `lci-v<version>`;
 - [ ] deposit the artifact on Zenodo by hand (or enable the Zenodo GitHub integration, which
       deposits on a published GitHub release and reads `.zenodo.json`; enabling it is itself a
-      release decision);
+      release decision). Once the integration is on, the root `.zenodo.json` applies to
+      **every** GitHub release of the repository, which would then be deposited as the LCI
+      database under CC BY 4.0, although the repository also holds MIT code: tag LCI releases
+      only, or deposit by hand;
 - [ ] add the DOI to `CITATION.cff` and the database's README in a follow-up commit.
 
 **Citing a dataset:** authors of the process, year, *process title*, dataset `<id>` version
@@ -97,8 +108,8 @@ The LCI review is separate from the engineering design review (`process.yaml`
 `validation.status` and `processes/<id>/reviews/`): a well-engineered design can still have a poor
 inventory, and the reverse.
 
-Levels, recorded in the dataset's `review` field (`datapackage.json` shows `{"status":
-"unreviewed"}` when there is none):
+Levels, to be recorded in the dataset's `review` field once core#179 adds it
+(`datapackage.json` shows `{"status": "unreviewed"}` when there is none):
 
 | status | who | when |
 |---|---|---|

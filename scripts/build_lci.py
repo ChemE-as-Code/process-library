@@ -33,8 +33,8 @@ Modelling rules (``docs/system-model.md``; also written into every activity's ``
   ``cheme-as-code-atlas-<version>-substitution`` with the credits of ``substitution:``;
 - one single-output activity per co-product, 1 unit of it, allocated by the hierarchy: the
   curated rule of ``allocation:`` in the mappings, else the study's (``lca/lca.yaml``) or the
-  dataset's method when it fits the WBCSD price-ratio rule or records a ``deviation``; otherwise
-  a finding (``--strict`` fails). The unallocated multi-output form is not exported;
+  dataset's method when it fits the WBCSD price-ratio rule; otherwise a finding (``--strict``
+  fails). The unallocated multi-output form is not exported;
 - construction, maintenance, transport and end of life are technosphere inputs per unit of
   product, as core's dataset already spreads them over the plant's life;
 - free inputs (ambient air) and free pass-through emissions are not exported (see mappings);
@@ -117,7 +117,9 @@ RULE_METHODS = {
     "physical-energy": ("energy",),
     "economic": ("economic",),
     "mass": ("mass",),
-    "co2-cutoff": PROPORTIONAL,
+    # step 4: the CO2 co-product gets a share of 0 of the main process; its conditioning is a
+    # separate (subdivided) dataset, so only explicit shares can express it
+    "co2-cutoff": ("shares",),
     "pcr": PROPORTIONAL,
     "deviation": PROPORTIONAL,
 }
@@ -344,6 +346,7 @@ def shares(dataset: dict, allocation: dict, where: str) -> dict[str, float]:
             f"use one of {', '.join(PROPORTIONAL)}"
         )
     raw: dict[str, float] = {}
+    minor = minor_coproducts(dataset)
     for product in products:
         name = _name(product)
         if method == "shares":
@@ -358,6 +361,8 @@ def shares(dataset: dict, allocation: dict, where: str) -> dict[str, float]:
         else:
             what = {"economic": "price", "energy": "energy", "exergy": "exergy"}[method]
             value = _properties(product, allocation)[what]
+            if value is None and method == "economic" and product["key"] in minor:
+                value = 0.0  # a co-product below 1 % of the output mass without a price has no economic weight
             if value is None:
                 raise BuildError(f"{where}: {method} allocation: no {what} of {name}")
             raw[product["key"]] = float(product["amount"]) * float(value)
@@ -367,14 +372,30 @@ def shares(dataset: dict, allocation: dict, where: str) -> dict[str, float]:
     return {k: v / total for k, v in raw.items()}
 
 
-def price_ratio(dataset: dict, allocation: dict) -> float | None:
-    """The WBCSD decision ratio: the highest over the lowest price per unit of the co-products,
-    leaving out co-products below 1 % of the output mass; None when a price is missing."""
+def minor_coproducts(dataset: dict) -> set[str]:
+    """Keys of the co-products below 1 % of the output mass (only when every product is in kg)."""
     products = [e for e in dataset["exchanges"] if e["type"] == "product"]
-    mass = sum(float(p["amount"]) for p in products if p["unit"] == "kg")
-    considered = [p for p in products if p["unit"] != "kg" or mass <= 0 or float(p["amount"]) / mass >= MINOR_COPRODUCT]
+    if len(products) < 2 or any(p["unit"] != "kg" for p in products):
+        return set()
+    mass = sum(float(p["amount"]) for p in products)
+    return {p["key"] for p in products if mass > 0 and float(p["amount"]) / mass < MINOR_COPRODUCT}
+
+
+def price_ratio(dataset: dict, allocation: dict) -> float | None:
+    """The WBCSD decision ratio: the highest over the lowest price per kg of the co-products,
+    leaving out co-products below 1 % of the output mass. None when a considered co-product has
+    no price, or when a co-product is not counted in kg (prices per MJ and per kg do not compare,
+    and the rule's alternative, mass allocation, needs kg). 1 when only one co-product is left:
+    there is nothing to compare, so the rule gives mass."""
+    products = [e for e in dataset["exchanges"] if e["type"] == "product"]
+    if len(products) < 2 or any(p["unit"] != "kg" for p in products):
+        return None
+    minor = minor_coproducts(dataset)
+    considered = [p for p in products if p["key"] not in minor]
+    if len(considered) == 1:
+        return 1.0
     prices = [_properties(p, allocation)["price"] for p in considered]
-    if len(considered) < 2 or any(price is None for price in prices):
+    if any(price is None for price in prices):
         return None
     low, high = min(map(float, prices)), max(map(float, prices))
     if high <= 0:
@@ -395,8 +416,9 @@ class Allocation:
 
 def choose_allocation(pid: str, data: dict, study_allocation: dict | None, mappings: dict) -> Allocation:
     """Apply the multi-functionality hierarchy: a curated rule (mappings ``allocation``) first;
-    else the study's or dataset's method if it is the WBCSD price-ratio choice or records a
-    ``deviation``; else the price-ratio choice; else the given method, with a finding."""
+    else the study's or dataset's method if it is the WBCSD price-ratio choice; else the
+    price-ratio choice; else the given method, with a finding. A deviation from the hierarchy is
+    a curated rule (``rule: deviation``): core's allocation schema has no field for it."""
     own = data.get("allocation") or {}
     if study_allocation:
         base, source = study_allocation, "study"
@@ -413,35 +435,51 @@ def choose_allocation(pid: str, data: dict, study_allocation: dict | None, mappi
     expected = None if ratio is None else ("economic" if ratio > PRICE_RATIO else "mass")
     ratio_text = "unbounded (a co-product has price 0)" if ratio == math.inf else f"{ratio:.3g}" if ratio is not None else "unknown"
     wbcsd = f"price ratio {ratio_text}: economic above {PRICE_RATIO:g}, else mass (WBCSD 2014)"
+    not_kg = [_name(p) for p in products if p["unit"] != "kg"]
+    gap = (
+        f"{', '.join(not_kg)} is not counted in kg, so the WBCSD price ratio (per kg) does not apply"
+        if not_kg else "not every co-product above 1 % of the output mass has a price, so the WBCSD price ratio is unknown"
+    )
 
     entry = mappings["allocation"].get(f"{pid}/{data['id']}") or mappings["allocation"].get(pid)
     if entry:
         rule = entry["rule"]
         finding = None
+        allocation = {**base, "method": entry["method"]}
+        if "shares" in entry:
+            allocation["shares"] = entry["shares"]
+        if rule == "co2-cutoff":
+            names = {_name(p) for p in products}
+            co2 = entry["product"]
+            if co2 not in names:
+                raise BuildError(f"lci/mappings.yaml allocation.{pid}: co2-cutoff product {co2!r} is not a product of dataset {data['id']}")
+            given = (allocation.get("shares") or {}).get(co2)
+            if given is None or float(given) != 0:
+                raise BuildError(
+                    f"lci/mappings.yaml allocation.{pid}: co2-cutoff gives {co2} a share of {given!r} of the main process; "
+                    "the cut is before conditioning, so its share is 0 and its conditioning is a separate dataset"
+                )
         if rule in ("economic", "mass") and expected is None:
-            finding = f"rule {rule}: not every co-product has a price, so the WBCSD price ratio cannot confirm it"
+            finding = f"rule {rule}: {gap}, so it cannot be confirmed"
         elif rule in ("economic", "mass") and expected != rule:
             finding = f"rule {rule}, but the {wbcsd}"
         elif rule == "physical-energy":
             zero = [_name(p) for p in products if _properties(p, base)["energy"] == 0]
             if zero:
                 finding = f"energy allocation, but {', '.join(zero)} has no energy content (the hierarchy then goes to step 3)"
-        return Allocation({**base, "method": entry["method"]}, "mappings", rule, " ".join(entry["reason"].split()), finding)
+        return Allocation(allocation, "mappings", rule, " ".join(entry["reason"].split()), finding)
 
-    deviation = base.get("deviation") or (own.get("deviation") if own.get("method", "mass") == method else None)
-    if deviation:
-        return Allocation(base, source, "deviation", " ".join(str(deviation).split()))
     if expected == method:
         return Allocation(base, source, expected, wbcsd)
     if expected:
         finding = (
             f"the {source}'s {method} allocation is not the hierarchy's {expected} ({wbcsd}); {expected} is exported. "
-            f"Record a curated rule in lci/mappings.yaml allocation, or a deviation, to keep {method}"
+            f"Record a curated rule in lci/mappings.yaml allocation (e.g. rule: deviation, with the reason) to keep {method}"
         )
         return Allocation({**base, "method": expected}, "hierarchy", expected, wbcsd, finding)
     finding = (
         f"{method} allocation ({source}) does not follow the documented hierarchy: no curated rule in lci/mappings.yaml "
-        "allocation, no recorded deviation, and no price of every co-product for the WBCSD rule"
+        f"allocation, and {gap}"
     )
     return Allocation(base, source, "unresolved", "not shown to follow the hierarchy (see the build's findings)", finding)
 
@@ -1048,13 +1086,17 @@ def change_report(previous: Path, package: dict, workbook: Path) -> dict:
             entry["status"] = "removed"
         else:
             content = a.get("content_sha256") != b.get("content_sha256") if a.get("content_sha256") else None
-            method = a.get("allocation", {}).get("method") != b.get("allocation", {}).get("method")
-            entry["status"] = "changed" if content or method else "unchanged" if content is False else "unknown"
+            old_alloc, new_alloc = a.get("allocation", {}), b.get("allocation", {})
+            method = old_alloc.get("method") != new_alloc.get("method")
+            # the shares change with the study's prices or a curated rule, not only with the dataset file
+            allocation_changed = method or old_alloc.get("shares") != new_alloc.get("shares")
+            entry["status"] = "changed" if content or allocation_changed else "unchanged" if content is False else "unknown"
             entry["content_changed"] = content
+            entry["allocation_changed"] = allocation_changed
             if method:
-                entry["allocation"] = [a.get("allocation", {}).get("method"), b.get("allocation", {}).get("method")]
+                entry["allocation"] = [old_alloc.get("method"), new_alloc.get("method")]
             # governance: a changed dataset gets a new version (docs/governance.md)
-            entry["version_not_raised"] = bool(content) and a.get("version") == b.get("version")
+            entry["version_not_raised"] = bool(content or allocation_changed) and a.get("version") == b.get("version")
         entry["version"] = [(a or {}).get("version"), (b or {}).get("version")]
         datasets.append(entry)
 
@@ -1096,9 +1138,11 @@ def changes_markdown(changes: dict) -> str:
     for d in changes["datasets"]:
         note = []
         if d.get("version_not_raised"):
-            note.append("content changed, version not raised")
+            note.append(f"{'content' if d.get('content_changed') else 'allocation'} changed, version not raised")
         if d.get("allocation"):
             note.append(f"allocation {d['allocation'][0]} -> {d['allocation'][1]}")
+        elif d.get("allocation_changed"):
+            note.append("allocation shares changed")
         lines.append(f"| {d['process']} | {d['dataset']} | {d['status']} | {d['version'][0] or '-'} -> {d['version'][1] or '-'} | {'; '.join(note)} |")
     activities = changes["activities"]
     lines += ["", "## Activities", ""]
@@ -1127,8 +1171,8 @@ def changes_markdown(changes: dict) -> str:
 # --- build -----------------------------------------------------------------------------------
 
 
-def _dataset_entry(process: Process, d: Dataset) -> dict:
-    version, version_source = _dataset_version(d, process)
+def _dataset_entry(d: Dataset) -> dict:
+    version, version_source = _dataset_version(d)
     allocation = {
         "method": d.allocation.get("method", "mass"),
         "source": d.allocation_source,
@@ -1163,13 +1207,12 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def _dataset_version(dataset: Dataset, process: Process) -> tuple[str, str]:
-    """A dataset's semantic version and where it comes from: its own ``version``, else the
-    process's, else the initial 0.1.0 (docs/governance.md)."""
+def _dataset_version(dataset: Dataset) -> tuple[str, str]:
+    """A dataset's semantic version and where it comes from: its own ``version`` (read once
+    core#179 adds the field; core's schema refuses it today), else the initial 0.1.0
+    (docs/governance.md)."""
     if dataset.data.get("version"):
         return str(dataset.data["version"]), "dataset"
-    if process.manifest.get("version"):
-        return str(process.manifest["version"]), "process"
     return "0.1.0", "initial"
 
 
@@ -1257,7 +1300,7 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
                 "factors_status": _factors_status(process.factors),
                 "functional_unit": _functional_unit(process.study),
                 "allocation": {"method": first.allocation.get("method", "mass"), "source": first.allocation_source, "rule": first.rule},
-                "datasets": [_dataset_entry(process, d) for d in process.datasets],
+                "datasets": [_dataset_entry(d) for d in process.datasets],
                 "activities": activity_list(by_process.get(process.pid, [])),
             }
         )

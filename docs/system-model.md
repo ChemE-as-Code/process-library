@@ -44,14 +44,21 @@ them:
    - **energy content (LHV)** for co-produced fuels and hydrogen (`rule: physical-energy`),
      unless one of the co-products has no energy content; then step 3 applies.
 3. **Otherwise the WBCSD rule:** economic allocation when the ratio of the highest to the
-   lowest price per unit of the co-products is above 5, mass allocation otherwise (`rule:
-   economic` or `mass`). Co-products below 1 % of the output mass do not enter this decision.
+   lowest price per kg of the co-products is above 5, mass allocation otherwise (`rule:
+   economic` or `mass`). Co-products below 1 % of the output mass do not enter this decision;
+   when only one co-product is left, there is nothing to compare and the rule gives mass. Under
+   economic allocation, such a minor co-product without a price gets an economic weight of 0.
+   The rule needs every co-product in kg: prices per MJ and per kg do not compare, so a dataset
+   with a co-product counted in another unit needs a curated rule (step 2 or 5).
 4. **CO2 as a co-product** (e.g. from ammonia synthesis): the cut is placed before conditioning,
    as TfS does. The CO2 carries only the burden of its own purification, drying and compression
-   (`rule: co2-cutoff`).
+   (`rule: co2-cutoff`). In the build this is `method: shares` with a share of **0** for the CO2
+   co-product (named by `product:`): it takes nothing of the main process. Its conditioning is
+   a separate, subdivided dataset (step 1). The mappings refuse any other method for this rule,
+   and the build refuses a non-zero CO2 share.
 5. **A published sector rule** (product category rules or sector recommendations, e.g. Euro
    Chlor for chlor-alkali, PlasticsEurope for steam crackers, ISOPA for isocyanates) overrides
-   steps 2 and 3 for its process, as a documented deviation (`rule: pcr`).
+   the rules above (steps 1 to 4) for its process, as a documented deviation (`rule: pcr`).
 
 Exported steam, heat and fuels are co-products: in the cut-off build they are allocated by
 energy or exergy (documented per process), never credited. Credits for them belong to the
@@ -67,10 +74,13 @@ underlying physical relationship, so steps 1, 2, 4 and 5 are **curated decisions
 |---|---|---|
 | one product | nothing to allocate | `single-output` |
 | a curated entry in `lci/mappings.yaml` `allocation:` (by process or process/dataset) | its method; the rule must allow the method (exergy for `physical-exergy`, energy for `physical-energy`, ...) or the mappings fail to load | `source: mappings`, the rule and its reason |
-| the study's or dataset's method records a `deviation:` (reason text) | that method | `deviation` with the reason |
-| prices of every major co-product known, method equals the WBCSD choice | that method | `economic` or `mass`, with the price ratio |
+| prices of every major co-product known (all co-products in kg), method equals the WBCSD choice | that method | `economic` or `mass`, with the price ratio |
 | prices known, method differs | the WBCSD choice, with a **finding** | `source: hierarchy`, `follows_hierarchy: false` |
-| no rule, no deviation, no prices | the study's method, with a **finding** | `unresolved`, `follows_hierarchy: false` |
+| no rule, and no price ratio (a price missing, or a co-product not in kg) | the study's method, with a **finding** | `unresolved`, `follows_hierarchy: false` |
+
+A deviation from the hierarchy is recorded only as a curated entry with `rule: deviation` and
+its reason. The study (`lca/lca.yaml`) and the dataset cannot record one: core's allocation
+schema has no field for it and refuses unknown keys.
 
 A finding is a build warning: `--strict` (CI, releases) fails on it. `datapackage.json` lists
 the findings (`system_model.allocation_findings`) and, per dataset, `allocation: {method,
@@ -136,8 +146,8 @@ read. They are part of the review checklist ([governance.md](governance.md)).
 - **Electricity:** industrial power links to the medium-voltage market of the site's country
   by default (`install(location=...)`).
 - **Data freshness:** primary data at most 5 years old and secondary data at most 10 years old
-  at the reference year. A dataset records a `valid_until` year; `datapackage.json` carries it
-  (null until core writes it).
+  at the reference year. A dataset will record a `valid_until` year (core#179); `datapackage.json`
+  carries it (null until core writes it).
 - **Atmospheric pass-through** (components taken in with the air and returned unchanged) is not
   exported, as decided in `lci/mappings.yaml` `pass_through:`.
 - **Data quality, nomenclature, carbon:** the pedigree matrix and TfS DQR (core#178), EF 3.1
