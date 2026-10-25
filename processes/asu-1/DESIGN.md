@@ -4558,7 +4558,8 @@ protection layer; HAZOP action H04-A23 remains.
 
 Open:
 - The role of PV-4105 and the signal drawn to it on P-04. Drawing the low select, the cascade
-  and PIC-4101's signal to PV-4101B.
+  and PIC-4101's signal to PV-4101B. (D-101 drew the low select UY-4151 and the cascade and
+  removed the line to PV-4105; PV-4105's role and PIC-4101's signal stay open.)
 - The anti-surge flow of K-4101: FT-4148 is upstream of the vent and recycle tees, so it does
   not see the recycle (D-024).
 - The maximum draw as a ratio to the air flow. The clamp on FIC-3107's cascade set point (the
@@ -5028,6 +5029,70 @@ evidence stamped against it stays current.
 
 Reason: show the ASU in the Process Atlas for a site country without copying the project or
 claiming a regional footprint the data cannot support.
+## D-101 Product control drawn on P-04: the guide-vane low select UY-4151 and the GAN cascade (2026-10-25)
+Decided by the agent on the owner's delegation of 2026-10-25 ("resolve all of these issues, make
+good decisions"). These are not the owner's own engineering judgement; the owner may reverse any
+of them. Closes the D-096 open point "drawing the low select and the cascade" (D-098 lists it
+too). The control itself is D-096's; this decision only draws it and chooses the tag.
+
+Decision:
+- (1) **Low select UY-4151.** A DCS function block (a computing relay with the ISA 5.1 '<'
+  function) passes the lowest of PIC-4102 (pipeline pressure master), FIC-4148 (maximum draw)
+  and PIC-4150 (suction low limit) to the K-4101 inlet guide vanes.
+  - Tag: no Y (relay / compute) tag existed in the lists. U (multivariable) + Y (relay) because
+    the block combines a pressure and a flow; the number 4151 is the next free one of section 41
+    (D-007 pattern). It has no transmitter and no field device, so it needs no cable.
+  - Drawing: a central (DCS) bubble above PIC-4150 beside K-4101, with a '<' note at its upper
+    left. Three dashed signal lines (SignalLineFunctions in the model) come in: PIC-4150 from
+    below, FIC-4148 from the left, PIC-4102 from above. One dashed line goes out to the guide
+    vanes at the K-4101 inlet. It replaces PIC-4150's former direct line to the vanes, which was
+    drawn only. PIC-4150 moved 3 mm down to make room. The vanes have no DEXPI actuator object,
+    so the output stays a drawn line, as FIC-3107's line to the K-4102 vanes is.
+- (2) **Cascade PIC-4105 -> FIC-3107.** Both bubbles are on P-04 (FIC-3107 moved there under
+  D-096), so no off-page connector is needed. A dashed signal line (SignalLineFunction) runs from
+  the top of PIC-4105 over the K-4102 area into the top of FIC-3107. FIC-3107's own line to the
+  K-4102 vanes now leaves the bubble 3 mm right of its top, so the two do not overlap.
+- (3) **PV-4105 loses its drawn signal.** PIC-4105's only output is FIC-3107's set point
+  (D-096), so the line drawn from PIC-4105 to PV-4105 was wrong and was removed. PV-4105 stays
+  an actuated valve, normally fully open. Its role (back-pressure at start-up or isolation) and
+  what operates it stay open for detail engineering (loops.yaml PIC-4105).
+
+Carried out:
+- **P-04:**
+  - new: UY-4151 with its drawing;
+  - new SignalLineFunctions: PIC-4102, FIC-4148 and PIC-4150 to UY-4151, and PIC-4105 to
+    FIC-3107;
+  - removed: the drawn lines from PIC-4150 to the vanes and from PIC-4105 to PV-4105;
+  - the S-4101 tag label moved 2.5 mm up, so the PIC-4102 signal passes between it and the
+    silencer.
+- **Crossings:** the signal lines cross three pipes, each once:
+  - FIC-4148 -> UY-4151 crosses GOX-4001 and the GOX-4003 recycle riser;
+  - PIC-4102 -> UY-4151 crosses the VNT-4002 stack.
+
+  Each is accepted with its reason in checks/checks.yaml (drawing-clean). The cascade crosses
+  UIC-4103's measuring and signal lines (signal over signal, not a drawing finding). No route
+  between the two bubbles misses them, because the UIC-4103 loop spans from K-4101 down to
+  UV-4103.
+- **Lists:**
+  - instrument list: UY-4151 is new; the notes of PIC-4102, FIC-4148, PIC-4150, PIC-4105 and
+    FIC-3107 now name the drawn function;
+  - loops.yaml: the rationales of PIC-4102, PIC-4150 and PIC-4105 now name it, and the PV-4105
+    open point is reworded.
+- **Layout:** the layout model was rebuilt (P-04 and the instrument list are among its sources).
+
+Not changed: the signal from PIC-4101 to PV-4101B is still not drawn (D-096 Open). A route
+from PIC-4101, below GOX-4001, to PV-4101B at the S-4102 vent has to pass FIC-4148 and AI-3104.
+It is left for the next P-04 revision. Not credited: UY-4151 is in the same control system as
+the loops it selects, so it is not a protection layer (H04-A23 remains).
+
+Open:
+- the HAZOP H-04 input stamp. P-04 changed, so the HAZOP revision (D-102) re-stamps it;
+- an independent review of this drawing change;
+- anti-windup of the select and bumpless transfer (D-096 Open, control engineer).
+
+Reason: D-096 put the product control on the instrument list and in the loops, but a P&ID
+reader saw PIC-4150 alone on the guide vanes and PIC-4105 on PV-4105. Neither is the control
+that was decided.
 ## D-103 Cold-box heat leak in the simulation, simulated against assumed values, PR substitution accepted (2026-10-25)
 Decided by the agent on the owner's delegation of 2026-10-25 ("resolve all of these issues, make
 good decisions"). These are not the owner's own engineering judgement; the owner may reverse any
