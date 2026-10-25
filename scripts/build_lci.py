@@ -75,6 +75,7 @@ import yaml
 from jsonschema import Draft202012Validator
 from openpyxl import Workbook
 
+import registry as reg
 from publication import is_public
 
 HERE = Path(__file__).resolve().parent
@@ -504,9 +505,11 @@ class Process:
     factors: dict | None
     datasets: list[Dataset]
     chemicals: dict[str, str]  # inventory key -> chemical slug (process.yaml)
+    grades: dict[str, str] = field(default_factory=dict)  # inventory key -> grade (registry.flow_grade)
 
 
-def _discover(library: Path, report: Report, mappings: dict, public: bool = False) -> list[Process]:
+def _discover(library: Path, report: Report, mappings: dict, public: bool = False, products: reg.Registry | None = None) -> list[Process]:
+    products = products or reg.Registry({})
     processes = []
     for manifest_path in sorted((library / "processes").glob("*/process.yaml")):
         folder = manifest_path.parent
@@ -525,11 +528,16 @@ def _discover(library: Path, report: Report, mappings: dict, public: bool = Fals
             continue
         study = _yaml(folder / "lca" / "lca.yaml") if (folder / "lca" / "lca.yaml").is_file() else None
         factors = _yaml(folder / "lca" / "factors.yaml") if (folder / "lca" / "factors.yaml").is_file() else None
-        chemicals = {}
+        chemicals, grades = {}, {}
         for group in ("inputs", "outputs", "utilities"):
             for item in (manifest.get("chemistry") or {}).get(group, []) or []:
                 if item.get("inventory_key"):
-                    chemicals[item["inventory_key"]] = item["chemical"]
+                    slug, grade, problem = reg.flow_grade(products, pid, item)
+                    if problem:
+                        report.error(str(manifest_path.relative_to(library)), f"chemistry.{group}: {problem}")
+                    chemicals[item["inventory_key"]] = slug
+                    if grade:
+                        grades[item["inventory_key"]] = grade
         datasets = []
         for path in files:
             where = str(path.relative_to(library))
@@ -547,7 +555,7 @@ def _discover(library: Path, report: Report, mappings: dict, public: bool = Fals
             except BuildError as failure:
                 report.errors.append(str(failure))
         if datasets:
-            processes.append(Process(pid, manifest, study, factors, datasets, chemicals))
+            processes.append(Process(pid, manifest, study, factors, datasets, chemicals, grades))
     return processes
 
 
@@ -688,9 +696,11 @@ class Linker:
         if exchange["type"] != "input":
             return None, []
         chemical = _chemical(process, exchange, self.mappings, self.registry)
+        # a producer of the grade the input names comes first, then by process id and name
+        wanted = process.grades.get(exchange["key"])
         candidates = sorted(
             ((pid, row) for pid, row in self.producers.get(chemical or "", []) if pid != process.pid and row["unit"] == unit),
-            key=lambda c: (c[0], c[1]["name"]),
+            key=lambda c: (not wanted or c[1].get("grade") != wanted, c[0], c[1]["name"]),
         )
         if not candidates:
             return None, []
@@ -708,16 +718,23 @@ def _uncertainty(exchange: dict, amount: float) -> dict:
     return {"uncertainty type": 2, "loc": _number(math.log(amount)), "scale": _number(math.log(given["gsd2"]) / 2)}
 
 
-def _product_rows(process: Process, dataset: Dataset, registry_names: dict[str, str]) -> list[dict]:
+def _product_rows(process: Process, dataset: Dataset, products: reg.Registry) -> list[dict]:
+    """One row per allocated product. Its reference product is the registry grade's name when
+    the flow has a grade, else the substance's name with the exchange title."""
     rows = []
     location = dataset.data.get("location") or "GLO"
     for exchange in dataset.data["exchanges"]:
         if exchange["type"] != "product" or dataset.shares.get(exchange["key"], 0.0) <= 0:
             continue
         chemical = process.chemicals.get(exchange["key"])
+        grade = process.grades.get(exchange["key"])
         title = exchange.get("title") or _name(exchange)
-        name = registry_names.get(chemical or "", "")
-        product = title if not name or name.lower() in title.lower() else f"{name}, {title}"
+        name = (products.chemicals.get(chemical or "") or {}).get("name", chemical or "")
+        graded = products.grade(chemical or "", grade)
+        if graded:
+            product = graded["name"]
+        else:
+            product = title if not name or name.lower() in title.lower() else f"{name}, {title}"
         rows.append(
             {
                 "code": f"{process.pid}:{dataset.data['id']}:{exchange['key']}",
@@ -728,9 +745,39 @@ def _product_rows(process: Process, dataset: Dataset, registry_names: dict[str, 
                 "key": exchange["key"],
                 "amount": float(exchange["amount"]),
                 "chemical": chemical,
+                "grade": grade,
             }
         )
     return rows
+
+
+def property_checks(process: Process, dataset: Dataset, products: reg.Registry, mappings: dict, report: Report) -> list[dict]:
+    """Each product's allocation properties (exergy, energy) against the registry grade's or
+    substance's (``registry.compare_property``). A mismatch is a warning unless
+    ``lci/mappings.yaml`` gives the exchange a ``properties_reason``; then it is ``overridden``."""
+    checks = []
+    for exchange in dataset.data["exchanges"]:
+        chemical = process.chemicals.get(exchange["key"])
+        if exchange["type"] != "product" or chemical not in products.chemicals:
+            continue
+        grade = process.grades.get(exchange["key"])
+        override = mappings["exchanges"].get(f"{process.pid}/{exchange['key']}") or mappings["exchanges"].get(exchange["key"]) or {}
+        given = _properties(exchange, dataset.allocation)
+        for name in sorted(reg.STUDY_PROPERTIES):
+            result = reg.compare_property(products, chemical, grade, name, given.get(name))
+            if result is None:
+                continue
+            if result["status"] == "mismatch" and override.get("properties_reason"):
+                result.update(status="overridden", reason=override["properties_reason"].strip())
+            elif result["status"] == "mismatch":
+                ref = f"{chemical}/{grade}" if grade else chemical
+                report.warn(
+                    f"{dataset.path} {exchange['key']}",
+                    f"{name} {result['study']:.6g} kJ/kg differs from the registry's {result['registry']:.6g} kJ/kg of {ref} by more than "
+                    f"{reg.STUDY_TOLERANCE:.0%} (give lci/mappings.yaml exchanges.{process.pid}/{exchange['key']}.properties_reason if intended)",
+                )
+            checks.append({"key": exchange["key"], "chemical": chemical, "grade": grade, **{k: _number(v) if isinstance(v, float) else v for k, v in result.items()}})
+    return checks
 
 
 def _factors_status(factors: dict | None) -> str:
@@ -796,16 +843,15 @@ class Activity:
     exchanges: list[dict]
 
 
-def build_activities(processes: list[Process], mappings: dict, registry: dict[str, dict], db_name: str, commit: str | None, version: str, report: Report, model: str = "cutoff", excluded_log: list[dict] | None = None) -> tuple[list[Activity], list[Activity], dict[str, list[dict]]]:
+def build_activities(processes: list[Process], mappings: dict, products: reg.Registry, db_name: str, commit: str | None, version: str, report: Report, model: str = "cutoff", excluded_log: list[dict] | None = None) -> tuple[list[Activity], list[Activity], dict[str, list[dict]]]:
     """*mappings* is the profile of *model* (``profile()``); every exchange the cut-off model
     excludes is appended to *excluded_log*."""
-    names = {slug: c.get("name", slug) for slug, c in registry.items()}
-    linker = Linker(mappings, db_name, set(registry), model=model)
+    linker = Linker(mappings, db_name, set(products.chemicals), model=model)
     excluded_log = [] if excluded_log is None else excluded_log
     rows_by_process: dict[str, list[tuple[Dataset, dict]]] = {}
     for process in processes:
         for dataset in process.datasets:
-            for row in _product_rows(process, dataset, names):
+            for row in _product_rows(process, dataset, products):
                 rows_by_process.setdefault(process.pid, []).append((dataset, row))
                 linker.by_dataset[(dataset.path, row["key"])] = row
                 if row["chemical"]:
@@ -1240,7 +1286,14 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
     if not registry_path.is_file():
         report.error(str(registry_path), "missing chemical registry")
         return report
-    registry = {c["slug"]: c for c in (_yaml(registry_path) or {}).get("chemicals", [])}
+    data = _yaml(registry_path) or {}
+    schema = json.loads((_base_dir("schemas") / "chemicals.schema.json").read_text(encoding="utf-8"))
+    problems = [f"{'/'.join(map(str, e.absolute_path)) or '(root)'}: {e.message}" for e in Draft202012Validator(schema).iter_errors(data)]
+    for message in problems or reg.check(reg.load(data)):
+        report.error("chemicals/chemicals.yaml", message)
+    if report.errors:
+        return report
+    products = reg.load(data)
     model = system_model or mappings["system_model"]
     if model not in SYSTEM_MODELS:
         report.error("--system-model", f"{model!r} is not one of {', '.join(SYSTEM_MODELS)}")
@@ -1251,11 +1304,12 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
         commit = _git(library, "rev-parse", "HEAD")
     dirty = bool(_git(library, "status", "--porcelain")) if own_repo else None
 
-    processes = _discover(library, report, mappings, public)
+    processes = _discover(library, report, mappings, public, products)
     # the default model's database carries the plain name; a variant is labelled in its name
     db_name = f"cheme-as-code-atlas-{version}" if model == mappings["system_model"] else f"cheme-as-code-atlas-{version}-{model}"
     excluded: list[dict] = []
-    activities, proxies, by_process = build_activities(processes, profile(mappings, model), registry, db_name, commit, version, report, model, excluded)
+    activities, proxies, by_process = build_activities(processes, profile(mappings, model), products, db_name, commit, version, report, model, excluded)
+    checks = {d.path: property_checks(p, d, products, mappings, report) for p in processes for d in p.datasets}
     if report.errors:
         return report
     if not activities:
@@ -1286,7 +1340,7 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
     write_workbook(lci / xlsx_name, db_name, database_meta, activities, proxies, about)
 
     def activity_list(rows: list[dict]) -> list[dict]:
-        return [{"code": r["code"], "name": r["name"], "reference_product": r["reference product"], "unit": r["unit"], "location": r["location"]} for r in rows]
+        return [{"code": r["code"], "name": r["name"], "reference_product": r["reference product"], "unit": r["unit"], "location": r["location"], **({"chemical": r["chemical"], "grade": r["grade"]} if "chemical" in r else {})} for r in rows]
 
     process_entries = []
     for process in processes:
@@ -1300,7 +1354,7 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
                 "factors_status": _factors_status(process.factors),
                 "functional_unit": _functional_unit(process.study),
                 "allocation": {"method": first.allocation.get("method", "mass"), "source": first.allocation_source, "rule": first.rule},
-                "datasets": [_dataset_entry(d) for d in process.datasets],
+                "datasets": [{**_dataset_entry(d), "property_checks": checks.get(d.path, [])} for d in process.datasets],
                 "activities": activity_list(by_process.get(process.pid, [])),
             }
         )

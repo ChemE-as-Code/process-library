@@ -1,15 +1,233 @@
-# Chemical identity registry of the process library. Schema: schemas/chemicals.schema.json.
-# One entry per substance, mixture or utility that a process.yaml names. Processes refer to
-# entries by slug, which is what joins them in the Atlas graph (one "oxygen" node, whoever
-# makes or uses it). Grade and phase (GOX, LOX) belong in the process flow's note, not here.
-# Identifiers: CAS and ChEBI as in the ASU's process/materials.yaml; InChIKey standard.
-schema: cheme-as-code/chemicals/v1
+# Chemicals and products registry of the process library. Schema: schemas/chemicals.schema.json
+# (cheme-as-code/chemicals/v2); rules and sources: docs/registry.md.
+#
+# One entry per substance, mixture or utility that a process.yaml names. Processes refer to an
+# entry by slug, which joins them in the Atlas graph (one "oxygen" node, whoever makes or uses
+# it). A product in a defined state and purity (GOX at 30 barg, LOX) is a grade of its
+# substance, `<slug>/<grade>`: the graph stays at the substance, the LCI export names the grade
+# as the reference product. A flow names its grade in process.yaml (`chemical: oxygen/lox`) or,
+# while its process.yaml cannot change, through `flow_grades` at the end of this file.
+#
+# Every property value has a source; a derived value says how it was derived. No value from a
+# licensed database. Crosswalk names (ecoinvent, EF) are names only, not checked against a
+# licensed copy; install() reports any that do not link.
+#
+# Prices: none recorded yet. Only an open source may be used (e.g. Eurostat PRODCOM or UN
+# Comtrade unit values), with year, currency and region. Without a registry price, a study
+# that allocates economically gives its own price with a source; otherwise the WBCSD rule falls
+# back to mass (docs/registry.md, "Missing prices").
+schema: cheme-as-code/chemicals/v2
+
 chemicals:
-  - {slug: air, name: Air, kind: mixture, note: "Atmospheric air: N2, O2, Ar, with H2O and CO2."}
-  - {slug: argon, name: Argon, kind: substance, formula: Ar, cas: 7440-37-1, chebi: "CHEBI:49475", inchikey: XKRFYHLGVUSROY-UHFFFAOYSA-N}
-  - {slug: carbon-dioxide, name: Carbon dioxide, kind: substance, formula: CO2, cas: 124-38-9, chebi: "CHEBI:16526", inchikey: CURLTUGMZLYLDI-UHFFFAOYSA-N}
-  - {slug: cooling-water, name: Cooling water, kind: utility, note: Heat rejected to a cooling water system.}
-  - {slug: electricity, name: Electricity, kind: utility}
-  - {slug: nitrogen, name: Nitrogen, kind: substance, formula: N2, cas: 7727-37-9, chebi: "CHEBI:17997", inchikey: IJGRMHOSHXDMSA-UHFFFAOYSA-N}
-  - {slug: oxygen, name: Oxygen, kind: substance, formula: O2, cas: 7782-44-7, chebi: "CHEBI:15379", inchikey: MYMOFIZGZYHOMD-UHFFFAOYSA-N}
-  - {slug: water, name: Water, kind: substance, formula: H2O, cas: 7732-18-5, chebi: "CHEBI:15377", inchikey: XLYOFNOQVPJJNP-UHFFFAOYSA-N}
+  - slug: air
+    name: Air
+    kind: mixture
+    note: "Atmospheric air: N2, O2, Ar, with H2O and CO2."
+    composition:
+      basis: mol
+      of: dry air
+      components:
+        - {chemical: nitrogen, value: 78.084, unit: mol%}
+        - {chemical: oxygen, value: 20.946, unit: mol%}
+        - {chemical: argon, value: 0.934, unit: mol%}
+        - {chemical: carbon-dioxide, value: 0.042, unit: mol%, note: "about 420 ppm, the 2023 global mean; it rises about 2 ppm a year"}
+      source: >-
+        N2, O2, Ar: U.S. Standard Atmosphere 1976 (NOAA, NASA, USAF), sea-level composition of dry
+        air. CO2: NOAA Global Monitoring Laboratory, global annual mean 2023 (about 419 ppm).
+        Humidity varies and is not part of the dry composition.
+    properties:
+      molar_mass: {value: 28.9644, unit: g/mol, source: "U.S. Standard Atmosphere 1976, sea-level mean molar mass of dry air"}
+
+  - slug: argon
+    name: Argon
+    kind: substance
+    formula: Ar
+    cas: 7440-37-1
+    chebi: "CHEBI:49475"
+    inchikey: XKRFYHLGVUSROY-UHFFFAOYSA-N
+    classification: {cpc: "34210", hs: "2804.21"}
+    properties:
+      molar_mass: {value: 39.95, unit: g/mol, source: "IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573)"}
+      elemental_composition: {value: {Ar: 1.0}, unit: kg/kg, source: derived from the formula}
+      carbon_content: {value: 0, unit: kg/kg, source: derived from the formula (no carbon)}
+      density: {value: 1.784, unit: kg/m3, conditions: "gas, 0 °C, 1.01325 bar", source: "NIST Chemistry WebBook, SRD 69, thermophysical properties of fluid systems (2026 query)"}
+      standard_chemical_exergy: {value: 11.69, unit: kJ/mol, source: "Szargut, Morris and Steward (1988) Exergy analysis of thermal, chemical and metallurgical processes, reference environment model II, 298.15 K, 101.325 kPa"}
+
+  - slug: carbon-dioxide
+    name: Carbon dioxide
+    kind: substance
+    formula: CO2
+    cas: 124-38-9
+    chebi: "CHEBI:16526"
+    inchikey: CURLTUGMZLYLDI-UHFFFAOYSA-N
+    classification: {cpc: "34210", hs: "2811.21"}
+    properties:
+      molar_mass: {value: 44.009, unit: g/mol, source: "IUPAC 2021 abridged standard atomic weights"}
+      elemental_composition: {value: {C: 0.2729, O: 0.7271}, unit: kg/kg, source: derived from the formula and the IUPAC 2021 atomic weights}
+      carbon_content: {value: 0.2729, unit: kg/kg, source: derived from the formula and the IUPAC 2021 atomic weights}
+      density: {value: 1.977, unit: kg/m3, conditions: "gas, 0 °C, 1.01325 bar", source: "NIST Chemistry WebBook, SRD 69 (2026 query)"}
+      standard_chemical_exergy: {value: 19.87, unit: kJ/mol, source: "Szargut, Morris and Steward (1988), model II"}
+    note: >-
+      Biogenic carbon fraction depends on the source (fossil or biogenic point source, DAC), so it
+      belongs to the flow or a grade, not to the substance.
+    grades:
+      - slug: liquid
+        name: Carbon dioxide, liquid
+        phase: liquid
+        state: {note: "liquefied for transport and storage; pressure and temperature by supplier"}
+        crosswalk: {ecoinvent: ["carbon dioxide, liquid"]}
+
+  - slug: cooling-water
+    name: Cooling water
+    kind: utility
+    note: Heat rejected to a cooling water system.
+
+  - slug: electricity
+    name: Electricity
+    kind: utility
+    classification: {cpc: "17100", hs: "2716.00"}
+    grades:
+      - slug: high-voltage
+        name: Electricity, high voltage
+        phase: none
+        state: {note: "above 24 kV, the voltage band ecoinvent calls high voltage"}
+        crosswalk: {ecoinvent: ["electricity, high voltage"]}
+      - slug: medium-voltage
+        name: Electricity, medium voltage
+        phase: none
+        state: {note: "1 to 24 kV, the voltage band ecoinvent calls medium voltage; the library's default link for industrial power"}
+        crosswalk: {ecoinvent: ["electricity, medium voltage"]}
+
+  - slug: hydrogen
+    name: Hydrogen
+    kind: substance
+    formula: H2
+    cas: 1333-74-0
+    chebi: "CHEBI:18276"
+    inchikey: UFHFLCQGNIYNRP-UHFFFAOYSA-N
+    classification: {cpc: "34210", hs: "2804.10"}
+    properties:
+      molar_mass: {value: 2.016, unit: g/mol, source: "IUPAC 2021 abridged standard atomic weights"}
+      elemental_composition: {value: {H: 1.0}, unit: kg/kg, source: derived from the formula}
+      carbon_content: {value: 0, unit: kg/kg, source: derived from the formula (no carbon)}
+      hhv: {value: 141.79, unit: MJ/kg, conditions: "25 °C, product water liquid", source: "derived: standard enthalpy of formation of H2O(l), -285.830 kJ/mol (CODATA Key Values, Cox, Wagman and Medvedev 1989), per 2.016 g/mol"}
+      lhv: {value: 119.96, unit: MJ/kg, conditions: "25 °C, product water vapour", source: "derived: standard enthalpy of formation of H2O(g), -241.826 kJ/mol (CODATA Key Values 1989), per 2.016 g/mol"}
+      density: {value: 0.08988, unit: kg/m3, conditions: "gas, 0 °C, 1.01325 bar", source: "NIST Chemistry WebBook, SRD 69 (2026 query)"}
+      standard_chemical_exergy: {value: 236.09, unit: kJ/mol, source: "Szargut, Morris and Steward (1988), model II"}
+
+  - slug: methane
+    name: Methane
+    kind: substance
+    formula: CH4
+    cas: 74-82-8
+    chebi: "CHEBI:16183"
+    inchikey: VNWKTOKETHGBQD-UHFFFAOYSA-N
+    classification: {hs: "2711.29"}
+    note: Pure methane; natural gas is a mixture of its own (not yet in the registry).
+    properties:
+      molar_mass: {value: 16.043, unit: g/mol, source: "IUPAC 2021 abridged standard atomic weights"}
+      elemental_composition: {value: {C: 0.7487, H: 0.2513}, unit: kg/kg, source: derived from the formula and the IUPAC 2021 atomic weights}
+      carbon_content: {value: 0.7487, unit: kg/kg, source: derived from the formula and the IUPAC 2021 atomic weights}
+      hhv: {value: 55.50, unit: MJ/kg, conditions: "25 °C, product water liquid", source: "derived from standard enthalpies of formation: CH4(g) -74.873 kJ/mol (NIST-JANAF Thermochemical Tables, Chase 1998), CO2(g) -393.51 and H2O(l) -285.830 kJ/mol (CODATA 1989)"}
+      lhv: {value: 50.01, unit: MJ/kg, conditions: "25 °C, product water vapour", source: "derived as hhv, with H2O(g) -241.826 kJ/mol (CODATA 1989)"}
+      density: {value: 0.7175, unit: kg/m3, conditions: "gas, 0 °C, 1.01325 bar", source: "NIST Chemistry WebBook, SRD 69 (2026 query)"}
+      standard_chemical_exergy: {value: 831.65, unit: kJ/mol, source: "Szargut, Morris and Steward (1988), model II"}
+
+  - slug: nitrogen
+    name: Nitrogen
+    kind: substance
+    formula: N2
+    cas: 7727-37-9
+    chebi: "CHEBI:17997"
+    inchikey: IJGRMHOSHXDMSA-UHFFFAOYSA-N
+    classification: {cpc: "34210", hs: "2804.30"}
+    properties:
+      molar_mass: {value: 28.014, unit: g/mol, source: "IUPAC 2021 abridged standard atomic weights"}
+      elemental_composition: {value: {N: 1.0}, unit: kg/kg, source: derived from the formula}
+      carbon_content: {value: 0, unit: kg/kg, source: derived from the formula (no carbon)}
+      density: {value: 1.2504, unit: kg/m3, conditions: "gas, 0 °C, 1.01325 bar", source: "NIST Chemistry WebBook, SRD 69 (2026 query)"}
+      standard_chemical_exergy: {value: 0.72, unit: kJ/mol, source: "Szargut, Morris and Steward (1988), model II"}
+    grades:
+      - slug: gan-8barg-10ppm
+        name: Nitrogen, gaseous, <= 10 ppm O2, 8 barg
+        phase: gas
+        impurities: [{component: oxygen, value: 10, unit: ppm(mol), bound: max}]
+        state:
+          pressure: {value: 8, unit: barg}
+          temperature: {value: 25, unit: degC, note: "ambient, taken as the exergy dead-state temperature"}
+        properties:
+          exergy: {value: 219.0, unit: kJ/kg, conditions: "9.01325 bara, 298.15 K; dead state 298.15 K, 101.325 kPa", source: "derived (docs/registry.md, Grade exergy): standard chemical exergy (Szargut 1988) plus (h - h0) - T0 (s - s0) of pure N2 from the NIST Chemistry WebBook, SRD 69"}
+        note: The pipeline nitrogen of ASU-1.
+      - slug: lin
+        name: Nitrogen, liquid
+        phase: liquid
+        impurities: [{component: oxygen, value: 10, unit: ppm(mol), bound: max}]
+        state:
+          pressure: {value: 1.01325, unit: bara}
+          note: saturated liquid at atmospheric pressure (77.35 K), the state of merchant LIN in a vented tank
+        properties:
+          density: {value: 806.1, unit: kg/m3, conditions: "saturated liquid at 1.01325 bar", source: "NIST Chemistry WebBook, SRD 69 (2026 query)"}
+          exergy: {value: 787.4, unit: kJ/kg, conditions: "saturated liquid, 1.01325 bar; dead state 298.15 K, 101.325 kPa", source: "derived (docs/registry.md, Grade exergy): Szargut 1988 plus NIST SRD 69 h and s of pure N2"}
+        crosswalk: {ecoinvent: ["nitrogen, liquid"]}
+        note: Purity as ASU-1's LIN, which backs up its GAN pipeline.
+
+  - slug: oxygen
+    name: Oxygen
+    kind: substance
+    formula: O2
+    cas: 7782-44-7
+    chebi: "CHEBI:15379"
+    inchikey: MYMOFIZGZYHOMD-UHFFFAOYSA-N
+    classification: {cpc: "34210", hs: "2804.40"}
+    properties:
+      molar_mass: {value: 31.998, unit: g/mol, source: "IUPAC 2021 abridged standard atomic weights"}
+      elemental_composition: {value: {O: 1.0}, unit: kg/kg, source: derived from the formula}
+      carbon_content: {value: 0, unit: kg/kg, source: derived from the formula (no carbon)}
+      density: {value: 1.429, unit: kg/m3, conditions: "gas, 0 °C, 1.01325 bar", source: "NIST Chemistry WebBook, SRD 69 (2026 query)"}
+      standard_chemical_exergy: {value: 3.97, unit: kJ/mol, source: "Szargut, Morris and Steward (1988), model II"}
+    grades:
+      - slug: gox-30barg-99.5
+        name: Oxygen, gaseous, >= 99.5 mol%, 30 barg
+        phase: gas
+        purity: {value: 99.5, unit: mol%, bound: min}
+        state:
+          pressure: {value: 30, unit: barg}
+          temperature: {value: 25, unit: degC, note: "ambient, taken as the exergy dead-state temperature"}
+        properties:
+          exergy: {value: 387.7, unit: kJ/kg, conditions: "31.01325 bara, 298.15 K; dead state 298.15 K, 101.325 kPa", source: "derived (docs/registry.md, Grade exergy): Szargut 1988 plus NIST SRD 69 h and s of pure O2"}
+        note: The pipeline oxygen of ASU-1.
+      - slug: lox
+        name: Oxygen, liquid
+        phase: liquid
+        purity: {value: 99.5, unit: mol%, bound: min}
+        state:
+          pressure: {value: 1.01325, unit: bara}
+          note: saturated liquid at atmospheric pressure (90.18 K), the state of merchant LOX in a vented tank
+        properties:
+          density: {value: 1141.2, unit: kg/m3, conditions: "saturated liquid at 1.01325 bar", source: "NIST Chemistry WebBook, SRD 69 (2026 query)"}
+          exergy: {value: 752.9, unit: kJ/kg, conditions: "saturated liquid, 1.01325 bar; dead state 298.15 K, 101.325 kPa", source: "derived (docs/registry.md, Grade exergy): Szargut 1988 plus NIST SRD 69 h and s of pure O2"}
+        crosswalk: {ecoinvent: ["oxygen, liquid"]}
+        note: Purity as ASU-1's LOX, which backs up its GOX pipeline.
+
+  - slug: water
+    name: Water
+    kind: substance
+    formula: H2O
+    cas: 7732-18-5
+    chebi: "CHEBI:15377"
+    inchikey: XLYOFNOQVPJJNP-UHFFFAOYSA-N
+    classification: {cpc: "18000"}
+    properties:
+      molar_mass: {value: 18.015, unit: g/mol, source: "IUPAC 2021 abridged standard atomic weights"}
+      elemental_composition: {value: {H: 0.1119, O: 0.8881}, unit: kg/kg, source: derived from the formula and the IUPAC 2021 atomic weights}
+      carbon_content: {value: 0, unit: kg/kg, source: derived from the formula (no carbon)}
+      standard_chemical_exergy: {value: 0.9, unit: kJ/mol, conditions: "liquid; 9.5 kJ/mol as vapour", source: "Szargut, Morris and Steward (1988), model II"}
+
+# Grades of flows whose process.yaml names only the substance and cannot change in the same
+# change as the registry: "<process-id>/<inventory_key>" -> "<slug>/<grade>". A flow that names
+# its grade itself does not need an entry here (and must agree with one if both exist).
+flow_grades:
+  asu-1/product:GOXP: oxygen/gox-30barg-99.5
+  asu-1/product:GANP: nitrogen/gan-8barg-10ppm
+  asu-1/product:LOX: oxygen/lox
+  asu-1/product:LIN: nitrogen/lin

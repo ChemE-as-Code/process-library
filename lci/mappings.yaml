@@ -256,8 +256,15 @@ pass_through:
 
 # Curated overrides by "<process-id>/<key>" or "<key>": `use` a technosphere entry, or give the
 # `chemical` slug of the exchange (for prefer_atlas linking) when process.yaml has no
-# inventory_key for it.
+# inventory_key for it, or a `properties_reason` why a product's allocation property differs
+# from its registry grade's by more than 2 % (build_lci.py property_checks, docs/registry.md).
 exchanges:
+  "asu-1/product:LIN":
+    properties_reason: >-
+      The study's LIN is stream S11 to storage, subcooled at 5.2 bar and -181 C, not the grade's
+      reference state (saturated at 1.01325 bar). At the stream's state, NIST SRD 69 h and s with
+      Szargut's chemical exergy give about 710 kJ/kg, within 1 % of the study's 707 kJ/kg; the
+      grade's 787 kJ/kg is for the saturated liquid.
   # asu-1 (D-092) characterises with open factors (desnz-ghg-2026:*, own estimates) and declares
   # flows without an open factor missing: in the open study; for a licensed background the
   # exchanges keep the ecoinvent mappings they had (by the former example factor ids).

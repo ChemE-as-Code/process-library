@@ -178,9 +178,16 @@ def test_asu_exports_four_exergy_allocated_activities(tmp_path: Path) -> None:
     assert asu["allocation"] == {"method": "exergy", "source": "mappings", "rule": "physical-exergy"}
     assert asu["datasets"][0]["allocation"]["follows_hierarchy"] is True
     assert asu["datasets"][0]["allocation"]["shares"]["product:GOXP"] == pytest.approx(0.701, abs=5e-4)
+    # the four products are distinct registry grades (chemicals.yaml flow_grades), named by them
     assert [a["reference_product"] for a in asu["activities"]] == [
-        "Oxygen, GOX to pipeline", "Nitrogen, GAN to battery limit", "Oxygen, LOX to storage", "Nitrogen, LIN to storage"
+        "Oxygen, gaseous, >= 99.5 mol%, 30 barg", "Nitrogen, gaseous, <= 10 ppm O2, 8 barg", "Oxygen, liquid", "Nitrogen, liquid"
     ]
+    assert [(a["chemical"], a["grade"]) for a in asu["activities"]] == [
+        ("oxygen", "gox-30barg-99.5"), ("nitrogen", "gan-8barg-10ppm"), ("oxygen", "lox"), ("nitrogen", "lin")
+    ]
+    # the study's exergies agree with the registry grades' within 2 %, except LIN (a stated reason)
+    checks = {c["key"]: c["status"] for c in asu["datasets"][0]["property_checks"]}
+    assert checks == {"product:GOXP": "match", "product:GANP": "match", "product:LOX": "match", "product:LIN": "overridden"}
     assert sorted(p["code"] for p in package["proxies"]) == [  # no credit proxies under cut-off
         "proxy:cooling-water", "proxy:fitting", "proxy:grating", "proxy:insulation", "proxy:pipe",
     ]
