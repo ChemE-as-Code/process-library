@@ -14,8 +14,6 @@ A new process starts from `templates/process/` ([Contributing](contributing.md))
 ## Schemas
 
 The library's files are checked against JSON Schemas in `schemas/`. The reference pages are
-generated from them:
+generated from them, one per schema:
 
-- [Process manifest](reference/process.md) (`process.yaml`)
-- [Chemical registry](reference/chemicals.md) (`chemicals/chemicals.yaml`)
-- [LCI mappings](reference/lci-mappings.md) (`lci/mappings.yaml`)
+<!-- schema-list -->
