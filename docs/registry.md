@@ -1,6 +1,6 @@
 # Chemicals and products registry
 
-[`chemicals/chemicals.yaml`](../chemicals/chemicals.yaml) (schema
+[`chemicals/chemicals.yaml`](https://github.com/ChemE-as-Code/process-library/blob/main/chemicals/chemicals.yaml) (schema
 `schemas/chemicals.schema.json`, `cheme-as-code/chemicals/v2`) holds the substances, mixtures
 and utilities that processes name, together with the product master data an LCI database needs
 (process-library#46). The shared rules live in `scripts/registry.py`, which both builders use.

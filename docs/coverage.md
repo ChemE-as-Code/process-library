@@ -4,7 +4,7 @@ Which industrial products and processes the library covers, in which order and w
 technology variants. It turns "all industrial processes" into a plan that can be tracked
 (process-library#47, part of the LCI gap analysis #43).
 
-The source is [`coverage.yaml`](../coverage.yaml) (schema `schemas/coverage.schema.json`). The
+The source is [`coverage.yaml`](https://github.com/ChemE-as-Code/process-library/blob/main/coverage.yaml) (schema `schemas/coverage.schema.json`). The
 catalog build reads it and writes `coverage.json`: each entry with the library processes that
 cover it, plus a summary the Atlas can show ("N of the top 50 are covered, at these tiers").
 The table below is generated from `coverage.yaml`. `tests/test_registry.py` checks that the two
@@ -50,7 +50,7 @@ pyrolysis, bio-ethylene) are variants or entries of their own. They are not in t
 
 ## Families and ISIC
 
-Every entry has a `family` from [`taxonomy/families.yaml`](../taxonomy/families.yaml), the same
+Every entry has a `family` from [`taxonomy/families.yaml`](https://github.com/ChemE-as-Code/process-library/blob/main/taxonomy/families.yaml), the same
 taxonomy that `process.yaml` `families` is validated against. The taxonomy maps each family to
 ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity class.
 
