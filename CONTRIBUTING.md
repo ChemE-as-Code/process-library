@@ -75,19 +75,37 @@ review (its `DESIGN.md`, `reviews/`).
 
 ## Issues
 
-Open points of a process are tracked as issues, so they are not lost between sessions:
+Open points of a process are tracked as issues in the vocabulary of a design office's action
+register, so an engineer reads them as they would a project's open items list. Core's
+`docs/framework/issues.md` defines the labels; `cheme issues` lists a plant's items and the
+`kind: issues` gates in `checks/checks.yaml` hold a stage sign-off while items before that gate
+are open.
 
-- **Process work** uses the form "Process work item". It asks what is open, **when to do it**
-  and **when not** (and why), what it waits for, the references (decisions, review findings,
-  HAZOP actions) and when it is done. The form's Process field sets the label `process:<id>`
-  (workflow `issue-process-label`). Filter by `label:process:asu-1`. When you add a process
-  folder, add its id to the form's dropdown.
-- **Library work** (schemas, catalog builder, LCI database, Atlas data) uses "Library work
-  item", labelled `scope:library`.
-- What an open item waits for is a label:
-  - `waiting:input` for vendor, client or a HAZOP / LOPA session;
-  - `waiting:work` for another issue or branch.
+- **Forms (the type, `type:`):**
+
+  | Form | Label | Use for |
+  | --- | --- | --- |
+  | Action item | `type:action` | a task from a review, HAZOP or meeting, owned and closed out |
+  | Engineering hold | `type:hold` | design that cannot be fixed until an input arrives (vendor data, a client decision, a study) |
+  | Technical query (TQ) | `type:tq` | a question to the client, a vendor or another discipline that needs an answer |
+  | Design change | `type:change` | a change to frozen design, with its reason and the documents it touches |
+  | Library work item | `scope:library` | schemas, catalog builder, LCI database, Atlas data |
+
+- **Fields set labels** (workflow `issue-labels`): Process → `process:<id>`, Discipline →
+  `discipline:` (process, control, piping, mechanical, electrical, layout, safety, civil), Close
+  before gate → `gate:` (concept, basic, detail), Source → `source:` (design-review, hazop,
+  layout-review, control-review, vendor, client, internal). When you add a process folder, add
+  its id to every form's Process dropdown; the workflow creates its label.
+- **Status:** an open item without a status label is open; `status:in-progress` while someone
+  works it; `status:for-verification` once the close-out evidence is in, for a second person to
+  check. Only the checker closes it. What an open item waits for: `waiting:input` (vendor,
+  client, HAZOP / LOPA session) or `waiting:work` (another issue or branch).
+- **Gates:** an item closes before its gate. An item of an earlier gate that is still open also
+  holds every later gate.
+- **Filter** by process with `label:process:asu-1`, and combine with `label:gate:basic`,
+  `label:type:hold` and so on. The Process Atlas shows each process's open items by gate
+  (`scripts/fetch_issues.py` before `build_catalog.py --issues`); the public build of a private
+  repository shows titles and status only, without links.
 - An open point recorded in a process's files (`unresolved:` in `control/*.yaml`, Open in a
   DESIGN.md decision) names its issue, and the issue names the files. Close the issue only once
   the files no longer carry the point.
-

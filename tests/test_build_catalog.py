@@ -728,3 +728,78 @@ def test_a_single_undeclared_design_case_shows_the_documented_capacity() -> None
     lca = build_catalog._lca(KIT / "processes" / "asu-1", "asu-1", report, "500 t/d GOX")
     (case,) = lca["design_cases"]
     assert (case["capacity"], case["capacity_source"]) == ("500 t/d GOX", "process.yaml basis.capacity")
+
+
+# -- issues (fetch_issues.py output) ---------------------------------------------------------------
+
+ISSUES = {
+    "schema": "process-library/issues/v1",
+    "repository": "o/library",
+    "private": True,
+    "web": "https://github.com/o/library",
+    "issues": [
+        {"number": 1, "title": "Fail positions", "state": "open", "status": "open", "type": "hold", "gate": "basic",
+         "disciplines": ["control"], "source": "hazop", "waiting": "input", "processes": ["fixture-electrolysis"],
+         "url": "https://github.com/o/library/issues/1", "updated": "2026-10-25T00:00:00Z", "closed": None},
+        {"number": 2, "title": "Old action", "state": "closed", "status": "closed", "type": "action", "gate": "concept",
+         "disciplines": [], "source": None, "waiting": None, "processes": ["fixture-electrolysis"],
+         "url": "https://github.com/o/library/issues/2", "updated": "2026-10-25T00:00:00Z", "closed": "2026-10-25T00:00:00Z"},
+        {"number": 3, "title": "Elsewhere", "state": "open", "status": "open", "type": "tq", "gate": None,
+         "disciplines": [], "source": None, "waiting": None, "processes": ["fixture-ammonia"],
+         "url": "https://github.com/o/library/issues/3", "updated": "2026-10-25T00:00:00Z", "closed": None},
+    ],
+}
+
+
+def _with_issues(library: Path, tmp_path: Path, public: bool = False) -> Path:
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    issues = tmp_path / "issues.json"
+    issues.write_text(json.dumps(ISSUES))
+    forms = library / ".github" / "ISSUE_TEMPLATE"
+    forms.mkdir(parents=True, exist_ok=True)
+    (forms / "2-engineering-hold.yml").write_text('name: Engineering hold\nlabels: ["type:hold"]\nbody: []\n')
+    out = tmp_path / ("public" if public else "out")
+    report = build_catalog.build(library, out, PREVIEWS, commit="fixture", public=public, issues=issues)
+    assert not report.errors, report.errors
+    return out
+
+
+def test_without_issues_nothing_is_added(tmp_path: Path) -> None:
+    out = tmp_path / "out"
+    _build(LIBRARY, out)
+    assert _json(out / "processes" / "fixture-electrolysis.json")["issues"] is None
+    assert all(p["open_issues"] is None for p in _json(out / "catalog.json")["processes"])
+
+
+def test_each_process_gets_its_open_items(library: Path, tmp_path: Path) -> None:
+    out = _with_issues(library, tmp_path)
+    issues = _json(out / "processes" / "fixture-electrolysis.json")["issues"]
+    assert [i["number"] for i in issues["open"]] == [1]
+    assert issues["open"][0]["type"] == "hold" and issues["open"][0]["gate"] == "basic"
+    assert issues["closed_count"] == 1 and issues["open_by_gate"] == {"basic": {"hold": 1}}
+    assert issues["new"]["hold"].startswith("https://github.com/o/library/issues/new?template=2-engineering-hold.yml")
+    assert "process=fixture-electrolysis" in issues["new"]["hold"]
+    summaries = {p["id"]: p for p in _json(out / "catalog.json")["processes"]}
+    assert summaries["fixture-electrolysis"]["open_issues"] == 1
+    assert summaries["fixture-ammonia"]["open_issues"] == 1
+
+
+def test_public_build_keeps_titles_but_no_links_into_a_private_repository(library: Path, tmp_path: Path) -> None:
+    out = _with_issues(library, tmp_path, public=True)
+    issues = _json(out / "processes" / "fixture-electrolysis.json")["issues"]
+    assert issues["open"][0]["title"] == "Fail positions" and issues["open"][0]["url"] is None
+    assert issues["new"] is None and issues["list_url"] is None and issues["repository"] is None
+
+
+def test_issues_build_is_byte_identical(library: Path, tmp_path: Path) -> None:
+    first = _with_issues(library, tmp_path / "a")
+    second = _with_issues(library, tmp_path / "b")
+    name = "processes/fixture-electrolysis.json"
+    assert (first / name).read_bytes() == (second / name).read_bytes()
+
+
+def test_issues_of_another_schema_are_refused(library: Path, tmp_path: Path) -> None:
+    issues = tmp_path / "issues.json"
+    issues.write_text(json.dumps({**ISSUES, "schema": "x"}))
+    report = build_catalog.build(library, tmp_path / "out", PREVIEWS, commit="fixture", issues=issues)
+    assert report.errors

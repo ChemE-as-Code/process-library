@@ -1,0 +1,37 @@
+# Labels an issue opened from an engineering form (action item, engineering hold, technical query,
+# design change) from its fields: process:<id>, discipline:<d> (one per discipline), gate:<stage>
+# and source:<s>. A process label is created on first use; the other labels are the fixed
+# vocabulary (CONTRIBUTING.md, Issues). Issues written by hand are labelled by hand.
+name: issue-labels
+on:
+  issues:
+    types: [opened, edited]
+permissions:
+  issues: write
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.issue.body || "";
+            const field = (heading) => {
+              const m = body.match(new RegExp(`### ${heading}\\s*\\n+([^#]*)`));
+              if (!m) return [];
+              return m[1].split(/[,\n]/).map((s) => s.trim()).filter((s) => s && s !== "_No response_" && s !== "none");
+            };
+            const labels = [
+              ...field("Process").map((v) => `process:${v}`),
+              ...field("Discipline").map((v) => `discipline:${v}`),
+              ...field("Close before gate").map((v) => `gate:${v}`),
+              ...field("Source").map((v) => `source:${v}`),
+            ];
+            if (!labels.length) return;
+            const { owner, repo } = context.repo;
+            for (const name of labels.filter((l) => l.startsWith("process:"))) {
+              try { await github.rest.issues.getLabel({ owner, repo, name }); }
+              catch { await github.rest.issues.createLabel({ owner, repo, name, color: "0e8a16",
+                description: `Work on processes/${name.slice(8)}/` }); }
+            }
+            await github.rest.issues.addLabels({ owner, repo, issue_number: context.payload.issue.number, labels });

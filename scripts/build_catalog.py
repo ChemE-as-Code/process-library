@@ -19,6 +19,10 @@ byte-identical:
 - ``chemicals.json``: the registry, each with the processes that make and use it
 - ``graph.json``: process and chemical nodes, input/output edges
 - ``artifacts/<id>/<sheet>.svg``: preview drawings copied from ``--artifacts``
+- with ``--issues`` (``fetch_issues.py`` output): each process's open issues as engineering
+  items (type, gate, discipline, source, status), the closed count and links to the list and to
+  new issues; a summary's ``open_issues``. A public build keeps titles and status but drops the
+  links when the repository is private
 - ``scenarios/<id>/<scenario>.json``: core's per-scenario LCA records (``cheme assess
   lca-scenarios --write``), for Brightway jobs and other consumers
 
@@ -63,6 +67,7 @@ import re
 import shutil
 import subprocess
 import sys
+import urllib.parse
 from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -583,8 +588,16 @@ def build(
     commit: str | None,
     snapshots: Path | None = None,
     public: bool = False,
+    issues: Path | None = None,
 ) -> Report:
     report = Report()
+    issues_data = None
+    if issues is not None:
+        issues_data = json.loads(issues.read_text(encoding="utf-8"))
+        if issues_data.get("schema") != "process-library/issues/v1":
+            report.error(str(issues), f"schema {issues_data.get('schema')!r}, expected process-library/issues/v1 (fetch_issues.py)")
+            return report
+    forms = _issue_forms(library)
     schemas = _schema_dir()
     process_validator = Draft202012Validator(json.loads((schemas / "process.schema.json").read_text()))
     chem_validator = Draft202012Validator(json.loads((schemas / "chemicals.schema.json").read_text()))
@@ -686,6 +699,7 @@ def build(
             "design_basis": _design_basis(folder) if plant else None,
             "gates": _gates(folder) if plant else None,
             "lca": lca,
+            "issues": _issues(issues_data, pid, forms),
             "provenance": {
                 "library_commit": commit,
                 "source_commit": source_commit,
@@ -729,6 +743,9 @@ def build(
                 "engineering_project": plant is not None,
                 "interactive": viewer is not None,
                 "lca": headline,
+                "open_issues": None if issues_data is None else sum(
+                    1 for i in issues_data["issues"] if pid in i.get("processes", []) and i["state"] == "open"
+                ),
             }
         )
 
@@ -795,6 +812,57 @@ def build(
     return report
 
 
+GATE_ORDER = ("concept", "basic", "detail")
+
+
+def _issue_forms(library: Path) -> dict[str, str]:
+    """The issue form file of each type (``labels: ["type:<t>"]`` in .github/ISSUE_TEMPLATE)."""
+    forms: dict[str, str] = {}
+    folder = library / ".github" / "ISSUE_TEMPLATE"
+    for path in sorted(folder.glob("*.yml")) if folder.is_dir() else []:
+        for line in path.read_text(encoding="utf-8").splitlines():
+            if line.startswith("labels:") and "type:" in line:
+                kind = line.split("type:", 1)[1].split('"', 1)[0].strip()
+                forms.setdefault(kind, path.name)
+    return forms
+
+
+def _issues(data: dict | None, pid: str, forms: dict[str, str]) -> dict | None:
+    """The process's issues (``fetch_issues.py`` output) as the Atlas shows them: the open items
+    by gate with their engineering labels, the closed count, links to the list and to new ones.
+    None without ``--issues``."""
+    if data is None:
+        return None
+    mine = [i for i in data["issues"] if pid in i.get("processes", [])]
+    open_ = [
+        {k: i[k] for k in ("number", "title", "type", "gate", "disciplines", "source", "status", "waiting", "url")}
+        for i in mine
+        if i["state"] == "open"
+    ]
+    order = {g: n for n, g in enumerate(GATE_ORDER)}
+    open_.sort(key=lambda i: (order.get(i["gate"], 99), i["type"] or "", i["number"]))
+    by_gate: dict[str, dict[str, int]] = {}
+    for i in open_:
+        row = by_gate.setdefault(i["gate"] or "none", {})
+        row[i["type"] or "other"] = row.get(i["type"] or "other", 0) + 1
+    web = data["web"].rstrip("/")
+    label = urllib.parse.quote(f'is:issue label:"process:{pid}"')
+    new = {
+        kind: f"{web}/issues/new?" + urllib.parse.urlencode({"template": form, "labels": f"process:{pid}", "process": pid}, quote_via=urllib.parse.quote)
+        for kind, form in sorted(forms.items())
+    }
+    return {
+        "repository": data["repository"],
+        "private": data["private"],
+        "open": open_,
+        "open_count": len(open_),
+        "closed_count": sum(1 for i in mine if i["state"] == "closed"),
+        "open_by_gate": by_gate,
+        "list_url": f"{web}/issues?q={label}",
+        "new": new or {"choose": f"{web}/issues/new/choose"},
+    }
+
+
 def _publish(detail: dict) -> None:
     """Apply the public build's rules to one process's *detail* in place (module docstring)."""
     repository = detail.get("repository")
@@ -802,6 +870,12 @@ def _publish(detail: dict) -> None:
         detail["repository"] = None
     if detail.get("publication"):
         detail["publication"] = {k: v for k, v in detail["publication"].items() if k != "exclude"}
+    issues = detail.get("issues")
+    if issues and issues["private"]:
+        # titles and status stay (the owner's decision); links into a private repository do not
+        issues["repository"] = issues["list_url"] = issues["new"] = None
+        for item in issues["open"]:
+            item["url"] = None
     lca = detail.get("lca")
     if lca and not lca["publishable"]:
         del lca["totals"], lca["contributions"]
@@ -840,6 +914,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--snapshots", type=Path, help="viewer snapshots (cheme export-static): <dir>/<id>/manifest.json")
     parser.add_argument("--commit", help="library commit to record (default: git HEAD of --library)")
     parser.add_argument("--strict", action="store_true", help="fail on warnings too")
+    parser.add_argument("--issues", type=Path, help="the library's issues (fetch_issues.py output); each process gets its open items")
     parser.add_argument("--public", action="store_true", help="build for publication: published processes only, footprints the LCA's publication policy does not permit withheld")
     args = parser.parse_args(argv)
 
@@ -850,6 +925,7 @@ def main(argv: list[str] | None = None) -> int:
         args.commit,
         args.snapshots.resolve() if args.snapshots else None,
         args.public,
+        args.issues.resolve() if args.issues else None,
     )
     for message in report.warnings:
         print(f"warning: {message}", file=sys.stderr)
