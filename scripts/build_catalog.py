@@ -27,15 +27,22 @@ byte-identical:
 - ``scenarios/<id>/<scenario>.json``: core's per-scenario LCA records (``cheme assess
   lca-scenarios --write``), for Brightway jobs and other consumers
 
+Each process with LCI datasets (``lca/dataset.yaml``, ``lca/datasets/*.yaml``) gets its
+``benchmarks``: the KPIs of the benchmark registry (``benchmarks/<family>.yaml``,
+``benchmarks.py``), unallocated, with their reference and status, as in the LCI build's
+``datapackage.json``; the summary counts them by status. A value outside its range without an
+``out_of_range_reason``, a KPI not evaluated, a public process with fewer than two KPIs and a
+binding that names no dataset are warnings.
+
 Summaries and details carry the manifest's ``facets`` (feedstock basis, product classes, unit
 operations, region), always with every key: a missing list is ``[]``, a missing region null.
 
-Errors (schema, unknown chemical or grade, a family outside the taxonomy, a registry check of
-``registry.check``: CAS check digit, InChIKey, properties against the formula, duplicate
-crosswalk names; folder/id mismatch, broken artifact link) exit 1. Warnings
-(a preview not rendered, an inventory key the LCA does not have, a registry ``flow_grades``
-key that no process flow has) are printed, and fail the build
-with ``--strict``.
+Errors (schema, a benchmark file failing its schema or ``benchmarks.load``, unknown chemical
+or grade, a family outside the taxonomy, a registry check of ``registry.check``: CAS check
+digit, InChIKey, properties against the formula, duplicate crosswalk names; folder/id mismatch,
+broken artifact link) exit 1. Warnings (a preview not rendered, an inventory key the LCA does
+not have, a registry ``flow_grades`` key that no process flow has, the benchmark warnings
+above) are printed, and fail the build with ``--strict``.
 
 ``catalog.json`` records the build's ``mode``: ``preview`` (the default: every process, as the
 library has it) or ``public`` (``--public``, for publication; rules in ``publication.py``):
@@ -79,6 +86,7 @@ from typing import Any
 import yaml
 from jsonschema import Draft202012Validator
 
+import benchmarks as bm
 import registry as reg
 from publication import LCA_RESULT_FILES, is_public, lca_withheld, snapshot_excludes
 
@@ -448,6 +456,28 @@ def _scenarios(folder: Path, where: str, report: Report, lca_withheld_reason: st
     return {"technology": technology, "design_cases": list(cases.values()), "scenarios": scenarios}
 
 
+def _benchmarks(folder: Path, pid: str, manifest: dict, benchmarks: bm.Registry | None, seen: set[tuple[str, str]], report: Report) -> list[dict]:
+    """The process's KPIs over its LCI datasets (``benchmarks.evaluate``, unallocated: the
+    allocated values are build_lci's), each with its ``dataset`` id; adds each dataset to
+    *seen*. A public process with fewer than ``benchmarks.MIN_KPIS`` is a warning."""
+    if benchmarks is None:
+        return []
+    results, ids = [], []
+    for path in bm.dataset_files(folder):
+        data = _yaml(path)
+        if not isinstance(data, dict) or data.get("kind") != "lci_dataset" or not isinstance(data.get("id"), str):
+            continue  # build_lci validates datasets
+        ids.append(data["id"])
+        seen.add((pid, data["id"]))
+        found, warnings = bm.evaluate(benchmarks, pid, data)
+        results.extend({"dataset": data["id"], **k} for k in found)
+        report.warnings.extend(warnings)
+    count = bm.kpi_count(benchmarks, pid, ids)
+    if ids and is_public(manifest) and count < bm.MIN_KPIS:
+        report.warn(pid, f"{count} benchmarked KPI(s); a public process needs at least {bm.MIN_KPIS}, each with a source or a recorded no_open_reference (benchmarks/<family>.yaml, docs/benchmarks.md)")
+    return results
+
+
 def _gates(folder: Path) -> dict | None:
     path = folder / "checks" / "status.json"
     if not path.is_file():
@@ -615,6 +645,10 @@ def build(
         report.error("chemicals/chemicals.yaml", message)
     families_path = library / "taxonomy" / "families.yaml"
     taxonomy = reg.load_families(families_path if families_path.is_file() else _schema_dir().parent / "taxonomy" / "families.yaml")
+    benchmarks, problems = bm.load(library / "benchmarks", schemas / "benchmarks.schema.json", taxonomy)
+    for message in problems:
+        report.errors.append(message)
+    benchmarked: set[tuple[str, str]] = set()
 
     # Git facts only when the library is a checkout of its own, not a folder inside another repo
     # (a test fixture, the interim assembled library).
@@ -671,6 +705,7 @@ def build(
                     key = item.get("inventory_key")
                     if key and keys and key not in keys:
                         report.warn(where, f"chemistry.{group}: inventory_key {key!r} is not in lca/inventory.csv")
+        kpis = _benchmarks(folder, pid, manifest, benchmarks, benchmarked, report)
         reps = _representations(folder, pid, plant, artifacts, out, where, report)
         source_commit = _git(library, "log", "-1", "--format=%H", "--", str(folder.relative_to(library))) if own_repo else None
         render = _render_info(artifacts, pid)
@@ -713,6 +748,7 @@ def build(
             "design_basis": _design_basis(folder) if plant else None,
             "gates": _gates(folder) if plant else None,
             "lca": lca,
+            "benchmarks": kpis,
             "provenance": {
                 "library_commit": commit,
                 "source_commit": source_commit,
@@ -756,9 +792,13 @@ def build(
                 "engineering_project": plant is not None,
                 "interactive": viewer is not None,
                 "lca": headline,
+                "benchmarks": {status: sum(1 for k in kpis if k["status"] == status) for status in sorted({k["status"] for k in kpis})},
             }
         )
 
+    if benchmarks is not None and not public:
+        for name in bm.unused_bindings(benchmarks, benchmarked):
+            report.warn("benchmarks", f"datasets {name}: no such LCI dataset in the library (renamed?)")
     for key in reg.unused_flow_grades(products, flow_keys):
         report.warn("chemicals/chemicals.yaml", f"flow_grades.{key}: no process has a flow with this inventory key (renamed, or the flow names its grade now?)")
 

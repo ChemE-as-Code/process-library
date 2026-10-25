@@ -1,0 +1,77 @@
+# Benchmarks of air separation: KPIs, reference ranges and the datasets they are evaluated on.
+# Schema: schemas/benchmarks.schema.json; rules: docs/benchmarks.md.
+#
+# Ranges are facts from cited open sources, recorded in our own form in the KPI's unit, with the
+# conditions the source states. Never invent a range: a KPI without an open source records
+# no_open_reference (what was searched, and when). An out-of-range value needs an
+# out_of_range_reason here; the process's own files are not edited for it.
+schema: cheme-as-code/benchmarks/v1
+family: air-separation
+
+kpis:
+  specific-power-gox:
+    title: Specific electric power per t of gaseous oxygen product
+    unit: kWh/t
+    description: >-
+      All electricity the plant takes (air compression, product compression, front-end
+      regeneration, auxiliaries) per t of gaseous oxygen delivered at the product pressure and
+      purity, unallocated: co-products (nitrogen, liquids) carry no share, as specific power is
+      reported in the literature. Compare only with a reference at the same product pressure and
+      purity: compression to 30 barg alone adds of the order of 100 kWh/t.
+    references:
+      - id: air-liquide-yango-2017
+        range: [400, 600]
+        basis: unallocated
+        conditions:
+          technology: cryogenic, packaged standard ASU, internal compression of the products
+          product: gaseous oxygen, with GAN, LOX, LIN and argon as optional co-products
+          purity: 99.5 to 99.8 % O2
+          pressure: up to 42 barg
+          capacity: 330 to 770 t/d oxygen
+          year: 2017
+        source:
+          citation: "Air Liquide Engineering & Construction (2017) Standard Plants: fully-packaged modular solutions, brochure, September 2017 (Yango standard air separation unit, specifications)"
+          url: https://engineering-technologies.airliquide.com/sites/engineering/files/2022-09/air-liquide-e-c-standard-plants-september-2017.pdf
+          locator: p. 8, Yango specifications (specific energy)
+          kind: manufacturer
+          accessed: "2026-10-25"
+        note: >-
+          A manufacturer's published specification, not peer reviewed; it is independent of this
+          library's datasets and the only open source found that states a range for high-purity
+          oxygen at pipeline pressure. Per t of oxygen as the brochure states it. Replace or add a
+          BREF, IEA or peer-reviewed range for these conditions when one is found. Open
+          peer-reviewed figures for near-atmospheric delivery (e.g. about 0.25 kWh per kg O2 at
+          99.5 % in Pfaff and Kather 2009, Energy Procedia 1:495-502) do not apply to 30 barg
+          and are single values, not ranges.
+
+  cooling-duty-gox:
+    title: Cooling-water duty (heat rejected) per t of gaseous oxygen product
+    unit: GJ/t
+    description: >-
+      Heat rejected to the site cooling water (compressor inter- and aftercoolers, precooling)
+      per t of gaseous oxygen product, unallocated.
+    no_open_reference: >-
+      No open source found that states the cooling-water duty of a cryogenic air separation
+      unit per t of oxygen product with its conditions: a web search of EU BREFs, IEA reports,
+      open-access peer-reviewed papers and manufacturer literature on 2026-10-25 found
+      compressor powers but no heat-rejection range. Most of the heat rejected is the
+      compressors' shaft work (an energy balance, not a benchmark), so the KPI is reported
+      without a range until a source is found.
+
+datasets:
+  - process: asu-1
+    dataset: asu-1-500-t-d-gox
+    conditions:
+      technology: cryogenic double column, external GOX compression (DESIGN.md), TSA front end
+      product: GOX to pipeline, with GAN, LOX and LIN co-products
+      purity: ">= 99.5 mol% O2"
+      pressure: 30 barg
+      capacity: 500 t/d GOX
+    kpis:
+      specific-power-gox:
+        expression: feed:POWER / product:GOXP
+        per: product:GOXP
+        reference: air-liquide-yango-2017
+      cooling-duty-gox:
+        expression: product:CW / product:GOXP
+        per: product:GOXP

@@ -27,6 +27,9 @@
      A multi-output process needs an allocation that follows the hierarchy of
      [docs/system-model.md](docs/system-model.md) (often a curated `allocation:` entry in the
      mappings), and recycling or energy-recovery outputs a `cutoff_exclusions:` decision.
+   - benchmarks for its LCI dataset: a public process needs at least two KPIs in
+     `benchmarks/<family>.yaml`, each with a range from a cited open source or a recorded
+     `no_open_reference` ([docs/benchmarks.md](docs/benchmarks.md)). Never invent a range.
 5. Check: `uv run scripts/build_catalog.py --library . --out dist --strict` (and
    `scripts/build_lci.py ... --strict` with an LCI dataset). CI runs the same, and the public
    build (`--public`, below).

@@ -33,10 +33,20 @@ jobs:
       VERSION: ${{ inputs.version }}
       PREVIOUS_REF: ${{ inputs.previous_ref }}
       PREVIOUS_VERSION: ${{ inputs.previous_version }}
+      # benchmarks convert units through core's foundation.units (validate.yml, docs/benchmarks.md)
+      CORE: "cheme-as-code[units] @ git+https://github.com/ChemE-as-Code/core.git"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           fetch-depth: 0  # the previous release is built from its own commit
+      - uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555  # v0.10.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_KEY_PYDEXPI }}
+      - run: |
+          git config --global url."git@github.com:process-intelligence-research/".insteadOf "https://github.com/process-intelligence-research/"
+          git config --global url."https://x-access-token:${PLANTCODE_READ_TOKEN}@github.com/ChemE-as-Code/core".insteadOf "https://github.com/ChemE-as-Code/core"
+        env:
+          PLANTCODE_READ_TOKEN: ${{ secrets.PLANTCODE_READ_TOKEN }}
       - uses: astral-sh/setup-uv@v6
       - name: version is semantic
         run: |
@@ -44,24 +54,25 @@ jobs:
             || { echo "version '$VERSION' is not MAJOR.MINOR.PATCH"; exit 1; }
           if [ -n "$PREVIOUS_REF" ] && [ -z "$PREVIOUS_VERSION" ]; then echo "previous_ref needs previous_version"; exit 1; fi
       - name: tooling tests
-        run: uv run --python 3.12 --with pytest --with pyyaml --with jsonschema --with openpyxl --with ./python --with bw2calc pytest -q tests
+        run: uv run --python 3.12 --with pytest --with pyyaml --with jsonschema --with openpyxl --with ./python --with bw2calc --with "$CORE" pytest -q tests
         env:
           ATLAS_REQUIRE_BRIGHTWAY: "1"
+          ATLAS_REQUIRE_CORE: "1"
       # the previous release, built by its own builder from its own commit (public processes only)
       - name: previous release
         if: inputs.previous_ref != ''
         run: |
           git worktree add "$RUNNER_TEMP/previous" "$PREVIOUS_REF"
-          uv run "$RUNNER_TEMP/previous/scripts/build_lci.py" --library "$RUNNER_TEMP/previous" \
+          uv run --with "$CORE" "$RUNNER_TEMP/previous/scripts/build_lci.py" --library "$RUNNER_TEMP/previous" \
             --out "$RUNNER_TEMP/previous-build" --version "$PREVIOUS_VERSION" --public
       # only published processes leave the runner (publication.status: public), as in validate.yml
       - name: LCI database (cut-off, public, strict)
         run: |
           previous=()
           if [ -n "$PREVIOUS_REF" ]; then previous=(--previous "$RUNNER_TEMP/previous-build"); fi
-          uv run scripts/build_lci.py --library . --out release --version "$VERSION" --public --strict "${previous[@]}"
+          uv run --with "$CORE" scripts/build_lci.py --library . --out release --version "$VERSION" --public --strict "${previous[@]}"
       - name: LCI database (substitution variant, public)
-        run: uv run scripts/build_lci.py --library . --out release/substitution --version "$VERSION" --public --system-model substitution
+        run: uv run --with "$CORE" scripts/build_lci.py --library . --out release/substitution --version "$VERSION" --public --system-model substitution
       - name: archive metadata (draft)
         run: uv run scripts/release_metadata.py --version "$VERSION" --out release
       - uses: actions/upload-artifact@v4

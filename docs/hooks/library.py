@@ -27,7 +27,7 @@ from mkdocs.structure.files import File
 
 log = logging.getLogger("mkdocs.hooks.library")
 
-OPTIONAL = {"system-model.md", "governance.md", "coverage.md"}
+OPTIONAL = {"system-model.md", "governance.md", "coverage.md", "benchmarks.md"}
 
 _root = Path(".")
 _blob = ""  # GitHub URL prefix of repository files
