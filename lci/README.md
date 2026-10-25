@@ -51,23 +51,44 @@ to handle.
 |---|---|
 | `lci/cheme-as-code-atlas-<version>.xlsx` | the database `cheme-as-code-atlas-<version>`: an `about` sheet (skipped by the importer), a `database` sheet, one sheet per process, a `proxies` sheet |
 | `lci/datapackage.json` | version, library commit, per process: title, maturity, review, data status (exchanges by provenance), factor status of the study, allocation and shares, functional unit, activities |
-| `lci/index.json` | what the Atlas site reads: file names, sizes, sha256, activities per process, caveats |
+| `lci/index.json` | what the Atlas site reads: file names, sizes, sha256, activities per process, caveats, system model |
+| `lci/changes.json`, `lci/CHANGES.md` | with `--previous`: the change report against the earlier build (below) |
+
+`datapackage.json` also records the **system model** (`system_model`: id, label, methodology
+document and version, the exchanges excluded under cut-off with their decisions, allocation
+findings) and, per dataset, its **version**, `methodology_version`, `content_sha256`, `review`
+record (`unreviewed` by default), `valid_until`, and the allocation with the rule of the
+hierarchy that justifies it.
 
 Activity codes are stable: `<process>:<dataset>:<product key>` (e.g.
 `asu-1:asu-1-500-t-d-gox:product:GOXP`) and `proxy:<id>`.
 
 ## Modelling rules
 
-Written into each activity's `comment` as well.
+The methodology is [docs/system-model.md](../docs/system-model.md) (methodology version in every
+build); governance (versions, change reports, releases, review) is
+[docs/governance.md](../docs/governance.md). Written into each activity's `comment` as well.
 
+- **System model: attributional, cut-off** (`system_model: cutoff` in `lci/mappings.yaml`). The
+  default build has no avoided-burden credits: an exchange that resolves to an id in
+  `cutoff_exclusions:` (material recycling, energy recovery) is not exported, and its decision is
+  written into the comment and `datapackage.json`; any negative technosphere amount fails the
+  build; a proxy with a negative input outside `substitution:` fails to load.
+- **Substitution variant.** `--system-model substitution` builds a separate database,
+  `cheme-as-code-atlas-<version>-substitution`, that adds the credits of `substitution:`
+  (technosphere entries and proxies). Never mix it with the cut-off database in one study.
 - **Source.** Core's unallocated LCI dataset of each process (`kind: lci_dataset`):
   `processes/<id>/lca/dataset.yaml` of a plantcode project (`cheme assess lca --write`), or
   hand-written `processes/<id>/lca/datasets/*.yaml` of a manifest-only process.
-- **Co-products.** One single-output activity per co-product, per 1 unit (kg) of it, with the
-  study's allocation (`lca/lca.yaml`), else the dataset's default, else mass. Proportional methods
-  (mass, economic, energy, exergy, shares) only; substitution and `none` are refused. The
-  unallocated multi-output form is not exported (bw2io's Excel importer has no clean
-  representation of it).
+- **Co-products.** One single-output activity per co-product, per 1 unit (kg) of it, allocated
+  by the hierarchy of docs/system-model.md: a curated rule in `lci/mappings.yaml` `allocation:`
+  first (a deviation from the hierarchy is such a rule, `rule: deviation`); else the study's
+  (`lca/lca.yaml`) or the dataset's method if it is the WBCSD price-ratio choice (economic above
+  a ratio of 5 of the prices per kg, else mass); else the price-ratio choice, with a finding;
+  else the given method, with a finding. Findings are
+  warnings (`--strict` fails). Proportional methods (mass, economic, energy, exergy, shares)
+  only; substitution and `none` are refused. The unallocated multi-output form is not exported
+  (bw2io's Excel importer has no clean representation of it).
 - **Construction, maintenance, transport, end of life** are technosphere inputs per unit of
   product, already spread over the plant's life (hours x years) by core.
 - **Amounts** are quantities of the linked activity's reference product, as in core's study. A
@@ -94,9 +115,15 @@ Decisions for ASU-1:
 - **Screening proxies** where the dataset counts a flow in a unit ecoinvent has no activity for:
   cooling water as heat rejected (0.01 kWh electricity per kWh), pipe per m (20 kg steel), fittings
   per piece (15 kg steel), grating per m2 (30 kg steel), insulation per m2 (2 kg aluminium
-  cladding; insulant not yet counted), and the study's end-of-life recycling credits (-0.5 kg
-  steel per kg steel scrap, -0.7 kg aluminium per kg aluminium scrap; not cut-off logic). The
-  masses are assumptions chosen to be plausible and consistent with the example factors.
+  cladding; insulant not yet counted). The masses are assumptions chosen to be plausible and
+  consistent with the example factors.
+- **Allocation: exergy** (`allocation.asu-1`, rule `physical-exergy`): one separation, products
+  in different thermodynamic states; the same method as the study (D-056).
+- **End-of-life recycling: excluded under cut-off** (`cutoff_exclusions`): the steel and
+  aluminium scrap leave burden-free, with no credit. The study's credits (-0.5 kg steel per kg
+  steel scrap, -0.7 kg aluminium per kg aluminium scrap, ASSUMED) are proxies of the
+  substitution variant only. `processes/asu-1/` is unchanged: its study keeps the credits for
+  its own question.
 - **Atmospheric pass-through** (N2, O2, Ar, H2O, and CO2 taken from the air and returned by the
   TSA): not exported, nor the air intake. Never as "Carbon dioxide, fossil" (that would add about
   2 kg CO2-eq/t GOX); writing both an "in air" resource and an emission is a net zero that LCIA
@@ -116,21 +143,38 @@ licensed copy here; `install()` reports any that do not link.
 ## Build
 
 ```sh
-uv run scripts/build_lci.py --library <process-library> --out <dir> --version 0.1.0 [--strict]
+uv run scripts/build_lci.py --library <process-library> --out <dir> --version 0.1.0 [--strict] \
+    [--public] [--system-model substitution] [--previous <earlier build>]
 # -> <dir>/lci/cheme-as-code-atlas-0.1.0.xlsx, <dir>/lci/datapackage.json, <dir>/lci/index.json
+#    (+ changes.json, CHANGES.md with --previous)
 ```
 
 `<dir>/lci/` is replaced; nothing else in `<dir>` is touched. Mappings come from
 `<library>/lci/mappings.yaml`, else this staged copy. Two runs on the same input are
 byte-identical (the workbook's document dates and zip entry dates are fixed).
 
+## Change reports
+
+`--previous <dir>` (a folder holding an earlier build's `lci/`, or that `lci/` itself; not the
+output folder) writes `lci/changes.json` and `lci/CHANGES.md`: per dataset its status (by content
+hash and its allocation method and shares), version before and after and whether a changed
+dataset's version was raised; per
+activity the exchanges added, removed and changed (amount with relative change, or link). The
+report is **exchange level only**: no impact delta is computed, because the CI stub background
+(below) is built from one process's example factors inside the Brightway test and is not a
+reference background for the library. Releases: docs/governance.md and
+`.github/workflows/release.yml` (started by hand; drafts the artefacts and the Zenodo metadata,
+publishes nothing).
+
 ## Verification
 
 `tests/test_lci_brightway.py` (marker `brightway`) builds ASU-1's export, installs it with
 `install()` into a temporary Brightway project (bw2io's packaged default biosphere3, no network)
 against a **stub background** in which every mapped activity emits its example factor as fossil
-CO2, and checks that an LCA of 1 t GOXP reproduces plantcode's baseline (`results.csv`) to the
-precision plantcode prints. It also covers Atlas-internal linking, treatment signs, the overwrite
+CO2, and checks that an LCA of 1 t GOXP in the **substitution variant** reproduces plantcode's
+baseline (`results.csv`, which includes the study's recycling credits) to the precision
+plantcode prints, and that the default **cut-off** database differs from it by exactly those
+credits. It also covers Atlas-internal linking, treatment signs, the overwrite
 refusal and the unlinked report on the fixture library.
 
 ```sh

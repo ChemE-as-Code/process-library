@@ -21,12 +21,20 @@ Output (``--out``; ``<out>/lci/`` is replaced):
   factor status, allocation, functional unit and activities.
 - ``lci/index.json``: the summary the Atlas reads (files with size and sha256, activities per
   process, caveats).
+- with ``--previous <dir>`` (an earlier build): ``lci/changes.json`` and ``lci/CHANGES.md``, the
+  change report per dataset and activity (exchanges added, removed and changed; no impact delta).
 
-Modelling rules (also written into every activity's ``comment``):
+Modelling rules (``docs/system-model.md``; also written into every activity's ``comment``):
 
-- one single-output activity per co-product, 1 unit of it, allocated with the study's method
-  (``lca/lca.yaml``), else the dataset's default, else mass; the unallocated multi-output form
-  is not exported;
+- one system model per build: attributional cut-off (``system_model`` in the mappings). A
+  cut-off build has no avoided-burden credits: an exchange mapped to ``cutoff_exclusions`` is
+  left out with its decision, and a negative technosphere exchange is refused.
+  ``--system-model substitution`` builds the labelled variant
+  ``cheme-as-code-atlas-<version>-substitution`` with the credits of ``substitution:``;
+- one single-output activity per co-product, 1 unit of it, allocated by the hierarchy: the
+  curated rule of ``allocation:`` in the mappings, else the study's (``lca/lca.yaml``) or the
+  dataset's method when it fits the WBCSD price-ratio rule; otherwise a finding (``--strict``
+  fails). The unallocated multi-output form is not exported;
 - construction, maintenance, transport and end of life are technosphere inputs per unit of
   product, as core's dataset already spreads them over the plant's life;
 - free inputs (ambient air) and free pass-through emissions are not exported (see mappings);
@@ -43,6 +51,7 @@ an input another, unpublished process makes is then not linked to it. The LCI ca
 characterisation factors, so placeholder factors stay a caveat, as in the preview build.
 
     uv run build_lci.py --library ../process-library --out dist [--version 0.1.0] [--public]
+        [--system-model substitution] [--previous <earlier build>]
 """
 
 from __future__ import annotations
@@ -90,6 +99,30 @@ PROPORTIONAL = ("mass", "economic", "energy", "exergy", "shares")
 RELEASED = "released to the environment"
 DEFAULT_BACKGROUND = "ecoinvent-3.11-cutoff"
 DEFAULT_BIOSPHERE = "biosphere3"
+#: Version of docs/system-model.md: the methodology every dataset of a build is built under.
+METHODOLOGY_VERSION = "1.0.0"
+METHODOLOGY_DOCUMENT = "docs/system-model.md"
+SYSTEM_MODELS = {
+    "cutoff": "attributional, cut-off",
+    "substitution": "attributional, substitution variant (avoided-burden credits at end of life)",
+}
+CHANGES_SCHEMA = "cheme-as-code/lci-changes/v1"
+#: WBCSD (2014) rule, hierarchy step 3: economic allocation above this price ratio, else mass.
+PRICE_RATIO = 5.0
+#: Co-products below this share of the output mass do not enter the price-ratio decision.
+MINOR_COPRODUCT = 0.01
+#: The methods each curated rule of the hierarchy allows (lci/mappings.yaml allocation).
+RULE_METHODS = {
+    "physical-exergy": ("exergy",),
+    "physical-energy": ("energy",),
+    "economic": ("economic",),
+    "mass": ("mass",),
+    # step 4: the CO2 co-product gets a share of 0 of the main process; its conditioning is a
+    # separate (subdivided) dataset, so only explicit shares can express it
+    "co2-cutoff": ("shares",),
+    "pcr": PROPORTIONAL,
+    "deviation": PROPORTIONAL,
+}
 FIXED_TIME = datetime(2000, 1, 1)
 EXCHANGE_COLUMNS = (
     "name",
@@ -182,15 +215,50 @@ def load_mappings(path: Path) -> dict:
     data.setdefault("biosphere", {})
     data.setdefault("pass_through", {})
     data.setdefault("exchanges", {})
-    for tid, entry in data["technosphere"].items():
-        if "proxy" in entry and entry["proxy"] not in data["proxies"]:
-            raise BuildError(f"{path}: technosphere.{tid}: unknown proxy {entry['proxy']!r}")
+    data.setdefault("cutoff_exclusions", {})
+    data.setdefault("allocation", {})
+    substitution = data.setdefault("substitution", {})
+    substitution.setdefault("technosphere", {})
+    substitution.setdefault("proxies", {})
     for pid, proxy in data["proxies"].items():
-        for item in proxy["inputs"]:
-            target = data["technosphere"].get(item["use"])
-            if target is None or "activity" not in target:
-                raise BuildError(f"{path}: proxies.{pid}: input {item['use']!r} is not a technosphere entry with an activity")
+        credits = [item["use"] for item in proxy["inputs"] if item["amount"] < 0]
+        if credits:
+            raise BuildError(
+                f"{path}: proxies.{pid}: negative input of {', '.join(credits)} is an avoided-burden credit; "
+                "credits belong in substitution.proxies, never in the cut-off build"
+            )
+    for tid in data["cutoff_exclusions"]:
+        if tid in data["technosphere"]:
+            raise BuildError(f"{path}: cutoff_exclusions.{tid} is also a technosphere entry: a flow is linked or excluded, not both")
+    for prefix, technosphere, proxies in (
+        ("", data["technosphere"], data["proxies"]),
+        ("substitution.", {**data["technosphere"], **substitution["technosphere"]}, {**data["proxies"], **substitution["proxies"]}),
+    ):
+        for tid, entry in technosphere.items():
+            if "proxy" in entry and entry["proxy"] not in proxies:
+                raise BuildError(f"{path}: {prefix}technosphere.{tid}: unknown proxy {entry['proxy']!r}")
+        for pid, proxy in proxies.items():
+            for item in proxy["inputs"]:
+                target = data["technosphere"].get(item["use"])
+                if target is None or "activity" not in target:
+                    raise BuildError(f"{path}: {prefix}proxies.{pid}: input {item['use']!r} is not a technosphere entry with an activity")
+    for key, entry in data["allocation"].items():
+        if entry["method"] not in RULE_METHODS[entry["rule"]]:
+            raise BuildError(f"{path}: allocation.{key}: rule {entry['rule']!r} does not allow method {entry['method']!r}")
     return data
+
+
+def profile(mappings: dict, model: str) -> dict:
+    """The mappings a build of *model* links with: the cut-off ones, plus ``substitution:`` for
+    the substitution variant."""
+    if model == "cutoff":
+        return mappings
+    extra = mappings["substitution"]
+    return {
+        **mappings,
+        "technosphere": {**mappings["technosphere"], **extra["technosphere"]},
+        "proxies": {**mappings["proxies"], **extra["proxies"]},
+    }
 
 
 def validate_dataset(data: Any, where: str) -> dict:
@@ -278,6 +346,7 @@ def shares(dataset: dict, allocation: dict, where: str) -> dict[str, float]:
             f"use one of {', '.join(PROPORTIONAL)}"
         )
     raw: dict[str, float] = {}
+    minor = minor_coproducts(dataset)
     for product in products:
         name = _name(product)
         if method == "shares":
@@ -292,6 +361,8 @@ def shares(dataset: dict, allocation: dict, where: str) -> dict[str, float]:
         else:
             what = {"economic": "price", "energy": "energy", "exergy": "exergy"}[method]
             value = _properties(product, allocation)[what]
+            if value is None and method == "economic" and product["key"] in minor:
+                value = 0.0  # a co-product below 1 % of the output mass without a price has no economic weight
             if value is None:
                 raise BuildError(f"{where}: {method} allocation: no {what} of {name}")
             raw[product["key"]] = float(product["amount"]) * float(value)
@@ -301,13 +372,128 @@ def shares(dataset: dict, allocation: dict, where: str) -> dict[str, float]:
     return {k: v / total for k, v in raw.items()}
 
 
+def minor_coproducts(dataset: dict) -> set[str]:
+    """Keys of the co-products below 1 % of the output mass (only when every product is in kg)."""
+    products = [e for e in dataset["exchanges"] if e["type"] == "product"]
+    if len(products) < 2 or any(p["unit"] != "kg" for p in products):
+        return set()
+    mass = sum(float(p["amount"]) for p in products)
+    return {p["key"] for p in products if mass > 0 and float(p["amount"]) / mass < MINOR_COPRODUCT}
+
+
+def price_ratio(dataset: dict, allocation: dict) -> float | None:
+    """The WBCSD decision ratio: the highest over the lowest price per kg of the co-products,
+    leaving out co-products below 1 % of the output mass. None when a considered co-product has
+    no price, or when a co-product is not counted in kg (prices per MJ and per kg do not compare,
+    and the rule's alternative, mass allocation, needs kg). 1 when only one co-product is left:
+    there is nothing to compare, so the rule gives mass."""
+    products = [e for e in dataset["exchanges"] if e["type"] == "product"]
+    if len(products) < 2 or any(p["unit"] != "kg" for p in products):
+        return None
+    minor = minor_coproducts(dataset)
+    considered = [p for p in products if p["key"] not in minor]
+    if len(considered) == 1:
+        return 1.0
+    prices = [_properties(p, allocation)["price"] for p in considered]
+    if any(price is None for price in prices):
+        return None
+    low, high = min(map(float, prices)), max(map(float, prices))
+    if high <= 0:
+        return None
+    return math.inf if low <= 0 else high / low
+
+
+@dataclass
+class Allocation:
+    """The method the export uses for one dataset, and why (docs/system-model.md)."""
+
+    allocation: dict
+    source: str  # mappings | study | dataset | default | hierarchy
+    rule: str  # single-output, a RULE_METHODS key, or unresolved
+    reason: str
+    finding: str | None = None
+
+
+def choose_allocation(pid: str, data: dict, study_allocation: dict | None, mappings: dict) -> Allocation:
+    """Apply the multi-functionality hierarchy: a curated rule (mappings ``allocation``) first;
+    else the study's or dataset's method if it is the WBCSD price-ratio choice; else the
+    price-ratio choice; else the given method, with a finding. A deviation from the hierarchy is
+    a curated rule (``rule: deviation``): core's allocation schema has no field for it."""
+    own = data.get("allocation") or {}
+    if study_allocation:
+        base, source = study_allocation, "study"
+    elif own:
+        base, source = own, "dataset"
+    else:
+        base, source = {"method": "mass"}, "default"
+    method = base.get("method", "mass")
+    products = [e for e in data["exchanges"] if e["type"] == "product"]
+    if len(products) == 1:
+        return Allocation(base, source, "single-output", "one product: nothing to allocate")
+
+    ratio = price_ratio(data, base)
+    expected = None if ratio is None else ("economic" if ratio > PRICE_RATIO else "mass")
+    ratio_text = "unbounded (a co-product has price 0)" if ratio == math.inf else f"{ratio:.3g}" if ratio is not None else "unknown"
+    wbcsd = f"price ratio {ratio_text}: economic above {PRICE_RATIO:g}, else mass (WBCSD 2014)"
+    not_kg = [_name(p) for p in products if p["unit"] != "kg"]
+    gap = (
+        f"{', '.join(not_kg)} is not counted in kg, so the WBCSD price ratio (per kg) does not apply"
+        if not_kg else "not every co-product above 1 % of the output mass has a price, so the WBCSD price ratio is unknown"
+    )
+
+    entry = mappings["allocation"].get(f"{pid}/{data['id']}") or mappings["allocation"].get(pid)
+    if entry:
+        rule = entry["rule"]
+        finding = None
+        allocation = {**base, "method": entry["method"]}
+        if "shares" in entry:
+            allocation["shares"] = entry["shares"]
+        if rule == "co2-cutoff":
+            names = {_name(p) for p in products}
+            co2 = entry["product"]
+            if co2 not in names:
+                raise BuildError(f"lci/mappings.yaml allocation.{pid}: co2-cutoff product {co2!r} is not a product of dataset {data['id']}")
+            given = (allocation.get("shares") or {}).get(co2)
+            if given is None or float(given) != 0:
+                raise BuildError(
+                    f"lci/mappings.yaml allocation.{pid}: co2-cutoff gives {co2} a share of {given!r} of the main process; "
+                    "the cut is before conditioning, so its share is 0 and its conditioning is a separate dataset"
+                )
+        if rule in ("economic", "mass") and expected is None:
+            finding = f"rule {rule}: {gap}, so it cannot be confirmed"
+        elif rule in ("economic", "mass") and expected != rule:
+            finding = f"rule {rule}, but the {wbcsd}"
+        elif rule == "physical-energy":
+            zero = [_name(p) for p in products if _properties(p, base)["energy"] == 0]
+            if zero:
+                finding = f"energy allocation, but {', '.join(zero)} has no energy content (the hierarchy then goes to step 3)"
+        return Allocation(allocation, "mappings", rule, " ".join(entry["reason"].split()), finding)
+
+    if expected == method:
+        return Allocation(base, source, expected, wbcsd)
+    if expected:
+        finding = (
+            f"the {source}'s {method} allocation is not the hierarchy's {expected} ({wbcsd}); {expected} is exported. "
+            f"Record a curated rule in lci/mappings.yaml allocation (e.g. rule: deviation, with the reason) to keep {method}"
+        )
+        return Allocation({**base, "method": expected}, "hierarchy", expected, wbcsd, finding)
+    finding = (
+        f"{method} allocation ({source}) does not follow the documented hierarchy: no curated rule in lci/mappings.yaml "
+        f"allocation, and {gap}"
+    )
+    return Allocation(base, source, "unresolved", "not shown to follow the hierarchy (see the build's findings)", finding)
+
+
 @dataclass
 class Dataset:
     path: str  # from the library root
     data: dict
     allocation: dict
-    allocation_source: str  # study | dataset | default
+    allocation_source: str  # mappings | study | dataset | default | hierarchy
     shares: dict[str, float]
+    rule: str = "single-output"
+    reason: str = ""
+    finding: str | None = None
 
 
 @dataclass
@@ -320,7 +506,7 @@ class Process:
     chemicals: dict[str, str]  # inventory key -> chemical slug (process.yaml)
 
 
-def _discover(library: Path, report: Report, public: bool = False) -> list[Process]:
+def _discover(library: Path, report: Report, mappings: dict, public: bool = False) -> list[Process]:
     processes = []
     for manifest_path in sorted((library / "processes").glob("*/process.yaml")):
         folder = manifest_path.parent
@@ -350,15 +536,14 @@ def _discover(library: Path, report: Report, public: bool = False) -> list[Proce
             try:
                 data = validate_dataset(_yaml(path), where)
                 study_allocation = (study or {}).get("allocation") if path.name == "dataset.yaml" else None
-                if study_allocation:
-                    allocation, source = study_allocation, "study"
-                elif data.get("allocation"):
-                    allocation, source = data["allocation"], "dataset"
-                else:
-                    allocation, source = {"method": "mass"}, "default"
-                if source == "study" and data.get("allocation") and data["allocation"].get("method") != study_allocation.get("method"):
+                choice = choose_allocation(pid, data, study_allocation, mappings)
+                if choice.source == "study" and data.get("allocation") and data["allocation"].get("method") != study_allocation.get("method"):
                     report.warn(where, f"study allocation {study_allocation.get('method')!r} differs from the dataset's default {data['allocation'].get('method')!r}: the study's is used")
-                datasets.append(Dataset(where, data, allocation, source, shares(data, allocation, where)))
+                if choice.finding:
+                    report.warn(where, f"allocation: {choice.finding}")
+                datasets.append(
+                    Dataset(where, data, choice.allocation, choice.source, shares(data, choice.allocation, where), choice.rule, choice.reason, choice.finding)
+                )
             except BuildError as failure:
                 report.errors.append(str(failure))
         if datasets:
@@ -389,6 +574,20 @@ class Linker:
     #: (path, product key) -> activity row, for link.dataset
     by_dataset: dict[tuple[str, str], dict] = field(default_factory=dict)
     proxies_used: set[str] = field(default_factory=set)
+    model: str = "cutoff"
+
+    def known(self, tid: str | None) -> bool:
+        return bool(tid) and (tid in self.mappings["technosphere"] or tid in self.mappings["cutoff_exclusions"])
+
+    def link(self, tid: str, unit: str, where: str, key: str) -> tuple[str, dict | str]:
+        """A technosphere id as ``("technosphere", fields)``, or ``("excluded", decision)`` when
+        the cut-off model leaves it out of the producer's system."""
+        if tid in self.mappings["technosphere"]:
+            return "technosphere", self.technosphere(tid, unit, where)
+        excluded = self.mappings["cutoff_exclusions"][tid]
+        if self.model != "cutoff":
+            raise BuildError(f"{where}: {tid!r} is excluded under cut-off and has no {self.model} mapping (lci/mappings.yaml substitution.technosphere)")
+        return "excluded", " ".join(excluded["decision"].split())
 
     def technosphere(self, tid: str, unit: str, where: str) -> dict:
         entry = self.mappings["technosphere"][tid]
@@ -418,7 +617,7 @@ class Linker:
         return target
 
     def resolve(self, process: Process, dataset: Dataset, exchange: dict) -> tuple[str, dict | str]:
-        """``("skip", why)``, ``("technosphere", fields)`` or ``("biosphere", fields)``."""
+        """``("skip", why)``, ``("excluded", why)``, ``("technosphere", fields)`` or ``("biosphere", fields)``."""
         where = f"{dataset.path} {exchange['key']}"
         unit = BW_UNITS[exchange["unit"]]
         link = exchange.get("link") or {}
@@ -434,9 +633,9 @@ class Linker:
 
         override = self.mappings["exchanges"].get(f"{process.pid}/{exchange['key']}") or self.mappings["exchanges"].get(exchange["key"]) or {}
         if override.get("use"):
-            if override["use"] not in self.mappings["technosphere"]:
+            if not self.known(override["use"]):
                 raise BuildError(f"{where}: override uses unknown technosphere entry {override['use']!r}")
-            return "technosphere", self.technosphere(override["use"], unit, where)
+            return self.link(override["use"], unit, where, exchange["key"])
 
         if exchange["type"] == "emission":
             if link.get("biosphere"):
@@ -471,11 +670,11 @@ class Linker:
             return "technosphere", {**self._own(row), "atlas location rule": "fixed"}
 
         chemical = _chemical(process, exchange, self.mappings, self.registry)
-        if chemical and chemical in self.mappings["technosphere"]:
-            return "technosphere", self.technosphere(chemical, unit, where)
+        if self.known(chemical):
+            return self.link(chemical, unit, where, exchange["key"])
         factor = link.get("factor")
-        if factor and factor in self.mappings["technosphere"]:
-            return "technosphere", self.technosphere(factor, unit, where)
+        if self.known(factor):
+            return self.link(factor, unit, where, exchange["key"])
         tried = ", ".join(x for x in (f"chemical {chemical!r}" if chemical else "", f"factor {factor!r}" if factor else "") if x) or "no chemical slug or factor id"
         raise BuildError(f"{where}: no mapping ({tried}); add it to lci/mappings.yaml technosphere or exchanges")
 
@@ -557,20 +756,32 @@ def _functional_unit(study: dict | None) -> dict | None:
     return {"product": fu.get("product"), "amount": fu.get("amount", 1.0), "unit": fu.get("unit", "t")}
 
 
-def _comment(process: Process, dataset: Dataset, row: dict, skipped: list[str], commit: str | None, version: str) -> str:
+ALLOCATION_SOURCES = {
+    "mappings": "the database's (lci/mappings.yaml allocation)",
+    "study": "the study's (lca/lca.yaml)",
+    "dataset": "the dataset's default",
+    "default": "the default (mass)",
+    "hierarchy": "the hierarchy's price-ratio rule, not the study's",
+}
+
+
+def _comment(process: Process, dataset: Dataset, row: dict, skipped: list[str], excluded: list[str], model: str, commit: str | None, version: str) -> str:
     method = dataset.allocation.get("method", "mass")
     share_text = ", ".join(f"{_name({'key': k})} {v * 100:.1f} %" for k, v in sorted(dataset.shares.items(), key=lambda kv: -kv[1]))
-    allocation_source = {"study": "the study's (lca/lca.yaml)", "dataset": "the dataset's default", "default": "the default (mass)"}[dataset.allocation_source]
     lines = [
         f"ChemE-as-Code Process Atlas, process {process.pid}: {process.manifest['title']}.",
         f"Maturity: {process.manifest.get('maturity', 'unknown')}; review: {(process.manifest.get('validation') or {}).get('status', 'unknown')}. Screening-level data.",
+        f"System model: {SYSTEM_MODELS[model]} ({METHODOLOGY_DOCUMENT}, methodology {METHODOLOGY_VERSION})."
+        + ("" if model == "cutoff" else " A labelled variant, not the default cut-off database: it contains avoided-burden credits."),
         f"1 {row['unit']} of {row['reference product']}, from the unallocated LCI dataset {dataset.data['id']} ({dataset.path}, basis {dataset.data.get('basis', '1 h of operation')}).",
-        f"Allocation: {method}, {allocation_source}; shares {share_text}. One single-output activity per co-product; the multi-output form is not exported.",
+        f"Allocation: {method}, {ALLOCATION_SOURCES[dataset.allocation_source]}; hierarchy rule {dataset.rule}: {dataset.reason}; shares {share_text}. One single-output activity per co-product; the multi-output form is not exported.",
         "Construction, maintenance, transport and end of life are technosphere inputs per unit of product, spread over the plant's life as in the dataset.",
         "Technosphere amounts are quantities of the linked reference product (a treatment activity is linked with the sign flipped by the installer).",
     ]
     if skipped:
         lines.append("Not exported: " + "; ".join(skipped) + ".")
+    if excluded:
+        lines.append("Excluded by the cut-off system model (no credit): " + "; ".join(excluded) + ".")
     if dataset.allocation.get("source"):
         lines.append(f"Allocation source: {' '.join(str(dataset.allocation['source']).split())}")
     lines.append(f"Atlas LCI {version}; library commit {commit or 'unknown'}.")
@@ -585,9 +796,12 @@ class Activity:
     exchanges: list[dict]
 
 
-def build_activities(processes: list[Process], mappings: dict, registry: dict[str, dict], db_name: str, commit: str | None, version: str, report: Report) -> tuple[list[Activity], list[Activity], dict[str, list[dict]]]:
+def build_activities(processes: list[Process], mappings: dict, registry: dict[str, dict], db_name: str, commit: str | None, version: str, report: Report, model: str = "cutoff", excluded_log: list[dict] | None = None) -> tuple[list[Activity], list[Activity], dict[str, list[dict]]]:
+    """*mappings* is the profile of *model* (``profile()``); every exchange the cut-off model
+    excludes is appended to *excluded_log*."""
     names = {slug: c.get("name", slug) for slug, c in registry.items()}
-    linker = Linker(mappings, db_name, set(registry))
+    linker = Linker(mappings, db_name, set(registry), model=model)
+    excluded_log = [] if excluded_log is None else excluded_log
     rows_by_process: dict[str, list[tuple[Dataset, dict]]] = {}
     for process in processes:
         for dataset in process.datasets:
@@ -619,6 +833,7 @@ def build_activities(processes: list[Process], mappings: dict, registry: dict[st
                 }
             ]
             skipped: list[str] = []
+            excluded: list[str] = []
             for exchange in dataset.data["exchanges"]:
                 if exchange["type"] == "product":
                     continue
@@ -630,7 +845,21 @@ def build_activities(processes: list[Process], mappings: dict, registry: dict[st
                 if kind == "skip":
                     skipped.append(str(target))
                     continue
+                if kind == "excluded":
+                    excluded.append(f"{exchange['key']} ({target})")
+                    entry = {"process": process.pid, "dataset": dataset.data["id"], "key": exchange["key"], "decision": target}
+                    if entry not in excluded_log:
+                        excluded_log.append(entry)
+                    continue
                 amount = _number(float(exchange["amount"]) * per_unit)
+                if model == "cutoff" and kind == "technosphere" and amount < 0:
+                    refusal = (
+                        f"{dataset.path} {exchange['key']}: negative technosphere amount: an avoided burden (credit), which a "
+                        "cut-off build refuses; list the flow in lci/mappings.yaml cutoff_exclusions, or build the substitution variant"
+                    )
+                    if refusal not in report.errors:  # once per exchange, not per co-product
+                        report.errors.append(refusal)
+                    continue
                 entry = {"amount": amount, "type": kind, "atlas key": exchange["key"], **target}
                 if kind == "biosphere":
                     entry["categories"] = "::".join(target["categories"])
@@ -648,7 +877,7 @@ def build_activities(processes: list[Process], mappings: dict, registry: dict[st
                 if exchange.get("title"):
                     entry["comment"] = exchange["title"]
                 exchanges.append(entry)
-            comment = _comment(process, dataset, row, skipped, commit, version)
+            comment = _comment(process, dataset, row, skipped, excluded, model, commit, version)
             metadata = {
                 "code": row["code"],
                 "reference product": row["reference product"],
@@ -661,6 +890,8 @@ def build_activities(processes: list[Process], mappings: dict, registry: dict[st
                 "atlas dataset": dataset.data["id"],
                 "atlas maturity": process.manifest.get("maturity", ""),
                 "atlas allocation": dataset.allocation.get("method", "mass"),
+                "atlas system model": model,
+                "atlas methodology version": METHODOLOGY_VERSION,
             }
             activities.append(Activity(row, comment, metadata, exchanges))
 
@@ -670,6 +901,8 @@ def build_activities(processes: list[Process], mappings: dict, registry: dict[st
         row = {"code": f"proxy:{pid}", "name": proxy["name"], "reference product": proxy["reference_product"], "unit": proxy["unit"], "location": proxy["location"]}
         exchanges = [{"name": row["name"], "amount": 1.0, "unit": row["unit"], "type": "production", "database": db_name, "reference product": row["reference product"], "location": row["location"]}]
         for item in proxy["inputs"]:
+            if model == "cutoff" and item["amount"] < 0:  # load_mappings refuses it already
+                report.error(f"proxies.{pid}", f"negative input of {item['use']}: an avoided-burden credit in a cut-off build")
             target = linker.technosphere(item["use"], mappings["technosphere"][item["use"]]["activity"]["unit"], f"proxies.{pid}")
             exchanges.append({"amount": _number(item["amount"]), "type": "technosphere", "atlas key": f"proxy:{item['use']}", "comment": item["source"], **target})
         comment = "\n".join(
@@ -754,7 +987,216 @@ def _normalise_zip(raw: bytes, path: Path) -> None:
     path.write_bytes(out.getvalue())
 
 
+# --- change report ---------------------------------------------------------------------------
+
+#: Exchange fields that say what an exchange links to (the database name is left out: it carries
+#: the version, so it changes in every release).
+LINK_FIELDS = ("name", "reference product", "unit", "location", "categories")
+
+
+def read_workbook(path: Path) -> dict[str, dict]:
+    """The activities of an Atlas workbook by code, read as bw2io's ExcelImporter reads them
+    (sections by their first cell): ``{code: {"name", "meta", "exchanges"}}``."""
+    from openpyxl import load_workbook
+
+    found: dict[str, dict] = {}
+    wb = load_workbook(path, read_only=True, data_only=True)
+    for ws in wb:
+        rows = [list(r) for r in ws.iter_rows(values_only=True)]
+        if not rows or rows[0][0] in ("skip", "Database"):
+            continue
+        current: dict | None = None
+        columns: list | None = None
+        for row in rows:
+            first = row[0] if row else None
+            if first == "Activity":
+                current, columns = {"name": row[1], "meta": {}, "exchanges": []}, None
+            elif current is None or first is None:
+                continue
+            elif first == "Exchanges":
+                columns = []
+            elif columns == []:
+                columns = [c for c in row if c is not None]
+            elif columns:
+                current["exchanges"].append({c: v for c, v in zip(columns, row) if v is not None})
+            else:
+                current["meta"][first] = row[1]
+                if first == "code":
+                    found[row[1]] = current
+    wb.close()
+    return found
+
+
+def _by_exchange(exchanges: list[dict]) -> dict[str, dict]:
+    """Exchanges by ``<type> <atlas key>`` (a repeated key gets ``#2``, ``#3``)."""
+    keyed: dict[str, dict] = {}
+    for exchange in exchanges:
+        base = f"{exchange.get('type')} {exchange.get('atlas key') or exchange.get('name')}"
+        key, number = base, 1
+        while key in keyed:
+            number += 1
+            key = f"{base}#{number}"
+        keyed[key] = exchange
+    return keyed
+
+
+def _diff_activity(old: list[dict], new: list[dict]) -> dict:
+    before, after = _by_exchange(old), _by_exchange(new)
+    changed = []
+    for key in sorted(before.keys() & after.keys()):
+        a, b = before[key], after[key]
+        entry: dict[str, Any] = {"exchange": key}
+        x, y = float(a.get("amount") or 0), float(b.get("amount") or 0)
+        if not math.isclose(x, y, rel_tol=1e-9, abs_tol=1e-15):
+            entry["amount"] = [x, y]
+            entry["relative_change"] = _number((y - x) / x) if x else None
+        link_a, link_b = ({f: e.get(f) for f in LINK_FIELDS if e.get(f) is not None} for e in (a, b))
+        if link_a != link_b:
+            entry["link"] = [link_a, link_b]
+        if len(entry) > 1:
+            changed.append(entry)
+    diff = {"added": sorted(after.keys() - before.keys()), "removed": sorted(before.keys() - after.keys()), "changed": changed}
+    return {k: v for k, v in diff.items() if v}
+
+
+def _datasets(package: dict) -> dict[tuple[str, str], dict]:
+    return {(p["id"], d["id"]): d for p in package.get("processes", []) for d in p.get("datasets", [])}
+
+
+def change_report(previous: Path, package: dict, workbook: Path) -> dict:
+    """What changed since the build in *previous* (a folder holding ``lci/`` or the ``lci/``
+    folder itself), per dataset and per activity, at exchange level."""
+    folder = previous / "lci" if (previous / "lci" / "datapackage.json").is_file() else previous
+    if not (folder / "datapackage.json").is_file():
+        raise BuildError(f"--previous {previous}: no datapackage.json (expected an Atlas LCI build folder)")
+    old_package = json.loads((folder / "datapackage.json").read_text(encoding="utf-8"))
+    old_workbook = folder / old_package["resources"][0]["path"]
+    if not old_workbook.is_file():
+        raise BuildError(f"--previous {previous}: {old_workbook.name} is missing")
+    old, new = read_workbook(old_workbook), read_workbook(workbook)
+
+    datasets = []
+    before, after = _datasets(old_package), _datasets(package)
+    for key in sorted(before.keys() | after.keys()):
+        a, b = before.get(key), after.get(key)
+        entry: dict[str, Any] = {"process": key[0], "dataset": key[1]}
+        if a is None:
+            entry["status"] = "added"
+        elif b is None:
+            entry["status"] = "removed"
+        else:
+            content = a.get("content_sha256") != b.get("content_sha256") if a.get("content_sha256") else None
+            old_alloc, new_alloc = a.get("allocation", {}), b.get("allocation", {})
+            method = old_alloc.get("method") != new_alloc.get("method")
+            # the shares change with the study's prices or a curated rule, not only with the dataset file
+            allocation_changed = method or old_alloc.get("shares") != new_alloc.get("shares")
+            entry["status"] = "changed" if content or allocation_changed else "unchanged" if content is False else "unknown"
+            entry["content_changed"] = content
+            entry["allocation_changed"] = allocation_changed
+            if method:
+                entry["allocation"] = [old_alloc.get("method"), new_alloc.get("method")]
+            # governance: a changed dataset gets a new version (docs/governance.md)
+            entry["version_not_raised"] = bool(content or allocation_changed) and a.get("version") == b.get("version")
+        entry["version"] = [(a or {}).get("version"), (b or {}).get("version")]
+        datasets.append(entry)
+
+    changed = {}
+    for code in sorted(old.keys() & new.keys()):
+        diff = _diff_activity(old[code]["exchanges"], new[code]["exchanges"])
+        if diff:
+            changed[code] = diff
+    old_model = old_package.get("system_model") or {}
+    return {
+        "schema": CHANGES_SCHEMA,
+        "from": {"version": old_package.get("version"), "database": old_package.get("name"), "library_commit": (old_package.get("library") or {}).get("commit"),
+                 "system_model": old_model.get("id", "unrecorded"), "methodology_version": (old_model.get("methodology") or {}).get("version", "unrecorded")},
+        "to": {"version": package["version"], "database": package["name"], "library_commit": package["library"]["commit"],
+               "system_model": package["system_model"]["id"], "methodology_version": package["system_model"]["methodology"]["version"]},
+        "impact": "not computed: the report is at exchange level (lci/README.md, Change reports)",
+        "datasets": datasets,
+        "activities": {"added": sorted(new.keys() - old.keys()), "removed": sorted(old.keys() - new.keys()), "changed": changed},
+    }
+
+
+def changes_markdown(changes: dict) -> str:
+    a, b = changes["from"], changes["to"]
+    lines = [
+        f"# Change report: {a['database']} -> {b['database']}",
+        "",
+        (
+            f"Library commit {a['library_commit'] or 'unknown'} -> {b['library_commit'] or 'unknown'}. "
+            f"System model {a['system_model']} -> {b['system_model']}; methodology {a['methodology_version']} -> {b['methodology_version']}."
+        ),
+        "",
+        "Exchange level only: no impact delta is computed (lci/README.md, Change reports).",
+        "",
+        "## Datasets",
+        "",
+        "| process | dataset | status | version | note |",
+        "|---|---|---|---|---|",
+    ]
+    for d in changes["datasets"]:
+        note = []
+        if d.get("version_not_raised"):
+            note.append(f"{'content' if d.get('content_changed') else 'allocation'} changed, version not raised")
+        if d.get("allocation"):
+            note.append(f"allocation {d['allocation'][0]} -> {d['allocation'][1]}")
+        elif d.get("allocation_changed"):
+            note.append("allocation shares changed")
+        lines.append(f"| {d['process']} | {d['dataset']} | {d['status']} | {d['version'][0] or '-'} -> {d['version'][1] or '-'} | {'; '.join(note)} |")
+    activities = changes["activities"]
+    lines += ["", "## Activities", ""]
+    for what in ("added", "removed"):
+        for code in activities[what]:
+            lines.append(f"- {what}: `{code}`")
+    for code, diff in activities["changed"].items():
+        lines += ["", f"### `{code}`", ""]
+        for key in diff.get("added", []):
+            lines.append(f"- added: {key}")
+        for key in diff.get("removed", []):
+            lines.append(f"- removed: {key}")
+        for entry in diff.get("changed", []):
+            parts = []
+            if "amount" in entry:
+                rel = entry.get("relative_change")
+                parts.append(f"amount {entry['amount'][0]:.6g} -> {entry['amount'][1]:.6g}" + (f" ({rel * 100:+.2f} %)" if rel is not None else ""))
+            if "link" in entry:
+                parts.append(f"link {entry['link'][0].get('name')} -> {entry['link'][1].get('name')}")
+            lines.append(f"- changed: {entry['exchange']}: {'; '.join(parts)}")
+    if not activities["added"] and not activities["removed"] and not activities["changed"]:
+        lines.append("No activity changed.")
+    return "\n".join(lines) + "\n"
+
+
 # --- build -----------------------------------------------------------------------------------
+
+
+def _dataset_entry(d: Dataset) -> dict:
+    version, version_source = _dataset_version(d)
+    allocation = {
+        "method": d.allocation.get("method", "mass"),
+        "source": d.allocation_source,
+        "rule": d.rule,
+        "reason": d.reason,
+        "follows_hierarchy": d.finding is None,
+        "shares": {k: _number(v) for k, v in sorted(d.shares.items())},
+    }
+    if d.finding:
+        allocation["finding"] = d.finding
+    return {
+        "id": d.data["id"],
+        "path": d.path,
+        "basis": d.data.get("basis", "1 h of operation"),
+        "version": version,
+        "version_source": version_source,
+        "methodology_version": METHODOLOGY_VERSION,
+        "content_sha256": _content_sha256(d.data),
+        "review": d.data.get("review") or {"status": "unreviewed"},
+        "valid_until": d.data.get("valid_until"),
+        "allocation": allocation,
+        "data_status": _data_status(d.data),
+        "generator": (d.data.get("provenance") or {}).get("generator", ""),
+    }
 
 
 def _write_json(path: Path, data: Any) -> None:
@@ -765,10 +1207,26 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def build(library: Path, out: Path, version: str, commit: str | None = None, mappings_path: Path | None = None, public: bool = False) -> Report:
+def _dataset_version(dataset: Dataset) -> tuple[str, str]:
+    """A dataset's semantic version and where it comes from: its own ``version`` (read once
+    core#179 adds the field; core's schema refuses it today), else the initial 0.1.0
+    (docs/governance.md)."""
+    if dataset.data.get("version"):
+        return str(dataset.data["version"]), "dataset"
+    return "0.1.0", "initial"
+
+
+def _content_sha256(data: dict) -> str:
+    return hashlib.sha256(json.dumps(data, sort_keys=True, ensure_ascii=False, default=str).encode("utf-8")).hexdigest()
+
+
+def build(library: Path, out: Path, version: str, commit: str | None = None, mappings_path: Path | None = None, public: bool = False, system_model: str | None = None, previous: Path | None = None) -> Report:
     report = Report()
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9.+_-]*", version):
         report.error("--version", f"{version!r}: letters, digits and . + _ - only")
+        return report
+    if previous is not None and previous.resolve() in (out.resolve(), (out / "lci").resolve()):
+        report.error("--previous", "must not be the output folder (its lci/ is replaced)")
         return report
     mappings_path = mappings_path or (library / "lci" / "mappings.yaml")
     if not mappings_path.is_file():
@@ -783,15 +1241,21 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
         report.error(str(registry_path), "missing chemical registry")
         return report
     registry = {c["slug"]: c for c in (_yaml(registry_path) or {}).get("chemicals", [])}
+    model = system_model or mappings["system_model"]
+    if model not in SYSTEM_MODELS:
+        report.error("--system-model", f"{model!r} is not one of {', '.join(SYSTEM_MODELS)}")
+        return report
 
     own_repo = _git(library, "rev-parse", "--show-toplevel") == str(library)
     if commit is None and own_repo:
         commit = _git(library, "rev-parse", "HEAD")
     dirty = bool(_git(library, "status", "--porcelain")) if own_repo else None
 
-    processes = _discover(library, report, public)
-    db_name = f"cheme-as-code-atlas-{version}"
-    activities, proxies, by_process = build_activities(processes, mappings, registry, db_name, commit, version, report)
+    processes = _discover(library, report, mappings, public)
+    # the default model's database carries the plain name; a variant is labelled in its name
+    db_name = f"cheme-as-code-atlas-{version}" if model == mappings["system_model"] else f"cheme-as-code-atlas-{version}-{model}"
+    excluded: list[dict] = []
+    activities, proxies, by_process = build_activities(processes, profile(mappings, model), registry, db_name, commit, version, report, model, excluded)
     if report.errors:
         return report
     if not activities:
@@ -807,6 +1271,7 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
         "Brightway 2.5 (bw2io ExcelImporter) format. This sheet is skipped by the importer (A1 = skip).",
         "Import: pip install the helper (process-library python/, package cheme-as-code-lci), then cheme_as_code_lci.install(path, background=<your ecoinvent database>, location=<site country>).",
         f"Library commit: {commit or 'unknown'}. Mappings: lci/mappings.yaml. Details per process: datapackage.json.",
+        f"System model: {SYSTEM_MODELS[model]} ({METHODOLOGY_DOCUMENT}, methodology {METHODOLOGY_VERSION}).",
         *CAVEATS,
     ]
     database_meta = {
@@ -815,6 +1280,8 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
         "atlas library commit": commit or "unknown",
         "atlas default background": DEFAULT_BACKGROUND,
         "atlas default site location": mappings["default_site_location"],
+        "atlas system model": model,
+        "atlas methodology version": METHODOLOGY_VERSION,
     }
     write_workbook(lci / xlsx_name, db_name, database_meta, activities, proxies, about)
 
@@ -832,36 +1299,53 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
                 "validation": (process.manifest.get("validation") or {}).get("status"),
                 "factors_status": _factors_status(process.factors),
                 "functional_unit": _functional_unit(process.study),
-                "allocation": {"method": first.allocation.get("method", "mass"), "source": first.allocation_source},
-                "datasets": [
-                    {
-                        "id": d.data["id"],
-                        "path": d.path,
-                        "basis": d.data.get("basis", "1 h of operation"),
-                        "allocation": {"method": d.allocation.get("method", "mass"), "source": d.allocation_source, "shares": {k: _number(v) for k, v in sorted(d.shares.items())}},
-                        "data_status": _data_status(d.data),
-                        "generator": (d.data.get("provenance") or {}).get("generator", ""),
-                    }
-                    for d in process.datasets
-                ],
+                "allocation": {"method": first.allocation.get("method", "mass"), "source": first.allocation_source, "rule": first.rule},
+                "datasets": [_dataset_entry(d) for d in process.datasets],
                 "activities": activity_list(by_process.get(process.pid, [])),
             }
         )
+    variant_caveats = [] if model == "cutoff" else [
+        (
+            f"This is the {model} variant ({db_name}), not the default cut-off database: it contains avoided-burden credits "
+            "(lci/mappings.yaml substitution). Do not mix it with the cut-off database in one study."
+        )
+    ]
+    findings = [f"{d.path}: {d.finding}" for p in processes for d in p.datasets if d.finding]
     datapackage = {
         "schema": DATAPACKAGE_SCHEMA,
         "name": db_name,
         "version": version,
+        "system_model": {
+            "id": model,
+            "label": SYSTEM_MODELS[model],
+            "default": model == mappings["system_model"],
+            "methodology": {"document": METHODOLOGY_DOCUMENT, "version": METHODOLOGY_VERSION},
+            "excluded": excluded,
+            "allocation_findings": findings,
+        },
+        "governance": {"document": "docs/governance.md", "versioning": "semantic: database release and every dataset"},
         "format": "bw2io ExcelImporter workbook",
         "library": {"commit": commit, "dirty": dirty},
         "brightway": {"database": db_name, "default_background": DEFAULT_BACKGROUND, "default_biosphere": DEFAULT_BIOSPHERE, "default_site_location": mappings["default_site_location"]},
         "resources": [{"path": xlsx_name, "mediatype": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}],
         "processes": process_entries,
         "proxies": activity_list([p.row for p in proxies]),
-        "caveats": list(CAVEATS),
+        "caveats": [*CAVEATS, *variant_caveats],
     }
     _write_json(lci / "datapackage.json", datapackage)
 
-    caveats = list(CAVEATS)
+    reports = []
+    if previous is not None:
+        try:
+            changes = change_report(previous, datapackage, lci / xlsx_name)
+        except BuildError as failure:
+            report.errors.append(str(failure))
+            return report
+        _write_json(lci / "changes.json", changes)
+        (lci / "CHANGES.md").write_text(changes_markdown(changes), encoding="utf-8")
+        reports = ["changes.json", "CHANGES.md"]
+
+    caveats = [*CAVEATS, *variant_caveats]
     for entry in process_entries:
         if entry["factors_status"] == "placeholder":
             caveats.append(f"{entry['id']}: the study's characterisation factors are placeholders (example: true); the LCI carries no factors, but its plantcode results are not meaningful numbers.")
@@ -872,8 +1356,10 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
         "library_commit": commit,
         "files": [
             {"name": name, "path": f"lci/{name}", "bytes": (lci / name).stat().st_size, "sha256": _sha256(lci / name)}
-            for name in (xlsx_name, "datapackage.json")
+            for name in (xlsx_name, "datapackage.json", *reports)
         ],
+        "system_model": model,
+        "methodology_version": METHODOLOGY_VERSION,
         "processes": {e["id"]: [{"code": a["code"], "name": a["name"], "reference_product": a["reference_product"], "unit": a["unit"]} for a in e["activities"]] for e in process_entries},
         "caveats": caveats,
     }
@@ -890,9 +1376,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--mappings", type=Path, help="lci/mappings.yaml (default: <library>/lci/, else the staged copy)")
     parser.add_argument("--strict", action="store_true", help="fail on warnings too")
     parser.add_argument("--public", action="store_true", help="published processes only (publication.status: public)")
+    parser.add_argument("--system-model", choices=sorted(SYSTEM_MODELS), help="default: the mappings' system_model (cutoff); substitution builds the labelled variant")
+    parser.add_argument("--previous", type=Path, help="an earlier build (folder with lci/): write lci/changes.json and lci/CHANGES.md")
     args = parser.parse_args(argv)
 
-    report = build(args.library.resolve(), args.out.resolve(), args.version, args.commit, args.mappings.resolve() if args.mappings else None, args.public)
+    report = build(
+        args.library.resolve(), args.out.resolve(), args.version, args.commit, args.mappings.resolve() if args.mappings else None, args.public,
+        args.system_model, args.previous.resolve() if args.previous else None,
+    )
     for message in report.warnings:
         print(f"warning: {message}", file=sys.stderr)
     for message in report.errors:

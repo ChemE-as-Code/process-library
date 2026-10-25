@@ -18,6 +18,9 @@
      YAML, layout, LCA): the catalog derives its sheets, gates, design basis and LCA results;
    - an LCI dataset (`lca/dataset.yaml`, written by `cheme assess lca --write`, or hand-written
      `lca/datasets/*.yaml`), and if it needs new background links, entries in `lci/mappings.yaml`.
+     A multi-output process needs an allocation that follows the hierarchy of
+     [docs/system-model.md](docs/system-model.md) (often a curated `allocation:` entry in the
+     mappings), and recycling or energy-recovery outputs a `cutoff_exclusions:` decision.
 5. Check: `uv run scripts/build_catalog.py --library . --out dist --strict` (and
    `scripts/build_lci.py ... --strict` with an LCI dataset). CI runs the same, and the public
    build (`--public`, below).
