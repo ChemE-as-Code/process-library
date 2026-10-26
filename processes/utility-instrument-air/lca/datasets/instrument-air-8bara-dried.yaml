@@ -1,0 +1,265 @@
+# Utility dataset of the process library (process-library#45), Tier 1 form (core#182).
+# Every amount is the `formula` of its `parameters`; core's lci_dataset validator re-checks each.
+# Physical properties and stoichiometry have their source; design parameters are ASSUMED with a
+# TODO to source them. Property parameters were evaluated with CoolProp 8.0.0. Change a
+# parameter and the amounts of its formulas together (core and tests/test_utilities.py check them).
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: instrument-air-8bara-dried
+title: Instrument air, dried, 8 bar(a)
+description: 'Per 1 kg of dry instrument air at 8 bar(a) and a -40 degC pressure dew point: compressor
+  electricity from the isothermal work and an ASSUMED efficiency, heatless dryer purge, heat to cooling
+  water, condensate to wastewater treatment.'
+basis: 1 kg of dry instrument air at 8 bar(a)
+boundary: 'gate-to-gate: compressor package with coolers and dryer; ambient air is free'
+technology: oil-free multistage compressor, heatless desiccant dryer
+geography:
+  description: 'Generic: one ASSUMED ambient state (20 degC, 60 % RH).'
+classification:
+  isic: '3530'
+system_boundary:
+  included:
+  - compressor electricity
+  - heat to cooling water
+  - condensate to wastewater treatment
+  excluded:
+  - desiccant replacement and filters
+  - lubricant (oil-free package)
+  - infrastructure
+  cutoff: none applied
+  infrastructure: excluded
+  non_routine: excluded
+uuid: 3be6516b-3389-5119-a874-25a57bf61cb9
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+location: GLO
+year: 2026
+valid_until: 2031
+time:
+  start: 2026
+  description: Design parameters of 2026 (ASSUMED); physical properties do not age.
+technology_level: current
+modelling:
+  principle: attributional
+  multifunctionality: 'single output: no allocation'
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: air
+  value: 1.0
+  unit: kg
+  description: Dry instrument air delivered (the basis), at 8 bar(a).
+  source: basis
+- name: p2
+  value: 8.0
+  unit: bar(a)
+  description: Delivery pressure (7 barg).
+  source: 'ASSUMED: a common instrument air header pressure. TODO: per site.'
+- name: p1
+  value: 1.01325
+  unit: bar(a)
+  description: Intake pressure.
+  source: standard atmosphere
+- name: t1
+  value: 293.15
+  unit: K
+  description: Intake temperature, 20 degC.
+  source: 'ASSUMED: as the cooling tower''s ambient state. TODO: site design.'
+- name: R
+  value: 8.314462618
+  unit: J/(mol K)
+  description: Molar gas constant.
+  source: CODATA 2018 (exact)
+- name: M_air
+  value: 28.9644
+  unit: g/mol
+  description: Molar mass of dry air.
+  source: U.S. Standard Atmosphere 1976, as chemicals/chemicals.yaml air
+- name: M_H2O
+  value: 18.015
+  unit: g/mol
+  description: Molar mass of water.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    as chemicals/chemicals.yaml
+- name: w1
+  value: 0.008773
+  unit: kg/kg dry air
+  description: Humidity ratio of intake air at 20 degC, 60 % RH.
+  source: humid air, ASHRAE RP-1485 (Herrmann, Kretzschmar and Gatley 2009), evaluated with CoolProp 8.0.0
+    (Bell et al. 2014); the ambient state is ASSUMED
+- name: h1
+  value: 42.3751
+  unit: kJ/kg dry air
+  description: Enthalpy of intake air.
+  source: humid air, ASHRAE RP-1485 (Herrmann, Kretzschmar and Gatley 2009), evaluated with CoolProp 8.0.0
+    (Bell et al. 2014)
+- name: w2
+  value: 0.0033991
+  unit: kg/kg dry air
+  description: Humidity ratio of air saturated at 30 degC, 8 bar(a), after the aftercooler.
+  source: humid air, ASHRAE RP-1485 (Herrmann, Kretzschmar and Gatley 2009), evaluated with CoolProp 8.0.0
+    (Bell et al. 2014); 30 degC aftercooler outlet ASSUMED
+- name: h2
+  value: 37.3063
+  unit: kJ/kg dry air
+  description: Enthalpy of that air.
+  source: humid air, ASHRAE RP-1485 (Herrmann, Kretzschmar and Gatley 2009), evaluated with CoolProp 8.0.0
+    (Bell et al. 2014)
+- name: h_cond
+  value: 126.46
+  unit: kJ/kg
+  description: Enthalpy of the condensate, liquid water at 30 degC.
+  source: IAPWS-95 (Wagner and Pruss 2002, J. Phys. Chem. Ref. Data 31:387), evaluated with CoolProp 8.0.0
+    (Bell et al. 2014, Ind. Eng. Chem. Res. 53:2498)
+- name: eta_iso
+  value: 0.6
+  unit: '1'
+  description: Isothermal efficiency of the compressor package (shaft and motor).
+  source: 'ASSUMED: an oil-free multistage compressor with intercooling. TODO: source (a published package
+    rating).'
+- name: purge
+  value: 0.15
+  unit: '1'
+  description: Purge of a heatless desiccant dryer, fraction of the compressed air.
+  source: 'ASSUMED: heatless pressure-swing dryer to a -40 degC pressure dew point. TODO: source; a heated
+    or heat-of-compression dryer purges far less.'
+- name: log_p
+  value: 2.066279
+  unit: '1'
+  description: ln(p2 / p1).
+  source: computed from p2 and p1
+exchanges:
+- key: product:instrument-air
+  title: Instrument air, dried, 8 bar(a)
+  type: product
+  amount: 1.0
+  unit: kg
+  formula: air
+  provenance: given
+  state:
+    phase: gas
+    pressure: 8.0
+    temperature: 30.0
+    component: air
+    grade: instrument air, -40 degC pressure dew point
+- key: feed:moisture
+  title: Water vapour in the intake air
+  type: input
+  amount: 0.010321176470588235
+  unit: kg
+  formula: air / (1 - purge) * w1
+  provenance: assumed
+  origin: estimate
+  free: true
+  source: ambient humidity, free
+- key: feed:electricity
+  title: Compressor package
+  type: input
+  amount: 0.09604147691315043
+  unit: kWh
+  formula: air / (1 - purge) * (1 / M_air + w1 / M_H2O) * R * t1 * log_p / eta_iso / 3600
+  provenance: assumed
+  origin: estimate
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: isothermal work of the humid intake, n R T ln(p2/p1), over eta_iso (kmol x J/mol = kJ; / 3600
+    to kWh)
+  pedigree: &id001
+    scores:
+    - 4
+    - 4
+    - 3
+    - 4
+    - 4
+    reason: 'derived by a mass or energy balance from ASSUMED design parameters (see parameters): reliability
+      4 (qualified estimate), completeness 4, temporal 3, geographical 4 (generic site), technological
+      4 (generic technology); no better than the Tier 1 floor'
+  basic_uncertainty: 1.05
+- key: output:heat-rejected
+  title: Intercooler and aftercooler heat to cooling water
+  type: output
+  amount: 0.09747586142491514
+  unit: kWh
+  formula: (air / (1 - purge) * (1 / M_air + w1 / M_H2O) * R * t1 * log_p / eta_iso / 3600) + (air / (1
+    - purge) * (h1 - h2) - air / (1 - purge) * (w1 - w2) * h_cond) / 3600
+  provenance: assumed
+  origin: estimate
+  link:
+    factor: cooling-water
+    source: site cooling water
+  carrier:
+    kind: cold
+    temperature: 25.0
+    source: the coolers need cooling water at 25 degC or colder
+  source: 'energy balance: shaft work plus the enthalpy of the intake minus that of the cooled saturated
+    air and the condensate (water-cooled package, all losses to cooling water ASSUMED)'
+  pedigree: *id001
+  basic_uncertainty: 1.05
+- key: output:condensate
+  title: Condensate to wastewater treatment
+  type: output
+  amount: 0.006322235294117646
+  unit: kg
+  formula: air / (1 - purge) * (w1 - w2)
+  provenance: assumed
+  origin: estimate
+  link:
+    factor: wastewater
+    source: site wastewater treatment
+  source: intake moisture minus saturation at 30 degC, 8 bar(a)
+  pedigree: *id001
+  basic_uncertainty: 1.05
+- key: emission:H2O
+  title: Moisture vented with the dryer purge
+  type: emission
+  amount: 0.003998941176470588
+  unit: kg
+  formula: air / (1 - purge) * w2
+  provenance: assumed
+  origin: estimate
+  free: true
+  cas: 7732-18-5
+  source: the moisture left after the aftercooler leaves with the purge (the residual at -40 degC pressure
+    dew point, about 1e-5 kg/kg, is counted here); intake humidity returned to the air
+provenance:
+  generator: hand-written utility model (process-library#45); amounts are the formulas of the parameters
+  notes: Every parameter states its source or ASSUMED with a TODO; no value from a licensed database.
+generation:
+  tier: 1
+  method: 'utility model: mass and energy balance of the unit from physical properties and stoichiometry,
+    with ASSUMED design parameters (each listed in parameters)'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 3
+  - 4
+  - 3
+  - 3
+  - 3
+  dqr_floor: 3.0
+  components:
+    feed:moisture: H2O
+    output:condensate: H2O
+    emission:H2O: H2O
+  formulas:
+    feed:moisture: H2O
+    output:condensate: H2O
+    emission:H2O: H2O
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      H:
+      - 0.001155009
+      - 0.001155009
+      O:
+      - 0.009166167
+      - 0.009166167
+    outside:
+    - feed:electricity
+    - output:heat-rejected
+    - product:instrument-air

@@ -27,15 +27,24 @@ goxp = bd.get_node(database="cheme-as-code-atlas-0.1.0", code="asu-1:asu-1-500-t
 ```
 
 `install(path_or_version, background="ecoinvent-3.11-cutoff", biosphere=None, location=None,
-prefer_atlas=True, overwrite=False, expect=None)`:
+prefer_atlas=True, overwrite=False, expect=None, pin=())`:
 
 - runs `bw2io.ExcelImporter` and its standard strategies, then `match_database` against
   `background` (name, reference product, unit, location) and the biosphere (name, categories,
   unit); `biosphere` defaults to `biosphere3`, else the one `*biosphere` database in the project;
 - `location` replaces the location of every input marked `atlas location rule: site`; without it
   the workbook's default (`DE`) is used and the report says so;
-- `prefer_atlas=True` links an input that another Atlas process makes (e.g. hydrogen from an
-  Atlas electrolyser) to that Atlas activity instead of the background;
+- `prefer_atlas=True` (or `"market"`) links an input that another Atlas process makes (e.g.
+  liquid nitrogen from ASU-1) to the Atlas **market** of its grade instead of the background:
+  delivered, with transport and losses ([markets](../docs/markets.md)). `prefer_atlas="plant"`
+  links it to the plant gate instead, and `pin=["<activity code>", "<code>/<atlas key>"]` does so
+  for single inputs; `False` keeps the background. Without a market of the grade the link goes to
+  the plant;
+- the report lists **every Atlas-to-Atlas link** (`report.atlas_links`: inputs, a market's
+  suppliers, `link.dataset`) with the build's compatibility check (grade, unit, system model,
+  allocation, boundary) and the supply chains (`report.chains()`), prints the Atlas system model
+  and methodology version, and warns (`report.warnings`) about an incompatible link, an unused
+  pin, or a background that records another system model;
 - links an elementary flow by its biosphere3 UUID (`atlas flow uuid`) when the biosphere
   database has a flow of that code and unit, else by name, categories and unit; writes the
   `atlas pedigree` scores as Brightway's `pedigree`;
@@ -55,14 +64,19 @@ to handle.
 
 | file | |
 |---|---|
-| `lci/cheme-as-code-atlas-<version>.xlsx` | the database `cheme-as-code-atlas-<version>`: an `about` sheet (skipped by the importer), a `database` sheet, one sheet per process, a `proxies` sheet. Exchange columns beyond bw2io's: `atlas key`, `atlas flow uuid`, `atlas pedigree`, `atlas carrier` and the linking fields |
+| `lci/cheme-as-code-atlas-<version>.xlsx` | the database `cheme-as-code-atlas-<version>`: an `about` sheet (skipped by the importer), a `database` sheet, one sheet per process, a `markets` sheet, a `proxies` sheet. Exchange columns beyond bw2io's: `atlas key`, `atlas flow uuid`, `atlas pedigree`, `atlas carrier` and the linking fields |
 | `lci/datapackage.json` | version, library commit, per process: title, maturity, review, data status (exchanges by provenance), factor status of the study, allocation and shares, functional unit, activities (each with its `chemical` slug and registry `grade`, null when none), and per dataset its `property_checks` and `benchmarks` (below) |
-| `lci/index.json` | what the Atlas site reads: file names, sizes, sha256, activities per process, caveats, system model |
+| | `activities`: one entry per exported activity (datasets, markets and proxies) with what its Atlas page `/lci/<code>/` shows: exchanges per unit of the reference product with unit, provenance, source, pedigree and lognormal, background link target by name or Atlas activity by code, elementary flows with biosphere3 UUID and compartment, `used_by`, header (geography, time, technology, classification with ISIC from the families and CPC/HS and CAS from the registry), allocation share, `closure` (core#174, or `not-assessed` with the reason), citation (DOI null until deposited), each database file that holds it with how to find it there (workbook and multifunctional JSON by code, or the dataset code of the unallocated form; openLCA JSON-LD by process id and member), a market's suppliers, shares, transport and losses with status and source (`market`, from `markets`), and `publication` (a market is public when all its suppliers are). No impact values (ADR 0015, `scripts/lci_activities.py`) |
+| `lci/cheme-as-code-atlas-<version>-olca-jsonld.zip` | the same database for **openLCA** (JSON-LD, olca-schema 2): one unallocated multi-output process per dataset with allocation factors (below); markets and proxies as single-output processes, the default provider of every exchange linked to them |
+| `lci/cheme-as-code-atlas-<version>-multifunctional.json` | the **unallocated multi-output** datasets for Brightway's `multifunctional` package, with allocation properties (below); `install_multifunctional()` |
+| `lci/index.json` | what the Atlas site reads: file names, sizes, sha256, `format` and `format_version` of every file, activities per process, exported markets, caveats, system model |
 | `lci/changes.json`, `lci/CHANGES.md` | with `--previous`: the change report against the earlier build (below) |
 
 `datapackage.json` also records the **system model** (`system_model`: id, label, methodology
 document and version, the exchanges excluded under cut-off with their decisions, allocation
-findings) and, per dataset, its **version**, `methodology_version`, `content_sha256`, `review`
+findings), the **markets** (every market of `markets/` with its status, suppliers and shares,
+and each number with its status and source), the **Atlas links** (`atlas_links`: every
+Atlas-to-Atlas link with its compatibility checks) and, per dataset, its **version**, `methodology_version`, `content_sha256`, `review`
 record (`unreviewed` by default), `valid_until`, and the allocation with the rule of the
 hierarchy that justifies it. These come from the dataset itself when it states them (core's
 dataset contract v2, below); otherwise the build's methodology version and `0.1.0`. A dataset
@@ -72,7 +86,8 @@ classification, production volume, data generator, as the dataset gives them) an
 deprecated, `deprecated: true` and `superseded_by`.
 
 Activity codes are stable: `<process>:<dataset>:<product key>` (e.g.
-`asu-1:asu-1-500-t-d-gox:product:GOXP`) and `proxy:<id>`.
+`asu-1:asu-1-500-t-d-gox:product:GOXP`), `market:<product>:<region>` (e.g.
+`market:nitrogen/lin:RER`; a technology market adds `:<technology>`) and `proxy:<id>`.
 
 ## Modelling rules
 
@@ -102,8 +117,9 @@ build); governance (versions, change reports, releases, review) is
   finding; else the given method, with a finding. A curated `rule: deviation` in the mappings
   still works and wins over the study's. Findings are
   warnings (`--strict` fails). Proportional methods (mass, economic, energy, exergy, shares)
-  only; substitution and `none` are refused. The unallocated multi-output form is not exported
-  (bw2io's Excel importer has no clean representation of it).
+  only; substitution and `none` are refused. bw2io's Excel importer has no clean representation
+  of the unallocated multi-output form, so the workbook holds the allocated activities; the
+  multi-output form is in the openLCA and multifunctional files ([Other formats](#other-formats)).
 - **Construction, maintenance, transport, end of life** are technosphere inputs per unit of
   product, already spread over the plant's life (hours x years) by core.
 - **Amounts** are quantities of the linked activity's reference product, as in core's study. A
@@ -138,6 +154,14 @@ build); governance (versions, change reports, releases, review) is
   Without a grade it is the substance's name with the exchange title, as before. Activity codes do
   not change, so match on the code, not on the name. An input whose grade another Atlas process
   makes prefers that producer.
+- **Markets** ([docs/markets.md](../docs/markets.md)): `markets/<substance>.yaml` gives per
+  product and region the Atlas producers weighted by production volume (or sourced shares), the
+  transport legs (ton kilometer of a `lci/mappings.yaml` entry) and the losses on the way, each
+  number with its status (cited, calculated, assumed) and source. They are activities of the
+  same database. An Atlas input links to the market of its grade by default, with the plant
+  beside it for pinning; a producer of another grade is refused; a link at a plant gate because
+  no market exists is a warning. ASU-1 supplies the first four: LOX and LIN by cryogenic road
+  tanker with boil-off and transfer losses, GOX and GAN by pipeline; argon markets are planned.
 - **Property checks.** Each product's study `exergy` and `energy` (per kg) are compared with its
   grade's (else its substance's) registry `exergy` and `lhv`. `datapackage.json` records each as
   `match`, `mismatch`, `overridden` (a `properties_reason` in `lci/mappings.yaml`) or
@@ -179,7 +203,8 @@ Decisions for ASU-1:
   aluminium (primary ingot), concrete (m3), zeolite for the adsorbent, lubricating oil, lorry
   transport.
 - **Screening proxies** where the dataset counts a flow in a unit ecoinvent has no activity for:
-  cooling water as heat rejected (0.01 kWh electricity per kWh), pipe per m (20 kg steel), fittings
+  cooling water as heat rejected (0.01 kWh electricity per kWh; kept on it until ASU-1 decides
+  its cooling configuration, see Library utilities), pipe per m (20 kg steel), fittings
   per piece (15 kg steel), grating per m2 (30 kg steel), insulation per m2 (2 kg aluminium
   cladding; insulant not yet counted). The masses are assumptions chosen to be plausible and
   consistent with the example factors.
@@ -197,6 +222,54 @@ Decisions for ASU-1:
 
 The background names follow ecoinvent 3.11 conventions but have **not** been checked against a
 licensed copy here; `install()` reports any that do not link.
+
+## Library utilities
+
+Site utilities and end-of-pipe treatment are ordinary library processes (process-library#45),
+so every process links to the same documented models instead of its own proxy:
+
+| process | dataset, per | operating range |
+|---|---|---|
+| `utility-steam-ng-boiler` | saturated steam, natural-gas boiler, kg | steam at 11 bar(a) or below, heat up to 184 degC |
+| `utility-cooling-tower` | heat rejected, evaporative tower, kWh | cooling water at 25 degC supply or warmer |
+| `utility-wwtp` | wastewater, activated sludge, kg (1 m3 = 1000 kg) | a fixed design COD of 1 kg/m3 (ASSUMED) |
+| `utility-flare` | gas flared, as methane, kg | methane-rich gas |
+| `utility-chiller` | cold, chilled water, kWh | 6 degC or warmer |
+| `utility-instrument-air` | dry instrument air, 8 bar(a), kg | 8 bar(a) (not checked yet) |
+
+- **Where they live.** `processes/utility-*`, not a separate `utilities/` tree: both builders
+  find processes as `processes/*/process.yaml`, the Atlas URL is the folder id, the taxonomy
+  already has the families (`steam-and-heat`, `utilities`, `wastewater-treatment`,
+  `waste-treatment`, ISIC 3530, 3600, 3700, 3821) and `coverage.yaml` names covering processes
+  by id. A `utility-` prefix keeps them together without a second discovery path.
+- **Datasets.** Manifest-only processes with one hand-written `lca/datasets/*.yaml` each, in
+  core's Tier 1 form (core#182): every amount is a `formula` of the dataset's `parameters`, the
+  element balance is recorded and closed, maturity is `concept`. Physical properties and
+  stoichiometry have their sources; every design parameter (efficiencies, cycles of
+  concentration, heads, yields, the ambient state) is **ASSUMED** with a TODO, so the datasets
+  are first-principles screening models with pedigree `[4, 4, 3, 4, 4]`. What each leaves out is
+  in its `system_boundary.excluded` and README (e.g. NOx of the boiler, cooling-water chemicals,
+  N2O of the WWTP, the chiller's refrigerant losses).
+- **Linking: Atlas first, background as the alternative.** Each utility product has a registry
+  slug of kind `utility` (`steam`, `cooling-water`, `wastewater`, `flare-gas`, `chilled-water`,
+  `instrument-air`). A consumer's input of one, and also its *output* of a utility service (heat
+  to cooling water, wastewater, gas to the flare), names the Atlas utility as `atlas activity`, so
+  `install(prefer_atlas=True)` links it there; with `prefer_atlas=False` it keeps the background
+  mapping of `technosphere:` (unit proxies convert kg of steam, gas and wastewater to the
+  background's MJ and m3). An `exchanges:` override with `atlas: false` keeps an exchange on its
+  background. Provider profiles that select a background per study (core#168) do not exist yet.
+- **Operating range.** A utility product states its level as a `carrier` (steam pressure, cold
+  temperature). An exchange whose own `carrier` is outside it is not linked to the utility: the
+  build warns (failing `--strict`) and keeps the background; an explicit `link.dataset` outside the
+  range is an error (`carrier_refusal`: steam serves steam at its pressure or below and heat up to
+  its temperature; cold serves a need at its temperature or warmer). An exchange without a
+  carrier is not checked. Core's carriers (core#177) describe energy only, so a gas product's
+  pressure (instrument air) is not checked yet.
+- **Nitrogen** needs no utility dataset: a consumer's `nitrogen` input links ASU-1's GANP (or
+  LIN, by the grade it names) with `prefer_atlas`, and merchant LIN in the background otherwise.
+- **ASU-1** keeps its cooling-water screening proxy (`exchanges: asu-1/product:CW: atlas:
+  false`) until it decides its site's cooling configuration; removing the override links it to
+  the cooling tower, with its make-up water resource.
 
 ## Governance fields and deprecated datasets
 
@@ -235,18 +308,93 @@ dataset without a manifest, or with one written before core#178, has `null`.
   states its maturity and review status (`datapackage.json`, activity comments).
 - The ASU dataset is from example-asu PR #11 (in review): numbers may still change.
 
+## Other formats
+
+Written by `scripts/export_formats.py`, which `build_lci.py` calls after the workbook. Both read
+the build's own activities and the unallocated datasets behind them (same mappings, same
+linking): there is no second source of truth. `index.json` lists each file with its sha256,
+`format` and `format_version`.
+
+**openLCA JSON-LD** (`-olca-jsonld.zip`, olca-schema 2, written with the pinned `olca-schema`
+2.6.2 package):
+
+- one **multi-output unit process per dataset** with every co-product as an output, plus the
+  screening proxies as single-output processes. Allocation factors: the build's method as the
+  default allocation method, with exactly the build's shares (exergy, energy and mass as
+  `PHYSICAL`, economic as `ECONOMIC`, given shares as `CAUSAL`), and beside it `PHYSICAL` by mass
+  or `ECONOMIC` by price where every co-product has the property. openLCA's allocated result per
+  unit of a product is then the workbook's activity; the process description lists the factors;
+- an input another Atlas process makes is linked to that process (`defaultProvider`), as
+  `install(prefer_atlas=True)`. A background input is a product flow named by its reference
+  product (ecoinvent 3.11 cut-off naming, unchecked), with the provider by name, reference
+  product and location in the exchange's description: map these flows to your background with
+  openLCA's flow mapping. An input your background models as a waste treatment must be mapped to
+  the waste flow as an output (the build cannot tell; the Brightway installer flips its sign);
+- units and flow properties are **references to openLCA's reference data** (UUIDs from
+  `olca_schema.units`); import into a database that has openLCA's reference units and flow
+  properties. A unit openLCA has no reference unit for (Brightway's standard cubic meter) fails
+  the build;
+- the lognormal is written as openLCA's (geometric mean, GSD); the pedigree scores are in the
+  exchange's description (no data quality system is referenced);
+- identifiers (uuid5, namespace `uuid5(NAMESPACE_URL, "https://github.com/ChemE-as-Code/process-library/lci")`,
+  `export_formats.atlas_uuid`): a dataset's process is the **dataset's own `uuid`** (core: uuid5
+  of plant and dataset id) in the default build, `atlas_uuid("process", <code>)` without one, and
+  `atlas_uuid("process", <system model>, <code>)` in a labelled variant, so that the
+  substitution build does not overwrite the default in one openLCA database. Atlas product flows
+  are `atlas_uuid("flow", <activity code>)`, background flows `atlas_uuid("flow", "background",
+  <reference product>, <unit>)`, locations `atlas_uuid("location", <code>)` (Atlas locations,
+  not openLCA's reference locations);
+- **elementary flows** keep their **biosphere3 UUID** where the build has one (`atlas flow
+  uuid`: ecoinvent's elementary exchange id as distributed with bw2io). A flow without one gets
+  `atlas_uuid("flow", "elementary", <name>, <categories>, <unit>)` and says in its description
+  that it is not an EF 3.1 or ecoinvent UUID: map it by name and category. EF 3.1 UUIDs are not
+  recorded by core yet (core#313) and are never guessed. Whether a biosphere3 UUID matches a flow
+  of your openLCA database depends on that database's elementary flow list.
+
+**Brightway multifunctional** (`-multifunctional.json`, schema
+`cheme-as-code/lci-multifunctional/v1`, for `multifunctional` 1.1, BSD-3-Clause): one
+multi-output process per dataset (amounts per dataset basis, e.g. 1 h of operation), each
+co-product a functional production edge with its allocation properties: `mass` (1 for a product
+in kg), `exergy` and `energy` (kJ per unit, as the dataset or study states them; core
+`ProductProperties`), `price` (only where stated) and `share` (the build's share). Nothing is
+filled in that the dataset does not state: ASU-1 has mass, exergy and share, no price and no LHV.
+Each process's `default_allocation` is the build's method (`exergy` for ASU-1), or `share` where
+the properties cannot reproduce it. A single-output dataset is an ordinary process under its
+activity code.
+
+```python
+from cheme_as_code_lci import install_multifunctional   # pip install "./python[multifunctional]"
+
+report = install_multifunctional("lci/", background="ecoinvent-3.11-cutoff", location="FR")
+mf = report.database                                       # cheme-as-code-atlas-<version>-multifunctional
+node = bd.get_node(database=mf, code="asu-1:asu-1-500-t-d-gox")
+node["default_allocation"] = "mass"                        # or exergy, energy, price, share, equal
+node.save(); bd.Database(mf).process()                     # re-allocates
+```
+
+It links exactly as `install()` and refuses to write while anything is unlinked. The allocated
+read-only activities carry the workbook's codes (`asu-1:asu-1-500-t-d-gox:product:GOXP`); with
+the default strategy they are the workbook's activities. The strategies `exergy`, `energy` and
+`share` are added to the project (`multifunctional.add_custom_property_allocation_to_project`).
+The allocated workbook stays the default download.
+
+**Not yet:** ILCD (EF 3.1 flavour) needs EF 3.1 elementary flow UUIDs (core#313) and the EC's
+ILCD validator; EcoSpold2 / SimaPro CSV and PACT PCF are open (#51).
+
 ## Build
 
 ```sh
 uv run scripts/build_lci.py --library <process-library> --out <dir> --version 0.1.0 [--strict] \
     [--public] [--system-model substitution] [--previous <earlier build>]
-# -> <dir>/lci/cheme-as-code-atlas-0.1.0.xlsx, <dir>/lci/datapackage.json, <dir>/lci/index.json
+# -> <dir>/lci/cheme-as-code-atlas-0.1.0.xlsx, -olca-jsonld.zip, -multifunctional.json,
+#    <dir>/lci/datapackage.json, <dir>/lci/index.json
 #    (+ changes.json, CHANGES.md with --previous)
 ```
 
 `<dir>/lci/` is replaced; nothing else in `<dir>` is touched. Mappings come from
 `<library>/lci/mappings.yaml`, else this staged copy. Two runs on the same input are
-byte-identical (the workbook's document dates and zip entry dates are fixed).
+byte-identical (the workbook's document dates and zip entry dates are fixed; the JSON-LD zip has
+sorted entries, fixed dates and no `lastChange` stamps).
 
 The build first validates `chemicals/chemicals.yaml` against its schema and the registry checks
 (`scripts/registry.py` `check`: CAS check digits, InChIKeys, properties against the formula,
@@ -259,10 +407,29 @@ reads a process.
 output folder) writes `lci/changes.json` and `lci/CHANGES.md`: per dataset its status (by content
 hash and its allocation method and shares), version before and after and whether a changed
 dataset's version was raised; per
-activity the exchanges added, removed and changed (amount with relative change, or link). The
-report is **exchange level only**: no impact delta is computed, because the CI stub background
-(below) is built from one process's example factors inside the Brightway test and is not a
-reference background for the library. Releases: docs/governance.md and
+activity the exchanges added, removed and changed (amount with relative change, or link).
+
+**Reference impacts** (`scripts/reference_impacts.py`): per dataset and activity, GWP100 per 1 unit
+of the activity's reference product in both builds, with the absolute and relative delta; an added
+or removed dataset or activity gets its one value and no delta. The report states its method and
+background (`changes.json` `impact`, and the section "Reference impacts" of `CHANGES.md`):
+
+- method: core's packaged characterisation of direct emissions, `ipcc2021-gwp100` (IPCC 2021 AR6,
+  with its source, from `chemeascode/domains/assessment/lca/data/methods.yaml` of the installed
+  `cheme-as-code`); flows are matched by biosphere3 UUID, else name and categories, through
+  core's elementary-flow crosswalk. No factor is stored in the library;
+- background: **none** (`none-atlas-foreground-only`). The value is the activity's own
+  characterised emissions plus those of the Atlas activities it links to (as `install()` links
+  them with `prefer_atlas=True`). Every background input (electricity, materials, construction,
+  transport, treatment), the inputs of the proxies, the exchanges the build leaves out and the
+  uncharacterised flows contribute 0; each activity lists its background inputs and
+  uncharacterised flows (`excluded`). No licensed background (ecoinvent) is used or packaged.
+
+So the value is a screening reference for comparing releases, not an LCA result: a process whose
+burden is all in the background (ASU-1: electricity; its emissions are pass-through) shows 0.
+An unchanged dataset can still show a delta when an Atlas activity it draws on changed
+(`atlas_upstream`). Without core installed, the report says the impacts are not computed. The CI
+stub background (below) is a test device, not a reference background. Releases: docs/governance.md and
 `.github/workflows/release.yml` (started by hand; drafts the artefacts and the Zenodo metadata,
 publishes nothing).
 
@@ -275,9 +442,19 @@ CO2, and checks that an LCA of 1 t GOXP in the **substitution variant** reproduc
 baseline (`results.csv`, which includes the study's recycling credits) to the precision
 plantcode prints, and that the default **cut-off** database differs from it by exactly those
 credits. It also covers Atlas-internal linking, treatment signs, the overwrite
-refusal and the unlinked report on the fixture library.
+refusal and the unlinked report on the fixture library, and the **multifunctional round trip**:
+installed with `install_multifunctional()` and allocated with each process's default strategy,
+the multi-output datasets give the workbook's activities code for code (fixture library and
+ASU-1); re-allocated by mass, ASU-1 conserves the unallocated total.
+
+`tests/test_export_formats.py` checks the **JSON-LD** structurally: every entity loads with
+olca-schema and writes back unchanged, every reference resolves (in the package, or among
+openLCA's reference units), elementary flows keep their biosphere3 UUIDs, and openLCA's
+allocation of each multi-output process gives the workbook's amounts per unit of product. The
+import into openLCA itself (olca-ipc against a running openLCA) is not run in CI.
 
 ```sh
 uv run --python 3.12 --with pytest --with pyyaml --with jsonschema --with openpyxl \
-  --with ./python --with bw2calc pytest -m brightway tests
+  --with ./python --with bw2calc --with olca-schema==2.6.2 --with multifunctional==1.1.2 \
+  pytest -m brightway tests
 ```

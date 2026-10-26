@@ -5875,3 +5875,59 @@ review; an independent review of this revision.
 Reason: hazop-review6 found I-14 credited where it did not act, over-draw causes taken out
 that the ratio limit does not cover, and a split rating; D-114 changed the trips the studies
 credit.
+
+## D-116 Assumed site cooling configuration; where the cooling water make-up is counted (2026-10-26)
+Renumbered from D-109 at the merge of origin/main into claude/keen-lovelace-sd87qc (the branch's
+D-109 .. D-115 are cited throughout the control records, the HAZOP studies and the review
+records; main's decision only here and in PROGRESS.md). Text unchanged.
+
+The site, and with it the cooling, is not decided (design basis: ASSUMED coastal industrial site;
+D-092). The LCA has already assumed a configuration: it is in the basis and validity of the
+`cooling-water` factors in `lca/factors.yaml` and in the library proxy `proxy:cooling-water`
+(`lci/mappings.yaml`). No decision recorded it. This one does (process-library#77).
+
+Decision:
+- (1) **Cooling configuration (ASSUMED).** The plant's water-cooled duties reject their heat to a
+  site recirculating cooling water system with a mechanical-draught evaporative cooling tower.
+  These are Q1 (MAC inter- and aftercoolers), Q2 (DCAC lower section), Q3 and Q4 (GOX and GAN
+  compressor coolers) and Q5 (E-3104), 10,721 kW in all in the design case (`lca/inventory.csv`,
+  product:CW). Supply is 25 C, return 35 C, 4 barg (design basis `utilities`; the pressure is
+  ASSUMED). The system is not once-through sea or river water, and no duty goes to air coolers.
+  The tower, the circulating pumps and fans, make-up treatment and blowdown are outside the ASU-1
+  battery limit (CW / CWR at the west end of PR1, D-029).
+- (2) **What ASU-1 counts.** The foreground counts only the heat rejected (product:CW, kWh). The
+  `cooling-water` factor adds the site system's pump and fan electricity (10 kWh per MWh
+  rejected, ASSUMED, D-092). Nothing counts the tower's make-up water, evaporation, blowdown or
+  treatment chemicals yet. They belong to the cooling-tower utility dataset of process-library#45,
+  which product:CW is to link to: one model per utility, shared by every plant. ASU-1 does not
+  estimate them itself. **TODO (#45):** link product:CW to that dataset in place of the factor and
+  the proxy. The water resource flow of the tower then comes with it. This decision states no
+  make-up amount per kWh. The design has no figure for the site tower, and an amount depends on
+  the tower's evaporation share of the heat, its cycles of concentration and its drift. Those
+  parameters belong to the utility dataset, which must source them or mark them ASSUMED.
+- (3) **ASU-1's own water draw (open).** The evaporative cooler C-1102 takes make-up from the site
+  cooling water supply through LV-1107 on CW-1003. At the 697.6 kW design duty that is 563 kg/h:
+  791 kg/h evaporated less the 228 kg/h of DCAC upper-section condensate (S3CU) returned to the
+  loop. Blowdown comes on top and is not quantified. Source: the C-1102 datasheet
+  `make_up_water` and `water_evaporated`, scripts/datasheet_sizing.py section 12, D-103 (7);
+  calculated from assumed inputs. 563 kg/h is about 27 kg of water per t of GOX (20,860 kg/h).
+  The flowsheet does not hold this water: S12E carries no water (D-067). So the inventory misses
+  two flows: the 563 kg/h drawn from the cooling water system and the 791 kg/h of water vapour
+  that leaves with the vent. It also counts S3CU in product:COND as condensate to the drain,
+  although C-1102 evaporates it. **TODO:** model it in the flowsheet as a make-up feed to C1102,
+  with the evaporated water on S12E. Map that feed to the #45 cooling water dataset, or to a water
+  resource. Then rerun `cheme process propagate --fill`, `cheme process props --fill`,
+  `cheme process build` and `cheme assess lca --write`.
+
+Reason: #77 asked for the assumed configuration to be stated, and for cooling water make-up to
+become a water resource flow. The configuration is the one the existing factor and proxy were
+built on, and it is the configuration that consumes water, so the gap stays visible. The site
+tower's make-up is counted where #45 puts it. Counting it here as well would count it twice, and
+it would need parameters this design does not have. The C-1102 make-up is the plant's own and
+has a calculated figure. It stays open because the flowsheet does not yet carry it. Changing the
+flowsheet and the LCA inputs needs `cheme assess lca --write`, which needs pyDEXPI 2.x, and that
+was not available for this change.
+
+Rejected: an evaporation-only estimate of the site tower's make-up from the latent heat of water
+(the scale #45 quotes). It would leave out sensible heat loss, drift and blowdown, and its
+evaporation share would be a guess; the #45 dataset gives the amount with its basis.

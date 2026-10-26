@@ -58,6 +58,55 @@ technosphere:
     source: >-
       Datasets count cooling water as heat rejected (kWh). ecoinvent has no activity per kWh of
       heat rejected, so a screening proxy (below) expresses it as the electricity of pumps and fans.
+      This is the background alternative: with install(prefer_atlas=True) (the default) a
+      consumer links the Atlas utility processes/utility-cooling-tower instead (make-up water,
+      evaporation, blowdown), unless an `exchanges:` override says `atlas: false` (asu-1, below).
+
+  # --- library utilities (processes/utility-*, #45) ------------------------------------------
+  # Each utility product carries a registry slug (steam, wastewater, cooling-water, ...). A
+  # consumer's input of it, or its output of a utility service (heat to cooling water,
+  # wastewater, gas to flare), links to the Atlas utility by default (prefer_atlas) and to the
+  # entry here when the installer is told prefer_atlas=False. Provider profiles that select a
+  # background per study (core#168) do not exist yet; until then this is the only alternative.
+  # Utilities without an entry here (instrument-air, chilled-water, flare-gas) have no curated
+  # background name yet: a consumer of one fails the build until it is added (TODO).
+  steam:
+    proxy: steam-mp
+    source: >-
+      Steam counted by mass (kg) at 11 bar(a) saturated (registry steam/mp-11bara). The background
+      counts heat from steam in MJ: the unit proxy below converts by the steam's enthalpy.
+  heat-from-steam:
+    activity: {name: "market for heat, from steam, in chemical industry", reference_product: "heat, from steam, in chemical industry", unit: megajoule, location: RER}
+    source: The background's steam heat for the chemical industry; used by the steam-mp proxy only.
+  water:
+    activity: {name: "market for water, deionised", reference_product: "water, deionised", unit: kilogram, location: RoW}
+    source: >-
+      Demineralised water (boiler feedwater of utility-steam-ng-boiler). The library has no
+      demineralised water dataset yet (#45), so this background link is the only one.
+  natural-gas:
+    proxy: natural-gas-kg
+    source: >-
+      Natural gas counted by mass (kg, taken as methane) with its LHV as carrier; the background
+      counts it by volume: the unit proxy below converts it.
+  natural-gas-m3:
+    activity: {name: "market for natural gas, high pressure", reference_product: "natural gas, high pressure", unit: cubic meter, location: site}
+    source: Natural gas from the site's high-pressure grid; used by the natural-gas-kg proxy only.
+  wastewater:
+    proxy: wastewater-kg
+    source: >-
+      Wastewater to treatment counted by mass (kg, 1 m3 = 1000 kg); the background counts it per
+      m3. With prefer_atlas a consumer links processes/utility-wwtp instead.
+  wastewater-treatment:
+    activity: {name: "treatment of wastewater, average, wastewater treatment", reference_product: "wastewater, average", unit: cubic meter, location: RoW}
+    source: >-
+      Average municipal-type wastewater treatment (a treatment activity, production -1); used by
+      the wastewater-kg proxy only.
+  nitrogen:
+    activity: {name: "market for nitrogen, liquid", reference_product: "nitrogen, liquid", unit: kilogram, location: RER}
+    source: >-
+      The nitrogen utility. With prefer_atlas a consumer's nitrogen links ASU-1 (its GANP or LIN,
+      by the grade the consumer names); this background alternative is merchant liquid nitrogen,
+      the registry crosswalk name of nitrogen/lin (a conservative proxy for pipeline gas).
 
   # --- construction materials, in the units the datasets use ------------------------------------
   steel-sections:
@@ -148,6 +197,32 @@ proxies:
     source: >-
       Cladding only: the insulant itself (stone wool or PIR, ~5 kg/m2) is NOT counted yet; add it
       when a background activity for it is curated.
+
+  # --- unit proxies of the library utilities (#45): a unit conversion, no new burden ----------
+  steam-mp:
+    name: "steam, saturated, 11 bar(a), per kg, as heat from steam (Atlas unit proxy)"
+    reference_product: "steam, saturated, 11 bar(a)"
+    unit: kilogram
+    location: GLO
+    inputs:
+      - {use: heat-from-steam, amount: 2.717571, source: "h of saturated vapour at 11 bar(a) 2780.648 kJ/kg minus h of liquid water at 15 degC 63.077 kJ/kg (IAPWS-95 via CoolProp 8.0.0): the heat the steam carries above make-up water. ASSUMED that the background's MJ counts heat on that basis; TODO check its definition"}
+    source: Converts the library's steam (kg, MP) to the background's heat from steam (MJ); background alternative of processes/utility-steam-ng-boiler.
+  natural-gas-kg:
+    name: "natural gas, per kg, as methane (Atlas unit proxy)"
+    reference_product: "natural gas, by mass"
+    unit: kilogram
+    location: GLO
+    inputs:
+      - {use: natural-gas-m3, amount: 1.393728, source: "1 / 0.7175 kg/m3, the density of methane at 0 degC and 1.01325 bar (chemicals/chemicals.yaml, NIST SRD 69). ASSUMED pure methane and that the background's m3 is at 0 degC; at 15 degC the volume is 288.15/273.15 = 5.5 % larger. TODO check both"}
+    source: Converts a fuel counted by mass to the background's volume.
+  wastewater-kg:
+    name: "wastewater to treatment, per kg (Atlas unit proxy)"
+    reference_product: "wastewater, by mass"
+    unit: kilogram
+    location: GLO
+    inputs:
+      - {use: wastewater-treatment, amount: 0.001, source: "1 m3 = 1000 kg, the LCI convention for water (core's elementary-flow crosswalk uses the same)"}
+    source: Converts wastewater counted by mass to the background's m3; background alternative of processes/utility-wwtp.
 
 # Flows the cut-off model leaves out of the producer's system (docs/system-model.md, "Wastes and
 # recyclables"): material sent to recycling leaves burden-free, the recycler carries the
@@ -260,8 +335,9 @@ pass_through:
   H2O:
     flow: {name: Water, categories: [air]}
     decision: >-
-      Intake air humidity removed in the TSA and returned; no burden, not exported (biosphere3
-      counts water to air in m3, the dataset in kg: another reason not to export it unconverted).
+      Intake air humidity removed (ASU-1: in the TSA; utility-instrument-air: in the dryer, with
+      its purge) and returned; no burden, not exported (biosphere3 counts water to air in m3, the
+      dataset in kg: another reason not to export it unconverted).
   CO2:
     flow: {name: "Carbon dioxide, in air", categories: [natural resource, in air]}
     decision: >-
@@ -274,6 +350,12 @@ pass_through:
 # inventory_key for it, or a `properties_reason` why a product's allocation property differs
 # from its registry grade's by more than 2 % (build_lci.py property_checks, docs/registry.md).
 exchanges:
+  "asu-1/product:CW":
+    atlas: false
+    source: >-
+      ASU-1's heat rejected stays on the cooling-water screening proxy until ASU-1 decides which
+      cooling configuration its site has (asu-1 DESIGN.md, #77). Then this override goes and the
+      exchange links processes/utility-cooling-tower with prefer_atlas (#45, What remains).
   "asu-1/product:LIN":
     properties_reason: >-
       The study's LIN is stream S11 to storage, subcooled at 5.2 bar and -181 C, not the grade's

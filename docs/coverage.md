@@ -51,6 +51,26 @@ chlor-alkali from membrane and diaphragm cells; nitric acid with and without N2O
 Emerging routes (PEM, alkaline and SOEC electrolysis, e-methanol, e-ammonia, DAC, plastic
 pyrolysis, bio-ethylene) are variants or entries of their own. They are not in today's mixes.
 
+## Route groups
+
+Once a product has two or more routes, the catalog build compares them: `routes.json`
+(`scripts/routes.py`, ChemE-as-Code/website#38) holds, per substance made, one row per process
+and LCI dataset making it, with the technology, tier, maturity and review, geography and year,
+the energy, feedstocks and key emissions per functional unit, the benchmark KPIs and the
+footprint where the catalog keeps it (with the Monte Carlo interval of `lca/uncertainty.csv`).
+Nothing is estimated for it: every value is read from the manifests, datasets and LCA files, and
+a public build withholds a footprint exactly as it withholds the LCA.
+
+The comparability of the routes is computed, criterion by criterion: the same reference product
+(registry grade and state), functional unit, inventory boundary, system model, allocation, the
+background data behind any impact numbers, and every route's TfS DQR within `DQR_SPREAD` (1.0,
+ASSUMED: one step of the pedigree scale, a library convention, not a value from a standard) of
+the best. A route that differs from most routes, or states nothing, carries the flag, so the
+Atlas warns next to its row. The per-functional-unit inventory is unallocated, as KPIs are
+reported: a co-product of a multi-output dataset gets none, since its share is the LCI build's
+allocation. A comparative assertion disclosed to the public needs a critical review (ISO 14044);
+the Atlas says so on every comparison. The test library is `tests/fixtures/routes/`.
+
 ## Families and ISIC
 
 Every entry has a `family` from [`taxonomy/families.yaml`](https://github.com/ChemE-as-Code/process-library/blob/main/taxonomy/families.yaml), the same
@@ -92,7 +112,7 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 10 | `cement-clinker` | Cement clinker | cement-lime | 1000-10000 (usgs-mcs-2024) | high | dry-kiln, dry-kiln-ccs | carbon-capture | 1 | - |
 | 11 | `iron-steel` | Iron and steel | iron-steel | 1000-10000 (usgs-mcs-2024) | high | bf-bof, dri-gas-eaf, dri-h2-eaf, scrap-eaf | - | 1 | - |
 | 12 | `refinery-distillation` | Crude oil distillation (atmospheric and vacuum) | refining | n/a, to be sourced | high | - | catalytic-reforming, hydrotreating, fcc, hydrocracking, ethylene | 1 | - |
-| 13 | `steam-generation` **next** | Steam generation (boiler, CHP) | steam-and-heat | n/a, to be sourced | high | gas-boiler, chp, electric-boiler, heat-pump | ammonia, methanol, ethylene-oxide, styrene, bioethanol | 2 | - |
+| 13 | `steam-generation` **next** | Steam generation (boiler, CHP) | steam-and-heat | n/a, to be sourced | high | gas-boiler, chp, electric-boiler, heat-pump | ammonia, methanol, ethylene-oxide, styrene, bioethanol | 2 | utility-steam-ng-boiler (T1) |
 | 14 | `ethylene-oxide` | Ethylene oxide and ethylene glycols | oxygenates | n/a, to be sourced | medium | oxygen-based, air-based, omega | pet | 1 | - |
 | 15 | `polyethylene` | Polyethylene (HDPE, LLDPE, LDPE) | polyolefins | n/a, to be sourced | medium | hdpe-slurry, lldpe-gas-phase, ldpe-high-pressure | plastic-pyrolysis | 1 | - |
 | 16 | `polypropylene` | Polypropylene | polyolefins | n/a, to be sourced | medium | - | plastic-pyrolysis | 1 | - |
@@ -101,8 +121,8 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 19 | `soda-ash` | Soda ash | soda-ash | 10-100 (usgs-mcs-2024) | medium | solvay, trona, hou | - | 1 | - |
 | 20 | `terephthalic-acid` | Purified terephthalic acid | oxygenates | n/a, to be sourced | medium | - | pet | 1 | - |
 | 21 | `ammonium-nitrate` | Ammonium nitrate and calcium ammonium nitrate | fertilizers | n/a, to be sourced | medium | - | npk-fertilizers | 1 | - |
-| 22 | `wastewater-treatment` **next** | Wastewater treatment (activated sludge) | wastewater-treatment | n/a, to be sourced | medium | - | - | 2 | - |
-| 23 | `cooling-water` **next** | Cooling water system | utilities | n/a, to be sourced | low | - | air-separation, ammonia, methanol | 2 | - |
+| 22 | `wastewater-treatment` **next** | Wastewater treatment (activated sludge) | wastewater-treatment | n/a, to be sourced | medium | - | - | 2 | utility-wwtp (T1) |
+| 23 | `cooling-water` **next** | Cooling water system | utilities | n/a, to be sourced | low | - | air-separation, ammonia, methanol | 2 | utility-cooling-tower (T1) |
 | 24 | `phosphoric-acid` | Phosphoric acid (wet process) | phosphoric-acid | n/a, to be sourced | low | dihydrate, hemihydrate | npk-fertilizers | 1 | - |
 | 25 | `vcm` | Vinyl chloride monomer (balanced EDC process) | chlorinated-organics | n/a, to be sourced | medium | - | pvc | 1 | - |
 | 26 | `pvc` | Polyvinyl chloride | polymers | n/a, to be sourced | medium | suspension, emulsion | - | 1 | - |
@@ -139,7 +159,7 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 57 | `titanium-dioxide` | Titanium dioxide | inorganic-chemicals | n/a, to be sourced | medium | sulfate, chloride | - | 0 | - |
 | 58 | `power-generation` | Electricity generation (on-site and grid technologies) | power-generation | n/a, to be sourced | high | - | air-separation, chlor-alkali, hydrogen, aluminium | 0 | - |
 | 59 | `demineralised-water` | Demineralised water | utilities | n/a, to be sourced | low | - | steam-generation, hydrogen | 1 | - |
-| 60 | `refrigeration` | Refrigeration and compressed air | utilities | n/a, to be sourced | low | - | - | 0 | - |
+| 60 | `refrigeration` | Refrigeration and compressed air | utilities | n/a, to be sourced | low | - | - | 0 | utility-chiller (T1), utility-instrument-air (T1) |
 | 61 | `mto-olefins` | Methanol to olefins | olefins | n/a, to be sourced | high | - | polyethylene, polypropylene | 0 | - |
 
 Volume sources (ids as in `coverage.yaml` `sources:`): `usgs-mcs-2024` U.S. Geological Survey,

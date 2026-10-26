@@ -1,0 +1,26 @@
+# Process Atlas manifest of a library utility (process-library#45). Schema:
+# schemas/process.schema.json. A manifest-only process: its LCI dataset is lca/datasets/*.yaml,
+# written from parameters with sources or ASSUMED (see README.md). Tier 1 form (core#182), so
+# maturity stays at concept (core's cheme.lci-tier-maturity).
+schema: cheme-as-code/process/v1
+id: utility-flare
+title: "Flaring of methane-rich waste gas"
+summary: >-
+  Utility dataset: combustion of waste gas (taken as methane) in an elevated flare, per kg flared: CO2 and water of the burnt fraction and the unburnt methane at an ASSUMED combustion efficiency.
+families: [waste-treatment]
+keywords: [utility, flare, waste gas, combustion, methane]
+facets: {unit_operations: [combustion], region: generic}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: flare-gas, role: feedstock, note: "the consumer's waste gas, free (feed:gas)"}
+    - {chemical: air, role: feedstock, note: "combustion air, free"}
+  outputs:
+    - {chemical: flare-gas, role: main-product, inventory_key: "product:flare-gas", note: "the flaring service, per kg"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2"}
+    - {chemical: methane, role: emission, inventory_key: "emission:CH4"}
+basis: {capacity: "per unit of the utility delivered (the dataset's basis); no plant size"}
+references:
+  - {title: "Prohaska, T. et al. (2022) Standard atomic weights of the elements 2021 (IUPAC Technical Report), Pure Appl. Chem. 94:573"}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/utility-flare, access: private}
