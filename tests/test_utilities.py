@@ -161,7 +161,7 @@ def _library(tmp: Path, consumer: dict | None = None, mappings_change=None) -> P
     """The utilities and ASU-1 (its dataset only) with the real registry and mappings, plus an
     optional synthetic manifest-only consumer."""
     library = tmp / "library"
-    for folder in ("chemicals", "lci", "taxonomy"):
+    for folder in ("chemicals", "lci", "markets", "taxonomy"):
         shutil.copytree(KIT / folder, library / folder)
     for pid in UTILITIES:
         shutil.copytree(KIT / "processes" / pid, library / "processes" / pid)
@@ -279,8 +279,10 @@ def test_a_consumer_in_range_links_the_utility_and_asu_1_nitrogen(tmp_path: Path
     assert steam["atlas activity"] == "Steam generation, natural-gas boiler, saturated 11 bar(a)"
     assert steam["name"].startswith("steam, saturated, 11 bar(a), per kg")  # the background alternative (unit proxy)
     nitrogen = _exchange(activity, "feed:nitrogen")
-    assert nitrogen["atlas activity"] == "Cryogenic air separation unit (500 t/d GOX)"
-    assert nitrogen["atlas reference product"] == "Nitrogen, gaseous, <= 10 ppm O2, 8 barg"  # the grade it names
+    # the market of the grade it names (markets/nitrogen.yaml), with ASU-1 beside it for pinning
+    assert nitrogen["atlas link"] == "market" and nitrogen["atlas code"].startswith("market:")
+    assert nitrogen["atlas plant activity"] == "Cryogenic air separation unit (500 t/d GOX)"
+    assert nitrogen["atlas plant reference product"] == "Nitrogen, gaseous, <= 10 ppm O2, 8 barg"
     assert nitrogen["name"] == "market for nitrogen, liquid"
 
 
@@ -291,6 +293,10 @@ def test_a_consumer_outside_the_range_is_refused(tmp_path: Path) -> None:
     assert any("feed:steam" in w and "outside its operating range" in w and "40 bar(a)" in w for w in report.warnings), report.warnings
     steam = _exchange(_activities(tmp_path)["test-consumer:consumer:product:x"], "feed:steam")
     assert "atlas activity" not in steam
+    # the refusal is recorded in atlas_links, as a grade refusal is
+    links = json.loads((tmp_path / "out" / "lci" / "datapackage.json").read_text())["atlas_links"]
+    refused = next(link for link in links if link["key"] == "feed:steam")
+    assert (refused["kind"], refused["compatible"]) == ("refused", False) and "40 bar(a)" in refused["checks"]["carrier"]["text"]
 
 
 def test_an_explicit_link_outside_the_range_is_an_error(tmp_path: Path) -> None:
