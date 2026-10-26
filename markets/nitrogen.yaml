@@ -1,0 +1,102 @@
+# Markets of nitrogen: what a consumer of "nitrogen, liquid" or of pipeline nitrogen links to in
+# the Atlas LCI database (code market:<product>:<region>). Schema: schemas/markets.schema.json;
+# rules: docs/markets.md. Sources and ASSUMED values as in markets/oxygen.yaml.
+schema: cheme-as-code/markets/v1
+
+markets:
+  - product: nitrogen/lin
+    region: RER
+    layer: production-mix
+    title: Liquid nitrogen delivered by cryogenic road tanker
+    consumption:
+      equals_production: true
+      reason: >-
+        No trade data is packaged (UN Comtrade and CEPII BACI report HS 2804.30 nitrogen without
+        telling liquid from gas, and their terms are not yet checked for redistribution), so the
+        consumption mix is taken equal to the production mix.
+    suppliers:
+      - process: asu-1
+        technology: cryogenic
+        production_volume:
+          value: 3948
+          unit: t/a
+          status: calculated
+          source: >-
+            ASU-1 LCI dataset (processes/asu-1/lca/dataset.yaml): product:LIN 470 kg per hour of
+            operation, times 8400 h/a (process.yaml basis.operating_hours_per_year).
+    distribution:
+      - mode: cryogenic-trailer
+        use: lorry
+        distance:
+          value: 100
+          unit: km
+          status: assumed
+          source: >-
+            ASSUMED one-way distance from the air separation plant to the customer by cryogenic
+            road tanker, a round screening placeholder: no open source with the delivery distance
+            of merchant liquid oxygen or nitrogen in Europe was found. TODO: check whether the
+            standard transport distances of ecoinvent v2 (Frischknecht et al. 2007, ecoinvent
+            report No. 1) give 100 km by road for chemicals (unverified, not a citation), or
+            replace the value with a cited distance.
+        note: >-
+          A generic lorry: the background has no cryogenic tanker activity. Its ton kilometres
+          carry the background's average load factor, which covers the empty return.
+    losses:
+      - kind: boil-off
+        fraction: 0.005
+        released_as: N2
+        status: assumed
+        source: >-
+          ASSUMED 0.5 % of the load lost as boil-off on the road and while the tanker waits:
+          vacuum-insulated tankers vent the heat leak as vapour. No open source with a value per
+          delivery was found.
+      - kind: transfer
+        fraction: 0.01
+        released_as: N2
+        status: assumed
+        source: >-
+          ASSUMED 1 % of the load lost on transfer to the customer's tank (cool-down of the
+          transfer hose and pump, flash on filling). No open source with a value was found.
+    excluded:
+      - "The customer's storage tank, its boil-off and the vaporiser: the consumer's own system."
+      - "The producer's liquid storage: ASU-1's LIN leaves the plant dataset at the tank (stream S11), whose boil-off is not counted."
+
+  - product: nitrogen/gan-8barg-10ppm
+    region: RER
+    layer: production-mix
+    title: Gaseous nitrogen at 8 barg by pipeline
+    consumption:
+      equals_production: true
+      reason: >-
+        Pipeline nitrogen is used next to the plant that makes it and is not traded across
+        borders in the packaged data, so consumption equals production.
+    suppliers:
+      - process: asu-1
+        technology: cryogenic
+        production_volume:
+          value: 105084
+          unit: t/a
+          status: calculated
+          source: >-
+            ASU-1 LCI dataset: product:GANP 12510 kg per hour of operation, times 8400 h/a
+            (process.yaml basis.operating_hours_per_year).
+    distribution:
+      - mode: pipeline
+        distance:
+          value: 5
+          unit: km
+          status: assumed
+          source: >-
+            ASSUMED over-the-fence pipeline to a consumer on a neighbouring site, reached at the
+            plant's delivery pressure (8 barg) without recompression; the compression is in the
+            plant dataset (GAN compressor).
+    losses:
+      - kind: pipeline-leakage
+        fraction: 0
+        released_as: N2
+        status: assumed
+        source: >-
+          ASSUMED no leakage from a welded industrial-gas pipeline: no open source with a leakage
+          rate was found, so none is counted until one is cited.
+    excluded:
+      - "Pipeline infrastructure (construction of the line): not counted, as no background activity for it is curated."

@@ -27,15 +27,24 @@ goxp = bd.get_node(database="cheme-as-code-atlas-0.1.0", code="asu-1:asu-1-500-t
 ```
 
 `install(path_or_version, background="ecoinvent-3.11-cutoff", biosphere=None, location=None,
-prefer_atlas=True, overwrite=False, expect=None)`:
+prefer_atlas=True, overwrite=False, expect=None, pin=())`:
 
 - runs `bw2io.ExcelImporter` and its standard strategies, then `match_database` against
   `background` (name, reference product, unit, location) and the biosphere (name, categories,
   unit); `biosphere` defaults to `biosphere3`, else the one `*biosphere` database in the project;
 - `location` replaces the location of every input marked `atlas location rule: site`; without it
   the workbook's default (`DE`) is used and the report says so;
-- `prefer_atlas=True` links an input that another Atlas process makes (e.g. hydrogen from an
-  Atlas electrolyser) to that Atlas activity instead of the background;
+- `prefer_atlas=True` (or `"market"`) links an input that another Atlas process makes (e.g.
+  liquid nitrogen from ASU-1) to the Atlas **market** of its grade instead of the background:
+  delivered, with transport and losses ([markets](../docs/markets.md)). `prefer_atlas="plant"`
+  links it to the plant gate instead, and `pin=["<activity code>", "<code>/<atlas key>"]` does so
+  for single inputs; `False` keeps the background. Without a market of the grade the link goes to
+  the plant;
+- the report lists **every Atlas-to-Atlas link** (`report.atlas_links`: inputs, a market's
+  suppliers, `link.dataset`) with the build's compatibility check (grade, unit, system model,
+  allocation, boundary) and the supply chains (`report.chains()`), prints the Atlas system model
+  and methodology version, and warns (`report.warnings`) about an incompatible link, an unused
+  pin, or a background that records another system model;
 - links an elementary flow by its biosphere3 UUID (`atlas flow uuid`) when the biosphere
   database has a flow of that code and unit, else by name, categories and unit; writes the
   `atlas pedigree` scores as Brightway's `pedigree`;
@@ -55,14 +64,16 @@ to handle.
 
 | file | |
 |---|---|
-| `lci/cheme-as-code-atlas-<version>.xlsx` | the database `cheme-as-code-atlas-<version>`: an `about` sheet (skipped by the importer), a `database` sheet, one sheet per process, a `proxies` sheet. Exchange columns beyond bw2io's: `atlas key`, `atlas flow uuid`, `atlas pedigree`, `atlas carrier` and the linking fields |
+| `lci/cheme-as-code-atlas-<version>.xlsx` | the database `cheme-as-code-atlas-<version>`: an `about` sheet (skipped by the importer), a `database` sheet, one sheet per process, a `markets` sheet, a `proxies` sheet. Exchange columns beyond bw2io's: `atlas key`, `atlas flow uuid`, `atlas pedigree`, `atlas carrier` and the linking fields |
 | `lci/datapackage.json` | version, library commit, per process: title, maturity, review, data status (exchanges by provenance), factor status of the study, allocation and shares, functional unit, activities (each with its `chemical` slug and registry `grade`, null when none), and per dataset its `property_checks` and `benchmarks` (below) |
-| `lci/index.json` | what the Atlas site reads: file names, sizes, sha256, activities per process, caveats, system model |
+| `lci/index.json` | what the Atlas site reads: file names, sizes, sha256, activities per process, exported markets, caveats, system model |
 | `lci/changes.json`, `lci/CHANGES.md` | with `--previous`: the change report against the earlier build (below) |
 
 `datapackage.json` also records the **system model** (`system_model`: id, label, methodology
 document and version, the exchanges excluded under cut-off with their decisions, allocation
-findings) and, per dataset, its **version**, `methodology_version`, `content_sha256`, `review`
+findings), the **markets** (every market of `markets/` with its status, suppliers and shares,
+and each number with its status and source), the **Atlas links** (`atlas_links`: every
+Atlas-to-Atlas link with its compatibility checks) and, per dataset, its **version**, `methodology_version`, `content_sha256`, `review`
 record (`unreviewed` by default), `valid_until`, and the allocation with the rule of the
 hierarchy that justifies it. These come from the dataset itself when it states them (core's
 dataset contract v2, below); otherwise the build's methodology version and `0.1.0`. A dataset
@@ -72,7 +83,8 @@ classification, production volume, data generator, as the dataset gives them) an
 deprecated, `deprecated: true` and `superseded_by`.
 
 Activity codes are stable: `<process>:<dataset>:<product key>` (e.g.
-`asu-1:asu-1-500-t-d-gox:product:GOXP`) and `proxy:<id>`.
+`asu-1:asu-1-500-t-d-gox:product:GOXP`), `market:<product>:<region>` (e.g.
+`market:nitrogen/lin:RER`; a technology market adds `:<technology>`) and `proxy:<id>`.
 
 ## Modelling rules
 
@@ -138,6 +150,14 @@ build); governance (versions, change reports, releases, review) is
   Without a grade it is the substance's name with the exchange title, as before. Activity codes do
   not change, so match on the code, not on the name. An input whose grade another Atlas process
   makes prefers that producer.
+- **Markets** ([docs/markets.md](../docs/markets.md)): `markets/<substance>.yaml` gives per
+  product and region the Atlas producers weighted by production volume (or sourced shares), the
+  transport legs (ton kilometer of a `lci/mappings.yaml` entry) and the losses on the way, each
+  number with its status (cited, calculated, assumed) and source. They are activities of the
+  same database. An Atlas input links to the market of its grade by default, with the plant
+  beside it for pinning; a producer of another grade is refused; a link at a plant gate because
+  no market exists is a warning. ASU-1 supplies the first four: LOX and LIN by cryogenic road
+  tanker with boil-off and transfer losses, GOX and GAN by pipeline; argon markets are planned.
 - **Property checks.** Each product's study `exergy` and `energy` (per kg) are compared with its
   grade's (else its substance's) registry `exergy` and `lhv`. `datapackage.json` records each as
   `match`, `mismatch`, `overridden` (a `properties_reason` in `lci/mappings.yaml`) or

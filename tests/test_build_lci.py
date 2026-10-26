@@ -24,6 +24,7 @@ ASU = FIXTURES / "asu-lca"
 DB = "cheme-as-code-atlas-0.1.0"
 H2 = "fixture-electrolysis:fixture-electrolysis:product:H2"
 NH3 = "fixture-ammonia:fixture-ammonia-hb:product:ammonia"
+H2_MARKET = "market:hydrogen:GLO"
 
 
 def _json(path: Path):
@@ -123,14 +124,15 @@ def test_workbook_follows_the_bw2io_excel_layout(library: Path, tmp_path: Path) 
     assert wb.properties.created.year == 2000 and wb.properties.modified.year == 2000
 
     activities = _activities(xlsx)
-    assert sorted(activities) == sorted([H2, H2.replace(":H2", ":O2"), NH3])
+    assert sorted(activities) == sorted([H2, H2.replace(":H2", ":O2"), NH3, H2_MARKET])
+    assert "markets" in wb.sheetnames
     for activity in activities.values():
         production = [e for e in activity["exchanges"] if e["type"] == "production"]
         assert len(production) == 1 and production[0]["amount"] == 1
         assert production[0]["name"] == activity["name"]
         assert production[0]["reference product"] == activity["meta"]["reference product"]
         assert set().union(*activity["exchanges"]) <= set(build_lci.EXCHANGE_COLUMNS)
-        assert "Allocation:" in activity["meta"]["comment"]
+        assert ("Allocation:" if "atlas process" in activity["meta"] else "production mix") in activity["meta"]["comment"]
 
 
 def test_amounts_are_allocated_per_unit_of_each_product(library: Path, tmp_path: Path) -> None:
@@ -151,12 +153,18 @@ def test_amounts_are_allocated_per_unit_of_each_product(library: Path, tmp_path:
     assert _exchange(o2, "feed:POWER")["amount"] == pytest.approx(power["amount"])  # mass: same per kg
 
 
-def test_inputs_made_by_another_atlas_process_name_it(library: Path, tmp_path: Path) -> None:
+def test_inputs_made_by_another_atlas_process_name_its_market_and_plant(library: Path, tmp_path: Path) -> None:
     _build(library, tmp_path / "out")
     hydrogen = _exchange(_activities(tmp_path / "out" / "lci" / f"{DB}.xlsx")[NH3], "feed:hydrogen")
     assert hydrogen["name"] == "market for hydrogen, gaseous"  # background by default
-    assert hydrogen["atlas activity"] == "Fixture: water electrolysis"
-    assert hydrogen["atlas reference product"] == "Hydrogen at 30 bar"
+    # prefer_atlas: the market of the product (markets/hydrogen.yaml), the plant beside it for pinning
+    assert (hydrogen["atlas activity"], hydrogen["atlas reference product"], hydrogen["atlas location"]) == ("market for hydrogen", "Hydrogen", "GLO")
+    assert hydrogen["atlas code"] == H2_MARKET and hydrogen["atlas link"] == "market"
+    assert hydrogen["atlas check"].startswith("compatible: grade the input names hydrogen only")
+    assert (hydrogen["atlas plant activity"], hydrogen["atlas plant reference product"], hydrogen["atlas plant code"]) == ("Fixture: water electrolysis", "Hydrogen at 30 bar", H2)
+    assert "boundary plant gate (pinned)" in hydrogen["atlas plant check"]
+    package = _json(tmp_path / "out" / "lci" / "datapackage.json")
+    assert [(link["consumer"], link["provider"], link["kind"]) for link in package["atlas_links"]] == [(H2_MARKET, H2, "supply"), (NH3, H2_MARKET, "market")]
 
 
 # --- ASU-1 (real dataset, staged mappings) ----------------------------------------------------

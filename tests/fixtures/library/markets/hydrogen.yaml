@@ -1,0 +1,13 @@
+# TEST FIXTURE (synthetic): the market the fixture ammonia's hydrogen links to by default. No
+# transport and no losses, so the market passes the electrolyser's hydrogen through 1:1.
+schema: cheme-as-code/markets/v1
+markets:
+  - product: hydrogen
+    region: GLO
+    layer: production-mix
+    consumption: {equals_production: true, reason: "fixture: no trade data, consumption equals production"}
+    suppliers:
+      - process: fixture-electrolysis
+        production_volume: {value: 350, unit: t/a, status: assumed, source: "fixture: synthetic volume"}
+    distribution:
+      - {mode: pipeline, distance: {value: 0, unit: km, status: assumed, source: "fixture: on site"}}
