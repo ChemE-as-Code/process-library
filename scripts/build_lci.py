@@ -502,6 +502,11 @@ def shares(dataset: dict, allocation: dict, where: str) -> dict[str, float]:
             value = _properties(product, allocation)[what]
             if value is None and method == "economic" and product["key"] in minor:
                 value = 0.0  # a co-product below 1 % of the output mass without a price has no economic weight
+            if value is None and method == "economic":
+                raise BuildError(
+                    f"{where}: economic allocation: no price of {name} in the study or the dataset, and the export "
+                    "takes no registry price (none is recorded yet; docs/registry.md, Missing prices)"
+                )
             if value is None:
                 raise BuildError(f"{where}: {method} allocation: no {what} of {name}")
             raw[product["key"]] = float(product["amount"]) * float(value)
