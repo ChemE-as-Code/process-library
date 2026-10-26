@@ -24,6 +24,14 @@ UTILITIES = sorted(p.parent.name for p in (KIT / "processes").glob("utility-*/pr
 DATASETS = {pid: sorted((KIT / "processes" / pid / "lca" / "datasets").glob("*.yaml")) for pid in UTILITIES}
 DB = "cheme-as-code-atlas-0.1.0"
 WATER_RESOURCE = "831f249e-53f2-49cf-a93c-7cee105f048e"
+# kg exchanges deliberately outside the element balance (generation.balance.outside): the reference
+# flow of the service (gas flared, water treated, air delivered), which the balance does not
+# follow through the unit, and COD, which is an oxygen demand rather than a substance.
+OUTSIDE_BY_DESIGN = {
+    "utility-flare": {"product:flare-gas"},
+    "utility-instrument-air": {"product:instrument-air"},
+    "utility-wwtp": {"product:wastewater", "emission:COD"},
+}
 
 
 def _load(pid: str) -> dict:
@@ -64,7 +72,14 @@ def test_the_dataset_loads_in_core_and_its_tier_checks_pass(pid: str) -> None:
     assert all(e.formula for e in dataset.exchanges), "every amount is a formula of the parameters"
     maturity = yaml.safe_load((KIT / "processes" / pid / "process.yaml").read_text())["maturity"]
     findings = [f for f in estimate.tier_findings(dataset, pid, maturity) if f.level != "info"]
-    assert findings == []
+    # core warns (cheme.lci-mass-outside-balance) for kg exchanges outside the element balance.
+    # Only the reference flow of a treatment or supply service and COD (an oxygen demand, not a
+    # substance) are outside by design; any other exchange outside the balance still fails.
+    outside = [f for f in findings if f.rule == "cheme.lci-mass-outside-balance"]
+    for finding in outside:
+        named = set(finding.message.rsplit(": ", 1)[1].split(", "))
+        assert named <= OUTSIDE_BY_DESIGN.get(pid, set()), finding
+    assert [f for f in findings if f not in outside] == []
     if dataset.generation is not None:
         found = balance.element_balance(dataset)
         assert found.closed, found.unbalanced()
