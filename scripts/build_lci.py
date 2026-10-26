@@ -11,7 +11,8 @@ title, maturity and the chemical slug of each inventory key; ``lca/lca.yaml`` fo
 allocation and functional unit. Linking comes from ``lci/mappings.yaml`` (library root, else the
 staged copy beside this script; schema ``schemas/lci-mappings.schema.json``). YAML files only:
 chemeascode is never imported, except ``foundation.units`` for the benchmark unit conversion
-(``benchmarks.convert``, lazily).
+(``benchmarks.convert``) and ``lca.cutoff`` for the cut-off criteria (``cutoff_results``), both
+lazily.
 
 Output (``--out``; ``<out>/lci/`` is replaced):
 
@@ -69,6 +70,11 @@ Modelling rules (``docs/system-model.md``; also written into every activity's ``
   its reference range without an ``out_of_range_reason``, a KPI not evaluated (a unit conversion
   needs core's ``foundation.units``) and, in a library with a ``benchmarks/`` folder, a public
   process with fewer than two KPIs are warnings.
+- the cut-off criteria (docs/system-model.md section 4) of a dataset that records its cut flows
+  (``cutoff:``, core#180) are checked with core's ``lca.cutoff`` and recorded per dataset in
+  ``datapackage.json`` (``cutoff``): a cut flow at or above 1 % of the input mass, the cut flows
+  together at or above 1 %, a never-cut flow (precious or critical metal, high characterisation
+  factor, heavy metal) and, without core installed, criteria not checked are warnings;
 
 Errors (exit 1): ``chemicals/chemicals.yaml`` failing its schema or ``registry.check`` (checked
 first, before any process is read), a benchmark file failing its schema or ``benchmarks.load``,
@@ -102,6 +108,7 @@ import zipfile
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import yaml
@@ -1218,6 +1225,66 @@ def benchmark_results(processes: list[Process], benchmarks: bm.Registry | None, 
     return results
 
 
+#: The findings of core's ``lca.cutoff`` that are the cut-off criteria (docs/system-model.md
+#: section 4). Its system-model findings (negative inputs, recyclables to energy recovery) are not
+#: read here: the build checks the system model itself (``check_system_models``, the cut-off build's
+#: refusal of credits).
+CUTOFF_RULES = ("cheme.lca-cutoff-share", "cheme.lca-cutoff-sum", "cheme.lca-cutoff-never", "cheme.lca-cutoff-unchecked")
+
+
+def cutoff_results(processes: list[Process], report: Report) -> dict[str, dict]:
+    """The cut-off criteria (docs/system-model.md section 4) of each dataset that records cut
+    flows (``cutoff:``, core#180), checked with core's ``lca.cutoff`` so that the build and
+    ``cheme assess lca`` apply the same rule: each cut flow and all of them together below 1 % of
+    the input mass, no never-cut flow. By dataset path, for ``datapackage.json``. A cut flow that
+    fails core's schema is an error; a broken criterion is a warning (``--strict`` fails); a cut
+    flow without an amount in kg is recorded, not warned (core's info). Without core installed the
+    criteria are not checked: a warning."""
+    cut = [(p, d) for p in processes for d in p.datasets if d.data.get("cutoff")]
+    if not cut:
+        return {}
+    try:
+        import chemeascode.domains.assessment.lca.cutoff as core_cutoff
+        from chemeascode.domains.assessment.lca.schemas import CutoffFlow
+        from pydantic import ValidationError
+    except ImportError:
+        for _, dataset in cut:
+            report.warn(dataset.path, "cutoff: the cut-off criteria are not checked: they need core's chemeascode (lca.cutoff) installed")
+        return {d.path: {"flows": sorted(f.get("key", "") for f in d.data["cutoff"] if isinstance(f, dict)), "checked": False, "findings": []} for _, d in cut}
+    results = {}
+    for _, dataset in cut:
+        data = dataset.data
+        flows, problems = [], []
+        for number, flow in enumerate(data["cutoff"] if isinstance(data["cutoff"], list) else [data["cutoff"]]):
+            try:
+                flows.append(CutoffFlow.model_validate(flow))
+            except ValidationError as failure:
+                problems.extend(f"cutoff[{number}]{''.join(f'.{x}' for x in e['loc'])}: {e['msg']}" for e in failure.errors())
+        if problems:
+            report.error(dataset.path, "; ".join(problems))
+            continue
+        # the fields core's input mass reads (the treatment is for a system-model rule not read here)
+        exchanges = [
+            SimpleNamespace(
+                key=e["key"], type=e["type"], amount=e["amount"], unit=e["unit"], phase=e.get("phase", "operation"), treatment=None,
+                carrier=SimpleNamespace(kind=e["carrier"].get("kind")) if isinstance(e.get("carrier"), dict) else None,
+            )
+            for e in data["exchanges"]
+        ]
+        view = SimpleNamespace(system_model=data.get("system_model"), basis=data.get("basis", "1 h of operation"), exchanges=exchanges, cutoff=flows)
+        found = [f for f in core_cutoff.findings(view, dataset.path) if f.rule in CUTOFF_RULES]
+        for finding in found:
+            if finding.level != "info":
+                report.warn(dataset.path, f"cutoff: {finding.message} ({finding.rule}; {finding.hint})")
+        results[dataset.path] = {
+            "flows": sorted(f.key for f in flows),
+            "checked": True,
+            "input_mass_kg": _number(core_cutoff.input_mass(view)),
+            "findings": [{"rule": f.rule, "level": f.level, "message": f.message} for f in found],
+        }
+    return results
+
+
 def _factors_status(factors: dict | None) -> str:
     if not factors:
         return "none"
@@ -2078,6 +2145,7 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
     activities, proxies, by_process = built.activities, built.proxies, built.by_process
     checks = {d.path: property_checks(p, d, products, mappings, report) for p in processes for d in p.datasets}
     kpis = benchmark_results(processes, benchmarks, public, report)
+    cutoffs = cutoff_results(processes, report)
     if report.errors:
         return report
     if not activities:
@@ -2122,7 +2190,7 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
                 "factors_status": _factors_status(process.factors),
                 "functional_unit": _functional_unit(process.study),
                 "allocation": {"method": first.allocation.get("method", "mass"), "source": first.allocation_source, "rule": first.rule},
-                "datasets": [{**_dataset_entry(d), "property_checks": checks.get(d.path, []), "benchmarks": kpis.get(d.path, [])} for d in process.datasets],
+                "datasets": [{**_dataset_entry(d), "property_checks": checks.get(d.path, []), "benchmarks": kpis.get(d.path, []), **({"cutoff": cutoffs[d.path]} if d.path in cutoffs else {})} for d in process.datasets],
                 "activities": activity_list(by_process.get(process.pid, [])),
             }
         )
