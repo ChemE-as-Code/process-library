@@ -53,3 +53,4 @@ with an ADR in the same pull request.
 | [0012](0012-versioning-releases-and-dois.md) | Semantic versions; releases drafted by CI, decided by the owner | **Proposed**, 2026-10-25 |
 | [0013](0013-licences-and-no-third-party-content.md) | MIT for code, CC BY 4.0 for data; never copy third-party content | Accepted, 2026-10-23 |
 | [0014](0014-coverage-roadmap-as-a-plan.md) | Ranked coverage roadmap with planned tiers, a plan not a commitment | Accepted as a working plan, 2026-10-25 |
+| [0015](0015-datapackage-documents-every-activity.md) | datapackage.json documents every exported activity; the Atlas renders it without LCI logic | **Proposed**, 2026-10-26 |
