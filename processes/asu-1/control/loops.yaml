@@ -105,9 +105,8 @@ loops:
     normal_mode: auto
     alarms:
       - {tag: LIC-1106, condition: LAH, response: "Check LV-1106 and the circulating water pumps P-1101A/B; the high-high level LSHH-1106 trips the MAC."}
-    rationale: The trip LSHH-1106 has its own tapping and is independent of this loop (instrument list).
-    unresolved:
-      - LSHH-1106 trips the MAC (instrument list) but is not yet an interlock of control/cause-effect.yaml
+    interlocks: [I-06]
+    rationale: The trip LSHH-1106 (I-06) has its own tapping and is independent of this loop (instrument list).
   - id: LIC-1107
     title: Evaporative cooler sump level (make-up)
     purpose: Make up the water the evaporative cooler C-1102 loses to the waste N2 and blowdown.
@@ -172,9 +171,8 @@ loops:
          cases: [design], stream: S12H, property: temperature}
     modes: [manual, auto]
     normal_mode: auto
-    rationale: TSHH-2116 (gas outlet) and TSHH-2107 (element) are independent of this loop and trip the heater.
-    unresolved:
-      - TSHH-2116 and TSHH-2107 trip the heater (instrument list) but are not yet interlocks of control/cause-effect.yaml
+    interlocks: [I-08, I-09, I-10]
+    rationale: TSHH-2116 (gas outlet, I-09), TSHH-2107 (element, I-10) and the heater-side low flow FSLL-2117 (I-08) are independent of this loop and trip the heater.
   - id: FIC-2105
     title: Regeneration gas flow
     purpose: Hold the waste N2 flow through the heater and the regenerating bed.
@@ -193,9 +191,7 @@ loops:
     normal_mode: auto
     alarms:
       - {tag: FIC-2105, condition: FAL, response: "Switch the heater off if it is still on; check FV-2105 and the waste N2 split, then let KS-2101 resume the heating step."}
-    rationale: FV-2105 fails open (D-109) so the gas keeps flowing through E-2101 while its trips de-energise it; the TSA switching valves fail last and the step valves closed (KS-2101 in the instrument list, D-109).
-    unresolved:
-      - "the low-flow heater trip (instrument list) is not yet an interlock of control/cause-effect.yaml, and it would use this control transmitter, which is not independent (H02-A2)"
+    rationale: FV-2105 fails open (D-109) so the gas keeps flowing through E-2101 while its trips de-energise it; the TSA switching valves fail last and the step valves closed (KS-2101 in the instrument list, D-109). The heater's low-flow trip is I-08 on its own flow switch FSLL-2117 on the heater side, not this transmitter, which sits upstream of the XV-2109 bypass (H02-A2).
   # ---- CB: cold box (P-03) -----------------------------------------------------------------
   - id: LIC-3101
     title: HP column sump level
@@ -223,8 +219,10 @@ loops:
       - {kind: low, unresolved: the E-3103 submergence level of the cold box supplier}
     modes: [manual, auto]
     alarms:
-      - {tag: LICA-3102, condition: LAL, response: "E-3103 must stay submerged: raise the liquid make (expander load, SIC-3108) or cut the LOX withdrawal above the FIC-3111 purge minimum; never stop the purge."}
-    rationale: The sump level follows the column's liquid balance; which valve it acts on is the cold box supplier's (D-010).
+      - {tag: LICA-3102, condition: LAL, response: "E-3103 must stay submerged: raise the liquid make (expander load, SIC-3108) or cut the GOX draw (FIC-1101 / the K-4101 load) or the LOX withdrawal above the FIC-3111 purge minimum; never stop the purge. Set so the operator has at least 10 min at the largest over-draw before LSLL-3125 trips (I-14; H03-A4, ASSUMED)."}
+      - {tag: LICA-3102, condition: LAH, response: "Liquid towards the bottom packing (H03-S36): restore the LOX draw (FIC-3111, the route to T-4101 or the drain vaporizer) or reduce the liquid make."}
+    interlocks: [I-14]
+    rationale: The sump level follows the column's liquid balance; which valve it acts on is the cold box supplier's (D-010). The independent low-low is LSLL-3125 on its own tapping (I-14, D-111).
     unresolved:
       - the manipulated variable (LOX withdrawal or refrigeration) and the controller action (cold box supplier)
   - id: FIC-3106
@@ -258,9 +256,9 @@ loops:
       - {kind: setpoint, unresolved: the compander speed of its vendor}
     modes: [manual, auto]
     normal_mode: auto
-    rationale: The overspeed trip SSHH-3108 (2oo3) closes XV-3117 and is independent of this loop.
+    interlocks: [I-11, I-12]
+    rationale: The overspeed trip SSHH-3108 (2oo3, I-11) closes XV-3117 and is independent of this loop; the seal-gas trip is I-12.
     unresolved:
-      - SSHH-3108 trips the expander (instrument list) but is not yet an interlock of control/cause-effect.yaml
       - the nozzle actuator, which the closed fail position of D-109 assumes (compander vendor)
   - id: TIC-3109
     title: Expander outlet temperature (low limit)
@@ -393,12 +391,12 @@ loops:
     links:
       - {type: override, loop: FIC-4148, select: low}
       - {type: override, loop: PIC-4150, select: low}
-    rationale: "Pressure master, flow as limit (D-096): a rising pipeline pressure closes the guide vanes (reverse). Its output passes the low select UY-4151 with the maximum draw (FIC-4148) and the suction low limit (PIC-4150), so the draw stays below the design GOX make (a fixed limit; tracking the air flow is open). The low select and its three inputs are drawn on P-04 (D-101)."
+    rationale: "Pressure master, flow as limit (D-096): a rising pipeline pressure closes the guide vanes (reverse). Its output passes the low select UY-4151 with the maximum draw (FIC-4148) and the suction low limit (PIC-4150), so the draw stays below the make (the FIC-4148 limit follows the air flow, D-110). The low select and its three inputs are drawn on P-04 (D-101). The high-high trip is PSHH-4152 on its own transmitter (I-17, H04-A29), not PT-4102."
     operator: When a limit holds the guide vanes, the pipeline pressure falls below its set point; the backup supply then starts on low header pressure (SEQ-BACKUP-GOX).
+    interlocks: [I-17]
     unresolved:
       - the K-4101 guide-vane actuator and its minimum stop, which the closed fail position of D-109 assumes (K-4101 vendor)
       - "anti-windup of the three-way low select (external reset feedback, so the unselected loops track and act at once) and bumpless transfer to auto (control engineer, detail)"
-      - the trip output beside PIC-4102 (D-024) is not yet an interlock of control/cause-effect.yaml (HAZOP action H04-A01)
   - id: FIC-4148
     title: GOX maximum draw (limit)
     purpose: Limit the GOX draw to the design GOX make (a fixed value), as a limit in the guide-vane low select (D-096).
@@ -420,8 +418,8 @@ loops:
       - {type: override, loop: PIC-4150, select: low}
     rationale: "A limit, not a set point: it acts only when the customer's draw would exceed the GOX make. The limit follows the make (D-110): 0.1867 kg GOX per kg of air (S7 / S2) times the lower of the measured and the lagged (5 min, ASSUMED) FIC-1101 flow, capped at the design 20,860 kg/h. Its transmitter FT-4148 is also the anti-surge input of UIC-4103."
     operator: The limit tracks the air flow by itself; a limit holding the guide vanes means the customer wants more than the plant makes at this load, so raise the air flow (FIC-1101) or let the backup cover it.
-    unresolved:
-      - the independent limit on the GOX draw (H04-A23) and the LP sump low-low (H03-A4)
+    interlocks: [I-14]
+    notes: "Not a protection layer (D-096). The independent limit on the GOX draw is the LP sump itself: LSLL-3125 on its own tapping trips K-4101 (I-14, SIL 2, D-111), independent of UY-4151, FT-4148 and PT-4150 (H04-A23, H03-A4)."
   - id: PIC-4150
     title: GOX suction pressure low limit
     purpose: "Throttle the guide vanes when the suction pressure falls: the sign that K-4101 draws more GOX than the column makes (H04-S75; D-096)."
@@ -456,6 +454,9 @@ loops:
     modes: [manual, auto]
     normal_mode: auto
     rationale: "One job only since D-096: the guide vanes are PIC-4102's, limited by FIC-4148 and PIC-4150. Its transmitter PT-4101 taps upstream of the suction ESD XV-4117 (S1), so it sees the column side when XV-4117 is shut (start-up, trip). The LP column pressure is PIC-3110's (D-095). When the customer takes less GOX, PIC-4102 closes the guide vanes, the suction pressure rises and PIC-4101 vents the excess; its set point therefore lies above the suction pressure that PIC-3110's LP column pressure gives in normal operation."
+    alarms:
+      - {tag: PIC-4101, condition: PAL, response: "Suction pressure low on PT-4101, a transmitter apart from the guide-vane low select (PT-4150, FT-4148): K-4101 draws more than the column makes. Reduce the K-4101 load and watch LICA-3102; LSLL-3125 trips K-4101 (I-14) (H04-A23)."}
+      - {tag: PIC-4101, condition: "PV-4101B open > 30 min", response: "The customer takes less than the plant makes: turn the air flow down (FIC-1101) so the vent stays for transients (D-110)."}
     operator: Venting GOX in normal operation means the customer takes less than the plant makes; turn the air flow down (FIC-1101).
     notes: "PV-4101B fails open (D-109): the GOX the unloaded K-4101 no longer takes goes to VNT-4003 and the LP column is not blocked in (D-019); PV-3110A/B also fail open."
   - id: UIC-4103
@@ -496,7 +497,7 @@ loops:
     rationale: "The GAN flow on the guide vanes, its set point from PIC-4105 (the export pressure) in cascade (D-096). In auto it holds the design flow. The clamp on the cascade set point follows the make (D-110): 0.1120 kg GAN per kg of air (S9 / S2) times the lower of the measured and the lagged FIC-1101 flow, capped at the design 12,510 kg/h."
     unresolved:
       - the K-4102 guide-vane actuator and its minimum stop, which the closed fail position of D-109 assumes (K-4102 vendor)
-      - how PIC-4106 (suction pressure) limits the guide vanes beside FIC-3107 (override or limit; vendor), and the independent limit H04-A22 asks for
+      - how PIC-4106 (suction pressure) limits the guide vanes beside FIC-3107 (override or limit; K-4102 vendor)
   - id: PIC-4106
     title: GAN compressor suction pressure
     section: PRD
@@ -506,6 +507,9 @@ loops:
     targets:
       - {kind: low, unresolved: "the suction low limit, below the normal 5.2 bara (S9, D-004) by a margin that protects the HP column top"}
     modes: [manual, auto]
+    alarms:
+      - {tag: PIC-4106, condition: PAL, response: "K-4102 draws the HP column down (H04-S27, S84, S85): put FIC-3107 to auto at a lower set point and check PIC-4105 and the GAN header for a leak (H04-A22)."}
+    notes: "PT-4106 is apart from PT-4105 and FT-3107, so its low alarm is the operator layer on a GAN over-draw. The screening LOPA (D-111 row 14) finds no SIF needed for the K-4102 guide vanes: the consequence is a column upset (asset 3), and the FIC-3107 clamp that follows the air flow (D-110) and this alarm bring it below the target."
     unresolved:
       - "what it acts on (the K-4102 guide vanes as a low limit beside FIC-3107; see FIC-3107) and its action"
   - id: UIC-4131

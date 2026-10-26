@@ -44,21 +44,20 @@ failures:
     sequences: [SEQ-BACKUP-GAN]
   - id: F-TSA
     title: TSA breakthrough (CO2 at the adsorber outlet)
-    response: "AIA-2102 alarms at 1 ppm CO2 (ASSUMED). The intended answer to high-high (an early bed switch, or stopping the air to the cold box, D-006, D-010) is not yet a C&E interlock (H02-A1); until it is, it is an operator action on the alarm."
+    response: "AIA-2102 alarms at 1 ppm CO2 (ASSUMED): the operator switches the beds early if the other bed is regenerated (D-010). At high-high (2 ppm, ASSUMED) I-07 trips the MAC and stops the air to the cold box (D-111)."
     loops: [TIC-2104, FIC-2105]
     sequences: [SEQ-TSA]
+    interlocks: [I-07]
   - id: F-HC
     title: Hydrocarbons rising in the LP sump
     response: "AIA-3103 alarms; keep the LOX purge flowing (FIC-3111), keep E-3103 submerged (LICA-3102), find the source (TSA, intake). The action limits and what they trip are open (EIGA Doc 65, ASSUMED)."
     loops: [FIC-3111, LICA-3102]
   - id: F-LEVEL
     title: Low-low level in a product tank
-    response: The pumps trip and the tank outlet closes (I-01, I-02); the backup stops.
+    response: The pumps trip and the tank outlet closes (I-01, I-02); the backup stops. A vaporizer outlet too cold stops the pumps and closes the backup valve (I-15, I-16).
     sequences: [SEQ-BACKUP-GOX, SEQ-BACKUP-GAN]
-    interlocks: [I-01, I-02]
+    interlocks: [I-01, I-02, I-15, I-16]
 unresolved:
-  - the independent limit on the GOX draw (H04-A23) and the LP sump low-low (H03-A4)
-  - the trips named in the instrument list but not yet in the cause-and-effect list (H04-A01, H02-A1, H02-A2)
   - a loop for the liquid production (H03-A7), which the chilled-water and compander failures rely on
   - whether the backup pumps have an emergency power supply (H04-A14)
   - the hydrocarbon action limits of AIA-3103 and AIA-4121 and what they trip
@@ -179,8 +178,9 @@ example to follow without that check.
   anti-surge flow measurement of K-4101. The maximum GOX draw and the GAN clamp follow the air
   flow as ratios, and the load range is 70 to 100 % at 0.5 %/min (D-110, ASSUMED).
 - The liquid production has no handle yet (H03-A7).
-- Trips named in the instrument list are not yet in the cause-and-effect list (H04-A01, H02-A1,
-  H02-A2). The sequences refer to them by tag until they are added.
+- The trips are in the cause-and-effect list with their SIL from one screening LOPA (I-05 ..
+  I-18, D-111), for the team's LOPA / SIL session to confirm; the independent limit on the GOX
+  draw is the LP sump low-low I-14. The machine vendors' own trips come with their data.
 - The step times, cool-down rates and machine start-up steps are the suppliers'. The times in
   the sequences are placeholders.
 - The hydrocarbon action limits are ASSUMED per EIGA Doc 65 until the analyzer and process

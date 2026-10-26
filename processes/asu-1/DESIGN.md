@@ -5568,3 +5568,82 @@ operator text), process/narrative.md (open point closed, normal operation), cont
 Reason: #60. Without a range and a rate the vent window (#59), the compressor turndown and the
 column hydraulics rest on nothing; fixed draw limits let a reduced make be over-drawn at the
 design rate (H04-S79, H04-S80, H04-S85).
+
+## D-111 The missing trips and the independent limits in the C&E, with one screening LOPA (2026-10-26)
+Decided by the agent on the owner's delegation of 2026-10-26 (process-library#56, #61). One update
+of control/cause-effect.yaml and one screening LOPA, as HAZOP action H02-A2 asks (it answers
+H01-A3, H01-A8, H02-A1, H02-A2, H03-A2, H03-A3, H04-A01, H04-A02, H04-A13 and, for the limits,
+H03-A4, H04-A22, H04-A23, H04-A29). It is a design proposal: the HAZOP team's LOPA / SIL
+session (safety/hazop/SESSION.md) confirms the frequencies, the targets and each SIL, and the
+SRS follows. Nothing here is accepted by the team.
+
+Decision:
+- (1) **Fourteen interlocks I-05 .. I-18** in control/cause-effect.yaml: the MAC trip set on
+  vibration (I-05), the DCAC high-high level (I-06) and the TSA CO2 high-high (I-07), which also
+  stops the DCAC water pumps (H01-A4); the regeneration heater on low-low flow (I-08), outlet
+  (I-09) and element temperature (I-10); the compander on overspeed 2oo3 (I-11) and seal gas
+  (I-12); K-4101 on fire (I-13), on the LP sump low-low (I-14) and on the discharge high-high
+  (I-17), each isolating and blowing it down (D-013); the vaporizer low temperatures (I-15,
+  I-16); the off-spec GAN divert (I-18). All latch and reset by hand except I-18.
+- (2) **Three new instruments, each on its own tapping or transmitter** (drawn with `cheme copy`
+  on P-02, P-03, P-04; listed; junction boxes as their neighbours):
+  - FSLL-2117 on RG-2001 between the XV-2109 bypass tee and E-2101, the heater's own low flow
+    (H02-A2: FIC-2105 sits upstream of the bypass and is the control transmitter);
+  - LSLL-3125 on a new tapping I4 of C-3102 (datasheet updated), the independent LP sump
+    low-low (H03-A4);
+  - PSHH-4152 on GOX-4002 beside PT-4102, the discharge high-high on its own transmitter
+    (H04-A29).
+- (3) **The independent limit on the GOX draw is the LP sump itself** (#61, H04-A23): I-14 trips
+  K-4101 (and closes FV-3111) on LSLL-3125, independent of the guide-vane low select UY-4151,
+  FT-4148, PT-4150 and LICA-3102. It acts on the hazard (E-3103 uncovered), whatever over-draws
+  the sump: the GOX (H04-S75, S80), the LOX (H03-S33) or a refrigeration deficit (H03-S34). The
+  operator layers before it: the LICA-3102 low alarm, set for at least 10 min at the largest
+  over-draw (H03-A4, ASSUMED until the supplier's sump geometry), and a PT-4101 low-pressure
+  alarm, a transmitter apart from the selector (H04-A23).
+- (4) **No SIF on the K-4102 guide vanes** (H04-A22): a GAN over-draw upsets the HP column
+  (asset 3, no safety consequence in H04-S27, S84, S85); the FIC-3107 clamp that follows the
+  air flow (D-110) and a PIC-4106 low alarm on its own transmitter bring it below the target
+  (row 14). #61 allows "or the LOPA records why none is needed".
+- (5) **Screening LOPA**, method and sources of D-083: initiating events and IPL PFDs from the
+  generic tables of CCPS, *Layer of Protection Analysis* (AIChE, 2001); SIL bands of IEC
+  61511-1 (RRF 10-100 SIL 1, 100-1000 SIL 2). Tolerable frequencies (ASSUMED, the owner's
+  criteria are not given; consistent with D-083 and the proposed matrix): people severity 3 /
+  4 / 5: 1e-3 / 1e-4 / 1e-5 per year; asset severity 3 / 4 / 5: 1e-1 / 1e-2 / 1e-3 per year.
+  Conditional modifiers are used only where named, and are ASSUMED.
+
+  | row | interlock | scenario (HAZOP) | initiating event, /yr | IPLs and modifiers credited | mitigated /yr | target /yr | RRF | SIL |
+  |---|---|---|---|---|---|---|---|---|
+  | 1 | I-05 VIA-1104 | destructive vibration (H01-S4, S6, S41), asset 4 | machine upsets 0.1 | none independent (PIC-1103 covers one cause only) | 0.1 | 1e-2 | 10 | 1 |
+  | 2 | I-06 LSHH-1106 | DCAC floods, water to the adsorbers (H01-S13, S14), asset 4 | LV-1106 / LIC-1106 failure 0.1 | none (LIC-1106 is the initiator) | 0.1 | 1e-2 | 10 | 1 |
+  | 3 | I-07 AIA-2102 | breakthrough to the cold box, condenser explosion (H02-S3, S10, S27), people 5 | TSA step overrun or capacity loss 0.1 | AIA-3103 with operator response 0.1; LOX purge FIC-3111 0.1; hydrocarbons at the intake in explosive quantity 0.1 (modifier, ASSUMED, H01-A1) | 1e-4 | 1e-5 | 10 | 1 |
+  | 4 | I-08 FSLL-2117 | element overheat at low flow (H02-S13, S15, S20), asset 3 | FV-2105 / FIC-2105 / XV-2109 / XV-2103 failure 0.3 | TSHH-2107 (I-10) 0.1 | 3e-2 | 1e-1 | < 1 | a |
+  | 5 | I-09 TSHH-2116 | regeneration gas above 250 C (H02-S17), asset 3 | TIC-2104 / thyristor failure 0.1 | none | 0.1 | 1e-1 | 1 | a |
+  | 6 | I-10 TSHH-2107 | element over-temperature (H02-S13, S15, S17, S20), asset 3 | as rows 4 and 5, 0.4 | I-08 for the low-flow causes 0.1 (0.3 of 0.4) | 0.13 | 1e-1 | 1.3 | a |
+  | 7 | I-11 SSHH-3108 | compander overspeed, wheel burst (H03-S16), people 4 | brake load lost or nozzles open 0.1 | presence of a person in the fragment zone 0.1 (modifier, ASSUMED) | 1e-2 | 1e-4 | 100 | 2 |
+  | 8 | I-12 PDSLL-3115 | oil into the LP sump, explosion (H03-S18), people 5 | seal gas lost 1e-2 | oil reaches the sump in an explosive quantity before it is found 0.1 (modifier, ASSUMED) | 1e-3 | 1e-5 | 100 | 2 |
+  | 9 | I-13 TSHH-4104 | K-4101 oxygen fire (H04-S07), asset 5 (people: fire wall FW-4101) | ignition in the machine 1e-2 | none for the asset | 1e-2 | 1e-3 | 10 | 1 |
+  | 10 | I-14 LSLL-3125 | E-3103 uncovered, condenser explosion (H03-S33, S34, H04-S75, S80), people 5 | over-draw or refrigeration deficit 0.1 (with the D-110 ratio limit, which takes the no-failure causes of S80 out) | LICA-3102 low alarm, operator 0.1; hydrocarbons concentrated to ignition while uncovered 0.1 (modifier, ASSUMED) | 1e-3 | 1e-5 | 100 | 2 |
+  | 11 | I-15, I-16 TSLL | cold gas into the carbon steel pipeline, brittle fracture (H04-S48, S49, S70), people 4 | vaporizer icing or PV-4111 / PV-4112 failure 0.1 | fracture given the cold excursion 0.1, a person at the failure 0.1 (modifiers, ASSUMED) | 1e-3 | 1e-4 | 10 | 1 |
+  | 12 | I-17 PSHH-4152 | export header overpressure (H04-S82, S87), people 4 | PT-4102 low, selector frozen high 0.1 | PSV-4122 0.01 | 1e-3 | 1e-4 | 10 | 1 |
+  | 13 | I-18 AIA-3105 | off-spec GAN to the customer, asset 3 | column upset 0.1 | none | 0.1 | 1e-1 | 1 | a |
+  | 14 | none (K-4102) | GAN over-draw, HP column upset (H04-S27, S84, S85), asset 3 | PIC-4105 failure or demand above the make 1 | the D-110 clamp following the air flow 0.1 (not for S27, where the BPCS is the initiator); PIC-4106 low alarm, operator 0.1 | 1e-2 | 1e-1 | < 1 | none |
+
+  I-07 holds at SIL 1 only through its modifier: if the intake survey (H01-A1) finds hydrocarbon
+  sources, the target is SIL 2 and needs a second, independent CO2 analyser (1oo2, H02-A1).
+  I-05's SIL is carried by the MAC vendor's machinery protection system (API 670), not the
+  plant SIS. The SIL 2 functions (I-11, I-12, I-14) need SIL 2 capable devices and a proof-test
+  interval the SRS sets (yearly ASSUMED, as I-03).
+- (6) **Sheets, sequences and lists.** The P-04 trip notes now say "see C&E I-.." (I-01, I-02,
+  I-13, I-15, I-16, I-17) instead of spelling the trips out; the sequences name the interlocks
+  by id (SEQ-MAC-START, SEQ-TSA, SEQ-CB-START, SEQ-BACKUP-GOX / -GAN); `cheme validate` reports
+  no `instrument-no-interlock`.
+
+Not done here: the machine vendors' own protection (surge, axial position, bearing temperature,
+seal gas of K-4101 / K-4102, H04-A13; the MAC and compander packages) comes with their data
+(#58); the hydrocarbon action limits of AIA-3103 / AIA-4121 and what they trip (H03-A3) need the
+analyser and the EIGA Doc 65 limits agreed with the team and stay open; the SIS architecture
+(logic solver, the separate SIS junction boxes) is detail engineering.
+
+Reason: #56 and #61. The trips existed only as instrument notes, so neither the HAZOP nor the
+SIL study could credit them, and the guide-vane limits of D-096 are in the same control system
+as the loops they limit.

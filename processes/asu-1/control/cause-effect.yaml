@@ -41,6 +41,194 @@ interlocks:
     sheet: P-03
     sil: null
     notes: "D-077: with the booster stopped AIR-3002 depressurises while the water side stays at the return riser's static head (~2.9 bara); closing TV-3124 takes the P-1102 head (~7 bar) off a tube leak. TV-3124 is a control valve, not tight shut: the restart permissive is the E-3105 shell-side drain checked dry (operating procedure). Not a SIF"
+  # ---- D-111: the trips the instrument list named and the independent limits (#56, #61).
+  # SIL from the screening LOPA of D-111 (CCPS 2001 generic values, ASSUMED frequencies and
+  # targets), for the HAZOP team's LOPA / SIL session to confirm. All latch and reset by hand.
+  # The MAC trip set (I-05 .. I-07): the MAC unloads and blows off, the DCAC water pumps stop
+  # (H01-A3, H01-A4), so the DCAC cannot flood behind the AIR-1002 non-return valve.
+  - id: I-05
+    title: MAC vibration / bearing high-high (machine protection)
+    cause: {tag: VIA-1104, condition: HH}
+    effects:
+      - {tag: K-1101, action: trip}
+      - {tag: UV-1102, action: open}
+      - {tag: P-1101A, action: trip}
+      - {tag: P-1101B, action: trip}
+      - {tag: P-1102A, action: trip}
+      - {tag: P-1102B, action: trip}
+    sheet: P-01
+    sil: 1
+    latching: true
+    reset: manual
+    bypass: "none in operation; the MAC vendor's start-up inhibit of the transient vibration, timed"
+    notes: "D-111 LOPA row 1: destructive vibration from surge, erosion or a water slug (H01-S4, S6, S41), asset 4. The voting and the bearing / axial channels are the MAC vendor's machinery protection system (API 670), which carries the SIL (#58). H01-A3, H01-A4."
+  - id: I-06
+    title: DCAC sump level high-high (water carry-over to the TSA)
+    cause: {tag: LSHH-1106, condition: LSHH}
+    effects:
+      - {tag: K-1101, action: trip}
+      - {tag: UV-1102, action: open}
+      - {tag: P-1101A, action: trip}
+      - {tag: P-1101B, action: trip}
+      - {tag: P-1102A, action: trip}
+      - {tag: P-1102B, action: trip}
+    sheet: P-01
+    sil: 1
+    latching: true
+    reset: manual
+    notes: "D-111 LOPA row 2: LV-1106 stuck closed or LIC-1106 failed (H01-S13, S14), water into AIR-1004 and the adsorbers, asset 4; LSHH-1106 on its own tapping, independent of LIC-1106 (D-005). H01-A3, H01-A4."
+  - id: I-07
+    title: TSA outlet CO2 high-high (breakthrough to the cold box)
+    cause: {tag: AIA-2102, condition: "CO2 HH"}
+    effects:
+      - {tag: K-1101, action: trip}
+      - {tag: UV-1102, action: open}
+      - {tag: P-1101A, action: trip}
+      - {tag: P-1101B, action: trip}
+      - {tag: P-1102A, action: trip}
+      - {tag: P-1102B, action: trip}
+    sheet: P-02
+    sil: 1
+    delay: {value: 30, unit: s}
+    latching: true
+    reset: manual
+    bypass: "maintenance or calibration of AIA-2102 only with an hourly laboratory CO2 check of the TSA outlet and a permit (ASSUMED)"
+    notes: "D-111 LOPA row 3: CO2, N2O and then hydrocarbons into the cold box toward a main condenser explosion (H02-S3, S10, S27), people 5. Trip set point CO2 HH 2 ppm (ASSUMED; alarm 1 ppm); stopping the air ends the breakthrough at once, an early bed switch (D-010) stays a KS-2101 operator action on the alarm. SIL 1 holds only with the conditional modifier of D-111 (intake hydrocarbons, H01-A1); if the intake survey finds hydrocarbon sources the target is SIL 2 with a second, independent CO2 analyser (1oo2, H02-A1). H02-A1."
+  - id: I-08
+    title: Regeneration heater low-low flow (heater side)
+    cause: {tag: FSLL-2117, condition: FSLL}
+    effects:
+      - {tag: E-2101, action: trip}
+    sheet: P-02
+    sil: a
+    latching: true
+    reset: manual
+    bypass: "inhibited while E-2101 is off (KS-2101 cooling and stand-by steps)"
+    notes: "D-111 LOPA row 4: E-2101 energised with little or no gas (H02-S13, S15, S20), asset 3. FSLL-2117 on RG-2001 between the XV-2109 bypass tee and E-2101, so it sees the heater flow only and is independent of FIC-2105 (H02-A2). TSHH-2107 (I-10) is the further layer."
+  - id: I-09
+    title: Regeneration gas outlet temperature high-high
+    cause: {tag: TSHH-2116, condition: TSHH}
+    effects:
+      - {tag: E-2101, action: trip}
+    sheet: P-02
+    sil: a
+    latching: true
+    reset: manual
+    notes: "D-111 LOPA row 5: TIC-2104 or the thyristor failed high (H02-S17), regeneration gas above the 250 C of V-2101A/B, asset 3; independent of TIC-2104 and of TSHH-2107. Trip at 230 C (ASSUMED)."
+  - id: I-10
+    title: Regeneration heater element over-temperature
+    cause: {tag: TSHH-2107, condition: TSHH}
+    effects:
+      - {tag: E-2101, action: trip}
+    sheet: P-02
+    sil: a
+    latching: true
+    reset: manual
+    notes: "D-111 LOPA row 6: element sheaths overheating at low flow or full power (H02-S13, S15, S17, S20), asset 3; the heater supplier's element limit."
+  # the compander: overspeed and the seal gas (H03-A2); I-04 follows on the compander trip
+  - id: I-11
+    title: Expander overspeed (2oo3)
+    cause: {tag: SSHH-3108, condition: SSHH}
+    logic: {vote: {k: 2, of: [{tag: SSHH-3108, state: "probe A HH"}, {tag: SSHH-3108, state: "probe B HH"}, {tag: SSHH-3108, state: "probe C HH"}]}}
+    effects:
+      - {tag: XV-3117, action: close}
+      - {tag: K-3101, action: trip}
+    sheet: P-03
+    sil: 2
+    latching: true
+    reset: manual
+    notes: "D-111 LOPA row 7: brake load lost or the nozzles failed open (H03-S16), wheel burst, people 4. Independent speed probes 2oo3, the quick-closing XV-3117 (fail closed, D-109) closing within the run-up time the compander vendor confirms (H03-A2, #58). I-04 acts on the compander trip."
+  - id: I-12
+    title: Compander seal gas low-low (oil into the Lachmann air)
+    cause: {tag: PDSLL-3115, condition: PDSLL}
+    effects:
+      - {tag: XV-3117, action: close}
+      - {tag: K-3101, action: trip}
+    sheet: P-03
+    sil: 2
+    delay: {value: 5, unit: s}
+    latching: true
+    reset: manual
+    notes: "D-111 LOPA row 8: seal gas lost while the lube oil runs (H03-S18), oil into the LP column sump with E-3103, people 5. The lube oil pump keeps running for the run-down (bearings) and stops on the compander vendor's logic; the start permissive (seal gas before the oil pump) stays in SEQ-COMPANDER-TRIP (D-012). H03-A2."
+  # K-4101: every trip isolates and blows the machine down (D-013); PIC-4101 then vents the GOX
+  - id: I-13
+    title: K-4101 stage temperature high-high (oxygen fire)
+    cause: {tag: TSHH-4104, condition: TSHH}
+    effects:
+      - {tag: K-4101, action: trip}
+      - {tag: XV-4117, action: close}
+      - {tag: XV-4118, action: close}
+      - {tag: XV-4116, action: open}
+    sheet: P-04
+    sil: 1
+    latching: true
+    reset: manual
+    notes: "D-111 LOPA row 9: ignition in K-4101 (H04-S07), asset 5 (the fire wall FW-4101 takes the people credit, H04-A24); the trip limits the fire to the machine's own inventory. The suction vent is PIC-4101's (PV-4101B) once XV-4117 closes, not a trip effect. H04-A01, H04-A02."
+  # the independent limit on the GOX draw (H04-A23, H03-A4): the LP sump itself, not the selector
+  - id: I-14
+    title: LP column sump level low-low (E-3103 submergence)
+    cause: {tag: LSLL-3125, condition: LSLL}
+    effects:
+      - {tag: K-4101, action: trip}
+      - {tag: XV-4117, action: close}
+      - {tag: XV-4118, action: close}
+      - {tag: XV-4116, action: open}
+      - {tag: FV-3111, action: close}
+    sheet: P-03
+    sil: 2
+    latching: true
+    reset: manual
+    bypass: "start-up only, until the sump level is above the trip during the cool-down (SEQ-CB-START), timed, with a permit; never with K-4101 running"
+    notes: "D-111 LOPA row 10: an over-draw of GOX or LOX, or a refrigeration deficit, boils the sump down and uncovers E-3103 (H03-S33, S34, H04-S75, S80), people 5. LSLL-3125 on its own tapping I4 and transmitter, independent of LICA-3102, of the guide-vane low select UY-4151, FT-4148 and PT-4150. Trip above the top of E-3103 by the supplier's margin; LICA-3102 LAL above it so the operator has at least 10 min at the largest over-draw (H03-A4, ASSUMED until the cold box supplier's sump geometry, #58). With K-4101 stopped PIC-4101 vents only what keeps the suction pressure, i.e. no more than the make. FV-3111 closes too: losing the purge for minutes is the lesser hazard than dry boiling; the operator restores it as soon as the level allows (D-010)."
+  # the backup: no cold gas into the carbon steel pipelines (D-014)
+  - id: I-15
+    title: LOX vaporizer outlet temperature low-low
+    cause: {tag: TSLL-4113, condition: TSLL}
+    effects:
+      - {tag: P-4101A, action: trip}
+      - {tag: P-4101B, action: trip}
+      - {tag: PV-4111, action: close}
+    sheet: P-04
+    sil: 1
+    latching: true
+    reset: manual
+    notes: "D-111 LOPA row 11: vaporizer iced or overdrawn (H04-S48, S49), cold GOX into the carbon steel pipeline, brittle fracture, people 4. Trip above the pipeline's minimum design temperature by a margin (pipeline owner). H04-A01, H04-A02."
+  - id: I-16
+    title: LIN vaporizer outlet temperature low-low
+    cause: {tag: TSLL-4114, condition: TSLL}
+    effects:
+      - {tag: P-4102A, action: trip}
+      - {tag: P-4102B, action: trip}
+      - {tag: PV-4112, action: close}
+    sheet: P-04
+    sil: 1
+    latching: true
+    reset: manual
+    notes: "D-111 LOPA row 11 (as I-15): cold GAN into the carbon steel pipeline and the casing purge (H04-S70), people 4. H04-A01, H04-A02."
+  - id: I-17
+    title: GOX discharge pressure high-high (own transmitter)
+    cause: {tag: PSHH-4152, condition: PSHH}
+    effects:
+      - {tag: K-4101, action: trip}
+      - {tag: XV-4117, action: close}
+      - {tag: XV-4118, action: close}
+      - {tag: XV-4116, action: open}
+    sheet: P-04
+    sil: 1
+    latching: true
+    reset: manual
+    notes: "D-111 LOPA row 12: PT-4102 reading low, or the low select UY-4151 frozen high, while the customer takes less (H04-S82, S87), header overpressure, people 4. PSHH-4152 on its own transmitter on GOX-4002, so a PT-4102 fault does not defeat both the control and the trip (H04-A29); PSV-4122 stays the last layer. Trip below the PSV-4122 set pressure, above the 31 bara export by the K-4101 vendor's margin. A PT-4102 / PSHH-4152 deviation alarm (H04-A29) is a DCS alarm. H04-A01."
+  - id: I-18
+    title: O2 in the GAN product high (divert off-spec GAN)
+    cause: {tag: AIA-3105, condition: "O2 AH, 10 ppm"}
+    effects:
+      - {tag: XV-3105, action: open}
+      - {tag: XV-4120, action: close}
+    sheet: P-04
+    sil: a
+    latching: false
+    reset: automatic
+    notes: "D-024: off-spec GAN never reaches the customer; a quality function, screened without a SIL requirement (D-111 LOPA row 13). XV-3105 closes again on specification (SEQ-CB-START). H04-A01."
 #  - id: I-01
 #    title: LIN tank low-low level
 #    cause: {tag: LIA-101, condition: LALL}
