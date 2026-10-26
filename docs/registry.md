@@ -120,13 +120,46 @@ No price is recorded yet, because no open source has been read for these product
 So mass and exergy allocation of ASU-1 can be computed from registry data with sources today.
 Economic allocation waits for an open price.
 
+**Where a price will come from.** `scripts/fetch_prices.py` turns UN Comtrade's annual trade
+records of one HS subheading and year into a registry `price`: the unit value (sum of traded
+value over sum of net weight, USD/kg, exports FOB by default), a range (lowest and highest unit
+value of the reporters trading at least 1000 t) and the request URL as the source. It reads the
+HS code from the entry's `classification.hs` (oxygen 2804.40, nitrogen 2804.30, argon 2804.21)
+and prints the entry for review; it does not edit the registry. It fetches, or converts a
+response saved from the same URL (`--input`):
+
+    uv run scripts/fetch_prices.py --slug oxygen --year 2023 [--input saved.json]
+
+An HS subheading covers every grade (gaseous and liquid oxygen alike), so a trade unit value is
+a price of the substance, which its grades inherit, not of a grade. Before the first price is
+recorded, the owner checks that UN Comtrade's terms allow the derived value to be published
+under CC BY 4.0, and that the live response has the fields the script reads (it has not been
+run against the live API yet: the development environment's network policy blocks it).
+Eurostat PRODCOM sold-production values are the other open source named in #46; the script
+does not read them yet.
+
+**The export does not read registry prices yet.** `build_lci.py` takes a price from the study
+(`allocation.prices`, `properties.<product>.price`) or the dataset only. Without one, economic
+allocation fails with "no price of <product> in the study or the dataset, and the export takes
+no registry price". Taking the registry's price as a fallback needs a rule for currencies (a
+study's price carries none) and comes with the first recorded price.
+
 ## Classification and crosswalks
 
 `classification` holds the UN CPC Ver. 2.1 subclass and the HS 2022 subheading (e.g. oxygen:
 CPC 34210, HS 2804.40). `crosswalk` holds reference product names in ecoinvent and the EF
 reference package. These are **names only, no data** (licence rule). They have not been checked
 against a licensed copy, so the installer reports any name that does not link. A name belongs to
-one registry entry (substance or grade). The EF names are still empty (follow-up).
+one registry entry (substance or grade). The EF 3.1 names are still empty: they are to be
+taken from the EF reference package (eplca.jrc.ec.europa.eu), which was not reachable when the
+registry was written, and are not filled in from memory. ecoinvent names are checked by the
+owner against a licensed copy.
+
+## Fuel mixtures
+
+Natural gas, naphtha and fuel gas are not in the registry yet. They are added, with a typical
+composition and its source, with the first process that uses them. A mixture entry may go in
+without a composition (the schema allows it), but no composition is entered without a source.
 
 ## Build-time checks
 

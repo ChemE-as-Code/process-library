@@ -85,7 +85,7 @@ def test_cutoff_build_has_no_credits_and_records_the_exclusions(asu_library: Pat
     goxp = activities[GOXP]
     assert not [e for e in goxp["exchanges"] if e.get("atlas key") in END_OF_LIFE]
     comment = goxp["meta"]["comment"]
-    assert "System model: attributional, cut-off (docs/system-model.md, methodology 1.0.0)." in comment
+    assert "System model: attributional, cut-off (docs/system-model.md, methodology 1.1.0)." in comment
     assert "Excluded by the cut-off system model (no credit): end-of-life:steel-recycling (End-of-life steel scrap" in comment
     assert goxp["meta"]["atlas system model"] == "cutoff"
 
@@ -299,7 +299,12 @@ def test_every_dataset_has_a_version_and_a_review_record(library: Path, tmp_path
     assert datasets["fixture-electrolysis"]["review"] == {"status": "internal", "records": [{"type": "internal", "reviewer": "test"}]}
     assert (datasets["fixture-ammonia-hb"]["version"], datasets["fixture-ammonia-hb"]["version_source"]) == ("0.1.0", "initial")
     assert datasets["fixture-ammonia-hb"]["review"] == {"status": "unreviewed"}
-    assert all(d["methodology_version"] == build_lci.METHODOLOGY_VERSION and len(d["content_sha256"]) == 64 for d in datasets.values())
+    # a dataset that states its methodology version keeps it (dataset contract v2); the others get the build's
+    assert all(
+        d["methodology_version"] == (build_lci.METHODOLOGY_VERSION if d["methodology_version_source"] == "build" else d["methodology_version"])
+        and len(d["content_sha256"]) == 64 for d in datasets.values()
+    )
+    assert datasets["fixture-ammonia-hb"]["methodology_version"] == build_lci.METHODOLOGY_VERSION
 
 
 def test_two_consecutive_builds_produce_a_change_report(library: Path, tmp_path: Path) -> None:

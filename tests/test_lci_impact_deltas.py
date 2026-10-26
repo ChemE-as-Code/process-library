@@ -95,7 +95,8 @@ def test_an_exchange_change_gives_the_expected_gwp_delta(library: Path, tmp_path
     ammonia = impacts[NH3]
     assert next(d for d in changes["datasets"] if d["dataset"] == "fixture-ammonia-hb")["status"] == "unchanged"
     assert ammonia[GWP]["delta"] == pytest.approx(H2_PER_NH3 * co2 / PRODUCT_MASS)
-    assert ammonia["atlas_upstream"] == [H2]
+    # through the Atlas hydrogen market (#76), which takes the electrolysis H2
+    assert ammonia["atlas_upstream"] == [H2, "market:hydrogen:GLO"]
     # what is left out is stated per activity: background links and uncharacterised flows
     assert any(i.startswith("market for electricity, medium voltage") for i in impacts[H2]["excluded"]["background_inputs"])
     assert impacts[H2]["excluded"]["uncharacterised_flows"] == ["Hydrogen (air): not in core's elementary-flow crosswalk"]

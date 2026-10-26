@@ -11,7 +11,8 @@ title, maturity and the chemical slug of each inventory key; ``lca/lca.yaml`` fo
 allocation and functional unit. Linking comes from ``lci/mappings.yaml`` (library root, else the
 staged copy beside this script; schema ``schemas/lci-mappings.schema.json``). YAML files only:
 chemeascode is never imported, except ``foundation.units`` for the benchmark unit conversion
-(``benchmarks.convert``, lazily).
+(``benchmarks.convert``) and ``lca.cutoff`` for the cut-off criteria (``cutoff_results``), both
+lazily.
 
 Output (``--out``; ``<out>/lci/`` is replaced):
 
@@ -50,9 +51,16 @@ Modelling rules (``docs/system-model.md``; also written into every activity's ``
 - free inputs (ambient air) and free pass-through emissions are not exported (see mappings);
 - a technosphere amount is the quantity of the linked activity's reference product, as in
   core's study; the installer flips the sign for a treatment activity (production -1);
-- an input whose chemical another Atlas process produces names that activity too, so the
-  installer can link it inside the Atlas (``prefer_atlas``), preferring a producer of the same
-  registry grade;
+- markets (``markets/<substance>.yaml``, ``markets.py``, docs/markets.md) are activities of the
+  same database, code ``market:<product>:<region>``: their Atlas producers weighted by production
+  volume or sourced shares, transport legs in ton kilometer and losses, per kg delivered;
+- an input whose chemical another Atlas process produces names an Atlas activity too, so the
+  installer can link it inside the Atlas (``prefer_atlas``): the market of the input's grade
+  (``markets.choose``) by default, with the plant (a producer of the same registry grade first)
+  beside it for pinning. A producer of another grade is refused. Every Atlas-to-Atlas link
+  carries a compatibility check (grade, unit, system model, allocation, boundary), written into
+  the workbook (``atlas check``) and ``datapackage.json`` (``atlas_links``); a link at a plant
+  gate because no market of the grade exists is a warning;
 - a product's reference product is its registry grade's name when its flow has one
   (``registry.flow_grade``), else the substance's name with the exchange title; activity codes do
   not depend on it. ``datapackage.json`` activities carry ``chemical`` and ``grade``;
@@ -64,10 +72,16 @@ Modelling rules (``docs/system-model.md``; also written into every activity's ``
   its reference range without an ``out_of_range_reason``, a KPI not evaluated (a unit conversion
   needs core's ``foundation.units``) and, in a library with a ``benchmarks/`` folder, a public
   process with fewer than two KPIs are warnings.
+- the cut-off criteria (docs/system-model.md section 4) of a dataset that records its cut flows
+  (``cutoff:``, core#180) are checked with core's ``lca.cutoff`` and recorded per dataset in
+  ``datapackage.json`` (``cutoff``): a cut flow at or above 1 % of the input mass, the cut flows
+  together at or above 1 %, a never-cut flow (precious or critical metal, high characterisation
+  factor, heavy metal) and, without core installed, criteria not checked are warnings;
 
 Errors (exit 1): ``chemicals/chemicals.yaml`` failing its schema or ``registry.check`` (checked
 first, before any process is read), a benchmark file failing its schema or ``benchmarks.load``,
-an unknown grade, a dataset that fails validation, an
+a market file failing its schema or ``markets.load``, a market whose supplier makes no activity of
+its product, an unknown grade, a dataset that fails validation, an
 allocation that cannot be exported, an exchange without a mapping. Warnings fail ``--strict``.
 
 Deterministic: sorted, no timestamps (the workbook's document properties and zip entry dates
@@ -96,6 +110,7 @@ import zipfile
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import yaml
@@ -103,6 +118,7 @@ from jsonschema import Draft202012Validator
 from openpyxl import Workbook
 
 import benchmarks as bm
+import markets as mk
 import reference_impacts
 import registry as reg
 from publication import is_public
@@ -177,7 +193,7 @@ RELEASED = "released to the environment"
 DEFAULT_BACKGROUND = "ecoinvent-3.11-cutoff"
 DEFAULT_BIOSPHERE = "biosphere3"
 #: Version of docs/system-model.md: the methodology every dataset of a build is built under.
-METHODOLOGY_VERSION = "1.0.0"
+METHODOLOGY_VERSION = "1.1.0"
 METHODOLOGY_DOCUMENT = "docs/system-model.md"
 SYSTEM_MODELS = {
     "cutoff": "attributional, cut-off",
@@ -222,6 +238,14 @@ EXCHANGE_COLUMNS = (
     "atlas activity",
     "atlas reference product",
     "atlas location",
+    "atlas code",
+    "atlas link",
+    "atlas check",
+    "atlas plant activity",
+    "atlas plant reference product",
+    "atlas plant location",
+    "atlas plant code",
+    "atlas plant check",
 )
 CAVEATS = (
     "No background data is included: link the database to the ecoinvent (or other) databases you "
@@ -505,6 +529,11 @@ def shares(dataset: dict, allocation: dict, where: str) -> dict[str, float]:
             value = _properties(product, allocation)[what]
             if value is None and method == "economic" and product["key"] in minor:
                 value = 0.0  # a co-product below 1 % of the output mass without a price has no economic weight
+            if value is None and method == "economic":
+                raise BuildError(
+                    f"{where}: economic allocation: no price of {name} in the study or the dataset, and the export "
+                    "takes no registry price (none is recorded yet; docs/registry.md, Missing prices)"
+                )
             if value is None:
                 raise BuildError(f"{where}: {method} allocation: no {what} of {name}")
             raw[product["key"]] = float(product["amount"]) * float(value)
@@ -788,6 +817,13 @@ class Linker:
     by_dataset: dict[tuple[str, str], dict] = field(default_factory=dict)
     proxies_used: set[str] = field(default_factory=set)
     model: str = "cutoff"
+    markets: list[mk.Market] = field(default_factory=list)
+    #: market code -> its activity row (exported markets only)
+    market_rows: dict[str, dict] = field(default_factory=dict)
+    #: plant activity code -> the dataset it is allocated from (for the allocation check)
+    datasets: dict[str, Dataset] = field(default_factory=dict)
+    #: plant activity code -> its row
+    rows: dict[str, dict] = field(default_factory=dict)
 
     def known(self, tid: str | None) -> bool:
         return bool(tid) and (tid in self.mappings["technosphere"] or tid in self.mappings["cutoff_exclusions"])
@@ -872,7 +908,7 @@ class Linker:
             row = self.by_dataset.get((ref["path"], product))
             if row is None:
                 raise BuildError(f"{where}: link.dataset {ref['path']}#{product} is not an exported Atlas dataset of this library")
-            return "technosphere", {**self._own(row), "atlas location rule": "fixed"}
+            return "technosphere", {**self._own(row), "atlas location rule": "fixed", "atlas code": row["code"], "atlas link": "pinned"}
 
         chemical = _chemical(process, exchange, self.mappings, self.registry)
         if self.known(chemical):
@@ -933,22 +969,91 @@ class Linker:
     def _own(self, row: dict) -> dict:
         return {"name": row["name"], "reference product": row["reference product"], "unit": row["unit"], "location": row["location"], "database": self.db_name}
 
-    def atlas_alternative(self, process: Process, exchange: dict, unit: str) -> tuple[dict | None, list[str]]:
-        """The Atlas activity of another process that makes this input's chemical, and the other
-        candidates when several do (the first by process id and name is taken: deterministic,
-        and reported, so that a second producer never replaces the first silently)."""
+    def atlas_alternative(self, process: Process, exchange: dict, unit: str, location: str | None = None) -> AtlasChoice | None:
+        """The Atlas activity this input links to with ``prefer_atlas``: the market of its grade
+        (``markets.choose``) when one exists, else the plant; and the plant beside a market, for
+        pinning. Plants are the producers of the input's chemical in other processes, a producer
+        of the grade the input names first, then by process id and name (deterministic; the
+        other candidates are reported, so that a second producer never replaces the first
+        silently). A producer of another grade than the one the input names is refused."""
         if exchange["type"] != "input":
-            return None, []
+            return None
         chemical = _chemical(process, exchange, self.mappings, self.registry)
-        # a current producer of the grade the input names comes first (a deprecated dataset's last), then by process id and name
         wanted = process.grades.get(exchange["key"])
-        candidates = sorted(
-            ((pid, row) for pid, row in self.producers.get(chemical or "", []) if pid != process.pid and row["unit"] == unit),
-            key=lambda c: (c[1].get("deprecated", False), not wanted or c[1].get("grade") != wanted, c[0], c[1]["name"]),
-        )
+        candidates, refused = [], []
+        for pid, row in self.producers.get(chemical or "", []):
+            if pid == process.pid or row["unit"] != unit:
+                continue
+            if wanted and row.get("grade") and row["grade"] != wanted:
+                refused.append(f"{pid}: {row['name']} | {row['reference product']} (grade {chemical}/{row['grade']}, the input is {chemical}/{wanted})")
+                continue
+            candidates.append((pid, row))
+        # a current producer of the grade the input names comes first (a deprecated dataset's last), then by process id and name
+        candidates.sort(key=lambda c: (c[1].get("deprecated", False), not wanted or c[1].get("grade") != wanted, c[0], c[1]["name"]))
         if not candidates:
-            return None, []
-        return candidates[0][1], [f"{pid}: {row['name']}" for pid, row in candidates[1:]]
+            return AtlasChoice(None, None, [], refused) if refused else None
+        plant = candidates[0][1]
+        others = candidates[1:]
+        grade = wanted or plant.get("grade")
+        market, unchosen = mk.choose(self.markets, chemical or "", grade, location, exclude=process.pid)
+        row = self.market_rows.get(market.code) if market else None
+        if row is not None and row["unit"] != unit:
+            row = None
+        return AtlasChoice(row or plant, plant if row else None, others, refused, [m.code for m in unchosen] if market is None else [])
+
+    def check(self, chemical: str | None, wanted: str | None, provider: dict, kind: str) -> dict:
+        """Compatibility of an Atlas-to-Atlas link (core#168): the provider's reference product
+        grade and state, unit, system model, allocation and boundary. *kind* is ``market``,
+        ``plant`` (no market of the grade), ``pinned`` (link.dataset), ``supply`` (a market's
+        producer) or ``import`` (a consumption mix's other market)."""
+        checks: dict[str, dict] = {}
+        ref = f"{provider['chemical']}/{provider['grade']}" if provider.get("grade") else provider.get("chemical") or provider["reference product"]
+        if provider.get("chemical") and chemical and provider["chemical"] != chemical:
+            checks["grade"] = {"status": "mismatch", "text": f"{ref} is not {chemical}"}
+        elif not wanted:
+            checks["grade"] = {"status": "note", "text": f"the input names {chemical or 'no chemical'} only; {ref} ({provider['reference product']}) is taken"}
+        elif provider.get("grade") == wanted:
+            checks["grade"] = {"status": "ok", "text": f"{ref} ({provider['reference product']})"}
+        elif not provider.get("grade"):
+            checks["grade"] = {"status": "note", "text": f"the provider names {ref} without a grade; the input is {chemical}/{wanted}"}
+        else:
+            checks["grade"] = {"status": "mismatch", "text": f"{ref}, the input is {chemical}/{wanted}"}
+        checks["unit"] = {"status": "ok", "text": provider["unit"]}
+        checks["system_model"] = {"status": "ok", "text": f"{self.model} (one database)"}
+        if provider.get("market"):
+            datasets = [self.datasets[c] for c in provider["suppliers"] if c in self.datasets]
+        else:
+            datasets = [self.datasets[provider["code"]]] if provider["code"] in self.datasets else []
+        findings = [d for d in datasets if d.finding]
+        methods = ", ".join(sorted({f"{d.allocation.get('method', 'mass')} ({d.rule})" for d in datasets})) or "none"
+        checks["allocation"] = (
+            {"status": "note", "text": f"{methods}; not shown to follow the hierarchy: {'; '.join(d.path for d in findings)}"}
+            if findings else {"status": "ok", "text": methods}
+        )
+        if provider.get("market"):
+            checks["boundary"] = {"status": "ok", "text": f"delivered ({provider['layer']}, {provider['location']}: transport and losses included)"}
+        elif kind == "supply":
+            checks["boundary"] = {"status": "ok", "text": "plant gate, into the market"}
+        elif kind == "pinned":
+            checks["boundary"] = {"status": "note", "text": "plant gate (pinned): no distribution or losses; the consumer's dataset counts its delivery"}
+        else:
+            checks["boundary"] = {"status": "note", "text": "plant gate: no market of this grade, so no distribution or losses"}
+        compatible = all(c["status"] != "mismatch" for c in checks.values())
+        text = ("compatible" if compatible else "INCOMPATIBLE") + ": " + "; ".join(f"{k.replace('_', ' ')} {v['text']}" for k, v in checks.items())
+        return {"checks": checks, "compatible": compatible, "text": text}
+
+
+@dataclass
+class AtlasChoice:
+    """The Atlas activity an input links to by default (a market, else a plant), the plant for
+    pinning when the default is a market, the other plants and the refused ones (another grade),
+    and the regional markets left unchosen (several, none for the consumer's region)."""
+
+    target: dict | None
+    plant: dict | None
+    others: list[tuple[str, dict]]
+    refused: list[str]
+    unchosen: list[str] = field(default_factory=list)
 
 
 # --- activities ------------------------------------------------------------------------------
@@ -1123,6 +1228,66 @@ def benchmark_results(processes: list[Process], benchmarks: bm.Registry | None, 
     return results
 
 
+#: The findings of core's ``lca.cutoff`` that are the cut-off criteria (docs/system-model.md
+#: section 4). Its system-model findings (negative inputs, recyclables to energy recovery) are not
+#: read here: the build checks the system model itself (``check_system_models``, the cut-off build's
+#: refusal of credits).
+CUTOFF_RULES = ("cheme.lca-cutoff-share", "cheme.lca-cutoff-sum", "cheme.lca-cutoff-never", "cheme.lca-cutoff-unchecked")
+
+
+def cutoff_results(processes: list[Process], report: Report) -> dict[str, dict]:
+    """The cut-off criteria (docs/system-model.md section 4) of each dataset that records cut
+    flows (``cutoff:``, core#180), checked with core's ``lca.cutoff`` so that the build and
+    ``cheme assess lca`` apply the same rule: each cut flow and all of them together below 1 % of
+    the input mass, no never-cut flow. By dataset path, for ``datapackage.json``. A cut flow that
+    fails core's schema is an error; a broken criterion is a warning (``--strict`` fails); a cut
+    flow without an amount in kg is recorded, not warned (core's info). Without core installed the
+    criteria are not checked: a warning."""
+    cut = [(p, d) for p in processes for d in p.datasets if d.data.get("cutoff")]
+    if not cut:
+        return {}
+    try:
+        import chemeascode.domains.assessment.lca.cutoff as core_cutoff
+        from chemeascode.domains.assessment.lca.schemas import CutoffFlow
+        from pydantic import ValidationError
+    except ImportError:
+        for _, dataset in cut:
+            report.warn(dataset.path, "cutoff: the cut-off criteria are not checked: they need core's chemeascode (lca.cutoff) installed")
+        return {d.path: {"flows": sorted(f.get("key", "") for f in d.data["cutoff"] if isinstance(f, dict)), "checked": False, "findings": []} for _, d in cut}
+    results = {}
+    for _, dataset in cut:
+        data = dataset.data
+        flows, problems = [], []
+        for number, flow in enumerate(data["cutoff"] if isinstance(data["cutoff"], list) else [data["cutoff"]]):
+            try:
+                flows.append(CutoffFlow.model_validate(flow))
+            except ValidationError as failure:
+                problems.extend(f"cutoff[{number}]{''.join(f'.{x}' for x in e['loc'])}: {e['msg']}" for e in failure.errors())
+        if problems:
+            report.error(dataset.path, "; ".join(problems))
+            continue
+        # the fields core's input mass reads (the treatment is for a system-model rule not read here)
+        exchanges = [
+            SimpleNamespace(
+                key=e["key"], type=e["type"], amount=e["amount"], unit=e["unit"], phase=e.get("phase", "operation"), treatment=None,
+                carrier=SimpleNamespace(kind=e["carrier"].get("kind")) if isinstance(e.get("carrier"), dict) else None,
+            )
+            for e in data["exchanges"]
+        ]
+        view = SimpleNamespace(system_model=data.get("system_model"), basis=data.get("basis", "1 h of operation"), exchanges=exchanges, cutoff=flows)
+        found = [f for f in core_cutoff.findings(view, dataset.path) if f.rule in CUTOFF_RULES]
+        for finding in found:
+            if finding.level != "info":
+                report.warn(dataset.path, f"cutoff: {finding.message} ({finding.rule}; {finding.hint})")
+        results[dataset.path] = {
+            "flows": sorted(f.key for f in flows),
+            "checked": True,
+            "input_mass_kg": _number(core_cutoff.input_mass(view)),
+            "findings": [{"rule": f.rule, "level": f.level, "message": f.message} for f in found],
+        }
+    return results
+
+
 def _factors_status(factors: dict | None) -> str:
     if not factors:
         return "none"
@@ -1197,11 +1362,25 @@ class Activity:
     exchanges: list[dict]
 
 
-def build_activities(processes: list[Process], mappings: dict, products: reg.Registry, db_name: str, commit: str | None, version: str, report: Report, model: str = "cutoff", excluded_log: list[dict] | None = None) -> tuple[list[Activity], list[Activity], dict[str, list[dict]]]:
+@dataclass
+class Built:
+    activities: list[Activity]
+    proxies: list[Activity]
+    markets: list[Activity]
+    #: process id -> its activity rows
+    by_process: dict[str, list[dict]]
+    #: every market of markets/, exported or not, for datapackage.json
+    market_entries: list[dict] = field(default_factory=list)
+    #: every Atlas-to-Atlas link with its compatibility check
+    links: list[dict] = field(default_factory=list)
+
+
+def build_activities(processes: list[Process], mappings: dict, products: reg.Registry, db_name: str, commit: str | None, version: str, report: Report, model: str = "cutoff", excluded_log: list[dict] | None = None, markets: list[mk.Market] | None = None, public: bool = False) -> Built:
     """*mappings* is the profile of *model* (``profile()``); every exchange the cut-off model
     excludes is appended to *excluded_log*."""
-    linker = Linker(mappings, db_name, set(products.chemicals), model=model)
+    linker = Linker(mappings, db_name, set(products.chemicals), model=model, markets=list(markets or []))
     excluded_log = [] if excluded_log is None else excluded_log
+    links: list[dict] = []
     rows_by_process: dict[str, list[tuple[Dataset, dict]]] = {}
     for process in processes:
         for dataset in process.datasets:
@@ -1223,6 +1402,9 @@ def build_activities(processes: list[Process], mappings: dict, products: reg.Reg
                     "the installer cannot tell them apart (a second dataset of one process for the same product needs its own title or location)",
                 )
             identities[identity] = row["code"]
+            linker.datasets[row["code"]] = dataset
+            linker.rows[row["code"]] = row
+    market_activities, market_entries = build_markets(linker, products, db_name, commit, version, report, public, links)
 
     activities: list[Activity] = []
     for process in processes:
@@ -1274,16 +1456,15 @@ def build_activities(processes: list[Process], mappings: dict, products: reg.Reg
                 entry = {"amount": amount, "type": kind, "atlas key": exchange["key"], **target}
                 if kind == "biosphere":
                     entry["categories"] = "::".join(target["categories"])
-                else:
-                    alternative, others = linker.atlas_alternative(process, exchange, target["unit"])
+                elif target.get("atlas link") == "pinned":
                     # an input linked explicitly (link.dataset) has chosen its producer
-                    if others and target.get("database") != db_name:
-                        report.warn(
-                            f"{process.pid}: {exchange['key']}",
-                            f"several Atlas producers: {alternative['name']} is used, not {', '.join(others)}; link one explicitly (link.dataset) to choose",
-                        )
-                    if alternative is not None and target.get("database") != db_name:
-                        entry.update({"atlas activity": alternative["name"], "atlas reference product": alternative["reference product"], "atlas location": alternative["location"]})
+                    provider = linker.rows[target["atlas code"]]
+                    chemical = _chemical(process, exchange, mappings, linker.registry)
+                    check = linker.check(chemical, process.grades.get(exchange["key"]), provider, "pinned")
+                    entry["atlas check"] = check["text"]
+                    links.append(_link(row, exchange, provider, "pinned", check))
+                else:
+                    link_atlas(linker, process, exchange, row, entry, target, report, links)
                 entry.update(_uncertainty(exchange, amount))
                 kind_of = (exchange.get("uncertainty") or {}).get("distribution", "lognormal")
                 if kind_of != "lognormal":
@@ -1339,7 +1520,244 @@ def build_activities(processes: list[Process], mappings: dict, products: reg.Reg
         proxies.append(Activity(row, comment, metadata, exchanges))
 
     by_process = {pid: [r for _, r in rows] for pid, rows in rows_by_process.items()}
-    return activities, proxies, by_process
+    return Built(activities, proxies, market_activities, by_process, market_entries, links)
+
+
+def _link(consumer: dict, exchange: dict | str, provider: dict, kind: str, check: dict, plant: dict | None = None) -> dict:
+    return {
+        "consumer": consumer["code"],
+        "key": exchange if isinstance(exchange, str) else exchange["key"],
+        "provider": provider["code"],
+        "kind": kind,
+        "plant": plant["code"] if plant else None,
+        "compatible": check["compatible"],
+        "checks": check["checks"],
+    }
+
+
+def link_atlas(linker: Linker, process: Process, exchange: dict, row: dict, entry: dict, target: dict, report: Report, links: list[dict]) -> None:
+    """Name the Atlas activity an input linked to the background can link to instead
+    (``prefer_atlas``): the market of its grade, else the plant (a warning), with the plant beside
+    a market for pinning, and the compatibility check of each."""
+    choice = linker.atlas_alternative(process, exchange, target["unit"], row["location"])
+    if choice is None:
+        return
+    where = f"{process.pid}: {exchange['key']}"
+    chemical = _chemical(process, exchange, linker.mappings, linker.registry)
+    wanted = process.grades.get(exchange["key"])
+
+    def warn(message: str) -> None:  # once per input, not once per co-product of the consumer
+        if f"{where}: {message}" not in report.warnings:
+            report.warn(where, message)
+
+    if choice.target is None:
+        links.append({"consumer": row["code"], "key": exchange["key"], "provider": None, "kind": "refused", "plant": None, "compatible": False,
+                      "checks": {"grade": {"status": "mismatch", "text": "; ".join(choice.refused)}}})
+        return
+    market = choice.target if choice.target.get("market") else None
+    outside = [(pid, other) for pid, other in choice.others if not market or other["code"] not in market["suppliers"]]
+    if outside:
+        used = f"{market['code']} is used, and does not take" if market else f"{choice.target['name']} is used, not"
+        warn(f"several Atlas producers: {used} {', '.join(f'{pid}: {other['name']}' for pid, other in outside)}; link one explicitly (link.dataset) to choose")
+    kind = "market" if market else "plant"
+    if market is None:
+        product = f"{chemical}/{choice.target['grade']}" if choice.target.get("grade") else chemical
+        regions = f" (several markets, none for {row['location']}: {', '.join(choice.unchosen)})" if choice.unchosen else ""
+        warn(f"no market of {product}{regions}: the Atlas link goes to the plant gate of {choice.target['name']} (no distribution or losses); add a market in markets/{chemical}.yaml (docs/markets.md)")
+    check = linker.check(chemical, wanted, choice.target, kind)
+    if not check["compatible"]:
+        warn(f"Atlas link to {choice.target['code']}: {check['text']}")
+    entry.update({
+        "atlas activity": choice.target["name"], "atlas reference product": choice.target["reference product"], "atlas location": choice.target["location"],
+        "atlas code": choice.target["code"], "atlas link": kind, "atlas check": check["text"],
+    })
+    if choice.plant is not None:
+        plant_check = linker.check(chemical, wanted, choice.plant, "pinned")
+        entry.update({
+            "atlas plant activity": choice.plant["name"], "atlas plant reference product": choice.plant["reference product"],
+            "atlas plant location": choice.plant["location"], "atlas plant code": choice.plant["code"], "atlas plant check": plant_check["text"],
+        })
+    links.append(_link(row, exchange, choice.target, kind, check, choice.plant))
+
+
+def _market_name(market: mk.Market, product: str) -> str:
+    name = f"market for {product[:1].lower()}{product[1:]}"
+    return f"{name} ({market.technology} technology)" if market.technology else name
+
+
+def build_markets(linker: Linker, products: reg.Registry, db_name: str, commit: str | None, version: str, report: Report, public: bool, links: list[dict]) -> tuple[list[Activity], list[dict]]:
+    """The market activities (markets.py) and an entry per market for datapackage.json. A market
+    is ``planned`` (not exported, with its reason), ``withheld`` (a supplier is not in a public
+    build) or ``exported``. Registers the exported rows in *linker* (``market_rows``)."""
+    entries: dict[str, dict] = {}
+    pending: dict[str, tuple[mk.Market, list[dict | None]]] = {}
+    for market in linker.markets:
+        entry = {
+            "code": market.code, "product": market.product, "chemical": market.chemical, "grade": market.grade, "region": market.region,
+            "layer": market.layer, "technology": market.technology, "path": market.path, "facts": market.facts(),
+        }
+        entries[market.code] = entry
+        if market.planned:
+            entry.update(status="planned", reason=" ".join(market.data["planned"].split()))
+            continue
+        suppliers: list[dict | None] = []
+        withheld = []
+        for supplier in market.suppliers:
+            if "market" in supplier:
+                suppliers.append(None)  # an import: the other market, resolved below
+                continue
+            found = [r for pid, r in linker.producers.get(market.chemical, []) if pid == supplier["process"] and r.get("grade") == market.grade]
+            if len(found) > 1:  # a deprecated dataset beside its successor: the market takes the current one
+                current = [r for r in found if not r.get("deprecated")]
+                found = current if len(current) == 1 else found
+            if len(found) == 1:
+                suppliers.append(found[0])
+            elif found:
+                report.error(f"{market.path} {market.code}", f"supplier {supplier['process']} has {len(found)} activities of {market.product} (several datasets): the market cannot choose")
+            elif public:
+                withheld.append(supplier["process"])
+            else:
+                report.error(f"{market.path} {market.code}", f"supplier {supplier['process']} exports no activity of {market.product} (is it a product of its LCI dataset, with this grade?)")
+        if withheld:
+            entry.update(status="withheld", reason=f"supplier(s) {', '.join(withheld)} not in the public build")
+            continue
+        units = {s["unit"] for s in suppliers if s}
+        if len(units) > 1:
+            report.error(f"{market.path} {market.code}", f"its suppliers count the product in several units: {', '.join(sorted(units))}")
+            continue
+        pending[market.code] = (market, suppliers)
+
+    # imports need the other market; a market whose import is withheld or planned is withheld too
+    resolved = False
+    while not resolved:
+        resolved = True
+        for code, (market, suppliers) in list(pending.items()):
+            for supplier in market.suppliers:
+                other = f"market:{market.product}:{supplier['market']}" if "market" in supplier else None
+                if other and other not in pending:
+                    entries[code].update(status="withheld", reason=f"imports from {other}, which is {entries.get(other, {}).get('status', 'not defined')}")
+                    del pending[code]
+                    resolved = False
+                    break
+
+    for code, (market, suppliers) in pending.items():
+        unit = next((s["unit"] for s in suppliers if s), None)
+        reference = (products.grade(market.chemical, market.grade) or {}).get("name") or (products.chemicals.get(market.chemical) or {}).get("name", market.chemical)
+        linker.market_rows[code] = {
+            "code": code, "name": _market_name(market, reference), "reference product": reference, "unit": unit or "kilogram",
+            "location": market.region, "chemical": market.chemical, "grade": market.grade, "market": True, "layer": market.layer,
+            "suppliers": [s["code"] for s in suppliers if s],
+        }
+    built: list[Activity] = []
+    for code, (market, suppliers) in pending.items():
+        row = linker.market_rows[code]
+        for number, supplier in enumerate(market.suppliers):
+            if "market" in supplier:
+                suppliers[number] = linker.market_rows[f"market:{market.product}:{supplier['market']}"]
+        activity, notes = _market_activity(linker, market, row, suppliers, report, db_name, commit, version, links)
+        if activity is not None:
+            entries[code].update(
+                status="exported", name=row["name"], reference_product=row["reference product"], unit=row["unit"], location=row["location"],
+                gross=_number(market.gross()), suppliers=[{"code": s["code"], "share": _number(w)} for s, w in zip(suppliers, market.weights())],
+                not_exported=notes, consumption=(market.data.get("consumption") or {"trade_source": market.data.get("trade_source")}),
+                excluded=market.data.get("excluded") or [],
+            )
+            built.append(activity)
+    return sorted(built, key=lambda a: a.row["code"]), [entries[m.code] for m in linker.markets]
+
+
+def _market_activity(linker: Linker, market: mk.Market, row: dict, suppliers: list[dict], report: Report, db_name: str, commit: str | None, version: str, links: list[dict]) -> tuple[Activity | None, list[str]]:
+    where = f"{market.path} {market.code}"
+    gross = market.gross()
+    exchanges = [{"name": row["name"], "amount": 1.0, "unit": row["unit"], "type": "production", "database": db_name, "reference product": row["reference product"], "location": row["location"]}]
+    notes: list[str] = []
+    lines_supply = []
+    failed = False
+    for supplier, weight, provider in zip(market.suppliers, market.weights(), suppliers):
+        kind = "import" if "market" in supplier else "supply"
+        check = linker.check(market.chemical, market.grade, provider, kind)
+        key = f"supplier:{supplier.get('process') or supplier['market']}"
+        basis = supplier.get("share") or supplier["production_volume"]
+        exchanges.append({
+            "amount": _number(weight * gross), "type": "technosphere", **linker._own(provider), "atlas key": key, "atlas code": provider["code"],
+            "atlas link": kind, "atlas check": check["text"], "comment": f"share {weight:.4g} ({basis['status']}: {' '.join(basis['source'].split())})",
+        })
+        links.append(_link(row, key, provider, kind, check))
+        lines_supply.append(f"{provider['name']} | {provider['reference product']} {weight * 100:.1f} %")
+        for leg in supplier.get("transport") or []:
+            failed |= _leg(linker, market, leg, weight * gross, f"transport:{supplier.get('process') or supplier['market']}:{leg['mode']}", exchanges, notes, report)
+    for leg in market.data.get("distribution") or []:
+        failed |= _leg(linker, market, leg, gross, f"distribution:{leg['mode']}", exchanges, notes, report)
+    mass = gross
+    for loss in market.data.get("losses") or []:
+        lost = mass * float(loss["fraction"])
+        mass -= lost
+        component = loss.get("released_as")
+        text = f"{loss['kind']} {float(loss['fraction']) * 100:.3g} % ({loss['status']}: {' '.join(loss['source'].split())})"
+        if component is None:
+            notes.append(f"loss:{loss['kind']} {_number(lost):g} {row['unit']} per {row['unit']}: lost, no release named")
+        elif component in linker.mappings["biosphere"]:
+            if row["unit"] != "kilogram":
+                report.error(where, f"loss {loss['kind']} released as {component}: the product is counted in {row['unit']}, a release needs kilogram")
+                failed = True
+                continue
+            flow = linker.mappings["biosphere"][component]["flow"]
+            exchanges.append({"amount": _number(lost), "type": "biosphere", "name": flow["name"], "categories": "::".join(flow["categories"]), "unit": "kilogram",
+                              "atlas key": f"loss:{loss['kind']}", "comment": text})
+        elif component in linker.mappings["pass_through"]:
+            notes.append(f"loss:{loss['kind']} {_number(lost):g} {row['unit']} per {row['unit']} released as {component} (an atmospheric constituent, as lci/mappings.yaml pass_through: no burden, not exported)")
+        else:
+            report.error(where, f"loss {loss['kind']} released as {component!r}, which is neither in lci/mappings.yaml biosphere nor in pass_through")
+            failed = True
+    if failed:
+        return None, notes
+    consumption = market.data.get("consumption")
+    if consumption:
+        statement = f"Consumption: {'equals production' if consumption['equals_production'] else 'differs from production'}: {' '.join(consumption['reason'].split())}"
+    elif market.layer == "consumption-mix":
+        statement = f"Consumption mix from trade data: {' '.join(market.data['trade_source'].split())}"
+    else:
+        statement = f"One technology ({market.technology}): chosen explicitly, never the default link of an input."
+    lines = [
+        f"ChemE-as-Code Process Atlas market {market.code}: {mk.LAYERS[market.layer]} ({market.path}, docs/markets.md).",
+        f"System model: {SYSTEM_MODELS[linker.model]} ({METHODOLOGY_DOCUMENT}, methodology {METHODOLOGY_VERSION}).",
+        f"1 {row['unit']} of {row['reference product']} delivered in {row['location']}; {_number(gross):g} {row['unit']} taken from the suppliers (losses on the way).",
+        "Suppliers: " + "; ".join(lines_supply) + ".",
+        statement,
+        "Every share, volume, distance and loss has its status (cited, calculated, assumed) and source in datapackage.json (markets) and the market file.",
+    ]
+    if notes:
+        lines.append("Not exported: " + "; ".join(notes) + ".")
+    if market.data.get("excluded"):
+        lines.append("Outside the market: " + "; ".join(" ".join(x.split()).rstrip(".") for x in market.data["excluded"]) + ".")
+    lines.append(f"Atlas LCI {version}; library commit {commit or 'unknown'}.")
+    comment = "\n".join(lines)
+    metadata = {
+        "code": row["code"], "reference product": row["reference product"], "unit": row["unit"], "location": row["location"], "type": "process",
+        "production amount": 1, "comment": comment, "atlas market": market.code, "atlas layer": market.layer,
+        "atlas system model": linker.model, "atlas methodology version": METHODOLOGY_VERSION,
+    }
+    return Activity(row, comment, metadata, exchanges), notes
+
+
+def _leg(linker: Linker, market: mk.Market, leg: dict, mass: float, key: str, exchanges: list[dict], notes: list[str], report: Report) -> bool:
+    """A transport leg as ton kilometer of its technosphere entry (``mass`` kg carried per unit
+    delivered); a leg without one (a pipeline) is recorded only. True when it failed."""
+    distance = float(leg["distance"]["value"])
+    text = f"{leg['mode']} {distance:g} km ({leg['distance']['status']}: {' '.join(leg['distance']['source'].split())})"
+    if not leg.get("use"):
+        notes.append(f"{key} {distance:g} km: no background activity (driven by the producer's delivery pressure; pipeline infrastructure outside the market)")
+        return False
+    if leg["use"] not in linker.mappings["technosphere"]:
+        report.error(f"{market.path} {market.code}", f"transport {leg['mode']} uses unknown technosphere entry {leg['use']!r}")
+        return True
+    try:
+        target = linker.technosphere(leg["use"], "ton kilometer", f"{market.path} {market.code} {key}")
+    except BuildError as failure:
+        report.errors.append(str(failure))
+        return True
+    exchanges.append({"amount": _number(mass / 1000.0 * distance), "type": "technosphere", **target, "atlas key": key, "comment": text})
+    return False
 
 
 # --- workbook --------------------------------------------------------------------------------
@@ -1357,7 +1775,7 @@ def _activity_block(activity: Activity) -> list[list[Any]]:
     return rows
 
 
-def write_workbook(path: Path, db_name: str, database_meta: dict, activities: list[Activity], proxies: list[Activity], about: list[str]) -> None:
+def write_workbook(path: Path, db_name: str, database_meta: dict, activities: list[Activity], proxies: list[Activity], about: list[str], markets: list[Activity] | None = None) -> None:
     wb = Workbook()
     ws = wb.active
     ws.title = "about"
@@ -1375,6 +1793,11 @@ def write_workbook(path: Path, db_name: str, database_meta: dict, activities: li
     for pid, group in sorted(sheets.items()):
         ws = wb.create_sheet(pid[:31])
         for activity in group:
+            for row in _activity_block(activity):
+                ws.append(row)
+    if markets:
+        ws = wb.create_sheet("markets")
+        for activity in markets:
             for row in _activity_block(activity):
                 ws.append(row)
     if proxies:
@@ -1699,6 +2122,9 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
     benchmarks, problems = bm.load(library / "benchmarks", _base_dir("schemas") / "benchmarks.schema.json", taxonomy)
     for message in problems:
         report.errors.append(message)
+    markets, problems = mk.load(library / "markets", _base_dir("schemas") / "markets.schema.json", products, library)
+    for message in problems:
+        report.errors.append(message)
     if report.errors:
         return report
     model = system_model or mappings["system_model"]
@@ -1717,9 +2143,11 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
     # the default model's database carries the plain name; a variant is labelled in its name
     db_name = f"cheme-as-code-atlas-{version}" if model == mappings["system_model"] else f"cheme-as-code-atlas-{version}-{model}"
     excluded: list[dict] = []
-    activities, proxies, by_process = build_activities(processes, profile(mappings, model), products, db_name, commit, version, report, model, excluded)
+    built = build_activities(processes, profile(mappings, model), products, db_name, commit, version, report, model, excluded, markets, public)
+    activities, proxies, by_process = built.activities, built.proxies, built.by_process
     checks = {d.path: property_checks(p, d, products, mappings, report) for p in processes for d in p.datasets}
     kpis = benchmark_results(processes, benchmarks, public, report)
+    cutoffs = cutoff_results(processes, report)
     if report.errors:
         return report
     if not activities:
@@ -1747,7 +2175,7 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
         "atlas system model": model,
         "atlas methodology version": METHODOLOGY_VERSION,
     }
-    write_workbook(lci / xlsx_name, db_name, database_meta, activities, proxies, about)
+    write_workbook(lci / xlsx_name, db_name, database_meta, activities, proxies, about, built.markets)
 
     def activity_list(rows: list[dict]) -> list[dict]:
         return [{"code": r["code"], "name": r["name"], "reference_product": r["reference product"], "unit": r["unit"], "location": r["location"], **({"chemical": r["chemical"], "grade": r["grade"]} if "chemical" in r else {}), **({"state": r["state"]} if r.get("state") else {}), **({"superseded_by": r["superseded_by"]} if r.get("superseded_by") else {})} for r in rows]
@@ -1764,7 +2192,7 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
                 "factors_status": _factors_status(process.factors),
                 "functional_unit": _functional_unit(process.study),
                 "allocation": {"method": first.allocation.get("method", "mass"), "source": first.allocation_source, "rule": first.rule},
-                "datasets": [{**_dataset_entry(d), "property_checks": checks.get(d.path, []), "benchmarks": kpis.get(d.path, [])} for d in process.datasets],
+                "datasets": [{**_dataset_entry(d), "property_checks": checks.get(d.path, []), "benchmarks": kpis.get(d.path, []), **({"cutoff": cutoffs[d.path]} if d.path in cutoffs else {})} for d in process.datasets],
                 "activities": activity_list(by_process.get(process.pid, [])),
             }
         )
@@ -1774,6 +2202,11 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
             "(lci/mappings.yaml substitution). Do not mix it with the cut-off database in one study."
         )
     ]
+    if built.markets:
+        variant_caveats.append(
+            "Markets (code market:*) mix the Atlas's own producers of a product, not the region's actual production; most of their "
+            "distances and losses are ASSUMED screening values (datapackage.json markets, docs/markets.md)."
+        )
     findings = [f"{d.path}: {d.finding}" for p in processes for d in p.datasets if d.finding]
     datapackage = {
         "schema": DATAPACKAGE_SCHEMA,
@@ -1794,6 +2227,8 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
         "resources": [{"path": xlsx_name, "mediatype": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}],
         "processes": process_entries,
         "proxies": activity_list([p.row for p in proxies]),
+        "markets": built.market_entries,
+        "atlas_links": built.links,
         "caveats": [*CAVEATS, *variant_caveats],
     }
     _write_json(lci / "datapackage.json", datapackage)
@@ -1825,6 +2260,7 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
         "system_model": model,
         "methodology_version": METHODOLOGY_VERSION,
         "processes": {e["id"]: [{"code": a["code"], "name": a["name"], "reference_product": a["reference_product"], "unit": a["unit"]} for a in e["activities"]] for e in process_entries},
+        "markets": [{"code": m.row["code"], "name": m.row["name"], "reference_product": m.row["reference product"], "unit": m.row["unit"], "location": m.row["location"]} for m in built.markets],
         "caveats": caveats,
     }
     _write_json(lci / "index.json", index)
@@ -1856,7 +2292,8 @@ def main(argv: list[str] | None = None) -> int:
     if not failed:
         index = json.loads((args.out / "lci" / "index.json").read_text(encoding="utf-8"))
         count = sum(len(v) for v in index["processes"].values())
-        print(f"lci: {count} activit{'y' if count == 1 else 'ies'} from {len(index['processes'])} process(es) -> {args.out / 'lci'}")
+        markets = len(index.get("markets", []))
+        print(f"lci: {count} activit{'y' if count == 1 else 'ies'} from {len(index['processes'])} process(es), {markets} market(s) -> {args.out / 'lci'}")
     return 1 if failed else 0
 
 

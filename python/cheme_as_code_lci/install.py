@@ -13,8 +13,13 @@ Atlas fields in the workbook steer it:
 - ``atlas location rule: site``: the exchange's location is the plant's site, replaced by
   *location* (default: the workbook's ``atlas default site location``);
 - ``atlas activity`` / ``atlas reference product`` / ``atlas location``: another Atlas
-  activity makes this input; with ``prefer_atlas`` the exchange links to it instead of the
-  background;
+  activity makes this input, the market of its grade when the library has one (``atlas link:
+  market``), else a plant; with ``prefer_atlas`` the exchange links to it instead of the
+  background. ``atlas plant activity`` / ``... reference product`` / ``... location`` name the
+  plant beside a market: ``prefer_atlas="plant"``, or *pin* for single activities, link to it;
+- ``atlas code`` / ``atlas link`` / ``atlas check``: every Atlas-to-Atlas link (also a market's
+  suppliers and an explicit ``link.dataset``) with the build's compatibility check (grade, unit,
+  system model, allocation, boundary); the report lists them all, and the supply chains;
 - a technosphere amount is the quantity of the linked reference product (as in plantcode's
   study), so an exchange linked to a treatment activity (production -1) gets its sign flipped;
 - ``atlas flow uuid``: the biosphere3 UUID of an elementary flow. The flow whose code is that
@@ -35,6 +40,7 @@ from __future__ import annotations
 import functools
 import hashlib
 import json
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -53,6 +59,29 @@ SYSTEM_MODELS = {
 #: Metadata keys of ``bd.databases[name]`` that identify a background database (as core's
 #: ``brightway.expect``).
 IDENTITY = ("provider", "version", "system_model")
+PREFER = ("market", "plant")
+
+
+@dataclass
+class AtlasLink:
+    """One exchange linked inside the Atlas database, with the build's compatibility check."""
+
+    consumer: str  # "<name> | <reference product>" of the activity that takes the input
+    consumer_code: str
+    key: str  # the exchange's atlas key
+    provider: str
+    provider_code: str
+    #: market | plant (no market of the grade) | pinned (a plant chosen by pin, prefer_atlas="plant"
+    #: or link.dataset) | supply (a market's producer) | import (a consumption mix's other market)
+    kind: str
+    check: str
+
+    @property
+    def compatible(self) -> bool:
+        return self.check.startswith("compatible")
+
+    def __str__(self) -> str:
+        return f"{self.consumer} <- {self.provider} [{self.kind}]: {self.check or 'no check recorded'}"
 
 
 @dataclass
@@ -65,14 +94,16 @@ class InstallReport:
     biosphere: str
     location: str
     location_is_default: bool
-    prefer_atlas: bool
+    prefer_atlas: bool | str
     #: Whether the background's provider, version and system model were checked (``expect``)
     #: against its metadata, not only its name.
     verified: bool = False
     activities: int = 0
     exchanges: int = 0
-    #: "<activity> <- <atlas activity>": inputs linked inside the Atlas (prefer_atlas)
-    atlas_links: list[str] = field(default_factory=list)
+    #: every exchange linked inside the Atlas: inputs (prefer_atlas), markets' suppliers, link.dataset
+    atlas_links: list[AtlasLink] = field(default_factory=list)
+    #: incompatible Atlas links, unused pins, a background of another system model
+    warnings: list[str] = field(default_factory=list)
     #: exchanges linked to a treatment activity, whose sign was flipped
     sign_flipped: list[str] = field(default_factory=list)
     #: every exchange that found no partner: activity, name, type, unit, location, ...
@@ -92,7 +123,30 @@ class InstallReport:
     def ok(self) -> bool:
         return self.written and not self.unlinked
 
+    def chains(self) -> list[str]:
+        """The supply chains of the inputs linked inside the Atlas: ``consumer <- market <- plant``."""
+        by_consumer: dict[str, list[AtlasLink]] = {}
+        for link in self.atlas_links:
+            by_consumer.setdefault(link.consumer_code, []).append(link)
+        providers = {link.provider_code for link in self.atlas_links}
+
+        def down(link: AtlasLink, seen: tuple[str, ...]) -> list[str]:
+            below = [x for x in by_consumer.get(link.provider_code, []) if x.provider_code not in seen]
+            if not below:
+                return [link.provider]
+            return [f"{link.provider} <- {tail}" for x in below for tail in down(x, (*seen, x.provider_code))]
+
+        return [
+            f"{link.consumer} <- {tail}"
+            for link in self.atlas_links
+            if link.consumer_code not in providers  # start at the activities nothing in the Atlas takes
+            for tail in down(link, (link.consumer_code, link.provider_code))
+        ]
+
     def summary(self) -> str:
+        kinds: dict[str, int] = {}
+        for link in self.atlas_links:
+            kinds[link.kind] = kinds.get(link.kind, 0) + 1
         lines = [
             f"{self.database}: {self.activities} activities, {self.exchanges} exchanges from {self.source}",
             f"background {self.background!r}, biosphere {self.biosphere!r}, site location {self.location}"
@@ -100,12 +154,20 @@ class InstallReport:
             f"system model: {SYSTEM_MODELS.get(self.system_model, self.system_model or 'not recorded')}"
             + (f" ({self.system_model})" if self.system_model in SYSTEM_MODELS else "")
             + (f"; methodology {self.methodology_version}" if self.methodology_version else ""),
-            f"linked inside the Atlas: {len(self.atlas_links)}; treatment links with flipped sign: {len(self.sign_flipped)}",
+            f"linked inside the Atlas: {len(self.atlas_links)}"
+            + (f" ({', '.join(f'{k} {v}' for k, v in sorted(kinds.items()))})" if kinds else "")
+            + f"; treatment links with flipped sign: {len(self.sign_flipped)}",
             f"elementary flows linked by biosphere3 UUID: {self.biosphere_by_uuid}; by name and categories: {self.biosphere_by_name}",
         ]
         if self.superseded:
             lines.append(f"deprecated activities (installed, superseded): {len(self.superseded)}")
             lines += [f"  - {text}" for text in self.superseded]
+        lines += [f"  - {link}" for link in self.atlas_links]
+        chains = self.chains()
+        if chains:
+            lines.append("supply chains inside the Atlas:")
+            lines += [f"  - {chain}" for chain in chains]
+        lines += [f"warning: {w}" for w in self.warnings]
         if self.unlinked:
             lines.append(f"NOT WRITTEN: {len(self.unlinked)} unlinked exchange(s):")
             lines += [f"  - {u['activity']}: {u['type']} {u['name']!r} [{u.get('location') or u.get('categories') or ''}] ({u['unit']})" for u in self.unlinked]
@@ -156,6 +218,10 @@ def _biosphere(bd, given: str | None) -> str:
     return found[0]
 
 
+def _plain(text: str) -> str:
+    return "".join(c for c in text.lower() if c.isalnum())
+
+
 def _link_by_uuid(bd, importer, bio: str, report: InstallReport) -> None:
     """Link every biosphere exchange that names a biosphere3 UUID (``atlas flow uuid``) to the
     flow of that code in *bio*, if there is one and its unit is the exchange's. The rest is left
@@ -183,9 +249,10 @@ def install(
     background: str = DEFAULT_BACKGROUND,
     biosphere: str | None = None,
     location: str | None = None,
-    prefer_atlas: bool = True,
+    prefer_atlas: bool | str = True,
     overwrite: bool = False,
     expect: dict[str, str] | None = None,
+    pin: Iterable[str] = (),
 ) -> InstallReport:
     """Import the Atlas workbook into the current project, linked to *background* (e.g. your
     ecoinvent database) and *biosphere* (default ``biosphere3``, else the one ``*biosphere``
@@ -197,11 +264,22 @@ def install(
     of them) is checked against the background's metadata (``bd.databases[background]``): a
     local database name alone does not identify a database, and the mappings are written for
     one provider, version and system model. A mismatch refuses; without *expect* the report
-    says the background was matched by name only (``verified`` false)."""
+    says the background was matched by name only (``verified`` false).
+
+    *prefer_atlas*: ``True`` or ``"market"`` links an input another Atlas process makes to the
+    Atlas activity the build chose, the market of its grade where one exists; ``"plant"`` links
+    it to the plant beside the market instead (at the plant gate: no distribution or losses);
+    ``False`` keeps the background. *pin* names single inputs that go to the plant while the
+    rest go to the market: a consuming activity's code, or ``"<code>/<atlas key>"`` for one of
+    its inputs. The report lists every Atlas-to-Atlas link with the build's compatibility check
+    and the supply chains (``report.chains()``)."""
     import bw2data as bd
     import bw2io as bi
     from bw2io.strategies import link_iterable_by_fields
 
+    mode = "market" if prefer_atlas is True else prefer_atlas or None
+    if mode not in (None, *PREFER):
+        raise ValueError(f"prefer_atlas: {prefer_atlas!r} is not True, False, 'market' or 'plant'")
     path = resolve(path_or_version)
     if background not in bd.databases:
         raise ValueError(f"no background database {background!r} in project {bd.projects.current!r}")
@@ -227,8 +305,13 @@ def install(
         name, str(path), background, bio, location or default_site, location is None, prefer_atlas, verified=any((expect or {}).values()),
         system_model=str(importer.metadata.get("atlas system model") or ""), methodology_version=str(importer.metadata.get("atlas methodology version") or ""),
     )
+    theirs = str(meta.get("system_model") or "")
+    if theirs and report.system_model and _plain(report.system_model) not in _plain(theirs):
+        report.warnings.append(f"background {background!r} records system model {theirs!r}; the Atlas database is {report.system_model!r}: do not mix them in one study")
 
+    pins, used = set(pin), set()
     for ds in importer.data:
+        code = str(ds.get("code") or "")
         if ds.get("atlas superseded by"):
             report.superseded.append(f"{_label(ds)} -> {ds['atlas superseded by']}")
         for exc in ds["exchanges"]:
@@ -237,9 +320,24 @@ def install(
                 exc["pedigree"] = dict(zip(PEDIGREE_KEYS, scores, strict=True))
             if exc.get("atlas location rule") == "site":
                 exc["location"] = report.location
-            if prefer_atlas and exc.get("atlas activity"):
-                exc.update({"name": exc["atlas activity"], "reference product": exc["atlas reference product"], "location": exc["atlas location"], "database": name})
-                report.atlas_links.append(f"{_label(ds)} <- {exc['atlas activity']} | {exc['atlas reference product']}")
+            if exc.get("type") == "production":
+                continue
+            if exc.get("database") == name and exc.get("atlas code"):  # a market's supplier, link.dataset
+                provider = f"{exc.get('name')} | {exc.get('reference product', '')}"
+                report.atlas_links.append(AtlasLink(_label(ds), code, str(exc.get("atlas key") or ""), provider, exc["atlas code"], exc.get("atlas link") or "fixed", exc.get("atlas check") or ""))
+            elif mode and exc.get("atlas activity"):
+                keys = {code, f"{code}/{exc.get('atlas key')}"} & pins
+                used |= keys
+                plant = (mode == "plant" or keys) and exc.get("atlas plant activity")
+                prefix, kind, check = ("atlas plant ", "pinned", exc.get("atlas plant check")) if plant else ("atlas ", exc.get("atlas link") or "plant", exc.get("atlas check"))
+                exc.update({"name": exc[f"{prefix}activity"], "reference product": exc[f"{prefix}reference product"], "location": exc[f"{prefix}location"], "database": name})
+                provider = f"{exc['name']} | {exc['reference product']}"
+                report.atlas_links.append(AtlasLink(_label(ds), code, str(exc.get("atlas key") or ""), provider, str(exc.get(f"{prefix}code") or ""), kind, check or ""))
+    for unused in sorted(pins - used):
+        report.warnings.append(f"pin {unused!r} matched no input linked inside the Atlas")
+    for link in report.atlas_links:
+        if link.check and not link.compatible:
+            report.warnings.append(f"incompatible Atlas link: {link}")
 
     # The importer's own biosphere step links against config.biosphere; link against *bio* instead.
     importer.strategies = [
