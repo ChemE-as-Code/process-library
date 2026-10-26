@@ -10,8 +10,8 @@ objectives:
 failures:
   - id: F-AIR
     title: Loss of instrument air
-    response: "Each valve goes to its fail position. Stated so far: LV-1114 and XV-1115 closed (the chimney-tray seal holds); UV-3120 and UV-4131 open (the anti-surge recycles); TV-3124 open, which keeps the trim but means I-04 cannot close it on air loss (H03-A12, D-077). Most control valves have no fail position yet (HAZOP actions H01-A6, H02-A6, H03-A1, H04-A14); for each the HAZOP has to show the plant reaches a safe state before the position is fixed."
-    loops: [LIC-1114, TICA-3124, UIC-3120, UIC-4131]
+    response: "Every valve goes to its fail position (D-109), chosen as one set so the plant stops in a safe, isolated state: the MAC, the GOX and GAN compressors and the expander unload (guide vanes and nozzles to their minimum stop, XV-3117 closed) with their anti-surge and blow-off valves open (UV-1102, UV-3120, UV-4103, UV-4131); the cold box keeps its liquid (LV-3101, FV-3106, FV-3111 closed) and is never blocked in (PV-3110A/B and PV-4101B open); the DCAC cannot flood (TV-1105, FV-1108, LV-1106, LV-1107 closed; LV-1114 and XV-1115 closed hold the chimney-tray seal); the TSA switching valves hold their position and its step valves close; the K-4101 ESD valves close and its blowdown opens, the battery limits isolate and bleed (D-013), off-spec GAN diverts (XV-3105 open); the tank vents open and the backup valves close. TV-3124 stays open, which keeps the trim but means I-04 cannot close it on air loss (H03-A12, D-077). The customers go to the backup, which needs PV-4111 / PV-4112 to open, so the backup depends on instrument air as on power (H04-A14). The HAZOP team confirms the set (H01-A6, H02-A6, H03-A1, H04-A14)."
+    loops: [FIC-1101, UIC-1102, TIC-1105, LIC-1106, LIC-1107, FIC-1108, LIC-1114, FIC-2105, LIC-3101, FIC-3106, SIC-3108, PIC-3110, FIC-3111, PIC-3113, TICA-3124, UIC-3120, PIC-4102, PIC-4101, UIC-4103, FIC-3107, UIC-4131, PICA-4109, PICA-4110, PIC-4111, PIC-4112]
     interlocks: [I-03, I-04]
   - id: F-POWER
     title: Loss of electric power
@@ -57,7 +57,6 @@ failures:
     sequences: [SEQ-BACKUP-GOX, SEQ-BACKUP-GAN]
     interlocks: [I-01, I-02]
 unresolved:
-  - the fail positions of most control valves and of the machines' guide vanes (vendors, HAZOP)
   - the independent limit on the GOX draw (H04-A23) and the LP sump low-low (H03-A4)
   - the trips named in the instrument list but not yet in the cause-and-effect list (H04-A01, H02-A1, H02-A2)
   - a loop for the liquid production (H03-A7), which the chilled-water and compander failures rely on
@@ -163,16 +162,17 @@ The front matter lists the failures and their designed responses, by id:
 - **F-HC:** hydrocarbons in the sump.
 - **F-LEVEL:** tank low-low level.
 
-For instrument air, the fail position of each valve is the design decision still to be made for
-most of them. The rule proposed here: a valve fails to the position that keeps the process
-safe for the next hour without the operator, as LV-1114 (closed) does. TV-3124 (open) keeps the
-trim but defeats I-04 on air loss (H03-A12), so it is not an example to follow without that
-check.
+For instrument air, every final element has its fail position (D-109). The rule: a valve fails
+to the position that keeps the process safe for the next hour without the operator, as LV-1114
+(closed) does, and because air loss hits all valves at once, the positions are chosen as one
+set. TV-3124 (open) keeps the trim but defeats I-04 on air loss (H03-A12), so it is not an
+example to follow without that check.
 
 ## Assumptions and open points
 
-- The fail positions of most control valves and of the machines' guide vanes are open; the
-  register records each one as unresolved, with the HAZOP action that decides it.
+- The fail positions are proposed for every final element (D-109), for the HAZOP team to confirm
+  (H01-A6, H02-A6, H03-A1, H04-A14); the machine vendors confirm the guide-vane and nozzle
+  actuators. The P&IDs draw the fail action only where the actuating system is drawn.
 - The two control conflicts found in the control review (the LP column pressure and the GOX
   draw; the GAN flow) are decided in D-095 and D-096: pressure as master, flow as limit. Open:
   the independent limits (H04-A22, H04-A23), the confirmation of PV-4105 as an operator-set

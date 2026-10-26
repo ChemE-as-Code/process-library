@@ -5445,3 +5445,77 @@ free-standing posts at 6 m or less and a riser column) stays ASSUMED and unmodel
 
 Reason: avoid an undersized MV cable that the electrical gate does not flag, and keep the
 acceptances true to the model.
+
+## D-109 Fail positions of every final element: the plant fails to a stopped, isolated state (2026-10-26)
+Decided by the agent on the owner's delegation of 2026-10-26 ("resolve those, make reasonable
+decisions"; process-library#57). It is a design proposal, not the HAZOP team's acceptance: the
+team confirms it with H01-A6, H02-A6, H03-A1 and H04-A14 (safety/hazop/SESSION.md), and the
+machine vendors confirm the actuators of their guide vanes and nozzles (#58).
+
+Rule (control/philosophy.md, F-AIR): on loss of instrument air, or of the signal, every valve goes
+to the position that leaves the plant safe for the next hour without the operator. Loss of air
+hits all valves at once, so the positions are chosen as one set, not one by one:
+- the machines unload: guide vanes and expander nozzles to their minimum stop, anti-surge and
+  blow-off valves open;
+- the cold box keeps its liquid: the liquid and reflux valves into the LP column close, so the
+  inventory stays for the restart and no HP vapour blows through to the LP column;
+- the LP column is never blocked in: the waste N2 valves and the GOX vent open (PSV-3114 stays
+  the protection of last resort, D-011);
+- the DCAC cannot flood: its water inlets close with its sump drain, so a running pump cannot
+  fill C-1101 into the air inlet (H01-A4 adds the pump stop to the MAC trip, D-111);
+- the battery limits isolate and bleed (D-013, unchanged); the storage holds and the tank
+  pressures vent through their own valves, not their PSVs.
+
+Fail positions (closed for the guide vanes and nozzles means the minimum mechanical stop):
+
+| sheet | element | fail | why |
+|---|---|---|---|
+| P-01 | K-1101 inlet guide vanes | closed | unload the MAC; with UV-1102 open it blows off to S-1101 |
+| P-01 | UV-1102 (MAC blow-off) | open | surge protection while unloaded (H01-A6 proposal) |
+| P-01 | TV-1105 (chilled water to C-1101) | closed | no air to cool once the MAC unloads; an open valve with LV-1106 closed floods the DCAC |
+| P-01 | LV-1106 (DCAC sump) | closed | keeps the sump seal; no 6 bara air into the water return (H01-A6 proposal) |
+| P-01 | LV-1107 (C-1102 make-up) | closed | a failed-open make-up floods C-1102 towards the WN-1001 inlet (H01-A13); the sump holds hours |
+| P-01 | FV-1108 (CW to C-1101 lower section) | closed | as TV-1105 |
+| P-01 | LV-1114, XV-1115 | closed | unchanged (D-076) |
+| P-02 | FV-2105 (regeneration gas) | open | keeps flow through E-2101 while its trips de-energise it; the waste N2 then also leaves by PV-3110A/B |
+| P-02 | E-2101 | off | unchanged |
+| P-02 | XV-2101..XV-2104A/B (TSA switching) | last | double acting with an air reservoir per valve (one stroke, ASSUMED): no fixed position meets H02-A6 (closed isolates both beds, open connects the air side to the regeneration side) |
+| P-02 | XV-2111A/B, XV-2112A/B (repressurise, depressurise) | closed | no bed is vented or repressurised out of step |
+| P-02 | XV-2109 (heater bypass) | open | the gas bypasses the heater: no heat without the sequence |
+| P-03 | LV-3101 (rich liquid JT) | closed | keeps the HP sump liquid; no HP vapour into the LP column |
+| P-03 | FV-3106 (LN reflux) | closed | as LV-3101 |
+| P-03 | FV-3111 (LOX purge) | closed | open over-draws the sump and can uncover E-3103 within the hour (H03-S33); closed stops the purge, which the FAL alarm and AIA-3103 catch over hours, and with the MAC unloaded no new hydrocarbon enters; the independent sump low-low is D-111 |
+| P-03 | PV-3110A, PV-3110B (waste N2) | open | the LP column is never blocked in; C-1102 keeps its open vent WN-1002 (D-083) |
+| P-03 | PV-3113 (casing purge) | open | the casing stays purged; the breather relieves it |
+| P-03 | XV-3117 (expander inlet), KT-3101 nozzles | closed | stops the expander (overspeed) |
+| P-03 | UV-3120, TV-3124 | open | unchanged (TV-3124: H03-A12 stays open) |
+| P-04 | K-4101 inlet guide vanes | closed | unload the GOX compressor |
+| P-04 | UV-4103 (GOX anti-surge) | open | surge protection |
+| P-04 | PV-4101B (GOX suction vent) | open | the GOX the machine no longer takes goes to VNT-4003, the LP column is not blocked in (D-019) |
+| P-04 | XV-4116 (K-4101 blowdown) | open | the trip state (D-013) |
+| P-04 | XV-4117, XV-4118 (K-4101 ESD) | closed | the trip state (D-013) |
+| P-04 | XV-4119, XV-4132 / XV-4120, XV-4134 (BL blocks), XV-4133 / XV-4135 (bleeds) | closed / open | unchanged (D-013) |
+| P-04 | K-4102 inlet guide vanes | closed | unload the GAN compressor |
+| P-04 | UV-4131 | open | unchanged |
+| P-04 | PV-4105 (GAN discharge) | open | its normal position (D-105); closed dead-heads K-4102 on its recycle |
+| P-04 | XV-3105 (GAN divert to VNT-4004) | open | off-spec GAN never reaches the customer; XV-4120 closes |
+| P-04 | PV-4109, PV-4110 (tank vents) | open | the boil-off leaves by the vent valve, not by lifting PSV-4123 / PSV-4124; the vacuum breakers stay |
+| P-04 | PV-4111, PV-4112 (backup pressure) | closed | no cold gas into the carbon steel pipeline (D-024); the pumps keep their minimum-flow return |
+| P-04 | XV-4136, XV-4137 (tank outlets) | closed | unchanged (D-013) |
+
+Carried out: `fail:` on every final element in control/loops.yaml; the TSA and ESD valves, which
+are not loop elements, in the KS-2101 note of the instrument list and here; F-AIR in
+control/philosophy.md states the result.
+
+Consequence: on loss of instrument air the plant stops making product and the customers go to
+the backup, which itself needs PV-4111 / PV-4112 to open. The backup therefore depends on the
+instrument air staying up (an air receiver sized for the backup duration, or the backup valves on
+their own air bottle) as much as on the power supply H04-A14 asks about. That decision is the
+owner's with the customer's continuity requirement and stays with H04-A14.
+
+Not done: the P&IDs draw an actuating system with its fail action (F.C. / F.O.) only for LV-1114,
+XV-1115 and TV-3124; the other signal lines are not drawn yet. Drawing them with their fail
+actions is detail drafting (#102, gate detail).
+
+Reason: #57. A fail position left open is an unknown the HAZOP cannot assess; chosen one at a
+time they can contradict each other on air loss (an open water valve against a closed drain).
