@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import shutil
+import zipfile
 import sys
 from pathlib import Path
 
@@ -22,6 +23,7 @@ from test_build_lci import ASU, DB, H2, LIBRARY, NH3, _activities  # noqa: E402
 
 #: Keys that would carry an impact value; the LCI has no characterisation factors, so an
 #: activity entry never holds one (placeholder factors cannot reach a public page through it).
+MARKET = "market:hydrogen:GLO"
 IMPACT_KEYS = {"impact", "impacts", "result", "results", "totals", "gwp", "footprint", "score"}
 
 
@@ -66,7 +68,17 @@ def test_every_exported_activity_has_an_entry_with_its_workbook_exchanges(librar
             (e.get("atlas key"), e["amount"], e["unit"], e["type"]) for e in exported
         ]
         assert entry["reference_exchange"]["amount"] == 1 and entry["reference_exchange"]["unit"] == workbook[code]["meta"]["unit"]
-        assert entry["downloads"] == [{"path": f"{DB}.xlsx", "format": "Brightway (bw2io ExcelImporter workbook)", "mediatype": package["resources"][0]["mediatype"], "select": "code"}]
+        # every database file of the build, each with how to find the activity in it
+        assert [d["path"] for d in entry["downloads"]] == [r["path"] for r in package["resources"]]
+        for download in entry["downloads"]:
+            if download["path"].endswith("-olca-jsonld.zip"):
+                with zipfile.ZipFile(tmp_path / "out" / "lci" / download["path"]) as archive:
+                    assert download["member"] in archive.namelist() and download["select"] == "process"
+            elif download["path"].endswith("-multifunctional.json"):
+                multi = json.loads((tmp_path / "out" / "lci" / download["path"]).read_text(encoding="utf-8"))
+                assert download["value"] in {p["code"] for p in multi["processes"]}
+            else:
+                assert download == {**download, "select": "code", "value": code}
         assert not _keys(entry) & IMPACT_KEYS
 
 
@@ -95,15 +107,19 @@ def test_entry_documents_header_allocation_provenance_pedigree_and_links(library
     assert all(len(e["pedigree"]["scores"]) == 5 for e in h2["exchanges"] if "pedigree" in e)
     # an Atlas-internal link by code, both ways
     hydrogen = next(e for e in entries[NH3]["exchanges"] if e["key"] == "feed:hydrogen")
-    assert hydrogen["atlas_alternative"]["code"] == H2
-    assert h2["used_by"] == [NH3]
+    # the input links to the market (markets/hydrogen.yaml), the plant behind it is named
+    assert hydrogen["atlas_alternative"]["code"] == MARKET and hydrogen["atlas_alternative"]["kind"] == "market"
+    assert hydrogen["atlas_alternative"]["check"].startswith("compatible")
+    assert hydrogen["atlas_plant"]["code"] == H2
+    assert entries[MARKET]["used_by"] == [NH3]
+    assert h2["used_by"] == [MARKET]  # the plant supplies the market
     assert entries[NH3]["publication"] == "preview"  # fixture-ammonia is internal
 
 
 def test_public_build_withholds_unpublished_processes_from_the_activities(library: Path, tmp_path: Path) -> None:
     package = _package(library, tmp_path / "out", public=True)
     codes = {e["code"] for e in package["activities"]}
-    assert codes == {H2, H2.replace(":H2", ":O2")}
+    assert codes == {H2, H2.replace(":H2", ":O2"), MARKET}  # the market's supplier is public
     assert all(e["publication"] == "public" for e in package["activities"])
     # no amount, link or back-link of the unpublished process anywhere
     assert not any(c.startswith("fixture-ammonia:") for c in _codes(package["activities"]))
@@ -146,3 +162,23 @@ def test_asu_activities_carry_classification_and_cas(tmp_path: Path) -> None:
     # inputs linked to the screening proxies name them by code, and the proxies list their users
     proxies = {e["code"]: e for e in package["activities"] if e["kind"] == "proxy"}
     assert goxp["code"] in proxies["proxy:cooling-water"]["used_by"]
+
+
+def test_market_entry_documents_suppliers_shares_transport_and_sources(library: Path, tmp_path: Path) -> None:
+    package = _package(library, tmp_path / "out")
+    market = next(e for e in package["activities"] if e["code"] == MARKET)
+    listed = next(m for m in package["markets"] if m["code"] == MARKET)
+    assert market["kind"] == "market" and market["process"] is None and market["publication"] == "public"
+    assert market["market"]["suppliers"] == listed["suppliers"] and market["market"]["facts"] == listed["facts"]
+    assert market["market"]["not_exported"] == listed["not_exported"]
+    (supplier,) = [e for e in market["exchanges"] if e["key"].startswith("supplier:")]
+    assert supplier["atlas"]["code"] == H2 and supplier["atlas"]["kind"] == "supply"
+    assert supplier["provenance"] == "assumed" and supplier["source"] == "fixture: synthetic volume"
+    assert market["cas"] == "1333-74-0"
+
+
+def test_a_market_of_an_unpublished_supplier_is_preview(library: Path, tmp_path: Path) -> None:
+    path = library / "processes" / "fixture-electrolysis" / "process.yaml"
+    path.write_text(path.read_text().replace("status: public", "status: candidate"))
+    entries = {e["code"]: e for e in _package(library, tmp_path / "out")["activities"]}
+    assert entries[MARKET]["publication"] == "preview" and entries[H2]["publication"] == "preview"

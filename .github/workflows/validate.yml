@@ -4,6 +4,11 @@ on: [pull_request, push]
 permissions:
   contents: read
 
+# core is pinned to a commit (bfb5215: core main 2026-10-25, core#310; core has no tags
+# yet). An unpinned install turned validate red when core changed its generated LCA records
+# (#91). Bump the pin deliberately, in every URL of validate.yml and release.yml at once, together
+# with the records that core regenerates (cheme assess lca-scenarios --write);
+# tests/test_workflows.py checks that every core install carries the same commit.
 jobs:
   # Every process folder with a plant.yaml is a plantcode project, validated on its own.
   discover:
@@ -45,7 +50,7 @@ jobs:
         env:
           PLANTCODE_READ_TOKEN: ${{ secrets.PLANTCODE_READ_TOKEN }}
       - uses: astral-sh/setup-uv@v6
-      - run: uv tool install git+https://github.com/ChemE-as-Code/core.git
+      - run: uv tool install "git+https://github.com/ChemE-as-Code/core.git@bfb5215e83eb125c9f8dff32e8314653ebecd36e"
       - run: cheme fmt --check
       - run: cheme validate
       # core's per-scenario LCA records (lca/scenarios/<id>.json, core#172) must be current
@@ -62,7 +67,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      CORE: "cheme-as-code[units] @ git+https://github.com/ChemE-as-Code/core.git"
+      CORE: "cheme-as-code[units] @ git+https://github.com/ChemE-as-Code/core.git@bfb5215e83eb125c9f8dff32e8314653ebecd36e"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         # Full history here only: the catalog records each process folder's last commit
@@ -83,7 +88,7 @@ jobs:
           PLANTCODE_READ_TOKEN: ${{ secrets.PLANTCODE_READ_TOKEN }}
       - uses: astral-sh/setup-uv@v6
       - name: tooling tests
-        run: uv run --python 3.12 --with pytest --with pyyaml --with jsonschema --with openpyxl --with ./python --with bw2calc --with "$CORE" pytest -q tests
+        run: uv run --python 3.12 --with pytest --with pyyaml --with jsonschema --with openpyxl --with ./python --with bw2calc --with olca-schema==2.6.2 --with multifunctional==1.1.2 --with "$CORE" pytest -q tests
         env:
           ATLAS_REQUIRE_BRIGHTWAY: "1"
           ATLAS_REQUIRE_CORE: "1"

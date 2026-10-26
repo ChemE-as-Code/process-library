@@ -33,12 +33,19 @@ Atlas's fail-closed public check (website `scripts/check-public.mjs`) would each
   with core's default `assumed`, source, pedigree scores and the lognormal, background link by
   name, Atlas activity by code, elementary flows with biosphere3 UUID and compartment),
   `used_by`, `closure`, citation, downloads and `publication`.
+- Markets (`markets/`, docs/markets.md) get an entry like any activity (`kind: market`): their
+  suppliers, transport and losses are its exchanges, with the status and source of each, and
+  `market` repeats the datapackage's `markets` entry. An input linked to a market names the
+  market's code (`atlas_alternative`) and the plant behind it (`atlas_plant`). A market is
+  `public` when all its suppliers are.
+- `downloads` names, per database file, how to find the activity in it: the code in the workbook
+  and the multifunctional JSON (the dataset code where the dataset has several products, which
+  that file keeps unallocated), the process id and zip member in the openLCA JSON-LD package.
 - Dataset-level facts stay in `processes[].datasets[]` (review, data quality, data status,
   benchmarks, property checks); an entry names its dataset, and the site joins by id.
 - `closure` is the `balance` core writes into `lca/manifest.json` (core#174) for the plant's
   generated dataset, else `status: not-assessed` with the reason. `citation.doi` is null until a
-  release is deposited (ADR 0012). `downloads` lists the database files of `resources` that hold
-  the activity, with its code to select it; per-dataset files do not exist.
+  release is deposited (ADR 0012). Per-dataset files do not exist.
 - No entry holds an impact value: the LCI has no characterisation factors. A `--public` build
   holds public processes only, so every entry, link and back-link names a public process.
 

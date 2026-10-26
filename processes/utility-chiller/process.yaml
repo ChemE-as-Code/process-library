@@ -1,0 +1,24 @@
+# Process Atlas manifest of a library utility (process-library#45). Schema:
+# schemas/process.schema.json. A manifest-only process: its LCI dataset is lca/datasets/*.yaml,
+# written from parameters with sources or ASSUMED (see README.md). Tier 1 form (core#182), so
+# maturity stays at concept (core's cheme.lci-tier-maturity).
+schema: cheme-as-code/process/v1
+id: utility-chiller
+title: "Chilled water at 6 degC from an electric chiller"
+summary: >-
+  Utility dataset: cold delivered as chilled water at 6 degC by an electric vapour-compression chiller, per MWh of cold, with a Carnot-fraction COP and its heat rejected to cooling water. Incomplete: refrigerant losses are not counted yet.
+families: [utilities]
+keywords: [utility, refrigeration, chilled water, chiller, COP]
+facets: {feedstock_basis: [electricity], unit_operations: [compression, heat-exchange], region: generic}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: electricity, role: feedstock, inventory_key: "feed:electricity"}
+  outputs:
+    - {chemical: chilled-water, role: main-product, inventory_key: "product:cold", note: "kWh of cold at 6 degC"}
+  utilities:
+    - {chemical: cooling-water, role: utility, inventory_key: "output:heat-rejected"}
+basis: {capacity: "per unit of the utility delivered (the dataset's basis); no plant size"}
+references: []
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/utility-chiller, access: private}
