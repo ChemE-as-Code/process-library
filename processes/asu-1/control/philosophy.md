@@ -175,9 +175,9 @@ example to follow without that check.
   actuators. The P&IDs draw the fail action only where the actuating system is drawn.
 - The two control conflicts found in the control review (the LP column pressure and the GOX
   draw; the GAN flow) are decided in D-095 and D-096: pressure as master, flow as limit. Open:
-  the independent limits (H04-A22, H04-A23), the confirmation of PV-4105 as an operator-set
-  start-up valve (D-105, H04-A31), the anti-surge flow
-  measurement of K-4101, and the maximum GOX draw as a ratio to the air flow.
+  the confirmation of PV-4105 as an operator-set start-up valve (D-105, H04-A31) and the
+  anti-surge flow measurement of K-4101. The maximum GOX draw and the GAN clamp follow the air
+  flow as ratios, and the load range is 70 to 100 % at 0.5 %/min (D-110, ASSUMED).
 - The liquid production has no handle yet (H03-A7).
 - Trips named in the instrument list are not yet in the cause-and-effect list (H04-A01, H02-A1,
   H02-A2). The sequences refer to them by tag until they are added.

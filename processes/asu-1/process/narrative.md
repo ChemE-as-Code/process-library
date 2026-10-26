@@ -37,7 +37,6 @@ sections:
     sequences: [SEQ-BACKUP-GOX, SEQ-BACKUP-GAN, SEQ-SHUTDOWN]
     interlocks: [I-01, I-02]
 unresolved:
-  - the turndown range of the plant and how fast the load may change (not defined yet)
   - the suppliers' start-up procedures (MAC, compander, cold box, product compressors), which set the step times of the sequences
 ---
 
@@ -63,7 +62,9 @@ C-1102, which cools its water with the dry waste nitrogen from the cold box (D-0
 The cooling water and the waste nitrogen to C-1102 (S12B) cross the boundary.
 
 **Normal operation.** FIC-1101 sets the air flow on the inlet guide vanes, and with it the load
-of the whole plant. PIC-1103 limits the discharge pressure through a low select on the same
+of the whole plant: between 70 and 100 % of the design air, changed by a ramp of at most 0.5 %
+per minute from the target load the operator sets (D-110, ASSUMED). The GOX and GAN draw
+limits follow this air flow as ratios (D-110). PIC-1103 limits the discharge pressure through a low select on the same
 guide vanes. UIC-1102 keeps the machine out of surge by blowing off to S-1101. TIC-1105 holds
 the air leaving the DCAC by the chilled-water valve TV-1105. The levels are held by:
 - LIC-1106: the DCAC sump;
@@ -165,13 +166,13 @@ H04-A01).
 
 ## Open points
 
-- The turndown range and the rate of load changes are not defined yet.
+- The turndown range (70 to 100 % of the design air) and the load ramp (0.5 %/min) are ASSUMED
+  until the client's demand profile confirms them (D-110).
 - The suppliers' start-up procedures, which set the step times of the sequences.
 - The independent limits on the GOX draw and the GAN guide vanes (H04-A23, H04-A22).
 - PV-4105 as an operator-set start-up valve, normally fully open (D-105), to be confirmed or
   removed (H04-A31); the anti-surge flow measurement of K-4101
-  (FT-4148 does not see the recycle), and the maximum GOX draw as a ratio to the air flow
-  (D-096).
+  (FT-4148 does not see the recycle).
 - PIC-4101's set-point window and the GOX vent at turndown (an O2 release at VNT-4003), the
   anti-windup and bumpless transfer of the low select and the GAN cascade, where the GAN goes
   while K-4102 stands, and whether the waste and vent valves take the full GOX make on a

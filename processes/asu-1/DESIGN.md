@@ -5519,3 +5519,52 @@ actions is detail drafting (#102, gate detail).
 
 Reason: #57. A fail position left open is an unknown the HAZOP cannot assess; chosen one at a
 time they can contradict each other on air loss (an open water valve against a closed drain).
+
+## D-110 Turndown 70-100 % of design air at 0.5 %/min; the draw limits follow the air flow as ratios (2026-10-26)
+Decided by the agent on the owner's delegation of 2026-10-26 (process-library#60). The client's
+demand profile (the minimum GOX and GAN off-take and how fast it changes) is not available, so
+the range and the rate below are ASSUMED design values for the client to confirm; the column,
+MAC and compander suppliers confirm that their equipment holds them.
+
+Decision:
+- (1) **Turndown range: 70 to 100 % of the design air flow** (FIC-1101, S2: about 78,200 to
+  111,720 kg/h), no overload. 70 % is the usual lower limit of a conventional LP double-column
+  plant with one turbo-expander without changing the column internals or the expander nozzles
+  (ASSUMED; the packing's minimum wetting and the MAC guide-vane range set the real limit). Below
+  70 % the plant runs at 70 % and the excess product is vented or stored, or the plant stops and
+  the backup supplies (D-014). The design case stays the 100 % point; no turndown case is
+  simulated (a 70 % case is a detail-engineering check, process-library#60 close-out evidence).
+- (2) **Rate of load change: at most 0.5 % of the design air flow per minute** (ASSUMED,
+  a conservative value for a column with a large liquid hold-up; 70 to 100 % takes an hour). The
+  operator gives a target load; a ramp generator moves FIC-1101's set point at this rate. A
+  faster change in the customer's off-take is taken by the pipeline pack and the backup
+  (D-014), not by the columns.
+- (3) **The air flow stays an operator set point, not slaved to the product pressure.**
+  FIC-1101 does not follow PIC-4102's output: a pipeline pressure transient would then swing the
+  whole plant faster than the columns follow. The operator (or a load programme in detail
+  engineering) sets the target load from the expected demand.
+- (4) **The draw limits follow the make as ratios to the measured air flow** (H04-A28):
+  - FIC-4148's maximum GOX draw = R_GOX x F_air, with R_GOX = 20,860 / 111,720 = 0.1867 kg GOX
+    per kg air (the design ratio, S7 / S2), capped at the design 20,860 kg/h;
+  - the clamp on FIC-3107's cascade set point = R_GAN x F_air, R_GAN = 12,510 / 111,720 = 0.1120
+    (S9 / S2), capped at the design 12,510 kg/h;
+  - F_air is the lower of the measured FIC-1101 flow and the same flow through a first-order lag
+    (time constant 5 min, ASSUMED, of the order of the column's response): ramping down the
+    instantaneous flow is lower, ramping up the lagged one, so the limit never runs ahead of the
+    make.
+
+  These limits stay in the control system (not protection layers, D-096); the independent
+  limits are D-111.
+- (5) **Venting at turndown is for transients.** With the limits following the make, the GOX
+  vent through PV-4101B (H04-S76) opens only while the customer takes less than the make
+  until the operator lowers the air flow. A PV-4101B-open alarm after 30 min (ASSUMED) tells
+  the operator to turn down. PIC-4101's set-point window and the zone around VNT-4003 stay with
+  #59 and H04-A26.
+
+Carried out: control/loops.yaml (FIC-1101, FIC-4148, FIC-3107: the ratio limits, the ramp, the
+operator text), process/narrative.md (open point closed, normal operation), control/philosophy.md
+(open point).
+
+Reason: #60. Without a range and a rate the vent window (#59), the compressor turndown and the
+column hydraulics rest on nothing; fixed draw limits let a reduced make be over-drawn at the
+design rate (H04-S79, H04-S80, H04-S85).

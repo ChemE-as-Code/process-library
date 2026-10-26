@@ -29,10 +29,9 @@ loops:
       - {type: override, loop: PIC-1103, select: low,
          notes: "both move the IGV; the lower output wins, so discharge pressure limits the flow (ASSUMED selector)"}
     rationale: The air flow is the master of the whole plant; the columns follow it. The GOX demand sets it (operator set point at basic engineering; a GOX-header cascade is for detail engineering).
-    operator: Changes the plant load in steps the columns can follow (the turndown range is not defined yet).
+    operator: "Sets the target load between 70 and 100 % of the design air flow; a ramp generator moves the set point at no more than 0.5 % of the design flow per minute (D-110, ASSUMED). The air flow is not slaved to PIC-4102: pipeline transients are taken by the pipeline pack and the backup (D-110)."
     unresolved:
       - the K-1101 guide-vane actuator and its minimum stop, which the closed fail position of D-109 assumes (MAC vendor)
-      - "automatic load following: the operator sets the air flow to the expected demand; whether it should follow PIC-4102's output or the FIC-4148 limit is for detail engineering (D-096)"
   - id: PIC-1103
     title: MAC discharge pressure (override)
     purpose: Keep the MAC discharge within its limit while the flow controller loads the machine.
@@ -419,10 +418,9 @@ loops:
     links:
       - {type: override, loop: PIC-4102, select: low}
       - {type: override, loop: PIC-4150, select: low}
-    rationale: "A limit, not a set point: it acts only when the customer's draw would exceed the design GOX make. Its transmitter FT-4148 is also the anti-surge input of UIC-4103."
-    operator: Raise the limit only with the air flow (FIC-1101), so the column makes the GOX it is asked for.
+    rationale: "A limit, not a set point: it acts only when the customer's draw would exceed the GOX make. The limit follows the make (D-110): 0.1867 kg GOX per kg of air (S7 / S2) times the lower of the measured and the lagged (5 min, ASSUMED) FIC-1101 flow, capped at the design 20,860 kg/h. Its transmitter FT-4148 is also the anti-surge input of UIC-4103."
+    operator: The limit tracks the air flow by itself; a limit holding the guide vanes means the customer wants more than the plant makes at this load, so raise the air flow (FIC-1101) or let the backup cover it.
     unresolved:
-      - the limit as a function of the air flow (a ratio to FIC-1101) rather than fixed (control engineer, detail)
       - the independent limit on the GOX draw (H04-A23) and the LP sump low-low (H03-A4)
   - id: PIC-4150
     title: GOX suction pressure low limit
@@ -495,7 +493,7 @@ loops:
     normal_mode: cascade
     links:
       - {type: cascade, loop: PIC-4105}
-    rationale: The GAN flow on the guide vanes, its set point from PIC-4105 (the export pressure) in cascade (D-096). In auto it holds the design flow.
+    rationale: "The GAN flow on the guide vanes, its set point from PIC-4105 (the export pressure) in cascade (D-096). In auto it holds the design flow. The clamp on the cascade set point follows the make (D-110): 0.1120 kg GAN per kg of air (S9 / S2) times the lower of the measured and the lagged FIC-1101 flow, capped at the design 12,510 kg/h."
     unresolved:
       - the K-4102 guide-vane actuator and its minimum stop, which the closed fail position of D-109 assumes (K-4102 vendor)
       - how PIC-4106 (suction pressure) limits the guide vanes beside FIC-3107 (override or limit; vendor), and the independent limit H04-A22 asks for
