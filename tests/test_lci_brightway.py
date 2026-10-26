@@ -149,7 +149,8 @@ def test_asu_round_trip_reproduces_the_plantcode_baseline(project, tmp_path: Pat
     result = install(workbook, background="stub-ecoinvent", location="FR")
     assert result.unlinked == [], result.summary()
     assert result.written and result.location == "FR" and not result.location_is_default
-    assert result.sign_flipped == [] and result.atlas_links == []
+    assert result.sign_flipped == [] and result.atlas_links == []  # this library has no markets/
+    assert result.system_model == "substitution" and "(substitution)" in result.summary()
 
     rows = list(csv.DictReader((ASU / "results.csv").open(encoding="utf-8")))
     expected = next(float(r["impact"]) for r in rows if r["scenario"] == "baseline" and r["key"] == "total")
@@ -213,7 +214,12 @@ def test_fixture_install_links_inside_the_atlas_and_flips_treatment_signs(projec
     result = install(out / "lci", background="stub-fixture")  # the folder with index.json
     assert result.unlinked == [], result.summary()
     assert result.location == "DE" and result.location_is_default
-    assert len(result.atlas_links) == 1 and "Hydrogen at 30 bar" in result.atlas_links[0]
+    # the ammonia's hydrogen goes to the hydrogen market (markets/hydrogen.yaml), which takes the electrolyser's
+    assert [(l.kind, l.provider_code) for l in result.atlas_links] == [
+        ("market", "market:hydrogen:GLO"), ("supply", "fixture-electrolysis:fixture-electrolysis:product:H2"),
+    ]
+    assert all(l.compatible for l in result.atlas_links) and result.warnings == []
+    assert result.chains() == ["Fixture: ammonia synthesis (manifest only) | Ammonia <- market for hydrogen | Hydrogen <- Fixture: water electrolysis | Hydrogen at 30 bar"]
     assert len(result.sign_flipped) == 2  # wastewater of the H2 and the O2 activity
 
     # Brightway stores matrix amounts in single precision (bw_processing.create_array: float32,
@@ -227,7 +233,7 @@ def test_fixture_install_links_inside_the_atlas_and_flips_treatment_signs(projec
     with pytest.raises(ValueError, match="overwrite=True"):
         install(out / "lci", background="stub-fixture")
     again = install(out / "lci", background="stub-fixture", prefer_atlas=False, overwrite=True)
-    assert again.ok and again.atlas_links == []
+    assert again.ok and [l.kind for l in again.atlas_links] == ["supply"]  # the market's own supplier only
     assert not again.verified  # matched by name only
     assert _score(ammonia, db) == pytest.approx(0.178 * 10.0 + 0.823 * 0.2 + 0.4 * 0.4, rel=1e-6)
 
@@ -259,6 +265,75 @@ def test_fixture_install_reports_unlinked_exchanges_and_writes_nothing(project, 
     assert not result.written and "cheme-as-code-atlas-fx2" not in bd.databases
     assert [(u["name"], u["atlas key"]) for u in result.unlinked] == [("market for nitrogen, liquid", "feed:nitrogen")]
     assert "NOT WRITTEN" in result.summary()
+
+
+# --- markets (issue #49): a consumer of liquid nitrogen links to the market ---------------------
+
+
+def test_liquid_nitrogen_consumer_links_to_the_market_with_trailer_and_boil_off(project, tmp_path: Path) -> None:
+    """The acceptance test of #49: a downstream dataset that consumes "nitrogen, liquid" links to
+    the Atlas market (cryogenic trailer, boil-off and transfer losses), the install report shows
+    the chain, and a pin sends it to ASU-1's tank instead."""
+    co2 = project
+    library = _asu_library(tmp_path)
+    shutil.copytree(KIT / "markets", library / "markets")
+    shutil.copytree(FIXTURES / "lin-user", library / "processes" / "fixture-lin-user")
+    out = tmp_path / "out"
+    report = build_lci.build(library, out, "mk")
+    assert report.errors == [] and report.warnings == []
+
+    mappings = build_lci.load_mappings(KIT / "lci" / "mappings.yaml")
+    stub = {}
+    for tid, score in {"electricity-high-voltage": 0.5, "electricity": 0.4, "lorry": 0.1}.items():
+        a = mappings["technosphere"][tid]["activity"]
+        stub[(a["name"], a["reference_product"], a["unit"], "FR" if a["location"] == "site" else a["location"])] = (score, 1)
+    for tid, entry in mappings["technosphere"].items():  # every other activity ASU-1 uses: no burden
+        if "activity" in entry:
+            a = entry["activity"]
+            stub.setdefault((a["name"], a["reference_product"], a["unit"], "FR" if a["location"] == "site" else a["location"]), (0.0, 1))
+    stub[("market for nitrogen, liquid", "nitrogen, liquid", "kilogram", "RER")] = (9.0, 1)  # the background LIN
+    _stub_background("stub-markets", co2, stub)
+    db = "cheme-as-code-atlas-mk"
+    _drop(db)
+
+    result = install(out / "lci", background="stub-markets", location="FR")
+    assert result.unlinked == [], result.summary()
+    user = "fixture-lin-user:fixture-lin-user-inerting:product:INERTING"
+    lin_link = next(l for l in result.atlas_links if l.consumer_code == user)
+    assert (lin_link.kind, lin_link.provider_code, lin_link.compatible) == ("market", "market:nitrogen/lin:RER", True)
+    summary = result.summary()
+    chain = "Fixture: tank inerting with liquid nitrogen | Inerting gas service <- market for nitrogen, liquid | Nitrogen, liquid <- Cryogenic air separation unit (500 t/d GOX) | Nitrogen, liquid"
+    assert chain in result.chains() and chain in summary
+    assert "boundary delivered (production-mix, RER: transport and losses included)" in summary
+
+    plant = _score("asu-1:asu-1-500-t-d-gox:product:LIN", db)
+    gross = 1 / (0.995 * 0.99)
+    market = _score("market:nitrogen/lin:RER", db)
+    assert market == pytest.approx(gross * plant + gross * 0.1 * 0.1, rel=1e-6)  # supply plus 100 km of trailer
+    assert _score(user, db) == pytest.approx(0.05 * market + 0.01 * 0.4, rel=1e-6)
+
+    pinned = install(out / "lci", background="stub-markets", location="FR", overwrite=True, pin=[user])
+    assert pinned.ok and pinned.warnings == []
+    assert next(l for l in pinned.atlas_links if l.consumer_code == user).kind == "pinned"
+    assert _score(user, db) == pytest.approx(0.05 * plant + 0.01 * 0.4, rel=1e-6)
+    assert install(out / "lci", background="stub-markets", location="FR", overwrite=True, prefer_atlas="plant").ok
+    assert _score(user, db) == pytest.approx(0.05 * plant + 0.01 * 0.4, rel=1e-6)
+
+    unused = install(out / "lci", background="stub-markets", location="FR", overwrite=True, pin=["no-such-activity"])
+    assert unused.warnings == ["pin 'no-such-activity' matched no input linked inside the Atlas"]
+    with pytest.raises(ValueError, match="prefer_atlas"):
+        install(out / "lci", background="stub-markets", overwrite=True, prefer_atlas="cheapest")
+
+
+def test_a_background_of_another_system_model_is_reported(project, tmp_path: Path) -> None:
+    out = tmp_path / "out"
+    assert build_lci.build(FIXTURES / "library", out, "fx3").errors == []
+    _stub_background("stub-apos", project, FIXTURE_STUB)
+    bd.databases["stub-apos"]["system_model"] = "apos"
+    bd.databases.flush()
+    _drop("cheme-as-code-atlas-fx3")
+    report = install(out / "lci", background="stub-apos")
+    assert report.ok and any("records system model 'apos'; the Atlas database is 'cutoff'" in w for w in report.warnings)
 
 
 # --- dataset contract v2: elementary flows by UUID, pedigree, system model, deprecated datasets -----
@@ -304,3 +379,153 @@ def test_install_links_flows_by_uuid_writes_pedigree_and_reports_the_system_mode
     }
     assert flows[0]["uncertainty type"] == 2
     assert node["atlas superseded by"].endswith(":fixture-electrolysis-2:product:H2")
+
+
+# --- library utilities (#45): Atlas links, the water resource, the background alternative ----------
+
+UTILITY_STUB = {
+    ("market for electricity, medium voltage", "electricity, medium voltage", "kilowatt hour", "DE"): (0.4, 1),
+    ("market for water, deionised", "water, deionised", "kilogram", "RoW"): (0.001, 1),
+    ("market for natural gas, high pressure", "natural gas, high pressure", "cubic meter", "DE"): (0.3, 1),
+    ("treatment of wastewater, average, wastewater treatment", "wastewater, average", "cubic meter", "RoW"): (0.5, -1),
+}
+
+
+def test_utilities_install_link_inside_the_atlas_and_carry_the_water_resource(project, tmp_path: Path) -> None:
+    co2 = project
+    library = tmp_path / "library"
+    for folder in ("chemicals", "lci"):
+        shutil.copytree(KIT / folder, library / folder)
+    for manifest in sorted((KIT / "processes").glob("utility-*/process.yaml")):
+        shutil.copytree(manifest.parent, library / "processes" / manifest.parent.name)
+    out = tmp_path / "out"
+    assert build_lci.build(library, out, "ut").errors == []
+    _stub_background("stub-utilities", co2, UTILITY_STUB)
+    _drop("cheme-as-code-atlas-ut")
+    db = "cheme-as-code-atlas-ut"
+
+    result = install(out / "lci", background="stub-utilities")
+    assert result.unlinked == [], result.summary()
+    assert len(result.atlas_links) == 5  # boiler, tower, air blowdown/condensate to the WWTP; chiller, air heat to the tower
+    assert result.biosphere_by_uuid >= 1
+    tower_code = "utility-cooling-tower:cooling-tower-evaporative-25-35:product:heat-rejected"
+    tower = bd.get_node(database=db, code=tower_code)
+    water = [e for e in tower.biosphere() if e.input["name"] == "Water, unspecified natural origin"]
+    assert len(water) == 1 and water[0].input["code"] == "831f249e-53f2-49cf-a93c-7cee105f048e"
+
+    def amounts(pid: str) -> dict[str, float]:
+        (path,) = (KIT / "processes" / pid / "lca" / "datasets").glob("*.yaml")
+        return {e["key"]: e["amount"] for e in yaml.safe_load(path.read_text())["exchanges"]}
+
+    t, w = amounts("utility-cooling-tower"), amounts("utility-wwtp")
+    wwtp_per_kg = (w["feed:electricity"] * 0.4 + w["emission:CO2"]) / w["product:wastewater"]
+    expected = (t["feed:electricity"] * 0.4 + t["output:blowdown"] * wwtp_per_kg) / t["product:heat-rejected"]
+    assert _score(tower_code, db) == pytest.approx(expected, rel=1e-6)
+
+    # the background alternative: the blowdown goes through the unit proxy to the stub's treatment
+    again = install(out / "lci", background="stub-utilities", prefer_atlas=False, overwrite=True)
+    assert again.ok and again.atlas_links == [] and again.sign_flipped
+    background = (t["feed:electricity"] * 0.4 + t["output:blowdown"] * 0.001 * 0.5) / t["product:heat-rejected"]
+    assert _score(tower_code, db) == pytest.approx(background, rel=1e-6)
+
+    # the multifunctional file links the same way: the WWTP with prefer_atlas, else the proxy
+    _multifunctional()
+    from cheme_as_code_lci import install_multifunctional
+
+    mf_db = f"{db}-multifunctional"
+    _drop(mf_db)
+    mf = install_multifunctional(out / "lci", background="stub-utilities")
+    assert mf.ok and len(mf.atlas_links) >= 5, mf.summary()
+    assert _score(tower_code, mf_db) == pytest.approx(expected, rel=1e-6)
+    mf = install_multifunctional(out / "lci", background="stub-utilities", prefer_atlas=False, overwrite=True)
+    assert mf.ok and all(link.provider_code.startswith("proxy:") for link in mf.atlas_links), mf.summary()
+    assert _score(tower_code, mf_db) == pytest.approx(background, rel=1e-6)
+
+
+# --- unallocated multi-output datasets (multifunctional, process-library#51) --------------------
+
+
+def _multifunctional():
+    if os.environ.get("ATLAS_REQUIRE_BRIGHTWAY"):
+        import multifunctional
+
+        return multifunctional
+    return pytest.importorskip("multifunctional")
+
+
+def test_multifunctional_allocated_by_the_build_method_gives_the_workbook_activities(project, tmp_path: Path) -> None:
+    """The fixture library: the electrolyser's H2 and O2 (mass allocation), the ammonia process
+    that takes the Atlas H2, a treatment link. Allocating the multi-output datasets with each
+    process's default strategy (the build's) gives the workbook's activities, code for code."""
+    _multifunctional()
+    from cheme_as_code_lci import install_multifunctional
+
+    out = tmp_path / "out"
+    assert build_lci.build(FIXTURES / "library", out, "mf").errors == []
+    _stub_background("stub-mf", project, FIXTURE_STUB)
+    for name in ("cheme-as-code-atlas-mf", "cheme-as-code-atlas-mf-multifunctional"):
+        _drop(name)
+    assert install(out / "lci", background="stub-mf").ok
+
+    report = install_multifunctional(out / "lci", background="stub-mf")
+    assert report.ok, report.summary()
+    assert len(report.sign_flipped) == 1  # the electrolyser's wastewater, once (not per co-product)
+    # the ammonia's hydrogen goes to the market (markets/hydrogen.yaml), which takes the electrolyser's H2
+    assert [(l.kind, l.provider_code) for l in report.atlas_links] == [
+        ("market", "market:hydrogen:GLO"), ("supply", "fixture-electrolysis:fixture-electrolysis:product:H2"),
+    ]
+    assert report.chains() == ["Fixture: ammonia synthesis (manifest only) | Ammonia <- market for hydrogen | Hydrogen <- Fixture: water electrolysis | Hydrogen at 30 bar"]
+    mf_db = "cheme-as-code-atlas-mf-multifunctional"
+    parent = bd.get_node(database=mf_db, code="fixture-electrolysis:fixture-electrolysis")
+    assert parent["type"] == "multifunctional" and parent["default_allocation"] == "mass"
+    market = bd.get_node(database=mf_db, code="market:hydrogen:GLO")
+    assert [e.input["code"] for e in market.technosphere()] == ["fixture-electrolysis:fixture-electrolysis:product:H2"]
+    ammonia = bd.get_node(database=mf_db, code="fixture-ammonia:fixture-ammonia-hb:product:ammonia")
+    assert (mf_db, "market:hydrogen:GLO") in [e.input.key for e in ammonia.technosphere()]
+    for code in ("fixture-electrolysis:fixture-electrolysis:product:H2", "fixture-electrolysis:fixture-electrolysis:product:O2", "market:hydrogen:GLO", "fixture-ammonia:fixture-ammonia-hb:product:ammonia"):
+        expected = _score(code, "cheme-as-code-atlas-mf")
+        assert expected > 0 and _score(code, mf_db) == pytest.approx(expected, rel=1e-6), code
+    allocated = bd.get_node(database=mf_db, code="fixture-electrolysis:fixture-electrolysis:product:H2")
+    assert allocated["type"] == "readonly_process" and allocated["mf_parent_key"] == parent.key
+
+
+def test_multifunctional_asu_reallocates_by_another_property(project, tmp_path: Path) -> None:
+    """ASU-1: exergy (the build's method) reproduces the workbook; mass, a property the export
+    attaches too, gives other shares and conserves the unallocated total."""
+    _multifunctional()
+    from cheme_as_code_lci import install_multifunctional
+
+    library = _asu_library(tmp_path)
+    out = tmp_path / "out"
+    assert build_lci.build(library, out, "mfasu").errors == []
+    mappings = build_lci.load_mappings(KIT / "lci" / "mappings.yaml")
+    stub = {}
+    for entry in mappings["technosphere"].values():
+        if "activity" in entry:
+            a = entry["activity"]
+            stub[(a["name"], a["reference_product"], a["unit"], "FR" if a["location"] == "site" else a["location"])] = (1.0, 1)
+    _stub_background("stub-mf-asu", project, stub)
+    for name in ("cheme-as-code-atlas-mfasu", "cheme-as-code-atlas-mfasu-multifunctional"):
+        _drop(name)
+    assert install(out / "lci", background="stub-mf-asu", location="FR").ok
+    report = install_multifunctional(out / "lci", background="stub-mf-asu", location="FR")
+    assert report.ok, report.summary()
+
+    mf_db = "cheme-as-code-atlas-mfasu-multifunctional"
+    dataset = yaml.safe_load((ASU / "dataset.yaml").read_text())
+    amounts = {e["key"]: e["amount"] for e in dataset["exchanges"] if e["type"] == "product"}
+    codes = {k: f"asu-1:asu-1-500-t-d-gox:{k}" for k in amounts}
+    for key, code in codes.items():
+        expected = _score(code, "cheme-as-code-atlas-mfasu")
+        assert expected > 0 and _score(code, mf_db) == pytest.approx(expected, rel=1e-6), key
+    exergy_total = sum(_score(code, mf_db, amounts[k]) for k, code in codes.items())
+
+    parent = bd.get_node(database=mf_db, code="asu-1:asu-1-500-t-d-gox")
+    assert parent["default_allocation"] == "exergy"
+    parent["default_allocation"] = "mass"
+    parent.save()
+    bd.Database(mf_db).process()
+    per_hour = {k: _score(code, mf_db, amounts[k]) for k, code in codes.items()}
+    assert sum(per_hour.values()) == pytest.approx(exergy_total, rel=1e-6)
+    assert per_hour["product:GOXP"] / sum(per_hour.values()) == pytest.approx(amounts["product:GOXP"] / sum(amounts.values()), rel=1e-6)
+    assert _score(codes["product:GOXP"], mf_db) != pytest.approx(_score(codes["product:GOXP"], "cheme-as-code-atlas-mfasu"), rel=1e-3)

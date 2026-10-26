@@ -1,0 +1,137 @@
+# Utility dataset of the process library (process-library#45), Tier 1 form (core#182).
+# Every amount is the `formula` of its `parameters`; core's lci_dataset validator re-checks each.
+# Physical properties and stoichiometry have their source; design parameters are ASSUMED with a
+# TODO to source them. Property parameters were evaluated with CoolProp 8.0.0. Change a
+# parameter and the amounts of its formulas together (core and tests/test_utilities.py check them).
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: chiller-chilled-water-6c
+title: Cold from an electric chiller, chilled water at 6 degC
+description: 'Per 1 MWh of cold delivered as chilled water at 6 degC by an electric vapour-compression
+  chiller rejecting its heat to cooling water. The COP is a Carnot fraction between ASSUMED evaporating
+  and condensing temperatures. INCOMPLETE: refrigerant losses are not counted (never cut under docs/system-model.md
+  section 4).'
+basis: 1000 kWh of cold delivered
+boundary: 'gate-to-gate: chiller; heat rejected to the site cooling water'
+technology: electric vapour-compression chiller, water-cooled; refrigerant not specified
+geography:
+  description: Generic.
+classification:
+  isic: '3530'
+system_boundary:
+  included:
+  - compressor electricity
+  - condenser heat to cooling water
+  excluded:
+  - 'TODO refrigerant losses (leakage, service, end of life): the refrigerant and its loss rate are not
+    sourced. An HFC loss may NOT be cut (docs/system-model.md section 4), so this dataset is incomplete
+    until they are added'
+  - chilled-water pumps
+  - infrastructure
+  cutoff: none applied
+  infrastructure: excluded
+  non_routine: excluded
+uuid: e4c7c18b-1960-5523-b2f2-23b36098127b
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+location: GLO
+year: 2026
+valid_until: 2031
+time:
+  start: 2026
+  description: Design parameters of 2026 (ASSUMED); physical properties do not age.
+technology_level: current
+modelling:
+  principle: attributional
+  multifunctionality: 'single output: no allocation'
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: q
+  value: 1000.0
+  unit: kWh
+  description: Cold delivered as chilled water at 6 degC (the basis).
+  source: basis
+- name: t_evap
+  value: 2.0
+  unit: degC
+  description: Evaporating temperature.
+  source: 'ASSUMED: 4 K below the 6 degC chilled water supply. TODO: from a chiller rating.'
+- name: t_cond
+  value: 40.0
+  unit: degC
+  description: Condensing temperature.
+  source: 'ASSUMED: 5 K above the 35 degC cooling water return (supply 25 degC from the cooling tower).
+    TODO: from a chiller rating.'
+- name: carnot_fraction
+  value: 0.5
+  unit: '1'
+  description: Real COP as a fraction of the Carnot COP between t_evap and t_cond.
+  source: 'ASSUMED: a placeholder for an electric vapour-compression chiller. TODO: source (published
+    chiller test data, or a rating at these temperatures).'
+- name: t0
+  value: 273.15
+  unit: K
+  description: 0 degC in kelvin.
+  source: ITS-90 / SI definition
+exchanges:
+- key: product:cold
+  title: Cold, chilled water supplied at 6 degC
+  type: product
+  amount: 1000.0
+  unit: kWh
+  formula: q
+  provenance: given
+  carrier:
+    kind: cold
+    temperature: 6.0
+    source: 'operating range: chilled water at 6 degC; serves a duty that needs 6 degC or warmer, refused
+      below (build_lci.py carrier_refusal)'
+- key: feed:electricity
+  title: Compressor
+  type: input
+  amount: 276.21297474105035
+  unit: kWh
+  formula: q / (carnot_fraction * (t_evap + t0) / (t_cond - t_evap))
+  provenance: assumed
+  origin: estimate
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: cold / COP, COP = carnot_fraction x T_evap / (T_cond - T_evap); chilled-water pumps not counted
+  pedigree: &id001
+    scores:
+    - 4
+    - 4
+    - 3
+    - 4
+    - 4
+    reason: 'derived by a mass or energy balance from ASSUMED design parameters (see parameters): reliability
+      4 (qualified estimate), completeness 4, temporal 3, geographical 4 (generic site), technological
+      4 (generic technology); no better than the Tier 1 floor'
+  basic_uncertainty: 1.05
+- key: output:heat-rejected
+  title: Condenser heat to cooling water
+  type: output
+  amount: 1276.2129747410504
+  unit: kWh
+  formula: q + q / (carnot_fraction * (t_evap + t0) / (t_cond - t_evap))
+  provenance: assumed
+  origin: estimate
+  link:
+    factor: cooling-water
+    source: site cooling water
+  carrier:
+    kind: cold
+    temperature: 25.0
+    source: the condenser needs cooling water at 25 degC or colder
+  source: 'first law: cold + compressor work (all compressor heat to the condenser, ASSUMED)'
+  pedigree: *id001
+  basic_uncertainty: 1.05
+provenance:
+  generator: hand-written utility model (process-library#45); amounts are the formulas of the parameters
+  notes: Every parameter states its source or ASSUMED with a TODO; no value from a licensed database.

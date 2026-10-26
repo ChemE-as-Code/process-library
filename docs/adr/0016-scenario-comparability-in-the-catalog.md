@@ -1,4 +1,4 @@
-# 0015. Carry core's scenario comparability verdict and factor scope into the catalog
+# 0016. Carry core's scenario comparability verdict and factor scope into the catalog
 
 - **Status:** Proposed, 2026-10-26
 - **Deciders:** the owner (proposed by an agent session, core#306)

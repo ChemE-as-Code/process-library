@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atlas.cheme-as-code.org/schemas/markets/v1.json",
+  "title": "Market datasets (markets/<substance>.yaml)",
+  "description": "Market activities of the Atlas LCI database: per product (a registry slug or grade) and region, the mix of Atlas producers weighted by production volume or by sourced shares, the transport from the producers to the consumer by mode and distance, and the losses on the way (boil-off, handling, pipeline leakage). Every share, volume, distance and loss has a source or is marked assumed. docs/markets.md explains it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "markets"],
+  "properties": {
+    "schema": {"const": "cheme-as-code/markets/v1"},
+    "markets": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/market"}}
+  },
+  "$defs": {
+    "region": {"description": "ISO 3166-1 alpha-2, or GLO, RER, RoW (ecoinvent-style).", "type": "string", "pattern": "^([A-Z]{2}|GLO|RER|RoW)$"},
+    "product": {"description": "A registry slug or <slug>/<grade> of chemicals/chemicals.yaml.", "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*(/[a-z0-9]+([-.][a-z0-9]+)*)?$"},
+    "status": {"description": "cited: a value a source states; calculated: derived from cited or design values (the source says how); assumed: an estimate, documented, to be replaced by a cited value.", "enum": ["cited", "calculated", "assumed"]},
+    "source": {"type": "string", "minLength": 10},
+    "sourced_number": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "status", "source"],
+      "properties": {
+        "value": {"type": "number", "minimum": 0},
+        "unit": {"type": "string", "minLength": 1},
+        "status": {"$ref": "#/$defs/status"},
+        "source": {"$ref": "#/$defs/source"}
+      }
+    },
+    "supplier": {
+      "description": "One producer of the market: an Atlas process (its activity of the market's product), or, in a consumption mix, the market of the same product in another region (an import).",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "process": {"description": "An Atlas process id (processes/<id>/).", "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"},
+        "market": {"description": "Region of another market of the same product (imports of a consumption mix).", "$ref": "#/$defs/region"},
+        "technology": {"description": "Label of the supplier's technology (e.g. cryogenic), for the record and for technology markets.", "type": "string"},
+        "production_volume": {"description": "Weight of the supplier: its production volume (one unit for every supplier of the market).", "allOf": [{"$ref": "#/$defs/sourced_number"}, {"required": ["unit"]}]},
+        "share": {"description": "Weight of the supplier as a share of the market (0 to 1); the shares of a market sum to 1.", "allOf": [{"$ref": "#/$defs/sourced_number"}, {"properties": {"value": {"maximum": 1}}}]},
+        "transport": {"description": "Transport legs of this supplier only (an import), before the market's distribution.", "type": "array", "items": {"$ref": "#/$defs/leg"}}
+      },
+      "oneOf": [{"required": ["process"]}, {"required": ["market"]}]
+    },
+    "leg": {
+      "description": "One transport leg per kg delivered: the mass carried (including what is lost later) times the distance, linked to a technosphere entry of lci/mappings.yaml in ton kilometer; a mode without a background activity (a pipeline driven by the producer's delivery pressure) names none and is recorded only.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "distance"],
+      "properties": {
+        "mode": {"enum": ["cryogenic-trailer", "road-tanker", "lorry", "rail", "ship", "barge", "pipeline", "cylinder-lorry"]},
+        "use": {"description": "Technosphere id of lci/mappings.yaml (unit ton kilometer).", "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
+        "distance": {"allOf": [{"$ref": "#/$defs/sourced_number"}, {"required": ["unit"]}, {"properties": {"unit": {"const": "km"}}}]},
+        "note": {"type": "string"}
+      }
+    },
+    "loss": {
+      "description": "A loss on the way, as a fraction of the product entering that step. The losses multiply: the market takes 1 / product(1 - fraction) kg from its suppliers per kg delivered.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "fraction", "status", "source"],
+      "properties": {
+        "kind": {"enum": ["boil-off", "handling", "pipeline-leakage", "transfer", "other"]},
+        "fraction": {"type": "number", "minimum": 0, "exclusiveMaximum": 0.5},
+        "released_as": {"description": "The component the lost product is released as (an emission of lci/mappings.yaml biosphere, or an atmospheric pass-through component that is not exported).", "type": "string", "pattern": "^[A-Za-z0-9_.\\-/]+$"},
+        "status": {"$ref": "#/$defs/status"},
+        "source": {"$ref": "#/$defs/source"}
+      }
+    },
+    "market": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["product", "region", "layer", "suppliers"],
+      "properties": {
+        "product": {"$ref": "#/$defs/product"},
+        "region": {"$ref": "#/$defs/region"},
+        "layer": {
+          "description": "technology: one technology in one region (code suffix :<technology>); production-mix: the producers of the region weighted by production volume; consumption-mix: the production mix plus imports minus exports, from trade data.",
+          "enum": ["technology", "production-mix", "consumption-mix"]
+        },
+        "technology": {"description": "The one technology of a technology market (required there).", "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"},
+        "title": {"type": "string"},
+        "suppliers": {"type": "array", "items": {"$ref": "#/$defs/supplier"}},
+        "consumption": {
+          "description": "A production mix states how it stands for the region's consumption: equal to production when no trade data is packaged, with the reason.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["equals_production", "reason"],
+          "properties": {"equals_production": {"type": "boolean"}, "reason": {"type": "string", "minLength": 20}}
+        },
+        "trade_source": {"description": "A consumption mix: the trade data its import shares come from (e.g. UN Comtrade, CEPII BACI, with year and licence).", "$ref": "#/$defs/source"},
+        "distribution": {"description": "Transport from the producers to the consumer.", "type": "array", "items": {"$ref": "#/$defs/leg"}},
+        "losses": {"type": "array", "items": {"$ref": "#/$defs/loss"}},
+        "excluded": {"description": "What the market leaves out, in words (e.g. the customer's storage tank and its boil-off, pipeline infrastructure).", "type": "array", "items": {"type": "string", "minLength": 10}},
+        "planned": {"description": "A market that is not exported yet, and why (e.g. no Atlas process makes the product).", "type": "string", "minLength": 20}
+      }
+    }
+  }
+}

@@ -16,13 +16,14 @@ is the source of the [Process Atlas](https://github.com/ChemE-as-Code/process-at
 | `processes/<id>/lca/scenarios/<id>.json` | optional: core's per-scenario records (`cheme assess lca-scenarios --write`): the design case, regional background scenarios (geography, year, electricity), linked exchanges and their states, totals per functional unit; the catalog publishes them (see below) |
 | `chemicals/chemicals.yaml` | chemicals and products registry: the slugs processes name, which link them in the Atlas graph, with identity (CAS, InChIKey, ChEBI), grades (`oxygen/lox`) for LCI reference products, sourced properties, CPC/HS codes and crosswalk names ([docs/registry.md](docs/registry.md)) |
 | `taxonomy/families.yaml` | process families mapped to ISIC Rev.4 and NACE Rev. 2; `process.yaml` `families` are validated against it |
+| `markets/<substance>.yaml` | market datasets: per product grade and region, the Atlas producers weighted by production volume, transport by mode and distance, and losses, each number with its source or marked assumed; activities `market:<product>:<region>` of the LCI database, the default link of an Atlas input ([docs/markets.md](docs/markets.md)) |
 | `benchmarks/<family>.yaml` | the benchmark registry: KPIs per process family with reference ranges from cited open sources (or a recorded "no open reference"), evaluated on each LCI dataset by both builders ([docs/benchmarks.md](docs/benchmarks.md)) |
 | `coverage.yaml` | the coverage roadmap: ranked products and processes with variants, value-chain links, open sources and the planned tier ([docs/coverage.md](docs/coverage.md)) |
 | `lci/mappings.yaml` | how LCI exchanges link to Brightway background and biosphere data (by name; no licensed data), the system model (cut-off), its exclusions and the substitution variant, and the database's allocation per process |
-| `docs/` | `system-model.md` (the LCI database's methodology: system model, allocation hierarchy, cut-off rules), `governance.md` (versions, change reports, releases and DOIs, review, contribution policy draft), `registry.md`, `coverage.md`, `benchmarks.md`, and `adr/` (architecture decision records: why the library is built this way) |
-| `schemas/` | JSON Schemas of process.yaml, the registry, the mappings, the taxonomy, the coverage roadmap and the benchmarks |
+| `docs/` | `system-model.md` (the LCI database's methodology: system model, allocation hierarchy, cut-off rules), `markets.md` (markets, their layers and the chaining of Atlas processes), `governance.md` (versions, change reports, releases and DOIs, review, contribution policy draft), `registry.md`, `coverage.md`, `benchmarks.md`, and `adr/` (architecture decision records: why the library is built this way) |
+| `schemas/` | JSON Schemas of process.yaml, the registry, the mappings, the taxonomy, the coverage roadmap, the benchmarks and the markets |
 | `templates/process/` | starter folder for a new process |
-| `scripts/` | `build_catalog.py` (catalog for the Atlas), `build_lci.py` (Brightway workbook), `render_previews.py` and `export_snapshots.py` (drawings and viewer snapshots, via `cheme`); `publication.py` (the rules of `--public`); `registry.py` (grades and registry checks); `benchmarks.py` (KPI evaluation) |
+| `scripts/` | `build_catalog.py` (catalog for the Atlas), `build_lci.py` (Brightway workbook), `render_previews.py` and `export_snapshots.py` (drawings and viewer snapshots, via `cheme`); `publication.py` (the rules of `--public`); `registry.py` (grades and registry checks); `benchmarks.py` (KPI evaluation); `markets.py` (market files and the default market of an input); `reference_impacts.py` (reference GWP deltas of the LCI change report) |
 | `python/` | `cheme-as-code-lci`, the one-call Brightway installer of the LCI database |
 | `tests/` | tests of the scripts, with a synthetic fixture library |
 
@@ -31,6 +32,12 @@ is the source of the [Process Atlas](https://github.com/ChemE-as-Code/process-at
 | id | process | maturity | engineering project |
 |---|---|---|---|
 | [`asu-1`](processes/asu-1/) | Cryogenic air separation unit, 500 t/d GOX | screening (calculation level balanced since the owner fixed the design air as the design specification, D-099; basic-engineering deliverables present, predictive simulation not reached), not independently reviewed | yes (DEXPI P&IDs, BFD/PFD, 3D layout, MTO, LCA, DWSIM checks) |
+| [`utility-steam-ng-boiler`](processes/utility-steam-ng-boiler/) | Steam, saturated 11 bar(a), natural-gas boiler (library utility) | concept (Tier 1 form, design parameters ASSUMED), not reviewed | no (manifest and LCI dataset only) |
+| [`utility-cooling-tower`](processes/utility-cooling-tower/) | Cooling water, evaporative cooling tower, 25/35 degC (library utility) | concept (Tier 1 form, design parameters ASSUMED), not reviewed | no (manifest and LCI dataset only) |
+| [`utility-wwtp`](processes/utility-wwtp/) | Wastewater treatment, activated sludge (library utility) | concept (Tier 1 form, design parameters ASSUMED), not reviewed | no (manifest and LCI dataset only) |
+| [`utility-flare`](processes/utility-flare/) | Flaring of methane-rich waste gas (library utility) | concept (Tier 1 form, design parameters ASSUMED), not reviewed | no (manifest and LCI dataset only) |
+| [`utility-chiller`](processes/utility-chiller/) | Chilled water at 6 degC, electric chiller (library utility; refrigerant losses not yet counted) | concept (Tier 1 form, design parameters ASSUMED), not reviewed | no (manifest and LCI dataset only) |
+| [`utility-instrument-air`](processes/utility-instrument-air/) | Instrument air, dried, 8 bar(a) (library utility) | concept (Tier 1 form, design parameters ASSUMED), not reviewed | no (manifest and LCI dataset only) |
 
 ## Working on a process
 
@@ -56,8 +63,9 @@ uv run --python 3.12 --with pytest --with pyyaml --with jsonschema --with openpy
 `foundation.units` ([docs/benchmarks.md](docs/benchmarks.md)). Without core a KPI is
 `unchecked`, which fails `--strict`, and the tests that need core are skipped. Add core with
 `--with "cheme-as-code[units] @ git+https://github.com/ChemE-as-Code/core.git"` (or a local
-clone) to the `uv run` of the builds and the tests; CI does, and sets `ATLAS_REQUIRE_CORE` so a
-missing core fails the tests there.
+clone) to the `uv run` of the builds and the tests; CI does, with core pinned to one commit
+(`.github/workflows/validate.yml`), and sets `ATLAS_REQUIRE_CORE` so a missing core fails the
+tests there.
 
 **Design cases and regional scenarios.** One engineering project serves several operating
 cases (flowsheet `cases:`, each with its declared `capacity`) and several geographical
@@ -68,7 +76,7 @@ catalog gives each process `lca.design_cases` and `lca.scenarios` and copies the
 `scenarios/<id>/<scenario>.json`. A scenario whose values may not be published, or whose record
 is stale, keeps its geography, states and gaps but loses its totals. Each scenario also carries
 core's comparability verdict against the baseline (`comparability`: `like-for-like`, `proxy`,
-`not comparable`; core#306, ADR 0015), the study `boundary`, and each link's factor `scope`.
+`not comparable`; core#306, ADR 0016), the study `boundary`, and each link's factor `scope`.
 ASU-1 has `nl-grid` and `de-grid` on core's packaged EEA 2024 grid factors (D-107). They are
 **not comparable** with the UK baseline (D-110): EEA counts direct emissions at generation,
 while the baseline factor is at the consumer with T&D and well-to-tank, a difference in basis

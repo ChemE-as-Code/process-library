@@ -1,0 +1,354 @@
+# Utility dataset of the process library (process-library#45), Tier 1 form (core#182).
+# Every amount is the `formula` of its `parameters`; core's lci_dataset validator re-checks each.
+# Physical properties and stoichiometry have their source; design parameters are ASSUMED with a
+# TODO to source them. Property parameters were evaluated with CoolProp 8.0.0. Change a
+# parameter and the amounts of its formulas together (core and tests/test_utilities.py check them).
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: wwtp-activated-sludge-per-m3
+title: Industrial wastewater treatment, activated sludge, per m3
+description: 'Per 1 m3 of wastewater at an ASSUMED design COD of 1 kg/m3, in a biological (activated sludge)
+  plant: aeration and pumping electricity, CO2 of the oxidised organics, sludge, residual COD. Carbon
+  and oxygen follow a CH2O model substrate.'
+basis: 1 m3 (1000 kg) of wastewater treated
+boundary: 'gate-to-gate: lift pumps, aeration basin, clarifier; sludge leaves to incineration with energy
+  recovery (cut-off)'
+technology: activated sludge, fine-bubble aeration
+geography:
+  description: 'Generic: no site data.'
+classification:
+  isic: '3700'
+system_boundary:
+  included:
+  - aeration and pumping electricity
+  - CO2 of the oxidised organics
+  - treated effluent and residual COD
+  - excess sludge (dry)
+  excluded:
+  - TODO N2O and CH4 of treatment (IPCC 2006 Vol. 5 ch. 6 methods not applied yet)
+  - TODO nitrogen and phosphorus removal, nutrient dosing, precipitants, polymer for dewatering
+  - sludge dewatering and transport; the sludge route is ASSUMED (incineration with energy recovery)
+  - infrastructure
+  cutoff: none applied; the excluded flows are not quantified (TODO)
+  infrastructure: excluded
+  non_routine: excluded
+uuid: e39e3a9f-0976-5521-9042-69f74cb0ef9b
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+location: GLO
+year: 2026
+valid_until: 2031
+time:
+  start: 2026
+  description: Design parameters of 2026 (ASSUMED); physical properties do not age.
+technology_level: current
+modelling:
+  principle: attributional
+  multifunctionality: 'single output: no allocation'
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: ww
+  value: 1000.0
+  unit: kg
+  description: 'Wastewater treated (the basis): 1 m3 at 1000 kg/m3.'
+  source: basis; 1000 kg/m3 is the LCI convention core's crosswalk uses for water
+- name: cod_in
+  value: 1.0
+  unit: kg/m3
+  description: COD of the wastewater.
+  source: 'ASSUMED: a design concentration for a generic chemical-site effluent; the real load is the
+    consumer''s. TODO: replace with a per-kg-COD dataset so that each consumer brings its own load (cooling
+    blowdown carries almost none).'
+- name: removal
+  value: 0.9
+  unit: '1'
+  description: Fraction of the COD removed.
+  source: 'ASSUMED: biological treatment of readily biodegradable organics. TODO: source (BREF CWW) or
+    per site.'
+- name: yield_obs
+  value: 0.3
+  unit: kg VSS/kg COD removed
+  description: Observed sludge yield (biomass grown per COD removed).
+  source: 'ASSUMED: activated sludge with a long sludge age. TODO: source.'
+- name: cod_bio
+  value: 1.414389
+  unit: kg COD/kg VSS
+  description: 'COD of biomass, C5H7NO2 + 5 O2 -> 5 CO2 + 2 H2O + NH3: 5 x 31.998 / 113.116.'
+  source: stoichiometry of biomass as C5H7NO2 (the usual empirical formula; ASSUMED composition) with
+    IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573), as chemicals/chemicals.yaml
+- name: sae
+  value: 1.5
+  unit: kg O2/kWh
+  description: Field aeration efficiency.
+  source: 'ASSUMED: fine-bubble diffused aeration. TODO: source.'
+- name: head
+  value: 10.0
+  unit: m
+  description: Lift and pumping head.
+  source: 'ASSUMED: influent lift and recirculation. TODO: source.'
+- name: eta_pump
+  value: 0.6
+  unit: '1'
+  description: Pump and motor efficiency.
+  source: 'ASSUMED: wastewater pumps. TODO: source.'
+- name: g
+  value: 9.80665
+  unit: m/s2
+  description: Standard acceleration of gravity.
+  source: standard acceleration of gravity, 9.80665 m/s2 (3rd CGPM 1901; BIPM SI Brochure, 9th ed.)
+- name: M_O2
+  value: 31.998
+  unit: g/mol
+  description: Molar mass of oxygen.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    as chemicals/chemicals.yaml
+- name: M_CO2
+  value: 44.009
+  unit: g/mol
+  description: Molar mass of carbon dioxide.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    as chemicals/chemicals.yaml
+- name: M_H2O
+  value: 18.015
+  unit: g/mol
+  description: Molar mass of water.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    as chemicals/chemicals.yaml
+- name: M_CH2O
+  value: 30.026
+  unit: g/mol
+  description: Molar mass of CH2O, the model substrate.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    as chemicals/chemicals.yaml
+- name: M_NH3
+  value: 17.031
+  unit: g/mol
+  description: Molar mass of ammonia.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    as chemicals/chemicals.yaml
+- name: M_BIO
+  value: 113.116
+  unit: g/mol
+  description: Molar mass of biomass C5H7NO2.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    as chemicals/chemicals.yaml
+exchanges:
+- key: product:wastewater
+  title: Wastewater treated
+  type: product
+  amount: 1000.0
+  unit: kg
+  formula: ww
+  provenance: given
+- key: feed:water
+  title: Water of the wastewater (from the consumer)
+  type: input
+  amount: 999.0616289103165
+  unit: kg
+  formula: ww - ((ww / 1000 * cod_in * removal - ww / 1000 * cod_in * removal * yield_obs * cod_bio) /
+    M_O2 + 5 * ww / 1000 * cod_in * removal * yield_obs / M_BIO) * M_CH2O - (ww / 1000 * cod_in * (1 -
+    removal)) / (M_O2 / M_CH2O)
+  provenance: assumed
+  origin: estimate
+  free: true
+  source: 'the wastewater itself is the consumer''s: no burden; minus its organics'
+- key: feed:organics
+  title: Organics removed (model substrate CH2O, from the consumer)
+  type: input
+  amount: 0.8445339748638596
+  unit: kg
+  formula: ((ww / 1000 * cod_in * removal - ww / 1000 * cod_in * removal * yield_obs * cod_bio) / M_O2
+    + 5 * ww / 1000 * cod_in * removal * yield_obs / M_BIO) * M_CH2O
+  provenance: assumed
+  origin: estimate
+  free: true
+  source: COD removed as CH2O (32/30.026 kg COD per kg); ASSUMED substrate; carbon fossil (ASSUMED for
+    a chemical site)
+- key: feed:nitrogen
+  title: Nitrogen for biomass growth, as NH3 (in the wastewater)
+  type: input
+  amount: 0.04065180876268609
+  unit: kg
+  formula: ww / 1000 * cod_in * removal * yield_obs / M_BIO * M_NH3
+  provenance: assumed
+  origin: estimate
+  free: true
+  source: ASSUMED present in the wastewater; TODO nutrient dosing for nitrogen-deficient effluents
+- key: feed:O2
+  title: Oxygen from aeration air
+  type: input
+  amount: 0.5181149700000001
+  unit: kg
+  formula: (ww / 1000 * cod_in * removal - ww / 1000 * cod_in * removal * yield_obs * cod_bio)
+  provenance: assumed
+  origin: estimate
+  free: true
+  source: COD removed minus the COD of the biomass grown; ambient air is free
+- key: feed:electricity
+  title: Aeration blowers and pumps
+  type: input
+  amount: 0.39081113740740747
+  unit: kWh
+  formula: (ww / 1000 * cod_in * removal - ww / 1000 * cod_in * removal * yield_obs * cod_bio) / sae +
+    ww * g * head / eta_pump / 3600000
+  provenance: assumed
+  origin: estimate
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: oxygen demand / aeration efficiency, plus m g H / eta; mixing, sludge handling and buildings
+    not counted
+  pedigree: &id001
+    scores:
+    - 4
+    - 4
+    - 3
+    - 4
+    - 4
+    reason: 'derived by a mass or energy balance from ASSUMED design parameters (see parameters): reliability
+      4 (qualified estimate), completeness 4, temporal 3, geographical 4 (generic site), technological
+      4 (generic technology); no better than the Tier 1 floor'
+  basic_uncertainty: 1.05
+- key: emission:CO2
+  title: CO2 from the oxidised organics
+  type: emission
+  amount: 0.712598340981624
+  unit: kg
+  formula: (ww / 1000 * cod_in * removal - ww / 1000 * cod_in * removal * yield_obs * cod_bio) / M_O2
+    * M_CO2
+  provenance: assumed
+  origin: estimate
+  cas: 124-38-9
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 349b29d1-3e58-4c66-98b9-9d1a076efd2e
+    name: Carbon dioxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: 'CH2O + O2 -> CO2 + H2O; fossil carbon ASSUMED; biosphere3 UUID, name and categories from core''s
+    elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent elementary exchanges 3.9 via bw2io
+    0.9.17, BSD-3-Clause)'
+  pedigree: *id001
+  basic_uncertainty: 1.05
+- key: emission:H2O
+  title: Treated effluent to surface water
+  type: emission
+  amount: 999.4823313229614
+  unit: kg
+  formula: ww - ((ww / 1000 * cod_in * removal - ww / 1000 * cod_in * removal * yield_obs * cod_bio) /
+    M_O2 + 5 * ww / 1000 * cod_in * removal * yield_obs / M_BIO) * M_CH2O - (ww / 1000 * cod_in * (1 -
+    removal)) / (M_O2 / M_CH2O) + ((ww / 1000 * cod_in * removal - ww / 1000 * cod_in * removal * yield_obs
+    * cod_bio) / M_O2 + 3 * ww / 1000 * cod_in * removal * yield_obs / M_BIO) * M_H2O
+  provenance: assumed
+  origin: estimate
+  cas: 7732-18-5
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 2404b41a-2eed-4e9d-8ab6-783946fdf5d6
+    name: Water
+    categories:
+    - water
+    unit: m3
+    per_unit: 0.001
+  source: 'the wastewater''s water plus the water formed; sludge water content not modelled; biosphere3
+    UUID, name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent
+    elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree: *id001
+  basic_uncertainty: 1.5
+- key: emission:COD
+  title: Residual COD in the effluent
+  type: emission
+  amount: 0.09999999999999998
+  unit: kg
+  formula: ww / 1000 * cod_in * (1 - removal)
+  provenance: assumed
+  origin: estimate
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: fc0b5c85-3b49-42c2-a3fd-db7e57b696e3
+    name: COD, Chemical Oxygen Demand
+    categories:
+    - water
+    - surface water
+    unit: kg
+  source: COD not removed (kg O2 equivalent; not part of the element balance); biosphere3 UUID, name and
+    categories read from 'ecoinvent elementary flows 3.9.xml' as shipped with bw2io 0.9.17 (BSD-3-Clause,
+    Copyright (c) 2016 Chris Mutel and Paul Scherrer Institut); identifiers only
+  pedigree: *id001
+  basic_uncertainty: 1.5
+- key: output:sludge
+  title: Excess sludge (dry biomass), to incineration with energy recovery
+  type: output
+  amount: 0.27
+  unit: kg
+  formula: ww / 1000 * cod_in * removal * yield_obs / M_BIO * M_BIO
+  provenance: assumed
+  origin: estimate
+  free: true
+  source: 'observed yield x COD removed. Free: sent to incineration with energy recovery, which the cut-off
+    system model leaves burden-free (docs/system-model.md section 3), and no energy-recovery credit is
+    modelled in the substitution variant either. The route is ASSUMED, TODO the site''s route (landfill
+    or incineration without recovery would carry a burden); dewatering and transport not counted'
+provenance:
+  generator: hand-written utility model (process-library#45); amounts are the formulas of the parameters
+  notes: Every parameter states its source or ASSUMED with a TODO; no value from a licensed database.
+generation:
+  tier: 1
+  method: 'utility model: mass and energy balance of the unit from physical properties and stoichiometry,
+    with ASSUMED design parameters (each listed in parameters)'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 3
+  - 4
+  - 3
+  - 3
+  - 3
+  dqr_floor: 3.0
+  components:
+    feed:water: H2O
+    feed:organics: CH2O
+    feed:nitrogen: NH3
+    feed:O2: O2
+    emission:CO2: CO2
+    emission:H2O: H2O
+    output:sludge: C5H7NO2
+  formulas:
+    feed:water: H2O
+    feed:organics: CH2O
+    feed:nitrogen: NH3
+    feed:O2: O2
+    emission:CO2: CO2
+    emission:H2O: H2O
+    output:sludge: C5H7NO2
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      C:
+      - 0.337830466
+      - 0.337830466
+      H:
+      - 111.865655943
+      - 111.865655943
+      N:
+      - 0.033433732
+      - 0.033433732
+      O:
+      - 888.228009523
+      - 888.228009523
+    outside:
+    - emission:COD
+    - feed:electricity
+    - product:wastewater

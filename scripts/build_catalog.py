@@ -29,6 +29,10 @@ byte-identical:
   items (type, gate, discipline, source, status), the closed count and links to the list and to
   new issues; a summary's ``open_issues``. A public build keeps titles and status but drops the
   links when the repository is private
+- ``routes.json``: per product made in the library, its routes (process and LCI dataset) with
+  technology, tier, maturity and review, geography, year, energy, feedstocks and emissions per
+  functional unit, KPIs, the footprint where the catalog keeps it (with its interval) and the
+  computed comparability of the routes (``routes.py``; ChemE-as-Code/website#38)
 - ``scenarios/<id>/<scenario>.json``: core's per-scenario LCA records (``cheme assess
   lca-scenarios --write``), for Brightway jobs and other consumers
 
@@ -94,6 +98,7 @@ from jsonschema import Draft202012Validator
 
 import benchmarks as bm
 import registry as reg
+import routes as rt
 from publication import LCA_RESULT_FILES, is_public, lca_withheld, snapshot_excludes
 
 CATALOG_SCHEMA = "cheme-as-code/catalog/v1"
@@ -444,7 +449,7 @@ def _scenarios(folder: Path, where: str, report: Report, lca_withheld_reason: st
                 # comparable; baseline for the baseline), read from the factors' structured scope.
                 # `comparable` above covers gaps only. A record from before core#306 has none:
                 # null, which a consumer shows as "not comparable" when `comparable` is false and
-                # as "not assessed" otherwise, never as like-for-like (ADR 0015).
+                # as "not assessed" otherwise, never as like-for-like (ADR 0016).
                 "comparability": data.get("comparability"),
                 "classification": impacts["classification"],
                 "reasons": impacts["reasons"],
@@ -892,6 +897,16 @@ def build(
         "library": library_info,
         "nodes": nodes,
         "edges": [{"source": s, "target": t, "role": r} for s, t, r in sorted(edges)],
+    })
+    # read after _publish: a withheld footprint has no value here either
+    _write(out / "routes.json", {
+        "schema": CATALOG_SCHEMA,
+        "mode": "public" if public else "preview",
+        "library": library_info,
+        "criteria": rt.CRITERIA,
+        "dqr_spread": rt.DQR_SPREAD,
+        "critical_review": rt.CRITICAL_REVIEW,
+        "products": rt.build(library, details, chemicals),
     })
 
     # every link in the output must resolve
