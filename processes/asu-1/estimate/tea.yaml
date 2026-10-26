@@ -1,6 +1,6 @@
 # Premises of the techno-economic analysis (cheme assess tea; schema: cheme schema tea; skill
 # tea). Every number has its status, source and year; cheme-as-code ships no prices. Gaps are left
-# visible rather than filled: cooling water, LOX and LIN carry no published price yet (finding
+# visible rather than filled: LOX and LIN carry no published price yet (finding
 # tea-price-missing), so they count as 0 and the LCOP of GOX is conservative. DESIGN.md D-066.
 schema: cheme/tea/v1
 kind: tea
@@ -68,6 +68,20 @@ prices:
       is required for an air separation unit that feeds into an ammonia plant'"
     year: 2024
     uncertainty: {gsd2: 2.0, source: "one benchmark, no market series"}
+  # Cooling water is a product of the flowsheet (heat rejected, kWh): its cost is a negative
+  # price per MWh of heat. Ulrich and Vasudevan (2006), Table 1, cooling water, grass-roots
+  # plant: C = a CEPCI + b C_fuel, a = 7e-5 + 2.5e-5/q, b = 0.003 ($/m3, q m3/s); q = 880 m3/h =
+  # 0.244 m3/s (DESIGN.md section 3); CEPCI 2023 797.9; C_fuel 2.63 $/GJ: 0.146 $/m3. At the
+  # design basis' 10 K rise (25 -> 35 C) one m3 takes 11.6 kWh: 12.6 $/MWh.
+  - key: product:CW
+    value: -12.6
+    unit: MWh
+    status: ASSUMED
+    source: "Ulrich, G.D., Vasudevan, P.T., How to estimate utility costs, Chemical Engineering,
+      April 2006, pp. 66-69, Table 1 (cooling water, grass-roots); fuel price US EIA Electric
+      Power Annual Table 7.20, natural gas delivered for electricity generation 2024, 2.77 $/MMBtu"
+    year: 2023
+    uncertainty: {gsd2: 1.5, source: "a correlation of 2006, escalated by the CEPCI only"}
 free:
   - {key: feed:AIR, reason: ambient air}
   - {key: product:VENT, reason: waste nitrogen vented to atmosphere}

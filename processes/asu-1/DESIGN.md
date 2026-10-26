@@ -2478,7 +2478,7 @@ simulation and design basis stay with the process-simulation work (D-058, D-059,
      properties. The E-3101 datasheet already takes them as saturated vapour (D-063 (6),
      D-065 (4)).
 
-## D-066 Techno-economic analysis: premises and first result (2026-10-23)
+## D-066 Techno-economic analysis: premises and first result (2026-10-26)
 The first TEA of the plant (`estimate/tea.yaml`, `cheme assess tea`, skill `tea`; written
 outputs `estimate/tea.md`, `tea-cashflow.csv`, `tea-sensitivity.csv`, `tea-uncertainty.csv`).
 1. **Decision.** Take ASU-1 into FEED as the 500 t/d GOX pipeline supply if its levelised cost of
@@ -2494,29 +2494,40 @@ outputs `estimate/tea.md`, `tea-cashflow.csv`, `tea-sensitivity.csv`, `tea-uncer
    2,000 t/d plant) is the scenario `capex-market-report` (x 1.6). OSBL 0: the site supplies
    cooling water and power at the battery limit. Owner's cost and contingency are not decided;
    the Monte Carlo spreads the ISBL over the AACE class 5 range instead (x 0.5 to x 2.0).
-3. **Prices.** Power 80.4 USD/MWh (US EIA, industrial average 2023, QUOTED); the state averages
-   6.60 (Texas) and 18.64 cents/kWh (California) are scenarios. GAN 20 USD/t (Thunder Said,
-   ASSUMED). **No published price was found for LOX, LIN and cooling water**: they are left
-   unpriced (finding `tea-price-missing`), so LOX and LIN earn nothing and the cooling water
-   costs nothing. The first makes the LCOP conservative, the second optimistic. Air, vent and
-   condensate are free. Maintenance 3 % and insurance and local taxes 2 % of fixed capital per
-   year (Towler and Sinnott, typical ranges). Operating labour is not included yet. Discount
-   rate 8 % real (screening, swing 6 to 12 %); construction over two years (40/60); working
-   capital 2 % of fixed capital. All ASSUMED where not stated otherwise.
+3. **Prices.**
+   - Power: 80.4 USD/MWh (US EIA, industrial average 2023, QUOTED). The state averages of 6.60
+     (Texas) and 18.64 cents/kWh (California) are scenarios.
+   - Cooling water: 12.6 USD per MWh of heat rejected, carried as a utility cost. It comes from
+     the Ulrich and Vasudevan (2006) grass-roots correlation: q = 0.244 m3/s, CEPCI 797.9, and a
+     power-station gas price of 2.63 USD/GJ (EIA) give 0.146 USD/m3; at the 10 K rise one m3
+     carries 11.6 kWh.
+   - GAN: 20 USD/t (Thunder Said, ASSUMED).
+   - **No published merchant price was found for LOX and LIN.** They are left unpriced (finding
+     `tea-price-missing`), so they earn nothing and the LCOP is conservative.
+   - Air, vent and condensate are free.
+   - Maintenance is 3 % and insurance and local taxes 2 % of fixed capital per year (Towler and
+     Sinnott, typical ranges). Operating labour is not included yet.
+   - Discount rate 8 % real (screening, swing 6 to 12 %); construction over two years (40/60);
+     working capital 2 % of fixed capital. All ASSUMED where not stated otherwise.
 4. **Rates.** The flowsheet's terminals in case `design`: LOX and LIN 470 kg/h each (the
    flowsheet), not the 600 kg/h of the design basis (D-010 purge and the simulated split). The
    TEA follows the flowsheet, as the LCA does.
-5. **Result.** LCOP of GOX 55.5 USD/t (Monte Carlo P10 44.9, P50 60.0, P90 76.8 USD/t;
-   P(LCOP <= 100) = 100 % of 2,000 samples). Electricity is about 37 USD/t of it. The capital
-   dominates (Spearman +0.78), then the power price (+0.38) and the GAN price (-0.35). The
-   decision turns at a power price of 178 USD/MWh (+122 %), at an ISBL of USD 89 M (+144 %),
-   or below 3,440 h/a. At the California power price the LCOP is 104 USD/t: **the location
-   decides the case**, so the site's power contract is the evidence worth buying first.
+5. **Result.**
+   - LCOP of GOX 61.6 USD/t. Monte Carlo of 2,000 samples: P10 50.9, P50 65.8, P90 82.3 USD/t;
+     P(LCOP <= 100) = 99 %.
+   - Cash cost 41.1 USD/t.
+   - Cost of production per t GOX: utilities 42.7 (power 36.6, cooling water 6.1), GAN credit
+     -12.0, fixed operating cost 10.4, capital 20.5.
+   - The capital dominates (Spearman +0.77), then the power and GAN prices (+0.36, -0.36).
+   - The decision turns at a power price of 165 USD/MWh (+105 %), at an ISBL of USD 82 M
+     (+124 %), or below 3,740 h/a.
+   - At the California power price the LCOP is 110 USD/t: **the location decides the case**, so
+     the site's power contract is the evidence worth buying first.
 6. **Open.**
    - The estimate is class 5, and stage basic expects class 4 (`tea-class-stage`): the main air
      compressor and cold box need quotations.
-   - Prices for LOX, LIN and cooling water are still to find.
+   - LOX and LIN prices are still to find.
    - Owner's cost, contingency, labour, the tax position and the owner's hurdle rate are still
      to decide.
-   - The gate `kind: tea` waits until the cheme-as-code release that knows it is installed in
-     CI (checks/checks.yaml, commented).
+   - `lca/lca.yaml` maps the vent as an emission; it is nitrogen and carries no carbon price
+     (finding `tea-emission-unpriced`, info).
