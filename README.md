@@ -22,7 +22,7 @@ is the source of the [Process Atlas](https://github.com/ChemE-as-Code/process-at
 | `docs/` | `system-model.md` (the LCI database's methodology: system model, allocation hierarchy, cut-off rules), `governance.md` (versions, change reports, releases and DOIs, review, contribution policy draft), `registry.md`, `coverage.md` and `benchmarks.md` |
 | `schemas/` | JSON Schemas of process.yaml, the registry, the mappings, the taxonomy, the coverage roadmap and the benchmarks |
 | `templates/process/` | starter folder for a new process |
-| `scripts/` | `build_catalog.py` (catalog for the Atlas), `build_lci.py` (Brightway workbook), `render_previews.py` and `export_snapshots.py` (drawings and viewer snapshots, via `cheme`); `publication.py` (the rules of `--public`); `registry.py` (grades and registry checks); `benchmarks.py` (KPI evaluation) |
+| `scripts/` | `build_catalog.py` (catalog for the Atlas), `build_lci.py` (Brightway workbook), `render_previews.py` and `export_snapshots.py` (drawings and viewer snapshots, via `cheme`); `publication.py` (the rules of `--public`); `registry.py` (grades and registry checks); `benchmarks.py` (KPI evaluation); `reference_impacts.py` (reference GWP deltas of the LCI change report) |
 | `python/` | `cheme-as-code-lci`, the one-call Brightway installer of the LCI database |
 | `tests/` | tests of the scripts, with a synthetic fixture library |
 
