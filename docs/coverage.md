@@ -51,6 +51,26 @@ chlor-alkali from membrane and diaphragm cells; nitric acid with and without N2O
 Emerging routes (PEM, alkaline and SOEC electrolysis, e-methanol, e-ammonia, DAC, plastic
 pyrolysis, bio-ethylene) are variants or entries of their own. They are not in today's mixes.
 
+## Route groups
+
+Once a product has two or more routes, the catalog build compares them: `routes.json`
+(`scripts/routes.py`, ChemE-as-Code/website#38) holds, per substance made, one row per process
+and LCI dataset making it, with the technology, tier, maturity and review, geography and year,
+the energy, feedstocks and key emissions per functional unit, the benchmark KPIs and the
+footprint where the catalog keeps it (with the Monte Carlo interval of `lca/uncertainty.csv`).
+Nothing is estimated for it: every value is read from the manifests, datasets and LCA files, and
+a public build withholds a footprint exactly as it withholds the LCA.
+
+The comparability of the routes is computed, criterion by criterion: the same reference product
+(registry grade and state), functional unit, inventory boundary, system model, allocation, the
+background data behind any impact numbers, and every route's TfS DQR within `DQR_SPREAD` (1.0,
+ASSUMED: one step of the pedigree scale, a library convention, not a value from a standard) of
+the best. A route that differs from most routes, or states nothing, carries the flag, so the
+Atlas warns next to its row. The per-functional-unit inventory is unallocated, as KPIs are
+reported: a co-product of a multi-output dataset gets none, since its share is the LCI build's
+allocation. A comparative assertion disclosed to the public needs a critical review (ISO 14044);
+the Atlas says so on every comparison. The test library is `tests/fixtures/routes/`.
+
 ## Families and ISIC
 
 Every entry has a `family` from [`taxonomy/families.yaml`](https://github.com/ChemE-as-Code/process-library/blob/main/taxonomy/families.yaml), the same
