@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import shutil
 import sys
 from pathlib import Path
@@ -310,3 +311,86 @@ def test_a_second_atlas_producer_is_reported_not_chosen_silently(library: Path, 
     assert report.errors == [], report.errors
     (warning,) = [w for w in report.warnings if "several Atlas producers" in w]
     assert "fixture-ammonia" in warning and "fixture-electrolysis-b:" in warning
+
+
+# --- cut-off criteria (docs/system-model.md section 4, core#180) -------------------------------
+# The fixture electrolysis has 750.6 kg of operation inputs in kg (feed and resource water) per
+# its basis, so 1 % is about 7.5 kg. The cut flows below are test data, not real inventories.
+
+LUBE = {"key": "aux:lubricant", "amount": 2.0, "unit": "kg", "reason": "test: below the mass rule"}
+
+# The criteria are core's (lca.cutoff). CI installs core and sets ATLAS_REQUIRE_CORE, so a missing
+# core fails there instead of skipping.
+try:
+    import chemeascode.domains.assessment.lca.cutoff as core_cutoff
+except ImportError:
+    if os.environ.get("ATLAS_REQUIRE_CORE"):
+        raise
+    core_cutoff = None
+needs_core = pytest.mark.skipif(core_cutoff is None, reason="needs cheme-as-code (core's lca.cutoff)")
+
+
+def _cut(library: Path, *flows: dict) -> None:
+    _edit_dataset(library, lambda d: d.update(cutoff=[dict(f) for f in flows]))
+
+
+def _cutoff_entry(out: Path) -> dict | None:
+    package = _json(out / "lci" / "datapackage.json")
+    electrolysis = next(p for p in package["processes"] if p["id"] == "fixture-electrolysis")
+    return electrolysis["datasets"][0].get("cutoff")
+
+
+def test_datasets_without_cut_flows_record_no_cutoff_entry(library: Path, tmp_path: Path) -> None:
+    out = tmp_path / "out"
+    assert _build(library, out).warnings == []
+    assert _cutoff_entry(out) is None
+
+
+@needs_core
+def test_cut_flows_within_the_criteria_are_recorded(library: Path, tmp_path: Path) -> None:
+    _cut(library, LUBE, {"key": "aux:sealant", "reason": "test: amount not known"})
+    out = tmp_path / "out"
+    report = _build(library, out)
+    assert report.errors == [] and report.warnings == []
+    entry = _cutoff_entry(out)
+    assert entry["checked"] is True and entry["flows"] == ["aux:lubricant", "aux:sealant"]
+    assert entry["input_mass_kg"] == pytest.approx(752.6)  # the cut input counts in the basis
+    assert [f["rule"] for f in entry["findings"]] == ["cheme.lca-cutoff-unchecked"]  # info, not a warning
+
+
+@needs_core
+@pytest.mark.parametrize(
+    ("flows", "rule"),
+    [
+        ([{**LUBE, "amount": 10.0}], "cheme.lca-cutoff-share"),
+        ([{**LUBE, "amount": 5.0}, {**LUBE, "key": "aux:grease", "amount": 5.0}], "cheme.lca-cutoff-sum"),
+        ([{"key": "aux:catalyst", "amount": 0.001, "unit": "kg", "reason": "test", "catalyst": True, "contains": ["Pt"]}], "cheme.lca-cutoff-never"),
+        ([{"key": "emission:N2O", "direction": "output", "amount": 0.001, "unit": "kg", "reason": "test", "cas": "10024-97-2"}], "cheme.lca-cutoff-never"),
+    ],
+    ids=["share", "sum", "precious-metal-catalyst", "high-cf"],
+)
+def test_broken_cutoff_criteria_are_warnings(library: Path, tmp_path: Path, flows, rule) -> None:
+    _cut(library, *flows)
+    out = tmp_path / "out"
+    report = _build(library, out)
+    assert report.errors == []
+    assert any("fixture-electrolysis/lca/dataset.yaml: cutoff:" in w and rule in w for w in report.warnings), report.warnings
+    assert rule in [f["rule"] for f in _cutoff_entry(out)["findings"]]
+
+
+@needs_core
+def test_a_cut_flow_failing_cores_schema_is_an_error(library: Path, tmp_path: Path) -> None:
+    _cut(library, {"key": "aux:lubricant", "amount": 2.0})  # no reason
+    report = _build(library, tmp_path / "out")
+    assert any("fixture-electrolysis/lca/dataset.yaml: cutoff[0].reason:" in e for e in report.errors), report.errors
+    assert not (tmp_path / "out" / "lci").exists()
+
+
+def test_without_core_the_cutoff_criteria_are_not_checked(library: Path, tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setitem(sys.modules, "chemeascode.domains.assessment.lca.cutoff", None)  # import raises ImportError
+    _cut(library, LUBE)
+    out = tmp_path / "out"
+    report = _build(library, out)
+    assert report.errors == []
+    assert any("cut-off criteria are not checked" in w for w in report.warnings), report.warnings
+    assert _cutoff_entry(out) == {"flows": ["aux:lubricant"], "checked": False, "findings": []}

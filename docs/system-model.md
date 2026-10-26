@@ -128,8 +128,15 @@ ISO 14044 (4.2.3.3) lets a study leave out flows of little significance, provide
   characterisation factors (N2O, SF6, HFCs, heavy metals), whatever their mass;
 - every cut flow is named in the dataset with the reason.
 
-The build does not check these criteria yet: datasets do not record cut flows in a form it can
-read. They are part of the review checklist ([governance.md](governance.md)).
+A dataset records its cut flows in `cutoff:` (core#180: key, direction, amount and unit in the
+dataset's basis, reason, and `cas`, `catalyst`, `contains` for the never-cut rule). `cheme assess
+lca` checks them where the dataset is made, and the build (`scripts/build_lci.py`) checks them
+again with the same core code (`lca.cutoff`) and records the result per dataset in
+`datapackage.json` (`cutoff`). A cut flow at or above 1 % of the input mass, the cut flows together
+at or above 1 %, or a never-cut flow is a warning, so `--strict` fails. A cut flow without an
+amount in kg cannot be checked against the mass rule: it is recorded, not warned. Whether a flow
+is "environmentally relevant" beyond the never-cut list stays a reviewer's judgement, and is on
+the review checklist ([governance.md](governance.md)).
 
 ## 5. Infrastructure, capital goods and catalysts
 

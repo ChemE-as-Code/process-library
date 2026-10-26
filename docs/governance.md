@@ -141,7 +141,8 @@ version resets the status to `unreviewed` unless the reviewer confirms the chang
 - [ ] mass balance (and the elemental balance of C, H, O, N, S where relevant) closes within the
       stated accuracy; gaps explained;
 - [ ] cut-off criteria met (system-model.md section 4): cut flows named, below 1 % each and in
-      sum, none environmentally relevant, no precious-metal catalyst or high-CF flow cut;
+      sum, none environmentally relevant, no precious-metal catalyst or high-CF flow cut (the
+      build checks the 1 % rules and the never-cut list; relevance is the reviewer's call);
 - [ ] energy and utilities complete (power, steam, cooling, fuel, inert gases);
 - [ ] emissions complete and correctly characterised (fossil and biogenic, compartments);
 - [ ] background links plausible (activity, location, voltage level, unit);
