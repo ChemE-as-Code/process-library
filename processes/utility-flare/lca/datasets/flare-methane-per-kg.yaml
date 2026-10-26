@@ -1,0 +1,232 @@
+# Utility dataset of the process library (process-library#45), Tier 1 form (core#182).
+# Every amount is the `formula` of its `parameters`; core's lci_dataset validator re-checks each.
+# Physical properties and stoichiometry have their source; design parameters are ASSUMED with a
+# TODO to source them. Property parameters were evaluated with CoolProp 8.0.0. Change a
+# parameter and the amounts of its formulas together (core and tests/test_utilities.py check them).
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: flare-methane-per-kg
+title: Flaring of methane-rich waste gas, per kg
+description: 'Per 1 kg of waste gas (taken as methane) burnt in an elevated flare at an ASSUMED combustion
+  efficiency: CO2 and water of the burnt fraction, the unburnt methane.'
+basis: 1 kg of gas flared
+boundary: 'gate-to-gate: flare tip; pilot, purge and assist gas or steam are not counted'
+technology: elevated flare
+geography:
+  description: Generic.
+classification:
+  isic: '3821'
+system_boundary:
+  included:
+  - CO2 and water of the burnt fraction
+  - unburnt methane
+  excluded:
+  - 'TODO pilot and purge gas, assist steam or air: per flare, not per kg; needs the flare''s design'
+  - 'TODO CO, soot (black carbon), NOx: no open factor read yet'
+  - 'gases other than methane: a composition-based variant is needed (TODO)'
+  - infrastructure
+  cutoff: none applied; the excluded flows are not quantified (TODO)
+  infrastructure: excluded
+  non_routine: included
+uuid: 56272fbe-424b-57bc-89c0-3779b2e7e982
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+location: GLO
+year: 2026
+valid_until: 2031
+time:
+  start: 2026
+  description: Design parameters of 2026 (ASSUMED); physical properties do not age.
+technology_level: current
+modelling:
+  principle: attributional
+  multifunctionality: 'single output: no allocation'
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: gas
+  value: 1.0
+  unit: kg
+  description: Hydrocarbon gas sent to the flare (the basis), taken as methane.
+  source: basis; methane ASSUMED, TODO a composition-based dataset (carbon and hydrogen content of the
+    flared gas)
+- name: eta
+  value: 0.98
+  unit: '1'
+  description: 'Combustion efficiency: fraction of the methane burnt to CO2.'
+  source: 'ASSUMED: a well-operated elevated flare; efficiency falls with wind, low heating value and
+    over- or under-steaming. TODO: source (BREF CWW or REF, or a published flare study).'
+- name: M_CH4
+  value: 16.043
+  unit: g/mol
+  description: Molar mass of methane.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    as chemicals/chemicals.yaml
+- name: M_O2
+  value: 31.998
+  unit: g/mol
+  description: Molar mass of oxygen.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    as chemicals/chemicals.yaml
+- name: M_CO2
+  value: 44.009
+  unit: g/mol
+  description: Molar mass of carbon dioxide.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    as chemicals/chemicals.yaml
+- name: M_H2O
+  value: 18.015
+  unit: g/mol
+  description: Molar mass of water.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    as chemicals/chemicals.yaml
+exchanges:
+- key: product:flare-gas
+  title: Gas flared (as methane), 1 kg
+  type: product
+  amount: 1.0
+  unit: kg
+  formula: gas
+  provenance: given
+- key: feed:gas
+  title: Gas to the flare (from the consumer)
+  type: input
+  amount: 1.0
+  unit: kg
+  formula: gas
+  provenance: assumed
+  origin: estimate
+  free: true
+  source: 'the consumer''s waste gas: no burden'
+- key: feed:O2
+  title: Combustion oxygen, from ambient air
+  type: input
+  amount: 3.909248893598454
+  unit: kg
+  formula: gas * eta * 2 * M_O2 / M_CH4
+  provenance: assumed
+  origin: estimate
+  free: true
+  source: CH4 + 2 O2 -> CO2 + 2 H2O
+- key: emission:CO2
+  title: CO2 from combustion
+  type: emission
+  amount: 2.688326372872904
+  unit: kg
+  formula: gas * eta * M_CO2 / M_CH4
+  provenance: assumed
+  origin: estimate
+  cas: 124-38-9
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 349b29d1-3e58-4c66-98b9-9d1a076efd2e
+    name: Carbon dioxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: 'burnt fraction, CH4 + 2 O2 -> CO2 + 2 H2O; biosphere3 UUID, name and categories from core''s
+    elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent elementary exchanges 3.9 via bw2io
+    0.9.17, BSD-3-Clause)'
+  pedigree: &id001
+    scores:
+    - 4
+    - 4
+    - 3
+    - 4
+    - 4
+    reason: 'derived by a mass or energy balance from ASSUMED design parameters (see parameters): reliability
+      4 (qualified estimate), completeness 4, temporal 3, geographical 4 (generic site), technological
+      4 (generic technology); no better than the Tier 1 floor'
+  basic_uncertainty: 1.05
+- key: emission:CH4
+  title: Unburnt methane
+  type: emission
+  amount: 0.020000000000000018
+  unit: kg
+  formula: gas * (1 - eta)
+  provenance: assumed
+  origin: estimate
+  cas: 74-82-8
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 0795345f-c7ae-410c-ad25-1845784c75f5
+    name: Methane, fossil
+    categories:
+    - air
+    unit: kg
+  source: 'the fraction not burnt; partial oxidation products (CO) not split out; biosphere3 UUID, name
+    and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent elementary
+    exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree: *id001
+  basic_uncertainty: 1.5
+- key: emission:H2O
+  title: Water vapour from combustion
+  type: emission
+  amount: 2.2009225207255505
+  unit: kg
+  formula: gas * eta * 2 * M_H2O / M_CH4
+  provenance: assumed
+  origin: estimate
+  cas: 7732-18-5
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 075e433b-4be4-448e-9510-9a5029c1ce94
+    name: Water
+    categories:
+    - air
+    unit: m3
+    per_unit: 0.001
+  source: 'combustion water; biosphere3 UUID, name and categories from core''s elementary-flow crosswalk
+    (data/elementary-flows.yaml: ecoinvent elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree: *id001
+  basic_uncertainty: 1.5
+provenance:
+  generator: hand-written utility model (process-library#45); amounts are the formulas of the parameters
+  notes: Every parameter states its source or ASSUMED with a TODO; no value from a licensed database.
+generation:
+  tier: 1
+  method: 'utility model: mass and energy balance of the unit from physical properties and stoichiometry,
+    with ASSUMED design parameters (each listed in parameters)'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 3
+  - 4
+  - 3
+  - 3
+  - 3
+  dqr_floor: 3.0
+  components:
+    feed:gas: CH4
+    feed:O2: O2
+    emission:CO2: CO2
+    emission:CH4: CH4
+    emission:H2O: H2O
+  formulas:
+    feed:gas: CH4
+    feed:O2: O2
+    emission:CO2: CO2
+    emission:CH4: CH4
+    emission:H2O: H2O
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      C:
+      - 0.748675435
+      - 0.748675435
+      H:
+      - 0.251324565
+      - 0.251324565
+      O:
+      - 3.909248894
+      - 3.909248894
+    outside:
+    - product:flare-gas

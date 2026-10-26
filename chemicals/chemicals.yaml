@@ -94,10 +94,15 @@ chemicals:
         state: {note: "liquefied for transport and storage; pressure and temperature by supplier"}
         crosswalk: {ecoinvent: ["carbon dioxide, liquid"]}
 
+  - slug: chilled-water
+    name: Chilled water
+    kind: utility
+    note: Cold delivered as chilled water (kWh of cold at a stated supply temperature); made by a chiller (processes/utility-chiller).
+
   - slug: cooling-water
     name: Cooling water
     kind: utility
-    note: Heat rejected to a cooling water system.
+    note: Heat rejected to a cooling water system (kWh); a service of processes/utility-cooling-tower.
 
   - slug: electricity
     name: Electricity
@@ -115,6 +120,11 @@ chemicals:
         state: {note: "1 to 24 kV, the voltage band ecoinvent calls medium voltage; the library's default link for industrial power"}
         crosswalk: {ecoinvent: ["electricity, medium voltage"]}
 
+  - slug: flare-gas
+    name: Waste gas to flare
+    kind: utility
+    note: Combustible waste gas sent to a flare (kg); the treatment service of processes/utility-flare.
+
   - slug: hydrogen
     name: Hydrogen
     kind: substance
@@ -131,6 +141,11 @@ chemicals:
       lhv: {value: 119.95, unit: MJ/kg, conditions: "25 °C, product water vapour", source: "derived: standard enthalpy of formation of H2O(g), -241.826 kJ/mol (CODATA Key Values 1989), per 2.016 g/mol"}
       density: {value: 0.08988, unit: kg/m3, conditions: "gas, 0 °C, 1.01325 bar", source: "NIST Chemistry WebBook, SRD 69 (2026 query)"}
       standard_chemical_exergy: {value: 236.09, unit: kJ/mol, source: "Szargut, Morris and Steward (1988), model II"}
+
+  - slug: instrument-air
+    name: Instrument air
+    kind: utility
+    note: Dried compressed air for instruments and tools (kg of dry air); made by processes/utility-instrument-air.
 
   - slug: methane
     name: Methane
@@ -225,6 +240,24 @@ chemicals:
           exergy: {value: 752.9, unit: kJ/kg, conditions: "saturated liquid, 1.01325 bar; dead state 298.15 K, 101.325 kPa", source: "derived (docs/registry.md, Grade exergy): Szargut 1988 plus NIST SRD 69 h and s of pure O2"}
         crosswalk: {ecoinvent: ["oxygen, liquid"]}
         note: Purity as ASU-1's LOX, which backs up its GOX pipeline.
+
+  - slug: steam
+    name: Steam
+    kind: utility
+    note: Process steam by pressure level (kg). Each level is a grade; heat delivered by condensing it depends on the level.
+    grades:
+      - slug: mp-11bara
+        name: Steam, saturated, 11 bar(a)
+        phase: gas
+        state:
+          pressure: {value: 11, unit: bara}
+          temperature: {value: 184.06, unit: degC, note: "saturation temperature at 11 bar(a), IAPWS-95 (Wagner and Pruss 2002) evaluated with CoolProp 8.0.0"}
+        note: The MP steam of processes/utility-steam-ng-boiler.
+
+  - slug: wastewater
+    name: Wastewater
+    kind: utility
+    note: Wastewater sent to treatment (kg; 1 m3 = 1000 kg); the treatment service of processes/utility-wwtp.
 
   - slug: water
     name: Water

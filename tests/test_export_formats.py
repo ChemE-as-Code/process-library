@@ -236,3 +236,33 @@ def test_multifunctional_file_carries_only_sourced_allocation_properties(tmp_pat
 def test_a_unit_openlca_has_no_reference_for_fails_the_build(tmp_path: Path) -> None:
     with pytest.raises(export_formats.FormatError, match="no openLCA reference unit"):
         export_formats._Olca("db", "cutoff", True, "DE").units("standard cubic meter", "here")
+
+
+def test_utility_links_resolve_in_both_formats(tmp_path: Path) -> None:
+    """The library utilities (#45): a utility output on an Atlas proxy that names an Atlas
+    utility (the cooling tower's blowdown to the WWTP) has that utility's process as its default
+    provider in the JSON-LD package, and in the multifunctional file its ``atlas activity code``
+    (taken with prefer_atlas) beside the proxy's ``atlas code`` (the fallback)."""
+    library = tmp_path / "library"
+    for folder in ("chemicals", "lci"):
+        shutil.copytree(KIT / folder, library / folder)
+    for manifest in sorted((KIT / "processes").glob("utility-*/process.yaml")):
+        shutil.copytree(manifest.parent, library / "processes" / manifest.parent.name)
+    assert build_lci.build(library, tmp_path / "out", "0.1.0", commit="test").errors == []
+    lci = tmp_path / "out" / "lci"
+    tower, wwtp = "utility-cooling-tower:cooling-tower-evaporative-25-35:product:heat-rejected", "utility-wwtp:wwtp-activated-sludge-per-m3:product:wastewater"
+
+    processes = {d["@id"]: d for n, d in _entities(lci / "cheme-as-code-atlas-0.1.0-olca-jsonld.zip").items() if n.startswith("processes/")}
+    by_category = {d["category"]: pid for pid, d in processes.items()}
+    blowdown = next(e for e in processes[by_category["ChemE-as-Code Atlas/utility-cooling-tower"]]["exchanges"] if ALLOCATION_KEY.match(e.get("description") or "") and ALLOCATION_KEY.match(e["description"]).group(1) == "output:blowdown")
+    assert blowdown["defaultProvider"]["@id"] == by_category["ChemE-as-Code Atlas/utility-wwtp"]
+    assert all(e["defaultProvider"]["@id"] in processes for d in processes.values() for e in d["exchanges"] if e.get("defaultProvider"))
+
+    data = json.loads((lci / "cheme-as-code-atlas-0.1.0-multifunctional.json").read_text())
+    by_code = {p["code"]: p for p in data["processes"]}
+    codes = set(by_code) | {e["desired_code"] for p in data["processes"] for e in p["exchanges"] if e.get("desired_code")}
+    taken = next(e for p in data["processes"] for e in p["exchanges"] if e.get("atlas key") == "output:blowdown" and p["code"].startswith("utility-cooling-tower"))
+    assert taken["atlas activity code"] == wwtp and taken["atlas code"].startswith("proxy:")
+    assert tower in codes
+    every = {e[k] for p in data["processes"] for e in p["exchanges"] for k in ("atlas code", "atlas activity code", "atlas plant code") if e.get(k)}
+    assert every <= codes

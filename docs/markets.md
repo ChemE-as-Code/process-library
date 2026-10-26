@@ -101,7 +101,12 @@ beside the input's background link, and `install(prefer_atlas=True)` links to it
    pins a plant itself with `link.dataset`.
 4. **Without a market** of the grade, the link goes to the plant gate, and the build warns
    (`--strict` fails). A consumer of "nitrogen, liquid" must therefore find a market: the test
-   `test_a_consumer_of_liquid_nitrogen_links_to_the_market` checks it for ASU-1's LIN.
+   `test_a_consumer_of_liquid_nitrogen_links_to_the_market` checks it for ASU-1's LIN. A site
+   utility (steam, cooling water, wastewater treatment; kind `utility` in the registry) has no
+   market yet: it links to the utility plant without that warning, and its check notes the
+   plant gate. The utility's carrier (pressure, temperature) must cover the consumer's
+   (`carrier_refusal`): outside its operating range a default link is refused (a warning, and a
+   `refused` entry in `atlas_links`) and a `link.dataset` is an error.
 
 ### Compatibility check (core#168)
 
@@ -115,6 +120,7 @@ supply chains (`report.chains()`, e.g. *inerting <- market for nitrogen, liquid 
 |---|---|---|---|
 | reference product grade and state | the provider's grade is the input's | the input names only the substance, or the provider has no grade | another grade (refused before it is linked) |
 | unit | the same unit (candidates are filtered by unit) | | |
+| carrier (utilities) | the provider's carrier covers the consumer's | | outside the operating range (refused before it is linked) |
 | system model | one database, one system model | | |
 | allocation | the provider's datasets follow the allocation hierarchy | a dataset with an allocation finding | |
 | boundary | a market (delivered), or a plant feeding a market | a plant gate (pinned, or no market) | |

@@ -181,14 +181,17 @@ class _Olca:
                 note = "Atlas identifier (uuid5), NOT an EF 3.1 or ecoinvent UUID: map this flow to your elementary flow list by name and category."
             ref = self.flow(fid, entry["name"], o.FlowType.ELEMENTARY_FLOW, entry["unit"], where, "Elementary flows/" + "/".join(categories), note)
             return ref, None, ""
+        if entry.get("atlas activity"):
+            # another Atlas process makes this input (or takes this utility output): linked to it,
+            # as install(prefer_atlas=True); the alternative is the background or an Atlas proxy
+            alternative = {"name": entry["atlas activity"], "reference product": entry["atlas reference product"], "location": entry["atlas location"], "unit": entry["unit"]}
+            flow, provider = self.atlas[_identity(alternative)]
+            if entry.get("database") == self.db_name:
+                return flow, provider, f"Alternative: the Atlas proxy {self._background_text(entry)} (in this package)."
+            return flow, provider, f"Background alternative: {self._background_text(entry)}."
         if entry.get("database") == self.db_name:
             flow, provider = self.atlas[_identity(entry)]
             return flow, provider, ""
-        if entry.get("atlas activity"):
-            # another Atlas process makes this input: linked to it, as install(prefer_atlas=True)
-            alternative = {"name": entry["atlas activity"], "reference product": entry["atlas reference product"], "location": entry["atlas location"], "unit": entry["unit"]}
-            flow, provider = self.atlas[_identity(alternative)]
-            return flow, provider, f"Background alternative: {self._background_text(entry)}."
         name = entry["reference product"]
         fid = atlas_uuid("flow", "background", name, entry["unit"])
         ref = self.flow(
@@ -390,8 +393,9 @@ def _strategy(dataset: dict) -> str:
 def build_multifunctional(datasets: list[dict], proxies: list, markets: list, db_name: str, database_meta: dict, header: list[str], caveats: list[str]) -> dict:
     """The multifunctional database as JSON-ready data. Exchanges keep the workbook's linking
     fields; an exchange to an Atlas activity names its code in this database: ``atlas code`` for
-    an exchange linked inside the Atlas (a market's supplier, link.dataset), ``atlas activity
-    code`` for an input linked there with ``prefer_atlas`` (a market or a plant); the codes of the
+    an exchange linked inside the Atlas (a market's supplier, link.dataset, a proxy), ``atlas
+    activity code`` for an exchange linked there with ``prefer_atlas`` (a market or a plant; it
+    takes precedence over a proxy's ``atlas code``); the codes of the
     allocated activities, the markets and the proxies are the workbook's."""
     codes = {}
     for dataset in datasets:
@@ -404,16 +408,18 @@ def build_multifunctional(datasets: list[dict], proxies: list, markets: list, db
         entry = dict(entry)
         if entry.get("categories"):
             entry["categories"] = [c for c in str(entry["categories"]).split("::") if c]
-        if entry.get("database") == db_name:
-            entry["atlas code"] = codes[_identity(entry)]
-            del entry["database"]
-        elif entry.get("atlas activity"):
+        if entry.get("atlas activity"):
             # linked to the Atlas only with prefer_atlas: its code is the alternative's, not a fixed link
             code = codes[(entry["atlas activity"], entry["atlas reference product"], entry["atlas location"], entry["unit"])]
             given = entry.pop("atlas code", None)
             if given is not None and given != code:
                 raise FormatError(f"{entry.get('atlas key')}: atlas code {given} is not the code of {entry['atlas activity']} ({code})")
             entry["atlas activity code"] = code
+        if entry.get("database") == db_name:
+            # fixed inside the Atlas (a market's supplier, link.dataset, a proxy); an exchange on a
+            # proxy may also name an Atlas activity above (a utility output), which prefer_atlas takes
+            entry["atlas code"] = codes[_identity(entry)]
+            del entry["database"]
         return entry
 
     processes = []

@@ -140,11 +140,8 @@ def install_multifunctional(
                 exc["pedigree"] = dict(zip(PEDIGREE_KEYS, (int(x) for x in str(exc["atlas pedigree"]).split(",")), strict=True))
             if exc.get("atlas location rule") == "site":
                 exc["location"] = report.location
-            if exc.get("atlas code"):  # a market's supplier, link.dataset
-                exc["input"] = (name, exc["atlas code"])
-                provider = f"{exc.get('name')} | {exc.get('reference product', '')}"
-                report.atlas_links.append(AtlasLink(_label(ds), ds["code"], str(exc.get("atlas key") or ""), provider, exc["atlas code"], exc.get("atlas link") or "fixed", exc.get("atlas check") or ""))
-            elif mode and exc.get("atlas activity code"):
+            # an alternative inside the Atlas (prefer_atlas) goes before a proxy's fixed atlas code
+            if mode and exc.get("atlas activity code"):
                 plant = mode == "plant" and exc.get("atlas plant code")
                 prefix, code, kind, check = (
                     ("atlas plant ", exc["atlas plant code"], "pinned", exc.get("atlas plant check")) if plant
@@ -153,6 +150,12 @@ def install_multifunctional(
                 exc["input"] = (name, code)
                 provider = f"{exc[f'{prefix}activity']} | {exc[f'{prefix}reference product']}"
                 report.atlas_links.append(AtlasLink(_label(ds), ds["code"], str(exc.get("atlas key") or ""), provider, code, kind, check or ""))
+            elif exc.get("atlas code"):  # a market's supplier, link.dataset, a proxy
+                # a proxy's alternative left out (prefer_atlas=False) is not what its link and check describe
+                fixed = ("fixed", "") if exc.get("atlas activity code") else (exc.get("atlas link") or "fixed", exc.get("atlas check") or "")
+                exc["input"] = (name, exc["atlas code"])
+                provider = f"{exc.get('name')} | {exc.get('reference product', '')}"
+                report.atlas_links.append(AtlasLink(_label(ds), ds["code"], str(exc.get("atlas key") or ""), provider, exc["atlas code"], *fixed))
             if exc["type"] == "production" and ds["type"] != "multifunctional":
                 exc["input"] = (name, ds["code"])  # a single-output process makes its own product
             ds["exchanges"].append(exc)

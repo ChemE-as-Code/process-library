@@ -1,0 +1,307 @@
+# Utility dataset of the process library (process-library#45), Tier 1 form (core#182).
+# Every amount is the `formula` of its `parameters`; core's lci_dataset validator re-checks each.
+# Physical properties and stoichiometry have their source; design parameters are ASSUMED with a
+# TODO to source them. Property parameters were evaluated with CoolProp 8.0.0. Change a
+# parameter and the amounts of its formulas together (core and tests/test_utilities.py check them).
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: cooling-tower-evaporative-25-35
+title: Heat rejection in an evaporative cooling tower, 25/35 degC
+description: Per 1 MWh of heat rejected from cooling water supplied at 25 degC and returned at 35 degC,
+  in a mechanical-draught wet cooling tower. Make-up water, evaporation, drift and blowdown follow from
+  the tower's air-side energy balance at an ASSUMED ambient state.
+basis: 1000 kWh of heat rejected from the circulating cooling water
+boundary: 'gate-to-gate: cooling tower, basin, circulating pumps; make-up withdrawn from nature, blowdown
+  to wastewater treatment'
+technology: mechanical-draught evaporative (wet) cooling tower, open recirculating system
+geography:
+  description: 'Generic: one ASSUMED ambient state (20 degC, 60 % RH). Evaporation per kWh changes with
+    the climate.'
+classification:
+  isic: '3600'
+system_boundary:
+  included:
+  - make-up water as a water resource
+  - evaporation and drift to air
+  - blowdown to wastewater treatment
+  - pump and fan electricity
+  excluded:
+  - 'TODO water treatment chemicals (biocide, scale and corrosion inhibitor, acid for pH): the dosing
+    programme is not sourced; the acceptance criterion of #45 needs them'
+  - raw-water pretreatment (clarification, softening) of the make-up
+  - the dissolved solids and biocide residues carried by drift and blowdown
+  - infrastructure (tower, basin, fill)
+  cutoff: none applied; the excluded flows are not quantified (TODO)
+  infrastructure: excluded
+  non_routine: excluded
+uuid: 307fe45e-d6c5-5d7c-9600-3b2de11edc11
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+location: GLO
+year: 2026
+valid_until: 2031
+time:
+  start: 2026
+  description: Design parameters of 2026 (ASSUMED); physical properties do not age.
+technology_level: current
+modelling:
+  principle: attributional
+  multifunctionality: 'single output: no allocation'
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: q
+  value: 1000.0
+  unit: kWh
+  description: Heat rejected from the circulating water (the basis).
+  source: basis
+- name: h_w_supply
+  value: 104.92
+  unit: kJ/kg
+  description: Enthalpy of cooling water supplied at 25 degC.
+  source: IAPWS-95 (Wagner and Pruss 2002, J. Phys. Chem. Ref. Data 31:387), evaluated with CoolProp 8.0.0
+    (Bell et al. 2014, Ind. Eng. Chem. Res. 53:2498); 25 degC supply ASSUMED, as ASU-1's 25/35 degC (processes/asu-1/process.yaml)
+- name: h_w_return
+  value: 146.72
+  unit: kJ/kg
+  description: Enthalpy of cooling water returned at 35 degC.
+  source: IAPWS-95 (Wagner and Pruss 2002, J. Phys. Chem. Ref. Data 31:387), evaluated with CoolProp 8.0.0
+    (Bell et al. 2014, Ind. Eng. Chem. Res. 53:2498); 35 degC return ASSUMED, as ASU-1
+- name: h_mu
+  value: 63.077
+  unit: kJ/kg
+  description: Enthalpy of make-up water at 15 degC.
+  source: IAPWS-95 (Wagner and Pruss 2002, J. Phys. Chem. Ref. Data 31:387), evaluated with CoolProp 8.0.0
+    (Bell et al. 2014, Ind. Eng. Chem. Res. 53:2498); 15 degC ASSUMED
+- name: h_air_in
+  value: 42.3751
+  unit: kJ/kg dry air
+  description: Enthalpy of ambient air, 20 degC, 60 % RH, 1.01325 bar.
+  source: humid air, ASHRAE RP-1485 (Herrmann, Kretzschmar and Gatley 2009), evaluated with CoolProp 8.0.0
+    (Bell et al. 2014); the ambient state is ASSUMED (a temperate design day), TODO the site's design
+    wet bulb
+- name: w_air_in
+  value: 0.008773
+  unit: kg/kg dry air
+  description: Humidity ratio of ambient air at that state.
+  source: humid air, ASHRAE RP-1485 (Herrmann, Kretzschmar and Gatley 2009), evaluated with CoolProp 8.0.0
+    (Bell et al. 2014)
+- name: v_air_in
+  value: 0.84183
+  unit: m3/kg dry air
+  description: Specific volume of ambient air at that state.
+  source: humid air, ASHRAE RP-1485 (Herrmann, Kretzschmar and Gatley 2009), evaluated with CoolProp 8.0.0
+    (Bell et al. 2014)
+- name: h_air_out
+  value: 100.0105
+  unit: kJ/kg dry air
+  description: Enthalpy of air leaving saturated at 30 degC.
+  source: humid air, ASHRAE RP-1485 (Herrmann, Kretzschmar and Gatley 2009), evaluated with CoolProp 8.0.0
+    (Bell et al. 2014); leaving saturated at 30 degC ASSUMED (5 K below the return water), TODO from a
+    tower rating
+- name: w_air_out
+  value: 0.0273329
+  unit: kg/kg dry air
+  description: Humidity ratio of saturated air at 30 degC.
+  source: humid air, ASHRAE RP-1485 (Herrmann, Kretzschmar and Gatley 2009), evaluated with CoolProp 8.0.0
+    (Bell et al. 2014)
+- name: cycles
+  value: 4.0
+  unit: '1'
+  description: Cycles of concentration (make-up TDS / blowdown TDS).
+  source: 'ASSUMED: set by make-up water quality and the treatment programme; 4 is a placeholder. TODO:
+    source, or set per site.'
+- name: drift
+  value: 0.0001
+  unit: kg/kg circulating
+  description: Drift as a fraction of the circulating water.
+  source: 'ASSUMED: a tower with drift eliminators. TODO: source.'
+- name: head
+  value: 30.0
+  unit: m
+  description: Circulating pump head (tower lift, exchangers, piping).
+  source: 'ASSUMED: a site cooling water loop. TODO: take from a hydraulic design.'
+- name: eta_pump
+  value: 0.75
+  unit: '1'
+  description: Circulating pump and motor efficiency.
+  source: 'ASSUMED: large centrifugal pump. TODO: source.'
+- name: dp_fan
+  value: 150.0
+  unit: Pa
+  description: Fan static pressure rise (fill, drift eliminator, inlet).
+  source: 'ASSUMED: mechanical-draught tower. TODO: source.'
+- name: eta_fan
+  value: 0.6
+  unit: '1'
+  description: Fan, gearbox and motor efficiency.
+  source: 'ASSUMED: axial fan. TODO: source.'
+- name: g
+  value: 9.80665
+  unit: m/s2
+  description: Standard acceleration of gravity.
+  source: standard acceleration of gravity, 9.80665 m/s2 (3rd CGPM 1901; BIPM SI Brochure, 9th ed.)
+exchanges:
+- key: product:heat-rejected
+  title: Heat rejected to cooling water, 25/35 degC
+  type: product
+  amount: 1000.0
+  unit: kWh
+  formula: q
+  provenance: given
+  carrier:
+    kind: cold
+    temperature: 25.0
+    source: 'operating range: cooling water supplied at 25 degC, returned at 35 degC; serves a duty that
+      needs water at 25 degC or warmer, refused below (build_lci.py carrier_refusal)'
+- key: resource:water
+  title: Make-up water withdrawn (untreated raw water)
+  type: resource
+  amount: 1570.555743575829
+  unit: kg
+  formula: (q * 3600) / ((h_air_out - h_air_in) - (w_air_out - w_air_in) * h_mu * cycles / (cycles - 1)
+    + (w_air_out - w_air_in) / (cycles - 1) * h_w_supply) * (w_air_out - w_air_in) * cycles / (cycles
+    - 1)
+  provenance: assumed
+  origin: estimate
+  cas: 7732-18-5
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 831f249e-53f2-49cf-a93c-7cee105f048e
+    name: Water, unspecified natural origin
+    categories:
+    - natural resource
+    - in water
+    unit: m3
+    per_unit: 0.001
+  source: 'evaporation + blowdown + drift = evaporation x cycles / (cycles - 1); raw-water pretreatment
+    not counted; biosphere3 UUID, name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml:
+    ecoinvent elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree: &id001
+    scores:
+    - 4
+    - 4
+    - 3
+    - 4
+    - 4
+    reason: 'derived by a mass or energy balance from ASSUMED design parameters (see parameters): reliability
+      4 (qualified estimate), completeness 4, temporal 3, geographical 4 (generic site), technological
+      4 (generic technology); no better than the Tier 1 floor'
+  basic_uncertainty: 1.05
+- key: emission:H2O-evaporation
+  title: Water evaporated to air
+  type: emission
+  amount: 1177.9168076818717
+  unit: kg
+  formula: (q * 3600) / ((h_air_out - h_air_in) - (w_air_out - w_air_in) * h_mu * cycles / (cycles - 1)
+    + (w_air_out - w_air_in) / (cycles - 1) * h_w_supply) * (w_air_out - w_air_in)
+  provenance: assumed
+  origin: estimate
+  cas: 7732-18-5
+  flow: &id002
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 075e433b-4be4-448e-9510-9a5029c1ce94
+    name: Water
+    categories:
+    - air
+    unit: m3
+    per_unit: 0.001
+  source: 'dry air flow x (w_out - w_in); the dry air flow from the tower''s energy balance; biosphere3
+    UUID, name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent
+    elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree: *id001
+  basic_uncertainty: 1.5
+- key: emission:H2O-drift
+  title: Drift (droplets) to air
+  type: emission
+  amount: 8.61244019138756
+  unit: kg
+  formula: q * 3600 / (h_w_return - h_w_supply) * drift
+  provenance: assumed
+  origin: estimate
+  cas: 7732-18-5
+  flow: *id002
+  source: 'drift fraction of the circulating water (its dissolved solids and biocide not counted); biosphere3
+    UUID, name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent
+    elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree: *id001
+  basic_uncertainty: 1.5
+- key: output:blowdown
+  title: Blowdown to wastewater treatment
+  type: output
+  amount: 384.02649570256966
+  unit: kg
+  formula: (q * 3600) / ((h_air_out - h_air_in) - (w_air_out - w_air_in) * h_mu * cycles / (cycles - 1)
+    + (w_air_out - w_air_in) / (cycles - 1) * h_w_supply) * (w_air_out - w_air_in) / (cycles - 1) - q
+    * 3600 / (h_w_return - h_w_supply) * drift
+  provenance: assumed
+  origin: estimate
+  link:
+    factor: wastewater
+    source: site wastewater treatment
+  source: evaporation / (cycles - 1) - drift
+  pedigree: *id001
+  basic_uncertainty: 1.05
+- key: feed:electricity
+  title: Circulating pumps and tower fans
+  type: input
+  amount: 13.094584584162575
+  unit: kWh
+  formula: (q * 3600 / (h_w_return - h_w_supply) * g * head / eta_pump + (q * 3600) / ((h_air_out - h_air_in)
+    - (w_air_out - w_air_in) * h_mu * cycles / (cycles - 1) + (w_air_out - w_air_in) / (cycles - 1) *
+    h_w_supply) * v_air_in * dp_fan / eta_fan) / 3600000
+  provenance: assumed
+  origin: estimate
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: 'pump: m g H / eta with the circulating flow from q / (h_return - h_supply); fan: air volume
+    x dp / eta'
+  pedigree: *id001
+  basic_uncertainty: 1.05
+provenance:
+  generator: hand-written utility model (process-library#45); amounts are the formulas of the parameters
+  notes: Every parameter states its source or ASSUMED with a TODO; no value from a licensed database.
+generation:
+  tier: 1
+  method: 'utility model: mass and energy balance of the unit from physical properties and stoichiometry,
+    with ASSUMED design parameters (each listed in parameters)'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 3
+  - 4
+  - 3
+  - 3
+  - 3
+  dqr_floor: 3.0
+  components:
+    resource:water: H2O
+    emission:H2O-evaporation: H2O
+    emission:H2O-drift: H2O
+    output:blowdown: H2O
+  formulas:
+    resource:water: H2O
+    emission:H2O-evaporation: H2O
+    emission:H2O-drift: H2O
+    output:blowdown: H2O
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      H:
+      - 175.75578013
+      - 175.75578013
+      O:
+      - 1394.799963445
+      - 1394.799963445
+    outside:
+    - feed:electricity
+    - product:heat-rejected

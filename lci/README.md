@@ -202,7 +202,8 @@ Decisions for ASU-1:
   aluminium (primary ingot), concrete (m3), zeolite for the adsorbent, lubricating oil, lorry
   transport.
 - **Screening proxies** where the dataset counts a flow in a unit ecoinvent has no activity for:
-  cooling water as heat rejected (0.01 kWh electricity per kWh), pipe per m (20 kg steel), fittings
+  cooling water as heat rejected (0.01 kWh electricity per kWh; kept on it until ASU-1 decides
+  its cooling configuration, see Library utilities), pipe per m (20 kg steel), fittings
   per piece (15 kg steel), grating per m2 (30 kg steel), insulation per m2 (2 kg aluminium
   cladding; insulant not yet counted). The masses are assumptions chosen to be plausible and
   consistent with the example factors.
@@ -220,6 +221,54 @@ Decisions for ASU-1:
 
 The background names follow ecoinvent 3.11 conventions but have **not** been checked against a
 licensed copy here; `install()` reports any that do not link.
+
+## Library utilities
+
+Site utilities and end-of-pipe treatment are ordinary library processes (process-library#45),
+so every process links to the same documented models instead of its own proxy:
+
+| process | dataset, per | operating range |
+|---|---|---|
+| `utility-steam-ng-boiler` | saturated steam, natural-gas boiler, kg | steam at 11 bar(a) or below, heat up to 184 degC |
+| `utility-cooling-tower` | heat rejected, evaporative tower, kWh | cooling water at 25 degC supply or warmer |
+| `utility-wwtp` | wastewater, activated sludge, kg (1 m3 = 1000 kg) | a fixed design COD of 1 kg/m3 (ASSUMED) |
+| `utility-flare` | gas flared, as methane, kg | methane-rich gas |
+| `utility-chiller` | cold, chilled water, kWh | 6 degC or warmer |
+| `utility-instrument-air` | dry instrument air, 8 bar(a), kg | 8 bar(a) (not checked yet) |
+
+- **Where they live.** `processes/utility-*`, not a separate `utilities/` tree: both builders
+  find processes as `processes/*/process.yaml`, the Atlas URL is the folder id, the taxonomy
+  already has the families (`steam-and-heat`, `utilities`, `wastewater-treatment`,
+  `waste-treatment`, ISIC 3530, 3600, 3700, 3821) and `coverage.yaml` names covering processes
+  by id. A `utility-` prefix keeps them together without a second discovery path.
+- **Datasets.** Manifest-only processes with one hand-written `lca/datasets/*.yaml` each, in
+  core's Tier 1 form (core#182): every amount is a `formula` of the dataset's `parameters`, the
+  element balance is recorded and closed, maturity is `concept`. Physical properties and
+  stoichiometry have their sources; every design parameter (efficiencies, cycles of
+  concentration, heads, yields, the ambient state) is **ASSUMED** with a TODO, so the datasets
+  are first-principles screening models with pedigree `[4, 4, 3, 4, 4]`. What each leaves out is
+  in its `system_boundary.excluded` and README (e.g. NOx of the boiler, cooling-water chemicals,
+  N2O of the WWTP, the chiller's refrigerant losses).
+- **Linking: Atlas first, background as the alternative.** Each utility product has a registry
+  slug of kind `utility` (`steam`, `cooling-water`, `wastewater`, `flare-gas`, `chilled-water`,
+  `instrument-air`). A consumer's input of one, and also its *output* of a utility service (heat
+  to cooling water, wastewater, gas to the flare), names the Atlas utility as `atlas activity`, so
+  `install(prefer_atlas=True)` links it there; with `prefer_atlas=False` it keeps the background
+  mapping of `technosphere:` (unit proxies convert kg of steam, gas and wastewater to the
+  background's MJ and m3). An `exchanges:` override with `atlas: false` keeps an exchange on its
+  background. Provider profiles that select a background per study (core#168) do not exist yet.
+- **Operating range.** A utility product states its level as a `carrier` (steam pressure, cold
+  temperature). An exchange whose own `carrier` is outside it is not linked to the utility: the
+  build warns (failing `--strict`) and keeps the background; an explicit `link.dataset` outside the
+  range is an error (`carrier_refusal`: steam serves steam at its pressure or below and heat up to
+  its temperature; cold serves a need at its temperature or warmer). An exchange without a
+  carrier is not checked. Core's carriers (core#177) describe energy only, so a gas product's
+  pressure (instrument air) is not checked yet.
+- **Nitrogen** needs no utility dataset: a consumer's `nitrogen` input links ASU-1's GANP (or
+  LIN, by the grade it names) with `prefer_atlas`, and merchant LIN in the background otherwise.
+- **ASU-1** keeps its cooling-water screening proxy (`exchanges: asu-1/product:CW: atlas:
+  false`) until it decides its site's cooling configuration; removing the override links it to
+  the cooling tower, with its make-up water resource.
 
 ## Governance fields and deprecated datasets
 

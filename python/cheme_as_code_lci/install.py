@@ -362,7 +362,9 @@ def install(
                 exc["location"] = report.location
             if exc.get("type") == "production":
                 continue
-            if exc.get("database") == name and exc.get("atlas code"):  # a market's supplier, link.dataset
+            # a market's supplier, link.dataset (an exchange on an Atlas proxy that names an Atlas
+            # activity, such as wastewater to the utility's treatment, is an alternative below)
+            if exc.get("database") == name and exc.get("atlas code") and not exc.get("atlas activity"):
                 provider = f"{exc.get('name')} | {exc.get('reference product', '')}"
                 report.atlas_links.append(AtlasLink(_label(ds), code, str(exc.get("atlas key") or ""), provider, exc["atlas code"], exc.get("atlas link") or "fixed", exc.get("atlas check") or ""))
             elif mode and exc.get("atlas activity"):

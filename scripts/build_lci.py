@@ -816,6 +816,9 @@ class Linker:
     mappings: dict
     db_name: str
     registry: set[str]
+    #: registry slugs of kind ``utility``: an output of one (heat to cooling water, wastewater to
+    #: treatment) is a service another Atlas process may provide, so it may link inside the Atlas
+    utilities: set[str] = field(default_factory=set)
     #: chemical slug -> [(process id, activity row)] of every Atlas activity that makes it
     producers: dict[str, list[tuple[str, dict]]] = field(default_factory=dict)
     #: (path, product key) -> activity row, for link.dataset
@@ -913,6 +916,9 @@ class Linker:
             row = self.by_dataset.get((ref["path"], product))
             if row is None:
                 raise BuildError(f"{where}: link.dataset {ref['path']}#{product} is not an exported Atlas dataset of this library")
+            refusal = carrier_refusal(exchange.get("carrier"), row.get("carrier"))
+            if refusal:
+                raise BuildError(f"{where}: link.dataset {ref['path']}#{product} is outside its operating range: {refusal}")
             return "technosphere", {**self._own(row), "atlas location rule": "fixed", "atlas code": row["code"], "atlas link": "pinned"}
 
         chemical = _chemical(process, exchange, self.mappings, self.registry)
@@ -975,15 +981,21 @@ class Linker:
         return {"name": row["name"], "reference product": row["reference product"], "unit": row["unit"], "location": row["location"], "database": self.db_name}
 
     def atlas_alternative(self, process: Process, exchange: dict, unit: str, location: str | None = None) -> AtlasChoice | None:
-        """The Atlas activity this input links to with ``prefer_atlas``: the market of its grade
+        """The Atlas activity this exchange links to with ``prefer_atlas``: the market of its grade
         (``markets.choose``) when one exists, else the plant; and the plant beside a market, for
-        pinning. Plants are the producers of the input's chemical in other processes, a producer
-        of the grade the input names first, then by process id and name (deterministic; the
-        other candidates are reported, so that a second producer never replaces the first
-        silently). A producer of another grade than the one the input names is refused."""
-        if exchange["type"] != "input":
-            return None
+        pinning. The exchange is an input, or an output of a utility (a service such as cooling
+        or wastewater treatment), unless its override in the mappings says ``atlas: false``.
+        Plants are the producers of the exchange's chemical in other processes, a producer of the
+        grade the input names first (then only producers of that grade compete), then by process
+        id and name (deterministic; the other candidates are reported, so that a second producer
+        never replaces the first silently). A producer of another grade than the one the input
+        names is refused."""
         chemical = _chemical(process, exchange, self.mappings, self.registry)
+        if not (exchange["type"] == "input" or (exchange["type"] == "output" and chemical in self.utilities)):
+            return None
+        override = self.mappings["exchanges"].get(f"{process.pid}/{exchange['key']}") or self.mappings["exchanges"].get(exchange["key"]) or {}
+        if override.get("atlas") is False:
+            return None
         wanted = process.grades.get(exchange["key"])
         candidates, refused = [], []
         for pid, row in self.producers.get(chemical or "", []):
@@ -997,6 +1009,9 @@ class Linker:
         candidates.sort(key=lambda c: (c[1].get("deprecated", False), not wanted or c[1].get("grade") != wanted, c[0], c[1]["name"]))
         if not candidates:
             return AtlasChoice(None, None, [], refused) if refused else None
+        if wanted and candidates[0][1].get("grade") == wanted:
+            # the grade decides: only other producers of the same grade compete
+            candidates = [c for c in candidates if c[1].get("grade") == wanted]
         plant = candidates[0][1]
         others = candidates[1:]
         grade = wanted or plant.get("grade")
@@ -1006,11 +1021,12 @@ class Linker:
             row = None
         return AtlasChoice(row or plant, plant if row else None, others, refused, [m.code for m in unchosen] if market is None else [])
 
-    def check(self, chemical: str | None, wanted: str | None, provider: dict, kind: str) -> dict:
+    def check(self, chemical: str | None, wanted: str | None, provider: dict, kind: str, need: dict | None = None) -> dict:
         """Compatibility of an Atlas-to-Atlas link (core#168): the provider's reference product
         grade and state, unit, system model, allocation and boundary. *kind* is ``market``,
         ``plant`` (no market of the grade), ``pinned`` (link.dataset), ``supply`` (a market's
-        producer) or ``import`` (a consumption mix's other market)."""
+        producer) or ``import`` (a consumption mix's other market). *need* is the consumer's
+        carrier, checked against the provider's (a utility's operating range)."""
         checks: dict[str, dict] = {}
         ref = f"{provider['chemical']}/{provider['grade']}" if provider.get("grade") else provider.get("chemical") or provider["reference product"]
         if provider.get("chemical") and chemical and provider["chemical"] != chemical:
@@ -1024,6 +1040,9 @@ class Linker:
         else:
             checks["grade"] = {"status": "mismatch", "text": f"{ref}, the input is {chemical}/{wanted}"}
         checks["unit"] = {"status": "ok", "text": provider["unit"]}
+        if need and provider.get("carrier"):
+            refusal = carrier_refusal(need, provider["carrier"])
+            checks["carrier"] = {"status": "mismatch", "text": refusal} if refusal else {"status": "ok", "text": f"{_carrier_text(need)} from {_carrier_text(provider['carrier'])}"}
         checks["system_model"] = {"status": "ok", "text": f"{self.model} (one database)"}
         if provider.get("market"):
             datasets = [self.datasets[c] for c in provider["suppliers"] if c in self.datasets]
@@ -1039,6 +1058,8 @@ class Linker:
             checks["boundary"] = {"status": "ok", "text": f"delivered ({provider['layer']}, {provider['location']}: transport and losses included)"}
         elif kind == "supply":
             checks["boundary"] = {"status": "ok", "text": "plant gate, into the market"}
+        elif provider.get("chemical") in self.utilities and kind == "plant":
+            checks["boundary"] = {"status": "note", "text": "plant gate of a site utility: no utility market yet (docs/markets.md)"}
         elif kind == "pinned":
             checks["boundary"] = {"status": "note", "text": "plant gate (pinned): no distribution or losses; the consumer's dataset counts its delivery"}
         else:
@@ -1123,6 +1144,38 @@ def _carrier_text(carrier: dict | None) -> str:
     return ", ".join(parts)
 
 
+def carrier_refusal(need: dict | None, supply: dict | None) -> str | None:
+    """Why a utility product with carrier *supply* cannot serve an exchange with carrier *need*,
+    or None when it can or when either states no carrier (then there is nothing to check).
+
+    The supply is a level: steam at its pressure serves steam at that pressure or below (let
+    down, never raised) and heat up to its temperature; heat serves heat up to its temperature;
+    cold (chilled or cooling water) serves a need at its temperature or warmer. Other kinds serve
+    only their own kind."""
+    if not need or not supply:
+        return None
+    nk, sk = need.get("kind"), supply.get("kind")
+
+    def above(field: str, unit: str) -> str | None:
+        n, s = need.get(field), supply.get(field)
+        if n is not None and s is not None and n > s:
+            return f"{nk} at {n:g} {unit} is above the supply's {s:g} {unit}"
+        return None
+
+    if sk == "steam" and nk == "steam":
+        return above("pressure", "bar(a)") or above("temperature", "degC")
+    if sk in ("steam", "heat") and nk == "heat":
+        return above("temperature", "degC")
+    if sk == "cold" and nk == "cold":
+        n, s = need.get("temperature"), supply.get("temperature")
+        if n is not None and s is not None and n < s:
+            return f"cold at {n:g} degC is below the supply's {s:g} degC"
+        return None
+    if nk != sk:
+        return f"a {nk} exchange cannot take {sk}"
+    return None
+
+
 def _state_text(state: dict | None) -> str:
     """A product's state as one line: phase, pressure, temperature, purity, grade."""
     if not state:
@@ -1169,6 +1222,7 @@ def _product_rows(process: Process, dataset: Dataset, products: reg.Registry, al
                 "chemical": chemical,
                 "grade": grade,
                 "state": _state_text(exchange.get("state")),
+                "carrier": exchange.get("carrier"),
                 "deprecated": bool(dataset.data.get("superseded_by")),
                 "superseded_by": _successor_text(dataset.successor, exchange["key"]) if dataset.successor else None,
             }
@@ -1384,7 +1438,8 @@ class Built:
 def build_activities(processes: list[Process], mappings: dict, products: reg.Registry, db_name: str, commit: str | None, version: str, report: Report, model: str = "cutoff", excluded_log: list[dict] | None = None, markets: list[mk.Market] | None = None, public: bool = False) -> Built:
     """*mappings* is the profile of *model* (``profile()``); every exchange the cut-off model
     excludes is appended to *excluded_log*."""
-    linker = Linker(mappings, db_name, set(products.chemicals), model=model, markets=list(markets or []))
+    utilities = {slug for slug, entry in products.chemicals.items() if entry.get("kind") == "utility"}
+    linker = Linker(mappings, db_name, set(products.chemicals), utilities=utilities, model=model, markets=list(markets or []))
     excluded_log = [] if excluded_log is None else excluded_log
     links: list[dict] = []
     rows_by_process: dict[str, list[tuple[Dataset, dict]]] = {}
@@ -1465,10 +1520,11 @@ def build_activities(processes: list[Process], mappings: dict, products: reg.Reg
                 if kind == "biosphere":
                     entry["categories"] = "::".join(target["categories"])
                 elif target.get("atlas link") == "pinned":
-                    # an input linked explicitly (link.dataset) has chosen its producer
+                    # an exchange linked explicitly (link.dataset) has chosen its producer (its carrier was
+                    # checked in resolve); one mapped to a proxy may still prefer an Atlas producer
                     provider = linker.rows[target["atlas code"]]
                     chemical = _chemical(process, exchange, mappings, linker.registry)
-                    check = linker.check(chemical, process.grades.get(exchange["key"]), provider, "pinned")
+                    check = linker.check(chemical, process.grades.get(exchange["key"]), provider, "pinned", exchange.get("carrier"))
                     entry["atlas check"] = check["text"]
                     links.append(_link(row, exchange, provider, "pinned", check))
                 else:
@@ -1502,6 +1558,8 @@ def build_activities(processes: list[Process], mappings: dict, products: reg.Reg
             }
             if row.get("state"):
                 metadata["atlas product state"] = row["state"]
+            if row.get("carrier"):
+                metadata["atlas carrier"] = _carrier_text(row["carrier"])
             if dataset.successor:
                 metadata["atlas superseded by"] = _successor_text(dataset.successor, row["key"])
             activities.append(Activity(row, comment, metadata, exchanges))
@@ -1562,17 +1620,26 @@ def link_atlas(linker: Linker, process: Process, exchange: dict, row: dict, entr
         links.append({"consumer": row["code"], "key": exchange["key"], "provider": None, "kind": "refused", "plant": None, "compatible": False,
                       "checks": {"grade": {"status": "mismatch", "text": "; ".join(choice.refused)}}})
         return
+    # a utility serves only within its operating range: the chosen target's carrier (a market's,
+    # else that of the plant beside it) must cover the exchange's
+    supply = choice.target.get("carrier") or (choice.plant or {}).get("carrier")
+    refusal = carrier_refusal(exchange.get("carrier"), supply)
+    if refusal:
+        warn(f"not linked inside the Atlas: {choice.target['name']} is outside its operating range ({refusal}); the background mapping is used")
+        links.append({"consumer": row["code"], "key": exchange["key"], "provider": None, "kind": "refused", "plant": None, "compatible": False,
+                      "checks": {"carrier": {"status": "mismatch", "text": f"{choice.target['code']}: {refusal}"}}})
+        return
     market = choice.target if choice.target.get("market") else None
     outside = [(pid, other) for pid, other in choice.others if not market or other["code"] not in market["suppliers"]]
     if outside:
         used = f"{market['code']} is used, and does not take" if market else f"{choice.target['name']} is used, not"
         warn(f"several Atlas producers: {used} {', '.join(f'{pid}: {other['name']}' for pid, other in outside)}; link one explicitly (link.dataset) to choose")
     kind = "market" if market else "plant"
-    if market is None:
+    if market is None and chemical not in linker.utilities:  # a site utility has no market yet (docs/markets.md)
         product = f"{chemical}/{choice.target['grade']}" if choice.target.get("grade") else chemical
         regions = f" (several markets, none for {row['location']}: {', '.join(choice.unchosen)})" if choice.unchosen else ""
         warn(f"no market of {product}{regions}: the Atlas link goes to the plant gate of {choice.target['name']} (no distribution or losses); add a market in markets/{chemical}.yaml (docs/markets.md)")
-    check = linker.check(chemical, wanted, choice.target, kind)
+    check = linker.check(chemical, wanted, choice.target, kind, exchange.get("carrier"))
     if not check["compatible"]:
         warn(f"Atlas link to {choice.target['code']}: {check['text']}")
     entry.update({
@@ -1580,7 +1647,7 @@ def link_atlas(linker: Linker, process: Process, exchange: dict, row: dict, entr
         "atlas code": choice.target["code"], "atlas link": kind, "atlas check": check["text"],
     })
     if choice.plant is not None:
-        plant_check = linker.check(chemical, wanted, choice.plant, "pinned")
+        plant_check = linker.check(chemical, wanted, choice.plant, "pinned", exchange.get("carrier"))
         entry.update({
             "atlas plant activity": choice.plant["name"], "atlas plant reference product": choice.plant["reference product"],
             "atlas plant location": choice.plant["location"], "atlas plant code": choice.plant["code"], "atlas plant check": plant_check["text"],
@@ -2265,7 +2332,7 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
     workbook_format = {"name": xlsx_name, "format": "bw2io ExcelImporter workbook", "format_version": "bw2io 0.9 Excel layout", "mediatype": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}
 
     def activity_list(rows: list[dict]) -> list[dict]:
-        return [{"code": r["code"], "name": r["name"], "reference_product": r["reference product"], "unit": r["unit"], "location": r["location"], **({"chemical": r["chemical"], "grade": r["grade"]} if "chemical" in r else {}), **({"state": r["state"]} if r.get("state") else {}), **({"superseded_by": r["superseded_by"]} if r.get("superseded_by") else {})} for r in rows]
+        return [{"code": r["code"], "name": r["name"], "reference_product": r["reference product"], "unit": r["unit"], "location": r["location"], **({"chemical": r["chemical"], "grade": r["grade"]} if "chemical" in r else {}), **({"state": r["state"]} if r.get("state") else {}), **({"carrier": r["carrier"]} if r.get("carrier") else {}), **({"superseded_by": r["superseded_by"]} if r.get("superseded_by") else {})} for r in rows]
 
     process_entries = []
     for process in processes:
