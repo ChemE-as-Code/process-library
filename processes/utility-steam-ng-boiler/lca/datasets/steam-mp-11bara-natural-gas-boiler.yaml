@@ -1,0 +1,378 @@
+# Utility dataset of the process library (process-library#45), Tier 1 form (core#182).
+# Every amount is the `formula` of its `parameters`; core's lci_dataset validator re-checks each.
+# Physical properties and stoichiometry have their source; design parameters are ASSUMED with a
+# TODO to source them. Property parameters were evaluated with CoolProp 8.0.0. Change a
+# parameter and the amounts of its formulas together (core and tests/test_utilities.py check them).
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: steam-mp-11bara-natural-gas-boiler
+title: Steam, saturated, 11 bar(a), from a natural-gas boiler
+description: 'Per 1 t of saturated steam at 11 bar(a) from a natural-gas fired boiler, make-up water at
+  15 degC (no condensate return). Gate-to-gate: boiler, deaerator and feed pump.'
+basis: 1000 kg of saturated steam at 11 bar(a)
+boundary: 'gate-to-gate: boiler, burner and fan, deaerator, feed pump; feedwater from outside, blowdown
+  to wastewater treatment'
+technology: natural-gas fired steam boiler, no economiser credit, no condensate return
+geography:
+  description: 'Generic: no site data. Electricity, natural gas and water link to the site''s background
+    (install location).'
+classification:
+  isic: '3530'
+system_boundary:
+  included:
+  - fuel and its combustion CO2 and water
+  - feedwater (make-up) and blowdown
+  - feed pump and combustion air fan electricity
+  excluded:
+  - 'TODO NOx, CO, CH4 slip, N2O and particulates of combustion: no open emission factor read yet (core#176);
+    the dataset is complete for fossil CO2 only'
+  - 'TODO boiler water chemicals (oxygen scavenger, phosphate or polymer, amines): dosing not sourced'
+  - deaerator vent steam and heat losses beyond the boiler efficiency
+  - 'condensate return: every kg of steam is made from make-up water (a site that returns condensate needs
+    a variant)'
+  - infrastructure (boiler, stack, buildings)
+  cutoff: none applied; the excluded flows are not quantified (TODO), not cut by the 1 % criteria
+  infrastructure: excluded
+  catalysts: excluded
+  non_routine: excluded
+uuid: 32a4d48f-f0ee-5f32-890c-0046c2026a41
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+location: GLO
+year: 2026
+valid_until: 2031
+time:
+  start: 2026
+  description: Design parameters of 2026 (ASSUMED); physical properties do not age.
+technology_level: current
+modelling:
+  principle: attributional
+  multifunctionality: 'single output: no allocation'
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: steam
+  value: 1000.0
+  unit: kg
+  description: Steam delivered (the basis).
+  source: basis
+- name: p_steam
+  value: 11.0
+  unit: bar(a)
+  description: Steam pressure at the boiler outlet, saturated (MP level).
+  source: 'ASSUMED: a common medium-pressure header level (10 barg) chosen as the first level of the library.
+    TODO: add LP and HP levels as further datasets.'
+- name: t_sat
+  value: 184.062
+  unit: degC
+  description: Saturation temperature at p_steam.
+  source: IAPWS-95 (Wagner and Pruss 2002, J. Phys. Chem. Ref. Data 31:387), evaluated with CoolProp 8.0.0
+    (Bell et al. 2014, Ind. Eng. Chem. Res. 53:2498)
+- name: h_g
+  value: 2780.648
+  unit: kJ/kg
+  description: Enthalpy of saturated vapour at p_steam.
+  source: IAPWS-95 (Wagner and Pruss 2002, J. Phys. Chem. Ref. Data 31:387), evaluated with CoolProp 8.0.0
+    (Bell et al. 2014, Ind. Eng. Chem. Res. 53:2498)
+- name: h_f
+  value: 781.028
+  unit: kJ/kg
+  description: Enthalpy of saturated liquid at p_steam (the blowdown).
+  source: IAPWS-95 (Wagner and Pruss 2002, J. Phys. Chem. Ref. Data 31:387), evaluated with CoolProp 8.0.0
+    (Bell et al. 2014, Ind. Eng. Chem. Res. 53:2498)
+- name: h_mu
+  value: 63.077
+  unit: kJ/kg
+  description: Enthalpy of make-up water at 15 degC, 1.01325 bar.
+  source: IAPWS-95 (Wagner and Pruss 2002, J. Phys. Chem. Ref. Data 31:387), evaluated with CoolProp 8.0.0
+    (Bell et al. 2014, Ind. Eng. Chem. Res. 53:2498); 15 degC is ASSUMED
+- name: blowdown
+  value: 0.03
+  unit: kg/kg feedwater
+  description: Continuous blowdown as a fraction of feedwater.
+  source: 'ASSUMED: set by feedwater quality and the boiler''s water limits; 3 % is a placeholder within
+    the range boiler practice works in. TODO: source from an open boiler-practice reference or BREF LCP,
+    or derive from feedwater TDS and the boiler limit.'
+- name: eta
+  value: 0.9
+  unit: '1'
+  description: Boiler efficiency, heat to steam and blowdown per fuel LHV.
+  source: 'ASSUMED: a modern natural-gas fired shell or water-tube boiler without condensing economiser.
+    TODO: source (BREF LCP or a published boiler test).'
+- name: lhv
+  value: 50010.0
+  unit: kJ/kg
+  description: Lower heating value of the fuel, natural gas taken as pure methane.
+  source: chemicals/chemicals.yaml methane lhv 50.01 MJ/kg (derived from CODATA 1989 and NIST-JANAF enthalpies
+    of formation); pure methane is ASSUMED for natural gas, TODO a sourced pipeline-gas composition
+- name: M_CH4
+  value: 16.043
+  unit: g/mol
+  description: Molar mass of methane.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    as chemicals/chemicals.yaml
+- name: M_O2
+  value: 31.998
+  unit: g/mol
+  description: Molar mass of oxygen.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    as chemicals/chemicals.yaml
+- name: M_CO2
+  value: 44.009
+  unit: g/mol
+  description: Molar mass of carbon dioxide.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    as chemicals/chemicals.yaml
+- name: M_H2O
+  value: 18.015
+  unit: g/mol
+  description: Molar mass of water.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    as chemicals/chemicals.yaml
+- name: v_mu
+  value: 0.0010009
+  unit: m3/kg
+  description: Specific volume of make-up water at 15 degC.
+  source: IAPWS-95 (Wagner and Pruss 2002, J. Phys. Chem. Ref. Data 31:387), evaluated with CoolProp 8.0.0
+    (Bell et al. 2014, Ind. Eng. Chem. Res. 53:2498)
+- name: dp_pump
+  value: 11.0
+  unit: bar
+  description: Feed pump pressure rise.
+  source: 'ASSUMED: steam pressure plus about 1 bar for the boiler''s own losses, from the deaerator at
+    atmospheric pressure. TODO: take from a boiler design.'
+- name: eta_pump
+  value: 0.6
+  unit: '1'
+  description: Feed pump and motor efficiency.
+  source: 'ASSUMED: small multistage pump. TODO: source.'
+- name: air_per_o2
+  value: 4.32123
+  unit: kg/kg
+  description: Dry air per kg of O2.
+  source: 'dry-air composition and molar mass of chemicals/chemicals.yaml (U.S. Standard Atmosphere 1976):
+    28.9644 / (0.209476 x 31.998)'
+- name: excess_air
+  value: 0.15
+  unit: '1'
+  description: Combustion air above stoichiometric.
+  source: 'ASSUMED: a gas burner with oxygen trim. TODO: source.'
+- name: rho_air
+  value: 1.22498
+  unit: kg/m3
+  description: Density of dry air at 15 degC, 1.01325 bar.
+  source: ideal gas, R = 8.314462618 J/(mol K) (CODATA 2018), M = 28.9644 g/mol
+- name: dp_fan
+  value: 2500.0
+  unit: Pa
+  description: Forced-draught fan pressure rise.
+  source: 'ASSUMED: burner, furnace and flue gas path of a packaged boiler. TODO: source.'
+- name: eta_fan
+  value: 0.65
+  unit: '1'
+  description: Fan and motor efficiency.
+  source: 'ASSUMED: centrifugal fan. TODO: source.'
+exchanges:
+- key: product:steam
+  title: Steam, saturated, 11 bar(a)
+  type: product
+  amount: 1000.0
+  unit: kg
+  formula: steam
+  provenance: given
+  carrier:
+    kind: steam
+    pressure: 11.0
+    temperature: 184.06
+    level: MP
+    source: 'operating range: serves steam at 11 bar(a) or below (let down) and heat up to 184 degC; refused
+      above (build_lci.py carrier_refusal)'
+  state:
+    phase: gas
+    pressure: 11.0
+    temperature: 184.06
+    component: H2O
+    grade: saturated steam, 11 bar(a)
+- key: feed:feedwater
+  title: Boiler feedwater (demineralised make-up, no condensate return)
+  type: input
+  amount: 1030.9278350515465
+  unit: kg
+  formula: steam / (1 - blowdown)
+  provenance: assumed
+  origin: estimate
+  link:
+    factor: water
+    source: demineralised water; the library has no demineralised water dataset yet (#45)
+  source: steam plus blowdown; deaerator vent losses not counted
+  pedigree: &id001
+    scores:
+    - 4
+    - 4
+    - 3
+    - 4
+    - 4
+    reason: 'derived by a mass or energy balance from ASSUMED design parameters (see parameters): reliability
+      4 (qualified estimate), completeness 4, temporal 3, geographical 4 (generic site), technological
+      4 (generic technology); no better than the Tier 1 floor'
+  basic_uncertainty: 1.05
+- key: feed:natural-gas
+  title: Natural gas (as methane) to the burner
+  type: input
+  amount: 60.87172943418189
+  unit: kg
+  formula: (steam * (h_g - h_mu) + (steam / (1 - blowdown)) * blowdown * (h_f - h_mu)) / (eta * lhv)
+  provenance: assumed
+  origin: estimate
+  link:
+    factor: natural-gas
+    source: natural gas, by mass (lci/mappings.yaml natural-gas)
+  carrier:
+    kind: fuel
+    lhv: 50.01
+    composition: pure methane (ASSUMED for natural gas)
+  source: heat to steam (h_g - h_mu) and blowdown (h_f - h_mu), divided by efficiency and LHV
+  pedigree: *id001
+  basic_uncertainty: 1.05
+- key: feed:O2
+  title: Combustion oxygen, from ambient air
+  type: input
+  amount: 242.8191234102041
+  unit: kg
+  formula: (steam * (h_g - h_mu) + (steam / (1 - blowdown)) * blowdown * (h_f - h_mu)) / (eta * lhv) *
+    2 * M_O2 / M_CH4
+  provenance: assumed
+  origin: estimate
+  free: true
+  source: CH4 + 2 O2 -> CO2 + 2 H2O; ambient air is free and not inventoried (its N2 and excess O2 pass
+    through)
+- key: feed:electricity
+  title: Feed pump and forced-draught fan
+  type: input
+  amount: 1.577887927051801
+  unit: kWh
+  formula: ((steam / (1 - blowdown)) * v_mu * dp_pump * 100000 / eta_pump + (steam * (h_g - h_mu) + (steam
+    / (1 - blowdown)) * blowdown * (h_f - h_mu)) / (eta * lhv) * 2 * M_O2 / M_CH4 * air_per_o2 * (1 +
+    excess_air) / rho_air * dp_fan / eta_fan) / 3600000
+  provenance: assumed
+  origin: estimate
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: 'pump: v dp / eta; fan: combustion air volume x dp / eta (flue gas recirculation, controls and
+    lighting not counted)'
+  pedigree: *id001
+  basic_uncertainty: 1.05
+- key: emission:CO2
+  title: CO2 from combustion
+  type: emission
+  amount: 166.98273020438265
+  unit: kg
+  formula: (steam * (h_g - h_mu) + (steam / (1 - blowdown)) * blowdown * (h_f - h_mu)) / (eta * lhv) *
+    M_CO2 / M_CH4
+  provenance: assumed
+  origin: estimate
+  cas: 124-38-9
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 349b29d1-3e58-4c66-98b9-9d1a076efd2e
+    name: Carbon dioxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: 'complete combustion of methane, CH4 + 2 O2 -> CO2 + 2 H2O (ASSUMED complete); biosphere3 UUID,
+    name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent
+    elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree: *id001
+  basic_uncertainty: 1.05
+- key: emission:H2O
+  title: Water vapour from combustion
+  type: emission
+  amount: 136.70812264000335
+  unit: kg
+  formula: (steam * (h_g - h_mu) + (steam / (1 - blowdown)) * blowdown * (h_f - h_mu)) / (eta * lhv) *
+    2 * M_H2O / M_CH4
+  provenance: assumed
+  origin: estimate
+  cas: 7732-18-5
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 075e433b-4be4-448e-9510-9a5029c1ce94
+    name: Water
+    categories:
+    - air
+    unit: m3
+    per_unit: 0.001
+  source: 'combustion water, CH4 + 2 O2 -> CO2 + 2 H2O; biosphere3 UUID, name and categories from core''s
+    elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent elementary exchanges 3.9 via bw2io
+    0.9.17, BSD-3-Clause)'
+  pedigree: *id001
+  basic_uncertainty: 1.5
+- key: output:blowdown
+  title: Boiler blowdown to wastewater treatment
+  type: output
+  amount: 30.927835051546392
+  unit: kg
+  formula: (steam / (1 - blowdown)) * blowdown
+  provenance: assumed
+  origin: estimate
+  link:
+    factor: wastewater
+    source: site wastewater treatment
+  source: blowdown fraction of feedwater; its heat is lost (no flash recovery)
+  pedigree: *id001
+  basic_uncertainty: 1.05
+provenance:
+  generator: hand-written utility model (process-library#45); amounts are the formulas of the parameters
+  notes: Every parameter states its source or ASSUMED with a TODO; no value from a licensed database.
+generation:
+  tier: 1
+  method: 'utility model: mass and energy balance of the unit from physical properties and stoichiometry,
+    with ASSUMED design parameters (each listed in parameters)'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 3
+  - 4
+  - 3
+  - 3
+  - 3
+  dqr_floor: 3.0
+  components:
+    feed:feedwater: H2O
+    feed:natural-gas: CH4
+    feed:O2: O2
+    emission:CO2: CO2
+    emission:H2O: H2O
+    output:blowdown: H2O
+    product:steam: H2O
+  formulas:
+    feed:feedwater: H2O
+    feed:natural-gas: CH4
+    feed:O2: O2
+    emission:CO2: CO2
+    emission:H2O: H2O
+    output:blowdown: H2O
+    product:steam: H2O
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      C:
+      - 45.573168499
+      - 45.573168499
+      H:
+      - 130.666338646
+      - 130.666338646
+      O:
+      - 1158.379180751
+      - 1158.379180751
+    outside:
+    - feed:electricity

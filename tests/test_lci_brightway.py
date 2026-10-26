@@ -304,3 +304,51 @@ def test_install_links_flows_by_uuid_writes_pedigree_and_reports_the_system_mode
     }
     assert flows[0]["uncertainty type"] == 2
     assert node["atlas superseded by"].endswith(":fixture-electrolysis-2:product:H2")
+
+
+# --- library utilities (#45): Atlas links, the water resource, the background alternative ----------
+
+UTILITY_STUB = {
+    ("market for electricity, medium voltage", "electricity, medium voltage", "kilowatt hour", "DE"): (0.4, 1),
+    ("market for water, deionised", "water, deionised", "kilogram", "RoW"): (0.001, 1),
+    ("market for natural gas, high pressure", "natural gas, high pressure", "cubic meter", "DE"): (0.3, 1),
+    ("treatment of wastewater, average, wastewater treatment", "wastewater, average", "cubic meter", "RoW"): (0.5, -1),
+}
+
+
+def test_utilities_install_link_inside_the_atlas_and_carry_the_water_resource(project, tmp_path: Path) -> None:
+    co2 = project
+    library = tmp_path / "library"
+    for folder in ("chemicals", "lci"):
+        shutil.copytree(KIT / folder, library / folder)
+    for manifest in sorted((KIT / "processes").glob("utility-*/process.yaml")):
+        shutil.copytree(manifest.parent, library / "processes" / manifest.parent.name)
+    out = tmp_path / "out"
+    assert build_lci.build(library, out, "ut").errors == []
+    _stub_background("stub-utilities", co2, UTILITY_STUB)
+    _drop("cheme-as-code-atlas-ut")
+    db = "cheme-as-code-atlas-ut"
+
+    result = install(out / "lci", background="stub-utilities")
+    assert result.unlinked == [], result.summary()
+    assert len(result.atlas_links) == 5  # boiler, tower, air blowdown/condensate to the WWTP; chiller, air heat to the tower
+    assert result.biosphere_by_uuid >= 1
+    tower_code = "utility-cooling-tower:cooling-tower-evaporative-25-35:product:heat-rejected"
+    tower = bd.get_node(database=db, code=tower_code)
+    water = [e for e in tower.biosphere() if e.input["name"] == "Water, unspecified natural origin"]
+    assert len(water) == 1 and water[0].input["code"] == "831f249e-53f2-49cf-a93c-7cee105f048e"
+
+    def amounts(pid: str) -> dict[str, float]:
+        (path,) = (KIT / "processes" / pid / "lca" / "datasets").glob("*.yaml")
+        return {e["key"]: e["amount"] for e in yaml.safe_load(path.read_text())["exchanges"]}
+
+    t, w = amounts("utility-cooling-tower"), amounts("utility-wwtp")
+    wwtp_per_kg = (w["feed:electricity"] * 0.4 + w["emission:CO2"]) / w["product:wastewater"]
+    expected = (t["feed:electricity"] * 0.4 + t["output:blowdown"] * wwtp_per_kg) / t["product:heat-rejected"]
+    assert _score(tower_code, db) == pytest.approx(expected, rel=1e-6)
+
+    # the background alternative: the blowdown goes through the unit proxy to the stub's treatment
+    again = install(out / "lci", background="stub-utilities", prefer_atlas=False, overwrite=True)
+    assert again.ok and again.atlas_links == [] and again.sign_flipped
+    background = (t["feed:electricity"] * 0.4 + t["output:blowdown"] * 0.001 * 0.5) / t["product:heat-rejected"]
+    assert _score(tower_code, db) == pytest.approx(background, rel=1e-6)

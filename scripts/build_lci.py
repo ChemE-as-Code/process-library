@@ -956,6 +956,9 @@ class Linker:
         )
         if not candidates:
             return None, []
+        if wanted and candidates[0][1].get("grade") == wanted:
+            # the grade decides: only other producers of the same grade compete
+            candidates = [c for c in candidates if c[1].get("grade") == wanted]
         return candidates[0][1], [f"{pid}: {row['name']}" for pid, row in candidates[1:]]
 
 
@@ -1317,21 +1320,23 @@ def build_activities(processes: list[Process], mappings: dict, products: reg.Reg
                 if kind == "biosphere":
                     entry["categories"] = "::".join(target["categories"])
                 else:
-                    alternative, others = linker.atlas_alternative(process, exchange, target["unit"])
+                    # an exchange linked explicitly (link.dataset) has chosen its producer; one
+                    # mapped to a proxy (also in this database) may still prefer an Atlas producer
+                    explicit = bool((exchange.get("link") or {}).get("dataset"))
+                    alternative, others = (None, []) if explicit else linker.atlas_alternative(process, exchange, target["unit"])
                     refusal = carrier_refusal(exchange.get("carrier"), alternative.get("carrier")) if alternative else None
-                    if refusal and target.get("database") != db_name:
+                    if refusal:
                         report.warn(
                             f"{process.pid}: {exchange['key']}",
                             f"not linked inside the Atlas: {alternative['name']} is outside its operating range ({refusal}); the background mapping is used",
                         )
                         alternative, others = None, []
-                    # an input linked explicitly (link.dataset) has chosen its producer
-                    if others and target.get("database") != db_name:
+                    if others:
                         report.warn(
                             f"{process.pid}: {exchange['key']}",
                             f"several Atlas producers: {alternative['name']} is used, not {', '.join(others)}; link one explicitly (link.dataset) to choose",
                         )
-                    if alternative is not None and target.get("database") != db_name:
+                    if alternative is not None:
                         entry.update({"atlas activity": alternative["name"], "atlas reference product": alternative["reference product"], "atlas location": alternative["location"]})
                 entry.update(_uncertainty(exchange, amount))
                 kind_of = (exchange.get("uncertainty") or {}).get("distribution", "lognormal")
