@@ -19,6 +19,26 @@ checked by [`cheme-as-code`](https://github.com/ChemE-as-Code/core).
 | `scripts/` | generator scripts: the source of generated sheets (`generator:` in `plant.yaml`), provenance for the others |
 | `.claude/skills/` | how an agent works here |
 
+## LCA results and what they compare
+
+Per 1 t GOXP (pipeline GOX at 30 barg), cradle-to-gate, exergy allocation between GOX, GAN, LOX
+and LIN; a partial screening carbon footprint (18 gaps in construction, maintenance,
+consumables and end-of-life credits, listed in `lca/gaps.csv`). The values are those of
+`lca/results.md` (`cheme assess lca --write`), which governs. Only the electricity and the
+cooling water change between the scenarios; construction, transport and materials stay on the
+UK (DESNZ) factors in all three.
+
+| scenario | electricity background | kg CO2e per t GOXP | comparability with the baseline |
+|---|---|---|---|
+| baseline | UK grid, DESNZ 2026: at the consumer, T&D and well-to-tank included (proxy for an undecided site, D-092) | 66.7 | reference |
+| nl-grid | NL, EEA ENER038 2024: direct emissions per kWh of gross generation | 88.3 | **not comparable** (basis differs) |
+| de-grid | DE, EEA ENER038 2024: direct emissions per kWh of gross generation | 104.7 | **not comparable** (basis differs) |
+
+The NL and DE values are screening sensitivities of the grid, not like-for-like country
+footprints, and nothing here has independent industrial validation (DESIGN.md D-107, D-110).
+The verdicts follow core's comparison basis (core#318); the generated records carry them once
+regenerated after it is merged.
+
 ## Working here
 
 ```sh
