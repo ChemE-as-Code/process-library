@@ -16,8 +16,9 @@ single-output activity per 1 unit of its reference product. It carries
   background link target by name (database, name, reference product, location, location rule),
   Atlas-internal links by code, and for elementary flows the biosphere3 UUID and compartment;
 - ``used_by``: the activities of the database that link to this one;
-- ``closure``: the dataset's mass, element and energy balance as ``lca/manifest.json`` records
-  it (``balance``, core#174), or ``status: not-assessed`` with the reason;
+- ``closure``: ``status: assessed`` with the dataset's mass, element and energy balance as
+  ``lca/manifest.json`` records it (``balance``, core#174), or ``status: not-assessed`` with the
+  reason;
 - ``citation`` (DOI null until a release is deposited, docs/governance.md) and ``downloads``:
   the database files of this build that hold the activity, with the code to select it;
 - ``publication``: ``public`` or ``preview`` (``publication.py``). A ``--public`` build holds
@@ -74,7 +75,7 @@ def _closure(library: Path, process: Any, dataset: Any) -> dict:
         return {"status": "not-assessed", "reason": "lca/manifest.json records no balance yet (written by cheme assess lca once core#174 is in)"}
     if balance.get("dataset") not in (None, dataset.data["id"]):
         return {"status": "not-assessed", "reason": f"lca/manifest.json records the balance of {balance.get('dataset')}, not of this dataset"}
-    return {"status": "assessed", "source": CLOSURE_SOURCE, **balance}
+    return {"status": "assessed", "source": CLOSURE_SOURCE, "balance": balance}
 
 
 def _classification(process: Any, dataset: Any, row: dict, products: Any, families: dict[str, dict]) -> dict:
@@ -150,6 +151,7 @@ def entries(activities: list, proxies: list, processes: list, products: Any, fam
         doc = dataset.data
         product = products.chemicals.get(row.get("chemical") or "") or {}
         share = dataset.shares.get(row["key"])
+        share = None if share is None else float(f"{share:.12g}")  # as build_lci._number writes the dataset's shares
         version_text = str(doc.get("version") or "0.1.0")
         authors = [a.get("name") for a in process.manifest.get("authors") or [] if isinstance(a, dict) and a.get("name")]
         out.append(

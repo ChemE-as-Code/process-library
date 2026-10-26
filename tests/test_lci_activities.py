@@ -79,7 +79,7 @@ def test_entry_documents_header_allocation_provenance_pedigree_and_links(library
     assert h2["activity_uuid"] is None  # the library assigns none; never invented
     assert h2["system_model"] == {"id": "cutoff", "label": "attributional, cut-off"}
     dataset = package["processes"][1]["datasets"][0]
-    assert h2["allocation"]["method"] == "mass" and h2["allocation"]["share"] == pytest.approx(dataset["allocation"]["shares"]["product:H2"])
+    assert h2["allocation"]["method"] == "mass" and h2["allocation"]["share"] == dataset["allocation"]["shares"]["product:H2"]
     assert h2["header"]["geography"]["location"] == "GLO"
     assert h2["citation"]["doi"] is None and H2 in h2["citation"]["text"]
     by_key = {e["key"]: e for e in h2["exchanges"]}
@@ -122,7 +122,7 @@ def test_closure_comes_from_the_manifest_balance_or_says_why_not(library: Path, 
     balance = {"dataset": "fixture-electrolysis", "status": {"lci-mass-balance": "closed"}, "tolerance": 0.05, "mass": {"unit": "kg", "residual": 0.0}}
     manifest.write_text(json.dumps({"balance": balance}), encoding="utf-8")
     entries = {e["code"]: e for e in _package(library, tmp_path / "b")["activities"]}
-    assert entries[H2]["closure"] == {"status": "assessed", "source": "lca/manifest.json balance (core#174)", **balance}
+    assert entries[H2]["closure"] == {"status": "assessed", "source": "lca/manifest.json balance (core#174)", "balance": balance}
     manifest.write_text(json.dumps({"balance": {**balance, "dataset": "another"}}), encoding="utf-8")
     entries = {e["code"]: e for e in _package(library, tmp_path / "c")["activities"]}
     assert entries[H2]["closure"]["status"] == "not-assessed"
