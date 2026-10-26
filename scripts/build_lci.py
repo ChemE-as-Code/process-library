@@ -779,6 +779,9 @@ class Linker:
     mappings: dict
     db_name: str
     registry: set[str]
+    #: registry slugs of kind ``utility``: an output of one (heat to cooling water, wastewater to
+    #: treatment) is a service another Atlas process may provide, so it may link inside the Atlas
+    utilities: set[str] = field(default_factory=set)
     #: chemical slug -> [(process id, activity row)] of every Atlas activity that makes it
     producers: dict[str, list[tuple[str, dict]]] = field(default_factory=dict)
     #: (path, product key) -> activity row, for link.dataset
@@ -869,6 +872,9 @@ class Linker:
             row = self.by_dataset.get((ref["path"], product))
             if row is None:
                 raise BuildError(f"{where}: link.dataset {ref['path']}#{product} is not an exported Atlas dataset of this library")
+            refusal = carrier_refusal(exchange.get("carrier"), row.get("carrier"))
+            if refusal:
+                raise BuildError(f"{where}: link.dataset {ref['path']}#{product} is outside its operating range: {refusal}")
             return "technosphere", {**self._own(row), "atlas location rule": "fixed"}
 
         chemical = _chemical(process, exchange, self.mappings, self.registry)
@@ -933,10 +939,15 @@ class Linker:
     def atlas_alternative(self, process: Process, exchange: dict, unit: str) -> tuple[dict | None, list[str]]:
         """The Atlas activity of another process that makes this input's chemical, and the other
         candidates when several do (the first by process id and name is taken: deterministic,
-        and reported, so that a second producer never replaces the first silently)."""
-        if exchange["type"] != "input":
-            return None, []
+        and reported, so that a second producer never replaces the first silently). An input, or
+        an output of a utility (a service such as cooling or wastewater treatment), unless its
+        override in the mappings says ``atlas: false``."""
         chemical = _chemical(process, exchange, self.mappings, self.registry)
+        if not (exchange["type"] == "input" or (exchange["type"] == "output" and chemical in self.utilities)):
+            return None, []
+        override = self.mappings["exchanges"].get(f"{process.pid}/{exchange['key']}") or self.mappings["exchanges"].get(exchange["key"]) or {}
+        if override.get("atlas") is False:
+            return None, []
         # a current producer of the grade the input names comes first (a deprecated dataset's last), then by process id and name
         wanted = process.grades.get(exchange["key"])
         candidates = sorted(
@@ -1010,6 +1021,38 @@ def _carrier_text(carrier: dict | None) -> str:
     return ", ".join(parts)
 
 
+def carrier_refusal(need: dict | None, supply: dict | None) -> str | None:
+    """Why a utility product with carrier *supply* cannot serve an exchange with carrier *need*,
+    or None when it can or when either states no carrier (then there is nothing to check).
+
+    The supply is a level: steam at its pressure serves steam at that pressure or below (let
+    down, never raised) and heat up to its temperature; heat serves heat up to its temperature;
+    cold (chilled or cooling water) serves a need at its temperature or warmer. Other kinds serve
+    only their own kind."""
+    if not need or not supply:
+        return None
+    nk, sk = need.get("kind"), supply.get("kind")
+
+    def above(field: str, unit: str) -> str | None:
+        n, s = need.get(field), supply.get(field)
+        if n is not None and s is not None and n > s:
+            return f"{nk} at {n:g} {unit} is above the supply's {s:g} {unit}"
+        return None
+
+    if sk == "steam" and nk == "steam":
+        return above("pressure", "bar(a)") or above("temperature", "degC")
+    if sk in ("steam", "heat") and nk == "heat":
+        return above("temperature", "degC")
+    if sk == "cold" and nk == "cold":
+        n, s = need.get("temperature"), supply.get("temperature")
+        if n is not None and s is not None and n < s:
+            return f"cold at {n:g} degC is below the supply's {s:g} degC"
+        return None
+    if nk != sk:
+        return f"a {nk} exchange cannot take {sk}"
+    return None
+
+
 def _state_text(state: dict | None) -> str:
     """A product's state as one line: phase, pressure, temperature, purity, grade."""
     if not state:
@@ -1055,6 +1098,7 @@ def _product_rows(process: Process, dataset: Dataset, products: reg.Registry) ->
                 "chemical": chemical,
                 "grade": grade,
                 "state": _state_text(exchange.get("state")),
+                "carrier": exchange.get("carrier"),
                 "deprecated": bool(dataset.data.get("superseded_by")),
                 "superseded_by": _successor_text(dataset.successor, exchange["key"]) if dataset.successor else None,
             }
@@ -1197,7 +1241,8 @@ class Activity:
 def build_activities(processes: list[Process], mappings: dict, products: reg.Registry, db_name: str, commit: str | None, version: str, report: Report, model: str = "cutoff", excluded_log: list[dict] | None = None) -> tuple[list[Activity], list[Activity], dict[str, list[dict]]]:
     """*mappings* is the profile of *model* (``profile()``); every exchange the cut-off model
     excludes is appended to *excluded_log*."""
-    linker = Linker(mappings, db_name, set(products.chemicals), model=model)
+    utilities = {slug for slug, entry in products.chemicals.items() if entry.get("kind") == "utility"}
+    linker = Linker(mappings, db_name, set(products.chemicals), utilities=utilities, model=model)
     excluded_log = [] if excluded_log is None else excluded_log
     rows_by_process: dict[str, list[tuple[Dataset, dict]]] = {}
     for process in processes:
@@ -1273,6 +1318,13 @@ def build_activities(processes: list[Process], mappings: dict, products: reg.Reg
                     entry["categories"] = "::".join(target["categories"])
                 else:
                     alternative, others = linker.atlas_alternative(process, exchange, target["unit"])
+                    refusal = carrier_refusal(exchange.get("carrier"), alternative.get("carrier")) if alternative else None
+                    if refusal and target.get("database") != db_name:
+                        report.warn(
+                            f"{process.pid}: {exchange['key']}",
+                            f"not linked inside the Atlas: {alternative['name']} is outside its operating range ({refusal}); the background mapping is used",
+                        )
+                        alternative, others = None, []
                     # an input linked explicitly (link.dataset) has chosen its producer
                     if others and target.get("database") != db_name:
                         report.warn(
@@ -1310,6 +1362,8 @@ def build_activities(processes: list[Process], mappings: dict, products: reg.Reg
             }
             if row.get("state"):
                 metadata["atlas product state"] = row["state"]
+            if row.get("carrier"):
+                metadata["atlas carrier"] = _carrier_text(row["carrier"])
             if dataset.successor:
                 metadata["atlas superseded by"] = _successor_text(dataset.successor, row["key"])
             activities.append(Activity(row, comment, metadata, exchanges))
@@ -1748,7 +1802,7 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
     write_workbook(lci / xlsx_name, db_name, database_meta, activities, proxies, about)
 
     def activity_list(rows: list[dict]) -> list[dict]:
-        return [{"code": r["code"], "name": r["name"], "reference_product": r["reference product"], "unit": r["unit"], "location": r["location"], **({"chemical": r["chemical"], "grade": r["grade"]} if "chemical" in r else {}), **({"state": r["state"]} if r.get("state") else {}), **({"superseded_by": r["superseded_by"]} if r.get("superseded_by") else {})} for r in rows]
+        return [{"code": r["code"], "name": r["name"], "reference_product": r["reference product"], "unit": r["unit"], "location": r["location"], **({"chemical": r["chemical"], "grade": r["grade"]} if "chemical" in r else {}), **({"state": r["state"]} if r.get("state") else {}), **({"carrier": r["carrier"]} if r.get("carrier") else {}), **({"superseded_by": r["superseded_by"]} if r.get("superseded_by") else {})} for r in rows]
 
     process_entries = []
     for process in processes:
