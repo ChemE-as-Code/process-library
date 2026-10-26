@@ -5,8 +5,9 @@
 # entry by slug, which joins them in the Atlas graph (one "oxygen" node, whoever makes or uses
 # it). A product in a defined state and purity (GOX at 30 barg, LOX) is a grade of its
 # substance, `<slug>/<grade>`: the graph stays at the substance, the LCI export names the grade
-# as the reference product. A flow names its grade in process.yaml (`chemical: oxygen/lox`) or,
-# while its process.yaml cannot change, through `flow_grades` at the end of this file.
+# as the reference product. A flow names its grade in process.yaml (`chemical: oxygen/lox`). A
+# `flow_grades:` map ("<process-id>/<inventory_key>" -> "<slug>/<grade>", docs/registry.md) can
+# give the grade of a flow whose process.yaml cannot change in the same change; none is needed now.
 #
 # Every property value has a source; a derived value says how it was derived. No value from a
 # licensed database. Crosswalk names (ecoinvent, EF) are names only, not checked against a
@@ -223,12 +224,3 @@ chemicals:
       elemental_composition: {value: {H: 0.1119, O: 0.8881}, unit: kg/kg, source: derived from the formula and the IUPAC 2021 atomic weights}
       carbon_content: {value: 0, unit: kg/kg, source: derived from the formula (no carbon)}
       standard_chemical_exergy: {value: 0.9, unit: kJ/mol, conditions: "liquid; 9.5 kJ/mol as vapour", source: "Szargut, Morris and Steward (1988), model II"}
-
-# Grades of flows whose process.yaml names only the substance and cannot change in the same
-# change as the registry: "<process-id>/<inventory_key>" -> "<slug>/<grade>". A flow that names
-# its grade itself does not need an entry here (and must agree with one if both exist).
-flow_grades:
-  asu-1/product:GOXP: oxygen/gox-30barg-99.5
-  asu-1/product:GANP: nitrogen/gan-8barg-10ppm
-  asu-1/product:LOX: oxygen/lox
-  asu-1/product:LIN: nitrogen/lin

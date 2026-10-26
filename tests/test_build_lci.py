@@ -178,7 +178,7 @@ def test_asu_exports_four_exergy_allocated_activities(tmp_path: Path) -> None:
     assert asu["allocation"] == {"method": "exergy", "source": "mappings", "rule": "physical-exergy"}
     assert asu["datasets"][0]["allocation"]["follows_hierarchy"] is True
     assert asu["datasets"][0]["allocation"]["shares"]["product:GOXP"] == pytest.approx(0.701, abs=5e-4)
-    # the four products are distinct registry grades (chemicals.yaml flow_grades), named by them
+    # the four products are distinct registry grades (process.yaml `slug/grade`), named by them
     assert [a["reference_product"] for a in asu["activities"]] == [
         "Oxygen, gaseous, >= 99.5 mol%, 30 barg", "Nitrogen, gaseous, <= 10 ppm O2, 8 barg", "Oxygen, liquid", "Nitrogen, liquid"
     ]

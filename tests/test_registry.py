@@ -158,7 +158,7 @@ def test_registry_checks_find_the_problem(change, message: str) -> None:
 
 def test_flow_grades_must_name_a_known_grade() -> None:
     data = _yaml(REGISTRY)
-    data["flow_grades"]["asu-1/product:LOX"] = "oxygen/lox-unknown"
+    data.setdefault("flow_grades", {})["asu-1/product:LOX"] = "oxygen/lox-unknown"
     assert any("unknown grade oxygen/lox-unknown" in p for p in reg.check(reg.load(data)))
 
 
@@ -173,7 +173,7 @@ def test_a_registry_problem_fails_the_catalog_build(library: Path, tmp_path: Pat
 # --- grades ----------------------------------------------------------------------------------
 
 
-def test_asu_products_are_four_distinct_grades_without_touching_its_manifest() -> None:
+def test_asu_products_are_four_distinct_grades_named_in_its_manifest() -> None:
     products = reg.load(_yaml(REGISTRY))
     manifest = _yaml(ASU_MANIFEST)
     resolved = {}
@@ -188,6 +188,8 @@ def test_asu_products_are_four_distinct_grades_without_touching_its_manifest() -
         "product:LOX": "oxygen/lox",
         "product:LIN": "nitrogen/lin",
     }
+    # the manifest names the grades itself; the registry maps none of them (#77)
+    assert not [k for k in products.flow_grades if k.startswith("asu-1/")]
     # the emissions stay at the substance
     assert reg.flow_grade(products, "asu-1", {"chemical": "nitrogen", "inventory_key": "emission:N2"})[1] is None
 
