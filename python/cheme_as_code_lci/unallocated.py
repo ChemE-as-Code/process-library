@@ -23,8 +23,10 @@ allocation::
 Linking is the workbook installer's (``install``): biosphere3 UUIDs first, then name,
 categories and unit; background by name, reference product, unit and location; the plant site
 replaced by *location*; treatment links with their sign flipped; an input another Atlas process
-makes linked to that Atlas activity with *prefer_atlas*. Nothing is written unless everything
-links.
+makes linked to the Atlas activity the build chose (the market of its grade where one exists) with
+*prefer_atlas*, or to the plant with ``prefer_atlas="plant"``. The markets
+(``market:<product>:<region>``) are single-output processes, linked to their suppliers. Nothing is
+written unless everything links.
 """
 
 from __future__ import annotations
@@ -35,8 +37,11 @@ from pathlib import Path
 from cheme_as_code_lci.install import (
     DEFAULT_BACKGROUND,
     PEDIGREE_KEYS,
+    PREFER,
+    AtlasLink,
     InstallReport,
     _check_background,
+    _check_system_model,
     _label,
     _link_external,
     _sha256,
@@ -85,7 +90,7 @@ def install_multifunctional(
     background: str = DEFAULT_BACKGROUND,
     biosphere: str | None = None,
     location: str | None = None,
-    prefer_atlas: bool = True,
+    prefer_atlas: bool | str = True,
     overwrite: bool = False,
     expect: dict[str, str] | None = None,
     allocation: str | None = None,
@@ -98,6 +103,9 @@ def install_multifunctional(
     import bw2io as bi
     import multifunctional as mf
 
+    mode = "market" if prefer_atlas is True else prefer_atlas or None
+    if mode not in (None, *PREFER):
+        raise ValueError(f"prefer_atlas: {prefer_atlas!r} is not True, False, 'market' or 'plant'")
     path = resolve_multifunctional(path)
     data = json.loads(path.read_text(encoding="utf-8"))
     if data.get("schema") != SCHEMA:
@@ -116,6 +124,7 @@ def install_multifunctional(
         name, str(path), background, bio, location or default_site, location is None, prefer_atlas, verified=any((expect or {}).values()),
         system_model=str(meta.get("atlas system model") or ""), methodology_version=str(meta.get("atlas methodology version") or ""),
     )
+    _check_system_model(bd, background, report)
     importer = bi.importers.base_lci.LCIImporter(name)
     importer.data = []
     for process in data["processes"]:
@@ -131,11 +140,19 @@ def install_multifunctional(
                 exc["pedigree"] = dict(zip(PEDIGREE_KEYS, (int(x) for x in str(exc["atlas pedigree"]).split(",")), strict=True))
             if exc.get("atlas location rule") == "site":
                 exc["location"] = report.location
-            if exc.get("atlas code"):
+            if exc.get("atlas code"):  # a market's supplier, link.dataset
                 exc["input"] = (name, exc["atlas code"])
-            elif prefer_atlas and exc.get("atlas activity code"):
-                exc["input"] = (name, exc["atlas activity code"])
-                report.atlas_links.append(f"{_label(ds)} <- {exc['atlas activity']} | {exc['atlas reference product']}")
+                provider = f"{exc.get('name')} | {exc.get('reference product', '')}"
+                report.atlas_links.append(AtlasLink(_label(ds), ds["code"], str(exc.get("atlas key") or ""), provider, exc["atlas code"], exc.get("atlas link") or "fixed", exc.get("atlas check") or ""))
+            elif mode and exc.get("atlas activity code"):
+                plant = mode == "plant" and exc.get("atlas plant code")
+                prefix, code, kind, check = (
+                    ("atlas plant ", exc["atlas plant code"], "pinned", exc.get("atlas plant check")) if plant
+                    else ("atlas ", exc["atlas activity code"], exc.get("atlas link") or "plant", exc.get("atlas check"))
+                )
+                exc["input"] = (name, code)
+                provider = f"{exc[f'{prefix}activity']} | {exc[f'{prefix}reference product']}"
+                report.atlas_links.append(AtlasLink(_label(ds), ds["code"], str(exc.get("atlas key") or ""), provider, code, kind, check or ""))
             if exc["type"] == "production" and ds["type"] != "multifunctional":
                 exc["input"] = (name, ds["code"])  # a single-output process makes its own product
             ds["exchanges"].append(exc)
@@ -147,6 +164,9 @@ def install_multifunctional(
         for exc in ds["exchanges"]:
             if id(exc) in functional:
                 exc["input"] = ("__functional__", "")
+    for link in report.atlas_links:
+        if link.check and not link.compatible:
+            report.warnings.append(f"incompatible Atlas link: {link}")
     _link_external(bd, importer, background, bio, report)
     for ds in importer.data:
         for exc in ds["exchanges"]:

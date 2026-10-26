@@ -115,7 +115,8 @@ def test_jsonld_entities_load_with_olca_schema_and_references_resolve(fixture_bu
             else:
                 assert ref["@id"] in ids, (name, ref)
     with zipio.ZipReader(path) as reader:
-        assert len(reader.ids_of(o.Process)) == 2  # the electrolyser (H2 and O2, one multi-output process) and ammonia
+        # the electrolyser (H2 and O2, one multi-output process), ammonia and the hydrogen market
+        assert len(reader.ids_of(o.Process)) == 3
         assert all(reader.read_process(pid).exchanges for pid in reader.ids_of(o.Process))
 
 
@@ -124,7 +125,7 @@ def test_jsonld_allocation_gives_the_workbook_amounts_per_unit_of_each_product(f
     workbook = build_lci.read_workbook(fixture_build / "cheme-as-code-atlas-0.1.0.xlsx")
     checked = 0
     for name, data in entities.items():
-        if not name.startswith("processes/") or data["category"] == "ChemE-as-Code Atlas/proxies":
+        if not name.startswith("processes/") or data["category"] in ("ChemE-as-Code Atlas/proxies", "ChemE-as-Code Atlas/markets"):
             continue
         outputs = [e for e in data["exchanges"] if e["description"].startswith("Atlas key product:") and "; activity " in e["description"]]
         others = [e for e in data["exchanges"] if e not in outputs]
@@ -140,6 +141,42 @@ def test_jsonld_allocation_gives_the_workbook_amounts_per_unit_of_each_product(f
                 assert found[key] == pytest.approx(amount, rel=1e-9), (code, key)
                 checked += 1
     assert checked > 10
+
+
+def test_a_market_is_exported_and_inputs_linked_to_it_resolve(fixture_build: Path) -> None:
+    """markets/hydrogen.yaml of the fixture library: the market is a single-output process in
+    the JSON-LD package and in the multifunctional file; the ammonia's hydrogen input (linked to
+    the market) has the market's process as its default provider, and the market's supplier
+    exchange the electrolyser's multi-output process."""
+    entities = _entities(fixture_build / "cheme-as-code-atlas-0.1.0-olca-jsonld.zip")
+    processes = {d["@id"]: d for n, d in entities.items() if n.startswith("processes/")}
+    market_id = export_formats.atlas_uuid("process", "market:hydrogen:GLO")
+    market = processes[market_id]
+    assert market["category"] == "ChemE-as-Code Atlas/markets"
+    reference = next(e for e in market["exchanges"] if e.get("isQuantitativeReference"))
+    assert reference["flow"]["@id"] == export_formats.atlas_uuid("flow", "market:hydrogen:GLO") and reference["amount"] == 1.0
+    workbook = build_lci.read_workbook(fixture_build / "cheme-as-code-atlas-0.1.0.xlsx")
+    expected = {e["atlas key"]: e["amount"] for e in workbook["market:hydrogen:GLO"]["exchanges"] if e["type"] != "production"}
+    found = {ALLOCATION_KEY.match(e["description"]).group(1): e for e in market["exchanges"] if e is not reference}
+    assert {k: e["amount"] for k, e in found.items()} == pytest.approx(expected)
+    electrolyser = next(pid for pid, d in processes.items() if d["category"] == "ChemE-as-Code Atlas/fixture-electrolysis")
+    supply = [e for k, e in found.items() if k.startswith("supplier:")]
+    assert supply and all(e["defaultProvider"]["@id"] == electrolyser for e in supply)
+
+    ammonia = next(d for d in processes.values() if d["category"] == "ChemE-as-Code Atlas/fixture-ammonia")
+    hydrogen = [e for e in ammonia["exchanges"] if e.get("defaultProvider", {}).get("@id") == market_id]
+    assert len(hydrogen) == 1 and hydrogen[0]["isInput"] and hydrogen[0]["flow"]["@id"] == reference["flow"]["@id"]
+
+    data = json.loads((fixture_build / "cheme-as-code-atlas-0.1.0-multifunctional.json").read_text())
+    by_code = {p["code"]: p for p in data["processes"]}
+    mf_market = by_code["market:hydrogen:GLO"]
+    assert mf_market["type"] == "process" and mf_market["atlas market"] == "market:hydrogen:GLO"
+    suppliers = [e for e in mf_market["exchanges"] if str(e.get("atlas key", "")).startswith("supplier:")]
+    assert [e["atlas code"] for e in suppliers] == ["fixture-electrolysis:fixture-electrolysis:product:H2"]
+    taken = [e for e in by_code["fixture-ammonia:fixture-ammonia-hb:product:ammonia"]["exchanges"] if e.get("atlas activity code")]
+    assert [e["atlas activity code"] for e in taken] == ["market:hydrogen:GLO"] and "atlas code" not in taken[0]
+    every = {e[k] for p in data["processes"] for e in p["exchanges"] for k in ("atlas code", "atlas activity code", "atlas plant code") if e.get(k)}
+    assert every <= set(by_code) | {e["desired_code"] for p in data["processes"] for e in p["exchanges"] if e.get("desired_code")}
 
 
 def test_jsonld_identifiers(fixture_build: Path, tmp_path: Path) -> None:

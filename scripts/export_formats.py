@@ -10,8 +10,10 @@ Files (``<out>/lci/``):
 - ``<database>-olca-jsonld.zip``: an openLCA JSON-LD package (olca-schema 2, written with the
   ``olca-schema`` package). One **multi-output** unit process per dataset, with every co-product
   as an output, allocation factors and the build's method as the default allocation method, so
-  that openLCA's allocated result per unit of a product is the workbook's activity. The screening
-  proxies are single-output processes. Product flows of the Atlas, background product flows
+  that openLCA's allocated result per unit of a product is the workbook's activity. The markets
+  (``market:<product>:<region>``) and the screening proxies are single-output processes; an
+  exchange linked to an Atlas activity (a market's supplier, an input linked to a market or a
+  plant) has that activity's process as its default provider. Product flows of the Atlas, background product flows
   (by name, to map to your background), elementary flows and locations are included; units and
   flow properties are references to openLCA's reference data (their UUIDs come from
   ``olca_schema.units``), so the target database needs openLCA's reference units and flow
@@ -21,6 +23,7 @@ Files (``<out>/lci/``):
   co-product (mass for products in kg, exergy, energy, price: only the values the dataset or
   study states) and the build's share. ``cheme_as_code_lci.install_multifunctional`` installs
   it; allocating it with the build's method gives the workbook's activities, with their codes.
+  The markets and proxies are single-output processes under their activity codes.
 
 Identifiers (deterministic, documented in lci/README.md):
 
@@ -162,7 +165,8 @@ class _Olca:
             description.append(f"Chemical {row['chemical']}" + (f", grade {row['grade']}" if row.get("grade") else "") + ".")
         if row.get("state"):
             description.append(f"State: {row['state']}.")
-        category = "ChemE-as-Code Atlas/proxies" if code.startswith("proxy:") else f"ChemE-as-Code Atlas/{code.split(':', 1)[0]}"
+        kind = code.split(":", 1)[0]
+        category = {"proxy": "ChemE-as-Code Atlas/proxies", "market": "ChemE-as-Code Atlas/markets"}.get(kind, f"ChemE-as-Code Atlas/{kind}")
         return self.flow(atlas_uuid("flow", code), row["reference product"], o.FlowType.PRODUCT_FLOW, row["unit"], code, category, " ".join(description))
 
     def exchange_flow(self, entry: dict, where: str) -> tuple[o.Ref, o.Ref | None, str]:
@@ -281,7 +285,7 @@ def _documentation(dataset: dict, caveats: list[str]) -> o.ProcessDocumentation:
     return doc
 
 
-def build_jsonld(datasets: list[dict], proxies: list, activities: list, db_name: str, model: str, default: bool, site: str, header: list[str], caveats: list[str]) -> dict[str, bytes]:
+def build_jsonld(datasets: list[dict], proxies: list, markets: list, db_name: str, model: str, default: bool, site: str, header: list[str], caveats: list[str]) -> dict[str, bytes]:
     """The JSON-LD package as {path in the zip: bytes}."""
     builder = _Olca(db_name, model, default, site)
     # every Atlas activity's product flow and the process that provides it (a dataset's
@@ -291,10 +295,10 @@ def build_jsonld(datasets: list[dict], proxies: list, activities: list, db_name:
         for product in dataset["products"]:
             flow = builder.atlas_flow(product["code"], product)
             builder.atlas[_identity(product)] = (flow, o.Ref(ref_type=o.RefType.Process, id=pid, name=dataset["name"], location=dataset["location"]))
-    for proxy in proxies:
-        code = proxy.metadata["code"]
-        flow = builder.atlas_flow(code, proxy.row)
-        builder.atlas[_identity(proxy.row)] = (flow, o.Ref(ref_type=o.RefType.Process, id=_process_id(code, None, model, default), name=proxy.row["name"], location=proxy.row["location"]))
+    for single in [*markets, *proxies]:
+        code = single.row["code"]
+        flow = builder.atlas_flow(code, single.row)
+        builder.atlas[_identity(single.row)] = (flow, o.Ref(ref_type=o.RefType.Process, id=_process_id(code, None, model, default), name=single.row["name"], location=single.row["location"]))
 
     for dataset in datasets:
         where = dataset["path"]
@@ -335,19 +339,20 @@ def build_jsonld(datasets: list[dict], proxies: list, activities: list, db_name:
             process.default_allocation_method = method
         builder.add("processes", process)
 
-    for proxy in proxies:
-        code = proxy.metadata["code"]
-        where = f"proxies.{code}"
-        flow, _ = builder.atlas[_identity(proxy.row)]
-        unit, prop = builder.units(proxy.row["unit"], where)
-        reference = o.Exchange(internal_id=1, amount=1.0, flow=flow, unit=unit, flow_property=prop, is_input=False, is_quantitative_reference=True)
-        others = _exchanges(builder, proxy.exchanges[1:], where, 2)
-        process = o.Process(
-            id=_process_id(code, None, model, default), name=proxy.row["name"], category="ChemE-as-Code Atlas/proxies", process_type=o.ProcessType.UNIT_PROCESS,
-            location=builder.location(proxy.row["location"]), description="\n".join([*header, proxy.comment]), version="00.01.000", last_change=None,
-            exchanges=[reference, *others], last_internal_id=1 + len(others), process_documentation=_documentation({}, caveats),
-        )
-        builder.add("processes", process)
+    for folder, group in (("markets", markets), ("proxies", proxies)):
+        for single in group:
+            code = single.row["code"]
+            where = f"{folder}.{code}"
+            flow, _ = builder.atlas[_identity(single.row)]
+            unit, prop = builder.units(single.row["unit"], where)
+            reference = o.Exchange(internal_id=1, amount=1.0, flow=flow, unit=unit, flow_property=prop, is_input=False, is_quantitative_reference=True)
+            others = _exchanges(builder, single.exchanges[1:], where, 2)
+            process = o.Process(
+                id=_process_id(code, None, model, default), name=single.row["name"], category=f"ChemE-as-Code Atlas/{folder}", process_type=o.ProcessType.UNIT_PROCESS,
+                location=builder.location(single.row["location"]), description="\n".join([*header, single.comment]), version="00.01.000", last_change=None,
+                exchanges=[reference, *others], last_internal_id=1 + len(others), process_documentation=_documentation({}, caveats),
+            )
+            builder.add("processes", process)
 
     files = {"olca-schema.json": json.dumps({"version": 2}).encode("utf-8")}
     for (folder, eid), entity in sorted(builder.entities.items()):
@@ -382,16 +387,18 @@ def _strategy(dataset: dict) -> str:
     return "share"
 
 
-def build_multifunctional(datasets: list[dict], proxies: list, db_name: str, database_meta: dict, header: list[str], caveats: list[str]) -> dict:
+def build_multifunctional(datasets: list[dict], proxies: list, markets: list, db_name: str, database_meta: dict, header: list[str], caveats: list[str]) -> dict:
     """The multifunctional database as JSON-ready data. Exchanges keep the workbook's linking
-    fields; an exchange to an Atlas activity names its code in this database (``atlas code``,
-    ``atlas activity code``: the codes of the allocated activities are the workbook's)."""
+    fields; an exchange to an Atlas activity names its code in this database: ``atlas code`` for
+    an exchange linked inside the Atlas (a market's supplier, link.dataset), ``atlas activity
+    code`` for an input linked there with ``prefer_atlas`` (a market or a plant); the codes of the
+    allocated activities, the markets and the proxies are the workbook's."""
     codes = {}
     for dataset in datasets:
         for product in dataset["products"]:
             codes[_identity(product)] = product["code"]
-    for proxy in proxies:
-        codes[_identity(proxy.row)] = proxy.metadata["code"]
+    for single in [*markets, *proxies]:
+        codes[_identity(single.row)] = single.row["code"]
 
     def linked(entry: dict) -> dict:
         entry = dict(entry)
@@ -400,8 +407,13 @@ def build_multifunctional(datasets: list[dict], proxies: list, db_name: str, dat
         if entry.get("database") == db_name:
             entry["atlas code"] = codes[_identity(entry)]
             del entry["database"]
-        if entry.get("atlas activity"):
-            entry["atlas activity code"] = codes[(entry["atlas activity"], entry["atlas reference product"], entry["atlas location"], entry["unit"])]
+        elif entry.get("atlas activity"):
+            # linked to the Atlas only with prefer_atlas: its code is the alternative's, not a fixed link
+            code = codes[(entry["atlas activity"], entry["atlas reference product"], entry["atlas location"], entry["unit"])]
+            given = entry.pop("atlas code", None)
+            if given is not None and given != code:
+                raise FormatError(f"{entry.get('atlas key')}: atlas code {given} is not the code of {entry['atlas activity']} ({code})")
+            entry["atlas activity code"] = code
         return entry
 
     processes = []
@@ -434,13 +446,14 @@ def build_multifunctional(datasets: list[dict], proxies: list, db_name: str, dat
                 "exchanges": functional + [linked(e) for e in dataset["exchanges"]],
             }
         )
-    for proxy in proxies:
-        row = proxy.row
+    for single in [*markets, *proxies]:
+        row = single.row
         production = {"name": row["reference product"], "unit": row["unit"], "amount": 1.0, "type": "production", "functional": True}
+        own = {"atlas market": single.metadata["atlas market"], "atlas layer": single.metadata.get("atlas layer")} if single.metadata.get("atlas market") else {"atlas proxy": single.metadata.get("atlas proxy")}
         processes.append(
             {
                 "code": row["code"], "name": row["name"], "reference product": row["reference product"], "unit": row["unit"], "location": row["location"], "type": "process",
-                "comment": proxy.comment, "atlas proxy": proxy.metadata.get("atlas proxy"), "exchanges": [production] + [linked(e) for e in proxy.exchanges[1:]],
+                "comment": single.comment, **own, "exchanges": [production] + [linked(e) for e in single.exchanges[1:]],
             }
         )
     return {
@@ -458,14 +471,14 @@ def build_multifunctional(datasets: list[dict], proxies: list, db_name: str, dat
 # --- entry point ---------------------------------------------------------------------------------
 
 
-def write_formats(lci: Path, db_name: str, datasets: list[dict], activities: list, proxies: list, model: str, default: bool, site: str, database_meta: dict, header: list[str], caveats: list[str]) -> list[dict]:
+def write_formats(lci: Path, db_name: str, datasets: list[dict], markets: list, proxies: list, model: str, default: bool, site: str, database_meta: dict, header: list[str], caveats: list[str]) -> list[dict]:
     """Write the JSON-LD zip and the multifunctional JSON into *lci*; return their resource
     entries (name, format, format_version, mediatype) for datapackage.json and index.json.
     Raises FormatError when a dataset cannot be expressed."""
     jsonld = f"{db_name}-olca-jsonld.zip"
-    write_zip(lci / jsonld, build_jsonld(datasets, proxies, activities, db_name, model, default, site, header, caveats))
+    write_zip(lci / jsonld, build_jsonld(datasets, proxies, markets, db_name, model, default, site, header, caveats))
     multifunctional = f"{db_name}-multifunctional.json"
-    data = build_multifunctional(datasets, proxies, db_name, database_meta, header, caveats)
+    data = build_multifunctional(datasets, proxies, markets, db_name, database_meta, header, caveats)
     (lci / multifunctional).write_text(json.dumps(data, indent=2, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8")
     return [
         {"name": jsonld, "format": JSONLD_FORMAT, "format_version": JSONLD_FORMAT_VERSION, "written_with": OLCA_SCHEMA_PACKAGE, "mediatype": "application/zip"},

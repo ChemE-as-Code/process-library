@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import shutil
 import sys
 from pathlib import Path
@@ -24,6 +25,7 @@ ASU = FIXTURES / "asu-lca"
 DB = "cheme-as-code-atlas-0.1.0"
 H2 = "fixture-electrolysis:fixture-electrolysis:product:H2"
 NH3 = "fixture-ammonia:fixture-ammonia-hb:product:ammonia"
+H2_MARKET = "market:hydrogen:GLO"
 
 
 def _json(path: Path):
@@ -123,14 +125,15 @@ def test_workbook_follows_the_bw2io_excel_layout(library: Path, tmp_path: Path) 
     assert wb.properties.created.year == 2000 and wb.properties.modified.year == 2000
 
     activities = _activities(xlsx)
-    assert sorted(activities) == sorted([H2, H2.replace(":H2", ":O2"), NH3])
+    assert sorted(activities) == sorted([H2, H2.replace(":H2", ":O2"), NH3, H2_MARKET])
+    assert "markets" in wb.sheetnames
     for activity in activities.values():
         production = [e for e in activity["exchanges"] if e["type"] == "production"]
         assert len(production) == 1 and production[0]["amount"] == 1
         assert production[0]["name"] == activity["name"]
         assert production[0]["reference product"] == activity["meta"]["reference product"]
         assert set().union(*activity["exchanges"]) <= set(build_lci.EXCHANGE_COLUMNS)
-        assert "Allocation:" in activity["meta"]["comment"]
+        assert ("Allocation:" if "atlas process" in activity["meta"] else "production mix") in activity["meta"]["comment"]
 
 
 def test_amounts_are_allocated_per_unit_of_each_product(library: Path, tmp_path: Path) -> None:
@@ -151,12 +154,18 @@ def test_amounts_are_allocated_per_unit_of_each_product(library: Path, tmp_path:
     assert _exchange(o2, "feed:POWER")["amount"] == pytest.approx(power["amount"])  # mass: same per kg
 
 
-def test_inputs_made_by_another_atlas_process_name_it(library: Path, tmp_path: Path) -> None:
+def test_inputs_made_by_another_atlas_process_name_its_market_and_plant(library: Path, tmp_path: Path) -> None:
     _build(library, tmp_path / "out")
     hydrogen = _exchange(_activities(tmp_path / "out" / "lci" / f"{DB}.xlsx")[NH3], "feed:hydrogen")
     assert hydrogen["name"] == "market for hydrogen, gaseous"  # background by default
-    assert hydrogen["atlas activity"] == "Fixture: water electrolysis"
-    assert hydrogen["atlas reference product"] == "Hydrogen at 30 bar"
+    # prefer_atlas: the market of the product (markets/hydrogen.yaml), the plant beside it for pinning
+    assert (hydrogen["atlas activity"], hydrogen["atlas reference product"], hydrogen["atlas location"]) == ("market for hydrogen", "Hydrogen", "GLO")
+    assert hydrogen["atlas code"] == H2_MARKET and hydrogen["atlas link"] == "market"
+    assert hydrogen["atlas check"].startswith("compatible: grade the input names hydrogen only")
+    assert (hydrogen["atlas plant activity"], hydrogen["atlas plant reference product"], hydrogen["atlas plant code"]) == ("Fixture: water electrolysis", "Hydrogen at 30 bar", H2)
+    assert "boundary plant gate (pinned)" in hydrogen["atlas plant check"]
+    package = _json(tmp_path / "out" / "lci" / "datapackage.json")
+    assert [(link["consumer"], link["provider"], link["kind"]) for link in package["atlas_links"]] == [(H2_MARKET, H2, "supply"), (NH3, H2_MARKET, "market")]
 
 
 # --- ASU-1 (real dataset, staged mappings) ----------------------------------------------------
@@ -310,3 +319,86 @@ def test_a_second_atlas_producer_is_reported_not_chosen_silently(library: Path, 
     assert report.errors == [], report.errors
     (warning,) = [w for w in report.warnings if "several Atlas producers" in w]
     assert "fixture-ammonia" in warning and "fixture-electrolysis-b:" in warning
+
+
+# --- cut-off criteria (docs/system-model.md section 4, core#180) -------------------------------
+# The fixture electrolysis has 750.6 kg of operation inputs in kg (feed and resource water) per
+# its basis, so 1 % is about 7.5 kg. The cut flows below are test data, not real inventories.
+
+LUBE = {"key": "aux:lubricant", "amount": 2.0, "unit": "kg", "reason": "test: below the mass rule"}
+
+# The criteria are core's (lca.cutoff). CI installs core and sets ATLAS_REQUIRE_CORE, so a missing
+# core fails there instead of skipping.
+try:
+    import chemeascode.domains.assessment.lca.cutoff as core_cutoff
+except ImportError:
+    if os.environ.get("ATLAS_REQUIRE_CORE"):
+        raise
+    core_cutoff = None
+needs_core = pytest.mark.skipif(core_cutoff is None, reason="needs cheme-as-code (core's lca.cutoff)")
+
+
+def _cut(library: Path, *flows: dict) -> None:
+    _edit_dataset(library, lambda d: d.update(cutoff=[dict(f) for f in flows]))
+
+
+def _cutoff_entry(out: Path) -> dict | None:
+    package = _json(out / "lci" / "datapackage.json")
+    electrolysis = next(p for p in package["processes"] if p["id"] == "fixture-electrolysis")
+    return electrolysis["datasets"][0].get("cutoff")
+
+
+def test_datasets_without_cut_flows_record_no_cutoff_entry(library: Path, tmp_path: Path) -> None:
+    out = tmp_path / "out"
+    assert _build(library, out).warnings == []
+    assert _cutoff_entry(out) is None
+
+
+@needs_core
+def test_cut_flows_within_the_criteria_are_recorded(library: Path, tmp_path: Path) -> None:
+    _cut(library, LUBE, {"key": "aux:sealant", "reason": "test: amount not known"})
+    out = tmp_path / "out"
+    report = _build(library, out)
+    assert report.errors == [] and report.warnings == []
+    entry = _cutoff_entry(out)
+    assert entry["checked"] is True and entry["flows"] == ["aux:lubricant", "aux:sealant"]
+    assert entry["input_mass_kg"] == pytest.approx(752.6)  # the cut input counts in the basis
+    assert [f["rule"] for f in entry["findings"]] == ["cheme.lca-cutoff-unchecked"]  # info, not a warning
+
+
+@needs_core
+@pytest.mark.parametrize(
+    ("flows", "rule"),
+    [
+        ([{**LUBE, "amount": 10.0}], "cheme.lca-cutoff-share"),
+        ([{**LUBE, "amount": 5.0}, {**LUBE, "key": "aux:grease", "amount": 5.0}], "cheme.lca-cutoff-sum"),
+        ([{"key": "aux:catalyst", "amount": 0.001, "unit": "kg", "reason": "test", "catalyst": True, "contains": ["Pt"]}], "cheme.lca-cutoff-never"),
+        ([{"key": "emission:N2O", "direction": "output", "amount": 0.001, "unit": "kg", "reason": "test", "cas": "10024-97-2"}], "cheme.lca-cutoff-never"),
+    ],
+    ids=["share", "sum", "precious-metal-catalyst", "high-cf"],
+)
+def test_broken_cutoff_criteria_are_warnings(library: Path, tmp_path: Path, flows, rule) -> None:
+    _cut(library, *flows)
+    out = tmp_path / "out"
+    report = _build(library, out)
+    assert report.errors == []
+    assert any("fixture-electrolysis/lca/dataset.yaml: cutoff:" in w and rule in w for w in report.warnings), report.warnings
+    assert rule in [f["rule"] for f in _cutoff_entry(out)["findings"]]
+
+
+@needs_core
+def test_a_cut_flow_failing_cores_schema_is_an_error(library: Path, tmp_path: Path) -> None:
+    _cut(library, {"key": "aux:lubricant", "amount": 2.0})  # no reason
+    report = _build(library, tmp_path / "out")
+    assert any("fixture-electrolysis/lca/dataset.yaml: cutoff[0].reason:" in e for e in report.errors), report.errors
+    assert not (tmp_path / "out" / "lci").exists()
+
+
+def test_without_core_the_cutoff_criteria_are_not_checked(library: Path, tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setitem(sys.modules, "chemeascode.domains.assessment.lca.cutoff", None)  # import raises ImportError
+    _cut(library, LUBE)
+    out = tmp_path / "out"
+    report = _build(library, out)
+    assert report.errors == []
+    assert any("cut-off criteria are not checked" in w for w in report.warnings), report.warnings
+    assert _cutoff_entry(out) == {"flows": ["aux:lubricant"], "checked": False, "findings": []}

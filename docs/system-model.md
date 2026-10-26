@@ -1,8 +1,10 @@
 # System model of the Atlas LCI database
 
-Methodology version: **1.0.0** (the version `build_lci.py` records as `METHODOLOGY_VERSION` in
+Methodology version: **1.1.0** (the version `build_lci.py` records as `METHODOLOGY_VERSION` in
 every `datapackage.json` and activity comment; versioning rules in
-[governance.md](governance.md)).
+[governance.md](governance.md)). 1.1.0 adds the market layer and the compatibility check of
+Atlas-to-Atlas links ([markets.md](markets.md), #49), a MINOR change: the plant activities are
+unchanged.
 
 > **Status: draft for decision.** An agent drafted this document from the coordinator's decisions
 > of 2026-10-25 (process-library#52). The owner and an LCA expert decide on it. Until they have,
@@ -128,8 +130,15 @@ ISO 14044 (4.2.3.3) lets a study leave out flows of little significance, provide
   characterisation factors (N2O, SF6, HFCs, heavy metals), whatever their mass;
 - every cut flow is named in the dataset with the reason.
 
-The build does not check these criteria yet: datasets do not record cut flows in a form it can
-read. They are part of the review checklist ([governance.md](governance.md)).
+A dataset records its cut flows in `cutoff:` (core#180: key, direction, amount and unit in the
+dataset's basis, reason, and `cas`, `catalyst`, `contains` for the never-cut rule). `cheme assess
+lca` checks them where the dataset is made, and the build (`scripts/build_lci.py`) checks them
+again with the same core code (`lca.cutoff`) and records the result per dataset in
+`datapackage.json` (`cutoff`). A cut flow at or above 1 % of the input mass, the cut flows together
+at or above 1 %, or a never-cut flow is a warning, so `--strict` fails. A cut flow without an
+amount in kg cannot be checked against the mass rule: it is recorded, not warned. Whether a flow
+is "environmentally relevant" beyond the never-cut list stays a reviewer's judgement, and is on
+the review checklist ([governance.md](governance.md)).
 
 ## 5. Infrastructure, capital goods and catalysts
 
@@ -157,7 +166,13 @@ read. They are part of the review checklist ([governance.md](governance.md)).
   is the method of section 2, and the allocated workbook stays the default download
   ([LCI export](lci.md), Other formats).
 - **Atmospheric pass-through** (components taken in with the air and returned unchanged) is not
-  exported, as decided in `lci/mappings.yaml` `pass_through:`.
+  exported, as decided in `lci/mappings.yaml` `pass_through:`. The same holds for an
+  atmospheric gas a market loses on the way (oxygen, nitrogen or argon boil-off).
+- **Markets and chaining:** an input that another Atlas process makes links, with
+  `prefer_atlas`, to the market of its grade (distribution and losses included), or to a plant
+  only when pinned; a producer of another grade is refused, and every Atlas-to-Atlas link
+  records its compatibility (grade, unit, system model, allocation, boundary).
+  [markets.md](markets.md) has the layers, the rules and the first markets.
 - **Data quality and nomenclature:** the export carries each exchange's pedigree and its
   lognormal (ecoinvent pedigree matrix, factors of Ciroth et al. 2016; core#178), each dataset's
   data quality rating from `lca/manifest.json` (TfS DQR, PEF-style indicators, primary data share),
@@ -195,10 +210,10 @@ Two published chemical LCI databases show what users expect from the documentati
 |---|---|
 | one public, versioned methodology document | this page, methodology version in every build |
 | one system model per database, variants as separate databases | cut-off default; substitution variant with its own name (section 1) |
-| change report per release | `build_lci.py --previous` (exchange level today; [governance.md](governance.md)) |
+| change report per release | `build_lci.py --previous`: exchanges, and a GWP100 delta on the Atlas foreground without background (`lci/README.md`, Change reports; [governance.md](governance.md)) |
 | external critical review of the methodology | planned: the review procedure in [governance.md](governance.md) |
 | mass and elemental balances per technology dataset | from the flowsheet for engineered processes; to be checked by the build (follow-up) |
-| layered model: plant, site, production and consumption mixes, simplified extension layer | planned (core#182, #47, #49): tiered generation and market datasets |
+| layered model: plant, site, production and consumption mixes, simplified extension layer | markets (technology, production mix, consumption mix) in [markets.md](markets.md); the site layer is documented there and built with a second process; tiered generation planned (core#182, #47) |
 | biogenic carbon content always reported | planned (core#181) |
 | several data-quality schemes and a primary data share | pedigree per exchange in the export; TfS DQR, PEF-style indicators and PDS per dataset in `datapackage.json` (core#178) |
 | per-dataset documentation of included and excluded stages | activity comments, `datapackage.json` and the openLCA process descriptions today; ILCD export planned (#51; needs EF 3.1 UUIDs, core#313) |
