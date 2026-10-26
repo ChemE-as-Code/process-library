@@ -84,7 +84,7 @@ def test_fixture_build_writes_workbook_datapackage_and_index(library: Path, tmp_
     out = tmp_path / "out"
     report = _build(library, out)
     assert report.errors == [] and report.warnings == []
-    assert sorted(p.name for p in (out / "lci").iterdir()) == [f"{DB}.xlsx", "datapackage.json", "index.json"]
+    assert sorted(p.name for p in (out / "lci").iterdir()) == sorted([f"{DB}.xlsx", f"{DB}-olca-jsonld.zip", f"{DB}-multifunctional.json", "datapackage.json", "index.json"])
 
     index = _json(out / "lci" / "index.json")
     assert index["version"] == "0.1.0" and index["database"] == DB and index["library_commit"] == "fixture"
