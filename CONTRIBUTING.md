@@ -85,6 +85,12 @@ publication: {status: public, license: CC-BY-4.0, exclude: ["docs/private/**"]}
 Do not rewrite another process's engineering files; change them through that process's own
 review (its `DESIGN.md`, `reviews/`).
 
+## Changing the library
+
+A change to the library structure, a schema, the LCI pipeline or the publication rules comes
+with an Architecture Decision Record in the same pull request: a new or superseding record in
+[`docs/adr/`](docs/adr/README.md). A process's engineering decisions stay in its `DESIGN.md`.
+
 ## Issues
 
 Open points of a process are tracked as issues in the vocabulary of a design office's action
