@@ -1,17 +1,35 @@
-# TEST FIXTURE (synthetic numbers): an unallocated LCI dataset in core's lci_dataset format, as
+# TEST FIXTURE (synthetic numbers): an unallocated LCI dataset in core's lci_dataset format (v2), as
 # `cheme assess lca --write` writes lca/dataset.yaml. Not engineering data.
-schema: cheme/lca/v1
+schema: cheme/lci_dataset/v2
 kind: lci_dataset
 id: fixture-electrolysis
 title: "Fixture: water electrolysis"
 scope: foreground
 basis: 1 h of operation
+uuid: 5b0c1a52-2f0e-5a7e-9d3a-0c3c6c1f7a10
+methodology_version: 1.0.0
+system_model: cutoff
+valid_until: 2031
+review: unreviewed
+geography: {description: "Synthetic fixture site", applicable: "fixture only"}
 exchanges:
   - {key: feed:WATER, title: Deionised water, type: input, amount: 375.3, unit: kg, provenance: assumed}
-  - {key: feed:POWER, title: Stack and balance-of-plant power, type: input, amount: 2293.5, unit: kWh, link: {factor: electricity, source: fixture grid}}
-  - {key: product:H2, title: Hydrogen at 30 bar, type: product, amount: 41.7, unit: kg}
+  - {key: feed:POWER, title: Stack and balance-of-plant power, type: input, amount: 2293.5, unit: kWh, link: {factor: electricity, source: fixture grid}, carrier: {kind: electricity}}
+  - key: resource:WATER
+    title: Process water withdrawn from a river
+    type: resource
+    amount: 375.3
+    unit: kg
+    provenance: assumed
+    cas: 7732-18-5
+    flow:
+      - {list: ef-3.1, uuid: null}
+      - {list: biosphere3, uuid: 8c75e7ab-8ab8-41e4-b394-c166ff5b050d, name: "Water, river", categories: [natural resource, in water], unit: m3, per_unit: 0.001}
+    pedigree: {scores: [4, 3, 1, 5, 3], reason: fixture}
+    basic_uncertainty: 1.05
+  - {key: product:H2, title: Hydrogen at 30 bar, type: product, amount: 41.7, unit: kg, state: {phase: gas, pressure: 30, purity: 0.9999, basis: mole, component: H2}}
   - {key: product:O2, title: Oxygen vented or sold, type: product, amount: 333.6, unit: kg}
-  - {key: emission:H2, title: Hydrogen losses, type: emission, amount: 0.2, unit: kg, cas: 1333-74-0, provenance: assumed}
+  - {key: emission:H2, title: Hydrogen losses, type: emission, amount: 0.2, unit: kg, cas: 1333-74-0, provenance: assumed, pedigree: {scores: [4, 3, 1, 5, 3], reason: fixture}, basic_uncertainty: 1.5}
   - {key: emission:H2O, title: Water vapour, type: emission, amount: 1.5, unit: kg, free: true, cas: 7732-18-5, source: feed water evaporated}
   - {key: waste:WASTEWATER, title: Blowdown to treatment, type: output, amount: 0.25, unit: m3, link: {factor: wastewater, source: fixture}}
   - {key: construction:steel, title: Stack frames and skids, type: input, phase: construction, amount: 0.5, unit: kg, provenance: calculated, link: {factor: steel-sections, source: fixture}, uncertainty: {gsd2: 1.21}}

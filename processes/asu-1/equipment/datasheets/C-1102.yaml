@@ -13,11 +13,11 @@ operating:
     source: 'process/flowsheet.yaml stream S12B (case design), assumed: DESIGN.md 3, stream 12b'
     assumed: true
   inlet_temperature:
-    value: 13.0
+    value: 9.49
     unit: °C
-    source: 'process/flowsheet.yaml stream S12B (case design), assumed: the E-3101 warm end at 13 C (DESIGN.md
-      D-061), outlet of the splitter X3101'
-    assumed: true
+    source: 'process/flowsheet.yaml stream S12B (case design), calculated by `cheme process simulate`:
+      the E-3101 warm end S17 with the 50 kW cold-box heat in-leak (DESIGN.md D-103; was the assumed 13
+      C of D-061), outlet of the splitter X3101'
   inlet_flow:
     value: 58074.0
     unit: kg/h
@@ -25,11 +25,12 @@ operating:
       not used for regeneration (S17 76,560 - S12A 18,486 kg/h); was 31,450'
     assumed: true
   outlet_flow:
-    value: 58924.0
+    value: 58865.0
     unit: kg/h
     source: 'process/flowsheet.yaml stream S12E (58,074 kg/h dry, the water uptake not in the flowsheet,
-      DESIGN.md D-067) + 850 kg/h water evaporated at the design duty (scripts/datasheet_sizing.py section
-      12 (DESIGN.md D-090)): the gas leaves saturated at about 20 C'
+      DESIGN.md D-067) + 791 kg/h water evaporated at the design duty (scripts/datasheet_sizing.py section
+      12 (DESIGN.md D-090, rerun on the D-103 9.49 C inlet; was 850 kg/h at 13 C)): the gas leaves saturated
+      at about 19 C'
     assumed: true
   chilled_water_flow:
     value: 39.6
@@ -44,18 +45,19 @@ operating:
       (~26 C, D-067) and E-3105 (20 C) (scripts/datasheet_sizing.py section 12 (DESIGN.md D-068 (8)))
     assumed: true
   water_evaporated:
-    value: 850
+    value: 791
     unit: kg/h
-    source: 'scripts/datasheet_sizing.py section 12 (DESIGN.md D-090): energy balance, the 697.6 kW duty
-      taken up by S12B (58,074 kg/h dry, 13 C, 105 kPa(a)) leaving saturated at 20.2 C (N2 sensible from
-      the property adapter, water IAPWS-95); 1,173 kg/h at the ~1,000 kW capability of D-067 (gas out
-      25.4 C). D-067 estimated 1.1-1.5 t/h'
+    source: 'scripts/datasheet_sizing.py section 12 (DESIGN.md D-090; rerun on the D-103 inlet): energy
+      balance, the 697.6 kW duty taken up by S12B (58,074 kg/h dry, 9.49 C, 105 kPa(a)) leaving saturated
+      at 19.0 C (N2 sensible from the property adapter, water IAPWS-95); 1,109 kg/h at the ~1,000 kW capability
+      of D-067 (gas out 24.4 C). Was 850 kg/h with the assumed 13 C inlet. D-067 estimated 1.1-1.5 t/h'
     assumed: true
   make_up_water:
-    value: 621
+    value: 563
     unit: kg/h
-    source: 'scripts/datasheet_sizing.py section 12 (DESIGN.md D-090): evaporation 850 kg/h less the 228
-      kg/h the DCAC upper section condenses into the chilled water (S3CU); 945 kg/h at the 1,000 kW capability.
+    source: 'scripts/datasheet_sizing.py section 12 (DESIGN.md D-090; rerun on the D-103 inlet): evaporation
+      791 kg/h less the 228 kg/h the DCAC upper section condenses into the chilled water (S3CU); 881 kg/h
+      at the 1,000 kW capability (was 621 / 945 kg/h at 13 C).
       Blowdown for the salts the evaporation concentrates comes on top (water treatment, detail engineering).
       From the CW supply via LV-1107 on CW-1003 (P-01), sized for up to 1.5 t/h (D-069)'
     assumed: true
@@ -116,10 +118,10 @@ weights:
     value: 36.0
     unit: t
     source: 'DESIGN.md D-081 (5), equipment list dimensions.weight: shell 12 mm (the pressure thickness
-      at 1 barg is 2 mm, Sinnott, C&R Vol. 6, 4th ed., Section 13.5; 12 mm ASSUMED as the minimum for a
-      4.5 m shell, wind and the skirt joint) over the 17.11 m T-T and 2:1 heads, weight factor 1.15
-      (Sinnott Section 13.8, dead weight) = 32 t, skirt 3.765 m x 10 mm = 4 t; lining and PP packing not included.
-      ASSUMED: the vessel supplier gives the weight'
+      at 1 barg is 2 mm, Sinnott, C&R Vol. 6, 4th ed., Section 13.5; 12 mm ASSUMED as the minimum for
+      a 4.5 m shell, wind and the skirt joint) over the 17.11 m T-T and 2:1 heads, weight factor 1.15
+      (Sinnott Section 13.8, dead weight) = 32 t, skirt 3.765 m x 10 mm = 4 t; lining and PP packing not
+      included. ASSUMED: the vessel supplier gives the weight'
     assumed: true
 nozzles:
 - name: N1
@@ -171,19 +173,20 @@ type_specific:
     reason: an evaporative cooler (water cooled by evaporation into dry waste N2 on packing), not a distillation;
       its packing is sized in transfer units (packing_height_m), not in stages
   adiabatic_saturation_temperature_degc:
-    value: 2.3
+    value: 0.3
     unit: degC
-    source: 'scripts/datasheet_sizing.py section 9 (DESIGN.md D-068 (8)): energy balance of S12B (dry,
-      13 C, 105 kPa(a), 58,074 kg/h) saturated with water fed at that temperature (N2 enthalpy property
-      adapter, water IAPWS-95; psychrometry, Perry''s 8th ed. Section 12): the lowest water temperature
-      the dry waste N2 can reach (independent of the flow; 8.54 C with the former 25 C inlet, D-060 (3))'
+    source: 'scripts/datasheet_sizing.py section 9 (DESIGN.md D-068 (8); rerun on the D-103 inlet): energy
+      balance of S12B (dry, 9.49 C, 105 kPa(a), 58,074 kg/h) saturated with water fed at that temperature
+      (N2 enthalpy property adapter, water IAPWS-95; psychrometry, Perry''s 8th ed. Section 12): the lowest
+      water temperature the dry waste N2 can reach (independent of the flow; 2.3 C with the assumed 13
+      C inlet, 8.54 C with the former 25 C inlet, D-060 (3))'
     assumed: true
   gas_load_factor_pa05:
-    value: 0.906
+    value: 0.901
     unit: Pa^0.5
-    source: 'scripts/datasheet_sizing.py section 9 (DESIGN.md D-068 (8)): F = u rho^0.5, 58,074 kg/h at
-      13 C, 105 kPa(a) (rho 1.253 kg/m3, property adapter), D 4.5 m (equipment list): u 0.81 m/s (0.49
-      Pa^0.5 at the former 31,450 kg/h)'
+    source: 'scripts/datasheet_sizing.py section 9 (DESIGN.md D-068 (8); rerun on the D-103 inlet): F =
+      u rho^0.5, 58,074 kg/h at 9.49 C, 105 kPa(a) (rho 1.268 kg/m3, property adapter), D 4.5 m (equipment
+      list): u 0.80 m/s (0.906 Pa^0.5 at 13 C; 0.49 Pa^0.5 at the former 31,450 kg/h)'
     assumed: true
   liquid_load_m3_m2h:
     value: 2.49
@@ -212,14 +215,14 @@ type_specific:
     value: supplier
     unit: m
     source: 'packing supplier: transfer units of the chosen packing. Enquiry basis: 39.6 m3/h of water
-      at ~25 C cooled to 10 C (698 kW, up to ~1,000 kW) by 58,074 kg/h dry waste N2 at 13 C, 1.05 bara;
-      the 10 C outlet is 7.7 K above the N2''s adiabatic saturation temperature (2.3 C); 2 K approaches
-      (D-067)'
+      at ~25 C cooled to 10 C (698 kW, up to ~1,000 kW) by 58,074 kg/h dry waste N2 at 9.5 C, 1.05 bara
+      (D-103); the 10 C outlet is 9.7 K above the N2''s adiabatic saturation temperature (0.3 C); 2 K
+      approaches (D-067)'
   flooding_diameter_m:
     value: supplier
     unit: m
     source: packing supplier's hydraulic rating (no flooding correlation in cheme-as-code is cleanly sourced);
-      the 4.5 m of the equipment list (ASSUMED) runs at F 0.91 Pa^0.5 and 2.5 m3/(m2 h)
+      the 4.5 m of the equipment list (ASSUMED) runs at F 0.90 Pa^0.5 and 2.5 m3/(m2 h)
   process_streams:
   - stream: S12B
     direction: in
@@ -241,11 +244,34 @@ type_specific:
     value: not_applicable
     unit: ''
     reason: an evaporative cooler is sized in transfer units, not theoretical stages
-sizing_basis: []
+  mechanical_design:
+    value: supplier
+    unit: ''
+    source: 'awaited from the supplier or the named study (D-103); unsupported in cheme-as-code: no mechanical design to a code (wall thickness, MAWP,
+      nozzle loads): from the supplier or a mechanical calculation (docs/framework/sizing.md) (cheme datasheets
+      fill)'
+  corrosion_allowance_mm:
+    value: supplier
+    unit: mm
+    source: 'awaited from the supplier or the named study (D-103); unsupported in cheme-as-code: no material selection or corrosion allowance: the material
+      is the equipment list''s, given; the allowance from a materials/corrosion review (docs/framework/sizing.md)
+      (cheme datasheets fill)'
+  relief_protection:
+    value: not_applicable
+    unit: ''
+    reason: 'DESIGN.md D-083: the governing case (air blow-by through CHWR-1001) discharges through the
+      open top vent WN-1002 (DN900, no valve) at ~26 kPa(g) against the 1 barg design, so no relief device
+      is fitted (see notes); the supplier confirms the internals take that flow'
+sizing_basis:
+- parameter: sizing_scope
+  value: preliminary
+  reference: 'cheme datasheets fill: the values it writes are preliminary process sizing (short-cut methods,
+    declared or typical parameters), not a rating or a design to a code; not calculated: rating, mechanical
+    code, materials corrosion, relief, dynamics controls (docs/framework/sizing.md)'
 notes: 'Waste N2 58,074 kg/h (~46,000 Nm3/h, DESIGN.md D-067) cools the closed chilled-water loop to ~10
   C (DCAC upper section and E-3105, returns CHWR-1001 / CHWR-3001), top vent WN-1002 to atmosphere; make-up
   CW-1003 via LV-1107 for the evaporation. ASSUMED. DESIGN.md D-060 (3), D-063, D-068 (8): adiabatic saturation
-  limit 2.3 C, duty, evaporation and hydraulic loads calculated; the packing height and flooding diameter
+  limit 0.3 C (D-103: 9.49 C inlet), duty, evaporation and hydraulic loads calculated; the packing height and flooding diameter
   are the packing supplier''s (markers); the allowable gas pressure drop is set by the waste-N2 path (D-071);
   the stage fields do not apply (not a distillation). Relief case (DESIGN.md D-083): air blow-by through
   CHWR-1001 when the DCAC chimney tray loses its seal, bound 95.1 t/h (choked S3 air at 5.92 bara through

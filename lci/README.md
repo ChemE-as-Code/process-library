@@ -27,7 +27,7 @@ goxp = bd.get_node(database="cheme-as-code-atlas-0.1.0", code="asu-1:asu-1-500-t
 ```
 
 `install(path_or_version, background="ecoinvent-3.11-cutoff", biosphere=None, location=None,
-prefer_atlas=True, overwrite=False)`:
+prefer_atlas=True, overwrite=False, expect=None)`:
 
 - runs `bw2io.ExcelImporter` and its standard strategies, then `match_database` against
   `background` (name, reference product, unit, location) and the biosphere (name, categories,
@@ -36,6 +36,12 @@ prefer_atlas=True, overwrite=False)`:
   the workbook's default (`DE`) is used and the report says so;
 - `prefer_atlas=True` links an input that another Atlas process makes (e.g. hydrogen from an
   Atlas electrolyser) to that Atlas activity instead of the background;
+- links an elementary flow by its biosphere3 UUID (`atlas flow uuid`) when the biosphere
+  database has a flow of that code and unit, else by name, categories and unit; writes the
+  `atlas pedigree` scores as Brightway's `pedigree`;
+- reports the database's **system model** and methodology version (`report.system_model`,
+  `report.methodology_version`, in `summary()`), and lists deprecated activities with their
+  successors (`report.superseded`);
 - writes the database **only if every exchange is linked**; otherwise nothing is written and
   `report.unlinked` lists each exchange that found no partner (fix the name in your background
   or in `lci/mappings.yaml`). Nothing is dropped silently;
@@ -49,7 +55,7 @@ to handle.
 
 | file | |
 |---|---|
-| `lci/cheme-as-code-atlas-<version>.xlsx` | the database `cheme-as-code-atlas-<version>`: an `about` sheet (skipped by the importer), a `database` sheet, one sheet per process, a `proxies` sheet |
+| `lci/cheme-as-code-atlas-<version>.xlsx` | the database `cheme-as-code-atlas-<version>`: an `about` sheet (skipped by the importer), a `database` sheet, one sheet per process, a `proxies` sheet. Exchange columns beyond bw2io's: `atlas key`, `atlas flow uuid`, `atlas pedigree`, `atlas carrier` and the linking fields |
 | `lci/datapackage.json` | version, library commit, per process: title, maturity, review, data status (exchanges by provenance), factor status of the study, allocation and shares, functional unit, activities (each with its `chemical` slug and registry `grade`, null when none), and per dataset its `property_checks` and `benchmarks` (below) |
 | `lci/index.json` | what the Atlas site reads: file names, sizes, sha256, activities per process, caveats, system model |
 | `lci/changes.json`, `lci/CHANGES.md` | with `--previous`: the change report against the earlier build (below) |
@@ -58,7 +64,12 @@ to handle.
 document and version, the exchanges excluded under cut-off with their decisions, allocation
 findings) and, per dataset, its **version**, `methodology_version`, `content_sha256`, `review`
 record (`unreviewed` by default), `valid_until`, and the allocation with the rule of the
-hierarchy that justifies it.
+hierarchy that justifies it. These come from the dataset itself when it states them (core's
+dataset contract v2, below); otherwise the build's methodology version and `0.1.0`. A dataset
+also carries its `system_model` (null when it states none), its `data_quality` rating from
+`lca/manifest.json` (below), a `documentation` block (uuid, geography, time, technology,
+classification, production volume, data generator, as the dataset gives them) and, when it is
+deprecated, `deprecated: true` and `superseded_by`.
 
 Activity codes are stable: `<process>:<dataset>:<product key>` (e.g.
 `asu-1:asu-1-500-t-d-gox:product:GOXP`) and `proxy:<id>`.
@@ -79,13 +90,17 @@ build); governance (versions, change reports, releases, review) is
   (technosphere entries and proxies). Never mix it with the cut-off database in one study.
 - **Source.** Core's unallocated LCI dataset of each process (`kind: lci_dataset`):
   `processes/<id>/lca/dataset.yaml` of a plantcode project (`cheme assess lca --write`), or
-  hand-written `processes/<id>/lca/datasets/*.yaml` of a manifest-only process.
+  hand-written `processes/<id>/lca/datasets/*.yaml` of a manifest-only process. The builder
+  reads `schema: cheme/lci_dataset/v2` (core#294) and the v1 files (`cheme/lca/v1`,
+  `plantcode/lca/v1`); `cheme migrate --write` rewrites a hand-written v1 dataset to v2.
 - **Co-products.** One single-output activity per co-product, per 1 unit (kg) of it, allocated
   by the hierarchy of docs/system-model.md: a curated rule in `lci/mappings.yaml` `allocation:`
-  first (a deviation from the hierarchy is such a rule, `rule: deviation`); else the study's
-  (`lca/lca.yaml`) or the dataset's method if it is the WBCSD price-ratio choice (economic above
-  a ratio of 5 of the prices per kg, else mass); else the price-ratio choice, with a finding;
-  else the given method, with a finding. Findings are
+  first; else the study's (`lca/lca.yaml`) or the dataset's method if it is the WBCSD
+  price-ratio choice (economic above a ratio of 5 of the prices per kg, else mass); else the
+  method of the study or dataset with its `allocation.deviation` (core allows the field in both;
+  the study's first), as rule `deviation` and no finding; else the price-ratio choice, with a
+  finding; else the given method, with a finding. A curated `rule: deviation` in the mappings
+  still works and wins over the study's. Findings are
   warnings (`--strict` fails). Proportional methods (mass, economic, energy, exergy, shares)
   only; substitution and `none` are refused. The unallocated multi-output form is not exported
   (bw2io's Excel importer has no clean representation of it).
@@ -96,8 +111,27 @@ build); governance (versions, change reports, releases, review) is
   flipped at install, so the result is the same.
 - **Not exported:** free inputs (ambient air), outputs released to the environment (counted by
   their `emission:*` exchanges), and free pass-through emissions (below).
-- **Uncertainty:** an exchange with a lognormal `gsd2` gets Brightway's lognormal (type 2,
-  `scale = ln(gsd2)/2`); pedigree scores are not exported.
+- **Uncertainty and pedigree:** an exchange with a lognormal `gsd2` gets Brightway's lognormal
+  (type 2, `scale = ln(gsd2)/2`). An exchange without its own distribution gets the lognormal of
+  its pedigree on its `basic_uncertainty` (required: the build refuses a pedigree without one; core fills it from its table by exchange type), `gsd2 = exp(sqrt(ln(basic)^2 +
+  sum(ln(U_i)^2)))` with the empirically based factors of Ciroth et al. (2016), as core
+  computes it. Normal, triangular and uniform distributions are not exported (a warning names
+  the exchange; Brightway sees it as deterministic). The five scores are written in the `atlas pedigree` column (`r,c,t,g,f`);
+  `install()` turns them into Brightway's `pedigree` field. The study's default distributions
+  (`lca/lca.yaml` `uncertainty.defaults`) are not known to the dataset and are not applied, so
+  a Monte Carlo in Brightway can differ from core's where a study default wins there.
+- **Units.** Quantities are brought to one unit per kind before allocation: g and t to kg, MWh to
+  kWh, GJ to MJ, km to m, L to m3; m2*a (land occupation) becomes `square meter-year` and kBq
+  `kilo Becquerel`, biosphere3's units. Gas volumes at a reference state keep their unit
+  (`Nm3` is bw2io's `normal cubic meter`, `Sm3` its `standard cubic meter`; biosphere3 counts
+  `Gas, natural` in Sm3), without conversion between the two. Item-time (`ea*h`, `ea*a`) has no
+  Brightway unit: the build refuses it with the reason (state the amount as items). An amount is never converted to a unit the linked
+  activity does not count in: a mapping in kWh refuses an exchange in MJ.
+- **Carriers and product state.** A `carrier` (kind, temperature, pressure, level, LHV) is
+  written in the exchange's `atlas carrier` column and a product's `state` (phase, pressure,
+  purity, grade) in the activity's `atlas product state` and its comment, and in
+  `datapackage.json` activities. They document the exchange; the background link is still chosen
+  by the mapping (a steam or heat carrier does not yet pick a different activity).
 - **Reference product.** A product whose flow has a grade in the chemicals registry
   (`chemical: <slug>/<grade>` in `process.yaml`, or the registry's `flow_grades`) is named after
   the grade: ASU-1's `Oxygen, GOX to pipeline` is now `Oxygen, gaseous, >= 99.5 mol%, 30 barg`.
@@ -120,7 +154,21 @@ build); governance (versions, change reports, releases, review) is
 Curated, library level, schema `schemas/lci-mappings.schema.json`. Per exchange: an override in
 `exchanges:`, else the dataset exchange's own `link` (a Brightway activity, biosphere flow or
 another Atlas dataset), else its chemical slug, else its `link.factor` id, in `technosphere:`.
-Emissions by component in `biosphere:`. A missing mapping fails the build.
+A missing mapping fails the build.
+
+Emissions and resources (the `resource` exchange type of the v2 contract: water, CO2 in air,
+land) are biosphere exchanges, identified by the **biosphere3 UUID** of the dataset exchange's
+`flow:` identity, which core writes from its curated crosswalk
+(`data/elementary-flows.yaml`, UUIDs read from ecoinvent's published elementary-exchange list as
+shipped with bw2io, BSD-3-Clause). The identity's name, categories and unit are exported and
+its `per_unit` converts the amount (water is derived in kg and exported in m3, 0.001 m3/kg). The
+UUID goes in the `atlas flow uuid` column. `biosphere:` of the mappings is keyed by flow
+identity too: an entry keyed by a UUID corrects the name and categories the dataset gives; an
+entry keyed by component (`CO2/biogenic`, `CH4/fossil`, ...) serves a dataset without identities
+(v1, hand-written), and its optional `flow.uuid` is exported the same way. `install()` links an
+elementary flow by its code in the biosphere database first (when the unit agrees) and falls back
+to name, categories and unit; the report counts both. EF 3.1 identities are not used here: core
+records none yet (`uuid: null`).
 
 Decisions for ASU-1:
 
@@ -149,6 +197,35 @@ Decisions for ASU-1:
 
 The background names follow ecoinvent 3.11 conventions but have **not** been checked against a
 licensed copy here; `install()` reports any that do not link.
+
+## Governance fields and deprecated datasets
+
+A dataset's own `version`, `methodology_version`, `review`, `valid_until` and `system_model`
+(core#179) are read when present. A dataset that states a system model must fit the build: the
+cut-off build takes `cutoff`; the substitution variant takes `cutoff` or `substitution`; `apos`
+and `consequential` datasets are refused rather than mixed into one database.
+
+`superseded_by: {id, version}` marks a dataset as deprecated. It stays in the database, so links
+to it still resolve, with a pointer to its successor:
+
+- `datapackage.json`: the dataset has `deprecated: true` and `superseded_by` (id, version,
+  process, the successor's activity codes, `resolved`); its activities list `superseded_by`;
+- the workbook: the activity is named `<title> [superseded by <id> <version>]` (two activities
+  must differ in name, reference product, location or unit), has the `atlas superseded by`
+  metadata (the successor's activity code for the same product) and a `DEPRECATED` line in its
+  comment;
+- `install()`: installs it, and `report.superseded` and the summary list each deprecated
+  activity with its successor. An input another Atlas process makes links to a current producer
+  before a deprecated one;
+- a successor that is not in the build, or has another version than named, is a warning.
+
+## Data quality rating
+
+`processes/<id>/lca/manifest.json` (written by `cheme assess lca --write`) carries the rating of
+the plant's dataset in `data_quality` (core#178): the TfS DQR with TeR, GeR and TiR, the
+PEF-style P, C and DQR, the primary data share, the basis it is weighted by and the weakest
+indicator. It is copied unchanged into the dataset's `data_quality` in `datapackage.json`; a
+dataset without a manifest, or with one written before core#178, has `null`.
 
 ## Caveats
 

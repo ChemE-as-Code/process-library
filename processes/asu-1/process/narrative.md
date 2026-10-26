@@ -168,7 +168,8 @@ H04-A01).
 - The turndown range and the rate of load changes are not defined yet.
 - The suppliers' start-up procedures, which set the step times of the sequences.
 - The independent limits on the GOX draw and the GAN guide vanes (H04-A23, H04-A22).
-- The role of PV-4105 and the signal drawn to it, the anti-surge flow measurement of K-4101
+- PV-4105 as an operator-set start-up valve, normally fully open (D-105), to be confirmed or
+  removed (H04-A31); the anti-surge flow measurement of K-4101
   (FT-4148 does not see the recycle), and the maximum GOX draw as a ratio to the air flow
   (D-096).
 - PIC-4101's set-point window and the GOX vent at turndown (an O2 release at VNT-4003), the
