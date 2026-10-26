@@ -5822,3 +5822,56 @@ separately (D-115).
 
 Reason: two high findings showed the trip and the fail positions did not reach a safe state on
 their own; the LOPA rows credited what is not independent.
+
+## D-115 HAZOP H-01 .. H-04 revised for D-114 and hazop-review6, re-stamped (2026-10-26)
+Decided by the agent on the owner's delegation of 2026-10-26. Nothing is accepted: every entry
+stays `status: proposed, by: agent`, no action is closed or added. Answers
+reviews/2026-10-26-hazop-review6.md #1 .. #12 and carries D-114 into the studies.
+
+Decision, by finding:
+- #1, #2 (I-14 credit): with D-114 (1) I-14 stops the air and K-4101 through their motor
+  breakers, independent of FV-3111 and the control system, and with no air E-3103 stops
+  boiling. The one-order credit in H03-S33 (FV-3111 open), H03-S34 (refrigeration deficit) and
+  H04-S75 / S80 is now valid in principle; their bases say why (H03-SG27 retitled). Bands
+  unchanged (5/A medium).
+- #3: H01-S13 is LV-1106 sticking closed with LIC-1106 healthy (alarm, then I-06; high to
+  medium as rated); LIC-1106 failing low is the new H01-S46 (only I-06: 4/C, high, H01-A3).
+- #4: H04-S79, S80, S85 keep the TSA switchover dip and a purity upset as causes, which the
+  ratio limit on the air flow does not track (D-114 (4)); the dip comes every cycle, so their
+  cause frequency stays E: H04-S80 is very-high again before its safeguards (high after), S85's
+  text is current and the three are treated alike; FT-1101 reading high is in S80.
+- #5: H-01 and H-03 now stamp control/loops.yaml, H-02 loops.yaml and sequences.yaml, as inputs.
+- #6: H02-S13 says FV-2105 sticks closed (it fails open, D-109).
+- #7: I-08, I-09, I-10 share the heater's protection relay and E-2101's supply: credited one
+  order as a pair (H02-S13, S15, S17, S20 B to C; H02-SG6, SG7, SG20 notes).
+- #8: H03-S54 (spurious LSLL-3125 trip) now stops the whole plant, latched until LSLL-3125 is
+  repaired or bypassed under permit; the purge part is gone (2/D medium); H03-A4 weighs a 1oo2
+  vote against it. H03-S35 no longer names I-14 as a purge stop.
+- #9: H04-S76 is the transient turndown vent inside the D-110 range with the 30 min PV-4101B
+  alarm as its own safeguard H04-SG43 (SG42 is the ratio limits only); below the 70 % minimum
+  the new H04-S91 (the response is a plant stop or storage, H04-A26).
+- #10: PV-4101B failing open on air loss is H04-S93 (GOX at VNT-4003 for the outage, medium,
+  H04-A26); H04-S03 names air loss.
+- #11: SESSION.md: the node rows, minutes and totals (about 19 h of worksheet plus a 4 h
+  opening block), the state table, 3.3 (nine very-high initial), 3.4 (79 high) and a new 3.7
+  with the items of this revision.
+- #12: D-113 also revised the texts of H01-S1, H01-S5 and H04-S04 (bands unchanged).
+- D-114 (2), I-19: H01-S45 credits I-19 (H01-SG-I19), so the DCAC pumps no longer run
+  dead-headed on air loss (medium to low); H04-S95, K-4101 on its recycle until I-19 acts
+  (high on asset, H04-SG44); new deviation H04-N2-OP.
+- D-114 (5), single-signal cases: H04-S92 (PV-4101B open alone at the design draw: LICA-3102 and
+  I-14, 5/A medium) and H04-S94 (XV-4117 / XV-4118 closed or XV-4116 open alone with K-4101
+  running: high, the discrepancy alarms not credited until they are in the files, H04-A01,
+  H04-A13). H04-N1 and H03-N8 node texts updated.
+- Re-rated (`rate --write`), re-stamped (`stamp --write`); `cheme safety hazop check`: 4 x
+  draft, 0 errors, 0 warnings; `cheme validate`: no hazop-input-changed.
+
+Counts (worst band, residual where rated): 226 -> 232 scenarios (new H01-S46, H04-S91 .. S95),
+high 73 -> 79, medium 95 -> 98, low 58 -> 55; very-high initial 8 -> 9 (H04-S80); 94 actions.
+
+Open: the team session, the LOPA / SIL session (#106), the matrix acceptance and a human
+review; an independent review of this revision.
+
+Reason: hazop-review6 found I-14 credited where it did not act, over-draw causes taken out
+that the ratio limit does not cover, and a split rating; D-114 changed the trips the studies
+credit.

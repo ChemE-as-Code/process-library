@@ -26,13 +26,15 @@ modes:
   - {id: power-fail, title: Power failure, description: "Total or partial loss of power, and of instrument air where it follows."}
 analysed:
   - {path: pid/P-02.xml, revision: 'sha256:0dceb586f3c906470008f82a57ebfc8c1cbe20d3dba8e467a611460acbb69d84', relation: analyses}
-  - {path: control/cause-effect.yaml, revision: 'sha256:c164c66f3fd3f7ea6cd3118a6d159af7e57f63e6d518b3f8d6bb3861267e10a6', relation: analyses}
-  - {path: control/instrument-list.yaml, revision: 'sha256:79f26b6bed7a6918b6930832165e0a411ae17d4bdb71c20704e391f9c9eeeba0', relation: analyses}
+  - {path: control/cause-effect.yaml, revision: 'sha256:d9d0e70a70f47a0f2da6cc190d3b7d1b3b9427dcb4d61b724c6e3f67c6755b54', relation: analyses}
+  - {path: control/instrument-list.yaml, revision: 'sha256:3295b455c03f97c7272fdd4b39bee1b5e05295211ab6205a909f6d7a0d453368', relation: analyses}
   - {path: equipment/equipment-list.yaml, revision: 'sha256:7dd6ae258db62812479ac0e0e7c520b82a46de4f02ee2020db2f5d4013870490', relation: analyses}
   - {path: piping/line-list.yaml, revision: 'sha256:c1ba2f0448cfa47af8ef8dc45ad1b99a30c3a6885994d6088b3803e47f09031b', relation: analyses}
   - {path: piping/special-items.yaml, revision: 'sha256:8071c9646730d15356f23923163a5416205ea568dbb9592a61fb49e9d19077d0', relation: analyses}
   - {path: process/design-basis.yaml, revision: 'sha256:0498974de4c64d23299e4a93fc56382beeae4c20493d14612a3c0912288757e0', relation: analyses}
   - {path: process/flowsheet.yaml, revision: 'sha256:55cd2ae5678e325e705eedf0b15cce079e9c606f611e4c853f84fd12fe6d439b', relation: analyses}
+  - {path: control/loops.yaml, revision: 'sha256:15d7fb57f188a0436b405b61f1e8f7abca433b99f40494a90081ed66448e4ebe', relation: analyses}
+  - {path: control/sequences.yaml, revision: 'sha256:68f4ea1fb2173aa056ff5300846199c61e71957d118abe79268db23b48f15f54', relation: analyses}
 risk_matrix: safety/risk-matrix.yaml
 assessment_basis: >-
   IEC 61882 guide words applied to the parameters of each node's design intent, in every mode
@@ -411,7 +413,7 @@ nodes:
         parameter: flow
         scenarios:
           - id: H02-S13
-            cause: "FV-2105 fails closed or FIC-2105 fails low during the heating step."
+            cause: "FV-2105 sticks closed or FIC-2105 fails low during the heating step (FV-2105 fails open on loss of air or signal, D-109)."
             consequence: "E-2101 stays energised with little or no gas: element sheaths overheat and fail (heater damage)."
             refs: [FV-2105, FIC-2105, E-2101]
             modes: [normal, regen-switch]
@@ -423,7 +425,7 @@ nodes:
               initial:
                 - {category: asset, severity: "3", likelihood: D, basis: "Control valve or loop failure (D); heater element bundle, 0.1 to 1 MEUR (3).", evidence: [E-2101, FIC-2105], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
               residual:
-                - {category: asset, severity: "3", likelihood: B, basis: "The heater-side low-flow trip I-08 (FSLL-2117, independent of FIC-2105, which may be the cause) and the element trip I-10 (TSHH-2107) de-energise the heater, one order each (D-111, SIL a proposed, not confirmed).", evidence: [FSLL-2117, TSHH-2107, I-08, I-10], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 96d32a0543b3b03e}}
+                - {category: asset, severity: "3", likelihood: C, basis: "The heater-side low-flow trip I-08 (FSLL-2117, independent of FIC-2105, which may be the cause) and the element trip I-10 (TSHH-2107) de-energise the heater. Both run in the heater's own protection relay and switch the same E-2101 supply, so the pair is credited one order (D-114 (3), hazop-review6#7; SIL a proposed, not confirmed).", evidence: [FSLL-2117, TSHH-2107, I-08, I-10, D-114], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '3', likelihood: C}}}
           - id: H02-S14
             cause: "FV-2105 fails closed or FIC-2105 fails low during the heating step (the heater trips on low flow)."
             consequence: "The bed in regeneration is not heated through; if the sequence switches on time an under-regenerated bed goes on line and CO2, N2O and hydrocarbons break through early (the chain of H02-S3)."
@@ -452,7 +454,7 @@ nodes:
               initial:
                 - {category: asset, severity: "3", likelihood: D, basis: "Valve or sequence failure (D); heater elements, 0.1 to 1 MEUR (3).", evidence: [XV-2109, E-2101], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
               residual:
-                - {category: asset, severity: "3", likelihood: B, basis: "The heater-side low-flow trip I-08 (FSLL-2117) and the element trip I-10 (TSHH-2107), one order each (D-111); TSHH-2116 on the mixed outlet reads low and is not counted. The under-regenerated bed is H02-S18's chain.", evidence: [FSLL-2117, TSHH-2107, I-08, I-10], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 96d32a0543b3b03e, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '3', likelihood: B}}}
+                - {category: asset, severity: "3", likelihood: C, basis: "The heater-side low-flow trip I-08 (FSLL-2117) and the element trip I-10 (TSHH-2107) in the heater's own protection relay, credited one order as a pair (D-114 (3), hazop-review6#7); TSHH-2116 on the mixed outlet reads low and is not counted. The under-regenerated bed is H02-S18's chain.", evidence: [FSLL-2117, TSHH-2107, I-08, I-10, D-114], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '3', likelihood: C}}}
       - id: H02-N5-MF
         guide_word: more
         parameter: flow
@@ -516,7 +518,7 @@ nodes:
               initial:
                 - {category: asset, severity: "3", likelihood: D, basis: "Control loop failure (D); adsorbent change-out and repairs, 0.1 to 1 MEUR (3).", evidence: [TIC-2104, V-2101A], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
               residual:
-                - {category: asset, severity: "3", likelihood: B, basis: "TSHH-2116 on RG-2002 (I-09, independent of TIC-2104) and TSHH-2107 on the element (I-10) trip E-2101, one order each (D-111, SIL a proposed, not confirmed).", evidence: [TSHH-2116, TSHH-2107, I-09, I-10, D-022], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 96d32a0543b3b03e}}
+                - {category: asset, severity: "3", likelihood: C, basis: "TSHH-2116 on RG-2002 (I-09, independent of TIC-2104) and TSHH-2107 on the element (I-10) trip E-2101. They share the heater's protection relay and the E-2101 supply as their final element, so, as I-08 / I-10 (D-114 (3)), the pair is credited one order (SIL a proposed, not confirmed).", evidence: [TSHH-2116, TSHH-2107, I-09, I-10, D-022, D-114], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '3', likelihood: C}}}
       - id: H02-N6-LT
         guide_word: less
         parameter: temperature
@@ -573,7 +575,7 @@ nodes:
               initial:
                 - {category: asset, severity: "3", likelihood: D, basis: "Valve failure on demand (D); heater elements (3).", evidence: [E-2101, D-072], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
               residual:
-                - {category: asset, severity: "3", likelihood: B, basis: "The heater-side low-flow trip I-08 (FSLL-2117) and the element trip I-10 (TSHH-2107) de-energise E-2101 (D-111); the missing heat pulse at TI-2114A/B holds the step.", evidence: [FSLL-2117, TSHH-2107, TI-2114A, I-08, I-10], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 96d32a0543b3b03e}}
+                - {category: asset, severity: "3", likelihood: C, basis: "The heater-side low-flow trip I-08 (FSLL-2117) and the element trip I-10 (TSHH-2107) de-energise E-2101, one order as a pair (D-114 (3), hazop-review6#7); the missing heat pulse at TI-2114A/B holds the step, which protects the bed, not the heater.", evidence: [FSLL-2117, TSHH-2107, TI-2114A, I-08, I-10, D-114], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '3', likelihood: C}}}
       - id: H02-N6-OT
         guide_word: other-than
         parameter: surface temperature
@@ -950,11 +952,11 @@ safeguards:
   - {id: H02-SG2, title: "AIA-2103 dew point high alarm at the TSA outlet (-70 C, ASSUMED)", kind: alarm, refs: [AIA-2103], status: proposed, by: agent}
   - {id: H02-SG3, title: "TI-2113A/B dry air outlet high temperature alarm (45 C, ASSUMED) via KS-2101: hot bed on line", kind: alarm, refs: [TI-2113A, TI-2113B], status: proposed, by: agent}
   - {id: H02-SG4, title: "Heating step ended by the heat pulse at TI-2114A/B (KS-2101), not by time alone", kind: control, refs: [TI-2114A, TI-2114B, KS-2101], status: proposed, by: agent, notes: "Instrument list: the heat-pulse arrival ends the heating step. Whether KS-2101 holds the change-over until the pulse has arrived is the supplier's logic (H02-A7)."}
-  - {id: H02-SG6, title: "I-09: TSHH-2116 regeneration gas outlet high-high temperature trips E-2101 (independent of TIC-2104)", kind: interlock, interlock: I-09, refs: [TSHH-2116, E-2101], status: proposed, by: agent, notes: "D-111: SIL a by the screening LOPA, not confirmed; one order."}
-  - {id: H02-SG7, title: "I-10: TSHH-2107 E-2101 element over-temperature trip (independent of TIC-2104)", kind: interlock, interlock: I-10, refs: [TSHH-2107, E-2101], status: proposed, by: agent, notes: "D-111: SIL a by the screening LOPA, not confirmed; one order."}
+  - {id: H02-SG6, title: "I-09: TSHH-2116 regeneration gas outlet high-high temperature trips E-2101 (independent of TIC-2104)", kind: interlock, interlock: I-09, refs: [TSHH-2116, E-2101], status: proposed, by: agent, notes: "D-111: SIL a by the screening LOPA, not confirmed; one order, or one together with I-10 where both act (the heater's protection relay, see H02-SG20)."}
+  - {id: H02-SG7, title: "I-10: TSHH-2107 E-2101 element over-temperature trip (independent of TIC-2104)", kind: interlock, interlock: I-10, refs: [TSHH-2107, E-2101], status: proposed, by: agent, notes: "D-111: SIL a by the screening LOPA, not confirmed; one order, or one together with I-08 / I-09 where they act on the same cause (the heater's protection relay, D-114 (3), see H02-SG20)."}
   - {id: H02-SG8, title: "FIC-2105 regeneration gas flow control", kind: control, refs: [FIC-2105, FV-2105], status: proposed, by: agent, notes: "The heater's low-flow trip is no longer on this transmitter: it is I-08 on FSLL-2117 (H02-SG20, D-111). FV-2105 fails open (D-109)."}
   - {id: H02-SG19, title: "TSA switching valves XV-2101..XV-2104A/B fail last on an air reservoir per valve, XV-2111A/B and XV-2112A/B fail closed; KS-2101 holds its step after a power dip (D-109)", kind: mechanical, refs: [XV-2101A, XV-2102A, XV-2103A, XV-2104A, XV-2111A, XV-2112A, KS-2101], status: proposed, by: agent, notes: "The reservoir holds for one stroke (ASSUMED); its size is for H02-A6."}
-  - {id: H02-SG20, title: "I-08: FSLL-2117 on RG-2001 between the XV-2109 bypass tee and E-2101 trips E-2101 on low-low heater flow", kind: interlock, interlock: I-08, refs: [FSLL-2117, E-2101], status: proposed, by: agent, notes: "D-111 (H02-A2): independent of FIC-2105 and sees the heater flow only, so it also covers XV-2109 opening. SIL a by the screening LOPA, not confirmed; one order."}
+  - {id: H02-SG20, title: "I-08: FSLL-2117 on RG-2001 between the XV-2109 bypass tee and E-2101 trips E-2101 on low-low heater flow", kind: interlock, interlock: I-08, refs: [FSLL-2117, E-2101], status: proposed, by: agent, notes: "D-111 (H02-A2): independent of FIC-2105 and sees the heater flow only, so it also covers XV-2109 opening. SIL a by the screening LOPA, not confirmed. I-08, I-09 and I-10 run in the heater's own protection relay (JB-A2-2, apart from the DCS and the thyristor control, D-114) and switch the same E-2101 supply: where two of them act on one cause they take one order together (hazop-review6#7)."}
   - {id: H02-SG10, title: "PSV-2108A / PSV-2108B on the adsorber tops (fire; blocked outlet during repressurization)", kind: relief, refs: [PSV-2108A, PSV-2108B], status: proposed, by: agent}
   - {id: H02-SG11, title: "Depressurization and repressurization through DN100 globe valves XV-2112A/B and XV-2111A/B (slow, about 15 min, D-022)", kind: mechanical, refs: [XV-2112A, XV-2112B, XV-2111A, XV-2111B], status: proposed, by: agent, notes: "Limits the rate only while the sequence uses these valves; no credit when the large valve is opened instead."}
   - {id: H02-SG12, title: "PDIA-2106 F-2101 high differential pressure alarm (5 kPa, ASSUMED): element change", kind: alarm, refs: [PDIA-2106], status: proposed, by: agent}
