@@ -80,9 +80,10 @@ underlying physical relationship, so steps 1, 2, 4 and 5 are **curated decisions
 | prices known, method differs | the WBCSD choice, with a **finding** | `source: hierarchy`, `follows_hierarchy: false` |
 | no rule, and no price ratio (a price missing, or a co-product not in kg) | the study's method, with a **finding** | `unresolved`, `follows_hierarchy: false` |
 
-A deviation from the hierarchy is recorded only as a curated entry with `rule: deviation` and
-its reason. The study (`lca/lca.yaml`) and the dataset cannot record one: core's allocation
-schema has no field for it and refuses unknown keys.
+A deviation from the hierarchy is recorded in `allocation.deviation` of the study
+(`lca/lca.yaml`) or of the dataset, which core's dataset contract v2 allows in both (the study's
+first), and gives rule `deviation` with that text as the reason and no finding. A curated entry
+with `rule: deviation` in the mappings does the same for the library and wins over the study's.
 
 A finding is a build warning: `--strict` (CI, releases) fails on it. `datapackage.json` lists
 the findings (`system_model.allocation_findings`) and, per dataset, `allocation: {method,
@@ -150,8 +151,8 @@ read. They are part of the review checklist ([governance.md](governance.md)).
   to the high-voltage market instead, through an `exchanges` override in `lci/mappings.yaml`
   (ASU-1: 33 kV, D-036).
 - **Data freshness:** primary data at most 5 years old and secondary data at most 10 years old
-  at the reference year. A dataset will record a `valid_until` year (core#179); `datapackage.json`
-  carries it (null until core writes it).
+  at the reference year. A dataset records a `valid_until` year (core#179, reference year + 5 by
+  default); `datapackage.json` carries it (null for a dataset that states none).
 - **Atmospheric pass-through** (components taken in with the air and returned unchanged) is not
   exported, as decided in `lci/mappings.yaml` `pass_through:`. The same holds for an
   atmospheric gas a market loses on the way (oxygen, nitrogen or argon boil-off).
@@ -160,9 +161,13 @@ read. They are part of the review checklist ([governance.md](governance.md)).
   only when pinned; a producer of another grade is refused, and every Atlas-to-Atlas link
   records its compatibility (grade, unit, system model, allocation, boundary).
   [markets.md](markets.md) has the layers, the rules and the first markets.
-- **Data quality, nomenclature, carbon:** the pedigree matrix and TfS DQR (core#178), EF 3.1
-  flow identifiers (core#175, core#177) and the biogenic carbon rules (core#181) are part of
-  this methodology once core implements them; they will raise the methodology version.
+- **Data quality and nomenclature:** the export carries each exchange's pedigree and its
+  lognormal (ecoinvent pedigree matrix, factors of Ciroth et al. 2016; core#178), each dataset's
+  data quality rating from `lca/manifest.json` (TfS DQR, PEF-style indicators, primary data share),
+  and elementary flows by their biosphere3 UUID (core#175). Units follow core's table; gas
+  volumes at a reference state keep `Nm3` or `Sm3` (bw2io's normal and standard cubic meter, core#177). EF 3.1 UUIDs
+  are not recorded by core yet. The biogenic carbon rules (core#181) are part of this
+  methodology once core implements them; they will raise the methodology version.
 
 ## 7. How other chemical LCI databases document their methodology
 
@@ -198,7 +203,7 @@ Two published chemical LCI databases show what users expect from the documentati
 | mass and elemental balances per technology dataset | from the flowsheet for engineered processes; to be checked by the build (follow-up) |
 | layered model: plant, site, production and consumption mixes, simplified extension layer | markets (technology, production mix, consumption mix) in [markets.md](markets.md); the site layer is documented there and built with a second process; tiered generation planned (core#182, #47) |
 | biogenic carbon content always reported | planned (core#181) |
-| several data-quality schemes and a primary data share | planned (core#178): pedigree, TfS DQR, PEF-style indicators, PDS |
+| several data-quality schemes and a primary data share | pedigree per exchange in the export; TfS DQR, PEF-style indicators and PDS per dataset in `datapackage.json` (core#178) |
 | per-dataset documentation of included and excluded stages | activity comments and `datapackage.json` today; ILCD export planned (#51) |
 
 ## References

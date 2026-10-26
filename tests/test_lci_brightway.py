@@ -334,3 +334,48 @@ def test_a_background_of_another_system_model_is_reported(project, tmp_path: Pat
     _drop("cheme-as-code-atlas-fx3")
     report = install(out / "lci", background="stub-apos")
     assert report.ok and any("records system model 'apos'; the Atlas database is 'cutoff'" in w for w in report.warnings)
+
+
+# --- dataset contract v2: elementary flows by UUID, pedigree, system model, deprecated datasets -----
+
+
+def test_install_links_flows_by_uuid_writes_pedigree_and_reports_the_system_model(project, tmp_path: Path) -> None:
+    import shutil
+
+    library = tmp_path / "library"
+    shutil.copytree(FIXTURES / "library", library)
+    folder = library / "processes" / "fixture-electrolysis" / "lca"
+    datasets = folder / "datasets"
+    datasets.mkdir()
+    revised = yaml.safe_load((folder / "dataset.yaml").read_text())
+    revised.update(id="fixture-electrolysis-2", version="0.2.0")
+    (datasets / "revised.yaml").write_text(yaml.safe_dump(revised, sort_keys=False))
+    old = yaml.safe_load((folder / "dataset.yaml").read_text())
+    old.update(version="0.1.0", superseded_by={"id": "fixture-electrolysis-2", "version": "0.2.0"})
+    (folder / "dataset.yaml").write_text(yaml.safe_dump(old, sort_keys=False))
+    out = tmp_path / "out"
+    assert build_lci.build(library, out, "v2").errors == []
+    db = "cheme-as-code-atlas-v2"
+    _stub_background("stub-v2", project, FIXTURE_STUB)
+    _drop(db)
+
+    result = install(out / "lci", background="stub-v2")
+    assert result.unlinked == [], result.summary()
+    assert (result.system_model, result.methodology_version) == ("cutoff", build_lci.METHODOLOGY_VERSION)
+    assert "system model: attributional, cut-off (cutoff); methodology" in result.summary()
+    # the river water of both electrolysis datasets is linked by its biosphere3 UUID, the H2
+    # emissions (no identity) by name and categories
+    assert result.biosphere_by_uuid == 4 and result.biosphere_by_name == 4
+    # the deprecated dataset is installed, with a pointer
+    assert len(result.superseded) == 2 and all("->" in s for s in result.superseded)
+    assert "fixture-electrolysis:fixture-electrolysis-2:product:H2" in result.superseded[0]
+    assert "deprecated activities" in result.summary()
+
+    node = bd.get_node(database=db, code="fixture-electrolysis:fixture-electrolysis:product:H2")
+    flows = [e for e in node.exchanges() if e["type"] == "biosphere" and e.input["name"] == "Water, river"]
+    assert len(flows) == 1 and flows[0].input["code"] == "8c75e7ab-8ab8-41e4-b394-c166ff5b050d"
+    assert flows[0]["pedigree"] == {
+        "reliability": 4, "completeness": 3, "temporal correlation": 1, "geographical correlation": 5, "further technological correlation": 3,
+    }
+    assert flows[0]["uncertainty type"] == 2
+    assert node["atlas superseded by"].endswith(":fixture-electrolysis-2:product:H2")

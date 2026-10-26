@@ -5,7 +5,7 @@
 """Build the Atlas LCI export: a Brightway foreground database from a process library.
 
 Input, per process (``processes/<id>/``): core's unallocated LCI datasets (``kind:
-lci_dataset``), ``lca/dataset.yaml`` of a plantcode project (``cheme assess lca --write``) and
+lci_dataset``; schema ``cheme/lci_dataset/v2``, and the v1 files), ``lca/dataset.yaml`` of a plantcode project (``cheme assess lca --write``) and
 any hand-written ``lca/datasets/*.yaml`` of a manifest-only process; ``process.yaml`` for the
 title, maturity and the chemical slug of each inventory key; ``lca/lca.yaml`` for the study's
 allocation and functional unit. Linking comes from ``lci/mappings.yaml`` (library root, else the
@@ -34,8 +34,15 @@ Modelling rules (``docs/system-model.md``; also written into every activity's ``
   ``cheme-as-code-atlas-<version>-substitution`` with the credits of ``substitution:``;
 - one single-output activity per co-product, 1 unit of it, allocated by the hierarchy: the
   curated rule of ``allocation:`` in the mappings, else the study's (``lca/lca.yaml``) or the
-  dataset's method when it fits the WBCSD price-ratio rule; otherwise a finding (``--strict``
-  fails). The unallocated multi-output form is not exported;
+  dataset's method when it fits the WBCSD price-ratio rule or states its ``allocation.deviation``;
+  otherwise a finding (``--strict`` fails). The unallocated multi-output form is not exported;
+- the v2 contract (core#294): a ``resource`` exchange and an emission are biosphere exchanges
+  identified by the biosphere3 UUID of their ``flow:`` identity (``atlas flow uuid``), name and
+  categories as fallback; units are brought to one per kind (g, t to kg ...) or refused when
+  Brightway has none (ea*h, ea*a); the pedigree is exported (``atlas pedigree``) with
+  the lognormal it implies when the exchange has no distribution of its own; a dataset's version,
+  methodology version, review, valid_until, system model and ``superseded_by`` (a deprecated
+  dataset stays in the database with a pointer) are read, and its rating from ``lca/manifest.json``;
 - construction, maintenance, transport and end of life are technosphere inputs per unit of
   product, as core's dataset already spreads them over the plant's life;
 - free inputs (ambient air) and free pass-through emissions are not exported (see mappings);
@@ -109,19 +116,66 @@ from publication import is_public
 HERE = Path(__file__).resolve().parent
 DATAPACKAGE_SCHEMA = "cheme-as-code/lci-datapackage/v1"
 INDEX_SCHEMA = "cheme-as-code/lci-index/v1"
-#: Schema strings of core's LCA files before and after the rename to cheme.
-DATASET_SCHEMAS = ("cheme/lca/v1", "plantcode/lca/v1")
-#: Inventory units of core's datasets -> Brightway unit names (core integrations/brightway.py).
+#: Schema strings of core's LCI dataset: v2 (core#294) and the v1 files it still reads, which
+#: declared the LCA files' id (``cheme/lca/v1``, and ``plantcode/lca/v1`` before the rename).
+DATASET_SCHEMAS = ("cheme/lci_dataset/v2", "cheme/lca/v1", "plantcode/lca/v1")
+#: Inventory units of core's datasets (``foundation.units.LCI_UNITS``) -> (the unit the export
+#: counts the quantity in, factor to it). The export's units are the keys of ``BW_UNITS``.
+UNIT_SCALING = {
+    "kg": ("kg", 1.0),
+    "g": ("kg", 0.001),
+    "t": ("kg", 1000.0),
+    "kWh": ("kWh", 1.0),
+    "MWh": ("kWh", 1000.0),
+    "MJ": ("MJ", 1.0),
+    "GJ": ("MJ", 1000.0),
+    "m": ("m", 1.0),
+    "km": ("m", 1000.0),
+    "m2": ("m2", 1.0),
+    "m2*a": ("m2*a", 1.0),
+    "m2*year": ("m2*a", 1.0),  # how the crosswalk writes biosphere3's unit
+    "m3": ("m3", 1.0),
+    "L": ("m3", 0.001),
+    "ea": ("ea", 1.0),
+    "tkm": ("tkm", 1.0),
+    "kBq": ("kBq", 1.0),
+    # biosphere3 and bw2io count gas volumes at a reference state in these units (e.g. Gas, natural in
+    # Sm3); the reference state is core's (Nm3: 0 C, 1.01325 bar) and is not converted here
+    "Nm3": ("Nm3", 1.0),
+    "Sm3": ("Sm3", 1.0),
+}
+#: Units of core's table that Brightway has no counterpart for. Refused, with the reason.
+UNSUPPORTED_UNITS = {
+    "ea*h": "item-hours (rented equipment) have no Brightway unit; state the equipment's share as items (ea) or its burden in a background activity",
+    "ea*a": "item-years have no Brightway unit; state the equipment's share as items (ea) or its burden in a background activity",
+}
+#: The export's units -> Brightway unit names (core integrations/brightway.py; biosphere3 for the last two).
 BW_UNITS = {
     "kg": "kilogram",
     "kWh": "kilowatt hour",
+    "MJ": "megajoule",
     "m": "meter",
     "m2": "square meter",
+    "m2*a": "square meter-year",
     "m3": "cubic meter",
     "ea": "unit",
     "tkm": "ton kilometer",
+    "kBq": "kilo Becquerel",
+    "Nm3": "normal cubic meter",  # bw2io units.py
+    "Sm3": "standard cubic meter",
 }
-EXCHANGE_TYPES = ("product", "input", "output", "emission")
+EXCHANGE_TYPES = ("product", "input", "output", "emission", "resource")
+#: Ciroth, Muller, Weidema, Lesage (2016), Int J LCA 21:1338-1348: the empirically based
+#: uncertainty factors (squared geometric standard deviations) of the pedigree scores 1 to 5,
+#: as core's ``foundation.uncertainty.PEDIGREE``. Order of the scores in a dataset's pedigree.
+PEDIGREE_FACTORS = (
+    ("reliability", (1.00, 1.54, 1.61, 1.69, 1.69)),
+    ("completeness", (1.00, 1.03, 1.04, 1.08, 1.08)),
+    ("temporal correlation", (1.00, 1.03, 1.10, 1.19, 1.29)),
+    ("geographical correlation", (1.00, 1.04, 1.08, 1.11, 1.11)),
+    ("further technological correlation", (1.00, 1.18, 1.65, 2.08, 2.80)),
+)
+UUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 KEY = re.compile(r"^[a-z][a-z-]*:[A-Za-z0-9_.\-]+$")
 PROPORTIONAL = ("mass", "economic", "energy", "exergy", "shares")
 #: Core marks an output whose components are counted by its emission:* exchanges this way.
@@ -167,6 +221,9 @@ EXCHANGE_COLUMNS = (
     "scale",
     "comment",
     "atlas key",
+    "atlas flow uuid",
+    "atlas pedigree",
+    "atlas carrier",
     "atlas location rule",
     "atlas activity",
     "atlas reference product",
@@ -332,8 +389,12 @@ def validate_dataset(data: Any, where: str) -> dict:
         amount = exchange.get("amount")
         if isinstance(amount, bool) or not isinstance(amount, (int, float)) or not math.isfinite(amount):
             problems.append(f"{at}: amount {amount!r} is not a finite number")
-        if exchange.get("unit") not in BW_UNITS:
-            problems.append(f"{at}: unit {exchange.get('unit')!r} is not one of {', '.join(BW_UNITS)}")
+        unit = exchange.get("unit")
+        if unit in UNSUPPORTED_UNITS:
+            problems.append(f"{at}: unit {unit}: {UNSUPPORTED_UNITS[unit]}")
+        elif unit not in UNIT_SCALING:
+            problems.append(f"{at}: unit {unit!r} is not one of {', '.join([*UNIT_SCALING, *UNSUPPORTED_UNITS])}")
+        problems.extend(f"{at}: {text}" for text in _quality_problems(exchange))
         link = exchange.get("link")
         if link is not None and not isinstance(link, dict):
             problems.append(f"{at}: link is not a mapping")
@@ -352,9 +413,67 @@ def validate_dataset(data: Any, where: str) -> dict:
     allocation = data.get("allocation")
     if allocation is not None and not isinstance(allocation, dict):
         problems.append("allocation is not a mapping")
+    superseded = data.get("superseded_by")
+    if superseded is not None:
+        if not (isinstance(superseded, dict) and isinstance(superseded.get("id"), str) and isinstance(superseded.get("version"), str)):
+            problems.append("superseded_by needs an id and a version")
+        elif superseded["id"] == data.get("id") and superseded["version"] == str(data.get("version")):
+            problems.append("superseded_by names the dataset itself")
     if problems:
         raise BuildError(f"{where}: " + "; ".join(problems))
     return data
+
+
+def _flow_identities(exchange: dict) -> list[dict]:
+    """The exchange's ``flow:`` (one mapping is read as a list, as in core)."""
+    flow = exchange.get("flow")
+    return [flow] if isinstance(flow, dict) else [f for f in flow or [] if isinstance(f, dict)]
+
+
+def _quality_problems(exchange: dict) -> list[str]:
+    """What is wrong with the v2 fields of one exchange this builder reads: pedigree, basic
+    uncertainty, flow identities."""
+    problems = []
+    pedigree = exchange.get("pedigree")
+    if pedigree is not None:
+        scores = pedigree.get("scores") if isinstance(pedigree, dict) else None
+        if not (isinstance(scores, list) and len(scores) == 5 and all(isinstance(x, int) and not isinstance(x, bool) and 1 <= x <= 5 for x in scores)):
+            problems.append("pedigree.scores is not five integers from 1 to 5")
+    basic = exchange.get("basic_uncertainty")
+    if pedigree is not None and basic is None:
+        # core's table of basic uncertainties by exchange type (quality.BASIC) is not copied here, and
+        # core fills the field in every dataset it generates: a hand-written pedigree must state it
+        problems.append("pedigree without basic_uncertainty: state it (core's quality.basic_uncertainty for the exchange type)")
+    own = exchange.get("uncertainty")
+    if isinstance(own, dict) and own.get("pedigree") and not own.get("gsd2") and not own.get("basic"):
+        problems.append("uncertainty.pedigree without gsd2 or basic: state the basic uncertainty")
+    if basic is not None and (isinstance(basic, bool) or not isinstance(basic, (int, float)) or basic < 1):
+        problems.append("basic_uncertainty is not a number of at least 1")
+    for number, flow in enumerate(_flow_identities(exchange)):
+        uuid = flow.get("uuid")
+        if uuid is not None and not (isinstance(uuid, str) and UUID.match(uuid)):
+            problems.append(f"flow[{number}].uuid {uuid!r} is not a lower-case UUID")
+        if flow.get("list") != "biosphere3":
+            continue
+        per_unit = flow.get("per_unit", 1.0)
+        if isinstance(per_unit, bool) or not isinstance(per_unit, (int, float)) or per_unit <= 0:
+            problems.append(f"flow[{number}].per_unit {per_unit!r} is not a positive number")
+        if flow.get("unit") and flow["unit"] not in UNIT_SCALING:
+            problems.append(f"flow[{number}].unit {flow['unit']!r} has no Brightway unit")
+    return problems
+
+
+def normalise_units(data: dict) -> dict:
+    """*data* with every exchange in the unit the export counts its quantity in (g and t in kg,
+    MWh in kWh, GJ in MJ, L in m3, ...): Brightway activities count in one unit per kind, and
+    the allocation by mass needs kg. The input is not changed."""
+    exchanges = []
+    for exchange in data["exchanges"]:
+        unit, factor = UNIT_SCALING[exchange["unit"]]
+        if unit != exchange["unit"] or factor != 1.0:
+            exchange = {**exchange, "amount": exchange["amount"] * factor, "unit": unit}
+        exchanges.append(exchange)
+    return {**data, "exchanges": exchanges}
 
 
 def _name(exchange: dict) -> str:
@@ -455,7 +574,8 @@ def choose_allocation(pid: str, data: dict, study_allocation: dict | None, mappi
     """Apply the multi-functionality hierarchy: a curated rule (mappings ``allocation``) first;
     else the study's or dataset's method if it is the WBCSD price-ratio choice; else the
     price-ratio choice; else the given method, with a finding. A deviation from the hierarchy is
-    a curated rule (``rule: deviation``): core's allocation schema has no field for it."""
+    stated where core allows it, ``allocation.deviation`` of the study or of the dataset (the
+    study's first), or as a curated rule (``rule: deviation``) in the mappings, which wins."""
     own = data.get("allocation") or {}
     if study_allocation:
         base, source = study_allocation, "study"
@@ -508,15 +628,18 @@ def choose_allocation(pid: str, data: dict, study_allocation: dict | None, mappi
 
     if expected == method:
         return Allocation(base, source, expected, wbcsd)
+    deviation = " ".join(str(base.get("deviation") or own.get("deviation") or "").split())
+    if deviation and method in PROPORTIONAL:
+        return Allocation(base, source, "deviation", deviation)
     if expected:
         finding = (
             f"the {source}'s {method} allocation is not the hierarchy's {expected} ({wbcsd}); {expected} is exported. "
-            f"Record a curated rule in lci/mappings.yaml allocation (e.g. rule: deviation, with the reason) to keep {method}"
+            f"State the reason in allocation.deviation of the study or the dataset (or a curated rule in lci/mappings.yaml allocation) to keep {method}"
         )
         return Allocation({**base, "method": expected}, "hierarchy", expected, wbcsd, finding)
     finding = (
-        f"{method} allocation ({source}) does not follow the documented hierarchy: no curated rule in lci/mappings.yaml "
-        f"allocation, and {gap}"
+        f"{method} allocation ({source}) does not follow the documented hierarchy: no allocation.deviation and no curated rule "
+        f"in lci/mappings.yaml allocation, and {gap}"
     )
     return Allocation(base, source, "unresolved", "not shown to follow the hierarchy (see the build's findings)", finding)
 
@@ -531,6 +654,12 @@ class Dataset:
     rule: str = "single-output"
     reason: str = ""
     finding: str | None = None
+    #: sha256 of the dataset as read, before its units are normalised
+    sha256: str = ""
+    #: the data quality rating of lca/manifest.json (``data_quality``), for the plant's generated dataset
+    data_quality: dict | None = None
+    #: the dataset that replaces this one (``superseded_by``), resolved against the build
+    successor: dict | None = None
 
 
 @dataclass
@@ -542,6 +671,57 @@ class Process:
     datasets: list[Dataset]
     chemicals: dict[str, str]  # inventory key -> chemical slug (process.yaml)
     grades: dict[str, str] = field(default_factory=dict)  # inventory key -> grade (registry.flow_grade)
+
+
+def _data_quality(path: Path, report: Report, where: str) -> dict | None:
+    """The data quality rating core writes into ``lca/manifest.json`` (``data_quality``: TfS DQR
+    with TeR, GeR and TiR, the PEF-style P, C and DQR, the primary data share, the weighting
+    basis), or None when the manifest has none (written before core#178, or no manifest)."""
+    if not path.is_file():
+        return None
+    try:
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+    except ValueError as failure:
+        report.warn(where, f"not valid JSON, its data quality rating is not read: {failure}")
+        return None
+    rating = manifest.get("data_quality") if isinstance(manifest, dict) else None
+    return rating if isinstance(rating, dict) else None
+
+
+def resolve_successors(processes: list[Process], report: Report) -> None:
+    """Resolve every ``superseded_by`` (a dataset id and version) against the datasets of the
+    build, the same process first. A deprecated dataset stays in the database: only the pointer is
+    added. A successor that is not in the build (unpublished, or a typo) is a warning."""
+    for process in processes:
+        for dataset in process.datasets:
+            target = dataset.data.get("superseded_by")
+            if not target:
+                continue
+            candidates = [(p, d) for p in [process, *[q for q in processes if q is not process]] for d in p.datasets if d.data["id"] == target["id"] and d is not dataset]
+            found = next((c for c in candidates if _dataset_version(c[1])[0] == str(target["version"])), next(iter(candidates), None))
+            entry: dict[str, Any] = {"id": target["id"], "version": str(target["version"]), "process": None, "resolved": found is not None, "activities": []}
+            if found is None:
+                report.warn(dataset.path, f"superseded_by {target['id']} {target['version']} is not a dataset of this build: the pointer is kept, but names nothing here")
+            else:
+                other, successor = found
+                have = _dataset_version(successor)[0]
+                if have != entry["version"]:
+                    report.warn(dataset.path, f"superseded_by {target['id']} {entry['version']}, but the build has version {have}")
+                entry["process"] = other.pid
+                entry["activities"] = [f"{other.pid}:{successor.data['id']}:{key}" for key in sorted(successor.shares) if successor.shares[key] > 0]
+            dataset.successor = entry
+
+
+def check_system_models(processes: list[Process], model: str, report: Report) -> None:
+    """A dataset that states its system model (core#179) must fit the build: the cut-off build
+    takes cut-off datasets; the substitution variant is made from cut-off or substitution ones.
+    One database never mixes system models (docs/system-model.md)."""
+    allowed = {"cutoff": ("cutoff",), "substitution": ("cutoff", "substitution")}[model]
+    for process in processes:
+        for dataset in process.datasets:
+            stated = dataset.data.get("system_model")
+            if stated and stated not in allowed:
+                report.error(dataset.path, f"system_model {stated!r} does not fit the {model} build (it takes {', '.join(allowed)})")
 
 
 def _discover(library: Path, report: Report, mappings: dict, public: bool = False, products: reg.Registry | None = None) -> list[Process]:
@@ -574,11 +754,13 @@ def _discover(library: Path, report: Report, mappings: dict, public: bool = Fals
                     chemicals[item["inventory_key"]] = slug
                     if grade:
                         grades[item["inventory_key"]] = grade
+        quality = _data_quality(folder / "lca" / "manifest.json", report, str((folder / "lca" / "manifest.json").relative_to(library)))
         datasets = []
         for path in files:
             where = str(path.relative_to(library))
             try:
-                data = validate_dataset(_yaml(path), where)
+                raw = validate_dataset(_yaml(path), where)
+                data = normalise_units(raw)
                 study_allocation = (study or {}).get("allocation") if path.name == "dataset.yaml" else None
                 choice = choose_allocation(pid, data, study_allocation, mappings)
                 if choice.source == "study" and data.get("allocation") and data["allocation"].get("method") != study_allocation.get("method"):
@@ -586,7 +768,8 @@ def _discover(library: Path, report: Report, mappings: dict, public: bool = Fals
                 if choice.finding:
                     report.warn(where, f"allocation: {choice.finding}")
                 datasets.append(
-                    Dataset(where, data, choice.allocation, choice.source, shares(data, choice.allocation, where), choice.rule, choice.reason, choice.finding)
+                    Dataset(where, data, choice.allocation, choice.source, shares(data, choice.allocation, where), choice.rule, choice.reason, choice.finding, _content_sha256(raw),
+                        quality if path.name == "dataset.yaml" else None)
                 )
             except BuildError as failure:
                 report.errors.append(str(failure))
@@ -688,16 +871,8 @@ class Linker:
                 raise BuildError(f"{where}: override uses unknown technosphere entry {override['use']!r}")
             return self.link(override["use"], unit, where, exchange["key"])
 
-        if exchange["type"] == "emission":
-            if link.get("biosphere"):
-                flow = link["biosphere"]
-                return "biosphere", {"name": flow["name"], "categories": list(flow.get("categories") or []), "unit": unit}
-            component = _name(exchange)
-            origin = (link.get("elementary") or {}).get("origin", "fossil")
-            entry = self.mappings["biosphere"].get(f"{component}/{origin}") or self.mappings["biosphere"].get(component)
-            if entry is None:
-                raise BuildError(f"{where}: emission of {component} ({origin}) is not in lci/mappings.yaml biosphere")
-            return "biosphere", {"name": entry["flow"]["name"], "categories": list(entry["flow"]["categories"]), "unit": unit}
+        if exchange["type"] in ("emission", "resource"):
+            return "biosphere", self.elementary(exchange, where)
 
         if link.get("biosphere"):
             flow = link["biosphere"]
@@ -729,6 +904,53 @@ class Linker:
         tried = ", ".join(x for x in (f"chemical {chemical!r}" if chemical else "", f"factor {factor!r}" if factor else "") if x) or "no chemical slug or factor id"
         raise BuildError(f"{where}: no mapping ({tried}); add it to lci/mappings.yaml technosphere or exchanges")
 
+    def elementary(self, exchange: dict, where: str) -> dict:
+        """The biosphere flow of an emission or a resource, by the first of: its biosphere3
+        identity (``flow:``, core#175; a curated ``biosphere:`` entry keyed by that UUID may
+        correct the name and categories), ``link.biosphere``, the curated ``biosphere:`` entry
+        of its component (``<component>/<origin>``, else ``<component>``). The result carries
+        ``amount factor`` (the list's unit per unit of the exchange; the caller removes it)."""
+        link = exchange.get("link") or {}
+        unit = exchange["unit"]
+        identity = next((f for f in _flow_identities(exchange) if f.get("list") == "biosphere3" and f.get("uuid")), None)
+        if identity:
+            entry = self.mappings["biosphere"].get(identity["uuid"])
+            flow = entry["flow"] if entry else identity
+            if not flow.get("name") or not flow.get("categories"):
+                raise BuildError(f"{where}: flow identity {identity['uuid']} has no name and categories (give them in the dataset, or in lci/mappings.yaml biosphere)")
+            list_unit, factor = UNIT_SCALING[identity.get("unit") or unit]
+            per_unit = float(identity.get("per_unit", 1.0))
+            if unit == list_unit:
+                amount_factor = 1.0  # the amount is already in the list's unit; per_unit is per kg
+            elif unit == "kg":
+                amount_factor = per_unit * factor
+            else:
+                raise BuildError(
+                    f"{where}: flow identity {identity['uuid']} is in {list_unit} (per_unit {per_unit:g} per kg) but the exchange is in {unit}: "
+                    "state the amount in kg or in the list's unit"
+                )
+            return {
+                "name": flow["name"],
+                "categories": list(flow["categories"]),
+                "unit": BW_UNITS[list_unit],
+                "atlas flow uuid": identity["uuid"],
+                "amount factor": amount_factor,
+            }
+        if link.get("biosphere"):
+            flow = link["biosphere"]
+            return {"name": flow["name"], "categories": list(flow.get("categories") or []), "unit": BW_UNITS[unit], "amount factor": 1.0}
+        component = _name(exchange)
+        origin = (link.get("elementary") or {}).get("origin") or exchange.get("origin") or "fossil"
+        entry = self.mappings["biosphere"].get(f"{component}/{origin}") or self.mappings["biosphere"].get(component)
+        if entry is None:
+            raise BuildError(
+                f"{where}: {exchange['type']} of {component} ({origin}) has no biosphere3 flow identity and is not in lci/mappings.yaml biosphere"
+            )
+        found = {"name": entry["flow"]["name"], "categories": list(entry["flow"]["categories"]), "unit": BW_UNITS[unit], "amount factor": 1.0}
+        if entry["flow"].get("uuid"):
+            found["atlas flow uuid"] = entry["flow"]["uuid"]
+        return found
+
     def _own(self, row: dict) -> dict:
         return {"name": row["name"], "reference product": row["reference product"], "unit": row["unit"], "location": row["location"], "database": self.db_name}
 
@@ -751,7 +973,8 @@ class Linker:
                 refused.append(f"{pid}: {row['name']} | {row['reference product']} (grade {chemical}/{row['grade']}, the input is {chemical}/{wanted})")
                 continue
             candidates.append((pid, row))
-        candidates.sort(key=lambda c: (not wanted or c[1].get("grade") != wanted, c[0], c[1]["name"]))
+        # a current producer of the grade the input names comes first (a deprecated dataset's last), then by process id and name
+        candidates.sort(key=lambda c: (c[1].get("deprecated", False), not wanted or c[1].get("grade") != wanted, c[0], c[1]["name"]))
         if not candidates:
             return AtlasChoice(None, None, [], refused) if refused else None
         plant = candidates[0][1]
@@ -821,12 +1044,79 @@ class AtlasChoice:
 # --- activities ------------------------------------------------------------------------------
 
 
+def pedigree_gsd2(scores: list[int], basic: float) -> float:
+    """The squared geometric standard deviation of pedigree *scores* on a *basic* uncertainty,
+    combined as in ecoinvent: ``exp(sqrt(ln(basic)^2 + sum(ln(U_i)^2)))`` (core's
+    ``foundation.uncertainty.pedigree_gsd2``)."""
+    terms = [math.log(basic) ** 2] + [math.log(factors[score - 1]) ** 2 for (_, factors), score in zip(PEDIGREE_FACTORS, scores, strict=True)]
+    return math.exp(math.sqrt(sum(terms)))
+
+
 def _uncertainty(exchange: dict, amount: float) -> dict:
-    """A lognormal gsd2 as Brightway's lognormal (type 2): loc ln(amount), scale ln(gsd2)/2."""
+    """A lognormal gsd2 as Brightway's lognormal (type 2): loc ln(amount), scale ln(gsd2)/2.
+    The exchange's own lognormal (a gsd2, or pedigree scores on a basic uncertainty) comes first,
+    then the gsd2 of its pedigree (core#178: no exchange of a v2 dataset goes without one); the
+    study's default distributions (lca.yaml) are not known to the dataset. Another distribution
+    kind of the exchange (normal, triangular, uniform) is not exported; ``build`` warns."""
     given = exchange.get("uncertainty") or {}
-    if given.get("distribution", "lognormal") != "lognormal" or not given.get("gsd2") or amount <= 0:
+    pedigree = exchange.get("pedigree") or {}
+    if given:
+        gsd2 = given.get("gsd2")
+        if given.get("distribution", "lognormal") == "lognormal" and not gsd2 and given.get("pedigree"):
+            gsd2 = pedigree_gsd2(given["pedigree"], given["basic"]) if given.get("basic") else None
+        if given.get("distribution", "lognormal") != "lognormal":
+            gsd2 = None
+    elif pedigree.get("scores"):
+        gsd2 = pedigree_gsd2(pedigree["scores"], exchange["basic_uncertainty"])
+    else:
+        gsd2 = None
+    if not gsd2 or amount == 0:
         return {}
-    return {"uncertainty type": 2, "loc": _number(math.log(amount)), "scale": _number(math.log(given["gsd2"]) / 2)}
+    # a negative amount (a credit of the substitution variant) is the lognormal of its magnitude
+    # with Brightway's (stats_arrays) ``negative`` flag
+    spec = {"uncertainty type": 2, "loc": _number(math.log(abs(amount))), "scale": _number(math.log(gsd2) / 2)}
+    if amount < 0:
+        spec["negative"] = True
+    return spec
+
+
+def _pedigree_column(exchange: dict) -> dict:
+    """The five scores as ``"r,c,t,g,f"`` (reliability, completeness, temporal, geographical,
+    further technological correlation); the installer turns them into Brightway's ``pedigree``."""
+    scores = (exchange.get("pedigree") or {}).get("scores")
+    return {"atlas pedigree": ",".join(str(x) for x in scores)} if scores else {}
+
+
+def _carrier_text(carrier: dict | None) -> str:
+    """An energy carrier as one line: kind, temperature, pressure, level, LHV."""
+    if not carrier:
+        return ""
+    parts = [carrier["kind"]]
+    if carrier.get("level"):
+        parts.append(str(carrier["level"]))
+    if carrier.get("temperature") is not None:
+        parts.append(f"{carrier['temperature']:g} degC")
+    if carrier.get("pressure") is not None:
+        parts.append(f"{carrier['pressure']:g} bar(a)")
+    if carrier.get("lhv") is not None:
+        parts.append(f"LHV {carrier['lhv']:g} MJ/kg")
+    return ", ".join(parts)
+
+
+def _state_text(state: dict | None) -> str:
+    """A product's state as one line: phase, pressure, temperature, purity, grade."""
+    if not state:
+        return ""
+    parts = [state["phase"]] if state.get("phase") else []
+    if state.get("pressure") is not None:
+        parts.append(f"{state['pressure']:g} bar(a)")
+    if state.get("temperature") is not None:
+        parts.append(f"{state['temperature']:g} degC")
+    if state.get("purity") is not None:
+        parts.append(f"{state['purity'] * 100:g} % {state.get('component') or 'main component'} ({state.get('basis') or 'basis not stated'})")
+    if state.get("grade"):
+        parts.append(f"grade {state['grade']}")
+    return ", ".join(parts)
 
 
 def _product_rows(process: Process, dataset: Dataset, products: reg.Registry) -> list[dict]:
@@ -849,7 +1139,7 @@ def _product_rows(process: Process, dataset: Dataset, products: reg.Registry) ->
         rows.append(
             {
                 "code": f"{process.pid}:{dataset.data['id']}:{exchange['key']}",
-                "name": f"{process.manifest['title']}",
+                "name": process.manifest["title"] + (f" [superseded by {dataset.successor['id']} {dataset.successor['version']}]" if dataset.successor else ""),
                 "reference product": product,
                 "unit": BW_UNITS[exchange["unit"]],
                 "location": location,
@@ -857,6 +1147,9 @@ def _product_rows(process: Process, dataset: Dataset, products: reg.Registry) ->
                 "amount": float(exchange["amount"]),
                 "chemical": chemical,
                 "grade": grade,
+                "state": _state_text(exchange.get("state")),
+                "deprecated": bool(dataset.data.get("superseded_by")),
+                "superseded_by": _successor_text(dataset.successor, exchange["key"]) if dataset.successor else None,
             }
         )
     return rows
@@ -952,6 +1245,13 @@ ALLOCATION_SOURCES = {
 }
 
 
+def _successor_text(successor: dict, key: str) -> str:
+    """The successor of a deprecated activity: its activity code for the same product when the
+    build has one, else the dataset id and version."""
+    same = [code for code in successor["activities"] if code.endswith(f":{key}")]
+    return same[0] if same else f"dataset {successor['id']} {successor['version']}" + ("" if successor["resolved"] else " (not in this build)")
+
+
 def _comment(process: Process, dataset: Dataset, row: dict, skipped: list[str], excluded: list[str], model: str, commit: str | None, version: str) -> str:
     method = dataset.allocation.get("method", "mass")
     share_text = ", ".join(f"{_name({'key': k})} {v * 100:.1f} %" for k, v in sorted(dataset.shares.items(), key=lambda kv: -kv[1]))
@@ -965,6 +1265,10 @@ def _comment(process: Process, dataset: Dataset, row: dict, skipped: list[str], 
         "Construction, maintenance, transport and end of life are technosphere inputs per unit of product, spread over the plant's life as in the dataset.",
         "Technosphere amounts are quantities of the linked reference product (a treatment activity is linked with the sign flipped by the installer).",
     ]
+    if row.get("state"):
+        lines.append(f"Product state: {row['state']}.")
+    if dataset.successor:
+        lines.append(f"DEPRECATED: superseded by {_successor_text(dataset.successor, row['key'])}. Kept so that existing links resolve; use the successor.")
     if skipped:
         lines.append("Not exported: " + "; ".join(skipped) + ".")
     if excluded:
@@ -1012,8 +1316,17 @@ def build_activities(processes: list[Process], mappings: dict, products: reg.Reg
                     linker.producers.setdefault(row["chemical"], []).append((process.pid, row))
     for producers in linker.producers.values():
         producers.sort(key=lambda p: (p[0], p[1]["code"]))
+    identities: dict[tuple, str] = {}
     for rows in rows_by_process.values():
         for dataset, row in rows:
+            identity = (row["name"], row["reference product"], row["location"], row["unit"])
+            if identity in identities:
+                report.error(
+                    dataset.path,
+                    f"{row['code']} has the name, reference product, location and unit of {identities[identity]}: "
+                    "the installer cannot tell them apart (a second dataset of one process for the same product needs its own title or location)",
+                )
+            identities[identity] = row["code"]
             linker.datasets[row["code"]] = dataset
             linker.rows[row["code"]] = row
     market_activities, market_entries = build_markets(linker, products, db_name, commit, version, report, public, links)
@@ -1056,7 +1369,7 @@ def build_activities(processes: list[Process], mappings: dict, products: reg.Reg
                     if entry not in excluded_log:
                         excluded_log.append(entry)
                     continue
-                amount = _number(float(exchange["amount"]) * per_unit)
+                amount = _number(float(exchange["amount"]) * per_unit * (target.pop("amount factor", 1.0) if kind == "biosphere" else 1.0))
                 if model == "cutoff" and kind == "technosphere" and amount < 0:
                     refusal = (
                         f"{dataset.path} {exchange['key']}: negative technosphere amount: an avoided burden (credit), which a "
@@ -1078,6 +1391,13 @@ def build_activities(processes: list[Process], mappings: dict, products: reg.Reg
                 else:
                     link_atlas(linker, process, exchange, row, entry, target, report, links)
                 entry.update(_uncertainty(exchange, amount))
+                kind_of = (exchange.get("uncertainty") or {}).get("distribution", "lognormal")
+                if kind_of != "lognormal":
+                    report.warn(f"{dataset.path} {exchange['key']}", f"uncertainty distribution {kind_of!r} (and the pedigree) is not exported: Brightway sees this exchange as deterministic")
+                entry.update(_pedigree_column(exchange))
+                carrier = _carrier_text(exchange.get("carrier"))
+                if carrier:
+                    entry["atlas carrier"] = carrier
                 if exchange.get("title"):
                     entry["comment"] = exchange["title"]
                 exchanges.append(entry)
@@ -1097,6 +1417,10 @@ def build_activities(processes: list[Process], mappings: dict, products: reg.Reg
                 "atlas system model": model,
                 "atlas methodology version": METHODOLOGY_VERSION,
             }
+            if row.get("state"):
+                metadata["atlas product state"] = row["state"]
+            if dataset.successor:
+                metadata["atlas superseded by"] = _successor_text(dataset.successor, row["key"])
             activities.append(Activity(row, comment, metadata, exchanges))
 
     proxies: list[Activity] = []
@@ -1614,6 +1938,25 @@ def changes_markdown(changes: dict) -> str:
 # --- build -----------------------------------------------------------------------------------
 
 
+#: Dataset fields (core#179) recorded as they are in ``datapackage.json``, beside the ones the
+#: builder reads: identity, geography, technology, classification.
+DOCUMENTATION = ("uuid", "geography", "time", "technology", "technology_level", "classification", "production_volume", "data_generator")
+#: Review types, weakest first (core ``ReviewType``).
+REVIEW_ORDER = ("none", "internal", "independent-external", "panel")
+
+
+def _review(value: Any) -> dict:
+    """A dataset's review as ``{status, records}``: ``status`` is ``unreviewed``, or the
+    strongest type of its records (internal, independent-external, panel). Core accepts a list
+    of records, one record, or ``unreviewed``; an absent review is unreviewed."""
+    if value in (None, "", "unreviewed", "none"):
+        return {"status": "unreviewed"}
+    records = [value] if isinstance(value, dict) else [r for r in value if isinstance(r, dict)] if isinstance(value, list) else []
+    types = [r.get("type") for r in records if r.get("type") in REVIEW_ORDER and r.get("type") != "none"]
+    records = [r for r in records if r.get("type") != "none"]
+    return {"status": max(types, key=REVIEW_ORDER.index), "records": records} if types else {"status": "unreviewed"}
+
+
 def _dataset_entry(d: Dataset) -> dict:
     version, version_source = _dataset_version(d)
     allocation = {
@@ -1632,12 +1975,18 @@ def _dataset_entry(d: Dataset) -> dict:
         "basis": d.data.get("basis", "1 h of operation"),
         "version": version,
         "version_source": version_source,
-        "methodology_version": METHODOLOGY_VERSION,
-        "content_sha256": _content_sha256(d.data),
-        "review": d.data.get("review") or {"status": "unreviewed"},
+        "methodology_version": str(d.data.get("methodology_version") or METHODOLOGY_VERSION),
+        "methodology_version_source": "dataset" if d.data.get("methodology_version") else "build",
+        "system_model": d.data.get("system_model"),
+        "content_sha256": d.sha256 or _content_sha256(d.data),
+        "review": _review(d.data.get("review")),
         "valid_until": d.data.get("valid_until"),
+        "superseded_by": d.successor,
+        "deprecated": d.successor is not None,
         "allocation": allocation,
         "data_status": _data_status(d.data),
+        "data_quality": d.data_quality,
+        "documentation": {k: d.data[k] for k in DOCUMENTATION if d.data.get(k)},
         "generator": (d.data.get("provenance") or {}).get("generator", ""),
     }
 
@@ -1712,6 +2061,8 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
     dirty = bool(_git(library, "status", "--porcelain")) if own_repo else None
 
     processes = _discover(library, report, mappings, public, products)
+    check_system_models(processes, model, report)
+    resolve_successors(processes, report)
     # the default model's database carries the plain name; a variant is labelled in its name
     db_name = f"cheme-as-code-atlas-{version}" if model == mappings["system_model"] else f"cheme-as-code-atlas-{version}-{model}"
     excluded: list[dict] = []
@@ -1749,7 +2100,7 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
     write_workbook(lci / xlsx_name, db_name, database_meta, activities, proxies, about, built.markets)
 
     def activity_list(rows: list[dict]) -> list[dict]:
-        return [{"code": r["code"], "name": r["name"], "reference_product": r["reference product"], "unit": r["unit"], "location": r["location"], **({"chemical": r["chemical"], "grade": r["grade"]} if "chemical" in r else {})} for r in rows]
+        return [{"code": r["code"], "name": r["name"], "reference_product": r["reference product"], "unit": r["unit"], "location": r["location"], **({"chemical": r["chemical"], "grade": r["grade"]} if "chemical" in r else {}), **({"state": r["state"]} if r.get("state") else {}), **({"superseded_by": r["superseded_by"]} if r.get("superseded_by") else {})} for r in rows]
 
     process_entries = []
     for process in processes:
