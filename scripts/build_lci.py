@@ -23,7 +23,9 @@ Output (``--out``; ``<out>/lci/`` is replaced):
   ``lci/cheme-as-code-atlas-<version>-multifunctional.json`` (Brightway ``multifunctional``): the
   unallocated multi-output datasets, written by ``export_formats.py`` from the same activities;
 - ``lci/datapackage.json``: version, library commit, per process its title, maturity, data and
-  factor status, allocation, functional unit and activities.
+  factor status, allocation, functional unit and activities; and ``activities``, per exported
+  activity what its Atlas page shows (exchanges per reference unit with provenance, pedigree and
+  link targets, header metadata, allocation, closure, citation, downloads; ``lci_activities.py``).
 - ``lci/index.json``: the summary the Atlas reads (files with size, sha256, format and format
   version, activities per process, caveats).
 - with ``--previous <dir>`` (an earlier build): ``lci/changes.json`` and ``lci/CHANGES.md``, the
@@ -123,6 +125,7 @@ from openpyxl import Workbook
 
 import benchmarks as bm
 import export_formats
+import lci_activities
 import markets as mk
 import reference_impacts
 import registry as reg
@@ -2385,6 +2388,12 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
         "atlas_links": built.links,
         "caveats": [*CAVEATS, *variant_caveats],
     }
+    # per activity, what its Atlas page shows (website#37): scripts/lci_activities.py
+    datapackage["activities"] = lci_activities.entries(
+        activities, proxies, processes, products, taxonomy, db_name, model, SYSTEM_MODELS[model], datapackage["resources"], library, version, mappings["default_site_location"],
+        markets=built.markets, market_entries=built.market_entries, default=model == mappings["system_model"],
+    )
+    datapackage["pedigree_indicators"] = list(lci_activities.PEDIGREE_INDICATORS)
     _write_json(lci / "datapackage.json", datapackage)
 
     reports = []
