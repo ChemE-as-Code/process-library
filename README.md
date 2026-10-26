@@ -57,8 +57,9 @@ uv run --python 3.12 --with pytest --with pyyaml --with jsonschema --with openpy
 `foundation.units` ([docs/benchmarks.md](docs/benchmarks.md)). Without core a KPI is
 `unchecked`, which fails `--strict`, and the tests that need core are skipped. Add core with
 `--with "cheme-as-code[units] @ git+https://github.com/ChemE-as-Code/core.git"` (or a local
-clone) to the `uv run` of the builds and the tests; CI does, and sets `ATLAS_REQUIRE_CORE` so a
-missing core fails the tests there.
+clone) to the `uv run` of the builds and the tests; CI does, with core pinned to one commit
+(`.github/workflows/validate.yml`), and sets `ATLAS_REQUIRE_CORE` so a missing core fails the
+tests there.
 
 **Design cases and regional scenarios.** One engineering project serves several operating
 cases (flowsheet `cases:`, each with its declared `capacity`) and several geographical
