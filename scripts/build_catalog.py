@@ -443,7 +443,8 @@ def _scenarios(folder: Path, where: str, report: Report, lca_withheld_reason: st
                 # core's verdict against the baseline (core#306: like-for-like, proxy, not
                 # comparable; baseline for the baseline), read from the factors' structured scope.
                 # `comparable` above covers gaps only. A record from before core#306 has none:
-                # null, which a consumer shows as "not assessed", never as like-for-like.
+                # null, which a consumer shows as "not comparable" when `comparable` is false and
+                # as "not assessed" otherwise, never as like-for-like (ADR 0015).
                 "comparability": data.get("comparability"),
                 "classification": impacts["classification"],
                 "reasons": impacts["reasons"],

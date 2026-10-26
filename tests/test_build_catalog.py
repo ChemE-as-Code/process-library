@@ -652,11 +652,15 @@ def test_scenarios_reuse_one_design_and_keep_their_states(tmp_path: Path, librar
         "impacts": "characterized-impact",
     }
     assert de["allocation"]["method"] == "mass" and de["functional_unit"]["product"] == "H2"
-    # the boundary beside every scenario; the fixture's records predate core's comparability
-    # verdict (core#306): null, "not assessed", never like-for-like
+    # the study boundary beside every scenario; core's comparability verdict (core#306) and each
+    # link's scope pass through; a record without a verdict gives null (de-grid: still not
+    # comparable through its gaps, `comparable` false)
     assert de["boundary"] == lca["boundary"]
     assert de["comparability"] is None
-    assert "scope" in nl_power
+    assert by_id["nl-grid"]["comparability"]["verdict"] == "not comparable"
+    assert by_id["nl-grid"]["comparability"]["compared"][0]["differences"][0]["dimension"] == "basis"
+    assert nl_power["scope"]["basis"] == "direct"
+    assert next(l for l in de["links"] if l["key"] == "feed:POWER")["scope"] is None
     # the full core record is copied for other consumers
     record = _json(tmp_path / "out" / de["record"])
     assert record["schema"] == "cheme/lca-scenario/v1" and record["id"] == de["record_id"]
@@ -673,6 +677,9 @@ def test_public_build_withholds_scenario_values_not_their_evidence(tmp_path: Pat
         record = _json(tmp_path / "out" / scenario["record"])
         assert "totals" not in record["impacts"] and "characterised_sum" not in record["impacts"]
         assert record["impacts"]["values_withheld"] == "placeholder-factors"
+    # the verdict holds no numbers: it stays on a withheld scenario
+    nl = next(s for s in lca["scenarios"] if s["id"] == "nl-grid")
+    assert nl["comparability"]["verdict"] == "not comparable"
 
 
 def test_a_stale_scenario_record_is_flagged_and_withheld(tmp_path: Path, library: Path) -> None:
