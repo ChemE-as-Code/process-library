@@ -9,7 +9,7 @@ sections:
     modes: [normal, startup, shutdown]
     loops: [FIC-1101, PIC-1103, UIC-1102, TIC-1105, LIC-1106, LIC-1107, FIC-1108, LIC-1114]
     sequences: [SEQ-MAC-START, SEQ-SHUTDOWN]
-    interlocks: [I-03]
+    interlocks: [I-03, I-05, I-06]
   - id: PUR
     title: Front-end purification (TSA)
     equipment: [V-2101A, V-2101B, E-2101, F-2101]
@@ -18,6 +18,7 @@ sections:
     modes: [normal, startup]
     loops: [TIC-2104, FIC-2105]
     sequences: [SEQ-TSA]
+    interlocks: [I-07, I-08, I-09, I-10]
   - id: CB
     title: Cold box
     equipment: [E-3101, E-3102, E-3103, C-3101, C-3102, K-3101, KT-3101, E-3104, E-3105, V-3101]
@@ -26,7 +27,7 @@ sections:
     modes: [normal, startup, shutdown, compander trip]
     loops: [LIC-3101, LICA-3102, FIC-3106, SIC-3108, TIC-3109, UIC-3120, PIC-3110, FIC-3111, PIC-3113, TICA-3124]
     sequences: [SEQ-CB-START, SEQ-COMPANDER-TRIP, SEQ-SHUTDOWN]
-    interlocks: [I-04]
+    interlocks: [I-04, I-11, I-12, I-14]
   - id: PRD
     title: Product compression, storage and backup
     equipment: [K-4101, E-4101, E-4102, K-4102, E-4103, T-4101, T-4102, P-4101A, P-4101B, P-4102A, P-4102B, E-4105A, E-4105B, E-4106A, E-4106B]
@@ -35,10 +36,9 @@ sections:
     modes: [normal, startup, shutdown, backup supply]
     loops: [PIC-4102, FIC-4148, PIC-4150, PIC-4101, UIC-4103, FIC-3107, PIC-4106, UIC-4131, PIC-4105, PICA-4109, PICA-4110, PIC-4111, PIC-4112]
     sequences: [SEQ-BACKUP-GOX, SEQ-BACKUP-GAN, SEQ-SHUTDOWN]
-    interlocks: [I-01, I-02]
+    interlocks: [I-01, I-02, I-13, I-15, I-16, I-17, I-18]
 unresolved:
-  - the turndown range of the plant and how fast the load may change (not defined yet)
-  - the suppliers' start-up procedures (MAC, compander, cold box, product compressors), which set the step times of the sequences
+  - the suppliers' start-up procedures (MAC, compander, cold box, product compressors), which set the step times of the sequences (#63)
 ---
 
 # Process narrative: ASU-1
@@ -63,7 +63,9 @@ C-1102, which cools its water with the dry waste nitrogen from the cold box (D-0
 The cooling water and the waste nitrogen to C-1102 (S12B) cross the boundary.
 
 **Normal operation.** FIC-1101 sets the air flow on the inlet guide vanes, and with it the load
-of the whole plant. PIC-1103 limits the discharge pressure through a low select on the same
+of the whole plant: between 70 and 100 % of the design air, changed by a ramp of at most 0.5 %
+per minute from the target load the operator sets (D-110, ASSUMED). The GOX and GAN draw
+limits follow this air flow as ratios (D-110). PIC-1103 limits the discharge pressure through a low select on the same
 guide vanes. UIC-1102 keeps the machine out of surge by blowing off to S-1101. TIC-1105 holds
 the air leaving the DCAC by the chilled-water valve TV-1105. The levels are held by:
 - LIC-1106: the DCAC sump;
@@ -159,22 +161,23 @@ supply both headers when the ASU does not (D-014).
 
 **Modes.** On low header pressure, the standby pump starts and PIC-4111 or PIC-4112 holds the
 header (SEQ-BACKUP-GOX, SEQ-BACKUP-GAN); once the ASU supplies again the operator hands back.
-The low-low tank levels trip the pumps (I-01, I-02). The low vaporizer outlet temperature is
-meant to protect the carbon-steel pipeline (TSLL-4113, TSLL-4114; not yet in the C&E,
-H04-A01).
+The low-low tank levels trip the pumps (I-01, I-02). The low vaporizer outlet temperatures stop
+the pumps and close the backup valves, so no cold gas reaches the carbon-steel pipeline (I-15,
+I-16).
 
 ## Open points
 
-- The turndown range and the rate of load changes are not defined yet.
+- The turndown range (70 to 100 % of the design air) and the load ramp (0.5 %/min) are ASSUMED
+  until the client's demand profile confirms them (D-110).
 - The suppliers' start-up procedures, which set the step times of the sequences.
-- The independent limits on the GOX draw and the GAN guide vanes (H04-A23, H04-A22).
+- The independent limit on the GOX draw is the LP sump low-low I-14; the GAN guide vanes need
+  none by the screening LOPA (D-111). The team's LOPA / SIL session confirms both.
 - PV-4105 as an operator-set start-up valve, normally fully open (D-105), to be confirmed or
   removed (H04-A31); the anti-surge flow measurement of K-4101
-  (FT-4148 does not see the recycle), and the maximum GOX draw as a ratio to the air flow
-  (D-096).
+  (FT-4148 does not see the recycle).
 - PIC-4101's set-point window and the GOX vent at turndown (an O2 release at VNT-4003), the
   anti-windup and bumpless transfer of the low select and the GAN cascade, where the GAN goes
   while K-4102 stands, and whether the waste and vent valves take the full GOX make on a
   K-4101 trip (D-096).
-- The trips named in the instrument list are not yet in the cause-and-effect list (D-094 lists
-  them; HAZOP action H04-A01 and others).
+- The machine vendors' own trips (K-1101, K-3101 / KT-3101, K-4101, K-4102) and the hydrocarbon
+  action limits of AIA-3103 / AIA-4121 are not yet in the cause-and-effect list (D-111).

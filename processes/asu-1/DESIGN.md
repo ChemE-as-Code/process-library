@@ -5446,7 +5446,441 @@ free-standing posts at 6 m or less and a riser column) stays ASSUMED and unmodel
 Reason: avoid an undersized MV cable that the electrical gate does not flag, and keep the
 acceptances true to the model.
 
-## D-109 Assumed site cooling configuration; where the cooling water make-up is counted (2026-10-26)
+## D-109 Fail positions of every final element: the plant fails to a stopped, isolated state (2026-10-26)
+Decided by the agent on the owner's delegation of 2026-10-26 ("resolve those, make reasonable
+decisions"; process-library#57). It is a design proposal, not the HAZOP team's acceptance: the
+team confirms it with H01-A6, H02-A6, H03-A1 and H04-A14 (safety/hazop/SESSION.md), and the
+machine vendors confirm the actuators of their guide vanes and nozzles (#58).
+
+Rule (control/philosophy.md, F-AIR): on loss of instrument air, or of the signal, every valve goes
+to the position that leaves the plant safe for the next hour without the operator. Loss of air
+hits all valves at once, so the positions are chosen as one set, not one by one:
+- the machines unload: guide vanes and expander nozzles to their minimum stop, anti-surge and
+  blow-off valves open;
+- the cold box keeps its liquid: the liquid and reflux valves into the LP column close, so the
+  inventory stays for the restart and no HP vapour blows through to the LP column;
+- the LP column is never blocked in: the waste N2 valves and the GOX vent open (PSV-3114 stays
+  the protection of last resort, D-011);
+- the DCAC cannot flood: its water inlets close with its sump drain, so a running pump cannot
+  fill C-1101 into the air inlet (H01-A4 adds the pump stop to the MAC trip, D-111);
+- the battery limits isolate and bleed (D-013, unchanged); the storage holds and the tank
+  pressures vent through their own valves, not their PSVs.
+
+Fail positions (closed for the guide vanes and nozzles means the minimum mechanical stop):
+
+| sheet | element | fail | why |
+|---|---|---|---|
+| P-01 | K-1101 inlet guide vanes | closed | unload the MAC; with UV-1102 open it blows off to S-1101 |
+| P-01 | UV-1102 (MAC blow-off) | open | surge protection while unloaded (H01-A6 proposal) |
+| P-01 | TV-1105 (chilled water to C-1101) | closed | no air to cool once the MAC unloads; an open valve with LV-1106 closed floods the DCAC |
+| P-01 | LV-1106 (DCAC sump) | closed | keeps the sump seal; no 6 bara air into the water return (H01-A6 proposal) |
+| P-01 | LV-1107 (C-1102 make-up) | closed | a failed-open make-up floods C-1102 towards the WN-1001 inlet (H01-A13); the sump holds hours |
+| P-01 | FV-1108 (CW to C-1101 lower section) | closed | as TV-1105 |
+| P-01 | LV-1114, XV-1115 | closed | unchanged (D-076) |
+| P-02 | FV-2105 (regeneration gas) | open | keeps flow through E-2101 while its trips de-energise it; the waste N2 then also leaves by PV-3110A/B |
+| P-02 | E-2101 | off | unchanged |
+| P-02 | XV-2101..XV-2104A/B (TSA switching) | last | double acting with an air reservoir per valve (one stroke, ASSUMED): no fixed position meets H02-A6 (closed isolates both beds, open connects the air side to the regeneration side) |
+| P-02 | XV-2111A/B, XV-2112A/B (repressurise, depressurise) | closed | no bed is vented or repressurised out of step |
+| P-02 | XV-2109 (heater bypass) | open | the gas bypasses the heater: no heat without the sequence |
+| P-03 | LV-3101 (rich liquid JT) | closed | keeps the HP sump liquid; no HP vapour into the LP column |
+| P-03 | FV-3106 (LN reflux) | closed | as LV-3101 |
+| P-03 | FV-3111 (LOX purge) | closed | open over-draws the sump and can uncover E-3103 within the hour (H03-S33); closed stops the purge, which the FAL alarm and AIA-3103 catch over hours, and with the MAC unloaded no new hydrocarbon enters; the independent sump low-low is D-111 |
+| P-03 | PV-3110A, PV-3110B (waste N2) | open | the LP column is never blocked in; C-1102 keeps its open vent WN-1002 (D-083) |
+| P-03 | PV-3113 (casing purge) | open | the casing stays purged; the breather relieves it |
+| P-03 | XV-3117 (expander inlet), KT-3101 nozzles | closed | stops the expander (overspeed) |
+| P-03 | UV-3120, TV-3124 | open | unchanged (TV-3124: H03-A12 stays open) |
+| P-04 | K-4101 inlet guide vanes | closed | unload the GOX compressor |
+| P-04 | UV-4103 (GOX anti-surge) | open | surge protection |
+| P-04 | PV-4101B (GOX suction vent) | open | the GOX the machine no longer takes goes to VNT-4003, the LP column is not blocked in (D-019) |
+| P-04 | XV-4116 (K-4101 blowdown) | open | the trip state (D-013) |
+| P-04 | XV-4117, XV-4118 (K-4101 ESD) | closed | the trip state (D-013) |
+| P-04 | XV-4119, XV-4132 / XV-4120, XV-4134 (BL blocks), XV-4133 / XV-4135 (bleeds) | closed / open | unchanged (D-013) |
+| P-04 | K-4102 inlet guide vanes | closed | unload the GAN compressor |
+| P-04 | UV-4131 | open | unchanged |
+| P-04 | PV-4105 (GAN discharge) | open | its normal position (D-105); closed dead-heads K-4102 on its recycle |
+| P-04 | XV-3105 (GAN divert to VNT-4004) | open | off-spec GAN never reaches the customer; XV-4120 closes |
+| P-04 | PV-4109, PV-4110 (tank vents) | open | the boil-off leaves by the vent valve, not by lifting PSV-4123 / PSV-4124; the vacuum breakers stay |
+| P-04 | PV-4111, PV-4112 (backup pressure) | closed | no cold gas into the carbon steel pipeline (D-024); the pumps keep their minimum-flow return |
+| P-04 | XV-4136, XV-4137 (tank outlets) | closed | unchanged (D-013) |
+
+Carried out: `fail:` on every final element in control/loops.yaml; the TSA and ESD valves, which
+are not loop elements, in the KS-2101 note of the instrument list and here; F-AIR in
+control/philosophy.md states the result.
+
+Consequence: on loss of instrument air the plant stops making product and the customers go to
+the backup, which itself needs PV-4111 / PV-4112 to open. The backup therefore depends on the
+instrument air staying up (an air receiver sized for the backup duration, or the backup valves on
+their own air bottle) as much as on the power supply H04-A14 asks about. That decision is the
+owner's with the customer's continuity requirement and stays with H04-A14.
+
+Not done: the P&IDs draw an actuating system with its fail action (F.C. / F.O.) only for LV-1114,
+XV-1115 and TV-3124; the other signal lines are not drawn yet. Drawing them with their fail
+actions is detail drafting (#102, gate detail).
+
+Reason: #57. A fail position left open is an unknown the HAZOP cannot assess; chosen one at a
+time they can contradict each other on air loss (an open water valve against a closed drain).
+
+## D-110 Turndown 70-100 % of design air at 0.5 %/min; the draw limits follow the air flow as ratios (2026-10-26)
+Decided by the agent on the owner's delegation of 2026-10-26 (process-library#60). The client's
+demand profile (the minimum GOX and GAN off-take and how fast it changes) is not available, so
+the range and the rate below are ASSUMED design values for the client to confirm; the column,
+MAC and compander suppliers confirm that their equipment holds them.
+
+Decision:
+- (1) **Turndown range: 70 to 100 % of the design air flow** (FIC-1101, S2: about 78,200 to
+  111,720 kg/h), no overload. 70 % is the usual lower limit of a conventional LP double-column
+  plant with one turbo-expander without changing the column internals or the expander nozzles
+  (ASSUMED; the packing's minimum wetting and the MAC guide-vane range set the real limit). Below
+  70 % the plant runs at 70 % and the excess product is vented or stored, or the plant stops and
+  the backup supplies (D-014). The design case stays the 100 % point; no turndown case is
+  simulated (a 70 % case is a detail-engineering check, process-library#60 close-out evidence).
+- (2) **Rate of load change: at most 0.5 % of the design air flow per minute** (ASSUMED,
+  a conservative value for a column with a large liquid hold-up; 70 to 100 % takes an hour). The
+  operator gives a target load; a ramp generator moves FIC-1101's set point at this rate. A
+  faster change in the customer's off-take is taken by the pipeline pack and the backup
+  (D-014), not by the columns.
+- (3) **The air flow stays an operator set point, not slaved to the product pressure.**
+  FIC-1101 does not follow PIC-4102's output: a pipeline pressure transient would then swing the
+  whole plant faster than the columns follow. The operator (or a load programme in detail
+  engineering) sets the target load from the expected demand.
+- (4) **The draw limits follow the make as ratios to the measured air flow** (H04-A28):
+  - FIC-4148's maximum GOX draw = R_GOX x F_air, with R_GOX = 20,860 / 111,720 = 0.1867 kg GOX
+    per kg air (the design ratio, S7 / S2), capped at the design 20,860 kg/h;
+  - the clamp on FIC-3107's cascade set point = R_GAN x F_air, R_GAN = 12,510 / 111,720 = 0.1120
+    (S9 / S2), capped at the design 12,510 kg/h;
+  - F_air is the lower of the measured FIC-1101 flow and the same flow through a first-order lag
+    (time constant 5 min, ASSUMED, of the order of the column's response): ramping down the
+    instantaneous flow is lower, ramping up the lagged one, so the limit never runs ahead of the
+    make.
+
+  These limits stay in the control system (not protection layers, D-096); the independent
+  limits are D-111.
+- (5) **Venting at turndown is for transients.** With the limits following the make, the GOX
+  vent through PV-4101B (H04-S76) opens only while the customer takes less than the make
+  until the operator lowers the air flow. A PV-4101B-open alarm after 30 min (ASSUMED) tells
+  the operator to turn down. PIC-4101's set-point window and the zone around VNT-4003 stay with
+  #59 and H04-A26.
+
+Carried out: control/loops.yaml (FIC-1101, FIC-4148, FIC-3107: the ratio limits, the ramp, the
+operator text), process/narrative.md (open point closed, normal operation), control/philosophy.md
+(open point).
+
+Reason: #60. Without a range and a rate the vent window (#59), the compressor turndown and the
+column hydraulics rest on nothing; fixed draw limits let a reduced make be over-drawn at the
+design rate (H04-S79, H04-S80, H04-S85).
+
+## D-111 The missing trips and the independent limits in the C&E, with one screening LOPA (2026-10-26)
+Decided by the agent on the owner's delegation of 2026-10-26 (process-library#56, #61). One update
+of control/cause-effect.yaml and one screening LOPA, as HAZOP action H02-A2 asks (it answers
+H01-A3, H01-A8, H02-A1, H02-A2, H03-A2, H03-A3, H04-A01, H04-A02, H04-A13 and, for the limits,
+H03-A4, H04-A22, H04-A23, H04-A29). It is a design proposal: the HAZOP team's LOPA / SIL
+session (safety/hazop/SESSION.md) confirms the frequencies, the targets and each SIL, and the
+SRS follows. Nothing here is accepted by the team.
+
+Decision:
+- (1) **Fourteen interlocks I-05 .. I-18** in control/cause-effect.yaml: the MAC trip set on
+  vibration (I-05), the DCAC high-high level (I-06) and the TSA CO2 high-high (I-07), which also
+  stops the DCAC water pumps (H01-A4); the regeneration heater on low-low flow (I-08), outlet
+  (I-09) and element temperature (I-10); the compander on overspeed 2oo3 (I-11) and seal gas
+  (I-12); K-4101 on fire (I-13), on the LP sump low-low (I-14) and on the discharge high-high
+  (I-17), each isolating and blowing it down (D-013); the vaporizer low temperatures (I-15,
+  I-16); the off-spec GAN divert (I-18). All latch and reset by hand except I-18.
+- (2) **Three new instruments, each on its own tapping or transmitter** (drawn with `cheme copy`
+  on P-02, P-03, P-04; listed; junction boxes as their neighbours):
+  - FSLL-2117 on RG-2001 between the XV-2109 bypass tee and E-2101, the heater's own low flow
+    (H02-A2: FIC-2105 sits upstream of the bypass and is the control transmitter);
+  - LSLL-3125 on a new tapping I4 of C-3102 (datasheet updated), the independent LP sump
+    low-low (H03-A4);
+  - PSHH-4152 on GOX-4002 beside PT-4102, the discharge high-high on its own transmitter
+    (H04-A29).
+- (3) **The independent limit on the GOX draw is the LP sump itself** (#61, H04-A23): I-14 trips
+  K-4101 (and closes FV-3111) on LSLL-3125, independent of the guide-vane low select UY-4151,
+  FT-4148, PT-4150 and LICA-3102. It acts on the hazard (E-3103 uncovered), whatever over-draws
+  the sump: the GOX (H04-S75, S80), the LOX (H03-S33) or a refrigeration deficit (H03-S34). The
+  operator layers before it: the LICA-3102 low alarm, set for at least 10 min at the largest
+  over-draw (H03-A4, ASSUMED until the supplier's sump geometry), and a PT-4101 low-pressure
+  alarm, a transmitter apart from the selector (H04-A23).
+- (4) **No SIF on the K-4102 guide vanes** (H04-A22): a GAN over-draw upsets the HP column
+  (asset 3, no safety consequence in H04-S27, S84, S85); the FIC-3107 clamp that follows the
+  air flow (D-110) and a PIC-4106 low alarm on its own transmitter bring it below the target
+  (row 14). #61 allows "or the LOPA records why none is needed".
+- (5) **Screening LOPA**, method and sources of D-083: initiating events and IPL PFDs from the
+  generic tables of CCPS, *Layer of Protection Analysis* (AIChE, 2001); SIL bands of IEC
+  61511-1 (RRF 10-100 SIL 1, 100-1000 SIL 2). Tolerable frequencies (ASSUMED, the owner's
+  criteria are not given; consistent with D-083 and the proposed matrix): people severity 3 /
+  4 / 5: 1e-3 / 1e-4 / 1e-5 per year; asset severity 3 / 4 / 5: 1e-1 / 1e-2 / 1e-3 per year.
+  Conditional modifiers are used only where named, and are ASSUMED.
+
+  | row | interlock | scenario (HAZOP) | initiating event, /yr | IPLs and modifiers credited | mitigated /yr | target /yr | RRF | SIL |
+  |---|---|---|---|---|---|---|---|---|
+  | 1 | I-05 VIA-1104 | destructive vibration (H01-S4, S6, S41), asset 4 | machine upsets 0.1 | none independent (PIC-1103 covers one cause only) | 0.1 | 1e-2 | 10 | 1 |
+  | 2 | I-06 LSHH-1106 | DCAC floods, water to the adsorbers (H01-S13, S14), asset 4 | LV-1106 / LIC-1106 failure 0.1 | none (LIC-1106 is the initiator) | 0.1 | 1e-2 | 10 | 1 |
+  | 3 | I-07 AIA-2102 | breakthrough to the cold box, condenser explosion (H02-S3, S10, S27), people 5 | TSA step overrun or capacity loss 0.1 | AIA-3103 with operator response 0.1; LOX purge FIC-3111 0.1; hydrocarbons at the intake in explosive quantity 0.1 (modifier, ASSUMED, H01-A1) | 1e-4 | 1e-5 | 10 | 1 |
+  | 4 | I-08 FSLL-2117 | element overheat at low flow (H02-S13, S15, S20), asset 3 | FV-2105 / FIC-2105 / XV-2109 / XV-2103 failure 0.3 | TSHH-2107 (I-10) 0.1 | 3e-2 | 1e-1 | < 1 | a |
+  | 5 | I-09 TSHH-2116 | regeneration gas above 250 C (H02-S17), asset 3 | TIC-2104 / thyristor failure 0.1 | none | 0.1 | 1e-1 | 1 | a |
+  | 6 | I-10 TSHH-2107 | element over-temperature (H02-S13, S15, S17, S20), asset 3 | as rows 4 and 5, 0.4 | I-08 for the low-flow causes 0.1 (0.3 of 0.4) | 0.13 | 1e-1 | 1.3 | a |
+  | 7 | I-11 SSHH-3108 | compander overspeed, wheel burst (H03-S16), people 4 | brake load lost or nozzles open 0.1 | presence of a person in the fragment zone 0.1 (modifier, ASSUMED) | 1e-2 | 1e-4 | 100 | 2 |
+  | 8 | I-12 PDSLL-3115 | oil into the LP sump, explosion (H03-S18), people 5 | seal gas lost 1e-2 | oil reaches the sump in an explosive quantity before it is found 0.1 (modifier, ASSUMED) | 1e-3 | 1e-5 | 100 | 2 |
+  | 9 | I-13 TSHH-4104 | K-4101 oxygen fire (H04-S07), asset 5 (people: fire wall FW-4101) | ignition in the machine 1e-2 | none for the asset | 1e-2 | 1e-3 | 10 | 1 |
+  | 10 | I-14 LSLL-3125 | E-3103 uncovered, condenser explosion (H03-S33, S34, H04-S75, S80), people 5 | over-draw or refrigeration deficit 0.1 (with the D-110 ratio limit, which takes the no-failure causes of S80 out) | LICA-3102 low alarm, operator 0.1; hydrocarbons concentrated to ignition while uncovered 0.1 (modifier, ASSUMED) | 1e-3 | 1e-5 | 100 | 2 |
+  | 11 | I-15, I-16 TSLL | cold gas into the carbon steel pipeline, brittle fracture (H04-S48, S49, S70), people 4 | vaporizer icing or PV-4111 / PV-4112 failure 0.1 | fracture given the cold excursion 0.1, a person at the failure 0.1 (modifiers, ASSUMED) | 1e-3 | 1e-4 | 10 | 1 |
+  | 12 | I-17 PSHH-4152 | export header overpressure (H04-S82, S87), people 4 | PT-4102 low, selector frozen high 0.1 | PSV-4122 0.01 | 1e-3 | 1e-4 | 10 | 1 |
+  | 13 | I-18 AIA-3105 | off-spec GAN to the customer, asset 3 | column upset 0.1 | none | 0.1 | 1e-1 | 1 | a |
+  | 14 | none (K-4102) | GAN over-draw, HP column upset (H04-S27, S84, S85), asset 3 | PIC-4105 failure or demand above the make 1 | the D-110 clamp following the air flow 0.1 (not for S27, where the BPCS is the initiator); PIC-4106 low alarm, operator 0.1 | 1e-2 | 1e-1 | < 1 | none |
+
+  I-07 holds at SIL 1 only through its modifier: if the intake survey (H01-A1) finds hydrocarbon
+  sources, the target is SIL 2 and needs a second, independent CO2 analyser (1oo2, H02-A1).
+  I-05's SIL is carried by the MAC vendor's machinery protection system (API 670), not the
+  plant SIS. The SIL 2 functions (I-11, I-12, I-14) need SIL 2 capable devices and a proof-test
+  interval the SRS sets (yearly ASSUMED, as I-03).
+- (6) **Sheets, sequences and lists.** The P-04 trip notes now say "see C&E I-.." (I-01, I-02,
+  I-13, I-15, I-16, I-17) instead of spelling the trips out; the sequences name the interlocks
+  by id (SEQ-MAC-START, SEQ-TSA, SEQ-CB-START, SEQ-BACKUP-GOX / -GAN); `cheme validate` reports
+  no `instrument-no-interlock`.
+
+Not done here: the machine vendors' own protection (surge, axial position, bearing temperature,
+seal gas of K-4101 / K-4102, H04-A13; the MAC and compander packages) comes with their data
+(#58); the hydrocarbon action limits of AIA-3103 / AIA-4121 and what they trip (H03-A3) need the
+analyser and the EIGA Doc 65 limits agreed with the team and stay open; the SIS architecture
+(logic solver, the separate SIS junction boxes) is detail engineering.
+
+Reason: #56 and #61. The trips existed only as instrument notes, so neither the HAZOP nor the
+SIL study could credit them, and the guide-vane limits of D-096 are in the same control system
+as the loops they limit.
+
+## D-112 Every open point of the control records names its issue; TV-3124 kept fail open (2026-10-26)
+Decided by the agent on the owner's delegation of 2026-10-26 (process-library#79).
+
+Decision:
+- (1) **Every `unresolved` entry** in control/loops.yaml, control/sequences.yaml,
+  control/philosophy.md and process/narrative.md ends with the issue that tracks it (59
+  entries; `cheme validate` lists them as `control-unresolved`, info). The C&E has none. The
+  issues: #58 vendor control data, #59 PIC-4101's set-point window, #62 the liquid production
+  handle, #63 start-up prerequisites and step times, #65 control-system detail, and three
+  opened with this pass: #103 the set points and alarm limits that only the suppliers or the
+  client can give, #104 the hydrocarbon action limits (H03-A3), #105 the backup's power and
+  instrument air with its cold-standby permissive (H04-A14, H04-A08).
+- (2) **TV-3124 stays fail open; I-04 is accepted as not effective on air loss** (H03-A12, the
+  first of its two options). On air loss the MAC unloads (D-109), the booster side of E-3105
+  depressurises and TV-3124 keeps passing chilled water. A tube leak would then fill the E-3105
+  shell side; the consequence is the one I-04 is for on a compander trip, and the restart
+  permissive of D-077 (shell side checked dry before the restart) catches it in both cases. A
+  tight-shut fail-closed valve would lose the trim on a mere signal failure in normal
+  operation (D-067). The open point in SEQ-COMPANDER-TRIP is closed.
+
+Reason: #79. An open point without its issue is lost when the files change; the HAZOP and
+layout records were to be re-stamped once, after D-109 .. D-111, not after each.
+
+## D-113 HAZOP H-01 .. H-04 revised for D-109 .. D-112, re-stamped (2026-10-26)
+Decided by the agent on the owner's delegation of 2026-10-26 ("resolve those, make reasonable
+decisions"). These are not the owner's own engineering judgement, and none of it is a HAZOP
+team's acceptance: every node, scenario, safeguard, rating and action stays `status: proposed,
+by: agent`. The studies reported `hazop-input-changed` for P-02 .. P-04, the C&E, the
+instrument list, loops.yaml and sequences.yaml.
+
+Credit convention (unchanged, each study's `assessment_basis`): an interlock whose SIL is not
+confirmed takes one order. Every new interlock I-05 .. I-18 is therefore credited one order,
+whatever SIL the D-111 screening proposes; a confirmed SIL 2 would take two (the team's LOPA).
+A trip whose sensor is the cause, or that shares its sensor with a credited alarm, is not
+counted again (I-07 with the AIA-2102 alarm; I-05 with the VIA-1104 alarm).
+
+Decision:
+- (1) **Safeguards** (by id): H01-SG-I05, H01-SG-I06 (new); H01-SG-VIA1104, H01-SG-AIA2102 notes;
+  H02-SG1 now the alarm and I-07 together (kind interlock), H02-SG6 / SG7 now I-09 / I-10,
+  H02-SG8 the FIC-2105 loop only, new H02-SG19 (fail-last TSA valves, D-109) and H02-SG20 (I-08,
+  FSLL-2117); H03-SG8 / SG9 now I-11 / I-12, new H03-SG27 (I-14); H04-SG02 / SG03 / SG04 now
+  I-15 / I-13 / I-16, H04-SG05 the PIC-4102 loop only, new H04-SG38 (I-17, PSHH-4152), SG39
+  (I-14), SG40 (PIC-4101 low alarm), SG41 (PIC-4106 low alarm), SG42 (the D-110 ratio limits
+  and the 30 min vent alarm).
+- (2) **Scenarios revised** (cause, safeguards or ratings): H01-S4, S6, S12, S13, S14, S16,
+  S17, S27, S28, S41; H02-S3, S13, S15, S17, S20, S23, S27, S32 (now rated residual), S33;
+  H03-S12, S16, S18, S33, S34, S35, S50, S52 and the PV-3110B scenario; H04-S01, S02, S05, S07,
+  S11, S13, S21, S24, S27, S48, S49, S70, S75, S76, S79, S80 (initial very-high -> high: the
+  D-110 ratio limit lowers the cause), S82, S84, S85, S87. Node texts: H02-N6 (FSLL-2117),
+  H03-N8 (LSLL-3125), H04-N1, N3 (PSHH-4152), N4, N9.
+- (3) **New scenarios**: H01-S45 (D-109: on air loss TV-1105 and FV-1108 close while the DCAC
+  water pumps run dead-headed; asset 2/D medium; H01-A17, H01-A4), H03-S54 (a spurious LSLL-3125
+  trip stops K-4101 and the purge; asset 2/D medium), H04-S90 (D-109: on air or power loss
+  PV-4111 / PV-4112 fail closed and the backup cannot supply; asset 3/D high; H04-A14,
+  process-library#105).
+- (4) **Actions**: none closed, none new. "Proposed answer: D-1xx ..., for the team" appended to
+  H01-A3, A4, A6, A8; H02-A1, A2, A6; H03-A1, A2, A3, A4, A12; H04-A01, A02, A13, A14, A22, A23,
+  A28, A29.
+- (5) **Re-stamped** H-01 .. H-04 (`stamp --write`) after the reassessment above, then `rate
+  --write`. `cheme safety hazop check`: all draft, 0 errors, 0 warnings.
+- (6) **Counts** (worst band, residual where rated): 223 -> 226 scenarios; high 86 -> 73,
+  medium 82 -> 95, low 55 -> 58, none very-high; very-high initial 9 -> 8; 94 actions; every
+  high scenario has an action. Changed bands: high -> medium H01-S4, S13, S14, H02-S32, H03-S33,
+  S34, H04-S02, S27, S75, S76, S79, S80, S84, S85; medium -> low H02-S15, H04-S82, S87; new
+  H01-S45 and H03-S54 medium, H04-S90 high.
+- (7) safety/hazop/SESSION.md: the state table, the very-high list and the high list follow;
+  section 3.6 lists what the team has to look at from this revision (the fail-position set,
+  the screening LOPA and its modifiers, H01-S45, H03-S54, H04-S90).
+
+Found by the reassessment, for the owner: D-109's closed fail positions of TV-1105 and FV-1108
+dead-head the running DCAC water pumps on air loss (H01-S45). It does not change the choice
+(an open water valve with the drain closed floods the DCAC, H01-S13), but it makes the pump
+minimum flow (H01-A17) or a pump stop on air loss (H01-A4) part of the answer.
+
+Open: the HAZOP team session, the LOPA / SIL session that confirms D-111, the matrix acceptance
+and a human review (the owner's); an independent review of this revision.
+
+Reason: the studies must describe the plant as the control records now state it before the
+team sees them; stamping without reassessing would hide the change (skill hazop-review).
+
+## D-114 Fixes after control-review6 and layout-review28: I-14 stops the air, an instrument-air trip, the LOPA rows, SIS junction boxes (2026-10-26)
+Decided by the agent on the owner's delegation of 2026-10-26, answering
+reviews/2026-10-26-control-review6.md (#1 .. #14) and layout-review28.md (#1 .. #6). Proposals
+for the HAZOP team and the LOPA / SIL session (#106) as before; D-109 .. D-111 stand except where
+revised here.
+
+Decision:
+- (1) **I-14 stops the air and K-4101, and leaves FV-3111 alone** (control-review6 #1, #3,
+  hazop-review6 #1, #2). Tripping K-4101 alone did not stop the sump boiling down: PIC-4101 keeps
+  venting through PV-4101B, a failed-open FV-3111 keeps draining, and a refrigeration deficit
+  keeps going. The hazard is E-3103 boiling dry, and E-3103 boils only while the HP column sends
+  it vapour, i.e. while air comes in. So I-14's effects are now the MAC trip set (K-1101,
+  UV-1102, the DCAC pumps) and the K-4101 trip set; once the air stops, nothing boils whatever
+  still drains the sump. FV-3111 is no longer an effect: the purge stays on as D-010 asks, and the
+  valve that may be the initiator (H03-S33) is not the final element. Final elements: the two
+  motor breakers, independent of the BPCS. Architecture ASSUMED for the SRS: 1oo1 SIL 2 capable
+  LSLL-3125, proof test 6-monthly, 1oo2 if the SRS needs it (H03-A4).
+- (2) **I-19, instrument air low-low stops the plant** (control-review6 #2, hazop H01-S45). The
+  fail positions of D-109 alone leave the drives running on air loss with power on: K-4101 on
+  its recycle behind closed XV-4117 / XV-4118, the DCAC pumps against closed valves, K-4102 on
+  recycle. PSLL-1116 on the instrument air header (utilities; listed, not drawn on a process
+  sheet; the acceptance of instrument-not-on-pid is in checks/checks.yaml) trips the MAC set, the
+  compander, K-4101 and K-4102 after 10 s. F-AIR-POWER-ON in the philosophy says which trips air
+  loss defeats (I-04 only).
+- (3) **LOPA rows revised** (control-review6 #5 .. #8, #10; hazop-review6 #7). At most one
+  control-system credit per row, none when the control system is the initiator:
+  - row 3 (I-07): the LOX purge is no longer credited (loops.yaml calls it no safeguard); the
+    modifiers are now the intake hydrocarbons (0.1) and ignition given an accumulation (0.1,
+    ASSUMED, CCPS); 0.1 x 0.1 (AIA-3103 and the operator) x 0.1 x 0.1 = 1e-4 against 1e-5:
+    RRF 10, SIL 1 stands, still conditional on the intake survey (H01-A1);
+  - rows 4 / 6 (I-08 / I-10): the pair is credited once, I-10 for the low-flow causes of row 4;
+    row 6 no longer credits I-08: 0.4 against 0.1, RRF 4, SIL a. Both run in the heater's own
+    protection relay, apart from the DCS and the thyristor control (JB-A2-2);
+  - row 8 (I-12): 1e-2 /yr rests on a redundant seal-gas supply, now a requirement to the
+    compander vendor (#58); with a single supply it is 0.1 and I-12 sits at the SIL 2 / 3
+    boundary. The oil that migrates during the run-down is the vendor's to state;
+  - row 9 (I-13): the consequence is the escalation the trip prevents (a fire fed by the header
+    and the LP column through the machine), not the ignition; asset 5, RRF 10, SIL 1 unchanged;
+  - row 10 (I-14): no alarm credited (the initiator may be the control system); 0.1 x 0.1
+    (hydrocarbons concentrated) x 0.1 (ignition) = 1e-3 against 1e-5: RRF 100, SIL 2 unchanged;
+  - row 14 (K-4102): one control-system credit only (the D-110 clamp, for the demand causes;
+    none for S27, where PIC-4105 is the initiator): 0.1 against 1e-1, no SIF;
+  - new row 15 (I-19): instrument air lost with power on 0.1 /yr, K-4101 overheating isolated
+    on its recycle, an oxygen fire 0.1 (modifier, ASSUMED): 1e-2 against the asset 5 target
+    1e-3: RRF 10, SIL 1;
+  - the asset targets (one to two decades looser than people's) are an economic choice for the
+    owner, not a safety criterion; they sit in the matrix's medium (ALARP) band, not its low
+    band, which the session must accept or tighten (#106). With the low band as target rows 5,
+    6 and 13 would become SIL 1 and row 14 would need RRF 10 (control-review6 #5).
+- (4) **D-110 ratio limits on a validated air flow** (control-review6 #9, hazop-review6 #4).
+  F_air is the lower of FT-1101 and the MAC vendor's own flow measurement (UIC-1102's), with a
+  deviation alarm, and the lower of that and its 15 min lag (was 5 min; of the order of the
+  column's response, ASSUMED). The GOX limit subtracts the LOX drawn above its 470 kg/h design.
+  A make that falls at constant air flow (the TSA switchover dip measured upstream, a purity
+  upset) is not tracked by the ratio: the PT-4101 low alarm and I-14 cover it, and the HAZOP
+  keeps those causes (H04-S79, S80, S85).
+- (5) **Single signal loss** (control-review6 #4): the D-109 positions checked one valve at a
+  time in normal operation. Covered by an alarm or trip: UV-1102 open (FIC-1101 deviation),
+  TV-1105 / FV-1108 closed (TIC-1105 TAH, then AIA-2102 / I-07), LV-1106 closed (I-06), LV-1107
+  closed (C-1102 level over hours, H01-A11), FV-2105 open (H02-S16, asset 2), the TSA valves
+  holding (KS-2101 discrepancy alarm), LV-3101 / FV-3106 closed (LIC-3101 and purity alarms,
+  I-18), FV-3111 closed (FAL, AIA-3103, hours), PV-3110A or B open (PIC-3110, C-1102's open
+  vent), PV-3113 open (casing breather), PV-4109 / PV-4110 open (product vented, vacuum
+  breakers), PV-4111 / PV-4112 closed (backup unavailable, header alarm), the guide vanes closed
+  (product falls, backup starts). Two need the team: PV-4101B open alone vents GOX at VNT-4003
+  continuously and over-draws the column at the design air (PT-4101 low alarm, LICA-3102, I-14;
+  the zone with #59 / H04-A26), and XV-4116 open or XV-4117 / XV-4118 closed alone with K-4101
+  running (discrepancy alarms proposed; a K-4101 trip on "not in its run position" is for the
+  K-4101 vendor's logic, #58). The HAZOP carries both.
+- (6) **Layout** (layout-review28 #1 .. #6): C-3102's tappings I1, I3, I4 placed on the north
+  side, in the sump (I4 below I3) and above it, ASSUMED until the sump geometry (#103); their
+  impulse lines to stands on CB-1 P20 (operators in piping/routing.yaml); the datasheet gives
+  the same locations and LSLL-3125's own vapour leg. The manways keep their side (west, about
+  7 deg off main). SIS junction boxes JB-A1-S1 (I-03, I-06), JB-A3-S1 (I-11, I-12, I-14) and
+  JB-A4-S1 (I-13, I-17 with the K-4101 ESD valves) beside the control system's; the heater
+  trips go to JB-A2-2, apart from TIC-2104; every box within its 24 cables. PT-4152 on a stand
+  on VP-5, FSLL-2117 where RG-2001 drops to 1 m at the heater inlet (instrument list; the model
+  has no tap point per line instrument, #66).
+- (7) **P-03 drawing** (control-review6 #12): LSLL-3125's tap is drawn above LICA-3102's; a
+  tap drawn below it would cross LICA-3102's measuring line with no free place for the bubble
+  below. The P&ID shows the connection, not the elevation; the elevations are in the placement
+  and the datasheet (I4 at 1.0 m, I3 at 1.6 m).
+- (8) **Texts and issues** (control-review6 #13, #14): F-GOXC names I-13, I-14, I-17, I-19 and the
+  operator's job after an I-14 trip; D-111 (6) overstated the sequences: SEQ-CB-START names
+  I-11, I-12 and the I-14 bypass, SEQ-TSA I-07 .. I-10, the backups I-15 / I-16, SEQ-MAC-START
+  I-05 .. I-07; I-13, I-17 and I-19 are in no sequence (a trip, then SEQ-BACKUP-GOX). The open
+  points of D-109 .. D-111 are tracked in #102 (drawing), #103 (set points), #104 (hydrocarbon
+  limits), #105 (backup power and air) and the new #106 (LOPA / SIL session, SRS, SIS).
+
+Not changed: the D-109 positions themselves. The HAZOP is revised for this decision
+separately (D-115).
+
+Reason: two high findings showed the trip and the fail positions did not reach a safe state on
+their own; the LOPA rows credited what is not independent.
+
+## D-115 HAZOP H-01 .. H-04 revised for D-114 and hazop-review6, re-stamped (2026-10-26)
+Decided by the agent on the owner's delegation of 2026-10-26. Nothing is accepted: every entry
+stays `status: proposed, by: agent`, no action is closed or added. Answers
+reviews/2026-10-26-hazop-review6.md #1 .. #12 and carries D-114 into the studies.
+
+Decision, by finding:
+- #1, #2 (I-14 credit): with D-114 (1) I-14 stops the air and K-4101 through their motor
+  breakers, independent of FV-3111 and the control system, and with no air E-3103 stops
+  boiling. The one-order credit in H03-S33 (FV-3111 open), H03-S34 (refrigeration deficit) and
+  H04-S75 / S80 is now valid in principle; their bases say why (H03-SG27 retitled). Bands
+  unchanged (5/A medium).
+- #3: H01-S13 is LV-1106 sticking closed with LIC-1106 healthy (alarm, then I-06; high to
+  medium as rated); LIC-1106 failing low is the new H01-S46 (only I-06: 4/C, high, H01-A3).
+- #4: H04-S79, S80, S85 keep the TSA switchover dip and a purity upset as causes, which the
+  ratio limit on the air flow does not track (D-114 (4)); the dip comes every cycle, so their
+  cause frequency stays E: H04-S80 is very-high again before its safeguards (high after), S85's
+  text is current and the three are treated alike; FT-1101 reading high is in S80.
+- #5: H-01 and H-03 now stamp control/loops.yaml, H-02 loops.yaml and sequences.yaml, as inputs.
+- #6: H02-S13 says FV-2105 sticks closed (it fails open, D-109).
+- #7: I-08, I-09, I-10 share the heater's protection relay and E-2101's supply: credited one
+  order as a pair (H02-S13, S15, S17, S20 B to C; H02-SG6, SG7, SG20 notes).
+- #8: H03-S54 (spurious LSLL-3125 trip) now stops the whole plant, latched until LSLL-3125 is
+  repaired or bypassed under permit; the purge part is gone (2/D medium); H03-A4 weighs a 1oo2
+  vote against it. H03-S35 no longer names I-14 as a purge stop.
+- #9: H04-S76 is the transient turndown vent inside the D-110 range with the 30 min PV-4101B
+  alarm as its own safeguard H04-SG43 (SG42 is the ratio limits only); below the 70 % minimum
+  the new H04-S91 (the response is a plant stop or storage, H04-A26).
+- #10: PV-4101B failing open on air loss is H04-S93 (GOX at VNT-4003 for the outage, medium,
+  H04-A26); H04-S03 names air loss.
+- #11: SESSION.md: the node rows, minutes and totals (about 19 h of worksheet plus a 4 h
+  opening block), the state table, 3.3 (nine very-high initial), 3.4 (79 high) and a new 3.7
+  with the items of this revision.
+- #12: D-113 also revised the texts of H01-S1, H01-S5 and H04-S04 (bands unchanged).
+- D-114 (2), I-19: H01-S45 credits I-19 (H01-SG-I19), so the DCAC pumps no longer run
+  dead-headed on air loss (medium to low); H04-S95, K-4101 on its recycle until I-19 acts
+  (high on asset, H04-SG44); new deviation H04-N2-OP.
+- D-114 (5), single-signal cases: H04-S92 (PV-4101B open alone at the design draw: LICA-3102 and
+  I-14, 5/A medium) and H04-S94 (XV-4117 / XV-4118 closed or XV-4116 open alone with K-4101
+  running: high, the discrepancy alarms not credited until they are in the files, H04-A01,
+  H04-A13). H04-N1 and H03-N8 node texts updated.
+- Re-rated (`rate --write`), re-stamped (`stamp --write`); `cheme safety hazop check`: 4 x
+  draft, 0 errors, 0 warnings; `cheme validate`: no hazop-input-changed.
+
+Counts (worst band, residual where rated): 226 -> 232 scenarios (new H01-S46, H04-S91 .. S95),
+high 73 -> 79, medium 95 -> 98, low 58 -> 55; very-high initial 8 -> 9 (H04-S80); 94 actions.
+
+Open: the team session, the LOPA / SIL session (#106), the matrix acceptance and a human
+review; an independent review of this revision.
+
+Reason: hazop-review6 found I-14 credited where it did not act, over-draw causes taken out
+that the ratio limit does not cover, and a split rating; D-114 changed the trips the studies
+credit.
+
+## D-116 Assumed site cooling configuration; where the cooling water make-up is counted (2026-10-26)
+Renumbered from D-109 at the merge of origin/main into claude/keen-lovelace-sd87qc (the branch's
+D-109 .. D-115 are cited throughout the control records, the HAZOP studies and the review
+records; main's decision only here and in PROGRESS.md). Text unchanged.
+
 The site, and with it the cooling, is not decided (design basis: ASSUMED coastal industrial site;
 D-092). The LCA has already assumed a configuration: it is in the basis and validity of the
 `cooling-water` factors in `lca/factors.yaml` and in the library proxy `proxy:cooling-water`

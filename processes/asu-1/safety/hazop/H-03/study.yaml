@@ -28,14 +28,15 @@ modes:
   - {id: maintenance, title: Maintenance, description: "Isolation, purging, work at or inside the cold box casing, perlite removal."}
   - {id: power-fail, title: Power failure, description: "Total or partial loss of power, and of instrument air where it follows; the cold box held cold."}
 analysed:
-  - {path: pid/P-03.xml, revision: 'sha256:e633f6e71bb6a9926e184eeab53287e44529b4cd209fb0a87cfbbe5a7db09974', relation: analyses}
-  - {path: control/cause-effect.yaml, revision: 'sha256:25a314ea92f411e81c735bfc18281664e8dd075cf7793f4aaf630b91b7a8872c', relation: analyses}
-  - {path: control/instrument-list.yaml, revision: 'sha256:83c2b4787e31e82922d70b9756e79709ca2a65934bad9ab54f73763f29188826', relation: analyses}
+  - {path: pid/P-03.xml, revision: 'sha256:18660f1a09049fdbb41d074a72b7ae3f3f8aaffae6ad4bf27703ef363bc7544a', relation: analyses}
+  - {path: control/cause-effect.yaml, revision: 'sha256:d9d0e70a70f47a0f2da6cc190d3b7d1b3b9427dcb4d61b724c6e3f67c6755b54', relation: analyses}
+  - {path: control/instrument-list.yaml, revision: 'sha256:3295b455c03f97c7272fdd4b39bee1b5e05295211ab6205a909f6d7a0d453368', relation: analyses}
   - {path: equipment/equipment-list.yaml, revision: 'sha256:7dd6ae258db62812479ac0e0e7c520b82a46de4f02ee2020db2f5d4013870490', relation: analyses}
   - {path: piping/line-list.yaml, revision: 'sha256:c1ba2f0448cfa47af8ef8dc45ad1b99a30c3a6885994d6088b3803e47f09031b', relation: analyses}
   - {path: piping/special-items.yaml, revision: 'sha256:8071c9646730d15356f23923163a5416205ea568dbb9592a61fb49e9d19077d0', relation: analyses}
   - {path: process/design-basis.yaml, revision: 'sha256:0498974de4c64d23299e4a93fc56382beeae4c20493d14612a3c0912288757e0', relation: analyses}
   - {path: process/flowsheet.yaml, revision: 'sha256:55cd2ae5678e325e705eedf0b15cce079e9c606f611e4c853f84fd12fe6d439b', relation: analyses}
+  - {path: control/loops.yaml, revision: 'sha256:15d7fb57f188a0436b405b61f1e8f7abca433b99f40494a90081ed66448e4ebe', relation: analyses}
 risk_matrix: safety/risk-matrix.yaml
 assessment_basis: >-
   IEC 61882 guide words applied to the parameters of each node's design intent, in every mode
@@ -293,7 +294,7 @@ nodes:
         description: Power and instrument-air failure.
         scenarios:
           - id: H03-S12
-            cause: "Power failure with instrument-air loss: the compander stops, TV-3124 (fail open) opens, so I-04 cannot close it; the riser's static head stays on E-3105."
+            cause: "Power failure with instrument-air loss: the compander stops, TV-3124 (fail open, kept so by D-112) opens, so I-04 cannot close it; the riser's static head stays on E-3105."
             consequence: "With a coincident E-3105 tube leak, water enters the depressurised AIR-3002 and reaches E-3101 at restart: ice and core damage."
             refs: [TV-3124, E-3105, E-3101]
             modes: [power-fail]
@@ -426,7 +427,7 @@ nodes:
                 - {category: people, severity: "4", likelihood: D, basis: "One fatality from fragments or a cold release (matrix 4); a control loop or brake-load failure (D).", evidence: [SIC-3108, D-003], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
                 - {category: asset, severity: "4", likelihood: D, basis: "Compander and cold box piping, weeks down.", evidence: [KT-3101], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d6c65b3d1b5e620d}}
               residual:
-                - {category: people, severity: "4", likelihood: C, basis: "SSHH-3108 2oo3 overspeed trip closing XV-3117 credited one order only: machine protection drawn and listed but not in the C&E, no SIL or SRS (H03-A2).", evidence: [SSHH-3108, XV-3117], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+                - {category: people, severity: "4", likelihood: C, basis: "The SSHH-3108 2oo3 overspeed trip I-11 closing XV-3117 (fail closed, D-109) credited one order: it is in the C&E with SIL 2 from the D-111 screening LOPA, but not confirmed, and this study credits an unconfirmed SIL one order. Once the team's LOPA and the SRS confirm SIL 2 it would take two (4/B, medium).", evidence: [SSHH-3108, XV-3117, I-11], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
                 - {category: asset, severity: "4", likelihood: C, basis: "As people.", evidence: [SSHH-3108, XV-3117], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 544760766051af8c}}
       - id: H03-N4-LT
         guide_word: less
@@ -466,7 +467,7 @@ nodes:
                 - {category: people, severity: "5", likelihood: C, basis: "Main condenser explosion (matrix 5); seal gas loss with oil carry-over (C).", evidence: [D-012, PDSLL-3115], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: b6ef4d2263633cd5}}
                 - {category: asset, severity: "5", likelihood: C, basis: "Loss of the cold box.", evidence: [D-012], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 20579213de92d430}}
               residual:
-                - {category: people, severity: "5", likelihood: B, basis: "PDSLL-3115 permissive (no oil before seal gas) and trip (closes the expander inlet, stops the compander) credited one order only: not in the C&E, no SIL or SRS (H03-A2; D-012).", evidence: [PDSLL-3115, XV-3117, D-012], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: feea7693498b1f1a}}
+                - {category: people, severity: "5", likelihood: B, basis: "The PDSLL-3115 permissive (no oil before seal gas) and trip I-12 (closes XV-3117, stops the compander) credited one order: in the C&E with SIL 2 from the D-111 screening LOPA, not confirmed (one order under this study's convention; two once confirmed, 5/A medium). The permissive shares the switch and is not counted again.", evidence: [PDSLL-3115, XV-3117, I-12, D-012], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: feea7693498b1f1a}}
                 - {category: asset, severity: "5", likelihood: B, basis: "As people.", evidence: [PDSLL-3115, XV-3117, D-012], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 6dd05b6d428d45d5}}
       - id: H03-N4-NF
         guide_word: "no"
@@ -663,7 +664,7 @@ nodes:
         description: Liquid blocked in on RL-3001 / LN-3001 or in the E-3102 passages.
         scenarios:
           - id: H03-S52
-            cause: "Liquid blocked in on RL-3001 or LN-3001 or in the E-3102 passages: LV-3101 or FV-3106 closed at a trip (fail positions not defined, H03-A1) with the upstream side cut off from the HP column (an isolation added in detail engineering, or a passage plugged by CO2 / H2O ice after a TSA breakthrough), and heat leaks in."
+            cause: "Liquid blocked in on RL-3001 or LN-3001 or in the E-3102 passages: LV-3101 or FV-3106 closed at a trip or on air loss (both fail closed, D-109) with the upstream side cut off from the HP column (an isolation added in detail engineering, or a passage plugged by CO2 / H2O ice after a TSA breakthrough), and heat leaks in."
             consequence: "The trapped cryogen vaporises: pressure above the PN16 line or E-3102 design, rupture inside the cold box and a cryogenic leak into the perlite (as H03-S45)."
             refs: [RL-3001, LN-3001, E-3102, LV-3101, FV-3106]
             modes: [shutdown, maintenance, warmup]
@@ -766,7 +767,7 @@ nodes:
         parameter: destination
         scenarios:
           - id: H03-S31
-            cause: "PV-3110B opens fully (split-range fault, fail position) and diverts the waste N2 to S-3101."
+            cause: "PV-3110B opens fully (split-range fault, or its fail-open position on air loss, D-109) and diverts the waste N2 to S-3101."
             consequence: "Regeneration gas RG-2001 and the C-1102 waste N2 fall: the TSA bed is not regenerated and CO2 / H2O / hydrocarbons break through into the cold box at the next switch-over (E-3101 plugging, LOX sump loading)."
             refs: [PV-3110B, WN-3003, RG-2001, WN-1001]
             modes: [normal, regen-switch]
@@ -813,10 +814,11 @@ nodes:
     title: LP column sump and main condenser-reboiler E-3103 (oxygen side), GOX draw
     design_intent: >-
       Boil LOX in the LP sump on the condensing HP N2 in the bath-type E-3103, kept fully
-      submerged (LICA-3102 low alarm), and draw GOX (GOX-3001, 14,600 Nm3/h, 99.71 % O2) from
-      the vapour space; keep hydrocarbons and N2O below the EIGA Doc 65 limits by the continuous
-      LOX purge (N9) and the sump analyser AIA-3103 (THC, C2H2) (D-010).
-    members: [C-3102, E-3103, LICA-3102, AIA-3103, GOX-3001]
+      submerged (LICA-3102 low alarm; the independent low-low LSLL-3125 on its own tapping I4
+      stops the air and K-4101, I-14, D-111 / D-114: with no air E-3103 no longer boils), and draw GOX (GOX-3001, 14,600 Nm3/h,
+      99.71 % O2) from the vapour space; keep hydrocarbons and N2O below the EIGA Doc 65 limits
+      by the continuous LOX purge (N9) and the sump analyser AIA-3103 (THC, C2H2) (D-010).
+    members: [C-3102, E-3103, LICA-3102, LSLL-3125, AIA-3103, GOX-3001]
     modes: [normal, startup, shutdown, warmup, power-fail]
     status: proposed
     by: agent
@@ -833,7 +835,7 @@ nodes:
             consequence: "LP sump level falls and E-3103 is partly uncovered: dry boiling in the uncovered passages, hydrocarbons and N2O deposit and concentrate, ignition: main condenser explosion."
             refs: [FV-3111, FIC-3111, LICA-3102, E-3103]
             modes: [normal]
-            safeguards: [H03-SG17, H03-SG20]
+            safeguards: [H03-SG17, H03-SG20, H03-SG27]
             actions: [H03-A4, H03-A3]
             status: proposed
             by: agent
@@ -842,14 +844,14 @@ nodes:
                 - {category: people, severity: "5", likelihood: C, basis: "Main condenser explosion (matrix 5); loop failure (D) leading to dry boiling with enough hydrocarbon present (C).", evidence: [D-010, LICA-3102], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: b6ef4d2263633cd5}}
                 - {category: asset, severity: "5", likelihood: C, basis: "Loss of the cold box.", evidence: [D-010], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 20579213de92d430}}
               residual:
-                - {category: people, severity: "5", likelihood: B, basis: "LICA-3102 low alarm with operator response and the bath-type submerged design (D-010) credited; no independent low-low trip.", evidence: [LICA-3102, E-3103, D-010], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: feea7693498b1f1a}}
-                - {category: asset, severity: "5", likelihood: B, basis: "As people.", evidence: [LICA-3102, D-010], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 6dd05b6d428d45d5}}
+                - {category: people, severity: "5", likelihood: A, basis: "LICA-3102 low alarm (its own transmitter, apart from FIC-3111 / FV-3111) with operator response credited (C to B). The independent LP sump low-low I-14 (LSLL-3125 on its own tapping) trips the MAC set and the K-4101 set through their motor breakers, independent of FV-3111 and the control system (D-114 (1)): once the air stops, E-3103 no longer boils, so the draining that FV-3111 keeps up cannot dry-boil it. SIL 2 proposed, not confirmed: one order (B to A). Before D-114 I-14 closed FV-3111 itself and could not be credited here (hazop-review6#1). FV-3111 fails closed on air loss (D-109), so air loss is not a cause.", evidence: [LICA-3102, LSLL-3125, I-14, E-3103, D-010, D-114], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 61d9d3ab4bf99bc9, inputs: {matrix: 8b8a7609d110e869, category: people, severity: '5', likelihood: A}}}
+                - {category: asset, severity: "5", likelihood: A, basis: "As people.", evidence: [LICA-3102, LSLL-3125, D-010], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: a617a5430a81f857, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '5', likelihood: A}}}
           - id: H03-S34
             cause: "Refrigeration deficit on this sheet: compander trip or XV-3117 closure (S19), E-3104 / E-3105 cooling lost (S6, S7)."
             consequence: "Liquid inventory falls while GOX is drawn: E-3103 uncovered, dry boiling and hydrocarbon deposition, main condenser explosion."
             refs: [KT-3101, XV-3117, LICA-3102, E-3103]
             modes: [normal, shutdown]
-            safeguards: [H03-SG17, H03-SG20]
+            safeguards: [H03-SG17, H03-SG20, H03-SG27]
             actions: [H03-A4]
             status: proposed
             by: agent
@@ -858,15 +860,15 @@ nodes:
                 - {category: people, severity: "5", likelihood: C, basis: "As S33; a compander trip is frequent, uncovering needs a sustained deficit (C).", evidence: [D-010, D-003], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: b6ef4d2263633cd5}}
                 - {category: asset, severity: "5", likelihood: C, basis: "As S33.", evidence: [D-010], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 20579213de92d430}}
               residual:
-                - {category: people, severity: "5", likelihood: B, basis: "LICA-3102 low alarm (operator reduces GOX draw or shuts down) and the bath-type design credited.", evidence: [LICA-3102, D-010], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: feea7693498b1f1a}}
-                - {category: asset, severity: "5", likelihood: B, basis: "As people.", evidence: [LICA-3102], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 6dd05b6d428d45d5}}
+                - {category: people, severity: "5", likelihood: A, basis: "LICA-3102 low alarm (operator reduces GOX draw or shuts down) and the bath-type design credited (C to B). I-14 on the independent low-low LSLL-3125 trips the MAC set and K-4101 through their motor breakers (D-114 (1)): with the air stopped the HP column sends E-3103 no more vapour, so the boil-down stops whatever the refrigeration does; the PV-4101B vent then carries only the standing vapour. SIL 2 proposed, not confirmed: one order (B to A). A K-4101 trip alone would not have arrested a deficit (hazop-review6#2).", evidence: [LICA-3102, LSLL-3125, I-14, D-010, D-114], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 61d9d3ab4bf99bc9, inputs: {matrix: 8b8a7609d110e869, category: people, severity: '5', likelihood: A}}}
+                - {category: asset, severity: "5", likelihood: A, basis: "As people.", evidence: [LICA-3102, LSLL-3125], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: a617a5430a81f857, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '5', likelihood: A}}}
       - id: H03-N8-HC
         guide_word: as-well-as
         parameter: composition
         description: Hydrocarbons and N2O concentrate in the sump LOX.
         scenarios:
           - id: H03-S35
-            cause: "Continuous LOX purge lost: FV-3111 fails closed or is closed with T-4101 unavailable, and the drain HV-3118 to V-3101 is not opened."
+            cause: "Continuous LOX purge lost: FV-3111 sticks closed, is closed with T-4101 unavailable, or closes on an instrument-air failure (its fail position, D-109; I-14 no longer closes it, D-114), and the purge is not restored or the drain HV-3118 to V-3101 is not opened."
             consequence: "Hydrocarbons and N2O accumulate in the sump LOX above their solubility, solids deposit in E-3103: main condenser explosion."
             refs: [FV-3111, FIC-3111, HV-3118, AIA-3103, E-3103]
             modes: [normal]
@@ -879,7 +881,7 @@ nodes:
                 - {category: people, severity: "5", likelihood: C, basis: "Main condenser explosion (matrix 5); loss of purge (D) with hydrocarbons reaching the limit over the following days (C).", evidence: [D-010, FIC-3111], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: b6ef4d2263633cd5}}
                 - {category: asset, severity: "5", likelihood: C, basis: "Loss of the cold box.", evidence: [D-010], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 20579213de92d430}}
               residual:
-                - {category: people, severity: "5", likelihood: B, basis: "FIC-3111 low-flow alarm (0.2 % of O2) and AIA-3103 alarm credited as alarms with operator response; no trip in the C&E although D-010 says alarm/trip.", evidence: [FIC-3111, AIA-3103, D-010], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: feea7693498b1f1a}}
+                - {category: people, severity: "5", likelihood: B, basis: "FIC-3111 low-flow alarm (0.2 % of O2) and AIA-3103 alarm credited as alarms with operator response; the AIA-3103 action limits and any trip on them are still open (D-010 says alarm/trip; #104, H03-A3). After an air failure the MAC is unloaded (and I-19 stops the plant, D-114), so the hydrocarbon input is low while the purge is off.", evidence: [FIC-3111, AIA-3103, D-010, D-109], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: feea7693498b1f1a}}
                 - {category: asset, severity: "5", likelihood: B, basis: "As people.", evidence: [FIC-3111, AIA-3103], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 6dd05b6d428d45d5}}
           - id: H03-S51
             cause: "AIA-3103 fails low or reads a stale value (analyser fault, blocked or vaporising sample line, calibration drift) while hydrocarbons or N2O enter with the air (intake plume, TSA breakthrough, H-01 / H-02)."
@@ -916,6 +918,25 @@ nodes:
                 - {category: asset, severity: "3", likelihood: D, basis: "Exchanger stress and an upset of days (matrix 3); a closed outlet (D).", evidence: [LICA-3102, D-010], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
               residual:
                 - {category: asset, severity: "3", likelihood: D, basis: "LICA-3102 has a low alarm only: nothing credited for high level.", evidence: [LICA-3102], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+      - id: H03-N8-ST
+        guide_word: other-than
+        parameter: trip
+        description: "The LP sump low-low I-14 acts without a low level (D-111)."
+        scenarios:
+          - id: H03-S54
+            cause: "LSLL-3125 fails low or its logic trips spuriously (a 1oo1 SIL 2 function, D-111, D-114)."
+            consequence: "I-14 stops the whole plant: the MAC set (K-1101, UV-1102 open, the DCAC water pumps) and the K-4101 set (ESD valves closed, blowdown open) (D-114 (1)); the compander follows on lost flow, the GOX and GAN exports are lost and the backup supplies (D-014); the cold box stands and warms slowly. I-14 latches: with LSLL-3125 still failed low it cannot be reset, so the restart waits for the transmitter repair, or for a controlled bypass of I-14 under a permit with compensating measures (LICA-3102 watched, the sump level confirmed another way). The LOX purge FV-3111 is no longer an I-14 effect and stays as the operator leaves it; with no air the sump does not boil (H03-S35 for a purge left off)."
+            refs: [LSLL-3125, K-1101, K-4101, PV-4101B]
+            modes: [normal]
+            actions: [H03-A4]
+            status: proposed
+            by: agent
+            notes: "New with D-111; revised in D-115 for D-114 (1) (hazop-review6#8): the spurious trip now stops the plant, the purge part is gone, and the latched state and the route back are stated. H03-A4 weighs a 1oo2 transmitter vote against this consequence."
+            risk:
+              initial:
+                - {category: asset, severity: "2", likelihood: D, basis: "A spurious trip of a 1oo1 level function a few times in the plant life (D); a plant stop of up to a day (the transmitter is reached from CB-1 P20, D-114 (6)) with the customer on the backup (matrix 2). A failure of the LSLL-3125 impulse line inside the casing would take longer (team).", evidence: [LSLL-3125, I-14, D-014, D-114], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5975c38759944df0, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '2', likelihood: D}}}
+              residual:
+                - {category: asset, severity: "2", likelihood: D, basis: "Nothing prevents the spurious trip (1oo1); the backup covers the customer for the restart.", evidence: [LSLL-3125, D-014], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5975c38759944df0, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '2', likelihood: D}}}
       - id: H03-N8-GOX
         guide_word: more
         parameter: flow
@@ -1243,7 +1264,7 @@ nodes:
         description: Power failure and long cold standstill.
         scenarios:
           - id: H03-S50
-            cause: "Total power failure: all flows stop and the cold box stands with its liquid for many hours; the valve fail positions on P-03 are not defined."
+            cause: "Total power failure: all flows stop and the cold box stands with its liquid for many hours. The P-03 valves go to their fail positions (D-109): LV-3101, FV-3106 and FV-3111 closed (the liquid stays, the purge stops), PV-3110A/B and PV-3113 open, XV-3117 closed."
             consequence: "The sump LOX slowly boils off without purge: hydrocarbons concentrate toward their solubility limit, E-3103 is uncovered as the level falls; on restart with the analysers out, a main condenser explosion."
             refs: [E-3103, LICA-3102, AIA-3103, FV-3111]
             modes: [power-fail, shutdown]
@@ -1266,8 +1287,8 @@ safeguards:
   - {id: H03-SG5, title: "I-04: compander trip closes TV-3124", kind: interlock, interlock: I-04, refs: [TV-3124], status: proposed, by: agent, notes: "Not a SIF; TV-3124 is a control valve, fail open, not tight shut (D-077)."}
   - {id: H03-SG6, title: "Restart permissive: E-3105 shell-side drain HV-3127 checked dry (D-077)", kind: procedural, refs: [HV-3127], status: proposed, by: agent, notes: "Named in D-077 and the I-04 notes as an operating procedure; the written procedure does not exist yet."}
   - {id: H03-SG7, title: "HV-3126 locked open on CHWR-3001 (D-077)", kind: mechanical, refs: [HV-3126], status: proposed, by: agent}
-  - {id: H03-SG8, title: "Overspeed trip SSHH-3108 (2oo3) closes the quick-closing inlet valve XV-3117", kind: other, refs: [SSHH-3108, XV-3117], status: proposed, by: agent, notes: "Machine protection trip recorded in the instrument list and D-023; not in control/cause-effect.yaml, so not kind interlock until it is (action H03-A2)."}
-  - {id: H03-SG9, title: "Seal gas permissive and trip PDSLL-3115 (oil pump only with seal gas; trip closes the expander inlet)", kind: other, refs: [PDSLL-3115, XV-3117], status: proposed, by: agent, notes: "Permissive and trip recorded in the instrument list and D-012; not in control/cause-effect.yaml, so not kind interlock until it is (action H03-A2)."}
+  - {id: H03-SG8, title: "I-11: overspeed trip SSHH-3108 (2oo3) closes the quick-closing inlet valve XV-3117 and trips the compander", kind: interlock, interlock: I-11, refs: [SSHH-3108, XV-3117, K-3101], status: proposed, by: agent, notes: "D-111: SIL 2 by the screening LOPA, not confirmed; one order under this study's convention."}
+  - {id: H03-SG9, title: "I-12: seal gas low-low PDSLL-3115 closes XV-3117 and trips the compander; the oil pump starts only with seal gas (permissive)", kind: interlock, interlock: I-12, refs: [PDSLL-3115, XV-3117, K-3101], status: proposed, by: agent, notes: "D-111: SIL 2 by the screening LOPA, not confirmed; one order under this study's convention. The permissive is in SEQ-COMPANDER-TRIP (D-012)."}
   - {id: H03-SG10, title: "Expander outlet low temperature limit TIC-3109", kind: control, refs: [TIC-3109], status: proposed, by: agent}
   - {id: H03-SG12, title: "PI-3121 HP column top pressure high alarm (below the PSV-3116 set)", kind: alarm, refs: [PI-3121], status: proposed, by: agent}
   - {id: H03-SG13, title: "PSV-3116 on C-3101 (VNT-3003)", kind: relief, refs: [PSV-3116], status: proposed, by: agent, notes: "Listed case: MAC deadhead with the GAN and liquid outlets blocked (DESIGN.md section 4). Not credited for the heat-in of a long standstill (H03-S22) until H03-A20 confirms that case."}
@@ -1282,11 +1303,12 @@ safeguards:
   - {id: H03-SG24, title: "Casing breathing valve PSV-3123 (pressure and vacuum)", kind: relief, refs: [PSV-3123], status: proposed, by: agent}
   - {id: H03-SG25, title: "AIA-3122 O2 high and low alarm on the casing breather exhaust", kind: alarm, refs: [AIA-3122], status: proposed, by: agent}
   - {id: H03-SG26, title: "Vents elevated at a safe location with their zones (VNT-3001, VNT-3004, S-3101; D-011, D-031)", kind: mechanical, refs: [VNT-3001, VNT-3004, S-3101], status: proposed, by: agent}
+  - {id: H03-SG27, title: "I-14: LP sump level low-low LSLL-3125 (own tapping I4) trips the MAC set (K-1101, UV-1102, the DCAC pumps) and the K-4101 set", kind: interlock, interlock: I-14, refs: [LSLL-3125, K-1101, K-4101], status: proposed, by: agent, notes: "D-111, revised by D-114 (1) (H03-A4, H04-A23): final elements the two motor breakers, independent of LICA-3102, FV-3111, the K-4101 guide-vane low select and the control system; it no longer closes FV-3111. Once the air stops E-3103 no longer boils. SIL 2 by the screening LOPA, not confirmed; one order under this study's convention."}
 actions:
-  - {id: H03-A1, text: "Define and record the fail positions of LV-3101, FV-3106, FV-3111, PV-3110A, PV-3110B, PV-3113 and XV-3117 (UV-3120 and TV-3124 are fail open) and check the cold box's behaviour on instrument-air and power failure against them. One plant-wide fail-position list (P-01 .. P-04) answers H01-A6, H02-A6, H03-A1 and H04-A14; this action names the valves of this sheet.", owner: instrument and control engineer, status: proposed, by: agent}
-  - {id: H03-A2, text: "Enter the compander machine trips (SSHH-3108 overspeed, PDSLL-3115 seal gas, surge / vibration) with their effects (XV-3117, compander stop, I-04) in control/cause-effect.yaml; confirm with the supplier the trip response against the overspeed run-up on loss of brake load and set the SIL by LOPA. One update of control/cause-effect.yaml and one LOPA / SIL session answer H01-A3, H01-A8, H02-A1, H02-A2, H03-A2, H03-A3, H04-A01, H04-A02 and H04-A13; this action names the functions of this sheet.", owner: instrument and control engineer, status: proposed, by: agent}
-  - {id: H03-A3, text: "LOPA for the main condenser hydrocarbon protection: decide whether AIA-3103 high-high (EIGA Doc 65 limits) and the LP sump level need SIFs (D-010 says alarm/trip, the C&E has none), and write the operator response to each AIA-3103 limit (raise purge, drain, shut down); add analyser diagnostics or periodic lab checks. One update of control/cause-effect.yaml and one LOPA / SIL session answer H01-A3, H01-A8, H02-A1, H02-A2, H03-A2, H03-A3, H04-A01, H04-A02 and H04-A13; this action names the functions of this sheet.", owner: process safety engineer, status: proposed, by: agent}
-  - {id: H03-A4, text: "Set the LICA-3102 low alarm so the operator has time to act before E-3103 is uncovered, add a high alarm, and consider an independent low-low level on the LP sump (with A3).", owner: process engineer, status: proposed, by: agent}
+  - {id: H03-A1, text: "Define and record the fail positions of LV-3101, FV-3106, FV-3111, PV-3110A, PV-3110B, PV-3113 and XV-3117 (UV-3120 and TV-3124 are fail open) and check the cold box's behaviour on instrument-air and power failure against them. One plant-wide fail-position list (P-01 .. P-04) answers H01-A6, H02-A6, H03-A1 and H04-A14; this action names the valves of this sheet. Proposed answer: D-109 (LV-3101, FV-3106, FV-3111, XV-3117 and the expander nozzles closed; PV-3110A/B, PV-3113 open), checked against H03-S35, S50, S52, for the team.", owner: instrument and control engineer, status: proposed, by: agent}
+  - {id: H03-A2, text: "Enter the compander machine trips (SSHH-3108 overspeed, PDSLL-3115 seal gas, surge / vibration) with their effects (XV-3117, compander stop, I-04) in control/cause-effect.yaml; confirm with the supplier the trip response against the overspeed run-up on loss of brake load and set the SIL by LOPA. One update of control/cause-effect.yaml and one LOPA / SIL session answer H01-A3, H01-A8, H02-A1, H02-A2, H03-A2, H03-A3, H04-A01, H04-A02 and H04-A13; this action names the functions of this sheet. Proposed answer, in part: D-111 (I-11 overspeed 2oo3 and I-12 seal gas, both SIL 2 by the screening LOPA); the vendor's surge and vibration trips and the run-up time come with its data (#58), for the team.", owner: instrument and control engineer, status: proposed, by: agent}
+  - {id: H03-A3, text: "LOPA for the main condenser hydrocarbon protection: decide whether AIA-3103 high-high (EIGA Doc 65 limits) and the LP sump level need SIFs (D-010 says alarm/trip, the C&E has none), and write the operator response to each AIA-3103 limit (raise purge, drain, shut down); add analyser diagnostics or periodic lab checks. One update of control/cause-effect.yaml and one LOPA / SIL session answer H01-A3, H01-A8, H02-A1, H02-A2, H03-A2, H03-A3, H04-A01, H04-A02 and H04-A13; this action names the functions of this sheet. Proposed answer, in part: D-111 (the LP sump level as the SIF I-14, SIL 2 by the screening LOPA); the AIA-3103 action limits and any trip on them stay open (#104), for the team.", owner: process safety engineer, status: proposed, by: agent}
+  - {id: H03-A4, text: "Set the LICA-3102 low alarm so the operator has time to act before E-3103 is uncovered, add a high alarm, and consider an independent low-low level on the LP sump (with A3). Proposed answer: D-111 / D-114 (LSLL-3125 on its own tapping I4, I-14 stops the air and K-4101; 1oo2 if the SRS needs it, weighed against the spurious-trip consequence H03-S54; LICA-3102 LAL set for at least 10 min at the largest over-draw and a LAH added; the numbers wait for the supplier's sump geometry, #103), for the team.", owner: process engineer, status: proposed, by: agent}
   - {id: H03-A5, text: "Make the minimum LOX purge available when T-4101 cannot take LOX: a measured, restricted continuous purge route to V-3101 (or another destination) and a procedure, so the 0.2 % minimum is kept. With H04-A03 (the T-4101 high-level response, which must keep the purge flowing).", owner: process engineer, status: proposed, by: agent}
   - {id: H03-A6, text: "Specify V-3101: vaporisation means and capacity, level and outlet temperature indication, the VNT-3001 size and material for the maximum drain rate (restriction orifice on LOX-3002), protection against a blocked vent, and how residue is kept from accumulating (no boil-to-dryness, periodic warm-up and analysis).", owner: process engineer, status: proposed, by: agent}
   - {id: H03-A7, text: "LIN-3001 has no flow control or isolation on P-03: add a flow control loop and isolation, and correct the TSV-4141 relief case, which names a P-03 outlet valve that is not drawn. With H04-A09 / H04-A10 for the TSV-4141 relief path.", owner: process engineer, status: proposed, by: agent}
@@ -1295,7 +1317,7 @@ actions:
   - {id: H03-A10, text: "Add warm-end temperature indication with low alarms on the E-3101 outlets (GOX-4001, GAN-4001, WN-3002) and the warm and cold end temperature differences, to control exchanger balance and cool-down / warm-up rates. Set the WN-3002 low alarm against the simulated normal warm end of 9.5 C (D-103), not the former 13 C design target. For the cold-box heat in-leak (H03-S53) add a WN-3002 high alarm (or a deviation alarm on the warm-end delta-T between the main air and WN-3002, normal about 5.5 K in the simulation and about 3 K on the governing balance, D-104), trended with the LP and HP column liquid levels: a rising leak warms the waste warm end, which no low alarm sees.", owner: process engineer, status: proposed, by: agent}
   - {id: H03-A25, text: "With the cold box supplier, confirm the cold-box heat in-leak (50 kW ASSUMED, D-103) and how it rises with perlite settlement or moisture, the perlite top-up provision (settlement allowance, fill nozzles, inspection of the casing top for voids), and record the expander refrigeration margin (a total leak of about 75 kW on the governing balance before the waste N2 warm end reaches 13 C; about 130 kW in the simulation, whose column model adds about 49 kW, D-104) as the limit the insulation must stay within, and the E-3105-out-of-service case on both bases (about 12 kW and 65 kW of leak capacity: a deficit of about 38 kW against the 50 kW on the governing basis, met by turning the liquid production down by about 330 kg/h) (H03-S53).", owner: cold box supplier, status: proposed, by: agent}
   - {id: H03-A11, text: "E-3104 at standstill: extend the D-077 restart check to E-3104 (shell-side low-point drain checked dry) or isolate its cooling water on a compander trip.", owner: process engineer, status: proposed, by: agent}
-  - {id: H03-A12, text: "Confirm that I-04 is still effective on power and instrument-air failure (TV-3124 fails open): accept the riser's static head with the restart check, or use a tight-shut fail-closed valve.", owner: process engineer, status: proposed, by: agent}
+  - {id: H03-A12, text: "Confirm that I-04 is still effective on power and instrument-air failure (TV-3124 fails open): accept the riser's static head with the restart check, or use a tight-shut fail-closed valve. Proposed answer: D-112 (accept: TV-3124 stays fail open, the D-077 restart check covers air loss; H03-S12), for the team.", owner: process engineer, status: proposed, by: agent}
   - {id: H03-A13, text: "Add a booster discharge or E-3104 outlet high temperature alarm (cooling water failure with the recycle open).", owner: instrument and control engineer, status: proposed, by: agent}
   - {id: H03-A14, text: "With the cold box supplier, check the casing relief for an internal cryogenic leak into the perlite (not only the purge failure of PSV-3123), and add casing cold-spot inspection to the operating rounds.", owner: cold box supplier, status: proposed, by: agent}
   - {id: H03-A15, text: "Write the casing entry and perlite removal procedure: warm-up, positive isolation of UN-3001, air purge, O2 measurement at entry, standby person, engulfment precautions; consider fixed O2 monitoring at the casing base. One site procedure for positive isolation and entry into equipment that can hold N2 answers H01-A15, H02-A10, H03-A15 and H04-A18; this action names the equipment of this sheet.", owner: operations, status: proposed, by: agent}

@@ -31,13 +31,14 @@ modes:
   - {id: power-fail, title: Power failure, description: "Total or partial loss of power, and of instrument air where it follows."}
 analysed:
   - {path: pid/P-01.xml, revision: 'sha256:c3b9a332a2200a9738e68801bf15e1f94c58264fbbd1e506c03c7045725ba5af', relation: analyses}
-  - {path: control/cause-effect.yaml, revision: 'sha256:25a314ea92f411e81c735bfc18281664e8dd075cf7793f4aaf630b91b7a8872c', relation: analyses}
-  - {path: control/instrument-list.yaml, revision: 'sha256:83c2b4787e31e82922d70b9756e79709ca2a65934bad9ab54f73763f29188826', relation: analyses}
+  - {path: control/cause-effect.yaml, revision: 'sha256:d9d0e70a70f47a0f2da6cc190d3b7d1b3b9427dcb4d61b724c6e3f67c6755b54', relation: analyses}
+  - {path: control/instrument-list.yaml, revision: 'sha256:3295b455c03f97c7272fdd4b39bee1b5e05295211ab6205a909f6d7a0d453368', relation: analyses}
   - {path: equipment/equipment-list.yaml, revision: 'sha256:7dd6ae258db62812479ac0e0e7c520b82a46de4f02ee2020db2f5d4013870490', relation: analyses}
   - {path: piping/line-list.yaml, revision: 'sha256:c1ba2f0448cfa47af8ef8dc45ad1b99a30c3a6885994d6088b3803e47f09031b', relation: analyses}
   - {path: piping/special-items.yaml, revision: 'sha256:8071c9646730d15356f23923163a5416205ea568dbb9592a61fb49e9d19077d0', relation: analyses}
   - {path: process/design-basis.yaml, revision: 'sha256:0498974de4c64d23299e4a93fc56382beeae4c20493d14612a3c0912288757e0', relation: analyses}
   - {path: process/flowsheet.yaml, revision: 'sha256:55cd2ae5678e325e705eedf0b15cce079e9c606f611e4c853f84fd12fe6d439b', relation: analyses}
+  - {path: control/loops.yaml, revision: 'sha256:15d7fb57f188a0436b405b61f1e8f7abca433b99f40494a90081ed66448e4ebe', relation: analyses}
 risk_matrix: safety/risk-matrix.yaml
 assessment_basis: >-
   IEC 61882 guide words applied to the parameters of each node's design intent, in every mode
@@ -92,7 +93,7 @@ nodes:
               initial:
                 - {category: asset, severity: "3", likelihood: D, basis: "Impeller damage of one stage, 0.1-1 MEUR and days down (matrix 3); filter blockage in fog or frost expected a few times in plant life (D).", evidence: [F-1101, D-025], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
               residual:
-                - {category: asset, severity: "3", likelihood: B, basis: "PDIA-1101 high alarm starts the pulse cleaning and alerts the operator; the VIA-1104 vibration alarm is a second, independent prompt (its trip is not credited).", evidence: [PDIA-1101, VIA-1104], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 96d32a0543b3b03e}}
+                - {category: asset, severity: "3", likelihood: B, basis: "PDIA-1101 high alarm starts the pulse cleaning and alerts the operator; the VIA-1104 vibration alarm is a second, independent prompt (its trip I-05 shares the monitor and is not counted again).", evidence: [PDIA-1101, VIA-1104], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 96d32a0543b3b03e}}
       - id: H01-N1-D2
         guide_word: as-well-as
         parameter: composition
@@ -149,7 +150,7 @@ nodes:
             consequence: "K-1101 surges: flow reversal through the stages, thrust bearing and impeller damage, MAC down for weeks."
             refs: [UIC-1102, UV-1102, K-1101]
             modes: [normal, regen-switch, shutdown]
-            safeguards: [H01-SG-PIC1103, H01-SG-VIA1104]
+            safeguards: [H01-SG-PIC1103, H01-SG-VIA1104, H01-SG-I05]
             actions: [H01-A6]
             status: proposed
             by: agent
@@ -157,7 +158,7 @@ nodes:
               initial:
                 - {category: asset, severity: "4", likelihood: D, basis: "Repeated surge damages the integrally geared machine, 1-10 MEUR and weeks down (matrix 4); anti-surge loop failure on demand a few times in plant life (D).", evidence: [K-1101, UIC-1102], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d6c65b3d1b5e620d}}
               residual:
-                - {category: asset, severity: "4", likelihood: C, basis: "PIC-1103 overriding IGV / blow-off on rising pressure is credited as one control layer (D to C). The VIA-1104 trip is in the supplier's machine protection, not in the C&E, so it is not credited, and its alarm is too slow for surge; the severity stays at weeks down (matrix 4) until H01-A6.", evidence: [PIC-1103, VIA-1104], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 544760766051af8c}}
+                - {category: asset, severity: "4", likelihood: B, basis: "PIC-1103 overriding IGV / blow-off on rising pressure is credited as one control layer (D to C); the vibration trip I-05 (D-111, SIL 1 proposed, not confirmed) one more (C to B): repeated surge shows as vibration before the bearings fail. The VIA-1104 alarm alone is too slow and is not counted again. UV-1102 fails open (D-109).", evidence: [PIC-1103, I-05, D-109], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d508cded1fd37f0d, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '4', likelihood: B}}}
       - id: H01-N2-D2
         guide_word: more
         parameter: temperature
@@ -176,7 +177,7 @@ nodes:
               initial:
                 - {category: asset, severity: "3", likelihood: C, basis: "Stage damage 0.1-1 MEUR (matrix 3); CW system failure or heavy fouling once in plant life (C).", evidence: [E-1101, E-1102], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915}}
               residual:
-                - {category: asset, severity: "3", likelihood: B, basis: "TIA-1110 TAH on every stage discharge and intercooler outlet (120 / 45 C) gives the operator time to unload; VIA-1104 vibration alarm (its trip is not credited).", evidence: [TIA-1110, VIA-1104], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 96d32a0543b3b03e}}
+                - {category: asset, severity: "3", likelihood: B, basis: "TIA-1110 TAH on every stage discharge and intercooler outlet (120 / 45 C) gives the operator time to unload; VIA-1104 vibration alarm (its trip I-05 shares the monitor and is not counted again).", evidence: [TIA-1110, VIA-1104], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 96d32a0543b3b03e}}
       - id: H01-N2-D3
         guide_word: as-well-as
         parameter: composition
@@ -187,7 +188,7 @@ nodes:
             consequence: "Water sprayed into the air ahead of stage 2 or 3 (E-1101 has no separator): impeller erosion and imbalance; more water to the DCAC."
             refs: [E-1101, E-1102, K-1101]
             modes: [normal]
-            safeguards: [H01-SG-SEP1102, H01-SG-VIA1104]
+            safeguards: [H01-SG-SEP1102, H01-SG-VIA1104, H01-SG-I05]
             actions: [H01-A22]
             status: proposed
             by: agent
@@ -195,7 +196,7 @@ nodes:
               initial:
                 - {category: asset, severity: "3", likelihood: C, basis: "Impeller damage, 0.1-1 MEUR (matrix 3); a tube leak once in plant life (C).", evidence: [E-1101, E-1102, D-064], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915}}
               residual:
-                - {category: asset, severity: "3", likelihood: B, basis: "E-1102 integral separator catches water ahead of stage 3; VIA-1104 alarm on imbalance (its trip is not credited). No leak detection on E-1101.", evidence: [D-064, VIA-1104], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 96d32a0543b3b03e}}
+                - {category: asset, severity: "3", likelihood: B, basis: "E-1102 integral separator catches water ahead of stage 3; VIA-1104 alarm on imbalance; the vibration trip I-05 (D-111) limits the damage but is not counted again, the alarm and the trip share the monitor. No leak detection on E-1101.", evidence: [D-064, VIA-1104, I-05], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 96d32a0543b3b03e}}
           - id: H01-S7
             cause: "Lube oil carried into the air path of K-1101 (worn labyrinth or buffer seal, oil-tank vent drawn back into the intake)."
             consequence: "Oil mist with the air to the DCAC and the adsorbers: adsorbent fouled and replaced, and heavy hydrocarbons that pass towards the cold box add to the LP-sump hydrocarbon load."
@@ -304,7 +305,7 @@ nodes:
         description: "Blow-off flow through AIR-1003 when not wanted."
         scenarios:
           - id: H01-S12
-            cause: "UV-1102 fails open (actuator, signal or instrument-air failure if it fails open)."
+            cause: "UV-1102 opens on a signal or actuator fault, or on an instrument-air failure (it fails open, D-109)."
             consequence: "Most of the air blows off through S-1101: air pressure to the adsorbers and cold box falls, plant trip and loss of GOX to the pipeline until the backup takes over; noise at the silencer outlet."
             refs: [UV-1102, S-1101, AIR-1003]
             modes: [normal, power-fail]
@@ -332,11 +333,11 @@ nodes:
         description: "Sump level above the high alarm, towards the air inlet."
         scenarios:
           - id: H01-S13
-            cause: "LV-1106 sticks closed (or its fail position closes on an instrument-air failure)."
+            cause: "LV-1106 sticks closed while the MAC runs (LIC-1106 healthy; its failing low is H01-S46). (LV-1106 also fails closed on an instrument-air failure, D-109, but then TV-1105 and FV-1108 close as well and the MAC unloads, so no water comes in: that branch is H01-S45.)"
             consequence: "The sump floods the air inlet nozzle and the lower bed; water is entrained through the mist eliminator into AIR-1004 and the on-line adsorber: alumina / 13X wetted, adsorbent replaced, H2O and CO2 break through to the cold box."
             refs: [LV-1106, LIC-1106, C-1101, AIR-1004]
             modes: [normal, power-fail]
-            safeguards: [H01-SG-LIC1106, H01-SG-MIST, H01-SG-AIA2103]
+            safeguards: [H01-SG-LIC1106, H01-SG-AIA2103, H01-SG-I06]
             actions: [H01-A3, H01-A6]
             status: proposed
             by: agent
@@ -344,22 +345,37 @@ nodes:
               initial:
                 - {category: asset, severity: "4", likelihood: D, basis: "Adsorbent charge replaced and cold box derimed, 1-10 MEUR or weeks of shortfall (matrix 4); a single valve failure (D).", evidence: [D-005, LV-1106], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d6c65b3d1b5e620d}}
               residual:
-                - {category: asset, severity: "4", likelihood: C, basis: "LIC-1106 high alarm with operator response and the mist eliminator credited; the LSHH-1106 MAC trip is not credited while it is not declared in control/cause-effect.yaml (H01-A3); AIA-2103 only shows the damage.", evidence: [LIC-1106, D-005, LSHH-1106], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 544760766051af8c}}
+                - {category: asset, severity: "4", likelihood: B, basis: "LIC-1106 high alarm with operator response (its transmitter is independent of a stuck valve) credited (D to C); the LSHH-1106 trip I-06 on its own tapping (D-111, SIL 1 proposed, not confirmed) stops the MAC and the DCAC water pumps, one order more (C to B). The mist eliminator does not stop a sump from flooding and is not credited (hazop-review6#3); AIA-2103 only shows the damage.", evidence: [LIC-1106, LSHH-1106, I-06], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d508cded1fd37f0d, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '4', likelihood: B}}}
+          - id: H01-S46
+            cause: "LIC-1106 fails low (its transmitter reads low) while the MAC runs: LV-1106 closes on a sump that is in fact rising."
+            consequence: "As H01-S13: the sump floods the air inlet nozzle and the lower bed, water is carried into AIR-1004 and the on-line adsorber, adsorbent replaced, H2O and CO2 break through to the cold box."
+            refs: [LIC-1106, LV-1106, C-1101, AIR-1004]
+            modes: [normal]
+            safeguards: [H01-SG-I06]
+            actions: [H01-A3]
+            status: proposed
+            by: agent
+            notes: "Split from H01-S13 in D-115 (hazop-review6#3): the LIC-1106 high alarm shares the failed transmitter and the mist eliminator does not stop a flood, so only I-06 is left."
+            risk:
+              initial:
+                - {category: asset, severity: "4", likelihood: D, basis: "As H01-S13 (matrix 4); a single transmitter failure (D).", evidence: [LIC-1106, D-005], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d6c65b3d1b5e620d, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '4', likelihood: D}}}
+              residual:
+                - {category: asset, severity: "4", likelihood: C, basis: "Only I-06 on LSHH-1106's own tapping (D-111, SIL 1 proposed, not confirmed): one order. The LIC-1106 alarm shares the failed transmitter.", evidence: [LSHH-1106, I-06], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 544760766051af8c, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '4', likelihood: C}}}
           - id: H01-S14
             cause: "MAC trip while P-1101A/B and P-1102A/B keep running; the DCAC stays closed in behind the AIR-1002 non-return valve and loses pressure slowly, so LV-1106 passes less and the sump fills."
             consequence: "Lower section and air inlet flooded; on the restart a water slug is carried to AIR-1004 and the adsorbers (adsorbent wetted) or pushed against the non-return valve."
             refs: [C-1101, P-1101A, P-1102A, LV-1106, LSHH-1106]
             modes: [shutdown, startup, power-fail]
-            safeguards: [H01-SG-LIC1106, H01-SG-MIST]
+            safeguards: [H01-SG-LIC1106, H01-SG-MIST, H01-SG-I06]
             actions: [H01-A4, H01-A3]
             status: proposed
             by: agent
-            notes: "LSHH-1106 trips the MAC only (instrument list, D-021): with the MAC already stopped it does nothing. The C&E has no stop of the DCAC pumps on a MAC trip."
+            notes: "Revised for D-111: I-05, I-06 and I-07 stop P-1101A/B and P-1102A/B with the MAC, and SEQ-MAC-START stops them on any other MAC stop (a sequence, not credited). On a vendor or manual MAC stop the pumps keep running until the level reaches LSHH-1106, where I-06 stops them."
             risk:
               initial:
                 - {category: asset, severity: "4", likelihood: C, basis: "Adsorbent wetted, 1-10 MEUR or weeks (matrix 4); MAC trips happen yearly, flooding needs the operator to miss the pumps (C).", evidence: [D-021, LSHH-1106], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 544760766051af8c}}
               residual:
-                - {category: asset, severity: "4", likelihood: C, basis: "Only the LIC-1106 high alarm, at a time the operator is busy with the trip; no interlock stops the pumps or blocks the restart.", evidence: [LIC-1106], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 544760766051af8c}}
+                - {category: asset, severity: "4", likelihood: B, basis: "The LIC-1106 high alarm comes while the operator is busy with the trip (not credited); I-06 (D-111, SIL 1 proposed, not confirmed) stops the DCAC water pumps on LSHH-1106 before the air inlet floods, one order (C to B). No restart permissive on the sump level yet (H01-A4).", evidence: [LIC-1106, I-06], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d508cded1fd37f0d, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '4', likelihood: B}}}
           - id: H01-S15
             cause: "FV-1108 fails open or FIC-1108 fails low: cooling water far above the ~250 m3/h design."
             consequence: "Lower bed floods (liquid hold-up and pressure drop rise), water entrained to the upper section and through the mist eliminator to the adsorbers."
@@ -380,7 +396,7 @@ nodes:
         description: "Sump level lost: gas into the water outlet."
         scenarios:
           - id: H01-S16
-            cause: "LV-1106 sticks open or LIC-1106 fails high (or LV-1106 opens on an instrument-air failure, fail position not stated)."
+            cause: "LV-1106 sticks open or LIC-1106 fails high. (On an instrument-air failure LV-1106 fails closed, D-109, so that branch no longer applies.)"
             consequence: "The sump empties and 5.9 bara air blows through CWR-1001 (DN250) into the cooling water return: pressure surge and gas in the CW return header and the cooling tower basin, possible rupture of the CW return piping; most of the process air lost, plant trip."
             refs: [LV-1106, LIC-1106, CWR-1001, C-1101]
             modes: [normal, power-fail]
@@ -402,7 +418,7 @@ nodes:
         description: "Air leaving the lower section above ~27 C."
         scenarios:
           - id: H01-S17
-            cause: "FV-1108 fails closed or FIC-1108 fails high: no cooling water to the lower section."
+            cause: "FV-1108 sticks closed or FIC-1108 fails high while the MAC runs: no cooling water to the lower section. (FV-1108 fails closed on an instrument-air failure by design, D-109, with the MAC unloaded: H01-S45.)"
             consequence: "Air at ~40 C to the upper section, which cannot take the load: AIR-1004 well above 12 C and wetter, adsorber water load raised and H2O / CO2 breakthrough to the cold box before the switch-over."
             refs: [FV-1108, FIC-1108, TIC-1105, AIR-1004]
             modes: [normal, power-fail]
@@ -454,6 +470,27 @@ nodes:
                 - {category: people, severity: "4", likelihood: B, basis: "Column failure with a person nearby (matrix 4); a large lube-oil fire reaching the column has happened in the industry (B).", evidence: [C-1101], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
               residual:
                 - {category: people, severity: "4", likelihood: A, basis: "PSV-1109 fire case for the packed column (section 4).", evidence: [PSV-1109], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 2aae4706e67ac517}}
+      - id: H01-N4-D6
+        guide_word: other-than
+        parameter: utilities
+        description: "Instrument air lost: every valve on P-01 goes to its fail position (D-109)."
+        notes: "Added for D-109. The set is chosen so the MAC unloads (guide vanes closed, UV-1102 open) and the DCAC cannot flood (TV-1105, FV-1108, LV-1106, LV-1107 closed; LV-1114, XV-1115 closed). This deviation looks at what the set leaves running."
+        scenarios:
+          - id: H01-S45
+            cause: "Instrument-air failure with power on: TV-1105 and FV-1108 close (D-109) while P-1101A/B and P-1102A/B keep running until the air header low-low I-19 (PSLL-1116, 10 s delay, D-114) stops them with the MAC."
+            consequence: "Without the trip: P-1101A/B run dead-headed against the closed FV-1108 and P-1102A/B against TV-1105 and LV-1114 / XV-1115, with only the E-3105 branch (TV-3124 fails open) still flowing: the casings heat up, seal and bearing damage within minutes to an hour. The DCAC itself is safe."
+            refs: [P-1101A, P-1101B, P-1102A, P-1102B, FV-1108, TV-1105, PSLL-1116]
+            modes: [power-fail]
+            safeguards: [H01-SG-I19]
+            actions: [H01-A17, H01-A4]
+            status: proposed
+            by: agent
+            notes: "Created by the closed fail positions of D-109; revised in D-115 for I-19 (D-114), which stops the pumps with the plant on air loss. The pump minimum flow (H01-A17) stays for a dead-head with air present. The standby pumps are no safeguard against dead-heading and are not counted."
+            risk:
+              initial:
+                - {category: asset, severity: "2", likelihood: D, basis: "Pump seals and bearings of the duty pumps, 10-100 kEUR (matrix 2); an instrument-air failure a few times in plant life (D).", evidence: [D-109, P-1101A, P-1102A], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5975c38759944df0, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '2', likelihood: D}}}
+              residual:
+                - {category: asset, severity: "2", likelihood: C, basis: "I-19 (PSLL-1116 on the air header, D-114, SIL 1 proposed, not confirmed) stops the DCAC water pumps with the MAC after 10 s: one order. No minimum-flow protection is drawn (H01-A17).", evidence: [D-109, PSLL-1116, I-19], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 5d4b96d05607d5a4, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '2', likelihood: C}}}
   # ---------------------------------------------------------------- N5 chimney tray / I-03
   - id: H01-N5
     title: C-1101 upper section, chimney tray and return CHWR-1001 via LV-1114 / XV-1115 to C-1102 (I-03)
@@ -604,7 +641,7 @@ nodes:
         description: "Chilled water below demand."
         scenarios:
           - id: H01-S27
-            cause: "TV-1105 sticks closed (or closes on an instrument-air failure, fail position not stated)."
+            cause: "TV-1105 sticks closed while the MAC runs. (TV-1105 fails closed on an instrument-air failure by design, D-109, with the MAC unloaded: H01-S45.)"
             consequence: "As H01-S26: warm wet air to the adsorbers and breakthrough risk."
             refs: [TV-1105, TIC-1105]
             modes: [normal, power-fail]
@@ -618,7 +655,7 @@ nodes:
               residual:
                 - {category: asset, severity: "3", likelihood: B, basis: "TIC-1105 high alarm (the measurement is independent of the stuck valve) and the breakthrough alarms.", evidence: [TIC-1105, AIA-2102, AIA-2103], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 96d32a0543b3b03e}}
           - id: H01-S28
-            cause: "Low C-1102 sump level: make-up lost (LV-1107 sticks closed, CW-1003 lost at the battery limit) while evaporation continues (~0.6-0.9 t/h)."
+            cause: "Low C-1102 sump level: make-up lost (LV-1107 sticks closed, or closes on an instrument-air failure, D-109; CW-1003 lost at the battery limit) while evaporation continues (~0.6-0.9 t/h)."
             consequence: "P-1102A/B lose NPSH: cavitation and dry running, seal damage, loss of chilled water."
             refs: [LV-1107, CW-1003, C-1102, P-1102A]
             modes: [normal]
@@ -920,16 +957,16 @@ nodes:
             consequence: "The E-1102 separator floods and water is carried into the third stage: impeller erosion and imbalance."
             refs: [ST-1112, E-1102, K-1101]
             modes: [normal]
-            safeguards: [H01-SG-VIA1104]
+            safeguards: [H01-SG-I05]
             actions: [H01-A20]
             status: proposed
             by: agent
-            notes: "The separator high-level alarm is in the MAC package (D-065 (6)), not on P-01 or in the instrument list: not credited."
+            notes: "The separator high-level alarm is in the MAC package (D-065 (6)), not on P-01 or in the instrument list: not credited. Revised for D-111: the VIA-1104 alarm is replaced by the vibration trip I-05, which shares its monitor."
             risk:
               initial:
                 - {category: asset, severity: "3", likelihood: D, basis: "Stage damage (matrix 3); a trap failure a few times in plant life (D).", evidence: [D-064, ST-1112], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
               residual:
-                - {category: asset, severity: "3", likelihood: C, basis: "VIA-1104 alarm on imbalance (its trip is not credited).", evidence: [VIA-1104], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915}}
+                - {category: asset, severity: "3", likelihood: C, basis: "The vibration trip I-05 (D-111, SIL 1 proposed, not confirmed) on imbalance, one order; the erosion itself is not prevented, the trip limits it to one stage.", evidence: [VIA-1104, I-05], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915}}
       - id: H01-N9-D2
         guide_word: as-well-as
         parameter: flow
@@ -955,9 +992,12 @@ safeguards:
   - {id: H01-SG-TSA, title: "Molecular sieve adsorbers remove H2O, CO2, N2O, C2H2 and most C3+ before the cold box", kind: mechanical, refs: [V-2101A, V-2101B], status: proposed, by: agent, notes: "D-006, D-010 (1); studied in H-02."}
   - {id: H01-SG-FIC3111, title: "Continuous LOX purge of the LP sump FIC-3111 with low-flow alarm", kind: alarm, refs: [FIC-3111], status: proposed, by: agent, notes: "D-010 (2); H-03."}
   - {id: H01-SG-AIA3103, title: "AIA-3103 hydrocarbon (THC, C2H2) alarm in the LP sump LOX", kind: alarm, refs: [AIA-3103], status: proposed, by: agent, notes: "D-010 (4); action limits per EIGA Doc 65 (ASSUMED)."}
-  - {id: H01-SG-AIA2102, title: "AIA-2102 CO2 / N2O alarm at the adsorber outlet", kind: alarm, refs: [AIA-2102], status: proposed, by: agent, notes: "Its high-high bed switch / MAC trip is not in control/cause-effect.yaml: credited as an alarm only."}
+  - {id: H01-SG-AIA2102, title: "AIA-2102 CO2 / N2O alarm at the adsorber outlet", kind: alarm, refs: [AIA-2102], status: proposed, by: agent, notes: "Its CO2 high-high is I-07 (D-111); the alarm and the trip share the analyser, so together they take one order."}
   - {id: H01-SG-AIA2103, title: "AIA-2103 H2O dew point alarm at the adsorber outlet", kind: alarm, refs: [AIA-2103], status: proposed, by: agent}
-  - {id: H01-SG-VIA1104, title: "VIA-1104 vibration and bearing alarm (MAC machine protection; its trip is not credited)", kind: alarm, refs: [VIA-1104], status: proposed, by: agent, notes: "Trip on high-high in the supplier's machine protection, not in the C&E."}
+  - {id: H01-SG-VIA1104, title: "VIA-1104 vibration and bearing alarm (MAC machine protection)", kind: alarm, refs: [VIA-1104], status: proposed, by: agent, notes: "Its high-high is the trip I-05 (H01-SG-I05, D-111); alarm and trip share the monitor and are not both counted."}
+  - {id: H01-SG-I05, title: "I-05: VIA-1104 high-high trips K-1101, opens UV-1102 and stops the DCAC water pumps", kind: interlock, interlock: I-05, refs: [VIA-1104, K-1101, UV-1102], status: proposed, by: agent, notes: "SIL 1 from the D-111 screening LOPA (ASSUMED), carried by the MAC vendor's API 670 system; not confirmed, so one order under this study's credit convention."}
+  - {id: H01-SG-I19, title: "I-19: instrument air header low-low PSLL-1116 stops the plant (MAC set with the DCAC water pumps, K-3101, K-4101, K-4102) after 10 s", kind: interlock, interlock: I-19, refs: [PSLL-1116, K-1101, P-1101A, P-1102A], status: proposed, by: agent, notes: "D-114 (2), LOPA row 15: SIL 1 proposed, not confirmed; one order. PSLL-1116 is on the utilities' air header, listed but not drawn on P-01 .. P-04."}
+  - {id: H01-SG-I06, title: "I-06: LSHH-1106 (own tapping) trips K-1101, opens UV-1102 and stops P-1101A/B and P-1102A/B", kind: interlock, interlock: I-06, refs: [LSHH-1106, K-1101, P-1101A, P-1101B, P-1102A, P-1102B], status: proposed, by: agent, notes: "SIL 1 from the D-111 screening LOPA (ASSUMED), not confirmed: one order. Independent of LIC-1106 / LV-1106."}
   - {id: H01-SG-UIC1102, title: "UIC-1102 anti-surge control on the blow-off UV-1102", kind: control, refs: [UIC-1102, UV-1102], status: proposed, by: agent}
   - {id: H01-SG-PIC1103, title: "PIC-1103 discharge pressure override on IGV and blow-off", kind: control, refs: [PIC-1103], status: proposed, by: agent}
   - {id: H01-SG-TIA1110, title: "TIA-1110 high temperature alarms on the stage discharges and intercooler outlets", kind: alarm, refs: [TIA-1110], status: proposed, by: agent}
@@ -980,12 +1020,12 @@ safeguards:
 actions:
   - {id: H01-A1, text: "Carry out the air-intake survey the design basis requires (hydrocarbons, C2H2, CO2, N2O sources around F-1101, prevailing wind) and decide on a continuous intake hydrocarbon / CO2 analyser with alarm at F-1101 and an operating response to an intake plume (with H-03).", owner: process engineer, status: proposed, by: agent}
   - {id: H01-A2, text: "Confirm with the filter supplier the F-1101 cartridge collapse rating and its behaviour in coastal fog, salt and hoar frost at -5 C; consider anti-icing (inlet heating) if the rating is not met.", owner: mechanical engineer, status: proposed, by: agent}
-  - {id: H01-A3, text: "Declare the LSHH-1106 MAC trip as an interlock in control/cause-effect.yaml and set its SIL by LOPA (the instrument list leaves it to the HAZOP); consider adding to it the stop of P-1101A/B and P-1102A/B and the closing of FV-1108. One update of control/cause-effect.yaml and one LOPA / SIL session answer H01-A3, H01-A8, H02-A1, H02-A2, H03-A2, H03-A3, H04-A01, H04-A02 and H04-A13; this action names the functions of this sheet.", owner: instrument and control engineer, status: proposed, by: agent}
-  - {id: H01-A4, text: "Stop P-1101A/B and P-1102A/B (or close FV-1108 / TV-1105) on a MAC trip, and add a restart permissive on the DCAC sump and chimney-tray levels.", owner: process engineer, status: proposed, by: agent}
+  - {id: H01-A3, text: "Declare the LSHH-1106 MAC trip as an interlock in control/cause-effect.yaml and set its SIL by LOPA (the instrument list leaves it to the HAZOP); consider adding to it the stop of P-1101A/B and P-1102A/B and the closing of FV-1108. One update of control/cause-effect.yaml and one LOPA / SIL session answer H01-A3, H01-A8, H02-A1, H02-A2, H03-A2, H03-A3, H04-A01, H04-A02 and H04-A13; this action names the functions of this sheet. Proposed answer: D-111 (I-06 with the pump stops, SIL 1 by the screening LOPA; I-05 for VIA-1104, I-07 for AIA-2102), for the team.", owner: instrument and control engineer, status: proposed, by: agent}
+  - {id: H01-A4, text: "Stop P-1101A/B and P-1102A/B (or close FV-1108 / TV-1105) on a MAC trip, and add a restart permissive on the DCAC sump and chimney-tray levels. Proposed answer, in part: D-111 (I-05, I-06, I-07 stop the pumps with the MAC; SEQ-MAC-START stops them on any other MAC stop), for the team; open: the stop on instrument-air loss (H01-S45) and the sump restart permissive.", owner: process engineer, status: proposed, by: agent}
   - {id: H01-A5, text: "Protect the DCAC sump against loss of seal: add a low level alarm to LIC-1106 and consider an independent LSLL with a tight-shut valve on CWR-1001 (as I-03 does for the chimney tray); add the air blow-by into the CW return to the relief case list.", owner: process engineer, status: proposed, by: agent}
-  - {id: H01-A6, text: "State the fail positions of UV-1102, FV-1108, LV-1106, TV-1105 and LV-1107 on P-01 and in the instrument list (proposed: UV-1102 open, LV-1106 closed) and check each against H01-S12, S13, S16, S17 and S27. One plant-wide fail-position list (P-01 .. P-04) answers H01-A6, H02-A6, H03-A1 and H04-A14; this action names the valves of this sheet.", owner: instrument and control engineer, status: proposed, by: agent}
+  - {id: H01-A6, text: "State the fail positions of UV-1102, FV-1108, LV-1106, TV-1105 and LV-1107 on P-01 and in the instrument list (proposed: UV-1102 open, LV-1106 closed) and check each against H01-S12, S13, S16, S17 and S27. One plant-wide fail-position list (P-01 .. P-04) answers H01-A6, H02-A6, H03-A1 and H04-A14; this action names the valves of this sheet. Proposed answer: D-109 (UV-1102 open; TV-1105, FV-1108, LV-1106, LV-1107 closed; the K-1101 guide vanes closed), checked against H01-S12, S13, S16, S17, S27; the closed water valves dead-head the pumps on air loss (H01-S45, H01-A17), for the team.", owner: instrument and control engineer, status: proposed, by: agent}
   - {id: H01-A7, text: "Add a differential pressure indication with high alarm across the C-1101 packed sections to detect flooding.", owner: instrument and control engineer, status: proposed, by: agent}
-  - {id: H01-A8, text: "Confirm the I-03 SIL by LOPA with the owner's risk criteria: the BPCS initiating frequency, the credit for the open vent WN-1002, the tolerable frequencies of D-083; then write the SRS (trip 13.35 m, 144 s process safety time, response <= 15 s, yearly proof test) and make the LV-1114 trim limit (<= 2 x 34.4 m3/h) a valve-supplier requirement. One update of control/cause-effect.yaml and one LOPA / SIL session answer H01-A3, H01-A8, H02-A1, H02-A2, H03-A2, H03-A3, H04-A01, H04-A02 and H04-A13; this action names the functions of this sheet.", owner: process safety engineer, status: proposed, by: agent}
+  - {id: H01-A8, text: "Confirm the I-03 SIL by LOPA with the owner's risk criteria: the BPCS initiating frequency, the credit for the open vent WN-1002, the tolerable frequencies of D-083; then write the SRS (trip 13.35 m, 144 s process safety time, response <= 15 s, yearly proof test) and make the LV-1114 trim limit (<= 2 x 34.4 m3/h) a valve-supplier requirement. One update of control/cause-effect.yaml and one LOPA / SIL session answer H01-A3, H01-A8, H02-A1, H02-A2, H03-A2, H03-A3, H04-A01, H04-A02 and H04-A13; this action names the functions of this sheet. Proposed answer: D-111 keeps I-03 at SIL 1 with D-083's basis and adds the screening LOPA of the other trips with the same method and ASSUMED targets, for the team's LOPA / SIL session.", owner: process safety engineer, status: proposed, by: agent}
   - {id: H01-A9, text: "Close the C-1102 blow-by relief case: proposal to accept WN-1002 as the open relief path (D-083) with I-03 limiting the duration; get the C-1102 supplier's confirmation of the top internals at ~153 t/h; make 'no blind, cover or valve on WN-1002' a maintenance rule with a bird / weather screen that cannot block it; H-03 to rate the WN-1001 back-pressure on the LP column. The open vent is not the whole relief case: with WN-1002 blocked C-1102 also depends on PIC-3110 (H01-S43), which H01-A25 answers.", owner: process safety engineer, status: proposed, by: agent}
   - {id: H01-A10, text: "Write the start-up sequence for the precooling: chimney-tray seal established before the MAC loads C-1101; I-03 reset only above the trip level, no bypass while C-1101 is under pressure.", owner: operations, status: proposed, by: agent}
   - {id: H01-A11, text: "Add a C-1102 sump low level alarm and a low-low trip of P-1102A/B, independent of LIC-1107; check the hold-up time of the C-1102 sump against the loss of the 34 m3/h return.", owner: process engineer, status: proposed, by: agent}

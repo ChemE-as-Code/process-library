@@ -30,16 +30,16 @@ modes:
   - {id: maintenance, title: Maintenance, description: "Isolation, purging, pump change-over, vaporizer defrost, work on oxygen equipment."}
   - {id: power-fail, title: Power failure, description: "Total or partial loss of power, and of instrument air where it follows."}
 analysed:
-  - {path: pid/P-04.xml, revision: 'sha256:c53c7d1325f4ed7b8f1ee9ec37b7f0049345c8bdd3de9ca976b3031e6444e80c', relation: analyses}
-  - {path: control/cause-effect.yaml, revision: 'sha256:25a314ea92f411e81c735bfc18281664e8dd075cf7793f4aaf630b91b7a8872c', relation: analyses}
-  - {path: control/instrument-list.yaml, revision: 'sha256:83c2b4787e31e82922d70b9756e79709ca2a65934bad9ab54f73763f29188826', relation: analyses}
+  - {path: pid/P-04.xml, revision: 'sha256:d7e998e9232b7ca5620915a63f15b90f4210d8349d0e6dd04b637a4f4bea1d8a', relation: analyses}
+  - {path: control/cause-effect.yaml, revision: 'sha256:d9d0e70a70f47a0f2da6cc190d3b7d1b3b9427dcb4d61b724c6e3f67c6755b54', relation: analyses}
+  - {path: control/instrument-list.yaml, revision: 'sha256:3295b455c03f97c7272fdd4b39bee1b5e05295211ab6205a909f6d7a0d453368', relation: analyses}
   - {path: equipment/equipment-list.yaml, revision: 'sha256:7dd6ae258db62812479ac0e0e7c520b82a46de4f02ee2020db2f5d4013870490', relation: analyses}
   - {path: piping/line-list.yaml, revision: 'sha256:c1ba2f0448cfa47af8ef8dc45ad1b99a30c3a6885994d6088b3803e47f09031b', relation: analyses}
   - {path: piping/special-items.yaml, revision: 'sha256:8071c9646730d15356f23923163a5416205ea568dbb9592a61fb49e9d19077d0', relation: analyses}
   - {path: process/design-basis.yaml, revision: 'sha256:0498974de4c64d23299e4a93fc56382beeae4c20493d14612a3c0912288757e0', relation: analyses}
   - {path: process/flowsheet.yaml, revision: 'sha256:55cd2ae5678e325e705eedf0b15cce079e9c606f611e4c853f84fd12fe6d439b', relation: analyses}
-  - {path: control/loops.yaml, revision: 'sha256:8bd1d0e7b81231c800ec84cc117410dc73390ebb2e0ef83c90eceeb94fe826a2', relation: analyses}
-  - {path: control/sequences.yaml, revision: 'sha256:f576a5b3fb45996ccf19bde07cfda0268c70eeb2cab5b1a167a9034beee36778', relation: analyses}
+  - {path: control/loops.yaml, revision: 'sha256:15d7fb57f188a0436b405b61f1e8f7abca433b99f40494a90081ed66448e4ebe', relation: analyses}
+  - {path: control/sequences.yaml, revision: 'sha256:68f4ea1fb2173aa056ff5300846199c61e71957d118abe79268db23b48f15f54', relation: analyses}
 risk_matrix: safety/risk-matrix.yaml
 assessment_basis: >-
   IEC 61882 guide words applied to the parameters of each node's design intent, in every mode
@@ -76,12 +76,17 @@ nodes:
       pressure, H04-N3) through the low select UY-4151 (a DCS function block, drawn on P-04 with
       its three inputs and its output to the vanes since D-101) with two limits measured on this
       line: FIC-4148, the
-      maximum draw at the design GOX make (its transmitter FT-4148 is also the UIC-4103
-      anti-surge flow input), and PIC-4150, the suction low limit (PT-4150 between XV-4117 and the
+      maximum draw, which since D-110 / D-114 follows the validated air flow as the design ratio capped at
+      the design GOX make (its transmitter FT-4148 is also the UIC-4103 anti-surge flow input),
+      and PIC-4150, the suction low limit (PT-4150 between XV-4117 and the
       machine; after a trip it reads the blown-down casing and holds the vanes shut until the
       restart). PIC-4101 (PT-4101 upstream of XV-4117) opens PV-4101B to vent through S-4102 /
       VNT-4003 (elevated, safe location) when K-4101 does not take the GOX: on a trip, at start-up
-      and at turndown (D-019, D-096). AI-3104 (purity) measures on this line. Oxygen service,
+      and at turndown, the last for transients only (a 30 min alarm, D-110); it also alarms low
+      on its own transmitter, apart from the low select (D-111). PV-4101B fails open, the K-4101
+      guide vanes closed (D-109). The independent limit on the draw is the LP sump low-low I-14
+      (P-03), which stops the air and K-4101 (D-111, D-114). On air loss with power on I-19 stops
+      the plant (D-114). AI-3104 (purity) measures on this line. Oxygen service,
       cleaned to D-009.
     members: [GOX-4001, XV-4117, PIC-4101, PV-4101B, S-4102, VNT-4003, AI-3104, FIC-4148, PIC-4150, UY-4151, K-4101]
     modes: [normal, startup, shutdown, power-fail, maintenance]
@@ -101,7 +106,7 @@ nodes:
         parameter: pressure
         scenarios:
           - id: H04-S01
-            cause: "K-4101 trips (or XV-4117 closes) and PV-4101B fails to open (the vent loop PIC-4101 on PT-4101, its positioner or actuator fails; D-096)."
+            cause: "K-4101 trips (or XV-4117 closes) and PV-4101B fails to open (the vent loop PIC-4101 on PT-4101, its positioner or actuator fails; D-096). On loss of air or signal PV-4101B fails open (D-109), so an instrument-air or power failure is no longer a cause."
             consequence: "The GOX make backs up into the LP column C-3102 (P-03): its pressure rises towards the 3.5 barg design; the column upsets and, without relief, the LP column could be overpressured inside the cold box."
             refs: [K-4101, XV-4117, PV-4101B, PIC-4101, GOX-4001]
             modes: [normal, shutdown, power-fail]
@@ -124,9 +129,9 @@ nodes:
           - id: H04-S02
             cause: "A failure lets the guide-vane low select open the K-4101 vanes beyond the design-make limit: FT-4148 reads low (the FIC-4148 maximum-draw limit does not act) while PIC-4102 asks for more (customer demand above the design make, a header leak, H04-S77), or the low selector UY-4151 (D-101), its output stage or the vane positioner fails high (D-096). With the cold box at its design make."
             consequence: "GOX-4001 and the LP column pressure fall: column hydraulics upset, GOX purity falls, and K-4101 runs towards surge at the low suction pressure."
-            refs: [FIC-4148, PIC-4150, PIC-4102, UY-4151, K-4101, GOX-4001]
+            refs: [FIC-4148, PIC-4150, PIC-4102, UY-4151, K-4101, GOX-4001, PIC-4101]
             modes: [normal, startup]
-            safeguards: [H04-SG06]
+            safeguards: [H04-SG06, H04-SG40]
             actions: [H04-A23]
             status: proposed
             by: agent
@@ -135,13 +140,13 @@ nodes:
               initial:
                 - {category: asset, severity: "3", likelihood: D, basis: "Product off-spec and a cold box upset of days with the backup partly covering (matrix 3); a single transmitter or positioner failure (D).", evidence: [D-096, FIC-4148, PIC-4150], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
               residual:
-                - {category: asset, severity: "3", likelihood: D, basis: "Nothing credited for the draw-down: FIC-4148 and PIC-4150 sit in the same control system as PIC-4102 and one of them is the cause (D-096); UIC-4103 only keeps K-4101 out of surge and shares FT-4148; nothing limits the GOX drawn from the column or the purity loss.", evidence: [UIC-4103, FIC-4148, PIC-4150, D-096], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+                - {category: asset, severity: "3", likelihood: C, basis: "The PIC-4101 low-pressure alarm on PT-4101, apart from the low select and from FT-4148 and PT-4150 (D-111, H04-A23): the operator reduces the K-4101 load, one order. FIC-4148 and PIC-4150 sit in the same control system as PIC-4102 and one of them is the cause (D-096); UIC-4103 only keeps K-4101 out of surge and shares FT-4148. I-14 acts only at the sump low-low (H04-S75), after the purity loss.", evidence: [PIC-4101, UIC-4103, FIC-4148, PIC-4150, D-096], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '3', likelihood: C}}}
           - id: H04-S75
             cause: "A failure makes the guide-vane low select over-draw at the design make (as H04-S02: FT-4148 reads low while PIC-4102 asks for more, or the selector UY-4151, output stage or vane positioner fails high): K-4101 draws more GOX than the column makes."
             consequence: "The LP sump boils down to feed the extra draw: the level falls and E-3103 is partly uncovered, dry boiling with hydrocarbon and N2O deposition: main condenser explosion (the mechanism of H03-S33)."
-            refs: [FIC-4148, PIC-4150, PIC-4102, UY-4151, K-4101, GOX-4001, LICA-3102, E-3103]
+            refs: [FIC-4148, PIC-4150, PIC-4102, UY-4151, K-4101, GOX-4001, LICA-3102, E-3103, LSLL-3125]
             modes: [normal, startup]
-            safeguards: [H04-SG37]
+            safeguards: [H04-SG37, H04-SG39]
             actions: [H04-A23]
             status: proposed
             by: agent
@@ -151,46 +156,47 @@ nodes:
                 - {category: people, severity: "5", likelihood: C, basis: "Main condenser explosion (matrix 5); a transmitter or positioner failure (D) that runs on until E-3103 is uncovered with enough hydrocarbon present (C), as H03-S33.", evidence: [D-010, D-096, FIC-4148, PIC-4150, LICA-3102], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: b6ef4d2263633cd5}}
                 - {category: asset, severity: "5", likelihood: C, basis: "Loss of the cold box.", evidence: [D-010], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 20579213de92d430}}
               residual:
-                - {category: people, severity: "5", likelihood: B, basis: "LICA-3102 low alarm with operator response credited (one order); UIC-4103 does not limit the draw-down; FIC-4148 and PIC-4150 are limits in the same control system as the cause, not independent layers (D-096); no independent low-low level or suction low-pressure limit.", evidence: [LICA-3102, D-010, D-096], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: feea7693498b1f1a}}
-                - {category: asset, severity: "5", likelihood: B, basis: "As people.", evidence: [LICA-3102], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 6dd05b6d428d45d5}}
+                - {category: people, severity: "5", likelihood: A, basis: "LICA-3102 low alarm with operator response credited (C to B); the independent LP sump low-low I-14 (LSLL-3125 on its own tapping, in the safety system apart from UY-4151, FT-4148 and PT-4150) stops the air and K-4101 through their motor breakers, so the boil-down stops (D-114 (1); SIL 2 proposed, not confirmed: one order, B to A). UIC-4103 does not limit the draw-down; FIC-4148 and PIC-4150 are limits in the same control system as the cause (D-096).", evidence: [LICA-3102, LSLL-3125, I-14, D-010, D-096], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 61d9d3ab4bf99bc9, inputs: {matrix: 8b8a7609d110e869, category: people, severity: '5', likelihood: A}}}
+                - {category: asset, severity: "5", likelihood: A, basis: "As people.", evidence: [LICA-3102, LSLL-3125], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: a617a5430a81f857, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '5', likelihood: A}}}
           - id: H04-S79
-            cause: "The cold box makes less GOX than design (MAC or air turndown, a hot-day air limit, the dip at a TSA switchover, a purity upset) while the customer takes the design rate: PIC-4102 opens the K-4101 guide vanes up to the FIC-4148 limit, which is fixed at the design GOX make (D-096) and so lies above the actual make. No failure is needed."
+            cause: "The cold box makes less GOX than its air flow predicts (the dip at every TSA switchover, which the air flow measured upstream of the TSA does not see; a purity upset; a refrigeration deficit) while the customer takes more: PIC-4102 opens the K-4101 guide vanes up to the FIC-4148 limit, which follows the validated air flow (D-110, D-114 (4): 0.1867 kg GOX per kg air on the lower of FT-1101 and the MAC vendor's flow and of its 15 min lag, less the LOX drawn above design) and so tracks a turndown or a hot-day air limit, but not a make that falls at a constant air flow. No failure is needed."
             consequence: "K-4101 draws more GOX than the column makes: GOX-4001 and the LP column pressure fall, column hydraulics upset and the GOX purity falls, until PIC-4150 limits the vanes late on the suction pressure."
-            refs: [PIC-4102, FIC-4148, PIC-4150, K-4101, GOX-4001]
+            refs: [PIC-4102, FIC-4148, PIC-4150, K-4101, GOX-4001, PIC-4101]
             modes: [normal, startup]
+            safeguards: [H04-SG40]
             actions: [H04-A23, H04-A28]
             status: proposed
             by: agent
-            notes: "New for hazop-review3#1: a normal-operation cause, so the likelihood is that of a reduced make with the customer at the design rate (E). PIC-4150 is healthy here but not credited: it is part of the same low select as the cause and acts late (D-096). D-096 leaves the maximum draw as a ratio to the air flow open; that ratio limit is H04-A28. The sump boil-down consequence of the same cause is H04-S80."
+            notes: "New for hazop-review3#1: a normal-operation cause. PIC-4150 is healthy here but not credited: it is part of the same low select as the cause and acts late (D-096). Revised for D-110 and D-114 (4): the FIC-4148 limit follows the validated air flow (H04-A28), so a turndown or a hot-day air limit no longer over-draws; a make that falls at a constant air flow is not tracked, and the TSA switchover dip comes every cycle, so the likelihood stays E (D-115, hazop-review6#4; D-113 had lowered it to D). The sump boil-down consequence of the same cause is H04-S80."
             risk:
               initial:
-                - {category: asset, severity: "3", likelihood: E, basis: "Product off specification and a cold box upset of days with the backup partly covering (matrix 3), as H04-S02; a reduced make while the customer takes the design rate is expected about once a year or more often (E).", evidence: [D-096, FIC-4148, PIC-4102], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9c2fa8013e0b2964}}
+                - {category: asset, severity: "3", likelihood: E, basis: "Product off specification and a cold box upset of days with the backup partly covering (matrix 3), as H04-S02; a make below the air-flow ratio while the customer takes more: the TSA switchover dip every cycle and purity upsets, which the ratio limit does not track (E).", evidence: [D-110, D-114, FIC-4148, PIC-4102], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9c2fa8013e0b2964, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '3', likelihood: E}}}
               residual:
-                - {category: asset, severity: "3", likelihood: E, basis: "Nothing credited: the FIC-4148 limit at the design make is the cause, PIC-4150 shares the low select with it and acts late (D-096); UIC-4103 only keeps K-4101 out of surge.", evidence: [D-096, FIC-4148, PIC-4150], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9c2fa8013e0b2964}}
+                - {category: asset, severity: "3", likelihood: D, basis: "The PIC-4101 low-pressure alarm on PT-4101, a transmitter apart from the low select (D-111, H04-A23): the operator reduces the K-4101 load, one order (E to D). The ratio limit is not credited, the cause is the make it does not track; PIC-4150 shares the low select and acts late (D-096); UIC-4103 only keeps K-4101 out of surge.", evidence: [PIC-4101, D-111, FIC-4148, PIC-4150], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '3', likelihood: D}}}
           - id: H04-S80
-            cause: "As H04-S79: the cold box makes less GOX than design while the customer takes the design rate, and PIC-4102 opens the guide vanes up to the FIC-4148 limit at the design make, above the actual make (D-096). No failure is needed."
+            cause: "As H04-S79: the cold box makes less GOX than its air flow predicts (the TSA switchover dip every cycle, a purity upset) while the customer takes more, and PIC-4102 opens the guide vanes up to the FIC-4148 limit, which follows the validated air flow (D-110, D-114 (4)) and so lies above the actual make. No failure is needed. Also FT-1101 reading high: FIC-1101 then cuts the real air and the make, while the limit would rise on FT-1101 alone; the validated flow takes the lower of FT-1101 and the MAC vendor's flow, with a deviation alarm (D-114 (4), control-review6#9), so this branch needs a second failure."
             consequence: "The LP sump boils down to feed the extra draw: the level falls and E-3103 is partly uncovered, dry boiling with hydrocarbon and N2O deposition: main condenser explosion (the mechanism of H03-S33)."
-            refs: [PIC-4102, FIC-4148, PIC-4150, K-4101, GOX-4001, LICA-3102, E-3103]
+            refs: [PIC-4102, FIC-4148, PIC-4150, K-4101, GOX-4001, LICA-3102, E-3103, LSLL-3125]
             modes: [normal, startup]
-            safeguards: [H04-SG37]
+            safeguards: [H04-SG37, H04-SG39]
             actions: [H04-A23, H04-A28]
             status: proposed
             by: agent
-            notes: "New for hazop-review3#1. Rated with the convention of H04-S75 and H03-S33: the cause frequency (E), one order lower for the draw to run on until E-3103 is uncovered with enough hydrocarbon present (D). Without that conditional order the team would rate 5/E initial and 5/D residual (very-high). Consequence on P-03, rated here because the cause is on P-04."
+            notes: "New for hazop-review3#1. Rated with the convention of H04-S75 and H03-S33: the cause frequency, one order lower for the draw to run on until E-3103 is uncovered with enough hydrocarbon present. Revised in D-115 (hazop-review6#4): the ratio limit does not track a make that falls at a constant air flow and the TSA dip comes every cycle, so the cause stays E and the initial rating very-high (D-113 had lowered it); the LP sump low-low I-14 stops the air and K-4101 independently of the low select (D-114 (1)). The FT-1101-high branch is covered by the validated air flow (D-114 (4))."
             risk:
               initial:
-                - {category: people, severity: "5", likelihood: D, basis: "Main condenser explosion (matrix 5); a reduced make with the customer at the design rate (E) that runs on until E-3103 is uncovered with enough hydrocarbon present (D), as H04-S75 and H03-S33.", evidence: [D-010, D-096, FIC-4148, LICA-3102], status: proposed, by: agent, band: {value: very-high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 6f208be6591d5202}}
-                - {category: asset, severity: "5", likelihood: D, basis: "Loss of the cold box.", evidence: [D-010, D-096], status: proposed, by: agent, band: {value: very-high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 383056181dc74e6a}}
+                - {category: people, severity: "5", likelihood: D, basis: "Main condenser explosion (matrix 5); a make below the air-flow ratio with the customer taking more (E: the TSA dip every cycle, purity upsets) that runs on until E-3103 is uncovered with enough hydrocarbon present (D), as H04-S75 and H03-S33.", evidence: [D-010, D-110, D-114, FIC-4148, LICA-3102], status: proposed, by: agent, band: {value: very-high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 6f208be6591d5202, inputs: {matrix: 8b8a7609d110e869, category: people, severity: '5', likelihood: D}}}
+                - {category: asset, severity: "5", likelihood: D, basis: "Loss of the cold box.", evidence: [D-010, D-110], status: proposed, by: agent, band: {value: very-high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 383056181dc74e6a, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '5', likelihood: D}}}
               residual:
-                - {category: people, severity: "5", likelihood: C, basis: "LICA-3102 low alarm with operator response credited (one order); FIC-4148 at the design make is the cause and PIC-4150 shares the low select and acts late (D-096); no independent low-low level or suction low-pressure limit.", evidence: [LICA-3102, D-010, D-096], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: b6ef4d2263633cd5}}
-                - {category: asset, severity: "5", likelihood: C, basis: "As people.", evidence: [LICA-3102], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 20579213de92d430}}
+                - {category: people, severity: "5", likelihood: B, basis: "LICA-3102 low alarm with operator response (D to C) and the independent LP sump low-low I-14, LSLL-3125 on its own tapping stopping the air and K-4101 through their motor breakers (D-114 (1); SIL 2 proposed, not confirmed: one order, C to B). The FIC-4148 limit is the cause and PIC-4150 shares the low select and acts late (D-096); the PIC-4101 low-pressure alarm is not counted again beside LICA-3102 for the same operator response. A confirmed SIL 2 would give 5/A.", evidence: [LICA-3102, LSLL-3125, I-14, D-010, D-096, D-114], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: feea7693498b1f1a, inputs: {matrix: 8b8a7609d110e869, category: people, severity: '5', likelihood: B}}}
+                - {category: asset, severity: "5", likelihood: B, basis: "As people.", evidence: [LICA-3102, LSLL-3125], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 6dd05b6d428d45d5, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '5', likelihood: B}}}
       - id: H04-N1-HF
         guide_word: more
         parameter: flow
         notes: "More flow to the vent: PV-4101B opening in normal operation (H04-S03, a failure) or by design at turndown (H04-S76, D-096)."
         scenarios:
           - id: H04-S03
-            cause: "PV-4101B fails open in normal operation (a fault of the vent loop PIC-4101: PT-4101 reading high, a set point at or below the normal suction pressure, or the positioner; D-096)."
+            cause: "PV-4101B fails open in normal operation (a fault of the vent loop PIC-4101: PT-4101 reading high, a set point at or below the normal suction pressure, or the positioner; D-096), or opens alone on the loss of its own signal or air (it fails open, D-109; D-114 (5)). The over-draw of the LP sump this can bring is H04-S92; the vent on a plant-wide air loss is H04-S93."
             consequence: "Up to the full GOX make vents through S-4102 / VNT-4003: an oxygen-enriched plume at the vent area V1; K-4101 suction pressure falls, PIC-4150 throttles the guide vanes and the export drops (K-4101 towards surge, see H04-S02)."
             refs: [PV-4101B, PIC-4101, S-4102, VNT-4003]
             modes: [normal]
@@ -209,16 +215,63 @@ nodes:
             consequence: "A release of oxygen in normal operation, for hours or days rather than a transient: an oxygen-enriched plume at VNT-4003 in the vent area V1 (clothing fire for a person at the outlet height). The split between GOX and waste N2 while it vents is H04-S81."
             refs: [PIC-4102, PIC-4101, PV-4101B, S-4102, VNT-4003]
             modes: [normal]
-            safeguards: [H04-SG28]
+            safeguards: [H04-SG28, H04-SG43]
             actions: [H04-A26]
             status: proposed
             by: agent
-            notes: "New for D-096 (its open point on PIC-4101's set-point window). A design demand, not a failure: the likelihood is that of a turndown, expected more than once a year. The vent was designed for trips and start-up (D-019); whether VNT-4003 and zone Z-O2-V1 cover a continuous release is for the zones owner (D-031). The instrument list now states the turndown venting of PIC-4101 too (D-098)."
+            notes: "Revised for D-110 and in D-115 (hazop-review6#9): this scenario is a turndown within the 70-100 % range of D-110 (1), where a PV-4101B-open alarm after 30 min (ASSUMED, H04-SG43) tells the operator to turn the air flow down, which the draw limits then follow. A demand below 70 % cannot be followed: the excess vents by design until the plant is stopped or the product stored (H04-S91). New for D-096 (its open point on PIC-4101's set-point window). A design demand, not a failure: the likelihood is that of a turndown, expected more than once a year. The vent was designed for trips and start-up (D-019); whether VNT-4003 and zone Z-O2-V1 cover a continuous release is for the zones owner (D-031). The instrument list now states the turndown venting of PIC-4101 too (D-098)."
             risk:
               initial:
                 - {category: people, severity: "3", likelihood: E, basis: "Oxygen-enriched clothing fire for a person near the vent outlet (matrix 3); a customer turndown is expected about once a year or more often (E).", evidence: [D-096, D-019, VNT-4003], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: a76362ddeef33873}}
               residual:
-                - {category: people, severity: "3", likelihood: D, basis: "The vent discharges elevated at a safe location in the fenced vent area V1 (D-019, D-025, zone Z-O2-V1), but the zone and VNT-4003 were set for trips and start-up, not for a release of hours or days; that premise is what H04-A26 asks the zones owner to confirm. One order only until A26 is answered (two once it is), hazop-review3#6. Nothing limits the duration or the rate of the release.", evidence: [D-019, D-025, D-031], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 4d13f9682edc5284}}
+                - {category: people, severity: "3", likelihood: C, basis: "The vent discharges elevated at a safe location in the fenced vent area V1 (D-019, D-025, zone Z-O2-V1), but the zone and VNT-4003 were set for trips and start-up; that premise is what H04-A26 asks the zones owner to confirm, so one order only (hazop-review3#6). The PV-4101B-open alarm after 30 min (H04-SG43, its own safeguard since D-115) with the operator turning the air flow down within the 70-100 % range (D-110) limits the duration: one order more (D to C). The rate is still the make less the draw.", evidence: [D-019, D-025, D-031, D-110], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 735c5dd00688eefe, inputs: {matrix: 8b8a7609d110e869, category: people, severity: '3', likelihood: C}}}
+          - id: H04-S91
+            cause: "The customer takes less GOX than the 70 % minimum of the plant (D-110 (1)) for longer than a transient: the air flow cannot follow, so PIC-4101 vents the excess make through PV-4101B / VNT-4003 by design until the plant is stopped or the excess is stored (D-110 (1))."
+            consequence: "A continuous oxygen release at VNT-4003 for hours or days: an oxygen-enriched plume in the vent area V1 (clothing fire for a person at the outlet height)."
+            refs: [PIC-4101, PV-4101B, S-4102, VNT-4003, FIC-1101]
+            modes: [normal]
+            safeguards: [H04-SG28]
+            actions: [H04-A26]
+            status: proposed
+            by: agent
+            notes: "Split from H04-S76 in D-115 (hazop-review6#9): below 70 % the 30 min alarm has no turndown response, so it is not credited; the response is the decision to stop the plant or store the product, which H04-A26 asks the owner to set (how long the vent may run)."
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: D, basis: "Oxygen-enriched clothing fire for a person near the vent outlet (matrix 3); a demand below the plant's minimum for longer than a transient a few times in the plant life (D, ASSUMED until the client's demand profile, #60).", evidence: [D-110, VNT-4003], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 4d13f9682edc5284, inputs: {matrix: 8b8a7609d110e869, category: people, severity: '3', likelihood: D}}}
+              residual:
+                - {category: people, severity: "3", likelihood: C, basis: "The elevated vent in the fenced vent area V1, one order until H04-A26 confirms the zone for a release of hours (as H04-S76); nothing limits the duration.", evidence: [D-019, D-025, D-031], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 735c5dd00688eefe, inputs: {matrix: 8b8a7609d110e869, category: people, severity: '3', likelihood: C}}}
+          - id: H04-S92
+            cause: "PV-4101B opens alone while K-4101 runs at the design draw: the loss of its own signal or air (it fails open, D-109; D-114 (5)) or a stuck positioner, with the rest of the plant running."
+            consequence: "The LP column loses the vent flow on top of the K-4101 draw: the suction pressure falls, the LP sump boils down to feed the extra flow, E-3103 is partly uncovered, dry boiling with hydrocarbon and N2O deposition: main condenser explosion (the mechanism of H03-S33); and a continuous oxygen release at VNT-4003 (H04-S03)."
+            refs: [PV-4101B, PIC-4101, K-4101, LICA-3102, LSLL-3125, E-3103, VNT-4003]
+            modes: [normal]
+            safeguards: [H04-SG37, H04-SG39]
+            actions: [H04-A23, H04-A26]
+            status: proposed
+            by: agent
+            notes: "New in D-115 for D-114 (5): a single signal loss of PV-4101B with the plant running. The PIC-4101 low-pressure alarm on PT-4101 belongs to the loop whose valve has failed and is not counted; PIC-4150 limits the vanes late (D-096)."
+            risk:
+              initial:
+                - {category: people, severity: "5", likelihood: C, basis: "Main condenser explosion (matrix 5); a single signal, air or positioner failure of one valve (D) that runs on until E-3103 is uncovered with enough hydrocarbon present (C), as H04-S75.", evidence: [D-109, D-114, PV-4101B, LICA-3102], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: b6ef4d2263633cd5, inputs: {matrix: 8b8a7609d110e869, category: people, severity: '5', likelihood: C}}}
+                - {category: asset, severity: "5", likelihood: C, basis: "Loss of the cold box.", evidence: [D-010], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 20579213de92d430, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '5', likelihood: C}}}
+              residual:
+                - {category: people, severity: "5", likelihood: A, basis: "LICA-3102 low alarm with operator response (C to B); I-14 on LSLL-3125 stops the air and K-4101 through their motor breakers, independent of PV-4101B and the control system (D-114 (1); SIL 2 proposed, not confirmed: one order, B to A).", evidence: [LICA-3102, LSLL-3125, I-14, D-114], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 61d9d3ab4bf99bc9, inputs: {matrix: 8b8a7609d110e869, category: people, severity: '5', likelihood: A}}}
+                - {category: asset, severity: "5", likelihood: A, basis: "As people.", evidence: [LICA-3102, LSLL-3125], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: a617a5430a81f857, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '5', likelihood: A}}}
+          - id: H04-S93
+            cause: "Instrument-air failure: PV-4101B fails open (D-109) while K-4101 unloads and XV-4117 / XV-4118 close, and I-19 stops the plant after 10 s (D-114 (2)); the cold box vents its GOX and the boil-off of its standing liquid at VNT-4003 for as long as the air is out."
+            consequence: "An oxygen release at VNT-4003 lasting the air outage (hours): an oxygen-enriched plume in the vent area V1."
+            refs: [PV-4101B, VNT-4003, S-4102, PSLL-1116]
+            modes: [power-fail]
+            safeguards: [H04-SG28]
+            actions: [H04-A26]
+            status: proposed
+            by: agent
+            notes: "New in D-115 (hazop-review6#10). With the MAC stopped the release falls to the boil-off of the standing liquid within minutes; how long the outage lasts and whether Z-O2-V1 covers it is for the zones owner with H04-A26."
+            risk:
+              initial:
+                - {category: people, severity: "3", likelihood: D, basis: "Oxygen-enriched clothing fire for a person near the vent outlet (matrix 3); an instrument-air failure a few times in the plant life (D).", evidence: [D-109, VNT-4003], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 4d13f9682edc5284, inputs: {matrix: 8b8a7609d110e869, category: people, severity: '3', likelihood: D}}}
+              residual:
+                - {category: people, severity: "3", likelihood: C, basis: "The elevated vent in the fenced vent area V1, one order until H04-A26 confirms the zone for a release of hours (as H04-S76).", evidence: [D-019, D-025, D-031], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 735c5dd00688eefe, inputs: {matrix: 8b8a7609d110e869, category: people, severity: '3', likelihood: C}}}
           - id: H04-S81
             cause: "As H04-S76: at turndown the customer takes less GOX than the cold box makes, PIC-4102 closes the guide vanes and PIC-4101 vents the excess through PV-4101B, while PIC-3110 holds the LP column pressure on the waste N2 (D-095, D-096)."
             consequence: "Two pressure controllers on the same LP column then set the split between GOX and waste N2 together (the two-controller conflict D-095 removed comes back at turndown): they can fight or swing the LP column pressure, upsetting the column and the GOX and GAN purity."
@@ -269,7 +322,7 @@ nodes:
                 - {category: people, severity: "4", likelihood: C, basis: "Oxygen fire at the machine with an operator nearby (matrix 4); contamination after maintenance is credible once in the plant life (C).", evidence: [D-002, D-009, K-4101], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
                 - {category: asset, severity: "5", likelihood: C, basis: "Loss of the GOX compressor, months down (matrix 5).", evidence: [D-002], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 20579213de92d430}}
               residual:
-                - {category: people, severity: "4", likelihood: B, basis: "Fire wall FW-4101 on three sides (D-026, D-030) shields the cold box side and the walkways but not a person at the open east side; TSHH-4104 trips, isolates and blows the machine down (trip not in the C&E, one order); the ignition itself is not prevented.", evidence: [TSHH-4104, D-026, D-030, D-013], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
+                - {category: people, severity: "4", likelihood: B, basis: "Fire wall FW-4101 on three sides (D-026, D-030) shields the cold box side and the walkways but not a person at the open east side; TSHH-4104 trips, isolates and blows the machine down (I-13, D-111, SIL 1 proposed, not confirmed: one order); the ignition itself is not prevented.", evidence: [TSHH-4104, D-026, D-030, D-013], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
                 - {category: asset, severity: "5", likelihood: B, basis: "TSHH-4104 limits the fire duration but a GOX compressor fire usually destroys the stage; oxygen-compatible materials (D-002, D-009) reduce the ignition probability.", evidence: [TSHH-4104, D-009], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 6dd05b6d428d45d5}}
       - id: H04-N1-LT
         guide_word: less
@@ -349,7 +402,7 @@ nodes:
                 - {category: people, severity: "4", likelihood: D, basis: "Oxygen fire at the compressor (matrix 4); single loop failure (D).", evidence: [D-002, UIC-4103], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
                 - {category: asset, severity: "5", likelihood: D, basis: "Loss of K-4101, months down (matrix 5).", evidence: [D-002], status: proposed, by: agent, band: {value: very-high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 383056181dc74e6a}}
               residual:
-                - {category: people, severity: "4", likelihood: B, basis: "Fire wall FW-4101 on three sides (D-026, D-030) shields the cold box side and the walkways but not a person at the open east side (one order); TSHH-4104 trip with ESD and blowdown (not in the C&E, one order); no independent surge detection trip is in the files (H04-A13).", evidence: [TSHH-4104, D-026, D-030, D-013], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
+                - {category: people, severity: "4", likelihood: B, basis: "Fire wall FW-4101 on three sides (D-026, D-030) shields the cold box side and the walkways but not a person at the open east side (one order); TSHH-4104 trip I-13 with ESD and blowdown (D-111, SIL 1 proposed, not confirmed: one order); no independent surge detection trip is in the files (H04-A13).", evidence: [TSHH-4104, D-026, D-030, D-013], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
                 - {category: asset, severity: "5", likelihood: C, basis: "TSHH-4104 acts after ignition; nothing on the sheet stops surge independently of UIC-4103.", evidence: [TSHH-4104], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 20579213de92d430}}
       - id: H04-N2-HT
         guide_word: more
@@ -386,7 +439,7 @@ nodes:
                 - {category: people, severity: "4", likelihood: C, basis: "Matrix 4 (an oxygen fire on a person); GOX compressor fires have happened in the industry and are credible once in the plant life (C).", evidence: [D-002, D-012], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
                 - {category: asset, severity: "5", likelihood: C, basis: "Loss of the compressor and enclosure, months down (matrix 5).", evidence: [D-002], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 20579213de92d430}}
               residual:
-                - {category: people, severity: "4", likelihood: B, basis: "Fire wall FW-4101 on three sides (D-026, D-030) shields the cold box side and the walkways but not a person at the open east side; TSHH-4104 trip (not in the C&E, one order) with XV-4117 / XV-4118 closing and XV-4116 blowing the machine down removes the oxygen.", evidence: [TSHH-4104, XV-4116, XV-4117, XV-4118, D-026, D-030], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
+                - {category: people, severity: "4", likelihood: B, basis: "Fire wall FW-4101 on three sides (D-026, D-030) shields the cold box side and the walkways but not a person at the open east side; the TSHH-4104 trip I-13 (D-111, SIL 1 proposed, not confirmed: one order) with XV-4117 / XV-4118 closing and XV-4116 blowing the machine down removes the oxygen.", evidence: [TSHH-4104, I-13, XV-4116, XV-4117, XV-4118, D-026, D-030], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
                 - {category: asset, severity: "4", likelihood: C, basis: "The trip and blowdown limit the fire to the machine: weeks to replace a stage (matrix 4). They lower the severity, so they are not credited for the likelihood as well (C) (hazop-review2#1).", evidence: [TSHH-4104, D-013], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 544760766051af8c}}
       - id: H04-N2-CO
         guide_word: as-well-as
@@ -456,7 +509,7 @@ nodes:
             actions: [H04-A01]
             status: proposed
             by: agent
-            notes: "The P&ID writes the ESD action only beside TSHH-4104; which trips close XV-4117 / XV-4118 and open XV-4116 is not stated for every K-4101 trip (H04-A01)."
+            notes: "Revised for D-111: every K-4101 trip in the C&E (I-13, I-14, I-17) closes XV-4117 / XV-4118 and opens XV-4116, and on air loss XV-4118 fails closed (D-109). The vendor's own machine trips (surge, vibration, seals; H04-A13, #58) are not in the C&E yet, so whether they command XV-4118 is still open; the rating is unchanged."
             risk:
               initial:
                 - {category: people, severity: "4", likelihood: C, basis: "Oxygen fire at the machine (matrix 4); a trip with a failed check valve (C).", evidence: [D-013], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
@@ -481,19 +534,58 @@ nodes:
                 - {category: asset, severity: "3", likelihood: D, basis: "Supply shortfall to the customer for hours to days (matrix 3); grid outages a few times in the plant life (D).", evidence: [D-014], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
               residual:
                 - {category: asset, severity: "3", likelihood: D, basis: "No emergency power for the backup pumps is in the files.", evidence: [D-014], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+      - id: H04-N2-OP
+        guide_word: other-than
+        parameter: valve position
+        description: "An ESD or blowdown valve of K-4101 moves alone, or every valve goes to its fail position on air loss, while K-4101 runs (D-114 (5), D-114 (2))."
+        scenarios:
+          - id: H04-S94
+            cause: "XV-4117 or XV-4118 closes alone, or XV-4116 opens alone, while K-4101 runs: the loss of that valve's own signal or air (XV-4117 / XV-4118 fail closed, XV-4116 fails open, D-109) or a spurious solenoid, with no trip of the machine (D-114 (5))."
+            consequence: "XV-4117 or XV-4118 closed: K-4101 runs on its anti-surge recycle GOX-4003 with no throughput, the recycled oxygen heats up stage by stage; rubbing or a hot spot ignites (oxygen fire in the machine). XV-4116 open: the discharge blows down continuously to VNT-4002 / S-4101 at 31 bara (an oxygen plume, export pressure lost, K-4101 at maximum flow towards choke)."
+            refs: [XV-4116, XV-4117, XV-4118, K-4101, UV-4103, GOX-4003, VNT-4002]
+            modes: [normal]
+            safeguards: [H04-SG06, H04-SG03, H04-SG36]
+            actions: [H04-A13, H04-A01]
+            status: proposed
+            by: agent
+            notes: "New in D-115 for D-114 (5). The discrepancy alarms of the three valves (limit switch against command) are proposed in D-114 but not yet in the files, and a K-4101 trip on 'a valve not in its run position' is for the K-4101 vendor's logic (#58): neither is credited. I-13 acts after ignition, so it lowers the severity of the asset damage, not the likelihood."
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, basis: "Oxygen fire at the machine (matrix 4); a single valve signal or air failure (D) that runs on long enough on recycle to ignite (C).", evidence: [D-109, D-114, XV-4117, XV-4118], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b, inputs: {matrix: 8b8a7609d110e869, category: people, severity: '4', likelihood: C}}}
+                - {category: asset, severity: "5", likelihood: C, basis: "Loss of K-4101, months down (matrix 5).", evidence: [D-002, K-4101], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 20579213de92d430, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '5', likelihood: C}}}
+              residual:
+                - {category: people, severity: "4", likelihood: B, basis: "The fire wall FW-4101 shields the walkways and the cold box side (one order, as H04-S05 / S07); UIC-4103 keeps the machine out of surge but does not limit the heating and is not counted.", evidence: [D-026, D-030, UIC-4103], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3, inputs: {matrix: 8b8a7609d110e869, category: people, severity: '4', likelihood: B}}}
+                - {category: asset, severity: "5", likelihood: C, basis: "Nothing stops the machine before ignition: the discrepancy alarms and a vendor trip on the valve positions are not in the files (H04-A13, #58); I-13 acts after ignition.", evidence: [TSHH-4104, D-114], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 20579213de92d430, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '5', likelihood: C}}}
+          - id: H04-S95
+            cause: "Instrument-air failure with power on: XV-4117 / XV-4118 close, XV-4116 and PV-4101B open, UV-4103 opens and the guide vanes go to their minimum stop (D-109) while the K-4101 motor runs."
+            consequence: "K-4101 isolated on its recycle GOX-4003 with no throughput: the oxygen heats up stage by stage, an oxygen fire in the machine if it runs on (as H04-S94). K-4102 likewise runs on its GAN recycle (nitrogen, no fire risk)."
+            refs: [K-4101, XV-4117, XV-4118, UV-4103, PSLL-1116]
+            modes: [power-fail]
+            safeguards: [H04-SG44, H04-SG36]
+            actions: [H04-A13]
+            status: proposed
+            by: agent
+            notes: "New in D-115 for D-114 (2): I-19 (PSLL-1116, 10 s delay, SIL 1 from LOPA row 15) trips K-4101, K-4102, the compander and the MAC set on air loss. A rating of 5/B stays high under this matrix although the LOPA target (asset 1e-3) is met: the asset targets sit in the matrix's medium band, which the team decides with #106."
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: C, basis: "Oxygen fire at the machine (matrix 4); an instrument-air failure with power on (D) that runs on long enough to ignite (C), LOPA row 15.", evidence: [D-114, PSLL-1116], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b, inputs: {matrix: 8b8a7609d110e869, category: people, severity: '4', likelihood: C}}}
+                - {category: asset, severity: "5", likelihood: C, basis: "Loss of K-4101 (matrix 5).", evidence: [D-114, K-4101], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 20579213de92d430, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '5', likelihood: C}}}
+              residual:
+                - {category: people, severity: "4", likelihood: A, basis: "I-19 trips K-4101 after 10 s (D-114 (2), SIL 1 proposed, not confirmed: one order) and the fire wall FW-4101 (one order).", evidence: [PSLL-1116, I-19, D-026], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 2aae4706e67ac517, inputs: {matrix: 8b8a7609d110e869, category: people, severity: '4', likelihood: A}}}
+                - {category: asset, severity: "5", likelihood: B, basis: "I-19 trips K-4101 after 10 s, one order (the fire wall does not protect the machine).", evidence: [PSLL-1116, I-19], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 6dd05b6d428d45d5, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '5', likelihood: B}}}
   - id: H04-N3
     title: GOX-4002 discharge and export to the battery limit, blowdown VNT-4002 / S-4101
     design_intent: >-
       Deliver the GOX at 31 bara and 40 C (DN200, ~5 m/s, PN40, SS to the BL ESD valve) from the
       E-4102 outlet through the discharge ESD XV-4118 (equalising bypass HV-4129), the check
       valve and the PIC-4102 measuring point (export pressure 30 barg: the master on the K-4101
-      guide vanes through the low select UY-4151 with FIC-4148 and PIC-4150, D-096, D-101; HH
-      trips K-4101), past
+      guide vanes through the low select UY-4151 with FIC-4148 and PIC-4150, D-096, D-101; the
+      high-high trip of K-4101 is I-17 on its own transmitter PSHH-4152 beside it, D-111), past
       the backup tie-in GOX-4004, AI-4115 and FQI-4149 (custody), through the double block and
       bleed XV-4119 (bypass HV-4130) / XV-4132 with bleed XV-4133 to VNT-4006 to the customer
       pipeline. PSV-4122 and the blowdown XV-4116 discharge through VNT-4002 and S-4101 at an
       elevated safe location (D-013, D-019).
-    members: [GOX-4002, XV-4118, HV-4129, PIC-4102, AI-4115, FQI-4149, XV-4119, HV-4130, XV-4132, XV-4133, VNT-4006, XV-4116, PSV-4122, VNT-4002, S-4101, {sheet: P-04, object: CV_GOX4002}]
+    members: [GOX-4002, XV-4118, HV-4129, PIC-4102, PSHH-4152, AI-4115, FQI-4149, XV-4119, HV-4130, XV-4132, XV-4133, VNT-4006, XV-4116, PSV-4122, VNT-4002, S-4101, {sheet: P-04, object: CV_GOX4002}]
     modes: [normal, startup, shutdown, backup, maintenance]
     status: proposed
     by: agent
@@ -507,29 +599,29 @@ nodes:
             consequence: "GOX-4002 pressure rises to the K-4101 maximum; without unloading, overpressure of the export header and E-4102 and surge of K-4101."
             refs: [XV-4119, XV-4132, GOX-4002, PIC-4102, K-4101]
             modes: [normal]
-            safeguards: [H04-SG05, H04-SG10]
+            safeguards: [H04-SG05, H04-SG10, H04-SG38]
             status: proposed
             by: agent
             risk:
               initial:
                 - {category: people, severity: "4", likelihood: D, basis: "Rupture of oxygen equipment (matrix 4); customer upsets several times in the plant life (D).", evidence: [PIC-4102, PSV-4122], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
               residual:
-                - {category: people, severity: "4", likelihood: A, basis: "PSV-4122 (two orders) and PIC-4102 (independent of the cause): it closes the guide vanes as the export pressure master (D-096) and carries the high-high trip of K-4101 (drawn on P-04, not in the C&E) on the same transmitter, so the loop and the trip together take one order; UIC-4103 does not limit the pressure and is not credited.", evidence: [PSV-4122, PIC-4102, D-096], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 2aae4706e67ac517}}
+                - {category: people, severity: "4", likelihood: A, basis: "PSV-4122 (two orders) and PIC-4102 (independent of the cause, one order): it closes the guide vanes as the export pressure master (D-096). The high-high trip is now I-17 on its own transmitter PSHH-4152 (D-111); already at A, it is not counted further. UIC-4103 does not limit the pressure and is not credited.", evidence: [PSV-4122, PIC-4102, PSHH-4152, D-096], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 2aae4706e67ac517}}
           - id: H04-S82
             cause: "PT-4102 reads low (or the PIC-4102 output fails high) while the customer takes less than the make: PIC-4102 opens the K-4101 guide vanes up to the FIC-4148 limit (D-096)."
-            consequence: "GOX-4002 pressure rises to the K-4101 maximum: overpressure of the export header and E-4102; the PIC-4102 high-high trip uses the same transmitter and is defeated."
-            refs: [PIC-4102, FIC-4148, K-4101, GOX-4002, PSV-4122]
+            consequence: "GOX-4002 pressure rises to the K-4101 maximum: overpressure of the export header and E-4102. (Before D-111 the high-high trip used PT-4102 and was defeated; it is now I-17 on PSHH-4152.)"
+            refs: [PIC-4102, FIC-4148, K-4101, GOX-4002, PSV-4122, PSHH-4152]
             modes: [normal]
-            safeguards: [H04-SG10]
+            safeguards: [H04-SG10, H04-SG38]
             actions: [H04-A29]
             status: proposed
             by: agent
-            notes: "New for hazop-review3#2: since D-096 PIC-4102 moves the guide vanes, so its own failure is a cause. SG05 (PIC-4102 and its HH trip) shares the transmitter or the output with the cause and is not credited; FIC-4148 limits the flow, not the pressure."
+            notes: "New for hazop-review3#2: since D-096 PIC-4102 moves the guide vanes, so its own failure is a cause. SG05 (PIC-4102) shares the transmitter or the output with the cause and is not credited; FIC-4148 limits the flow, not the pressure. Revised for D-111: the high-high trip moved to its own transmitter PSHH-4152 (I-17, H04-A29) and is credited."
             risk:
               initial:
                 - {category: people, severity: "4", likelihood: D, basis: "Rupture of oxygen equipment (matrix 4); a single transmitter or loop failure (D).", evidence: [PIC-4102, D-096], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
               residual:
-                - {category: people, severity: "4", likelihood: B, basis: "PSV-4122 on the K-4101 discharge, whose listed case (blocked outlet at maximum speed) covers the cause: two orders. The PIC-4102 high-high trip shares PT-4102 with the cause and is not credited.", evidence: [PSV-4122, PIC-4102], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
+                - {category: people, severity: "4", likelihood: A, basis: "PSV-4122 on the K-4101 discharge, whose listed case (blocked outlet at maximum speed) covers the cause: two orders (D to B). The high-high trip I-17 on its own transmitter PSHH-4152 (D-111, H04-A29; SIL 1 proposed, not confirmed) one more (B to A).", evidence: [PSV-4122, PSHH-4152, I-17], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 2aae4706e67ac517, inputs: {matrix: 8b8a7609d110e869, category: people, severity: '4', likelihood: A}}}
           - id: H04-S83
             cause: "PT-4102 reads high (or the PIC-4102 output fails low): PIC-4102 closes the K-4101 guide vanes while the customer takes the normal rate (D-096)."
             consequence: "The GOX export falls and PIC-4111 starts the LOX backup; the suction pressure rises and PIC-4101 vents the GOX make through PV-4101B / VNT-4003 until the fault is found: an oxygen-enriched plume at the vent area V1 for hours."
@@ -550,18 +642,18 @@ nodes:
           - id: H04-S87
             cause: "The low select UY-4151 fails with its output high or frozen (a function-block or output-card fault, a hold on a bad-quality input, a configuration error that selects high, D-101) while the customer takes less than the make: the K-4101 guide vanes stay open whatever PIC-4102 asks."
             consequence: "GOX-4002 pressure rises to the K-4101 maximum: overpressure of the export header and E-4102. FIC-4148 and PIC-4150 cannot close the vanes either, because their outputs pass the same selector."
-            refs: [UY-4151, PIC-4102, K-4101, GOX-4002, E-4102, PSV-4122]
+            refs: [UY-4151, PIC-4102, K-4101, GOX-4002, E-4102, PSV-4122, PSHH-4152]
             modes: [normal]
-            safeguards: [H04-SG10]
+            safeguards: [H04-SG10, H04-SG38]
             actions: [H04-A30, H04-A01, H04-A29]
             status: proposed
             by: agent
-            notes: "New for D-101 (D-102): the pressure counterpart of the selector failing high (the over-draw counterpart is in H04-S02 and H04-S75). PIC-4102's control action passes UY-4151 and is defeated. Its high-high trip of K-4101 acts on the machine, not through the selector, but whether it is in a logic solver apart from UY-4151 is not recorded (it is not in the C&E, H04-A01), so it is not credited here; once A01 places it in an independent logic it takes one order."
+            notes: "New for D-101 (D-102): the pressure counterpart of the selector failing high (the over-draw counterpart is in H04-S02 and H04-S75). PIC-4102's control action passes UY-4151 and is defeated. Revised for D-111: the high-high trip is I-17 on its own transmitter PSHH-4152, in the C&E and so in the safety system apart from UY-4151; it takes one order."
             risk:
               initial:
                 - {category: people, severity: "4", likelihood: D, basis: "Rupture of oxygen equipment (matrix 4); a single function-block, card or configuration failure (D), as H04-S82.", evidence: [UY-4151, PIC-4102, D-101], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833, inputs: {matrix: 8b8a7609d110e869, severity: '4', likelihood: D}}}
               residual:
-                - {category: people, severity: "4", likelihood: B, basis: "PSV-4122 on the K-4101 discharge, whose listed case (blocked outlet at maximum speed) covers the cause: two orders. The PIC-4102 loop is defeated by the cause and its high-high trip is not shown to be independent of UY-4151 (H04-A01).", evidence: [PSV-4122, UY-4151], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3, inputs: {matrix: 8b8a7609d110e869, severity: '4', likelihood: B}}}
+                - {category: people, severity: "4", likelihood: A, basis: "PSV-4122 on the K-4101 discharge, whose listed case (blocked outlet at maximum speed) covers the cause: two orders (D to B). The PIC-4102 loop is defeated by the cause; the high-high trip I-17 on PSHH-4152 acts on the machine in the safety system, apart from UY-4151 (D-111, SIL 1 proposed, not confirmed): one more (B to A).", evidence: [PSV-4122, UY-4151, PSHH-4152, I-17], status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 2aae4706e67ac517, inputs: {matrix: 8b8a7609d110e869, category: people, severity: '4', likelihood: A}}}
       - id: H04-N3-LK
         guide_word: other-than
         parameter: containment
@@ -683,7 +775,7 @@ nodes:
       cascade slave of the GAN export pressure PIC-4105 (H04-N5, D-096), and
       PIC-4106 on the suction; aftercool in E-4103 to 40 C with CW-4002 / CWR-4002. UIC-4131 keeps
       K-4102 out of surge through UV-4131 (fail open) and GAN-4004 from the E-4103 outlet.
-      AIA-3105 (alarm 10 ppm O2) opens XV-3105 to VNT-4004 (elevated) and closes XV-4120 so
+      AIA-3105 (alarm 10 ppm O2; interlock I-18, D-111) opens XV-3105 to VNT-4004 (elevated) and closes XV-4120 so
       off-spec GAN never reaches the customer.
     members: [GAN-4001, AIA-3105, XV-3105, VNT-4004, FIC-3107, PIC-4106, K-4102, E-4103, CW-4002, CWR-4002, GAN-4004, UV-4131, UIC-4131]
     modes: [normal, startup, shutdown, power-fail]
@@ -727,7 +819,7 @@ nodes:
         notes: "More flow to the vent: XV-3105 opening."
         scenarios:
           - id: H04-S21
-            cause: "XV-3105 opens spuriously (AIA-3105 false high or valve failure)."
+            cause: "XV-3105 opens spuriously: AIA-3105 false high (I-18 acting without off-spec GAN, D-111), a valve failure, or an instrument-air failure (XV-3105 fails open, D-109)."
             consequence: "Up to the full GAN make vents at VNT-4004 and XV-4120 closes: the GAN export is lost; a nitrogen plume at the vent, oxygen-deficient atmosphere if it reaches a platform."
             refs: [XV-3105, AIA-3105, VNT-4004, XV-4120]
             modes: [normal]
@@ -780,7 +872,7 @@ nodes:
         parameter: pressure
         scenarios:
           - id: H04-S24
-            cause: "PV-4105 (normally fully open, D-096) fails closed, or is left closed after a start-up (P-04 draws no signal to it since D-101: its role and what operates it are open), or XV-4120 closes while K-4102 runs, with the HP column (suction) at its upper pressure; if PIC-4105's tap is downstream of the closed valve it sees the pressure fall and raises FIC-3107's set point, opening the guide vanes further."
+            cause: "PV-4105 (normally fully open, D-096; it fails open, D-109) sticks closed, or is left closed after a start-up (P-04 draws no signal to it since D-101: its role and what operates it are open), or XV-4120 closes while K-4102 runs, with the HP column (suction) at its upper pressure; if PIC-4105's tap is downstream of the closed valve it sees the pressure fall and raises FIC-3107's set point, opening the guide vanes further."
             consequence: "Blocked outlet: K-4102 discharge, E-4103 and GAN-4002 up to the valve rise to the machine's maximum; no relief device is drawn on the K-4102 discharge (design 11 barg)."
             refs: [PV-4105, XV-4120, K-4102, E-4103, GAN-4002]
             modes: [normal, startup]
@@ -856,7 +948,7 @@ nodes:
             consequence: "FIC-3107 opens the K-4102 guide vanes, K-4102 runs to its maximum flow and the HP column is drawn down (see H04-S20): column upset."
             refs: [PIC-4105, FIC-3107, K-4102]
             modes: [normal]
-            safeguards: []
+            safeguards: [H04-SG41]
             actions: [H04-A22]
             status: proposed
             by: agent
@@ -865,12 +957,13 @@ nodes:
               initial:
                 - {category: asset, severity: "3", likelihood: D, basis: "Cold box upset of days (matrix 3); single loop failure (D).", evidence: [PIC-4105, D-096], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
               residual:
-                - {category: asset, severity: "3", likelihood: D, basis: "Nothing credited: the clamp on FIC-3107's cascade set point (D-096) is in the same control system as PIC-4105 and FIC-3107; no PIC-4106 action on the K-4102 guide vanes is recorded in the instrument list or the C&E.", evidence: [PIC-4106, PIC-4105, D-096], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+                - {category: asset, severity: "3", likelihood: C, basis: "The PIC-4106 low-pressure alarm on PT-4106, apart from PT-4105 and FT-3107 (D-111, H04-A22): the operator lowers FIC-3107, one order. The clamp on FIC-3107's cascade set point (D-096, D-110) is in the same control system as PIC-4105 and FIC-3107 and is not counted; no PIC-4106 action on the guide vanes is recorded (#58). The screening LOPA finds no SIF needed (D-111 row 14).", evidence: [PIC-4106, PIC-4105, D-096, D-111], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '3', likelihood: C}}}
           - id: H04-S84
             cause: "The GAN demand rises above the design draw (the customer taking more, or a header leak) with the HP column at its design make: the header pressure falls and PIC-4105 raises FIC-3107's set point in cascade (D-096). A normal-operation demand, no failure."
             consequence: "FIC-3107 opens the K-4102 guide vanes up to the clamp at the design GAN draw; without the clamp K-4102 would draw the HP column down (see H04-S20): column upset."
-            refs: [PIC-4105, FIC-3107, K-4102, GAN-4002]
+            refs: [PIC-4105, FIC-3107, K-4102, GAN-4002, PIC-4106]
             modes: [normal]
+            safeguards: [H04-SG42, H04-SG41]
             actions: [H04-A22]
             status: proposed
             by: agent
@@ -879,21 +972,22 @@ nodes:
               initial:
                 - {category: asset, severity: "3", likelihood: E, basis: "Cold box upset of days (matrix 3); a customer demand above the design rate is expected about once a year or more often (E).", evidence: [D-096, PIC-4105], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9c2fa8013e0b2964}}
               residual:
-                - {category: asset, severity: "3", likelihood: D, basis: "The clamp on FIC-3107's cascade set point at the design GAN draw (D-096), a control function not part of this cause: one order.", evidence: [FIC-3107, D-096], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252}}
+                - {category: asset, severity: "3", likelihood: C, basis: "The clamp on FIC-3107's cascade set point (D-096; since D-110 the air-flow ratio, capped at the design GAN draw), a control function not part of this cause: one order; the PIC-4106 low-pressure alarm on its own transmitter (D-111): one more.", evidence: [FIC-3107, PIC-4106, D-096, D-110], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '3', likelihood: C}}}
           - id: H04-S85
-            cause: "The HP column makes less GAN than design (MAC or air turndown, a hot-day air limit, a TSA switchover dip) while the customer takes the design GAN rate: PIC-4105 raises FIC-3107's set point up to the clamp, which is fixed at the design GAN draw (D-096) and so lies above the actual make. No failure is needed."
+            cause: "The HP column makes less GAN than its air flow predicts (the TSA switchover dip every cycle, a purity upset) while the customer takes more: PIC-4105 raises FIC-3107's set point up to the clamp, which follows the validated air flow (0.1120 kg GAN per kg air, D-110, D-114 (4)) and so tracks a turndown or an air limit, but not a make that falls at a constant air flow. No failure is needed."
             consequence: "K-4102 draws the HP column down (see H04-S20): HP column pressure falls, column upset, GAN and GOX purity lost."
-            refs: [PIC-4105, FIC-3107, K-4102, GAN-4001]
+            refs: [PIC-4105, FIC-3107, K-4102, GAN-4001, PIC-4106]
             modes: [normal, startup]
+            safeguards: [H04-SG41]
             actions: [H04-A22, H04-A28]
             status: proposed
             by: agent
-            notes: "New for hazop-review3#3: the GAN cascade has the weakness of H04-S79, a clamp at a fixed design draw. D-096 leaves the clamp as a ratio to the air flow open (H04-A28)."
+            notes: "New for hazop-review3#3: the GAN cascade has the weakness of H04-S79. Revised in D-115 (hazop-review6#4) with the same treatment as H04-S79 / S80: the clamp follows the validated air flow (D-110, D-114 (4)) and tracks a turndown, so that branch is gone; the branch left is a make that falls at a constant air flow, which the clamp does not track, so the clamp is not credited and the likelihood stays E."
             risk:
               initial:
-                - {category: asset, severity: "3", likelihood: E, basis: "Cold box upset of days (matrix 3); a reduced make with the customer at the design rate is expected about once a year or more often (E).", evidence: [D-096, FIC-3107], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9c2fa8013e0b2964}}
+                - {category: asset, severity: "3", likelihood: E, basis: "Cold box upset of days (matrix 3); a make below the air-flow ratio while the customer takes more (the TSA dip every cycle, purity upsets) about once a year or more often (E).", evidence: [D-110, D-114, FIC-3107], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9c2fa8013e0b2964}}
               residual:
-                - {category: asset, severity: "3", likelihood: E, basis: "Nothing credited: the clamp at the design draw is the cause here; no PIC-4106 action on the guide vanes is recorded (H04-S27).", evidence: [D-096, FIC-3107, PIC-4106], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9c2fa8013e0b2964}}
+                - {category: asset, severity: "3", likelihood: D, basis: "The PIC-4106 low-pressure alarm on its own transmitter PT-4106 (D-111): the operator lowers FIC-3107, one order (E to D). The clamp is not credited: the cause is the make it does not track (as H04-S79).", evidence: [D-110, FIC-3107, PIC-4106], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '3', likelihood: D}}}
       - id: H04-N5-LK
         guide_word: other-than
         parameter: containment
@@ -1339,14 +1433,34 @@ nodes:
       Vaporise up to 3,650 Nm3/h LOX at about 33 bara in the ambient-air vaporizer A or B (the
       other defrosting; manual inlet valves at 1.2 m), outlet close to ambient; PSV-4127 on the
       outlet header (blocked outlet, thermal); TSLL-4113 stops P-4101A/B and closes PV-4111 on a
-      cold outlet to protect the carbon steel pipeline; PIC-4111 controls the header pressure
-      through PV-4111 and starts the backup on low pressure. GOX-4004 (DN100, PN40) joins GOX-4002
-      upstream of AI-4115; no check valve on the riser (D-024).
+      cold outlet to protect the carbon steel pipeline (I-15, D-111); PIC-4111 controls the header
+      pressure through PV-4111 (fail closed, D-109) and starts the backup on low pressure.
+      GOX-4004 (DN100, PN40) joins GOX-4002 upstream of AI-4115; no check valve on the riser
+      (D-024).
     members: [E-4105A, E-4105B, {sheet: P-04, object: HV_E4105A}, {sheet: P-04, object: HV_E4105B}, PSV-4127, TSLL-4113, GOX-4004, PV-4111, PIC-4111]
-    modes: [backup, normal, startup, maintenance]
+    modes: [backup, normal, startup, maintenance, power-fail]
     status: proposed
     by: agent
     deviations:
+      - id: H04-N9-UT
+        guide_word: other-than
+        parameter: utilities
+        description: "Instrument air (or power) lost: the backup cannot open its valves (D-109)."
+        scenarios:
+          - id: H04-S90
+            cause: "Instrument-air failure (or a total power failure): the ASU stops with its valves in their fail positions (D-109), and PV-4111 and PV-4112 also fail closed, so the backup cannot supply even if the pumps run."
+            consequence: "The GOX and GAN customers lose both the ASU and the backup until the air (or power) is restored: a supply shortfall of hours, the customer's process stops. The pipeline is safe (no cold gas)."
+            refs: [PV-4111, PV-4112, PIC-4111, PIC-4112, P-4101A, P-4102A]
+            modes: [power-fail]
+            actions: [H04-A14]
+            status: proposed
+            by: agent
+            notes: "New with D-109: the fail-closed backup valves protect the carbon steel pipelines but make the backup depend on instrument air as much as on power. Whether the backup keeps an air receiver or bottles and an emergency power supply is the owner's decision with the customer's continuity requirement (H04-A14, process-library#105)."
+            risk:
+              initial:
+                - {category: asset, severity: "3", likelihood: D, basis: "A supply shortfall of hours to the customers (matrix 3, days at worst); an instrument-air or power failure a few times in the plant life (D).", evidence: [D-109, D-014, PV-4111, PV-4112], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '3', likelihood: D}}}
+              residual:
+                - {category: asset, severity: "3", likelihood: D, basis: "Nothing in the files keeps the backup valves or pumps working on air or power loss (H04-A14).", evidence: [D-109, PV-4111], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 154eb1a2350e4252, inputs: {matrix: 8b8a7609d110e869, category: asset, severity: '3', likelihood: D}}}
       - id: H04-N9-LT
         guide_word: less
         parameter: temperature
@@ -1365,7 +1479,7 @@ nodes:
                 - {category: people, severity: "4", likelihood: C, basis: "Pipeline fracture with a GOX release (matrix 4); a long backup in cold weather (C).", evidence: [D-014], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
                 - {category: asset, severity: "4", likelihood: C, basis: "Customer pipeline repair, weeks (matrix 4).", evidence: [D-014], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 544760766051af8c}}
               residual:
-                - {category: people, severity: "4", likelihood: B, basis: "TSLL-4113 stops the pumps and closes PV-4111 (trip written on P-04, not yet in the C&E, no SIL).", evidence: [TSLL-4113, D-014], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
+                - {category: people, severity: "4", likelihood: B, basis: "TSLL-4113 stops the pumps and closes PV-4111: I-15 (D-111, SIL 1 proposed, not confirmed: one order).", evidence: [TSLL-4113, I-15, D-014], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
                 - {category: asset, severity: "4", likelihood: B, basis: "As for people.", evidence: [TSLL-4113], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d508cded1fd37f0d}}
           - id: H04-S49
             cause: "PIC-4111 fails or PV-4111 fails open: the flow rises above the vaporizer rating (3,650 Nm3/h) when the header pressure falls."
@@ -1380,7 +1494,7 @@ nodes:
               initial:
                 - {category: people, severity: "4", likelihood: D, basis: "Matrix 4; single loop failure (D).", evidence: [D-014], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: ec9d2511eb81b833}}
               residual:
-                - {category: people, severity: "4", likelihood: C, basis: "TSLL-4113 trip credited one order only: drawn on P-04 and in the instrument list, not in the C&E, no SIL or SRS (H04-A01, H04-A02).", evidence: [TSLL-4113], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
+                - {category: people, severity: "4", likelihood: C, basis: "The TSLL-4113 trip I-15 credited one order: in the C&E with SIL 1 from the D-111 screening LOPA, not yet confirmed or in an SRS (H04-A02). The cause is PIC-4111 / PV-4111, so PIC-4111 is not credited.", evidence: [TSLL-4113, I-15], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
       - id: H04-N9-HP
         guide_word: more
         parameter: pressure
@@ -1800,7 +1914,7 @@ nodes:
                 - {category: people, severity: "4", likelihood: C, basis: "Pipeline fracture with a nitrogen release near people (matrix 4).", evidence: [D-014], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 1ee7bcb18b7a060b}}
                 - {category: asset, severity: "4", likelihood: C, basis: "Pipeline repair, weeks (matrix 4).", evidence: [D-014], status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 544760766051af8c}}
               residual:
-                - {category: people, severity: "4", likelihood: B, basis: "TSLL-4114 stops the pumps and closes PV-4112 (on P-04, not yet in the C&E).", evidence: [TSLL-4114], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
+                - {category: people, severity: "4", likelihood: B, basis: "TSLL-4114 stops the pumps and closes PV-4112: I-16 (D-111, SIL 1 proposed, not confirmed: one order).", evidence: [TSLL-4114, I-16], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 076c6f9af2105fd3}}
                 - {category: asset, severity: "4", likelihood: B, basis: "As for people.", evidence: [TSLL-4114], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: d508cded1fd37f0d}}
       - id: H04-N13-HP
         guide_word: more
@@ -1853,10 +1967,10 @@ nodes:
                 - {category: asset, severity: "3", likelihood: C, basis: "Riser rated for the header (D-024) and PSV-4124 on the tank; nothing detects the backflow.", evidence: [D-024, PSV-4124], status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: asu-1-5x5-proposed (safety/risk-matrix.yaml)', fingerprint: 9ceafc0344eb4915}}
 safeguards:
   - {id: H04-SG01, title: "I-01: LIA-4107 LALL trips P-4101A/B and closes XV-4136", kind: interlock, interlock: I-01, refs: [LIA-4107, P-4101A, P-4101B, XV-4136], status: proposed, by: agent, notes: "sil null in the C&E (H04-A02)."}
-  - {id: H04-SG02, title: "TSLL-4113 low vaporizer outlet temperature stops P-4101A/B and closes PV-4111", kind: other, refs: [TSLL-4113, P-4101A, P-4101B, PV-4111], status: proposed, by: agent, notes: "Trip written on P-04 and in the instrument list (D-014), not yet an interlock of control/cause-effect.yaml (H04-A01). Credited as kind other, like the E-2101 trips (H-02) and the compander trips (H-03), not as an interlock."}
-  - {id: H04-SG03, title: "TSHH-4104 fire detection trips K-4101, closes XV-4117 / XV-4118, opens blowdown XV-4116", kind: other, refs: [TSHH-4104, K-4101, XV-4117, XV-4118, XV-4116], status: proposed, by: agent, notes: "Trip written on P-04 and in the instrument list (D-013), not yet in control/cause-effect.yaml (H04-A01). Credited as kind other, like the E-2101 trips (H-02) and the compander trips (H-03), not as an interlock."}
-  - {id: H04-SG04, title: "TSLL-4114 low vaporizer outlet temperature stops P-4102A/B and closes PV-4112", kind: other, refs: [TSLL-4114, P-4102A, P-4102B, PV-4112], status: proposed, by: agent, notes: "Not yet in control/cause-effect.yaml (H04-A01). Credited as kind other, like the E-2101 trips (H-02) and the compander trips (H-03), not as an interlock."}
-  - {id: H04-SG05, title: "PIC-4102 export pressure control on the K-4101 guide vanes (master, D-096); high-high trips K-4101", kind: other, refs: [PIC-4102, K-4101], status: proposed, by: agent, notes: "The HH trip is written on P-04, not yet in control/cause-effect.yaml (H04-A01). Credited as kind other, like the E-2101 trips (H-02) and the compander trips (H-03), not as an interlock. The control loop and the HH trip share the PIC-4102 transmitter, so together they take one order (D-096)."}
+  - {id: H04-SG02, title: "I-15: TSLL-4113 low vaporizer outlet temperature stops P-4101A/B and closes PV-4111", kind: interlock, interlock: I-15, refs: [TSLL-4113, P-4101A, P-4101B, PV-4111], status: proposed, by: agent, notes: "D-111: SIL 1 by the screening LOPA, not confirmed; one order."}
+  - {id: H04-SG03, title: "I-13: TSHH-4104 fire detection trips K-4101, closes XV-4117 / XV-4118, opens blowdown XV-4116", kind: interlock, interlock: I-13, refs: [TSHH-4104, K-4101, XV-4117, XV-4118, XV-4116], status: proposed, by: agent, notes: "D-111: SIL 1 by the screening LOPA, not confirmed; one order."}
+  - {id: H04-SG04, title: "I-16: TSLL-4114 low vaporizer outlet temperature stops P-4102A/B and closes PV-4112", kind: interlock, interlock: I-16, refs: [TSLL-4114, P-4102A, P-4102B, PV-4112], status: proposed, by: agent, notes: "D-111: SIL 1 by the screening LOPA, not confirmed; one order."}
+  - {id: H04-SG05, title: "PIC-4102 export pressure control on the K-4101 guide vanes (master, D-096)", kind: control, refs: [PIC-4102, K-4101], status: proposed, by: agent, notes: "Its high-high trip moved to its own transmitter PSHH-4152 (I-17, H04-SG38, D-111); this safeguard is now the control loop only."}
   - {id: H04-SG06, title: "UIC-4103 anti-surge control of K-4101 through UV-4103 and GOX-4003", kind: control, refs: [UIC-4103, UV-4103, FIC-4148], status: proposed, by: agent, notes: "Its flow input FT-4148 is also the transmitter of the FIC-4148 maximum-draw limit on the guide vanes (D-096): not credited where FT-4148 is part of the cause (H04-S02, H04-S05). FT-4148 is upstream of the vent and recycle tees and does not see the recycle (D-096 open point)."}
   - {id: H04-SG07, title: "UIC-4131 anti-surge control of K-4102 through UV-4131 (fail open) and GAN-4004", kind: control, refs: [UIC-4131, UV-4131], status: proposed, by: agent}
   - {id: H04-SG09, title: "PSV-4127 on the E-4105A/B outlet header", kind: relief, refs: [PSV-4127], status: proposed, by: agent}
@@ -1887,9 +2001,16 @@ safeguards:
   - {id: H04-SG35, title: "LP column pressure control PIC-3110 (P-03), PV-3110B to S-3101", kind: control, refs: [PIC-3110, PV-3110B], status: proposed, by: agent, notes: "Studied in H-03 (H03-SG15); credited here for a cause on P-04."}
   - {id: H04-SG36, title: "Fire wall FW-4101 on the west, south and north sides of K-4101, open to the east", kind: mechanical, refs: [K-4101], status: proposed, by: agent, notes: "D-026 (1), D-030 (2); FW-4101 is a layout structure (layout/structures.yaml), not a plant tag, so the ref is the machine it shields."}
   - {id: H04-SG37, title: "LICA-3102 LP sump level low alarm (P-03)", kind: alarm, refs: [LICA-3102], status: proposed, by: agent, notes: "Studied in H-03 (H03-SG17); credited here for a cause on P-04."}
+  - {id: H04-SG38, title: "I-17: GOX discharge pressure high-high PSHH-4152 (own transmitter) trips K-4101, closes XV-4117 / XV-4118, opens XV-4116", kind: interlock, interlock: I-17, refs: [PSHH-4152, K-4101, XV-4117, XV-4118, XV-4116], status: proposed, by: agent, notes: "D-111 (H04-A29): apart from PT-4102 and the low select UY-4151. SIL 1 by the screening LOPA, not confirmed; one order."}
+  - {id: H04-SG39, title: "I-14: LP sump level low-low LSLL-3125 (P-03, own tapping) trips the MAC set and the K-4101 set", kind: interlock, interlock: I-14, refs: [LSLL-3125, K-1101, K-4101], status: proposed, by: agent, notes: "D-111, revised by D-114 (1) (H04-A23, H03-A4): the independent limit on the GOX draw, apart from UY-4151, FT-4148, PT-4150, LICA-3102 and FV-3111; final elements the motor breakers; once the air stops E-3103 no longer boils. Studied in H-03 (H03-SG27). SIL 2 by the screening LOPA, not confirmed; one order under this study's convention."}
+  - {id: H04-SG40, title: "PIC-4101 low-pressure alarm on PT-4101 (upstream of XV-4117), apart from the guide-vane low select", kind: alarm, refs: [PIC-4101], status: proposed, by: agent, notes: "D-111 (H04-A23); in control/loops.yaml. Not credited where PT-4101 is part of the cause."}
+  - {id: H04-SG41, title: "PIC-4106 low-pressure alarm on PT-4106 (K-4102 suction), apart from PT-4105 and FT-3107", kind: alarm, refs: [PIC-4106], status: proposed, by: agent, notes: "D-111 (H04-A22); in control/loops.yaml. The screening LOPA (D-111 row 14) finds no SIF needed on the K-4102 guide vanes."}
+  - {id: H04-SG42, title: "Draw limits that follow the validated air flow: the FIC-4148 maximum GOX draw (less the LOX drawn above design) and the FIC-3107 cascade clamp as the design ratios, capped at the design (D-110, D-114 (4))", kind: control, refs: [FIC-4148, FIC-3107, FIC-1101], status: proposed, by: agent, notes: "In the same control system as PIC-4102 and PIC-4105: credited only where neither the loops nor the limits are the cause, and never for a make that falls at a constant air flow, which they do not track (H04-A28; D-115)."}
+  - {id: H04-SG43, title: "PV-4101B-open alarm after 30 min (ASSUMED): the operator turns the air flow down within the 70-100 % range (D-110)", kind: alarm, refs: [PIC-4101, PV-4101B], status: proposed, by: agent, notes: "Split from H04-SG42 in D-115 (hazop-review6#9). Credited only for a turndown inside the range; below 70 % the response is a plant stop or storage (D-110 (1), H04-S91)."}
+  - {id: H04-SG44, title: "I-19: instrument air header low-low PSLL-1116 trips K-4101, K-4102, the compander and the MAC set after 10 s", kind: interlock, interlock: I-19, refs: [PSLL-1116, K-4101, K-4102], status: proposed, by: agent, notes: "D-114 (2), LOPA row 15: SIL 1 proposed, not confirmed; one order. PSLL-1116 is on the utilities' air header, listed but not drawn on P-04."}
 actions:
-  - {id: H04-A01, text: "Enter the trips drawn on P-04 into control/cause-effect.yaml with cause, effects and fail-safe positions: TSHH-4104 (K-4101 trip, XV-4117 / XV-4118 close, XV-4116 open), the actions of every other K-4101 trip, PIC-4102 high-high, TSLL-4113 / TSLL-4114 (pumps stop, PV-4111 / PV-4112 close), AIA-3105 (XV-3105 open, XV-4120 close) and the dP permissive of XV-4118 / XV-4119 with its measurement. One update of control/cause-effect.yaml and one LOPA / SIL session answer H01-A3, H01-A8, H02-A1, H02-A2, H03-A2, H03-A3, H04-A01, H04-A02 and H04-A13; this action names the functions of this sheet.", owner: instrument and control engineer, status: proposed, by: agent}
-  - {id: H04-A02, text: "SIL screening / LOPA for I-01 and I-02 (sil null), TSLL-4113 / TSLL-4114 (cold gas into the carbon steel pipelines) and TSHH-4104, with the initiating frequencies and tolerable targets agreed by the team. One update of control/cause-effect.yaml and one LOPA / SIL session answer H01-A3, H01-A8, H02-A1, H02-A2, H03-A2, H03-A3, H04-A01, H04-A02 and H04-A13; this action names the functions of this sheet.", owner: process safety engineer, status: proposed, by: agent}
+  - {id: H04-A01, text: "Enter the trips drawn on P-04 into control/cause-effect.yaml with cause, effects and fail-safe positions: TSHH-4104 (K-4101 trip, XV-4117 / XV-4118 close, XV-4116 open), the actions of every other K-4101 trip, PIC-4102 high-high, TSLL-4113 / TSLL-4114 (pumps stop, PV-4111 / PV-4112 close), AIA-3105 (XV-3105 open, XV-4120 close) and the dP permissive of XV-4118 / XV-4119 with its measurement. One update of control/cause-effect.yaml and one LOPA / SIL session answer H01-A3, H01-A8, H02-A1, H02-A2, H03-A2, H03-A3, H04-A01, H04-A02 and H04-A13; this action names the functions of this sheet. Proposed answer: D-111 (I-13 TSHH-4104, I-14 LP sump low-low, I-17 discharge high-high on PSHH-4152, each isolating and blowing K-4101 down; I-15 / I-16 vaporizers; I-18 AIA-3105 divert; fail-safe positions D-109). Open: the dP permissive of XV-4118 / XV-4119 has no measurement yet, for the team.", owner: instrument and control engineer, status: proposed, by: agent}
+  - {id: H04-A02, text: "SIL screening / LOPA for I-01 and I-02 (sil null), TSLL-4113 / TSLL-4114 (cold gas into the carbon steel pipelines) and TSHH-4104, with the initiating frequencies and tolerable targets agreed by the team. One update of control/cause-effect.yaml and one LOPA / SIL session answer H01-A3, H01-A8, H02-A1, H02-A2, H03-A2, H03-A3, H04-A01, H04-A02 and H04-A13; this action names the functions of this sheet. Proposed answer: D-111 screening LOPA (I-13, I-15, I-16 SIL 1; I-01 / I-02 keep sil null until their own row; ASSUMED targets), for the team's LOPA / SIL session.", owner: process safety engineer, status: proposed, by: agent}
   - {id: H04-A03, text: "Add high level alarms and an independent high-high level on T-4101 / T-4102; consider an actuated fill isolation on LOX-4004 / LIN-4004 closed by the high-high, and a defined response for the rundowns LOX-3001 / LIN-3001 (the LOX purge must keep flowing, D-010: to the drain vaporizer).", owner: process engineer, status: proposed, by: agent}
   - {id: H04-A04, text: "Write the tanker unloading procedure: product identity and analysis certificate checked (sample before unloading), product-specific non-interchangeable couplings, attended transfer watching LIA-4107 / LIA-4108, hose inspection and cool-down, stop before pressurising gas blows through, top or bottom fill against stratification, oxygen cleanliness and no ignition sources at the LOX bay.", owner: operations, status: proposed, by: agent}
   - {id: H04-A05, text: "Close the D-024 open item: confirm the PV-4111 / PV-4112 tight shut-off, the consequence of backflow through PSV-4125 / PSV-4126 into the tanks, the PSV-4127 / PSV-4128 set pressures against the pump shut-off and the customers' pipeline design pressures; decide whether an oxygen-compatible non-return or an actuated tight-shut valve is needed on GOX-4004 / GAN-4003.", owner: process engineer, status: proposed, by: agent}
@@ -1900,22 +2021,22 @@ actions:
   - {id: H04-A10, text: "Route the outlets of TSV-4140, TSV-4141, TSV-4144 and TSV-4145 ('to atm.') to locations where oxygen or nitrogen cannot reach the driver, operator or a walkway (elevated, safe location), and record them in the relief case list.", owner: piping engineer, status: proposed, by: agent}
   - {id: H04-A11, text: "Confirm with the vaporizer supplier the E-4105A/B and E-4106A/B duty for a continuous 2-day backup at -5 C minimum ambient with A/B defrost switching; write the switching procedure and consider a low outlet temperature alarm ahead of the TSLL trips.", owner: process engineer, status: proposed, by: agent}
   - {id: H04-A12, text: "Add outlet temperature indication with high alarm on E-4102 (GOX-4002) and E-4103 (GAN-4002), and consider a high-high trip of K-4101 on the aftercooler outlet.", owner: process engineer, status: proposed, by: agent}
-  - {id: H04-A13, text: "Obtain from the K-4101 / K-4102 suppliers their machine protection (vibration, axial position, surge detection, buffer and seal gas pressure, suction strainer) and enter its trips in control/cause-effect.yaml. One update of control/cause-effect.yaml and one LOPA / SIL session answer H01-A3, H01-A8, H02-A1, H02-A2, H03-A2, H03-A3, H04-A01, H04-A02 and H04-A13; this action names the functions of this sheet.", owner: mechanical engineer, status: proposed, by: agent}
-  - {id: H04-A14, text: "Decide the power supply of the backup system (emergency power for P-4101A/B, P-4102A/B and their controls) against the customer's continuity requirement, and confirm the fail positions of PV-4101B, PV-4105, PV-4109 .. PV-4112, UV-4103, XV-4116 .. XV-4118, XV-3105 and the K-4101 / K-4102 guide vanes (D-096), which the files do not state. One plant-wide fail-position list (P-01 .. P-04) answers H01-A6, H02-A6, H03-A1 and H04-A14; this action names the valves of this sheet.", owner: electrical and instrument engineer, status: proposed, by: agent}
+  - {id: H04-A13, text: "Obtain from the K-4101 / K-4102 suppliers their machine protection (vibration, axial position, surge detection, buffer and seal gas pressure, suction strainer) and enter its trips in control/cause-effect.yaml. One update of control/cause-effect.yaml and one LOPA / SIL session answer H01-A3, H01-A8, H02-A1, H02-A2, H03-A2, H03-A3, H04-A01, H04-A02 and H04-A13; this action names the functions of this sheet. Proposed answer, in part: D-111 enters the plant's own K-4101 trips; the vendors' machine protection comes with their data (#58).", owner: mechanical engineer, status: proposed, by: agent}
+  - {id: H04-A14, text: "Decide the power supply of the backup system (emergency power for P-4101A/B, P-4102A/B and their controls) against the customer's continuity requirement, and confirm the fail positions of PV-4101B, PV-4105, PV-4109 .. PV-4112, UV-4103, XV-4116 .. XV-4118, XV-3105 and the K-4101 / K-4102 guide vanes (D-096), which the files do not state. One plant-wide fail-position list (P-01 .. P-04) answers H01-A6, H02-A6, H03-A1 and H04-A14; this action names the valves of this sheet. Proposed answer, in part: D-109 (PV-4101B, PV-4105, PV-4109, PV-4110, UV-4103, XV-4116, XV-3105 open; PV-4111, PV-4112, XV-4117, XV-4118 and the K-4101 / K-4102 guide vanes closed), for the team. Open: the backup's power and instrument air (H04-S90, process-library#105).", owner: electrical and instrument engineer, status: proposed, by: agent}
   - {id: H04-A15, text: "Consider leak detection for GOX-4002 (flow balance FIC-4148 against FQI-4149, pressure decay) and the remote isolation it triggers. With pressure as master (D-096) the draw follows a leak (H04-S77): alarm when PIC-4102 runs on its FIC-4148 limit, or when the LOX backup starts while K-4101 runs. The same for GAN-4002 (H04-S86, the PIC-4105 / FIC-3107 cascade feeds a GAN leak): alarm when FIC-3107's set point sits on its clamp, or when the LIN backup starts while K-4102 runs, and consider a GAN flow balance or pressure decay test.", owner: process engineer, status: proposed, by: agent}
   - {id: H04-A16, text: "Analyse the O2 content of the GAN actually exported, including the backup GAN from T-4102 (GAN-4003 joins downstream of AIA-3105): an analyser at the GAN battery limit or on T-4102.", owner: process engineer, status: proposed, by: agent}
   - {id: H04-A17, text: "Give AI-3104 / AI-4115 a low purity alarm and agree the off-spec response with the customer.", owner: process engineer, status: proposed, by: agent}
   - {id: H04-A18, text: "Write the maintenance and entry procedures for oxygen and nitrogen equipment (tanks, pumps, vaporizers, BL stations): isolation, purge to air, atmosphere test, personal O2 monitors, and cleaning verification before an oxygen system goes back into service (D-009). One site procedure for positive isolation and entry into equipment that can hold N2 answers H01-A15, H02-A10, H03-A15 and H04-A18; this action names the equipment of this sheet.", owner: operations, status: proposed, by: agent}
   - {id: H04-A19, text: "Define spill containment and surfaces under the LOX / LIN tanks, pumps and fill bays (non-combustible under all LOX equipment, not only the fill coupling), and fixed oxygen-enrichment / oxygen-deficiency detection at the pumps and tanker bays.", owner: process engineer, status: proposed, by: agent}
   - {id: H04-A20, text: "Confirm that the PSV-3114 relief case covers a K-4101 trip with PV-4101B failing to open (the relief case review is H03-A20); limit the opening rate of PV-4111 on the backup auto-start (EIGA Doc 13) so the riser and tie-in are not pressurised fast.", owner: process engineer, status: proposed, by: agent}
-  - {id: H04-A22, text: "Give the K-4102 suction (PIC-4106) a low pressure alarm and a limit on the guide vane opening independent of the PIC-4105 / FIC-3107 cascade and its set-point clamp (D-096), or credit the LIC-3101 level alarms that H03-A8 proposes, once they exist.", owner: instrument and control engineer, status: proposed, by: agent}
+  - {id: H04-A22, text: "Give the K-4102 suction (PIC-4106) a low pressure alarm and a limit on the guide vane opening independent of the PIC-4105 / FIC-3107 cascade and its set-point clamp (D-096), or credit the LIC-3101 level alarms that H03-A8 proposes, once they exist. Proposed answer: D-111 (the screening LOPA finds no SIF needed: a column upset, asset 3; a PIC-4106 low-pressure alarm on its own transmitter and the D-110 air-ratio clamp; H04-S27, S84, S85), for the team.", owner: instrument and control engineer, status: proposed, by: agent}
   - {id: H04-A21, text: "Consider detection of GOX in the E-4101 / E-4102 cooling water return (gas detector or vent pot on CWR-4001) for a tube leak.", owner: process engineer, status: proposed, by: agent}
-  - {id: H04-A23, text: "Limit the GOX draw of K-4101 independently of the guide-vane low select UY-4151 (PIC-4102 with the limits FIC-4148 and PIC-4150, D-096, drawn D-101): a K-4101 suction or LP column low-pressure alarm on its own transmitter and a limit or trip on the guide-vane opening, so a wrong FT-4148 or PT-4150 reading, or a failed selector, output stage or vane positioner, cannot boil the LP sump down (H04-S02, H04-S75), nor a reduced make with the customer at the design rate (H04-S79, H04-S80; the ratio limit is H04-A28). FIC-4148 and PIC-4150 share the control system with PIC-4102 and are no independent layer (D-096). With H03-A4 (LICA-3102 low alarm set point and an independent low-low level), which the same LOPA session decides.", owner: instrument and control engineer, status: proposed, by: agent}
+  - {id: H04-A23, text: "Limit the GOX draw of K-4101 independently of the guide-vane low select UY-4151 (PIC-4102 with the limits FIC-4148 and PIC-4150, D-096, drawn D-101): a K-4101 suction or LP column low-pressure alarm on its own transmitter and a limit or trip on the guide-vane opening, so a wrong FT-4148 or PT-4150 reading, or a failed selector, output stage or vane positioner, cannot boil the LP sump down (H04-S02, H04-S75), nor a reduced make with the customer at the design rate (H04-S79, H04-S80; the ratio limit is H04-A28). FIC-4148 and PIC-4150 share the control system with PIC-4102 and are no independent layer (D-096). With H03-A4 (LICA-3102 low alarm set point and an independent low-low level), which the same LOPA session decides. Proposed answer: D-111 (the LP sump low-low I-14 on LSLL-3125 trips K-4101, SIL 2 by the screening LOPA; a PIC-4101 low-pressure alarm on PT-4101 apart from the selector), for the team.", owner: instrument and control engineer, status: proposed, by: agent}
   - {id: H04-A24, text: "Resolve the K-4101 arrangement: D-002, the equipment list and the K-4101 datasheet say fire-safe enclosure, D-026 (1) and D-030 (2) put the machine in the open behind the fire wall FW-4101. Record one arrangement, and with it an exclusion zone at the open east side with no one at the machine while it runs on oxygen (EIGA Doc 27 practice), so the people credit rests on the fire wall and the zone.", owner: process safety engineer, status: proposed, by: agent}
   - {id: H04-A26, text: "Decide whether the turndown vent through PV-4101B / VNT-4003 (H04-S76) is acceptable as a normal-operation oxygen release: the turndown range and how long it lasts, the vented rate, PIC-4101's set-point window against PIC-3110 (D-096), and the O2-enriched zone around VNT-4003 (zones owner, D-031); or reduce the GOX make at turndown so the vent stays for transients.", owner: process engineer, status: proposed, by: agent}
   - {id: H04-A27, text: "Define PIC-4150's restart handling (H04-S78): track or hold the limit while XV-4117 is shut, release it in the restart sequence once XV-4117 is open and the suction is equalised, ramp the guide vanes, and allow no manual override of the limit without an alarm and a time limit; with D-096's anti-windup and bumpless-transfer open point.", owner: instrument and control engineer, status: proposed, by: agent}
-  - {id: H04-A28, text: "Make the maximum draws follow the actual make (D-096 open point): the FIC-4148 GOX limit and the clamp on FIC-3107's cascade set point as ratios to the measured air flow (or the HP / LP column loads), so that a reduced make with the customer at the design rate cannot over-draw the columns (H04-S79, H04-S80, H04-S85); with H04-A23 and H04-A22 for the independent limits, and with H03-A4 for the LP sump level.", owner: instrument and control engineer, status: proposed, by: agent}
-  - {id: H04-A29, text: "Give the K-4101 discharge high-high trip its own transmitter, independent of PT-4102 (or a 2oo3 vote), and a deviation alarm between PT-4102 and it, so a PT-4102 reading low does not defeat both the pressure control and the trip (H04-S82) and a reading high is found before the GOX vents for hours (H04-S83); confirm PSV-4122's case for the guide vanes fully open at the FIC-4148 limit.", owner: instrument and control engineer, status: proposed, by: agent}
+  - {id: H04-A28, text: "Make the maximum draws follow the actual make (D-096 open point): the FIC-4148 GOX limit and the clamp on FIC-3107's cascade set point as ratios to the measured air flow (or the HP / LP column loads), so that a reduced make with the customer at the design rate cannot over-draw the columns (H04-S79, H04-S80, H04-S85); with H04-A23 and H04-A22 for the independent limits, and with H03-A4 for the LP sump level. Proposed answer: D-110 (0.1867 kg GOX and 0.1120 kg GAN per kg of air times the lower of the measured and the 5 min lagged FIC-1101 flow, capped at the design); a make that falls at a constant air flow is still not tracked (H04-S79, S80), for the team.", owner: instrument and control engineer, status: proposed, by: agent}
+  - {id: H04-A29, text: "Give the K-4101 discharge high-high trip its own transmitter, independent of PT-4102 (or a 2oo3 vote), and a deviation alarm between PT-4102 and it, so a PT-4102 reading low does not defeat both the pressure control and the trip (H04-S82) and a reading high is found before the GOX vents for hours (H04-S83); confirm PSV-4122's case for the guide vanes fully open at the FIC-4148 limit. Proposed answer, in part: D-111 (PSHH-4152 on its own transmitter, I-17 SIL 1; a PT-4102 / PT-4152 deviation alarm in the DCS); PSV-4122's case stays to confirm, for the team.", owner: instrument and control engineer, status: proposed, by: agent}
   - {id: H04-A25, text: "Give T-4101 and T-4102 a high-pressure alarm on a transmitter independent of PICA-4109 / PICA-4110, record the PICA alarm set points, and confirm PSV-4123 / PSV-4124 capacity for PV-4109 / PV-4110 failed closed and for a roll-over; consider a high-high pressure that stops the rundown and the tanker fill.", owner: instrument and control engineer, status: proposed, by: agent}
   - {id: H04-A30, text: "Specify the low select UY-4151 (D-101) for detail engineering: external reset feedback (anti-windup) to PIC-4102, FIC-4148 and PIC-4150 and bumpless transfer between them (H04-S89, the D-096 open point); its action on a bad-quality input or a block fault (drive the vanes to a defined safe position and alarm, never hold the last value or pass the highest, H04-S87, H04-S88); an alarm when a limit holds the vanes and a deviation alarm between the selector output and the vane position; and a function test of the selector in the FAT and before start-up. The selector is not a protection layer: the independent limit stays H04-A23.", owner: instrument and control engineer, status: proposed, by: agent}
   - {id: H04-A31, text: "Confirm the role of PV-4105 (D-105: an actuated valve the operator sets from the DCS, normally fully open, used only to hold back-pressure on the K-4102 discharge while the GAN header is pressurised at start-up), or remove it if detail engineering finds no need for it. If it stays: give it a position (open) indication and an alarm when it is not fully open with K-4102 running, put 'PV-4105 fully open' into the start-up line-up check before K-4102 exports (control/sequences.yaml), and consider retagging it HV-4105 with a hand station, since no pressure controller acts on it (H04-S24).", owner: instrument and control engineer, status: proposed, by: agent}

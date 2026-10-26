@@ -10,9 +10,13 @@ objectives:
 failures:
   - id: F-AIR
     title: Loss of instrument air
-    response: "Each valve goes to its fail position. Stated so far: LV-1114 and XV-1115 closed (the chimney-tray seal holds); UV-3120 and UV-4131 open (the anti-surge recycles); TV-3124 open, which keeps the trim but means I-04 cannot close it on air loss (H03-A12, D-077). Most control valves have no fail position yet (HAZOP actions H01-A6, H02-A6, H03-A1, H04-A14); for each the HAZOP has to show the plant reaches a safe state before the position is fixed."
-    loops: [LIC-1114, TICA-3124, UIC-3120, UIC-4131]
-    interlocks: [I-03, I-04]
+    response: "Every valve goes to its fail position (D-109), chosen as one set so the plant stops in a safe, isolated state: the MAC, the GOX and GAN compressors and the expander unload (guide vanes and nozzles to their minimum stop, XV-3117 closed) with their anti-surge and blow-off valves open (UV-1102, UV-3120, UV-4103, UV-4131); the cold box keeps its liquid (LV-3101, FV-3106, FV-3111 closed) and is never blocked in (PV-3110A/B and PV-4101B open); the DCAC cannot flood (TV-1105, FV-1108, LV-1106, LV-1107 closed; LV-1114 and XV-1115 closed hold the chimney-tray seal); the TSA switching valves hold their position and its step valves close; the K-4101 ESD valves close and its blowdown opens, the battery limits isolate and bleed (D-013), off-spec GAN diverts (XV-3105 open); the tank vents open and the backup valves close. TV-3124 stays open, which keeps the trim but means I-04 cannot close it on air loss (H03-A12, D-077). The customers go to the backup, which needs PV-4111 / PV-4112 to open, so the backup depends on instrument air as on power (H04-A14). The HAZOP team confirms the set (H01-A6, H02-A6, H03-A1, H04-A14)."
+    loops: [FIC-1101, UIC-1102, TIC-1105, LIC-1106, LIC-1107, FIC-1108, LIC-1114, FIC-2105, LIC-3101, FIC-3106, SIC-3108, PIC-3110, FIC-3111, PIC-3113, TICA-3124, UIC-3120, PIC-4102, PIC-4101, UIC-4103, FIC-3107, UIC-4131, PICA-4109, PICA-4110, PIC-4111, PIC-4112]
+    interlocks: [I-03, I-04, I-19]
+  - id: F-AIR-POWER-ON
+    title: Loss of instrument air with power on (stop first)
+    response: "The fail positions alone leave the drives running: K-4101 isolated on its recycle behind XV-4117 / XV-4118, the DCAC pumps against closed valves. So PSLL-1116 on the instrument air header stops the plant first (I-19): the MAC trip set, the compander, K-4101 and K-4102 (D-114). Air loss defeats every trip whose final element needs air to reach its trip state; the ones on fail-safe valves (I-03, I-11, I-12 on XV-3117, the K-4101 ESD valves of I-13, I-14, I-17) reach it anyway, I-04 does not (TV-3124 fails open, D-112), and I-15 / I-16 lose nothing because PV-4111 / PV-4112 fail closed."
+    interlocks: [I-19]
   - id: F-POWER
     title: Loss of electric power
     response: "The machines stop at once; the valves go to their fail positions and the C&E trips act. No operator sequence runs (SEQ-SHUTDOWN is the planned stop, not this). The backup supply needs power for its pumps: whether they have an emergency supply is open (H04-A14)."
@@ -34,9 +38,10 @@ failures:
     interlocks: [I-04]
   - id: F-GOXC
     title: GOX compressor trip
-    response: "PIC-4101 vents the GOX that K-4101 no longer takes through PV-4101B (D-019), while PIC-3110 keeps holding the LP column pressure (D-095). The trip puts PIC-4102, FIC-4148 and PIC-4150 to tracking (proposed: the control system forces them to manual on the machine's stop signal, so they do not wind up). The GOX header falls and the LOX backup starts (SEQ-BACKUP-GOX). Whether PV-3110A/B and PV-4101B together take the full GOX make is open (their sizing)."
+    response: "PIC-4101 vents the GOX that K-4101 no longer takes through PV-4101B (D-019), while PIC-3110 keeps holding the LP column pressure (D-095). The trip puts PIC-4102, FIC-4148 and PIC-4150 to tracking (proposed: the control system forces them to manual on the machine's stop signal, so they do not wind up). The GOX header falls and the LOX backup starts (SEQ-BACKUP-GOX). Whether PV-3110A/B and PV-4101B together take the full GOX make is open (their sizing, #64). The C&E trips that stop K-4101 are I-13 (fire), I-14 (LP sump low-low, which also stops the air), I-17 (discharge high-high) and I-19 (instrument air); after an I-14 trip the operator finds the over-draw's cause, restores the LP sump level with the purge still on (D-010) and restarts the MAC first (SEQ-MAC-START)."
     loops: [PIC-4101, PIC-3110, PIC-4102, FIC-4148, PIC-4150, PIC-4111]
     sequences: [SEQ-BACKUP-GOX]
+    interlocks: [I-13, I-14, I-17]
   - id: F-GANC
     title: GAN compressor trip
     response: "K-4102 stops; GAN from the HP column top backs up and the HP column pressure rises, so the column's balance changes and the LP column purity is upset. The trip puts PIC-4105 and FIC-3107 to tracking (proposed, as F-GOXC). The GAN header falls and the LIN backup starts (SEQ-BACKUP-GAN). Where the GAN goes while K-4102 stands (the off-spec vent XV-3105 / VNT-4004, or back through the main exchanger) is open."
@@ -44,25 +49,23 @@ failures:
     sequences: [SEQ-BACKUP-GAN]
   - id: F-TSA
     title: TSA breakthrough (CO2 at the adsorber outlet)
-    response: "AIA-2102 alarms at 1 ppm CO2 (ASSUMED). The intended answer to high-high (an early bed switch, or stopping the air to the cold box, D-006, D-010) is not yet a C&E interlock (H02-A1); until it is, it is an operator action on the alarm."
+    response: "AIA-2102 alarms at 1 ppm CO2 (ASSUMED): the operator switches the beds early if the other bed is regenerated (D-010). At high-high (2 ppm, ASSUMED) I-07 trips the MAC and stops the air to the cold box (D-111)."
     loops: [TIC-2104, FIC-2105]
     sequences: [SEQ-TSA]
+    interlocks: [I-07]
   - id: F-HC
     title: Hydrocarbons rising in the LP sump
     response: "AIA-3103 alarms; keep the LOX purge flowing (FIC-3111), keep E-3103 submerged (LICA-3102), find the source (TSA, intake). The action limits and what they trip are open (EIGA Doc 65, ASSUMED)."
     loops: [FIC-3111, LICA-3102]
   - id: F-LEVEL
     title: Low-low level in a product tank
-    response: The pumps trip and the tank outlet closes (I-01, I-02); the backup stops.
+    response: The pumps trip and the tank outlet closes (I-01, I-02); the backup stops. A vaporizer outlet too cold stops the pumps and closes the backup valve (I-15, I-16).
     sequences: [SEQ-BACKUP-GOX, SEQ-BACKUP-GAN]
-    interlocks: [I-01, I-02]
+    interlocks: [I-01, I-02, I-15, I-16]
 unresolved:
-  - the fail positions of most control valves and of the machines' guide vanes (vendors, HAZOP)
-  - the independent limit on the GOX draw (H04-A23) and the LP sump low-low (H03-A4)
-  - the trips named in the instrument list but not yet in the cause-and-effect list (H04-A01, H02-A1, H02-A2)
-  - a loop for the liquid production (H03-A7), which the chilled-water and compander failures rely on
-  - whether the backup pumps have an emergency power supply (H04-A14)
-  - the hydrocarbon action limits of AIA-3103 and AIA-4121 and what they trip
+  - a loop for the liquid production (H03-A7), which the chilled-water and compander failures rely on (#62)
+  - whether the backup pumps have an emergency power supply and the backup valves instrument air (H04-A14) (#105)
+  - the hydrocarbon action limits of AIA-3103 and AIA-4121 and what they trip (#104)
 ---
 
 # Control philosophy: ASU-1
@@ -163,24 +166,26 @@ The front matter lists the failures and their designed responses, by id:
 - **F-HC:** hydrocarbons in the sump.
 - **F-LEVEL:** tank low-low level.
 
-For instrument air, the fail position of each valve is the design decision still to be made for
-most of them. The rule proposed here: a valve fails to the position that keeps the process
-safe for the next hour without the operator, as LV-1114 (closed) does. TV-3124 (open) keeps the
-trim but defeats I-04 on air loss (H03-A12), so it is not an example to follow without that
-check.
+For instrument air, every final element has its fail position (D-109). The rule: a valve fails
+to the position that keeps the process safe for the next hour without the operator, as LV-1114
+(closed) does, and because air loss hits all valves at once, the positions are chosen as one
+set. TV-3124 (open) keeps the trim but defeats I-04 on air loss (H03-A12), so it is not an
+example to follow without that check.
 
 ## Assumptions and open points
 
-- The fail positions of most control valves and of the machines' guide vanes are open; the
-  register records each one as unresolved, with the HAZOP action that decides it.
+- The fail positions are proposed for every final element (D-109), for the HAZOP team to confirm
+  (H01-A6, H02-A6, H03-A1, H04-A14); the machine vendors confirm the guide-vane and nozzle
+  actuators. The P&IDs draw the fail action only where the actuating system is drawn.
 - The two control conflicts found in the control review (the LP column pressure and the GOX
   draw; the GAN flow) are decided in D-095 and D-096: pressure as master, flow as limit. Open:
-  the independent limits (H04-A22, H04-A23), the confirmation of PV-4105 as an operator-set
-  start-up valve (D-105, H04-A31), the anti-surge flow
-  measurement of K-4101, and the maximum GOX draw as a ratio to the air flow.
+  the confirmation of PV-4105 as an operator-set start-up valve (D-105, H04-A31) and the
+  anti-surge flow measurement of K-4101. The maximum GOX draw and the GAN clamp follow the air
+  flow as ratios, and the load range is 70 to 100 % at 0.5 %/min (D-110, ASSUMED).
 - The liquid production has no handle yet (H03-A7).
-- Trips named in the instrument list are not yet in the cause-and-effect list (H04-A01, H02-A1,
-  H02-A2). The sequences refer to them by tag until they are added.
+- The trips are in the cause-and-effect list with their SIL from one screening LOPA (I-05 ..
+  I-18, D-111), for the team's LOPA / SIL session to confirm; the independent limit on the GOX
+  draw is the LP sump low-low I-14. The machine vendors' own trips come with their data.
 - The step times, cool-down rates and machine start-up steps are the suppliers'. The times in
   the sequences are placeholders.
 - The hydrocarbon action limits are ASSUMED per EIGA Doc 65 until the analyzer and process
