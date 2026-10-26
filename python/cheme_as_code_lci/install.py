@@ -174,6 +174,54 @@ def _link_by_uuid(bd, importer, bio: str, report: InstallReport) -> None:
                 report.biosphere_by_uuid += 1
 
 
+def _check_background(bd, background: str, biosphere: str | None, expect: dict[str, str] | None) -> str:
+    """Check *background* against *expect*; return the biosphere database's name."""
+    if background not in bd.databases:
+        raise ValueError(f"no background database {background!r} in project {bd.projects.current!r}")
+    bio = _biosphere(bd, biosphere)
+    meta = bd.databases[background]
+    for key, want in (expect or {}).items():
+        if key not in IDENTITY:
+            raise ValueError(f"expect: unknown key {key!r} (one of {', '.join(IDENTITY)})")
+        found = str(meta.get(key) or "")
+        if want and found != want:
+            raise ValueError(
+                f"background {background!r} records {key} {found or '(none)'!r}, expected {want!r}; "
+                f"import that database, or, when it is that one, record it: "
+                f"bd.databases[{background!r}][{key!r}] = {want!r}; bd.databases.flush()"
+            )
+    return bio
+
+
+def _link_external(bd, importer, background: str, bio: str, report: InstallReport) -> None:
+    """Link the biosphere (UUID first, then name, categories, unit) and the background (name,
+    reference product, unit, location); flip the sign of a link to a treatment activity; count
+    and list what stays unlinked."""
+    _link_by_uuid(bd, importer, bio, report)
+    importer.match_database(bio, fields=BIOSPHERE_FIELDS, edge_kinds=["biosphere"])
+    importer.match_database(background, fields=TECHNOSPHERE_FIELDS, edge_kinds=["technosphere"])
+
+    for ds in importer.data:
+        report.activities += 1
+        for exc in ds["exchanges"]:
+            report.exchanges += 1
+            if exc.get("type") == "biosphere" and exc.get("input"):
+                report.biosphere_by_name += 1
+            if not exc.get("input"):
+                report.unlinked.append(
+                    {k: exc.get(k) for k in ("name", "type", "unit", "location", "reference product", "categories", "atlas key")}
+                    | {"activity": _label(ds)}
+                )
+            elif exc["type"] == "technosphere" and exc["input"][0] == background:
+                node = bd.get_node(database=exc["input"][0], code=exc["input"][1])
+                if sum(e["amount"] for e in node.production()) < 0:
+                    exc["amount"] = -exc["amount"]
+                    if exc.get("uncertainty type") == 2:
+                        exc["negative"] = exc["amount"] < 0
+                    report.sign_flipped.append(f"{_label(ds)}: {exc['name']}")
+    report.biosphere_by_name -= report.biosphere_by_uuid  # counted above: every linked biosphere exchange
+
+
 def _label(ds: dict) -> str:
     return f"{ds.get('name')} | {ds.get('reference product', '')}"
 
@@ -203,20 +251,7 @@ def install(
     from bw2io.strategies import link_iterable_by_fields
 
     path = resolve(path_or_version)
-    if background not in bd.databases:
-        raise ValueError(f"no background database {background!r} in project {bd.projects.current!r}")
-    bio = _biosphere(bd, biosphere)
-    meta = bd.databases[background]
-    for key, want in (expect or {}).items():
-        if key not in IDENTITY:
-            raise ValueError(f"expect: unknown key {key!r} (one of {', '.join(IDENTITY)})")
-        found = str(meta.get(key) or "")
-        if want and found != want:
-            raise ValueError(
-                f"background {background!r} records {key} {found or '(none)'!r}, expected {want!r}; "
-                f"import that database, or, when it is that one, record it: "
-                f"bd.databases[{background!r}][{key!r}] = {want!r}; bd.databases.flush()"
-            )
+    bio = _check_background(bd, background, biosphere, expect)
 
     importer = bi.ExcelImporter(str(path))
     name = importer.db_name
@@ -246,29 +281,7 @@ def install(
         s for s in importer.strategies if not (isinstance(s, functools.partial) and s.func is link_iterable_by_fields)
     ]
     importer.apply_strategies()
-    _link_by_uuid(bd, importer, bio, report)
-    importer.match_database(bio, fields=BIOSPHERE_FIELDS, edge_kinds=["biosphere"])
-    importer.match_database(background, fields=TECHNOSPHERE_FIELDS, edge_kinds=["technosphere"])
-
-    for ds in importer.data:
-        report.activities += 1
-        for exc in ds["exchanges"]:
-            report.exchanges += 1
-            if exc.get("type") == "biosphere" and exc.get("input"):
-                report.biosphere_by_name += 1
-            if not exc.get("input"):
-                report.unlinked.append(
-                    {k: exc.get(k) for k in ("name", "type", "unit", "location", "reference product", "categories", "atlas key")}
-                    | {"activity": _label(ds)}
-                )
-            elif exc["type"] == "technosphere" and exc["input"][0] == background:
-                node = bd.get_node(database=exc["input"][0], code=exc["input"][1])
-                if sum(e["amount"] for e in node.production()) < 0:
-                    exc["amount"] = -exc["amount"]
-                    if exc.get("uncertainty type") == 2:
-                        exc["negative"] = exc["amount"] < 0
-                    report.sign_flipped.append(f"{_label(ds)}: {exc['name']}")
-    report.biosphere_by_name -= report.biosphere_by_uuid  # counted above: every linked biosphere exchange
+    _link_external(bd, importer, background, bio, report)
     if report.unlinked:
         return report
 

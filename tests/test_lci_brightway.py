@@ -304,3 +304,84 @@ def test_install_links_flows_by_uuid_writes_pedigree_and_reports_the_system_mode
     }
     assert flows[0]["uncertainty type"] == 2
     assert node["atlas superseded by"].endswith(":fixture-electrolysis-2:product:H2")
+
+
+# --- unallocated multi-output datasets (multifunctional, process-library#51) --------------------
+
+
+def _multifunctional():
+    if os.environ.get("ATLAS_REQUIRE_BRIGHTWAY"):
+        import multifunctional
+
+        return multifunctional
+    return pytest.importorskip("multifunctional")
+
+
+def test_multifunctional_allocated_by_the_build_method_gives_the_workbook_activities(project, tmp_path: Path) -> None:
+    """The fixture library: the electrolyser's H2 and O2 (mass allocation), the ammonia process
+    that takes the Atlas H2, a treatment link. Allocating the multi-output datasets with each
+    process's default strategy (the build's) gives the workbook's activities, code for code."""
+    _multifunctional()
+    from cheme_as_code_lci import install_multifunctional
+
+    out = tmp_path / "out"
+    assert build_lci.build(FIXTURES / "library", out, "mf").errors == []
+    _stub_background("stub-mf", project, FIXTURE_STUB)
+    for name in ("cheme-as-code-atlas-mf", "cheme-as-code-atlas-mf-multifunctional"):
+        _drop(name)
+    assert install(out / "lci", background="stub-mf").ok
+
+    report = install_multifunctional(out / "lci", background="stub-mf")
+    assert report.ok, report.summary()
+    assert len(report.sign_flipped) == 1  # the electrolyser's wastewater, once (not per co-product)
+    assert len(report.atlas_links) == 1 and "Hydrogen at 30 bar" in report.atlas_links[0]
+    mf_db = "cheme-as-code-atlas-mf-multifunctional"
+    parent = bd.get_node(database=mf_db, code="fixture-electrolysis:fixture-electrolysis")
+    assert parent["type"] == "multifunctional" and parent["default_allocation"] == "mass"
+    for code in ("fixture-electrolysis:fixture-electrolysis:product:H2", "fixture-electrolysis:fixture-electrolysis:product:O2", "fixture-ammonia:fixture-ammonia-hb:product:ammonia"):
+        expected = _score(code, "cheme-as-code-atlas-mf")
+        assert expected > 0 and _score(code, mf_db) == pytest.approx(expected, rel=1e-6), code
+    allocated = bd.get_node(database=mf_db, code="fixture-electrolysis:fixture-electrolysis:product:H2")
+    assert allocated["type"] == "readonly_process" and allocated["mf_parent_key"] == parent.key
+
+
+def test_multifunctional_asu_reallocates_by_another_property(project, tmp_path: Path) -> None:
+    """ASU-1: exergy (the build's method) reproduces the workbook; mass, a property the export
+    attaches too, gives other shares and conserves the unallocated total."""
+    _multifunctional()
+    from cheme_as_code_lci import install_multifunctional
+
+    library = _asu_library(tmp_path)
+    out = tmp_path / "out"
+    assert build_lci.build(library, out, "mfasu").errors == []
+    mappings = build_lci.load_mappings(KIT / "lci" / "mappings.yaml")
+    stub = {}
+    for entry in mappings["technosphere"].values():
+        if "activity" in entry:
+            a = entry["activity"]
+            stub[(a["name"], a["reference_product"], a["unit"], "FR" if a["location"] == "site" else a["location"])] = (1.0, 1)
+    _stub_background("stub-mf-asu", project, stub)
+    for name in ("cheme-as-code-atlas-mfasu", "cheme-as-code-atlas-mfasu-multifunctional"):
+        _drop(name)
+    assert install(out / "lci", background="stub-mf-asu", location="FR").ok
+    report = install_multifunctional(out / "lci", background="stub-mf-asu", location="FR")
+    assert report.ok, report.summary()
+
+    mf_db = "cheme-as-code-atlas-mfasu-multifunctional"
+    dataset = yaml.safe_load((ASU / "dataset.yaml").read_text())
+    amounts = {e["key"]: e["amount"] for e in dataset["exchanges"] if e["type"] == "product"}
+    codes = {k: f"asu-1:asu-1-500-t-d-gox:{k}" for k in amounts}
+    for key, code in codes.items():
+        expected = _score(code, "cheme-as-code-atlas-mfasu")
+        assert expected > 0 and _score(code, mf_db) == pytest.approx(expected, rel=1e-6), key
+    exergy_total = sum(_score(code, mf_db, amounts[k]) for k, code in codes.items())
+
+    parent = bd.get_node(database=mf_db, code="asu-1:asu-1-500-t-d-gox")
+    assert parent["default_allocation"] == "exergy"
+    parent["default_allocation"] = "mass"
+    parent.save()
+    bd.Database(mf_db).process()
+    per_hour = {k: _score(code, mf_db, amounts[k]) for k, code in codes.items()}
+    assert sum(per_hour.values()) == pytest.approx(exergy_total, rel=1e-6)
+    assert per_hour["product:GOXP"] / sum(per_hour.values()) == pytest.approx(amounts["product:GOXP"] / sum(amounts.values()), rel=1e-6)
+    assert _score(codes["product:GOXP"], mf_db) != pytest.approx(_score(codes["product:GOXP"], "cheme-as-code-atlas-mfasu"), rel=1e-3)

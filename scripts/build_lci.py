@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.12"
-# dependencies = ["pyyaml>=6", "jsonschema>=4.23", "openpyxl>=3.1"]
+# dependencies = ["pyyaml>=6", "jsonschema>=4.23", "openpyxl>=3.1", "olca-schema==2.6.2"]
 # ///
 """Build the Atlas LCI export: a Brightway foreground database from a process library.
 
@@ -101,6 +101,7 @@ from jsonschema import Draft202012Validator
 from openpyxl import Workbook
 
 import benchmarks as bm
+import export_formats
 import registry as reg
 from publication import is_public
 
@@ -1026,13 +1027,14 @@ def _state_text(state: dict | None) -> str:
     return ", ".join(parts)
 
 
-def _product_rows(process: Process, dataset: Dataset, products: reg.Registry) -> list[dict]:
-    """One row per allocated product. Its reference product is the registry grade's name when
-    the flow has a grade, else the substance's name with the exchange title."""
+def _product_rows(process: Process, dataset: Dataset, products: reg.Registry, all_products: bool = False) -> list[dict]:
+    """One row per allocated product (with *all_products*, also those with a share of 0, for the
+    multi-output formats). Its reference product is the registry grade's name when the flow has
+    a grade, else the substance's name with the exchange title."""
     rows = []
     location = dataset.data.get("location") or "GLO"
     for exchange in dataset.data["exchanges"]:
-        if exchange["type"] != "product" or dataset.shares.get(exchange["key"], 0.0) <= 0:
+        if exchange["type"] != "product" or (dataset.shares.get(exchange["key"], 0.0) <= 0 and not all_products):
             continue
         chemical = process.chemicals.get(exchange["key"])
         grade = process.grades.get(exchange["key"])
@@ -1168,7 +1170,7 @@ def _comment(process: Process, dataset: Dataset, row: dict, skipped: list[str], 
         f"System model: {SYSTEM_MODELS[model]} ({METHODOLOGY_DOCUMENT}, methodology {METHODOLOGY_VERSION})."
         + ("" if model == "cutoff" else " A labelled variant, not the default cut-off database: it contains avoided-burden credits."),
         f"1 {row['unit']} of {row['reference product']}, from the unallocated LCI dataset {dataset.data['id']} ({dataset.path}, basis {dataset.data.get('basis', '1 h of operation')}).",
-        f"Allocation: {method}, {ALLOCATION_SOURCES[dataset.allocation_source]}; hierarchy rule {dataset.rule}: {dataset.reason}; shares {share_text}. One single-output activity per co-product; the multi-output form is not exported.",
+        f"Allocation: {method}, {ALLOCATION_SOURCES[dataset.allocation_source]}; hierarchy rule {dataset.rule}: {dataset.reason}; shares {share_text}. One single-output activity per co-product; the multi-output form is in the openLCA JSON-LD and Brightway multifunctional files of the build.",
         "Construction, maintenance, transport and end of life are technosphere inputs per unit of product, spread over the plant's life as in the dataset.",
         "Technosphere amounts are quantities of the linked reference product (a treatment activity is linked with the sign flipped by the installer).",
     ]
@@ -1259,7 +1261,8 @@ def build_activities(processes: list[Process], mappings: dict, products: reg.Reg
                     if entry not in excluded_log:
                         excluded_log.append(entry)
                     continue
-                amount = _number(float(exchange["amount"]) * per_unit * (target.pop("amount factor", 1.0) if kind == "biosphere" else 1.0))
+                unallocated = float(exchange["amount"]) * (target.pop("amount factor", 1.0) if kind == "biosphere" else 1.0)
+                amount = _number(unallocated * per_unit)
                 if model == "cutoff" and kind == "technosphere" and amount < 0:
                     refusal = (
                         f"{dataset.path} {exchange['key']}: negative technosphere amount: an avoided burden (credit), which a "
@@ -1269,6 +1272,7 @@ def build_activities(processes: list[Process], mappings: dict, products: reg.Reg
                         report.errors.append(refusal)
                     continue
                 entry = {"amount": amount, "type": kind, "atlas key": exchange["key"], **target}
+                entry["_unallocated"] = _number(unallocated)  # per basis, for the multi-output formats (not a workbook column)
                 if kind == "biosphere":
                     entry["categories"] = "::".join(target["categories"])
                 else:
@@ -1337,6 +1341,75 @@ def build_activities(processes: list[Process], mappings: dict, products: reg.Reg
 
     by_process = {pid: [r for _, r in rows] for pid, rows in rows_by_process.items()}
     return activities, proxies, by_process
+
+
+def multi_output_datasets(processes: list[Process], activities: list[Activity], products: reg.Registry) -> list[dict]:
+    """The unallocated multi-output form of every exported dataset, for the writers of
+    ``export_formats.py``: plain data from the same linking as the workbook (no second source of
+    truth). Per dataset: its products (every product, a share of 0 included, with the allocation
+    properties the dataset or study states: mass for a product in kg, exergy, energy, price) and
+    its other exchanges with their amounts per basis (``_unallocated``), linked as in the
+    workbook's activities."""
+    by_dataset: dict[tuple[str, str], list[Activity]] = {}
+    for activity in activities:
+        by_dataset.setdefault((activity.metadata["atlas process"], activity.metadata["atlas dataset"]), []).append(activity)
+    found = []
+    for process in processes:
+        for dataset in process.datasets:
+            allocated = by_dataset.get((process.pid, dataset.data["id"]))
+            if not allocated:
+                continue
+            first = allocated[0]
+            items = []
+            for row in _product_rows(process, dataset, products, all_products=True):
+                exchange = next(e for e in dataset.data["exchanges"] if e["key"] == row["key"])
+                given = _properties(exchange, dataset.allocation)
+                properties = {"mass": 1.0} if exchange["unit"] == "kg" else {}
+                properties.update({k: float(v) for k, v in given.items() if v is not None})
+                items.append(
+                    {
+                        **{k: row[k] for k in ("code", "name", "reference product", "unit", "location", "key", "amount", "chemical", "grade", "state")},
+                        "share": dataset.shares.get(row["key"], 0.0),
+                        "properties": properties,
+                        "properties_source": " ".join(str((exchange.get("properties") or {}).get("source") or "").split()),
+                    }
+                )
+            exchanges = []
+            for entry in first.exchanges[1:]:
+                amount = entry["_unallocated"]
+                # the lognormal of the amount per basis: the same spread, its own location
+                moved = {k: v for k, v in entry.items() if k not in ("_unallocated", "loc", "negative")}
+                moved["amount"] = amount
+                if entry.get("uncertainty type") == 2 and amount != 0:
+                    moved["loc"] = _number(math.log(abs(amount)))
+                    if amount < 0:
+                        moved["negative"] = True
+                exchanges.append(moved)
+            notes = [line for line in first.comment.splitlines() if line.startswith(("Not exported:", "Excluded by the cut-off", "DEPRECATED:"))]
+            version, _ = _dataset_version(dataset)
+            found.append(
+                {
+                    "code": f"{process.pid}:{dataset.data['id']}",
+                    "process": process.pid,
+                    "dataset": dataset.data["id"],
+                    "path": dataset.path,
+                    "uuid": dataset.data.get("uuid"),
+                    "name": first.row["name"],
+                    "title": process.manifest.get("title", process.pid),
+                    "maturity": process.manifest.get("maturity", ""),
+                    "location": first.row["location"],
+                    "basis": dataset.data.get("basis", "1 h of operation"),
+                    "version": version,
+                    "valid_until": dataset.data.get("valid_until"),
+                    "technology": dataset.data.get("technology"),
+                    "description": dataset.data.get("description"),
+                    "allocation": {"method": dataset.allocation.get("method", "mass"), "rule": dataset.rule, "reason": dataset.reason, "source": dataset.allocation_source},
+                    "products": items,
+                    "exchanges": exchanges,
+                    "notes": notes,
+                }
+            )
+    return found
 
 
 # --- workbook --------------------------------------------------------------------------------
@@ -1746,6 +1819,16 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
         "atlas methodology version": METHODOLOGY_VERSION,
     }
     write_workbook(lci / xlsx_name, db_name, database_meta, activities, proxies, about)
+    # the other exchange formats (process-library#51): written from the same activities
+    try:
+        formats = export_formats.write_formats(
+            lci, db_name, multi_output_datasets(processes, activities, products), activities, proxies, model, model == mappings["system_model"],
+            mappings["default_site_location"], database_meta, about[:1] + about[3:5], list(CAVEATS),
+        )
+    except export_formats.FormatError as failure:
+        report.errors.append(str(failure))
+        return report
+    workbook_format = {"name": xlsx_name, "format": "bw2io ExcelImporter workbook", "format_version": "bw2io 0.9 Excel layout", "mediatype": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}
 
     def activity_list(rows: list[dict]) -> list[dict]:
         return [{"code": r["code"], "name": r["name"], "reference_product": r["reference product"], "unit": r["unit"], "location": r["location"], **({"chemical": r["chemical"], "grade": r["grade"]} if "chemical" in r else {}), **({"state": r["state"]} if r.get("state") else {}), **({"superseded_by": r["superseded_by"]} if r.get("superseded_by") else {})} for r in rows]
@@ -1789,7 +1872,7 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
         "format": "bw2io ExcelImporter workbook",
         "library": {"commit": commit, "dirty": dirty},
         "brightway": {"database": db_name, "default_background": DEFAULT_BACKGROUND, "default_biosphere": DEFAULT_BIOSPHERE, "default_site_location": mappings["default_site_location"]},
-        "resources": [{"path": xlsx_name, "mediatype": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}],
+        "resources": [{"path": f["name"], **{k: v for k, v in f.items() if k != "name"}} for f in (workbook_format, *formats)],
         "processes": process_entries,
         "proxies": activity_list([p.row for p in proxies]),
         "caveats": [*CAVEATS, *variant_caveats],
@@ -1807,6 +1890,9 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
         (lci / "CHANGES.md").write_text(changes_markdown(changes), encoding="utf-8")
         reports = ["changes.json", "CHANGES.md"]
 
+    file_formats = {f["name"]: {k: v for k, v in f.items() if k in ("format", "format_version")} for f in (workbook_format, *formats)}
+    file_formats["datapackage.json"] = {"format": "Atlas LCI datapackage", "format_version": DATAPACKAGE_SCHEMA}
+    file_formats.update({name: {"format": "Atlas LCI change report", "format_version": CHANGES_SCHEMA} for name in reports})
     caveats = [*CAVEATS, *variant_caveats]
     for entry in process_entries:
         if entry["factors_status"] == "placeholder":
@@ -1817,8 +1903,8 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
         "database": db_name,
         "library_commit": commit,
         "files": [
-            {"name": name, "path": f"lci/{name}", "bytes": (lci / name).stat().st_size, "sha256": _sha256(lci / name)}
-            for name in (xlsx_name, "datapackage.json", *reports)
+            {"name": name, "path": f"lci/{name}", "bytes": (lci / name).stat().st_size, "sha256": _sha256(lci / name), **file_formats.get(name, {})}
+            for name in (xlsx_name, *(f["name"] for f in formats), "datapackage.json", *reports)
         ],
         "system_model": model,
         "methodology_version": METHODOLOGY_VERSION,
