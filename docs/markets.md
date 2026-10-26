@@ -157,8 +157,10 @@ comparisons (for example cryogenic versus PSA oxygen) without changing the regio
 What is behind the numbers:
 
 - **Distances.** No open source with the delivery distance of merchant liquid oxygen or
-  nitrogen in Europe was found. 100 km is the generic road distance for chemicals in ecoinvent
-  v2's standard transport assumptions (Frischknecht et al. 2007), used as a placeholder. The
+  nitrogen in Europe was found, so 100 km is an ASSUMED round screening placeholder. TODO
+  (unverified, not a citation): check whether the standard transport distances of ecoinvent v2
+  (Frischknecht et al. 2007, ecoinvent report No. 1) give 100 km by road for chemicals, or replace
+  the value with a cited distance. The
   background's lorry carries its average load factor, which covers the tanker's empty return; it
   has no cryogenic tanker activity.
 - **Losses.** No open source with a boil-off or transfer loss per delivery was found. The values
@@ -177,9 +179,11 @@ A utility market (steam, cooling water) follows when the utility processes exist
 
 ## References
 
-- Frischknecht, R., Jungbluth, N., et al. (2007). *Overview and Methodology*. ecoinvent report
-  No. 1, Swiss Centre for Life Cycle Inventories, Dübendorf (standard transport distances).
 - Weidema, B. P., et al. (2013). *Overview and methodology. Data quality guideline for the
   ecoinvent database version 3*. ecoinvent report 1 (v3) (market activities and their layers).
 - Carbon Minds GmbH, *cm.chemicals database methodology*, version 2.03, 2026 (layered model:
   plant, integrated site, national mixes; cited for its approach only, no content reproduced).
+
+To check (not cited): Frischknecht, R., Jungbluth, N., et al. (2007). *Overview and Methodology*.
+ecoinvent report No. 1, Swiss Centre for Life Cycle Inventories, Dübendorf, for its standard
+transport distances (see Distances above).
