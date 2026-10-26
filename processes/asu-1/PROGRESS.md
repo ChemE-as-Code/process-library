@@ -4,6 +4,7 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-10-26 | DESIGN.md D-109 | Assumed site cooling configuration recorded (recirculating cooling water, mechanical-draught evaporative tower, 25/35 C); the site tower make-up assigned to the #45 cooling-tower dataset (TODO); the C-1102 make-up via CW-1003 (563 kg/h, calculated, D-103) declared an open inventory gap (not in the flowsheet) | process-library#77 |
 | 2026-10-25 | reviews/2026-10-25-layout-review27.md | Independent agent layout review 27 of stage/basic-close-open at a6130d6 (content of 41904e7): model, lifting study and cable schedule current; D-108 feeder currents recomputed, tray fill below 0.3, tray-span acceptances checked against the model; one low accepted | replaces the stale layout-review26 for the layout-review gate |
 | 2026-10-25 | reviews/2026-10-25-hazop-review5.md | Independent agent review 5 of the HAZOP (H-01 .. H-04, SESSION.md) at 41904e7: all draft, 0 errors, 0 warnings, no hazop-input-changed, every entry proposed by agent; no new finding | review of branch stage/basic-close-open (D-102, D-106) |
 | 2026-10-25 | reviews/2026-10-25-pid-review1.md | Independent agent P&ID review 1 of P-04 at 41904e7 (UY-4151 low select, GAN cascade, D-101 / D-105): crops read, 4 line-crossings all accepted, no new finding that needs a fix (one low accepted) | review of branch stage/basic-close-open |
