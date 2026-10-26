@@ -568,6 +568,32 @@ def test_a_stale_run_manifest_withholds(library: Path, tmp_path: Path) -> None:
 
 
 
+def test_results_written_by_another_run_withhold(library: Path) -> None:
+    import hashlib
+
+    from publication import lca_withheld
+
+    folder = library / "processes" / "fixture-electrolysis"
+    _edit(library, "processes/fixture-electrolysis/lca/factors.yaml", lambda f: f.pop("example"))
+    _run_manifest(library, "fixture-electrolysis")
+    path = folder / "lca" / "manifest.json"
+    run = json.loads(path.read_text())
+    csv_path = folder / "lca" / "results.csv"
+    csv_path.write_text("category,total\ngwp,1\n")
+    run["results"] = "sha256:" + hashlib.sha256(csv_path.read_bytes()).hexdigest()
+    path.write_text(json.dumps(run))
+    assert lca_withheld(folder) is None
+    csv_path.write_bytes(b"category,total\r\ngwp,1\r\n")  # another checkout's line endings
+    assert lca_withheld(folder) is None
+    csv_path.write_text("category,total\ngwp,0.1\n")  # written by another run
+    assert lca_withheld(folder) == "stale-run-manifest"
+    csv_path.unlink()
+    assert lca_withheld(folder) == "stale-run-manifest"
+    run.pop("results")  # a manifest of an older core is not checked
+    path.write_text(json.dumps(run))
+    assert lca_withheld(folder) is None
+
+
 def test_data_sources_carry_the_attribution(library: Path, tmp_path: Path) -> None:
     _edit(library, "processes/fixture-electrolysis/lca/factors.yaml", lambda f: f.pop("example"))
     _run_manifest(library, "fixture-electrolysis")
