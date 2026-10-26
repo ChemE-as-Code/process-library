@@ -31,7 +31,7 @@ loops:
     rationale: The air flow is the master of the whole plant; the columns follow it. The GOX demand sets it (operator set point at basic engineering; a GOX-header cascade is for detail engineering).
     operator: "Sets the target load between 70 and 100 % of the design air flow; a ramp generator moves the set point at no more than 0.5 % of the design flow per minute (D-110, ASSUMED). The air flow is not slaved to PIC-4102: pipeline transients are taken by the pipeline pack and the backup (D-110)."
     unresolved:
-      - the K-1101 guide-vane actuator and its minimum stop, which the closed fail position of D-109 assumes (MAC vendor)
+      - the K-1101 guide-vane actuator and its minimum stop, which the closed fail position of D-109 assumes (MAC vendor) (#58)
   - id: PIC-1103
     title: MAC discharge pressure (override)
     purpose: Keep the MAC discharge within its limit while the flow controller loads the machine.
@@ -44,14 +44,14 @@ loops:
     final_elements:
       - {tag: K-1101, kind: drive, fail: closed}
     targets:
-      - {kind: high, unresolved: "the override limit, above the normal discharge pressure (S2 6.02 bara at the DN700 bound, D-079 / D-089) by the MAC vendor's margin"}
+      - {kind: high, unresolved: "the override limit, above the normal discharge pressure (S2 6.02 bara at the DN700 bound, D-079 / D-089) by the MAC vendor's margin (#58)"}
     modes: [manual, auto]
     normal_mode: auto
     links:
       - {type: override, loop: FIC-1101, select: low}
     rationale: An override, not a second set point; it acts only when the discharge pressure reaches its limit, which must lie above the normal operating pressure.
     unresolved:
-      - the override limit and margin (MAC vendor)
+      - the override limit and margin (MAC vendor) (#58)
   - id: UIC-1102
     title: MAC anti-surge
     purpose: Keep K-1101 out of surge at start-up, turndown and trips by blowing off to S-1101.
@@ -62,12 +62,12 @@ loops:
     final_elements:
       - {tag: UV-1102, kind: valve, fail: open}
     targets:
-      - {kind: setpoint, unresolved: the surge control line of the MAC vendor package}
+      - {kind: setpoint, unresolved: the surge control line of the MAC vendor package (#58)}
     modes: [manual, auto]
     normal_mode: auto
     rationale: Vendor package (instrument list); the blow-off is the only flow path while the plant takes no air. UV-1102 fails open (D-109, as H01-A6 proposes).
     unresolved:
-      - controller action (MAC vendor)
+      - controller action (MAC vendor) (#58)
   - id: TIC-1105
     title: DCAC air outlet temperature
     purpose: Cool the air to the TSA design temperature; the TSA capacity depends on it (D-005, D-006).
@@ -88,7 +88,7 @@ loops:
       - {tag: TIC-1105, condition: TAH, response: "Check the chilled water (C-1102, P-1102A/B) and the waste N2 to C-1102; a warm TSA inlet shortens the adsorption step: tell the TSA operator (KS-2101)."}
     rationale: "More chilled water through TV-1105 lowers the air temperature, so the controller is direct acting. TV-1105 fails closed (D-109): once the MAC unloads there is no air to cool, and an open water valve against the closed LV-1106 would flood the DCAC."
     unresolved:
-      - the TAH value
+      - the TAH value (#103)
   - id: LIC-1106
     title: DCAC sump level
     purpose: Hold the water level in the DCAC sump; a high level would carry water to the TSA (D-005).
@@ -100,7 +100,7 @@ loops:
     final_elements:
       - {tag: LV-1106, kind: valve, fail: closed}
     targets:
-      - {kind: setpoint, unresolved: the C-1101 sump level range of the column supplier}
+      - {kind: setpoint, unresolved: the C-1101 sump level range of the column supplier (#103)}
     modes: [manual, auto]
     normal_mode: auto
     alarms:
@@ -118,7 +118,7 @@ loops:
     final_elements:
       - {tag: LV-1107, kind: valve, fail: closed}
     targets:
-      - {kind: setpoint, unresolved: the C-1102 sump level range of its supplier}
+      - {kind: setpoint, unresolved: the C-1102 sump level range of its supplier (#103)}
     modes: [manual, auto]
     normal_mode: auto
     rationale: "LV-1107 is the make-up only (~0.6 t/h at 703 kW, D-069 (2)); a rising level closes it. It fails closed (D-109): failed open it floods C-1102 towards the WN-1001 inlet (H01-A13), while the sump holds hours of make-up."
@@ -132,7 +132,7 @@ loops:
     final_elements:
       - {tag: FV-1108, kind: valve, fail: closed}
     targets:
-      - {kind: setpoint, unresolved: the circulating water flow of the C-1101 lower section (column supplier)}
+      - {kind: setpoint, unresolved: the circulating water flow of the C-1101 lower section (column supplier) (#103)}
     modes: [manual, auto]
     normal_mode: auto
     rationale: FV-1108 fails closed with TV-1105 and LV-1106 (D-109), so the DCAC cannot flood on air loss.
@@ -204,7 +204,7 @@ loops:
     final_elements:
       - {tag: LV-3101, kind: valve, fail: closed}    # the rich liquid JT valve
     targets:
-      - {kind: setpoint, unresolved: the C-3101 sump level range of the cold box supplier}
+      - {kind: setpoint, unresolved: the C-3101 sump level range of the cold box supplier (#103)}
     modes: [manual, auto]
     normal_mode: auto
     rationale: LV-3101 fails closed (D-109), so the HP sump keeps its liquid for the restart and no HP vapour blows through to the LP column.
@@ -216,7 +216,7 @@ loops:
     measurement: [{tag: LICA-3102}]
     controller: LICA-3102
     targets:
-      - {kind: low, unresolved: the E-3103 submergence level of the cold box supplier}
+      - {kind: low, unresolved: the E-3103 submergence level of the cold box supplier (#103)}
     modes: [manual, auto]
     alarms:
       - {tag: LICA-3102, condition: LAL, response: "E-3103 must stay submerged: raise the liquid make (expander load, SIC-3108) or cut the GOX draw (FIC-1101 / the K-4101 load) or the LOX withdrawal above the FIC-3111 purge minimum; never stop the purge. Set so the operator has at least 10 min at the largest over-draw before LSLL-3125 trips (I-14; H03-A4, ASSUMED)."}
@@ -224,7 +224,7 @@ loops:
     interlocks: [I-14]
     rationale: The sump level follows the column's liquid balance; which valve it acts on is the cold box supplier's (D-010). The independent low-low is LSLL-3125 on its own tapping (I-14, D-111).
     unresolved:
-      - the manipulated variable (LOX withdrawal or refrigeration) and the controller action (cold box supplier)
+      - the manipulated variable (LOX withdrawal or refrigeration) and the controller action (cold box supplier) (#58)
   - id: FIC-3106
     title: LN reflux to the LP column
     section: CB
@@ -253,13 +253,13 @@ loops:
     final_elements:
       - {tag: KT-3101, kind: other, fail: closed}    # the expander inlet nozzles (vendor), with XV-3117 fail closed (D-109)
     targets:
-      - {kind: setpoint, unresolved: the compander speed of its vendor}
+      - {kind: setpoint, unresolved: the compander speed of its vendor (#58)}
     modes: [manual, auto]
     normal_mode: auto
     interlocks: [I-11, I-12]
     rationale: The overspeed trip SSHH-3108 (2oo3, I-11) closes XV-3117 and is independent of this loop; the seal-gas trip is I-12.
     unresolved:
-      - the nozzle actuator, which the closed fail position of D-109 assumes (compander vendor)
+      - the nozzle actuator, which the closed fail position of D-109 assumes (compander vendor) (#58)
   - id: TIC-3109
     title: Expander outlet temperature (low limit)
     purpose: Keep the Lachmann air above its dew point, so no liquid forms at the expander outlet.
@@ -269,12 +269,12 @@ loops:
     measurement: [{tag: TIC-3109}]
     controller: TIC-3109
     targets:
-      - {kind: low, unresolved: "the minimum exhaust superheat above the dew point at 1.35 bara (S6 -178 C in the design case; compander supplier, H03-A18)"}
+      - {kind: low, unresolved: "the minimum exhaust superheat above the dew point at 1.35 bara (S6 -178 C in the design case; compander supplier, H03-A18) (#58)"}
     modes: [manual, auto]
     normal_mode: auto
     rationale: A low limit, not a set point. What it acts on is open (H03-A18); the design names no final element.
     unresolved:
-      - what TIC-3109 acts on and its action (compander supplier, H03-A18)
+      - what TIC-3109 acts on and its action (compander supplier, H03-A18) (#58)
   - id: UIC-3120
     title: Booster anti-surge
     purpose: Keep the booster K-3101 out of surge at start-up and turndown (D-003).
@@ -285,12 +285,12 @@ loops:
     final_elements:
       - {tag: UV-3120, kind: valve, fail: open}
     targets:
-      - {kind: setpoint, unresolved: the surge control line of the compander vendor}
+      - {kind: setpoint, unresolved: the surge control line of the compander vendor (#58)}
     modes: [manual, auto]
     normal_mode: auto
     rationale: Recycle AIR-3006 from the E-3104 outlet back to AIR-3005 (cooled gas, so the recycle does not heat the suction); the compander has no other flow path while XV-3117 is closed (D-003).
     unresolved:
-      - controller action (compander vendor)
+      - controller action (compander vendor) (#58)
   - id: PIC-3110
     title: LP column top pressure (waste N2 split range)
     purpose: Hold the LP column pressure; the waste N2 goes to the evaporative cooler first, the surplus to the vent (D-067, D-071).
@@ -310,7 +310,7 @@ loops:
     normal_mode: auto
     rationale: The LP column pressure master (D-095); the GOX draw follows PIC-4102's pipeline pressure, limited by FIC-4148 and PIC-4150, and PIC-4101 only vents the GOX K-4101 does not take (D-096). Higher pressure opens the waste path, so direct acting. Both valves fail open (D-109), so air loss never blocks the LP column in; PSV-3114 protects it if both are shut while the expander and the JT valves keep feeding it (D-011).
     unresolved:
-      - the split point between PV-3110A and PV-3110B (ASSUMED 50 %)
+      - the split point between PV-3110A and PV-3110B (ASSUMED 50 %) (#103)
   - id: FIC-3111
     title: LOX purge from the LP sump (hydrocarbon protection)
     purpose: Withdraw the LOX product continuously; it is the hydrocarbon purge of the sump (D-010 (2)).
@@ -344,7 +344,7 @@ loops:
     final_elements:
       - {tag: PV-3113, kind: valve, fail: open}
     targets:
-      - {kind: setpoint, unresolved: the casing overpressure of the cold box supplier (a few mbar)}
+      - {kind: setpoint, unresolved: the casing overpressure of the cold box supplier (a few mbar) (#103)}
     modes: [manual, auto]
     normal_mode: auto
     alarms:
@@ -395,8 +395,8 @@ loops:
     operator: When a limit holds the guide vanes, the pipeline pressure falls below its set point; the backup supply then starts on low header pressure (SEQ-BACKUP-GOX).
     interlocks: [I-17]
     unresolved:
-      - the K-4101 guide-vane actuator and its minimum stop, which the closed fail position of D-109 assumes (K-4101 vendor)
-      - "anti-windup of the three-way low select (external reset feedback, so the unselected loops track and act at once) and bumpless transfer to auto (control engineer, detail)"
+      - the K-4101 guide-vane actuator and its minimum stop, which the closed fail position of D-109 assumes (K-4101 vendor) (#58)
+      - "anti-windup of the three-way low select (external reset feedback, so the unselected loops track and act at once) and bumpless transfer to auto (control engineer, detail) (#65)"
   - id: FIC-4148
     title: GOX maximum draw (limit)
     purpose: Limit the GOX draw to the design GOX make (a fixed value), as a limit in the guide-vane low select (D-096).
@@ -431,7 +431,7 @@ loops:
     final_elements:
       - {tag: K-4101, kind: drive, fail: closed}      # through the low select
     targets:
-      - {kind: low, unresolved: "below the normal suction pressure of 1.15 bara (S7, D-002) by a margin the K-4101 vendor and the column supplier set"}
+      - {kind: low, unresolved: "below the normal suction pressure of 1.15 bara (S7, D-002) by a margin the K-4101 vendor and the column supplier set (#103)"}
     modes: [manual, auto]
     normal_mode: auto
     links:
@@ -450,7 +450,7 @@ loops:
     final_elements:
       - {tag: PV-4101B, kind: valve, fail: open}
     targets:
-      - {kind: setpoint, unresolved: "inside the band from the normal suction pressure at the design draw (about 1.15 bara, S7) up to the suction pressure the LP column gives at zero draw (PIC-3110), so it vents at turndown and on a trip; far below the LP column relief case (D-011). See D-096 Open"}
+      - {kind: setpoint, unresolved: "inside the band from the normal suction pressure at the design draw (about 1.15 bara, S7) up to the suction pressure the LP column gives at zero draw (PIC-3110), so it vents at turndown and on a trip; far below the LP column relief case (D-011). See D-096 Open; the load range is D-110 (#59)"}
     modes: [manual, auto]
     normal_mode: auto
     rationale: "One job only since D-096: the guide vanes are PIC-4102's, limited by FIC-4148 and PIC-4150. Its transmitter PT-4101 taps upstream of the suction ESD XV-4117 (S1), so it sees the column side when XV-4117 is shut (start-up, trip). The LP column pressure is PIC-3110's (D-095). When the customer takes less GOX, PIC-4102 closes the guide vanes, the suction pressure rises and PIC-4101 vents the excess; its set point therefore lies above the suction pressure that PIC-3110's LP column pressure gives in normal operation."
@@ -468,12 +468,12 @@ loops:
     final_elements:
       - {tag: UV-4103, kind: valve, fail: open}
     targets:
-      - {kind: setpoint, unresolved: the surge control line of the K-4101 vendor}
+      - {kind: setpoint, unresolved: the surge control line of the K-4101 vendor (#58)}
     modes: [manual, auto]
     normal_mode: auto
     unresolved:
-      - controller action (K-4101 vendor)
-      - "FT-4148 sits upstream of the vent and recycle tees, so it does not see the recycle flow through the machine; the anti-surge needs the machine's own suction flow (D-024; K-4101 vendor)"
+      - controller action (K-4101 vendor) (#58)
+      - "FT-4148 sits upstream of the vent and recycle tees, so it does not see the recycle flow through the machine; the anti-surge needs the machine's own suction flow (D-024; K-4101 vendor) (#58)"
   - id: FIC-3107
     title: GAN product flow
     purpose: Take the GAN product from the HP column top at the rate the customer needs (D-004).
@@ -496,8 +496,8 @@ loops:
       - {type: cascade, loop: PIC-4105}
     rationale: "The GAN flow on the guide vanes, its set point from PIC-4105 (the export pressure) in cascade (D-096). In auto it holds the design flow. The clamp on the cascade set point follows the make (D-110): 0.1120 kg GAN per kg of air (S9 / S2) times the lower of the measured and the lagged FIC-1101 flow, capped at the design 12,510 kg/h."
     unresolved:
-      - the K-4102 guide-vane actuator and its minimum stop, which the closed fail position of D-109 assumes (K-4102 vendor)
-      - how PIC-4106 (suction pressure) limits the guide vanes beside FIC-3107 (override or limit; K-4102 vendor)
+      - the K-4102 guide-vane actuator and its minimum stop, which the closed fail position of D-109 assumes (K-4102 vendor) (#58)
+      - how PIC-4106 (suction pressure) limits the guide vanes beside FIC-3107 (override or limit; K-4102 vendor) (#58)
   - id: PIC-4106
     title: GAN compressor suction pressure
     section: PRD
@@ -505,13 +505,13 @@ loops:
     measurement: [{tag: PIC-4106}]
     controller: PIC-4106
     targets:
-      - {kind: low, unresolved: "the suction low limit, below the normal 5.2 bara (S9, D-004) by a margin that protects the HP column top"}
+      - {kind: low, unresolved: "the suction low limit, below the normal 5.2 bara (S9, D-004) by a margin that protects the HP column top (#58)"}
     modes: [manual, auto]
     alarms:
       - {tag: PIC-4106, condition: PAL, response: "K-4102 draws the HP column down (H04-S27, S84, S85): put FIC-3107 to auto at a lower set point and check PIC-4105 and the GAN header for a leak (H04-A22)."}
     notes: "PT-4106 is apart from PT-4105 and FT-3107, so its low alarm is the operator layer on a GAN over-draw. The screening LOPA (D-111 row 14) finds no SIF needed for the K-4102 guide vanes: the consequence is a column upset (asset 3), and the FIC-3107 clamp that follows the air flow (D-110) and this alarm bring it below the target."
     unresolved:
-      - "what it acts on (the K-4102 guide vanes as a low limit beside FIC-3107; see FIC-3107) and its action"
+      - "what it acts on (the K-4102 guide vanes as a low limit beside FIC-3107; see FIC-3107) and its action (#58)"
   - id: UIC-4131
     title: GAN compressor anti-surge
     section: PRD
@@ -521,7 +521,7 @@ loops:
     final_elements:
       - {tag: UV-4131, kind: valve, fail: open}
     targets:
-      - {kind: setpoint, unresolved: the surge control line of the K-4102 vendor}
+      - {kind: setpoint, unresolved: the surge control line of the K-4102 vendor (#58)}
     modes: [manual, auto]
     normal_mode: auto
   - id: PIC-4105
@@ -540,8 +540,8 @@ loops:
     normal_mode: auto
     rationale: "Cascade master (D-096): its output is FIC-3107's set point, so a rising export pressure lowers the GAN flow (reverse). The cascade signal is drawn on P-04, and the signal once drawn from PIC-4105 to PV-4105 was removed (D-101). PV-4105 stays an actuated valve, normally fully open, which the operator sets from the DCS (D-105, noted on P-04); the tap side no longer sets the action. PV-4105 fails open, its normal position (D-109)."
     unresolved:
-      - "PV-4105: confirm the start-up back-pressure role or remove the valve, its open indication and line-up check, a retag to HV-4105 (D-105; HAZOP action H04-A31)"
-      - "anti-windup when FIC-3107's set point is clamped at the maximum draw, and the initialisation of the cascade at start-up (bumpless; control engineer, detail)"
+      - "PV-4105: confirm the start-up back-pressure role or remove the valve, its open indication and line-up check, a retag to HV-4105 (D-105; HAZOP action H04-A31) (#65)"
+      - "anti-windup when FIC-3107's set point is clamped at the maximum draw, and the initialisation of the cascade at start-up (bumpless; control engineer, detail) (#65)"
   - id: PICA-4109
     title: LOX tank pressure
     purpose: Vent the boil-off of T-4101 to a safe location (D-011, D-019).
@@ -553,7 +553,7 @@ loops:
     final_elements:
       - {tag: PV-4109, kind: valve, fail: open}
     targets:
-      - {kind: setpoint, unresolved: "below the T-4101 design pressure (0.5 barg, equipment list) and the PSV-4123 set pressure by the tank supplier's margin; the 0.5 barg of D-019 is the vent's pressure level, not a set point"}
+      - {kind: setpoint, unresolved: "below the T-4101 design pressure (0.5 barg, equipment list) and the PSV-4123 set pressure by the tank supplier's margin; the 0.5 barg of D-019 is the vent's pressure level, not a set point (#103)"}
     modes: [manual, auto]
     normal_mode: auto
     alarms:
@@ -569,7 +569,7 @@ loops:
     final_elements:
       - {tag: PV-4110, kind: valve, fail: open}
     targets:
-      - {kind: setpoint, unresolved: the T-4102 operating pressure of the tank supplier}
+      - {kind: setpoint, unresolved: the T-4102 operating pressure of the tank supplier (#103)}
     modes: [manual, auto]
     normal_mode: auto
     rationale: PV-4110 fails open (D-109), as PV-4109.
@@ -584,7 +584,7 @@ loops:
     final_elements:
       - {tag: PV-4111, kind: valve, fail: closed}
     targets:
-      - {kind: setpoint, unresolved: the backup start pressure below the 30 barg export (client and pipeline)}
+      - {kind: setpoint, unresolved: the backup start pressure below the 30 barg export (client and pipeline) (#103)}
     modes: [manual, auto]
     normal_mode: auto
     rationale: The low header pressure also starts the standby pump (SEQ-BACKUP-GOX). PV-4111 is closed while the pumps stand (tight shut-off class V ASSUMED, D-024).
@@ -600,7 +600,7 @@ loops:
     final_elements:
       - {tag: PV-4112, kind: valve, fail: closed}
     targets:
-      - {kind: setpoint, unresolved: the backup start pressure below the GAN export pressure (client)}
+      - {kind: setpoint, unresolved: the backup start pressure below the GAN export pressure (client) (#103)}
     modes: [manual, auto]
     normal_mode: auto
     rationale: As PIC-4111, for GAN (SEQ-BACKUP-GAN); PV-4112 fails closed (D-109).

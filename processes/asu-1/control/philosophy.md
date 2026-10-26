@@ -58,9 +58,9 @@ failures:
     sequences: [SEQ-BACKUP-GOX, SEQ-BACKUP-GAN]
     interlocks: [I-01, I-02, I-15, I-16]
 unresolved:
-  - a loop for the liquid production (H03-A7), which the chilled-water and compander failures rely on
-  - whether the backup pumps have an emergency power supply (H04-A14)
-  - the hydrocarbon action limits of AIA-3103 and AIA-4121 and what they trip
+  - a loop for the liquid production (H03-A7), which the chilled-water and compander failures rely on (#62)
+  - whether the backup pumps have an emergency power supply and the backup valves instrument air (H04-A14) (#105)
+  - the hydrocarbon action limits of AIA-3103 and AIA-4121 and what they trip (#104)
 ---
 
 # Control philosophy: ASU-1

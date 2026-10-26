@@ -38,7 +38,7 @@ sections:
     sequences: [SEQ-BACKUP-GOX, SEQ-BACKUP-GAN, SEQ-SHUTDOWN]
     interlocks: [I-01, I-02, I-13, I-15, I-16, I-17, I-18]
 unresolved:
-  - the suppliers' start-up procedures (MAC, compander, cold box, product compressors), which set the step times of the sequences
+  - the suppliers' start-up procedures (MAC, compander, cold box, product compressors), which set the step times of the sequences (#63)
 ---
 
 # Process narrative: ASU-1

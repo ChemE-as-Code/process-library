@@ -5647,3 +5647,26 @@ analyser and the EIGA Doc 65 limits agreed with the team and stay open; the SIS 
 Reason: #56 and #61. The trips existed only as instrument notes, so neither the HAZOP nor the
 SIL study could credit them, and the guide-vane limits of D-096 are in the same control system
 as the loops they limit.
+
+## D-112 Every open point of the control records names its issue; TV-3124 kept fail open (2026-10-26)
+Decided by the agent on the owner's delegation of 2026-10-26 (process-library#79).
+
+Decision:
+- (1) **Every `unresolved` entry** in control/loops.yaml, control/sequences.yaml,
+  control/philosophy.md and process/narrative.md ends with the issue that tracks it (59
+  entries; `cheme validate` lists them as `control-unresolved`, info). The C&E has none. The
+  issues: #58 vendor control data, #59 PIC-4101's set-point window, #62 the liquid production
+  handle, #63 start-up prerequisites and step times, #65 control-system detail, and three
+  opened with this pass: #103 the set points and alarm limits that only the suppliers or the
+  client can give, #104 the hydrocarbon action limits (H03-A3), #105 the backup's power and
+  instrument air with its cold-standby permissive (H04-A14, H04-A08).
+- (2) **TV-3124 stays fail open; I-04 is accepted as not effective on air loss** (H03-A12, the
+  first of its two options). On air loss the MAC unloads (D-109), the booster side of E-3105
+  depressurises and TV-3124 keeps passing chilled water. A tube leak would then fill the E-3105
+  shell side; the consequence is the one I-04 is for on a compander trip, and the restart
+  permissive of D-077 (shell side checked dry before the restart) catches it in both cases. A
+  tight-shut fail-closed valve would lose the trim on a mere signal failure in normal
+  operation (D-067). The open point in SEQ-COMPANDER-TRIP is closed.
+
+Reason: #79. An open point without its issue is lost when the files change; the HAZOP and
+layout records were to be re-stamped once, after D-109 .. D-111, not after each.

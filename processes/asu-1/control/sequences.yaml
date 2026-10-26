@@ -16,7 +16,7 @@ sequences:
       - {tag: K-1101, state: "vendor start permissives healthy (lube oil, VIA-1104, seal air)"}
       - {loop: UIC-1102, state: "in auto with UV-1102 open"}
       - {loop: FIC-1101, state: in manual}
-      - {unresolved: cooling water and the 9.0 MW motor's start conditions (D-070) from the utilities and the MAC vendor}
+      - {unresolved: cooling water and the 9.0 MW motor's start conditions (D-070) from the utilities and the MAC vendor (#63)}
     interlocks: [I-03]
     steps:
       - id: S1
@@ -62,8 +62,8 @@ sequences:
             condition: {text: the MAC vendor's trip reset after the cause has cleared},
             restart: {all: [{tag: LIC-1106, state: "within range"}, {loop: LIC-1114, state: "seal established"}]}}
     unresolved:
-      - the MAC vendor's start-up sequence (inlet guide vanes, blow-off ramp, motor start) and the start-up air flow
-      - the step times (ASSUMED placeholders)
+      - the MAC vendor's start-up sequence (inlet guide vanes, blow-off ramp, motor start) and the start-up air flow (#63)
+      - the step times (ASSUMED placeholders) (#63)
 
   - id: SEQ-TSA
     title: TSA switching cycle (KS-2101)
@@ -109,8 +109,8 @@ sequences:
         - {text: "I-07 (CO2 high-high) has stopped the air: hold the cycle, find the cause; an early bed switch on the 1 ppm alarm, before the trip, is the operator's (D-010). A heater trip (I-08, I-09, I-10) holds the cycle in its heating step"}
     reset: {latching: true, manual: true}
     unresolved:
-      - the step times of the 4 h cycle (adsorber supplier; ASSUMED 4 h adsorption, D-006)
-      - the regeneration gas source for warm-up and start-up (H02-A10)
+      - the step times of the 4 h cycle (adsorber supplier; ASSUMED 4 h adsorption, D-006) (#63)
+      - the regeneration gas source for warm-up and start-up (H02-A10) (#63)
 
   - id: SEQ-CB-START
     title: Cool down and start the cold box, then the products
@@ -125,8 +125,8 @@ sequences:
       - {tag: PDSLL-3115, state: "seal gas established (before the lube oil, D-012)"}
       - {loop: UIC-3120, state: "in auto with UV-3120 open"}
       - {loop: PIC-3113, state: in auto}
-      - {unresolved: "the N2 for the casing purge at the first start, before the plant makes GAN (UN-3001 takes it from the GAN export or the backup header, D-024)"}
-      - {unresolved: the cold box supplier's cool-down rates and hold points}
+      - {unresolved: "the N2 for the casing purge at the first start, before the plant makes GAN (UN-3001 takes it from the GAN export or the backup header, D-024) (#63)"}
+      - {unresolved: the cold box supplier's cool-down rates and hold points (#63)}
     interlocks: [I-04]
     steps:
       - id: S1
@@ -221,9 +221,9 @@ sequences:
             condition: {text: the cause found and cleared},
             restart: {sequence: SEQ-COMPANDER-TRIP, state: complete}}
     unresolved:
-      - the cold box supplier's cool-down procedure and the expander's start-up curve
-      - the hydrocarbon action limits of AIA-3103 (EIGA Doc 65, ASSUMED) and what they trip
-      - the step times (ASSUMED placeholders)
+      - the cold box supplier's cool-down procedure and the expander's start-up curve (#63)
+      - the hydrocarbon action limits of AIA-3103 (EIGA Doc 65, ASSUMED) and what they trip (#104)
+      - the step times (ASSUMED placeholders) (#63)
 
   - id: SEQ-COMPANDER-TRIP
     title: Compander trip and restart
@@ -264,8 +264,7 @@ sequences:
     reset: {latching: true, manual: true, condition: {interlock: I-04, state: reset},
             restart: {all: [{tag: E-3105, state: shell side checked dry}, {tag: PDSLL-3115, state: seal gas established}]}}
     unresolved:
-      - "whether I-04 is still effective on instrument-air failure, since TV-3124 fails open (H03-A12)"
-      - the step times (ASSUMED placeholders)
+      - the step times (ASSUMED placeholders) (#63)
 
   - id: SEQ-BACKUP-GOX
     title: GOX backup from the LOX tank
@@ -274,7 +273,7 @@ sequences:
     equipment: [T-4101, P-4101A, P-4101B, E-4105A, E-4105B]
     permissives:
       - {interlock: I-01, state: "reset (tank above LALL)"}
-      - {unresolved: "a measured cold-standby permissive for P-4101A/B (not measured, H04-A08)"}
+      - {unresolved: "a measured cold-standby permissive for P-4101A/B (not measured, H04-A08) (#105)"}
     interlocks: [I-01]
     steps:
       - id: S1
@@ -307,8 +306,8 @@ sequences:
       notes: The pump trips are the C&E's (I-01, I-15).
     reset: {latching: true, manual: true}
     unresolved:
-      - the backup start pressure (client and pipeline), which pump is standby, and the PV-4111 rate limit (H04-A20)
-      - the step times (ASSUMED placeholders)
+      - the backup start pressure (client and pipeline), which pump is standby, and the PV-4111 rate limit (H04-A20) (#103)
+      - the step times (ASSUMED placeholders) (#63)
 
   - id: SEQ-BACKUP-GAN
     title: GAN backup from the LIN tank
@@ -317,7 +316,7 @@ sequences:
     equipment: [T-4102, P-4102A, P-4102B, E-4106A, E-4106B]
     permissives:
       - {interlock: I-02, state: "reset (tank above LALL)"}
-      - {unresolved: "a measured cold-standby permissive for P-4102A/B (not measured, H04-A08)"}
+      - {unresolved: "a measured cold-standby permissive for P-4102A/B (not measured, H04-A08) (#105)"}
     interlocks: [I-02]
     steps:
       - id: S1
@@ -349,7 +348,7 @@ sequences:
       notes: The pump trips are the C&E's (I-02, I-16).
     reset: {latching: true, manual: true}
     unresolved:
-      - the step times (ASSUMED placeholders)
+      - the step times (ASSUMED placeholders) (#63)
 
   - id: SEQ-SHUTDOWN
     title: Normal shutdown
@@ -399,4 +398,4 @@ sequences:
       notes: A trip during the shutdown is handled by the C&E; the sequence holds where it is.
     reset: {latching: false, manual: true}
     unresolved:
-      - how long the cold box may stand before it must be drained (supplier)
+      - how long the cold box may stand before it must be drained (supplier) (#103)
