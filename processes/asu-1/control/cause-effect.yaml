@@ -93,7 +93,7 @@ interlocks:
     latching: true
     reset: manual
     bypass: "maintenance or calibration of AIA-2102 only with an hourly laboratory CO2 check of the TSA outlet and a permit (ASSUMED)"
-    notes: "D-111 LOPA row 3: CO2, N2O and then hydrocarbons into the cold box toward a main condenser explosion (H02-S3, S10, S27), people 5. Trip set point CO2 HH 2 ppm (ASSUMED; alarm 1 ppm); stopping the air ends the breakthrough at once, an early bed switch (D-010) stays a KS-2101 operator action on the alarm. SIL 1 holds only with the conditional modifier of D-111 (intake hydrocarbons, H01-A1); if the intake survey finds hydrocarbon sources the target is SIL 2 with a second, independent CO2 analyser (1oo2, H02-A1). H02-A1."
+    notes: "D-111 LOPA row 3: CO2, N2O and then hydrocarbons into the cold box toward a main condenser explosion (H02-S3, S10, S27), people 5. Trip set point CO2 HH 2 ppm (ASSUMED; alarm 1 ppm); stopping the air ends the breakthrough at once, an early bed switch (D-010) stays a KS-2101 operator action on the alarm. SIL 1 holds only with the conditional modifiers of D-111 / D-114 row 3 (intake hydrocarbons, H01-A1; ignition given an accumulation) and one control-system credit (AIA-3103 with the operator), the LOX purge not credited; if the intake survey finds hydrocarbon sources the target is SIL 2 with a second, independent CO2 analyser (1oo2, H02-A1). H02-A1."
   - id: I-08
     title: Regeneration heater low-low flow (heater side)
     cause: {tag: FSLL-2117, condition: FSLL}
@@ -104,7 +104,7 @@ interlocks:
     latching: true
     reset: manual
     bypass: "inhibited while E-2101 is off (KS-2101 cooling and stand-by steps)"
-    notes: "D-111 LOPA row 4: E-2101 energised with little or no gas (H02-S13, S15, S20), asset 3. FSLL-2117 on RG-2001 between the XV-2109 bypass tee and E-2101, so it sees the heater flow only and is independent of FIC-2105 (H02-A2). TSHH-2107 (I-10) is the further layer."
+    notes: "D-111 LOPA row 4: E-2101 energised with little or no gas (H02-S13, S15, S20), asset 3. FSLL-2117 on RG-2001 between the XV-2109 bypass tee and E-2101, so it sees the heater flow only and is independent of FIC-2105 (H02-A2). I-08, I-09 and I-10 run in the heater's protection relay, apart from the DCS and from TIC-2104's thyristor control (JB-A2-2, D-114); TSHH-2107 (I-10) is credited once as the further layer for the low-flow causes, not the other way round (D-114 rows 4, 6)."
   - id: I-09
     title: Regeneration gas outlet temperature high-high
     cause: {tag: TSHH-2116, condition: TSHH}
@@ -137,7 +137,7 @@ interlocks:
     sil: 2
     latching: true
     reset: manual
-    notes: "D-111 LOPA row 7: brake load lost or the nozzles failed open (H03-S16), wheel burst, people 4. Independent speed probes 2oo3, the quick-closing XV-3117 (fail closed, D-109) closing within the run-up time the compander vendor confirms (H03-A2, #58). I-04 acts on the compander trip."
+    notes: "D-111 LOPA row 7: brake load lost or the nozzles failed open (H03-S16), wheel burst, people 4. Independent speed probes 2oo3, the quick-closing XV-3117 (fail closed, D-109) closing within the run-up time the compander vendor confirms (H03-A2, #58). Architecture (ASSUMED, for the SRS): 2oo3 probes in the vendor's overspeed monitor, XV-3117 on its own SIS solenoid (1oo1), the compander motor/brake trip as the second final element; proof test yearly; SIS junction box JB-A3-S1. I-04 acts on the compander trip."
   - id: I-12
     title: Compander seal gas low-low (oil into the Lachmann air)
     cause: {tag: PDSLL-3115, condition: PDSLL}
@@ -149,7 +149,7 @@ interlocks:
     delay: {value: 5, unit: s}
     latching: true
     reset: manual
-    notes: "D-111 LOPA row 8: seal gas lost while the lube oil runs (H03-S18), oil into the LP column sump with E-3103, people 5. The lube oil pump keeps running for the run-down (bearings) and stops on the compander vendor's logic; the start permissive (seal gas before the oil pump) stays in SEQ-COMPANDER-TRIP (D-012). H03-A2."
+    notes: "D-111 LOPA row 8: seal gas lost while the lube oil runs (H03-S18), oil into the LP column sump with E-3103, people 5. The lube oil pump keeps running for the run-down (bearings) and stops on the compander vendor's logic; the start permissive (seal gas before the oil pump) stays in SEQ-COMPANDER-TRIP (D-012). The 1e-2 /yr initiating frequency rests on a redundant seal-gas supply (dry N2 from the GAN header with an automatic backup from the LIN backup header or a bottle rack, ASSUMED, to specify to the compander vendor, #58); a single supply is 0.1 /yr and puts I-12 at the SIL 2 / 3 boundary (D-114 row 8). The oil that still migrates during the run-down after the trip is the vendor's to state (#58). Architecture (ASSUMED): 1oo1 SIL 2 capable PDT, XV-3117's SIS solenoid and the compander trip; JB-A3-S1. H03-A2."
   # K-4101: every trip isolates and blows the machine down (D-013); PIC-4101 then vents the GOX
   - id: I-13
     title: K-4101 stage temperature high-high (oxygen fire)
@@ -163,23 +163,49 @@ interlocks:
     sil: 1
     latching: true
     reset: manual
-    notes: "D-111 LOPA row 9: ignition in K-4101 (H04-S07), asset 5 (the fire wall FW-4101 takes the people credit, H04-A24); the trip limits the fire to the machine's own inventory. The suction vent is PIC-4101's (PV-4101B) once XV-4117 closes, not a trip effect. H04-A01, H04-A02."
+    notes: "D-111 LOPA row 9, restated in D-114: the trip does not prevent the ignition; it prevents the escalation, an oxygen fire fed by the export header and the LP column through the machine (casing burn-through, a jet fire at the fire wall, loss of the K-4101 house and the PR1 rack beside it), asset 5 (the fire wall FW-4101 takes the people credit, H04-A24); the trip isolates the machine and blows it down so the fire burns only its own inventory. Detection and closing within the time the K-4101 vendor states for a burn-through (#58). The suction vent is PIC-4101's (PV-4101B) once XV-4117 closes, not a trip effect. H04-A01, H04-A02."
   # the independent limit on the GOX draw (H04-A23, H03-A4): the LP sump itself, not the selector
   - id: I-14
     title: LP column sump level low-low (E-3103 submergence)
     cause: {tag: LSLL-3125, condition: LSLL}
     effects:
+      - {tag: K-1101, action: trip}
+      - {tag: UV-1102, action: open}
+      - {tag: P-1101A, action: trip}
+      - {tag: P-1101B, action: trip}
+      - {tag: P-1102A, action: trip}
+      - {tag: P-1102B, action: trip}
       - {tag: K-4101, action: trip}
       - {tag: XV-4117, action: close}
       - {tag: XV-4118, action: close}
       - {tag: XV-4116, action: open}
-      - {tag: FV-3111, action: close}
     sheet: P-03
     sil: 2
     latching: true
     reset: manual
     bypass: "start-up only, until the sump level is above the trip during the cool-down (SEQ-CB-START), timed, with a permit; never with K-4101 running"
-    notes: "D-111 LOPA row 10: an over-draw of GOX or LOX, or a refrigeration deficit, boils the sump down and uncovers E-3103 (H03-S33, S34, H04-S75, S80), people 5. LSLL-3125 on its own tapping I4 and transmitter, independent of LICA-3102, of the guide-vane low select UY-4151, FT-4148 and PT-4150. Trip above the top of E-3103 by the supplier's margin; LICA-3102 LAL above it so the operator has at least 10 min at the largest over-draw (H03-A4, ASSUMED until the cold box supplier's sump geometry, #58). With K-4101 stopped PIC-4101 vents only what keeps the suction pressure, i.e. no more than the make. FV-3111 closes too: losing the purge for minutes is the lesser hazard than dry boiling; the operator restores it as soon as the level allows (D-010)."
+    notes: "D-111 LOPA row 10, revised in D-114: an over-draw of GOX or LOX, or a refrigeration deficit, boils the sump down and uncovers E-3103 (H03-S33, S34, H04-S75, S80), people 5. The trip stops the air (the MAC trip set) and K-4101: with no air the HP column sends no vapour to E-3103, so the condenser stops boiling whatever still drains the sump (a failed-open FV-3111, the GOX vent PV-4101B, a refrigeration deficit) and nothing concentrates in it; the hazard is the boiling, not the low level as such. FV-3111 is not an effect: the purge stays as D-010 asks, and a valve that may be the initiator is never the final element (control-review6 #1, #3; hazop-review6 #1, #2). LSLL-3125 on its own tapping I4 and impulse lines (stand on CB-1 P20) and transmitter, its own SIS junction box JB-A3-S1, independent of LICA-3102, of the guide-vane low select UY-4151, FT-4148 and PT-4150. Architecture (ASSUMED, for the SRS): 1oo1 SIL 2 capable transmitter, the MAC and K-4101 motor breakers as final elements, proof test 6-monthly; 1oo2 transmitters with H03-A4 if the SRS's PFD needs it. Trip above the top of E-3103 by the supplier's margin (#103)."
+  # instrument air lost with power on (D-114): no fail position stops a running machine, so the
+  # plant stops on its own before the fail positions leave K-4101 running isolated on recycle
+  # and the DCAC water pumps against closed valves (control-review6 #2, H01-S45)
+  - id: I-19
+    title: Instrument air header pressure low-low (plant stop)
+    cause: {tag: PSLL-1116, condition: PSLL}
+    effects:
+      - {tag: K-1101, action: trip}
+      - {tag: UV-1102, action: open}
+      - {tag: P-1101A, action: trip}
+      - {tag: P-1101B, action: trip}
+      - {tag: P-1102A, action: trip}
+      - {tag: P-1102B, action: trip}
+      - {tag: K-3101, action: trip}
+      - {tag: K-4101, action: trip}
+      - {tag: K-4102, action: trip}
+    sil: 1
+    delay: {value: 10, unit: s}
+    latching: true
+    reset: manual
+    notes: "D-114 LOPA row 15: instrument air lost with power on (a compressor or dryer trip, a header break), every valve goes to its D-109 position while the drives run: K-4101 isolated on its recycle with XV-4117 / XV-4118 shut (heating, an oxygen fire risk), the DCAC pumps dead-headed (H01-S45), K-4102 on recycle. Set above the pressure at which the actuators start to move (ASSUMED, IA package), on its own transmitter on the instrument air header (utilities). The XV-3117 and ESD valves need no effect: they reach their fail positions with the air."
   # the backup: no cold gas into the carbon steel pipelines (D-014)
   - id: I-15
     title: LOX vaporizer outlet temperature low-low

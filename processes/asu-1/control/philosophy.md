@@ -12,7 +12,11 @@ failures:
     title: Loss of instrument air
     response: "Every valve goes to its fail position (D-109), chosen as one set so the plant stops in a safe, isolated state: the MAC, the GOX and GAN compressors and the expander unload (guide vanes and nozzles to their minimum stop, XV-3117 closed) with their anti-surge and blow-off valves open (UV-1102, UV-3120, UV-4103, UV-4131); the cold box keeps its liquid (LV-3101, FV-3106, FV-3111 closed) and is never blocked in (PV-3110A/B and PV-4101B open); the DCAC cannot flood (TV-1105, FV-1108, LV-1106, LV-1107 closed; LV-1114 and XV-1115 closed hold the chimney-tray seal); the TSA switching valves hold their position and its step valves close; the K-4101 ESD valves close and its blowdown opens, the battery limits isolate and bleed (D-013), off-spec GAN diverts (XV-3105 open); the tank vents open and the backup valves close. TV-3124 stays open, which keeps the trim but means I-04 cannot close it on air loss (H03-A12, D-077). The customers go to the backup, which needs PV-4111 / PV-4112 to open, so the backup depends on instrument air as on power (H04-A14). The HAZOP team confirms the set (H01-A6, H02-A6, H03-A1, H04-A14)."
     loops: [FIC-1101, UIC-1102, TIC-1105, LIC-1106, LIC-1107, FIC-1108, LIC-1114, FIC-2105, LIC-3101, FIC-3106, SIC-3108, PIC-3110, FIC-3111, PIC-3113, TICA-3124, UIC-3120, PIC-4102, PIC-4101, UIC-4103, FIC-3107, UIC-4131, PICA-4109, PICA-4110, PIC-4111, PIC-4112]
-    interlocks: [I-03, I-04]
+    interlocks: [I-03, I-04, I-19]
+  - id: F-AIR-POWER-ON
+    title: Loss of instrument air with power on (stop first)
+    response: "The fail positions alone leave the drives running: K-4101 isolated on its recycle behind XV-4117 / XV-4118, the DCAC pumps against closed valves. So PSLL-1116 on the instrument air header stops the plant first (I-19): the MAC trip set, the compander, K-4101 and K-4102 (D-114). Air loss defeats every trip whose final element needs air to reach its trip state; the ones on fail-safe valves (I-03, I-11, I-12 on XV-3117, the K-4101 ESD valves of I-13, I-14, I-17) reach it anyway, I-04 does not (TV-3124 fails open, D-112), and I-15 / I-16 lose nothing because PV-4111 / PV-4112 fail closed."
+    interlocks: [I-19]
   - id: F-POWER
     title: Loss of electric power
     response: "The machines stop at once; the valves go to their fail positions and the C&E trips act. No operator sequence runs (SEQ-SHUTDOWN is the planned stop, not this). The backup supply needs power for its pumps: whether they have an emergency supply is open (H04-A14)."
@@ -34,9 +38,10 @@ failures:
     interlocks: [I-04]
   - id: F-GOXC
     title: GOX compressor trip
-    response: "PIC-4101 vents the GOX that K-4101 no longer takes through PV-4101B (D-019), while PIC-3110 keeps holding the LP column pressure (D-095). The trip puts PIC-4102, FIC-4148 and PIC-4150 to tracking (proposed: the control system forces them to manual on the machine's stop signal, so they do not wind up). The GOX header falls and the LOX backup starts (SEQ-BACKUP-GOX). Whether PV-3110A/B and PV-4101B together take the full GOX make is open (their sizing)."
+    response: "PIC-4101 vents the GOX that K-4101 no longer takes through PV-4101B (D-019), while PIC-3110 keeps holding the LP column pressure (D-095). The trip puts PIC-4102, FIC-4148 and PIC-4150 to tracking (proposed: the control system forces them to manual on the machine's stop signal, so they do not wind up). The GOX header falls and the LOX backup starts (SEQ-BACKUP-GOX). Whether PV-3110A/B and PV-4101B together take the full GOX make is open (their sizing, #64). The C&E trips that stop K-4101 are I-13 (fire), I-14 (LP sump low-low, which also stops the air), I-17 (discharge high-high) and I-19 (instrument air); after an I-14 trip the operator finds the over-draw's cause, restores the LP sump level with the purge still on (D-010) and restarts the MAC first (SEQ-MAC-START)."
     loops: [PIC-4101, PIC-3110, PIC-4102, FIC-4148, PIC-4150, PIC-4111]
     sequences: [SEQ-BACKUP-GOX]
+    interlocks: [I-13, I-14, I-17]
   - id: F-GANC
     title: GAN compressor trip
     response: "K-4102 stops; GAN from the HP column top backs up and the HP column pressure rises, so the column's balance changes and the LP column purity is upset. The trip puts PIC-4105 and FIC-3107 to tracking (proposed, as F-GOXC). The GAN header falls and the LIN backup starts (SEQ-BACKUP-GAN). Where the GAN goes while K-4102 stands (the off-spec vent XV-3105 / VNT-4004, or back through the main exchanger) is open."

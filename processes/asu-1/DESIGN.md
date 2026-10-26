@@ -5727,3 +5727,98 @@ and a human review (the owner's); an independent review of this revision.
 
 Reason: the studies must describe the plant as the control records now state it before the
 team sees them; stamping without reassessing would hide the change (skill hazop-review).
+
+## D-114 Fixes after control-review6 and layout-review28: I-14 stops the air, an instrument-air trip, the LOPA rows, SIS junction boxes (2026-10-26)
+Decided by the agent on the owner's delegation of 2026-10-26, answering
+reviews/2026-10-26-control-review6.md (#1 .. #14) and layout-review28.md (#1 .. #6). Proposals
+for the HAZOP team and the LOPA / SIL session (#106) as before; D-109 .. D-111 stand except where
+revised here.
+
+Decision:
+- (1) **I-14 stops the air and K-4101, and leaves FV-3111 alone** (control-review6 #1, #3,
+  hazop-review6 #1, #2). Tripping K-4101 alone did not stop the sump boiling down: PIC-4101 keeps
+  venting through PV-4101B, a failed-open FV-3111 keeps draining, and a refrigeration deficit
+  keeps going. The hazard is E-3103 boiling dry, and E-3103 boils only while the HP column sends
+  it vapour, i.e. while air comes in. So I-14's effects are now the MAC trip set (K-1101,
+  UV-1102, the DCAC pumps) and the K-4101 trip set; once the air stops, nothing boils whatever
+  still drains the sump. FV-3111 is no longer an effect: the purge stays on as D-010 asks, and the
+  valve that may be the initiator (H03-S33) is not the final element. Final elements: the two
+  motor breakers, independent of the BPCS. Architecture ASSUMED for the SRS: 1oo1 SIL 2 capable
+  LSLL-3125, proof test 6-monthly, 1oo2 if the SRS needs it (H03-A4).
+- (2) **I-19, instrument air low-low stops the plant** (control-review6 #2, hazop H01-S45). The
+  fail positions of D-109 alone leave the drives running on air loss with power on: K-4101 on
+  its recycle behind closed XV-4117 / XV-4118, the DCAC pumps against closed valves, K-4102 on
+  recycle. PSLL-1116 on the instrument air header (utilities; listed, not drawn on a process
+  sheet; the acceptance of instrument-not-on-pid is in checks/checks.yaml) trips the MAC set, the
+  compander, K-4101 and K-4102 after 10 s. F-AIR-POWER-ON in the philosophy says which trips air
+  loss defeats (I-04 only).
+- (3) **LOPA rows revised** (control-review6 #5 .. #8, #10; hazop-review6 #7). At most one
+  control-system credit per row, none when the control system is the initiator:
+  - row 3 (I-07): the LOX purge is no longer credited (loops.yaml calls it no safeguard); the
+    modifiers are now the intake hydrocarbons (0.1) and ignition given an accumulation (0.1,
+    ASSUMED, CCPS); 0.1 x 0.1 (AIA-3103 and the operator) x 0.1 x 0.1 = 1e-4 against 1e-5:
+    RRF 10, SIL 1 stands, still conditional on the intake survey (H01-A1);
+  - rows 4 / 6 (I-08 / I-10): the pair is credited once, I-10 for the low-flow causes of row 4;
+    row 6 no longer credits I-08: 0.4 against 0.1, RRF 4, SIL a. Both run in the heater's own
+    protection relay, apart from the DCS and the thyristor control (JB-A2-2);
+  - row 8 (I-12): 1e-2 /yr rests on a redundant seal-gas supply, now a requirement to the
+    compander vendor (#58); with a single supply it is 0.1 and I-12 sits at the SIL 2 / 3
+    boundary. The oil that migrates during the run-down is the vendor's to state;
+  - row 9 (I-13): the consequence is the escalation the trip prevents (a fire fed by the header
+    and the LP column through the machine), not the ignition; asset 5, RRF 10, SIL 1 unchanged;
+  - row 10 (I-14): no alarm credited (the initiator may be the control system); 0.1 x 0.1
+    (hydrocarbons concentrated) x 0.1 (ignition) = 1e-3 against 1e-5: RRF 100, SIL 2 unchanged;
+  - row 14 (K-4102): one control-system credit only (the D-110 clamp, for the demand causes;
+    none for S27, where PIC-4105 is the initiator): 0.1 against 1e-1, no SIF;
+  - new row 15 (I-19): instrument air lost with power on 0.1 /yr, K-4101 overheating isolated
+    on its recycle, an oxygen fire 0.1 (modifier, ASSUMED): 1e-2 against the asset 5 target
+    1e-3: RRF 10, SIL 1;
+  - the asset targets (one to two decades looser than people's) are an economic choice for the
+    owner, not a safety criterion; they sit in the matrix's medium (ALARP) band, not its low
+    band, which the session must accept or tighten (#106). With the low band as target rows 5,
+    6 and 13 would become SIL 1 and row 14 would need RRF 10 (control-review6 #5).
+- (4) **D-110 ratio limits on a validated air flow** (control-review6 #9, hazop-review6 #4).
+  F_air is the lower of FT-1101 and the MAC vendor's own flow measurement (UIC-1102's), with a
+  deviation alarm, and the lower of that and its 15 min lag (was 5 min; of the order of the
+  column's response, ASSUMED). The GOX limit subtracts the LOX drawn above its 470 kg/h design.
+  A make that falls at constant air flow (the TSA switchover dip measured upstream, a purity
+  upset) is not tracked by the ratio: the PT-4101 low alarm and I-14 cover it, and the HAZOP
+  keeps those causes (H04-S79, S80, S85).
+- (5) **Single signal loss** (control-review6 #4): the D-109 positions checked one valve at a
+  time in normal operation. Covered by an alarm or trip: UV-1102 open (FIC-1101 deviation),
+  TV-1105 / FV-1108 closed (TIC-1105 TAH, then AIA-2102 / I-07), LV-1106 closed (I-06), LV-1107
+  closed (C-1102 level over hours, H01-A11), FV-2105 open (H02-S16, asset 2), the TSA valves
+  holding (KS-2101 discrepancy alarm), LV-3101 / FV-3106 closed (LIC-3101 and purity alarms,
+  I-18), FV-3111 closed (FAL, AIA-3103, hours), PV-3110A or B open (PIC-3110, C-1102's open
+  vent), PV-3113 open (casing breather), PV-4109 / PV-4110 open (product vented, vacuum
+  breakers), PV-4111 / PV-4112 closed (backup unavailable, header alarm), the guide vanes closed
+  (product falls, backup starts). Two need the team: PV-4101B open alone vents GOX at VNT-4003
+  continuously and over-draws the column at the design air (PT-4101 low alarm, LICA-3102, I-14;
+  the zone with #59 / H04-A26), and XV-4116 open or XV-4117 / XV-4118 closed alone with K-4101
+  running (discrepancy alarms proposed; a K-4101 trip on "not in its run position" is for the
+  K-4101 vendor's logic, #58). The HAZOP carries both.
+- (6) **Layout** (layout-review28 #1 .. #6): C-3102's tappings I1, I3, I4 placed on the north
+  side, in the sump (I4 below I3) and above it, ASSUMED until the sump geometry (#103); their
+  impulse lines to stands on CB-1 P20 (operators in piping/routing.yaml); the datasheet gives
+  the same locations and LSLL-3125's own vapour leg. The manways keep their side (west, about
+  7 deg off main). SIS junction boxes JB-A1-S1 (I-03, I-06), JB-A3-S1 (I-11, I-12, I-14) and
+  JB-A4-S1 (I-13, I-17 with the K-4101 ESD valves) beside the control system's; the heater
+  trips go to JB-A2-2, apart from TIC-2104; every box within its 24 cables. PT-4152 on a stand
+  on VP-5, FSLL-2117 where RG-2001 drops to 1 m at the heater inlet (instrument list; the model
+  has no tap point per line instrument, #66).
+- (7) **P-03 drawing** (control-review6 #12): LSLL-3125's tap is drawn above LICA-3102's; a
+  tap drawn below it would cross LICA-3102's measuring line with no free place for the bubble
+  below. The P&ID shows the connection, not the elevation; the elevations are in the placement
+  and the datasheet (I4 at 1.0 m, I3 at 1.6 m).
+- (8) **Texts and issues** (control-review6 #13, #14): F-GOXC names I-13, I-14, I-17, I-19 and the
+  operator's job after an I-14 trip; D-111 (6) overstated the sequences: SEQ-CB-START names
+  I-11, I-12 and the I-14 bypass, SEQ-TSA I-07 .. I-10, the backups I-15 / I-16, SEQ-MAC-START
+  I-05 .. I-07; I-13, I-17 and I-19 are in no sequence (a trip, then SEQ-BACKUP-GOX). The open
+  points of D-109 .. D-111 are tracked in #102 (drawing), #103 (set points), #104 (hydrocarbon
+  limits), #105 (backup power and air) and the new #106 (LOPA / SIL session, SRS, SIS).
+
+Not changed: the D-109 positions themselves. The HAZOP is revised for this decision
+separately (D-115).
+
+Reason: two high findings showed the trip and the fail positions did not reach a safe state on
+their own; the LOPA rows credited what is not independent.

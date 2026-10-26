@@ -416,10 +416,10 @@ loops:
     links:
       - {type: override, loop: PIC-4102, select: low}
       - {type: override, loop: PIC-4150, select: low}
-    rationale: "A limit, not a set point: it acts only when the customer's draw would exceed the GOX make. The limit follows the make (D-110): 0.1867 kg GOX per kg of air (S7 / S2) times the lower of the measured and the lagged (5 min, ASSUMED) FIC-1101 flow, capped at the design 20,860 kg/h. Its transmitter FT-4148 is also the anti-surge input of UIC-4103."
+    rationale: "A limit, not a set point: it acts only when the customer's draw would exceed the GOX make. The limit follows the make (D-110, revised D-114): 0.1867 kg GOX per kg of air (S7 / S2) times the air flow, less the LOX drawn above its design 470 kg/h (FIC-3111), capped at the design 20,860 kg/h. The air flow is the lower of FT-1101 and the MAC vendor's own flow measurement (UIC-1102's), with a deviation alarm between them, and the lower of that and its value through a 15 min lag (ASSUMED, of the order of the column's response; the column supplier confirms), so neither a transmitter reading high nor a ramp lets the limit run ahead of the make. A make falling at constant air flow (TSA switchover dip, purity upset) is not tracked: the PT-4101 low alarm and I-14 cover it. Its transmitter FT-4148 is also the anti-surge input of UIC-4103."
     operator: The limit tracks the air flow by itself; a limit holding the guide vanes means the customer wants more than the plant makes at this load, so raise the air flow (FIC-1101) or let the backup cover it.
     interlocks: [I-14]
-    notes: "Not a protection layer (D-096). The independent limit on the GOX draw is the LP sump itself: LSLL-3125 on its own tapping trips K-4101 (I-14, SIL 2, D-111), independent of UY-4151, FT-4148 and PT-4150 (H04-A23, H03-A4)."
+    notes: "Not a protection layer (D-096). The independent limit on the GOX draw is the LP sump itself: LSLL-3125 on its own tapping stops the air and K-4101 (I-14, SIL 2, D-111 / D-114), independent of UY-4151, FT-4148 and PT-4150 (H04-A23, H03-A4)."
   - id: PIC-4150
     title: GOX suction pressure low limit
     purpose: "Throttle the guide vanes when the suction pressure falls: the sign that K-4101 draws more GOX than the column makes (H04-S75; D-096)."
@@ -455,7 +455,7 @@ loops:
     normal_mode: auto
     rationale: "One job only since D-096: the guide vanes are PIC-4102's, limited by FIC-4148 and PIC-4150. Its transmitter PT-4101 taps upstream of the suction ESD XV-4117 (S1), so it sees the column side when XV-4117 is shut (start-up, trip). The LP column pressure is PIC-3110's (D-095). When the customer takes less GOX, PIC-4102 closes the guide vanes, the suction pressure rises and PIC-4101 vents the excess; its set point therefore lies above the suction pressure that PIC-3110's LP column pressure gives in normal operation."
     alarms:
-      - {tag: PIC-4101, condition: PAL, response: "Suction pressure low on PT-4101, a transmitter apart from the guide-vane low select (PT-4150, FT-4148): K-4101 draws more than the column makes. Reduce the K-4101 load and watch LICA-3102; LSLL-3125 trips K-4101 (I-14) (H04-A23)."}
+      - {tag: PIC-4101, condition: PAL, response: "Suction pressure low on PT-4101, a transmitter apart from the guide-vane low select (PT-4150, FT-4148): K-4101 draws more than the column makes. Reduce the K-4101 load and watch LICA-3102; at the low-low LSLL-3125 stops the air and K-4101 (I-14) (H04-A23)."}
       - {tag: PIC-4101, condition: "PV-4101B open > 30 min", response: "The customer takes less than the plant makes: turn the air flow down (FIC-1101) so the vent stays for transients (D-110)."}
     operator: Venting GOX in normal operation means the customer takes less than the plant makes; turn the air flow down (FIC-1101).
     notes: "PV-4101B fails open (D-109): the GOX the unloaded K-4101 no longer takes goes to VNT-4003 and the LP column is not blocked in (D-019); PV-3110A/B also fail open."
@@ -494,7 +494,7 @@ loops:
     normal_mode: cascade
     links:
       - {type: cascade, loop: PIC-4105}
-    rationale: "The GAN flow on the guide vanes, its set point from PIC-4105 (the export pressure) in cascade (D-096). In auto it holds the design flow. The clamp on the cascade set point follows the make (D-110): 0.1120 kg GAN per kg of air (S9 / S2) times the lower of the measured and the lagged FIC-1101 flow, capped at the design 12,510 kg/h."
+    rationale: "The GAN flow on the guide vanes, its set point from PIC-4105 (the export pressure) in cascade (D-096). In auto it holds the design flow. The clamp on the cascade set point follows the make (D-110, revised D-114): 0.1120 kg GAN per kg of air (S9 / S2) times the validated, lagged air flow of FIC-4148, capped at the design 12,510 kg/h."
     unresolved:
       - the K-4102 guide-vane actuator and its minimum stop, which the closed fail position of D-109 assumes (K-4102 vendor) (#58)
       - how PIC-4106 (suction pressure) limits the guide vanes beside FIC-3107 (override or limit; K-4102 vendor) (#58)
