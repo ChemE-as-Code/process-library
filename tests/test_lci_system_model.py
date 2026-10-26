@@ -321,7 +321,7 @@ def test_two_consecutive_builds_produce_a_change_report(library: Path, tmp_path:
     lci = tmp_path / "v2" / "lci"
     changes = _json(lci / "changes.json")
     assert changes["from"]["version"] == "0.1.0" and changes["to"]["version"] == "0.2.0"
-    assert changes["to"]["system_model"] == "cutoff" and changes["impact"].startswith("not computed")
+    assert changes["to"]["system_model"] == "cutoff" and changes["impact"]["background"]["id"] == "none-atlas-foreground-only"
     assert changes["activities"]["added"] == [] and changes["activities"]["removed"] == []
     h2 = changes["activities"]["changed"][H2]
     assert h2["added"] == ["technosphere feed:NITROGEN"]

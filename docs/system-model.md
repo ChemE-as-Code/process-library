@@ -205,7 +205,7 @@ Two published chemical LCI databases show what users expect from the documentati
 |---|---|
 | one public, versioned methodology document | this page, methodology version in every build |
 | one system model per database, variants as separate databases | cut-off default; substitution variant with its own name (section 1) |
-| change report per release | `build_lci.py --previous` (exchange level today; [governance.md](governance.md)) |
+| change report per release | `build_lci.py --previous`: exchanges, and a GWP100 delta on the Atlas foreground without background (`lci/README.md`, Change reports; [governance.md](governance.md)) |
 | external critical review of the methodology | planned: the review procedure in [governance.md](governance.md) |
 | mass and elemental balances per technology dataset | from the flowsheet for engineered processes; to be checked by the build (follow-up) |
 | layered model: plant, site, production and consumption mixes, simplified extension layer | markets (technology, production mix, consumption mix) in [markets.md](markets.md); the site layer is documented there and built with a second process; tiered generation planned (core#182, #47) |

@@ -279,10 +279,29 @@ reads a process.
 output folder) writes `lci/changes.json` and `lci/CHANGES.md`: per dataset its status (by content
 hash and its allocation method and shares), version before and after and whether a changed
 dataset's version was raised; per
-activity the exchanges added, removed and changed (amount with relative change, or link). The
-report is **exchange level only**: no impact delta is computed, because the CI stub background
-(below) is built from one process's example factors inside the Brightway test and is not a
-reference background for the library. Releases: docs/governance.md and
+activity the exchanges added, removed and changed (amount with relative change, or link).
+
+**Reference impacts** (`scripts/reference_impacts.py`): per dataset and activity, GWP100 per 1 unit
+of the activity's reference product in both builds, with the absolute and relative delta; an added
+or removed dataset or activity gets its one value and no delta. The report states its method and
+background (`changes.json` `impact`, and the section "Reference impacts" of `CHANGES.md`):
+
+- method: core's packaged characterisation of direct emissions, `ipcc2021-gwp100` (IPCC 2021 AR6,
+  with its source, from `chemeascode/domains/assessment/lca/data/methods.yaml` of the installed
+  `cheme-as-code`); flows are matched by biosphere3 UUID, else name and categories, through
+  core's elementary-flow crosswalk. No factor is stored in the library;
+- background: **none** (`none-atlas-foreground-only`). The value is the activity's own
+  characterised emissions plus those of the Atlas activities it links to (as `install()` links
+  them with `prefer_atlas=True`). Every background input (electricity, materials, construction,
+  transport, treatment), the inputs of the proxies, the exchanges the build leaves out and the
+  uncharacterised flows contribute 0; each activity lists its background inputs and
+  uncharacterised flows (`excluded`). No licensed background (ecoinvent) is used or packaged.
+
+So the value is a screening reference for comparing releases, not an LCA result: a process whose
+burden is all in the background (ASU-1: electricity; its emissions are pass-through) shows 0.
+An unchanged dataset can still show a delta when an Atlas activity it draws on changed
+(`atlas_upstream`). Without core installed, the report says the impacts are not computed. The CI
+stub background (below) is a test device, not a reference background. Releases: docs/governance.md and
 `.github/workflows/release.yml` (started by hand; drafts the artefacts and the Zenodo metadata,
 publishes nothing).
 

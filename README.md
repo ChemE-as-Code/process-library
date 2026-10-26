@@ -23,7 +23,7 @@ is the source of the [Process Atlas](https://github.com/ChemE-as-Code/process-at
 | `docs/` | `system-model.md` (the LCI database's methodology: system model, allocation hierarchy, cut-off rules), `markets.md` (markets, their layers and the chaining of Atlas processes), `governance.md` (versions, change reports, releases and DOIs, review, contribution policy draft), `registry.md`, `coverage.md`, `benchmarks.md`, and `adr/` (architecture decision records: why the library is built this way) |
 | `schemas/` | JSON Schemas of process.yaml, the registry, the mappings, the taxonomy, the coverage roadmap, the benchmarks and the markets |
 | `templates/process/` | starter folder for a new process |
-| `scripts/` | `build_catalog.py` (catalog for the Atlas), `build_lci.py` (Brightway workbook), `render_previews.py` and `export_snapshots.py` (drawings and viewer snapshots, via `cheme`); `publication.py` (the rules of `--public`); `registry.py` (grades and registry checks); `benchmarks.py` (KPI evaluation); `markets.py` (market files and the default market of an input) |
+| `scripts/` | `build_catalog.py` (catalog for the Atlas), `build_lci.py` (Brightway workbook), `render_previews.py` and `export_snapshots.py` (drawings and viewer snapshots, via `cheme`); `publication.py` (the rules of `--public`); `registry.py` (grades and registry checks); `benchmarks.py` (KPI evaluation); `markets.py` (market files and the default market of an input); `reference_impacts.py` (reference GWP deltas of the LCI change report) |
 | `python/` | `cheme-as-code-lci`, the one-call Brightway installer of the LCI database |
 | `tests/` | tests of the scripts, with a synthetic fixture library |
 

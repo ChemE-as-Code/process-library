@@ -24,7 +24,9 @@ Output (``--out``; ``<out>/lci/`` is replaced):
 - ``lci/index.json``: the summary the Atlas reads (files with size and sha256, activities per
   process, caveats).
 - with ``--previous <dir>`` (an earlier build): ``lci/changes.json`` and ``lci/CHANGES.md``, the
-  change report per dataset and activity (exchanges added, removed and changed; no impact delta).
+  change report per dataset and activity (exchanges added, removed and changed) with the delta of
+  a reference impact set per activity (``reference_impacts.py``: core's packaged IPCC 2021 GWP100
+  on the Atlas foreground, no background; the report states what that leaves out).
 
 Modelling rules (``docs/system-model.md``; also written into every activity's ``comment``):
 
@@ -117,6 +119,7 @@ from openpyxl import Workbook
 
 import benchmarks as bm
 import markets as mk
+import reference_impacts
 import registry as reg
 from publication import is_public
 
@@ -196,7 +199,7 @@ SYSTEM_MODELS = {
     "cutoff": "attributional, cut-off",
     "substitution": "attributional, substitution variant (avoided-burden credits at end of life)",
 }
-CHANGES_SCHEMA = "cheme-as-code/lci-changes/v1"
+CHANGES_SCHEMA = "cheme-as-code/lci-changes/v2"  # v2: impact is an object (reference_impacts.py)
 #: WBCSD (2014) rule, hierarchy step 3: economic allocation above this price ratio, else mass.
 PRICE_RATIO = 5.0
 #: Co-products below this share of the output mass do not enter the price-ratio decision.
@@ -1954,7 +1957,7 @@ def change_report(previous: Path, package: dict, workbook: Path) -> dict:
                  "system_model": old_model.get("id", "unrecorded"), "methodology_version": (old_model.get("methodology") or {}).get("version", "unrecorded")},
         "to": {"version": package["version"], "database": package["name"], "library_commit": package["library"]["commit"],
                "system_model": package["system_model"]["id"], "methodology_version": package["system_model"]["methodology"]["version"]},
-        "impact": "not computed: the report is at exchange level (lci/README.md, Change reports)",
+        "impact": reference_impacts.compare(old, new, old_package.get("name"), package["name"], datasets),
         "datasets": datasets,
         "activities": {"added": sorted(new.keys() - old.keys()), "removed": sorted(old.keys() - new.keys()), "changed": changed},
     }
@@ -1970,8 +1973,6 @@ def changes_markdown(changes: dict) -> str:
             f"System model {a['system_model']} -> {b['system_model']}; methodology {a['methodology_version']} -> {b['methodology_version']}."
         ),
         "",
-        "Exchange level only: no impact delta is computed (lci/README.md, Change reports).",
-        "",
         "## Datasets",
         "",
         "| process | dataset | status | version | note |",
@@ -1986,8 +1987,9 @@ def changes_markdown(changes: dict) -> str:
         elif d.get("allocation_changed"):
             note.append("allocation shares changed")
         lines.append(f"| {d['process']} | {d['dataset']} | {d['status']} | {d['version'][0] or '-'} -> {d['version'][1] or '-'} | {'; '.join(note)} |")
+    lines += ["", *reference_impacts.markdown(changes)]
     activities = changes["activities"]
-    lines += ["", "## Activities", ""]
+    lines += ["## Activities", ""]
     for what in ("added", "removed"):
         for code in activities[what]:
             lines.append(f"- {what}: `{code}`")
