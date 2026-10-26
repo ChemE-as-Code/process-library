@@ -66,7 +66,9 @@ to handle.
 |---|---|
 | `lci/cheme-as-code-atlas-<version>.xlsx` | the database `cheme-as-code-atlas-<version>`: an `about` sheet (skipped by the importer), a `database` sheet, one sheet per process, a `markets` sheet, a `proxies` sheet. Exchange columns beyond bw2io's: `atlas key`, `atlas flow uuid`, `atlas pedigree`, `atlas carrier` and the linking fields |
 | `lci/datapackage.json` | version, library commit, per process: title, maturity, review, data status (exchanges by provenance), factor status of the study, allocation and shares, functional unit, activities (each with its `chemical` slug and registry `grade`, null when none), and per dataset its `property_checks` and `benchmarks` (below) |
-| `lci/index.json` | what the Atlas site reads: file names, sizes, sha256, activities per process, exported markets, caveats, system model |
+| `lci/cheme-as-code-atlas-<version>-olca-jsonld.zip` | the same database for **openLCA** (JSON-LD, olca-schema 2): one unallocated multi-output process per dataset with allocation factors (below); markets and proxies as single-output processes, the default provider of every exchange linked to them |
+| `lci/cheme-as-code-atlas-<version>-multifunctional.json` | the **unallocated multi-output** datasets for Brightway's `multifunctional` package, with allocation properties (below); `install_multifunctional()` |
+| `lci/index.json` | what the Atlas site reads: file names, sizes, sha256, `format` and `format_version` of every file, activities per process, exported markets, caveats, system model |
 | `lci/changes.json`, `lci/CHANGES.md` | with `--previous`: the change report against the earlier build (below) |
 
 `datapackage.json` also records the **system model** (`system_model`: id, label, methodology
@@ -114,8 +116,9 @@ build); governance (versions, change reports, releases, review) is
   finding; else the given method, with a finding. A curated `rule: deviation` in the mappings
   still works and wins over the study's. Findings are
   warnings (`--strict` fails). Proportional methods (mass, economic, energy, exergy, shares)
-  only; substitution and `none` are refused. The unallocated multi-output form is not exported
-  (bw2io's Excel importer has no clean representation of it).
+  only; substitution and `none` are refused. bw2io's Excel importer has no clean representation
+  of the unallocated multi-output form, so the workbook holds the allocated activities; the
+  multi-output form is in the openLCA and multifunctional files ([Other formats](#other-formats)).
 - **Construction, maintenance, transport, end of life** are technosphere inputs per unit of
   product, already spread over the plant's life (hours x years) by core.
 - **Amounts** are quantities of the linked activity's reference product, as in core's study. A
@@ -304,18 +307,93 @@ dataset without a manifest, or with one written before core#178, has `null`.
   states its maturity and review status (`datapackage.json`, activity comments).
 - The ASU dataset is from example-asu PR #11 (in review): numbers may still change.
 
+## Other formats
+
+Written by `scripts/export_formats.py`, which `build_lci.py` calls after the workbook. Both read
+the build's own activities and the unallocated datasets behind them (same mappings, same
+linking): there is no second source of truth. `index.json` lists each file with its sha256,
+`format` and `format_version`.
+
+**openLCA JSON-LD** (`-olca-jsonld.zip`, olca-schema 2, written with the pinned `olca-schema`
+2.6.2 package):
+
+- one **multi-output unit process per dataset** with every co-product as an output, plus the
+  screening proxies as single-output processes. Allocation factors: the build's method as the
+  default allocation method, with exactly the build's shares (exergy, energy and mass as
+  `PHYSICAL`, economic as `ECONOMIC`, given shares as `CAUSAL`), and beside it `PHYSICAL` by mass
+  or `ECONOMIC` by price where every co-product has the property. openLCA's allocated result per
+  unit of a product is then the workbook's activity; the process description lists the factors;
+- an input another Atlas process makes is linked to that process (`defaultProvider`), as
+  `install(prefer_atlas=True)`. A background input is a product flow named by its reference
+  product (ecoinvent 3.11 cut-off naming, unchecked), with the provider by name, reference
+  product and location in the exchange's description: map these flows to your background with
+  openLCA's flow mapping. An input your background models as a waste treatment must be mapped to
+  the waste flow as an output (the build cannot tell; the Brightway installer flips its sign);
+- units and flow properties are **references to openLCA's reference data** (UUIDs from
+  `olca_schema.units`); import into a database that has openLCA's reference units and flow
+  properties. A unit openLCA has no reference unit for (Brightway's standard cubic meter) fails
+  the build;
+- the lognormal is written as openLCA's (geometric mean, GSD); the pedigree scores are in the
+  exchange's description (no data quality system is referenced);
+- identifiers (uuid5, namespace `uuid5(NAMESPACE_URL, "https://github.com/ChemE-as-Code/process-library/lci")`,
+  `export_formats.atlas_uuid`): a dataset's process is the **dataset's own `uuid`** (core: uuid5
+  of plant and dataset id) in the default build, `atlas_uuid("process", <code>)` without one, and
+  `atlas_uuid("process", <system model>, <code>)` in a labelled variant, so that the
+  substitution build does not overwrite the default in one openLCA database. Atlas product flows
+  are `atlas_uuid("flow", <activity code>)`, background flows `atlas_uuid("flow", "background",
+  <reference product>, <unit>)`, locations `atlas_uuid("location", <code>)` (Atlas locations,
+  not openLCA's reference locations);
+- **elementary flows** keep their **biosphere3 UUID** where the build has one (`atlas flow
+  uuid`: ecoinvent's elementary exchange id as distributed with bw2io). A flow without one gets
+  `atlas_uuid("flow", "elementary", <name>, <categories>, <unit>)` and says in its description
+  that it is not an EF 3.1 or ecoinvent UUID: map it by name and category. EF 3.1 UUIDs are not
+  recorded by core yet (core#313) and are never guessed. Whether a biosphere3 UUID matches a flow
+  of your openLCA database depends on that database's elementary flow list.
+
+**Brightway multifunctional** (`-multifunctional.json`, schema
+`cheme-as-code/lci-multifunctional/v1`, for `multifunctional` 1.1, BSD-3-Clause): one
+multi-output process per dataset (amounts per dataset basis, e.g. 1 h of operation), each
+co-product a functional production edge with its allocation properties: `mass` (1 for a product
+in kg), `exergy` and `energy` (kJ per unit, as the dataset or study states them; core
+`ProductProperties`), `price` (only where stated) and `share` (the build's share). Nothing is
+filled in that the dataset does not state: ASU-1 has mass, exergy and share, no price and no LHV.
+Each process's `default_allocation` is the build's method (`exergy` for ASU-1), or `share` where
+the properties cannot reproduce it. A single-output dataset is an ordinary process under its
+activity code.
+
+```python
+from cheme_as_code_lci import install_multifunctional   # pip install "./python[multifunctional]"
+
+report = install_multifunctional("lci/", background="ecoinvent-3.11-cutoff", location="FR")
+mf = report.database                                       # cheme-as-code-atlas-<version>-multifunctional
+node = bd.get_node(database=mf, code="asu-1:asu-1-500-t-d-gox")
+node["default_allocation"] = "mass"                        # or exergy, energy, price, share, equal
+node.save(); bd.Database(mf).process()                     # re-allocates
+```
+
+It links exactly as `install()` and refuses to write while anything is unlinked. The allocated
+read-only activities carry the workbook's codes (`asu-1:asu-1-500-t-d-gox:product:GOXP`); with
+the default strategy they are the workbook's activities. The strategies `exergy`, `energy` and
+`share` are added to the project (`multifunctional.add_custom_property_allocation_to_project`).
+The allocated workbook stays the default download.
+
+**Not yet:** ILCD (EF 3.1 flavour) needs EF 3.1 elementary flow UUIDs (core#313) and the EC's
+ILCD validator; EcoSpold2 / SimaPro CSV and PACT PCF are open (#51).
+
 ## Build
 
 ```sh
 uv run scripts/build_lci.py --library <process-library> --out <dir> --version 0.1.0 [--strict] \
     [--public] [--system-model substitution] [--previous <earlier build>]
-# -> <dir>/lci/cheme-as-code-atlas-0.1.0.xlsx, <dir>/lci/datapackage.json, <dir>/lci/index.json
+# -> <dir>/lci/cheme-as-code-atlas-0.1.0.xlsx, -olca-jsonld.zip, -multifunctional.json,
+#    <dir>/lci/datapackage.json, <dir>/lci/index.json
 #    (+ changes.json, CHANGES.md with --previous)
 ```
 
 `<dir>/lci/` is replaced; nothing else in `<dir>` is touched. Mappings come from
 `<library>/lci/mappings.yaml`, else this staged copy. Two runs on the same input are
-byte-identical (the workbook's document dates and zip entry dates are fixed).
+byte-identical (the workbook's document dates and zip entry dates are fixed; the JSON-LD zip has
+sorted entries, fixed dates and no `lastChange` stamps).
 
 The build first validates `chemicals/chemicals.yaml` against its schema and the registry checks
 (`scripts/registry.py` `check`: CAS check digits, InChIKeys, properties against the formula,
@@ -363,9 +441,19 @@ CO2, and checks that an LCA of 1 t GOXP in the **substitution variant** reproduc
 baseline (`results.csv`, which includes the study's recycling credits) to the precision
 plantcode prints, and that the default **cut-off** database differs from it by exactly those
 credits. It also covers Atlas-internal linking, treatment signs, the overwrite
-refusal and the unlinked report on the fixture library.
+refusal and the unlinked report on the fixture library, and the **multifunctional round trip**:
+installed with `install_multifunctional()` and allocated with each process's default strategy,
+the multi-output datasets give the workbook's activities code for code (fixture library and
+ASU-1); re-allocated by mass, ASU-1 conserves the unallocated total.
+
+`tests/test_export_formats.py` checks the **JSON-LD** structurally: every entity loads with
+olca-schema and writes back unchanged, every reference resolves (in the package, or among
+openLCA's reference units), elementary flows keep their biosphere3 UUIDs, and openLCA's
+allocation of each multi-output process gives the workbook's amounts per unit of product. The
+import into openLCA itself (olca-ipc against a running openLCA) is not run in CI.
 
 ```sh
 uv run --python 3.12 --with pytest --with pyyaml --with jsonschema --with openpyxl \
-  --with ./python --with bw2calc pytest -m brightway tests
+  --with ./python --with bw2calc --with olca-schema==2.6.2 --with multifunctional==1.1.2 \
+  pytest -m brightway tests
 ```
