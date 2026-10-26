@@ -148,7 +148,7 @@ class _Olca:
         return o.as_ref(entity)
 
     def flow(self, fid: str, name: str, kind: o.FlowType, bw_unit: str, where: str, category: str, description: str, location: str | None = None) -> o.Ref:
-        unit, prop = self.units(bw_unit, where)
+        _, prop = self.units(bw_unit, where)
         flow = o.Flow(id=fid, name=name, flow_type=kind, category=category, description=description, last_change=None, version=None)
         flow.flow_properties = [o.FlowPropertyFactor(flow_property=prop, conversion_factor=1.0, is_ref_flow_property=True)]
         if location:
@@ -286,11 +286,9 @@ def build_jsonld(datasets: list[dict], proxies: list, activities: list, db_name:
     builder = _Olca(db_name, model, default, site)
     # every Atlas activity's product flow and the process that provides it (a dataset's
     # multi-output process for its products, the proxy's own process)
-    rows = {}
     for dataset in datasets:
         pid = _process_id(dataset["code"], dataset.get("uuid"), model, default)
         for product in dataset["products"]:
-            rows[product["code"]] = product
             flow = builder.atlas_flow(product["code"], product)
             builder.atlas[_identity(product)] = (flow, o.Ref(ref_type=o.RefType.Process, id=pid, name=dataset["name"], location=dataset["location"]))
     for proxy in proxies:

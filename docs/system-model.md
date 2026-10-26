@@ -151,6 +151,11 @@ read. They are part of the review checklist ([governance.md](governance.md)).
 - **Data freshness:** primary data at most 5 years old and secondary data at most 10 years old
   at the reference year. A dataset records a `valid_until` year (core#179, reference year + 5 by
   default); `datapackage.json` carries it (null for a dataset that states none).
+- **Formats:** every build writes the allocated activities (bw2io workbook) and the unallocated
+  multi-output datasets (openLCA JSON-LD with allocation factors, Brightway `multifunctional`
+  with allocation properties) from the same datasets and rules; the default allocation in each
+  is the method of section 2, and the allocated workbook stays the default download
+  ([LCI export](lci.md), Other formats).
 - **Atmospheric pass-through** (components taken in with the air and returned unchanged) is not
   exported, as decided in `lci/mappings.yaml` `pass_through:`.
 - **Data quality and nomenclature:** the export carries each exchange's pedigree and its
@@ -196,7 +201,7 @@ Two published chemical LCI databases show what users expect from the documentati
 | layered model: plant, site, production and consumption mixes, simplified extension layer | planned (core#182, #47, #49): tiered generation and market datasets |
 | biogenic carbon content always reported | planned (core#181) |
 | several data-quality schemes and a primary data share | pedigree per exchange in the export; TfS DQR, PEF-style indicators and PDS per dataset in `datapackage.json` (core#178) |
-| per-dataset documentation of included and excluded stages | activity comments and `datapackage.json` today; ILCD export planned (#51) |
+| per-dataset documentation of included and excluded stages | activity comments, `datapackage.json` and the openLCA process descriptions today; ILCD export planned (#51; needs EF 3.1 UUIDs, core#313) |
 
 ## References
 

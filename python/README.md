@@ -12,3 +12,14 @@ bd.projects.set_current("my-project")          # already holds ecoinvent and its
 report = install("cheme-as-code-atlas-0.1.0.xlsx", background="ecoinvent-3.11-cutoff", location="FR")
 print(report.summary())
 ```
+
+The unallocated multi-output datasets (`cheme-as-code-atlas-<version>-multifunctional.json`)
+install as a Brightway `multifunctional` database, whose allocation you choose (exergy, mass,
+energy, price where stated, the build's share); with each process's default it reproduces the
+workbook. Needs the extra: `pip install "./python[multifunctional]"`.
+
+```python
+from cheme_as_code_lci import install_multifunctional
+
+report = install_multifunctional("lci/", background="ecoinvent-3.11-cutoff", location="FR")
+```

@@ -18,10 +18,13 @@ Output (``--out``; ``<out>/lci/`` is replaced):
 - ``lci/cheme-as-code-atlas-<version>.xlsx``: one Brightway database in bw2io's ExcelImporter
   format (``bw2io.ExcelImporter``; layout as bw2io's ``data/examples/example.xlsx``): a
   ``Database`` section, then per activity its metadata rows and an ``Exchanges`` table.
+- ``lci/cheme-as-code-atlas-<version>-olca-jsonld.zip`` (openLCA JSON-LD) and
+  ``lci/cheme-as-code-atlas-<version>-multifunctional.json`` (Brightway ``multifunctional``): the
+  unallocated multi-output datasets, written by ``export_formats.py`` from the same activities;
 - ``lci/datapackage.json``: version, library commit, per process its title, maturity, data and
   factor status, allocation, functional unit and activities.
-- ``lci/index.json``: the summary the Atlas reads (files with size and sha256, activities per
-  process, caveats).
+- ``lci/index.json``: the summary the Atlas reads (files with size, sha256, format and format
+  version, activities per process, caveats).
 - with ``--previous <dir>`` (an earlier build): ``lci/changes.json`` and ``lci/CHANGES.md``, the
   change report per dataset and activity (exchanges added, removed and changed; no impact delta).
 
@@ -35,7 +38,8 @@ Modelling rules (``docs/system-model.md``; also written into every activity's ``
 - one single-output activity per co-product, 1 unit of it, allocated by the hierarchy: the
   curated rule of ``allocation:`` in the mappings, else the study's (``lca/lca.yaml``) or the
   dataset's method when it fits the WBCSD price-ratio rule or states its ``allocation.deviation``;
-  otherwise a finding (``--strict`` fails). The unallocated multi-output form is not exported;
+  otherwise a finding (``--strict`` fails). The unallocated multi-output form is in the
+  JSON-LD and multifunctional files (``export_formats.py``), not in the workbook;
 - the v2 contract (core#294): a ``resource`` exchange and an emission are biosphere exchanges
   identified by the biosphere3 UUID of their ``flow:`` identity (``atlas flow uuid``), name and
   categories as fallback; units are brought to one per kind (g, t to kg ...) or refused when

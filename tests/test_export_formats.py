@@ -54,7 +54,7 @@ def _entities(path: Path) -> dict[str, dict]:
 def _reference_units() -> dict[str, set[str]]:
     """openLCA's reference unit, unit group and flow property ids (olca_schema.units) -> their
     names (a unit's synonyms, m3 and m\u00b3, share its id)."""
-    import olca_schema.units as units
+    from olca_schema import units
 
     known: dict[str, set[str]] = {}
     with (Path(units.__file__).parent / "units.csv").open(encoding="utf-8") as f:

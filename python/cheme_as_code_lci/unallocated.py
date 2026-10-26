@@ -32,7 +32,15 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from cheme_as_code_lci.install import DEFAULT_BACKGROUND, PEDIGREE_KEYS, InstallReport, _check_background, _label, _link_external, _sha256
+from cheme_as_code_lci.install import (
+    DEFAULT_BACKGROUND,
+    PEDIGREE_KEYS,
+    InstallReport,
+    _check_background,
+    _label,
+    _link_external,
+    _sha256,
+)
 
 SCHEMA = "cheme-as-code/lci-multifunctional/v1"
 #: Strategies the file uses beyond multifunctional's built-in ``mass`` and ``price``:
