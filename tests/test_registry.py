@@ -204,6 +204,18 @@ def test_mass_and_exergy_allocation_follow_from_registry_data() -> None:
     assert all("price" not in products.properties(*reg.split(ref)) for ref in amounts)
 
 
+def test_economic_allocation_without_a_price_says_the_registry_has_none() -> None:
+    """With no price in the study or the dataset, economic allocation fails and says that the
+    export takes no registry price (docs/registry.md, Missing prices), rather than guessing."""
+    dataset = {"exchanges": [
+        {"key": "product:A", "type": "product", "amount": 10.0, "unit": "kg"},
+        {"key": "product:B", "type": "product", "amount": 10.0, "unit": "kg"},
+    ]}
+    with pytest.raises(build_lci.BuildError, match="no price of A in the study or the dataset, and the export takes no registry price"):
+        build_lci.shares(dataset, {"method": "economic"}, "p")
+    assert build_lci.shares(dataset, {"method": "economic", "prices": {"A": 3.0, "B": 1.0}}, "p")["product:A"] == pytest.approx(0.75)
+
+
 def test_grade_exergy_is_chemical_plus_physical() -> None:
     """The gas grades' exergy: Szargut's chemical exergy per kg plus the physical exergy, which for
     a gas at T0 is close to the ideal-gas R T0 ln(p/p0) / M (the registry uses NIST real-fluid h, s)."""
