@@ -28,9 +28,9 @@
       "additionalProperties": {"$ref": "#/$defs/proxy"}
     },
     "biosphere": {
-      "description": "By emission component (emission:<component>), optionally <component>/<origin> (fossil, biogenic).",
+      "description": "Elementary flows of emissions and resources, keyed by flow identity: the biosphere3 UUID of the dataset exchange's `flow:` (the entry then corrects the name and categories the dataset gives), else by emission component (emission:<component>), optionally <component>/<origin> (fossil, biogenic). A `flow.uuid` makes the installer link by that UUID first.",
       "type": "object",
-      "propertyNames": {"pattern": "^[A-Za-z0-9_.\\-]+(/(fossil|biogenic))?$"},
+      "propertyNames": {"pattern": "^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[A-Za-z0-9_.\\-]+(/(fossil|biogenic|land-use-change))?)$"},
       "additionalProperties": {
         "type": "object",
         "additionalProperties": false,
@@ -174,7 +174,8 @@
       "required": ["name", "categories"],
       "properties": {
         "name": {"type": "string", "minLength": 1},
-        "categories": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+        "categories": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "uuid": {"type": "string", "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", "description": "The flow's biosphere3 UUID (from core's elementary-flow crosswalk); optional."}
       }
     }
   }

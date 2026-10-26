@@ -8,7 +8,7 @@ importer's standard strategies, links the rest against *background* and *biosphe
 ``match_database``, and writes the database only when every exchange is linked; otherwise it
 returns the unlinked exchanges (nothing is dropped, nothing is written).
 
-Three Atlas fields in the workbook steer it:
+Atlas fields in the workbook steer it:
 
 - ``atlas location rule: site``: the exchange's location is the plant's site, replaced by
   *location* (default: the workbook's ``atlas default site location``);
@@ -16,7 +16,18 @@ Three Atlas fields in the workbook steer it:
   activity makes this input; with ``prefer_atlas`` the exchange links to it instead of the
   background;
 - a technosphere amount is the quantity of the linked reference product (as in plantcode's
-  study), so an exchange linked to a treatment activity (production -1) gets its sign flipped.
+  study), so an exchange linked to a treatment activity (production -1) gets its sign flipped;
+- ``atlas flow uuid``: the biosphere3 UUID of an elementary flow. The flow whose code is that
+  UUID in *biosphere* is taken first (when its unit agrees); name, categories and unit are the
+  fallback for a biosphere database with other codes;
+- ``atlas pedigree``: the five pedigree scores of the exchange, written as Brightway's
+  ``pedigree`` (reliability, completeness, temporal, geographical and further technological
+  correlation); the lognormal itself is in the standard uncertainty columns;
+- ``atlas superseded by``: the activity is deprecated; it is installed and stays linkable, and
+  the report names its successor.
+
+The report also names the database's system model (``atlas system model``) and the version
+of the methodology it was built under.
 """
 
 from __future__ import annotations
@@ -30,6 +41,13 @@ from pathlib import Path
 DEFAULT_BACKGROUND = "ecoinvent-3.11-cutoff"
 TECHNOSPHERE_FIELDS = ("name", "reference product", "unit", "location")
 BIOSPHERE_FIELDS = ("name", "categories", "unit")
+#: The order of the scores in ``atlas pedigree``, as Brightway names them.
+PEDIGREE_KEYS = ("reliability", "completeness", "temporal correlation", "geographical correlation", "further technological correlation")
+#: The system models the Atlas builds (build_lci.py SYSTEM_MODELS), for the report.
+SYSTEM_MODELS = {
+    "cutoff": "attributional, cut-off",
+    "substitution": "attributional, substitution variant (avoided-burden credits for recovered materials, energy and exported co-products)",
+}
 
 
 #: Metadata keys of ``bd.databases[name]`` that identify a background database (as core's
@@ -60,6 +78,15 @@ class InstallReport:
     #: every exchange that found no partner: activity, name, type, unit, location, ...
     unlinked: list[dict] = field(default_factory=list)
     written: bool = False
+    #: the database's system model id (cutoff, substitution) and methodology version; "" when the
+    #: workbook records none (built before the system model was declared)
+    system_model: str = ""
+    methodology_version: str = ""
+    #: "<activity> -> <successor>" of every deprecated activity (installed, with a pointer)
+    superseded: list[str] = field(default_factory=list)
+    #: elementary flows linked by their biosphere3 UUID, and by name, categories and unit
+    biosphere_by_uuid: int = 0
+    biosphere_by_name: int = 0
 
     @property
     def ok(self) -> bool:
@@ -70,8 +97,15 @@ class InstallReport:
             f"{self.database}: {self.activities} activities, {self.exchanges} exchanges from {self.source}",
             f"background {self.background!r}, biosphere {self.biosphere!r}, site location {self.location}"
             + (" (the workbook's default: pass location=...)" if self.location_is_default else ""),
+            f"system model: {SYSTEM_MODELS.get(self.system_model, self.system_model or 'not recorded')}"
+            + (f" ({self.system_model})" if self.system_model in SYSTEM_MODELS else "")
+            + (f"; methodology {self.methodology_version}" if self.methodology_version else ""),
             f"linked inside the Atlas: {len(self.atlas_links)}; treatment links with flipped sign: {len(self.sign_flipped)}",
+            f"elementary flows linked by biosphere3 UUID: {self.biosphere_by_uuid}; by name and categories: {self.biosphere_by_name}",
         ]
+        if self.superseded:
+            lines.append(f"deprecated activities (installed, superseded): {len(self.superseded)}")
+            lines += [f"  - {text}" for text in self.superseded]
         if self.unlinked:
             lines.append(f"NOT WRITTEN: {len(self.unlinked)} unlinked exchange(s):")
             lines += [f"  - {u['activity']}: {u['type']} {u['name']!r} [{u.get('location') or u.get('categories') or ''}] ({u['unit']})" for u in self.unlinked]
@@ -120,6 +154,24 @@ def _biosphere(bd, given: str | None) -> str:
     if len(found) != 1:
         raise ValueError(f"cannot tell the biosphere database ({', '.join(found) or 'none found'}): pass biosphere=...")
     return found[0]
+
+
+def _link_by_uuid(bd, importer, bio: str, report: InstallReport) -> None:
+    """Link every biosphere exchange that names a biosphere3 UUID (``atlas flow uuid``) to the
+    flow of that code in *bio*, if there is one and its unit is the exchange's. The rest is left
+    to the name, categories and unit match."""
+    for ds in importer.data:
+        for exc in ds["exchanges"]:
+            uuid = exc.get("atlas flow uuid")
+            if exc.get("type") != "biosphere" or exc.get("input") or not uuid:
+                continue
+            try:
+                node = bd.get_node(database=bio, code=uuid)
+            except Exception:  # bw2data raises its own lookup errors (UnknownObject, DoesNotExist)
+                continue
+            if node.get("unit") in (None, exc.get("unit")):
+                exc["input"] = node.key
+                report.biosphere_by_uuid += 1
 
 
 def _label(ds: dict) -> str:
@@ -171,10 +223,18 @@ def install(
     if name in bd.databases and not overwrite:
         raise ValueError(f"database {name!r} exists in project {bd.projects.current!r}; pass overwrite=True to replace it")
     default_site = str(importer.metadata.get("atlas default site location") or "GLO")
-    report = InstallReport(name, str(path), background, bio, location or default_site, location is None, prefer_atlas, verified=any((expect or {}).values()))
+    report = InstallReport(
+        name, str(path), background, bio, location or default_site, location is None, prefer_atlas, verified=any((expect or {}).values()),
+        system_model=str(importer.metadata.get("atlas system model") or ""), methodology_version=str(importer.metadata.get("atlas methodology version") or ""),
+    )
 
     for ds in importer.data:
+        if ds.get("atlas superseded by"):
+            report.superseded.append(f"{_label(ds)} -> {ds['atlas superseded by']}")
         for exc in ds["exchanges"]:
+            if exc.get("atlas pedigree"):
+                scores = [int(x) for x in str(exc["atlas pedigree"]).split(",")]
+                exc["pedigree"] = dict(zip(PEDIGREE_KEYS, scores, strict=True))
             if exc.get("atlas location rule") == "site":
                 exc["location"] = report.location
             if prefer_atlas and exc.get("atlas activity"):
@@ -186,6 +246,7 @@ def install(
         s for s in importer.strategies if not (isinstance(s, functools.partial) and s.func is link_iterable_by_fields)
     ]
     importer.apply_strategies()
+    _link_by_uuid(bd, importer, bio, report)
     importer.match_database(bio, fields=BIOSPHERE_FIELDS, edge_kinds=["biosphere"])
     importer.match_database(background, fields=TECHNOSPHERE_FIELDS, edge_kinds=["technosphere"])
 
@@ -193,6 +254,8 @@ def install(
         report.activities += 1
         for exc in ds["exchanges"]:
             report.exchanges += 1
+            if exc.get("type") == "biosphere" and exc.get("input"):
+                report.biosphere_by_name += 1
             if not exc.get("input"):
                 report.unlinked.append(
                     {k: exc.get(k) for k in ("name", "type", "unit", "location", "reference product", "categories", "atlas key")}
@@ -203,8 +266,9 @@ def install(
                 if sum(e["amount"] for e in node.production()) < 0:
                     exc["amount"] = -exc["amount"]
                     if exc.get("uncertainty type") == 2:
-                        exc["negative"] = True
+                        exc["negative"] = exc["amount"] < 0
                     report.sign_flipped.append(f"{_label(ds)}: {exc['name']}")
+    report.biosphere_by_name -= report.biosphere_by_uuid  # counted above: every linked biosphere exchange
     if report.unlinked:
         return report
 
