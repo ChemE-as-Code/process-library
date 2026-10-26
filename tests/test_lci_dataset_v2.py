@@ -394,12 +394,15 @@ def test_a_dataset_is_linked_to_a_current_producer_before_a_deprecated_one(libra
     report = _build(library, tmp_path)
     assert report.errors == []
     hydrogen = _exchange(_activities(tmp_path)["fixture-ammonia:fixture-ammonia-hb:product:ammonia"], "feed:hydrogen")
-    assert hydrogen["atlas activity"] == "Fixture: water electrolysis"  # both datasets make it
-    assert any("several Atlas producers" in w and "fixture-electrolysis: Fixture: water electrolysis" in w for w in report.warnings)
-    # the deprecated H2 activity is the one that is named as the alternative, not the one taken:
-    # a build with the revised dataset's product only would take it
+    # both datasets make it: the market of the grade takes the current one, and so does the plant
+    # beside the market (for pinning); the deprecated one is named as the producer not taken
+    assert hydrogen["atlas activity"] == "market for hydrogen"
+    assert hydrogen["atlas plant activity"] == "Fixture: water electrolysis"
+    assert hydrogen["atlas plant code"] == "fixture-electrolysis:fixture-electrolysis-2:product:H2"
+    supply = _activities(tmp_path)["market:hydrogen:GLO"]
+    assert [e["atlas code"] for e in supply["exchanges"] if e.get("atlas link") == "supply"] == ["fixture-electrolysis:fixture-electrolysis-2:product:H2"]
     taken = [w for w in report.warnings if "several Atlas producers" in w][0]
-    assert "is used, not" in taken
+    assert "market:hydrogen:GLO is used, and does not take fixture-electrolysis: Fixture: water electrolysis [superseded by" in taken
 
 
 def test_a_successor_that_is_not_in_the_build_is_a_warning_and_keeps_the_pointer(library: Path, tmp_path: Path) -> None:

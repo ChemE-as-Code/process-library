@@ -150,7 +150,7 @@ def test_asu_round_trip_reproduces_the_plantcode_baseline(project, tmp_path: Pat
     assert result.unlinked == [], result.summary()
     assert result.written and result.location == "FR" and not result.location_is_default
     assert result.sign_flipped == [] and result.atlas_links == []  # this library has no markets/
-    assert result.system_model == "substitution" and "system model substitution" in result.summary()
+    assert result.system_model == "substitution" and "(substitution)" in result.summary()
 
     rows = list(csv.DictReader((ASU / "results.csv").open(encoding="utf-8")))
     expected = next(float(r["impact"]) for r in rows if r["scenario"] == "baseline" and r["key"] == "total")

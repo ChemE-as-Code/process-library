@@ -1532,6 +1532,9 @@ def build_markets(linker: Linker, products: reg.Registry, db_name: str, commit: 
                 suppliers.append(None)  # an import: the other market, resolved below
                 continue
             found = [r for pid, r in linker.producers.get(market.chemical, []) if pid == supplier["process"] and r.get("grade") == market.grade]
+            if len(found) > 1:  # a deprecated dataset beside its successor: the market takes the current one
+                current = [r for r in found if not r.get("deprecated")]
+                found = current if len(current) == 1 else found
             if len(found) == 1:
                 suppliers.append(found[0])
             elif found:
