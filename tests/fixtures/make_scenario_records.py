@@ -48,10 +48,12 @@ def _link(key, title, amount, unit, state, background, baseline, replaced=False,
 
 def _record(sid, kind, case, power, power_link, total, *, title=None, location=None, year=2026, electricity=None,
             replaces=None, missing=None, proxy=None, relation="unchanged", classification="screening",
-            reasons=None, gaps=(), dropped=(), notes=(), extrapolated=False) -> dict:
+            reasons=None, gaps=(), dropped=(), notes=(), extrapolated=False, comparability=None) -> dict:
     exchanges = _exchanges(power)
     per_fu = power * SHARE / 41.7
-    return {
+    # core#306's verdict: only on the records that model it (the others stand for records
+    # written before core#306, which have none)
+    return ({"comparability": comparability} if comparability is not None else {}) | {
         "schema": "cheme/lca-scenario/v1",
         "id": f"{DATASET}/{case['id']}/{sid}",
         "scenario": {
@@ -117,10 +119,18 @@ def main() -> None:
         ),
         "nl-grid": _record(
             "nl-grid", "background", design, 2293.5,
-            _link("feed:POWER", "Stack and balance-of-plant power", 0, "kWh", "linked", "electricity-nl-synthetic", "factor:electricity",
-                  replaced=True, location="NL", status="ASSUMED", year=2025),
+            {**_link("feed:POWER", "Stack and balance-of-plant power", 0, "kWh", "linked", "electricity-nl-synthetic", "factor:electricity",
+                     replaced=True, location="NL", status="ASSUMED", year=2025),
+             "scope": {"basis": "direct", "delivery": "generation", "gases": "co2e", "gwp": None, "mix": "grid-average",
+                       "accounting": "generation", "note": "SYNTHETIC fixture scope"}},
             round(per_fu * 0.3, 6), title="Netherlands grid average (SYNTHETIC)", location="NL", year=2025,
             electricity="grid-average", replaces={"electricity": "electricity-nl-synthetic"}, notes=[unchanged],
+            comparability={
+                "verdict": "not comparable",
+                "reasons": ["electricity-nl-synthetic against electricity: basis differs (direct+upstream / direct)"],
+                "compared": [{"baseline": "electricity", "scenario": "electricity-nl-synthetic", "differences": [
+                    {"dimension": "basis", "baseline": "direct+upstream", "scenario": "direct", "kind": "differs", "severity": "hard"}]}],
+            },
         ),
         "de-grid": _record(
             "de-grid", "background", design, 2293.5,

@@ -74,10 +74,14 @@ backgrounds (`scenarios:` in `lca/lca.yaml` with `location`, `year`, `electricit
 Run `cheme assess lca-scenarios --write` in the process folder and commit `lca/scenarios/`; the
 catalog gives each process `lca.design_cases` and `lca.scenarios` and copies the records to
 `scenarios/<id>/<scenario>.json`. A scenario whose values may not be published, or whose record
-is stale, keeps its geography, states and gaps but loses its totals. ASU-1 has `nl-grid` and
-`de-grid` on core's packaged EEA 2024 grid factors (D-101). These are declared proxies for scope,
-because they are generation-based while the baseline is at the consumer. A scenario missing data
-the baseline has would be marked not comparable.
+is stale, keeps its geography, states and gaps but loses its totals. Each scenario also carries
+core's comparability verdict against the baseline (`comparability`: `like-for-like`, `proxy`,
+`not comparable`; core#306, ADR 0016), the study `boundary`, and each link's factor `scope`.
+ASU-1 has `nl-grid` and `de-grid` on core's packaged EEA 2024 grid factors (D-107). They are
+**not comparable** with the UK baseline (D-110): EEA counts direct emissions at generation,
+while the baseline factor is at the consumer with T&D and well-to-tank, a difference in basis
+that a declared proxy discloses but does not bridge. A scenario missing data the baseline has
+is not comparable as well.
 
 CI (`.github/workflows/validate.yml`): every `processes/*/plant.yaml` is validated with `cheme`
 in its folder; the library job runs the tests (including the Brightway round trip) and builds
