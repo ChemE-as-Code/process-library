@@ -6,22 +6,23 @@ session or accept anything in it.** Acceptance is by the people in the session. 
 the owner what is needed to hold it: the roles to fill, an agenda, the decisions to take first,
 and how to record what the team decides so that `cheme safety hazop check` sees it.
 
-State when this pack was written (commit of D-102 on `stage/basic-close-open`):
+State after the D-113 revision (fail positions D-109, turndown D-110, the trips and the
+screening LOPA D-111, D-112; the pack was first written at D-102):
 
 | Study | Title | Nodes | Scenarios | Worst band high | medium | low | Actions | State |
 |---|---|---:|---:|---:|---:|---:|---:|---|
-| H-01 | Main air compressor and precooling | 9 | 44 | 11 | 14 | 19 | 26 | draft |
-| H-02 | Front-end purification (TSA) | 10 | 37 | 13 | 14 | 10 | 14 | draft |
-| H-03 | Cold box | 12 | 53 | 23 | 19 | 11 | 23 | draft |
-| H-04 | Products, storage and backup supply | 13 | 89 | 39 | 34 | 16 | 30 | draft |
-| **All** | | **44** | **223** | **86** | **81** | **56** | **93** | |
+| H-01 | Main air compressor and precooling | 9 | 45 | 8 | 18 | 19 | 26 | draft |
+| H-02 | Front-end purification (TSA) | 10 | 37 | 12 | 14 | 11 | 14 | draft |
+| H-03 | Cold box | 12 | 54 | 21 | 23 | 10 | 23 | draft |
+| H-04 | Products, storage and backup supply | 13 | 90 | 32 | 40 | 18 | 31 | draft |
+| **All** | | **44** | **226** | **73** | **95** | **58** | **94** | |
 
 "Worst band" follows the matrix's action policy: the highest residual band of a scenario over its
-categories, or the initial band where no residual is rated (only H02-S32). No scenario is
-very-high after its safeguards; 9 are very-high before them. Every high scenario has a proposed
-action. All four studies are current against their analysed inputs (re-stamped in D-102) and
-report 0 errors and 0 warnings; they stay drafts because every entry is `status: proposed, by:
-agent` and the risk matrix is proposed.
+categories, or the initial band where no residual is rated. No scenario is very-high after its
+safeguards; 8 are very-high before them. Every high scenario has a proposed action. All four
+studies are current against their analysed inputs (re-stamped in D-113) and report 0 errors and
+0 warnings; they stay drafts because every entry is `status: proposed, by: agent` and the risk
+matrix is proposed.
 
 Reports to bring to the session (regenerate before it, `build/` is not committed):
 
@@ -59,7 +60,8 @@ about 21.5 hours, so plan six half-day sessions of about 3 to 4.5 hours (split b
 | Introduction, scope, the analysed inputs and the state of each study | 15 |
 | Risk matrix: accept, change or replace (section 3.1) | 45 |
 | Credit convention for residual likelihoods (section 3.2) | 45 |
-| The 9 very-high initial scenarios (section 3.3) | 60 |
+| The 8 very-high initial scenarios (section 3.3) | 60 |
+| The D-111 screening LOPA and the proposed SILs of I-05 .. I-18; the D-109 fail-position set (section 3.6) | 45 |
 | How the high-residual actions will be handled (section 3.4); they are taken node by node | 15 |
 
 ### Sessions 1 to 4: node by node
@@ -156,7 +158,8 @@ for the team to confirm or revise:
 
 ### 3.3 The very-high initial scenarios
 
-All nine are high after their safeguards, none very-high. The team confirms the initial rating,
+All eight are high after their safeguards, none very-high (H04-S80 left this list in D-113: the
+D-110 ratio limit lowers its cause, and it is medium after the I-14 trip). The team confirms the initial rating,
 the safeguards credited and the action, or changes them.
 
 | Scenario | Cause (short) | Initial | Residual | Proposed actions | Owners |
@@ -169,21 +172,17 @@ the safeguards credited and the action, or changes them.
 | H04-S38 | Tanker pressurising gas blows through into T-4101 | very-high | high | H04-A04, H04-A25 | instrument and control engineer; operations |
 | H04-S55 | PV-4110 fails closed or PICA-4110 fails, heat leak rise or fire: T-4102 | very-high | high | H04-A25 | instrument and control engineer |
 | H04-S60 | Tanker gas blow-through or roll-over in T-4102 | very-high | high | H04-A04, H04-A25 | instrument and control engineer; operations |
-| H04-S80 | Reduced make with the customer at the design rate: LP sump boil-down | very-high | high | H04-A23, H04-A28 | instrument and control engineer |
 
 ### 3.4 Every high-residual scenario and its proposed action
 
-The action policy requires an action for each of these 86. The team takes them node by node in
+The action policy requires an action for each of these 73. The team takes them node by node in
 sessions 1 to 4, and for each one either accepts the action (status `open`, with an owner and a
 due date), changes it, or rejects it with a reason (`rejected`, `response`). Many share an action
 (for example H04-A23, H04-A25, H03-A20, H02-A4), which can be decided once.
 
 | Scenario | Cause (short) | Initial | Residual | Proposed actions | Owners |
 |---|---|---|---|---|---|
-| H01-S4 | UIC-1102 fails or UV-1102 sticks closed while the demand falls | high | high | H01-A6 | instrument and control engineer |
 | H01-S11 | MAC trip with the AIR-1002 non-return valve failing to close | high | high | H01-A21 | mechanical engineer |
-| H01-S13 | LV-1106 sticks closed (or closes on an instrument-air failure) | high | high | H01-A3, H01-A6 | instrument and control engineer |
-| H01-S14 | MAC trip while P-1101A/B and P-1102A/B keep running | high | high | H01-A4, H01-A3 | instrument and control engineer; process engineer |
 | H01-S15 | FV-1108 fails open or FIC-1108 fails low | high | high | H01-A7, H01-A3 | instrument and control engineer |
 | H01-S16 | LV-1106 sticks open or LIC-1106 fails high | high | high | H01-A5, H01-A6 | instrument and control engineer; process engineer |
 | H01-S23 | Start-up: MAC loaded with the chimney tray dry, I-03 reset or bypassed | high | high | H01-A10 | operations |
@@ -200,7 +199,6 @@ due date), changes it, or rejects it with a reason (`rejected`, `response`). Man
 | H02-S25 | XV-2104A/B or XV-2112A/B of the bed on line opens spuriously | high | high | H02-A4, H02-A6 | instrument and control engineer |
 | H02-S27 | (see 3.3) | very-high | high | H02-A1, H02-A13 | |
 | H02-S29 | XV-2103A/B of the bed taken off line opens before depressurization | high | high | H02-A3, H02-A4, H02-A5 | instrument and control engineer; process engineer |
-| H02-S32 | Power or instrument-air failure in any step: fail positions not stated (initial only) | high | not rated | H02-A6 | instrument and control engineer |
 | H02-S33 | KS-2101 restarts in a default step after a power dip or reset | high | high | H02-A6, H02-A7 | instrument and control engineer; process engineer (with the TSA supplier) |
 | H02-S35 | Entry into V-2101A/B or F-2101 with waste N2 present | high | high | H02-A10 | operations / process engineer |
 | H02-S36 | Work on an isolated bed while the other runs at 5.9 bara | high | high | H02-A10 | operations / process engineer |
@@ -214,8 +212,6 @@ due date), changes it, or rejects it with a reason (`rejected`, `response`). Man
 | H03-S25 | LV-3101 fails open or LIC-3101 fails high: HP sump empties | high | high | H03-A20 | process engineer |
 | H03-S29 | (see 3.3) | very-high | high | H03-A19 | |
 | H03-S31 | PV-3110B opens fully and diverts the waste N2 to S-3101 | high | high | H03-A19, H03-A1 | instrument and control engineer |
-| H03-S33 | FV-3111 fails open or FIC-3111 fails low: more LOX drawn than made | high | high | H03-A4, H03-A3 | process engineer; process safety engineer |
-| H03-S34 | Refrigeration deficit: compander trip, XV-3117 closure, cooling lost | high | high | H03-A4 | process engineer |
 | H03-S35 | Continuous LOX purge lost and the drain not opened | high | high | H03-A3, H03-A5 | process engineer; process safety engineer |
 | H03-S36 | LOX draw stopped with excess refrigeration | high | high | H03-A4 | process engineer |
 | H03-S40 | VNT-3001 restricted during a drain | high | high | H03-A6 | process engineer |
@@ -228,7 +224,6 @@ due date), changes it, or rejects it with a reason (`rejected`, `response`). Man
 | H03-S51 | AIA-3103 fails low or stale while hydrocarbons or N2O enter | high | high | H03-A24, H03-A3 | process engineer; process safety engineer |
 | H03-S52 | Liquid blocked in on RL-3001, LN-3001 or E-3102 passages | high | high | H03-A20 | process engineer |
 | H04-S01 | K-4101 trips and PV-4101B fails to open | high | high | H04-A20, H04-A14 | electrical and instrument engineer; process engineer |
-| H04-S02 | Low select over-opens the K-4101 vanes (FT-4148 low, UY-4151 or positioner high) | high | high | H04-A23 | instrument and control engineer |
 | H04-S04 | Particles or hydrocarbons left in GOX-4001 or XV-4117 | high | high | H04-A13, H04-A18, H04-A24 | mechanical engineer; operations; process safety engineer |
 | H04-S05 | (see 3.3) | very-high | high | H04-A13, H04-A24 | |
 | H04-S06 | Cooling water to E-4102 / E-4101 lost or reduced | high | high | H04-A12 | process engineer |
@@ -239,7 +234,6 @@ due date), changes it, or rejects it with a reason (`rejected`, `response`). Man
 | H04-S19 | UIC-4131 fails or UV-4131 sticks closed at reduced GAN off-take | high | high | H04-A13 | mechanical engineer |
 | H04-S20 | FIC-3107 or PIC-4106 fails high: K-4102 draws the HP column down | high | high | H04-A22 | instrument and control engineer |
 | H04-S24 | PV-4105 fails or is left closed, or XV-4120 closes: K-4102 blocked outlet | high | high | H04-A06, H04-A14, H04-A31 | electrical and instrument engineer; process engineer; instrument and control engineer |
-| H04-S27 | PIC-4105 fails high and raises FIC-3107's set point | high | high | H04-A22 | instrument and control engineer |
 | H04-S29 | LOX rundown fills T-4101 unwatched | high | high | H04-A03 | process engineer |
 | H04-S30 | (see 3.3) | very-high | high | H04-A25 | |
 | H04-S33 | Hydrocarbons concentrate in T-4101 as the LOX boils off | high | high | H04-A07 | process engineer |
@@ -258,14 +252,9 @@ due date), changes it, or rejects it with a reason (`rejected`, `response`). Man
 | H04-S65 | Standby LIN pump warm when PIC-4112 starts it | high | high | H04-A08 | instrument and control engineer |
 | H04-S68 | Seal or flange leak at P-4102A/B | high | high | H04-A19 | process engineer |
 | H04-S74 | Seal or flange leak at P-4101A/B | high | high | H04-A19 | process engineer |
-| H04-S75 | Low select over-draws at the design make: LP sump boil-down | high | high | H04-A23 | instrument and control engineer |
-| H04-S76 | Turndown: PV-4101B vents GOX for hours | high | high | H04-A26 | process engineer |
 | H04-S77 | Leak on GOX-4002 or the customer line: PIC-4102 opens the vanes | high | high | H04-A15 | process engineer |
-| H04-S79 | Reduced make with the customer at the design rate: GOX over-draw | high | high | H04-A23, H04-A28 | instrument and control engineer |
-| H04-S80 | (see 3.3) | very-high | high | H04-A23, H04-A28 | |
-| H04-S84 | GAN demand above the design draw at the design make | high | high | H04-A22 | instrument and control engineer |
-| H04-S85 | Reduced HP column make with the customer at the design GAN rate | high | high | H04-A22, H04-A28 | instrument and control engineer |
 | H04-S86 | Leak on GAN-4002 or the customer line: PIC-4105 raises the draw | high | high | H04-A15 | process engineer |
+| H04-S90 | Instrument-air or power failure: PV-4111 / PV-4112 fail closed, no backup (D-109) | high | high | H04-A14 | electrical and instrument engineer |
 
 The causes are shortened here; the study files and the reports hold the full text, the
 safeguards and the rating bases.
@@ -285,6 +274,24 @@ safeguards and the rating bases.
   and line-up check, or remove the valve).
 - H01-A26 revised (D-106): the C-1102 freeze bypass is an operating mode of PIC-3110's split
   range, never PV-3110B positioned by hand (with H03-A19).
+
+### 3.6 Items new in the D-113 revision for the team's attention
+
+- The fail-position set of D-109 (control/loops.yaml `fail:`, the TSA and ESD valves in D-109's
+  table). It answers H01-A6, H02-A6, H03-A1 and H04-A14 as proposals. New consequences of it:
+  H01-S45 (the DCAC water pumps run dead-headed on air loss; H01-A17, H01-A4) and H04-S90 (the
+  backup cannot open its valves on air loss; H04-A14, process-library#105).
+- The interlocks I-05 .. I-18 and the screening LOPA of D-111 (CCPS 2001 generic values, ASSUMED
+  tolerable frequencies): confirm the initiating frequencies, the targets, the conditional
+  modifiers (I-07, I-11, I-12, I-14, I-15 / I-16) and each SIL. The studies credit every new
+  interlock one order, because its SIL is not confirmed; a confirmed SIL 2 (I-11, I-12, I-14)
+  would take two (H03-S16 and H03-S18 would then be medium).
+- I-07 and the AIA-2102 alarm share one analyser and take one order together; a second CO2
+  analyser (H02-A1) is what would lower H02-S27 further.
+- H03-S54: a spurious LSLL-3125 trip stops K-4101 and the purge (1oo1 SIL 2; a 1oo2 vote is for
+  the SRS, H03-A4).
+- D-110's ratio limits change H04-S79, S80 and S85 (a make that falls at a constant air flow is
+  still not tracked) and limit the turndown vent H04-S76 to transients.
 
 ## 4. How to record acceptance in the files
 

@@ -5670,3 +5670,60 @@ Decision:
 
 Reason: #79. An open point without its issue is lost when the files change; the HAZOP and
 layout records were to be re-stamped once, after D-109 .. D-111, not after each.
+
+## D-113 HAZOP H-01 .. H-04 revised for D-109 .. D-112, re-stamped (2026-10-26)
+Decided by the agent on the owner's delegation of 2026-10-26 ("resolve those, make reasonable
+decisions"). These are not the owner's own engineering judgement, and none of it is a HAZOP
+team's acceptance: every node, scenario, safeguard, rating and action stays `status: proposed,
+by: agent`. The studies reported `hazop-input-changed` for P-02 .. P-04, the C&E, the
+instrument list, loops.yaml and sequences.yaml.
+
+Credit convention (unchanged, each study's `assessment_basis`): an interlock whose SIL is not
+confirmed takes one order. Every new interlock I-05 .. I-18 is therefore credited one order,
+whatever SIL the D-111 screening proposes; a confirmed SIL 2 would take two (the team's LOPA).
+A trip whose sensor is the cause, or that shares its sensor with a credited alarm, is not
+counted again (I-07 with the AIA-2102 alarm; I-05 with the VIA-1104 alarm).
+
+Decision:
+- (1) **Safeguards** (by id): H01-SG-I05, H01-SG-I06 (new); H01-SG-VIA1104, H01-SG-AIA2102 notes;
+  H02-SG1 now the alarm and I-07 together (kind interlock), H02-SG6 / SG7 now I-09 / I-10,
+  H02-SG8 the FIC-2105 loop only, new H02-SG19 (fail-last TSA valves, D-109) and H02-SG20 (I-08,
+  FSLL-2117); H03-SG8 / SG9 now I-11 / I-12, new H03-SG27 (I-14); H04-SG02 / SG03 / SG04 now
+  I-15 / I-13 / I-16, H04-SG05 the PIC-4102 loop only, new H04-SG38 (I-17, PSHH-4152), SG39
+  (I-14), SG40 (PIC-4101 low alarm), SG41 (PIC-4106 low alarm), SG42 (the D-110 ratio limits
+  and the 30 min vent alarm).
+- (2) **Scenarios revised** (cause, safeguards or ratings): H01-S4, S6, S12, S13, S14, S16,
+  S17, S27, S28, S41; H02-S3, S13, S15, S17, S20, S23, S27, S32 (now rated residual), S33;
+  H03-S12, S16, S18, S33, S34, S35, S50, S52 and the PV-3110B scenario; H04-S01, S02, S05, S07,
+  S11, S13, S21, S24, S27, S48, S49, S70, S75, S76, S79, S80 (initial very-high -> high: the
+  D-110 ratio limit lowers the cause), S82, S84, S85, S87. Node texts: H02-N6 (FSLL-2117),
+  H03-N8 (LSLL-3125), H04-N1, N3 (PSHH-4152), N4, N9.
+- (3) **New scenarios**: H01-S45 (D-109: on air loss TV-1105 and FV-1108 close while the DCAC
+  water pumps run dead-headed; asset 2/D medium; H01-A17, H01-A4), H03-S54 (a spurious LSLL-3125
+  trip stops K-4101 and the purge; asset 2/D medium), H04-S90 (D-109: on air or power loss
+  PV-4111 / PV-4112 fail closed and the backup cannot supply; asset 3/D high; H04-A14,
+  process-library#105).
+- (4) **Actions**: none closed, none new. "Proposed answer: D-1xx ..., for the team" appended to
+  H01-A3, A4, A6, A8; H02-A1, A2, A6; H03-A1, A2, A3, A4, A12; H04-A01, A02, A13, A14, A22, A23,
+  A28, A29.
+- (5) **Re-stamped** H-01 .. H-04 (`stamp --write`) after the reassessment above, then `rate
+  --write`. `cheme safety hazop check`: all draft, 0 errors, 0 warnings.
+- (6) **Counts** (worst band, residual where rated): 223 -> 226 scenarios; high 86 -> 73,
+  medium 82 -> 95, low 55 -> 58, none very-high; very-high initial 9 -> 8; 94 actions; every
+  high scenario has an action. Changed bands: high -> medium H01-S4, S13, S14, H02-S32, H03-S33,
+  S34, H04-S02, S27, S75, S76, S79, S80, S84, S85; medium -> low H02-S15, H04-S82, S87; new
+  H01-S45 and H03-S54 medium, H04-S90 high.
+- (7) safety/hazop/SESSION.md: the state table, the very-high list and the high list follow;
+  section 3.6 lists what the team has to look at from this revision (the fail-position set,
+  the screening LOPA and its modifiers, H01-S45, H03-S54, H04-S90).
+
+Found by the reassessment, for the owner: D-109's closed fail positions of TV-1105 and FV-1108
+dead-head the running DCAC water pumps on air loss (H01-S45). It does not change the choice
+(an open water valve with the drain closed floods the DCAC, H01-S13), but it makes the pump
+minimum flow (H01-A17) or a pump stop on air loss (H01-A4) part of the answer.
+
+Open: the HAZOP team session, the LOPA / SIL session that confirms D-111, the matrix acceptance
+and a human review (the owner's); an independent review of this revision.
+
+Reason: the studies must describe the plant as the control records now state it before the
+team sees them; stamping without reassessing would hide the change (skill hazop-review).
