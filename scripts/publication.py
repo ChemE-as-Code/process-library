@@ -58,8 +58,8 @@ def lca_withheld(folder: Path) -> str | None:
     by an older core) nothing says the sources permit it, so the values are withheld too. A
     manifest whose input fingerprints (``inputs``: path -> sha256 with normalised line endings)
     no longer match the files, whose ``results`` fingerprint (sha256 of ``lca/results.csv``,
-    when the manifest has one) is not the committed file's, or whose backend is not the scope's, describes another run:
-    ``stale-run-manifest``.
+    when the manifest has one) is not the committed file's, or whose backend is not the scope's,
+    describes another run: ``stale-run-manifest``.
     """
     import hashlib
     import json
