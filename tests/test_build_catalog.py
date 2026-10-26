@@ -652,6 +652,11 @@ def test_scenarios_reuse_one_design_and_keep_their_states(tmp_path: Path, librar
         "impacts": "characterized-impact",
     }
     assert de["allocation"]["method"] == "mass" and de["functional_unit"]["product"] == "H2"
+    # the boundary beside every scenario; the fixture's records predate core's comparability
+    # verdict (core#306): null, "not assessed", never like-for-like
+    assert de["boundary"] == lca["boundary"]
+    assert de["comparability"] is None
+    assert "scope" in nl_power
     # the full core record is copied for other consumers
     record = _json(tmp_path / "out" / de["record"])
     assert record["schema"] == "cheme/lca-scenario/v1" and record["id"] == de["record_id"]

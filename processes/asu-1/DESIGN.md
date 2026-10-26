@@ -5445,3 +5445,41 @@ free-standing posts at 6 m or less and a riser column) stays ASSUMED and unmodel
 
 Reason: avoid an undersized MV cable that the electrical gate does not flag, and keep the
 acceptances true to the model.
+
+## D-110 Regional scenarios labelled not comparable with the UK baseline (core#306) (2026-10-26)
+Audit of D-107 against core's comparison basis (core `docs/framework/lci-comparison-basis.md`,
+core#318). The three ASU results per t GOX (exergy allocation, cradle-to-gate, partial: the
+construction gaps of the baseline) are UK 66.7, NL 88.3 and DE 104.7 kg CO2e. They do not
+measure the same thing:
+
+- baseline `desnz-ghg-2026:electricity-gb`: electricity at the consumer, T&D losses and
+  well-to-tank included (basis `direct+upstream`, delivery `consumer`, CO2e, AR4/AR5);
+- `nl-grid` / `de-grid` on `eea-ener038-2024`: direct emissions per kWh of gross generation,
+  no T&D losses, no upstream (basis `direct`, delivery `generation`, CO2e, GWP basis not stated).
+
+The basis differs, which core treats as a hard difference: both scenarios are **not comparable**
+with the baseline (core's verdict in `lca/scenarios/<id>.json`, `results.md` and the catalog).
+The declared proxies of D-107 disclose this but never make the pair comparable. The NL and DE
+numbers stay screening sensitivities of the grid: they are not like-for-like country
+footprints, and they are lower than a factor on the baseline's basis would give. Nothing here
+has independent industrial validation.
+
+- Decided: label, not rebuild. The scenarios stay as they are and carry the verdict, the
+  functional unit (1 t GOXP), the allocation (exergy) and the boundary (cradle-to-gate) beside
+  every number in the records, the catalog and the Atlas.
+- Not decided (a candidate for a like-for-like set): the packaged `ember-2025` profile covers GB,
+  NL and DE on one basis (life-cycle CO2e per kWh of gross generation, no T&D losses, no
+  imports, no single GWP basis). Its 2025 values are partly projected from monthly data and
+  revised in later releases, and life-cycle factors differ in basis from DESNZ as well, so a
+  GB/NL/DE Ember set would be like-for-like among itself but still not comparable with this
+  baseline. Adding it needs the scenario records regenerated (`cheme assess lca --write`,
+  `cheme assess lca-scenarios --write`) and is left to a follow-up.
+- Not used: `uba-strommix-2026` (CO2 only, territorial, 2025 an estimate). A UBA scenario, if
+  added, is separate and never replaces EEA.
+
+Pending: the records and `results.md` carry the verdict only once regenerated with core main
+after core#318 (`cheme assess lca --write` and `cheme assess lca-scenarios --write` here); the
+inputs (`lca/lca.yaml`, `lca/factors.yaml`) are unchanged, and the flowsheet and sheets are
+untouched.
+
+Reason: say plainly which numbers can be set side by side and which cannot.

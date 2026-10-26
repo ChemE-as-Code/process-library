@@ -270,6 +270,8 @@ def _lca(folder: Path, where: str, report: Report, capacity: str | None = None) 
     # has is missing there (or all of whose contributions are gaps) has no total, never the
     # lower sum results.csv gives
     for scenario in scenario_part.get("scenarios", []):
+        # the study's system boundary beside every scenario's numbers (core#306)
+        scenario["boundary"] = study.get("boundary", "")
         if scenario["id"] in totals:
             totals[scenario["id"]] = {
                 cat: value for cat, value in totals[scenario["id"]].items() if scenario["totals"].get(cat) is not None
@@ -337,7 +339,7 @@ def _lca(folder: Path, where: str, report: Report, capacity: str | None = None) 
 #: What the catalog keeps of each exchange's link in a scenario record (core's linked inventory).
 LINK_FIELDS = (
     "key", "title", "phase", "amount", "unit", "state", "background", "baseline", "replaced",
-    "location", "year", "status", "source_id", "note",
+    "location", "year", "status", "source_id", "note", "scope",
 )
 
 
@@ -438,6 +440,11 @@ def _scenarios(folder: Path, where: str, report: Report, lca_withheld_reason: st
                 "partial_categories": impacts.get("partial_categories", []),
                 "comparable": impacts.get("comparable", True),
                 "dropped": impacts.get("dropped", []),
+                # core's verdict against the baseline (core#306: like-for-like, proxy, not
+                # comparable; baseline for the baseline), read from the factors' structured scope.
+                # `comparable` above covers gaps only. A record from before core#306 has none:
+                # null, which a consumer shows as "not assessed", never as like-for-like.
+                "comparability": data.get("comparability"),
                 "classification": impacts["classification"],
                 "reasons": impacts["reasons"],
                 "links": [{k: link.get(k) for k in LINK_FIELDS} for link in data["linked_inventory"]["exchanges"]],
