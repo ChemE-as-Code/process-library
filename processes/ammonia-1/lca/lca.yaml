@@ -16,20 +16,30 @@ goal: >-
   result is claimed: every background exchange is an open gap (D-020).
 functional_unit: {product: NH3, amount: 1, unit: kg}
 boundary: gate-to-gate
-system_model: substitution
+system_model: cutoff
 year: 2026
 location: NL
 technology: "steam methane reforming with air-blown secondary reformer, HT/LT shift, aMDEA CO2 removal (CO2 vented), methanation, 150 bar Haber-Bosch loop with purge recovery; electric drives, MP steam export"
 rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
 case: design
 allocation:
-  method: substitution
+  method: exergy
   coproducts: [NH3, STEAM]
+  compare: [exergy, substitution]
   source: >-
-    D-021: the exported MP steam is a co-product; ISO 14044 prefers system expansion, i.e.
-    crediting the steam the site would otherwise raise. No background is mapped in this
-    preliminary inventory, so the avoided product is declared missing and the steam stays an
-    output exchange with its quantity; no burden is shared out until a background exists.
+    D-021 (revised): the exported MP steam is a co-product. The dataset's default is exergy
+    allocation: the library's per-co-product export needs a proportional method, and the two
+    products leave in very different states, so exergy charges each for the work it holds
+    (steam about 5 % of the burdens). Substitution (system expansion, crediting the steam the
+    site would otherwise raise) is kept as the comparison; its avoided product is declared
+    missing until a background exists.
+  deviation: >-
+    D-021: no co-product price is recorded, so the WBCSD price ratio is unknown, and mass
+    allocation would charge 0.88 kg of steam per kg NH3 with 47 % of the gas, feed and
+    emissions of an ammonia plant. Exergy is the physical relationship between the products.
+  properties:
+    NH3: {exergy: 20190, source: "kJ per kg, ASSUMED calculation (D-021): standard chemical exergy of NH3 337.9 kJ/mol (Szargut, Morris and Steward 1988, standard reference environment) = 19840 kJ/kg, plus 350 kJ/kg physical exergy of the liquid at 240.15 K and 110 kPa(a) (S60) from thermo with Peng-Robinson; dead state 298.15 K, 101.325 kPa"}
+    STEAM: {exergy: 1262, source: "kJ per kg, ASSUMED calculation (D-021): physical exergy of steam at 4600 kPa(a), 673.15 K (S68) against liquid water at 298.15 K, 101.325 kPa from IAPWS-IF97 (h 3203.7, s 6.6947; h0 104.93, s0 0.3672 kJ/kg, kJ/kg K) = 1212 kJ/kg, plus the standard chemical exergy of liquid water 0.9 kJ/mol (Szargut et al. 1988) = 50 kJ/kg"}
   substitution:
     STEAM: {missing: "not linked yet: MP steam (4600 kPa(a), 673 K) from a natural-gas-fired industrial boiler at the site (NL), the steam the export displaces", source: "D-021"}
 flows:
@@ -48,16 +58,39 @@ flows:
   # components of the vent and stack templates whose flows are zero in this design (complete
   # combustion and complete NH3 wash are ASSUMED, D-014): mapped so that a non-zero value in a
   # later case is characterised, not dropped
-  - {key: emission:CH4, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "unburnt methane: 0 in this design (complete combustion ASSUMED, D-014); furnace CH4 slip is open input I-07"}
-  - {key: emission:C2H6, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "0 in this design (complete combustion ASSUMED, D-014)"}
-  - {key: emission:C3H8, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "0 in this design (complete combustion ASSUMED, D-014)"}
+  - {key: emission:CH4, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "NOT ESTIMATED, not a measured zero: 0 only because complete combustion (D-014) and no CO2-vent co-absorption (D-009) are ASSUMED; furnace slip and vent CH4 are open input I-07 (emission_exclusions below)"}
+  - {key: emission:C2H6, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "NOT ESTIMATED, 0 only because complete combustion is ASSUMED (D-014); open input I-07 (emission_exclusions below)"}
+  - {key: emission:C3H8, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "NOT ESTIMATED, 0 only because complete combustion is ASSUMED (D-014); open input I-07 (emission_exclusions below)"}
   - {key: emission:CO, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "0 in this design (complete combustion ASSUMED, D-014); furnace CO is open input I-07"}
-  - {key: emission:H2, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "0 in this design (complete combustion ASSUMED, D-014)"}
+  - {key: emission:H2, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "NOT ESTIMATED, not a measured zero: 0 only because complete combustion (D-014) and no CO2-vent co-absorption (D-009) are ASSUMED; open input I-07 (emission_exclusions below)"}
   - {key: emission:NH3, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "0 in this design (tail-gas NH3 burnt, D-013, D-014); NH3 slip and fugitive NH3 are open input I-07"}
   - {key: emission:H2O, free: true, source: "water vapour in the flue gas and the CO2 vent: not an inventoried elementary emission in this study (D-020)"}
   - {key: emission:N2, free: true, source: "atmospheric N2 (air, natural gas N2, NH3 combustion) returned to the atmosphere"}
   - {key: emission:O2, free: true, source: "excess combustion O2 returned to the atmosphere"}
   - {key: emission:AR, free: true, source: "atmospheric argon (process and combustion air) returned to the atmosphere"}
+
+# Emission sources the flowsheet does not carry (review 2026-10-27-pfd-lci-review#2): the zero
+# CH4, CO, H2, NH3, C2H6 and C3H8 above are modelling choices, not a known absence. They are
+# declared here as open exclusions (I-07) until sourced factors exist, not as measured zeros.
+emission_exclusions:
+  - id: furnace-incomplete-combustion
+    method: combustion
+    equipment: [H-101]
+    reason: >-
+      NOT ESTIMATED, open input I-07: the furnace is modelled with complete combustion (D-014),
+      so its CO, CH4, C2H6, C3H8, H2, NH3 slip and its NOx, N2O and particulates are absent from
+      the flue gas S67. No sourced emission factor has been chosen yet; the zeros in the
+      inventory are not data.
+    source: "DESIGN.md D-014, D-020, I-07"
+  - id: co2-vent-co-absorption
+    method: effluent
+    equipment: [C-302]
+    exchange: product:CO2V
+    reason: >-
+      NOT ESTIMATED, open input I-07: the aMDEA vent S28 is modelled as CO2 and water only (D-009,
+      no co-absorption). The H2, CH4, CO and N2 that a real solvent co-absorbs and releases at
+      the regenerator are not estimated; their zeros in the inventory are not data.
+    source: "DESIGN.md D-009, D-020, I-07"
 
 operation:
   hours_per_year: 8000

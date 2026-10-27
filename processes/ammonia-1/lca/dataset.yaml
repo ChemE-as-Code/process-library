@@ -15,6 +15,21 @@ boundary: gate-to-gate foreground of the plant
 technology: steam methane reforming with air-blown secondary reformer, HT/LT shift, aMDEA CO2 removal
   (CO2 vented), methanation, 150 bar Haber-Bosch loop with purge recovery; electric drives, MP steam export
 rights: 'CC-BY-4.0: the ChemE-as-Code process library''s own concept design (LICENSE-DATA)'
+cutoff:
+- key: emission-excluded:furnace-incomplete-combustion
+  title: combustion emissions of H-101
+  direction: output
+  reason: 'NOT ESTIMATED, open input I-07: the furnace is modelled with complete combustion (D-014), so
+    its CO, CH4, C2H6, C3H8, H2, NH3 slip and its NOx, N2O and particulates are absent from the flue gas
+    S67. No sourced emission factor has been chosen yet; the zeros in the inventory are not data.'
+  source: DESIGN.md D-014, D-020, I-07
+- key: emission-excluded:co2-vent-co-absorption
+  title: effluent emissions of C-302
+  direction: output
+  reason: 'NOT ESTIMATED, open input I-07: the aMDEA vent S28 is modelled as CO2 and water only (D-009,
+    no co-absorption). The H2, CH4, CO and N2 that a real solvent co-absorbs and releases at the regenerator
+    are not estimated; their zeros in the inventory are not data.'
+  source: DESIGN.md D-009, D-020, I-07
 uuid: 13401756-15c9-5082-831d-0551355dbc05
 version: 0.1.0
 geography:
@@ -23,7 +38,7 @@ geography:
 time:
   start: 2026
 valid_until: 2031
-system_model: substitution
+system_model: cutoff
 technology_level: current
 production_volume:
   amount: 500000000.0
@@ -33,11 +48,12 @@ classification:
   isic: '2012'
 modelling:
   principle: attributional
-  multifunctionality: 'unallocated multi-output dataset; default allocation substitution: D-021: the exported
-    MP steam is a co-product; ISO 14044 prefers system expansion, i.e. crediting the steam the site would
-    otherwise raise. No background is mapped in this preliminary inventory, so the avoided product is
-    declared missing and the steam stays an output exchange with its quantity; no burden is shared out
-    until a background exists.'
+  multifunctionality: 'unallocated multi-output dataset; default allocation exergy: D-021 (revised): the
+    exported MP steam is a co-product. The dataset''s default is exergy allocation: the library''s per-co-product
+    export needs a proportional method, and the two products leave in very different states, so exergy
+    charges each for the work it holds (steam about 5 % of the burdens). Substitution (system expansion,
+    crediting the steam the site would otherwise raise) is kept as the comparison; its avoided product
+    is declared missing until a background exists.'
 review:
 - type: none
 data_generator: 'ChemE-as-Code process library: agent-drafted concept design (issue #86), not reviewed'
@@ -320,12 +336,14 @@ exchanges:
   link:
     elementary:
       subcompartment: non-urban-high-stack
-    source: 0 in this design (complete combustion ASSUMED, D-014)
+    source: NOT ESTIMATED, 0 only because complete combustion is ASSUMED (D-014); open input I-07 (emission_exclusions
+      below)
   cas: 74-84-0
   streams:
   - S28
   - S67
-  source: 0 in this design (complete combustion ASSUMED, D-014)
+  source: NOT ESTIMATED, 0 only because complete combustion is ASSUMED (D-014); open input I-07 (emission_exclusions
+    below)
   pedigree:
     scores: [4, 4, 1, 1, 3]
     rule: cheme default pedigree v1 (assumed, maturity concept)
@@ -344,12 +362,14 @@ exchanges:
   link:
     elementary:
       subcompartment: non-urban-high-stack
-    source: 0 in this design (complete combustion ASSUMED, D-014)
+    source: NOT ESTIMATED, 0 only because complete combustion is ASSUMED (D-014); open input I-07 (emission_exclusions
+      below)
   cas: 74-98-6
   streams:
   - S28
   - S67
-  source: 0 in this design (complete combustion ASSUMED, D-014)
+  source: NOT ESTIMATED, 0 only because complete combustion is ASSUMED (D-014); open input I-07 (emission_exclusions
+    below)
   pedigree:
     scores: [4, 4, 1, 1, 3]
     rule: cheme default pedigree v1 (assumed, maturity concept)
@@ -368,8 +388,9 @@ exchanges:
   link:
     elementary:
       subcompartment: non-urban-high-stack
-    source: 'unburnt methane: 0 in this design (complete combustion ASSUMED, D-014); furnace CH4 slip
-      is open input I-07'
+    source: 'NOT ESTIMATED, not a measured zero: 0 only because complete combustion (D-014) and no CO2-vent
+      co-absorption (D-009) are ASSUMED; furnace slip and vent CH4 are open input I-07 (emission_exclusions
+      below)'
   cas: 74-82-8
   flow:
   - list: ef-3.1
@@ -383,8 +404,9 @@ exchanges:
   streams:
   - S28
   - S67
-  source: 'unburnt methane: 0 in this design (complete combustion ASSUMED, D-014); furnace CH4 slip is
-    open input I-07'
+  source: 'NOT ESTIMATED, not a measured zero: 0 only because complete combustion (D-014) and no CO2-vent
+    co-absorption (D-009) are ASSUMED; furnace slip and vent CH4 are open input I-07 (emission_exclusions
+    below)'
   pedigree:
     scores: [4, 4, 1, 1, 3]
     rule: cheme default pedigree v1 (assumed, maturity concept)
@@ -471,12 +493,14 @@ exchanges:
   link:
     elementary:
       subcompartment: non-urban-high-stack
-    source: 0 in this design (complete combustion ASSUMED, D-014)
+    source: 'NOT ESTIMATED, not a measured zero: 0 only because complete combustion (D-014) and no CO2-vent
+      co-absorption (D-009) are ASSUMED; open input I-07 (emission_exclusions below)'
   cas: 1333-74-0
   streams:
   - S28
   - S67
-  source: 0 in this design (complete combustion ASSUMED, D-014)
+  source: 'NOT ESTIMATED, not a measured zero: 0 only because complete combustion (D-014) and no CO2-vent
+    co-absorption (D-009) are ASSUMED; open input I-07 (emission_exclusions below)'
   pedigree:
     scores: [4, 4, 1, 1, 3]
     rule: cheme default pedigree v1 (assumed, maturity concept)
@@ -587,19 +611,39 @@ exchanges:
       O2: O2
     source: stream table (S28, S67)
 allocation:
-  method: substitution
+  method: exergy
   coproducts:
   - NH3
   - STEAM
+  properties:
+    NH3:
+      exergy: 20190.0
+      source: 'kJ per kg, ASSUMED calculation (D-021): standard chemical exergy of NH3 337.9 kJ/mol (Szargut,
+        Morris and Steward 1988, standard reference environment) = 19840 kJ/kg, plus 350 kJ/kg physical
+        exergy of the liquid at 240.15 K and 110 kPa(a) (S60) from thermo with Peng-Robinson; dead state
+        298.15 K, 101.325 kPa'
+    STEAM:
+      exergy: 1262.0
+      source: 'kJ per kg, ASSUMED calculation (D-021): physical exergy of steam at 4600 kPa(a), 673.15
+        K (S68) against liquid water at 298.15 K, 101.325 kPa from IAPWS-IF97 (h 3203.7, s 6.6947; h0
+        104.93, s0 0.3672 kJ/kg, kJ/kg K) = 1212 kJ/kg, plus the standard chemical exergy of liquid water
+        0.9 kJ/mol (Szargut et al. 1988) = 50 kJ/kg'
   substitution:
     STEAM:
       source: D-021
       missing: 'not linked yet: MP steam (4600 kPa(a), 673 K) from a natural-gas-fired industrial boiler
         at the site (NL), the steam the export displaces'
-  source: 'D-021: the exported MP steam is a co-product; ISO 14044 prefers system expansion, i.e. crediting
-    the steam the site would otherwise raise. No background is mapped in this preliminary inventory, so
-    the avoided product is declared missing and the steam stays an output exchange with its quantity;
-    no burden is shared out until a background exists.'
+  compare:
+  - exergy
+  - substitution
+  source: 'D-021 (revised): the exported MP steam is a co-product. The dataset''s default is exergy allocation:
+    the library''s per-co-product export needs a proportional method, and the two products leave in very
+    different states, so exergy charges each for the work it holds (steam about 5 % of the burdens). Substitution
+    (system expansion, crediting the steam the site would otherwise raise) is kept as the comparison;
+    its avoided product is declared missing until a background exists.'
+  deviation: 'D-021: no co-product price is recorded, so the WBCSD price ratio is unknown, and mass allocation
+    would charge 0.88 kg of steam per kg NH3 with 47 % of the gas, feed and emissions of an ammonia plant.
+    Exergy is the physical relationship between the products.'
 provenance:
   generator: cheme assess lca
   plant: Ammonia from natural gas, 1500 t/d (steam reforming, air-fed secondary reformer, Haber-Bosch
@@ -607,7 +651,7 @@ provenance:
   case: design
   files:
     equipment/equipment-list.yaml: sha256:65f4fdf0c1a47012ccf16a5a5d60e1654dd51d6e90b66d189cad5f90df6ec01e
-    lca/lca.yaml: sha256:176b8cc6551d43de4d84a8cadd68f9cb989e60bf224974e8644192168e139a40
+    lca/lca.yaml: sha256:fb665011d8951167700986139cd654f8096ef9879f102f4151eb24c3e55c0a69
     process.yaml: sha256:0a1ad2960a5c1c7b5d7f95abc7b83372ae4c2c9790302ce0ea253beaf969f7b5
     process/flowsheet.yaml: sha256:38e99d7308d0ccfca033c1676b4179811ad1159d021d93ea10042fec8ee425ce
     process/materials.yaml: sha256:f580d458b4526944726ff43eee1a2f134d864e80d197c3a9c731e854002c8193

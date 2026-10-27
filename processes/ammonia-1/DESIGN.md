@@ -108,7 +108,12 @@ reactors` gives the R-101 duty as 68,388 kW (script 68,386 kW) and |duty| < 2 kW
 adiabatic reactors, i.e. the script's adiabatic temperatures agree with cheme's enthalpies.
 Known limits: the secondary reformer burner zone (S16, 1561 K) is above the 1500 K range of the
 fitted heat capacities; molar masses of materials.yaml are not exactly atom-consistent (NH3
-17.031 vs 17.030), which leaves 2.4 kg/h across the converter (within tolerance).
+17.031 vs 17.030), which leaves 2.4 kg/h across the converter (within tolerance). The
+block-level reaction extents that `cheme process streams` prints for REF (e.g. CH4_COMB 0
+although H101 burns 495.9 kmol/h) are not the sums of the step extents: the reaction set
+(reforming, shift, H2 oxidation, combustion) is linearly dependent, so block extents are not
+unique. Read the step extents; the balances are unaffected (review 2026-10-27-pfd-lci-review#5,
+to be reported to cheme-as-code core).
 
 ## D-007 Reforming conditions (2026-10-27)
 Decision: steam to (hydrocarbon) carbon 3.0; NG preheat 643 K before the desulfuriser;
@@ -216,20 +221,37 @@ Decision: `lca/lca.yaml`, functional unit 1 kg NH3 at the gate, boundary gate-to
 design. Every foreground exchange comes from a flowsheet terminal (inventory.csv names the
 streams). Backgrounds are not linked: natural gas, demineralised water, electricity, cooling
 water, blowdown treatment and the steam credit are `missing:` with the activity each should
-connect to; no factor and no licensed value is used, so no impact result is claimed (the
-generated `results.md` is a placeholder with all gaps). Elementary flows: CO2 to air (fossil;
-includes about 0.2 % atmospheric CO2 from the air), the zero-flow combustibles and NH3 mapped
-to air so that a later case is characterised; N2, O2, Ar and H2O returned free.
+connect to; no factor and no licensed value is used. Corrected after review
+2026-10-27-pfd-lci-review#1: the generated `results.md`/`results.csv` do print a number,
+labelled "partial screening carbon footprint" by cheme (1.48 kg CO2-eq per kg NH3 after the
+exergy allocation of D-021). That figure is **gate-to-gate direct fossil CO2 only** (process
+vent plus stack, GWP100): it leaves out the natural-gas supply chain and its methane leakage,
+the electricity, water, cooling water and blowdown backgrounds and the steam credit. It is not
+a carbon footprint of the product and must not be quoted as one until the backgrounds are
+linked (I-10). Elementary flows: CO2 to air (fossil; includes about 0.2 % atmospheric CO2
+from the air), the zero-flow combustibles and NH3 mapped to air so that a later case is
+characterised; N2, O2, Ar and H2O returned free. The zeros are modelling choices, not data
+(review #2): `emission_exclusions` in `lca/lca.yaml` declare the furnace's incomplete
+combustion (H-101) and the CO2-vent co-absorption (C-302) as not estimated, I-07.
 Not quantified (open input I-07): furnace NOx, CO, CH4, N2O and particulates (cheme warns
 `lci-emissions-incomplete` for H-101; no factor from memory), methanol and amines in the CO2
 vent and process condensate, fugitive NH3 and CH4, catalysts, ZnO, molecular sieve, aMDEA
 make-up, BFW and cooling water chemicals and their spent wastes (amounts not known).
 
 ## D-021 Co-product steam (2026-10-27)
-Decision: allocation by substitution (system model substitution), the avoided product MP steam
-from a natural-gas boiler declared missing; the steam stays an output exchange (0.881 kg/kg
-NH3). Reason: ISO 14044 prefers system expansion; mass or energy allocation to steam would be
-arbitrary for a by-product of heat recovery. Rejected: allocation none (would hide the export).
+Decision (revised 2026-10-27): exergy allocation between NH3 and the MP steam export, system
+model cut-off; substitution (MP steam from a natural-gas boiler, declared missing) is kept as
+the comparison in `lca/lca.yaml`. Reason for the revision: the library's LCI export (Atlas
+build) publishes one activity per co-product and refuses substitution as the dataset's default
+allocation (PR #192 CI). Of the proportional methods, mass would give 0.881 kg steam 47 % of
+the burdens of an ammonia plant, no prices are recorded, and energy content is meaningless for
+steam; exergy charges each product for the work it holds. Exergy per kg (ASSUMED calculation,
+own work): NH3 20,190 kJ (standard chemical exergy 337.9 kJ/mol, Szargut, Morris and Steward
+1988, plus 350 kJ physical exergy of the liquid at 240 K, Peng-Robinson in thermo); steam
+1,262 kJ (IAPWS-IF97 at 4600 kPa(a), 673 K against liquid water at 298.15 K, plus 50 kJ chemical
+exergy of water). NH3 then carries 94.8 % of the burdens. The original preference for system
+expansion (ISO 14044) stands as the comparison once a steam background exists. Rejected:
+allocation none (would hide the export); mass (above).
 
 ## 3. Results of this stage (design case)
 
