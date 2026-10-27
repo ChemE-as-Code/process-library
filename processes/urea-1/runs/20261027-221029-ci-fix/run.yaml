@@ -1,0 +1,97 @@
+schema: process-run/v1
+run_id: 20261027-221029-ci-fix
+process: urea-1
+kind: agent
+complete: false
+incomplete_notes:
+- runner had uncommitted changes (runner_commit is not exact)
+task_file: /Users/arturschweidtmann/Developer/test/agent-cli/tasks/gen/urea-1-ci-fix.md
+branch: case/urea-1
+start_commit: 92f315bc33ba263a0920f966cca3cd227bd82279
+end_commit: 1f44496844e77a13905c19fd317193b580db2c12
+started: '2026-10-27T22:10:29+00:00'
+finished: '2026-10-27T22:16:19+00:00'
+wall_s: 351
+cost_usd: 1.7642044
+budget_usd: 3.0
+model: claude-opus-5-5
+effort: high
+num_turns: 67
+tokens:
+  input: 88
+  output: 25313
+  thinking: 9899
+  cache_read: 3688630
+  cache_write: 103941
+session_id: 85b16724-757e-4edd-af02-b205cf003e72
+session_export:
+  file: session.jsonl.gz
+  sha256: 50ecc22fa0fa3248add628d889c0f4c650677059cccaca7b2a044ddfa1b07cf2
+tools:
+  cheme: cheme 0.8.0 (pyDEXPI 2.1.0)
+  core_commit: 44680fa0e142849803577a235d78fd0a75ca3f7a
+  claude_agent_sdk: 0.2.174
+  runner_commit: 99c2a5a5820b5aa77f5d51aa14f32c8a5792aa34
+  runner_dirty: true
+checks_by_agent:
+- cheme assess lca --coverage 2>&1 | grep -v "^lca/lca.yaml.*info\|^process/flowsheet.yaml" | head -40
+- cheme assess lca --help 2>&1 | head -40; grep -rn "dataset" checks/checks.yaml lca/README.md | head;
+  grep -rn "dataset.yaml" ../../.github/workflows/ ../../CONTRIBUTING.md ../../docs/*.md 2>/dev/null |
+  head
+- cheme assess lca --write 2>&1 | grep -c . ; cheme validate 2>&1 | tail -6
+- cheme assess lca --write 2>&1 | tail -15; git status --short
+- cheme check 2>&1 | grep -c "^ok"; cheme check 2>&1 | grep "FAIL" | cut -c1-60
+- cheme maturity 2>&1 | tail -15
+- cheme process streams 2>&1 | grep -iv "^|" | tail -15; cheme process streams 2>&1 | grep -ci "fail\|not
+  ok\|error"
+- "cheme schema lca 2>/dev/null | python3 -c \"\nimport json,sys\ns=json.load(sys.stdin)\nd=s.get('\\\
+  $defs',s.get('definitions',{}))\nfor k,v in d.items():\n  if 'xclusion' in k or 'Exclusion' in k: print(k,\
+  \ json.dumps(v)[:1500])\n\""
+- "cheme schema lca 2>/dev/null | python3 -c \"\nimport json,sys\ns=json.load(sys.stdin)\nprint(json.dumps(s['properties'].get('cutoff'))[:600])\n\
+  d=s.get('\\$defs',{})\nfor k,v in d.items():\n  if 'utoff' in k or 'CutOff' in k: print(k, json.dumps(v)[:1500])\n\
+  \""
+checks_after_run:
+- command: cheme check
+  exit: 1
+  summary:
+    counts:
+      ok: 11
+      FAIL: 11
+      n/a: 3
+    failed:
+    - basic/pids-exist
+    - basic/design-review
+    - concept/layout-plot-plan
+    - basic/layout-3d
+    - basic/lifting-study
+    - basic/mto
+    - basic/layout-review
+    - detail/layout-detail
+    - detail/electrical
+    - detail/hvac
+    - detail/datasheets
+- command: cheme maturity
+  exit: 0
+  summary:
+    counts:
+      ok: 9
+      FAIL: 4
+    failed:
+    - sourced.boundary
+    - balanced.model-basis
+    - predictive.model-basis
+    - engineering.datasheets
+    levels:
+      sourced: fail
+      balanced: fail
+      predictive: fail
+      engineering: fail
+- command: cheme process propagate --check
+  exit: 0
+  summary:
+    last_line: ''
+outcome:
+  result: success
+  guard_denials: 0
+  report: report.md
+observed_later: {}

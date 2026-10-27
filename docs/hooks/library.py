@@ -164,8 +164,8 @@ def _process_page(folder: Path, manifest: dict, excludes: list[str]) -> tuple[st
     rel = folder.relative_to(_root).as_posix()
     facts = [
         ("id", f"`{pid}`"),
-        ("maturity", f"`{manifest.get('maturity', '')}`"),
-        ("review", f"`{(manifest.get('validation') or {}).get('status', '')}`"),
+        ("design maturity", f"`{manifest.get('maturity', '')}`"),
+        ("review status", f"`{(manifest.get('validation') or {}).get('status', '')}`"),
         ("license", f"`{(manifest.get('publication') or {}).get('license', '')}`"),
         ("families", ", ".join(f"`{f}`" for f in manifest.get("families", []))),
         ("capacity", _escape((manifest.get("basis") or {}).get("capacity", ""))),

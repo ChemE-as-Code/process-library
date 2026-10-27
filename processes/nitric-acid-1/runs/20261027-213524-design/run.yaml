@@ -1,0 +1,188 @@
+schema: process-run/v1
+run_id: 20261027-213524-design
+process: nitric-acid-1
+kind: agent
+complete: false
+incomplete_notes:
+- 'session export kept out of git: it used web tools (WebFetch) and may hold third-party text; local copy
+  agent-cli/logs/20261027-213524-design.session.jsonl.gz'
+- runner had uncommitted changes (runner_commit is not exact)
+task_file: /Users/arturschweidtmann/Developer/test/agent-cli/tasks/gen/nitric-acid-1-design.md
+branch: case/nitric-acid-1
+start_commit: 79a7cd4c1a4da2c8792ea0a38567af78c2a2d429
+end_commit: cdab9d95ced2bc24533bbbd84d50ccf9a9de6d94
+started: '2026-10-27T21:35:24+00:00'
+finished: '2026-10-27T21:55:38+00:00'
+wall_s: 1214
+cost_usd: 6.841369900000002
+budget_usd: 14.0
+model: claude-opus-5-5
+effort: high
+num_turns: 133
+tokens:
+  input: 190
+  output: 113382
+  thinking: 40835
+  cache_read: 16527614
+  cache_write: 251823
+session_id: cee88d5f-9c42-45d0-b5be-4a7bde51e150
+session_export: null
+tools:
+  cheme: cheme 0.8.0 (pyDEXPI 2.1.0)
+  core_commit: 44680fa0e142849803577a235d78fd0a75ca3f7a
+  claude_agent_sdk: 0.2.174
+  runner_commit: 99c2a5a5820b5aa77f5d51aa14f32c8a5792aa34
+  runner_dirty: true
+checks_by_agent:
+- cheme assess lca --coverage 2>&1 | grep -v "^  climate-change\|^limitation" | head -30
+- cheme assess lca --coverage 2>&1 | tail -60
+- cheme assess lca --inventory --write 2>&1 | grep -v "warning\|info" | tail -8; ls lca; cat lca/inventory.csv
+  | cut -d, -f1-11
+- cheme check --stage concept 2>&1 | tail -25
+- cheme chemistry library nitric_acid; cheme --version; cheme status 2>&1 | head -40
+- cheme process build 2>&1 | grep -v "^│ *[0-9]* │\|^│  *│" | head -40
+- cheme process build 2>&1 | tail -2; cheme validate 2>&1 | grep -c "error\|warning"; cheme validate 2>&1
+  | grep "error(s)"; cheme assess lca --inventory --write >/dev/null 2>&1; cheme assess lca --balance
+  2>&1 | tail -25; grep "emission:N2O\|emission:NO," lca/inventory.csv | cut -d, -f1,6-10
+- cheme process build 2>&1 | tail -3; cheme validate 2>&1 | grep -v "process-link-unresolved" | tail -8;
+  cheme process streams 2>&1 | tail -40
+- cheme process build 2>&1 | tail -5; cheme validate 2>&1 | grep -v "process-link-unresolved" | tail -15
+- cheme process energy 2>&1 | tail -25; cheme maturity 2>&1 | tail -25
+- cheme process methods 2>&1 | head -40; gh issue view 364 --repo ChemE-as-Code/core --comments 2>&1 |
+  tail -25
+- cheme process propagate --fill 2>&1 | grep -v "^S[0-9]* \(composition\|flow\)" | tail -20
+- cheme process propagate --fill 2>&1 | tail -30
+- cheme process propagate --fill 2>&1 | tail -3; cheme validate 2>&1 | grep -v "^ok" | tail -40
+- cheme run --help 2>&1 | head -5; ls ~/.local/share/uv/tools/cheme-as-code/lib/python3*/site-packages
+  | grep -i -E "pdf|fitz|thermo|chemicals|cantera|coolprop"
+- cheme run build/probe.py
+- 'cheme run scripts/hno3_balance.py 2>&1 | python3 -I -c "
+
+  import json,sys
+
+  d=json.load(sys.stdin)
+
+  for k in [''basis'',''burner_conversions'',''e105_conversions_of_NO'',''r102_conversions'',''nh3_split_to_scr'',''air_split_secondary'',''temperatures_K'',''duties_kW'',''checks'']:
+  print(k, json.dumps(d[k]))
+
+  for k,v in d[''streams''].items(): print(k, round(v[''kg_h''],1), round(v[''kmol_h''],2))
+
+  "'
+- cheme run scripts/hno3_balance.py 2>&1 | tail -15
+- 'cheme run scripts/hno3_balance.py > build/bal.txt 2>&1; grep -A12 "# flow kg/h" build/bal.txt; python3
+  -I -c "
+
+  import json
+
+  d=json.load(open(''build/hno3_balance.json''))
+
+  for k in [''burner_conversions'',''e105_conversions_of_NO'',''r102_conversions'',''nh3_split_to_scr'',''air_split_secondary'',''temperatures_K'',''duties_kW'',''checks'']:
+  print(k, json.dumps(d[k]))"'
+- 'cheme run scripts/hno3_balance.py > build/bal.txt 2>&1; tail -12 build/bal.txt; python3 -I -c "
+
+  import json
+
+  d=json.load(open(''build/hno3_balance.json''))
+
+  for k in [''temperatures_K'',''duties_kW'',''checks'']: print(k, json.dumps({a:round(b,2) for a,b in
+  d[k].items()}))
+
+  for k,v in d[''streams''].items(): print(k, round(v[''kg_h''],1))"'
+- 'cheme run scripts/hno3_balance.py > build/bal.txt 2>&1; tail -3 build/bal.txt; python3 -I -c "
+
+  import json
+
+  d=json.load(open(''build/hno3_balance.json''))
+
+  for k in [''basis'',''burner_conversions'',''e105_conversions_of_NO'',''r102_conversions'',''nh3_split_to_scr'',''air_split_secondary'',''temperatures_K'',''duties_kW'',''checks'']:
+  print(k, json.dumps(d[k]))
+
+  for k,v in d[''streams''].items(): print(k, round(v[''kg_h''],1), round(v[''kmol_h''],2), {c:round(x,5)
+  for c,x in v[''mole_fraction''].items()})
+
+  "'
+- 'cheme schema equipment | python3 -I -c "
+
+  import json,sys;s=json.load(sys.stdin);d=s[''\$defs'']
+
+  for k,v in d.items(): print(k, v.get(''required''), list(v.get(''properties'',{}).keys()))" | head;
+  grep -n "tag:" ../methanol-1/equipment/equipment-list.yaml | head -3; sed -n 1,25p ../methanol-1/equipment/equipment-list.yaml'
+- "cheme schema lca > build/lca.json; python3 -I -c \"\nimport json;s=json.load(open('build/lca.json'));d=s['\\\
+  $defs']\nprint(list(s['properties'].keys()))\nfor k in ['Flow','Allocation','FunctionalUnit','Elementary','DatasetDoc']:\n\
+  \  v=d.get(k); \n  if v: print(k, v.get('required'), list(v.get('properties',{}).keys()))\nprint([k\
+  \ for k in d])\""
+- "cheme schema process-flowsheet > build/fs.json; python3 -I -c \"\nimport json;s=json.load(open('build/fs.json'))\n\
+  d=s.get('\\$defs',s.get('definitions',{}))\nfor k,v in d.items():\n  print(k, list(v.get('properties',{}).keys())[:40])\n\
+  \""
+- 'cheme schema process-reactions | python3 -I -c "
+
+  import json,sys;s=json.load(sys.stdin);d=s[''\$defs'']
+
+  for k,v in d.items(): print(k, list(v.get(''properties'',{}).keys()))
+
+  print(json.dumps(d.get(''Conversion'',{}).get(''properties'',{}))[:600])"; cheme schema process-flowsheet
+  | python3 -I -c "
+
+  import json,sys;s=json.load(sys.stdin);d=s[''\$defs''];print(json.dumps(d[''Step''][''properties''][''conversion''])[:800]);
+  print(json.dumps(d[''Step''][''properties''][''class''])[:1500])"'
+- 'cheme schema process-simulation | python3 -I -c "
+
+  import json,sys;s=json.load(sys.stdin);print(s.get(''required''), list(s[''properties''].keys()));d=s[''\$defs'']
+
+  for k,v in d.items(): print(k, v.get(''required''), list(v.get(''properties'',{}).keys())[:25])" | head
+  -30'
+- cheme validate 2>&1 | grep "decision-unknown"; cheme assess lca --write 2>&1 | grep wrote; cheme assess
+  lca --check 2>&1 | tail -2
+- cheme validate 2>&1 | grep "error(s)"; cheme assess lca --check 2>&1 | tail -2; cheme status 2>&1 |
+  head -20
+- cheme validate 2>&1 | grep -v "dexpi.load" | tail -8
+- cheme validate 2>&1 | grep -v "process-link-unresolved" | tail -6; cheme process energy 2>&1 | grep
+  -i "warning\|error" | head
+- cheme validate 2>&1 | grep -v "process-link-unresolved\|dexpi.load" | tail -4; cheme process energy
+  2>&1 | grep -i "warning\|error" | head
+checks_after_run:
+- command: cheme check
+  exit: 1
+  summary:
+    counts:
+      ok: 11
+      FAIL: 11
+      n/a: 3
+    failed:
+    - basic/pids-exist
+    - basic/design-review
+    - concept/layout-plot-plan
+    - basic/layout-3d
+    - basic/lifting-study
+    - basic/mto
+    - basic/layout-review
+    - detail/layout-detail
+    - detail/electrical
+    - detail/hvac
+    - detail/datasheets
+- command: cheme maturity
+  exit: 0
+  summary:
+    counts:
+      ok: 10
+      FAIL: 5
+    failed:
+    - sourced.boundary
+    - balanced.model-basis
+    - predictive.simulation-spec
+    - predictive.model-basis
+    - engineering.datasheets
+    levels:
+      sourced: fail
+      balanced: fail
+      predictive: fail
+      engineering: fail
+- command: cheme process propagate --check
+  exit: 0
+  summary:
+    last_line: ''
+outcome:
+  result: success
+  guard_denials: 1
+  report: report.md
+observed_later: {}

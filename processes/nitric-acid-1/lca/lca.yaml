@@ -1,0 +1,102 @@
+# Goal and scope of the nitric-acid-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme assess lca
+# --write` (lca/inventory.csv, results.csv, results.md, gaps.csv, dataset.yaml, manifest.json,
+# uncertainty.csv); never edit those by hand.
+#
+# Preliminary run (DESIGN.md D-014): a cradle-to-gate scope with every background open, i.e. the
+# foreground inventory of the balanced concept flowsheet only, per kg of contained HNO3. Every background (ammonia, power, water, steam,
+# cooling water) is deliberately left UNMAPPED: each is a
+# gap with a description of the background activity it should connect to later, never 0 and
+# never a value from a licensed database. Only the plant's own direct emissions are
+# characterised (N2O by its IPCC GWP100 through the packaged elementary method).
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary cradle-to-gate life cycle inventory of weak nitric acid (60 wt%) from a
+  dual-pressure Ostwald plant at concept stage, per kg of contained HNO3, with every background
+  still open: only the foreground exchanges from the balanced flowsheet are quantified, the
+  backgrounds (ammonia above all) are gaps to be linked later. It shows the direct N2O and NOx
+  emissions with tertiary abatement; the unabated alternative (7.0 instead of 2.5 g N2O/kg,
+  1.91 instead of 0.68 kg CO2-eq/kg) is given in DESIGN.md D-009. Not a product carbon
+  footprint: the climate-change result (0.68 kg CO2-eq/kg) is the direct N2O emission of the
+  plant only (D-014).
+functional_unit:
+  product: ACID
+  amount: 1
+  unit: kg
+  kg_per_unit: 1.6666667
+  source: "1 kg HNO3 (100 %) contained in the 60 wt% product: 1/0.60 kg of solution (D-002)"
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "dual-pressure ammonia oxidation (0.5 / 1.1 MPa(a)) over Pt/Rh, heat recovery to HP steam, absorption to 60 wt% HNO3, tertiary N2O decomposition and SCR, tail-gas expander; 1000 t/d HNO3"
+system_model: cutoff   # D-014: the exported steam is allocated (shares), never credited
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+allocation:
+  method: shares
+  coproducts: [ACID, HPS]
+  shares: {ACID: 1.0, HPS: 0.0}
+  source: >-
+    D-014: the exported HP steam is the only co-product. All burdens are given to the acid;
+    the steam leaves without a burden and without a credit (conservative for the acid).
+  deviation: >-
+    The library hierarchy allocates exported steam by energy or exergy (docs/system-model.md).
+    Neither applies here: the acid has no energy content, so energy allocation would put every
+    burden on the steam, and no property package covers HNO3-water (D-012), so the acid's
+    exergy cannot be calculated; the steam is counted in kWh, so the WBCSD price ratio does not
+    apply either. Shares 1/0 are the conservative choice for the acid until the exergy of both
+    products is available (DESIGN.md D-014).
+  # substitution (system expansion), for comparison only: the avoided site steam is not mapped.
+  substitution:
+    HPS: {missing: "not mapped in this preliminary run: should connect to heat from steam at 4000 kPa(a) of the site steam system it displaces (e.g. a natural-gas-fired boiler), per kWh of heat", source: "HP steam exported to the site (D-011)"}
+flows:
+  - {key: feed:NH3, missing: "not mapped in this preliminary run: should connect to anhydrous liquid ammonia at the plant gate (market activity for the site region, e.g. ammonia from natural-gas steam reforming, incl. transport to the site)", source: "liquid ammonia from storage, stream S01"}
+  - {key: feed:AIR, free: true, source: "ambient air: a resource taken from nature without burden, stream S06"}
+  - {key: feed:PW, missing: "not mapped in this preliminary run: should connect to demineralised (deionised) water production at the site, per kg", source: "process water to the absorber, stream S24"}
+  - {key: feed:POWER, missing: "not mapped in this preliminary run: should connect to grid electricity, medium voltage, of the site country (not chosen)", source: "machine-train motor deficit and pump, streams Q03, Q04 (D-011)"}
+  - {key: feed:LPS, missing: "not mapped in this preliminary run: should connect to heat from LP steam (450 kPa(a)) of the site steam system, per kWh of heat", source: "SCR ammonia vaporiser, stream Q12"}
+  - {key: product:CW, missing: "not mapped in this preliminary run: should connect to a recirculating cooling-water system per kWh of heat rejected (pumping and fan power, make-up water, treatment chemicals, evaporation)", source: "heat rejected to cooling water, streams Q07 to Q10"}
+  - {key: product:STACK, emission: true, source: "treated tail gas to the stack after the expander, stream S29"}
+  - {key: emission:N2, free: true, source: "nitrogen: atmospheric N2 of the air and N2 formed from NH3 (NH3_N2, SCR, N2O decomposition), no burden"}
+  - {key: emission:O2, free: true, source: "unconsumed atmospheric oxygen"}
+  - {key: emission:AR, free: true, source: "atmospheric argon returned unchanged"}
+  - {key: emission:H2O, free: true, source: "water vapour: air humidity and reaction water"}
+  - {key: emission:N2O, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "N2O after tertiary abatement: the IPCC 2006 default for plants with tail-gas N2O destruction, 2.5 kg/t HNO3 (D-009)"}
+  - {key: "emission:NO", elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "NOx after SCR, 50 ppmv as NO (D-009, ASSUMED); the whole tail-gas NOx is modelled as NO (D-008)"}
+  # Components of the tail-gas template that are zero in the design case; mapped as the
+  # emissions they would be, so that a non-zero value in another case is not hidden.
+  - {key: emission:NO2, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "0 in the design case: tail-gas NOx modelled as NO (D-008)"}
+  - {key: emission:NH3, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "0 in the design case: no SCR ammonia slip ASSUMED (D-009)"}
+  - {key: emission:HNO3, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "0 in the design case: no acid mist in the tail gas modelled (D-008)"}
+# No combustion unit, flare or storage tank is inside the boundary (acid and ammonia storage are
+# outside, D-001), and no wastewater leaves it (the weak acid is recycled to the absorber).
+emission_exclusions:
+  - {id: leaks, method: equipment-leaks, reason: "not estimated at concept stage: no P&ID component count yet; ammonia and NOx fugitives to be estimated at basic engineering (D-014)", source: "DESIGN.md D-014"}
+  - {id: tanks, method: storage-tank, reason: "no storage tank inside the boundary: ammonia and product acid storage are outside (D-001)", source: "DESIGN.md D-001"}
+  - {id: combustion, method: combustion, reason: "no combustion unit: the ammonia burner is a catalytic oxidation whose products are all in the flowsheet streams; no fuel is fired (no tail-gas preheater fired, D-009)", source: "DESIGN.md D-009"}
+# Catalysts and the precious-metal loss are known foreground exchanges without a sourced amount
+# yet (DESIGN.md O-3, O-4, O-5): recorded here, amount unknown, so the gap is visible in the
+# dataset's cut-off list. Pt/Rh is a precious metal that the cut-off rule never cuts: it must be
+# quantified and mapped before the dataset is used beyond screening.
+cutoff:
+  - {id: gauze-fabrication-refining, title: "Gauze fabrication and refining of spent gauze (service)", unit: kg, reason: "campaign length and gauze charge not sourced (O-3, O-5); the metal of the replaced gauze is refined and returned, so its net consumption is the loss counted in consumables pt-rh-gauze-loss; only the fabrication and refining services are left out"}
+  - {id: n2o-decomposition-catalyst, title: "Tertiary N2O-decomposition catalyst (R-102)", unit: kg, catalyst: true, reason: "catalyst type, volume and life not sourced (O-4); should connect to its manufacture and spent-catalyst treatment"}
+  - {id: scr-catalyst, title: "SCR deNOx catalyst", unit: kg, catalyst: true, reason: "catalyst type, volume and life not sourced (O-4); should connect to its manufacture and spent-catalyst treatment"}
+# Pt/Rh is never cut: counted as a consumable without a background. The amount is an ASSUMED
+# order of magnitude until O-3 gives a sourced one: 0.15 g of gauze metal per t HNO3 lost before
+# any catchment recovery, x 333 333 t HNO3/a (1000 t/d, 8000 h/a) = 50 kg/a.
+consumables:
+  - {id: pt-rh-gauze-loss, title: "Pt/Rh gauze metal lost to the process gas", unit: kg, per_year: 50, catalyst: true, metals: {Pt: 0.9, Rh: 0.1}, missing: "not quantified at concept stage: loss per t HNO3 and the share recovered by catchment gauzes and at refining are open (O-3); should connect to platinum and rhodium supply, with the recovered metal as a disposal to precious-metal refining", source: "DESIGN.md O-3; ASSUMED 0.15 g/t HNO3 gross loss and Pt/Rh 90/10 gauze, no catchment credit"}
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 25 a service life ASSUMED"
+dataset:
+  version: 0.1.0
+  geography: {description: "One concept design for a generic, undecided site; no regional background"}
+  system_model: cutoff
+  technology_level: current
+  classification: {isic: "2012"}
+  modelling: {principle: attributional}
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library, nitric-acid-1 concept run (agent-generated, not reviewed)"

@@ -16,5 +16,8 @@ Optional, as the process matures:
 | `checks/status.json` | engineering gate status |
 | `runs/<run-id>/` (one per agent or work session, [docs/run-records.md](../../docs/run-records.md)) | nothing: the effort record stays in git |
 
-Keep sources and assumptions with the data. The `maturity` and `validation` fields are what tell
-a reader whether this is a research concept or a reviewed design.
+Keep sources and assumptions with the data. The `maturity` field (the **design maturity**, a
+claim capped by evidence: in an engineering project by the **calculation maturity** that
+`cheme maturity` writes to `checks/maturity.json`, beside a Tier 0/1 LCI dataset at `concept`) and the `validation` field (the **review status**) are what tell a reader
+whether this is a research concept or a reviewed design. The terms follow core's
+[glossary](https://github.com/ChemE-as-Code/core/blob/main/docs/concepts/glossary.md).

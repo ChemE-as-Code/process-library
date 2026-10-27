@@ -116,8 +116,8 @@ The ten canonical issues above and all 52 hub crosswalk entries are backfilled (
 Auto-add is enabled for open `type:process` issues in this repository. New items default to
 Backlog and Calculation maturity Not assessed. Next milestone defaults to collecting references for new cards. Set priority and target explicitly
 when triaging; the issue form does not automatically synchronize custom Project fields. Do not automate
-scientific maturity changes from workflow state, labels, merge or closure. Update maturity only
-after reviewing a current `cheme maturity` report (where applicable) at a recorded commit.
+calculation maturity changes from workflow state, labels, merge or closure. Update calculation
+maturity only after reviewing a current `cheme maturity` report (where applicable) at a recorded commit.
 Inventory-only entries record dataset evidence and leave plant calculation maturity Not assessed.
 Record independent review and publication decisions separately.
 
@@ -126,5 +126,6 @@ Record independent review and publication decisions separately.
 Link new process issues from #114 and their route parents. Add PRs and sources to individual
 issues as work progresses. Update coverage.yaml and its generated table only through reviewed
 repository changes. Close scoped issues after verification; open a linked follow-up when pursuing
-a higher tier/maturity or a materially different route. The Project is a planning view, not a
-replacement for committed manifests, balance results, maturity evidence or review records.
+a higher tier or calculation maturity or a materially different route. The Project is a planning
+view, not a replacement for committed manifests, balance results, calculation maturity evidence or
+review records.

@@ -1,0 +1,80 @@
+# Process Atlas manifest of nitric-acid-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: nitric-acid-1
+title: Weak nitric acid by dual-pressure ammonia oxidation (1000 t/d HNO3 as 60 wt% acid)
+summary: >-
+  Dual-pressure Ostwald process: ammonia burned with air over Pt/Rh gauze at about 0.5 MPa, heat
+  recovered to HP steam, nitrous gas compressed and absorbed in water at about 1.1 MPa to 60 wt%
+  nitric acid, tail gas treated for N2O and NOx and expanded. Concept stage, assumed basis.
+description: |
+  Liquid ammonia is evaporated against the absorber's chilled-water loop and mixed with
+  compressed air to 10 mol% NH3. The adiabatic Pt/Rh gauze converts it completely: 95.5 % to NO
+  (assumed selectivity), N2O at the IPCC 2006 default for medium-pressure combustion plants
+  (7 kg N2O per t HNO3), the rest to N2. A waste-heat boiler, tail-gas heater and economiser
+  recover the heat; the cooler-condenser forms weak acid. The NOx compressor raises the gas to
+  absorption pressure; the absorber and bleacher are a specification model (60 wt% product,
+  500 ppmv NOx in the tail gas), not a reactive-absorption model. A tertiary reactor decomposes
+  N2O to the IPCC default for plants with tail-gas N2O destruction (2.5 kg per t HNO3) and
+  reduces NOx with ammonia; the expander drives the compressor train.
+
+  All values are concept estimates from an independent balance script whose property method is
+  not qualified by ChemE-as-Code for nitrous gas and aqueous nitric acid (core #315, #364); see
+  DESIGN.md of the engineering files for every assumption and gated step.
+families: [nitric-acid]
+keywords: [nitric acid, Ostwald process, ammonia oxidation, dual pressure, platinum-rhodium gauze, absorption, bleaching, N2O abatement, tertiary abatement, SCR, tail-gas expander, weak acid]
+facets:
+  feedstock_basis: [fossil, atmospheric, water]
+  product_classes: [chemicals, fertilizers]
+  unit_operations: [compression, reaction, heat-exchange, absorption, expansion]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest; cheme maturity reports level none
+# (feeds and the burner selectivity are assumed, not sourced, and the absorber is a
+# specification model), see validation.notes and DESIGN.md.
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances (cheme validate, cheme process
+    streams: every block and step closes, reaction extents explain every composition change).
+    cheme maturity reaches no level: the capacity, feeds and the burner NO selectivity are
+    assumed, and the separator, absorber and bleacher outlets and all duties come from the
+    independent script scripts/hno3_balance.py (ideal-gas enthalpies, assumed heat of mixing of
+    the acid), which core cannot qualify (no property package for nitrous gas with water or
+    aqueous nitric acid, no reactive-absorption model: core #315, #364). Energy closure is not
+    evaluable in core; the script closes its own energy balance to 7 kW of 62 MW. The N2O
+    formation and abated emission rest on the IPCC 2006 default factors (Table 3.3), not on
+    plant data. Preliminary cradle-to-gate LCI with every background open (foreground only, gaps), see DESIGN.md D-014.
+    Not reviewed. The chemicals registry has no ammonia, nitric-acid or nitrous-oxide entry yet,
+    so the main feed, the main product and the N2O emission are not listed under chemistry
+    (open library item).
+chemistry:
+  inputs:
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Ambient air, 1 mol% humidity (ASSUMED). The main feedstock, liquid ammonia (feed:NH3, 0.285 kg/kg HNO3), has no registry entry yet"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Demineralised process water to the absorber"}
+  outputs:
+    - {chemical: steam, role: co-product, inventory_key: "product:HPS", note: "HP steam 4000 kPa(a), 673 K exported (0.71 kWh heat per kg HNO3). The main product, 60 wt% nitric acid (product:ACID), has no registry entry yet"}
+    - {chemical: nitrogen, role: emission, inventory_key: "product:STACK", note: "Treated tail gas (N2 with 3 mol% O2); its N2O (2.5 g/kg HNO3) and NO (0.22 g/kg) have no registry entries yet"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Compressor-train motor deficit and pump (ASSUMED electric motor on the train)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 450 kPa(a) to the SCR ammonia vaporiser"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED)"}
+basis:
+  capacity: "1000 t/d HNO3 (100 %) as 60 wt% acid, 1666.7 t/d solution (ASSUMED)"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
+references:
+  - {title: "European Commission JRC (2007) Reference Document on Best Available Techniques for the Manufacture of Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF BREF), Chapter 3 Nitric acid", url: "https://bureau-industrial-transformation.jrc.ec.europa.eu/sites/default/files/2022-03/LVIC-AAF.pdf"}
+  - {title: "IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Vol. 3 Industrial Processes and Product Use, Ch. 3 Chemical Industry Emissions, section 3.3 Nitric acid production, Table 3.3", url: "https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/3_Volume3/V3_3_Ch3_Chemical_Industry.pdf"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/nitric-acid-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0
