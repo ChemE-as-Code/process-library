@@ -181,6 +181,11 @@ of the grid).
   To be reported to core.
 - `process/simulation.yaml` only declares R-101 and R-102 adiabatic (boundary check), no
   simulation model.
+- `cheme maturity` prints V-101 (`SeparatingByFlash`) as "equilibrium-stage, predictive,
+  sourced" although its outlets are script specifications (D-007) and no property package
+  covers HNO3-water: the model basis is inferred from the step class without a model or package
+  (review 2026-10-27-pfd-lci-review#4). Overstated in the printout only; the level (none) is
+  unaffected. To be reported to core.
 
 ## D-013 Equipment list at concept stage (2026-10-27)
 Decision: the 18 items the PFD needs, design pressure = highest operating + 10 % (at least
