@@ -1,0 +1,65 @@
+# Reactions of the dual-pressure nitric acid process. Schema: `cheme schema process-reactions`.
+# Stoichiometry from the reaction library entry `cheme chemistry library nitric_acid`
+# (NH3_OX, NH3_N2, NO_OX) plus the N2O-forming side reaction, the overall absorption reactions
+# and the tail-gas reactions (DESIGN.md D-005 to D-009). The conversions are a specification
+# model (model basis: conversion), not kinetics and not equilibrium: each is a design choice or
+# an inventory default with its source, and the reactor steps of process/flowsheet.yaml use
+# them (cheme process propagate). "NO" is quoted: unquoted YAML reads it as false.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  # Burner R101: parallel reactions of the NH3 fed; the three conversions sum to 1 (complete NH3
+  # conversion, D-005).
+  - id: NH3_OX
+    equation: 4 NH3 + 5 O2 -> 4 NO + 6 H2O
+    stoichiometry: {NH3: -4, O2: -5, "NO": 4, H2O: 6}
+    reversible: false
+    conversion: {key: NH3, value: 0.955, provenance: assumed, source: "D-005: NO selectivity at the gauze, medium pressure, ASSUMED (no sourced selectivity used)"}
+    catalyst: Pt/Rh gauze
+    sources: ["cheme chemistry library nitric_acid (Ullmann's, article on nitric acid)"]
+  - id: NH3_N2O
+    equation: 4 NH3 + 4 O2 -> 2 N2O + 6 H2O
+    stoichiometry: {NH3: -4, O2: -4, N2O: 2, H2O: 6}
+    reversible: false
+    conversion: {key: NH3, value: 0.0190548, provenance: assumed, source: "D-005: the NH3 share that forms 7 kg N2O per t HNO3, the IPCC 2006 default for medium-pressure combustion plants (Vol. 3 Ch. 3 Table 3.3, p. 3.23), scripts/hno3_balance.py"}
+    catalyst: Pt/Rh gauze
+    sources: ["IPCC 2006 Guidelines Vol. 3 Ch. 3, section 3.3 and Table 3.3"]
+  - id: NH3_N2
+    equation: 4 NH3 + 3 O2 -> 2 N2 + 6 H2O
+    stoichiometry: {NH3: -4, O2: -3, N2: 2, H2O: 6}
+    reversible: false
+    conversion: {key: NH3, value: 0.0259452, provenance: assumed, source: "D-005: the remainder 1 - 0.955 - 0.0190548 (complete NH3 conversion, ASSUMED)"}
+    catalyst: Pt/Rh gauze
+    sources: ["cheme chemistry library nitric_acid"]
+  # Cooler-condenser E105 (D-007): NO oxidation and weak-acid formation; conversions of the NO
+  # entering, from the assumed weak-acid strength, gas water content and oxidation degree.
+  - id: NO_OX
+    equation: 2 NO + O2 -> 2 NO2
+    stoichiometry: {"NO": -2, O2: -1, NO2: 2}
+    reversible: true
+    conversion: {key: "NO", value: 0.35095, provenance: assumed, source: "D-007: NO2/(NO+NO2) = 0.5 leaving E105, scripts/hno3_balance.py"}
+    sources: ["cheme chemistry library nitric_acid"]
+  # Overall absorption reactions: NO oxidation plus 3 NO2 + H2O -> 2 HNO3 + NO with the released
+  # NO reoxidised (D-008). They stand for a reactive absorption the model does not resolve.
+  - id: NO_ABS
+    equation: 4 NO + 3 O2 + 2 H2O -> 4 HNO3
+    stoichiometry: {"NO": -4, O2: -3, H2O: -2, HNO3: 4}
+    reversible: false
+    conversion: {key: "NO", value: 0.2981, provenance: assumed, source: "D-007: the HNO3 of a 42 wt% weak acid condensing in E105, scripts/hno3_balance.py"}
+  - id: NO2_ABS
+    equation: 4 NO2 + O2 + 2 H2O -> 4 HNO3
+    stoichiometry: {NO2: -4, O2: -1, H2O: -2, HNO3: 4}
+    reversible: false
+  # Tertiary tail-gas treatment R102 (D-009)
+  - id: N2O_DEC
+    equation: 2 N2O -> 2 N2 + O2
+    stoichiometry: {N2O: -2, N2: 2, O2: 1}
+    reversible: false
+    conversion: {key: N2O, value: 0.642857, provenance: assumed, source: "D-009: 1 - 2.5/7, from formation at the medium-pressure default (7 kg/t) to the default for tail-gas N2O destruction (2.5 kg/t), IPCC 2006 Vol. 3 Ch. 3 Table 3.3, p. 3.23; not a catalyst performance"}
+    catalyst: tail-gas N2O decomposition catalyst (type not chosen)
+  - id: SCR_NO
+    equation: 4 NO + 4 NH3 + O2 -> 4 N2 + 6 H2O
+    stoichiometry: {"NO": -4, NH3: -4, O2: -1, N2: 4, H2O: 6}
+    reversible: false
+    conversion: {key: NH3, value: 1.0, provenance: assumed, source: "D-009: no NH3 slip; NH3 fed for 90 % NO reduction, ASSUMED"}
+    catalyst: SCR catalyst (type not chosen)

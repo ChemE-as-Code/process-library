@@ -1,24 +1,707 @@
 # The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
 # never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
-# Units are explicit: a property without its own unit is in these. Pressure is absolute; a gauge
-# value needs its own unit (kPa(g)). Nm3/h needs normal_conditions.
+#
+# Weak nitric acid, dual-pressure Ostwald process, 1000 t/d HNO3 as 60 wt% acid (D-001 to D-003).
+# Where the values come from:
+# - feeds, temperatures and pressures are design choices (design basis, D-003, D-004), ASSUMED;
+# - the burner R101, the cooler-condenser E105 and the tertiary reactor R102 are conversion
+#   reactors calculated by cheme (process/reactions.yaml; D-005, D-007, D-009);
+# - flows and compositions through machines, exchangers, mixers and splitters are calculated by
+#   `cheme process propagate --fill`;
+# - separator, absorber and bleacher outlets, temperatures and all duties come from the
+#   independent balance scripts/hno3_balance.py (D-010), given here as ASSUMED: core has no
+#   qualified property package for nitrous gas with water or aqueous nitric acid and no
+#   reactive-absorption model (core #315, #364).
+# "NO" is quoted: unquoted YAML reads it as false.
 schema: cheme/process/v1
 kind: flowsheet
-title: ""
+title: Weak nitric acid, dual-pressure ammonia oxidation (1000 t/d HNO3 as 60 wt% acid)
 units:
   pressure: kPa(a)
   temperature: K
   flow: kg/h
   duty: kW
   enthalpy: kJ/kmol
-  # normal_conditions: {temperature: 273.15, pressure: 101.325, basis: ideal_gas}
-  # enthalpy_reference: {state: ideal_gas, temperature: 298.15}
 cases:
-  - {id: design, description: Design case, default: true}
+  - {id: design, description: "Design case: 1000 t/d HNO3 (100 %) as 60 wt% acid, tertiary N2O and NOx abatement in operation (D-009)", default: true}
 tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
-feeds: []      # external feeds (DEXPI Source): {id, title, ports: [{id: out, direction: out}]}
-products: []   # products (DEXPI Sink): {id, title, ports: [{id: in, direction: in}]}
-blocks: []     # BFD blocks: {id, title, class, ports: [{id, direction, kind}], links}
-steps: []      # PFD steps: {id, block, title, class, ports: [{id, direction, delegates}], links}
-streams: []    # {id, title, kind, from: NODE.port, to: NODE.port, template, state: {design: {...}}}
+
+feeds:
+  - {id: NH3, title: Liquid ammonia from storage, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: AIR, title: Ambient air, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: PW, title: Process water (demineralised), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports: [{id: k102, direction: out, kind: energy}, {id: p101, direction: out, kind: energy}]
+  - id: LPS
+    title: LP steam 450 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 450, provenance: assumed, source: "design basis, D-011"}
+      supply_temperature: {value: 420.8, provenance: assumed, source: "saturation at 450 kPa(a), D-011"}
+      min_approach: {value: 10, provenance: assumed, source: D-011}
+    ports: [{id: e108, direction: out, kind: energy}]
+products:
+  - {id: ACID, title: Weak nitric acid 60 wt% to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: STACK, title: Treated tail gas to stack, category: emission, ports: [{id: in, direction: in}]}
+  - id: HPS
+    title: HP steam export (4000 kPa(a), 673 K)
+    category: utility
+    utility:
+      kind: steam
+      level: HP
+      pressure: {value: 4000, provenance: assumed, source: "design basis, D-011"}
+      supply_temperature: {value: 673.15, provenance: assumed, source: "superheated, design basis, D-011"}
+      min_approach: {value: 30, provenance: assumed, source: D-011}
+    ports: [{id: e102, direction: in, kind: energy}, {id: e104, direction: in, kind: energy}]
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-011"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-011"}
+      min_approach: {value: 5, provenance: assumed, source: D-011}
+    ports:
+      - {id: e105, direction: in, kind: energy}
+      - {id: e107, direction: in, kind: energy}
+      - {id: c101, direction: in, kind: energy}
+      - {id: c102, direction: in, kind: energy}
+
+blocks:
+  - id: PREP
+    title: Ammonia evaporation and air compression
+    class: ProcessStep
+    ports:
+      - {id: nh3, direction: in}
+      - {id: air, direction: in}
+      - {id: feed, direction: out}
+      - {id: sec_air, direction: out}
+      - {id: nh3_scr, direction: out}
+      - {id: heat, direction: in, kind: energy}
+      - {id: lps, direction: in, kind: energy}
+      - {id: shaft, direction: in, kind: energy}
+  - id: OX
+    title: Ammonia oxidation and heat recovery
+    class: ReactingChemicals
+    ports:
+      - {id: feed, direction: in}
+      - {id: tg_in, direction: in}
+      - {id: gas, direction: out}
+      - {id: weak, direction: out}
+      - {id: tg_out, direction: out}
+      - {id: steam1, direction: out, kind: energy}
+      - {id: steam2, direction: out, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+  - id: ABS
+    title: NOx compression, absorption and bleaching
+    class: ReactingChemicals
+    ports:
+      - {id: gas, direction: in}
+      - {id: weak, direction: in}
+      - {id: sec_air, direction: in}
+      - {id: pw, direction: in}
+      - {id: acid, direction: out}
+      - {id: tail, direction: out}
+      - {id: power1, direction: in, kind: energy}
+      - {id: power2, direction: in, kind: energy}
+      - {id: shaft, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+      - {id: cw3, direction: out, kind: energy}
+      - {id: chill, direction: out, kind: energy}
+  - id: TGT
+    title: Tail-gas treatment and power recovery
+    class: ReactingChemicals
+    ports:
+      - {id: tg, direction: in}
+      - {id: nh3, direction: in}
+      - {id: stack, direction: out}
+      - {id: shaft1, direction: out, kind: energy}
+      - {id: shaft2, direction: out, kind: energy}
+
+steps:
+  # ---- PREP
+  # D-009: the SCR ammonia is taken off as liquid, upstream of the evaporator, so that its own
+  # vaporiser can deliver it above the tail-gas pressure.
+  - id: S101
+    block: PREP
+    title: Ammonia split (burner / SCR)
+    class: SplittingMaterial
+    split: {scr: 0.003873522}
+    ports:
+      - {id: in, direction: in, delegates: nh3}
+      - {id: main, direction: out}
+      - {id: scr, direction: out}
+  # D-011: evaporated at 600 kPa(a) against the absorber's chilled-water loop (heat from C101).
+  - id: E101
+    block: PREP
+    title: Ammonia evaporator
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: heat, direction: in, kind: energy, delegates: heat}
+  - id: E108
+    block: PREP
+    title: SCR ammonia vaporiser
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-108}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: nh3_scr}
+      - {id: heat, direction: in, kind: energy, delegates: lps}
+  - id: K101
+    block: PREP
+    title: Air compressor
+    class: Compressing
+    method: CentrifugalMotion
+    links: [{target: equipment, ref: K-101}]
+    ports:
+      - {id: in, direction: in, delegates: air}
+      - {id: out, direction: out}
+      - {id: shaft, direction: in, kind: energy, delegates: shaft}
+  - id: S102
+    block: PREP
+    title: Air split (primary / secondary)
+    class: SplittingMaterial
+    split: {secondary: 0.15342495}
+    ports:
+      - {id: in, direction: in}
+      - {id: primary, direction: out}
+      - {id: secondary, direction: out, delegates: sec_air}
+  - id: M101
+    block: PREP
+    title: Ammonia-air mixer
+    class: Mixing
+    links: [{target: equipment, ref: M-101}]
+    ports:
+      - {id: nh3, direction: in}
+      - {id: air, direction: in}
+      - {id: out, direction: out, delegates: feed}
+  # ---- OX
+  # D-005: adiabatic Pt/Rh gauze; conversions of process/reactions.yaml.
+  - id: R101
+    block: OX
+    title: Ammonia burner (Pt/Rh gauze)
+    class: ReactingChemicals
+    reactions: [NH3_OX, NH3_N2O, NH3_N2]
+    reactor: conversion
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in, delegates: feed}
+      - {id: out, direction: out}
+  - id: E102
+    block: OX
+    title: Waste-heat boiler and superheater
+    class: Cooling
+    links: [{target: equipment, ref: E-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: steam, direction: out, kind: energy, delegates: steam1}
+  - id: E103
+    block: OX
+    title: Tail-gas heater (process gas / tail gas)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-103}]
+    ports:
+      - {id: hot_in, direction: in}
+      - {id: hot_out, direction: out}
+      - {id: cold_in, direction: in, delegates: tg_in}
+      - {id: cold_out, direction: out, delegates: tg_out}
+  - id: E104
+    block: OX
+    title: Economiser (boiler feed water preheat)
+    class: Cooling
+    links: [{target: equipment, ref: E-104}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: steam, direction: out, kind: energy, delegates: steam2}
+  # D-007: NO oxidation and weak-acid condensation along the cooler-condenser, conversion model.
+  - id: E105
+    block: OX
+    title: Cooler-condenser
+    class: Cooling
+    reactions: [NO_ABS, NO_OX]
+    reactor: conversion
+    links: [{target: equipment, ref: E-105}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  - id: V101
+    block: OX
+    title: Weak-acid separator
+    class: SeparatingByFlash
+    links: [{target: equipment, ref: V-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out, delegates: gas}
+      - {id: liq, direction: out, delegates: weak}
+  # ---- ABS
+  - id: P101
+    block: ABS
+    title: Weak-acid pump
+    # TransportingFluids instead of Pumping: cheme 0.8.0 `process build` crashes on a Pumping
+    # step (pyDEXPI's method annotation is a union; core finding, DESIGN.md D-012)
+    class: TransportingFluids
+    links: [{target: equipment, ref: P-101}]
+    ports:
+      - {id: in, direction: in, delegates: weak}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power2}
+  - id: M102
+    block: ABS
+    title: Nitrous gas / bleacher gas junction
+    class: Mixing
+    ports:
+      - {id: gas, direction: in, delegates: gas}
+      - {id: bleach, direction: in}
+      - {id: out, direction: out}
+  - id: K102
+    block: ABS
+    title: NOx compressor
+    class: Compressing
+    method: CentrifugalMotion
+    links: [{target: equipment, ref: K-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power1}
+      - {id: shaft, direction: in, kind: energy, delegates: shaft}
+  - id: E106
+    block: ABS
+    title: NOx gas / tail gas exchanger
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-106}]
+    ports:
+      - {id: hot_in, direction: in}
+      - {id: hot_out, direction: out}
+      - {id: cold_in, direction: in}
+      - {id: cold_out, direction: out, delegates: tail}
+  - id: E107
+    block: ABS
+    title: NOx gas cooler
+    class: Cooling
+    links: [{target: equipment, ref: E-107}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw1}
+  # D-008: specification model of the reactive absorption; outlets from scripts/hno3_balance.py.
+  - id: C101
+    block: ABS
+    title: Absorption column
+    class: Absorbing
+    reactions: [NO_ABS, NO2_ABS]
+    links: [{target: equipment, ref: C-101}]
+    ports:
+      - {id: gas, direction: in}
+      - {id: weak, direction: in}
+      - {id: water, direction: in, delegates: pw}
+      - {id: tail, direction: out}
+      - {id: raw, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+      - {id: chill, direction: out, kind: energy, delegates: chill}
+  - id: C102
+    block: ABS
+    title: Bleacher (secondary-air stripping)
+    class: SeparatingByContact
+    links: [{target: equipment, ref: C-102}]
+    ports:
+      - {id: raw, direction: in}
+      - {id: air, direction: in, delegates: sec_air}
+      - {id: acid, direction: out, delegates: acid}
+      - {id: gas, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw3}
+  # ---- TGT
+  # D-009: adiabatic tertiary reactor, N2O decomposition and SCR in one vessel.
+  - id: R102
+    block: TGT
+    title: Tertiary N2O / NOx abatement reactor
+    class: ReactingChemicals
+    reactions: [N2O_DEC, SCR_NO]
+    reactor: conversion
+    links: [{target: equipment, ref: R-102}]
+    ports:
+      - {id: in, direction: in, delegates: tg}
+      - {id: nh3, direction: in, delegates: nh3}
+      - {id: out, direction: out}
+  - id: X101
+    block: TGT
+    title: Tail-gas expander
+    class: DrivingByTurbine
+    links: [{target: equipment, ref: X-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: stack}
+      - {id: shaft1, direction: out, kind: energy, delegates: shaft1}
+      - {id: shaft2, direction: out, kind: energy, delegates: shaft2}
+
+streams:
+  # ---- ammonia
+  - id: S01
+    title: Liquid ammonia feed
+    from: NH3.out
+    to: S101.in
+    template: ammonia
+    state:
+      design:
+        pressure: {value: 1600, provenance: assumed, source: "design basis, D-004"}
+        temperature: {value: 288.15, provenance: assumed, source: "design basis, D-004"}
+        flow: {value: 11892.1, basis: mass, provenance: assumed, source: "scripts/hno3_balance.py: the NH3 that gives 1000 t/d HNO3 (D-002, D-010)"}
+        composition: {basis: mole_fraction, values: {NH3: 1.0}, provenance: assumed, source: "D-004: impurities not modelled"}
+  - id: S02
+    title: Liquid ammonia to evaporator
+    from: S101.main
+    to: E101.in
+    template: ammonia
+    state:
+      design:
+        pressure: {value: 1600, provenance: assumed, source: D-004}
+        temperature: {value: 288.15, provenance: assumed, source: D-004}
+        flow: {value: 11846.0, provenance: calculated, source: 'cheme process propagate: splitter S101 from S01 S04', fingerprint: e9b5ed711fde2456}
+        composition: {basis: mole_fraction, values: {NH3: 1.0}, provenance: calculated, source: 'cheme process propagate: splitter S101 from S01', fingerprint: 436f12d8b7e94aaf}
+  - id: S03
+    title: Ammonia vapour to mixer
+    from: E101.out
+    to: M101.nh3
+    template: ammonia
+    state:
+      design:
+        pressure: {value: 600, provenance: assumed, source: D-011}
+        temperature: {value: 288.15, provenance: assumed, source: "D-011: 6 K superheat above saturation at 600 kPa(a)"}
+        flow: {value: 11846.0, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S02', fingerprint: 0fd944a0eaa00f58}
+        composition: {basis: mole_fraction, values: {NH3: 1.0}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S02', fingerprint: 0fd944a0eaa00f58}
+  - id: S04
+    title: Liquid ammonia to SCR vaporiser
+    from: S101.scr
+    to: E108.in
+    template: ammonia
+    state:
+      design:
+        pressure: {value: 1600, provenance: assumed, source: D-004}
+        temperature: {value: 288.15, provenance: assumed, source: D-004}
+        flow: {value: 46.0643, basis: mass, provenance: calculated, source: 'cheme process propagate: splitter S101 from S01', fingerprint: 9771531b99464b1d}
+        composition: {basis: mole_fraction, values: {NH3: 1.0}, provenance: calculated, source: 'cheme process propagate: splitter S101 from S01', fingerprint: 436f12d8b7e94aaf}
+  - id: S05
+    title: SCR ammonia vapour
+    from: E108.out
+    to: R102.nh3
+    template: ammonia
+    state:
+      design:
+        pressure: {value: 1300, provenance: assumed, source: D-009}
+        temperature: {value: 323.15, provenance: assumed, source: D-009}
+        flow: {value: 46.0643, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E108 from S04', fingerprint: 75fc6fb33f6588a7}
+        composition: {basis: mole_fraction, values: {NH3: 1.0}, provenance: calculated, source: 'cheme process propagate: pass-through E108 from S04', fingerprint: 75fc6fb33f6588a7}
+  # ---- air
+  - id: S06
+    title: Ambient air
+    from: AIR.out
+    to: K101.in
+    template: air
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "design basis, D-004"}
+        temperature: {value: 288.15, provenance: assumed, source: "design basis, D-004"}
+        flow: {value: 213343.2, basis: mass, provenance: assumed, source: "scripts/hno3_balance.py: primary air for 10 mol% NH3 plus secondary air for 3 mol% O2 in the tail gas (D-005, D-008)"}
+        composition: {basis: mole_fraction, values: {N2: 0.773397, O2: 0.207357, AR: 0.009247, H2O: 0.010000}, provenance: assumed, source: "D-004: dry air with CO2 lumped into N2, 1 mol% humidity"}
+  - id: S07
+    title: Compressed air
+    from: K101.out
+    to: S102.in
+    template: air
+    state:
+      design:
+        pressure: {value: 520, provenance: assumed, source: D-003}
+        temperature: {value: 487.82, provenance: assumed, source: "scripts/hno3_balance.py, eta 0.85 (D-011)"}
+        flow: {value: 213343.2, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S06', fingerprint: ac4a5e8c460c3254}
+        composition: {basis: mole_fraction, values: {N2: 0.773397, O2: 0.207357, AR: 0.009247, H2O: 0.01}, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S06', fingerprint: ac4a5e8c460c3254}
+  - id: S08
+    title: Primary air
+    from: S102.primary
+    to: M101.air
+    template: air
+    state:
+      design:
+        pressure: {value: 520, provenance: assumed, source: D-003}
+        temperature: {value: 487.82, provenance: assumed, source: "scripts/hno3_balance.py"}
+        flow: {value: 180611.0, provenance: calculated, source: 'cheme process propagate: splitter S102 from S07 S09', fingerprint: 52d1951ed94f9113}
+        composition: {basis: mole_fraction, values: {N2: 0.773397, O2: 0.207357, AR: 0.009247, H2O: 0.01}, provenance: calculated, source: 'cheme process propagate: splitter S102 from S07', fingerprint: 850335038416c670}
+  - id: S09
+    title: Secondary air to bleacher
+    from: S102.secondary
+    to: C102.air
+    template: air
+    state:
+      design:
+        pressure: {value: 520, provenance: assumed, source: D-003}
+        temperature: {value: 487.82, provenance: assumed, source: "scripts/hno3_balance.py"}
+        flow: {value: 32732.2, basis: mass, provenance: calculated, source: 'cheme process propagate: splitter S102 from S07', fingerprint: ba3216bb5f2a204f}
+        composition: {basis: mole_fraction, values: {N2: 0.773397, O2: 0.207357, AR: 0.009247, H2O: 0.01}, provenance: calculated, source: 'cheme process propagate: splitter S102 from S07', fingerprint: 850335038416c670}
+  # ---- oxidation and heat recovery
+  - id: S10
+    title: Ammonia-air mixture
+    from: M101.out
+    to: R101.in
+    template: nitrous_gas
+    state:
+      design:
+        pressure: {value: 510, provenance: assumed, source: D-003}
+        temperature: {value: 463.04, provenance: assumed, source: "scripts/hno3_balance.py, adiabatic mixing"}
+        flow: {value: 192457.0, provenance: calculated, source: 'cheme process propagate: mixer M101 from S03 S08', fingerprint: 7889155c83a6fcff}
+        composition: {basis: mole_fraction, values: {NH3: 0.0999964, N2: 0.696059, O2: 0.186622, AR: 0.00832232, H2O: 0.00900003}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S03 S08', fingerprint: 9acbad3864d5a37b}
+  - id: S11
+    title: Burner gas
+    from: R101.out
+    to: E102.in
+    template: nitrous_gas
+    state:
+      design:
+        pressure: {value: 490, provenance: assumed, source: D-003}
+        temperature: {value: 1143.72, provenance: assumed, source: "scripts/hno3_balance.py, adiabatic gauze (D-005, D-010)"}
+        flow: {value: 192457.0, provenance: calculated, source: 'cheme process propagate: reactor R101 from S10', fingerprint: 95c2744b94b7ff4a}
+        composition: {basis: mole_fraction, values: {NH3: 5.48383e-18, N2: 0.680665, O2: 0.0618826, AR: 0.00812312, H2O: 0.155189, 'NO': 0.0932108, NO2: 0.0, N2O: 0.000929902, HNO3: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S10', fingerprint: b71e7c1e48597247}
+  - id: S12
+    title: Nitrous gas from boiler
+    from: E102.out
+    to: E103.hot_in
+    template: nitrous_gas
+    state:
+      design:
+        pressure: {value: 485, provenance: assumed, source: D-003}
+        temperature: {value: 793.15, provenance: assumed, source: "D-011: boiler outlet set for the tail-gas heater approach"}
+        flow: {value: 192457.0, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S11', fingerprint: 22d4b6d9ded89df6}
+        composition: {basis: mole_fraction, values: {NH3: 5.48383e-18, N2: 0.680665, O2: 0.0618826, AR: 0.00812312, H2O: 0.155189, 'NO': 0.0932108, NO2: 0.0, N2O: 0.000929902, HNO3: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S11', fingerprint: 22d4b6d9ded89df6}
+  - id: S13
+    title: Nitrous gas from tail-gas heater
+    from: E103.hot_out
+    to: E104.in
+    template: nitrous_gas
+    state:
+      design:
+        pressure: {value: 480, provenance: assumed, source: D-003}
+        temperature: {value: 551.21, provenance: assumed, source: "scripts/hno3_balance.py, E103 duty balance"}
+        flow: {value: 192457.0, basis: mass, provenance: assumed, source: "= burner gas S11 (exchanger side, no reaction counted in E103, D-007); scripts/hno3_balance.py"}
+        composition: {basis: mole_fraction, values: {N2: 0.680666, O2: 0.061882, AR: 0.008123, H2O: 0.155189, "NO": 0.093211, N2O: 0.000930}, provenance: assumed, source: "= burner gas S11 (D-007); scripts/hno3_balance.py"}
+  - id: S14
+    title: Nitrous gas from economiser
+    from: E104.out
+    to: E105.in
+    template: nitrous_gas
+    state:
+      design:
+        pressure: {value: 475, provenance: assumed, source: D-003}
+        temperature: {value: 453.15, provenance: assumed, source: D-011}
+        flow: {value: 192457.0, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E104 from S13', fingerprint: 3b608f6f64b2627f}
+        composition: {basis: mole_fraction, values: {N2: 0.680666, O2: 0.061882, AR: 0.008123, H2O: 0.155189, 'NO': 0.093211, N2O: 0.00093}, provenance: calculated, source: 'cheme process propagate: pass-through E104 from S13', fingerprint: 3b608f6f64b2627f}
+  - id: S15
+    title: Cooler-condenser outlet (gas and weak acid)
+    from: E105.out
+    to: V101.in
+    template: nitrous_gas
+    state:
+      design:
+        pressure: {value: 465, provenance: assumed, source: D-003}
+        temperature: {value: 313.15, provenance: assumed, source: D-007}
+        flow: {value: 192457.0, provenance: calculated, source: 'cheme process propagate: reactor E105 from S14', fingerprint: 3b2b9a72be28230c}
+        composition: {basis: mole_fraction, values: {NH3: 0.0, N2: 0.717312, O2: 0.0260152, AR: 0.00856033, H2O: 0.148903, 'NO': 0.0344736, NO2: 0.0344736, N2O: 0.00098007, HNO3: 0.0292822}, provenance: calculated, source: 'cheme process propagate: reactor E105 from S14', fingerprint: 45e7bbcc4c0e4447}
+  - id: S16
+    title: Nitrous gas to NOx compressor
+    from: V101.gas
+    to: M102.gas
+    template: nitrous_gas
+    state:
+      design:
+        pressure: {value: 465, provenance: assumed, source: D-003}
+        temperature: {value: 313.15, provenance: assumed, source: D-007}
+        flow: {value: 162749.2, basis: mass, provenance: assumed, source: "scripts/hno3_balance.py (D-007)"}
+        composition: {basis: mole_fraction, values: {N2: 0.864983, O2: 0.031371, AR: 0.010322, H2O: 0.009000, "NO": 0.041571, NO2: 0.041571, N2O: 0.001182}, provenance: assumed, source: "scripts/hno3_balance.py (D-007)"}
+  - id: S17
+    title: Weak acid
+    from: V101.liq
+    to: P101.in
+    template: acid
+    state:
+      design:
+        pressure: {value: 465, provenance: assumed, source: D-003}
+        temperature: {value: 313.15, provenance: assumed, source: D-007}
+        flow: {value: 29707.8, basis: mass, provenance: assumed, source: "scripts/hno3_balance.py (D-007)"}
+        composition: {basis: mole_fraction, values: {HNO3: 0.171520, H2O: 0.828480}, provenance: assumed, source: "D-007: 42 wt% HNO3"}
+  # ---- absorption
+  - id: S18
+    title: Weak acid to absorber
+    from: P101.out
+    to: C101.weak
+    template: acid
+    state:
+      design:
+        pressure: {value: 1130, provenance: assumed, source: D-003}
+        temperature: {value: 313.15, provenance: assumed, source: D-007}
+        flow: {value: 29707.8, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through P101 from S17', fingerprint: 06a4058db0d884f5}
+        composition: {basis: mole_fraction, values: {HNO3: 0.17152, H2O: 0.82848}, provenance: calculated, source: 'cheme process propagate: pass-through P101 from S17', fingerprint: 06a4058db0d884f5}
+  - id: S19
+    title: Bleacher gas (secondary air with stripped NOx)
+    from: C102.gas
+    to: M102.bleach
+    template: nitrous_gas
+    state:
+      design:
+        pressure: {value: 470, provenance: assumed, source: D-008}
+        temperature: {value: 313.15, provenance: assumed, source: D-008}
+        flow: {value: 33081.1, basis: mass, provenance: assumed, source: "scripts/hno3_balance.py (D-008)"}
+        composition: {basis: mole_fraction, values: {N2: 0.768261, O2: 0.205980, AR: 0.009185, H2O: 0.009933, NO2: 0.006641}, provenance: assumed, source: "scripts/hno3_balance.py (D-008)"}
+  - id: S20
+    title: Nitrous gas to NOx compressor suction
+    from: M102.out
+    to: K102.in
+    template: nitrous_gas
+    state:
+      design:
+        pressure: {value: 460, provenance: assumed, source: D-003}
+        temperature: {value: 313.15, provenance: assumed, source: "scripts/hno3_balance.py"}
+        flow: {value: 195830.0, provenance: calculated, source: 'cheme process propagate: mixer M102 from S16 S19', fingerprint: 9ad389525f0a89b6}
+        composition: {basis: mole_fraction, values: {NH3: 0.0, N2: 0.848617, O2: 0.0609158, AR: 0.0101296, H2O: 0.00915787, 'NO': 0.034537, NO2: 0.0356607, N2O: 0.000981999, HNO3: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M102 from S16 S19', fingerprint: 3bbbd47472714fc2}
+  - id: S21
+    title: Compressed nitrous gas
+    from: K102.out
+    to: E106.hot_in
+    template: nitrous_gas
+    state:
+      design:
+        pressure: {value: 1150, provenance: assumed, source: D-003}
+        temperature: {value: 427.96, provenance: assumed, source: "scripts/hno3_balance.py, eta 0.80 (D-011)"}
+        flow: {value: 195830.0, provenance: calculated, source: 'cheme process propagate: pass-through K102 from S20', fingerprint: bab5d68656597f0d}
+        composition: {basis: mole_fraction, values: {NH3: 0.0, N2: 0.848617, O2: 0.0609158, AR: 0.0101296, H2O: 0.00915787, 'NO': 0.034537, NO2: 0.0356607, N2O: 0.000981999, HNO3: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through K102 from S20', fingerprint: bab5d68656597f0d}
+  - id: S22
+    title: Nitrous gas from tail-gas exchanger
+    from: E106.hot_out
+    to: E107.in
+    template: nitrous_gas
+    state:
+      design:
+        pressure: {value: 1140, provenance: assumed, source: D-003}
+        temperature: {value: 345.11, provenance: assumed, source: "scripts/hno3_balance.py, E106 duty balance"}
+        flow: {value: 195830.3, basis: mass, provenance: assumed, source: "= S21 (exchanger side, no reaction counted in E106, D-008); scripts/hno3_balance.py"}
+        composition: {basis: mole_fraction, values: {N2: 0.848617, O2: 0.060916, AR: 0.010130, H2O: 0.009158, "NO": 0.034537, NO2: 0.035660, N2O: 0.000982}, provenance: assumed, source: "= S21 (D-008); scripts/hno3_balance.py"}
+  - id: S23
+    title: Nitrous gas to absorber
+    from: E107.out
+    to: C101.gas
+    template: nitrous_gas
+    state:
+      design:
+        pressure: {value: 1130, provenance: assumed, source: D-003}
+        temperature: {value: 313.15, provenance: assumed, source: D-011}
+        flow: {value: 195830.3, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E107 from S22', fingerprint: d56984bf729cfeff}
+        composition: {basis: mole_fraction, values: {N2: 0.848617, O2: 0.060916, AR: 0.01013, H2O: 0.009158, 'NO': 0.034537, NO2: 0.03566, N2O: 0.000982}, provenance: calculated, source: 'cheme process propagate: pass-through E107 from S22', fingerprint: d56984bf729cfeff}
+  - id: S24
+    title: Process water to absorber
+    from: PW.out
+    to: C101.water
+    template: water
+    state:
+      design:
+        pressure: {value: 1300, provenance: assumed, source: "design basis, D-004"}
+        temperature: {value: 303.15, provenance: assumed, source: "design basis, D-004"}
+        flow: {value: 14039.3, basis: mass, provenance: assumed, source: "scripts/hno3_balance.py: water balance for 60 wt% product (D-008)"}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-004}
+  - id: S25
+    title: Absorber tail gas
+    from: C101.tail
+    to: E106.cold_in
+    template: nitrous_gas
+    state:
+      design:
+        pressure: {value: 1100, provenance: assumed, source: D-003}
+        temperature: {value: 303.15, provenance: assumed, source: D-008}
+        flow: {value: 169784.1, basis: mass, provenance: assumed, source: "scripts/hno3_balance.py (D-008)"}
+        composition: {basis: mole_fraction, values: {N2: 0.953021, AR: 0.011376, N2O: 0.001103, O2: 0.030000, "NO": 0.000500, H2O: 0.004000}, provenance: assumed, source: "D-008: 500 ppmv NOx (as NO), 3.0 mol% O2, 0.4 mol% H2O; scripts/hno3_balance.py"}
+  - id: S26
+    title: Tail gas to tail-gas heater
+    from: E106.cold_out
+    to: E103.cold_in
+    template: nitrous_gas
+    state:
+      design:
+        pressure: {value: 1090, provenance: assumed, source: D-003}
+        temperature: {value: 397.96, provenance: assumed, source: "D-011: 30 K approach to the NOx compressor discharge"}
+        flow: {value: 169784.1, basis: mass, provenance: assumed, source: "= absorber tail gas S25 (exchanger side); scripts/hno3_balance.py"}
+        composition: {basis: mole_fraction, values: {N2: 0.953021, AR: 0.011376, N2O: 0.001103, O2: 0.030000, "NO": 0.000500, H2O: 0.004000}, provenance: assumed, source: "= S25 (D-008)"}
+  - id: S27
+    title: Hot tail gas to tertiary reactor
+    from: E103.cold_out
+    to: R102.in
+    template: nitrous_gas
+    state:
+      design:
+        pressure: {value: 1070, provenance: assumed, source: D-003}
+        temperature: {value: 703.15, provenance: assumed, source: "D-009: tertiary reactor inlet"}
+        flow: {value: 169784.1, basis: mass, provenance: assumed, source: "= absorber tail gas S25 (exchanger side); scripts/hno3_balance.py"}
+        composition: {basis: mole_fraction, values: {N2: 0.953021, AR: 0.011376, N2O: 0.001103, O2: 0.030000, "NO": 0.000500, H2O: 0.004000}, provenance: assumed, source: "= S25 (D-008)"}
+  - id: S28
+    title: Treated tail gas to expander
+    from: R102.out
+    to: X101.in
+    template: nitrous_gas
+    state:
+      design:
+        pressure: {value: 1040, provenance: assumed, source: D-003}
+        temperature: {value: 710.76, provenance: assumed, source: "scripts/hno3_balance.py, adiabatic reactor"}
+        flow: {value: 169830.0, provenance: calculated, source: 'cheme process propagate: reactor R102 from S05 S27', fingerprint: 9653cf0d3984c9f2}
+        composition: {basis: mole_fraction, values: {NH3: 0.0, N2: 0.953306, O2: 0.0302143, AR: 0.0113656, H2O: 0.00467072, 'NO': 4.99527e-05, NO2: 0.0, N2O: 0.000393568, HNO3: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R102 from S05 S27', fingerprint: f90876b9117a35b1}
+  - id: S29
+    title: Tail gas to stack
+    from: X101.out
+    to: STACK.in
+    template: nitrous_gas
+    state:
+      design:
+        pressure: {value: 105, provenance: assumed, source: D-003}
+        temperature: {value: 426.04, provenance: assumed, source: "scripts/hno3_balance.py, eta 0.85 (D-011)"}
+        flow: {value: 169830.2, basis: mass, provenance: assumed, source: "= R102 outlet S28 (expander, no composition change); scripts/hno3_balance.py"}
+        composition: {basis: mole_fraction, values: {N2: 0.953306, O2: 0.030214, AR: 0.011366, H2O: 0.004671, "NO": 0.000050, N2O: 0.000393}, provenance: assumed, source: "= S28 (D-009); scripts/hno3_balance.py"}
+  - id: S30
+    title: Raw acid to bleacher
+    from: C101.raw
+    to: C102.raw
+    template: acid
+    state:
+      design:
+        pressure: {value: 1130, provenance: assumed, source: D-003}
+        temperature: {value: 313.15, provenance: assumed, source: D-008}
+        flow: {value: 69793.4, basis: mass, provenance: assumed, source: "scripts/hno3_balance.py (D-008)"}
+        composition: {basis: mole_fraction, values: {HNO3: 0.299105, NO2: 0.003431, H2O: 0.697464}, provenance: assumed, source: "D-008: 0.5 wt% dissolved NOx as NO2; scripts/hno3_balance.py"}
+  - id: S31
+    title: Product acid 60 wt%
+    from: C102.acid
+    to: ACID.in
+    template: acid
+    state:
+      design:
+        pressure: {value: 500, provenance: assumed, source: "design basis"}
+        temperature: {value: 313.15, provenance: assumed, source: "design basis"}
+        flow: {value: 69444.4, basis: mass, provenance: assumed, source: "D-002: 1000 t/d HNO3 as 60 wt% acid"}
+        composition: {basis: mass_fraction, values: {HNO3: 0.60, H2O: 0.40}, provenance: assumed, source: "D-002"}
+  # ---- energy (duties from scripts/hno3_balance.py, D-010; machine train D-011)
+  - {id: Q01, title: X-101 shaft power to K-101, kind: energy, from: X101.shaft1, to: K101.shaft, state: {design: {duty: {value: 12055.9, provenance: assumed, source: "scripts/hno3_balance.py: K-101 power, eta 0.85 (D-011)"}}}}
+  - {id: Q02, title: X-101 shaft power to K-102 (rest of the expander power), kind: energy, from: X101.shaft2, to: K102.shaft, state: {design: {duty: {value: 2198.7, provenance: assumed, source: "scripts/hno3_balance.py: expander 14254.6 kW, eta 0.85, less K-101 (D-011)"}}}}
+  - {id: Q03, title: Motor power to K-102 (train deficit), kind: energy, from: POWER.k102, to: K102.power, state: {design: {duty: {value: 4180.0, provenance: assumed, source: "scripts/hno3_balance.py: K-102 6378.7 kW, eta 0.80, less Q02; drive losses neglected (D-011)"}}}}
+  - {id: Q04, title: P-101 power, kind: energy, from: POWER.p101, to: P101.power, state: {design: {duty: {value: 6.7, provenance: assumed, source: "scripts/hno3_balance.py, eta 0.65 (D-011)"}}}}
+  - {id: Q05, title: E-102 heat to HP steam, kind: energy, from: E102.steam, to: HPS.e102, state: {design: {duty: {value: 23574.0, provenance: assumed, source: "scripts/hno3_balance.py, ideal-gas enthalpies (D-010)"}}}}
+  - {id: Q06, title: E-104 heat to boiler feed water, kind: energy, from: E104.steam, to: HPS.e104, state: {design: {duty: {value: 5939.8, provenance: assumed, source: "scripts/hno3_balance.py (D-010)"}}}}
+  - {id: Q07, title: E-105 duty, kind: energy, from: E105.cw, to: CW.e105, state: {design: {duty: {value: 32724.9, provenance: assumed, source: "scripts/hno3_balance.py, incl. condensation and weak-acid formation (D-010)"}}}}
+  - {id: Q08, title: E-107 duty, kind: energy, from: E107.cw, to: CW.e107, state: {design: {duty: {value: 1768.1, provenance: assumed, source: "scripts/hno3_balance.py (D-010)"}}}}
+  - {id: Q09, title: C-101 cooling to cooling water, kind: energy, from: C101.cw, to: CW.c101, state: {design: {duty: {value: 10623.9, provenance: assumed, source: "scripts/hno3_balance.py: absorber heat 14627.2 kW less the NH3 evaporation (D-010, D-011)"}}}}
+  - {id: Q10, title: C-102 acid cooling, kind: energy, from: C102.cw, to: CW.c102, state: {design: {duty: {value: 1624.0, provenance: assumed, source: "scripts/hno3_balance.py (D-010)"}}}}
+  - {id: Q11, title: C-101 chilled-water loop to the NH3 evaporator, kind: energy, from: C101.chill, to: E101.heat, state: {design: {duty: {value: 4003.3, provenance: assumed, source: "scripts/hno3_balance.py, CoolProp NH3 (D-011)"}}}}
+  - {id: Q12, title: E-108 LP steam, kind: energy, from: LPS.e108, to: E108.heat, state: {design: {duty: {value: 16.2, provenance: assumed, source: "scripts/hno3_balance.py, CoolProp NH3 (D-009)"}}}}
 layout: {bfd: {}, pfd: {}}
