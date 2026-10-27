@@ -1,0 +1,112 @@
+schema: process-run/v1
+run_id: 20261027-212934-design
+process: ammonia-1
+kind: agent
+complete: false
+incomplete_notes:
+- 'session export kept out of git: it used web tools (WebSearch) and may hold third-party text; local
+  copy agent-cli/logs/20261027-212934-design.session.jsonl.gz'
+- runner had uncommitted changes (runner_commit is not exact)
+task_file: /Users/arturschweidtmann/Developer/test/agent-cli/tasks/gen/ammonia-1-design.md
+branch: case/ammonia-1
+start_commit: 79a7cd4c1a4da2c8792ea0a38567af78c2a2d429
+end_commit: bb427fa19465976d7936dbd9976fcbcd0d5ab070
+started: '2026-10-27T21:29:34+00:00'
+finished: '2026-10-27T21:58:27+00:00'
+wall_s: 1733
+cost_usd: 8.714280900000002
+budget_usd: 14.0
+model: claude-opus-5-5
+effort: high
+num_turns: 154
+tokens:
+  input: 166
+  output: 170263
+  thinking: 69575
+  cache_read: 17692256
+  cache_write: 351544
+session_id: 9ef30ce7-3ccc-4f07-87a4-46933bfe7a2d
+session_export: null
+tools:
+  cheme: cheme 0.8.0 (pyDEXPI 2.1.0)
+  core_commit: 44680fa0e142849803577a235d78fd0a75ca3f7a
+  claude_agent_sdk: 0.2.174
+  runner_commit: 99c2a5a5820b5aa77f5d51aa14f32c8a5792aa34
+  runner_dirty: true
+checks_by_agent:
+- cheme --version
+- cheme assess lca --check
+- cheme assess lca --coverage
+- cheme assess lca --inventory --write
+- cheme check
+- cheme chemistry library
+- cheme chemistry library ammonia
+- cheme chemistry library steam_reforming
+- cheme chemistry thermo methane ethane propane "carbon dioxide" nitrogen hydrogen "carbon monoxide" water
+  oxygen argon ammonia --fit 298.15,1500
+- cheme impact
+- cheme maturity
+- cheme process build
+- cheme process propagate --fill
+- cheme process reactors
+- cheme process streams
+- cheme run build/probe.py
+- cheme run scripts/plant_balance.py
+- "cheme schema lca > build/lca-schema.json; python3 -c \"\nimport json;s=json.load(open('build/lca-schema.json'))\n\
+  d=s['\\$defs']\nfor k in ['Allocation','Flow','FunctionalUnit']:\n  if k in d: print(k, json.dumps({p:(v.get('enum')\
+  \ or v.get('description','')[:150]) for p,v in d[k]['properties'].items()}, indent=0)[:2500])\nprint(list(d.keys()))\n\
+  print(list(s['properties'].keys()))\""
+- cheme schema process-flowsheet
+- 'cheme schema process-flowsheet > build/fs-schema.json; grep -o ''"enum": \[[^]]*\]'' build/fs-schema.json
+  | sort -u | head -30'
+- "cheme schema process-simulation > build/sim-schema.json; python3 -c \"\nimport json;s=json.load(open('build/sim-schema.json'))\n\
+  print(s.get('required'), list(s['properties'].keys()))\nd=s['\\$defs']\nfor k,v in d.items():\n  if\
+  \ 'mode' in v.get('properties',{}): print(k, v['properties']['mode'], v.get('required'))\n\""
+- cheme status
+- cheme validate
+checks_after_run:
+- command: cheme check
+  exit: 1
+  summary:
+    counts:
+      ok: 11
+      FAIL: 11
+      n/a: 3
+    failed:
+    - basic/pids-exist
+    - basic/design-review
+    - concept/layout-plot-plan
+    - basic/layout-3d
+    - basic/lifting-study
+    - basic/mto
+    - basic/layout-review
+    - detail/layout-detail
+    - detail/electrical
+    - detail/hvac
+    - detail/datasheets
+- command: cheme maturity
+  exit: 0
+  summary:
+    counts:
+      ok: 10
+      FAIL: 5
+    failed:
+    - sourced.boundary
+    - balanced.model-basis
+    - predictive.simulation-spec
+    - predictive.model-basis
+    - engineering.datasheets
+    levels:
+      sourced: fail
+      balanced: fail
+      predictive: fail
+      engineering: fail
+- command: cheme process propagate --check
+  exit: 0
+  summary:
+    last_line: ''
+outcome:
+  result: success
+  guard_denials: 1
+  report: report.md
+observed_later: {}

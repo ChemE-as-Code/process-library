@@ -1,0 +1,55 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Natural-gas ammonia plant, issue ChemE-as-Code/process-library#86. Capacity, product and site
+# follow the issue's proposed brief (2026-10-27, "proposal, not a frozen basis"); everything
+# marked ASSUMED is a choice of this concept study, not owner, licensor or vendor data. Every
+# decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: contained NH3 in the refrigerated liquid product at the battery limit
+  product_t_per_d: 1500               # issue #86 proposed brief (D-002); a round-number study choice, not an operating plant
+  product_kg_per_h: 62500.0           # = 1500 t/d / 24 h, on-stream rate
+  operating_hours_per_year: 8000      # ASSUMED (D-002), declared separately from the on-stream rate as the issue asks
+  turndown_percent: 70                # ASSUMED, not checked
+feeds:
+  - name: Natural gas (process feed and furnace fuel), pipeline battery limit
+    source_of_values: "ASSUMED benchmark lean gas (D-004): not a sourced composition and not representative of Rotterdam pipeline gas; open input I-01"
+    composition_mol_percent: {CH4: 91.0, C2H6: 4.0, C3H8: 1.0, CO2: 1.0, N2: 3.0}   # ASSUMED (D-004), dry
+    sulfur: "ASSUMED a few mg/Nm3 as H2S and mercaptans, removed by hydrogenation and ZnO; not balanced (trace; D-004)"
+    conditions: {pressure_kPa_a: 4500, temperature_K: 288.15}   # ASSUMED (D-004)
+    flow: set by the product rate through the balance (D-006); stream S1 of process/flowsheet.yaml
+  - name: Ambient air (process air to the secondary reformer, combustion air to the furnace)
+    composition_mol_percent: {N2: 78.080, O2: 20.946, Ar: 0.934, CO2: 0.040}   # dry air, humidity neglected (ASSUMED, D-004)
+    conditions: {pressure_kPa_a: 101.325, temperature_K: 288.15}
+  - name: Demineralised water (boiler feed make-up, CO2 removal make-up)
+    conditions: {pressure_kPa_a: 500, temperature_K: 298.15}   # ASSUMED (D-015)
+products:
+  - name: Anhydrous liquid ammonia
+    purity: ">= 99.5 wt% NH3 (issue #86 proposed acceptance criterion, D-002); the model gives NH3 only (dissolved gases vented, water removed upstream by the dryer; oil and water traces not modelled)"
+    delivery: {pressure_kPa_a: 110, temperature_K: 240.15, battery_limit: "refrigerated liquid to storage; storage and loading outside the boundary (D-001)"}
+    phase_check: "pure NH3 boils at about 241.6 K at 110 kPa(a) (thermo vapour pressure), so 240.15 K is a slightly subcooled liquid (D-002)"
+  - name: Process CO2 (regenerator overhead)
+    use: vented to atmosphere in this baseline (issue #86: no CCS, no urea; D-001)
+  - name: MP steam export
+    use: "surplus steam to the site header at 4600 kPa(a), 673 K (D-015)"
+  - name: Flue gas
+    use: reformer furnace stack (D-014)
+  - name: Boiler blowdown
+    use: to site wastewater treatment (D-015)
+utilities:
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: "ASSUMED (D-012); process coolers to 313.15 K"}
+  - {name: MP steam (raised in the plant), pressure_kPa_a: 4600, temperature_K: 673.15, use: "process steam to the reformer, LP let-down, export", note: "ASSUMED single raised level (D-015)"}
+  - {name: Electric power, use: "all machines (process air, synthesis gas, circulator, refrigeration compressors, fans, pumps)", note: "ASSUMED electric drives, no steam turbines (D-016)"}
+  - {name: Ammonia refrigeration, levels_K: [258.15, 238.15], use: "loop chiller, product flash", note: "ASSUMED, in-plant package (D-017)"}
+site:
+  location: "hypothetical Rotterdam-area site (issue #86); no site data used"
+  design_ambient_K: 288.15            # ASSUMED (ISO reference conditions, not Rotterdam climate data)
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "ASSUMED feed: benchmark lean natural gas (D-004), open input I-01."
+  - "ASSUMED reforming: steam to carbon 3.0, adiabatic prereformer at 773 K, primary reformer outlet 1083 K / 3500 kPa(a), secondary reformer adiabatic with process air at 773 K, equilibrium approach 10 K (D-005, D-007)."
+  - "ASSUMED shift: HTS inlet 643 K, LTS inlet 478 K, equilibrium approach 10 K (D-008)."
+  - "ASSUMED CO2 removal: activated MDEA, 500 ppmv CO2 slip, regeneration 1.0 MJ/kg CO2, solvent pumping 21 kWh/t CO2 (D-009)."
+  - "ASSUMED synthesis loop: 14,600-15,500 kPa(a), converter outlet 703 K at equilibrium approach 15 K (Peng-Robinson fugacity), 12 mol% inerts at the converter inlet, separator 263 K (D-011)."
+  - "ASSUMED purge recovery: NH3 99 %, H2 90 % recovered (D-013); furnace 10 % excess O2, bridgewall 1323 K, stack 423 K, 1.5 % casing loss (D-014)."
+  - "ASSUMED compressor isentropic efficiency 0.78 per stage, refrigeration at 0.55 of Carnot (D-016, D-017)."
+  - "All flows, temperatures and duties are concept estimates on ideal-gas enthalpies and an unqualified Peng-Robinson flash (D-006); accuracy not stated."
