@@ -1,0 +1,123 @@
+schema: process-run/v1
+run_id: 20261027-202241-concept-to-pfd
+process: methanol-1
+kind: agent
+complete: false
+incomplete_notes:
+- backfilled on 2026-10-27 after the run; the runner did not write records yet
+- no checks were re-run by the runner at the end of the run; checks_after_run is empty, see observed_later
+- core commit of the installed cheme at run time not captured (cheme was reinstalled from core main after
+  the run)
+- 'runner version not pinned: agent-cli was not under version control at run time'
+- started is derived from the run id (local 21:22:41 CET); wall_s is measured by the runner
+task_file: agent-cli/tasks/methanol-1.md (task.md here is the text actually sent, from the run log)
+branch: case/methanol-1
+start_commit: b43b479f511606761157d1bf60b1b4a30ac149de
+end_commit: 9b5639f3640ce2272b1a3cda4f5bfa52de62c9b2
+started: '2026-10-27T20:22:41+00:00'
+finished: '2026-10-27T20:38:02+00:00'
+wall_s: 921
+cost_usd: 5.0828
+budget_usd: 25.0
+model: claude-opus-5-5
+effort: high
+num_turns: 114
+tokens:
+  input: 160
+  output: 89211
+  thinking: 37364
+  cache_read: 11034284
+  cache_write: 218162
+session_id: 4c866f29-1794-4528-915e-3960ac796dba
+session_export:
+  file: session.jsonl.gz
+  sha256: e8043a2e44c01aa92c034be0c01edb5b66346a06e85ed7deed353c804674419f
+tools:
+  cheme: 0.8.0 (pyDEXPI 2.1.0)
+  core_commit: null
+  claude_agent_sdk: 0.2.174
+  runner_commit: null
+checks_by_agent:
+- cheme --version
+- cheme check
+- cheme chemistry library methanol
+- cheme chemistry library methanol --add
+- cheme chemistry thermo --help
+- cheme chemistry thermo methane nitrogen
+- cheme maturity
+- cheme process build
+- cheme process energy
+- cheme process methods
+- cheme process propagate --check
+- cheme process propagate --fill
+- cheme process props --coverage
+- cheme process reactors
+- cheme process streams --case design
+- cheme render process/PFD.xml --png
+- cheme run scripts/loop_balance.py
+- cheme run scripts/loop_balance.py 0
+- cheme run scripts/loop_balance.py 20
+- cheme schema equipment
+- cheme schema lines
+- cheme schema process-flowsheet --help
+- cheme schema process-flowsheet -o build/x 2>/dev/null; cheme schema process-flowsheet > build/flowsheet-schema.json
+- cheme schema process-flowsheet > build/flowsheet-schema.json
+- cheme status
+- cheme validate
+- cheme validate --json --skip-generators
+- cheme validate --skip-generators
+- cheme validate --skip-generators --only \
+checks_after_run: []
+outcome:
+  result: success
+  guard_denials: 0
+  report: report.md
+observed_later:
+  observed: '2026-10-27T20:57:23+00:00'
+  note: checks re-run on end_commit with the tools installed now, not those of the run
+  tools:
+    cheme: cheme 0.8.0 (pyDEXPI 2.1.0)
+    core_commit: 44680fa0e142849803577a235d78fd0a75ca3f7a
+  checks:
+  - command: cheme check
+    exit: 1
+    summary:
+      counts:
+        ok: 9
+        FAIL: 14
+        n/a: 3
+      failed:
+      - concept/process-balances
+      - basic/process-basic
+      - basic/pids-exist
+      - basic/design-review
+      - concept/layout-plot-plan
+      - basic/layout-3d
+      - basic/lifting-study
+      - basic/mto
+      - basic/maturity-balanced
+      - basic/layout-review
+      - detail/layout-detail
+      - detail/electrical
+      - detail/hvac
+      - detail/datasheets
+  - command: cheme maturity
+    exit: 0
+    summary:
+      counts:
+        ok: 9
+        FAIL: 4
+      failed:
+      - sourced.boundary
+      - balanced.model-basis
+      - predictive.model-basis
+      - engineering.datasheets
+      levels:
+        sourced: fail
+        balanced: fail
+        predictive: fail
+        engineering: fail
+  - command: cheme process propagate --check
+    exit: 0
+    summary:
+      last_line: ''
