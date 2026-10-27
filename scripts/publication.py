@@ -21,6 +21,7 @@ DEFAULT_EXCLUDE = (
     "AGENTS.md",
     "CLAUDE.md",
     "reviews/**",
+    "runs/**",
     "PROGRESS.md",
     "scripts/agent-run/**",
     "**/.gitattributes",

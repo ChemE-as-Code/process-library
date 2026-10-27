@@ -439,9 +439,10 @@ def test_the_fixture_snapshot_was_exported_for_publication() -> None:
     [
         lambda m, _: m.pop("excluded"),  # an export before --exclude existed
         lambda m, _: m["excluded"].remove("reviews/**"),  # a default missing
+        lambda m, _: m["excluded"].remove("runs/**"),  # the run records missing
         lambda m, _: m["excluded"].remove("docs/private/**"),  # the process's own glob missing
     ],
-    ids=["none", "default", "own"],
+    ids=["none", "default", "runs", "own"],
 )
 def test_snapshot_not_exported_for_publication_is_an_error(tmp_path: Path, change) -> None:
     snaps = _snapshots(tmp_path, change)
