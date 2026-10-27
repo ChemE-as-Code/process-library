@@ -1,0 +1,34 @@
+# Process Atlas manifest. Copy this folder to processes/<your-id>/ and edit.
+# Schema: schemas/process.schema.json (cheme-as-code/process/v1). Every slug used under
+# chemistry must exist in chemicals/chemicals.yaml; add new chemicals there in the same change.
+# A product in a defined state and purity names its registry grade: `chemical: oxygen/lox`.
+schema: cheme-as-code/process/v1
+id: my-process                  # = folder name; lowercase slug; never rename once listed
+title: Short descriptive process title
+summary: >-
+  One or two sentences for cards and search results: what goes in, what comes out, at what scale.
+# description: |                # optional longer Markdown for the process page
+families: [hydrogen]            # slugs of taxonomy/families.yaml (ISIC-mapped), e.g. ammonia, methanol, air-separation
+keywords: []
+# facets:                      # optional, for filtering in the Atlas; list only what the design has
+#   feedstock_basis: [water, electricity]   # fossil | biogenic | atmospheric | mineral | recycled | water | electricity
+#   product_classes: [fuels]               # slugs, e.g. industrial-gases, fuels, fertilizers, polymers, chemicals, materials
+#   unit_operations: [electrolysis]        # slugs, e.g. cryogenic-distillation, adsorption, compression, reaction, electrolysis
+#   region: generic                        # e.g. generic, EU
+maturity: concept               # concept | screening | basic-engineering | detail-engineering | operating-reference
+validation:
+  status: unreviewed            # unreviewed | internally-reviewed | peer-reviewed | industry-validated
+chemistry:
+  inputs:
+    - {chemical: water, role: feedstock}
+  outputs:
+    - {chemical: hydrogen, role: main-product}
+  utilities:
+    - {chemical: electricity, role: utility}
+# basis: {capacity: "1000 t/d product", operating_hours_per_year: 8000}
+# lca: {source: auto}           # auto: read lca/ of a ChemE-as-Code project; none: no LCA
+# references:
+#   - {title: "Author et al. (2024) Title", doi: 10.xxxx/xxxxx}
+# maintainers:
+#   - {name: Your Name, orcid: 0000-0000-0000-0000}
+# repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/my-process, access: private}
