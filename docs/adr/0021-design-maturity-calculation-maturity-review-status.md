@@ -14,7 +14,9 @@ maturity` evaluates a different scale from the files of an engineering project (
 the highest manifest label it supports, warning (`cheme.maturity-claim-exceeds`) when a manifest
 claims more. `validation.status` is a third, independent thing: who has checked the design.
 The README mixed them in one parenthesis per process, and the papers need one vocabulary. core#323
-sets it for every repository in a glossary (`docs/concepts/glossary.md` in core).
+sets it for every repository in a glossary (`docs/concepts/glossary.md` in core). This refines
+the wording of ADR 0004 (the manifest's honest maturity, review and publication status) and
+ADR 0019 (workflow kept separate from evidence); it changes neither decision.
 
 Renaming the fields would have needed a schema version and a migration of every manifest, the
 catalog and the LCI build, for a change of words only.
@@ -27,7 +29,8 @@ The library follows core's glossary, with labels and documentation only:
 - `checks/maturity.json` is the **calculation maturity**: evaluated by `cheme maturity`;
 - `process.yaml` `validation.status` is the **review status**: set by people only.
 
-The word "maturity" is qualified in user-facing text. The field names stay. The schema
+The word "maturity" is qualified in the library's documentation (also `lci/README.md` and
+`docs/process-development.md`). The field names stay. The schema
 descriptions of `maturity` and `validation` state the axis and link the glossary; the README,
 CONTRIBUTING, `docs/coverage.md`, `docs/governance.md`, `templates/process/` and the process pages
 of the docs site (`docs/hooks/library.py`) use the terms. The project is called ChemE-as-Code;
@@ -47,7 +50,7 @@ of the docs site (`docs/hooks/library.py`) use the terms. The project is called 
 
 ## Evidence
 
-- core#323 (the glossary), #87 (this change).
+- core#323 (the glossary), #87 (this change); ADR 0004 and ADR 0019.
 - `schemas/process.schema.json` (`maturity`, `validation` descriptions), README.md (process table
   and the axes), CONTRIBUTING.md, `templates/process/`.
 - core's `src/chemeascode/project/maturity.py` (`LEVELS`, `LIBRARY_MATURITY`,

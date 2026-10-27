@@ -32,18 +32,20 @@ Brightway LCI database.
 | id | process | design maturity | engineering project |
 |---|---|---|---|
 | [`asu-1`](processes/asu-1/) | Cryogenic air separation unit, 500 t/d GOX | screening (calculation maturity: balanced; not independently reviewed) | yes (DEXPI P&IDs, BFD/PFD, 3D layout, MTO, LCA, DWSIM checks) |
-| [`utility-steam-ng-boiler`](processes/utility-steam-ng-boiler/) | Steam, saturated 11 bar(a), natural-gas boiler (library utility) | concept (Tier 1 form, design parameters ASSUMED), not reviewed | no (manifest and LCI dataset only) |
-| [`utility-cooling-tower`](processes/utility-cooling-tower/) | Cooling water, evaporative cooling tower, 25/35 degC (library utility) | concept (Tier 1 form, design parameters ASSUMED), not reviewed | no (manifest and LCI dataset only) |
-| [`utility-wwtp`](processes/utility-wwtp/) | Wastewater treatment, activated sludge (library utility) | concept (Tier 1 form, design parameters ASSUMED), not reviewed | no (manifest and LCI dataset only) |
-| [`utility-flare`](processes/utility-flare/) | Flaring of methane-rich waste gas (library utility) | concept (Tier 1 form, design parameters ASSUMED), not reviewed | no (manifest and LCI dataset only) |
-| [`utility-chiller`](processes/utility-chiller/) | Chilled water at 6 degC, electric chiller (library utility; refrigerant losses not yet counted) | concept (Tier 1 form, design parameters ASSUMED), not reviewed | no (manifest and LCI dataset only) |
-| [`utility-instrument-air`](processes/utility-instrument-air/) | Instrument air, dried, 8 bar(a) (library utility) | concept (Tier 1 form, design parameters ASSUMED), not reviewed | no (manifest and LCI dataset only) |
+| [`utility-steam-ng-boiler`](processes/utility-steam-ng-boiler/) | Steam, saturated 11 bar(a), natural-gas boiler (library utility) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
+| [`utility-cooling-tower`](processes/utility-cooling-tower/) | Cooling water, evaporative cooling tower, 25/35 degC (library utility) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
+| [`utility-wwtp`](processes/utility-wwtp/) | Wastewater treatment, activated sludge (library utility) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
+| [`utility-flare`](processes/utility-flare/) | Flaring of methane-rich waste gas (library utility) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
+| [`utility-chiller`](processes/utility-chiller/) | Chilled water at 6 degC, electric chiller (library utility; refrigerant losses not yet counted) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
+| [`utility-instrument-air`](processes/utility-instrument-air/) | Instrument air, dried, 8 bar(a) (library utility) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
 
-Three separate axes, named as in core's [glossary](https://github.com/ChemE-as-Code/core/blob/main/docs/concepts/glossary.md) (core#323):
+Three separate axes, named as in core's [glossary](https://github.com/ChemE-as-Code/core/blob/main/docs/concepts/glossary.md) (ChemE-as-Code/core#323):
 
 - **design maturity** is `process.yaml` `maturity` (`concept` to `operating-reference`): how far
-  the design is claimed to be taken. The claim is capped by evidence: `cheme maturity` warns
-  (`cheme.maturity-claim-exceeds`) when it exceeds what the calculation maturity supports.
+  the design is claimed to be taken. The claim is capped by evidence: in an engineering project
+  `cheme maturity` warns (`cheme.maturity-claim-exceeds`) when it exceeds what the calculation
+  maturity supports; beside a Tier 0/1 LCI dataset it is at most `concept`
+  (`cheme.lci-tier-maturity`).
 - **calculation maturity** is `checks/maturity.json` (`sourced`, `balanced`, `predictive`,
   `engineering`): the level `cheme maturity` evaluates from the files of an engineering project.
   `sourced` supports at most `concept`, `balanced` and `predictive` at most `screening`,
