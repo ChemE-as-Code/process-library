@@ -65,7 +65,7 @@ to handle.
 | file | |
 |---|---|
 | `lci/cheme-as-code-atlas-<version>.xlsx` | the database `cheme-as-code-atlas-<version>`: an `about` sheet (skipped by the importer), a `database` sheet, one sheet per process, a `markets` sheet, a `proxies` sheet. Exchange columns beyond bw2io's: `atlas key`, `atlas flow uuid`, `atlas pedigree`, `atlas carrier` and the linking fields |
-| `lci/datapackage.json` | version, library commit, per process: title, maturity, review, data status (exchanges by provenance), factor status of the study, allocation and shares, functional unit, activities (each with its `chemical` slug and registry `grade`, null when none), and per dataset its `property_checks` and `benchmarks` (below) |
+| `lci/datapackage.json` | version, library commit, per process: title, design maturity, review status, data status (exchanges by provenance), factor status of the study, allocation and shares, functional unit, activities (each with its `chemical` slug and registry `grade`, null when none), and per dataset its `property_checks` and `benchmarks` (below) |
 | | `activities`: one entry per exported activity (datasets, markets and proxies) with what its Atlas page `/lci/<code>/` shows: exchanges per unit of the reference product with unit, provenance, source, pedigree and lognormal, background link target by name or Atlas activity by code, elementary flows with biosphere3 UUID and compartment, `used_by`, header (geography, time, technology, classification with ISIC from the families and CPC/HS and CAS from the registry), allocation share, `closure` (core#174, or `not-assessed` with the reason), citation (DOI null until deposited), each database file that holds it with how to find it there (workbook and multifunctional JSON by code, or the dataset code of the unallocated form; openLCA JSON-LD by process id and member), a market's suppliers, shares, transport and losses with status and source (`market`, from `markets`), and `publication` (a market is public when all its suppliers are). No impact values (ADR 0015, `scripts/lci_activities.py`) |
 | `lci/benchmarks.json` | the stored benchmark report of the build: every KPI result (process, dataset, value, allocated value, status, reference, reason) and the counts by status, in total and per process ([benchmarks](../docs/benchmarks.md)) |
 | `lci/cheme-as-code-atlas-<version>-olca-jsonld.zip` | the same database for **openLCA** (JSON-LD, olca-schema 2): one unallocated multi-output process per dataset with allocation factors (below); markets and proxies as single-output processes, the default provider of every exchange linked to them |
@@ -272,7 +272,7 @@ so every process links to the same documented models instead of its own proxy:
   by id. A `utility-` prefix keeps them together without a second discovery path.
 - **Datasets.** Manifest-only processes with one hand-written `lca/datasets/*.yaml` each, in
   core's Tier 1 form (core#182): every amount is a `formula` of the dataset's `parameters`, the
-  element balance is recorded and closed, maturity is `concept`. Physical properties and
+  element balance is recorded and closed, design maturity is `concept`. Physical properties and
   stoichiometry have their sources; every design parameter (efficiencies, cycles of
   concentration, heads, yields, the ambient state) is **ASSUMED** with a TODO, so the datasets
   are first-principles screening models with pedigree `[4, 4, 3, 4, 4]`. What each leaves out is
@@ -333,7 +333,7 @@ dataset without a manifest, or with one written before core#178, has `null`.
 - ASU-1's characterisation factors (`lca/factors.yaml`, `example: true`) are placeholders: the
   plantcode results they give are not meaningful numbers. The LCI itself carries no factors.
 - The datasets are screening level (concept-stage flows and duties, about +/-30 %); each process
-  states its maturity and review status (`datapackage.json`, activity comments).
+  states its design maturity and review status (`datapackage.json`, activity comments).
 - The ASU dataset is from example-asu PR #11 (in review): numbers may still change.
 
 ## Other formats

@@ -1,0 +1,66 @@
+# Equipment list. Schema: `cheme schema equipment`.
+# Concept stage: the items the PFD (process/flowsheet.yaml) needs, no P&ID yet (no sheet).
+# Design pressure and temperature are ASSUMED concept values (D-013): the highest operating
+# value of the balance (scripts/hno3_balance.py) + 10 % (at least + 2 bar) and + 25 K.
+# Materials are first indications for nitric-acid service (austenitic stainless below the
+# 68 % azeotrope, D-013), to be confirmed by a materials engineer; sizes, dimensions and
+# weights come at basic engineering (datasheets).
+schema: cheme/equipment/v1
+equipment:
+  # ---- ammonia evaporation and air compression (block PREP)
+  - {tag: E-101, type: TubularHeatExchanger, service: Ammonia evaporator,
+     design_pressure_barg: 17, design_temperature_degc: 50, material: "CS (low-temperature carbon steel, ammonia service)",
+     notes: "Evaporates 11.85 t/h NH3 at 600 kPa(a) (saturation ~282 K), ~4.0 MW from the absorber chilled-water loop (D-011, ASSUMED)."}
+  - {tag: E-108, type: TubularHeatExchanger, service: SCR ammonia vaporiser,
+     design_pressure_barg: 17, design_temperature_degc: 75, material: CS,
+     notes: "46 kg/h NH3 to 1300 kPa(a), 323 K on LP steam, ~16 kW (D-009, ASSUMED)."}
+  - {tag: K-101, type: CentrifugalCompressor, service: Air compressor (process and secondary air),
+     design_pressure_barg: 6.5, design_temperature_degc: 240, material: CS,
+     notes: "101 -> 520 kPa(a), 213.3 t/h humid air; ~12.1 MW shaft at isentropic efficiency 0.85, no intercooling (D-011, ASSUMED). One train with K-102, X-101 and an electric motor (D-011); an air filter upstream is not drawn on the PFD."}
+  - {tag: M-101, type: StaticMixer, service: Ammonia-air mixer,
+     design_pressure_barg: 6.5, design_temperature_degc: 240, material: "SS 304L",
+     notes: "10.0 mol% NH3 in air, 463 K (D-005). The mixture's flammability limits make this a controlled ratio (tech skill; human judgement)."}
+  # ---- ammonia oxidation and heat recovery (block OX)
+  - {tag: R-101, type: Vessel, service: "Ammonia burner (Pt/Rh gauze pack)",
+     design_pressure_barg: 6, design_temperature_degc: 900, material: "heat-resistant alloy, open input",
+     notes: "Adiabatic gauze, outlet 1144 K at 490 kPa(a) (D-005). Gauze area, number of sheets and Pt loss not sized (no vendor data). In practice integrated with E-102 in one vessel."}
+  - {tag: E-102, type: TubularHeatExchanger, service: Waste-heat boiler and superheater,
+     design_pressure_barg: 44, design_temperature_degc: 900, material: "process side heat-resistant alloy; steam side per boiler code, open input",
+     notes: "Burner gas 1144 -> 793 K, ~23.6 MW to HP steam 4000 kPa(a) / 673 K (D-011). Design pressure is the steam side; process side 6 barg."}
+  - {tag: E-103, type: TubularHeatExchanger, service: Tail-gas heater,
+     design_pressure_barg: 12, design_temperature_degc: 545, material: "SS 321/347 (hot nitrous gas), open input",
+     notes: "Process gas 793 -> 551 K, tail gas 398 -> 703 K, ~15.2 MW (D-010)."}
+  - {tag: E-104, type: TubularHeatExchanger, service: Economiser (boiler feed water preheat),
+     design_pressure_barg: 44, design_temperature_degc: 305, material: "SS 304L process side",
+     notes: "Process gas 551 -> 453 K, ~5.9 MW to boiler feed water (D-010). Design pressure is the BFW side."}
+  - {tag: E-105, type: TubularHeatExchanger, service: Cooler-condenser,
+     design_pressure_barg: 6, design_temperature_degc: 205, material: "SS 304L (acid condensate)",
+     notes: "Process gas 453 -> 313 K, ~32.7 MW to cooling water; condenses 29.7 t/h weak acid (42 wt%, D-007)."}
+  - {tag: V-101, type: Vessel, service: Weak-acid separator,
+     design_pressure_barg: 6, design_temperature_degc: 65, material: "SS 304L"}
+  # ---- NOx compression, absorption and bleaching (block ABS)
+  - {tag: P-101, type: CentrifugalPump, service: Weak-acid pump,
+     design_pressure_barg: 12.5, design_temperature_degc: 65, material: "SS 304L",
+     notes: "29.7 t/h, 465 -> 1130 kPa(a), ~7 kW hydraulic/0.65 (D-011, ASSUMED)."}
+  - {tag: K-102, type: CentrifugalCompressor, service: NOx compressor,
+     design_pressure_barg: 13, design_temperature_degc: 180, material: "SS (wet nitrous gas)",
+     notes: "460 -> 1150 kPa(a), 195.8 t/h; ~6.4 MW shaft at isentropic efficiency 0.80 (D-011, ASSUMED); driven by X-101 (2.2 MW) and the train motor (4.2 MW)."}
+  - {tag: E-106, type: TubularHeatExchanger, service: NOx gas / tail gas exchanger,
+     design_pressure_barg: 13, design_temperature_degc: 180, material: "SS 304L",
+     notes: "NOx gas 428 -> 345 K, tail gas 303 -> 398 K, ~4.6 MW (D-010)."}
+  - {tag: E-107, type: TubularHeatExchanger, service: NOx gas cooler,
+     design_pressure_barg: 13, design_temperature_degc: 100, material: "SS 304L",
+     notes: "345 -> 313 K, ~1.8 MW to cooling water (D-010)."}
+  - {tag: C-101, type: ProcessColumn, service: Absorption column (sieve trays with cooling coils),
+     design_pressure_barg: 12.5, design_temperature_degc: 65, material: "SS 304L",
+     notes: "Specification model (D-008): 60 wt% raw acid, tail gas 500 ppmv NOx; ~14.6 MW absorption heat to cooling water and the chilled-water loop. Trays, height and residence time not sized: no reactive-absorption model (core #364)."}
+  - {tag: C-102, type: ProcessColumn, service: Bleacher (secondary-air stripping),
+     design_pressure_barg: 6, design_temperature_degc: 240, material: "SS 304L",
+     notes: "Strips 0.5 wt% dissolved NOx (as NO2) with 32.7 t/h secondary air (D-008); ~1.6 MW acid cooling."}
+  # ---- tail-gas treatment and power recovery (block TGT)
+  - {tag: R-102, type: Vessel, service: Tertiary N2O decomposition and SCR reactor,
+     design_pressure_barg: 12, design_temperature_degc: 465, material: "SS 321",
+     notes: "Adiabatic, 703 -> 711 K (D-009). Catalyst type and volume not chosen (no vendor data)."}
+  - {tag: X-101, type: Turbine, service: Tail-gas expander,
+     design_pressure_barg: 12, design_temperature_degc: 465, material: "alloy, open input",
+     notes: "1040 -> 105 kPa(a), 711 -> 426 K; ~14.3 MW at isentropic efficiency 0.85 (D-011, ASSUMED); on the K-101/K-102 shaft."}

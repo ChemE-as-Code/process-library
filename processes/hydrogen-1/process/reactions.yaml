@@ -1,0 +1,67 @@
+# Reactions of hydrogen-1. Schema: `cheme schema process-reactions`. DESIGN.md D-003.
+# Stoichiometry of steam reforming and shift from the core reaction library (`cheme chemistry
+# library steam_reforming`, `ht_shift`); reforming of ethane and propane and the combustion
+# reactions written here. Heats of reaction: standard formation enthalpies at 298.15 K of
+# process/materials.yaml (ATcT), water as vapour. The reactors are equilibrium (reformer,
+# shift) and complete-conversion (furnace) models, not kinetics (D-003).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: SMR
+    equation: CH4 + H2O <=> CO + 3 H2
+    stoichiometry: {CH4: -1.0, H2O: -1.0, CO: 1.0, H2: 3.0}
+    reversible: true
+    heat_of_reaction: {value: 205831.0, provenance: given, source: "standard formation enthalpies, 298.15 K (process/materials.yaml)"}
+    catalyst: NI_REF
+    sources: ["cheme chemistry library steam_reforming (Ullmann's Encyclopedia of Industrial Chemistry; Twigg, Catalyst Handbook, 2nd ed., 1989)"]
+  - id: WGS
+    equation: CO + H2O <=> CO2 + H2
+    stoichiometry: {CO: -1.0, H2O: -1.0, CO2: 1.0, H2: 1.0}
+    reversible: true
+    heat_of_reaction: {value: -41127.0, provenance: given, source: "standard formation enthalpies, 298.15 K (process/materials.yaml)"}
+    sources: ["cheme chemistry library steam_reforming, ht_shift (Twigg, Catalyst Handbook, 2nd ed., 1989)"]
+  # Higher hydrocarbons of the natural gas: reformed on the same nickel catalyst. Their ideal-gas
+  # equilibrium at reformer conditions lies completely on the product side (D-003).
+  - id: ETH_REF
+    equation: C2H6 + 2 H2O <=> 2 CO + 5 H2
+    stoichiometry: {C2H6: -1.0, H2O: -2.0, CO: 2.0, H2: 5.0}
+    reversible: true
+    heat_of_reaction: {value: 346374.0, provenance: given, source: "standard formation enthalpies, 298.15 K (process/materials.yaml)"}
+    catalyst: NI_REF
+  - id: PRO_REF
+    equation: C3H8 + 3 H2O <=> 3 CO + 7 H2
+    stoichiometry: {C3H8: -1.0, H2O: -3.0, CO: 3.0, H2: 7.0}
+    reversible: true
+    heat_of_reaction: {value: 498281.0, provenance: given, source: "standard formation enthalpies, 298.15 K (process/materials.yaml)"}
+    catalyst: NI_REF
+  # Reformer furnace: complete combustion of the PSA tail gas and the trim natural gas (D-009).
+  - id: COMB_CH4
+    equation: CH4 + 2 O2 -> CO2 + 2 H2O
+    stoichiometry: {CH4: -1.0, O2: -2.0, CO2: 1.0, H2O: 2.0}
+    reversible: false
+    conversion: {key: CH4, value: 1.0, provenance: assumed, source: "complete combustion with 10 % excess air (D-009); CO, unburnt hydrocarbons and NOx are emission estimates, not stream components"}
+    heat_of_reaction: {value: -802584.0, provenance: given, source: "standard formation enthalpies, 298.15 K (process/materials.yaml)"}
+  - id: COMB_C2H6
+    equation: C2H6 + 3.5 O2 -> 2 CO2 + 3 H2O
+    stoichiometry: {C2H6: -1.0, O2: -3.5, CO2: 2.0, H2O: 3.0}
+    reversible: false
+    conversion: {key: C2H6, value: 1.0, provenance: assumed, source: "complete combustion (D-009)"}
+    heat_of_reaction: {value: -1428634.0, provenance: given, source: "standard formation enthalpies, 298.15 K (process/materials.yaml)"}
+  - id: COMB_C3H8
+    equation: C3H8 + 5 O2 -> 3 CO2 + 4 H2O
+    stoichiometry: {C3H8: -1.0, O2: -5.0, CO2: 3.0, H2O: 4.0}
+    reversible: false
+    conversion: {key: C3H8, value: 1.0, provenance: assumed, source: "complete combustion (D-009)"}
+    heat_of_reaction: {value: -2043320.0, provenance: given, source: "standard formation enthalpies, 298.15 K (process/materials.yaml)"}
+  - id: COMB_H2
+    equation: H2 + 0.5 O2 -> H2O
+    stoichiometry: {H2: -1.0, O2: -0.5, H2O: 1.0}
+    reversible: false
+    conversion: {key: H2, value: 1.0, provenance: assumed, source: "complete combustion (D-009)"}
+    heat_of_reaction: {value: -241822.0, provenance: given, source: "standard formation enthalpies, 298.15 K (process/materials.yaml)"}
+  - id: COMB_CO
+    equation: CO + 0.5 O2 -> CO2
+    stoichiometry: {CO: -1.0, O2: -0.5, CO2: 1.0}
+    reversible: false
+    conversion: {key: CO, value: 1.0, provenance: assumed, source: "complete combustion (D-009)"}
+    heat_of_reaction: {value: -282949.0, provenance: given, source: "standard formation enthalpies, 298.15 K (process/materials.yaml)"}

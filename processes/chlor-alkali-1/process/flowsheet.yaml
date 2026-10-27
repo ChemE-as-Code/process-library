@@ -1,0 +1,480 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Membrane-cell chlor-alkali plant, 100 kt/a dry chlorine gas with 50 wt-% caustic soda and
+# hydrogen (DESIGN.md D-001, D-002). Where the values come from:
+# - flows, compositions and duties: the independent balance scripts/balance.py (D-006), run with
+#   `cheme run scripts/balance.py`, given here as ASSUMED; its inputs are sourced (EU BREF 2014)
+#   or ASSUMED in DESIGN.md D-002..D-012;
+# - the electrolysers EL301 are checked by `cheme process cell` (process/cells.yaml, D-004):
+#   Faraday, charge, element and energy balance from the specified voltage and efficiency;
+# - temperatures and pressures are design choices (D-007, D-008, D-010), ASSUMED;
+# - electrolyte stream enthalpies are not modelled (core#364): duties outside the cell rest on
+#   constant heat capacities and latent heats in scripts/balance.py (D-006).
+schema: cheme/process/v1
+kind: flowsheet
+title: Chlor-alkali membrane-cell plant (100 kt/a Cl2, 50 wt-% NaOH, H2)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: 12 500 kg/h dry Cl2 at the gate, 8000 h/a, cells at 6.0 kA/m2 and 3.0 V (D-002, D-004)", default: true}
+tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - {id: SALT, title: Rock salt, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: WATER, title: Make-up process water, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: DMW, title: Demineralised water, category: raw_material, ports: [{id: ix, direction: out}, {id: cath, direction: out}]}
+  - {id: NA2CO3, title: Soda ash, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: HCL, title: Hydrochloric acid 32 wt-%, category: raw_material, ports: [{id: ix, direction: out}, {id: feed, direction: out}, {id: dcl, direction: out}]}
+  - {id: NA2SO3, title: Sodium sulfite, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: H2SO4, title: Sulfuric acid 98 wt-%, category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power (AC, grid)
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: rect, direction: out, kind: energy}
+      - {id: aux, direction: out, kind: energy}
+      - {id: k503, direction: out, kind: energy}
+      - {id: k602, direction: out, kind: energy}
+  - id: MPS
+    title: MP steam 1000 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: MP
+      pressure: {value: 1000, provenance: assumed, source: "D-010: BREF 2014 Table 3.11 median 10 bar"}
+      supply_temperature: {value: 453.0, provenance: assumed, source: "saturation at 1000 kPa(a), D-010"}
+      min_approach: {value: 10, provenance: assumed, source: D-010}
+    ports: [{id: e201, direction: out, kind: energy}, {id: ev701, direction: out, kind: energy}]
+products:
+  - {id: CL2, title: Dry chlorine gas to the consumer (400 kPa(a)), category: product, ports: [{id: in, direction: in}]}
+  - {id: NAOH, title: Caustic soda 50 wt-% to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: H2, title: Hydrogen to the consumer or fuel (140 kPa(a)), category: product, ports: [{id: in, direction: in}]}
+  - {id: SPENT, title: Spent sulfuric acid to off-site use, category: by_product, ports: [{id: in, direction: in}]}
+  - {id: WW, title: Waste water to treatment, category: wastewater, ports: [{id: ix, direction: in}, {id: purge, direction: in}]}
+  - {id: SLUDGE, title: Brine filter cake to landfill, category: solid_waste, ports: [{id: in, direction: in}]}
+  - {id: VENT, title: Feed brine acidification vent to air, category: emission, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: D-010}
+      return_temperature: {value: 308.15, provenance: assumed, source: D-010}
+      min_approach: {value: 5, provenance: assumed, source: D-010}
+    ports:
+      - {id: t301, direction: in, kind: energy}
+      - {id: e302, direction: in, kind: energy}
+      - {id: e501, direction: in, kind: energy}
+      - {id: e504, direction: in, kind: energy}
+      - {id: e601, direction: in, kind: energy}
+      - {id: ev701, direction: in, kind: energy}
+      - {id: e702, direction: in, kind: energy}
+  - id: CHW
+    title: Chilled water return
+    category: utility
+    utility:
+      kind: refrigerant
+      level: chilled water
+      supply_temperature: {value: 281.15, provenance: assumed, source: D-010}
+      return_temperature: {value: 288.15, provenance: assumed, source: D-010}
+      min_approach: {value: 5, provenance: assumed, source: D-010}
+    ports: [{id: e501, direction: in, kind: energy}]
+
+blocks:
+  - id: BRN
+    title: Brine saturation and primary purification
+    class: ProcessStep
+    ports:
+      - {id: salt, direction: in}
+      - {id: water, direction: in}
+      - {id: ret, direction: in}
+      - {id: cond, direction: in}
+      - {id: h2cond, direction: in}
+      - {id: carb, direction: in}
+      - {id: naoh, direction: in}
+      - {id: sludge, direction: out}
+      - {id: brine, direction: out}
+      - {id: aux, direction: in, kind: energy}
+  - id: POL
+    title: Secondary purification and feed brine conditioning
+    class: ProcessStep
+    ports:
+      - {id: brine, direction: in}
+      - {id: hcl_ix, direction: in}
+      - {id: naoh, direction: in}
+      - {id: rinse, direction: in}
+      - {id: hcl, direction: in}
+      - {id: regen, direction: out}
+      - {id: vent, direction: out}
+      - {id: feed, direction: out}
+      - {id: steam, direction: in, kind: energy}
+  - id: ELY
+    title: Membrane electrolysis
+    class: ReactingChemicals
+    ports:
+      - {id: feed, direction: in}
+      - {id: dmw, direction: in}
+      - {id: anolyte, direction: out}
+      - {id: cl2, direction: out}
+      - {id: h2, direction: out}
+      - {id: caustic, direction: out}
+      - {id: naoh_brn, direction: out}
+      - {id: naoh_pol, direction: out}
+      - {id: naoh_dcl, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw_rect, direction: out, kind: energy}
+      - {id: cw_cath, direction: out, kind: energy}
+  - id: DCL
+    title: Depleted brine dechlorination and purge
+    class: ProcessStep
+    ports:
+      - {id: anolyte, direction: in}
+      - {id: hcl, direction: in}
+      - {id: cond, direction: in}
+      - {id: naoh, direction: in}
+      - {id: sulfite, direction: in}
+      - {id: gas, direction: out}
+      - {id: ret, direction: out}
+      - {id: purge, direction: out}
+  - id: CLT
+    title: Chlorine cooling, drying and compression
+    class: ProcessStep
+    ports:
+      - {id: cell, direction: in}
+      - {id: strip, direction: in}
+      - {id: acid, direction: in}
+      - {id: cond, direction: out}
+      - {id: spent, direction: out}
+      - {id: product, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: chw, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+  - id: H2T
+    title: Hydrogen cooling and compression
+    class: ProcessStep
+    ports:
+      - {id: h2, direction: in}
+      - {id: cond, direction: out}
+      - {id: product, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+  - id: CAU
+    title: Caustic evaporation to 50 wt-%
+    class: Evaporating
+    ports:
+      - {id: caustic, direction: in}
+      - {id: cond, direction: out}
+      - {id: product, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+
+steps:
+  # BRN: salt dissolving, Ca/Mg precipitation, clarification and filtration (D-005)
+  - id: D101
+    block: BRN
+    title: Salt saturator
+    class: Mixing
+    links: [{target: equipment, ref: TK-101}]
+    ports:
+      - {id: salt, direction: in, delegates: salt}
+      - {id: water, direction: in, delegates: water}
+      - {id: ret, direction: in, delegates: ret}
+      - {id: cond, direction: in, delegates: cond}
+      - {id: h2cond, direction: in, delegates: h2cond}
+      - {id: out, direction: out}
+      - {id: aux, direction: in, kind: energy, delegates: aux}
+  - id: R101
+    block: BRN
+    title: Brine treatment reactors (soda ash, caustic)
+    class: ReactingChemicals
+    reactions: [CA_PRECIP, MG_PRECIP]
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: carb, direction: in, delegates: carb}
+      - {id: naoh, direction: in, delegates: naoh}
+      - {id: out, direction: out}
+  - id: S101
+    block: BRN
+    title: Clarifier and brine filters
+    class: Filtering
+    links: [{target: equipment, ref: S-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: sludge, direction: out, delegates: sludge}
+      - {id: clear, direction: out, delegates: brine}
+  # POL: chelating ion exchange, acidification, heating (D-005)
+  - id: X201
+    block: POL
+    title: Chelating ion-exchange columns (with regeneration)
+    class: Separating
+    reactions: [HYDROXIDE_NEUT]
+    links: [{target: equipment, ref: X-201}]
+    ports:
+      - {id: in, direction: in, delegates: brine}
+      - {id: hcl, direction: in, delegates: hcl_ix}
+      - {id: naoh, direction: in, delegates: naoh}
+      - {id: rinse, direction: in, delegates: rinse}
+      - {id: out, direction: out}
+      - {id: regen, direction: out, delegates: regen}
+  - id: R202
+    block: POL
+    title: Feed brine acidification
+    class: ReactingChemicals
+    reactions: [CARBONATE_NEUT, HYDROXIDE_NEUT]
+    links: [{target: equipment, ref: R-202}]
+    ports:
+      - {id: in, direction: in}
+      - {id: hcl, direction: in, delegates: hcl}
+      - {id: vent, direction: out, delegates: vent}
+      - {id: out, direction: out}
+  - id: E201
+    block: POL
+    title: Feed brine heater
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: feed}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+  # ELY: rectifiers, electrolysers, catholyte loop (D-004, D-009)
+  - id: T301
+    block: ELY
+    title: Transformer-rectifiers
+    class: ProcessStep
+    links: [{target: equipment, ref: T-301}]
+    ports:
+      - {id: ac, direction: in, kind: energy, delegates: power}
+      - {id: dc, direction: out, kind: energy}
+      - {id: loss, direction: out, kind: energy, delegates: cw_rect}
+  - id: EL301
+    block: ELY
+    title: Bipolar membrane electrolysers
+    class: ReactingChemicals
+    reactions: [CHLORALKALI, WATER_SPLIT]
+    links: [{target: equipment, ref: EL-301}]
+    ports:
+      - {id: brine, direction: in, delegates: feed}
+      - {id: dmw, direction: in, delegates: dmw}
+      - {id: dc, direction: in, kind: energy}
+      - {id: anolyte, direction: out, delegates: anolyte}
+      - {id: cl2, direction: out, delegates: cl2}
+      - {id: h2, direction: out, delegates: h2}
+      - {id: caustic, direction: out}
+  - id: E302
+    block: ELY
+    title: Catholyte cooler
+    class: Cooling
+    links: [{target: equipment, ref: E-302}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw_cath}
+  - id: SP303
+    block: ELY
+    title: Caustic distribution (product and internal use)
+    class: SplittingMaterial
+    split: {r101: 0.0036666, x201: 0.0009722, r402: 0.0028991}
+    ports:
+      - {id: in, direction: in}
+      - {id: evap, direction: out, delegates: caustic}
+      - {id: r101, direction: out, delegates: naoh_brn}
+      - {id: x201, direction: out, delegates: naoh_pol}
+      - {id: r402, direction: out, delegates: naoh_dcl}
+  # DCL: vacuum stripping, sulfite, purge (D-005)
+  - id: C401
+    block: DCL
+    title: Vacuum dechlorination tower
+    class: SeparatingByFlash
+    links: [{target: equipment, ref: C-401}]
+    ports:
+      - {id: anolyte, direction: in, delegates: anolyte}
+      - {id: cond, direction: in, delegates: cond}
+      - {id: hcl, direction: in, delegates: hcl}
+      - {id: gas, direction: out, delegates: gas}
+      - {id: out, direction: out}
+  - id: R402
+    block: DCL
+    title: Chemical dechlorination (sulfite) and neutralisation
+    class: ReactingChemicals
+    reactions: [SULFITE_DECHLOR, HYDROXIDE_NEUT]
+    links: [{target: equipment, ref: R-402}]
+    ports:
+      - {id: in, direction: in}
+      - {id: sulfite, direction: in, delegates: sulfite}
+      - {id: naoh, direction: in, delegates: naoh}
+      - {id: out, direction: out}
+  - id: SP403
+    block: DCL
+    title: Brine purge take-off
+    class: SplittingMaterial
+    split: {purge: 0.0424898}
+    ports:
+      - {id: in, direction: in}
+      - {id: purge, direction: out, delegates: purge}
+      - {id: ret, direction: out, delegates: ret}
+  # CLT: wet chlorine cooling, drying with sulfuric acid, compression (D-008)
+  - id: M501
+    block: CLT
+    title: Wet chlorine header
+    class: Mixing
+    ports:
+      - {id: cell, direction: in, delegates: cell}
+      - {id: strip, direction: in, delegates: strip}
+      - {id: out, direction: out}
+  - id: E501
+    block: CLT
+    title: Wet chlorine coolers (cooling water, chilled water)
+    class: Cooling
+    links: [{target: equipment, ref: E-501}]
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out}
+      - {id: cond, direction: out, delegates: cond}
+      - {id: cw, direction: out, kind: energy, delegates: cw1}
+      - {id: chw, direction: out, kind: energy, delegates: chw}
+  - id: C502
+    block: CLT
+    title: Chlorine drying towers (sulfuric acid)
+    class: Absorbing
+    links: [{target: equipment, ref: C-502}]
+    ports:
+      - {id: in, direction: in}
+      - {id: acid, direction: in, delegates: acid}
+      - {id: gas, direction: out}
+      - {id: spent, direction: out, delegates: spent}
+  - id: K503
+    block: CLT
+    title: Chlorine compressor (two stages, intercooled)
+    class: Compressing
+    links: [{target: equipment, ref: K-503}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: E504
+    block: CLT
+    title: Chlorine inter- and aftercoolers
+    class: Cooling
+    links: [{target: equipment, ref: E-504}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: product}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+  # H2T: hydrogen cooling and blower (D-008)
+  - id: E601
+    block: H2T
+    title: Hydrogen cooler
+    class: Cooling
+    links: [{target: equipment, ref: E-601}]
+    ports:
+      - {id: in, direction: in, delegates: h2}
+      - {id: gas, direction: out}
+      - {id: cond, direction: out, delegates: cond}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  - id: K602
+    block: H2T
+    title: Hydrogen blower
+    class: Compressing
+    links: [{target: equipment, ref: K-602}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: product}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # CAU: double-effect falling-film evaporation and product cooling (D-010)
+  - id: EV701
+    block: CAU
+    title: Double-effect caustic evaporator
+    class: Evaporating
+    links: [{target: equipment, ref: EV-701}]
+    ports:
+      - {id: in, direction: in, delegates: caustic}
+      - {id: out, direction: out}
+      - {id: cond, direction: out, delegates: cond}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: cw, direction: out, kind: energy, delegates: cw1}
+  - id: E702
+    block: CAU
+    title: Caustic product cooler
+    class: Cooling
+    links: [{target: equipment, ref: E-702}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: product}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+
+# Material streams: flow (kg/h) and composition (mass fractions) from scripts/balance.py
+# (D-006); temperatures and pressures D-007/D-008/D-010. All ASSUMED until core qualifies
+# electrolyte balances (core#364).
+streams:
+  - {id: S1, title: Rock salt, from: SALT.out, to: D101.salt, template: salt, state: {design: {temperature: {value: 288.15, provenance: assumed, source: D-007}, pressure: {value: 101.325, provenance: assumed, source: D-007}, flow: {value: 21390.37, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {NaCl: 0.988, CaSO4: 0.0015, MgCl2: 0.0005, SiO2: 0.005, H2O: 0.005}, provenance: assumed, source: "rock salt analysis, D-003"}}}}
+  - {id: S2, title: Make-up process water, from: WATER.out, to: D101.water, template: aqueous, state: {design: {temperature: {value: 288.15, provenance: assumed, source: D-007}, pressure: {value: 300, provenance: assumed, source: D-007}, flow: {value: 11623.03, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S3, title: Return brine to saturation, from: SP403.ret, to: D101.ret, template: aqueous, state: {design: {temperature: {value: 353.15, provenance: assumed, source: D-007}, pressure: {value: 250, provenance: assumed, source: D-007}, flow: {value: 92804.21, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {NaCl: 0.1706637, Na2SO4: 0.008871149, H2O: 0.8204651}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S4, title: Process condensate from caustic evaporation, from: EV701.cond, to: D101.cond, template: aqueous, state: {design: {temperature: {value: 323.15, provenance: assumed, source: D-010}, pressure: {value: 250, provenance: assumed, source: D-010}, flow: {value: 15747.74, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S5, title: Hydrogen cooler condensate, from: E601.cond, to: D101.h2cond, template: aqueous, state: {design: {temperature: {value: 308.15, provenance: assumed, source: D-008}, pressure: {value: 250, provenance: assumed, source: D-008}, flow: {value: 861.36, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S6, title: Raw saturated brine, from: D101.out, to: R101.in, template: aqueous, state: {design: {temperature: {value: 328.15, provenance: assumed, source: D-007}, pressure: {value: 250, provenance: assumed, source: D-007}, flow: {value: 142426.71, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {NaCl: 0.2595861, Na2SO4: 0.005780376, H2O: 0.7335822, CaSO4: 0.0002252777, MgCl2: 7.509256e-05, SiO2: 0.0007509256}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S7, title: Soda ash, from: NA2CO3.out, to: R101.carb, template: solid_reagent, state: {design: {temperature: {value: 298.15, provenance: assumed, source: D-007}, pressure: {value: 101.325, provenance: assumed, source: D-007}, flow: {value: 96.19, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {Na2CO3: 1.0}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S8, title: Caustic for magnesium precipitation, from: SP303.r101, to: R101.naoh, template: aqueous, state: {design: {temperature: {value: 358.15, provenance: assumed, source: D-007}, pressure: {value: 400, provenance: assumed, source: D-007}, flow: {value: 161.61, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {NaOH: 0.32, H2O: 0.68}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S9, title: Treated brine slurry, from: R101.out, to: S101.in, template: aqueous, state: {design: {temperature: {value: 328.15, provenance: assumed, source: D-007}, pressure: {value: 250, provenance: assumed, source: D-007}, flow: {value: 142684.51, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {NaCl: 0.2592091, Na2SO4: 0.006004549, H2O: 0.733027, SiO2: 0.0007495688, Na2CO3: 0.0004990966, NaOH: 0.000299458, CaCO3: 0.0001653247, MgOH2: 4.591366e-05}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S10, title: Brine filter cake, from: S101.sludge, to: SLUDGE.in, template: aqueous, state: {design: {temperature: {value: 318.15, provenance: assumed, source: D-007}, pressure: {value: 101.325, provenance: assumed, source: D-007}, flow: {value: 274.18, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {SiO2: 0.3900725, CaCO3: 0.08603427, MgOH2: 0.02389327, NaCl: 0.1297292, Na2SO4: 0.003005162, H2O: 0.366866, Na2CO3: 0.0002497883, NaOH: 0.000149873}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S11, title: Clarified brine, from: S101.clear, to: X201.in, template: aqueous, state: {design: {temperature: {value: 328.15, provenance: assumed, source: D-007}, pressure: {value: 400, provenance: assumed, source: D-007}, flow: {value: 142410.33, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {NaCl: 0.2594584, Na2SO4: 0.006010323, H2O: 0.7337319, Na2CO3: 0.0004995766, NaOH: 0.000299746}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S12, title: Polished brine, from: X201.out, to: R202.in, template: aqueous, state: {design: {temperature: {value: 328.15, provenance: assumed, source: D-007}, pressure: {value: 350, provenance: assumed, source: D-007}, flow: {value: 142410.33, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {NaCl: 0.2594584, Na2SO4: 0.006010323, H2O: 0.7337319, Na2CO3: 0.0004995766, NaOH: 0.000299746}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S13, title: Hydrochloric acid for resin regeneration, from: HCL.ix, to: X201.hcl, template: aqueous, state: {design: {temperature: {value: 298.15, provenance: assumed, source: D-007}, pressure: {value: 300, provenance: assumed, source: D-007}, flow: {value: 39.06, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {HCl: 0.32, H2O: 0.68}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S14, title: Caustic for resin regeneration, from: SP303.x201, to: X201.naoh, template: aqueous, state: {design: {temperature: {value: 358.15, provenance: assumed, source: D-007}, pressure: {value: 400, provenance: assumed, source: D-007}, flow: {value: 42.85, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {NaOH: 0.32, H2O: 0.68}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S15, title: Demineralised rinse water, from: DMW.ix, to: X201.rinse, template: aqueous, state: {design: {temperature: {value: 298.15, provenance: assumed, source: D-007}, pressure: {value: 400, provenance: assumed, source: D-007}, flow: {value: 1875.00, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S16, title: Resin regeneration effluent, from: X201.regen, to: WW.ix, template: aqueous, state: {design: {temperature: {value: 303.15, provenance: assumed, source: D-007}, pressure: {value: 150, provenance: assumed, source: D-007}, flow: {value: 1956.91, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {H2O: 0.9897614, NaCl: 0.01023864}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S17, title: Hydrochloric acid for feed brine, from: HCL.feed, to: R202.hcl, template: aqueous, state: {design: {temperature: {value: 298.15, provenance: assumed, source: D-007}, pressure: {value: 300, provenance: assumed, source: D-007}, flow: {value: 274.57, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {HCl: 0.32, H2O: 0.68}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S18, title: Acidification vent (CO2), from: R202.vent, to: VENT.in, template: gas, state: {design: {temperature: {value: 328.15, provenance: assumed, source: D-007}, pressure: {value: 101.325, provenance: assumed, source: D-007}, flow: {value: 29.54, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {CO2: 1.0}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S19, title: Acidified brine, from: R202.out, to: E201.in, template: aqueous, state: {design: {temperature: {value: 328.15, provenance: assumed, source: D-007}, pressure: {value: 350, provenance: assumed, source: D-007}, flow: {value: 142655.35, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {NaCl: 0.26, Na2SO4: 0.006, H2O: 0.734}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S20, title: Feed brine to cells, from: E201.out, to: EL301.brine, template: aqueous, state: {design: {temperature: {value: 343.15, provenance: assumed, source: D-007}, pressure: {value: 300, provenance: assumed, source: D-007}, flow: {value: 142655.35, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {NaCl: 0.26, Na2SO4: 0.006, H2O: 0.734}, provenance: assumed, source: "D-005: 310 g/l NaCl (BREF 2014 2.5.2), Na2SO4 7 g/l (BREF Table 2.4)"}}}}
+  - {id: S21, title: Demineralised water to catholyte, from: DMW.cath, to: EL301.dmw, template: aqueous, state: {design: {temperature: {value: 313.15, provenance: assumed, source: D-007}, pressure: {value: 400, provenance: assumed, source: D-007}, flow: {value: 12179.50, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S22, title: Depleted brine (anolyte), from: EL301.anolyte, to: C401.anolyte, template: aqueous, state: {design: {temperature: {value: 363.15, provenance: assumed, source: D-004}, pressure: {value: 115.0, provenance: assumed, source: D-007}, flow: {value: 93115.23, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {NaCl: 0.177, Na2SO4: 0.009192182, H2O: 0.8131632, Cl2: 0.0006446064}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S23, title: Wet cell chlorine, from: EL301.cl2, to: M501.cell, template: gas, state: {design: {temperature: {value: 363.15, provenance: assumed, source: D-004}, pressure: {value: 115.0, provenance: assumed, source: D-007}, flow: {value: 16239.77, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {Cl2: 0.7661388, O2: 0.00630011, H2O: 0.2275611}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S24, title: Wet cell hydrogen, from: EL301.h2, to: E601.in, template: gas, state: {design: {temperature: {value: 363.15, provenance: assumed, source: D-004}, pressure: {value: 117.0, provenance: assumed, source: D-007}, flow: {value: 1403.89, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {H2: 0.2623756, H2O: 0.7376244}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S25, title: Catholyte 32 wt-% NaOH, from: EL301.caustic, to: E302.in, template: aqueous, state: {design: {temperature: {value: 363.15, provenance: assumed, source: D-004}, pressure: {value: 400, provenance: assumed, source: D-007}, flow: {value: 44075.96, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {NaOH: 0.32, H2O: 0.68}, provenance: assumed, source: "BREF 2014 2.4.1: 32 wt-% in the cell"}}}}
+  - {id: S26, title: Cooled 32 wt-% caustic, from: E302.out, to: SP303.in, template: aqueous, state: {design: {temperature: {value: 358.15, provenance: assumed, source: D-007}, pressure: {value: 400, provenance: assumed, source: D-007}, flow: {value: 44075.96, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {NaOH: 0.32, H2O: 0.68}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S27, title: 32 wt-% caustic to evaporation, from: SP303.evap, to: EV701.in, template: aqueous, state: {design: {temperature: {value: 358.15, provenance: assumed, source: D-007}, pressure: {value: 400, provenance: assumed, source: D-007}, flow: {value: 43743.72, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {NaOH: 0.32, H2O: 0.68}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S28, title: Caustic for dechlorination, from: SP303.r402, to: R402.naoh, template: aqueous, state: {design: {temperature: {value: 358.15, provenance: assumed, source: D-007}, pressure: {value: 400, provenance: assumed, source: D-007}, flow: {value: 127.78, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {NaOH: 0.32, H2O: 0.68}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S29, title: Hydrochloric acid for dechlorination, from: HCL.dcl, to: C401.hcl, template: aqueous, state: {design: {temperature: {value: 298.15, provenance: assumed, source: D-007}, pressure: {value: 300, provenance: assumed, source: D-007}, flow: {value: 110.26, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {HCl: 0.32, H2O: 0.68}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S30, title: Recovered chlorine from dechlorination, from: C401.gas, to: M501.strip, template: gas, state: {design: {temperature: {value: 313.15, provenance: assumed, source: D-007}, pressure: {value: 115.0, provenance: assumed, source: D-007}, flow: {value: 86.95, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {Cl2: 0.9620883, H2O: 0.03791167}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S31, title: Stripped brine, from: C401.out, to: R402.in, template: aqueous, state: {design: {temperature: {value: 356.15, provenance: assumed, source: D-007}, pressure: {value: 250, provenance: assumed, source: D-007}, flow: {value: 96791.22, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {NaCl: 0.1702778, Na2SO4: 0.008843076, H2O: 0.8204946, Cl2: 2.001797e-05, HCl: 0.0003645222}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S32, title: Sodium sulfite, from: NA2SO3.out, to: R402.sulfite, template: solid_reagent, state: {design: {temperature: {value: 298.15, provenance: assumed, source: D-007}, pressure: {value: 101.325, provenance: assumed, source: D-007}, flow: {value: 3.44, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {Na2SO3: 1.0}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S33, title: Dechlorinated brine, from: R402.out, to: SP403.in, template: aqueous, state: {design: {temperature: {value: 353.15, provenance: assumed, source: D-007}, pressure: {value: 300, provenance: assumed, source: D-007}, flow: {value: 96922.44, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {NaCl: 0.1706637, Na2SO4: 0.008871149, H2O: 0.8204651}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S34, title: Brine purge, from: SP403.purge, to: WW.purge, template: aqueous, state: {design: {temperature: {value: 353.15, provenance: assumed, source: D-007}, pressure: {value: 150, provenance: assumed, source: D-007}, flow: {value: 4118.23, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {NaCl: 0.1706637, Na2SO4: 0.008871149, H2O: 0.8204651}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S35, title: Wet chlorine to coolers, from: M501.out, to: E501.in, template: gas, state: {design: {temperature: {value: 363.15, provenance: assumed, source: D-008}, pressure: {value: 115.0, provenance: assumed, source: D-008}, flow: {value: 16326.72, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {Cl2: 0.7671823, O2: 0.006266558, H2O: 0.2265511}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S36, title: Chlorine water condensate, from: E501.cond, to: C401.cond, template: aqueous, state: {design: {temperature: {value: 303.15, provenance: assumed, source: D-008}, pressure: {value: 250, provenance: assumed, source: D-008}, flow: {value: 3652.68, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {H2O: 0.993, Cl2: 0.007}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S37, title: Cooled wet chlorine, from: E501.gas, to: C502.in, template: gas, state: {design: {temperature: {value: 293.15, provenance: assumed, source: "D-008: above the 15 degC hydrate limit (BREF 2014 4.3.4)"}, pressure: {value: 108.0, provenance: assumed, source: D-008}, flow: {value: 12674.03, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {Cl2: 0.9862684, O2: 0.008072592, H2O: 0.005659004}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S38, title: Sulfuric acid 98 wt-%, from: H2SO4.out, to: C502.acid, template: sulfuric_acid, state: {design: {temperature: {value: 298.15, provenance: assumed, source: D-008}, pressure: {value: 300, provenance: assumed, source: D-008}, flow: {value: 238.65, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {H2SO4: 0.98, H2O: 0.02}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S39, title: Spent sulfuric acid, from: C502.spent, to: SPENT.in, template: sulfuric_acid, state: {design: {temperature: {value: 303.15, provenance: assumed, source: D-008}, pressure: {value: 150, provenance: assumed, source: D-008}, flow: {value: 310.37, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {H2SO4: 0.753537, H2O: 0.246463}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S40, title: Dry chlorine, from: C502.gas, to: K503.in, template: gas, state: {design: {temperature: {value: 298.15, provenance: assumed, source: D-008}, pressure: {value: 105.0, provenance: assumed, source: D-008}, flow: {value: 12602.31, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {Cl2: 0.9918815, O2: 0.008118535}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S41, title: Compressed chlorine, from: K503.out, to: E504.in, template: gas, state: {design: {temperature: {value: 387.52, provenance: assumed, source: "scripts/balance.py, eta 0.75; below 120 degC (BREF 2014 4.3.4)"}, pressure: {value: 410.0, provenance: assumed, source: D-008}, flow: {value: 12602.31, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {Cl2: 0.9918815, O2: 0.008118535}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S42, title: Dry chlorine gas product, from: E504.out, to: CL2.in, template: gas, state: {design: {temperature: {value: 313.15, provenance: assumed, source: D-002}, pressure: {value: 400.0, provenance: assumed, source: D-002}, flow: {value: 12602.31, basis: mass, provenance: assumed, source: "scripts/balance.py: 12 500 kg/h Cl2 (D-002)"}, composition: {basis: mass_fraction, values: {Cl2: 0.9918815, O2: 0.008118535}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S43, title: Cooled hydrogen, from: E601.gas, to: K602.in, template: gas, state: {design: {temperature: {value: 308.15, provenance: assumed, source: D-008}, pressure: {value: 112.0, provenance: assumed, source: D-008}, flow: {value: 542.53, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {H2: 0.6789415, H2O: 0.3210585}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S44, title: Hydrogen product, from: K602.out, to: H2.in, template: gas, state: {design: {temperature: {value: 337.19, provenance: assumed, source: "scripts/balance.py, eta 0.70"}, pressure: {value: 140.0, provenance: assumed, source: D-002}, flow: {value: 542.53, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {H2: 0.6789415, H2O: 0.3210585}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S45, title: 50 wt-% caustic (hot), from: EV701.out, to: E702.in, template: aqueous, state: {design: {temperature: {value: 413.15, provenance: assumed, source: D-010}, pressure: {value: 300, provenance: assumed, source: D-010}, flow: {value: 27995.98, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {NaOH: 0.5, H2O: 0.5}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S46, title: 50 wt-% caustic soda product, from: E702.out, to: NAOH.in, template: aqueous, state: {design: {temperature: {value: 323.15, provenance: assumed, source: D-002}, pressure: {value: 250, provenance: assumed, source: D-002}, flow: {value: 27995.98, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {NaOH: 0.5, H2O: 0.5}, provenance: assumed, source: "D-002: 50 wt-% commercial grade"}}}}
+  # Energy streams, kW (scripts/balance.py, D-006, D-009, D-010; ASSUMED)
+  - {id: Q1, title: Rectifier AC supply, kind: energy, from: POWER.rect, to: T301.ac, state: {design: {duty: {value: 30290.4, provenance: assumed, source: "scripts/balance.py: DC / 0.97 (D-009)"}}}}
+  - {id: Q2, title: DC power to the cells, kind: energy, from: T301.dc, to: EL301.dc, state: {design: {duty: {value: 29381.7, provenance: assumed, source: "scripts/balance.py: 605 x 16.188 kA x 3.0 V (D-004); = cheme process cell"}}}}
+  - {id: Q3, title: Transformer and rectifier losses, kind: energy, from: T301.loss, to: CW.t301, state: {design: {duty: {value: 908.7, provenance: assumed, source: "scripts/balance.py (D-009)"}}}}
+  - {id: Q4, title: Catholyte cooler duty, kind: energy, from: E302.cw, to: CW.e302, state: {design: {duty: {value: 717.8, provenance: assumed, source: "scripts/balance.py: cell heat less feed heating and evaporation (D-006)"}}}}
+  - {id: Q5, title: "Other auxiliaries (pumps, agitators, fans, vacuum, chiller)", kind: energy, from: POWER.aux, to: D101.aux, state: {design: {duty: {value: 1921.9, provenance: assumed, source: "scripts/balance.py: BREF 2014 Table 3.12 median 177 kWh/t Cl2 less K-503 and K-602 (D-009)"}}}}
+  - {id: Q6, title: Feed brine heater duty, kind: energy, from: MPS.e201, to: E201.steam, state: {design: {duty: {value: 1961.5, provenance: assumed, source: "scripts/balance.py: 55 to 70 degC, cp 3.3 kJ/(kg K) (D-006)"}}}}
+  - {id: Q7, title: Chlorine cooler duty (cooling water), kind: energy, from: E501.cw, to: CW.e501, state: {design: {duty: {value: 2378.3, provenance: assumed, source: "scripts/balance.py (D-006)"}}}}
+  - {id: Q8, title: Chlorine cooler duty (chilled water), kind: energy, from: E501.chw, to: CHW.e501, state: {design: {duty: {value: 145.3, provenance: assumed, source: "scripts/balance.py (D-006)"}}}}
+  - {id: Q9, title: Chlorine compressor power, kind: energy, from: POWER.k503, to: K503.power, state: {design: {duty: {value: 245.5, provenance: assumed, source: "scripts/balance.py: two stages, eta 0.75 (D-008)"}}}}
+  - {id: Q10, title: Chlorine inter- and aftercooler duty, kind: energy, from: E504.cw, to: CW.e504, state: {design: {duty: {value: 220.2, provenance: assumed, source: "scripts/balance.py (D-008)"}}}}
+  - {id: Q11, title: Hydrogen cooler duty, kind: energy, from: E601.cw, to: CW.e601, state: {design: {duty: {value: 220.4, provenance: assumed, source: "scripts/balance.py (D-006)"}}}}
+  - {id: Q12, title: Hydrogen blower power, kind: energy, from: POWER.k602, to: K602.power, state: {design: {duty: {value: 45.1, provenance: assumed, source: "scripts/balance.py: eta 0.70 (D-008)"}}}}
+  - {id: Q13, title: Caustic evaporator steam, kind: energy, from: MPS.ev701, to: EV701.steam, state: {design: {duty: {value: 4896.9, provenance: assumed, source: "scripts/balance.py: steam economy 1.8, 8.75 t/h (D-010)"}}}}
+  - {id: Q14, title: Caustic evaporator condenser duty, kind: energy, from: EV701.cw, to: CW.ev701, state: {design: {duty: {value: 4129.7, provenance: assumed, source: "scripts/balance.py: evaporator energy closure without heat of dilution (D-010)"}}}}
+  - {id: Q15, title: Caustic product cooler duty, kind: energy, from: E702.cw, to: CW.e702, state: {design: {duty: {value: 2239.7, provenance: assumed, source: "scripts/balance.py: 140 to 50 degC (D-010)"}}}}
+layout: {bfd: {}, pfd: {}}

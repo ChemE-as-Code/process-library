@@ -1,0 +1,41 @@
+# The membrane electrolysers of chlor-alkali-1 (DESIGN.md D-004). Schema `cheme schema
+# process-cells`; `cheme process cell` gives the Faraday, element, charge and energy balance.
+# Specified performance only: voltage and current efficiency are sourced inputs, never
+# predicted (no polarisation model in core).
+schema: cheme/electrochemical-cells/v1
+kind: electrochemical_cells
+cells:
+  - id: EL301
+    title: Bipolar membrane electrolysers (all elements, one DC circuit)
+    performance: specified
+    reaction: CHLORALKALI
+    electrons: 2
+    electrodes:
+      anode: {equation: "2 Cl- -> Cl2 + 2 e-", species: {Cl-: -2, Cl2: 1, e-: 2}}
+      cathode: {equation: "2 H2O + 2 e- -> H2 + 2 OH-", species: {H2O: -2, e-: -2, H2: 1, OH-: 2}}
+    dissociation:
+      NaCl: {Na+: 1, Cl-: 1}
+      NaOH: {Na+: 1, OH-: 1}
+    # 605 elements of 2.7 m2 in series as one DC load: a design simplification (D-004); the
+    # split into electrolysers and circuits does not change the balance.
+    cells: 605
+    current: {value: 16.1883, unit: kA, provenance: assumed, source: "scripts/balance.py: the current that gives 12 500 kg/h dry Cl2 at the gate at 6.0 kA/m2 (D-002, D-004)"}
+    active_area: {value: 2.7, unit: m2, provenance: assumed, source: "D-004: bipolar element area, ASSUMED (vendor-dependent)"}
+    faradaic_efficiency: {value: 0.965, provenance: assumed, origin: literature, source: "D-004: EU BREF 2014 (DOI 10.2791/13138) 2.4.1, current efficiency loss 3-7 % to NaOH; 4.3.2.3.2, > 95 %"}
+    voltage: {value: 3.0, unit: V, provenance: given, origin: literature, source: "EU BREF 2014, 4.3.2.3.2 (high-performance membranes): about 3.0 V at 6.0 kA/m2, zero gap, 32 wt-% NaOH, 200 g/l NaCl anolyte, 90 degC"}
+    reversible_voltage: {value: 2.35, unit: V, provenance: given, origin: literature, source: "EU BREF 2014, Table 3.10: theoretical voltage of the membrane cell"}
+    side_reactions:
+      - reaction: WATER_SPLIT
+        electrons: 4
+        current_fraction: {value: 0.035, provenance: assumed, origin: literature, source: "D-004: the current not forming Cl2 and NaOH forms O2 from back-migrated OH- (EU BREF 2014, 2.4.1: O2 in Cl2 0.5-2.0 vol-%); hypochlorite and chlorate neglected"}
+    thermal:
+      kind: isothermal
+      temperature: {value: 363.15, unit: K, provenance: given, origin: literature, source: "EU BREF 2014, 4.3.2.3.2: 90 degC"}
+    operating_range:
+      temperature: [358.15, 368.15]
+      current_density: [5900, 6100]
+      source: "EU BREF 2014, 4.3.2.3.2: the voltage is a point value at 6.0 kA/m2 and 90 degC; +/- 100 A/m2 and +/- 5 K are the range this design claims for it (ASSUMED)"
+    electrolyte: "anolyte NaCl brine 26 -> 17.7 wt-% (310 -> 200 g/l), catholyte 32 wt-% NaOH"
+    flowsheet: {step: EL301, electricity: Q2}
+    sources:
+      - "European Commission JRC (2014), Best Available Techniques Reference Document for the Production of Chlor-alkali, DOI 10.2791/13138"

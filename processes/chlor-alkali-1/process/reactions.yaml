@@ -1,0 +1,46 @@
+# The reactions of chlor-alkali-1 (DESIGN.md D-004, D-005, section 3). Schema
+# `cheme schema process-reactions`. Heats of reaction in kJ/kmol (= J/mol) per extent, from
+# standard enthalpies of formation at 298.15 K: CODATA Key Values for Thermodynamics (Cox,
+# Wagman and Medvedev 1989): H2O(l) -285.830, Na+(aq) -240.34, Cl-(aq) -167.080,
+# OH-(aq) -230.015 kJ/mol; dissolved species at infinite dilution (no heats of dilution,
+# core#364). The brine treatment reactions are stoichiometric precipitation and neutralisation
+# (BREF 2014, 2.5.3 and Table 3.6); their heats are small and not used.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: CHLORALKALI
+    title: Chlor-alkali electrolysis (overall cell reaction)
+    equation: 2 NaCl + 2 H2O -> Cl2 + H2 + 2 NaOH
+    stoichiometry: {NaCl: -2.0, H2O: -2.0, Cl2: 1.0, H2: 1.0, NaOH: 2.0}
+    heat_of_reaction:
+      value: 445790.0
+      provenance: given
+      source: "CODATA Key Values (Cox et al. 1989): 2 x (-470.355) - 2 x (-407.42) - 2 x (-285.830) kJ/mol; NaCl and NaOH aqueous at infinite dilution"
+  - id: WATER_SPLIT
+    title: Anodic oxygen from back-migrated hydroxide (net water electrolysis)
+    equation: 2 H2O -> 2 H2 + O2
+    stoichiometry: {H2O: -2.0, H2: 2.0, O2: 1.0}
+    heat_of_reaction:
+      value: 571660.0
+      provenance: given
+      source: "CODATA Key Values (Cox et al. 1989): -2 x (-285.830) kJ/mol, H2O liquid"
+  - id: CA_PRECIP
+    title: Calcium removal with soda ash
+    equation: CaSO4 + Na2CO3 -> CaCO3 + Na2SO4
+    stoichiometry: {CaSO4: -1.0, Na2CO3: -1.0, CaCO3: 1.0, Na2SO4: 1.0}
+  - id: MG_PRECIP
+    title: Magnesium removal with caustic
+    equation: MgCl2 + 2 NaOH -> Mg(OH)2 + 2 NaCl
+    stoichiometry: {MgCl2: -1.0, NaOH: -2.0, MgOH2: 1.0, NaCl: 2.0}
+  - id: CARBONATE_NEUT
+    title: Neutralisation of excess carbonate with hydrochloric acid
+    equation: Na2CO3 + 2 HCl -> 2 NaCl + H2O + CO2
+    stoichiometry: {Na2CO3: -1.0, HCl: -2.0, NaCl: 2.0, H2O: 1.0, CO2: 1.0}
+  - id: HYDROXIDE_NEUT
+    title: Neutralisation of caustic and hydrochloric acid
+    equation: NaOH + HCl -> NaCl + H2O
+    stoichiometry: {NaOH: -1.0, HCl: -1.0, NaCl: 1.0, H2O: 1.0}
+  - id: SULFITE_DECHLOR
+    title: Chemical dechlorination with sulfite in alkaline brine
+    equation: Na2SO3 + Cl2 + 2 NaOH -> Na2SO4 + 2 NaCl + H2O
+    stoichiometry: {Na2SO3: -1.0, Cl2: -1.0, NaOH: -2.0, Na2SO4: 1.0, NaCl: 2.0, H2O: 1.0}

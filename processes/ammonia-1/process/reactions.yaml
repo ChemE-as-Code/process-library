@@ -1,0 +1,88 @@
+# Reactions of ammonia-1. Schema: `cheme schema process-reactions`.
+# SMR, WGS, NH3_SYN and the methanation pair are the stoichiometry of cheme's reaction library
+# (`cheme chemistry library steam_reforming | ht_shift | lt_shift | methanation | ammonia`;
+# source there: Ullmann's, Twigg's Catalyst Handbook). The model basis of every reactor is in
+# DESIGN.md D-005: equilibrium with an ASSUMED approach, or complete conversion where the
+# equilibrium lies fully on the product side; no kinetics.
+# Heats of reaction are not given here: cheme takes them from the components' formation data
+# (materials.yaml).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  # ---- reforming (D-005, D-007)
+  - id: C2H6_REF
+    equation: C2H6 + 2 H2O -> 2 CO + 5 H2
+    stoichiometry: {C2H6: -1, H2O: -2, CO: 2, H2: 5}
+    reversible: false
+    conversion: {key: C2H6, value: 1.0, provenance: assumed, source: "D-005: higher hydrocarbons are fully reformed at prereformer and reformer conditions (equilibrium far on the product side); a model basis, not a measured conversion"}
+    catalyst: nickel reforming catalyst
+  - id: C3H8_REF
+    equation: C3H8 + 3 H2O -> 3 CO + 7 H2
+    stoichiometry: {C3H8: -1, H2O: -3, CO: 3, H2: 7}
+    reversible: false
+    conversion: {key: C3H8, value: 1.0, provenance: assumed, source: "D-005, as C2H6_REF"}
+    catalyst: nickel reforming catalyst
+  - id: SMR
+    equation: CH4 + H2O <=> CO + 3 H2
+    stoichiometry: {CH4: -1, H2O: -1, CO: 1, H2: 3}
+    reversible: true
+    catalyst: nickel reforming catalyst
+    sources: ["cheme reaction library steam_reforming (Ullmann's; Twigg, Catalyst Handbook, 2nd ed., 1989)"]
+  - id: WGS
+    equation: CO + H2O <=> CO2 + H2
+    stoichiometry: {CO: -1, H2O: -1, CO2: 1, H2: 1}
+    reversible: true
+    sources: ["cheme reaction library steam_reforming, ht_shift, lt_shift"]
+  # ---- secondary reformer burner zone (D-007): the air's oxygen burns hydrogen; the bed below
+  # re-equilibrates SMR and WGS, so which fuel burns does not change the bed outlet
+  - id: H2_OX
+    equation: 2 H2 + O2 -> 2 H2O
+    stoichiometry: {H2: -2, O2: -1, H2O: 2}
+    reversible: false
+    conversion: {key: O2, value: 1.0, provenance: assumed, source: "D-007: all oxygen is consumed in the burner zone"}
+  # ---- methanation (D-010)
+  - id: METH_CO
+    equation: CO + 3 H2 -> CH4 + H2O
+    stoichiometry: {CO: -1, H2: -3, CH4: 1, H2O: 1}
+    reversible: false
+    conversion: {key: CO, value: 1.0, provenance: assumed, source: "D-010: residual carbon oxides of a few ppmv are below the balance tolerance; cheme reaction library methanation"}
+    catalyst: nickel methanation catalyst
+  - id: METH_CO2
+    equation: CO2 + 4 H2 -> CH4 + 2 H2O
+    stoichiometry: {CO2: -1, H2: -4, CH4: 1, H2O: 2}
+    reversible: false
+    conversion: {key: CO2, value: 1.0, provenance: assumed, source: "D-010, as METH_CO"}
+    catalyst: nickel methanation catalyst
+  # ---- ammonia synthesis (D-011)
+  - id: NH3_SYN
+    equation: N2 + 3 H2 <=> 2 NH3
+    stoichiometry: {N2: -1, H2: -3, NH3: 2}
+    reversible: true
+    catalyst: promoted iron (fused magnetite)
+    sources: ["cheme reaction library ammonia (Ullmann's)"]
+  # ---- reformer furnace (D-014): complete combustion of the fuel gas
+  - id: CH4_COMB
+    equation: CH4 + 2 O2 -> CO2 + 2 H2O
+    stoichiometry: {CH4: -1, O2: -2, CO2: 1, H2O: 2}
+    reversible: false
+    conversion: {key: CH4, value: 1.0, provenance: assumed, source: "D-014: complete combustion; CO and unburnt hydrocarbons in the flue gas not modelled"}
+  - id: C2H6_COMB
+    equation: 2 C2H6 + 7 O2 -> 4 CO2 + 6 H2O
+    stoichiometry: {C2H6: -1, O2: -3.5, CO2: 2, H2O: 3}
+    reversible: false
+    conversion: {key: C2H6, value: 1.0, provenance: assumed, source: D-014}
+  - id: C3H8_COMB
+    equation: C3H8 + 5 O2 -> 3 CO2 + 4 H2O
+    stoichiometry: {C3H8: -1, O2: -5, CO2: 3, H2O: 4}
+    reversible: false
+    conversion: {key: C3H8, value: 1.0, provenance: assumed, source: D-014}
+  - id: H2_COMB
+    equation: 2 H2 + O2 -> 2 H2O
+    stoichiometry: {H2: -1, O2: -0.5, H2O: 1}
+    reversible: false
+    conversion: {key: H2, value: 1.0, provenance: assumed, source: D-014}
+  - id: NH3_COMB
+    equation: 4 NH3 + 3 O2 -> 2 N2 + 6 H2O
+    stoichiometry: {NH3: -1, O2: -0.75, N2: 0.5, H2O: 1.5}
+    reversible: false
+    conversion: {key: NH3, value: 1.0, provenance: assumed, source: "D-014: the NH3 left in the tail gas burns to N2 and water; the NOx it forms is not modelled (open input I-07)"}

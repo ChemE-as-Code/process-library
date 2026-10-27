@@ -1,0 +1,35 @@
+# Reactions of the sulfur-burning double-contact process. Schema: `cheme schema
+# process-reactions`. Heats of reaction from standard enthalpies of formation at 298.15 K (gas:
+# materials.yaml; S(rhombic) 0; H2SO4(l) -813.99 and H2O(l) -285.83 kJ/mol, NBS tables, Wagman
+# et al. 1982). Conversions are given on the reactor steps of process/flowsheet.yaml (D-005).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: S_COMB
+    equation: S(l) + O2 -> SO2
+    stoichiometry: {S: -1.0, O2: -1.0, SO2: 1.0}
+    reversible: false
+    conversion: {key: S, value: 1.0, provenance: assumed, source: "complete combustion of the sulfur in excess air (D-004)"}
+    heat_of_reaction:
+      value: -296800.0
+      provenance: given
+      source: "dHf SO2(g) (CRC) with S(rhombic) at 298.15 K; molten feed adds about 5 kJ/mol (fusion and sensible), counted in scripts/balance.py"
+  - id: SO2_OX
+    equation: SO2 + 1/2 O2 <=> SO3
+    stoichiometry: {SO2: -1.0, O2: -0.5, SO3: 1.0}
+    reversible: true
+    conversion: {key: SO2, value: 0.63, provenance: assumed, source: "bed 1 (D-005); each bed step gives its own fraction of the bed inlet SO2"}
+    heat_of_reaction:
+      value: -98900.0
+      provenance: given
+      source: "ideal-gas formation enthalpies of materials.yaml (CRC), 298.15 K"
+    catalyst: V2O5
+    sources: ["cheme chemistry library sulfuric_acid (Ullmann's, Sulfuric Acid and Sulfur Trioxide, doi:10.1002/14356007.a25_635)"]
+  - id: SO3_ABS
+    equation: SO3(g) + H2O(l) -> H2SO4(l)
+    stoichiometry: {SO3: -1.0, H2O: -1.0, H2SO4: 1.0}
+    reversible: false
+    heat_of_reaction:
+      value: -132460.0
+      provenance: given
+      source: "dHf H2SO4(l) -813.99, H2O(l) -285.83 (NBS tables, Wagman et al. 1982), SO3(g) -395.7 kJ/mol (CRC); heat of mixing into 98.5 wt% acid not included"

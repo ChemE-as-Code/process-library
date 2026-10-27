@@ -1,0 +1,89 @@
+# Process Atlas manifest of hda-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: hda-1
+title: Toluene hydrodealkylation to benzene (100 kt/a, thermal HDA)
+summary: >-
+  Thermal hydrodealkylation of toluene with hydrogen to benzene: adiabatic reactor, quench, HP
+  separator, hydrogen recycle with purge, stabiliser, benzene and toluene columns with toluene
+  recycle and a biphenyl by-product. Concept stage, assumed basis, preliminary LCI (cradle-to-gate study, foreground inventory only).
+description: |
+  Fresh and recycled toluene are pumped, mixed with make-up hydrogen (95 mol%) and recycle gas
+  at a hydrogen-to-aromatics ratio of 5, preheated against the reactor effluent and in a fired
+  heater to 895 K, and react adiabatically at about 3.4 MPa (outlet 937 K). The reactor is a
+  conversion model: 75 % toluene conversion per pass (assumed) with the benzene selectivity of
+  the Douglas (1988) correlation; biphenyl forms from benzene. The effluent is quenched with
+  separator liquid, cooled and separated at 313 K; a purge of the separator gas (40 mol% H2)
+  removes the methane to the fuel gas header. The liquid is stabilised, benzene (99.9 mol%) is
+  taken overhead in the benzene column, and the vacuum toluene column returns toluene to the
+  reactor and leaves biphenyl as bottoms.
+
+  All values are concept estimates. The separator, column and duty values come from an
+  independent script whose property method (Peng-Robinson) is not qualified for this mixture
+  by ChemE-as-Code yet; see DESIGN.md of the engineering files for every assumption and gated
+  step. Designed independently: no flowsheet data of the IDAES HDA examples are used.
+families: [aromatics]
+keywords: [benzene, toluene, hydrodealkylation, HDA, hydrogen recycle, purge, biphenyl, diphenyl, distillation, aromatics]
+facets:
+  feedstock_basis: [fossil]
+  product_classes: [chemicals]
+  unit_operations: [reaction, heat-exchange, compression, flash, distillation]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest; cheme maturity reports level none
+# (the feeds and the capacity are assumed, not sourced, and the separators and columns are
+# specified values), see validation.notes and DESIGN.md D-006.
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances (cheme validate, cheme process
+    streams) and an independent overall energy closure of 0.25 % (scripts/hda_balance.py).
+    cheme maturity reaches no level: the feeds and the capacity are assumed (no sourced or
+    owner-given feed), and the separator and the three columns are specified values from an
+    independent Peng-Robinson script that core cannot qualify for aromatics with hydrogen
+    (core #315). The reactor outlet is calculated by cheme (conversion reactor with the
+    sourced selectivity correlation and an assumed conversion) and reproduces the script's
+    extents; cheme's ideal-gas reactor duty (-45 kW) confirms the script's adiabatic outlet
+    temperature. The LCI is a cradle-to-gate study with the foreground inventory only, every
+    background open (10 gaps): no impact result, and no LCA result passed to the catalog
+    (lca.source none). Not reviewed. The chemicals registry has no toluene, benzene,
+    biphenyl, natural gas or fuel gas entry yet, so those flows are not listed under chemistry
+    (open library item).
+chemistry:
+  inputs:
+    - {chemical: hydrogen, role: feedstock, inventory_key: "feed:H2MU", note: "Make-up hydrogen 95 mol% with 5 mol% methane (ASSUMED). The main feedstock, toluene (feed:TOLF, 1.24 kg per kg benzene), has no registry entry yet"}
+    - {chemical: methane, role: feedstock, inventory_key: "feed:H2MU", note: "5 mol% methane in the make-up hydrogen (ASSUMED), leaves with the purge"}
+  outputs:
+    - {chemical: hydrogen, role: co-product, inventory_key: "product:FUELGAS", note: "Purge gas and stabiliser off-gas (40 mol% H2, 59 % CH4) to the fuel gas header. The main product, benzene (product:BENZENE), and the biphenyl by-product (product:DIPHENYL) have no registry entry yet"}
+    - {chemical: methane, role: co-product, inventory_key: "product:FUELGAS", note: "Methane formed by the reaction and with the make-up, in the fuel gas"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Recycle compressor and toluene pump (ASSUMED electric drives)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "MP steam 1500 kPa(a), stabiliser reboiler"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 450 kPa(a), benzene column reboiler"}
+    - {chemical: steam, role: utility, inventory_key: "feed:HPS", note: "HP steam 4200 kPa(a), toluene column reboiler"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED)"}
+basis:
+  capacity: "100 kt/a benzene (ASSUMED)"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
+references:
+  - {title: "Douglas, J.M. (1988) Conceptual Design of Chemical Processes. McGraw-Hill (HDA case study: reactor conditions, selectivity correlation)"}
+  - {title: "Speight, J.G. (2011) Handbook of Industrial Hydrocarbon Processes. Elsevier, Ch. 11 (hydrodealkylation conditions)"}
+  - {title: "Cox, J.D., Wagman, D.D., Medvedev, V.A. (1989) CODATA Key Values for Thermodynamics. Hemisphere (CO2 and H2O formation enthalpies for the LHV)"}
+  - {title: "IDAES HDA flowsheet examples (examples-pse v2.0.0 documentation): cited as a reference model of the route only; no data used", url: "https://idaes.github.io/examples-pse/latest/Tutorials/Basics/HDA_flowsheet_solution_doc.html"}
+# source: none until a background is linked: every LCA contribution is a gap, and the
+# all-gap `total` row of 0 in lca/results.csv must not reach the catalog as a 0 kg CO2-eq
+# result (review 2026-10-27-pfd-lci-review#1, DESIGN.md D-013). Back to auto once linked.
+lca:
+  source: none
+  notes: "Foreground LCI only (lca/inventory.csv, per kg benzene), every background a gap (D-013): no impact result. A cradle-to-gate study whose upstream is not yet linked."
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/hda-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0

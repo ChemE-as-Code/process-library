@@ -1,0 +1,90 @@
+schema: process-run/v1
+run_id: 20261027-215050-review
+process: hydrogen-1
+kind: agent
+complete: false
+incomplete_notes:
+- runner had uncommitted changes (runner_commit is not exact)
+task_file: /Users/arturschweidtmann/Developer/test/agent-cli/tasks/gen/hydrogen-1-review.md
+branch: case/hydrogen-1
+start_commit: 84db928743610abf8e92c64d9dda30cd0f958ff4
+end_commit: 1da21a14af9faf0bd1b0a489aeff074798516f7a
+started: '2026-10-27T21:50:50+00:00'
+finished: '2026-10-27T21:55:27+00:00'
+wall_s: 277
+cost_usd: 1.3369265
+budget_usd: 3.0
+model: claude-opus-5-5
+effort: high
+num_turns: 27
+tokens:
+  input: 42
+  output: 23506
+  thinking: 13626
+  cache_read: 1746824
+  cache_write: 103413
+session_id: e3ff3cfb-2845-471c-988f-f56844e685a7
+session_export:
+  file: session.jsonl.gz
+  sha256: 554d731b2e0ae59bf8ea64b00b23f18edaf360a9181164801ae3878aaf6147fc
+tools:
+  cheme: cheme 0.8.0 (pyDEXPI 2.1.0)
+  core_commit: 44680fa0e142849803577a235d78fd0a75ca3f7a
+  claude_agent_sdk: 0.2.174
+  runner_commit: 99c2a5a5820b5aa77f5d51aa14f32c8a5792aa34
+  runner_dirty: true
+checks_by_agent:
+- cheme check 2>&1 | tail -40
+- cheme maturity 2>&1 | tail -40
+- cheme process propagate --check 2>&1 | tail -15; echo ----; cheme assess lca --coverage 2>&1 | tail
+  -60
+- cheme process propagate --check; echo "exit=$?"; cat lca/lca.yaml lca/README.md
+- cheme process streams 2>&1 | head -150
+- cheme validate 2>&1 | grep -i "drawing\|generated" | head; cheme impact 2>&1 | tail -5
+- cheme validate 2>&1 | grep -i "review\|error(s)"
+- cheme validate 2>&1 | tail -30
+checks_after_run:
+- command: cheme check
+  exit: 1
+  summary:
+    counts:
+      ok: 12
+      FAIL: 10
+      n/a: 3
+    failed:
+    - basic/pids-exist
+    - concept/layout-plot-plan
+    - basic/layout-3d
+    - basic/lifting-study
+    - basic/mto
+    - basic/layout-review
+    - detail/layout-detail
+    - detail/electrical
+    - detail/hvac
+    - detail/datasheets
+- command: cheme maturity
+  exit: 0
+  summary:
+    counts:
+      ok: 10
+      FAIL: 5
+    failed:
+    - sourced.boundary
+    - balanced.model-basis
+    - predictive.simulation-spec
+    - predictive.model-basis
+    - engineering.datasheets
+    levels:
+      sourced: fail
+      balanced: fail
+      predictive: fail
+      engineering: fail
+- command: cheme process propagate --check
+  exit: 0
+  summary:
+    last_line: ''
+outcome:
+  result: success
+  guard_denials: 0
+  report: report.md
+observed_later: {}

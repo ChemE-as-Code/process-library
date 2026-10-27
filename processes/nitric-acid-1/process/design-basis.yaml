@@ -1,0 +1,48 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Weak nitric acid by dual-pressure ammonia oxidation (Ostwald), issue
+# ChemE-as-Code/process-library#119. Concentrated-acid manufacture is outside the boundary
+# (DESIGN.md D-001). Values marked ASSUMED are engineering choices of this concept study, not
+# client or licensor data; every decision is in DESIGN.md.
+capacity:
+  basis: "contained HNO3 (100 % basis) in the product acid; the solution rate is reported separately"
+  hno3_100pct_t_per_d: 1000           # ASSUMED (D-002): a typical single-train dual-pressure size, chosen, not a client figure
+  hno3_100pct_kg_per_h: 41666.7       # = 1000 t/d / 24 h
+  product_solution_t_per_d: 1666.7    # = 1000 / 0.60, the 60 wt% solution
+  product_solution_kg_per_h: 69444.4
+  operating_hours_per_year: 8000      # ASSUMED (D-002)
+  turndown_percent: 70                # ASSUMED, not checked
+feeds:
+  - name: Liquid ammonia (battery limit, from storage)
+    source_of_values: ASSUMED (D-004)
+    purity: "NH3 >= 99.5 wt% (commercial anhydrous ammonia, ASSUMED); water and oil not modelled (pure NH3 in the model)"
+    conditions: {pressure_kPa_a: 1600, temperature_K: 288.15, phase: liquid}
+    flow: set by the product rate through the balance (stream S01 of process/flowsheet.yaml)
+  - name: Ambient air
+    composition_mol_percent: {N2: 77.34, O2: 20.74, AR: 0.92, H2O: 1.00}   # dry air (CO2 lumped into N2) at 1 mol% humidity, ASSUMED (D-004)
+    conditions: {pressure_kPa_a: 101.325, temperature_K: 288.15}           # ASSUMED design ambient
+  - name: Process water (demineralised, to the absorber top)
+    conditions: {pressure_kPa_a: 1300, temperature_K: 303.15}              # ASSUMED, delivered by the site at absorber pressure
+products:
+  - name: Weak nitric acid, 60 wt% HNO3
+    purity: "HNO3 60.0 wt% (D-002); dissolved NOx after bleaching: assumed nil in the model (a specification, typically a few tens of ppm, is an open input)"
+    delivery: {pressure_kPa_a: 500, temperature_K: 313.15, battery_limit: acid storage (outside the boundary)}
+  - name: Tail gas to stack
+    limits: "No permit chosen. Design case: tail gas NOx after SCR 50 ppmv (as NO, ASSUMED); N2O at the IPCC default for plants with tail-gas N2O destruction (2.5 kg N2O / t HNO3, D-009)"
+utilities:
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: "ASSUMED (D-011)"}
+  - {name: HP steam export, pressure_kPa_a: 4000, temperature_K: 673.15, bfw_K: 378.15, note: "raised in the waste-heat boiler and economiser; exported (ASSUMED level, D-011)"}
+  - {name: LP steam, pressure_kPa_a: 450, saturation_K: 420.8, use: SCR ammonia vaporiser, note: ASSUMED (D-011)}
+  - {name: Electric power, use: "machine train deficit (NOx compressor motor) and pumps", note: "ASSUMED electric motor on the train instead of a steam turbine (D-011)"}
+site:
+  location: ASSUMED generic site, not chosen
+  design_ambient_K: 288.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325   # ASSUMED
+assumptions:
+  - "ASSUMED dual-pressure scheme: ammonia oxidation at about 0.5 MPa(a), absorption at about 1.1 MPa(a) (D-003)."
+  - "ASSUMED burner feed 10.0 mol% NH3 in air; complete NH3 conversion; NO selectivity 0.955 (D-005)."
+  - "N2O formed at the gauze from the IPCC 2006 default for medium-pressure combustion plants, 7 kg N2O / t HNO3 (Vol. 3 Ch. 3 Table 3.3, p. 3.23); the rest of the unselective NH3 to N2 (D-005)."
+  - "ASSUMED cooler-condenser weak acid 42 wt%, gas leaving with 0.9 mol% water and NO2/(NO+NO2) = 0.5 (D-007)."
+  - "ASSUMED absorber specification model: tail gas 500 ppmv NOx (as NO), 3.0 mol% O2, 0.4 mol% H2O; raw acid 0.5 wt% dissolved NOx (as NO2) stripped in the bleacher by secondary air (D-008)."
+  - "Tertiary tail-gas treatment at 703 K: N2O destruction to the IPCC default 2.5 kg N2O / t HNO3 for tail-gas N2O destruction (Table 3.3), SCR of 90 % of the NO with NH3, no slip (ASSUMED, D-009)."
+  - "ASSUMED isentropic efficiencies: air compressor 0.85, NOx compressor 0.80, tail-gas expander 0.85; drive and gear losses neglected (D-011)."
+  - "All flows, temperatures and duties are concept estimates from an unqualified property method (D-010); accuracy not stated."
