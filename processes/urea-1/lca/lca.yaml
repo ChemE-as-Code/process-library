@@ -1,0 +1,87 @@
+# Goal and scope of the urea-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme assess lca
+# --write` / `--inventory --write` (lca/inventory.csv, dataset.yaml, gaps.csv, ...); never edit
+# those by hand. DESIGN.md D-011.
+#
+# PRELIMINARY GATE-TO-GATE INVENTORY: every foreground exchange comes from the balanced concept
+# flowsheet (process/flowsheet.yaml, design case). No background is linked yet: every feed,
+# utility and treatment is `missing:` with the background activity it should connect to later
+# (a gap, never 0). No value from a licensed database.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of prilled urea from a CO2-stripping
+  total-recycle plant, for the process library: the foreground exchanges per kg of urea at the
+  gate (raw materials, utilities, emissions, wastes) from the concept flowsheet, ready to be
+  linked to background datasets later. Not an impact assessment: no background is linked.
+functional_unit: {product: UREA, amount: 1, unit: kg}
+boundary: cradle-to-gate
+case: design
+location: GLO
+year: 2026
+technology: "CO2 stripping total-recycle urea synthesis (140 bar, N/C 2.8), LP recirculation, two-stage vacuum evaporation, forced-draft prilling with wet scrubbing, process condensate desorption/hydrolysis; electric CO2 compressor; 2000 t/d"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+allocation:
+  method: none
+  coproducts: [UREA]
+  source: "D-011: one product; the treated process condensate is a recyclable output (re-use as boiler feed water), not a co-product"
+system_model: cutoff
+flows:
+  # ---- raw materials (backgrounds open) ----
+  - key: feed:NH3
+    missing: "background to link: liquid anhydrous ammonia at the ammonia plant gate, from natural-gas steam reforming (the integrated ammonia plant; coordinate with library issue #86 and its LCI dataset). Not linked yet"
+    source: "S1, liquid ammonia from the ammonia plant (D-004)"
+  - key: feed:CO2
+    missing: "background to link: CO2 from the ammonia plant's CO2 removal (fossil process CO2), with the separation and delivery burden the ammonia plant dataset allocates to it; no capture or avoided-emission credit (D-011). Not linked yet"
+    source: "S3, CO2 at 160 kPa(a) from the ammonia plant (D-004)"
+  - {key: feed:PAIR, free: true, source: "S4, ambient air added for passivation: a resource taken from nature without burden"}
+  - {key: feed:AIR, free: true, source: "S50, ambient prilling air (with its humidity): a resource taken from nature without burden"}
+  # ---- utilities (backgrounds open) ----
+  - key: feed:POWER
+    missing: "background to link: grid electricity, medium voltage, market mix of the site's country (site not chosen, D-002). Not linked yet"
+    source: "Q1-Q4: CO2 compressor, HP ammonia and carbamate pumps, prilling fan (D-010)"
+  - key: feed:MPS
+    missing: "background to link: MP steam 24 bar (saturated) from the site steam system: a natural-gas-fired utility boiler or the ammonia plant's steam export, per kWh of heat. Not linked yet"
+    source: "Q5-Q7: HP stripper, 2nd evaporator, hydrolyser; 0.8 t/t total from BREF LVIC-AAF Table 8.5 (D-010)"
+  - key: product:CW
+    missing: "background to link: heat rejected to an evaporative cooling water system (circulation pumping, tower fans, make-up water and treatment chemicals), per kWh rejected. Not linked yet"
+    source: "Q11-Q13: K-101 intercoolers, LP carbamate condenser, evaporator condensers (D-010)"
+  # ---- outputs ----
+  - key: product:WATER
+    free: true     # recyclable under the cut-off system model: leaves burden-free, no credit
+    treatment: {kind: recyclable, route: "re-use as boiler feed water make-up (BAT quality, 1 ppm(wt) NH3 and urea; BREF LVIC-AAF Tables 8.9 and 8.20)"}
+    source: "S45, treated process condensate to battery limit (D-006)"
+  - {key: product:VENT, emission: true, source: "S31, LP absorber vent to atmosphere (D-009)"}
+  - {key: product:EXHAUST, emission: true, source: "S54, scrubbed prilling tower exhaust to atmosphere (D-009)"}
+  - {key: emission:NH3, elementary: {compartment: air, subcompartment: unspecified}, source: "NH3 of the LP vent (70 g/t, BREF Table 8.10) and the prilling exhaust (30 mg/Nm3, D-009)"}
+  - {key: emission:UREA, elementary: {compartment: air, subcompartment: unspecified}, source: "urea dust of the scrubbed prilling exhaust (35 mg/Nm3, D-009); reported as urea, not as PM2.5/PM10 (size split unknown)"}
+  - {key: emission:CO2, elementary: {compartment: air, origin: fossil}, source: "CO2 of the LP vent: fossil process CO2 of the feed (D-009)"}
+  - {key: emission:BIURET, free: true, source: "0 kg: no emission stream carries biuret (the prilling dust is modelled as urea); listed because the template holds the component"}
+  - {key: emission:H2O, free: true, source: "water vapour: humidity of the prilling air returned, plus process water evaporated in the scrubber and the vents"}
+  - {key: emission:N2, free: true, source: "atmospheric N2 (passivation and prilling air) returned"}
+  - {key: emission:O2, free: true, source: "atmospheric O2 (passivation and prilling air) returned"}
+emission_exclusions:
+  - {id: fugitive-nh3, method: equipment-leaks, reason: "Not estimated at concept stage: no P&ID take-off for a leak count. BREF LVIC-AAF Table 8.11 reports diffuse NH3 of about 10-12 t/a for Dutch urea plants, of the order of 0.02 g/kg urea at this capacity: small next to the 0.77 g/kg of the vent and exhaust, to be estimated at basic engineering", source: "D-009"}
+  - {id: storage, method: storage-tank, reason: "No tanks inside the boundary: ammonia storage and urea storage/handling are outside it (D-001)", source: "D-001"}
+  - {id: wastewater, method: effluent, exchange: product:WATER, reason: "No untreated wastewater leaves: the process condensate is desorbed and hydrolysed to 1 ppm(wt) NH3 and urea (BAT for new plants, BREF Table 8.20) and re-used as boiler feed water; rinsing and cleaning water is not in the concept balance", source: "D-006"}
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 25 a life ASSUMED; construction not inventoried at this stage (out of scope of the run)"
+carbon_accounting:
+  ccu_rule: cut-off
+  trace_emissions: false
+  source: "D-011: the feed CO2 is fossil process CO2 from the ammonia plant; it carries its own supply burden (cut-off) and gets no consumption credit; the fossil carbon bound in urea (0.2 kg C/kg) is released at application, outside this gate-to-gate boundary, and is reported as carbon content, not as an uptake"
+uncertainty:
+  defaults:
+    assumed: {gsd2: 1.35, source: "concept estimate +/-30 % (design basis)"}
+    calculated: {gsd2: 1.1, source: "calculated from assumed inputs"}
+    given: {gsd2: 1.05, source: "design basis"}
+dataset:
+  version: 0.1.0
+  geography: {description: "One generic concept design; no site or country chosen. Backgrounds of the site's country to be linked later"}
+  system_model: cutoff
+  technology_level: current
+  classification: {isic: "2012"}
+  modelling: {principle: attributional}
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library, urea-1 concept design (agent-drafted, unreviewed)"
