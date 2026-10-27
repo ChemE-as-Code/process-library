@@ -1,17 +1,16 @@
 # ChemE-as-Code process library
 
 Versioned designs of chemical processes, one folder per process, kept as plain files in git. It
-is the source of the [Process Atlas](https://github.com/ChemE-as-Code/process-atlas)
-(atlas.cheme-as-code.org, not yet public) and of its Brightway LCI database.
+is the source of the Process Atlas (atlas.cheme-as-code.org, not yet public; built in
+[`ChemE-as-Code/website`](https://github.com/ChemE-as-Code/website), `apps/atlas`) and of its
+Brightway LCI database.
 
-> Private. Formerly `ChemE-as-Code/example-asu`: the air separation unit that lived at the root
-> now lives in [`processes/asu-1/`](processes/asu-1/) with its full history
-> (`git log --follow processes/asu-1/<path>`).
+> Private.
 
 | path | what |
 |---|---|
-| `processes/<id>/process.yaml` | the Atlas manifest of a process (schema `schemas/process.schema.json`): title, families, inputs and outputs by chemical, maturity, review status, references |
-| `processes/<id>/plant.yaml` and the rest | optional: a cheme-as-code (plantcode) engineering project: P&IDs, BFD/PFD, lists, layout, LCA. Its own README says how to work in it |
+| `processes/<id>/process.yaml` | the Atlas manifest of a process (schema `schemas/process.schema.json`): title, families, inputs and outputs by chemical, design maturity, review status, references |
+| `processes/<id>/plant.yaml` and the rest | optional: a ChemE-as-Code engineering project: P&IDs, BFD/PFD, lists, layout, LCA. Its own README says how to work in it |
 | `processes/<id>/lca/dataset.yaml`, `lca/datasets/*.yaml` | optional: unallocated LCI datasets (core's `lci_dataset`), the input of the LCI database |
 | `processes/<id>/lca/scenarios/<id>.json` | optional: core's per-scenario records (`cheme assess lca-scenarios --write`): the design case, regional background scenarios (geography, year, electricity), linked exchanges and their states, totals per functional unit; the catalog publishes them (see below) |
 | `chemicals/chemicals.yaml` | chemicals and products registry: the slugs processes name, which link them in the Atlas graph, with identity (CAS, InChIKey, ChEBI), grades (`oxygen/lox`) for LCI reference products, sourced properties, CPC/HS codes and crosswalk names ([docs/registry.md](docs/registry.md)) |
@@ -30,15 +29,29 @@ is the source of the [Process Atlas](https://github.com/ChemE-as-Code/process-at
 
 ## Processes
 
-| id | process | maturity | engineering project |
+| id | process | design maturity | engineering project |
 |---|---|---|---|
-| [`asu-1`](processes/asu-1/) | Cryogenic air separation unit, 500 t/d GOX | screening (calculation level balanced since the owner fixed the design air as the design specification, D-099; basic-engineering deliverables present, predictive simulation not reached), not independently reviewed | yes (DEXPI P&IDs, BFD/PFD, 3D layout, MTO, LCA, DWSIM checks) |
-| [`utility-steam-ng-boiler`](processes/utility-steam-ng-boiler/) | Steam, saturated 11 bar(a), natural-gas boiler (library utility) | concept (Tier 1 form, design parameters ASSUMED), not reviewed | no (manifest and LCI dataset only) |
-| [`utility-cooling-tower`](processes/utility-cooling-tower/) | Cooling water, evaporative cooling tower, 25/35 degC (library utility) | concept (Tier 1 form, design parameters ASSUMED), not reviewed | no (manifest and LCI dataset only) |
-| [`utility-wwtp`](processes/utility-wwtp/) | Wastewater treatment, activated sludge (library utility) | concept (Tier 1 form, design parameters ASSUMED), not reviewed | no (manifest and LCI dataset only) |
-| [`utility-flare`](processes/utility-flare/) | Flaring of methane-rich waste gas (library utility) | concept (Tier 1 form, design parameters ASSUMED), not reviewed | no (manifest and LCI dataset only) |
-| [`utility-chiller`](processes/utility-chiller/) | Chilled water at 6 degC, electric chiller (library utility; refrigerant losses not yet counted) | concept (Tier 1 form, design parameters ASSUMED), not reviewed | no (manifest and LCI dataset only) |
-| [`utility-instrument-air`](processes/utility-instrument-air/) | Instrument air, dried, 8 bar(a) (library utility) | concept (Tier 1 form, design parameters ASSUMED), not reviewed | no (manifest and LCI dataset only) |
+| [`asu-1`](processes/asu-1/) | Cryogenic air separation unit, 500 t/d GOX | screening (calculation maturity: balanced; not independently reviewed) | yes (DEXPI P&IDs, BFD/PFD, 3D layout, MTO, LCA, DWSIM checks) |
+| [`utility-steam-ng-boiler`](processes/utility-steam-ng-boiler/) | Steam, saturated 11 bar(a), natural-gas boiler (library utility) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
+| [`utility-cooling-tower`](processes/utility-cooling-tower/) | Cooling water, evaporative cooling tower, 25/35 degC (library utility) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
+| [`utility-wwtp`](processes/utility-wwtp/) | Wastewater treatment, activated sludge (library utility) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
+| [`utility-flare`](processes/utility-flare/) | Flaring of methane-rich waste gas (library utility) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
+| [`utility-chiller`](processes/utility-chiller/) | Chilled water at 6 degC, electric chiller (library utility; refrigerant losses not yet counted) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
+| [`utility-instrument-air`](processes/utility-instrument-air/) | Instrument air, dried, 8 bar(a) (library utility) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
+
+Three separate axes, named as in core's [glossary](https://github.com/ChemE-as-Code/core/blob/main/docs/concepts/glossary.md) (ChemE-as-Code/core#323):
+
+- **design maturity** is `process.yaml` `maturity` (`concept` to `operating-reference`): how far
+  the design is claimed to be taken. The claim is capped by evidence: in an engineering project
+  `cheme maturity` warns (`cheme.maturity-claim-exceeds`) when it exceeds what the calculation
+  maturity supports; beside a Tier 0/1 LCI dataset it is at most `concept`
+  (`cheme.lci-tier-maturity`).
+- **calculation maturity** is `checks/maturity.json` (`sourced`, `balanced`, `predictive`,
+  `engineering`): the level `cheme maturity` evaluates from the files of an engineering project.
+  `sourced` supports at most `concept`, `balanced` and `predictive` at most `screening`,
+  `engineering` at most `basic-engineering`.
+- **review status** is `process.yaml` `validation.status` (`unreviewed` to `industry-validated`):
+  who has checked the design. Only people set it; passing automated checks is not a review.
 
 ## Working on a process
 

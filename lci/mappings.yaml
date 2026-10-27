@@ -109,6 +109,100 @@ technosphere:
       The nitrogen utility. With prefer_atlas a consumer's nitrogen links ASU-1 (its GANP or LIN,
       by the grade the consumer names); this background alternative is merchant liquid nitrogen,
       the registry crosswalk name of nitrogen/lin (a conservative proxy for pipeline gas).
+  steam-heat:
+    proxy: steam-heat-kwh
+    source: >-
+      Steam counted as the heat it delivers (kWh), as hda-1, nitric-acid-1, chlor-alkali-1 and
+      soda-ash-1 count their reboiler, heater and calciner steam; the slug `steam` is counted by mass (kg). An
+      `exchanges:` override names this entry; the unit proxy below converts kWh to the
+      background's MJ of heat from steam. The background does not distinguish pressure levels.
+  heat-natural-gas:
+    proxy: heat-natural-gas-kwh
+    source: >-
+      Fired heat from natural gas counted as the heat absorbed (kWh), as hda-1 counts its feed
+      heater; the unit proxy below converts it to the background's MJ.
+  heat-natural-gas-furnace:
+    activity: {name: "market for heat, district or industrial, natural gas", reference_product: "heat, district or industrial, natural gas", unit: megajoule, location: "Europe without Switzerland"}
+    source: >-
+      Heat from natural gas in an industrial furnace, combustion emissions included in the
+      background activity; used by the heat-natural-gas-kwh proxy only.
+
+  # --- feedstocks and process chemicals ------------------------------------------------------
+  # Inputs whose chemical has no registry entry yet (chlorine, caustic soda, toluene, ammonia ...
+  # are not in chemicals/chemicals.yaml): an `exchanges:` override names the entry. The id is the
+  # slug the substance would get, so that it also serves an inventory_key once it has one.
+  hydrogen:
+    activity: {name: "market for hydrogen, gaseous, low pressure", reference_product: "hydrogen, gaseous, low pressure", unit: kilogram, location: RER}
+    source: >-
+      Merchant or refinery hydrogen, by mass of H2. With prefer_atlas a consumer's hydrogen links
+      the Atlas producer (hydrogen-1) instead. TODO check the name (the background's pressure
+      classes) in a recorded check.
+  hydrogen-methane-makeup:
+    proxy: hydrogen-methane-makeup
+    source: >-
+      hda-1's make-up gas, 95 mol% H2 with 5 mol% CH4, counted by mass of the mixture: the proxy
+      splits it into hydrogen and natural gas by mass fraction.
+  toluene:
+    activity: {name: "market for toluene, liquid", reference_product: "toluene, liquid", unit: kilogram, location: GLO}
+    source: Fresh toluene, liquid (hda-1 feed:TOLF).
+  ammonia:
+    activity: {name: "market for ammonia, anhydrous, liquid", reference_product: "ammonia, anhydrous, liquid", unit: kilogram, location: RER}
+    source: >-
+      Anhydrous liquid ammonia (nitric-acid-1 feed:NH3). ammonia-1 makes it, but neither flow
+      has a registry slug yet, so no Atlas link is offered; add one when `ammonia` is in the
+      registry.
+  sodium-chloride:
+    activity: {name: "market for sodium chloride, powder", reference_product: "sodium chloride, powder", unit: kilogram, location: GLO}
+    source: >-
+      Rock salt to brine saturation (chlor-alkali-1 feed:SALT, about 98.8 wt-% NaCl), counted
+      1:1 as sodium chloride.
+  sodium-carbonate:
+    activity: {name: "market for soda ash, dense", reference_product: "soda ash, dense", unit: kilogram, location: GLO}
+    source: Soda ash, dense, for brine treatment (chlor-alkali-1 feed:NA2CO3).
+  hydrochloric-acid:
+    activity: {name: "market for hydrochloric acid, without water, in 30% solution state", reference_product: "hydrochloric acid, without water, in 30% solution state", unit: kilogram, location: RER}
+    source: >-
+      Hydrochloric acid counted as HCl without water, the background's basis; used by the
+      hydrochloric-acid-32 proxy (a dataset counting the solution) and by a dataset counting HCl.
+  hydrochloric-acid-32:
+    proxy: hydrochloric-acid-32
+    source: Hydrochloric acid 32 wt-% counted by mass of the solution (chlor-alkali-1 feed:HCL).
+  sodium-sulfite:
+    activity: {name: "market for sodium sulfite", reference_product: "sodium sulfite", unit: kilogram, location: GLO}
+    source: Sodium sulfite for brine dechlorination (chlor-alkali-1 feed:NA2SO3).
+  sulfuric-acid:
+    activity: {name: "market for sulfuric acid", reference_product: "sulfuric acid", unit: kilogram, location: RER}
+    source: >-
+      Sulfuric acid, contact process (chlor-alkali-1 feed:H2SO4, 98 wt-%, counted 1:1). ASSUMED
+      that the background counts the acid as sold; TODO check its basis (100 % H2SO4 or not).
+  sulfur:
+    activity: {name: "market for sulfur", reference_product: "sulfur", unit: kilogram, location: GLO}
+    source: >-
+      Elemental sulfur, by mass of S (sulfuric-acid-1 feed:SULFUR, molten, from Claus sulfur
+      recovery). ASSUMED that the background's sulfur includes no melting or transport to the
+      plant; TODO check the name and location in a recorded check.
+  limestone:
+    activity: {name: "market for limestone, crushed, washed", reference_product: "limestone, crushed, washed", unit: kilogram, location: RoW}
+    source: >-
+      Crushed and screened kiln-grade limestone, counted 1:1 by mass as charged (soda-ash-1
+      feed:LST, 96 wt-% CaCO3, 1 % moisture). TODO check the name (crushed, washed vs. for mill)
+      in a recorded check.
+  coke:
+    proxy: coke-kg
+    source: >-
+      Metallurgical coke counted by mass as fired (soda-ash-1 feed:COKE); the background counts
+      coke by energy: the unit proxy below converts it.
+  coke-mj:
+    activity: {name: "market for coke", reference_product: "coke", unit: megajoule, location: GLO}
+    source: Coke from a coke oven plant, counted in MJ; used by the coke-kg proxy only.
+  sodium-chloride-brine:
+    activity: {name: "market for sodium chloride, brine solution", reference_product: "sodium chloride, brine solution", unit: kilogram, location: GLO}
+    source: >-
+      Sodium chloride as a brine from solution mining; used by the sodium-chloride-brine-26 proxy
+      only. ASSUMED that the background counts the NaCl, not the solution; TODO check its basis.
+  sodium-chloride-brine-26:
+    proxy: sodium-chloride-brine-26
+    source: Saturated brine, 26 wt-% NaCl, counted by mass of the solution (soda-ash-1 feed:BRINE).
 
   # --- construction materials, in the units the datasets use ------------------------------------
   steel-sections:
@@ -146,6 +240,23 @@ technosphere:
   lorry:
     activity: {name: "market for transport, freight, lorry, unspecified", reference_product: "transport, freight, lorry, unspecified", unit: ton kilometer, location: RER}
     source: Road transport of construction materials, spares and consumables.
+  platinum:
+    activity: {name: "market for platinum", reference_product: "platinum", unit: kilogram, location: GLO}
+    source: Platinum; used by the pt-rh-gauze proxy only.
+  rhodium:
+    activity: {name: "market for rhodium", reference_product: "rhodium", unit: kilogram, location: GLO}
+    source: Rhodium; used by the pt-rh-gauze proxy only.
+  pt-rh-gauze:
+    proxy: pt-rh-gauze
+    source: >-
+      Precious-metal catalyst gauze lost in ammonia oxidation (nitric-acid-1 consumable:pt-rh-gauze-loss),
+      counted by mass of the alloy. Precious metal catalysts are never cut (docs/system-model.md).
+  inert-waste-landfill:
+    activity: {name: "market for inert waste, for final disposal", reference_product: "inert waste, for final disposal", unit: kilogram, location: RoW}
+    source: >-
+      Landfill of a mineral, non-hazardous solid waste (a treatment activity, production -1):
+      chlor-alkali-1's brine filtration sludge (CaCO3, Mg(OH)2, insolubles, entrained brine).
+      ASSUMED inert; a sludge with leachable brine may need a residual-material landfill instead.
 # Library-level screening proxies, written into the Atlas database itself as ordinary activities
 # (code proxy:<id>) whose inputs link to the background like any other exchange. They exist where
 # a dataset counts a flow in a unit ecoinvent has no activity for. Every amount is ASSUMED and
@@ -225,6 +336,72 @@ proxies:
     inputs:
       - {use: wastewater-treatment, amount: 0.001, source: "1 m3 = 1000 kg, the LCI convention for water (core's elementary-flow crosswalk uses the same)"}
     source: Converts wastewater counted by mass to the background's m3; background alternative of processes/utility-wwtp.
+  steam-heat-kwh:
+    name: "heat from steam, per kWh (Atlas unit proxy)"
+    reference_product: "heat from steam, by energy"
+    unit: kilowatt hour
+    location: GLO
+    inputs:
+      - {use: heat-from-steam, amount: 3.6, source: "1 kWh = 3.6 MJ. ASSUMED that the background's MJ counts the heat the steam delivers, as the datasets count it (condensing duty); TODO check its definition (steam-mp)"}
+    source: Converts steam counted as heat delivered (kWh) to the background's heat from steam (MJ).
+  heat-natural-gas-kwh:
+    name: "heat from natural gas, industrial furnace, per kWh (Atlas unit proxy)"
+    reference_product: "heat from natural gas, by energy"
+    unit: kilowatt hour
+    location: GLO
+    inputs:
+      - {use: heat-natural-gas-furnace, amount: 3.6, source: "1 kWh = 3.6 MJ. ASSUMED that the dataset's absorbed duty is the background's heat delivered (the furnace efficiency is in the background activity)"}
+    source: Converts fired heat counted in kWh (hda-1 feed:FUEL, the feed heater's absorbed duty) to the background's MJ.
+  hydrogen-methane-makeup:
+    name: "hydrogen make-up gas, 95 mol% H2, 5 mol% CH4, per kg (Atlas unit proxy)"
+    reference_product: "hydrogen make-up gas, 95 mol% H2"
+    unit: kilogram
+    location: GLO
+    inputs:
+      - {use: hydrogen, amount: 0.704807, source: "mass fraction of H2: 0.95 x 2.016 / (0.95 x 2.016 + 0.05 x 16.043), molar masses of chemicals/chemicals.yaml (hda-1's dataset composition gives 0.704807)"}
+      - {use: natural-gas-m3, amount: 0.411419, source: "mass fraction of CH4 0.295193 x 1.393728 m3/kg (natural-gas-kg proxy: methane at 0 degC, 1.01325 bar)"}
+    source: >-
+      Splits a two-component make-up gas by mass. ASSUMED that its methane is supplied as natural
+      gas; mixing and compression are not counted.
+  hydrochloric-acid-32:
+    name: "hydrochloric acid, 32 wt-% in water, per kg of solution (Atlas unit proxy)"
+    reference_product: "hydrochloric acid, 32 wt-%"
+    unit: kilogram
+    location: GLO
+    inputs:
+      - {use: hydrochloric-acid, amount: 0.32, source: "HCl mass fraction of the solution (chlor-alkali-1 dataset composition of feed:HCL)"}
+    source: >-
+      Converts the solution's mass to the background's HCl without water; the dilution water is
+      not counted (screening).
+  pt-rh-gauze:
+    name: "platinum-rhodium gauze 90/10, per kg (Atlas screening proxy)"
+    reference_product: "platinum-rhodium gauze"
+    unit: kilogram
+    location: GLO
+    inputs:
+      - {use: platinum, amount: 0.9, source: "ASSUMED Pt/Rh 90/10 by mass (nitric-acid-1 dataset, O-3)"}
+      - {use: rhodium, amount: 0.1, source: "ASSUMED Pt/Rh 90/10 by mass (nitric-acid-1 dataset, O-3)"}
+    source: >-
+      The alloy as its metals; weaving and refining are not counted, and no recovered metal is
+      credited (cut-off: the recovery belongs to the refiner).
+  coke-kg:
+    name: "coke, per kg as fired, as energy (Atlas unit proxy)"
+    reference_product: "coke, by mass"
+    unit: kilogram
+    location: GLO
+    inputs:
+      - {use: coke-mj, amount: 29.11, source: "LHV 29.11 MJ/kg of the coke as fired, 89 wt-% C, 2 % moisture (soda-ash-1 process/furnaces.yaml, D-005, ASSUMED). ASSUMED that the background's MJ counts the coke by its lower heating value; TODO check its definition"}
+    source: Converts coke counted by mass to the background's energy; the conversion uses soda-ash-1's coke analysis.
+  sodium-chloride-brine-26:
+    name: "sodium chloride brine, 26 wt-% NaCl, per kg of solution (Atlas unit proxy)"
+    reference_product: "sodium chloride brine, 26 wt-%"
+    unit: kilogram
+    location: GLO
+    inputs:
+      - {use: sodium-chloride-brine, amount: 0.26, source: "NaCl mass fraction of the brine (soda-ash-1 dataset composition of feed:BRINE)"}
+    source: >-
+      Converts the brine's mass to the background's NaCl; the brine water and the brine
+      purification (Ca/Mg removal, soda-ash-1 D-003) are not counted (screening).
 
 # Flows the cut-off model leaves out of the producer's system (docs/system-model.md, "Wastes and
 # recyclables"): material sent to recycling leaves burden-free, the recycler carries the
@@ -243,6 +420,11 @@ cutoff_exclusions:
     decision: >-
       End-of-life aluminium scrap sent to recycling. Cut-off, as steel-recycling: no credit in
       the default build (process-library#52).
+  spent-sulfuric-acid:
+    decision: >-
+      Spent sulfuric acid (chlor-alkali-1, about 75 wt-% from chlorine drying) sent off site for
+      re-use or reconcentration. Cut-off at the point of recycling: it leaves burden-free, the
+      user or reconcentrator carries the treatment, and no avoided-acid credit is given.
 
 # The substitution variant (--system-model substitution): a separate database,
 # cheme-as-code-atlas-<version>-substitution, never mixed into the default build. It adds the
@@ -260,6 +442,9 @@ substitution:
     aluminium-recycling:
       proxy: aluminium-scrap-credit
       source: As steel-recycling, for aluminium. Substitution variant only.
+    spent-sulfuric-acid:
+      proxy: spent-sulfuric-acid-credit
+      source: Spent acid re-used off site, credited as avoided sulfuric acid. Substitution variant only.
   proxies:
     steel-scrap-credit:
       name: "steel scrap to recycling, avoided primary steel credit (Atlas screening proxy)"
@@ -277,6 +462,14 @@ substitution:
       inputs:
         - {use: aluminium, amount: -0.7, source: "ASSUMED net credit of 0.7 kg primary aluminium per kg scrap"}
       source: End-of-life credit (avoided burden), as in the ASU study; substitution variant only.
+    spent-sulfuric-acid-credit:
+      name: "spent sulfuric acid to re-use, avoided sulfuric acid credit (Atlas screening proxy)"
+      reference_product: "spent sulfuric acid, for re-use"
+      unit: kilogram
+      location: GLO
+      inputs:
+        - {use: sulfuric-acid, amount: -0.753537, source: "the H2SO4 mass fraction of the spent acid (chlor-alkali-1 dataset composition of product:SPENT); ASSUMED 1:1 displacement of fresh acid, reconcentration not counted (an upper bound of the credit)"}
+      source: Avoided burden of the re-used acid; substitution variant only.
 
 # Multi-functionality in the database (docs/system-model.md, "Multi-functionality"), by
 # "<process-id>" or "<process-id>/<dataset-id>". The study keeps its own choice for its own
@@ -313,6 +506,40 @@ biosphere:
   H2:
     flow: {name: Hydrogen, categories: [air]}
     source: Hydrogen leaks and vents.
+  C2H6/fossil:
+    flow: {name: Ethane, categories: [air], uuid: 8e30c990-5ed4-4f94-9d0e-2f5e4ff1a1f9}
+    source: Unburnt ethane of natural gas firing (biosphere3 as shipped with bw2io, ecoinvent elementary flows 3.9).
+  C3H8/fossil:
+    flow: {name: Propane, categories: [air], uuid: 3a6c936c-0276-4f11-9d98-1bd011387a6e}
+    source: Unburnt propane of natural gas firing (biosphere3 as shipped with bw2io, ecoinvent elementary flows 3.9).
+  HNO3:
+    flow: {name: Nitric acid, categories: [air], uuid: 66f240b9-a2f4-5abc-a972-5cf5b25a96ca}
+    source: Nitric acid mist in a tail gas (biosphere3 as shipped with bw2io, ecoinvent elementary flows 3.9).
+  "NO":
+    flow: {name: Nitric oxide, categories: [air], uuid: 17f7e776-7934-54af-8c3c-ed0247cb697b}
+    source: >-
+      Nitrogen monoxide (CAS 10102-43-9) by its own mass, as the tail gas carries it (nitric-acid-1
+      after SCR); biosphere3 as shipped with bw2io, ecoinvent elementary flows 3.9, which has it
+      for air (unspecified) only. No conversion is applied. A method that characterises only
+      "Nitrogen oxides" (counted as NO2) would leave it out: as NO2 it is 46.006/30.006 = 1.533 kg
+      per kg NO. TODO check the method's coverage in a recorded check.
+  SO3:
+    flow: {name: Sulfur trioxide, categories: [air], uuid: 3268d8df-59cc-4740-a89f-dee8355ad7c3}
+    source: >-
+      SO3 slip of a final absorption tower (sulfuric-acid-1), by its own mass (biosphere3 as
+      shipped with bw2io, ecoinvent elementary flows 3.9).
+  NaCl:
+    flow: {name: Dissolved solids, categories: [water, surface water], uuid: cfecebe1-1e13-458d-85bc-d40a9f934927}
+    source: >-
+      Sodium chloride dissolved in an effluent to fresh surface water (chlor-alkali-1 product:WW),
+      counted 1:1 by mass as dissolved solids (biosphere3 as shipped with bw2io, ecoinvent
+      elementary flows 3.9). The ions (Sodium I, Chloride) are not split: a component maps to
+      one flow. Only for a salt released dissolved to water.
+  Na2SO4:
+    flow: {name: Dissolved solids, categories: [water, surface water], uuid: cfecebe1-1e13-458d-85bc-d40a9f934927}
+    source: >-
+      Sodium sulfate dissolved in an effluent to fresh surface water (chlor-alkali-1 product:WW),
+      as NaCl: 1:1 by mass as dissolved solids, the ions (Sodium I, Sulfate) not split.
 
 # Free emissions that are atmospheric pass-through: components taken in with the ambient air and
 # returned to the atmosphere unchanged. DECISION: they are NOT exported as biosphere exchanges,
@@ -346,6 +573,34 @@ pass_through:
       Atmospheric CO2 removed from the intake air by the TSA and returned unchanged. It is not
       fossil and not a biogenic uptake: no net emission, not exported (never as "Carbon dioxide,
       fossil").
+  # Declared zeros: components a dataset lists as free emissions at 0 kg to close its component
+  # balance (chlor-alkali-1's effluent and vent). Nothing is released, so nothing is exported. The
+  # entry is no licence for a release: a non-zero amount must be an emission with its flow.
+  H2:
+    flow: {name: Hydrogen, categories: [air]}
+    decision: "Declared zero (chlor-alkali-1: not in the vent S18); a hydrogen release is an emission (biosphere H2), not free."
+  Cl2:
+    decision: "Declared zero (chlor-alkali-1: the brine is fully dechlorinated in R402); not exported. A chlorine release is an emission with its flow, not free."
+  HCl:
+    decision: "Declared zero (chlor-alkali-1: effluents neutralised); not exported. A release is an emission with its flow, not free."
+  NaOH:
+    decision: "Declared zero (chlor-alkali-1: effluents neutralised in R402 and X201); not exported. A release is an emission with its flow, not free."
+  Na2CO3:
+    decision: "Declared zero (chlor-alkali-1: neutralised in R202); not exported. A release is an emission with its flow, not free."
+  Na2SO3:
+    decision: "Declared zero (chlor-alkali-1: consumed in R402); not exported. A release is an emission with its flow, not free."
+  CaSO4:
+    decision: "Declared zero (chlor-alkali-1: converted in R101); not exported. A release is an emission with its flow, not free."
+  MgCl2:
+    decision: "Declared zero (chlor-alkali-1: converted in R101); not exported. A release is an emission with its flow, not free."
+  CaCO3:
+    decision: "Declared zero (chlor-alkali-1: solids leave with the filter cake S10, a waste to landfill); not exported."
+  MgOH2:
+    decision: "Declared zero (chlor-alkali-1: solids leave with the filter cake S10, a waste to landfill); not exported."
+  SiO2:
+    decision: "Declared zero (chlor-alkali-1: solids leave with the filter cake S10, a waste to landfill); not exported."
+  S:
+    decision: "Declared zero (sulfuric-acid-1: the sulfur burns completely; the gas template lists S in the tail gas at 0); not exported. A release is an emission with its flow, not free."
 
 # Curated overrides by "<process-id>/<key>" or "<key>": `use` a technosphere entry, or give the
 # `chemical` slug of the exchange (for prefer_atlas linking) when process.yaml has no
@@ -402,3 +657,51 @@ exchanges:
   # end of life: excluded under cut-off (cutoff_exclusions), a credit in the substitution variant
   "asu-1/end-of-life:steel-recycling": {use: steel-recycling, source: "cut-off: excluded, no credit (cutoff_exclusions.steel-recycling, process-library#52); substitution: the credit proxy"}
   "asu-1/end-of-life:aluminium-recycling": {use: aluminium-recycling, source: "cut-off: excluded, no credit (cutoff_exclusions.aluminium-recycling, process-library#52); substitution: the credit proxy"}
+  # Batch of the case processes: inputs without a registry slug, steam and fired heat counted in
+  # kWh, and natural gas counted as methane. `atlas: false` where the exchange's registry slug would
+  # name a wrong Atlas producer (natural gas is not hda-1's fuel gas, which is also `methane`).
+  "ammonia-1/feed:NG": {use: natural-gas, atlas: false, source: "natural gas, high pressure, per kg (taken as methane); not hda-1's fuel gas, which shares the slug methane"}
+  "hydrogen-1/feed:NG": {use: natural-gas, atlas: false, source: "natural gas feedstock, high pressure, per kg (taken as methane); not hda-1's fuel gas, which shares the slug methane"}
+  "hydrogen-1/feed:NGF": {use: natural-gas, atlas: false, source: "the same supply as feed:NG; its combustion is in the dataset's own emissions, so the supply only (no heat activity)"}
+  "hda-1/feed:H2MU": {use: hydrogen-methane-makeup, atlas: false, source: "95 mol% H2 with 5 mol% CH4, split by mass (proxy); not linked to hydrogen-1, whose 99.9 % H2 per kg would count the methane as hydrogen"}
+  "hda-1/feed:TOLF": {use: toluene, source: "fresh toluene (no registry slug yet)"}
+  "hda-1/feed:FUEL": {use: heat-natural-gas, source: "feed heater H-101 absorbed duty in kWh; the background heat activity includes the combustion (hda-1 counts no flue gas emissions)"}
+  "hda-1/feed:MPS": {use: steam-heat, source: "MP steam 1500 kPa(a), counted as heat delivered (kWh)"}
+  "hda-1/feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a), counted as heat delivered (kWh)"}
+  "hda-1/feed:HPS": {use: steam-heat, source: "HP steam 4200 kPa(a), counted as heat delivered (kWh)"}
+  "nitric-acid-1/feed:NH3": {use: ammonia, source: "anhydrous liquid ammonia (no registry slug yet)"}
+  "nitric-acid-1/feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a) to the SCR ammonia vaporiser, counted as heat delivered (kWh)"}
+  "nitric-acid-1/consumable:pt-rh-gauze-loss": {use: pt-rh-gauze, source: "Pt/Rh 90/10 gauze lost per unit of acid (ASSUMED, O-3), as its metals"}
+  "chlor-alkali-1/feed:SALT": {use: sodium-chloride, source: "rock salt, about 98.8 wt-% NaCl (no registry slug yet)"}
+  "chlor-alkali-1/feed:DMW": {use: water, chemical: water, source: "demineralised water (process.yaml has no inventory_key for it; feed:WATER is water)"}
+  "chlor-alkali-1/feed:NA2CO3": {use: sodium-carbonate, source: "soda ash (no registry slug yet)"}
+  "chlor-alkali-1/feed:HCL": {use: hydrochloric-acid-32, source: "hydrochloric acid 32 wt-% counted by mass of solution"}
+  "chlor-alkali-1/feed:NA2SO3": {use: sodium-sulfite, source: "sodium sulfite (no registry slug yet)"}
+  "chlor-alkali-1/feed:H2SO4": {use: sulfuric-acid, source: "sulfuric acid 98 wt-% for chlorine drying"}
+  "chlor-alkali-1/feed:MPS": {use: steam-heat, source: "MP steam 1000 kPa(a), counted as heat delivered (kWh)"}
+  "chlor-alkali-1/product:SPENT": {use: spent-sulfuric-acid, source: "cut-off: excluded, no credit (cutoff_exclusions.spent-sulfuric-acid); substitution: the credit proxy"}
+  "chlor-alkali-1/product:SLUDGE": {use: inert-waste-landfill, source: "brine filtration sludge to landfill (waste treatment without recovery stays in the system)"}
+  "sulfuric-acid-1/feed:SULFUR": {use: sulfur, source: "molten elemental sulfur (no registry slug yet)"}
+  "soda-ash-1/feed:LST": {use: limestone, source: "crushed and screened kiln-grade limestone (no registry slug yet)"}
+  "soda-ash-1/feed:COKE": {use: coke, source: "metallurgical coke, kiln fuel, per kg as fired (no registry slug yet)"}
+  "soda-ash-1/feed:BRINE": {use: sodium-chloride-brine-26, source: "purified saturated brine, 26 wt-% NaCl, by mass of solution (no registry slug yet)"}
+  "soda-ash-1/feed:NH3": {use: ammonia, source: "anhydrous liquid ammonia make-up (no registry slug yet)"}
+  "soda-ash-1/feed:HPS": {use: steam-heat, source: "HP steam 3000 kPa(a) to the calciner, counted as heat delivered (kWh, condensate returned); the slug steam is counted by mass"}
+  "soda-ash-1/feed:LPS":
+    atlas: false
+    source: >-
+      LP steam 450 kPa(a), live steam to the distiller (kg). The Atlas has no LP steam producer:
+      ammonia-1's and hydrogen-1's export steam is superheated at 4300 to 4600 kPa(a) and
+      utility-steam-ng-boiler makes the grade steam/mp-11bara, so the input stays on the
+      background entry `steam` (heat above make-up water, per kg) until an LP grade exists.
+  "hda-1/product:FUELGAS":
+    properties_reason: >-
+      The fuel gas is about 40 mol% H2 and 59 mol% CH4 (hda-1 process.yaml), not methane: its
+      hydrogen raises the LHV per kg (the study's 54 250 kJ/kg) above methane's 50 010 kJ/kg. Its
+      inventory_key is listed under hydrogen and methane, and methane is the slug it takes.
+  "utility-steam-ng-boiler/feed:natural-gas":
+    atlas: false
+    source: >-
+      The boiler burns pipeline natural gas. The only Atlas producer of the slug methane is hda-1's
+      fuel gas (40 mol% H2), which is not natural gas, so the input stays on its background
+      mapping until a natural gas supply (or a fuel gas grade) is in the library.

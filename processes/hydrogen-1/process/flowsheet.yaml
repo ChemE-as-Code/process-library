@@ -1,0 +1,767 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Hydrogen by steam methane reforming, 100 000 Nm3/h (D-001, D-002). Where the values come from:
+# - temperatures, pressures, steam-to-carbon ratio, approaches, PSA split, excess air, flue gas
+#   temperatures and the product rate are design choices of the design basis, ASSUMED;
+# - the reformer outlet (S9), the HT shift outlet composition (S11) and the flue gas (S24) are
+#   calculated by cheme (equilibrium and conversion reactors, `cheme process propagate --fill`),
+#   as are all flows through mixers, splitters, heaters, coolers and machines;
+# - the boundary feed rates, the separator, PSA and steam drum outlets, the HT shift outlet
+#   temperature (adiabatic) and all duties come from the independent balance
+#   scripts/h2_balance.py (D-006), given here as ASSUMED: core has no property package for
+#   water-bearing synthesis gas, steam and flue gas, so it cannot calculate the flashes,
+#   enthalpies and duties itself (core #315).
+schema: cheme/process/v1
+kind: flowsheet
+title: Hydrogen by steam methane reforming (100 000 Nm3/h, PSA, steam export)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+  normal_conditions: {temperature: 273.15, pressure: 101.325, basis: ideal_gas}
+  enthalpy_reference: {state: ideal_gas, temperature: 298.15}
+cases:
+  - {id: design, description: "Design case: 100 000 Nm3/h hydrogen 99.9 mol% from the D-004 natural gas, S/C 3.0, reformer outlet 1143 K, HT shift, PSA, steam export (D-002, D-007)", default: true}
+tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - {id: NG, title: Natural gas feedstock, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: NGF, title: Natural gas trim fuel, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: AIR, title: Combustion air, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: DMW, title: Demineralised make-up water, category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: k101, direction: out, kind: energy}
+      - {id: k301, direction: out, kind: energy}
+      - {id: k302, direction: out, kind: energy}
+      - {id: p401, direction: out, kind: energy}
+products:
+  - {id: H2, title: Hydrogen product 99.9 mol% to battery limit, category: product, ports: [{id: in, direction: in}]}
+  - {id: STEAMX, title: Export steam 4300 kPa(a) 673 K, category: by_product, ports: [{id: in, direction: in}]}
+  - {id: FLUE, title: Reformer flue gas to stack, category: emission, ports: [{id: in, direction: in}]}
+  - {id: BD, title: Boiler blowdown, category: wastewater, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-010"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-010"}
+      min_approach: {value: 5, provenance: assumed, source: D-010}
+    ports: [{id: e202, direction: in, kind: energy}]
+
+blocks:
+  - id: FPT
+    title: Feed pretreatment (hydrodesulfurisation)
+    class: ReactingChemicals
+    ports:
+      - {id: ng, direction: in}
+      - {id: rec, direction: in}
+      - {id: out, direction: out}
+      - {id: heat, direction: in, kind: energy}
+  - id: REF
+    title: Steam reforming
+    class: ReactingChemicals
+    ports:
+      - {id: feed, direction: in}
+      - {id: steam, direction: in}
+      - {id: out, direction: out}
+      - {id: preheat, direction: in, kind: energy}
+      - {id: rad, direction: in, kind: energy}
+      - {id: whb, direction: out, kind: energy}
+  - id: SFT
+    title: HT shift and gas cooling
+    class: ReactingChemicals
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out}
+      - {id: cond, direction: out}
+      - {id: bfw, direction: out, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+  - id: PSA
+    title: Pressure swing adsorption
+    class: Adsorbing
+    ports:
+      - {id: feed, direction: in}
+      - {id: product, direction: out}
+      - {id: tail, direction: out}
+      - {id: rec, direction: out}
+      - {id: power, direction: in, kind: energy}
+  - id: FUR
+    title: Reformer furnace and convection section
+    class: ReactingChemicals
+    ports:
+      - {id: tail, direction: in}
+      - {id: fuel, direction: in}
+      - {id: air, direction: in}
+      - {id: flue, direction: out}
+      - {id: rad, direction: out, kind: energy}
+      - {id: e101, direction: out, kind: energy}
+      - {id: e102, direction: out, kind: energy}
+      - {id: coil, direction: out, kind: energy}
+      - {id: eco, direction: out, kind: energy}
+      - {id: pfd, direction: in, kind: energy}
+      - {id: pid, direction: in, kind: energy}
+  - id: STM
+    title: Steam system
+    class: Evaporating
+    ports:
+      - {id: cond, direction: in}
+      - {id: mu, direction: in}
+      - {id: ps, direction: out}
+      - {id: ex, direction: out}
+      - {id: bd, direction: out}
+      - {id: whb, direction: in, kind: energy}
+      - {id: coil, direction: in, kind: energy}
+      - {id: eco, direction: in, kind: energy}
+      - {id: bfw, direction: in, kind: energy}
+      - {id: power, direction: in, kind: energy}
+
+steps:
+  # --- feed pretreatment (D-005)
+  - id: M101
+    block: FPT
+    title: Feed / recycle hydrogen junction
+    class: Mixing
+    ports:
+      - {id: ng, direction: in, delegates: ng}
+      - {id: rec, direction: in, delegates: rec}
+      - {id: out, direction: out}
+  - id: E101
+    block: FPT
+    title: Feed preheat coil (convection section)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: heat, direction: in, kind: energy, delegates: heat}
+  - id: R101
+    block: FPT
+    title: Hydrogenator and ZnO guard beds
+    class: Adsorbing
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: out}
+  # --- reforming (D-007)
+  - id: M102
+    block: REF
+    title: Process steam mixing
+    class: Mixing
+    ports:
+      - {id: feed, direction: in, delegates: feed}
+      - {id: steam, direction: in, delegates: steam}
+      - {id: out, direction: out}
+  - id: E102
+    block: REF
+    title: Mixed feed preheat coil (convection section)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: heat, direction: in, kind: energy, delegates: preheat}
+  # D-003, D-007: outlet at ideal-gas equilibrium, K 10 K colder than the outlet (approach -10).
+  - id: R102
+    block: REF
+    title: Primary reformer tubes (Ni catalyst)
+    class: ReactingChemicals
+    reactions: [SMR, WGS, ETH_REF, PRO_REF]
+    reactor: equilibrium
+    approach: -10
+    catalyst: NI_REF
+    links: [{target: equipment, ref: H-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: heat, direction: in, kind: energy, delegates: rad}
+  - id: E104
+    block: REF
+    title: Process gas waste heat boiler
+    class: Cooling
+    links: [{target: equipment, ref: E-104}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: out}
+      - {id: steam, direction: out, kind: energy, delegates: whb}
+  # --- HT shift and cooling (D-007)
+  - id: R201
+    block: SFT
+    title: HT shift converter (adiabatic, Fe-Cr)
+    class: ReactingChemicals
+    reactions: [WGS]
+    reactor: equilibrium
+    approach: 10
+    catalyst: FE_CR
+    links: [{target: equipment, ref: R-201}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: out, direction: out}
+  - id: E201
+    block: SFT
+    title: Shifted gas / boiler feed water exchanger
+    class: Cooling
+    links: [{target: equipment, ref: E-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: bfw, direction: out, kind: energy, delegates: bfw}
+  - id: E202
+    block: SFT
+    title: Shifted gas trim cooler
+    class: Cooling
+    links: [{target: equipment, ref: E-202}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  - id: V201
+    block: SFT
+    title: Process condensate separator
+    class: SeparatingByFlash
+    links: [{target: equipment, ref: V-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: vap, direction: out, delegates: gas}
+      - {id: liq, direction: out, delegates: cond}
+  # --- PSA (D-008)
+  - id: U301
+    block: PSA
+    title: Hydrogen PSA unit
+    class: Adsorbing
+    links: [{target: equipment, ref: U-301}]
+    ports:
+      - {id: feed, direction: in, delegates: feed}
+      - {id: prod, direction: out}
+      - {id: tail, direction: out, delegates: tail}
+  - id: SPL301
+    block: PSA
+    title: Recycle hydrogen take-off
+    class: SplittingMaterial
+    split: {recycle: 0.0112787}
+    ports:
+      - {id: in, direction: in}
+      - {id: product, direction: out, delegates: product}
+      - {id: recycle, direction: out}
+  - id: K101
+    block: PSA
+    title: Recycle hydrogen compressor
+    class: Compressing
+    links: [{target: equipment, ref: K-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: rec}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # --- furnace (D-009)
+  - id: M301
+    block: FUR
+    title: Fuel mixing (PSA tail gas + trim natural gas)
+    class: Mixing
+    ports:
+      - {id: tail, direction: in, delegates: tail}
+      - {id: ng, direction: in, delegates: fuel}
+      - {id: out, direction: out}
+  - id: K301
+    block: FUR
+    title: Forced draft fan
+    class: Compressing
+    links: [{target: equipment, ref: K-301}]
+    ports:
+      - {id: in, direction: in, delegates: air}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: pfd}
+  - id: H301
+    block: FUR
+    title: Reformer furnace radiant section (burners)
+    class: ReactingChemicals
+    reactions: [COMB_CH4, COMB_C2H6, COMB_C3H8, COMB_H2, COMB_CO]
+    reactor: conversion
+    links: [{target: equipment, ref: H-301}]
+    ports:
+      - {id: fuel, direction: in}
+      - {id: air, direction: in}
+      - {id: out, direction: out}
+      - {id: rad, direction: out, kind: energy, delegates: rad}
+  - id: E305
+    block: FUR
+    title: Convection section (flue gas side)
+    class: Cooling
+    links: [{target: equipment, ref: H-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: e101, direction: out, kind: energy, delegates: e101}
+      - {id: e102, direction: out, kind: energy, delegates: e102}
+      - {id: coil, direction: out, kind: energy, delegates: coil}
+      - {id: eco, direction: out, kind: energy, delegates: eco}
+  - id: K302
+    block: FUR
+    title: Induced draft fan
+    class: Compressing
+    links: [{target: equipment, ref: K-302}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: flue}
+      - {id: power, direction: in, kind: energy, delegates: pid}
+  # --- steam system (D-010)
+  - id: M401
+    block: STM
+    title: Make-up water / process condensate junction (deaerator)
+    class: Mixing
+    links: [{target: equipment, ref: V-402}]
+    ports:
+      - {id: cond, direction: in, delegates: cond}
+      - {id: mu, direction: in, delegates: mu}
+      - {id: out, direction: out}
+  - id: P401
+    block: STM
+    title: Boiler feed water pump
+    # GeneratingFlow, not Pumping: cheme 0.8.0 process build fails on the Pumping and
+    # GeneratingSteam classes (their method field is a Union in pyDEXPI 2.1.0; DESIGN.md D-011)
+    class: GeneratingFlow
+    links: [{target: equipment, ref: P-401}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: E402
+    block: STM
+    title: Boiler feed water economizer coil (convection section)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-402}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: heat, direction: in, kind: energy, delegates: eco}
+  - id: E401
+    block: STM
+    title: Boiler feed water heating in E-201 (water side)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: heat, direction: in, kind: energy, delegates: bfw}
+  - id: D401
+    block: STM
+    title: Steam drum, boiler and superheater coils
+    class: Evaporating
+    links: [{target: equipment, ref: V-401}]
+    ports:
+      - {id: in, direction: in}
+      - {id: steam, direction: out}
+      - {id: bd, direction: out, delegates: bd}
+      - {id: whb, direction: in, kind: energy, delegates: whb}
+      - {id: coil, direction: in, kind: energy, delegates: coil}
+  - id: SPL401
+    block: STM
+    title: Process steam / export steam split
+    class: SplittingMaterial
+    split: {ps: 0.4934832}
+    ports:
+      - {id: in, direction: in}
+      - {id: ps, direction: out, delegates: ps}
+      - {id: ex, direction: out, delegates: ex}
+
+streams:
+  # --- feed pretreatment
+  - id: S1
+    title: Natural gas feedstock
+    from: NG.out
+    to: M101.ng
+    template: process_gas
+    state:
+      design:
+        pressure: {value: 4000, provenance: assumed, source: "design basis, D-004"}
+        temperature: {value: 288.15, provenance: assumed, source: "design basis, D-004"}
+        flow: {value: 29303.44, basis: mass, provenance: assumed, source: "scripts/h2_balance.py: the feedstock that gives 100 000 Nm3/h product (D-002, D-006)"}
+        composition: {basis: mole_fraction, values: {CH4: 0.930, C2H6: 0.035, C3H8: 0.007, CO2: 0.013, N2: 0.015}, provenance: assumed, source: "design basis, D-004"}
+  - id: S2
+    title: Recycle hydrogen to feed
+    from: K101.out
+    to: M101.rec
+    template: process_gas
+    state:
+      design:
+        pressure: {value: 4100, provenance: assumed, source: D-005}
+        temperature: {value: 359.09, provenance: assumed, source: "scripts/h2_balance.py, eta 0.75 (D-012)"}
+        flow: {value: 103.92, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S18', fingerprint: 406c42f947f77aac}
+        composition: {basis: mole_fraction, values: {H2: 0.999, N2: 0.001}, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S18', fingerprint: 406c42f947f77aac}
+  - id: S3
+    title: Feed with recycle hydrogen
+    from: M101.out
+    to: E101.in
+    template: process_gas
+    state:
+      design:
+        pressure: {value: 4000, provenance: assumed, source: D-005}
+        temperature: {value: 289.83, provenance: assumed, source: "scripts/h2_balance.py, adiabatic mixing (D-006)"}
+        flow: {value: 29407.4, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2', fingerprint: 7ec52f9f1e08ac7a}
+        composition: {basis: mole_fraction, values: {CH4: 0.902914, C2H6: 0.0339806, C3H8: 0.00679613, H2: 0.0290958, CO: 0.0, CO2: 0.0126214, H2O: 0.0, N2: 0.0145923}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2', fingerprint: 4e8401b3d36a06f4}
+  - id: S4
+    title: Preheated feed to hydrogenator
+    from: E101.out
+    to: R101.in
+    template: process_gas
+    state:
+      design:
+        pressure: {value: 3900, provenance: assumed, source: D-005}
+        temperature: {value: 643.15, provenance: assumed, source: "design basis, D-005"}
+        flow: {value: 29407.4, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S3', fingerprint: 40966ecf22cbfa95}
+        composition: {basis: mole_fraction, values: {CH4: 0.902914, C2H6: 0.0339806, C3H8: 0.00679613, H2: 0.0290958, CO: 0.0, CO2: 0.0126214, H2O: 0.0, N2: 0.0145923}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S3', fingerprint: 40966ecf22cbfa95}
+  - id: S5
+    title: Desulfurised feed
+    from: R101.out
+    to: M102.feed
+    template: process_gas
+    state:
+      design:
+        pressure: {value: 3850, provenance: assumed, source: D-005}
+        temperature: {value: 643.15, provenance: assumed, source: "D-005: sulfur species not modelled, no heat of reaction"}
+        flow: {value: 29407.36, basis: mass, provenance: assumed, source: "scripts/h2_balance.py: = S4, the sulfur removed (ppm level) is not modelled (D-004, D-005)"}
+        composition: {basis: mole_fraction, values: {CH4: 0.90291262, C2H6: 0.03398058, C3H8: 0.00679612, CO2: 0.01262136, N2: 0.01459223, H2: 0.02909709}, provenance: assumed, source: "scripts/h2_balance.py: = S4 (D-005)"}
+  # --- reforming
+  - id: S6
+    title: Process steam
+    from: SPL401.ps
+    to: M102.steam
+    template: water
+    state:
+      design:
+        pressure: {value: 4300, provenance: assumed, source: "design basis, D-010"}
+        temperature: {value: 673.15, provenance: assumed, source: "design basis, D-010"}
+        flow: {value: 93616.6, basis: mass, provenance: calculated, source: 'cheme process propagate: splitter SPL401 from S32', fingerprint: 3a6d0c06c8dc4c77}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: calculated, source: 'cheme process propagate: splitter SPL401 from S32', fingerprint: 5ccb5a02793cf0b5}
+  - id: S7
+    title: Mixed feed
+    from: M102.out
+    to: E102.in
+    template: process_gas
+    state:
+      design:
+        pressure: {value: 3800, provenance: assumed, source: D-007}
+        temperature: {value: 663.03, provenance: assumed, source: "scripts/h2_balance.py, adiabatic mixing (D-006)"}
+        flow: {value: 123024.0, provenance: calculated, source: 'cheme process propagate: mixer M102 from S5 S6', fingerprint: a5e2161bf09f9d1d}
+        composition: {basis: mole_fraction, values: {CH4: 0.227217, C2H6: 0.00855118, C3H8: 0.00171024, H2: 0.00732226, CO: 0.0, CO2: 0.00317615, H2O: 0.748351, N2: 0.00367212}, provenance: calculated, source: 'cheme process propagate: mixer M102 from S5 S6', fingerprint: 86b4165e84193a83}
+  - id: S8
+    title: Reformer feed
+    from: E102.out
+    to: R102.in
+    template: process_gas
+    state:
+      design:
+        pressure: {value: 3500, provenance: assumed, source: "design basis, D-007"}
+        temperature: {value: 893.15, provenance: assumed, source: "design basis, D-007"}
+        flow: {value: 123024.0, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S7', fingerprint: 1242d7135a62f771}
+        composition: {basis: mole_fraction, values: {CH4: 0.227217, C2H6: 0.00855118, C3H8: 0.00171024, H2: 0.00732226, CO: 0.0, CO2: 0.00317615, H2O: 0.748351, N2: 0.00367212}, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S7', fingerprint: 1242d7135a62f771}
+  - id: S9
+    title: Reformed gas
+    from: R102.out
+    to: E104.in
+    template: process_gas
+    state:
+      design:
+        pressure: {value: 3200, provenance: assumed, source: "design basis, D-007"}
+        temperature: {value: 1143.15, provenance: assumed, source: "design basis, D-007"}
+        flow: {value: 123024.0, provenance: calculated, source: 'cheme process propagate: reactor R102 from S8', fingerprint: 37c5f6d574614457}
+        composition: {basis: mole_fraction, values: {CH4: 0.0400201, C2H6: 1.77064e-06, C3H8: 2.6648e-10, H2: 0.469526, CO: 0.0860064, CO2: 0.0560023, H2O: 0.345798, N2: 0.00264598}, provenance: calculated, source: 'cheme process propagate: reactor R102 from S8', fingerprint: 1bb3fdd48febc506}
+  - id: S10
+    title: HT shift feed
+    from: E104.out
+    to: R201.in
+    template: process_gas
+    state:
+      design:
+        pressure: {value: 3150, provenance: assumed, source: D-007}
+        temperature: {value: 623.15, provenance: assumed, source: "design basis, D-007"}
+        flow: {value: 123024.0, provenance: calculated, source: 'cheme process propagate: pass-through E104 from S9', fingerprint: 9787418ff891bc5e}
+        composition: {basis: mole_fraction, values: {CH4: 0.0400201, C2H6: 1.77064e-06, C3H8: 2.6648e-10, H2: 0.469526, CO: 0.0860064, CO2: 0.0560023, H2O: 0.345798, N2: 0.00264598}, provenance: calculated, source: 'cheme process propagate: pass-through E104 from S9', fingerprint: 9787418ff891bc5e}
+  # --- HT shift and cooling
+  - id: S11
+    title: Shifted gas
+    from: R201.out
+    to: E201.in
+    template: process_gas
+    state:
+      design:
+        pressure: {value: 3050, provenance: assumed, source: D-007}
+        temperature: {value: 691.77, provenance: assumed, source: "scripts/h2_balance.py: adiabatic equilibrium outlet (D-006, D-007)"}
+        flow: {value: 123024.0, provenance: calculated, source: 'cheme process propagate: reactor R201 from S10', fingerprint: 8dd07682abad96ff}
+        composition: {basis: mole_fraction, values: {CH4: 0.0400201, C2H6: 1.77064e-06, C3H8: 2.6648e-10, H2: 0.531557, CO: 0.0239751, CO2: 0.118034, H2O: 0.283767, N2: 0.00264598}, provenance: calculated, source: 'cheme process propagate: reactor R201 from S10', fingerprint: f8f35f6f675f3999}
+  - id: S12
+    title: Shifted gas after boiler feed water exchanger
+    from: E201.out
+    to: E202.in
+    template: process_gas
+    state:
+      design:
+        pressure: {value: 3000, provenance: assumed, source: D-007}
+        temperature: {value: 428.33, provenance: assumed, source: "scripts/h2_balance.py, E-201 energy balance with condensation (D-006)"}
+        flow: {value: 123024.0, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S11', fingerprint: 9c6384673d3c7364}
+        composition: {basis: mole_fraction, values: {CH4: 0.0400201, C2H6: 1.77064e-06, C3H8: 2.6648e-10, H2: 0.531557, CO: 0.0239751, CO2: 0.118034, H2O: 0.283767, N2: 0.00264598}, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S11', fingerprint: 9c6384673d3c7364}
+  - id: S13
+    title: Cooled shifted gas to separator
+    from: E202.out
+    to: V201.in
+    template: process_gas
+    state:
+      design:
+        pressure: {value: 2950, provenance: assumed, source: "design basis, D-007"}
+        temperature: {value: 313.15, provenance: assumed, source: "design basis, D-007"}
+        flow: {value: 123024.0, provenance: calculated, source: 'cheme process propagate: pass-through E202 from S12', fingerprint: c0740c0187165112}
+        composition: {basis: mole_fraction, values: {CH4: 0.0400201, C2H6: 1.77064e-06, C3H8: 2.6648e-10, H2: 0.531557, CO: 0.0239751, CO2: 0.118034, H2O: 0.283767, N2: 0.00264598}, provenance: calculated, source: 'cheme process propagate: pass-through E202 from S12', fingerprint: c0740c0187165112}
+  - id: S14
+    title: PSA feed gas
+    from: V201.vap
+    to: U301.feed
+    template: process_gas
+    state:
+      design:
+        pressure: {value: 2950, provenance: assumed, source: D-007}
+        temperature: {value: 313.15, provenance: assumed, source: D-007}
+        flow: {value: 74072.13, basis: mass, provenance: assumed, source: "scripts/h2_balance.py, water-only condensation (Raoult, IAPWS) (D-006)"}
+        composition: {basis: mole_fraction, values: {CH4: 0.05573785, CO2: 0.16438522, N2: 0.00368502, H2: 0.74029788, H2O: 0.00250337, CO: 0.03339066}, provenance: assumed, source: "scripts/h2_balance.py (D-006)"}
+  - id: S15
+    title: Process condensate
+    from: V201.liq
+    to: M401.cond
+    template: water
+    state:
+      design:
+        pressure: {value: 2950, provenance: assumed, source: D-007}
+        temperature: {value: 313.15, provenance: assumed, source: D-007}
+        flow: {value: 48952.40, basis: mass, provenance: assumed, source: "scripts/h2_balance.py: dissolved gases neglected (D-006, D-010)"}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: "D-010: dissolved CO2, methanol and ammonia traces not modelled"}
+  # --- PSA
+  - id: S16
+    title: PSA product hydrogen
+    from: U301.prod
+    to: SPL301.in
+    template: process_gas
+    state:
+      design:
+        pressure: {value: 2850, provenance: assumed, source: D-008}
+        temperature: {value: 313.15, provenance: assumed, source: D-008}
+        flow: {value: 9213.84, basis: mass, provenance: assumed, source: "scripts/h2_balance.py: H2 recovery 0.88 (D-008)"}
+        composition: {basis: mole_fraction, values: {H2: 0.999, N2: 0.001}, provenance: assumed, source: "design basis: 99.9 mol% H2, remainder N2 (D-002, D-008)"}
+  - id: S17
+    title: Hydrogen product
+    from: SPL301.product
+    to: H2.in
+    template: process_gas
+    state:
+      design:
+        pressure: {value: 2850, provenance: assumed, source: "design basis, D-002"}
+        temperature: {value: 313.15, provenance: assumed, source: "design basis, D-002"}
+        flow: {value: 9109.92, provenance: calculated, source: 'cheme process propagate: splitter SPL301 from S16 S18', fingerprint: 49409b242f5254c6}
+        composition: {basis: mole_fraction, values: {H2: 0.999, N2: 0.001}, provenance: calculated, source: 'cheme process propagate: splitter SPL301 from S16', fingerprint: 5b23d5fedbe6f543}
+  - id: S18
+    title: Recycle hydrogen to compressor
+    from: SPL301.recycle
+    to: K101.in
+    template: process_gas
+    state:
+      design:
+        pressure: {value: 2850, provenance: assumed, source: D-005}
+        temperature: {value: 313.15, provenance: assumed, source: D-005}
+        flow: {value: 103.92, basis: mass, provenance: calculated, source: 'cheme process propagate: splitter SPL301 from S16', fingerprint: 4a8151112d9b502b}
+        composition: {basis: mole_fraction, values: {H2: 0.999, N2: 0.001}, provenance: calculated, source: 'cheme process propagate: splitter SPL301 from S16', fingerprint: 5b23d5fedbe6f543}
+  - id: S19
+    title: PSA tail gas
+    from: U301.tail
+    to: M301.tail
+    template: process_gas
+    state:
+      design:
+        pressure: {value: 130, provenance: assumed, source: D-008}
+        temperature: {value: 313.15, provenance: assumed, source: D-008}
+        flow: {value: 64858.29, basis: mass, provenance: assumed, source: "scripts/h2_balance.py: PSA feed less product (D-008)"}
+        composition: {basis: mole_fraction, values: {CH4: 0.16021883, CO2: 0.47252644, N2: 0.00871811, H2: 0.25535897, H2O: 0.00719595, CO: 0.09598169}, provenance: assumed, source: "scripts/h2_balance.py (D-008)"}
+  # --- furnace
+  - id: S20
+    title: Trim natural gas
+    from: NGF.out
+    to: M301.ng
+    template: process_gas
+    state:
+      design:
+        pressure: {value: 4000, provenance: assumed, source: "design basis, D-004"}
+        temperature: {value: 288.15, provenance: assumed, source: "design basis, D-004"}
+        flow: {value: 5619.33, basis: mass, provenance: assumed, source: "scripts/h2_balance.py: closes the radiant section balance at the 1273 K bridgewall (D-009)"}
+        composition: {basis: mole_fraction, values: {CH4: 0.930, C2H6: 0.035, C3H8: 0.007, CO2: 0.013, N2: 0.015}, provenance: assumed, source: "design basis, D-004"}
+  - id: S21
+    title: Fuel gas to burners
+    from: M301.out
+    to: H301.fuel
+    template: furnace_gas
+    state:
+      design:
+        pressure: {value: 130, provenance: assumed, source: D-009}
+        temperature: {value: 310.02, provenance: assumed, source: "scripts/h2_balance.py, adiabatic mixing (D-006)"}
+        flow: {value: 70477.6, provenance: calculated, source: 'cheme process propagate: mixer M301 from S19 S20', fingerprint: b458ee759248de97}
+        composition: {basis: mole_fraction, values: {CH4: 0.251867, C2H6: 0.00416702, C3H8: 0.000833404, H2: 0.224957, CO: 0.0845543, CO2: 0.417816, H2O: 0.00633922, N2: 0.00946602}, provenance: calculated, source: 'cheme process propagate: mixer M301 from S19 S20', fingerprint: 042207be3f2f97e6}
+  - id: S22
+    title: Combustion air
+    from: AIR.out
+    to: K301.in
+    template: furnace_gas
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "design basis, D-009"}
+        temperature: {value: 288.15, provenance: assumed, source: "design basis, D-009"}
+        flow: {value: 281390.39, basis: mass, provenance: assumed, source: "scripts/h2_balance.py: 10 % excess air (D-009)"}
+        composition: {basis: mole_fraction, values: {N2: 0.7812, O2: 0.2095, AR: 0.0093}, provenance: assumed, source: "dry air (D-009)"}
+  - id: S23
+    title: Combustion air to burners
+    from: K301.out
+    to: H301.air
+    template: furnace_gas
+    state:
+      design:
+        pressure: {value: 106.325, provenance: assumed, source: D-012}
+        temperature: {value: 293.86, provenance: assumed, source: "scripts/h2_balance.py, fan eta 0.70 (D-012)"}
+        flow: {value: 281390.39, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through K301 from S22', fingerprint: ec3221b5fcbb370b}
+        composition: {basis: mole_fraction, values: {N2: 0.7812, O2: 0.2095, AR: 0.0093}, provenance: calculated, source: 'cheme process propagate: pass-through K301 from S22', fingerprint: ec3221b5fcbb370b}
+  - id: S24
+    title: Flue gas leaving the radiant section
+    from: H301.out
+    to: E305.in
+    template: furnace_gas
+    state:
+      design:
+        pressure: {value: 101.0, provenance: assumed, source: D-009}
+        temperature: {value: 1273.15, provenance: assumed, source: "design basis: bridgewall temperature (D-009)"}
+        flow: {value: 351868.0, provenance: calculated, source: 'cheme process propagate: reactor H301 from S21 S23', fingerprint: 43bbeb045517159c}
+        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, H2: 0.0, CO: 0.0, CO2: 0.173719, H2O: 0.170493, N2: 0.632902, O2: 0.0153776, AR: 0.00750896}, provenance: calculated, source: 'cheme process propagate: reactor H301 from S21 S23', fingerprint: 4f0bb34a1226fc14}
+  - id: S25
+    title: Flue gas to induced draft fan
+    from: E305.out
+    to: K302.in
+    template: furnace_gas
+    state:
+      design:
+        pressure: {value: 99.0, provenance: assumed, source: D-009}
+        temperature: {value: 423.15, provenance: assumed, source: "design basis: stack temperature (D-009)"}
+        flow: {value: 351868.0, provenance: calculated, source: 'cheme process propagate: pass-through E305 from S24', fingerprint: 1e6168f5a98c7cf9}
+        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, H2: 0.0, CO: 0.0, CO2: 0.173719, H2O: 0.170493, N2: 0.632902, O2: 0.0153776, AR: 0.00750896}, provenance: calculated, source: 'cheme process propagate: pass-through E305 from S24', fingerprint: 1e6168f5a98c7cf9}
+  - id: S26
+    title: Flue gas to stack
+    from: K302.out
+    to: FLUE.in
+    template: furnace_gas
+    state:
+      design:
+        pressure: {value: 103.0, provenance: assumed, source: D-012}
+        temperature: {value: 429.33, provenance: assumed, source: "scripts/h2_balance.py, fan eta 0.70 (D-012)"}
+        flow: {value: 351868.0, provenance: calculated, source: 'cheme process propagate: pass-through K302 from S25', fingerprint: 235aa9ddbebed366}
+        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, H2: 0.0, CO: 0.0, CO2: 0.173719, H2O: 0.170493, N2: 0.632902, O2: 0.0153776, AR: 0.00750896}, provenance: calculated, source: 'cheme process propagate: pass-through K302 from S25', fingerprint: 235aa9ddbebed366}
+  # --- steam system
+  - id: S27
+    title: Demineralised make-up water
+    from: DMW.out
+    to: M401.mu
+    template: water
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "design basis, D-010"}
+        temperature: {value: 298.15, provenance: assumed, source: "design basis, D-010"}
+        flow: {value: 142669.53, basis: mass, provenance: assumed, source: "scripts/h2_balance.py: feed water less process condensate (D-010)"}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: "demineralised water (D-010)"}
+  - id: S28
+    title: Boiler feed water to pump
+    from: M401.out
+    to: P401.in
+    template: water
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-010}
+        temperature: {value: 302.0, provenance: assumed, source: "scripts/h2_balance.py, adiabatic mixing, IAPWS-IF97 (D-010)"}
+        flow: {value: 191622.0, provenance: calculated, source: 'cheme process propagate: mixer M401 from S15 S27', fingerprint: 536c460707baa82a}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: calculated, source: 'cheme process propagate: mixer M401 from S15 S27', fingerprint: ba81f322e588e53b}
+  - id: S29
+    title: Boiler feed water from pump
+    from: P401.out
+    to: E402.in
+    template: water
+    state:
+      design:
+        pressure: {value: 5000, provenance: assumed, source: D-010}
+        temperature: {value: 302.58, provenance: assumed, source: "scripts/h2_balance.py, pump eta 0.70 (D-012)"}
+        flow: {value: 191622.0, provenance: calculated, source: 'cheme process propagate: pass-through P401 from S28', fingerprint: 8e4c2d5682123182}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: calculated, source: 'cheme process propagate: pass-through P401 from S28', fingerprint: 8e4c2d5682123182}
+  - id: S30
+    title: Boiler feed water after economizer coil
+    from: E402.out
+    to: E401.in
+    template: water
+    state:
+      design:
+        pressure: {value: 4950, provenance: assumed, source: D-010}
+        temperature: {value: 344.69, provenance: assumed, source: "scripts/h2_balance.py, E-402 energy balance (D-010)"}
+        flow: {value: 191622.0, provenance: calculated, source: 'cheme process propagate: pass-through E402 from S29', fingerprint: 70f3fae27571d2f4}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: calculated, source: 'cheme process propagate: pass-through E402 from S29', fingerprint: 70f3fae27571d2f4}
+  - id: S31
+    title: Boiler feed water to steam drum
+    from: E401.out
+    to: D401.in
+    template: water
+    state:
+      design:
+        pressure: {value: 4900, provenance: assumed, source: D-010}
+        temperature: {value: 503.15, provenance: assumed, source: "design basis, D-010"}
+        flow: {value: 191622.0, provenance: calculated, source: 'cheme process propagate: pass-through E401 from S30', fingerprint: 61539944f7f5e73e}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: calculated, source: 'cheme process propagate: pass-through E401 from S30', fingerprint: 61539944f7f5e73e}
+  - id: S32
+    title: Superheated steam
+    from: D401.steam
+    to: SPL401.in
+    template: water
+    state:
+      design:
+        pressure: {value: 4300, provenance: assumed, source: "design basis, D-010"}
+        temperature: {value: 673.15, provenance: assumed, source: "design basis, D-010"}
+        flow: {value: 189705.70, basis: mass, provenance: assumed, source: "scripts/h2_balance.py: WHB and convection coil duties over the IAPWS-IF97 enthalpy rise (D-010)"}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-010}
+  - id: S33
+    title: Export steam
+    from: SPL401.ex
+    to: STEAMX.in
+    template: water
+    state:
+      design:
+        pressure: {value: 4300, provenance: assumed, source: "design basis, D-010"}
+        temperature: {value: 673.15, provenance: assumed, source: "design basis, D-010"}
+        flow: {value: 96089.1, provenance: calculated, source: 'cheme process propagate: splitter SPL401 from S32 S6', fingerprint: 01e9c0a3c7b6c079}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: calculated, source: 'cheme process propagate: splitter SPL401 from S32', fingerprint: 5ccb5a02793cf0b5}
+  - id: S34
+    title: Boiler blowdown
+    from: D401.bd
+    to: BD.in
+    template: water
+    state:
+      design:
+        pressure: {value: 4500, provenance: assumed, source: D-010}
+        temperature: {value: 530.59, provenance: assumed, source: "saturation at 4500 kPa(a), IAPWS-IF97 (D-010)"}
+        flow: {value: 1916.22, basis: mass, provenance: assumed, source: "scripts/h2_balance.py: 1 % of the feed water (D-010)"}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: "D-010: dissolved solids not modelled"}
+  # --- energy streams (duties from scripts/h2_balance.py, D-006; ASSUMED until core qualifies them)
+  - {id: Q1, title: K-101 shaft power, kind: energy, from: POWER.k101, to: K101.power, state: {design: {duty: {value: 18.8, provenance: assumed, source: "scripts/h2_balance.py, eta 0.75 (D-012)"}}}}
+  - {id: Q2, title: Feed preheat coil duty, kind: energy, from: E305.e101, to: E101.heat, state: {design: {duty: {value: 7792.8, provenance: assumed, source: "scripts/h2_balance.py (D-006)"}}}}
+  - {id: Q3, title: Mixed feed preheat coil duty, kind: energy, from: E305.e102, to: E102.heat, state: {design: {duty: {value: 19789.8, provenance: assumed, source: "scripts/h2_balance.py (D-006)"}}}}
+  - {id: Q4, title: Reformer absorbed duty, kind: energy, from: H301.rad, to: R102.heat, state: {design: {duty: {value: 102025.1, provenance: assumed, source: "scripts/h2_balance.py, ideal-gas enthalpy on the elements basis (D-006)"}}}}
+  - {id: Q5, title: Waste heat boiler duty, kind: energy, from: E104.steam, to: D401.whb, state: {design: {duty: {value: 50537.1, provenance: assumed, source: "scripts/h2_balance.py (D-006)"}}}}
+  - {id: Q6, title: Convection boiler and superheater coil duty, kind: energy, from: E305.coil, to: D401.coil, state: {design: {duty: {value: 66437.3, provenance: assumed, source: "scripts/h2_balance.py: convection duty less the other coils (D-006, D-010)"}}}}
+  - {id: Q7, title: Economizer coil duty, kind: energy, from: E305.eco, to: E402.heat, state: {design: {duty: {value: 9350.2, provenance: assumed, source: "scripts/h2_balance.py: flue gas 553 -> 423 K less the feed preheat below 533 K (D-010)"}}}}
+  - {id: Q8, title: E-201 duty (to boiler feed water), kind: energy, from: E201.bfw, to: E401.heat, state: {design: {duty: {value: 36573.5, provenance: assumed, source: "scripts/h2_balance.py: feed water to 503 K (D-010)"}}}}
+  - {id: Q9, title: E-202 duty, kind: energy, from: E202.cw, to: CW.e202, state: {design: {duty: {value: 30071.1, provenance: assumed, source: "scripts/h2_balance.py, with condensation (D-006)"}}}}
+  - {id: Q10, title: K-301 shaft power, kind: energy, from: POWER.k301, to: K301.power, state: {design: {duty: {value: 448.1, provenance: assumed, source: "scripts/h2_balance.py, 5 kPa, eta 0.70 (D-012)"}}}}
+  - {id: Q11, title: K-302 shaft power, kind: energy, from: POWER.k302, to: K302.power, state: {design: {duty: {value: 669.3, provenance: assumed, source: "scripts/h2_balance.py, 4 kPa, eta 0.70 (D-012)"}}}}
+  - {id: Q12, title: P-401 shaft power, kind: energy, from: POWER.p401, to: P401.power, state: {design: {duty: {value: 358.8, provenance: assumed, source: "scripts/h2_balance.py, eta 0.70 (D-012)"}}}}
+layout: {bfd: {}, pfd: {}}

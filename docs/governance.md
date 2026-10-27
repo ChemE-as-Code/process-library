@@ -105,9 +105,11 @@ release.
 
 ## 4. Review procedure
 
-The LCI review is separate from the engineering design review (`process.yaml`
-`validation.status` and `processes/<id>/reviews/`): a well-engineered design can still have a poor
-inventory, and the reverse.
+The LCI review is separate from the engineering design review (the **review status**,
+`process.yaml` `validation.status`, and `processes/<id>/reviews/`): a well-engineered design can
+still have a poor inventory, and the reverse. Neither is the design maturity (`process.yaml`
+`maturity`) nor the calculation maturity (`checks/maturity.json`); the terms follow core's
+[glossary](https://github.com/ChemE-as-Code/core/blob/main/docs/concepts/glossary.md).
 
 Levels, recorded in the dataset's `review` field (a list of records, each `type`: `none`,
 `internal`, `independent-external` or `panel`, with reviewer, scope, date and report).

@@ -1,0 +1,89 @@
+schema: process-run/v1
+run_id: 20261027-215936-review
+process: urea-1
+kind: agent
+complete: false
+incomplete_notes:
+- runner had uncommitted changes (runner_commit is not exact)
+task_file: /Users/arturschweidtmann/Developer/test/agent-cli/tasks/gen/urea-1-review.md
+branch: case/urea-1
+start_commit: 82095d2419097d2d3dc9484c45f70f53437c8ec1
+end_commit: 4ef83d1fb2951319eab408f4958baaa52dbe6a4f
+started: '2026-10-27T21:59:36+00:00'
+finished: '2026-10-27T22:04:44+00:00'
+wall_s: 308
+cost_usd: 1.3367255000000002
+budget_usd: 3.0
+model: claude-opus-5-5
+effort: high
+num_turns: 29
+tokens:
+  input: 44
+  output: 26673
+  thinking: 16110
+  cache_read: 1708476
+  cache_write: 92202
+session_id: 1df3a9e3-473d-4694-907d-ddf45aa64eea
+session_export:
+  file: session.jsonl.gz
+  sha256: 700e7b3e697f8b9396998082579e3552b89ae9fe033822f734bde8a8a3399574
+tools:
+  cheme: cheme 0.8.0 (pyDEXPI 2.1.0)
+  core_commit: 44680fa0e142849803577a235d78fd0a75ca3f7a
+  claude_agent_sdk: 0.2.174
+  runner_commit: 99c2a5a5820b5aa77f5d51aa14f32c8a5792aa34
+  runner_dirty: true
+checks_by_agent:
+- cheme assess lca --coverage 2>&1 | tail -40
+- cheme check 2>&1 | tail -40
+- cheme maturity 2>&1 | tail -40
+- cheme process propagate --check 2>&1 | tail -15
+- cheme process streams --md 2>&1 > /dev/null; cheme process streams 2>&1 | wc -l
+- cheme run scripts/urea_balance.py 2>&1 | grep -v -E '^S[0-9]' | tail -20
+- cheme validate --skip-generators 2>&1 | grep -i -E 'review|error|warning\(s\)' | head
+- cheme validate --skip-generators 2>&1 | grep -i -E 'review|warning\(s\)' | head
+- cheme validate 2>&1 | tail -30
+checks_after_run:
+- command: cheme check
+  exit: 1
+  summary:
+    counts:
+      ok: 12
+      FAIL: 10
+      n/a: 3
+    failed:
+    - basic/pids-exist
+    - concept/layout-plot-plan
+    - basic/layout-3d
+    - basic/lifting-study
+    - basic/mto
+    - basic/layout-review
+    - detail/layout-detail
+    - detail/electrical
+    - detail/hvac
+    - detail/datasheets
+- command: cheme maturity
+  exit: 0
+  summary:
+    counts:
+      ok: 9
+      FAIL: 4
+    failed:
+    - sourced.boundary
+    - balanced.model-basis
+    - predictive.model-basis
+    - engineering.datasheets
+    levels:
+      sourced: fail
+      balanced: fail
+      predictive: fail
+      engineering: fail
+- command: cheme process propagate --check
+  exit: 0
+  summary:
+    last_line: ''
+outcome:
+  result: success
+  guard_denials: 0
+  report: report.md
+observed_later: {}

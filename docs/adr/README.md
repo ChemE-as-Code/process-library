@@ -59,3 +59,4 @@ with an ADR in the same pull request.
 | [0018](0018-stored-benchmark-report-per-build.md) | Store each build's benchmark comparison as benchmarks.json | **Proposed**, 2026-10-27 |
 | [0019](0019-process-development-tracking.md) | Process issues and Project workflow separate from evidence and maturity | **Proposed**, 2026-10-27 |
 | [0020](0020-run-records-per-process.md) | Record each design run with its process, organised by run, kept out of publication | **Proposed**, 2026-10-27 |
+| [0021](0021-design-maturity-calculation-maturity-review-status.md) | Name the three axes design maturity, calculation maturity and review status; labels only | **Proposed**, 2026-10-27 |

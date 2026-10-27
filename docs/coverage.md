@@ -38,8 +38,9 @@ ranked by reach rather than volume, because every process needs them (#45).
 ## Tiers
 
 `tier` is the planned entry tier (core#182). **0** is stoichiometric, with the screening
-defaults of Hischier et al. 2005, as reported in, capped in maturity and DQR. **1** is sourced
-conceptual data (BREF ranges, published balances). **2** is a flowsheet design (a ChemE-as-Code
+defaults of Hischier et al. 2005, as reported in, capped in maturity (calculation maturity
+`sourced`, design maturity at most `concept`) and DQR. **1** is sourced conceptual data (BREF
+ranges, published balances). **2** is a flowsheet design (a ChemE-as-Code
 project). Breadth (Tier 0/1) and depth (Tier 2) grow in parallel. An entry's `covered_by` gives
 the tier each covering process reaches.
 
@@ -55,9 +56,9 @@ pyrolysis, bio-ethylene) are variants or entries of their own. They are not in t
 
 Once a product has two or more routes, the catalog build compares them: `routes.json`
 (`scripts/routes.py`, ChemE-as-Code/website#38) holds, per substance made, one row per process
-and LCI dataset making it, with the technology, tier, maturity and review, geography and year,
-the energy, feedstocks and key emissions per functional unit, the benchmark KPIs and the
-footprint where the catalog keeps it (with the Monte Carlo interval of `lca/uncertainty.csv`).
+and LCI dataset making it, with the technology, tier, design maturity and review status,
+geography and year, the energy, feedstocks and key emissions per functional unit, the benchmark
+KPIs and the footprint where the catalog keeps it (with the Monte Carlo interval of `lca/uncertainty.csv`).
 Nothing is estimated for it: every value is read from the manifests, datasets and LCA files, and
 a public build withholds a footprint exactly as it withholds the LCA.
 
