@@ -2,7 +2,7 @@
 
 One entry per decision: what was decided, why, what was rejected, and what it assumes.
 Issue: ChemE-as-Code/process-library#42. Run of 2026-10-27 (concept: design basis to balanced
-PFD and preliminary gate-to-gate LCI). Starting library commit 79a7cd4, cheme-as-code 0.8.0
+PFD and preliminary LCI: a cradle-to-gate study, foreground inventory only). Starting library commit 79a7cd4, cheme-as-code 0.8.0
 (pyDEXPI 2.1.0, Python 3.15), thermo/chemicals as bundled with cheme.
 
 ## Route and boundary memo
@@ -14,10 +14,13 @@ catalysts, lower temperature) and toluene disproportionation (benzene plus xylen
 chosen: the issue asks for the thermal HDA route with a diphenyl by-product, and
 disproportionation has a different product slate.
 
-**Boundary (gate-to-gate).** From fresh toluene and make-up hydrogen at the battery limit to
-benzene, biphenyl and fuel gas at the battery limit. Outside: toluene and hydrogen production,
-product and feed storage, the site fuel gas system that burns the purge, utility generation
-(steam boilers, cooling tower, power), wastewater (none from the process), flare. Utilities
+**Plant boundary (battery limits).** From fresh toluene and make-up hydrogen at the battery
+limit to benzene, biphenyl and fuel gas at the battery limit. Outside: toluene and hydrogen
+production, product and feed storage, the site fuel gas system that burns the purge, utility
+generation (steam boilers, cooling tower, power), flare. No process wastewater, on the
+assumption of a dry vacuum pump on C-203 (D-008; steam ejectors would add an aromatic-bearing
+condensate). This is the plant's design boundary; the LCA is a cradle-to-gate study of which
+only the foreground inventory exists so far (D-013). Utilities
 cross the boundary as energy streams (power, fired heat, three steam levels, cooling water).
 
 ```
@@ -87,7 +90,7 @@ no rate law is invented. The conversion of 0.75 is a typical design choice; it t
 size against biphenyl make and recycle.
 Results: extents HDA 167.865 kmol/h, BIPH 2.569 kmol/h, calculated identically by cheme and by
 the script; benzene yield 0.949 mol per mol fresh toluene. cheme's ideal-gas reactor duty with
-the given outlet temperature is -45 kW (against ~7 MW reaction heat): the script's adiabatic
+the given outlet temperature is -45 kW (against ~1.95 MW (7.0 GJ/h) reaction heat, i.e. 2.3 %): the script's adiabatic
 outlet is consistent with cheme's formation data.
 Open: the correlation's validity range (temperature, pressure, H2 ratio) and the exact form
 are to be verified in the book (I-06). BIPH is reversible: cheme `process reactors` reports
@@ -130,9 +133,11 @@ pressures), at least 0.5 (C-203's Underwood minimum is 0.02). Benzene product su
 enthalpy. Stage numbers not calculated.
 Reason: the issue's unit list; vacuum avoids a fired or hot-oil reboiler on C-203.
 Results: C-201 reboiler 1.43 MW (MP steam), C-202 R 1.28, reboiler 2.30 MW (LP steam),
-condenser 3.34 MW, C-203 reboiler 0.65 MW (HP steam). The vacuum system (ejector steam or
-vacuum pump power) is not counted (I-08). Reflux and distillate pumps other than P-101 not
-counted (each below about 5 kW, ASSUMED).
+condenser 3.34 MW, C-203 reboiler 0.65 MW (HP steam). The vacuum system is taken as a dry
+vacuum pump (ASSUMED, about 15 kW, not sized; I-08): no motive steam and no ejector
+condensate, hence no process wastewater. Reflux and distillate pumps other than P-101 not
+counted (each below about 5 kW, together about 15 kW, ASSUMED). Both are declared in
+`lca/lca.yaml` as cut-off flows with these amounts (review 2026-10-27-pfd-lci-review#3).
 
 ### D-009 Fuel and co-product dispositions (2026-10-27)
 Decision: H-101 fired with purchased natural gas (energy feed `FUEL`, absorbed duty 2.96 MW);
@@ -147,7 +152,10 @@ Decision: cooling water 298.15/308.15 K; LP steam 450 kPa(a) (420.8 K), MP 1500 
 (471.4 K), HP 4200 kPa(a) (526.4 K), saturated; electric drives; compressor isentropic
 efficiency 0.75, pump efficiency 0.65 (P-101 power counted from 30 kPa(a), i.e. it includes
 the C-203 distillate pump); fired-heat supply temperature 1200 K and minimum approach 50 K
-(concept values). All ASSUMED.
+(concept values). All ASSUMED. Two pressure rises have no pumping step on the PFD (D-011):
+S17 leaves the splitter SPL2 at 3450 kPa(a) (implicit quench pump P-102, under 1 kW) and S23
+leaves C-203 at 150 kPa(a) (implicit distillate pump); counting P-101 from 30 kPa(a) for its
+whole flow over-states its power by under 1 kW and stands in for the distillate pump.
 Results: power 266 kW, fired heat 2957 kW, steam 4381 kW (MP 1431, LP 2300, HP 650), cooling
 water 9207 kW.
 
@@ -160,6 +168,11 @@ water 9207 kW.
 - `cheme process propagate` treats `Heating` as unknown; `HeatingInFurnace` is a pass-through.
 - No property package for aromatics + H2 (core #315, as for methanol-1): energy closure,
   simulation and column design stay in the script.
+- `cheme assess lca --write` writes a `total` row of 0 into `lca/results.csv` (and 0 in the
+  allocation table of `results.md`) although every contribution is a gap, and the library's
+  catalog builder takes that row with `lca: {source: auto}`, which would publish 0 kg CO2-eq
+  per kg benzene. Worked around: process.yaml `lca: {source: none}` until a background is
+  linked (review 2026-10-27-pfd-lci-review#1). To report to core and the library tooling.
 
 ### D-012 Lists (2026-10-27)
 Decision: equipment list of the PFD items (18) and one line per PFD material stream (24).
@@ -168,7 +181,7 @@ the reactor loop; design temperature + 25 K. Line DN from velocity (gas 15 m/s a
 kPa(a), 20 below, two-phase 10, liquid 1.5 m/s) on PR densities. Materials in hot hydrogen
 (E-101, H-101, R-101) are an open input (Nelson curves, refractory lining, I-09). All ASSUMED.
 
-### D-013 Preliminary gate-to-gate LCI (2026-10-27)
+### D-013 Preliminary LCI: cradle-to-gate study, foreground inventory only (2026-10-27)
 Decision: `lca/lca.yaml` with functional unit 1 kg benzene at the gate (product BENZENE),
 design case; every foreground exchange from the flowsheet; no background linked: every feed,
 utility and avoided product `missing:` with the activity it should connect to. Co-products
@@ -181,6 +194,18 @@ H-101 combustion emissions are excluded from the foreground because the intended
 outside the boundary. Fugitive emissions (benzene, toluene, H2, CH4 from flanges, seals,
 valves) are not estimated: they need a P&ID component count (I-10). No construction inventory.
 The allocation method and the backgrounds are the LCA practitioner's decisions (proposal only).
+Boundary label: `cradle-to-gate` (lca.yaml `boundary`), not the schema's `gate-to-gate`, which
+would map every feed free and hide the missing upstream; the study is cradle-to-gate with only
+its foreground inventory so far, every background a gap. Declared omissions in lca.yaml:
+fugitive leaks (not estimated, not claimed negligible, I-10), no process effluent (dry vacuum
+pump, D-008), and the vacuum-pump and small-pump power as cut-off flows with their ASSUMED
+amounts (D-008). Benzene and biphenyl LHVs are kept on the gas basis like the fuel gas (a liquid
+basis moves benzene's energy share by about 0.2 percentage points). The catalog gets no LCA
+result while every background is a gap (process.yaml `lca.source: none`, D-011).
+Publication: `publication: public` in `lca/manifest.json` and `results.md` is cheme's verdict on
+the licences of the sources the results rest on (no restricted source), i.e. that they *may* be
+published; whether the process *is* published is process.yaml `publication.status`, which is
+`internal` and governs (review 2026-10-27-pfd-lci-review#10).
 Results: see the LCI summary below.
 
 ## LCI summary (lca/inventory.csv, per kg benzene)

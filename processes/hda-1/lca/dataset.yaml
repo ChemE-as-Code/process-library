@@ -16,6 +16,21 @@ technology: thermal toluene hydrodealkylation, adiabatic reactor 895-937 K / 3.4
   purge, stabiliser, benzene and vacuum toluene columns; 100 kt/a benzene, concept design
 rights: 'CC-BY-4.0: the ChemE-as-Code process library''s own concept design (LICENSE-DATA)'
 cutoff:
+- key: cutoff:c203-vacuum-power
+  title: C-203 vacuum system power
+  amount: 15.0
+  unit: kWh
+  reason: dry vacuum pump on the C-203 overhead, about 15 kW x 8000 h/a (ASSUMED order of magnitude, not
+    sized; D-008, I-08); not in the flowsheet's power feed
+  source: D-008
+- key: cutoff:small-pumps-power
+  title: P-102, reflux and distillate pumps power
+  amount: 15.0
+  unit: kWh
+  reason: quench pump P-102 (below 1 kW) and the reflux and distillate pumps of C-201, C-202 and C-203,
+    each below about 5 kW, together about 15 kW x 8000 h/a (ASSUMED upper estimate; D-008, D-010); not
+    in the flowsheet's power feed
+  source: D-008, D-010
 - key: emission-excluded:heater-combustion
   title: combustion emissions of H-101
   direction: output
@@ -29,6 +44,21 @@ cutoff:
   reason: 'fresh toluene, benzene and biphenyl tanks are outside the battery limit (design basis): their
     breathing losses belong to the storage, not to this plant boundary (D-013)'
   source: design basis
+- key: emission-excluded:fugitive-leaks
+  title: equipment-leaks emissions of the plant
+  direction: output
+  reason: 'fugitive benzene, toluene, CH4 and H2 from flanges, seals, valves and the compressor are not
+    estimated, not claimed negligible: an equipment-leak estimate needs the P&ID component counts, which
+    do not exist at the concept stage; to become an emission_estimates entry once the P&IDs are drawn
+    (DESIGN.md I-10, D-013)'
+  source: DESIGN.md I-10
+- key: emission-excluded:no-process-effluent
+  title: effluent emissions of the plant
+  direction: output
+  reason: 'no process wastewater: water is neither fed nor formed, and the C-203 vacuum is taken as a
+    dry vacuum pump (ASSUMED, D-008), which leaves no condensate; with steam ejectors instead, an aromatic-bearing
+    ejector condensate would be a wastewater exchange to add (DESIGN.md I-08)'
+  source: D-008
 uuid: 9c909dd0-ea10-506a-8ef8-3d4a5fdeac69
 version: 0.1.0
 geography:
@@ -349,8 +379,8 @@ provenance:
   case: design
   files:
     equipment/equipment-list.yaml: sha256:f48db77271d5ba4269334775b0c880dac66ddca00c35f02a60cccec7fef8ddd5
-    lca/lca.yaml: sha256:7868f3ed4bcaed75d6b41ffc30923e4a1da7bfce2e8149e88925339afcc2f989
-    process.yaml: sha256:d38b1406e5168ab172b59f8cb4de38614085d625cbc194b6a075f2dd23987676
+    lca/lca.yaml: sha256:2667e361db80c0bd8f0ff16fcc1bd8aa13ab4f04675deef516e45f2cf68c77d5
+    process.yaml: sha256:f6ff8e51e2c4826809718f69119d5569f93ff82c7ffb1da53a06c9d40d1ad019
     process/flowsheet.yaml: sha256:6b9e92b98d60d6b1ecaaa01eb2266d41c99c21b6a0f60dd9bc82672baf7f34e5
     process/materials.yaml: sha256:76ec0e4c5a74d4eba2bf2c3ca25f949fd181908061ea448ed833dbecc956de3a
     process/simulation.yaml: sha256:224248e8b5fec31106c42323ff0dba83928346453b3ba1ba19697dad4d25b3c5

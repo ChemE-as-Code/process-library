@@ -85,5 +85,9 @@ It does not check:
 - construction (infrastructure, equipment) not included
 - end of life of the plant not included
 - transport of supplies not included
+- cut off by the study's criteria: cutoff:c203-vacuum-power (dry vacuum pump on the C-203 overhead, about 15 kW x 8000 h/a (ASSUMED order of magnitude, not sized; D-008, I-08); not in the flowsheet's power feed)
+- cut off by the study's criteria: cutoff:small-pumps-power (quench pump P-102 (below 1 kW) and the reflux and distillate pumps of C-201, C-202 and C-203, each below about 5 kW, together about 15 kW x 8000 h/a (ASSUMED upper estimate; D-008, D-010); not in the flowsheet's power feed)
 - cut off by the study's criteria: emission-excluded:heater-combustion (the feed heater's combustion emissions (CO2, NOx, CO, CH4, N2O, PM) belong to the purchased-heat background of feed:FUEL (heat from natural gas at an industrial furnace), which is per MJ delivered and includes them; counting them here would double count (D-013))
 - cut off by the study's criteria: emission-excluded:storage-tanks (fresh toluene, benzene and biphenyl tanks are outside the battery limit (design basis): their breathing losses belong to the storage, not to this plant boundary (D-013))
+- cut off by the study's criteria: emission-excluded:fugitive-leaks (fugitive benzene, toluene, CH4 and H2 from flanges, seals, valves and the compressor are not estimated, not claimed negligible: an equipment-leak estimate needs the P&ID component counts, which do not exist at the concept stage; to become an emission_estimates entry once the P&IDs are drawn (DESIGN.md I-10, D-013))
+- cut off by the study's criteria: emission-excluded:no-process-effluent (no process wastewater: water is neither fed nor formed, and the C-203 vacuum is taken as a dry vacuum pump (ASSUMED, D-008), which leaves no condensate; with steam ejectors instead, an aromatic-bearing ejector condensate would be a wastewater exchange to add (DESIGN.md I-08))
