@@ -272,6 +272,20 @@ def mass(n):
     return sum(n[c] * MW[c] for c in C)
 
 
+# ---- first-pass line size (D-011): bulk density of the PR flash, velocity by service (ASSUMED)
+DN_SERIES = [15, 20, 25, 32, 40, 50, 65, 80, 100, 125, 150, 200, 250, 300, 350, 400, 450, 500,
+             600, 700, 750, 800, 900, 1000, 1200]
+
+
+def line_size(n, t, p):
+    r = FLASH.flash(zs=zs_of(n), T=t, P=p * 1e3)
+    rho = r.rho_mass()
+    vf = r.VF
+    v = 1.5 if vf < 0.01 else (10.0 if vf < 0.99 else (15.0 if p > 1000 else 20.0))
+    d_mm = 1000 * math.sqrt(4 * mass(n) / 3600 / rho / v / math.pi)
+    return rho, vf, v, d_mm, next(dn for dn in DN_SERIES if dn >= d_mm)
+
+
 # ---- report
 report = {
     "purge_fraction": purge, "recycle_ratio": tot(rec) / tot(MU), "scale": factor,
@@ -297,3 +311,6 @@ print("# duties kW: " + ", ".join(f"{k} {v:.0f}" for k, v in D.items()))
 for k, (n, t, p) in S.items():
     comp = ", ".join(f"{c}: {n[c] / tot(n):.8f}" for c in C)
     print(f"{k}: T {t:.2f} K, P {p:.0f} kPa, {mass(n):.1f} kg/h, {tot(n):.2f} kmol/h, {{{comp}}}")
+for k, (n, t, p) in S.items():
+    rho, vf, v, d_mm, dn = line_size(n, t, p)
+    print(f"# line {k}: rho {rho:.2f} kg/m3, vapour fraction {vf:.3f}, {v} m/s -> d {d_mm:.0f} mm, DN{dn}")

@@ -1,34 +1,76 @@
-# Process Atlas manifest. Copy this folder to processes/<your-id>/ and edit.
-# Schema: schemas/process.schema.json (cheme-as-code/process/v1). Every slug used under
-# chemistry must exist in chemicals/chemicals.yaml; add new chemicals there in the same change.
-# A product in a defined state and purity names its registry grade: `chemical: oxygen/lox`.
+# Process Atlas manifest of methanol-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here.
 schema: cheme-as-code/process/v1
-id: my-process                  # = folder name; lowercase slug; never rename once listed
-title: Short descriptive process title
+id: methanol-1
+title: Methanol synthesis loop and purification (2500 t/d Grade AA, natural-gas syngas)
 summary: >-
-  One or two sentences for cards and search results: what goes in, what comes out, at what scale.
-# description: |                # optional longer Markdown for the process page
-families: [hydrogen]            # slugs of taxonomy/families.yaml (ISIC-mapped), e.g. ammonia, methanol, air-separation
-keywords: []
-# facets:                      # optional, for filtering in the Atlas; list only what the design has
-#   feedstock_basis: [water, electricity]   # fossil | biogenic | atmospheric | mineral | recycled | water | electricity
-#   product_classes: [fuels]               # slugs, e.g. industrial-gases, fuels, fertilizers, polymers, chemicals, materials
-#   unit_operations: [electrolysis]        # slugs, e.g. cryogenic-distillation, adsorption, compression, reaction, electrolysis
-#   region: generic                        # e.g. generic, EU
-maturity: concept               # concept | screening | basic-engineering | detail-engineering | operating-reference
+  Low-pressure methanol synthesis loop on Cu/ZnO/Al2O3 with a boiling-water converter, recycle
+  and purge, and two-column distillation to Grade AA methanol; make-up synthesis gas from a
+  natural-gas reformer outside the boundary. Concept stage, assumed basis.
+description: |
+  The make-up synthesis gas (an assumed combined-reforming gas, stoichiometric number 2.09) is
+  compressed to the loop pressure and joins the recycle gas at the circulator. The converter
+  outlet is modelled as chemical equilibrium of CO hydrogenation and water-gas shift (CO2
+  hydrogenation is their sum) 10 K above the outlet temperature, with Peng-Robinson fugacity:
+  a model basis, not kinetics. The crude methanol is condensed and separated at loop pressure,
+  a purge removes the inerts, and the crude is flashed, stabilised in a topping column and
+  refined to Grade AA in a refining column.
+
+  All values are concept estimates. The separator, column and duty values come from an
+  independent script whose property method (Peng-Robinson) is not qualified for this mixture
+  by ChemE-as-Code yet; see DESIGN.md of the engineering files for every assumption and gated
+  step.
+families: [methanol]
+keywords: [methanol, synthesis gas, syngas, Cu/ZnO, synthesis loop, boiling-water converter, purge, crude methanol, distillation, Grade AA]
+facets:
+  feedstock_basis: [fossil]
+  product_classes: [chemicals, fuels]
+  unit_operations: [compression, reaction, heat-exchange, flash, distillation]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest; cheme maturity reports level none
+# (the make-up gas composition is assumed, not sourced, and the separators and columns are
+# specified values), see validation.notes and DESIGN.md D-006.
+maturity: concept
 validation:
-  status: unreviewed            # unreviewed | internally-reviewed | peer-reviewed | industry-validated
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances (cheme validate, cheme process
+    streams). cheme maturity reaches no level yet: the make-up gas composition and the capacity
+    are assumed (no sourced or owner-given feed), and the HP/LP separators and both columns are
+    specified values from an independent Peng-Robinson script (scripts/loop_balance.py) that
+    core cannot qualify for methanol-water-syngas (core #315). The converter outlet is
+    calculated by cheme (equilibrium reactor) and reproduces the script's extents. Energy
+    closure is not evaluable in core (no property package covers the streams). Not reviewed.
+    The chemicals registry has no methanol or carbon-monoxide entry yet, so the main product
+    and the CO of the feed are not listed under chemistry (open library item).
 chemistry:
   inputs:
-    - {chemical: water, role: feedstock}
+    - {chemical: hydrogen, role: feedstock, inventory_key: "feed:SYNGAS", note: "H2 of the make-up synthesis gas (68 mol%, ASSUMED); the gas also carries 21.5 % CO, which the registry does not list yet"}
+    - {chemical: carbon-dioxide, role: feedstock, inventory_key: "feed:SYNGAS", note: "CO2 of the make-up synthesis gas (7.5 mol%, ASSUMED)"}
+    - {chemical: methane, role: feedstock, inventory_key: "feed:SYNGAS", note: "Unconverted methane of the make-up gas (2.5 mol%, ASSUMED), an inert of the loop, leaves with the purge"}
   outputs:
-    - {chemical: hydrogen, role: main-product}
+    - {chemical: water, role: waste, inventory_key: "product:WW", note: "Refining column bottoms water, 100 ppm(wt) methanol (ASSUMED). The main product, Grade AA methanol (product:MEOH), has no registry entry yet"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:FUELGAS", note: "CO2 of the flash gas and topping-column off-gas, to the fuel gas header"}
   utilities:
-    - {chemical: electricity, role: utility}
-# basis: {capacity: "1000 t/d product", operating_hours_per_year: 8000}
-# lca: {source: auto}           # auto: read lca/ of a ChemE-as-Code project; none: no LCA
-# references:
-#   - {title: "Author et al. (2024) Title", doi: 10.xxxx/xxxxx}
-# maintainers:
-#   - {name: Your Name, orcid: 0000-0000-0000-0000}
-# repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/my-process, access: private}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Make-up compressor and circulator (ASSUMED electric drives)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 450 kPa(a) to the column reboilers"}
+    - {chemical: steam, role: co-product, inventory_key: "product:MPS", note: "MP steam 2800 kPa(a) raised in the converter"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED)"}
+basis:
+  capacity: "2500 t/d Grade AA methanol (ASSUMED)"
+  operating_hours_per_year: 8400
+  location: generic (not chosen)
+references:
+  - {title: "Ott, J. et al. (2012) Methanol. Ullmann's Encyclopedia of Industrial Chemistry", doi: 10.1002/14356007.a16_465.pub3}
+lca:
+  source: none
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/methanol-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0

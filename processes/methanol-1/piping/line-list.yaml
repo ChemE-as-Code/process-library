@@ -1,3 +1,26 @@
 # Line list. Schema: `cheme schema lines`.
-schema: cheme/lines/v1
-lines: []
+# Concept stage: one line per material stream of the PFD (stream id in the notes), no P&ID yet.
+# DN: first-pass size from velocity (D-011, ASSUMED): gas 15 m/s above 1000 kPa(a), 20 m/s
+# below, two-phase 10 m/s, liquid 1.5 m/s, on the Peng-Robinson bulk density of
+# scripts/loop_balance.py (PR underestimates liquid density by ~15 %: the liquid lines are
+# conservative); inside diameter taken as the DN. Pressure classes come with the pipe specs.
+lines:
+  - {number: SG-101, from: B/L, to: K-101, nominal_diameter: DN600, fluid: Synthesis gas, notes: "S1 make-up gas, 2600 kPa(a)"}
+  - {number: SG-102, from: K-101, to: E-101, nominal_diameter: DN400, fluid: Synthesis gas, notes: "S2"}
+  - {number: SG-103, from: E-101, to: SG-104, nominal_diameter: DN350, fluid: Synthesis gas, notes: "S3, joins the recycle at the circulator suction (M101)"}
+  - {number: SG-104, from: SG-112, to: K-102, nominal_diameter: DN700, fluid: Synthesis gas, notes: "S4 circulator suction"}
+  - {number: SG-105, from: K-102, to: E-102, nominal_diameter: DN700, fluid: Synthesis gas, notes: "S5"}
+  - {number: SG-106, from: E-102, to: R-101, nominal_diameter: DN900, fluid: Synthesis gas, notes: "S6 converter feed, 498 K"}
+  - {number: PG-107, from: R-101, to: E-102, nominal_diameter: DN900, fluid: Converter effluent, notes: "S7, 528 K"}
+  - {number: PG-108, from: E-102, to: E-103, nominal_diameter: DN900, fluid: Converter effluent, notes: "S8, two-phase"}
+  - {number: PG-109, from: E-103, to: V-101, nominal_diameter: DN800, fluid: Converter effluent, notes: "S9, two-phase"}
+  - {number: SG-110, from: V-101, to: SG-112, nominal_diameter: DN700, fluid: Synthesis gas, notes: "S10 separator gas to the purge take-off"}
+  - {number: FG-111, from: SG-110, to: B/L, nominal_diameter: DN100, fluid: Purge gas, notes: "S11 purge to the reformer fuel"}
+  - {number: SG-112, from: SG-110, to: SG-104, nominal_diameter: DN700, fluid: Synthesis gas, notes: "S12 recycle gas"}
+  - {number: CM-113, from: V-101, to: V-102, nominal_diameter: DN250, fluid: Crude methanol, notes: "S13, let-down valve before V-102"}
+  - {number: FG-114, from: V-102, to: B/L, nominal_diameter: DN80, fluid: Fuel gas, notes: "S14 LP flash gas"}
+  - {number: CM-115, from: V-102, to: C-201, nominal_diameter: DN250, fluid: Crude methanol, notes: "S15"}
+  - {number: FG-116, from: C-201, to: B/L, nominal_diameter: DN125, fluid: Fuel gas, notes: "S16 topping column off-gas"}
+  - {number: CM-117, from: C-201, to: C-202, nominal_diameter: DN250, fluid: Stabilised methanol, notes: "S17 (a pump is needed at basic engineering)"}
+  - {number: ME-118, from: C-202, to: B/L, nominal_diameter: DN200, fluid: Methanol, notes: "S18 Grade AA product to storage"}
+  - {number: WW-119, from: C-202, to: B/L, nominal_diameter: DN65, fluid: Process water, notes: "S19 bottoms water"}
