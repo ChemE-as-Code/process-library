@@ -300,7 +300,7 @@ def main():
     print("# kg per t soda ash: " + json.dumps(spec), file=sys.stderr)
     print("# duties kW: " + json.dumps({k: round(v, 1) for k, v in Q.items()}), file=sys.stderr)
     print(f"# LP steam {m_lps:.0f} kg/h = {m_lps / t:.0f} kg/t; HP steam heat "
-          f"{Q['Q9'] * 3.6 / t:.2f} GJ/t; coke {m_coke / t:.1f} kg/t; kiln CO2 "
+          f"{Q['Q9'] * 3.6 / t / 1000:.2f} GJ/t; coke {m_coke / t:.1f} kg/t; kiln CO2 "
           f"{S['S5']['CO2'] / t:.0f} kg/t; vent CO2 {S['S13']['CO2'] / t:.0f} kg/t", file=sys.stderr)
     out = {}
     for s, d in S.items():
