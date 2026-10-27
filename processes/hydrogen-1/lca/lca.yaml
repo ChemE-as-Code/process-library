@@ -1,0 +1,115 @@
+# Goal and scope of the hydrogen-1 LCA. Schema: `cheme schema lca`. Outputs: `cheme assess lca
+# --write` (lca/inventory.csv, results.*, gaps.csv, dataset.yaml, manifest.json); never edit
+# those by hand. DESIGN.md D-013.
+#
+# PRELIMINARY GATE-TO-GATE LCI. Every foreground exchange comes from the balanced flowsheet
+# (process/flowsheet.yaml, case design). The background datasets are deliberately left
+# UNMAPPED: each technosphere flow carries `missing:` with the background activity it should
+# connect to later. No factor, no value from a licensed database, and no zero stands in for
+# them; the result is therefore a gap list, not a footprint.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of hydrogen (99.9 mol%, 2.85 MPa) from
+  natural-gas steam methane reforming with PSA and steam export, at concept stage: the
+  foreground exchanges per kg of hydrogen, with the feedstock and fuel carbon kept apart,
+  ready to be linked to background datasets in the next stage (DESIGN.md D-013). Flows are
+  concept estimates; backgrounds are unmapped gaps.
+functional_unit: {product: H2, amount: 1, unit: kg}
+boundary: gate-to-gate
+case: design
+year: 2026
+technology: "natural-gas steam methane reforming, top-fired tubular reformer, HT shift, hydrogen PSA, tail gas firing, steam export; 100 000 Nm3/h"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+allocation:
+  method: none
+  coproducts: [H2, STEAMX]
+  source: >-
+    D-013: the export steam (S33, 4.3 MPa, 673 K) is a co-product. No allocation is applied in
+    this preliminary inventory: the dataset is unallocated and lists the steam as a
+    co-product output. Proposed for the next stage: system expansion (ISO 14044 preferred) by
+    steam of the same level from a natural-gas-fired industrial boiler at the receiving site,
+    with energy or exergy allocation as the comparison; the choice is the LCA practitioner's.
+flows:
+  # ---- inputs
+  - key: feed:NG
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Natural gas feedstock (S1), high pressure, at the plant gate: connect to a market for
+      natural gas, high pressure, of the site's country (extraction, processing, long-distance
+      transport, including methane leakage upstream). Its carbon is the feedstock (process)
+      CO2 of product:FLUE.
+  - key: feed:NGF
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Natural gas trim fuel (S20), the same supply as feed:NG: connect to the same market for
+      natural gas, high pressure; its combustion emissions are in product:FLUE (the trim-fuel
+      carbon is the combustion CO2), so link the supply only, not a 'heat from natural gas'
+      activity (that would count the combustion twice).
+  - key: feed:DMW
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Demineralised water (S27, boiler feed make-up): connect to water, deionised / completely
+      softened, at the user (the water treatment plant's chemicals, energy and the raw water
+      withdrawn as a resource).
+  - key: feed:AIR
+    free: true
+    source: "combustion air (S22): ambient air, a resource taken from nature without burden"
+  - key: feed:POWER
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Electricity for the fans K-301 and K-302, the boiler feed water pump P-401 and the
+      recycle compressor K-101 (Q1, Q10-Q12): connect to a market for electricity, medium
+      voltage, of the site's country.
+  # ---- outputs
+  - key: product:CW
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Heat rejected to the site cooling water system (Q9, E-202, 298/308 K): connect to
+      cooling water supply / heat rejection in an evaporative cooling tower (pumping and fan
+      electricity, make-up water withdrawn and evaporated, blowdown, treatment chemicals),
+      per kWh of heat removed.
+  - key: product:BD
+    treatment:
+      kind: waste
+      route: wastewater treatment
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Boiler blowdown (S34), water with the boiler's dissolved solids and conditioning
+      chemicals (not modelled): connect to treatment of wastewater, average, at a municipal
+      or industrial treatment plant (or the site's own effluent treatment).
+  - key: product:FLUE
+    emission: true
+    source: "flue gas to atmosphere through the reformer stack (S26)"
+  # ---- emissions of product:FLUE, by component (elementary flows, characterised by CAS)
+  - key: emission:CO2
+    elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}
+    source: >-
+      Fossil CO2 of the stack: the feedstock carbon (reforming and shift, released when the
+      PSA tail gas burns) plus the trim-fuel carbon; carbon in = carbon out (DESIGN.md D-011).
+      The split is given in lca/README.md from feed:NG and feed:NGF.
+  - key: emission:H2O
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    source: "water vapour of combustion and of the fuel, to air"
+  # Combustibles of the fuel: zero in the stack gas of the balance (complete combustion, D-009);
+  # unburnt CH4, CO and hydrocarbons belong to emission estimates with sourced factors (open).
+  - {key: emission:CH4, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "unburnt methane of the stack: 0 in the balance (complete combustion, D-009)"}
+  - {key: emission:CO, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "carbon monoxide of the stack: 0 in the balance (complete combustion, D-009)"}
+  - {key: emission:C2H6, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "unburnt ethane: 0 in the balance (D-009)"}
+  - {key: emission:C3H8, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "unburnt propane: 0 in the balance (D-009)"}
+  - {key: emission:H2, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "unburnt hydrogen: 0 in the balance (D-009)"}
+  - {key: emission:N2, free: true, source: "nitrogen of the combustion air and the fuels returned to the atmosphere"}
+  - {key: emission:O2, free: true, source: "unreacted oxygen of the excess air returned to the atmosphere"}
+  - {key: emission:AR, free: true, source: "argon of the combustion air returned to the atmosphere"}
+operation:
+  hours_per_year: 8400
+  life_years: 25
+  source: "design basis operating_hours_per_year 8400 (ASSUMED); 25 a service life ASSUMED"
+dataset:
+  version: 0.1.0
+  geography: {description: "One generic concept design; no site chosen, no country-specific data"}
+  system_model: cutoff
+  technology_level: current
+  modelling: {principle: attributional}
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library, hydrogen-1 concept design (agent-drafted, not reviewed)"

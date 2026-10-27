@@ -1,107 +1,74 @@
-# LCA
+# LCA of hydrogen-1: preliminary gate-to-gate LCI
 
-The life cycle assessment of the plant's operation (ISO 14040/44), per functional unit.
+Status (2026-10-27): **preliminary gate-to-gate life cycle inventory**, concept stage. The
+foreground comes from the balanced flowsheet (`process/flowsheet.yaml`, case `design`); every
+background is deliberately **unmapped** (`missing:` in `lca.yaml`), so the only characterised
+number in `results.md` is the plant's own fossil CO2 at the stack. That is not a carbon
+footprint of hydrogen: the natural gas supply chain, electricity, water treatment, cooling and
+waste water treatment are gaps (`gaps.csv`), never zero. DESIGN.md D-013.
 
 | file | what | written by |
 |---|---|---|
-| `lca.yaml` | goal and scope: the functional unit (a product of `process/flowsheet.yaml`), the case, the allocation between co-products, the impact categories, and the background of every feed, product and emitted component (`cheme schema lca`) | people; `cheme init` writes none, since the flowsheet has no products yet |
-| `factors.yaml` | the project's characterised factors per kg, t, kWh, MJ, ... of a flow, one value per impact category, each with status, source, year, geography and its `sources:` registry entry (licence, publication policy); `include:` adds packaged open profiles (docs/framework/lca.md of cheme-as-code lists them) | people; the file `cheme init` writes includes the open profile `desnz-ghg-2026` (UK DESNZ 2026, OGL-3.0): a screening carbon footprint |
-| `inventory.csv` | the foreground inventory per functional unit: feeds and products of the flowsheet (kg, energy in kWh), emissions by component, co-products | `cheme assess lca --write` |
-| `results.csv`, `results.md` | impacts per category, with the contribution of each flow | `cheme assess lca --write` |
-| `gaps.csv` | every exchange and category without a burden (unmapped, a factor without the category, an emission the method does not characterise, an unlinked exchange of a referenced dataset): excluded from the totals, never 0 | `cheme assess lca --write` |
-| `manifest.json` | what the results rest on (inputs, mappings, background versions, methods, settings, software), their class and publication policy | `cheme assess lca --write` |
-| `dataset.yaml` | the plant's unallocated LCI dataset (`kind: lci_dataset`, per hour of operation): what other studies and a process library reference (`dataset: {path, product, allocation}`) | `cheme assess lca --write` |
-| `datasets/*.yaml` | LCI datasets of other processes, written by hand or copied from a library, used as backgrounds | people |
+| `lca.yaml` | goal and scope, functional unit, allocation (none yet), the mapping of every flow with the background activity it should connect to | people (agent-drafted) |
+| `factors.yaml` | the project's factors: none; the packaged `desnz-ghg-2026` profile is included but no flow uses it | `cheme init` |
+| `inventory.csv`, `dataset.yaml` | the foreground inventory per kg H2 and the unallocated dataset per hour | `cheme assess lca --inventory --write` |
+| `results.*`, `gaps.csv`, `manifest.json` | the classification (partial screening), the gaps, what the result rests on | `cheme assess lca --write` |
 
-A minimal `lca.yaml`:
+Rewrite them with `cheme assess lca --inventory --write`; check with `cheme assess lca
+--coverage`, `--balance` and `--check`. Never edit the generated files.
 
-```yaml
-schema: cheme/lca/v1
-kind: lca
-goal: Carbon footprint of the product for the concept comparison (DESIGN.md D-0xx)
-functional_unit: {product: PROD, amount: 1, unit: t}
-allocation: {method: exergy, coproducts: [PROD, BYPROD], source: "DESIGN.md D-0xx"}  # mass, economic, energy, exergy, shares, substitution, none
-flows:
-  - {key: feed:AIR, free: true, source: "ambient air, a resource without burden"}
-  - {key: feed:POWER, factor: desnz-ghg-2026:electricity-gb, source: "grid supply at the site", proxy: "UK grid for a site outside the UK"}
-  - {key: product:VENT, emission: true, source: "released to the atmosphere"}
-  - {key: emission:CO2, elementary: {compartment: air, origin: fossil}, source: "fossil CO2 from the reformer"}
-```
+## Inventory per functional unit (1 kg hydrogen product, S17, 99.9 mol% H2, 2.85 MPa)
 
-Before `lca/dataset.yaml` is published (a process library, the Atlas), document it under
-`dataset:` (`cheme schema lca`; the gate requirement `lci-documented` checks the minimum):
+From `inventory.csv` (generated); provenance: all flows `assumed` (scripts/h2_balance.py and
+the design basis, D-006) except what cheme calculates from them.
 
-```yaml
-dataset:
-  version: 1.0.0
-  geography: {description: "One design for a generic coastal site; UK grid as a proxy"}
-  system_model: cutoff
-  technology_level: current
-  classification: {isic: "<class>", cpc: "<subclass>"}  # ISIC Rev.4, CPC Ver. 2.1 (UNSD)
-  modelling: {principle: attributional}
-  review: unreviewed
-  data_generator: "<who modelled it>"
-```
+| exchange | stream | per kg H2 | background to connect (now a gap) |
+|---|---|---|---|
+| in: natural gas feedstock | S1 | 3.217 kg | market for natural gas, high pressure, site country (incl. upstream methane leakage) |
+| in: natural gas trim fuel | S20 | 0.617 kg | the same natural gas supply (supply only: its combustion is in the stack gas) |
+| in: demineralised water | S27 | 15.66 kg | deionised water at the user (treatment chemicals, energy, raw water withdrawn) |
+| in: combustion air | S22 | 30.89 kg | free (ambient air) |
+| in: electricity | Q1, Q10-Q12 | 0.164 kWh | market for electricity, medium voltage, site country |
+| out: hydrogen (reference flow) | S17 | 1 kg | - |
+| out: export steam, 4.3 MPa / 673 K (co-product) | S33 | 10.55 kg | proposed system expansion: steam from a natural-gas boiler at the receiver (not applied) |
+| out: boiler blowdown (waste water) | S34 | 0.210 kg | treatment of waste water |
+| out: heat to cooling water | Q9 | 3.30 kWh | cooling water supply / heat rejection in a cooling tower |
+| out: CO2, fossil, to air | S26 | 10.10 kg | elementary (characterised by CAS) |
+| out: H2O vapour to air | S26 | 4.06 kg | elementary (no climate factor) |
+| out: N2, O2, Ar to air | S26 | 23.42 / 0.650 / 0.396 kg | free (atmospheric, returned) |
 
-The construction phase counts the take-off (`estimate/mto.csv`) and the equipment weights,
-spread over the plant's life:
+**CO2 by origin (process and combustion kept apart).** All carbon leaves as CO2 through the
+reformer stack (complete combustion, D-009). Split by the carbon of the two natural gas
+terminals (2.635 kg CO2 per kg of this gas, from its composition, D-004):
 
-```yaml
-operation: {hours_per_year: 8000, life_years: 20, source: "design basis"}
-construction:
-  - {id: steel, takeoff: mto, category: steel, factor: steel-sections, source: "rack and structure steel"}
-  - {id: vessels, takeoff: equipment, equipment: {material: "*SS*"}, factor: stainless-steel, source: "empty weights"}
-```
+| origin | from | kg CO2 per kg H2 |
+|---|---|---|
+| process (feedstock carbon: reforming and shift, released when the PSA tail gas burns) | feed:NG, 3.217 kg | 8.47 |
+| combustion (trim fuel carbon) | feed:NGF, 0.617 kg | 1.63 |
+| total at the stack | emission:CO2 | 10.10 |
 
-Supplies the flowsheet and the take-off do not hold: `consumables` (e.g. an adsorbent
-replaced every 5 years), `maintenance` (a yearly fraction of the construction), `transport`
-(t*km of matched exchanges) and `end_of_life` (treatment or recycling of the construction
-mass). What goes in also comes out: give a replaced consumable and a construction material a
-`disposal:`, and classify waste outputs of the flowsheet with `treatment:`. Under the default
-`system_model: cutoff` a recyclable (material recycling or re-use; burned waste is a `waste`
-linked to its incineration) leaves burden-free and earns no credit:
+The flowsheet has one stack, so the inventory carries one CO2 exchange; the split above
+follows from the two feed exchanges and the closed carbon balance.
 
-```yaml
-consumables:
-  - id: sieve
-    unit: t
-    per_replacement: 36
-    every_years: 6
-    missing: "no open factor for 13X molecular sieve"
-    source: "two beds replaced every 6 years (ASSUMED)"
-    disposal: {kind: waste, route: landfill, missing: "no open landfill factor", source: "spent sieve, inert"}
-cutoff:
-  - {id: packaging, per_year: 500, unit: kg, reason: "pallets and bags, below 0.1 % of the input mass"}
-```
+## Balance checks against the flowsheet (2026-10-27)
 
-With a Brightway project (ecoinvent or an open database, `pip install 'cheme-as-code[lca]'`), set
-`backend: brightway` and give the flows an `activity:` (`cheme assess lca-search` finds
-them; `cheme assess lca-map` lists candidates for every open exchange and `--apply` writes the
-approved ones). `scenarios:` compare the baseline with other factors or databases (e.g. premise 2050).
-See the skill `lca`.
+- Mass per kg H2: in 3.217 + 0.617 + 15.661 + 30.888 = 50.383 kg; out 1 + 10.548 + 38.625
+  + 0.210 = 50.383 kg. `cheme assess lca --balance`: mass, Ar, C, H, N and O closed (largest
+  residual C -0.01 %), carbon fossil in = fossil out.
+- The inventory equals the flowsheet's boundary streams (S1, S20, S22, S27, S17, S33, S26,
+  S34, Q-streams) divided by the product flow 9 109.9 kg/h.
+- Energy closure is not evaluated: the natural gas has no lower heating value declared to the
+  LCA (carrier `lhv`), a next-stage item.
 
-Never edit `inventory.csv` or `results.*` by hand: change the flowsheet, `lca.yaml` or
-`factors.yaml`, then rewrite them. Energy streams (`kind: energy`, with `duty`) from an energy
-feed (electric power, steam) or to an energy product (cooling water) are counted in kWh. The
-gate `kind: lca` (`checks/checks.yaml`, require `mapped`, `factors`, `no-gaps`, `factors-published`, `publishable`, `cutoff-criteria`, `lci-emissions-complete`, `lci-mass-balance`, `lci-element-balance`, `lci-carbon-origin`, `lca-current`)
-checks the mapping is complete, the factors are the project's, no exchange is a gap, every
-exchange rests on published factors (no example, `ASSUMED`, `PROXY` or `ESTIMATE`), the
-results may be published under their sources' terms, every combustion unit, tank and
-untreated wastewater outlet has an emission estimate or a declared exclusion
-(`emission_estimates:`, `emission_exclusions:`), the dataset closes in mass, elements and
-carbon by origin (`cheme assess lca --balance`), and the outputs are current.
+## Open items (not in this inventory)
 
-`results.md` says what the result is: **complete** within the declared boundary (every exchange
-characterised in every category with published or declared data; not a validation),
-**screening** (example, assumed, proxy or estimated factors, climate categories only, or another
-geography, reference year or characterisation method), **partial** (gaps), or **unavailable**.
-Climate categories alone are a screening carbon footprint, never a full LCA.
-`cheme assess lca --coverage` prints the classification, its reasons, the gaps, the sources
-and what the boundary leaves out. `cheme assess lca --dataset` exports the unallocated
-foreground without factors, a Brightway project or credentials.
-
-Licensed databases (ecoinvent and others) must not be copied into this repository: they
-live in a local Brightway project. Give each factor its registry entry (`source_id` ->
-`sources:` with provider, exact version, licence, attribution and `publication: public |
-restricted | local`). The registry records terms; it does not grant rights: free access alone
-does not make results publishable.
+- Combustion emissions the flowsheet does not carry (NOx, CO, CH4 and N2O slip, particulates)
+  of H-301: `emission_estimates` with sourced factors (e.g. an emission guidebook for gas-fired
+  process heaters); `cheme.lci-emissions-incomplete` stays a warning until then.
+- Consumables: reforming catalyst (Ni), HT shift catalyst (Fe-Cr), hydrogenation catalyst
+  (CoMo/NiMo), ZnO sorbent, PSA adsorbents, boiler water chemicals: amounts and lives are
+  vendor inputs; each needs a disposal route (spent ZnO and nickel catalyst carry metals).
+- Construction, maintenance, transport and end of life: no take-off at concept stage.
+- Allocation or system expansion for the export steam (D-013).
+- Dataset documentation for publication: location, ISIC/CPC classification and flow
+  identities (`cheme.lca-dataset-undocumented`).

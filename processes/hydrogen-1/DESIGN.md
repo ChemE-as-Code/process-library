@@ -204,9 +204,17 @@ CO2 is kept apart by origin of its carbon through the two natural gas terminals:
 feedstock carbon (process CO2: reforming and shift, released when the tail gas burns) and
 the trim fuel carbon (combustion CO2). Backgrounds are deliberately unmapped (`missing:`
 with the activity they should connect to), so the result is a gap list, not a footprint.
-Allocation: none chosen yet; export steam is listed as a co-product to be handled by system
-expansion (substitution of steam from a natural-gas boiler) or an energy/exergy allocation,
-a practitioner's decision for the next stage.
+Allocation: `method: none` (unallocated dataset); export steam is listed as a co-product, to be
+handled by system expansion (substitution of steam from a natural-gas boiler) or an
+energy/exergy allocation, a practitioner's decision for the next stage.
+Result (2026-10-27, `cheme assess lca --inventory --write`, `--coverage`, `--balance`): per kg
+H2: natural gas 3.217 kg feedstock + 0.617 kg trim fuel, demineralised water 15.66 kg, air
+30.89 kg, electricity 0.164 kWh; export steam 10.55 kg, blowdown 0.210 kg, heat to cooling
+water 3.30 kWh; fossil CO2 10.10 kg at the stack (8.47 feedstock carbon, 1.63 trim-fuel
+carbon). Mass and element balances closed (C residual -0.01 %). Classification: partial
+screening (6 technosphere gaps by design); the 10.10 kg CO2-eq in results.md is the direct
+stack CO2 only. Open: combustion emission estimates for H-301 (NOx, CO, CH4/N2O slip, PM)
+with sourced factors, consumables (catalysts, ZnO, adsorbents), construction.
 
 ## D-014 Library registry items missing (2026-10-27)
 `chemicals/chemicals.yaml` has no entries for natural gas, carbon monoxide, ethane, propane
