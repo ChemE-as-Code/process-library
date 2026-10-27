@@ -1,0 +1,108 @@
+# Goal and scope of the chlor-alkali-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme assess
+# lca --inventory --write` (lca/inventory.csv, dataset.yaml, gaps.csv, manifest.json); never
+# edit those by hand.
+#
+# A preliminary gate-to-gate inventory (DESIGN.md D-013): every foreground exchange of the
+# balanced flowsheet per kg of dry chlorine; the dataset stays unallocated, the study allocates
+# by the mass of the contained products (shares, D-013). No background is linked yet: every feed, utility and waste is declared `missing:` with the activity it
+# should connect to later, so it is a gap in every category, never 0. No values from licensed
+# databases are used.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of membrane-cell chlor-alkali electrolysis for
+  the concept stage: the foreground exchanges of the balanced flowsheet (D-006) per kg of dry
+  chlorine gas, with caustic soda and hydrogen as co-products (mass of the contained products,
+  D-013), ready to be linked to
+  background datasets later. No impact assessment is claimed.
+# 1 kg of contained Cl2: the product gas S42 is 99.19 wt-% Cl2 with 0.81 wt-% O2 (D-013)
+functional_unit: {product: CL2, amount: 1, unit: kg, kg_per_unit: 1.008185, source: "S42: 12 602.31 kg/h gas holds 12 500 kg/h Cl2 (mass fraction 0.9918815)"}
+boundary: gate-to-gate
+year: 2026
+location: GLO
+technology: "bipolar membrane-cell NaCl electrolysis, 100 kt/a Cl2, rock salt with brine recirculation, 3.0 V at 6.0 kA/m2, double-effect caustic evaporation to 50 wt-%"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+case: design
+allocation:
+  # mass of the contained products, not of the product streams: 12 500 kg/h Cl2 (S42),
+  # 13 998 kg/h NaOH (S46, 27 996 x 0.5), 368.35 kg/h H2 (S44, 542.53 x 0.678941), i.e.
+  # 1 : 1.120 : 0.0295 kg; core's `mass` would count the water of the 50 wt-% caustic and of
+  # the wet hydrogen (30.6 % for Cl2 instead of 46.5 %, review 2026-10-27-pfd-lci-review#1)
+  method: shares
+  coproducts: [CL2, NAOH, H2]
+  shares: {CL2: 0.4653, NAOH: 0.5210, H2: 0.0137}
+  source: >-
+    D-013: mass allocation on the contained products (Cl2, NaOH 100 %, dry H2), given as
+    shares. Chlorine, caustic soda (1.12 kg NaOH 100 % per kg Cl2, delivered as 50 wt-%) and
+    hydrogen (29.5 g per kg Cl2) leave one electrochemical reaction in fixed stoichiometric
+    ratio; the electricity and steam are listed once for the whole output. The inventory
+    itself stays unallocated; a study may choose another basis (the Euro Chlor
+    electrochemical unit, economic or substitution) and must then not use product-stream
+    mass, which counts solvent water.
+  deviation: >-
+    Hierarchy step 3 (WBCSD price ratio) cannot be applied: no sourced prices of Cl2, NaOH
+    and H2 are recorded for this concept design. Mass of the contained products is used
+    instead, as shares, because core's mass method weighs the product streams including the
+    water of the 50 wt-% caustic and of the wet hydrogen. To be revisited when prices are
+    sourced (D-013).
+flows:
+  # raw materials
+  - {key: feed:SALT, missing: "not linked yet: rock salt from underground mining, crushed and screened, at the plant (NaCl about 98.8 wt-%)", source: "S1, D-003"}
+  - {key: feed:WATER, missing: "not linked yet: process water from a municipal or surface-water supply after basic treatment (decarbonised or softened water)", source: "S2, D-006"}
+  - {key: feed:DMW, missing: "not linked yet: demineralised (deionised) water production by ion exchange or reverse osmosis", source: "S15, S21, D-006"}
+  - {key: feed:NA2CO3, missing: "not linked yet: soda ash (sodium carbonate, dense), Solvay process, at the plant", source: "S7, D-005"}
+  - {key: feed:HCL, missing: "not linked yet: hydrochloric acid 30-32 wt-% in water (from HCl synthesis or by-product acid); note: often made on site from the plant's own Cl2 and H2, which a linked study must not count twice", source: "S13, S17, S29, D-005"}
+  - {key: feed:NA2SO3, missing: "not linked yet: sodium sulfite (or bisulfite) production, at the plant", source: "S32, D-005"}
+  - {key: feed:H2SO4, missing: "not linked yet: sulfuric acid 98 wt-%, contact process, at the plant", source: "S38, D-008"}
+  # utilities
+  - {key: feed:POWER, missing: "not linked yet: grid electricity, high voltage, for the site's market (site not decided, D-002); the packaged open profile desnz-ghg-2026 is available for a later screening", source: "Q1 (rectifiers), Q5, Q9, Q12; D-009"}
+  - {key: feed:MPS, missing: "not linked yet: heat from steam at 1000 kPa(a) from a natural-gas boiler (or a site CHP), per kWh of steam heat delivered", source: "Q6, Q13; D-010"}
+  - {key: product:CW, missing: "not linked yet: heat rejection to a recirculating cooling-water circuit with cooling tower (pump and fan electricity, make-up water, treatment chemicals) per kWh removed", source: "Q3, Q4, Q7, Q10, Q11, Q14, Q15; D-010"}
+  - {key: product:CHW, free: true, source: "Q8: chilled water for the second chlorine cooler stage; the chiller's electricity is part of the auxiliary power Q5 (D-009), so the duty carries no further burden here (its condenser heat is not counted, < 1 % of the cooling duty)"}
+  # by-product, waste and emissions
+  - key: product:SPENT
+    treatment: {kind: recyclable, hazardous: true, route: "re-use of spent 75 wt-% sulfuric acid off site or its reconcentration (BREF 2014 4.3.4: 31 of 35 EU plants report no sulfuric acid waste)"}
+    missing: "not linked yet: the recycler's treatment of spent sulfuric acid (re-use in effluent neutralisation, or reconcentration)"
+    source: "S39, D-008"
+  - key: product:SLUDGE
+    treatment: {kind: waste, route: "landfill of brine filtration sludge (insolubles, CaCO3, Mg(OH)2, entrained brine)"}
+    missing: "not linked yet: landfill of non-hazardous inorganic sludge"
+    source: "S10, D-005"
+  - {key: product:WW, emission: true, source: "S16 regeneration effluent and S34 brine purge, dechlorinated and neutral (R402), discharged to surface water; their NaCl and Na2SO4 are emissions to water (D-013)"}
+  # compartments: the effluent goes to fresh surface water, the vent to air
+  - {key: emission:H2O, free: true, source: "water of the discharged effluent, to fresh surface water"}
+  # NaCl and Na2SO4 are dissolved in the effluent: emissions to fresh surface water, not to air
+  # (D-013). No open characterisation is packaged, so they stay gaps in the results; the library
+  # build links them as dissolved solids by mass (lci/mappings.yaml biosphere).
+  - {key: emission:NaCl, elementary: {compartment: water, subcompartment: fresh-surface}, source: "S16, S34: sodium chloride dissolved in the discharged effluent, to fresh surface water"}
+  - {key: emission:Na2SO4, elementary: {compartment: water, subcompartment: fresh-surface}, source: "S34: sodium sulfate dissolved in the discharged brine purge, to fresh surface water"}
+  - {key: product:VENT, emission: true, source: "S18: CO2 released when the excess soda ash in the purified brine is neutralised with HCl (R202, D-005)"}
+  - {key: emission:CO2, elementary: {compartment: air, origin: fossil}, source: "S18, D-005: carbon dioxide to air; carbon of mineral (carbonate) origin from soda ash, counted as fossil (not biogenic)"}
+  # components of the emitted products that are absent (0 kg) in this balance
+  - {key: emission:CaCO3, free: true, source: "0 kg: solids leave with the filter cake S10, not in the effluents"}
+  - {key: emission:CaSO4, free: true, source: "0 kg: converted in R101"}
+  - {key: emission:MgCl2, free: true, source: "0 kg: converted in R101"}
+  - {key: emission:MgOH2, free: true, source: "0 kg: solids leave with the filter cake S10"}
+  - {key: emission:SiO2, free: true, source: "0 kg: solids leave with the filter cake S10"}
+  - {key: emission:Na2CO3, free: true, source: "0 kg: neutralised in R202"}
+  - {key: emission:Na2SO3, free: true, source: "0 kg: consumed in R402"}
+  - {key: emission:NaOH, free: true, source: "0 kg: effluents neutralised (R402, X201)"}
+  - {key: emission:HCl, free: true, source: "0 kg: effluents neutralised"}
+  - {key: emission:Cl2, free: true, source: "0 kg in normal operation: brine fully dechlorinated in R402 (residual free chlorine is excluded below, cl2-vents and effluent-traces)"}
+  - {key: emission:H2, free: true, source: "0 kg: not in the vent S18"}
+  - {key: emission:O2, free: true, source: "0 kg: not in the vent S18"}
+operation: {hours_per_year: 8000, life_years: 20, source: "design basis, D-002; life ASSUMED"}
+emission_exclusions:
+  - {id: cl2-vents, method: non-routine, reason: "chlorine to the absorption (hypochlorite) unit and hydrogen venting occur at start-up, shutdown and upsets only; normal operation sends all Cl2 and H2 to the consumers (D-008). BREF 2014 Table 3.2 reports 0.01-15 g Cl2/t and < 0.3-14 kg H2/t vented for EU plants; the upper end of the H2 range (about half of this plant's 29.5 kg H2/t) describes plants that vent hydrogen for want of a consumer, which this design excludes (D-008), so only start-up and upset venting is cut off; no amount is estimated yet", source: "D-013"}
+  - {id: tanks, method: storage-tank, reason: "caustic, brine and acid tanks hold non-volatile aqueous solutions; HCl tank breathing goes to a scrubber (ASSUMED); no volatile organic or chlorine release estimated at this stage", source: "D-013"}
+  - {id: effluent-traces, method: effluent, exchange: product:WW, reason: "trace species of the purge and regeneration effluent not carried by the balance (free chlorine, chlorate, bromate, AOX, heavy metals from the salt); BREF 2014 Table 3.2 reports e.g. 0-3.8 g free chlorine and 0.92-3500 g chlorate per t Cl2 for EU plants; to be estimated with a salt analysis and the effluent treatment (D-013)", source: "D-013"}
+  - {id: leaks, method: equipment-leaks, reason: "fugitive Cl2 and H2 from flanges and seals are not estimated at the concept stage; to be added with the P&IDs", source: "D-013"}
+dataset:
+  version: 0.1.0
+  geography: {description: "One concept design for an undecided site; technology data from EU plants (BREF 2014); no site-specific supply", site: "generic industrial site with salt by rail or ship"}
+  system_model: cutoff
+  technology_level: current
+  classification: {isic: "2011"}
+  modelling: {principle: attributional}
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library, chlor-alkali-1 concept design (agent run, unreviewed)"

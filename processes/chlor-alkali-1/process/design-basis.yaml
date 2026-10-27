@@ -1,0 +1,55 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Membrane-cell chlor-alkali plant, issue ChemE-as-Code/process-library#121. Values marked
+# ASSUMED are engineering choices of this concept study, not client, licensor or vendor data;
+# sourced values cite the EU JRC BREF for the Production of Chlor-alkali (2014, DOI
+# 10.2791/13138) with section or table. Every decision is in DESIGN.md.
+capacity:
+  basis: contained Cl2 in the dry chlorine gas product at the battery limit (saleable-product boundary, D-001)
+  cl2_t_per_year: 100000              # ASSUMED (D-002): a mid-size EU membrane plant, chosen, not a client figure
+  cl2_kg_per_h: 12500                 # = 100 000 t/a / 8000 h
+  operating_hours_per_year: 8000      # ASSUMED
+  co_products_per_t_cl2: {naoh_100pct_t: 1.120, h2_kg: 29.5}   # from the balance (D-006): 1.128 t NaOH formed less 8.5 kg used in the brine loop
+  turndown_percent: 50                # ASSUMED, not checked yet (cells at lower current density, D-004)
+  cell_technology:                    # the basis of process/cells.yaml (D-004)
+    type: bipolar membrane cell, zero gap
+    current_density_A_per_m2: 6000      # BREF 2014 4.3.2.3.2
+    cell_voltage_V: 3.0                 # BREF 2014 4.3.2.3.2: high-performance membranes at 6.0 kA/m2, 90 degC
+    current_efficiency: 0.965           # ASSUMED inside BREF 2014 2.4.1 (loss 3-7 %) and 4.3.2.3.2 (> 95 %)
+    temperature_K: 363.15               # BREF 2014 4.3.2.3.2
+    catholyte_naoh_wt_percent: 32       # BREF 2014 2.4.1 (32 +/- 1)
+    water_transport_mol_per_mol_na: 4.0 # BREF 2014 2.4.1: 3.5-4.5
+    membrane_brine_specification: "vendor-dependent; BREF 2014 Table 2.4 typical limits used only for sulfate (< 4-8 g/l as Na2SO4); Ca+Mg 20 ppb and the others are open inputs (D-005)"
+feeds:
+  - name: Rock salt
+    source_of_values: ASSUMED analysis (D-003); a real salt analysis is an open input
+    composition_wt_percent: {NaCl: 98.8, CaSO4: 0.15, MgCl2: 0.05, insolubles_as_SiO2: 0.5, H2O: 0.5}
+    conditions: {pressure_kPa_a: 101.325, temperature_K: 288.15}
+  - name: Make-up process water and demineralised water
+    source_of_values: ASSUMED pure water (D-006); quality limits are open inputs
+  - name: Treatment chemicals
+    items: "soda ash (solid), hydrochloric acid 32 wt-%, sodium sulfite (solid), sulfuric acid 98 wt-%; caustic for the brine loop is the plant's own 32 wt-% catholyte (D-005, D-008)"
+products:
+  - name: Dry chlorine gas
+    purity: "99.19 wt-% Cl2 (98.2 vol-%), O2 1.8 vol-% (BREF 2014 2.4.1: 0.5-2.0 vol-% O2 from membrane cells), water < 50 ppm(wt) target (not modelled)"
+    delivery: {pressure_kPa_a: 400, temperature_K: 313.15, battery_limit: "pipeline to an adjacent consumer (e.g. EDC/VCM); liquefaction outside the boundary (D-001)"}
+  - name: Caustic soda 50 wt-%
+    purity: "50 wt-% NaOH; chloride and chlorate traces not modelled (BREF 2014 2.4.1: ~50 mg/l NaCl in membrane caustic)"
+    delivery: {pressure_kPa_a: 250, temperature_K: 323.15, battery_limit: storage tanks}
+  - name: Hydrogen
+    purity: "H2 saturated with water at 35 degC (95 vol-% H2 wet); drying and compression outside the boundary"
+    delivery: {pressure_kPa_a: 140, temperature_K: 337.2, battery_limit: "consumer (HCl synthesis, fuel, ...): none vented in normal operation (D-008)"}
+  - name: Wastes and emissions
+    items: "brine purge and resin regeneration effluent (dechlorinated, neutral) to surface-water discharge after site treatment; brine filter cake to landfill; spent sulfuric acid to off-site use; CO2 from feed-brine acidification to air"
+utilities:
+  - {name: Electric power, use: "transformer-rectifiers (efficiency 0.97 ASSUMED) and auxiliaries (BREF 2014 Table 3.12 median 177 kWh/t Cl2)", note: D-009}
+  - {name: MP steam, pressure_kPa_a: 1000, saturation_K: 453.0, use: "caustic evaporator and feed brine heater", note: "ASSUMED level, BREF 2014 Table 3.11 median 10 bar (D-010)"}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: ASSUMED (D-010)}
+  - {name: Chilled water, supply_K: 281.15, return_K: 288.15, use: second wet chlorine cooler, note: "ASSUMED; chiller power counted in the auxiliaries (D-010)"}
+site:
+  location: ASSUMED generic site, not chosen
+  design_ambient_K: 303.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325   # ASSUMED
+assumptions:
+  - "D-001 boundary: salt to dry compressed Cl2, 50 wt-% NaOH and wet low-pressure H2; no liquefaction, no HCl or hypochlorite production, no H2 drying"
+  - "D-006 the balance is a specified-split model (scripts/balance.py); electrolyte enthalpies are not modelled (core#364)"
+  - "Construction, transport and end of life are outside the preliminary LCI (D-013)"
