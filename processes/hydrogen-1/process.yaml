@@ -1,34 +1,83 @@
-# Process Atlas manifest. Copy this folder to processes/<your-id>/ and edit.
-# Schema: schemas/process.schema.json (cheme-as-code/process/v1). Every slug used under
-# chemistry must exist in chemicals/chemicals.yaml; add new chemicals there in the same change.
-# A product in a defined state and purity names its registry grade: `chemical: oxygen/lox`.
+# Process Atlas manifest of hydrogen-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here.
 schema: cheme-as-code/process/v1
-id: my-process                  # = folder name; lowercase slug; never rename once listed
-title: Short descriptive process title
+id: hydrogen-1
+title: Hydrogen by natural-gas steam methane reforming with PSA (100 000 Nm3/h, steam export)
 summary: >-
-  One or two sentences for cards and search results: what goes in, what comes out, at what scale.
-# description: |                # optional longer Markdown for the process page
-families: [hydrogen]            # slugs of taxonomy/families.yaml (ISIC-mapped), e.g. ammonia, methanol, air-separation
-keywords: []
-# facets:                      # optional, for filtering in the Atlas; list only what the design has
-#   feedstock_basis: [water, electricity]   # fossil | biogenic | atmospheric | mineral | recycled | water | electricity
-#   product_classes: [fuels]               # slugs, e.g. industrial-gases, fuels, fertilizers, polymers, chemicals, materials
-#   unit_operations: [electrolysis]        # slugs, e.g. cryogenic-distillation, adsorption, compression, reaction, electrolysis
-#   region: generic                        # e.g. generic, EU
-maturity: concept               # concept | screening | basic-engineering | detail-engineering | operating-reference
+  Natural gas is desulfurised, reformed with steam over nickel in a fired tubular reformer,
+  shifted at high temperature and purified by pressure swing adsorption to 99.9 mol% hydrogen;
+  the PSA tail gas fires the reformer with trim natural gas and surplus steam is exported.
+  Concept stage, assumed basis.
+description: |
+  An independent concept design (issue ChemE-as-Code/process-library#117). The reformer outlet
+  and the high-temperature shift outlet are modelled as ideal-gas chemical equilibrium
+  (steam methane reforming and water-gas shift; ethane and propane reformed completely) at
+  assumed temperatures and approaches: a model basis, not kinetics. The PSA is a specified
+  split (hydrogen recovery 0.88). The furnace burns the PSA tail gas and the trim natural gas
+  completely; the trim fuel closes the radiant section's energy balance, and the convection
+  section and the process gas waste heat boiler raise 4.3 MPa steam for the process and for
+  export. All CO2 leaves through the stack; the inventory keeps the feedstock carbon and the
+  trim-fuel carbon apart.
+
+  All values are concept estimates. Flashes, enthalpies and duties come from an independent
+  balance script (ideal-gas enthalpies plus IAPWS-IF97 water and steam) that core cannot yet
+  qualify for these mixtures (core #315); the reactor outlets and the reactor and furnace
+  duties are recalculated by cheme and agree. See DESIGN.md of the engineering files.
+families: [hydrogen]
+keywords: [hydrogen, steam methane reforming, SMR, natural gas, water-gas shift, high-temperature shift, pressure swing adsorption, PSA, tail gas, steam export, synthesis gas]
+facets:
+  feedstock_basis: [fossil, water]
+  product_classes: [industrial-gases, fuels]
+  unit_operations: [reaction, adsorption, heat-exchange, flash, compression]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest; see validation.notes and
+# DESIGN.md D-011 for what cheme maturity reports.
+maturity: concept
 validation:
-  status: unreviewed            # unreviewed | internally-reviewed | peer-reviewed | industry-validated
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances (cheme validate, cheme process
+    streams; every block and step ok). The reformer and shift outlets are calculated by cheme
+    (equilibrium reactors) and reproduce the independent balance script
+    (scripts/h2_balance.py); cheme process reactors gives a reformer duty of 102.0 MW and a
+    furnace radiant duty of -102.0 MW on the same ideal-gas basis, and an adiabatic shift
+    (0.03 kW). Stream enthalpies and the block energy balances are not evaluable in core (no
+    property package covers water-bearing synthesis gas, steam and flue gas, core #315); the
+    separator, PSA and steam drum outlets and the exchanger duties are specified values from
+    the script. The natural gas composition, capacity, PSA recovery and all conditions are
+    ASSUMED, not sourced, so cheme maturity reaches no level yet (sourced boundary and
+    sourced model basis fail; the concept claim is the manifest's lowest level). Not reviewed. A preliminary gate-to-gate LCI (lca/) is written with
+    its backgrounds unmapped (gaps). The chemicals registry entries used here are listed in
+    DESIGN.md D-014 where they are missing.
 chemistry:
   inputs:
-    - {chemical: water, role: feedstock}
+    - {chemical: methane, role: feedstock, inventory_key: "feed:NG", note: "natural gas feedstock, 93 mol% CH4 (ASSUMED); also 3.5 % ethane, 0.7 % propane, 1.3 % CO2, 1.5 % N2"}
+    - {chemical: methane, role: feedstock, inventory_key: "feed:NGF", note: "trim natural gas burned in the reformer furnace (same gas); the registry has no natural-gas entry yet (D-014)"}
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "combustion air, 10 % excess (ASSUMED)"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:DMW", note: "demineralised boiler feed make-up; part becomes process steam (reactant), part export steam"}
   outputs:
-    - {chemical: hydrogen, role: main-product}
+    - {chemical: hydrogen, role: main-product, inventory_key: "product:H2", note: "99.9 mol% H2 at 2850 kPa(a) (ASSUMED)"}
+    - {chemical: steam, role: co-product, inventory_key: "product:STEAMX", note: "export steam 4300 kPa(a), 673 K"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:FLUE", note: "all CO2 of feedstock and fuel, through the stack"}
+    - {chemical: water, role: waste, inventory_key: "product:BD", note: "boiler blowdown"}
   utilities:
-    - {chemical: electricity, role: utility}
-# basis: {capacity: "1000 t/d product", operating_hours_per_year: 8000}
-# lca: {source: auto}           # auto: read lca/ of a ChemE-as-Code project; none: no LCA
-# references:
-#   - {title: "Author et al. (2024) Title", doi: 10.xxxx/xxxxx}
-# maintainers:
-#   - {name: Your Name, orcid: 0000-0000-0000-0000}
-# repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/my-process, access: private}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "fans, BFW pump, recycle compressor (ASSUMED electric drives)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED), trim cooler E-202"}
+basis:
+  capacity: "100 000 Nm3/h hydrogen 99.9 mol% (ASSUMED)"
+  operating_hours_per_year: 8400
+  location: generic (not chosen)
+lca: {source: auto}
+references:
+  - {title: "Ullmann's Encyclopedia of Industrial Chemistry: Hydrogen, 2. Production (route survey)", doi: 10.1002/14356007.o13_o03}
+  - {title: "Twigg, M. V. (ed.) (1989) Catalyst Handbook, 2nd ed., Manson (reforming and shift catalyst windows, via the cheme reaction library)"}
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/hydrogen-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0
