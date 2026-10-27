@@ -1,8 +1,51 @@
 # What the plant must do. Schema: `cheme schema design_basis`.
-schema: cheme/design_basis/v1
-capacity: {}
-feeds: []
-products: []
-utilities: []
-site: {}
-assumptions: []
+# Thermal hydrodealkylation (HDA) of toluene to benzene, issue
+# ChemE-as-Code/process-library#42. An independent concept design: no flowsheet data of the
+# IDAES HDA tutorial are used (DESIGN.md D-001). Values marked ASSUMED are engineering choices of
+# this concept study, not client or licensor data; every decision is in DESIGN.md.
+capacity:
+  basis: Benzene product stream to storage (incl. its toluene impurity)
+  product_t_per_a: 100000             # ASSUMED (D-002): a mid-size single train, chosen, not a client figure
+  product_kg_per_h: 12500.0           # = 100 kt/a / 8000 h
+  operating_hours_per_year: 8000      # ASSUMED (D-002)
+  turndown_percent: 60                # ASSUMED, not checked
+feeds:
+  - name: Fresh toluene (from an aromatics complex or tank farm, outside the boundary)
+    source_of_values: ASSUMED (D-003)
+    composition_mol_percent: {TOL: 100.0}   # ASSUMED: pure; real nitration/solvent grade carries traces of C8 aromatics and non-aromatics, not modelled
+    conditions: {pressure_kPa_a: 300, temperature_K: 303.15}   # ASSUMED battery limit
+    flow: set by the product rate through the balance (D-006); stream S1 of process/flowsheet.yaml
+  - name: Make-up hydrogen (from a reformer or a hydrogen network, outside the boundary)
+    source_of_values: ASSUMED (D-003)
+    composition_mol_percent: {H2: 95.0, CH4: 5.0}   # ASSUMED (D-003): a reformer-type make-up gas
+    conditions: {pressure_kPa_a: 3700, temperature_K: 313.15}  # ASSUMED: available above loop pressure, no make-up compressor
+    flow: set by the loop specifications (D-007); stream S4
+products:
+  - name: Benzene
+    purity: "99.9 mol% benzene (99.88 wt%), toluene the impurity (ASSUMED design target, D-002); a commercial specification (e.g. ASTM D2359 or D4734 refined benzene) is not checked: thiophene, non-aromatics, freezing point and colour are outside the model"
+    delivery: {pressure_kPa_a: 150, temperature_K: 313.15, battery_limit: product tanks (outside the boundary)}
+  - name: Biphenyl (diphenyl) by-product
+    purity: "98 mol% biphenyl, 2 mol% toluene (ASSUMED, D-008)"
+    use: sale or fuel (outside the boundary, D-009)
+  - name: Fuel gas (purge gas and stabiliser off-gas)
+    use: site fuel gas header (outside the boundary); hydrogen recovery from the purge not included (D-007, D-009)
+utilities:
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: ASSUMED (D-010)}
+  - {name: LP steam, pressure_kPa_a: 450, saturation_K: 420.8, use: benzene column reboiler, note: ASSUMED level (D-010)}
+  - {name: MP steam, pressure_kPa_a: 1500, saturation_K: 471.4, use: stabiliser reboiler, note: ASSUMED level (D-010)}
+  - {name: HP steam, pressure_kPa_a: 4200, saturation_K: 526.4, use: toluene column reboiler, note: ASSUMED level (D-010)}
+  - {name: Fired heat (natural gas), use: reactor feed heater H-101, note: "ASSUMED: purchased natural gas; burning the purge in the heater is the usual alternative (D-009)"}
+  - {name: Electric power, use: recycle compressor and toluene feed pump, note: ASSUMED electric drives (D-010)}
+site:
+  location: ASSUMED generic site, not chosen
+  design_ambient_K: 303.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325   # ASSUMED
+assumptions:
+  - "ASSUMED thermal (non-catalytic) HDA: adiabatic reactor, inlet 895.15 K and 3450 kPa(a), outlet temperature from the energy balance (D-004)."
+  - "ASSUMED toluene conversion per pass 0.75; benzene selectivity from the Douglas (1988) correlation S = 1 - 0.0036/(1 - X)^1.544 = 0.969: a sourced conversion/selectivity model, not kinetics (D-005)."
+  - "ASSUMED loop specifications: H2/aromatics 5 mol/mol at the reactor inlet, purge gas 40 mol% H2 (D-007)."
+  - "ASSUMED quench of the reactor effluent to 893.15 K with separator liquid; separator 313.15 K, 3250 kPa(a) (D-004)."
+  - "ASSUMED columns: stabiliser 800 kPa(a) with partial condenser at 313.15 K, L/D 1; benzene column 150/170 kPa(a), 99.5 % benzene recovery; toluene column 30/45 kPa(a) (vacuum), 2 mol% toluene in the biphenyl; reflux 1.3 x Underwood minimum, at least 0.5 (D-008)."
+  - "ASSUMED compressor isentropic efficiency 0.75, pump efficiency 0.65 (D-010)."
+  - "ASSUMED no other side reactions (hydrocracking to light paraffins, methylbiphenyls, coke): not modelled until sourced selectivities exist (D-005)."
+  - "All flows, temperatures and duties are concept estimates from an unqualified property method (Peng-Robinson in thermo, D-006); accuracy not stated."
