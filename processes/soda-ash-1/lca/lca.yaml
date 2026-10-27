@@ -1,0 +1,109 @@
+# Goal and scope of the soda-ash-1 LCA. Schema: `cheme schema lca`. Outputs: `cheme assess lca
+# --write` (lca/inventory.csv, results.csv, results.md, gaps.csv, dataset.yaml, manifest.json);
+# never edit those by hand. Decisions: DESIGN.md D-010.
+#
+# This stage delivers the PRELIMINARY GATE-TO-GATE FOREGROUND INVENTORY: every exchange of the
+# balanced flowsheet per kg of light soda ash. No background is connected yet: each feed,
+# utility and waste names the background activity it should link to later and is declared
+# `missing:` (a gap in every category, never 0). `boundary: cradle-to-gate` is the scope the
+# backgrounds will complete; `gate-to-gate` in cheme maps every feed free, which would hide
+# the raw materials and utilities (D-010).
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary foreground (gate-to-gate) life cycle inventory of light soda ash by the Solvay
+  process at the concept stage: which raw materials, utilities, emissions and wastes the
+  balanced flowsheet implies per kg of product, ready to be linked to background datasets
+  later. Flows are concept estimates on assumed design parameters (DESIGN.md D-006, D-008).
+functional_unit: {product: SODA, amount: 1, unit: kg}
+boundary: cradle-to-gate
+year: 2026
+location: GLO   # generic site, country not chosen (D-002)
+technology: "Solvay ammonia-soda process: mixed-feed shaft lime kiln, ammoniation, carbonating towers, rotary vacuum filter, steam calciner, ammonia distiller with milk of lime; 1000 t/d light soda ash"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+allocation:
+  method: none
+  source: "D-010: one product (light soda ash); the distiller waste and the vent are wastes and emissions, not co-products (CaCl2 recovery is outside the boundary, D-001)"
+flows:
+  # ---- raw materials (backgrounds to connect later)
+  - key: feed:BRINE
+    missing: "no background linked yet. Connect: purified sodium chloride brine (26 wt% NaCl) at the plant, i.e. rock salt solution mining or salt dissolution, including brine purification (Ca/Mg removal with lime and soda ash, D-003); per kg of brine solution, or per kg NaCl with the water as process water"
+    source: "stream S8 (scripts/solvay_balance.py, D-006)"
+  - key: feed:LST
+    missing: "no background linked yet. Connect: limestone, crushed and screened, kiln grade, from a quarry (market for limestone), per kg as charged (1 % moisture)"
+    source: "stream S1 (D-005, D-006)"
+  - key: feed:COKE
+    missing: "no background linked yet. Connect: metallurgical coke (from coking coal in a coke oven plant), market for coke, per kg as fired (89 % C, D-005)"
+    source: "stream S2 (process/furnaces.yaml, D-004)"
+  - key: feed:NH3
+    missing: "no background linked yet. Connect: ammonia, anhydrous, liquid (market for ammonia), per kg NH3"
+    source: "stream S10: make-up equal to the losses (D-006)"
+  - key: feed:PW
+    missing: "no background linked yet. Connect: process water (decarbonised or tap water from the site's supply), per kg; or, if drawn from a river or well, an elementary water resource"
+    source: "streams S6 (slaking) and S20 (cake wash)"
+  - key: feed:AIR
+    free: true
+    source: "kiln combustion air: ambient air, a resource taken without burden"
+  # ---- utilities
+  - key: feed:POWER
+    missing: "no background linked yet. Connect: grid electricity, medium voltage, of the site's country (site not chosen, D-002), per kWh"
+    source: "Q1 + Q3 (compressors) + Q5 (auxiliaries, ASSUMED 35 kWh/t), D-008"
+  - key: feed:LPS
+    missing: "no background linked yet. Connect: LP steam 450 kPa(a) from the site's boiler or CHP plant (fuel to be decided; integrated soda ash plants commonly raise it in a coal or gas CHP), per kg of steam (live steam, condensate not returned)"
+    source: "stream S23: live steam to the distiller, solved from the distiller heat balance (D-008)"
+  - key: feed:HPS
+    missing: "no background linked yet. Connect: heat from HP steam 3000 kPa(a) of the site's boiler or CHP plant (condensate returned), per kWh of heat delivered"
+    source: "Q9: calciner duty (D-008)"
+  - key: product:CW
+    missing: "no background linked yet. Connect: cooling water from a circulating evaporative cooling tower (pumping, fans, make-up water and treatment chemicals), per kWh of heat rejected"
+    source: "Q2, Q4, Q6, Q7, Q8, Q10 (D-008)"
+  # ---- wastes and emissions
+  - key: product:DSW
+    treatment:
+      kind: waste
+      route: "settling ponds (lime beds): suspended CaCO3, Ca(OH)2 and insolubles settle; the clarified CaCl2-NaCl liquor is discharged to surface water or sea"
+    missing: "no background linked yet. Connect: treatment of Solvay distiller waste in settling ponds, with the discharge of the dissolved CaCl2 (93 kg/t liquor), NaCl, NH3 traces and the pond solids as elementary flows to water and soil; the composition is in stream S24 (lca/dataset.yaml)"
+    source: "stream S24 (D-006)"
+  - key: product:VENT
+    emission: true
+    source: "stream S13: tower exit gas after the brine scrubber, to atmosphere (D-006)"
+  - key: emission:CO2
+    elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}
+    source: "unabsorbed kiln CO2: limestone (geogenic carbonate) and coke carbon, both fossil carbon; the vent leaves the scrubber stack (D-006)"
+  - key: emission:NH3
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    source: "ammonia slip after the tower-gas scrubber, 0.5 kg/t ASSUMED (D-006)"
+  - {key: emission:N2, free: true, source: "nitrogen of the kiln combustion air returned to the atmosphere"}
+  - {key: emission:O2, free: true, source: "excess oxygen of the kiln combustion air returned to the atmosphere"}
+  - {key: emission:H2O, free: true, source: "water vapour of the vent (saturation at 303 K)"}
+
+# Kiln pollutants are not estimated at this stage: declared, never silently 0 (D-010).
+emission_exclusions:
+  - id: kiln-pollutants
+    method: combustion
+    equipment: [R-101]
+    exchange: product:VENT
+    reason: "CO, NOx, SO2 (coke sulfur neglected, D-005) and dust of the lime kiln are not estimated at the concept stage: the kiln gas is washed (E-101) and passes the carbonating towers and the brine scrubber before the vent; an estimate from the lime BREF emission ranges is an open item (D-010)"
+    source: "DESIGN.md D-010"
+
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 25 a service life ASSUMED; no construction inventory at this stage (no take-off)"
+
+uncertainty:
+  iterations: 1000
+  seed: 1
+  defaults:
+    assumed: {gsd2: 1.5, source: "concept estimate on assumed design parameters (D-006)"}
+    calculated: {gsd2: 1.2, source: "calculated from assumed inputs"}
+    given: {gsd2: 1.1, source: "design basis"}
+
+dataset:
+  version: 0.1.0
+  geography: {description: "Generic site, country not chosen (D-002); no regional background linked"}
+  system_model: cutoff
+  technology_level: current
+  modelling: {principle: attributional}
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library, soda-ash-1 concept design (agent run 2026-10-27)"
