@@ -226,8 +226,11 @@ def underwood(feed, dist, lk, hk, t_mean):
     return sum(alpha[c] * xd[c] / (alpha[c] - theta) for c in alpha) - 1, alpha
 
 
-def column(feed, dist, bot, p_top, p_bot, lk, hk, t_dist_out=None, partial=False):
-    """Duties of a column with a total condenser (kW): reboiler from the energy balance."""
+def column(feed, dist, bot, p_top, p_bot, lk, hk, h_feed, t_dist_out=None):
+    """Duties of a column with a total condenser (kW): reboiler from the energy balance.
+
+    h_feed: enthalpy of the feed as it arrives (the upstream column's bottoms, let down
+    isenthalpically); Underwood takes the feed as saturated liquid (q = 1, a simplification)."""
     resf = bubble(feed, p_bot)
     resd_l = bubble(dist, p_top)
     resd_v = dew(dist, p_top)
@@ -242,7 +245,7 @@ def column(feed, dist, bot, p_top, p_bot, lk, hk, t_dist_out=None, partial=False
         resd_sub = flash(dist, T=t_dist_out, P=p_top)
         q_cond += h_d - h_fl(dist, resd_sub)
         h_d = h_fl(dist, resd_sub)
-    q_reb = q_cond + h_d + h_fl(bot, resb) - h_fl(feed, resf)
+    q_reb = q_cond + h_d + h_fl(bot, resb) - h_feed
     return dict(rmin=rmin, r=r, alpha=alpha, q_cond=q_cond, q_reb=q_reb, t_top=resd_l.T,
                 t_bot=resb.T, t_feed=resf.T)
 
@@ -372,8 +375,10 @@ def main():
     q201_cond = h_fl(reflux, dew(reflux, P_C201)) - h_fl(reflux, flash(reflux, T=T_C201_COND, P=P_C201))
     q201_reb = q201_cond + h_fl(vap, resv) + h_fl(bot, resb) - h_fl(c201_feed, resf)
     q["C201_cond"], q["C201_reb"] = q201_cond, q201_reb
-    c202 = column(S_["S20"], S_["S21"], S_["S22"], P_C202_TOP, P_C202_BOT, "BZ", "TOL", T_PRODUCT)
-    c203 = column(S_["S22"], S_["S23"], S_["S24"], P_C203_TOP, P_C203_BOT, "TOL", "BIPH")
+    c202 = column(S_["S20"], S_["S21"], S_["S22"], P_C202_TOP, P_C202_BOT, "BZ", "TOL",
+                  h_fl(bot, resb), T_PRODUCT)
+    h_s22 = h_fl(S_["S22"], bubble(S_["S22"], P_C202_BOT))
+    c203 = column(S_["S22"], S_["S23"], S_["S24"], P_C203_TOP, P_C203_BOT, "TOL", "BIPH", h_s22)
     q["C202_cond"], q["C202_reb"] = c202["q_cond"], c202["q_reb"]
     q["C203_cond"], q["C203_reb"] = c203["q_cond"], c203["q_reb"]
 
@@ -437,6 +442,15 @@ def main():
     mass_in = mass(S_["S1"]) + mass(S_["S4"])
     mass_out = mass(S_["S13"]) + mass(S_["S19"]) + mass(S_["S21"]) + mass(S_["S24"])
     out["checks"]["mass_in_kg_h"], out["checks"]["mass_out_kg_h"] = mass_in, mass_out
+    # overall energy closure (kW, formation enthalpies included): feeds + heat and work in =
+    # products + heat to cooling water; the pump's temperature rise is neglected (D-010)
+    h_in = (h_fl(S_["S1"], flash(S_["S1"], T=T_TOL_FEED, P=P_TOL_FEED)) + h_mu
+            + q["K101"] + q["P101"] + q["H101"] + q["C201_reb"] + q["C202_reb"] + q["C203_reb"])
+    h_out = (h_gas(S_["S13"], T_SEP, P_SEP) + h_fl(vap, resv)
+             + h_fl(S_["S21"], flash(S_["S21"], T=T_PRODUCT, P=P_C202_TOP))
+             + h_fl(S_["S24"], bubble(S_["S24"], P_C203_BOT))
+             + q["E102"] + q["C201_cond"] + q["C202_cond"] + q["C203_cond"])
+    out["checks"]["energy_in_kW"], out["checks"]["energy_out_kW"] = h_in, h_out
     print(json.dumps(out, indent=1, default=float))
     (ROOT / "build").mkdir(exist_ok=True)
     (ROOT / "build/hda_balance.json").write_text(json.dumps(out, indent=1, default=float))
