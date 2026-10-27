@@ -9,7 +9,9 @@ lci_dataset``; schema ``cheme/lci_dataset/v2``, and the v1 files), ``lca/dataset
 any hand-written ``lca/datasets/*.yaml`` of a manifest-only process; ``process.yaml`` for the
 title, maturity and the chemical slug of each inventory key; ``lca/lca.yaml`` for the study's
 allocation and functional unit. Linking comes from ``lci/mappings.yaml`` (library root, else the
-staged copy beside this script; schema ``schemas/lci-mappings.schema.json``). YAML files only:
+process library's own beside this script; schema ``schemas/lci-mappings.schema.json``); the
+latest check of its background names against a licensed background (``lci/mapping-checks/``,
+``check_mappings.py``) is recorded in ``datapackage.json`` (``brightway.background_check``). YAML files only:
 chemeascode is never imported, except ``foundation.units`` for the benchmark unit conversion
 (``benchmarks.convert``) and ``lca.cutoff`` for the cut-off criteria (``cutoff_results``), both
 lazily.
@@ -124,6 +126,7 @@ from jsonschema import Draft202012Validator
 from openpyxl import Workbook
 
 import benchmarks as bm
+import check_mappings
 import export_formats
 import lci_activities
 import markets as mk
@@ -2274,6 +2277,11 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
         report.errors.append(message)
     if report.errors:
         return report
+    background_check, problems = check_mappings.status(mappings, mappings_path.parent / "mapping-checks", _base_dir("schemas") / "lci-mapping-check.schema.json")
+    for message in problems:
+        report.errors.append(message)
+    if report.errors:
+        return report
     model = system_model or mappings["system_model"]
     if model not in SYSTEM_MODELS:
         report.error("--system-model", f"{model!r} is not one of {', '.join(SYSTEM_MODELS)}")
@@ -2380,7 +2388,7 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
         "governance": {"document": "docs/governance.md", "versioning": "semantic: database release and every dataset"},
         "format": "bw2io ExcelImporter workbook",
         "library": {"commit": commit, "dirty": dirty},
-        "brightway": {"database": db_name, "default_background": DEFAULT_BACKGROUND, "default_biosphere": DEFAULT_BIOSPHERE, "default_site_location": mappings["default_site_location"]},
+        "brightway": {"database": db_name, "default_background": DEFAULT_BACKGROUND, "default_biosphere": DEFAULT_BIOSPHERE, "default_site_location": mappings["default_site_location"], "background_check": background_check},
         "resources": [{"path": f["name"], **{k: v for k, v in f.items() if k != "name"}} for f in (workbook_format, *formats)],
         "processes": process_entries,
         "proxies": activity_list([p.row for p in proxies]),
@@ -2411,6 +2419,9 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
     file_formats["datapackage.json"] = {"format": "Atlas LCI datapackage", "format_version": DATAPACKAGE_SCHEMA}
     file_formats.update({name: {"format": "Atlas LCI change report", "format_version": CHANGES_SCHEMA} for name in reports})
     caveats = [*CAVEATS, *variant_caveats]
+    if background_check["status"] != "verified":
+        detail = background_check.get("note") or f"{background_check['unmatched']} name(s) did not match {background_check['background']['database']} {background_check['background']['version']}"
+        caveats.append(f"Background names (lci/mappings.yaml): {background_check['status']}, {detail} (datapackage.json brightway.background_check).")
     for entry in process_entries:
         if entry["factors_status"] == "placeholder":
             caveats.append(f"{entry['id']}: the study's characterisation factors are placeholders (example: true); the LCI carries no factors, but its plantcode results are not meaningful numbers.")
@@ -2439,7 +2450,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--out", type=Path, required=True, help="output directory; <out>/lci/ is replaced")
     parser.add_argument("--version", default="dev", help="database version, part of its name and file name (default: dev)")
     parser.add_argument("--commit", help="library commit to record (default: git HEAD of --library)")
-    parser.add_argument("--mappings", type=Path, help="lci/mappings.yaml (default: <library>/lci/, else the staged copy)")
+    parser.add_argument("--mappings", type=Path, help="lci/mappings.yaml (default: <library>/lci/, else the process library's own)")
     parser.add_argument("--strict", action="store_true", help="fail on warnings too")
     parser.add_argument("--public", action="store_true", help="published processes only (publication.status: public)")
     parser.add_argument("--system-model", choices=sorted(SYSTEM_MODELS), help="default: the mappings' system_model (cutoff); substitution builds the labelled variant")

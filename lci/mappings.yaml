@@ -1,6 +1,5 @@
 # How the Atlas LCI export links each dataset exchange to a Brightway background.
 # Schema: schemas/lci-mappings.schema.json (cheme-as-code/lci-mappings/v1). Read by build_lci.py.
-# Staged here until process-library exists; then it lives at the library root as lci/mappings.yaml.
 #
 # Background activities are referenced by NAME ONLY (name, reference product, unit, location):
 # no ecoinvent data is shipped (licence). The database is chosen at install time
@@ -8,9 +7,12 @@
 # install-time parameter: install(location="FR") replaces it; without one, `default_site_location`
 # is used and the install report says so.
 #
-# The names follow ecoinvent 3.11 (cut-off) conventions. They have NOT been checked against a
-# licensed ecoinvent copy in this repository: install() reports any that do not link, and a
-# curator fixes them here.
+# The names follow ecoinvent 3.11 (cut-off) conventions. A curator with a licence checks them
+# with scripts/check_mappings.py in a Brightway project that holds the background, which records
+# the check in lci/mapping-checks/ (database, version, date, who, every unmatched name); the build
+# states the latest check in datapackage.json (brightway.background_check: verified, failed,
+# stale or unchecked). Until a record exists they are NOT checked against a licensed copy:
+# install() reports any that do not link, and a curator fixes them here.
 #
 # Lookup order for one exchange of a dataset (build_lci.py):
 #   1. `exchanges:` below ("<process-id>/<key>" or "<key>"): a curated override;
