@@ -75,7 +75,7 @@ has it. The public build (`--public` of `build_catalog.py`, `build_lci.py` and
   or stale manifest and restricted or local sources withhold them. Its goal, functional unit,
   boundary, inventory, class and data sources (with their attribution) stay.
 - The viewer snapshot is exported without these paths, which always apply in public builds:
-  `.claude/**`, `AGENTS.md`, `CLAUDE.md`, `reviews/**`, `PROGRESS.md`, `scripts/agent-run/**`,
+  `.claude/**`, `AGENTS.md`, `CLAUDE.md`, `reviews/**`, `runs/**`, `PROGRESS.md`, `scripts/agent-run/**`,
   `**/.gitattributes` (kept in `scripts/publication.py`; change both together), and
   `process.yaml` itself (the catalog publishes what of it may be public). Add your own
   under `publication.exclude` (globs relative to the process folder: `**` spans directories,

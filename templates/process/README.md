@@ -14,6 +14,7 @@ Optional, as the process matures:
 | `layout/plant-model.yaml` | 3D layout (in the Viewer) |
 | `lca/` with results (`cheme assess lca --write`) | footprint per functional unit, contributions, inventory |
 | `checks/status.json` | engineering gate status |
+| `runs/<run-id>/` (one per agent or work session, [docs/run-records.md](../../docs/run-records.md)) | nothing: the effort record stays in git |
 
 Keep sources and assumptions with the data. The `maturity` and `validation` fields are what tell
 a reader whether this is a research concept or a reviewed design.

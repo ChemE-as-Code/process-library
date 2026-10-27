@@ -14,6 +14,6 @@ GIT_AUTHOR_DATE=2026-10-22T22:32:38+02:00 GIT_COMMITTER_DATE=2026-10-22T22:32:38
   git -c user.name=fixture -c user.email=fixture@example.org commit -qm "process-recycle example"
 cheme export-static <library>/tests/fixtures/snapshots/fixture-electrolysis --repo /tmp/recycle \
   --exclude '.claude/**' --exclude AGENTS.md --exclude CLAUDE.md --exclude 'reviews/**' \
-  --exclude PROGRESS.md --exclude 'scripts/agent-run/**' --exclude '**/.gitattributes' \
+  --exclude 'runs/**' --exclude PROGRESS.md --exclude 'scripts/agent-run/**' --exclude '**/.gitattributes' \
   --exclude process.yaml --exclude 'docs/private/**'
 ```
