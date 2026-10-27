@@ -11,7 +11,10 @@ owners, references, scoped milestones and a kanban without confusing workflow wi
 Use one canonical process issue initially, route children when independently developed, and a
 tracker for coordination. Add process/tracker forms and type:process, type:tracker and type:research
 labels. Reuse the engineering issue vocabulary. Keep coverage.yaml as the ranking plan.
-A GitHub Project separates Status, calculation maturity, tier, review and evidence. Board movement
+A GitHub Project separates Status, next milestone, target deliverable, development priority,
+calculation maturity, tier, review and evidence. The main board progresses through references,
+brief, BFD, PFD/balances and scoped engineering; sourced inventories have a separate branch.
+Each process can stop at its agreed target after verification; detail/3D is optional. Board movement
 or closure never raises maturity or approves publication. Committed evidence remains authoritative.
 Text-to-flowsheet provides process suggestions only; CRYSTAL provides hub prioritization leads only.
 
