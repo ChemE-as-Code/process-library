@@ -1,0 +1,105 @@
+schema: process-run/v1
+run_id: 20261027-220142-ci-fix
+process: hydrogen-1
+kind: agent
+complete: false
+incomplete_notes:
+- runner had uncommitted changes (runner_commit is not exact)
+task_file: /Users/arturschweidtmann/Developer/test/agent-cli/tasks/gen/hydrogen-1-ci-fix.md
+branch: case/hydrogen-1
+start_commit: 83763a2377676825d6c18ab195fefd14f1a56f53
+end_commit: 45e3db54c8493773aa341c923f98c8e834489f1d
+started: '2026-10-27T22:01:42+00:00'
+finished: '2026-10-27T22:07:40+00:00'
+wall_s: 358
+cost_usd: 2.3613286000000007
+budget_usd: 3.0
+model: claude-opus-5-5
+effort: high
+num_turns: 88
+tokens:
+  input: 120
+  output: 28511
+  thinking: 9766
+  cache_read: 5908628
+  cache_write: 121748
+session_id: 9079ab59-61f2-492a-bb00-0cff18d56036
+session_export:
+  file: session.jsonl.gz
+  sha256: 2c1bb84c0d2545614e2c06f38c4bcca08866483fdadb2e1195a2f68425c3196e
+tools:
+  cheme: cheme 0.8.0 (pyDEXPI 2.1.0)
+  core_commit: 44680fa0e142849803577a235d78fd0a75ca3f7a
+  claude_agent_sdk: 0.2.174
+  runner_commit: 99c2a5a5820b5aa77f5d51aa14f32c8a5792aa34
+  runner_dirty: true
+checks_by_agent:
+- cheme assess lca --coverage 2>&1 | grep -E "^result|warning cheme.lci|error" | head
+- cheme assess lca --coverage 2>&1 | grep -i "error\|NG\b\|natural" | head
+- cheme assess lca --coverage 2>&1 | tail -40
+- cheme assess lca --write 2>&1 | grep -c "error"
+- cheme assess lca --write 2>&1 | grep -v "^lca/lca.yaml" | head -30
+- cheme check 2>&1 | grep -E "FAIL|fail" | head -15
+- cheme maturity 2>&1 | tail -6
+- cheme process props --coverage
+- cheme process streams 2>&1 | grep -iE "balance|not ok|stale|fail" | head -8
+- cheme process streams 2>&1 | tail -5
+- cheme run scripts/allocation_exergy.py
+- cheme schema lca | python3 -c "import json,sys; s=json.load(sys.stdin); d=s.get('\$defs',s.get('definitions',{}));
+  a=s['properties']['allocation']; print(json.dumps(a,indent=1)[:4000]); [print(k, json.dumps(v,indent=1)[:3000])
+  for k,v in d.items() if 'lloc' in k or 'eviation' in k]"
+- cheme schema lca | python3 -c "import json,sys; s=json.load(sys.stdin); d=s['\$defs']; a=d['Allocation']['properties'];
+  [print(k, json.dumps(a[k])[:600]) for k in a if k not in ('method','coproducts','prices','shares','substitution','compare')];
+  print(json.dumps(d['ProductProperties'])[:1500])"
+- cheme schema lca | python3 -c "import json,sys; s=json.load(sys.stdin); d=s['\$defs']['EmissionEstimate']['properties'];
+  [print(k, json.dumps(d[k])[:500]) for k in d if k not in ('id','title','method','equipment','stream','exchange','activity','components','factors')]"
+- cheme schema lca | python3 -c "import json,sys; s=json.load(sys.stdin); p=s['properties']; print(list(p));
+  d=s['\$defs']; [print(k, json.dumps(d[k])[:2500]) for k in d if 'mission' in k or 'xclusion' in k or
+  'stimate' in k]; [print(k, json.dumps(p[k])[:800]) for k in p if 'mission' in k]"
+- cheme validate 2>&1 | grep -E "error|warning|files" | grep -v " info " | tail -8
+checks_after_run:
+- command: cheme check
+  exit: 1
+  summary:
+    counts:
+      ok: 11
+      FAIL: 11
+      n/a: 3
+    failed:
+    - basic/pids-exist
+    - basic/design-review
+    - concept/layout-plot-plan
+    - basic/layout-3d
+    - basic/lifting-study
+    - basic/mto
+    - basic/layout-review
+    - detail/layout-detail
+    - detail/electrical
+    - detail/hvac
+    - detail/datasheets
+- command: cheme maturity
+  exit: 0
+  summary:
+    counts:
+      ok: 10
+      FAIL: 5
+    failed:
+    - sourced.boundary
+    - balanced.model-basis
+    - predictive.simulation-spec
+    - predictive.model-basis
+    - engineering.datasheets
+    levels:
+      sourced: fail
+      balanced: fail
+      predictive: fail
+      engineering: fail
+- command: cheme process propagate --check
+  exit: 0
+  summary:
+    last_line: ''
+outcome:
+  result: success
+  guard_denials: 0
+  report: report.md
+observed_later: {}

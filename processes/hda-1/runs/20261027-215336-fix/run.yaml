@@ -1,0 +1,99 @@
+schema: process-run/v1
+run_id: 20261027-215336-fix
+process: hda-1
+kind: agent
+complete: false
+incomplete_notes:
+- runner had uncommitted changes (runner_commit is not exact)
+task_file: /Users/arturschweidtmann/Developer/test/agent-cli/tasks/gen/hda-1-fix.md
+branch: case/hda-1
+start_commit: 0f9e708612c009c948cff27d0f66267cd9a7873e
+end_commit: ed7bb03e87d96c826c7d7c17836ff99ecbab9d7a
+started: '2026-10-27T21:53:36+00:00'
+finished: '2026-10-27T21:57:36+00:00'
+wall_s: 240
+cost_usd: 1.2735242999999998
+budget_usd: 5.0
+model: claude-opus-5-5
+effort: high
+num_turns: 57
+tokens:
+  input: 62
+  output: 20277
+  thinking: 5287
+  cache_read: 2173356
+  cache_write: 86582
+session_id: 89eba1b5-7209-4b7a-8cb9-fa83c8107bc5
+session_export:
+  file: session.jsonl.gz
+  sha256: 9e7092f66d9573e81aaa7d1a73b4f36cf4103f6137513c01f59bef993e2a49ee
+tools:
+  cheme: cheme 0.8.0 (pyDEXPI 2.1.0)
+  core_commit: 44680fa0e142849803577a235d78fd0a75ca3f7a
+  claude_agent_sdk: 0.2.174
+  runner_commit: 99c2a5a5820b5aa77f5d51aa14f32c8a5792aa34
+  runner_dirty: true
+checks_by_agent:
+- cheme assess lca --coverage 2>&1 | grep -v "declared missing" | head -40
+- cheme assess lca --coverage 2>&1 | grep -v "declared missing\|^  climate"
+- cheme assess lca --write 2>&1 | tail -5; git status --short
+- cheme check --stage concept --only-stage
+- cheme check 2>&1 | tail -25
+- cheme maturity 2>&1 | tail -25
+- cheme maturity 2>&1 | tail -3
+- cheme process build 2>&1 | tail -5; git diff --stat process/
+- 'cheme process streams 2>&1 | grep -c ": ok"'
+- cheme process streams 2>&1 | tail -30
+- "cheme schema lca > build/lca-schema.json; python3 -c \"\nimport json;s=json.load(open('build/lca-schema.json'))\n\
+  p=s['properties']\nprint(list(p))\nfor k in ['publication','emission_exclusions','flows','boundary']:\n\
+  \  print(k, json.dumps(p.get(k),indent=0)[:1500])\nprint(json.dumps(s.get('\\$defs',{}).keys().__repr__()))\n\
+  \""
+- cheme validate 2>&1 | grep -c "warning\|error"; cheme validate 2>&1 | grep "file(s)"; git diff process/PFD.xml
+  | grep "^[-+]" | head -8
+- cheme validate 2>&1 | tail -6
+checks_after_run:
+- command: cheme check
+  exit: 1
+  summary:
+    counts:
+      ok: 11
+      FAIL: 11
+      n/a: 3
+    failed:
+    - basic/pids-exist
+    - basic/design-review
+    - concept/layout-plot-plan
+    - basic/layout-3d
+    - basic/lifting-study
+    - basic/mto
+    - basic/layout-review
+    - detail/layout-detail
+    - detail/electrical
+    - detail/hvac
+    - detail/datasheets
+- command: cheme maturity
+  exit: 0
+  summary:
+    counts:
+      ok: 10
+      FAIL: 5
+    failed:
+    - sourced.boundary
+    - balanced.model-basis
+    - predictive.simulation-spec
+    - predictive.model-basis
+    - engineering.datasheets
+    levels:
+      sourced: fail
+      balanced: fail
+      predictive: fail
+      engineering: fail
+- command: cheme process propagate --check
+  exit: 0
+  summary:
+    last_line: ''
+outcome:
+  result: success
+  guard_denials: 0
+  report: report.md
+observed_later: {}

@@ -1,0 +1,146 @@
+schema: process-run/v1
+run_id: 20261027-213544-design
+process: urea-1
+kind: agent
+complete: false
+incomplete_notes:
+- 'session export kept out of git: it used web tools (WebFetch) and may hold third-party text; local copy
+  agent-cli/logs/20261027-213544-design.session.jsonl.gz'
+- runner had uncommitted changes (runner_commit is not exact)
+task_file: /Users/arturschweidtmann/Developer/test/agent-cli/tasks/gen/urea-1-design.md
+branch: case/urea-1
+start_commit: 79a7cd4c1a4da2c8792ea0a38567af78c2a2d429
+end_commit: e671bd1f695bc4d15a05a5959a1b5ac4754b0c02
+started: '2026-10-27T21:35:44+00:00'
+finished: '2026-10-27T21:59:25+00:00'
+wall_s: 1421
+cost_usd: 7.3987767
+budget_usd: 14.0
+model: claude-opus-5-5
+effort: high
+num_turns: 133
+tokens:
+  input: 174
+  output: 133198
+  thinking: 56125
+  cache_read: 16557264
+  cache_write: 282923
+session_id: 2bbfb00e-54e3-434a-baf3-55e9931e4277
+session_export: null
+tools:
+  cheme: cheme 0.8.0 (pyDEXPI 2.1.0)
+  core_commit: 44680fa0e142849803577a235d78fd0a75ca3f7a
+  claude_agent_sdk: 0.2.174
+  runner_commit: 99c2a5a5820b5aa77f5d51aa14f32c8a5792aa34
+  runner_dirty: true
+checks_by_agent:
+- cheme assess lca --check 2>&1 | tail -3; cheme impact 2>&1 | tail -8; cheme validate 2>&1 | tail -2
+  | head -1; head -12 README.md
+- cheme assess lca --inventory --write 2>&1 | grep wrote; cheme assess lca --check 2>&1 | tail -2; git
+  status --short
+- cheme assess lca --inventory --write 2>&1 | tail -5; cheme assess lca --balance 2>&1 | tail -30; ls
+  lca
+- cheme maturity 2>&1 | head -50
+- cheme process build 2>&1 | grep -v "^│ *│\|^╰\|^╭" | grep -E "py:|Error|error" | head -20
+- cheme process build 2>&1 | tail -5; cheme validate 2>&1 | grep -v "process-link-unresolved" | tail -15
+- cheme process methods 2>&1 | grep -i -E -B1 -A3 "electrolyt|speciat|carbamate|urea|ammonia" | head -40;
+  gh issue view 364 --repo ChemE-as-Code/core --comments 2>/dev/null | grep -i -E "urea|carbamate|NH3|ammonia|scope|support"
+  | head -15
+- cheme process propagate --fill 2>&1 | tail -15; cheme validate process/flowsheet.yaml process/materials.yaml
+  process/reactions.yaml 2>&1 | grep -v "process-link-unresolved" | tail -25
+- cheme run scripts/urea_balance.py
+- cheme run scripts/urea_balance.py --streams > build/streams.txt; tail -13 build/streams.txt; head -40
+  build/streams.txt
+- cheme run scripts/urea_balance.py | grep "SPL401"; cheme run scripts/urea_balance.py --streams > build/streams.txt;
+  grep -c "id:" build/streams.txt
+- cheme run scripts/urea_balance.py | grep "iterations\|closure"; cheme run scripts/urea_balance.py --streams
+  > build/streams.txt; wc -c build/streams.txt
+- cheme run scripts/urea_balance.py | grep "iterations\|closure\|per t"
+- 'cheme run scripts/urea_balance.py | grep -E "^S37|^S38|^S39"; uvx --version >/dev/null; cheme schema
+  process-materials | python3 -c "import json,sys; s=json.load(sys.stdin); d=s[''\$defs'']; print({k:
+  list(v.get(''properties'',{}).keys()) for k,v in d.items() if k in (''Component'',''Template'')}); print(d[''Component''].get(''required''))"'
+- cheme run scripts/urea_balance.py | grep -v "^S[0-9]* .*NH3:100\|^S5\|^S6 \|^S4 \|^S3 "
+- "cheme schema lca | python3 -c \"\nimport json,sys; s=json.load(sys.stdin); d=s['\\$defs']\nfor k in\
+  \ ['FlowMap','EmissionExclusion','DatasetDocumentation','SystemBoundary']:\n    print(k, {p:(v.get('description','')[:120])\
+  \ for p,v in d[k].get('properties',{}).items()})\nprint('boundary', json.dumps(s['properties']['boundary'])[:300])\""
+- "cheme schema lca | python3 -c \"\nimport json,sys; s=json.load(sys.stdin); d=s['\\$defs']\nprint('TOP',\
+  \ list(s['properties'].keys()))\nfor k in d:\n  if k.lower() in ('flow','flowmapping','lcaflow','functionalunit','allocation','dataset','datasetdoc','elementary','treatment','carbonaccounting'):\n\
+  \    print(k, {p:(v.get('description','')[:110]) for p,v in d[k].get('properties',{}).items()})\nprint([k\
+  \ for k in d])\""
+- "cheme schema process-flowsheet | python3 -c \"\nimport json,sys; s=json.load(sys.stdin); d=s['\\$defs']\n\
+  for k in ['StreamDef','Terminal','UtilityLevel','Evaporation']:\n  print(k, json.dumps({p:(v.get('description','')[:160])\
+  \ for p,v in d[k].get('properties',{}).items()},indent=0))\n\""
+- 'cheme schema process-flowsheet | python3 -c "
+
+  import json,sys; s=json.load(sys.stdin); d=s[''\$defs'']
+
+  print(json.dumps(d[''CompositionValue''])[:800]); print(json.dumps(d[''Port''])[:900]); print(json.dumps(d[''Step''][''properties''].get(''reactions''))[:300]);
+  print(list(d[''Step''][''properties''].keys()))"; cheme schema | head -50'
+- cheme schema process-flowsheet | python3 -c "import json,sys; s=json.load(sys.stdin); d=s.get('\$defs',s.get('definitions',{}));
+  print(list(d.keys())); print(json.dumps(d.get('stream',d.get('Stream',{})),indent=0)[:3000])"
+- 'cheme schema process-simulation | python3 -c "
+
+  import json,sys; s=json.load(sys.stdin); d=s[''\$defs'']
+
+  print(json.dumps(d[''HeatIntegration''])[:900]); print(json.dumps(s[''properties''][''specs''])[:300]);
+  print(json.dumps(s[''properties''][''property_package''])[:300])"'
+- "cheme schema process-simulation | python3 -c \"\nimport json,sys; s=json.load(sys.stdin); print('required',\
+  \ s.get('required')); print(list(s['properties'].keys())); d=s['\\$defs']; print([k for k in d][:40]);\n\
+  for k in d:\n  if 'mode' in d[k].get('properties',{}): print(k, json.dumps(d[k]['properties']['mode'])[:300],\
+  \ d[k].get('required'))\""
+- cheme status 2>&1 | head -40; echo ----; cheme check 2>&1 | tail -30
+- cheme status 2>&1 | sed -n 1,12p; git status --short | wc -l; git log --oneline main..HEAD
+- 'cheme validate 2>&1 | grep -i error | head -5; grep -n "slug: \|  - id:" ../../taxonomy/families.yaml
+  | grep -i -E "urea|ammon|fertil|nitrogen"'
+- cheme validate 2>&1 | grep -v "dexpi.load" | tail -8
+- cheme validate 2>&1 | grep decision-unknown
+- cheme validate 2>&1 | tail -2 | head -1; cd ../.. && ls tests | head; grep -n "def main\|argparse\|add_argument"
+  scripts/build_catalog.py | head -8
+- cheme validate lca/lca.yaml 2>&1 | head -8; cheme assess lca --coverage 2>&1 | tail -70
+- cheme validate lca/lca.yaml 2>&1 | tail -8; cheme assess lca --coverage 2>&1 | tail -60
+- cheme validate process/flowsheet.yaml process/materials.yaml process/reactions.yaml 2>&1 | tail -40
+checks_after_run:
+- command: cheme check
+  exit: 1
+  summary:
+    counts:
+      ok: 11
+      FAIL: 11
+      n/a: 3
+    failed:
+    - basic/pids-exist
+    - basic/design-review
+    - concept/layout-plot-plan
+    - basic/layout-3d
+    - basic/lifting-study
+    - basic/mto
+    - basic/layout-review
+    - detail/layout-detail
+    - detail/electrical
+    - detail/hvac
+    - detail/datasheets
+- command: cheme maturity
+  exit: 0
+  summary:
+    counts:
+      ok: 9
+      FAIL: 4
+    failed:
+    - sourced.boundary
+    - balanced.model-basis
+    - predictive.model-basis
+    - engineering.datasheets
+    levels:
+      sourced: fail
+      balanced: fail
+      predictive: fail
+      engineering: fail
+- command: cheme process propagate --check
+  exit: 0
+  summary:
+    last_line: ''
+outcome:
+  result: success
+  guard_denials: 0
+  report: report.md
+observed_later: {}

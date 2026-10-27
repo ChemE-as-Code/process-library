@@ -1,0 +1,555 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Thermal toluene hydrodealkylation (D-001). Where the values come from:
+# - the feeds' compositions and all temperatures and pressures are design choices (design
+#   basis, D-003, D-004, D-008), ASSUMED;
+# - the reactor outlet S8 is calculated by cheme (conversion reactor with the D-005 selectivity);
+# - flows and compositions through mixers, splitters, the pump, the compressor, the heater and
+#   the trim cooler are calculated by `cheme process propagate --fill`;
+# - feed flows, separator and column outlets, the exchanger sides and all duties come from the
+#   independent balance scripts/hda_balance.py (D-006), given here as ASSUMED: core cannot yet
+#   qualify flashes, enthalpies or distillation of aromatics with hydrogen (core #315).
+schema: cheme/process/v1
+kind: flowsheet
+title: Toluene hydrodealkylation to benzene (100 kt/a, thermal HDA)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+  enthalpy_reference: {state: ideal_gas, temperature: 298.15}
+cases:
+  - {id: design, description: "Design case: 12.5 t/h benzene, toluene conversion 0.75 per pass, H2/aromatics 5, purge 40 mol% H2 (D-002, D-005, D-007)", default: true}
+tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - {id: TOLF, title: Fresh toluene, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: H2MU, title: Make-up hydrogen (95 mol% H2), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports: [{id: p101, direction: out, kind: energy}, {id: k101, direction: out, kind: energy}]
+  - id: FUEL
+    title: Fired heat from natural gas (feed heater)
+    category: utility
+    utility:
+      kind: fired_heat
+      level: natural gas firing
+      supply_temperature: {value: 1200, provenance: assumed, source: "D-010: flue gas leaving the radiant section, a concept value"}
+      min_approach: {value: 50, provenance: assumed, source: D-010}
+    ports: [{id: h101, direction: out, kind: energy}]
+  - id: MPS
+    title: MP steam 1500 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: MP
+      pressure: {value: 1500, provenance: assumed, source: "design basis, D-010"}
+      supply_temperature: {value: 471.4, provenance: assumed, source: "saturation at 1500 kPa(a), D-010"}
+      min_approach: {value: 10, provenance: assumed, source: D-010}
+    ports: [{id: c201, direction: out, kind: energy}]
+  - id: LPS
+    title: LP steam 450 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 450, provenance: assumed, source: "design basis, D-010"}
+      supply_temperature: {value: 420.8, provenance: assumed, source: "saturation at 450 kPa(a), D-010"}
+      min_approach: {value: 10, provenance: assumed, source: D-010}
+    ports: [{id: c202, direction: out, kind: energy}]
+  - id: HPS
+    title: HP steam 4200 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: HP
+      pressure: {value: 4200, provenance: assumed, source: "design basis, D-010"}
+      supply_temperature: {value: 526.4, provenance: assumed, source: "saturation at 4200 kPa(a), D-010"}
+      min_approach: {value: 10, provenance: assumed, source: D-010}
+    ports: [{id: c203, direction: out, kind: energy}]
+products:
+  - {id: BENZENE, title: Benzene to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: DIPHENYL, title: Biphenyl (diphenyl) by-product, category: by_product, ports: [{id: in, direction: in}]}
+  - id: FUELGAS
+    title: Purge gas and stabiliser off-gas to the fuel gas header
+    category: off_gas
+    ports: [{id: purge, direction: in}, {id: stab, direction: in}]
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-010"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-010"}
+      min_approach: {value: 5, provenance: assumed, source: D-010}
+    ports:
+      - {id: e102, direction: in, kind: energy}
+      - {id: c201, direction: in, kind: energy}
+      - {id: c202, direction: in, kind: energy}
+      - {id: c203, direction: in, kind: energy}
+
+blocks:
+  - id: RXN
+    title: Reaction, quench, separation and gas recycle
+    class: ReactingChemicals
+    ports:
+      - {id: tol, direction: in}
+      - {id: h2, direction: in}
+      - {id: tolrec, direction: in}
+      - {id: purge, direction: out}
+      - {id: liquid, direction: out}
+      - {id: power1, direction: in, kind: energy}
+      - {id: power2, direction: in, kind: energy}
+      - {id: fuel, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+  - id: SEP
+    title: Stabilisation and benzene / toluene / biphenyl distillation
+    class: Distilling
+    ports:
+      - {id: feed, direction: in}
+      - {id: offgas, direction: out}
+      - {id: benzene, direction: out}
+      - {id: tolrec, direction: out}
+      - {id: biph, direction: out}
+      - {id: steam1, direction: in, kind: energy}
+      - {id: steam2, direction: in, kind: energy}
+      - {id: steam3, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+      - {id: cw3, direction: out, kind: energy}
+
+steps:
+  - id: M100
+    block: RXN
+    title: Toluene feed drum (fresh + recycle)
+    class: Mixing
+    links: [{target: equipment, ref: V-100}]
+    ports:
+      - {id: fresh, direction: in, delegates: tol}
+      - {id: rec, direction: in, delegates: tolrec}
+      - {id: out, direction: out}
+  - id: P101
+    block: RXN
+    title: Toluene feed pump
+    # Pumping fails in cheme 0.8.0 process build like HeatingInFurnace (D-011): GeneratingFlow.
+    class: GeneratingFlow
+    links: [{target: equipment, ref: P-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power1}
+  - id: M101
+    block: RXN
+    title: Feed / make-up hydrogen / recycle gas junction
+    class: Mixing
+    ports:
+      - {id: tol, direction: in}
+      - {id: h2, direction: in, delegates: h2}
+      - {id: rec, direction: in}
+      - {id: out, direction: out}
+  - id: E101
+    block: RXN
+    title: Feed / effluent exchanger
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: cold_in, direction: in}
+      - {id: cold_out, direction: out}
+      - {id: hot_in, direction: in}
+      - {id: hot_out, direction: out}
+  - id: H101
+    block: RXN
+    title: Reactor feed heater (fired)
+    # HeatingInFurnace is the right DEXPI class, but cheme 0.8.0 process build fails on its
+    # optional method enum (TypeError in step_method, D-011); ExchangingThermalEnergy until fixed.
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: H-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: fuel, direction: in, kind: energy, delegates: fuel}
+  # D-004, D-005: adiabatic thermal reactor; toluene conversion 0.75 per pass (ASSUMED) and the
+  # Douglas (1988) benzene selectivity S = 1 - 0.0036/(1 - 0.75)^1.544 = 0.9693886.
+  - id: R101
+    block: RXN
+    title: HDA reactor (adiabatic, thermal)
+    class: ReactingChemicals
+    reactions: [HDA, BIPH]
+    reactor: conversion
+    selectivity: {key: TOL, conversion: 0.75, products: {BZ: 0.9693886}, provenance: assumed, source: "D-005: conversion ASSUMED; selectivity from the Douglas (1988) HDA correlation at X = 0.75"}
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+  - id: Q101
+    block: RXN
+    title: Effluent quench (separator liquid)
+    class: Mixing
+    ports:
+      - {id: in, direction: in}
+      - {id: quench, direction: in}
+      - {id: out, direction: out}
+  - id: E102
+    block: RXN
+    title: Effluent trim cooler
+    class: Cooling
+    links: [{target: equipment, ref: E-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  - id: V101
+    block: RXN
+    title: High-pressure separator
+    class: SeparatingByFlash
+    links: [{target: equipment, ref: V-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: vap, direction: out}
+      - {id: liq, direction: out}
+  # D-007: the purge fraction that gives 40 mol% H2 in the purge at H2/aromatics 5 (scripts/hda_balance.py).
+  - id: SPL1
+    block: RXN
+    title: Purge take-off
+    class: SplittingMaterial
+    split: {purge: 0.111359564}
+    ports:
+      - {id: in, direction: in}
+      - {id: purge, direction: out, delegates: purge}
+      - {id: recycle, direction: out}
+  - id: K101
+    block: RXN
+    title: Recycle gas compressor
+    class: Compressing
+    method: CentrifugalMotion
+    links: [{target: equipment, ref: K-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power2}
+  # D-004: the quench fraction of the separator liquid that cools the effluent to 893.15 K.
+  - id: SPL2
+    block: RXN
+    title: Quench liquid take-off
+    class: SplittingMaterial
+    split: {quench: 0.233773864}
+    links: [{target: equipment, ref: P-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: quench, direction: out}
+      - {id: net, direction: out, delegates: liquid}
+  - id: C201
+    block: SEP
+    title: Stabiliser
+    class: Distilling
+    links: [{target: equipment, ref: C-201}, {target: equipment, ref: E-201}, {target: equipment, ref: E-202}]
+    ports:
+      - {id: feed, direction: in, delegates: feed}
+      - {id: top, direction: out, delegates: offgas}
+      - {id: bot, direction: out}
+      - {id: reb, direction: in, kind: energy, delegates: steam1}
+      - {id: cond, direction: out, kind: energy, delegates: cw1}
+  - id: C202
+    block: SEP
+    title: Benzene column
+    class: Distilling
+    links: [{target: equipment, ref: C-202}, {target: equipment, ref: E-203}, {target: equipment, ref: E-204}]
+    ports:
+      - {id: feed, direction: in}
+      - {id: top, direction: out, delegates: benzene}
+      - {id: bot, direction: out}
+      - {id: reb, direction: in, kind: energy, delegates: steam2}
+      - {id: cond, direction: out, kind: energy, delegates: cw2}
+  - id: C203
+    block: SEP
+    title: Toluene column (vacuum)
+    class: Distilling
+    links: [{target: equipment, ref: C-203}, {target: equipment, ref: E-205}, {target: equipment, ref: E-206}]
+    ports:
+      - {id: feed, direction: in}
+      - {id: top, direction: out, delegates: tolrec}
+      - {id: bot, direction: out, delegates: biph}
+      - {id: reb, direction: in, kind: energy, delegates: steam3}
+      - {id: cond, direction: out, kind: energy, delegates: cw3}
+
+streams:
+  - id: S1
+    title: Fresh toluene
+    from: TOLF.out
+    to: M100.fresh
+    template: mixture
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "design basis, D-003"}
+        temperature: {value: 303.15, provenance: assumed, source: "design basis, D-003"}
+        flow: {value: 15518.29, basis: mass, provenance: assumed, source: "scripts/hda_balance.py: the fresh toluene that gives 12.5 t/h benzene (D-002, D-006)"}
+        composition: {basis: mole_fraction, values: {TOL: 1.0}, provenance: assumed, source: "design basis, D-003"}
+  - id: S2
+    title: Toluene to feed pump
+    from: M100.out
+    to: P101.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 150, provenance: assumed, source: D-004}
+        temperature: {value: 313.70, provenance: assumed, source: "scripts/hda_balance.py, adiabatic mixing (D-006)"}
+        flow: {value: 20454.2, provenance: calculated, source: 'cheme process propagate: mixer M100 from S1 S23', fingerprint: 0950bcc1b9cf3f87}
+        composition: {basis: mole_fraction, values: {H2: 0.0, CH4: 0.0, TOL: 0.996384, BZ: 0.00361612, BIPH: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M100 from S1 S23', fingerprint: 10c835890cc5f5ce}
+  - id: S3
+    title: Pumped toluene
+    from: P101.out
+    to: M101.tol
+    template: mixture
+    state:
+      design:
+        pressure: {value: 3600, provenance: assumed, source: D-004}
+        temperature: {value: 313.70, provenance: assumed, source: "scripts/hda_balance.py, pump temperature rise neglected (D-010)"}
+        flow: {value: 20454.2, provenance: calculated, source: 'cheme process propagate: pass-through P101 from S2', fingerprint: 4537c6a0f1ec44cc}
+        composition: {basis: mole_fraction, values: {H2: 0.0, CH4: 0.0, TOL: 0.996384, BZ: 0.00361612, BIPH: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through P101 from S2', fingerprint: 4537c6a0f1ec44cc}
+  - id: S4
+    title: Make-up hydrogen
+    from: H2MU.out
+    to: M101.h2
+    template: mixture
+    state:
+      design:
+        pressure: {value: 3700, provenance: assumed, source: "design basis, D-003"}
+        temperature: {value: 313.15, provenance: assumed, source: "design basis, D-003"}
+        flow: {value: 815.73, basis: mass, provenance: assumed, source: "scripts/hda_balance.py: the make-up that holds H2/aromatics 5 at 40 mol% H2 in the purge (D-006, D-007)"}
+        composition: {basis: mole_fraction, values: {H2: 0.95, CH4: 0.05}, provenance: assumed, source: "design basis, D-003"}
+  - id: S5
+    title: Combined reactor feed
+    from: M101.out
+    to: E101.cold_in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 3600, provenance: assumed, source: D-004}
+        temperature: {value: 321.40, provenance: assumed, source: "scripts/hda_balance.py, adiabatic mixing, vapour fraction 0.92 (D-006)"}
+        flow: {value: 47288.2, provenance: calculated, source: 'cheme process propagate: mixer M101 from S3 S4 S15', fingerprint: 9af3a09c4a472f53}
+        composition: {basis: mole_fraction, values: {H2: 0.426525, CH4: 0.48817, TOL: 0.0778416, BZ: 0.00746334, BIPH: 1.25206e-07}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S3 S4 S15', fingerprint: 3276f8f412665a6a}
+  - id: S6
+    title: Preheated feed
+    from: E101.cold_out
+    to: H101.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 3520, provenance: assumed, source: D-004}
+        temperature: {value: 840.0, provenance: assumed, source: D-004}
+        flow: {value: 47288.27, basis: mass, provenance: assumed, source: "scripts/hda_balance.py (D-006): S5 through the cold side of E-101"}
+        composition: {basis: mole_fraction, values: {H2: 0.426525115, CH4: 0.488169862, TOL: 0.077841563, BZ: 0.007463335, BIPH: 0.000000125}, provenance: assumed, source: "scripts/hda_balance.py (D-006); must equal cheme's S5"}
+  - id: S7
+    title: Reactor feed
+    from: H101.out
+    to: R101.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 3450, provenance: assumed, source: D-004}
+        temperature: {value: 895.15, provenance: assumed, source: D-004}
+        flow: {value: 47288.27, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through H101 from S6', fingerprint: c9bce275d41bfd4d}
+        composition: {basis: mole_fraction, values: {H2: 0.426525115, CH4: 0.488169862, TOL: 0.077841563, BZ: 0.007463335, BIPH: 1.25e-07}, provenance: calculated, source: 'cheme process propagate: pass-through H101 from S6', fingerprint: c9bce275d41bfd4d}
+  - id: S8
+    title: Reactor effluent
+    from: R101.out
+    to: Q101.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 3380, provenance: assumed, source: D-004}
+        temperature: {value: 936.82, provenance: assumed, source: "scripts/hda_balance.py, adiabatic energy balance (D-006)"}
+        flow: {value: 47288.3, provenance: calculated, source: 'cheme process propagate: reactor R101 from S7', fingerprint: a48a2a8b134dfb2a}
+        composition: {basis: mole_fraction, values: {H2: 0.369038, CH4: 0.546551, TOL: 0.0194604, BZ: 0.0640574, BIPH: 0.00089369}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S7', fingerprint: 11a660f38260eaf5}
+  - id: S9
+    title: Quenched effluent
+    from: Q101.out
+    to: E101.hot_in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 3380, provenance: assumed, source: D-004}
+        temperature: {value: 893.15, provenance: assumed, source: D-004}
+        flow: {value: 52783.0, provenance: calculated, source: 'cheme process propagate: mixer Q101 from S8 S17', fingerprint: a5a4bd4044b92a1b}
+        composition: {basis: mole_fraction, values: {H2: 0.360544, CH4: 0.534588, TOL: 0.024507, BZ: 0.0792225, BIPH: 0.00113882}, provenance: calculated, source: 'cheme process propagate: mixer Q101 from S8 S17', fingerprint: 2e245c33709e5c3d}
+  - id: S10
+    title: Effluent after feed / effluent exchanger
+    from: E101.hot_out
+    to: E102.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 3310, provenance: assumed, source: D-004}
+        temperature: {value: 394.53, provenance: assumed, source: "scripts/hda_balance.py, E-101 energy balance (D-006)"}
+        flow: {value: 52782.95, basis: mass, provenance: assumed, source: "scripts/hda_balance.py (D-006): S9 through the hot side of E-101"}
+        composition: {basis: mole_fraction, values: {H2: 0.360543241, CH4: 0.534588343, TOL: 0.024507039, BZ: 0.079222555, BIPH: 0.001138823}, provenance: assumed, source: "scripts/hda_balance.py (D-006); must equal cheme's S9"}
+  - id: S11
+    title: Cooled effluent to separator
+    from: E102.out
+    to: V101.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 3250, provenance: assumed, source: D-004}
+        temperature: {value: 313.15, provenance: assumed, source: D-004}
+        flow: {value: 52782.95, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S10', fingerprint: 79df5e0b85cd07e3}
+        composition: {basis: mole_fraction, values: {H2: 0.360543241, CH4: 0.534588343, TOL: 0.024507039, BZ: 0.079222555, BIPH: 0.001138823}, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S10', fingerprint: 79df5e0b85cd07e3}
+  - id: S12
+    title: Separator gas
+    from: V101.vap
+    to: SPL1.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 3250, provenance: assumed, source: D-004}
+        temperature: {value: 313.15, provenance: assumed, source: D-004}
+        flow: {value: 29278.80, basis: mass, provenance: assumed, source: "scripts/hda_balance.py, PR flash (D-006)"}
+        composition: {basis: mole_fraction, values: {H2: 0.4, CH4: 0.590156298, TOL: 0.00106483, BZ: 0.008778719, BIPH: 0.000000153}, provenance: assumed, source: "scripts/hda_balance.py, PR flash (D-006)"}
+  - id: S13
+    title: Purge gas
+    from: SPL1.purge
+    to: FUELGAS.purge
+    template: mixture
+    state:
+      design:
+        pressure: {value: 3250, provenance: assumed, source: D-007}
+        temperature: {value: 313.15, provenance: assumed, source: D-007}
+        flow: {value: 3260.47, basis: mass, provenance: calculated, source: 'cheme process propagate: splitter SPL1 from S12', fingerprint: d4ab6d3ee380a468}
+        composition: {basis: mole_fraction, values: {H2: 0.4, CH4: 0.590156298, TOL: 0.00106483, BZ: 0.008778719, BIPH: 1.53e-07}, provenance: calculated, source: 'cheme process propagate: splitter SPL1 from S12', fingerprint: 36af1f2527b840f4}
+  - id: S14
+    title: Recycle gas
+    from: SPL1.recycle
+    to: K101.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 3250, provenance: assumed, source: D-007}
+        temperature: {value: 313.15, provenance: assumed, source: D-007}
+        flow: {value: 26018.3, provenance: calculated, source: 'cheme process propagate: splitter SPL1 from S12 S13', fingerprint: 4833e47f0e5b027f}
+        composition: {basis: mole_fraction, values: {H2: 0.4, CH4: 0.590156298, TOL: 0.00106483, BZ: 0.008778719, BIPH: 1.53e-07}, provenance: calculated, source: 'cheme process propagate: splitter SPL1 from S12', fingerprint: 36af1f2527b840f4}
+  - id: S15
+    title: Compressed recycle gas
+    from: K101.out
+    to: M101.rec
+    template: mixture
+    state:
+      design:
+        pressure: {value: 3600, provenance: assumed, source: D-004}
+        temperature: {value: 323.79, provenance: assumed, source: "scripts/hda_balance.py, eta 0.75 (D-010)"}
+        flow: {value: 26018.3, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S14', fingerprint: adeb47f80abdfc3c}
+        composition: {basis: mole_fraction, values: {H2: 0.4, CH4: 0.590156298, TOL: 0.00106483, BZ: 0.008778719, BIPH: 1.53e-07}, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S14', fingerprint: adeb47f80abdfc3c}
+  - id: S16
+    title: Separator liquid
+    from: V101.liq
+    to: SPL2.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 3250, provenance: assumed, source: D-004}
+        temperature: {value: 313.15, provenance: assumed, source: D-004}
+        flow: {value: 23504.16, basis: mass, provenance: assumed, source: "scripts/hda_balance.py, PR flash (D-006)"}
+        composition: {basis: mole_fraction, values: {H2: 0.008606606, CH4: 0.038947051, TOL: 0.233601053, BZ: 0.707550038, BIPH: 0.011295251}, provenance: assumed, source: "scripts/hda_balance.py, PR flash (D-006)"}
+  - id: S17
+    title: Quench liquid
+    from: SPL2.quench
+    to: Q101.quench
+    template: mixture
+    state:
+      design:
+        pressure: {value: 3450, provenance: assumed, source: "D-004: quench pump P-102 discharge (implicit pump, no Pumping step on the PFD: D-010, D-011)"}
+        temperature: {value: 313.15, provenance: assumed, source: D-004}
+        flow: {value: 5494.66, basis: mass, provenance: calculated, source: 'cheme process propagate: splitter SPL2 from S16', fingerprint: e745128a6b640b00}
+        composition: {basis: mole_fraction, values: {H2: 0.008606606, CH4: 0.038947051, TOL: 0.233601053, BZ: 0.707550038, BIPH: 0.011295251}, provenance: calculated, source: 'cheme process propagate: splitter SPL2 from S16', fingerprint: a0a95e1ceaa98e7d}
+  - id: S18
+    title: Separator liquid to stabiliser
+    from: SPL2.net
+    to: C201.feed
+    template: mixture
+    state:
+      design:
+        pressure: {value: 3250, provenance: assumed, source: D-004}
+        temperature: {value: 313.15, provenance: assumed, source: D-004}
+        flow: {value: 18009.5, provenance: calculated, source: 'cheme process propagate: splitter SPL2 from S16 S17', fingerprint: a10e527dde9d92e4}
+        composition: {basis: mole_fraction, values: {H2: 0.008606606, CH4: 0.038947051, TOL: 0.233601053, BZ: 0.707550038, BIPH: 0.011295251}, provenance: calculated, source: 'cheme process propagate: splitter SPL2 from S16', fingerprint: a0a95e1ceaa98e7d}
+  - id: S19
+    title: Stabiliser off-gas
+    from: C201.top
+    to: FUELGAS.stab
+    template: mixture
+    state:
+      design:
+        pressure: {value: 800, provenance: assumed, source: D-008}
+        temperature: {value: 313.15, provenance: assumed, source: D-008}
+        flow: {value: 172.53, basis: mass, provenance: assumed, source: "scripts/hda_balance.py: all H2 and CH4, aromatics in equilibrium with the reflux (D-008)"}
+        composition: {basis: mole_fraction, values: {H2: 0.175582232, CH4: 0.79455364, TOL: 0.002953467, BZ: 0.026910328, BIPH: 0.000000333}, provenance: assumed, source: "scripts/hda_balance.py (D-008)"}
+  - id: S20
+    title: Stabiliser bottoms
+    from: C201.bot
+    to: C202.feed
+    template: mixture
+    state:
+      design:
+        pressure: {value: 800, provenance: assumed, source: D-008}
+        temperature: {value: 447.93, provenance: assumed, source: "scripts/hda_balance.py, bubble point (D-006)"}
+        flow: {value: 17836.97, basis: mass, provenance: assumed, source: "scripts/hda_balance.py (D-008)"}
+        composition: {basis: mole_fraction, values: {TOL: 0.245489572, BZ: 0.742632991, BIPH: 0.011877437}, provenance: assumed, source: "scripts/hda_balance.py (D-008)"}
+  - id: S21
+    title: Benzene product
+    from: C202.top
+    to: BENZENE.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 150, provenance: assumed, source: "design basis, D-008"}
+        temperature: {value: 313.15, provenance: assumed, source: "design basis, D-008"}
+        flow: {value: 12500.0, basis: mass, provenance: assumed, source: "design basis 100 kt/a, D-002"}
+        composition: {basis: mole_fraction, values: {TOL: 0.001, BZ: 0.999}, provenance: assumed, source: "design target 99.9 mol% (D-002, D-008)"}
+  - id: S22
+    title: Benzene column bottoms
+    from: C202.bot
+    to: C203.feed
+    template: mixture
+    state:
+      design:
+        pressure: {value: 170, provenance: assumed, source: D-008}
+        temperature: {value: 404.42, provenance: assumed, source: "scripts/hda_balance.py, bubble point (D-006)"}
+        flow: {value: 5336.97, basis: mass, provenance: assumed, source: "scripts/hda_balance.py: 99.5 % benzene recovery (D-008)"}
+        composition: {basis: mole_fraction, values: {TOL: 0.940114575, BZ: 0.014262724, BIPH: 0.045622701}, provenance: assumed, source: "scripts/hda_balance.py (D-008)"}
+  - id: S23
+    title: Toluene recycle
+    from: C203.top
+    to: M100.rec
+    template: mixture
+    state:
+      design:
+        pressure: {value: 150, provenance: assumed, source: "D-004: C-203 distillate pump discharge to the feed drum (implicit pump, no Pumping step on the PFD: D-010, D-011)"}
+        temperature: {value: 344.98, provenance: assumed, source: "scripts/hda_balance.py, bubble point at 30 kPa(a) (D-006)"}
+        flow: {value: 4935.93, basis: mass, provenance: assumed, source: "scripts/hda_balance.py (D-008)"}
+        composition: {basis: mole_fraction, values: {TOL: 0.985040872, BZ: 0.014959128}, provenance: assumed, source: "scripts/hda_balance.py (D-008)"}
+  - id: S24
+    title: Biphenyl by-product
+    from: C203.bot
+    to: DIPHENYL.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 45, provenance: assumed, source: D-008}
+        temperature: {value: 478.61, provenance: assumed, source: "scripts/hda_balance.py, bubble point (D-006)"}
+        flow: {value: 401.03, basis: mass, provenance: assumed, source: "scripts/hda_balance.py (D-008)"}
+        composition: {basis: mole_fraction, values: {TOL: 0.02, BIPH: 0.98}, provenance: assumed, source: "2 mol% toluene (D-008)"}
+  # Energy streams (duties from scripts/hda_balance.py, D-006; ASSUMED until core qualifies them)
+  - {id: Q1, title: P-101 power, kind: energy, from: POWER.p101, to: P101.power, state: {design: {duty: {value: 36.5, provenance: assumed, source: "scripts/hda_balance.py, eta 0.65 from 30 kPa(a), incl. the C-203 distillate pump (D-010)"}}}}
+  - {id: Q2, title: K-101 shaft power, kind: energy, from: POWER.k101, to: K101.power, state: {design: {duty: {value: 229.7, provenance: assumed, source: "scripts/hda_balance.py, eta 0.75 (D-010)"}}}}
+  - {id: Q3, title: H-101 absorbed duty, kind: energy, from: FUEL.h101, to: H101.fuel, state: {design: {duty: {value: 2956.5, provenance: assumed, source: "scripts/hda_balance.py, S6 to S7 (D-006)"}}}}
+  - {id: Q4, title: E-102 duty, kind: energy, from: E102.cw, to: CW.e102, state: {design: {duty: {value: 4926.0, provenance: assumed, source: "scripts/hda_balance.py (D-006)"}}}}
+  - {id: Q5, title: C-201 reboiler duty, kind: energy, from: MPS.c201, to: C201.reb, state: {design: {duty: {value: 1431.4, provenance: assumed, source: "scripts/hda_balance.py, L/D 1 (D-008)"}}}}
+  - {id: Q6, title: C-201 condenser duty, kind: energy, from: C201.cond, to: CW.c201, state: {design: {duty: {value: 156.8, provenance: assumed, source: "scripts/hda_balance.py, L/D 1 (D-008)"}}}}
+  - {id: Q7, title: C-202 reboiler duty, kind: energy, from: LPS.c202, to: C202.reb, state: {design: {duty: {value: 2300.3, provenance: assumed, source: "scripts/hda_balance.py, R 1.28 = 1.3 Rmin (D-008)"}}}}
+  - {id: Q8, title: C-202 condenser and product cooler duty, kind: energy, from: C202.cond, to: CW.c202, state: {design: {duty: {value: 3336.4, provenance: assumed, source: "scripts/hda_balance.py, R 1.28 = 1.3 Rmin (D-008)"}}}}
+  - {id: Q9, title: C-203 reboiler duty, kind: energy, from: HPS.c203, to: C203.reb, state: {design: {duty: {value: 649.5, provenance: assumed, source: "scripts/hda_balance.py, R 0.5 (D-008)"}}}}
+  - {id: Q10, title: C-203 condenser duty, kind: energy, from: C203.cond, to: CW.c203, state: {design: {duty: {value: 788.0, provenance: assumed, source: "scripts/hda_balance.py, R 0.5 (D-008)"}}}}
+layout: {bfd: {}, pfd: {}}

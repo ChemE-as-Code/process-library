@@ -1,0 +1,64 @@
+# Equipment list. Schema: `cheme schema equipment`.
+# Concept stage: the items the PFD (process/flowsheet.yaml) needs, no P&ID yet (no sheet).
+# Design pressure and temperature are ASSUMED concept values (D-012): the highest operating
+# value of the balance (scripts/h2_balance.py) + 10 % (at least + 2 bar) and + 25 K (+ 50 K
+# for fired and hot-gas items, whose metal temperature is set at basic engineering). Sizes,
+# dimensions and weights come at basic engineering (datasheets).
+schema: cheme/equipment/v1
+equipment:
+  # ---- feed pretreatment (block FPT)
+  - {tag: E-101, type: TubularHeatExchanger, service: Feed preheat coil (reformer convection section),
+     design_pressure_barg: 43, design_temperature_degc: 395, material: "CS / low-alloy (hydrogen service, open input)",
+     notes: "290 -> 643 K, ~7.8 MW from flue gas (D-005, D-010). Coil in the convection section of H-301. ASSUMED."}
+  - {tag: R-101, type: Vessel, service: Hydrogenator and ZnO desulfurisation guard beds,
+     design_pressure_barg: 42, design_temperature_degc: 395, material: "CS / low-alloy (hydrogen service, open input)",
+     notes: "643 K, 3900 kPa(a). CoMo/NiMo hydrogenation plus ZnO beds (lead/lag), sulfur in the natural gas not specified (open input, D-004, D-005). One item in the PFD. ASSUMED."}
+  # ---- reforming (block REF) and furnace (block FUR)
+  - {tag: E-102, type: TubularHeatExchanger, service: Mixed feed preheat coil (reformer convection section),
+     design_pressure_barg: 39, design_temperature_degc: 670, material: "low-alloy / stainless (open input)",
+     notes: "663 -> 893 K, ~19.8 MW from flue gas (D-007, D-010). ASSUMED."}
+  - {tag: H-301, type: Furnace, service: "Primary reformer: radiant section with catalyst tubes, burners and convection section",
+     design_pressure_barg: 36, design_temperature_degc: 920, material: "tubes centrifugally cast high-alloy (open input)",
+     notes: "Tubes: Ni catalyst, 893 -> 1143 K, 3500 -> 3200 kPa(a), absorbed duty ~102 MW (D-007). Firebox: PSA tail gas + trim natural gas, 10 % excess air, bridgewall 1273 K; convection section 1273 -> 423 K (~103 MW) with coils E-101, E-102, E-402 and the steam generation / superheat coil (D-009, D-010). Tube count, length and heat flux not sized. Design temperature is the tube design metal temperature placeholder. ASSUMED."}
+  - {tag: K-301, type: Fan, service: Combustion air forced draft fan,
+     design_pressure_barg: 0.1, design_temperature_degc: 50,  material: CS,
+     notes: "281 t/h air, +5 kPa, ~0.45 MW shaft at efficiency 0.70 (D-012). No air preheat (D-009). ASSUMED."}
+  - {tag: K-302, type: Fan, service: Flue gas induced draft fan,
+     design_pressure_barg: 0.1, design_temperature_degc: 200, material: CS,
+     notes: "352 t/h flue gas at 423 K, +4 kPa, ~0.67 MW shaft at efficiency 0.70 (D-012). ASSUMED."}
+  - {tag: E-104, type: TubularHeatExchanger, service: Process gas waste heat boiler,
+     design_pressure_barg: 35, design_temperature_degc: 900, material: "refractory-lined / low-alloy (open input)",
+     notes: "1143 -> 623 K, ~50.5 MW to the steam drum V-401 at 4500 kPa(a) (D-007, D-010); a bypass for the HTS inlet temperature is a basic-engineering item. ASSUMED."}
+  # ---- HT shift and cooling (block SFT)
+  - {tag: R-201, type: Vessel, service: "HT shift converter (adiabatic, Fe-Cr catalyst)",
+     design_pressure_barg: 34, design_temperature_degc: 445, material: "low-alloy (hydrogen service, open input)",
+     notes: "623 -> 692 K, 3150 -> 3050 kPa(a); outlet CO 2.4 mol% wet (equilibrium, approach 10 K, D-007). Catalyst volume not sized (no kinetics, D-003). ASSUMED."}
+  - {tag: E-201, type: TubularHeatExchanger, service: Shifted gas / boiler feed water exchanger,
+     design_pressure_barg: 54, design_temperature_degc: 445, material: "CS / low-alloy; condensing wet CO2 service: material open input",
+     notes: "Gas 692 -> 428 K, BFW 345 -> 503 K at 4900 kPa(a), ~36.6 MW; the gas starts to condense in it (D-010). Shell design for the BFW side. ASSUMED."}
+  - {tag: E-202, type: TubularHeatExchanger, service: Shifted gas trim cooler,
+     design_pressure_barg: 33, design_temperature_degc: 180, material: "stainless (wet CO2, open input)",
+     notes: "428 -> 313 K, ~30.1 MW to cooling water 298/308 K; an air cooler and demineralised water heating are usual alternatives (D-010). ASSUMED."}
+  - {tag: V-201, type: Vessel, service: Process condensate separator,
+     design_pressure_barg: 33, design_temperature_degc: 65, material: "stainless (wet CO2, open input)",
+     notes: "313 K, 2950 kPa(a); gas 74.1 t/h to PSA, condensate 49.0 t/h to the steam system (D-007, D-010). ASSUMED."}
+  # ---- PSA (block PSA)
+  - {tag: U-301, type: Vessel, service: "Hydrogen PSA unit (adsorber vessels, valve skid, tail gas drum)",
+     design_pressure_barg: 33, design_temperature_degc: 65, material: CS,
+     notes: "Package item. 74.1 t/h feed, H2 recovery 0.88, product 99.9 mol% H2 at 2850 kPa(a), tail gas 130 kPa(a) (D-008). Number of beds, cycle and adsorbent inventory: vendor input (core #368 / PR #398: performance external). ASSUMED."}
+  - {tag: K-101, type: ReciprocatingCompressor, service: Recycle hydrogen compressor,
+     design_pressure_barg: 45, design_temperature_degc: 115, material: CS,
+     notes: "104 kg/h, 2850 -> 4100 kPa(a), ~19 kW shaft at isentropic efficiency 0.75 (D-005, D-012). ASSUMED."}
+  # ---- steam system (block STM)
+  - {tag: V-402, type: Vessel, service: Deaerator (make-up water and process condensate),
+     design_pressure_barg: 3.5, design_temperature_degc: 180, material: CS,
+     notes: "Modelled as adiabatic mixing at 300 kPa(a); deaeration steam and vent and a process condensate stripper are not modelled (D-010). ASSUMED."}
+  - {tag: P-401, type: CentrifugalPump, service: Boiler feed water pump,
+     design_pressure_barg: 60, design_temperature_degc: 55, material: CS,
+     notes: "192 t/h, 300 -> 5000 kPa(a), ~0.36 MW shaft at efficiency 0.70 (D-012). Spare pump at P&ID stage. ASSUMED."}
+  - {tag: E-402, type: TubularHeatExchanger, service: Boiler feed water economizer coil (reformer convection section),
+     design_pressure_barg: 60, design_temperature_degc: 305, material: CS,
+     notes: "BFW 303 -> 345 K, ~9.4 MW from flue gas 553 -> 423 K (D-010). ASSUMED."}
+  - {tag: V-401, type: Vessel, service: Steam drum (with the boiler and superheater coils of H-301 and E-104),
+     design_pressure_barg: 50, design_temperature_degc: 285, material: CS,
+     notes: "4500 kPa(a) saturated (531 K); 190 t/h steam superheated to 673 K at 4300 kPa(a), of which 93.6 t/h process steam and 96.1 t/h export; blowdown 1 % of feed water (D-010). Superheater coil design temperature set at basic engineering. ASSUMED."}
