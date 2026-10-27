@@ -2,6 +2,11 @@
 
 The life cycle assessment of the plant's operation (ISO 14040/44), per functional unit.
 
+**This plant:** a preliminary gate-to-gate inventory with every background still a gap. The
+climate figure in `results.md` covers the mineral CO2 only and is not a carbon footprint of
+chlorine; read DESIGN.md section 6 and D-013 (allocation by the mass of the contained
+products) before using any number.
+
 | file | what | written by |
 |---|---|---|
 | `lca.yaml` | goal and scope: the functional unit (a product of `process/flowsheet.yaml`), the case, the allocation between co-products, the impact categories, and the background of every feed, product and emitted component (`cheme schema lca`) | people; `cheme init` writes none, since the flowsheet has no products yet |

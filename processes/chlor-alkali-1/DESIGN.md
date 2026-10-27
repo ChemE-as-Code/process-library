@@ -40,7 +40,8 @@ locations cited (facts and numbers only, in our own words; no tables or text cop
   materials), POWER, MPS (utilities in), CL2, NAOH, H2 (co-products), SPENT (by-product),
   WW (wastewater), SLUDGE (solid waste), VENT (emission), CW, CHW (utilities out).
 - **Normalisation**: per unit of contained Cl2 (issue #121), NaOH on a 100 % basis, H2
-  separately; no allocation (D-013).
+  separately; the dataset is unallocated, the study allocates by the mass of the contained
+  products (D-013).
 
 ## 2. Decisions
 
@@ -72,7 +73,11 @@ Current efficiency 0.965 for the overall reaction (ASSUMED inside BREF 2.4.1, lo
 caustic, and 4.3.2.3.2, > 95 %); the remaining 3.5 % of the current forms O2 at the anode from
 back-migrated hydroxide (side reaction WATER_SPLIT, net 2 H2O -> 2 H2 + O2), which gives
 1.8 vol-% O2 in the chlorine, inside BREF 2.4.1 (0.5-2.0 vol-%). 605 elements of 2.7 m2 in
-one DC circuit (ASSUMED; the split into electrolysers is a vendor input). Checked by
+one DC circuit (ASSUMED; the split into electrolysers is a vendor input). One circuit would
+run at about 1.8 kV DC and 16.2 kA; plants of this size usually split the cell room into
+several electrolysers, each with its own rectifier. The number of electrolysers and
+rectifiers (T-301) is open; it changes the equipment count, not the per-kg figures (review
+2026-10-27-pfd-lci-review#9). Checked by
 `cheme process cell`: Cl2 12 502 kg/h formed, NaOH 14 104 kg/h, H2 368 kg/h, DC 29 382 kW,
 thermoneutral voltage 2.310 V, isothermal heat 7 041 kW. Rejected: anolyte acidification with
 HCl (would raise the Cl2 efficiency above the NaOH efficiency; needs vendor data); a
@@ -161,12 +166,22 @@ equipment list only; a materials engineer decides.
 Decision: concept design pressure and temperature in the equipment list: operating + 10 % (at
 least + 2 bar g) and + 25 K (ASSUMED rule); no sizes, no datasheets at this stage.
 
-## D-013 Preliminary gate-to-gate LCI, no allocation (2026-10-27)
+## D-013 Preliminary gate-to-gate LCI, mass allocation on contained products (2026-10-27, revised 2026-10-27)
 Decision: `lca/lca.yaml`: functional unit 1 kg of contained Cl2 in the dry gas product
 (1.008185 kg of product gas), gate-to-gate, case design, every foreground exchange of the
-flowsheet. Allocation `none`: Cl2, NaOH and H2 are listed as co-products; a later study
-chooses the basis (mass, the electrochemical unit, economic, substitution) and must not credit
-H2 a second time upstream (issue #121). Every background is declared `missing:` with the
+flowsheet. `lca/dataset.yaml` stays unallocated. The study allocates by the mass of the
+contained products, Cl2 : NaOH (100 %) : dry H2 = 1 : 1.120 : 0.0295 kg, given as `shares`
+(Cl2 46.53 %, NaOH 52.10 %, H2 1.37 %) with an `allocation.deviation`. Reason: the library
+build cannot export `none` for a multi-output dataset (CI of PR #194); the hierarchy's price
+ratio (ADR 0007, step 3) needs prices we have not sourced; and core's `mass` method weighs the
+product streams including the water of the 50 wt-% caustic and the wet hydrogen (it gives Cl2
+30.6 % instead of 46.5 %, review 2026-10-27-pfd-lci-review#1). Any later mass allocation must
+use the contained products, never product-stream mass. Rejected: `none` (not exportable);
+`mass` (counts solvent water); economic (no sourced prices); substitution (no open
+substitutes). A later study may choose another basis (the electrochemical unit, economic) and
+must not credit H2 a second time upstream (issue #121). CO2 from soda-ash neutralisation is an
+elementary flow (air, fossil origin) characterised directly; NaCl and Na2SO4 to water stay
+declared `missing:` (no open characterisation packaged). Every background is declared `missing:` with the
 activity it should link to (no values from licensed databases, no 0). Brine purge and resin
 effluent are discharged after dechlorination and neutralisation: their NaCl and Na2SO4 are
 emissions to fresh water; CO2 from soda-ash neutralisation is mineral (counted as fossil).
@@ -203,7 +218,7 @@ median 0.33), filter cake 21.9 kg/t (Table 3.2 rock salt 15-45), sulfate 2.0 kg 
 | source | locator | access | reuse | used for |
 |---|---|---|---|---|
 | EU JRC (2014) Chlor-alkali BREF, DOI 10.2791/13138, https://publications.jrc.ec.europa.eu/repository/bitstream/JRC91156/cak_bref_102014.pdf | 2.4.1; 2.5.2; 2.5.3.3 Table 2.4; 2.5.4; 3.3 Tables 3.2-3.7, 3.10-3.12; 4.3.2.2.3; 4.3.2.3.2; 4.3.4 | full text read (PDF) | EU publication, reuse with acknowledgement; facts only, our own wording | cell conditions, brine limits, dechlorination, consumption ranges |
-| Schmittinger et al. (2011) Chlorine, Ullmann's, DOI 10.1002/14356007.a06_399.pub3 | sections 7, 11, 13 (issue notes) | not read in this run | licensed; not used for numbers | background only |
+| Schmittinger et al. (2011) Chlorine, Ullmann's, DOI 10.1002/14356007.a06_399.pub3 | sections 7, 11, 13 (issue notes) | not read in this run | licensed; not used for numbers | background reading only; not in `process.yaml` references (nothing rests on it) |
 | Cox, Wagman, Medvedev (1989) CODATA Key Values for Thermodynamics | H2O(l), Na+, Cl-, OH- (aq) | standard values | facts | heats of reaction |
 | IAPWS-IF97 saturation properties | water at 20, 35, 40, 90 degC; 1000 kPa | standard values | facts | gas saturation, latent heats |
 | skill tech-heavy-chem-chlor-alkali (Speight 2002; Ray and Das 2020) | units in flow order, materials split | library skill | summary | unit sequence, D-011 |
@@ -223,7 +238,11 @@ median 0.33), filter cake 21.9 kg/t (Table 3.2 rock salt 15-45), sulfate 2.0 kg 
 `cheme maturity` reports level none (the manifest claims concept, its lowest level): feed
 flows are design choices, not sourced data, and the treatment steps are specified values.
 
-## 6. LCI summary (lca/inventory.csv, per kg contained Cl2)
+## 6. LCI summary (unallocated, per kg contained Cl2)
+
+The figures below are the unallocated plant inventory divided by the Cl2 output.
+`lca/inventory.csv` and `lca/results.md` carry Cl2's allocated share (46.5 %, D-013): e.g.
+rock salt 0.796 kg instead of 1.711 kg.
 
 Inputs: rock salt 1.711 kg, process water 0.930 kg, DM water 1.124 kg, soda ash 7.70 g, HCl
 32 wt-% 33.9 g (10.9 g HCl), Na2SO3 0.28 g, H2SO4 98 wt-% 19.1 g, electricity 2.600 kWh, MP
@@ -232,10 +251,12 @@ kg (1.120 kg NaOH), hydrogen gas 43.4 g (29.5 g H2), spent acid 24.8 g, wastewat
 (NaCl 57.4 g, Na2SO4 2.9 g), filter cake 21.9 g, CO2 2.36 g, cooling-water heat 0.865 kWh,
 chilled-water heat 0.012 kWh. Mass, element and carbon balances close (`cheme assess lca
 --coverage`); in 3.795 kg = out 3.795 kg per kg product gas, the flowsheet's 47 830 kg/h
-over 12 602 kg/h. Classification: partial (15 gaps: every background declared missing).
-`lca/results.md` therefore has no impact total; the 0 in its allocation comparison is the sum
-over no characterised exchange, not a result. "allocation: none (CL2 100 %)" there means the
-unallocated inventory is reported per kg Cl2, not that Cl2 carries the burden in a study.
+over 12 602 kg/h. Classification: partial (14 gaps: every background declared missing).
+The only characterised exchange is the mineral CO2 (1.1 g CO2-eq per kg Cl2 after
+allocation). The climate figure in `lca/results.md` is therefore that CO2 alone, not a
+carbon footprint of chlorine: electricity, steam and all raw materials are gaps. The `mass`
+row of its allocation comparison (Cl2 30.6 %) is core's stream-mass basis and must not be
+used (D-013).
 
 The line list stays empty at this stage: the PFD carries stream numbers, not line numbers;
 lines and nominal diameters come with the P&IDs (next stage).
@@ -252,5 +273,20 @@ lines and nominal diameters come with the P&IDs (next stage).
   **sodium-sulfite**, **sodium-sulfate**, **demineralised-water** (or a grade of water) and
   **brine-sludge**; present and used: water, hydrogen, carbon-dioxide, electricity, steam,
   cooling-water, chilled-water, wastewater.
+- **LCI database mappings (`lci/mappings.yaml`, library PR, blocks CI of PR #194).** Since the
+  allocation is exportable (D-013), the strict library build (`scripts/build_lci.py --strict`,
+  tests `test_jsonld_identifiers` and `test_the_library_builds_strict_with_the_utilities`)
+  reads `lca/dataset.yaml` and needs curated entries that this folder cannot add: technosphere
+  mappings for feed:SALT, DMW, NA2CO3, HCL, NA2SO3, H2SO4, product:SPENT and SLUDGE (with the
+  registry entries above); feed:MPS in kWh (the `steam` mapping is in kg); biosphere flows for
+  emission:NaCl and Na2SO4 to water; `pass_through` decisions for the zero-amount free
+  emissions CaCO3, CaSO4, Cl2, H2, HCl, MgCl2, MgOH2, Na2CO3, Na2SO3, NaOH and SiO2.
+  Before this change these errors were hidden because the build stopped at `allocation: none`.
+- cheme-as-code: (a) the `mass` allocation weighs product streams including solvent water
+  (Cl2 30.6 % here instead of 46.5 %); a contained-component basis is needed (review #1).
+  (b) `cheme maturity` classes C401 (class `SeparatingByFlash`, chosen as the closest DEXPI
+  2.0.1 class for a vacuum stripper; `Stripping` and `Desorbing` are not DEXPI classes) as
+  "equilibrium-stage, predictive, sourced", although its outlet is a specified split (D-005,
+  review #5).
 - A stray untracked file `build_fs_schema.json` was written at the worktree root by this run
   (a schema dump); it is outside the process folder, not committed, and can be deleted.

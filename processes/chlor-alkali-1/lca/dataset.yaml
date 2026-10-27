@@ -21,7 +21,10 @@ cutoff:
   direction: output
   reason: chlorine to the absorption (hypochlorite) unit and hydrogen venting occur at start-up, shutdown
     and upsets only; normal operation sends all Cl2 and H2 to the consumers (D-008). BREF 2014 Table 3.2
-    reports 0.01-15 g Cl2/t and < 0.3-14 kg H2/t vented for EU plants
+    reports 0.01-15 g Cl2/t and < 0.3-14 kg H2/t vented for EU plants; the upper end of the H2 range (about
+    half of this plant's 29.5 kg H2/t) describes plants that vent hydrogen for want of a consumer, which
+    this design excludes (D-008), so only start-up and upset venting is cut off; no amount is estimated
+    yet
   source: D-013
 - key: emission-excluded:tanks
   title: storage-tank emissions of the plant
@@ -62,12 +65,12 @@ classification:
   isic: '2011'
 modelling:
   principle: attributional
-  multifunctionality: 'unallocated multi-output dataset; default allocation none: D-013: no allocation
-    in this inventory. Chlorine, caustic soda (1.12 kg NaOH 100 % per kg Cl2 delivered as 50 wt-%) and
-    hydrogen (29.5 g per kg Cl2) leave one electrochemical reaction in fixed ratio; the electricity and
-    steam are listed once for the whole output. A later study chooses the basis (mass, the Euro Chlor
-    electrochemical unit, economic or substitution) and states it; the per-kg figures of each co-product
-    follow from the product rows of the inventory.'
+  multifunctionality: 'unallocated multi-output dataset; default allocation shares: D-013: mass allocation
+    on the contained products (Cl2, NaOH 100 %, dry H2), given as shares. Chlorine, caustic soda (1.12
+    kg NaOH 100 % per kg Cl2, delivered as 50 wt-%) and hydrogen (29.5 g per kg Cl2) leave one electrochemical
+    reaction in fixed stoichiometric ratio; the electricity and steam are listed once for the whole output.
+    The inventory itself stays unallocated; a study may choose another basis (the Euro Chlor electrochemical
+    unit, economic or substitution) and must then not use product-stream mass, which counts solvent water.'
 review:
 - type: none
 data_generator: ChemE-as-Code process library, chlor-alkali-1 concept design (agent run, unreviewed)
@@ -518,13 +521,22 @@ exchanges:
   amount: 29.54
   unit: kg
   link:
-    source: S18, D-005
-    missing: 'not linked yet: carbon dioxide to air; carbon of mineral (carbonate) origin from soda ash,
-      counted as fossil (not biogenic)'
+    elementary: {}
+    source: 'S18, D-005: carbon dioxide to air; carbon of mineral (carbonate) origin from soda ash, counted
+      as fossil (not biogenic)'
   cas: 124-38-9
+  flow:
+  - list: ef-3.1
+  - list: biosphere3
+    uuid: 349b29d1-3e58-4c66-98b9-9d1a076efd2e
+    name: Carbon dioxide, fossil
+    categories:
+    - air
+    unit: kg
   streams:
   - S18
-  source: S18, D-005
+  source: 'S18, D-005: carbon dioxide to air; carbon of mineral (carbonate) origin from soda ash, counted
+    as fossil (not biogenic)'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, maturity concept)
@@ -857,24 +869,33 @@ exchanges:
       SiO2: SiO2
     source: stream table (S16, S34)
 allocation:
-  method: none
+  method: shares
   coproducts:
   - CL2
   - NAOH
   - H2
-  source: 'D-013: no allocation in this inventory. Chlorine, caustic soda (1.12 kg NaOH 100 % per kg Cl2
-    delivered as 50 wt-%) and hydrogen (29.5 g per kg Cl2) leave one electrochemical reaction in fixed
-    ratio; the electricity and steam are listed once for the whole output. A later study chooses the basis
-    (mass, the Euro Chlor electrochemical unit, economic or substitution) and states it; the per-kg figures
-    of each co-product follow from the product rows of the inventory.'
+  shares:
+    CL2: 0.4653
+    NAOH: 0.521
+    H2: 0.0137
+  source: 'D-013: mass allocation on the contained products (Cl2, NaOH 100 %, dry H2), given as shares.
+    Chlorine, caustic soda (1.12 kg NaOH 100 % per kg Cl2, delivered as 50 wt-%) and hydrogen (29.5 g
+    per kg Cl2) leave one electrochemical reaction in fixed stoichiometric ratio; the electricity and
+    steam are listed once for the whole output. The inventory itself stays unallocated; a study may choose
+    another basis (the Euro Chlor electrochemical unit, economic or substitution) and must then not use
+    product-stream mass, which counts solvent water.'
+  deviation: 'Hierarchy step 3 (WBCSD price ratio) cannot be applied: no sourced prices of Cl2, NaOH and
+    H2 are recorded for this concept design. Mass of the contained products is used instead, as shares,
+    because core''s mass method weighs the product streams including the water of the 50 wt-% caustic
+    and of the wet hydrogen. To be revisited when prices are sourced (D-013).'
 provenance:
   generator: cheme assess lca
   plant: Chlor-alkali membrane-cell plant (100 kt/a Cl2, 50 wt-% NaOH, H2)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:75805011e5e73949a07037abf74bda012a7e4c8aa762a3a877684ecd2a349599
-    lca/lca.yaml: sha256:6f59db76e74aa5049023baada531920bd234e045a072b51e57c3dc334ef76d7b
-    process.yaml: sha256:d38b1406e5168ab172b59f8cb4de38614085d625cbc194b6a075f2dd23987676
-    process/flowsheet.yaml: sha256:93e8493d172972afd3c026d3765150f7f3bb6bfd7a5ac729406437c82a2d4e03
+    equipment/equipment-list.yaml: sha256:cec08a0ef63baa5d06e8a1ff3c935cd74ca7dc3304276e61b2c8676e13f0166e
+    lca/lca.yaml: sha256:5f13b578bff744acb042160d8cb94b135270c1849b0033ab37fc1be16614e48d
+    process.yaml: sha256:fb4448361b3975477aec146afaf56d03633a07944526d2ebe47759f6028f4473
+    process/flowsheet.yaml: sha256:babd8fb8941cd2320f9625cb390b98d92a6ecb9baa8af3fca8b667559f7bad94
     process/materials.yaml: sha256:17485bd1d761e542231af876aa3fa5b7c93628cbb0e1f151150aa0dc30cbf15e
     process/simulation.yaml: sha256:f88d0db2ef6901cad33094a5fd4b250c13e8b1cc0c6c56db2e1fd7a36432bee0
