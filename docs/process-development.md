@@ -1,0 +1,130 @@
+# Tracking process development
+
+The [execution tracker #114](https://github.com/ChemE-as-Code/process-library/issues/114)
+coordinates individual process issues. [coverage.md](coverage.md) and coverage.yaml remain
+the accepted coverage/ranking plan (#47); issues track execution, sources and review.
+
+## Issue structure
+
+Use the **Process development** form and label `type:process` for one canonical issue per
+chemical/process initially. Reuse ammonia #86 and toluene HDA #42. Split route issues when
+they have distinct owners, models/boundaries or evidence targets; link the parent.
+Electricity mixes and regional sensitivities usually remain scenarios of the same route.
+Create issues for selected work rather than inventing a full literature list.
+
+Use the **Process development tracker** form (`scope:library`, `type:tracker`) for a batch.
+Literature discovery uses `scope:library`, `type:research`. Keep existing engineering action,
+hold, query, change, gate and waiting labels unchanged. Do not put a guessed process folder
+in the engineering forms: their existing label workflow verifies folders on main.
+
+Initial batch: ammonia #86; hydrogen #117; methanol #118; nitric acid #119; urea #120;
+chlor-alkali #121; steam #122; cooling water #123; wastewater #124; toluene HDA #42.
+The utility tickets assess/improve existing datasets. This is a working batch, not a
+claim of readiness. Add the remaining coverage candidates as they are selected.
+
+## Reference record
+
+Append references and example plants to the relevant process issue with:
+
+- citation and link, version/date and exact table/section;
+- purpose: candidate suggestion, design input, model basis or comparison;
+- access/read status and numerical basis/boundary;
+- reuse limits, assumptions and outstanding questions.
+
+Keep independently held-out benchmark answers outside design-agent access, including issue
+comments when agents can read GitHub. Mentioning a paper is not independent validation.
+
+[Text-to-flowsheet candidates #115](https://github.com/ChemE-as-Code/process-library/issues/115)
+use only process names/types as suggestions, not the authors' datasets, expert drawings,
+graphs, code, logs or simulation files.
+[CRYSTAL prioritization #116](https://github.com/ChemE-as-Code/process-library/issues/116)
+uses its 52 hub chemicals (section 5 / Figure 4 / Table S9), distinct from 50 hotspots.
+The 52 structure labels were visually transcribed from Figure 4b (v1 PDF p.11) and mapped
+to issues in #116: 47 new candidate tickets #126–#172 and five reused tickets. Table S9,
+absent from checked v1, remains an identity/transcription cross-check. No inventory import is requested.
+
+## GitHub Project setup
+
+The private organization [Process Library Development Project](https://github.com/orgs/ChemE-as-Code/projects/1)
+is configured through signed-in Chrome, with process-library as its default repository.
+It contains 57 canonical process tickets (the next-10 batch plus the 47 new hub candidates).
+The Development pathway, Activity and Evidence maturity boards separate next milestones,
+current work and calculation evidence; Planning is the editable process table.
+The API credential still lacks Projects scopes; use an authorized browser or Projects credential
+for subsequent administration. The fields below describe the intended tracking vocabulary.
+
+| Field | Values / meaning |
+| --- | --- |
+| Status | Backlog, Ready, In progress, In review, Done |
+| Calculation maturity | Not assessed, None, Sourced, Balanced, Predictive, Engineering |
+| Target maturity | Explicit target for this scoped issue; use Not applicable for inventory-only work |
+| Entry tier | 0 stoichiometric screening, 1 sourced conceptual inventory, 2 flowsheet design |
+| Review status | Not assessed, Unreviewed, Review requested, Reviewed with limitations, Reviewed |
+| Development priority | P1 next batch, P2 later, P3 candidate; priority is planning, not evidence |
+| Next milestone | Next concrete task in the development pathway below |
+| Target deliverable | References, defined brief, BFD, sourced inventory, balanced PFD, preliminary/basic engineering or optional detail/3D |
+| Process ID / route | Stable IDs once chosen; unknown stays unknown |
+| Evidence | Text/link to report and commit, plus pinned core/backend version |
+| Assignees | Owner; leave unassigned until agreed |
+
+### Gradual engineering pathway
+
+The **Development pathway** board is grouped by Next milestone. Each column names the
+next task, not an achieved engineering qualification. The **Activity** board remains grouped
+by Status, **Evidence maturity** by Calculation maturity, and **Planning** shows priorities,
+next milestones and targets.
+
+| Next milestone | Completion check |
+| --- | --- |
+| 1 - Collect references | Relevant design literature reviewed with exact pages/tables, route, provenance and reuse limits; a hub citation alone is insufficient |
+| 2 - Define design brief | Capacity/basis, feeds, product grade/state, route, boundary, assumptions, comparison and target agreed |
+| 3 - Develop BFD | Major blocks, reactions/separations/recycles and boundary streams documented |
+| 3b - Develop sourced inventory | Explicit basis, boundary, sourced exchanges, units, provenance, assumptions and checks; a separate branch for inventory work |
+| 4 - Develop PFD and balances | Stream table, thermodynamics/models, material/energy closure, utilities and comparison checks |
+| 5 - Preliminary engineering | Scoped equipment sizing and preliminary controls, operability and hazard review |
+| 6 - Basic engineering | Agreed P&IDs, datasheets, utilities, controls, layout and cost basis, with appropriate review |
+| 7 - Detail and 3D (optional) | Explicitly chosen detailed design/model deliverables and review requirements |
+| 8 - Verify agreed target | Check the current deliverable against the brief; link evidence, limitations and review |
+| 9 - Target reached | The current scoped target is accepted, whatever its level |
+
+A process may stop after a brief, BFD, sourced inventory or balanced PFD. Skip phases outside
+its agreed scope; detail/3D is optional. These are library planning gates, not certification
+of an industrial design. A later extension needs a new scoped target/linked follow-up.
+Consider limiting active development to 2–3 processes and unblocking shared utilities early.
+
+### Initial priorities and targets
+
+On 27 October 2026, all 57 cards received planning values and matching priority labels:
+
+- **P1 (10):** #42, #86, #117–#124: the established core/utility batch.
+- **P2 (15):** #126–#129, #131–#132, #137, #148, #164–#166, #169–#172: broader expansion candidates.
+- **P3 (32):** remaining hub candidates: research backlog.
+
+These are editable planning choices, not a replacement for the committed coverage ranking.
+The seven non-utility P1 entries target a **Balanced PFD**; steam, cooling water and wastewater
+target a **Sourced inventory** audit. The 47 new candidates initially target a **Defined brief**.
+Five cards (#42, #86, #122–#124) start at defining their brief/audit scope; the other 52 start
+at collecting references. Existing citations/datasets do not establish calculation maturity.
+
+Ready means the next scoped work has inputs and no blocking dependency. In review means evidence
+is ready for a separate reviewer. Done means that issue's declared target is verified, not that
+every process is Engineering or public. Use existing `waiting:input`/`waiting:work` labels and
+linked dependencies for blocked work; do not turn blocked into a maturity level.
+Retain `status:in-progress` and `status:for-verification` on engineering action items where used.
+
+The ten canonical issues above and all 52 hub crosswalk entries are backfilled (57 distinct cards).
+Auto-add is enabled for open `type:process` issues in this repository. New items default to
+Backlog and Calculation maturity Not assessed. Next milestone defaults to collecting references for new cards. Set priority and target explicitly
+when triaging; the issue form does not automatically synchronize custom Project fields. Do not automate
+scientific maturity changes from workflow state, labels, merge or closure. Update maturity only
+after reviewing a current `cheme maturity` report (where applicable) at a recorded commit.
+Inventory-only entries record dataset evidence and leave plant calculation maturity Not assessed.
+Record independent review and publication decisions separately.
+
+## Maintaining the tracker
+
+Link new process issues from #114 and their route parents. Add PRs and sources to individual
+issues as work progresses. Update coverage.yaml and its generated table only through reviewed
+repository changes. Close scoped issues after verification; open a linked follow-up when pursuing
+a higher tier/maturity or a materially different route. The Project is a planning view, not a
+replacement for committed manifests, balance results, maturity evidence or review records.

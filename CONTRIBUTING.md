@@ -135,3 +135,12 @@ are open.
 - An open point recorded in a process's files (`unresolved:` in `control/*.yaml`, Open in a
   DESIGN.md decision) names its issue, and the issue names the files. Close the issue only once
   the files no longer carry the point.
+
+## Planning and developing processes
+
+Use the Process development form for a canonical chemical/process issue and the Process development
+tracker form for batches. See [the tracking guide](docs/process-development.md) and
+[tracker #114](https://github.com/ChemE-as-Code/process-library/issues/114) for issue links,
+reference records, labels and GitHub Project setup. Workflow status, entry tier, calculation
+maturity, independent review and publication approval are separate. The existing engineering
+forms and gate-label workflow remain in use for engineering action items.
