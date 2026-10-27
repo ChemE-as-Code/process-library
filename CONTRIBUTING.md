@@ -2,8 +2,11 @@
 
 1. `cp -R templates/process processes/<id>`: `<id>` is a lowercase slug and never changes once
    listed (it is the Atlas URL).
-2. Fill in `process.yaml`. Be honest about `maturity` (how far the design is taken) and
-   `validation.status` (who has checked it): passing automated checks is not a review.
+2. Fill in `process.yaml`. Be honest about `maturity`, the **design maturity** (how far the
+   design is taken; a claim, capped by the **calculation maturity** that `cheme maturity`
+   evaluates into `checks/maturity.json`), and `validation.status`, the **review status** (who
+   has checked it): passing automated checks is not a review. The terms follow core's
+   [glossary](https://github.com/ChemE-as-Code/core/blob/main/docs/concepts/glossary.md).
    Optional `facets` let the Atlas filter processes; list only what the design has:
    `feedstock_basis` (any of `fossil`, `biogenic`, `atmospheric`, `mineral`, `recycled`,
    `water`, `electricity`), `product_classes` (slugs, e.g. `industrial-gases`, `fuels`,
@@ -142,5 +145,5 @@ Use the Process development form for a canonical chemical/process issue and the 
 tracker form for batches. See [the tracking guide](docs/process-development.md) and
 [tracker #114](https://github.com/ChemE-as-Code/process-library/issues/114) for issue links,
 reference records, labels and GitHub Project setup. Workflow status, entry tier, calculation
-maturity, independent review and publication approval are separate. The existing engineering
+maturity, design maturity, review status and publication approval are separate. The existing engineering
 forms and gate-label workflow remain in use for engineering action items.
