@@ -17,11 +17,14 @@ Model (all choices are DESIGN.md decisions, ASSUMED where marked there):
   set, ideal-gas heat capacities of thermo (unqualified for this mixture, see above);
 - topping and refining columns: component splits from specifications and assumed reflux.
 
-Run: cheme run scripts/loop_balance.py   (prints the YAML values; JSON copy in build/)
+Run: cheme run scripts/loop_balance.py [APPROACH_K]   (prints the stream values and line sizes;
+JSON copy in build/; the flowsheet uses the default approach of 10 K, other values are the
+D-005 sensitivity only)
 """
 
 import json
 import math
+import sys
 from pathlib import Path
 
 import yaml
@@ -47,6 +50,8 @@ P_K102 = 8150.0                     # circulator discharge
 P_RIN, P_ROUT = 8100.0, 7900.0      # converter inlet and outlet
 P_FEHE_HOT = 7800.0                 # feed-effluent exchanger hot outlet
 T_RIN, T_ROUT, APPROACH = 498.15, 528.15, 10.0
+if len(sys.argv) > 1:                # sensitivity only: `cheme run scripts/loop_balance.py 20`
+    APPROACH = float(sys.argv[1])
 T_COOL = 313.15
 ETA = 0.75                          # isentropic efficiency of both compressors
 RECYCLE_RATIO = 4.0                 # recycle / makeup, molar
@@ -302,7 +307,8 @@ report = {
                     "y": {c: n[c] / tot(n) for c in C if tot(n) > 0}} for k, (n, t, p) in S.items()},
 }
 (ROOT / "build").mkdir(exist_ok=True)
-(ROOT / "build/loop_balance.json").write_text(json.dumps(report, indent=1))
+(ROOT / f"build/loop_balance_approach{APPROACH:g}.json").write_text(json.dumps(report, indent=1))
+print(f"# approach {APPROACH:g} K; make-up {mass(mu):.1f} kg/h for {PRODUCT_KG_H:.1f} kg/h product")
 for k in ("purge_fraction", "recycle_ratio", "SN_makeup", "carbon_to_crude", "carbon_to_product",
           "per_pass_CO_conversion", "per_pass_COx_to_methanol", "fehe_hot_out_vapour_fraction",
           "hp_separator_vapour_fraction", "methanol_psat_313K_kPa", "extents_kmol_h"):

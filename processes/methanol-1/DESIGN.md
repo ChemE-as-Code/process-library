@@ -88,7 +88,12 @@ not to choose a catalyst or kinetic law before review. The equilibrium constants
 components' formation data (ATcT formation enthalpies, CRC entropies, Poling / thermo heat
 capacities, through the `chemicals` package), not from a fitted methanol-specific correlation.
 The 10 K approach is ASSUMED: it stands for an unknown kinetic distance from equilibrium and is
-not predicted.
+not predicted. Sensitivity (`cheme run scripts/loop_balance.py 0` and `... 20`, recycle ratio
+held at 4): approach 0 / 10 / 20 K gives per-pass CO conversion 71 / 63 / 54 %, make-up gas
+130.3 / 131.5 / 133.3 t/h and make-up carbon to product 96.6 / 95.7 / 94.5 %, with duties
+within 1 %. In a recycle loop the approach therefore moves the per-pass conversion, the
+inerts level and the purge loss much more than the plant-level balance; it matters for
+catalyst volume (not sized here).
 Rejected: a conversion reactor (conversions would be invented); a PFR with Vanden Bussche and
 Froment (1996) kinetics (rate basis, units and fit range not audited yet; Slotboom et al. 2020
 warn that kinetic models and parameters may not be mixed).
