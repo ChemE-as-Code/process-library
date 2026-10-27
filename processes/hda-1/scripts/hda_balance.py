@@ -413,6 +413,27 @@ def main():
         "recycle_gas_kmol_h": tot(S_["S14"]),
         "aromatics_lost_to_fuel_gas_kg_h": sum((S_["S13"][c] + S_["S19"][c]) * MW[c] for c in AROM),
     }
+    # first-pass line sizes (D-012): velocity by phase on the PR bulk density
+    tp = {sid: (temps.get(sid, t), p) for sid, (title, key, t, p) in names.items()}
+    tp.update({"S2": (t_tolmix, P_TOLDRUM), "S3": (t_pump, P_MIX), "S5": (t_mix, P_MIX),
+               "S6": (T_FEHE_COLD_OUT, P_FEHE_COLD), "S10": (t_hot_out, P_FEHE_HOT),
+               "S11": (T_SEP, P_SEP), "S15": (t_k, P_MIX)})
+    comp = dict(S_)
+    comp.update({"S2": tolmix, "S3": tolmix, "S5": mixed, "S6": mixed, "S10": qm, "S11": qm,
+                 "S15": rec})
+    sizes = {}
+    dns = [15, 20, 25, 40, 50, 65, 80, 100, 125, 150, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800]
+    for sid in sorted(tp, key=lambda s: int(s[1:])):
+        t, p = tp[sid]
+        n = comp[sid]
+        res = flash(n, T=t, P=p)
+        vf = res.VF
+        rho = res.rho_mass()
+        u = 1.5 if vf < 1e-6 else (10.0 if vf < 1 - 1e-6 else (15.0 if p > 1000 else 20.0))
+        d_mm = 1000 * math.sqrt(4 * mass(n) / 3600 / rho / u / math.pi)
+        sizes[sid] = {"VF": round(vf, 3), "rho": round(rho, 2), "u": u, "d_mm": round(d_mm, 1),
+                      "DN": next(d for d in dns if d >= d_mm)}
+    out["line_sizes"] = sizes
     mass_in = mass(S_["S1"]) + mass(S_["S4"])
     mass_out = mass(S_["S13"]) + mass(S_["S19"]) + mass(S_["S21"]) + mass(S_["S24"])
     out["checks"]["mass_in_kg_h"], out["checks"]["mass_out_kg_h"] = mass_in, mass_out
