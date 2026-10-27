@@ -4,9 +4,9 @@
 #
 # Preliminary gate-to-gate foreground inventory (DESIGN.md D-013): every exchange of the plant
 # with its amount per functional unit from the balanced flowsheet. The background of every
-# purchased input and of the exported steam is deliberately left UNMAPPED (`missing:` with the
-# activity it should connect to later): a gap, never zero, and no values from licensed
-# databases. The plant's own emissions (SO2, SO3/H2SO4 mist) are mapped as elementary flows.
+# purchased input is deliberately left UNMAPPED (`missing:` with the activity it should connect
+# to later): a gap, never zero, and no values from licensed databases. The exported steam is a
+# co-product with share 0 (D-014). The plant's own emissions (SO2, SO3/H2SO4 mist) are mapped as elementary flows.
 schema: cheme/lca/v1
 kind: lca
 goal: >-
@@ -24,12 +24,26 @@ year: 2026
 location: GLO
 technology: "sulfur burning, 3+1 double contact / double absorption, V2O5 catalyst, 1000 t/d H2SO4, HP steam export"
 rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
-# HP steam export is a co-product; how to credit it (system expansion against steam from a
-# natural-gas boiler, or allocation by energy or exergy) is the LCA practitioner's decision for
-# the cradle-to-gate stage (D-013). Not allocated here: the inventory is unallocated.
+# HP steam export is a co-product (D-013, D-014). The dataset stays unallocated; the study and
+# the library build give every burden to the acid (shares 1/0), as nitric-acid-1 does for its
+# exported steam. Credits against steam from a natural-gas boiler belong to a substitution study.
 allocation:
-  method: none
-  source: "D-013: unallocated foreground inventory; the steam co-product's treatment is open"
+  method: shares
+  coproducts: [ACID, HPS]
+  shares: {ACID: 1.0, HPS: 0.0}
+  source: >-
+    D-014: the exported HP steam is the only co-product. All burdens are given to the acid;
+    the steam leaves without a burden and without a credit (conservative for the acid).
+  deviation: >-
+    The library hierarchy allocates exported steam by energy or exergy (docs/system-model.md).
+    Neither applies here: the acid has no energy content, so energy allocation would put every
+    burden on the steam, and no property package covers aqueous sulfuric acid (D-006), so the
+    acid's exergy cannot be calculated; the steam is counted in kWh, so the WBCSD price ratio
+    does not apply either. Shares 1/0 are the conservative choice for the acid until the exergy
+    of both products is available (DESIGN.md D-014).
+  # substitution (system expansion), for comparison only: the avoided site steam is not mapped.
+  substitution:
+    HPS: {missing: "not mapped yet (D-013); should connect to the avoided HP steam 4100 kPa(a), 673 K from a natural-gas boiler, per kWh of heat above boiler feed water at 378 K", source: "flowsheet energy streams Q3-Q6 (waste heat boiler, superheater, economisers), D-008"}
 flows:
   - {key: feed:AIR, free: true, source: "ambient air: a resource taken from nature without burden (O2 consumed, N2/Ar returned)"}
   - key: feed:SULFUR
@@ -41,9 +55,7 @@ flows:
   - key: feed:POWER
     missing: "not mapped yet (D-013); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
     source: "flowsheet energy streams Q1 (main blower) and Q2 (acid pump), D-010"
-  - key: product:HPS
-    missing: "not mapped yet (D-013); exported co-product: HP steam 4100 kPa(a), 673 K, heat above boiler feed water at 378 K; connect later to the avoided steam from a natural-gas boiler (system expansion) or allocate"
-    source: "flowsheet energy streams Q3-Q6 (waste heat boiler, superheater, economisers), D-008"
+  # product:HPS (HP steam export, Q3-Q6, D-008) is a co-product: allocation above (D-014)
   - key: product:CW
     missing: "not mapped yet (D-013); connect to: heat rejected to a recirculating cooling-water system (pumping and fan electricity, make-up water, evaporation, blowdown, treatment chemicals)"
     source: "flowsheet energy streams Q7 (acid cooler) and Q8 (product cooler), D-007"
@@ -59,9 +71,8 @@ flows:
     source: "SO3 slip of the final tower (99.9 % absorption ASSUMED, D-007), leaving as sulfuric acid mist; flowsheet stream S19 (D-009)"
   # the gas template carries H2O and S at zero in the stack gas
   - {key: emission:H2O, free: true, source: "zero in the tail gas (dried air); listed because the template carries it"}
-  - key: emission:S
-    missing: "zero in the tail gas (complete combustion); listed because the template carries it"
-    source: "flowsheet stream S19: S fraction 0"
+  # elemental sulfur is no emission: a declared zero, free like H2O (D-014)
+  - {key: emission:S, free: true, source: "declared zero: no sulfur in the tail gas (complete combustion, flowsheet stream S19: S fraction 0); listed because the template carries it"}
 operation:
   hours_per_year: 8000
   life_years: 25

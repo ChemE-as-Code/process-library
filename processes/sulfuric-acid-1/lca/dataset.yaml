@@ -49,6 +49,9 @@ classification:
   isic: '2011'
 modelling:
   principle: attributional
+  multifunctionality: 'unallocated multi-output dataset; default allocation shares: D-014: the exported
+    HP steam is the only co-product. All burdens are given to the acid; the steam leaves without a burden
+    and without a credit (conservative for the acid).'
 review:
 - type: none
 exchanges:
@@ -196,20 +199,17 @@ exchanges:
     source: stream table (S19)
 - key: product:HPS
   title: HP steam export 4100 kPa(a), 673 K (heat above boiler feed water)
-  type: output
+  type: product
   amount: 43611.0
   unit: kWh
-  link:
-    source: flowsheet energy streams Q3-Q6 (waste heat boiler, superheater, economisers), D-008
-    missing: 'not mapped yet (D-013); exported co-product: HP steam 4100 kPa(a), 673 K, heat above boiler
-      feed water at 378 K; connect later to the avoided steam from a natural-gas boiler (system expansion)
-      or allocate'
+  properties:
+    exergy: 2005.496546
+    source: Carnot factor at 400 °C, T0 = 298.15 K
   streams:
   - Q3
   - Q4
   - Q5
   - Q6
-  source: flowsheet energy streams Q3-Q6 (waste heat boiler, superheater, economisers), D-008
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, maturity concept)
@@ -326,13 +326,12 @@ exchanges:
   type: emission
   amount: 0.0
   unit: kg
-  link:
-    source: 'flowsheet stream S19: S fraction 0'
-    missing: zero in the tail gas (complete combustion); listed because the template carries it
+  free: true
   cas: 7704-34-9
   streams:
   - S19
-  source: 'flowsheet stream S19: S fraction 0'
+  source: 'declared zero: no sulfur in the tail gas (complete combustion, flowsheet stream S19: S fraction
+    0); listed because the template carries it'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, maturity concept)
@@ -403,15 +402,33 @@ exchanges:
       SO3: SO3
     source: stream table (S19)
 allocation:
-  method: none
-  source: 'D-013: unallocated foreground inventory; the steam co-product''s treatment is open'
+  method: shares
+  coproducts:
+  - ACID
+  - HPS
+  shares:
+    ACID: 1.0
+    HPS: 0.0
+  substitution:
+    HPS:
+      source: flowsheet energy streams Q3-Q6 (waste heat boiler, superheater, economisers), D-008
+      missing: not mapped yet (D-013); should connect to the avoided HP steam 4100 kPa(a), 673 K from
+        a natural-gas boiler, per kWh of heat above boiler feed water at 378 K
+  source: 'D-014: the exported HP steam is the only co-product. All burdens are given to the acid; the
+    steam leaves without a burden and without a credit (conservative for the acid).'
+  deviation: 'The library hierarchy allocates exported steam by energy or exergy (docs/system-model.md).
+    Neither applies here: the acid has no energy content, so energy allocation would put every burden
+    on the steam, and no property package covers aqueous sulfuric acid (D-006), so the acid''s exergy
+    cannot be calculated; the steam is counted in kWh, so the WBCSD price ratio does not apply either.
+    Shares 1/0 are the conservative choice for the acid until the exergy of both products is available
+    (DESIGN.md D-014).'
 provenance:
   generator: cheme assess lca
   plant: Sulfuric acid, sulfur burning, double contact / double absorption (1000 t/d H2SO4)
   case: design
   files:
     equipment/equipment-list.yaml: sha256:fc5f578e910726c2440747ba1c22681b475ade0e2461a4400e45d2db7de1f855
-    lca/lca.yaml: sha256:0aed5f3c8e4ed74b522071cc4f909395cf6e99ab841380b473f7c0c7caffcaa7
+    lca/lca.yaml: sha256:44bfa88b1fcde9682e3fc74616df1cd0732c81369ceab738b82b390f6f614bd1
     process.yaml: sha256:a687a19e681386da7addc817deafff5c4ed6151e29248e981414dddc057560e3
     process/flowsheet.yaml: sha256:4ae81949bfd0d47ad9fd9d1f9c71e4319acfb5777c5febfd49a7760a68f413c1
     process/materials.yaml: sha256:7b54f8a812bdb90f9dc59722cb9b706663b18b481aa920ea394e7516fb14a66b

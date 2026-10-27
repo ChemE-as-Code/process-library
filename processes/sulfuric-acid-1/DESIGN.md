@@ -172,6 +172,22 @@ the utilities (power in; steam and heat to cooling water out) and not the reacti
 the sulfur (about 9.3 MJ/kg S burnt to SO2, plus oxidation and absorption): not an imbalance;
 the energy closure is the script's (D-006).
 
+## D-014 Steam co-product and declared-zero sulfur for the library build (2026-10-27)
+Decision: the exported HP steam (`product:HPS`, Q3-Q6, 43,611 kWh/h, unchanged) is a co-product
+of the acid with `allocation: shares` ACID 1 / HPS 0 and an `allocation.deviation`, as
+nitric-acid-1 D-014 does for its exported steam: every burden on the acid, the steam leaves
+without a burden and without a credit. `emission:S` (0 kg in the tail gas) is a declared zero,
+`free` like H2O, instead of `missing:`. The dataset stays unallocated; amounts are unchanged.
+Reason: the strict library build refused both. As an `output` with `missing:` the steam was
+linked by its registry slug to `steam`, which is counted per kg, while the flowsheet counts it as
+heat in kWh; docs/system-model.md treats exported steam as a co-product, allocated, never
+credited, in the cut-off build. Energy allocation would put every burden on the steam (the acid
+has no energy content), the acid's exergy cannot be calculated (no aqueous sulfuric acid
+property package, D-006), and the WBCSD price ratio needs both products in kg. Elemental sulfur
+has no emission flow to air, and the furnace burns it completely. Rejected: credit against
+natural-gas steam (substitution study only; kept as `allocation.substitution` `missing:`).
+This supersedes the "Unallocated" sentence of D-013 for the study's own allocation.
+
 ## 3. Reaction and model evidence
 
 | step | model | basis | status |
