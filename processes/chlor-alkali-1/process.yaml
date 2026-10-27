@@ -1,34 +1,82 @@
-# Process Atlas manifest. Copy this folder to processes/<your-id>/ and edit.
-# Schema: schemas/process.schema.json (cheme-as-code/process/v1). Every slug used under
-# chemistry must exist in chemicals/chemicals.yaml; add new chemicals there in the same change.
-# A product in a defined state and purity names its registry grade: `chemical: oxygen/lox`.
+# Process Atlas manifest of chlor-alkali-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here.
 schema: cheme-as-code/process/v1
-id: my-process                  # = folder name; lowercase slug; never rename once listed
-title: Short descriptive process title
+id: chlor-alkali-1
+title: Chlor-alkali by membrane-cell electrolysis (100 kt/a Cl2, 50 wt-% caustic soda, hydrogen)
 summary: >-
-  One or two sentences for cards and search results: what goes in, what comes out, at what scale.
-# description: |                # optional longer Markdown for the process page
-families: [hydrogen]            # slugs of taxonomy/families.yaml (ISIC-mapped), e.g. ammonia, methanol, air-separation
-keywords: []
-# facets:                      # optional, for filtering in the Atlas; list only what the design has
-#   feedstock_basis: [water, electricity]   # fossil | biogenic | atmospheric | mineral | recycled | water | electricity
-#   product_classes: [fuels]               # slugs, e.g. industrial-gases, fuels, fertilizers, polymers, chemicals, materials
-#   unit_operations: [electrolysis]        # slugs, e.g. cryogenic-distillation, adsorption, compression, reaction, electrolysis
-#   region: generic                        # e.g. generic, EU
-maturity: concept               # concept | screening | basic-engineering | detail-engineering | operating-reference
+  Bipolar membrane-cell electrolysis of recirculated rock-salt brine to dry chlorine gas, 50 wt-%
+  caustic soda and hydrogen, with brine purification, dechlorination, chlorine drying and
+  compression and double-effect caustic evaporation. Concept stage, balanced PFD and a
+  preliminary unallocated gate-to-gate inventory.
+description: |
+  Rock salt is dissolved in return brine and purified (soda ash and caustic precipitation,
+  filtration, chelating ion exchange), acidified, heated and fed to bipolar membrane
+  electrolysers at 6.0 kA/m2 and 3.0 V (EU BREF 2014). The cells are balanced by cheme's
+  Faraday model with a specified voltage and current efficiency (0.965; the rest forms anodic
+  oxygen), never a predicted one. The depleted brine is dechlorinated under vacuum and with
+  sulfite, purged against sulfate and resaturated. Wet chlorine is cooled, dried with sulfuric
+  acid and compressed to 400 kPa(a); hydrogen is cooled and blown to 140 kPa(a); the 32 wt-%
+  catholyte is evaporated to 50 wt-%.
+
+  All values are concept estimates from an independent balance script whose inputs are
+  sourced (EU BREF 2014) or assumed; electrolyte enthalpies are not modelled, so the duties
+  outside the cells are first estimates. See DESIGN.md for every decision and gated step.
+families: [chlor-alkali, electrolysis]
+keywords: [chlor-alkali, chlorine, caustic soda, sodium hydroxide, hydrogen, membrane cell, electrolysis, brine, brine purification, dechlorination, chlorine drying, caustic evaporation]
+facets:
+  feedstock_basis: [mineral, water, electricity]
+  product_classes: [chemicals, industrial-gases]
+  unit_operations: [electrolysis, precipitation, filtration, ion-exchange, stripping, absorption, compression, evaporation, heat-exchange]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest; cheme maturity reports level none
+# (see validation.notes). The cell is balanced from a sourced voltage and an efficiency inside a
+# sourced range; the rest of the plant rests on assumed splits and design rules (DESIGN.md).
+maturity: concept
 validation:
-  status: unreviewed            # unreviewed | internally-reviewed | peer-reviewed | industry-validated
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances in every block and step
+    (cheme validate, cheme process streams; reactive extents agree with the elements). The
+    electrolysers are checked by cheme process cell (specified 3.0 V, CE 0.965, side reaction
+    O2): DC 2 351 kWh/t Cl2, AC 2 423 kWh/t with rectifier losses, inside the EU BREF 2014
+    Table 3.10 bipolar range 2 279-2 865. The other units are specified values of
+    scripts/balance.py; energy balances outside the cell are not evaluable in core (no
+    property package for NaCl/NaOH electrolytes, core#364). Consumptions per t Cl2 (salt
+    1.71 t, steam 0.98 t, HCl 10.9 kg, Na2CO3 7.7 kg, H2SO4 18.7 kg, purge 0.33 m3) fall inside
+    the BREF 2014 Chapter 3 ranges, which is a plausibility check, not a validation. The
+    chemicals registry has no chlorine, sodium hydroxide, sodium chloride or treatment
+    chemicals yet, so they are not listed under chemistry (DESIGN.md section 7). cheme
+    maturity reaches no level yet: the feed flows are design choices (ASSUMED, not sourced or
+    owner-given) and the treatment steps are specified values. Not reviewed.
 chemistry:
   inputs:
-    - {chemical: water, role: feedstock}
+    - {chemical: water, role: feedstock, inventory_key: "feed:WATER", note: "Make-up process water to the salt saturator, 0.93 kg/kg Cl2; demineralised water (feed:DMW, 1.12 kg/kg) to the catholyte and resin rinse. Rock salt (feed:SALT, 1.71 kg/kg Cl2) has no registry entry yet"}
   outputs:
-    - {chemical: hydrogen, role: main-product}
+    - {chemical: hydrogen, role: co-product, inventory_key: "product:H2", note: "29.5 g H2 per kg Cl2, water-saturated at 35 degC, 140 kPa(a). The main product chlorine (product:CL2) and the co-product caustic soda 50 wt-% (product:NAOH) have no registry entry yet"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Brine purge and resin regeneration effluent, 0.49 kg/kg Cl2 with 57 g NaCl and 2.9 g Na2SO4, dechlorinated and neutral"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:VENT", note: "2.4 g/kg Cl2 from neutralising the excess soda ash in the feed brine (mineral carbon)"}
   utilities:
-    - {chemical: electricity, role: utility}
-# basis: {capacity: "1000 t/d product", operating_hours_per_year: 8000}
-# lca: {source: auto}           # auto: read lca/ of a ChemE-as-Code project; none: no LCA
-# references:
-#   - {title: "Author et al. (2024) Title", doi: 10.xxxx/xxxxx}
-# maintainers:
-#   - {name: Your Name, orcid: 0000-0000-0000-0000}
-# repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/my-process, access: private}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "2.60 kWh/kg Cl2: rectifiers 2.42 (cells 3.0 V, CE 0.965, rectifier 0.97) and auxiliaries 0.18"}
+    - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "MP steam 1000 kPa(a): 0.70 kg/kg Cl2 for caustic evaporation and 0.28 kg/kg for feed brine heating"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.87 kWh/kg Cl2 removed, 25/35 degC (ASSUMED)"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:CHW", note: "Second wet chlorine cooler stage, 0.012 kWh/kg Cl2"}
+basis:
+  capacity: "100 kt/a dry chlorine gas (12.5 t/h contained Cl2), ASSUMED"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
+references:
+  - {title: "European Commission JRC (2014) Best Available Techniques (BAT) Reference Document for the Production of Chlor-alkali (Brinkmann, Giner Santonja, Schorcht, Roudier, Delgado Sancho)", doi: 10.2791/13138}
+  - {title: "Schmittinger, P. et al. (2011) Chlorine. Ullmann's Encyclopedia of Industrial Chemistry", doi: 10.1002/14356007.a06_399.pub3}
+  - {title: "Cox, J.D., Wagman, D.D., Medvedev, V.A. (1989) CODATA Key Values for Thermodynamics. Hemisphere, New York"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/chlor-alkali-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0
