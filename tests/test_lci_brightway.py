@@ -191,6 +191,33 @@ def test_staged_mapping_flows_exist_in_biosphere3(project) -> None:
     assert missing == []
 
 
+def test_check_mappings_records_the_check_of_the_library_mappings(project, tmp_path: Path, capsys) -> None:
+    """scripts/check_mappings.py in a project: every name of the library's mappings is in a stub
+    background (site entries at DE), except one, which the written record lists."""
+    import check_mappings
+
+    library = tmp_path / "library"
+    (library / "lci").mkdir(parents=True)
+    shutil.copy(KIT / "lci" / "mappings.yaml", library / "lci" / "mappings.yaml")
+    shutil.copytree(KIT / "schemas", library / "schemas")
+    mappings = build_lci.load_mappings(library / "lci" / "mappings.yaml")
+    stub = {}
+    for entry in mappings["technosphere"].values():
+        if "activity" in entry and entry["activity"]["name"] != "market for lubricating oil":
+            a = entry["activity"]
+            stub[(a["name"], a["reference_product"], a["unit"], "DE" if a["location"] == "site" else a["location"])] = (1.0, 1)
+    _stub_background("stub-check", project, stub)
+    args = ["--library", str(library), "--project", bd.projects.current, "--background", "stub-check", "--version", "stub", "--checked-by", "test", "--write"]
+    assert check_mappings.main(args) == 1  # one name unmatched
+    [path] = (library / "lci" / "mapping-checks").glob("*-stub-check.yaml")
+    record = yaml.safe_load(path.read_text())
+    assert record["sites"] == ["DE"] and record["biosphere"] == "biosphere3"
+    assert [(m["entry"], m["reason"]) for m in record["unmatched"]] == [("technosphere.lube-oil", "name not in the background")]
+    state, problems = check_mappings.status(mappings, library / "lci" / "mapping-checks")
+    assert problems == [] and state["status"] == "failed"
+    assert "technosphere.lube-oil" in capsys.readouterr().err
+
+
 # --- fixture library: atlas linking, treatment sign, refusal, unlinked ------------------------------
 
 FIXTURE_STUB = {

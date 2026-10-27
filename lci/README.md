@@ -220,8 +220,35 @@ Decisions for ASU-1:
   2 kg CO2-eq/t GOX); writing both an "in air" resource and an emission is a net zero that LCIA
   methods do not all score as zero. Core's study treats them as free in the same way.
 
-The background names follow ecoinvent 3.11 conventions but have **not** been checked against a
-licensed copy here; `install()` reports any that do not link.
+The background names follow ecoinvent 3.11 conventions. They are verified only by a recorded
+check against a licensed copy (ADR 0017):
+
+```sh
+# in a Brightway project that holds the licensed background and its biosphere
+uv run --with bw2data --with pyyaml --with jsonschema --with openpyxl scripts/check_mappings.py \
+    --project my-lca --background ecoinvent-3.11-cutoff --version 3.11 \
+    --checked-by "<name>" --site DE --site NL --write
+```
+
+It checks every `technosphere` and `substitution.technosphere` activity (name, reference product,
+unit, location; a `location: site` once per `--site`) and every `biosphere` flow (UUID, else name
+and categories), exactly as the installer matches them, and writes
+`lci/mapping-checks/<date>-<database>.yaml` (schema `schemas/lci-mapping-check.schema.json`):
+the database and version, the date, who checked, the sites, and every unmatched name with the
+reason (and, for a wrong location, the locations at which the name exists). It holds our own
+names only, no background data. The build reads the latest record and writes
+`datapackage.json` `brightway.background_check` with `status`:
+
+| status | meaning |
+|---|---|
+| `unchecked` | no record in `lci/mapping-checks/` |
+| `failed` | the latest record lists unmatched names |
+| `stale` | a checked name in `lci/mappings.yaml` changed (or was added) after the latest record |
+| `verified` | every name matched, and none changed since |
+
+Anything but `verified` is also listed in `index.json` `caveats`. An invalid record fails the
+build. Flows that a dataset links by its own crosswalk UUID are not in the mappings, so this
+check does not cover them; `install()` reports any that do not link.
 
 ## Library utilities
 
@@ -392,7 +419,7 @@ uv run scripts/build_lci.py --library <process-library> --out <dir> --version 0.
 ```
 
 `<dir>/lci/` is replaced; nothing else in `<dir>` is touched. Mappings come from
-`<library>/lci/mappings.yaml`, else this staged copy. Two runs on the same input are
+`<library>/lci/mappings.yaml`, else the process library's own. Two runs on the same input are
 byte-identical (the workbook's document dates and zip entry dates are fixed; the JSON-LD zip has
 sorted entries, fixed dates and no `lastChange` stamps).
 

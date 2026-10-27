@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ChemE-as-Code/process-library/schemas/lci-mapping-check.schema.json",
+  "title": "Check of lci/mappings.yaml against a licensed background",
+  "description": "One check of the background names of lci/mappings.yaml (technosphere activities by name, reference product, unit and location; biosphere flows by UUID or name and categories) against a background database in a Brightway project, written by scripts/check_mappings.py to lci/mapping-checks/<date>-<database>.yaml (process-library#85, ADR 0017). It holds the library's own names and the result, never data of the background.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "background", "biosphere", "checked", "checked_by", "sites", "tool", "mappings_targets_sha256", "result", "unmatched"],
+  "properties": {
+    "schema": {"const": "cheme-as-code/lci-mapping-check/v1"},
+    "background": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["database", "version"],
+      "properties": {
+        "database": {"type": "string", "minLength": 1, "description": "The background database's name in the project, e.g. ecoinvent-3.11-cutoff."},
+        "version": {"type": "string", "minLength": 1, "description": "The release as its provider names it, e.g. 3.11."},
+        "system_model": {"type": "string", "description": "The background's system model, e.g. cutoff."}
+      }
+    },
+    "biosphere": {"type": "string", "minLength": 1},
+    "checked": {"type": "string", "format": "date", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
+    "checked_by": {"type": "string", "minLength": 1, "description": "Who ran the check."},
+    "sites": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}, "description": "The locations a `location: site` entry was checked for."},
+    "tool": {"type": "string"},
+    "mappings_targets_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$", "description": "Hash of the checked names (check_mappings.targets_sha256); a different hash of the current mappings makes the record stale."},
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["checked", "matched", "unmatched"],
+      "properties": {
+        "checked": {"type": "integer", "minimum": 0},
+        "matched": {"type": "integer", "minimum": 0},
+        "unmatched": {"type": "integer", "minimum": 0}
+      }
+    },
+    "unmatched": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["entry", "kind", "name", "reason"],
+        "properties": {
+          "entry": {"type": "string", "description": "Where the name is in lci/mappings.yaml, e.g. technosphere.nitrogen."},
+          "kind": {"enum": ["technosphere", "biosphere"]},
+          "name": {"type": "string"},
+          "reference_product": {"type": "string"},
+          "unit": {"type": "string"},
+          "location": {"type": "string"},
+          "site": {"const": true, "description": "The location is a site checked for, not written in the mappings."},
+          "categories": {"type": "array", "items": {"type": "string"}},
+          "uuid": {"type": "string"},
+          "reason": {"type": "string"},
+          "available_locations": {"type": "array", "items": {"type": "string"}, "description": "Locations at which the background has the same name, reference product and unit."}
+        }
+      }
+    },
+    "note": {"type": "string"}
+  }
+}
