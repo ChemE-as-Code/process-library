@@ -1,0 +1,48 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Sulfuric acid from elemental sulfur, double contact / double absorption (DCDA), issue
+# ChemE-as-Code/process-library#175. Values marked ASSUMED are engineering choices of this concept
+# study, not client or licensor data; every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: H2SO4 (100 % basis) in the 98.5 wt% product acid to storage
+  h2so4_t_per_d: 1000                 # ASSUMED (D-002): a common single-train size, not a client figure
+  product_kg_per_h: 42301.2           # 98.5 wt% acid = 1000 t/d / 24 h / 0.985
+  operating_hours_per_year: 8000      # ASSUMED (D-002)
+  turndown_percent: 50                # ASSUMED, not checked
+feeds:
+  - name: Molten elemental sulfur (bright, from a sulfur recovery unit or melter outside the boundary)
+    source_of_values: ASSUMED (D-003)
+    composition: "S 100 % (ASSUMED): carbon (bitumen), ash, water and H2S of commercial sulfur neglected; to be specified (open input, D-003)"
+    conditions: {temperature_K: 413.15, pressure: "pumped to the burner guns"}
+  - name: Atmospheric air
+    source_of_values: ASSUMED site (D-004)
+    conditions: {temperature_K: 298.15, relative_humidity: 0.60, pressure_kPa_a: 101.325}
+    composition_dry_mol_percent: {N2: 78.12, O2: 20.95, Ar: 0.93}   # CO2 (0.04 %) lumped into N2
+  - name: Process (dilution) water
+    quality: demineralised or condensate quality (ASSUMED, D-007); flow set by the water balance
+products:
+  - name: Sulfuric acid 98.5 wt%
+    purity: "98.5 wt% H2SO4 (case brief); impurities (Fe, SO2, NOx, colour) not modelled"
+    delivery: {temperature_K: 313.15, battery_limit: acid storage tanks (outside the boundary)}
+  - name: HP steam export
+    conditions: {pressure_kPa_a: 4100, temperature_K: 673.15}   # ASSUMED (D-008)
+    note: raised from boiler feed water supplied at 4600 kPa(a), 378.15 K by the site (D-008)
+  - name: Tail gas to stack
+    note: "SO2 and SO3/H2SO4 mist explicit in the stream and the LCI (D-009); no tail-gas scrubber in the base case"
+utilities:
+  - {name: Electric power, use: main air blower and acid pumps (electric drives ASSUMED, D-010)}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: acid coolers, note: ASSUMED}
+  - {name: Boiler feed water, supply_K: 378.15, pressure_kPa_a: 4600, use: steam raising, note: "ASSUMED, from the site deaerator and feed pumps outside the boundary (D-008)"}
+site:
+  location: ASSUMED generic site, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  relative_humidity: 0.60             # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "ASSUMED burner gas 11.5 mol% SO2 in dry air (D-004): sets the air flow."
+  - "Converter 3+1 with intermediate absorption after bed 3; cumulative SO2 conversion 63 / 87 / 95 % after beds 1-3 and 99.7 % overall, within the ranges of the tech-heavy-chem-sulfuric-acid skill (Speight 2002); a conversion model, not kinetics (D-005)."
+  - "ASSUMED bed inlet temperatures 693 / 713 / 708 / 683 K; beds adiabatic, no heat losses (D-005)."
+  - "ASSUMED SO3 absorption 99.9 % in each absorption tower (D-007)."
+  - "ASSUMED one common acid header at 343 K for the drying, intermediate and final towers; acid outlet temperatures 338 / 383 / 363 K (D-007)."
+  - "ASSUMED main blower isentropic efficiency 0.80, motor efficiency 0.96; acid pump head 35 m, efficiency 0.70 (D-010)."
+  - "All flows, temperatures and duties are concept estimates (scripts/balance.py, D-006); accuracy +/-20 % not demonstrated."

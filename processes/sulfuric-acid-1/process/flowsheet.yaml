@@ -1,0 +1,733 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Sulfuric acid from molten sulfur, double contact / double absorption, 3+1 converter (D-001).
+# Where the values come from:
+# - feeds, temperatures and pressures: design basis and decisions D-002..D-010, ASSUMED;
+# - the furnace and the four beds are conversion reactors (D-005): their outlets, and the flows
+#   and compositions through exchangers, the pump tank and the acid splitter, are calculated by
+#   `cheme process propagate --fill`;
+# - tower outlets (drying, intermediate and final absorption), reactor outlet temperatures,
+#   duties and power come from the independent balance scripts/balance.py (D-006), given here as
+#   ASSUMED: core has no property package for SO2/SO3 gas or aqueous sulfuric acid (core #315,
+#   #364), so it can neither flash the towers nor close the energy balance itself.
+schema: cheme/process/v1
+kind: flowsheet
+title: Sulfuric acid, sulfur burning, double contact / double absorption (1000 t/d H2SO4)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+  enthalpy_reference: {state: ideal_gas, temperature: 298.15}
+cases:
+  - {id: design, description: "Design case: 1000 t/d H2SO4 as 98.5 wt% acid, 11.5 mol% SO2 burner gas, 99.7 % overall conversion (D-002, D-004, D-005)", default: true}
+tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - {id: SULFUR, title: Molten sulfur, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: AIR, title: Atmospheric air, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: PW, title: Process (dilution) water, category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports: [{id: k101, direction: out, kind: energy}, {id: p301, direction: out, kind: energy}]
+products:
+  - {id: ACID, title: Sulfuric acid 98.5 wt% to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: STACK, title: Tail gas to stack, category: off_gas, ports: [{id: in, direction: in}]}
+  - id: HPS
+    title: HP steam export 4100 kPa(a), 673 K (heat above boiler feed water)
+    category: utility
+    utility:
+      kind: steam
+      level: HP
+      pressure: {value: 4100, provenance: assumed, source: "design basis, D-008"}
+      supply_temperature: {value: 673.15, provenance: assumed, source: "design basis, D-008"}
+      min_approach: {value: 20, provenance: assumed, source: D-008}
+    ports:
+      - {id: whb, direction: in, kind: energy}
+      - {id: sh, direction: in, kind: energy}
+      - {id: eco1, direction: in, kind: energy}
+      - {id: eco2, direction: in, kind: energy}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis"}
+      min_approach: {value: 5, provenance: assumed, source: "design basis"}
+    ports: [{id: acid, direction: in, kind: energy}, {id: prod, direction: in, kind: energy}]
+
+blocks:
+  - id: DRY
+    title: Air drying and main blower
+    class: Absorbing
+    ports:
+      - {id: air, direction: in}
+      - {id: acid_in, direction: in}
+      - {id: acid_out, direction: out}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy}
+  - id: BURN
+    title: Sulfur combustion and waste heat boiler
+    class: ReactingChemicals
+    ports:
+      - {id: air, direction: in}
+      - {id: sulfur, direction: in}
+      - {id: out, direction: out}
+      - {id: steam, direction: out, kind: energy}
+  - id: CONV
+    title: SO2 conversion (four beds, 3+1)
+    class: ReactingChemicals
+    ports:
+      - {id: in, direction: in}
+      - {id: to_ipa, direction: out}
+      - {id: from_ipa, direction: in}
+      - {id: to_fat, direction: out}
+      - {id: steam_sh, direction: out, kind: energy}
+      - {id: steam_eco1, direction: out, kind: energy}
+      - {id: steam_eco2, direction: out, kind: energy}
+  - id: ABS
+    title: SO3 absorption and acid system
+    class: Absorbing
+    ports:
+      - {id: ipa_in, direction: in}
+      - {id: ipa_out, direction: out}
+      - {id: fat_in, direction: in}
+      - {id: stack, direction: out}
+      - {id: acid_dt, direction: out}
+      - {id: acid_dt_ret, direction: in}
+      - {id: water, direction: in}
+      - {id: product, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw_acid, direction: out, kind: energy}
+      - {id: cw_prod, direction: out, kind: energy}
+
+steps:
+  # --- DRY ---------------------------------------------------------------------------------
+  - id: T101
+    block: DRY
+    title: Air drying tower (98.5 wt% acid)
+    class: Absorbing
+    links: [{target: equipment, ref: T-101}]
+    ports:
+      - {id: gas_in, direction: in, delegates: air}
+      - {id: acid_in, direction: in, delegates: acid_in}
+      - {id: gas_out, direction: out}
+      - {id: acid_out, direction: out, delegates: acid_out}
+  - id: K101
+    block: DRY
+    title: Main air blower
+    class: Compressing
+    method: CentrifugalMotion
+    links: [{target: equipment, ref: K-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # --- BURN --------------------------------------------------------------------------------
+  - id: R101
+    block: BURN
+    title: Sulfur furnace
+    class: ReactingChemicals
+    reactions: [S_COMB]
+    reactor: conversion
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: air, direction: in, delegates: air}
+      - {id: sulfur, direction: in, delegates: sulfur}
+      - {id: out, direction: out}
+  - id: E101
+    block: BURN
+    title: Waste heat boiler
+    class: Cooling
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: out}
+      - {id: steam, direction: out, kind: energy, delegates: steam}
+  # --- CONV (D-005: cumulative conversion 63 / 87 / 95 / 99.7 %; per-bed fractions of the
+  # bed inlet SO2 below) ---------------------------------------------------------------------
+  - id: R201
+    block: CONV
+    title: Converter bed 1
+    class: ReactingChemicals
+    reactions: [SO2_OX]
+    reactor: conversion
+    conversion: {SO2_OX: 0.63}
+    catalyst: V2O5
+    links: [{target: equipment, ref: R-201}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: out, direction: out}
+  # Each gas/gas exchanger is two steps, its hot and its cold side, joined by an energy stream
+  # (QE201, QE203): one exchanger (one equipment tag) whose sides propagate can pass through.
+  - id: E201H
+    block: CONV
+    title: Hot interpass exchanger, bed 1 gas side
+    class: Cooling
+    links: [{target: equipment, ref: E-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy}
+  - id: E201C
+    block: CONV
+    title: Hot interpass exchanger, reheat side
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: in, kind: energy}
+  - id: R202
+    block: CONV
+    title: Converter bed 2
+    class: ReactingChemicals
+    reactions: [SO2_OX]
+    reactor: conversion
+    conversion: {SO2_OX: 0.648649}
+    catalyst: V2O5
+    links: [{target: equipment, ref: R-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+  - id: E202
+    block: CONV
+    title: Steam superheater
+    class: Cooling
+    links: [{target: equipment, ref: E-202}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: steam, direction: out, kind: energy, delegates: steam_sh}
+  - id: R203
+    block: CONV
+    title: Converter bed 3
+    class: ReactingChemicals
+    reactions: [SO2_OX]
+    reactor: conversion
+    conversion: {SO2_OX: 0.615385}
+    catalyst: V2O5
+    links: [{target: equipment, ref: R-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+  - id: E203H
+    block: CONV
+    title: Cold interpass exchanger, bed 3 gas side
+    class: Cooling
+    links: [{target: equipment, ref: E-203}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy}
+  - id: E203C
+    block: CONV
+    title: Cold interpass exchanger, reheat side
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-203}]
+    ports:
+      - {id: in, direction: in, delegates: from_ipa}
+      - {id: out, direction: out}
+      - {id: q, direction: in, kind: energy}
+  - id: E204
+    block: CONV
+    title: Economiser 1 (gas to intermediate tower)
+    class: Cooling
+    links: [{target: equipment, ref: E-204}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: to_ipa}
+      - {id: steam, direction: out, kind: energy, delegates: steam_eco1}
+  - id: R204
+    block: CONV
+    title: Converter bed 4
+    class: ReactingChemicals
+    reactions: [SO2_OX]
+    reactor: conversion
+    conversion: {SO2_OX: 0.94}
+    catalyst: V2O5
+    links: [{target: equipment, ref: R-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+  - id: E205
+    block: CONV
+    title: Economiser 2 (gas to final tower)
+    class: Cooling
+    links: [{target: equipment, ref: E-205}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: to_fat}
+      - {id: steam, direction: out, kind: energy, delegates: steam_eco2}
+  # --- ABS (D-007: one acid header at 343 K serves the three towers) -----------------------
+  - id: T301
+    block: ABS
+    title: Intermediate absorption tower
+    class: Absorbing
+    reactions: [SO3_ABS]
+    links: [{target: equipment, ref: T-301}]
+    ports:
+      - {id: gas_in, direction: in, delegates: ipa_in}
+      - {id: acid_in, direction: in}
+      - {id: gas_out, direction: out, delegates: ipa_out}
+      - {id: acid_out, direction: out}
+  - id: T302
+    block: ABS
+    title: Final absorption tower
+    class: Absorbing
+    reactions: [SO3_ABS]
+    links: [{target: equipment, ref: T-302}]
+    ports:
+      - {id: gas_in, direction: in, delegates: fat_in}
+      - {id: acid_in, direction: in}
+      - {id: gas_out, direction: out, delegates: stack}
+      - {id: acid_out, direction: out}
+  - id: T303
+    block: ABS
+    title: Acid pump tank (dilution water added)
+    class: Mixing
+    links: [{target: equipment, ref: T-303}]
+    ports:
+      - {id: dt, direction: in, delegates: acid_dt_ret}
+      - {id: ipa, direction: in}
+      - {id: fat, direction: in}
+      - {id: water, direction: in, delegates: water}
+      - {id: out, direction: out}
+  - id: P301
+    block: ABS
+    title: Acid circulation pump
+    # GeneratingFlow, the parent of Pumping: cheme 0.8.0 process build fails on a Pumping step
+    # (its method field is an optional union in pyDEXPI 2.1.0); back to Pumping when core fixes it.
+    class: GeneratingFlow
+    links: [{target: equipment, ref: P-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: E301
+    block: ABS
+    title: Acid cooler
+    class: Cooling
+    links: [{target: equipment, ref: E-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw_acid}
+  # Fractions of the circulating acid from scripts/balance.py (D-007): each tower's circulation
+  # from its energy balance, the product draw from the production rate.
+  - id: SPL301
+    block: ABS
+    title: Acid distribution and product draw
+    class: SplittingMaterial
+    split: {dt: 0.17702623, ipa: 0.58880211, fat: 0.21111552, prod: 0.02305614}
+    ports:
+      - {id: in, direction: in}
+      - {id: dt, direction: out, delegates: acid_dt}
+      - {id: ipa, direction: out}
+      - {id: fat, direction: out}
+      - {id: prod, direction: out}
+  - id: E302
+    block: ABS
+    title: Product acid cooler
+    class: Cooling
+    links: [{target: equipment, ref: E-302}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: product}
+      - {id: cw, direction: out, kind: energy, delegates: cw_prod}
+
+streams:
+  # --- air and drying --------------------------------------------------------------------------
+  - id: S1
+    title: Atmospheric air
+    from: AIR.out
+    to: T101.gas_in
+    template: air
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "design basis (D-004)"}
+        temperature: {value: 298.15, provenance: assumed, source: "design basis (D-004)"}
+        phase: {value: vapor, provenance: assumed, source: "ambient air"}
+        flow: {value: 108584.4, basis: mass, provenance: assumed, source: "scripts/balance.py (D-004, D-006): dry air for 11.5 mol% SO2"}
+        composition: {basis: mole_fraction, values: {N2: 0.766536203, O2: 0.205567504, AR: 0.00912543098, H2O: 0.0187708621}, provenance: assumed, source: "dry air (CO2 lumped into N2) at 298 K, 60 % RH (D-004)"}
+  - id: S2
+    title: Dried air
+    from: T101.gas_out
+    to: K101.in
+    template: air
+    state:
+      design:
+        pressure: {value: 98.0, provenance: assumed, source: "blower suction (D-010)"}
+        temperature: {value: 348.15, provenance: assumed, source: "gas leaving the towers (D-007)"}
+        phase: {value: vapor, provenance: assumed, source: "dry gas"}
+        flow: {value: 107307.4, basis: mass, provenance: assumed, source: "scripts/balance.py (D-006): moisture absorbed completely (D-007)"}
+        composition: {basis: mole_fraction, values: {N2: 0.7812, O2: 0.2095, AR: 0.0093, H2O: 0.0}, provenance: assumed, source: "scripts/balance.py (D-006)"}
+  - id: S3
+    title: Combustion air
+    from: K101.out
+    to: R101.air
+    template: air
+    state:
+      design:
+        pressure: {value: 160.0, provenance: assumed, source: "blower discharge (D-010)"}
+        temperature: {value: 413.26, provenance: assumed, source: "scripts/balance.py: isentropic efficiency 0.80 (D-010)"}
+        phase: {value: vapor, provenance: assumed, source: "dry gas"}
+        flow: {value: 107307.4, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S2', fingerprint: 505144e68955192e}
+        composition: {basis: mole_fraction, values: {N2: 0.7812, O2: 0.2095, AR: 0.0093, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S2', fingerprint: 505144e68955192e}
+  - id: S4
+    title: Molten sulfur
+    from: SULFUR.out
+    to: R101.sulfur
+    template: sulfur
+    state:
+      design:
+        pressure: {value: 600.0, provenance: assumed, source: "sulfur pump discharge to the burner guns (D-003)"}
+        temperature: {value: 413.15, provenance: assumed, source: "design basis (D-003)"}
+        phase: {value: liquid, provenance: assumed, source: "molten sulfur"}
+        flow: {value: 13663.88, basis: mass, provenance: assumed, source: "scripts/balance.py (D-006): 1000 t/d H2SO4 at 99.7 % conversion and 99.9 % absorption"}
+        composition: {basis: mole_fraction, values: {S: 1.0}, provenance: assumed, source: "pure sulfur (D-003)"}
+  # --- burner gas and converter --------------------------------------------------------------
+  - id: S5
+    title: Burner gas
+    from: R101.out
+    to: E101.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 156.0, provenance: assumed, source: "pressure profile (D-010)"}
+        temperature: {value: 1401.96, provenance: assumed, source: "scripts/balance.py: adiabatic furnace, Cp/R extrapolated above 1000 K (D-006)"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 120971.0, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3 S4', fingerprint: a567af369d48b303}
+        composition: {basis: mole_fraction, values: {N2: 0.7812, O2: 0.0945001, AR: 0.0093, H2O: 0.0, S: 0.0, SO2: 0.115}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3 S4', fingerprint: 8042c4fd73b223bd}
+  - id: S6
+    title: Gas to bed 1
+    from: E101.out
+    to: R201.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 152.0, provenance: assumed, source: "pressure profile (D-010)"}
+        temperature: {value: 688.15, provenance: assumed, source: "bed 1 inlet (D-005)"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 120971.0, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S5', fingerprint: fdef9b7c883c35bd}
+        composition: {basis: mole_fraction, values: {N2: 0.7812, O2: 0.0945001, AR: 0.0093, H2O: 0.0, S: 0.0, SO2: 0.115}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S5', fingerprint: fdef9b7c883c35bd}
+  - id: S7
+    title: Bed 1 outlet
+    from: R201.out
+    to: E201H.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 148.0, provenance: assumed, source: "pressure profile (D-010)"}
+        temperature: {value: 898.86, provenance: assumed, source: "scripts/balance.py: adiabatic bed (D-006)"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 120971.0, provenance: calculated, source: 'cheme process propagate: reactor R201 from S6', fingerprint: 222c40aa1967512b}
+        composition: {basis: mole_fraction, values: {N2: 0.810563, O2: 0.0604655, AR: 0.00964955, SO2: 0.0441493, SO3: 0.0751731, H2O: 0.0, S: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R201 from S6', fingerprint: 23b63a55403f3400}
+  - id: S8
+    title: Gas to bed 2
+    from: E201H.out
+    to: R202.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 145.0, provenance: assumed, source: "pressure profile (D-010)"}
+        temperature: {value: 713.15, provenance: assumed, source: "bed 2 inlet (D-005)"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 120971.0, provenance: calculated, source: 'cheme process propagate: pass-through E201H from S7', fingerprint: e07c25aa86de9ce3}
+        composition: {basis: mole_fraction, values: {N2: 0.810563, O2: 0.0604655, AR: 0.00964955, SO2: 0.0441493, SO3: 0.0751731, H2O: 0.0, S: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E201H from S7', fingerprint: e07c25aa86de9ce3}
+  - id: S9
+    title: Bed 2 outlet
+    from: R202.out
+    to: E202.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 141.0, provenance: assumed, source: "pressure profile (D-010)"}
+        temperature: {value: 794.01, provenance: assumed, source: "scripts/balance.py: adiabatic bed (D-006)"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 120971.0, provenance: calculated, source: 'cheme process propagate: reactor R202 from S8', fingerprint: 279498699219acfd}
+        composition: {basis: mole_fraction, values: {N2: 0.822337, O2: 0.0468171, AR: 0.00978972, SO2: 0.0157372, SO3: 0.105318, H2O: 0.0, S: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R202 from S8', fingerprint: fe15d3cea0b8bbfc}
+  - id: S10
+    title: Gas to bed 3
+    from: E202.out
+    to: R203.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 138.0, provenance: assumed, source: "pressure profile (D-010)"}
+        temperature: {value: 708.15, provenance: assumed, source: "bed 3 inlet (D-005)"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 120971.0, provenance: calculated, source: 'cheme process propagate: pass-through E202 from S9', fingerprint: e88afc17e4cefecd}
+        composition: {basis: mole_fraction, values: {N2: 0.822337, O2: 0.0468171, AR: 0.00978972, SO2: 0.0157372, SO3: 0.105318, H2O: 0.0, S: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E202 from S9', fingerprint: e88afc17e4cefecd}
+  - id: S11
+    title: Bed 3 outlet
+    from: R203.out
+    to: E203H.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 134.0, provenance: assumed, source: "pressure profile (D-010)"}
+        temperature: {value: 735.29, provenance: assumed, source: "scripts/balance.py: adiabatic bed (D-006)"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 120971.0, provenance: calculated, source: 'cheme process propagate: reactor R203 from S10', fingerprint: e00522a7fe48f234}
+        composition: {basis: mole_fraction, values: {N2: 0.826339, O2: 0.0421792, AR: 0.00983736, SO2: 0.00608222, SO3: 0.115562, H2O: 0.0, S: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R203 from S10', fingerprint: 50951571f6b2e128}
+  - id: S12
+    title: Bed 3 gas after the cold interpass exchanger
+    from: E203H.out
+    to: E204.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 131.0, provenance: assumed, source: "pressure profile (D-010)"}
+        temperature: {value: 676.10, provenance: assumed, source: "scripts/balance.py: reheat duty balance (D-006)"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 120971.0, provenance: calculated, source: 'cheme process propagate: pass-through E203H from S11', fingerprint: abdba8c28f42d541}
+        composition: {basis: mole_fraction, values: {N2: 0.826339, O2: 0.0421792, AR: 0.00983736, SO2: 0.00608222, SO3: 0.115562, H2O: 0.0, S: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E203H from S11', fingerprint: abdba8c28f42d541}
+  - id: S13
+    title: Gas to intermediate absorption
+    from: E204.out
+    to: T301.gas_in
+    template: gas
+    state:
+      design:
+        pressure: {value: 128.0, provenance: assumed, source: "pressure profile (D-010)"}
+        temperature: {value: 453.15, provenance: assumed, source: "intermediate tower gas inlet (D-007)"}
+        phase: {value: vapor, provenance: assumed, source: "gas, above the acid dew point (to be checked, D-007)"}
+        flow: {value: 120971.0, provenance: calculated, source: 'cheme process propagate: pass-through E204 from S12', fingerprint: c1c89e169934180a}
+        composition: {basis: mole_fraction, values: {N2: 0.826339, O2: 0.0421792, AR: 0.00983736, SO2: 0.00608222, SO3: 0.115562, H2O: 0.0, S: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E204 from S12', fingerprint: c1c89e169934180a}
+  - id: S14
+    title: Gas from intermediate absorption
+    from: T301.gas_out
+    to: E203C.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 124.0, provenance: assumed, source: "pressure profile (D-010)"}
+        temperature: {value: 348.15, provenance: assumed, source: "gas leaving the towers (D-007)"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 88592.02, basis: mass, provenance: assumed, source: "scripts/balance.py (D-006): 99.9 % of the SO3 absorbed (D-007)"}
+        composition: {basis: mole_fraction, values: {N2: 0.934187998, O2: 0.0476840072, AR: 0.0111212857, SO2: 0.00687606373, SO3: 0.000130645211}, provenance: assumed, source: "scripts/balance.py (D-006)"}
+  - id: S15
+    title: Intermediate gas after the cold interpass exchanger
+    from: E203C.out
+    to: E201C.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 121.0, provenance: assumed, source: "pressure profile (D-010)"}
+        temperature: {value: 429.31, provenance: assumed, source: "scripts/balance.py: reheat duty balance (D-006)"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 88592.02, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E203C from S14', fingerprint: 3262414f2e9bcfd0}
+        composition: {basis: mole_fraction, values: {N2: 0.934187998, O2: 0.0476840072, AR: 0.0111212857, SO2: 0.00687606373, SO3: 0.000130645211}, provenance: calculated, source: 'cheme process propagate: pass-through E203C from S14', fingerprint: 3262414f2e9bcfd0}
+  - id: S16
+    title: Gas to bed 4
+    from: E201C.out
+    to: R204.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 118.0, provenance: assumed, source: "pressure profile (D-010)"}
+        temperature: {value: 683.15, provenance: assumed, source: "bed 4 inlet (D-005)"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 88592.02, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E201C from S15', fingerprint: 9e270e60789e7f76}
+        composition: {basis: mole_fraction, values: {N2: 0.934187998, O2: 0.0476840072, AR: 0.0111212857, SO2: 0.00687606373, SO3: 0.000130645211}, provenance: calculated, source: 'cheme process propagate: pass-through E201C from S15', fingerprint: 9e270e60789e7f76}
+  - id: S17
+    title: Bed 4 outlet
+    from: R204.out
+    to: E205.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 114.0, provenance: assumed, source: "pressure profile (D-010)"}
+        temperature: {value: 704.03, provenance: assumed, source: "scripts/balance.py: adiabatic bed (D-006)"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 88592.0, provenance: calculated, source: 'cheme process propagate: reactor R204 from S16', fingerprint: 16ff366028fa9a1b}
+        composition: {basis: mole_fraction, values: {N2: 0.937217, O2: 0.0445964, AR: 0.0111573, SO2: 0.000413901, SO3: 0.00661552, H2O: 0.0, S: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R204 from S16', fingerprint: a927d77185dca6a2}
+  - id: S18
+    title: Gas to final absorption
+    from: E205.out
+    to: T302.gas_in
+    template: gas
+    state:
+      design:
+        pressure: {value: 111.0, provenance: assumed, source: "pressure profile (D-010)"}
+        temperature: {value: 443.15, provenance: assumed, source: "final tower gas inlet (D-007)"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 88592.0, provenance: calculated, source: 'cheme process propagate: pass-through E205 from S17', fingerprint: 6e0285f935e6d479}
+        composition: {basis: mole_fraction, values: {N2: 0.937217, O2: 0.0445964, AR: 0.0111573, SO2: 0.000413901, SO3: 0.00661552, H2O: 0.0, S: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E205 from S17', fingerprint: 6e0285f935e6d479}
+  - id: S19
+    title: Tail gas to stack
+    from: T302.gas_out
+    to: STACK.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 107.0, provenance: assumed, source: "stack base (D-010)"}
+        temperature: {value: 348.15, provenance: assumed, source: "gas leaving the towers (D-007)"}
+        phase: {value: vapor, provenance: assumed, source: "gas; the SO3 leaves as H2SO4 mist (D-009)"}
+        flow: {value: 86957.72, basis: mass, provenance: assumed, source: "scripts/balance.py (D-006): 99.9 % of the SO3 absorbed (D-007)"}
+        composition: {basis: mole_fraction, values: {N2: 0.943452038, O2: 0.0448930759, AR: 0.0112315719, SO2: 0.000416655086, SO3: 0.00000665953712}, provenance: assumed, source: "scripts/balance.py (D-006)"}
+  # --- acid system --------------------------------------------------------------------------
+  - id: S20
+    title: Mixed acid from the pump tank
+    from: T303.out
+    to: P301.in
+    template: acid
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "atmospheric pump tank (D-007)"}
+        temperature: {value: 370.59, provenance: assumed, source: "scripts/balance.py: tank mixing, heat of dilution neglected (D-006)"}
+        phase: {value: liquid, provenance: assumed, source: "acid"}
+        flow: {value: 1834700.0, provenance: calculated, source: 'cheme process propagate: mixer T303 from S28 S29 S30 S31', fingerprint: 8ce7cff811a3900f}
+        composition: {basis: mole_fraction, values: {H2SO4: 0.92344, H2O: 0.0765599}, provenance: calculated, source: 'cheme process propagate: mixer T303 from S28 S29 S30 S31', fingerprint: 60fee17722c36106}
+  - id: S21
+    title: Circulating acid to the cooler
+    from: P301.out
+    to: E301.in
+    template: acid
+    state:
+      design:
+        pressure: {value: 450.0, provenance: assumed, source: "35 m head (D-010)"}
+        temperature: {value: 370.59, provenance: assumed, source: "pump heat neglected"}
+        phase: {value: liquid, provenance: assumed, source: "acid"}
+        flow: {value: 1834700.0, provenance: calculated, source: 'cheme process propagate: pass-through P301 from S20', fingerprint: ec8eb3573d4cec61}
+        composition: {basis: mole_fraction, values: {H2SO4: 0.92344, H2O: 0.0765599}, provenance: calculated, source: 'cheme process propagate: pass-through P301 from S20', fingerprint: ec8eb3573d4cec61}
+  - id: S22
+    title: Cooled circulating acid
+    from: E301.out
+    to: SPL301.in
+    template: acid
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: "pressure profile (D-010)"}
+        temperature: {value: 343.15, provenance: assumed, source: "acid header (D-007)"}
+        phase: {value: liquid, provenance: assumed, source: "acid"}
+        flow: {value: 1834700.0, provenance: calculated, source: 'cheme process propagate: pass-through E301 from S21', fingerprint: 53e7b74539df68b2}
+        composition: {basis: mole_fraction, values: {H2SO4: 0.92344, H2O: 0.0765599}, provenance: calculated, source: 'cheme process propagate: pass-through E301 from S21', fingerprint: 53e7b74539df68b2}
+  - id: S23
+    title: Acid to the drying tower
+    from: SPL301.dt
+    to: T101.acid_in
+    template: acid
+    state:
+      design:
+        pressure: {value: 380.0, provenance: assumed, source: "pressure profile (D-010)"}
+        temperature: {value: 343.15, provenance: assumed, source: "acid header (D-007)"}
+        phase: {value: liquid, provenance: assumed, source: "acid"}
+        flow: {value: 324790.0, provenance: calculated, source: 'cheme process propagate: splitter SPL301 from S22', fingerprint: aed47eaa2571f3ed}
+        composition: {basis: mole_fraction, values: {H2SO4: 0.92344, H2O: 0.0765599}, provenance: calculated, source: 'cheme process propagate: splitter SPL301 from S22', fingerprint: c48bf3c49d7dfc38}
+  - id: S24
+    title: Acid to the intermediate tower
+    from: SPL301.ipa
+    to: T301.acid_in
+    template: acid
+    state:
+      design:
+        pressure: {value: 380.0, provenance: assumed, source: "pressure profile (D-010)"}
+        temperature: {value: 343.15, provenance: assumed, source: "acid header (D-007)"}
+        phase: {value: liquid, provenance: assumed, source: "acid"}
+        flow: {value: 1080280.0, provenance: calculated, source: 'cheme process propagate: splitter SPL301 from S22', fingerprint: aed47eaa2571f3ed}
+        composition: {basis: mole_fraction, values: {H2SO4: 0.92344, H2O: 0.0765599}, provenance: calculated, source: 'cheme process propagate: splitter SPL301 from S22', fingerprint: c48bf3c49d7dfc38}
+  - id: S25
+    title: Acid to the final tower
+    from: SPL301.fat
+    to: T302.acid_in
+    template: acid
+    state:
+      design:
+        pressure: {value: 380.0, provenance: assumed, source: "pressure profile (D-010)"}
+        temperature: {value: 343.15, provenance: assumed, source: "acid header (D-007)"}
+        phase: {value: liquid, provenance: assumed, source: "acid"}
+        flow: {value: 387334.0, provenance: calculated, source: 'cheme process propagate: splitter SPL301 from S22', fingerprint: aed47eaa2571f3ed}
+        composition: {basis: mole_fraction, values: {H2SO4: 0.92344, H2O: 0.0765599}, provenance: calculated, source: 'cheme process propagate: splitter SPL301 from S22', fingerprint: c48bf3c49d7dfc38}
+  - id: S26
+    title: Product acid draw
+    from: SPL301.prod
+    to: E302.in
+    template: acid
+    state:
+      design:
+        pressure: {value: 380.0, provenance: assumed, source: "pressure profile (D-010)"}
+        temperature: {value: 343.15, provenance: assumed, source: "acid header (D-007)"}
+        phase: {value: liquid, provenance: assumed, source: "acid"}
+        flow: {value: 42301.1, provenance: calculated, source: 'cheme process propagate: splitter SPL301 from S22', fingerprint: aed47eaa2571f3ed}
+        composition: {basis: mole_fraction, values: {H2SO4: 0.92344, H2O: 0.0765599}, provenance: calculated, source: 'cheme process propagate: splitter SPL301 from S22', fingerprint: c48bf3c49d7dfc38}
+  - id: S27
+    title: Product acid 98.5 wt% to storage
+    from: E302.out
+    to: ACID.in
+    template: acid
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: "to storage (D-010)"}
+        temperature: {value: 313.15, provenance: assumed, source: "design basis"}
+        phase: {value: liquid, provenance: assumed, source: "acid"}
+        flow: {value: 42301.1, provenance: calculated, source: 'cheme process propagate: pass-through E302 from S26', fingerprint: 6974c2ecf5b49221}
+        composition: {basis: mole_fraction, values: {H2SO4: 0.92344, H2O: 0.0765599}, provenance: calculated, source: 'cheme process propagate: pass-through E302 from S26', fingerprint: 6974c2ecf5b49221}
+  - id: S28
+    title: Drying tower acid return
+    from: T101.acid_out
+    to: T303.dt
+    template: acid
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "gravity return (D-007)"}
+        temperature: {value: 338.15, provenance: assumed, source: "drying tower acid outlet (D-007)"}
+        phase: {value: liquid, provenance: assumed, source: "acid"}
+        flow: {value: 326067.6, basis: mass, provenance: assumed, source: "scripts/balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {H2SO4: 0.98114236, H2O: 0.01885764}, provenance: assumed, source: "scripts/balance.py (D-006)"}
+  - id: S29
+    title: Intermediate tower acid return
+    from: T301.acid_out
+    to: T303.ipa
+    template: acid
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "gravity return (D-007)"}
+        temperature: {value: 383.15, provenance: assumed, source: "intermediate tower acid outlet (D-007)"}
+        phase: {value: liquid, provenance: assumed, source: "acid"}
+        flow: {value: 1112656.2, basis: mass, provenance: assumed, source: "scripts/balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {H2SO4: 0.991984458, H2O: 0.008015542}, provenance: assumed, source: "scripts/balance.py (D-006)"}
+  - id: S30
+    title: Final tower acid return
+    from: T302.acid_out
+    to: T303.fat
+    template: acid
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "gravity return (D-007)"}
+        temperature: {value: 363.15, provenance: assumed, source: "final tower acid outlet (D-007)"}
+        phase: {value: liquid, provenance: assumed, source: "acid"}
+        flow: {value: 388968.6, basis: mass, provenance: assumed, source: "scripts/balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {H2SO4: 0.986008426, H2O: 0.013991574}, provenance: assumed, source: "scripts/balance.py (D-006)"}
+  - id: S31
+    title: Process (dilution) water
+    from: PW.out
+    to: T303.water
+    template: water
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: "site water header"}
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        phase: {value: liquid, provenance: assumed, source: "water"}
+        flow: {value: 7010.86, basis: mass, provenance: assumed, source: "scripts/balance.py (D-006): water in the product and consumed by SO3 absorption, less the air's moisture"}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: "process water"}
+  # --- energy -----------------------------------------------------------------------------------
+  - {id: Q1, title: Main blower power, kind: energy, from: POWER.k101, to: K101.power, state: {design: {duty: {value: 2046.6, provenance: assumed, source: "scripts/balance.py: electric, isentropic 0.80, motor 0.96 (D-010)"}}}}
+  - {id: Q2, title: Acid pump power, kind: energy, from: POWER.p301, to: P301.power, state: {design: {duty: {value: 260.4, provenance: assumed, source: "scripts/balance.py: 35 m, pump 0.70, motor 0.96 (D-010)"}}}}
+  - {id: Q3, title: Waste heat boiler duty, kind: energy, from: E101.steam, to: HPS.whb, state: {design: {duty: {value: 26411.3, provenance: assumed, source: "scripts/balance.py (D-006)"}}}}
+  - {id: Q4, title: Superheater duty, kind: energy, from: E202.steam, to: HPS.sh, state: {design: {duty: {value: 3000.3, provenance: assumed, source: "scripts/balance.py (D-006)"}}}}
+  - {id: Q5, title: Economiser 1 duty, kind: energy, from: E204.steam, to: HPS.eco1, state: {design: {duty: {value: 7436.9, provenance: assumed, source: "scripts/balance.py (D-006)"}}}}
+  - {id: Q6, title: Economiser 2 duty, kind: energy, from: E205.steam, to: HPS.eco2, state: {design: {duty: {value: 6762.5, provenance: assumed, source: "scripts/balance.py (D-006)"}}}}
+  - {id: Q7, title: Acid cooler duty, kind: energy, from: E301.cw, to: CW.acid, state: {design: {duty: {value: 20275.8, provenance: assumed, source: "scripts/balance.py (D-006)"}}}}
+  - {id: Q8, title: Product cooler duty, kind: energy, from: E302.cw, to: CW.prod, state: {design: {duty: {value: 511.1, provenance: assumed, source: "scripts/balance.py (D-006)"}}}}
+  - {id: QE201, title: Hot interpass exchanger duty, kind: energy, from: E201H.q, to: E201C.q, state: {design: {duty: {value: 6560.0, provenance: assumed, source: "scripts/balance.py (D-006)"}}}}
+  - {id: QE203, title: Cold interpass exchanger duty, kind: energy, from: E203H.q, to: E203C.q, state: {design: {duty: {value: 2047.8, provenance: assumed, source: "scripts/balance.py (D-006)"}}}}
+layout:
+  pfd:
+    DRY: {x: 90.0, y: 235.0}   # drawn below the furnace, upstream as in the process

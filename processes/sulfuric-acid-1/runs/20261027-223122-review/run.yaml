@@ -1,0 +1,88 @@
+schema: process-run/v1
+run_id: 20261027-223122-review
+process: sulfuric-acid-1
+kind: agent
+complete: false
+incomplete_notes:
+- runner had uncommitted changes (runner_commit is not exact)
+task_file: /Users/arturschweidtmann/Developer/test/agent-cli/tasks/gen/sulfuric-acid-1-review.md
+branch: case/sulfuric-acid-1
+start_commit: e19030be935b4d766c506ca290c3e4dba9b008e3
+end_commit: c0ffe49fd06cbeae67169ff8f60606f5b96f2a88
+started: '2026-10-27T22:31:22+00:00'
+finished: '2026-10-27T22:34:36+00:00'
+wall_s: 194
+cost_usd: 0.8848988000000001
+budget_usd: 3.0
+model: claude-opus-5-5
+effort: high
+num_turns: 23
+tokens:
+  input: 30
+  output: 16446
+  thinking: 8022
+  cache_read: 945739
+  cache_write: 73264
+session_id: a4882dfe-cfef-4dbf-807f-0f996eda7305
+session_export:
+  file: session.jsonl.gz
+  sha256: 4eadcf98109fe9eb4e508b983a143002c18c9f6470d443a211a34e58f27fb1b0
+tools:
+  cheme: cheme 0.8.0 (pyDEXPI 2.1.0)
+  core_commit: 44680fa0e142849803577a235d78fd0a75ca3f7a
+  claude_agent_sdk: 0.2.174
+  runner_commit: 7a20577b50dd9f27795512cfd5d6fa65e7d257d8
+  runner_dirty: true
+checks_by_agent:
+- cheme assess lca --coverage 2>&1 | tail -40
+- cheme check 2>&1 | tail -30
+- cheme maturity 2>&1 | tail -30
+- cheme process propagate --check 2>&1 | tail -20
+- cheme process streams 2>&1 | tail -45
+- cheme validate 2>&1 | grep -E "review|error\(s\)"
+- cheme validate 2>&1 | tail -25
+checks_after_run:
+- command: cheme check
+  exit: 1
+  summary:
+    counts:
+      ok: 12
+      FAIL: 10
+      n/a: 3
+    failed:
+    - basic/pids-exist
+    - concept/layout-plot-plan
+    - basic/layout-3d
+    - basic/lifting-study
+    - basic/mto
+    - basic/layout-review
+    - detail/layout-detail
+    - detail/electrical
+    - detail/hvac
+    - detail/datasheets
+- command: cheme maturity
+  exit: 0
+  summary:
+    counts:
+      ok: 10
+      FAIL: 5
+    failed:
+    - sourced.boundary
+    - balanced.model-basis
+    - predictive.simulation-spec
+    - predictive.model-basis
+    - engineering.datasheets
+    levels:
+      sourced: fail
+      balanced: fail
+      predictive: fail
+      engineering: fail
+- command: cheme process propagate --check
+  exit: 0
+  summary:
+    last_line: ''
+outcome:
+  result: success
+  guard_denials: 0
+  report: report.md
+observed_later: {}

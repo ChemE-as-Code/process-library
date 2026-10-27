@@ -1,0 +1,83 @@
+# Components and templates of the process. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol,
+# normal_boiling_point in K at 101.325 kPa.
+#
+# Gas data printed by `cheme chemistry thermo` (chemicals/thermo packages: Poling 5th ed., CRC,
+# ATcT). Sulfur and sulfuric acid are condensed phases here and carry no ideal-gas data: the
+# furnace and absorption energy is calculated outside core in scripts/balance.py with liquid
+# formation enthalpies (DESIGN.md D-006). H2SO4 is a molecular pseudo-component of the acid
+# (no dissociation): no property package of core covers aqueous acid (core #364, electrolytes
+# other than NaCl refused).
+schema: cheme/process/v1
+kind: materials
+components:
+  - id: N2
+    name: Nitrogen
+    formula: N2
+    cas: 7727-37-9
+    molar_mass: 28.013
+    normal_boiling_point: 77.36
+    critical: {Tc: 126.192, Pc: 3395.8, omega: 0.0372, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 0.0, S_298: 191.6, cp_R: [3.539, -0.000261, 7e-08, 1.57e-09, -9.9e-13], temperature_range: [50, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: O2
+    name: Oxygen
+    formula: O2
+    cas: 7782-44-7
+    molar_mass: 31.999
+    normal_boiling_point: 90.19
+    critical: {Tc: 154.581, Pc: 5043.0, omega: 0.0222, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 0.0, S_298: 205.2, cp_R: [3.63, -0.001794, 6.58e-06, -6e-09, 1.79e-12], temperature_range: [50, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: AR
+    name: Argon
+    formula: Ar
+    cas: 7440-37-1
+    molar_mass: 39.948
+    normal_boiling_point: 87.30
+    critical: {Tc: 150.687, Pc: 4863.0, omega: -0.00219, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 0.0, S_298: 154.8, cp_R: [2.5, 0.0, 0.0, 0.0, 0.0], temperature_range: [50, 3000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.): monatomic ideal gas"}
+  - id: H2O
+    name: Water
+    formula: H2O
+    cas: 7732-18-5
+    molar_mass: 18.015
+    normal_boiling_point: 373.12
+    critical: {Tc: 647.096, Pc: 22064.0, omega: 0.3443, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -241822.0, S_298: 188.8, cp_R: [4.395, -0.004186, 1.405e-05, -1.564e-08, 6.32e-12], temperature_range: [50, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: SO2
+    name: Sulfur dioxide
+    formula: SO2
+    cas: 7446-09-5
+    molar_mass: 64.064
+    normal_boiling_point: 263.1
+    critical: {Tc: 430.64, Pc: 7886.6, omega: 0.256, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -296800.0, S_298: 248.2, cp_R: [4.417, -0.002234, 2.344e-05, -3.271e-08, 1.393e-11], temperature_range: [50, 1000], source: "chemicals: dHf_298 CRC, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: SO3
+    name: Sulfur trioxide
+    formula: SO3
+    cas: 7446-11-9
+    molar_mass: 80.063
+    critical: {Tc: 491.0, Pc: 8207.33, omega: 0.4121, source: "chemicals: Tc MATTHEWS, Pc MATTHEWS, omega PSRK"}
+    ideal_gas: {dHf_298: -395700.0, S_298: 256.8, cp_R: [3.426, 0.006479, 1.691e-05, -3.356e-08, 1.59e-11], temperature_range: [50, 1000], source: "chemicals: dHf_298 CRC, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: S
+    name: Sulfur (molten)
+    formula: S
+    cas: 7704-34-9
+    molar_mass: 32.065
+  - id: H2SO4
+    name: Sulfuric acid
+    formula: H2SO4
+    cas: 7664-93-9
+    molar_mass: 98.078
+templates:
+  - {id: air, title: Humid or dried air, components: [N2, O2, AR, H2O]}
+  - {id: sulfur, title: Molten sulfur, components: [S]}
+  # H2O and S stay at zero in the gas (dried air, complete combustion); they are in the template
+  # because the furnace outlet carries every component of its inlets.
+  - {id: gas, title: Sulfur dioxide / trioxide process gas, components: [N2, O2, AR, SO2, SO3, H2O, S]}
+  - {id: acid, title: Sulfuric acid (H2SO4 + H2O), components: [H2SO4, H2O]}
+  - {id: water, title: Process water, components: [H2O]}
+# No benchmarked property package covers SO2/SO3 gas or aqueous sulfuric acid (cheme process
+# props --coverage; core #315, #364). The values are given or assumed with their source.
+property_method:
+  adapter: thermo
+  status: placeholder

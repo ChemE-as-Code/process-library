@@ -1,0 +1,43 @@
+# Equipment list. Schema: `cheme schema equipment`.
+# As far as the PFD requires (concept stage): tags, types and services of the flowsheet steps,
+# the duty basis from scripts/balance.py (D-006). Design pressures, temperatures, materials and
+# sizes are not set yet (basic engineering); materials named are the usual service choices to
+# be confirmed (open input, DESIGN.md D-011). All values ASSUMED.
+schema: cheme/equipment/v1
+equipment:
+  # ---- air drying and blower (block DRY)
+  - {tag: T-101, type: ProcessColumn, service: "Air drying tower (packed, 98.5 wt% acid)",
+     notes: "Absorbs the air's moisture (1.28 t/h) into the circulating acid; acid 325 t/h in at 343 K (D-007)."}
+  - {tag: K-101, type: CentrifugalCompressor, service: Main air blower,
+     notes: "98 -> 160 kPa(a), 107 t/h dry air; 2.05 MW electric at isentropic efficiency 0.80 (D-010). Steam turbine drive is the common alternative (D-010)."}
+  # ---- sulfur combustion (block BURN)
+  - {tag: R-101, type: Furnace, service: "Sulfur furnace (refractory-lined, burner guns)",
+     notes: "Burns 13.66 t/h molten sulfur in dry air to 11.5 mol% SO2; adiabatic outlet about 1400 K (D-004, D-006)."}
+  - {tag: E-101, type: TubularHeatExchanger, service: Waste heat boiler,
+     notes: "Burner gas 1402 -> 688 K, 26.4 MW to HP steam raising (D-008)."}
+  # ---- converter (block CONV)
+  - {tag: R-201, type: Vessel, service: "Converter, four V2O5 beds (3+1)",
+     notes: "One vessel with four adiabatic beds (steps R201-R204); cumulative conversion 63 / 87 / 95 / 99.7 % (D-005). Catalyst volumes not sized: no kinetics chosen (D-005)."}
+  - {tag: E-201, type: TubularHeatExchanger, service: Hot interpass exchanger (gas/gas),
+     notes: "Bed 1 gas 899 -> 713 K reheats the intermediate-tower gas 429 -> 683 K, 6.56 MW (D-006)."}
+  - {tag: E-202, type: TubularHeatExchanger, service: Steam superheater (after bed 2),
+     notes: "Bed 2 gas 794 -> 708 K, 3.0 MW to HP steam (D-008)."}
+  - {tag: E-203, type: TubularHeatExchanger, service: Cold interpass exchanger (gas/gas),
+     notes: "Bed 3 gas 735 -> 676 K heats the intermediate-tower gas 348 -> 429 K, 2.05 MW (D-006)."}
+  - {tag: E-204, type: TubularHeatExchanger, service: Economiser 1 (gas to intermediate tower),
+     notes: "676 -> 453 K, 7.44 MW to boiler feed water (D-008)."}
+  - {tag: E-205, type: TubularHeatExchanger, service: Economiser 2 (gas to final tower),
+     notes: "Bed 4 gas 704 -> 443 K, 6.76 MW to boiler feed water (D-008)."}
+  # ---- absorption and acid system (block ABS)
+  - {tag: T-301, type: ProcessColumn, service: "Intermediate absorption tower (packed, candle mist eliminators)",
+     notes: "Absorbs 99.9 % of the SO3 (404 kmol/h); acid 1080 t/h in at 343 K, out 383 K (D-007)."}
+  - {tag: T-302, type: ProcessColumn, service: "Final absorption tower (packed, candle mist eliminators)",
+     notes: "Absorbs 99.9 % of the SO3 (20.4 kmol/h); acid 387 t/h in at 343 K, out 363 K (D-007)."}
+  - {tag: T-303, type: Tank, service: Acid pump tank (dilution water added),
+     notes: "Common tank of the three towers (D-007): 1835 t/h mixed at 371 K; dilution water 7.0 t/h."}
+  - {tag: P-301, type: CentrifugalPump, service: "Acid circulation pump (vertical, submerged)",
+     notes: "1835 t/h, 35 m head, 0.26 MW electric (D-010). Spares and a split by tower are basic-engineering choices."}
+  - {tag: E-301, type: PlateHeatExchanger, service: Acid cooler (anodically protected),
+     notes: "Circulating acid 371 -> 343 K, 20.3 MW to cooling water (D-007). Heat recovery from the absorption acid to LP steam is an alternative (D-012)."}
+  - {tag: E-302, type: PlateHeatExchanger, service: Product acid cooler,
+     notes: "42.3 t/h 343 -> 313 K, 0.51 MW to cooling water."}
