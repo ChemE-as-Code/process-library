@@ -1,0 +1,90 @@
+schema: process-run/v1
+run_id: 20261027-220030-review
+process: chlor-alkali-1
+kind: agent
+complete: false
+incomplete_notes:
+- runner had uncommitted changes (runner_commit is not exact)
+task_file: /Users/arturschweidtmann/Developer/test/agent-cli/tasks/gen/chlor-alkali-1-review.md
+branch: case/chlor-alkali-1
+start_commit: dbd50333906344d4adb2614d303edd3c92c37699
+end_commit: b11721105545707444c7a07df7112e00a35fc09e
+started: '2026-10-27T22:00:30+00:00'
+finished: '2026-10-27T22:04:19+00:00'
+wall_s: 228
+cost_usd: 1.1311746
+budget_usd: 3.0
+model: claude-opus-5-5
+effort: high
+num_turns: 21
+tokens:
+  input: 34
+  output: 19594
+  thinking: 9718
+  cache_read: 1296980
+  cache_write: 95910
+session_id: ffc3abad-2d31-46c7-9261-e6fabc5f7c3e
+session_export:
+  file: session.jsonl.gz
+  sha256: 407ad2f9860f3f39518a976d193eacbc1a063a5661975af8558b00a224f3568b
+tools:
+  cheme: cheme 0.8.0 (pyDEXPI 2.1.0)
+  core_commit: 44680fa0e142849803577a235d78fd0a75ca3f7a
+  claude_agent_sdk: 0.2.174
+  runner_commit: 99c2a5a5820b5aa77f5d51aa14f32c8a5792aa34
+  runner_dirty: true
+checks_by_agent:
+- cheme assess lca --coverage 2>&1 | tail -50
+- cheme check 2>&1 | tail -30; cheme maturity 2>&1 | tail -30
+- cheme maturity 2>&1 | head -30; echo ----; cat process.yaml
+- cheme process propagate --check; echo "exit=$?"; cat lca/lca.yaml; cat lca/factors.yaml; cat lca/inventory.csv
+- cheme process streams 2>&1 | grep -iE "balance|close|stale|error|warn|block|step" | head -50; echo ----;
+  cheme process propagate --check 2>&1 | tail -15
+- cheme validate 2>&1 | grep -E "^drawing|warning|error" | head; git rev-parse HEAD; ls reviews/
+- cheme validate 2>&1 | grep -E "review|error|warning" | tail -10
+- cheme validate 2>&1 | tail -25
+checks_after_run:
+- command: cheme check
+  exit: 1
+  summary:
+    counts:
+      ok: 12
+      FAIL: 10
+      n/a: 3
+    failed:
+    - basic/pids-exist
+    - concept/layout-plot-plan
+    - basic/layout-3d
+    - basic/lifting-study
+    - basic/mto
+    - basic/layout-review
+    - detail/layout-detail
+    - detail/electrical
+    - detail/hvac
+    - detail/datasheets
+- command: cheme maturity
+  exit: 0
+  summary:
+    counts:
+      ok: 10
+      FAIL: 5
+    failed:
+    - sourced.boundary
+    - balanced.model-basis
+    - predictive.simulation-spec
+    - predictive.model-basis
+    - engineering.datasheets
+    levels:
+      sourced: fail
+      balanced: fail
+      predictive: fail
+      engineering: fail
+- command: cheme process propagate --check
+  exit: 0
+  summary:
+    last_line: ''
+outcome:
+  result: success
+  guard_denials: 0
+  report: report.md
+observed_later: {}

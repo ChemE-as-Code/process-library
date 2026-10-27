@@ -1,0 +1,134 @@
+schema: process-run/v1
+run_id: 20261027-220653-ci-fix
+process: nitric-acid-1
+kind: agent
+complete: false
+incomplete_notes:
+- runner had uncommitted changes (runner_commit is not exact)
+task_file: /Users/arturschweidtmann/Developer/test/agent-cli/tasks/gen/nitric-acid-1-ci-fix.md
+branch: case/nitric-acid-1
+start_commit: df8b4e4f8f96440887be428e0d84295d54e8830f
+end_commit: e1679a63a033b65d71f803942edb16d2d5fcf7e5
+started: '2026-10-27T22:06:53+00:00'
+finished: '2026-10-27T22:13:00+00:00'
+wall_s: 367
+cost_usd: 1.9832945000000002
+budget_usd: 3.0
+model: claude-opus-5-5
+effort: high
+num_turns: 62
+tokens:
+  input: 118
+  output: 25772
+  thinking: 9179
+  cache_read: 4810331
+  cache_write: 101031
+session_id: 73e803ab-f5c8-4cd9-ba7b-12ecd4aac1dd
+session_export:
+  file: session.jsonl.gz
+  sha256: 8a643b4f82461b5783b5b135e3d2119593f99d810fe1393f8fc893801cddc47d
+tools:
+  cheme: cheme 0.8.0 (pyDEXPI 2.1.0)
+  core_commit: 44680fa0e142849803577a235d78fd0a75ca3f7a
+  claude_agent_sdk: 0.2.174
+  runner_commit: 99c2a5a5820b5aa77f5d51aa14f32c8a5792aa34
+  runner_dirty: true
+checks_by_agent:
+- cheme assess lca --coverage 2>&1 | grep -E "^balance"; grep -o '"balance_exclusions[^}]*' build/lca-schema.json
+  | head -3
+- cheme assess lca --write 2>&1 | grep -E "warning|error|wrote" | cut -c1-200; cd ../.. && timeout 600
+  uv run pytest -q -x tests/test_utilities.py::test_the_library_builds_strict_with_the_utilities tests/test_export_formats.py::test_jsonld_identifiers
+  2>&1 | tail -15
+- 'cheme assess lca --write 2>&1 | grep -v "^lca/lca.yaml: info" | tail -8; git status --short; grep -n
+  "allocation\|system_model\|boundary" lca/dataset.yaml | head; sed -n 1,12p lca/results.md'
+- cheme maturity 2>&1 | tail -25
+- cheme maturity 2>&1 | tail -3; cheme process streams 2>&1 | grep -iE "balance|close|open|stale|error|warn"
+  | head -12; cheme assess lca --coverage 2>&1 | grep -E "^(result|gaps|balance|publication)"
+- cheme process layout --view pfd --pin 2>&1 | tail -2; grep -n "^layout:" -A3 process/flowsheet.yaml;
+  grep -n "  pfd:" -A16 process/flowsheet.yaml | head -20
+- cheme process layout --view pfd 2>&1 | head -50
+- cheme process streams 2>&1 | tail -30 | cut -c1-160
+- 'cheme schema lca > build/lca-schema.json; python3 -c "
+
+  import json;s=json.load(open(''build/lca-schema.json''))
+
+  p=s[''properties'']
+
+  print(json.dumps(p[''system_model''],indent=0)[:600])
+
+  a=p[''allocation'']
+
+  a=s.get(''\$defs'',s.get(''definitions'',{})).get(a.get(''\$ref'','''').split(''/'')[-1],a)
+
+  print(json.dumps(a,indent=0)[:3000])"'
+- 'cheme validate 2>&1 | tail -2 | head -1; python3 - <<''EOF''
+
+  p=''PROGRESS.md''
+
+  s=open(p).read()
+
+  a="|---|---|---|---|\n"
+
+  s=s.replace(a,a+"| 2026-10-27 | process/flowsheet.yaml layout.pfd, process/PFD.xml | PFD layout pinned
+  left to right (feeds, PREP, OX, ABS, TGT, stack; HP steam above OX, acid and CW below), rebuilt | review
+  2026-10-27-pfd-lci-review #3 |\n",1)
+
+  open(p,''w'').write(s)
+
+  EOF
+
+  git add -A . && git commit -q -m "nitric-acid-1: PFD layout pinned left to right (review #3)
+
+
+  layout.pfd in flowsheet.yaml pinned and the blocks reordered to the process sequence
+
+  (PREP, OX, ABS, TGT); HP steam export above OX, acid and cooling water below; PFD rebuilt.
+
+
+  Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" && git log --oneline -1'
+checks_after_run:
+- command: cheme check
+  exit: 1
+  summary:
+    counts:
+      ok: 11
+      FAIL: 11
+      n/a: 3
+    failed:
+    - basic/pids-exist
+    - basic/design-review
+    - concept/layout-plot-plan
+    - basic/layout-3d
+    - basic/lifting-study
+    - basic/mto
+    - basic/layout-review
+    - detail/layout-detail
+    - detail/electrical
+    - detail/hvac
+    - detail/datasheets
+- command: cheme maturity
+  exit: 0
+  summary:
+    counts:
+      ok: 10
+      FAIL: 5
+    failed:
+    - sourced.boundary
+    - balanced.model-basis
+    - predictive.simulation-spec
+    - predictive.model-basis
+    - engineering.datasheets
+    levels:
+      sourced: fail
+      balanced: fail
+      predictive: fail
+      engineering: fail
+- command: cheme process propagate --check
+  exit: 0
+  summary:
+    last_line: ''
+outcome:
+  result: success
+  guard_denials: 0
+  report: report.md
+observed_later: {}

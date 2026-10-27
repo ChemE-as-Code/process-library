@@ -1,0 +1,92 @@
+schema: process-run/v1
+run_id: 20261027-215841-review
+process: ammonia-1
+kind: agent
+complete: false
+incomplete_notes:
+- runner had uncommitted changes (runner_commit is not exact)
+task_file: /Users/arturschweidtmann/Developer/test/agent-cli/tasks/gen/ammonia-1-review.md
+branch: case/ammonia-1
+start_commit: ab23125f9cc99834f63315b331e0db9da3a7b2b3
+end_commit: c7554922eb50a783ed7f696d58250575e52b33b4
+started: '2026-10-27T21:58:41+00:00'
+finished: '2026-10-27T22:02:38+00:00'
+wall_s: 237
+cost_usd: 1.083449
+budget_usd: 3.0
+model: claude-opus-5-5
+effort: high
+num_turns: 26
+tokens:
+  input: 34
+  output: 20256
+  thinking: 11565
+  cache_read: 1201743
+  cache_write: 87527
+session_id: 5af96721-828f-4a3a-992d-c31294678345
+session_export:
+  file: session.jsonl.gz
+  sha256: 8419bb58275341534b1e1b7398dc809d22fb2fd19c7b7c34f616835294fe8223
+tools:
+  cheme: cheme 0.8.0 (pyDEXPI 2.1.0)
+  core_commit: 44680fa0e142849803577a235d78fd0a75ca3f7a
+  claude_agent_sdk: 0.2.174
+  runner_commit: 99c2a5a5820b5aa77f5d51aa14f32c8a5792aa34
+  runner_dirty: true
+checks_by_agent:
+- cheme check 2>&1 | tail -30; cheme maturity 2>&1 | tail -30
+- cheme process propagate --check 2>&1 | tail -15; cheme assess lca --coverage 2>&1 | tail -40
+- cheme process streams 2>&1 | grep -E '^(S1|S2|S3|S12|S28|S59|S60|S61|S67|S68) ' | cut -c1-260
+- cheme process streams 2>&1 | grep -iE 'balance|stale|warn|error|open|not closed|fail' | head -30; cheme
+  process streams 2>&1 | wc -l
+- cheme process streams 2>&1 | sed -n '100,159p' | cut -c1-200
+- cheme validate 2>&1 | grep -E '^drawing|generated' | head; grep -c . process/narrative.md; git log -1
+  --format=%H
+- cheme validate 2>&1 | grep -E 'review|error|warning' | tail -8; cheme check 2>&1 | grep design-review
+- cheme validate 2>&1 | grep -E 'review|file\(s\)' | tail -4
+- cheme validate 2>&1 | tail -30
+checks_after_run:
+- command: cheme check
+  exit: 1
+  summary:
+    counts:
+      ok: 12
+      FAIL: 10
+      n/a: 3
+    failed:
+    - basic/pids-exist
+    - concept/layout-plot-plan
+    - basic/layout-3d
+    - basic/lifting-study
+    - basic/mto
+    - basic/layout-review
+    - detail/layout-detail
+    - detail/electrical
+    - detail/hvac
+    - detail/datasheets
+- command: cheme maturity
+  exit: 0
+  summary:
+    counts:
+      ok: 10
+      FAIL: 5
+    failed:
+    - sourced.boundary
+    - balanced.model-basis
+    - predictive.simulation-spec
+    - predictive.model-basis
+    - engineering.datasheets
+    levels:
+      sourced: fail
+      balanced: fail
+      predictive: fail
+      engineering: fail
+- command: cheme process propagate --check
+  exit: 0
+  summary:
+    last_line: ''
+outcome:
+  result: success
+  guard_denials: 0
+  report: report.md
+observed_later: {}

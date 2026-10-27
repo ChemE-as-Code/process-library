@@ -1,0 +1,118 @@
+schema: process-run/v1
+run_id: 20261027-220350-ci-fix
+process: hda-1
+kind: agent
+complete: false
+incomplete_notes:
+- runner had uncommitted changes (runner_commit is not exact)
+task_file: /Users/arturschweidtmann/Developer/test/agent-cli/tasks/gen/hda-1-ci-fix.md
+branch: case/hda-1
+start_commit: 5828ad2dfdc338f13e3b1d81ab65b915926d6cfd
+end_commit: ae65b899b345d72adca234ce6e2795cbf4376cbe
+started: '2026-10-27T22:03:50+00:00'
+finished: '2026-10-27T22:06:59+00:00'
+wall_s: 189
+cost_usd: 1.1087532000000004
+budget_usd: 3.0
+model: claude-opus-5-5
+effort: high
+num_turns: 56
+tokens:
+  input: 82
+  output: 12899
+  thinking: 3726
+  cache_read: 2507447
+  cache_write: 69759
+session_id: 8f909a57-3116-40a4-ade4-1efb91166d9e
+session_export:
+  file: session.jsonl.gz
+  sha256: b1577d5b569f05f7353d463476e060fac1138bd2b2b24d3d845ca47346551ff6
+tools:
+  cheme: cheme 0.8.0 (pyDEXPI 2.1.0)
+  core_commit: 44680fa0e142849803577a235d78fd0a75ca3f7a
+  claude_agent_sdk: 0.2.174
+  runner_commit: 99c2a5a5820b5aa77f5d51aa14f32c8a5792aa34
+  runner_dirty: true
+checks_by_agent:
+- cheme assess lca --coverage 2>&1 | grep -v "info cheme" | tail -30
+- 'cheme assess lca --write 2>&1 | grep -v "^lca/lca.yaml: info" | tail -1; cheme validate 2>&1 | tail
+  -6'
+- 'cheme assess lca --write 2>&1 | grep -v "^lca/lca.yaml: info" | tail -3; grep -n "71.5\|76.5\|substitution"
+  lca/results.md | head'
+- 'cheme assess lca --write 2>&1 | grep -v "^lca/lca.yaml: info" | tail -8; grep -n "system_model" lca/dataset.yaml'
+- cheme assess lca --write 2>&1 | tail -25
+- cheme check 2>&1 | tail -25
+- cheme maturity 2>&1 | tail -25
+- cheme process streams 2>&1 | grep -iE "balance|error|warn|stale|closure|imbalance" | head -20
+- 'cheme schema lca > ../../../../../tmp_lca_schema.json 2>/dev/null; cheme schema lca | python3 -c "
+
+  import json,sys
+
+  s=json.load(sys.stdin)
+
+  p=s[''properties'']
+
+  print(json.dumps(p.get(''system_model''),indent=0)[:600])
+
+  a=p[''allocation'']
+
+  print(json.dumps(a,indent=0)[:3000])
+
+  "'
+- 'cheme schema lca | python3 -c "
+
+  import json,sys
+
+  s=json.load(sys.stdin)
+
+  a=s[''\$defs''][''Allocation''][''properties'']
+
+  for k,v in a.items(): print(k, ''|'', (v.get(''description'') or '''')[:300])
+
+  "'
+checks_after_run:
+- command: cheme check
+  exit: 1
+  summary:
+    counts:
+      ok: 11
+      FAIL: 11
+      n/a: 3
+    failed:
+    - basic/pids-exist
+    - basic/design-review
+    - concept/layout-plot-plan
+    - basic/layout-3d
+    - basic/lifting-study
+    - basic/mto
+    - basic/layout-review
+    - detail/layout-detail
+    - detail/electrical
+    - detail/hvac
+    - detail/datasheets
+- command: cheme maturity
+  exit: 0
+  summary:
+    counts:
+      ok: 10
+      FAIL: 5
+    failed:
+    - sourced.boundary
+    - balanced.model-basis
+    - predictive.simulation-spec
+    - predictive.model-basis
+    - engineering.datasheets
+    levels:
+      sourced: fail
+      balanced: fail
+      predictive: fail
+      engineering: fail
+- command: cheme process propagate --check
+  exit: 0
+  summary:
+    last_line: ''
+outcome:
+  result: success
+  guard_denials: 1
+  report: report.md
+observed_later: {}
