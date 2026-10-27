@@ -29,11 +29,13 @@ production_volume:
   source: product:H2 per hour x operation.hours_per_year (8400 h/a)
 modelling:
   principle: attributional
-  multifunctionality: 'unallocated multi-output dataset; default allocation none: D-013: the export steam
-    (S33, 4.3 MPa, 673 K) is a co-product. No allocation is applied in this preliminary inventory: the
-    dataset is unallocated and lists the steam as a co-product output. Proposed for the next stage: system
-    expansion (ISO 14044 preferred) by steam of the same level from a natural-gas-fired industrial boiler
-    at the receiving site, with energy or exergy allocation as the comparison; the choice is the LCA practitioner''s.'
+  multifunctionality: 'unallocated multi-output dataset; default allocation exergy: D-013 (revised after
+    review 2026-10-27-pfd-lci-review#1): the export steam (S33, 4.3 MPa, 673 K) is a co-product of hydrogen.
+    The burdens are shared by exergy (H2 about 90 %, steam about 10 %), the library''s rule for exported
+    steam in the cut-off build (docs/system-model.md section 2: exported steam and heat are allocated
+    by energy or exergy, never credited). Energy (LHV) cannot be used: the steam has no heating value.
+    System expansion by steam from a natural-gas boiler stays the comparison for a substitution variant;
+    the unallocated result is kept in the comparison (none).'
 review:
 - type: none
 data_generator: ChemE-as-Code process library, hydrogen-1 concept design (agent-drafted, not reviewed)
@@ -336,11 +338,11 @@ exchanges:
   link:
     elementary:
       subcompartment: non-urban-high-stack
-    source: 'unburnt ethane: 0 in the balance (D-009)'
+    source: 'unburnt ethane: 0 in the balance (complete combustion assumed, D-009); not estimated (open)'
   cas: 74-84-0
   streams:
   - S26
-  source: 'unburnt ethane: 0 in the balance (D-009)'
+  source: 'unburnt ethane: 0 in the balance (complete combustion assumed, D-009); not estimated (open)'
   pedigree:
     scores: [3, 4, 1, 5, 3]
     rule: cheme default pedigree v1 (calculated, maturity concept)
@@ -360,11 +362,11 @@ exchanges:
   link:
     elementary:
       subcompartment: non-urban-high-stack
-    source: 'unburnt propane: 0 in the balance (D-009)'
+    source: 'unburnt propane: 0 in the balance (complete combustion assumed, D-009); not estimated (open)'
   cas: 74-98-6
   streams:
   - S26
-  source: 'unburnt propane: 0 in the balance (D-009)'
+  source: 'unburnt propane: 0 in the balance (complete combustion assumed, D-009); not estimated (open)'
   pedigree:
     scores: [3, 4, 1, 5, 3]
     rule: cheme default pedigree v1 (calculated, maturity concept)
@@ -378,13 +380,13 @@ exchanges:
 - key: emission:CH4
   title: CH4 to the environment
   type: emission
-  amount: 0.0
+  amount: 0.7884
   unit: kg
-  provenance: calculated
+  provenance: estimated
   link:
     elementary:
       subcompartment: non-urban-high-stack
-    source: 'unburnt methane of the stack: 0 in the balance (complete combustion, D-009)'
+    source: 'unburnt methane of the stack: 0 in the balance (D-009) plus the combustion estimate H301-firing'
   cas: 74-82-8
   flow:
   - list: ef-3.1
@@ -397,10 +399,17 @@ exchanges:
     unit: kg
   streams:
   - S26
-  source: 'unburnt methane of the stack: 0 in the balance (complete combustion, D-009)'
+  - emission_estimates.H301-firing
+  source: 'unburnt methane of the stack: 0 in the balance (D-009) plus the combustion estimate H301-firing;
+    estimated (combustion, emission_estimates H301-firing): ASSUMED applicability: Tier 1 default factors
+    for natural gas burnt in stationary combustion, applied to the whole fired duty although about two
+    thirds of it is PSA tail gas (H2, CH4, CO, CO2). Replaces the determined-looking zero of the complete-combustion
+    balance for CH4 and CO (review 2026-10-27-pfd-lci-review#2). Burner-specific factors (low-NOx burners,
+    SCR if any) replace them at the next stage.; CH4 1 g/GJ (IPCC 2006 Guidelines, Vol. 2 ch. 2, Table
+    2.3, natural gas (stationary combustion, manufacturing industries): 1 kg/TJ)'
   pedigree:
-    scores: [3, 4, 1, 5, 3]
-    rule: cheme default pedigree v1 (calculated, maturity concept)
+    scores: [3, 4, 3, 5, 3]
+    rule: cheme default pedigree v1 (estimated, maturity concept)
   basic_uncertainty: 1.5
   composition:
     fractions:
@@ -411,13 +420,13 @@ exchanges:
 - key: emission:CO
   title: CO to the environment
   type: emission
-  amount: 0.0
+  amount: 22.863599999999998
   unit: kg
-  provenance: calculated
+  provenance: estimated
   link:
     elementary:
       subcompartment: non-urban-high-stack
-    source: 'carbon monoxide of the stack: 0 in the balance (complete combustion, D-009)'
+    source: 'carbon monoxide of the stack: 0 in the balance (D-009) plus the combustion estimate H301-firing'
   cas: 630-08-0
   flow:
   - list: ef-3.1
@@ -430,10 +439,17 @@ exchanges:
     unit: kg
   streams:
   - S26
-  source: 'carbon monoxide of the stack: 0 in the balance (complete combustion, D-009)'
+  - emission_estimates.H301-firing
+  source: 'carbon monoxide of the stack: 0 in the balance (D-009) plus the combustion estimate H301-firing;
+    estimated (combustion, emission_estimates H301-firing): ASSUMED applicability: Tier 1 default factors
+    for natural gas burnt in stationary combustion, applied to the whole fired duty although about two
+    thirds of it is PSA tail gas (H2, CH4, CO, CO2). Replaces the determined-looking zero of the complete-combustion
+    balance for CH4 and CO (review 2026-10-27-pfd-lci-review#2). Burner-specific factors (low-NOx burners,
+    SCR if any) replace them at the next stage.; CO 29 g/GJ (EMEP/EEA air pollutant emission inventory
+    guidebook 2019, 1.A.2, Tier 1 gaseous fuels (value not re-read in this run: verify at the next stage))'
   pedigree:
-    scores: [3, 4, 1, 5, 3]
-    rule: cheme default pedigree v1 (calculated, maturity concept)
+    scores: [3, 4, 3, 5, 3]
+    rule: cheme default pedigree v1 (estimated, maturity concept)
   basic_uncertainty: 5.0
   composition:
     fractions:
@@ -487,11 +503,11 @@ exchanges:
   link:
     elementary:
       subcompartment: non-urban-high-stack
-    source: 'unburnt hydrogen: 0 in the balance (D-009)'
+    source: 'unburnt hydrogen: 0 in the balance (D-009); not estimated (no published factor used at concept)'
   cas: 1333-74-0
   streams:
   - S26
-  source: 'unburnt hydrogen: 0 in the balance (D-009)'
+  source: 'unburnt hydrogen: 0 in the balance (D-009); not estimated (no published factor used at concept)'
   pedigree:
     scores: [3, 4, 1, 5, 3]
     rule: cheme default pedigree v1 (calculated, maturity concept)
@@ -578,23 +594,111 @@ exchanges:
     formulas:
       O2: O2
     source: stream table (S26)
+- key: emission:N2O
+  title: N2O to the environment (estimated)
+  type: emission
+  amount: 0.07884000000000001
+  unit: kg
+  provenance: estimated
+  link:
+    elementary:
+      subcompartment: non-urban-high-stack
+    source: emission_estimates H301-firing
+  cas: 10024-97-2
+  flow:
+  - list: ef-3.1
+  - list: biosphere3
+    uuid: afd6d670-bbb0-4625-9730-04088a5b035e
+    name: Dinitrogen monoxide
+    categories:
+    - air
+    - non-urban air or from high stacks
+    unit: kg
+  streams:
+  - emission_estimates.H301-firing
+  source: 'estimated (combustion, emission_estimates H301-firing): ASSUMED applicability: Tier 1 default
+    factors for natural gas burnt in stationary combustion, applied to the whole fired duty although about
+    two thirds of it is PSA tail gas (H2, CH4, CO, CO2). Replaces the determined-looking zero of the complete-combustion
+    balance for CH4 and CO (review 2026-10-27-pfd-lci-review#2). Burner-specific factors (low-NOx burners,
+    SCR if any) replace them at the next stage.; N2O 0.1 g/GJ (IPCC 2006 Guidelines, Vol. 2 ch. 2, Table
+    2.3, natural gas (stationary combustion, manufacturing industries): 0.1 kg/TJ)'
+  pedigree:
+    scores: [3, 4, 3, 5, 3]
+    rule: cheme default pedigree v1 (estimated, maturity concept)
+  basic_uncertainty: 1.5
+  balance_exclusion: 'estimated (emission_estimates H301-firing): an emission-factor estimate, outside
+    the flowsheet''s mass balance'
+- key: emission:NOx
+  title: NOx to the environment (estimated)
+  type: emission
+  amount: 58.3416
+  unit: kg
+  provenance: estimated
+  link:
+    elementary:
+      subcompartment: non-urban-high-stack
+    source: emission_estimates H301-firing
+  cas: 10102-44-0
+  flow:
+  - list: ef-3.1
+  - list: biosphere3
+    uuid: 77357947-ccc5-438e-9996-95e65e1e1bce
+    name: Nitrogen oxides
+    categories:
+    - air
+    - non-urban air or from high stacks
+    unit: kg
+  streams:
+  - emission_estimates.H301-firing
+  source: 'estimated (combustion, emission_estimates H301-firing): ASSUMED applicability: Tier 1 default
+    factors for natural gas burnt in stationary combustion, applied to the whole fired duty although about
+    two thirds of it is PSA tail gas (H2, CH4, CO, CO2). Replaces the determined-looking zero of the complete-combustion
+    balance for CH4 and CO (review 2026-10-27-pfd-lci-review#2). Burner-specific factors (low-NOx burners,
+    SCR if any) replace them at the next stage.; NOx 74 g/GJ (EMEP/EEA air pollutant emission inventory
+    guidebook 2019, 1.A.2, Tier 1 gaseous fuels, as NO2 (value not re-read in this run: verify at the
+    next stage))'
+  pedigree:
+    scores: [3, 4, 3, 5, 3]
+    rule: cheme default pedigree v1 (estimated, maturity concept)
+  basic_uncertainty: 1.5
+  balance_exclusion: 'estimated (emission_estimates H301-firing): an emission-factor estimate, outside
+    the flowsheet''s mass balance'
 allocation:
-  method: none
+  method: exergy
   coproducts:
   - H2
   - STEAMX
-  source: 'D-013: the export steam (S33, 4.3 MPa, 673 K) is a co-product. No allocation is applied in
-    this preliminary inventory: the dataset is unallocated and lists the steam as a co-product output.
-    Proposed for the next stage: system expansion (ISO 14044 preferred) by steam of the same level from
-    a natural-gas-fired industrial boiler at the receiving site, with energy or exergy allocation as the
-    comparison; the choice is the LCA practitioner''s.'
+  properties:
+    H2:
+      exergy: 121243.5
+      source: 'scripts/allocation_exergy.py: S17 at 313.15 K, 2.85 MPa; physical 4128.4 kJ/kg (CoolProp)
+        + chemical 117115.1 kJ/kg (Szargut, Morris and Steward 1988, 236.09 kJ/mol); dead state 298.15
+        K, 101.325 kPa'
+    STEAMX:
+      exergy: 1256.6
+      source: 'scripts/allocation_exergy.py: S33 at 673.15 K, 4.3 MPa against liquid water at the dead
+        state; physical 1206.6 kJ/kg (CoolProp, IAPWS-95) + chemical 50.0 kJ/kg (Szargut et al. 1988,
+        H2O(l) 0.9 kJ/mol)'
+  compare:
+  - none
+  - mass
+  source: 'D-013 (revised after review 2026-10-27-pfd-lci-review#1): the export steam (S33, 4.3 MPa, 673
+    K) is a co-product of hydrogen. The burdens are shared by exergy (H2 about 90 %, steam about 10 %),
+    the library''s rule for exported steam in the cut-off build (docs/system-model.md section 2: exported
+    steam and heat are allocated by energy or exergy, never credited). Energy (LHV) cannot be used: the
+    steam has no heating value. System expansion by steam from a natural-gas boiler stays the comparison
+    for a substitution variant; the unallocated result is kept in the comparison (none).'
+  deviation: Hydrogen and steam are not products of one separation, so neither curated physical rule of
+    the hierarchy fits exactly, and the WBCSD price ratio is not available (no sourced prices at concept).
+    Exergy is chosen because the library allocates exported steam by energy or exergy and steam has no
+    heating value; it weighs the steam by its work potential rather than by its enthalpy (DESIGN.md D-013).
 provenance:
   generator: cheme assess lca
   plant: Hydrogen by steam methane reforming (100 000 Nm3/h, PSA, steam export)
   case: design
   files:
     equipment/equipment-list.yaml: sha256:be3dc782cde01a57f9cf711ec57f7b2509a59b04d0d5c83a972280ead05edf5e
-    lca/lca.yaml: sha256:3b5946b145a3677f7d098c4c4addce794f21c2d6b8d53f016c6f92d2addbe76a
+    lca/lca.yaml: sha256:3173b44fb5d1ce5f33c4e166755ea9e7562a98cb671921454007d1b75a3873dd
     process.yaml: sha256:c5e0317cb9af0224728446c107ea199cc9d77bee4be4c7b0aab2fa3b41f015b1
     process/flowsheet.yaml: sha256:6f18f3b11ae4e3ca015bde73e901ccdd5390f27e352d135f36b84fd86eec02d9
     process/materials.yaml: sha256:65992e30170087ca1aa063d9c839cd433876cb2845206efcc6e94d26b74dbaa7

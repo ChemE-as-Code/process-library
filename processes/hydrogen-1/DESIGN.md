@@ -204,17 +204,30 @@ CO2 is kept apart by origin of its carbon through the two natural gas terminals:
 feedstock carbon (process CO2: reforming and shift, released when the tail gas burns) and
 the trim fuel carbon (combustion CO2). Backgrounds are deliberately unmapped (`missing:`
 with the activity they should connect to), so the result is a gap list, not a footprint.
-Allocation: `method: none` (unallocated dataset); export steam is listed as a co-product, to be
-handled by system expansion (substitution of steam from a natural-gas boiler) or an
-energy/exergy allocation, a practitioner's decision for the next stage.
+Allocation (revised 2026-10-27 after review 2026-10-27-pfd-lci-review#1 and the library
+build's refusal of `none` for a multi-output dataset): **exergy** between H2 and export steam,
+H2 121 243.5 kJ/kg (physical 4 128.4 at 313 K / 2.85 MPa + chemical 117 115.1) and steam
+1 256.6 kJ/kg (673 K / 4.3 MPa against liquid water at 298.15 K), `scripts/allocation_exergy.py`
+(CoolProp; standard chemical exergies of Szargut et al. 1988). H2 carries 90.1 %. Why exergy:
+the library allocates exported steam by energy or exergy in the cut-off build, never by credit
+(docs/system-model.md section 2), and the steam has no heating value, so energy (LHV) would give
+it nothing; mass (H2 8.7 %) has no physical meaning here. This departs from the hierarchy's
+curated rules (H2 and steam are not products of one separation; no sourced prices for the WBCSD
+ratio), which `allocation.deviation` states. System expansion by steam from a natural-gas
+boiler stays the comparison for a later substitution variant. Combustion emissions of H-301:
+the `emission_estimates` entry H301-firing (Tier 1 factors for natural gas, ASSUMED to apply to
+the tail-gas firing too) replaces the balance's zero for CH4 and CO and adds N2O and NOx
+(review #2).
 Result (2026-10-27, `cheme assess lca --inventory --write`, `--coverage`, `--balance`): per kg
 H2: natural gas 3.217 kg feedstock + 0.617 kg trim fuel, demineralised water 15.66 kg, air
 30.89 kg, electricity 0.164 kWh; export steam 10.55 kg, blowdown 0.210 kg, heat to cooling
 water 3.30 kWh; fossil CO2 10.10 kg at the stack (8.47 feedstock carbon, 1.63 trim-fuel
 carbon). Mass and element balances closed (C residual -0.01 %). Classification: partial
 screening (6 technosphere gaps by design); the 10.10 kg CO2-eq in results.md is the direct
-stack CO2 only. Open: combustion emission estimates for H-301 (NOx, CO, CH4/N2O slip, PM)
-with sourced factors, consumables (catalysts, ZnO, adsorbents), construction.
+stack CO2 only. After the exergy allocation (above) the result is 9.11 kg CO2-eq per kg H2
+(direct stack CO2 9.10 + CH4/N2O of the estimate), still not a footprint. Open: burner-specific
+combustion factors and PM, consumables (catalysts, ZnO, adsorbents), construction, and the
+deaerator / condensate stripper vent and its steam (review #6, D-010).
 
 ## D-014 Library registry items missing (2026-10-27)
 `chemicals/chemicals.yaml` has no entries for natural gas, carbon monoxide, ethane, propane

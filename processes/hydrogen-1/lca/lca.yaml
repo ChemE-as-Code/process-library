@@ -22,14 +22,36 @@ year: 2026
 technology: "natural-gas steam methane reforming, top-fired tubular reformer, HT shift, hydrogen PSA, tail gas firing, steam export; 100 000 Nm3/h"
 rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
 allocation:
-  method: none
+  method: exergy
   coproducts: [H2, STEAMX]
+  properties:
+    H2:
+      exergy: 121243.5
+      source: >-
+        scripts/allocation_exergy.py: S17 at 313.15 K, 2.85 MPa; physical 4128.4 kJ/kg
+        (CoolProp) + chemical 117115.1 kJ/kg (Szargut, Morris and Steward 1988, 236.09
+        kJ/mol); dead state 298.15 K, 101.325 kPa
+    STEAMX:
+      exergy: 1256.6
+      source: >-
+        scripts/allocation_exergy.py: S33 at 673.15 K, 4.3 MPa against liquid water at the
+        dead state; physical 1206.6 kJ/kg (CoolProp, IAPWS-95) + chemical 50.0 kJ/kg
+        (Szargut et al. 1988, H2O(l) 0.9 kJ/mol)
+  compare: [none, mass]
   source: >-
-    D-013: the export steam (S33, 4.3 MPa, 673 K) is a co-product. No allocation is applied in
-    this preliminary inventory: the dataset is unallocated and lists the steam as a
-    co-product output. Proposed for the next stage: system expansion (ISO 14044 preferred) by
-    steam of the same level from a natural-gas-fired industrial boiler at the receiving site,
-    with energy or exergy allocation as the comparison; the choice is the LCA practitioner's.
+    D-013 (revised after review 2026-10-27-pfd-lci-review#1): the export steam (S33, 4.3 MPa,
+    673 K) is a co-product of hydrogen. The burdens are shared by exergy (H2 about 90 %,
+    steam about 10 %), the library's rule for exported steam in the cut-off build
+    (docs/system-model.md section 2: exported steam and heat are allocated by energy or
+    exergy, never credited). Energy (LHV) cannot be used: the steam has no heating value.
+    System expansion by steam from a natural-gas boiler stays the comparison for a
+    substitution variant; the unallocated result is kept in the comparison (none).
+  deviation: >-
+    Hydrogen and steam are not products of one separation, so neither curated physical rule
+    of the hierarchy fits exactly, and the WBCSD price ratio is not available (no sourced
+    prices at concept). Exergy is chosen because the library allocates exported steam by
+    energy or exergy and steam has no heating value; it weighs the steam by its work
+    potential rather than by its enthalpy (DESIGN.md D-013).
 flows:
   # ---- inputs
   - key: feed:NG
@@ -91,16 +113,43 @@ flows:
   - key: emission:H2O
     elementary: {compartment: air, subcompartment: non-urban-high-stack}
     source: "water vapour of combustion and of the fuel, to air"
-  # Combustibles of the fuel: zero in the stack gas of the balance (complete combustion, D-009);
-  # unburnt CH4, CO and hydrocarbons belong to emission estimates with sourced factors (open).
-  - {key: emission:CH4, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "unburnt methane of the stack: 0 in the balance (complete combustion, D-009)"}
-  - {key: emission:CO, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "carbon monoxide of the stack: 0 in the balance (complete combustion, D-009)"}
-  - {key: emission:C2H6, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "unburnt ethane: 0 in the balance (D-009)"}
-  - {key: emission:C3H8, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "unburnt propane: 0 in the balance (D-009)"}
-  - {key: emission:H2, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "unburnt hydrogen: 0 in the balance (D-009)"}
+  # Combustibles of the fuel: zero in the stack gas of the balance (complete combustion, D-009).
+  # CH4 and CO of the stack come from the combustion estimate (emission_estimates: H301-firing),
+  # added to the balance's zero; C2H6, C3H8 and H2 are not estimated (open, lca/README.md):
+  # their zeros are the balance's complete-combustion assumption, not a determined value.
+  - {key: emission:CH4, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "unburnt methane of the stack: 0 in the balance (D-009) plus the combustion estimate H301-firing"}
+  - {key: emission:CO, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "carbon monoxide of the stack: 0 in the balance (D-009) plus the combustion estimate H301-firing"}
+  - {key: emission:C2H6, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "unburnt ethane: 0 in the balance (complete combustion assumed, D-009); not estimated (open)"}
+  - {key: emission:C3H8, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "unburnt propane: 0 in the balance (complete combustion assumed, D-009); not estimated (open)"}
+  - {key: emission:H2, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "unburnt hydrogen: 0 in the balance (D-009); not estimated (no published factor used at concept)"}
   - {key: emission:N2, free: true, source: "nitrogen of the combustion air and the fuels returned to the atmosphere"}
   - {key: emission:O2, free: true, source: "unreacted oxygen of the excess air returned to the atmosphere"}
   - {key: emission:AR, free: true, source: "argon of the combustion air returned to the atmosphere"}
+emission_estimates:
+  - id: H301-firing
+    title: Reformer firing (PSA tail gas and natural gas trim fuel)
+    method: combustion
+    equipment: [H-301]
+    activity:
+      value: 788.4
+      unit: GJ
+      source: >-
+        fired heat input on LHV per hour: PSA tail gas 145.7 MW + trim fuel 73.3 MW = 219.0 MW
+        (scripts/h2_balance.py, review 2026-10-27-pfd-lci-review, Checked and fine)
+    factors:
+      CH4: {value: 1.0, unit: g/GJ, source: "IPCC 2006 Guidelines, Vol. 2 ch. 2, Table 2.3, natural gas (stationary combustion, manufacturing industries): 1 kg/TJ"}
+      N2O: {value: 0.1, unit: g/GJ, source: "IPCC 2006 Guidelines, Vol. 2 ch. 2, Table 2.3, natural gas (stationary combustion, manufacturing industries): 0.1 kg/TJ"}
+      CO: {value: 29, unit: g/GJ, source: "EMEP/EEA air pollutant emission inventory guidebook 2019, 1.A.2, Tier 1 gaseous fuels (value not re-read in this run: verify at the next stage)"}
+      NOx: {value: 74, unit: g/GJ, source: "EMEP/EEA air pollutant emission inventory guidebook 2019, 1.A.2, Tier 1 gaseous fuels, as NO2 (value not re-read in this run: verify at the next stage)"}
+    cas: {N2O: 10024-97-2, NOx: 10102-44-0}
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    add: true
+    source: >-
+      ASSUMED applicability: Tier 1 default factors for natural gas burnt in stationary
+      combustion, applied to the whole fired duty although about two thirds of it is PSA tail
+      gas (H2, CH4, CO, CO2). Replaces the determined-looking zero of the complete-combustion
+      balance for CH4 and CO (review 2026-10-27-pfd-lci-review#2). Burner-specific factors
+      (low-NOx burners, SCR if any) replace them at the next stage.
 operation:
   hours_per_year: 8400
   life_years: 25

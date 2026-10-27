@@ -7,9 +7,16 @@ number in `results.md` is the plant's own fossil CO2 at the stack. That is not a
 footprint of hydrogen: the natural gas supply chain, electricity, water treatment, cooling and
 waste water treatment are gaps (`gaps.csv`), never zero. DESIGN.md D-013.
 
+**Read the number with its allocation.** The burdens are shared between hydrogen and the export
+steam by **exergy** (H2 90.1 %, steam 9.9 %; `lca.yaml` `allocation`, revised after review
+2026-10-27-pfd-lci-review#1). The 9.11 kg CO2-eq per kg H2 in `results.md` is the
+exergy-allocated direct stack CO2 (plus the small CH4 and N2O of the combustion estimate);
+unallocated, with the steam's share left on hydrogen, it is 10.10 kg. Neither is a footprint.
+The inventory tables below are the whole plant per kg H2, unallocated.
+
 | file | what | written by |
 |---|---|---|
-| `lca.yaml` | goal and scope, functional unit, allocation (none yet), the mapping of every flow with the background activity it should connect to | people (agent-drafted) |
+| `lca.yaml` | goal and scope, functional unit, allocation (exergy), the combustion emission estimate, the mapping of every flow with the background activity it should connect to | people (agent-drafted) |
 | `factors.yaml` | the project's factors: none; the packaged `desnz-ghg-2026` profile is included but no flow uses it | `cheme init` |
 | `inventory.csv`, `dataset.yaml` | the foreground inventory per kg H2 and the unallocated dataset per hour | `cheme assess lca --inventory --write` |
 | `results.*`, `gaps.csv`, `manifest.json` | the classification (partial screening), the gaps, what the result rests on | `cheme assess lca --write` |
@@ -30,7 +37,7 @@ the design basis, D-006) except what cheme calculates from them.
 | in: combustion air | S22 | 30.89 kg | free (ambient air) |
 | in: electricity | Q1, Q10-Q12 | 0.164 kWh | market for electricity, medium voltage, site country |
 | out: hydrogen (reference flow) | S17 | 1 kg | - |
-| out: export steam, 4.3 MPa / 673 K (co-product) | S33 | 10.55 kg | proposed system expansion: steam from a natural-gas boiler at the receiver (not applied) |
+| out: export steam, 4.3 MPa / 673 K (co-product) | S33 | 10.55 kg | co-product, exergy allocation (1256.6 kJ/kg against 121 243.5 kJ/kg for H2, `scripts/allocation_exergy.py`); system expansion kept for a substitution variant |
 | out: boiler blowdown (waste water) | S34 | 0.210 kg | treatment of waste water |
 | out: heat to cooling water | Q9 | 3.30 kWh | cooling water supply / heat rejection in a cooling tower |
 | out: CO2, fossil, to air | S26 | 10.10 kg | elementary (characterised by CAS) |
@@ -62,13 +69,21 @@ follows from the two feed exchanges and the closed carbon balance.
 
 ## Open items (not in this inventory)
 
-- Combustion emissions the flowsheet does not carry (NOx, CO, CH4 and N2O slip, particulates)
-  of H-301: `emission_estimates` with sourced factors (e.g. an emission guidebook for gas-fired
-  process heaters); `cheme.lci-emissions-incomplete` stays a warning until then.
+- Combustion emissions of H-301: estimated since review #2 (`emission_estimates`
+  H301-firing: CH4 and N2O from IPCC 2006 Tier 1, CO and NOx from EMEP/EEA 2019 Tier 1, all
+  for natural gas, applied to the whole fired duty, ASSUMED). Open: burner-specific factors,
+  particulates, and the unburnt C2H6, C3H8 and H2, which stay at the complete-combustion zero
+  of the balance (D-009) and are not a determined value. The EMEP/EEA CO and NOx values were
+  not re-read in this run: check them against the guidebook table.
+- Process condensate (S15) and deaerator: the deaerator vent (dissolved CO2, later traces of
+  methanol and ammonia once the shift by-products are modelled) and the stripping steam are not
+  in the flowsheet or this inventory (D-010); a condensate stripper or the deaerator vent is an
+  emission source to add (review #6).
 - Consumables: reforming catalyst (Ni), HT shift catalyst (Fe-Cr), hydrogenation catalyst
   (CoMo/NiMo), ZnO sorbent, PSA adsorbents, boiler water chemicals: amounts and lives are
   vendor inputs; each needs a disposal route (spent ZnO and nickel catalyst carry metals).
 - Construction, maintenance, transport and end of life: no take-off at concept stage.
-- Allocation or system expansion for the export steam (D-013).
+- A substitution (system expansion) variant for the export steam, with the receiving site's
+  steam supply as the avoided product, as a comparison to the exergy allocation (D-013).
 - Dataset documentation for publication: location, ISIC/CPC classification and flow
   identities (`cheme.lca-dataset-undocumented`).
