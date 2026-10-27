@@ -1,34 +1,75 @@
-# Process Atlas manifest. Copy this folder to processes/<your-id>/ and edit.
-# Schema: schemas/process.schema.json (cheme-as-code/process/v1). Every slug used under
-# chemistry must exist in chemicals/chemicals.yaml; add new chemicals there in the same change.
-# A product in a defined state and purity names its registry grade: `chemical: oxygen/lox`.
+# Process Atlas manifest of sulfuric-acid-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here.
 schema: cheme-as-code/process/v1
-id: my-process                  # = folder name; lowercase slug; never rename once listed
-title: Short descriptive process title
+id: sulfuric-acid-1
+title: Sulfuric acid from sulfur burning, double contact / double absorption (1000 t/d, 98.5 wt%)
 summary: >-
-  One or two sentences for cards and search results: what goes in, what comes out, at what scale.
-# description: |                # optional longer Markdown for the process page
-families: [hydrogen]            # slugs of taxonomy/families.yaml (ISIC-mapped), e.g. ammonia, methanol, air-separation
-keywords: []
-# facets:                      # optional, for filtering in the Atlas; list only what the design has
-#   feedstock_basis: [water, electricity]   # fossil | biogenic | atmospheric | mineral | recycled | water | electricity
-#   product_classes: [fuels]               # slugs, e.g. industrial-gases, fuels, fertilizers, polymers, chemicals, materials
-#   unit_operations: [electrolysis]        # slugs, e.g. cryogenic-distillation, adsorption, compression, reaction, electrolysis
-#   region: generic                        # e.g. generic, EU
-maturity: concept               # concept | screening | basic-engineering | detail-engineering | operating-reference
+  Molten sulfur burned in dried air, SO2 oxidised over four V2O5 beds (3+1) with intermediate
+  and final absorption to 98.5 wt% acid; waste heat recovered as exported HP steam. Concept
+  stage, assumed basis, with a preliminary gate-to-gate LCI.
+description: |
+  Air is dried in a tower irrigated with 98.5 wt% acid and blown into the sulfur furnace, which
+  burns molten sulfur to an 11.5 mol% SO2 gas. A waste heat boiler cools the gas to the first
+  bed. Four adiabatic V2O5 beds convert the SO2 (63 / 87 / 95 % after beds 1-3, 99.7 % overall,
+  conversion model within the ranges of Speight 2002); the gas is cooled between the beds by a
+  gas/gas exchanger, a superheater and economisers, absorbed in an intermediate tower after
+  bed 3, reheated, converted in bed 4 and absorbed in a final tower before the stack. One acid
+  header serves the three towers; dilution water is added in the pump tank and the product is
+  drawn after the acid cooler.
+
+  All values are concept estimates from an independent balance script; core can check the mass,
+  element and reaction balances and the equilibrium distance of the beds, but has no property
+  package for SO2/SO3 gas or aqueous acid to close the energy balance itself (DESIGN.md D-006).
+families: [sulfuric-acid]
+keywords: [sulfuric acid, contact process, double absorption, DCDA, sulfur burning, SO2 oxidation, vanadium pentoxide, waste heat boiler, steam export, SO2 emissions]
+facets:
+  feedstock_basis: [mineral]
+  product_classes: [chemicals]
+  unit_operations: [combustion, reaction, absorption, heat-exchange, compression]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest; cheme maturity reports level none
+# (capacity and feeds assumed, the beds and towers specified values), see validation.notes.
+maturity: concept
 validation:
-  status: unreviewed            # unreviewed | internally-reviewed | peer-reviewed | industry-validated
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component, element and reaction-extent balances (cheme
+    validate, cheme process streams); every bed is short of its ideal-gas equilibrium (cheme
+    process reactors). cheme maturity reaches no level: capacity and feeds are assumed, the bed
+    conversions are values within published ranges rather than a sourced design point, and the
+    tower outlets, temperatures and duties come from an independent script (scripts/balance.py)
+    whose energy balance core cannot check (no property package for SO2/SO3 or aqueous acid:
+    core #315, #364). Not reviewed. The chemicals registry has no sulfur, sulfuric-acid or
+    sulfur-dioxide entries yet, so the feed, the main product and the SO2 emission are not
+    listed under chemistry (open library item).
 chemistry:
   inputs:
-    - {chemical: water, role: feedstock}
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Combustion and oxidation oxygen; the molten sulfur (feed:SULFUR, 0.323 kg/kg acid) has no registry entry yet"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Dilution water to the acid pump tank (0.166 kg/kg acid)"}
   outputs:
-    - {chemical: hydrogen, role: main-product}
+    - {chemical: nitrogen, role: emission, inventory_key: "product:STACK", note: "Tail gas, mostly N2 with 4.5 mol% O2, 0.04 mol% SO2 (1.94 g SO2/kg acid) and SO3/acid mist; the main product, 98.5 wt% sulfuric acid (product:ACID), has no registry entry yet"}
   utilities:
-    - {chemical: electricity, role: utility}
-# basis: {capacity: "1000 t/d product", operating_hours_per_year: 8000}
-# lca: {source: auto}           # auto: read lca/ of a ChemE-as-Code project; none: no LCA
-# references:
-#   - {title: "Author et al. (2024) Title", doi: 10.xxxx/xxxxx}
-# maintainers:
-#   - {name: Your Name, orcid: 0000-0000-0000-0000}
-# repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/my-process, access: private}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Main air blower and acid pump (ASSUMED electric drives), 0.055 kWh/kg acid"}
+    - {chemical: steam, role: co-product, inventory_key: "product:HPS", note: "HP steam 4100 kPa(a), 673 K, 1.34 kg/kg acid (1.03 kWh/kg above boiler feed water)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "Acid and product coolers, 0.49 kWh/kg acid, 298/308 K (ASSUMED)"}
+basis:
+  capacity: "1000 t/d H2SO4 as 98.5 wt% acid (ASSUMED)"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
+references:
+  - {title: "Müller, H. Sulfuric Acid and Sulfur Trioxide. Ullmann's Encyclopedia of Industrial Chemistry", doi: 10.1002/14356007.a25_635}
+  - {title: "Speight, J. G. (2002) Chemical Process and Design Handbook, McGraw-Hill, Part 2: sulfuric acid"}
+  - {title: "European Commission JRC (2007) Reference Document on BAT for the Manufacture of Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers", url: "https://eippcb.jrc.ec.europa.eu/reference/large-volume-inorganic-chemicals-ammonia-acids-and-fertilisers"}
+  - {title: "Wagman, D. D. et al. (1982) The NBS tables of chemical thermodynamic properties. J. Phys. Chem. Ref. Data 11, Suppl. 2"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/sulfuric-acid-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0
