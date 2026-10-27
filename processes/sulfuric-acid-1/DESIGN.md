@@ -223,4 +223,4 @@ sourced benchmark yet.
 6. Catalyst charge and replacement (for the LCI).
 7. Acid properties (Cp, heat of mixing) from a sourced correlation; acid dew point at the tower
    inlets.
-8. PFD layout pinning (the drying block is drawn to the right of the absorption block).
+8. PFD layout: only the drying block is pinned (below the furnace); the rest is generated.
