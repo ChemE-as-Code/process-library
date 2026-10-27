@@ -1,3 +1,57 @@
 # Equipment list. Schema: `cheme schema equipment`.
+# Concept stage: the items the PFD (process/flowsheet.yaml) links to, no P&ID yet (no sheet).
+# Duties and conditions from scripts/plant_balance.py (D-006); design pressure, temperature,
+# materials, sizes and weights are not set yet (basic engineering, datasheets).
 schema: cheme/equipment/v1
-equipment: []
+equipment:
+  # ---- reforming and furnace (block REF)
+  - {tag: D-101, type: Vessel, service: "Desulfuriser (hydrogenation catalyst and ZnO beds)", notes: "643 K, 4400 kPa(a). Hydrogen recycle for the hydrogenation not modelled (D-004). ASSUMED."}
+  - {tag: R-100, type: Vessel, service: Adiabatic prereformer, notes: "Nickel catalyst; inlet 773 K; modelled as complete conversion of C2H6 and C3H8 (D-005). ASSUMED."}
+  - {tag: H-101, type: Furnace, service: "Primary reformer furnace (radiant and convection sections)", notes: "Fired with natural gas and HRU tail gas, 10 % excess O2, bridgewall 1323 K, stack 423 K; radiant duty 68.4 MW (D-014). ASSUMED."}
+  - {tag: R-101, type: TubularHeatExchanger, service: "Primary reformer catalyst tubes (in H-101)", notes: "Outlet 1083 K, 3500 kPa(a), equilibrium approach 10 K (D-005, D-007). Tube count and metallurgy not chosen. Listed as a tubular exchanger: no tubular-reactor class in this list."}
+  - {tag: E-101, type: TubularHeatExchanger, service: Natural gas preheat coil (convection), notes: "288 -> 643 K, 7.6 MW (D-014)."}
+  - {tag: E-102, type: TubularHeatExchanger, service: Mixed feed preheat coil (convection), notes: "663 -> 773 K, 9.1 MW (D-014)."}
+  - {tag: E-103, type: TubularHeatExchanger, service: Prereformed gas reheat coil (convection), notes: "659 -> 893 K, 20.0 MW (D-014)."}
+  - {tag: E-104, type: TubularHeatExchanger, service: Process air preheat coil (convection), notes: "429 -> 773 K, 6.8 MW (D-014)."}
+  - {tag: E-106, type: AirCoolingSystem, service: Combustion air preheater (flue gas), notes: "288 -> 523 K, 11.0 MW (D-014). Type: regenerative or recuperative, open."}
+  - {tag: E-107, type: TubularHeatExchanger, service: Convection steam coil, notes: "0.6 MW, the convection heat left after the process coils (D-014)."}
+  - {tag: K-101, type: CentrifugalCompressor, service: Process air compressor, notes: "101 -> 3600 kPa(a), 4 stages intercooled to 313 K, 8.6 MW shaft at isentropic efficiency 0.78 (D-016). Electric drive ASSUMED."}
+  - {tag: K-102, type: Fan, service: Combustion air FD fan, notes: "5 kPa, 0.27 MW (D-014). ASSUMED."}
+  - {tag: K-103, type: Fan, service: Flue gas ID fan, notes: "5 kPa, 0.44 MW (D-014). ASSUMED."}
+  - {tag: R-102, type: Vessel, service: Secondary (air-blown) reformer, notes: "Refractory-lined; burner zone (all O2 consumed) and nickel catalyst bed; outlet 1265 K adiabatic, 3400 kPa(a) (D-007). ASSUMED."}
+  - {tag: E-105, type: TubularHeatExchanger, service: Secondary reformer waste heat boiler, notes: "1265 -> 643 K, 73.5 MW to the MP steam system (D-015)."}
+  # ---- shift and gas cooling (block SHF)
+  - {tag: R-201, type: Vessel, service: High-temperature shift converter, notes: "Fe-Cr catalyst (ASSUMED), 643 -> 717 K adiabatic, equilibrium approach 10 K (D-008)."}
+  - {tag: E-201, type: TubularHeatExchanger, service: HTS effluent cooler, notes: "717 -> 478 K, 26.6 MW: 14.9 MW to the methanator feed, 11.8 MW to steam / BFW (D-008, D-010)."}
+  - {tag: R-202, type: Vessel, service: Low-temperature shift converter, notes: "Cu-Zn catalyst (ASSUMED), 478 -> 508 K adiabatic, approach 10 K (D-008)."}
+  - {tag: E-202, type: TubularHeatExchanger, service: CO2 regenerator process-gas reboiler, notes: "508 -> 424 K with condensation, 20.4 MW = regeneration heat (D-009)."}
+  - {tag: E-203, type: TubularHeatExchanger, service: Process gas final cooler, notes: "424 -> 313 K, 31.2 MW to cooling water (D-012)."}
+  - {tag: V-201, type: Vessel, service: Process condensate separator, notes: "313 K, 3100 kPa(a); 49.8 t/h condensate to the condensate stripper / BFW (D-015)."}
+  # ---- CO2 removal (block CO2R)
+  - {tag: C-301, type: ProcessColumn, service: CO2 absorber (aMDEA), notes: "3100 kPa(a), 313 K; 500 ppmv CO2 slip (D-009). Stages and solvent rate not calculated."}
+  - {tag: C-302, type: ProcessColumn, service: CO2 regenerator (aMDEA), notes: "Reboiler E-202 (process gas), 1.0 MJ/kg CO2; CO2 vented at 150 kPa(a) (D-009)."}
+  # ---- methanation and drying (block MET)
+  - {tag: E-401, type: TubularHeatExchanger, service: Methanator feed heater, notes: "313 -> 553 K, 14.9 MW from E-201 (D-010)."}
+  - {tag: R-401, type: Vessel, service: Methanator, notes: "Nickel catalyst, 553 -> 589 K adiabatic, CO and CO2 to a few ppmv (D-010)."}
+  - {tag: E-402, type: TubularHeatExchanger, service: Methanator effluent cooler, notes: "589 -> 313 K, 17.5 MW to cooling water (D-012)."}
+  - {tag: V-401, type: Vessel, service: Synthesis gas knock-out drum, notes: "313 K, 2900 kPa(a) (D-010)."}
+  - {tag: X-401, type: Vessel, service: Molecular sieve dryer (package), notes: "Removes all water before the loop (D-010); regeneration not modelled."}
+  # ---- synthesis loop, product and refrigeration (block SYN)
+  - {tag: K-501, type: CentrifugalCompressor, service: Synthesis gas compressor, notes: "2850 -> 14,600 kPa(a), 3 stages intercooled, 12.5 MW shaft (D-016). Electric drive ASSUMED."}
+  - {tag: K-502, type: CentrifugalCompressor, service: Recycle circulator, notes: "14,600 -> 15,500 kPa(a), 1.6 MW (D-016); usually on the K-501 shaft."}
+  - {tag: E-501, type: TubularHeatExchanger, service: Converter feed/effluent exchanger, notes: "Feed 312 -> 503 K, effluent 547 -> 343 K, 48.4 MW (D-011)."}
+  - {tag: R-501, type: Vessel, service: Ammonia converter, notes: "Three adiabatic beds with interbed exchange, promoted iron catalyst; outlet 703 K, 15,100 kPa(a), equilibrium approach 15 K, Peng-Robinson (D-011). Catalyst volume not sized: no kinetics chosen."}
+  - {tag: E-502, type: TubularHeatExchanger, service: Converter effluent waste heat boiler, notes: "703 -> 547 K, 39.8 MW to MP steam (D-011, D-015)."}
+  - {tag: E-503, type: TubularHeatExchanger, service: Loop water cooler, notes: "343 -> 313 K with NH3 condensation, 7.8 MW (D-011)."}
+  - {tag: E-505, type: TubularHeatExchanger, service: Cold exchanger, notes: "Recycle gas 263 -> 303 K against the chiller feed 313 -> 301 K, 8.2 MW (D-011)."}
+  - {tag: E-504, type: TubularHeatExchanger, service: Ammonia chiller, notes: "301 -> 263 K, 22.7 MW to the refrigerant at 258 K (D-011, D-017)."}
+  - {tag: V-501, type: Vessel, service: Ammonia separator, notes: "263 K, 14,700 kPa(a) (D-011)."}
+  - {tag: V-502, type: Vessel, service: Let-down vessel, notes: "2500 kPa(a) (D-011)."}
+  - {tag: V-701, type: Vessel, service: Product flash drum, notes: "Flashes the product to 240 K, 110 kPa(a); dissolved gases to the inert vent (D-017)."}
+  - {tag: K-701, type: CentrifugalCompressor, service: Ammonia refrigeration compressor, notes: "Loads 22.7 MW at 258 K and 2.0 MW at 238 K; 10.0 MW at 0.55 of Carnot (D-017)."}
+  - {tag: E-701, type: TubularHeatExchanger, service: Refrigerant condenser, notes: "34.7 MW to cooling water, condensing about 313 K (D-017)."}
+  # ---- purge recovery (block PGR)
+  - {tag: X-601, type: Vessel, service: "Purge gas recovery unit (package: NH3 wash and distillation, cryogenic H2 recovery)", notes: "Recoveries NH3 0.99, H2 0.90, N2 0.25, Ar 0.15, CH4 0.05 (D-013). ASSUMED."}
+  # ---- steam system (block STM)
+  - {tag: U-801, type: Vessel, service: "Steam system (deaerator, steam drums, superheater, let-down; lumped)", notes: "148 t/h MP steam raised at 4600 kPa(a), 673 K; 92.8 t/h process steam, 55.1 t/h export, 2 % blowdown (D-015)."}
+  - {tag: P-801, type: CentrifugalPump, service: Boiler feed water pumps, notes: "0.33 MW at efficiency 0.70 (D-015)."}

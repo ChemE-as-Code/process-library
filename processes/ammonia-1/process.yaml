@@ -1,34 +1,83 @@
-# Process Atlas manifest. Copy this folder to processes/<your-id>/ and edit.
-# Schema: schemas/process.schema.json (cheme-as-code/process/v1). Every slug used under
-# chemistry must exist in chemicals/chemicals.yaml; add new chemicals there in the same change.
-# A product in a defined state and purity names its registry grade: `chemical: oxygen/lox`.
+# Process Atlas manifest of ammonia-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here.
 schema: cheme-as-code/process/v1
-id: my-process                  # = folder name; lowercase slug; never rename once listed
-title: Short descriptive process title
+id: ammonia-1
+title: Ammonia from natural gas (1500 t/d, steam reforming with air-fed secondary reformer, Haber-Bosch loop)
 summary: >-
-  One or two sentences for cards and search results: what goes in, what comes out, at what scale.
-# description: |                # optional longer Markdown for the process page
-families: [hydrogen]            # slugs of taxonomy/families.yaml (ISIC-mapped), e.g. ammonia, methanol, air-separation
-keywords: []
-# facets:                      # optional, for filtering in the Atlas; list only what the design has
-#   feedstock_basis: [water, electricity]   # fossil | biogenic | atmospheric | mineral | recycled | water | electricity
-#   product_classes: [fuels]               # slugs, e.g. industrial-gases, fuels, fertilizers, polymers, chemicals, materials
-#   unit_operations: [electrolysis]        # slugs, e.g. cryogenic-distillation, adsorption, compression, reaction, electrolysis
-#   region: generic                        # e.g. generic, EU
-maturity: concept               # concept | screening | basic-engineering | detail-engineering | operating-reference
+  Conventional natural-gas ammonia plant: desulfurisation, prereforming, fired primary and
+  air-blown secondary reforming, HT/LT shift, aMDEA CO2 removal (CO2 vented), methanation,
+  drying, a 150 bar synthesis loop with refrigeration and purge recovery, to refrigerated
+  liquid ammonia. Concept stage, assumed basis, preliminary gate-to-gate LCI.
+description: |
+  Natural gas (an assumed benchmark lean gas) is desulfurised, mixed with steam (steam to
+  carbon 3.0) and reformed in a prereformer, a fired primary reformer and an air-blown
+  secondary reformer whose process air brings the nitrogen for a 3:1 H2/N2 synthesis gas.
+  High- and low-temperature shift convert the CO; the CO2 is absorbed in activated MDEA and
+  vented; methanation removes the last carbon oxides and molecular sieves dry the gas. The
+  synthesis gas is compressed to about 150 bar and converted on promoted iron in a three-bed
+  converter; ammonia condenses against cooling water and refrigeration, the purge and flash
+  gases pass an NH3 wash and cryogenic hydrogen recovery, and the tail gas fuels the reformer.
+  Waste heat raises MP steam for the process and for export; all machines are electric.
+
+  The reactors are equilibrium (reformers, shifts, converter with Peng-Robinson fugacity) or
+  complete-conversion models calculated by cheme; separators, CO2 removal, purge recovery,
+  steam system and duties come from an independent balance script whose property methods are
+  not qualified by ChemE-as-Code for these mixtures (core #315). All values are concept
+  estimates; see DESIGN.md of the engineering files.
+families: [ammonia]
+keywords: [ammonia, Haber-Bosch, steam methane reforming, secondary reformer, water-gas shift, aMDEA, CO2 removal, methanation, synthesis loop, purge gas recovery, refrigeration, natural gas]
+facets:
+  feedstock_basis: [fossil, atmospheric, water]
+  product_classes: [fertilizers, chemicals]
+  unit_operations: [reaction, compression, heat-exchange, absorption, adsorption, flash, refrigeration]
+  region: EU
+# Honest claim: concept. The feed composition is assumed (no sourced or owner-given feed), and
+# the separators, CO2 removal, purge recovery and the steam system are specified values from
+# an unqualified script; see validation.notes and DESIGN.md D-006.
+maturity: concept
 validation:
-  status: unreviewed            # unreviewed | internally-reviewed | peer-reviewed | industry-validated
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances on every block and step
+    (cheme validate, cheme process streams). Reactor outlets are calculated by cheme
+    (equilibrium and conversion models from its reaction library); the separators, CO2
+    removal, purge recovery, steam system and all duties are specified values from
+    scripts/plant_balance.py (ideal-gas enthalpies, thermo Peng-Robinson flash with ChemSep
+    kij, IAPWS-IF97 steam) that core cannot qualify for syngas/ammonia/water mixtures
+    (core #315). Energy closure is not evaluable in core. The natural-gas composition is an
+    assumed benchmark gas, not a sourced or owner-given feed. Not reviewed. The chemicals
+    registry has no ammonia, natural-gas, ethane or propane entry yet, so the main product and
+    the feed are listed through their nearest registry entries (open library item).
 chemistry:
   inputs:
-    - {chemical: water, role: feedstock}
+    - {chemical: methane, role: feedstock, inventory_key: "feed:NG", note: "Natural gas (91 mol% CH4, plus ethane, propane, CO2, N2; ASSUMED benchmark gas), feed and furnace fuel. The registry has no natural-gas entry yet"}
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Process air (nitrogen source, secondary reformer) and combustion air"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:DMW", note: "Demineralised water make-up to the steam system and the CO2 removal"}
   outputs:
-    - {chemical: hydrogen, role: main-product}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:CO2V", note: "Process CO2 from the aMDEA regenerator, vented (no CCS, no urea). The main product, liquid ammonia (product:NH3), has no registry entry yet"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:STACK", note: "Combustion CO2 in the reformer furnace flue gas"}
+    - {chemical: steam, role: co-product, inventory_key: "product:STEAM", note: "MP steam export 4600 kPa(a), 673 K"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:BD", note: "Boiler blowdown"}
   utilities:
-    - {chemical: electricity, role: utility}
-# basis: {capacity: "1000 t/d product", operating_hours_per_year: 8000}
-# lca: {source: auto}           # auto: read lca/ of a ChemE-as-Code project; none: no LCA
-# references:
-#   - {title: "Author et al. (2024) Title", doi: 10.xxxx/xxxxx}
-# maintainers:
-#   - {name: Your Name, orcid: 0000-0000-0000-0000}
-# repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/my-process, access: private}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "All compressors, fans and pumps (ASSUMED electric drives)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED)"}
+basis:
+  capacity: "1500 t/d contained NH3 as refrigerated liquid (issue #86 proposed brief)"
+  operating_hours_per_year: 8000
+  location: "hypothetical Rotterdam-area site (no site data used)"
+references:
+  - {title: "European Commission (2007) Reference Document on Best Available Techniques for the Manufacture of Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF BREF), chapter 2 (route and boundary guide only)", url: "https://bureau-industrial-transformation.jrc.ec.europa.eu/sites/default/files/2022-03/LVIC-AAF.pdf"}
+  - {title: "Appl, M. Ammonia, 2. Production Processes. Ullmann's Encyclopedia of Industrial Chemistry (chapter identity only; not read in this run)", doi: 10.1002/14356007.o02_o11}
+  - {title: "IEA (2021) Ammonia Technology Roadmap (context; not used for values)", url: "https://www.iea.org/reports/ammonia-technology-roadmap"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/ammonia-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0
