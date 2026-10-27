@@ -1,34 +1,80 @@
-# Process Atlas manifest. Copy this folder to processes/<your-id>/ and edit.
-# Schema: schemas/process.schema.json (cheme-as-code/process/v1). Every slug used under
-# chemistry must exist in chemicals/chemicals.yaml; add new chemicals there in the same change.
-# A product in a defined state and purity names its registry grade: `chemical: oxygen/lox`.
+# Process Atlas manifest of urea-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here.
 schema: cheme-as-code/process/v1
-id: my-process                  # = folder name; lowercase slug; never rename once listed
-title: Short descriptive process title
+id: urea-1
+title: Urea by CO2 stripping, total recycle, prilling (2000 t/d, concept)
 summary: >-
-  One or two sentences for cards and search results: what goes in, what comes out, at what scale.
-# description: |                # optional longer Markdown for the process page
-families: [hydrogen]            # slugs of taxonomy/families.yaml (ISIC-mapped), e.g. ammonia, methanol, air-separation
-keywords: []
-# facets:                      # optional, for filtering in the Atlas; list only what the design has
-#   feedstock_basis: [water, electricity]   # fossil | biogenic | atmospheric | mineral | recycled | water | electricity
-#   product_classes: [fuels]               # slugs, e.g. industrial-gases, fuels, fertilizers, polymers, chemicals, materials
-#   unit_operations: [electrolysis]        # slugs, e.g. cryogenic-distillation, adsorption, compression, reaction, electrolysis
-#   region: generic                        # e.g. generic, EU
-maturity: concept               # concept | screening | basic-engineering | detail-engineering | operating-reference
+  Fertiliser urea from ammonia and CO2 (both from an ammonia plant outside the boundary) by
+  high-pressure CO2 stripping with total recycle, low-pressure recirculation, two-stage vacuum
+  evaporation and prilling with exhaust scrubbing. Concept stage, assumed basis, preliminary
+  gate-to-gate LCI.
+description: |
+  Liquid ammonia and CO2 (with passivation air) are brought to 14 MPa. The CO2 strips the
+  reactor effluent in a steam-heated falling-film stripper; the stripper gas, the fresh ammonia
+  and the recycled carbamate condense in the HP carbamate condenser, which raises the LP steam
+  of the plant, and the urea reactor completes the conversion. The stripped solution is
+  decomposed in an LP rectifier at 0.3 MPa, the off-gas condensed to carbamate and pumped back
+  through the HP scrubber. Two vacuum evaporators make a urea melt, which is prilled in a
+  forced-draft tower; the exhaust is water-scrubbed and the liquor recycled. The process
+  condensate is desorbed and hydrolysed to boiler-feed-water quality.
+
+  The reactor is a conversion model (CO2 conversion per pass assumed within the range the EU
+  BREF reports), unconverted carbamate is carried as NH3 + CO2, and the separations and duties
+  are specified values of a provenance script: no thermodynamic model of the NH3-CO2-urea-water
+  system is qualified in ChemE-as-Code yet. See DESIGN.md for every assumption and gated step.
+families: [fertilizers]
+keywords: [urea, CO2 stripping, total recycle, carbamate, prilling, biuret, hydrolyser, fertiliser]
+facets:
+  feedstock_basis: [fossil]
+  product_classes: [fertilizers]
+  unit_operations: [compression, reaction, stripping, absorption, evaporation, prilling]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Assumed feeds and capacity, a
+# conversion reactor model and specified separations: see validation.notes.
+maturity: concept
 validation:
-  status: unreviewed            # unreviewed | internally-reviewed | peer-reviewed | industry-validated
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component, element and reaction-extent balances (cheme
+    validate, cheme process streams: all 5 blocks and 22 steps ok). Fresh feeds 565.3 kg NH3
+    and 731.8 kg CO2 per t urea against 567 and 733 kg/t reported for CO2 stripping (BREF
+    LVIC-AAF Table 8.3): the element balance, not a model validation. Reactor and hydrolyser
+    outlets are calculated by cheme (conversion reactors); the separator outlets and all duties
+    are specified/hand-estimated values of scripts/urea_balance.py (no property package is
+    qualified for aqueous NH3-CO2-urea-carbamate; core #315, #364). Energy closure not
+    evaluable in core. Utilities against the BREF benchmarks: steam 0.8 t/t (taken from BREF
+    Table 8.5), electricity 96 kWh/t (BREF 110), cooling water 45 m3/t (BREF 60): the estimate
+    is incomplete for minor drives and coolers. Preliminary gate-to-gate LCI with every
+    background unmapped (lca/). Not reviewed. The chemicals registry has no urea, ammonia or
+    biuret entry yet: the main product and the ammonia feed are not listed under chemistry
+    (open library item).
 chemistry:
   inputs:
-    - {chemical: water, role: feedstock}
+    - {chemical: carbon-dioxide, role: feedstock, inventory_key: "feed:CO2", note: "CO2 from the ammonia plant's CO2 removal (98.5 mol%, ASSUMED); the main feedstock ammonia (feed:NH3) has no registry entry yet"}
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Ambient prilling air (cooling medium); passivation air feed:PAIR"}
   outputs:
-    - {chemical: hydrogen, role: main-product}
+    - {chemical: water, role: by-product, inventory_key: "product:WATER", note: "Treated process condensate, 1 ppm(wt) NH3 and urea, re-used as boiler feed water. The main product, prilled urea (product:UREA), has no registry entry yet"}
   utilities:
-    - {chemical: electricity, role: utility}
-# basis: {capacity: "1000 t/d product", operating_hours_per_year: 8000}
-# lca: {source: auto}           # auto: read lca/ of a ChemE-as-Code project; none: no LCA
-# references:
-#   - {title: "Author et al. (2024) Title", doi: 10.xxxx/xxxxx}
-# maintainers:
-#   - {name: Your Name, orcid: 0000-0000-0000-0000}
-# repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/my-process, access: private}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "CO2 compressor (electric drive ASSUMED), HP pumps, prilling fan"}
+    - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "MP steam 2400 kPa(a): HP stripper, 2nd evaporator, hydrolyser (0.8 t/t urea, BREF Table 8.5)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED)"}
+basis:
+  capacity: "2000 t/d prilled urea (ASSUMED)"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
+lca:
+  source: auto
+references:
+  - {title: "European Commission JRC (2007) Reference Document on Best Available Techniques for the Manufacture of Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF BREF), chapter 8 Urea and UAN", url: "https://bureau-industrial-transformation.jrc.ec.europa.eu/sites/default/files/2022-03/LVIC-AAF.pdf"}
+  - {title: "Meessen, J.H. Urea. Ullmann's Encyclopedia of Industrial Chemistry (identity verified; not numerically audited)", doi: 10.1002/14356007.a27_333.pub2}
+  - {title: "Meessen, J.H. (2014) Urea synthesis. Chemie Ingenieur Technik 86:2180-2189 (abstract only; not numerically audited)", doi: 10.1002/cite.201400064}
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/urea-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0

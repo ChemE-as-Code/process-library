@@ -1,8 +1,54 @@
 # What the plant must do. Schema: `cheme schema design_basis`.
-schema: cheme/design_basis/v1
-capacity: {}
-feeds: []
-products: []
-utilities: []
-site: {}
-assumptions: []
+# Urea by CO2 stripping with total recycle, issue ChemE-as-Code/process-library#120.
+# Ammonia and CO2 are boundary feeds from an ammonia plant outside the boundary (D-001).
+# ASSUMED = an engineering choice of this concept study, not client or licensor data. Facts
+# from BREF = EC JRC (2007) BAT Reference Document LVIC-AAF, chapter 8 (urea), with table and
+# printed page. Every decision is in DESIGN.md.
+capacity:
+  basis: prilled urea to storage (product stream incl. its biuret and moisture)
+  product_t_per_d: 2000                # ASSUMED (D-002): a single-train size, chosen, not a client figure
+  product_kg_per_h: 83333.3            # = 2000 t/d / 24 h
+  operating_hours_per_year: 8000       # ASSUMED (D-002)
+  turndown_percent: 60                 # ASSUMED, not checked
+feeds:
+  - name: Liquid ammonia (from the ammonia plant, outside the boundary)
+    source_of_values: ASSUMED (D-004)
+    composition: "NH3 100 % in the model (water and oil traces not modelled, D-004)"
+    conditions: {pressure_kPa_a: 2200, temperature_K: 293.15}   # ASSUMED: warm liquid ammonia from the ammonia plant
+    flow: from the balance, stream S1 (565.3 kg/t urea; BREF Table 8.3 reports 567 kg/t for CO2 stripping)
+  - name: CO2 (from the ammonia plant's CO2 removal, outside the boundary)
+    source_of_values: ASSUMED (D-004)
+    composition_mol_percent: {CO2: 98.5, H2O: 0.5, N2: 1.0}    # ASSUMED; N2 stands for all inerts (H2, CH4, Ar not modelled)
+    conditions: {pressure_kPa_a: 160, temperature_K: 313.15}   # ASSUMED battery limit after the ammonia plant's knock-out
+    hydrogen_removal: "not modelled; an H2 combustion step in the CO2 is a basic-engineering choice (D-004)"
+    flow: "from the balance, stream S3 (731.8 kg CO2/t urea; BREF Table 8.3 reports 733 kg/t)"
+  - name: Passivation air
+    composition: ambient air, Ar lumped into N2
+    rate: "0.6 mol% O2 in the CO2 (ASSUMED, D-004)"
+  - name: Prilling air
+    conditions: {temperature_K: 303.15, humidity_kg_per_kg_dry_air: 0.015}   # ASSUMED (D-007)
+products:
+  - name: Prilled urea, fertiliser grade
+    purity: "urea 98.9 wt%, biuret 0.8 wt%, water 0.3 wt% (ASSUMED design grade, D-003); total N 46.5 wt% (>= 46.0); biuret below the 1.2 % BREF section 8.2.1 names for fertiliser urea"
+    delivery: {pressure_kPa_a: 101.325, temperature_K: 343.15, battery_limit: prilling tower outlet to storage (product cooling, screening, storage outside the boundary)}
+  - name: Treated process condensate
+    use: "re-use as boiler feed water make-up (BREF Table 8.9 names this use) at 1 ppm(wt) NH3 and urea (BAT for new plants, BREF Table 8.20, p. 362)"
+  - name: LP absorber vent and scrubbed prilling exhaust
+    use: "to atmosphere: NH3 70 g/t from the LP absorber (BREF Table 8.10); prilling exhaust dust 35 and NH3 30 mg/Nm3, within the BAT levels 15-55 and 3-35 mg/Nm3 (BREF section 8.5, p. 362) (D-009)"
+utilities:
+  - {name: MP steam, pressure_kPa_a: 2400, saturation_K: 494.9, use: "HP stripper, 2nd evaporator, hydrolyser", total: "0.8 t/t urea (BREF Table 8.5, CO2 stripping with electric CO2 compression, 24 bar)", note: D-010}
+  - {name: LP steam, pressure_kPa_a: 450, use: "raised in the HP carbamate condenser, used in the LP rectifier heater, 1st evaporator and desorber 2; net import/export zero ASSUMED", note: D-010}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: "ASSUMED (D-010)"}
+  - {name: Electric power, use: "CO2 compressor, HP pumps, prilling fan", note: "electric CO2 compressor ASSUMED (D-010)"}
+site:
+  location: ASSUMED generic site, not chosen
+  design_ambient_K: 303.15
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Synthesis: 14000 kPa(a), 453 K, N/C 2.8 at the reactor inlet (BREF Table 8.14, CO2 stripping example); H2O/CO2 0.45 ASSUMED (D-005)."
+  - "Reactor: conversion model of 2 NH3 + CO2 -> urea + H2O, CO2 conversion 0.58 per pass ASSUMED within the 50-80 % of BREF section 8.2.1; carbamate carried as NH3 + CO2 (D-005)."
+  - "Stripper: 15 % of the NH3, 12 % of the CO2 and 85 % of the water fed leave with the stripped solution, ASSUMED (D-006)."
+  - "LP rectifier 300 kPa(a); solution to evaporation 70 wt% urea; process condensate 6 wt% NH3, 4 wt% CO2, 1 wt% urea (ASSUMED after the BREF Table 8.8 remark, D-006)."
+  - "Evaporation 95 wt% at 33 kPa(a) / 403 K, then melt at 3 kPa(a) / 413 K; biuret formation lumped into the 2nd evaporator (D-007)."
+  - "Prilling: melt 413 K, prills 343 K, air 303 -> 343 K; fusion enthalpy 14 kJ/mol ASSUMED (D-007)."
+  - "All flows, temperatures and duties are concept estimates from specified splits and hand heat estimates; no qualified property method (D-008); accuracy not stated."
