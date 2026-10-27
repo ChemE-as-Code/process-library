@@ -21,7 +21,7 @@ Model (every choice is a DESIGN.md decision, ASSUMED where marked there):
 - columns: component splits from specifications; stabiliser overhead in equilibrium with an
   aromatic reflux at the partial condenser; benzene and toluene columns by Underwood minimum
   reflux at constant relative volatility, R = R_FACTOR * Rmin; duties from column energy
-  balances with saturated feeds and products (D-008).
+  balances with the arriving feed enthalpy and saturated products (D-008).
 
 Run: cheme run scripts/hda_balance.py   (prints the stream table, duties and checks; JSON copy
 in build/hda_balance.json)
