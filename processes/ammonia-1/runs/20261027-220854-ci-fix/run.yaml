@@ -1,0 +1,113 @@
+schema: process-run/v1
+run_id: 20261027-220854-ci-fix
+process: ammonia-1
+kind: agent
+complete: false
+incomplete_notes:
+- runner had uncommitted changes (runner_commit is not exact)
+task_file: /Users/arturschweidtmann/Developer/test/agent-cli/tasks/gen/ammonia-1-ci-fix.md
+branch: case/ammonia-1
+start_commit: b81806771790f61f9ca9b6768357cd5e3a3a057c
+end_commit: 110e08b5da11e8ff94875158e992c26154acbace
+started: '2026-10-27T22:08:54+00:00'
+finished: '2026-10-27T22:15:52+00:00'
+wall_s: 419
+cost_usd: 2.2183981999999993
+budget_usd: 3.0
+model: claude-opus-5-5
+effort: high
+num_turns: 100
+tokens:
+  input: 138
+  output: 30610
+  thinking: 10147
+  cache_read: 5437692
+  cache_write: 103589
+session_id: 09e43e87-aef1-42a8-9436-2f45cc798502
+session_export:
+  file: session.jsonl.gz
+  sha256: b6c291f567f120c9b9ba7beac354fab55913961e81d79ea41122e98630fb0fa6
+tools:
+  cheme: cheme 0.8.0 (pyDEXPI 2.1.0)
+  core_commit: 44680fa0e142849803577a235d78fd0a75ca3f7a
+  claude_agent_sdk: 0.2.174
+  runner_commit: 99c2a5a5820b5aa77f5d51aa14f32c8a5792aa34
+  runner_dirty: true
+checks_by_agent:
+- cheme assess lca --coverage 2>&1 | grep -i "error\|NG\b\|feed:NG\|natural-gas" | head
+- cheme assess lca --coverage 2>&1 | grep -v "^lca/lca.yaml" | head -20
+- cheme assess lca --write 2>&1 | grep -c " error "; cheme validate 2>&1 | tail -3
+- cheme assess lca --write 2>&1 | grep -c warning
+- cheme assess lca --write 2>&1 | grep -i "error\|C2H6\|C3H8" | cut -c1-300
+- 'cheme assess lca --write 2>&1 | grep -i "error\|C2H6\|C3H8\|^wrote lca/dataset" | cut -c1-300; grep
+  -n "key: emission:C2H6" -A10 lca/dataset.yaml | head -12'
+- cheme assess lca --write 2>&1 | grep -v "lca-flow-identity\|lca-flow-uuid\|dataset-undocumented" | tail
+  -15
+- cheme assess lca --write 2>&1 | tail -30
+- cheme check 2>&1 | grep -i "fail\|stage" | head -15
+- cheme maturity 2>&1 | tail -6
+- cheme process streams 2>&1 | grep -iE "balance|not ok|fail|warn|error" | head -8; cheme process streams
+  2>&1 | grep -c " ok"
+- cheme run build/exergy.py
+- cheme run processes/ammonia-1/build/exergy.py
+- "cheme schema lca | python3 -c \"\nimport json,sys; s=json.load(sys.stdin); d=s['\\$defs']\nfor k in\
+  \ d:\n  if 'iosphere' in k: print(k, json.dumps(d[k].get('properties'))[:600], d[k].get('required'))\"\
+  ; grep -n \"biosphere3\\|database\" ../../lci/mappings.yaml | head -5"
+- "cheme schema lca | python3 -c \"\nimport json,sys; s=json.load(sys.stdin); d=s['\\$defs']\nfor k in\
+  \ d:\n  if k.lower().startswith('flow') or k=='Background':\n    print(k, {p:(v.get('description','')[:160])\
+  \ for p,v in d[k].get('properties',{}).items()})\""
+- "cheme schema lca | python3 -c \"\nimport json,sys; s=json.load(sys.stdin); d=s['\\$defs']; p=s['properties']\n\
+  print({k:v.get('description','')[:300] for k,v in p.items() if 'emission' in k})\nfor k in d:\n  if\
+  \ 'xclusion' in k or 'stimate' in k: print(k, {a:b.get('description','')[:200] for a,b in d[k].get('properties',{}).items()},\
+  \ d[k].get('required'))\""
+- cheme schema lca | python3 -c "import json,sys; s=json.load(sys.stdin); a=s['properties']['allocation'];
+  print(json.dumps(a,indent=1)[:3500])"
+- cheme schema lca | python3 -c "import json,sys; s=json.load(sys.stdin); d=s['\$defs']; print(json.dumps(d['Allocation'],indent=0)[:4000]);
+  print([k for k in d if 'lloc' in k or 'Prop' in k])"
+- cheme schema lca | python3 -c "import json,sys; s=json.load(sys.stdin); print(json.dumps(s['\$defs']['ProductProperties']['properties'],indent=0)[:1500])"
+checks_after_run:
+- command: cheme check
+  exit: 1
+  summary:
+    counts:
+      ok: 11
+      FAIL: 11
+      n/a: 3
+    failed:
+    - basic/pids-exist
+    - basic/design-review
+    - concept/layout-plot-plan
+    - basic/layout-3d
+    - basic/lifting-study
+    - basic/mto
+    - basic/layout-review
+    - detail/layout-detail
+    - detail/electrical
+    - detail/hvac
+    - detail/datasheets
+- command: cheme maturity
+  exit: 0
+  summary:
+    counts:
+      ok: 10
+      FAIL: 5
+    failed:
+    - sourced.boundary
+    - balanced.model-basis
+    - predictive.simulation-spec
+    - predictive.model-basis
+    - engineering.datasheets
+    levels:
+      sourced: fail
+      balanced: fail
+      predictive: fail
+      engineering: fail
+- command: cheme process propagate --check
+  exit: 0
+  summary:
+    last_line: ''
+outcome:
+  result: success
+  guard_denials: 0
+  report: report.md
+observed_later: {}
