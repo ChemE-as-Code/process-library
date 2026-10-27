@@ -39,14 +39,18 @@ use only process names/types as suggestions, not the authors' datasets, expert d
 graphs, code, logs or simulation files.
 [CRYSTAL prioritization #116](https://github.com/ChemE-as-Code/process-library/issues/116)
 uses its 52 hub chemicals (section 5 / Figure 4 / Table S9), distinct from 50 hotspots.
-Verify the full supplementary list before creating individual hub tickets; checked v1
-omits Table S9. No inventory import is requested.
+The 52 structure labels were visually transcribed from Figure 4b (v1 PDF p.11) and mapped
+to issues in #116: 47 new candidate tickets #126–#172 and five reused tickets. Table S9,
+absent from checked v1, remains an identity/transcription cross-check. No inventory import is requested.
 
 ## GitHub Project setup
 
-Create an organization Project **Process Library Development**, private, and link this repository.
-First inspect existing Projects to avoid duplication. The current automation credential lacks
-Projects scopes; setup needs an authorized Projects credential or a signed-in owner.
+The private organization [Process Library Development Project](https://github.com/orgs/ChemE-as-Code/projects/1)
+is configured through signed-in Chrome, with process-library as its default repository.
+It contains 57 canonical process tickets (the next-10 batch plus the 47 new hub candidates).
+The Delivery and Evidence maturity boards separate workflow from calculation evidence.
+The API credential still lacks Projects scopes; use an authorized browser or Projects credential
+for subsequent administration. The fields below describe the intended tracking vocabulary.
 
 | Field | Values / meaning |
 | --- | --- |
@@ -71,8 +75,9 @@ every process is Engineering or public. Use existing `waiting:input`/`waiting:wo
 linked dependencies for blocked work; do not turn blocked into a maturity level.
 Retain `status:in-progress` and `status:for-verification` on engineering action items where used.
 
-Add the ten canonical issues above. Configure auto-add for this repository's `type:process` issues
-if available; backfill existing issues manually. New items default to Backlog. Do not automate
+The ten canonical issues above and all 52 hub crosswalk entries are backfilled (57 distinct cards).
+Auto-add is enabled for open `type:process` issues in this repository. New items default to
+Backlog and Calculation maturity Not assessed. Other fields are left unset until scoped/audited. Do not automate
 scientific maturity changes from workflow state, labels, merge or closure. Update maturity only
 after reviewing a current `cheme maturity` report (where applicable) at a recorded commit.
 Inventory-only entries record dataset evidence and leave plant calculation maturity Not assessed.
