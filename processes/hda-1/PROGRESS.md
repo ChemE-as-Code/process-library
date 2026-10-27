@@ -4,6 +4,7 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-10-27 | lca/lca.yaml, lca/ outputs, DESIGN.md D-013 | exported default allocation energy (LHV) with `allocation.deviation`, substitution and mass compared; `dataset.system_model: cutoff` | PR #189 CI: the library LCI build refused `allocation: substitution` (not exportable as one activity per co-product) and warned that it did not follow the hierarchy |
 | 2026-10-27 | process.yaml, lca/, DESIGN.md, process/flowsheet.yaml, process/BFD.xml, process/PFD.xml, scripts/hda_balance.py | response to review 2026-10-27-pfd-lci-review (see Responses below); commits d4740fd, 462bacc | close the high and the quick medium/low findings |
 | 2026-10-27 | DESIGN.md, process.yaml, PROGRESS.md, checks/checks.yaml | route/boundary memo, decisions D-001 to D-013, evidence table, source register, method/dependency table, open inputs, missing registry entries; Atlas manifest (internal, concept, unreviewed); BFD/PFD files in the concept gate | document the concept run (issue #42) |
 | 2026-10-27 | lca/ | preliminary gate-to-gate LCI per kg benzene, every background open (10 gaps), substitution proposed; balance closed | step 4 of the run |

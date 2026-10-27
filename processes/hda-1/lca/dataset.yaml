@@ -66,7 +66,7 @@ geography:
 time:
   start: 2026
 valid_until: 2031
-system_model: substitution
+system_model: cutoff
 technology_level: current
 production_volume:
   amount: 100000000.0
@@ -77,11 +77,12 @@ classification:
   cpc: '34110'
 modelling:
   principle: attributional
-  multifunctionality: 'unallocated multi-output dataset; default allocation substitution: D-013 (agent
-    proposal, for the LCA practitioner to confirm): system expansion, as ISO 14044 prefers. The fuel gas
-    leaves to the site fuel header, where it displaces natural gas firing; the biphenyl displaces biphenyl
-    made otherwise (or fuel oil, when burned). Both avoided productions have no background yet (gaps).
-    Energy (LHV) and mass allocation are computed for comparison.'
+  multifunctionality: 'unallocated multi-output dataset; default allocation energy: D-013 (agent proposal,
+    for the LCA practitioner to confirm): energy (LHV) allocation as the exported default, because the
+    library''s LCI export takes one activity per co-product and so only a proportional method; system
+    expansion (ISO 14044''s preference: the fuel gas displaces natural gas firing at the site fuel header,
+    the biphenyl displaces biphenyl made otherwise or fuel oil when burned) and mass allocation are computed
+    for comparison. Both avoided productions have no background yet (gaps).'
 review:
 - type: none
 data_generator: ChemE-as-Code process library, hda-1 concept run (agent-generated, unreviewed)
@@ -342,7 +343,7 @@ exchanges:
     temperature: 25.0
     source: utility of CW in process/flowsheet.yaml
 allocation:
-  method: substitution
+  method: energy
   coproducts:
   - BENZENE
   - DIPHENYL
@@ -367,20 +368,25 @@ allocation:
       missing: 'no background chosen yet: biphenyl production (e.g. from benzene dehydrocondensation)
         or, when it is burned, heavy fuel oil per MJ LHV'
   compare:
-  - energy
+  - substitution
   - mass
-  source: 'D-013 (agent proposal, for the LCA practitioner to confirm): system expansion, as ISO 14044
-    prefers. The fuel gas leaves to the site fuel header, where it displaces natural gas firing; the biphenyl
-    displaces biphenyl made otherwise (or fuel oil, when burned). Both avoided productions have no background
-    yet (gaps). Energy (LHV) and mass allocation are computed for comparison.'
+  source: 'D-013 (agent proposal, for the LCA practitioner to confirm): energy (LHV) allocation as the
+    exported default, because the library''s LCI export takes one activity per co-product and so only
+    a proportional method; system expansion (ISO 14044''s preference: the fuel gas displaces natural gas
+    firing at the site fuel header, the biphenyl displaces biphenyl made otherwise or fuel oil when burned)
+    and mass allocation are computed for comparison. Both avoided productions have no background yet (gaps).'
+  deviation: 'The WBCSD price-ratio rule cannot be applied: no co-product prices are set at the concept
+    stage. Energy (LHV) is used because the fuel gas co-product is an energy carrier sold to the site
+    fuel system and the products are all fuels or hydrocarbons with similar LHVs; mass would give the
+    high-LHV fuel gas a smaller share than its energy content (D-013).'
 provenance:
   generator: cheme assess lca
   plant: Toluene hydrodealkylation to benzene (100 kt/a, thermal HDA)
   case: design
   files:
     equipment/equipment-list.yaml: sha256:f48db77271d5ba4269334775b0c880dac66ddca00c35f02a60cccec7fef8ddd5
-    lca/lca.yaml: sha256:2667e361db80c0bd8f0ff16fcc1bd8aa13ab4f04675deef516e45f2cf68c77d5
+    lca/lca.yaml: sha256:a6d217ae022ff74259c5589005393801b789aef087dabbfdca09023a60e34475
     process.yaml: sha256:f6ff8e51e2c4826809718f69119d5569f93ff82c7ffb1da53a06c9d40d1ad019
-    process/flowsheet.yaml: sha256:6b9e92b98d60d6b1ecaaa01eb2266d41c99c21b6a0f60dd9bc82672baf7f34e5
+    process/flowsheet.yaml: sha256:89059c62a08a8284b4801a96594e6b491c489a336bf0c9fd862f00d44dd790fb
     process/materials.yaml: sha256:76ec0e4c5a74d4eba2bf2c3ca25f949fd181908061ea448ed833dbecc956de3a
     process/simulation.yaml: sha256:224248e8b5fec31106c42323ff0dba83928346453b3ba1ba19697dad4d25b3c5

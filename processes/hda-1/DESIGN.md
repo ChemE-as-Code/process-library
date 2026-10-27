@@ -185,9 +185,14 @@ kPa(a), 20 below, two-phase 10, liquid 1.5 m/s) on PR densities. Materials in ho
 Decision: `lca/lca.yaml` with functional unit 1 kg benzene at the gate (product BENZENE),
 design case; every foreground exchange from the flowsheet; no background linked: every feed,
 utility and avoided product `missing:` with the activity it should connect to. Co-products
-BIPHENYL and FUELGAS by system expansion (substitution, ISO 14044 preference;
-`system_model: substitution`), energy (LHV) and mass allocation compared (benzene share 71.5 %
-and 76.5 %). LHVs calculated from the formation enthalpies of materials.yaml with CODATA CO2
+BIPHENYL and FUELGAS by energy (LHV) allocation in the exported dataset (benzene share
+71.5 %; `dataset.system_model: cutoff`), system expansion (substitution, ISO 14044's
+preference) and mass allocation (benzene 76.5 %) computed for comparison. Revised
+2026-10-27 from substitution as the default: the library's LCI export (`scripts/build_lci.py`)
+writes one activity per co-product and refuses a non-proportional default, which failed the
+PR #189 tooling tests; the WBCSD price-ratio rule cannot apply without prices, so the choice
+of energy is stated as `allocation.deviation` (the fuel gas is an energy carrier and all
+products are hydrocarbons with similar LHVs). LHVs calculated from the formation enthalpies of materials.yaml with CODATA CO2
 and H2O values (benzene product 40.58, biphenyl product 39.65, fuel gas 54.25 MJ/kg).
 H-101 combustion emissions are excluded from the foreground because the intended background
 (heat from natural gas at an industrial furnace, per MJ) includes them; storage tanks are

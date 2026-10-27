@@ -24,20 +24,26 @@ location: GLO
 year: 2026
 technology: "thermal toluene hydrodealkylation, adiabatic reactor 895-937 K / 3.4 MPa, H2 recycle with purge, stabiliser, benzene and vacuum toluene columns; 100 kt/a benzene, concept design"
 rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
-system_model: substitution   # system expansion for the co-products (D-013)
+# system_model unset (cut-off, the Atlas default): the exported dataset is allocated by energy;
+# system expansion is computed as a comparison only (D-013).
 allocation:
-  method: substitution
+  method: energy
   coproducts: [BENZENE, DIPHENYL, FUELGAS]
   source: >-
-    D-013 (agent proposal, for the LCA practitioner to confirm): system expansion, as ISO
-    14044 prefers. The fuel gas leaves to the site fuel header, where it displaces natural gas
-    firing; the biphenyl displaces biphenyl made otherwise (or fuel oil, when burned). Both
-    avoided productions have no background yet (gaps). Energy (LHV) and mass allocation are
-    computed for comparison.
+    D-013 (agent proposal, for the LCA practitioner to confirm): energy (LHV) allocation as the
+    exported default, because the library's LCI export takes one activity per co-product and
+    so only a proportional method; system expansion (ISO 14044's preference: the fuel gas
+    displaces natural gas firing at the site fuel header, the biphenyl displaces biphenyl made
+    otherwise or fuel oil when burned) and mass allocation are computed for comparison. Both
+    avoided productions have no background yet (gaps).
+  deviation: >-
+    The WBCSD price-ratio rule cannot be applied: no co-product prices are set at the concept
+    stage. Energy (LHV) is used because the fuel gas co-product is an energy carrier sold to the site fuel system and the products are all fuels or
+    hydrocarbons with similar LHVs; mass would give the high-LHV fuel gas a smaller share than its energy content (D-013).
   substitution:
     FUELGAS: {missing: "no background chosen yet: heat from natural gas in an industrial furnace, per MJ LHV of the fuel gas (site fuel system), market for the site's region", source: "purge and stabiliser off-gas burned in the site fuel gas header (D-009)"}
     DIPHENYL: {missing: "no background chosen yet: biphenyl production (e.g. from benzene dehydrocondensation) or, when it is burned, heavy fuel oil per MJ LHV", source: "biphenyl by-product sold or burned (D-009)"}
-  compare: [energy, mass]
+  compare: [substitution, mass]
   # LHV per kg, ideal gas at 298.15 K, from the formation enthalpies of process/materials.yaml
   # and CO2(g) -393.51, H2O(g) -241.826 kJ/mol (CODATA key values, Cox et al. 1989); the
   # mixtures by their flowsheet compositions (S21, S24, S13 + S19). Calculated, D-013.
@@ -72,7 +78,7 @@ operation:
 dataset:
   version: 0.1.0
   geography: {description: "One concept design for a generic, not chosen site; no regional background"}
-  system_model: substitution
+  system_model: cutoff   # energy-allocated, no avoided-burden credits in the exported dataset (D-013)
   technology_level: current
   classification: {isic: "2011", cpc: "34110"}
   modelling: {principle: attributional}
