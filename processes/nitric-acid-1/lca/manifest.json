@@ -3,17 +3,17 @@
   "functional_unit": "1 kg ACID",
   "case": "design",
   "boundary": "cradle-to-gate",
-  "allocation": "substitution",
+  "allocation": "shares",
   "inputs": {
     "process.yaml": "sha256:ec85d8810ee66306c8383c588661a5483a1afdeb32b640699695279108d406cc",
     "process/materials.yaml": "sha256:050a57ba970e191f60e381a83f69438586fb774cb3119db05c5ddddedef85f64",
     "process/flowsheet.yaml": "sha256:e913ac163cda59fa9984b89787aa8f108bbd9689a03297c9d861f50249fcf0c9",
-    "lca/lca.yaml": "sha256:cb5d5cae8fbef37d2da51810825b5efdb550fda63fb18f4d715d0731d347e199",
+    "lca/lca.yaml": "sha256:c5c5fc91bb411ffec99fda93064a8c25d4fdf73d45b86f548770c95c419b67ff",
     "lca/factors.yaml": "sha256:df3f68cc1656fb455326882eb7a8f6501db68b6722944fd004d9a830dbea9847",
     "process/simulation.yaml": "sha256:626ecdafa560d3bcae487bc08b1b32f639c2a26d4cf91d8ffeb0adbc1ab0709f"
   },
   "results": "sha256:e74aa9b5c7239196827ee789aa4e88e1f16751bccb26f345e0580c189ff70986",
-  "mapping": "sha256:43d4466f7acba72d1f379a994e2469254f21050fe9defd7b8c8259902c287f64",
+  "mapping": "sha256:1d5c0b3258622e3daed0b554dc6881ce2dccccbae0512f79053b77157ecf65a8",
   "background": {
     "backend": "factors",
     "profiles": [
@@ -66,7 +66,7 @@
       "emission:NO": "none",
       "emission:NO2": "none",
       "emission:O2": "none",
-      "substitution:HPS": "gap"
+      "consumable:pt-rh-gauze-loss": "gap"
     }
   },
   "data_quality": {
@@ -81,7 +81,7 @@
     "weighted": true,
     "basis": "climate-change",
     "weakest": "TeR",
-    "exchanges": 10
+    "exchanges": 11
   },
   "balance": {
     "dataset": "weak-nitric-acid-dual-pressure-ammonia-oxidation-1000-t-d-hno3-as-60-wt-acid",
@@ -90,15 +90,18 @@
     "tolerance_basis": "maturity concept (sourced screening)",
     "status": {
       "lci-mass-balance": "closed",
-      "lci-element-balance": "closed",
-      "lci-carbon-origin": "closed"
+      "lci-element-balance": "not-assessable",
+      "lci-carbon-origin": "not-assessable"
     },
-    "problems": [],
+    "problems": [
+      "element balance not assessable: no composition for consumable:pt-rh-gauze-loss (no composition)",
+      "carbon balance not assessable: no composition for consumable:pt-rh-gauze-loss (no composition)"
+    ],
     "mass": {
       "unit": "kg",
-      "in": 239274.6,
+      "in": 239274.60625,
       "out": 239274.6,
-      "residual": 0.0,
+      "residual": 0.00625,
       "relative": 0.0,
       "closed": true
     },
@@ -133,7 +136,9 @@
         "closed": true
       }
     },
-    "no_composition": {},
+    "no_composition": {
+      "consumable:pt-rh-gauze-loss": "no composition"
+    },
     "carbon": {
       "unit": "kg C",
       "inputs": {
@@ -173,6 +178,21 @@
       "product:STACK": "counted by its emission:* or resource:* exchanges"
     },
     "cutoff": {
+      "cutoff:gauze-fabrication-refining": {
+        "direction": "input",
+        "amount": null,
+        "unit": "kg"
+      },
+      "cutoff:n2o-decomposition-catalyst": {
+        "direction": "input",
+        "amount": null,
+        "unit": "kg"
+      },
+      "cutoff:scr-catalyst": {
+        "direction": "input",
+        "amount": null,
+        "unit": "kg"
+      },
       "emission-excluded:combustion": {
         "direction": "output",
         "amount": null,

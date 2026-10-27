@@ -189,18 +189,34 @@ Decision: the 18 items the PFD needs, design pressure = highest operating + 10 %
 boiler inlet), to be confirmed. No line or instrument list yet (no P&ID; lines come with the
 P&IDs).
 
-## D-014 Preliminary gate-to-gate LCI (2026-10-27)
+## D-014 Preliminary LCI: cradle-to-gate scope, backgrounds open (2026-10-27)
 Decision: functional unit 1 kg contained HNO3 (1.667 kg of 60 wt% acid); every foreground
 exchange from the balanced flowsheet (feeds NH3, air, process water; power, LP steam; products
 acid, stack gas with its components, HP steam, heat to cooling water). Every background is left
-unmapped (`missing:` with the activity it should connect to); the exported steam is a co-product
-handled by substitution, declared missing (system model substitution). Direct emissions are
+unmapped (`missing:` with the activity it should connect to). The study boundary is
+cradle-to-gate with every background open, so only the foreground is quantified; the generated
+`dataset.yaml` calls itself "gate-to-gate foreground of the plant", which is the same thing seen
+from the dataset (an unallocated foreground inventory). The exported HP steam is a co-product,
+allocated by shares 1/0 (all burdens to the acid, the steam leaves without burden or credit;
+system model cutoff, revised 2026-10-27 after the library's strict LCI export refused
+substitution, PR #191 CI). This is a recorded deviation (`allocation.deviation`) from the
+library hierarchy (energy or exergy for exported steam): the acid has no energy content, no
+property package gives the acid's exergy (D-012), and the steam is counted in kWh so the WBCSD
+price ratio does not apply. Substitution (avoided site steam, unmapped) stays as a comparison.
+Catalysts (review 2026-10-27-pfd-lci-review#1): the Pt/Rh gauze loss is a consumable,
+never cut, without a background, ASSUMED 0.15 g/t HNO3 gross loss (50 kg/a, Pt/Rh 90/10, no
+catchment credit) until O-3 gives a sourced value; gauze fabrication and refining, the
+N2O-decomposition and the SCR catalysts are `cutoff:` entries with unknown amounts (O-4, O-5).
+The Pt consumable has no composition in core's dataset, so the element balance became
+"not assessable" (mass balance still closes); to be raised with cheme-as-code. Direct emissions are
 elementary flows to air (high stack); N2O is characterised by the packaged IPCC AR6 GWP100, NO
 and the zero NH3/NO2/HNO3 are not characterised by it (gaps in the climate category). Equipment
 leaks are excluded until a P&ID count exists; no tank, combustion unit or wastewater is inside
 the boundary. Construction, catalysts and Pt loss are not in the inventory (open inputs O-3, O-5).
-Result (`cheme assess lca --coverage`): partial screening carbon footprint of the direct
-emissions only, 0.68 kg CO2-eq/kg HNO3 from N2O; 10 gaps. Balance (`--balance`): mass and the
+Result (`cheme assess lca --coverage`): partial screening carbon footprint; 0.68 kg CO2-eq/kg
+HNO3 is the plant's direct N2O emission only, not the product's footprint (ammonia, power and
+the other backgrounds are open); 10 gaps (9 before the Pt consumable, the HPS substitution gap
+no longer counted under shares). Balance (`--balance`): mass and the
 Ar, H, N, O element balances close (< 0.01 %); the reported energy closure (57.9 %) counts only
 delivered utilities, not the reaction enthalpy (D-010 closes the energy).
 Reason: the run's scope: a preliminary inventory, no background data and nothing from licensed
@@ -212,6 +228,7 @@ databases.
 - O-3: Pt/Rh loss per t HNO3 and gauze recovery (a precious-metal flow, never cut off).
 - O-4: tertiary-abatement and SCR catalyst performance, volume and life (vendor or literature); permit limits for NOx and N2O.
 - O-5: construction and consumables (catalysts) for the LCI; equipment weights.
+- O-6: Atlas export of lca/dataset.yaml (library work outside this folder): the strict `scripts/build_lci.py` needs a chemicals-registry entry for ammonia (feed:NH3), `lci/mappings.yaml` entries for emission:NO, emission:HNO3 and consumable:pt-rh-gauze-loss, and a per-kWh steam-heat mapping for feed:LPS (the `steam` slug is per kg).
 - O-6: ammonia purity, air filter, site conditions, steam-turbine vs motor drive (D-011).
 
 ## Chemicals registry items missing (for the consolidated library PR)
