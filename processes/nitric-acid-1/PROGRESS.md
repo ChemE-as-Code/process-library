@@ -1,0 +1,25 @@
+# Progress
+
+Newest first. One line per change: date, sheet or file, what, why.
+
+| date | where | what | why |
+|---|---|---|---|
+| 2026-10-27 | process/flowsheet.yaml layout.pfd, process/PFD.xml | PFD layout pinned left to right (feeds, PREP, OX, ABS, TGT, stack; HP steam above OX, acid and CW below), rebuilt | review 2026-10-27-pfd-lci-review #3 |
+| 2026-10-27 | lca/, DESIGN.md D-014, O-6, process.yaml | allocation substitution -> shares 1/0 with a recorded deviation (system model cutoff); Pt/Rh loss as a never-cut consumable (ASSUMED amount), other catalysts as cut-off entries; cradle-to-gate wording, 0.68 kg CO2-eq/kg stated as direct N2O only; outputs rewritten | PR #191 CI (library LCI export refuses substitution); review 2026-10-27-pfd-lci-review #1, #2 |
+| 2026-10-27 | lca/ | preliminary gate-to-gate LCI per kg contained HNO3: lca.yaml, inventory, gaps, dataset, coverage; backgrounds unmapped | run scope item 4 (D-014) |
+| 2026-10-27 | process.yaml, DESIGN.md | Atlas manifest (internal, concept, unreviewed), source register, basis and method tables, decisions D-001 to D-014, open inputs, missing registry entries | run scope items 1, 3, 5 |
+| 2026-10-27 | process/, equipment/, scripts/hno3_balance.py, plant.yaml | design basis, reactions, balanced BFD/PFD (4 blocks, 21 steps, 31 material and 12 energy streams), equipment list, independent balance script | run scope item 2 (D-001 to D-013) |
+| 2026-10-27 | (all) | scaffold from cheme init and the process template | start of issue #119 |
+
+## Responses to review 2026-10-27-pfd-lci-review (2026-10-27)
+
+The review has no critical or high findings; the PR #191 CI failure and the medium and low
+findings are answered here.
+
+- **CI (PR #191, library tooling tests)**: `scripts/build_lci.py` refused `allocation: substitution` in `lca/dataset.yaml`. Allocation is now `shares` (ACID 1, HPS 0) with `allocation.deviation` recorded and system model cutoff (D-014). Commit d2f0e57. The strict build now gets past allocation but stops on mappings that only the library can add outside this folder (O-6): feed:NH3 (no ammonia registry entry), feed:LPS (the `steam` slug is per kg, this exchange per kWh), emission:NO, emission:HNO3, consumable:pt-rh-gauze-loss.
+- **#1 (medium, closed)**: Pt/Rh gauze loss declared as a never-cut consumable without a background (ASSUMED 0.15 g/t HNO3, 50 kg/a); gauze fabrication and refining, the N2O-decomposition and the SCR catalysts declared as `cutoff:` entries with unknown amounts; outputs rewritten, so the Pt loss is in gaps.csv (10 gaps) and the catalysts appear in the dataset's cut-off list. Side effect: the element balance is "not assessable" (core gives the consumable no composition); see D-014. Commit d2f0e57.
+- **#2 (medium, closed)**: lca.yaml header and goal, D-014 and process.yaml now say cradle-to-gate scope with every background open (foreground only), and that 0.68 kg CO2-eq/kg is the direct N2O emission only, not the product footprint; D-014 explains the dataset's generated "gate-to-gate foreground" label. Commit d2f0e57.
+- **#3 (medium, closed)**: PFD layout pinned left to right (PREP, OX, ABS, TGT, stack) and rebuilt. Commit 282ae69.
+- **#4 (low, closed)**: recorded in DESIGN.md D-012 as a core finding, to be reported to cheme-as-code. Commit: see the commit that adds this section.
+- **#5 (low, no change)**: `maturity: concept` stays with its disclosure; concept is the lowest value the library schema allows.
+- **#6 (low, closed by citation)**: the lca schema's scenarios only swap factors or databases and cannot override an emission amount, so the unabated case cannot be an LCA scenario. The lca.yaml goal now quotes it (7.0 vs 2.5 g N2O/kg, 1.91 vs 0.68 kg CO2-eq/kg) and cites D-009. Commit d2f0e57.
