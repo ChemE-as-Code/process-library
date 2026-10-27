@@ -1,0 +1,107 @@
+# Components and templates of the process. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol,
+# normal_boiling_point in K at 101.325 kPa.
+#
+# Ideal-gas data printed by `cheme chemistry thermo <names> --fit 280,1500` (the heat
+# capacities fitted over 280-1500 K so that the reformer outlet at 1143 K and the radiant flue
+# gas at 1273 K are inside the range, and ambient air and natural gas at 288 K too). Sulfur
+# species of the natural gas are not components (DESIGN.md D-004): their mass is negligible
+# in the balance and the ZnO guard bed is a consumable of the LCI.
+schema: cheme/process/v1
+kind: materials
+components:
+  - id: CH4
+    name: Methane
+    formula: CH4
+    cas: 74-82-8
+    molar_mass: 16.042
+    normal_boiling_point: 111.67
+    critical: {Tc: 190.564, Pc: 4599.2, omega: 0.01142, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -74534.0, S_298: 186.3, cp_R: [3.17517, 0.000575545, 1.35658e-05, -1.15192e-08, 2.97188e-12], temperature_range: [280, 1500], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 280-1500 K (max deviation 1.09%)"}
+  - id: C2H6
+    name: Ethane
+    formula: C2H6
+    cas: 74-84-0
+    molar_mass: 30.069
+    normal_boiling_point: 184.57
+    critical: {Tc: 305.322, Pc: 4872.2, omega: 0.0995, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -83780.0, S_298: 229.2, cp_R: [0.936819, 0.0191182, -2.88254e-06, -3.96426e-09, 1.54768e-12], temperature_range: [280, 1500], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 280-1500 K (max deviation 1.05%)"}
+  - id: C3H8
+    name: Propane
+    formula: C3H8
+    cas: 74-98-6
+    molar_mass: 44.096
+    normal_boiling_point: 231.04
+    critical: {Tc: 369.89, Pc: 4251.2, omega: 0.1521, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -104390.0, S_298: 270.3, cp_R: [-0.470403, 0.0363021, -1.82626e-05, 3.24196e-09, 1.93778e-13], temperature_range: [280, 1500], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 280-1500 K (max deviation 1.09%)"}
+  - id: H2
+    name: Hydrogen
+    formula: H2
+    cas: 1333-74-0
+    molar_mass: 2.0159
+    normal_boiling_point: 20.37
+    critical: {Tc: 33.145, Pc: 1296.4, omega: -0.219, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 0.0, S_298: 130.7, cp_R: [3.23192, 0.00148072, -2.8966e-06, 2.52021e-09, -7.05007e-13], temperature_range: [280, 1500], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 280-1500 K (max deviation 0.61%)"}
+  - id: CO
+    name: Carbon monoxide
+    formula: CO
+    cas: 630-08-0
+    molar_mass: 28.0101
+    normal_boiling_point: 81.6
+    critical: {Tc: 132.86, Pc: 3494.0, omega: 0.0497, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -110525.0, S_298: 197.7, cp_R: [3.72554, -0.0018206, 4.43676e-06, -3.05418e-09, 7.03514e-13], temperature_range: [250, 1600], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 250-1600 K (max deviation 0.15%)"}
+  - id: CO2
+    name: Carbon dioxide
+    formula: CO2
+    cas: 124-38-9
+    molar_mass: 44.0095
+    critical: {Tc: 304.128, Pc: 7377.3, omega: 0.22394, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -393474.0, S_298: 213.8, cp_R: [2.33203, 0.00924998, -8.01453e-06, 3.64303e-09, -6.80792e-13], temperature_range: [250, 1600], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo HEOS_FIT 250-1600 K (max deviation 0.19%)"}
+  - id: H2O
+    name: Water
+    formula: H2O
+    cas: 7732-18-5
+    molar_mass: 18.0153
+    normal_boiling_point: 373.12
+    critical: {Tc: 647.096, Pc: 22064.0, omega: 0.3443, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -241822.0, S_298: 188.8, cp_R: [3.99559, -0.000536056, 2.69412e-06, -1.4438e-09, 2.58654e-13], temperature_range: [250, 1600], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 250-1600 K (max deviation 0.27%)"}
+  - id: N2
+    name: Nitrogen
+    formula: N2
+    cas: 7727-37-9
+    molar_mass: 28.013
+    normal_boiling_point: 77.36
+    critical: {Tc: 126.192, Pc: 3395.8, omega: 0.0372, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 0.0, S_298: 191.6, cp_R: [3.74609, -0.00180927, 4.03793e-06, -2.6137e-09, 5.71478e-13], temperature_range: [250, 1600], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo HEOS_FIT 250-1600 K (max deviation 0.18%)"}
+  - id: O2
+    name: Oxygen
+    formula: O2
+    cas: 7782-44-7
+    molar_mass: 31.999
+    normal_boiling_point: 90.19
+    critical: {Tc: 154.581, Pc: 5043.0, omega: 0.0222, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 0.0, S_298: 205.2, cp_R: [3.39209, -0.00018048, 2.8942e-06, -2.60967e-09, 7.04715e-13], temperature_range: [250, 1600], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo HEOS_FIT 250-1600 K (max deviation 0.63%)"}
+  - id: AR
+    name: Argon
+    formula: Ar
+    cas: 7440-37-1
+    molar_mass: 39.948
+    normal_boiling_point: 87.30
+    critical: {Tc: 150.687, Pc: 4863.0, omega: -0.00219, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 0.0, S_298: 154.8, cp_R: [2.50001], temperature_range: [250, 1600], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo HEOS_FIT 250-1600 K (max deviation 0.00%)"}
+templates:
+  # Process gas: natural gas, reformed gas, shifted gas, hydrogen, PSA tail gas.
+  - {id: process_gas, title: Natural gas / synthesis gas / hydrogen, components: [CH4, C2H6, C3H8, H2, CO, CO2, H2O, N2]}
+  # Furnace side: fuel (tail gas + trim natural gas), air, flue gas.
+  - {id: furnace_gas, title: Fuel / combustion air / flue gas, components: [CH4, C2H6, C3H8, H2, CO, CO2, H2O, N2, O2, AR]}
+  # Water and steam (boiler feed water, process condensate, steam, blowdown).
+  - {id: water, title: Water / steam, components: [H2O]}
+# property_method is a placeholder until `cheme process props --fill` records the method: its
+# benchmarked property package, package versions and application range. Packages:
+# air-pr-chemsep (N2/O2/Ar, 77-315 K, vapour 100-3200 kPa(a), liquid and two-phase 100-600
+# kPa(a)) and syngas-pr-vapor (H2/N2/Ar/CH4/CO/CO2 mixtures and pure NH3, vapour only, in
+# benchmarked temperature-pressure boxes). `cheme process props --coverage` shows which applies
+# to each stream; `package: <id>` here chooses one.
+property_method:
+  adapter: thermo
+  status: placeholder

@@ -1,0 +1,51 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Hydrogen by natural-gas steam methane reforming, issue ChemE-as-Code/process-library#117.
+# Independent concept design: no owner, licensor or vendor data. Values marked ASSUMED are
+# engineering choices of this concept study; every decision is in DESIGN.md.
+capacity:
+  basis: Hydrogen product gas (99.9 mol% H2) at the battery limit, net of the recycle to the hydrogenator
+  product_Nm3_per_h: 100000           # ASSUMED (D-002): a large single-train merchant/refinery size, chosen, not a client figure
+  product_kmol_per_h: 4461.5          # = 100 000 / 22.414 Nm3/kmol (ideal gas, 273.15 K, 101.325 kPa)
+  product_kg_per_h: 9109.9            # from the composition (flowsheet stream S17)
+  operating_hours_per_year: 8400      # ASSUMED
+  turndown_percent: 50                # ASSUMED, not checked
+feeds:
+  - name: Natural gas (feedstock and trim fuel, one pipeline supply)
+    source_of_values: ASSUMED (D-004); a generic lean pipeline gas, not a specific grid or field
+    composition_mol_percent: {CH4: 93.0, C2H6: 3.5, C3H8: 0.7, CO2: 1.3, N2: 1.5}   # ASSUMED (D-004), dry
+    sulfur: "odorant and natural sulfur species at ppm level: not specified, not modelled in the balance (open input, D-004)"
+    conditions: {pressure_kPa_a: 4000, temperature_K: 288.15}   # ASSUMED battery limit, no feed compressor (D-004)
+  - name: Demineralised water (boiler feed make-up)
+    conditions: {pressure_kPa_a: 300, temperature_K: 298.15}   # ASSUMED (D-010); its treatment is outside the boundary
+  - name: Combustion air
+    composition_mol_percent: {N2: 78.12, O2: 20.95, Ar: 0.93}   # dry air, ASSUMED (D-009)
+    conditions: {pressure_kPa_a: 101.325, temperature_K: 288.15}
+products:
+  - name: Hydrogen
+    purity: "H2 >= 99.9 mol%, remainder N2 (ASSUMED, D-002, D-008); CO + CO2 at ppm level from the PSA, not modelled"
+    delivery: {pressure_kPa_a: 2850, temperature_K: 313.15, battery_limit: "hydrogen header (outside the boundary); no product compression"}
+  - name: Export steam
+    conditions: {pressure_kPa_a: 4300, temperature_K: 673.15}   # ASSUMED (D-010)
+    use: "site steam header (outside the boundary); its disposition decides the LCA treatment (D-013)"
+  - name: Flue gas
+    use: "to atmosphere through the stack: all CO2 of feedstock and fuel (D-009, D-013)"
+  - name: Boiler blowdown
+    use: "to wastewater treatment (outside the boundary)"
+utilities:
+  - {name: Electric power, use: "fans, boiler feed water pump, recycle hydrogen compressor", note: "ASSUMED electric drives (D-012); steam turbine drives are the usual alternative for the fans and pump"}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: "ASSUMED (D-010); trim cooler E-202 only"}
+  - {name: Steam, note: "self-generated at 4500 kPa(a) drum pressure, superheated to 673 K at 4300 kPa(a); process steam and export (D-010)"}
+site:
+  location: ASSUMED generic site, not chosen
+  design_ambient_K: 288.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325   # ASSUMED
+assumptions:
+  - "ASSUMED steam-to-carbon ratio 3.0 (kmol H2O per kmol hydrocarbon carbon) (D-007)."
+  - "ASSUMED reformer: inlet 893 K / 3500 kPa(a), outlet 1143 K / 3200 kPa(a), ideal-gas equilibrium of SMR and WGS with K 10 K colder than the outlet; ethane and propane reformed to equilibrium (complete) (D-003, D-007)."
+  - "ASSUMED no pre-reformer (lean gas, D-007) and no low-temperature shift (PSA purification, D-001)."
+  - "ASSUMED adiabatic HT shift, inlet 623 K, ideal-gas WGS equilibrium with K 10 K hotter than the outlet (D-007)."
+  - "ASSUMED PSA: H2 recovery 0.88, product 99.9 mol% H2 (remainder N2), tail gas 130 kPa(a); a specified split, not a cycle model (D-008)."
+  - "ASSUMED furnace: PSA tail gas plus trim natural gas, 10 % excess air, no air preheat, bridgewall 1273 K, stack 423 K, casing losses not counted (D-009)."
+  - "ASSUMED recycle of 0.03 kmol product hydrogen per kmol natural gas feedstock to the hydrogenator (D-005)."
+  - "ASSUMED machine efficiencies: compressor 0.75, fans and pump 0.70 (D-012)."
+  - "All flows, temperatures and duties are concept estimates from an ideal-gas enthalpy model plus IAPWS water/steam (D-006); accuracy not stated."
