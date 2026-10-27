@@ -6,6 +6,8 @@
 # flowsheet (process/flowsheet.yaml, design case). No background is linked yet: every feed,
 # utility and treatment is `missing:` with the background activity it should connect to later
 # (a gap, never 0). No value from a licensed database.
+# lca/dataset.yaml is written by --write but not committed (.gitignore, DESIGN.md D-013): the
+# library's Atlas build needs every exchange mapped in lci/mappings.yaml, and these are not yet.
 schema: cheme/lca/v1
 kind: lca
 goal: >-
@@ -31,20 +33,20 @@ flows:
     missing: "background to link: liquid anhydrous ammonia at the ammonia plant gate, from natural-gas steam reforming (the integrated ammonia plant; coordinate with library issue #86 and its LCI dataset). Not linked yet"
     source: "S1, liquid ammonia from the ammonia plant (D-004)"
   - key: feed:CO2
-    missing: "background to link: CO2 from the ammonia plant's CO2 removal (fossil process CO2), with the separation and delivery burden the ammonia plant dataset allocates to it; no capture or avoided-emission credit (D-011). Not linked yet"
-    source: "S3, CO2 at 160 kPa(a) from the ammonia plant (D-004)"
+    missing: "background to link: CO2 from the ammonia plant's CO2 removal (fossil process CO2), with the separation and delivery burden the ammonia plant dataset allocates to it; no capture or avoided-emission credit (D-011). The quantity is the whole CO2 feed gas (98.5 mol% CO2, 0.5 % H2O, 1.0 % inerts; 0.738 kg/kg urea), 0.86 % more mass than the 0.7318 kg/kg of contained CO2: link a background per kg of feed gas, or scale it to the contained CO2. Not linked yet"
+    source: "S3, CO2 feed gas (98.5 mol%) at 160 kPa(a) from the ammonia plant (D-004)"
   - {key: feed:PAIR, free: true, source: "S4, ambient air added for passivation: a resource taken from nature without burden"}
   - {key: feed:AIR, free: true, source: "S50, ambient prilling air (with its humidity): a resource taken from nature without burden"}
   # ---- utilities (backgrounds open) ----
   - key: feed:POWER
     missing: "background to link: grid electricity, medium voltage, market mix of the site's country (site not chosen, D-002). Not linked yet"
-    source: "Q1-Q4: CO2 compressor, HP ammonia and carbamate pumps, prilling fan (D-010)"
+    source: "Q1-Q4: CO2 compressor, HP ammonia and carbamate pumps, prilling fan (D-010). KNOWN UNDERESTIMATE: 96 kWh/t against 110 kWh/t in BREF LVIC-AAF Table 8.6 (about 13 % low); vacuum, condensate, scrubber and cooling-water pumps are not estimated yet (O-4)"
   - key: feed:MPS
     missing: "background to link: MP steam 24 bar (saturated) from the site steam system: a natural-gas-fired utility boiler or the ammonia plant's steam export, per kWh of heat. Not linked yet"
     source: "Q5-Q7: HP stripper, 2nd evaporator, hydrolyser; 0.8 t/t total from BREF LVIC-AAF Table 8.5 (D-010)"
   - key: product:CW
     missing: "background to link: heat rejected to an evaporative cooling water system (circulation pumping, tower fans, make-up water and treatment chemicals), per kWh rejected. Not linked yet"
-    source: "Q11-Q13: K-101 intercoolers, LP carbamate condenser, evaporator condensers (D-010)"
+    source: "Q11-Q13: K-101 intercoolers, LP carbamate condenser, evaporator condensers (D-010). KNOWN UNDERESTIMATE: 45 m3/t at 10 K against 60 m3/t in BREF LVIC-AAF Table 8.4 (about 25 % low); product cooling, HP scrubber tempered water, vacuum condensers and lube oil are not estimated yet. Not in any exchange either: the heat of R-101/E-102 beyond the 35.2 MW LP steam raised (about 10-24 MW, D-010) and the C-401 heating from C-402 (warnings boundary-utility-unassigned R101, C401); it may become an LP steam export or more cooling duty (O-4)"
   # ---- outputs ----
   - key: product:WATER
     free: true     # recyclable under the cut-off system model: leaves burden-free, no credit
@@ -60,7 +62,7 @@ flows:
   - {key: emission:N2, free: true, source: "atmospheric N2 (passivation and prilling air) returned"}
   - {key: emission:O2, free: true, source: "atmospheric O2 (passivation and prilling air) returned"}
 emission_exclusions:
-  - {id: fugitive-nh3, method: equipment-leaks, reason: "Not estimated at concept stage: no P&ID take-off for a leak count. BREF LVIC-AAF Table 8.11 reports diffuse NH3 of about 10-12 t/a for Dutch urea plants, of the order of 0.02 g/kg urea at this capacity: small next to the 0.77 g/kg of the vent and exhaust, to be estimated at basic engineering", source: "D-009"}
+  - {id: fugitive-nh3, method: equipment-leaks, reason: "Not estimated at concept stage: no P&ID take-off for a leak count. BREF LVIC-AAF Table 8.11 reports diffuse NH3 of about 10-12 t/a for Dutch urea plants, of the order of 0.02 g/kg urea (about 2e-5 kg/kg) at this capacity: small next to the 0.27 g/kg (2.7e-4 kg/kg) NH3 of the vent and exhaust, and 0.002 % of the reference flow by mass, below the 1 % cut-off; to be estimated at basic engineering", source: "D-009"}
   - {id: storage, method: storage-tank, reason: "No tanks inside the boundary: ammonia storage and urea storage/handling are outside it (D-001)", source: "D-001"}
   - {id: wastewater, method: effluent, exchange: product:WATER, reason: "No untreated wastewater leaves: the process condensate is desorbed and hydrolysed to 1 ppm(wt) NH3 and urea (BAT for new plants, BREF Table 8.20) and re-used as boiler feed water; rinsing and cleaning water is not in the concept balance", source: "D-006"}
 operation:

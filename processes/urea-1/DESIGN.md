@@ -88,6 +88,12 @@ not assumed free or pressure-ready: it is compressed in the plant (K-101) and it
 burden stays an open background.
 Assumptions: no H2 combustion step for H2 in the CO2; no water knock-out of the CO2 modelled
 (lumped in the 0.5 % water); oil and water in the ammonia not modelled.
+Hazard (added 2026-10-27 after review R-03): CO2 from an ammonia plant's CO2 removal normally
+carries some H2 (and CH4), which the model lumps into the N2. With passivation air dosed in to
+0.6 mol% O2, the inerts that collect in the HP scrubber and LP absorber vents can form
+flammable H2/O2 mixtures, a known cause of urea-plant explosions. The concept flowsheet does
+not change, but basic engineering and the HAZOP must settle the H2 content of the CO2, whether
+H2 is removed (catalytic combustion in the CO2) and the vent-gas safeguards (open input O-8).
 
 ## D-005 Reaction and reactor model: sourced conditions, conversion model (2026-10-27)
 Decision: `process/reactions.yaml` holds UREA_SYN (2 NH3 + CO2 → urea + H2O, the sum of
@@ -145,8 +151,11 @@ Decision: E-301 to 95 wt% at 33 kPa(a)/403 K; E-302 to melt at 3 kPa(a)/413 K, w
 biuret formation lumped in E-302 (6.47 kmol/h). The melt carries 0.4 % water and the NH3 the
 prilling exhaust releases. The prilling air follows from a heat balance: the melt cools from
 413 K, solidifies (fusion about 14 kJ/mol, ASSUMED) and leaves at 343 K. The air (0.015 kg/kg
-humidity) warms 303 → 343 K, giving 8.0 MW, 706.5 t/h air, 554 kNm3/h (same order as the
-300–350 kNm3/h prilling exhaust in BREF Table 8.10). Half of the heat the air took up turns
+humidity) warms 303 → 343 K, giving 8.0 MW, 706.5 t/h air, 554 kNm3/h, about 6650 Nm3/t
+urea. That is 1.6-1.8 times the 300–350 kNm3/h prilling exhaust in BREF Table 8.10. The plant
+capacity behind the BREF figure has not been checked, so the two cannot be compared per
+tonne yet. Per tonne, the exhaust emissions scale with this air flow (O-5; corrected
+2026-10-27 after review R-05, which found that "same order" overstated the agreement). Half of the heat the air took up turns
 into evaporation in the wet scrubber (ASSUMED), so the scrubber takes 6.07 t/h treated water.
 The liquor (45 wt% urea) returns to E-301.
 Assumptions: fusion enthalpy and heat capacities are approximate (ASSUMED); the scrubber
@@ -185,9 +194,16 @@ Decision: electric CO2 compressor. MP steam 2400 kPa(a) at the BREF Table 8.5 to
 (34.0 MW): E-302 2.6 MW (evaporation × 2300 kJ/kg), R-401 1.0 MW net (ASSUMED), and the HP
 stripper the rest (30.4 MW). LP steam 450 kPa(a) is raised in E-102 and used in C-201
 (12.1 MW), E-301 (19.0 MW) and C-402 (4.2 MW); net LP import/export zero (ASSUMED). These are
-energy streams from E-102 to the consumers: E-102's condensation heat beyond the 35.2 MW stays
-in the reactor to drive the dehydration (autothermal R-101; `cheme.boundary-utility-unassigned`
-for R101 is this). C-401 is heated by C-402's overhead (the same warning for C401). Hand
+energy streams from E-102 to the consumers. E-102 condensation heat not assigned (corrected
+2026-10-27 after review R-01): `scripts/urea_balance.py` already subtracts the dehydration
+heat (28 MJ/kmol × U) from E-102's potential, and that still leaves 59.4 MW, 24.2 MW more than
+the 35.2 MW of LP steam raised. Part of the surplus heats the reactor feeds, which the script
+does not count: the NH3 from 293 K to about 450 K (about 10 MW) and the recycle carbamate
+(about 4 MW), both rough estimates from the review (ASSUMED). That leaves about 10-24 MW
+(0.12-0.29 kWh/kg urea) that is neither exported as LP steam nor rejected to cooling water,
+and no exchange of the LCI carries it (`cheme.boundary-utility-unassigned` for R101). This is
+an open energy item (O-4): it may become an LP steam export or more cooling duty. C-401 is
+heated by C-402's overhead (the same warning for C401). Hand
 estimates: carbamate decomposition/formation 120 MJ/kmol CO2 (ASSUMED, below the about
 160 MJ/kmol of solid carbamate from formation enthalpies), water 2300 kJ/kg. Power: K-101
 6.86 MW (4 intercooled stages, η 0.78), P-101 0.42 MW, P-102 0.21 MW, prilling fan 0.52 MW
@@ -227,16 +243,39 @@ duplex stainless steel and left as an open input.
 Reason: carbamate corrosion governs the material and the passivation air (skill
 `tech-petchem-ammonia-and-urea`); the selection is a licensor/materials-engineering decision.
 
+## D-013 LCI dataset kept out of the Atlas build until its links are mapped (2026-10-27)
+Decision: `lca/dataset.yaml` is still written by `cheme assess lca --write`, but it is not
+committed (folder `.gitignore`). `lca/inventory.csv`, `gaps.csv` and `results.*` stay
+committed as the preliminary LCI.
+Reason: the library CI (`scripts/build_lci.py --strict` and the tests that build the whole
+library) reads every committed `processes/*/lca/dataset.yaml` and refuses an exchange that has
+no curated link in `lci/mappings.yaml`. This dataset has five: feed:NH3 (no ammonia entry),
+feed:CO2 (no `carbon-dioxide` entry), feed:MPS (the registry's `steam` is counted in kg, the
+exchange in kWh of heat), emission:BIURET (a free 0 kg emission, not a curated pass-through)
+and emission:UREA (no biosphere3 identity). Each one is a library mapping decision in
+`lci/mappings.yaml`, outside this folder and outside the scope of this case (D-011: backgrounds
+are linked later by the consolidated library work). Making up activity links here instead
+would hide the gaps the LCI declares.
+To undo: add the mappings in a library PR (ammonia and CO2 feed gas with O-1 and O-6, MP steam
+per kWh or the steam in kg, the urea dust flow, biuret dropped or curated), remove the
+`.gitignore` line and commit the dataset.
+
 ## Open inputs
-- O-1 Ammonia plant interface (issue #86): NH3 and CO2 conditions, CO2 impurities (H2), and
+- O-1 Ammonia plant interface (issue #86): NH3 and CO2 conditions, CO2 impurities (H2, see
+  O-8), and
   the LCI datasets the urea feeds link to.
 - O-2 Site and country: grid, steam and cooling-water backgrounds.
 - O-3 Numerical audit of Ullmann (ULL) and CIT for equilibrium correlations, typical
   stripper efficiency and condensate amounts; replace the ASSUMED conversion, retention
   fractions and H2O/CO2 with sourced values.
 - O-4 A complete energy basis (minor drives, coolers, vacuum system) against the BREF
-  benchmarks; the stripper steam split.
-- O-5 Prilling scrubber evaporation and the plant water balance; product cooling.
+  benchmarks; the stripper steam split; the 10-24 MW of R-101/E-102 heat not assigned (feed
+  preheat terms in the script, then LP steam export or cooling water, D-010) and C-401's
+  heating, with their effect on the LCI.
+- O-5 Prilling scrubber evaporation and the plant water balance; product cooling. The
+  exhaust S54 at 318 K (25 K below 343 K, about 5 MW of evaporation) does not match the
+  assumed half of 8.0 MW (4 MW, about 20 K): settle both together (review R-05). Also, the
+  air flow per tonne against an open source of known capacity.
 - O-6 Registry entries (shared files, consolidated PR): `urea` (with a grade for prilled
   fertiliser urea, 46 % N), `ammonia` (liquid anhydrous); optionally `biuret`. CPC class of
   the dataset not given (unverified).
@@ -244,3 +283,6 @@ Reason: carbamate corrosion governs the material and the passivation air (skill
   `method` field is a typing Union that `step_method` cannot iterate); the pumps use
   `GeneratingFlow`. `cheme process propagate` writes compositions to 6 digits, so S11 sums
   to 0.999999 and the PFD shows one `pydexpi_composition_fractions` warning.
+- O-8 H2 in the CO2 feed and the vent-gas hazard (D-004): the H2 (and CH4) content of the CO2,
+  whether H2 is removed by catalytic combustion, and the safeguards against flammable H2/O2
+  mixtures in the HP scrubber and LP absorber vents. For basic engineering and the HAZOP.
