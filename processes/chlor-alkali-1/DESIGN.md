@@ -180,8 +180,11 @@ use the contained products, never product-stream mass. Rejected: `none` (not exp
 `mass` (counts solvent water); economic (no sourced prices); substitution (no open
 substitutes). A later study may choose another basis (the electrochemical unit, economic) and
 must not credit H2 a second time upstream (issue #121). CO2 from soda-ash neutralisation is an
-elementary flow (air, fossil origin) characterised directly; NaCl and Na2SO4 to water stay
-declared `missing:` (no open characterisation packaged). Every background is declared `missing:` with the
+elementary flow (air, fossil origin) characterised directly; NaCl and Na2SO4 are elementary
+flows to fresh surface water (`elementary: {compartment: water, subcompartment: fresh-surface}`;
+before 2026-10-27 `missing:`, which left them labelled as air emissions in the dataset). No open
+characterisation is packaged for them, so they stay uncharacterised in the results; the library
+build links them as dissolved solids by mass (lci/mappings.yaml biosphere). Every background is declared `missing:` with the
 activity it should link to (no values from licensed databases, no 0). Brine purge and resin
 effluent are discharged after dechlorination and neutralisation: their NaCl and Na2SO4 are
 emissions to fresh water; CO2 from soda-ash neutralisation is mineral (counted as fossil).

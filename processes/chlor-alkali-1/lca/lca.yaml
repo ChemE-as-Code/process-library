@@ -69,11 +69,13 @@ flows:
     missing: "not linked yet: landfill of non-hazardous inorganic sludge"
     source: "S10, D-005"
   - {key: product:WW, emission: true, source: "S16 regeneration effluent and S34 brine purge, dechlorinated and neutral (R402), discharged to surface water; their NaCl and Na2SO4 are emissions to water (D-013)"}
-  # compartments: the effluent goes to fresh surface water, the vent to air (elementary flows
-  # are named when the background is linked; `missing` takes no elementary mapping)
+  # compartments: the effluent goes to fresh surface water, the vent to air
   - {key: emission:H2O, free: true, source: "water of the discharged effluent, to fresh surface water"}
-  - {key: emission:NaCl, missing: "not linked yet: elementary flows sodium and chloride to fresh surface water (no open characterisation packaged)", source: "S16, S34"}
-  - {key: emission:Na2SO4, missing: "not linked yet: elementary flows sodium and sulfate to fresh surface water", source: "S34"}
+  # NaCl and Na2SO4 are dissolved in the effluent: emissions to fresh surface water, not to air
+  # (D-013). No open characterisation is packaged, so they stay gaps in the results; the library
+  # build links them as dissolved solids by mass (lci/mappings.yaml biosphere).
+  - {key: emission:NaCl, elementary: {compartment: water, subcompartment: fresh-surface}, source: "S16, S34: sodium chloride dissolved in the discharged effluent, to fresh surface water"}
+  - {key: emission:Na2SO4, elementary: {compartment: water, subcompartment: fresh-surface}, source: "S34: sodium sulfate dissolved in the discharged brine purge, to fresh surface water"}
   - {key: product:VENT, emission: true, source: "S18: CO2 released when the excess soda ash in the purified brine is neutralised with HCl (R202, D-005)"}
   - {key: emission:CO2, elementary: {compartment: air, origin: fossil}, source: "S18, D-005: carbon dioxide to air; carbon of mineral (carbonate) origin from soda ash, counted as fossil (not biogenic)"}
   # components of the emitted products that are absent (0 kg) in this balance

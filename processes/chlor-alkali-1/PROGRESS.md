@@ -4,6 +4,7 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-10-27 | lca/lca.yaml, lca/ outputs, DESIGN.md D-013 | LCI exchange fix for the library build: emission:NaCl and emission:Na2SO4 are `elementary` to fresh surface water instead of `missing:` (the dataset labelled them as air emissions); amounts unchanged | The strict library build could not link them; lci/mappings.yaml now maps both to dissolved solids in surface water |
 | 2026-10-27 | lca/lca.yaml, lca/ outputs, DESIGN.md D-013 | CI fix: allocation `none` -> `shares` by mass of the contained products, with `allocation.deviation` (6086d5a) | PR #194 CI: the library build cannot export `none` for a multi-output dataset. The strict build now reaches the exchange mappings and still fails on entries only `lci/mappings.yaml` can supply (DESIGN.md section 7) |
 | 2026-10-27 | Response 2026-10-27-pfd-lci-review#1 | Closed: shares on contained Cl2, NaOH 100 % and dry H2 (46.5/52.1/1.4 %), stated in `allocation.source`, the lca.yaml comment and D-013; core's stream-mass basis reported in DESIGN.md section 7 (6086d5a) | review |
 | 2026-10-27 | Response 2026-10-27-pfd-lci-review#2 | Closed: lca/README.md points to DESIGN.md section 6; results.md now has a value (the mineral CO2 only), which section 6 explains (6086d5a) | review |
