@@ -37,6 +37,8 @@ from jsonschema import Draft202012Validator
 SCHEMA = "cheme-as-code/benchmarks/v1"
 #: A public process needs at least this many KPIs, each sourced or with a no_open_reference.
 MIN_KPIS = 2
+#: the format of benchmarks.json (``report``)
+REPORT_SCHEMA = "cheme-as-code/benchmark-report/v1"
 #: Inventory units of core's datasets as Pint reads them; ``ea`` and ``tkm`` have no Pint
 #: spelling, so a KPI over them must be stated in the expression's own unit.
 PINT_SPELLING = {"kg": "kg", "kWh": "kWh", "m": "m", "m2": "m**2", "m3": "m**3"}
@@ -331,6 +333,30 @@ def kpi_count(registry: Registry, pid: str, dataset_ids: list[str]) -> int:
 def unused_bindings(registry: Registry, datasets: set[tuple[str, str]]) -> list[str]:
     """``<process>/<dataset>`` of the bindings that name no dataset of the library."""
     return sorted(f"{pid}/{did}" for pid, did in set(registry.bindings) - datasets)
+
+
+def report(rows: list[dict], mode: str, library: dict) -> dict:
+    """``benchmarks.json``, the stored report of one build's benchmark comparison (#85; both
+    builders write it): every KPI result as a row with its ``process`` and ``dataset`` (sorted),
+    and ``summary``, the counts by status in total and per process. The rows are what the build
+    publishes: a public build's report holds the public processes only."""
+    rows = sorted(rows, key=lambda r: (r["process"], r["dataset"], r["kpi"]))
+
+    def counts(items: list[dict]) -> dict[str, int]:
+        return {status: sum(1 for r in items if r["status"] == status) for status in sorted({r["status"] for r in items})}
+
+    return {
+        "schema": REPORT_SCHEMA,
+        "mode": mode,
+        "library": library,
+        "document": "docs/benchmarks.md",
+        "summary": {
+            "kpis": len(rows),
+            "by_status": counts(rows),
+            "processes": {pid: counts([r for r in rows if r["process"] == pid]) for pid in sorted({r["process"] for r in rows})},
+        },
+        "results": rows,
+    }
 
 
 def dataset_files(folder: Path) -> list[Path]:

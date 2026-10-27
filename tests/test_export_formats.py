@@ -75,7 +75,7 @@ def test_index_lists_every_format_with_checksum_and_version(fixture_build: Path)
     index = json.loads((fixture_build / "index.json").read_text())
     names = [f["name"] for f in index["files"]]
     db = "cheme-as-code-atlas-0.1.0"
-    assert names == [f"{db}.xlsx", f"{db}-olca-jsonld.zip", f"{db}-multifunctional.json", "datapackage.json"]
+    assert names == [f"{db}.xlsx", f"{db}-olca-jsonld.zip", f"{db}-multifunctional.json", "datapackage.json", "benchmarks.json"]
     for entry in index["files"]:
         assert entry["format"] and entry["format_version"] and len(entry["sha256"]) == 64
         assert entry["bytes"] == (fixture_build / entry["name"]).stat().st_size

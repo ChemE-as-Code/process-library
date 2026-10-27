@@ -28,6 +28,8 @@ Output (``--out``; ``<out>/lci/`` is replaced):
   factor status, allocation, functional unit and activities; and ``activities``, per exported
   activity what its Atlas page shows (exchanges per reference unit with provenance, pedigree and
   link targets, header metadata, allocation, closure, citation, downloads; ``lci_activities.py``).
+- ``lci/benchmarks.json``: every KPI result of the build with its allocated value and the counts
+  by status (``benchmarks.report``, docs/benchmarks.md), the stored report of the comparison
 - ``lci/index.json``: the summary the Atlas reads (files with size, sha256, format and format
   version, activities per process, caveats).
 - with ``--previous <dir>`` (an earlier build): ``lci/changes.json`` and ``lci/CHANGES.md``, the
@@ -2403,6 +2405,9 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
     )
     datapackage["pedigree_indicators"] = list(lci_activities.PEDIGREE_INDICATORS)
     _write_json(lci / "datapackage.json", datapackage)
+    # the stored report of the benchmark comparison (docs/benchmarks.md), allocated values included
+    rows = [{"process": e["id"], "dataset": d["id"], **k} for e in process_entries for d in e["datasets"] for k in d["benchmarks"]]
+    _write_json(lci / "benchmarks.json", bm.report(rows, "public" if public else "preview", {"commit": commit, "dirty": dirty}))
 
     reports = []
     if previous is not None:
@@ -2417,6 +2422,7 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
 
     file_formats = {f["name"]: {k: v for k, v in f.items() if k in ("format", "format_version")} for f in (workbook_format, *formats)}
     file_formats["datapackage.json"] = {"format": "Atlas LCI datapackage", "format_version": DATAPACKAGE_SCHEMA}
+    file_formats["benchmarks.json"] = {"format": "Atlas benchmark report", "format_version": bm.REPORT_SCHEMA}
     file_formats.update({name: {"format": "Atlas LCI change report", "format_version": CHANGES_SCHEMA} for name in reports})
     caveats = [*CAVEATS, *variant_caveats]
     if background_check["status"] != "verified":
@@ -2432,7 +2438,7 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
         "library_commit": commit,
         "files": [
             {"name": name, "path": f"lci/{name}", "bytes": (lci / name).stat().st_size, "sha256": _sha256(lci / name), **file_formats.get(name, {})}
-            for name in (xlsx_name, *(f["name"] for f in formats), "datapackage.json", *reports)
+            for name in (xlsx_name, *(f["name"] for f in formats), "datapackage.json", "benchmarks.json", *reports)
         ],
         "system_model": model,
         "methodology_version": METHODOLOGY_VERSION,

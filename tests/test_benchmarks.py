@@ -303,3 +303,52 @@ def test_catalog_carries_the_same_kpis(tmp_path: Path) -> None:
     report = build_catalog.build(mis, tmp_path / "cat2", None, "fixture")
     assert any("is outside 400 to 600 kWh/t" in w for w in report.warnings)
     assert build_catalog.main(["--library", str(mis), "--out", str(tmp_path / "cat3"), "--strict"]) == 1
+
+
+@needs_core
+def test_both_builds_store_the_benchmark_report(tmp_path: Path) -> None:
+    """benchmarks.json (#85): every result with its process and dataset, the counts by status;
+    the LCI build's adds the allocated values and is listed in index.json."""
+    library = _library(tmp_path)
+    assert build_catalog.build(library, tmp_path / "cat", None, "fixture").errors == []
+    assert build_lci.build(library, tmp_path / "lci", "0.1.0", commit="fixture").errors == []
+    catalog = _json(tmp_path / "cat" / "benchmarks.json")
+    lci = _json(tmp_path / "lci" / "lci" / "benchmarks.json")
+    detail = _json(tmp_path / "cat" / "processes" / "asu-1.json")["benchmarks"]
+
+    for report in (catalog, lci):
+        assert report["schema"] == bm.REPORT_SCHEMA and report["mode"] == "preview"
+        assert report["library"]["commit"] == "fixture"
+        assert [(r["process"], r["dataset"], r["kpi"]) for r in report["results"]] == [("asu-1", "asu-1-500-t-d-gox", k) for k in ("cooling-duty-gox", "o2-recovery", "specific-power-gox")]
+        assert report["summary"] == {"kpis": 3, "by_status": {"explained": 1, "inside": 1, "no-reference": 1}, "processes": {"asu-1": {"explained": 1, "inside": 1, "no-reference": 1}}}
+    assert [{k: v for k, v in r.items() if k != "process"} for r in catalog["results"]] == sorted(detail, key=lambda r: r["kpi"])
+    power = next(r for r in lci["results"] if r["kpi"] == "specific-power-gox")
+    assert "allocated" in power and power["allocated"] < power["value"]  # GOX carries part of the burden (exergy)
+    assert "allocated" not in next(r for r in catalog["results"] if r["kpi"] == "specific-power-gox")
+    index = _json(tmp_path / "lci" / "lci" / "index.json")
+    entry = next(f for f in index["files"] if f["name"] == "benchmarks.json")
+    assert entry["format_version"] == bm.REPORT_SCHEMA
+
+
+def test_a_public_build_reports_public_processes_only(tmp_path: Path) -> None:
+    library = _library(tmp_path)
+    manifest = library / "processes" / "asu-1" / "process.yaml"
+    text = manifest.read_text(encoding="utf-8")
+    assert "  status: public\n" in text
+    manifest.write_text(text.replace("  status: public\n", "  status: internal\n", 1), encoding="utf-8")
+    assert build_catalog.build(library, tmp_path / "cat", None, "fixture", public=True).errors == []
+    assert build_lci.build(library, tmp_path / "lci", "0.1.0", commit="fixture", public=True).errors == []
+    for path in (tmp_path / "cat" / "benchmarks.json", tmp_path / "lci" / "lci" / "benchmarks.json"):
+        report = _json(path)
+        assert report["mode"] == "public" and report["results"] == [] and report["summary"] == {"kpis": 0, "by_status": {}, "processes": {}}
+
+
+def test_report_sorts_and_counts() -> None:
+    rows = [
+        {"process": "b", "dataset": "d", "kpi": "x", "status": "outside"},
+        {"process": "a", "dataset": "d", "kpi": "y", "status": "inside"},
+        {"process": "a", "dataset": "d", "kpi": "x", "status": "inside"},
+    ]
+    report = bm.report(rows, "preview", {"commit": None, "dirty": None})
+    assert [(r["process"], r["kpi"]) for r in report["results"]] == [("a", "x"), ("a", "y"), ("b", "x")]
+    assert report["summary"] == {"kpis": 3, "by_status": {"inside": 2, "outside": 1}, "processes": {"a": {"inside": 2}, "b": {"outside": 1}}}

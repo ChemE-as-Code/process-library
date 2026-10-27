@@ -33,6 +33,9 @@ byte-identical:
   technology, tier, maturity and review, geography, year, energy, feedstocks and emissions per
   functional unit, KPIs, the footprint where the catalog keeps it (with its interval) and the
   computed comparability of the routes (``routes.py``; ChemE-as-Code/website#38)
+- ``benchmarks.json``: every KPI result of the build (the rows of each process's
+  ``benchmarks``, with the process id) and the counts by status, per process and in total: the
+  stored report of the benchmark comparison (docs/benchmarks.md)
 - ``scenarios/<id>/<scenario>.json``: core's per-scenario LCA records (``cheme assess
   lca-scenarios --write``), for Brightway jobs and other consumers
 
@@ -908,6 +911,7 @@ def build(
         "critical_review": rt.CRITICAL_REVIEW,
         "products": rt.build(library, details, chemicals),
     })
+    _write(out / "benchmarks.json", bm.report([{"process": d["id"], **k} for d in details for k in d["benchmarks"]], "public" if public else "preview", library_info))
 
     # every link in the output must resolve
     for d in details:

@@ -112,6 +112,14 @@ in `families`.
 - `build_catalog.py`: per process in `processes/<id>.json`, `benchmarks` (the same results,
   unallocated, each with its `dataset` id); in `catalog.json`, the summary's `benchmarks` counts
   them by status. The Atlas process page shows the position in the range (website#37).
+- Both builders also write **`benchmarks.json`** (`cheme-as-code/benchmark-report/v1`,
+  `benchmarks.report`), the stored report of the build: every result of the library in one list
+  (`results`, each row with its `process` and `dataset`, sorted), the counts by status in total
+  and per process (`summary`), the build `mode` and the library commit. The catalog's
+  (`<out>/benchmarks.json`) is unallocated; the LCI build's (`<out>/lci/benchmarks.json`, listed
+  in `index.json`) adds `allocated`. A public build holds the public processes only. CI keeps the
+  public catalog's report with the catalog artifact, and the release draft keeps the LCI build's
+  (#50), so a comparison a paper reports can be traced to one commit (#85).
 
 Both additions are additive: no existing field changes.
 
