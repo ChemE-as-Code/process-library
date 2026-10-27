@@ -1,0 +1,85 @@
+# Goal and scope of the ammonia-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme assess lca
+# --inventory --write` and `--coverage` (lca/inventory.csv, gaps.csv, ...); never edit those
+# by hand.
+#
+# Preliminary gate-to-gate inventory (DESIGN.md D-020): every foreground exchange from the
+# balanced flowsheet, per kg of NH3 at the gate. Background datasets are deliberately left
+# UNMAPPED (`missing:` names the activity each exchange should be linked to later): no factor,
+# no licensed database value, never 0. The only mapped flows are elementary: the plant's own
+# emissions to air (characterised by CAS) and atmospheric components returned unchanged.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of refrigerated liquid ammonia from a
+  conventional natural-gas plant (1500 t/d, concept stage): the foreground exchanges per kg
+  NH3 from the balanced flowsheet, ready to be linked to background datasets later. No impact
+  result is claimed: every background exchange is an open gap (D-020).
+functional_unit: {product: NH3, amount: 1, unit: kg}
+boundary: gate-to-gate
+system_model: substitution
+year: 2026
+location: NL
+technology: "steam methane reforming with air-blown secondary reformer, HT/LT shift, aMDEA CO2 removal (CO2 vented), methanation, 150 bar Haber-Bosch loop with purge recovery; electric drives, MP steam export"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+case: design
+allocation:
+  method: substitution
+  coproducts: [NH3, STEAM]
+  source: >-
+    D-021: the exported MP steam is a co-product; ISO 14044 prefers system expansion, i.e.
+    crediting the steam the site would otherwise raise. No background is mapped in this
+    preliminary inventory, so the avoided product is declared missing and the steam stays an
+    output exchange with its quantity; no burden is shared out until a background exists.
+  substitution:
+    STEAM: {missing: "not linked yet: MP steam (4600 kPa(a), 673 K) from a natural-gas-fired industrial boiler at the site (NL), the steam the export displaces", source: "D-021"}
+flows:
+  # ---- feeds (background to be linked later)
+  - {key: feed:NG, missing: "not linked yet: natural gas, high pressure, delivered to an industrial consumer in the Netherlands (production, processing, long-distance transport and distribution, incl. methane leakage), per kg (feed and fuel); composition is the ASSUMED benchmark gas (D-004)", source: "flowsheet S1 (S3 process feed + S2 furnace fuel)"}
+  - {key: feed:DMW, missing: "not linked yet: demineralised (deionised) water production from tap or surface water by ion exchange / reverse osmosis, NL", source: "flowsheet S70 (steam system) + S26 (CO2 removal make-up)"}
+  - {key: feed:POWER, missing: "not linked yet: electricity, high voltage, Dutch grid market mix at the consumer (2026), incl. transmission losses", source: "flowsheet Q1, Q11, Q12, Q17, Q20, Q22, Q27, Q31 (all drives electric, D-016)"}
+  - {key: feed:AIR, free: true, source: "ambient air (process air S12, combustion air S61): a resource taken from nature without burden"}
+  # ---- products and utilities
+  - {key: product:CW, missing: "not linked yet: cooling water supply from an evaporative (open recirculating) cooling tower system, NL: pumping and fan power, make-up water, blowdown and treatment chemicals, per kWh of heat rejected", source: "flowsheet Q2, Q16, Q18, Q19, Q21, Q24, Q28"}
+  - {key: product:BD, missing: "not linked yet: treatment of boiler blowdown (low-TDS, phosphate/amine-conditioned water) in the site wastewater treatment plant", source: "flowsheet S69, 2 % of steam raised (D-015)"}
+  # ---- emissions to air (elementary, the plant's own)
+  - {key: product:CO2V, emission: true, source: "regenerator overhead S28: process CO2 with water, vented (no CCS, no urea; D-001)"}
+  - {key: product:STACK, emission: true, source: "reformer furnace flue gas S67 to stack (D-014)"}
+  - {key: emission:CO2, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "process CO2 (vent) and combustion CO2 (stack) from natural gas carbon; includes the atmospheric CO2 of the process and combustion air (about 0.2 % of the total), counted as fossil (ASSUMED, D-020)"}
+  # components of the vent and stack templates whose flows are zero in this design (complete
+  # combustion and complete NH3 wash are ASSUMED, D-014): mapped so that a non-zero value in a
+  # later case is characterised, not dropped
+  - {key: emission:CH4, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "unburnt methane: 0 in this design (complete combustion ASSUMED, D-014); furnace CH4 slip is open input I-07"}
+  - {key: emission:C2H6, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "0 in this design (complete combustion ASSUMED, D-014)"}
+  - {key: emission:C3H8, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "0 in this design (complete combustion ASSUMED, D-014)"}
+  - {key: emission:CO, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "0 in this design (complete combustion ASSUMED, D-014); furnace CO is open input I-07"}
+  - {key: emission:H2, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "0 in this design (complete combustion ASSUMED, D-014)"}
+  - {key: emission:NH3, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "0 in this design (tail-gas NH3 burnt, D-013, D-014); NH3 slip and fugitive NH3 are open input I-07"}
+  - {key: emission:H2O, free: true, source: "water vapour in the flue gas and the CO2 vent: not an inventoried elementary emission in this study (D-020)"}
+  - {key: emission:N2, free: true, source: "atmospheric N2 (air, natural gas N2, NH3 combustion) returned to the atmosphere"}
+  - {key: emission:O2, free: true, source: "excess combustion O2 returned to the atmosphere"}
+  - {key: emission:AR, free: true, source: "atmospheric argon (process and combustion air) returned to the atmosphere"}
+
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED, D-002); 25 a service life ASSUMED"
+
+# Uncertainty: concept-stage estimates; no factors are used, so only the amounts carry it.
+uncertainty:
+  iterations: 1000
+  seed: 1
+  defaults:
+    assumed: {gsd2: 1.35, source: "concept estimate +/-30 % (design basis)"}
+    calculated: {gsd2: 1.1, source: "calculated by cheme from assumed inputs"}
+    given: {gsd2: 1.05, source: "design basis"}
+
+dataset:
+  version: "0.1.0"
+  review: unreviewed
+  classification: {isic: "2012"}   # taxonomy/families.yaml (ammonia); CPC 2.1 code not looked up (open)
+  data_generator: "ChemE-as-Code process library: agent-drafted concept design (issue #86), not reviewed"
+  geography:
+    description: "Hypothetical Rotterdam-area site (issue #86); no site data are used, the location code only names where the background should later be taken from"
+  technology_level: current
+  modelling:
+    principle: attributional
