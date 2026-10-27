@@ -1,0 +1,38 @@
+# Reactions of urea-1. Schema: `cheme schema process-reactions`. DESIGN.md D-005.
+#
+# Urea forms in two liquid-phase equilibrium steps, 2 NH3 + CO2 <=> NH2COONH4 (fast,
+# exothermic) and NH2COONH4 <=> CO(NH2)2 + H2O (slow, endothermic, incomplete) (BREF LVIC-AAF
+# 2007, section 8.2.1). Carbamate is not a component here (materials.yaml), so the reactor is a
+# CONVERSION model of their sum, UREA_SYN, with the CO2 conversion per pass ASSUMED within the
+# range the BREF reports. This is a model basis, not an equilibrium or a kinetic model.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: UREA_SYN
+    equation: 2 NH3 + CO2 <=> CO(NH2)2 + H2O   (sum of carbamate formation and dehydration)
+    stoichiometry: {NH3: -2.0, CO2: -1.0, UREA: 1.0, H2O: 1.0}
+    reversible: true
+    phase: liquid
+    conversion:
+      key: CO2
+      value: 0.58
+      provenance: assumed
+      source: "D-005: within the 50-80 % CO2-basis conversion of BREF LVIC-AAF (2007) section 8.2.1 (printed p. 324), at the N/C 2.8, 180 C, 140 bar of the CO2 stripping example of its Table 8.14 (p. 339); not an equilibrium calculation"
+    sources: ["BREF LVIC-AAF (2007) section 8.2.1, Tables 8.2 and 8.14", "doi:10.1002/14356007.a27_333.pub2"]
+  - id: BIURET
+    equation: 2 CO(NH2)2 => NH2CONHCONH2 + NH3
+    stoichiometry: {UREA: -2.0, BIURET: 1.0, NH3: 1.0}
+    reversible: true
+    phase: liquid
+    sources: ["BREF LVIC-AAF (2007) section 8.2.1: biuret is a side reaction favoured by low NH3 and high temperature (evaporation); fertiliser biuret preferably at most 1.2 %"]
+  - id: HYDROLYSIS
+    equation: CO(NH2)2 + H2O => 2 NH3 + CO2   (urea hydrolysis in the process-condensate hydrolyser)
+    stoichiometry: {UREA: -1.0, H2O: -1.0, NH3: 2.0, CO2: 1.0}
+    reversible: false
+    phase: liquid
+    conversion:
+      key: UREA
+      value: 0.999911
+      provenance: assumed
+      source: "D-006: what leaves 1 ppm(wt) urea in the treated condensate, the BAT level for new plants of BREF LVIC-AAF (2007) Table 8.20 (p. 362)"
+    sources: ["BREF LVIC-AAF (2007) section 8.4.12 and Table 8.20"]

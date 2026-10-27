@@ -1,24 +1,780 @@
 # The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
 # never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
-# Units are explicit: a property without its own unit is in these. Pressure is absolute; a gauge
-# value needs its own unit (kPa(g)). Nm3/h needs normal_conditions.
+#
+# Urea by CO2 stripping with total recycle, 2000 t/d prilled urea (DESIGN.md D-001..D-010).
+# Where the values come from:
+# - feeds, product grade, temperatures and pressures: design choices (design basis), ASSUMED,
+#   with the synthesis conditions from BREF LVIC-AAF (2007) Table 8.14 (140 bar, 180 C, N/C 2.8);
+# - R-101 (conversion of UREA_SYN, process/reactions.yaml) and R-401 (HYDROLYSIS) outlets and
+#   the pass-through outlets of pumps, compressor and mixer: `cheme process propagate --fill`;
+# - separator outlets (stripper, rectifier, absorbers, evaporators, desorbers, prilling) and all
+#   duties: the provenance script scripts/urea_balance.py (specified split fractions and
+#   compositions, hand-estimated heats), given here as ASSUMED: no property package in core is
+#   qualified for the aqueous NH3-CO2-urea-carbamate system (D-008; core #315, #364).
+# Unconverted ammonium carbamate is carried as its NH3 + CO2 equivalent (D-005).
 schema: cheme/process/v1
 kind: flowsheet
-title: ""
+title: Urea by CO2 stripping, total recycle, prilling (2000 t/d)
 units:
   pressure: kPa(a)
   temperature: K
   flow: kg/h
   duty: kW
   enthalpy: kJ/kmol
-  # normal_conditions: {temperature: 273.15, pressure: 101.325, basis: ideal_gas}
-  # enthalpy_reference: {state: ideal_gas, temperature: 298.15}
 cases:
-  - {id: design, description: Design case, default: true}
+  - {id: design, description: "Design case: 2000 t/d prilled urea, electric CO2 compressor (D-002, D-010)", default: true}
 tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
-feeds: []      # external feeds (DEXPI Source): {id, title, ports: [{id: out, direction: out}]}
-products: []   # products (DEXPI Sink): {id, title, ports: [{id: in, direction: in}]}
-blocks: []     # BFD blocks: {id, title, class, ports: [{id, direction, kind}], links}
-steps: []      # PFD steps: {id, block, title, class, ports: [{id, direction, delegates}], links}
-streams: []    # {id, title, kind, from: NODE.port, to: NODE.port, template, state: {design: {...}}}
+
+feeds:
+  - {id: NH3, title: Liquid ammonia from the ammonia plant, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: CO2, title: CO2 from the ammonia plant CO2 removal, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: PAIR, title: Passivation air (ambient), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: AIR, title: Prilling air (ambient), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: k101, direction: out, kind: energy}
+      - {id: p101, direction: out, kind: energy}
+      - {id: p102, direction: out, kind: energy}
+      - {id: t501, direction: out, kind: energy}
+  - id: MPS
+    title: MP steam 2400 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: MP
+      pressure: {value: 2400, provenance: assumed, source: "design basis; 24 bar level of BREF LVIC-AAF Table 8.5 (D-010)"}
+      supply_temperature: {value: 494.9, provenance: assumed, source: "saturation at 2400 kPa(a) (D-010)"}
+      min_approach: {value: 10, provenance: assumed, source: D-010}
+    ports:
+      - {id: e101, direction: out, kind: energy}
+      - {id: e302, direction: out, kind: energy}
+      - {id: r401, direction: out, kind: energy}
+products:
+  - {id: UREA, title: Prilled urea to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: VENT, title: LP absorber vent to atmosphere, category: off_gas, ports: [{id: in, direction: in}]}
+  - {id: EXHAUST, title: Scrubbed prilling tower exhaust to atmosphere, category: off_gas, ports: [{id: in, direction: in}]}
+  - {id: WATER, title: Treated process condensate to battery limit, category: wastewater, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-010"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-010"}
+      min_approach: {value: 5, provenance: assumed, source: D-010}
+    ports:
+      - {id: k101, direction: in, kind: energy}
+      - {id: e201, direction: in, kind: energy}
+      - {id: e303, direction: in, kind: energy}
+
+blocks:
+  - id: SYN
+    title: HP synthesis loop (CO2 stripping, 14 MPa)
+    class: ReactingChemicals
+    ports:
+      - {id: nh3, direction: in}
+      - {id: co2, direction: in}
+      - {id: air, direction: in}
+      - {id: carb, direction: in}
+      - {id: liq, direction: out}
+      - {id: vent, direction: out}
+      - {id: power1, direction: in, kind: energy}
+      - {id: power2, direction: in, kind: energy}
+      - {id: steam, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+      - {id: lps1, direction: out, kind: energy}
+      - {id: lps2, direction: out, kind: energy}
+      - {id: lps3, direction: out, kind: energy}
+  - id: REC
+    title: LP recirculation (0.3 MPa)
+    class: SeparatingByThermalProcess
+    ports:
+      - {id: feed, direction: in}
+      - {id: gas, direction: in}
+      - {id: des, direction: in}
+      - {id: water, direction: in}
+      - {id: liq, direction: out}
+      - {id: vent, direction: out}
+      - {id: carb, direction: out}
+      - {id: heat, direction: in, kind: energy}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+  - id: EVA
+    title: Vacuum evaporation to melt
+    class: Evaporating
+    ports:
+      - {id: feed, direction: in}
+      - {id: liquor, direction: in}
+      - {id: melt, direction: out}
+      - {id: cond, direction: out}
+      - {id: heat, direction: in, kind: energy}
+      - {id: steam, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+  - id: PCT
+    title: Process condensate treatment (desorption, hydrolysis)
+    class: SeparatingByThermalProcess
+    ports:
+      - {id: feed, direction: in}
+      - {id: vap, direction: out}
+      - {id: abs, direction: out}
+      - {id: scrub, direction: out}
+      - {id: bl, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: heat, direction: in, kind: energy}
+  - id: FIN
+    title: Prilling and exhaust scrubbing
+    class: ProcessStep
+    ports:
+      - {id: melt, direction: in}
+      - {id: air, direction: in}
+      - {id: water, direction: in}
+      - {id: prills, direction: out}
+      - {id: exhaust, direction: out}
+      - {id: liquor, direction: out}
+      - {id: power, direction: in, kind: energy}
+
+steps:
+  # ---- SYN --------------------------------------------------------------------------------
+  - id: P101
+    block: SYN
+    title: HP ammonia pump
+    # GeneratingFlow, the parent of Pumping: `cheme process build` 0.8.0 fails on Pumping (its
+    # method field is a Union that core's step_method cannot iterate); core issue to open
+    class: GeneratingFlow
+    links: [{target: equipment, ref: P-101}]
+    ports:
+      - {id: in, direction: in, delegates: nh3}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power2}
+  - id: M101
+    block: SYN
+    title: Passivation air addition
+    class: Mixing
+    ports:
+      - {id: co2, direction: in, delegates: co2}
+      - {id: air, direction: in, delegates: air}
+      - {id: out, direction: out}
+  - id: K101
+    block: SYN
+    title: CO2 compressor (electric drive, intercooled)
+    class: Compressing
+    method: CentrifugalMotion
+    links: [{target: equipment, ref: K-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power1}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  # D-005: conversion model of the urea reactor; carbamate as NH3 + CO2
+  - id: R101
+    block: SYN
+    title: Urea reactor
+    class: ReactingChemicals
+    reactions: [UREA_SYN]
+    reactor: conversion
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+  - id: E101
+    block: SYN
+    title: HP CO2 stripper (falling film, MP steam)
+    class: SeparatingByThermalProcess
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: liq_in, direction: in}
+      - {id: co2, direction: in}
+      - {id: gas, direction: out}
+      - {id: liq, direction: out, delegates: liq}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+  # D-010: E-102 raises the LP steam of the LP rectifier, 1st evaporator and desorbers
+  - id: E102
+    block: SYN
+    title: HP carbamate condenser (raises LP steam)
+    class: RemovingThermalEnergy
+    links: [{target: equipment, ref: E-102}]
+    ports:
+      - {id: gas, direction: in}
+      - {id: nh3, direction: in}
+      - {id: carb, direction: in}
+      - {id: out, direction: out}
+      - {id: vent, direction: out}
+      - {id: lps1, direction: out, kind: energy, delegates: lps1}
+      - {id: lps2, direction: out, kind: energy, delegates: lps2}
+      - {id: lps3, direction: out, kind: energy, delegates: lps3}
+  - id: V103
+    block: SYN
+    title: HP scrubber
+    class: Absorbing
+    links: [{target: equipment, ref: V-103}]
+    ports:
+      - {id: gas, direction: in}
+      - {id: carb, direction: in, delegates: carb}
+      - {id: liq, direction: out}
+      - {id: vent, direction: out, delegates: vent}
+  # ---- REC --------------------------------------------------------------------------------
+  - id: C201
+    block: REC
+    title: LP rectifying column with heater
+    class: SeparatingByThermalProcess
+    links: [{target: equipment, ref: C-201}]
+    ports:
+      - {id: feed, direction: in, delegates: feed}
+      - {id: gas, direction: out}
+      - {id: liq, direction: out, delegates: liq}
+      - {id: heat, direction: in, kind: energy, delegates: heat}
+  - id: E201
+    block: REC
+    title: LP carbamate condenser
+    class: Cooling
+    links: [{target: equipment, ref: E-201}]
+    ports:
+      - {id: gas, direction: in}
+      - {id: des, direction: in, delegates: des}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  - id: C202
+    block: REC
+    title: LP carbamate vessel and absorber
+    class: Absorbing
+    links: [{target: equipment, ref: C-202}]
+    ports:
+      - {id: liq, direction: in}
+      - {id: gas, direction: in, delegates: gas}
+      - {id: water, direction: in, delegates: water}
+      - {id: vent, direction: out, delegates: vent}
+      - {id: liq_out, direction: out}
+  - id: P102
+    block: REC
+    title: HP carbamate pump
+    class: GeneratingFlow     # not Pumping: see P101
+    links: [{target: equipment, ref: P-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: carb}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # ---- EVA --------------------------------------------------------------------------------
+  - id: E301
+    block: EVA
+    title: 1st evaporator (LP steam)
+    class: Evaporating
+    links: [{target: equipment, ref: E-301}]
+    ports:
+      - {id: feed, direction: in, delegates: feed}
+      - {id: liquor, direction: in, delegates: liquor}
+      - {id: liq, direction: out}
+      - {id: vap, direction: out}
+      - {id: heat, direction: in, kind: energy, delegates: heat}
+  # D-007: biuret formation lumped into the 2nd evaporator
+  - id: E302
+    block: EVA
+    title: 2nd evaporator (MP steam)
+    class: Evaporating
+    reactions: [BIURET]
+    links: [{target: equipment, ref: E-302}]
+    ports:
+      - {id: feed, direction: in}
+      - {id: liq, direction: out, delegates: melt}
+      - {id: vap, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+  - id: E303
+    block: EVA
+    title: Evaporator vacuum condensers
+    class: Cooling
+    links: [{target: equipment, ref: E-303}]
+    ports:
+      - {id: v1, direction: in}
+      - {id: v2, direction: in}
+      - {id: out, direction: out, delegates: cond}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  # ---- PCT --------------------------------------------------------------------------------
+  - id: C401
+    block: PCT
+    title: Desorber 1
+    class: Distilling
+    links: [{target: equipment, ref: C-401}]
+    ports:
+      - {id: feed, direction: in, delegates: feed}
+      - {id: vap_in, direction: in}
+      - {id: vap, direction: out, delegates: vap}
+      - {id: liq, direction: out}
+  - id: R401
+    block: PCT
+    title: Hydrolyser
+    class: ReactingChemicals
+    reactions: [HYDROLYSIS]
+    reactor: conversion
+    links: [{target: equipment, ref: R-401}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+  - id: C402
+    block: PCT
+    title: Desorber 2 (reboiled with LP steam)
+    class: Distilling
+    links: [{target: equipment, ref: C-402}]
+    ports:
+      - {id: feed, direction: in}
+      - {id: vap, direction: out}
+      - {id: liq, direction: out}
+      - {id: heat, direction: in, kind: energy, delegates: heat}
+  - id: SPL401
+    block: PCT
+    title: Treated condensate distribution
+    class: SplittingMaterial
+    split: {abs: 0.11018587, scrub: 0.21789934}
+    ports:
+      - {id: in, direction: in}
+      - {id: abs, direction: out, delegates: abs}
+      - {id: scrub, direction: out, delegates: scrub}
+      - {id: bl, direction: out, delegates: bl}
+  # ---- FIN --------------------------------------------------------------------------------
+  - id: T501
+    block: FIN
+    title: Prilling tower (forced draft)
+    class: ProcessStep
+    links: [{target: equipment, ref: T-501}]
+    ports:
+      - {id: melt, direction: in, delegates: melt}
+      - {id: air, direction: in, delegates: air}
+      - {id: prills, direction: out, delegates: prills}
+      - {id: exhaust, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: C501
+    block: FIN
+    title: Prilling exhaust wet scrubber
+    class: SeparatingByContact
+    links: [{target: equipment, ref: C-501}]
+    ports:
+      - {id: gas, direction: in}
+      - {id: water, direction: in, delegates: water}
+      - {id: gas_out, direction: out, delegates: exhaust}
+      - {id: liq, direction: out, delegates: liquor}
+
+streams:
+  - id: S1
+    title: Liquid ammonia from the ammonia plant
+    from: NH3.out
+    to: P101.in
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 2200, provenance: assumed, source: D-006}
+        temperature: {value: 293.15, provenance: assumed, source: D-006}
+        flow: {value: 47108.8, basis: mass, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {NH3: 1}, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+  - id: S2
+    title: HP ammonia to the HP carbamate condenser
+    from: P101.out
+    to: E102.nh3
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 15000, provenance: assumed, source: D-006}
+        temperature: {value: 300.15, provenance: assumed, source: D-006}
+        flow: {value: 47108.8, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through P101 from S1', fingerprint: 011522e09d5a6a2b}
+        composition: {basis: mole_fraction, values: {NH3: 1.0}, provenance: calculated, source: 'cheme process propagate: pass-through P101 from S1', fingerprint: 011522e09d5a6a2b}
+  - id: S3
+    title: CO2 from the ammonia plant
+    from: CO2.out
+    to: M101.co2
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 160, provenance: assumed, source: D-006}
+        temperature: {value: 313.15, provenance: assumed, source: D-006}
+        flow: {value: 61508.1, basis: mass, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {CO2: 0.985, H2O: 0.005, N2: 0.01}, provenance: assumed, source: "design basis (D-004); flow from scripts/urea_balance.py (D-006)"}
+  - id: S4
+    title: Passivation air
+    from: PAIR.out
+    to: M101.air
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 160, provenance: assumed, source: D-006}
+        temperature: {value: 303.15, provenance: assumed, source: D-006}
+        flow: {value: 1159.68, basis: mass, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {N2: 0.79, O2: 0.21}, provenance: assumed, source: "dry air, Ar lumped into N2 (D-004)"}
+  - id: S5
+    title: CO2 with passivation air
+    from: M101.out
+    to: K101.in
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 160, provenance: assumed, source: D-006}
+        temperature: {value: 313.15, provenance: assumed, source: D-006}
+        flow: {value: 62667.8, provenance: calculated, source: 'cheme process propagate: mixer M101 from S3 S4', fingerprint: 011dabfa6381d4ce}
+        composition: {basis: mole_fraction, values: {NH3: 0.0, CO2: 0.957639, H2O: 0.00486111, UREA: 0.0, BIURET: 0.0, N2: 0.0316666, O2: 0.00583332}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S3 S4', fingerprint: 72f557afee3463d5}
+  - id: S6
+    title: Compressed CO2 to the HP stripper
+    from: K101.out
+    to: E101.co2
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 14500, provenance: assumed, source: D-006}
+        temperature: {value: 393.15, provenance: assumed, source: D-006}
+        flow: {value: 62667.8, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S5', fingerprint: cccb5986d812960e}
+        composition: {basis: mole_fraction, values: {NH3: 0.0, CO2: 0.957639, H2O: 0.00486111, UREA: 0.0, BIURET: 0.0, N2: 0.0316666, O2: 0.00583332}, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S5', fingerprint: cccb5986d812960e}
+  - id: S15
+    title: HP condenser outlet to the reactor
+    from: E102.out
+    to: R101.in
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 14000, provenance: assumed, source: "BREF LVIC-AAF Table 8.14 (D-005)"}
+        temperature: {value: 440.15, provenance: assumed, source: D-006}
+        flow: {value: 239458, basis: mass, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {NH3: 0.65882353, CO2: 0.23529412, H2O: 0.10588235}, provenance: assumed, source: "scripts/urea_balance.py: N/C 2.8 (BREF Table 8.14), H2O/CO2 0.45 ASSUMED (D-005)"}
+  - id: S11
+    title: Reactor effluent to the HP stripper
+    from: R101.out
+    to: E101.liq_in
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 14000, provenance: assumed, source: D-005}
+        temperature: {value: 453.15, provenance: assumed, source: "180 C, BREF LVIC-AAF Table 8.14 (D-005)"}
+        flow: {value: 239458.0, provenance: calculated, source: 'cheme process propagate: reactor R101 from S15', fingerprint: 3aa05b0020b90b37}
+        composition: {basis: mole_fraction, values: {NH3: 0.446866, CO2: 0.114441, H2O: 0.280654, UREA: 0.158038, BIURET: 0.0, N2: 0.0, O2: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S15', fingerprint: 6121b724144ce21a}
+  - id: S13
+    title: HP stripper off-gas
+    from: E101.gas
+    to: E102.gas
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 14000, provenance: assumed, source: D-006}
+        temperature: {value: 458.15, provenance: assumed, source: D-006}
+        flow: {value: 157909, basis: mass, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {NH3: 0.56911374, CO2: 0.35839696, H2O: 0.063255636, N2: 0.0077973118, O2: 0.0014363469}, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+  - id: S14
+    title: Stripped urea solution
+    from: E101.liq
+    to: C201.feed
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 14000, provenance: assumed, source: D-006}
+        temperature: {value: 443.15, provenance: assumed, source: D-006}
+        flow: {value: 144216, basis: mass, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {NH3: 0.13489053, CO2: 0.065640662, H2O: 0.48143422, UREA: 0.31803459}, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+  - id: S16
+    title: HP condenser gas to the HP scrubber
+    from: E102.vent
+    to: V103.gas
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 14000, provenance: assumed, source: D-006}
+        temperature: {value: 440.15, provenance: assumed, source: D-006}
+        flow: {value: 9645.35, basis: mass, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {NH3: 0.68001162, CO2: 0.18026818, H2O: 0.0078923831, N2: 0.11132127, O2: 0.02050655}, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+  - id: S20
+    title: HP scrubber carbamate to the HP condenser
+    from: V103.liq
+    to: E102.carb
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 14000, provenance: assumed, source: D-006}
+        temperature: {value: 433.15, provenance: assumed, source: D-006}
+        flow: {value: 44085.6, basis: mass, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {NH3: 0.45137786, CO2: 0.18682479, H2O: 0.36179732, UREA: 2.9888901e-08}, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+  - id: S21
+    title: HP scrubber off-gas
+    from: V103.vent
+    to: C202.gas
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 14000, provenance: assumed, source: D-006}
+        temperature: {value: 400.15, provenance: assumed, source: D-006}
+        flow: {value: 1923.81, basis: mass, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {NH3: 0.18939394, CO2: 0.037878788, H2O: 0.015151515, N2: 0.63973064, O2: 0.11784512}, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+  - id: S22
+    title: LP rectifier off-gas
+    from: C201.gas
+    to: E201.gas
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "3 bar, BREF LVIC-AAF Table 8.14 (D-006)"}
+        temperature: {value: 408.15, provenance: assumed, source: D-006}
+        flow: {value: 24826.1, basis: mass, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {NH3: 0.45247459, CO2: 0.24556739, H2O: 0.30195801}, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+  - id: S23
+    title: Urea solution from the LP rectifier
+    from: C201.liq
+    to: E301.feed
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-006}
+        temperature: {value: 408.15, provenance: assumed, source: D-006}
+        flow: {value: 119390, basis: mass, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {NH3: 0.036316171, CO2: 0.0097935197, H2O: 0.53714152, UREA: 0.41674879}, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+  - id: S32
+    title: Desorber overhead to the LP condenser
+    from: C401.vap
+    to: E201.des
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-006}
+        temperature: {value: 390.15, provenance: assumed, source: D-006}
+        flow: {value: 8131.38, basis: mass, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {NH3: 0.34416736, CO2: 0.095985921, H2O: 0.55984672}, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+  - id: S24
+    title: LP carbamate condensate
+    from: E201.out
+    to: C202.liq
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-006}
+        temperature: {value: 333.15, provenance: assumed, source: D-006}
+        flow: {value: 32957.5, basis: mass, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {NH3: 0.42214585, CO2: 0.20368082, H2O: 0.37417333}, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+  - id: S41
+    title: Treated water to the LP absorber
+    from: SPL401.abs
+    to: C202.water
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-006}
+        temperature: {value: 313.15, provenance: assumed, source: D-006}
+        flow: {value: 3068.55, basis: mass, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {NH3: 1.2163212e-06, H2O: 0.99999844, UREA: 3.4493485e-07}, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+  - id: S31
+    title: LP absorber vent to atmosphere
+    from: C202.vent
+    to: VENT.in
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-006}
+        temperature: {value: 313.15, provenance: assumed, source: D-006}
+        flow: {value: 1585.77, basis: mass, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {NH3: 0.0061369428, CO2: 0.0030684714, H2O: 0.0185, N2: 0.82104876, O2: 0.15124582}, provenance: assumed, source: "scripts/urea_balance.py: NH3 70 g/t urea, BREF LVIC-AAF Table 8.10 (D-009)"}
+  - id: S30
+    title: LP carbamate solution
+    from: C202.liq_out
+    to: P102.in
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-006}
+        temperature: {value: 313.15, provenance: assumed, source: D-006}
+        flow: {value: 36364.1, basis: mass, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {NH3: 0.38194288, CO2: 0.18192222, H2O: 0.43613486, UREA: 3.6140035e-08}, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+  - id: S30B
+    title: HP carbamate to the HP scrubber
+    from: P102.out
+    to: V103.carb
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 14200, provenance: assumed, source: D-006}
+        temperature: {value: 318.15, provenance: assumed, source: D-006}
+        flow: {value: 36364.1, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through P102 from S30', fingerprint: f68589644c72f0de}
+        composition: {basis: mole_fraction, values: {NH3: 0.38194288, CO2: 0.18192222, H2O: 0.43613486, UREA: 3.6140035e-08}, provenance: calculated, source: 'cheme process propagate: pass-through P102 from S30', fingerprint: f68589644c72f0de}
+  - id: S52
+    title: Scrubber liquor to the 1st evaporator
+    from: C501.liq
+    to: E301.liquor
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-006}
+        temperature: {value: 318.15, provenance: assumed, source: D-006}
+        flow: {value: 82.7606, basis: mass, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {NH3: 0.050742305, H2O: 0.76218847, UREA: 0.18706923}, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+  - id: S33
+    title: Urea solution 95 wt% to the 2nd evaporator
+    from: E301.liq
+    to: E302.feed
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 33, provenance: assumed, source: D-006}
+        temperature: {value: 403.15, provenance: assumed, source: D-006}
+        flow: {value: 87630.4, basis: mass, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {H2O: 0.14926282, UREA: 0.85073718}, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+  - id: S34
+    title: 1st evaporator vapour
+    from: E301.vap
+    to: E303.v1
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 33, provenance: assumed, source: D-006}
+        temperature: {value: 403.15, provenance: assumed, source: D-006}
+        flow: {value: 31841.9, basis: mass, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {NH3: 0.070888088, CO2: 0.019091064, H2O: 0.90652329, UREA: 0.0034975606}, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+  - id: S35
+    title: Urea melt to the prilling tower
+    from: E302.liq
+    to: T501.melt
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 3, provenance: assumed, source: D-006}
+        temperature: {value: 413.15, provenance: assumed, source: D-006}
+        flow: {value: 83492.1, basis: mass, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {NH3: 0.00081325411, H2O: 0.013247017, UREA: 0.98131816, BIURET: 0.0046215705}, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+  - id: S36
+    title: 2nd evaporator vapour
+    from: E302.vap
+    to: E303.v2
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 3, provenance: assumed, source: D-006}
+        temperature: {value: 413.15, provenance: assumed, source: D-006}
+        flow: {value: 4138.32, basis: mass, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {NH3: 0.023171083, H2O: 0.97682892}, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+  - id: S37
+    title: Process condensate to treatment
+    from: E303.out
+    to: C401.feed
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-006}
+        temperature: {value: 313.15, provenance: assumed, source: D-006}
+        flow: {value: 35980.2, basis: mass, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {NH3: 0.065239485, CO2: 0.016831119, H2O: 0.91484587, UREA: 0.0030835293}, provenance: assumed, source: "scripts/urea_balance.py: 6 % NH3, 4 % CO2, 1 % urea by mass after the BREF LVIC-AAF Table 8.8 remark (D-006)"}
+  - id: S42
+    title: Desorber 2 overhead to desorber 1
+    from: C402.vap
+    to: C401.vap_in
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-006}
+        temperature: {value: 407.15, provenance: assumed, source: D-006}
+        flow: {value: 935.334, basis: mass, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {NH3: 0.27269644, CO2: 0.13636962, H2O: 0.59093393}, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+  - id: S38
+    title: Desorbed condensate to the hydrolyser
+    from: C401.liq
+    to: R401.in
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 1900, provenance: assumed, source: D-006}
+        temperature: {value: 390.15, provenance: assumed, source: D-006}
+        flow: {value: 28784.2, basis: mass, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {H2O: 0.99621717, UREA: 0.0037828323}, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+  - id: S39
+    title: Hydrolysed condensate to desorber 2
+    from: R401.out
+    to: C402.feed
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 1900, provenance: assumed, source: D-006}
+        temperature: {value: 473.15, provenance: assumed, source: D-006}
+        flow: {value: 28784.2, provenance: calculated, source: 'cheme process propagate: reactor R401 from S38', fingerprint: d59f67ac1d106f0c}
+        composition: {basis: mole_fraction, values: {NH3: 0.00753648, CO2: 0.00376824, H2O: 0.988695, UREA: 3.35403e-07, BIURET: 0.0, N2: 0.0, O2: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R401 from S38', fingerprint: bf544cd59b5e63b2}
+  - id: S40
+    title: Treated process condensate
+    from: C402.liq
+    to: SPL401.in
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-006}
+        temperature: {value: 313.15, provenance: assumed, source: D-006}
+        flow: {value: 27848.8, basis: mass, provenance: assumed, source: "scripts/urea_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {NH3: 1.2163212e-06, H2O: 0.99999844, UREA: 3.4493485e-07}, provenance: assumed, source: "scripts/urea_balance.py: 1 ppm(wt) NH3 and urea, BAT for new plants, BREF LVIC-AAF Table 8.20 (D-006)"}
+  - id: S44
+    title: Treated water to the prilling scrubber
+    from: SPL401.scrub
+    to: C501.water
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-006}
+        temperature: {value: 313.15, provenance: assumed, source: D-006}
+        flow: {value: 6068.24, basis: mass, provenance: calculated, source: 'cheme process propagate: splitter SPL401 from S40', fingerprint: 1c8cadb7fd2e3051}
+        composition: {basis: mole_fraction, values: {NH3: 1.2163212e-06, H2O: 0.99999844, UREA: 3.4493485e-07}, provenance: calculated, source: 'cheme process propagate: splitter SPL401 from S40', fingerprint: dc4c4eae39efb2f8}
+  - id: S45
+    title: Treated condensate to battery limit
+    from: SPL401.bl
+    to: WATER.in
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-006}
+        temperature: {value: 313.15, provenance: assumed, source: D-006}
+        flow: {value: 18712.0, provenance: calculated, source: 'cheme process propagate: splitter SPL401 from S40 S41 S44', fingerprint: 357a21cf0b8e2049}
+        composition: {basis: mole_fraction, values: {NH3: 1.2163212e-06, H2O: 0.99999844, UREA: 3.4493485e-07}, provenance: calculated, source: 'cheme process propagate: splitter SPL401 from S40', fingerprint: dc4c4eae39efb2f8}
+  - id: S50
+    title: Prilling air
+    from: AIR.out
+    to: T501.air
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: D-007}
+        temperature: {value: 303.15, provenance: assumed, source: D-007}
+        flow: {value: 706533, basis: mass, provenance: assumed, source: "scripts/urea_balance.py: prilling heat balance, air 303 -> 343 K (D-007)"}
+        composition: {basis: mole_fraction, values: {H2O: 0.023458029, N2: 0.77146816, O2: 0.20507381}, provenance: assumed, source: "0.015 kg H2O/kg dry air, Ar lumped into N2 (D-007)"}
+  - id: S51
+    title: Urea prills to storage
+    from: T501.prills
+    to: UREA.in
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: D-003}
+        temperature: {value: 343.15, provenance: assumed, source: D-003}
+        flow: {value: 83333.3, basis: mass, provenance: assumed, source: "design basis 2000 t/d (D-002)"}
+        composition: {basis: mole_fraction, values: {H2O: 0.0099642311, UREA: 0.98539189, BIURET: 0.0046438743}, provenance: assumed, source: "design grade 98.9 wt% urea, 0.8 % biuret, 0.3 % water (D-003)"}
+  - id: S53
+    title: Prilling tower exhaust
+    from: T501.exhaust
+    to: C501.gas
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: D-007}
+        temperature: {value: 343.15, provenance: assumed, source: D-007}
+        flow: {value: 706692, basis: mass, provenance: assumed, source: "scripts/urea_balance.py (D-007)"}
+        composition: {basis: mole_fraction, values: {NH3: 4.6049947e-05, H2O: 0.023640245, UREA: 3.7312118e-05, N2: 0.77125835, O2: 0.20501804}, provenance: assumed, source: "scripts/urea_balance.py: raw dust 100 mg/Nm3, NH3 35 mg/Nm3 (D-009)"}
+  - id: S54
+    title: Scrubbed exhaust to atmosphere
+    from: C501.gas_out
+    to: EXHAUST.in
+    template: urea-process
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: D-007}
+        temperature: {value: 318.15, provenance: assumed, source: D-007}
+        flow: {value: 712677, basis: mass, provenance: assumed, source: "scripts/urea_balance.py (D-007)"}
+        composition: {basis: mole_fraction, values: {NH3: 3.8961982e-05, H2O: 0.036675751, UREA: 1.2889931e-05, N2: 0.76098519, O2: 0.2022872}, provenance: assumed, source: "scripts/urea_balance.py: dust 35 and NH3 30 mg/Nm3, within the BAT levels of BREF LVIC-AAF section 8.5 (D-009)"}
+  # Energy streams (scripts/urea_balance.py, D-010; ASSUMED until core qualifies an energy basis)
+  - {id: Q1, title: K-101 shaft power, kind: energy, from: POWER.k101, to: K101.power, state: {design: {duty: {value: 6857, provenance: assumed, source: "scripts/urea_balance.py, 4 intercooled stages, eta 0.78 (D-010)"}}}}
+  - {id: Q2, title: P-101 shaft power, kind: energy, from: POWER.p101, to: P101.power, state: {design: {duty: {value: 422, provenance: assumed, source: "scripts/urea_balance.py, V dp / 0.65 (D-010)"}}}}
+  - {id: Q3, title: P-102 shaft power, kind: energy, from: POWER.p102, to: P102.power, state: {design: {duty: {value: 213, provenance: assumed, source: "scripts/urea_balance.py, V dp / 0.60 (D-010)"}}}}
+  - {id: Q4, title: Prilling fan power, kind: energy, from: POWER.t501, to: T501.power, state: {design: {duty: {value: 519, provenance: assumed, source: "scripts/urea_balance.py, 2.0 kPa, eta 0.70 (D-010)"}}}}
+  - {id: Q5, title: HP stripper MP steam, kind: energy, from: MPS.e101, to: E101.steam, state: {design: {duty: {value: 30414, provenance: assumed, source: "scripts/urea_balance.py, BREF Table 8.5 total 0.8 t/t less E-302 and R-401 (D-010)"}}}}
+  - {id: Q6, title: 2nd evaporator MP steam, kind: energy, from: MPS.e302, to: E302.steam, state: {design: {duty: {value: 2586, provenance: assumed, source: "scripts/urea_balance.py, water evaporated x 2300 kJ/kg (D-010)"}}}}
+  - {id: Q7, title: Hydrolyser MP steam, kind: energy, from: MPS.r401, to: R401.steam, state: {design: {duty: {value: 1000, provenance: assumed, source: "scripts/urea_balance.py, net after feed/effluent exchange, ASSUMED (D-010)"}}}}
+  - {id: Q8, title: LP steam from E-102 to the LP rectifier heater, kind: energy, from: E102.lps1, to: C201.heat, state: {design: {duty: {value: 12086, provenance: assumed, source: "scripts/urea_balance.py, carbamate decomposition 120 MJ/kmol CO2 + water 2300 kJ/kg (D-010)"}}}}
+  - {id: Q9, title: LP steam from E-102 to the 1st evaporator, kind: energy, from: E102.lps2, to: E301.heat, state: {design: {duty: {value: 18963, provenance: assumed, source: "scripts/urea_balance.py, water 2300 kJ/kg + carbamate 120 MJ/kmol CO2 (D-010)"}}}}
+  - {id: Q10, title: LP steam from E-102 to the desorbers, kind: energy, from: E102.lps3, to: C402.heat, state: {design: {duty: {value: 4186, provenance: assumed, source: "scripts/urea_balance.py, overhead water 2300 kJ/kg + carbamate 120 MJ/kmol CO2 (D-010)"}}}}
+  - {id: Q11, title: K-101 intercoolers, kind: energy, from: K101.cw, to: CW.k101, state: {design: {duty: {value: 6172, provenance: assumed, source: "scripts/urea_balance.py, 0.9 x shaft power (D-010)"}}}}
+  - {id: Q12, title: LP carbamate condenser, kind: energy, from: E201.cw, to: CW.e201, state: {design: {duty: {value: 15973, provenance: assumed, source: "scripts/urea_balance.py, carbamate 120 MJ/kmol CO2 + water 2300 kJ/kg (D-010)"}}}}
+  - {id: Q13, title: Evaporator condensers, kind: energy, from: E303.cw, to: CW.e303, state: {design: {duty: {value: 21549, provenance: assumed, source: "scripts/urea_balance.py, water 2300 kJ/kg + carbamate 120 MJ/kmol CO2 (D-010)"}}}}
 layout: {bfd: {}, pfd: {}}
