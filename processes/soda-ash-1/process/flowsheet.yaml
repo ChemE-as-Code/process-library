@@ -1,24 +1,602 @@
 # The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
 # never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
-# Units are explicit: a property without its own unit is in these. Pressure is absolute; a gauge
-# value needs its own unit (kPa(g)). Nm3/h needs normal_conditions.
+#
+# Solvay ammonia-soda process, 1000 t/d light soda ash (D-001, D-002). Where the values come from:
+# - every flow and composition is from the independent sequential balance
+#   scripts/solvay_balance.py (D-006), given here as ASSUMED: it rests on ASSUMED design
+#   parameters (sodium utilisation, NH3/NaCl ratio, cake moisture, losses) and a component
+#   basis for the liquors, because core cannot yet speciate NH3-CO2-NaCl-H2O electrolytes
+#   (core #364) or model the reciprocal-salt equilibrium of the towers (D-007);
+# - the coke flow rests on the lime kiln's specific heat use (cheme process furnace,
+#   specific-energy fallback, process/furnaces.yaml, D-004);
+# - reactor steps name their reactions (process/reactions.yaml), so cheme checks their balance
+#   by elements;
+# - duties are from the same script (D-008), ASSUMED; no property package covers these streams.
 schema: cheme/process/v1
 kind: flowsheet
-title: ""
+title: Soda ash by the Solvay ammonia-soda process (1000 t/d light soda ash)
 units:
   pressure: kPa(a)
   temperature: K
   flow: kg/h
   duty: kW
   enthalpy: kJ/kmol
-  # normal_conditions: {temperature: 273.15, pressure: 101.325, basis: ideal_gas}
-  # enthalpy_reference: {state: ideal_gas, temperature: 298.15}
 cases:
-  - {id: design, description: Design case, default: true}
+  - id: design
+    description: "Design case: 1000 t/d light soda ash (99.5 wt% Na2CO3), 8000 h/a (D-002)"
+    default: true
+    capacity: 1000 t/d light soda ash
+    provenance: assumed
+    source: "D-002: a normalisation basis for the inventory, not a commercial plant claim"
 tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
-feeds: []      # external feeds (DEXPI Source): {id, title, ports: [{id: out, direction: out}]}
-products: []   # products (DEXPI Sink): {id, title, ports: [{id: in, direction: in}]}
-blocks: []     # BFD blocks: {id, title, class, ports: [{id, direction, kind}], links}
-steps: []      # PFD steps: {id, block, title, class, ports: [{id, direction, delegates}], links}
-streams: []    # {id, title, kind, from: NODE.port, to: NODE.port, template, state: {design: {...}}}
+
+feeds:
+  - {id: LST, title: Limestone (crushed and screened), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: COKE, title: Coke (kiln fuel), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: AIR, title: Kiln combustion air, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: BRINE, title: Purified saturated brine at battery limits, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: NH3, title: Ammonia make-up (liquid), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: PW
+    title: Process water
+    category: raw_material
+    ports: [{id: slk, direction: out}, {id: wash, direction: out}]
+  - id: LPS
+    title: LP steam 450 kPa(a), live steam to the distiller
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 450, provenance: assumed, source: "design basis, D-008"}
+      supply_temperature: {value: 420.8, provenance: assumed, source: "saturation at 450 kPa(a), D-008"}
+    ports: [{id: out, direction: out}]
+  - id: HPS
+    title: HP steam 3000 kPa(a) to the calciner (condensate returned)
+    category: utility
+    utility:
+      kind: steam
+      level: HP
+      pressure: {value: 3000, provenance: assumed, source: "design basis, D-008"}
+      supply_temperature: {value: 507.0, provenance: assumed, source: "saturation at 3000 kPa(a), D-008"}
+      min_approach: {value: 20, provenance: assumed, source: D-008}
+    ports: [{id: r501, direction: out, kind: energy}]
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: k101, direction: out, kind: energy}
+      - {id: k501, direction: out, kind: energy}
+      - {id: aux, direction: out, kind: energy}
+products:
+  - {id: SODA, title: Light soda ash to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: DSW, title: Distiller waste (CaCl2 liquor with suspended solids) to settling ponds, category: wastewater, ports: [{id: in, direction: in}]}
+  - {id: VENT, title: Vent gas to atmosphere (unabsorbed kiln CO2 and air nitrogen), category: off_gas, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-008"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-008"}
+      min_approach: {value: 5, provenance: assumed, source: D-008}
+    ports:
+      - {id: k101, direction: in, kind: energy}
+      - {id: k501, direction: in, kind: energy}
+      - {id: e101, direction: in, kind: energy}
+      - {id: a201, direction: in, kind: energy}
+      - {id: c301, direction: in, kind: energy}
+      - {id: e501, direction: in, kind: energy}
+
+blocks:
+  - id: KLN
+    title: Lime kiln, kiln gas and slaking
+    class: ReactingChemicals
+    ports:
+      - {id: ls, direction: in}
+      - {id: coke, direction: in}
+      - {id: air, direction: in}
+      - {id: water, direction: in}
+      - {id: gas, direction: out}
+      - {id: milk, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+  - id: ABS
+    title: Brine ammoniation and tower-gas scrubbing
+    class: Absorbing
+    ports:
+      - {id: brine, direction: in}
+      - {id: tgas, direction: in}
+      - {id: dgas, direction: in}
+      - {id: nh3, direction: in}
+      - {id: vent, direction: out}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy}
+  - id: CRB
+    title: Carbonation (bicarbonate precipitation)
+    class: ReactingChemicals
+    ports:
+      - {id: brine, direction: in}
+      - {id: kgas, direction: in}
+      - {id: cgas, direction: in}
+      - {id: gas, direction: out}
+      - {id: slurry, direction: out}
+      - {id: cw, direction: out, kind: energy}
+  - id: FIL
+    title: Bicarbonate filtration and washing
+    class: Filtering
+    ports:
+      - {id: in, direction: in}
+      - {id: wash, direction: in}
+      - {id: cake, direction: out}
+      - {id: filtrate, direction: out}
+      - {id: power, direction: in, kind: energy}
+  - id: CAL
+    title: Calcination and calciner gas recovery
+    class: ReactingChemicals
+    ports:
+      - {id: cake, direction: in}
+      - {id: prod, direction: out}
+      - {id: cgas, direction: out}
+      - {id: cond, direction: out}
+      - {id: heat, direction: in, kind: energy}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+  - id: DST
+    title: Ammonia recovery (distillation with milk of lime)
+    class: ReactingChemicals
+    ports:
+      - {id: ml, direction: in}
+      - {id: cond, direction: in}
+      - {id: milk, direction: in}
+      - {id: steam, direction: in}
+      - {id: gas, direction: out}
+      - {id: waste, direction: out}
+
+steps:
+  # D-004: mixed-feed shaft kiln, limestone and coke charged together
+  - id: R101
+    block: KLN
+    title: Lime kiln (mixed-feed shaft)
+    class: ReactingChemicals
+    reactions: [CALC, COMB]
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: ls, direction: in, delegates: ls}
+      - {id: coke, direction: in, delegates: coke}
+      - {id: air, direction: in, delegates: air}
+      - {id: lime, direction: out}
+      - {id: gas, direction: out}
+  - id: M101
+    block: KLN
+    title: Lime slaker
+    class: ReactingChemicals
+    reactions: [SLAKE]
+    links: [{target: equipment, ref: M-101}]
+    ports:
+      - {id: lime, direction: in}
+      - {id: water, direction: in, delegates: water}
+      - {id: milk, direction: out, delegates: milk}
+  - id: E101
+    block: KLN
+    title: Kiln gas washer-cooler
+    class: Cooling
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw1}
+  - id: K101
+    block: KLN
+    title: Kiln gas compressor (with inter- and aftercoolers)
+    class: Compressing
+    links: [{target: equipment, ref: K-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: gas}
+      - {id: power, direction: in, kind: energy, delegates: power}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+  - id: T201
+    block: ABS
+    title: Tower-gas scrubber (brine wash)
+    class: Absorbing
+    links: [{target: equipment, ref: T-201}]
+    ports:
+      - {id: brine, direction: in, delegates: brine}
+      - {id: gas, direction: in, delegates: tgas}
+      - {id: vent, direction: out, delegates: vent}
+      - {id: brine_out, direction: out}
+  - id: A201
+    block: ABS
+    title: Ammonia absorber (with coolers)
+    class: Absorbing
+    links: [{target: equipment, ref: A-201}]
+    ports:
+      - {id: brine, direction: in}
+      - {id: gas, direction: in, delegates: dgas}
+      - {id: nh3, direction: in, delegates: nh3}
+      - {id: out, direction: out, delegates: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  # D-006: sodium utilisation 0.73 (CARB conversion of NaCl)
+  - id: C301
+    block: CRB
+    title: Carbonating towers (cooled)
+    class: ReactingChemicals
+    reactions: [CARB]
+    links: [{target: equipment, ref: C-301}]
+    ports:
+      - {id: brine, direction: in, delegates: brine}
+      - {id: kgas, direction: in, delegates: kgas}
+      - {id: cgas, direction: in, delegates: cgas}
+      - {id: gas, direction: out, delegates: gas}
+      - {id: slurry, direction: out, delegates: slurry}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  - id: F401
+    block: FIL
+    title: Rotary vacuum filter with cake wash
+    class: Filtering
+    links: [{target: equipment, ref: F-401}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: wash, direction: in, delegates: wash}
+      - {id: cake, direction: out, delegates: cake}
+      - {id: filtrate, direction: out, delegates: filtrate}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: R501
+    block: CAL
+    title: Steam-heated rotary calciner
+    class: ReactingChemicals
+    reactions: [BICARB]
+    links: [{target: equipment, ref: R-501}]
+    ports:
+      - {id: in, direction: in, delegates: cake}
+      - {id: prod, direction: out, delegates: prod}
+      - {id: gas, direction: out}
+      - {id: heat, direction: in, kind: energy, delegates: heat}
+  - id: E501
+    block: CAL
+    title: Calciner gas cooler-condenser
+    class: SeparatingByPhaseSeparation
+    links: [{target: equipment, ref: E-501}]
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out}
+      - {id: cond, direction: out, delegates: cond}
+      - {id: cw, direction: out, kind: energy, delegates: cw1}
+  - id: K501
+    block: CAL
+    title: Calciner CO2 compressor (with inter- and aftercoolers)
+    class: Compressing
+    links: [{target: equipment, ref: K-501}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: cgas}
+      - {id: power, direction: in, kind: energy, delegates: power}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+  # D-006: heater (free ammonia, CO2) and lime still (fixed ammonia) lumped in one step
+  - id: D601
+    block: DST
+    title: Ammonia distiller (heater, prelimer and lime still, live steam)
+    class: ReactingChemicals
+    reactions: [DIST]
+    links: [{target: equipment, ref: D-601}]
+    ports:
+      - {id: ml, direction: in, delegates: ml}
+      - {id: cond, direction: in, delegates: cond}
+      - {id: milk, direction: in, delegates: milk}
+      - {id: steam, direction: in, delegates: steam}
+      - {id: gas, direction: out, delegates: gas}
+      - {id: waste, direction: out, delegates: waste}
+
+# Generated from scripts/solvay_balance.py output (D-006); ASSUMED values, see the header.
+streams:
+  - id: S1
+    title: Limestone
+    from: LST.out
+    to: R101.ls
+    template: solvay
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "ambient (design basis)"}
+        temperature: {value: 288.15, provenance: assumed, source: "ambient (design basis)"}
+        flow: {value: 45074.1, basis: mass, provenance: assumed, source: "scripts/solvay_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {CaCO3: 0.96, SiO2: 0.03, H2O: 0.01}, provenance: assumed, source: "D-005"}
+  - id: S2
+    title: Coke
+    from: COKE.out
+    to: R101.coke
+    template: solvay
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "ambient (design basis)"}
+        temperature: {value: 288.15, provenance: assumed, source: "ambient (design basis)"}
+        flow: {value: 3648.0, basis: mass, provenance: assumed, source: "cheme process furnace KILN heat input / coke LHV (D-004, D-006)"}
+        composition: {basis: mass_fraction, values: {C: 0.89, SiO2: 0.09, H2O: 0.02}, provenance: assumed, source: "D-005"}
+  - id: S3
+    title: Kiln combustion air
+    from: AIR.out
+    to: R101.air
+    template: solvay
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "ambient (design basis)"}
+        temperature: {value: 288.15, provenance: assumed, source: "ambient (design basis)"}
+        flow: {value: 40945.0, basis: mass, provenance: assumed, source: "scripts/solvay_balance.py, lambda 1.10 (D-004, D-006)"}
+        composition: {basis: mass_fraction, values: {O2: 0.232371, N2: 0.767629}, provenance: assumed, source: "dry air, argon counted as N2 (D-006)"}
+  - id: S4
+    title: Burnt lime
+    from: R101.lime
+    to: M101.lime
+    template: solvay
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-004"}
+        temperature: {value: 363.15, provenance: assumed, source: "D-004, process/furnaces.yaml"}
+        flow: {value: 26876.0, basis: mass, provenance: assumed, source: "scripts/solvay_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {CaO: 0.856969, CaCO3: 0.080502, SiO2: 0.06253}, provenance: assumed, source: "scripts/solvay_balance.py (D-006)"}
+  - id: S5
+    title: Kiln gas
+    from: R101.gas
+    to: E101.in
+    template: solvay
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-004"}
+        temperature: {value: 393.15, provenance: assumed, source: "D-004, process/furnaces.yaml"}
+        flow: {value: 62791.4, basis: mass, provenance: assumed, source: "scripts/solvay_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {CO2: 0.477329, O2: 0.013775, N2: 0.500556, H2O: 0.00834}, provenance: assumed, source: "scripts/solvay_balance.py (D-006)"}
+  - id: S5B
+    title: Washed and cooled kiln gas
+    from: E101.out
+    to: K101.in
+    template: solvay
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-006"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-006"}
+        flow: {value: 62791.4, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S5', fingerprint: cd297f8960c6e369}
+        composition: {basis: mass_fraction, values: {CO2: 0.477329, O2: 0.013775, N2: 0.500556, H2O: 0.00834}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S5', fingerprint: cd297f8960c6e369}
+  - id: S5C
+    title: Compressed kiln gas to the towers
+    from: K101.out
+    to: C301.kgas
+    template: solvay
+    state:
+      design:
+        pressure: {value: 350, provenance: assumed, source: "D-006"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-006"}
+        flow: {value: 62791.4, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S5B', fingerprint: c85af358e71901d9}
+        composition: {basis: mass_fraction, values: {CO2: 0.477329, O2: 0.013775, N2: 0.500556, H2O: 0.00834}, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S5B', fingerprint: c85af358e71901d9}
+  - id: S6
+    title: Slaking water
+    from: PW.slk
+    to: M101.water
+    template: solvay
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "D-006"}
+        temperature: {value: 288.15, provenance: assumed, source: "D-006"}
+        flow: {value: 125280.5, basis: mass, provenance: assumed, source: "scripts/solvay_balance.py, milk of lime 20 wt% Ca(OH)2 (D-006)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: "D-006"}
+  - id: S7
+    title: Milk of lime
+    from: M101.milk
+    to: D601.milk
+    template: solvay
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "D-006"}
+        temperature: {value: 353.15, provenance: assumed, source: "D-006"}
+        flow: {value: 152156.9, basis: mass, provenance: assumed, source: "scripts/solvay_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {CaOH2: 0.2, CaCO3: 0.014219, SiO2: 0.011045, H2O: 0.774736}, provenance: assumed, source: "scripts/solvay_balance.py (D-006)"}
+  - id: S8
+    title: Purified brine
+    from: BRINE.out
+    to: T201.brine
+    template: solvay
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "D-003"}
+        temperature: {value: 293.15, provenance: assumed, source: "D-003"}
+        flow: {value: 240891.5, basis: mass, provenance: assumed, source: "scripts/solvay_balance.py: NaCl for a sodium utilisation of 0.73 (D-006)"}
+        composition: {basis: mass_fraction, values: {NaCl: 0.26, H2O: 0.74}, provenance: assumed, source: "D-003"}
+  - id: S8B
+    title: Brine from the tower-gas scrubber
+    from: T201.brine_out
+    to: A201.brine
+    template: solvay
+    state:
+      design:
+        pressure: {value: 150, provenance: assumed, source: "D-006"}
+        temperature: {value: 298.15, provenance: assumed, source: "D-006"}
+        flow: {value: 241071.4, basis: mass, provenance: assumed, source: "scripts/solvay_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {NaCl: 0.259806, H2O: 0.739448, NH3: 0.000746}, provenance: assumed, source: "scripts/solvay_balance.py (D-006)"}
+  - id: S9
+    title: Distiller gas (NH3, CO2, water vapour)
+    from: D601.gas
+    to: A201.gas
+    template: solvay
+    state:
+      design:
+        pressure: {value: 110, provenance: assumed, source: "D-006"}
+        temperature: {value: 333.15, provenance: assumed, source: "D-006"}
+        flow: {value: 49320.6, basis: mass, provenance: assumed, source: "scripts/solvay_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {NH3: 0.40173, CO2: 0.343305, H2O: 0.254965}, provenance: assumed, source: "scripts/solvay_balance.py, H2O/NH3 0.6 mol/mol (D-006)"}
+  - id: S10
+    title: Ammonia make-up
+    from: NH3.out
+    to: A201.nh3
+    template: solvay
+    state:
+      design:
+        pressure: {value: 1000, provenance: assumed, source: "liquid ammonia from storage (D-006)"}
+        temperature: {value: 288.15, provenance: assumed, source: "D-006"}
+        flow: {value: 83.3, basis: mass, provenance: assumed, source: "scripts/solvay_balance.py: losses 2.0 kg/t (D-006)"}
+        composition: {basis: mass_fraction, values: {NH3: 1.0}, provenance: assumed, source: "D-006"}
+  - id: S11
+    title: Ammoniated brine
+    from: A201.out
+    to: C301.brine
+    template: solvay
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "D-006"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-006"}
+        flow: {value: 290475.3, basis: mass, provenance: assumed, source: "scripts/solvay_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {NaCl: 0.215618, H2O: 0.656974, NH3: 0.069117, CO2: 0.058291}, provenance: assumed, source: "scripts/solvay_balance.py, NH3/NaCl 1.10 mol/mol (D-006)"}
+  - id: S12
+    title: Carbonating tower exit gas
+    from: C301.gas
+    to: T201.gas
+    template: solvay
+    state:
+      design:
+        pressure: {value: 110, provenance: assumed, source: "D-006"}
+        temperature: {value: 303.15, provenance: assumed, source: "D-006"}
+        flow: {value: 46397.6, basis: mass, provenance: assumed, source: "scripts/solvay_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {CO2: 0.274954, N2: 0.677418, O2: 0.018642, NH3: 0.004327, H2O: 0.024659}, provenance: assumed, source: "scripts/solvay_balance.py (D-006)"}
+  - id: S13
+    title: Vent gas to atmosphere
+    from: T201.vent
+    to: VENT.in
+    template: solvay
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-006"}
+        temperature: {value: 303.15, provenance: assumed, source: "D-006"}
+        flow: {value: 46217.7, basis: mass, provenance: assumed, source: "scripts/solvay_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {CO2: 0.276024, N2: 0.680055, O2: 0.018715, NH3: 0.000451, H2O: 0.024755}, provenance: assumed, source: "scripts/solvay_balance.py, NH3 0.5 kg/t (D-006)"}
+  - id: S14
+    title: Calciner gas
+    from: R501.gas
+    to: E501.in
+    template: solvay
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-006"}
+        temperature: {value: 423.15, provenance: assumed, source: "D-006"}
+        flow: {value: 35651.1, basis: mass, provenance: assumed, source: "scripts/solvay_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {CO2: 0.499686, H2O: 0.493808, NH3: 0.006506}, provenance: assumed, source: "scripts/solvay_balance.py (D-006)"}
+  - id: S15
+    title: Cooled calciner CO2
+    from: E501.gas
+    to: K501.in
+    template: solvay
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-006"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-006"}
+        flow: {value: 17768.5, basis: mass, provenance: assumed, source: "scripts/solvay_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {CO2: 0.968846, H2O: 0.031154}, provenance: assumed, source: "scripts/solvay_balance.py, water at saturation (D-006)"}
+  - id: S16
+    title: Compressed calciner CO2 to the towers
+    from: K501.out
+    to: C301.cgas
+    template: solvay
+    state:
+      design:
+        pressure: {value: 350, provenance: assumed, source: "D-006"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-006"}
+        flow: {value: 17768.5, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through K501 from S15', fingerprint: 908cfd73a73c4d2a}
+        composition: {basis: mass_fraction, values: {CO2: 0.968846, H2O: 0.031154}, provenance: calculated, source: 'cheme process propagate: pass-through K501 from S15', fingerprint: 908cfd73a73c4d2a}
+  - id: S17
+    title: Bicarbonate slurry
+    from: C301.slurry
+    to: F401.in
+    template: solvay
+    state:
+      design:
+        pressure: {value: 150, provenance: assumed, source: "D-006"}
+        temperature: {value: 303.15, provenance: assumed, source: "D-006"}
+        flow: {value: 324636.8, basis: mass, provenance: assumed, source: "scripts/solvay_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {NaCl: 0.052091, H2O: 0.544221, NH3: 0.020184, CO2: 0.052157, NaHCO3: 0.202443, NH4Cl: 0.128904}, provenance: assumed, source: "scripts/solvay_balance.py (D-006)"}
+  - id: S18
+    title: Washed bicarbonate cake
+    from: F401.cake
+    to: R501.in
+    template: solvay
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-006"}
+        temperature: {value: 303.15, provenance: assumed, source: "D-006"}
+        flow: {value: 77318.2, basis: mass, provenance: assumed, source: "scripts/solvay_balance.py, 15 wt% liquid (D-006)"}
+        composition: {basis: mass_fraction, values: {NaHCO3: 0.85, NaCl: 0.002694, NH3: 0.003, CO2: 0.007752, H2O: 0.136554}, provenance: assumed, source: "scripts/solvay_balance.py (D-006)"}
+  - id: S19
+    title: Light soda ash
+    from: R501.prod
+    to: SODA.in
+    template: solvay
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-002"}
+        temperature: {value: 433.15, provenance: assumed, source: "D-002"}
+        flow: {value: 41666.7, basis: mass, provenance: assumed, source: "design basis: 1000 t/d (D-002)"}
+        composition: {basis: mass_fraction, values: {Na2CO3: 0.995, NaCl: 0.005}, provenance: assumed, source: "design basis grade (D-002)"}
+  - id: S20
+    title: Cake wash water
+    from: PW.wash
+    to: F401.wash
+    template: solvay
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "D-006"}
+        temperature: {value: 288.15, provenance: assumed, source: "D-006"}
+        flow: {value: 19716.1, basis: mass, provenance: assumed, source: "scripts/solvay_balance.py, 0.30 kg/kg dry cake (D-006)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: "D-006"}
+  - id: S21
+    title: "Filtrate: mother liquor and washings"
+    from: F401.filtrate
+    to: D601.ml
+    template: solvay
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-006"}
+        temperature: {value: 303.15, provenance: assumed, source: "D-006"}
+        flow: {value: 267034.8, basis: mass, provenance: assumed, source: "scripts/solvay_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {NaCl: 0.062547, H2O: 0.695911, NH3: 0.023669, CO2: 0.061163, NH4Cl: 0.15671}, provenance: assumed, source: "scripts/solvay_balance.py (D-006)"}
+  - id: S22
+    title: Calciner gas condensate (weak liquor)
+    from: E501.cond
+    to: D601.cond
+    template: solvay
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-006"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-006"}
+        flow: {value: 17882.6, basis: mass, provenance: assumed, source: "scripts/solvay_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {CO2: 0.033518, H2O: 0.953511, NH3: 0.012971}, provenance: assumed, source: "scripts/solvay_balance.py (D-006)"}
+  - id: S23
+    title: Live steam to the distiller
+    from: LPS.out
+    to: D601.steam
+    template: solvay
+    state:
+      design:
+        pressure: {value: 450, provenance: assumed, source: "LP steam header (D-008)"}
+        temperature: {value: 420.8, provenance: assumed, source: "saturated (D-008)"}
+        flow: {value: 78493.4, basis: mass, provenance: assumed, source: "scripts/solvay_balance.py, distiller heat balance (D-008)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: "D-008"}
+  - id: S24
+    title: Distiller waste (CaCl2 liquor with solids)
+    from: D601.waste
+    to: DSW.in
+    template: solvay
+    state:
+      design:
+        pressure: {value: 120, provenance: assumed, source: "D-006"}
+        temperature: {value: 383.15, provenance: assumed, source: "D-006"}
+        flow: {value: 466247.5, basis: mass, provenance: assumed, source: "scripts/solvay_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {CaCl2: 0.093111, CaOH2: 0.003108, CaCO3: 0.00464, SiO2: 0.003604, NaCl: 0.035823, NH3: 0.000134, H2O: 0.85958}, provenance: assumed, source: "scripts/solvay_balance.py, NH3 1.5 kg/t (D-006)"}
+  # Energy streams (duties from scripts/solvay_balance.py, D-008; ASSUMED)
+  - {id: Q1, title: K-101 shaft power, kind: energy, from: POWER.k101, to: K101.power, state: {design: {duty: {value: 2620.8, provenance: assumed, source: "scripts/solvay_balance.py, adiabatic, eta 0.75 (D-008)"}}}}
+  - {id: Q2, title: K-101 inter- and aftercoolers, kind: energy, from: K101.cw, to: CW.k101, state: {design: {duty: {value: 2620.8, provenance: assumed, source: "scripts/solvay_balance.py: the compression work, gas back to 313 K (D-008)"}}}}
+  - {id: Q3, title: K-501 shaft power, kind: energy, from: POWER.k501, to: K501.power, state: {design: {duty: {value: 581.6, provenance: assumed, source: "scripts/solvay_balance.py, adiabatic, eta 0.75 (D-008)"}}}}
+  - {id: Q4, title: K-501 inter- and aftercoolers, kind: energy, from: K501.cw, to: CW.k501, state: {design: {duty: {value: 581.6, provenance: assumed, source: "scripts/solvay_balance.py: the compression work, gas back to 313 K (D-008)"}}}}
+  - {id: Q5, title: "Auxiliary power (pumps, vacuum pumps, conveyors, fans, drives; lumped)", kind: energy, from: POWER.aux, to: F401.power, state: {design: {duty: {value: 1458.3, provenance: assumed, source: "35 kWh/t ASSUMED (D-008)"}}}}
+  - {id: Q6, title: E-101 kiln gas cooler duty, kind: energy, from: E101.cw, to: CW.e101, state: {design: {duty: {value: 1323.0, provenance: assumed, source: "scripts/solvay_balance.py (D-008)"}}}}
+  - {id: Q7, title: A-201 absorber cooling, kind: energy, from: A201.cw, to: CW.a201, state: {design: {duty: {value: 22251.1, provenance: assumed, source: "scripts/solvay_balance.py (D-008)"}}}}
+  - {id: Q8, title: C-301 tower cooling, kind: energy, from: C301.cw, to: CW.c301, state: {design: {duty: {value: 21235.1, provenance: assumed, source: "scripts/solvay_balance.py (D-008)"}}}}
+  - {id: Q9, title: R-501 calciner heat (HP steam), kind: energy, from: HPS.r501, to: R501.heat, state: {design: {duty: {value: 28178.3, provenance: assumed, source: "scripts/solvay_balance.py (D-008)"}}}}
+  - {id: Q10, title: E-501 calciner gas condenser duty, kind: energy, from: E501.cw, to: CW.e501, state: {design: {duty: {value: 13053.6, provenance: assumed, source: "scripts/solvay_balance.py (D-008)"}}}}
 layout: {bfd: {}, pfd: {}}

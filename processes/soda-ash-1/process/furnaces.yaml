@@ -1,0 +1,39 @@
+# Lime kiln of the Solvay plant: energy basis by `cheme process furnace` (extra cantera).
+# Schema: `cheme schema furnaces`. Decisions: DESIGN.md D-004 (kiln), D-005 (limestone, coke).
+# The limestone flow is the lime demand of the ammonia recovery (scripts/solvay_balance.py,
+# D-006); the coke and air flows are solved here and copied into process/flowsheet.yaml as
+# ASSUMED with this file as their source.
+schema: cheme/furnaces/v1
+furnaces:
+  - id: KILN
+    name: Mixed-feed shaft lime kiln (limestone and coke)
+    block: KLN
+    kiln_type: mixed-feed-shaft
+    reaction: calcination-caco3
+    # energy-balance needs Cantera, which has no build for the Python 3.15 of this cheme
+    # installation (2026-10-27): the labelled fallback is used (D-004); switch back when it can run.
+    method: specific-energy
+    specific_energy: {value: 4.0, unit: GJ/t, provenance: assumed, source: "JRC BREF Cement, Lime and Magnesium Oxide (Schorcht et al. 2013, doi:10.2788/12850) Table 2.23: mixed-feed shaft kilns 3.4-4.7 GJ/t lime; mid-range value ASSUMED (D-004)"}
+    feed:
+      mass_flow: {value: 45074.1, unit: kg/h, provenance: assumed, source: "scripts/solvay_balance.py: CaO demand of the distiller / calcination degree / CaCO3 fraction (D-006)"}
+      temperature: {value: 288.15, unit: K, provenance: assumed, source: "ambient, design basis"}
+      composition:
+        fractions: {CaCO3: 0.96, SiO2: 0.03, H2O: 0.01}
+        provenance: assumed
+        source: "D-005: high-calcium limestone, SiO2 standing for all acid-insoluble impurities; ASSUMED until a quarry assay is given"
+    conversion: {value: 0.95, unit: "1", provenance: assumed, source: "D-004: degree of calcination ASSUMED (residual CaCO3 in burnt lime)"}
+    product_temperature: {value: 363.15, unit: K, provenance: assumed, source: "D-004: lime cooled by the incoming combustion air at the shaft bottom, ASSUMED"}
+    off_gas_temperature: {value: 393.15, unit: K, provenance: assumed, source: "D-004: kiln gas leaving the preheating zone, ASSUMED"}
+    calcining_temperature: {value: 1173.15, unit: K, provenance: assumed, source: "D-004: calcining zone, ASSUMED"}
+    fuel:
+      ultimate:
+        fractions: {C: 0.89, ash: 0.09, moisture: 0.02}
+        provenance: assumed
+        source: "D-005: metallurgical coke, H, N, S neglected (ASSUMED simplification, SO2 not estimated)"
+      lhv: {value: 29.11, unit: MJ/kg, provenance: assumed, source: "D-005: 0.89 x 32.76 MJ/kg C (graphite to CO2, -393.5 kJ/mol) less moisture evaporation"}
+      temperature: {value: 288.15, unit: K, provenance: assumed, source: "ambient"}
+    air:
+      excess: {value: 1.10, unit: "1", provenance: assumed, source: "D-004: lambda ASSUMED for a mixed-feed shaft kiln"}
+      temperature: {value: 288.15, unit: K, provenance: assumed, source: "ambient"}
+    losses:
+      fraction: {value: 0.05, unit: "1", provenance: assumed, source: "D-004: wall and opening losses ASSUMED 5 % of the heat input"}

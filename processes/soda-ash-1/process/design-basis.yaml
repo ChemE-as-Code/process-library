@@ -1,8 +1,55 @@
 # What the plant must do. Schema: `cheme schema design_basis`.
-schema: cheme/design_basis/v1
-capacity: {}
-feeds: []
-products: []
-utilities: []
-site: {}
-assumptions: []
+# Soda ash by the Solvay ammonia-soda process, issue ChemE-as-Code/process-library#177.
+# Values marked ASSUMED are engineering choices of this concept study, not owner, licensor or
+# vendor data; every decision is in DESIGN.md. The case is a per-unit-product normalisation for
+# the inventory, not a claim about a commercial plant (issue #177 scope notes).
+capacity:
+  basis: light soda ash at the calciner outlet (before cooling, storage and densification)
+  product_t_per_d: 1000                 # ASSUMED (D-002): normalisation basis, not an owner figure
+  product_kg_per_h: 41666.7             # = 1000 t/d / 24 h
+  operating_hours_per_year: 8000        # ASSUMED (D-002)
+  turndown_percent: null                # not set at this stage
+feeds:
+  - name: Purified brine at battery limits
+    source_of_values: ASSUMED (D-003)
+    composition_wt_percent: {NaCl: 26.0, H2O: 74.0}   # ASSUMED (D-003): near saturation at ambient (NaCl solubility ~35.9 g/100 g water at 20 C, i.e. ~26.4 wt%)
+    impurities: "Ca and Mg removed upstream (brine purification outside the boundary, D-003); sulfate not modelled"
+    conditions: {pressure_kPa_a: 300, temperature_K: 293.15}   # ASSUMED
+  - name: Limestone
+    source_of_values: ASSUMED (D-005), no quarry assay
+    composition_wt_percent: {CaCO3: 96.0, SiO2_and_other_insolubles: 3.0, moisture: 1.0}   # ASSUMED
+    size: kiln grade (lump), screened (not modelled)
+  - name: Coke (kiln fuel, charged with the limestone)
+    source_of_values: ASSUMED (D-005)
+    ultimate_wt_percent: {C: 89.0, ash: 9.0, moisture: 2.0}   # ASSUMED; H, N, S neglected
+    lhv_MJ_per_kg: 29.11                # derived from the carbon content (D-005)
+  - name: Ammonia make-up (liquid, anhydrous)
+    flow: equal to the losses, 2.0 kg/t soda ash (ASSUMED, D-006)
+  - name: Process water (slaking, cake wash)
+    quality: not specified (ASSUMED fresh water)
+products:
+  - name: Light soda ash
+    purity: "Na2CO3 99.5 wt%, NaCl 0.5 wt% (ASSUMED design grade, D-002)"
+    delivery: {temperature_K: 433.15, battery_limit: calciner outlet; cooling, storage, densification outside}
+  - name: Distiller waste (CaCl2 liquor with suspended CaCO3, Ca(OH)2 and insolubles)
+    use: "to settling ponds / disposal (outside the boundary); CaCl2 recovery not included (D-001)"
+  - name: Vent gas
+    use: "to atmosphere after the tower-gas scrubber: air nitrogen, unabsorbed kiln CO2, traces of NH3"
+utilities:
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: ASSUMED (D-008)}
+  - {name: LP steam, pressure_kPa_a: 450, saturation_K: 420.8, use: live steam to the ammonia distiller, note: ASSUMED level (D-008)}
+  - {name: HP steam, pressure_kPa_a: 3000, saturation_K: 507.0, use: steam-heated calciner (condensate returned), note: ASSUMED level (D-008)}
+  - {name: Electric power, use: kiln gas and calciner CO2 compressors, auxiliaries, note: "ASSUMED electric drives; steam turbines are usual in integrated soda ash plants (D-008)"}
+site:
+  location: ASSUMED generic site, not chosen
+  atmospheric_pressure_kPa: 101.325     # ASSUMED
+  design_ambient_K: 288.15              # ASSUMED
+assumptions:
+  - "ASSUMED sodium utilisation of the carbonating towers 0.73 (NaHCO3 precipitated / NaCl fed), inside the range the Solvay literature reports (D-006)."
+  - "ASSUMED NH3/NaCl 1.10 mol/mol in the ammoniated brine; CO2/free NH3 1.0 in the mother liquor (D-006)."
+  - "ASSUMED washed cake 15 wt% liquid; wash water 0.30 kg/kg dry cake; NH4Cl fully washed out (D-006)."
+  - "ASSUMED ammonia losses 2.0 kg/t soda ash: 0.5 to the vent, 1.5 with the distiller waste (D-006)."
+  - "ASSUMED lime 5 % over the NH4Cl stoichiometry; degree of calcination 0.95; milk of lime 20 wt% Ca(OH)2 (D-004, D-006)."
+  - "ASSUMED kiln heat use 4.0 GJ/t lime (mid-range of the lime BREF for mixed-feed shaft kilns), combustion air excess 1.10 (D-004)."
+  - "ASSUMED duties from a lumped enthalpy balance on formation enthalpies and constant heat capacities; compressor isentropic efficiency 0.75; auxiliary power 35 kWh/t (D-008)."
+  - "No electrolyte thermodynamics: liquors are carried as neutral molecules; no property package covers the streams (D-007)."

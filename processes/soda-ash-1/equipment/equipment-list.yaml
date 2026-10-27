@@ -1,3 +1,35 @@
 # Equipment list. Schema: `cheme schema equipment`.
-schema: cheme/equipment/v1
-equipment: []
+# Concept stage: the items the PFD (process/flowsheet.yaml) needs, no P&ID yet (no sheet).
+# Duties and flows from scripts/solvay_balance.py (D-006, D-008), all ASSUMED; trains,
+# spares, sizes, design conditions and materials come at basic engineering (D-009).
+equipment:
+  # ---- lime kiln, kiln gas and slaking (block KLN)
+  - {tag: R-101, type: Furnace, service: "Lime kiln (mixed-feed shaft, limestone and coke)",
+     notes: "45.1 t/h limestone, 3.65 t/h coke, 26.9 t/h burnt lime; heat use 4.0 GJ/t lime (BREF range 3.4-4.7, D-004). Several kilns in parallel in practice; number not chosen. ASSUMED."}
+  - {tag: M-101, type: Mixer, service: Lime slaker (milk of lime),
+     notes: "26.9 t/h burnt lime + 125 t/h water -> 152 t/h milk of lime at 20 wt% Ca(OH)2, ~353 K; grit removal not modelled (D-006). ASSUMED."}
+  - {tag: E-101, type: ProcessColumn, service: Kiln gas washer-cooler (direct contact),
+     notes: "62.8 t/h kiln gas 393 -> 313 K, ~1.3 MW to cooling water; dust removal (D-006). ASSUMED."}
+  - {tag: K-101, type: CentrifugalCompressor, service: Kiln gas compressor (with inter- and aftercoolers),
+     notes: "101 -> 350 kPa(a), 62.8 t/h; ~2.6 MW shaft at isentropic efficiency 0.75 (D-008, ASSUMED). Machine type (turbo or reciprocating) open."}
+  # ---- brine ammoniation (block ABS)
+  - {tag: T-201, type: ProcessColumn, service: Tower-gas scrubber (brine wash of the carbonating tower exit gas),
+     notes: "Recovers NH3 from 46.4 t/h tower gas into the fresh brine; vent NH3 0.5 kg/t (D-006, ASSUMED)."}
+  - {tag: A-201, type: ProcessColumn, service: Ammonia absorber (with coolers),
+     notes: "Absorbs distiller gas and make-up NH3 into the brine; ~22.3 MW to cooling water; NH3/NaCl 1.10 mol/mol in the outlet (D-006, ASSUMED)."}
+  # ---- carbonation (block CRB)
+  - {tag: C-301, type: ProcessColumn, service: "Carbonating towers (cooled, in series and in cleaning rotation)",
+     notes: "290 t/h ammoniated brine, 80.6 t/h CO2 gases; 65.7 t/h NaHCO3 precipitated, sodium utilisation 0.73; ~21.2 MW to cooling water (D-006, D-008). Number of towers and the cleaning cycle open. ASSUMED."}
+  # ---- filtration (block FIL)
+  - {tag: F-401, type: Filter, service: Rotary vacuum filter with cake wash,
+     notes: "325 t/h slurry; 77.3 t/h washed cake at 15 wt% liquid; 19.7 t/h wash water (D-006). The auxiliary power of the plant (Q5, 35 kWh/t) is booked here (D-008). ASSUMED."}
+  # ---- calcination (block CAL)
+  - {tag: R-501, type: HeatedSurfaceDryer, service: Steam-heated rotary calciner (light soda ash),
+     notes: "77.3 t/h wet cake -> 41.7 t/h light soda ash at ~433 K; ~28.2 MW from HP steam at 3000 kPa(a) (D-008). Product cooler and dense-ash plant outside the boundary (D-002). ASSUMED."}
+  - {tag: E-501, type: TubularHeatExchanger, service: Calciner gas cooler-condenser,
+     notes: "35.7 t/h calciner gas 423 -> 313 K, ~13.1 MW to cooling water; condensate (weak liquor) to the distiller (D-006). ASSUMED."}
+  - {tag: K-501, type: CentrifugalCompressor, service: Calciner CO2 compressor (with inter- and aftercoolers),
+     notes: "101 -> 350 kPa(a), 17.8 t/h; ~0.58 MW shaft at isentropic efficiency 0.75 (D-008). ASSUMED."}
+  # ---- ammonia recovery (block DST)
+  - {tag: D-601, type: ProcessColumn, service: "Ammonia distiller (heater, prelimer, lime still; live steam)",
+     notes: "267 t/h filtrate + 152 t/h milk of lime + 17.9 t/h weak liquor + 78.5 t/h LP steam; 49.3 t/h distiller gas to A-201, 466 t/h distiller waste (D-006, D-008). Heater, prelimer and still lumped. ASSUMED."}

@@ -1,34 +1,75 @@
-# Process Atlas manifest. Copy this folder to processes/<your-id>/ and edit.
-# Schema: schemas/process.schema.json (cheme-as-code/process/v1). Every slug used under
-# chemistry must exist in chemicals/chemicals.yaml; add new chemicals there in the same change.
-# A product in a defined state and purity names its registry grade: `chemical: oxygen/lox`.
+# Process Atlas manifest of soda-ash-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here.
 schema: cheme-as-code/process/v1
-id: my-process                  # = folder name; lowercase slug; never rename once listed
-title: Short descriptive process title
+id: soda-ash-1
+title: Soda ash by the Solvay ammonia-soda process (1000 t/d light ash, concept)
 summary: >-
-  One or two sentences for cards and search results: what goes in, what comes out, at what scale.
-# description: |                # optional longer Markdown for the process page
-families: [hydrogen]            # slugs of taxonomy/families.yaml (ISIC-mapped), e.g. ammonia, methanol, air-separation
-keywords: []
-# facets:                      # optional, for filtering in the Atlas; list only what the design has
-#   feedstock_basis: [water, electricity]   # fossil | biogenic | atmospheric | mineral | recycled | water | electricity
-#   product_classes: [fuels]               # slugs, e.g. industrial-gases, fuels, fertilizers, polymers, chemicals, materials
-#   unit_operations: [electrolysis]        # slugs, e.g. cryogenic-distillation, adsorption, compression, reaction, electrolysis
-#   region: generic                        # e.g. generic, EU
-maturity: concept               # concept | screening | basic-engineering | detail-engineering | operating-reference
+  Synthetic soda ash from brine and limestone by the Solvay process: lime kiln, brine
+  ammoniation, carbonation, filtration, steam calcination and ammonia recovery with milk of
+  lime; CaCl2 distiller waste and kiln CO2 explicit. Concept stage, assumed basis.
+description: |
+  Limestone is burnt with coke in a mixed-feed shaft kiln; the kiln gas (about 37 mol% CO2) and
+  the CO2 recovered from the calciner are compressed to the carbonating towers. Purified brine
+  is ammoniated with the gas of the ammonia distiller and carbonated; sodium bicarbonate
+  precipitates, is filtered, washed and calcined with HP steam to light soda ash. The mother
+  liquor is distilled with milk of lime from the slaker and live steam; the ammonia returns to
+  the absorber, the CaCl2 liquor leaves as distiller waste. Overall CaCO3 + 2 NaCl -> Na2CO3 +
+  CaCl2.
+
+  All values are concept estimates from an independent sequential balance with assumed
+  design parameters (sodium utilisation, ammonia ratio, cake moisture, losses): no
+  electrolyte or solid-liquid equilibrium is calculated. The kiln heat use is the lime BREF
+  value for the kiln type. See DESIGN.md for every assumption and gated step.
+families: [soda-ash]
+keywords: [soda ash, sodium carbonate, Solvay process, ammonia-soda, lime kiln, carbonation, sodium bicarbonate, calcination, ammonia recovery, calcium chloride, distiller waste]
+facets:
+  feedstock_basis: [mineral]
+  product_classes: [chemicals]
+  unit_operations: [reaction, absorption, crystallization, filtration, calcination, distillation, compression]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest; every design parameter is assumed.
+maturity: concept
 validation:
-  status: unreviewed            # unreviewed | internally-reviewed | peer-reviewed | industry-validated
+  status: unreviewed
+  notes: >-
+    Concept BFD/PFD with closed mass, component and element balances (cheme validate, cheme
+    process streams: 6 blocks, 12 steps, reactive balances by extents). All flows and
+    compositions are specified values of an independent balance (scripts/solvay_balance.py) on
+    assumed design parameters; no electrolyte speciation or reciprocal-salt equilibrium is
+    calculated (core #364), and no property package covers the liquors and solids, so energy
+    closure is not evaluable in core: the duties are a lumped script estimate. The kiln uses
+    the specific-energy fallback of cheme process furnace (Cantera not available in this
+    installation). The gate-to-gate LCI is preliminary, with every background unmapped.
+    Not reviewed.
 chemistry:
   inputs:
-    - {chemical: water, role: feedstock}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Process water for slaking and cake washing (the brine water enters with feed:BRINE)"}
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Kiln combustion air"}
   outputs:
-    - {chemical: hydrogen, role: main-product}
+    - {chemical: wastewater, role: waste, inventory_key: "product:DSW", note: "Distiller waste: CaCl2 and NaCl liquor with suspended CaCO3, Ca(OH)2 and insolubles, ~11 t/t soda ash. The main product (soda ash) and the raw materials (brine, limestone, coke, ammonia) have no registry entries yet"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:VENT", note: "Unabsorbed kiln CO2 (calcination and coke) in the vent gas, ~0.31 t/t soda ash"}
   utilities:
-    - {chemical: electricity, role: utility}
-# basis: {capacity: "1000 t/d product", operating_hours_per_year: 8000}
-# lca: {source: auto}           # auto: read lca/ of a ChemE-as-Code project; none: no LCA
-# references:
-#   - {title: "Author et al. (2024) Title", doi: 10.xxxx/xxxxx}
-# maintainers:
-#   - {name: Your Name, orcid: 0000-0000-0000-0000}
-# repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/my-process, access: private}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 450 kPa(a), live steam to the distiller"}
+    - {chemical: steam, role: utility, inventory_key: "feed:HPS", note: "HP steam 3000 kPa(a) to the calciner"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED)"}
+basis:
+  capacity: "1000 t/d light soda ash (ASSUMED normalisation basis)"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
+lca: {source: auto}
+references:
+  - {title: "Thieme, C. (2000) Sodium Carbonates. Ullmann's Encyclopedia of Industrial Chemistry (route reference lead; production sections not audited in this run)", doi: 10.1002/14356007.a24_299}
+  - {title: "European Commission JRC (2013) Best Available Techniques Reference Document for the Production of Cement, Lime and Magnesium Oxide, Schorcht et al., EUR 26129 EN, Table 2.23 (kiln heat use by type)", doi: 10.2788/12850}
+  - {title: "European Commission (2007) Reference Document on Best Available Techniques for the Manufacture of Large Volume Inorganic Chemicals - Solid and Others industry (soda ash chapter; consumption and emission ranges to audit, not read in this run)"}
+  - {title: "Wagman, D. D. et al. (1982) The NBS tables of chemical thermodynamic properties. J. Phys. Chem. Ref. Data 11, Suppl. 2 (formation enthalpies; values to be checked)"}
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/soda-ash-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0
