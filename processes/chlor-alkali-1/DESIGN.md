@@ -233,6 +233,12 @@ kg (1.120 kg NaOH), hydrogen gas 43.4 g (29.5 g H2), spent acid 24.8 g, wastewat
 chilled-water heat 0.012 kWh. Mass, element and carbon balances close (`cheme assess lca
 --coverage`); in 3.795 kg = out 3.795 kg per kg product gas, the flowsheet's 47 830 kg/h
 over 12 602 kg/h. Classification: partial (15 gaps: every background declared missing).
+`lca/results.md` therefore has no impact total; the 0 in its allocation comparison is the sum
+over no characterised exchange, not a result. "allocation: none (CL2 100 %)" there means the
+unallocated inventory is reported per kg Cl2, not that Cl2 carries the burden in a study.
+
+The line list stays empty at this stage: the PFD carries stream numbers, not line numbers;
+lines and nominal diameters come with the P&IDs (next stage).
 
 ## 7. Open inputs and library items
 
