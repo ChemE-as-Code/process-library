@@ -1,0 +1,49 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Methanol synthesis loop and crude-methanol purification of a natural-gas plant, issue
+# ChemE-as-Code/process-library#118. Reforming is outside the boundary: the make-up synthesis
+# gas is a boundary feed (DESIGN.md D-001). Values marked ASSUMED are engineering choices of
+# this concept study, not client or licensor data; every decision is in DESIGN.md.
+capacity:
+  basis: Grade AA methanol to storage (product stream incl. its water)
+  product_t_per_d: 2500               # ASSUMED (D-002): a single-train world-scale size, chosen, not a client figure
+  product_kg_per_h: 104166.7          # = 2500 t/d / 24 h
+  operating_hours_per_year: 8400      # ASSUMED
+  turndown_percent: 60                # ASSUMED, not checked yet
+feeds:
+  - name: Make-up synthesis gas (from the reformer, outside the boundary)
+    source_of_values: ASSUMED (D-004); a combined-reforming gas with a stoichiometric number slightly above 2
+    composition_mol_percent: {H2: 68.0, CO: 21.5, CO2: 7.5, CH4: 2.5, N2: 0.5}   # ASSUMED (D-004), dry
+    stoichiometric_number: 2.09       # SN = (H2 - CO2) / (CO + CO2), from the composition above
+    water: dry after the reformer gas cooling train's condensate removal (ASSUMED, D-004)
+    sulfur_and_chlorides: "below the copper catalyst's poison limits, to be specified with the catalyst vendor (open input, D-004)"
+    conditions: {pressure_kPa_a: 2600, temperature_K: 313.15}   # ASSUMED (D-004): battery limit after the reformer gas cooling
+    flow: set by the product rate through the loop balance (D-006); see stream S1 of process/flowsheet.yaml
+products:
+  - name: Methanol, US Federal Specification O-M-232 Grade AA
+    purity: "methanol >= 99.85 wt%, water <= 0.10 wt% (O-M-232 Grade AA, D-002; the full specification (acetone, ethanol, acidity, permanganate time, ...) is not modelled: no by-products in the model, D-005)"
+    design_target: water 0.05 wt% (ASSUMED margin below the specification, D-008)
+    delivery: {pressure_kPa_a: 300, temperature_K: 313.15, battery_limit: day tanks / storage (outside the boundary)}
+  - name: Purge gas
+    use: fuel of the reformer furnace (outside the boundary); hydrogen recovery not included (D-007)
+  - name: LP flash gas and topping-column off-gas
+    use: fuel gas header (outside the boundary)
+  - name: Refining column bottoms water
+    use: to wastewater treatment or reuse as process water upstream (outside the boundary; D-008)
+utilities:
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: ASSUMED; air coolers for the loop cooler are a basic-engineering choice (D-009)}
+  - {name: LP steam, pressure_kPa_a: 450, saturation_K: 420.8, use: column reboilers, note: ASSUMED level (D-009)}
+  - {name: MP steam raised in the converter, pressure_kPa_a: 2800, saturation_K: 503.4, use: export to the reforming area or a turbine, note: ASSUMED level (D-003)}
+  - {name: Electric power, use: make-up compressor and circulator drives, note: "ASSUMED electric drives; steam turbine drives are the usual alternative (D-010)"}
+site:
+  location: ASSUMED generic site, not chosen
+  design_ambient_K: 303.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325   # ASSUMED
+assumptions:
+  - "ASSUMED loop: boiling-water (isothermal) converter on Cu/ZnO/Al2O3, inlet 498.15 K and 8100 kPa(a), outlet 528.15 K and 7900 kPa(a) (D-003)."
+  - "ASSUMED converter outlet at chemical equilibrium of CO hydrogenation and water-gas shift evaluated 10 K above the outlet temperature, Peng-Robinson fugacity; a model basis, not kinetics (D-005)."
+  - "ASSUMED recycle ratio 4 (recycle/make-up, molar); the purge fraction follows from it (D-007)."
+  - "ASSUMED HP separator 313.15 K, 7500 kPa(a); LP flash 600 kPa(a) (D-008)."
+  - "ASSUMED topping column reflux 0.3 kmol per kmol feed, refining column reflux ratio 1.5, bottoms 100 ppm(wt) methanol (D-008)."
+  - "ASSUMED compressor isentropic efficiency 0.75 (D-010)."
+  - "ASSUMED no by-products (DME, higher alcohols, methyl formate, ketones): not modelled until sourced selectivities exist (D-005)."
+  - "All flows, temperatures and duties are concept estimates from an unqualified property method (D-006); accuracy not stated."

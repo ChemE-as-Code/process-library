@@ -1,0 +1,156 @@
+# Components and templates of the process. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol,
+# normal_boiling_point in K at 101.325 kPa.
+schema: cheme/process/v1
+kind: materials
+components:
+  - id: CO
+    name: Carbon monoxide
+    formula: CO
+    cas: 630-08-0
+    molar_mass: 28.0101
+    critical:
+      Tc: 132.86
+      Pc: 3494.0
+      omega: 0.0497
+      source: 'chemicals: Tc HEOS, Pc HEOS, omega HEOS'
+    ideal_gas:
+      dHf_298: -110525.0
+      S_298: 197.7
+      cp_R:
+      - 3.84412
+      - -0.00255649
+      - 6.00585e-06
+      - -4.43188e-09
+      - 1.12889e-12
+      temperature_range:
+      - 298.15
+      - 1300.0
+      source: 'chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 298.15-1300 K (max deviation
+        0.07%)'
+  - id: H2
+    name: Hydrogen
+    formula: H2
+    cas: 1333-74-0
+    molar_mass: 2.0159
+    critical:
+      Tc: 33.145
+      Pc: 1296.4
+      omega: -0.219
+      source: 'chemicals: Tc HEOS, Pc HEOS, omega HEOS'
+    ideal_gas:
+      dHf_298: 0.0
+      S_298: 130.7
+      cp_R:
+      - 3.14694
+      - 0.00211526
+      - -4.44911e-06
+      - 4.03828e-09
+      - -1.21687e-12
+      temperature_range:
+      - 298.15
+      - 1300.0
+      source: 'chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 298.15-1300 K (max deviation
+        0.34%)'
+  - id: CH3OH
+    name: Methanol
+    formula: CH4O
+    cas: 67-56-1
+    molar_mass: 32.0419
+    critical:
+      Tc: 513.38
+      Pc: 8215.85
+      omega: 0.5625
+      source: 'chemicals: Tc HEOS, Pc HEOS, omega HEOS'
+    ideal_gas:
+      dHf_298: -200700.0
+      S_298: 239.9
+      cp_R:
+      - 4.714
+      - -0.006986
+      - 4.211e-05
+      - -4.443e-08
+      - 1.535e-11
+      temperature_range:
+      - 50.0
+      - 1000.0
+      source: 'chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)'
+  - id: CO2
+    name: Carbon dioxide
+    formula: CO2
+    cas: 124-38-9
+    molar_mass: 44.0095
+    critical:
+      Tc: 304.1282
+      Pc: 7377.3
+      omega: 0.22394
+      source: 'chemicals: Tc HEOS, Pc HEOS, omega HEOS'
+    ideal_gas:
+      dHf_298: -393474.0
+      S_298: 213.8
+      cp_R:
+      - 2.27924
+      - 0.00965397
+      - -9.00782e-06
+      - 4.60829e-09
+      - -1.00224e-12
+      temperature_range:
+      - 298.15
+      - 1300.0
+      source: 'chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo HEOS_FIT 298.15-1300 K (max deviation
+        0.09%)'
+  - id: H2O
+    name: Water
+    formula: H2O
+    cas: 7732-18-5
+    molar_mass: 18.0153
+    critical:
+      Tc: 647.096
+      Pc: 22064.0
+      omega: 0.3443
+      source: 'chemicals: Tc HEOS, Pc HEOS, omega HEOS'
+    ideal_gas:
+      dHf_298: -241822.0
+      S_298: 188.8
+      cp_R:
+      - 3.95742
+      - -0.000363702
+      - 2.42862e-06
+      - -1.27073e-09
+      - 2.12761e-13
+      temperature_range:
+      - 298.15
+      - 1500.0
+      source: 'chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo HEOS_FIT 298.15-1500 K (max deviation
+        0.17%)'
+  # Inerts of the loop (from the reformer: unconverted methane, nitrogen from the natural gas;
+  # D-004). Data printed by `cheme chemistry thermo methane nitrogen`.
+  - id: CH4
+    name: Methane
+    formula: CH4
+    cas: 74-82-8
+    molar_mass: 16.042
+    normal_boiling_point: 111.67
+    critical: {Tc: 190.564, Pc: 4599.2, omega: 0.01142, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -74534.0, S_298: 186.3, cp_R: [4.568, -0.008975, 3.631e-05, -3.407e-08, 1.091e-11], temperature_range: [50, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: N2
+    name: Nitrogen
+    formula: N2
+    cas: 7727-37-9
+    molar_mass: 28.013
+    normal_boiling_point: 77.36
+    critical: {Tc: 126.192, Pc: 3395.8, omega: 0.0372, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 0.0, S_298: 191.6, cp_R: [3.539, -0.000261, 7e-08, 1.57e-09, -9.9e-13], temperature_range: [50, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+templates:
+  # One component set for every stream of the loop and the purification (D-005: by-products
+  # such as dimethyl ether, higher alcohols, methyl formate and ketones are not modelled yet).
+  - {id: mixture, title: Synthesis gas / crude methanol, components: [H2, CO, CO2, CH4, N2, CH3OH, H2O]}
+# property_method is a placeholder until `cheme process props --fill` records the method: its
+# benchmarked property package, package versions and application range. Packages:
+# air-pr-chemsep (N2/O2/Ar, 77-315 K, vapour 100-3200 kPa(a), liquid and two-phase 100-600
+# kPa(a)) and syngas-pr-vapor (H2/N2/Ar/CH4/CO/CO2 mixtures and pure NH3, vapour only, in
+# benchmarked temperature-pressure boxes). `cheme process props --coverage` shows which applies
+# to each stream; `package: <id>` here chooses one.
+property_method:
+  adapter: thermo
+  status: placeholder
