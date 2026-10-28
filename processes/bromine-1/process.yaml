@@ -1,0 +1,84 @@
+# Process Atlas manifest of bromine-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: bromine-1
+title: Bromine from bromide brine by chlorine oxidation and steaming-out (Smackover-type brine)
+summary: >-
+  A hot Smackover-type brine (4 300 mg/kg bromide) is chlorinated and steam-stripped in a
+  steaming-out tower; the bromine is condensed, separated from bromine water, freed of chlorine
+  and dried with sulfuric acid; the tail brine is neutralised with lime and reinjected. Chlorine
+  from chlor-alkali-1. Concept stage, 30 kt/a Br2, assumed basis.
+description: |
+  Brine from the brine field enters the top of a packed steaming-out tower at about 195 degF;
+  chlorine oxidises 95.5 % of its bromide to bromine and live LP steam strips the bromine
+  overhead. The overhead is condensed and decanted: the bromine water returns to the tower, the
+  crude bromine goes to a stripping column that returns its chlorine to the tower, and the
+  bromine is dried with 98 wt-% sulfuric acid. The chlorine beyond the bromide's demand is taken
+  by the brine's hydrogen sulfide (the representative side reaction); the acid it forms is
+  neutralised with lime before the tail brine is reinjected.
+
+  All values are concept estimates from an independent balance script, given to cheme as
+  assumed values; the brine, its temperatures, the recovery, the chlorine use and the steam use
+  are anchored on US 4 719 096 and the Arkansas Geological Survey. No ChemE-as-Code property
+  method covers this Ca/Na chloride brine with bromine (core#364), so energy closure in core is
+  not evaluable. See DESIGN.md of the engineering files for every assumption and gated step.
+families: [inorganic-chemicals]
+keywords: [bromine, brine, Smackover, steaming-out, Kubierschky, chlorine oxidation, bromide, steam stripping, sulfuric acid drying, tail brine reinjection]
+facets:
+  feedstock_basis: [mineral]
+  product_classes: [chemicals]
+  unit_operations: [reaction, stripping, condensation, distillation, absorption]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest; cheme maturity reaches no level
+# (every stream value is an assumed output of scripts/balance.py), see validation.notes and
+# DESIGN.md D-006.
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances on every block and step
+    (cheme validate, cheme process streams, reaction extents). The stream values come from the
+    independent script scripts/balance.py and are given to cheme as assumed values. Checks
+    against the sources: chlorine 0.571 kg/kg Br2 (US 4 719 096: 0.55-0.60), tail brine bromide
+    189 mg/kg (50-200 ppm), recovery 1.73 lb Br2 per barrel (AGS: 1.5-1.8); the live steam
+    from the script's tower energy balance, 5.82 kg/kg Br2, is 2 % above the 5.2-5.7 lb/lb that
+    US 4 719 096 reports for conventional towers. cheme maturity: calculation maturity none
+    (every stream value assumed from scripts/balance.py, reactors and separators specified); the
+    concept claim, the lowest level the manifest offers, exceeds this evidence
+    (cheme.maturity-claim-exceeds). Energy closure is not evaluable in core (no
+    property package for the brine, core#364). The preliminary gate-to-gate LCI closes in mass
+    and elements; every background is a gap. Not reviewed. The chemicals registry has no
+    bromine, chlorine, brine, sulfuric acid or hydrated lime entry yet, so the main product and
+    those feeds are not listed under chemistry (open library item).
+chemistry:
+  inputs:
+    # placeholder identity: the bromide brine (feed:BRINE) has no registry entry; no
+    # inventory_key, since feed:BRINE is brine (69 wt-% water), not water
+    - {chemical: water, role: feedstock, note: "Stands for the aqueous bromide brine (feed:BRINE, 243 kg brine per kg Br2, 4 300 mg/kg bromide, 31 wt-% NaCl/CaCl2), which has no registry entry yet; nor have the chlorine (feed:CL2, 0.571 kg/kg, from chlor-alkali-1), sulfuric acid 98 % (feed:H2SO4, 2.1 g/kg) and hydrated lime (feed:LIME, 0.132 kg/kg)"}
+  outputs:
+    - {chemical: wastewater, role: waste, inventory_key: "product:TAILB", note: "Neutralised tail brine, 249 kg/kg Br2, reinjected into the brine formation (not a surface discharge). The main product bromine (product:BR2, 99.96 wt-%) has no registry entry yet; spent sulfuric acid 80 % (product:SPACID, 2.6 g/kg) goes to treatment"}
+  utilities:
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "Live LP steam 350 kPa(a), 5.82 kg/kg Br2, injected into the steaming-out tower (condensate leaves with the tail brine); the C-104 reboiler takes 0.016 kWh/kg more (feed:LPH)"}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.032 kWh/kg Br2: brine feed pump and small drives (ASSUMED)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.18 kWh/kg Br2 removed, 25/35 degC (ASSUMED): bromine condenser, C-104 condenser, bromine cooler"}
+basis:
+  capacity: "3 750 kg/h dry bromine = 30 kt/a Br2 (ASSUMED)"
+  operating_hours_per_year: 8000
+  location: generic brine-field site on a Smackover-type brine (southern Arkansas basis), not chosen
+references:
+  - {title: "US 4 719 096 (Ethyl Corp.): Continuous two-stage vacuum process for recovering bromine (Background and Detailed Description: brine constituents, conventional tower temperatures, chlorine and steam per lb Br2, recovery)", url: "https://patents.google.com/patent/US4719096"}
+  - {title: "US 4 725 425 (Ethyl Corp.): Continuous vacuum process for recovering bromine (feed brine 2 000-6 000 ppm NaBr, 180-210 degF)", url: "https://patents.google.com/patent/US4725425"}
+  - {title: "Arkansas Geological Survey: Bromine (Brine) (bromide 4 000-4 600 ppm, 1.5-1.8 lb Br per barrel)", url: "https://www.geology.arkansas.gov/minerals/industrial/bromine-brine.html"}
+  - {title: "Bromine. Ullmann's Encyclopedia of Industrial Chemistry, Wiley-VCH (route identity from issue #136; full text not read)", doi: 10.1002/14356007.a04_391.pub2}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/bromine-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0
