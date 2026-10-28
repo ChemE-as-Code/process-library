@@ -1,0 +1,23 @@
+# acetaldehyde-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# Every other exchange of this internal process stays unmapped (a reported gap, ADR 0022); the
+# background each should connect to is described in lca/lca.yaml (`missing:`), DESIGN.md D-011.
+# Ethylene, hydrochloric acid and acetaldehyde have no chemicals-registry entry yet (listed in
+# DESIGN.md D-011 for the consolidated registry PR), so their exchanges stay unmapped anyway.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  # The supplier is not decided (DESIGN.md D-001, D-011): the build would otherwise pick an Atlas
+  # producer by itself (asu-1 for oxygen, a steam producer for the live steam). Until a person
+  # chooses, no Atlas link; then this override goes and lca/lca.yaml links the chosen dataset.
+  "feed:OXY":
+    atlas: false
+    source: "oxygen supplier undecided: processes/asu-1 (gaseous O2 at 6 bar(a) would need its product compression) or a merchant pipeline (D-001)"
+  "feed:LPS":
+    atlas: false
+    source: "live LP steam supplier undecided (site boiler, processes/utility-steam-ng-boiler, or a site network) (D-009)"
+  "feed:MPS":
+    atlas: false
+    source: "direct MP steam supplier undecided (site boiler or site network) (D-009)"
