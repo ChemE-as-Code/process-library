@@ -62,7 +62,8 @@ boundary feed. BREF 7.2.2.1 requires very pure ethylene and oxygen.
 Decision (all ASSUMED inside the cited ranges):
 - reactor inlet 30 mol% C2H4, 8 mol% O2, 1 mol% CO2, methane the balance (with the
   accumulated argon, 7.9 mol%, and ethane, 0.9 mol%); 2200 kPa(a) inlet, outlet 523 K
-  (BREF 7.2.1.1.1: 200-300 C, 15-25 bar);
+  (BREF 7.2.1.1.1: 200-300 C, 15-25 bar); the mixed feed gas (333 K) is preheated to 483 K in
+  the E-101 feed/effluent exchanger (step E100, 40 K approach to the effluent; energy in D-008);
 - per-pass ethylene conversion 9 % and EO selectivity 85 mol% (BREF 7.2.1.1.1: 8-10 % and
   75-90 % for the O2 process); in the model each reaction converts a fixed fraction of the inlet
   ethylene (EOX 0.0765, COMB 0.0135, process/reactions.yaml), the rest of the ethylene recycles;
@@ -87,7 +88,10 @@ Check against the BREF (Table 7.6, 7.3.6.1): ethylene 761 kg/t EO (range 700-850
 Decision (ASSUMED):
 - water:EO 20 mol/mol at the glycol reactor inlet, full EO conversion, adiabatic pipe reactor
   at 3000 kPa(a), 423 K inlet, about 478 K outlet (BREF 7.2.2.5: 150-250 C, 10-40 barg, full
-  conversion, no catalyst; SHEH names 10-25 mol/mol);
+  conversion, no catalyst; SHEH names 10-25 mol/mol); the mixed feed (aqueous EO 313 K, make-up
+  303 K, recycle water 393 K) comes to about 384 K and is heated to 423 K in E-401 with MP steam
+  (D-008); the recycle water keeps the 393 K of the collected condensate across the bleed
+  splitter;
 - product split from a consecutive-reaction model (EO + water -> MEG, EO + MEG -> DEG, EO + DEG
   -> TEG, EO + TEG -> heavies, second order, integrated to full EO conversion in
   scripts/eg_balance.py) with the rate of EO with any glycol taken as 2.0 times its rate with
@@ -102,7 +106,26 @@ Decision (ASSUMED):
   0.2 wt% TEG; TEG column loses 5 % of its TEG to the heavies, TEG product 0.5 wt% heavies.
 Result: heavy glycols residue 15 kg/h (0.37 kg/t EO), below the BREF range of 1.4-21 kg/t EO
 (7.3.6.4), which also counts the EO plant's glycol purges that this model leaves out (D-001):
-the residue is a lower bound.
+the residue is a lower bound. At the BREF lower bound (1.4 kg/t EO) it would be 55 kg/h,
+1.1 g/kg MEG instead of 0.29 g/kg: still below 0.2 % of the product mass, so the inventory's
+waste to incineration is understated but the product split and the allocation are not
+materially affected (review 2026-10-28 #7).
+Sensitivity (review 2026-10-28 #3; `python3 scripts/eg_balance.py build` prints it): the base
+case sits at the optimistic end (relative rate 2.0 gives 92 wt% MEG, the top of the BREF
+range; selectivity 85 % in 75-90 %). Rerunning the balance:
+
+| relative rate | EO selectivity | C2H4 kg/kg MEG | MEG wt% of glycols | MEG mass share (allocation) | heavies kg/t EO | MP steam import GJ/t MEG |
+|---|---|---|---|---|---|---|
+| 2.0 (base) | 0.85 | 0.596 | 92.0 | 92.0 % | 0.37 | 3.95 |
+| 3.0 | 0.85 | 0.623 | 88.5 | 88.6 % | 0.92 | 4.11 |
+| 2.0 | 0.80 | 0.633 | 92.0 | 92.0 % | 0.37 | 2.64 |
+| 3.0 | 0.80 | 0.662 | 88.5 | 88.6 % | 0.92 | 2.74 |
+
+Ethylene per kg MEG rises by up to 11 % across these cases (1.51 t MEG/t C2H4 at 3.0 and 80 %,
+below the vendor's 1.53-1.70), and the MEG share falls to 88.6 %. The steam import falls with
+the selectivity because more combustion raises more steam in R-101. The relative rate is
+still unsourced. The LCA carries only the base case: a foreground sensitivity in lca/lca.yaml
+needs a second flowsheet case (`scenarios: case:`), left for when the rate is sourced.
 
 ## D-006 Balance method, emissions and a core issue met (2026-10-28)
 Decision: an independent sequential balance, `python3 scripts/eg_balance.py build`, solves
@@ -142,25 +165,42 @@ simulator (DWSIM also refuses R-101 as written: one conversion reactor with four
 `cheme maturity`).
 
 ## D-008 Energy estimate and steam integration (2026-10-28)
-Decision: duties are a lumped estimate in scripts/eg_balance.py, all ASSUMED: reaction heat of
-R-101 raised as 2800 kPa(a) steam (83.5 MW, about 127 t/h) and used inside the plant (EO
-stripper 36.7 MW, CO2 regenerator 11.5 MW at 3.0 GJ/t CO2, first evaporator effect 22.7 MW,
-MEG column 12.6 MW); MP steam imported for the rest (MEG column 12.9 MW, drying column 7.6 MW,
-DEG 1.9 MW, TEG 0.06 MW): **22.5 MW = 1.62 GJ/t MEG**. Evaporator economy 3.2 (four effects)
-with the hydration heat (23.4 MW) credited; reflux ratios 0.3 (drying), 1.2 (MEG), 2.0 (DEG,
-TEG); latent heats MEG 52, DEG 57, TEG 61 kJ/mol. Power 6.76 MW = 0.135 kWh/kg MEG: recycle
+Decision: duties are a lumped estimate in scripts/eg_balance.py, all ASSUMED (gas cp
+40 kJ/(kmol K); liquid cp water 4.18, EO 2.0, MEG 2.4 kJ/(kg K); heat of mixing neglected).
+- EO reactor and E-101 (revised after review 2026-10-28 #1): the E-101 feed/effluent exchanger
+  heats the mixed feed gas from 333 to 483 K with the reactor effluent (64.5 MW, step E100 and
+  energy stream Q24; effluent 523 to 371 K); the trim cooler takes the effluent to 313 K
+  (24.8 MW to cooling water). Of the R-101 reaction heat (83.5 MW), 17.2 MW heats the gas from
+  483 to 523 K across the reactor; the rest, **66.3 MW (about 101 t/h of 2800 kPa(a) steam)**,
+  is raised on the shell. The first estimate (83.5 MW raised, feed at 333 K) held only for an
+  isothermal reactor and left the feed heating unsupplied.
+- R-101 steam is used inside the plant: EO stripper 36.7 MW, CO2 regenerator 11.5 MW at
+  3.0 GJ/t CO2, and the first evaporator effect with the rest, 18.2 MW.
+- Glycol reactor feed (revised after review #2): the mixed feed is heated from 384 to 423 K in
+  E-401 with **MP steam, 15.2 MW** (Q23). MP steam is the conservative choice. A feed/effluent
+  exchanger on the 478 K reactor effluent, or vapour from the first effect, could serve it, but
+  the effluent heat above the evaporator temperature is already credited to the evaporators
+  (the hydration heat, below), so using it here as well would count it twice.
+- MP steam imported for the rest: first evaporator effect top-up 4.6 MW, glycol feed heater
+  15.2 MW, MEG column 25.6 MW, drying column 7.6 MW, DEG 1.9 MW, TEG 0.06 MW:
+  **54.9 MW = 3.95 GJ/t MEG (1.10 kWh/kg)**, 2.4 times the first estimate (22.5 MW,
+  1.62 GJ/t).
+- Evaporator economy 3.2 (four effects) with the hydration heat (23.4 MW) credited; reflux
+  ratios 0.3 (drying), 1.2 (MEG), 2.0 (DEG, TEG); latent heats MEG 52, DEG 57, TEG 61 kJ/mol. Power 6.76 MW = 0.135 kWh/kg MEG: recycle
 compressor 4.36 MW (1950 -> 2200 kPa(a), isentropic 0.75), lean absorbent pump 1.0 MW, glycol
-feed pump 0.4 MW, auxiliaries 20 kWh/t MEG. Cooling water 171.6 MW = 3.43 kWh/kg MEG (the last
+feed pump 0.4 MW, auxiliaries 20 kWh/t MEG. Cooling water 170.9 MW = 3.42 kWh/kg MEG (the last
 evaporator effect and the lean absorbent cooler dominate; the last-effect vapour is not used as
 LP steam, a heat-integration opportunity the BREF names, 7.2.2.5).
 Reason: no open per-tonne utility data found (BREF 7.3.4 declines to give energy ranges); a
 transparent first estimate is better than none. BREF 7.3.4 confirms the qualitative picture:
 the EO section is a net steam producer, the EG section a net consumer, the balance depends on
 selectivity. Expected accuracy is poor (+/-50 %); the steam import is the difference of two
-large numbers and the most uncertain LCI exchange.
+large numbers and the most uncertain LCI exchange (see the selectivity sensitivity in D-005:
+2.6-4.1 GJ/t MEG).
 
 ## D-009 Lists (2026-10-28)
-Decision: the equipment list carries the 16 PFD items with service and the balance values in
+Decision: the equipment list carries the 17 PFD items (E-401 added after review 2026-10-28 #2)
+with service and the balance values in
 the notes; no line or instrument list entries (no P&ID at this stage). Several parallel EO
 reactors and evaporator effects are listed as one item each.
 
@@ -171,15 +211,27 @@ glycols to incineration, purge to combustion with energy recovery, bleed to biol
 treatment) and the CO2 vent as emissions (CO2 fossil, CH4, C2H4); every background is declared
 `missing:` with the activity it should connect to (a gap, never 0). Mass allocation between
 MEG, DEG and TEG (MEG share 92.0 %), with the deviation from the price hierarchy declared (no
-open glycol prices). Functional unit 1 kg MEG at the gate. The EO catalyst (about 0.2 kg/t EO,
-BREF 7.3.6.3 range 0.12-0.8), potassium carbonate make-up and moderator are open consumables,
-left out until compositions are known (otherwise the element balance is not assessable).
-Result (cheme assess lca --inventory --write, --coverage): mass, element and carbon-origin
-balances closed; 11 gaps; direct emissions only: 0.264 kg CO2-eq per kg MEG (mass-allocated;
-CO2 0.253, CH4 0.00036 kg); ethylene has no GWP100 factor (a gap of the method). Unallocated
-per kg MEG: ethylene 0.596 kg, oxygen 0.591 kg, methane 0.010 kg, water 0.230 kg, MP steam
-0.449 kWh, power 0.135 kWh, cooling 3.43 kWh; DEG 0.0834 kg and TEG 0.0036 kg co-products;
-purge 0.0256 kg, CO2 vent 0.283 kg (CO2 0.275 kg), bleed 0.0305 kg, heavies 0.00029 kg.
+open glycol prices). Functional unit 1 kg MEG at the gate.
+Consumables (revised after review 2026-10-28 #4, which found them excluded only in a comment):
+the silver EO catalyst is counted as a consumable (`consumables: eo-catalyst`, 0.2 kg/t EO
+ASSUMED inside the BREF 7.3.6.3 range of 0.12-0.8 kg/t EO, 62.6 t/a, 0.16 g/kg MEG; 15 wt% Ag
+ASSUMED) with no background (a gap) and its disposal to silver recovery. A precious-metal
+catalyst is never cut. The potassium carbonate make-up and the organochlorine moderator are
+declared `cutoff:` entries with their reason. Their amounts are not known, so the 1 % rule
+reports them as unchecked (`cheme.lca-cutoff-unchecked`). All three now reach the dataset's
+limitations. Consequence: core takes no composition for a consumable from lca.yaml, so the
+element and carbon-origin balances now report "not assessable" (they closed without the
+catalyst). Counting the catalyst is the more honest choice; the balance check comes back once
+core accepts a consumable composition (to report to core with D-006's item).
+Result (cheme assess lca --inventory --write, --coverage), after the energy revision of D-008:
+mass balance closed, element and carbon-origin balances not assessable (above); 12 gaps;
+direct emissions only: 0.264 kg CO2-eq per kg MEG (mass-allocated; CO2 0.253, CH4 0.00036 kg);
+ethylene has no GWP100 factor (a gap of the method). Unallocated per kg MEG: ethylene 0.596
+kg, oxygen 0.591 kg, methane 0.010 kg, water 0.230 kg, MP steam 1.098 kWh (3.95 GJ/t; was
+0.449 kWh before review #1/#2), power 0.135 kWh, cooling 3.42 kWh, silver catalyst 0.00016 kg;
+DEG 0.0834 kg and TEG 0.0036 kg co-products; purge 0.0256 kg (about 2.2 kg CO2/kg when burnt,
+corrected from 2.7 after review #5), CO2 vent 0.283 kg (CO2 0.275 kg), bleed 0.0305 kg, heavies
+0.00029 kg.
 Atlas build (scripts/build_lci.py --strict): no error for this process, 6 gaps reported
 (ethylene, oxygen, methane, heavies, purge, C2H4 emission); lca/mappings.yaml only re-units the
 steam exchange (`use: steam-heat`, as soda-ash-1).
@@ -190,4 +242,19 @@ ethylene-glycol (MEG, with a fibre-grade grade), diethylene-glycol, triethylene-
 possibly ethane, potassium-carbonate and a glycol heavies mixture. Missing in lci/mappings.yaml
 technosphere: ethylene, the glycols as products, treatment of the glycol heavies residue,
 combustion of a hydrocarbon purge gas; biosphere: ethylene to air (C2H4, fossil). Core: the
-`_reactor_rules` selectivity bug (D-006).
+`_reactor_rules` selectivity bug (D-006); a consumable composition in lca.yaml for the element
+balance (D-010).
+
+## D-012 Review responses: concept gate scope and maturity claim (2026-10-28)
+Decision (review 2026-10-28-pfd-lci-review #6, #8):
+- The concept gate `layout-plot-plan` is marked `applies: false` in checks/checks.yaml with
+  this reason: the layout is out of scope of the case (D-001), so no plot plan is planned. The
+  concept stage can now pass `cheme check` on the gates that apply.
+- The warning `cheme.maturity-claim-exceeds` (process.yaml `maturity: concept` while `cheme
+  maturity` reaches no calculation level) is accepted. Concept is the lowest value the manifest
+  schema allows; the evidence gap is stated in process.yaml `validation.notes`. Raising the
+  level to "sourced" would need the feed flows given with a source, but they are the output of
+  our own balance on assumed parameters, and calling them "given" would misstate them. To be
+  named in the consolidated PR.
+Reason: both are scope facts, not design defects; recording them keeps the gates and the claim
+honest.
