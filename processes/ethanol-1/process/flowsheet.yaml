@@ -1,0 +1,712 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Ethanol by vapour-phase direct hydration of ethylene (D-001). Where the values come from:
+# - S1 (fresh ethylene), S28 (make-up water) and the temperatures and pressures are design
+#   choices (design basis, D-002, D-003), ASSUMED;
+# - the reactor outlet S6 is calculated by cheme (conversion and selectivity, D-004);
+# - flows and compositions through mixers, splitters, pumps, compressors, heaters and coolers
+#   are calculated by `cheme process propagate --fill`;
+# - separator, scrubber, column, sieve and exchanger outlets and all duties come from the
+#   independent balance scripts/balance.py (D-005, D-006), given here as ASSUMED: core cannot
+#   qualify flashes, enthalpies or distillation of ethylene / water / ethanol yet (core #315).
+schema: cheme/process/v1
+kind: flowsheet
+title: Ethanol by direct hydration of ethylene (100 000 t/a anhydrous)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+  enthalpy_reference: {state: ideal_gas, temperature: 298.15}
+cases:
+  - {id: design, description: "Design case: 12 500 kg/h anhydrous ethanol, 5 % ethylene conversion per pass, water/ethylene 0.35 (D-003, D-004)", default: true}
+tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - {id: ETHYLENE, title: Polymer-grade ethylene from a steam cracker, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: WATER, title: Demineralised make-up water, category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: k101, direction: out, kind: energy}
+      - {id: k102, direction: out, kind: energy}
+      - {id: p101, direction: out, kind: energy}
+      - {id: v301, direction: out, kind: energy}
+  - id: HPS
+    title: HP steam 4200 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: HP
+      pressure: {value: 4200, provenance: assumed, source: "design basis, D-008"}
+      supply_temperature: {value: 526.4, provenance: assumed, source: "saturation at 4200 kPa(a), D-008"}
+      min_approach: {value: 10, provenance: assumed, source: D-008}
+    ports: [{id: e102, direction: out, kind: energy}]
+  - id: LPS
+    title: LP steam 450 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 450, provenance: assumed, source: "design basis, D-008"}
+      supply_temperature: {value: 420.8, provenance: assumed, source: "saturation at 450 kPa(a), D-008"}
+      min_approach: {value: 10, provenance: assumed, source: D-008}
+    ports: [{id: c201, direction: out, kind: energy}, {id: c202, direction: out, kind: energy}]
+products:
+  - {id: ETOH, title: Anhydrous ethanol to storage, category: product, ports: [{id: in, direction: in}]}
+  - id: FUELGAS
+    title: Loop purge and light-ends off-gas to the fuel-gas header
+    category: off_gas
+    ports: [{id: purge, direction: in}, {id: lights, direction: in}]
+  - {id: WW, title: Water-loop blowdown to wastewater treatment, category: wastewater, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-008"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-008"}
+      min_approach: {value: 5, provenance: assumed, source: D-008}
+    ports:
+      - {id: e103, direction: in, kind: energy}
+      - {id: k102, direction: in, kind: energy}
+      - {id: c201, direction: in, kind: energy}
+      - {id: c202, direction: in, kind: energy}
+      - {id: v301, direction: in, kind: energy}
+
+blocks:
+  - id: REA
+    title: Hydration reaction loop
+    class: ReactingChemicals
+    ports:
+      - {id: eth, direction: in}
+      - {id: water, direction: in}
+      - {id: wash, direction: in}
+      - {id: flashgas, direction: in}
+      - {id: purge, direction: out}
+      - {id: crude, direction: out}
+      - {id: scrub, direction: out}
+      - {id: power1, direction: in, kind: energy}
+      - {id: power2, direction: in, kind: energy}
+      - {id: steam, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+  - id: PUR
+    title: Crude ethanol recovery and distillation
+    class: Distilling
+    ports:
+      - {id: crude, direction: in}
+      - {id: scrub, direction: in}
+      - {id: regen, direction: in}
+      - {id: makeup, direction: in}
+      - {id: flashgas, direction: out}
+      - {id: lights, direction: out}
+      - {id: hydrous, direction: out}
+      - {id: ww, direction: out}
+      - {id: wash, direction: out}
+      - {id: water, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: steam1, direction: in, kind: energy}
+      - {id: steam2, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+  - id: DEH
+    title: Ethanol dehydration (molecular sieve)
+    class: Adsorbing
+    ports:
+      - {id: hydrous, direction: in}
+      - {id: product, direction: out}
+      - {id: regen, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+
+steps:
+  - id: M101
+    block: REA
+    title: Fresh ethylene / recycle gas junction
+    class: Mixing
+    ports:
+      - {id: fresh, direction: in, delegates: eth}
+      - {id: rec, direction: in}
+      - {id: flash, direction: in}
+      - {id: out, direction: out}
+  - id: M102
+    block: REA
+    title: Process water injection
+    class: Mixing
+    ports:
+      - {id: gas, direction: in}
+      - {id: water, direction: in, delegates: water}
+      - {id: out, direction: out}
+  - id: E101
+    block: REA
+    title: Reactor feed/effluent exchanger (water evaporation / condensation)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: cold_in, direction: in}
+      - {id: cold_out, direction: out}
+      - {id: hot_in, direction: in}
+      - {id: hot_out, direction: out}
+  - id: E102
+    block: REA
+    title: Reactor feed superheater (HP steam)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+  # D-003, D-004: adiabatic fixed bed; 5 % of the inlet ethylene converted (US 4003952),
+  # selectivities ASSUMED; no kinetics.
+  - id: R101
+    block: REA
+    title: Hydration reactor (H3PO4 on silica, adiabatic)
+    class: ReactingChemicals
+    reactions: [HYD, ETHER, OLIGO]
+    reactor: conversion
+    selectivity:
+      key: C2H4
+      conversion: 0.05
+      products: {ETOH: 0.97, DEE: 0.01, C4H8: 0.005}
+      provenance: assumed
+      source: "conversion: US 4003952, Background (4-5 % of the ethylene per pass); selectivities ASSUMED within the patent's by-product range (D-004)"
+    catalyst: H3PO4_SIO2
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+  - id: E103
+    block: REA
+    title: Reactor effluent cooler / condenser
+    class: Cooling
+    links: [{target: equipment, ref: E-103}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw1}
+  - id: V101
+    block: REA
+    title: HP separator
+    class: SeparatingByFlash
+    links: [{target: equipment, ref: V-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: vap, direction: out}
+      - {id: liq, direction: out, delegates: crude}
+  - id: C101
+    block: REA
+    title: Recycle gas water scrubber
+    class: Absorbing
+    links: [{target: equipment, ref: C-101}]
+    ports:
+      - {id: gas_in, direction: in}
+      - {id: wash, direction: in, delegates: wash}
+      - {id: gas_out, direction: out}
+      - {id: bot, direction: out, delegates: scrub}
+  # D-005: purge fraction ASSUMED (loop inerts ~7 mol%, ethylene loss ~1.9 % of the fresh feed)
+  - id: SPL1
+    block: REA
+    title: Loop purge take-off
+    class: SplittingMaterial
+    split: {purge: 0.001}
+    ports:
+      - {id: in, direction: in}
+      - {id: purge, direction: out, delegates: purge}
+      - {id: recycle, direction: out}
+  - id: K101
+    block: REA
+    title: Recycle gas compressor
+    class: Compressing
+    method: CentrifugalMotion
+    links: [{target: equipment, ref: K-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power1}
+  - id: K102
+    block: REA
+    title: Flash gas compressor (three stages, intercooled)
+    class: Compressing
+    links: [{target: equipment, ref: K-102}]
+    ports:
+      - {id: in, direction: in, delegates: flashgas}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power2}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+  - id: V102
+    block: PUR
+    title: Crude ethanol let-down flash drum
+    class: SeparatingByFlash
+    links: [{target: equipment, ref: V-102}]
+    ports:
+      - {id: in1, direction: in, delegates: crude}
+      - {id: in2, direction: in, delegates: scrub}
+      - {id: gas, direction: out, delegates: flashgas}
+      - {id: liq, direction: out}
+  - id: E201
+    block: PUR
+    title: Crude / column bottoms interchanger
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-201}]
+    ports:
+      - {id: cold_in, direction: in}
+      - {id: cold_out, direction: out}
+      - {id: hot_in, direction: in}
+      - {id: hot_out, direction: out}
+  - id: C201
+    block: PUR
+    title: Light-ends column (ether, butenes, dissolved gas)
+    class: Distilling
+    links: [{target: equipment, ref: C-201}]
+    ports:
+      - {id: feed, direction: in}
+      - {id: top, direction: out, delegates: lights}
+      - {id: bot, direction: out}
+      - {id: reb, direction: in, kind: energy, delegates: steam1}
+      - {id: cond, direction: out, kind: energy, delegates: cw1}
+  - id: C202
+    block: PUR
+    title: Ethanol concentrating column
+    class: Distilling
+    links: [{target: equipment, ref: C-202}]
+    ports:
+      - {id: feed, direction: in}
+      - {id: regen, direction: in, delegates: regen}
+      - {id: top, direction: out, delegates: hydrous}
+      - {id: bot, direction: out}
+      - {id: reb, direction: in, kind: energy, delegates: steam2}
+      - {id: cond, direction: out, kind: energy, delegates: cw2}
+  # D-005: blowdown fraction ASSUMED (dissolved sodium phosphate and heavies leave here)
+  - id: SPL2
+    block: PUR
+    title: Water-loop blowdown
+    class: SplittingMaterial
+    split: {ww: 0.1}
+    ports:
+      - {id: in, direction: in}
+      - {id: ww, direction: out, delegates: ww}
+      - {id: rec, direction: out}
+  - id: M104
+    block: PUR
+    title: Make-up water junction
+    class: Mixing
+    ports:
+      - {id: rec, direction: in}
+      - {id: mu, direction: in, delegates: makeup}
+      - {id: out, direction: out}
+  - id: P101
+    block: PUR
+    title: Process water pump
+    # TransportingFluids, not Pumping: cheme process build stops on a Pumping step (its DEXPI
+    # method field is a Union the builder cannot enumerate; core bug, DESIGN.md D-011)
+    class: TransportingFluids
+    links: [{target: equipment, ref: P-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # D-005: 3600 kg/h wash water to C-101 (ASSUMED), the rest to the reactor feed
+  - id: SPL3
+    block: PUR
+    title: Wash water / reactor water split
+    class: SplittingMaterial
+    split: {wash: 0.09211096}
+    ports:
+      - {id: in, direction: in}
+      - {id: wash, direction: out, delegates: wash}
+      - {id: rx, direction: out, delegates: water}
+  - id: V301
+    block: DEH
+    title: Molecular sieve dehydration (vapour phase, vacuum regeneration)
+    class: Adsorbing
+    links: [{target: equipment, ref: V-301}]
+    ports:
+      - {id: in, direction: in, delegates: hydrous}
+      - {id: product, direction: out, delegates: product}
+      - {id: regen, direction: out, delegates: regen}
+      - {id: power, direction: in, kind: energy, delegates: power}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+
+streams:
+  - id: S1
+    title: Fresh ethylene
+    from: ETHYLENE.out
+    to: M101.fresh
+    template: mixture
+    state:
+      design:
+        pressure: {value: 7300, provenance: assumed, source: "design basis, D-002"}
+        temperature: {value: 303.15, provenance: assumed, source: "design basis, D-002"}
+        flow: {value: 8076.49, basis: mass, provenance: assumed, source: "scripts/balance.py: the fresh ethylene that gives 12 475 kg/h ethanol in the product (D-002, D-006)"}
+        composition: {basis: mole_fraction, values: {C2H4: 0.999, C2H6: 0.0008, CH4: 0.0002}, provenance: assumed, source: "design basis, polymer-grade ethylene (D-002)"}
+  - id: S2
+    title: Cycle gas
+    from: M101.out
+    to: M102.gas
+    template: mixture
+    state:
+      design:
+        pressure: {value: 7300, provenance: assumed, source: D-003}
+        temperature: {value: 318.15, provenance: assumed, source: "scripts/balance.py (D-006)"}
+        flow: {value: 174946.0, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S15 S34', fingerprint: 2ee6b3c949df5cf8}
+        composition: {basis: mole_fraction, values: {C2H4: 0.927129, C2H6: 0.0360808, CH4: 0.00935617, H2O: 0.000713249, ETOH: 0.000239568, DEE: 0.000288832, C4H8: 0.0261927}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S15 S34', fingerprint: b49a5b24f026327c}
+  - id: S3
+    title: Wet reactor feed
+    from: M102.out
+    to: E101.cold_in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 7250, provenance: assumed, source: D-003}
+        temperature: {value: 319.43, provenance: assumed, source: "scripts/balance.py, adiabatic mixing (D-006)"}
+        flow: {value: 210432.0, provenance: calculated, source: 'cheme process propagate: mixer M102 from S2 S31', fingerprint: f1bc54847567a7ce}
+        composition: {basis: mole_fraction, values: {C2H4: 0.700358, C2H6: 0.0272556, CH4: 0.0070677, H2O: 0.245126, ETOH: 0.000188461, DEE: 0.000218185, C4H8: 0.0197861}, provenance: calculated, source: 'cheme process propagate: mixer M102 from S2 S31', fingerprint: 03ef703f7bd3c876}
+  - id: S4
+    title: Reactor feed after feed/effluent exchanger
+    from: E101.cold_out
+    to: E102.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 7150, provenance: assumed, source: D-003}
+        temperature: {value: 476.72, provenance: assumed, source: "scripts/balance.py, E-101 at 10 K minimum approach (D-006)"}
+        flow: {value: 210432.53, basis: mass, provenance: assumed, source: "scripts/balance.py (D-006): S3 through the feed side of E-101"}
+        composition: {basis: mole_fraction, values: {C2H4: 0.70035843, C2H6: 0.02725568, CH4: 0.00706770, H2O: 0.24512545, ETOH: 0.00018846, DEE: 0.00021818, C4H8: 0.01978610}, provenance: assumed, source: "scripts/balance.py (D-006)"}
+  - id: S5
+    title: Reactor feed
+    from: E102.out
+    to: R101.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 7050, provenance: assumed, source: "D-003 (about 1000 psi, US 4003952; US 5349096 examples at 6895 kPa)"}
+        temperature: {value: 513.15, provenance: assumed, source: "D-003 (US 5349096 example: inlet 240 C)"}
+        flow: {value: 210432.53, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S4', fingerprint: 53c4bb46b62598d2}
+        composition: {basis: mole_fraction, values: {C2H4: 0.70035843, C2H6: 0.02725568, CH4: 0.0070677, H2O: 0.24512545, ETOH: 0.00018846, DEE: 0.00021818, C4H8: 0.0197861}, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S4', fingerprint: 53c4bb46b62598d2}
+  - id: S6
+    title: Reactor effluent
+    from: R101.out
+    to: E101.hot_in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 6950, provenance: assumed, source: D-003}
+        temperature: {value: 540.86, provenance: assumed, source: "scripts/balance.py, adiabatic outlet, ideal gas (D-006)"}
+        flow: {value: 210433.0, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5', fingerprint: ed72d792d2e9cd68}
+        composition: {basis: mole_fraction, values: {C2H4: 0.68936, C2H6: 0.0282396, CH4: 0.00732285, H2O: 0.218418, ETOH: 0.0353889, DEE: 0.000588877, C4H8: 0.0206818}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5', fingerprint: 4563f63127073614}
+  - id: S7
+    title: Effluent after feed/effluent exchanger
+    from: E101.hot_out
+    to: E103.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 6900, provenance: assumed, source: D-003}
+        temperature: {value: 355.46, provenance: assumed, source: "scripts/balance.py, E-101 energy balance (D-006)"}
+        flow: {value: 210432.53, basis: mass, provenance: assumed, source: "scripts/balance.py (D-006): S6 through the effluent side of E-101"}
+        composition: {basis: mole_fraction, values: {C2H4: 0.68935975, C2H6: 0.02823963, CH4: 0.00732285, H2O: 0.21841819, ETOH: 0.03538889, DEE: 0.00058888, C4H8: 0.02068181}, provenance: assumed, source: "scripts/balance.py (D-006); must equal cheme's S6"}
+  - id: S8
+    title: Cooled effluent to HP separator
+    from: E103.out
+    to: V101.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 6850, provenance: assumed, source: D-005}
+        temperature: {value: 313.15, provenance: assumed, source: D-005}
+        flow: {value: 210432.53, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E103 from S7', fingerprint: a4efefa0ff53aae3}
+        composition: {basis: mole_fraction, values: {C2H4: 0.68935975, C2H6: 0.02823963, CH4: 0.00732285, H2O: 0.21841819, ETOH: 0.03538889, DEE: 0.00058888, C4H8: 0.02068181}, provenance: calculated, source: 'cheme process propagate: pass-through E103 from S7', fingerprint: a4efefa0ff53aae3}
+  - id: S9
+    title: HP separator gas
+    from: V101.vap
+    to: C101.gas_in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 6850, provenance: assumed, source: D-005}
+        temperature: {value: 313.15, provenance: assumed, source: D-005}
+        flow: {value: 166898.68, basis: mass, provenance: assumed, source: "scripts/balance.py, specified splits (D-005)"}
+        composition: {basis: mole_fraction, values: {C2H4: 0.92297772, C2H6: 0.03780979, CH4: 0.00981432, H2O: 0.00058605, ETOH: 0.00142430, DEE: 0.00047402, C4H8: 0.02691380}, provenance: assumed, source: "scripts/balance.py, specified splits (D-005)"}
+  - id: S10
+    title: Crude ethanol (HP separator liquid)
+    from: V101.liq
+    to: V102.in1
+    template: mixture
+    state:
+      design:
+        pressure: {value: 6850, provenance: assumed, source: D-005}
+        temperature: {value: 313.15, provenance: assumed, source: D-005}
+        flow: {value: 43533.85, basis: mass, provenance: assumed, source: "scripts/balance.py, specified splits (D-005)"}
+        composition: {basis: mole_fraction, values: {C2H4: 0.00541509, C2H6: 0.00022183, CH4: 0.00002876, H2O: 0.85614796, ETOH: 0.13482430, DEE: 0.00092516, C4H8: 0.00243691}, provenance: assumed, source: "scripts/balance.py, specified splits (D-005)"}
+  - id: S11
+    title: Scrubbed gas
+    from: C101.gas_out
+    to: SPL1.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 6800, provenance: assumed, source: D-005}
+        temperature: {value: 313.15, provenance: assumed, source: D-005}
+        flow: {value: 165827.85, basis: mass, provenance: assumed, source: "scripts/balance.py, specified recoveries (D-005)"}
+        composition: {basis: mole_fraction, values: {C2H4: 0.92586294, C2H6: 0.03792798, CH4: 0.00984796, H2O: 0.00058823, ETOH: 0.00001430, DEE: 0.00009516, C4H8: 0.02566343}, provenance: assumed, source: "scripts/balance.py, specified recoveries (D-005)"}
+  - id: S12
+    title: Scrubber bottoms
+    from: C101.bot
+    to: V102.in2
+    template: mixture
+    state:
+      design:
+        pressure: {value: 6800, provenance: assumed, source: D-005}
+        temperature: {value: 313.15, provenance: assumed, source: D-005}
+        flow: {value: 4671.11, basis: mass, provenance: assumed, source: "scripts/balance.py, specified recoveries (D-005)"}
+        composition: {basis: mole_fraction, values: {C2H4: 0.01449392, C2H6: 0.00059374, CH4: 0.00007706, H2O: 0.90275811, ETOH: 0.03693234, DEE: 0.00992491, C4H8: 0.03521992}, provenance: assumed, source: "scripts/balance.py, specified recoveries (D-005)"}
+  - id: S13
+    title: Loop purge
+    from: SPL1.purge
+    to: FUELGAS.purge
+    template: mixture
+    state:
+      design:
+        pressure: {value: 6800, provenance: assumed, source: D-005}
+        temperature: {value: 313.15, provenance: assumed, source: D-005}
+        flow: {value: 165.828, basis: mass, provenance: calculated, source: 'cheme process propagate: splitter SPL1 from S11', fingerprint: 658c71df1640d2e5}
+        composition: {basis: mole_fraction, values: {C2H4: 0.92586294, C2H6: 0.03792798, CH4: 0.00984796, H2O: 0.00058823, ETOH: 1.43e-05, DEE: 9.516e-05, C4H8: 0.02566343}, provenance: calculated, source: 'cheme process propagate: splitter SPL1 from S11', fingerprint: b0a08cbb8a484de1}
+  - id: S14
+    title: Recycle gas
+    from: SPL1.recycle
+    to: K101.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 6800, provenance: assumed, source: D-005}
+        temperature: {value: 313.15, provenance: assumed, source: D-005}
+        flow: {value: 165662.0, provenance: calculated, source: 'cheme process propagate: splitter SPL1 from S11 S13', fingerprint: da65930c4062b8e8}
+        composition: {basis: mole_fraction, values: {C2H4: 0.92586294, C2H6: 0.03792798, CH4: 0.00984796, H2O: 0.00058823, ETOH: 1.43e-05, DEE: 9.516e-05, C4H8: 0.02566343}, provenance: calculated, source: 'cheme process propagate: splitter SPL1 from S11', fingerprint: b0a08cbb8a484de1}
+  - id: S15
+    title: Compressed recycle gas
+    from: K101.out
+    to: M101.rec
+    template: mixture
+    state:
+      design:
+        pressure: {value: 7300, provenance: assumed, source: D-003}
+        temperature: {value: 318.57, provenance: assumed, source: "scripts/balance.py, eta 0.75 (D-006)"}
+        flow: {value: 165662.0, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S14', fingerprint: bc5c44a5ddeb94b7}
+        composition: {basis: mole_fraction, values: {C2H4: 0.92586294, C2H6: 0.03792798, CH4: 0.00984796, H2O: 0.00058823, ETOH: 1.43e-05, DEE: 9.516e-05, C4H8: 0.02566343}, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S14', fingerprint: bc5c44a5ddeb94b7}
+  - id: S16
+    title: Let-down flash gas
+    from: V102.gas
+    to: K102.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-005}
+        temperature: {value: 313.15, provenance: assumed, source: D-005}
+        flow: {value: 1207.94, basis: mass, provenance: assumed, source: "scripts/balance.py, specified splits (D-005)"}
+        composition: {basis: mole_fraction, values: {C2H4: 0.46788172, C2H6: 0.01916678, CH4: 0.00251102, H2O: 0.03247151, ETOH: 0.04714195, DEE: 0.04143069, C4H8: 0.38939633}, provenance: assumed, source: "scripts/balance.py, specified splits (D-005)"}
+  - id: S34
+    title: Recompressed flash gas
+    from: K102.out
+    to: M101.flash
+    template: mixture
+    state:
+      design:
+        pressure: {value: 7300, provenance: assumed, source: D-005}
+        temperature: {value: 313.15, provenance: assumed, source: "aftercooler outlet, D-005"}
+        flow: {value: 1207.94, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through K102 from S16', fingerprint: 3bcca0c2dd01b1d4}
+        composition: {basis: mole_fraction, values: {C2H4: 0.46788172, C2H6: 0.01916678, CH4: 0.00251102, H2O: 0.03247151, ETOH: 0.04714195, DEE: 0.04143069, C4H8: 0.38939633}, provenance: calculated, source: 'cheme process propagate: pass-through K102 from S16', fingerprint: 3bcca0c2dd01b1d4}
+  - id: S18
+    title: Crude ethanol to light-ends column
+    from: V102.liq
+    to: E201.cold_in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-005}
+        temperature: {value: 313.15, provenance: assumed, source: D-005}
+        flow: {value: 46997.02, basis: mass, provenance: assumed, source: "scripts/balance.py, specified splits (D-005)"}
+        composition: {basis: mole_fraction, values: {C2H4: 0.00012827, C2H6: 0.00000525, CH4: 0.00000034, H2O: 0.87196490, ETOH: 0.12602140, DEE: 0.00129862, C4H8: 0.00058121}, provenance: assumed, source: "scripts/balance.py, specified splits (D-005)"}
+  - id: S35
+    title: Preheated crude ethanol
+    from: E201.cold_out
+    to: C201.feed
+    template: mixture
+    state:
+      design:
+        pressure: {value: 280, provenance: assumed, source: D-005}
+        temperature: {value: 370.46, provenance: assumed, source: "scripts/balance.py, E-201 energy balance (D-006)"}
+        flow: {value: 46997.02, basis: mass, provenance: assumed, source: "scripts/balance.py (D-006): S18 through the cold side of E-201"}
+        composition: {basis: mole_fraction, values: {C2H4: 0.00012827, C2H6: 0.00000525, CH4: 0.00000034, H2O: 0.87196490, ETOH: 0.12602140, DEE: 0.00129862, C4H8: 0.00058121}, provenance: assumed, source: "scripts/balance.py (D-006)"}
+  - id: S19
+    title: Light-ends off-gas
+    from: C201.top
+    to: FUELGAS.lights
+    template: mixture
+    state:
+      design:
+        pressure: {value: 250, provenance: assumed, source: D-005}
+        temperature: {value: 320.15, provenance: assumed, source: D-005}
+        flow: {value: 480.11, basis: mass, provenance: assumed, source: "scripts/balance.py, specified splits (D-005)"}
+        composition: {basis: mole_fraction, values: {C2H4: 0.02562904, C2H6: 0.00104989, CH4: 0.00006808, H2O: 0.34844769, ETOH: 0.25179836, DEE: 0.25687770, C4H8: 0.11612924}, provenance: assumed, source: "scripts/balance.py, specified splits (D-005)"}
+  - id: S21
+    title: Stripped crude ethanol
+    from: C201.bot
+    to: C202.feed
+    template: mixture
+    state:
+      design:
+        pressure: {value: 270, provenance: assumed, source: D-005}
+        temperature: {value: 403.15, provenance: assumed, source: "bubble point of water at 270 kPa(a), D-005"}
+        flow: {value: 46516.91, basis: mass, provenance: assumed, source: "scripts/balance.py, specified splits (D-005)"}
+        composition: {basis: mole_fraction, values: {H2O: 0.87459821, ETOH: 0.12538874, DEE: 0.00001305}, provenance: assumed, source: "scripts/balance.py, specified splits (D-005)"}
+  - id: S22
+    title: Hydrous ethanol vapour (93 wt%)
+    from: C202.top
+    to: V301.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 200, provenance: assumed, source: D-005}
+        temperature: {value: 368.15, provenance: assumed, source: D-005}
+        flow: {value: 16360.60, basis: mass, provenance: assumed, source: "scripts/balance.py, 93 wt% ethanol top (D-005)"}
+        composition: {basis: mole_fraction, values: {H2O: 0.16139827, ETOH: 0.83853014, DEE: 0.00007159}, provenance: assumed, source: "scripts/balance.py (D-005)"}
+  - id: S23
+    title: Anhydrous ethanol product
+    from: V301.product
+    to: ETOH.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 150, provenance: assumed, source: "design basis, D-002"}
+        temperature: {value: 313.15, provenance: assumed, source: "design basis, D-002"}
+        flow: {value: 12502.09, basis: mass, provenance: assumed, source: "design basis 12 500 kg/h, water 0.2 wt% (D-002)"}
+        composition: {basis: mole_fraction, values: {H2O: 0.00509885, ETOH: 0.99479758, DEE: 0.00010358}, provenance: assumed, source: "scripts/balance.py (D-002, D-005)"}
+  - id: S24
+    title: Concentrating column bottoms water
+    from: C202.bot
+    to: E201.hot_in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 230, provenance: assumed, source: D-005}
+        temperature: {value: 398.15, provenance: assumed, source: "bubble point of water at 230 kPa(a), D-005"}
+        flow: {value: 34014.82, basis: mass, provenance: assumed, source: "scripts/balance.py, 100 ppm(wt) ethanol (D-005)"}
+        composition: {basis: mole_fraction, values: {H2O: 0.99996090, ETOH: 0.00003910}, provenance: assumed, source: "scripts/balance.py, 100 ppm(wt) ethanol (D-005)"}
+  - id: S36
+    title: Cooled bottoms water
+    from: E201.hot_out
+    to: SPL2.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 210, provenance: assumed, source: D-005}
+        temperature: {value: 328.15, provenance: assumed, source: "E-201, 15 K above the crude inlet (D-006)"}
+        flow: {value: 34014.82, basis: mass, provenance: assumed, source: "scripts/balance.py (D-006): S24 through the hot side of E-201"}
+        composition: {basis: mole_fraction, values: {H2O: 0.99996090, ETOH: 0.00003910}, provenance: assumed, source: "scripts/balance.py (D-006)"}
+  - id: S25
+    title: Wastewater (blowdown)
+    from: SPL2.ww
+    to: WW.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 200, provenance: assumed, source: D-005}
+        temperature: {value: 328.15, provenance: assumed, source: D-005}
+        flow: {value: 3401.48, basis: mass, provenance: calculated, source: 'cheme process propagate: splitter SPL2 from S36', fingerprint: dea15a6945f73f41}
+        composition: {basis: mole_fraction, values: {H2O: 0.9999609, ETOH: 3.91e-05}, provenance: calculated, source: 'cheme process propagate: splitter SPL2 from S36', fingerprint: d12367914ac5f929}
+  - id: S26
+    title: Recycled process water
+    from: SPL2.rec
+    to: M104.rec
+    template: mixture
+    state:
+      design:
+        pressure: {value: 200, provenance: assumed, source: D-005}
+        temperature: {value: 328.15, provenance: assumed, source: D-005}
+        flow: {value: 30613.3, provenance: calculated, source: 'cheme process propagate: splitter SPL2 from S36 S25', fingerprint: de76f4603c5d4fbd}
+        composition: {basis: mole_fraction, values: {H2O: 0.9999609, ETOH: 3.91e-05}, provenance: calculated, source: 'cheme process propagate: splitter SPL2 from S36', fingerprint: d12367914ac5f929}
+  - id: S27
+    title: Sieve regeneration condensate
+    from: V301.regen
+    to: C202.regen
+    template: mixture
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-005}
+        temperature: {value: 313.15, provenance: assumed, source: D-005}
+        flow: {value: 3858.51, basis: mass, provenance: assumed, source: "scripts/balance.py, 18 % of the sieve feed ethanol (D-005)"}
+        composition: {basis: mole_fraction, values: {H2O: 0.51123438, ETOH: 0.48876562}, provenance: assumed, source: "scripts/balance.py (D-005)"}
+  - id: S28
+    title: Make-up water
+    from: WATER.out
+    to: M104.mu
+    template: mixture
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: "design basis, D-002"}
+        temperature: {value: 303.15, provenance: assumed, source: "design basis, D-002"}
+        flow: {value: 8473.02, basis: mass, provenance: assumed, source: "scripts/balance.py: water consumed by the reactions and leaving with the products (D-006)"}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: "demineralised water (D-002)"}
+  - id: S29
+    title: Process water
+    from: M104.out
+    to: P101.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 200, provenance: assumed, source: D-005}
+        temperature: {value: 322.73, provenance: assumed, source: "scripts/balance.py, mixing (D-006)"}
+        flow: {value: 39086.3, provenance: calculated, source: 'cheme process propagate: mixer M104 from S26 S28', fingerprint: c994dc5d774ec0f1}
+        composition: {basis: mole_fraction, values: {C2H4: 0.0, C2H6: 0.0, CH4: 0.0, H2O: 0.999969, ETOH: 3.06236e-05, DEE: 0.0, C4H8: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M104 from S26 S28', fingerprint: f5a9c7bf9a3a9cc6}
+  - id: S30
+    title: Pressurised process water
+    from: P101.out
+    to: SPL3.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 7350, provenance: assumed, source: D-003}
+        temperature: {value: 322.73, provenance: assumed, source: "scripts/balance.py (D-006)"}
+        flow: {value: 39086.3, provenance: calculated, source: 'cheme process propagate: pass-through P101 from S29', fingerprint: 577c4d950b00c0d3}
+        composition: {basis: mole_fraction, values: {C2H4: 0.0, C2H6: 0.0, CH4: 0.0, H2O: 0.999969, ETOH: 3.06236e-05, DEE: 0.0, C4H8: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through P101 from S29', fingerprint: 577c4d950b00c0d3}
+  - id: S20
+    title: Scrubber wash water
+    from: SPL3.wash
+    to: C101.wash
+    template: mixture
+    state:
+      design:
+        pressure: {value: 7300, provenance: assumed, source: D-005}
+        temperature: {value: 322.73, provenance: assumed, source: "scripts/balance.py (D-006)"}
+        flow: {value: 3600.28, provenance: calculated, source: 'cheme process propagate: splitter SPL3 from S30', fingerprint: 021111dfcf15f082}
+        composition: {basis: mole_fraction, values: {C2H4: 0.0, C2H6: 0.0, CH4: 0.0, H2O: 0.999969, ETOH: 3.06236e-05, DEE: 0.0, C4H8: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter SPL3 from S30', fingerprint: 5109ad75d8bf95cb}
+  - id: S31
+    title: Reactor process water
+    from: SPL3.rx
+    to: M102.water
+    template: mixture
+    state:
+      design:
+        pressure: {value: 7300, provenance: assumed, source: D-003}
+        temperature: {value: 322.73, provenance: assumed, source: "scripts/balance.py (D-006)"}
+        flow: {value: 35486.0, provenance: calculated, source: 'cheme process propagate: splitter SPL3 from S30 S20', fingerprint: 6e5b10f93093727c}
+        composition: {basis: mole_fraction, values: {C2H4: 0.0, C2H6: 0.0, CH4: 0.0, H2O: 0.999969, ETOH: 3.06236e-05, DEE: 0.0, C4H8: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter SPL3 from S30', fingerprint: 5109ad75d8bf95cb}
+  # Energy streams (duties from scripts/balance.py, D-006; ASSUMED until core qualifies them)
+  - {id: Q1, title: K-101 shaft power, kind: energy, from: POWER.k101, to: K101.power, state: {design: {duty: {value: 397, provenance: assumed, source: "scripts/balance.py, eta 0.75 (D-006)"}}}}
+  - {id: Q2, title: K-102 shaft power, kind: energy, from: POWER.k102, to: K102.power, state: {design: {duty: {value: 96, provenance: assumed, source: "scripts/balance.py, three stages, eta 0.75 (D-006)"}}}}
+  - {id: Q3, title: K-102 inter- and aftercooler duty, kind: energy, from: K102.cw, to: CW.k102, state: {design: {duty: {value: 100, provenance: assumed, source: "scripts/balance.py (D-006)"}}}}
+  - {id: Q4, title: E-102 duty (HP steam), kind: energy, from: HPS.e102, to: E102.steam, state: {design: {duty: {value: 4643, provenance: assumed, source: "scripts/balance.py, ideal gas plus water latent heat (D-006)"}}}}
+  - {id: Q5, title: E-103 duty, kind: energy, from: E103.cw, to: CW.e103, state: {design: {duty: {value: 8817, provenance: assumed, source: "scripts/balance.py (D-006)"}}}}
+  - {id: Q6, title: P-101 power, kind: energy, from: POWER.p101, to: P101.power, state: {design: {duty: {value: 121, provenance: assumed, source: "scripts/balance.py, pump efficiency 0.65 (D-006)"}}}}
+  - {id: Q7, title: C-201 reboiler duty, kind: energy, from: LPS.c201, to: C201.reb, state: {design: {duty: {value: 1234, provenance: assumed, source: "scripts/balance.py, boil-up 0.05 kmol/kmol feed (D-005)"}}}}
+  - {id: Q8, title: C-201 condenser duty, kind: energy, from: C201.cond, to: CW.c201, state: {design: {duty: {value: 1296, provenance: assumed, source: "scripts/balance.py (D-005)"}}}}
+  - {id: Q9, title: C-202 reboiler duty, kind: energy, from: LPS.c202, to: C202.reb, state: {design: {duty: {value: 16649, provenance: assumed, source: "scripts/balance.py, reflux ratio 3 (D-005)"}}}}
+  - {id: Q10, title: C-202 condenser duty, kind: energy, from: C202.cond, to: CW.c202, state: {design: {duty: {value: 12357, provenance: assumed, source: "scripts/balance.py, reflux ratio 3 (D-005)"}}}}
+  - {id: Q11, title: V-301 product and regeneration condensers, kind: energy, from: V301.cw, to: CW.v301, state: {design: {duty: {value: 5017, provenance: assumed, source: "scripts/balance.py (D-006)"}}}}
+  - {id: Q12, title: V-301 vacuum pump power, kind: energy, from: POWER.v301, to: V301.power, state: {design: {duty: {value: 75, provenance: assumed, source: "ASSUMED (D-006)"}}}}
+layout: {bfd: {}, pfd: {}}

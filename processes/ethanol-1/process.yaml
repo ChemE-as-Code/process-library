@@ -1,36 +1,76 @@
-# Process Atlas manifest. Copy this folder to processes/<your-id>/ and edit.
-# Schema: schemas/process.schema.json (cheme-as-code/process/v1). Every slug used under
-# chemistry must exist in chemicals/chemicals.yaml; add new chemicals there in the same change.
-# A product in a defined state and purity names its registry grade: `chemical: oxygen/lox`.
+# Process Atlas manifest of ethanol-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here.
 schema: cheme-as-code/process/v1
-id: my-process                  # = folder name; lowercase slug; never rename once listed
-title: Short descriptive process title
+id: ethanol-1
+title: Ethanol by direct hydration of ethylene (100 000 t/a anhydrous, phosphoric acid catalyst)
 summary: >-
-  One or two sentences for cards and search results: what goes in, what comes out, at what scale.
-# description: |                # optional longer Markdown for the process page
-families: [hydrogen]            # slugs of taxonomy/families.yaml (ISIC-mapped), e.g. ammonia, methanol, air-separation
-keywords: []
-# facets:                      # optional, for filtering in the Atlas; list only what the design has
-#   feedstock_basis: [water, electricity]   # fossil | biogenic | atmospheric | mineral | recycled | water | electricity
-#   product_classes: [fuels]               # slugs, e.g. industrial-gases, fuels, fertilizers, polymers, chemicals, materials
-#   unit_operations: [electrolysis]        # slugs, e.g. cryogenic-distillation, adsorption, compression, reaction, electrolysis
-#   region: generic                        # e.g. generic, EU
-# Design maturity (claimed, capped by evidence: the calculation maturity in checks/maturity.json
-# of an engineering project; at most concept beside a Tier 0/1 LCI dataset):
-maturity: concept               # concept | screening | basic-engineering | detail-engineering | operating-reference
-validation:                     # review status: set by people only; passing checks is not a review
-  status: unreviewed            # unreviewed | internally-reviewed | peer-reviewed | industry-validated
+  Vapour-phase hydration of polymer-grade ethylene over phosphoric acid on silica with a large
+  gas recycle, water scrubbing, light-ends and concentrating distillation and molecular-sieve
+  dehydration to anhydrous ethanol. Concept stage, assumed basis, gate-to-gate LCI with
+  unmapped backgrounds.
+description: |
+  Ethylene from a steam cracker outside the boundary joins the recycle gas, takes up process
+  water (0.35 mol per mol ethylene) and is heated against the reactor effluent and with HP
+  steam to 240 C. About 5 % of the ethylene is hydrated per pass in an adiabatic bed at about
+  7 MPa (patent literature: US 4003952, US 5349096). The effluent is cooled, the crude ethanol
+  separated and the gas scrubbed with water and recycled; a small purge controls the inerts.
+  The crude (about 12 mol% ethanol) is flashed, freed of ether and butenes in a light-ends
+  column, concentrated to 93 wt% and dehydrated on molecular sieves. Fermentation, the dominant
+  route for ethanol by volume, is not designed here.
+
+  All values are concept estimates: the reactor outlet is calculated by cheme from a sourced
+  conversion with assumed selectivities, the separators are specified splits and the duties
+  come from an independent script (see DESIGN.md of the engineering files).
+families: [oxygenates]
+keywords: [ethanol, ethylene hydration, synthetic ethanol, phosphoric acid catalyst, recycle, purge, distillation, molecular sieve, anhydrous ethanol]
+facets:
+  feedstock_basis: [fossil]
+  product_classes: [chemicals, fuels]
+  unit_operations: [reaction, heat-exchange, flash, absorption, distillation, adsorption, compression]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest; the separators, columns and the
+# sieve are specified values and the selectivities assumed (DESIGN.md D-004, D-005).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances in every block and step
+    (cheme validate, cheme process streams). The reactor outlet is calculated by cheme from a
+    sourced per-pass conversion (US 4003952) with assumed selectivities, and its adiabatic
+    energy balance closes on the ideal-gas data; separators, columns, the molecular sieve and
+    all other duties are specified values from an independent script (scripts/balance.py)
+    whose method core cannot qualify for ethylene/water/ethanol (core #315). Not reviewed.
+    The chemicals registry has no ethanol, ethylene or by-product entries yet, so the main
+    product and the main feed are not listed under chemistry (open library item).
 chemistry:
   inputs:
-    - {chemical: water, role: feedstock}
+    - {chemical: water, role: feedstock, inventory_key: "feed:WATER", note: "Demineralised make-up water: reaction water and the water-loop blowdown. The main feed, polymer-grade ethylene (feed:ETHYLENE), has no registry entry yet"}
+    - {chemical: methane, role: feedstock, inventory_key: "feed:ETHYLENE", note: "0.02 mol% of the ethylene feed (ASSUMED grade), an inert of the loop, leaves with the purge"}
   outputs:
-    - {chemical: hydrogen, role: main-product}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Water-loop blowdown, ~100 ppm(wt) ethanol and the neutralised acid. The main product, anhydrous ethanol (product:ETOH), has no registry entry yet"}
+    - {chemical: flare-gas, role: by-product, inventory_key: "product:FUELGAS", note: "Loop purge and light-ends off-gas (ethylene, ethane, butenes, diethyl ether, ethanol) to the site fuel-gas header; registry has no fuel-gas entry, flare-gas is the nearest"}
   utilities:
-    - {chemical: electricity, role: utility}
-# basis: {capacity: "1000 t/d product", operating_hours_per_year: 8000}
-# lca: {source: auto}           # auto: read lca/ of a ChemE-as-Code project; none: no LCA
-# references:
-#   - {title: "Author et al. (2024) Title", doi: 10.xxxx/xxxxx}
-# maintainers:
-#   - {name: Your Name, orcid: 0000-0000-0000-0000}
-# repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/my-process, access: private}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Compressors, process water pump, sieve vacuum pump (ASSUMED electric drives)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:HPS", note: "HP steam 4200 kPa(a) to the reactor feed superheater"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 450 kPa(a) to the column reboilers"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED)"}
+basis:
+  capacity: "100 000 t/a anhydrous ethanol (ASSUMED), 12 500 kg/h"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
+references:
+  - {title: "US 4003952 A: Direct hydration of olefins to alcohols (prior-art conditions, conversion per pass, by-products)", url: "https://patents.google.com/patent/US4003952A/en"}
+  - {title: "US 5349096 A (BP Chemicals): Olefin hydration process (operating window and test data for ethylene)", url: "https://patents.google.com/patent/US5349096A/en"}
+  - {title: "Ullmann's Encyclopedia of Industrial Chemistry: Ethanol (route reference, not audited)", doi: 10.1002/14356007.a09_587.pub2}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/ethanol-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0

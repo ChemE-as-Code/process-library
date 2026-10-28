@@ -1,0 +1,54 @@
+# Equipment list. Schema: `cheme schema equipment`.
+# Concept stage: the items the PFD (process/flowsheet.yaml) needs, no P&ID yet (no sheet).
+# Design pressure and temperature are ASSUMED concept values (D-009): highest operating value
+# of the balance (scripts/balance.py) + 10 % (at least + 2 bar) and + 25 K; one design pressure
+# for the whole HP loop. Sizes, dimensions and weights come at basic engineering (datasheets).
+# Materials: wet phosphoric-acid service downstream of the reactor needs stainless or lined
+# steel; the choice is an open basic-engineering input (D-007).
+schema: cheme/equipment/v1
+equipment:
+  # ---- hydration reaction loop (block REA)
+  - {tag: E-101, type: TubularHeatExchanger, service: Reactor feed/effluent exchanger,
+     design_pressure_barg: 80, design_temperature_degc: 293, material: "SS (acid carry-over on the effluent side, D-007)",
+     notes: "Feed 319 -> 477 K with the process water evaporating, effluent 541 -> 355 K with water condensing, ~41 MW at 10 K minimum approach (scripts/balance.py, D-006). ASSUMED."}
+  - {tag: E-102, type: TubularHeatExchanger, service: Reactor feed superheater (HP steam),
+     design_pressure_barg: 80, design_temperature_degc: 265, material: CS,
+     notes: "477 -> 513 K, ~4.6 MW from HP steam 4200 kPa(a) (D-008). ASSUMED."}
+  - {tag: R-101, type: Vessel, service: "Hydration reactor (adiabatic fixed bed, H3PO4 on silica)",
+     design_pressure_barg: 80, design_temperature_degc: 293, material: "CS with acid-resistant lining (open input, D-007)",
+     notes: "Inlet 513 K / 7050 kPa(a), outlet 541 K; 5 % ethylene conversion per pass (D-004). Catalyst volume not sized: no rate model chosen; US 5349096 reports ethanol space-time yields of about 0.1 kg per litre of catalyst and hour at its test conditions, which would put the bed at roughly 100-130 m3 (to be confirmed at basic engineering). ASSUMED."}
+  - {tag: E-103, type: TubularHeatExchanger, service: Reactor effluent cooler / condenser,
+     design_pressure_barg: 80, design_temperature_degc: 105, material: SS,
+     notes: "355 -> 313 K, ~8.8 MW to cooling water (D-006). ASSUMED."}
+  - {tag: V-101, type: Vessel, service: HP separator,
+     design_pressure_barg: 80, design_temperature_degc: 65, material: SS,
+     notes: "313 K, 6850 kPa(a); specified splits (D-005). Caustic injection for acid neutralisation upstream (D-007). ASSUMED."}
+  - {tag: C-101, type: ProcessColumn, service: Recycle gas water scrubber,
+     design_pressure_barg: 80, design_temperature_degc: 65, material: SS,
+     notes: "3600 kg/h wash water, recovers 99 % of the ethanol in the separator gas (D-005). ASSUMED."}
+  - {tag: K-101, type: CentrifugalCompressor, service: Recycle gas compressor,
+     design_pressure_barg: 80, design_temperature_degc: 70, material: CS,
+     notes: "6800 -> 7300 kPa(a), 166 t/h; ~0.40 MW shaft at isentropic efficiency 0.75 (D-006). Electric drive ASSUMED."}
+  - {tag: K-102, type: CentrifugalCompressor, service: Flash gas compressor,
+     design_pressure_barg: 80, design_temperature_degc: 150, material: CS,
+     notes: "300 -> 7300 kPa(a), 1.2 t/h, three stages intercooled; ~0.1 MW (D-006). A reciprocating machine is likely at this flow. ASSUMED."}
+  # ---- crude ethanol recovery and distillation (block PUR)
+  - {tag: V-102, type: Vessel, service: Crude ethanol let-down flash drum,
+     design_pressure_barg: 5, design_temperature_degc: 65, material: SS,
+     notes: "300 kPa(a), 313 K (D-005). ASSUMED."}
+  - {tag: E-201, type: TubularHeatExchanger, service: Crude / column bottoms interchanger,
+     design_pressure_barg: 5, design_temperature_degc: 150, material: SS,
+     notes: "Crude 313 -> 370 K against C-202 bottoms 398 -> 328 K, ~2.8 MW (D-006). ASSUMED."}
+  - {tag: C-201, type: ProcessColumn, service: Light-ends column,
+     design_pressure_barg: 5, design_temperature_degc: 155, material: SS,
+     notes: "Removes diethyl ether, butenes and dissolved gas overhead to the fuel-gas header; reboiler ~1.2 MW LP steam, condenser ~1.3 MW (D-005). Reboiler and condenser not listed separately at this stage. ASSUMED."}
+  - {tag: C-202, type: ProcessColumn, service: Ethanol concentrating column,
+     design_pressure_barg: 5, design_temperature_degc: 150, material: SS,
+     notes: "Top vapour 93 wt% ethanol at 200 kPa(a), bottoms 100 ppm(wt) ethanol; reflux ratio 3; reboiler ~16.6 MW LP steam, condenser ~12.4 MW (D-005). ASSUMED."}
+  - {tag: P-101, type: CentrifugalPump, service: Process water pump,
+     design_pressure_barg: 82, design_temperature_degc: 75, material: SS,
+     notes: "39 t/h, 200 -> 7350 kPa(a), ~0.12 MW at efficiency 0.65 (D-006). Multistage. ASSUMED."}
+  # ---- dehydration (block DEH)
+  - {tag: V-301, type: Vessel, service: "Molecular sieve dehydration (3A, vapour phase, two beds, vacuum regeneration)",
+     design_pressure_barg: 3.5, design_temperature_degc: 175, material: CS,
+     notes: "Hydrous vapour 93 wt% -> product 0.2 wt% water; regeneration return 18 % of the feed ethanol to C-202 (D-005); bed size and cycle not designed (core #368: adsorption not qualified). Product and regeneration condensers and the vacuum pump belong to this package. ASSUMED."}
