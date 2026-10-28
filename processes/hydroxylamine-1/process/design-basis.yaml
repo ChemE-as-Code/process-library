@@ -1,0 +1,53 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Hydroxylamine as hydroxylammonium sulfate solution by catalytic NO hydrogenation in dilute
+# sulfuric acid (BASF-type process), issue ChemE-as-Code/process-library#182. NO is made inside
+# the boundary from ammonia, oxygen and steam (DESIGN.md D-001). Values marked ASSUMED are
+# engineering choices of this concept study, not client or licensor data; every decision and
+# source locator is in DESIGN.md.
+capacity:
+  basis: NH2OH contained in the hydroxylammonium sulfate solution to storage
+  nh2oh_t_per_a: 30000                 # ASSUMED (D-002): the hydroxylamine of a ~100 kt/a caprolactam train
+  operating_hours_per_year: 8000       # ASSUMED (D-002)
+  nh2oh_kg_per_h: 3750.0               # = 30 000 t/a / 8000 h
+  product_kg_per_h: 36683.3            # 25.4 wt% hydroxylammonium sulfate solution (stream S24)
+  turndown_percent: 50                 # ASSUMED, not checked
+feeds:
+  - name: Ammonia (boundary feed)
+    source_of_values: "ASSUMED (D-003): pressurised liquid NH3 at 298 K, 1200 kPa(a), from an ammonia plant outside the boundary (library process ammonia-1 makes refrigerated liquid NH3)"
+    consumption: "0.612 kg/kg NH2OH (stream S01)"
+  - name: Gaseous oxygen (boundary feed)
+    source_of_values: "ASSUMED (D-003): GOX 99.5 mol% O2, rest Ar, 300 kPa(a), from an air separation unit (library process asu-1); O2:NH3 = 18.6:14 by volume (US 3,110,563 Example a)"
+    consumption: "1.54 kg/kg NH2OH (stream S03)"
+  - name: Hydrogen (boundary feed)
+    source_of_values: "ASSUMED (D-003): 99.9 mol% H2 treated as pure, at >= 300 kPa(a), from a hydrogen plant (library process hydrogen-1) or by-product H2 (chlor-alkali-1)"
+    consumption: "0.131 kg/kg NH2OH (streams S08, S19)"
+  - name: Sulfuric acid 98.5 wt% (boundary feed)
+    source_of_values: "ASSUMED (D-003): from a sulfuric acid plant (library process sulfuric-acid-1)"
+    consumption: "1.77 kg acid/kg NH2OH (stream S14)"
+  - name: Demineralised water
+    source_of_values: "sets the product strength; 2.70 kg/kg NH2OH (stream S15)"
+  - name: LP steam for burner dilution (direct use)
+    source_of_values: "steam:NH3 = 67.4:14 by volume (US 3,110,563 Example a); 3.12 kg/kg NH2OH (stream S04)"
+products:
+  - name: Hydroxylammonium sulfate solution (main product)
+    purity: "25.4 wt% (NH3OH)2SO4 (= 10.22 wt% NH2OH), 1.86 wt% (NH4)2SO4, 1.30 wt% free H2SO4 (the hydrogenation product analysis of US 4,997,635, Example), 0.26 wt% HNO3 from the process condensate (D-004), rest water; catalyst filtered off"
+    delivery: {pressure_kPa_a: 180, temperature_K: 313.15, battery_limit: "product storage (outside the boundary), e.g. to cyclohexanone oximation"}
+  - name: MP steam export 1500 kPa(a) from the waste-heat boiler (co-product, energy)
+  - name: Thermal-oxidiser flue gas (N2, O2, Ar, water, NO, N2O) to atmosphere
+utilities:
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: "ASSUMED (D-008)"}
+  - {name: LP steam, pressure_kPa_a: 500, saturation_K: 425.0, use: "burner dilution (direct) and ammonia vaporiser (indirect)", note: "ASSUMED level (D-003, D-008)"}
+  - {name: MP steam export, pressure_kPa_a: 1500, saturation_K: 471.4, use: "raised in the waste-heat boiler E-101", note: "ASSUMED level (D-008)"}
+  - {name: Electric power, use: "NO gas compressor, cascade agitators, recycle blower, acid pump, oxidiser fan", note: "ASSUMED electric drives (D-008)"}
+site:
+  location: ASSUMED generic site, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325   # ASSUMED
+assumptions:
+  - "Burner: NH3:O2:steam 14:18.6:67.4 by volume, Pt/Rh gauze, 98 % of the NH3 nitrogen to nitrogen oxides (US 3,110,563 Example a); N2O 1.40 % of the NH3 nitrogen from the IPCC 2006 atmospheric-pressure default (Vol. 3 Ch. 3 Table 3.3), N2 the rest; adiabatic, 130 kPa(a) ASSUMED (D-005)."
+  - "Excess O2 hydrogenated (90 %) on Ag-Mn before condensation (EP 0 945 401 Example); the rest absorbed as HNO3 in the condensate, which is reused as acid dilution water (EP 0 945 401) (D-005)."
+  - "Hydrogenation: stirred-tank cascade with suspended sulfur-modified Pt on graphite in about 20 wt% H2SO4 (EP 0 945 401: 19 %; US 4,895,711: 4.3 N), 313 K, 200 kPa(a), H2:NO 2.0 at the inlet (EP 1 343 719); NO converted per pass 0.90 ASSUMED; selectivity NH2OH 89.8 %, NH3 8.2 %, N2O 2.0 % (D-007)."
+  - "Off-gas: 30 % purged to a thermal oxidiser (ASSUMED, sets N2O at 6.5 mol% in the loop gas), 70 % recycled; overall NO utilisation 96.8 % (D-007, D-009)."
+  - "Thermal oxidiser: purge H2 burnt with air to 1173 K, no NO or N2O destruction credited, no heat recovery (ASSUMED, conservative; D-009)."
+  - "Heats of reaction in the cascade from NBS aqueous enthalpies of formation, not re-read in this run (O-4); gas-phase enthalpies ideal gas (thermo/chemicals) (D-005, D-006)."
+  - "All flows and duties are concept estimates from scripts/has_balance.py (D-006); accuracy not stated, roughly +/-30 %."

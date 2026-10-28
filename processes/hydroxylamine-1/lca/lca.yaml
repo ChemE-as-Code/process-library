@@ -1,0 +1,152 @@
+# Goal and scope of the hydroxylamine-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme
+# assess lca --inventory --write` and `--coverage` (lca/inventory.csv, gaps.csv, dataset.yaml,
+# manifest.json, ...); never edit those by hand.
+#
+# A preliminary gate-to-gate inventory (DESIGN.md D-011): every foreground exchange from the
+# balanced flowsheet (process/flowsheet.yaml) or, for the catalysts outside it, ASSUMED orders of
+# magnitude (D-011, O-3). No background is linked: each feed, utility and waste is `missing:`
+# with the background activity it should connect to later. No value from a licensed database is
+# used.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of hydroxylamine as a 25.4 wt% hydroxylammonium
+  sulfate solution, made by NO hydrogenation in dilute sulfuric acid with NO from ammonia
+  oxidation (BASF-type process), at the concept stage, for the process library: the foreground
+  exchanges per kg of NH2OH contained, with their provenance, and the list of backgrounds still
+  to link. Not an impact result: every background is a gap; only the direct N2O and NO
+  emissions of the plant are elementary flows.
+functional_unit:
+  product: PROD
+  amount: 1
+  unit: kg
+  kg_per_unit: 9.78222
+  source: "1 kg NH2OH contained in the 25.4 wt% hydroxylammonium sulfate solution: 36 683.3 kg/h of solution (S24) per 3750 kg/h NH2OH (D-002, D-011)"
+boundary: gate-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "NH3 oxidation with O2 and steam on Pt/Rh (about 130 kPa(a)), O2 removal by hydrogenation, condensation, NO hydrogenation in about 20 wt% H2SO4 on suspended Pt/graphite in a stirred-tank cascade (313 K, 200 kPa(a)) with off-gas recycle and purge to a thermal oxidiser; 30 kt/a NH2OH"
+system_model: cutoff   # D-011: the exported steam is allocated (shares), never credited
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+allocation:
+  method: shares
+  coproducts: [PROD, MPS]
+  shares: {PROD: 1.0, MPS: 0.0}
+  source: >-
+    D-011: the MP steam raised in the waste-heat boiler is the only co-product. All burdens are
+    given to the hydroxylammonium sulfate solution; the steam leaves without a burden and
+    without a credit (conservative for the product), as nitric-acid-1 does.
+  deviation: >-
+    The library hierarchy allocates exported steam by energy or exergy. Neither is available:
+    no property package covers the salt solution (D-006), so its exergy cannot be calculated,
+    and energy allocation would load the steam with the burdens of a non-fuel product. Shares
+    1/0 until the exergy of both products is available (D-011).
+  substitution:
+    MPS: {missing: "not mapped in this preliminary run: heat from MP steam at 1500 kPa(a) of the site steam system it displaces (e.g. a natural-gas boiler), per kWh of heat", source: "MP steam export, stream Q02 (D-008)"}
+flows:
+  # --- raw materials
+  - key: feed:NH3
+    missing: "background not linked yet: liquid anhydrous ammonia at the plant gate (from natural-gas steam reforming and Haber-Bosch); link the LCI dataset of processes/ammonia-1 once published, else a market for ammonia of the site region"
+    source: "stream S01, 2296 kg/h = 0.612 kg/kg NH2OH (D-003, D-005)"
+  - key: feed:GOX
+    missing: "background not linked yet: gaseous oxygen 99.5 mol% at about 3 bar(a) from a cryogenic air separation unit; link the LCI dataset of processes/asu-1 once published"
+    source: "stream S03, 5768 kg/h = 1.54 kg/kg NH2OH (D-003)"
+  - key: feed:H2
+    missing: "background not linked yet: hydrogen 99.9 mol% at >= 3 bar(a) at the plant gate; link processes/hydrogen-1 (SMR with PSA) or chlor-alkali-1 by-product hydrogen once the supplier is chosen"
+    source: "streams S08 and S19, 490 kg/h = 0.131 kg/kg NH2OH (D-003, D-005, D-007)"
+  - key: feed:ACID
+    missing: "background not linked yet: sulfuric acid 98.5 wt% from sulfur burning, double contact; link the LCI dataset of processes/sulfuric-acid-1 once published (per kg of 98.5 % acid)"
+    source: "stream S14, 6651 kg/h = 1.77 kg/kg NH2OH (D-004)"
+  - key: feed:DEMIN
+    missing: "background not linked yet: demineralised (deionised) water production from tap or river water by ion exchange or reverse osmosis, per kg"
+    source: "stream S15, 10 127 kg/h = 2.70 kg/kg NH2OH (D-004)"
+  - key: feed:AIR
+    free: true
+    source: "ambient combustion air of the thermal oxidiser: a resource taken from nature without burden (stream S28, D-009)"
+  # --- utilities
+  - key: feed:STEAMD
+    missing: "background not linked yet: LP steam 500 kPa(a), used directly as burner dilution steam (its water is condensed and reused as process water, not returned as condensate): steam from a natural-gas boiler including its boiler feed water; processes/utility-steam-ng-boiler once published"
+    source: "stream S04, 11 694 kg/h = 3.12 kg/kg NH2OH (US 3,110,563 Example a ratio, D-003)"
+  - key: feed:LPS
+    missing: "background not linked yet: heat from LP steam 500 kPa(a) of a site steam system or a natural-gas boiler, per kWh of heat delivered (ammonia vaporiser)"
+    source: "stream Q01, 744 kW = 0.198 kWh/kg NH2OH (D-008)"
+  - key: feed:POWER
+    missing: "background not linked yet: electricity, medium voltage, grid of the site country (site not chosen)"
+    source: "streams Q04, Q06, Q08, Q09, Q10: NO gas compressor, acid pump, cascade agitators, recycle blower, oxidiser fan, 355 kW = 0.095 kWh/kg NH2OH (D-008)"
+  - key: product:CW
+    missing: "background not linked yet: heat rejected to a closed cooling-water circuit with an evaporative cooling tower (power, make-up water, chemicals) per kWh; processes/utility-cooling-tower once published"
+    source: "streams Q03, Q05, Q07: nitrous-gas condenser, acid cooler, cascade, 24 342 kW = 6.49 kWh/kg NH2OH (D-008)"
+  # --- emissions
+  - {key: product:STACK, emission: true, source: "thermal-oxidiser flue gas to atmosphere (stream S30, D-009)"}
+  - {key: emission:N2, free: true, source: "atmospheric N2 of the combustion air and N2 formed in the burner, returned without burden"}
+  - {key: emission:O2, free: true, source: "unreacted atmospheric O2 of the combustion air"}
+  - {key: emission:AR, free: true, source: "argon of the combustion air and of the GOX feed, returned unchanged"}
+  - {key: emission:H2O, free: true, source: "water vapour from the hydrogen combustion and the off-gas, no burden"}
+  - key: emission:N2O
+    elementary: {compartment: air, subcompartment: unspecified}
+    source: "dinitrogen monoxide (CAS 10024-97-2) from the burner (IPCC 2006 atmospheric-pressure default, D-005) and the cascade (2 % of the NO converted, US 4,895,711), not destroyed in the oxidiser (conservative, D-009): 97.3 kg/h = 25.9 g/kg NH2OH"
+  - key: emission:NO
+    elementary: {compartment: air, subcompartment: unspecified}
+    source: "nitrogen monoxide (CAS 10102-43-9) of the purge, not reduced in the oxidiser (conservative, D-009, O-8): 126.4 kg/h = 33.7 g/kg NH2OH"
+  - key: emission:H2
+    elementary: {compartment: air, subcompartment: unspecified}
+    source: "hydrogen in the flue gas: 0 kg in the design case (complete combustion in X-301, D-009); the flue-gas stream carries the component, so the exchange is listed with its zero amount"
+
+# Emission sources the flowsheet does not carry.
+emission_exclusions:
+  - {id: leaks, method: equipment-leaks, reason: "not estimated at concept stage: no P&ID component count yet; NH3, NO and H2 fugitives to be estimated at basic engineering (D-011)", source: "DESIGN.md D-011"}
+  - {id: tanks, method: storage-tank, equipment: [T-201], reason: "the acid make-up tank holds about 20 wt% H2SO4 with 0.3 % HNO3 at 313 K: no volatile organic or NOx source counted; ammonia, acid and product storage are outside the boundary (D-001)", source: "DESIGN.md D-001, D-011"}
+  - {id: combustion, method: combustion, equipment: [X-301], reason: "the thermal oxidiser fires only the purge hydrogen, whose products are in stream S30; thermal NOx formed in the flame is not estimated (and would be small against the 126 kg/h NO passed through, D-009)", source: "DESIGN.md D-009"}
+
+# Catalysts outside the flowsheet (DESIGN.md D-011, O-3): the platinum metals are never cut;
+# their amounts are ASSUMED orders of magnitude until O-3 gives sourced ones.
+consumables:
+  - id: pt-rh-gauze-loss
+    title: Pt/Rh gauze metal lost from the ammonia burner
+    unit: kg
+    per_year: 9.2
+    catalyst: true
+    metals: {Pt: 0.9, Rh: 0.1}
+    missing: "background not linked yet: platinum and rhodium supply (primary or recycled) in a woven gauze; the spent gauze returns to precious-metal refining"
+    source: "ASSUMED 0.5 g/t NH3 gross loss (the per-NH3 equivalent of the 0.15 g/t HNO3 that nitric-acid-1 assumes) x 18 370 t NH3/a; Pt/Rh 90/10, 3-10 % Rh in US 3,110,563; D-011, O-3"
+  - id: pt-catalyst-loss
+    title: Platinum lost from the suspended Pt/graphite hydrogenation catalyst
+    unit: kg
+    per_year: 1.2
+    catalyst: true
+    metals: {Pt: 1.0}
+    missing: "background not linked yet: platinum (primary or recycled) on a graphite support; spent catalyst returns to the supplier for metal recovery"
+    source: "ASSUMED 5 %/a of a 23 kg Pt inventory (40 g catalyst per l at 0.5 wt% Pt, US 4,895,711 Example 1, x 117 m3 liquid, D-008); D-011, O-3"
+  # Ag-Mn contains silver: never cut, counted with an ASSUMED amount (silver content unknown).
+  - id: o2-removal-catalyst
+    title: Ag-Mn oxygen-hydrogenation catalyst (R-102) replaced
+    unit: kg
+    per_year: 800
+    catalyst: true
+    missing: "background not linked yet: manufacture of a supported silver-manganese oxidation/hydrogenation catalyst (silver content not known)"
+    disposal: {kind: waste, route: "spent silver catalyst to precious-metal recovery", missing: "background not linked yet: silver recovery from spent catalyst", source: "ASSUMED: the whole replaced charge leaves as spent catalyst"}
+    source: "ASSUMED: 2.4 m3 bed (23 500 Nm3/h nitrous gas at a gas hourly space velocity of 10 000 1/h), 1000 kg/m3, replaced every 3 years; catalyst named in EP 0 945 401; D-011, O-3"
+cutoff:
+  - {id: gauze-fabrication-refining, title: "Gauze fabrication and refining of spent gauze (service)", unit: kg, reason: "campaign length and gauze charge not sourced (O-3, O-5); only the metal loss is counted"}
+  - {id: hydrogenation-catalyst-preparation, title: "Pt/graphite catalyst preparation (graphite, hexachloroplatinic acid, sulfur modifier, formic acid) and regeneration", unit: kg, catalyst: true, contains: [C, S, Cl], reason: "make-up rate of support and chemicals not sourced (O-3); the platinum it carries is counted in consumable pt-catalyst-loss"}
+
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED, D-002); 25 a service life ASSUMED"
+
+# Dataset documentation (cheme/lci_dataset/v2): what cheme cannot derive.
+dataset:
+  version: 0.1.0
+  geography:
+    description: "Generic concept design, site not chosen; conditions taken from open patents of European producers (BASF, DOMO Caproleuna)."
+    site: not chosen
+  system_model: cutoff
+  technology_level: current
+  classification: {isic: "2011"}
+  modelling:
+    principle: attributional
+    sampling: "One concept design case (scripts/has_balance.py), not plant data (DESIGN.md D-001..D-011)."
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library (agent-drafted concept design, unreviewed)"

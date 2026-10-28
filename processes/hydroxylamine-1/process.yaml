@@ -1,0 +1,92 @@
+# Process Atlas manifest of hydroxylamine-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: hydroxylamine-1
+title: Hydroxylammonium sulfate by catalytic NO hydrogenation (30 kt/a NH2OH, 25 wt% solution)
+summary: >-
+  Nitric oxide made by burning ammonia with oxygen and steam over Pt/Rh is hydrogenated in
+  dilute sulfuric acid over suspended platinum on graphite (BASF-type process) to a 25.4 wt%
+  hydroxylammonium sulfate solution for oximation; ammonia, oxygen, hydrogen and sulfuric acid
+  are boundary feeds. Concept stage, basis set on open patent examples.
+description: |
+  Liquid ammonia is vaporised, mixed with gaseous oxygen and LP steam (14 : 18.6 : 67.4 by
+  volume) and burnt on a Pt/Rh gauze; a waste-heat boiler raises MP steam. The small oxygen
+  excess is hydrogenated on a silver-manganese catalyst, the steam is condensed (the condensate,
+  with a little nitric acid, becomes the acid dilution water) and the NO gas is compressed to a
+  stirred-tank cascade. There NO and hydrogen (H2:NO 2:1) react at 313 K and 200 kPa(a) on a
+  suspended, sulfur-modified Pt/graphite catalyst in about 20 wt% sulfuric acid to
+  hydroxylammonium sulfate, with ammonium sulfate and N2O as by-products. The off-gas is
+  recycled; 30 % is purged to a thermal oxidiser. The product carries 25.4 wt% hydroxylammonium
+  sulfate (10.2 wt% NH2OH), 1.9 wt% ammonium sulfate and 1.3 wt% free acid.
+
+  All values are concept estimates (scripts/has_balance.py of the engineering files): burner
+  ratios and yields, O2 removal, product analysis, cascade conditions and selectivities are taken
+  from open patents (US 3,110,563; EP 0 945 401; US 4,895,711; EP 1 343 719; US 4,997,635), the
+  burner N2O from the IPCC 2006 default; the per-pass conversion, purge, pressures and all duties
+  are design choices. See DESIGN.md for every assumption and gated step.
+families: [inorganic-chemicals]
+keywords: [hydroxylamine, hydroxylammonium sulfate, hydroxylamine sulfate, nitric oxide, NO hydrogenation, ammonia oxidation, platinum catalyst, caprolactam, oximation, ammonium sulfate, nitrous oxide]
+facets:
+  feedstock_basis: [fossil, water]
+  product_classes: [chemicals]
+  unit_operations: [reaction, heat-exchange, compression, condensation, filtration]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest; cheme maturity reaches no level
+# (capacity, per-pass conversion and purge are assumed), as for hydrogen-peroxide-1. Mass,
+# component and element balances close in cheme; energy closure is not evaluable in core (no
+# property package covers the aqueous salt solution or nitrous gas with steam).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element (reaction extent) balances in every
+    block and step (cheme validate, cheme process streams). The five reactors are conversion
+    models calculated by cheme with conversions from open patents (burner yield, O2
+    hydrogenation, cascade selectivity) or the IPCC default (burner N2O); the separator outlets
+    and all duties are specified values from an independent script (scripts/has_balance.py).
+    Energy closure is not evaluable in core (core #315); aqueous speciation of the salt solution
+    is not modelled (core #364 covers aqueous NaCl only). cheme maturity: none (feeds, purge and
+    per-pass conversion assumed). The preliminary gate-to-gate LCI in lca/ leaves every
+    background unmapped (gaps); its mass balance closes against the flowsheet. Not reviewed. The
+    chemicals registry has no entry for hydroxylammonium sulfate, ammonia, sulfuric acid, nitric
+    oxide, nitrous oxide or ammonium sulfate yet, so the main product, two feeds and the
+    emissions of N2O and NO are not listed under chemistry (open library item).
+chemistry:
+  inputs:
+    - {chemical: hydrogen, role: feedstock, inventory_key: "feed:H2", note: "99.9 mol% H2, 0.131 kg/kg NH2OH (ASSUMED boundary feed; e.g. from processes/hydrogen-1). The other feeds, liquid ammonia (feed:NH3, 0.612 kg/kg NH2OH; processes/ammonia-1) and sulfuric acid 98.5 wt% (feed:ACID, 1.77 kg/kg; processes/sulfuric-acid-1), have no registry entry yet"}
+    - {chemical: oxygen, role: feedstock, inventory_key: "feed:GOX", note: "GOX 99.5 mol% at 300 kPa(a), 1.54 kg/kg NH2OH (ASSUMED boundary feed; e.g. from processes/asu-1)"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:DEMIN", note: "Demineralised water for the acid make-up, 2.70 kg/kg NH2OH"}
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Combustion air of the off-gas thermal oxidiser"}
+  outputs:
+    - {chemical: nitrogen, role: emission, inventory_key: "product:STACK", note: "Thermal-oxidiser flue gas: N2, O2, Ar, water, NO and N2O to atmosphere. The main product, 25.4 wt% hydroxylammonium sulfate solution (product:PROD), has no registry entry yet"}
+    - {chemical: steam, role: co-product, inventory_key: "product:MPS", note: "MP steam 1500 kPa(a) raised in the waste-heat boiler, counted as heat (kWh)"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "NO gas compressor, cascade agitators, recycle blower, acid pump, oxidiser fan (ASSUMED electric drives)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:STEAMD", note: "LP steam 500 kPa(a) used directly as burner dilution steam (condensed and reused as process water)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 500 kPa(a) to the ammonia vaporiser, counted as heat (kWh)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED)"}
+basis:
+  capacity: "30 kt/a NH2OH contained, as 293 kt/a of 25.4 wt% hydroxylammonium sulfate solution (ASSUMED)"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
+references:
+  - {title: "Krauss, W., Diekmann, H. (BASF) US 3,110,563 (1963) Process for the production of high percentage nitric oxide", url: "https://patents.google.com/patent/US3110563A/en"}
+  - {title: "Kretschmar, M., Leetsch, N. (DOMO Caproleuna) EP 0 945 401 (1999) Process for the preparation of hydroxylammonium sulfate", url: "https://patents.google.com/patent/EP0945401A2/en"}
+  - {title: "BASF, US 4,895,711 (1990) Preparation of hydroxylammonium salts", url: "https://patents.google.com/patent/US4895711A/en"}
+  - {title: "Bender, M., Wilfinger, H. J., Schenkel, A. (BASF) EP 1 343 719 (2003) Continuous preparation of hydroxylammonium salts", url: "https://patents.google.com/patent/EP1343719"}
+  - {title: "Fuchs, H., Neubauer, G., Ritz, J., Weiss, F.-J. (BASF) US 4,997,635 (1991) Preparation of crystalline hydroxylammonium sulfate having a low ammonium sulfate content", url: "https://patents.google.com/patent/US4997635A/en"}
+  - {title: "BASF, US 4,457,906 (1984) Preparation of hydroxylammonium salts (N2O and explosive gas mixtures)", url: "https://patents.google.com/patent/US4457906A/en"}
+  - {title: "IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Vol. 3 Ch. 3 Chemical Industry Emissions, Tables 3.3 and 3.5", url: "https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/3_Volume3/V3_3_Ch3_Chemical_Industry.pdf"}
+  - {title: "Ritz, J., Fuchs, H., Perryman, H. G. Hydroxylamine. Ullmann's Encyclopedia of Industrial Chemistry (lead only; not read for this design)", doi: 10.1002/14356007.a13_527}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/hydroxylamine-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0
