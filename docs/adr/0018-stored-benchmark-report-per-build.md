@@ -1,6 +1,6 @@
 # 0018. Store each build's benchmark comparison as benchmarks.json
 
-- **Status:** Proposed, 2026-10-27
+- **Status:** Accepted, 2026-10-28 (proposed 2026-10-27)
 - **Deciders:** the owner (proposed by an agent session, #85)
 - **Scope:** the Atlas catalog (`scripts/build_catalog.py`) and the LCI pipeline
   (`scripts/build_lci.py`), `scripts/benchmarks.py`
@@ -38,6 +38,8 @@ commit.
 ## Evidence
 
 - #85 (to-do: "store the benchmark KPI results per build").
+- Accepted by the owner on 2026-10-28. The website's public check publishes both reports and
+  checks their content (a public build, public processes only): website#88.
 - `scripts/benchmarks.py` (`report`), `scripts/build_catalog.py`, `scripts/build_lci.py`,
   `docs/benchmarks.md` ("Where the results go"), `lci/README.md`.
 - Tests: `tests/test_benchmarks.py` (`test_both_builds_store_the_benchmark_report`,

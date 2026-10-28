@@ -56,7 +56,7 @@ with an ADR in the same pull request.
 | [0015](0015-datapackage-documents-every-activity.md) | datapackage.json documents every exported activity; the Atlas renders it without LCI logic | **Proposed**, 2026-10-26 |
 | [0016](0016-scenario-comparability-in-the-catalog.md) | Carry core's scenario comparability verdict and factor scope into the catalog | **Proposed**, 2026-10-26 |
 | [0017](0017-recorded-check-of-background-mappings.md) | Verify background mappings by a recorded check against a licensed copy | **Proposed**, 2026-10-27 |
-| [0018](0018-stored-benchmark-report-per-build.md) | Store each build's benchmark comparison as benchmarks.json | **Proposed**, 2026-10-27 |
+| [0018](0018-stored-benchmark-report-per-build.md) | Store each build's benchmark comparison as benchmarks.json | Accepted, 2026-10-28 |
 | [0019](0019-process-development-tracking.md) | Process issues and Project workflow separate from evidence and maturity | **Proposed**, 2026-10-27 |
 | [0020](0020-run-records-per-process.md) | Record each design run with its process, organised by run, kept out of publication | **Proposed**, 2026-10-27 |
 | [0021](0021-design-maturity-calculation-maturity-review-status.md) | Name the three axes design maturity, calculation maturity and review status; labels only | **Proposed**, 2026-10-27 |
