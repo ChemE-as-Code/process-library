@@ -1,36 +1,75 @@
-# Process Atlas manifest. Copy this folder to processes/<your-id>/ and edit.
-# Schema: schemas/process.schema.json (cheme-as-code/process/v1). Every slug used under
-# chemistry must exist in chemicals/chemicals.yaml; add new chemicals there in the same change.
-# A product in a defined state and purity names its registry grade: `chemical: oxygen/lox`.
+# Process Atlas manifest of aniline-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here.
 schema: cheme-as-code/process/v1
-id: my-process                  # = folder name; lowercase slug; never rename once listed
-title: Short descriptive process title
+id: aniline-1
+title: Aniline by adiabatic gas-phase hydrogenation of nitrobenzene (25 t/h)
 summary: >-
-  One or two sentences for cards and search results: what goes in, what comes out, at what scale.
-# description: |                # optional longer Markdown for the process page
-families: [hydrogen]            # slugs of taxonomy/families.yaml (ISIC-mapped), e.g. ammonia, methanol, air-separation
-keywords: []
-# facets:                      # optional, for filtering in the Atlas; list only what the design has
-#   feedstock_basis: [water, electricity]   # fossil | biogenic | atmospheric | mineral | recycled | water | electricity
-#   product_classes: [fuels]               # slugs, e.g. industrial-gases, fuels, fertilizers, polymers, chemicals, materials
-#   unit_operations: [electrolysis]        # slugs, e.g. cryogenic-distillation, adsorption, compression, reaction, electrolysis
-#   region: generic                        # e.g. generic, EU
-# Design maturity (claimed, capped by evidence: the calculation maturity in checks/maturity.json
-# of an engineering project; at most concept beside a Tier 0/1 LCI dataset):
-maturity: concept               # concept | screening | basic-engineering | detail-engineering | operating-reference
-validation:                     # review status: set by people only; passing checks is not a review
-  status: unreviewed            # unreviewed | internally-reviewed | peer-reviewed | industry-validated
+  Nitrobenzene is evaporated into a large hydrogen recycle and hydrogenated to aniline over a
+  palladium/alumina fixed bed; the reaction heat raises MP steam, the condensate is decanted,
+  the process water stripped and the crude aniline dried and distilled. Concept stage,
+  assumed basis, preliminary gate-to-gate inventory.
+description: |
+  Liquid nitrobenzene is sprayed into the preheated hydrogen recycle gas (60 mol H2 per mol
+  nitrobenzene at the reactor inlet) and converted completely in one adiabatic Pd-V-Pb/alpha-
+  alumina bed (513 to 729 K, 5 bar) at a selectivity of 99.7 % to aniline; benzene and
+  diphenylamine stand for the low- and high-boiling by-products, with ammonia. The effluent
+  raises MP steam, preheats the recycle gas and is condensed; the gas is recycled with a small
+  purge, the condensate splits into a wet crude aniline and an aniline-saturated water. A
+  dehydration column, a vacuum aniline column and a process water stripper give aniline at
+  99.95 wt% and a process water with 50 ppm aniline.
+
+  All values are concept estimates. The reactor conditions and selectivity follow open Bayer
+  (now Covestro) patents; the separator, decanter and columns come from an independent script
+  whose activity approximation is not qualified by ChemE-as-Code (core #315); see DESIGN.md of
+  the engineering files for every assumption and gated step.
+families: [nitrogen-organics]
+keywords: [aniline, nitrobenzene, hydrogenation, gas phase, adiabatic reactor, palladium catalyst, hydrogen recycle, heteroazeotrope, decanter, distillation, MDI precursor]
+facets:
+  feedstock_basis: [fossil]
+  product_classes: [chemicals]
+  unit_operations: [reaction, compression, heat-exchange, phase-separation, distillation, stripping]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest; cheme maturity reports the level
+# the evidence supports (see validation.notes and DESIGN.md D-006, D-012).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances (cheme validate, cheme process
+    streams). The reactor outlet is calculated by cheme from a sourced selectivity (US
+    2008/0234518 A1, example 3) and its adiabatic duty checks to within 1 kW; the capacity,
+    feed state, by-product split, separator, decanter and column values are ASSUMED or come
+    from scripts/aniline_balance.py, whose vapour-liquid-liquid model of aniline and water is
+    not qualified (core #315). Energy closure of the separations is not evaluable in core. Not
+    reviewed. The chemicals registry has no aniline, nitrobenzene, benzene, diphenylamine or
+    ammonia entry yet, so the main product and the feedstock are not listed under chemistry
+    (open library item).
 chemistry:
   inputs:
-    - {chemical: water, role: feedstock}
+    - {chemical: hydrogen, role: feedstock, inventory_key: "feed:H2F", note: "Make-up hydrogen from hydrogen-1 (99.9 mol%, 2850 kPa(a)). The other feedstock, nitrobenzene (feed:NBF), has no registry entry yet"}
   outputs:
-    - {chemical: hydrogen, role: main-product}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Stripped process water, 50 ppm(wt) aniline and about 0.1 wt% ammonia (ASSUMED). The main product, aniline (product:ANILINE), has no registry entry yet"}
+    - {chemical: steam, role: co-product, inventory_key: "product:MPSX", note: "MP steam 1500 kPa(a) raised from the reaction heat, net of the reboilers"}
   utilities:
-    - {chemical: electricity, role: utility}
-# basis: {capacity: "1000 t/d product", operating_hours_per_year: 8000}
-# lca: {source: auto}           # auto: read lca/ of a ChemE-as-Code project; none: no LCA
-# references:
-#   - {title: "Author et al. (2024) Title", doi: 10.xxxx/xxxxx}
-# maintainers:
-#   - {name: Your Name, orcid: 0000-0000-0000-0000}
-# repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/my-process, access: private}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Circulator K-101, pumps and vacuum pump (ASSUMED electric drives)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED)"}
+basis:
+  capacity: "25 t/h aniline, 210 kt/a (ASSUMED)"
+  operating_hours_per_year: 8400
+  location: generic (not chosen)
+references:
+  - {title: "Kahl, T. et al. Aniline. Ullmann's Encyclopedia of Industrial Chemistry (Wiley-VCH); route reference lead, not audited in this run", doi: 10.1002/14356007.a02_303.pub2}
+  - {title: "Bayer MaterialScience AG (2008) Process for producing aromatic amines. US 2008/0234518 A1 (granted US 9,067,864 B2)", url: "https://patents.google.com/patent/US20080234518A1/en"}
+  - {title: "Bayer Intellectual Property GmbH (2016) Process for purifying aniline from gas phase hydrogenations. US 9,233,910 B2", url: "https://patents.google.com/patent/US9233910B2/en"}
+lca:
+  source: none
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/aniline-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0

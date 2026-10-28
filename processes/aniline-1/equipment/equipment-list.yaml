@@ -1,3 +1,45 @@
 # Equipment list. Schema: `cheme schema equipment`.
-schema: cheme/equipment/v1
-equipment: []
+# Concept stage: the items the PFD (process/flowsheet.yaml) needs, no P&ID yet (no sheet).
+# Design pressure and temperature are ASSUMED concept values (D-010): the highest operating
+# value of the balance (scripts/aniline_balance.py) + 10 % (at least + 2 bar) and + 25 K; one
+# design pressure for the whole hydrogenation loop; vacuum columns also full vacuum. Sizes,
+# dimensions and weights come at basic engineering (datasheets).
+equipment:
+  # ---- hydrogenation loop (block RXN)
+  - {tag: P-101, type: CentrifugalPump, service: Nitrobenzene feed pump,
+     design_pressure_barg: 9, design_temperature_degc: 65, material: CS,
+     notes: "33.2 t/h, 500 -> 650 kPa(a), ~2 kW (D-006). ASSUMED."}
+  - {tag: K-101, type: CentrifugalCompressor, service: Recycle gas circulator,
+     design_pressure_barg: 7, design_temperature_degc: 130, material: "CS (hydrogen service: materials per the hydrogen rules, open input)",
+     notes: "74.5 t/h (17 900 kmol/h, 90 mol% H2), 400 -> 560 kPa(a), ~6.5 MW shaft at isentropic efficiency 0.75 (D-005, D-006, ASSUMED). Electric drive ASSUMED; dry-running machine as in US 2008/0234518 A1."}
+  - {tag: E-102, type: TubularHeatExchanger, service: Feed/effluent exchanger,
+     design_pressure_barg: 7, design_temperature_degc: 340, material: "CS / low-alloy (hydrogen service, open input)",
+     notes: "Recycle gas 377 -> 556 K, effluent 586 -> 420 K, ~26.5 MW (D-006). ASSUMED."}
+  - {tag: V-102, type: Vessel, service: Nitrobenzene evaporator (spray into the recycle gas),
+     design_pressure_barg: 7, design_temperature_degc: 310, material: "CS / low-alloy (open input)",
+     notes: "NB liquid sprayed into the 556 K recycle gas, mixture 513 K (D-005). Arrangement (spray, packed evaporator, fresh-hydrogen evaporator as in US 2008/0234518 A1) open. ASSUMED."}
+  - {tag: R-101, type: Vessel, service: "Adiabatic hydrogenation reactor (Pd/alumina fixed bed)",
+     design_pressure_barg: 7, design_temperature_degc: 525, material: "low-alloy or stainless (hydrogen and ammonia at 450-500 C, open input)",
+     notes: "Single adiabatic bed, 513 -> 729 K, no internal cooling (D-003). Catalyst volume not sized: the loading of US 2008/0234518 A1 (about 1.5 g NB per g catalyst and hour in example 3) gives roughly 22 t of catalyst, ASSUMED until a vendor basis exists (D-011). Several beds in series with interstage steam raising are the patent's preferred arrangement; one bed here (D-003)."}
+  - {tag: E-103, type: TubularHeatExchanger, service: Effluent steam generator (MP steam 1500 kPa(a)),
+     design_pressure_barg: 7, design_temperature_degc: 480, material: "low-alloy (open input); steam side design 17 barg, 225 C",
+     notes: "Effluent 729 -> 586 K, ~23.5 MW raising saturated steam at 1500 kPa(a) (D-009). ASSUMED."}
+  - {tag: E-104, type: TubularHeatExchanger, service: Effluent condenser,
+     design_pressure_barg: 7, design_temperature_degc: 175, material: CS,
+     notes: "420 -> 333 K, ~23.7 MW to cooling water; the upper part could raise LP steam or preheat the process water stripper feed (heat integration open, D-009). ASSUMED."}
+  - {tag: V-101, type: Vessel, service: Three-phase separator,
+     design_pressure_barg: 7, design_temperature_degc: 85, material: CS,
+     notes: "333 K, 410 kPa(a); gas 72.8 t/h, condensate 34.8 t/h (D-007). ASSUMED."}
+  # ---- aniline recovery and purification (block PUR)
+  - {tag: D-101, type: Vessel, service: Crude aniline decanter,
+     design_pressure_barg: 3.5, design_temperature_degc: 65, material: CS,
+     notes: "313 K, 150 kPa(a); organic 26.7 t/h, aqueous 11.9 t/h (D-007). The crude condensate from V-101 (333 K) is cooled to 313 K on the way, ~0.48 MW to cooling water (a cooler E-105 to be listed at basic engineering). ASSUMED."}
+  - {tag: C-201, type: ProcessColumn, service: "Dehydration column (heteroazeotrope overhead, low-boiler draw)",
+     design_pressure_barg: 3.5, design_temperature_degc: 200, material: CS,
+     notes: "Top 60 kPa(a) (azeotrope 358 K), bottoms 70 kPa(a) 444 K; reboiler ~3.1 MW (MP steam), condenser ~1.3 MW (D-008). Full vacuum design. Stages not sized. ASSUMED."}
+  - {tag: C-202, type: ProcessColumn, service: Aniline column (vacuum),
+     design_pressure_barg: 3.5, design_temperature_degc: 180, material: CS,
+     notes: "Top 20 kPa(a) (404 K), bottoms 25 kPa(a) ~425 K, reflux ratio 0.5; reboiler ~4.75 MW (MP steam), condenser and product cooler ~6.6 MW (D-008). Full vacuum design; vacuum pump in the 150 kW lump (D-009). ASSUMED."}
+  - {tag: C-102, type: ProcessColumn, service: Process water stripper,
+     design_pressure_barg: 3.5, design_temperature_degc: 125, material: CS,
+     notes: "101.3 kPa(a), azeotrope overhead 372 K, bottoms 373 K with 50 ppm(wt) aniline; reboiler ~2.4 MW (let-down steam), condenser and water cooler ~2.4 MW (D-008). ASSUMED."}

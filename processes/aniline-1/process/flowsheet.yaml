@@ -65,6 +65,7 @@ products:
       min_approach: {value: 5, provenance: assumed, source: D-009}
     ports:
       - {id: e104, direction: in, kind: energy}
+      - {id: d101, direction: in, kind: energy}
       - {id: c201, direction: in, kind: energy}
       - {id: c202, direction: in, kind: energy}
       - {id: c102, direction: in, kind: energy}
@@ -98,6 +99,7 @@ blocks:
       - {id: steam202, direction: in, kind: energy}
       - {id: steam102, direction: in, kind: energy}
       - {id: power, direction: in, kind: energy}
+      - {id: cw101, direction: out, kind: energy}
       - {id: cw201, direction: out, kind: energy}
       - {id: cw202, direction: out, kind: energy}
       - {id: cw102, direction: out, kind: energy}
@@ -226,6 +228,7 @@ steps:
       - {id: strip, direction: in}
       - {id: org, direction: out}
       - {id: aq, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw101}
   - id: C201
     block: PUR
     title: Dehydration column (heteroazeotrope overhead, low-boiler draw)
@@ -536,6 +539,7 @@ streams:
   - {id: Q6, title: Let-down steam to the C-102 reboiler, kind: energy, from: E103.s102, to: C102.reb, state: {design: {duty: {value: 2393.9, provenance: assumed, source: "scripts/aniline_balance.py, enthalpy balance with 30 % reflux margin (D-008)"}}}}
   - {id: Q7, title: MP steam export, kind: energy, from: E103.exp, to: MPSX.e103, state: {design: {duty: {value: 13297.4, provenance: assumed, source: "scripts/aniline_balance.py: E-103 duty 23546.1 kW less the three reboilers (D-009)"}}}}
   - {id: Q8, title: E-104 duty, kind: energy, from: E104.cw, to: CW.e104, state: {design: {duty: {value: 23694.8, provenance: assumed, source: "scripts/aniline_balance.py (D-006)"}}}}
+  - {id: Q12, title: D-101 condensate cooler duty (333 to 313 K), kind: energy, from: D101.cw, to: CW.d101, state: {design: {duty: {value: 477.9, provenance: assumed, source: "scripts/aniline_balance.py, decanter enthalpy balance (D-007)"}}}}
   - {id: Q9, title: C-201 condenser duty, kind: energy, from: C201.cond, to: CW.c201, state: {design: {duty: {value: 1274.3, provenance: assumed, source: "scripts/aniline_balance.py, 30 % reflux margin (D-008)"}}}}
   - {id: Q10, title: C-202 condenser and product cooler duty, kind: energy, from: C202.cond, to: CW.c202, state: {design: {duty: {value: 6578.0, provenance: assumed, source: "scripts/aniline_balance.py, reflux ratio 0.5 (D-008)"}}}}
   - {id: Q11, title: C-102 condenser and process water cooler duty, kind: energy, from: C102.cond, to: CW.c102, state: {design: {duty: {value: 2393.9, provenance: assumed, source: "scripts/aniline_balance.py: condenser 1686.2 kW + water cooler 707.7 kW (D-008)"}}}}

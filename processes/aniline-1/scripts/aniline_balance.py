@@ -280,6 +280,7 @@ Tb202 = solve_T(lambda T: psat("ANL", T) - C202_PBOT, 330, 500) + C202_HEAVY_DT
 Q_C202_cond = (1 + C202_R) * (H(product, Tt202) - H(product, Tt202, "l")) + H(product, Tt202, "l") - H(product, T_DEC, "l")
 Q_C202_reb = Q_C202_cond + H(product, T_DEC, "l") + H(residue, Tb202, "l") - H(bot201, Tb201, "l")
 Tb102 = solve_T(lambda T: psat("H2O", T) - C102_P, 340, 400)
+Q_D101 = H(L, T_SEP, "l") + H(top201, T_DEC, "l") + H(top102, T_DEC, "l") - H(org, T_DEC, "l") - H(aq, T_DEC, "l")
 Q_C102_cond = REFLUX_MARGIN * (H(top102, T102) - H(top102, T_DEC, "l"))
 Q_C102_reb = Q_C102_cond + H(top102, T_DEC, "l") + H(ww, Tb102, "l") - H(aq, T_DEC, "l")
 Q_WW_cool = H(ww, Tb102, "l") - H(ww, T_DEC, "l")
@@ -316,7 +317,7 @@ streams = [
 ]
 duties = {
     "W_K101": W_K, "W_P101": W_P101, "W_PUMPS": W_PUMPS, "Q_E102": Q_E102, "Q_E103": Q_E103,
-    "Q_E104": Q_E104, "Q_C201_reb": Q_C201_reb, "Q_C201_cond": Q_C201_cond,
+    "Q_E104": Q_E104, "Q_D101": Q_D101, "Q_C201_reb": Q_C201_reb, "Q_C201_cond": Q_C201_cond,
     "Q_C202_reb": Q_C202_reb, "Q_C202_cond": Q_C202_cond, "Q_C102_reb": Q_C102_reb,
     "Q_C102_cond": Q_C102_cond, "Q_WW_cool": Q_WW_cool, "Q_export": Q_export,
 }
@@ -343,6 +344,16 @@ print(f"overall mass in {mi:.3f} out {mo:.3f} kg/h")
 EL = {"NB": {"C": 6, "H": 5, "N": 1, "O": 2}, "ANL": {"C": 6, "H": 7, "N": 1}, "H2O": {"H": 2, "O": 1},
       "H2": {"H": 2}, "N2": {"N": 2}, "C6H6": {"C": 6, "H": 6}, "DPA": {"C": 12, "H": 11, "N": 1},
       "NH3": {"N": 1, "H": 3}}
+# overall energy closure: power + enthalpy of the feeds - enthalpy of the material products
+# = heat to cooling water + exported steam
+Q_cw = Q_E104 + Q_D101 + Q_C201_cond + Q_C202_cond + Q_C102_cond + Q_WW_cool
+H_in = H_nb + H(h2_feed, T_S2)
+H_out = (H(product, T_DEC, "l") + H(purge, T_SEP) + H(lights, T_DEC, "l") + H(residue, Tb202, "l")
+         + H(ww, T_DEC, "l"))
+W_tot = W_K + W_P101 + W_PUMPS
+print(f"energy: power {W_tot:.1f} kW + H(feeds) - H(products) {H_in - H_out:.1f} kW = {W_tot + H_in - H_out:.1f} kW; "
+      f"cooling water {Q_cw:.1f} kW + steam export {Q_export:.1f} kW = {Q_cw + Q_export:.1f} kW "
+      f"(difference {(W_tot + H_in - H_out) - (Q_cw + Q_export):.1f} kW: pumps' work counted as power, not as heat)")
 for e in "CHNO":
     ein = sum(n.get(c, 0) * EL[c].get(e, 0) for n in (nb_feed, h2_feed) for c in n)
     eout = sum(n.get(c, 0) * EL[c].get(e, 0) for n in (product, purge, lights, residue, ww) for c in n)

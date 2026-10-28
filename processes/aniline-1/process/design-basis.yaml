@@ -1,8 +1,50 @@
 # What the plant must do. Schema: `cheme schema design_basis`.
-schema: cheme/design_basis/v1
-capacity: {}
-feeds: []
-products: []
-utilities: []
-site: {}
-assumptions: []
+# Aniline by gas-phase hydrogenation of nitrobenzene, issue ChemE-as-Code/process-library#148.
+# Nitrobenzene and hydrogen are boundary feeds (DESIGN.md D-001). Values marked ASSUMED are
+# engineering choices of this concept study, not client or licensor data; every decision is in
+# DESIGN.md.
+capacity:
+  basis: Aniline to storage (product stream incl. its water)
+  product_t_per_d: 600                # = 25 t/h; ASSUMED (D-002): a single-train world-scale size, chosen, not a client figure
+  product_kg_per_h: 25000.0           # ASSUMED (D-002)
+  operating_hours_per_year: 8400      # ASSUMED: 210 kt/a
+  turndown_percent: 50                # ASSUMED, not checked yet
+feeds:
+  - name: Nitrobenzene (from a benzene nitration plant, outside the boundary)
+    source_of_values: ASSUMED (D-002); pure nitrobenzene
+    purity: "modelled as 100 % nitrobenzene; dinitrobenzene, nitrophenols and benzene of a real nitration product are not modelled (open input, D-002)"
+    conditions: {pressure_kPa_a: 500, temperature_K: 313.15}   # ASSUMED battery limit
+    flow: set by the product rate through the balance (D-006); stream S1 of process/flowsheet.yaml
+  - name: Hydrogen (from the hydrogen plant, library process hydrogen-1)
+    source_of_values: "hydrogen-1 product stream S17: 99.9 mol% H2, 0.1 mol% N2, 2850 kPa(a), 313.15 K (D-002)"
+    composition_mol_percent: {H2: 99.9, N2: 0.1}
+    conditions: {pressure_kPa_a: 2850, temperature_K: 313.15}
+    flow: consumption plus purge loss (D-005); stream S2
+products:
+  - name: Aniline
+    purity: "aniline >= 99.9 wt% (the pure-aniline purity of the examples of US 9,233,910 B2); design target 99.95 wt% aniline, 0.05 wt% water (ASSUMED, D-002); trace by-products in the product are not modelled"
+    delivery: {pressure_kPa_a: 300, temperature_K: 313.15, battery_limit: storage (outside the boundary)}
+  - name: Loop purge gas
+    use: site fuel gas header (outside the boundary, D-005)
+  - name: Low boilers (benzene with aniline) and distillation residue (diphenylamine with aniline)
+    use: incineration (outside the boundary, D-008), as US 9,233,910 B2 describes for the residue
+  - name: Stripped process water
+    use: "biological wastewater treatment (outside the boundary); 50 ppm(wt) aniline and the dissolved ammonia (D-008)"
+  - name: MP steam 1500 kPa(a)
+    use: export to the site steam header, net of the plant's own reboilers (D-009)
+utilities:
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: ASSUMED (D-009)}
+  - {name: MP steam raised in E-103, pressure_kPa_a: 1500, saturation_K: 471.4, use: "reboilers of C-201 and C-202, let down to C-102, rest exported", note: ASSUMED level (D-009)}
+  - {name: Electric power, use: "circulator K-101, pumps, vacuum pump", note: "ASSUMED electric drives (D-009)"}
+site:
+  location: ASSUMED generic site, not chosen
+  design_ambient_K: 303.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325   # ASSUMED
+assumptions:
+  - "ASSUMED reactor: single adiabatic Pd-V-Pb/alpha-alumina fixed bed, inlet 513.15 K and 530 kPa(a); conditions inside the preferred ranges of US 2008/0234518 A1 (D-003)."
+  - "ASSUMED complete nitrobenzene conversion and selectivity 0.997 to aniline (US 2008/0234518 A1, example 3); remaining 0.3 % split 0.2 % benzene, 0.1 % diphenylamine (D-004)."
+  - "ASSUMED H2/NB 60 mol/mol at the reactor inlet (patent range 3-150, most preferred 50-90); N2 held at 5 mol% in the loop gas by the purge (D-005)."
+  - "ASSUMED three-phase separator at 333.15 K, 410 kPa(a); decanter at 313.15 K with 5 wt% water in the organic and 3.6 wt% aniline in the aqueous phase (D-007)."
+  - "ASSUMED columns: C-201 top 60 kPa(a), C-202 top 20 kPa(a) with reflux ratio 0.5, C-102 at 101.3 kPa(a) with 50 ppm(wt) aniline in the bottoms; 30 % reflux margin on the C-201 and C-102 condensers (D-008)."
+  - "ASSUMED circulator isentropic efficiency 0.75; pumps and vacuum pump 150 kW lumped (D-009)."
+  - "All separator, column and duty values are concept estimates of scripts/aniline_balance.py with an unqualified activity approximation (D-006, D-007); accuracy not stated."

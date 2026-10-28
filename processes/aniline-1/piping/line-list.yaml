@@ -1,3 +1,32 @@
 # Line list. Schema: `cheme schema lines`.
-schema: cheme/lines/v1
-lines: []
+# Concept stage: one line per material stream of the PFD (stream id in the notes), no P&ID yet.
+# DN: first-pass size from velocity (D-010, ASSUMED): gas 20 m/s below 1000 kPa(a), 15 m/s
+# above, two-phase 15 m/s on the gas, liquid 1.5 m/s; ideal-gas density, liquid density
+# ASSUMED 1000-1200 kg/m3; inside diameter taken as the DN, minimum DN25. The loop lines are
+# large because of the H2/NB ratio of 60 at 4-5 bar (D-005). Pressure classes come with the
+# pipe specs.
+lines:
+  - {number: NB-101, from: B/L, to: P-101, nominal_diameter: DN100, fluid: Nitrobenzene, notes: "S1 nitrobenzene feed"}
+  - {number: NB-102, from: P-101, to: V-102, nominal_diameter: DN80, fluid: Nitrobenzene, notes: "S1B"}
+  - {number: H2-103, from: B/L, to: PG-104, nominal_diameter: DN150, fluid: Hydrogen, notes: "S2 make-up hydrogen from hydrogen-1, 2850 kPa(a), let down into the circulator suction (M101)"}
+  - {number: PG-104, from: PG-113, to: K-101, nominal_diameter: DN1500, fluid: Recycle gas, notes: "S3 circulator suction"}
+  - {number: PG-105, from: K-101, to: E-102, nominal_diameter: DN1400, fluid: Recycle gas, notes: "S4"}
+  - {number: PG-106, from: E-102, to: V-102, nominal_diameter: DN1600, fluid: Recycle gas, notes: "S5, 556 K"}
+  - {number: PG-107, from: V-102, to: R-101, nominal_diameter: DN1600, fluid: Reactor feed, notes: "S6, 513 K"}
+  - {number: PG-108, from: R-101, to: E-103, nominal_diameter: DN2000, fluid: Reactor effluent, notes: "S7, 729 K"}
+  - {number: PG-109, from: E-103, to: E-102, nominal_diameter: DN1800, fluid: Reactor effluent, notes: "S8, 586 K"}
+  - {number: PG-110, from: E-102, to: E-104, nominal_diameter: DN1600, fluid: Reactor effluent, notes: "S9, 420 K"}
+  - {number: PG-111, from: E-104, to: V-101, nominal_diameter: DN1600, fluid: Reactor effluent, notes: "S10, two-phase"}
+  - {number: PG-112, from: V-101, to: PG-113, nominal_diameter: DN1400, fluid: Recycle gas, notes: "S11 separator gas to the purge take-off"}
+  - {number: FG-113A, from: PG-112, to: B/L, nominal_diameter: DN50, fluid: Purge gas, notes: "S12 purge to the fuel gas header"}
+  - {number: PG-113, from: PG-112, to: PG-104, nominal_diameter: DN1400, fluid: Recycle gas, notes: "S13 recycle gas"}
+  - {number: CA-114, from: V-101, to: D-101, nominal_diameter: DN100, fluid: Crude condensate, notes: "S14, both liquid phases, let down to the decanter"}
+  - {number: CA-115, from: D-101, to: C-201, nominal_diameter: DN100, fluid: Crude aniline (wet), notes: "S15 organic phase"}
+  - {number: PW-116, from: D-101, to: C-102, nominal_diameter: DN65, fluid: Process water, notes: "S16 aqueous phase"}
+  - {number: PW-117, from: C-201, to: D-101, nominal_diameter: DN25, fluid: Azeotrope condensate, notes: "S17"}
+  - {number: LB-118, from: C-201, to: B/L, nominal_diameter: DN25, fluid: Low boilers, notes: "S18 to incineration"}
+  - {number: CA-119, from: C-201, to: C-202, nominal_diameter: DN100, fluid: Crude aniline (dry), notes: "S19 (a pump is needed at basic engineering)"}
+  - {number: AN-120, from: C-202, to: B/L, nominal_diameter: DN80, fluid: Aniline, notes: "S20 product to storage"}
+  - {number: HR-121, from: C-202, to: B/L, nominal_diameter: DN25, fluid: Distillation residue, notes: "S21 to incineration, kept warm"}
+  - {number: PW-122, from: C-102, to: D-101, nominal_diameter: DN25, fluid: Azeotrope condensate, notes: "S22"}
+  - {number: WW-123, from: C-102, to: B/L, nominal_diameter: DN50, fluid: Process water, notes: "S23 to wastewater treatment"}
