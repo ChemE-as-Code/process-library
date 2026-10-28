@@ -21,3 +21,9 @@ gives 4911.9 kg/h in and out for 1250 kg/h product, the same ratio. `cheme asses
 Open: backgrounds for ore, KOH, lime, residue landfill and Mn effluent treatment; dust of the
 roaster off-gas and the dryer exhaust (not estimated, no dust method in the schema); H2 to air
 has no GWP100 factor; CPC classification not looked up.
+
+Origin label of the H2 emission: `inventory.csv` reports the vented cathode hydrogen as "air,
+fossil" because `elementary.origin` only allows fossil, biogenic or land-use-change and defaults
+to fossil. The hydrogen comes from the electrolysis of water (D-006), not from fossil carbon; the
+label has no effect on the carbon balance (H2 carries no carbon) and no GWP100 factor is applied.
+Read it as "H2 to air, from water" (review 2026-10-28-pfd-lci-review#9).
