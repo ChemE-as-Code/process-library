@@ -1,18 +1,81 @@
 # Components and templates of the process. Schema cheme/process/v1 (`cheme schema
 # process-materials`). Every component has a stable id; molar_mass in kg/kmol,
 # normal_boiling_point in K at 101.325 kPa.
+# ideal_gas and critical data: `cheme chemistry thermo NAME` (chemicals 1.5.2 / thermo 0.6.1,
+# offline), copied unchanged with the method named in each source. Normal boiling points:
+# thermo 0.6.1 Chemical(...).Tb. Nitrobenzene and diphenylamine have Joback heat capacities
+# fitted from 327 K and 330 K only: streams below that hold them as liquids (D-006).
 schema: cheme/process/v1
 kind: materials
-components: []
-#  - {id: N2, name: Nitrogen, formula: N2, cas: 7727-37-9, molar_mass: 28.014, normal_boiling_point: 77.36}
-templates: []
-#  - {id: air, title: Air, components: [N2, O2, AR]}
-# property_method is a placeholder until `cheme process props --fill` records the method: its
-# benchmarked property package, package versions and application range. Packages:
-# air-pr-chemsep (N2/O2/Ar, 77-315 K, vapour 100-3200 kPa(a), liquid and two-phase 100-600
-# kPa(a)) and syngas-pr-vapor (H2/N2/Ar/CH4/CO/CO2 mixtures, NH3 pure or dilute with H2/N2/Ar/
-# CH4, vapour only, in benchmarked temperature-pressure boxes). `cheme process props --coverage` shows which applies
-# to each stream; `package: <id>` here chooses one.
+components:
+  - id: NB
+    name: Nitrobenzene
+    formula: C6H5NO2
+    cas: 98-95-3
+    molar_mass: 123.11
+    normal_boiling_point: 483.85
+    critical: {Tc: 712, Pc: 3495.71, omega: 0.394, source: "chemicals: Tc PSRK, Pc PSRK, omega PSRK"}
+    ideal_gas: {dHf_298: 68500.0, S_298: 348.8, cp_R: [-3.72604, 0.071473, -4.95763e-05, 1.26887e-08], temperature_range: [327.41, 1000], source: "chemicals: dHf_298 CRC, S_298 CRC, cp_R fitted to thermo JOBACK 327.41-1000 K (max deviation 0.00%)"}
+  - id: ANL
+    name: Aniline
+    formula: C6H7N
+    cas: 62-53-3
+    molar_mass: 93.126
+    normal_boiling_point: 457.25
+    critical: {Tc: 705, Pc: 5630, omega: 0.382, source: "chemicals: Tc IUPAC, Pc IUPAC, omega PSRK"}
+    ideal_gas: {dHf_298: 87500.0, S_298: 317.9, cp_R: [2.598, 0.019936, 8.438e-05, -1.3368e-07, 5.63e-11], temperature_range: [50, 1000], source: "chemicals: dHf_298 CRC, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: H2O
+    name: Water
+    formula: H2O
+    cas: 7732-18-5
+    molar_mass: 18.015
+    normal_boiling_point: 373.124
+    critical: {Tc: 647.096, Pc: 22064, omega: 0.3443, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -241822.0, S_298: 188.8, cp_R: [4.395, -0.004186, 1.405e-05, -1.564e-08, 6.32e-12], temperature_range: [50, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: H2
+    name: Hydrogen
+    formula: H2
+    cas: 1333-74-0
+    molar_mass: 2.0159
+    normal_boiling_point: 20.37
+    critical: {Tc: 33.145, Pc: 1296.4, omega: -0.219, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 0.0, S_298: 130.7, cp_R: [2.883, 0.003681, -7.72e-06, 6.92e-09, -2.13e-12], temperature_range: [50, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: N2
+    name: Nitrogen
+    formula: N2
+    cas: 7727-37-9
+    molar_mass: 28.013
+    normal_boiling_point: 77.36
+    critical: {Tc: 126.192, Pc: 3395.8, omega: 0.0372, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 0.0, S_298: 191.6, cp_R: [3.539, -0.000261, 7e-08, 1.57e-09, -9.9e-13], temperature_range: [50, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: C6H6
+    name: Benzene
+    formula: C6H6
+    cas: 71-43-2
+    molar_mass: 78.112
+    normal_boiling_point: 353.22
+    critical: {Tc: 562.02, Pc: 4907.28, omega: 0.211, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 83180.0, S_298: 269.2, cp_R: [3.551, -0.006184, 0.00014365, -1.9807e-07, 8.234e-11], temperature_range: [50, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: DPA
+    name: Diphenylamine
+    formula: C12H11N
+    cas: 122-39-4
+    molar_mass: 169.22
+    normal_boiling_point: 578.25
+    critical: {Tc: 931.15, Pc: 8140, omega: 0.3047, source: "chemicals: Tc PSRK, Pc PSRK, omega PSRK"}
+    ideal_gas: {dHf_298: 219300.0, S_298: 403.8, cp_R: [-9.26578, 0.127753, -8.90015e-05, 2.32246e-08], temperature_range: [330.5, 1000], source: "chemicals: dHf_298 CRC, S_298 YAWS, cp_R fitted to thermo JOBACK 330.5-1000 K (max deviation 0.00%)"}
+  - id: NH3
+    name: Ammonia
+    formula: NH3
+    cas: 7664-41-7
+    molar_mass: 17.031
+    normal_boiling_point: 239.83
+    critical: {Tc: 405.56, Pc: 11363.4, omega: 0.256, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -45558.0, S_298: 192.8, cp_R: [4.238, -0.004215, 2.041e-05, -2.126e-08, 7.61e-12], temperature_range: [50, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+templates:
+  - {id: process, title: Hydrogenation loop and crude aniline, components: [NB, ANL, H2O, H2, N2, C6H6, DPA, NH3]}
+# property_method is a placeholder until `cheme process props --fill` records the method. No
+# benchmarked package covers aniline, nitrobenzene and water (polar, liquid-liquid): core #315.
 property_method:
   adapter: thermo
   status: placeholder

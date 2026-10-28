@@ -1,0 +1,40 @@
+# Reactions of aniline-1 (DESIGN.md D-004). Schema: `cheme schema process-reactions`.
+# The reactor R-101 uses a selectivity specification (flowsheet.yaml), not kinetics: no rate law
+# for this catalyst is sourced. Heats of reaction are the ideal-gas values at 298.15 K from the
+# formation data of process/materials.yaml.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: NB_HYD
+    equation: C6H5NO2 + 3 H2 -> C6H5NH2 + 2 H2O
+    stoichiometry: {NB: -1, H2: -3, ANL: 1, H2O: 2}
+    reversible: false
+    heat_of_reaction:
+      value: -464644.0
+      provenance: calculated
+      source: "ideal-gas formation enthalpies at 298.15 K of process/materials.yaml (CRC, ATcT)"
+    catalyst: PD_AL2O3
+    sources: ["US 2008/0234518 A1 (Bayer MaterialScience, 2008), description and examples"]
+  - id: BZ_FORM
+    equation: C6H5NO2 + 4 H2 -> C6H6 + NH3 + 2 H2O
+    stoichiometry: {NB: -1, H2: -4, C6H6: 1, NH3: 1, H2O: 2}
+    reversible: false
+    heat_of_reaction:
+      value: -514444.0
+      provenance: calculated
+      source: "ideal-gas formation enthalpies at 298.15 K of process/materials.yaml"
+    catalyst: PD_AL2O3
+    # Lumped low-boiler by-product (hydrogenolysis of the C-N bond). Benzene is named as the low
+    # boiler of gas-phase crude aniline in US 9,233,910 B2; the reaction path is ASSUMED (D-004).
+  - id: DPA_FORM
+    equation: 2 C6H5NO2 + 6 H2 -> (C6H5)2NH + NH3 + 4 H2O
+    stoichiometry: {NB: -2, H2: -6, DPA: 1, NH3: 1, H2O: 4}
+    reversible: false
+    heat_of_reaction:
+      value: -930502.0
+      provenance: calculated
+      source: "ideal-gas formation enthalpies at 298.15 K of process/materials.yaml"
+    catalyst: PD_AL2O3
+    # Lumped high-boiler by-product (condensation of two aniline molecules, written from
+    # nitrobenzene). Diphenylamine is named as the high boiler of gas-phase crude aniline in
+    # US 9,233,910 B2; the reaction path is ASSUMED (D-004).
