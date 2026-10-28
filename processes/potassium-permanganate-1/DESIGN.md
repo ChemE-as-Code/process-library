@@ -24,12 +24,48 @@ locators are the patent sections because the HTML has no column numbers.
 | SRC-5 | Subramanian, K.; Gomathi, K.; Asokan, K. (2008) Ind. Eng. Chem. Res. 47(22), 8526-8532 (CECRI record https://cecri.csircentral.net/119/) | abstract only | membrane cell with coated Ti anodes and steel cathode; ~1.5-1.7 water per K+ across the membrane; current efficiency NOT available (open input, D-006) |
 | SRC-6 | Ullmann's, *Potassium Compounds*, doi:10.1002/14356007.a22_039 (issue #146 lead) | not accessed | route reference lead; production sections still to be audited |
 | SRC-7 | Wagman, D. D. et al. (1982) NBS tables of chemical thermodynamic properties, J. Phys. Chem. Ref. Data 11 Suppl. 2 | values recalled, not re-read | formation enthalpies and Gibbs energies of reactions (D-009); to be checked against the table |
-| SRC-8 | Cox, J. D. et al. (1989) CODATA Key Values for Thermodynamics | recalled (as in chlor-alkali-1) | heat of WATER_SPLIT |
+| SRC-8 | Cox, J. D. et al. (1989) CODATA Key Values for Thermodynamics | recalled (as in chlor-alkali-1) | heat of WATER_SPLIT (provenance assumed until the table is re-read, like SRC-7) |
 
 Searches that found nothing usable (open): an open source for the current efficiency and the
 specific DC energy of industrial manganate cells; roaster or liquid-phase oxidiser energy use;
 emission factors (dust) of permanganate plants; a BREF chapter on permanganate (the LVIC-S BREF
 was not checked in this run).
+
+## Basis table (review #12)
+
+Status of each design value: **sourced** (a value inside a range or a fact read in the named
+source, locator as precise as the register gives), **assumed** (chosen without a source, or a
+point inside a sourced range), **missing** (no value; gated or open). The values themselves live
+in `process/design-basis.yaml`, `process/flowsheet.yaml`, `process/cells.yaml` and
+`process/reactions.yaml`; this table only says how good they are.
+
+| value | used | status | source / locator |
+|---|---|---|---|
+| route steps (roast, leach + lime, membrane cell, crystallise, KOH recovery) | D-001 | sourced | SRC-1 Description; SRC-2 Description |
+| capacity 1250 kg/h, 8000 h/a, grade >= 98.5 wt% | D-002 | assumed | normalisation basis, no source |
+| ore 70-80 % MnO2 (78 % chosen); gangue split Fe2O3/SiO2 | D-003 | sourced range / assumed point; gangue assumed | SRC-2 Description |
+| grind 98 % < 80 um | D-003 | sourced | SRC-2 Claims |
+| KOH/MnO2 2.5 mol/mol | D-004 | sourced (range 2-3, optimum ~2.5) | SRC-2 Description |
+| roaster 523 K (range 200-300 degC; ~225 degC) | D-004 | sourced range / assumed point | SRC-2 Description; SRC-1 Description |
+| MnO2 conversion 0.90; silicate dissolution 25 %; air 2.0 x O2 | D-004 | assumed | below SRC-2's > 95 % claim |
+| leach 333 K (range ~45-95 degC) | D-005 | sourced range / assumed point | SRC-1 Description |
+| lime 1.10 x silicate; cake liquid 0.6 kg/kg; wash recovery 90 % | D-005 | assumed | - |
+| cell voltage 2.5 V (range 2.0-3.5 V) | D-006 | sourced range / assumed point | SRC-1 Description |
+| cathode current density 1000 A/m2 (range 500-1500 A/m2) | D-006 | sourced range / assumed point | SRC-1 Description |
+| anode current density / area | D-006 | missing | - |
+| cell temperature 333 K (~55 degC; faster above 60 degC) | D-006 | sourced range / assumed point | SRC-1 Description; SRC-3 Examples |
+| current efficiency 0.85 | D-006 | assumed (no open source) | SRC-5 full text not read |
+| per-pass conversion 0.90 | D-006 | assumed | - |
+| crystalliser 303 K (range ~30-50 degC) | D-007 | sourced range / assumed point | SRC-1 Description |
+| mother liquor 1.5 wt% KMnO4, 13 wt% KOH | D-007 | sourced (g/l ranges), density assumed | SRC-1 Description |
+| cake liquid 6 wt%; product moisture 0.2 wt% | D-007 | assumed | - |
+| purge 3 %; evaporator concentrate 50 wt% KOH; economy 1.8 | D-008 | assumed | - |
+| KMnO4/K2MnO4 solubility in KOH liquors | D-007 | missing | - |
+| impurity balance (silicate, aluminate, carbonate) | D-008 | missing | - |
+| formation enthalpies and Gibbs energies | D-009 | assumed (recalled, not re-read) | SRC-7, SRC-8 |
+| KOH heat of solution at 50 wt% | D-009 | missing (review #1) | - |
+| heat capacities, latent heats, losses, efficiencies, auxiliaries 150 kWh/t | D-009 | assumed | - |
+| backgrounds of ore, KOH, lime, fired heat, power, steam, residue, purge | D-011 | missing | lca/gaps.csv |
 
 ## D-001 Route and boundary (2026-10-28)
 Decision: Two-stage manganate route as named in the case notes: MnO2 ore + KOH roasted with air
@@ -102,6 +138,11 @@ purification of silicates and aluminates before electrolysis; SRC-1 gives leach 
 about 45-95 degC (333 K chosen). Reusing the condensate as wash water closes the water balance.
 Assumptions: lime excess, cake liquid and wash recovery ASSUMED; the residue (0.39 kg/kg) goes
 to landfill (D-011).
+Note (review #5): the whole evaporator condensate (3779 kg/h, S11) passes F-301 while the cake
+holds only ~180 kg/h liquid, about 20 cake-liquid volumes. Only a wash of 2-3 cake volumes is a
+displacement wash; the rest is in effect leach dilution water routed through the filter, and the
+90 % recovery stands for the combined wash and dilution. The mass balance is unaffected; in basic
+engineering the excess condensate goes straight to M-301 and F-301 gets a realistic wash ratio.
 
 ## D-006 Electrolysis (2026-10-28)
 Decision: 60 divided cells in series (cation-exchange membrane), 4.41 kA each, 4.41 m2 at
@@ -120,6 +161,26 @@ energy scales with 1/CE); manganate disproportionation and permanganate reductio
 the catholyte loop and the water carried across the membrane (SRC-5: ~1.5-1.7 H2O per K+) are
 not modelled separately (one liquor outlet). Gas streams are dry. Cell count and area are a
 balance basis, not a design. Heats of reaction at 298 K (cheme notes the 333 K difference).
+Electrode areas and current efficiency (review #2): the 4.41 m2 per cell at 1000 A/m2 is the
+**cathode** area, because SRC-1's 500-1500 A/m2 is a cathode current density. The anode area is
+not set: the current efficiency depends on the anode current density against the manganate
+mass-transfer limit, and the anolyte leaves at only 0.6 wt% K2MnO4 (S14) after 90 % conversion
+per pass, so the anode must run at a much lower current density than the cathode (an expanded
+anode several times the cathode area, ASSUMED design direction, no source). CE falls as the
+per-pass conversion rises; CE 0.85 together with 90 % per pass is optimistic. Sensitivity of the
+AC electricity per kg KMnO4 (rectifier 0.546 x 0.85/CE, auxiliaries 0.150 unchanged, voltage
+2.5 V):
+
+| CE | rectifier AC, kWh/kg | total electricity, kWh/kg |
+|---|---|---|
+| 0.60 | 0.774 | 0.924 |
+| 0.70 | 0.663 | 0.813 |
+| 0.80 | 0.580 | 0.730 |
+| 0.85 (base) | 0.546 | 0.696 |
+| 0.90 | 0.516 | 0.666 |
+
+A lower CE also raises the cell heat to cooling water and the anode O2/cathode H2 (WATER_SPLIT);
+the LCI keeps the base case.
 
 ## D-007 Crystallisation, centrifuge and drying (2026-10-28)
 Decision: the cell liquor is cooled from 333 to 303 K in X-501; the mother liquor leaves with
@@ -137,6 +198,12 @@ step.
 Assumptions: cake liquid, moisture ASSUMED; KMnO4 solubility in KOH liquor is taken from the
 SRC-1 operating range, not from solubility data (the pure-water solubility does not apply,
 common-ion effect).
+In-cell crystallisation (review #4): the cell liquor S14 carries 5.5 wt% KMnO4 at 333 K in
+12.5 wt% KOH, more than the 1.5 wt% at 303 K of the mother liquor, and process/cells.yaml notes
+that KMnO4 partly crystallises already in the anolyte. The flowsheet carries all of it dissolved
+to X-501 and charges the whole crystallisation heat to Q6 (crystalliser cooling) instead of
+partly to Q5 (cell cooling). The split between Q5 and Q6 is open until solubility data for KMnO4
+in KOH liquors at 333 K are cited; the sum of the two duties is unaffected.
 
 ## D-008 KOH recovery, purge and make-up (2026-10-28)
 Decision: the mother liquor is split 79.6 % to the leach, 17.4 % to the double-effect KOH
@@ -150,6 +217,12 @@ Assumptions: purge fraction ASSUMED (it carries 0.091 kg free KOH per kg product
 chemical demand of 0.355 kg and a make-up of 0.460 kg, and 11 % of the Mn loss); impurity build-up is not tracked (no impurity
 species), so 3 % is a placeholder until an impurity balance exists; causticising of K2CO3
 (SRC-1) is not included because K2CO3 is not formed in this model (D-004).
+Basic-engineering item (review #6): the evaporator concentrate S4 carries 5.8 wt% KMnO4 in
+50 wt% KOH at 413 K. The permanganate reduction assigned to the roaster (REDKM, D-004) will
+already start in E-601: O2 in the vapour, manganate and MnO2 deposits (fouling) on the heating
+surfaces. No effect on the Mn balance (the Mn reaches the roaster as manganate either way), but
+the evaporator materials, the fouling allowance and whether permanganate should be crystallised
+out before evaporation are open for basic engineering.
 
 ## D-009 Energy, utilities and thermochemical data (2026-10-28)
 Decision: duties from a lumped enthalpy balance in scripts/kmno4_balance.py: roaster
@@ -169,6 +242,12 @@ concept-stage substitute.
 Assumptions: every heat capacity, latent heat, efficiency, loss and the auxiliary allowance is
 ASSUMED; the NBS values must be checked against the table; pressures and temperatures in the
 stream table are concept values.
+Known inconsistency, open (review #1): the KOH enters as 50 wt% solution (S2, S4) while the
+OX/REDKM heats use KOH(s), and the leach credits the KOH(s) dissolution heat. The heat to
+separate KOH from its 50 wt% solution in the roaster, and the differential heat of
+concentrating 13 -> 50 wt% in E-601, are not charged. The reviewer estimates Q1 understated by
+roughly 0.25-0.35 MW (fired heat ~1.25 instead of 0.99 kWh/kg). Not corrected yet: it needs a
+sourced integral heat of solution of KOH at both concentrations, which this run could not read.
 
 ## D-010 Thermodynamic and method selection; core dependencies (2026-10-28)
 Decision: liquors carried as neutral molecules, no property package (`property_method`
@@ -239,6 +318,9 @@ Mn to product 88.6 %, K to product 76 % (theory 0.550 kg MnO2 and 0.355 kg KOH p
 - Impurity balance (soluble silicates, aluminates, carbonate) to set the purge.
 - Ore assay; KOH make-up grade; effluent treatment route of the purge; residue disposal route.
 - NBS formation data to be re-checked against the table (D-009).
+- Plot plan (concept gate `layout-plot-plan`): deferred to basic engineering. This case's scope
+  (issue #146) ends at the balanced PFD and the preliminary LCI, so the gate fails on purpose
+  until a site plan and placement are added (review #13).
 - Registry entries missing in `chemicals/chemicals.yaml` (for the consolidated PR): potassium
   permanganate (main product), manganese ore / manganese dioxide, potassium hydroxide (50 wt%
   solution grade), calcium hydroxide (hydrated lime); a shared `lci/mappings.yaml` vocabulary
