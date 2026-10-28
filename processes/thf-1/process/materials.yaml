@@ -1,18 +1,26 @@
 # Components and templates of the process. Schema cheme/process/v1 (`cheme schema
 # process-materials`). Every component has a stable id; molar_mass in kg/kmol,
 # normal_boiling_point in K at 101.325 kPa.
+# Identities and molar masses: the `chemicals` package (thermo 0.6.1 as packaged with cheme 0.8.0)
+# and PubChem; DHBE and p-TSA are not in `chemicals`' property data (DESIGN.md D-005, D-006).
 schema: cheme/process/v1
 kind: materials
-components: []
-#  - {id: N2, name: Nitrogen, formula: N2, cas: 7727-37-9, molar_mass: 28.014, normal_boiling_point: 77.36}
-templates: []
-#  - {id: air, title: Air, components: [N2, O2, AR]}
-# property_method is a placeholder until `cheme process props --fill` records the method: its
-# benchmarked property package, package versions and application range. Packages:
-# air-pr-chemsep (N2/O2/Ar, 77-315 K, vapour 100-3200 kPa(a), liquid and two-phase 100-600
-# kPa(a)) and syngas-pr-vapor (H2/N2/Ar/CH4/CO/CO2 mixtures, NH3 pure or dilute with H2/N2/Ar/
-# CH4, vapour only, in benchmarked temperature-pressure boxes). `cheme process props --coverage` shows which applies
-# to each stream; `package: <id>` here chooses one.
+components:
+  - {id: BDO, name: "1,4-Butanediol", formula: C4H10O2, cas: 110-63-4, molar_mass: 90.121, normal_boiling_point: 502.65}
+  - {id: THF, name: Tetrahydrofuran, formula: C4H8O, cas: 109-99-9, molar_mass: 72.10572, normal_boiling_point: 339.15}
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.01528, normal_boiling_point: 373.12}
+  # The BDO dimer ether, the lumped heavy by-product (D-005). PubChem CID 76946
+  # (4-(4-hydroxybutoxy)butan-1-ol); PubChem lists several registry numbers for it, 3403-82-5
+  # taken here (to confirm). No normal boiling point in an open source read yet.
+  - {id: DHBE, name: "4-(4-Hydroxybutoxy)butan-1-ol (BDO dimer ether, heavies)", formula: C8H18O3, cas: 3403-82-5, molar_mass: 162.23}
+  # Homogeneous acid catalyst (D-004); decomposes before boiling at atmospheric pressure.
+  - {id: PTSA, name: p-Toluenesulfonic acid, formula: C7H8O3S, cas: 104-15-4, molar_mass: 172.20162}
+templates:
+  - {id: mixture, title: THF process mixture, components: [BDO, THF, H2O, DHBE, PTSA]}
+# property_method is a placeholder: no packaged property package covers THF / water / BDO
+# (`cheme process props --coverage`); the stream values come from scripts/thf_balance.py
+# (thermo NRTL with the ChemSep THF/water parameters, unqualified by core: core #315), given
+# as ASSUMED (D-006).
 property_method:
   adapter: thermo
   status: placeholder

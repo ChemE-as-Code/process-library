@@ -1,24 +1,378 @@
 # The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
 # never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
-# Units are explicit: a property without its own unit is in these. Pressure is absolute; a gauge
-# value needs its own unit (kPa(g)). Nm3/h needs normal_conditions.
+#
+# THF from 1,4-butanediol by acid-catalysed cyclodehydration (reactive distillation) and
+# pressure-swing distillation of the THF/water azeotrope (D-001). Where the values come from:
+# - feed conditions, reactor and column pressures and temperatures are design choices (design
+#   basis, D-002 .. D-008), ASSUMED; the reactor temperature and catalyst follow US 9284289 B2;
+# - the reactor outlet S5 is calculated by cheme (conversion reactor, D-005);
+# - flows through mixers, pumps and coolers are calculated by `cheme process propagate --fill`;
+# - the BDO feed, the reactor overhead and bleed, the column outlets and all duties come from
+#   the independent balance scripts/thf_balance.py (D-006), given here as ASSUMED: core cannot
+#   yet qualify the THF / water activity-coefficient VLE or a liquid-phase reactor's energy
+#   balance (core #315).
 schema: cheme/process/v1
 kind: flowsheet
-title: ""
+title: Tetrahydrofuran from 1,4-butanediol (50 kt/a, cyclodehydration and pressure-swing distillation)
 units:
   pressure: kPa(a)
   temperature: K
   flow: kg/h
   duty: kW
   enthalpy: kJ/kmol
-  # normal_conditions: {temperature: 273.15, pressure: 101.325, basis: ideal_gas}
-  # enthalpy_reference: {state: ideal_gas, temperature: 298.15}
 cases:
-  - {id: design, description: Design case, default: true}
+  - {id: design, description: "Design case: 6250 kg/h THF (99.95 wt%), BDO conversion 0.9906 per pass with the heavies bleed, THF selectivity 0.995, LP 110 / HP 800 kPa(a) columns (D-002, D-005, D-007)", default: true}
 tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
-feeds: []      # external feeds (DEXPI Source): {id, title, ports: [{id: out, direction: out}]}
-products: []   # products (DEXPI Sink): {id, title, ports: [{id: in, direction: in}]}
-blocks: []     # BFD blocks: {id, title, class, ports: [{id, direction, kind}], links}
-steps: []      # PFD steps: {id, block, title, class, ports: [{id, direction, delegates}], links}
-streams: []    # {id, title, kind, from: NODE.port, to: NODE.port, template, state: {design: {...}}}
+
+feeds:
+  - {id: BDOF, title: "1,4-Butanediol feed (boundary feed, D-003)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: PTSAF, title: p-Toluenesulfonic acid catalyst make-up, category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports: [{id: p101, direction: out, kind: energy}, {id: p201, direction: out, kind: energy}]
+  - id: MPS
+    title: MP steam 1000 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: MP
+      pressure: {value: 1000, provenance: assumed, source: "design basis, D-008"}
+      supply_temperature: {value: 453.0, provenance: assumed, source: "saturation at 1000 kPa(a), D-008"}
+      min_approach: {value: 10, provenance: assumed, source: D-008}
+    ports: [{id: r101, direction: out, kind: energy}, {id: c202, direction: out, kind: energy}]
+  - id: LPS
+    title: LP steam 450 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 450, provenance: assumed, source: "design basis, D-008"}
+      supply_temperature: {value: 420.8, provenance: assumed, source: "saturation at 450 kPa(a), D-008"}
+      min_approach: {value: 10, provenance: assumed, source: D-008}
+    ports: [{id: c201, direction: out, kind: energy}]
+products:
+  - {id: THFP, title: THF product to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: WW, title: Process water (LP column bottoms) to wastewater treatment, category: wastewater, ports: [{id: in, direction: in}]}
+  - {id: BLEED, title: "Reactor heavies bleed (BDO, oligomers, catalyst) to incineration", category: by_product, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-008"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-008"}
+      min_approach: {value: 5, provenance: assumed, source: D-008}
+    ports:
+      - {id: c101, direction: in, kind: energy}
+      - {id: c201, direction: in, kind: energy}
+      - {id: e203, direction: in, kind: energy}
+      - {id: e204, direction: in, kind: energy}
+
+blocks:
+  - id: RXN
+    title: BDO cyclodehydration (reactive distillation)
+    class: ReactingChemicals
+    ports:
+      - {id: bdo, direction: in}
+      - {id: cat, direction: in}
+      - {id: crude, direction: out}
+      - {id: bleed, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: steam, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+  - id: SEP
+    title: Pressure-swing distillation of THF / water
+    class: Distilling
+    ports:
+      - {id: feed, direction: in}
+      - {id: thf, direction: out}
+      - {id: water, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: lps, direction: in, kind: energy}
+      - {id: mps, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+      - {id: cw3, direction: out, kind: energy}
+
+steps:
+  - id: M101
+    block: RXN
+    title: BDO and catalyst make-up junction
+    class: Mixing
+    ports:
+      - {id: bdo, direction: in, delegates: bdo}
+      - {id: cat, direction: in, delegates: cat}
+      - {id: out, direction: out}
+  - id: P101
+    block: RXN
+    title: BDO feed pump
+    class: GeneratingFlow
+    links: [{target: equipment, ref: P-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # D-004, D-005: liquid-phase reactor at 418 K with the homogeneous acid; the per-pass BDO
+  # conversion is the plant conversion set by the heavies bleed (the reactor holds the BDO back
+  # under its rectifying column), THF selectivity 0.995 ASSUMED.
+  - id: R101
+    block: RXN
+    title: Dehydration reactor (stirred, steam-heated, homogeneous p-TSA)
+    class: ReactingChemicals
+    reactions: [CYCLO, ETHER]
+    reactor: conversion
+    selectivity: {key: BDO, conversion: 0.990637769, products: {THF: 0.995}, provenance: assumed, source: "D-005: THF selectivity ASSUMED; conversion from the bleed specification (30 wt% heavies, scripts/thf_balance.py)"}
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: heat, direction: in, kind: energy, delegates: steam}
+  - id: C101
+    block: RXN
+    title: Reactor rectifying column, overhead condenser and heavies bleed
+    class: Distilling
+    links: [{target: equipment, ref: C-101}, {target: equipment, ref: E-101}]
+    ports:
+      - {id: feed, direction: in}
+      - {id: top, direction: out, delegates: crude}
+      - {id: bot, direction: out, delegates: bleed}
+      - {id: cond, direction: out, kind: energy, delegates: cw}
+  - id: M201
+    block: SEP
+    title: LP column feed junction (crude THF + HP column recycle)
+    class: Mixing
+    ports:
+      - {id: fresh, direction: in, delegates: feed}
+      - {id: rec, direction: in}
+      - {id: out, direction: out}
+  - id: C201
+    block: SEP
+    title: LP column (110 kPa(a)), water bottoms
+    class: Distilling
+    links: [{target: equipment, ref: C-201}, {target: equipment, ref: E-201}, {target: equipment, ref: E-202}, {target: equipment, ref: E-205}]
+    ports:
+      - {id: feed, direction: in}
+      - {id: top, direction: out}
+      - {id: bot, direction: out}
+      - {id: reb_int, direction: in, kind: energy}
+      - {id: reb, direction: in, kind: energy, delegates: lps}
+      - {id: cond, direction: out, kind: energy, delegates: cw2}
+  - id: P201
+    block: SEP
+    title: HP column feed pump
+    class: GeneratingFlow
+    links: [{target: equipment, ref: P-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: C202
+    block: SEP
+    title: HP column (800 kPa(a)), THF bottoms
+    class: Distilling
+    links: [{target: equipment, ref: C-202}, {target: equipment, ref: E-206}]
+    ports:
+      - {id: feed, direction: in}
+      - {id: top, direction: out}
+      - {id: bot, direction: out}
+      - {id: reb, direction: in, kind: energy, delegates: mps}
+      - {id: cond, direction: out, kind: energy}
+  - id: E203
+    block: SEP
+    title: THF product cooler
+    class: Cooling
+    links: [{target: equipment, ref: E-203}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: thf}
+      - {id: cw, direction: out, kind: energy, delegates: cw1}
+  - id: E204
+    block: SEP
+    title: Process water cooler
+    class: Cooling
+    links: [{target: equipment, ref: E-204}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: water}
+      - {id: cw, direction: out, kind: energy, delegates: cw3}
+
+streams:
+  - id: S1
+    title: BDO feed
+    from: BDOF.out
+    to: M101.bdo
+    template: mixture
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "design basis, D-003"}
+        temperature: {value: 303.15, provenance: assumed, source: "design basis, D-003"}
+        flow: {value: 7921.18, basis: mass, provenance: assumed, source: "scripts/thf_balance.py: the BDO that gives 6250 kg/h THF (D-002, D-005, D-006)"}
+        composition: {basis: mass_fraction, values: {BDO: 1.0}, provenance: assumed, source: "design basis, D-003: pure BDO (impurities not modelled)"}
+  - id: S2
+    title: Catalyst make-up
+    from: PTSAF.out
+    to: M101.cat
+    template: mixture
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "design basis, D-004"}
+        temperature: {value: 303.15, provenance: assumed, source: "design basis, D-004"}
+        flow: {value: 2.354, basis: mass, provenance: assumed, source: "scripts/thf_balance.py: replaces the p-TSA leaving with the bleed (2 wt% in the reactor liquid, D-004)"}
+        composition: {basis: mass_fraction, values: {PTSA: 1.0}, provenance: assumed, source: "D-004: dosed as acid (anhydrous basis)"}
+  - id: S3
+    title: Reactor feed
+    from: M101.out
+    to: P101.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-004}
+        temperature: {value: 303.15, provenance: assumed, source: D-004}
+        flow: {value: 7923.53, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2', fingerprint: dbc19a1364654c89}
+        composition: {basis: mole_fraction, values: {BDO: 0.999844, THF: 0.0, H2O: 0.0, DHBE: 0.0, PTSA: 0.000155503}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2', fingerprint: 5319055b2b5765a1}
+  - id: S4
+    title: Pumped reactor feed
+    from: P101.out
+    to: R101.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: D-004}
+        temperature: {value: 303.15, provenance: assumed, source: "D-004: pump temperature rise neglected"}
+        flow: {value: 7923.53, provenance: calculated, source: 'cheme process propagate: pass-through P101 from S3', fingerprint: 25c22d5ff6c86a83}
+        composition: {basis: mole_fraction, values: {BDO: 0.999844, THF: 0.0, H2O: 0.0, DHBE: 0.0, PTSA: 0.000155503}, provenance: calculated, source: 'cheme process propagate: pass-through P101 from S3', fingerprint: 25c22d5ff6c86a83}
+  - id: S5
+    title: Reactor contents to the rectifying column (model stream)
+    from: R101.out
+    to: C101.feed
+    template: mixture
+    state:
+      design:
+        pressure: {value: 130, provenance: assumed, source: D-004}
+        temperature: {value: 418.15, provenance: assumed, source: "D-004: 145 C, inside the 120-180 C of US 9284289 B2"}
+        flow: {value: 7923.53, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4', fingerprint: 9b5bcbe8adbd05e3}
+        composition: {basis: mole_fraction, values: {BDO: 0.00471449, THF: 0.496356, H2O: 0.497604, DHBE: 0.00124713, PTSA: 7.83181e-05}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4', fingerprint: 65d1dae12d827f26}
+  - id: S6
+    title: Crude THF / water condensate
+    from: C101.top
+    to: M201.fresh
+    template: mixture
+    state:
+      design:
+        pressure: {value: 130, provenance: assumed, source: D-004}
+        temperature: {value: 313.15, provenance: assumed, source: D-004}
+        flow: {value: 7805.819, basis: mass, provenance: assumed, source: "scripts/thf_balance.py: all THF and the water not in the bleed; no BDO overhead (US 9284289 B2 reports BDO below 10 ppm in its condensate) (D-006)"}
+        composition: {basis: mass_fraction, values: {THF: 0.8003003, H2O: 0.1996997}, provenance: assumed, source: "scripts/thf_balance.py (D-006); about 80 wt% THF, as the condensates of US 9284289 B2 (78-80 wt%)"}
+  - id: S7
+    title: Heavies bleed
+    from: C101.bot
+    to: BLEED.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 130, provenance: assumed, source: D-004}
+        temperature: {value: 418.15, provenance: assumed, source: D-004}
+        flow: {value: 117.714, basis: mass, provenance: assumed, source: "scripts/thf_balance.py: removes the DHBE formed at 30 wt% in the reactor liquid (D-005)"}
+        composition: {basis: mass_fraction, values: {BDO: 0.63, H2O: 0.05, DHBE: 0.30, PTSA: 0.02}, provenance: assumed, source: "D-004, D-005: reactor liquid with 5 wt% water (US 9284289 B2: 2-8 wt%), 2 wt% p-TSA (0.2-5 wt%), 30 wt% heavies ASSUMED"}
+  - id: S8
+    title: HP column distillate recycle
+    from: C202.top
+    to: M201.rec
+    template: mixture
+    state:
+      design:
+        pressure: {value: 800, provenance: assumed, source: D-007}
+        temperature: {value: 410.40, provenance: assumed, source: "scripts/thf_balance.py, bubble point at 800 kPa(a) (D-006)"}
+        flow: {value: 8223.906, basis: mass, provenance: assumed, source: "scripts/thf_balance.py (D-007)"}
+        composition: {basis: mass_fraction, values: {THF: 0.89526384, H2O: 0.10473616}, provenance: assumed, source: "D-007: 0.03 mol/mol above the 800 kPa(a) azeotrope (NRTL, x_THF 0.651)"}
+  - id: S9
+    title: LP column feed
+    from: M201.out
+    to: C201.feed
+    template: mixture
+    state:
+      design:
+        pressure: {value: 110, provenance: assumed, source: D-007}
+        temperature: {value: 339.6, provenance: assumed, source: "scripts/thf_balance.py: partly flashing mixture, q 0.94 (D-006)"}
+        flow: {value: 16029.7, provenance: calculated, source: 'cheme process propagate: mixer M201 from S6 S8', fingerprint: 6fcfe70cb254a03c}
+        composition: {basis: mole_fraction, values: {BDO: 0.0, THF: 0.584197, H2O: 0.415803, DHBE: 0.0, PTSA: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M201 from S6 S8', fingerprint: 43100f05080abdd1}
+  - id: S10
+    title: LP column distillate
+    from: C201.top
+    to: P201.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 110, provenance: assumed, source: D-007}
+        temperature: {value: 339.62, provenance: assumed, source: "scripts/thf_balance.py, bubble point (D-006)"}
+        flow: {value: 14473.906, basis: mass, provenance: assumed, source: "scripts/thf_balance.py (D-007)"}
+        composition: {basis: mass_fraction, values: {THF: 0.94027422, H2O: 0.05972578}, provenance: assumed, source: "D-007: 0.03 mol/mol below the 110 kPa(a) azeotrope (NRTL, x_THF 0.827)"}
+  - id: S11
+    title: HP column feed
+    from: P201.out
+    to: C202.feed
+    template: mixture
+    state:
+      design:
+        pressure: {value: 830, provenance: assumed, source: D-007}
+        temperature: {value: 339.7, provenance: assumed, source: "D-007: pump temperature rise neglected"}
+        flow: {value: 14473.906, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through P201 from S10', fingerprint: 4d3bc2bdfd5742f5}
+        composition: {basis: mass_fraction, values: {THF: 0.94027422, H2O: 0.05972578}, provenance: calculated, source: 'cheme process propagate: pass-through P201 from S10', fingerprint: 4d3bc2bdfd5742f5}
+  - id: S12
+    title: LP column bottoms (process water)
+    from: C201.bot
+    to: E204.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 110, provenance: assumed, source: D-007}
+        temperature: {value: 375.41, provenance: assumed, source: "scripts/thf_balance.py, bubble point (D-006)"}
+        flow: {value: 1555.819, basis: mass, provenance: assumed, source: "scripts/thf_balance.py (D-007)"}
+        composition: {basis: mass_fraction, values: {THF: 0.00008004, H2O: 0.99991996}, provenance: assumed, source: "D-007: x_THF 2e-5 (80 ppm by weight) ASSUMED"}
+  - id: S13
+    title: Process water to treatment
+    from: E204.out
+    to: WW.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "D-007: water pump discharge (implicit pump, not on the PFD; power cut off, D-008)"}
+        temperature: {value: 313.15, provenance: assumed, source: D-008}
+        flow: {value: 1555.819, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E204 from S12', fingerprint: c2aa9c615cd03433}
+        composition: {basis: mass_fraction, values: {THF: 8.004e-05, H2O: 0.99991996}, provenance: calculated, source: 'cheme process propagate: pass-through E204 from S12', fingerprint: c2aa9c615cd03433}
+  - id: S14
+    title: HP column bottoms (THF)
+    from: C202.bot
+    to: E203.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 800, provenance: assumed, source: D-007}
+        temperature: {value: 420.52, provenance: assumed, source: "scripts/thf_balance.py, bubble point (D-006)"}
+        flow: {value: 6250.0, basis: mass, provenance: assumed, source: "design basis 50 kt/a, D-002"}
+        composition: {basis: mass_fraction, values: {THF: 0.9995, H2O: 0.0005}, provenance: assumed, source: "design target 0.05 wt% water (D-002)"}
+  - id: S15
+    title: THF product
+    from: E203.out
+    to: THFP.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 700, provenance: assumed, source: "D-007: HP column pressure less the cooler"}
+        temperature: {value: 313.15, provenance: assumed, source: "design basis, D-002"}
+        flow: {value: 6250.0, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E203 from S14', fingerprint: 926275a79a66072d}
+        composition: {basis: mass_fraction, values: {THF: 0.9995, H2O: 0.0005}, provenance: calculated, source: 'cheme process propagate: pass-through E203 from S14', fingerprint: 926275a79a66072d}
+  # Energy streams (duties from scripts/thf_balance.py, D-006; ASSUMED until core qualifies them)
+  - {id: Q1, title: P-101 power, kind: energy, from: POWER.p101, to: P101.power, state: {design: {duty: {value: 0.39, provenance: assumed, source: "scripts/thf_balance.py, 300 -> 400 kPa(a), efficiency 0.6 (D-008)"}}}}
+  - {id: Q2, title: P-201 power, kind: energy, from: POWER.p201, to: P201.power, state: {design: {duty: {value: 5.73, provenance: assumed, source: "scripts/thf_balance.py, 110 -> 830 kPa(a), 17.2 m3/h, efficiency 0.6 (D-008)"}}}}
+  - {id: Q3, title: R-101 heating (MP steam), kind: energy, from: MPS.r101, to: R101.heat, state: {design: {duty: {value: 3049.6, provenance: assumed, source: "scripts/thf_balance.py: feed heating, heat of reaction, vaporisation of the products and reflux 0.5 (D-004, D-006)"}}}}
+  - {id: Q4, title: E-101 reactor overhead condenser, kind: energy, from: C101.cond, to: CW.c101, state: {design: {duty: {value: 2904.5, provenance: assumed, source: "scripts/thf_balance.py, dew point 361.6 K to 313 K, reflux 0.5 (D-004)"}}}}
+  - {id: Q5, title: E-202 LP column trim reboiler (LP steam), kind: energy, from: LPS.c201, to: C201.reb, state: {design: {duty: {value: 928.2, provenance: assumed, source: "scripts/thf_balance.py: LP reboiler 2665.9 kW less E-201 (D-007, D-009)"}}}}
+  - {id: Q6, title: E-201 HP condenser / LP reboiler, kind: energy, from: C202.cond, to: C201.reb_int, state: {design: {duty: {value: 1737.6, provenance: assumed, source: "scripts/thf_balance.py: the whole HP condenser duty, 410.4 K condensing against 375.4 K boiling (D-009)"}}}}
+  - {id: Q7, title: E-205 LP column condenser, kind: energy, from: C201.cond, to: CW.c201, state: {design: {duty: {value: 2818.3, provenance: assumed, source: "scripts/thf_balance.py, reflux 0.30 (D-007)"}}}}
+  - {id: Q8, title: E-206 HP column reboiler (MP steam), kind: energy, from: MPS.c202, to: C202.reb, state: {design: {duty: {value: 2287.5, provenance: assumed, source: "scripts/thf_balance.py, reflux 0.30, subcooled feed q 1.26 (D-007)"}}}}
+  - {id: Q9, title: E-203 THF product cooler duty, kind: energy, from: E203.cw, to: CW.e203, state: {design: {duty: {value: 317.6, provenance: assumed, source: "scripts/thf_balance.py, 420.5 -> 313 K (D-006)"}}}}
+  - {id: Q10, title: E-204 process water cooler duty, kind: energy, from: E204.cw, to: CW.e204, state: {design: {duty: {value: 103.9, provenance: assumed, source: "scripts/thf_balance.py, 375.4 -> 313 K (D-006)"}}}}
 layout: {bfd: {}, pfd: {}}

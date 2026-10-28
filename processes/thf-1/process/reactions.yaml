@@ -1,0 +1,26 @@
+# Reactions of the acid-catalysed cyclodehydration of 1,4-butanediol (DESIGN.md D-004, D-005).
+# Schema cheme/reactions/v1. No rate law: R-101 is a conversion reactor with a BDO conversion
+# and a THF selectivity that are ASSUMED design values (the plant-level conversion is set by
+# the heavies bleed, D-005), not kinetics.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: CYCLO
+    equation: C4H10O2 -> C4H8O + H2O
+    stoichiometry: {BDO: -1.0, THF: 1.0, H2O: 1.0}
+    reversible: false
+    heat_of_reaction:
+      value: 3270.0
+      provenance: calculated
+      source: "liquid formation enthalpies of the chemicals package at 298.15 K: THF -216.2, water -285.825, BDO -505.3 kJ/mol (scripts/thf_balance.py); slightly endothermic. Reversible in high-temperature water (Hunter et al. 2006, doi:10.1021/jo061017o: equilibrium yields 84-94 % at 200-350 C); under reactive distillation the products leave as vapour, so the reaction is taken as irreversible (D-005)"
+    catalyst: p-toluenesulfonic acid, homogeneous, in the liquid phase (US 9284289 B2)
+    sources:
+      - "US 9284289 B2 (Mitsubishi Chemical), Method for producing tetrahydrofuran: homogeneous sulfonic acid catalysed cyclodehydration of 1,4-butanediol by reactive distillation"
+      - "Li, K.-T.; Chen, K.-W. (2019) Materials 12, 2092, doi:10.3390/ma12132092 (Introduction, Eq. 1: THF is typically produced by BDO cyclodehydration)"
+  - id: ETHER
+    equation: 2 C4H10O2 -> C8H18O3 + H2O
+    stoichiometry: {BDO: -2.0, DHBE: 1.0, H2O: 1.0}
+    reversible: false
+    catalyst: p-toluenesulfonic acid (side reaction)
+    sources:
+      - "US 9284289 B2: BDO oligomers (dimers, trimers) and an acetal polymer accumulate in the reactor liquid; lumped here as the dimer ether DHBE (ASSUMED representative, D-005)"

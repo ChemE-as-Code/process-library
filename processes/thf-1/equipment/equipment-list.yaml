@@ -1,3 +1,48 @@
 # Equipment list. Schema: `cheme schema equipment`.
+# Concept stage: the items the PFD (process/flowsheet.yaml) needs, no P&ID yet (no sheet).
+# Design pressure and temperature are ASSUMED concept values (D-010): the highest operating
+# value of the balance (scripts/thf_balance.py) + 10 % (at least + 2 bar; full vacuum not
+# considered yet) and + 25 K. Sizes, stages, dimensions and weights come at basic engineering.
 schema: cheme/equipment/v1
-equipment: []
+equipment:
+  # ---- reaction (block RXN)
+  - {tag: P-101, type: CentrifugalPump, service: BDO feed pump,
+     design_pressure_barg: 4, design_temperature_degc: 55, material: CS,
+     notes: "300 -> 400 kPa(a), 7.9 t/h BDO; ~0.4 kW at efficiency 0.6 (D-008). A spare at basic engineering. ASSUMED."}
+  - {tag: R-101, type: Vessel, service: "Dehydration reactor (stirred, steam-heated, homogeneous p-TSA)",
+     design_pressure_barg: 3, design_temperature_degc: 170, material: "stainless steel or higher alloy for the hot sulfonic acid (open input, D-010)",
+     notes: "145 C, 130 kPa(a), 2 wt% p-TSA, 5 wt% water in the liquid (US 9284289 B2 ranges, D-004); MP steam ~3.0 MW (jacket / internal coil or external reboiler, not chosen); volume not sized: no rate law (D-005). ASSUMED."}
+  - {tag: C-101, type: ProcessColumn, service: Reactor rectifying column (holds BDO and heavies back),
+     design_pressure_barg: 3, design_temperature_degc: 170, material: "stainless steel (acid carry-over, open input)",
+     notes: "On top of R-101; a few theoretical stages (US 9284289 B2 examples: 4), reflux 0.5 (D-004); stages not calculated. ASSUMED."}
+  - {tag: E-101, type: TubularHeatExchanger, service: Reactor overhead condenser,
+     design_pressure_barg: 3, design_temperature_degc: 115, material: SS,
+     notes: "Dew point 362 K -> 313 K, ~2.9 MW to cooling water (D-004). ASSUMED."}
+  # ---- pressure-swing distillation (block SEP)
+  - {tag: C-201, type: ProcessColumn, service: "LP column (110 kPa(a)): process water bottoms, near-azeotrope distillate",
+     design_pressure_barg: 2, design_temperature_degc: 130, material: CS,
+     notes: "Top 339.6 K, bottom 375.4 K; reflux 0.30 (1.3 x Rmin 0.14 raised to the 0.3 floor, D-007); stages not calculated; liquid-liquid split predicted by NRTL in the stripping section to be checked (I-04). ASSUMED."}
+  - {tag: E-201, type: TubularHeatExchanger, service: HP column condenser / LP column reboiler,
+     design_pressure_barg: 9, design_temperature_degc: 165, material: CS,
+     notes: "Condenses the HP overhead at 410.4 K against the LP bottoms boiling at 375.4 K, 1.74 MW (D-009). ASSUMED."}
+  - {tag: E-202, type: TubularHeatExchanger, service: LP column trim reboiler (LP steam),
+     design_pressure_barg: 4, design_temperature_degc: 175, material: CS,
+     notes: "0.93 MW, LP steam 450 kPa(a) (D-009). ASSUMED."}
+  - {tag: E-205, type: TubularHeatExchanger, service: LP column condenser,
+     design_pressure_barg: 2, design_temperature_degc: 95, material: CS,
+     notes: "2.82 MW to cooling water, total condenser at 339.6 K (D-007). ASSUMED."}
+  - {tag: P-201, type: CentrifugalPump, service: HP column feed pump,
+     design_pressure_barg: 9, design_temperature_degc: 95, material: CS,
+     notes: "110 -> 830 kPa(a), 14.5 t/h (17.2 m3/h); ~5.7 kW at efficiency 0.6 (D-008). ASSUMED."}
+  - {tag: C-202, type: ProcessColumn, service: "HP column (800 kPa(a)): THF bottoms, recycle distillate",
+     design_pressure_barg: 9, design_temperature_degc: 175, material: CS,
+     notes: "Top 410.4 K, bottom 420.5 K; reflux 0.30 (D-007); stages not calculated. ASSUMED."}
+  - {tag: E-206, type: TubularHeatExchanger, service: HP column reboiler (MP steam),
+     design_pressure_barg: 9, design_temperature_degc: 205, material: CS,
+     notes: "2.29 MW, MP steam 1000 kPa(a) (D-007). ASSUMED."}
+  - {tag: E-203, type: TubularHeatExchanger, service: THF product cooler,
+     design_pressure_barg: 9, design_temperature_degc: 175, material: CS,
+     notes: "420.5 -> 313 K, 0.32 MW to cooling water; preheating the HP column feed with it is an open option (I-06). ASSUMED."}
+  - {tag: E-204, type: TubularHeatExchanger, service: Process water cooler,
+     design_pressure_barg: 4, design_temperature_degc: 130, material: CS,
+     notes: "375.4 -> 313 K, 0.10 MW to cooling water. ASSUMED."}

@@ -1,8 +1,49 @@
 # What the plant must do. Schema: `cheme schema design_basis`.
-schema: cheme/design_basis/v1
-capacity: {}
-feeds: []
-products: []
-utilities: []
-site: {}
-assumptions: []
+# Tetrahydrofuran (THF) by acid-catalysed cyclodehydration of 1,4-butanediol (BDO) with
+# pressure-swing distillation of the THF/water azeotrope, issue
+# ChemE-as-Code/process-library#126. An independent concept design. Values marked ASSUMED are
+# engineering choices of this concept study, not client or licensor data; every decision is in
+# DESIGN.md.
+capacity:
+  basis: THF product to storage (99.95 wt%)
+  product_t_per_a: 50000              # ASSUMED (D-002): a single train, chosen, not a client figure
+  product_kg_per_h: 6250.0            # = 50 kt/a / 8000 h
+  operating_hours_per_year: 8000      # ASSUMED (D-002)
+  turndown_percent: 50                # ASSUMED, not checked
+feeds:
+  - name: "1,4-Butanediol (boundary feed: purchased, from a Reppe, butadiene-acetoxylation, maleic anhydride, propylene oxide or bio-based BDO plant outside the boundary; no library process makes BDO yet)"
+    source_of_values: ASSUMED (D-003)
+    composition_mol_percent: {BDO: 100.0}   # ASSUMED: pure; real BDO carries ppm to % of 2-(4-hydroxybutoxy)-THF, gamma-butyrolactone and others (US 9284289 B2), not modelled
+    conditions: {pressure_kPa_a: 300, temperature_K: 303.15}   # ASSUMED battery limit
+    flow: set by the product rate through the balance (D-006); stream S1 of process/flowsheet.yaml
+  - name: p-Toluenesulfonic acid (catalyst make-up, purchased)
+    source_of_values: ASSUMED (D-004)
+    composition_mol_percent: {PTSA: 100.0}
+    conditions: {pressure_kPa_a: 300, temperature_K: 303.15}
+    flow: replaces the acid leaving with the heavies bleed (stream S2)
+products:
+  - name: Tetrahydrofuran
+    purity: "99.95 wt% THF, 0.05 wt% water (ASSUMED design target, D-002); peroxide stabiliser (e.g. BHT), 2,3-dihydrofuran and colour are outside the model (D-002)"
+    delivery: {pressure_kPa_a: 700, temperature_K: 313.15, battery_limit: product tanks (outside the boundary)}
+  - name: Process water (LP column bottoms)
+    purity: "80 ppm by weight THF (ASSUMED, D-007)"
+    use: site wastewater treatment (outside the boundary)
+  - name: Reactor heavies bleed
+    purity: "63 wt% BDO, 30 % heavies (BDO dimer ether as the lumped heavies), 5 % water, 2 % p-TSA (ASSUMED, D-005)"
+    use: incineration as liquid hazardous waste (outside the boundary); BDO recovery from it is an open option (I-05)
+utilities:
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: ASSUMED (D-008)}
+  - {name: LP steam, pressure_kPa_a: 450, saturation_K: 420.8, use: LP column trim reboiler, note: ASSUMED level (D-008)}
+  - {name: MP steam, pressure_kPa_a: 1000, saturation_K: 453.0, use: reactor heating and HP column reboiler, note: ASSUMED level (D-008)}
+  - {name: Electric power, use: BDO feed pump and HP column feed pump, note: ASSUMED electric drives (D-008)}
+site:
+  location: ASSUMED generic site, not chosen
+  design_ambient_K: 303.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325   # ASSUMED
+assumptions:
+  - "Route: liquid-phase cyclodehydration of BDO with a homogeneous sulfonic acid (p-toluenesulfonic acid, 2 wt% in the reactor liquid) by reactive distillation at 145 C and 130 kPa(a), within the ranges of US 9284289 B2 (80-250 C, preferred 120-180 C; 0.01-20 wt% acid; 2-8 wt% water in the reactor liquid) (D-001, D-004)."
+  - "ASSUMED THF selectivity 0.995 kmol per kmol BDO converted, the rest to heavies lumped as the BDO dimer ether (DHBE); heavies held at 30 wt% in the reactor liquid by a bleed: plant BDO conversion 0.9906, THF yield 0.9857 mol/mol BDO fed (D-005). A sourced conversion/selectivity model is not available; no kinetics."
+  - "ASSUMED pressure-swing distillation: LP column 110 kPa(a), HP column 800 kPa(a); distillates 0.03 mol/mol on the feasible side of each NRTL azeotrope (x_THF 0.827 at 110 kPa(a), 0.651 at 800 kPa(a)); reflux 1.3 x minimum, at least 0.3 (D-007)."
+  - "ASSUMED heat integration: the HP column condenser reboils the LP column (E-201), LP steam trims (D-009)."
+  - "ASSUMED pump efficiency 0.6; reflux of the reactor rectifying column 0.5 (D-004, D-008)."
+  - "All flows, temperatures and duties are concept estimates from an unqualified property method (thermo NRTL, ChemSep THF/water parameters, ideal gas, D-006); accuracy not stated."
