@@ -1,0 +1,61 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Refining of biodiesel crude glycerol to USP-grade glycerol, issue
+# ChemE-as-Code/process-library#186. Values marked ASSUMED are engineering choices of this
+# concept study, not owner, licensor or vendor data; every decision is in DESIGN.md. The
+# capacity is a per-unit-product normalisation for the inventory, not a claim about a
+# commercial plant (issue #186 scope notes).
+capacity:
+  basis: refined glycerol (99.7 wt%) to product storage
+  product_kg_per_h: 1250                # ASSUMED (D-002): 10 000 t/a, normalisation basis
+  product_t_per_a: 10000
+  operating_hours_per_year: 8000        # ASSUMED (D-002)
+  turndown_percent: null                # not set at this stage
+feeds:
+  - name: Crude glycerol (glycerol phase of a biodiesel plant), boundary feed
+    link: "made by a sodium-methylate catalysed biodiesel (FAME) plant; no library process yet (D-001)"
+    source_of_values: "Thompson & He (2006) Tables 1, 3 and 6 (soybean oil, NaOCH3 catalyst), as stream S1 of process/flowsheet.yaml (D-004); fatty matter (soaps, esters, glycerides) one lump; no water (laboratory reagents anhydrous; industrial water content an open item, D-004)"
+    composition_wt_percent: {glycerol: 59.841, methanol: 29.332, sodium_methoxide: 2.847, fatty_matter: 7.98}
+    conditions: {pressure_kPa_a: 300, temperature_K: 333.15}   # ASSUMED, as delivered from the biodiesel plant
+  - name: Hydrochloric acid 32 wt%
+    link: "HCl from a chlor-alkali complex (HCl synthesis or by-product acid); chlor-alkali-1 makes Cl2/H2 but not HCl (D-005)"
+    use: acidulation, 10 % over the alkali of the feed (ASSUMED, D-005)
+  - name: Caustic soda 50 wt%
+    link: "chlor-alkali-1 (membrane cell caustic, 50 wt%)"
+    use: neutralisation of the excess acid (D-005)
+  - name: Activated carbon (granular or powdered)
+    use: "bleaching and deodorising the distilled glycerol, 2 kg/t (ASSUMED, D-011)"
+products:
+  - name: Refined glycerol, USP grade
+    purity: "glycerol 99.7 wt%, water 0.3 wt% (ASSUMED design grade inside the USP monograph assay 99.0-101.0 % anhydrous; traded refined grade 99.5-99.7 %, D-003)"
+    delivery: {temperature_K: 313.15, pressure_kPa_a: 250, battery_limit: product cooler outlet to storage}
+  - name: Recovered methanol (99.5 wt%)
+    use: "returned to the biodiesel plant (outside the boundary): co-product of the refinery (D-007, D-013)"
+  - name: Fatty-acid layer (free fatty acids, FAME, some methanol)
+    use: "returned to the biodiesel plant for esterification (outside the boundary): co-product (D-006, D-013)"
+  - name: Salt cake (NaCl with adhering residue)
+    use: "solid waste to disposal (D-010); use as a technical salt not claimed"
+  - name: Glycerol foots (still residue liquor)
+    use: "waste to anaerobic digestion or incineration outside the boundary (D-010)"
+  - name: Spent activated carbon
+    use: "waste to thermal regeneration or incineration (D-011)"
+  - name: Process wastewater (evaporator and vacuum condensates)
+    use: "to the site wastewater treatment (methanol and glycerol traces, D-008, D-009)"
+utilities:
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: ASSUMED (D-012)}
+  - {name: LP steam, pressure_kPa_a: 450, saturation_K: 420.8, use: "E-301 evaporator, live stripping steam to C-401", note: ASSUMED level (D-012)}
+  - {name: MP steam, pressure_kPa_a: 1000, saturation_K: 453.0, use: "C-201 reboiler (bottoms about 425 K), motive steam of the still booster ejectors J-403", note: ASSUMED level (D-009, D-012)}
+  - {name: HP steam, pressure_kPa_a: 3000, saturation_K: 507.0, use: "C-401 still reboiler (bottoms 448 K)", note: ASSUMED level (D-012)}
+  - {name: Electric power, use: "pumps, agitators, vacuum pumps, salt centrifuge", note: "ASSUMED 50 kWh/t product (D-012)"}
+site:
+  location: ASSUMED generic site next to the biodiesel plant, country not chosen
+  atmospheric_pressure_kPa: 101.325     # ASSUMED
+  design_ambient_K: 288.15              # ASSUMED
+assumptions:
+  - "ASSUMED feed composition built on Thompson & He (2006) soybean-oil crude glycerol; industrial variability is wide (glycerol 30-80 wt%, Attarbachi et al. 2024 Table 1) (D-004)."
+  - "ASSUMED acidulation with 10 % excess HCl to pH about 3-4, then neutralisation with NaOH to pH about 7 (D-005)."
+  - "ASSUMED 97 % of fatty acids and FAME to the fatty-acid layer; the layer holds 5 wt% methanol and 1 wt% glycerol (D-006)."
+  - "ASSUMED methanol recovery 99.5 % at 99.5 wt%, reflux ratio 1.0, bottoms about 425 K on MP steam (D-007)."
+  - "ASSUMED dewatering to 1 wt% water at 10 kPa(a), 403 K (Raoult estimate, D-008)."
+  - "ASSUMED vacuum still at 1.5 kPa(a), 448 K, live steam 0.10 kg/kg glycerol fed, 95 % of glycerol to the distillate, 0.5 % to the vacuum condensate; two booster ejectors with 1.5 kg MP motive steam per kg vapour to an intercondenser at 8 kPa(a), liquid-ring vacuum pump for the non-condensables (D-009)."
+  - "ASSUMED 90 % of the residue salt separated as crystals holding 0.25 kg liquor per kg (D-010)."
+  - "ASSUMED duties from a lumped latent plus sensible heat balance (scripts/glycerol_balance.py); no property package covers the streams (D-012)."
