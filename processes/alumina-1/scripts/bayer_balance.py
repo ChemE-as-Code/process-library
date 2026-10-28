@@ -53,7 +53,7 @@ ASSAY = {"Al2O3": 54.69, "Fe2O3": 12.25, "SiO2": 0.76, "TiO2": 2.85, "LOI": 29.6
 KAOL_WT = 1.10                 # wt% kaolinite (Table 5): the reactive silica
 MONO_WT = 1.30                 # wt% diaspore (Table 5), carried as AlOOH, not digested at 418 K
 GOETHITE_WT = 4.5 + 6.15       # wt% goethite + aluminian goethite (Table 5), as FeOOH
-BX_MOIST = 0.10                # free moisture, wet basis (ASSUMED; IAI 2019 LCI report s. 3.1:
+BX_MOIST = 0.10                # free moisture, wet basis (ASSUMED; IAI 2019 LCI report s. 3.4:
                                # bauxite input typically carries 10-20 % water)
 
 # --- liquor and digestion (D-004) ------------------------------------------------------------
@@ -64,7 +64,7 @@ AC_DIG = 0.70                  # A/C of the digester blow-off (ASSUMED; below gi
 RHO_LIQ = 1.30                 # kg/L liquor density (ASSUMED, all Bayer liquors)
 X_GIB = 0.98                   # fraction of the gibbsite dissolved in digestion (ASSUMED)
 X_KAOL = 1.0                   # kaolinite to DSP in pre-desilication and digestion (ASSUMED)
-LIME = 52.0                    # kg CaO per t alumina: IAI 2019 LCI report, s. 3.4 (2019
+LIME = 52.0                    # kg CaO per t alumina: IAI 2019 LCI report, s. 3.11.2.3 (2019
                                # surveyed lime consumption ~52 kg/t alumina), used as the dose
 MILK = 0.15                    # Ca(OH)2 mass fraction of the milk of lime (ASSUMED)
 NAOH_MU = 0.50                 # NaOH mass fraction of the caustic make-up solution (ASSUMED)

@@ -1,36 +1,81 @@
-# Process Atlas manifest. Copy this folder to processes/<your-id>/ and edit.
-# Schema: schemas/process.schema.json (cheme-as-code/process/v1). Every slug used under
-# chemistry must exist in chemicals/chemicals.yaml; add new chemicals there in the same change.
-# A product in a defined state and purity names its registry grade: `chemical: oxygen/lox`.
+# Process Atlas manifest of alumina-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here.
 schema: cheme-as-code/process/v1
-id: my-process                  # = folder name; lowercase slug; never rename once listed
-title: Short descriptive process title
+id: alumina-1
+title: Alumina by the Bayer process (3000 t/d smelter-grade alumina, concept)
 summary: >-
-  One or two sentences for cards and search results: what goes in, what comes out, at what scale.
-# description: |                # optional longer Markdown for the process page
-families: [hydrogen]            # slugs of taxonomy/families.yaml (ISIC-mapped), e.g. ammonia, methanol, air-separation
-keywords: []
-# facets:                      # optional, for filtering in the Atlas; list only what the design has
-#   feedstock_basis: [water, electricity]   # fossil | biogenic | atmospheric | mineral | recycled | water | electricity
-#   product_classes: [fuels]               # slugs, e.g. industrial-gases, fuels, fertilizers, polymers, chemicals, materials
-#   unit_operations: [electrolysis]        # slugs, e.g. cryogenic-distillation, adsorption, compression, reaction, electrolysis
-#   region: generic                        # e.g. generic, EU
-# Design maturity (claimed, capped by evidence: the calculation maturity in checks/maturity.json
-# of an engineering project; at most concept beside a Tier 0/1 LCI dataset):
-maturity: concept               # concept | screening | basic-engineering | detail-engineering | operating-reference
-validation:                     # review status: set by people only; passing checks is not a review
-  status: unreviewed            # unreviewed | internally-reviewed | peer-reviewed | industry-validated
+  Smelter-grade alumina from Guinean gibbsitic bauxite by the Bayer process: low-temperature
+  caustic digestion, red mud settling, washing and filtration, seeded gibbsite precipitation,
+  spent liquor evaporation and gas suspension calcination; caustic and lime make-up, bauxite
+  residue and calciner CO2 explicit. Concept stage, assumed liquor basis.
+description: |
+  Bauxite (Debele/Balaya plateau type, 54.7 wt% Al2O3, 0.76 wt% SiO2, sourced assay) is ground
+  in spent liquor with milk of lime, pre-desilicated at 373 K and digested at 418 K, where the
+  gibbsite dissolves as sodium aluminate. The blow-off is flashed (the flash vapour preheats the
+  slurry), the residue settles, is washed counter-currently and leaves as filter cake for dry
+  stacking. The pregnant liquor is cooled and seeded; gibbsite precipitates, is classified
+  (seed recycle), filtered, washed and calcined with natural gas to alumina. The spent liquor
+  is evaporated, made up with caustic soda and returned to the mill: the defining recycle.
+
+  All flows are concept estimates from an independent sequential balance on assumed liquor
+  ratios (A/C 0.70 blow-off, 0.38 spent; caustic 250 g/L as Na2CO3), washing and cake
+  parameters: no caustic aluminate speciation or gibbsite solubility is calculated (core #364,
+  #365). Lime dose and electricity are IAI 2019 global averages; calciner energy is a sourced
+  specific energy (cheme process furnace refuses gibbsite). See DESIGN.md.
+families: [aluminium]           # no alumina family in taxonomy/families.yaml yet; aluminium shares ISIC 2420 (DESIGN.md section 4)
+keywords: [alumina, aluminium oxide, Bayer process, bauxite, gibbsite, digestion, red mud, bauxite residue, precipitation, calcination, caustic soda, sodium aluminate]
+facets:
+  feedstock_basis: [mineral]
+  product_classes: [materials]
+  unit_operations: [reaction, crystallization, sedimentation, filtration, evaporation, calcination]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. cheme maturity reports calculation
+# maturity "none": the feed flows are ASSUMED (solved from the capacity) and the conversions and
+# splits are ASSUMED specifications, not sourced values (DESIGN.md section 5).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept BFD/PFD with closed mass, component and element balances (cheme validate, cheme
+    process streams: 6 blocks, 19 steps, reactive balances by extents for 8 reactions). All
+    flows and compositions are specified values of an independent balance
+    (scripts/bayer_balance.py) on assumed design parameters; no electrolyte speciation or
+    gibbsite solubility is calculated (core #364, #365), and no property package covers the
+    liquors and solids, so energy closure is not evaluable in core: the duties are a lumped
+    script estimate. The calciner uses a sourced specific energy (gibbsite calcination is
+    refused by cheme process furnace, core #370 covers limestone only). The gate-to-gate LCI is
+    preliminary, with every background unmapped. Not reviewed.
 chemistry:
   inputs:
-    - {chemical: water, role: feedstock}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Fresh water make-up to the hot water tank. Bauxite, quicklime, caustic soda and natural gas have no registry entries yet (DESIGN.md section 4)"}
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Calciner combustion air"}
   outputs:
-    - {chemical: hydrogen, role: main-product}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "Calciner natural gas CO2, ~0.154 kg/kg alumina. The main product (alumina) and the bauxite residue have no registry entries yet"}
   utilities:
-    - {chemical: electricity, role: utility}
-# basis: {capacity: "1000 t/d product", operating_hours_per_year: 8000}
-# lca: {source: auto}           # auto: read lca/ of a ChemE-as-Code project; none: no LCA
-# references:
-#   - {title: "Author et al. (2024) Title", doi: 10.xxxx/xxxxx}
-# maintainers:
-#   - {name: Your Name, orcid: 0000-0000-0000-0000}
-# repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/my-process, access: private}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER"}
+    - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "MP steam 1000 kPa(a), digestion heaters, counted as heat delivered"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 450 kPa(a), liquor heater trim and evaporators, counted as heat delivered"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED)"}
+basis:
+  capacity: "3000 t/d smelter-grade alumina (ASSUMED normalisation basis)"
+  operating_hours_per_year: 8400
+  location: generic (not chosen)
+lca: {source: auto}
+references:
+  - {title: "Zainudeen, N. M. et al. (2023) A comparative review of the mineralogical and chemical composition of African major bauxite deposits. Heliyon 9, e19070 (CC BY 4.0), Tables 5 and 6 (bauxite assay and minerals)", doi: 10.1016/j.heliyon.2023.e19070}
+  - {title: "International Aluminium Institute (2022) Life Cycle Inventory (LCI) Data and Environmental Metrics for the Primary Aluminium Industry, 2019 data: s. 3.4 (bauxite and residue per t alumina), s. 3.11.2.2 Table 4 (alumina energy mix), s. 3.11.2.3 (lime)", url: "https://international-aluminium.org/resource/2019-life-cycle-inventory-lci-data-and-environmental-metrics/"}
+  - {title: "ICSOBA 2017, paper AA22: Thermal Energy Consumption in Gas Suspension Calciners (abstract-level: ~2.72 GJ/t alumina NHV)", url: "https://icsoba.org/assets/files/publications/2017/AA22 - Thermal Energy Consumption in Gas Suspension Calciners.pdf"}
+  - {title: "ICSOBA 2024, paper AA05: Enabling Improved Waste Heat Recovery in Digestion for Energy and Carbon Footprint Reduction (abstract-level: low-temperature digestion 145-150 C; refinery energy split)", url: "https://icsoba.org/assets/files/publications/2024/Papers/AA05 - Enabling Improved Waste Heat Recovery in Digestion for Energy and Carbon Footprint Reduction.pdf"}
+  - {title: "International Aluminium Institute: Bayer refining process overview (operation sequence)", url: "https://alustory.international-aluminium.org/mining-refining/process-refining/"}
+  - {title: "Ullmann's Encyclopedia of Industrial Chemistry: Aluminum Oxide (route reference lead; production sections not audited in this run)", doi: 10.1002/14356007.a01_557}
+  - {title: "Wagman, D. D. et al. (1982) The NBS tables of chemical thermodynamic properties. J. Phys. Chem. Ref. Data 11, Suppl. 2; Robie, R. A. and Hemingway, B. S. (1995) USGS Bulletin 2131 (formation enthalpies; values to be checked)"}
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/alumina-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0
