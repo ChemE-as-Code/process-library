@@ -3,21 +3,22 @@
 # (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
 # exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
 #
-# None yet (DESIGN.md D-014): the preliminary inventory leaves every background unlinked, so the
-# Atlas build reports the exchanges of this internal process as gaps (ADR 0022). What each
-# should connect to is in lca/lca.yaml (`missing:`). Candidates once the shared vocabulary has
-# them (not active, listed for the consolidated mapping PR):
+# One override (DESIGN.md D-014): the LP steam of the amine reboiler is counted as the heat it
+# delivers (kWh, Q1), so it uses the shared `steam-heat` entry like hda-1's steam; without it the
+# utility slug `steam` (counted per kg) would not match the exchange's unit. Every other
+# background stays unlinked, so the Atlas build reports those exchanges of this internal process
+# as gaps (ADR 0022). What each should connect to is in lca/lca.yaml (`missing:`). Candidates
+# once the shared vocabulary has them (not active, listed for the consolidated mapping PR):
 #   feed:RAWGAS      -> a `natural-gas` raw / unprocessed grade (none in chemicals/chemicals.yaml:
 #                       the registry note on `methane` says natural gas is not there yet)
 #   product:SALESGAS -> a `natural-gas` pipeline-quality grade (main product)
 #   product:NGL      -> a `natural-gas-liquids` (ethane-propane mix) entry, or `ethane`/`propane`
 #   feed:DMW         -> a demineralised-water entry (none yet; `water` is raw water)
 #   feed:POWER       -> the library default (electricity, medium voltage)
-#   feed:STEAM       -> `steam` needs an LP grade (only mp-11bara exists); Atlas producer
-#                       utility-steam-ng-boiler
 #   product:CW       -> cooling-water (Atlas producer utility-cooling-tower)
 #   product:PWATER   -> `wastewater` or a produced-water disposal entry
 #   consumable:MDEA, consumable:TEG, consumable:MOLSIEVE -> new registry entries
 #                       (methyldiethanolamine, triethylene-glycol, zeolite-4a)
 schema: cheme-as-code/lci-process-mappings/v1
-exchanges: {}
+exchanges:
+  "feed:STEAM": {use: steam-heat, source: "LP steam 450 kPa(a) to the amine reboiler T-202, counted as heat delivered (kWh, Q1, D-007)"}
