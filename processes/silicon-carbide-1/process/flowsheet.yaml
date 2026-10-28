@@ -1,0 +1,360 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Silicon carbide by the Acheson process, 5000 kg/h crushed crude SiC (D-001, D-002). Where the
+# values come from:
+# - the furnaces are batch units in rotation; every flow is the time average over the cycle
+#   (charge, heat about 1.5-2 days, cool, break), D-003;
+# - every flow and composition is from the independent sequential balance
+#   scripts/sic_balance.py (D-006), given here as ASSUMED: it rests on ASSUMED yields, splits
+#   and grades with literature cross-checks (IPCC/EPA coke use, CO2, CH4 and CO factors);
+#   no kinetics or furnace heat-transfer model (D-007);
+# - the furnace electricity is a labelled specific-energy basis (7.5 kWh/kg crude SiC):
+#   `cheme process furnace` supports limestone calcination only (core #387), D-004;
+# - reactor steps name their reactions (process/reactions.yaml), so cheme checks their balance
+#   by elements.
+schema: cheme/process/v1
+kind: flowsheet
+title: Silicon carbide by the Acheson process (5000 kg/h crude SiC, concept)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - id: design
+    description: "Design case: 5000 kg/h crushed crude crystalline SiC (98 wt% SiC) and 1250 kg/h metallurgical-grade SiC, 8000 h/a, time-averaged batch furnaces (D-002, D-003)"
+    default: true
+    capacity: 5000 kg/h crude SiC
+    provenance: assumed
+    source: "D-002: a normalisation basis for the inventory, not a commercial plant claim"
+tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - {id: SAND, title: Silica sand, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: COKE, title: Petroleum coke (green), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: AIR, title: Air drawn over the furnace surface, category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: fur, direction: out, kind: energy}
+      - {id: aux, direction: out, kind: energy}
+      - {id: cru, direction: out, kind: energy}
+products:
+  - {id: SIC, title: Crushed crude crystalline SiC (98 wt%), category: product, ports: [{id: in, direction: in}]}
+  - {id: MET, title: Metallurgical-grade SiC (88 wt%), category: by_product, ports: [{id: in, direction: in}]}
+  - {id: WASTE, title: Purged furnace mix to landfill, category: solid_waste, ports: [{id: in, direction: in}]}
+  - {id: VENT, title: Furnace flue gas to atmosphere, category: off_gas, ports: [{id: in, direction: in}]}
+  - {id: DUST, title: Crusher bag-filter exhaust to atmosphere, category: off_gas, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-008"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-008"}
+    ports:
+      - {id: fur, direction: in, kind: energy}
+  - id: AMB
+    title: Heat to ambient air (natural cooling of the ingot, burn-off heat; no fans)
+    category: utility
+    utility:
+      kind: air_cooling
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design ambient, design basis"}
+    ports:
+      - {id: h101, direction: in, kind: energy}
+      - {id: b101, direction: in, kind: energy}
+
+blocks:
+  - id: PRP
+    title: Raw material preparation and furnace charging
+    class: Mixing
+    ports:
+      - {id: sand, direction: in}
+      - {id: coke, direction: in}
+      - {id: rec, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy}
+  - id: FUR
+    title: Acheson furnaces (resistance heating, gas burn-off, cooling)
+    class: ReactingChemicals
+    ports:
+      - {id: in, direction: in}
+      - {id: air, direction: in}
+      - {id: flue, direction: out}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+      - {id: amb, direction: out, kind: energy}
+      - {id: loss, direction: out, kind: energy}
+  - id: SRT
+    title: Ingot breaking and sorting
+    class: SeparatingMechanically
+    ports:
+      - {id: in, direction: in}
+      - {id: crude, direction: out}
+      - {id: met, direction: out}
+      - {id: rec, direction: out}
+      - {id: purge, direction: out}
+  - id: CRU
+    title: Crushing and screening of crude SiC
+    class: Crushing
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: dust, direction: out}
+      - {id: power, direction: in, kind: energy}
+
+steps:
+  - id: M101
+    block: PRP
+    title: Charge mixing and furnace loading
+    class: Mixing
+    links: [{target: equipment, ref: M-101}]
+    ports:
+      - {id: sand, direction: in, delegates: sand}
+      - {id: coke, direction: in, delegates: coke}
+      - {id: rec, direction: in, delegates: rec}
+      - {id: out, direction: out, delegates: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # D-003, D-004: batch resistance furnace; the graphite core is reused, its make-up is in the coke
+  - id: R101
+    block: FUR
+    title: Acheson furnace (batch, electric resistance heating)
+    class: ReactingChemicals
+    reactions: [RX1, RX2]
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: gas, direction: out}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  - id: B101
+    block: FUR
+    title: Gas burn-off at the charge surface and furnace hood
+    class: ReactingChemicals
+    reactions: [COX, CH4X, SOX, SIOX]
+    links: [{target: equipment, ref: B-101}]
+    ports:
+      - {id: gas, direction: in}
+      - {id: air, direction: in, delegates: air}
+      - {id: out, direction: out, delegates: flue}
+      - {id: amb, direction: out, kind: energy, delegates: loss}
+  - id: H101
+    block: FUR
+    title: Ingot cooling (in the furnace, then after the side walls are removed)
+    class: Cooling
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: out}
+      - {id: amb, direction: out, kind: energy, delegates: amb}
+  - id: Z101
+    block: SRT
+    title: Ingot breaking and sorting (crude, metallurgical grade, unreacted mix)
+    class: SeparatingMechanically
+    links: [{target: equipment, ref: Z-101}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: crude, direction: out, delegates: crude}
+      - {id: met, direction: out, delegates: met}
+      - {id: mix, direction: out}
+  - id: X101
+    block: SRT
+    title: Recycle and purge split of the unreacted mix
+    class: SplittingMaterial
+    links: [{target: equipment, ref: Z-101}]
+    split: {purge: 0.05}
+    ports:
+      - {id: in, direction: in}
+      - {id: rec, direction: out, delegates: rec}
+      - {id: purge, direction: out, delegates: purge}
+  - id: Z201
+    block: CRU
+    title: Jaw and roll crushing, screening, bag filter
+    class: Crushing
+    links: [{target: equipment, ref: Z-201}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: out, direction: out, delegates: out}
+      - {id: dust, direction: out, delegates: dust}
+      - {id: power, direction: in, kind: energy, delegates: power}
+
+streams:
+  - id: S1
+    title: Silica sand
+    from: SAND.out
+    to: M101.sand
+    template: solids
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "atmospheric, design basis"}
+        temperature: {value: 298.15, provenance: assumed, source: "ambient, design basis"}
+        flow: {value: 9768.6, basis: mass, provenance: assumed, source: "scripts/sic_balance.py: Si balance over the loop (D-006)"}
+        composition: {basis: mass_fraction, values: {SiO2: 0.985, Al2O3: 0.005, H2O: 0.01}, provenance: assumed, source: "D-005"}
+  - id: S2
+    title: Petroleum coke (green)
+    from: COKE.out
+    to: M101.coke
+    template: solids
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "atmospheric, design basis"}
+        temperature: {value: 298.15, provenance: assumed, source: "ambient, design basis"}
+        flow: {value: 6804.9, basis: mass, provenance: assumed, source: "scripts/sic_balance.py: C balance over the loop (D-006)"}
+        composition: {basis: mass_fraction, values: {C: 0.855, Al2O3: 0.005, S: 0.015, H2O: 0.045, CH4: 0.08}, provenance: assumed, source: "D-005: volatiles lumped as CH4, ash as Al2O3"}
+  - id: S3
+    title: Recycled unreacted mix
+    from: X101.rec
+    to: M101.rec
+    template: solids
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "atmospheric"}
+        temperature: {value: 298.15, provenance: assumed, source: "cooled, D-003"}
+        flow: {value: 15000.0, basis: mass, provenance: assumed, source: "scripts/sic_balance.py: 3.0 kg/kg crude SiC (D-006)"}
+        composition: {basis: mass_fraction, values: {SiO2: 0.550546, C: 0.351989, SiC: 0.04, Al2O3: 0.057465}, provenance: assumed, source: "scripts/sic_balance.py: carbon factor 0.39, 4 % SiC; Al2O3 closes the impurity balance through the purge (D-006)"}
+  - id: S4
+    title: Furnace charge
+    from: M101.out
+    to: R101.in
+    template: solids
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "atmospheric"}
+        temperature: {value: 298.15, provenance: assumed, source: "ambient"}
+        flow: {value: 31573.5, basis: mass, provenance: assumed, source: "scripts/sic_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {SiO2: 0.566305, C: 0.351499, SiC: 0.019003, Al2O3: 0.029925, S: 0.003233, H2O: 0.012793, CH4: 0.017242}, provenance: assumed, source: "scripts/sic_balance.py (D-006)"}
+  - id: S5
+    title: Raw furnace gas at the charge surface
+    from: R101.gas
+    to: B101.gas
+    template: gas
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "open furnace, atmospheric"}
+        temperature: {value: 1000.0, provenance: assumed, source: "D-006: gas leaving the outer charge, ASSUMED"}
+        flow: {value: 9533.0, basis: mass, provenance: assumed, source: "scripts/sic_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {CO: 0.886339, SiO: 0.003479, CH4: 0.057106, S: 0.010707, H2O: 0.042369}, provenance: assumed, source: "scripts/sic_balance.py: RX1, RX2; moisture, volatiles and sulfur released (D-006)"}
+  - id: S6
+    title: Air drawn over the furnace
+    from: AIR.out
+    to: B101.air
+    template: gas
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "ambient"}
+        temperature: {value: 298.15, provenance: assumed, source: "ambient"}
+        flow: {value: 46346.1, basis: mass, provenance: assumed, source: "scripts/sic_balance.py: twice the burn-off stoichiometry; dilution air in the hood not modelled (D-006)"}
+        composition: {basis: mass_fraction, values: {N2: 0.767629, O2: 0.232371}, provenance: assumed, source: "dry air, argon lumped with N2"}
+  - id: S7
+    title: Furnace flue gas to atmosphere
+    from: B101.out
+    to: VENT.in
+    template: flue
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "stack, atmospheric"}
+        temperature: {value: 600.0, provenance: assumed, source: "D-006: hood outlet, ASSUMED"}
+        flow: {value: 55879.1, basis: mass, provenance: assumed, source: "scripts/sic_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {CO: 0.045363, CH4: 0.001252, H2O: 0.026295, CO2: 0.189595, SO2: 0.00365, SiO2: 0.000809, N2: 0.636672, O2: 0.096364}, provenance: assumed, source: "scripts/sic_balance.py: COX 0.70, CH4 slip 11.6 kg/t SiC, S and SiO fully oxidised (D-006)"}
+  - id: S8
+    title: Hot furnace contents (ingot and unreacted mix)
+    from: R101.out
+    to: H101.in
+    template: solids
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "atmospheric"}
+        temperature: {value: 1800.0, provenance: assumed, source: "D-003: mean temperature at power-off, ASSUMED (core above 2500 K, outer mix much cooler)"}
+        flow: {value: 22040.5, basis: mass, provenance: assumed, source: "scripts/sic_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {SiO2: 0.399054, C: 0.25715, SiC: 0.300927, Al2O3: 0.042869}, provenance: assumed, source: "scripts/sic_balance.py (D-006)"}
+  - id: S8B
+    title: Cooled furnace contents
+    from: H101.out
+    to: Z101.in
+    template: solids
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "atmospheric"}
+        temperature: {value: 323.15, provenance: assumed, source: "D-003: broken when cool enough to handle, ASSUMED"}
+        flow: {value: 22040.5, basis: mass, provenance: assumed, source: "scripts/sic_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {SiO2: 0.399054, C: 0.25715, SiC: 0.300927, Al2O3: 0.042869}, provenance: assumed, source: "scripts/sic_balance.py (D-006)"}
+  - id: S9
+    title: Crude crystalline SiC (sorted)
+    from: Z101.crude
+    to: Z201.in
+    template: solids
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "atmospheric"}
+        temperature: {value: 323.15, provenance: assumed, source: "as broken (S8B); no cooling in sorting (review R-06)"}
+        flow: {value: 5001.0, basis: mass, provenance: assumed, source: "scripts/sic_balance.py: product plus crusher dust (D-006)"}
+        composition: {basis: mass_fraction, values: {SiO2: 0.007998, C: 0.006999, SiC: 0.980004, Al2O3: 0.004999}, provenance: assumed, source: "scripts/sic_balance.py (D-002)"}
+  - id: S10
+    title: Metallurgical-grade SiC
+    from: Z101.met
+    to: MET.in
+    template: solids
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "atmospheric"}
+        temperature: {value: 323.15, provenance: assumed, source: "as broken (S8B); no cooling in sorting (review R-06)"}
+        flow: {value: 1250.0, basis: mass, provenance: assumed, source: "scripts/sic_balance.py: 0.25 kg/kg crude SiC (D-006)"}
+        composition: {basis: mass_fraction, values: {SiO2: 0.05, C: 0.06, SiC: 0.88, Al2O3: 0.01}, provenance: assumed, source: "D-006"}
+  - id: S10B
+    title: Sorted unreacted mix
+    from: Z101.mix
+    to: X101.in
+    template: solids
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "atmospheric"}
+        temperature: {value: 323.15, provenance: assumed, source: "as broken (S8B); no cooling in sorting (review R-06)"}
+        flow: {value: 15789.5, basis: mass, provenance: assumed, source: "scripts/sic_balance.py: recycle plus purge (D-006)"}
+        composition: {basis: mass_fraction, values: {SiO2: 0.550546, C: 0.351989, SiC: 0.04, Al2O3: 0.057465}, provenance: assumed, source: "scripts/sic_balance.py (D-006)"}
+  - id: S11
+    title: Purged mix (waste)
+    from: X101.purge
+    to: WASTE.in
+    template: solids
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "atmospheric"}
+        temperature: {value: 323.15, provenance: assumed, source: "split of S10B (review R-06)"}
+        flow: {value: 789.5, basis: mass, provenance: assumed, source: "scripts/sic_balance.py: 5 % of the sorted mix (D-006)"}
+        composition: {basis: mass_fraction, values: {SiO2: 0.550546, C: 0.351989, SiC: 0.04, Al2O3: 0.057465}, provenance: assumed, source: "scripts/sic_balance.py (D-006)"}
+  - id: S12
+    title: Crushed crude SiC
+    from: Z201.out
+    to: SIC.in
+    template: solids
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "atmospheric"}
+        temperature: {value: 323.15, provenance: assumed, source: "as fed (S9); crushing heat neglected (review R-06)"}
+        flow: {value: 5000.0, basis: mass, provenance: assumed, source: "design basis: 5000 kg/h (D-002)"}
+        composition: {basis: mass_fraction, values: {SiO2: 0.008, C: 0.007, SiC: 0.98, Al2O3: 0.005}, provenance: assumed, source: "design basis grade (D-002)"}
+  - id: S13
+    title: Crushing dust after the bag filter
+    from: Z201.dust
+    to: DUST.in
+    template: dust
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "atmospheric"}
+        temperature: {value: 323.15, provenance: assumed, source: "as fed (S9); crushing heat neglected (review R-06)"}
+        flow: {value: 1.0, basis: mass, provenance: assumed, source: "scripts/sic_balance.py: 0.2 kg/t product after the bag filter (D-006)"}
+        composition: {basis: mass_fraction, values: {SiC: 1.0}, provenance: assumed, source: "D-006"}
+  # Energy streams (D-004, D-008; ASSUMED)
+  - {id: Q1, title: Furnace power (transformers to the graphite core), kind: energy, from: POWER.fur, to: R101.power, state: {design: {duty: {value: 46875.0, provenance: assumed, source: "specific-energy basis 7.5 kWh/kg crude SiC (crystalline + metallurgical, 6250 kg/h), D-004"}}}}
+  - {id: Q2, title: Transformer and bus-bar cooling, kind: energy, from: R101.cw, to: CW.fur, state: {design: {duty: {value: 937.5, provenance: assumed, source: "2 % of the furnace power (D-008)"}}}}
+  - {id: Q3, title: "Auxiliary power (mixing, charging, handling, hood fans; lumped)", kind: energy, from: POWER.aux, to: M101.power, state: {design: {duty: {value: 750.0, provenance: assumed, source: "0.15 kWh/kg crude SiC (D-008)"}}}}
+  - {id: Q4, title: Crushing and screening power, kind: energy, from: POWER.cru, to: Z201.power, state: {design: {duty: {value: 500.0, provenance: assumed, source: "0.10 kWh/kg crude SiC (D-008)"}}}}
+  - {id: Q5, title: Ingot cooling to ambient air, kind: energy, from: H101.amb, to: AMB.h101, state: {design: {duty: {value: 11754.3, provenance: assumed, source: "scripts/sic_balance.py: 22.0 t/h contents from 1800 to 323 K at a mean 1.3 kJ/(kg K) (D-008)"}}}}
+  - {id: Q6, title: Burn-off heat to ambient (radiation from the burning charge surface; hood dilution air not modelled), kind: energy, from: B101.amb, to: AMB.b101, state: {design: {duty: {value: 21024.6, provenance: assumed, source: "scripts/sic_balance.py: burn-off heat 23.6 MW + S5 sensible 2.3 MW - S7 sensible to 600 K 4.9 MW, mean heat capacities ASSUMED (D-008, review R-03)"}}}}
+layout: {bfd: {}, pfd: {}}

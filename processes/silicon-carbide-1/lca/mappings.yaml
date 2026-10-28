@@ -1,0 +1,25 @@
+# silicon-carbide-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# Left unmapped on purpose (reported gaps, ADR 0022; DESIGN.md section 4 lists the shared entries
+# the consolidated PR should add): feed:SAND (silica sand: no shared technosphere entry and no
+# registry slug yet), feed:COKE (green petroleum coke by mass: the shared `coke` entry is
+# metallurgical coke from a coke oven, a different product), product:SIC and product:MET
+# (silicon carbide has no registry entry yet).
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:POWER":
+    use: electricity-high-voltage
+    source: >-
+      Acheson furnace transformers draw tens of MW and are fed from the grid above 24 kV
+      (DESIGN.md D-008, ASSUMED supply voltage), so the exchange takes the high-voltage entry,
+      not the library's medium-voltage default.
+  "product:WASTE":
+    use: inert-waste-landfill
+    source: >-
+      Purged furnace mix (silica, carbon, SiC, oxide impurities; stream S11) to landfill as a
+      mineral, non-hazardous solid (D-006, ASSUMED inert). It holds about 35 wt% carbon: whether
+      an inert-waste landfill dataset is adequate, or the carbon should be counted as slowly
+      oxidised, is an open item (D-010).

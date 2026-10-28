@@ -1,0 +1,47 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Silicon carbide by the Acheson process, issue ChemE-as-Code/process-library#179.
+# Values marked ASSUMED are engineering choices of this concept study, not owner, licensor or
+# vendor data; every decision is in DESIGN.md. The case is a per-unit-product normalisation for
+# the inventory, not a claim about a commercial plant (issue #179 scope notes).
+capacity:
+  basis: crushed crude crystalline (alpha) SiC lumps at the crusher outlet, before grain processing
+  product_kg_per_h: 5000              # ASSUMED (D-002): normalisation basis, not an owner figure
+  product_t_per_a: 40000              # = 5000 kg/h x 8000 h/a
+  coproduct_kg_per_h: 1250            # metallurgical-grade SiC, 0.25 kg/kg crude (ASSUMED, D-006)
+  operating_hours_per_year: 8000      # ASSUMED (D-002): furnaces in rotation, time-averaged
+  operation: "batch furnaces in rotation; the flowsheet is the time average over the cycle (D-003)"
+  turndown_percent: null              # not set at this stage
+feeds:
+  - name: Silica sand (quartz sand)
+    source_of_values: ASSUMED (D-005), no supplier assay
+    composition_wt_percent: {SiO2: 98.5, oxide_impurities_as_Al2O3: 0.5, moisture: 1.0}
+    size: "sand grade, screened (not modelled)"
+  - name: Petroleum coke (green, as charged)
+    source_of_values: "ASSUMED (D-005); green petroleum coke is the usual reductant (Lima and Tenorio 2011, section 1)"
+    composition_wt_percent: {fixed_C: 85.5, volatiles_as_CH4: 8.0, S: 1.5, ash_as_Al2O3: 0.5, moisture: 4.5}
+    note: "sulfur sets the SO2 emission directly: 1.5 wt% is an ASSUMED low-sulfur grade"
+  - name: Air drawn over the furnace surface
+    note: "burns part of the CO, the volatiles, the sulfur and the SiO at the charge surface and in the hood (D-006)"
+products:
+  - name: Crude crystalline SiC (crushed)
+    purity: "SiC 98.0 wt%, SiO2 0.8, free C 0.7, oxide impurities 0.5 (ASSUMED design grade, D-002); Lima and Tenorio 2011 (Fig. 5) report about 97-99 % SiC in the crystalline product of a pilot furnace"
+    delivery: {temperature_K: 298.15, battery_limit: "crusher outlet; washing, magnetic separation, sizing into grits outside"}
+  - name: Metallurgical-grade SiC (co-product)
+    purity: "SiC 88 wt% (ASSUMED, D-006): the outer, lower-grade layer of the ingot, sold to steel and foundry use"
+  - name: Purged furnace mix (solid waste)
+    use: "to landfill (ASSUMED, D-006): unreacted mix purged to keep oxide impurities from building up in the recycle"
+  - name: Furnace flue gas
+    use: "to atmosphere through the furnace hood stack: CO2, unburnt CO, CH4, SO2, silica fume (no abatement modelled, D-006)"
+utilities:
+  - {name: Electric power, use: "furnace transformers (resistance heating), auxiliaries, crushing", note: "grid supply ASSUMED (D-008)"}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "furnace transformer and bus-bar cooling", note: ASSUMED (D-008)}
+site:
+  location: ASSUMED generic site, not chosen
+  atmospheric_pressure_kPa: 101.325   # ASSUMED
+  design_ambient_K: 298.15            # ASSUMED
+assumptions:
+  - "ASSUMED furnace electricity 7.5 kWh per kg crude SiC (crystalline + metallurgical), inside the 6.3-9.02 kWh/kg reported for European plants (Mehrwald 1992, cited by Lima and Tenorio 2011) and near 7.15 kWh/kg (Fraunhofer IKTS 2023): a labelled specific-energy basis, since cheme process furnace refuses carbothermal SiC (D-004)."
+  - "ASSUMED product slate: 0.25 kg metallurgical-grade SiC per kg crude crystalline SiC; recycled unreacted mix 3.0 kg/kg; 5 % of the sorted mix purged (D-006)."
+  - "ASSUMED SiO loss 0.005 kmol per kmol SiC formed; CO burnt at the surface 70 %; CH4 slip at the IPCC Tier 1 default 11.6 kg/t SiC; all coke sulfur to SO2 (D-006)."
+  - "ASSUMED auxiliary power 0.15 kWh/kg and crushing 0.10 kWh/kg; transformer and bus-bar losses 2 % of the furnace power to cooling water (D-008)."
+  - "No furnace heat transfer or kinetics model: yields are imposed (D-007). No property package covers the solids or the hot furnace gas (D-007)."
