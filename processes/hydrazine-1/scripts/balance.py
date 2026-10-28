@@ -209,8 +209,11 @@ def main():
     q = {}
     # C201: 10.5 t/h of 18 bar(a) steam per 1 t/h H2O2 (US 6,605,265 Ex. 1); latent heat at
     # 1800 kPa(a) 1912 kJ/kg (IAPWS-IF97)
-    q["Q_C201_steam"] = 10.5 * h2o2_kg * 1912 / 3600
-    q["Q_C201_cw"] = q["Q_C201_steam"]
+    regen = 10.5 * h2o2_kg * 1912 / 3600
+    # of which the heater E-201 (R201): S12 heated 323 -> 423 K at 3.4 kJ/(kg K) (ASSUMED)
+    q["Q_E201_steam"] = sum(mass(s12).values()) * 3.4 * 100 / 3600
+    q["Q_C201_steam"] = regen - q["Q_E201_steam"]
+    q["Q_C201_cw"] = regen
     # R101: H2O2 + 2 NH3(g) -> N2H4(l) + 2 H2O(l) -241.5 kJ/mol (NIST WebBook dHf), azine
     # condensation heat neglected; DECOMP -98.2 kJ/mol H2O2; BUTANOL path counted like the azine
     dh_azn, dh_dec = 241.5, 98.2

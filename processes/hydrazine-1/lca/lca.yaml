@@ -1,0 +1,73 @@
+# Goal and scope of the hydrazine-1 preliminary LCI. Schema: `cheme schema lca`. Outputs: `cheme
+# assess lca --write` (lca/inventory.csv, results.csv, results.md, gaps.csv, dataset.yaml,
+# manifest.json); never edit those by hand.
+#
+# Gate-to-gate foreground inventory in a cradle-to-gate frame (DESIGN.md D-013): every exchange
+# comes from the balanced flowsheet (process/flowsheet.yaml, design case). No background is
+# linked: every feed, utility and waste route is `missing:` with the activity it should connect
+# to later, so the inventory carries them as gaps (never 0) and no impact result is claimed
+# (process.yaml lca.source none). No values from licensed databases are used.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary life cycle inventory of hydrazine hydrate (64 wt% N2H4) by the peroxide (PCUK,
+  methyl ethyl ketazine) process at the concept stage (issue #141), foreground only: the
+  plant's exchanges per kg of hydrazine hydrate solution at the gate, with their provenance.
+  Every background is a gap until datasets are chosen; not an impact assessment (D-013).
+functional_unit: {product: HH, amount: 1, unit: kg}
+boundary: cradle-to-gate
+case: design
+location: GLO
+year: 2026
+technology: "ammonia oxidation by hydrogen peroxide in the presence of methyl ethyl ketone in an activated (acetamide/ammonium acetate, phosphate) working solution at 323 K, azine decantation and distillation, working-solution regeneration by evaporation at 453 K with ammonia recovery, azine hydrolysis by reactive distillation at about 900 kPa(a), hydrate concentration; 16 kt/a hydrazine hydrate (10.2 kt/a N2H4), concept design"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+flows:
+  - {key: feed:H2O2, missing: "no background chosen yet: hydrogen peroxide, 70 wt% in water, from the anthraquinone autoxidation process (incl. transport); library hydrogen-peroxide-1 as a dataset once published (that design's product concentration must be checked against 70 wt%)", source: "hydrogen peroxide S01 (D-003, D-004)"}
+  - {key: feed:NH3F, missing: "no background chosen yet: ammonia, anhydrous liquid, from steam methane reforming and Haber-Bosch synthesis (or a low-carbon route); library ammonia-1 as a dataset once published", source: "ammonia S02 (D-004, D-008)"}
+  - {key: feed:MEKF, missing: "no background chosen yet: methyl ethyl ketone, market for (dehydrogenation of 2-butanol from n-butenes), incl. transport", source: "MEK make-up S03 (D-004, D-008)"}
+  - {key: feed:ACOHF, missing: "no background chosen yet: acetic acid, glacial, market for (methanol carbonylation); a library acetic-acid process as a dataset once published", source: "acetic acid make-up S10 (D-005)"}
+  - {key: feed:PHOSF, missing: "no background chosen yet: disodium hydrogen phosphate (sodium phosphate), from phosphoric acid and sodium carbonate or hydroxide", source: "phosphate make-up S11 (D-005)"}
+  - {key: feed:DW, missing: "no background chosen yet: water, deionised (demineralised), from the site water treatment, incl. the withdrawal from a river or well", source: "hydrolysis make-up water S40 (D-007)"}
+  - {key: feed:POWER, missing: "no background chosen yet: electricity, medium voltage, market for the site's grid (site not chosen)", source: "agitators and pumps Q01, Q02 (D-010, ASSUMED hand estimate)"}
+  - {key: feed:MPS, missing: "no background chosen yet: steam, in chemical industry, 2000 kPa(a) (site boiler on natural gas), per kWh of condensing heat", source: "regeneration, azine and hydrolysis column reboilers Q03-Q05 (D-010)"}
+  - {key: feed:LPS, missing: "no background chosen yet: steam, in chemical industry, 500 kPa(a), per kWh of condensing heat", source: "ammonia recovery and concentration column reboilers Q06, Q07 (D-010)"}
+  - {key: product:CW, missing: "no background chosen yet: cooling water circulation per kWh rejected (pump and fan electricity, make-up withdrawal and evaporation, blowdown, treatment chemicals)", source: "heat to cooling water Q08-Q13 (D-010)"}
+  - key: product:BUOHB
+    treatment: {kind: waste, route: "2-butanol/MEK bleed burned with heat recovery in a site incinerator or boiler; dehydrogenation back to MEK (US 6,562,311 stage (e)) is not in the boundary (D-004)"}
+    missing: "no background chosen yet: thermal treatment of a spent organic solvent (2-butanol, MEK) with energy recovery (emissions of the firing)"
+    source: "2-butanol bleed S33 (D-004, D-006)"
+  - key: product:HEAVY
+    treatment: {kind: waste, route: "pyrazoline purge to a hazardous-waste incinerator (nitrogen-containing organics, NOx control) (D-007)"}
+    missing: "no background chosen yet: hazardous waste incineration of a nitrogen-containing organic liquid residue"
+    source: "pyrazoline purge S46 (D-007)"
+  - key: product:WSP
+    treatment: {kind: waste, route: "working-solution purge (acetamide, phosphate, water) to a hazardous-waste incinerator or to biological treatment (D-005)"}
+    missing: "no background chosen yet: incineration of an aqueous organic waste (amide, salt-bearing), or treatment of high-COD waste water"
+    source: "working-solution purge S15 (D-005)"
+  - key: product:WW
+    treatment: {kind: waste, route: "site waste water treatment (biological, nitrification for the ammonia) (D-008)"}
+    missing: "no background chosen yet: treatment of waste water from inorganic/organic chemicals production, per m3 or kg COD/N, with its sludge and residual emissions to water"
+    source: "regeneration water after ammonia recovery S24 (D-008); a hydrazine trace, peroxide residues and stabiliser are not modelled (D-014)"
+  - {key: product:VENT, emission: true, source: "reactor off-gas after the lumped vent condenser/scrubber S07, to atmosphere (D-008)"}
+  - {key: emission:O2, free: true, source: "O2 from the decomposition of hydrogen peroxide (DECOMP), no characterised burden"}
+  - {key: emission:N2, free: true, source: "N2 from the 2-butanol side reaction (BUTANOL), no characterised burden"}
+  - {key: emission:NH3, elementary: {compartment: air, subcompartment: unspecified}, source: "ammonia in the off-gas, 1 mol% after the vent condenser/scrubber ASSUMED (D-008)"}
+  - {key: emission:MEK, elementary: {compartment: air, subcompartment: unspecified, origin: fossil}, source: "MEK in the off-gas, 0.5 mol% ASSUMED (D-008)"}
+emission_exclusions:
+  - {id: fugitive-leaks, method: equipment-leaks, reason: "fugitive NH3, MEK and hydrazine from flanges, valves and pumps not estimated, not claimed negligible: an estimate needs the P&ID component counts; to become an emission_estimates entry with the P&IDs (D-014)", source: "D-014"}
+  - {id: storage-tanks, method: storage-tank, reason: "ammonia, peroxide, MEK and hydrazine hydrate tanks are outside the battery limit (design basis); their breathing losses belong to storage (D-014)", source: "design basis"}
+  - {id: waste-incineration, method: combustion, reason: "the bleed and purges are burned outside the plant boundary; their combustion emissions belong to the treatment backgrounds of product:BUOHB, product:HEAVY and product:WSP (D-014)", source: "D-014"}
+  - {id: column-vents, method: non-routine, reason: "inert vents of the regeneration (90 kPa(a)), hydrolysis and concentration columns and the vacuum system are not in the flowsheet; open item I-04 (D-014)", source: "D-014"}
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 25 a service life ASSUMED; no construction inventory at this stage (D-013)"
+dataset:
+  version: 0.1.0
+  geography: {description: "One concept design for a generic, not chosen site; no regional background"}
+  system_model: cutoff   # single product; the bleed and purges are wastes, no credits (D-013)
+  technology_level: current
+  classification: {isic: "2011"}
+  modelling: {principle: attributional}
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library, hydrazine-1 concept run (agent-generated, unreviewed)"

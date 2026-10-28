@@ -1,36 +1,84 @@
-# Process Atlas manifest. Copy this folder to processes/<your-id>/ and edit.
-# Schema: schemas/process.schema.json (cheme-as-code/process/v1). Every slug used under
-# chemistry must exist in chemicals/chemicals.yaml; add new chemicals there in the same change.
-# A product in a defined state and purity names its registry grade: `chemical: oxygen/lox`.
+# Process Atlas manifest of hydrazine-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here.
 schema: cheme-as-code/process/v1
-id: my-process                  # = folder name; lowercase slug; never rename once listed
-title: Short descriptive process title
+id: hydrazine-1
+title: Hydrazine hydrate by the peroxide process (PCUK, methyl ethyl ketazine route, 16 kt/a)
 summary: >-
-  One or two sentences for cards and search results: what goes in, what comes out, at what scale.
-# description: |                # optional longer Markdown for the process page
-families: [hydrogen]            # slugs of taxonomy/families.yaml (ISIC-mapped), e.g. ammonia, methanol, air-separation
-keywords: []
-# facets:                      # optional, for filtering in the Atlas; list only what the design has
-#   feedstock_basis: [water, electricity]   # fossil | biogenic | atmospheric | mineral | recycled | water | electricity
-#   product_classes: [fuels]               # slugs, e.g. industrial-gases, fuels, fertilizers, polymers, chemicals, materials
-#   unit_operations: [electrolysis]        # slugs, e.g. cryogenic-distillation, adsorption, compression, reaction, electrolysis
-#   region: generic                        # e.g. generic, EU
-# Design maturity (claimed, capped by evidence: the calculation maturity in checks/maturity.json
-# of an engineering project; at most concept beside a Tier 0/1 LCI dataset):
-maturity: concept               # concept | screening | basic-engineering | detail-engineering | operating-reference
-validation:                     # review status: set by people only; passing checks is not a review
-  status: unreviewed            # unreviewed | internally-reviewed | peer-reviewed | industry-validated
+  Ammonia is oxidised by hydrogen peroxide in the presence of methyl ethyl ketone to the
+  ketazine, which separates as an organic phase, is distilled and hydrolysed under pressure to
+  hydrazine hydrate; the ketone is recycled. Concept stage, assumed basis, preliminary
+  gate-to-gate LCI per kg hydrazine hydrate (64 wt% N2H4), foreground only.
+description: |
+  Hydrogen peroxide (70 wt%), anhydrous ammonia and methyl ethyl ketone (MEK, fresh and
+  recycled) react at about 50 C in an aqueous working solution activated by acetamide/ammonium
+  acetate with disodium phosphate. The methyl ethyl ketazine is insoluble in the working
+  solution and is decanted; the off-gas (oxygen from peroxide decomposition, nitrogen) is
+  vented after a condenser/scrubber. The spent working solution is heated above 130 C in a
+  regeneration column that removes the reaction and peroxide water and the excess ammonia; the
+  ammonia is recovered and returned, and the activator is made up with acetic acid. The azine
+  phase is distilled: excess MEK returns overhead and a side draw bleeds the 2-butanol formed
+  by a side reaction. The azine is hydrolysed with water by reactive distillation at about
+  9 bar(a): MEK leaves overhead to the reactors, pyrazolines are purged from the column, and a
+  dilute hydrazine hydrate (30 wt%) leaves the bottom and is concentrated to 64 wt% N2H4
+  (100 % hydrazine hydrate) in a further column whose water is returned to hydrolysis.
+
+  All values are concept estimates: yields, ratios and the working-solution figures are
+  ASSUMED inside the ranges and examples of the cited patents; the regeneration steam is a
+  patent example scaled to this design, the other duties hand estimates. See DESIGN.md for
+  every assumption and gated step.
+families: [inorganic-chemicals]
+keywords: [hydrazine, hydrazine hydrate, peroxide process, Pechiney-Ugine-Kuhlmann, PCUK, ketazine, azine, methyl ethyl ketone, hydrogen peroxide, ammonia, reactive distillation]
+facets:
+  feedstock_basis: [fossil]
+  product_classes: [chemicals]
+  unit_operations: [reaction, decantation, distillation, reactive-distillation, evaporation]
+  region: generic
+publication:
+  status: internal
+  license: CC-BY-4.0
+# Honest claim: concept is the lowest level of the manifest; cheme maturity reaches no level
+# (feed flows derive from an assumed capacity, the reactor and separator specifications are
+# assumed inside sourced ranges), see validation.notes.
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD (4 blocks, 11 steps, 3 recycle loops: MEK, working solution, ammonia; water
+    loop in hydrolysis) with closed mass, component and element balances (cheme validate, cheme
+    process streams: every block and step ok); reactor outlets calculated by cheme from
+    selectivity/conversion specifications, every separator specified (scripts/balance.py).
+    Consumptions per kg N2H4: H2O2 (100 %) 1.25 kg (85 % azine yield on H2O2, patent range 81
+    to about 90 %), NH3 1.13 kg, MEK make-up 0.12 kg. Steam 8.2 kWh per kg hydrate, of which
+    the working-solution regeneration (a single patent example, scaled) is 72 %. No energy
+    balance: no property package covers the aqueous hydrazine/MEK/amide mixture (cheme process
+    props --coverage). cheme maturity reaches no level. The LCI is foreground only, every
+    background a gap (14 gaps plus 2 uncharacterised emissions): no impact result (lca.source
+    none). Not reviewed. The chemicals registry has no hydrazine, hydrogen peroxide, ammonia,
+    MEK, acetic acid, 2-butanol or sodium phosphate entry yet, so those flows are not listed
+    under chemistry (DESIGN.md I-09).
 chemistry:
   inputs:
-    - {chemical: water, role: feedstock}
+    - {chemical: water, role: feedstock, inventory_key: "feed:DW", note: "Demineralised make-up water to the azine hydrolysis, 1.45 kg per kg hydrate. The reactants hydrogen peroxide (feed:H2O2, from hydrogen-peroxide-1), ammonia (feed:NH3F, from ammonia-1) and MEK (feed:MEKF) and the make-up acetic acid and disodium phosphate have no registry entry yet"}
   outputs:
-    - {chemical: hydrogen, role: main-product}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Reaction and peroxide water after ammonia recovery, 2.2 kg per kg hydrate. The product hydrazine hydrate (product:HH, main) has no registry entry yet"}
+    - {chemical: oxygen, role: emission, inventory_key: "product:VENT", note: "Reactor off-gas: O2 from peroxide decomposition and N2 from the 2-butanol side reaction, with traces of NH3 and MEK"}
   utilities:
-    - {chemical: electricity, role: utility}
-# basis: {capacity: "1000 t/d product", operating_hours_per_year: 8000}
-# lca: {source: auto}           # auto: read lca/ of a ChemE-as-Code project; none: no LCA
-# references:
-#   - {title: "Author et al. (2024) Title", doi: 10.xxxx/xxxxx}
-# maintainers:
-#   - {name: Your Name, orcid: 0000-0000-0000-0000}
-# repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/my-process, access: private}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.05 kWh per kg hydrate, ASSUMED hand estimate (pumps, agitators)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "MP steam 2000 kPa(a), 6.2 kWh per kg hydrate: working-solution regeneration (US 6,605,265 Ex. 1, scaled), azine and hydrolysis columns"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 500 kPa(a), 2.0 kWh per kg hydrate: ammonia recovery and hydrate concentration"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED), 9.4 kWh rejected per kg hydrate"}
+basis:
+  capacity: "16 kt/a hydrazine hydrate, 64 wt% N2H4 (10.2 kt/a N2H4) (ASSUMED)"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
+references:
+  - {title: "US 6,562,311 B1 (2003) Method for preparing hydrazine hydrate (azine synthesis conditions and Examples 1-5, 2-butanol formation, hydrolysis stage (f))", url: "https://patents.google.com/patent/US6562311"}
+  - {title: "US 6,605,265 B1 (2003) Continuous production of azines/hydrazine hydrate (working-solution regeneration and Example 1 flows and steam)", url: "https://patents.google.com/patent/US6605265B1/en"}
+  - {title: "US 12,134,558 B2 (2024) Process for preparing hydrazine hydrate with pyrazoline recycling (hydrolysis column conditions, Example 1)", url: "https://patents.google.com/patent/US12134558"}
+  - {title: "US 4,724,133 A (1988) Preparation of concentrated aqueous solution of hydrazine hydrate (hydrolysis water/azine ratio and temperatures)", url: "https://patents.google.com/patent/US4724133"}
+  - {title: "Schirmann, J.-P., Bourdauducq, P. Hydrazine. Ullmann's Encyclopedia of Industrial Chemistry, Wiley-VCH (issue #141 lead; not audited in this run)", doi: 10.1002/14356007.a13_177}
+  - {title: "NIST Chemistry WebBook, SRD 69: standard formation enthalpies of H2O2(l), H2O(l), NH3(g), N2H4(l)", url: "https://webbook.nist.gov/chemistry/"}
+lca:
+  source: none
+  notes: "Foreground LCI only (lca/inventory.csv, per kg hydrazine hydrate 64 wt% N2H4), every background a gap (D-013): no impact result."

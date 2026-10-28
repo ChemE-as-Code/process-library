@@ -42,6 +42,7 @@ feeds:
       supply_temperature: {value: 485.5, provenance: given, source: "saturation at 2000 kPa(a), IAPWS-IF97"}
       min_approach: {value: 10, provenance: assumed, source: D-010}
     ports:
+      - {id: e201, direction: out, kind: energy}
       - {id: c201, direction: out, kind: energy}
       - {id: c301, direction: out, kind: energy}
       - {id: c401, direction: out, kind: energy}
@@ -109,6 +110,7 @@ blocks:
       - {id: nh3rec, direction: out}
       - {id: purge, direction: out}
       - {id: ww, direction: out}
+      - {id: steam0, direction: in, kind: energy}
       - {id: steam1, direction: in, kind: energy}
       - {id: steam2, direction: in, kind: energy}
       - {id: cw1, direction: out, kind: energy}
@@ -186,6 +188,7 @@ steps:
     ports:
       - {id: in, direction: in, delegates: aq}
       - {id: acid, direction: in, delegates: acid}
+      - {id: steam, direction: in, kind: energy, delegates: steam0}
       - {id: phos, direction: in, delegates: phos}
       - {id: out, direction: out}
   - id: C201
@@ -274,7 +277,8 @@ steps:
 streams:
   - {id: Q01, title: Power to reactors and pumps, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 60, provenance: assumed, source: "D-010: agitators and working-solution and feed pumps, hand estimate"}}}}
   - {id: Q02, title: Power to hydrolysis and product pumps, kind: energy, from: POWER.c401, to: R401.power, state: {design: {duty: {value: 40, provenance: assumed, source: "D-010: hydrolysis feed pumps to about 900 kPa(a), reflux and product pumps, hand estimate"}}}}
-  - {id: Q03, title: MP steam to the regeneration column, kind: energy, from: MPS.c201, to: C201.steam, state: {design: {duty: {value: 8958, provenance: assumed, source: "D-010: 10.5 t of 18 bar(a) steam per t H2O2 (US 6,605,265 Ex. 1) x 1.6066 t/h H2O2, latent heat 1912 kJ/kg"}}}}
+  - {id: Q14, title: MP steam to the working-solution heater, kind: energy, from: MPS.e201, to: R201.steam, state: {design: {duty: {value: 2174, provenance: assumed, source: "D-010: S12 23 024 kg/h heated 323 -> 423 K at 3.4 kJ/(kg K) ASSUMED; part of the regeneration steam of US 6,605,265 Ex. 1 (feed enters that column at 50 C), not additional"}}}}
+  - {id: Q03, title: MP steam to the regeneration column, kind: energy, from: MPS.c201, to: C201.steam, state: {design: {duty: {value: 6784, provenance: assumed, source: "D-010: 10.5 t of 18 bar(a) steam per t H2O2 (US 6,605,265 Ex. 1) x 1.6066 t/h H2O2, latent heat 1912 kJ/kg = 8958 kW, less the heater Q14"}}}}
   - {id: Q04, title: MP steam to the azine column, kind: energy, from: MPS.c301, to: C301.steam, state: {design: {duty: {value: 834, provenance: assumed, source: "D-010: overhead vapour of S31 + S33 at reflux ratio 1.5, latent heats at 1 atm (scripts/balance.py)"}}}}
   - {id: Q05, title: MP steam to the hydrolysis column, kind: energy, from: MPS.c401, to: C401.steam, state: {design: {duty: {value: 2627, provenance: assumed, source: "D-010: MEK/water overhead S41 at reflux ratio 1, plus heating the water feed 373-458 K (scripts/balance.py)"}}}}
   - {id: Q06, title: LP steam to the ammonia recovery column, kind: energy, from: LPS.c202, to: C202.steam, state: {design: {duty: {value: 739, provenance: assumed, source: "D-010: stripping steam 0.2 kg/kg feed water plus NH3 vaporisation (scripts/balance.py)"}}}}

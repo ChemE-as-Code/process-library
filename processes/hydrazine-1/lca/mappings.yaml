@@ -1,0 +1,23 @@
+# hydrazine-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# hydrazine-1 is internal and its preliminary LCI leaves the backgrounds open (DESIGN.md D-013):
+# exchanges without a mapping are reported gaps. Only the steam is set: it is counted in kWh of
+# heat delivered, and the default `steam` entry is per kg (a unit error otherwise). Proposed
+# later, once the shared vocabulary and the registry have the entries (DESIGN.md I-09):
+#   feed:H2O2   -> a `hydrogen-peroxide` registry slug and technosphere entry (new), or the
+#                  hydrogen-peroxide-1 dataset when published
+#   feed:NH3F   -> `ammonia` (technosphere entry exists; registry slug missing), or ammonia-1
+#   feed:MEKF   -> a `methyl-ethyl-ketone` entry (new)
+#   feed:ACOHF  -> an `acetic-acid` entry (new), or the library acetic-acid process
+#   feed:PHOSF  -> a `sodium-phosphate` entry (new)
+#   feed:DW     -> `water` (exists)
+#   product:WW  -> `wastewater-treatment` (exists)
+#   product:BUOHB, product:HEAVY, product:WSP -> solvent and hazardous-waste incineration
+#                  entries (new)
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:MPS": {use: steam-heat, source: "MP steam 2000 kPa(a) to the regeneration, azine and hydrolysis column reboilers, counted as heat delivered (kWh), D-010"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 500 kPa(a) to the ammonia recovery and concentration column reboilers, counted as heat delivered (kWh), D-010"}
