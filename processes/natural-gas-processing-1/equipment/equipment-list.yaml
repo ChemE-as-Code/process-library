@@ -1,0 +1,47 @@
+# Equipment list. Schema: `cheme schema equipment`.
+# The items of the PFD (process/flowsheet.yaml), concept stage: no P&ID, no sizing. Design
+# pressures and temperatures are ASSUMED placeholders (operating pressure plus about 10 % and
+# the operating temperature range with a margin), not mechanical design values (DESIGN.md
+# D-013). Duties and flows from scripts/balance.py (D-006).
+schema: cheme/equipment/v1
+equipment:
+  # ---- inlet separation (INL)
+  - {tag: V-101, type: Vessel, service: "Inlet separator with slug catcher", design_pressure_barg: 65, design_temperature_degc: 65, material: "Carbon steel (sweet service, no H2S)",
+     notes: "Separates 662 kg/h free water from 96.9 t/h water-saturated raw gas at 6000 kPa(a), 40 degC; no condensate (no C4+ in the sourced feed, D-003, D-004). ASSUMED."}
+  # ---- acid gas removal (AGR)
+  - {tag: T-201, type: Column, service: "Amine absorber (MDEA 45 wt-%)", design_pressure_barg: 66, design_temperature_degc: 90, material: "Carbon steel, stress relieved",
+     notes: "CO2 from 0.3 mol-% to 50 ppmv ahead of the cryogenic section; 15.9 t/h lean amine (about 67 US gpm) (D-007). ASSUMED."}
+  - {tag: V-202, type: Vessel, service: "Rich amine flash drum", design_pressure_barg: 6, design_temperature_degc: 90, material: "Carbon steel",
+     notes: "Flashes co-absorbed hydrocarbons at 600 kPa(a) to the fuel gas header (36 kg/h) (D-007). ASSUMED."}
+  - {tag: T-202, type: Column, service: "Amine regenerator with reboiler, condenser, lean/rich exchanger, lean amine pump and cooler", design_pressure_barg: 3.5, design_temperature_degc: 150, material: "Carbon steel shell, stainless steel trays and lean/rich exchanger",
+     notes: "Reboiler on LP steam 450 kPa(a), 1.08 MW (1.83 t/h steam); condenser and lean cooler 1.10 MW on cooling water; acid gas 649 kg/h (97 wt-% CO2) to atmosphere (D-007). Package items kept in one tag at concept stage. ASSUMED."}
+  # ---- dehydration (DEH)
+  - {tag: T-301, type: Column, service: "TEG contactor", design_pressure_barg: 65, design_temperature_degc: 65, material: "Carbon steel",
+     notes: "Dries the sweet gas from about 97 to 7 lb/MMscf with 4.8 t/h lean TEG (99 wt-%), 3 US gal TEG per lb water (D-008). ASSUMED."}
+  - {tag: V-302, type: Vessel, service: "TEG flash tank", design_pressure_barg: 5, design_temperature_degc: 90, material: "Carbon steel",
+     notes: "Recovers 90 % of the absorbed gas (23 kg/h) to the fuel gas header (D-008). ASSUMED."}
+  - {tag: T-302, type: Column, service: "TEG regenerator: still column, fired reboiler, surge drum, lean TEG pump", design_pressure_barg: 0.5, design_temperature_degc: 230, material: "Carbon steel, stainless still packing",
+     notes: "Reboiler at 204 degC, 0.37 MW heat from H-601 fuel gas firing; still vent 172 kg/h (98.5 wt-% water vapour) to atmosphere (D-008). ASSUMED."}
+  - {tag: A-303, type: Vessel, service: "Molecular sieve driers (two beds, TSA) with regeneration gas heater loop and cooler", design_pressure_barg: 64, design_temperature_degc: 315, material: "Carbon steel, internally insulated or rated for regeneration temperature",
+     notes: "Polishes the TEG-dried gas to below 0.1 ppmv water for the cold box; regeneration with 8 % of the gas at 288 degC, 0.66 MW from H-601, regeneration gas cooled on cooling water (D-008). ASSUMED."}
+  # ---- NGL recovery (NGLR)
+  - {tag: E-401, type: HeatExchanger, service: "Cold box: brazed aluminium plate-fin gas/gas exchanger with demethaniser side reboilers", design_pressure_barg: 64, design_temperature_degc: -120, material: "Brazed aluminium (no mercury in the sourced analysis; to be confirmed, D-005)",
+     notes: "Cools 96.0 t/h dry gas to -35 degC against residue gas and side-reboiler liquid; duty not calculated (no qualified property package, D-012). ASSUMED."}
+  - {tag: V-401, type: Vessel, service: "Cold separator", design_pressure_barg: 64, design_temperature_degc: -60, material: "Low-temperature carbon steel or stainless steel",
+     notes: "Vapour 82.1 t/h to the expander, liquid 13.9 t/h to the demethaniser (ASSUMED split, D-009). ASSUMED."}
+  - {tag: K-401, type: Turbine, service: "Turbo-expander (drives C-401)", design_pressure_barg: 64, design_temperature_degc: -110, material: "Stainless steel / aluminium wheel",
+     notes: "5800 to 2200 kPa(a), about 1.79 MW recovered (ideal gas estimate, isentropic 0.85) (D-009). ASSUMED."}
+  - {tag: T-401, type: Column, service: "Demethaniser", design_pressure_barg: 25, design_temperature_degc: -120, material: "Stainless steel",
+     notes: "2200 kPa(a); 90 % ethane and 98 % propane recovery to 27.3 t/h C2+ NGL; GSP-type reflux from subcooled vapour split (D-009). ASSUMED."}
+  - {tag: P-401, type: Pump, service: "NGL product pump", design_pressure_barg: 75, design_temperature_degc: 40, material: "Carbon steel (LTCS if cold)",
+     notes: "27.3 t/h NGL from 2200 to 7000 kPa(a), 116 kW (D-009). ASSUMED."}
+  - {tag: C-401, type: Compressor, service: "Expander-driven booster compressor", design_pressure_barg: 37, design_temperature_degc: 100, material: "Carbon steel",
+     notes: "Residue gas 2150 to about 3350 kPa(a) on 1.73 MW shaft work from K-401 (D-010). ASSUMED."}
+  # ---- residue compression (CMP)
+  - {tag: K-501, type: Compressor, service: "Residue gas compressor, electric motor drive", design_pressure_barg: 77, design_temperature_degc: 175, material: "Carbon steel",
+     notes: "68.7 t/h residue gas from about 3350 to 7050 kPa(a), 3.67 MW electric (ideal gas, isentropic 0.80, motor 0.96) (D-010). Gas-turbine drive is the usual alternative (D-010). ASSUMED."}
+  - {tag: E-501, type: HeatExchanger, service: "Sales gas aftercooler", design_pressure_barg: 77, design_temperature_degc: 175, material: "Carbon steel",
+     notes: "From about 152 to 40 degC, 5.08 MW on cooling water (air cooler is the usual alternative, D-010). ASSUMED."}
+  # ---- fuel gas and fired heat (FUEL)
+  - {tag: H-601, type: Furnace, service: "Fuel-gas-fired heaters: TEG reboiler firebox and molecular sieve regeneration gas heater", design_pressure_barg: 64, design_temperature_degc: 320, material: "Carbon steel firetube / coil",
+     notes: "115 kg/h fuel gas (flash gases plus 55 kg/h residue gas), 15 % excess air, 80 % efficiency on LHV, 1.03 MW absorbed (D-011). Two units in reality, one tag at concept stage. ASSUMED."}
