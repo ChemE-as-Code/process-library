@@ -1,0 +1,123 @@
+# Goal and scope of the acetylene-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme assess lca
+# --inventory --write` and `--coverage` (lca/inventory.csv, gaps.csv, dataset.yaml,
+# manifest.json); never edit those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-013): every exchange of the plant
+# with its amount per functional unit from the balanced flowsheet. The background of every
+# purchased input, utility and waste treatment is deliberately left UNMAPPED (`missing:` with
+# the activity it should connect to later): a gap, never zero, and no values from licensed
+# databases. The plant's own emissions (fired-heater flue gas) are mapped as elementary flows.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of acetylene made by partial oxidation of
+  natural gas with oxygen (BASF type) with NMP recovery and a synthesis-gas co-product, at the
+  concept stage: which raw materials, utilities, wastes and emissions the plant exchanges per kg
+  of acetylene, as the foreground for a later cradle-to-gate study. No impact results: the
+  backgrounds are not mapped yet (D-013).
+functional_unit: {product: ACETYLENE, amount: 1, unit: kg, source: "1 kg of acetylene gas (99.55 mol%, 1.2 bar(a)) at the plant gate, stream S18 (D-013)"}
+# Co-product: the synthesis gas (stream S15, 5.76 kg/kg acetylene). The dataset itself stays
+# unallocated; the per-kg figures use energy allocation on LHV (D-013), the usual physical
+# relationship for fuel-grade co-products; mass, exergy and economic allocation are reported
+# for comparison where cheme can compute them.
+allocation:
+  method: energy
+  coproducts: [ACETYLENE, SYNGAS]
+  source: "DESIGN.md D-013: energy (LHV) allocation between acetylene and synthesis gas; LHV from the ideal-gas formation enthalpies of materials.yaml"
+  properties:
+    ACETYLENE: {energy: 47970, source: "LHV of stream S18 (99.55 mol% C2H2, 0.25 % CO2, 0.2 % H2O): 1256.0 MJ/kmol C2H2 from the ATcT formation enthalpies of materials.yaml, 26.07 kg/kmol (D-013)"}
+    SYNGAS: {energy: 22520, source: "LHV of stream S15 (61.1 % H2, 28.4 % CO, 5.5 % CH4, 0.04 % C2H2): H2 241.8, CO 283.0, CH4 802.6, C2H2 1256.0 MJ/kmol from materials.yaml, 12.10 kg/kmol (D-013)"}
+# Gate-to-gate in the sense of the foreground; the boundary key stays cradle-to-gate so that the
+# purchased inputs remain open gaps instead of being mapped free (as phosgene-1 and
+# sulfuric-acid-1 do).
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Partial oxidation of natural gas with 99.5 % oxygen in a BASF-type burner (600 C preheat, about 1700 C flame), water quench, cooling column, wet ESP, closed quench-water circuit with vacuum degassing, three-stage compression to 11 bar(a), NMP absorption and stripping; 6.25 t/h acetylene, synthesis gas co-product"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+flows:
+  # raw materials
+  - key: feed:NG
+    missing: "not mapped yet (D-013); connect to: natural gas, high pressure, at the consumer (pipeline grade, about 98 mol% CH4), market mix of the site region, including extraction, processing, transport and methane leakage"
+    source: "flowsheet stream S1 (scripts/balance.py, D-003, D-005)"
+  - key: feed:OXY
+    missing: "not mapped yet (D-013); connect to: oxygen, gaseous, 99.5 mol%, from cryogenic air separation by pipeline (processes/asu-1, product GOX, once asu-1 publishes its dataset; its GOX purity and pressure to be matched)"
+    source: "flowsheet stream S3 (D-003, D-005)"
+  - key: feed:FUELNG
+    missing: "not mapped yet (D-013); connect to: natural gas, low pressure, at the consumer, burned in an industrial furnace (the combustion emissions are in this inventory's flue gas, so only the supply chain)"
+    source: "flowsheet stream S42 (D-011)"
+  - key: feed:NMP
+    missing: "not mapped yet (D-013); connect to: N-methyl-2-pyrrolidone, at plant (from gamma-butyrolactone and methylamine), no library process yet"
+    source: "flowsheet stream S24, 2 g/kg acetylene (ASSUMED, D-009)"
+  - {key: feed:AIR, free: true, source: "combustion air for the fired heater: a resource taken from nature without burden (O2 consumed, N2/Ar returned)"}
+  # utilities
+  - key: feed:POWER
+    missing: "not mapped yet (D-013); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy streams Q1 (cracked-gas compressor), Q2 (solvent pumps), Q3 (circuit-water pumps), Q4 (ESP), Q5 (vacuum pump), Q6 (air fan); D-007, D-012"
+  - key: feed:STEAM
+    missing: "not mapped yet (D-013); connect to: steam, medium pressure (12 bar(a)), from a natural-gas boiler of the site (processes/utility-steam-ng-boiler), per MJ of heat delivered"
+    source: "flowsheet energy streams Q20 (acetylene stripper) and Q21 (hot-stripper reboiler, net of the 2.8 MW raised in the fired heater, Q12); D-012"
+  - key: product:CW
+    missing: "not mapped yet (D-013); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower: pump and fan electricity, make-up water, evaporation, blowdown, treatment chemicals), per kWh removed"
+    source: "flowsheet energy streams Q30 (circuit-water cooler, quench heat), Q31/Q32 (compressor coolers), Q33 (lean solvent cooler); D-006, D-007, D-009"
+  # wastes
+  - key: product:WW
+    treatment: {kind: waste, route: "site biological wastewater treatment: quench-water purge with traces of dissolved acetylene, CO, methane and benzene after vacuum degassing"}
+    missing: "not mapped yet (D-013); connect to: treatment of slightly organic process water in an industrial wastewater treatment plant (processes/utility-wwtp), per m3"
+    source: "flowsheet stream S51 (D-006)"
+  - key: product:SLUDGE
+    treatment: {kind: waste, route: "incineration of the soot sludge (10 wt% carbon, 90 wt% water)"}
+    missing: "not mapped yet (D-013); connect to: incineration of carbon-black (soot) sludge in a hazardous-waste incinerator, per kg wet; the sludge's fossil carbon (290 kg/h) is then emitted there as CO2"
+    source: "flowsheet stream S50 (D-006; soot from US5824834A)"
+  - key: product:RESIDUE
+    treatment: {kind: waste, route: "incineration of the solvent regeneration residue (NMP with polymers)"}
+    missing: "not mapped yet (D-013); connect to: incineration of spent organic solvent (nitrogen-containing), per kg"
+    source: "flowsheet stream S21 (D-009)"
+  # emissions: the fired-heater flue gas to the stack (non-urban high stack ASSUMED for a site
+  # not chosen, D-013)
+  - {key: product:STACK, emission: true, source: "fired-heater flue gas to atmosphere through the stack, stream S46 (D-011)"}
+  - {key: emission:N2, free: true, source: "atmospheric N2 (combustion air) and the N2 of the support fuel and of NMP returned to the atmosphere"}
+  - {key: emission:O2, free: true, source: "excess atmospheric O2 of the combustion air returned"}
+  - {key: emission:AR, free: true, source: "atmospheric argon returned"}
+  - {key: emission:H2O, free: true, source: "water vapour from combustion and from the off-gas"}
+  - {key: emission:H2, free: true, source: "zero in the design case: the fired-heater fuel holds no hydrogen (key present because the fuel template carries H2)"}
+  - {key: emission:C, free: true, source: "zero in the design case: soot leaves only in the sludge S50 (key present because the fuel template carries C)"}
+  - key: emission:CO2
+    elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}
+    source: "CO2 from burning the higher acetylenes, aromatics, flash gas and support natural gas in the fired heater (D-011); all carbon is fossil (natural gas)"
+  - key: emission:CO
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    source: "CO not burnt: 0.05 % of the flash-gas CO (99.95 % burnout ASSUMED, D-011); CO formed by incomplete combustion not estimated"
+  - key: emission:CH4
+    elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}
+    source: "unburnt methane, 0.05 % of the fuel methane (ASSUMED, D-011)"
+  - key: emission:C2H2
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    source: "unburnt acetylene, 0.05 % (ASSUMED, D-011)"
+  - key: emission:C4H2
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    source: "unburnt higher acetylenes (as diacetylene), 0.05 % (ASSUMED, D-011); NMVOC"
+  - key: emission:C6H6
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    source: "unburnt aromatics (as benzene), 0.05 % (ASSUMED, D-011)"
+  - key: emission:NMP
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    source: "unburnt NMP of the off-gas, 0.05 % (ASSUMED, D-011)"
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED, D-002); 25 a service life ASSUMED"
+emission_exclusions:
+  - {id: heater-nox, method: combustion, equipment: [H-101], reason: "Thermal and fuel NOx of the fired heater burning the higher-acetylene off-gas (with the nitrogen of NMP) and the support gas are not estimated: no sourced factor for this fuel yet (open, D-011)."}
+  - {id: fugitive-hydrocarbons, method: equipment-leaks, reason: "No P&ID yet: fugitive acetylene, CO, H2 and NMP from flanges, valves, seals and the vacuum pump cannot be counted (open for basic engineering, D-013)."}
+  - {id: quench-water-open-surfaces, method: effluent, reason: "The quench-water circuit is closed with vacuum degassing (US11459281B2); the soot separator's open surfaces and the purge's residual dissolved hydrocarbons (0.69 % of the load, in stream S51) are not estimated as air emissions (D-006)."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals; CPC to be added
+  modelling: {principle: attributional}
+  geography: {description: "Generic site with natural gas, oxygen (air separation) and synthesis-gas users, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #184, unreviewed"

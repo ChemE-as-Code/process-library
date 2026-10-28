@@ -1,3 +1,35 @@
 # Equipment list. Schema: `cheme schema equipment`.
+# As far as the PFD requires (concept stage): tags, types and services of the flowsheet steps,
+# the duty basis from scripts/balance.py (DESIGN.md D-005..D-012). Design pressures,
+# temperatures, materials, sizes and the number of parallel burner trains are not set yet
+# (basic engineering). All values ASSUMED.
 schema: cheme/equipment/v1
-equipment: []
+equipment:
+  # ---- feed preheating and off-gas firing (block PRE)
+  - {tag: H-101, type: Furnace, service: "Fired preheater: natural-gas coil, oxygen coil, convection-section steam for T-304",
+     notes: "Natural gas 303 -> 873 K (14.8 MW), oxygen 303 -> 873 K (5.5 MW, oxygen-service coil), 2.8 MW to the hot stripper; fired with the hot-stripper off-gas, the quench-water flash gas and 10 % natural-gas support fuel, 27.1 MW LHV (D-004, D-011). Diacetylene-rich fuel: burner management to be designed (D-011)."}
+  - {tag: K-401, type: Fan, service: Combustion air fan, notes: "33.4 t/h air, 5 kPa, 58 kW (D-011)."}
+  # ---- burner and quench (block REACT)
+  - {tag: R-101, type: Furnace, service: "Acetylene burner (mixing diffuser, burner block, combustion chamber, water quench)",
+     notes: "BASF type; natural gas and oxygen premixed at 873 K, O2/NG 0.60 vol/vol, flame about 1970 K, residence time a few ms, direct water quench to 353 K with 1146 t/h circuit water (US5824834A, US8975460B2, US11459281B2; D-004..D-006). Several parallel burners at this capacity (each burner of US5824834A's examples makes 25-33 t/d); number of trains open."}
+  # ---- cooling, soot removal, water circuit (block SOOT)
+  - {tag: T-101, type: ProcessColumn, service: Cooling column (direct contact with circuit water), notes: "353 -> 308 K, 528 t/h water, condenses 35 t/h (D-006)."}
+  - {tag: X-101, type: Separator, service: Wet electrostatic precipitator, notes: "Residual soot to about 1 mg/m3 (US11459281B2); 10 t/h irrigation water; 150 kW (ASSUMED, D-006)."}
+  - {tag: V-102, type: Vessel, service: "Vacuum degassing vessel of the circuit water (400 mbar(a)) with condenser and vacuum pump",
+     notes: "Removes 99.3 % of the dissolved hydrocarbons (US11459281B2) to the fired heater; 120 kW vacuum pump (ASSUMED, D-006)."}
+  - {tag: V-101, type: Separator, service: Soot separator (flotation and thickening), notes: "290 kg/h soot as a 10 wt% sludge to incineration (US5824834A; D-006)."}
+  - {tag: E-101, type: HeatExchanger, service: Circuit-water cooler, notes: "1700 t/h, 349 -> 303 K, 91.6 MW to cooling water (D-006). The largest duty of the plant: the quench heat is not recovered in the base case (D-006)."}
+  - {tag: P-101, type: CentrifugalPump, service: "Circuit-water pumps (quench, cooling column, ESP, purge)", notes: "1690 m3/h, 400 kPa, 260 kW (D-012)."}
+  # ---- compression (block COMP)
+  - {tag: K-201, type: Compressor, service: "Cracked-gas compressor, three stages with intercoolers",
+     notes: "3507 kmol/h, 1.05 -> 11 bar(a), isentropic 0.78, 8.8 MW electric; intercoolers 5.7 MW (D-007). Discharge 404 K: acetylene partial pressure 0.94 bar at the discharge, below the 1.4 bar of US10059640B2."}
+  - {tag: E-201, type: HeatExchanger, service: Compressor aftercooler, notes: "404 -> 313 K, 4.6 MW (D-007)."}
+  - {tag: V-201, type: Vessel, service: Compressor knock-out drum, notes: "2.6 t/h condensate to the water circuit (D-007)."}
+  # ---- acetylene recovery (block REC)
+  - {tag: T-301, type: ProcessColumn, service: "Absorber, NMP pre-wash and main wash (with syngas water back-wash)", notes: "11 bar(a), 308 K, lean solvent 339 t/h (D-009)."}
+  - {tag: T-302, type: ProcessColumn, service: Degasser (pressure let-down; gas recycled to K-201), notes: "Releases the co-absorbed H2, CO, CH4, 95 % of the CO2 and 15 % of the acetylene (D-009)."}
+  - {tag: E-301, type: HeatExchanger, service: Lean/rich solvent interchanger, notes: "Rich 308 -> 403 K, lean 443 -> 348 K (D-009)."}
+  - {tag: T-303, type: ProcessColumn, service: Acetylene stripper, notes: "1.2-1.4 bar(a), side heating 1.7 MW MP steam; acetylene 99.55 mol% (D-009, D-012)."}
+  - {tag: T-304, type: ProcessColumn, service: "Hot stripper (higher acetylenes, water) with solvent regeneration", notes: "1.4 bar(a), bottom 443 K, 8.0 MW (5.2 MW MP steam + 2.8 MW from H-101) (US10059640B2; D-009, D-012)."}
+  - {tag: E-302, type: HeatExchanger, service: Lean solvent cooler, notes: "348 -> 308 K with the heat of absorption, 9.6 MW (D-009)."}
+  - {tag: P-301, type: CentrifugalPump, service: Lean solvent pump and NMP make-up, notes: "330 m3/h to 11.5 bar(a), 134 kW; NMP make-up 12.5 kg/h (D-009, D-012)."}
