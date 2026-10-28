@@ -1,8 +1,54 @@
 # What the plant must do. Schema: `cheme schema design_basis`.
-schema: cheme/design_basis/v1
-capacity: {}
-feeds: []
-products: []
-utilities: []
-site: {}
-assumptions: []
+# Hydrogen chloride synthesis burner and absorption to hydrochloric acid, issue
+# ChemE-as-Code/process-library#137. Values marked ASSUMED are engineering choices of this
+# concept study, not client, licensor or vendor data; sourced values cite their document with
+# the location. Every decision is in DESIGN.md.
+capacity:
+  basis: "HCl (100 %) contained in 33 wt-% hydrochloric acid at the battery limit (D-001, D-002)"
+  acid_kg_per_h: 10000                # ASSUMED (D-002): a single synthesis unit, chosen, not a client figure
+  hcl_100pct_kg_per_h: 3300           # = 10 000 x 0.33
+  hcl_100pct_t_per_year: 26400        # = 3 300 kg/h x 8000 h
+  operating_hours_per_year: 8000      # ASSUMED, as chlor-alkali-1
+  turndown_percent: 30                # ASSUMED, not checked
+  hydrogen_excess_mol_percent: 10     # ASSUMED (D-004) inside 2-15 vol-% H2 in the off-gas (EP 0 362 666 B1 as cited in US 2004/0175323 A1 [0015])
+feeds:
+  - name: Chlorine
+    terminal: CL2
+    source_of_values: "chlor-alkali-1 dry chlorine product S42 (processes/chlor-alkali-1, process/flowsheet.yaml); ASSUMED there"
+    composition_wt_percent: {Cl2: 99.19, O2: 0.81}
+    conditions: {pressure_kPa_a: 400, temperature_K: 313.15}
+    note: "A boundary feed made by chlor-alkali-1; not integrated (D-003). Real cell gas also carries N2, CO2, H2 and traces not in chlor-alkali-1's balance."
+  - name: Hydrogen
+    terminal: H2
+    source_of_values: "chlor-alkali-1 wet hydrogen product S44; ASSUMED there"
+    composition_wt_percent: {H2: 67.89, H2O: 32.11}
+    conditions: {pressure_kPa_a: 140, temperature_K: 337.19}
+    note: "A boundary feed made by chlor-alkali-1 (uses 104 kg/h of its 368 kg/h H2); hydrogen-1 or another source would do as well (D-003)."
+  - name: Demineralised water
+    terminal: DMW
+    source_of_values: ASSUMED pure water at 298.15 K, 300 kPa(a) (D-008)
+products:
+  - name: Hydrochloric acid 33 wt-%
+    terminal: HCLACID
+    purity: "33.0 wt-% HCl (inside the 30-35 % of bulk industrial grade, Wikipedia 'Hydrochloric acid', section Industrial market); free chlorine of order 1 ppm in real burners, not modelled (D-005)"
+    delivery: {pressure_kPa_a: 250, temperature_K: 313.15, battery_limit: storage tanks}
+  - name: Steam export
+    terminal: STEAM
+    conditions: {pressure_kPa_a: 1000, temperature_K: 453.0, state: saturated}
+    note: "Raised in the synthesis furnace from boiler feed water at 378 K (ASSUMED), about 1.0 t/t HCl (D-007)"
+  - name: Vent
+    terminal: VENT
+    items: "excess hydrogen, water-saturated at 30 degC, with 10 mg/Nm3 HCl (ASSUMED, D-008), to atmosphere at a safe location"
+utilities:
+  - {name: Electric power, use: "BFW pump, product acid pump, instruments and analysers", note: "D-011, ASSUMED"}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "falling-film absorber C-201", note: "ASSUMED (D-010)"}
+  - {name: Boiler feed water, temperature_K: 378.15, use: "steam generation in R-101", note: "inside the steam utility: the steam export is counted net of its BFW (D-007), ASSUMED"}
+site:
+  location: ASSUMED generic site, adjacent to a chlor-alkali plant, not chosen
+  design_ambient_K: 303.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325   # ASSUMED
+assumptions:
+  - "D-001 boundary: chlorine and hydrogen gas at the fence to 33 wt-% acid in storage, steam export and vent; no anhydrous HCl, no acid storage or loading, no utility generation"
+  - "D-005 R-101 converts all Cl2 and O2 (equilibrium limit at 523 K); no kinetics"
+  - "D-006 the balance is a specified-split model (scripts/balance.py); the acid enthalpy rests on an ASSUMED heat of solution (core#364)"
+  - "Construction, transport and end of life are outside the preliminary LCI (D-013)"
