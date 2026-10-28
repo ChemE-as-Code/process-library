@@ -62,6 +62,7 @@ incinerator and waste water treatment. Utilities cross the boundary as energy st
 | S2 | US 6,605,265 B1 (2003), Continuous production of azines/hydrazine hydrate, [Google Patents](https://patents.google.com/patent/US6605265B1/en) | Description: H2O2 30-90 wt%, working solution 0.1-1 kg per mol H2O2, phosphate catalyst 10-1000 ppm (disodium phosphate preferred), regeneration by heating above 130 C (pref. 150-250 C) with water removal, column 5-50 plates, 10 min-2 h; NH3 overhead returned to the reactor; Ex. 1: per 1000 kg/h H2O2 (100 %, from 70 %): NH3 1000 kg/h, MEK make-up 100 kg/h, acetic acid 60 kg/h, disodium phosphate 3 kg/h, working solution 11 000 kg/h, regeneration column head 0.9 bar(a), base 180 C, reboiler steam 10 500 kg/h at 18 bar(a); azine 3 900 kg/h | page text via fetch, examples located | patent text: facts only | D-003, D-005, D-010 |
 | S3 | US 12,134,558 B2 (2024), Process for preparing hydrazine hydrate with pyrazoline recycling, [Google Patents](https://patents.google.com/patent/US12134558) | step (f): reactive distillation 2-25 bar, bottom 150-200 C, 40-50 trays at 8-10 bar, water/azine 5-30 (pref. 10-20); Ex. 1: overhead 7.5-9.7 bar(a), condenser 160 C, bottom 178-190 C, reboiler 200 C at 16 bar, 5 000 kg/h azine + 10 000 kg/h water; pyrazolines (trimethyl-ethyl- and diethyl-methyl-pyrazoline) form mainly in hydrolysis, tray level kept at 1-3 wt% by a side purge recycled through the azine wash and distillation | page text via fetch | patent text: facts only | D-006, D-007 |
 | S4 | US 4,724,133 A (1988, Atochem), Preparation of concentrated aqueous solution of hydrazine hydrate, [Google Patents](https://patents.google.com/patent/US4724133) | search abstract: water/azine 3-7 mol/mol, column base 150-200 C (pref. 175-200 C); hydrolysing dilute acetone-azine solutions needs at least 10 t steam per t hydrate | search snippet, full text not audited | patent text: facts only | D-007 context, D-010 plausibility |
+| S9 | US 4,725,421 A (1988), Process for the preparation of concentrated solutions of hydrazine hydrate, [Google Patents](https://patents.google.com/patent/US4725421) | Description and claims: one hydrolysis/distillation column, water/azine 5-7.75 mol/mol (prior art above 8.3, often near 20), 2-15 bar (pref. 7-12), base 150-200 C (pref. 175-190 C), reflux 0.1-5; Ex. 1 (8 bar, head 150 C, evaporator 180 C): bottoms 48.5 % hydrazine hydrate; Ex. 2 (9 bar): bottoms 44.7 %, overhead about 88 % MEK; no steam figures | page text via fetch | patent text: facts only | D-007 (S41 composition), I-05 |
 | S5 | NIST Chemistry WebBook, SRD 69, [webbook.nist.gov](https://webbook.nist.gov/chemistry/) | standard formation enthalpies: H2O2(l) -187.8, H2O(l) -285.83, NH3(g) -45.9, N2H4(l) +50.6 kJ/mol | values as commonly tabulated, not re-fetched in this run | facts | D-010 reactor heat |
 | S6 | PubChem, [CID lookup by CAS 5921-54-0](https://pubchem.ncbi.nlm.nih.gov/) | 5921-54-0 = 2-butanone (1-methylpropylidene)hydrazone (methyl ethyl ketone azine) | REST query | open data | materials.yaml identity |
 | S7 | Wikipedia, "Peroxide process", [en.wikipedia.org](https://en.wikipedia.org/wiki/Peroxide_process) (CC BY-SA; secondary, citing Ullmann's and Hayashi et al. 1976 doi 10.1021/i360060a016) | developed early 1970s by PCUK; ketazine decants; ~50 C, atmospheric, H2O2:ketone:NH3 about 1:2:4; hydrolysis endothermic, ~8 bar, 130/179 C top/bottom; 30-45 % hydrate; no salt co-product; Lannemezan plant 17 kt/a of hydrazine products | page via fetch | facts only, secondary | route memo, D-002 scale check |
@@ -137,7 +138,8 @@ modelled as a conversion zone (R401: HYDROLYSIS 0.995 and ISOMERISATION 0.005 of
 parallel; ASSUMED) and a separation (C401): MEK with 11 wt% water overhead (near the MEK-water
 azeotrope, ASSUMED) to the reactors; a pyrazoline purge (50 wt% water, ASSUMED) after the azine
 and MEK have been recovered from it (S3 recycles it through the wash and azine column, lumped
-here); bottoms 30 wt% hydrazine hydrate (S1: typically 30 %). Water/azine at the inlet 10.5
+here); bottoms 30 wt% hydrazine hydrate (S1: typically 30 %; S9 reaches 45-48 % with less
+water, I-05). The overhead composition is close to the about 88 % MEK of S9 Ex. 2. Water/azine at the inlet 10.5
 mol/mol (S3: 5-30, pref. 10-20; S1: 5-8). C-402 concentrates the bottoms to 64 wt% N2H4 (below
 the maximum-boiling hydrazine-water azeotrope, so water goes overhead); its water returns to
 the hydrolysis, demineralised make-up closes the water balance.
@@ -240,6 +242,9 @@ H2O2 stabiliser, resin/adsorbent consumption (S2), catalyst none (homogeneous).
 - I-03 Activator loss mechanism, purge size and adsorber regeneration (D-005).
 - I-04 Off-gas treatment, NH3/MEK emissions, column vents, fugitive emissions (D-008, D-014).
 - I-05 Heat integration: C-401 condenser to C-402, feed/bottoms exchange around C-201 (D-010).
+  Design alternative: a hydrolysis water/azine ratio of 5-7.75 gives 45-48 % hydrate at the
+  bottom directly (S9 Ex. 1-2) against 30 % here, which would roughly halve the water C-402
+  evaporates (about 4.7 to about 2.4 t/h); compare once the columns can be simulated.
 - I-06 2-butanol: bleed vs dehydrogenation to MEK (D-006).
 - I-07 Choose the backgrounds (lca/lca.yaml `missing:` texts) with the LCA practitioner; link
   hydrogen-peroxide-1 and ammonia-1 datasets.
