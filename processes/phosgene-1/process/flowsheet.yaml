@@ -1,24 +1,405 @@
 # The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
 # never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
-# Units are explicit: a property without its own unit is in these. Pressure is absolute; a gauge
-# value needs its own unit (kPa(g)). Nm3/h needs normal_conditions.
+#
+# Phosgene from carbon monoxide and chlorine over activated carbon in a cooled multitubular
+# reactor, condensation of the phosgene, caustic scrubbing of the residual phosgene and chlorine
+# in the vent, and thermal oxidation of the CO-rich vent (DESIGN.md D-001). Where the values
+# come from:
+# - feeds, temperatures, pressures and conversions: design basis and decisions D-002..D-010,
+#   ASSUMED, the ranges from open sources where they exist;
+# - the reactor R101, the oxidiser X301 and the mixers are solved by `cheme process propagate
+#   --fill` (conversion model, calculated);
+# - the separator V101 (Raoult condensation of phosgene), the caustic scrubber T201, mixer
+#   temperatures and every duty come from the independent balance scripts/balance.py (D-006),
+#   given here as ASSUMED: core has no property package for phosgene or the caustic liquor
+#   (core #315, #364), so it can neither flash the condenser nor close the energy balance.
 schema: cheme/process/v1
 kind: flowsheet
-title: ""
+title: Phosgene from CO and chlorine over activated carbon (17.3 t/h liquid phosgene, captive)
 units:
   pressure: kPa(a)
   temperature: K
   flow: kg/h
   duty: kW
   enthalpy: kJ/kmol
-  # normal_conditions: {temperature: 273.15, pressure: 101.325, basis: ideal_gas}
-  # enthalpy_reference: {state: ideal_gas, temperature: 298.15}
+  enthalpy_reference: {state: ideal_gas, temperature: 298.15}
 cases:
-  - {id: design, description: Design case, default: true}
+  - {id: design, description: "Design case: the 12 500 kg/h Cl2 of chlor-alkali-1 converted with 5 % CO excess to 17.3 t/h liquid phosgene (D-002, D-004)", default: true}
 tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
-feeds: []      # external feeds (DEXPI Source): {id, title, ports: [{id: out, direction: out}]}
-products: []   # products (DEXPI Sink): {id, title, ports: [{id: in, direction: in}]}
-blocks: []     # BFD blocks: {id, title, class, ports: [{id, direction, kind}], links}
-steps: []      # PFD steps: {id, block, title, class, ports: [{id, direction, delegates}], links}
-streams: []    # {id, title, kind, from: NODE.port, to: NODE.port, template, state: {design: {...}}}
+
+feeds:
+  - {id: CO, title: Carbon monoxide (from a syngas cold box outside the boundary), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: CL2, title: Phosgene-grade chlorine (chlor-alkali-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: NAOH, title: Caustic soda 50 wt% (chlor-alkali-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: PW, title: Process water (dilution), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: AIR, title: Combustion air, category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: r101, direction: out, kind: energy}
+      - {id: t201, direction: out, kind: energy}
+      - {id: k301, direction: out, kind: energy}
+products:
+  - {id: PHOSGENE, title: Liquid phosgene to the captive consumer, category: product, ports: [{id: in, direction: in}]}
+  - {id: EFF, title: Spent scrubber liquor to wastewater treatment, category: wastewater, ports: [{id: in, direction: in}]}
+  - {id: STACK, title: Oxidiser flue gas to stack, category: off_gas, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis"}
+      min_approach: {value: 5, provenance: assumed, source: "design basis"}
+    ports: [{id: r101, direction: in, kind: energy}, {id: e102, direction: in, kind: energy}]
+  - id: BRINE
+    title: Refrigerated brine return (243 K)
+    category: utility
+    utility:
+      kind: refrigerant
+      supply_temperature: {value: 243.15, provenance: assumed, source: "design basis, D-007"}
+      return_temperature: {value: 248.15, provenance: assumed, source: "design basis, D-007"}
+      min_approach: {value: 5, provenance: assumed, source: "D-007"}
+    ports: [{id: e103, direction: in, kind: energy}]
+
+blocks:
+  - id: REACT
+    title: Phosgene synthesis (multitubular, activated carbon)
+    class: ReactingChemicals
+    ports:
+      - {id: co, direction: in}
+      - {id: cl2, direction: in}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: COND
+    title: Phosgene condensation and separation
+    class: SeparatingByThermalProcess
+    ports:
+      - {id: in, direction: in}
+      - {id: product, direction: out}
+      - {id: vent, direction: out}
+      - {id: cw, direction: out, kind: energy}
+      - {id: brine, direction: out, kind: energy}
+  - id: SCRUB
+    title: Residual phosgene destruction (caustic scrubber)
+    class: Absorbing
+    ports:
+      - {id: vent, direction: in}
+      - {id: naoh, direction: in}
+      - {id: water, direction: in}
+      - {id: gas, direction: out}
+      - {id: liquor, direction: out}
+      - {id: power, direction: in, kind: energy}
+  - id: OX
+    title: Thermal oxidation of the CO-rich vent
+    class: ReactingChemicals
+    ports:
+      - {id: vent, direction: in}
+      - {id: air, direction: in}
+      - {id: flue, direction: out}
+      - {id: power, direction: in, kind: energy}
+
+steps:
+  # --- REACT -----------------------------------------------------------------------------------
+  - id: M101
+    block: REACT
+    title: CO / chlorine mixer
+    class: Mixing
+    links: [{target: equipment, ref: M-101}]
+    ports:
+      - {id: co, direction: in, delegates: co}
+      - {id: cl2, direction: in, delegates: cl2}
+      - {id: out, direction: out}
+  - id: R101
+    block: REACT
+    title: Phosgene reactor (multitubular, boiling-water cooled)
+    class: ReactingChemicals
+    reactions: [PHOSGENE]
+    reactor: conversion
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: out}
+      - {id: q, direction: out, kind: energy, delegates: cw}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # --- COND ------------------------------------------------------------------------------------
+  - id: E102
+    block: COND
+    title: Phosgene condenser (cooling water)
+    class: Cooling
+    links: [{target: equipment, ref: E-102}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: cw}
+  - id: E103
+    block: COND
+    title: Phosgene after-condenser (brine)
+    class: Cooling
+    links: [{target: equipment, ref: E-103}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: brine}
+  - id: V101
+    block: COND
+    title: Phosgene separator
+    class: SeparatingByFlash
+    links: [{target: equipment, ref: V-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: liquid, direction: out, delegates: product}
+      - {id: gas, direction: out, delegates: vent}
+  # --- SCRUB -----------------------------------------------------------------------------------
+  - id: M201
+    block: SCRUB
+    title: Caustic dilution
+    class: Mixing
+    links: [{target: equipment, ref: M-201}]
+    ports:
+      - {id: naoh, direction: in, delegates: naoh}
+      - {id: water, direction: in, delegates: water}
+      - {id: out, direction: out}
+  - id: T201
+    block: SCRUB
+    title: Caustic scrubber (phosgene and chlorine destruction)
+    class: Absorbing
+    reactions: [PHOS_NAOH, CL2_NAOH]
+    links: [{target: equipment, ref: T-201}]
+    ports:
+      - {id: gas_in, direction: in, delegates: vent}
+      - {id: liq_in, direction: in}
+      - {id: gas_out, direction: out, delegates: gas}
+      - {id: liq_out, direction: out, delegates: liquor}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # --- OX --------------------------------------------------------------------------------------
+  - id: K301
+    block: OX
+    title: Combustion air fan
+    class: Compressing
+    method: CentrifugalMotion
+    links: [{target: equipment, ref: K-301}]
+    ports:
+      - {id: in, direction: in, delegates: air}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: X301
+    block: OX
+    title: Thermal oxidiser
+    class: ReactingChemicals
+    reactions: [CO_COMB, PHOS_HYD]
+    reactor: conversion
+    links: [{target: equipment, ref: X-301}]
+    ports:
+      - {id: vent, direction: in, delegates: vent}
+      - {id: air, direction: in}
+      - {id: out, direction: out, delegates: flue}
+
+streams:
+  # --- feeds and reaction ----------------------------------------------------------------------
+  - id: S1
+    title: Carbon monoxide feed
+    from: CO.out
+    to: M101.co
+    template: co
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: "battery limit (D-003)"}
+        temperature: {value: 303.15, provenance: assumed, source: "battery limit (D-003)"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 5195.161, basis: mass, provenance: assumed, source: "scripts/balance.py: 5 % molar CO excess over the chlorine (D-004)"}
+        composition: {basis: mole_fraction, values: {CO: 0.998, N2: 0.002}, provenance: assumed, source: "D-003: CO 99.8 mol%, impurities lumped as N2"}
+  - id: S2
+    title: Phosgene-grade chlorine feed
+    from: CL2.out
+    to: M101.cl2
+    template: chlorine
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: "chlor-alkali-1 chlorine product at 400 kPa(a) (its stream S42)"}
+        temperature: {value: 313.15, provenance: assumed, source: "chlor-alkali-1 chlorine product (its stream S42)"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 12505.647, basis: mass, provenance: assumed, source: "scripts/balance.py: 12 500 kg/h Cl2 of chlor-alkali-1's design (D-002) with 0.1 mol% O2"}
+        composition: {basis: mole_fraction, values: {CL2: 0.999, O2: 0.001}, provenance: assumed, source: "D-003: phosgene grade (liquefied and re-evaporated), 0.1 mol% O2"}
+  - id: S3
+    title: Mixed feed gas
+    from: M101.out
+    to: R101.in
+    template: process
+    state:
+      design:
+        pressure: {value: 390.0, provenance: assumed, source: "pressure profile (D-010)"}
+        temperature: {value: 308.43, provenance: assumed, source: "scripts/balance.py: adiabatic mixing (D-006)"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 17700.8, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2', fingerprint: 5adde19c153f2b58}
+        composition: {basis: mole_fraction, values: {CO: 0.51142, N2: 0.00102489, CL2: 0.487067, O2: 0.000487555}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2', fingerprint: f886bfd1986a750b}
+  - id: S4
+    title: Reactor outlet (crude phosgene gas)
+    from: R101.out
+    to: E102.in
+    template: process
+    state:
+      design:
+        pressure: {value: 350.0, provenance: assumed, source: "pressure profile (D-010); EP1640341A2: 1.5-10 bar(a), preferably 2-5"}
+        temperature: {value: 353.15, provenance: assumed, source: "D-005: below 100 C at the outlet (EP1640341A2)"}
+        phase: {value: vapor, provenance: assumed, source: "phosgene dew point about 316 K at its partial pressure of 332 kPa (NIST Antoine)"}
+        flow: {value: 17700.8, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3', fingerprint: 23a0f482dbb38b41}
+        composition: {basis: mole_fraction, values: {CO: 0.0475232, CL2: 4.74764e-05, COCL2: 0.949481, N2: 0.001998, O2: 0.00095048}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3', fingerprint: 26a113f039f6b81f}
+  # --- condensation ----------------------------------------------------------------------------
+  - id: S5
+    title: Partly condensed phosgene
+    from: E102.out
+    to: E103.in
+    template: process
+    state:
+      design:
+        pressure: {value: 345.0, provenance: assumed, source: "pressure profile (D-010)"}
+        temperature: {value: 308.15, provenance: assumed, source: "D-007: cooling-water condenser outlet"}
+        phase: {value: two-phase, provenance: assumed, source: "scripts/balance.py: Raoult flash (D-006)"}
+        flow: {value: 17700.8, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S4', fingerprint: 68553ac960391028}
+        composition: {basis: mole_fraction, values: {CO: 0.0475232, CL2: 4.74764e-05, COCL2: 0.949481, N2: 0.001998, O2: 0.00095048}, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S4', fingerprint: 68553ac960391028}
+  - id: S6
+    title: Condensed phosgene with non-condensables
+    from: E103.out
+    to: V101.in
+    template: process
+    state:
+      design:
+        pressure: {value: 340.0, provenance: assumed, source: "pressure profile (D-010)"}
+        temperature: {value: 253.15, provenance: assumed, source: "D-007: brine condenser outlet"}
+        phase: {value: two-phase, provenance: assumed, source: "scripts/balance.py: Raoult flash (D-006)"}
+        flow: {value: 17700.8, provenance: calculated, source: 'cheme process propagate: pass-through E103 from S5', fingerprint: a153cad3331809b2}
+        composition: {basis: mole_fraction, values: {CO: 0.0475232, CL2: 4.74764e-05, COCL2: 0.949481, N2: 0.001998, O2: 0.00095048}, provenance: calculated, source: 'cheme process propagate: pass-through E103 from S5', fingerprint: a153cad3331809b2}
+  - id: S7
+    title: Liquid phosgene product
+    from: V101.liquid
+    to: PHOSGENE.in
+    template: phosgene
+    state:
+      design:
+        pressure: {value: 340.0, provenance: assumed, source: "separator pressure (D-010)"}
+        temperature: {value: 253.15, provenance: assumed, source: "D-007"}
+        phase: {value: liquid, provenance: assumed, source: "subcooled phosgene"}
+        flow: {value: 17346.054, basis: mass, provenance: assumed, source: "scripts/balance.py: Raoult flash at 253.15 K, 340 kPa(a), CO/N2/O2 insoluble (D-006)"}
+        composition: {basis: mole_fraction, values: {COCL2: 0.9999512544, CL2: 4.87456e-05}, provenance: assumed, source: "scripts/balance.py (D-006): 35 ppm(wt) Cl2"}
+  - id: S8
+    title: Separator vent gas
+    from: V101.gas
+    to: T201.gas_in
+    template: process
+    state:
+      design:
+        pressure: {value: 340.0, provenance: assumed, source: "separator pressure; let down to the scrubber (D-010)"}
+        temperature: {value: 253.15, provenance: assumed, source: "D-007"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 354.753, basis: mass, provenance: assumed, source: "scripts/balance.py (D-006): 0.53 % of the phosgene formed leaves with the vent"}
+        composition: {basis: mole_fraction, values: {CO: 0.8569165224, CL2: 2.58607e-05, N2: 0.0360265926, O2: 0.0171383476, COCL2: 0.0898926767}, provenance: assumed, source: "scripts/balance.py (D-006)"}
+  # --- caustic scrubber ------------------------------------------------------------------------
+  - id: S20
+    title: Caustic soda 50 wt%
+    from: NAOH.out
+    to: M201.naoh
+    template: caustic
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: "site caustic header (D-008)"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-008"}
+        phase: {value: liquid, provenance: assumed, source: "solution"}
+        flow: {value: 444.268, basis: mass, provenance: assumed, source: "scripts/balance.py: 1.5 x the NaOH that the phosgene and chlorine of the vent consume (D-008)"}
+        composition: {basis: mass_fraction, values: {NAOH: 0.5, H2O: 0.5}, provenance: assumed, source: "commercial 50 wt% grade, as chlor-alkali-1 makes it"}
+  - id: S21
+    title: Dilution water
+    from: PW.out
+    to: M201.water
+    template: water
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: "site water header"}
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        phase: {value: liquid, provenance: assumed, source: "water"}
+        flow: {value: 789.809, basis: mass, provenance: assumed, source: "scripts/balance.py: dilution to 18 wt% NaOH (D-008)"}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: "process water"}
+  - id: S22
+    title: Scrubbing liquor 18 wt% NaOH
+    from: M201.out
+    to: T201.liq_in
+    template: caustic
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: "D-008"}
+        temperature: {value: 303.15, provenance: assumed, source: "D-008 (heat of dilution not counted)"}
+        phase: {value: liquid, provenance: assumed, source: "solution"}
+        flow: {value: 1234.08, provenance: calculated, source: 'cheme process propagate: mixer M201 from S20 S21', fingerprint: acfd8c33fc3b16e7}
+        composition: {basis: mole_fraction, values: {NAOH: 0.0899745, H2O: 0.910026}, provenance: calculated, source: 'cheme process propagate: mixer M201 from S20 S21', fingerprint: 344baede127de9eb}
+  - id: S23
+    title: Scrubbed CO-rich vent gas
+    from: T201.gas_out
+    to: X301.vent
+    template: vent
+    state:
+      design:
+        pressure: {value: 120.0, provenance: assumed, source: "pressure profile (D-010)"}
+        temperature: {value: 303.15, provenance: assumed, source: "D-008"}
+        phase: {value: vapor, provenance: assumed, source: "gas, saturated with water"}
+        flow: {value: 269.382, basis: mass, provenance: assumed, source: "scripts/balance.py: 99.99 % of the phosgene and chlorine destroyed, water-saturated at 303 K (D-008)"}
+        composition: {basis: mole_fraction, values: {CO: 0.9082490806, CL2: 2.7e-09, N2: 0.0381847225, O2: 0.0181649998, COCL2: 9.5278e-06, H2O: 0.0353916667}, provenance: assumed, source: "scripts/balance.py (D-008)"}
+  - id: S24
+    title: Spent scrubber liquor
+    from: T201.liq_out
+    to: EFF.in
+    template: liquor
+    state:
+      design:
+        pressure: {value: 200.0, provenance: assumed, source: "liquor bleed pump (D-008)"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-008"}
+        phase: {value: liquid, provenance: assumed, source: "solution"}
+        flow: {value: 1319.449, basis: mass, provenance: assumed, source: "scripts/balance.py (D-008)"}
+        composition: {basis: mole_fraction, values: {NAOH: 0.0297113621, NACL: 0.0297113621, NA2CO3: 0.0148535445, NAOCL: 4.2731e-06, H2O: 0.9257194583}, provenance: assumed, source: "scripts/balance.py (D-008)"}
+  # --- thermal oxidiser ------------------------------------------------------------------------
+  - id: S30
+    title: Combustion air
+    from: AIR.out
+    to: K301.in
+    template: air
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "ambient"}
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 2526.298, basis: mass, provenance: assumed, source: "scripts/balance.py: air for an oxidiser outlet of 1123 K, adiabatic (D-009)"}
+        composition: {basis: mole_fraction, values: {N2: 0.7812, O2: 0.2095, AR: 0.0093}, provenance: assumed, source: "dry air, CO2 lumped into N2"}
+  - id: S31
+    title: Air to the oxidiser
+    from: K301.out
+    to: X301.air
+    template: air
+    state:
+      design:
+        pressure: {value: 106.3, provenance: assumed, source: "fan discharge, 5 kPa (D-010)"}
+        temperature: {value: 303.15, provenance: assumed, source: "D-010"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 2526.298, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through K301 from S30', fingerprint: 3193f0877b86a6fa}
+        composition: {basis: mole_fraction, values: {N2: 0.7812, O2: 0.2095, AR: 0.0093}, provenance: calculated, source: 'cheme process propagate: pass-through K301 from S30', fingerprint: 3193f0877b86a6fa}
+  - id: S32
+    title: Flue gas to stack
+    from: X301.out
+    to: STACK.in
+    template: flue
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "stack"}
+        temperature: {value: 1123.15, provenance: assumed, source: "D-009: oxidiser outlet 850 C, no heat recovery in the base case"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 2795.68, provenance: calculated, source: 'cheme process propagate: reactor X301 from S23 S31', fingerprint: ffa894b249da4157}
+        composition: {basis: mole_fraction, values: {CO: 9.53414e-05, CL2: 2.83426e-10, COCL2: 1.00016e-08, N2: 0.740406, O2: 0.151769, H2O: 0.00371417, AR: 0.00876664, CO2: 0.095247, HCL: 1.98031e-06}, provenance: calculated, source: 'cheme process propagate: reactor X301 from S23 S31', fingerprint: a617bcfae7d4eb9c}
+  # --- energy ----------------------------------------------------------------------------------
+  - {id: Q1, title: Reactor heat to cooling water (via the boiling-water circuit), kind: energy, from: R101.q, to: CW.r101, state: {design: {duty: {value: 5180.8, provenance: assumed, source: "scripts/balance.py: ideal gas, 308 K in, 353 K out (D-006)"}}}}
+  - {id: Q2, title: Cooling-water condenser duty, kind: energy, from: E102.q, to: CW.e102, state: {design: {duty: {value: 1078.5, provenance: assumed, source: "scripts/balance.py: Raoult flash, Watson heat of vaporization (D-006)"}}}}
+  - {id: Q3, title: Brine condenser duty, kind: energy, from: E103.q, to: BRINE.e103, state: {design: {duty: {value: 482.0, provenance: assumed, source: "scripts/balance.py (D-006)"}}}}
+  - {id: Q4, title: Reactor coolant vacuum pump power, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 10.0, provenance: assumed, source: "D-010: ASSUMED allowance, inerts from the sub-atmospheric coolant circuit (EP1640341A2)"}}}}
+  - {id: Q5, title: Scrubber circulation pump power, kind: energy, from: POWER.t201, to: T201.power, state: {design: {duty: {value: 4.4, provenance: assumed, source: "scripts/balance.py: 30 m3/h, 300 kPa, pump 0.60, motor 0.95 (D-010)"}}}}
+  - {id: Q6, title: Combustion air fan power, kind: energy, from: POWER.k301, to: K301.power, state: {design: {duty: {value: 4.8, provenance: assumed, source: "scripts/balance.py: 5 kPa, fan 0.65, motor 0.95 (D-010)"}}}}
 layout: {bfd: {}, pfd: {}}

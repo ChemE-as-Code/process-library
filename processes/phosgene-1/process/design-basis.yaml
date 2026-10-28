@@ -1,8 +1,50 @@
 # What the plant must do. Schema: `cheme schema design_basis`.
+# Phosgene from CO and chlorine over activated carbon, captive production, issue
+# ChemE-as-Code/process-library#164. Values marked ASSUMED are engineering choices of this concept
+# study, not client or licensor data; every decision is in DESIGN.md.
 schema: cheme/design_basis/v1
-capacity: {}
-feeds: []
-products: []
-utilities: []
-site: {}
-assumptions: []
+capacity:
+  basis: liquid phosgene (COCl2 + dissolved Cl2) to the captive consumer (an isocyanate plant outside the boundary)
+  chlorine_kg_per_h: 12500            # ASSUMED (D-002): the Cl2 of chlor-alkali-1's design case, all converted here
+  phosgene_kg_per_h: 17346            # scripts/balance.py; about 139 kt/a at 8000 h
+  operating_hours_per_year: 8000      # ASSUMED (D-002)
+  turndown_percent: 50                # ASSUMED, not checked
+feeds:
+  - name: Carbon monoxide (from a syngas cold box or CO plant outside the boundary; no library process yet)
+    source_of_values: ASSUMED (D-003)
+    composition: "CO 99.8 mol%, N2 0.2 mol% (impurities lumped as N2); H2, CH4, CO2, S and water to be specified by the supplier (open input, D-003)"
+    conditions: {temperature_K: 303.15, pressure_kPa_a: 400}
+  - name: Phosgene-grade chlorine (gas; chlor-alkali-1 after liquefaction and re-evaporation)
+    source_of_values: ASSUMED (D-003)
+    composition: "Cl2 99.9 mol%, O2 0.1 mol%; chlor-alkali-1's cell-room gas holds 0.81 wt% O2 (about 1.8 mol%) and needs the liquefaction step first (D-003)"
+    conditions: {temperature_K: 313.15, pressure_kPa_a: 400}
+  - name: Caustic soda 50 wt% (chlor-alkali-1) and process water, for the vent scrubber
+    source_of_values: ASSUMED (D-008)
+  - name: Combustion air for the thermal oxidiser
+    composition_dry_mol_percent: {N2: 78.12, O2: 20.95, Ar: 0.93}   # CO2 lumped into N2
+products:
+  - name: Liquid phosgene
+    purity: "> 99.9 wt% COCl2; Cl2 < 50 ppm(wt) (target from EP1640341A2), 35 ppm(wt) in the balance; CCl4 (by-product of chlorine attack on the carbon) and dissolved CO not modelled (D-005)"
+    delivery: {temperature_K: 253.15, pressure_kPa_a: 340, battery_limit: captive consumer (isocyanate plant), no storage in the boundary}
+  - name: Spent scrubber liquor
+    note: "NaCl, Na2CO3, residual NaOH and traces of NaOCl in water, to the site wastewater treatment (dechlorination outside the boundary, D-008)"
+  - name: Oxidiser flue gas
+    note: "CO2 of the burnt CO excess, residual CO, traces of phosgene and HCl, explicit in stream S32 and the LCI (D-009)"
+utilities:
+  - {name: Electric power, use: "reactor coolant vacuum pump, scrubber circulation pump, combustion air fan (D-010)"}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "reactor boiling-water circuit condenser and phosgene condenser E-102", note: ASSUMED}
+  - {name: Refrigerated brine, supply_K: 243.15, return_K: 248.15, use: "phosgene after-condenser E-103", note: "ASSUMED; from a refrigeration unit outside the boundary (D-007)"}
+  - {name: Steam, use: none in the design case, note: "the reactor heat goes to cooling water (D-005); steam raising is an open option"}
+  - {name: Fuel, use: none in the design case, note: "the oxidiser burns the CO-rich vent without support fuel; pilot and start-up fuel excluded (D-009)"}
+site:
+  location: ASSUMED generic site, integrated with chlor-alkali-1 and an isocyanate plant, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "ASSUMED 5 % molar CO excess over Cl2 (D-004), inside the 2-20 % (preferably 5-12 %) of EP1640341A2."
+  - "ASSUMED Cl2 conversion 99.995 % in the multitubular reactor (D-005): a conversion model, not kinetics; cheme process reactors gives ln(Q/K) = -8.7 at the outlet (short of equilibrium)."
+  - "ASSUMED reactor outlet 353 K, 350 kPa(a), cooled by water boiling at 0.2-0.3 bar(a) as in EP1640341A2, condensed against cooling water (D-005)."
+  - "ASSUMED condensation in two stages to 308 K (cooling water) and 253 K (brine) at 340-345 kPa(a); Raoult's law, CO/N2/O2 insoluble (D-006, D-007)."
+  - "ASSUMED caustic scrubber: 18 wt% NaOH, 1.5 x stoichiometric, 99.99 % destruction of phosgene and Cl2 (D-008)."
+  - "ASSUMED thermal oxidiser: 99.9 % CO and 99 % residual-phosgene destruction, 1123 K outlet, adiabatic, no support fuel, no heat recovery (D-009)."
+  - "All flows, temperatures and duties are concept estimates (scripts/balance.py, D-006); accuracy +/-30 % not demonstrated."
