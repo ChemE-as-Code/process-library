@@ -24,7 +24,9 @@ description: |
   All values are concept estimates. The selectivity, bleed and column specifications are
   assumed; the stream and duty values come from an independent script whose property method
   (NRTL with the ChemSep THF/water parameters in thermo) is not qualified by ChemE-as-Code for
-  this mixture yet; see DESIGN.md of the engineering files for every assumption and gated step.
+  this mixture yet. The same NRTL parameters predict two liquid phases in part of the
+  low-pressure column's stripping range, while its reflux and duties come from a calculation
+  that assumes one homogeneous liquid, so the LP column duties are unverified; see DESIGN.md of the engineering files for every assumption and gated step.
 families: [oxygenates]
 keywords: [tetrahydrofuran, THF, "1,4-butanediol", BDO, cyclodehydration, reactive distillation, p-toluenesulfonic acid, pressure-swing distillation, azeotrope, solvent]
 facets:
@@ -49,17 +51,20 @@ validation:
     foreground inventory with every background open (8 gaps): no impact result, and no LCA
     result passed to the catalog (lca.source none). Not reviewed. The chemicals registry has no
     1,4-butanediol, tetrahydrofuran or p-toluenesulfonic acid entry yet, so the feed and the
-    product are not listed under chemistry (open library item, DESIGN.md).
+    product are not listed under chemistry; the consumed steam stands in as the one input the
+    schema requires (open library item, DESIGN.md).
 # The utilities are listed without inventory_key on purpose: their backgrounds stay unmapped
 # gaps at this stage (DESIGN.md D-011); the main feed (BDO, feed:BDOF, 1.267 kg per kg THF), the
-# catalyst (feed:PTSAF) and the product (product:THFP) have no registry slug yet.
+# catalyst (feed:PTSAF) and the product (product:THFP) have no registry slug yet. The schema
+# needs at least one input, so the consumed steam (a registry slug, role utility) is listed
+# under inputs instead of utilities until the BDO entry exists (DESIGN.md, missing registry entries).
 chemistry:
-  inputs: []
+  inputs:
+    - {chemical: steam, role: utility, note: "MP steam 1000 kPa(a), R-101 and HP column reboiler (feed:MPS); LP steam 450 kPa(a), LP column trim reboiler (feed:LPS). Listed here because the main feed, 1,4-butanediol (feed:BDOF, 1.267 kg per kg THF), and the catalyst p-toluenesulfonic acid (feed:PTSAF) have no registry entry yet"}
   outputs:
     - {chemical: wastewater, role: waste, note: "Process water with about 80 ppm(wt) THF to treatment (product:WW, 0.249 kg per kg THF). The main product THF (product:THFP) has no registry entry yet"}
   utilities:
     - {chemical: electricity, role: utility, note: "Pumps P-101 and P-201 (feed:POWER)"}
-    - {chemical: steam, role: utility, note: "MP steam 1000 kPa(a), R-101 and HP column reboiler (feed:MPS); LP steam 450 kPa(a), LP column trim reboiler (feed:LPS)"}
     - {chemical: cooling-water, role: utility, note: "25/35 C (ASSUMED), product:CW"}
 basis:
   capacity: "50 kt/a THF (ASSUMED)"

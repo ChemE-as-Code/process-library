@@ -140,7 +140,11 @@ about a third).
 Rejected: a higher HP pressure (more MP-steam temperature needed; not optimised); feeding the
 condensate to the HP column first (wrong side of the HP azeotrope).
 Assumptions: pressures, approaches, product purities, reflux rule ASSUMED; stages and pressure
-drop not calculated (I-11).
+drop not calculated (I-11). The LP column duties (reboiler, condenser, and so the LP steam and
+part of E-201) assume one homogeneous liquid on every stage, although the same NRTL parameters
+predict two liquid phases near x_THF 0.15 at 342-360 K, a range the C-201 stripping section
+passes through (D-006); they stay unverified until a stage-by-stage VLLE check of C-201 at
+110 kPa(a) or a qualified property method (I-04).
 
 ### D-008 Utilities and machines (2026-10-28)
 Decision: MP steam 1000 kPa(a) (453 K) for R-101 and E-206; LP steam 450 kPa(a) (420.8 K) for the
