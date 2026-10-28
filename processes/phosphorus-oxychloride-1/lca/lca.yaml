@@ -16,7 +16,7 @@ goal: >-
   which raw materials, utilities, wastes and emissions the plant exchanges per kg of POCl3, as
   the foreground for a later cradle-to-gate study. No impact results: the backgrounds are not
   mapped yet (D-012).
-functional_unit: {product: POCL3, amount: 1, unit: kg, source: "1 kg of distilled phosphorus oxychloride (99.99 wt% POCl3, 21 ppm(wt) PCl3) at the plant gate, stream S14 (D-012)"}
+functional_unit: {product: POCL3, amount: 1, unit: kg, source: "1 kg of distilled phosphorus oxychloride (99.998 wt% POCl3, 21 ppm(wt) PCl3, D-002) at the plant gate, stream S14 (D-012)"}
 # Gate-to-gate in the sense of the foreground (the plant's own exchanges). The boundary key stays
 # cradle-to-gate so that the purchased inputs remain open gaps instead of being mapped free (the
 # schema's gate-to-gate maps every feed free), as phosgene-1 and sulfuric-acid-1 do (D-012).
@@ -38,8 +38,8 @@ flows:
     missing: "not mapped yet (D-012); connect to: gaseous oxygen 99.7 mol% from cryogenic air separation by pipeline (processes/asu-1, product:GOXP)"
     source: "flowsheet stream S10 (D-003, D-005)"
   - key: feed:NAOH
-    missing: "not mapped yet (D-012); connect to: sodium hydroxide 50 wt% in water from membrane chlor-alkali electrolysis (processes/chlor-alkali-1, product:NAOH), allocated as there"
-    source: "flowsheet stream S20 (D-009)"
+    missing: "not mapped yet (D-012); connect to: sodium hydroxide 50 wt% in water from membrane chlor-alkali electrolysis (processes/chlor-alkali-1, product:NAOH), allocated as there. The amount is kg of 50 wt% SOLUTION (3.87 g/kg POCl3 = 1.93 g NaOH as 100 %): halve it if the background is per kg NaOH (100 %)"
+    source: "flowsheet stream S20, mass of the 50 wt% solution (D-009)"
   - key: feed:PW
     missing: "not mapped yet (D-012); connect to: process (decarbonised or softened) water from the site water treatment"
     source: "flowsheet stream S21 (D-009)"
@@ -86,7 +86,7 @@ operation:
 emission_exclusions:
   - {id: fugitive-chlorides, method: equipment-leaks, reason: "No P&ID yet: fugitive PCl3, POCl3, Cl2 and HCl from flanges, valves, seals and tank breathing cannot be counted; tank vents and the reactor vents go to the scrubber (D-011). Open for basic engineering."}
   - {id: storage-breathing, method: storage-tank, reason: "Product and intermediate storage (dry-nitrogen padded, vented to the scrubber) is outside the PFD; its nitrogen and breathing losses are not counted (D-011)."}
-  - {id: phosphorus-mud, method: effluent, reason: "The phosphorus-bearing wash water of the melt tank and the phosphorus mud filtered from the molten phosphorus (about 0.4 % of the P feed in CN115259114B) and the wash water of the phosphorus melt tank are not in the balance: the P feed is modelled as pure P4 (D-003)."}
+  - {id: phosphorus-mud, method: effluent, reason: "The phosphorus mud filtered from the molten phosphorus (0.2-0.5 wt% phosphorus mud in CN115259114B, SRC-3) and the phosphorus-bearing wash water of the melt tank are not in the balance: the P feed is modelled as pure P4 (D-003)."}
 dataset:
   version: 0.1.0
   classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals; CPC to be added
