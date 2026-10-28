@@ -94,7 +94,10 @@ acetal polymer accumulating in the reactor, which justify a heavies bleed.
 Rejected: invented kinetics; the 84-94 % equilibrium yields (they describe the aqueous batch
 system, not reactive distillation).
 Assumptions: the selectivity 0.995 and the 30 wt% heavies are ASSUMED (I-02); DHBE stands for
-all heavies. 2,3-dihydrofuran and other light by-products are not modelled (I-08). Heat of
+all heavies. 2,3-dihydrofuran and other light by-products are not modelled (I-08).
+The bleed (S7) is taken free of THF: the THF dissolved in the boiling reactor liquid at 418 K
+and 130 kPa(a) is neglected, likely a few kg/h, below 0.1 % of the product, so the yield is
+very slightly overstated (not calculated; review 2026-10-28-pfd-lci-review#6). Heat of
 reaction CYCLO +3.27 kJ/mol from liquid formation enthalpies (chemicals package), slightly
 endothermic; ETHER taken as thermoneutral in the balance (0.25 % of the extent).
 
@@ -165,7 +168,9 @@ condensing from 362 K), process water / LP feed exchange (I-06).
 ### D-010 Lists (2026-10-28)
 Decision: equipment list of the 13 items the PFD links (pumps, reactor, three columns with their
 condensers and reboilers, two coolers) with ASSUMED design conditions (operating maximum + 10 %,
-at least + 2 bar, + 25 K). No line or instrument list: there are no P&IDs at this stage (out of
+at least + 2 bar, + 25 K), applied to each side of a heated item: the steam side of E-206 and
+of the R-101 heating surface 11 barg, of E-202 5.5 barg; the list carries the higher side and
+the other in the notes (review 2026-10-28-pfd-lci-review#5). No line or instrument list: there are no P&IDs at this stage (out of
 scope of this run).
 
 ### D-011 Preliminary LCI: gate-to-gate foreground inventory, every background a gap (2026-10-28)
