@@ -1,0 +1,41 @@
+# Components and templates of the process. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol,
+# normal_boiling_point in K at 101.325 kPa.
+#
+# The working solution (WS) is represented by one working compound (2-ethylanthraquinone and its
+# hydroquinone; the 'anthra' system, no tetrahydro derivatives) in a two-solvent mixture: a C9
+# aromatic (1,2,4-trimethylbenzene, standing for the C9-C11 aromatic cut) and a polar
+# hydroquinone solvent (diisobutylcarbinol). Both solvents and the working compound are named
+# as used in the LVOC BREF 2017 (DOI 10.2760/77304), section 12.2.2.1 and 12.3.3 a); the
+# choice of this particular pair is ours (DESIGN.md D-004). Identities: PubChem.
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: H2, name: Hydrogen, formula: H2, cas: 1333-74-0, molar_mass: 2.01588, normal_boiling_point: 20.37}
+  - {id: O2, name: Oxygen, formula: O2, cas: 7782-44-7, molar_mass: 31.9988, normal_boiling_point: 90.19}
+  - {id: N2, name: Nitrogen, formula: N2, cas: 7727-37-9, molar_mass: 28.0134, normal_boiling_point: 77.36}
+  - {id: AR, name: Argon, formula: Ar, cas: 7440-37-1, molar_mass: 39.948, normal_boiling_point: 87.30}
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.01528, normal_boiling_point: 373.12}
+  - {id: H2O2, name: Hydrogen peroxide, formula: H2O2, cas: 7722-84-1, molar_mass: 34.01468, normal_boiling_point: 423.35}
+  - {id: EAQ, name: 2-Ethylanthraquinone, formula: C16H12O2, cas: 84-51-5, smiles: "CCc1ccc2c(c1)C(=O)c1ccccc1C2=O", molar_mass: 236.2652}
+  # PubChem CID 617218 (2-ethyl-9,10-dihydroxyanthracene); no CAS number found in PubChem.
+  - {id: EAHQ, name: 2-Ethylanthrahydroquinone, formula: C16H14O2, smiles: "CCc1ccc2c(O)c3ccccc3c(O)c2c1", molar_mass: 238.2811}
+  - {id: TMB, name: "1,2,4-Trimethylbenzene (C9 aromatic solvent)", formula: C9H12, cas: 95-63-6, molar_mass: 120.1916, normal_boiling_point: 442.5}
+  - {id: DIBC, name: "Diisobutylcarbinol (2,6-dimethyl-4-heptanol)", formula: C9H20O, cas: 108-82-7, molar_mass: 144.2545, normal_boiling_point: 451.2}
+  - {id: AL2O3, name: Activated alumina (reversion agent), formula: Al2O3, cas: 1344-28-1, molar_mass: 101.9613, phase: solid}
+templates:
+  - {id: hydrogen, title: Hydrogen, components: [H2]}
+  - {id: air, title: Dry air, components: [N2, O2, AR]}
+  - {id: water, title: Water and steam, components: [H2O]}
+  - {id: makeup, title: Working-solution make-up, components: [EAQ, TMB, DIBC]}
+  - {id: ws, title: Working solution, components: [EAQ, EAHQ, TMB, DIBC, H2O, H2O2, H2]}
+  - {id: ws-gas, title: Working solution with oxidation air, components: [EAQ, EAHQ, TMB, DIBC, H2O, H2O2, H2, N2, O2, AR]}
+  - {id: gas, title: Process gas and vents, components: [H2, N2, O2, AR, H2O, TMB, DIBC]}
+  - {id: aqueous, title: Aqueous hydrogen peroxide and effluents, components: [H2O, H2O2, TMB, DIBC]}
+  - {id: solvent, title: Recovered solvent and condensate, components: [TMB, DIBC, H2O]}
+  - {id: alumina, title: Fresh and spent reversion agent, components: [AL2O3, EAQ, TMB, DIBC]}
+# property_method is a placeholder: no benchmarked package of cheme covers the working solution,
+# aqueous H2O2 or the quinones (cheme process props --coverage, DESIGN.md D-006).
+property_method:
+  adapter: thermo
+  status: placeholder
