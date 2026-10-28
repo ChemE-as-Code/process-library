@@ -1,0 +1,20 @@
+# thf-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# None yet, on purpose (DESIGN.md D-011): thf-1 is internal and its preliminary gate-to-gate LCI
+# leaves every background unmapped, so the build reports 8 gaps (lci/gaps.json) and exports them
+# unlinked. What each exchange should connect to later (also in lca/lca.yaml `missing:`):
+#   feed:BDOF    1,4-butanediol, market for (route to be chosen); needs a registry slug and a
+#                technosphere entry in the shared file first
+#   feed:PTSAF   p-toluenesulfonic acid (or a declared proxy); needs a registry slug and entry
+#   feed:POWER   electricity, medium voltage, site grid: `use: electricity` once the site is set
+#   feed:MPS     steam 1000 kPa(a), counted as heat delivered in kWh: `use: steam-heat` (as hda-1)
+#   feed:LPS     steam 450 kPa(a), counted in kWh: `use: steam-heat`
+#   product:CW   heat rejected to cooling water, kWh: the shared cooling-water entry
+#   product:WW   process water with ~80 ppm(wt) THF to treatment, kg: the shared wastewater entry
+#   product:BLEED liquid hazardous organic waste (~1 wt% S) to incineration: needs a new shared
+#                treatment entry (hazardous waste incineration)
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges: {}
