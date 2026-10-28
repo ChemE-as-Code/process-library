@@ -1,0 +1,50 @@
+# Reactions of the Acheson silicon carbide process (D-001, D-006, D-007). Schema: `cheme schema
+# process-reactions`. Overall SiO2 + 3 C -> SiC + 2 CO in the furnace; the gas burns partly at
+# the charge surface and in the hood.
+# Conversions are design specifications of the balance (scripts/sic_balance.py; a sourced-range
+# conversion model, D-006), not kinetics; none is predicted. Conversions of RX1 and RX2 are on
+# the furnace charge (parallel basis). Heats of reaction at 298.15 K from standard enthalpies of
+# formation (NIST-JANAF Thermochemical Tables, Chase 1998: SiO2 quartz -910.9, SiC -71.6,
+# CO -110.5, SiO(g) -100.4, CH4 -74.9, CO2 -393.5, SO2 -296.8, H2O(g) -241.8 kJ/mol), recalled
+# for this concept stage and to be checked against the tables (D-007), so ASSUMED.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: RX1
+    title: Carbothermal reduction of silica to silicon carbide (Acheson furnace)
+    equation: SiO2(s) + 3 C(s) -> SiC(s) + 2 CO(g)
+    stoichiometry: {SiO2: -1, C: -3, SiC: 1, CO: 2}
+    phase: mixed
+    conversion: {key: SiO2, value: 0.5056, provenance: assumed, source: "scripts/sic_balance.py: SiC formed = SiC leaving the loop in crude, metallurgical SiC and purge, over the SiO2 of the charge (D-006)"}
+    heat_of_reaction: {value: 618300, provenance: assumed, source: "formation enthalpies SiC(s) -71.6, CO(g) -110.5, SiO2(quartz) -910.9 kJ/mol (NIST-JANAF, D-007)"}
+  - id: RX2
+    title: Silicon monoxide formation (SiO escaping the charge)
+    equation: SiO2(s) + C(s) -> SiO(g) + CO(g)
+    stoichiometry: {SiO2: -1, C: -1, SiO: 1, CO: 1}
+    phase: mixed
+    conversion: {key: SiO2, value: 0.00253, provenance: assumed, source: "scripts/sic_balance.py: 0.005 kmol SiO escaping per kmol SiC formed (D-006)"}
+    heat_of_reaction: {value: 700000, provenance: assumed, source: "formation enthalpies SiO(g) -100.4, CO(g) -110.5, SiO2(quartz) -910.9 kJ/mol (NIST-JANAF, D-007)"}
+  - id: COX
+    title: CO burn-off at the charge surface and in the hood
+    equation: CO + 0.5 O2 -> CO2
+    stoichiometry: {CO: -1, O2: -0.5, CO2: 1}
+    conversion: {key: CO, value: 0.70, provenance: assumed, source: "D-006: 30 % of the CO leaves unburnt; cross-check: 0.37 kg CO per kg coke against the 0.4 t CO/t petroleum coke the IPCC 1996 guidelines quote for a Norwegian plant"}
+    heat_of_reaction: {value: -283000, provenance: assumed, source: "formation enthalpies (NIST-JANAF, D-007)"}
+  - id: CH4X
+    title: Combustion of the coke volatiles (as CH4)
+    equation: CH4 + 2 O2 -> CO2 + 2 H2O
+    stoichiometry: {CH4: -1, O2: -2, CO2: 1, H2O: 2}
+    conversion: {key: CH4, value: 0.8715, provenance: assumed, source: "D-006: set so the CH4 slip is the IPCC 2006 Tier 1 default 11.6 kg CH4/t SiC (EPA TSD 2009, Table 4)"}
+    heat_of_reaction: {value: -802200, provenance: assumed, source: "formation enthalpies, water as vapour (NIST-JANAF, D-007)"}
+  - id: SOX
+    title: Oxidation of the coke sulfur to SO2
+    equation: S + O2 -> SO2
+    stoichiometry: {S: -1, O2: -1, SO2: 1}
+    conversion: {key: S, value: 1.0, provenance: assumed, source: "D-006: all coke sulfur leaves as SO2 (H2S, COS and sulfur retained in the products neglected)"}
+    heat_of_reaction: {value: -296800, provenance: assumed, source: "formation enthalpy of SO2(g) (NIST-JANAF, D-007)"}
+  - id: SIOX
+    title: Oxidation of SiO to silica fume
+    equation: SiO + 0.5 O2 -> SiO2
+    stoichiometry: {SiO: -1, O2: -0.5, SiO2: 1}
+    conversion: {key: SiO, value: 1.0, provenance: assumed, source: "D-006: escaping SiO burns to amorphous silica fume above the charge"}
+    heat_of_reaction: {value: -810500, provenance: assumed, source: "formation enthalpies SiO(g) -100.4 and SiO2 -910.9 kJ/mol (quartz value used for the amorphous fume, D-007)"}

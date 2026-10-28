@@ -1,3 +1,19 @@
 # Equipment list. Schema: `cheme schema equipment`.
+# Concept stage: the items the PFD (process/flowsheet.yaml) links, with the flows of the design
+# case (scripts/sic_balance.py). Sizes, numbers and vendors are open (D-009).
 schema: cheme/equipment/v1
-equipment: []
+equipment:
+  # ---- raw material preparation (block PRP)
+  - {tag: M-101, type: Mixer, service: "Charge mixer and furnace loading (sand, petroleum coke, recycled mix)",
+     notes: "9.8 t/h sand + 6.8 t/h coke + 15.0 t/h recycled mix -> 31.6 t/h charge (time average); loading by crane or mobile plant into the furnace beds (D-006). Hood fans and handling power booked here (Q3, 0.15 kWh/kg). ASSUMED."}
+  # ---- Acheson furnaces (block FUR)
+  - {tag: R-101, type: Furnace, service: "Acheson resistance furnaces (batch, in rotation) with transformers and graphite core",
+     notes: "46.9 MW time-average electric power (7.5 kWh/kg crude SiC, D-004); 150 kmol/h SiC formed (6.0 t/h). Order of 30 furnace beds of about 10 MW in rotation for a 1.5-2 day heating and a cycle of about 10 days (D-003, ASSUMED: number, power and cycle not chosen). Cooling of the ingot in place (step H101). Transformer and bus-bar losses 0.94 MW to cooling water. ASSUMED."}
+  - {tag: B-101, type: Hood, service: "Furnace hood and stack (gas burn-off above the charge)",
+     notes: "9.5 t/h raw furnace gas burns with 46 t/h air drawn over the charge: CO 70 % burnt, CH4 slip 11.6 kg/t SiC, SO2 0.04 kg/kg crude SiC, silica fume 9 g/kg; 55.9 t/h flue gas to atmosphere without abatement (D-006). Open furnaces without hoods also exist; gas collection and treatment are an open item. ASSUMED."}
+  # ---- breaking and sorting (block SRT)
+  - {tag: Z-101, type: Separator, service: "Ingot breaking and sorting (crude SiC, metallurgical grade, unreacted mix; recycle and purge)",
+     notes: "22.0 t/h cooled furnace contents -> 5.0 t/h crude crystalline SiC, 1.25 t/h metallurgical grade, 15.0 t/h mix recycled, 0.79 t/h purged (D-006). Mechanical and manual sorting by zone of the ingot. ASSUMED."}
+  # ---- crushing and screening (block CRU)
+  - {tag: Z-201, type: Crusher, service: "Crude SiC crushing and screening with bag filter",
+     notes: "5.0 t/h crude SiC; 0.10 kWh/kg; 0.2 kg/t dust after the bag filter (D-006, D-008). Grain processing (washing, magnetic separation, sizing into grits) outside the boundary (D-001). ASSUMED."}
