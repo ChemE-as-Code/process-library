@@ -5,6 +5,7 @@ kind: agent
 complete: false
 incomplete_notes:
 - runner had uncommitted changes (runner_commit is not exact)
+- 'migrated to process-run/v1 (cheme schema process-run) on 2026-10-28: tools.claude_agent_sdk, tools.runner_commit, tools.runner_dirty, outcome.guard_denials have no field in the schema and were moved, values unchanged, under observed_later.migrated_fields; they were recorded during the run, not observed later'
 task_file: /Users/arturschweidtmann/Developer/test/agent-cli/tasks/gen/sulfuric-acid-1-review.md
 branch: case/sulfuric-acid-1
 start_commit: e19030be935b4d766c506ca290c3e4dba9b008e3
@@ -30,9 +31,6 @@ session_export:
 tools:
   cheme: cheme 0.8.0 (pyDEXPI 2.1.0)
   core_commit: 44680fa0e142849803577a235d78fd0a75ca3f7a
-  claude_agent_sdk: 0.2.174
-  runner_commit: 7a20577b50dd9f27795512cfd5d6fa65e7d257d8
-  runner_dirty: true
 checks_by_agent:
 - cheme assess lca --coverage 2>&1 | tail -40
 - cheme check 2>&1 | tail -30
@@ -83,6 +81,12 @@ checks_after_run:
     last_line: ''
 outcome:
   result: success
-  guard_denials: 0
   report: report.md
-observed_later: {}
+observed_later:
+  migrated_fields:
+    tools:
+      claude_agent_sdk: 0.2.174
+      runner_commit: 7a20577b50dd9f27795512cfd5d6fa65e7d257d8
+      runner_dirty: true
+    outcome:
+      guard_denials: 0

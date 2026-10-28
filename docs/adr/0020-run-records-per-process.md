@@ -58,7 +58,7 @@ definition in the library would drift from it.
 - An interactive session's record is left uncommitted by the hook; whoever ends the session
   commits it with the work (or deletes it if the session should not be recorded).
   `CHEME_RUN_RECORD=off` switches the hooks off.
-- Records written before core's schema (all 22 of 2026-10-27, with runner fields such as
+- Records written before core's schema (all 23 of 2026-10-27, with runner fields such as
   `tools.runner_commit`) were migrated once on 2026-10-28: the fields core does not know moved
   under `observed_later.migrated_fields`, values unchanged.
 
