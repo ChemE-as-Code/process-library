@@ -1,24 +1,668 @@
 # The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
 # never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
-# Units are explicit: a property without its own unit is in these. Pressure is absolute; a gauge
-# value needs its own unit (kPa(g)). Nm3/h needs normal_conditions.
+#
+# Acetaldehyde by the one-stage Wacker process (ethylene + oxygen, aqueous PdCl2/CuCl2),
+# 100 kt/a (D-001, D-002). Where the values come from:
+# - temperatures, pressures and every separator specification are design choices (ASSUMED,
+#   DESIGN.md decisions); the water and steam rates are scaled from the 13 t/h example of
+#   US 4,237,073 (D-006, D-008);
+# - the reactor outlet S07 is calculated by cheme from the selectivity model of R101
+#   (process/reactions.yaml, D-004); mixers, pass-through steps and the purge splitter by
+#   `cheme process propagate --fill`;
+# - separator outlets, the cycle-gas loop (tear stream S15) and all duties come from the
+#   independent balance scripts/acet_balance.py (D-006), given here as ASSUMED: no property
+#   package of cheme covers the aqueous acetaldehyde system (core #315).
 schema: cheme/process/v1
 kind: flowsheet
-title: ""
+title: Acetaldehyde, one-stage Wacker oxidation of ethylene (100 kt/a)
 units:
   pressure: kPa(a)
   temperature: K
   flow: kg/h
   duty: kW
   enthalpy: kJ/kmol
-  # normal_conditions: {temperature: 273.15, pressure: 101.325, basis: ideal_gas}
-  # enthalpy_reference: {state: ideal_gas, temperature: 298.15}
 cases:
-  - {id: design, description: Design case, default: true}
+  - {id: design, description: "Design case: 12500 kg/h acetaldehyde product (99.9 wt%), 8000 h/a (D-002)", default: true}
 tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
-feeds: []      # external feeds (DEXPI Source): {id, title, ports: [{id: out, direction: out}]}
-products: []   # products (DEXPI Sink): {id, title, ports: [{id: in, direction: in}]}
-blocks: []     # BFD blocks: {id, title, class, ports: [{id, direction, kind}], links}
-steps: []      # PFD steps: {id, block, title, class, ports: [{id, direction, delegates}], links}
-streams: []    # {id, title, kind, from: NODE.port, to: NODE.port, template, state: {design: {...}}}
+
+feeds:
+  - {id: ETH, title: "Ethylene, polymer grade (boundary feed; e.g. a steam cracker)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: OXY, title: Oxygen 99.5 mol% (boundary feed; e.g. from asu-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: HCLA, title: Hydrochloric acid 30 wt% (catalyst make-up), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: DEMIN, title: Demineralised water, category: raw_material, ports: [{id: r101, direction: out}, {id: c201, direction: out}]}
+  - {id: PW, title: Process water to the scrubber, category: raw_material, ports: [{id: out, direction: out}]}
+  - id: MPS
+    title: MP steam 1000 kPa(a), direct (catalyst regenerator)
+    category: utility
+    utility:
+      kind: steam
+      level: MP
+      pressure: {value: 1000, provenance: assumed, source: "design basis, D-009"}
+      supply_temperature: {value: 453.0, provenance: assumed, source: "saturation at 1000 kPa(a), D-009"}
+    ports: [{id: out, direction: out}]
+  - id: LPS
+    title: LP steam 450 kPa(a), direct (live steam to the columns)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 450, provenance: assumed, source: "design basis, D-009"}
+      supply_temperature: {value: 421.0, provenance: assumed, source: "saturation at 450 kPa(a), D-009"}
+    ports: [{id: c201, direction: out}, {id: c202, direction: out}]
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: k101, direction: out, kind: energy}
+      - {id: r101, direction: out, kind: energy}
+      - {id: c101, direction: out, kind: energy}
+      - {id: c202, direction: out, kind: energy}
+products:
+  - {id: PROD, title: Acetaldehyde 99.9 wt% to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: PURGE, title: Cycle-gas purge to the thermal oxidiser, category: off_gas, ports: [{id: in, direction: in}]}
+  - {id: LIGHTS, title: Light ends to the thermal oxidiser, category: off_gas, ports: [{id: in, direction: in}]}
+  - {id: HEAVY, title: Crotonaldehyde and chlorinated aldehyde side draw to incineration, category: by_product, ports: [{id: in, direction: in}]}
+  - {id: WW, title: Waste water to biological treatment, category: wastewater, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-009"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-009"}
+      min_approach: {value: 5, provenance: assumed, source: D-009}
+    ports:
+      - {id: e101, direction: in, kind: energy}
+      - {id: e102, direction: in, kind: energy}
+      - {id: c201, direction: in, kind: energy}
+      - {id: c202, direction: in, kind: energy}
+      - {id: e203, direction: in, kind: energy}
+      - {id: e204, direction: in, kind: energy}
+
+blocks:
+  - id: RXN
+    title: Wacker reaction and catalyst regeneration
+    class: ReactingChemicals
+    ports:
+      - {id: eth, direction: in}
+      - {id: rec, direction: in}
+      - {id: o2, direction: in}
+      - {id: hcl, direction: in}
+      - {id: water, direction: in}
+      - {id: steam, direction: in}
+      - {id: gas, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+  - id: REC
+    title: Gas cooling, scrubbing and cycle gas
+    class: SeparatingByPhysicalProcess
+    ports:
+      - {id: gas, direction: in}
+      - {id: water, direction: in}
+      - {id: cond, direction: out}
+      - {id: crude, direction: out}
+      - {id: purge, direction: out}
+      - {id: rec, direction: out}
+      - {id: power1, direction: in, kind: energy}
+      - {id: power2, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+  - id: DIS
+    title: Crude acetaldehyde distillation
+    class: Distilling
+    ports:
+      - {id: cond, direction: in}
+      - {id: crude, direction: in}
+      - {id: water, direction: in}
+      - {id: steam1, direction: in}
+      - {id: steam2, direction: in}
+      - {id: lights, direction: out}
+      - {id: prod, direction: out}
+      - {id: heavy, direction: out}
+      - {id: ww, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+      - {id: cw3, direction: out, kind: energy}
+      - {id: cw4, direction: out, kind: energy}
+
+steps:
+  # --- RXN
+  - id: M101
+    block: RXN
+    title: Cycle gas and fresh ethylene
+    class: Mixing
+    ports:
+      - {id: eth, direction: in, delegates: eth}
+      - {id: rec, direction: in, delegates: rec}
+      - {id: out, direction: out}
+  # D-004, D-005: bubble-column reactor with the aqueous PdCl2/CuCl2 catalyst, boiling-cooled
+  # (the heat of reaction evaporates water); the catalyst regenerator R-102 (side stream heated
+  # with MP steam) is lumped into this step.
+  - id: R101
+    block: RXN
+    title: Wacker reactor (bubble column) with catalyst regenerator
+    class: ReactingChemicals
+    reactions: [R1, R2, R3, R4, R5, R6, R7]
+    reactor: conversion
+    selectivity:
+      key: C2H4
+      conversion: 0.35
+      products: {ACH: 0.963599596, ACOH: 0.007077856, CO2: 0.017189080, CAC: 0.016177958, CROT: 0.001263903, ETCL: 0.001516684, MECL: 0.001011122}
+      provenance: assumed
+      source: "D-004: per-pass conversion ASSUMED; selectivities from the ethylene fate per 100 mol fed (95 acetaldehyde, 1.9 chlorinated aldehydes, 1.1 unconverted, 0.8 CO2, 0.7 acetic acid; Wikipedia 'Wacker process', Industrial process, citing Ullmann's) with our split of the minor products"
+    links: [{target: equipment, ref: R-101}, {target: equipment, ref: R-102}]
+    ports:
+      - {id: gas, direction: in}
+      - {id: o2, direction: in, delegates: o2}
+      - {id: hcl, direction: in, delegates: hcl}
+      - {id: water, direction: in, delegates: water}
+      - {id: steam, direction: in, delegates: steam}
+      - {id: ret, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: E101
+    block: RXN
+    title: Precondenser (water back to the reactor)
+    class: Cooling
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  - id: V101
+    block: RXN
+    title: Precondenser separator
+    class: SeparatingByFlash
+    links: [{target: equipment, ref: V-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: liq, direction: out}
+      - {id: gas, direction: out, delegates: gas}
+  # --- REC
+  - id: E102
+    block: REC
+    title: Process gas cooler
+    class: Cooling
+    links: [{target: equipment, ref: E-102}]
+    ports:
+      - {id: in, direction: in, delegates: gas}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  - id: V102
+    block: REC
+    title: Cooler separator (acetaldehyde-rich condensate)
+    class: SeparatingByFlash
+    links: [{target: equipment, ref: V-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: liq, direction: out, delegates: cond}
+      - {id: gas, direction: out}
+  - id: C101
+    block: REC
+    title: Acetaldehyde water scrubber
+    class: Absorbing
+    links: [{target: equipment, ref: C-101}, {target: equipment, ref: P-101}]
+    ports:
+      - {id: gas, direction: in}
+      - {id: water, direction: in, delegates: water}
+      - {id: top, direction: out}
+      - {id: liq, direction: out, delegates: crude}
+      - {id: power, direction: in, kind: energy, delegates: power2}
+  - id: K101
+    block: REC
+    title: Cycle-gas compressor
+    class: Compressing
+    method: CentrifugalMotion
+    links: [{target: equipment, ref: K-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power1}
+  - id: X101
+    block: REC
+    title: Cycle-gas purge
+    class: SplittingMaterial
+    split: {purge: 0.0051298}
+    ports:
+      - {id: in, direction: in}
+      - {id: purge, direction: out, delegates: purge}
+      - {id: rec, direction: out, delegates: rec}
+  # --- DIS
+  - id: T201
+    block: DIS
+    title: Crude acetaldehyde tank
+    class: Mixing
+    links: [{target: equipment, ref: T-201}]
+    ports:
+      - {id: cond, direction: in, delegates: cond}
+      - {id: scrub, direction: in, delegates: crude}
+      - {id: out, direction: out}
+  - id: E201
+    block: DIS
+    title: Crude preheater (feed side of the feed/effluent exchanger)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: heat, direction: in, kind: energy}
+  - id: C201
+    block: DIS
+    title: Light-ends column (extractive, live steam)
+    class: Distilling
+    links: [{target: equipment, ref: C-201}]
+    ports:
+      - {id: feed, direction: in}
+      - {id: water, direction: in, delegates: water}
+      - {id: steam, direction: in, delegates: steam1}
+      - {id: top, direction: out, delegates: lights}
+      - {id: bot, direction: out}
+      - {id: cond, direction: out, kind: energy, delegates: cw1}
+  - id: C202
+    block: DIS
+    title: Acetaldehyde column (live steam, side draw)
+    class: Distilling
+    links: [{target: equipment, ref: C-202}, {target: equipment, ref: P-201}]
+    ports:
+      - {id: feed, direction: in}
+      - {id: steam, direction: in, delegates: steam2}
+      - {id: top, direction: out}
+      - {id: side, direction: out, delegates: heavy}
+      - {id: bot, direction: out}
+      - {id: cond, direction: out, kind: energy, delegates: cw2}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: E203
+    block: DIS
+    title: Product cooler
+    class: Cooling
+    links: [{target: equipment, ref: E-203}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: prod}
+      - {id: cw, direction: out, kind: energy, delegates: cw3}
+  - id: E202
+    block: DIS
+    title: Waste-water side of the feed/effluent exchanger
+    class: Cooling
+    links: [{target: equipment, ref: E-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: heat, direction: out, kind: energy}
+  - id: E204
+    block: DIS
+    title: Waste-water trim cooler
+    class: Cooling
+    links: [{target: equipment, ref: E-204}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: ww}
+      - {id: cw, direction: out, kind: energy, delegates: cw4}
+
+streams:
+  - id: S01
+    title: Fresh ethylene
+    from: ETH.out
+    to: M101.eth
+    template: ethylene
+    state:
+      design:
+        pressure: {value: 600, provenance: assumed, source: "D-003"}
+        temperature: {value: 298.15, provenance: assumed, source: "D-003"}
+        flow: {value: 8456.10, basis: mass, provenance: assumed, source: "scripts/acet_balance.py, D-003"}
+        composition: {basis: mass_fraction, values: {C2H4: 0.99892822, C2H6: 0.00107178}, provenance: assumed, source: "scripts/acet_balance.py, D-003"}
+  - id: S02
+    title: Reactor feed gas
+    from: M101.out
+    to: R101.gas
+    template: cycle-gas
+    state:
+      design:
+        pressure: {value: 500, provenance: assumed, source: "D-005"}
+        temperature: {value: 333.1, provenance: assumed, source: "D-005"}
+        flow: {value: 56464.5, provenance: calculated, source: 'cheme process propagate: mixer M101 from S01 S19', fingerprint: daf53cd80a242e8e}
+        composition: {basis: mole_fraction, values: {C2H4: 0.510565, C2H6: 0.0352563, O2: 0.0655307, AR: 0.0929926, CO2: 0.282782, H2O: 0.0124641, ACH: 0.000409564}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S01 S19', fingerprint: b0151685c70a95de}
+  - id: S03
+    title: Oxygen
+    from: OXY.out
+    to: R101.o2
+    template: oxygen
+    state:
+      design:
+        pressure: {value: 600, provenance: assumed, source: "D-003"}
+        temperature: {value: 298.15, provenance: assumed, source: "D-003"}
+        flow: {value: 5120.41, basis: mass, provenance: assumed, source: "scripts/acet_balance.py, D-003"}
+        composition: {basis: mass_fraction, values: {AR: 0.00623437, O2: 0.99376563}, provenance: assumed, source: "scripts/acet_balance.py, D-003"}
+  - id: S04
+    title: Hydrochloric acid make-up
+    from: HCLA.out
+    to: R101.hcl
+    template: hcl
+    state:
+      design:
+        pressure: {value: 600, provenance: assumed, source: "D-003, D-004"}
+        temperature: {value: 298.15, provenance: assumed, source: "D-003, D-004"}
+        flow: {value: 677.02, basis: mass, provenance: assumed, source: "scripts/acet_balance.py, D-003, D-004"}
+        composition: {basis: mass_fraction, values: {H2O: 0.70000000, HCL: 0.30000000}, provenance: assumed, source: "scripts/acet_balance.py, D-003, D-004"}
+  - id: S05
+    title: Demineralised water to the reactor
+    from: DEMIN.r101
+    to: R101.water
+    template: water
+    state:
+      design:
+        pressure: {value: 600, provenance: assumed, source: "D-006"}
+        temperature: {value: 298.15, provenance: assumed, source: "D-006"}
+        flow: {value: 14423.08, basis: mass, provenance: assumed, source: "scripts/acet_balance.py, D-006"}
+        composition: {basis: mass_fraction, values: {H2O: 1.00000000}, provenance: assumed, source: "scripts/acet_balance.py, D-006"}
+  - id: S06
+    title: Regenerator steam
+    from: MPS.out
+    to: R101.steam
+    template: water
+    state:
+      design:
+        pressure: {value: 1000, provenance: assumed, source: "D-006, D-009"}
+        temperature: {value: 453.0, provenance: assumed, source: "D-006, D-009"}
+        flow: {value: 1442.31, basis: mass, provenance: assumed, source: "scripts/acet_balance.py, D-006, D-009"}
+        composition: {basis: mass_fraction, values: {H2O: 1.00000000}, provenance: assumed, source: "scripts/acet_balance.py, D-006, D-009"}
+  - id: S07
+    title: Reactor vapour
+    from: R101.out
+    to: E101.in
+    template: reactor-gas
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: "D-005"}
+        temperature: {value: 403.15, provenance: assumed, source: "D-005"}
+        flow: {value: 88794.2, provenance: calculated, source: 'cheme process propagate: reactor R101 from S02 S03 S04 S05 S06 S09', fingerprint: 740efe3869fe213e}
+        composition: {basis: mole_fraction, values: {C2H4: 0.173939, C2H6: 0.0184786, O2: 0.0345232, AR: 0.0489908, CO2: 0.149822, H2O: 0.481248, ACH: 0.0904649, HCL: 6.1458e-09, ACOH: 0.000662909, CAC: 0.00151522, ETCL: 0.000142052, MECL: 9.47012e-05, CROT: 0.000118376}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S02 S03 S04 S05 S06 S09', fingerprint: ab0484e561eb91bb}
+  - id: S08
+    title: Precondenser outlet (two-phase)
+    from: E101.out
+    to: V101.in
+    template: reactor-gas
+    state:
+      design:
+        pressure: {value: 390, provenance: assumed, source: "D-005"}
+        temperature: {value: 383.15, provenance: assumed, source: "D-005"}
+        flow: {value: 88794.2, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S07', fingerprint: 0ebec348e9999ad9}
+        composition: {basis: mole_fraction, values: {C2H4: 0.173939, C2H6: 0.0184786, O2: 0.0345232, AR: 0.0489908, CO2: 0.149822, H2O: 0.481248, ACH: 0.0904649, HCL: 6.1458e-09, ACOH: 0.000662909, CAC: 0.00151522, ETCL: 0.000142052, MECL: 9.47012e-05, CROT: 0.000118376}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S07', fingerprint: 0ebec348e9999ad9}
+  - id: S09
+    title: Condensate return to the reactor
+    from: V101.liq
+    to: R101.ret
+    template: water
+    state:
+      design:
+        pressure: {value: 390, provenance: assumed, source: "D-005"}
+        temperature: {value: 383.15, provenance: assumed, source: "D-005"}
+        flow: {value: 10666.86, basis: mass, provenance: assumed, source: "scripts/acet_balance.py, D-005: reactor energy balance"}
+        composition: {basis: mass_fraction, values: {H2O: 1.00000000}, provenance: assumed, source: "scripts/acet_balance.py, D-005: reactor energy balance"}
+  - id: S10
+    title: Process gas to the cooler
+    from: V101.gas
+    to: E102.in
+    template: reactor-gas
+    state:
+      design:
+        pressure: {value: 390, provenance: assumed, source: "D-005"}
+        temperature: {value: 383.15, provenance: assumed, source: "D-005"}
+        flow: {value: 78127.30, basis: mass, provenance: assumed, source: "scripts/acet_balance.py, D-005"}
+        composition: {basis: mass_fraction, values: {ACH: 0.16218675, ACOH: 0.00162011, AR: 0.07964781, C2H4: 0.19858351, C2H6: 0.02261271, CAC: 0.00484057, CO2: 0.26834065, CROT: 0.00033766, ETCL: 0.00037296, H2O: 0.21630448, MECL: 0.00019458, O2: 0.04495819}, provenance: assumed, source: "scripts/acet_balance.py, D-005"}
+  - id: S11
+    title: Cooled process gas (two-phase)
+    from: E102.out
+    to: V102.in
+    template: reactor-gas
+    state:
+      design:
+        pressure: {value: 380, provenance: assumed, source: "D-007"}
+        temperature: {value: 318.15, provenance: assumed, source: "D-007"}
+        flow: {value: 78127.3, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S10', fingerprint: e5566325ce961a16}
+        composition: {basis: mass_fraction, values: {ACH: 0.16218675, ACOH: 0.00162011, AR: 0.07964781, C2H4: 0.19858351, C2H6: 0.02261271, CAC: 0.00484057, CO2: 0.26834065, CROT: 0.00033766, ETCL: 0.00037296, H2O: 0.21630448, MECL: 0.00019458, O2: 0.04495819}, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S10', fingerprint: e5566325ce961a16}
+  - id: S12
+    title: Acetaldehyde-rich condensate
+    from: V102.liq
+    to: T201.cond
+    template: crude
+    state:
+      design:
+        pressure: {value: 380, provenance: assumed, source: "D-007"}
+        temperature: {value: 318.15, provenance: assumed, source: "D-007"}
+        flow: {value: 20506.13, basis: mass, provenance: assumed, source: "scripts/acet_balance.py, D-007"}
+        composition: {basis: mass_fraction, values: {ACH: 0.18537700, ACOH: 0.00617254, CAC: 0.01844231, CROT: 0.00128648, H2O: 0.78872167}, provenance: assumed, source: "scripts/acet_balance.py, D-007"}
+  - id: S13
+    title: Gas to the scrubber
+    from: V102.gas
+    to: C101.gas
+    template: reactor-gas
+    state:
+      design:
+        pressure: {value: 380, provenance: assumed, source: "D-007"}
+        temperature: {value: 318.15, provenance: assumed, source: "D-007"}
+        flow: {value: 57621.18, basis: mass, provenance: assumed, source: "scripts/acet_balance.py, D-007"}
+        composition: {basis: mass_fraction, values: {ACH: 0.15393385, AR: 0.10799274, C2H4: 0.26925508, C2H6: 0.03066009, CO2: 0.36383726, ETCL: 0.00050569, H2O: 0.01259363, MECL: 0.00026383, O2: 0.06095783}, provenance: assumed, source: "scripts/acet_balance.py, D-007"}
+  - id: S14
+    title: Scrubber wash water
+    from: PW.out
+    to: C101.water
+    template: water
+    state:
+      design:
+        pressure: {value: 500, provenance: assumed, source: "D-006, D-007"}
+        temperature: {value: 298.15, provenance: assumed, source: "D-006, D-007"}
+        flow: {value: 74519.23, basis: mass, provenance: assumed, source: "scripts/acet_balance.py, D-006, D-007"}
+        composition: {basis: mass_fraction, values: {H2O: 1.00000000}, provenance: assumed, source: "scripts/acet_balance.py, D-006, D-007"}
+  - id: S15
+    title: Scrubbed cycle gas (tear stream)
+    from: C101.top
+    to: K101.in
+    template: cycle-gas
+    state:
+      design:
+        pressure: {value: 370, provenance: assumed, source: "D-007"}
+        temperature: {value: 308.15, provenance: assumed, source: "D-007"}
+        flow: {value: 48255.95, basis: mass, provenance: assumed, source: "scripts/acet_balance.py, D-007"}
+        composition: {basis: mass_fraction, values: {ACH: 0.00062629, AR: 0.12895133, C2H4: 0.32123293, C2H6: 0.03661041, CO2: 0.43199642, H2O: 0.00779444, O2: 0.07278817}, provenance: assumed, source: "scripts/acet_balance.py, D-007"}
+  - id: S16
+    title: Scrubber bottoms
+    from: C101.liq
+    to: T201.scrub
+    template: crude
+    state:
+      design:
+        pressure: {value: 370, provenance: assumed, source: "D-007"}
+        temperature: {value: 310.15, provenance: assumed, source: "D-007"}
+        flow: {value: 83884.46, basis: mass, provenance: assumed, source: "scripts/acet_balance.py, D-007"}
+        composition: {basis: mass_fraction, values: {ACH: 0.10537860, C2H4: 0.00015968, CO2: 0.00141069, ETCL: 0.00034737, H2O: 0.89252244, MECL: 0.00018123}, provenance: assumed, source: "scripts/acet_balance.py, D-007"}
+  - id: S17
+    title: Compressed cycle gas
+    from: K101.out
+    to: X101.in
+    template: cycle-gas
+    state:
+      design:
+        pressure: {value: 520, provenance: assumed, source: "D-009"}
+        temperature: {value: 341.7, provenance: assumed, source: "D-009"}
+        flow: {value: 48255.95, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S15', fingerprint: 979d4942fa3a4b80}
+        composition: {basis: mass_fraction, values: {ACH: 0.00062629, AR: 0.12895133, C2H4: 0.32123293, C2H6: 0.03661041, CO2: 0.43199642, H2O: 0.00779444, O2: 0.07278817}, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S15', fingerprint: 979d4942fa3a4b80}
+  - id: S18
+    title: Cycle-gas purge
+    from: X101.purge
+    to: PURGE.in
+    template: cycle-gas
+    state:
+      design:
+        pressure: {value: 520, provenance: assumed, source: "D-007"}
+        temperature: {value: 341.7, provenance: assumed, source: "D-007"}
+        flow: {value: 247.543, basis: mass, provenance: calculated, source: 'cheme process propagate: splitter X101 from S17', fingerprint: 47f280e2e84d8349}
+        composition: {basis: mass_fraction, values: {ACH: 0.00062629, AR: 0.12895133, C2H4: 0.32123293, C2H6: 0.03661041, CO2: 0.43199642, H2O: 0.00779444, O2: 0.07278817}, provenance: calculated, source: 'cheme process propagate: splitter X101 from S17', fingerprint: 18203be87735b977}
+  - id: S19
+    title: Recycle gas
+    from: X101.rec
+    to: M101.rec
+    template: cycle-gas
+    state:
+      design:
+        pressure: {value: 520, provenance: assumed, source: "D-007"}
+        temperature: {value: 341.7, provenance: assumed, source: "D-007"}
+        flow: {value: 48008.4, provenance: calculated, source: 'cheme process propagate: splitter X101 from S17 S18', fingerprint: e5bd45a5c3885b3c}
+        composition: {basis: mass_fraction, values: {ACH: 0.00062629, AR: 0.12895133, C2H4: 0.32123293, C2H6: 0.03661041, CO2: 0.43199642, H2O: 0.00779444, O2: 0.07278817}, provenance: calculated, source: 'cheme process propagate: splitter X101 from S17', fingerprint: 18203be87735b977}
+  - id: S21
+    title: Crude acetaldehyde
+    from: T201.out
+    to: E201.in
+    template: crude
+    state:
+      design:
+        pressure: {value: 450, provenance: assumed, source: "D-007"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-007"}
+        flow: {value: 104391.0, provenance: calculated, source: 'cheme process propagate: mixer T201 from S12 S16', fingerprint: dfbd9bab6968074e}
+        composition: {basis: mole_fraction, values: {ACH: 0.053618, H2O: 0.944285, ACOH: 0.000393841, CAC: 0.000900208, CROT: 7.03287e-05, ETCL: 8.43956e-05, MECL: 5.62637e-05, C2H4: 8.92175e-05, CO2: 0.00050242}, provenance: calculated, source: 'cheme process propagate: mixer T201 from S12 S16', fingerprint: 4191813e6d19723a}
+  - id: S22
+    title: Preheated crude
+    from: E201.out
+    to: C201.feed
+    template: crude
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: "D-008"}
+        temperature: {value: 383.15, provenance: assumed, source: "D-008"}
+        flow: {value: 104391.0, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S21', fingerprint: 98fa49a1963804d2}
+        composition: {basis: mole_fraction, values: {ACH: 0.053618, H2O: 0.944285, ACOH: 0.000393841, CAC: 0.000900208, CROT: 7.03287e-05, ETCL: 8.43956e-05, MECL: 5.62637e-05, C2H4: 8.92175e-05, CO2: 0.00050242}, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S21', fingerprint: 98fa49a1963804d2}
+  - id: S23
+    title: Extraction water
+    from: DEMIN.c201
+    to: C201.water
+    template: water
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: "D-006, D-008"}
+        temperature: {value: 298.15, provenance: assumed, source: "D-006, D-008"}
+        flow: {value: 1442.31, basis: mass, provenance: assumed, source: "scripts/acet_balance.py, D-006, D-008"}
+        composition: {basis: mass_fraction, values: {H2O: 1.00000000}, provenance: assumed, source: "scripts/acet_balance.py, D-006, D-008"}
+  - id: S24
+    title: Live steam to the light-ends column
+    from: LPS.c201
+    to: C201.steam
+    template: water
+    state:
+      design:
+        pressure: {value: 450, provenance: assumed, source: "D-006, D-008"}
+        temperature: {value: 421.0, provenance: assumed, source: "D-006, D-008"}
+        flow: {value: 2884.62, basis: mass, provenance: assumed, source: "scripts/acet_balance.py, D-006, D-008"}
+        composition: {basis: mass_fraction, values: {H2O: 1.00000000}, provenance: assumed, source: "scripts/acet_balance.py, D-006, D-008"}
+  - id: S25
+    title: Light ends
+    from: C201.top
+    to: LIGHTS.in
+    template: light-ends
+    state:
+      design:
+        pressure: {value: 200, provenance: assumed, source: "D-008"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-008"}
+        flow: {value: 204.45, basis: mass, provenance: assumed, source: "scripts/acet_balance.py, D-008"}
+        composition: {basis: mass_fraction, values: {ACH: 0.12365653, C2H4: 0.06551495, CO2: 0.57878555, ETCL: 0.14251936, H2O: 0.01516833, MECL: 0.07435528}, provenance: assumed, source: "scripts/acet_balance.py, D-008"}
+  - id: S26
+    title: Light-ends column bottoms
+    from: C201.bot
+    to: C202.feed
+    template: crude
+    state:
+      design:
+        pressure: {value: 200, provenance: assumed, source: "D-008"}
+        temperature: {value: 393.4, provenance: assumed, source: "D-008"}
+        flow: {value: 108513.06, basis: mass, provenance: assumed, source: "scripts/acet_balance.py, D-008"}
+        composition: {basis: mass_fraction, values: {ACH: 0.11625983, ACOH: 0.00116645, CAC: 0.00348511, CROT: 0.00024311, H2O: 0.87884550}, provenance: assumed, source: "scripts/acet_balance.py, D-008"}
+  - id: S27
+    title: Live steam to the acetaldehyde column
+    from: LPS.c202
+    to: C202.steam
+    template: water
+    state:
+      design:
+        pressure: {value: 450, provenance: assumed, source: "D-006, D-008"}
+        temperature: {value: 421.0, provenance: assumed, source: "D-006, D-008"}
+        flow: {value: 13461.54, basis: mass, provenance: assumed, source: "scripts/acet_balance.py, D-006, D-008"}
+        composition: {basis: mass_fraction, values: {H2O: 1.00000000}, provenance: assumed, source: "scripts/acet_balance.py, D-006, D-008"}
+  - id: S28
+    title: Acetaldehyde distillate
+    from: C202.top
+    to: E203.in
+    template: product
+    state:
+      design:
+        pressure: {value: 270, provenance: assumed, source: "D-008"}
+        temperature: {value: 323.15, provenance: assumed, source: "D-008"}
+        flow: {value: 12500.00, basis: mass, provenance: assumed, source: "scripts/acet_balance.py, D-008"}
+        composition: {basis: mass_fraction, values: {ACH: 0.99900000, H2O: 0.00100000}, provenance: assumed, source: "scripts/acet_balance.py, D-008"}
+  - id: S29
+    title: Acetaldehyde product
+    from: E203.out
+    to: PROD.in
+    template: product
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "D-002"}
+        temperature: {value: 303.15, provenance: assumed, source: "D-002"}
+        flow: {value: 12500.0, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E203 from S28', fingerprint: f28cada7768d5992}
+        composition: {basis: mass_fraction, values: {ACH: 0.999, H2O: 0.001}, provenance: calculated, source: 'cheme process propagate: pass-through E203 from S28', fingerprint: f28cada7768d5992}
+  - id: S30
+    title: Heavy by-product side draw
+    from: C202.side
+    to: HEAVY.in
+    template: side-draw
+    state:
+      design:
+        pressure: {value: 280, provenance: assumed, source: "D-008"}
+        temperature: {value: 340.0, provenance: assumed, source: "D-008"}
+        flow: {value: 891.19, basis: mass, provenance: assumed, source: "scripts/acet_balance.py, D-008"}
+        composition: {basis: mass_fraction, values: {ACH: 0.10000000, CAC: 0.37039842, CROT: 0.02960158, H2O: 0.50000000}, provenance: assumed, source: "scripts/acet_balance.py, D-008"}
+  - id: S31
+    title: Acetaldehyde column bottoms
+    from: C202.bot
+    to: E202.in
+    template: wastewater
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "D-008"}
+        temperature: {value: 406.7, provenance: assumed, source: "D-008"}
+        flow: {value: 108583.40, basis: mass, provenance: assumed, source: "scripts/acet_balance.py, D-008"}
+        composition: {basis: mass_fraction, values: {ACH: 0.00036000, ACOH: 0.00116569, CAC: 0.00044283, H2O: 0.99803148}, provenance: assumed, source: "scripts/acet_balance.py, D-008"}
+  - id: S32
+    title: Waste water after heat recovery
+    from: E202.out
+    to: E204.in
+    template: wastewater
+    state:
+      design:
+        pressure: {value: 280, provenance: assumed, source: "D-008"}
+        temperature: {value: 339.4, provenance: assumed, source: "D-008"}
+        flow: {value: 108583.4, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E202 from S31', fingerprint: 08a24944641c3ab6}
+        composition: {basis: mass_fraction, values: {ACH: 0.00036, ACOH: 0.00116569, CAC: 0.00044283, H2O: 0.99803148}, provenance: calculated, source: 'cheme process propagate: pass-through E202 from S31', fingerprint: 08a24944641c3ab6}
+  - id: S33
+    title: Waste water to treatment
+    from: E204.out
+    to: WW.in
+    template: wastewater
+    state:
+      design:
+        pressure: {value: 250, provenance: assumed, source: "D-008"}
+        temperature: {value: 308.15, provenance: assumed, source: "D-008"}
+        flow: {value: 108583.4, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E204 from S32', fingerprint: 7122cce4e8dbeb3f}
+        composition: {basis: mass_fraction, values: {ACH: 0.00036, ACOH: 0.00116569, CAC: 0.00044283, H2O: 0.99803148}, provenance: calculated, source: 'cheme process propagate: pass-through E204 from S32', fingerprint: 7122cce4e8dbeb3f}
+  # Energy streams (scripts/acet_balance.py, D-006; ASSUMED until core qualifies them)
+  - {id: Q01, title: K-101 shaft power, kind: energy, from: POWER.k101, to: K101.power, state: {design: {duty: {value: 461.0, provenance: assumed, source: "scripts/acet_balance.py: isentropic efficiency 0.75, 370 to 520 kPa(a), D-009"}}}}
+  - {id: Q02, title: Wash-water and crude pumps, kind: energy, from: POWER.c101, to: C101.power, state: {design: {duty: {value: 32.2, provenance: assumed, source: "scripts/acet_balance.py: flows x heads, efficiency 0.70, D-009"}}}}
+  - {id: Q03, title: Catalyst circulation pump to the regenerator, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 19.8, provenance: assumed, source: "scripts/acet_balance.py: 50 m3/h x 1000 kPa, efficiency 0.70, D-009"}}}}
+  - {id: Q04, title: "Reflux, product and waste-water pumps", kind: energy, from: POWER.c202, to: C202.power, state: {design: {duty: {value: 21.6, provenance: assumed, source: "scripts/acet_balance.py: flows x heads, efficiency 0.70, D-009"}}}}
+  - {id: Q05, title: E-101 precondenser duty, kind: energy, from: E101.cw, to: CW.e101, state: {design: {duty: {value: 7380.0, provenance: assumed, source: "scripts/acet_balance.py: reactor energy balance, D-005"}}}}
+  - {id: Q06, title: E-102 process gas cooler duty, kind: energy, from: E102.cw, to: CW.e102, state: {design: {duty: {value: 13344.1, provenance: assumed, source: "scripts/acet_balance.py: 383 K to 318 K with condensation, D-007"}}}}
+  - {id: Q07, title: C-201 condenser duty, kind: energy, from: C201.cond, to: CW.c201, state: {design: {duty: {value: 389.7, provenance: assumed, source: "scripts/acet_balance.py: live-steam enthalpy balance, D-008"}}}}
+  - {id: Q08, title: C-202 condenser duty, kind: energy, from: C202.cond, to: CW.c202, state: {design: {duty: {value: 7175.9, provenance: assumed, source: "scripts/acet_balance.py: live-steam enthalpy balance, D-008"}}}}
+  - {id: Q09, title: Heat recovered from the waste water to the crude, kind: energy, from: E202.heat, to: E201.heat, state: {design: {duty: {value: 8504.9, provenance: assumed, source: "scripts/acet_balance.py: crude 313 K to 383 K, D-008"}}}}
+  - {id: Q10, title: E-204 waste-water trim cooler duty, kind: energy, from: E204.cw, to: CW.e204, state: {design: {duty: {value: 3949.7, provenance: assumed, source: "scripts/acet_balance.py: to 308 K, D-008"}}}}
+  - {id: Q11, title: E-203 product cooler duty, kind: energy, from: E203.cw, to: CW.e203, state: {design: {duty: {value: 152.8, provenance: assumed, source: "scripts/acet_balance.py: 323 K to 303 K, D-008"}}}}
 layout: {bfd: {}, pfd: {}}
