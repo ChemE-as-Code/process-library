@@ -41,8 +41,8 @@ opened from this run (not visible to `gh`); their state is taken from the issue 
   gas to stack, dryer exhaust and surplus condensate. Inside: ammonia vaporiser (E-101), air
   blower (K-101), burner with integral WHB (R-101), soda dissolver (T-201), oxidation volume and
   absorption towers (C-201, lumped), double-effect evaporator (E-301), NaNO2 crystalliser and
-  centrifuge (CR-301, S-301), dryer (D-301), inversion reactor (R-401), NaNO3 crystalliser and
-  centrifuge (CR-401, S-401), dryer (D-401). Outside: storage, screening/anti-caking/bagging,
+  centrifuge (CR-301, S-301), dryer (DR-301), inversion reactor (R-401), NaNO3 crystalliser and
+  centrifuge (CR-401, S-401), dryer (DR-401). Outside: storage, screening/anti-caking/bagging,
   ammonia storage, BFW treatment, utility generation, tail-gas abatement (open, D-006).
 - **What crosses the boundary**: NH3, AIR, SODA, HNO3 (raw materials), POWER, LPS (utilities
   in), NANO2 (product), NANO3 (by-product), TAIL, DRYVENT (emissions), COND (waste water),
