@@ -1,5 +1,14 @@
 # LCA
 
+**aniline-1: preliminary gate-to-gate LCI** (DESIGN.md D-013). Functional unit 1 kg aniline
+(99.95 wt%) at the gate. Every foreground exchange comes from the balanced flowsheet
+(`process/flowsheet.yaml`, case design); every background is left unmapped (`missing:` in
+`lca.yaml` names the activity to link), so `results.*` hold no footprint, only the gap list
+(`gaps.csv`). The per-kg amounts in `inventory.csv` are exergy-allocated (aniline 98.19 %, MP
+steam export 1.81 %); divide by 0.9819 for the unallocated plant ratios. Mass check against the
+flowsheet: in 34 908.5 kg/h (nitrobenzene S1 33 222.3 + hydrogen S2 1 686.2), out 34 908.1 kg/h
+(aniline S20 25 000.0, process water S23 9 708.2, residue S18+S21 129.5, purge S12 70.4).
+
 The life cycle assessment of the plant's operation (ISO 14040/44), per functional unit.
 
 | file | what | written by |
