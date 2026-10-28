@@ -1,24 +1,642 @@
 # The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
 # never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
-# Units are explicit: a property without its own unit is in these. Pressure is absolute; a gauge
-# value needs its own unit (kPa(g)). Nm3/h needs normal_conditions.
+#
+# Solid sodium cyanide from Andrussow HCN (DESIGN.md D-001). Where the values come from:
+# - feeds S1, S2, S3, S20, S30 and every temperature and pressure: design basis (D-002, D-003,
+#   D-005), ASSUMED; the feed flows follow from the 6.25 t/h product (scripts/nacn_balance.py);
+# - converter R-101: conversion reactor whose conversions reproduce the sourced HCN yield of
+#   US 6,596,251 B2 and the converter-gas composition of US 4,847,062 A (D-004); its outlet S6
+#   is calculated by `cheme process propagate`;
+# - flows and compositions through the blower, vaporiser, waste heat boiler, mixer, lean water
+#   chiller and splitter, the neutraliser, the crystalliser (cheme's crystallizer model) and
+#   the tail gas boiler are calculated by `cheme process propagate --fill`;
+# - the absorber/stripper outlets (C-101, C-201, C-202), the dryer and all duties come from
+#   scripts/nacn_balance.py, given here as ASSUMED: core has no qualified model for aqueous
+#   HCN/NH3 absorption or the NaCN/NaOH electrolyte (core #364, #315; D-011).
 schema: cheme/process/v1
 kind: flowsheet
-title: ""
+title: Solid sodium cyanide from Andrussow HCN (6.25 t/h NaCN)
 units:
   pressure: kPa(a)
   temperature: K
   flow: kg/h
   duty: kW
   enthalpy: kJ/kmol
-  # normal_conditions: {temperature: 273.15, pressure: 101.325, basis: ideal_gas}
-  # enthalpy_reference: {state: ideal_gas, temperature: 298.15}
+  enthalpy_reference: {state: ideal_gas, temperature: 298.15}
 cases:
-  - {id: design, description: Design case, default: true}
+  - {id: design, description: "Design case: 6.25 t/h solid NaCN (98 wt%), air-operated Andrussow converter at the feed ratios of US 6,596,251 B2 run 1, ammonia recycle, HCN refined before neutralisation (D-002)", default: true}
 tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
-feeds: []      # external feeds (DEXPI Source): {id, title, ports: [{id: out, direction: out}]}
-products: []   # products (DEXPI Sink): {id, title, ports: [{id: in, direction: in}]}
-blocks: []     # BFD blocks: {id, title, class, ports: [{id, direction, kind}], links}
-steps: []      # PFD steps: {id, block, title, class, ports: [{id, direction, delegates}], links}
-streams: []    # {id, title, kind, from: NODE.port, to: NODE.port, template, state: {design: {...}}}
+
+feeds:
+  - {id: NG, title: Natural gas (as methane) from the site grid, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: NH3F, title: Liquid ammonia from the ammonia plant (ammonia-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: AIR, title: Process air (ambient), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: NAOHF, title: Caustic soda 50 wt% from the chlor-alkali plant (chlor-alkali-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: BAIR, title: Combustion air of the tail gas boiler (ambient), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: k101, direction: out, kind: energy}
+      - {id: misc, direction: out, kind: energy}
+products:
+  - {id: NACN, title: Solid sodium cyanide (98 wt%) to packing, category: product, ports: [{id: in, direction: in}]}
+  - id: WW
+    title: Cyanide- and ammonia-bearing process water to cyanide destruction and wastewater treatment
+    category: wastewater
+    ports: [{id: c101, direction: in}, {id: c202, direction: in}, {id: cond, direction: in}]
+  - {id: STACK, title: Flue gas of the tail gas boiler to atmosphere, category: emission, ports: [{id: in, direction: in}]}
+  - id: MPSX
+    title: MP steam export (1500 kPa(a)), net of the plant's own steam use
+    category: utility
+    utility:
+      kind: steam
+      level: MP
+      pressure: {value: 1500, provenance: assumed, source: "design basis, D-010"}
+      supply_temperature: {value: 471.4, provenance: assumed, source: "saturation at 1500 kPa(a), D-010"}
+      min_approach: {value: 20, provenance: assumed, source: D-010}
+    ports: [{id: e101, direction: in, kind: energy}, {id: b301, direction: in, kind: energy}]
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-010"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-010"}
+      min_approach: {value: 5, provenance: assumed, source: D-010}
+    ports:
+      - {id: c101, direction: in, kind: energy}
+      - {id: c201, direction: in, kind: energy}
+      - {id: c202, direction: in, kind: energy}
+      - {id: r401, direction: in, kind: energy}
+      - {id: e401, direction: in, kind: energy}
+  - id: CHW
+    title: Chilled water return (from the site refrigeration plant)
+    category: utility
+    utility:
+      kind: refrigerant
+      level: chilled water
+      supply_temperature: {value: 275.15, provenance: assumed, source: "design basis, D-010"}
+      return_temperature: {value: 283.15, provenance: assumed, source: "design basis, D-010"}
+      min_approach: {value: 3, provenance: assumed, source: D-010}
+    ports:
+      - {id: c201, direction: in, kind: energy}
+      - {id: e202, direction: in, kind: energy}
+
+blocks:
+  - id: RXN
+    title: HCN synthesis (Andrussow converter, waste heat boiler)
+    class: ReactingChemicals
+    ports:
+      - {id: ng, direction: in}
+      - {id: nh3, direction: in}
+      - {id: air, direction: in}
+      - {id: rec, direction: in}
+      - {id: gas, direction: out}
+      - {id: power_k, direction: in, kind: energy}
+      - {id: st_c101, direction: out, kind: energy}
+      - {id: st_c202, direction: out, kind: energy}
+      - {id: st_cr401, direction: out, kind: energy}
+      - {id: st_d401, direction: out, kind: energy}
+      - {id: st_x, direction: out, kind: energy}
+  - id: NH3R
+    title: Ammonia recovery and recycle (ammonium phosphate absorption and stripping)
+    class: Absorbing
+    ports:
+      - {id: gas_in, direction: in}
+      - {id: gas_out, direction: out}
+      - {id: nh3, direction: out}
+      - {id: water, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+  - id: HCNR
+    title: HCN absorption in water and refining
+    class: Absorbing
+    ports:
+      - {id: gas, direction: in}
+      - {id: tailgas, direction: out}
+      - {id: hcn, direction: out}
+      - {id: purge, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: cw201, direction: out, kind: energy}
+      - {id: cw202, direction: out, kind: energy}
+      - {id: chw201, direction: out, kind: energy}
+      - {id: chw202, direction: out, kind: energy}
+  - id: NACNS
+    title: Neutralisation, crystallisation and drying
+    class: ReactingChemicals
+    ports:
+      - {id: hcn, direction: in}
+      - {id: naoh, direction: in}
+      - {id: product, direction: out}
+      - {id: cond, direction: out}
+      - {id: st_cr, direction: in, kind: energy}
+      - {id: st_d, direction: in, kind: energy}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw_r, direction: out, kind: energy}
+      - {id: cw_e, direction: out, kind: energy}
+  - id: TGB
+    title: Tail gas boiler
+    class: ReactingChemicals
+    ports:
+      - {id: tailgas, direction: in}
+      - {id: air, direction: in}
+      - {id: flue, direction: out}
+      - {id: steam, direction: out, kind: energy}
+
+steps:
+  # ---- RXN
+  - id: E001
+    block: RXN
+    title: Ammonia vaporiser
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-001}]
+    ports:
+      - {id: in, direction: in, delegates: nh3}
+      - {id: out, direction: out}
+      - {id: steam, direction: in, kind: energy}
+  - id: K101
+    block: RXN
+    title: Process air blower
+    class: Compressing
+    method: CentrifugalMotion
+    links: [{target: equipment, ref: K-101}]
+    ports:
+      - {id: in, direction: in, delegates: air}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power_k}
+  # D-005: methane, ammonia (fresh and recycled) and air are mixed below the gauze; the mixture
+  # lies inside the flammable range and is handled as such (inherent-safety note, D-005).
+  - id: M101
+    block: RXN
+    title: Converter feed mixer
+    class: Mixing
+    links: [{target: equipment, ref: M-101}]
+    ports:
+      - {id: ng, direction: in, delegates: ng}
+      - {id: nh3, direction: in}
+      - {id: air, direction: in}
+      - {id: rec, direction: in, delegates: rec}
+      - {id: out, direction: out}
+  # D-004: Pt/Rh gauze, adiabatic, conversions on the inlet flow of each key (reactions.yaml).
+  - id: R101
+    block: RXN
+    title: Andrussow converter (Pt/Rh gauze)
+    class: ReactingChemicals
+    reactions: [ANDRUSSOW, NH3_DEC, CH4_REF, CH4_COMB, H2_OX]
+    reactor: conversion
+    catalyst: PT_RH_HCN
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+  - id: E101
+    block: RXN
+    title: Waste heat boiler (MP steam)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: gas}
+      - {id: e001, direction: out, kind: energy}
+      - {id: c101, direction: out, kind: energy, delegates: st_c101}
+      - {id: c202, direction: out, kind: energy, delegates: st_c202}
+      - {id: cr401, direction: out, kind: energy, delegates: st_cr401}
+      - {id: d401, direction: out, kind: energy, delegates: st_d401}
+      - {id: exp, direction: out, kind: energy, delegates: st_x}
+  # ---- NH3R (D-006): absorber, phosphate solution stripper and ammonia column, lumped
+  - id: C101
+    block: NH3R
+    title: Ammonia absorber, stripper and ammonia column (lumped)
+    class: Absorbing
+    links: [{target: equipment, ref: C-101}]
+    ports:
+      - {id: in, direction: in, delegates: gas_in}
+      - {id: gas, direction: out, delegates: gas_out}
+      - {id: nh3, direction: out, delegates: nh3}
+      - {id: water, direction: out, delegates: water}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  # ---- HCNR (D-007)
+  - id: C201
+    block: HCNR
+    title: HCN absorber (chilled water)
+    class: Absorbing
+    links: [{target: equipment, ref: C-201}]
+    ports:
+      - {id: gas, direction: in, delegates: gas}
+      - {id: lean, direction: in}
+      - {id: tail, direction: out, delegates: tailgas}
+      - {id: rich, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw201}
+      - {id: chw, direction: out, kind: energy, delegates: chw201}
+  - id: C202
+    block: HCNR
+    title: HCN stripper and rectifier
+    class: Distilling
+    links: [{target: equipment, ref: C-202}]
+    ports:
+      - {id: feed, direction: in}
+      - {id: hcn, direction: out, delegates: hcn}
+      - {id: bot, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: cw, direction: out, kind: energy, delegates: cw202}
+  - id: E202
+    block: HCNR
+    title: Lean water chiller
+    class: Cooling
+    links: [{target: equipment, ref: E-202}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: chw, direction: out, kind: energy, delegates: chw202}
+  - id: SPL201
+    block: HCNR
+    title: Lean water / process water purge split
+    class: SplittingMaterial
+    split: {lean: 0.973457, purge: 0.026543}
+    ports:
+      - {id: in, direction: in}
+      - {id: lean, direction: out}
+      - {id: purge, direction: out, delegates: purge}
+  # ---- NACNS (D-008)
+  - id: R401
+    block: NACNS
+    title: Neutraliser (HCN + NaOH)
+    class: ReactingChemicals
+    reactions: [NEUTR]
+    reactor: conversion
+    links: [{target: equipment, ref: R-401}]
+    ports:
+      - {id: hcn, direction: in, delegates: hcn}
+      - {id: naoh, direction: in, delegates: naoh}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw_r}
+  - id: CR401
+    block: NACNS
+    title: Vacuum evaporative crystalliser with centrifuge (mother liquor recycled)
+    class: SeparatingByThermalProcess
+    links: [{target: equipment, ref: CR-401}]
+    # cheme's crystallizer model (one solute, one solvent) refuses the free NaOH of the liquor
+    # (cheme.process-propagate-crystallizer), so the outlets are the script's (D-008, D-011):
+    # mother liquor saturated at 0.80 kg NaCN/kg water at 343 K, all filtrate recycled (no
+    # purge; the free NaOH leaves with the cake liquor), cake with 10 wt% liquor.
+    reactions: [NACN_CRYST]
+    ports:
+      - {id: feed, direction: in}
+      - {id: cake, direction: out}
+      - {id: vap, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: st_cr}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: D401
+    block: NACNS
+    title: Indirect (steam) vacuum dryer and briquetting
+    class: Drying
+    reactions: [NACN_CRYST]
+    links: [{target: equipment, ref: D-401}]
+    ports:
+      - {id: in, direction: in}
+      - {id: prod, direction: out, delegates: product}
+      - {id: vap, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: st_d}
+  - id: E401
+    block: NACNS
+    title: Crystalliser and dryer vapour condenser
+    class: Cooling
+    links: [{target: equipment, ref: E-401}]
+    ports:
+      - {id: vap1, direction: in}
+      - {id: vap2, direction: in}
+      - {id: out, direction: out, delegates: cond}
+      - {id: cw, direction: out, kind: energy, delegates: cw_e}
+  # ---- TGB (D-009)
+  - id: B301
+    block: TGB
+    title: Tail gas boiler (MP steam)
+    class: ReactingChemicals
+    reactions: [H2_COMB, CO_COMB, CH4_BURN, HCN_COMB]
+    reactor: conversion
+    links: [{target: equipment, ref: B-301}]
+    ports:
+      - {id: tail, direction: in, delegates: tailgas}
+      - {id: air, direction: in, delegates: air}
+      - {id: flue, direction: out, delegates: flue}
+      - {id: steam, direction: out, kind: energy, delegates: steam}
+
+streams:
+  - id: S1
+    title: Natural gas (methane)
+    from: NG.out
+    to: M101.ng
+    template: gas
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: "design basis: site gas header (D-003)"}
+        temperature: {value: 298.15, provenance: assumed, source: D-003}
+        flow: {value: 3128.57, basis: mass, provenance: assumed, source: "scripts/nacn_balance.py: CH4/NH3 0.98 mol/mol at the converter inlet, US 6,596,251 B2 Table 2 run 1 (D-004)"}
+        composition: {basis: mole_fraction, values: {CH4: 1.0}, provenance: assumed, source: "D-003: natural gas modelled as methane"}
+  - id: S2
+    title: Fresh liquid ammonia
+    from: NH3F.out
+    to: E001.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 1100, provenance: assumed, source: "design basis (D-003)"}
+        temperature: {value: 298.15, provenance: assumed, source: D-003}
+        flow: {value: 2733.80, basis: mass, provenance: assumed, source: "scripts/nacn_balance.py: converter NH3 less the recycle S9 (D-004, D-006)"}
+        composition: {basis: mole_fraction, values: {NH3: 1.0}, provenance: assumed, source: "D-003: anhydrous ammonia"}
+  - id: S2B
+    title: Ammonia vapour
+    from: E001.out
+    to: M101.nh3
+    template: gas
+    state:
+      design:
+        pressure: {value: 1050, provenance: assumed, source: D-005}
+        temperature: {value: 313.15, provenance: assumed, source: D-005}
+        flow: {value: 2733.8, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E001 from S2', fingerprint: 1e324f2c4a54ba14}
+        composition: {basis: mole_fraction, values: {NH3: 1.0}, provenance: calculated, source: 'cheme process propagate: pass-through E001 from S2', fingerprint: 1e324f2c4a54ba14}
+  - id: S3
+    title: Process air
+    from: AIR.out
+    to: K101.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: D-003}
+        temperature: {value: 298.15, provenance: assumed, source: D-003}
+        flow: {value: 31439.59, basis: mass, provenance: assumed, source: "scripts/nacn_balance.py: O2/NH3 1.15 mol/mol at the converter inlet, US 6,596,251 B2 Table 2 run 1 (D-004)"}
+        composition: {basis: mole_fraction, values: {O2: 0.21, N2: 0.79}, provenance: assumed, source: "D-003: dry air, argon lumped with nitrogen"}
+  - id: S4
+    title: Compressed air
+    from: K101.out
+    to: M101.air
+    template: gas
+    state:
+      design:
+        pressure: {value: 180, provenance: assumed, source: D-005}
+        temperature: {value: 369.1, provenance: assumed, source: "scripts/nacn_balance.py: isentropic efficiency 0.75 (D-005)"}
+        flow: {value: 31439.59, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S3', fingerprint: 1113a63f87275054}
+        composition: {basis: mole_fraction, values: {O2: 0.21, N2: 0.79}, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S3', fingerprint: 1113a63f87275054}
+  - id: S9
+    title: Recovered ammonia (recycle)
+    from: C101.nh3
+    to: M101.rec
+    template: gas
+    state:
+      design:
+        pressure: {value: 200, provenance: assumed, source: D-006}
+        temperature: {value: 313.15, provenance: assumed, source: D-006}
+        flow: {value: 662.22, basis: mass, provenance: assumed, source: "scripts/nacn_balance.py: 99 % of the converter outlet NH3 recovered (D-006)"}
+        composition: {basis: mole_fraction, values: {NH3: 0.99, H2O: 0.01}, provenance: assumed, source: "D-006: ammonia column overhead, 1 mol% water"}
+  - id: S5
+    title: Converter feed
+    from: M101.out
+    to: R101.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 170, provenance: assumed, source: D-005}
+        temperature: {value: 349.34, provenance: assumed, source: "scripts/nacn_balance.py: adiabatic mixing, no preheat (D-005)"}
+        flow: {value: 37964.2, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2B S4 S9', fingerprint: 9f5d7ce69c5f1d7f}
+        composition: {basis: mole_fraction, values: {CH4: 0.1314, NH3: 0.134081, O2: 0.154194, N2: 0.580063, H2: 0.0, CO: 0.0, CO2: 0.0, HCN: 0.0, H2O: 0.000261846}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2B S4 S9', fingerprint: 4e2c55084a2ecdc7}
+  - id: S6
+    title: Converter gas
+    from: R101.out
+    to: E101.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 160, provenance: assumed, source: D-005}
+        temperature: {value: 1429.24, provenance: assumed, source: "scripts/nacn_balance.py: adiabatic outlet from the ideal-gas data of materials.yaml, no heat loss (D-004)"}
+        flow: {value: 37964.2, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5', fingerprint: da45998f5f6eeaf4}
+        composition: {basis: mole_fraction, values: {CH4: 0.00136787, NH3: 0.0231879, O2: 0.000137098, N2: 0.524111, H2: 0.110935, CO: 0.0328315, CO2: 0.00747768, HCN: 0.0746853, H2O: 0.225266}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5', fingerprint: c5583fd3883becff}
+  - id: S7
+    title: Cooled converter gas
+    from: E101.out
+    to: C101.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 150, provenance: assumed, source: D-005}
+        temperature: {value: 523.15, provenance: assumed, source: "D-005: waste heat boiler outlet, inside the 100-400 C quench range named in the Andrussow patents"}
+        flow: {value: 37964.2, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S6', fingerprint: 79f8233c544f5081}
+        composition: {basis: mole_fraction, values: {CH4: 0.00136787, NH3: 0.0231879, O2: 0.000137098, N2: 0.524111, H2: 0.110935, CO: 0.0328315, CO2: 0.00747768, HCN: 0.0746853, H2O: 0.225266}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S6', fingerprint: 79f8233c544f5081}
+  - id: S8
+    title: Ammonia-free gas to the HCN absorber
+    from: C101.gas
+    to: C201.gas
+    template: gas
+    state:
+      design:
+        pressure: {value: 140, provenance: assumed, source: D-006}
+        temperature: {value: 333.15, provenance: assumed, source: D-006}
+        flow: {value: 34274.75, basis: mass, provenance: assumed, source: "scripts/nacn_balance.py: saturated with water at 333 K, 0.5 % of the NH3 slips (D-006)"}
+        composition: {basis: mole_fraction, values: {CH4: 0.001560179, O2: 0.00015578, HCN: 0.085204756, N2: 0.597929566, H2: 0.126559508, CO: 0.037455681, CO2: 0.008530831, NH3: 0.00013227, H2O: 0.142471429}, provenance: assumed, source: "scripts/nacn_balance.py (D-006)"}
+  - id: S10
+    title: Ammonia recovery process water
+    from: C101.water
+    to: WW.c101
+    template: aqueous
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-006}
+        temperature: {value: 333.15, provenance: assumed, source: D-006}
+        flow: {value: 3027.21, basis: mass, provenance: assumed, source: "scripts/nacn_balance.py: water condensed in C-101 with 0.5 % of the converter NH3 (D-006)"}
+        composition: {basis: mole_fraction, values: {NH3: 0.001156293, H2O: 0.998843707}, provenance: assumed, source: "scripts/nacn_balance.py (D-006)"}
+  - id: S11
+    title: Tail gas
+    from: C201.tail
+    to: B301.tail
+    template: gas
+    state:
+      design:
+        pressure: {value: 130, provenance: assumed, source: D-007}
+        temperature: {value: 283.15, provenance: assumed, source: D-007}
+        flow: {value: 27316.49, basis: mass, provenance: assumed, source: "scripts/nacn_balance.py: 0.1 % of the converter HCN slips, saturated with water at 283 K (D-007)"}
+        composition: {basis: mole_fraction, values: {CH4: 0.002001147, O2: 0.000199809, N2: 0.766927803, H2: 0.162330165, CO: 0.048042119, CO2: 0.010941977, HCN: 0.000109287, H2O: 0.009447692}, provenance: assumed, source: "scripts/nacn_balance.py (D-007)"}
+  - id: S12
+    title: Rich HCN water
+    from: C201.rich
+    to: C202.feed
+    template: aqueous
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-007}
+        temperature: {value: 288.15, provenance: assumed, source: D-007}
+        flow: {value: 137655.57, basis: mass, provenance: assumed, source: "scripts/nacn_balance.py: 2.5 wt% HCN (US 6,596,251 B2 background: 2-3 wt% in the absorber sump, air operation; D-007)"}
+        composition: {basis: mole_fraction, values: {HCN: 0.016804398, NH3: 0.000966079, H2O: 0.982229522}, provenance: assumed, source: "scripts/nacn_balance.py (D-007)"}
+  - id: S13
+    title: Liquid HCN (99.5 wt%)
+    from: C202.hcn
+    to: R401.hcn
+    template: salt
+    state:
+      design:
+        pressure: {value: 200, provenance: assumed, source: D-007}
+        temperature: {value: 288.15, provenance: assumed, source: D-007}
+        flow: {value: 3394.64, basis: mass, provenance: assumed, source: "scripts/nacn_balance.py: HCN of the product's NaCN, 99.5 wt% (US 6,596,251 B2 background: >99.5 wt% after rectification; D-007)"}
+        composition: {basis: mole_fraction, values: {HCN: 0.992518058, H2O: 0.007481942}, provenance: assumed, source: "scripts/nacn_balance.py (D-007)"}
+  - id: S14
+    title: Stripper bottoms
+    from: C202.bot
+    to: E202.in
+    template: aqueous
+    state:
+      design:
+        pressure: {value: 160, provenance: assumed, source: D-007}
+        temperature: {value: 298.15, provenance: assumed, source: "D-007: after the feed/bottoms interchanger (bottoms boil at about 384 K)"}
+        flow: {value: 134260.93, basis: mass, provenance: assumed, source: "scripts/nacn_balance.py (D-007)"}
+        composition: {basis: mole_fraction, values: {HCN: 0.000316419, NH3: 0.000982404, H2O: 0.998701177}, provenance: assumed, source: "scripts/nacn_balance.py: 0.05 % of the converter HCN and the NH3 slip leave with the purge (D-007)"}
+  - id: S14B
+    title: Chilled lean water
+    from: E202.out
+    to: SPL201.in
+    template: aqueous
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-007}
+        temperature: {value: 278.15, provenance: assumed, source: D-007}
+        flow: {value: 134260.93, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E202 from S14', fingerprint: b667e6dc483915c4}
+        composition: {basis: mole_fraction, values: {HCN: 0.000316419, NH3: 0.000982404, H2O: 0.998701177}, provenance: calculated, source: 'cheme process propagate: pass-through E202 from S14', fingerprint: b667e6dc483915c4}
+  - id: S15
+    title: Lean water to the HCN absorber
+    from: SPL201.lean
+    to: C201.lean
+    template: aqueous
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-007}
+        temperature: {value: 278.15, provenance: assumed, source: D-007}
+        flow: {value: 130697.0, basis: mass, provenance: calculated, source: 'cheme process propagate: splitter SPL201 from S14B', fingerprint: 3c91c8cf60bf5c50}
+        composition: {basis: mole_fraction, values: {HCN: 0.000316419, NH3: 0.000982404, H2O: 0.998701177}, provenance: calculated, source: 'cheme process propagate: splitter SPL201 from S14B', fingerprint: f3775aa5a0fae409}
+  - id: S16
+    title: Process water purge
+    from: SPL201.purge
+    to: WW.c202
+    template: aqueous
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-007}
+        temperature: {value: 278.15, provenance: assumed, source: D-007}
+        flow: {value: 3563.69, basis: mass, provenance: calculated, source: 'cheme process propagate: splitter SPL201 from S14B', fingerprint: 3c91c8cf60bf5c50}
+        composition: {basis: mole_fraction, values: {HCN: 0.000316419, NH3: 0.000982404, H2O: 0.998701177}, provenance: calculated, source: 'cheme process propagate: splitter SPL201 from S14B', fingerprint: f3775aa5a0fae409}
+  - id: S20
+    title: Caustic soda 50 wt%
+    from: NAOHF.out
+    to: R401.naoh
+    template: salt
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: D-003}
+        temperature: {value: 313.15, provenance: assumed, source: D-003}
+        flow: {value: 10122.81, basis: mass, provenance: assumed, source: "scripts/nacn_balance.py: NaOH for the HCN plus the product's 1 wt% free NaOH (D-008)"}
+        composition: {basis: mass_fraction, values: {NAOH: 0.5, H2O: 0.5}, provenance: assumed, source: "D-003: 50 wt% membrane-cell caustic (US 4,847,062 A uses 50 wt% NaOH)"}
+  - id: S21
+    title: Sodium cyanide solution
+    from: R401.out
+    to: CR401.feed
+    template: salt
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-008}
+        temperature: {value: 343.15, provenance: assumed, source: D-008}
+        flow: {value: 13517.4, provenance: calculated, source: 'cheme process propagate: reactor R401 from S13 S20', fingerprint: 7d3426ab6f00d48e}
+        composition: {basis: mole_fraction, values: {NAOH: 0.00292949, NACN: 0.234303, NACN_S: 0.0, H2O: 0.762767, HCN: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R401 from S13 S20', fingerprint: d60429474fa875d3}
+  - id: S22
+    title: Centrifuge cake
+    from: CR401.cake
+    to: D401.in
+    template: salt
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: D-008}
+        temperature: {value: 343.15, provenance: assumed, source: D-008}
+        flow: {value: 6514.7, basis: mass, provenance: assumed, source: "scripts/nacn_balance.py: crystals 5863.2 kg/h with 10 wt% mother liquor (D-008)"}
+        composition: {basis: mass_fraction, values: {NACN_S: 0.899995395, NACN: 0.040186041, NAOH: 0.009593688, H2O: 0.050224876}, provenance: assumed, source: "scripts/nacn_balance.py: liquor saturated at 0.80 kg NaCN/kg water with all the free NaOH (D-008)"}
+  - id: S23
+    title: Crystalliser vapour
+    from: CR401.vap
+    to: E401.vap1
+    template: salt
+    state:
+      design:
+        pressure: {value: 13.33, provenance: assumed, source: "D-008: 100 mm Hg, US 4,847,062 A examples 6-7"}
+        temperature: {value: 343.15, provenance: assumed, source: "D-008: 70 C, US 4,847,062 A examples 6-7"}
+        flow: {value: 7002.8, basis: mass, provenance: assumed, source: "scripts/nacn_balance.py: feed water less the cake liquor's (D-008)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: "D-008: water; HCN and NH3 from NaCN hydrolysis not modelled"}
+  - id: S24
+    title: Dryer vapour
+    from: D401.vap
+    to: E401.vap2
+    template: salt
+    state:
+      design:
+        pressure: {value: 20, provenance: assumed, source: D-008}
+        temperature: {value: 353.15, provenance: assumed, source: D-008}
+        flow: {value: 264.7, basis: mass, provenance: assumed, source: "scripts/nacn_balance.py: cake water less the product's 1 wt% (D-008)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: "D-008: water only; NaCN dust caught in the dryer filter (D-008)"}
+  - id: S25
+    title: Solid sodium cyanide product
+    from: D401.prod
+    to: NACN.in
+    template: salt
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "design basis, D-002"}
+        temperature: {value: 313.15, provenance: assumed, source: "design basis, D-002"}
+        flow: {value: 6250.0, basis: mass, provenance: assumed, source: "design basis: 6.25 t/h, 50 kt/a (D-002)"}
+        composition: {basis: mass_fraction, values: {NACN_S: 0.98, NAOH: 0.01, H2O: 0.01}, provenance: assumed, source: "design basis product specification (D-002)"}
+  - id: S26
+    title: Vapour condensate
+    from: E401.out
+    to: WW.cond
+    template: salt
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-008}
+        temperature: {value: 313.15, provenance: assumed, source: D-008}
+        flow: {value: 7267.5, basis: mass, provenance: assumed, source: "scripts/nacn_balance.py: S23 + S24 (D-008)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: "D-008: water; traces of HCN and NH3 from NaCN hydrolysis are not modelled"}
+  - id: S30
+    title: Combustion air
+    from: BAIR.out
+    to: B301.air
+    template: gas
+    state:
+      design:
+        pressure: {value: 106, provenance: assumed, source: D-009}
+        temperature: {value: 298.15, provenance: assumed, source: D-009}
+        flow: {value: 19746.24, basis: mass, provenance: assumed, source: "scripts/nacn_balance.py: 15 % excess air (D-009)"}
+        composition: {basis: mole_fraction, values: {O2: 0.21, N2: 0.79}, provenance: assumed, source: "D-003: dry air, argon lumped with nitrogen"}
+  - id: S31
+    title: Flue gas to stack
+    from: B301.flue
+    to: STACK.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: D-009}
+        temperature: {value: 423.15, provenance: assumed, source: "D-009: stack temperature"}
+        flow: {value: 47062.7, provenance: calculated, source: 'cheme process propagate: reactor B301 from S11 S30', fingerprint: ad2d2fe7f3bfaad6}
+        composition: {basis: mole_fraction, values: {CH4: 0.0, NH3: 0.0, O2: 0.0109682, N2: 0.830272, H2: 0.0, CO: 0.0, CO2: 0.0409377, HCN: 0.0, H2O: 0.117822}, provenance: calculated, source: 'cheme process propagate: reactor B301 from S11 S30', fingerprint: 80ae81a7ecf7bcd0}
+  # Energy streams (duties from scripts/nacn_balance.py; ASSUMED until core qualifies them, D-010)
+  - {id: Q1, title: K-101 shaft power, kind: energy, from: POWER.k101, to: K101.power, state: {design: {duty: {value: 627.7, provenance: assumed, source: "scripts/nacn_balance.py: isentropic efficiency 0.75 (D-005)"}}}}
+  - {id: Q2, title: "Pumps, vacuum pumps, centrifuge, dryer drive, briquetting, B-301 fan", kind: energy, from: POWER.misc, to: CR401.power, state: {design: {duty: {value: 400.0, provenance: assumed, source: "D-010: lumped estimate, not sized"}}}}
+  - {id: Q3, title: Steam to the ammonia vaporiser, kind: energy, from: E101.e001, to: E001.steam, state: {design: {duty: {value: 911.4, provenance: assumed, source: "scripts/nacn_balance.py: vaporisation at 1100 kPa(a) and 15 K superheat (D-010)"}}}}
+  - {id: Q4, title: Steam to the ammonia stripper, kind: energy, from: E101.c101, to: C101.steam, state: {design: {duty: {value: 3836.7, provenance: assumed, source: "scripts/nacn_balance.py: 10 kg LP steam per kg NH3 recovered, ASSUMED without source (D-006)"}}}}
+  - {id: Q5, title: Steam to the HCN stripper reboiler, kind: energy, from: E101.c202, to: C202.steam, state: {design: {duty: {value: 3348.1, provenance: assumed, source: "scripts/nacn_balance.py: interchanger approach 10 K plus HCN boil-up at reflux ratio 1 (D-007)"}}}}
+  - {id: Q6, title: Steam to the crystalliser, kind: energy, from: E101.cr401, to: CR401.steam, state: {design: {duty: {value: 4538.2, provenance: assumed, source: "scripts/nacn_balance.py: single effect, 7002.8 kg/h water at 2333 kJ/kg (D-008)"}}}}
+  - {id: Q7, title: Steam to the dryer, kind: energy, from: E101.d401, to: D401.steam, state: {design: {duty: {value: 220.6, provenance: assumed, source: "scripts/nacn_balance.py: 264.7 kg/h water, dryer efficiency 0.8 (D-008)"}}}}
+  - {id: Q8, title: E-101 steam export, kind: energy, from: E101.exp, to: MPSX.e101, state: {design: {duty: {value: 2380.2, provenance: assumed, source: "scripts/nacn_balance.py: E-101 duty 15235.1 kW less Q3-Q7 (D-010)"}}}}
+  - {id: Q9, title: B-301 steam export, kind: energy, from: B301.steam, to: MPSX.b301, state: {design: {duty: {value: 15415.3, provenance: assumed, source: "scripts/nacn_balance.py: tail gas LHV 17325 kW, stack 423 K, no radiation loss (D-009)"}}}}
+  - {id: Q10, title: C-101 coolers and condensers, kind: energy, from: C101.cw, to: CW.c101, state: {design: {duty: {value: 8687.0, provenance: assumed, source: "scripts/nacn_balance.py: gas 523 -> 333 K, water condensed, stripping steam condensed (D-006)"}}}}
+  - {id: Q11, title: C-201 gas precooler, kind: energy, from: C201.cw, to: CW.c201, state: {design: {duty: {value: 2150.1, provenance: assumed, source: "scripts/nacn_balance.py: gas 333 -> 308 K with condensation (D-007)"}}}}
+  - {id: Q12, title: C-202 HCN condenser, kind: energy, from: C202.cw, to: CW.c202, state: {design: {duty: {value: 1749.7, provenance: assumed, source: "scripts/nacn_balance.py: reflux ratio 1 (D-007)"}}}}
+  - {id: Q13, title: R-401 neutraliser cooler, kind: energy, from: R401.cw, to: CW.r401, state: {design: {duty: {value: 427.0, provenance: assumed, source: "scripts/nacn_balance.py: heat of neutralisation about 12 kJ/mol HCN, ASSUMED (D-008)"}}}}
+  - {id: Q14, title: E-401 vapour condenser, kind: energy, from: E401.cw, to: CW.e401, state: {design: {duty: {value: 4709.7, provenance: assumed, source: "scripts/nacn_balance.py (D-008)"}}}}
+  - {id: Q15, title: C-201 absorber chilled-water coolers, kind: energy, from: C201.chw, to: CHW.c201, state: {design: {duty: {value: 1667.4, provenance: assumed, source: "scripts/nacn_balance.py: gas 308 -> 283 K, condensation, heat of absorption of HCN (D-007)"}}}}
+  - {id: Q16, title: E-202 lean water chiller, kind: energy, from: E202.chw, to: CHW.e202, state: {design: {duty: {value: 3117.8, provenance: assumed, source: "scripts/nacn_balance.py: bottoms 298 -> 278 K (D-007)"}}}}
 layout: {bfd: {}, pfd: {}}

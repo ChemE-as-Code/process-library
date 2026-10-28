@@ -1,3 +1,57 @@
 # Equipment list. Schema: `cheme schema equipment`.
+# Concept stage: the items the PFD (process/flowsheet.yaml) needs, no P&ID yet (no sheet).
+# Design pressure and temperature are ASSUMED concept values (DESIGN.md D-010): highest operating
+# value of the balance (scripts/nacn_balance.py) + 10 % (at least 3.5 barg) and + 25 K; vacuum
+# items also full vacuum. Several lumped PFD steps stand for more than one item (noted). Sizes,
+# dimensions and weights come at basic engineering (datasheets). Materials are open inputs
+# (wet HCN, ammonium phosphate, hot caustic cyanide: stress-corrosion and polymerisation
+# questions), named here only as a first indication.
 schema: cheme/equipment/v1
-equipment: []
+equipment:
+  # ---- HCN synthesis (block RXN)
+  - {tag: E-001, type: TubularHeatExchanger, service: Ammonia vaporiser,
+     design_pressure_barg: 14, design_temperature_degc: 65, material: CS,
+     notes: "2.73 t/h liquid ammonia from ammonia-1 vaporised at 1100 kPa(a), ~0.9 MW LP steam (D-010). ASSUMED."}
+  - {tag: K-101, type: CentrifugalCompressor, service: Process air blower,
+     design_pressure_barg: 3.5, design_temperature_degc: 125, material: CS,
+     notes: "31.4 t/h air, 101 -> 180 kPa(a), ~0.63 MW shaft at isentropic efficiency 0.75 (D-005). Electric drive ASSUMED; filtered intake."}
+  - {tag: M-101, type: Vessel, service: Converter feed mixer,
+     design_pressure_barg: 3.5, design_temperature_degc: 100, material: "stainless (iron is a gauze poison)",
+     notes: "Static mixer for methane, ammonia and air below the gauze; the mixture is flammable (D-005): flame arrest, oxygen/fuel ratio trips and rupture discs to be settled at basic engineering. ASSUMED."}
+  - {tag: R-101, type: Vessel, service: "Andrussow converter (Pt/Rh gauze pack)",
+     design_pressure_barg: 3.5, design_temperature_degc: 1180, material: "refractory-lined, stainless shell (open input)",
+     notes: "Pt/Rh 90/10 gauze, adiabatic, 349 -> 1429 K, 160-170 kPa(a) (D-004). Gauze area not sized: US 6,596,251 B2 reports about 300 kg HCN per h and m2 of gauze in air operation, which gives roughly 11 m2 for 3.4 t/h HCN, split over several converters (ASSUMED until a licensor basis exists). Close-coupled to E-101."}
+  - {tag: E-101, type: TubularHeatExchanger, service: Waste heat boiler (MP steam 1500 kPa(a)),
+     design_pressure_barg: 3.5, design_temperature_degc: 1180, material: "gas side: refractory/alloy inlet, CS beyond (open input); steam side design 17 barg, 225 C",
+     notes: "Converter gas 1429 -> 523 K, ~15.2 MW raising saturated MP steam (D-010). ASSUMED."}
+  # ---- ammonia recovery (block NH3R)
+  - {tag: C-101, type: ProcessColumn, service: "Ammonia absorber (ammonium phosphate solution) with solution stripper and ammonia column (lumped)",
+     design_pressure_barg: 3.5, design_temperature_degc: 275, material: "stainless (ammonium phosphate, HCN; open input)",
+     notes: "Stands for the absorber, the rich-solution stripper, the ammonia rectifier and their coolers and pumps (D-006). 99 % of the converter NH3 recycled, ~3.8 MW LP steam, ~8.7 MW cooling water. ASSUMED."}
+  # ---- HCN absorption and refining (block HCNR)
+  - {tag: C-201, type: ProcessColumn, service: HCN absorber (chilled water),
+     design_pressure_barg: 3.5, design_temperature_degc: 85, material: "stainless (acidified HCN water; open input)",
+     notes: "Gas 333 -> 283 K, lean water 278 K, 137.7 t/h rich water with 2.5 wt% HCN, 99.9 % HCN recovery (D-007). Precooler ~2.2 MW cooling water, absorber coolers ~1.7 MW chilled water. ASSUMED."}
+  - {tag: C-202, type: ProcessColumn, service: HCN stripper and rectifier,
+     design_pressure_barg: 3.5, design_temperature_degc: 140, material: "stainless (open input); HCN stabilised with acid against polymerisation (D-007)",
+     notes: "Liquid HCN 99.5 wt% overhead, 3.39 t/h; reboiler ~3.3 MW LP steam, condenser ~1.7 MW cooling water; feed/bottoms interchanger included (D-007). ASSUMED."}
+  - {tag: E-202, type: TubularHeatExchanger, service: Lean water chiller,
+     design_pressure_barg: 3.5, design_temperature_degc: 50, material: stainless,
+     notes: "134 t/h, 298 -> 278 K, ~3.1 MW chilled water (D-007). ASSUMED."}
+  # ---- neutralisation, crystallisation and drying (block NACNS)
+  - {tag: R-401, type: Vessel, service: Neutraliser (HCN + NaOH),
+     design_pressure_barg: 3.5, design_temperature_degc: 95, material: "stainless or nickel alloy (hot caustic cyanide; open input)",
+     notes: "Liquid HCN into 50 wt% caustic with free NaOH kept, 343 K, ~0.43 MW to cooling water (D-008). ASSUMED."}
+  - {tag: CR-401, type: Vessel, service: "Vacuum evaporative crystalliser with centrifuge (lumped)",
+     design_pressure_barg: 3.5, design_temperature_degc: 95, material: "nickel alloy or stainless (open input)",
+     notes: "343 K, 13.3 kPa(a) (US 4,847,062 A examples 6-7), 7.0 t/h water evaporated with ~4.5 MW LP steam (single effect; MVR or multiple effect open), centrifuge cake 10 wt% liquor, all filtrate recycled (D-008). Full vacuum design. ASSUMED."}
+  - {tag: D-401, type: Vessel, service: Indirect steam vacuum dryer and briquetting press (lumped),
+     design_pressure_barg: 3.5, design_temperature_degc: 120, material: stainless,
+     notes: "6.5 t/h cake to 6.25 t/h product with 1 wt% water, ~0.22 MW LP steam (D-008). Dust filter on the vapour. ASSUMED."}
+  - {tag: E-401, type: TubularHeatExchanger, service: Crystalliser and dryer vapour condenser,
+     design_pressure_barg: 3.5, design_temperature_degc: 105, material: stainless,
+     notes: "7.27 t/h vapour condensed, ~4.7 MW cooling water; vacuum pump not listed separately (D-008). Full vacuum design. ASSUMED."}
+  # ---- tail gas boiler (block TGB)
+  - {tag: B-301, type: Furnace, service: Tail gas boiler (MP steam 1500 kPa(a)),
+     design_pressure_barg: 3.5, design_temperature_degc: 1400, material: "boiler (open input)",
+     notes: "27.3 t/h tail gas (16 mol% H2, 4.8 mol% CO, LHV ~17.3 MW) burned with 15 % excess air, ~15.4 MW MP steam, stack 423 K (D-009). Combustion air fan in the power lump. ASSUMED."}

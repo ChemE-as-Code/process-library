@@ -1,0 +1,82 @@
+# Reactions of sodium-cyanide-1 (DESIGN.md D-004, D-008, D-009). Schema: `cheme schema
+# process-reactions`. No rate law is used anywhere: the converter R-101 is a conversion reactor
+# whose conversions reproduce a sourced HCN yield and a sourced converter-gas composition
+# (D-004); the neutraliser, the dryer and the tail-gas boiler are complete conversions.
+# Heats of reaction are not written: cheme computes the gas-phase ones from the ideal-gas
+# formation data of process/materials.yaml.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  # ---- converter R-101 (Pt/Rh gauze)
+  - id: ANDRUSSOW
+    equation: CH4 + NH3 + 3/2 O2 -> HCN + 3 H2O
+    stoichiometry: {CH4: -1.0, NH3: -1.0, O2: -1.5, HCN: 1.0, H2O: 3.0}
+    reversible: false
+    conversion: {key: NH3, value: 0.629, provenance: given, source: "US 6,596,251 B2 (Degussa, 2003), Table 2 run 1 (air only, O2/NH3 1.15, CH4/NH3 0.98): HCN yield 62.9 % on NH3 fed (D-004)"}
+    catalyst: PT_RH_HCN
+    sources:
+      - "US 6,596,251 B2 (Degussa, 2003), background: overall reaction and its enthalpy (-473.9 kJ)"
+  - id: NH3_DEC
+    equation: 2 NH3 -> N2 + 3 H2
+    stoichiometry: {NH3: -2.0, N2: 1.0, H2: 3.0}
+    reversible: false
+    conversion: {key: NH3, value: 0.175711, provenance: assumed, source: "scripts/nacn_balance.py: leaves unconverted NH3 at the NH3/HCN mole ratio 0.311 of the commercial converter gas of US 4,847,062 A, Example 1 (D-004)"}
+    catalyst: PT_RH_HCN
+    # The ammonia not converted to HCN and not found unconverted at the outlet is lost to N2
+    # (lumped loss path; D-004).
+  - id: CH4_REF
+    equation: CH4 + H2O -> CO + 3 H2
+    stoichiometry: {CH4: -1.0, H2O: -1.0, CO: 1.0, H2: 3.0}
+    reversible: false
+    conversion: {key: CH4, value: 0.282149, provenance: assumed, source: "scripts/nacn_balance.py: carbon not in HCN, CO2 or residual CH4 (CH4/HCN 0.018 of US 4,847,062 A, Example 1) leaves as CO (D-004)"}
+    catalyst: PT_RH_HCN
+    # Lumped CO formation path (partial oxidation and reforming are not distinguished; the
+    # oxygen balance is closed by H2_OX). D-004.
+  - id: CH4_COMB
+    equation: CH4 + 2 O2 -> CO2 + 2 H2O
+    stoichiometry: {CH4: -1.0, O2: -2.0, CO2: 1.0, H2O: 2.0}
+    reversible: false
+    conversion: {key: CH4, value: 0.064262, provenance: assumed, source: "scripts/nacn_balance.py: CO2 at the CO2/HCN mole ratio 0.100 of US 4,847,062 A, Example 1 (D-004)"}
+    catalyst: PT_RH_HCN
+  - id: H2_OX
+    equation: H2 + 1/2 O2 -> H2O
+    stoichiometry: {H2: -1.0, O2: -0.5, H2O: 1.0}
+    reversible: false
+    conversion: {key: O2, value: 0.069041, provenance: assumed, source: "scripts/nacn_balance.py: burns the oxygen left by the other reactions down to 0.1 % of the O2 fed (oxygen conversion practically complete, US 6,596,251 B2 background; D-004)"}
+    catalyst: PT_RH_HCN
+  # ---- neutraliser R-401
+  - id: NEUTR
+    equation: HCN + NaOH(aq) -> NaCN(aq) + H2O
+    stoichiometry: {HCN: -1.0, NAOH: -1.0, NACN: 1.0, H2O: 1.0}
+    reversible: false
+    conversion: {key: HCN, value: 1.0, provenance: assumed, source: "D-008: caustic in excess (free NaOH kept in the liquor), HCN taken up completely"}
+    sources:
+      - "US 4,847,062 A (Du Pont, 1989): HCN absorbed in aqueous NaOH keeping free NaOH in the liquor"
+  # ---- crystalliser CR-401 and dryer D-401: dissolved NaCN becomes the solid (a phase change
+  # written as a reaction so that the balance accounts for the separate solid component);
+  # extents from the stream values of scripts/nacn_balance.py (D-008)
+  - id: NACN_CRYST
+    equation: NaCN(aq) -> NaCN(s)
+    stoichiometry: {NACN: -1.0, NACN_S: 1.0}
+    reversible: false
+  # ---- tail gas boiler B-301 (complete combustion, 15 % excess air, D-009)
+  - id: H2_COMB
+    equation: H2 + 1/2 O2 -> H2O
+    stoichiometry: {H2: -1.0, O2: -0.5, H2O: 1.0}
+    reversible: false
+    conversion: {key: H2, value: 1.0, provenance: assumed, source: "D-009: complete combustion"}
+  - id: CO_COMB
+    equation: CO + 1/2 O2 -> CO2
+    stoichiometry: {CO: -1.0, O2: -0.5, CO2: 1.0}
+    reversible: false
+    conversion: {key: CO, value: 1.0, provenance: assumed, source: "D-009: complete combustion; residual CO is an emission estimate gap (lca/lca.yaml)"}
+  - id: CH4_BURN
+    equation: CH4 + 2 O2 -> CO2 + 2 H2O
+    stoichiometry: {CH4: -1.0, O2: -2.0, CO2: 1.0, H2O: 2.0}
+    reversible: false
+    conversion: {key: CH4, value: 1.0, provenance: assumed, source: "D-009: complete combustion"}
+  - id: HCN_COMB
+    equation: HCN + 5/4 O2 -> CO2 + 1/2 H2O + 1/2 N2
+    stoichiometry: {HCN: -1.0, O2: -1.25, CO2: 1.0, H2O: 0.5, N2: 0.5}
+    reversible: false
+    conversion: {key: HCN, value: 1.0, provenance: assumed, source: "D-009: complete destruction; the fuel-nitrogen fraction to NOx is not known and is an emission gap (lca/lca.yaml)"}
