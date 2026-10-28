@@ -1,0 +1,50 @@
+# Equipment list. Schema: `cheme schema equipment`.
+# As far as the PFD requires (concept stage): tags, types and services of the flowsheet steps,
+# the duty basis from scripts/balance.py (D-006). Design pressures, temperatures, materials and
+# sizes are not set yet (basic engineering); materials named are the usual service choices for
+# dry phosphorus chlorides, to be confirmed (open input). All values ASSUMED. Everything that
+# holds PCl3 or POCl3 is kept dry and nitrogen padded; vents go to T-401 (D-011).
+schema: cheme/equipment/v1
+equipment:
+  # ---- PCl3 synthesis (block PCL3)
+  - {tag: R-101, type: Vessel, service: "PCl3 reactor-still (agitated, boiling PCl3 with a phosphorus heel, chlorine sparged)",
+     notes: "Molten P4 0.81 t/h and Cl2 2.81 t/h; 2.44 MW of reaction heat boils PCl3 at about 349 K (D-004). Agitator allowance 11 kW (D-010). Hold-up and size not set; phosphorus heel and mud removal open (D-003)."}
+  - {tag: E-101, type: TubularHeatExchanger, service: R-101 reflux condenser (cooling water),
+     notes: "2.44 MW to cooling water; condensed PCl3 drawn off to V-101 (D-007)."}
+  - {tag: V-101, type: Vessel, service: PCl3 receiver,
+     notes: "3.63 t/h crude PCl3 (5.4 mol% POCl3) to M-201/R-201 (D-006)."}
+  - {tag: E-102, type: TubularHeatExchanger, service: R-101 vent condenser (chilled water),
+     notes: "Vent cooled to 283 K, 0.05 kW; 1.9 kg/h vent to T-401 (D-007)."}
+  - {tag: P-101, type: CentrifugalPump, service: Crude PCl3 transfer pump,
+     notes: "3.63 t/h, 300 kPa differential ASSUMED (D-010). Sealless (canned or magnetic drive) for PCl3, to be confirmed."}
+  # ---- PCl3 oxidation (block OXID)
+  - {tag: R-201, type: Vessel, service: "PCl3 oxidation loop reactor (oxygen sparged into circulating liquid)",
+     notes: "3.66 t/h PCl3 feed (with recycle) and 0.42 t/h O2 (5 % excess); 313-363 K, 130 kPa(a); 1.91 MW removed through E-201 (D-005). Vapour space kept away from the explosive PCl3-O2 range noted in US4183905 (D-011)."}
+  - {tag: E-201, type: TubularHeatExchanger, service: R-201 loop cooler (cooling water),
+     notes: "1.91 MW to cooling water, 382 t/h circulation with 20 K rise (D-005)."}
+  - {tag: P-201, type: CentrifugalPump, service: R-201 circulation pump,
+     notes: "382 t/h, 300 kPa ASSUMED, about 36 kW (D-010)."}
+  - {tag: V-201, type: Vessel, service: R-201 gas separator,
+     notes: "Crude POCl3 4.06 t/h (0.47 mol% PCl3) to C-301 via P-202 (D-006)."}
+  - {tag: E-202, type: TubularHeatExchanger, service: R-201 vent condenser (chilled water),
+     notes: "Vent cooled to 283 K (above the 274 K melting point of POCl3), 0.4 kW; 23.4 kg/h vent to T-401 (D-007)."}
+  - {tag: P-202, type: CentrifugalPump, service: Crude POCl3 pump to C-301,
+     notes: "4.06 t/h, 300 kPa ASSUMED (D-010)."}
+  # ---- distillation (block FRAC)
+  - {tag: C-301, type: ProcessColumn, service: Light-ends column (PCl3 recycle),
+     notes: "Distillate 36 kg/h (50 mol% PCl3) recycled to R-201; reflux ratio 3; reboiler 65.4 kW LP steam, condenser 8.9 kW cooling water (D-008). Stages not calculated (no VLE package, D-006)."}
+  - {tag: P-301, type: CentrifugalPump, service: C-301 reflux and recycle pump,
+     notes: "D-010."}
+  - {tag: C-302, type: ProcessColumn, service: POCl3 product column,
+     notes: "POCl3 4.0 t/h overhead, residue 20 kg/h; reflux ratio 0.5; reboiler 376 kW LP steam, condenser 376 kW cooling water (D-008)."}
+  - {tag: P-302, type: CentrifugalPump, service: C-302 reflux and product pump,
+     notes: "D-010."}
+  - {tag: P-303, type: CentrifugalPump, service: C-302 residue pump,
+     notes: "20 kg/h to drums or the residue tank (D-008)."}
+  - {tag: E-303, type: TubularHeatExchanger, service: POCl3 product cooler (cooling water),
+     notes: "379 -> 308 K, 71 kW (D-008)."}
+  # ---- vent scrubbing (block SCRUB)
+  - {tag: T-401, type: ProcessColumn, service: Caustic vent scrubber (packed),
+     notes: "Vents of V-101 and V-201 (25 kg/h) against 18 wt% NaOH, 1.5 x stoichiometric; 99.99 % of PCl3, POCl3 and Cl2 destroyed (D-009). Tank and equipment vents also routed here (D-011)."}
+  - {tag: P-401, type: CentrifugalPump, service: Scrubber liquor circulation pump,
+     notes: "20 m3/h, 300 kPa ASSUMED, 3 kW (D-010)."}
