@@ -90,8 +90,10 @@ the concentrate. ASSUMED. Vacuum by liquid-ring/dry pumps (power), not steam eje
 would add effluent, S1 8.3.2.2).
 
 ## D-007 Acid, caustic and wash water (2026-10-28)
-Decision: 102 kg/h 98 wt% H2SO4 (about 0.2 wt% of the concentrate; S3 gives 0.01-5 wt%,
-preferably 0.1-2 %), neutralised with stoichiometric 50 wt% NaOH; 1 000 kg/h wash water keeps
+Decision: 102 kg/h 98 wt% H2SO4 (about 0.2 wt% of the concentrate), ASSUMED: S1 8.2.2.3
+supports a sulfuric acid catalyst but gives no loading. The 0.01-5 wt% (preferably 0.1-2 %)
+from S3's abstract is a pointer only, because the full text was not audited, so it is not
+the basis of the value. The acid is neutralised with stoichiometric 50 wt% NaOH; 1 000 kg/h wash water keeps
 Na2SO4 near 11 wt% in the brine. ASSUMED. Neutralisation with sodium phenate or ion exchange
 resins (S1 8.2.2.3) not modelled; caustic washing of the recycled cumene not modelled.
 
@@ -108,8 +110,13 @@ finishing (99.7 wt% acetone, 0.3 wt% water; bottoms water and methanol with 0.5 
 acetone), C403 cumene/AMS cut, C404 phenol (crude phenol and finishing lumped; phenol 100 %
 in the model; tar with 5 wt% phenol). Sharp splits otherwise. ASSUMED. Aldehyde caustic
 treatment, mesityl oxide, 2-methylbenzofuran and the phenol purification resins are not
-modelled. Result: acetone 0.629 t/t phenol (S2: 0.616; the model has no acetone condensation
-losses).
+modelled. Result: product acetone 0.629 t/t phenol, or 0.627 t pure acetone per t, against
+S2's 0.616. This is **above the stoichiometric ratio of 0.617 t/t** (58.08/94.11), because
+phenol carries losses (cumylphenol, tar, brine) while acetone loses only 15 kg/h (brine and
+C402 bottoms). Real plants also lose acetone to mesityl oxide, diacetone alcohol,
+hydroxyacetone and the vents, and none of these is modelled. The functional unit is 1 kg
+acetone, so the per-kg burdens are understated by about 1-2 %. This stays open with I-05,
+where the acetone side reactions should come with a sourced loss.
 
 ## D-010 Spent-air recovery (2026-10-28)
 Decision: A101 lumps the condensers and activated carbon adsorbers; cumene recovered to the
@@ -123,10 +130,22 @@ bar (25 228 kW at 1 912 kJ/kg latent heat), LP steam 0.65 t/t at 5 bar (midpoint
 101.3 to 600 kPa(a), isothermal efficiency 0.75, ASSUMED); the rest of the power split
 ASSUMED between the concentration (1 000 kW) and fractionation (1 034 kW) vacuum systems. Steam
 split between the four columns ASSUMED. Cooling water: each condenser rejects its reboiler
-duty (ASSUMED); oxidation, cleavage and hydrogenation heats from ideal-gas formation enthalpies
-(S4; gas basis, screening), the compression heat into the oxidiser coolers; neutralisation
-about 57 kJ per mol water (ASSUMED). Total 61 903 kW to cooling water against 63 607 kW in
-(steam, power, reaction heats): an independent closure within 2.7 %.
+duty (ASSUMED). The oxidation, cleavage and hydrogenation heats are calculated from ideal-gas
+formation enthalpies (S4; gas basis, screening), and the compression heat goes into the
+oxidiser coolers. Neutralisation is about 57 kJ per mol water (ASSUMED). The spent-air
+condensers Q10 (1 260 kW) are a hand estimate, recorded on the stream: gas sensible heat plus
+cumene condensing. The first value, 330 kW, counted only the condensing (review
+2026-10-28#3).
+Known bias of the reaction heats: CHP formation uses the gas-basis -82.4 kJ/mol, while
+liquid-phase heats of cumene oxidation in the literature are about -115 to -120 kJ/mol (from
+the review; not yet sourced here). OX_DMBA and OX_ACP carry no heat: they are omitted, not
+zero. Q09 (oxidiser cooling) is therefore probably understated by about 30 %. The heats keep
+`provenance: given` in reactions.yaml because the schema allows only given or assumed; their
+`source` says they were calculated from formation enthalpies.
+Total to cooling water 62 833 kW against 63 607 kW in (steam, power, reaction heats). This
+is a consistency check, not an independent closure. The condensers are set equal to their
+own steam input, so most of the agreement holds by construction. Only the reaction heats,
+the compression and Q10 are compared, and the bias above sits inside them.
 Rejected: S1's second data set (6.32 t/t steam, 326 kWh/t), which is a less integrated plant;
 the spread is the main uncertainty of the utility inventory.
 Gated: an enthalpy balance by cheme needs a property package for the polar
@@ -158,6 +177,24 @@ storage outside the boundary; tar combustion belongs to its treatment; vacuum/fr
 vents and the oxidiser off-gas methane not in the flowsheet (I-04). Construction, catalysts
 (Pd, activated carbon replacement) and transport not included.
 
+## D-016 Aqueous effluent is a lower bound (2026-10-28)
+The modelled aqueous effluent product:WW (brine S16 plus C402 bottoms S21) is 1 603 kg/h,
+which is 64 kg/t phenol or 0.039 kg per kg acetone. Process water in is 40 kg/t. The S1
+register gives "water 1-4 t/t" (8.3.5), 15 to 60 times more. This run did not re-read 8.3.5
+to see whether that figure is water use or waste water volume, so it is not used as a
+value. The missing water is known by stream:
+- the water and acetone recycle to cleavage (D-005, S1 8.3.2.2);
+- the cumene caustic wash (D-007);
+- the phenol recovery extraction and the aldehyde treatment (I-05);
+- the vacuum systems, which add effluent only if steam ejectors are used (D-006 chose
+  pumps);
+- cooling-tower blowdown and steam condensate losses, which belong to the utility
+  backgrounds and not to WW.
+Decision: no effluent allowance is added. A number without a source would only look
+precise. Instead, the WW quantity is flagged as a lower bound in the `product:WW` source
+in lca/lca.yaml. Once a WW background is mapped, its burden will be understated until
+I-05 adds these streams or a sourced allowance replaces them (I-11).
+
 ## Results (generated values are in the files)
 
 - Balances: `cheme process streams`: every block and step closes within 1 kg/h; the oxidiser,
@@ -168,7 +205,7 @@ vents and the oxidiser off-gas methane not in the flowsheet (I-04). Construction
 - LCI per kg acetone (mass allocated, lca/inventory.csv): inputs 2.0264 kg (cumene 0.8163, air
   1.1785, H2 0.00059, acid 0.0025, caustic 0.0040, water 0.0246) = outputs 2.0264 kg (acetone
   1, tar 0.0286, effluent 0.0394, vent 0.9584); power 0.117 kWh, LP steam 0.234 kWh, MP steam
-  0.620 kWh, cooling water 1.520 kWh. `cheme assess lca --coverage`: mass, element and carbon
+  0.620 kWh, cooling water 1.543 kWh (1.520 before Q10 was re-estimated, D-011). `cheme assess lca --coverage`: mass, element and carbon
   balances closed; 13 gaps; result class "partial screening", no impact claimed.
 
 ## Open items
@@ -193,4 +230,7 @@ vents and the oxidiser off-gas methane not in the flowsheet (I-04). Construction
   core leaves the default `method: mass` out of `lca/dataset.yaml`, and build_lci.py (line
   ~863) compares it as None. Fix in the library (read a missing method as `mass`); acetone-1
   is the first mass-allocated process. The other warning (cut-off criteria need core) is the
-  same for every process in an environment without core.
+  same for every process in an environment without core. Worked around in the folder (lca/lca.yaml
+  leaves the default method unset); the library fix is still due.
+- I-11 Aqueous effluent (D-016): re-read S1 8.3.5 to see whether its 1-4 t/t is water use
+  or waste water volume, and add the missing effluent streams or a sourced allowance.
