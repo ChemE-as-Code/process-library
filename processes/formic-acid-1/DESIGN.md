@@ -22,7 +22,7 @@ the section).
 | SRC-1 | US4216339A, UCB SA (Couteau, Ramioulle), granted 1980-08-05: process for the production of methyl formate | description (70-110 C, preferably 75-85; 20-110 bar; 0.2-4 wt% alkali methoxide, preferably 0.4-2.5 %; CO/methanol 0.30-0.85 mol/mol; CO water < about 5 ppm, methanol < about 100 ppm; water forms sodium formate which precipitates and deactivates); equilibrium table (at 80 C the conversion limit rises from about 20 % at 20 bar to 85 % at 80 bar); Example 1 (80 C, 44 bar, pure CO: methanol conversion 30 % = 75 % of the about 40 % limit, CO yield 92 mol%, methanol yield practically quantitative, ester distilled off and the methanol with the catalyst recycled); Example 2 (36 % conversion cuts productivity, stay below 75-85 % of the limit); Example 3 (formate filtered from the recycle) | read; patent document (facts only) | D-005, D-007 |
 | SRC-2 | EP2747883A1, Taminco BV (Pasek, Trejbal, Roose), published 2014-07-02: process of formic acid production by hydrolysis of methyl formate | background (hydrolysis K = 0.18-0.24; water/ester 0.8-7 in earlier processes; reverse esterification in the columns and decomposition to CO of earlier processes; prior-art reboiler duty about 2400 kWh per t of 85 % acid); description (hydrolysis 90-140 C, 2-7 bar, autocatalysed by formic acid, slow without it; decomposition to CO and water from about 140 C; fresh ester holds 4-6 % methanol, recovered ester up to 1-2 %; vacuum rectification at 8-20 kPa, preferably 10-13, at most about 60 C, giving 85-90 % acid overhead and 63-66 % bottoms recycled to the hydrolysis; about 2.5 t steam per t of 85 % acid for the invention) | read; patent document (facts only) | D-008, D-009, D-011 cross-check |
 | SRC-3 | EP3661904B1 (A1 2020-06-10, B1 2026-01-07), Eastman Chemical Co.: formic acid using low-boiling formate esters | definitions (water / formic acid maximum-boiling azeotrope; water/acid mass ratios about 42/58 at 0.04 bar(a), 40/60 at 0.067, 25/75 at 1.013, 20/80 at 2.03, 17/83 at 3.04, 16/84 at 4.05); background (conventional pressure-swing distillation: high-pressure column takes water overhead and leaves the azeotrope, a low-pressure column gives 90-99 % acid overhead and recycles its bottoms; methyl formate hydrolysis only 25-30 % converted even at water/ester 2; 3-4 t ester recycled per t acid); examples (Kx 0.18; 32 % at water/ester 1.82 and 28 % at 1.42) | read (first 100 000 characters of the page); patent document (facts only) | D-004, D-008, D-009 |
-| SRC-4 | US4299981: preparation of formic acid by hydrolysis of methyl formate | claims and abstract as returned by a web search (liquid-phase hydrolysis 90-140 C, 5-18 atm, ester/water 1.5-10 mol/mol; reactor sized for at least 95 % of equilibrium) | full text not read; patent document | D-008 (95 % approach) |
+| SRC-4 | US4299981: preparation of formic acid by hydrolysis of methyl formate | claims and abstract as returned by a web search (liquid-phase hydrolysis 90-140 C, 5-18 atm, a molar ratio of ester and water of 1.5-10 whose direction the search text leaves unclear (the reactions.yaml entry had it as MF/water; it covers the design's water/MF 1.5 only if it is water/ester); reactor sized for at least 95 % of equilibrium) | full text not read: an unverified lead, no value is taken from it as given (review R-05) | D-008 (95 % approach, ASSUMED) |
 | SRC-5 | MDPI *Catalysts* 11 (2021) 869 (open access) | introduction, as summarised by a web search: conventional carbonylation with 2.5 wt% sodium methoxide at 80 C and 4.5 MPa, about 30 % methanol conversion, high selectivity | identified, not read in full | corroborates D-005 |
 | SRC-6 | Formic Acid, *Ullmann's Encyclopedia of Industrial Chemistry*, doi:10.1002/14356007.a12_013.pub3 | - | not read (licensed); the issue's reference lead | none |
 | SRC-7 | cheme chemistry thermo / props (chemicals and thermo packages: ATcT, CRC, Poling 5th ed., Thermo vapour pressures and heats of vaporization) | printed per component in process/materials.yaml and scripts/balance.py | open data packages | ideal-gas data, boiling points, vapour pressures at 313 K, heats of vaporization |
@@ -113,7 +113,14 @@ association of formic acid (core #315).
 ## D-007 Carbonylation separation, catalyst loss and purge (2026-10-28)
 Decision: The effluent is cooled to 313 K (E-101); V-101 sends all CO and N2 with methyl formate
 and methanol vapour by Raoult's law (Thermo vapour pressures at 313 K) to the vent; dissolved CO
-neglected. C-101 (250 kPa(a), so that the ester condenses against cooling water) takes all the
+neglected in the split. Its size (review R-03), ASSUMED order of magnitude: CO solubility in
+methanol about 3e-4 mole fraction per atm (reviewer's estimate, no source read) at a CO partial
+pressure of about 38 atm gives x about 0.013 in the 393 kmol/h of S10, i.e. about 5 kmol/h CO
+(140 kg/h, 22 g/kg product, half the vent CO) leaving dissolved and released at the C-101
+condenser. The C-101 condenser vent must therefore go to X-101 (basic engineering): then the
+CO burnt, the oxidiser CO2 and the LCI are unchanged, only the S9 / column-vent split is not
+representative. Vented unburnt it would exceed the 1 % cut-off (13 g/kg), so it is not a
+negligible exclusion but a routing requirement (`lca/lca.yaml` column-vents). C-101 (250 kPa(a), so that the ester condenses against cooling water) takes all the
 ester overhead with 4 wt% methanol (SRC-2: fresh ester holds 4-6 %); its bottoms (methanol,
 methoxide, sodium formate) are recycled, 1 % purged to incineration (ASSUMED purge fraction, no
 source; sets the sodium formate level). Catalyst loss: all water reaching the reactor (the 100
@@ -124,7 +131,8 @@ Assumptions: no other methoxide loss (CO2 in the CO would add one); the formate 
 
 ## D-008 Hydrolysis and ester / methanol recovery (2026-10-28)
 Decision: R-201 at 393 K and 600 kPa(a), water/methyl formate 1.5 mol/mol at the inlet, the
-recycled 66 wt% acid as catalyst. Conversion = 95 % (SRC-4) of the equilibrium conversion of the
+recycled 66 wt% acid as catalyst. Conversion = 95 % (ASSUMED; SRC-4 is an unverified lead, its
+full text not read, review R-05) of the equilibrium conversion of the
 actual feed with Kx = 0.20 (mid of SRC-2's 0.18-0.24; SRC-3 gives 0.18): 28.9 % per pass, inside
 SRC-3's 28-32 % at 1.42-1.82 and 25-30 % generally. The recycled ester (C-201 distillate,
 17.0 t/h MF) is 3.2 t per t HCOOH, inside SRC-3's 3-4 t/t; the hydrolyser sees 24.0 t/h MF. Core confirms ln(Q/K) = -0.11
@@ -132,7 +140,7 @@ at the outlet with the given Kx. C-201 takes all the ester overhead with 2 wt% m
 C-202 dry methanol overhead (100 ppm water, SRC-1) back to the carbonylation; the 48.9 wt% acid
 goes to C-301. Heat of hydrolysis +8 kJ/mol ASSUMED (nearly thermoneutral; core's ideal-gas
 value is +20.1 kJ/mol, which does not apply to the liquid; no sourced liquid value was read:
-open input, 0.26 MW of 22.7 MW steam either way).
+open input, 0.26 MW of 27.9 MW steam either way).
 Assumptions: reverse esterification in C-201/C-202 and decomposition of formic acid are
 neglected (SRC-2 reports both as losses of earlier processes: an open risk for the yield);
 splits sharp otherwise.
@@ -161,14 +169,24 @@ feed preheater (340 -> 393 K, cp 3.0 kJ/(kg K)) and the hydrolysis heat; cooling
 for condensers, the reactor, the effluent cooler and the compressor intercoolers. Reboiler duty
 = (R+1) x distillate x heat of vaporization (methyl formate 27.7, methanol 35.3, water 40.7,
 formic acid 20.0 kJ/mol; SRC-7 or ASSUMED near the column top), condenser duty equal; reflux
-ratios ASSUMED: C-101 1.0, C-201 1.0, C-202 1.5, C-301 1.0, C-302 1.5. Feed preheat in the
+ratios ASSUMED: C-101 1.0, C-201 1.0, C-202 1.5, C-301 2.4, C-302 1.5. Feed preheat in the
 columns, heat losses and the product pump are not counted; vacuum system 15 kW allowance.
-Result: 22.7 MW LP steam heat (3.64 kWh/kg product), 22.6 MW to cooling water, 0.53 MW power.
+C-301 (review R-01): water / formic acid has a low relative volatility on the way to the
+azeotrope, so its reflux is set from a minimum-reflux estimate, `scripts/c301_rmin.py`: Thermo
+vapour pressures, ideal vapour (acid association not modelled), a one-parameter Margules liquid
+fitted so that the azeotrope lies at 80 wt% acid at 203 kPa(a) (SRC-3; A = -0.81, 130.5 C),
+saturated liquid feed. Relative volatility 1.69 at the feed (49 wt%); both sections pinch at the
+feed, R_min = 1.96 (the earlier R = 1.0 was below it); R = 2.4 = 1.2 R_min ASSUMED. The estimate
+is a shortcut on a fitted activity model, uncertain in both directions; a rigorous VLE basis
+replaces it (D-014). E-201 duty from the S19 temperature 340 K (review R-02).
+Result: 27.9 MW LP steam heat (4.46 kWh/kg product; C-301 13.3 MW of it), 28.0 MW to cooling
+water, 0.53 MW power.
 Cross-check: SRC-2 quotes about 2400 kWh/t of 85 % acid for the reboilers of prior art; the
-shortcut is about 1.5 times that, plausibly because there is no heat integration (a feed-effluent
+shortcut is about 1.9 times that, plausibly because there is no heat integration (a feed-effluent
 exchanger at R-201, condensing the C-301 vapour in another reboiler, vapour recompression) and
-the reflux ratios are not optimised. Kept as the conservative concept value; to be replaced by a
-rigorous column design (gated, D-006).
+the other reflux ratios are not optimised. Not a conservative bound: the C-301 term rests on a
+fitted VLE model and the other reflux ratios are not checked against their minima; the steam
+figure is uncertain in both directions until a rigorous column design (gated, D-006).
 
 ## D-012 Preliminary gate-to-gate LCI (2026-10-28)
 Decision: `lca/lca.yaml`: functional unit 1 kg formic acid 85 wt% at the gate (stream S28);
@@ -183,9 +201,12 @@ reasons: oxidiser NOx, fugitive emissions (no P&ID), column vents (dissolved CO 
 formic acid decomposition. Construction, transport and end of life not included.
 Result (`cheme assess lca --coverage`): mass, element and carbon-origin balances closed (inputs
 1.3009 kg = outputs 1.3009 kg per kg product); no impact totals (every background a gap).
-Per kg product: CO 0.568 kg (theoretical 0.517 kg at 92 % yield on the 99 mol% gas), methanol
+Per kg product: stoichiometric 0.517 kg CO; 0.568 kg of 99 mol% gas at 92 % CO yield; methanol
 12.5 g, NaOMe solution 2.3 g, water 0.483 kg (0.333 kg reacted + 0.150 kg in the product), air
-0.235 kg, power 0.084 kWh, LP steam 3.64 kWh, cooling water 3.61 kWh, purge 14.1 g, CO2 72.4 g.
+0.235 kg, power 0.084 kWh, LP steam 4.46 kWh, cooling water 4.49 kWh, purge 14.1 g, CO2 72.4 g.
+Exclusions with ASSUMED bounds (review R-07, in `lca/lca.yaml`): oxidiser NOx about 0.02 g/kg,
+decomposition CO at most about 2.6 g/kg (burnt in X-101), column vents about 22 g/kg CO but
+routed to X-101 and so already counted as CO2 (D-007); fugitives cannot be bounded before P&IDs.
 
 ## D-013 Open library and core items (2026-10-28)
 - Chemicals registry (`chemicals/chemicals.yaml`, consolidated shared-files PR): missing

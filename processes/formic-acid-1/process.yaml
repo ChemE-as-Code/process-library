@@ -14,7 +14,7 @@ description: |
   absorbed into recycled methanol with 2.5 wt% sodium methoxide in a gas-liquid loop reactor at
   353 K; 30 % of the methanol is converted per pass and the CO-rich vent (8 % of the CO fed) is
   burnt in a thermal oxidiser. Methyl formate is distilled off and hydrolysed at 393 K with
-  water (1.5 mol/mol), autocatalysed by recycled formic acid, to 95 % of the equilibrium
+  water (1.5 mol/mol), autocatalysed by recycled formic acid, to 95 % (assumed) of the equilibrium
   conversion (28.9 % per pass). Unreacted ester and the methanol formed are distilled off and
   recycled; the methanol returns dry to the carbonylation, so only losses are made up. The
   dilute acid (49 wt%) is concentrated by pressure-swing distillation across the maximum-boiling
@@ -44,12 +44,14 @@ validation:
     66 wt% acid closed by scripts/balance.py. The reactors and the oxidiser are calculated by
     cheme (conversion model); core's equilibrium check puts the hydrolyser outlet just short of
     the sourced Kx = 0.20 (ln Q/K = -0.11). Separator and column outlets are specified splits;
-    duties are shortcut estimates with assumed reflux ratios and no heat integration (3.64 kWh
-    LP steam heat per kg product, about 1.5 times the 2400 kWh/t of prior art quoted in
-    EP2747883A1). The energy balance is not evaluable in core: no property package covers the
+    duties are shortcut estimates with assumed reflux ratios (C-301 at 1.2 times a shortcut
+    minimum reflux) and no heat integration (4.46 kWh LP steam heat per kg product, about 1.9
+    times the 2400 kWh/t of prior art quoted in EP2747883A1). The energy balance is not evaluable in core: no property package covers the
     liquid methanol / methyl formate / water / formic acid system and the liquid-reactor energy
     basis is not verified (core #315). Capacity, feed purities, reflux ratios and the purge
-    fraction are assumed. Preliminary gate-to-gate LCI with every background unmapped (gaps).
+    fraction are assumed. cheme maturity reaches no calculation level (feeds and the hydrolysis
+    and oxidiser conversions are assumed), so `maturity: concept` is claimed as the lowest level
+    the manifest allows, not as evidence-backed (DESIGN.md D-014). Preliminary gate-to-gate LCI with every background unmapped (gaps).
     Not reviewed. The chemicals registry has no formic-acid, methyl-formate, carbon-monoxide,
     methanol, sodium-methoxide or sodium-formate entry yet, so the main product and those feeds
     are not listed under chemistry (open library item, DESIGN.md D-013).
@@ -62,7 +64,7 @@ chemistry:
     - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "72.4 g/kg product, from burning the carbonylation vent (unreacted CO) in the oxidiser (fossil). The main product, formic acid 85 wt% (product:FA), has no registry entry yet"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "84 Wh/kg product: CO compressor (89 %), pumps, vacuum system (ASSUMED efficiencies)"}
-    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "3.64 kWh heat/kg product as LP steam (450 kPa(a)): reboilers of five columns, hydrolyser feed preheat (shortcut, no heat integration, D-011)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "4.46 kWh heat/kg product as LP steam (450 kPa(a)): reboilers of five columns, hydrolyser feed preheat (shortcut, no heat integration, D-011)"}
     - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "3.61 kWh/kg product removed, 25/35 C (ASSUMED)"}
 basis:
   capacity: "6.25 t/h formic acid 85 wt% (50 kt/a), ASSUMED"

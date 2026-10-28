@@ -21,24 +21,32 @@ cutoff:
   title: combustion emissions of X-101
   direction: output
   reason: 'Thermal NOx of the oxidiser burning the CO-rich vent, and its pilot and start-up fuel, are
-    not estimated: no sourced factor for this vent yet (open, D-010).'
+    not estimated: no sourced factor for this vent yet (open, D-010). ASSUMED bound: 100 mg NOx/Nm3 of
+    the 1284 Nm3/h flue gas S16 gives about 0.13 kg/h = 0.02 g/kg product, far below the 1 % cut-off (13
+    g/kg).'
 - key: emission-excluded:fugitive-organics
   title: equipment-leaks emissions of the plant
   direction: output
   reason: 'No P&ID yet: fugitive CO, methyl formate, methanol and formic acid from flanges, valves, pump
-    seals and storage breathing cannot be counted; open for basic engineering (D-012).'
+    seals and storage breathing cannot be counted and no bound is given without a component count; open
+    for basic engineering (D-012).'
 - key: emission-excluded:column-vents
   title: non-routine emissions of the plant
   direction: output
   reason: 'Non-condensable vents of the column condensers (dissolved CO and N2 released in C-101, the
     vacuum system of C-302) are not modelled: dissolved CO is neglected in the separator V-101 (D-007);
-    their routing to the oxidiser is the intended basic-engineering choice.'
+    their routing to the oxidiser is the intended basic-engineering choice. ASSUMED size: about 5 kmol/h
+    dissolved CO (140 kg/h, 22 g/kg product, D-007); routed to X-101 it is burnt like the vent CO, whose
+    CO2 is already counted (emission:CO2), so the inventory is unchanged; vented unburnt it would exceed
+    the 1 % cut-off, so the routing is a requirement, not an option.'
 - key: emission-excluded:decomposition-co
   title: non-routine emissions of the plant
   direction: output
   reason: 'Formic acid decomposition to CO and water above about 140 C (EP2747883A1) is neglected: the
     hydrolyser runs at 393 K and the reboilers below about 405 K (D-008); a residual decomposition would
-    add CO to the column vents.'
+    add CO to the column vents. ASSUMED upper bound, no sourced rate: 0.5 % of the product acid decomposing
+    gives 16 kg/h CO = 2.6 g/kg product (4.1 g CO2/kg once burnt in X-101), below the 1 % cut-off (13
+    g/kg).'
 uuid: 8f7fd603-106e-54ec-976e-b882a7cd9cc3
 version: 0.1.0
 geography:
@@ -204,7 +212,7 @@ exchanges:
 - key: feed:LPS
   title: Low-pressure steam (450 kPa(a), saturated)
   type: input
-  amount: 22740.8
+  amount: 27891.800000000003
   unit: kWh
   link:
     source: flowsheet energy streams Q6, Q9, Q10, Q11, Q13, Q15, Q17 (reboilers, feed preheater, hydrolyser),
@@ -325,7 +333,7 @@ exchanges:
 - key: product:CW
   title: Cooling water return
   type: output
-  amount: 22578.5
+  amount: 28049.7
   unit: kWh
   link:
     source: flowsheet energy streams Q2, Q4, Q5, Q7, Q12, Q14, Q16, Q18, D-011
@@ -559,9 +567,9 @@ provenance:
   plant: Formic acid 85 wt% by methyl formate hydrolysis (6.25 t/h, 50 kt/a)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:c993f2510d3f98882bb31088cc6094a5a8a4f29a073c4216e96fc2fb4e439328
-    lca/lca.yaml: sha256:ce2b50b95356da669651257271a0ab8e909de2f671ee14ecd5dcd764620636ae
-    process.yaml: sha256:0bb1e31b2daa22e6d2a567cdca7bf39bc3e5df9cf8389c0db28198c423124767
-    process/flowsheet.yaml: sha256:f378d26a29659b80f672b2d8b69aed25681742bba4dde307aa9f35500ad04959
+    equipment/equipment-list.yaml: sha256:6ccff6d91a637f50e5911309ed13c1096d59ddeec17dcbd9b30828c7115e6a96
+    lca/lca.yaml: sha256:3a66ff74adea58ddded318eeb10cbff3b165a4ed870ef8cea1e0f8cd51dfd37b
+    process.yaml: sha256:d63ecf42e264da3ee176ac1da4b29f588e01973c69583ec1a32cbab298382dfd
+    process/flowsheet.yaml: sha256:dbc5e0030bab9b9b45a0002d0b15e6f40610ef287083cfb7e8ade2221ad3ee3a
     process/materials.yaml: sha256:c891175ca12f0698481f9bd8d9d83b57ab8a7108abf965942dcd3b0f0359a881
     process/simulation.yaml: sha256:3e5744b2a7de2e456f3b6fd77faa2dc074145b2f90c2f7b883b5189267278ee9

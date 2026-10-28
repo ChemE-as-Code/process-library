@@ -31,7 +31,7 @@ PURGE_FRACTION = 0.01          # D-007: share of the C-101 bottoms purged (sodiu
 MF_WT_C101_TOP = 0.96          # EP2747883A1: fresh methyl formate holds 4-6 % methanol; 4 % taken
 MF_WT_C201_TOP = 0.98          # EP2747883A1: recovered methyl formate holds up to 1-2 % methanol
 KX = 0.20                      # EP2747883A1 background: K = 0.18-0.24; EP3661904B1: Kx 0.18
-APPROACH = 0.95                # US4299981: hydrolyser sized for >= 95 % of equilibrium
+APPROACH = 0.95                # ASSUMED; US4299981 (unverified lead, D-008): sized for >= 95 % of equilibrium
 WATER_TO_MF = 1.5              # D-008: molar water/MF at the hydrolyser inlet (prior art 0.8-7)
 FA_WT_C301_TOP = 0.005         # D-009: formic acid slip in the C-301 water distillate (recycled)
 FA_WT_C301_BOT = 0.77          # D-009: C-301 at 203 kPa(a), azeotrope about 80 wt% (EP3661904B1)
@@ -189,7 +189,8 @@ s16 = add(s16, {"MEOH": -conv * s9["MEOH"], "O2": -1.5 * conv * s9["MEOH"],
 HVAP = {"MF": 27.68, "MEOH": 35.3, "H2O": 40.7, "FA": 20.0}   # kJ/mol near the column top
 # MF 27.68 (Thermo, 313 K); MeOH 35.3 (ASSUMED near 338 K, Thermo gives 36.69 at 313 K);
 # water 40.7 (ASSUMED near 373 K); formic acid 20.0 (Thermo at 298 K, associated vapour)
-REFLUX = {"C101": 1.0, "C201": 1.0, "C202": 1.5, "C301": 1.0, "C302": 1.5}
+# C-301: 2.4 = 1.2 x R_min 1.96 (scripts/c301_rmin.py, feed pinch; D-011, review R-01)
+REFLUX = {"C101": 1.0, "C201": 1.0, "C202": 1.5, "C301": 2.4, "C302": 1.5}
 
 
 def reb(dist, rr):
@@ -209,8 +210,8 @@ duty["R101"] = r["e_carb"] * 37.7 / 3.6
 duty["R201"] = r["e_hyd"] * 8.0 / 3.6
 # E-101: reactor effluent 353 -> 313 K, liquid cp 2.5 kJ/(kg K) ASSUMED
 duty["E101"] = mass(r["s7"]) * 2.5 * 40 / 3600
-# E-201: hydrolyser feed 330 -> 393 K, cp 3.0 kJ/(kg K) ASSUMED (mixed recycles about 330 K)
-duty["E201"] = mass(r["s18"]) * 3.0 * 63 / 3600
+# E-201: hydrolyser feed 340 -> 393 K (S19 -> S20), cp 3.0 kJ/(kg K) ASSUMED
+duty["E201"] = mass(r["s18"]) * 3.0 * 53 / 3600
 # K-101: CO 200 -> 4600 kPa(a), 3 stages, intercooled to 313 K, isentropic 0.75, k = 1.4
 n_co = sum(r["s1"].values()) / 3.6   # mol/s
 ratio = (4600 / 200) ** (1 / 3)
