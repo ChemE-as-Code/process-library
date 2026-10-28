@@ -182,4 +182,26 @@ consumables outside the flowsheet are ASSUMED from the BREF ranges (D-011). All 
 left unmapped (`missing:` with the activity each should connect to): the result is an inventory
 with gaps, not an impact. Ambient air and atmospheric N2/O2/Ar/H2O returned are free; the
 off-gas and vent are emissions to air (VOC as TMB and DIBC, H2), the aqueous effluent goes to
-treatment outside the boundary. See lca/lca.yaml and the results in PROGRESS.md.
+treatment outside the boundary. See lca/lca.yaml.
+Result (`cheme assess lca --inventory --write`, `--coverage`, `--balance`), per kg of 50 wt%
+product: H2 0.0318 kg (S01), demineralised water 0.596 kg (S29), direct LP steam 0.117 kg
+(S17+S31), quinone 0.0005 kg, solvents 0.00125 kg, alumina 0.003 kg, electricity 0.177 kWh
+(Q01-Q04), LP steam heat 0.237 kWh (Q05), heat to cooling water 1.23 kWh (Q06-Q11); outputs
+off-gas 2.26 kg (with 4.9e-5 kg VOC as TMB), vent H2 3.2e-4 kg, waste water 0.205 kg, spent
+alumina 0.0045 kg; consumables (ASSUMED, BREF ranges) HNO3 0.002, NaOH 0.001, activated carbon
+5e-5, resin 7.5e-6, Pd 1e-7 kg. The dataset closes in mass (43 433 kg/h in and out) and in every
+element of the flowsheet exchanges (Al, Ar, C, H, N, O within 0.01 %; consumables have no
+composition, so cheme reports the element balance "not assessable" for them). Classification:
+partial (23 gaps, every background missing); DQR 2.33. The library LCI build
+(`scripts/build_lci.py --strict`) reports 15 gaps for this process and no error; its only
+remaining warning (cut-off criteria not checked) comes from the missing core extra in the
+library environment and appears for every process.
+Overrides (lca/mappings.yaml, ADR 0022): feed:LPS counted as heat (kWh, `steam-heat`);
+feed:H2 and feed:STEAMD `atlas: false` until a person chooses the supplier (the build would
+otherwise pick chlor-alkali-1 for H2 and ammonia-1 for steam by itself).
+Missing in the shared registry (`chemicals/chemicals.yaml`, for the consolidated PR):
+hydrogen-peroxide (with a 50 wt% grade), 2-ethylanthraquinone, the C9 aromatic solvent
+(trimethylbenzene), diisobutylcarbinol, activated alumina, demineralised water (grade of
+water), nitric acid, sodium hydroxide, activated carbon, ion-exchange resin, palladium catalyst;
+biosphere identities for 1,2,4-trimethylbenzene and diisobutylcarbinol emissions to air, and
+for hydrogen to air (not in core's crosswalk).

@@ -1,0 +1,155 @@
+# Goal and scope of the hydrogen-peroxide-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme
+# assess lca --inventory --write` and `--coverage` (lca/inventory.csv, gaps.csv, dataset.yaml,
+# manifest.json, ...); never edit those by hand.
+#
+# A preliminary gate-to-gate inventory (DESIGN.md D-013): every foreground exchange from the
+# balanced flowsheet (process/flowsheet.yaml) or, for consumables outside it, ASSUMED from the
+# LVOC BREF 2017 ranges (D-011). No background is linked: each feed, utility and waste is
+# `missing:` with the background activity it should connect to later. No value from a licensed
+# database is used.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of 50 wt% hydrogen peroxide by the anthraquinone
+  process at the concept stage, for the process library: the foreground exchanges per kg of
+  product with their provenance, and the list of backgrounds still to link. Not an impact
+  result: every background is a gap.
+functional_unit: {product: PROD, amount: 1, unit: kg}
+boundary: gate-to-gate
+year: 2026
+technology: "anthraquinone autoxidation (AO) process, fixed-bed Pd hydrogenation, air oxidation, water extraction, vacuum concentration to 50 wt%; 50 kt/a H2O2 (100 %)"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+flows:
+  # --- raw materials
+  - key: feed:H2
+    missing: "background not linked yet: hydrogen, gaseous, pure, at about 5 bar(a) at the plant gate; link the LCI dataset of processes/hydrogen-1 (or chlor-alkali-1 by-product H2) once published, else a market for hydrogen"
+    source: "stream S01, 63.5 kg/t H2O2 (D-003, D-005)"
+  - key: feed:AIR
+    free: true
+    source: "ambient air for the oxidation: a resource taken from nature without burden (D-007)"
+  - key: feed:MKQ
+    missing: "background not linked yet: production of 2-ethylanthraquinone (from phthalic anhydride and ethylbenzene); no open dataset known"
+    source: "stream S02, 1.0 kg/t H2O2, BREF Table 12.4 (D-011)"
+  - key: feed:MKS
+    missing: "background not linked yet: C9 aromatic hydrocarbon solvent (trimethylbenzene cut from reformate) and diisobutylcarbinol (2,6-dimethyl-4-heptanol, hydrogenation of diisobutyl ketone), as a mixture 53:47 by mass"
+    source: "stream S03, 2.5 kg/t H2O2, BREF Table 12.4 (D-011)"
+  - key: feed:DEMIN
+    missing: "background not linked yet: demineralised (deionised) water production from tap or river water, ion exchange or reverse osmosis"
+    source: "stream S29, 1.19 t/t H2O2 (D-008)"
+  - key: feed:ALU
+    missing: "background not linked yet: activated alumina production (from aluminium hydroxide, Bayer process, calcined)"
+    source: "stream S34, 6 kg/t H2O2, BREF Table 12.4 (D-011)"
+  # --- utilities
+  - key: feed:POWER
+    missing: "background not linked yet: electricity, medium voltage, grid of the site country (site not chosen)"
+    source: "streams Q01-Q04: air compressor, WS pumps, auxiliary pumps, vacuum pump, 355 kWh/t H2O2 (D-007, D-010)"
+  - key: feed:LPS
+    missing: "background not linked yet: heat from LP steam 350 kPa(a) (saturated, 138 C) from a natural-gas boiler or a site steam network; processes/utility-steam-ng-boiler once published"
+    source: "stream Q05, concentrator reboiler (D-010)"
+  - key: feed:STEAMD
+    missing: "background not linked yet: LP steam 350 kPa(a), used directly (condensate not returned): steam from a natural-gas boiler including its boiler feed water; processes/utility-steam-ng-boiler once published"
+    source: "streams S17 and S31: adsorber regeneration and WS dryer ejector (D-009, D-010)"
+  - key: product:CW
+    missing: "background not linked yet: heat rejected to a closed cooling-water circuit with an evaporative cooling tower (power, make-up water, chemicals); processes/utility-cooling-tower once published"
+    source: "streams Q06-Q11: reactor heats, air aftercooler, off-gas condenser, concentrator condenser, product cooler (D-010)"
+  # --- wastes and emissions
+  - key: product:WW
+    treatment: {kind: waste, route: "biological waste water treatment (industrial effluent with about 0.3 kg TOC per m3)"}
+    missing: "background not linked yet: treatment of industrial waste water in a biological plant, per kg (COD/TOC load given by the composition); processes/utility-wwtp once published"
+    source: "streams S19 and S32: adsorber condensate and WS dryer water with ejector condensate, 0.41 t/t H2O2, 0.15 kg TOC/t (D-011)"
+  - key: product:SPENT
+    treatment: {kind: waste, route: "co-processing in a cement kiln or incineration of spent activated alumina with organics", hazardous: true}
+    missing: "background not linked yet: treatment of spent alumina adsorbent loaded with aromatic solvent and quinone residues (hazardous waste incineration or cement-kiln co-processing, BREF 12.3.6 a)"
+    source: "stream S35, 9 kg/t H2O2 (D-011)"
+  - {key: product:OFFGAS, emission: true, source: "oxidiser off-gas after the activated carbon, to atmosphere (stream S18, D-009)"}
+  - {key: product:H2VENT, emission: true, source: "hydrogenation vent to atmosphere (stream S06, D-009)"}
+  - {key: emission:N2, free: true, source: "atmospheric N2 of the oxidation air returned unchanged"}
+  - {key: emission:O2, free: true, source: "unreacted atmospheric O2 of the oxidation air returned"}
+  - {key: emission:AR, free: true, source: "atmospheric argon of the oxidation air returned unchanged"}
+  - {key: emission:H2O, free: true, source: "water vapour in the off-gas (from the working solution), no burden"}
+  - key: emission:TMB
+    elementary: {compartment: air, subcompartment: unspecified, origin: fossil}
+    source: "residual VOC of the off-gas (20 mg C/Nm3) and the vent, as 1,2,4-trimethylbenzene (CAS 95-63-6) (D-009)"
+  - key: emission:DIBC
+    elementary: {compartment: air, subcompartment: unspecified, origin: fossil}
+    source: "diisobutylcarbinol (CAS 108-82-7) in the off-gas: zero in the design case (the adsorber outlet VOC is counted as TMB, D-009); kept so that a case with DIBC slip is mapped"
+  - key: emission:H2
+    elementary: {compartment: air, subcompartment: unspecified}
+    source: "unreacted hydrogen of the hydrogenation vent, 1 % of the feed (D-005)"
+
+# Emission sources the flowsheet does not carry (pre-release issue 176).
+emission_exclusions:
+  - id: ws-tank-breathing
+    method: storage-tank
+    equipment: [T-101]
+    reason: "The N2-blanketed WS tank breathes into the activated-carbon adsorbers A-201 (D-009), whose outlet concentration (20 mg C/Nm3) is specified on the treated off-gas; its small breathing flow is not estimated separately at the concept stage. Fugitive and storage VOC losses (BREF 12.3.1.6-7) are an open item (D-011)."
+    source: "DESIGN.md D-009, D-011"
+  - id: water-tank
+    method: storage-tank
+    equipment: [T-301]
+    reason: "Extraction water tank: demineralised water and distillate with 0.05 wt% H2O2, no organic solvent; no VOC source."
+    source: "DESIGN.md D-008, D-010"
+
+location: GLO
+
+# Dataset documentation (cheme/lci_dataset/v2): what cheme cannot derive.
+dataset:
+  version: 0.1.0
+  geography:
+    description: "Generic concept design, site not chosen; operating windows and consumptions set inside the ranges of European plants reported in the LVOC BREF 2017 (chapter 12)."
+    site: not chosen
+  system_model: cutoff
+  technology_level: current
+  classification: {isic: "2011"}
+  modelling:
+    principle: attributional
+    sampling: "One concept design case (scripts/hp_balance.py), not plant data; values set inside the BREF ranges (DESIGN.md D-001..D-013)."
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library (agent-drafted concept design, unreviewed)"
+
+# Operation only; construction is out of scope at this stage (no 3D model or take-off).
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED, D-002); 25 a service life ASSUMED"
+
+# Supplies outside the flowsheet, ASSUMED inside the LVOC BREF 2017 ranges (D-011), per year at
+# 50 kt/a H2O2. Their fate is given as disposal; NaOH and HNO3 end neutralised in the effluent
+# (not in stream WW's composition, D-011).
+consumables:
+  - id: nitric-acid
+    title: Nitric acid (100 % basis; pH adjustment and passivation)
+    unit: kg
+    per_year: 200000
+    missing: "background not linked yet: nitric acid production (100 %), processes/nitric-acid-1 once published"
+    disposal: {kind: waste, route: "neutralised nitrate to biological waste water treatment", missing: "background not linked yet: waste water treatment of nitrate-bearing effluent", source: "ASSUMED: all nitric acid leaves as nitrate in the effluent"}
+    source: "ASSUMED 4.0 kg/t H2O2, inside the BREF 2.5-7 kg/t (Table 12.4)"
+  - id: sodium-hydroxide
+    title: Sodium hydroxide (100 % basis)
+    unit: kg
+    per_year: 100000
+    missing: "background not linked yet: sodium hydroxide (100 %) from chlor-alkali electrolysis, processes/chlor-alkali-1 once published"
+    disposal: {kind: waste, route: "neutralised sodium salts to biological waste water treatment", missing: "background not linked yet: waste water treatment of the neutralised effluent", source: "ASSUMED: all NaOH leaves as sodium salts in the effluent"}
+    source: "ASSUMED 2.0 kg/t H2O2, inside the BREF 1.5-4 kg/t (Table 12.4)"
+  - id: activated-carbon
+    title: Activated carbon (off-gas adsorbers A-201)
+    unit: kg
+    per_year: 5000
+    missing: "background not linked yet: activated carbon production (coal- or coconut-based, steam activated)"
+    disposal: {kind: waste, route: "incineration or reactivation of spent activated carbon", missing: "background not linked yet: treatment of spent activated carbon", source: "ASSUMED: replaced carbon leaves as spent adsorbent"}
+    source: "ASSUMED 0.10 kg/t H2O2 as spent adsorbent, inside the BREF 0.01-0.34 kg/t (Table 12.6)"
+  - id: ion-exchange-resin
+    title: Ion-exchange resin (crude purification)
+    unit: kg
+    per_year: 750
+    missing: "background not linked yet: polystyrene-based ion-exchange resin production"
+    disposal: {kind: waste, route: "incineration of spent ion-exchange resin", missing: "background not linked yet: incineration of spent resin", source: "ASSUMED"}
+    source: "ASSUMED 0.015 kg/t H2O2, inside the BREF 0.005-0.027 kg/t (Table 12.6)"
+  - id: palladium-catalyst-loss
+    title: Palladium lost from the hydrogenation catalyst (as Pd)
+    unit: kg
+    per_year: 10
+    catalyst: true
+    metals: {Pd: 1.0}
+    missing: "background not linked yet: palladium (primary or recycled) in a supported catalyst; the spent catalyst returns to the supplier for metal recovery (BREF 12.3.6 c)"
+    source: "ASSUMED 0.2 g Pd/t H2O2, inside the BREF 0.1-0.3 g/t for fixed beds (12.3.3 b)"
