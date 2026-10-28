@@ -1,0 +1,38 @@
+# Reactions of MTBE cracking (back-splitting) to isobutene and methanol (DESIGN.md D-005).
+# Schema cheme/reactions/v1. Heats of reaction from the ideal-gas formation enthalpies of
+# process/materials.yaml (298.15 K). No rate law: R-101 is a conversion reactor with a per-pass
+# MTBE conversion and by-product selectivities (ASSUMED design choices inside the ranges of
+# US 8,633,345 B2, D-005); the main reaction's equilibrium is checked with the ideal-gas data.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: CRACK
+    equation: C5H12O <=> C4H8 + CH4O
+    stoichiometry: {MTBE: -1.0, IB: 1.0, MEOH: 1.0}
+    reversible: true
+    heat_of_reaction:
+      value: 65400.0
+      provenance: calculated
+      source: "ideal-gas formation enthalpies of process/materials.yaml at 298.15 K (-17600 - 200700 + 283700 kJ/kmol): endothermic"
+    catalyst: "acidic solid, e.g. magnesium-doped amorphous silica-alumina (US 8,633,345 B2, description of the cleavage catalyst); gas phase"
+    sources: ["US 8,633,345 B2 (Evonik Oxeno, 2014), Process for preparing isobutene by cleaving MTBE-containing mixtures, https://patents.google.com/patent/US8633345B2/en"]
+  - id: DMEF
+    equation: 2 CH4O -> C2H6O + H2O
+    stoichiometry: {MEOH: -2.0, DME: 1.0, H2O: 1.0}
+    reversible: false
+    heat_of_reaction:
+      value: -24442.0
+      provenance: calculated
+      source: "ideal-gas formation enthalpies of process/materials.yaml at 298.15 K (-184020 - 241822 + 2 x 200700 kJ/kmol)"
+    catalyst: "same acidic catalyst (side reaction)"
+    sources: ["US 8,633,345 B2: dimethyl ether formed from methanol as the main by-product of the cleavage"]
+  - id: DIM
+    equation: 2 C4H8 -> C8H16
+    stoichiometry: {IB: -2.0, DIB: 1.0}
+    reversible: false
+    heat_of_reaction:
+      value: -75300.0
+      provenance: calculated
+      source: "ideal-gas formation enthalpies of process/materials.yaml at 298.15 K (-110500 + 2 x 17600 kJ/kmol)"
+    catalyst: "same acidic catalyst (side reaction)"
+    sources: ["US 8,633,345 B2: C8 olefins (diisobutene) formed by dimerisation of isobutene in the cleavage"]

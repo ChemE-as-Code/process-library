@@ -1,0 +1,60 @@
+# Equipment list. Schema: `cheme schema equipment`.
+# Concept stage: the items the PFD (process/flowsheet.yaml) needs, no P&ID yet (no sheet).
+# Design pressure and temperature are ASSUMED concept values (D-010): the highest operating
+# value of the balance (scripts/ib_balance.py) + 10 % (at least + 2 bar) and + 25 K. Sizes,
+# dimensions and weights come at basic engineering (datasheets). Column reboilers, condensers,
+# reflux drums and the reflux and product pumps (P-201 to P-404) are part of their column's
+# item at this stage; their duties are in process/flowsheet.yaml (Q1 to Q17).
+schema: cheme/equipment/v1
+equipment:
+  # ---- MTBE purification and cracking (block RXN)
+  - {tag: V-101, type: Vessel, service: "MTBE feed drum (fresh + recycle)",
+     design_pressure_barg: 3.5, design_temperature_degc: 60, material: CS,
+     notes: "300 kPa(a), 308 K, 11.2 t/h (S2). ASSUMED."}
+  - {tag: P-101, type: CentrifugalPump, service: MTBE column feed pump,
+     design_pressure_barg: 13, design_temperature_degc: 60, material: CS,
+     notes: "300 -> 1100 kPa(a), 11.2 t/h, ~6.7 kW; the flowsheet's Q1 lumps the power of all pumps (15.8 kW, D-009). A spare at basic engineering. ASSUMED."}
+  - {tag: C-101, type: ProcessColumn, service: "MTBE column (heavy-ends removal, vapour overhead to R-101)",
+     design_pressure_barg: 11, design_temperature_degc: 190, material: CS,
+     notes: "1000 kPa(a), top 420 K / bottom 436 K (ideal bubble points), R 0.5; reboiler 2.0 MW MP steam, partial condenser 0.38 MW (D-007). Stages not set. ASSUMED."}
+  - {tag: E-101, type: TubularHeatExchanger, service: Feed / effluent exchanger,
+     design_pressure_barg: 11, design_temperature_degc: 305, material: CS,
+     notes: "Feed vapour 420 -> 523 K, effluent 553 -> 450 K, 0.69 MW (D-006). ASSUMED."}
+  - {tag: H-101, type: Furnace, service: "Fired hot-oil heater (feed superheat and R-101 heating)",
+     design_pressure_barg: 11, design_temperature_degc: 330, material: "CS / low-alloy tubes",
+     notes: "Absorbed 2.19 MW: superheat 523 -> 553 K 0.22 MW and the R-101 heat of reaction 1.97 MW; natural gas fired (D-009). Hot oil or direct flue-gas heating of the reactor tubes open. ASSUMED."}
+  - {tag: R-101, type: TubularHeatExchanger, service: "MTBE cracking reactor (multitubular, catalyst in tubes, heated shell)",
+     design_pressure_barg: 9, design_temperature_degc: 330, material: CS,
+     notes: "553 K, 900 -> 750 kPa(a); acidic silica-alumina type catalyst, WHSV 1-3 1/h preferred in US 8,633,345 B2, i.e. ~4-11 t catalyst for 11.2 t/h (not sized, D-005). ASSUMED."}
+  - {tag: E-102, type: TubularHeatExchanger, service: Effluent condenser,
+     design_pressure_barg: 9, design_temperature_degc: 205, material: CS,
+     notes: "450 -> 313 K, total condensation, 2.77 MW to cooling water (D-006). ASSUMED."}
+  # ---- isobutene recovery, wash and drying (block IBPUR)
+  - {tag: C-201, type: ProcessColumn, service: Isobutene column (cleavage products split),
+     design_pressure_barg: 7, design_temperature_degc: 150, material: CS,
+     notes: "650 kPa(a), top 327 K / bottom 394 K, R 0.7 as US 8,633,345 B2 Example 2; reboiler 1.42 MW MP steam, condenser 1.06 MW (D-007). ASSUMED."}
+  - {tag: C-401, type: ProcessColumn, service: "Methanol extraction column (water wash, liquid-liquid)",
+     design_pressure_barg: 9, design_temperature_degc: 65, material: CS,
+     notes: "880 kPa(a), 313 K, countercurrent, 0.15 kg water per kg crude isobutene; 4-16 theoretical stages in US 8,633,345 B2 (D-007). ASSUMED."}
+  - {tag: C-403, type: ProcessColumn, service: "Drying and DME column (azeotropic drying, isobutene bottoms)",
+     design_pressure_barg: 9, design_temperature_degc: 95, material: CS,
+     notes: "900 kPa(a), top 323 K / bottom 339 K, R 30 (below the patent's 40); reflux drum decanter returns water to T-401; reboiler 0.38 MW LP steam (D-007). ASSUMED."}
+  - {tag: E-403, type: TubularHeatExchanger, service: Isobutene product cooler,
+     design_pressure_barg: 15, design_temperature_degc: 95, material: CS,
+     notes: "339 -> 313 K, 0.12 MW (D-006). ASSUMED."}
+  # ---- methanol recovery and wash-water loop (block MEOHREC)
+  - {tag: C-301, type: ProcessColumn, service: "Methanol column (MTBE / methanol azeotrope overhead to recycle)",
+     design_pressure_barg: 3.5, design_temperature_degc: 95, material: CS,
+     notes: "100 kPa(a), top 329 K / bottom 337 K, R 1.9 as US 8,633,345 B2 Example 2; reboiler 0.23 MW LP steam, condenser 0.45 MW (D-007). ASSUMED."}
+  - {tag: C-402, type: ProcessColumn, service: Methanol / water column (extract regeneration),
+     design_pressure_barg: 3.5, design_temperature_degc: 140, material: CS,
+     notes: "150 kPa(a), top 348 K / bottom 385 K, R 1.5; vent of dissolved C4 and DME to fuel gas (D-007). ASSUMED."}
+  - {tag: E-401, type: TubularHeatExchanger, service: Wash-water cooler,
+     design_pressure_barg: 3.5, design_temperature_degc: 140, material: CS,
+     notes: "385 -> 313 K, 77 kW (D-006). ASSUMED."}
+  - {tag: T-401, type: Vessel, service: "Wash-water tank (recycle, decanted water, make-up)",
+     design_pressure_barg: 3.5, design_temperature_degc: 65, material: CS,
+     notes: "~0.98 t/h wash water; P-401 feeds C-401. ASSUMED."}
+  - {tag: E-301, type: TubularHeatExchanger, service: Methanol product cooler,
+     design_pressure_barg: 5, design_temperature_degc: 90, material: CS,
+     notes: "339 -> 313 K, 62 kW (D-006). ASSUMED."}
