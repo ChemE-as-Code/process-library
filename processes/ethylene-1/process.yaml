@@ -1,36 +1,80 @@
-# Process Atlas manifest. Copy this folder to processes/<your-id>/ and edit.
-# Schema: schemas/process.schema.json (cheme-as-code/process/v1). Every slug used under
-# chemistry must exist in chemicals/chemicals.yaml; add new chemicals there in the same change.
-# A product in a defined state and purity names its registry grade: `chemical: oxygen/lox`.
+# Process Atlas manifest of ethylene-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here.
 schema: cheme-as-code/process/v1
-id: my-process                  # = folder name; lowercase slug; never rename once listed
-title: Short descriptive process title
+id: ethylene-1
+title: Ethylene and propylene by ethane steam cracking (1000 kt/a ethylene, concept)
 summary: >-
-  One or two sentences for cards and search results: what goes in, what comes out, at what scale.
-# description: |                # optional longer Markdown for the process page
-families: [hydrogen]            # slugs of taxonomy/families.yaml (ISIC-mapped), e.g. ammonia, methanol, air-separation
-keywords: []
-# facets:                      # optional, for filtering in the Atlas; list only what the design has
-#   feedstock_basis: [water, electricity]   # fossil | biogenic | atmospheric | mineral | recycled | water | electricity
-#   product_classes: [fuels]               # slugs, e.g. industrial-gases, fuels, fertilizers, polymers, chemicals, materials
-#   unit_operations: [electrolysis]        # slugs, e.g. cryogenic-distillation, adsorption, compression, reaction, electrolysis
-#   region: generic                        # e.g. generic, EU
-# Design maturity (claimed, capped by evidence: the calculation maturity in checks/maturity.json
-# of an engineering project; at most concept beside a Tier 0/1 LCI dataset):
-maturity: concept               # concept | screening | basic-engineering | detail-engineering | operating-reference
-validation:                     # review status: set by people only; passing checks is not a review
-  status: unreviewed            # unreviewed | internally-reviewed | peer-reviewed | industry-validated
+  Ethane steam cracking with ethane and propane recycle, quench, cracked-gas compression with
+  caustic wash and drying, front-end demethaniser, tail-end acetylene hydrogenation and C2/C3
+  splitters to polymer-grade ethylene and propylene, crude C4 and pyrolysis gasoline. Concept
+  stage, assumed basis, preliminary gate-to-gate LCI with unmapped backgrounds.
+description: |
+  Purity ethane and the recycled ethane are cracked with dilution steam at a coil outlet of
+  840 C; the recycled propane has its own coil. The furnace is a conversion model that
+  reproduces the once-through ethane and propane yields of the EU BREF on large volume organic
+  chemicals (2017, Table 3.3): a sourced yield model, not kinetics. The cracked gas raises SHP
+  steam in the transfer line exchangers, is quenched with water (the condensate becomes dilution
+  steam again), compressed in five stages with a caustic wash, dried and separated at low
+  temperature: demethaniser (tail gas and hydrogen to the furnace fuel), deethaniser, acetylene
+  converter, C2 splitter, depropaniser, MAPD converter, C3 splitter and debutaniser. The tail
+  gas and a natural-gas make-up fire the furnaces.
+
+  The separations are specified splits from an independent balance script, and the energy
+  figures rest on ideal-gas enthalpies: core has no qualified property package for C2+
+  hydrocarbon mixtures yet (core #315). See DESIGN.md for every assumption and gated step.
+families: [olefins]
+keywords: [ethylene, propylene, steam cracking, ethane, olefins, cracked gas compression, demethaniser, C2 splitter, acetylene hydrogenation, pyrolysis gasoline]
+facets:
+  feedstock_basis: [fossil]
+  product_classes: [chemicals]
+  unit_operations: [reaction, compression, cryogenic-distillation, distillation, absorption, adsorption, heat-exchange]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest; see validation.notes and DESIGN.md.
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances (cheme validate: 0 errors,
+    0 warnings). Furnace, hydrogenation reactors and firebox outlets are calculated by cheme
+    (conversion reactors; furnace conversions derived from the BREF LVOC 2017 Table 3.3 yields).
+    Capacity, feed composition, splits, purities, efficiencies and utility levels are ASSUMED;
+    separations and duties come from scripts/balance.py on ideal-gas enthalpies (core #315: no
+    qualified property package for the C2+ hydrocarbons), so the energy balance is not
+    evaluable in core beyond the reactor duties, which cheme process reactors reproduces. The
+    preliminary gate-to-gate LCI closes in mass, elements and carbon by origin, with every
+    background unmapped (gaps). Not reviewed. The chemicals registry has no ethylene,
+    propylene, ethane, natural-gas or sodium-hydroxide entry yet, so the main product and most
+    flows are not listed under chemistry (open library item).
 chemistry:
   inputs:
-    - {chemical: water, role: feedstock}
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Combustion air of the cracking furnaces"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:BFW", note: "Boiler feed water make-up to the dilution steam system. The main feed, purity ethane (feed:ETHANE), the natural gas make-up (feed:NATGAS) and the caustic soda (feed:CAUSTIC, from chlor-alkali-1) have no registry entries yet"}
   outputs:
-    - {chemical: hydrogen, role: main-product}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "Fossil CO2 of the furnace flue gas, 0.433 kg/kg ethylene (unallocated). The main product, ethylene (product:ETHYLENE), and the co-products propylene, crude C4 and pyrolysis gasoline have no registry entries yet"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:BLOWDOWN", note: "Process water blowdown; the spent caustic (product:SPENTCAUSTIC) is a second wastewater"}
+    - {chemical: steam, role: co-product, inventory_key: "product:HPS", note: "SHP steam 11500 kPa(a), 520 C, raised in the TLEs and convection sections (ASSUMED export, D-015)"}
   utilities:
-    - {chemical: electricity, role: utility}
-# basis: {capacity: "1000 t/d product", operating_hours_per_year: 8000}
-# lca: {source: auto}           # auto: read lca/ of a ChemE-as-Code project; none: no LCA
-# references:
-#   - {title: "Author et al. (2024) Title", doi: 10.xxxx/xxxxx}
-# maintainers:
-#   - {name: Your Name, orcid: 0000-0000-0000-0000}
-# repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/my-process, access: private}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Cracked gas and refrigeration compressor drives (ASSUMED electric, D-015)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "MP steam 1800 kPa(a) to the dilution steam generator"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 450 kPa(a) to the column reboilers"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED)"}
+basis:
+  capacity: "1000 kt/a polymer-grade ethylene (ASSUMED)"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
+references:
+  - {title: "Falcke, H. et al. (2017) Best Available Techniques (BAT) Reference Document for the Production of Large Volume Organic Chemicals. JRC Science for Policy Report EUR 28882 EN (JRC109279), chapter 3 Lower olefins", doi: 10.2760/77304}
+  - {title: "Zimmermann, H.; Walzl, R. Ethylene. Ullmann's Encyclopedia of Industrial Chemistry (lead from issue #176; not audited in this run)", doi: 10.1002/14356007.a10_045.pub2}
+  - {title: "IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Vol. 2 Energy, Ch. 2 Stationary Combustion"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/ethylene-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0

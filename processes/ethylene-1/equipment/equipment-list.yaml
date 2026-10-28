@@ -1,3 +1,38 @@
 # Equipment list. Schema: `cheme schema equipment`.
+# Concept stage: the items the PFD (process/flowsheet.yaml) links to; no P&ID yet (no sheet).
+# Operating values from scripts/balance.py (ASSUMED, DESIGN.md D-006). Design pressures and
+# temperatures, sizes, numbers of trains and weights come at basic engineering.
 schema: cheme/equipment/v1
-equipment: []
+equipment:
+  # ---- cracking (CRK, CRK3)
+  - {tag: H-101, type: Furnace, service: "Ethane cracking furnaces (radiant coils, convection section)",
+     notes: "Coil outlet 840 C, 200 kPa(a), steam/hydrocarbon 0.30 kg/kg (D-004); fired 611 MW LHV in total with H-103 (D-013). Number of furnaces and the spare for decoking not chosen."}
+  - {tag: H-103, type: Furnace, service: Propane recycle cracking furnace,
+     notes: "Cracks the C3 splitter bottoms (8.0 t/h) at the same coil outlet conditions (D-005)."}
+  - {tag: E-101, type: TubularHeatExchanger, service: Transfer line exchangers (SHP steam),
+     notes: "Cracked gas 840 -> 350 C, 142 MW raising 11500 kPa(a) steam (D-007)."}
+  # ---- quench and dilution steam (QW)
+  - {tag: T-201, type: ProcessColumn, service: Quench water tower,
+     notes: "Cracked gas to 40 C, 150 kPa(a); condenses the dilution steam (D-007)."}
+  - {tag: E-210, type: TubularHeatExchanger, service: Process water stripper and dilution steam generator,
+     notes: "70 t/h dilution steam at 800 kPa(a) on MP steam, 46 MW (D-007)."}
+  # ---- compression, caustic wash, drying (CGC)
+  - {tag: K-301, type: CentrifugalCompressor, service: Cracked gas compressor (5 stages),
+     notes: "150 -> 3600 kPa(a), stage ratio 1.89, isentropic efficiency 0.78, 40.6 MW shaft (D-008); electric drive in the inventory, steam turbine usual (D-015)."}
+  - {tag: V-301, type: Vessel, service: CGC stage 3 discharge drum, notes: "1010 kPa(a), 40 C."}
+  - {tag: T-310, type: ProcessColumn, service: Caustic tower, notes: "CO2 removal with 10 wt% NaOH (D-009)."}
+  - {tag: V-302, type: Vessel, service: CGC discharge drum, notes: "3600 kPa(a), 40 C."}
+  - {tag: D-320, type: Vessel, service: Cracked gas dryers (molecular sieve), notes: "Regeneration with tail gas not modelled (D-008)."}
+  # ---- cold section (CHL)
+  - {tag: T-401, type: ProcessColumn, service: Chilling train and demethaniser, notes: "Front-end demethaniser, overhead -100 C (D-010)."}
+  - {tag: E-402, type: PlateHeatExchanger, service: Cold box hydrogen separation, notes: "95 mol% H2 for the hydrogenation reactors (D-010)."}
+  - {tag: K-701, type: CentrifugalCompressor, service: Propylene and ethylene refrigeration compressors,
+     notes: "78 MW shaft, COP 60 % of Carnot per level (D-014)."}
+  # ---- C2 and C3 fractionation (C2F, C3F)
+  - {tag: T-501, type: ProcessColumn, service: Deethaniser, notes: "2500 kPa(a) (D-010)."}
+  - {tag: R-501, type: Vessel, service: Acetylene converter (tail end), notes: "Adiabatic Pd bed; selectivity ASSUMED (D-011)."}
+  - {tag: T-502, type: ProcessColumn, service: C2 splitter with pasteurisation section, notes: "1900 kPa(a), reflux ratio 4 (D-014)."}
+  - {tag: T-601, type: ProcessColumn, service: Depropaniser, notes: "1800 kPa(a) (D-010)."}
+  - {tag: R-601, type: Vessel, service: MAPD converter, notes: "Adiabatic (D-011)."}
+  - {tag: T-602, type: ProcessColumn, service: C3 splitter, notes: "1600 kPa(a), reflux ratio 15 (D-014)."}
+  - {tag: T-603, type: ProcessColumn, service: Debutaniser, notes: "500 kPa(a) (D-010)."}
