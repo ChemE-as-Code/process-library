@@ -385,21 +385,26 @@ def solve():
         mud_k = scale(mud, 1 - purge_f)
         S.update(S38=cake, S39=cd2, S40=ww_k, S41=purge, S42=mud_k)
         # ---- K901 lime kiln
+        # The burner (K902: natural gas combustion, heat to the kiln) and the calcination
+        # (K901) are separate steps, so fossil and biogenic carbon never mix in one reactive
+        # step and core's carbon-origin tracing stays exact (D-012); physically the gases
+        # pass the same kiln and leave by one stack.
         k = dict(add(mud_k))
         ch4 = {"CH4": KILN_GJ * A * 1000 / CH4_LHV}
         airk = {"O2": ch4["CH4"] / MW["CH4"] * 2 * MW["O2"] * AIR_K}
         airk["N2"] = airk["O2"] * (1 - AIR_O2) / AIR_O2
-        k = add(k, ch4, airk)
+        bu = add(ch4, airk)
         XI["CALC"] = CALC * k["CaCO3"] / MW["CaCO3"]
         XI["COMB_NG"] = ch4["CH4"] / MW["CH4"]
         XI["NOX_K"] = NOX_K * A / MW["NO2"] / 2
         react(k, R["CALC"], XI["CALC"])
-        react(k, R["COMB_NG"], XI["COMB_NG"])
-        react(k, R["NOX"], XI["NOX_K"])
+        react(bu, R["COMB_NG"], XI["COMB_NG"])
+        react(bu, R["NOX"], XI["NOX_K"])
         lime_new = {kk: k[kk] for kk in k if kk in ("CaO", "CaCO3") or
                     (kk in diss(k) and kk != "CH4")}
-        kgas = {kk: k[kk] for kk in ("O2", "N2", "CO2", "CO2B", "NO2", "H2O")}
-        S.update(S43=ch4, S44=airk, S45=kgas)
+        kgas = {kk: k[kk] for kk in ("CO2B", "H2O")}
+        bgas = {kk: bu[kk] for kk in ("O2", "N2", "CO2", "NO2", "H2O")}
+        S.update(S43=ch4, S44=airk, S45=kgas, S50=bgas)
         # ---- steady-state updates (damped)
         lime_rec = add(scale(lime_rec, 0.5), scale(lime_new, 0.5))
         S["S46"] = lime_rec
@@ -430,7 +435,7 @@ def solve():
     S["S47"] = {"H2O": cd3}
     S["S48"] = {"H2O": cd1["H2O"] - to_w301}
     S["S49"] = wl_tot
-    S["S50"] = {"H2O": cond}  # not a stream: total condensate (for the report)
+    S["COND"] = {"H2O": cond}  # not a stream: total condensate (for the report)
     U.update(evap=evap, bls=bls, it=it, mk_naoh=mk_naoh, mk_salt=mk_salt, cao_mk=cao_mk,
              WD=WD, dNa=dNa, dS=dS, e_naoh=e_naoh, of_w=of_w)
     return S, XI, U
@@ -493,7 +498,8 @@ UNITS = {  # unit: (inputs, outputs) by stream id, for the element check
     "F804": (["S36"], ["S49", "S38"]),
     "X805": (["S49"], ["S2", "S7"]),
     "F806": (["S38", "S39"], ["S40", "S41", "S42"]),
-    "K901": (["S42", "S43", "S44"], ["S45", "S46"]),
+    "K901": (["S42"], ["S45", "S46"]),
+    "K902": (["S43", "S44"], ["S50"]),
 }
 
 
@@ -523,7 +529,7 @@ def main():
              "fresh water": S["S19"]["H2O"], "RB air": tot(S["S28"]), "kiln air": tot(S["S44"]),
              "effluent": tot(S["S21"]), "fresh water W301": S["S48"]["H2O"], "dregs": tot(S["S32"]),
              "grits": tot(S["S34"]), "mud purge": tot(S["S41"]),
-             "CO2B RB": S["S29"]["CO2B"], "CO2B kiln": S["S45"]["CO2B"], "CO2 kiln (fossil)": S["S45"]["CO2"],
+             "CO2B RB": S["S29"]["CO2B"], "CO2B kiln": S["S45"]["CO2B"], "CO2 kiln (fossil)": S["S50"]["CO2"],
              "CO2B bleach (dissolved)": S["S21"]["CO2B"], "BLDS fired": U["bls"],
              "evaporated": U["evap"], "condensate to W301": S["S13"]["H2O"], "cd3": S["S47"]["H2O"], "cd2": S["S39"]["H2O"],
              "WL total": tot(S["S49"]), "WL to O2": tot(S["S7"])}
@@ -550,7 +556,7 @@ def main():
     print("# reaction extents kmol/h: " + ", ".join(f"{k} {v:.3f}" for k, v in XI.items()), file=sys.stderr)
     if "--yaml" in sys.argv:
         for sid, d in S.items():
-            if sid == "S50":
+            if sid == "COND":
                 continue
             t = tot(d)
             comp = {k: round(v / t, 6) for k, v in d.items() if v / t >= 5e-7}

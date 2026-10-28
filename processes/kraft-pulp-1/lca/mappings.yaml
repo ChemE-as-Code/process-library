@@ -1,0 +1,28 @@
+# kraft-pulp-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# Preliminary LCI (DESIGN.md D-014): most exchanges stay UNMAPPED on purpose, reported as gaps
+# (library ADR on LCI gaps), never 0. The shared vocabulary has no entry yet for softwood chips,
+# sodium hydroxide 50 %, oxygen, chlorine dioxide water, hydrogen peroxide 50 %, sodium sulfate,
+# quicklime or pulp mill effluent treatment; each is described in lca/lca.yaml (`missing:`) and
+# listed in DESIGN.md section 5 for the consolidated registry/mappings PR.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:H2SO4":
+    use: sulfuric-acid
+    source: >-
+      Sulfuric acid for the D stages, 93 wt% counted as the solution (stream S17); the shared
+      entry's basis (100 % or as sold) is open there, as for chlor-alkali-1.
+  "product:SW":
+    use: inert-waste-landfill
+    source: >-
+      Green liquor dregs, slaker grits and lime mud purge (streams S32, S34, S41): mineral,
+      alkaline, non-hazardous residues to landfill, per kg wet.
+  "feed:FW":
+    atlas: false
+    source: >-
+      Process water from surface water, mechanically and chemically treated at the mill. The
+      shared entry `water` is deionised water (boiler feedwater) and would overstate it; it stays
+      a gap until a process-water entry exists.
