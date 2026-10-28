@@ -1,18 +1,120 @@
-# Components and templates of the process. Schema cheme/process/v1 (`cheme schema
+# Components and templates of thionyl-chloride-1. Schema cheme/process/v1 (`cheme schema
 # process-materials`). Every component has a stable id; molar_mass in kg/kmol,
 # normal_boiling_point in K at 101.325 kPa.
+#
+# Gas data printed by `cheme chemistry thermo` (chemicals/thermo packages: CRC, NIST WebBook,
+# JANAF, Poling 5th ed., TRCIG fits). Sulfur is the condensed element (liquid in the process):
+# it has no ideal-gas entry here, its enthalpy in scripts/balance.py comes from approximate
+# condensed-phase data (DESIGN.md D-006). The scrubber species (NaOH, Na2SO3, Na2SO4, NaCl,
+# Na2S2O3) are molecular pseudo-components of the aqueous liquor without ideal-gas data. No
+# property package of core is qualified for the sulfur chlorides, thionyl chloride or the
+# alkaline liquor (core #315, #364), so the condensation, degassing, distillation and scrubber
+# values come from scripts/balance.py (D-006).
 schema: cheme/process/v1
 kind: materials
-components: []
-#  - {id: N2, name: Nitrogen, formula: N2, cas: 7727-37-9, molar_mass: 28.014, normal_boiling_point: 77.36}
-templates: []
-#  - {id: air, title: Air, components: [N2, O2, AR]}
-# property_method is a placeholder until `cheme process props --fill` records the method: its
-# benchmarked property package, package versions and application range. Packages:
-# air-pr-chemsep (N2/O2/Ar, 77-315 K, vapour 100-3200 kPa(a), liquid and two-phase 100-600
-# kPa(a)) and syngas-pr-vapor (H2/N2/Ar/CH4/CO/CO2 mixtures, NH3 pure or dilute with H2/N2/Ar/
-# CH4, vapour only, in benchmarked temperature-pressure boxes). `cheme process props --coverage` shows which applies
-# to each stream; `package: <id>` here chooses one.
+components:
+  - id: SOCL2
+    name: Thionyl chloride
+    formula: Cl2OS
+    cas: 7719-09-7
+    molar_mass: 118.970
+    normal_boiling_point: 348.75
+    critical: {Tc: 567.0, Pc: 4430.0, omega: 0.0946, source: "chemicals: Tc PINAMARTINES, Pc PINAMARTINES, omega YAWS"}
+    ideal_gas: {dHf_298: -212500.0, S_298: 309.8, cp_R: [4.42692, 0.0189314, -2.92695e-05, 2.22068e-08, -6.64823e-12], temperature_range: [298.15, 1000], source: "chemicals: dHf_298 CRC, S_298 CRC, cp_R fitted to thermo TRCIG 298.15-1000 K (max deviation 0.17 %)"}
+  - id: SCL2
+    name: Sulfur dichloride
+    formula: Cl2S
+    cas: 10545-99-0
+    molar_mass: 102.971
+    normal_boiling_point: 332.75
+    critical: {Tc: 542.0, Pc: 6680.0, omega: 0.2561, source: "chemicals: Tc YAWS, Pc YAWS, omega YAWS"}
+    ideal_gas: {dHf_298: -17570.0, S_298: 281.6, cp_R: [3.65028, 0.0140413, -2.46912e-05, 2.02375e-08, -6.34247e-12], temperature_range: [298.15, 1000], source: "chemicals: dHf_298 WEBBOOK, S_298 WEBBOOK, cp_R fitted to thermo JANAF 298.15-1000 K (max deviation 0.11 %)"}
+  - id: S2CL2
+    name: Disulfur dichloride (sulfur monochloride)
+    formula: Cl2S2
+    cas: 10025-67-9
+    molar_mass: 135.036
+    normal_boiling_point: 410.15
+    critical: {Tc: 659.37, Pc: 6275.0, omega: 0.272, source: "chemicals: Tc YAWS, Pc YAWS, omega YAWS"}
+    ideal_gas: {dHf_298: -16740.0, S_298: 327.19, cp_R: [5.51588, 0.0180999, -3.01972e-05, 2.32692e-08, -6.82476e-12], temperature_range: [298.15, 1000], source: "chemicals: dHf_298 WEBBOOK, S_298 WEBBOOK, cp_R fitted to thermo TRCIG 298.15-1000 K (max deviation 0.36 %)"}
+  - id: SO2
+    name: Sulfur dioxide
+    formula: O2S
+    cas: 7446-09-5
+    molar_mass: 64.064
+    normal_boiling_point: 263.14
+    critical: {Tc: 430.64, Pc: 7886.6, omega: 0.256, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -296800.0, S_298: 248.2, cp_R: [4.417, -0.002234, 2.344e-05, -3.271e-08, 1.393e-11], temperature_range: [50, 1000], source: "chemicals: dHf_298 CRC, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: CL2
+    name: Chlorine
+    formula: Cl2
+    cas: 7782-50-5
+    molar_mass: 70.906
+    normal_boiling_point: 239.20
+    critical: {Tc: 416.865, Pc: 7642.4, omega: 0.07, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 0.0, S_298: 223.1, cp_R: [3.056, 0.0053708, -8.098e-06, 5.693e-09, -1.5256e-12], temperature_range: [50, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: O2
+    name: Oxygen
+    formula: O2
+    cas: 7782-44-7
+    molar_mass: 31.999
+    normal_boiling_point: 90.19
+    critical: {Tc: 154.581, Pc: 5043.0, omega: 0.0222, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 0.0, S_298: 205.2, cp_R: [3.63, -0.001794, 6.58e-06, -6e-09, 1.79e-12], temperature_range: [50, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: S
+    name: Sulfur (molten; dissolved in sulfur chlorides; suspended in the scrubber liquor)
+    formula: S
+    cas: 7704-34-9
+    molar_mass: 32.065
+    normal_boiling_point: 717.76
+  - id: H2O
+    name: Water
+    formula: H2O
+    cas: 7732-18-5
+    molar_mass: 18.015
+    normal_boiling_point: 373.12
+    critical: {Tc: 647.096, Pc: 22064.0, omega: 0.3443, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -241822.0, S_298: 188.8, cp_R: [4.395, -0.004186, 1.405e-05, -1.564e-08, 6.32e-12], temperature_range: [50, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: NAOH
+    name: Sodium hydroxide (dissolved)
+    formula: NaOH
+    cas: 1310-73-2
+    molar_mass: 39.997
+  - id: NA2SO3
+    name: Sodium sulfite (dissolved)
+    formula: Na2SO3
+    cas: 7757-83-7
+    molar_mass: 126.043
+  - id: NA2SO4
+    name: Sodium sulfate (dissolved)
+    formula: Na2SO4
+    cas: 7757-82-6
+    molar_mass: 142.042
+  - id: NACL
+    name: Sodium chloride (dissolved)
+    formula: NaCl
+    cas: 7647-14-5
+    molar_mass: 58.443
+  - id: NA2S2O3
+    name: Sodium thiosulfate (dissolved)
+    formula: Na2S2O3
+    cas: 7772-98-7
+    molar_mass: 158.108
+templates:
+  - {id: sulfur, title: Molten sulfur, components: [S]}
+  - {id: chlorine, title: Chlorine gas, components: [CL2, O2]}
+  - {id: so2, title: Sulfur dioxide, components: [SO2]}
+  - {id: schl, title: Sulfur chlorides (chlorinator liquor), components: [S2CL2, SCL2, SOCL2, S, O2]}
+  - {id: process, title: "Reactor gas and condensate (SO2, Cl2, sulfur chlorides, thionyl chloride)", components: [SOCL2, SCL2, S2CL2, SO2, CL2, O2]}
+  - {id: crude, title: Crude thionyl chloride, components: [SOCL2, SCL2, S2CL2, S]}
+  - {id: product, title: Thionyl chloride product, components: [SOCL2, SCL2, S2CL2]}
+  - {id: caustic, title: Caustic soda solution, components: [NAOH, H2O]}
+  - {id: water, title: Process water, components: [H2O]}
+  - {id: vent, title: Scrubbed vent gas, components: [O2, SO2, CL2, SOCL2, SCL2, S2CL2, H2O]}
+  - {id: liquor, title: Spent scrubber liquor, components: [NAOH, NA2SO3, NA2SO4, NACL, NA2S2O3, S, H2O]}
+# No benchmarked property package covers the sulfur chlorides, thionyl chloride or the alkaline
+# liquor (cheme process props --coverage; core #315, #364). Values are assumed from
+# scripts/balance.py with their source.
 property_method:
   adapter: thermo
   status: placeholder
