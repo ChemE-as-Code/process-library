@@ -1,24 +1,573 @@
 # The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
 # never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
-# Units are explicit: a property without its own unit is in these. Pressure is absolute; a gauge
-# value needs its own unit (kPa(g)). Nm3/h needs normal_conditions.
+#
+# Ethylene glycol by ethylene oxide hydration, glycols-only plant, 50 t/h MEG (D-001, D-002).
+# Where the values come from:
+# - every flow and composition is from the independent sequential balance
+#   scripts/eg_balance.py (D-006), given here as ASSUMED: it rests on ASSUMED design parameters
+#   inside the ranges of the BREF LVOC 2017 chapter 7 (conversion, selectivity, purge, MEG share)
+#   and on a consecutive-reaction model with an ASSUMED relative rate for the glycol split (D-005);
+# - the reactor steps name their reactions (process/reactions.yaml) and give the conversion and
+#   selectivities of the script, so cheme checks them by elements and extents;
+# - duties are a lumped estimate of the same script (D-008), ASSUMED; no property package covers
+#   these streams (D-007, core #315).
+# The steam raised in R-101 is used inside the plant (energy streams Q1-Q4); MP steam is imported
+# for the rest (D-008).
 schema: cheme/process/v1
 kind: flowsheet
-title: ""
+title: Ethylene glycol by ethylene oxide hydration (glycols only, 50 t/h MEG)
 units:
   pressure: kPa(a)
   temperature: K
   flow: kg/h
   duty: kW
   enthalpy: kJ/kmol
-  # normal_conditions: {temperature: 273.15, pressure: 101.325, basis: ideal_gas}
-  # enthalpy_reference: {state: ideal_gas, temperature: 298.15}
 cases:
-  - {id: design, description: Design case, default: true}
+  - id: design
+    description: "Design case: 50 t/h MEG (1200 t/d, 400 kt/a at 8000 h/a), fresh-catalyst selectivity 85 % (D-002, D-004)"
+    default: true
+    capacity: 50 t/h MEG
+    provenance: assumed
+    source: "D-002: a normalisation basis for the inventory, not a commercial plant claim"
 tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
-feeds: []      # external feeds (DEXPI Source): {id, title, ports: [{id: out, direction: out}]}
-products: []   # products (DEXPI Sink): {id, title, ports: [{id: in, direction: in}]}
-blocks: []     # BFD blocks: {id, title, class, ports: [{id, direction, kind}], links}
-steps: []      # PFD steps: {id, block, title, class, ports: [{id, direction, delegates}], links}
-streams: []    # {id, title, kind, from: NODE.port, to: NODE.port, template, state: {design: {...}}}
+
+feeds:
+  - {id: ETH, title: Ethylene (pipeline polymer grade), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: OXY, title: Oxygen (pipeline GOX from asu-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: MET, title: Methane ballast make-up, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: PW, title: Process water make-up (demineralised), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: MPS
+    title: MP steam 2800 kPa(a) import
+    category: utility
+    utility:
+      kind: steam
+      level: MP
+      pressure: {value: 2800, provenance: assumed, source: "design basis, D-008"}
+      supply_temperature: {value: 503.6, provenance: assumed, source: "saturation at 2800 kPa(a), D-008"}
+    ports:
+      - {id: c501, direction: out, kind: energy}
+      - {id: c601, direction: out, kind: energy}
+      - {id: c602, direction: out, kind: energy}
+      - {id: c603, direction: out, kind: energy}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: k101, direction: out, kind: energy}
+      - {id: p202, direction: out, kind: energy}
+      - {id: p401, direction: out, kind: energy}
+      - {id: aux, direction: out, kind: energy}
+products:
+  - {id: MEG, title: Monoethylene glycol to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: DEG, title: Diethylene glycol to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: TEG, title: Triethylene glycol to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: HVY, title: Heavy glycols residue (to sale or incineration), category: by_product, ports: [{id: in, direction: in}]}
+  - {id: PURGE, title: Inerts purge to the fuel gas header, category: off_gas, ports: [{id: in, direction: in}]}
+  - {id: CO2V, title: CO2 stripper vent to atmosphere, category: off_gas, ports: [{id: in, direction: in}]}
+  - {id: WW, title: Recycle water bleed to biological treatment, category: wastewater, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-008"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-008"}
+      min_approach: {value: 5, provenance: assumed, source: D-008}
+    ports:
+      - {id: e101, direction: in, kind: energy}
+      - {id: c201, direction: in, kind: energy}
+      - {id: c202, direction: in, kind: energy}
+      - {id: k101, direction: in, kind: energy}
+      - {id: c301, direction: in, kind: energy}
+      - {id: ev501, direction: in, kind: energy}
+      - {id: c501, direction: in, kind: energy}
+      - {id: c601, direction: in, kind: energy}
+      - {id: c602, direction: in, kind: energy}
+      - {id: c603, direction: in, kind: energy}
+
+blocks:
+  - id: RXN
+    title: EO reaction (oxygen-based, methane ballast)
+    class: ReactingChemicals
+    ports:
+      - {id: eth, direction: in}
+      - {id: oxy, direction: in}
+      - {id: met, direction: in}
+      - {id: rec, direction: in}
+      - {id: gas, direction: out}
+      - {id: st1, direction: out, kind: energy}
+      - {id: st2, direction: out, kind: energy}
+      - {id: st3, direction: out, kind: energy}
+      - {id: st4, direction: out, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+  - id: EOR
+    title: EO absorption, stripping and light-gas removal
+    class: Absorbing
+    ports:
+      - {id: gas, direction: in}
+      - {id: gasout, direction: out}
+      - {id: lights, direction: out}
+      - {id: eo, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+  - id: LOOP
+    title: Recycle gas compression, inerts purge and CO2 removal (hot potassium carbonate)
+    class: Compressing
+    ports:
+      - {id: gas, direction: in}
+      - {id: lights, direction: in}
+      - {id: rec, direction: out}
+      - {id: purge, direction: out}
+      - {id: vent, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: steam, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+  - id: GLY
+    title: Glycol reaction (thermal hydration)
+    class: ReactingChemicals
+    ports:
+      - {id: eo, direction: in}
+      - {id: pw, direction: in}
+      - {id: rec, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy}
+  - id: EVP
+    title: Multi-effect evaporation and drying (water recycle)
+    class: Evaporating
+    ports:
+      - {id: in, direction: in}
+      - {id: rec, direction: out}
+      - {id: bleed, direction: out}
+      - {id: crude, direction: out}
+      - {id: steam1, direction: in, kind: energy}
+      - {id: steam2, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+  - id: PUR
+    title: Glycol purification (MEG, DEG and TEG vacuum columns)
+    class: Distilling
+    ports:
+      - {id: crude, direction: in}
+      - {id: meg, direction: out}
+      - {id: deg, direction: out}
+      - {id: teg, direction: out}
+      - {id: hvy, direction: out}
+      - {id: steam0, direction: in, kind: energy}
+      - {id: steam1, direction: in, kind: energy}
+      - {id: steam2, direction: in, kind: energy}
+      - {id: steam3, direction: in, kind: energy}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+      - {id: cw3, direction: out, kind: energy}
+
+steps:
+  # ---------------------------------------------------------------- EO reaction (D-004)
+  - id: M101
+    block: RXN
+    title: Feed gas mixing (oxygen mixing station)
+    class: Mixing
+    ports:
+      - {id: eth, direction: in, delegates: eth}
+      - {id: oxy, direction: in, delegates: oxy}
+      - {id: met, direction: in, delegates: met}
+      - {id: rec, direction: in, delegates: rec}
+      - {id: out, direction: out}
+  - id: R101
+    block: RXN
+    title: EO reactor (multitubular, silver catalyst, boiling-water shell)
+    class: ReactingChemicals
+    reactions: [EOX, COMB]
+    # D-004: per-pass ethylene conversion 9 % and EO selectivity 85 mol% (BREF LVOC 2017
+    # 7.2.1.1.1: 8-10 %, 75-90 %), given in process/reactions.yaml as the fraction of the inlet
+    # C2H4 each reaction converts: EOX 0.09 x 0.85, COMB 0.09 x 0.15. (A selectivity: block here
+    # would be the natural form, but core's reactor check loses the reactions of a second
+    # selectivity reactor in the same flowsheet; DESIGN.md D-006.)
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: st1, direction: out, kind: energy, delegates: st1}
+      - {id: st2, direction: out, kind: energy, delegates: st2}
+      - {id: st3, direction: out, kind: energy, delegates: st3}
+      - {id: st4, direction: out, kind: energy, delegates: st4}
+  - id: E101
+    block: RXN
+    title: Reactor gas feed/effluent exchanger and trim cooler
+    class: Cooling
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: gas}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  # ---------------------------------------------------------------- EO recovery (D-004)
+  - id: C201
+    block: EOR
+    title: EO absorber (water scrubbing) with lean absorbent cooler
+    class: Absorbing
+    links: [{target: equipment, ref: C-201}]
+    ports:
+      - {id: gas, direction: in, delegates: gas}
+      - {id: lean, direction: in}
+      - {id: gasout, direction: out, delegates: gasout}
+      - {id: rich, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw1}
+  - id: C202
+    block: EOR
+    title: EO stripper (desorber) with lean/rich exchanger and lean absorbent pump
+    class: SeparatingByThermalProcess
+    links: [{target: equipment, ref: C-202}, {target: equipment, ref: P-202}]
+    ports:
+      - {id: rich, direction: in}
+      - {id: lean, direction: out}
+      - {id: ovh, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: power, direction: in, kind: energy, delegates: power}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+  - id: C203
+    block: EOR
+    title: Light-gas stripper (non-condensables back to the loop)
+    class: SeparatingByThermalProcess
+    links: [{target: equipment, ref: C-203}]
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out, delegates: lights}
+      - {id: eo, direction: out, delegates: eo}
+  # ---------------------------------------------------------------- recycle gas loop (D-004)
+  - id: M102
+    block: LOOP
+    title: Recycle gas and light gases
+    class: Mixing
+    ports:
+      - {id: gas, direction: in, delegates: gas}
+      - {id: lights, direction: in, delegates: lights}
+      - {id: out, direction: out}
+  - id: K101
+    block: LOOP
+    title: Recycle gas compressor
+    class: Compressing
+    links: [{target: equipment, ref: K-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+      - {id: cw, direction: out, kind: energy, delegates: cw1}
+  - id: SP101
+    block: LOOP
+    title: Inerts purge
+    class: SplittingMaterial
+    split: {purge: 0.0015, out: 0.9985}
+    ports:
+      - {id: in, direction: in}
+      - {id: purge, direction: out, delegates: purge}
+      - {id: out, direction: out}
+  - id: SP102
+    block: LOOP
+    title: Slip stream to CO2 removal
+    class: SplittingMaterial
+    split: {slip: 0.496315, bypass: 0.503685}
+    ports:
+      - {id: in, direction: in}
+      - {id: slip, direction: out}
+      - {id: bypass, direction: out}
+  - id: C301
+    block: LOOP
+    title: CO2 absorber and regenerator (hot potassium carbonate)
+    class: Absorbing
+    links: [{target: equipment, ref: C-301}, {target: equipment, ref: C-302}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: vent, direction: out, delegates: vent}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+  - id: M103
+    block: LOOP
+    title: Treated gas and bypass
+    class: Mixing
+    ports:
+      - {id: bypass, direction: in}
+      - {id: treated, direction: in}
+      - {id: out, direction: out, delegates: rec}
+  # ---------------------------------------------------------------- glycol reaction (D-005)
+  - id: M401
+    block: GLY
+    title: Glycol reactor feed mixing and feed pump
+    class: Mixing
+    links: [{target: equipment, ref: P-401}]
+    ports:
+      - {id: eo, direction: in, delegates: eo}
+      - {id: pw, direction: in, delegates: pw}
+      - {id: rec, direction: in, delegates: rec}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: R401
+    block: GLY
+    title: Glycol reactor (adiabatic tubular, no catalyst)
+    class: ReactingChemicals
+    reactions: [HYD1, HYD2, HYD3, HYD4]
+    selectivity:
+      key: EO
+      conversion: 1.0
+      products: {MEG: 0.906713, DEG: 0.044401, TEG: 0.001447, TTEG: 0.000036}
+      provenance: assumed
+      source: "D-005: full EO conversion (BREF LVOC 2017 7.2.2.5); split from the consecutive-reaction model of scripts/eg_balance.py, water:EO 20 mol/mol and relative rate 2.0 (both ASSUMED); MEG net of the recycled MEG"
+    links: [{target: equipment, ref: R-401}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: out}
+  # ---------------------------------------------------------------- evaporation and drying (D-005)
+  - id: EV501
+    block: EVP
+    title: Multi-effect evaporator (four effects)
+    class: Evaporating
+    links: [{target: equipment, ref: EV-501}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: vap, direction: out}
+      - {id: conc, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam1}
+      - {id: cw, direction: out, kind: energy, delegates: cw1}
+  - id: C501
+    block: EVP
+    title: Drying column (vacuum)
+    class: Distilling
+    links: [{target: equipment, ref: C-501}]
+    ports:
+      - {id: in, direction: in}
+      - {id: ovh, direction: out}
+      - {id: btm, direction: out, delegates: crude}
+      - {id: steam, direction: in, kind: energy, delegates: steam2}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+  - id: M501
+    block: EVP
+    title: Recycle water collection
+    class: Mixing
+    ports:
+      - {id: ev, direction: in}
+      - {id: dry, direction: in}
+      - {id: out, direction: out}
+  - id: SP501
+    block: EVP
+    title: Recycle water bleed (aldehyde purge)
+    class: SplittingMaterial
+    split: {bleed: 0.005, rec: 0.995}
+    ports:
+      - {id: in, direction: in}
+      - {id: bleed, direction: out, delegates: bleed}
+      - {id: rec, direction: out, delegates: rec}
+  # ---------------------------------------------------------------- glycol purification (D-005)
+  - id: C601
+    block: PUR
+    title: MEG column (vacuum)
+    class: Distilling
+    links: [{target: equipment, ref: C-601}]
+    ports:
+      - {id: in, direction: in, delegates: crude}
+      - {id: top, direction: out, delegates: meg}
+      - {id: btm, direction: out}
+      - {id: steam_r101, direction: in, kind: energy, delegates: steam0}
+      - {id: steam, direction: in, kind: energy, delegates: steam1}
+      - {id: power, direction: in, kind: energy, delegates: power}
+      - {id: cw, direction: out, kind: energy, delegates: cw1}
+  - id: C602
+    block: PUR
+    title: DEG column (vacuum)
+    class: Distilling
+    links: [{target: equipment, ref: C-602}]
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out, delegates: deg}
+      - {id: btm, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam2}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+  - id: C603
+    block: PUR
+    title: TEG column (vacuum)
+    class: Distilling
+    links: [{target: equipment, ref: C-603}]
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out, delegates: teg}
+      - {id: btm, direction: out, delegates: hvy}
+      - {id: steam, direction: in, kind: energy, delegates: steam3}
+      - {id: cw, direction: out, kind: energy, delegates: cw3}
+
+streams:
+  # Material streams: scripts/eg_balance.py (D-006); pressures and temperatures ASSUMED (D-004, D-005)
+  - {id: S1, title: "Ethylene feed (pipeline)", from: ETH.out, to: M101.eth, template: loop, state: {design: {
+      pressure: {value: 2400, provenance: assumed, source: D-004}, temperature: {value: 298.15, provenance: assumed, source: D-004},
+      flow: {value: 29779.6, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {C2H4: 0.999464, C2H6: 0.000536}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S2, title: "Oxygen feed (pipeline GOX)", from: OXY.out, to: M101.oxy, template: loop, state: {design: {
+      pressure: {value: 2400, provenance: assumed, source: D-004}, temperature: {value: 298.15, provenance: assumed, source: D-004},
+      flow: {value: 29530.2, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {O2: 0.993765, AR: 0.006235}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S3, title: "Methane ballast make-up", from: MET.out, to: M101.met, template: loop, state: {design: {
+      pressure: {value: 2400, provenance: assumed, source: D-004}, temperature: {value: 298.15, provenance: assumed, source: D-004},
+      flow: {value: 502.9, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {CH4: 1.0}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S4, title: "Recycle gas to the mixer", from: M103.out, to: M101.rec, template: loop, state: {design: {
+      pressure: {value: 2200, provenance: assumed, source: D-004}, temperature: {value: 333.15, provenance: assumed, source: D-004},
+      flow: {value: 838899.1, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {C2H4: 0.352591, O2: 0.083052, CH4: 0.383551, CO2: 0.020293, H2O: 0.001761, AR: 0.146088, C2H6: 0.012664}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S5, title: "Reactor feed gas", from: M101.out, to: R101.in, template: loop, state: {design: {
+      pressure: {value: 2200, provenance: assumed, source: D-004}, temperature: {value: 333.15, provenance: assumed, source: D-004},
+      flow: {value: 898711.8, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {C2H4: 0.362243, O2: 0.110178, CH4: 0.358585, CO2: 0.018942, H2O: 0.001644, AR: 0.13657, C2H6: 0.011838}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S6, title: "Reactor outlet gas", from: R101.out, to: E101.in, template: loop, state: {design: {
+      pressure: {value: 2100, provenance: assumed, source: D-004}, temperature: {value: 523.15, provenance: assumed, source: D-004},
+      flow: {value: 898711.8, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {C2H4: 0.329641, O2: 0.077641, CH4: 0.358586, CO2: 0.034285, H2O: 0.007924, AR: 0.13657, C2H6: 0.011838, EO: 0.043515}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S7, title: "Cooled reactor gas to the EO absorber", from: E101.out, to: C201.gas, template: loop, state: {design: {
+      pressure: {value: 2050, provenance: assumed, source: D-004}, temperature: {value: 313.15, provenance: assumed, source: D-004},
+      flow: {value: 898711.8, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {C2H4: 0.329641, O2: 0.077641, CH4: 0.358586, CO2: 0.034285, H2O: 0.007924, AR: 0.13657, C2H6: 0.011838, EO: 0.043515}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S8, title: "EO absorber off-gas", from: C201.gasout, to: M102.gas, template: loop, state: {design: {
+      pressure: {value: 2000, provenance: assumed, source: D-004}, temperature: {value: 308.15, provenance: assumed, source: D-004},
+      flow: {value: 852689.9, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {C2H4: 0.346995, O2: 0.081832, CH4: 0.377805, CO2: 0.034761, H2O: 0.002189, AR: 0.143941, C2H6: 0.012477}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S9, title: "Rich absorbent (aqueous EO)", from: C201.rich, to: C202.rich, template: aq, state: {design: {
+      pressure: {value: 2000, provenance: assumed, source: D-004}, temperature: {value: 318.15, provenance: assumed, source: D-004},
+      flow: {value: 1305250.2, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {C2H4: 0.000286, CH4: 8.7e-05, CO2: 0.000898, H2O: 0.968767, EO: 0.029962}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S10, title: "Lean absorbent (stripped water)", from: C202.lean, to: C201.lean, template: aq, state: {design: {
+      pressure: {value: 2200, provenance: assumed, source: D-004}, temperature: {value: 308.15, provenance: assumed, source: D-004},
+      flow: {value: 1259228.2, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S11, title: "EO stripper overhead (EO, water, dissolved gases)", from: C202.ovh, to: C203.in, template: aq, state: {design: {
+      pressure: {value: 200, provenance: assumed, source: D-004}, temperature: {value: 313.15, provenance: assumed, source: D-004},
+      flow: {value: 46021.9, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {C2H4: 0.008117, CH4: 0.002476, CO2: 0.025467, H2O: 0.114177, EO: 0.849763}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S12, title: "Light gases from the lights stripper", from: C203.gas, to: M102.lights, template: loop, state: {design: {
+      pressure: {value: 200, provenance: assumed, source: D-004}, temperature: {value: 313.15, provenance: assumed, source: D-004},
+      flow: {value: 1659.6, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {C2H4: 0.225101, CH4: 0.068654, CO2: 0.706245}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S13, title: "Aqueous EO to the glycol reactor", from: C203.eo, to: M401.eo, template: aq, state: {design: {
+      pressure: {value: 3000, provenance: assumed, source: D-004}, temperature: {value: 313.15, provenance: assumed, source: D-004},
+      flow: {value: 44362.4, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {H2O: 0.118449, EO: 0.881551}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S14, title: "Recycle gas to the compressor", from: M102.out, to: K101.in, template: loop, state: {design: {
+      pressure: {value: 1950, provenance: assumed, source: D-004}, temperature: {value: 308.15, provenance: assumed, source: D-004},
+      flow: {value: 854349.4, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {C2H4: 0.346758, O2: 0.081673, CH4: 0.377205, CO2: 0.036065, H2O: 0.002185, AR: 0.143661, C2H6: 0.012453}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S15, title: "Compressed recycle gas", from: K101.out, to: SP101.in, template: loop, state: {design: {
+      pressure: {value: 2200, provenance: assumed, source: D-004}, temperature: {value: 333.15, provenance: assumed, source: D-004},
+      flow: {value: 854349.4, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {C2H4: 0.346758, O2: 0.081673, CH4: 0.377205, CO2: 0.036065, H2O: 0.002185, AR: 0.143661, C2H6: 0.012453}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S16, title: "Inerts purge to the fuel gas header", from: SP101.purge, to: PURGE.in, template: loop, state: {design: {
+      pressure: {value: 2200, provenance: assumed, source: D-004}, temperature: {value: 333.15, provenance: assumed, source: D-004},
+      flow: {value: 1281.5, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {C2H4: 0.346758, O2: 0.081673, CH4: 0.377205, CO2: 0.036065, H2O: 0.002185, AR: 0.143661, C2H6: 0.012453}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S17, title: "Recycle gas after the purge", from: SP101.out, to: SP102.in, template: loop, state: {design: {
+      pressure: {value: 2200, provenance: assumed, source: D-004}, temperature: {value: 333.15, provenance: assumed, source: D-004},
+      flow: {value: 853067.9, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {C2H4: 0.346758, O2: 0.081673, CH4: 0.377205, CO2: 0.036065, H2O: 0.002185, AR: 0.143661, C2H6: 0.012453}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S18, title: "Slip stream to CO2 removal", from: SP102.slip, to: C301.in, template: loop, state: {design: {
+      pressure: {value: 2200, provenance: assumed, source: D-004}, temperature: {value: 333.15, provenance: assumed, source: D-004},
+      flow: {value: 423390.7, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {C2H4: 0.346758, O2: 0.081673, CH4: 0.377205, CO2: 0.036065, H2O: 0.002185, AR: 0.143661, C2H6: 0.012453}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S19, title: "Recycle gas bypassing CO2 removal", from: SP102.bypass, to: M103.bypass, template: loop, state: {design: {
+      pressure: {value: 2200, provenance: assumed, source: D-004}, temperature: {value: 333.15, provenance: assumed, source: D-004},
+      flow: {value: 429677.2, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {C2H4: 0.346758, O2: 0.081673, CH4: 0.377205, CO2: 0.036065, H2O: 0.002185, AR: 0.143661, C2H6: 0.012453}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S20, title: "CO2-depleted gas", from: C301.out, to: M103.treated, template: loop, state: {design: {
+      pressure: {value: 2150, provenance: assumed, source: D-004}, temperature: {value: 333.15, provenance: assumed, source: D-004},
+      flow: {value: 409221.9, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {C2H4: 0.358716, O2: 0.084501, CH4: 0.390218, CO2: 0.003731, H2O: 0.001315, AR: 0.148635, C2H6: 0.012884}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S21, title: "CO2 stripper vent to atmosphere", from: C301.vent, to: CO2V.in, template: loop, state: {design: {
+      pressure: {value: 120, provenance: assumed, source: D-004}, temperature: {value: 313.15, provenance: assumed, source: D-004},
+      flow: {value: 14168.8, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {C2H4: 0.00138, CH4: 0.00138, CO2: 0.969926, H2O: 0.027314}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S22, title: "Process water make-up (demineralised)", from: PW.out, to: M401.pw, template: aq, state: {design: {
+      pressure: {value: 3000, provenance: assumed, source: D-004}, temperature: {value: 303.15, provenance: assumed, source: D-004},
+      flow: {value: 11522.9, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S23, title: "Recycle water to the glycol reactor", from: SP501.rec, to: M401.rec, template: aq, state: {design: {
+      pressure: {value: 3000, provenance: assumed, source: D-004}, temperature: {value: 403.15, provenance: assumed, source: D-004},
+      flow: {value: 303379.4, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {H2O: 0.999, MEG: 0.001}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S24, title: "Glycol reactor feed", from: M401.out, to: R401.in, template: aq, state: {design: {
+      pressure: {value: 3000, provenance: assumed, source: D-004}, temperature: {value: 423.15, provenance: assumed, source: D-004},
+      flow: {value: 359264.7, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {H2O: 0.890301, EO: 0.108855, MEG: 0.000844}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S25, title: "Glycol reactor outlet", from: R401.out, to: EV501.in, template: aq, state: {design: {
+      pressure: {value: 2900, provenance: assumed, source: D-004}, temperature: {value: 478.15, provenance: assumed, source: D-004},
+      flow: {value: 359264.7, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {H2O: 0.847896, MEG: 0.139907, DEG: 0.011643, TEG: 0.000537, TTEG: 1.7e-05}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S26, title: "Evaporator condensate", from: EV501.vap, to: M501.ev, template: aq, state: {design: {
+      pressure: {value: 200, provenance: assumed, source: D-004}, temperature: {value: 393.15, provenance: assumed, source: D-004},
+      flow: {value: 295334.4, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {H2O: 0.998968, MEG: 0.001032}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S27, title: "Concentrated glycols to the drying column", from: EV501.conc, to: C501.in, template: aq, state: {design: {
+      pressure: {value: 200, provenance: assumed, source: D-004}, temperature: {value: 403.15, provenance: assumed, source: D-004},
+      flow: {value: 63930.3, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {H2O: 0.15, MEG: 0.781457, DEG: 0.065429, TEG: 0.003017, TTEG: 9.7e-05}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S28, title: "Drying column overhead water", from: C501.ovh, to: M501.dry, template: aq, state: {design: {
+      pressure: {value: 20, provenance: assumed, source: D-004}, temperature: {value: 330.15, provenance: assumed, source: D-004},
+      flow: {value: 9569.5, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S29, title: "Crude glycols to the MEG column", from: C501.btm, to: C601.in, template: aq, state: {design: {
+      pressure: {value: 25, provenance: assumed, source: D-004}, temperature: {value: 433.15, provenance: assumed, source: D-004},
+      flow: {value: 54360.7, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {H2O: 0.000368, MEG: 0.919022, DEG: 0.076947, TEG: 0.003548, TTEG: 0.000115}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S30, title: "Combined recycle water", from: M501.out, to: SP501.in, template: aq, state: {design: {
+      pressure: {value: 300, provenance: assumed, source: D-004}, temperature: {value: 393.15, provenance: assumed, source: D-004},
+      flow: {value: 304903.9, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {H2O: 0.999, MEG: 0.001}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S31, title: "Water bleed to biological treatment", from: SP501.bleed, to: WW.in, template: aq, state: {design: {
+      pressure: {value: 300, provenance: assumed, source: D-004}, temperature: {value: 313.15, provenance: assumed, source: D-004},
+      flow: {value: 1524.5, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {H2O: 0.999, MEG: 0.001}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S32, title: "MEG product", from: C601.top, to: MEG.in, template: aq, state: {design: {
+      pressure: {value: 300, provenance: assumed, source: D-004}, temperature: {value: 313.15, provenance: assumed, source: D-004},
+      flow: {value: 50000.0, basis: mass, provenance: assumed, source: "design basis 50 t/h (D-002)"},
+      composition: {basis: mass_fraction, values: {H2O: 0.0004, MEG: 0.999, DEG: 0.0006}, provenance: assumed, source: "design basis grade (D-002)"}}}}
+  - {id: S33, title: "MEG column bottoms", from: C601.btm, to: C602.in, template: aq, state: {design: {
+      pressure: {value: 15, provenance: assumed, source: D-004}, temperature: {value: 443.15, provenance: assumed, source: D-004},
+      flow: {value: 4360.7, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {MEG: 0.002, DEG: 0.952345, TEG: 0.044227, TTEG: 0.001428}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S34, title: "DEG product", from: C602.top, to: DEG.in, template: aq, state: {design: {
+      pressure: {value: 300, provenance: assumed, source: D-004}, temperature: {value: 313.15, provenance: assumed, source: D-004},
+      flow: {value: 4167.9, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {MEG: 0.002093, DEG: 0.995907, TEG: 0.002}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S35, title: "DEG column bottoms", from: C602.btm, to: C603.in, template: aq, state: {design: {
+      pressure: {value: 5, provenance: assumed, source: D-004}, temperature: {value: 463.15, provenance: assumed, source: D-004},
+      flow: {value: 192.8, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {DEG: 0.010768, TEG: 0.95694, TTEG: 0.032292}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S36, title: "TEG product", from: C603.top, to: TEG.in, template: aq, state: {design: {
+      pressure: {value: 300, provenance: assumed, source: D-004}, temperature: {value: 313.15, provenance: assumed, source: D-004},
+      flow: {value: 178.3, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {DEG: 0.011648, TEG: 0.983352, TTEG: 0.005}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S37, title: "Heavy glycols residue", from: C603.btm, to: HVY.in, template: aq, state: {design: {
+      pressure: {value: 300, provenance: assumed, source: D-004}, temperature: {value: 473.15, provenance: assumed, source: D-004},
+      flow: {value: 14.6, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {TEG: 0.633599, TTEG: 0.366401}, provenance: assumed, source: eg_balance.py D-006}}}}
+  # Energy streams: lumped duties of scripts/eg_balance.py (D-008), ASSUMED
+  - {id: Q1, title: "R-101 steam to the EO stripper reboiler", kind: energy, from: R101.st1, to: C202.steam, state: {design: {duty: {value: 36661.8, provenance: assumed, source: "eg_balance.py: C-202 demand, covered by R-101 steam (D-008)"}}}}
+  - {id: Q2, title: "R-101 steam to the CO2 regenerator", kind: energy, from: R101.st2, to: C301.steam, state: {design: {duty: {value: 11452.3, provenance: assumed, source: "eg_balance.py: 3.0 GJ/t CO2 ASSUMED (D-008)"}}}}
+  - {id: Q3, title: "R-101 steam to the first evaporator effect", kind: energy, from: R101.st3, to: EV501.steam, state: {design: {duty: {value: 22723.0, provenance: assumed, source: "eg_balance.py: economy 3.2, less the hydration heat (D-008)"}}}}
+  - {id: Q4, title: "R-101 steam to the MEG column reboiler (rest of the raised steam)", kind: energy, from: R101.st4, to: C601.steam_r101, state: {design: {duty: {value: 12628.1, provenance: assumed, source: "eg_balance.py: R-101 heat release 83465 kW less Q1-Q3 (D-008)"}}}}
+  - {id: Q5, title: "MP steam to the MEG column reboiler", kind: energy, from: MPS.c601, to: C601.steam, state: {design: {duty: {value: 12945.4, provenance: assumed, source: "eg_balance.py: reflux 1.2 ASSUMED, less Q4 (D-008)"}}}}
+  - {id: Q6, title: "MP steam to the drying column reboiler", kind: energy, from: MPS.c501, to: C501.steam, state: {design: {duty: {value: 7602.5, provenance: assumed, source: "eg_balance.py: reflux 0.3 ASSUMED (D-008)"}}}}
+  - {id: Q7, title: "MP steam to the DEG column reboiler", kind: energy, from: MPS.c602, to: C602.steam, state: {design: {duty: {value: 1864.6, provenance: assumed, source: "eg_balance.py: reflux 2.0 ASSUMED (D-008)"}}}}
+  - {id: Q8, title: "MP steam to the TEG column reboiler", kind: energy, from: MPS.c603, to: C603.steam, state: {design: {duty: {value: 60.3, provenance: assumed, source: "eg_balance.py: reflux 2.0 ASSUMED (D-008)"}}}}
+  - {id: Q9, title: "K-101 shaft power", kind: energy, from: POWER.k101, to: K101.power, state: {design: {duty: {value: 4363.0, provenance: assumed, source: "eg_balance.py: 1950 to 2200 kPa(a), isentropic efficiency 0.75 (D-008)"}}}}
+  - {id: Q10, title: "P-202 lean absorbent pump power", kind: energy, from: POWER.p202, to: C202.power, state: {design: {duty: {value: 999.4, provenance: assumed, source: "eg_balance.py: 200 to 2200 kPa(a), efficiency 0.7 (D-008)"}}}}
+  - {id: Q11, title: "P-401 glycol reactor feed pump power", kind: energy, from: POWER.p401, to: M401.power, state: {design: {duty: {value: 399.2, provenance: assumed, source: "eg_balance.py: 200 to 3000 kPa(a), efficiency 0.7 (D-008)"}}}}
+  - {id: Q12, title: "Auxiliary power (carbonate and column pumps, vacuum pumps, fans; lumped)", kind: energy, from: POWER.aux, to: C601.power, state: {design: {duty: {value: 1000.0, provenance: assumed, source: "20 kWh/t MEG ASSUMED (D-008)"}}}}
+  - {id: Q13, title: "E-101 trim cooler duty", kind: energy, from: E101.cw, to: CW.e101, state: {design: {duty: {value: 25491.8, provenance: assumed, source: "eg_balance.py: effluent 373 to 313 K (D-008)"}}}}
+  - {id: Q14, title: "Lean absorbent cooler duty", kind: energy, from: C201.cw, to: CW.c201, state: {design: {duty: {value: 36552.6, provenance: assumed, source: "eg_balance.py: 333 to 308 K (D-008)"}}}}
+  - {id: Q15, title: "EO stripper condenser duty", kind: energy, from: C202.cw, to: CW.c202, state: {design: {duty: {value: 14730.2, provenance: assumed, source: "eg_balance.py (D-008)"}}}}
+  - {id: Q16, title: "K-101 aftercooler duty", kind: energy, from: K101.cw, to: CW.k101, state: {design: {duty: {value: 4363.0, provenance: assumed, source: "eg_balance.py: the compression work (D-008)"}}}}
+  - {id: Q17, title: "CO2 regenerator condenser and lean solution cooler duty", kind: energy, from: C301.cw, to: CW.c301, state: {design: {duty: {value: 10307.0, provenance: assumed, source: "eg_balance.py: 0.9 x Q2 (D-008)"}}}}
+  - {id: Q18, title: "Last evaporator effect condenser duty", kind: energy, from: EV501.cw, to: CW.ev501, state: {design: {duty: {value: 45073.9, provenance: assumed, source: "eg_balance.py: a quarter of the water evaporated (D-008)"}}}}
+  - {id: Q19, title: "Drying column condenser duty", kind: energy, from: C501.cw, to: CW.c501, state: {design: {duty: {value: 7602.5, provenance: assumed, source: "eg_balance.py (D-008)"}}}}
+  - {id: Q20, title: "MEG column condenser duty", kind: energy, from: C601.cw, to: CW.c601, state: {design: {duty: {value: 25573.6, provenance: assumed, source: "eg_balance.py (D-008)"}}}}
+  - {id: Q21, title: "DEG column condenser duty", kind: energy, from: C602.cw, to: CW.c602, state: {design: {duty: {value: 1864.6, provenance: assumed, source: "eg_balance.py (D-008)"}}}}
+  - {id: Q22, title: "TEG column condenser duty", kind: energy, from: C603.cw, to: CW.c603, state: {design: {duty: {value: 60.3, provenance: assumed, source: "eg_balance.py (D-008)"}}}}
 layout: {bfd: {}, pfd: {}}
