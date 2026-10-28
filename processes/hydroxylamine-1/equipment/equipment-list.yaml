@@ -1,3 +1,45 @@
 # Equipment list. Schema: `cheme schema equipment`.
+# Concept stage: the items the PFD (process/flowsheet.yaml) needs, no P&ID yet (no sheet).
+# Design pressure and temperature are ASSUMED concept values (D-010): the highest operating
+# value of the balance (scripts/has_balance.py) + 10 % (at least + 2 bar) and + 25 K. Sizes,
+# dimensions and weights come at basic engineering (datasheets). Materials are first choices
+# (D-010), open input.
 schema: cheme/equipment/v1
-equipment: []
+equipment:
+  # ---- NO generation (block NOX)
+  - {tag: E-100, type: TubularHeatExchanger, service: Ammonia vaporiser, design_pressure_barg: 13, design_temperature_degc: 175, material: CS,
+     notes: "2.3 t/h NH3, ~0.74 MW LP steam (D-008). ASSUMED."}
+  - {tag: M-101, type: Mixer, service: "Burner feed mixer (NH3, O2, dilution steam)", design_pressure_barg: 2, design_temperature_degc: 175, material: SS,
+     notes: "Static mixer; NH3:O2:steam 14:18.6:67.4 by volume (US 3,110,563); the mixture stays below the ammonia-oxygen flammability limit only through the steam dilution (D-003, safety open input O-7). ASSUMED."}
+  - {tag: R-101, type: Vessel, service: Ammonia burner (Pt/Rh gauze), design_pressure_barg: 2, design_temperature_degc: 950, material: "Heat-resistant alloy at the gauze",
+     notes: "Adiabatic, 1196 K outlet, ~130 kPa(a) (D-005). Gauze charge and loss not sourced (O-5). ASSUMED."}
+  - {tag: E-101, type: TubularHeatExchanger, service: Waste-heat boiler (MP steam 1500 kPa(a)), design_pressure_barg: 2, design_temperature_degc: 950, material: "Alloy / SS",
+     notes: "Nitrous gas 1196 -> 543 K, ~7.0 MW to MP steam (D-008). Steam side 16 barg. ASSUMED."}
+  - {tag: R-102, type: Vessel, service: Oxygen removal reactor (Ag-Mn catalyst), design_pressure_barg: 2, design_temperature_degc: 430, material: SS,
+     notes: "90 % of the residual O2 hydrogenated (EP 0 945 401), adiabatic 543 -> 678 K (D-005). Catalyst volume not sized. ASSUMED."}
+  - {tag: E-102, type: TubularHeatExchanger, service: Nitrous-gas condenser, design_pressure_barg: 2, design_temperature_degc: 430, material: "SS 304L (dilute HNO3 condensate)",
+     notes: "678 -> 313 K, ~14.0 MW to cooling water; 15.6 t/h condensate with 0.6 wt% HNO3 (D-005, D-008). ASSUMED."}
+  - {tag: V-101, type: Vessel, service: Condensate separator, design_pressure_barg: 2, design_temperature_degc: 65, material: "SS 304L", notes: "ASSUMED."}
+  - {tag: K-101, type: CentrifugalCompressor, service: NO gas compressor, design_pressure_barg: 3, design_temperature_degc: 150, material: SS,
+     notes: "4.2 t/h wet NO gas, 115 -> 220 kPa(a), ~99 kW at isentropic efficiency 0.75 (D-008). Machine type (blower, liquid-ring) open. ASSUMED."}
+  # ---- hydroxylammonium sulfate synthesis (block HAS)
+  - {tag: T-201, type: Tank, service: "Acid make-up tank (98.5 % acid, condensate, demineralised water)", design_pressure_barg: 0.05, design_temperature_degc: 105, material: "SS / lined (dilute H2SO4)",
+     notes: "32.4 t/h of ~20 wt% H2SO4 (EP 0 945 401: 19 %). ASSUMED."}
+  - {tag: E-201, type: PlateHeatExchanger, service: Acid make-up cooler (heat of dilution), design_pressure_barg: 5, design_temperature_degc: 105, material: "Alloy for dilute H2SO4",
+     notes: "~350 -> 313 K, ~1.16 MW (D-008). ASSUMED."}
+  - {tag: P-201, type: CentrifugalPump, service: Acid feed pump, design_pressure_barg: 5, design_temperature_degc: 65, material: "Alloy for dilute H2SO4",
+     notes: "~28 m3/h, 300 kPa rise, ~4 kW (D-008). ASSUMED."}
+  - {tag: M-202, type: Mixer, service: "Cascade gas mixer (NO gas, H2, recycle gas)", design_pressure_barg: 3, design_temperature_degc: 150, material: SS,
+     notes: "H2:NO 2.0 at the cascade inlet (EP 1 343 719). NO/H2/N2O mixture: explosion envelope open (O-7). ASSUMED."}
+  - {tag: R-201, type: Vessel, service: "Hydrogenation reactor cascade (stirred tanks, suspended Pt on graphite)", design_pressure_barg: 3, design_temperature_degc: 80, material: "SS / lined (dilute H2SO4, hydroxylammonium salts)",
+     notes: "6 stirred tanks in series ASSUMED (EP 1 343 719: 2-10, preferably 4-8), 313 K, 200 kPa(a); ~117 m3 liquid in total from 0.97 mol/(l h) (US 4,895,711); ~9.2 MW to cooling water, agitators ~0.23 MW (D-007, D-008). ASSUMED."}
+  - {tag: V-201, type: Vessel, service: Cascade off-gas collector, design_pressure_barg: 3, design_temperature_degc: 80, material: SS, notes: "ASSUMED."}
+  - {tag: F-201, type: Filter, service: Catalyst filter (catalyst returned to the cascade), design_pressure_barg: 3, design_temperature_degc: 80, material: "SS / lined",
+     notes: "Separates the suspended Pt/graphite from the product; the catalyst inventory is not in the balance. ASSUMED."}
+  - {tag: K-201, type: CentrifugalCompressor, service: Recycle gas blower, design_pressure_barg: 3, design_temperature_degc: 80, material: SS,
+     notes: "0.8 t/h, 195 -> 215 kPa(a), ~8 kW (D-007). ASSUMED."}
+  # ---- off-gas treatment (block OGT)
+  - {tag: K-301, type: CentrifugalCompressor, service: Oxidiser air fan, design_pressure_barg: 0.1, design_temperature_degc: 50, material: CS,
+     notes: "5.6 t/h air, 5 kPa, ~10 kW (D-009). ASSUMED."}
+  - {tag: X-301, type: Furnace, service: Off-gas thermal oxidiser, design_pressure_barg: 0.1, design_temperature_degc: 950, material: "Refractory-lined CS",
+     notes: "Burns the H2 of the 0.34 t/h purge at 1173 K; no NO or N2O destruction credited and no heat recovery (D-009). ASSUMED."}

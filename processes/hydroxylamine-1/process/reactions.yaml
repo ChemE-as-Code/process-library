@@ -1,0 +1,82 @@
+# Reactions of hydroxylamine-1. Schema: `cheme schema process-reactions`.
+# Conversion model throughout (DESIGN.md D-005, D-007): every conversion is a sourced value or a
+# design choice with its reason, not kinetics and not equilibrium. A conversion is the fraction
+# of the key component's inlet flow converted by that reaction; parallel reactions of one key
+# add up. "NO" is quoted: unquoted YAML reads it as false.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  # ---- Burner R101 (Pt/Rh, NH3 + O2 + steam): complete NH3 conversion, three parallel routes
+  - id: NH3_NO
+    equation: 4 NH3 + 5 O2 -> 4 NO + 6 H2O
+    stoichiometry: {NH3: -4, O2: -5, "NO": 4, H2O: 6}
+    reversible: false
+    conversion: {key: NH3, value: 0.98, provenance: given, source: "US 3,110,563 (BASF), Example a: NH3:O2:steam 14:18.6:67.4, 850-900 C, Pt/Rh; NH3-N recovered as NO 82 %, HNO3 15 %, nitrite 1 % = 98 % nitrogen oxides (D-005)"}
+    heat_of_reaction: {value: -226600.0, provenance: given, source: "ideal-gas enthalpies of formation at 298 K (chemicals 1.5.2, Hfg): -906 kJ per 4 NH3"}
+    catalyst: Pt/Rh gauze (3-10 % Rh, US 3,110,563)
+    sources: ["US 3,110,563"]
+  - id: NH3_N2O
+    equation: 4 NH3 + 4 O2 -> 2 N2O + 6 H2O
+    stoichiometry: {NH3: -4, O2: -4, N2O: 2, H2O: 6}
+    reversible: false
+    conversion: {key: NH3, value: 0.014031, provenance: assumed, source: "D-005: IPCC 2006 Vol. 3 Ch. 3 Table 3.3 (p. 3.23) default for atmospheric-pressure ammonia oxidation, 5 kg N2O/t HNO3, referred to the NH3 nitrogen (N2O-N/HNO3-N x 0.98); an inventory default, not a gauze measurement"}
+    catalyst: Pt/Rh gauze
+    sources: ["IPCC 2006 Guidelines Vol. 3 Ch. 3, Table 3.3"]
+  - id: NH3_N2
+    equation: 4 NH3 + 3 O2 -> 2 N2 + 6 H2O
+    stoichiometry: {NH3: -4, O2: -3, N2: 2, H2O: 6}
+    reversible: false
+    conversion: {key: NH3, value: 0.005969, provenance: assumed, source: "D-005: the remainder 1 - 0.98 - 0.014031 (US 3,110,563 names N2 and N2O as the rest; complete NH3 conversion ASSUMED)"}
+    catalyst: Pt/Rh gauze
+  # ---- O2 removal R102 (EP 0 945 401): excess O2 hydrogenated before condensation
+  - id: O2_HYD
+    equation: 2 H2 + O2 -> 2 H2O
+    stoichiometry: {H2: -2, O2: -1, H2O: 2}
+    reversible: false
+    conversion: {key: O2, value: 0.90, provenance: given, source: "EP 0 945 401 (DOMO Caproleuna), Example: 90 % of the oxygen in the nitrous gas hydrogenated on a silver-manganese catalyst (D-005)"}
+    heat_of_reaction: {value: -483644.0, provenance: given, source: "ideal-gas enthalpies of formation at 298 K (chemicals 1.5.2): 2 x -241.82 kJ/mol H2O(g)"}
+    catalyst: Ag-Mn (EP 0 945 401)
+    sources: ["EP 0 945 401"]
+  # ---- Condenser E102: the residual O2 leaves as nitric acid in the condensate
+  - id: NO_ABS
+    equation: 4 NO + 3 O2 + 2 H2O -> 4 HNO3
+    stoichiometry: {"NO": -4, O2: -3, H2O: -2, HNO3: 4}
+    reversible: false
+    conversion: {key: O2, value: 1.0, provenance: assumed, source: "D-005: the O2 left after R102 oxidises NO and is absorbed as HNO3 in the condensate (US 3,110,563 and EP 0 945 401 both report HNO3 in the burner condensate); complete, ASSUMED"}
+  # ---- Hydrogenation cascade R201 (Pt on graphite in dilute H2SO4, 313 K): parallel routes of
+  # the NO fed per pass. Conversion per pass 0.90 (ASSUMED, D-007) x selectivity (D-007):
+  # N2O 2.0 % (US 4,895,711 Examples 1-3: 1.9-2.2 %); NH3:NH2OH from the product analysis of
+  # US 4,997,635 (Example: 254 g/kg hydroxylammonium sulfate, 18.6 g/kg ammonium sulfate),
+  # giving NH2OH 89.83 % and NH3 8.17 % (lab examples of US 4,895,711: 85-88 % and 10-13 %).
+  - id: HAS_FORM
+    equation: 2 NO + 3 H2 + H2SO4 -> HAS
+    stoichiometry: {"NO": -2, H2: -3, H2SO4: -1, HAS: 1}
+    reversible: false
+    conversion: {key: "NO", value: 0.808461, provenance: assumed, source: "D-007: 0.90 per pass x 0.89829 NH2OH selectivity (derived from US 4,997,635 product ratio and US 4,895,711 N2O selectivity)"}
+    heat_of_reaction: {value: -455180.0, provenance: assumed, source: "D-005: 2 x (dHf NH3OH+(aq) -137.3 - dHf NO(g) 90.29) kJ/mol, NBS tables (Wagman et al. 1982) values not re-read in this run (O-4); acid speciation neglected"}
+    catalyst: Pt on graphite, sulfur-modified, suspended (US 4,895,711)
+    sources: ["US 4,895,711", "US 4,997,635", "EP 1 343 719"]
+  - id: AS_FORM
+    equation: 2 NO + 5 H2 + H2SO4 -> AS + 2 H2O
+    stoichiometry: {"NO": -2, H2: -5, H2SO4: -1, AS: 1, H2O: 2}
+    reversible: false
+    conversion: {key: "NO", value: 0.073539, provenance: assumed, source: "D-007: 0.90 per pass x 0.08171 NH3 selectivity"}
+    heat_of_reaction: {value: -1017260.0, provenance: assumed, source: "D-005: 2 x (dHf NH4+(aq) -132.51 + dHf H2O(l) -285.83 - dHf NO(g) 90.29) kJ/mol, NBS tables (O-4)"}
+    catalyst: Pt on graphite
+    sources: ["US 4,895,711"]
+  - id: N2O_FORM
+    equation: 2 NO + H2 -> N2O + H2O
+    stoichiometry: {"NO": -2, H2: -1, N2O: 1, H2O: 1}
+    reversible: false
+    conversion: {key: "NO", value: 0.018, provenance: assumed, source: "D-007: 0.90 per pass x 0.020 N2O selectivity (US 4,895,711 Examples 1-3)"}
+    heat_of_reaction: {value: -384360.0, provenance: assumed, source: "D-005: dHf N2O(g) 82.05 + H2O(l) -285.83 - 2 x NO(g) 90.29 kJ/mol, NBS tables (O-4)"}
+    catalyst: Pt on graphite
+    sources: ["US 4,895,711"]
+  # ---- Thermal oxidiser X301: the hydrogen of the purge burnt with air; NO and N2O pass
+  # unchanged (no destruction credited, conservative, D-009)
+  - id: H2_COMB
+    equation: 2 H2 + O2 -> 2 H2O
+    stoichiometry: {H2: -2, O2: -1, H2O: 2}
+    reversible: false
+    conversion: {key: H2, value: 1.0, provenance: assumed, source: "D-009: complete combustion of the purge hydrogen with excess air at 1173 K"}
+    heat_of_reaction: {value: -483644.0, provenance: given, source: "ideal-gas enthalpies of formation at 298 K (chemicals 1.5.2)"}
