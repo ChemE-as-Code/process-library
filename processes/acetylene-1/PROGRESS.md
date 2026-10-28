@@ -4,6 +4,7 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-10-28 | process/materials.yaml, flowsheet.yaml, lca/ | fuel-gas template (no zero H2/soot keys in the flue), steam kWh override to steam-heat, allocation deviation; LCI rewritten; library build_lci.py --strict passes | the strict Atlas build refused the zero soot emission and the kg/kWh steam unit |
 | 2026-10-28 | DESIGN.md, process.yaml, process/design-basis.yaml, lca/mappings.yaml, README.md | source register, decisions D-001..D-014, method/dependency table, open inputs; Atlas manifest (internal, concept, unreviewed); design basis; empty LCI overrides | document the concept design and its evidence (#184) |
 | 2026-10-28 | lca/ | preliminary gate-to-gate LCI: lca.yaml (backgrounds unmapped, flue gas elementary, energy allocation), inventory, dataset, gaps, manifest, results written by cheme assess lca; mass, element and carbon balances closed | scope item 4 of #184 (D-013) |
 | 2026-10-28 | equipment/equipment-list.yaml, process/simulation.yaml | equipment as far as the PFD needs (19 tags); burner, quench and cooling column declared adiabatic | process links resolve; utility assignment complete |

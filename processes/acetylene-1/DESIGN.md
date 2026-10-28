@@ -211,7 +211,8 @@ Atlas build: lca/mappings.yaml holds one override, a unit correction: feed:STEAM
 shared `steam-heat` entry, as hda-1 and others do, because the slug `steam` is counted in kg.
 Electricity, cooling water and wastewater link by their registry slugs in the Atlas build; every
 other exchange stays a reported gap. The library's `scripts/build_lci.py --strict` run over the
-whole library passes (exit 0), with acetylene-1's 12 gaps exported unlinked (unpublished
+whole library passes (exit 0), with acetylene-1's 10 mapping gaps (natural gas, support gas, oxygen, NMP, sludge and residue
+treatment; C2H2, C4H2, C6H6 and NMP to air without a biosphere identity) exported unlinked (unpublished
 process). The allocation records a `deviation`: no sourced prices yet for the library's
 price-ratio step.
 
