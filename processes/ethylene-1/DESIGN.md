@@ -62,6 +62,12 @@ furnaces for C3 are also common practice. At recycle to extinction the propane e
 same products either way.
 Basis: a sourced conversion/yield model, not kinetics; no severity response. Coke, CO and the
 steam-reforming side reactions are not modelled (no sourced yield).
+Consequences (review 2026-10-28-pfd-lci-review#8): the propane of the fresh feed (2.5 mol%)
+passes the ethane coils uncracked (propane rises across H101 because the ethane set also makes
+some) and is cracked only in H103 after the C3 splitter. H103 reproduces only three BREF propane
+yields; the remaining carbon goes to CH4 (25 wt%) with 0.3 wt% H2 and no C4+, so its H2 and
+C4+ slate is not the BREF's. The effect is small: the propane coil sees 7.6 t/h of 225 t/h
+hydrocarbon feed.
 
 ## D-006 Balance method
 `scripts/balance.py` (run with `cheme run`) converges the ethane and propane recycles and the
@@ -92,6 +98,10 @@ all water. Regeneration gas and heat are not modelled.
 CO2 + 2 NaOH -> Na2CO3 + H2O, complete. Fresh caustic 10 wt% at 3 mol NaOH per mol CO2. Spent
 caustic goes to treatment outside the boundary. H2S, red oil and dissolved hydrocarbons are not
 modelled. NaOH comes from the library's chlor-alkali-1 (boundary feed).
+The 3:1 ratio has no source: it is an ASSUMED excess (one third of the NaOH leaves unused), and
+the feed CO2 (0.2 mol%, D-003) is ASSUMED too. Together they set about 10 kg NaOH and 95 kg spent
+caustic per t ethylene, so both LCI exchanges (feed:CAUSTIC, product:SPENTCAUSTIC) are flagged
+in `lca/lca.yaml` as upper-bound assumptions (review #9).
 
 ## D-010 Separation sequence and splits (ASSUMED)
 Front-end demethaniser (named in the BREF §3.2.2.4 as one of three schemes): all H2 and CH4
@@ -128,11 +138,21 @@ furnaces.
 
 ## D-014 Refrigeration, columns, utility levels (ASSUMED)
 Column duties are (R+1) x distillate x heat of vaporisation (thermo). Reflux ratios: deethaniser
-1, C2 splitter 4, depropaniser 1, C3 splitter 15, debutaniser 1. Reboilers run on LP steam
-450 kPa(a); the C2 splitter and demethaniser reboilers are heat-integrated. Refrigeration
-loads are the chilling train (70 % of the condensation at the propylene level), the
-demethaniser, deethaniser and C2 splitter condensers. COP is 60 % of Carnot per level,
+1, C2 splitter 4, depropaniser 1, C3 splitter 15, debutaniser 1. The deethaniser,
+depropaniser, C3 splitter and debutaniser reboilers run on LP steam 450 kPa(a). The C2
+splitter (T502) and demethaniser (T401) reboilers are not modelled: in a real cracker they are
+heated by condensing refrigerant or by cracked-gas chilling, but neither duty is in the
+flowsheet and nothing is credited against the refrigeration load. Refrigeration loads are the
+chilling train (70 % of the condensation at the propylene level), the demethaniser, deethaniser
+and C2 splitter condensers, charged in full to K701. COP is 60 % of Carnot per level,
 condensing at 40 C. Cooling water 25/35 C.
+The condenser duties use the pure key component's latent heat (ethane for the deethaniser,
+whose overhead is 67 mol% ethylene near its critical point; ethylene for the C2 splitter).
+Upper bound (review 2026-10-28-pfd-lci-review#2): the refrigeration shaft power (Q402,
+78.3 MW, about twice the CGC's 40.6 MW, whereas the CGC is normally the largest machine of an
+ethane cracker) is therefore a conservative upper estimate, and so is feed:POWER
+(0.87 kWh/kg). Crediting the T401/T502 reboilers and using mixture latent heats waits for
+the qualified property package (D-012, core #315).
 
 ## D-015 Machine drives in the inventory
 The CGC (40.6 MW) and refrigeration compressors (78.3 MW) are shown as electric motors
@@ -140,6 +160,13 @@ The CGC (40.6 MW) and refrigeration compressors (78.3 MW) are shown as electric 
 cracker drives them with SHP steam turbines, which would net most of the export against the
 power. Keeping both gross exchanges makes the inventory transparent; the netting is a later
 design choice.
+Consequence for the LCI (review #3): the SHP export carries no burden. It is outside the mass
+allocation, while the fuel that preheats and superheats it (convection duty Q102, 196 MW, about
+32 % of the 611 MW fired) and that fuel's CO2 are allocated to the hydrocarbon products, and
+the compressors are charged again as grid power. The CO2 and power per kg ethylene are
+therefore both gross. This is stated next to the CO2 figure in `process.yaml` and in the
+allocation `source:` of `lca/lca.yaml`. Open before the allocation is decided: a scenario that
+nets HPS against POWER (steam-turbine drives) or credits the export by substitution.
 
 ## D-016 Preliminary gate-to-gate LCI
 Functional unit 1 kg polymer-grade ethylene at the gate. Every foreground exchange comes from
@@ -148,8 +175,10 @@ the flowsheet (feeds, products, energy streams). Every background is left unmapp
 electricity HV, site MP/LP steam from utility-steam-ng-boiler, cooling water from
 utility-cooling-tower, NaOH from chlor-alkali-1, wastewater treatment from utility-wwtp).
 These are gaps, not zeros (ADR 0022). Mass allocation over ethylene, propylene, crude C4 and
-pyrolysis gasoline is proposed; the inventory itself is unallocated. `lca/mappings.yaml` holds
-no overrides yet.
+pyrolysis gasoline is proposed (ethylene share 91.6 %). `lca/inventory.csv` is per functional
+unit with the mass allocation applied to the inputs and emissions, while the co-products are
+listed unallocated; `lca/dataset.yaml` (per hour) is the unallocated dataset (corrected after
+review #1). `lca/mappings.yaml` holds no overrides yet.
 Missing registry entries (for the consolidated chemicals PR): ethylene (polymer grade),
 propylene (polymer grade), ethane, natural-gas, sodium-hydroxide, crude C4 / 1,3-butadiene,
 pyrolysis-gasoline, nitrogen-oxides, carbon-monoxide, dinitrogen-monoxide.
@@ -166,13 +195,17 @@ SO2 from sulphur doping, non-routine flaring, effluent loads. Each is declared i
 `emission_exclusions` with its reason, not as negligible.
 
 ## D-018 Plausibility checks
-- Ultimate ethylene yield 0.788 kg/kg fresh ethane.
+- Ultimate ethylene yield 0.788 kg/kg fresh feed (S101, 95.8 wt% ethane), 0.82 kg/kg ethane.
 - Fired fuel 17.6 GJ/t ethylene against the BREF's 13.5-16.2 GJ/t for the cracking section
   (§3.3.4, ethane and naphtha together). Ours is somewhat higher; it includes SHP superheat and
   BFW preheat.
-- Shaft power 3.4 GJ/t. At a power-plant efficiency of about 35-40 % this is about
-  9-10 GJ/t primary, inside the BREF's 9.8-12.5 GJ/t for compression plus separation.
-- Furnace CO2 0.43 kg/kg ethylene, unallocated.
+- Shaft power 3.42 GJ/t (electric drives, CGC plus refrigeration). At a power-plant efficiency
+  of 35-40 % this is 8.6-9.8 GJ/t primary, at or below the lower end of the BREF's
+  9.8-12.5 GJ/t. The comparison is loose: the BREF range covers compression and separation
+  including steam and refrigeration, ours is shaft power only, and the refrigeration part is
+  an upper estimate (D-014).
+- Furnace CO2 0.472 kg/kg ethylene unallocated; 0.433 kg/kg ethylene with mass allocation
+  (91.6 %). Both include the fuel for the exported SHP steam (D-015).
 
 ## Open inputs and next stage
 Sourced feed specification and capacity; sourced hydrogenation selectivities; a coke make and
@@ -180,3 +213,7 @@ decoking schedule; quench and dilution steam heat integration; drive choice (D-0
 qualified property package (core #315) for columns and the energy balance. Next stage: basic
 engineering of the separation train with simulated columns once core #315 allows. Before that:
 link the LCI backgrounds (library processes first) and decide the allocation.
+No stage sign-off (review #10): this case study is not taken to a concept sign-off in this
+issue. The concept gate `layout-plot-plan` (and the basic and detail gates for P&IDs, layout,
+lifting, MTO and datasheets) fail on purpose because the plot plan, P&IDs and layout are outside
+its scope; `cheme check --stage concept --write` would be refused until a plot plan exists.

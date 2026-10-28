@@ -74,7 +74,11 @@ modelling:
     among the hydrocarbon products, the usual physical basis for steam cracker outputs that are all chemical
     feedstocks. Preliminary: the allocation is the LCA practitioner''s decision; substitution and economic
     allocation are to be compared once backgrounds and prices exist. The SHP steam export is an energy
-    output, kept as its own exchange (product:HPS) and not allocated.'
+    output, kept as its own exchange (product:HPS) and not allocated. Consequence: the fuel that preheats
+    and superheats that steam (convection duty Q102, about 32 % of the fired duty) and its CO2 stay with
+    the hydrocarbon products, and the compressors are charged as grid power as well (D-015), so the CO2
+    and power per kg ethylene are gross. A scenario netting HPS against POWER or crediting it by substitution
+    is open (D-015).'
 review:
 - type: none
 data_generator: ChemE-as-Code process library, agent-drafted concept design (unreviewed)
@@ -184,12 +188,14 @@ exchanges:
   amount: 12525.8
   unit: kg
   link:
-    source: fresh caustic S304 (D-009)
+    source: 'fresh caustic S304 (D-009); upper-bound assumption: 3 mol NaOH per mol CO2 (ASSUMED, unsourced
+      excess) on an ASSUMED 0.2 mol% feed CO2'
     missing: 'background to link: sodium hydroxide 50 % from membrane chlor-alkali (library process chlor-alkali-1),
       diluted to 10 wt% with process water'
   streams:
   - S304
-  source: fresh caustic S304 (D-009)
+  source: 'fresh caustic S304 (D-009); upper-bound assumption: 3 mol NaOH per mol CO2 (ASSUMED, unsourced
+    excess) on an ASSUMED 0.2 mol% feed CO2'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -208,14 +214,16 @@ exchanges:
   amount: 118910.70000000001
   unit: kWh
   link:
-    source: machine drives Q301, Q303, Q402 as electric motors (D-015)
+    source: machine drives Q301, Q303, Q402 as electric motors (D-015); the refrigeration part Q402 is
+      a conservative upper estimate (D-014)
     missing: 'background to link: grid electricity, high voltage, site country not chosen (market for
       electricity, high voltage)'
   streams:
   - Q301
   - Q303
   - Q402
-  source: machine drives Q301, Q303, Q402 as electric motors (D-015)
+  source: machine drives Q301, Q303, Q402 as electric motors (D-015); the refrigeration part Q402 is a
+    conservative upper estimate (D-014)
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -424,12 +432,14 @@ exchanges:
   amount: 12985.2
   unit: kg
   link:
-    source: spent caustic S305 (D-009)
+    source: 'spent caustic S305 (D-009); upper-bound assumption: follows the ASSUMED 3:1 NaOH:CO2 ratio
+      and 0.2 mol% feed CO2'
     missing: 'background to link: spent caustic treatment (neutralisation or wet air oxidation, then biological
       treatment; utility-wwtp or a dedicated dataset)'
   streams:
   - S305
-  source: spent caustic S305 (D-009)
+  source: 'spent caustic S305 (D-009); upper-bound assumption: follows the ASSUMED 3:1 NaOH:CO2 ratio
+    and 0.2 mol% feed CO2'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -588,7 +598,8 @@ exchanges:
   link:
     elementary:
       subcompartment: non-urban-high-stack
-    source: fossil CO2 of the fuel gas (cracked-gas tail gas and natural gas) and of the feed CO2
+    source: fossil CO2 of the fuel gas (cracked-gas tail gas and natural gas); the feed CO2 is removed
+      in the caustic tower T310 and leaves as carbonate in the spent caustic, not in the flue gas (D-009)
   cas: 124-38-9
   flow:
   - list: ef-3.1
@@ -601,7 +612,8 @@ exchanges:
     unit: kg
   streams:
   - S804
-  source: fossil CO2 of the fuel gas (cracked-gas tail gas and natural gas) and of the feed CO2
+  source: fossil CO2 of the fuel gas (cracked-gas tail gas and natural gas); the feed CO2 is removed in
+    the caustic tower T310 and leaves as carbonate in the spent caustic, not in the flue gas (D-009)
   pedigree:
     scores: [3, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (calculated, design maturity concept)
@@ -820,15 +832,19 @@ allocation:
   source: 'D-016: mass allocation among the hydrocarbon products, the usual physical basis for steam cracker
     outputs that are all chemical feedstocks. Preliminary: the allocation is the LCA practitioner''s decision;
     substitution and economic allocation are to be compared once backgrounds and prices exist. The SHP
-    steam export is an energy output, kept as its own exchange (product:HPS) and not allocated.'
+    steam export is an energy output, kept as its own exchange (product:HPS) and not allocated. Consequence:
+    the fuel that preheats and superheats that steam (convection duty Q102, about 32 % of the fired duty)
+    and its CO2 stay with the hydrocarbon products, and the compressors are charged as grid power as well
+    (D-015), so the CO2 and power per kg ethylene are gross. A scenario netting HPS against POWER or crediting
+    it by substitution is open (D-015).'
 provenance:
   generator: cheme assess lca
   plant: Ethylene and propylene by ethane steam cracking (1000 kt/a ethylene)
   case: design
   files:
     equipment/equipment-list.yaml: sha256:8078d05f5e395cd718e4f7c85ef2395a210bdf1c6f95c427ee9880f01a132d39
-    lca/lca.yaml: sha256:98f0be1c3541846beed51d8dbd34dc0651b2fce860828233a6eccda90ea139f3
-    process.yaml: sha256:c82bb4ae477ba4fa1d7b92d07b35ce099aa3840b0ced9c87147b8e0eccc34892
-    process/flowsheet.yaml: sha256:1e15d97d9ea6fe2337fe607ef9fec7ca0a9325792e69f04722cc46058e977750
+    lca/lca.yaml: sha256:692147d9a353dff1baa3712831d3e6abdf3ae973a768319c81de281be0cbe230
+    process.yaml: sha256:24932dbec760f86f37944ff435a3fef10f4d7ffd39f32776458d2c11dd6090bf
+    process/flowsheet.yaml: sha256:49c2f73359a57b778a463e0565aa9e43d2b973ea81759f258ef9e2ec5ed3866a
     process/materials.yaml: sha256:0e803b8e00ff06c369ed6f59b3951dd2d4ddc6cf0a0203da7d9d7c38be36a07a
     process/simulation.yaml: sha256:d7c430998ce0ec6a18552dea144b56f3252b2fcd5a93a30c2eceff9fec58baf6

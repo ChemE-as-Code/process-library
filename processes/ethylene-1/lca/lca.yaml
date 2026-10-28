@@ -27,7 +27,11 @@ allocation:
     cracker outputs that are all chemical feedstocks. Preliminary: the allocation is the LCA
     practitioner's decision; substitution and economic allocation are to be compared once
     backgrounds and prices exist. The SHP steam export is an energy output, kept as its own
-    exchange (product:HPS) and not allocated.
+    exchange (product:HPS) and not allocated. Consequence: the fuel that preheats and
+    superheats that steam (convection duty Q102, about 32 % of the fired duty) and its CO2 stay
+    with the hydrocarbon products, and the compressors are charged as grid power as well
+    (D-015), so the CO2 and power per kg ethylene are gross. A scenario netting HPS against
+    POWER or crediting it by substitution is open (D-015).
 flows:
   # --- raw materials
   - key: feed:ETHANE
@@ -44,11 +48,11 @@ flows:
     source: "dilution steam make-up S203 (D-007)"
   - key: feed:CAUSTIC
     missing: "background to link: sodium hydroxide 50 % from membrane chlor-alkali (library process chlor-alkali-1), diluted to 10 wt% with process water"
-    source: "fresh caustic S304 (D-009)"
+    source: "fresh caustic S304 (D-009); upper-bound assumption: 3 mol NaOH per mol CO2 (ASSUMED, unsourced excess) on an ASSUMED 0.2 mol% feed CO2"
   # --- utilities
   - key: feed:POWER
     missing: "background to link: grid electricity, high voltage, site country not chosen (market for electricity, high voltage)"
-    source: "machine drives Q301, Q303, Q402 as electric motors (D-015)"
+    source: "machine drives Q301, Q303, Q402 as electric motors (D-015); the refrigeration part Q402 is a conservative upper estimate (D-014)"
   - key: feed:MPS
     missing: "background to link: MP steam 1800 kPa(a) from the site utility system (library process utility-steam-ng-boiler)"
     source: "dilution steam generation Q210 (D-007)"
@@ -65,7 +69,7 @@ flows:
   - key: product:FLUE
     emission: true
     source: "cracking furnace flue gas S804 to atmosphere through the stack (D-013)"
-  - {key: emission:CO2, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "fossil CO2 of the fuel gas (cracked-gas tail gas and natural gas) and of the feed CO2"}
+  - {key: emission:CO2, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "fossil CO2 of the fuel gas (cracked-gas tail gas and natural gas); the feed CO2 is removed in the caustic tower T310 and leaves as carbonate in the spent caustic, not in the flue gas (D-009)"}
   - {key: emission:N2, free: true, source: "atmospheric N2 of the combustion air returned"}
   - {key: emission:O2, free: true, source: "excess O2 of the combustion air returned"}
   - {key: emission:H2O, free: true, source: "water vapour from combustion"}
@@ -84,7 +88,7 @@ flows:
   - key: product:SPENTCAUSTIC
     treatment: {kind: waste, route: wastewater-treatment, hazardous: true}
     missing: "background to link: spent caustic treatment (neutralisation or wet air oxidation, then biological treatment; utility-wwtp or a dedicated dataset)"
-    source: "spent caustic S305 (D-009)"
+    source: "spent caustic S305 (D-009); upper-bound assumption: follows the ASSUMED 3:1 NaOH:CO2 ratio and 0.2 mol% feed CO2"
 operation:
   hours_per_year: 8000
   life_years: 25
