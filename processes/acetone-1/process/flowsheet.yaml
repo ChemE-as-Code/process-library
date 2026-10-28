@@ -1,0 +1,638 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+# Phenol and acetone from cumene (cumene hydroperoxide route), concept stage, issue #132.
+# Assumed stream values come from scripts/balance.py (D-002 to D-010); mixer, reactor and
+# compressor outlets are calculated by `cheme process propagate --fill`. Utility duties are
+# anchored to the LVOC BREF energy data (D-011), not calculated for this design.
+schema: cheme/process/v1
+kind: flowsheet
+title: Phenol and acetone from cumene (cumene hydroperoxide route)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: 200 kt/a phenol, 8000 h/a (D-002)", default: true}
+tolerance: {abs: 1.0, rel: 0.005}
+
+feeds:
+  - {id: CUM, title: Fresh cumene (from a cumene unit), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: AIR, title: Ambient air, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: H2F, title: Hydrogen (hydrogen-1 or site header), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: ACID, title: Sulfuric acid 98 wt%, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: NAOH50, title: Caustic soda 50 wt% (chlor-alkali-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: PW, title: Process water, category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: k101, direction: out, kind: energy}
+      - {id: e201, direction: out, kind: energy}
+      - {id: c404, direction: out, kind: energy}
+  - id: LPS
+    title: LP steam 500 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 500, provenance: assumed, source: "BREF LVOC 2017 Table 8.5 (5 bar steam), D-011"}
+      supply_temperature: {value: 424.98, provenance: given, source: "saturation at 500 kPa(a), IAPWS-IF97"}
+      min_approach: {value: 10, provenance: assumed, source: D-011}
+    ports: [{id: e201, direction: out, kind: energy}]
+  - id: MPS
+    title: MP steam 1800 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: MP
+      pressure: {value: 1800, provenance: assumed, source: "BREF LVOC 2017 Table 8.5 (18 bar steam), D-011"}
+      supply_temperature: {value: 480.3, provenance: given, source: "saturation at 1800 kPa(a), IAPWS-IF97"}
+      min_approach: {value: 10, provenance: assumed, source: D-011}
+    ports:
+      - {id: c401, direction: out, kind: energy}
+      - {id: c402, direction: out, kind: energy}
+      - {id: c403, direction: out, kind: energy}
+      - {id: c404, direction: out, kind: energy}
+
+products:
+  - {id: ACETONE, title: Acetone product, category: product, ports: [{id: in, direction: in}]}
+  - {id: PHENOL, title: Phenol product, category: product, ports: [{id: in, direction: in}]}
+  - {id: TAR, title: Tar and acetophenone to fuel, category: by_product, ports: [{id: in, direction: in}]}
+  - id: WW
+    title: Aqueous effluent to waste water treatment
+    category: wastewater
+    ports: [{id: brine, direction: in}, {id: c402, direction: in}]
+  - id: VENT
+    title: Spent air and hydrogenation vent to atmosphere
+    category: off_gas
+    ports: [{id: ox, direction: in}, {id: hyd, direction: in}]
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis"}
+      min_approach: {value: 5, provenance: assumed, source: "design basis"}
+    ports:
+      - {id: r101, direction: in, kind: energy}
+      - {id: a101, direction: in, kind: energy}
+      - {id: e201, direction: in, kind: energy}
+      - {id: r301, direction: in, kind: energy}
+      - {id: r302, direction: in, kind: energy}
+      - {id: c401, direction: in, kind: energy}
+      - {id: c402, direction: in, kind: energy}
+      - {id: c403, direction: in, kind: energy}
+      - {id: c404, direction: in, kind: energy}
+      - {id: r501, direction: in, kind: energy}
+
+blocks:
+  - id: OXI
+    title: Cumene oxidation
+    class: ReactingChemicals
+    ports:
+      - {id: cum, direction: in}
+      - {id: air, direction: in}
+      - {id: rec_conc, direction: in}
+      - {id: rec_hyd, direction: in}
+      - {id: oxidate, direction: out}
+      - {id: vent, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw_r, direction: out, kind: energy}
+      - {id: cw_a, direction: out, kind: energy}
+  - id: CONC
+    title: CHP concentration (vacuum)
+    class: SeparatingByThermalProcess
+    ports:
+      - {id: oxidate, direction: in}
+      - {id: conc, direction: out}
+      - {id: cumene, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+  - id: CLV
+    title: Acid cleavage and neutralisation
+    class: ReactingChemicals
+    ports:
+      - {id: conc, direction: in}
+      - {id: acid, direction: in}
+      - {id: caustic, direction: in}
+      - {id: water, direction: in}
+      - {id: organic, direction: out}
+      - {id: brine, direction: out}
+      - {id: cw, direction: out, kind: energy}
+      - {id: cw_n, direction: out, kind: energy}
+  - id: FRAC
+    title: Fractionation
+    class: Distilling
+    ports:
+      - {id: feed, direction: in}
+      - {id: acetone, direction: out}
+      - {id: phenol, direction: out}
+      - {id: tar, direction: out}
+      - {id: water, direction: out}
+      - {id: cumams, direction: out}
+      - {id: steam1, direction: in, kind: energy}
+      - {id: steam2, direction: in, kind: energy}
+      - {id: steam3, direction: in, kind: energy}
+      - {id: steam4, direction: in, kind: energy}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+      - {id: cw3, direction: out, kind: energy}
+      - {id: cw4, direction: out, kind: energy}
+  - id: HYD
+    title: AMS hydrogenation
+    class: ReactingChemicals
+    ports:
+      - {id: feed, direction: in}
+      - {id: h2, direction: in}
+      - {id: cumene, direction: out}
+      - {id: vent, direction: out}
+      - {id: cw, direction: out, kind: energy}
+
+steps:
+  - id: M101
+    block: OXI
+    title: Oxidiser feed junction (fresh and recycled cumene)
+    class: Mixing
+    ports:
+      - {id: fresh, direction: in, delegates: cum}
+      - {id: rec_off, direction: in}
+      - {id: rec_conc, direction: in, delegates: rec_conc}
+      - {id: rec_hyd, direction: in, delegates: rec_hyd}
+      - {id: out, direction: out}
+  - id: K101
+    block: OXI
+    title: Oxidation air compressor
+    class: Compressing
+    method: CentrifugalMotion
+    links: [{target: equipment, ref: K-101}]
+    ports:
+      - {id: in, direction: in, delegates: air}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # D-003, D-004: bubble-column oxidisers in series (liquid) / parallel (air), lumped; sourced
+  # selectivity model, not kinetics.
+  - id: R101
+    block: OXI
+    title: Cumene oxidisers (bubble columns in series)
+    class: ReactingChemicals
+    reactions: [OX_CHP, OX_DMBA, OX_ACP]
+    reactor: conversion
+    selectivity: {key: CUM, conversion: 0.217404, products: {CHP: 0.94, DMBA: 0.05, ACP: 0.01}, provenance: assumed, source: "D-004: total CHP selectivity at the top of the typical 92-94 % (US 8,975,444, Description of Related Art), DMBA/ACP split ASSUMED; conversion from scripts/balance.py for 25 wt% CHP in the oxidate (US 8,975,444: 22-32 %)"}
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: feed, direction: in}
+      - {id: air, direction: in}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw_r}
+  - id: V101
+    block: OXI
+    title: Oxidiser gas/liquid disengagement
+    class: SeparatingByFlash
+    links: [{target: equipment, ref: V-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out}
+      - {id: liq, direction: out, delegates: oxidate}
+  - id: A101
+    block: OXI
+    title: Spent-air condensers and carbon adsorbers
+    class: SeparatingByPhysicalProcess
+    links: [{target: equipment, ref: A-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: vent, direction: out, delegates: vent}
+      - {id: rec, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw_a}
+  - id: E201
+    block: CONC
+    title: CHP concentration (pre-flash and flash column under vacuum)
+    class: SeparatingByThermalProcess
+    links: [{target: equipment, ref: E-201}]
+    ports:
+      - {id: in, direction: in, delegates: oxidate}
+      - {id: conc, direction: out, delegates: conc}
+      - {id: cum, direction: out, delegates: cumene}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: power, direction: in, kind: energy, delegates: power}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  - id: R301
+    block: CLV
+    title: CHP cleavage reactor (sulfuric acid)
+    class: ReactingChemicals
+    reactions: [CLEAVAGE, DMBA_DEHYD, HEAVIES]
+    reactor: conversion
+    links: [{target: equipment, ref: R-301}]
+    ports:
+      - {id: in, direction: in, delegates: conc}
+      - {id: acid, direction: in, delegates: acid}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  - id: R302
+    block: CLV
+    title: Neutraliser
+    class: ReactingChemicals
+    reactions: [NEUTRALISATION]
+    reactor: conversion
+    links: [{target: equipment, ref: R-302}]
+    ports:
+      - {id: in, direction: in}
+      - {id: caustic, direction: in, delegates: caustic}
+      - {id: water, direction: in, delegates: water}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw_n}
+  - id: V301
+    block: CLV
+    title: Neutralisation decanter
+    class: SeparatingByPhaseSeparation
+    links: [{target: equipment, ref: V-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: org, direction: out, delegates: organic}
+      - {id: aq, direction: out, delegates: brine}
+  - id: C401
+    block: FRAC
+    title: Crude acetone column
+    class: Distilling
+    links: [{target: equipment, ref: C-401}]
+    ports:
+      - {id: in, direction: in, delegates: feed}
+      - {id: top, direction: out}
+      - {id: bot, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam1}
+      - {id: cw, direction: out, kind: energy, delegates: cw1}
+  - id: C402
+    block: FRAC
+    title: Acetone finishing column
+    class: Distilling
+    links: [{target: equipment, ref: C-402}]
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out, delegates: acetone}
+      - {id: bot, direction: out, delegates: water}
+      - {id: steam, direction: in, kind: energy, delegates: steam2}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+  - id: C403
+    block: FRAC
+    title: Cumene/AMS column
+    class: Distilling
+    links: [{target: equipment, ref: C-403}]
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out, delegates: cumams}
+      - {id: bot, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam3}
+      - {id: cw, direction: out, kind: energy, delegates: cw3}
+  - id: C404
+    block: FRAC
+    title: Phenol column (heavy ends removal and finishing, vacuum)
+    class: Distilling
+    links: [{target: equipment, ref: C-404}]
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out, delegates: phenol}
+      - {id: bot, direction: out, delegates: tar}
+      - {id: steam, direction: in, kind: energy, delegates: steam4}
+      - {id: power, direction: in, kind: energy, delegates: power}
+      - {id: cw, direction: out, kind: energy, delegates: cw4}
+  - id: R501
+    block: HYD
+    title: AMS hydrogenation reactor (Pd, fixed bed)
+    class: ReactingChemicals
+    reactions: [AMS_HYD]
+    reactor: conversion
+    links: [{target: equipment, ref: R-501}]
+    ports:
+      - {id: in, direction: in, delegates: feed}
+      - {id: h2, direction: in, delegates: h2}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  - id: V501
+    block: HYD
+    title: Hydrogenation flash drum
+    class: SeparatingByFlash
+    links: [{target: equipment, ref: V-501}]
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out, delegates: vent}
+      - {id: liq, direction: out, delegates: cumene}
+
+streams:
+  # ---- feeds
+  - id: S01
+    title: Fresh cumene
+    from: CUM.out
+    to: M101.fresh
+    template: process
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: design basis}
+        temperature: {value: 313.15, provenance: assumed, source: design basis}
+        flow: {value: 33236.8, basis: mass, provenance: assumed, source: "scripts/balance.py (D-002, D-004, D-005)"}
+        composition: {basis: mass_fraction, values: {CUM: 1.0}, provenance: assumed, source: D-001}
+  - id: S02
+    title: Air
+    from: AIR.out
+    to: K101.in
+    template: air
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: design basis}
+        temperature: {value: 298.15, provenance: assumed, source: design basis}
+        flow: {value: 47984.18, basis: mass, provenance: assumed, source: "scripts/balance.py: spent air 5 mol% O2 (D-003)"}
+        composition: {basis: mole_fraction, values: {N2: 0.79, O2: 0.21}, provenance: assumed, source: "dry air, Ar counted as N2 (D-003)"}
+  - id: S03
+    title: Compressed air
+    from: K101.out
+    to: R101.air
+    template: air
+    state:
+      design:
+        pressure: {value: 600, provenance: assumed, source: D-003}
+        flow: {value: 47984.18, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S02', fingerprint: d60b304c583f73de}
+        composition: {basis: mole_fraction, values: {N2: 0.79, O2: 0.21}, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S02', fingerprint: d60b304c583f73de}
+  - id: S04
+    title: Oxidiser cumene feed
+    from: M101.out
+    to: R101.feed
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {CUM: 1.0, O2: 0.0, N2: 0.0, CHP: 0.0, DMBA: 0.0, ACP: 0.0, MEOH: 0.0, PHEN: 0.0, ACET: 0.0, AMS: 0.0, H2O: 0.0, CUMPH: 0.0, H2: 0.0, H2SO4: 0.0, NAOH: 0.0, NA2SO4: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S01 S09 S11 S29', fingerprint: e058de7bad8c7b11}
+        flow: {value: 158831.0, provenance: calculated, source: 'cheme process propagate: mixer M101 from S01 S09 S11 S29', fingerprint: 8307d912a3212912}
+  - id: S05
+    title: Oxidiser effluent (oxidate and spent air)
+    from: R101.out
+    to: V101.in
+    template: process
+    state:
+      design:
+        pressure: {value: 500, provenance: assumed, source: D-003}
+        temperature: {value: 383.15, provenance: assumed, source: D-003}
+        flow: {value: 206815.0, provenance: calculated, source: 'cheme process propagate: reactor R101 from S03 S04', fingerprint: 765368998ea01248}
+        composition: {basis: mole_fraction, values: {N2: 0.485299, O2: 0.025542, CUM: 0.381983, CHP: 0.0997475, DMBA: 0.00530572, ACP: 0.00106114, MEOH: 0.00106114, PHEN: 0.0, ACET: 0.0, AMS: 0.0, H2O: 0.0, CUMPH: 0.0, H2: 0.0, H2SO4: 0.0, NAOH: 0.0, NA2SO4: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S03 S04', fingerprint: 2b0b90c13ed7de9a}
+  - id: S06
+    title: Spent air from the oxidisers
+    from: V101.gas
+    to: A101.in
+    template: offgas
+    state:
+      design:
+        flow: {value: 42413.49, basis: mass, provenance: assumed, source: "scripts/balance.py (D-003)"}
+        composition: {basis: mass_fraction, values: {N2: 0.867842, O2: 0.052172, CUM: 0.079986}, provenance: assumed, source: "5 mol% O2 dry; 2 mol% cumene vapour (D-003)"}
+  - id: S07
+    title: Oxidate (25 wt% CHP)
+    from: V101.liq
+    to: E201.in
+    template: process
+    state:
+      design:
+        flow: {value: 164402.46, basis: mass, provenance: assumed, source: "scripts/balance.py (D-004)"}
+        composition: {basis: mass_fraction, values: {CUM: 0.735441, CHP: 0.25, DMBA: 0.0119, ACP: 0.0021, MEOH: 0.00056}, provenance: assumed, source: D-004}
+  - id: S08
+    title: Spent air to atmosphere (after adsorbers)
+    from: A101.vent
+    to: VENT.ox
+    template: offgas
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: design basis}
+        temperature: {value: 308.15, provenance: assumed, source: D-010}
+        flow: {value: 39022.21, basis: mass, provenance: assumed, source: "scripts/balance.py (D-010)"}
+        composition: {basis: mass_fraction, values: {N2: 0.943263, O2: 0.056706, CUM: 0.000031}, provenance: assumed, source: "35 mg C/Nm3 as cumene, BREF LVOC 8.3.1.1 (D-010)"}
+  - id: S09
+    title: Cumene recovered from spent air
+    from: A101.rec
+    to: M101.rec_off
+    template: process
+    state:
+      design:
+        flow: {value: 3391.28, basis: mass, provenance: assumed, source: "scripts/balance.py (D-010)"}
+        composition: {basis: mass_fraction, values: {CUM: 1.0}, provenance: assumed, source: D-010}
+  - id: S10
+    title: CHP concentrate (80 wt%)
+    from: E201.conc
+    to: R301.in
+    template: process
+    state:
+      design:
+        flow: {value: 51375.77, basis: mass, provenance: assumed, source: "scripts/balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {CUM: 0.15341, CHP: 0.8, DMBA: 0.03808, ACP: 0.006719, MEOH: 0.001791}, provenance: assumed, source: "D-006: methanol stays with the concentrate"}
+  - id: S11
+    title: Recycle cumene from concentration
+    from: E201.cum
+    to: M101.rec_conc
+    template: process
+    state:
+      design:
+        flow: {value: 113026.69, basis: mass, provenance: assumed, source: "scripts/balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {CUM: 1.0}, provenance: assumed, source: D-006}
+  - id: S12
+    title: Sulfuric acid
+    from: ACID.out
+    to: R301.acid
+    template: acid
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: design basis}
+        temperature: {value: 298.15, provenance: assumed, source: design basis}
+        flow: {value: 102.0, basis: mass, provenance: assumed, source: "D-007: about 0.2 wt% of the concentrate"}
+        composition: {basis: mass_fraction, values: {H2SO4: 0.98, H2O: 0.02}, provenance: assumed, source: D-007}
+  - id: S13
+    title: Cleavage product
+    from: R301.out
+    to: R302.in
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {CUM: 0.102829, O2: 0.0, N2: 0.0, CHP: 0.0, DMBA: 1.39275e-18, ACP: 0.00450519, MEOH: 0.00450306, PHEN: 0.417852, ACET: 0.423483, AMS: 0.0168945, H2O: 0.0227036, CUMPH: 0.0056315, H2: 0.0, H2SO4: 0.00159817, NAOH: 0.0, NA2SO4: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R301 from S10 S12', fingerprint: ef8aaddc7db2992c}
+        flow: {value: 51477.8, provenance: calculated, source: 'cheme process propagate: reactor R301 from S10 S12', fingerprint: 72c647f9f452fe29}
+  - id: S14
+    title: Caustic soda 50 wt%
+    from: NAOH50.out
+    to: R302.caustic
+    template: caustic
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: design basis}
+        temperature: {value: 298.15, provenance: assumed, source: design basis}
+        flow: {value: 163.06, basis: mass, provenance: assumed, source: "D-007: stoichiometric to the acid"}
+        composition: {basis: mass_fraction, values: {NAOH: 0.5, H2O: 0.5}, provenance: assumed, source: D-007}
+  - id: S30
+    title: Wash water
+    from: PW.out
+    to: R302.water
+    template: water
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: design basis}
+        temperature: {value: 298.15, provenance: assumed, source: design basis}
+        flow: {value: 1000.0, basis: mass, provenance: assumed, source: "D-007: keeps Na2SO4 near 11 wt% in the brine"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-007}
+  - id: S15
+    title: Neutralised cleavage product
+    from: R302.out
+    to: V301.in
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {CUM: 0.0937077, O2: 0.0, N2: 0.0, CHP: 0.0, DMBA: 1.26921e-18, ACP: 0.00410557, MEOH: 0.00410362, PHEN: 0.380787, ACET: 0.385919, AMS: 0.0153959, H2O: 0.109393, CUMPH: 0.00513197, H2: 0.0, H2SO4: 0.0, NAOH: 7.46322e-08, NA2SO4: 0.00145641}, provenance: calculated, source: 'cheme process propagate: reactor R302 from S13 S14 S30', fingerprint: fbcfa89734839ee1}
+        flow: {value: 52640.9, provenance: calculated, source: 'cheme process propagate: reactor R302 from S13 S14 S30', fingerprint: a2b3f03b4de8b8d3}
+  - id: S16
+    title: Brine from the decanter
+    from: V301.aq
+    to: WW.brine
+    template: process
+    state:
+      design:
+        flow: {value: 1297.49, basis: mass, provenance: assumed, source: "scripts/balance.py (D-008)"}
+        composition: {basis: mass_fraction, values: {H2O: 0.863428, NA2SO4: 0.111572, PHEN: 0.015, ACET: 0.01}, provenance: assumed, source: "phenol 1.5 wt% (BREF LVOC 8.3.2.2, Weber et al. 2005), acetone 1 wt% ASSUMED (D-008)"}
+  - id: S17
+    title: Neutralised organic to fractionation
+    from: V301.org
+    to: C401.in
+    template: process
+    state:
+      design:
+        flow: {value: 51343.4, basis: mass, provenance: assumed, source: "scripts/balance.py (D-008)"}
+        composition: {basis: mass_fraction, values: {CUM: 0.153506, PHEN: 0.488053, ACET: 0.305237, AMS: 0.024798, ACP: 0.006723, CUMPH: 0.014849, MEOH: 0.001793, H2O: 0.005041}, provenance: assumed, source: D-008}
+  - id: S18
+    title: Crude acetone
+    from: C401.top
+    to: C402.in
+    template: process
+    state:
+      design:
+        flow: {value: 16022.75, basis: mass, provenance: assumed, source: "scripts/balance.py (D-009)"}
+        composition: {basis: mass_fraction, values: {ACET: 0.978104, H2O: 0.016151, MEOH: 0.005745}, provenance: assumed, source: D-009}
+  - id: S19
+    title: Crude acetone column bottoms
+    from: C401.bot
+    to: C403.in
+    template: process
+    state:
+      design:
+        flow: {value: 35320.65, basis: mass, provenance: assumed, source: "scripts/balance.py (D-009)"}
+        composition: {basis: mass_fraction, values: {CUM: 0.223143, PHEN: 0.709452, AMS: 0.036048, ACP: 0.009773, CUMPH: 0.021584}, provenance: assumed, source: D-009}
+  - id: S20
+    title: Acetone product
+    from: C402.top
+    to: ACETONE.in
+    template: process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: design basis}
+        temperature: {value: 313.15, provenance: assumed, source: design basis}
+        flow: {value: 15717.54, basis: mass, provenance: assumed, source: "scripts/balance.py (D-009)"}
+        composition: {basis: mass_fraction, values: {ACET: 0.997, H2O: 0.003}, provenance: assumed, source: D-009}
+  - id: S21
+    title: Acetone column bottoms (water, methanol)
+    from: C402.bot
+    to: WW.c402
+    template: process
+    state:
+      design:
+        flow: {value: 305.22, basis: mass, provenance: assumed, source: "scripts/balance.py (D-009)"}
+        composition: {basis: mass_fraction, values: {H2O: 0.693388, MEOH: 0.301612, ACET: 0.005}, provenance: assumed, source: D-009}
+  - id: S22
+    title: Cumene/AMS cut to hydrogenation
+    from: C403.top
+    to: R501.in
+    template: process
+    state:
+      design:
+        flow: {value: 9154.78, basis: mass, provenance: assumed, source: "scripts/balance.py (D-009)"}
+        composition: {basis: mass_fraction, values: {CUM: 0.860921, AMS: 0.139079}, provenance: assumed, source: D-009}
+  - id: S23
+    title: Crude phenol
+    from: C403.bot
+    to: C404.in
+    template: process
+    state:
+      design:
+        flow: {value: 26165.87, basis: mass, provenance: assumed, source: "scripts/balance.py (D-009)"}
+        composition: {basis: mass_fraction, values: {PHEN: 0.957671, ACP: 0.013192, CUMPH: 0.029137}, provenance: assumed, source: D-009}
+  - id: S24
+    title: Phenol product
+    from: C404.top
+    to: PHENOL.in
+    template: process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: design basis}
+        temperature: {value: 333.15, provenance: assumed, source: design basis}
+        flow: {value: 25000.0, basis: mass, provenance: assumed, source: "D-002: 200 kt/a at 8000 h/a"}
+        composition: {basis: mass_fraction, values: {PHEN: 1.0}, provenance: assumed, source: D-009}
+  - id: S25
+    title: Tar (heavies and acetophenone) to fuel
+    from: C404.bot
+    to: TAR.in
+    template: process
+    state:
+      design:
+        flow: {value: 1165.87, basis: mass, provenance: assumed, source: "scripts/balance.py (D-009)"}
+        composition: {basis: mass_fraction, values: {PHEN: 0.05, ACP: 0.29608, CUMPH: 0.65392}, provenance: assumed, source: "phenol 5 wt% in the tar ASSUMED (D-009)"}
+  - id: S26
+    title: Hydrogen
+    from: H2F.out
+    to: R501.h2
+    template: hydrogen
+    state:
+      design:
+        pressure: {value: 2000, provenance: assumed, source: design basis}
+        temperature: {value: 313.15, provenance: assumed, source: design basis}
+        flow: {value: 23.968, basis: mass, provenance: assumed, source: "scripts/balance.py: AMS stoichiometry plus the vent (D-008)"}
+        composition: {basis: mass_fraction, values: {H2: 1.0}, provenance: assumed, source: D-008}
+  - id: S27
+    title: Hydrogenation reactor effluent
+    from: R501.out
+    to: V501.in
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {CUM: 0.985604, O2: 0.0, N2: 0.0, CHP: 0.0, DMBA: 0.0, ACP: 0.0, MEOH: 0.0, PHEN: 0.0, ACET: 0.0, AMS: 0.0, H2O: 0.0, CUMPH: 0.0, H2: 0.0143959, H2SO4: 0.0, NAOH: 0.0, NA2SO4: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R501 from S22 S26', fingerprint: 698f06c05f3dffc5}
+        flow: {value: 9178.75, provenance: calculated, source: 'cheme process propagate: reactor R501 from S22 S26', fingerprint: 9f3ae8c1b86b4e52}
+  - id: S28
+    title: Hydrogenation flash vent
+    from: V501.gas
+    to: VENT.hyd
+    template: offgas
+    state:
+      design:
+        flow: {value: 2.249, basis: mass, provenance: assumed, source: "1 Nm3/t phenol, BREF LVOC 8.3.1.4 (D-008)"}
+        composition: {basis: mass_fraction, values: {H2: 1.0}, provenance: assumed, source: D-008}
+  - id: S29
+    title: Hydrogenated cumene recycle
+    from: V501.liq
+    to: M101.rec_hyd
+    template: process
+    state:
+      design:
+        flow: {value: 9176.44, basis: mass, provenance: assumed, source: "scripts/balance.py (D-008)"}
+        composition: {basis: mass_fraction, values: {CUM: 1.0}, provenance: assumed, source: D-008}
+
+  # ---- energy streams (D-011): totals from BREF LVOC 2017 Table 8.5, split ASSUMED
+  - {id: Q01, title: Air compressor power, kind: energy, from: POWER.k101, to: K101.power, state: {design: {duty: {value: 2716, provenance: assumed, source: "scripts/balance.py: isothermal 101.3-600 kPa(a), efficiency 0.75 (D-011)"}}}}
+  - {id: Q02, title: Vacuum and pumps power (concentration), kind: energy, from: POWER.e201, to: E201.power, state: {design: {duty: {value: 1000, provenance: assumed, source: "D-011: share of BREF 190 kWh/t less the compressor"}}}}
+  - {id: Q03, title: Vacuum and pumps power (fractionation), kind: energy, from: POWER.c404, to: C404.power, state: {design: {duty: {value: 1034, provenance: assumed, source: "D-011: share of BREF 190 kWh/t less the compressor"}}}}
+  - {id: Q04, title: LP steam to CHP concentration, kind: energy, from: LPS.e201, to: E201.steam, state: {design: {duty: {value: 9515, provenance: assumed, source: "D-011: 0.65 t/t of 5 bar steam (BREF 0.4-0.9 t/t), latent heat 2108 kJ/kg"}}}}
+  - {id: Q05, title: MP steam to crude acetone column, kind: energy, from: MPS.c401, to: C401.steam, state: {design: {duty: {value: 8000, provenance: assumed, source: "D-011: share of 1.9 t/t of 18 bar steam"}}}}
+  - {id: Q06, title: MP steam to acetone finishing column, kind: energy, from: MPS.c402, to: C402.steam, state: {design: {duty: {value: 6000, provenance: assumed, source: "D-011: share of 1.9 t/t of 18 bar steam"}}}}
+  - {id: Q07, title: MP steam to cumene/AMS column, kind: energy, from: MPS.c403, to: C403.steam, state: {design: {duty: {value: 5000, provenance: assumed, source: "D-011: share of 1.9 t/t of 18 bar steam"}}}}
+  - {id: Q08, title: MP steam to phenol column, kind: energy, from: MPS.c404, to: C404.steam, state: {design: {duty: {value: 6228, provenance: assumed, source: "D-011: share of 1.9 t/t of 18 bar steam"}}}}
+  - {id: Q09, title: Oxidiser cooling, kind: energy, from: R101.cw, to: CW.r101, state: {design: {duty: {value: 8897, provenance: assumed, source: "D-011: oxidation heat (OX_CHP, gas basis) plus compression heat"}}}}
+  - {id: Q10, title: Spent-air condensers, kind: energy, from: A101.cw, to: CW.a101, state: {design: {duty: {value: 1260, provenance: assumed, source: "D-011: hand estimate, spent air S08 39.0 t/h cooled 383 to 308 K at cp 1.03 kJ/kg K (837 kW), recovered cumene S09 3.39 t/h vapour cooled at 1.6 kJ/kg K (113 kW) and condensed at about 330 kJ/kg (311 kW); cp and latent heat ASSUMED round values"}}}}
+  - {id: Q11, title: Concentration condensers, kind: energy, from: E201.cw, to: CW.e201, state: {design: {duty: {value: 9515, provenance: assumed, source: "D-011: equal to the steam input"}}}}
+  - {id: Q12, title: Cleavage cooling, kind: energy, from: R301.cw, to: CW.r301, state: {design: {duty: {value: 17559, provenance: assumed, source: "D-011: CLEAVAGE heat of reaction (gas basis)"}}}}
+  - {id: Q13, title: Crude acetone column condenser, kind: energy, from: C401.cw, to: CW.c401, state: {design: {duty: {value: 8000, provenance: assumed, source: "D-011: equal to the reboiler"}}}}
+  - {id: Q14, title: Acetone finishing column condenser, kind: energy, from: C402.cw, to: CW.c402, state: {design: {duty: {value: 6000, provenance: assumed, source: "D-011: equal to the reboiler"}}}}
+  - {id: Q15, title: Cumene/AMS column condenser, kind: energy, from: C403.cw, to: CW.c403, state: {design: {duty: {value: 5000, provenance: assumed, source: "D-011: equal to the reboiler"}}}}
+  - {id: Q16, title: Phenol column condenser, kind: energy, from: C404.cw, to: CW.c404, state: {design: {duty: {value: 6228, provenance: assumed, source: "D-011: equal to the reboiler"}}}}
+  - {id: Q17, title: Hydrogenation reactor cooling, kind: energy, from: R501.cw, to: CW.r501, state: {design: {duty: {value: 342, provenance: assumed, source: "D-011: AMS_HYD heat of reaction (gas basis)"}}}}
+  - {id: Q18, title: Neutraliser cooling, kind: energy, from: R302.cw, to: CW.r302, state: {design: {duty: {value: 32, provenance: assumed, source: "D-011: about 57 kJ per mol water formed (strong acid and base)"}}}}
+layout: {bfd: {}, pfd: {}}
