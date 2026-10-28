@@ -30,6 +30,7 @@ agent-drafted 2026-10-28, not reviewed. Numbers live in `process/*.yaml`, `lca/l
 | SRC-7 | chlor-alkali-1, sulfuric-acid-1 (this library), process/flowsheet.yaml products | CL2 (dry gas, 400 kPa(a)), NAOH (50 wt%), ACID (98.5 wt%) | read | own data | feed states and grades (D-002) |
 | SRC-8 | NBS tables of chemical thermodynamic properties (Wagman et al. 1982, J. Phys. Chem. Ref. Data 11 Suppl. 2) | standard enthalpies of formation of the ions | values recalled, not re-read in this run | facts | heats of reaction in process/reactions.yaml, ASSUMED until checked (D-007) |
 | SRC-9 | Iodine and Iodine Compounds, Ullmann's Encyclopedia (doi:10.1002/14356007.a14_381.pub2) | - | not read (licensed) | - | route reference lead only; no value taken |
+| SRC-11 | Sander, R., Compilation of Henry's law constants (version 5.0.0), Atmos. Chem. Phys. 23 (2023) 10901-12440, doi:10.5194/acp-23-10901-2023; https://www.henrys-law.org/henry/casrn/7553-56-2 | iodine entry (CAS 7553-56-2) | web page read in this run | CC BY 4.0: facts with citation | Henry solubility of I2 at 298 K and its temperature dependence for the air ratio check (D-005) |
 | SRC-10 | US EPA, "Identification and description of mineral processing sectors and waste streams: iodine" (archive.epa.gov ... id4-iod.pdf) | - | fetched, scanned image without text: not read | - | none; candidate source for waste streams in the next stage |
 
 No figure, table or text was copied; the facts above are restated in our own words and units.
@@ -45,7 +46,7 @@ The held-out benchmark of the issue was not searched for.
 | brine H2S, oil, solids, bromide, ammonium, organics | - | missing; removed at the wellhead or not modelled (D-003) |
 | acidification | pH about 2.4 (ideal estimate) | proposed inside SRC-5 (pH 3 limit) and SRC-6 (pH 1-3) |
 | chlorine | 5 % over stoichiometry, 98 % iodide oxidised | proposed: slight excess (SRC-4), redox end point (SRC-5); numbers ASSUMED |
-| blowing-out | 92 % of free iodine, 130 Nm3/m3 | 92 % inside SRC-5's 90-100 %; air ratio ASSUMED (D-005) |
+| blowing-out | 92 % of free iodine, 130 Nm3/m3 | 92 % inside SRC-5's 90-100 %; air ratio ASSUMED, checked against the sourced Henry constant (SRC-11, D-005) |
 | absorber | 99.5 % absorbed, 2 % SO2 excess, bleed 10 wt% HI | scheme sourced (SRC-3, SRC-4); numbers ASSUMED |
 | precipitation and filter | 99.5 % HI oxidised, 99 % precipitated, cake 10 wt% liquor | scheme sourced (SRC-3, SRC-4); numbers ASSUMED |
 | melting | under 98.5 wt% H2SO4, 0.2 kg/kg | scheme sourced (SRC-3, SRC-4); amount ASSUMED |
@@ -135,10 +136,12 @@ chlorine and all CO2 into 130 Nm3 dry air per m3 brine (56 000 Nm3/h), saturated
 takes up 99.5 % of the iodine into a circulating HI/H2SO4 liquor with 2 % excess SO2 (ABS) and
 reduces the chlorine slip completely (CLSA); a bleed at 10 wt% HI goes to precipitation.
 Reason: tower blowing and the HI/H2SO4-SO2 absorber with bleed are the sourced scheme (SRC-3,
-SRC-4); 92 % lies in SRC-5's 90-100 %. The air ratio is set so that the stripping factor
-exceeds about 1.5 with a dimensionless Henry constant of iodine of roughly 0.013 at 298 K
-(recalled order of magnitude from Sander's compilation, higher at 313 K and in salt brine):
-ASSUMED, to be sized with a qualified model. The closed loop keeps the iodine and chlorine
+SRC-4); 92 % lies in SRC-5's 90-100 %. Air ratio check (SRC-11): iodine's Henry solubility
+about 3.0e-2 mol/(m3 Pa) at 298 K with d ln H/d(1/T) about 4400 K gives 1.5e-2 at 313 K, a
+dimensionless gas/liquid ratio of about 0.026, and with 130 Nm3/m3 (144 m3/m3 at 313 K and
+105 kPa(a)) a stripping factor of about 3.7 in fresh water (salting-out raises it): enough for
+92 % with a few theoretical stages, so the air ratio is conservative. ASSUMED, to be sized with
+a qualified model (the I3- complex with residual iodide lowers the volatility, D-007). The closed loop keeps the iodine and chlorine
 emissions small; the purge carries out the CO2 and water.
 Rejected: once-through air (larger iodine slip to air); activated carbon adsorption (SRC-5)
 for this concentration.
