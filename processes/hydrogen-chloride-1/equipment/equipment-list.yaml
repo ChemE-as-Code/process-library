@@ -1,0 +1,16 @@
+# Equipment list. Schema: `cheme schema equipment`.
+# The items of the PFD (process/flowsheet.yaml), concept stage: no P&ID, no sizing. Design
+# pressures and temperatures are ASSUMED placeholders for the materials question, not
+# mechanical design values (DESIGN.md D-012).
+schema: cheme/equipment/v1
+equipment:
+  # ---- HCl synthesis and steam recovery (SYN)
+  - {tag: R-101, type: Furnace, service: "HCl synthesis burner and furnace with steam generation", design_pressure_barg: 2, design_temperature_degc: 300, material: "Burner silica or graphite; furnace and tube register steel with process-side walls kept above the acid dew point",
+     notes: "Burns 3.24 t/h chlorine (with its O2) in 10 mol-% excess hydrogen; gas leaves at 250 degC to C-201; jacket/tube register raises 3.38 t/h steam at 1000 kPa(a) (Q1 2.2 MW), steam drum and BFW pump part of the package (D-005, D-007). Design pressure on the process side; steam side 1000 kPa(a) saturated. ASSUMED."}
+  # ---- absorption and tail gas scrubbing (ABS)
+  - {tag: C-201, type: Column, service: "Falling-film HCl absorber (water-cooled)", design_pressure_barg: 2, design_temperature_degc: 150, material: "Resin-impregnated graphite (tubes or blocks), PTFE-lined steel heads",
+     notes: "Isothermal falling-film absorption of the furnace gas in weak acid from C-202 to 10 t/h of 33 wt-% acid at 40 degC; 99.5 % of the HCl absorbed; cooling water duty 1.67 MW (D-008, D-009). ASSUMED."}
+  - {tag: C-202, type: Column, service: "Tail gas scrubber (packed, demineralised water)", design_pressure_barg: 1, design_temperature_degc: 80, material: "FRP or PVDF-lined steel, plastic packing",
+     notes: "Adiabatic scrubbing of the absorber tail gas with all of the absorption water (6.6 t/h DMW); vent of excess hydrogen to atmosphere at a safe location with 10 mg/Nm3 HCl (D-008). ASSUMED."}
+  - {tag: P-201, type: Pump, service: Product acid pump, design_pressure_barg: 4, design_temperature_degc: 60, material: "PTFE/PFA-lined centrifugal",
+     notes: "10 t/h of 33 wt-% acid to storage, 130 kPa differential, 0.6 kW shaft at eta 0.5 (D-011). ASSUMED."}
