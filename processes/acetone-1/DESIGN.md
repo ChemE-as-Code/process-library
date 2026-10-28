@@ -46,6 +46,7 @@ furnace that burns the tar. Utilities cross the boundary as energy streams.
 | S2 | Speight (2002) Chemical Process and Design Handbook, Part 2, via skill `tech-petchem-styrene-and-phenol` | table "Phenol: 1.31 t cumene per t phenol, 0.616 t acetone" | skill summary only | fact | cross-check of yields |
 | S3 | US 5,245,090 (1993), Two-stage cleavage of CHP | background and examples (search abstract: oxidation 110-115 C to 20-25 % CHP; cleavage fast, essentially complete, 70-90 C) | abstract/snippet, full text not audited | patent text: facts only | D-004, D-005 support |
 | S4 | cheme chemistry thermo (chemicals/thermo bundled): ideal-gas dHf (CRC, ATcT, NIST WebBook) | per component | tool output | open data | reaction heats, LHV |
+| S6 | US 8,975,444 B2, Cumene oxidation, [Google Patents](https://patents.google.com/patent/US8975444) | Description of Related Art (typical total oxidation selectivity 92-94 %); Detailed Description (CHP at the last oxidiser outlet 22-32 %, preferred 24-28 %; 90-115 C, preferred 95-110 C; 0-10 barg) | page text via fetch, sections located, no column numbers | patent text: facts only | D-003, D-004 |
 | S5 | Ullmann's: Acetone (doi 10.1002/14356007.a01_079.pub4), Phenol (Weber et al.) | not opened (licensed); cited by S1 | not read | - | lead only |
 
 ## D-001 Cumene is a boundary feed (2026-10-28)
@@ -68,7 +69,10 @@ Check: air 37 279 Nm3/h, spent air 1 240 Nm3/t phenol, inside S1's 1 000-1 500 N
 ## D-004 Oxidation model: conversion with selectivities (2026-10-28)
 Decision: conversion reactor; per kmol cumene converted 0.94 CHP, 0.05 DMBA, 0.01 acetophenone
 (+ methanol); conversion per pass 0.2174, which gives 25 wt% CHP in the oxidate. ASSUMED.
-Reason: no open kinetic data were read; the selectivities are chosen so that the overall
+Reason: no open kinetic data were read. The total CHP selectivity 0.94 is at the top of the
+typical 92-94 % (molar, CHP against acetophenone, DMBA and dicumyl peroxide) stated in S6, and
+the 25 wt% CHP outlet is inside S6's 22-32 % (preferred 24-28 %); the 0.05/0.01 split of the
+rest between DMBA and acetophenone is ASSUMED. The selectivities are chosen so that the overall
 cumene use (1.330 t/t phenol) and tar (47 kg/t) fall inside S1's ranges (1.31-1.38 t/t;
 20-200 kg/t). The CHP level is inside S1's 17-30 % and S3's 20-25 %. A sourced range check,
 not a predictive model; organic acids, formic acid and methyl hydroperoxide are not modelled.
@@ -184,3 +188,9 @@ vents and the oxidiser off-gas methane not in the flowsheet (I-04). Construction
   cumene, acetone, phenol, sulfuric-acid, sodium-hydroxide, alpha-methylstyrene,
   acetophenone, cumene-hydroperoxide, sodium-sulfate, methanol (and a tar/heavy-residue
   entry); LCI vocabulary entries `cumene`, `sodium-hydroxide-50`, heavy-residue treatment.
+- I-10 Library build finding: `scripts/build_lci.py --strict` reports 5 gaps for acetone-1 (as
+  intended) and the warning "study allocation 'mass' differs from the dataset's default None":
+  core leaves the default `method: mass` out of `lca/dataset.yaml`, and build_lci.py (line
+  ~863) compares it as None. Fix in the library (read a missing method as `mass`); acetone-1
+  is the first mass-allocated process. The other warning (cut-off criteria need core) is the
+  same for every process in an environment without core.
