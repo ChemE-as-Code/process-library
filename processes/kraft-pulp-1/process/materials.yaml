@@ -1,0 +1,61 @@
+# Components and templates of the process. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol,
+# normal_boiling_point in K at 101.325 kPa.
+#
+# Bleached softwood kraft pulp mill (DESIGN.md D-003, D-004). Wood and black liquor are
+# NONCONVENTIONAL: they are represented by LUMPED model components with a nominal formula so
+# that elements balance, not by molecular identities (issue #180 asks to qualify this):
+# - CELL and HEMI: anhydrohexose units C6H10O5 (cellulose; hemicellulose lumped as hexosan,
+#   softwood galactoglucomannan dominates; the xylan share is not represented);
+# - LIG: lignin as the coniferyl alcohol unit C10H12O3 (guaiacyl lignin of softwood); its
+#   methoxyl and interunit chemistry are not represented;
+# - EXTR: extractives as abietic acid C20H30O2 (resin acids; fatty acids and turpentine are
+#   lumped in it, D-001);
+# - NaLIG, NaOXL, NaISA, NaEXT: dissolved black liquor organics as sodium lignate, oxidised
+#   lignate, glucoisosaccharinate (end product of alkaline carbohydrate peeling) and resin soap;
+# - OXL: oxidised lignin fragments in the bleach plant effluent (C10H12O4);
+# - ASH: wood ash and non-process elements as SiO2 (leaves with the dregs);
+# - CO2B: biogenic CO2 (carbon from the wood), kept apart from fossil CO2 for the LCI (D-012).
+# No CAS is given for lumped components. Molar masses from IUPAC standard atomic weights.
+# Dissolved salts are carried as neutral formula units (no speciation, core #364).
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.015, normal_boiling_point: 373.12}
+  - {id: CELL, name: Cellulose (anhydroglucose unit; lumped model component), formula: C6H10O5, molar_mass: 162.141, phase: solid}
+  - {id: HEMI, name: Hemicellulose (anhydrohexose unit; lumped model component), formula: C6H10O5, molar_mass: 162.141, phase: solid}
+  - {id: LIG, name: Lignin (coniferyl alcohol unit; lumped model component), formula: C10H12O3, molar_mass: 180.203, phase: solid}
+  - {id: EXTR, name: Wood extractives (as abietic acid; lumped model component), formula: C20H30O2, molar_mass: 302.458, phase: solid}
+  - {id: ASH, name: Wood ash and non-process elements (as silica; lumped), formula: SiO2, molar_mass: 60.083, phase: solid}
+  - {id: NaOH, name: Sodium hydroxide (dissolved), formula: NaOH, cas: 1310-73-2, molar_mass: 39.997}
+  - {id: Na2S, name: Sodium sulfide (dissolved; in smelt), formula: Na2S, cas: 1313-82-2, molar_mass: 78.04}
+  - {id: Na2CO3, name: Sodium carbonate (dissolved; in smelt), formula: Na2CO3, cas: 497-19-8, molar_mass: 105.986}
+  - {id: Na2SO4, name: Sodium sulfate (dissolved; saltcake make-up; recovery boiler dust), formula: Na2SO4, cas: 7757-82-6, molar_mass: 142.036}
+  - {id: NaLIG, name: Sodium lignate (dissolved; lumped model component), formula: C10H11NaO3, molar_mass: 202.185}
+  - {id: NaOXL, name: Oxidised sodium lignate from the O2 stage (dissolved; lumped), formula: C10H11NaO4, molar_mass: 218.184}
+  - {id: NaISA, name: Sodium glucoisosaccharinate (carbohydrate degradation products; lumped), formula: C6H11NaO6, molar_mass: 202.138}
+  - {id: NaEXT, name: Resin soap (sodium abietate; lumped), formula: C20H29NaO2, molar_mass: 324.44}
+  - {id: OXL, name: Oxidised lignin fragments in bleach effluent (lumped), formula: C10H12O4, molar_mass: 196.202}
+  - {id: NaCl, name: Sodium chloride (dissolved), formula: NaCl, cas: 7647-14-5, molar_mass: 58.44}
+  - {id: ClO2, name: Chlorine dioxide (aqueous solution), formula: ClO2, cas: 10049-04-4, molar_mass: 67.448}
+  - {id: H2O2, name: Hydrogen peroxide, formula: H2O2, cas: 7722-84-1, molar_mass: 34.014}
+  - {id: H2SO4, name: Sulfuric acid, formula: H2SO4, cas: 7664-93-9, molar_mass: 98.072}
+  - {id: O2, name: Oxygen, formula: O2, cas: 7782-44-7, molar_mass: 31.998, normal_boiling_point: 90.19}
+  - {id: N2, name: Nitrogen (with argon of the air), formula: N2, cas: 7727-37-9, molar_mass: 28.014, normal_boiling_point: 77.36}
+  - {id: CO2, name: Carbon dioxide (fossil carbon), formula: CO2, cas: 124-38-9, molar_mass: 44.009}
+  - {id: CO2B, name: Carbon dioxide (biogenic carbon from the wood), formula: CO2, molar_mass: 44.009}
+  - {id: SO2, name: Sulfur dioxide, formula: SO2, cas: 7446-09-5, molar_mass: 64.058}
+  - {id: NO2, name: Nitrogen oxides (as NO2), formula: NO2, cas: 10102-44-0, molar_mass: 46.005}
+  - {id: CH4, name: Natural gas (as methane), formula: CH4, cas: 74-82-8, molar_mass: 16.043, normal_boiling_point: 111.66}
+  - {id: CaO, name: Calcium oxide (burnt lime), formula: CaO, cas: 1305-78-8, molar_mass: 56.077, phase: solid}
+  - {id: CaOH2, name: Calcium hydroxide (slaked lime), formula: CaH2O2, cas: 1305-62-0, molar_mass: 74.092, phase: solid}
+  - {id: CaCO3, name: Calcium carbonate (lime mud), formula: CaCO3, cas: 471-34-1, molar_mass: 100.086, phase: solid}
+templates:
+  - id: kraft
+    title: Kraft mill streams (wood, pulp, liquors, smelt, lime, gases)
+    components: [H2O, CELL, HEMI, LIG, EXTR, ASH, NaOH, Na2S, Na2CO3, Na2SO4, NaLIG, NaOXL, NaISA, NaEXT, OXL, NaCl, ClO2, H2O2, H2SO4, O2, N2, CO2, CO2B, SO2, NO2, CH4, CaO, CaOH2, CaCO3]
+# property_method is a placeholder: no benchmarked package covers wood, black liquor,
+# smelt or lime slurries (D-007); `cheme process props --coverage` reports them not covered.
+property_method:
+  adapter: thermo
+  status: placeholder

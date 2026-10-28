@@ -1,0 +1,61 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Bleached softwood kraft market pulp with chemical recovery, issue
+# ChemE-as-Code/process-library#180. Values marked ASSUMED are engineering choices of this
+# concept study, not owner, licensor or vendor data; every decision is in DESIGN.md. The case
+# is a per-unit-product normalisation for the inventory, not a claim about a commercial mill.
+# BREF 2015 = JRC Best Available Techniques Reference Document for the Production of Pulp,
+# Paper and Board (Suhr et al. 2015, EUR 27235 EN), chapter 3 (kraft).
+capacity:
+  basis: bleached softwood kraft market pulp, air-dry (90 % dry solids), baled at the drying machine
+  product_t_per_d: 1000                 # ASSUMED (D-002): ADt/d, normalisation basis
+  product_kg_per_h: 41666.7             # = 1000 t/d / 24 h
+  oven_dry_fibre_kg_per_h: 37500.0      # 90 % of the air-dry mass
+  operating_hours_per_year: 8400        # ASSUMED (D-002)
+  turndown_percent: null                # not set at this stage
+feeds:
+  - name: Softwood chips (Nordic spruce and pine, debarked, screened)
+    source_of_values: ASSUMED (D-003), no species assay
+    composition_dry_wt_percent: {cellulose: 41.0, hemicellulose: 28.0, lignin: 27.0, extractives: 3.5, ash: 0.5}   # ASSUMED, typical softwood
+    moisture_wt_percent: 50             # ASSUMED wet basis
+    consumption: "2045 kg dry wood per ADt (bleached yield 44 % on wood, D-004)"
+  - name: White liquor (internal, from recausticizing)
+    charge: "effective alkali 19 % as NaOH on dry wood; sulfidity 35 %; causticity 81 %; reduction 92 %; active alkali 125 g/L as NaOH (D-005, ASSUMED inside the ranges of Tran and Vakkilainen)"
+  - name: Make-up and bleaching chemicals (bought in; produced by other library processes where noted)
+    items:
+      - "NaOH 50 wt% (chlor-alkali-1): O2-stage make-up 2.9 kg and bleaching 18 kg per ADt (D-006, D-008)"
+      - "Oxygen (asu-1): 22 kg/ADt O2 delignification, 4 kg/ADt EOP (D-006, D-008)"
+      - "Chlorine dioxide water 10 g/kg, 10 kg ClO2/ADt (ClO2 plant outside the boundary; sodium chlorate, methanol-1 reductant) (D-008)"
+      - "Hydrogen peroxide 50 wt% (hydrogen-peroxide-1), 3 kg/ADt (D-008)"
+      - "Sulfuric acid 93 wt% (sulfuric-acid-1), 4 kg/ADt (D-008)"
+      - "Sodium sulfate (saltcake) 3.3 kg/ADt; purchased burnt lime 8.4 kg CaO/ADt (D-006, D-009)"
+      - "Natural gas to the lime kiln, 1.5 GJ/ADt LHV (D-009)"
+products:
+  - name: Bleached softwood kraft market pulp
+    quality: "ISO brightness ~88-90 % targeted by the D0-EOP-D1 outline (not modelled); 90 % dry solids; residual lignin neglected (D-004)"
+    delivery: {temperature_K: 313.15, battery_limit: "bales at the drying machine; storage and shipping outside"}
+  - name: Electricity export
+    use: "turbine generation less mill use (263 kWh/ADt) to the grid: a co-product (D-011, D-014)"
+  - name: Bleach plant effluent
+    use: "18 m3/ADt to the mill's biological treatment plant (outside the boundary, D-001)"
+  - name: Solid wastes
+    use: "dregs, grits and lime mud purge to landfill (D-009)"
+utilities:
+  - {name: HP steam, pressure_kPa_a: 8400, temperature_K: 753.15, use: "raised in the recovery boiler only, to the turbine", note: "Tran and Vakkilainen (84 bar, 480 C unit); no power boiler in the boundary (D-011)"}
+  - {name: MP steam, pressure_kPa_a: 1300, use: "digester, O2 stage, bleaching, recovery boiler auxiliaries", note: ASSUMED level (D-011)}
+  - {name: LP steam, pressure_kPa_a: 450, use: "evaporators, pulp dryer, deaerator", note: ASSUMED level (D-011)}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "evaporator surface condenser, turbine condenser", note: ASSUMED (D-011)}
+  - {name: Electric power, use: "650 kWh/ADt mill use, all from the turbine generator; net export", note: "ASSUMED split inside BREF 2015 sec. 3.2.2.3 (600-800 kWh/ADt) (D-011)"}
+  - {name: Process water, use: "16.4 m3/ADt to the bleach plant and post-O2 washing", note: "BREF 2015 3.3.6: 25-50 m3/ADt for whole mills (incl. cooling and wood room) (D-008)"}
+site:
+  location: ASSUMED generic Nordic-type site, country not chosen
+  atmospheric_pressure_kPa: 101.325     # ASSUMED
+  design_ambient_K: 288.15              # ASSUMED
+assumptions:
+  - "ASSUMED wood: 41/28/27/3.5/0.5 % cellulose/hemicellulose/lignin/extractives/ash, 50 % moisture (D-003)."
+  - "ASSUMED yields on dry wood: 47.0 % after cooking (kappa ~28), 45.6 % after O2 (kappa ~15), 44.0 % bleached (D-004)."
+  - "ASSUMED washing: 3 % of dissolved solids carried out of brown stock washing, 6 % out of post-O2 washing; wash presses discharge at 25 % consistency (D-006)."
+  - "ASSUMED black liquor 15 % solids weak, 80 % strong; evaporator economy 6.0 (D-007)."
+  - "ASSUMED recovery boiler: air ratio 1.15; 3.5 kg steam per kg BLDS (Tran and Vakkilainen); SO2 0.1 kg S, NOx 1.2 kg, dust 0.3 kg per ADt inside BREF Table 3.13 (D-010)."
+  - "ASSUMED recausticizing and kiln: grits 5, mud purge 10 kg/ADt; calcination 0.95; mud 80 % solids; kiln 1.5 GJ/ADt natural gas (D-009)."
+  - "ASSUMED heat and power by consumer (D-011): 11.6 GJ/ADt process heat and 650 kWh/ADt, inside BREF 2015 sec. 3.2.2.3 ranges."
+  - "No wood or electrolyte thermodynamics: wood, liquors and smelt are lumped model components (materials.yaml, D-007)."

@@ -1,0 +1,80 @@
+# Process Atlas manifest of kraft-pulp-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: kraft-pulp-1
+title: Bleached softwood kraft pulp with chemical recovery (1000 ADt/d market pulp, concept)
+summary: >-
+  Softwood chips to bleached kraft market pulp: continuous digester, brown stock washing, O2
+  delignification, ECF bleaching outline, drying machine, black liquor evaporation, recovery
+  boiler, recausticizing and lime kiln, with the turbine generator; biogenic and fossil CO2
+  kept apart. Concept stage, assumed basis.
+description: |
+  Chips are cooked with white liquor (NaOH and Na2S) in a continuous digester; the brown stock
+  is washed counter-currently with the O2-stage filtrate, delignified with oxygen, bleached in
+  a D0-EOP-D1 sequence (outline) and dried to 90 % dry market pulp. The weak black liquor is
+  evaporated to 80 % solids and burnt in the recovery boiler: the organics raise HP steam for
+  an extraction back-pressure turbine with a condensing tail, and the smelt (Na2CO3, Na2S) is
+  dissolved to green liquor, causticized with lime to white liquor and returned to the
+  digester. The lime mud is reburned in a natural gas fired kiln. Sodium and sulfur losses
+  are made up with NaOH and saltcake, calcium losses with purchased lime.
+
+  All flows are concept estimates of an independent balance (scripts/kraft_balance.py) on
+  lumped model components for wood and black liquor, with sourced ranges (JRC pulp and paper
+  BREF 2015, Tran and Vakkilainen) and assumed design parameters. No wood, black liquor or
+  electrolyte thermodynamics is calculated. See DESIGN.md for every assumption and gated step.
+# No pulp-and-paper family exists in taxonomy/families.yaml yet (ISIC 1701, NACE 17.11):
+# bio-based-chemicals is the nearest; listed as missing for the consolidated registry PR.
+families: [bio-based-chemicals]
+keywords: [kraft pulp, bleached softwood kraft, market pulp, chemical pulping, continuous digester, oxygen delignification, ECF bleaching, black liquor, recovery boiler, causticizing, lime kiln, biogenic CO2]
+facets:
+  feedstock_basis: [biogenic]
+  product_classes: [materials]
+  unit_operations: [reaction, washing, evaporation, combustion, calcination, filtration, drying, power-generation]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest; every design parameter is
+# assumed or a sourced range, the components are lumped.
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept BFD/PFD with closed mass, component and element balances (cheme validate, cheme
+    process streams: 10 blocks, 16 steps, reactive steps balanced by extents of lumped
+    bookkeeping reactions). Flows and compositions are specified values of an independent
+    balance (scripts/kraft_balance.py) whose element residuals are below 1e-6 kmol/h. Wood and
+    black liquor are lumped model components (not molecular identities), no electrolyte
+    speciation (core #364) and no property package covers the streams, so the energy balance is
+    not evaluable in core: duties are sourced specific consumptions split by consumer
+    (ASSUMED). The gate-to-gate LCI is preliminary, every background unmapped. Not reviewed.
+chemistry:
+  inputs:
+    - {chemical: oxygen, role: feedstock, inventory_key: "feed:O2", note: "O2 delignification and EOP stage; asu-1 makes it"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:FW", note: "Process water to the bleach plant and post-O2 washing"}
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Recovery boiler and kiln combustion air"}
+    - {chemical: methane, role: feedstock, inventory_key: "feed:NG", note: "Natural gas (as methane) to the lime kiln. Wood chips, NaOH, ClO2, H2O2, H2SO4, Na2SO4 and CaO have no registry entries yet (DESIGN.md section 5)"}
+  outputs:
+    - {chemical: electricity, role: co-product, inventory_key: "product:EEXP", note: "Net export, 263 kWh/ADt (D-014). The main product (bleached kraft pulp) has no registry entry yet"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Bleach plant effluent, 18 m3/ADt to biological treatment"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:STACK", note: "Mostly biogenic (black liquor, lime mud); fossil from kiln natural gas"}
+  utilities:
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED)"}
+basis:
+  capacity: "1000 ADt/d bleached softwood kraft market pulp (ASSUMED normalisation basis)"
+  operating_hours_per_year: 8400
+  location: generic (not chosen)
+lca: {source: auto}
+references:
+  - {title: "Suhr, M. et al. (2015) Best Available Techniques (BAT) Reference Document for the Production of Pulp, Paper and Board. JRC Science and Policy Report EUR 27235 EN, chapter 3 (kraft): sec. 3.2.2.2-3.2.2.3, Tables 3.3, 3.5, 3.12, 3.13, 3.17, sec. 3.2.2.6.2, sec. 3.3.8", doi: 10.2791/370629}
+  - {title: "Tran, H. and Vakkilainen, E. K. (2007) Advances in the kraft chemical recovery process. 3rd ICEP International Colloquium on Eucalyptus Pulp, Belo Horizonte (recovery ~97 %, reduction > 90 %, causticizing 80-83 %, black liquor 13-15 MJ/kg, steam ~3.5 kg/kg solids, 84 bar 480 C unit)", url: "https://www.eucalyptus.com.br/icep03/200Tran.text.pdf.pdf"}
+  - {title: "US EPA (1990, reformatted 1995) AP-42 Fifth Edition, Volume I, Section 10.2 Chemical Wood Pulping (process description; NOx order of magnitude from kilns and recovery furnaces)", url: "https://www.epa.gov/sites/default/files/2020-10/documents/c10s02.pdf"}
+  - {title: "Ullmann's Encyclopedia of Industrial Chemistry: Pulp (route reference lead from issue #180; not audited in this run)", doi: 10.1002/14356007.a18_545.pub4}
+  - {title: "Wagman, D. D. et al. (1982) The NBS tables of chemical thermodynamic properties. J. Phys. Chem. Ref. Data 11, Suppl. 2 (formation enthalpies of the inorganic reactions; values to be checked)"}
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/kraft-pulp-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0
