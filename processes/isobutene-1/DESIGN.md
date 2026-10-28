@@ -153,16 +153,19 @@ C-403 vents (89.1 kg/h, DME and isobutene) to the site fuel gas header; the wash
 Reason: the usual destinations; recovering DME as a product is possible but too small here.
 
 ## D-009 Utilities (2026-10-28)
-Decision: MP steam 1500 kPa(a) for C-101 (2013 kW) and C-201 (1423 kW); LP steam 450 kPa(a)
-for C-301 (232 kW), C-402 (210 kW), C-403 (383 kW); fired heat (natural gas, hot oil) 2192 kW
+Decision: MP steam 1500 kPa(a) for C-101 (2013 kW); LP steam 450 kPa(a) for C-201 (1423 kW),
+C-301 (232 kW), C-402 (210 kW), C-403 (383 kW); fired heat (natural gas, hot oil) 2192 kW
 absorbed (superheat 222 kW, reaction 1970 kW); cooling water 25/35 C, 5300 kW in total;
-electric pumps 15.8 kW (V·dP/0.6 over nine pumps, lumped on the P101 step). Per kg isobutene
-(before allocation): MP steam 1.98 MJ, LP steam 0.48 MJ, fired heat 1.26 MJ, cooling 3.05 MJ,
-power 0.0025 kWh. All ASSUMED levels and estimates.
-Reason: the reboilers sit at 337-436 K; C-101 (436 K) and C-201 (394 K) need MP steam, the
-rest LP. The reactor at 553 K needs a fired or hot-oil heat source; superheated HP steam is
-too cold. Not counted (cutoff in lca.yaml): the heater's air fan and hot-oil pump (~30 kW,
-ASSUMED). Heat integration (e.g. C-201 condenser or E-102 heat into C-301/C-402 reboilers) is
+electric pumps 15.8 kW (V·dP/0.6 over nine pumps, lumped on the P101 step) and the heater's
+combustion-air fan and hot-oil circulation pump 30 kW (Q18, ASSUMED order of magnitude, not
+sized). Per kg isobutene (before allocation): MP steam 1.16 MJ, LP steam 1.29 MJ, fired heat
+1.26 MJ, cooling 3.05 MJ, power 0.0073 kWh. All ASSUMED levels and estimates.
+Reason: the reboilers sit at 337-436 K; only C-101 (436 K) needs MP steam: LP steam condenses
+at 420.8 K, a 27 K approach to C-201's 394 K bottoms, above the 10 K minimum approach, so C-201
+and the rest take LP (corrected after review 2026-10-28-pfd-lci-review#2). The reactor at
+553 K needs a fired or hot-oil heat source; superheated HP steam is too cold. The fan and
+hot-oil power was first a cut-off; at about twice the pump power it is counted in feed:POWER
+instead (review 2026-10-28-pfd-lci-review#3). Heat integration (e.g. C-201 condenser or E-102 heat into C-301/C-402 reboilers) is
 not done: an open improvement.
 
 ## D-010 Equipment design data (2026-10-28)

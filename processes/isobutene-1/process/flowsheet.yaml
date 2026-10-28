@@ -32,7 +32,7 @@ feeds:
     title: Electric power
     category: utility
     utility: {kind: electricity}
-    ports: [{id: p101, direction: out, kind: energy}]
+    ports: [{id: p101, direction: out, kind: energy}, {id: h101, direction: out, kind: energy}]
   - id: FUEL
     title: Fired heat from natural gas (superheater and reactor heating)
     category: utility
@@ -51,7 +51,7 @@ feeds:
       pressure: {value: 1500, provenance: assumed, source: "design basis, D-009"}
       supply_temperature: {value: 471.4, provenance: assumed, source: "saturation at 1500 kPa(a), D-009"}
       min_approach: {value: 10, provenance: assumed, source: D-009}
-    ports: [{id: c101, direction: out, kind: energy}, {id: c201, direction: out, kind: energy}]
+    ports: [{id: c101, direction: out, kind: energy}]
   - id: LPS
     title: LP steam 450 kPa(a)
     category: utility
@@ -61,7 +61,7 @@ feeds:
       pressure: {value: 450, provenance: assumed, source: "design basis, D-009"}
       supply_temperature: {value: 420.8, provenance: assumed, source: "saturation at 450 kPa(a), D-009"}
       min_approach: {value: 10, provenance: assumed, source: D-009}
-    ports: [{id: c301, direction: out, kind: energy}, {id: c402, direction: out, kind: energy}, {id: c403, direction: out, kind: energy}]
+    ports: [{id: c201, direction: out, kind: energy}, {id: c301, direction: out, kind: energy}, {id: c402, direction: out, kind: energy}, {id: c403, direction: out, kind: energy}]
 products:
   - {id: IBP, title: High-purity isobutene to storage, category: product, ports: [{id: in, direction: in}]}
   - {id: MEOHP, title: "Recovered methanol (co-product, back to MTBE synthesis or sale)", category: by_product, ports: [{id: in, direction: in}]}
@@ -100,6 +100,7 @@ blocks:
       - {id: heavies, direction: out}
       - {id: effluent, direction: out}
       - {id: power, direction: in, kind: energy}
+      - {id: power2, direction: in, kind: energy}
       - {id: mps1, direction: in, kind: energy}
       - {id: fuel1, direction: in, kind: energy}
       - {id: fuel2, direction: in, kind: energy}
@@ -116,7 +117,7 @@ blocks:
       - {id: decant, direction: out}
       - {id: vent, direction: out}
       - {id: product, direction: out}
-      - {id: mps2, direction: in, kind: energy}
+      - {id: lps4, direction: in, kind: energy}
       - {id: lps3, direction: in, kind: energy}
       - {id: cw3, direction: out, kind: energy}
       - {id: cw4, direction: out, kind: energy}
@@ -191,6 +192,7 @@ steps:
       - {id: in, direction: in}
       - {id: out, direction: out}
       - {id: fuel, direction: in, kind: energy, delegates: fuel1}
+      - {id: aux, direction: in, kind: energy, delegates: power2}
   # D-004, D-005: heated multitubular reactor, 553 K outlet; MTBE conversion 0.90 per pass,
   # per kmol MTBE converted 0.010 kmol DME and 0.001 kmol C8 (isobutene 0.998).
   - id: R101
@@ -223,7 +225,7 @@ steps:
       - {id: feed, direction: in, delegates: feed}
       - {id: top, direction: out}
       - {id: bot, direction: out, delegates: bottoms}
-      - {id: reb, direction: in, kind: energy, delegates: mps2}
+      - {id: reb, direction: in, kind: energy, delegates: lps4}
       - {id: cond, direction: out, kind: energy, delegates: cw3}
   - id: C401
     block: IBPUR
@@ -664,7 +666,7 @@ streams:
   - {id: Q4, title: H-101 absorbed duty (superheat 523 to 553 K), kind: energy, from: FUEL.h101, to: H101.fuel, state: {design: {duty: {value: 222.2, provenance: assumed, source: "scripts/ib_balance.py, ideal-gas enthalpies (D-006)"}}}}
   - {id: Q5, title: R-101 heat of reaction supplied (553 K), kind: energy, from: FUEL.r101, to: R101.heat, state: {design: {duty: {value: 1970.1, provenance: assumed, source: "scripts/ib_balance.py, ideal-gas enthalpies of S7 and S8 at 553.15 K (D-006)"}}}}
   - {id: Q6, title: E-102 effluent condenser duty, kind: energy, from: E102.cw, to: CW.e102, state: {design: {duty: {value: 2767.9, provenance: assumed, source: "scripts/ib_balance.py: ideal gas 450 to 313 K plus condensation (D-006)"}}}}
-  - {id: Q7, title: C-201 reboiler duty, kind: energy, from: MPS.c201, to: C201.reb, state: {design: {duty: {value: 1422.5, provenance: assumed, source: "scripts/ib_balance.py, R 0.7 (US 8,633,345 B2 Example 2; D-006)"}}}}
+  - {id: Q7, title: C-201 reboiler duty, kind: energy, from: LPS.c201, to: C201.reb, state: {design: {duty: {value: 1422.5, provenance: assumed, source: "scripts/ib_balance.py, R 0.7 (US 8,633,345 B2 Example 2; D-006)"}}}}
   - {id: Q8, title: C-201 condenser duty, kind: energy, from: C201.cond, to: CW.c201, state: {design: {duty: {value: 1062.3, provenance: assumed, source: "scripts/ib_balance.py, R 0.7 (D-006)"}}}}
   - {id: Q9, title: C-403 reboiler duty, kind: energy, from: LPS.c403, to: C403.reb, state: {design: {duty: {value: 383.4, provenance: assumed, source: "scripts/ib_balance.py, R 30 (D-006, D-007)"}}}}
   - {id: Q10, title: C-403 condenser duty, kind: energy, from: C403.cond, to: CW.c403, state: {design: {duty: {value: 260.6, provenance: assumed, source: "scripts/ib_balance.py, R 30 (D-006, D-007)"}}}}
@@ -675,4 +677,5 @@ streams:
   - {id: Q15, title: C-402 condenser duty, kind: energy, from: C402.cond, to: CW.c402, state: {design: {duty: {value: 124.5, provenance: assumed, source: "scripts/ib_balance.py, R 1.5 (D-006)"}}}}
   - {id: Q16, title: E-401 wash-water cooler duty, kind: energy, from: E401.cw, to: CW.e401, state: {design: {duty: {value: 77.0, provenance: assumed, source: "scripts/ib_balance.py, 384.5 to 313 K (D-006)"}}}}
   - {id: Q17, title: E-301 methanol cooler duty, kind: energy, from: E301.cw, to: CW.e301, state: {design: {duty: {value: 62.1, provenance: assumed, source: "scripts/ib_balance.py, C-301 bottoms 337 to 313 K (D-006)"}}}}
+  - {id: Q18, title: "H-101 combustion-air fan and hot-oil circulation power", kind: energy, from: POWER.h101, to: H101.aux, state: {design: {duty: {value: 30.0, provenance: assumed, source: "order of magnitude, not sized (D-009); was an LCA cut-off, moved into the inventory after review 2026-10-28-pfd-lci-review#3"}}}}
 layout: {bfd: {}, pfd: {}}
