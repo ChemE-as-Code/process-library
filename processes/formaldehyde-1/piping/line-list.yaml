@@ -1,3 +1,21 @@
 # Line list. Schema: `cheme schema lines`.
-schema: cheme/lines/v1
-lines: []
+# Concept stage: one line per material stream of the PFD (stream id in the notes), no P&ID yet.
+# DN: first-pass size from velocity (D-011, ASSUMED): gas 20 m/s on the ideal-gas volume at the
+# stream's temperature and pressure, liquid 1.5 m/s (methanol 791, water 997, formalin 50 wt%
+# 1150 kg/m3 ASSUMED); inside diameter taken as the DN. The low pressure makes the gas lines
+# large; a two-reactor arrangement would halve the reaction gas lines (D-002).
+lines:
+  - {number: AI-101, from: B/L, to: AI-102, nominal_diameter: DN800, fluid: Air, notes: "S1 fresh air (filter at the inlet), joins the recycle at the blower suction (M101)"}
+  - {number: AI-102, from: AI-101, to: K-101, nominal_diameter: DN1400, fluid: Process gas, notes: "S2 blower suction"}
+  - {number: PG-103, from: K-101, to: E-101, nominal_diameter: DN1200, fluid: Process gas, notes: "S3 blower discharge; methanol injected before E-101 (M102)"}
+  - {number: ME-104, from: B/L, to: PG-103, nominal_diameter: DN65, fluid: Methanol, notes: "S4 liquid methanol feed"}
+  - {number: PG-105, from: PG-103, to: E-101, nominal_diameter: DN1400, fluid: Process gas with methanol, notes: "S5 two-phase vaporiser inlet"}
+  - {number: PG-106, from: E-101, to: R-101, nominal_diameter: DN1400, fluid: Reactor feed gas, notes: "S6, 399 K"}
+  - {number: RG-107, from: R-101, to: E-101, nominal_diameter: DN1800, fluid: Reaction gas, notes: "S7, 553 K"}
+  - {number: RG-108, from: E-101, to: C-201, nominal_diameter: DN1500, fluid: Reaction gas, notes: "S8, 403 K"}
+  - {number: PW-109, from: B/L, to: C-201, nominal_diameter: DN32, fluid: Process water, notes: "S9 demineralised water to the absorber top"}
+  - {number: OG-110, from: C-201, to: OG-111, nominal_diameter: DN1400, fluid: Absorber off-gas, notes: "S10 to the recycle/vent split (SPL)"}
+  - {number: OG-111, from: OG-110, to: AI-102, nominal_diameter: DN1100, fluid: Recycle gas, notes: "S11 recycle to the blower suction"}
+  - {number: OG-112, from: OG-110, to: R-301, nominal_diameter: DN700, fluid: Vent gas, notes: "S12 vent to the ECS"}
+  - {number: FL-113, from: E-302, to: B/L, nominal_diameter: DN900, fluid: Treated off-gas, notes: "S13 to the stack, 423 K"}
+  - {number: FA-114, from: C-201, to: B/L, nominal_diameter: DN65, fluid: Formalin 50 wt%, notes: "S14 product to heated storage (P-201)"}

@@ -1,0 +1,46 @@
+# Reactions of formaldehyde-1. Schema cheme/reactions/v1 (`cheme schema process-reactions`).
+# FORMOX from `cheme chemistry library formaldehyde`; the side reactions and the ECS oxidations
+# are this study's (DESIGN.md D-004, D-008). No heat_of_reaction is typed: cheme takes it from
+# the components' ideal-gas formation data (FORMOX -150.3 kJ/mol at 298 K; BREF LVOC 2017
+# section 6.2.3 quotes -159 kJ/mol, D-004). The reactor model is a sourced selectivity model on
+# the reactor step (R101), not kinetics; the ECS uses assumed conversions (R301).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  # Fe-Mo oxide reactor R101 (D-004)
+  - id: FORMOX
+    equation: CH3OH + 1/2 O2 -> CH2O + H2O
+    stoichiometry: {CH3OH: -1.0, O2: -0.5, HCHO: 1.0, H2O: 1.0}
+    catalyst: FEMO
+    sources: ["EU JRC (2017) BREF LVOC, EUR 28882 EN, section 6.2.3, p. 338"]
+  - id: HCHO_OX
+    equation: CH2O + 1/2 O2 -> CO + H2O
+    stoichiometry: {HCHO: -1.0, O2: -0.5, CO: 1.0, H2O: 1.0}
+    catalyst: FEMO
+    sources: ["EU JRC (2017) BREF LVOC, section 6.3.4, p. 347: over-oxidation of methanol or formaldehyde gives CO (and CO2)"]
+  - id: DME_FORM
+    equation: 2 CH3OH -> CH3OCH3 + H2O
+    stoichiometry: {CH3OH: -2.0, DME: 1.0, H2O: 1.0}
+    catalyst: FEMO
+    sources: ["EU JRC (2017) BREF LVOC, section 6.2.3, p. 339 (dimethyl ether a by-product) and Table 6.6, p. 344"]
+  # Catalytic oxidiser R301 of the emission control system (ECS), noble-metal catalyst (D-008)
+  - id: CO_OX
+    equation: CO + 1/2 O2 -> CO2
+    stoichiometry: {CO: -1.0, O2: -0.5, CO2: 1.0}
+    conversion: {key: CO, value: 0.998, provenance: assumed, source: "D-008: gives about 50 mg/Nm3 CO, inside BREF LVOC Table 6.7 (1-250 mg/Nm3)"}
+    catalyst: PT_ECS
+  - id: HCHO_COMB
+    equation: CH2O + O2 -> CO2 + H2O
+    stoichiometry: {HCHO: -1.0, O2: -1.0, CO2: 1.0, H2O: 1.0}
+    conversion: {key: HCHO, value: 0.995, provenance: assumed, source: "D-008: gives 1.5 mg/Nm3 HCHO, below the BAT-AEL 2-5 mg/Nm3 (BREF LVOC 13.5.1, BAT 45)"}
+    catalyst: PT_ECS
+  - id: MEOH_COMB
+    equation: CH3OH + 3/2 O2 -> CO2 + 2 H2O
+    stoichiometry: {CH3OH: -1.0, O2: -1.5, CO2: 1.0, H2O: 2.0}
+    conversion: {key: CH3OH, value: 0.995, provenance: assumed, source: D-008}
+    catalyst: PT_ECS
+  - id: DME_COMB
+    equation: CH3OCH3 + 3 O2 -> 2 CO2 + 3 H2O
+    stoichiometry: {DME: -1.0, O2: -3.0, CO2: 2.0, H2O: 3.0}
+    conversion: {key: DME, value: 0.990, provenance: assumed, source: "D-008: TVOC about 13 mg C/Nm3, inside the BAT-AEL <5-30 mg/Nm3"}
+    catalyst: PT_ECS
