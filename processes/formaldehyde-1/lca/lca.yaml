@@ -1,0 +1,146 @@
+# Goal and scope of the formaldehyde-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme assess lca
+# --inventory --write` (lca/inventory.csv, dataset.yaml, gaps.csv, manifest.json); never edit
+# those by hand. DESIGN.md D-010.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of formalin 50 wt% from the concept design of a
+  metal oxide (Formox type) plant: every foreground exchange per kg of formalin from the balanced
+  flowsheet, for the library's LCI dataset. No background is linked yet: every input and the
+  exported steam are declared gaps with the background activity they should connect to, so no
+  impact result is claimed.
+functional_unit: {product: FORMALIN, amount: 1, unit: kg}
+boundary: gate-to-gate
+case: design
+location: RER
+year: 2026
+technology: "metal oxide (iron molybdate) methanol oxidation, off-gas recycle, absorption to 50 wt% formalin, catalytic oxidiser with steam recovery; 20 t/h formalin"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+
+flows:
+  - {key: feed:AIR, free: true, source: "ambient air (oxidant and the water it carries): a resource taken from nature without burden"}
+  - key: feed:MEOH
+    missing: >-
+      methanol at the plant gate; link the LCI dataset of processes/methanol-1 (Grade AA from
+      natural-gas syngas) once it exists, otherwise a market activity for methanol of the site's
+      region (e.g. 'market for methanol', RER/GLO). Not linked: methanol-1 has no dataset yet.
+    source: "stream S4, 11 474.6 kg/h (D-003, D-004)"
+  - key: feed:PW
+    missing: "demineralised (deionised) water production from the site water supply, e.g. 'market for water, deionised' (RER/Europe without Switzerland)"
+    source: "stream S9, 3711 kg/h (D-006)"
+  - key: feed:POWER
+    missing: "grid electricity at medium voltage of the site's country (site not chosen), e.g. 'market for electricity, medium voltage' of that country"
+    source: "streams Q1 (blower 1609.9 kW) and Q2 (pumps 80 kW ASSUMED) (D-007)"
+  - key: product:STEAM
+    missing: >-
+      exported MP steam (1500 kPa(a), saturated) is a co-product; its credit or allocation needs
+      the avoided steam of the receiving site (e.g. 'heat production, natural gas, at industrial
+      furnace' or an MP steam dataset per MJ) and an allocation decision by the LCA practitioner
+      (D-010). Not linked; boiler feed water and its preparation are inside that steam system.
+    source: "streams Q3 (reactor, 10 143.7 kW) and Q4 (ECS, 1081.8 kW) (D-007, D-008)"
+  - key: product:CW
+    missing: "heat rejected to the site cooling-water system (circulation pumping, cooling-tower fans, make-up water and blowdown), e.g. a cooling-tower utility dataset per MJ rejected"
+    source: "stream Q5, 13 099.2 kW (D-006)"
+  - {key: product:STACK, emission: true, source: "ECS outlet to the stack, stream S13 (D-008)"}
+  - {key: emission:N2, free: true, source: "atmospheric N2 returned"}
+  - {key: emission:O2, free: true, source: "atmospheric O2 not consumed, returned"}
+  - {key: emission:AR, free: true, source: "atmospheric argon returned"}
+  - {key: emission:H2O, free: true, source: "water vapour: air humidity and water formed in the ECS"}
+  - {key: emission:CO2, elementary: {compartment: air, origin: fossil}, source: "CO2 from the catalytic oxidation of CO, DME, methanol and formaldehyde; carbon from the fossil methanol"}
+  - {key: emission:CO, elementary: {compartment: air, origin: fossil}, source: "CO slip of the ECS, 48 mg/Nm3 (D-008)"}
+  - {key: emission:CH3OH, elementary: {compartment: air, origin: fossil}, source: "methanol slip of the ECS (D-008)"}
+  - {key: emission:HCHO, elementary: {compartment: air}, source: "formaldehyde slip of the ECS, 1.5 mg/Nm3 (D-008)"}
+  - {key: emission:DME, elementary: {compartment: air, origin: fossil}, source: "dimethyl ether slip of the ECS (D-008)"}
+
+operation:
+  hours_per_year: 8000
+  life_years: 20
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 20 a service life ASSUMED"
+
+# What the flowsheet does not carry (D-010). Catalyst and waste rates from BREF LVOC 2017
+# s. 6.3.5 and Table 6.11 (per t of 100 % HCHO; 80 000 t/a HCHO).
+consumables:
+  - id: femo-catalyst
+    title: Iron molybdate reactor catalyst (R-101)
+    unit: t
+    per_year: 4.8
+    catalyst: true
+    metals: {Mo: 0.5, Fe: 0.1}
+    missing: "no background chosen: production of iron molybdate catalyst (molybdenum trioxide and iron salts, calcination); no open dataset known"
+    uncertainty: {gsd2: 2.0, source: "BREF s. 6.3.5 range 0.02-0.15 kg/t HCHO"}
+    source: "0.06 kg spent catalyst per t HCHO (BREF LVOC 2017 Table 6.11, NL plant; s. 6.3.5 gives 0.02-0.15 kg/t) x 80 000 t/a. Metal fractions ASSUMED from Fe2(MoO4)3 with excess MoO3 (Mo about 50 wt%, Fe about 10 wt%), to be confirmed"
+    disposal: {kind: recyclable, route: "metal recovery of Fe and Mo at a reclaimer (BREF s. 6.3.5); the inert carrier is disposed of by the reclaimer", missing: "no background chosen for molybdenum catalyst reclaiming", source: "BREF LVOC 2017 s. 6.3.5 and Table 6.11 (recycling)"}
+  - id: ecs-catalyst
+    title: Noble-metal ECS catalyst (R-301)
+    unit: t
+    per_year: 1.2
+    catalyst: true
+    metals: {Pt: 0.002}
+    missing: "no background chosen: production of a platinum-on-ceramic oxidation catalyst"
+    uncertainty: {gsd2: 3.0, source: "BREF Table 6.11 gives 0.002 kg/t, CEFIC 0.015 kg/t"}
+    source: "0.015 kg per t HCHO (CEFIC figure in BREF LVOC 2017 Table 6.11 note (1); the table's DE value is 0.002 kg/t) x 80 000 t/a; Pt loading ASSUMED 0.2 wt%"
+    disposal: {kind: recyclable, route: "platinum recovery (BREF Table 6.11: recycled)", missing: "no background chosen for platinum catalyst refining", source: "BREF LVOC 2017 Table 6.11 (recycling)"}
+  - id: oil-filters
+    title: Oil and filters (heat-transfer oil top-up, lubricants, gas and product filters)
+    unit: t
+    per_year: 4.8
+    missing: "no background chosen: heat-transfer oil and lubricating oil production"
+    uncertainty: {gsd2: 3.0, source: "BREF Table 6.11 gives 0.06 (NL) and 0.51 (DE) kg/t"}
+    source: "0.06 kg oil/filters per t HCHO for disposal (BREF LVOC 2017 Table 6.11, NL value) x 80 000 t/a"
+    disposal: {kind: waste, route: "incineration of waste oil and filters (BREF s. 6.3.5: reclaimer or incineration)", hazardous: true, missing: "no background chosen for hazardous waste incineration", source: "BREF LVOC 2017 s. 6.3.5 and Table 6.11 (disposal)"}
+
+# Left out, with their amounts where known (D-010).
+cutoff:
+  - id: paraform-waste
+    title: Paraformaldehyde residues removed in maintenance
+    direction: output
+    unit: t
+    per_year: 5.6
+    cas: 30525-89-4
+    reason: "0.07 kg/t HCHO (mid of 0.01-0.13 kg/t, BREF LVOC 2017 s. 6.3.5) x 80 000 t/a: 7 g per t formalin, below 0.001 % of the product mass; usually reworked or incinerated"
+    source: "BREF LVOC 2017 s. 6.3.5"
+
+# Emissions no stream holds (D-008, D-010).
+emission_estimates:
+  - id: ecs-nox
+    title: NOx formed in the catalytic oxidiser
+    method: combustion
+    exchange: product:STACK
+    activity: {value: 23946, unit: Nm3, source: "stack gas S13, 1068.4 kmol/h x 22.414 Nm3/kmol (scripts/formox_balance.py)"}
+    factors:
+      NOX: {value: 10, unit: mg/Nm3, source: "BREF LVOC 2017 Table 6.7: the two metal oxide plants reporting NOx after a catalytic oxidiser give 1-25 and < 10 mg/Nm3; 10 mg/Nm3 ASSUMED as a central value"}
+    cas: {NOX: 10102-44-0}
+    elementary: {compartment: air}
+    uncertainty: {gsd2: 2.5, source: "two plants, ranges 1-25 mg/Nm3"}
+    source: "NOx is a cross-media effect of the oxidiser (BREF Table 6.7 note); concentration-based estimate on the stack gas volume, expressed as NO2"
+emission_exclusions:
+  - id: fugitives
+    method: equipment-leaks
+    reason: "not estimated at concept stage: no P&ID take-off to count components; the plant runs close to atmospheric pressure, so there is little driving force for leaks (BREF s. 6.3.1.4). To be estimated with the equipment-leaks method at basic engineering"
+    source: "BREF LVOC 2017 s. 6.3.1.4"
+  - id: storage
+    method: storage-tank
+    reason: "methanol and formalin tanks are outside the boundary (D-001); BREF Table 6.9 gives 3 g/t after a scrubber for formalin storage and 0.4-10 g/t for handling, for the tank-farm dataset"
+    source: "BREF LVOC 2017 Table 6.9"
+  - id: wastewater
+    method: effluent
+    reason: "no continuous aqueous effluent in normal operation (BREF s. 6.3.2); discontinuous rinse and condensate streams are reused to dilute the product (BAT 46 a); ion-exchange regeneration water is outside the boundary (D-001)"
+    source: "BREF LVOC 2017 s. 6.3.2 and BAT 46"
+
+uncertainty:
+  iterations: 1000
+  seed: 1
+  defaults:
+    assumed: {gsd2: 1.35, source: "concept estimate +/-30 % (design basis)"}
+    calculated: {gsd2: 1.1, source: "calculated from assumed inputs"}
+    given: {gsd2: 1.05, source: "design basis"}
+
+dataset:
+  version: "0.1.0"
+  geography: {description: "generic European site (not chosen); process data ranges from the EU BREF LVOC 2017"}
+  technology_level: current
+  system_model: cutoff
+  classification: {isic: "2011"}
+  modelling: {principle: attributional, sampling: "one concept design case; process data ranges from the EU BREF LVOC 2017 (chapter 6) and EPA-450/4-91-012, no plant measurements"}
+  review: [{type: none}]
+  data_generator: "ChemE-as-Code process library, concept design formaldehyde-1 (agent-drafted, issue #169)"

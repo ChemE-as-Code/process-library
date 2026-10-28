@@ -155,10 +155,70 @@ not an electrolyte.
 
 ## D-010 Preliminary gate-to-gate LCI (2026-10-28)
 Decision: functional unit 1 kg formalin 50 wt% at the gate (0.5 kg HCHO); every foreground
-exchange from the balanced flowsheet; backgrounds unmapped (gaps), each with the activity it
-should link to. The exported steam is a co-product, mapped as a gap with the avoided-steam
-substitution not decided (the allocation is the LCA practitioner's decision). Details and the
-results are in `lca/lca.yaml` and below (LCI section).
+exchange from the balanced flowsheet (`lca/lca.yaml`, written by `cheme assess lca --inventory
+--write` to `lca/inventory.csv`, `dataset.yaml`, `gaps.csv`); no background linked: every
+input, the heat to cooling water and the exported steam are declared `missing:` with the
+activity each should connect to. The exported steam is a co-product; its credit or allocation
+is the LCA practitioner's decision and is left open (cheme's default puts 100 % on the formalin,
+the only material product). Catalysts, oil and filters are consumables from the BREF waste
+rates; NOx from the ECS is an emission estimate; fugitives, storage and wastewater are
+excluded with their reasons; paraformaldehyde residue is cut off (7 g/t formalin).
+Reason: the run's scope (preliminary inventory, backgrounds as gaps, ADR 0022). The one
+override in `lca/mappings.yaml` counts the steam export in kWh on the library's `steam-heat`
+entry, as the other cases do; without it the Atlas build stops on a unit mismatch.
+
+### LCI result (per kg formalin 50 wt%, design case)
+
+| exchange | amount | provenance |
+|---|---|---|
+| methanol in (feed:MEOH) | 0.57373 kg | S4, assumed (yield 93 %, BREF Table 6.10) |
+| air in (feed:AIR, free) | 1.74955 kg | S1 |
+| demineralised water in (feed:PW) | 0.18555 kg | S9 |
+| electricity in (feed:POWER) | 0.084495 kWh | Q1 + Q2 |
+| Fe-Mo catalyst / ECS catalyst / oil and filters | 3.0e-5 / 7.5e-6 / 3.0e-5 kg | BREF Table 6.11 |
+| MP steam exported (product:STEAM, co-product) | 0.561275 kWh (2.02 MJ) | Q3 + Q4 |
+| heat to cooling water (product:CW) | 0.65496 kWh (2.36 MJ) | Q5 |
+| stack gas (product:STACK) | 1.50884 kg | S13 |
+| of which CO2 (fossil) | 0.0511593 kg | S13 (cheme, R301) |
+| CO / DME / methanol / formaldehyde | 5.69e-5 / 2.30e-5 / 6.04e-6 / 1.81e-6 kg | S13 |
+| NOx as NO2 (estimate) | 1.20e-5 kg | 10 mg/Nm3, BREF Table 6.7 |
+
+Per t of 100 % HCHO this is 1147 kg methanol (BREF Table 6.10: 1135-1151), 169 kWh
+electricity (80-190), 4.04 GJ steam export (about 1.7 t; BREF about 2.0 t), 4.7 GJ to cooling
+water and 102 kg fossil CO2 at the stack.
+
+Checks: the inventory's mass closes (in 2.50883 kg = air + methanol + water; out 2.50884 kg =
+formalin + stack gas, the same as the flowsheet boundary) and its carbon closes (4301.3 kg C/h
+fossil in = 4021.3 in the formalin + 280.0 at the stack, `cheme assess lca --balance`). The
+element balance is reported "not assessable" only because the consumables carry no
+composition, which this cheme version (0.8.0) cannot take on a consumable. The "energy closure
+75.9 %" of `--balance` counts only utilities and excludes the chemical energy of the methanol
+and the formalin: it is not an energy balance of the plant.
+Coverage (`cheme assess lca --coverage`): partial screening, 14 gaps (9 exchanges without a
+background, 5 emissions outside the climate method). The 0.051 kg CO2-eq it prints is only the
+direct fossil CO2 of the stack: no footprint is claimed. The library LCI build
+(`scripts/build_lci.py --strict` into build/) lists 8 gaps for this process and no error.
+
+## Open inputs and gated steps
+
+- **Energy closure in core** (gated, core #315): no property package for the O2-containing
+  gas with water and organics or for aqueous formaldehyde (D-009); the duties rest on the
+  script's ideal-gas enthalpies and the ASSUMED heat of solution.
+- **Heat of solution of formaldehyde in water** (open input, D-006): source it (largest term of
+  the cooling duty).
+- **Yield and by-product split** (open input, D-004): a plant- or licensor-specific yield and
+  CO/CO2/DME split; the BREF text range 88-91 % against the table's 91-94 % is the main
+  sensitivity of the methanol use (+2 to +6 %).
+- **Reactor design** (out of scope): no kinetics, catalyst volume or tube count; number of
+  reactors at this capacity.
+- **NOx, fugitives, storage**: NOx is a two-plant estimate; fugitives need the P&ID take-off.
+- **Registry** (one consolidated library PR): `chemicals/chemicals.yaml` lacks `formaldehyde`
+  (CAS 50-00-0) with a `formalin` grade (50 wt%, as made here), `methanol` (67-56-1),
+  `carbon-monoxide` (630-08-0) and `dimethyl-ether` (115-10-6); `lci/mappings.yaml` lacks a
+  technosphere entry for methanol (link methanol-1), formaldehyde/formalin, iron molybdate and
+  platinum oxidation catalysts, heat-transfer oil, and biosphere identities for methanol,
+  formaldehyde and dimethyl ether emissions to air.
+- **Allocation of the steam export** (LCA practitioner's decision, D-010).
 
 ## D-011 Lists (2026-10-28)
 Decision: equipment and line lists hold the items of the PFD; design pressure 3.5 barg for the
