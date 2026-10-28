@@ -141,6 +141,57 @@ All duties are +/-30 % or worse.
 - The flowsheet categories have no liquid-waste class: the heavy residue (RESID) is declared
   `solid_waste` (a waste to treatment); the methanol purge is `by_product`.
 
+## D-012 Preliminary gate-to-gate LCI (2026-10-28)
+Decision: functional unit 1 kg DMF (product:DMFP, stream S16) at the gate, cut-off system
+model, no allocation (DMF is the only product; the methanol purge is treated as a waste, see
+below). Every foreground exchange comes from a flowsheet stream or energy stream
+(`lca/inventory.csv` names them). No background is linked: each feed, utility and waste
+treatment is `missing:` in `lca/lca.yaml`, with the background activity it should connect to
+later. The result class is therefore "partial screening" with 11 gaps and no impact number.
+Exchanges per kg DMF (lca/inventory.csv, design case):
+
+| exchange | amount | streams | provenance |
+|---|---|---|---|
+| dimethylamine | 0.6244 kg | S1 | ASSUMED (balance, D-006) |
+| carbon monoxide 99.5 mol% | 0.4074 kg | S2 | ASSUMED (D-004, D-005) |
+| NaOMe 30 wt% in methanol | 0.01584 kg | S3 | ASSUMED (D-007) |
+| electricity | 0.0431 kWh | Q1, Q3, Q4, Q8, Q11 | ASSUMED (D-010) |
+| MP steam 1100 kPa(a), as heat | 0.2078 kWh | Q6 | ASSUMED (D-010) |
+| LP steam 450 kPa(a), as heat | 0.2229 kWh | Q9 | ASSUMED (D-010) |
+| heat to cooling water | 0.8811 kWh | Q2, Q5, Q7, Q10 | ASSUMED (D-010) |
+| vent gas to thermal oxidation | 0.02214 kg | S8 | ASSUMED (D-008) |
+| sodium formate cake to hazardous-waste incineration | 0.00790 kg | S10 | calculated (F-101) |
+| methanol purge to incineration (or recovery) | 0.00737 kg | S13 | calculated (SPL) |
+| heavy residue to hazardous-waste incineration | 0.01016 kg | S17 | ASSUMED (D-009) |
+
+Balance check against the flowsheet (`cheme assess lca --balance`): mass in 6547.30 kg/h, out
+6547.29 kg/h; C, H, N, Na and O close within 0.01 %; fossil carbon in 3200.1 kg C/h, 3081.0 in
+the product, 119.1 in the wastes and vent. Stoichiometric minimum: 0.617 kg DMA and 0.383 kg CO
+per kg DMF; the inventory is 1.2 % and 6.3 % above it (yield losses, CO excess).
+Plausibility of the steam: 0.43 kWh (1.55 MJ) per kg against about 2.5 MJ/kg in SRC-4 (which
+includes trimethylamine removal).
+Why the purge is a waste: as `recyclable` under cut-off it would leave burden-free; no
+recovery is arranged, so it is counted as solvent waste to incineration (gap) until one is.
+Not in the inventory (open): direct emissions to air from the thermal oxidation of the vent
+(CO2 about 0.03 kg/kg DMF from its carbon; NOx), fugitive and storage-tank emissions of DMF,
+methanol and DMA (no equipment count or tank list yet; `emission_estimates:` need sourced
+factors), wastewater (none in the model: dry route, D-004), catalyst-solution transport,
+construction. Atlas build (`scripts/build_lci.py --strict`): dmf-1 builds with 7 reported gaps
+(DMA, CO, CAT, VENT, CAKE, PURGE, RESID); the utilities follow the shared utility vocabulary
+through `process.yaml` slugs (electricity, cooling-water, steam with the `steam-heat` unit
+override in `lca/mappings.yaml`). The impurity entries of `process.yaml` carry no inventory
+key, so the CO feed is not linked to hydrogen.
+
+## Missing shared registry and vocabulary entries (for the consolidated PR)
+`chemicals/chemicals.yaml`: n,n-dimethylformamide (main product, CAS 68-12-2), dimethylamine
+(124-40-3), carbon-monoxide (630-08-0), methanol (67-56-1; also missing for methanol-1),
+sodium-methoxide (124-41-4, as a 30 wt% methanol solution grade), sodium-formate (141-53-7),
+dimethyl-ether (115-10-6). `lci/mappings.yaml` technosphere: dimethylamine, carbon monoxide,
+sodium methoxide solution, hazardous solid-waste incineration, hazardous liquid-waste
+incineration, spent-solvent incineration or recovery, thermal oxidation of a vent gas.
+`taxonomy`: `nitrogen-organics` is used (amides are not named in its note; check). CPC 2.1
+code of DMF for `lca.yaml` `dataset.classification.cpc` (not checked, left out).
+
 ## Method and dependency table
 
 | step | status | needs |

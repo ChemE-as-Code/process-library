@@ -1,0 +1,16 @@
+# dmf-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); an entry may only `use` a technosphere entry of the shared lci/mappings.yaml,
+# give a `chemical` slug, `atlas: false` or a `properties_reason`.
+#
+# dmf-1 is internal and its preliminary gate-to-gate LCI leaves the raw materials and waste
+# treatments unlinked on purpose (lca/lca.yaml `missing:`, DESIGN.md D-012): the shared
+# vocabulary has no entries for dimethylamine, carbon monoxide, sodium methoxide, DMF or the
+# waste treatments (incineration of hazardous solid and liquid waste, thermal oxidation of a
+# vent gas); they are listed in DESIGN.md for the consolidated shared-files PR.
+# The only overrides are unit fixes: the steam utilities are counted as heat delivered (kWh),
+# while the registry slug `steam` counts kg (as hda-1 and nitric-acid-1 do).
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:MPS": {use: steam-heat, source: "MP steam 1100 kPa(a) to the C-201 reboiler, counted as heat delivered (kWh)"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a) to the C-202 reboiler, counted as heat delivered (kWh)"}
