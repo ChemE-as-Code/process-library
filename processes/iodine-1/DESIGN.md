@@ -253,6 +253,19 @@ the feed flows are design choices (ASSUMED) and every reactor/separator rests on
 values. Same situation as aniline-1 and chlor-alkali-1. Raising it needs a sourced brine
 analysis and sourced or predicted yields (D-007 gate).
 
+## D-013 Gates outside the scope of issue #145 (2026-10-28)
+Decision: no stage sign-off is claimed. `cheme check` fails, by design of this run's scope
+(route, design basis, BFD/PFD, preliminary LCI), the concept gate `layout-plot-plan` and the
+basic and detail gates `pids-exist`, `layout-3d`, `lifting-study`, `mto`, `layout-review`,
+`layout-detail`, `electrical`, `hvac` and `datasheets`: no P&ID, layout, datasheet or cable
+work exists. `design-review` is answered by reviews/2026-10-28-pfd-lci-review.md and goes stale
+with every revision of its scope; it needs a re-review of the response commits.
+Reason: the 2026-10-28 review (#11) asked for the out-of-scope gates to be recorded. They are
+recorded here rather than as plant.yaml issues, because an open issue would only add failing
+`issues-*` gates without changing what the case study is.
+Open: a human decides whether the case study is accepted at this scope; the concept gate cannot
+be signed until the plot plan exists or that gate is waived by a human.
+
 ## Missing entries of the chemicals registry (for the consolidated PR)
 
 `chemicals/chemicals.yaml` has no entry for: iodine (main product, CAS 7553-56-2, a flake grade
