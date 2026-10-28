@@ -1,0 +1,95 @@
+# Goal and scope of the phosgene-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme assess lca
+# --inventory --write` and `--coverage` (lca/inventory.csv, gaps.csv, dataset.yaml,
+# manifest.json); never edit those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the plant
+# with its amount per functional unit from the balanced flowsheet. The background of every
+# purchased input and utility is deliberately left UNMAPPED (`missing:` with the activity it
+# should connect to later): a gap, never zero, and no values from licensed databases. The
+# plant's own emissions (CO2, CO, phosgene, chlorine, HCl in the oxidiser flue gas) are mapped
+# as elementary flows.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of liquid phosgene made from CO and chlorine
+  over activated carbon, for captive use, at the concept stage: which raw materials, utilities,
+  wastes and emissions the plant exchanges per kg of phosgene, as the foreground for a later
+  cradle-to-gate study. No impact results: the backgrounds are not mapped yet (D-012).
+functional_unit: {product: PHOSGENE, amount: 1, unit: kg, source: "1 kg of liquid phosgene (> 99.9 wt% COCl2) at the plant gate to the captive consumer, stream S7 (D-012)"}
+# Gate-to-gate in the sense of the foreground (the plant's own exchanges). The boundary key stays
+# cradle-to-gate so that the purchased inputs remain open gaps instead of being mapped free (the
+# schema's gate-to-gate maps every feed free), as sulfuric-acid-1 does (D-012).
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "CO + Cl2 over activated carbon in a boiling-water-cooled multitubular reactor, two-stage condensation, caustic vent scrubber, thermal oxidiser; 17.3 t/h liquid phosgene, captive"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+flows:
+  # raw materials
+  - key: feed:CO
+    missing: "not mapped yet (D-012); connect to: carbon monoxide 99.8 mol%, gaseous, from cryogenic separation (cold box) of natural-gas steam-reforming or partial-oxidation synthesis gas, at the plant by pipeline; no library process makes CO yet"
+    source: "flowsheet stream S1 (scripts/balance.py, D-003, D-004)"
+  - key: feed:CL2
+    missing: "not mapped yet (D-012); connect to: chlorine gas from membrane chlor-alkali electrolysis (processes/chlor-alkali-1, product:CL2), plus its liquefaction and re-evaporation to phosgene grade (0.1 mol% O2), not modelled in chlor-alkali-1 yet"
+    source: "flowsheet stream S2 (D-002, D-003)"
+  - key: feed:NAOH
+    missing: "not mapped yet (D-012); connect to: sodium hydroxide 50 wt% in water from membrane chlor-alkali electrolysis (processes/chlor-alkali-1, product:NAOH), allocated as there"
+    source: "flowsheet stream S20 (D-008)"
+  - key: feed:PW
+    missing: "not mapped yet (D-012); connect to: process (decarbonised or softened) water from the site water treatment"
+    source: "flowsheet stream S21 (D-008)"
+  - {key: feed:AIR, free: true, source: "combustion air for the thermal oxidiser: a resource taken from nature without burden (O2 consumed, N2/Ar returned)"}
+  # utilities
+  - key: feed:POWER
+    missing: "not mapped yet (D-012); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy streams Q4 (reactor coolant vacuum pump), Q5 (scrubber pump), Q6 (air fan), D-010"
+  - key: product:CW
+    missing: "not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system with cooling tower (pump and fan electricity, make-up water, evaporation, blowdown, treatment chemicals), per kWh removed"
+    source: "flowsheet energy streams Q1 (reactor, via the boiling-water circuit) and Q2 (condenser E-102), D-005, D-007"
+  - key: product:BRINE
+    missing: "not mapped yet (D-012); connect to: refrigeration at 243 K (brine) from an electric vapour-compression unit (e.g. ammonia), per kWh of heat removed: compressor electricity at its COP, condenser cooling water, refrigerant losses"
+    source: "flowsheet energy stream Q3 (after-condenser E-103), D-007"
+  # waste
+  - key: product:EFF
+    treatment: {kind: waste, route: "site wastewater treatment: dechlorination of the hypochlorite traces, neutralisation of the excess NaOH, discharge of NaCl and Na2CO3 as dissolved salts"}
+    missing: "not mapped yet (D-012); connect to: treatment of saline alkaline process effluent (NaCl, Na2CO3, NaOH) in an industrial wastewater treatment plant, per kg"
+    source: "flowsheet stream S24 (D-008)"
+  # emissions: the oxidiser flue gas to the stack (released through a stack: non-urban high
+  # stack ASSUMED for a site not chosen, D-012)
+  - {key: product:STACK, emission: true, source: "oxidiser flue gas to atmosphere through the stack, stream S32 (D-009)"}
+  - {key: emission:N2, free: true, source: "atmospheric N2 (combustion air) and the N2 of the CO feed returned to the atmosphere"}
+  - {key: emission:O2, free: true, source: "excess atmospheric O2 of the combustion air returned"}
+  - {key: emission:AR, free: true, source: "atmospheric argon returned"}
+  - {key: emission:H2O, free: true, source: "water vapour of the scrubber (process water) leaving with the flue gas"}
+  - key: emission:CO2
+    elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}
+    source: "CO2 from burning the 5 % CO excess and the hydrolysed phosgene in the oxidiser (D-009); the CO comes from fossil synthesis gas"
+  - key: emission:CO
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    source: "CO not destroyed in the oxidiser: 0.1 % of the vent CO (99.9 % destruction ASSUMED, D-009), stream S32"
+  - key: emission:COCL2
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    source: "phosgene slip: 0.01 % of the vent phosgene passes the scrubber and 1 % of that the oxidiser (both ASSUMED, D-008, D-009), stream S32"
+  - key: emission:CL2
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    source: "chlorine slip of the scrubber (0.01 %, ASSUMED, D-008), passes the oxidiser unchanged, stream S32"
+  - key: emission:HCL
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    source: "HCl from the hydrolysis of the residual phosgene in the oxidiser (D-009), stream S32"
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 25 a service life ASSUMED"
+emission_exclusions:
+  - {id: oxidiser-nox, method: combustion, equipment: [X-301], reason: "Thermal NOx of the oxidiser burning the CO-rich vent at 1123 K, and the pilot and start-up fuel, are not estimated: no sourced factor for this vent yet (open, D-009)."}
+  - {id: fugitive-phosgene, method: equipment-leaks, reason: "No P&ID yet: fugitive phosgene, chlorine and CO from flanges, valves and seals cannot be counted; the train is in a containment enclosure vented to the scrubber (D-011). Open for basic engineering."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals; CPC to be added
+  modelling: {principle: attributional}
+  geography: {description: "Generic site integrated with a chlor-alkali and an isocyanate plant, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #164, unreviewed"

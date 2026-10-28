@@ -1,0 +1,120 @@
+# Components and templates of phosgene-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol,
+# normal_boiling_point in K at 101.325 kPa.
+#
+# Gas data printed by `cheme chemistry thermo` (chemicals/thermo packages: ATcT, CRC, Poling 5th
+# ed.; phosgene's Cp/R fitted to TRCIG 298.15-1000 K). The scrubber species (NaOH, NaCl, Na2CO3,
+# NaOCl) are molecular pseudo-components of the aqueous liquor without ideal-gas data: no
+# property package of core covers phosgene or the caustic liquor (core #315, #364), so the
+# condensation and scrubber values come from scripts/balance.py (DESIGN.md D-006).
+schema: cheme/process/v1
+kind: materials
+components:
+  - id: CO
+    name: Carbon monoxide
+    formula: CO
+    cas: 630-08-0
+    molar_mass: 28.010
+    normal_boiling_point: 81.6
+    critical: {Tc: 132.86, Pc: 3494.0, omega: 0.0497, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -110525.0, S_298: 197.7, cp_R: [3.77154, -0.0020965, 5.00055e-06, -3.5253e-09, 8.41146e-13], temperature_range: [298.15, 1500], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 298.15-1500 K (max deviation 0.11 %)"}
+  - id: CL2
+    name: Chlorine
+    formula: Cl2
+    cas: 7782-50-5
+    molar_mass: 70.906
+    normal_boiling_point: 239.11
+    critical: {Tc: 416.865, Pc: 7642.4, omega: 0.07, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 0.0, S_298: 223.1, cp_R: [3.29047, 0.00398283, -5.15265e-06, 3.0598e-09, -6.79757e-13], temperature_range: [298.15, 1500], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 298.15-1500 K (max deviation 0.29 %)"}
+  - id: COCL2
+    name: Phosgene
+    formula: CCl2O
+    cas: 75-44-5
+    molar_mass: 98.916
+    normal_boiling_point: 280.65
+    critical: {Tc: 455.0, Pc: 5674.2, omega: 0.204, source: "chemicals: Tc MATTHEWS, Pc MATTHEWS, omega PSRK"}
+    ideal_gas: {dHf_298: -219030.0, S_298: 283.5, cp_R: [3.57477, 0.0158369, -1.73691e-05, 9.14793e-09, -1.87533e-12], temperature_range: [298.15, 1500], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo WEBBOOK_SHOMATE 298.15-1500 K (max deviation 0.59 %)"}
+  - id: N2
+    name: Nitrogen
+    formula: N2
+    cas: 7727-37-9
+    molar_mass: 28.013
+    normal_boiling_point: 77.36
+    critical: {Tc: 126.192, Pc: 3395.8, omega: 0.0372, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 0.0, S_298: 191.6, cp_R: [3.79935, -0.00209702, 4.57541e-06, -3.03024e-09, 6.85763e-13], temperature_range: [298.15, 1500], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo HEOS_FIT 298.15-1500 K (max deviation 0.09 %)"}
+  - id: O2
+    name: Oxygen
+    formula: O2
+    cas: 7782-44-7
+    molar_mass: 31.999
+    normal_boiling_point: 90.19
+    critical: {Tc: 154.581, Pc: 5043.0, omega: 0.0222, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 0.0, S_298: 205.2, cp_R: [3.33121, 3.73673e-05, 2.68405e-06, -2.58548e-09, 7.32021e-13], temperature_range: [298.15, 1500], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo HEOS_FIT 298.15-1500 K (max deviation 0.42 %)"}
+  - id: AR
+    name: Argon
+    formula: Ar
+    cas: 7440-37-1
+    molar_mass: 39.948
+    normal_boiling_point: 87.30
+    critical: {Tc: 150.687, Pc: 4863.0, omega: -0.00219, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 0.0, S_298: 154.8, cp_R: [2.5, 0.0, 0.0, 0.0, 0.0], temperature_range: [50, 3000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC; monatomic ideal gas"}
+  - id: H2O
+    name: Water
+    formula: H2O
+    cas: 7732-18-5
+    molar_mass: 18.015
+    normal_boiling_point: 373.12
+    critical: {Tc: 647.096, Pc: 22064.0, omega: 0.3443, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -241822.0, S_298: 188.8, cp_R: [3.95742, -0.000363702, 2.42862e-06, -1.27073e-09, 2.12761e-13], temperature_range: [298.15, 1500], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo HEOS_FIT 298.15-1500 K (max deviation 0.17 %)"}
+  - id: CO2
+    name: Carbon dioxide
+    formula: CO2
+    cas: 124-38-9
+    molar_mass: 44.010
+    normal_boiling_point: 194.67
+    critical: {Tc: 304.128, Pc: 7377.3, omega: 0.22394, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -393474.0, S_298: 213.8, cp_R: [2.35127, 0.00919285, -7.99057e-06, 3.68269e-09, -7.05913e-13], temperature_range: [298.15, 1500], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo HEOS_FIT 298.15-1500 K (max deviation 0.15 %)"}
+  - id: HCL
+    name: Hydrogen chloride
+    formula: HCl
+    cas: 7647-01-0
+    molar_mass: 36.461
+    normal_boiling_point: 188.15
+    critical: {Tc: 324.68, Pc: 8313.5, omega: 0.129, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -92173.0, S_298: 186.9, cp_R: [3.72699, -0.00134502, 2.41915e-06, -1.18644e-09, 1.87246e-13], temperature_range: [298.15, 1500], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 298.15-1500 K (max deviation 0.18 %)"}
+  - id: NAOH
+    name: Sodium hydroxide (dissolved)
+    formula: NaOH
+    cas: 1310-73-2
+    molar_mass: 39.997
+  - id: NACL
+    name: Sodium chloride (dissolved)
+    formula: NaCl
+    cas: 7647-14-5
+    molar_mass: 58.443
+  - id: NA2CO3
+    name: Sodium carbonate (dissolved)
+    formula: Na2CO3
+    cas: 497-19-8
+    molar_mass: 105.989
+  - id: NAOCL
+    name: Sodium hypochlorite (dissolved)
+    formula: NaOCl
+    cas: 7681-52-9
+    molar_mass: 74.442
+templates:
+  - {id: co, title: Carbon monoxide feed, components: [CO, N2]}
+  - {id: chlorine, title: Phosgene-grade chlorine, components: [CL2, O2]}
+  - {id: process, title: CO / chlorine / phosgene process gas and condensate, components: [CO, CL2, COCL2, N2, O2]}
+  - {id: phosgene, title: Liquid phosgene, components: [COCL2, CL2]}
+  - {id: caustic, title: Caustic soda solution, components: [NAOH, H2O]}
+  - {id: water, title: Process water, components: [H2O]}
+  - {id: vent, title: Scrubbed CO-rich vent gas, components: [CO, CL2, COCL2, N2, O2, H2O]}
+  - {id: liquor, title: Spent scrubber liquor, components: [NAOH, NACL, NA2CO3, NAOCL, H2O]}
+  - {id: air, title: Dry air, components: [N2, O2, AR]}
+  - {id: flue, title: Oxidiser flue gas, components: [N2, O2, AR, CO2, H2O, CO, COCL2, CL2, HCL]}
+# No benchmarked property package covers phosgene or the caustic liquor (cheme process props
+# --coverage; core #315, #364). Values are assumed from scripts/balance.py with their source.
+property_method:
+  adapter: thermo
+  status: placeholder

@@ -1,0 +1,55 @@
+# Reactions of phosgene-1. Schema: `cheme schema process-reactions`. Heats of reaction from the
+# ideal-gas formation enthalpies of materials.yaml at 298.15 K unless stated. Conversions are
+# design inputs (ASSUMED, DESIGN.md D-005, D-008, D-009): a conversion model, not kinetics.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: PHOSGENE
+    equation: CO + Cl2 <=> COCl2
+    stoichiometry: {CO: -1.0, CL2: -1.0, COCL2: 1.0}
+    reversible: true
+    conversion:
+      key: CL2
+      value: 0.99995
+      provenance: assumed
+      source: >-
+        D-005: chlorine almost completely converted with 5 % CO excess, set so that the liquid
+        phosgene holds < 50 ppm(wt) Cl2, the product target of EP1640341A2 (Bayer
+        MaterialScience 2006, description); scripts/balance.py gives 35 ppm(wt)
+    heat_of_reaction:
+      value: -108505.0
+      provenance: given
+      source: >-
+        ideal-gas formation enthalpies of materials.yaml (ATcT), 298.15 K; Mitchell et al. 2012
+        (doi:10.1039/C2CY20224G) report -107.6 kJ/mol, as cited by Hughes et al. 2023
+        (doi:10.1039/D3RE00354J, section 1)
+    catalyst: activated carbon
+    sources:
+      - "Hughes, Rossi, Lennon (2023) React. Chem. Eng. 8, 3150-3161, doi:10.1039/D3RE00354J (CC BY 3.0), sections 1, 2.1.2, 3.2.3"
+      - "Mitchell et al. (2012) Catal. Sci. Technol. 2, 2109-2115, doi:10.1039/C2CY20224G (not read in full; cited through Hughes 2023)"
+      - "EP1640341A2, Bayer MaterialScience AG (2006): multitubular reactor, CO excess, pressure, coolant (description)"
+  # Caustic scrubber (T201): residual phosgene and chlorine of the vent destroyed in NaOH.
+  - id: PHOS_NAOH
+    equation: COCl2 + 4 NaOH -> Na2CO3 + 2 NaCl + 2 H2O
+    stoichiometry: {COCL2: -1.0, NAOH: -4.0, NA2CO3: 1.0, NACL: 2.0, H2O: 2.0}
+    reversible: false
+    conversion: {key: COCL2, value: 0.9999, provenance: assumed, source: "D-008: destruction efficiency of the caustic scrubber, ASSUMED"}
+    sources: ["Hughes et al. 2023 (doi:10.1039/D3RE00354J), section 2.1.1, eqn (1): phosgene neutralised in aqueous NaOH to sodium carbonate and sodium chloride (water coefficient written here as 2, which balances the elements)"]
+  - id: CL2_NAOH
+    equation: Cl2 + 2 NaOH -> NaCl + NaOCl + H2O
+    stoichiometry: {CL2: -1.0, NAOH: -2.0, NACL: 1.0, NAOCL: 1.0, H2O: 1.0}
+    reversible: false
+    conversion: {key: CL2, value: 0.9999, provenance: assumed, source: "D-008: chlorine absorption in caustic, ASSUMED"}
+  # Thermal oxidiser (X301): the CO-rich vent burnt; residual phosgene hydrolysed by the water vapour.
+  - id: CO_COMB
+    equation: CO + 1/2 O2 -> CO2
+    stoichiometry: {CO: -1.0, O2: -0.5, CO2: 1.0}
+    reversible: false
+    conversion: {key: CO, value: 0.999, provenance: assumed, source: "D-009: CO destruction efficiency of the thermal oxidiser, ASSUMED"}
+    heat_of_reaction: {value: -282949.0, provenance: given, source: "ideal-gas formation enthalpies of materials.yaml (ATcT), 298.15 K"}
+  - id: PHOS_HYD
+    equation: COCl2 + H2O -> CO2 + 2 HCl
+    stoichiometry: {COCL2: -1.0, H2O: -1.0, CO2: 1.0, HCL: 2.0}
+    reversible: false
+    conversion: {key: COCL2, value: 0.99, provenance: assumed, source: "D-009: residual phosgene hydrolysed in the oxidiser at 1123 K, ASSUMED"}
+    heat_of_reaction: {value: -116968.0, provenance: given, source: "ideal-gas formation enthalpies of materials.yaml (ATcT), 298.15 K"}
