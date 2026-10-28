@@ -1,0 +1,92 @@
+# Goal and scope of the dmf-1 preliminary LCI. Schema: `cheme schema lca`. Outputs:
+# `cheme assess lca --inventory --write` and `--coverage` (lca/inventory.csv, gaps.csv,
+# dataset.yaml, manifest.json, ...); never edit those by hand.
+#
+# Every foreground exchange comes from the balanced flowsheet (process/flowsheet.yaml, case
+# design). No background is linked yet: every feed, utility and waste treatment is declared
+# `missing:` with the background activity it should connect to later (DESIGN.md D-012). An
+# unmapped exchange of this internal process is a reported gap, never 0 (library ADR 0022).
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of N,N-dimethylformamide by one-step
+  carbonylation of dimethylamine, for the concept stage: which raw materials, utilities,
+  wastes and emissions one kg of DMF needs, traceable to the flowsheet streams. No impact
+  result is claimed: the backgrounds are connected in a later stage.
+functional_unit: {product: DMFP, amount: 1, unit: kg}
+boundary: gate-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "one-step carbonylation of dimethylamine with CO, sodium methoxide in methanol, 363 K and 2.2 MPa, in-situ catalyst deactivation, salt filtration, two-column distillation; 50 kt/a concept design"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+flows:
+  # Raw materials
+  - key: feed:DMA
+    missing: >-
+      background to connect: dimethylamine, anhydrous, from methylamines synthesis (methanol +
+      ammonia over a solid acid catalyst, distillation); the library's processes/methylamines-1
+      (issue 166) once it has an LCI dataset, else a market for dimethylamine
+    source: "stream S1 (ASSUMED flow from scripts/dmf_balance.py, D-006)"
+  - key: feed:CO
+    missing: >-
+      background to connect: carbon monoxide 99.5 mol% from synthesis gas (steam methane
+      reforming or gasification with cryogenic CO/H2 separation), at about 300 kPa(a); no
+      library process yet (hydrogen-1 makes the syngas upstream)
+    source: "stream S2 (ASSUMED flow, D-004, D-006)"
+  - key: feed:CAT
+    missing: >-
+      background to connect: sodium methoxide, 30 wt% solution in methanol (from sodium
+      hydroxide or sodium metal and methanol); its methanol links processes/methanol-1
+    source: "stream S3 (ASSUMED rate 0.75 wt% NaOMe on DMA, US 4,098,820 examples, D-007)"
+  # Utilities
+  - key: feed:POWER
+    missing: "background to connect: electricity, medium voltage, grid mix of the site country (site not chosen, D-002)"
+    source: "energy streams Q1, Q3, Q4, Q8, Q11 (ASSUMED duties, D-010)"
+  - key: feed:MPS
+    missing: "background to connect: heat from MP steam 1100 kPa(a) of a natural-gas site boiler (processes/utility-steam-ng-boiler, per kWh of heat delivered)"
+    source: "energy stream Q6, C-201 reboiler (ASSUMED duty, D-010)"
+  - key: feed:LPS
+    missing: "background to connect: heat from LP steam 450 kPa(a) of a natural-gas site boiler or let-down (processes/utility-steam-ng-boiler)"
+    source: "energy stream Q9, C-202 reboiler (ASSUMED duty, D-010)"
+  - key: product:CW
+    missing: "background to connect: heat rejected to an evaporative cooling-water system 298/308 K (processes/utility-cooling-tower: pumping, fans, make-up water, blowdown)"
+    source: "energy streams Q2, Q5, Q7, Q10 (ASSUMED duties, D-010)"
+  # Wastes and the by-product leaving the boundary
+  - key: product:VENT
+    treatment: {kind: waste, route: "thermal oxidation of the reactor vent (CO, DME, methanol, DMA, DMF, N2, H2)", hazardous: false}
+    missing: >-
+      background to connect: thermal oxidation of a CO-rich vent gas (processes/utility-flare
+      or a thermal oxidiser dataset), whose CO2 and NOx then count as emissions to air
+    source: "stream S8 (ASSUMED vent composition, D-008)"
+  - key: product:CAKE
+    treatment: {kind: waste, route: "disposal of sodium formate filter cake wet with DMF and methanol (incineration of hazardous waste)", hazardous: true}
+    missing: "background to connect: treatment of hazardous solid waste, incineration (organic-wet salt cake)"
+    source: "stream S10, calculated by cheme from F-101 (ASSUMED recovery and cake liquor, D-008)"
+  - key: product:RESID
+    treatment: {kind: waste, route: "incineration of the DMF column heavy residue (DMF with sodium formate fines)", hazardous: true}
+    missing: "background to connect: treatment of hazardous liquid organic waste, incineration"
+    source: "stream S17 (ASSUMED 1 % of the C-202 DMF feed, D-009)"
+  - key: product:PURGE
+    # Counted as a waste until an off-site recovery is arranged: as `recyclable` under cut-off
+    # it would leave burden-free, which the undecided route does not justify (D-012).
+    treatment: {kind: waste, route: "incineration of a non-halogenated solvent waste (methanol with 3.3 wt% DMA), or off-site methanol recovery once arranged", hazardous: true}
+    missing: >-
+      background to connect: treatment of non-halogenated spent solvent, incineration; if a
+      recovery is arranged, solvent recovery by distillation instead (D-012)
+    source: "stream S13, calculated by cheme from the splitter SPL (purge fraction from scripts/dmf_balance.py, D-009)"
+# Documentation of lca/dataset.yaml cheme cannot derive. The CPC 2.1 code is not given: not
+# checked against the classification yet (open item, D-012).
+dataset:
+  version: 0.1.0
+  geography: {description: "generic site, country not chosen (design basis, D-002); GLO stands for 'not located', not for a global average"}
+  system_model: cutoff
+  technology_level: current
+  classification: {isic: "2011"}
+  modelling: {principle: attributional}
+  review: {type: none}
+  data_generator: "ChemE-as-Code process library, concept design dmf-1 (agent session, unreviewed)"
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 25 a service life ASSUMED"

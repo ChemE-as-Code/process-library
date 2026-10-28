@@ -1,0 +1,33 @@
+# Reactions of the DMF plant. Schema: `cheme schema process-reactions`.
+# Model basis: sourced conversions (no kinetics, no equilibrium constant), DESIGN.md D-005.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: DMF_SYN
+    equation: (CH3)2NH + CO -> HCON(CH3)2
+    stoichiometry: {DMA: -1, CO: -1, DMF: 1}
+    reversible: false
+    conversion:
+      key: DMA
+      value: 0.985
+      provenance: given
+      source: "US 4,098,820 (UCB, 1978), Example 1: 98.5 % DMA conversion at 90 C, 22 bar, NaOMe in methanol (D-005)"
+    heat_of_reaction:
+      value: -109900
+      provenance: calculated
+      source: "DMA(g) + CO(g) -> DMF(l) from NIST WebBook formation enthalpies: DMF(l) -239.4 kJ/mol (Vasil'eva et al. 1972), DMA(g) -19 kJ/mol (Issoire and Long 1960), CO(g) -110.53 kJ/mol; the patent reports about 27 kcal/mol (113 kJ/mol), D-005"
+    catalyst: sodium methoxide in methanol (homogeneous)
+    sources: ["US 4,098,820", "NIST Chemistry WebBook SRD 69"]
+  # In-situ deactivation (US 4,354,041): CO + methanol give methyl formate, which converts the
+  # methoxide into insoluble sodium formate and dimethyl ether. Written as the net reaction.
+  - id: CAT_DEACT
+    equation: CH3ONa + CH3OH + CO -> HCOONa + CH3OCH3
+    stoichiometry: {NAOME: -1, MEOH: -1, CO: -1, NAFORM: 1, DME: 1}
+    reversible: false
+    conversion:
+      key: NAOME
+      value: 1.0
+      provenance: assumed
+      source: "complete deactivation before let-down, the purpose of the finishing hold under CO in US 4,354,041 (D-007); ASSUMED complete"
+    catalyst: none (consumes the catalyst)
+    sources: ["US 4,354,041"]

@@ -1,0 +1,53 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# N,N-Dimethylformamide by one-step carbonylation of dimethylamine, issue
+# ChemE-as-Code/process-library#127. Values marked ASSUMED are engineering choices of this
+# concept study, not client or licensor data; every decision is in DESIGN.md.
+capacity:
+  basis: DMF product to storage (product stream incl. its methanol trace)
+  product_t_per_a: 50000            # ASSUMED (D-002): a single-train size chosen for the study, not a published plant
+  product_kg_per_h: 6250            # = 50000 t/a / 8000 h/a
+  operating_hours_per_year: 8000    # ASSUMED (D-002)
+  turndown_percent: 50              # ASSUMED, not checked
+feeds:
+  - name: Dimethylamine, anhydrous (boundary feed from processes/methylamines-1, issue 166)
+    source_of_values: ASSUMED (D-004)
+    purity: "DMA >= 99.5 wt%, water < 100 ppm (the limit US 4,098,820 sets for the amine feed; D-004); modelled as pure DMA"
+    conditions: {pressure_kPa_a: 500, temperature_K: 298.15}   # ASSUMED liquid at the battery limit
+  - name: Carbon monoxide (boundary feed from a syngas CO separation unit, e.g. a cold box downstream of processes/hydrogen-1 or a gasifier)
+    source_of_values: "CO 99.5 mol% as in US 4,098,820 Examples 1, 3-6 (D-004); impurities 0.3 mol% N2, 0.2 mol% H2 ASSUMED"
+    water_and_co2: "below 5 ppm (the limit US 4,098,820 sets for CO; CO2 and water deactivate the catalyst); modelled as absent (D-004)"
+    conditions: {pressure_kPa_a: 300, temperature_K: 303.15}   # ASSUMED; compressed on site (K-101)
+  - name: Sodium methoxide 30 wt% in methanol (catalyst; its methanol links processes/methanol-1)
+    source_of_values: "ASSUMED commercial solution strength (D-007); rate 0.75 wt% NaOMe on the DMA to the reactor (US 4,098,820 Examples 1, 2, 6)"
+    conditions: {pressure_kPa_a: 450, temperature_K: 298.15}
+products:
+  - name: "N,N-Dimethylformamide, industrial grade"
+    purity: "DMF >= 99.90 wt%, water <= 0.03 wt%, DMA <= 10 ppm, formic acid <= 3 ppm, methanol <= 50 ppm (Eastman sales specification T51021, 2017; D-002)"
+    design_target: "DMF 99.99 wt%, methanol 100 ppm(wt) in the model (D-009: the model carries no water, formic acid or colour bodies; the 50 ppm methanol limit is not yet met by the model's 100 ppm, open item)"
+    delivery: {pressure_kPa_a: 300, temperature_K: 313.15, battery_limit: storage (outside the boundary)}
+  - name: Reactor vent gas (excess CO, inerts, dimethyl ether, organics)
+    use: thermal oxidiser or fuel gas header (outside the boundary, D-008)
+  - name: Sodium formate filter cake (wet with DMF and methanol)
+    use: disposal or recovery (outside the boundary, D-008)
+  - name: Methanol purge with DMA
+    use: off-site methanol recovery (outside the boundary, D-009)
+  - name: Heavy residue of the DMF column
+    use: incineration (outside the boundary, D-009)
+utilities:
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: ASSUMED (D-010)}
+  - {name: MP steam, pressure_kPa_a: 1100, saturation_K: 457.6, use: C-201 reboiler (bottoms 426 K), note: ASSUMED level (D-010)}
+  - {name: LP steam, pressure_kPa_a: 450, saturation_K: 420.8, use: C-202 reboiler (bottoms about 390 K under vacuum), note: ASSUMED level (D-010)}
+  - {name: Electric power, use: CO compressor, pumps, vacuum system, note: ASSUMED electric drives (D-010)}
+site:
+  location: ASSUMED generic site, not chosen
+  design_ambient_K: 303.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325   # ASSUMED
+assumptions:
+  - "Reactor 363.15 K and 2200 kPa(a), DMA conversion 98.5 % per pass, 95 mol% of the CO fed ends in DMF: US 4,098,820 Example 1 (given; D-005). The rest of the CO is vented (methyl formate formation not modelled, ASSUMED)."
+  - "ASSUMED DMA:methanol 2.3:1 by weight in the reactor feed, from US 4,098,820 Example 1 (D-005)."
+  - "ASSUMED catalyst fully deactivated in situ to sodium formate and dimethyl ether (US 4,354,041 mechanism), 99 % of the salt filtered, wet cake 25 wt% liquor (D-007, D-008)."
+  - "ASSUMED all CO, N2, H2 and DME leave in the reactor vent with 3 mol% methanol, 0.2 mol% DMA and 0.2 mol% DMF; nothing dissolved flashes later (D-008)."
+  - "ASSUMED sharp splits in C-201 (all DMA and methanol overhead except the product's 100 ppm methanol; 0.1 % of the DMF overhead) and C-202 (1 % of its DMF feed to the residue), reflux ratios 1.0 and 0.5 (D-009)."
+  - "ASSUMED compressor isentropic efficiency 0.75, pump efficiency 0.6, liquid heat capacity 2.2 kJ/(kg K); loop pump 30 kW, column pumps and vacuum 25 kW (D-010)."
+  - "ASSUMED dry feeds: no water, no CO2, no methyl formate, no formic acid, no trimethylamine in the model (D-004, D-005)."
+  - "All flows and duties are concept estimates from a short-cut balance (scripts/dmf_balance.py), not a qualified simulation; accuracy not stated (D-006)."
