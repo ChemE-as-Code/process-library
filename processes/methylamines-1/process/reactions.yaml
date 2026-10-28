@@ -1,0 +1,33 @@
+# Reactions of the methylamines converter (D-004, D-005). Schema `cheme schema process-reactions`.
+# Successive methylation of ammonia by methanol over an amorphous silica-alumina dehydration
+# catalyst, vapour phase. Each step is reversible; the transmethylations (e.g. 2 DMA <=> MMA + TMA,
+# TMA + NH3 <=> MMA + DMA) are linear combinations of these three and need no own entry. The
+# converter is modelled as an ideal-gas equilibrium of these three reactions at its outlet
+# temperature (D-005): amorphous silica-alumina gives a distribution close to thermodynamic
+# equilibrium at 350-475 C with sufficient residence time (US 4,283,254 A, background; Corbin et
+# al. 1997 as cited in US 7,754,921). The heats of reaction are from the ideal-gas formation
+# enthalpies of process/materials.yaml at 298.15 K (vapour, kJ per kmol of extent).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: MMA_SYN
+    equation: CH3OH + NH3 <=> MMA + H2O
+    stoichiometry: {CH3OH: -1.0, NH3: -1.0, MMA: 1.0, H2O: 1.0}
+    reversible: true
+    heat_of_reaction: {value: -16474.0, provenance: calculated, source: "ideal-gas formation enthalpies at 298.15 K (process/materials.yaml, ATcT)"}
+    catalyst: SIAL
+    sources: ["US 4,283,254 A, background", "doi:10.1016/S0920-5861(97)00003-5"]
+  - id: DMA_SYN
+    equation: CH3OH + MMA <=> DMA + H2O
+    stoichiometry: {CH3OH: -1.0, MMA: -1.0, DMA: 1.0, H2O: 1.0}
+    reversible: true
+    heat_of_reaction: {value: -36102.0, provenance: calculated, source: "ideal-gas formation enthalpies at 298.15 K (process/materials.yaml, ATcT)"}
+    catalyst: SIAL
+    sources: ["US 4,283,254 A, background", "doi:10.1016/S0920-5861(97)00003-5"]
+  - id: TMA_SYN
+    equation: CH3OH + DMA <=> TMA + H2O
+    stoichiometry: {CH3OH: -1.0, DMA: -1.0, TMA: 1.0, H2O: 1.0}
+    reversible: true
+    heat_of_reaction: {value: -49252.0, provenance: calculated, source: "ideal-gas formation enthalpies at 298.15 K (process/materials.yaml, ATcT)"}
+    catalyst: SIAL
+    sources: ["US 4,283,254 A, background", "doi:10.1016/S0920-5861(97)00003-5"]

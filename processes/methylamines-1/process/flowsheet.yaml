@@ -1,24 +1,551 @@
 # The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
 # never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
-# Units are explicit: a property without its own unit is in these. Pressure is absolute; a gauge
-# value needs its own unit (kPa(g)). Nm3/h needs normal_conditions.
+#
+# Methylamines (MMA, DMA, TMA) from methanol and ammonia over amorphous silica-alumina, with
+# recycle of ammonia, TMA, MMA and methanol and the separation train ammonia column, TMA
+# extractive distillation with water, dehydration, MMA/DMA column, methanol recovery (D-001..D-008).
+# Where the values come from:
+# - the net product slate, the feed states, temperatures and pressures are design choices
+#   (design basis), ASSUMED;
+# - the converter outlet S7 is calculated by cheme (ideal-gas equilibrium reactor, D-005);
+# - flows and compositions through the mixer, pump, condenser and the two splitters are
+#   calculated by `cheme process propagate --fill`;
+# - column outlets, recycle flows and all duties come from the independent balance
+#   scripts/mass_balance.py (D-006), given here as ASSUMED: core cannot yet qualify vapour-liquid
+#   equilibria or enthalpies of this polar amine-water-methanol system (core #315); the columns
+#   are sharp splits (D-008).
 schema: cheme/process/v1
 kind: flowsheet
-title: ""
+title: Methylamines from methanol and ammonia (8 t/h MMA + DMA + TMA)
 units:
   pressure: kPa(a)
   temperature: K
   flow: kg/h
   duty: kW
   enthalpy: kJ/kmol
-  # normal_conditions: {temperature: 273.15, pressure: 101.325, basis: ideal_gas}
-  # enthalpy_reference: {state: ideal_gas, temperature: 298.15}
+  enthalpy_reference: {state: ideal_gas, temperature: 298.15}
 cases:
-  - {id: design, description: Design case, default: true}
+  - {id: design, description: "Design case: net 2.0 t/h MMA, 4.4 t/h DMA, 1.6 t/h TMA (D-002), converter feed N/C 2.0, outlet 713 K (D-004)", default: true}
 tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
-feeds: []      # external feeds (DEXPI Source): {id, title, ports: [{id: out, direction: out}]}
-products: []   # products (DEXPI Sink): {id, title, ports: [{id: in, direction: in}]}
-blocks: []     # BFD blocks: {id, title, class, ports: [{id, direction, kind}], links}
-steps: []      # PFD steps: {id, block, title, class, ports: [{id, direction, delegates}], links}
-streams: []    # {id, title, kind, from: NODE.port, to: NODE.port, template, state: {design: {...}}}
+
+feeds:
+  - {id: MEOH, title: "Methanol (boundary feed; made by methanol-1)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: NH3F, title: "Liquid ammonia (boundary feed; made by ammonia-1)", category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports: [{id: p101, direction: out, kind: energy}]
+  - id: MPS
+    title: MP steam 1500 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: MP
+      pressure: {value: 1500, provenance: assumed, source: "design basis, D-009"}
+      supply_temperature: {value: 471.4, provenance: assumed, source: "saturation at 1500 kPa(a), D-009"}
+      min_approach: {value: 10, provenance: assumed, source: D-009}
+    ports:
+      - {id: e101, direction: out, kind: energy}
+      - {id: c101, direction: out, kind: energy}
+      - {id: c103, direction: out, kind: energy}
+  - id: LPS
+    title: LP steam 450 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 450, provenance: assumed, source: "design basis, D-009"}
+      supply_temperature: {value: 420.8, provenance: assumed, source: "saturation at 450 kPa(a), D-009"}
+      min_approach: {value: 10, provenance: assumed, source: D-009}
+    ports:
+      - {id: c102, direction: out, kind: energy}
+      - {id: c104, direction: out, kind: energy}
+      - {id: c105, direction: out, kind: energy}
+products:
+  - {id: MMAP, title: Anhydrous monomethylamine to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: DMAP, title: Anhydrous dimethylamine to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: TMAP, title: Anhydrous trimethylamine to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: WW, title: Process wastewater to biological treatment, category: wastewater, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-009"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-009"}
+      min_approach: {value: 5, provenance: assumed, source: D-009}
+    ports:
+      - {id: e103, direction: in, kind: energy}
+      - {id: c101, direction: in, kind: energy}
+      - {id: c102, direction: in, kind: energy}
+      - {id: c103, direction: in, kind: energy}
+      - {id: c104, direction: in, kind: energy}
+      - {id: c105, direction: in, kind: energy}
+
+blocks:
+  - id: RXN
+    title: Feed preparation and methylamines synthesis
+    class: ReactingChemicals
+    ports:
+      - {id: meoh, direction: in}
+      - {id: nh3, direction: in}
+      - {id: rec_nh3, direction: in}
+      - {id: rec_mma, direction: in}
+      - {id: rec_meoh, direction: in}
+      - {id: effluent, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: steam, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+  - id: NHR
+    title: Ammonia recovery (with the TMA recycle)
+    class: Distilling
+    ports:
+      - {id: feed, direction: in}
+      - {id: recycle, direction: out}
+      - {id: amines, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+  - id: AMS
+    title: Amine separation (TMA extractive distillation, dehydration, MMA/DMA column)
+    class: Distilling
+    ports:
+      - {id: feed, direction: in}
+      - {id: solvent, direction: in}
+      - {id: tma, direction: out}
+      - {id: mma, direction: out}
+      - {id: mma_rec, direction: out}
+      - {id: dma, direction: out}
+      - {id: water, direction: out}
+      - {id: steam1, direction: in, kind: energy}
+      - {id: steam2, direction: in, kind: energy}
+      - {id: steam3, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+      - {id: cw3, direction: out, kind: energy}
+  - id: MRW
+    title: Methanol recovery and process water
+    class: Distilling
+    ports:
+      - {id: feed, direction: in}
+      - {id: meoh_rec, direction: out}
+      - {id: solvent, direction: out}
+      - {id: ww, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+
+steps:
+  - id: M101
+    block: RXN
+    title: Feed and recycle junction (feed drum)
+    class: Mixing
+    links: [{target: equipment, ref: V-101}]
+    ports:
+      - {id: meoh, direction: in, delegates: meoh}
+      - {id: nh3, direction: in, delegates: nh3}
+      - {id: rec_nh3, direction: in, delegates: rec_nh3}
+      - {id: rec_mma, direction: in, delegates: rec_mma}
+      - {id: rec_meoh, direction: in, delegates: rec_meoh}
+      - {id: out, direction: out}
+  - id: P101
+    block: RXN
+    title: Converter feed pump
+    # Pumping is the right DEXPI class, but cheme process build fails on it (its method field is
+    # a union type in pyDEXPI; to report to core, D-011): generic ProcessStep until fixed.
+    class: ProcessStep
+    links: [{target: equipment, ref: P-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: E101
+    block: RXN
+    title: Feed vaporiser
+    # Evaporating (total vaporisation of the feed); SupplyingThermalEnergy fails in cheme
+    # process build like Pumping (D-011).
+    class: Evaporating
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+  - id: E102
+    block: RXN
+    title: Converter feed/effluent exchanger
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-102}]
+    ports:
+      - {id: cold_in, direction: in}
+      - {id: cold_out, direction: out}
+      - {id: hot_in, direction: in}
+      - {id: hot_out, direction: out}
+  # D-005: adiabatic fixed bed; outlet at the ideal-gas equilibrium of the three methylations at
+  # its outlet temperature (the reactions conserve moles: pressure has no effect).
+  - id: R101
+    block: RXN
+    title: Methylamines converter (adiabatic, silica-alumina)
+    class: ReactingChemicals
+    reactions: [MMA_SYN, DMA_SYN, TMA_SYN]
+    reactor: equilibrium
+    catalyst: SIAL
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+  - id: E103
+    block: RXN
+    title: Effluent condenser
+    class: Cooling
+    links: [{target: equipment, ref: E-103}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: effluent}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  - id: C101
+    block: NHR
+    title: Ammonia column
+    class: Distilling
+    links: [{target: equipment, ref: C-101}]
+    ports:
+      - {id: feed, direction: in, delegates: feed}
+      - {id: top, direction: out, delegates: recycle}
+      - {id: bot, direction: out, delegates: amines}
+      - {id: reb, direction: in, kind: energy, delegates: steam}
+      - {id: cond, direction: out, kind: energy, delegates: cw}
+  - id: C102
+    block: AMS
+    title: TMA extractive distillation column (water)
+    class: Distilling
+    links: [{target: equipment, ref: C-102}]
+    ports:
+      - {id: feed, direction: in, delegates: feed}
+      - {id: solvent, direction: in, delegates: solvent}
+      - {id: top, direction: out, delegates: tma}
+      - {id: bot, direction: out}
+      - {id: reb, direction: in, kind: energy, delegates: steam1}
+      - {id: cond, direction: out, kind: energy, delegates: cw1}
+  - id: C103
+    block: AMS
+    title: Dehydration column
+    class: Distilling
+    links: [{target: equipment, ref: C-103}]
+    ports:
+      - {id: feed, direction: in}
+      - {id: top, direction: out}
+      - {id: bot, direction: out, delegates: water}
+      - {id: reb, direction: in, kind: energy, delegates: steam2}
+      - {id: cond, direction: out, kind: energy, delegates: cw2}
+  - id: C104
+    block: AMS
+    title: MMA / DMA column
+    class: Distilling
+    links: [{target: equipment, ref: C-104}]
+    ports:
+      - {id: feed, direction: in}
+      - {id: top, direction: out}
+      - {id: bot, direction: out, delegates: dma}
+      - {id: reb, direction: in, kind: energy, delegates: steam3}
+      - {id: cond, direction: out, kind: energy, delegates: cw3}
+  # D-002, D-007: the MMA made beyond the product rate returns to the converter.
+  - id: SPM
+    block: AMS
+    title: MMA product / recycle split
+    class: SplittingMaterial
+    split: {product: 0.404593537}
+    ports:
+      - {id: in, direction: in}
+      - {id: product, direction: out, delegates: mma}
+      - {id: recycle, direction: out, delegates: mma_rec}
+  - id: C105
+    block: MRW
+    title: Methanol recovery column
+    class: Distilling
+    links: [{target: equipment, ref: C-105}]
+    ports:
+      - {id: feed, direction: in, delegates: feed}
+      - {id: top, direction: out, delegates: meoh_rec}
+      - {id: bot, direction: out}
+      - {id: reb, direction: in, kind: energy, delegates: steam}
+      - {id: cond, direction: out, kind: energy, delegates: cw}
+  # D-008: the extraction water of C-102 is C-105 bottoms; the net reaction water leaves.
+  - id: SPW
+    block: MRW
+    title: Extraction water / wastewater split
+    class: SplittingMaterial
+    split: {solvent: 0.737053592}
+    ports:
+      - {id: in, direction: in}
+      - {id: solvent, direction: out, delegates: solvent}
+      - {id: waste, direction: out, delegates: ww}
+
+# Values from scripts/mass_balance.py (D-006) unless calculated by cheme. Temperatures of column
+# products are ideal (Raoult) bubble points at the column pressure (D-008): rough estimates.
+streams:
+  - id: S1
+    title: Fresh methanol
+    from: MEOH.out
+    to: M101.meoh
+    template: mixture
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "design basis (D-003)"}
+        temperature: {value: 303.15, provenance: assumed, source: "design basis (D-003)"}
+        flow: {value: 10920.3, basis: mass, provenance: assumed, source: "scripts/mass_balance.py: one methanol per methyl group of the product slate plus the wastewater loss (D-002, D-006)"}
+        composition: {basis: mole_fraction, values: {CH3OH: 1.0}, provenance: assumed, source: "design basis (D-003): water and impurities of the feed not modelled"}
+  - id: S2
+    title: Fresh liquid ammonia
+    from: NH3F.out
+    to: M101.nh3
+    template: mixture
+    state:
+      design:
+        pressure: {value: 1500, provenance: assumed, source: "design basis (D-003)"}
+        temperature: {value: 298.15, provenance: assumed, source: "design basis (D-003)"}
+        flow: {value: 3219.9, basis: mass, provenance: assumed, source: "scripts/mass_balance.py: one ammonia per amine of the product slate (D-002, D-006)"}
+        composition: {basis: mole_fraction, values: {NH3: 1.0}, provenance: assumed, source: "design basis (D-003)"}
+  - id: S3
+    title: Combined converter feed
+    from: M101.out
+    to: P101.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 1500, provenance: assumed, source: D-004}
+        temperature: {value: 315.30, provenance: assumed, source: "scripts/mass_balance.py, adiabatic mixing of the liquids (D-006)"}
+        flow: {value: 34484.1, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S10 S17 S20', fingerprint: de5e1d2a04228177}
+        composition: {basis: mole_fraction, values: {NH3: 0.678433, CH3OH: 0.226707, MMA: 0.0623213, DMA: 0.0, TMA: 0.0325394, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S10 S17 S20', fingerprint: a9577deaa44d990e}
+  - id: S4
+    title: Pumped converter feed
+    from: P101.out
+    to: E101.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 2400, provenance: assumed, source: D-004}
+        temperature: {value: 315.30, provenance: assumed, source: "pump temperature rise neglected (D-006)"}
+        flow: {value: 34484.2, basis: mass, provenance: assumed, source: "scripts/mass_balance.py (D-006): S3 through P-101 (ProcessStep class is not propagated, D-011)"}
+        composition: {basis: mole_fraction, values: {NH3: 0.67843216, CH3OH: 0.22670687, MMA: 0.06232161, TMA: 0.03253936}, provenance: assumed, source: "scripts/mass_balance.py (D-006); must equal S3"}
+  - id: S5
+    title: Vaporised feed
+    from: E101.out
+    to: E102.cold_in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 2300, provenance: assumed, source: D-004}
+        temperature: {value: 453.15, provenance: assumed, source: "D-004: superheated vapour, 18 K below MP steam"}
+        flow: {value: 34484.2, basis: mass, provenance: assumed, source: "scripts/mass_balance.py (D-006): S4 through E-101; must equal S3"}
+        composition: {basis: mole_fraction, values: {NH3: 0.67843216, CH3OH: 0.22670687, MMA: 0.06232161, TMA: 0.03253936}, provenance: assumed, source: "scripts/mass_balance.py (D-006); must equal S3"}
+  - id: S6
+    title: Converter feed
+    from: E102.cold_out
+    to: R101.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 2200, provenance: assumed, source: D-004}
+        temperature: {value: 624.79, provenance: assumed, source: "scripts/mass_balance.py: adiabatic converter energy balance (D-006)"}
+        flow: {value: 34484.2, basis: mass, provenance: assumed, source: "scripts/mass_balance.py (D-006): S5 through the cold side of E-102; must equal S3"}
+        composition: {basis: mole_fraction, values: {NH3: 0.67843216, CH3OH: 0.22670687, MMA: 0.06232161, TMA: 0.03253936}, provenance: assumed, source: "scripts/mass_balance.py (D-006); must equal S3"}
+  - id: S7
+    title: Converter effluent
+    from: R101.out
+    to: E102.hot_in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 2000, provenance: assumed, source: "design basis (D-004)"}
+        temperature: {value: 713.15, provenance: assumed, source: "design basis (D-004): outlet 440 C"}
+        flow: {value: 34484.2, provenance: calculated, source: 'cheme process propagate: reactor R101 from S6', fingerprint: 80c722327030f598}
+        composition: {basis: mole_fraction, values: {NH3: 0.554102, CH3OH: 0.00259502, MMA: 0.104671, DMA: 0.0641806, TMA: 0.0503399, H2O: 0.224112}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S6', fingerprint: aabbe4c931bf5b7d}
+  - id: S8
+    title: Effluent after feed/effluent exchanger
+    from: E102.hot_out
+    to: E103.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 1950, provenance: assumed, source: D-004}
+        temperature: {value: 559.73, provenance: assumed, source: "scripts/mass_balance.py: E-102 energy balance (D-006)"}
+        flow: {value: 34484.0, basis: mass, provenance: assumed, source: "scripts/mass_balance.py (D-006): S7 through the hot side of E-102"}
+        composition: {basis: mole_fraction, values: {NH3: 0.55410195, CH3OH: 0.00259502, MMA: 0.1046707, DMA: 0.06418061, TMA: 0.05033988, H2O: 0.22411185}, provenance: assumed, source: "scripts/mass_balance.py, ideal-gas equilibrium (D-005, D-006); must equal cheme's S7"}
+  - id: S9
+    title: Condensed effluent to ammonia column
+    from: E103.out
+    to: C101.feed
+    template: mixture
+    state:
+      design:
+        pressure: {value: 1900, provenance: assumed, source: D-008}
+        temperature: {value: 313.15, provenance: assumed, source: D-008}
+        flow: {value: 34484.0, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E103 from S8', fingerprint: 549964f3b4d5233f}
+        composition: {basis: mole_fraction, values: {NH3: 0.55410195, CH3OH: 0.00259502, MMA: 0.1046707, DMA: 0.06418061, TMA: 0.05033988, H2O: 0.22411185}, provenance: calculated, source: 'cheme process propagate: pass-through E103 from S8', fingerprint: 549964f3b4d5233f}
+  - id: S10
+    title: Ammonia / TMA recycle (C-101 distillate)
+    from: C101.top
+    to: M101.rec_nh3
+    template: mixture
+    state:
+      design:
+        pressure: {value: 1900, provenance: assumed, source: D-008}
+        temperature: {value: 322.24, provenance: assumed, source: "scripts/mass_balance.py, bubble point (D-008)"}
+        flow: {value: 17274.9, basis: mass, provenance: assumed, source: "scripts/mass_balance.py: all ammonia plus the TMA recycle (D-007)"}
+        composition: {basis: mole_fraction, values: {NH3: 0.94453278, TMA: 0.05546722}, provenance: assumed, source: "scripts/mass_balance.py (D-007)"}
+  - id: S11
+    title: C-101 bottoms to TMA column
+    from: C101.bot
+    to: C102.feed
+    template: mixture
+    state:
+      design:
+        pressure: {value: 1950, provenance: assumed, source: D-008}
+        temperature: {value: 405.07, provenance: assumed, source: "scripts/mass_balance.py, bubble point (D-008)"}
+        flow: {value: 17209.1, basis: mass, provenance: assumed, source: "scripts/mass_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {CH3OH: 0.00627789, MMA: 0.25322003, DMA: 0.15526613, TMA: 0.04306312, H2O: 0.54217283}, provenance: assumed, source: "scripts/mass_balance.py (D-006)"}
+  - id: S12
+    title: TMA product
+    from: C102.top
+    to: TMAP.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 500, provenance: assumed, source: D-008}
+        temperature: {value: 326.75, provenance: assumed, source: "scripts/mass_balance.py, bubble point (D-008)"}
+        flow: {value: 1600.0, basis: mass, provenance: assumed, source: "design basis net TMA (D-002)"}
+        composition: {basis: mole_fraction, values: {TMA: 1.0}, provenance: assumed, source: "sharp split (D-008)"}
+  - id: S13
+    title: C-102 bottoms to dehydration column
+    from: C102.bot
+    to: C103.feed
+    template: mixture
+    state:
+      design:
+        pressure: {value: 550, provenance: assumed, source: D-008}
+        temperature: {value: 381.82, provenance: assumed, source: "scripts/mass_balance.py, bubble point (D-008)"}
+        flow: {value: 32819.9, basis: mass, provenance: assumed, source: "scripts/mass_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {CH3OH: 0.00256921, MMA: 0.10223828, DMA: 0.06268913, H2O: 0.83250337}, provenance: assumed, source: "scripts/mass_balance.py (D-006)"}
+  - id: S14
+    title: MMA / DMA (C-103 distillate)
+    from: C103.top
+    to: C104.feed
+    template: mixture
+    state:
+      design:
+        pressure: {value: 600, provenance: assumed, source: D-008}
+        temperature: {value: 320.48, provenance: assumed, source: "scripts/mass_balance.py, bubble point (D-008)"}
+        flow: {value: 9343.2, basis: mass, provenance: assumed, source: "scripts/mass_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {MMA: 0.61989867, DMA: 0.38010133}, provenance: assumed, source: "sharp split (D-008)"}
+  - id: S15
+    title: MMA (C-104 distillate)
+    from: C104.top
+    to: SPM.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 600, provenance: assumed, source: D-008}
+        temperature: {value: 314.97, provenance: assumed, source: "scripts/mass_balance.py, bubble point (D-008)"}
+        flow: {value: 4943.2, basis: mass, provenance: assumed, source: "scripts/mass_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {MMA: 1.0}, provenance: assumed, source: "sharp split (D-008)"}
+  - id: S16
+    title: MMA product
+    from: SPM.product
+    to: MMAP.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 600, provenance: assumed, source: D-008}
+        temperature: {value: 314.97, provenance: assumed, source: "as S15"}
+        flow: {value: 1999.99, basis: mass, provenance: calculated, source: 'cheme process propagate: splitter SPM from S15', fingerprint: 3091d847a842bacc}
+        composition: {basis: mole_fraction, values: {MMA: 1.0}, provenance: calculated, source: 'cheme process propagate: splitter SPM from S15', fingerprint: 066b4b263ee60f7f}
+  - id: S17
+    title: MMA recycle
+    from: SPM.recycle
+    to: M101.rec_mma
+    template: mixture
+    state:
+      design:
+        pressure: {value: 600, provenance: assumed, source: D-008}
+        temperature: {value: 314.97, provenance: assumed, source: "as S15"}
+        flow: {value: 2943.21, provenance: calculated, source: 'cheme process propagate: splitter SPM from S15 S16', fingerprint: 9d9d6777b10f19e5}
+        composition: {basis: mole_fraction, values: {MMA: 1.0}, provenance: calculated, source: 'cheme process propagate: splitter SPM from S15', fingerprint: 066b4b263ee60f7f}
+  - id: S18
+    title: DMA product (C-104 bottoms)
+    from: C104.bot
+    to: DMAP.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 650, provenance: assumed, source: D-008}
+        temperature: {value: 335.42, provenance: assumed, source: "scripts/mass_balance.py, bubble point (D-008)"}
+        flow: {value: 4400.0, basis: mass, provenance: assumed, source: "design basis net DMA (D-002)"}
+        composition: {basis: mole_fraction, values: {DMA: 1.0}, provenance: assumed, source: "sharp split (D-008)"}
+  - id: S19
+    title: Water and methanol to methanol column (C-103 bottoms)
+    from: C103.bot
+    to: C105.feed
+    template: mixture
+    state:
+      design:
+        pressure: {value: 650, provenance: assumed, source: D-008}
+        temperature: {value: 434.91, provenance: assumed, source: "scripts/mass_balance.py, bubble point (D-008)"}
+        flow: {value: 23476.6, basis: mass, provenance: assumed, source: "scripts/mass_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {CH3OH: 0.00307663, H2O: 0.99692337}, provenance: assumed, source: "scripts/mass_balance.py (D-006)"}
+  - id: S20
+    title: Methanol recycle (C-105 distillate)
+    from: C105.top
+    to: M101.rec_meoh
+    template: mixture
+    state:
+      design:
+        pressure: {value: 150, provenance: assumed, source: D-008}
+        temperature: {value: 347.94, provenance: assumed, source: "scripts/mass_balance.py, bubble point (D-008)"}
+        flow: {value: 125.8, basis: mass, provenance: assumed, source: "scripts/mass_balance.py: unconverted methanol (D-006)"}
+        composition: {basis: mole_fraction, values: {CH3OH: 1.0}, provenance: assumed, source: "sharp split (D-008)"}
+  - id: S21
+    title: C-105 bottoms water
+    from: C105.bot
+    to: SPW.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 200, provenance: assumed, source: D-008}
+        temperature: {value: 393.36, provenance: assumed, source: "scripts/mass_balance.py, bubble point (D-008)"}
+        flow: {value: 23350.8, basis: mass, provenance: assumed, source: "scripts/mass_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {CH3OH: 5.622e-05, H2O: 0.99994378}, provenance: assumed, source: "100 ppm(wt) methanol (D-008)"}
+  - id: S22
+    title: Extraction water to C-102
+    from: SPW.solvent
+    to: C102.solvent
+    template: mixture
+    state:
+      design:
+        pressure: {value: 200, provenance: assumed, source: D-008}
+        temperature: {value: 393.36, provenance: assumed, source: "as S21"}
+        flow: {value: 17210.8, basis: mass, provenance: calculated, source: 'cheme process propagate: splitter SPW from S21', fingerprint: 66adc0715f6c85cd}
+        composition: {basis: mole_fraction, values: {CH3OH: 5.622e-05, H2O: 0.99994378}, provenance: calculated, source: 'cheme process propagate: splitter SPW from S21', fingerprint: a18ce97170ccb214}
+  - id: S23
+    title: Wastewater to treatment
+    from: SPW.waste
+    to: WW.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 200, provenance: assumed, source: D-008}
+        temperature: {value: 393.36, provenance: assumed, source: "as S21"}
+        flow: {value: 6140.0, provenance: calculated, source: 'cheme process propagate: splitter SPW from S21 S22', fingerprint: 507e4c93eeb9fe12}
+        composition: {basis: mole_fraction, values: {CH3OH: 5.622e-05, H2O: 0.99994378}, provenance: calculated, source: 'cheme process propagate: splitter SPW from S21', fingerprint: a18ce97170ccb214}
+  # Energy streams (scripts/mass_balance.py, D-006; ASSUMED concept estimates until core qualifies them)
+  - {id: Q1, title: P-101 pump power (feed and recycle pumps lumped), kind: energy, from: POWER.p101, to: P101.power, state: {design: {duty: {value: 26, provenance: assumed, source: "scripts/mass_balance.py, efficiency 0.6 (D-010)"}}}}
+  - {id: Q2, title: E-101 feed vaporiser duty, kind: energy, from: MPS.e101, to: E101.steam, state: {design: {duty: {value: 12305, provenance: assumed, source: "scripts/mass_balance.py (D-006)"}}}}
+  - {id: Q3, title: E-103 effluent condenser duty, kind: energy, from: E103.cw, to: CW.e103, state: {design: {duty: {value: 15750, provenance: assumed, source: "scripts/mass_balance.py (D-006)"}}}}
+  - {id: Q4, title: C-101 reboiler duty, kind: energy, from: MPS.c101, to: C101.reb, state: {design: {duty: {value: 11282, provenance: assumed, source: "scripts/mass_balance.py, reflux ratio 1.0 (D-008)"}}}}
+  - {id: Q5, title: C-101 condenser duty, kind: energy, from: C101.cond, to: CW.c101, state: {design: {duty: {value: 8976, provenance: assumed, source: "scripts/mass_balance.py, reflux ratio 1.0 (D-008)"}}}}
+  - {id: Q6, title: C-102 reboiler duty, kind: energy, from: LPS.c102, to: C102.reb, state: {design: {duty: {value: 1569, provenance: assumed, source: "scripts/mass_balance.py, minimum boil-up 0.1 kmol/kmol bottoms (D-008)"}}}}
+  - {id: Q7, title: C-102 condenser duty, kind: energy, from: C102.cond, to: CW.c102, state: {design: {duty: {value: 2513, provenance: assumed, source: "scripts/mass_balance.py, column energy balance (D-008)"}}}}
+  - {id: Q8, title: C-103 reboiler duty, kind: energy, from: MPS.c103, to: C103.reb, state: {design: {duty: {value: 4192, provenance: assumed, source: "scripts/mass_balance.py, reflux ratio 1.0 (D-008)"}}}}
+  - {id: Q9, title: C-103 condenser duty, kind: energy, from: C103.cond, to: CW.c103, state: {design: {duty: {value: 3237, provenance: assumed, source: "scripts/mass_balance.py, reflux ratio 1.0 (D-008)"}}}}
+  - {id: Q10, title: C-104 reboiler duty, kind: energy, from: LPS.c104, to: C104.reb, state: {design: {duty: {value: 5041, provenance: assumed, source: "scripts/mass_balance.py, reflux ratio 4 (D-008)"}}}}
+  - {id: Q11, title: C-104 condenser duty, kind: energy, from: C104.cond, to: CW.c104, state: {design: {duty: {value: 5007, provenance: assumed, source: "scripts/mass_balance.py, reflux ratio 4 (D-008)"}}}}
+  - {id: Q12, title: C-105 reboiler duty, kind: energy, from: LPS.c105, to: C105.reb, state: {design: {duty: {value: 1428, provenance: assumed, source: "scripts/mass_balance.py, minimum boil-up 0.1 kmol/kmol bottoms (D-008)"}}}}
+  - {id: Q13, title: C-105 condenser duty, kind: energy, from: C105.cond, to: CW.c105, state: {design: {duty: {value: 2771, provenance: assumed, source: "scripts/mass_balance.py, column energy balance (D-008)"}}}}
 layout: {bfd: {}, pfd: {}}
