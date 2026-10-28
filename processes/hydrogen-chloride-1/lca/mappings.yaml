@@ -1,0 +1,18 @@
+# hydrogen-chloride-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# None yet (DESIGN.md D-013): the preliminary inventory leaves every background unlinked, so the
+# Atlas build reports the exchanges of this internal process as gaps (ADR 0022). What each
+# should connect to is in lca/lca.yaml (`missing:`). Candidates once the shared vocabulary has
+# them (not active, listed for the consolidated mapping PR):
+#   feed:CL2   -> a `chlorine` entry (none in lci/mappings.yaml or chemicals/chemicals.yaml yet);
+#                 with prefer_atlas the Atlas producer chlor-alkali-1 (product CL2)
+#   feed:H2    -> `hydrogen` counts kg of H2; this feed is wet gas (0.679 kg H2 per kg), so it
+#                 needs a proxy entry by mass of wet gas (as hydrochloric-acid-32 does for acid)
+#   feed:DMW   -> a demineralised-water entry (#45: none yet; `water` is raw water)
+#   feed:POWER -> the library default (electricity, medium voltage)
+#   product:CW -> cooling-water; product:STEAM -> steam-heat (co-product, share 0, D-013)
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges: {}
