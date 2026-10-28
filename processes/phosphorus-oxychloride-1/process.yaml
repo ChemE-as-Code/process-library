@@ -1,36 +1,88 @@
-# Process Atlas manifest. Copy this folder to processes/<your-id>/ and edit.
-# Schema: schemas/process.schema.json (cheme-as-code/process/v1). Every slug used under
-# chemistry must exist in chemicals/chemicals.yaml; add new chemicals there in the same change.
-# A product in a defined state and purity names its registry grade: `chemical: oxygen/lox`.
+# Process Atlas manifest of phosphorus-oxychloride-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
 schema: cheme-as-code/process/v1
-id: my-process                  # = folder name; lowercase slug; never rename once listed
-title: Short descriptive process title
+id: phosphorus-oxychloride-1
+title: Phosphorus oxychloride from white phosphorus, chlorine and oxygen via PCl3 (4.0 t/h)
 summary: >-
-  One or two sentences for cards and search results: what goes in, what comes out, at what scale.
-# description: |                # optional longer Markdown for the process page
-families: [hydrogen]            # slugs of taxonomy/families.yaml (ISIC-mapped), e.g. ammonia, methanol, air-separation
-keywords: []
-# facets:                      # optional, for filtering in the Atlas; list only what the design has
-#   feedstock_basis: [water, electricity]   # fossil | biogenic | atmospheric | mineral | recycled | water | electricity
-#   product_classes: [fuels]               # slugs, e.g. industrial-gases, fuels, fertilizers, polymers, chemicals, materials
-#   unit_operations: [electrolysis]        # slugs, e.g. cryogenic-distillation, adsorption, compression, reaction, electrolysis
-#   region: generic                        # e.g. generic, EU
-# Design maturity (claimed, capped by evidence: the calculation maturity in checks/maturity.json
-# of an engineering project; at most concept beside a Tier 0/1 LCI dataset):
-maturity: concept               # concept | screening | basic-engineering | detail-engineering | operating-reference
-validation:                     # review status: set by people only; passing checks is not a review
-  status: unreviewed            # unreviewed | internally-reviewed | peer-reviewed | industry-validated
+  Molten white phosphorus is chlorinated to phosphorus trichloride in a boiling reactor-still,
+  the PCl3 is oxidised with pipeline oxygen in a cooled loop reactor and the POCl3 is distilled
+  in two columns; the reactor vents are scrubbed with caustic. Concept stage, assumed basis,
+  preliminary gate-to-gate LCI.
+description: |
+  Molten white phosphorus (from an electrothermal phosphorus furnace outside the boundary) and
+  the dry chlorine of chlor-alkali-1 react in a reactor-still holding boiling PCl3 with a small
+  phosphorus heel; the reaction heat boils the PCl3, which is condensed against cooling water.
+  The 0.8 wt% oxygen of the chlor-alkali chlorine is taken up as POCl3 and goes forward with the
+  PCl3. The PCl3 is oxidised in the liquid phase with 5 % excess gaseous oxygen of asu-1 in a
+  loop reactor at 313-363 K, cooled by an external cooling-water exchanger (conditions from
+  US4183905 and US5183649). A light-ends column returns the unconverted PCl3, a product column
+  takes the POCl3 overhead and purges 0.5 % as a residue to hazardous-waste incineration. The
+  vents (unconverted chlorine, excess oxygen, argon, chloride vapour) are condensed on chilled
+  water and scrubbed with caustic.
+
+  Both reactors are conversion models solved by cheme (element balances and extents closed);
+  the vent condensers, columns and scrubber come from an independent script
+  (scripts/balance.py, Raoult's law with thermo vapour pressures) because no property package of
+  core covers PCl3, POCl3, white phosphorus or the caustic liquor. See DESIGN.md for every
+  assumption and gated step.
+families: [inorganic-chemicals]
+keywords: [phosphorus oxychloride, phosphoryl chloride, POCl3, phosphorus trichloride, PCl3, white phosphorus, chlorine, oxygen, liquid-phase oxidation, distillation, caustic scrubber]
+facets:
+  feedstock_basis: [mineral, atmospheric, electricity]
+  product_classes: [chemicals]
+  unit_operations: [reaction, distillation, absorption]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Capacity, feed purities,
+# conversions, column splits and destruction efficiencies are assumed (DESIGN.md D-002..D-010).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances (cheme validate 0 errors;
+    cheme process streams: every block and step balanced, reaction extents consistent). The
+    reactors R101 and R201 and the mixers are calculated by cheme (conversion model); core's
+    ideal-gas duty of R201 (-1861.6 kW) is 2.7 % below the liquid-phase value of the
+    independent balance (1912.3 kW), the difference being the heats of vaporisation. The vent
+    condensers, the columns (specified splits) and the caustic scrubber are specified values from
+    scripts/balance.py: no property package of core covers PCl3, POCl3, white phosphorus or the
+    caustic liquor (core #315, #364), so the energy balance is not evaluable in core. Capacity,
+    conversions, splits and efficiencies are assumed. Preliminary gate-to-gate LCI with every
+    background unmapped (gaps). cheme maturity reaches no level (assumed feeds and
+    conversions, specified separators, DESIGN.md). Not reviewed.
+    The chemicals registry has no white phosphorus, chlorine, sodium hydroxide or phosphorus
+    oxychloride entry yet, so the main product and those feeds are not listed under chemistry
+    (open library item, DESIGN.md D-013).
 chemistry:
+  # white phosphorus, chlorine, caustic soda and POCl3 have no registry entry yet (D-013)
   inputs:
-    - {chemical: water, role: feedstock}
+    - {chemical: oxygen, role: feedstock, inventory_key: "feed:O2", note: "Gaseous oxygen 99.7 mol% from asu-1, 0.105 kg/kg POCl3. White phosphorus (feed:P4, 0.203 kg/kg), chlorine of chlor-alkali-1 (feed:CL2, 0.704 kg/kg) and caustic soda 50 wt% (feed:NAOH, 3.9 g/kg) have no registry entry yet"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Dilution water of the scrubber caustic, 6.9 g/kg POCl3"}
   outputs:
-    - {chemical: hydrogen, role: main-product}
+    - {chemical: wastewater, role: waste, inventory_key: "product:EFF", note: "Spent scrubber liquor, 11.5 g/kg POCl3: NaCl, Na3PO4, Na2HPO3, NaOCl and excess NaOH in water. The main product, distilled POCl3 (product:POCL3), and the distillation residue to incineration (product:RES, 5.0 g/kg) have no registry entry yet"}
   utilities:
-    - {chemical: electricity, role: utility}
-# basis: {capacity: "1000 t/d product", operating_hours_per_year: 8000}
-# lca: {source: auto}           # auto: read lca/ of a ChemE-as-Code project; none: no LCA
-# references:
-#   - {title: "Author et al. (2024) Title", doi: 10.xxxx/xxxxx}
-# maintainers:
-#   - {name: Your Name, orcid: 0000-0000-0000-0000}
-# repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/my-process, access: private}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "12.9 Wh/kg POCl3: R-201 loop circulation pump, R-101 agitator, transfer and scrubber pumps (ASSUMED)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.091 kWh/kg POCl3 LP steam 400 kPa(a) to the column reboilers (ASSUMED reflux ratios)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "1.17 kWh/kg POCl3: both reaction heats, column condensers and the product cooler, 25/35 C (ASSUMED)"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:CHW", note: "0.09 Wh/kg POCl3: vent condensers to 283 K"}
+basis:
+  capacity: "4000 kg/h distilled POCl3 (32 kt/a at 8000 h), a concept scale (ASSUMED, D-002)"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
+references:
+  - {title: "Bettermann, G.; Krause, W.; Riess, G.; Hofmann, T. Phosphorus Compounds, Inorganic. Ullmann's Encyclopedia of Industrial Chemistry (route reference lead from issue #135; not read in full)", doi: 10.1002/14356007.a19_527}
+  - {title: "US4183905A (1980) Producing phosphorus oxyhalide (oxidation of PCl3 with oxygen in a two-zone column)", url: "https://patents.google.com/patent/US4183905"}
+  - {title: "US5183649A (1993) Production of phosphorus compounds (PCl3 and POCl3 from phosphorus, chlorine and oxygen in a loop reactor)", url: "https://patents.google.com/patent/US5183649"}
+  - {title: "CN115259114B (2023) Continuous production process of phosphorus trichloride (molten yellow phosphorus and chlorine)", url: "https://patents.google.com/patent/CN115259114B/en"}
+  - {title: "PubChem CID 24813, phosphoryl chloride (identity)", url: "https://pubchem.ncbi.nlm.nih.gov/compound/24813"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/phosphorus-oxychloride-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0
