@@ -1,0 +1,25 @@
+# The reactions of hydrogen-bromide-1 (DESIGN.md D-005, section 3). Schema
+# `cheme schema process-reactions`. Heat of reaction in kJ/kmol per extent as written, gas
+# phase, 298.15 K, from the same ATcT formation enthalpies as process/materials.yaml (so that
+# cheme's reactor duty and scripts/balance.py agree): HBr(g) -35.85, Br2(g) +30.88 kJ/mol.
+# Model basis: conversion of the key component Br2, sourced for the burner and at the
+# equilibrium limit for the finishing bed; no kinetics (D-005).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: HBR_SYN
+    title: Hydrogen bromide synthesis (bromine vapour burnt in hydrogen)
+    equation: H2 + Br2 <=> 2 HBr
+    stoichiometry: {H2: -1.0, Br2: -1.0, HBr: 2.0}
+    reversible: true
+    # the reaction's own conversion is the burner's (R101); the finishing bed R102 is an
+    # equilibrium reactor (DESIGN.md D-005)
+    conversion: {key: Br2, value: 0.9997, provenance: given, source: "US 3 988 427 A (Ethyl Corp.), Example: bromine conversion of the flame reactor about 99.97 mol-% on average (99.96-99.99) with about 2.6 mol-% hydrogen excess; applied at 5 mol-% excess (D-004, D-005)"}
+    heat_of_reaction:
+      value: -102580.0
+      provenance: given
+      source: "ATcT via cheme chemistry thermo (chemicals package): 2 x dHf(HBr, g) -35.85 less dHf(Br2, g) +30.88 kJ/mol at 298.15 K; Wikipedia 'Hydrogen bromide' infobox gives dHf(HBr) -36.13 to -36.45 kJ/mol (-103.1 to -103.8 kJ per extent)"
+    # no catalyst on the reaction: the burner R101 is a flame; the finishing bed R102 names
+    # ACT_C (process/catalysts.yaml). Historically platinum or asbestos at 200-400 degC
+    # (Wikipedia 'Hydrogen bromide', Industrial preparation).
+    sources: ["https://patents.google.com/patent/US3988427", "https://patents.google.com/patent/US6036936", "https://en.wikipedia.org/wiki/Hydrogen_bromide", "doi:10.1002/14356007.a04_405 (Ullmann, Bromine Compounds: route identity only, full text not read)"]
