@@ -1,3 +1,44 @@
 # Equipment list. Schema: `cheme schema equipment`.
-schema: cheme/equipment/v1
-equipment: []
+# Concept stage: the items the PFD (process/flowsheet.yaml) needs, no P&ID yet (no sheet).
+# Design pressure and temperature are ASSUMED concept values (D-010): the highest operating value
+# of the balance (scripts/iodine_balance.py) + 10 % (at least + 2 bar) and + 25 K. Materials
+# are first choices for wet chlorine, iodine and acid chloride/iodide liquors (open input:
+# corrosion review). Sizes, dimensions and weights come at basic engineering (datasheets).
+equipment:
+  # ---- acidification and chlorination (block OXD)
+  - {tag: R-101, type: Vessel, service: "Brine acidifier and chlorinator (static mixers in series, redox end point)",
+     design_pressure_barg: 4, design_temperature_degc: 65, material: "FRP or rubber-lined CS (acid brine with chlorine)",
+     notes: "462 t/h brine (432 m3/h); recycled liquors and 41 kg/h chlorine mixed in (D-004). ASSUMED."}
+  # ---- blowing-out and absorption (block BLO)
+  - {tag: T-201, type: Column, service: "Blowing-out tower (packed; brine down, circulating air up)",
+     design_pressure_barg: 2, design_temperature_degc: 65, material: "FRP with plastic packing (acid brine, iodine, chlorine)",
+     notes: "432 m3/h brine against 56 000 Nm3/h air (130 Nm3/m3), 92 % of the iodine stripped (D-005). Height and diameter not sized. ASSUMED."}
+  - {tag: T-202, type: Column, service: Iodine absorber (packed; HI/H2SO4 liquor with SO2),
+     design_pressure_barg: 2, design_temperature_degc: 65, material: "FRP or rubber-lined CS (HI/H2SO4/HCl liquor)",
+     notes: "Absorbs 99.5 % of the iodine of 76.5 t/h loop gas; bleed 1.28 t/h at 10 wt% HI (D-005). ASSUMED."}
+  - {tag: P-202, type: CentrifugalPump, service: Absorbent circulation pump,
+     design_pressure_barg: 4, design_temperature_degc: 65, material: "lined or non-metallic (HI/H2SO4 liquor)",
+     notes: "30 m3/h, 300 kPa, ~4 kW (D-008). ASSUMED."}
+  - {tag: K-201, type: Fan, service: Air circulation fan (blowing-out loop),
+     design_pressure_barg: 1, design_temperature_degc: 65, material: "FRP or lined (wet air with iodine traces)",
+     notes: "72.6 t/h loop air, 4 kPa rise, ~100 kW at efficiency 0.70 (D-005, D-008). ASSUMED."}
+  # ---- iodine recovery (block REC)
+  - {tag: R-301, type: Vessel, service: Iodine precipitation reactor (stirred; chlorine to a redox end point),
+     design_pressure_barg: 3, design_temperature_degc: 65, material: "glass-lined or rubber-lined CS (HI/HCl/H2SO4 with iodine)",
+     notes: "1.28 t/h bleed, 36 kg/h chlorine; 124 kg/h iodine precipitated (D-006). ASSUMED."}
+  - {tag: F-301, type: Filter, service: Iodine filter,
+     design_pressure_barg: 3, design_temperature_degc: 65, material: "lined or non-metallic (acid liquor, iodine)",
+     notes: "Cake 139 kg/h with 10 wt% mother liquor; filtrate to the brine head (D-006). Type (pressure or vacuum filter, centrifuge) open. ASSUMED."}
+  - {tag: M-301, type: Vessel, service: Iodine melter (under concentrated sulfuric acid; LP steam jacket),
+     design_pressure_barg: 2, design_temperature_degc: 145, material: "glass-lined steel or high-silicon iron (molten iodine, H2SO4)",
+     notes: "Melts 125 kg/h iodine at about 393 K under 25 kg/h 98.5 wt% acid; ~8 kW LP steam (D-006, D-008). ASSUMED."}
+  - {tag: X-301, type: Vessel, service: Iodine flaker (cooled drum),
+     design_pressure_barg: 2, design_temperature_degc: 145, material: "Hastelloy or similar iodine-resistant alloy drum (open input)",
+     notes: "125 kg/h molten iodine to flakes, ~3 kW to cooling water (D-008). Prilling is the alternative. ASSUMED."}
+  # ---- neutralisation and reinjection (block NEU)
+  - {tag: R-401, type: Vessel, service: Spent brine neutraliser (caustic to neutral),
+     design_pressure_barg: 2, design_temperature_degc: 65, material: "FRP or rubber-lined CS",
+     notes: "463 t/h spent brine, 71 kg/h NaOH as 50 wt% (D-009). ASSUMED."}
+  - {tag: P-401, type: CentrifugalPump, service: Reinjection pump,
+     design_pressure_barg: 34, design_temperature_degc: 65, material: "duplex stainless (neutral brine)",
+     notes: "432 m3/h, 110 -> 3100 kPa(a), ~480 kW at efficiency 0.75 (D-008, D-009). The injection pressure is ASSUMED; the formation's need is unknown."}
