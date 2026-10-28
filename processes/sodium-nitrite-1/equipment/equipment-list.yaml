@@ -1,3 +1,36 @@
 # Equipment list. Schema: `cheme schema equipment`.
+# The items of the PFD (process/flowsheet.yaml), concept stage: no P&ID, no sizing. Design
+# pressures and temperatures are ASSUMED placeholders for the materials question, not
+# mechanical design values (DESIGN.md D-012). Duties from scripts/balance.py (D-010, D-011).
 schema: cheme/equipment/v1
-equipment: []
+equipment:
+  # ---- ammonia oxidation and heat recovery (OX)
+  - {tag: E-101, type: HeatExchanger, service: "Ammonia vaporiser (LP steam)", design_pressure_barg: 18, design_temperature_degc: 160, material: "Carbon steel (low-temperature grade on the ammonia side)",
+     notes: "Vaporises 680 kg/h liquid ammonia from 1600 kPa(a) and heats it to 25 degC; 227 kW LP steam (D-010). An ammonia filter and the air-ammonia mixer (static mixer) belong to the burner package. ASSUMED."}
+  - {tag: K-101, type: Blower, service: "Process air filter and blower", design_pressure_barg: 1, design_temperature_degc: 80, material: Carbon steel,
+     notes: "10.0 t/h humid air from 101.3 to 131.3 kPa(a), 84.5 kW shaft at isentropic efficiency 0.75 (D-011). ASSUMED."}
+  - {tag: R-101, type: Reactor, service: "Ammonia burner (Pt/Rh gauze) with waste heat boiler", design_pressure_barg: 3, design_temperature_degc: 950, material: "Burner head and gauze support high-alloy stainless steel; WHB tubes alloy steel",
+     notes: "10.3 mol-% NH3 in air over Pt/Rh 95/5 gauzes at 850-950 degC and about 1.2-1.3 bar(a) (US 12 565 427 B2); NO selectivity 0.97 ASSUMED; gas cooled to 200 degC in the integral waste heat boiler raising about 2.9 t/h steam at 1000 kPa(a) (Q1 1.89 MW) for the evaporator first effect (D-005, D-010). Platinum loss not modelled. ASSUMED."}
+  # ---- NOx absorption (ABS)
+  - {tag: T-201, type: Tank, service: "Soda ash dissolver (agitated)", design_pressure_barg: 0.1, design_temperature_degc: 80, material: Carbon steel,
+     notes: "2.16 t/h dense soda ash dissolved in 8.66 t/h evaporator condensate to a 20 wt-% solution (D-006). Soda ash silo and feeder part of the package. ASSUMED."}
+  - {tag: C-201, type: Column, service: "Oxidation volume and NOx absorption towers in series (soda solution, liquor circulation coolers)", design_pressure_barg: 1, design_temperature_degc: 220, material: "Austenitic stainless steel (304L/316L); packing stainless or plastic",
+     notes: "Lumps an oxidation vessel and several packed towers in series with countercurrent soda solution and circulation coolers (US 2 032 699 uses three towers). NO2/(NO+NO2) held near 0.5 (D-006). 99.5 % of the NOx nitrogen absorbed, tail gas 670 ppmv NOx dry; CW duty 1.73 MW (D-010). ASSUMED."}
+  # ---- evaporation, crystallisation and drying of NaNO2 (NIT)
+  - {tag: E-301, type: Evaporator, service: "Double-effect evaporator for nitrite liquor", design_pressure_barg: 10, design_temperature_degc: 190, material: Austenitic stainless steel,
+     notes: "Evaporates 9.0 t/h water from the absorber liquor and recycled mother liquor to a concentrate of about 57 wt-% NaNO2 at 125 degC; first effect on the WHB steam (1.89 MW) plus 1.25 MW LP steam, economy 1.8 ASSUMED; second-effect condenser 2.97 MW CW (D-008, D-010). Design pressure for the steam side. ASSUMED."}
+  - {tag: CR-301, type: Crystallizer, service: "NaNO2 vacuum cooling crystalliser", design_pressure_barg: 1, design_temperature_degc: 150, material: Austenitic stainless steel,
+     notes: "Cools the concentrate to about 55 degC by evaporative cooling under vacuum (US 2 032 699, example); 2.44 t/h crystals; vacuum condenser 0.51 MW CW (D-008, D-010). ASSUMED."}
+  - {tag: S-301, type: Centrifuge, service: "NaNO2 centrifuge (pusher)", design_pressure_barg: 0, design_temperature_degc: 80, material: Austenitic stainless steel,
+     notes: "Separates the crystals with 0.05 kg mother liquor per kg; mother liquor 1.5 kg/kg crystals back to E-301, 0.67 t/h purge to R-401 (D-008). ASSUMED."}
+  - {tag: D-301, type: Dryer, service: "NaNO2 dryer (steam-heated air) with dust filter", design_pressure_barg: 0, design_temperature_degc: 150, material: Austenitic stainless steel,
+     notes: "Dries 2.56 t/h cake to 2.50 t/h product with 0.1 wt-% moisture; 79 kW LP steam at efficiency 0.5 (D-010). Anti-caking treatment, screening and bagging outside the boundary. ASSUMED."}
+  # ---- inversion and sodium nitrate (NAT)
+  - {tag: R-401, type: Reactor, service: "Inversion reactor (nitrite to nitrate with nitric acid)", design_pressure_barg: 1, design_temperature_degc: 100, material: "Austenitic stainless steel (304L)",
+     notes: "0.67 t/h mother liquor purge with 0.24 t/h nitric acid 60 wt-%; the NO released is blown with air back to C-201 (US 2 013 984, D-009). ASSUMED."}
+  - {tag: CR-401, type: Crystallizer, service: "NaNO3 evaporative crystalliser", design_pressure_barg: 5, design_temperature_degc: 160, material: Austenitic stainless steel,
+     notes: "Evaporates 0.44 t/h water, single effect on 273 kW LP steam; condenser 288 kW CW (D-009, D-010). ASSUMED."}
+  - {tag: S-401, type: Centrifuge, service: "NaNO3 centrifuge", design_pressure_barg: 0, design_temperature_degc: 80, material: Austenitic stainless steel,
+     notes: "0.41 t/h wet cake with 0.05 kg liquor per kg; mother liquor returned to CR-401 (not shown in the balance) (D-009). ASSUMED."}
+  - {tag: D-401, type: Dryer, service: "NaNO3 dryer (steam-heated air) with dust filter", design_pressure_barg: 0, design_temperature_degc: 150, material: Austenitic stainless steel,
+     notes: "0.40 t/h sodium nitrate with 0.1 wt-% moisture; 13 kW LP steam (D-010). ASSUMED."}

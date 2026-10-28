@@ -1,24 +1,340 @@
 # The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
 # never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
-# Units are explicit: a property without its own unit is in these. Pressure is absolute; a gauge
-# value needs its own unit (kPa(g)). Nm3/h needs normal_conditions.
+#
+# Sodium nitrite by absorption of nitrous gas from ammonia oxidation in soda solution, with
+# evaporation, NaNO2 crystallisation and drying, and inversion of the mother-liquor purge to
+# sodium nitrate with nitric acid (DESIGN.md D-001..D-003). Ammonia (ammonia-1), soda ash
+# (soda-ash-1) and 60 wt-% nitric acid (nitric-acid-1) are boundary feeds made by other
+# library processes.
+# Where the values come from:
+# - the burner outlet S5 is calculated by cheme (conversion reactor R101, D-005) from the
+#   feeds S2 and S4; its temperature after the waste heat boiler is assumed;
+# - every other material stream and every duty comes from the independent balance
+#   scripts/balance.py (D-007), run with `cheme run scripts/balance.py --yaml`, given as
+#   ASSUMED; its inputs are sourced or ASSUMED in DESIGN.md;
+# - the liquors are aqueous electrolytes (core#364): their enthalpies are not calculated by
+#   cheme; the absorber, evaporator and crystalliser duties rest on the estimates of D-010.
 schema: cheme/process/v1
 kind: flowsheet
-title: ""
+title: Sodium nitrite from ammonia oxidation and soda absorption (2.5 t/h NaNO2, NaNO3 co-product)
 units:
   pressure: kPa(a)
   temperature: K
   flow: kg/h
   duty: kW
   enthalpy: kJ/kmol
-  # normal_conditions: {temperature: 273.15, pressure: 101.325, basis: ideal_gas}
-  # enthalpy_reference: {state: ideal_gas, temperature: 298.15}
 cases:
-  - {id: design, description: Design case, default: true}
+  - {id: design, description: "Design case: 2 500 kg/h dried sodium nitrite (99.0 wt-% NaNO2) at the gate, 8000 h/a = 20 kt/a; NaNO2:NaNO3 20:1 in the absorber liquor; mother-liquor purge inverted to NaNO3 (D-002, D-006, D-009)", default: true}
 tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
-feeds: []      # external feeds (DEXPI Source): {id, title, ports: [{id: out, direction: out}]}
-products: []   # products (DEXPI Sink): {id, title, ports: [{id: in, direction: in}]}
-blocks: []     # BFD blocks: {id, title, class, ports: [{id, direction, kind}], links}
-steps: []      # PFD steps: {id, block, title, class, ports: [{id, direction, delegates}], links}
-streams: []    # {id, title, kind, from: NODE.port, to: NODE.port, template, state: {design: {...}}}
+
+feeds:
+  - {id: NH3, title: "Liquid ammonia from ammonia-1 (battery limit, 1600 kPa(a))", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: AIR, title: Ambient air, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: SODA, title: "Soda ash, dense, from soda-ash-1", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: HNO3, title: "Nitric acid 60 wt-% from nitric-acid-1", category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power (AC, grid)
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: k101, direction: out, kind: energy}
+      - {id: c201, direction: out, kind: energy}
+      - {id: e301, direction: out, kind: energy}
+      - {id: cr301, direction: out, kind: energy}
+      - {id: d301, direction: out, kind: energy}
+      - {id: r401, direction: out, kind: energy}
+      - {id: cr401, direction: out, kind: energy}
+      - {id: d401, direction: out, kind: energy}
+  - id: LPS
+    title: Low-pressure steam 450 kPa(a) from the site header
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 450, provenance: assumed, source: "D-010: site LP header, as nitric-acid-1's LP level"}
+      supply_temperature: {value: 420.8, provenance: assumed, source: "saturation at 450 kPa(a) (IAPWS-IF97), D-010"}
+      min_approach: {value: 10, provenance: assumed, source: D-010}
+    ports:
+      - {id: e101, direction: out, kind: energy}
+      - {id: e301, direction: out, kind: energy}
+      - {id: d301, direction: out, kind: energy}
+      - {id: cr401, direction: out, kind: energy}
+      - {id: d401, direction: out, kind: energy}
+products:
+  - {id: NANO2, title: "Sodium nitrite, dried, 99.0 wt-% (to bagging and storage)", category: product, ports: [{id: in, direction: in}]}
+  - {id: NANO3, title: "Sodium nitrate, dried (co-product)", category: by_product, ports: [{id: in, direction: in}]}
+  - {id: TAIL, title: Absorber tail gas to stack, category: emission, ports: [{id: in, direction: in}]}
+  - id: DRYVENT
+    title: Dryer exhaust (water vapour, after dust filters) to atmosphere
+    category: emission
+    ports:
+      - {id: d301, direction: in}
+      - {id: d401, direction: in}
+  - id: COND
+    title: Surplus process condensate to the site water system
+    category: wastewater
+    ports:
+      - {id: e301, direction: in}
+      - {id: cr401, direction: in}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: D-010}
+      return_temperature: {value: 308.15, provenance: assumed, source: D-010}
+      min_approach: {value: 5, provenance: assumed, source: D-010}
+    ports:
+      - {id: c201, direction: in, kind: energy}
+      - {id: e301, direction: in, kind: energy}
+      - {id: cr301, direction: in, kind: energy}
+      - {id: cr401, direction: in, kind: energy}
+
+blocks:
+  - id: OX
+    title: Ammonia oxidation and heat recovery
+    class: ReactingChemicals
+    ports:
+      - {id: nh3, direction: in}
+      - {id: air, direction: in}
+      - {id: gas, direction: out}
+      - {id: steam, direction: out, kind: energy}
+      - {id: lps, direction: in, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: ABS
+    title: NOx absorption in soda solution
+    class: Absorbing
+    ports:
+      - {id: gas, direction: in}
+      - {id: invgas, direction: in}
+      - {id: soda, direction: in}
+      - {id: water, direction: in}
+      - {id: liquor, direction: out}
+      - {id: tail, direction: out}
+      - {id: cw, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: NIT
+    title: Evaporation, NaNO2 crystallisation and drying
+    class: Crystallizing
+    ports:
+      - {id: liquor, direction: in}
+      - {id: water, direction: out}
+      - {id: cond, direction: out}
+      - {id: purge, direction: out}
+      - {id: product, direction: out}
+      - {id: vent, direction: out}
+      - {id: whb, direction: in, kind: energy}
+      - {id: lps_e, direction: in, kind: energy}
+      - {id: lps_d, direction: in, kind: energy}
+      - {id: cw_e, direction: out, kind: energy}
+      - {id: cw_c, direction: out, kind: energy}
+      - {id: power_e, direction: in, kind: energy}
+      - {id: power_c, direction: in, kind: energy}
+      - {id: power_d, direction: in, kind: energy}
+  - id: NAT
+    title: Inversion and sodium nitrate recovery
+    class: ReactingChemicals
+    ports:
+      - {id: purge, direction: in}
+      - {id: acid, direction: in}
+      - {id: gas, direction: out}
+      - {id: product, direction: out}
+      - {id: cond, direction: out}
+      - {id: vent, direction: out}
+      - {id: lps_c, direction: in, kind: energy}
+      - {id: lps_d, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+      - {id: power_r, direction: in, kind: energy}
+      - {id: power_c, direction: in, kind: energy}
+      - {id: power_d, direction: in, kind: energy}
+
+steps:
+  # OX: ammonia vaporiser, air blower, burner with waste heat boiler (D-004, D-005)
+  - id: E101
+    block: OX
+    title: Ammonia vaporiser (LP steam)
+    class: Evaporating
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: in, direction: in, delegates: nh3}
+      - {id: out, direction: out}
+      - {id: heat, direction: in, kind: energy, delegates: lps}
+  - id: K101
+    block: OX
+    title: Process air filter and blower
+    class: Compressing
+    links: [{target: equipment, ref: K-101}]
+    ports:
+      - {id: in, direction: in, delegates: air}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: R101
+    block: OX
+    title: Ammonia burner (Pt/Rh gauze) with waste heat boiler
+    class: ReactingChemicals
+    reactions: [NH3_OX, NH3_N2O, NH3_N2]
+    reactor: conversion
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: nh3, direction: in}
+      - {id: air, direction: in}
+      - {id: out, direction: out, delegates: gas}
+      - {id: steam, direction: out, kind: energy, delegates: steam}
+  # ABS: soda dissolver and the absorption train (oxidation volume, absorption towers in
+  # series with liquor circulation and coolers), lumped in C201 (D-006)
+  - id: T201
+    block: ABS
+    title: Soda ash dissolver
+    class: Mixing
+    links: [{target: equipment, ref: T-201}]
+    ports:
+      - {id: soda, direction: in, delegates: soda}
+      - {id: water, direction: in, delegates: water}
+      - {id: out, direction: out}
+  - id: C201
+    block: ABS
+    title: Oxidation volume and NOx absorption towers in series (soda solution, cooled)
+    class: Absorbing
+    reactions: [NO_OX, NITRITE_ABS, NITRATE_ABS]
+    links: [{target: equipment, ref: C-201}]
+    ports:
+      - {id: gas, direction: in, delegates: gas}
+      - {id: invgas, direction: in, delegates: invgas}
+      - {id: soda, direction: in}
+      - {id: liquor, direction: out, delegates: liquor}
+      - {id: tail, direction: out, delegates: tail}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # NIT: double-effect evaporator, vacuum cooling crystalliser with centrifuge, dryer (D-008)
+  - id: E301
+    block: NIT
+    title: Double-effect evaporator (first effect on waste-heat-boiler steam)
+    class: Evaporating
+    links: [{target: equipment, ref: E-301}]
+    ports:
+      - {id: liquor, direction: in, delegates: liquor}
+      - {id: recycle, direction: in}
+      - {id: conc, direction: out}
+      - {id: water, direction: out, delegates: water}
+      - {id: cond, direction: out, delegates: cond}
+      - {id: whb, direction: in, kind: energy, delegates: whb}
+      - {id: steam, direction: in, kind: energy, delegates: lps_e}
+      - {id: cw, direction: out, kind: energy, delegates: cw_e}
+      - {id: power, direction: in, kind: energy, delegates: power_e}
+  - id: CR301
+    block: NIT
+    title: NaNO2 vacuum crystalliser and centrifuge (mother liquor recycle and purge)
+    class: Crystallizing
+    links: [{target: equipment, ref: CR-301}, {target: equipment, ref: S-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: cake, direction: out}
+      - {id: recycle, direction: out}
+      - {id: purge, direction: out, delegates: purge}
+      - {id: cw, direction: out, kind: energy, delegates: cw_c}
+      - {id: power, direction: in, kind: energy, delegates: power_c}
+  - id: D301
+    block: NIT
+    title: NaNO2 dryer (steam-heated air)
+    class: Drying
+    links: [{target: equipment, ref: D-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: product}
+      - {id: vap, direction: out, delegates: vent}
+      - {id: heat, direction: in, kind: energy, delegates: lps_d}
+      - {id: power, direction: in, kind: energy, delegates: power_d}
+  # NAT: inversion reactor, NaNO3 evaporative crystalliser with centrifuge, dryer (D-009)
+  - id: R401
+    block: NAT
+    title: Inversion reactor (nitrite to nitrate with nitric acid, NO to the absorbers)
+    class: ReactingChemicals
+    reactions: [INVERSION, CARB_NEU]
+    links: [{target: equipment, ref: R-401}]
+    ports:
+      - {id: purge, direction: in, delegates: purge}
+      - {id: acid, direction: in, delegates: acid}
+      - {id: gas, direction: out, delegates: gas}
+      - {id: liq, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power_r}
+  - id: CR401
+    block: NAT
+    title: NaNO3 evaporative crystalliser and centrifuge
+    class: Crystallizing
+    links: [{target: equipment, ref: CR-401}, {target: equipment, ref: S-401}]
+    ports:
+      - {id: in, direction: in}
+      - {id: cake, direction: out}
+      - {id: vap, direction: out, delegates: cond}
+      - {id: steam, direction: in, kind: energy, delegates: lps_c}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+      - {id: power, direction: in, kind: energy, delegates: power_c}
+  - id: D401
+    block: NAT
+    title: NaNO3 dryer (steam-heated air)
+    class: Drying
+    links: [{target: equipment, ref: D-401}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: product}
+      - {id: vap, direction: out, delegates: vent}
+      - {id: heat, direction: in, kind: energy, delegates: lps_d}
+      - {id: power, direction: in, kind: energy, delegates: power_d}
+
+# Material streams: flow (kg/h) and composition (mass fractions) from scripts/balance.py
+# (D-007) unless calculated by cheme; temperatures and pressures are design choices, ASSUMED.
+streams:
+  - {id: S1, title: Liquid ammonia feed, from: NH3.out, to: E101.in, template: ammonia, state: {design: {temperature: {value: 288.15, provenance: assumed, source: "D-004, as nitric-acid-1"}, pressure: {value: 1600.0, provenance: assumed, source: D-004}, flow: {value: 680.19, basis: mass, provenance: assumed, source: "scripts/balance.py: NH3 for the NO absorbed, NO selectivity 0.97 (D-005)"}, composition: {basis: mass_fraction, values: {NH3: 1.0}, provenance: assumed, source: "D-004: pure NH3 (water and oil of commercial ammonia not modelled)"}}}}
+  - {id: S2, title: Ammonia vapour to the burner, from: E101.out, to: R101.nh3, template: ammonia, state: {design: {temperature: {value: 298.15, provenance: assumed, source: D-005}, pressure: {value: 400.0, provenance: assumed, source: D-005}, flow: {value: 680.19, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {NH3: 1.0}, provenance: assumed, source: D-004}}}}
+  - {id: S3, title: Ambient air, from: AIR.out, to: K101.in, template: air, state: {design: {temperature: {value: 288.15, provenance: assumed, source: D-004}, pressure: {value: 101.3, provenance: assumed, source: D-004}, flow: {value: 10034.48, basis: mass, provenance: assumed, source: "scripts/balance.py: 10.3 mol-% NH3 in the burner feed (US 12 565 427 B2, D-005)"}, composition: {basis: mass_fraction, values: {N2: 0.7509866, O2: 0.23003, AR: 0.012739, H2O: 0.0062443}, provenance: assumed, source: "D-004: N2 77.34, O2 20.74, Ar 0.92, H2O 1.00 mol-% (as nitric-acid-1)"}}}}
+  - {id: S4, title: Process air to the burner, from: K101.out, to: R101.air, template: air, state: {design: {temperature: {value: 303.15, provenance: assumed, source: D-011}, pressure: {value: 131.3, provenance: assumed, source: "D-005: burner inlet about 1.3 bar(a), inside the 1-4 bar of US 12 565 427 B2"}, flow: {value: 10034.48, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {N2: 0.7509866, O2: 0.23003, AR: 0.012739, H2O: 0.0062443}, provenance: assumed, source: D-004}}}}
+  - id: S5
+    title: Nitrous gas after the waste heat boiler
+    from: R101.out
+    to: C201.gas
+    template: nitrous_gas
+    state:
+      design:
+        temperature: {value: 473.15, provenance: assumed, source: "D-005: gas cooled to 200-250 degC in the waste heat boiler (US 12 565 427 B2, Detailed Description); 200 degC taken"}
+        pressure: {value: 120.0, provenance: assumed, source: D-005}
+        flow: {value: 10714.7, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S4', fingerprint: dea20055be2e2cd3}
+        composition: {basis: mole_fraction, values: {NH3: 5.86389e-18, N2: 0.677366, O2: 0.0570252, AR: 0.00804806, H2O: 0.159422, 'NO': 0.0974357, N2O: 0.000703144}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S4', fingerprint: 0ad3c6eeacb214f0}
+  - {id: S6, title: Soda ash feed, from: SODA.out, to: T201.soda, template: soda, state: {design: {temperature: {value: 298.15, provenance: assumed, source: D-004}, pressure: {value: 101.3, provenance: assumed, source: D-004}, flow: {value: 2164.37, basis: mass, provenance: assumed, source: "scripts/balance.py: Na2CO3 for the nitrite and nitrate formed and the carbonate left in the liquors (D-006)"}, composition: {basis: mass_fraction, values: {Na2CO3: 1.0}, provenance: assumed, source: "D-004: dense soda ash taken as pure Na2CO3 (NaCl and other impurities not modelled)"}}}}
+  - {id: S7, title: Condensate to the soda dissolver, from: E301.water, to: T201.water, template: water, state: {design: {temperature: {value: 333.15, provenance: assumed, source: D-008}, pressure: {value: 300.0, provenance: assumed, source: D-008}, flow: {value: 8657.48, basis: mass, provenance: assumed, source: "scripts/balance.py: water for a 20 wt-% soda solution (D-006)"}, composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: "D-008: evaporator condensate, nitrite traces not modelled"}}}}
+  - {id: S8, title: Soda solution 20 wt-% to the absorbers, from: T201.out, to: C201.soda, template: liquor, state: {design: {temperature: {value: 318.15, provenance: assumed, source: D-006}, pressure: {value: 300.0, provenance: assumed, source: D-006}, flow: {value: 10821.85, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {Na2CO3: 0.2, H2O: 0.8}, provenance: assumed, source: "D-006: 20 wt-% Na2CO3 (US 2 032 699 uses about 215 g/l)"}}}}
+  - {id: S9, title: Nitrite liquor from the absorbers, from: C201.liquor, to: E301.liquor, template: liquor, state: {design: {temperature: {value: 313.15, provenance: assumed, source: D-006}, pressure: {value: 300.0, provenance: assumed, source: D-006}, flow: {value: 12224.16, basis: mass, provenance: assumed, source: "scripts/balance.py: NaNO2:NaNO3 20:1 by mass (D-006)"}, composition: {basis: mass_fraction, values: {NaNO2: 0.2206329, NaNO3: 0.0110316, Na2CO3: 0.0007138, H2O: 0.7676216}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S10, title: Absorber tail gas to stack, from: C201.tail, to: TAIL.in, template: nitrous_gas, state: {design: {temperature: {value: 313.15, provenance: assumed, source: D-006}, pressure: {value: 105.0, provenance: assumed, source: D-006}, flow: {value: 9379.69, basis: mass, provenance: assumed, source: "scripts/balance.py: 99.5 % of the NOx nitrogen absorbed, rest as NO (670 ppmv dry); water-saturated at 313 K (D-006)"}, composition: {basis: mass_fraction, values: {N2: 0.8043673, AR: 0.0136283, N2O: 0.0013118, O2: 0.0399485, "NO": 0.0006539, CO2: 0.0957545, H2O: 0.0443356}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S12, title: Concentrate to the crystalliser, from: E301.conc, to: CR301.in, template: liquor, state: {design: {temperature: {value: 398.15, provenance: assumed, source: "D-008: about 125 degC as in US 2 032 699 (example)"}, pressure: {value: 120.0, provenance: assumed, source: D-008}, flow: {value: 6881.45, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {NaNO2: 0.5671066, NaNO3: 0.1098386, Na2CO3: 0.0071072, H2O: 0.3159476}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S14, title: Surplus condensate, from: E301.cond, to: COND.e301, template: water, state: {design: {temperature: {value: 333.15, provenance: assumed, source: D-008}, pressure: {value: 300.0, provenance: assumed, source: D-008}, flow: {value: 338.15, basis: mass, provenance: assumed, source: "scripts/balance.py: evaporation 8 995.6 kg/h less the dissolver water"}, composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-008}}}}
+  - {id: S15, title: NaNO2 centrifuge cake, from: CR301.cake, to: D301.in, template: liquor, state: {design: {temperature: {value: 328.15, provenance: assumed, source: "D-008: crystalliser at about 55 degC (US 2 032 699, example)"}, pressure: {value: 101.3, provenance: assumed, source: D-008}, flow: {value: 2557.04, basis: mass, provenance: assumed, source: "scripts/balance.py: crystals with 0.05 kg mother liquor per kg (D-008)"}, composition: {basis: mass_fraction, values: {NaNO2: 0.9680952, NaNO3: 0.0080952, Na2CO3: 0.0005238, H2O: 0.0232857}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S16, title: Mother liquor recycle to the evaporator, from: CR301.recycle, to: E301.recycle, template: liquor, state: {design: {temperature: {value: 328.15, provenance: assumed, source: D-008}, pressure: {value: 300.0, provenance: assumed, source: D-008}, flow: {value: 3652.92, basis: mass, provenance: assumed, source: "scripts/balance.py: 1.5 kg per kg crystals (D-008)"}, composition: {basis: mass_fraction, values: {NaNO2: 0.33, NaNO3: 0.17, Na2CO3: 0.011, H2O: 0.489}, provenance: assumed, source: "D-008: mother liquor of US 2 032 699 (example, tank 21)"}}}}
+  - {id: S17, title: Mother liquor purge to inversion, from: CR301.purge, to: R401.purge, template: liquor, state: {design: {temperature: {value: 328.15, provenance: assumed, source: D-008}, pressure: {value: 300.0, provenance: assumed, source: D-008}, flow: {value: 671.49, basis: mass, provenance: assumed, source: "scripts/balance.py: removes the nitrate formed in the absorbers (D-008)"}, composition: {basis: mass_fraction, values: {NaNO2: 0.33, NaNO3: 0.17, Na2CO3: 0.011, H2O: 0.489}, provenance: assumed, source: D-008}}}}
+  - {id: S18, title: Sodium nitrite product, from: D301.out, to: NANO2.in, template: liquor, state: {design: {temperature: {value: 323.15, provenance: assumed, source: D-008}, pressure: {value: 101.3, provenance: assumed, source: D-008}, flow: {value: 2500.0, basis: mass, provenance: assumed, source: "design basis, D-002"}, composition: {basis: mass_fraction, values: {NaNO2: 0.9901843, NaNO3: 0.0082799, Na2CO3: 0.0005358, H2O: 0.001}, provenance: assumed, source: "scripts/balance.py: crystals plus dried cake liquor, 0.1 wt-% moisture (D-002, D-008)"}}}}
+  - {id: S19, title: NaNO2 dryer water vapour, from: D301.vap, to: DRYVENT.d301, template: water, state: {design: {temperature: {value: 353.15, provenance: assumed, source: D-008}, pressure: {value: 101.3, provenance: assumed, source: D-008}, flow: {value: 57.04, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: "D-008: water only (dust after the filter not modelled)"}}}}
+  - {id: S20, title: Nitric acid feed, from: HNO3.out, to: R401.acid, template: acid, state: {design: {temperature: {value: 313.15, provenance: assumed, source: "nitric-acid-1 product delivery, D-004"}, pressure: {value: 300.0, provenance: assumed, source: D-004}, flow: {value: 239.5, basis: mass, provenance: assumed, source: "scripts/balance.py: stoichiometric for the purge's nitrite and carbonate (D-009)"}, composition: {basis: mass_fraction, values: {HNO3: 0.6, H2O: 0.4}, provenance: assumed, source: "nitric-acid-1 product, 60 wt-% HNO3 (D-004)"}}}}
+  - {id: S21, title: Inversion gas (NO) to the absorbers, from: R401.gas, to: C201.invgas, template: nitrous_gas, state: {design: {temperature: {value: 333.15, provenance: assumed, source: D-009}, pressure: {value: 130.0, provenance: assumed, source: D-009}, flow: {value: 67.31, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {"NO": 0.9544371, CO2: 0.0455629}, provenance: assumed, source: "scripts/balance.py: water vapour and stripping air not modelled (D-009)"}}}}
+  - {id: S22, title: Nitrate liquor to the NaNO3 crystalliser, from: R401.liq, to: CR401.in, template: nitrate, state: {design: {temperature: {value: 333.15, provenance: assumed, source: D-009}, pressure: {value: 300.0, provenance: assumed, source: D-009}, flow: {value: 843.67, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {NaNO3: 0.4729015, H2O: 0.5270985}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S23, title: NaNO3 centrifuge cake, from: CR401.cake, to: D401.in, template: nitrate, state: {design: {temperature: {value: 313.15, provenance: assumed, source: D-009}, pressure: {value: 101.3, provenance: assumed, source: D-009}, flow: {value: 408.51, basis: mass, provenance: assumed, source: "scripts/balance.py: crystals with 0.05 kg liquor (51 wt-% NaNO3) per kg (D-009)"}, composition: {basis: mass_fraction, values: {NaNO3: 0.9766667, H2O: 0.0233333}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S24, title: NaNO3 crystalliser condensate, from: CR401.vap, to: COND.cr401, template: water, state: {design: {temperature: {value: 333.15, provenance: assumed, source: D-009}, pressure: {value: 101.3, provenance: assumed, source: D-009}, flow: {value: 435.17, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-009}}}}
+  - {id: S25, title: Sodium nitrate co-product, from: D401.out, to: NANO3.in, template: nitrate, state: {design: {temperature: {value: 323.15, provenance: assumed, source: D-009}, pressure: {value: 101.3, provenance: assumed, source: D-009}, flow: {value: 399.37, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {NaNO3: 0.999, H2O: 0.001}, provenance: assumed, source: "scripts/balance.py: 0.1 wt-% moisture (D-009)"}}}}
+  - {id: S26, title: NaNO3 dryer water vapour, from: D401.vap, to: DRYVENT.d401, template: water, state: {design: {temperature: {value: 353.15, provenance: assumed, source: D-009}, pressure: {value: 101.3, provenance: assumed, source: D-009}, flow: {value: 9.13, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-009}}}}
+  # Energy streams (duties from scripts/balance.py, D-010, D-011)
+  - {id: Q1, title: Waste-heat-boiler steam to the evaporator first effect, kind: energy, from: R101.steam, to: E301.whb, state: {design: {duty: {value: 1887.8, provenance: assumed, source: "scripts/balance.py: R101 duty 1 964.2 kW (equal to cheme process reactors) less 3 % of the heat released as loss; steam about 1000 kPa(a) (D-005, D-010)"}}}}
+  - {id: Q2, title: Ammonia vaporiser LP steam, kind: energy, from: LPS.e101, to: E101.heat, state: {design: {duty: {value: 227.1, provenance: assumed, source: "scripts/balance.py: latent heat about 1 180 kJ/kg plus 10 K superheat (D-010)"}}}}
+  - {id: Q3, title: Air blower power, kind: energy, from: POWER.k101, to: K101.power, state: {design: {duty: {value: 84.5, provenance: assumed, source: "scripts/balance.py: 101.3 to 131.3 kPa(a), isentropic efficiency 0.75 (D-011)"}}}}
+  - {id: Q4, title: Absorber cooling water duty, kind: energy, from: C201.cw, to: CW.c201, state: {design: {duty: {value: 1732.6, provenance: assumed, source: "scripts/balance.py: gas cooling 473 to 313 K, water condensation, NO oxidation and absorption heats (D-010)"}}}}
+  - {id: Q5, title: Absorber circulation pumps, kind: energy, from: POWER.c201, to: C201.power, state: {design: {duty: {value: 30.0, provenance: assumed, source: D-011}}}}
+  - {id: Q6, title: Evaporator LP steam (balance to the WHB steam), kind: energy, from: LPS.e301, to: E301.steam, state: {design: {duty: {value: 1245.4, provenance: assumed, source: "scripts/balance.py: 8 996 kg/h water at economy 1.8 kg/kg, 2 257 kJ/kg, less Q1 (D-010)"}}}}
+  - {id: Q7, title: Evaporator condenser cooling water, kind: energy, from: E301.cw, to: CW.e301, state: {design: {duty: {value: 2973.6, provenance: assumed, source: "scripts/balance.py: second-effect vapour (half the evaporation) condensed (D-010)"}}}}
+  - {id: Q8, title: Evaporator pumps, kind: energy, from: POWER.e301, to: E301.power, state: {design: {duty: {value: 15.0, provenance: assumed, source: D-011}}}}
+  - {id: Q9, title: Crystalliser vacuum condenser cooling water, kind: energy, from: CR301.cw, to: CW.cr301, state: {design: {duty: {value: 510.4, provenance: assumed, source: "scripts/balance.py: concentrate 398 to 328 K (cp 2.8 kJ/kg K) and heat of crystallisation (D-010)"}}}}
+  - {id: Q10, title: Crystalliser and centrifuge drives, kind: energy, from: POWER.cr301, to: CR301.power, state: {design: {duty: {value: 25.0, provenance: assumed, source: D-011}}}}
+  - {id: Q11, title: NaNO2 dryer LP steam, kind: energy, from: LPS.d301, to: D301.heat, state: {design: {duty: {value: 79.2, provenance: assumed, source: "scripts/balance.py: 2 500 kJ/kg water evaporated, dryer efficiency 0.5 (D-010)"}}}}
+  - {id: Q12, title: NaNO2 dryer fan and conveyors, kind: energy, from: POWER.d301, to: D301.power, state: {design: {duty: {value: 15.0, provenance: assumed, source: D-011}}}}
+  - {id: Q13, title: Inversion reactor agitator and stripping air, kind: energy, from: POWER.r401, to: R401.power, state: {design: {duty: {value: 5.0, provenance: assumed, source: D-011}}}}
+  - {id: Q14, title: NaNO3 crystalliser LP steam, kind: energy, from: LPS.cr401, to: CR401.steam, state: {design: {duty: {value: 272.8, provenance: assumed, source: "scripts/balance.py: single effect, 2 257 kJ/kg (D-010)"}}}}
+  - {id: Q15, title: NaNO3 crystalliser condenser cooling water, kind: energy, from: CR401.cw, to: CW.cr401, state: {design: {duty: {value: 287.7, provenance: assumed, source: "scripts/balance.py (D-010)"}}}}
+  - {id: Q16, title: NaNO3 crystalliser and centrifuge drives, kind: energy, from: POWER.cr401, to: CR401.power, state: {design: {duty: {value: 10.0, provenance: assumed, source: D-011}}}}
+  - {id: Q17, title: NaNO3 dryer LP steam, kind: energy, from: LPS.d401, to: D401.heat, state: {design: {duty: {value: 12.7, provenance: assumed, source: "scripts/balance.py (D-010)"}}}}
+  - {id: Q18, title: NaNO3 dryer fan and conveyors, kind: energy, from: POWER.d401, to: D401.power, state: {design: {duty: {value: 5.0, provenance: assumed, source: D-011}}}}
 layout: {bfd: {}, pfd: {}}

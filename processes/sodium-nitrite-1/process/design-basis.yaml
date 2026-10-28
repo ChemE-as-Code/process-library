@@ -1,8 +1,58 @@
 # What the plant must do. Schema: `cheme schema design_basis`.
-schema: cheme/design_basis/v1
-capacity: {}
-feeds: []
-products: []
-utilities: []
-site: {}
-assumptions: []
+# Sodium nitrite by absorption of nitrous gas from ammonia oxidation in soda solution, issue
+# ChemE-as-Code/process-library#168. Values marked ASSUMED are engineering choices of this
+# concept study, not client, licensor or vendor data; sourced values cite their document with
+# the location. Every decision is in DESIGN.md.
+capacity:
+  basis: "dried sodium nitrite product (99.0 wt-% NaNO2) at the battery limit (D-002)"
+  nano2_product_kg_per_h: 2500        # ASSUMED (D-002): a single absorption train, chosen, not a client figure
+  nano2_product_t_per_year: 20000     # = 2 500 kg/h x 8000 h
+  operating_hours_per_year: 8000      # ASSUMED
+  turndown_percent: 50                # ASSUMED, not checked
+  nano3_coproduct_kg_per_h: 399.4     # follows from the balance (scripts/balance.py, D-009)
+feeds:
+  - name: Liquid ammonia
+    terminal: NH3
+    source_of_values: "ASSUMED pure NH3 at 288.15 K, 1600 kPa(a) as nitric-acid-1 (D-004)"
+    note: "A boundary feed made by ammonia-1; not integrated. Commercial anhydrous ammonia (>= 99.5 wt-%) carries water and oil, not modelled."
+  - name: Ambient air
+    terminal: AIR
+    composition_mol_percent: {N2: 77.34, O2: 20.74, AR: 0.92, H2O: 1.00}   # CO2 lumped into N2, as nitric-acid-1 (D-004)
+    conditions: {pressure_kPa_a: 101.3, temperature_K: 288.15}
+  - name: Soda ash, dense
+    terminal: SODA
+    source_of_values: "ASSUMED pure Na2CO3 (D-004)"
+    note: "A boundary feed made by soda-ash-1 (Solvay process); NaCl and other impurities of commercial soda ash not modelled (they would leave with the mother-liquor purge)."
+  - name: Nitric acid 60 wt-%
+    terminal: HNO3
+    source_of_values: "nitric-acid-1 weak acid product (60 wt-% HNO3, 313.15 K); ASSUMED there"
+    note: "A boundary feed made by nitric-acid-1, used only for the inversion of the mother-liquor purge (D-009)."
+products:
+  - name: Sodium nitrite, technical grade, dried
+    terminal: NANO2
+    purity: "NaNO2 99.0 wt-% (calculated 99.02), NaNO3 0.83, Na2CO3 0.05, moisture 0.10 wt-% (D-002, D-008); a typical technical-grade specification is >= 98.5-99 % NaNO2, ASSUMED, not a cited standard"
+    delivery: {pressure_kPa_a: 101.3, temperature_K: 323.15, battery_limit: "dryer outlet (screening, anti-caking and bagging outside)"}
+  - name: Sodium nitrate, dried (co-product)
+    terminal: NANO3
+    purity: "NaNO3 99.9 wt-%, moisture 0.1 wt-% (impurities of the purge not modelled, D-009)"
+  - name: Tail gas to stack
+    terminal: TAIL
+    limits: "No permit chosen. Design case: 99.5 % of the NOx nitrogen absorbed, 670 ppmv NOx (as NO, dry), 916 ppmv N2O, 3.8 vol-% O2 dry; no tail-gas abatement in the concept (D-006, open item)"
+  - name: Surplus condensate
+    terminal: COND
+    note: "Evaporator and NaNO3 crystalliser condensate not reused in the dissolver (0.77 t/h), to the site water system; nitrite traces not modelled"
+utilities:
+  - {name: Electric power, use: "air blower, circulation pumps, centrifuges, dryer fans", note: "D-011, ASSUMED"}
+  - {name: LP steam, pressure_kPa_a: 450, saturation_K: 420.8, use: "ammonia vaporiser, evaporator balance, NaNO3 crystalliser, dryers", note: "ASSUMED site header (D-010)"}
+  - {name: Waste-heat-boiler steam, pressure_kPa_a: 1000, use: "raised in R-101, used in the first effect of E-301 (internal, not exported)", note: "D-010"}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "absorber coolers, condensers", note: "ASSUMED (D-010)"}
+site:
+  location: ASSUMED generic site, not chosen
+  design_ambient_K: 288.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325   # ASSUMED
+assumptions:
+  - "D-001 boundary: liquid ammonia, air, soda ash and 60 wt-% nitric acid at the fence to dried NaNO2 and NaNO3, tail gas, dryer exhaust and surplus condensate; no storage, bagging or utility generation"
+  - "D-005 burner: complete NH3 conversion, NO selectivity 0.97 (ASSUMED), N2O transferred from the IPCC 2006 atmospheric-pressure nitric-acid default, rest N2"
+  - "D-006 absorption: specified model, NaNO2:NaNO3 = 20:1 by mass, 99.5 % NOx-N absorbed; NO/NO2 control by the oxidation degree"
+  - "D-007 the balance is a specified-split model (scripts/balance.py); electrolyte enthalpies are estimates (core#364)"
+  - "Construction, transport and end of life are outside the preliminary LCI (D-013)"
