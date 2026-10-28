@@ -1,0 +1,52 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Thionyl chloride from sulfur, chlorine and sulfur dioxide over activated carbon, issue
+# ChemE-as-Code/process-library#138. Values marked ASSUMED are engineering choices of this concept
+# study, not client or licensor data; every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: liquid thionyl chloride, technical grade, to storage at the battery limit
+  thionyl_chloride_kg_per_h: 3750       # ASSUMED (D-002): 30 kt/a at 8000 h
+  operating_hours_per_year: 8000        # ASSUMED (D-002)
+  turndown_percent: 50                  # ASSUMED, not checked
+feeds:
+  - name: Molten sulfur (merchant sulfur from refinery or gas-plant sulfur recovery; no library process makes elemental sulfur)
+    source_of_values: ASSUMED (D-003)
+    composition: "S 100 % (bright sulfur 99.9 %+; ash, carbon and water neglected, open input)"
+    conditions: {temperature_K: 413.15, pressure_kPa_a: 400}
+  - name: Chlorine gas (chlor-alkali-1, liquefied and re-evaporated)
+    source_of_values: ASSUMED (D-003)
+    composition: "Cl2 99.9 mol%, O2 0.1 mol% (the O2 leaves with the purge, D-007); moisture below the corrosion limit, to be specified"
+    conditions: {temperature_K: 313.15, pressure_kPa_a: 400}
+  - name: Liquid sulfur dioxide (merchant, from sulfur burning; sulfuric-acid-1 makes only dilute SO2 in its burner gas)
+    source_of_values: ASSUMED (D-003)
+    composition: "SO2 100 % (commercial liquid SO2, water to be specified)"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 500}
+  - name: Caustic soda 50 wt% (chlor-alkali-1) and process water, for the purge scrubber
+    source_of_values: ASSUMED (D-009)
+products:
+  - name: Thionyl chloride
+    purity: "99.7 wt% SOCl2, 0.1 wt% SCl2, 0.2 wt% S2Cl2 (ASSUMED, D-002; in the range of the finished products of US4759826A); SO2Cl2, SO2 and colour not modelled"
+    delivery: {temperature_K: 308.15, pressure_kPa_a: 300, battery_limit: product storage (not in the boundary)}
+  - name: Spent scrubber liquor
+    note: "Na2SO3, Na2SO4, NaCl, residual NaOH and traces of thiosulfate in water, to the site wastewater treatment (D-009)"
+  - name: Scrubbed vent
+    note: "the O2 of the chlorine with traces of SO2, Cl2 and sulfur chlorides, explicit in stream S43 and the LCI (D-009)"
+utilities:
+  - {name: Electric power, use: "recycle gas compressor, pumps (D-010)"}
+  - {name: LP steam, pressure_kPa_a: 500, use: "SCl2 and SO2 vaporisers, feed preheater, degasser and column reboilers", note: "ASSUMED level (D-010)"}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "chlorinators, reactor (via a tempered-water circuit), crude condenser, column condenser", note: ASSUMED}
+  - {name: Refrigerated brine, supply_K: 253.15, return_K: 258.15, use: "crude after-condenser, degasser overhead condenser", note: "ASSUMED; from a refrigeration unit outside the boundary (D-007)"}
+  - {name: Fuel, use: none}
+site:
+  location: ASSUMED generic site, integrated with chlor-alkali-1 (chlorine, caustic), not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "ASSUMED sulfur chlorides made inside the boundary from sulfur and chlorine (D-001, D-004): the still bottoms (S2Cl2 with sulfur) are rechlorinated there, as US2431823A describes."
+  - "ASSUMED reactor feed SO2 2.0 x and Cl2 1.05 x stoichiometric, after US2431823A (about 100 % SO2 and 0-10 % Cl2 excess) (D-005)."
+  - "Per-pass conversion of SCl2 0.75 from DE2430631A1 (70-75 % in its examples); S2Cl2 0.95 ASSUMED (D-005). A conversion model, not kinetics; the ideal-gas equilibrium lies much further on (ln(Q/K) = -8.6, cheme process reactors)."
+  - "ASSUMED reactor 398 K in, 473 K out, 170 -> 140 kPa(a), cooled by a tempered-water circuit to cooling water (D-005)."
+  - "ASSUMED condensation at 308 K (cooling water) and 263 K (brine), Raoult's law, O2 insoluble; degasser strips SO2 and Cl2 completely (D-006, D-007)."
+  - "ASSUMED purge 1 % of the recycle gas (O2 7 mol% in the loop) to a caustic scrubber, 99.9 % absorption (D-007, D-009)."
+  - "ASSUMED distillation with sulfur 1.10 x the SCl2 converted, 20 wt% SOCl2 left in the bottoms, reflux ratio 2 (D-008)."
+  - "All flows, temperatures and duties are concept estimates (scripts/balance.py, D-006); accuracy +/-30 % not demonstrated."
