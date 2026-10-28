@@ -1,0 +1,43 @@
+# The manganate-to-permanganate cells of potassium-permanganate-1 (DESIGN.md D-006). Schema
+# `cheme schema process-cells`; `cheme process cell` gives the Faraday, element, charge and
+# energy balance. Specified performance only: voltage and current efficiency are inputs, never
+# predicted (no polarisation model in core).
+schema: cheme/electrochemical-cells/v1
+kind: electrochemical_cells
+cells:
+  - id: EL401
+    title: Divided manganate cells (cation-exchange membrane, nickel/Monel anodes, steel cathodes)
+    performance: specified
+    reaction: ELEC
+    electrons: 2
+    electrodes:
+      anode: {equation: "2 MnO4-2 -> 2 MnO4- + 2 e-", species: {MnO4-2: -2, MnO4-: 2, e-: 2}}
+      cathode: {equation: "2 H2O + 2 e- -> H2 + 2 OH-", species: {H2O: -2, e-: -2, H2: 1, OH-: 2}}
+    dissociation:
+      K2MnO4: {K+: 2, MnO4-2: 1}
+      KMnO4: {K+: 1, MnO4-: 1}
+      KOH: {K+: 1, OH-: 1}
+    # 60 cells in series as one DC load: a design simplification (D-006); the split into
+    # cell rooms and circuits does not change the balance.
+    cells: 60
+    current: {value: 4.41206, unit: kA, provenance: assumed, source: "scripts/kmno4_balance.py: the current that converts 90 % of the cell-feed K2MnO4 at the assumed current efficiency, for 1250 kg/h product (D-002, D-006)"}
+    active_area: {value: 4.412, unit: m2, provenance: assumed, source: "D-006: sized for 1000 A/m2, inside the 500-1500 A/m2 cathode current density of US 5660712 (Description, cell design)"}
+    faradaic_efficiency: {value: 0.85, provenance: assumed, source: "D-006: ASSUMED; no open source with a current efficiency of industrial manganate cells was found (open input)"}
+    voltage: {value: 2.5, unit: V, provenance: assumed, origin: literature, source: "D-006: ASSUMED inside the 2.0-3.5 V per cell of US 5660712 (Description, cell operation)"}
+    reversible_voltage: {value: 1.38, unit: V, provenance: assumed, source: "D-009: dG of ELEC from NBS Gibbs energies of formation (aq): K+ -283.27, MnO4- -447.2, MnO4-2 -500.7, OH- -157.24, H2O(l) -237.13 kJ/mol, 266.8 kJ / (2 F); recalled values, to be checked"}
+    side_reactions:
+      - reaction: WATER_SPLIT
+        electrons: 4
+        current_fraction: {value: 0.15, provenance: assumed, source: "D-006: the current not oxidising manganate evolves O2 at the anode (with H2 at the cathode); manganate disproportionation neglected"}
+    thermal:
+      kind: isothermal
+      temperature: {value: 333.15, unit: K, provenance: assumed, source: "D-006: 60 degC, between the about 55 degC of US 5660712 and the > 60 degC of US 3986941"}
+    operating_range:
+      temperature: [323.15, 343.15]
+      current_density: [500, 1500]
+      source: "US 5660712 (Description): cathode current density 500-1500 A/m2, about 55 degC; the +/- 10 K band is ASSUMED"
+    electrolyte: "anolyte K2MnO4 6.0 -> 0.6 wt% in 11-12.5 wt% KOH at 60 degC; catholyte KOH (US 5660712: 15-35 wt%); KMnO4 partly crystallises in the anolyte"
+    flowsheet: {step: EL401, electricity: Q3, heat: Q5}
+    sources:
+      - "Carus, P. III; Adolf, H.; Carus, P. II (1997) Electrolytic production of potassium permanganate using a cationic membrane in an electrolytic cell. US Patent 5,660,712 (Carus Chemical Co.)"
+      - "Okabe, T. et al. (1976) Process for the production of alkali permanganate. US Patent 3,986,941 (Nippon Chemical Industrial Co.)"

@@ -1,0 +1,39 @@
+# Components and templates of the process. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol,
+# normal_boiling_point in K at 101.325 kPa.
+#
+# Potassium permanganate from MnO2 ore (DESIGN.md D-001). Dissolved salts are carried as neutral
+# molecules (KOH, K2MnO4, KMnO4, K2SiO3 in water): an inventory basis, not a speciation; core
+# does not speciate KOH-manganate liquors (core #364, DESIGN.md D-010). KMnO4 is one component
+# whether dissolved or crystalline: the crystal/liquor split is in the stream titles and in
+# scripts/kmno4_balance.py (the crystalliser model of core refuses several solutes, D-007).
+# The ore gangue is represented by Fe2O3 and SiO2 (D-003). Molar masses from IUPAC 2021 standard
+# atomic weights; CAS numbers from PubChem.
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.015, normal_boiling_point: 373.12}
+  - {id: KOH, name: Potassium hydroxide, formula: KOH, cas: 1310-58-3, molar_mass: 56.105}
+  - {id: MnO2, name: Manganese dioxide (pyrolusite ore mineral), formula: MnO2, cas: 1313-13-9, molar_mass: 86.936, phase: solid}
+  - {id: K2MnO4, name: Potassium manganate, formula: K2MnO4, cas: 10294-64-1, molar_mass: 197.130}
+  - {id: KMnO4, name: Potassium permanganate, formula: KMnO4, cas: 7722-64-7, molar_mass: 158.032}
+  - {id: O2, name: Oxygen, formula: O2, cas: 7782-44-7, molar_mass: 31.998, normal_boiling_point: 90.19}
+  - {id: N2, name: Nitrogen (with argon of the air), formula: N2, cas: 7727-37-9, molar_mass: 28.014, normal_boiling_point: 77.36}
+  - {id: H2, name: Hydrogen, formula: H2, cas: 1333-74-0, molar_mass: 2.016, normal_boiling_point: 20.37}
+  - {id: Fe2O3, name: Iron(III) oxide (ore gangue), formula: Fe2O3, cas: 1309-37-1, molar_mass: 159.687, phase: solid}
+  - {id: SiO2, name: "Silica (ore gangue, stands for all acid-insoluble gangue)", formula: SiO2, cas: 7631-86-9, molar_mass: 60.084, phase: solid}
+  - {id: K2SiO3, name: Potassium silicate (dissolved), formula: K2SiO3, cas: 10006-28-7, molar_mass: 154.278}
+  - {id: CaOH2, name: Calcium hydroxide (hydrated lime), formula: Ca(OH)2, cas: 1305-62-0, molar_mass: 74.092, phase: solid}
+  - {id: CaSiO3, name: Calcium silicate (precipitated), formula: CaSiO3, cas: 1344-95-2, molar_mass: 116.160, phase: solid}
+templates:
+  - id: kmno4
+    title: Permanganate process streams (ore, melts, liquors, slurries, gases, product)
+    components: [H2O, KOH, MnO2, K2MnO4, KMnO4, O2, N2, H2, Fe2O3, SiO2, K2SiO3, CaOH2, CaSiO3]
+  - id: gas
+    title: Air, off-gases, cell gases and dryer vapour (dust not modelled)
+    components: [O2, N2, H2, H2O]
+# property_method is a placeholder: no benchmarked package covers concentrated KOH-manganate
+# electrolytes, melts or solids (D-010); `cheme process props --coverage` reports them uncovered.
+property_method:
+  adapter: thermo
+  status: placeholder
