@@ -3,7 +3,8 @@
 # (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
 # exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
 #
-# None yet (DESIGN.md D-013): the preliminary inventory leaves every background unlinked, so the
+# Only feed:LPS so far, to give the Atlas build its unit (kWh of steam heat, not kg of steam):
+# the preliminary inventory otherwise leaves every background unlinked (DESIGN.md D-013), so the
 # Atlas build reports the exchanges of this internal process as gaps (ADR 0022). What each
 # should connect to is in lca/lca.yaml (`missing:`). Candidates once the shared vocabulary has
 # them (not active, listed for the consolidated mapping PR):
@@ -14,9 +15,10 @@
 #   feed:HNO3    -> a nitric-acid entry counted per kg of 60 wt-% solution (none in
 #                   lci/mappings.yaml or chemicals/chemicals.yaml yet); Atlas producer nitric-acid-1
 #   feed:POWER   -> the library default (electricity, medium voltage)
-#   feed:LPS     -> steam-heat-kwh (LP steam heat per kWh)
 #   product:CW   -> cooling-water
 #   product:COND -> wastewater-kg (treatment of process condensate) or `atlas: false` if reused
 #   product:NANO2 / product:NANO3 -> new registry slugs `sodium-nitrite`, `sodium-nitrate`
 schema: cheme-as-code/lci-process-mappings/v1
-exchanges: {}
+exchanges:
+  # LP steam is counted as heat delivered (kWh); the registry slug `steam` is counted by mass (kg)
+  "feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a) to E-301, the NH3 vaporiser and the dryers, counted as heat delivered (kWh), as nitric-acid-1 does"}

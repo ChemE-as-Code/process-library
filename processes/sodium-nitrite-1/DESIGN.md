@@ -91,8 +91,9 @@ reactors`: ln K about 250-340 at 473 K), so specifying them by conversion is con
 
 **NO/NO2 ratio control (stated)**: the nitrite reaction consumes NO and NO2 1:1 (as N2O3);
 every NO2 beyond that forms nitrate. The plant therefore holds the oxidation degree
-NO2/(NO+NO2) of the gas entering the absorbers near 0.5 and slightly below rather than above
-(SRC-2: an NO excess favours nitrite). The handles are the residence time and temperature of the
+NO2/(NO+NO2) of the gas entering the absorbers at the balance value, about 0.53 for 20:1, and
+controls it so that it does not exceed the value the nitrate specification allows (SRC-2: an
+NO excess favours nitrite; review 2026-10-28-pfd-lci-review#11). The handles are the residence time and temperature of the
 gas between the WHB and the first tower (the oxidation volume, cooled), the secondary air
 admitted there, and the NO returned from inversion. In the balance the absorbers need 21.9
 kmol/h NO2 from 40.9 kmol/h NOx, i.e. an overall oxidation degree of 0.537 consistent with a
@@ -117,9 +118,9 @@ analysis) is a P&ID-stage item.
 | concentrate | about 125 degC, 57 wt-% NaNO2 | SRC-2 temperature; composition calculated |
 | crystalliser | 55 degC; mother liquor 33/17/1.1 wt-% NaNO2/NaNO3/Na2CO3 | sourced SRC-2 (example) |
 | cake liquid | 0.05 kg/kg crystals | ASSUMED (D-008) |
-| mother liquor recycle | 1.5 kg/kg crystals (internal, no effect on the external balance) | ASSUMED (D-008) |
+| mother liquor recycle | 1.5 kg/kg crystals (no effect on the external mass balance; its water is about 20 % of the E-301 evaporation, so it sets part of the steam and CW) | ASSUMED (D-008) |
 | inversion | complete, stoichiometric 60 wt-% HNO3 | ASSUMED (D-009), route SRC-4 |
-| evaporator economy | 1.8 kg/kg (double effect) | ASSUMED (D-010) |
+| evaporator | backward-feed double effect, BPE 20 / 8 K, economy 1.69 kg/kg (calculated from the effect balances) | ASSUMED (D-010) |
 | dryer efficiency | 0.5 | ASSUMED (D-010) |
 | electric loads other than the blower | 105 kW in total | ASSUMED (D-011) |
 | tail-gas abatement | none | open (D-006) |
@@ -182,8 +183,23 @@ assumption inside the usual 0.93-0.98 band (not sourced in this run; SRC-3 calcu
 its configuration, so 0.97 is optimistic - a sensitivity). The N2O share is the IPCC
 atmospheric-pressure default for nitric acid plants (SRC-5, 5 kg N2O per t HNO3) carried over
 per mol of product nitrogen: an analogy, the same gauze chemistry at the same pressure.
-Result: R101 duty 1 964.2 kW by `cheme process reactors` (equal to scripts/balance.py); 1 887.8
-kW steam (about 2.9 t/h at 1000 kPa(a)) after the loss.
+Conflicting evidence (review 2026-10-28-pfd-lci-review#3): SRC-3's worked example states an
+N2O outlet of 19-20 kg/h from 546.4 kg/h NH3, about 0.036 kg/kg or 2.8 % of the NH3
+nitrogen, twice the 1.4 % used here. The same example is not mass-consistent (its NO + NO2
+outlet holds more nitrogen than its NH3 feed), so it is not adopted, but the N2O share is an
+analogy uncertain by about a factor of 2 (sensitivity in D-013).
+Comparison with SRC-3 (review #7): D-002 uses SRC-3's worked example (546.4 kg/h NH3) for
+sizing and burner conditions only; the register row also quotes the claim
+ranges (988-1 090 Nm3/h NH3). The example's 1.9 kg NaNO2 per kg NH3 (2 700-2 750 kg/h of
+38-40 % liquor) is far below the 3.68 kg/kg of this balance, which follows from the assumed
+97 % NO selectivity and 99.5 % absorption; the patent's figures imply a lower nitrogen yield
+or other products and are not used for the yield. The WHB here raises about 2.9 t/h against
+about 2.4 t/h scaled from SRC-3's 1.93-1.95 t/h, although SRC-3 preheats its burner feed to
+140-170 degC and this design does not: the assumed 97 % NO selectivity (SRC-3 calculates
+92 %) releases more heat, and SRC-3 does not state its losses. Not resolved at this stage.
+Result: R101 duty 2 005.2 kW by `cheme process reactors` (equal to scripts/balance.py, air
+at the blower outlet 317.7 K); 1 927.6 kW steam (about 3.0 t/h at 1000 kPa(a)) after the
+loss.
 
 ## D-006 Absorption model (2026-10-28)
 Decision: C201 lumps the oxidation volume and the absorption towers; specified outlets: 99.5 %
@@ -216,8 +232,10 @@ the dissolver, 338 kg/h surplus.
 Plausibility (not a model): the concentrate holds 179 g NaNO2 per 100 g water at 125 degC.
 Pure NaNO2 solubility is about 85 g/100 g water at 25 degC (CRC value as quoted in a web search
 summary) and about 160 at 100 degC (Wikipedia "Sodium nitrite", infobox, units given per
-100 ml); a saturated solution boils at about 128 degC (J. Chem. Eng. Data review 2021, as
-summarised). The concentrate is therefore close to saturation at 125 degC, as in SRC-2's
+100 ml); a saturated solution boils at about 128 degC (attributed in a web search summary to a
+J. Chem. Eng. Data review of 2021; no authors, DOI or locator found, **unverified**). All
+three values come from summaries and are unverified (review 2026-10-28-pfd-lci-review#10);
+the near-saturation claim below rests on them and on SRC-2. The concentrate is therefore close to saturation at 125 degC, as in SRC-2's
 evaporator (about 1000 g/l); the mother liquor (67 g NaNO2 per 100 g water with 17 % NaNO3 at
 55 degC) is below the pure-salt solubility, as expected with the common sodium ion. A ternary
 solubility diagram is an open input.
@@ -237,20 +255,35 @@ small acid excess and the impurity purge of CR-401 are not modelled.
 Decision: WHB steam (about 1000 kPa(a)) feeds the first effect of E-301 (not exported); site
 LP steam 450 kPa(a) for the balance of E-301, the ammonia vaporiser, the NaNO3 crystalliser and
 the dryers; cooling water 25/35 degC.
-Estimates (all ASSUMED): evaporator economy 1.8 kg/kg with 2 257 kJ/kg; second-effect vapour
-condensed on CW; crystalliser cooling from 125 to 55 degC with cp 2.8 kJ/kg K plus the heat of
+E-301 is a backward-feed double effect (review 2026-10-28-pfd-lci-review#1, #2): the feed
+(S11, 318 K) is preheated by the combined condensate (cooled to 333 K, S13) and enters effect 2
+under vacuum, boiling at 368 K (effect-2 vapour saturated at 360 K, about 63 kPa(a)); effect 2
+is heated by the effect-1 vapour (saturated at 378 K). Effect 1 concentrates to S12 (398 K,
+120 kPa(a), BPE 20 K) and is heated by the WHB steam (453 K) and the LP steam (420.8 K),
+22.6 K above the boiling liquor: LP steam can reach it. A forward feed ending at 120 kPa(a)
+would need steam above about 428 K in effect 1, which 450 kPa(a) steam cannot supply.
+Estimates (all ASSUMED): E-301 duty from the effect balances (feed cp 3.3, effect-2 liquor
+cp 3.0 kJ/kg K, BPE 20 K in effect 1 and 8 K in effect 2, 10 K across the effect-2 calandria,
+vapour latent heats from IAPWS-IF97, heat of concentration neglected), economy 1.69 kg water
+per kg steam at 2 257 kJ/kg; the mother-liquor recycle (S16) brings about 20 % of the
+evaporated water (review #4); effect-2 vapour condensed on CW; crystalliser cooling from 125 to 55 degC with cp 2.8 kJ/kg K plus the heat of
 crystallisation of NaNO2 (13.9 kJ/mol, SRC-8); absorber heat = gas cooling 200 to 25 degC +
 condensation (44.0 kJ/mol) + NO oxidation (57.1 kJ/mol NO2) + absorption (-50.8 and -96.4
 kJ/mol from SRC-8 formation enthalpies, dilute standard state); dryers 2 500 kJ/kg water at
-efficiency 0.5; ammonia latent heat about 1 180 kJ/kg.
-Result: LP steam 1 837 kW (0.735 kWh/kg NaNO2), internal WHB steam 1 888 kW, CW 5 504 kW (2.20
-kWh/kg).
+efficiency 0.5; ammonia latent heat about 1 180 kJ/kg; soda dissolver T-201 adiabatic
+(condensate 60 degC, soda 25 degC, Na2CO3 heat of solution -26.7 kJ/mol from SRC-8, solution
+cp 3.6 kJ/kg K), S8 at 71.5 degC, cooled to 40 degC in C201 (review #6).
+Result: E-301 heat 3 330 kW (1 928 kW WHB, 1 402 kW LP steam), CW of its condenser 2 692 kW;
+LP steam 1 994 kW (0.798 kWh/kg NaNO2 before allocation), internal WHB steam 1 928 kW, CW
+5 564 kW (2.23 kWh/kg before allocation).
 Gated: energy closure of the liquor steps by cheme needs electrolyte enthalpies (core#364).
 
 ## D-011 Machines and electricity (2026-10-28)
-Decision: air blower 101.3 to 131.3 kPa(a) at isentropic efficiency 0.75 (84.5 kW); other loads
+Decision: air blower 101.3 to 131.3 kPa(a) from 15 degC at isentropic efficiency 0.75 (83.1 kW,
+outlet 317.7 K, no aftercooler: S4 enters the burner hot, review #5); other loads
 ASSUMED: absorber circulation 30, evaporator 15, crystalliser/centrifuge 25, NaNO2 dryer 15,
-inversion 5, NaNO3 crystalliser 10 and dryer 5 kW. Total 189.5 kW (0.076 kWh/kg).
+inversion 5, NaNO3 crystalliser 10 and dryer 5 kW. Total 188.1 kW (0.075 kWh/kg before
+allocation).
 
 ## D-012 Equipment list at concept stage (2026-10-28)
 Decision: one item per PFD step (two for the crystalliser-centrifuge pairs), design pressures
@@ -262,14 +295,28 @@ Decision: lca/lca.yaml per kg dried NaNO2; every feed and utility declared `miss
 background it should connect to (ammonia-1, soda-ash-1, nitric-acid-1, LP steam from a gas
 boiler, cooling tower, wastewater treatment); air `free`; tail-gas CO2, N2O and NO as
 elementary emissions to air (CO2 from the soda's mineral carbon reported as fossil), N2, O2,
-Ar, H2O free. Sodium nitrate shares the burdens by mass (86.2 % NaNO2); economic allocation is
+Ar, H2O free; NH3 and NO2 (0 kg in this balance) elementary emissions to air, not free, so a
+later slip is characterised (review #8). Sodium nitrate shares the burdens by mass (86.2 %
+NaNO2), entered as `method: shares` with the mass shares 0.86226 / 0.13774 because cheme
+leaves the default `mass` out of lca/dataset.yaml and the Atlas build then warns about a
+missing dataset default (PR #227 CI); economic allocation is
 the better choice once prices are sourced. Exclusions: start-up/upsets, fugitive leaks,
 dryer dust, Pt/Rh loss, dissolver breathing.
 Result (cheme assess lca, after allocation, per kg NaNO2): NH3 0.2346 kg, soda ash 0.7465 kg,
-nitric acid 60 % 0.0826 kg, electricity 0.0654 kWh, LP steam 0.634 kWh, CW 1.898 kWh,
+nitric acid 60 % 0.0826 kg, electricity 0.0649 kWh, LP steam 0.688 kWh, CW 1.919 kWh,
 condensate 0.267 kg, CO2 0.310 kg, N2O 4.24 g, NO 2.12 g (unallocated values are these / 0.862).
+LP steam is counted as heat delivered (kWh); lca/mappings.yaml maps feed:LPS to the shared
+`steam-heat` entry for the Atlas build.
 Partial screening carbon footprint of the direct emissions only: 1.47 kg CO2-eq/kg, 79 % from
-N2O; every background is a gap (8 gaps), so this is not a footprint of the product. Inventory
+N2O; every background is a gap, so this is not a footprint of the product.
+N2O sensitivity (review #3): the N2O share is an analogy (D-005) uncertain by about a factor
+of 2. At SRC-3's 2.8 % of the NH3 nitrogen instead of 1.4 %, N2O would be 8.49 g/kg and the
+direct result about 2.63 kg CO2-eq/kg (0.310 + 0.00849 x 273), with the tail-gas N2 lower
+by the same nitrogen. Not modelled as a scenario: it only scales one exchange.
+Soda-ash carbon (review #12): the carbonate CO2 released here is counted as emitted in this
+foreground. When feed:SODA is linked to soda-ash-1 or a market dataset, check that the
+background treats the carbonate carbon as bound in the product and does not count it as
+emitted as well. Otherwise it is counted twice. Inventory
 mass and element balances closed (cheme); checked by hand against the flowsheet: inputs 4.5246
 kg = outputs 1 + 3.2351 + 0.0228 + 0.2667 kg (allocated), i.e. 13 118.55 kg/h at the plant.
 

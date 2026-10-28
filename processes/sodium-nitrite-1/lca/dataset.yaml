@@ -39,7 +39,7 @@ cutoff:
 - key: emission-excluded:dissolver
   title: storage-tank emissions of T-201
   direction: output
-  reason: 'the soda ash dissolver holds a non-volatile aqueous Na2CO3 solution near 45 degC: no volatile
+  reason: 'the soda ash dissolver holds a non-volatile aqueous Na2CO3 solution near 70 degC: no volatile
     component to breathe out; soda dust at the feeder is filtered (ASSUMED)'
   source: D-013
 - key: emission-excluded:leaks
@@ -73,10 +73,11 @@ classification:
   isic: '2011'
 modelling:
   principle: attributional
-  multifunctionality: 'unallocated multi-output dataset; default allocation mass: D-013: sodium nitrate
+  multifunctionality: 'unallocated multi-output dataset; default allocation shares: D-013: sodium nitrate
     (S25, 399.4 kg/h) is a saleable co-product of the nitrite plant; the burdens are shared by mass of
-    the dried products (2 500 : 399.4, NaNO2 86.2 %). Subdivision is not possible: the nitrate forms in
-    the same absorbers as the nitrite (NITRATE_ABS) and only its recovery has its own units.'
+    the dried products (2 500 : 399.37 kg/h, NaNO2 0.86226, NaNO3 0.13774), entered as shares. Subdivision
+    is not possible: the nitrate forms in the same absorbers as the nitrite (NITRATE_ABS) and only its
+    recovery has its own units.'
 review:
 - type: none
 data_generator: ChemE-as-Code process library, sodium-nitrite-1 concept design (agent run, unreviewed)
@@ -137,7 +138,8 @@ exchanges:
   link:
     source: S6, D-004
     missing: 'not linked yet: soda ash, dense, from the Solvay process at the plant gate; link processes/soda-ash-1
-      lca/dataset.yaml or a market for soda ash, dense'
+      lca/dataset.yaml or a market for soda ash, dense; when linking, check that the background treats
+      the carbonate carbon as bound in the product (its CO2 is emitted here, D-013)'
   streams:
   - S6
   source: S6, D-004
@@ -179,7 +181,7 @@ exchanges:
 - key: feed:POWER
   title: Electric power (AC, grid)
   type: input
-  amount: 189.5
+  amount: 188.1
   unit: kWh
   link:
     source: Q3, Q5, Q8, Q10, Q12, Q13, Q16, Q18; D-011
@@ -205,7 +207,7 @@ exchanges:
 - key: feed:LPS
   title: Low-pressure steam 450 kPa(a) from the site header
   type: input
-  amount: 1837.2
+  amount: 1993.8999999999999
   unit: kWh
   link:
     source: Q2, Q6, Q11, Q14, Q17; D-010
@@ -358,7 +360,7 @@ exchanges:
 - key: product:CW
   title: Cooling water return
   type: output
-  amount: 5504.299999999999
+  amount: 5563.7
   unit: kWh
   link:
     source: Q4, Q7, Q9, Q15; D-010
@@ -508,11 +510,23 @@ exchanges:
   type: emission
   amount: 0.0
   unit: kg
-  free: true
+  link:
+    elementary: {}
+    source: '0 kg: NH3 fully converted at the gauze (D-005); ammonia slip at upsets is excluded below
+      (non-routine). Elementary, not free, so a later slip is characterised (review 2026-10-28-pfd-lci-review#8)'
   cas: 7664-41-7
+  flow:
+  - list: ef-3.1
+  - list: biosphere3
+    uuid: 87883a4e-1e3e-4c9d-90c0-f1bea36f8014
+    name: Ammonia
+    categories:
+    - air
+    unit: kg
   streams:
   - S10
-  source: '0 kg: NH3 fully converted at the gauze (D-005); ammonia slip at upsets is excluded below (non-routine)'
+  source: '0 kg: NH3 fully converted at the gauze (D-005); ammonia slip at upsets is excluded below (non-routine).
+    Elementary, not free, so a later slip is characterised (review 2026-10-28-pfd-lci-review#8)'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -550,11 +564,23 @@ exchanges:
   type: emission
   amount: 0.0
   unit: kg
-  free: true
+  link:
+    elementary: {}
+    source: '0 kg: the unabsorbed NOx is counted as NO (D-006); its real NO/NO2 split is not modelled.
+      Elementary, not free (review 2026-10-28-pfd-lci-review#8)'
   cas: 10102-44-0
+  flow:
+  - list: ef-3.1
+  - list: biosphere3
+    uuid: c1b91234-6f24-417b-8309-46111d09c457
+    name: Nitrogen oxides
+    categories:
+    - air
+    unit: kg
   streams:
   - S10
-  source: '0 kg: the unabsorbed NOx is counted as NO (D-006); its real NO/NO2 split is not modelled'
+  source: '0 kg: the unabsorbed NOx is counted as NO (D-006); its real NO/NO2 split is not modelled. Elementary,
+    not free (review 2026-10-28-pfd-lci-review#8)'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -586,13 +612,17 @@ exchanges:
       O2: O2
     source: stream table (S10)
 allocation:
+  method: shares
   coproducts:
   - NANO2
   - NANO3
+  shares:
+    NANO2: 0.86226
+    NANO3: 0.13774
   source: 'D-013: sodium nitrate (S25, 399.4 kg/h) is a saleable co-product of the nitrite plant; the
-    burdens are shared by mass of the dried products (2 500 : 399.4, NaNO2 86.2 %). Subdivision is not
-    possible: the nitrate forms in the same absorbers as the nitrite (NITRATE_ABS) and only its recovery
-    has its own units.'
+    burdens are shared by mass of the dried products (2 500 : 399.37 kg/h, NaNO2 0.86226, NaNO3 0.13774),
+    entered as shares. Subdivision is not possible: the nitrate forms in the same absorbers as the nitrite
+    (NITRATE_ABS) and only its recovery has its own units.'
   deviation: Economic allocation would follow the library hierarchy for two material co-products of unequal
     value, but no open price basis for either salt was found in this run; mass is used until prices are
     sourced (open input, DESIGN.md D-013).
@@ -602,7 +632,7 @@ provenance:
   case: design
   files:
     equipment/equipment-list.yaml: sha256:0da99b9b14093b3dc4d9b31e229cb036ef0de4556d0e0a3cc6705986a68c23f6
-    lca/lca.yaml: sha256:c4c401ce3e854539277fb624501a57ddb30d5a8c692cf5776dc3c334627e1382
-    process.yaml: sha256:9d03a585cef9af39fa5a7680736d1e4c4b88b756a2e61a39505c56265dc299b4
-    process/flowsheet.yaml: sha256:a373a14d9cbfb544dc247763b3999e672c31bad6c0d25ae5e46d4c081b48c487
+    lca/lca.yaml: sha256:b01ae2f5bdabb3c4d197c1830d04862f491f961bb0e2e630c8e9d83b6222c9e7
+    process.yaml: sha256:cebe91edd64bc789bb3ae1c20a66ce1b0a330646db916ac313aabdc86182f678
+    process/flowsheet.yaml: sha256:1eca833eaa17a4ab2cd9c10db3879db4ec18ff4c3cf4878346d5c7fc7415d678
     process/materials.yaml: sha256:ec9e737f2f6ab6415730b00c3a84bcc5bc725381a976320397b30d5831d0f249

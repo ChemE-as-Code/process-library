@@ -158,7 +158,10 @@ gas["H2O"] += 1.5 * n_nh3
 gas["NO"] = r_no
 gas["N2O"] = r_n2o / 2
 gas["N2"] += r_n2 / 2
-h_in = gas_h({"NH3": n_nh3}, T0) + gas_h(air, 303.15)   # S2 298.15 K, S4 after the blower
+# air blower K101: S3 288.15 K, 101.3 -> 131.3 kPa(a), isentropic eta 0.75, no aftercooler (D-011)
+T_K101_IN, ETA_K101 = 288.15, 0.75
+t_s4 = T_K101_IN * (1 + ((131.3 / 101.3) ** (1 / 3.5) - 1) / ETA_K101)
+h_in = gas_h({"NH3": n_nh3}, T0) + gas_h(air, t_s4)     # S2 298.15 K, S4 after the blower
 h_release = h_in - gas_h(gas, T0)
 h_out = gas_h(gas, T_GAS)
 q_steam = (h_in - h_out - LOSS * h_release) / 3600.0
@@ -187,9 +190,13 @@ dH_noox = 0.5 * (2 * HF["NO2"] - 2 * HF["NO"])     # per kmol NO2 formed
 dH_a = 2 * HF_AQ["NaNO2"] + HF["CO2"] - HF_AQ["Na2CO3"] - HF["NO"] - HF["NO2"]
 dH_b = HF_AQ["NaNO2"] + HF_AQ["NaNO3"] + HF["CO2"] - HF_AQ["Na2CO3"] - 2 * HF["NO2"]
 q_rxn = -(n_no2_needed * dH_noox + x_a * dH_a + x_b * dH_b)
-q_c201 = (h_gas_in + cond * H_VAP_298 + q_rxn) / 3600.0   # kW, 313 vs 298 K neglected
-# soda dissolver T201 (heat of solution released into the condensate, no duty)
+# soda dissolver T201, adiabatic: condensate S7 333 K, soda 298 K and the heat of solution
+# of Na2CO3 give S8; C201 cools the solution to T_ABS (D-006, D-010)
 dH_sol = HF_AQ["Na2CO3"] - HF_CR["Na2CO3"]
+CP_SODA = 3.6               # kJ/kg K, 20 wt-% Na2CO3 solution (ASSUMED)
+t_s8 = 298.15 + (soda_sol["H2O"] * 4.18 * (333.15 - 298.15) - n_co3 * dH_sol) / (tot(soda_sol) * CP_SODA)
+q_soda = tot(soda_sol) * CP_SODA * (t_s8 - T_ABS)
+q_c201 = (h_gas_in + cond * H_VAP_298 + q_rxn + q_soda) / 3600.0   # kW, 313 vs 298 K neglected
 
 # --- evaporation and NaNO2 crystallisation (E301, CR301) ---------------------------------
 ml_total = adh + RECYCLE * crystals + purge
@@ -199,10 +206,28 @@ evap_in = {c: liq_out.get(c, 0) + recycle_kg.get(c, 0) for c in conc}
 evap = evap_in["H2O"] - conc["H2O"]
 cond_to_t201 = soda_sol["H2O"]
 cond_excess = evap - cond_to_t201
-ECONOMY = 1.8               # kg water per kg LP steam, double effect (D-010)
 LAT = 2257.0                # kJ/kg (latent heat at 373 K; D-010)
-q_e301 = evap * LAT / ECONOMY / 3600.0
-q_e301_cw = evap / 2 * 2380.0 / 3600.0              # second-effect vapour to the condenser
+# E301 double effect, backward feed (D-010): the feed enters effect 2 under vacuum, the
+# concentrate leaves effect 1 at 398 K / 120 kPa(a), whose calandria takes the WHB and LP steam
+# (420.8 K at 450 kPa(a), 22.6 K above the boiling liquor). BPE, approach and cp ASSUMED.
+BPE1, BPE2 = 20.0, 8.0      # K, near-saturated concentrate / effect-2 liquor (D-010)
+T1 = 398.15                 # effect 1 boiling liquor = S12; vapour saturated at 120 kPa 377.95 K
+T2 = 377.95 - 10.0          # effect 2 boiling liquor, 10 K below the effect-1 vapour
+TV2 = T2 - BPE2             # effect-2 vapour 360.15 K, saturated at about 63 kPa(a)
+H_V1 = 2243.0 + 1.9 * BPE1  # kJ/kg effect-1 vapour (latent at 377.95 K plus superheat, IAPWS)
+H_V2 = 2290.0 + 1.9 * BPE2  # kJ/kg effect-2 vapour (latent at 360.15 K plus superheat)
+CP_FEED, CP_MID = 3.3, 3.0  # kJ/kg K, feed liquor and effect-2 liquor (ASSUMED)
+f_e301 = tot(evap_in)
+v1 = evap / 2
+for _ in range(50):         # condensate (V1 at 377.95 K, V2 at TV2) preheats the feed to S13 333 K
+    t_cond = (v1 * 377.95 + (evap - v1) * TV2) / evap
+    q_pre = evap * 4.19 * (t_cond - 333.15)
+    t_pre = 318.15 + q_pre / (f_e301 * CP_FEED)
+    v1 = (f_e301 * CP_FEED * (T2 - t_pre) + evap * H_V2) / (H_V1 + H_V2)
+v2 = evap - v1
+q_e301 = ((f_e301 - v2) * CP_MID * (T1 - T2) + v1 * H_V1) / 3600.0
+q_e301_cw = v2 * H_V2 / 3600.0                      # effect-2 vapour to the condenser
+ECONOMY = evap * LAT / 3600.0 / q_e301              # kg water per kg steam at 2 257 kJ/kg
 # CR301 cooling crystalliser: concentrate 398 K -> 328 K (cp 2.8 kJ/kg K) plus heat of
 # crystallisation (NaNO2: dHsol 13.9 MJ/kmol, NBS cr vs aq)
 CP_LIQ = 2.8
@@ -214,8 +239,7 @@ q_cr401_cw = no3_vap * 2380.0 / 3600.0
 q_d401 = no3_dry_vap * 2500.0 / 0.5 / 3600.0
 # NH3 vaporiser E101: liquid 288 K, 1600 kPa -> vapour 298 K, latent ~1180 kJ/kg (D-010)
 q_e101 = n_nh3 * M["NH3"] * (1180.0 + 2.2 * 10) / 3600.0
-# air blower K101: 101.3 -> 131.3 kPa(a), eta 0.75 (D-011)
-w_k101 = n_air / 3600 * R * 293.15 * 3.5 * ((131.3 / 101.3) ** (1 / 3.5) - 1) / 0.75
+w_k101 = n_air / 3600 * R * T_K101_IN * 3.5 * ((131.3 / 101.3) ** (1 / 3.5) - 1) / ETA_K101
 POWER = {"K101": w_k101, "C201": 30.0, "E301": 15.0, "CR301": 25.0, "D301": 15.0,
          "R401": 5.0, "CR401": 10.0, "D401": 5.0}       # ASSUMED (D-011)
 
@@ -223,11 +247,11 @@ POWER = {"K101": w_k101, "C201": 30.0, "E301": 15.0, "CR301": 25.0, "D301": 15.0
 put("S1", kg({"NH3": n_nh3}), 288.15, 1600.0)
 put("S2", kg({"NH3": n_nh3}), 298.15, 400.0)
 put("S3", kg(air), 288.15, 101.3)
-put("S4", kg(air), 303.15, 131.3)
+put("S4", kg(air), round(t_s4, 2), 131.3)
 put("S5", kg(gas), T_GAS, 120.0)
 put("S6", soda, 298.15, 101.3)
 put("S7", {"H2O": cond_to_t201}, 333.15, 300.0)
-put("S8", soda_sol, 318.15, 300.0)
+put("S8", soda_sol, round(t_s8, 2), 300.0)
 put("S9", liq_out, T_ABS, 300.0)
 put("S10", kg(tail), T_ABS, P_TAIL)
 put("S11", {c: evap_in[c] for c in conc}, 318.15, 300.0)
@@ -280,6 +304,9 @@ print(f"soda {soda['Na2CO3']:.1f} kg/h, solution {tot(soda_sol):.1f}; liquor {to
 print(f"C201: gas sensible {h_gas_in / 3600:.1f} kW, condensation {cond * H_VAP_298 / 3600:.1f} kW, "
       f"reactions {q_rxn / 3600:.1f} kW (dH_a {dH_a:.0f}, dH_b {dH_b:.0f} kJ/kmol)")
 print(f"evaporation {evap:.1f} kg/h, condensate to T201 {cond_to_t201:.1f}, excess {cond_excess:.1f}")
+print(f"E301: feed {f_e301:.1f} kg/h preheated to {t_pre:.1f} K ({q_pre / 3600:.1f} kW from condensate), "
+      f"V1 {v1:.1f}, V2 {v2:.1f} kg/h, steam {q_e301:.1f} kW, economy {ECONOMY:.2f}, condenser {q_e301_cw:.1f} kW")
+print(f"K101 outlet {t_s4:.2f} K; T201 outlet S8 {t_s8:.2f} K, C201 soda cooling {q_soda / 3600:.1f} kW")
 print(f"inversion: HNO3 {acid['HNO3']:.2f} kg/h ({tot(acid):.2f} kg/h acid), gas {inv_gas}, "
       f"NaNO3 product {tot(no3_prod):.2f} kg/h")
 print(f"soda dissolution heat {n_co3 * dH_sol / 3600:.1f} kW")

@@ -44,7 +44,9 @@ validation:
     (cheme validate, cheme process streams; the absorber and inversion steps balance by
     elements over their reactions). The burner outlet is calculated by cheme (conversion
     reactor with specified selectivities NO 0.97, N2O 0.014, N2 0.016) and cheme's reactor
-    duty (1 964 kW) equals the independent script's. cheme maturity reaches no level: feed
+    duty (2 005 kW) equals the independent script's. The N2O share (79 % of the direct climate
+    result) is an analogy to the IPCC nitric-acid default, uncertain by about a factor of 2
+    (DESIGN.md D-005, D-013). cheme maturity reaches no level: feed
     flows follow from an assumed product rate, the absorber, crystalliser and inversion are
     specified values, and energy closure is not evaluable in core (no package covers the
     nitrite/nitrate/carbonate liquors, core #364). The preliminary gate-to-gate LCI closes in
@@ -53,13 +55,13 @@ validation:
     main product, co-product and feeds are not listed under chemistry (open library item).
 chemistry:
   inputs:
-    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Combustion air of the ammonia burner, 4.0 kg per kg NaNO2. The feeds without a registry entry yet: liquid ammonia (feed:NH3, 0.272 kg/kg, from ammonia-1), soda ash (feed:SODA, 0.866 kg/kg, from soda-ash-1), nitric acid 60 wt-% (feed:HNO3, 0.096 kg/kg, from nitric-acid-1); the main product sodium nitrite (product:NANO2) and the co-product sodium nitrate (product:NANO3, 0.160 kg/kg) have none either"}
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Plant ratios per kg NaNO2 before allocation (the LCI gives the allocated values, x 0.862). Combustion air of the ammonia burner, 4.0 kg per kg NaNO2. The feeds without a registry entry yet: liquid ammonia (feed:NH3, 0.272 kg/kg, from ammonia-1), soda ash (feed:SODA, 0.866 kg/kg, from soda-ash-1), nitric acid 60 wt-% (feed:HNO3, 0.096 kg/kg, from nitric-acid-1); the main product sodium nitrite (product:NANO2) and the co-product sodium nitrate (product:NANO3, 0.160 kg/kg) have none either"}
   outputs:
     - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "CO2 from the soda ash, 0.359 kg per kg NaNO2 before allocation, in the tail gas"}
   utilities:
-    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Air blower, pumps, centrifuges, dryer fans (ASSUMED), 0.076 kWh/kg"}
-    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 450 kPa(a) from the site, 0.73 kWh/kg; the waste-heat-boiler steam is used internally in the evaporator"}
-    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED), absorber coolers and condensers, 2.2 kWh/kg"}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Air blower, pumps, centrifuges, dryer fans (ASSUMED), 0.075 kWh per kg NaNO2 before allocation"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 450 kPa(a) from the site, 0.80 kWh of heat per kg NaNO2 before allocation; the waste-heat-boiler steam is used internally in the evaporator"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED), absorber coolers and condensers, 2.2 kWh per kg NaNO2 before allocation"}
 basis:
   capacity: "2 500 kg/h dried sodium nitrite (99.0 wt-% NaNO2) = 20 kt/a (ASSUMED), with 0.40 t/h sodium nitrate"
   operating_hours_per_year: 8000
