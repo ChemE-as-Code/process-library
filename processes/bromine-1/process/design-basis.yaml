@@ -1,8 +1,58 @@
 # What the plant must do. Schema: `cheme schema design_basis`.
-schema: cheme/design_basis/v1
-capacity: {}
-feeds: []
-products: []
-utilities: []
-site: {}
-assumptions: []
+# Bromine from bromide brine by chlorine oxidation and steaming-out, issue
+# ChemE-as-Code/process-library#136. Values marked ASSUMED are engineering choices of this concept
+# study, not client, licensor or vendor data; sourced values cite their document with the
+# location. Every decision is in DESIGN.md.
+capacity:
+  basis: "Dry bromine product (99.96 wt-% Br2) at the battery limit to storage (D-001, D-002)"
+  bromine_kg_per_h: 3750              # ASSUMED (D-002): one steaming-out train, chosen, not a client figure
+  bromine_t_per_year: 30000           # = 3 750 kg/h x 8000 h
+  operating_hours_per_year: 8000      # ASSUMED
+  turndown_percent: 50                # ASSUMED, not checked
+  bromide_recovery_percent: 95.5      # US 4 719 096 (Detailed Description): 95-96 % in conventional towers
+feeds:
+  - name: Raw brine
+    terminal: BRINE
+    source_of_values: "D-004: Smackover Formation brine of southern Arkansas"
+    bromide_mg_per_kg: 4300           # Arkansas Geological Survey, 'Bromine (Brine)': 4 000-4 600 ppm in the original analyses; mass basis ASSUMED
+    chloride_mg_per_kg: 185000        # US 4 719 096 (Detailed Description): 200 000-250 000 ppm chloride, read as mg/L at 1.2 kg/L (ASSUMED)
+    calcium_mg_per_kg: 30000          # ASSUMED (Na-Ca-Cl facies, USGS Smackover brine study); sodium by charge balance
+    h2s_mg_per_kg: 250                # US 4 719 096: 100-300 ppm H2S
+    not_modelled: "ammonia 150-200 ppm and NaI 10-20 ppm (US 4 719 096), Mg, K, Sr, Li, Fe, organics"
+    conditions: {temperature_K: 363.71, pressure_kPa_a: 150, density_kg_per_m3: 1200}   # 195 degF midpoint of 180-210 degF (US 4 719 096); pressure and density ASSUMED
+  - name: Chlorine
+    terminal: CL2
+    source_of_values: "chlor-alkali-1 dry chlorine (product CL2, S42 there), liquefied, vaporised at the user; inerts not modelled (D-003)"
+    composition_wt_percent: {Cl2: 100}
+    conditions: {pressure_kPa_a: 400, temperature_K: 313.15}
+  - name: Sulfuric acid 98 wt-%
+    terminal: H2SO4
+    source_of_values: "commercial grade (ASSUMED); sulfuric-acid-1 makes it"
+  - name: Hydrated lime
+    terminal: LIME
+    source_of_values: "Ca(OH)2, taken as 100 % (ASSUMED, D-009)"
+products:
+  - name: Bromine
+    terminal: BR2
+    purity: "99.957 wt-% Br2, 400 ppm Cl2, 30 ppm water (ASSUMED spec, D-002)"
+    delivery: {pressure_kPa_a: 200, temperature_K: 303.15, battery_limit: storage tanks}
+  - name: Neutralised tail brine
+    terminal: TAILB
+    items: "about 31 wt-% NaCl/CaCl2, 189 mg/kg bromide (US 4 719 096: 50-200 ppm), suspended sulfur; to reinjection into the formation (D-009)"
+  - name: Spent sulfuric acid
+    terminal: SPACID
+    items: "80 wt-% H2SO4 (ASSUMED) to neutralisation or regeneration (D-008)"
+utilities:
+  - {name: LP steam, pressure_kPa_a: 350, terminal: LPS, use: "live steam to C-101 (condensate leaves with the tail brine)", note: "D-006, ASSUMED level"}
+  - {name: LP steam (indirect), pressure_kPa_a: 350, terminal: LPH, use: "C-104 reboiler, condensate returned", note: "D-007"}
+  - {name: Electric power, terminal: POWER, use: "brine feed pump, bromine, acid and lime pumps, agitator", note: "D-011, ASSUMED"}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, terminal: CW, use: "E-102, C-104 condenser, E-105", note: "ASSUMED (D-010)"}
+site:
+  location: ASSUMED generic brine-field site on a Smackover-type brine (southern Arkansas basis), not chosen
+  design_ambient_K: 303.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325   # ASSUMED
+assumptions:
+  - "D-001 boundary: brine at the fence (wells and pipeline outside) to dry bromine to storage, neutralised tail brine to reinjection (injection outside); no bromine derivatives"
+  - "D-005 conversion model: 95.5 % of the bromide oxidised (reported tower performance), all H2S oxidised to sulfur as the side reaction that consumes the excess chlorine; no kinetics, no speciation"
+  - "D-006 the balance is the independent script scripts/balance.py; brine water activity 0.75 and cp 2.9 kJ/kg K ASSUMED (no electrolyte package for this brine, core#364)"
+  - "Construction, transport and end of life are outside the preliminary LCI (D-013)"
