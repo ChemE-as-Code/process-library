@@ -1,0 +1,230 @@
+# Components and templates of the process. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol,
+# normal_boiling_point in K at 101.325 kPa.
+#
+# Ideal-gas formation data and critical constants: `cheme chemistry library ethane_cracking --add`
+# (C2H6, C2H4, H2, C3H8, CH4) and `cheme chemistry thermo NAME --fit 298.15,1200` (the others),
+# both from the `chemicals` package (sources on each entry).
+#
+# Lumped representatives (DESIGN.md D-005): C3H4 (propadiene) stands for methylacetylene and
+# propadiene (MAPD); C4H8 (1-butene) for all butylenes; C6H6 (benzene) for the C5/C6 cut of the
+# cracked gas, i.e. the pyrolysis gasoline. NaOH and Na2CO3 only occur dissolved in the caustic
+# wash liquor; they carry no gas-phase data.
+schema: cheme/process/v1
+kind: materials
+components:
+  - id: H2
+    name: Hydrogen
+    formula: H2
+    cas: 1333-74-0
+    molar_mass: 2.0159
+    normal_boiling_point: 20.37
+    critical: {Tc: 33.145, Pc: 1296.4, omega: -0.219, source: 'chemicals: Tc HEOS, Pc HEOS, omega HEOS'}
+    ideal_gas:
+      dHf_298: 0.0
+      S_298: 130.7
+      cp_R: [3.14694, 0.00211526, -4.44911e-06, 4.03828e-09, -1.21687e-12]
+      temperature_range: [298.15, 1300.0]
+      source: 'chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 298.15-1300 K (max deviation 0.34%)'
+  - id: CH4
+    name: Methane
+    formula: CH4
+    cas: 74-82-8
+    molar_mass: 16.0425
+    normal_boiling_point: 111.67
+    critical: {Tc: 190.564, Pc: 4599.2, omega: 0.01142, source: 'chemicals: Tc HEOS, Pc HEOS, omega HEOS'}
+    ideal_gas:
+      dHf_298: -74534.0
+      S_298: 186.3
+      cp_R: [3.03355, 0.00128716, 1.23235e-05, -1.06141e-08, 2.73706e-12]
+      temperature_range: [298.15, 1500.0]
+      source: 'chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 298.15-1500 K (max deviation 0.84%)'
+  - id: C2H2
+    name: Acetylene
+    formula: C2H2
+    cas: 74-86-2
+    molar_mass: 26.03728
+    critical: {Tc: 308.3, Pc: 5988.2, omega: 0.178, source: 'chemicals: Tc HEOS, Pc HEOS, omega HEOS'}
+    ideal_gas:
+      dHf_298: 228320.0
+      S_298: 200.9
+      cp_R: [1.21139, 0.0206946, -2.91791e-05, 2.15396e-08, -6.10111e-12]
+      temperature_range: [298.15, 1200.0]
+      source: 'chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 298.15-1200 K (max deviation 0.36%)'
+  - id: C2H4
+    name: Ethylene
+    formula: C2H4
+    cas: 74-85-1
+    molar_mass: 28.0532
+    normal_boiling_point: 169.42
+    critical: {Tc: 282.35, Pc: 5041.8, omega: 0.0866, source: 'chemicals: Tc HEOS, Pc HEOS, omega HEOS'}
+    ideal_gas:
+      dHf_298: 52560.0
+      S_298: 219.3
+      cp_R: [0.267557, 0.0190216, -9.96389e-06, 1.65812e-09, 3.03335e-13]
+      temperature_range: [298.15, 1200.0]
+      source: 'chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 298.15-1200 K (max deviation 1.12%)'
+  - id: C2H6
+    name: Ethane
+    formula: C2H6
+    cas: 74-84-0
+    molar_mass: 30.069
+    normal_boiling_point: 184.57
+    critical: {Tc: 305.322, Pc: 4872.2, omega: 0.0995, source: 'chemicals: Tc HEOS, Pc HEOS, omega HEOS'}
+    ideal_gas:
+      dHf_298: -83780.0
+      S_298: 229.2
+      cp_R: [1.40733, 0.0157284, 5.34818e-06, -1.20918e-08, 4.34725e-12]
+      temperature_range: [298.15, 1200.0]
+      source: 'chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 298.15-1200 K (max deviation 0.45%)'
+  - id: C3H4
+    name: Propadiene (lumped MAPD)
+    formula: C3H4
+    cas: 463-49-0
+    molar_mass: 40.06386
+    critical: {Tc: 398.0, Pc: 5215.6, omega: 0.115, source: 'chemicals: Tc HEOS, Pc HEOS, omega HEOS'}
+    ideal_gas:
+      dHf_298: 190160.0
+      S_298: 243.7
+      cp_R: [0.47962, 0.0281676, -2.31011e-05, 1.04904e-08, -1.9716e-12]
+      temperature_range: [298.15, 1200.0]
+      source: 'chemicals: dHf_298 ATCT_G, S_298 YAWS, cp_R fitted to thermo TRCIG 298.15-1200 K (max deviation 0.23%)'
+  - id: C3H6
+    name: Propylene
+    formula: C3H6
+    cas: 115-07-1
+    molar_mass: 42.07974
+    normal_boiling_point: 225.46
+    critical: {Tc: 364.211, Pc: 4555.0, omega: 0.146, source: 'chemicals: Tc HEOS, Pc HEOS, omega HEOS'}
+    ideal_gas:
+      dHf_298: 20370.0
+      S_298: 266.71
+      cp_R: [0.816478, 0.0255504, -7.02777e-06, -4.46647e-09, 2.49615e-12]
+      temperature_range: [298.15, 1200.0]
+      source: 'chemicals: dHf_298 ATCT_G, S_298 YAWS, cp_R fitted to thermo TRCIG 298.15-1200 K (max deviation 0.39%)'
+  - id: C3H8
+    name: Propane
+    formula: C3H8
+    cas: 74-98-6
+    molar_mass: 44.0956
+    normal_boiling_point: 231.04
+    critical: {Tc: 369.89, Pc: 4251.2, omega: 0.1521, source: 'chemicals: Tc HEOS, Pc HEOS, omega HEOS'}
+    ideal_gas:
+      dHf_298: -104390.0
+      S_298: 270.3
+      cp_R: [0.0382407, 0.0324975, -8.7851e-06, -6.29381e-09, 3.52673e-12]
+      temperature_range: [298.15, 1200.0]
+      source: 'chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 298.15-1200 K (max deviation 0.53%)'
+  - id: C4H6
+    name: 1,3-Butadiene
+    formula: C4H6
+    cas: 106-99-0
+    molar_mass: 54.09044
+    critical: {Tc: 425.135, Pc: 4305.3, omega: 0.192, source: 'chemicals: Tc HEOS, Pc HEOS, omega HEOS'}
+    ideal_gas:
+      dHf_298: 110000.0
+      S_298: 278.83
+      cp_R: [-3.19701, 0.0559213, -5.08974e-05, 2.28196e-08, -3.79143e-12]
+      temperature_range: [298.15, 1200.0]
+      source: 'chemicals: dHf_298 CRC, S_298 YAWS, cp_R fitted to thermo TRCIG 298.15-1200 K (max deviation 0.54%)'
+  - id: C4H8
+    name: 1-Butene (lumped butylenes)
+    formula: C4H8
+    cas: 106-98-9
+    molar_mass: 56.10632
+    critical: {Tc: 419.29, Pc: 4005.1, omega: 0.192, source: 'chemicals: Tc HEOS, Pc HEOS, omega HEOS'}
+    ideal_gas:
+      dHf_298: -30.0
+      S_298: 307.88
+      cp_R: [0.104567, 0.0389556, -1.61062e-05, -1.5657e-09, 2.19506e-12]
+      temperature_range: [298.15, 1200.0]
+      source: 'chemicals: dHf_298 ATCT_G, S_298 YAWS, cp_R fitted to thermo TRCIG 298.15-1200 K (max deviation 0.36%)'
+  - id: C4H10
+    name: n-Butane
+    formula: C4H10
+    cas: 106-97-8
+    molar_mass: 58.1222
+    critical: {Tc: 425.125, Pc: 3796.0, omega: 0.201, source: 'chemicals: Tc HEOS, Pc HEOS, omega HEOS'}
+    ideal_gas:
+      dHf_298: -125850.0
+      S_298: 304.4
+      cp_R: [0.677109, 0.0405087, -7.8442e-06, -1.19163e-08, 5.89507e-12]
+      temperature_range: [298.15, 1200.0]
+      source: 'chemicals: dHf_298 ATCT_G, S_298 YAWS, cp_R fitted to thermo TRCIG 298.15-1200 K (max deviation 0.56%)'
+  - id: C6H6
+    name: Benzene (lumped C5/C6 pyrolysis gasoline)
+    formula: C6H6
+    cas: 71-43-2
+    molar_mass: 78.11184
+    critical: {Tc: 562.02, Pc: 4907.277, omega: 0.211, source: 'chemicals: Tc HEOS, Pc HEOS, omega HEOS'}
+    ideal_gas:
+      dHf_298: 83180.0
+      S_298: 269.2
+      cp_R: [-6.00901, 0.0675496, -5.32007e-05, 1.91659e-08, -2.08819e-12]
+      temperature_range: [298.15, 1200.0]
+      source: 'chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 298.15-1200 K (max deviation 0.34%)'
+  - id: H2O
+    name: Water
+    formula: H2O
+    cas: 7732-18-5
+    molar_mass: 18.01528
+    normal_boiling_point: 373.12
+    critical: {Tc: 647.096, Pc: 22064.0, omega: 0.3443, source: 'chemicals: Tc HEOS, Pc HEOS, omega HEOS'}
+    ideal_gas:
+      dHf_298: -241822.0
+      S_298: 188.8
+      cp_R: [4.02653, -0.00082313, 3.48816e-06, -2.28423e-09, 5.55423e-13]
+      temperature_range: [298.15, 1200.0]
+      source: 'chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo HEOS_FIT 298.15-1200 K (max deviation 0.11%)'
+  - id: CO2
+    name: Carbon dioxide
+    formula: CO2
+    cas: 124-38-9
+    molar_mass: 44.0095
+    critical: {Tc: 304.1282, Pc: 7377.3, omega: 0.22394, source: 'chemicals: Tc HEOS, Pc HEOS, omega HEOS'}
+    ideal_gas:
+      dHf_298: -393474.0
+      S_298: 213.8
+      cp_R: [2.23653, 0.0099431, -9.69068e-06, 5.27963e-09, -1.23597e-12]
+      temperature_range: [298.15, 1200.0]
+      source: 'chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 298.15-1200 K'
+  - id: N2
+    name: Nitrogen
+    formula: N2
+    cas: 7727-37-9
+    molar_mass: 28.0134
+    normal_boiling_point: 77.36
+    critical: {Tc: 126.192, Pc: 3395.8, omega: 0.0372, source: 'chemicals: Tc HEOS, Pc HEOS, omega HEOS'}
+    ideal_gas:
+      dHf_298: 0.0
+      S_298: 191.6
+      cp_R: [3.81121, -0.00216414, 4.70206e-06, -3.12408e-09, 7.08305e-13]
+      temperature_range: [298.15, 1200.0]
+      source: 'chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo 298.15-1200 K'
+  - id: O2
+    name: Oxygen
+    formula: O2
+    cas: 7782-44-7
+    molar_mass: 31.9988
+    normal_boiling_point: 90.19
+    critical: {Tc: 154.581, Pc: 5043.0, omega: 0.0222, source: 'chemicals: Tc HEOS, Pc HEOS, omega HEOS'}
+    ideal_gas:
+      dHf_298: 0.0
+      S_298: 205.2
+      cp_R: [3.58206, -0.00160223, 6.39744e-06, -6.07128e-09, 1.8882e-12]
+      temperature_range: [298.15, 1200.0]
+      source: 'chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo 298.15-1200 K'
+  - {id: NAOH, name: Sodium hydroxide (dissolved), formula: NaOH, cas: 1310-73-2, molar_mass: 39.9971}
+  - {id: NA2CO3, name: Sodium carbonate (dissolved), formula: Na2CO3, cas: 497-19-8, molar_mass: 105.9888}
+templates:
+  - {id: cracked_gas, title: "Cracked gas: hydrocarbons and process water", components: [H2, CH4, C2H2, C2H4, C2H6, C3H4, C3H6, C3H8, C4H6, C4H8, C4H10, C6H6, H2O, CO2]}
+  - {id: fuel_gas, title: Fuel gas, components: [H2, CH4, C2H4, C2H6, CO2, N2]}
+  - {id: air, title: Combustion air (dry; argon counted as nitrogen), components: [N2, O2]}
+  - {id: flue_gas, title: Furnace flue gas (fuel components at zero after complete combustion), components: [N2, O2, CO2, H2O, H2, CH4, C2H4, C2H6]}
+  - {id: water, title: Process water and steam, components: [H2O]}
+  - {id: caustic, title: Caustic wash liquor, components: [H2O, NAOH, NA2CO3]}
+# property_method is a placeholder until `cheme process props --fill` records the method. No
+# benchmarked package covers the C2+ hydrocarbons (DESIGN.md D-012): nothing is filled.
+property_method:
+  adapter: thermo
+  status: placeholder
