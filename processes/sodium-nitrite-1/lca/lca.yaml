@@ -1,0 +1,84 @@
+# Goal and scope of the sodium-nitrite-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme
+# assess lca --inventory --write` (lca/inventory.csv, dataset.yaml, gaps.csv, manifest.json);
+# never edit those by hand.
+#
+# A preliminary gate-to-gate inventory (DESIGN.md D-013): every foreground exchange of the
+# balanced flowsheet per kg of dried sodium nitrite product. No background is linked yet: every
+# feed and utility is declared `missing:` with the activity it should connect to later, so it
+# is a gap in every category, never 0. No values from licensed databases are used.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of technical-grade sodium nitrite made by
+  absorbing nitrous gas from ammonia oxidation in soda solution, with evaporative
+  crystallisation and inversion of the mother-liquor purge to sodium nitrate, for the concept
+  stage: the foreground exchanges of the balanced flowsheet (D-007) per kg of product, ready to
+  be linked to background datasets (ammonia-1, soda-ash-1 and nitric-acid-1 first). No impact
+  assessment is claimed.
+# 1 kg of the dried product S18 (99.0 wt-% NaNO2, 0.1 wt-% moisture)
+functional_unit: {product: NANO2, amount: 1, unit: kg, kg_per_unit: 1.0, source: "S18: 2 500 kg/h dried sodium nitrite, 99.02 wt-% NaNO2 (D-002)"}
+boundary: gate-to-gate
+year: 2026
+location: GLO
+technology: "Ammonia oxidation over Pt/Rh gauze near atmospheric pressure with waste heat boiler, NOx absorption in 20 wt-% soda solution, double-effect evaporation, NaNO2 vacuum crystallisation, centrifuging and drying, inversion of the mother-liquor purge with 60 wt-% nitric acid to sodium nitrate; 20 kt/a NaNO2"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+case: design
+system_model: cutoff
+allocation:
+  # mass allocation written out as its shares: cheme omits the default method `mass` from
+  # lca/dataset.yaml, and the Atlas build then reads the dataset's default as None
+  method: shares
+  coproducts: [NANO2, NANO3]
+  shares: {NANO2: 0.86226, NANO3: 0.13774}
+  source: >-
+    D-013: sodium nitrate (S25, 399.4 kg/h) is a saleable co-product of the nitrite plant;
+    the burdens are shared by mass of the dried products (2 500 : 399.37 kg/h, NaNO2
+    0.86226, NaNO3 0.13774), entered as shares.
+    Subdivision is not possible: the nitrate forms in the same absorbers as the nitrite
+    (NITRATE_ABS) and only its recovery has its own units.
+  deviation: >-
+    Economic allocation would follow the library hierarchy for two material co-products of
+    unequal value, but no open price basis for either salt was found in this run; mass is used
+    until prices are sourced (open input, DESIGN.md D-013).
+flows:
+  # raw materials (boundary feeds made by other library processes, D-004)
+  - {key: feed:NH3, missing: "not linked yet: anhydrous liquid ammonia at the plant gate; link processes/ammonia-1 lca/dataset.yaml or a market for ammonia, anhydrous, liquid", source: "S1, D-004"}
+  - {key: feed:SODA, missing: "not linked yet: soda ash, dense, from the Solvay process at the plant gate; link processes/soda-ash-1 lca/dataset.yaml or a market for soda ash, dense; when linking, check that the background treats the carbonate carbon as bound in the product (its CO2 is emitted here, D-013)", source: "S6, D-004"}
+  - {key: feed:HNO3, missing: "not linked yet: nitric acid 60 wt-% (counted per kg of solution, 0.6 kg HNO3 per kg) from dual-pressure ammonia oxidation; link processes/nitric-acid-1 lca/dataset.yaml (product acid) or a market for nitric acid, without water, in 50 % solution state with the water added", source: "S20, D-004, D-009"}
+  - {key: feed:AIR, free: true, source: "S3: ambient air for the burner, taken from nature (no burden); its N2, O2, Ar and H2O leave in the tail gas"}
+  # utilities
+  - {key: feed:POWER, missing: "not linked yet: grid electricity, medium voltage, for the site's market (site not decided, D-002); the packaged open profile desnz-ghg-2026 is available for a later screening", source: "Q3, Q5, Q8, Q10, Q12, Q13, Q16, Q18; D-011"}
+  - {key: feed:LPS, missing: "not linked yet: heat from low-pressure steam (450 kPa(a)) from a natural-gas boiler at the site, per kWh of steam heat (utility-steam-ng-boiler in this library)", source: "Q2, Q6, Q11, Q14, Q17; D-010"}
+  - {key: product:CW, missing: "not linked yet: heat rejection to a recirculating cooling-water circuit with cooling tower (pump and fan electricity, make-up water, treatment chemicals) per kWh removed (utility-cooling-tower in this library)", source: "Q4, Q7, Q9, Q15; D-010"}
+  # waste water: surplus condensate
+  - {key: product:COND, missing: "not linked yet: treatment or reuse of slightly contaminated process condensate (nitrite traces, not modelled) in a site water system or industrial wastewater treatment (utility-wwtp in this library), per kg", source: "S14, S24; D-008"}
+  # emissions: tail gas S10 and dryer exhaust S19, S26 to air
+  - {key: product:TAIL, emission: true, source: "S10: absorber tail gas to the stack, no abatement (D-006)"}
+  - {key: product:DRYVENT, emission: true, source: "S19, S26: dryer exhaust after the dust filters, water vapour only in the balance (D-008)"}
+  - {key: emission:N2O, elementary: {compartment: air}, source: "S10: N2O formed at the gauze (NH3_N2O, D-005), passes the absorbers unchanged"}
+  - {key: emission:NO, elementary: {compartment: air}, source: "S10: unabsorbed NOx, 0.5 % of the nitrogen entering C201, counted as NO (D-006)"}
+  - {key: emission:CO2, elementary: {compartment: air}, source: "S10: CO2 released from the soda ash in the absorbers and the inversion (NITRITE_ABS, NITRATE_ABS, CARB_NEU); mineral carbon of the soda ash, reported as fossil (D-013)"}
+  - {key: emission:N2, free: true, source: "S10: nitrogen of the air and of the NH3_N2 side reaction"}
+  - {key: emission:O2, free: true, source: "S10: residual oxygen"}
+  - {key: emission:AR, free: true, source: "S10: argon of the air"}
+  - {key: emission:H2O, free: true, source: "S10, S19, S26: water vapour"}
+  # components of the tail gas template that are absent (0 kg) in this balance
+  - {key: emission:NH3, elementary: {compartment: air}, source: "0 kg: NH3 fully converted at the gauze (D-005); ammonia slip at upsets is excluded below (non-routine). Elementary, not free, so a later slip is characterised (review 2026-10-28-pfd-lci-review#8)"}
+  - {key: emission:NO2, elementary: {compartment: air}, source: "0 kg: the unabsorbed NOx is counted as NO (D-006); its real NO/NO2 split is not modelled. Elementary, not free (review 2026-10-28-pfd-lci-review#8)"}
+operation: {hours_per_year: 8000, life_years: 20, source: "design basis, D-002; life ASSUMED"}
+emission_exclusions:
+  - {id: no-combustion, method: combustion, reason: "No fuel is fired inside the boundary: the burner oxidises ammonia catalytically (its products are all in the balance, S5) and the steam comes from the WHB or the site header (the header's combustion is in its background, feed:LPS)", source: "D-013"}
+  - {id: non-routine, method: non-routine, reason: "start-up (gauze ignition, absorber filling), shutdown and burner trips release ammonia, NOx and N2O; not estimated at the concept stage (D-013)", source: "D-013"}
+  - {id: dust, method: equipment-leaks, equipment: ["DR-301", "DR-401"], reason: "NaNO2 and NaNO3 dust leaving the dryer filters is not estimated at the concept stage (no filter specification); to be added with the dryer datasheets", source: "D-013"}
+  - {id: dissolver, method: storage-tank, equipment: ["T-201"], reason: "the soda ash dissolver holds a non-volatile aqueous Na2CO3 solution near 70 degC: no volatile component to breathe out; soda dust at the feeder is filtered (ASSUMED)", source: "D-013"}
+  - {id: leaks, method: equipment-leaks, reason: "fugitive NH3 and NOx from flanges and seals are not estimated at the concept stage; to be added with the P&IDs", source: "D-013"}
+  - {id: platinum, method: non-routine, equipment: ["R-101"], reason: "platinum and rhodium lost from the gauze (partly recovered in filters) are a material input and particulate emission not quantified: no open loss rate for nitrite burners was found (open input, D-013)", source: "D-013"}
+dataset:
+  version: 0.1.0
+  geography: {description: "One concept design for an undecided site; no site-specific supply", site: "generic industrial site"}
+  system_model: cutoff
+  technology_level: current
+  classification: {isic: "2011"}
+  modelling: {principle: attributional}
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library, sodium-nitrite-1 concept design (agent run, unreviewed)"
