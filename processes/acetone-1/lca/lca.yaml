@@ -1,0 +1,87 @@
+# Goal and scope of the acetone-1 preliminary LCI. Schema: `cheme schema lca`. Outputs: `cheme
+# assess lca --write` (lca/inventory.csv, results.csv, results.md, gaps.csv, dataset.yaml,
+# manifest.json); never edit those by hand.
+#
+# Gate-to-gate foreground inventory in a cradle-to-gate frame (DESIGN.md D-014): every exchange
+# comes from the balanced flowsheet (process/flowsheet.yaml, design case). No background is
+# linked: every feed, utility and waste route is `missing:` with the activity it should connect
+# to later, so the inventory carries them as gaps (never 0) and no impact result is claimed
+# (process.yaml lca.source none). No values from licensed databases are used.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary life cycle inventory of acetone (and its co-product phenol) from cumene by the
+  cumene hydroperoxide route at the concept stage (issue #132), foreground only: the plant's
+  exchanges per kg of acetone at the gate, with their provenance. Every background is a gap
+  until datasets are chosen; not an impact assessment (D-014).
+functional_unit: {product: ACETONE, amount: 1, unit: kg}
+boundary: cradle-to-gate
+case: design
+location: GLO
+year: 2026
+technology: "cumene air oxidation (dry, 500 kPa(a)), vacuum CHP concentration to 80 wt%, sulfuric acid cleavage, caustic neutralisation, four-column fractionation, AMS hydrogenation to cumene; 200 kt/a phenol, 126 kt/a acetone, concept design"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+allocation:
+  method: mass
+  coproducts: [ACETONE, PHENOL]
+  source: >-
+    D-014 (agent proposal, for the LCA practitioner to confirm): mass allocation between acetone
+    and phenol. The two are made in a fixed stoichiometric ratio in one reaction (CLEAVAGE), are
+    both liquid organic chemicals sold by mass, and no co-product prices are set at the concept
+    stage; the BREF notes the acetone price varies considerably (LVOC 8.1), which makes an
+    economic split unstable. Energy (LHV) allocation is computed for comparison: the LHVs are
+    close (31.8 and 29.0 MJ/kg), so it moves the acetone share by about 2 points.
+  deviation: >-
+    Economic allocation (common for this co-product pair) is not applied: no prices at the
+    concept stage. System expansion is not applied: neither product is made by an alternative
+    route at scale that could be credited without its own study (phenol without acetone has no
+    commercial route in Europe, LVOC 8.2.1).
+  compare: [energy]
+  # LHV per kg, gas basis at 298.15 K, from the formation enthalpies (cheme chemistry thermo:
+  # phenol -96.4 kJ/mol CRC, acetone -216.07 kJ/mol ATcT) and CO2(g) -393.51, H2O(g) -241.826
+  # kJ/mol (CODATA key values, Cox et al. 1989). Calculated, D-014.
+  properties:
+    ACETONE: {energy: 29010, source: "LHV of S20 (99.7 wt% acetone, 0.3 wt% water) from formation enthalpies, gas basis (D-014)"}
+    PHENOL: {energy: 31770, source: "LHV of S24 (phenol) from formation enthalpies, gas basis (D-014)"}
+flows:
+  - {key: feed:CUM, missing: "no background chosen yet: cumene, market for (benzene alkylation with propylene on zeolite, incl. transport to the plant); a library cumene process would be linked as a dataset", source: "fresh cumene S01 (D-001)"}
+  - {key: feed:AIR, free: true, source: "ambient air for the oxidisers: a resource without burden; its N2 and O2 leave in the spent air"}
+  - {key: feed:H2F, missing: "no background chosen yet: hydrogen, gaseous, 2 MPa, from steam methane reforming or electrolysis; library hydrogen-1 as a dataset once published", source: "hydrogen S26 (D-008)"}
+  - {key: feed:ACID, missing: "no background chosen yet: sulfuric acid 98 wt%, market for (contact process from sulfur); library sulfuric-acid-1 as a dataset once published", source: "sulfuric acid S12 (D-007)"}
+  - {key: feed:NAOH50, missing: "no background chosen yet: sodium hydroxide 50 wt% in water, market for (chlor-alkali membrane cells); library chlor-alkali-1 as a dataset once published", source: "caustic soda S14 (D-007)"}
+  - {key: feed:PW, missing: "no background chosen yet: process water, deionised or decarbonised, from the site water treatment (incl. the withdrawal from a river or well)", source: "wash water S30 (D-007)"}
+  - {key: feed:POWER, missing: "no background chosen yet: electricity, medium voltage, market for the site's grid (site not chosen)", source: "air compressor and vacuum/pump shares Q01-Q03 (D-011)"}
+  - {key: feed:LPS, missing: "no background chosen yet: steam, in chemical industry, 500 kPa(a) (site boiler on natural gas or tar firing), per MJ of condensing heat", source: "CHP concentration Q04 (D-011)"}
+  - {key: feed:MPS, missing: "no background chosen yet: steam, in chemical industry, 1800 kPa(a), per MJ of condensing heat", source: "fractionation reboilers Q05-Q08 (D-011)"}
+  - {key: product:CW, missing: "no background chosen yet: cooling water circulation per MJ rejected (pump and fan electricity, make-up withdrawal and evaporation, blowdown, treatment chemicals)", source: "heat to cooling water Q09-Q18 (D-011)"}
+  - key: product:TAR
+    treatment: {kind: waste, route: "production residue burned with heat recovery in a site furnace or steam boiler (LVOC BREF 8.3.6 a, c); a waste under cut-off, not a sold co-product (D-014)"}
+    missing: "no background chosen yet: thermal treatment of a heavy aromatic distillation residue with energy recovery in an industrial boiler (emissions of the firing)"
+    source: "tar and acetophenone S25 (D-009)"
+  - key: product:WW
+    treatment: {kind: waste, route: "site waste water treatment: phenol recovery, peroxide decomposition and biological treatment (LVOC BREF 8.3.2)"}
+    missing: "no background chosen yet: treatment of waste water from organic chemicals production, per m3 or kg COD, with its sludge and residual emissions to water"
+    source: "brine S16 and acetone column bottoms S21 (D-008, D-009)"
+  - {key: product:VENT, emission: true, source: "spent air after condensers and activated carbon adsorbers S08 and the hydrogenation flash vent S28, to atmosphere (D-010)"}
+  - {key: emission:N2, free: true, source: "atmospheric N2 returned unchanged"}
+  - {key: emission:O2, free: true, source: "atmospheric O2 not consumed, returned"}
+  - {key: emission:CUM, elementary: {compartment: air, subcompartment: unspecified, origin: fossil}, source: "residual VOC after the adsorbers counted as cumene, 35 mg C/Nm3 (LVOC BREF 8.3.1.1, D-010)"}
+  - {key: emission:H2, elementary: {compartment: air, subcompartment: unspecified}, source: "hydrogenation flash vent, 1 Nm3/t phenol (LVOC BREF 8.3.1.4, D-008)"}
+emission_exclusions:
+  - {id: fugitive-leaks, method: equipment-leaks, reason: "fugitive VOC (cumene, acetone, phenol) not estimated, not claimed negligible: the LVOC BREF reports 0.02-0.06 kg/t phenol (8.3.1.6), but an estimate for this plant needs the P&ID component counts; to become an emission_estimates entry with the P&IDs (D-015)", source: "D-015"}
+  - {id: storage-tanks, method: storage-tank, reason: "cumene, acetone and phenol tanks are outside the battery limit (design basis); their breathing losses belong to storage (D-015)", source: "design basis"}
+  - {id: tar-combustion, method: combustion, reason: "the tar is burned outside the plant boundary; its combustion emissions belong to the treatment background of product:TAR (D-015)", source: "D-015"}
+  - {id: vacuum-vents, method: non-routine, reason: "the vacuum-system and fractionation vents (LVOC BREF 8.3.1.2-3: about 10-15 Nm3/t phenol, to a thermal oxidiser) and the methane in the oxidiser off-gas (100-400 mg/Nm3 before treatment, 8.3.1.1) are not in the flowsheet; open item I-04 (D-015)", source: "D-015"}
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 25 a service life ASSUMED; no construction inventory at this stage (D-014)"
+dataset:
+  version: 0.1.0
+  geography: {description: "One concept design for a generic, not chosen site; no regional background"}
+  system_model: cutoff   # mass-allocated, no avoided-burden credits in the exported dataset (D-014)
+  technology_level: current
+  classification: {isic: "2011"}
+  modelling: {principle: attributional}
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library, acetone-1 concept run (agent-generated, unreviewed)"

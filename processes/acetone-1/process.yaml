@@ -1,36 +1,80 @@
-# Process Atlas manifest. Copy this folder to processes/<your-id>/ and edit.
-# Schema: schemas/process.schema.json (cheme-as-code/process/v1). Every slug used under
-# chemistry must exist in chemicals/chemicals.yaml; add new chemicals there in the same change.
-# A product in a defined state and purity names its registry grade: `chemical: oxygen/lox`.
+# Process Atlas manifest of acetone-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here.
 schema: cheme-as-code/process/v1
-id: my-process                  # = folder name; lowercase slug; never rename once listed
-title: Short descriptive process title
+id: acetone-1
+title: Acetone and phenol from cumene (cumene hydroperoxide route, 200 kt/a phenol)
 summary: >-
-  One or two sentences for cards and search results: what goes in, what comes out, at what scale.
-# description: |                # optional longer Markdown for the process page
-families: [hydrogen]            # slugs of taxonomy/families.yaml (ISIC-mapped), e.g. ammonia, methanol, air-separation
-keywords: []
-# facets:                      # optional, for filtering in the Atlas; list only what the design has
-#   feedstock_basis: [water, electricity]   # fossil | biogenic | atmospheric | mineral | recycled | water | electricity
-#   product_classes: [fuels]               # slugs, e.g. industrial-gases, fuels, fertilizers, polymers, chemicals, materials
-#   unit_operations: [electrolysis]        # slugs, e.g. cryogenic-distillation, adsorption, compression, reaction, electrolysis
-#   region: generic                        # e.g. generic, EU
-# Design maturity (claimed, capped by evidence: the calculation maturity in checks/maturity.json
-# of an engineering project; at most concept beside a Tier 0/1 LCI dataset):
-maturity: concept               # concept | screening | basic-engineering | detail-engineering | operating-reference
-validation:                     # review status: set by people only; passing checks is not a review
-  status: unreviewed            # unreviewed | internally-reviewed | peer-reviewed | industry-validated
+  Cumene is oxidised with air to cumene hydroperoxide, concentrated under vacuum and cleaved
+  with sulfuric acid to phenol and acetone; the product is neutralised and fractionated, and
+  alpha-methylstyrene is hydrogenated back to cumene. Concept stage, assumed basis,
+  preliminary gate-to-gate LCI per kg acetone (foreground only).
+description: |
+  Fresh and recycled cumene is oxidised with compressed air in bubble-column oxidisers (dry
+  oxidation, about 110 C and 500 kPa(a)) to an oxidate of 25 wt% cumene hydroperoxide (CHP);
+  dimethylbenzyl alcohol (DMBA), acetophenone and methanol are the side products. The spent
+  air passes condensers and activated carbon adsorbers, which return cumene. Vacuum flashing
+  concentrates the CHP to 80 wt% and returns the unreacted cumene. Sulfuric acid cleaves the
+  CHP to phenol and acetone and dehydrates most of the DMBA to alpha-methylstyrene (AMS); the
+  rest forms heavies (cumylphenol). Caustic neutralises the acid, and a decanter removes the
+  sodium sulfate brine. Four columns separate crude acetone, product acetone, a cumene/AMS
+  cut, product phenol and a tar of heavies and acetophenone burned as fuel. The AMS is
+  hydrogenated back to cumene on palladium.
+
+  All values are concept estimates: the conversion, selectivities and splits are ASSUMED and
+  checked against the ranges of the EU LVOC BREF (2017, chapter 8); the utilities are that
+  document's plant data applied to this design, not calculated. See DESIGN.md for every
+  assumption and gated step.
+families: [aromatics]
+keywords: [acetone, phenol, cumene, cumene hydroperoxide, Hock process, alpha-methylstyrene, oxidation, cleavage, distillation, hydrogenation]
+facets:
+  feedstock_basis: [fossil]
+  product_classes: [chemicals]
+  unit_operations: [reaction, compression, evaporation, distillation, decantation, adsorption, hydrogenation]
+  region: generic
+publication:
+  status: internal
+  license: CC-BY-4.0
+# Honest claim: concept is the lowest level of the manifest; cheme maturity reaches no level
+# (feeds, capacity, selectivities and splits are assumed, not sourced), see validation.notes.
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD (5 blocks, 15 steps) with closed mass, component and element balances (cheme
+    validate, cheme process streams: every block and step within 1 kg/h); the oxidiser,
+    cleavage, neutraliser and hydrogenation outlets are calculated by cheme from conversion and
+    selectivity specifications, every separator is specified (scripts/balance.py). Fresh
+    cumene 1.330 t/t phenol and tar 47 kg/t phenol fall inside the LVOC BREF ranges
+    (1.31-1.38 t/t; 20-200 kg/t); steam and power are that document's plant data (Table 8.5),
+    not a calculation. No energy balance: no property package covers the polar mixture (core
+    #315). cheme maturity reaches no level. The LCI is foreground only, every background a
+    gap (13 gaps): no impact result (lca.source none). Not reviewed. The chemicals registry
+    has no cumene, acetone, phenol, sulfuric acid or sodium hydroxide entry yet, so those
+    flows are not listed under chemistry (open library item, DESIGN.md I-09).
 chemistry:
   inputs:
-    - {chemical: water, role: feedstock}
+    - {chemical: air, role: reactant, inventory_key: "feed:AIR", note: "Oxidation air, 1.92 kg per kg phenol. The main feedstock, cumene (feed:CUM, 1.33 t per t phenol), has no registry entry yet"}
+    - {chemical: hydrogen, role: reactant, inventory_key: "feed:H2F", note: "AMS hydrogenation to cumene; from hydrogen-1 or a site header"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Wash water to the neutraliser (ASSUMED). Sulfuric acid (feed:ACID) and caustic soda (feed:NAOH50) have no registry entry yet"}
   outputs:
-    - {chemical: hydrogen, role: main-product}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Neutralisation brine and acetone column bottoms. The products acetone (product:ACETONE, main) and phenol (product:PHENOL, co-product) have no registry entry yet"}
+    - {chemical: air, role: emission, inventory_key: "product:VENT", note: "Spent air (5 mol% O2) after condensers and carbon adsorbers"}
   utilities:
-    - {chemical: electricity, role: utility}
-# basis: {capacity: "1000 t/d product", operating_hours_per_year: 8000}
-# lca: {source: auto}           # auto: read lca/ of a ChemE-as-Code project; none: no LCA
-# references:
-#   - {title: "Author et al. (2024) Title", doi: 10.xxxx/xxxxx}
-# maintainers:
-#   - {name: Your Name, orcid: 0000-0000-0000-0000}
-# repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/my-process, access: private}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "190 kWh/t phenol (LVOC BREF Table 8.5); air compressor about 57 %"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 500 kPa(a), CHP concentration"}
+    - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "MP steam 1800 kPa(a), fractionation reboilers"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED)"}
+basis:
+  capacity: "200 kt/a phenol, 126 kt/a acetone (ASSUMED)"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
+references:
+  - {title: "European Commission JRC (2017) Best Available Techniques (BAT) Reference Document for the Production of Large Volume Organic Chemicals (LVOC BREF), EUR 28882 EN, chapter 8 Phenol", url: "https://bureau-industrial-transformation.jrc.ec.europa.eu/sites/default/files/2019-11/JRC109279_LVOC_Bref.pdf"}
+  - {title: "Weber, M., Weber, M., Kleine-Boymann, M. (2004) Phenol. Ullmann's Encyclopedia of Industrial Chemistry. Wiley-VCH (cited via the LVOC BREF)", doi: 10.1002/14356007.a19_299.pub2}
+  - {title: "Hoffmann, A. et al. (2017) Acetone. Ullmann's Encyclopedia of Industrial Chemistry (issue #132 lead; not audited in this run)", doi: 10.1002/14356007.a01_079.pub4}
+  - {title: "Speight, J.G. (2002) Chemical Process and Design Handbook. McGraw-Hill, Part 2 (cumene and acetone consumption per t phenol, via the tech-petchem-styrene-and-phenol skill)"}
+  - {title: "US 5,245,090 (1993) Two-stage cleavage of cumene hydroperoxide (oxidation and cleavage conditions)", url: "https://patents.google.com/patent/US5245090A/en"}
+lca:
+  source: none
+  notes: "Foreground LCI only (lca/inventory.csv, per kg acetone, mass allocation with phenol), every background a gap (D-014): no impact result."
