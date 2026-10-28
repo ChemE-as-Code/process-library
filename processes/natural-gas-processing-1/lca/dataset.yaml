@@ -9,7 +9,7 @@ description: Unallocated foreground LCI of Natural gas processing (100 MMscf/d r
   gas and C2+ NGL), case design, derived from the flowsheet by cheme assess lca.
 scope: foreground
 basis: 1 h of operation
-location: GLO
+location: US
 year: 2026
 boundary: gate-to-gate foreground of the plant
 technology: 'Sweet gas plant: inlet separation, MDEA CO2 removal (acid gas vented), TEG dehydration with
@@ -17,13 +17,27 @@ technology: 'Sweet gas plant: inlet separation, MDEA CO2 removal (acid gas vente
   compression; 100 MMscf/d (about 0.8 Mt/a) of Barnett-type rich shale gas'
 rights: 'CC-BY-4.0: the ChemE-as-Code process library''s own concept design (LICENSE-DATA)'
 cutoff:
+- key: cutoff:fugitive-CH4
+  title: Fugitive methane of equipment leaks (screening amount, not in the inventory)
+  direction: output
+  amount: 64.875
+  reason: 'no P&ID component count at the concept stage; ASSUMED screening amount of 0.1 % of the methane
+    processed (S1: 64 870 kg/h CH4 x 0.001 x 8000 h/a), the upper end of the 0.05-0.1 % suggested by the
+    design review (R-03). Below 1 % of the input mass, but methane has a high characterisation factor:
+    about 0.020 kg CO2-eq per kg sales gas allocated (GWP100 29.8), roughly twice the direct GHG of the
+    inventory (D-017)'
+  cas: 74-82-8
+  source: 'ASSUMED (D-017); order-of-magnitude bound: Alvarez et al. (2018), Science 361(6398) 186-188,
+    whole US oil and gas supply chain methane 13 +- 2 Tg/a = 2.3 % of gross gas production, of which processing
+    is a minor segment; to replace with EPA leak protocol factors per component once P&IDs exist'
 - key: emission-excluded:leaks
   title: equipment-leaks emissions of the plant
   direction: output
   reason: 'fugitive methane and hydrocarbons from valves, flanges, compressor seals and the TEG/amine
     pumps are not estimated: no P&ID take-off at the concept stage. In gas processing they are a material
-    methane source; to be added with the P&IDs and the EPA leak protocol factors (D-014)'
-  source: D-014
+    methane source; to be added with the P&IDs and the EPA leak protocol factors (D-014); screening amount
+    for the cut-off check in cutoff:fugitive-CH4 (D-017)'
+  source: D-014, D-017
 - key: emission-excluded:non-routine
   title: non-routine emissions of the plant
   direction: output
@@ -75,6 +89,7 @@ exchanges:
   type: input
   amount: 97518.92
   unit: kg
+  provenance: given
   link:
     source: S1, D-003, D-004
     missing: 'not linked yet: raw (wet, untreated) natural gas from onshore shale gas production and gathering
@@ -85,8 +100,8 @@ exchanges:
   - S1
   source: S1, D-003, D-004
   pedigree:
-    scores: [4, 4, 1, 3, 3]
-    rule: cheme default pedigree v1 (assumed, design maturity concept)
+    scores: [3, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (given, design maturity concept)
   basic_uncertainty: 1.05
   composition:
     fractions:
@@ -109,6 +124,7 @@ exchanges:
   type: input
   amount: 60.86
   unit: kg
+  provenance: given
   link:
     source: S8, D-007
     missing: 'not linked yet: demineralised water production by ion exchange or reverse osmosis'
@@ -116,8 +132,8 @@ exchanges:
   - S8
   source: S8, D-007
   pedigree:
-    scores: [4, 4, 1, 3, 3]
-    rule: cheme default pedigree v1 (assumed, design maturity concept)
+    scores: [3, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (given, design maturity concept)
   basic_uncertainty: 1.05
   composition:
     fractions:
@@ -130,13 +146,14 @@ exchanges:
   type: input
   amount: 1815.72
   unit: kg
+  provenance: given
   free: true
   streams:
   - S33
   source: 'S33: ambient combustion air of the fired heaters, a resource without burden'
   pedigree:
-    scores: [4, 4, 1, 3, 3]
-    rule: cheme default pedigree v1 (assumed, design maturity concept)
+    scores: [3, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (given, design maturity concept)
   basic_uncertainty: 1.05
   composition:
     fractions:
@@ -159,7 +176,7 @@ exchanges:
   - Q1
   source: Q1, D-007
   pedigree:
-    scores: [4, 4, 1, 3, 3]
+    scores: [4, 4, 1, 1, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
   carrier:
@@ -185,7 +202,7 @@ exchanges:
   - Q12
   source: Q3, Q5, Q9, Q10, Q12; D-010
   pedigree:
-    scores: [4, 4, 1, 3, 3]
+    scores: [4, 4, 1, 1, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
   carrier:
@@ -199,7 +216,7 @@ exchanges:
   streams:
   - S31
   pedigree:
-    scores: [4, 4, 1, 3, 3]
+    scores: [4, 4, 1, 1, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
   state:
@@ -230,7 +247,7 @@ exchanges:
   streams:
   - S26
   pedigree:
-    scores: [4, 4, 1, 3, 3]
+    scores: [4, 4, 1, 1, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
   state:
@@ -260,7 +277,7 @@ exchanges:
   - S10
   source: 'released to the environment: counted by its emission:* exchanges'
   pedigree:
-    scores: [4, 4, 1, 3, 3]
+    scores: [4, 4, 1, 1, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
   composition:
@@ -286,7 +303,7 @@ exchanges:
   - S16
   source: 'released to the environment: counted by its emission:* exchanges'
   pedigree:
-    scores: [4, 4, 1, 3, 3]
+    scores: [4, 4, 1, 1, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
   composition:
@@ -314,7 +331,7 @@ exchanges:
   - S34
   source: 'released to the environment: counted by its emission:* exchanges'
   pedigree:
-    scores: [4, 4, 1, 3, 3]
+    scores: [4, 4, 1, 1, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
   composition:
@@ -343,7 +360,7 @@ exchanges:
   - S18
   source: S3, S18; D-004
   pedigree:
-    scores: [4, 4, 1, 3, 3]
+    scores: [4, 4, 1, 1, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
   treatment:
@@ -371,7 +388,7 @@ exchanges:
   - Q11
   source: Q2, Q7, Q11; D-010
   pedigree:
-    scores: [4, 4, 1, 3, 3]
+    scores: [4, 4, 1, 1, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
   carrier:
@@ -393,7 +410,7 @@ exchanges:
   - S34
   source: 'S10, S16: ethane slip (D-007, D-008)'
   pedigree:
-    scores: [4, 4, 1, 3, 3]
+    scores: [4, 4, 1, 1, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.5
   composition:
@@ -417,7 +434,7 @@ exchanges:
   - S34
   source: 'S10, S16: propane slip (D-007, D-008)'
   pedigree:
-    scores: [4, 4, 1, 3, 3]
+    scores: [4, 4, 1, 1, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.5
   composition:
@@ -457,7 +474,7 @@ exchanges:
     sweet fuel gas carries no sulfur (D-003). https://www.epa.gov/sites/default/files/2020-09/documents/1.4_natural_gas_combustion.pdf;
     CH4 0.969 g/GJ (US EPA AP-42 section 1.4, Table 1.4-2: methane 2.3 lb/10^6 scf at 1020 Btu/scf HHV)'
   pedigree:
-    scores: [4, 4, 1, 3, 3]
+    scores: [4, 4, 1, 1, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.5
   composition:
@@ -489,7 +506,7 @@ exchanges:
   - S34
   source: 'S10 reservoir CO2 removed from the gas, and S34 combustion CO2 of fuel gas: both fossil'
   pedigree:
-    scores: [4, 4, 1, 3, 3]
+    scores: [4, 4, 1, 1, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
   composition:
@@ -511,7 +528,7 @@ exchanges:
   - S34
   source: 'S10, S16, S34: water vapour'
   pedigree:
-    scores: [4, 4, 1, 3, 3]
+    scores: [4, 4, 1, 1, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.5
   composition:
@@ -533,7 +550,7 @@ exchanges:
   - S34
   source: 'S16, S34: nitrogen of the air and of the gas'
   pedigree:
-    scores: [4, 4, 1, 3, 3]
+    scores: [4, 4, 1, 1, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.5
   composition:
@@ -555,7 +572,7 @@ exchanges:
   - S34
   source: 'S34: excess oxygen of the combustion air'
   pedigree:
-    scores: [4, 4, 1, 3, 3]
+    scores: [4, 4, 1, 1, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.5
   composition:
@@ -593,7 +610,7 @@ exchanges:
     NOx 42.15 g/GJ (US EPA AP-42 section 1.4 (Natural Gas Combustion), Table 1.4-1, small boilers <100
     MMBtu/h, uncontrolled: 100 lb/10^6 scf at 1020 Btu/scf HHV, converted to g/GJ HHV)'
   pedigree:
-    scores: [3, 4, 3, 3, 3]
+    scores: [3, 4, 3, 1, 3]
     rule: cheme default pedigree v1 (estimated, design maturity concept)
   basic_uncertainty: 1.5
   balance_exclusion: 'estimated (emission_estimates heaters-combustion): an emission-factor estimate,
@@ -627,7 +644,7 @@ exchanges:
     CO 35.41 g/GJ (US EPA AP-42 section 1.4, Table 1.4-1, small boilers, uncontrolled: 84 lb/10^6 scf
     at 1020 Btu/scf HHV)'
   pedigree:
-    scores: [3, 4, 3, 3, 3]
+    scores: [3, 4, 3, 1, 3]
     rule: cheme default pedigree v1 (estimated, design maturity concept)
   basic_uncertainty: 5.0
   balance_exclusion: 'estimated (emission_estimates heaters-combustion): an emission-factor estimate,
@@ -661,7 +678,7 @@ exchanges:
     N2O 0.927 g/GJ (US EPA AP-42 section 1.4, Table 1.4-2: N2O uncontrolled 2.2 lb/10^6 scf at 1020 Btu/scf
     HHV)'
   pedigree:
-    scores: [3, 4, 3, 3, 3]
+    scores: [3, 4, 3, 1, 3]
     rule: cheme default pedigree v1 (estimated, design maturity concept)
   basic_uncertainty: 1.5
   balance_exclusion: 'estimated (emission_estimates heaters-combustion): an emission-factor estimate,
@@ -685,7 +702,7 @@ exchanges:
     heater type; SO2 left out: the sweet fuel gas carries no sulfur (D-003). https://www.epa.gov/sites/default/files/2020-09/documents/1.4_natural_gas_combustion.pdf;
     PM 3.203 g/GJ (US EPA AP-42 section 1.4, Table 1.4-2: PM total 7.6 lb/10^6 scf at 1020 Btu/scf HHV)'
   pedigree:
-    scores: [3, 4, 3, 3, 3]
+    scores: [3, 4, 3, 1, 3]
     rule: cheme default pedigree v1 (estimated, design maturity concept)
   basic_uncertainty: 1.5
   balance_exclusion: 'estimated (emission_estimates heaters-combustion): an emission-factor estimate,
@@ -708,7 +725,7 @@ exchanges:
     heater type; SO2 left out: the sweet fuel gas carries no sulfur (D-003). https://www.epa.gov/sites/default/files/2020-09/documents/1.4_natural_gas_combustion.pdf;
     NMVOC 2.318 g/GJ (US EPA AP-42 section 1.4, Table 1.4-2: VOC 5.5 lb/10^6 scf at 1020 Btu/scf HHV)'
   pedigree:
-    scores: [3, 4, 3, 3, 3]
+    scores: [3, 4, 3, 1, 3]
     rule: cheme default pedigree v1 (estimated, design maturity concept)
   basic_uncertainty: 1.5
   balance_exclusion: 'estimated (emission_estimates heaters-combustion): an emission-factor estimate,
@@ -725,7 +742,7 @@ exchanges:
   source: 'ASSUMED (D-007): of order 1 lb amine per MMscf treated, a practitioner rule of thumb; no open
     source found; 100 MMscf/d x 8000/24 d'
   pedigree:
-    scores: [4, 4, 1, 3, 3]
+    scores: [4, 4, 1, 1, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
 - key: disposal:consumable.MDEA
@@ -741,7 +758,7 @@ exchanges:
   - consumable:MDEA
   source: 'ASSUMED (D-007): what is lost leaves as waste or traces in the gas'
   pedigree:
-    scores: [4, 4, 1, 3, 3]
+    scores: [4, 4, 1, 1, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
   treatment:
@@ -759,7 +776,7 @@ exchanges:
   source: 'ASSUMED (D-008): of order 0.1 US gal TEG per MMscf dried, a practitioner rule of thumb; no
     open source found'
   pedigree:
-    scores: [4, 4, 1, 3, 3]
+    scores: [4, 4, 1, 1, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
 - key: disposal:consumable.TEG
@@ -775,7 +792,7 @@ exchanges:
   - consumable:TEG
   source: ASSUMED (D-008)
   pedigree:
-    scores: [4, 4, 1, 3, 3]
+    scores: [4, 4, 1, 1, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
   treatment:
@@ -791,7 +808,7 @@ exchanges:
     missing: 'not linked yet: production of zeolite molecular sieve (synthetic sodium aluminosilicate)'
   source: 'ASSUMED (D-008): two beds of about 20 t; no sizing at concept stage'
   pedigree:
-    scores: [4, 4, 1, 3, 3]
+    scores: [4, 4, 1, 1, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
 - key: disposal:consumable.MOLSIEVE
@@ -807,7 +824,7 @@ exchanges:
   - consumable:MOLSIEVE
   source: ASSUMED (D-008)
   pedigree:
-    scores: [4, 4, 1, 3, 3]
+    scores: [4, 4, 1, 1, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
   treatment:
@@ -838,7 +855,7 @@ provenance:
   case: design
   files:
     equipment/equipment-list.yaml: sha256:2cbaf4fe94d6daffd5d6f90f2e94aa7d18e41b07d23af4c5aa127158a6aacdce
-    lca/lca.yaml: sha256:84424725635d66e67c9b3c802c02c176e160ee184585bb7e665237eb7bd87473
-    process.yaml: sha256:2d6f6d40d44eee8c202e219bb516c8501282a0044e34657330b83605858f6c33
-    process/flowsheet.yaml: sha256:04657e75c8b03cf14697f8a138e1d4418ed573f92fdb12c7a9cd051e84192b30
+    lca/lca.yaml: sha256:2d605d64651ee76b7bcf71cef9a8b02be62825aec9e867ebcaa898f219776b03
+    process.yaml: sha256:491d4976763f6b71f976399ff2fd55cfaa6b7ce0c03de1a8e9f7444291ff4cf6
+    process/flowsheet.yaml: sha256:24884646f0ad062e74b04e84824e53f8eb1bcd49f763a80c46f468fd3e6e9d32
     process/materials.yaml: sha256:638961355a8efd99be549a02d9dc53403232a32d81a0b589cf516956fe701eec

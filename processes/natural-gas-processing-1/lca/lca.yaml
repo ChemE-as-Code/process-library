@@ -18,7 +18,7 @@ goal: >-
 functional_unit: {product: SALESGAS, amount: 1, unit: kg}
 boundary: gate-to-gate
 year: 2026
-location: GLO
+location: US
 technology: "Sweet gas plant: inlet separation, MDEA CO2 removal (acid gas vented), TEG dehydration with molecular sieve polishing, GSP-type turbo-expander NGL recovery (90 % C2, 98 % C3), electric-motor residue compression; 100 MMscf/d (about 0.8 Mt/a) of Barnett-type rich shale gas"
 rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
 case: design
@@ -92,6 +92,18 @@ consumables:
     missing: "not linked yet: production of zeolite molecular sieve (synthetic sodium aluminosilicate)"
     source: "ASSUMED (D-008): two beds of about 20 t; no sizing at concept stage"
     disposal: {kind: waste, route: "spent zeolite to landfill (non-hazardous for sweet gas)", missing: "not linked yet: landfill of inert mineral waste", source: "ASSUMED (D-008)"}
+cutoff:
+  # R-03 of reviews/2026-10-28-pfd-lci-review.md: the excluded fugitive methane (emission
+  # exclusion `leaks`, below) with an order-of-magnitude amount so that the cut-off criteria
+  # can be checked; it is not added to the inventory (D-014, D-017).
+  - id: fugitive-CH4
+    title: Fugitive methane of equipment leaks (screening amount, not in the inventory)
+    direction: output
+    unit: kg
+    per_year: 519000
+    cas: 74-82-8
+    reason: "no P&ID component count at the concept stage; ASSUMED screening amount of 0.1 % of the methane processed (S1: 64 870 kg/h CH4 x 0.001 x 8000 h/a), the upper end of the 0.05-0.1 % suggested by the design review (R-03). Below 1 % of the input mass, but methane has a high characterisation factor: about 0.020 kg CO2-eq per kg sales gas allocated (GWP100 29.8), roughly twice the direct GHG of the inventory (D-017)"
+    source: "ASSUMED (D-017); order-of-magnitude bound: Alvarez et al. (2018), Science 361(6398) 186-188, whole US oil and gas supply chain methane 13 +- 2 Tg/a = 2.3 % of gross gas production, of which processing is a minor segment; to replace with EPA leak protocol factors per component once P&IDs exist"
 operation: {hours_per_year: 8000, life_years: 25, source: "design basis D-002; life ASSUMED"}
 emission_estimates:
   - id: heaters-combustion
@@ -111,7 +123,7 @@ emission_estimates:
     add: true
     source: "AP-42 section 1.4 factors for natural gas boilers applied to small direct-fired process heaters (4.4 MMBtu/h fuel), a proxy for heater type; SO2 left out: the sweet fuel gas carries no sulfur (D-003). https://www.epa.gov/sites/default/files/2020-09/documents/1.4_natural_gas_combustion.pdf"
 emission_exclusions:
-  - {id: leaks, method: equipment-leaks, reason: "fugitive methane and hydrocarbons from valves, flanges, compressor seals and the TEG/amine pumps are not estimated: no P&ID take-off at the concept stage. In gas processing they are a material methane source; to be added with the P&IDs and the EPA leak protocol factors (D-014)", source: "D-014"}
+  - {id: leaks, method: equipment-leaks, reason: "fugitive methane and hydrocarbons from valves, flanges, compressor seals and the TEG/amine pumps are not estimated: no P&ID take-off at the concept stage. In gas processing they are a material methane source; to be added with the P&IDs and the EPA leak protocol factors (D-014); screening amount for the cut-off check in cutoff:fugitive-CH4 (D-017)", source: "D-014, D-017"}
   - {id: non-routine, method: non-routine, reason: "blowdowns, compressor starts, mole sieve bed switching losses, pigging and flaring at upsets are not estimated at the concept stage (D-014)", source: "D-014"}
   - {id: tanks, method: storage-tank, reason: "no hydrocarbon storage: NGL leaves by pipeline and there is no condensate (no C4+ in the feed); amine, TEG and produced-water tanks breathe negligible amounts (ASSUMED)", source: "D-014"}
   - {id: water, method: effluent, exchange: product:PWATER, reason: "the separated water goes to disposal (a waste treatment, mapped as product:PWATER); its dissolved hydrocarbons and salts are not in the balance (D-004)", source: "D-014"}

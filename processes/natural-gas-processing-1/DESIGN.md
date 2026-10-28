@@ -211,8 +211,51 @@ estimate NOx, CO, CH4, N2O, PM and VOC of H-601 (a proxy for direct-fired heater
 the fuel has no sulfur); PM and NMVOC have no CAS-identified flow yet and are gaps. Excluded with
 reason: equipment leaks (no P&ID take-off; a material methane source in gas plants), non-routine
 releases (blowdowns, flaring), tanks (none), effluent composition. Process overrides in
-`lca/mappings.yaml`: none (candidates listed there). Construction, transport and end of life
-are outside.
+`lca/mappings.yaml`: only feed:STEAM, counted as heat delivered in kWh, uses the shared
+`steam-heat` entry (the per-kg `steam` slug failed the strict Atlas build of PR #224); the other
+candidates are listed there. `allocation.deviation` records why energy is used instead of the
+WBCSD price ratio (no sourced prices). Location US (review R-05; the design and the named
+backgrounds are US). Construction, transport and end of life are outside.
+
+## D-015 Feed boundary values are design specifications, given with their basis (2026-10-28)
+Decision: the flows and compositions of the three feeds (S1 raw gas, S8 make-up water, S33
+combustion air) carry `provenance: given`, each source naming what is sourced and what is a
+design specification. S1: the dry composition is sourced (S-1, Table 1, well 2), the water
+content is calculated with the Bukacek correlation (S-9) plus 1 bbl/MMscf free water (ASSUMED,
+D-004), the flow is the design-basis capacity (D-002, a specification chosen inside the range
+of S-1). S8: the make-up rate is specified to keep the amine-loop water inventory constant
+(D-007). S33: 15 % excess dry air of 21/79 O2/N2 (D-011, ASSUMED simplification).
+Reason: review R-02. The library records design specifications as given with their source
+(as asu-1 does for its design air); writing `assumed` hid the sourced composition and made
+`cheme maturity` fail `sourced-boundary`. The ASSUMED parts stay named in each source.
+
+## D-016 Cold-box refrigeration: order-of-magnitude check (2026-10-28)
+Decision: no propane chiller is added to the balance at this stage; the possible
+under-estimate of electricity is stated in `process.yaml` and section 5.
+Check (review R-01; rounded values, ASSUMED, to verify with a qualified real-gas simulation):
+the cold box must take the C2/C3 that leave as NGL from gas at 313 K to liquid at 283 K and
+the residue gas back to a 5 K warm-end approach. Gas cooling 313-283 K of 529 kmol/h C2 and
+255 kmol/h C3 (ideal-gas cp about 53 and 74 kJ/kmol K) is about 0.4 MW; condensation at
+283 K (heat of vaporisation about 7.5 MJ/kmol for ethane, close to its 305 K critical point,
+and about 16 MJ/kmol for propane; rounded saturation values) about 2.2 MW; the warm-end
+approach of 4170 kmol/h residue gas about 0.2 MW: about 2.8 MW in total. Available: the
+expander work, 1.79 MW (ideal gas, D-009), and the real-gas enthalpy departure of the gas
+expanded from 5800 to 2200 kPa(a) (of order 0.4-0.7 MW for methane-rich gas near 313 K).
+Deficit: about 0.3-0.6 MW at these values, up to about 2 MW with less favourable property
+values. A propane chiller near 238 K (COP about 1.5, ASSUMED) would then need up to about
+1.5 MW electric, i.e. up to +40 % of the 3.99 MW in the balance. Consistent with D-009's
+open question; a rich gas at 90 % ethane recovery often has one.
+
+## D-017 Fugitive methane: screening amount for the cut-off check (2026-10-28)
+Decision: the equipment-leak exclusion keeps its reason (no P&ID component count) and the
+`cutoff:` list of `lca/lca.yaml` records an ASSUMED screening amount: 0.1 % of the methane
+processed, 64.9 kg/h, 519 t/a, the upper end of the 0.05-0.1 % the review suggested (R-03).
+It is not added to the inventory. Bound: Alvarez et al. (2018, Science 361, 186-188) give the
+whole US oil and gas supply chain as 13 +- 2 Tg/a of methane, 2.3 % of gross production, of
+which processing is a minor segment; the segment value was not read here. At GWP100 29.8 the
+screening amount is about 0.020 kg CO2-eq per kg sales gas (allocated), about twice the 0.0105
+of the inventory: the direct GHG figure must not be read as complete. Replace by component
+counts and the EPA leak protocol factors once P&IDs exist.
 
 ## 5. Results of this stage
 
@@ -236,15 +279,17 @@ GHG 0.0105 kg CO2-eq per kg sales gas (IPCC 2021 GWP100; 0.0145 unallocated), wi
 Sensitivity of the largest gaps: each 0.1 kg CO2-eq/kWh of grid factor adds 0.0042 kg CO2-eq/kg
 (power already outweighs the direct emissions at any grid factor above about 0.25 kg/kWh); each
 0.1 kg CO2-eq/kWh of steam heat adds 0.0011; each 1 g CO2-eq per kg raw gas upstream adds 1.02 g.
-Fugitive methane (excluded) could be of the same order as the direct CO2 and must be estimated
-with the P&IDs.
+Fugitive methane (excluded; screening amount 519 t/a, D-017) could add about 0.020 kg CO2-eq
+per kg, roughly twice the direct GHG above, and must be estimated with the P&IDs. Electricity
+is probably under-estimated: a propane chiller of up to about 1.5 MW electric (D-016) would
+raise it by up to 40 %, i.e. up to 0.016 kWh more per kg sales gas (allocated).
 
 `cheme check`: every concept and basic process gate passes (design-basis, concept-lists,
 process-concept, process-balances, process-links, process-basic, assumptions-marked); the
 concept gate layout-plot-plan fails (layout out of scope); P&ID, review, layout, datasheet
-gates fail (out of scope). `cheme maturity`: calculation maturity none (feed flow and
-composition are design choices / partly calculated, unit splits specified and partly unsourced,
-no simulation); the manifest claims concept, the lowest level, and says so.
+gates fail (out of scope). `cheme maturity`: see PROGRESS.md for the result after D-015
+(feed boundary given); unit splits stay specified and partly unsourced, no simulation; the
+manifest claims concept, the lowest level, and says so.
 
 ## 6. Methods, dependencies and gated steps
 

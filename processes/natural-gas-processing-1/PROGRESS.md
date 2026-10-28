@@ -4,6 +4,9 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-10-28 | process/flowsheet.yaml (S1, S8, S33), BFD, PFD, DESIGN.md D-015 | feed flows and compositions `given` with their basis (sourced composition, design specifications, ASSUMED parts named) | review R-02; `cheme maturity` now reaches calculation maturity "sourced", supporting the concept claim |
+| 2026-10-28 | DESIGN.md D-016, section 5; process.yaml | cold-box refrigeration order-of-magnitude check; electricity caveat (chiller up to about 1.5 MW, up to +40 %) | review R-01 |
+| 2026-10-28 | lca/lca.yaml (cutoff, location), lca/* (generated), DESIGN.md D-014, D-017; process.yaml | fugitive methane screening amount (519 t/a, ASSUMED) in `cutoff:`; location US | review R-03, R-05 |
 | 2026-10-28 | lca/mappings.yaml, lca/lca.yaml, lca/* (generated) | feed:STEAM uses the shared `steam-heat` entry (kWh); allocation.deviation states why energy, not the price ratio | PR #224 CI: strict Atlas LCI build failed on the steam unit and the allocation hierarchy |
 | 2026-10-28 | DESIGN.md, process.yaml, process/design-basis.yaml, PROGRESS.md | route/boundary memo, source register, decisions D-001..D-014, results, gated steps; manifest (internal, concept, unreviewed) and design basis | issue #181 concept stage |
 | 2026-10-28 | lca/lca.yaml, lca/mappings.yaml, lca/* (generated) | preliminary gate-to-gate LCI per kg sales gas, energy allocation with the NGL, backgrounds missing, AP-42 1.4 heater emissions; inventory written | D-014 |
