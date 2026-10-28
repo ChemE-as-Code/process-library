@@ -1,0 +1,138 @@
+# Goal and scope of the ethylene-glycol-1 LCA. Schema: `cheme schema lca`. Outputs: `cheme
+# assess lca --write` (lca/inventory.csv, results.csv, results.md, gaps.csv, dataset.yaml,
+# manifest.json); never edit those by hand. Decisions: DESIGN.md D-010.
+#
+# This stage delivers the PRELIMINARY GATE-TO-GATE FOREGROUND INVENTORY: every exchange of the
+# balanced flowsheet per kg of MEG. No background is connected yet: each feed, utility and waste
+# names the background activity it should link to later and is declared `missing:` (a gap in
+# every category, never 0). `boundary: cradle-to-gate` is the scope the backgrounds will
+# complete; `gate-to-gate` in cheme maps every feed free, which would hide the raw materials and
+# utilities (as soda-ash-1 D-010).
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary foreground (gate-to-gate) life cycle inventory of monoethylene glycol by direct
+  oxidation of ethylene to ethylene oxide and thermal hydration, at the concept stage: which raw
+  materials, utilities, emissions and wastes the balanced flowsheet implies per kg of MEG, ready
+  to be linked to background datasets later. Flows are concept estimates on assumed design
+  parameters inside the BREF LVOC 2017 ranges (DESIGN.md D-004 to D-008).
+functional_unit: {product: MEG, amount: 1, unit: kg}
+boundary: cradle-to-gate
+year: 2026
+location: GLO   # generic site, country not chosen (D-002)
+technology: "EO/EG glycols-only plant: O2-based EO reactor (silver catalyst, methane ballast), water absorption of EO, hot potassium carbonate CO2 removal, thermal hydration (water:EO 20 mol/mol), 4-effect evaporation, vacuum MEG/DEG/TEG columns; 50 t/h MEG"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+allocation:
+  method: mass
+  coproducts: [MEG, DEG, TEG]
+  source: >-
+    D-010: the glycols come from one reaction and one separation train and are sold by mass;
+    mass allocation between MEG, DEG and TEG (ASSUMED at this stage; no open prices recorded).
+    The heavy glycols residue is treated as a waste (incineration), the purge as a waste with
+    energy recovery in the site fuel gas system.
+  deviation: >-
+    Physical (mass) allocation in place of the price ratio of the hierarchy: no open price of
+    MEG, DEG and TEG is recorded yet (registry has no glycol entries); DEG is 7.7 % of the
+    product mass, TEG 0.3 %. To revisit with open prices (D-010).
+flows:
+  # ---- raw materials (backgrounds to connect later)
+  - key: feed:ETH
+    missing: "no background linked yet. Connect: ethylene, polymer grade, from steam cracking of naphtha or ethane (market for ethylene), per kg; no olefins process in the library yet (chemicals registry has no ethylene entry)"
+    source: "stream S1 (scripts/eg_balance.py, D-006)"
+  - key: feed:OXY
+    missing: "no background linked yet. Connect: the library's asu-1 dataset (product GOXP, gaseous oxygen 99.5 mol% at 30 barg, by pipeline), or a market for oxygen, gaseous, per kg"
+    source: "stream S2 (D-003, D-006)"
+  - key: feed:MET
+    missing: "no background linked yet. Connect: natural gas, high pressure, at the site (market for natural gas), per kg, as the methane ballast make-up (counted as pure CH4, D-004)"
+    source: "stream S3: methane lost with the purge and the CO2 vent (D-006)"
+  - key: feed:PW
+    missing: "no background linked yet. Connect: water, deionised/demineralised, from the site's water treatment, per kg"
+    source: "stream S22: hydration water and the bleed less the combustion water (D-006)"
+  # ---- utilities
+  - key: feed:POWER
+    missing: "no background linked yet. Connect: grid electricity, medium voltage, of the site's country (site not chosen, D-002), per kWh"
+    source: "Q9 (K-101) + Q10 (P-202) + Q11 (P-401) + Q12 (auxiliaries, ASSUMED 20 kWh/t), D-008"
+  - key: feed:MPS
+    missing: "no background linked yet. Connect: heat from MP steam 2800 kPa(a) of the site's boiler or CHP plant (natural gas fired, condensate returned), per kWh of heat delivered; the library's utility-steam-ng-boiler is a candidate once its grade matches"
+    source: "Q5-Q8: MP steam import to the glycol column and drying column reboilers, net of the 83.5 MW steam raised in R-101 and used in the plant (D-008)"
+  - key: product:CW
+    missing: "no background linked yet. Connect: cooling water from a circulating evaporative cooling tower (pumping, fans, make-up water and treatment chemicals), per kWh of heat rejected; the library's utility-cooling-tower is a candidate"
+    source: "Q13-Q22 (D-008)"
+  # ---- wastes and emissions
+  - key: product:HVY
+    treatment:
+      kind: waste
+      route: "incineration of the heavy glycols residue (could instead be sold for glycol recovery, BREF LVOC 7.3.6.4)"
+    missing: "no background linked yet. Connect: treatment of spent solvent/organic liquid residue, hazardous waste incineration, per kg; composition in stream S37 (TEG and heavier glycols)"
+    source: "stream S37 (D-006)"
+  - key: product:PURGE
+    treatment:
+      kind: waste
+      route: "combustion in the site fuel gas system (boiler or furnace) with energy recovery, BREF LVOC 7.2.2.1"
+    missing: "no background linked yet. Connect: combustion of a hydrocarbon purge gas in an industrial boiler (CO2 from its 35 wt% C2H4, 38 wt% CH4, 1.2 wt% C2H6 and 3.6 wt% CO2 as fossil emissions, about 2.7 kg CO2 per kg purge by carbon balance), per kg; the heat it displaces is a credit only under a crediting system model"
+    source: "stream S16: 0.15 % of the recycle gas (D-004)"
+  - key: product:WW
+    treatment:
+      kind: waste
+      route: "biological waste water treatment (central site plant), BREF LVOC 7.3.2.2"
+    missing: "no background linked yet. Connect: treatment of waste water from organic chemical production, average, per kg (or per m3) of effluent with 0.1 wt% MEG (COD about 1.3 g/kg)"
+    source: "stream S31: 0.5 % bleed of the recycle water (D-005)"
+  - key: product:CO2V
+    emission: true
+    source: "stream S21: CO2 stripper overhead to atmosphere without oxidation in the base case (D-006)"
+  - key: emission:CO2
+    elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}
+    source: "CO2 from the combustion of fossil ethylene in R-101, desorbed in the carbonate regenerator (D-006)"
+  - key: emission:CH4
+    elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}
+    source: "methane ballast dissolved in the carbonate solution, 0.5 kg/t EO ASSUMED inside BREF LVOC Table 7.4 (0.03-1.45 kg/t EO before treatment), D-006"
+  - key: emission:C2H4
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    source: "ethylene (NMVOC) dissolved in the carbonate solution, 0.5 kg/t EO ASSUMED inside BREF LVOC Table 7.4 (NMVOC 0.07-1.35 kg/t EO before treatment), D-006"
+  - {key: emission:H2O, free: true, source: "water vapour of the CO2 vent (saturation at 313 K)"}
+
+# Not estimated at this stage: declared, never silently 0 (D-010).
+emission_exclusions:
+  - id: eo-vents
+    method: non-routine
+    equipment: [C-202, C-203]
+    reason: "EO and VOC from the EO-containing vents after their scrubber (BREF LVOC 7.3.1.4: 0.1-40 ppm wt EO in the scrubber vent) and EO storage are not modelled: the glycols-only plant has no EO storage and the light gases return to the loop"
+    source: "DESIGN.md D-006, D-010"
+  - id: fugitives
+    method: equipment-leaks
+    reason: "fugitive ethylene, methane and EO from flanges, valves and compressor seals are not estimated at the concept stage (no P&ID, no component count)"
+    source: "DESIGN.md D-010"
+  - id: trace-byproducts
+    method: effluent
+    exchange: product:WW
+    reason: "aldehydes (acetaldehyde, formaldehyde), organic acids and the organochlorine moderator are not modelled; they end up in the bleed, the vent and the purge (BREF LVOC 7.2.2.1, 7.3.2.2)"
+    source: "DESIGN.md D-006"
+
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 25 a service life ASSUMED; no construction inventory at this stage (no take-off)"
+
+# Consumables not in the flowsheet: open items, not in this inventory yet (D-010). The silver
+# EO catalyst (about 0.2 kg/t EO, i.e. 0.16 g/kg MEG, inside the BREF LVOC 7.3.6.3 range of
+# 0.12-0.8 kg/t EO, to silver reclaimers), the potassium carbonate make-up, the organochlorine
+# moderator and the methane of the CO2 vent's oxidiser are left out until their compositions
+# are known: a consumable without one makes the element balance of the inventory not
+# assessable (cheme lci-balance-unassessable).
+
+uncertainty:
+  iterations: 1000
+  seed: 1
+  defaults:
+    assumed: {gsd2: 1.5, source: "concept estimate on assumed design parameters (D-006)"}
+    calculated: {gsd2: 1.2, source: "calculated from assumed inputs"}
+    given: {gsd2: 1.1, source: "design basis"}
+
+dataset:
+  version: 0.1.0
+  geography: {description: "Generic site, country not chosen (D-002); no regional background linked"}
+  system_model: cutoff
+  technology_level: current
+  modelling: {principle: attributional}
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library, ethylene-glycol-1 concept design (agent run 2026-10-28)"

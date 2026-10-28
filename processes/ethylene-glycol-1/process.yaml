@@ -1,36 +1,81 @@
-# Process Atlas manifest. Copy this folder to processes/<your-id>/ and edit.
-# Schema: schemas/process.schema.json (cheme-as-code/process/v1). Every slug used under
-# chemistry must exist in chemicals/chemicals.yaml; add new chemicals there in the same change.
-# A product in a defined state and purity names its registry grade: `chemical: oxygen/lox`.
+# Process Atlas manifest of ethylene-glycol-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
 schema: cheme-as-code/process/v1
-id: my-process                  # = folder name; lowercase slug; never rename once listed
-title: Short descriptive process title
+id: ethylene-glycol-1
+title: Ethylene glycol by ethylene oxide hydration (glycols-only EO/EG plant, 1200 t/d MEG)
 summary: >-
-  One or two sentences for cards and search results: what goes in, what comes out, at what scale.
-# description: |                # optional longer Markdown for the process page
-families: [hydrogen]            # slugs of taxonomy/families.yaml (ISIC-mapped), e.g. ammonia, methanol, air-separation
-keywords: []
-# facets:                      # optional, for filtering in the Atlas; list only what the design has
-#   feedstock_basis: [water, electricity]   # fossil | biogenic | atmospheric | mineral | recycled | water | electricity
-#   product_classes: [fuels]               # slugs, e.g. industrial-gases, fuels, fertilizers, polymers, chemicals, materials
-#   unit_operations: [electrolysis]        # slugs, e.g. cryogenic-distillation, adsorption, compression, reaction, electrolysis
-#   region: generic                        # e.g. generic, EU
-# Design maturity (claimed, capped by evidence: the calculation maturity in checks/maturity.json
-# of an engineering project; at most concept beside a Tier 0/1 LCI dataset):
-maturity: concept               # concept | screening | basic-engineering | detail-engineering | operating-reference
-validation:                     # review status: set by people only; passing checks is not a review
-  status: unreviewed            # unreviewed | internally-reviewed | peer-reviewed | industry-validated
+  Ethylene and pipeline oxygen to ethylene oxide over silver with methane ballast, water
+  absorption and stripping, hot-carbonate CO2 removal, thermal hydration with excess water,
+  multi-effect evaporation and vacuum distillation to MEG, DEG and TEG. Concept stage, assumed
+  basis, preliminary gate-to-gate inventory.
+description: |
+  A glycols-only EO/EG plant (no high-purity EO product). Fresh ethylene, oxygen (the library's
+  asu-1 GOX) and methane ballast join the recycle gas; the multitubular EO reactor converts 9 %
+  of the ethylene per pass at 85 % selectivity (inside the ranges of the EU BREF on large volume
+  organic chemicals, 2017) and raises steam on its shell. EO is absorbed in water and stripped,
+  a slip stream of the recycle gas loses its CO2 in hot potassium carbonate, and 0.15 % of the
+  gas is purged to fuel. The aqueous EO is hydrated with 20 mol water per mol EO without
+  catalyst; the water is removed in a four-effect evaporator and a drying column and recycled
+  with a bleed; vacuum columns give MEG, DEG and TEG and a small heavy glycols residue.
+
+  All flows come from an independent sequential balance (scripts/eg_balance.py) on assumed
+  parameters; cheme closes every block and step balance and checks the reactors by elements.
+  Duties are a lumped estimate: no property package covers the streams (core #315). See
+  DESIGN.md of the engineering files for every assumption and gated step.
+families: [oxygenates]
+keywords: [ethylene glycol, MEG, monoethylene glycol, diethylene glycol, triethylene glycol, ethylene oxide, EO/EG, direct oxidation, silver catalyst, hydration, multi-effect evaporation, vacuum distillation]
+facets:
+  feedstock_basis: [fossil]
+  product_classes: [chemicals]
+  unit_operations: [reaction, absorption, stripping, compression, evaporation, distillation]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest; the flows rest on assumed design
+# parameters and a lumped energy estimate, see validation.notes and DESIGN.md.
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances (cheme validate, cheme process
+    streams: every block and step within tolerance; reactors checked by elements and extents).
+    The flows are from an independent sequential balance (scripts/eg_balance.py) on ASSUMED
+    parameters set inside the ranges of the BREF LVOC 2017 chapter 7 (per-pass conversion,
+    EO selectivity, purge share, MEG share of the crude glycols); the glycol split rests on a
+    consecutive-reaction model with an ASSUMED relative rate, not on sourced kinetics. Duties
+    are a lumped estimate (latent heats, reflux ratios, evaporator economy, carbonate
+    regeneration heat all ASSUMED); energy closure is not evaluable in core (no property
+    package covers EO-water-glycol or the loop gas, core #315). Preliminary gate-to-gate LCI
+    with every background unmapped (gaps). Not reviewed. The chemicals registry has no
+    ethylene, ethylene oxide, ethylene glycol, diethylene glycol or triethylene glycol entry
+    yet, so the main feed and the products are not listed under chemistry (open library item,
+    DESIGN.md D-011).
 chemistry:
   inputs:
-    - {chemical: water, role: feedstock}
+    - {chemical: oxygen, role: feedstock, inventory_key: "feed:OXY", note: "Pipeline GOX 99.5 mol% O2 from the library's asu-1 (product GOXP). The main feedstock, polymer-grade ethylene (feed:ETH), has no registry entry yet"}
+    - {chemical: methane, role: feedstock, inventory_key: "feed:MET", note: "Methane ballast make-up of the EO recycle loop (ASSUMED pure CH4); lost with the purge and the CO2 vent"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Demineralised make-up water for the hydration and the bleed"}
   outputs:
-    - {chemical: hydrogen, role: main-product}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:CO2V", note: "CO2 of the ethylene burnt in the EO reactor, vented from the carbonate regenerator. The products MEG (product:MEG, main), DEG and TEG have no registry entry yet"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "0.5 % bleed of the recycle water (0.1 wt% MEG) to biological treatment"}
   utilities:
-    - {chemical: electricity, role: utility}
-# basis: {capacity: "1000 t/d product", operating_hours_per_year: 8000}
-# lca: {source: auto}           # auto: read lca/ of a ChemE-as-Code project; none: no LCA
-# references:
-#   - {title: "Author et al. (2024) Title", doi: 10.xxxx/xxxxx}
-# maintainers:
-#   - {name: Your Name, orcid: 0000-0000-0000-0000}
-# repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/my-process, access: private}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Recycle gas compressor, pumps, auxiliaries (ASSUMED electric drives)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "MP steam 2800 kPa(a) import (heat delivered) net of the steam raised in the EO reactor and used in the plant"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED)"}
+basis:
+  capacity: "1200 t/d MEG (50 t/h; ASSUMED normalisation basis)"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
+references:
+  - {title: "European Commission JRC (2017) Best Available Techniques (BAT) Reference Document for the Production of Large Volume Organic Chemicals (JRC109279, EUR 28882 EN), chapter 7 Ethylene oxide and ethylene glycols", url: "https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/JRC109279_LVOC_Bref.pdf"}
+  - {title: "Rebsdat, S.; Mayer, D. (2001) Ethylene Glycol. Ullmann's Encyclopedia of Industrial Chemistry (route lead, not audited in this run)", doi: 10.1002/14356007.a10_101}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/ethylene-glycol-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0

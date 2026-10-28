@@ -1,3 +1,43 @@
 # Equipment list. Schema: `cheme schema equipment`.
-schema: cheme/equipment/v1
-equipment: []
+# Concept stage: the items the PFD (process/flowsheet.yaml) needs, no P&ID yet (no sheet).
+# Flows and duties from scripts/eg_balance.py (D-006, D-008), all ASSUMED; trains, spares,
+# sizes, design conditions and materials come at basic engineering.
+equipment:
+  # ---- EO reaction (block RXN)
+  - {tag: R-101, type: TubularHeatExchanger, service: "EO reactor (multitubular, silver catalyst in the tubes, boiling water on the shell)",
+     notes: "38.7 kmol/h x 1000 feed gas at 2200 kPa(a), outlet 523 K; per-pass C2H4 conversion 9 %, EO selectivity 85 % (D-004). 83.5 MW reaction heat raises ~127 t/h steam at 2800 kPa(a) (D-008). Listed as a tubular exchanger: no tubular-reactor class in this list. Several reactors in parallel in practice; number not chosen. ASSUMED."}
+  - {tag: E-101, type: TubularHeatExchanger, service: Reactor gas feed/effluent exchanger and trim cooler,
+     notes: "899 t/h effluent; trim cooler 373 -> 313 K, 25.5 MW to cooling water (D-008). ASSUMED."}
+  # ---- EO recovery (block EOR)
+  - {tag: C-201, type: ProcessColumn, service: "EO absorber (water scrubbing), with lean absorbent cooler",
+     notes: "2000 kPa(a); 1259 t/h lean water absorbs 39.1 t/h EO (rich 3 wt% EO, D-004); lean cooler 36.6 MW. ASSUMED."}
+  - {tag: C-202, type: ProcessColumn, service: "EO stripper (desorber), with lean/rich exchanger and condenser",
+     notes: "200 kPa(a); reboiler 36.7 MW from R-101 steam, condenser 14.7 MW (D-008). Glycol and salt bleed of the absorbent not modelled (D-006). ASSUMED."}
+  - {tag: P-202, type: CentrifugalPump, service: Lean absorbent pump,
+     notes: "1259 t/h, 200 -> 2200 kPa(a), ~1.0 MW at efficiency 0.7 (D-008). ASSUMED."}
+  - {tag: C-203, type: ProcessColumn, service: Light-gas stripper (non-condensables back to the recycle gas),
+     notes: "Returns 1.7 t/h CO2, C2H4 and CH4 dissolved in the absorbent to the loop (D-004). ASSUMED."}
+  # ---- recycle gas loop (block LOOP)
+  - {tag: K-101, type: CentrifugalCompressor, service: Recycle gas compressor (with aftercooler),
+     notes: "854 t/h, 1950 -> 2200 kPa(a); ~4.4 MW shaft at isentropic efficiency 0.75 (D-008). Electric drive ASSUMED (steam turbines usual)."}
+  - {tag: C-301, type: ProcessColumn, service: CO2 absorber (hot potassium carbonate),
+     notes: "Slip stream 49.6 % of the recycle gas, 90 % of its CO2 removed: 13.7 t/h CO2 (D-004). ASSUMED."}
+  - {tag: C-302, type: ProcessColumn, service: CO2 regenerator (carbonate stripper),
+     notes: "~120 kPa(a); 11.5 MW regeneration heat at 3.0 GJ/t CO2 from R-101 steam (D-008); vent to atmosphere in the base case (D-006). ASSUMED."}
+  # ---- glycol reaction (block GLY)
+  - {tag: P-401, type: CentrifugalPump, service: Glycol reactor feed pump,
+     notes: "359 t/h, 200 -> 3000 kPa(a), ~0.4 MW (D-008). ASSUMED."}
+  - {tag: R-401, type: Vessel, service: "Glycol reactor (adiabatic tubular/plug-flow, no catalyst)",
+     notes: "3000 kPa(a), 423 -> ~478 K, water:EO 20 mol/mol, full EO conversion (BREF LVOC 7.2.2.5: 150-250 C, 10-40 barg), D-005. Listed as a vessel (pipe reactor). ASSUMED."}
+  # ---- evaporation and drying (block EVP)
+  - {tag: EV-501, type: Vessel, service: "Multi-effect evaporator train (four effects)",
+     notes: "Evaporates 295 t/h water; first effect heated by R-101 steam (22.7 MW), last effect condensed by cooling water (45.1 MW), D-008. Listed as one vessel for the train. ASSUMED."}
+  - {tag: C-501, type: ProcessColumn, service: Drying column (vacuum),
+     notes: "~20 kPa(a) top; removes 9.6 t/h water; reboiler 7.6 MW MP steam (D-008). ASSUMED."}
+  # ---- glycol purification (block PUR)
+  - {tag: C-601, type: ProcessColumn, service: MEG column (vacuum),
+     notes: "~15 kPa(a); 50 t/h MEG top product 99.9 wt%; reboiler 25.6 MW (12.6 MW R-101 steam + 12.9 MW MP steam), reflux 1.2 ASSUMED (D-008)."}
+  - {tag: C-602, type: ProcessColumn, service: DEG column (vacuum),
+     notes: "~5 kPa(a); 4.17 t/h DEG product; reboiler 1.9 MW MP steam (D-008). ASSUMED."}
+  - {tag: C-603, type: ProcessColumn, service: TEG column (vacuum),
+     notes: "0.18 t/h TEG product, 15 kg/h heavy glycols residue; reboiler 0.06 MW (D-008). ASSUMED."}

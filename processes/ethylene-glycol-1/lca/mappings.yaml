@@ -1,0 +1,15 @@
+# ethylene-glycol-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# The process is internal and its preliminary gate-to-gate inventory links no background of its
+# own choosing (reported gaps, ADR 0022; lca/lca.yaml says for each exchange which background
+# activity it should connect to). The one override below only fixes the unit: the registry slug
+# `steam` of process.yaml is counted by mass, this exchange in kWh of heat (as soda-ash-1's
+# feed:HPS). The shared vocabulary lacks entries for ethylene, the glycols (MEG, DEG, TEG), the
+# heavy glycols residue, the hydrocarbon purge gas and ethylene as an air emission; DESIGN.md
+# D-011 lists them for the consolidated PR.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:MPS": {use: steam-heat, source: "MP steam 2800 kPa(a) to the reboilers, counted as heat delivered (kWh, condensate returned), net of the steam raised in R-101; the slug steam is counted by mass"}
