@@ -51,7 +51,8 @@ Decision: 50 kt/a THF, 8000 h/a: 6250 kg/h; product 99.95 wt% THF, 0.05 wt% wate
 Reason: a single-train size in the range of solvent / PTMEG-feed plants; no client figure. The
 water content is the target of the HP column bottoms.
 Assumptions: ASSUMED capacity, hours and specification. Stabiliser (e.g. BHT), peroxides,
-2,3-dihydrofuran (US 9284289 B2 reports 17-327 ppm in its condensates), colour and acidity are
+2,3-dihydrofuran (US 9284289 B2 reports 37-327 ppm in the condensates of Examples 2-1 to 2-3
+and Comparative Examples 2-1 to 2-3), colour and acidity are
 outside the model (I-08, I-10).
 
 ### D-003 BDO feed (2026-10-28)
@@ -148,6 +149,14 @@ part of E-201) assume one homogeneous liquid on every stage, although the same N
 predict two liquid phases near x_THF 0.15 at 342-360 K, a range the C-201 stripping section
 passes through (D-006); they stay unverified until a stage-by-stage VLLE check of C-201 at
 110 kPa(a) or a qualified property method (I-04).
+Steam range (review 2026-10-28-pfd-lci-review#2): with the reflux at 1.3 x Rmin instead of
+the 0.3 floor (0.18 and 0.22) and boil-up scaled with R + 1 at fixed distillates (hand
+estimate), E-206 falls to about 2.18 MW and E-202 to about 0.79 MW, so the separation steam is
+about 8 % and the total steam about 4 % lower (about 3.47 instead of 3.61 MJ/kg THF). No upper
+bound can be calculated yet: finite stages, the constant-molar-overflow error and a possible
+liquid-liquid split in C-201 can only raise the duties. For screening, the steam per kg THF is
+taken as 3.6 MJ/kg -5 %/+30 % (the +30 % ASSUMED, engineering judgement, not calculated) until
+stages are set (I-11).
 
 ### D-008 Utilities and machines (2026-10-28)
 Decision: MP steam 1000 kPa(a) (453 K) for R-101 and E-206; LP steam 450 kPa(a) (420.8 K) for the
@@ -213,7 +222,7 @@ directory) passes with the 8 gaps reported unlinked.
 | item | evidence | used as |
 |---|---|---|
 | Cyclodehydration BDO -> THF + H2O, catalysts | Li and Chen 2019, Introduction (Eq. 1, catalyst families and their drawbacks); US 9284289 B2 | route and catalyst choice |
-| Liquid conditions, acid, water window, reactive distillation, condensate 78-80 wt% THF, BDO < 10 ppm overhead, by-products (DHF 17-327 ppm, oligomers, acetal polymer) | US 9284289 B2, "Production Method 1/2" sections, Examples 1-1 and the 500 L example | D-004, D-005 ranges; the script's 80.0 wt% condensate agrees |
+| Liquid conditions, acid, water window, reactive distillation, condensate 78-80 wt% THF, BDO < 10 ppm overhead, by-products (DHF 37-327 ppm, oligomers, acetal polymer) | US 9284289 B2, "Production Method 1/2" sections, Example 1-1, Example 1-4 (500 L SUS316L reactor charged with 400 L BDO: BDO at or below 10 ppm in the condensate), Examples and Comparative Examples 2-1 to 2-3 (DHF) | D-004, D-005 ranges; the script's 80.0 wt% condensate agrees |
 | Reversibility and equilibrium yields 84-94 % (200-350 C, liquid water, no catalyst); water acts as proton donor | Hunter, Ehrenberger, Savage 2006, abstract | D-005: not used as the reactor model (other system) |
 | Solid-acid yields: Zr-Al 97 % yield after 12 h at 220 C in water; pseudo-first-order constants 0.605 1/h (aqueous) and 0.139 1/h (pure BDO) at 220 C | Li and Chen 2019, Section 3.2, Figs. 2-5 | alternative route evidence only (I-09); not this catalyst |
 | Kinetics for p-TSA catalysed liquid-phase dehydration at 145 C | none found in this run | reactor not sized (I-03) |
@@ -228,7 +237,7 @@ unsourced).
 
 | source | locator | access / read | reuse terms | used for |
 |---|---|---|---|---|
-| US 9284289 B2, Method for producing tetrahydrofuran (Mitsubishi Chemical), https://patents.google.com/patent/US9284289 | description, "Production Method 1/2", Examples (first 100 000 characters of the Google Patents text read) | open, read 2026-10-28 | patent text: facts used in own words | D-001, D-004, D-005 |
+| US 9284289 B2, Method for producing tetrahydrofuran (Mitsubishi Chemical), https://patents.google.com/patent/US9284289 | description, "Production Method 1/2", Examples 1-1, 1-4, 2-1 to 2-3, Comparative Examples 2-1 to 2-3 (whole Google Patents text read on the review re-check) | open, read 2026-10-28 | patent text: facts used in own words | D-001, D-004, D-005 |
 | Hunter, Ehrenberger, Savage (2006) J. Org. Chem. 71, 6229-6239, doi:10.1021/jo061017o | abstract (Penn State Pure record) | abstract only | facts only | D-005 |
 | Li, Chen (2019) Materials 12, 2092, doi:10.3390/ma12132092 (PMC6651349) | Introduction; Sections 2.2, 3.1, 3.2; Figs. 1-5 | full text, read 2026-10-28 | CC BY 4.0 | memo, evidence table |
 | Ullmann's, Tetrahydrofuran, doi:10.1002/14356007.a26_221.pub3 | not read | licensed | none | route survey lead (open) |
