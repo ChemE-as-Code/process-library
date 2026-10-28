@@ -236,6 +236,7 @@ steps:
       - {id: feed_out, direction: out}
       - {id: res_in, direction: in}
       - {id: res_out, direction: out}
+      - {id: reb, direction: out, kind: energy}
   - id: V401
     block: NGLR
     title: Cold separator
@@ -264,6 +265,7 @@ steps:
       - {id: vap, direction: in}
       - {id: ovhd, direction: out}
       - {id: btm, direction: out}
+      - {id: reb, direction: in, kind: energy}
   - id: P401
     block: NGLR
     title: NGL product pump
@@ -384,4 +386,8 @@ streams:
   - {id: Q10, title: "Residue compressor motor power", kind: energy, from: POWER.k501, to: K501.power, state: {design: {duty: {value: 3671.7, provenance: assumed, source: "scripts/balance.py: D-010: ideal gas, isentropic 0.80, motor 0.96 ASSUMED"}}}}
   - {id: Q11, title: "Sales gas aftercooler", kind: energy, from: E501.cw, to: CW.e501, state: {design: {duty: {value: 5084.7, provenance: assumed, source: "scripts/balance.py: D-010"}}}}
   - {id: Q12, title: "Site auxiliaries (instrument air, controls, lighting)", kind: energy, from: POWER.v101, to: V101.aux, state: {design: {duty: {value: 150.0, provenance: assumed, source: "scripts/balance.py: D-010: 150 kW ASSUMED"}}}}
+  # Internal heat integration of the cold box (D-009): the demethaniser side and bottom
+  # reboilers are heated by the inlet gas in E-401, no external utility. Duty not calculated:
+  # no qualified property package for the condensing C1-C3 mixture (D-012).
+  - {id: Q13, title: "Demethaniser reboiler heat from the inlet gas (cold box)", kind: energy, from: E401.reb, to: T401.reb}
 layout: {bfd: {}, pfd: {}}

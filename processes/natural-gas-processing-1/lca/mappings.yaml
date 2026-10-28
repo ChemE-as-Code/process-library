@@ -1,0 +1,23 @@
+# natural-gas-processing-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# None yet (DESIGN.md D-014): the preliminary inventory leaves every background unlinked, so the
+# Atlas build reports the exchanges of this internal process as gaps (ADR 0022). What each
+# should connect to is in lca/lca.yaml (`missing:`). Candidates once the shared vocabulary has
+# them (not active, listed for the consolidated mapping PR):
+#   feed:RAWGAS      -> a `natural-gas` raw / unprocessed grade (none in chemicals/chemicals.yaml:
+#                       the registry note on `methane` says natural gas is not there yet)
+#   product:SALESGAS -> a `natural-gas` pipeline-quality grade (main product)
+#   product:NGL      -> a `natural-gas-liquids` (ethane-propane mix) entry, or `ethane`/`propane`
+#   feed:DMW         -> a demineralised-water entry (none yet; `water` is raw water)
+#   feed:POWER       -> the library default (electricity, medium voltage)
+#   feed:STEAM       -> `steam` needs an LP grade (only mp-11bara exists); Atlas producer
+#                       utility-steam-ng-boiler
+#   product:CW       -> cooling-water (Atlas producer utility-cooling-tower)
+#   product:PWATER   -> `wastewater` or a produced-water disposal entry
+#   consumable:MDEA, consumable:TEG, consumable:MOLSIEVE -> new registry entries
+#                       (methyldiethanolamine, triethylene-glycol, zeolite-4a)
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges: {}
