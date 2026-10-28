@@ -1,36 +1,77 @@
-# Process Atlas manifest. Copy this folder to processes/<your-id>/ and edit.
-# Schema: schemas/process.schema.json (cheme-as-code/process/v1). Every slug used under
-# chemistry must exist in chemicals/chemicals.yaml; add new chemicals there in the same change.
-# A product in a defined state and purity names its registry grade: `chemical: oxygen/lox`.
+# Process Atlas manifest of glycerol-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here.
 schema: cheme-as-code/process/v1
-id: my-process                  # = folder name; lowercase slug; never rename once listed
-title: Short descriptive process title
+id: glycerol-1
+title: Refined glycerol (USP) from biodiesel crude glycerol (10 000 t/a, concept)
 summary: >-
-  One or two sentences for cards and search results: what goes in, what comes out, at what scale.
-# description: |                # optional longer Markdown for the process page
-families: [hydrogen]            # slugs of taxonomy/families.yaml (ISIC-mapped), e.g. ammonia, methanol, air-separation
-keywords: []
-# facets:                      # optional, for filtering in the Atlas; list only what the design has
-#   feedstock_basis: [water, electricity]   # fossil | biogenic | atmospheric | mineral | recycled | water | electricity
-#   product_classes: [fuels]               # slugs, e.g. industrial-gases, fuels, fertilizers, polymers, chemicals, materials
-#   unit_operations: [electrolysis]        # slugs, e.g. cryogenic-distillation, adsorption, compression, reaction, electrolysis
-#   region: generic                        # e.g. generic, EU
-# Design maturity (claimed, capped by evidence: the calculation maturity in checks/maturity.json
-# of an engineering project; at most concept beside a Tier 0/1 LCI dataset):
-maturity: concept               # concept | screening | basic-engineering | detail-engineering | operating-reference
-validation:                     # review status: set by people only; passing checks is not a review
-  status: unreviewed            # unreviewed | internally-reviewed | peer-reviewed | industry-validated
+  Refining of the crude glycerol phase of a biodiesel plant to USP-grade glycerol (99.7 wt%):
+  HCl acidulation, fatty-layer separation, neutralisation, methanol recovery, vacuum dewatering,
+  vacuum distillation with salt removal and activated carbon bleaching. Concept stage, sourced
+  feed, assumed separation parameters.
+description: |
+  The glycerol phase of a sodium-methylate catalysed biodiesel plant (about 60 wt% glycerol,
+  29 wt% methanol, 8 wt% fatty matter and the catalyst; Thompson & He 2006) is acidulated with
+  32 wt% hydrochloric acid: the catalyst becomes NaCl and methanol, the soaps split, and the
+  freed fatty matter is decanted as a layer returned to the biodiesel plant. The glycerol phase
+  is neutralised with caustic soda, the methanol is distilled off at atmospheric pressure and
+  returned, and the remaining water is evaporated under vacuum. A vacuum still (1.5 kPa(a),
+  448 K, live steam) distils the glycerol; the salt crystallises in the still residue and is
+  separated by a centrifuge, the residue liquor (glycerol foots) leaves as waste. The
+  distillate is bleached and deodorised with activated carbon and cooled.
+
+  All separator splits and duties are concept estimates from an independent balance
+  (scripts/glycerol_balance.py) on assumed design parameters; no phase equilibrium, salt
+  solubility or enthalpy model is qualified for these mixtures in core. See DESIGN.md.
+families: [bio-based-chemicals]   # no glycerol family in taxonomy/families.yaml
+keywords: [glycerol, glycerine, crude glycerol, biodiesel by-product, USP glycerin, acidulation, methanol recovery, vacuum distillation, bleaching, activated carbon]
+facets:
+  feedstock_basis: [biogenic]
+  product_classes: [chemicals]
+  unit_operations: [reaction, decanting, distillation, evaporation, vacuum-distillation, centrifugation, adsorption]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest; every separator parameter is assumed.
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept BFD/PFD with closed mass, component and element balances (cheme validate clean,
+    cheme process streams: 5 blocks, 9 steps, reactive balances by extents). The crude glycerol
+    composition is sourced (Thompson & He 2006); all separator outlets and duties are specified
+    values of an independent balance on assumed parameters. No property package or
+    electrolyte route covers glycerol-methanol-water-NaCl (core #315, #364, #365), so energy
+    closure is not evaluable in core. cheme maturity: balanced level blocked by the specified
+    separator values (no sourced model); sourced level blocked by assumed feed flows. The
+    gate-to-gate LCI is preliminary, with every background unmapped. Not reviewed.
+# No inventory_key: an inventory key would link the exchange to the registry slug's background
+# in the Atlas LCI build; this preliminary LCI leaves every background unmapped (D-013).
 chemistry:
   inputs:
-    - {chemical: water, role: feedstock}
+    - {chemical: water, role: feedstock, note: "Water of the 32 wt% hydrochloric acid and the 50 wt% caustic soda. The raw materials crude glycerol (feed:CRUDE), hydrochloric acid (feed:HCLA), caustic soda (feed:NAOHS) and activated carbon (feed:ACF) have no registry entries yet"}
   outputs:
-    - {chemical: hydrogen, role: main-product}
+    - {chemical: wastewater, role: waste, note: "product:WW, evaporator and vacuum condensates with about 1.4 wt% methanol and 3.3 wt% glycerol. The main product (refined glycerol, product:GLYC) and the co-products recovered methanol (product:MEOHR) and fatty layer (product:FAL) have no registry entries yet"}
   utilities:
-    - {chemical: electricity, role: utility}
-# basis: {capacity: "1000 t/d product", operating_hours_per_year: 8000}
-# lca: {source: auto}           # auto: read lca/ of a ChemE-as-Code project; none: no LCA
-# references:
-#   - {title: "Author et al. (2024) Title", doi: 10.xxxx/xxxxx}
-# maintainers:
-#   - {name: Your Name, orcid: 0000-0000-0000-0000}
-# repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/my-process, access: private}
+    - {chemical: electricity, role: utility, note: "feed:POWER: pumps, agitators, vacuum pumps, salt centrifuge (50 kWh/t, ASSUMED)"}
+    - {chemical: steam, role: utility, note: "feed:LPS (heat, kWh) and feed:LSTM (live steam, kg): LP steam 450 kPa(a); feed:HPS (heat, kWh): HP steam 3000 kPa(a)"}
+    - {chemical: cooling-water, role: utility, note: "product:CW, 25/35 C (ASSUMED)"}
+basis:
+  capacity: "10 000 t/a refined glycerol, 1250 kg/h (ASSUMED normalisation basis)"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
+lca: {source: auto}
+references:
+  - {title: "Thompson, J. C.; He, B. B. (2006) Characterization of crude glycerol from biodiesel production from multiple feedstocks. Applied Engineering in Agriculture 22(2), 261-265, Tables 1, 3, 5, 6 (crude glycerol composition)", url: "https://biodieseleducation.org/Literature/Journal/2006_Thompson_Characterization_of_.pdf"}
+  - {title: "Attarbachi, T. et al. (2024) Experimental scale-up and techno-economic assessment of low-grade glycerol purification from waste-based biorefinery. Ind. Eng. Chem. Res. (CC BY 4.0): section 1 (industrial acidulation to pH ~3, tricanter, neutralisation, methanol column), Table 1 (crude compositions), energy discussion (reboiler heat and plant energy references)", doi: 10.1021/acs.iecr.3c03868}
+  - {title: "The Crude Glycerol Challenge: Purification Technologies and Possible Valorization Pathways in the Biodiesel Industry (2026). Molecules 31(11), 1841, section 4.1 (vacuum distillation: 10-30 mbar, feed water limit, scraped-wall evaporator for 2-5 wt% salt, polymerisation and acrolein limits)", doi: 10.3390/molecules31111841}
+  - {title: "Recovery and utilization of crude glycerol, a biodiesel byproduct (2022). RSC Advances (CC BY-NC 3.0), Table 1 and text (purified glycerol traded at 99.5-99.7 %)", doi: 10.1039/d2ra05090k}
+  - {title: "Yang, F.; Hanna, M. A.; Sun, R. (2012) Value-added uses for crude glycerol - a byproduct of biodiesel production. Biotechnology for Biofuels 5, 13 (CC BY 2.0): context, composition variability", doi: 10.1186/1754-6834-5-13}
+  - {title: "Ullmann's Encyclopedia of Industrial Chemistry: Glycerol (route reference lead from issue #186; not read in this run)", doi: 10.1002/14356007.a12_477.pub2}
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/glycerol-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0
