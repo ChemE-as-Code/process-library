@@ -9,7 +9,10 @@ lci_dataset``; schema ``cheme/lci_dataset/v2``, and the v1 files), ``lca/dataset
 any hand-written ``lca/datasets/*.yaml`` of a manifest-only process; ``process.yaml`` for the
 title, maturity and the chemical slug of each inventory key; ``lca/lca.yaml`` for the study's
 allocation and functional unit. Linking comes from ``lci/mappings.yaml`` (library root, else the
-process library's own beside this script; schema ``schemas/lci-mappings.schema.json``); the
+process library's own beside this script; schema ``schemas/lci-mappings.schema.json``), the shared
+vocabulary, merged with each process's own exchange overrides in
+``processes/<id>/lca/mappings.yaml`` (schema ``schemas/lci-process-mappings.schema.json``; the
+same exchange in both is an error, ADR 0022); the
 latest check of its background names against a licensed background (``lci/mapping-checks/``,
 ``check_mappings.py``) is recorded in ``datapackage.json`` (``brightway.background_check``). YAML files only:
 chemeascode is never imported, except ``foundation.units`` for the benchmark unit conversion
@@ -30,6 +33,8 @@ Output (``--out``; ``<out>/lci/`` is replaced):
   link targets, header metadata, allocation, closure, citation, downloads; ``lci_activities.py``).
 - ``lci/benchmarks.json``: every KPI result of the build with its allocated value and the counts
   by status (``benchmarks.report``, docs/benchmarks.md), the stored report of the comparison
+- ``lci/gaps.json``: the mapping gaps of unpublished processes per process (below), always
+  written (``count`` 0 without gaps);
 - ``lci/index.json``: the summary the Atlas reads (files with size, sha256, format and format
   version, activities per process, caveats).
 - with ``--previous <dir>`` (an earlier build): ``lci/changes.json`` and ``lci/CHANGES.md``, the
@@ -92,7 +97,15 @@ Errors (exit 1): ``chemicals/chemicals.yaml`` failing its schema or ``registry.c
 first, before any process is read), a benchmark file failing its schema or ``benchmarks.load``,
 a market file failing its schema or ``markets.load``, a market whose supplier makes no activity of
 its product, an unknown grade, a dataset that fails validation, an
-allocation that cannot be exported, an exchange without a mapping. Warnings fail ``--strict``.
+allocation that cannot be exported, an exchange of a public process (or in a ``--public`` build)
+without a mapping. Warnings fail ``--strict``.
+
+Gaps (ADR 0022): an exchange of a process that is not public with no technosphere mapping or no
+biosphere identity is neither an error nor a warning: it is reported (``Report.gaps``, ``gap:``
+lines, ``lci/gaps.json``, ``datapackage.json`` ``processes[].gaps``, ``index.json`` ``gaps``) and
+exported unlinked with its amount: no database, categories or Atlas alternative, column
+``atlas gap``, the activity's ``atlas gaps`` and an ``UNLINKED`` comment line; never linked to a
+guess, dropped or zero-filled. ``--strict`` does not fail on gaps.
 
 Deterministic: sorted, no timestamps (the workbook's document properties and zip entry dates
 are fixed), so two runs on the same input are byte-identical.

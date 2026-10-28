@@ -188,11 +188,13 @@ values: `exergy` with `exergy`, and `energy` with `lhv`. Each comparison goes in
 datapackage (`datasets[].property_checks`) as `match`, `mismatch`, `overridden` or `unchecked`
 (the registry has no value, or the product is not counted in kg: the registry's values are per
 kg, and a product in m3, kWh or pieces is not converted). A difference of more than 2 % is a build warning, which fails
-`--strict`, unless `lci/mappings.yaml` gives the exchange a `properties_reason`:
+`--strict`, unless the process's own `lca/mappings.yaml` (ADR 0022) gives the exchange a
+`properties_reason`:
 
 ```yaml
+# processes/asu-1/lca/mappings.yaml
 exchanges:
-  "asu-1/product:LIN":
+  "product:LIN":
     properties_reason: "The study's LIN is the subcooled stream to storage, not the grade's state ..."
 ```
 

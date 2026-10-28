@@ -27,7 +27,15 @@
    - a cheme-as-code engineering project in the same folder (`cheme init`, then P&IDs, process
      YAML, layout, LCA): the catalog derives its sheets, gates, design basis and LCA results;
    - an LCI dataset (`lca/dataset.yaml`, written by `cheme assess lca --write`, or hand-written
-     `lca/datasets/*.yaml`), and if it needs new background links, entries in `lci/mappings.yaml`.
+     `lca/datasets/*.yaml`). Overrides for this process's exchanges (`use` an existing
+     technosphere entry, a `chemical` slug, `atlas: false`, a `properties_reason`) go in its own
+     `lca/mappings.yaml`, not in the shared file. A new technosphere entry, biosphere identity,
+     proxy or pass-through decision is shared vocabulary in `lci/mappings.yaml` and gets its own
+     PR. While the process is not public, an exchange without a mapping is a **gap**: the strict
+     build passes, lists it (`gap:` lines, `lci/gaps.json`) and exports it unlinked. Map every
+     gap before the process goes public: then a missing mapping fails the build
+     ([ADR 0022](docs/adr/0022-lci-gaps-for-unpublished-processes-and-per-process-mappings.md),
+     [lci/README.md](lci/README.md) "Linking").
      A multi-output process needs an allocation that follows the hierarchy of
      [docs/system-model.md](docs/system-model.md) (often a curated `allocation:` entry in the
      mappings), and recycling or energy-recovery outputs a `cutoff_exclusions:` decision.

@@ -53,7 +53,8 @@ prefer_atlas=True, overwrite=False, expect=None, pin=())`:
   successors (`report.superseded`);
 - writes the database **only if every exchange is linked**; otherwise nothing is written and
   `report.unlinked` lists each exchange that found no partner (fix the name in your background
-  or in `lci/mappings.yaml`). Nothing is dropped silently;
+  or in `lci/mappings.yaml`; an `atlas gap` exchange of an unpublished process has no mapping
+  yet and is never linked). Nothing is dropped silently;
 - refuses to replace an existing database of the same name unless `overwrite=True`.
 
 Without the helper, plain bw2io works too (`bi.ExcelImporter(path)`, `apply_strategies()`,
@@ -70,6 +71,7 @@ to handle.
 | `lci/benchmarks.json` | the stored benchmark report of the build: every KPI result (process, dataset, value, allocated value, status, reference, reason) and the counts by status, in total and per process ([benchmarks](../docs/benchmarks.md)) |
 | `lci/cheme-as-code-atlas-<version>-olca-jsonld.zip` | the same database for **openLCA** (JSON-LD, olca-schema 2): one unallocated multi-output process per dataset with allocation factors (below); markets and proxies as single-output processes, the default provider of every exchange linked to them |
 | `lci/cheme-as-code-atlas-<version>-multifunctional.json` | the **unallocated multi-output** datasets for Brightway's `multifunctional` package, with allocation properties (below); `install_multifunctional()` |
+| `lci/gaps.json` | the mapping gaps of unpublished processes (`cheme-as-code/lci-gaps/v1`): per process, each unlinked exchange with dataset, path, key, type, the link it lacks (`technosphere` or `biosphere`) and the reason; `count` 0 without gaps (Linking, below) |
 | `lci/index.json` | what the Atlas site reads: file names, sizes, sha256, `format` and `format_version` of every file, activities per process, exported markets, caveats, system model |
 | `lci/changes.json`, `lci/CHANGES.md` | with `--previous`: the change report against the earlier build (below) |
 
@@ -176,10 +178,27 @@ build); governance (versions, change reports, releases, review) is
 
 ## Linking (`lci/mappings.yaml`)
 
-Curated, library level, schema `schemas/lci-mappings.schema.json`. Per exchange: an override in
-`exchanges:`, else the dataset exchange's own `link` (a Brightway activity, biosphere flow or
-another Atlas dataset), else its chemical slug, else its `link.factor` id, in `technosphere:`.
-A missing mapping fails the build.
+Curated, library level, schema `schemas/lci-mappings.schema.json`: the shared vocabulary
+(technosphere entries by chemical or utility slug or factor id, proxies, biosphere identities,
+pass-through decisions, cut-off exclusions, the substitution variant, allocation). A process's
+own overrides live with it in `processes/<id>/lca/mappings.yaml` (schema
+`schemas/lci-process-mappings.schema.json`): `exchanges:` keyed by the dataset's exchange key
+(`<kind>:<id>`), each entry `use`s a technosphere entry, gives the exchange's `chemical` slug,
+`atlas: false` or a `properties_reason`. The build merges them; the same exchange overridden in
+`lci/mappings.yaml` (`"<id>/<key>"`) too is an error (ADR 0022). Per exchange: an override, else
+the dataset exchange's own `link` (a Brightway activity, biosphere flow or another Atlas
+dataset), else its chemical slug, else its `link.factor` id, in `technosphere:`.
+
+A missing mapping (no technosphere mapping, or an emission or resource without a biosphere
+identity) fails the build for a **public** process and in a `--public` build. For a process
+that is not public (`publication.status` internal, candidate or none) it is a **gap**: its
+preliminary LCI is still built, the exchange exported **unlinked** (amount and unit kept, no
+`database`, categories or Atlas alternative, column `atlas gap` with the reason; the activity's
+`atlas gaps` count and an `UNLINKED` comment line), never linked to a guess, dropped or
+zero-filled. Gaps are listed in the build report (`gap:` lines), `lci/gaps.json`,
+`datapackage.json` `processes[].gaps` and `index.json` `gaps`, and do not fail `--strict`.
+`install()` reports a gap as unlinked and writes nothing, so map every gap before a process is
+published: setting it public turns each gap into an error.
 
 Emissions and resources (the `resource` exchange type of the v2 contract: water, CO2 in air,
 land) are biosphere exchanges, identified by the **biosphere3 UUID** of the dataset exchange's
@@ -415,12 +434,14 @@ ILCD validator; EcoSpold2 / SimaPro CSV and PACT PCF are open (#51).
 uv run scripts/build_lci.py --library <process-library> --out <dir> --version 0.1.0 [--strict] \
     [--public] [--system-model substitution] [--previous <earlier build>]
 # -> <dir>/lci/cheme-as-code-atlas-0.1.0.xlsx, -olca-jsonld.zip, -multifunctional.json,
-#    <dir>/lci/datapackage.json, <dir>/lci/index.json
+#    <dir>/lci/datapackage.json, benchmarks.json, gaps.json, index.json
 #    (+ changes.json, CHANGES.md with --previous)
 ```
 
 `<dir>/lci/` is replaced; nothing else in `<dir>` is touched. Mappings come from
-`<library>/lci/mappings.yaml`, else the process library's own. Two runs on the same input are
+`<library>/lci/mappings.yaml`, else the process library's own, plus each
+`<library>/processes/<id>/lca/mappings.yaml`. `--strict` fails on warnings too, not on the gaps
+of unpublished processes. Two runs on the same input are
 byte-identical (the workbook's document dates and zip entry dates are fixed; the JSON-LD zip has
 sorted entries, fixed dates and no `lastChange` stamps).
 
