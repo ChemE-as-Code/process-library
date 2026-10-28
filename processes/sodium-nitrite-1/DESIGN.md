@@ -65,10 +65,10 @@ Read status: "read" = the cited locator was read (full text via the web page) in
 | SRC-2 | US 2 032 699 A (Hayes and Britton, Solvay Process Co., 1936), https://patents.google.com/patent/US2032699 | Description (background: NO excess favours nitrite; equal NO and NO2 is the theoretical ratio) and the example: about 9 vol-% NOx gas from ammonia oxidation; soda solution about 215 g/l in three towers countercurrently; liquor about 40:1 nitrite:nitrate; liquor to storage 25 % NaNO2, 5 % NaNO3; evaporated to about 1000 g/l at about 125 degC; vacuum crystalliser about 65 to 55 degC; mother liquor about 33 % NaNO2, 17 % NaNO3, 1.1 % Na2CO3, split 45/45/10; residue grained to about 55/40 nitrite/nitrate | read (Google Patents text) | patent: facts only | D-003, D-006, D-008 |
 | SRC-3 | US 12 565 427 B2, "Apparatus and process for conversion of ammonia into oxides of nitrogen", https://patents.google.com/patent/US12565427B2/en | Detailed Description and claims: air 8 600-9 460 Nm3/h with NH3 988-1 090 Nm3/h (about 10.3 mol-% NH3); gauze 850-950 degC, 1-4 bar; Pt/Rh 95/5 gauzes; WHB cooling to 200-250 degC raising about 1.94 t/h steam; absorption in NaOH towers; liquor 38-40 % w/w; calculated 92 % conversion for six gauzes | read (Google Patents text; no paragraph numbers on the page) | patent: facts only | D-005 |
 | SRC-4 | US 2 013 984 A, "Process for the oxidation of nitrites to nitrates", https://patents.google.com/patent/US2013984A/en | Description: nitrite of absorption liquors converted to nitrate with nitric acid, the nitrogen oxides set free returned to the absorption | summary | patent: facts only | D-009 |
-| SRC-5 | IPCC 2006 Guidelines, Vol. 3 Ch. 3, Table 3.3, https://www.ipcc-nggip.iges.or.jp/public/2006gl/vol3.html | N2O default for atmospheric-pressure (low-pressure) nitric acid plants: 5 kg N2O per t HNO3 (100 %) | from the library's prior use (nitric-acid-1 cites the same table) and memory; page not re-read in this run | IPCC: facts with citation | D-005 N2O analogy |
+| SRC-5 | IPCC 2006 Guidelines, Vol. 3 Ch. 3, Table 3.3, https://www.ipcc-nggip.iges.or.jp/public/2006gl/vol3.html | N2O default for atmospheric-pressure (low-pressure) nitric acid plants: 5 kg N2O per t HNO3 (100 %) | summary: the value and its +/-10 % confirmed as quoted from IPCC 2006 (p. 3.23) in US EPA (2013) Global Mitigation of Non-CO2 GHGs, ch. IV industrial, Table 1-1 (https://www.epa.gov/sites/default/files/2016-06/documents/mac_report_2013-iv_industrial.pdf) and CDM Meth Panel MP49 annex 12 (https://cdm.unfccc.int/Panels/meth/meeting/11/049/mp49_an12.pdf); the 2019 Refinement keeps 5 kg for single low-pressure plants | IPCC: facts with citation | D-005 N2O analogy |
 | SRC-6 | Wikipedia, "Sodium nitrite", https://en.wikipedia.org/wiki/Sodium_nitrite | section Production: NOx absorbed in NaOH or Na2CO3 solution, nitrate as by-product | not opened in this run; route identity only, the same facts are read in SRC-2/3 | CC BY-SA: facts only | route identity |
 | SRC-7 | ATcT / CRC / Poling 5th ed. via `cheme chemistry thermo` | printed records in process/materials.yaml | read (tool output) | data facts | burner duty, gas enthalpies |
-| SRC-8 | Wagman, D. D. et al. (1982) NBS tables of chemical thermodynamic properties, J. Phys. Chem. Ref. Data 11 Suppl. 2 | dHf (298.15 K) of NaNO2(aq) -344.8, NaNO3(aq) -447.48, Na2CO3(aq) -1157.38, Na2CO3(cr) -1130.68, HNO3(aq) -207.36 kJ/mol; dHsol NaNO2 about +13.9 kJ/mol | values as recalled by the agent, **not re-read in this run: to be verified against the tables** | US government data | D-010 absorption and crystallisation heats |
+| SRC-8 | Wagman, D. D. et al. (1982) NBS tables of chemical thermodynamic properties, J. Phys. Chem. Ref. Data 11 Suppl. 2 | dHf (298.15 K) of NaNO2(aq) -344.8, NaNO3(aq) -447.48, Na2CO3(aq) -1157.38, Na2CO3(cr) -1130.68, HNO3(aq) -207.36 kJ/mol; dHsol NaNO2 about +13.9 kJ/mol | values as recalled by the agent, **not re-read in this run: to be verified against the tables**; only NaNO2(cr) about -359 kJ/mol was cross-checked (secondary database webqc.org) | US government data | D-010 absorption and crystallisation heats |
 | SRC-9 | nitric-acid-1 (this library), process/design-basis.yaml | air composition, ammonia and acid delivery states | read | CC BY 4.0 (own) | D-004 |
 | SRC-10 | IAPWS-IF97 | psat 313.15 K 7.385 kPa; saturation 450 kPa(a) 420.8 K | standard values | open standard | D-006, D-010 |
 
@@ -213,6 +213,14 @@ mother liquor per kg crystals returned to the evaporator (ASSUMED, internal), th
 to remove the nitrate formed; the dryer leaves 0.1 wt-% moisture.
 Result: crystals 2 435 kg/h, purge 671 kg/h, evaporation 8 996 kg/h; condensate 8 657 kg/h to
 the dissolver, 338 kg/h surplus.
+Plausibility (not a model): the concentrate holds 179 g NaNO2 per 100 g water at 125 degC.
+Pure NaNO2 solubility is about 85 g/100 g water at 25 degC (CRC value as quoted in a web search
+summary) and about 160 at 100 degC (Wikipedia "Sodium nitrite", infobox, units given per
+100 ml); a saturated solution boils at about 128 degC (J. Chem. Eng. Data review 2021, as
+summarised). The concentrate is therefore close to saturation at 125 degC, as in SRC-2's
+evaporator (about 1000 g/l); the mother liquor (67 g NaNO2 per 100 g water with 17 % NaNO3 at
+55 degC) is below the pure-salt solubility, as expected with the common sodium ion. A ternary
+solubility diagram is an open input.
 Rejected: core's `crystallizer:` with basis solubility - single solute only.
 
 ## D-009 Inversion and sodium nitrate (2026-10-28)
