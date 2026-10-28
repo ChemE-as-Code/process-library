@@ -1,36 +1,84 @@
-# Process Atlas manifest. Copy this folder to processes/<your-id>/ and edit.
-# Schema: schemas/process.schema.json (cheme-as-code/process/v1). Every slug used under
-# chemistry must exist in chemicals/chemicals.yaml; add new chemicals there in the same change.
-# A product in a defined state and purity names its registry grade: `chemical: oxygen/lox`.
+# Process Atlas manifest of sodium-nitrite-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
 schema: cheme-as-code/process/v1
-id: my-process                  # = folder name; lowercase slug; never rename once listed
-title: Short descriptive process title
+id: sodium-nitrite-1
+title: Sodium nitrite from ammonia oxidation and soda absorption (with sodium nitrate by inversion)
 summary: >-
-  One or two sentences for cards and search results: what goes in, what comes out, at what scale.
-# description: |                # optional longer Markdown for the process page
-families: [hydrogen]            # slugs of taxonomy/families.yaml (ISIC-mapped), e.g. ammonia, methanol, air-separation
-keywords: []
-# facets:                      # optional, for filtering in the Atlas; list only what the design has
-#   feedstock_basis: [water, electricity]   # fossil | biogenic | atmospheric | mineral | recycled | water | electricity
-#   product_classes: [fuels]               # slugs, e.g. industrial-gases, fuels, fertilizers, polymers, chemicals, materials
-#   unit_operations: [electrolysis]        # slugs, e.g. cryogenic-distillation, adsorption, compression, reaction, electrolysis
-#   region: generic                        # e.g. generic, EU
-# Design maturity (claimed, capped by evidence: the calculation maturity in checks/maturity.json
-# of an engineering project; at most concept beside a Tier 0/1 LCI dataset):
-maturity: concept               # concept | screening | basic-engineering | detail-engineering | operating-reference
-validation:                     # review status: set by people only; passing checks is not a review
-  status: unreviewed            # unreviewed | internally-reviewed | peer-reviewed | industry-validated
+  Nitrous gas from the catalytic oxidation of ammonia absorbed in soda solution near
+  atmospheric pressure, the nitrite liquor evaporated and crystallised to dried sodium nitrite,
+  and the mother-liquor purge inverted with nitric acid to sodium nitrate. Ammonia, soda ash and
+  nitric acid from ammonia-1, soda-ash-1 and nitric-acid-1. Concept stage, 20 kt/a NaNO2,
+  assumed basis.
+description: |
+  Liquid ammonia is vaporised, mixed with air to 10.3 mol-% and burnt over Pt/Rh gauzes; a
+  waste heat boiler cools the nitrous gas to 200 degC and its steam drives the first effect of
+  the liquor evaporator. In an oxidation volume and absorption towers in series the gas meets a
+  20 wt-% soda solution; the oxidation degree of the nitric oxide is held near one half
+  (NO : NO2 about 1 : 1, the N2O3 ratio) so that nitrite forms and nitrate stays at about one
+  twentieth of it. The liquor is concentrated, sodium nitrite crystallised by vacuum cooling,
+  centrifuged and dried; most of the mother liquor returns to the evaporator, and a purge that
+  removes the nitrate is converted with nitric acid to sodium nitrate, whose nitric oxide goes
+  back to the absorbers.
+
+  All values are concept estimates. The burner outlet and duty are calculated by cheme
+  (conversion reactor, specified selectivities); absorption, crystallisation and inversion are
+  specified values from an independent balance script; the liquors are aqueous electrolytes
+  that no ChemE-as-Code property method covers yet (core #364). See DESIGN.md of the
+  engineering files for every assumption and gated step.
+families: [inorganic-chemicals]
+keywords: [sodium nitrite, sodium nitrate, nitrous gas, NOx absorption, ammonia oxidation, soda ash, alkaline absorption, crystallisation, inversion, nitric acid]
+facets:
+  feedstock_basis: [fossil, mineral, atmospheric]
+  product_classes: [chemicals]
+  unit_operations: [reaction, absorption, evaporation, crystallization, drying]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest; cheme maturity reports level none
+# (feed flows are design choices, absorber and crystallisation specified values), see
+# validation.notes and DESIGN.md D-007.
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances in every block and step
+    (cheme validate, cheme process streams; the absorber and inversion steps balance by
+    elements over their reactions). The burner outlet is calculated by cheme (conversion
+    reactor with specified selectivities NO 0.97, N2O 0.014, N2 0.016) and cheme's reactor
+    duty (1 964 kW) equals the independent script's. cheme maturity reaches no level: feed
+    flows follow from an assumed product rate, the absorber, crystalliser and inversion are
+    specified values, and energy closure is not evaluable in core (no package covers the
+    nitrite/nitrate/carbonate liquors, core #364). The preliminary gate-to-gate LCI closes in
+    mass and elements; every background is a gap. Not reviewed. The chemicals registry has no
+    sodium-nitrite, sodium-nitrate, ammonia, sodium-carbonate or nitric-acid entry yet, so the
+    main product, co-product and feeds are not listed under chemistry (open library item).
 chemistry:
   inputs:
-    - {chemical: water, role: feedstock}
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Combustion air of the ammonia burner, 4.0 kg per kg NaNO2. The feeds without a registry entry yet: liquid ammonia (feed:NH3, 0.272 kg/kg, from ammonia-1), soda ash (feed:SODA, 0.866 kg/kg, from soda-ash-1), nitric acid 60 wt-% (feed:HNO3, 0.096 kg/kg, from nitric-acid-1); the main product sodium nitrite (product:NANO2) and the co-product sodium nitrate (product:NANO3, 0.160 kg/kg) have none either"}
   outputs:
-    - {chemical: hydrogen, role: main-product}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "CO2 from the soda ash, 0.359 kg per kg NaNO2 before allocation, in the tail gas"}
   utilities:
-    - {chemical: electricity, role: utility}
-# basis: {capacity: "1000 t/d product", operating_hours_per_year: 8000}
-# lca: {source: auto}           # auto: read lca/ of a ChemE-as-Code project; none: no LCA
-# references:
-#   - {title: "Author et al. (2024) Title", doi: 10.xxxx/xxxxx}
-# maintainers:
-#   - {name: Your Name, orcid: 0000-0000-0000-0000}
-# repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/my-process, access: private}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Air blower, pumps, centrifuges, dryer fans (ASSUMED), 0.076 kWh/kg"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 450 kPa(a) from the site, 0.73 kWh/kg; the waste-heat-boiler steam is used internally in the evaporator"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED), absorber coolers and condensers, 2.2 kWh/kg"}
+basis:
+  capacity: "2 500 kg/h dried sodium nitrite (99.0 wt-% NaNO2) = 20 kt/a (ASSUMED), with 0.40 t/h sodium nitrate"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
+references:
+  - {title: "Laue, W., Thiemann, M., Scheibler, E., Wiegand, K. W.: Nitrates and Nitrites. Ullmann's Encyclopedia of Industrial Chemistry, Wiley-VCH (route identity from issue #168; full text not read)", doi: 10.1002/14356007.a17_265}
+  - {title: "US 2 032 699 A (Solvay Process Co., 1936): Process for the production of sodium nitrite (absorption in soda solution, crystallisation, mother liquor handling; example)", url: "https://patents.google.com/patent/US2032699"}
+  - {title: "US 12 565 427 B2: Apparatus and process for conversion of ammonia into oxides of nitrogen (burner, WHB and alkaline absorption to sodium nitrite liquor)", url: "https://patents.google.com/patent/US12565427B2/en"}
+  - {title: "US 2 013 984 A: Process for the oxidation of nitrites to nitrates (nitric acid inversion, NO returned to absorption)", url: "https://patents.google.com/patent/US2013984A/en"}
+  - {title: "IPCC (2006) Guidelines for National Greenhouse Gas Inventories, Vol. 3 Ch. 3, Table 3.3 (N2O defaults for nitric acid plants)", url: "https://www.ipcc-nggip.iges.or.jp/public/2006gl/vol3.html"}
+  - {title: "Wagman, D. D. et al. (1982) The NBS tables of chemical thermodynamic properties, J. Phys. Chem. Ref. Data 11, Suppl. 2", url: "https://srd.nist.gov/JPCRD/jpcrdS2Vol11.pdf"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/sodium-nitrite-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0
