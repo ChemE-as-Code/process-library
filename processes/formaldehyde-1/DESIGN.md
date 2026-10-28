@@ -111,8 +111,10 @@ for the gas, the vaporisation enthalpies of water (44.0 kJ/mol) and methanol (37
 ASSUMED liquid heat capacity of 3.3 kJ/(kg K).
 Reason: no property method of core covers formaldehyde in water (chemical solution as methylene
 glycol and oligomers), so the absorber cannot be simulated (D-009). The heat of solution is the
-largest single term (about 5.7 MW): it must be sourced before the cooling-water figure is
-relied on.
+largest single term (about 5.7 MW). A web search (2026-10-28) found the same figure, about
+-62 kJ/mol and nearly independent of concentration, attributed to the Ullmann chapter (ULL,
+section on aqueous solutions); the publisher version was not read, so the value stays
+ASSUMED until it is checked there or in another primary source.
 Assumptions: rinse and ion-exchange regeneration waters (BREF s. 6.3.2: discontinuous) are not
 in the design case.
 
