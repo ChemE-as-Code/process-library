@@ -52,8 +52,10 @@ chemistry:
     - {chemical: carbon-dioxide, role: emission, inventory_key: "product:STACK", note: "CO2 of the furnace flue gas (natural gas and vent gas burned), 0.195 kg/kg product"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Vent vacuum pump and absorber circulation pumps"}
-    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 450 kPa(a): vaporiser and dilute acid recovery"}
-    - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "MP steam 1500 kPa(a): distillation reboilers"}
+    # Steam without inventory_key: the inventory counts it as heat delivered (kWh), the registry
+    # slug by mass (kg); the Atlas link (lci/mappings.yaml steam-heat) is the mapping step's
+    # decision, so feed:LPS and feed:MPS stay gaps (D-014).
+    - {chemical: steam, role: utility, note: "LP steam 450 kPa(a), vaporiser and dilute acid recovery (feed:LPS); MP steam 1500 kPa(a), distillation reboilers (feed:MPS); both in kWh of heat delivered"}
     - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED)"}
     - {chemical: chilled-water, role: utility, inventory_key: "product:BRINE", note: "Brine at -10 C on the last cracked-gas condensers; the registry has chilled water, not brine (closest entry)"}
 basis:

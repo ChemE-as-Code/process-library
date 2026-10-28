@@ -158,6 +158,15 @@ mapping overrides (`lca/mappings.yaml` lists the candidates). Single product, no
 origin fossil (ASSUMED: acetic acid from natural-gas methanol; bio-based acid would make the
 vent carbon biogenic). Furnace pollutants and fugitive emissions are declared exclusions, not
 zeros. No construction inventory.
+Library LCI build (`uv run scripts/build_lci.py --library . --out build/lci-check --strict`,
+2026-10-28): no error for this process, 10 gaps reported (feed:AA, TEP, NH3, NG, LPS, MPS,
+product:RESIDUE, BRINE, emission:C2H4, KET); its only warning is the scratch environment's
+missing core extra (cut-off check), shared by every process. Two things were changed for it:
+steam has no `inventory_key` in process.yaml (the slug `steam` is per kg, the inventory per kWh:
+a unit error otherwise), and the zero-amount CO, C2H4 and ketene emissions are elementary, not
+`free` (a free emission must be curated in the shared `pass_through`). product:CW and product:WW
+are linked by the shared vocabulary through their registry slugs (cooling-water, wastewater) in
+the Atlas build, although `lca/lca.yaml` keeps them `missing:`.
 
 ## Open inputs and issues
 - I-01 Product specification (purity, colour, permanganate time) and capacity: owner input.

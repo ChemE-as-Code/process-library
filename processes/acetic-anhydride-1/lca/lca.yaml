@@ -61,11 +61,12 @@ flows:
   # Unburnt fuel components of the flue gas template: 0 under the complete-combustion model
   # (D-010); identified so a later combustion estimate (I-05) has its flows.
   - {key: emission:CH4, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "unburnt methane, 0 kg under complete combustion (D-010); not estimated, see emission_exclusions furnace-pollutants"}
-  # CO, ethylene and ketene: 0 kg in the model and no direct GWP100 in the packaged IPCC
-  # method, so `free` here; they become elementary flows with the furnace emission estimate (I-05).
-  - {key: emission:CO, free: true, source: "carbon monoxide, 0 kg under complete combustion (D-010); not estimated, see emission_exclusions furnace-pollutants (I-05)"}
-  - {key: emission:C2H4, free: true, source: "unburnt ethylene, 0 kg under complete combustion (D-010); see I-05"}
-  - {key: emission:KET, free: true, source: "unburnt ketene, 0 kg under complete combustion (D-010); see I-05"}
+  # CO, ethylene and ketene: 0 kg in the model; the packaged IPCC method has no direct GWP100
+  # for them (cheme.lca-elementary-uncharacterised warns, a 0 kg gap). Not `free`: a free
+  # emission must be curated in the shared lci/mappings.yaml pass_through (D-014).
+  - {key: emission:CO, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "carbon monoxide, 0 kg under complete combustion (D-010); not estimated, see emission_exclusions furnace-pollutants (I-05)"}
+  - {key: emission:C2H4, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "unburnt ethylene, 0 kg under complete combustion (D-010); see I-05"}
+  - {key: emission:KET, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "unburnt ketene, 0 kg under complete combustion (D-010); see I-05"}
   - {key: emission:N2, free: true, source: "nitrogen of the combustion air returned to the atmosphere"}
   - {key: emission:O2, free: true, source: "excess oxygen of the combustion air returned to the atmosphere"}
   - {key: emission:H2O, free: true, source: "water vapour formed by combustion"}
