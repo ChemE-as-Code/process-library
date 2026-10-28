@@ -260,8 +260,10 @@ and carbon-origin balances closed; energy closure not evaluable in core).
 extents BR_OX 23.46, H2S_OX 6.70, NEUT 6.70 kmol/h. `cheme validate`: 0 errors, 0 warnings.
 `cheme check --stage concept`: 6 ok, layout-plot-plan fails (layout out of scope of this run).
 `cheme maturity`: calculation maturity none (feeds and specified values are `assumed`, the
-reactors and separators are specified, no simulation); the manifest claims concept with this
-stated in `validation.notes`.
+reactors and separators are specified, no simulation), so the evidence supports no design
+maturity. The manifest has no level below concept. It claims concept, and `validation.notes`
+says that this claim exceeds the evidence (warning `cheme.maturity-claim-exceeds`, review R-03).
+A level below concept is a library item (section 8).
 
 ## 6. Methods, dependencies and gated steps
 
@@ -299,8 +301,10 @@ stated in `validation.notes`.
 `chemicals/chemicals.yaml`: `bromine` (main product), `chlorine` (liquid), a bromide `brine` (or
 produced brine) feed, `sulfuric-acid`, `calcium-hydroxide` (hydrated lime). `lci/mappings.yaml`:
 a brine-extraction entry (with the resource "bromine, in ground brine"), produced-brine
-reinjection, spent sulfuric acid treatment, live steam by mass. Candidate mappings are listed in
-`lca/mappings.yaml`.
+reinjection, spent sulfuric acid treatment, an LP live-steam grade (feed:LPS is kept out of the
+Atlas link, `atlas: false`, until one exists). Candidate mappings are listed in
+`lca/mappings.yaml`. Manifest schema: a maturity level below `concept` for designs whose
+calculation maturity is none (review R-03).
 
 ## 9. Recommended next stage
 
