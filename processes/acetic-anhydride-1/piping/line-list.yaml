@@ -1,3 +1,33 @@
 # Line list. Schema: `cheme schema lines`.
+# Concept stage: one line per physical material stream of the PFD (stream id in the notes), no
+# P&ID yet. The mixing nodes M103 (burners) and M301 (absorber inlets) are not pipes: S13, S14
+# and S33 have no line. DN: first-pass size from velocity (D-013, ASSUMED): vacuum gas 20 m/s
+# (cracked gas 30 m/s, US 4,455,439 reports 30-80 m/s in the condensers), two-phase 10 m/s,
+# combustion air and flue gas ducts 15 m/s, liquid 1.5 m/s; ideal-gas density, liquid about
+# 1050 kg/m3; inside diameter taken as the DN, DN25 the smallest. Pressure classes come with
+# the pipe specs.
 schema: cheme/lines/v1
-lines: []
+lines:
+  - {number: AA-101, from: B/L, to: V-101, nominal_diameter: DN50, fluid: Acetic acid, notes: "S1 fresh glacial acid (split SP101 to S2 and S3)"}
+  - {number: AA-102, from: AA-101, to: V-101, nominal_diameter: DN40, fluid: Acetic acid, notes: "S2 fresh acid to the cracker"}
+  - {number: AA-103, from: AA-101, to: T-301, nominal_diameter: DN40, fluid: Acetic acid, notes: "S3 fresh acid to the absorbers"}
+  - {number: CH-104, from: B/L, to: V-101, nominal_diameter: DN25, fluid: Triethyl phosphate, notes: "S4"}
+  - {number: AA-105, from: V-101, to: E-101, nominal_diameter: DN40, fluid: Acetic acid, notes: "S5 cracker feed"}
+  - {number: AV-106, from: E-101, to: F-101, nominal_diameter: DN300, fluid: Acetic acid vapour, notes: "S6, 45 kPa(a)"}
+  - {number: KG-107, from: F-101, to: E-102, nominal_diameter: DN600, fluid: Cracked gas, notes: "S7/S9, 973 K, 36 kPa(a); NH3 injected at the coil outlet"}
+  - {number: NH-108, from: B/L, to: KG-107, nominal_diameter: DN25, fluid: Ammonia, notes: "S8"}
+  - {number: KG-109, from: E-102, to: V-102, nominal_diameter: DN450, fluid: Cracked gas and condensate, notes: "S10, two-phase, 268 K"}
+  - {number: KG-110, from: V-102, to: T-301, nominal_diameter: DN350, fluid: Ketene gas, notes: "S11, 27 kPa(a)"}
+  - {number: DA-111, from: V-102, to: C-401, nominal_diameter: DN25, fluid: Dilute acetic acid, notes: "S12"}
+  - {number: VG-112, from: T-301, to: K-301, nominal_diameter: DN150, fluid: Vent gas, notes: "S15, 25 kPa(a)"}
+  - {number: VG-113, from: K-301, to: F-101, nominal_diameter: DN65, fluid: Vent gas, notes: "S17 to the burners"}
+  - {number: CA-114, from: T-301, to: C-201, nominal_diameter: DN50, fluid: Crude acetic anhydride, notes: "S16"}
+  - {number: AA-115, from: C-201, to: T-301, nominal_diameter: DN25, fluid: Acetic acid, notes: "S25 recycle acid"}
+  - {number: AN-116, from: C-201, to: C-202, nominal_diameter: DN40, fluid: Acetic anhydride, notes: "S18"}
+  - {number: AN-117, from: C-202, to: B/L, nominal_diameter: DN40, fluid: Acetic anhydride, notes: "S19 product to storage"}
+  - {number: RS-118, from: C-202, to: B/L, nominal_diameter: DN25, fluid: Residue, notes: "S20 to incineration"}
+  - {number: AA-119, from: C-401, to: V-101, nominal_diameter: DN25, fluid: Acetic acid, notes: "S21 recovered acid"}
+  - {number: WW-120, from: C-401, to: B/L, nominal_diameter: DN25, fluid: Wastewater, notes: "S22"}
+  - {number: NG-121, from: B/L, to: F-101, nominal_diameter: DN50, fluid: Natural gas, notes: "S30"}
+  - {number: AI-122, from: ATM, to: F-101, nominal_diameter: DN400, fluid: Combustion air, notes: "S31 (duct)"}
+  - {number: FG-123, from: F-101, to: ATM, nominal_diameter: DN500, fluid: Flue gas, notes: "S32 to stack (duct)"}
