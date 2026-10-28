@@ -1,36 +1,84 @@
-# Process Atlas manifest. Copy this folder to processes/<your-id>/ and edit.
-# Schema: schemas/process.schema.json (cheme-as-code/process/v1). Every slug used under
-# chemistry must exist in chemicals/chemicals.yaml; add new chemicals there in the same change.
-# A product in a defined state and purity names its registry grade: `chemical: oxygen/lox`.
+# Process Atlas manifest of sodium-cyanide-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here.
 schema: cheme-as-code/process/v1
-id: my-process                  # = folder name; lowercase slug; never rename once listed
-title: Short descriptive process title
+id: sodium-cyanide-1
+title: Solid sodium cyanide from Andrussow HCN (6.25 t/h, 50 kt/a)
 summary: >-
-  One or two sentences for cards and search results: what goes in, what comes out, at what scale.
-# description: |                # optional longer Markdown for the process page
-families: [hydrogen]            # slugs of taxonomy/families.yaml (ISIC-mapped), e.g. ammonia, methanol, air-separation
-keywords: []
-# facets:                      # optional, for filtering in the Atlas; list only what the design has
-#   feedstock_basis: [water, electricity]   # fossil | biogenic | atmospheric | mineral | recycled | water | electricity
-#   product_classes: [fuels]               # slugs, e.g. industrial-gases, fuels, fertilizers, polymers, chemicals, materials
-#   unit_operations: [electrolysis]        # slugs, e.g. cryogenic-distillation, adsorption, compression, reaction, electrolysis
-#   region: generic                        # e.g. generic, EU
-# Design maturity (claimed, capped by evidence: the calculation maturity in checks/maturity.json
-# of an engineering project; at most concept beside a Tier 0/1 LCI dataset):
-maturity: concept               # concept | screening | basic-engineering | detail-engineering | operating-reference
-validation:                     # review status: set by people only; passing checks is not a review
-  status: unreviewed            # unreviewed | internally-reviewed | peer-reviewed | industry-validated
+  Methane, ammonia and air react over a Pt/Rh gauze to HCN (Andrussow); unconverted ammonia is
+  recovered and recycled, HCN is absorbed in chilled water, refined and neutralised with caustic
+  soda, and sodium cyanide is crystallised under vacuum and dried. The tail gas raises steam.
+  Concept stage, assumed basis, preliminary gate-to-gate inventory.
+description: |
+  An air-operated Andrussow converter (Pt/Rh 90/10 gauze, adiabatic, about 1430 K) converts a
+  methane-ammonia-air mixture at the feed ratios of an open patent example (O2/NH3 1.15,
+  CH4/NH3 0.98) with an HCN yield of 62.9 % on the ammonia fed; the by-products follow a
+  published commercial converter-gas composition. A waste heat boiler raises MP steam, an
+  ammonium phosphate absorber/stripper recycles 99 % of the unconverted ammonia, and HCN is
+  absorbed in chilled water to 2.5 wt% and rectified to 99.5 wt%. Liquid HCN reacts with 50 wt%
+  caustic soda; the 45 wt% NaCN solution is crystallised at 70 C and 100 mm Hg, centrifuged and
+  dried to 98 wt% NaCN. The hydrogen- and CO-bearing tail gas is burned in a boiler, which is the
+  plant's single emission point to air.
+
+  All values are concept estimates. The converter yield and feed ratios are taken from
+  US 6,596,251 B2 and the converter-gas by-products and crystalliser conditions from
+  US 4,847,062 A; the absorption, stripping, crystallisation and duty values come from an
+  independent script, because no property package is qualified by ChemE-as-Code for aqueous
+  HCN/NH3 or the NaCN/NaOH electrolyte; see DESIGN.md of the engineering files.
+families: [inorganic-chemicals]
+keywords: [sodium cyanide, hydrogen cyanide, HCN, Andrussow, platinum-rhodium gauze, ammonia recycle, ammonium phosphate, absorption, neutralisation, caustic soda, evaporative crystallisation, gold mining]
+facets:
+  feedstock_basis: [fossil]
+  product_classes: [chemicals]
+  unit_operations: [reaction, compression, heat-exchange, absorption, stripping, distillation, crystallisation, drying, combustion]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest; cheme maturity reports calculation
+# maturity none (feeds assumed, separations specified), see validation.notes and DESIGN.md D-011.
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances (cheme validate: 0 errors;
+    cheme process streams: every block and step balanced). The converter outlet is calculated
+    by cheme from conversions that reproduce a sourced HCN yield and a sourced converter-gas
+    composition, and its adiabatic energy balance closes (duty 0.06 kW at 1429 K). Capacity,
+    feed states, recoveries, the crystalliser and every duty are ASSUMED or come from
+    scripts/nacn_balance.py; no property package covers HCN at converter temperature, aqueous
+    HCN/NH3 or the NaCN/NaOH electrolyte, and cheme's crystallizer refuses the free NaOH, so
+    energy closure of the separations is not evaluable in core. cheme maturity: calculation
+    maturity none. Not reviewed. The chemicals registry has no sodium-cyanide, hydrogen-cyanide,
+    ammonia or sodium-hydroxide entry yet, so the main product, ammonia and caustic are not
+    listed under chemistry (open library item).
 chemistry:
   inputs:
-    - {chemical: water, role: feedstock}
+    - {chemical: methane, role: feedstock, inventory_key: "feed:NG", note: "Natural gas modelled as methane (ASSUMED). The other feedstocks, ammonia from ammonia-1 (feed:NH3F) and 50 wt% caustic soda from chlor-alkali-1 (feed:NAOHF), have no registry entry yet"}
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Process air of the converter (oxygen source); combustion air of the tail gas boiler is feed:BAIR"}
   outputs:
-    - {chemical: hydrogen, role: main-product}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:STACK", note: "Fossil CO2 of the tail gas boiler flue gas, 0.49 kg per kg product. The main product, solid sodium cyanide (product:NACN), has no registry entry yet"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Process water with traces of HCN and ammonia to cyanide destruction and wastewater treatment"}
+    # No inventory_key: the export (product:MPSX, 1500 kPa(a) saturated) is not offered as an
+    # Atlas steam producer (as in aniline-1, D-013 there).
+    - {chemical: steam, role: co-product, note: "MP steam 1500 kPa(a) from the waste heat boiler and the tail gas boiler, net of the plant's own use (product:MPSX)"}
   utilities:
-    - {chemical: electricity, role: utility}
-# basis: {capacity: "1000 t/d product", operating_hours_per_year: 8000}
-# lca: {source: auto}           # auto: read lca/ of a ChemE-as-Code project; none: no LCA
-# references:
-#   - {title: "Author et al. (2024) Title", doi: 10.xxxx/xxxxx}
-# maintainers:
-#   - {name: Your Name, orcid: 0000-0000-0000-0000}
-# repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/my-process, access: private}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Air blower K-101 and an ASSUMED lump for pumps, vacuum pumps, centrifuge, dryer and briquetting"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED)"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:CHW", note: "2/10 C (ASSUMED), HCN absorber and lean water chiller"}
+basis:
+  capacity: "6.25 t/h solid NaCN (98 wt%), 50 kt/a (ASSUMED)"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
+references:
+  - {title: "Degussa AG (2003) Hydrogen cyanide synthesis process. US 6,596,251 B2", url: "https://patents.google.com/patent/US6596251"}
+  - {title: "E. I. du Pont de Nemours and Company (1989) Process for production of sodium cyanide. US 4,847,062 A", url: "https://patents.google.com/patent/US4847062A/en"}
+  - {title: "Cyano Compounds, Inorganic. Ullmann's Encyclopedia of Industrial Chemistry (Wiley-VCH); route reference lead, not read in this run", doi: 10.1002/14356007.a08_159.pub2}
+lca:
+  source: none
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/sodium-cyanide-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0
