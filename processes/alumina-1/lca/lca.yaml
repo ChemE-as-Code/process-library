@@ -1,0 +1,112 @@
+# Goal and scope of the alumina-1 LCA. Schema: `cheme schema lca`. Outputs: `cheme assess lca
+# --write` (lca/inventory.csv, results.csv, results.md, gaps.csv, dataset.yaml, manifest.json);
+# never edit those by hand. Decisions: DESIGN.md D-010.
+#
+# This stage delivers the PRELIMINARY GATE-TO-GATE FOREGROUND INVENTORY: every exchange of the
+# balanced flowsheet per kg of smelter-grade alumina. No background is connected yet: each
+# feed, utility and waste names the background activity it should link to later and is
+# declared `missing:` (a gap in every category, never 0). `boundary: cradle-to-gate` is the
+# scope the backgrounds will complete; `gate-to-gate` in cheme maps every feed free, which would
+# hide the raw materials and utilities (D-010, as soda-ash-1 D-010).
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary foreground (gate-to-gate) life cycle inventory of smelter-grade alumina by the
+  Bayer process at the concept stage: which raw materials, utilities, emissions and wastes the
+  balanced flowsheet implies per kg of product, ready to be linked to background datasets
+  later. Flows are concept estimates on assumed design parameters (DESIGN.md D-003..D-008).
+functional_unit: {product: ALU, amount: 1, unit: kg}
+boundary: cradle-to-gate
+year: 2026
+location: GLO   # generic site, country not chosen (D-002); bauxite type from Guinea (D-003)
+technology: "Bayer process, low-temperature digestion (418 K) of gibbsitic bauxite, pre-desilication, settler and 6-stage CCD washing, residue filter presses (dry stacking), seeded precipitation, multiple-effect evaporation, gas suspension calciner on natural gas; 3000 t/d smelter-grade alumina"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+allocation:
+  method: none
+  source: "D-010: one product (smelter-grade alumina); the bauxite residue is a waste and the flue gas an emission, not co-products (residue reuse outside the boundary, D-001)"
+flows:
+  # ---- raw materials (backgrounds to connect later)
+  - key: feed:BX
+    missing: "no background linked yet. Connect: bauxite, gibbsitic (trihydrate), open-pit mined, crushed, from Guinea (market for bauxite, incl. sea transport to the refinery once the site is chosen), per kg as received (10 % moisture, D-003)"
+    source: "stream S1 (scripts/bayer_balance.py, D-003, D-004)"
+  - key: feed:LIME
+    missing: "no background linked yet. Connect: quicklime, milled, loose (lime production from limestone in a lime kiln, incl. its calcination CO2), per kg CaO"
+    source: "stream S2: 52 kg/t alumina (IAI 2019 LCI report, D-004)"
+  - key: feed:NAOH
+    missing: "no background linked yet. Connect: sodium hydroxide, 50 % solution, by membrane chlor-alkali electrolysis (the library's chlor-alkali-1 makes it: link its Atlas dataset), per kg of solution (0.5 kg NaOH)"
+    source: "stream S5: make-up equal to the sodium losses (D-005)"
+  - key: feed:PW
+    missing: "no background linked yet. Connect: fresh (process) water from the site's supply, untreated or decarbonised, per kg; or, if drawn from a river or well, an elementary water resource"
+    source: "stream S33: make-up to the hot water tank (D-005)"
+  - key: feed:NG
+    missing: "no background linked yet. Connect: natural gas, high pressure, at the site (market for natural gas, high pressure, of the site's country), per kg taken as methane (LHV 50 MJ/kg), or per MJ / m3 with the unit proxy of the shared lci/mappings.yaml"
+    source: "stream S34: calciner fuel, 2.8 GJ/t alumina (D-008)"
+  - key: feed:AIR
+    free: true
+    source: "calciner combustion air: ambient air, a resource taken without burden"
+  # ---- utilities
+  - key: feed:POWER
+    missing: "no background linked yet. Connect: grid electricity, medium voltage, of the site's country (site not chosen, D-002), per kWh; many refineries generate power on site in a CHP plant with the steam"
+    source: "Q7: lumped plant demand 152 kWh/t alumina (IAI 2019 LCI report Table 4, D-007)"
+  - key: feed:MPS
+    missing: "no background linked yet. Connect: heat from MP steam 1000 kPa(a) of the site's boiler or CHP plant (natural gas or coal fired, to be decided; condensate returned), per kWh of heat delivered"
+    source: "Q1: digestion heaters (D-007)"
+  - key: feed:LPS
+    missing: "no background linked yet. Connect: heat from LP steam 450 kPa(a) of the site's boiler or CHP plant (condensate returned), per kWh of heat delivered"
+    source: "Q2 + Q3: spent liquor heater trim and evaporators (D-007)"
+  - key: product:CW
+    missing: "no background linked yet. Connect: cooling water from a circulating evaporative cooling tower (pumping, fans, make-up water and treatment chemicals; the library's utility-cooling-tower), per kWh of heat rejected"
+    source: "Q4 + Q5 + Q6 (D-007)"
+  # ---- wastes and emissions
+  - key: product:RES
+    treatment:
+      kind: waste
+      route: "bauxite residue storage area by dry stacking of the filter cake (alkaline residue, 70 wt% solids; seepage and run-off collected)"
+    missing: "no background linked yet. Connect: treatment of bauxite residue (red mud) in a residue storage area / landfill for alkaline mineral residue, with the leachate of the entrained caustic (NaOH 0.05 wt%, NaAlO2 0.27 wt% of the cake) and land occupation; the composition is in stream S23 (lca/dataset.yaml)"
+    source: "stream S23 (D-005)"
+  - key: product:STACK
+    emission: true
+    source: "stream S37: calciner flue gas after the electrostatic precipitator, to atmosphere (D-008)"
+  - key: emission:CO2
+    elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}
+    source: "CO2 from natural gas combustion in the calciner (fossil carbon); no carbonate carbon is carried by the model (D-006)"
+  - {key: emission:N2, free: true, source: "nitrogen of the calciner combustion air returned to the atmosphere"}
+  - {key: emission:O2, free: true, source: "excess oxygen of the calciner combustion air returned to the atmosphere"}
+  - {key: emission:H2O, free: true, source: "water vapour: hydrate water, cake moisture and combustion water"}
+
+# Calciner pollutants are not estimated at this stage: declared, never silently 0 (D-010).
+emission_exclusions:
+  - id: calciner-pollutants
+    method: combustion
+    equipment: [R-601]
+    exchange: product:STACK
+    reason: "NOx, CO, SO2 (natural gas taken as pure methane, D-008) and alumina dust after the ESP of the gas suspension calciner are not estimated at the concept stage; an estimate from the non-ferrous metals BREF emission levels or IAI 2019 LCI averages is an open item (D-010)"
+    source: "DESIGN.md D-010"
+  - id: liquor-tanks
+    method: storage-tank
+    equipment: [R-101, R-401, T-501, T-502]
+    reason: "agitated atmospheric tanks of caustic aluminate liquor, slurry and hot condensate: the solutes (NaOH, NaAlO2) are not volatile, so the vents release water vapour only (counted free); caustic mist and spills are not estimated at the concept stage (D-010)"
+    source: "DESIGN.md D-010"
+
+operation:
+  hours_per_year: 8400
+  life_years: 30
+  source: "design basis operating_hours_per_year 8400 (ASSUMED); 30 a service life ASSUMED; no construction inventory at this stage (no take-off)"
+
+uncertainty:
+  iterations: 1000
+  seed: 1
+  defaults:
+    assumed: {gsd2: 1.5, source: "concept estimate on assumed design parameters (D-004..D-008)"}
+    calculated: {gsd2: 1.2, source: "calculated from assumed inputs"}
+    given: {gsd2: 1.1, source: "design basis"}
+
+dataset:
+  version: 0.1.0
+  geography: {description: "Generic site, country not chosen (D-002); Guinean gibbsitic bauxite (D-003); no regional background linked"}
+  system_model: cutoff
+  technology_level: current
+  classification: {isic: "2420"}   # ISIC Rev.4 2420 basic precious and other non-ferrous metals (includes alumina); CPC open (D-010)
+  modelling: {principle: attributional}
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library, alumina-1 concept design (agent run 2026-10-28)"

@@ -1,0 +1,16 @@
+# Simulation specs. Schema: `cheme schema process-simulation`.
+# The flowsheet is NOT simulated: DWSIM and the phase routes refuse caustic aluminate
+# electrolytes and the solids of this process (core #364, #365; DESIGN.md D-006). This file only
+# records which reactor steps exchange no heat with a utility of their own (D-007):
+schema: cheme/simulation/v1
+kind: simulation
+specs:
+  # the slaking heat warms the milk of lime (353 K); no cooler
+  M101: {mode: adiabatic}
+  # pre-desilication tanks hold the mill discharge at 373 K; the heat comes with the spent
+  # liquor heated in E101; tank losses not counted (D-007)
+  R101: {mode: adiabatic}
+  # digesters fed at 418 K by E202 (MP steam), which carries the dissolution heat; insulated
+  R201: {mode: adiabatic}
+  # fired by the natural gas S34, a material feed; wall losses inside the 2.8 GJ/t (D-008)
+  R601: {mode: adiabatic}
