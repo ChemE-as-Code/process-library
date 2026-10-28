@@ -1,0 +1,65 @@
+# Goal and scope of the chloromethane-1 preliminary LCI. Schema: `cheme schema lca`. Outputs:
+# `cheme assess lca --write` (lca/inventory.csv, results.csv, results.md, gaps.csv,
+# dataset.yaml, manifest.json); never edit those by hand.
+#
+# Gate-to-gate foreground inventory (DESIGN.md D-013): every exchange comes from the balanced
+# flowsheet (process/flowsheet.yaml, design case). No background is linked: every feed, utility
+# and waste route is `missing:` with the activity it should connect to later, so the inventory
+# carries them as gaps (never 0) and no impact result is claimed (process.yaml lca.source
+# none). No values from licensed databases are used.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary life cycle inventory of methyl chloride (chloromethane) by gas-phase
+  hydrochlorination of methanol at the concept stage (issue #151), foreground only: the plant's
+  exchanges per kg of methyl chloride at the gate, with their provenance. Every background is a
+  gap until datasets are chosen; not an impact assessment (D-013).
+functional_unit: {product: MECL, amount: 1, unit: kg}
+boundary: cradle-to-gate
+case: design
+location: GLO
+year: 2026
+technology: "gas-phase hydrochlorination of methanol over gamma-alumina (multitubular, 523-613 K, 300-350 kPa(a)), hydrochloric acid quench with methanol stripping, 96 wt% sulfuric acid drying, two-stage compression and an HCl light-ends column with recycle and purge; 100 kt/a methyl chloride, concept design"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+# No allocation: methyl chloride is the only product. The dilute hydrochloric acid, the spent
+# sulfuric acid and the purge leave as wastes to treatment (D-013), not as co-products.
+flows:
+  # raw materials (boundary feeds; library processes that make them noted)
+  - {key: feed:MEOH, missing: "no background chosen yet: methanol, at the plant gate (natural-gas steam reforming and synthesis, incl. transport); library methanol-1 lca/dataset.yaml once published", source: "fresh methanol S01 (D-001, D-003)"}
+  - {key: feed:HCLG, missing: "no background chosen yet: hydrogen chloride, anhydrous gas, at the plant gate: by-product HCl of an organic chlorination or of silicone production (allocation in that system), or HCl synthesis from chlorine and hydrogen with desorption from 33 wt% acid (library hydrogen-chloride-1 makes the acid; chlor-alkali-1 the chlorine and hydrogen)", source: "anhydrous HCl S03 (D-003)"}
+  - {key: feed:ACID, missing: "no background chosen yet: sulfuric acid 96-98 wt%, market for (contact process from sulfur); library sulfuric-acid-1 lca/dataset.yaml once published", source: "drying acid S11 (D-008)"}
+  # utilities
+  - {key: feed:POWER, missing: "no background chosen yet: electricity, medium voltage, market for the site's grid (site not chosen)", source: "compressor and pumps Q07, Q12 (D-010)"}
+  - {key: feed:LPS, missing: "no background chosen yet: steam, in chemical industry, 500 kPa(a) from a natural-gas site boiler, per kWh of condensing heat (incl. condensate return and boiler feed water)", source: "methanol vaporiser, stripper and HCl column reboilers Q01, Q05, Q10 (D-010)"}
+  - {key: product:CW, missing: "no background chosen yet: cooling water circulation per kWh rejected (pump and fan electricity, make-up withdrawal and evaporation, blowdown, treatment chemicals)", source: "heat to cooling water Q04, Q06, Q08, Q09, Q11, Q13 (D-010)"}
+  # wastes to treatment outside the boundary
+  - key: product:DHCL
+    treatment: {kind: waste, route: "dilute hydrochloric acid (about 21 wt% HCl, 0.04 wt% methanol) to HCl recovery by pressure-swing or salt-assisted distillation, or to neutralisation and the site waste water treatment (D-007, D-013)"}
+    missing: "no background chosen yet: treatment of dilute hydrochloric acid, per kg (neutralisation with lime or caustic and discharge of the chloride brine, or HCl recovery with its energy)"
+    source: "stripper bottoms S10 (D-007)"
+  - key: product:SPENT
+    treatment: {kind: waste, route: "spent sulfuric acid (about 80 % strength, 8 wt% DME, 1.5 wt% CH3Cl) to spent acid regeneration by thermal decomposition and a contact plant (D-008, D-013)"}
+    missing: "no background chosen yet: regeneration of spent sulfuric acid with organic load (thermal decomposition to SO2, contact process), per kg spent acid; or neutralisation"
+    source: "drying tower bottoms S12 (D-008)"
+  - key: product:PURGE
+    treatment: {kind: waste, route: "inert purge (N2 with HCl and CH3Cl) to the site thermal oxidiser with HCl scrubbing (D-009, D-013)"}
+    missing: "no background chosen yet: thermal oxidation of a chlorinated vent gas with acid gas scrubbing, per kg vent gas (support fuel, caustic, CO2 from the CH3Cl carbon, HCl to the scrubber effluent)"
+    source: "purge S18 (D-009)"
+emission_exclusions:
+  - {id: fugitive-leaks, method: equipment-leaks, reason: "fugitive methyl chloride, methanol and HCl from flanges, valves, pumps and compressor seals not estimated, not claimed negligible: an estimate needs the P&ID component counts; to become an emission_estimates entry with the P&IDs (D-014)", source: "D-014"}
+  - {id: storage-tanks, method: storage-tank, reason: "methanol, methyl chloride (pressurised) and acid storage are outside the battery limit (design basis); their breathing losses belong to storage (D-014)", source: "design basis"}
+  - {id: purge-combustion, method: combustion, exchange: "product:PURGE", reason: "the purge is burned in the site thermal oxidiser outside the plant boundary; its combustion emissions belong to the treatment background of product:PURGE (D-014)", source: "D-014"}
+  - {id: non-routine, method: non-routine, reason: "catalyst regeneration or decoking off-gas, start-up and relief venting are not in the flowsheet; open item I-05 (D-014)", source: "D-014"}
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 25 a service life ASSUMED; no construction inventory and no catalyst replacement at this stage (D-013, I-05)"
+dataset:
+  version: 0.1.0
+  geography: {description: "One concept design for a generic, not chosen site; no regional background"}
+  system_model: cutoff   # wastes to treatment, no avoided-burden credits (D-013)
+  technology_level: current
+  classification: {isic: "2011", cpc: "34139"}
+  modelling: {principle: attributional}
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library, chloromethane-1 concept run (agent-generated, unreviewed)"
