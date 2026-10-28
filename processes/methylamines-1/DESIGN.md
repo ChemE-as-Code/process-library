@@ -223,6 +223,15 @@ Result (lca/inventory.csv, per kg DMA, allocated): methanol 1.365 kg, ammonia 0.
 0.768 kg; co-products 0.455 kg MMA and 0.364 kg TMA per kg DMA. Balance (cheme assess lca
 --balance, per hour): mass 14140.2 in / 14140.0 out kg (+0.00 %), C, H, N, O closed. Coverage:
 "partial screening", 7 gaps, no impact claimed.
+Separate product cases (issue #171 asks to keep them when co-producing with #166; review
+2026-10-28-pfd-lci-review#3): under mass allocation every product carries the same burden per kg,
+so the inventory per kg anhydrous MMA (#171) and per kg anhydrous TMA is identical to the per kg
+DMA one above (methanol 1.365 kg, ammonia 0.402 kg, and so on). The DMA functional unit is the
+reporting choice, not a preference between the products; an economic or other non-mass
+allocation would separate the cases and is then to be added as a scenario per product.
+Results: every exchange is a gap, so there is no total; the `0` that `cheme assess lca --write`
+puts in the total row of lca/results.csv and in the allocation table of lca/results.md means
+"no total", not a zero footprint (review #6; reported to core as a tool issue).
 
 ## 4. Open inputs
 

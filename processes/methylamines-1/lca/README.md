@@ -2,6 +2,13 @@
 
 The life cycle assessment of the plant's operation (ISO 14040/44), per functional unit.
 
+**This study (methylamines-1, DESIGN.md D-014).** The functional unit is 1 kg anhydrous DMA with
+mass allocation between DMA, MMA and TMA, so the inventory per kg MMA (issue #171) and per kg TMA
+is identical to the per-kg-DMA inventory in `inventory.csv`. Every exchange is still a gap: the
+`0` in the total row of `results.csv` and in the allocation table of `results.md` means "no
+total", not a zero footprint. The steam exchanges are an upper estimate without heat
+integration (D-009).
+
 | file | what | written by |
 |---|---|---|
 | `lca.yaml` | goal and scope: the functional unit (a product of `process/flowsheet.yaml`), the case, the allocation between co-products, the impact categories, and the background of every feed, product and emitted component (`cheme schema lca`) | people; `cheme init` writes none, since the flowsheet has no products yet |
