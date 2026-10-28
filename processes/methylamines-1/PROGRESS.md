@@ -4,6 +4,7 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-10-28 | lca/dataset.yaml, lca/README.md | `allocation.method: mass` written out in the generated dataset (cheme omits the default, `build_lci.py --strict` read it as None and warned); workaround documented | CI of PR #209 (tooling tests: test_the_library_builds_strict_with_the_utilities) |
 | 2026-10-28 | DESIGN.md D-002, D-005, D-007, D-008, source register; process/design-basis.yaml | US 4,485,261 A re-read: equilibrium ratios' basis not stated, weight basis ASSUMED from its weight-basis prior art, mole-basis miss stated; US 7,309,403 B2 and US 2,206,584 A read, locators recorded; claims still resting on SR-1 abstract and SR-8 summary marked unverified | review #4, #5 (medium) |
 | 2026-10-28 | DESIGN.md D-014, lca/README.md, lca/lca.yaml, lca/* (generated), process/reactions.yaml, checks/checks.yaml | MMA/TMA product cases stated (identical per kg under mass allocation); `0` totals explained as "no total"; steam exchange sources carry the upper-estimate caveat; unregistered secondary citation dropped; template decision id D-023 removed | review #3, #6 (medium), #9, #10, #11 (low) |
 | 2026-10-28 | DESIGN.md D-006, D-011 | energy cross-check restated on a consistent (liquid) basis, wastewater heat named, cooler left open; column model-basis overstatement of `cheme maturity` noted for core | review #8, #7 (low) |
