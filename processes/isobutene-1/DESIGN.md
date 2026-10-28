@@ -32,7 +32,9 @@ Decision: MTBE is cracked in the gas phase in a heated multitubular fixed-bed re
 acidic, magnesium-doped amorphous silica-alumina type catalyst; downstream an isobutene column,
 a water wash for methanol, a drying/DME column, a methanol column with MTBE recycle and a
 methanol/water column for the wash water.
-Reason: the issue names this route. US 8,633,345 B2 (Evonik Oxeno; description of the
+Reason: the run's task named this route (`runs/20261028-150003-design/task.md`); issue #165
+leaves the route open and asks for isobutene separated from mixed C4 streams to be compared,
+as a case, with on-purpose production; that comparison is not made here (I-09). US 8,633,345 B2 (Evonik Oxeno; description of the
 cleavage, catalyst and work-up) describes gas-phase cleavage over such a catalyst with the same
 sequence of separations (products column, methanol extraction with water, drying column for DME
 and water, methanol column with MTBE recycle), and gives ranges for each step.
@@ -85,8 +87,10 @@ Reason (evidence, our wording):
 - DME: the patent says DME selectivity should stay below 4 % (at most 10 %). In its Example 2
   reactor effluent (Table 11) the DME/isobutene molar ratio is about 0.010; we take 0.010 kmol
   DME per kmol MTBE converted (2 % of the methanol). ASSUMED, of the order of that example.
-- C8: in the same effluent the C8/isobutene molar ratio is about 0.0007; we take 0.001
-  (conservative). ASSUMED. TBA (from water + isobutene), isoprene, dimethoxymethane and
+- C8: Example 2's reactor effluent (Table 11) reports no C8; the lab cleavage of Example 1
+  (Table 6) has about 0.06 wt% C8 in the effluent, a C8/isobutene molar ratio of about 0.0005;
+  we take 0.001 (conservative). ASSUMED. (Locator corrected after review
+  2026-10-28-pfd-lci-review#1.) TBA (from water + isobutene), isoprene, dimethoxymethane and
   linear butenes from MSBE are not modelled (pure feed, D-003).
 - Equilibrium: from the ideal-gas data of `process/materials.yaml`, cheme gives ln K = 6.81 at
   553 K for CRACK (bar basis) and ln(Q/K) = -3.34 at the outlet: far from equilibrium. A pure
@@ -223,3 +227,7 @@ element and carbon-origin balances closed.
   or methanol technosphere entry.
 - I-08 Atlas LCI build (`scripts/build_lci.py`) not run locally (openpyxl missing in this
   environment): the overrides in `lca/mappings.yaml` are checked by name only.
+- I-09 Route alternatives of issue #165: isobutene separated from mixed C4 streams (e.g. a
+  raffinate-1 route through MTBE or TBA, or direct separation, which plain distillation cannot
+  do) compared as a case with on-purpose production (MTBE cracking, isobutane
+  dehydrogenation) is not made; this case designs MTBE cracking only (D-001).
