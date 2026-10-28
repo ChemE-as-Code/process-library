@@ -1,0 +1,46 @@
+# Components and templates of the process. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol,
+# normal_boiling_point in K at 101.325 kPa.
+#
+# Bayer process (D-001). The caustic aluminate liquor is carried as neutral molecules: NaOH
+# (free caustic) and NaAlO2 (sodium aluminate, i.e. NaAl(OH)4 less 2 H2O) in water. This is an
+# inventory basis, not a speciation: core does not speciate NaOH-NaAl(OH)4-H2O liquors (core
+# #364 covers aqueous NaCl only) and does not predict gibbsite solubility (D-006). Minerals are
+# separate solid components (phase: solid) from a normative mineralogy of the sourced bauxite
+# assay (D-003). Carbonate, oxalate, sulfate, chloride and organics of real liquors are not
+# carried (D-006). Molar masses from IUPAC 2021 standard atomic weights; CAS from PubChem.
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.015, normal_boiling_point: 373.12}
+  - {id: NaOH, name: Sodium hydroxide (dissolved free caustic; occluded soda in the hydrate), formula: NaOH, cas: 1310-73-2, molar_mass: 39.997}
+  - {id: NaAlO2, name: Sodium aluminate (dissolved; NaAl(OH)4 less 2 H2O), formula: NaAlO2, cas: 1302-42-7, molar_mass: 81.970}
+  - {id: AlOH3, name: Gibbsite (aluminium trihydroxide; bauxite mineral and precipitated hydrate), formula: Al(OH)3, cas: 14762-49-3, molar_mass: 78.003, phase: solid}
+  - {id: AlOOH, name: Aluminium oxyhydroxide (diaspore and boehmite; not digested at 418 K), formula: AlO(OH), cas: 24623-77-6, molar_mass: 59.988, phase: solid}
+  - {id: Kaol, name: Kaolinite (reactive silica of the bauxite), formula: Al2Si2O5(OH)4, cas: 1318-74-7, molar_mass: 258.157, phase: solid}
+  - {id: SiO2, name: Quartz (unreactive silica at 418 K), formula: SiO2, cas: 14808-60-7, molar_mass: 60.083, phase: solid}
+  - {id: Fe2O3, name: Hematite, formula: Fe2O3, cas: 1317-60-8, molar_mass: 159.687, phase: solid}
+  - {id: FeOOH, name: Goethite (including aluminian goethite), formula: FeO(OH), cas: 20344-49-4, molar_mass: 88.851, phase: solid}
+  - {id: TiO2, name: Titania (anatase and rutile; stands also for the minor oxides of the bauxite), formula: TiO2, cas: 13463-67-7, molar_mass: 79.865, phase: solid}
+  - {id: DSP, name: "Desilication product, carried as hydroxysodalite", formula: Na8Al6Si6O24(OH)2, molar_mass: 932.312, phase: solid}
+  - {id: CaO, name: Calcium oxide (quicklime), formula: CaO, cas: 1305-78-8, molar_mass: 56.077, phase: solid}
+  - {id: CaOH2, name: Calcium hydroxide (milk of lime solids), formula: Ca(OH)2, cas: 1305-62-0, molar_mass: 74.092, phase: solid}
+  - {id: TCA, name: "Tricalcium aluminate hexahydrate (hydrogarnet, katoite)", formula: Ca3Al2(OH)12, cas: 12042-78-3, molar_mass: 378.282, phase: solid}
+  - {id: Al2O3, name: Aluminium oxide (smelter-grade alumina), formula: Al2O3, cas: 1344-28-1, molar_mass: 101.961, phase: solid}
+  - {id: Na2O, name: Sodium oxide (soda bound in the alumina), formula: Na2O, cas: 1313-59-3, molar_mass: 61.979, phase: solid}
+  - {id: CH4, name: Methane (natural gas), formula: CH4, cas: 74-82-8, molar_mass: 16.043, normal_boiling_point: 111.66}
+  - {id: O2, name: Oxygen, formula: O2, cas: 7782-44-7, molar_mass: 31.998, normal_boiling_point: 90.19}
+  - {id: N2, name: Nitrogen (with the argon of the air), formula: N2, cas: 7727-37-9, molar_mass: 28.014, normal_boiling_point: 77.36}
+  - {id: CO2, name: Carbon dioxide, formula: CO2, cas: 124-38-9, molar_mass: 44.009}
+templates:
+  - id: bayer
+    title: Bayer process streams (bauxite, slurries, liquors, hydrate, alumina, calciner gases)
+    components: [H2O, NaOH, NaAlO2, AlOH3, AlOOH, Kaol, SiO2, Fe2O3, FeOOH, TiO2, DSP, CaO, CaOH2, TCA, Al2O3, Na2O, CH4, O2, N2, CO2]
+  - id: flue
+    title: Calciner flue gas
+    components: [CO2, H2O, N2, O2]
+# property_method is a placeholder: no benchmarked package covers caustic aluminate liquors or
+# the solids (D-006); `cheme process props --coverage` reports the streams as not covered.
+property_method:
+  adapter: thermo
+  status: placeholder

@@ -1,0 +1,13 @@
+# alumina-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# Bauxite, quicklime, caustic soda 50 % and the residue treatment have no shared technosphere
+# entry yet: they stay unmapped (reported gaps, ADR on LCI gaps) and are listed in DESIGN.md
+# section 4 for the consolidated PR to lci/mappings.yaml and chemicals/chemicals.yaml.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:NG": {use: natural-gas, source: "calciner natural gas counted by mass as methane (LHV 50 MJ/kg, D-008)"}
+  "feed:MPS": {use: steam-heat, source: "MP steam 1000 kPa(a) to the digestion heaters, counted as heat delivered (kWh, condensate returned); the slug steam is counted by mass"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a) to the liquor heater and evaporators, counted as heat delivered (kWh, condensate returned)"}
