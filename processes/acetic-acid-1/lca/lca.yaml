@@ -1,0 +1,85 @@
+# Goal and scope of the acetic-acid-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme assess lca
+# --write` / `--inventory --write` (lca/inventory.csv, dataset.yaml, gaps.csv, ...); never edit
+# those by hand. DESIGN.md D-013.
+#
+# PRELIMINARY GATE-TO-GATE INVENTORY: every foreground exchange comes from the balanced concept
+# flowsheet (process/flowsheet.yaml, design case). No background is linked yet: every feed,
+# utility and treatment is `missing:` with the background activity it should connect to later
+# (a gap, never 0; an unmapped exchange of an internal process is a reported gap, library
+# ADR 0022). No value from a licensed database.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of glacial acetic acid by low-water iridium
+  methanol carbonylation, for the process library: the foreground exchanges per kg of acetic
+  acid at the gate (raw materials, utilities, wastes, off-gas) from the concept flowsheet, ready
+  to be linked to background datasets later. Not an impact assessment: no background is linked.
+functional_unit: {product: HAC, amount: 1, unit: kg}
+boundary: cradle-to-gate
+case: design
+location: GLO
+year: 2026
+technology: "Low-water (6 wt%) Ir/Ru methanol carbonylation at 463 K and 2900 kPa(a), adiabatic flash, light-ends / drying / heavy-ends distillation, methanol vent scrubbing; 60 t/h glacial acetic acid"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+allocation:
+  method: none
+  coproducts: [HAC]
+  source: "D-013: one product; the heavy ends and the off-gas are wastes to treatment, not co-products"
+system_model: cutoff
+flows:
+  # ---- raw materials (backgrounds open) ----
+  - key: feed:MEOH
+    missing: "background to link: methanol, Grade AA, at the methanol plant gate (the library process methanol-1, from natural-gas synthesis gas, once its LCI dataset exists; otherwise a market for methanol). Not linked yet"
+    source: "S01, methanol (methanol-1 product S18) at 300 kPa(a) (D-005)"
+  - key: feed:COGAS
+    missing: "background to link: carbon monoxide gas (98.5 mol%), delivered at 3200 kPa(a), from a syngas cold box or partial oxidation of natural gas, including its compression; per kg of feed gas (1.2 % of the mass is N2, CH4 and H2). Not linked yet"
+    source: "S03, CO feed gas (D-005)"
+  - key: feed:MEI
+    missing: "background to link: methyl iodide (iodomethane) production, from methanol and iodine/hydrogen iodide. Not linked yet; amount is the off-gas slip only (D-007)"
+    source: "S04, methyl iodide make-up (D-007)"
+  # ---- utilities (backgrounds open) ----
+  - key: feed:POWER
+    missing: "background to link: grid electricity, medium voltage, market mix of the site's country (site not chosen, D-002). Not linked yet"
+    source: "Q01, Q02, Q06, Q09, Q12: pumps only (D-010). KNOWN UNDERESTIMATE: no reactor agitation, scrubber, vacuum, cooling-water or tank-farm power, and no CO compression (outside the boundary)"
+  - key: feed:MPS
+    missing: "background to link: MP steam 1100 kPa(a) (saturated) from the site steam system, e.g. a natural-gas-fired utility boiler, per kWh of heat. Not linked yet"
+    source: "Q04, Q07, Q10: column reboilers, shortcut estimate (D-008)"
+  - key: product:CW
+    missing: "background to link: heat rejected to an evaporative cooling water system (circulation pumping, tower fans, make-up water and treatment chemicals), per kWh rejected. Not linked yet"
+    source: "Q03, Q05, Q08, Q11: reactor cooler, column condensers and product cooler, shortcut estimate (D-008)"
+  # ---- wastes to treatment ----
+  - key: product:OFFGAS
+    treatment: {kind: waste, route: "thermal oxidation / flare of the scrubbed vent gas (CO, CH4, H2, CO2, N2, traces of methanol and methyl iodide)", hazardous: true}
+    missing: "background to link: thermal oxidation or flaring of a CO-rich vent gas, with its combustion emissions (CO2 from CO, CH4 and methanol; iodine/HI from methyl iodide), per kg of gas. Not linked yet"
+    source: "S23, scrubbed off-gas (D-007)"
+  - key: product:HEAVY
+    treatment: {kind: waste, route: "incineration of hazardous organic liquid waste (propionic acid in acetic acid)", hazardous: true}
+    missing: "background to link: hazardous waste incineration of an organic acid liquid, per kg. Not linked yet"
+    source: "S22, heavy-ends bottoms (D-009)"
+emission_exclusions:
+  - {id: fugitive, method: equipment-leaks, reason: "Not estimated at concept stage: no P&ID take-off for a leak count (methanol, methyl iodide, acetic acid and CO components); to be estimated at basic engineering", source: "D-013"}
+  - {id: storage, method: storage-tank, reason: "No tanks inside the boundary: methanol and acetic acid storage are outside it (D-001)", source: "D-001"}
+  - {id: wastewater, method: effluent, reason: "No aqueous effluent in the concept balance: the net water of the reactions leaves with the product (691 ppm(wt)); drains, cleaning water and catalyst-recovery purges are not in the concept balance", source: "D-006"}
+  - {id: flare-combustion, method: flare, exchange: product:OFFGAS, reason: "The off-gas is burned outside the boundary (site flare / thermal oxidiser): its combustion emissions belong to the linked treatment background", source: "D-007"}
+operation:
+  hours_per_year: 8400
+  life_years: 25
+  source: "design basis operating_hours_per_year 8400 (ASSUMED); 25 a life ASSUMED; construction not inventoried at this stage (out of scope of the run)"
+# Not inventoried, and not cut off: the iridium/ruthenium catalyst losses and the corrosion-metal
+# purge. No open source for their rates was found (DESIGN.md O-6); an amount of 0 would be a
+# guess, so the consumable is added once a rate is sourced (background: primary iridium and
+# ruthenium from PGM refining, with recovery from the catalyst purges).
+uncertainty:
+  defaults:
+    assumed: {gsd2: 1.35, source: "concept estimate +/-30 % (design basis)"}
+    calculated: {gsd2: 1.1, source: "calculated from assumed inputs"}
+    given: {gsd2: 1.05, source: "design basis"}
+dataset:
+  version: 0.1.0
+  geography: {description: "One generic concept design; no site or country chosen. Backgrounds of the site's country to be linked later"}
+  system_model: cutoff
+  technology_level: current
+  classification: {isic: "2011"}
+  modelling: {principle: attributional}
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library, acetic-acid-1 concept design (agent-drafted, unreviewed)"

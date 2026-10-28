@@ -45,14 +45,17 @@ validation:
     chemicals registry has no methanol, carbon-monoxide, acetic-acid, methyl-iodide or
     propionic-acid entry yet, so the feeds and the main product are not listed under chemistry
     (open library item).
+# Minor components of the CO gas and the off-gas carry no inventory_key: the exchange is the
+# whole gas (98.5 % CO; the off-gas to treatment), and a slug of a minor component would map it
+# to the wrong background (D-013).
 chemistry:
   inputs:
-    - {chemical: hydrogen, role: feedstock, inventory_key: "feed:COGAS", note: "H2 of the CO feed gas (0.3 mol%, ASSUMED); the gas is 98.5 % CO, which the registry does not list yet. Methanol (feed:MEOH, from methanol-1) has no registry entry yet"}
-    - {chemical: nitrogen, role: feedstock, inventory_key: "feed:COGAS", note: "N2 of the CO feed gas (1.0 mol%, ASSUMED), inert, leaves with the off-gas"}
-    - {chemical: methane, role: feedstock, inventory_key: "feed:COGAS", note: "CH4 of the CO feed gas (0.2 mol%, ASSUMED)"}
+    - {chemical: hydrogen, role: feedstock, note: "H2 of the CO feed gas feed:COGAS (0.3 mol%, ASSUMED); the gas is 98.5 % CO, which the registry does not list yet. Methanol (feed:MEOH, from methanol-1) has no registry entry yet"}
+    - {chemical: nitrogen, role: feedstock, note: "N2 of the CO feed gas feed:COGAS (1.0 mol%, ASSUMED), inert, leaves with the off-gas"}
+    - {chemical: methane, role: feedstock, note: "CH4 of the CO feed gas feed:COGAS (0.2 mol%, ASSUMED)"}
   outputs:
-    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:OFFGAS", note: "CO2 formed by the water-gas shift side reaction, in the off-gas to the flare / thermal oxidiser. The main product, glacial acetic acid (product:HAC), has no registry entry yet"}
-    - {chemical: methane, role: emission, inventory_key: "product:OFFGAS", note: "CH4 formed from methanol and the CO feed's CH4, in the off-gas to the flare / thermal oxidiser"}
+    - {chemical: carbon-dioxide, role: waste, note: "CO2 formed by the water-gas shift side reaction, in the off-gas product:OFFGAS to the flare / thermal oxidiser. The main product, glacial acetic acid (product:HAC), has no registry entry yet"}
+    - {chemical: methane, role: waste, note: "CH4 formed from methanol and the CO feed's CH4, in the off-gas product:OFFGAS to the flare / thermal oxidiser"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Pumps (ASSUMED electric drives); no CO compression inside the boundary"}
     - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "MP steam 1100 kPa(a) to the column reboilers"}
