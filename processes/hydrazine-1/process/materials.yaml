@@ -1,18 +1,46 @@
 # Components and templates of the process. Schema cheme/process/v1 (`cheme schema
-# process-materials`). Every component has a stable id; molar_mass in kg/kmol,
-# normal_boiling_point in K at 101.325 kPa.
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol from IUPAC
+# standard atomic weights (C 12.011, H 1.008, N 14.007, O 15.999, Na 22.990, P 30.974), the
+# same values as scripts/balance.py. Identity (formula, CAS) from PubChem.
+# Acetamide stands for the whole activator system of the working solution (acetamide plus
+# ammonium acetate, D-005); the trimethyl-ethyl-pyrazoline isomer stands for all pyrazolines
+# (D-007).
 schema: cheme/process/v1
 kind: materials
-components: []
-#  - {id: N2, name: Nitrogen, formula: N2, cas: 7727-37-9, molar_mass: 28.014, normal_boiling_point: 77.36}
-templates: []
-#  - {id: air, title: Air, components: [N2, O2, AR]}
-# property_method is a placeholder until `cheme process props --fill` records the method: its
-# benchmarked property package, package versions and application range. Packages:
-# air-pr-chemsep (N2/O2/Ar, 77-315 K, vapour 100-3200 kPa(a), liquid and two-phase 100-600
-# kPa(a)) and syngas-pr-vapor (H2/N2/Ar/CH4/CO/CO2 mixtures, NH3 pure or dilute with H2/N2/Ar/
-# CH4, vapour only, in benchmarked temperature-pressure boxes). `cheme process props --coverage` shows which applies
-# to each stream; `package: <id>` here chooses one.
+components:
+  - {id: H2O2, name: Hydrogen peroxide, formula: H2O2, cas: 7722-84-1, molar_mass: 34.014}
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.015}
+  - {id: NH3, name: Ammonia, formula: NH3, cas: 7664-41-7, molar_mass: 17.031}
+  - {id: MEK, name: Methyl ethyl ketone (2-butanone), formula: C4H8O, cas: 78-93-3, molar_mass: 72.107}
+  - {id: AZN, name: Methyl ethyl ketazine (2-butanone azine), formula: C8H16N2, cas: 5921-54-0, molar_mass: 140.230}
+  - {id: BUOH, name: 2-Butanol, formula: C4H10O, cas: 78-92-2, molar_mass: 74.123}
+  - {id: O2, name: Oxygen, formula: O2, cas: 7782-44-7, molar_mass: 31.998}
+  - {id: N2, name: Nitrogen, formula: N2, cas: 7727-37-9, molar_mass: 28.014}
+  - {id: N2H4, name: Hydrazine, formula: N2H4, cas: 302-01-2, molar_mass: 32.046}
+  - {id: PYR, name: "3,4,5-Trimethyl-5-ethyl-2-pyrazoline (pyrazolines surrogate)", formula: C8H16N2, molar_mass: 140.230}
+  - {id: ACAM, name: Acetamide (activator surrogate), formula: C2H5NO, cas: 60-35-5, molar_mass: 59.068}
+  - {id: ACOH, name: Acetic acid, formula: C2H4O2, cas: 64-19-7, molar_mass: 60.052}
+  - {id: NA2HPO4, name: Disodium hydrogen phosphate, formula: Na2HPO4, cas: 7558-79-4, molar_mass: 141.958}
+templates:
+  - {id: peroxide, title: Hydrogen peroxide solution, components: [H2O2, H2O]}
+  - {id: ammonia, title: Ammonia, components: [NH3]}
+  - {id: mek, title: Methyl ethyl ketone, components: [MEK]}
+  - {id: acid, title: Acetic acid, components: [ACOH]}
+  - {id: phosphate, title: Disodium phosphate, components: [NA2HPO4]}
+  - {id: water, title: Water, components: [H2O]}
+  - {id: offgas, title: Reactor off-gas, components: [O2, N2, NH3, MEK]}
+  - id: process
+    title: Azine synthesis and working solution
+    components: [H2O2, H2O, NH3, MEK, AZN, BUOH, O2, N2, ACAM, ACOH, NA2HPO4]
+  - id: hydrolysis
+    title: Azine hydrolysis and hydrazine hydrate
+    components: [AZN, H2O, MEK, N2H4, PYR]
+  - id: hydrate
+    title: Hydrazine hydrate solution
+    components: [N2H4, H2O]
+# No benchmarked property package covers this reactive, polar, salt-bearing aqueous mixture
+# (hydrazine-water maximum-boiling azeotrope, ammonium acetate/acetamide, phosphate): placeholder
+# (D-011).
 property_method:
   adapter: thermo
   status: placeholder

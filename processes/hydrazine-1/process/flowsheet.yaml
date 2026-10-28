@@ -1,24 +1,562 @@
 # The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
 # never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
-# Units are explicit: a property without its own unit is in these. Pressure is absolute; a gauge
-# value needs its own unit (kPa(g)). Nm3/h needs normal_conditions.
+# Hydrazine hydrate by the peroxide (PCUK) process, concept stage, issue #141.
+# Assumed stream values come from scripts/balance.py (D-002 to D-009); mixer and reactor
+# outlets are calculated by `cheme process propagate --fill`. Utility duties are scaled from a
+# patent example (working-solution regeneration) or hand estimates (D-010), not calculated by
+# a property package (D-011).
 schema: cheme/process/v1
 kind: flowsheet
-title: ""
+title: Hydrazine hydrate by the peroxide (PCUK, methyl ethyl ketazine) process
 units:
   pressure: kPa(a)
   temperature: K
   flow: kg/h
   duty: kW
   enthalpy: kJ/kmol
-  # normal_conditions: {temperature: 273.15, pressure: 101.325, basis: ideal_gas}
-  # enthalpy_reference: {state: ideal_gas, temperature: 298.15}
 cases:
-  - {id: design, description: Design case, default: true}
-tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
-feeds: []      # external feeds (DEXPI Source): {id, title, ports: [{id: out, direction: out}]}
-products: []   # products (DEXPI Sink): {id, title, ports: [{id: in, direction: in}]}
-blocks: []     # BFD blocks: {id, title, class, ports: [{id, direction, kind}], links}
-steps: []      # PFD steps: {id, block, title, class, ports: [{id, direction, delegates}], links}
-streams: []    # {id, title, kind, from: NODE.port, to: NODE.port, template, state: {design: {...}}}
+  - {id: design, description: "Design case: 2000 kg/h hydrazine hydrate (64 wt% N2H4), 8000 h/a (D-002)", default: true}
+tolerance: {abs: 1.0, rel: 0.005}
+
+feeds:
+  - {id: H2O2, title: Hydrogen peroxide 70 wt% (hydrogen-peroxide-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: NH3F, title: Ammonia liquid (ammonia-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: MEKF, title: MEK make-up, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: ACOHF, title: Acetic acid make-up, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: PHOSF, title: Disodium phosphate make-up, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: DW, title: Demineralised water, category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: r101, direction: out, kind: energy}
+      - {id: c401, direction: out, kind: energy}
+  - id: MPS
+    title: MP steam 2000 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: MP
+      pressure: {value: 2000, provenance: assumed, source: "D-010: covers 18 bar(a) steam of US 6,605,265 Ex. 1 and the 473 K reboiler of US 12,134,558 Ex. 1"}
+      supply_temperature: {value: 485.5, provenance: given, source: "saturation at 2000 kPa(a), IAPWS-IF97"}
+      min_approach: {value: 10, provenance: assumed, source: D-010}
+    ports:
+      - {id: c201, direction: out, kind: energy}
+      - {id: c301, direction: out, kind: energy}
+      - {id: c401, direction: out, kind: energy}
+  - id: LPS
+    title: LP steam 500 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 500, provenance: assumed, source: D-010}
+      supply_temperature: {value: 424.98, provenance: given, source: "saturation at 500 kPa(a), IAPWS-IF97"}
+      min_approach: {value: 10, provenance: assumed, source: D-010}
+    ports:
+      - {id: c202, direction: out, kind: energy}
+      - {id: c402, direction: out, kind: energy}
+
+products:
+  - {id: HH, title: Hydrazine hydrate (64 wt% N2H4), category: product, ports: [{id: in, direction: in}]}
+  - {id: BUOHB, title: 2-Butanol bleed to incineration, category: by_product, ports: [{id: in, direction: in}]}
+  - {id: HEAVY, title: Pyrazoline purge to incineration, category: by_product, ports: [{id: in, direction: in}]}
+  - {id: WSP, title: Working-solution purge to incineration, category: by_product, ports: [{id: in, direction: in}]}
+  - {id: WW, title: Waste water to treatment, category: wastewater, ports: [{id: in, direction: in}]}
+  - {id: VENT, title: Reactor off-gas to atmosphere, category: off_gas, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis"}
+      min_approach: {value: 5, provenance: assumed, source: "design basis"}
+    ports:
+      - {id: r101, direction: in, kind: energy}
+      - {id: c201, direction: in, kind: energy}
+      - {id: c202, direction: in, kind: energy}
+      - {id: c301, direction: in, kind: energy}
+      - {id: c401, direction: in, kind: energy}
+      - {id: c402, direction: in, kind: energy}
+
+blocks:
+  - id: AZN
+    title: Azine synthesis
+    class: ReactingChemicals
+    ports:
+      - {id: h2o2, direction: in}
+      - {id: nh3, direction: in}
+      - {id: mek, direction: in}
+      - {id: ws, direction: in}
+      - {id: nh3rec, direction: in}
+      - {id: mekrec, direction: in}
+      - {id: mekhyd, direction: in}
+      - {id: vent, direction: out}
+      - {id: org, direction: out}
+      - {id: aq, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+  - id: WSR
+    title: Working-solution regeneration and ammonia recovery
+    class: SeparatingByThermalProcess
+    ports:
+      - {id: aq, direction: in}
+      - {id: acid, direction: in}
+      - {id: phos, direction: in}
+      - {id: ws, direction: out}
+      - {id: nh3rec, direction: out}
+      - {id: purge, direction: out}
+      - {id: ww, direction: out}
+      - {id: steam1, direction: in, kind: energy}
+      - {id: steam2, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+  - id: AZD
+    title: Azine distillation
+    class: Distilling
+    ports:
+      - {id: org, direction: in}
+      - {id: mekrec, direction: out}
+      - {id: azine, direction: out}
+      - {id: bleed, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+  - id: HYD
+    title: Azine hydrolysis and hydrate concentration
+    class: ReactingChemicals
+    ports:
+      - {id: azine, direction: in}
+      - {id: water, direction: in}
+      - {id: mekhyd, direction: out}
+      - {id: heavy, direction: out}
+      - {id: product, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: lps, direction: in, kind: energy}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+
+steps:
+  - id: M101
+    block: AZN
+    title: Reactor feed junction (fresh feeds and recycles)
+    class: Mixing
+    ports:
+      - {id: h2o2, direction: in, delegates: h2o2}
+      - {id: nh3, direction: in, delegates: nh3}
+      - {id: mek, direction: in, delegates: mek}
+      - {id: ws, direction: in, delegates: ws}
+      - {id: nh3rec, direction: in, delegates: nh3rec}
+      - {id: mekrec, direction: in, delegates: mekrec}
+      - {id: mekhyd, direction: in, delegates: mekhyd}
+      - {id: out, direction: out}
+  # D-003, D-004: stirred reactors in series, lumped; sourced yield model, not kinetics.
+  - id: R101
+    block: AZN
+    title: Azine reactors (activated working solution, 323 K)
+    class: ReactingChemicals
+    reactions: [AZINE, BUTANOL, DECOMP]
+    reactor: conversion
+    selectivity: {key: H2O2, conversion: 1.0, products: {AZN: 0.85, BUOH: 0.03, O2: 0.045}, provenance: assumed, source: "D-004: H2O2 conversion 98-99 % and azine yield 81-82 % in US 6,562,311 Ex. 4-5, up to 90 % stated in US 6,562,311 and US 6,605,265; 0.85 ASSUMED inside that range, 2-butanol share ASSUMED from the MEK make-up of US 6,605,265 Ex. 1, the rest decomposed"}
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  - id: V101
+    block: AZN
+    title: Decanter and vent condenser (azine phase, working solution, off-gas)
+    class: SeparatingByGravity
+    links: [{target: equipment, ref: V-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out, delegates: vent}
+      - {id: org, direction: out, delegates: org}
+      - {id: aq, direction: out, delegates: aq}
+  - id: R201
+    block: WSR
+    title: Working-solution heater (activator make-up, amidation above 403 K)
+    class: ReactingChemicals
+    reactions: [AMIDATION]
+    reactor: conversion
+    links: [{target: equipment, ref: E-201}]
+    ports:
+      - {id: in, direction: in, delegates: aq}
+      - {id: acid, direction: in, delegates: acid}
+      - {id: phos, direction: in, delegates: phos}
+      - {id: out, direction: out}
+  - id: C201
+    block: WSR
+    title: Working-solution regeneration column (water removal, base 453 K)
+    class: Distilling
+    links: [{target: equipment, ref: C-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out}
+      - {id: bot, direction: out, delegates: ws}
+      - {id: purge, direction: out, delegates: purge}
+      - {id: steam, direction: in, kind: energy, delegates: steam1}
+      - {id: cw, direction: out, kind: energy, delegates: cw1}
+  - id: C202
+    block: WSR
+    title: Ammonia recovery column
+    class: Distilling
+    links: [{target: equipment, ref: C-202}]
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out, delegates: nh3rec}
+      - {id: bot, direction: out, delegates: ww}
+      - {id: steam, direction: in, kind: energy, delegates: steam2}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+  - id: C301
+    block: AZD
+    title: Azine column (MEK recycle overhead, 2-butanol side draw)
+    class: Distilling
+    links: [{target: equipment, ref: C-301}]
+    ports:
+      - {id: in, direction: in, delegates: org}
+      - {id: top, direction: out, delegates: mekrec}
+      - {id: side, direction: out, delegates: bleed}
+      - {id: bot, direction: out, delegates: azine}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  - id: M401
+    block: HYD
+    title: Hydrolysis feed junction (azine, recycled and make-up water)
+    class: Mixing
+    ports:
+      - {id: azine, direction: in, delegates: azine}
+      - {id: water, direction: in, delegates: water}
+      - {id: rec, direction: in}
+      - {id: out, direction: out}
+  # D-007: reactive distillation column lumped as a conversion zone (R401) and its separation
+  # (C401); same equipment tag.
+  - id: R401
+    block: HYD
+    title: Azine hydrolysis zone of the pressure column (about 900 kPa(a))
+    class: ReactingChemicals
+    reactions: [HYDROLYSIS, ISOMERISATION]
+    # Conversions per reaction on the inlet azine (reactions.yaml), not a selectivity: cheme
+    # 0.8.0 checks a selectivity only on the first step that has one (I-08).
+    reactor: conversion
+    links: [{target: equipment, ref: C-401}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: C401
+    block: HYD
+    title: Hydrolysis column separation (MEK overhead, pyrazoline side purge)
+    class: Distilling
+    links: [{target: equipment, ref: C-401}]
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out, delegates: mekhyd}
+      - {id: side, direction: out, delegates: heavy}
+      - {id: bot, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: cw, direction: out, kind: energy, delegates: cw1}
+  - id: C402
+    block: HYD
+    title: Hydrazine hydrate concentration column
+    class: Distilling
+    links: [{target: equipment, ref: C-402}]
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out}
+      - {id: bot, direction: out, delegates: product}
+      - {id: steam, direction: in, kind: energy, delegates: lps}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+
+streams:
+  - {id: Q01, title: Power to reactors and pumps, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 60, provenance: assumed, source: "D-010: agitators and working-solution and feed pumps, hand estimate"}}}}
+  - {id: Q02, title: Power to hydrolysis and product pumps, kind: energy, from: POWER.c401, to: R401.power, state: {design: {duty: {value: 40, provenance: assumed, source: "D-010: hydrolysis feed pumps to about 900 kPa(a), reflux and product pumps, hand estimate"}}}}
+  - {id: Q03, title: MP steam to the regeneration column, kind: energy, from: MPS.c201, to: C201.steam, state: {design: {duty: {value: 8958, provenance: assumed, source: "D-010: 10.5 t of 18 bar(a) steam per t H2O2 (US 6,605,265 Ex. 1) x 1.6066 t/h H2O2, latent heat 1912 kJ/kg"}}}}
+  - {id: Q04, title: MP steam to the azine column, kind: energy, from: MPS.c301, to: C301.steam, state: {design: {duty: {value: 834, provenance: assumed, source: "D-010: overhead vapour of S31 + S33 at reflux ratio 1.5, latent heats at 1 atm (scripts/balance.py)"}}}}
+  - {id: Q05, title: MP steam to the hydrolysis column, kind: energy, from: MPS.c401, to: C401.steam, state: {design: {duty: {value: 2627, provenance: assumed, source: "D-010: MEK/water overhead S41 at reflux ratio 1, plus heating the water feed 373-458 K (scripts/balance.py)"}}}}
+  - {id: Q06, title: LP steam to the ammonia recovery column, kind: energy, from: LPS.c202, to: C202.steam, state: {design: {duty: {value: 739, provenance: assumed, source: "D-010: stripping steam 0.2 kg/kg feed water plus NH3 vaporisation (scripts/balance.py)"}}}}
+  - {id: Q07, title: LP steam to the concentration column, kind: energy, from: LPS.c402, to: C402.steam, state: {design: {duty: {value: 3247, provenance: assumed, source: "D-010: overhead water S43 at reflux ratio 0.3, less the flash of the hot S47 feed (scripts/balance.py)"}}}}
+  - {id: Q08, title: Azine reactor cooling, kind: energy, from: R101.cw, to: CW.r101, state: {design: {duty: {value: 2904, provenance: assumed, source: "D-010: -241.5 kJ/mol for H2O2 + 2 NH3(g) -> N2H4(l) + 2 H2O(l) (NIST WebBook formation enthalpies), azine condensation heat neglected; decomposition -98.2 kJ/mol H2O2"}}}}
+  - {id: Q09, title: Regeneration column condenser, kind: energy, from: C201.cw, to: CW.c201, state: {design: {duty: {value: 8958, provenance: assumed, source: "D-010: equal to the steam input"}}}}
+  - {id: Q10, title: Ammonia recovery column condenser, kind: energy, from: C202.cw, to: CW.c202, state: {design: {duty: {value: 537, provenance: assumed, source: "D-010: steam input less the NH3 vapour returned to the reactors"}}}}
+  - {id: Q11, title: Azine column condenser, kind: energy, from: C301.cw, to: CW.c301, state: {design: {duty: {value: 834, provenance: assumed, source: "D-010: equal to the reboiler"}}}}
+  - {id: Q12, title: Hydrolysis column condenser, kind: energy, from: C401.cw, to: CW.c401, state: {design: {duty: {value: 1859, provenance: assumed, source: "D-010: overhead condensation at reflux ratio 1; recoverable at about 433 K (US 12,134,558 Ex. 1), not integrated (I-05)"}}}}
+  - {id: Q13, title: Concentration column condenser, kind: energy, from: C402.cw, to: CW.c402, state: {design: {duty: {value: 3802, provenance: assumed, source: "D-010: overhead water S43 at reflux ratio 0.3"}}}}
+  - id: S01
+    title: Hydrogen peroxide 70 wt%
+    from: H2O2.out
+    to: M101.h2o2
+    template: peroxide
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: design basis}
+        temperature: {value: 298.15, provenance: assumed, source: design basis}
+        flow: {value: 2294.847, basis: mass, provenance: assumed, source: "scripts/balance.py (D-002, D-004)"}
+        composition: {basis: mass_fraction, values: {H2O2: 0.70, H2O: 0.30}, provenance: assumed, source: "D-003: 70 wt% as in US 6,605,265 Ex. 1"}
+  - id: S02
+    title: Ammonia (liquid)
+    from: NH3F.out
+    to: M101.nh3
+    template: ammonia
+    state:
+      design:
+        pressure: {value: 1500, provenance: assumed, source: design basis}
+        temperature: {value: 298.15, provenance: assumed, source: design basis}
+        flow: {value: 1444.008, basis: mass, provenance: assumed, source: "scripts/balance.py: reaction demand plus vent and waste-water losses (D-004, D-008)"}
+        composition: {basis: mass_fraction, values: {NH3: 1.0}, provenance: assumed, source: design basis}
+  - id: S03
+    title: MEK make-up
+    from: MEKF.out
+    to: M101.mek
+    template: mek
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: design basis}
+        temperature: {value: 298.15, provenance: assumed, source: design basis}
+        flow: {value: 149.160, basis: mass, provenance: assumed, source: "scripts/balance.py: MEK to 2-butanol and pyrazolines plus losses (D-004, D-008); US 6,605,265 Ex. 1 reports 100 kg/h per t/h H2O2 (here 93)"}
+        composition: {basis: mass_fraction, values: {MEK: 1.0}, provenance: assumed, source: design basis}
+  - id: S05
+    title: Azine reactor feed
+    from: M101.out
+    to: R101.in
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O2: 0.0457401, H2O: 0.608842, NH3: 0.11435, MEK: 0.100628, AZN: 0.0, BUOH: 0.0, O2: 0.0, N2: 0.0, ACAM: 0.130379, ACOH: 0.0, NA2HPO4: 6.02779e-05}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S01 S02 S03 S20 S23 S31 S41', fingerprint: fb10df2361866813}
+        flow: {value: 30394.6, provenance: calculated, source: 'cheme process propagate: mixer M101 from S01 S02 S03 S20 S23 S31 S41', fingerprint: 743243fa51cf518f}
+  - id: S06
+    title: Azine reactor effluent
+    from: R101.out
+    to: V101.in
+    template: process
+    state:
+      design:
+        pressure: {value: 150, provenance: assumed, source: D-003}
+        temperature: {value: 323.15, provenance: assumed, source: "D-003: 50 C as in US 6,562,311 Ex. 4-5 and US 6,605,265 Ex. 1"}
+        flow: {value: 30394.6, provenance: calculated, source: 'cheme process propagate: reactor R101 from S05', fingerprint: a36f7b2469ba744d}
+        composition: {basis: mole_fraction, values: {H2O2: 0.0, H2O: 0.771318, NH3: 0.0337317, MEK: 0.0214241, AZN: 0.0387462, BUOH: 0.00136751, O2: 0.00205127, N2: 0.00136751, ACAM: 0.129933, ACOH: 0.0, NA2HPO4: 6.00719e-05}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S05', fingerprint: a50e0c4d5363a6b1}
+  - id: S07
+    title: Reactor off-gas to atmosphere
+    from: V101.gas
+    to: VENT.in
+    template: offgas
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: design basis}
+        temperature: {value: 308.15, provenance: assumed, source: D-008}
+        flow: {value: 109.603, basis: mass, provenance: assumed, source: "scripts/balance.py (D-004, D-008)"}
+        composition: {basis: mass_fraction, values: {O2: 0.620450, N2: 0.362133, NH3: 0.005588, MEK: 0.011829}, provenance: assumed, source: "D-008: NH3 1 mol% and MEK 0.5 mol% after the vent condenser/scrubber, ASSUMED"}
+  - id: S08
+    title: Azine phase (organic)
+    from: V101.org
+    to: C301.in
+    template: process
+    state:
+      design:
+        flow: {value: 7362.009, basis: mass, provenance: assumed, source: "scripts/balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {AZN: 0.764641, MEK: 0.186094, BUOH: 0.014265, H2O: 0.030000, NH3: 0.005000}, provenance: assumed, source: "D-006: water 3 wt% and NH3 0.5 wt% dissolved, ASSUMED"}
+  - id: S09
+    title: Spent working solution (aqueous)
+    from: V101.aq
+    to: R201.in
+    template: process
+    state:
+      design:
+        flow: {value: 22922.952, basis: mass, provenance: assumed, source: "scripts/balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {ACAM: 0.346886, NA2HPO4: 0.000385, H2O: 0.618396, NH3: 0.024333, MEK: 0.010000}, provenance: assumed, source: "D-006: MEK 1 wt% dissolved, ASSUMED"}
+  - id: S10
+    title: Acetic acid make-up
+    from: ACOHF.out
+    to: R201.acid
+    template: acid
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: design basis}
+        temperature: {value: 298.15, provenance: assumed, source: design basis}
+        flow: {value: 96.384, basis: mass, provenance: assumed, source: "D-005: 60 kg per t H2O2 (US 6,605,265 Ex. 1)"}
+        composition: {basis: mass_fraction, values: {ACOH: 1.0}, provenance: assumed, source: D-005}
+  - id: S11
+    title: Disodium phosphate make-up
+    from: PHOSF.out
+    to: R201.phos
+    template: phosphate
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: design basis}
+        temperature: {value: 298.15, provenance: assumed, source: design basis}
+        flow: {value: 4.819, basis: mass, provenance: assumed, source: "D-005: 3 kg per t H2O2 (US 6,605,265 Ex. 1)"}
+        composition: {basis: mass_fraction, values: {NA2HPO4: 1.0}, provenance: assumed, source: D-005}
+  - id: S12
+    title: Heated working solution to regeneration
+    from: R201.out
+    to: C201.in
+    template: process
+    state:
+      design:
+        temperature: {value: 423.15, provenance: assumed, source: "D-005: above 403 K (US 6,605,265: preferably 423-523 K)"}
+        flow: {value: 23024.2, provenance: calculated, source: 'cheme process propagate: reactor R201 from S09 S10 S11', fingerprint: 5019eb6ce19bda40}
+        composition: {basis: mole_fraction, values: {H2O2: 0.0, H2O: 0.822082, NH3: 0.0324736, MEK: 0.00331452, AZN: 0.0, BUOH: 0.0, O2: 0.0, N2: 0.0, ACAM: 0.14203, ACOH: 0.0, NA2HPO4: 0.000100212}, provenance: calculated, source: 'cheme process propagate: reactor R201 from S09 S10 S11', fingerprint: fe1a9d9f4c62c649}
+  - id: S13
+    title: Regeneration column overhead (water, NH3, MEK)
+    from: C201.top
+    to: C202.in
+    template: process
+    state:
+      design:
+        pressure: {value: 90, provenance: given, source: "US 6,605,265 Ex. 1: head 0.9 bar(a)"}
+        flow: {value: 5154.583, basis: mass, provenance: assumed, source: "scripts/balance.py (D-005)"}
+        composition: {basis: mass_fraction, values: {H2O: 0.852621, NH3: 0.102908, MEK: 0.044471}, provenance: assumed, source: "D-005: all reaction and peroxide water, NH3 and MEK overhead"}
+  - id: S15
+    title: Working-solution purge
+    from: C201.purge
+    to: WSP.in
+    template: process
+    state:
+      design:
+        flow: {value: 199.247, basis: mass, provenance: assumed, source: "scripts/balance.py (D-005)"}
+        composition: {basis: mass_fraction, values: {ACAM: 0.475813, NA2HPO4: 0.024187, H2O: 0.500000}, provenance: assumed, source: "D-005: removes the activator formed from the make-up and the phosphate make-up, 50 wt% water ASSUMED"}
+  - id: S20
+    title: Regenerated working solution
+    from: C201.bot
+    to: M101.ws
+    template: process
+    state:
+      design:
+        temperature: {value: 323.15, provenance: assumed, source: "D-005: cooled to the reactor temperature"}
+        flow: {value: 17670.325, basis: mass, provenance: assumed, source: "D-005: 11 kg per kg H2O2 (US 6,605,265 Ex. 1)"}
+        composition: {basis: mass_fraction, values: {ACAM: 0.450000, NA2HPO4: 0.000500, H2O: 0.549500}, provenance: assumed, source: "D-005: 45 wt% activator as acetamide, 500 ppm phosphate (US 6,605,265: 10-1000 ppm), ASSUMED"}
+  - id: S23
+    title: Recovered ammonia and MEK to the reactors
+    from: C202.top
+    to: M101.nh3rec
+    template: process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-005}
+        flow: {value: 754.837, basis: mass, provenance: assumed, source: "scripts/balance.py (D-005)"}
+        composition: {basis: mass_fraction, values: {NH3: 0.702148, MEK: 0.297852}, provenance: assumed, source: "D-005: sharp NH3/water split ASSUMED"}
+  - id: S24
+    title: Waste water
+    from: C202.bot
+    to: WW.in
+    template: process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: design basis}
+        temperature: {value: 313.15, provenance: assumed, source: "D-008: after feed/bottoms exchange"}
+        flow: {value: 4399.746, basis: mass, provenance: assumed, source: "scripts/balance.py (D-008)"}
+        composition: {basis: mass_fraction, values: {H2O: 0.998900, MEK: 0.001000, NH3: 0.000100}, provenance: assumed, source: "D-008: MEK 1000 and NH3 100 mg/kg ASSUMED"}
+  - id: S31
+    title: MEK recycle (azine column overhead)
+    from: C301.top
+    to: M101.mekrec
+    template: process
+    state:
+      design:
+        flow: {value: 1609.162, basis: mass, provenance: assumed, source: "scripts/balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {MEK: 0.843712, NH3: 0.022875, H2O: 0.133413}, provenance: assumed, source: D-006}
+  - id: S32
+    title: Distilled azine
+    from: C301.bot
+    to: M401.azine
+    template: hydrolysis
+    state:
+      design:
+        flow: {value: 5629.295, basis: mass, provenance: assumed, source: "scripts/balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {AZN: 1.0}, provenance: assumed, source: "D-006: sharp split ASSUMED"}
+  - id: S33
+    title: 2-Butanol bleed
+    from: C301.side
+    to: BUOHB.in
+    template: process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: design basis}
+        temperature: {value: 313.15, provenance: assumed, source: design basis}
+        flow: {value: 123.552, basis: mass, provenance: assumed, source: "scripts/balance.py: removes the 2-butanol formed (D-004, D-006)"}
+        composition: {basis: mass_fraction, values: {BUOH: 0.85, MEK: 0.10, H2O: 0.05}, provenance: assumed, source: "D-006: side-draw composition ASSUMED"}
+  - id: S40
+    title: Demineralised make-up water
+    from: DW.out
+    to: M401.water
+    template: water
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: design basis}
+        temperature: {value: 298.15, provenance: assumed, source: design basis}
+        flow: {value: 2899.222, basis: mass, provenance: assumed, source: "scripts/balance.py: water consumed by hydrolysis and leaving with the hydrate and the MEK overhead (D-007)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: design basis}
+  - id: S41
+    title: MEK from hydrolysis (overhead) to the reactors
+    from: C401.top
+    to: M101.mekhyd
+    template: process
+    state:
+      design:
+        pressure: {value: 900, provenance: assumed, source: "D-007: US 12,134,558 Ex. 1 overhead 7.5-9.7 bar(a)"}
+        flow: {value: 6472.224, basis: mass, provenance: assumed, source: "scripts/balance.py (D-007)"}
+        composition: {basis: mass_fraction, values: {MEK: 0.89, H2O: 0.11}, provenance: assumed, source: "D-007: MEK-water near the azeotrope composition, ASSUMED"}
+  - id: S43
+    title: Water recycle (concentration column overhead)
+    from: C402.top
+    to: M401.rec
+    template: hydrolysis
+    state:
+      design:
+        flow: {value: 4665.219, basis: mass, provenance: assumed, source: "scripts/balance.py (D-007)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: "D-007: hydrazine-free overhead ASSUMED (any hydrazine overhead is recycled)"}
+  - id: S44
+    title: Hydrolysis column feed
+    from: M401.out
+    to: R401.in
+    template: hydrolysis
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {AZN: 0.0872604, H2O: 0.91274, MEK: 0.0, N2H4: 0.0, PYR: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M401 from S32 S40 S43', fingerprint: 3140bdf8203d0e6c}
+        flow: {value: 13193.7, provenance: calculated, source: 'cheme process propagate: mixer M401 from S32 S40 S43', fingerprint: 4d6ef8c4322f4a7e}
+  - id: S45
+    title: Hydrolysed mixture
+    from: R401.out
+    to: C401.in
+    template: hydrolysis
+    state:
+      design:
+        pressure: {value: 900, provenance: assumed, source: D-007}
+        temperature: {value: 458.15, provenance: assumed, source: "D-007: bottom 448-463 K (US 6,562,311: 175-190 C preferred)"}
+        flow: {value: 13193.7, provenance: calculated, source: 'cheme process propagate: reactor R401 from S44', fingerprint: 88079e6bcaa7d0a3}
+        composition: {basis: mole_fraction, values: {AZN: 5.73164e-18, H2O: 0.739092, MEK: 0.173648, N2H4: 0.0868241, PYR: 0.000436302}, provenance: calculated, source: 'cheme process propagate: reactor R401 from S44', fingerprint: bc319602cbd8ab96}
+  - id: S46
+    title: Pyrazoline purge
+    from: C401.side
+    to: HEAVY.in
+    template: hydrolysis
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: design basis}
+        temperature: {value: 313.15, provenance: assumed, source: design basis}
+        flow: {value: 56.293, basis: mass, provenance: assumed, source: "scripts/balance.py (D-007)"}
+        composition: {basis: mass_fraction, values: {PYR: 0.5, H2O: 0.5}, provenance: assumed, source: "D-007: azine and MEK recovered from the purge, 50 wt% water ASSUMED"}
+  - id: S47
+    title: Dilute hydrazine hydrate (30 wt% N2H4.H2O)
+    from: C401.bot
+    to: C402.in
+    template: hydrate
+    state:
+      design:
+        flow: {value: 6665.219, basis: mass, provenance: assumed, source: "scripts/balance.py (D-007)"}
+        composition: {basis: mass_fraction, values: {N2H4: 0.192042, H2O: 0.807958}, provenance: assumed, source: "D-007: 30 wt% hydrazine hydrate (US 6,562,311 stage (f): typically 30 %)"}
+  - id: S48
+    title: Hydrazine hydrate product
+    from: C402.bot
+    to: HH.in
+    template: hydrate
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: design basis}
+        temperature: {value: 313.15, provenance: assumed, source: design basis}
+        flow: {value: 2000.0, basis: mass, provenance: assumed, source: "D-002: 16 kt/a at 8000 h/a"}
+        composition: {basis: mass_fraction, values: {N2H4: 0.64, H2O: 0.36}, provenance: assumed, source: "D-002: 100 % hydrazine hydrate grade"}
 layout: {bfd: {}, pfd: {}}
