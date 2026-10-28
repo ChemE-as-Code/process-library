@@ -1,36 +1,85 @@
-# Process Atlas manifest. Copy this folder to processes/<your-id>/ and edit.
-# Schema: schemas/process.schema.json (cheme-as-code/process/v1). Every slug used under
-# chemistry must exist in chemicals/chemicals.yaml; add new chemicals there in the same change.
-# A product in a defined state and purity names its registry grade: `chemical: oxygen/lox`.
+# Process Atlas manifest of natural-gas-processing-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
 schema: cheme-as-code/process/v1
-id: my-process                  # = folder name; lowercase slug; never rename once listed
-title: Short descriptive process title
+id: natural-gas-processing-1
+title: Natural gas processing (amine CO2 removal, TEG dehydration, turbo-expander NGL recovery)
 summary: >-
-  One or two sentences for cards and search results: what goes in, what comes out, at what scale.
-# description: |                # optional longer Markdown for the process page
-families: [hydrogen]            # slugs of taxonomy/families.yaml (ISIC-mapped), e.g. ammonia, methanol, air-separation
-keywords: []
-# facets:                      # optional, for filtering in the Atlas; list only what the design has
-#   feedstock_basis: [water, electricity]   # fossil | biogenic | atmospheric | mineral | recycled | water | electricity
-#   product_classes: [fuels]               # slugs, e.g. industrial-gases, fuels, fertilizers, polymers, chemicals, materials
-#   unit_operations: [electrolysis]        # slugs, e.g. cryogenic-distillation, adsorption, compression, reaction, electrolysis
-#   region: generic                        # e.g. generic, EU
-# Design maturity (claimed, capped by evidence: the calculation maturity in checks/maturity.json
-# of an engineering project; at most concept beside a Tier 0/1 LCI dataset):
-maturity: concept               # concept | screening | basic-engineering | detail-engineering | operating-reference
-validation:                     # review status: set by people only; passing checks is not a review
-  status: unreviewed            # unreviewed | internally-reviewed | peer-reviewed | industry-validated
+  A sweet, CO2-bearing rich shale gas (100 MMscf/d) treated to pipeline sales gas and a C2+
+  NGL: inlet separation, MDEA CO2 removal, TEG and molecular sieve dehydration, turbo-expander
+  NGL recovery and electric residue compression. Concept stage, sourced feed, assumed basis.
+description: |
+  Raw gas from a shale gathering system (Barnett well 2 composition of Bullin and Krouskop
+  2009: 81.2 % CH4, 11.8 % C2H6, 5.2 % C3H8, 0.3 % CO2, 1.5 % N2, no H2S) enters at 6000 kPa(a)
+  and 40 degC. Free water is separated; an MDEA unit removes the CO2 to 50 ppmv so that it
+  cannot freeze in the cold section and vents the acid gas; a TEG unit dries the gas to the
+  pipeline water specification and molecular sieve beds polish it for the cryogenic section.
+  A gas-subcooled-process type turbo-expander plant recovers 90 % of the ethane and 98 % of
+  the propane as a C2+ NGL; the residue gas is recompressed by the expander-driven booster and
+  an electric-motor compressor to 7000 kPa(a). Flash gases and a small residue-gas draw fire
+  the TEG reboiler and the regeneration gas heater. No sulfur recovery: the sourced feed has
+  no H2S.
+
+  All values are concept estimates from a specified-split balance (recoveries and removal
+  depths from open sources or ASSUMED); no property package of ChemE-as-Code is yet
+  benchmarked for C2/C3-rich natural gas, aqueous MDEA or TEG, so phase behaviour, the cold-box
+  energy balance and compressor duties are ideal-gas estimates. See DESIGN.md.
+families: [fuels]
+keywords: [natural gas processing, gas plant, sales gas, NGL recovery, turbo-expander, demethaniser, GSP, amine treating, MDEA, CO2 removal, TEG dehydration, molecular sieve, shale gas, Barnett]
+facets:
+  feedstock_basis: [fossil]
+  product_classes: [fuels]
+  unit_operations: [absorption, adsorption, cryogenic-distillation, compression]
+  region: US
+# Honest claim: concept is the lowest level of the manifest; cheme maturity reaches no
+# calculated level (specified-split balance, no qualified property package), see
+# validation.notes and DESIGN.md D-006, D-012.
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances (cheme validate, cheme process
+    streams: every block and step within tolerance; the fired heaters as a reactive step with
+    complete combustion). The streams come from an independent specified-split balance
+    (scripts/balance.py): the feed composition is sourced (Bullin and Krouskop 2009, Table 1),
+    the TEG circulation, gas absorption and flash recovery follow EPA Natural Gas STAR, the
+    ethane/propane recoveries sit inside the range of a GSP patent; removal depths, loadings,
+    efficiencies and the cold separator split are ASSUMED. Energy closure is not evaluable in
+    core: no benchmarked property package covers these mixtures (core #315, #364). The
+    preliminary gate-to-gate LCI closes in mass and C/H/N/O (consumables excepted, no
+    composition); every background is a gap; fugitive and non-routine methane is not yet
+    estimated. Not reviewed. The chemicals registry has no natural gas, NGL, ethane, propane,
+    MDEA or TEG entry yet, so the products are not listed under chemistry (open library item).
 chemistry:
   inputs:
-    - {chemical: water, role: feedstock}
+    - {chemical: water, role: feedstock, note: "Demineralised make-up water of the amine loop (feed:DMW), 0.64 g per kg sales gas (allocated). The raw natural gas feed (feed:RAWGAS) has no registry entry yet"}
   outputs:
-    - {chemical: hydrogen, role: main-product}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "Reservoir CO2 vented with the amine acid gas (627 kg/h) and combustion CO2 of the fired heaters (278 kg/h); 9.5 g per kg sales gas (allocated). Main product sales gas (product:SALESGAS) and co-product NGL (product:NGL) have no registry entries yet"}
+    - {chemical: methane, role: emission, inventory_key: "emission:CH4", note: "Methane slip of the amine regenerator and TEG still and unburnt methane of the heaters, 3.05 kg/h; fugitive and non-routine methane not yet estimated"}
   utilities:
-    - {chemical: electricity, role: utility}
-# basis: {capacity: "1000 t/d product", operating_hours_per_year: 8000}
-# lca: {source: auto}           # auto: read lca/ of a ChemE-as-Code project; none: no LCA
-# references:
-#   - {title: "Author et al. (2024) Title", doi: 10.xxxx/xxxxx}
-# maintainers:
-#   - {name: Your Name, orcid: 0000-0000-0000-0000}
-# repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/my-process, access: private}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "3.99 MW, of which the residue compressor K-501 3.67 MW (ideal-gas estimate)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:STEAM", note: "LP steam 450 kPa(a), 1.08 MW, amine reboiler (ASSUMED steam ratio)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "30/40 C (ASSUMED), 6.85 MW"}
+basis:
+  capacity: "100 MMscf/d raw gas (dry basis, 60 degF, 14.696 psia) = 96.7 t/h; 68.7 t/h sales gas (83.7 MMscf/d) and 27.3 t/h C2+ NGL (ASSUMED capacity)"
+  operating_hours_per_year: 8000
+  location: generic US onshore shale gas area (Barnett-type), not chosen
+references:
+  - {title: "Bullin, K., Krouskop, P. (2009) Composition variety complicates processing plans for US shale gas. Oil & Gas Journal 107(10); open copy by Bryan Research & Engineering (Table 1, Barnett shale gas composition)", url: "https://www.bre.com/PDF/Composition-Variety-Complicates-Processing-Plans-for-US-Shale-Gas.pdf"}
+  - {title: "US EPA Natural Gas STAR, Lessons Learned: Optimize glycol circulation and install flash tank separators in glycol dehydrators", url: "https://19january2021snapshot.epa.gov/sites/static/files/2016-06/documents/ll_flashtanks3.pdf"}
+  - {title: "US EPA AP-42, Section 1.4 Natural Gas Combustion (Tables 1.4-1 and 1.4-2)", url: "https://www.epa.gov/sites/default/files/2020-09/documents/1.4_natural_gas_combustion.pdf"}
+  - {title: "US EPA AP-42, Section 5.3 Natural Gas Processing (1995)", url: "https://gaftp.epa.gov/ap42/ch05/s03/final/c05s03_1995.pdf"}
+  - {title: "US 11 473 837 B2: Gas subcooled process conversion to recycle split vapor for recovery of ethane and propane (Background: GSP recovery ranges)", url: "https://patents.google.com/patent/US11473837B2/en"}
+  - {title: "Natural Gas. Ullmann's Encyclopedia of Industrial Chemistry, Wiley-VCH (route identity from issue #181; full text not read)", doi: 10.1002/14356007.a17_073}
+  - {title: "Wikipedia: Natural-gas processing (pipeline-quality specification; discovery source only)", url: "https://en.wikipedia.org/wiki/Natural-gas_processing"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/natural-gas-processing-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0
