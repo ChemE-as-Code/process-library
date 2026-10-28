@@ -1,0 +1,49 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Formaldehyde by methanol oxidation over iron molybdate (Formox type, metal oxide process),
+# issue ChemE-as-Code/process-library#169. Methanol is a boundary feed (made by
+# processes/methanol-1 in this library, D-003). Values marked ASSUMED are engineering choices of
+# this concept study, not client or licensor data; every decision is in DESIGN.md.
+capacity:
+  basis: formalin 50 wt% HCHO to storage (product stream incl. its water and residual methanol)
+  product_t_per_d: 480                # = 20 t/h; ASSUMED (D-002): a single large metal oxide line, chosen, not a client figure
+  product_kg_per_h: 20000.0
+  formaldehyde_100pct_kg_per_h: 10000.0   # 80 000 t/a of 100 % HCHO at 8000 h/a
+  operating_hours_per_year: 8000      # ASSUMED (D-002)
+  turndown_percent: 50                # ASSUMED, not checked
+feeds:
+  - name: Methanol (boundary feed, from processes/methanol-1 or the market)
+    source_of_values: "ASSUMED (D-003): US Federal Specification O-M-232 Grade AA quality as made by methanol-1; BREF LVOC 2017 s. 6.3.3 reports operators using 97-99.9 vol% methanol, > 99 vol% preferred"
+    composition: "CH3OH 1.0 (water <= 0.1 wt% and traces neglected)"
+    conditions: {pressure_kPa_a: 400, temperature_K: 298.15}   # ASSUMED battery limit from the tank farm
+    flow: set by the product rate and the yield (stream S4 of process/flowsheet.yaml)
+  - name: Ambient air
+    source_of_values: "ASSUMED (D-005): dry air N2 78.084 / O2 20.946 / Ar 0.934 mol% (CO2 neglected) with 1.0 mol% water"
+    conditions: {pressure_kPa_a: 101.325, temperature_K: 298.15}
+  - name: Process water (demineralised) to the absorber top
+    source_of_values: ASSUMED (D-006); flow set by the absorber water balance for 50 wt% formalin
+products:
+  - name: Formalin 50 wt%
+    purity: "HCHO 50.0 wt%, methanol about 0.3 wt% (BREF LVOC 2017 s. 6.2.3: 0.2-0.3 wt% is attainable), formic acid not modelled (removed by ion exchange, D-002)"
+    delivery: {pressure_kPa_a: 300, temperature_K: 333.15, battery_limit: "heated product tanks (outside the boundary)"}
+  - name: Treated off-gas from the emission control system
+    use: to atmosphere by the stack; BAT-AEL formaldehyde 2-5 mg/Nm3, TVOC < 5-30 mg/Nm3 (BREF LVOC 2017 BAT 45, Table 13.2)
+  - name: MP steam export
+    use: to the site steam header (outside the boundary)
+utilities:
+  - {name: Electric power, use: "process gas blower and pumps", note: "ASSUMED electric drives (D-007)"}
+  - {name: MP steam raised, pressure_kPa_a: 1500, saturation_K: 471.4, use: export to the site header, note: "ASSUMED level (D-007); from the reactor hot-oil steam generator and the ECS steam generator"}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: "ASSUMED (D-007); absorber pump-around coolers"}
+  - {name: Boiler feed water, note: "for the steam generators; counted with the steam export in the LCI (D-010)"}
+site:
+  location: ASSUMED generic European site (not chosen); the BREF LVOC 2017 is the reference for emissions
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325   # ASSUMED
+assumptions:
+  - "Route: metal oxide (Formox type) partial oxidation of methanol with excess air below the lower explosion limit, off-gas recycle, absorption in water, catalytic oxidation of the vent (ECS) (D-001)."
+  - "Reactor model: conversion reactor with a per-pass methanol conversion and selectivities chosen to reproduce the plant yield of 93 % on methanol (BREF LVOC 2017 Table 6.10: 91-94 %) and a plant methanol conversion of 99.3 % (BREF s. 6.2.3: > 99 mol%); not kinetics (D-004)."
+  - "ASSUMED reactor inlet 8.5 mol% methanol (EPA-450/4-91-012: 5-10 vol%) and absorber off-gas 6.0 mol% O2 (BREF Table 6.6: 5-7 %); these two fix the fresh air and the recycle (D-005)."
+  - "ASSUMED blower 100.5 -> 150 kPa(a), isentropic efficiency 0.75, motor 0.95 (D-007)."
+  - "ASSUMED reactor outlet 553.15 K, reaction gas to absorber 403.15 K, absorber off-gas 303.15 K and 112 kPa(a) saturated with water, product 333.15 K (D-005, D-006)."
+  - "ASSUMED heat of solution of gaseous formaldehyde in water 62 kJ/mol, to be sourced (D-006)."
+  - "ASSUMED ECS conversions CO 99.8 %, HCHO 99.5 %, CH3OH 99.5 %, DME 99.0 %; stack 423.15 K (D-008)."
+  - "All flows, temperatures and duties are concept estimates; the energy balance rests on ideal-gas enthalpies and assumed liquid-side heats, not on a qualified property method (D-009)."
