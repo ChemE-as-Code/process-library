@@ -1,0 +1,441 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# One-step DMF synthesis from dimethylamine and CO with sodium methoxide in methanol (D-001).
+# Where the values come from:
+# - feeds, the separator and column outlets and every duty: the concept balance
+#   scripts/dmf_balance.py (D-006), given here as ASSUMED: no qualified property package covers
+#   the polar, salt-bearing liquid (core #315), so flashes, distillation splits and enthalpies
+#   are design choices and short-cut estimates;
+# - the reactor outlet S7 is calculated by cheme from the sourced conversions (D-005, D-007);
+# - the mixer, pump, compressor, filter and splitter outlets are calculated by
+#   `cheme process propagate --fill`.
+schema: cheme/process/v1
+kind: flowsheet
+title: "N,N-Dimethylformamide by DMA carbonylation (50 kt/a)"
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+  enthalpy_reference: {state: ideal_gas, temperature: 298.15}
+cases:
+  - {id: design, description: "Design case: 6250 kg/h DMF (50 kt/a at 8000 h/a, D-002)", default: true}
+tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - {id: DMA, title: "Dimethylamine, anhydrous (from methylamines-1)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: CO, title: Carbon monoxide 99.5 mol% (from a syngas CO separation unit), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: CAT, title: "Sodium methoxide 30 wt% in methanol (catalyst)", category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: k101, direction: out, kind: energy}
+      - {id: p101, direction: out, kind: energy}
+      - {id: r101, direction: out, kind: energy}
+      - {id: c201, direction: out, kind: energy}
+      - {id: c202, direction: out, kind: energy}
+  - id: MPS
+    title: MP steam 1100 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: MP
+      pressure: {value: 1100, provenance: assumed, source: "design basis, D-010"}
+      supply_temperature: {value: 457.6, provenance: assumed, source: "saturation at 1100 kPa(a), D-010"}
+      min_approach: {value: 10, provenance: assumed, source: D-010}
+    ports: [{id: c201, direction: out, kind: energy}]
+  - id: LPS
+    title: LP steam 450 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 450, provenance: assumed, source: "design basis, D-010"}
+      supply_temperature: {value: 420.8, provenance: assumed, source: "saturation at 450 kPa(a), D-010"}
+      min_approach: {value: 10, provenance: assumed, source: D-010}
+    ports: [{id: c202, direction: out, kind: energy}]
+products:
+  - {id: DMFP, title: DMF product to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: VENT, title: Reactor vent gas to thermal oxidiser, category: off_gas, ports: [{id: in, direction: in}]}
+  - {id: CAKE, title: Sodium formate filter cake to disposal, category: solid_waste, ports: [{id: in, direction: in}]}
+  - {id: PURGE, title: Methanol purge (with DMA) to off-site methanol recovery, category: by_product, ports: [{id: in, direction: in}]}
+  - {id: RESID, title: Heavy residue of the DMF column to incineration, category: solid_waste, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-010"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-010"}
+      min_approach: {value: 5, provenance: assumed, source: D-010}
+    ports:
+      - {id: k101, direction: in, kind: energy}
+      - {id: r101, direction: in, kind: energy}
+      - {id: c201, direction: in, kind: energy}
+      - {id: c202, direction: in, kind: energy}
+
+blocks:
+  - id: RXN
+    title: Feed preparation and carbonylation
+    class: ReactingChemicals
+    ports:
+      - {id: dma, direction: in}
+      - {id: co, direction: in}
+      - {id: cat, direction: in}
+      - {id: rec, direction: in}
+      - {id: vent, direction: out}
+      - {id: crude, direction: out}
+      - {id: power1, direction: in, kind: energy}
+      - {id: power2, direction: in, kind: energy}
+      - {id: power3, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+  - id: CATR
+    title: Catalyst residue removal
+    class: SeparatingMechanically
+    ports:
+      - {id: crude, direction: in}
+      - {id: cake, direction: out}
+      - {id: filtrate, direction: out}
+  - id: PUR
+    title: Methanol recovery and DMF distillation
+    class: Distilling
+    ports:
+      - {id: feed, direction: in}
+      - {id: rec, direction: out}
+      - {id: purge, direction: out}
+      - {id: product, direction: out}
+      - {id: residue, direction: out}
+      - {id: steam1, direction: in, kind: energy}
+      - {id: steam2, direction: in, kind: energy}
+      - {id: power1, direction: in, kind: energy}
+      - {id: power2, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+
+steps:
+  - id: K101
+    block: RXN
+    title: CO compressor (two stages, intercooled)
+    class: Compressing
+    method: CentrifugalMotion
+    links: [{target: equipment, ref: K-101}]
+    ports:
+      - {id: in, direction: in, delegates: co}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power1}
+      - {id: cw, direction: out, kind: energy, delegates: cw1}
+  - id: M101
+    block: RXN
+    title: Reactor feed drum (DMA, catalyst, recycle)
+    class: Mixing
+    links: [{target: equipment, ref: V-101}]
+    ports:
+      - {id: dma, direction: in, delegates: dma}
+      - {id: cat, direction: in, delegates: cat}
+      - {id: rec, direction: in, delegates: rec}
+      - {id: out, direction: out}
+  - id: P101
+    block: RXN
+    title: Reactor feed pump
+    # GeneratingFlow (the parent of Pumping): a Pumping step stops `cheme process build` in
+    # cheme 0.8.0 on Python 3.15 (step_method iterates the Union of its method annotation), D-011
+    class: GeneratingFlow
+    links: [{target: equipment, ref: P-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power2}
+  # D-005, D-007: liquid-phase loop reactor with external circulation cooler (US 4,098,820),
+  # 363.15 K, 2200 kPa(a); finishing section under CO deactivates the catalyst (US 4,354,041).
+  - id: R101
+    block: RXN
+    title: Carbonylation loop reactor with circulation cooler
+    class: ReactingChemicals
+    reactions: [DMF_SYN, CAT_DEACT]
+    reactor: conversion
+    links: [{target: equipment, ref: R-101}, {target: equipment, ref: E-101}, {target: equipment, ref: P-102}]
+    ports:
+      - {id: liq, direction: in}
+      - {id: gas, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power3}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+  - id: V102
+    block: RXN
+    title: Reactor gas-liquid separator
+    class: SeparatingByFlash
+    links: [{target: equipment, ref: V-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out, delegates: vent}
+      - {id: liq, direction: out, delegates: crude}
+  # D-008: sodium formate is insoluble in the reaction mass and is filtered (US 4,354,041).
+  - id: F101
+    block: CATR
+    title: Sodium formate filter
+    class: Filtering
+    solid_separation:
+      solid_recovery: 0.99
+      cake_liquid: {value: 0.25, basis: mass_fraction}
+      outlets: {cake: cake, filtrate: filtrate}
+      provenance: assumed
+      source: "D-008: 99 % of the salt retained, wet cake 25 wt% liquor, ASSUMED"
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: in, direction: in, delegates: crude}
+      - {id: cake, direction: out, delegates: cake}
+      - {id: filtrate, direction: out, delegates: filtrate}
+  - id: C201
+    block: PUR
+    title: Methanol/DMA recovery column (atmospheric)
+    class: Distilling
+    links: [{target: equipment, ref: C-201}, {target: equipment, ref: E-201}, {target: equipment, ref: E-202}, {target: equipment, ref: P-201}]
+    ports:
+      - {id: feed, direction: in, delegates: feed}
+      - {id: top, direction: out}
+      - {id: bot, direction: out}
+      - {id: reb, direction: in, kind: energy, delegates: steam1}
+      - {id: cond, direction: out, kind: energy, delegates: cw1}
+      - {id: power, direction: in, kind: energy, delegates: power1}
+  # D-009: the purge fraction that closes the methanol balance (scripts/dmf_balance.py).
+  - id: SPL
+    block: PUR
+    title: Methanol purge take-off
+    class: SplittingMaterial
+    split: {purge: 0.026151038}
+    ports:
+      - {id: in, direction: in}
+      - {id: purge, direction: out, delegates: purge}
+      - {id: rec, direction: out, delegates: rec}
+  - id: C202
+    block: PUR
+    title: DMF finishing column (vacuum)
+    class: Distilling
+    links: [{target: equipment, ref: C-202}, {target: equipment, ref: E-203}, {target: equipment, ref: E-204}, {target: equipment, ref: P-202}]
+    ports:
+      - {id: feed, direction: in}
+      - {id: top, direction: out, delegates: product}
+      - {id: bot, direction: out, delegates: residue}
+      - {id: reb, direction: in, kind: energy, delegates: steam2}
+      - {id: cond, direction: out, kind: energy, delegates: cw2}
+      - {id: power, direction: in, kind: energy, delegates: power2}
+
+streams:
+  - id: S1
+    title: Fresh dimethylamine
+    from: DMA.out
+    to: M101.dma
+    template: dmf_process
+    state:
+      design:
+        pressure: {value: 500, provenance: assumed, source: "design basis, D-004"}
+        temperature: {value: 298.15, provenance: assumed, source: "design basis, D-004"}
+        flow: {value: 3902.36, basis: mass, provenance: assumed, source: "scripts/dmf_balance.py: the DMA that gives 6250 kg/h DMF (D-006)"}
+        composition: {basis: mole_fraction, values: {DMA: 1.0}, provenance: assumed, source: "design basis, D-004: anhydrous DMA"}
+  - id: S2
+    title: Carbon monoxide feed
+    from: CO.out
+    to: K101.in
+    template: co_gas
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "design basis, D-004"}
+        temperature: {value: 303.15, provenance: assumed, source: "design basis, D-004"}
+        flow: {value: 2545.95, basis: mass, provenance: assumed, source: "scripts/dmf_balance.py: 95 mol% CO yield, US 4,098,820 Ex. 1 (D-005, D-006)"}
+        composition: {basis: mole_fraction, values: {CO: 0.995, N2: 0.003, H2: 0.002}, provenance: assumed, source: "design basis, D-004: CO purity of the patent examples, impurities ASSUMED"}
+        calculated:
+          molar_mass: {value: 27.9581, unit: kg/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: 626689dfce5beeca, origin: correlation}
+          density: {value: 3.33265, unit: kg/m3, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: 626689dfce5beeca, origin: correlation}
+          exergy: {value: 276802.0, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: chemical (Szargut 1988, model II) + physical, dead state 298.15 K, 101.325 kPa', fingerprint: 626689dfce5beeca, origin: correlation}
+          enthalpy: {value: 120.784, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: 626689dfce5beeca, origin: correlation}
+        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: 626689dfce5beeca}
+  - id: S3
+    title: Catalyst solution
+    from: CAT.out
+    to: M101.cat
+    template: dmf_process
+    state:
+      design:
+        pressure: {value: 450, provenance: assumed, source: D-007}
+        temperature: {value: 298.15, provenance: assumed, source: D-007}
+        flow: {value: 98.99, basis: mass, provenance: assumed, source: "scripts/dmf_balance.py: NaOMe 0.75 wt% of the DMA to the reactor (US 4,098,820 Ex. 1, 2, 6), D-007"}
+        composition: {basis: mass_fraction, values: {NAOME: 0.30, MEOH: 0.70}, provenance: assumed, source: "D-007: 30 wt% commercial solution, ASSUMED"}
+  - id: S4
+    title: Compressed CO to reactor
+    from: K101.out
+    to: R101.gas
+    template: co_gas
+    state:
+      design:
+        pressure: {value: 2300, provenance: assumed, source: D-005}
+        temperature: {value: 313.15, provenance: assumed, source: "aftercooler outlet, D-010"}
+        flow: {value: 2545.95, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S2', fingerprint: 3b489e6a919be3b7}
+        composition: {basis: mole_fraction, values: {CO: 0.995, N2: 0.003, H2: 0.002}, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S2', fingerprint: 3b489e6a919be3b7}
+        calculated:
+          molar_mass: {value: 27.9581, unit: kg/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: 12c5cae9d93aafc3, origin: correlation}
+          density: {value: 24.8886, unit: kg/m3, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: 12c5cae9d93aafc3, origin: correlation}
+          exergy: {value: 281835.0, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: chemical (Szargut 1988, model II) + physical, dead state 298.15 K, 101.325 kPa', fingerprint: 12c5cae9d93aafc3, origin: correlation}
+          enthalpy: {value: 264.453, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: 12c5cae9d93aafc3, origin: correlation}
+        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: 12c5cae9d93aafc3}
+  - id: S5
+    title: Reactor feed drum outlet
+    from: M101.out
+    to: P101.in
+    template: dmf_process
+    state:
+      design:
+        pressure: {value: 450, provenance: assumed, source: "D-005: above the DMA bubble pressure"}
+        temperature: {value: 308.15, provenance: assumed, source: D-005}
+        flow: {value: 5717.16, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through P101 from S6', fingerprint: 28524c22a5d77bda}
+        composition: {basis: mole_fraction, values: {DMA: 0.61767186, MEOH: 0.37787002, DMF: 0.0005921, NAOME: 0.00386602}, provenance: calculated, source: 'cheme process propagate: pass-through P101 from S6', fingerprint: 28524c22a5d77bda}
+  - id: S6
+    title: Reactor liquid feed
+    from: P101.out
+    to: R101.liq
+    template: dmf_process
+    state:
+      design:
+        pressure: {value: 2400, provenance: assumed, source: D-005}
+        temperature: {value: 309.15, provenance: assumed, source: D-005}
+        flow: {value: 5717.16, basis: mass, provenance: assumed, source: "scripts/dmf_balance.py: S5 through the pump (propagate does not pass a GeneratingFlow step through, D-011)"}
+        composition: {basis: mole_fraction, values: {DMA: 0.61767186, MEOH: 0.37787002, DMF: 0.0005921, NAOME: 0.00386602}, provenance: assumed, source: "scripts/dmf_balance.py (D-006); equals S5"}
+  - id: S7
+    title: Reactor effluent
+    from: R101.out
+    to: V102.in
+    template: dmf_process
+    state:
+      design:
+        pressure: {value: 2200, provenance: given, source: "US 4,098,820 Example 1: 22 bar (D-005)"}
+        temperature: {value: 363.15, provenance: given, source: "US 4,098,820 Example 1: 90 C (D-005)"}
+        flow: {value: 8263.11, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S6', fingerprint: 8bdcd9d5a0ada615}
+        composition: {basis: mole_fraction, values: {CO: 0.0242707, N2: 0.00186867, H2: 0.00124578, DMA: 0.00901135, MEOH: 0.363762, DMF: 0.592321, NAOME: 0.0, NAFORM: 0.00376015, DME: 0.00376015}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S6', fingerprint: 882a105a541e2783}
+  - id: S8
+    title: Reactor vent gas
+    from: V102.gas
+    to: VENT.in
+    template: dmf_process
+    state:
+      design:
+        pressure: {value: 2200, provenance: assumed, source: D-008}
+        temperature: {value: 363.15, provenance: assumed, source: D-008}
+        flow: {value: 138.37, basis: mass, provenance: assumed, source: "scripts/dmf_balance.py: all CO, N2, H2, DME and the vapour organics (D-008)"}
+        composition: {basis: mole_fraction, values: {CO: 0.75277246, N2: 0.05796, H2: 0.03864, DMA: 0.002, MEOH: 0.03, DMF: 0.002, DME: 0.11662754}, provenance: assumed, source: "scripts/dmf_balance.py (D-008)"}
+  - id: S9
+    title: Crude reaction liquid (with salt)
+    from: V102.liq
+    to: F101.in
+    template: dmf_process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "after let-down, D-008"}
+        temperature: {value: 363.15, provenance: assumed, source: D-008}
+        flow: {value: 8124.73, basis: mass, provenance: assumed, source: "scripts/dmf_balance.py (D-008)"}
+        composition: {basis: mole_fraction, values: {DMA: 0.00924494, MEOH: 0.37488135, DMF: 0.61198828, NAFORM: 0.00388542}, provenance: assumed, source: "scripts/dmf_balance.py (D-008)"}
+  - id: S10
+    title: Sodium formate filter cake
+    from: F101.cake
+    to: CAKE.in
+    template: dmf_process
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: D-008}
+        temperature: {value: 323.15, provenance: assumed, source: D-008}
+        flow: {value: 49.3473, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S9', fingerprint: d9bb5bb438f07d2a}
+        composition: {basis: mole_fraction, values: {NAFORM: 0.716829, CO: 0.0, N2: 0.0, H2: 0.0, DMA: 0.00262811, MEOH: 0.10657, DMF: 0.173974, NAOME: 0.0, DME: 0.0}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S9', fingerprint: d9bb5bb438f07d2a}
+  - id: S11
+    title: Filtrate to methanol recovery
+    from: F101.filtrate
+    to: C201.feed
+    template: dmf_process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-008}
+        temperature: {value: 363.15, provenance: assumed, source: D-008}
+        flow: {value: 8075.38, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S9', fingerprint: d9bb5bb438f07d2a}
+        composition: {basis: mole_fraction, values: {CO: 0.0, N2: 0.0, H2: 0.0, DMA: 0.00928064, MEOH: 0.376329, DMF: 0.614351, NAOME: 0.0, NAFORM: 3.90638e-05, DME: 0.0}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S9', fingerprint: d9bb5bb438f07d2a}
+  - id: S12
+    title: Recovered methanol and DMA
+    from: C201.top
+    to: SPL.in
+    template: dmf_process
+    state:
+      design:
+        pressure: {value: 450, provenance: assumed, source: "distillate pump discharge, D-009"}
+        temperature: {value: 313.15, provenance: assumed, source: D-009}
+        flow: {value: 1761.88, basis: mass, provenance: assumed, source: "scripts/dmf_balance.py: all DMA and methanol but the product's, 0.1 % of the DMF (D-009)"}
+        composition: {basis: mole_fraction, values: {DMA: 0.02403176, MEOH: 0.97437741, DMF: 0.00159083}, provenance: assumed, source: "scripts/dmf_balance.py (D-009)"}
+  - id: S13
+    title: Methanol purge
+    from: SPL.purge
+    to: PURGE.in
+    template: dmf_process
+    state:
+      design:
+        pressure: {value: 450, provenance: assumed, source: D-009}
+        temperature: {value: 313.15, provenance: assumed, source: D-009}
+        flow: {value: 46.075, basis: mass, provenance: calculated, source: 'cheme process propagate: splitter SPL from S12', fingerprint: c3c032d509136fc8}
+        composition: {basis: mole_fraction, values: {DMA: 0.02403176, MEOH: 0.97437741, DMF: 0.00159083}, provenance: calculated, source: 'cheme process propagate: splitter SPL from S12', fingerprint: 6844e48a58981f77}
+  - id: S14
+    title: Methanol/DMA recycle
+    from: SPL.rec
+    to: M101.rec
+    template: dmf_process
+    state:
+      design:
+        pressure: {value: 450, provenance: assumed, source: D-009}
+        temperature: {value: 313.15, provenance: assumed, source: D-009}
+        flow: {value: 1715.81, provenance: calculated, source: 'cheme process propagate: splitter SPL from S12 S13', fingerprint: f66dcb7b50a18c37}
+        composition: {basis: mole_fraction, values: {DMA: 0.02403176, MEOH: 0.97437741, DMF: 0.00159083}, provenance: calculated, source: 'cheme process propagate: splitter SPL from S12', fingerprint: 6844e48a58981f77}
+  - id: S15
+    title: Crude DMF to finishing column
+    from: C201.bot
+    to: C202.feed
+    template: dmf_process
+    state:
+      design:
+        pressure: {value: 120, provenance: assumed, source: D-009}
+        temperature: {value: 426.0, provenance: assumed, source: "DMF normal boiling point, D-009"}
+        flow: {value: 6313.50, basis: mass, provenance: assumed, source: "scripts/dmf_balance.py (D-009)"}
+        composition: {basis: mole_fraction, values: {MEOH: 0.00006775, DMF: 0.99986861, NAFORM: 0.00006364}, provenance: assumed, source: "scripts/dmf_balance.py (D-009)"}
+  - id: S16
+    title: DMF product
+    from: C202.top
+    to: DMFP.in
+    template: dmf_process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "design basis, D-002"}
+        temperature: {value: 313.15, provenance: assumed, source: "design basis, D-002"}
+        flow: {value: 6250.0, basis: mass, provenance: assumed, source: "design basis 50 kt/a at 8000 h/a, D-002"}
+        composition: {basis: mass_fraction, values: {DMF: 0.99997, MEOH: 0.00003}, provenance: assumed, source: "design target: methanol 30 ppm(wt), below the 50 ppm specification (D-002, D-009)"}
+  - id: S17
+    title: Heavy residue
+    from: C202.bot
+    to: RESID.in
+    template: dmf_process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-009}
+        temperature: {value: 390.0, provenance: assumed, source: D-009}
+        flow: {value: 63.50, basis: mass, provenance: assumed, source: "scripts/dmf_balance.py: salt fines and 1 % of the DMF fed (D-009)"}
+        composition: {basis: mole_fraction, values: {DMF: 0.99367534, NAFORM: 0.00632466}, provenance: assumed, source: "scripts/dmf_balance.py (D-009)"}
+  # Energy streams: short-cut duties of scripts/dmf_balance.py (D-010), ASSUMED until a
+  # property method is qualified for this system (core #315).
+  - {id: Q1, title: K-101 shaft power, kind: energy, from: POWER.k101, to: K101.power, state: {design: {duty: {value: 207, provenance: assumed, source: "scripts/dmf_balance.py: 2 stages, eta 0.75 (D-010)"}}}}
+  - {id: Q2, title: K-101 inter- and aftercooler duty, kind: energy, from: K101.cw, to: CW.k101, state: {design: {duty: {value: 207, provenance: assumed, source: "scripts/dmf_balance.py (D-010)"}}}}
+  - {id: Q3, title: P-101 power, kind: energy, from: POWER.p101, to: P101.power, state: {design: {duty: {value: 7.6, provenance: assumed, source: "scripts/dmf_balance.py: efficiency 0.6 (D-010)"}}}}
+  - {id: Q4, title: P-102 loop circulation pump power, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 30, provenance: assumed, source: "D-010: ASSUMED"}}}}
+  - {id: Q5, title: R-101 circulation cooler duty, kind: energy, from: R101.cw, to: CW.r101, state: {design: {duty: {value: 2429, provenance: assumed, source: "scripts/dmf_balance.py: heat of reaction less feed heating (D-005, D-010)"}}}}
+  - {id: Q6, title: C-201 reboiler duty, kind: energy, from: MPS.c201, to: C201.reb, state: {design: {duty: {value: 1299, provenance: assumed, source: "scripts/dmf_balance.py: reflux ratio 1.0 (D-009, D-010)"}}}}
+  - {id: Q7, title: C-201 condenser duty, kind: energy, from: C201.cond, to: CW.c201, state: {design: {duty: {value: 1088, provenance: assumed, source: "scripts/dmf_balance.py (D-010)"}}}}
+  - {id: Q8, title: C-201 pumps power, kind: energy, from: POWER.c201, to: C201.power, state: {design: {duty: {value: 5, provenance: assumed, source: "D-010: ASSUMED"}}}}
+  - {id: Q9, title: C-202 reboiler duty, kind: energy, from: LPS.c202, to: C202.reb, state: {design: {duty: {value: 1393, provenance: assumed, source: "scripts/dmf_balance.py: reflux ratio 0.5 (D-009, D-010)"}}}}
+  - {id: Q10, title: C-202 condenser and product cooler duty, kind: energy, from: C202.cond, to: CW.c202, state: {design: {duty: {value: 1783, provenance: assumed, source: "scripts/dmf_balance.py (D-010)"}}}}
+  - {id: Q11, title: C-202 vacuum system and pumps power, kind: energy, from: POWER.c202, to: C202.power, state: {design: {duty: {value: 20, provenance: assumed, source: "D-010: ASSUMED"}}}}
+layout: {bfd: {}, pfd: {}}

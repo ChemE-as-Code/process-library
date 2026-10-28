@@ -1,36 +1,81 @@
-# Process Atlas manifest. Copy this folder to processes/<your-id>/ and edit.
-# Schema: schemas/process.schema.json (cheme-as-code/process/v1). Every slug used under
-# chemistry must exist in chemicals/chemicals.yaml; add new chemicals there in the same change.
-# A product in a defined state and purity names its registry grade: `chemical: oxygen/lox`.
+# Process Atlas manifest of dmf-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here.
 schema: cheme-as-code/process/v1
-id: my-process                  # = folder name; lowercase slug; never rename once listed
-title: Short descriptive process title
+id: dmf-1
+title: "N,N-Dimethylformamide by carbonylation of dimethylamine (50 kt/a, sodium methoxide in methanol)"
 summary: >-
-  One or two sentences for cards and search results: what goes in, what comes out, at what scale.
-# description: |                # optional longer Markdown for the process page
-families: [hydrogen]            # slugs of taxonomy/families.yaml (ISIC-mapped), e.g. ammonia, methanol, air-separation
-keywords: []
-# facets:                      # optional, for filtering in the Atlas; list only what the design has
-#   feedstock_basis: [water, electricity]   # fossil | biogenic | atmospheric | mineral | recycled | water | electricity
-#   product_classes: [fuels]               # slugs, e.g. industrial-gases, fuels, fertilizers, polymers, chemicals, materials
-#   unit_operations: [electrolysis]        # slugs, e.g. cryogenic-distillation, adsorption, compression, reaction, electrolysis
-#   region: generic                        # e.g. generic, EU
-# Design maturity (claimed, capped by evidence: the calculation maturity in checks/maturity.json
-# of an engineering project; at most concept beside a Tier 0/1 LCI dataset):
-maturity: concept               # concept | screening | basic-engineering | detail-engineering | operating-reference
-validation:                     # review status: set by people only; passing checks is not a review
-  status: unreviewed            # unreviewed | internally-reviewed | peer-reviewed | industry-validated
+  One-step liquid-phase carbonylation of dimethylamine with CO in methanol on a sodium
+  methoxide catalyst, in-situ catalyst deactivation and salt filtration, methanol/DMA recovery
+  with recycle and vacuum finishing of DMF. Concept stage, assumed basis, preliminary
+  gate-to-gate LCI.
+description: |
+  Anhydrous dimethylamine and a sodium methoxide solution in methanol are mixed with the
+  recovered methanol/DMA recycle and fed to a liquid-phase loop reactor that takes up CO
+  (90 C, 22 bar; conversion 98.5 % of the DMA per pass and 95 % of the CO to DMF, as in the
+  open patent US 4,098,820). At the end of the reaction the catalyst is converted under CO to
+  insoluble sodium formate and dimethyl ether (the mechanism of US 4,354,041); the vent takes
+  the excess CO, inerts and the ether to a thermal oxidiser. The salt is filtered, methanol
+  and DMA are distilled off and recycled with a small purge, and DMF is distilled overhead
+  under vacuum away from a heavy residue.
+
+  All values are concept estimates. The reactor rests on sourced conversions (no kinetics);
+  the separator and column splits and the duties are short-cut values from an independent
+  script, because no property package of ChemE-as-Code covers DMF, methanol, DMA and sodium
+  salts yet (core #315). See DESIGN.md for every assumption and gated step.
+families: [nitrogen-organics]
+keywords: [dimethylformamide, DMF, dimethylamine, carbon monoxide, carbonylation, sodium methoxide, methanol, solvent, distillation]
+facets:
+  feedstock_basis: [fossil]
+  product_classes: [chemicals]
+  unit_operations: [compression, reaction, filtration, distillation]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest; cheme maturity reports level none
+# (feed flows are design choices, the separator and column splits are specified values),
+# see validation.notes and DESIGN.md D-006.
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass and component balances in every block and step and
+    element-balanced reactions (cheme validate, cheme process streams). cheme maturity reaches
+    no level: the capacity and feed flows are assumed (no published plant basis), the
+    catalyst deactivation conversion is assumed, and the separator, filter and column splits
+    are specified values from scripts/dmf_balance.py. Energy closure is evaluable for the CO
+    compressor only (closed); the liquid units are gated on a qualified polar property package
+    (core #315). Not reviewed. The chemicals registry has no entries yet for DMF,
+    dimethylamine, carbon monoxide, methanol, sodium methoxide, sodium formate or dimethyl
+    ether, so the main product and the main feeds are not listed under chemistry (open library
+    item, listed in DESIGN.md).
 chemistry:
   inputs:
-    - {chemical: water, role: feedstock}
+    - {chemical: nitrogen, role: feedstock, inventory_key: "feed:CO", note: "N2 impurity of the CO feed (0.3 mol%, ASSUMED); the feed itself is carbon monoxide 99.5 mol% and the main raw material is dimethylamine (feed:DMA), neither in the registry yet"}
+    - {chemical: hydrogen, role: feedstock, inventory_key: "feed:CO", note: "H2 impurity of the CO feed (0.2 mol%, ASSUMED)"}
   outputs:
-    - {chemical: hydrogen, role: main-product}
+    - {chemical: nitrogen, role: emission, inventory_key: "product:VENT", note: "Inerts of the CO feed in the reactor vent, to a thermal oxidiser. The main product DMF (product:DMFP) has no registry entry yet"}
   utilities:
-    - {chemical: electricity, role: utility}
-# basis: {capacity: "1000 t/d product", operating_hours_per_year: 8000}
-# lca: {source: auto}           # auto: read lca/ of a ChemE-as-Code project; none: no LCA
-# references:
-#   - {title: "Author et al. (2024) Title", doi: 10.xxxx/xxxxx}
-# maintainers:
-#   - {name: Your Name, orcid: 0000-0000-0000-0000}
-# repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/my-process, access: private}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "CO compressor, pumps, vacuum system (ASSUMED electric drives)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "MP steam 1100 kPa(a), methanol/DMA recovery column reboiler"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 450 kPa(a), DMF finishing column reboiler"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED)"}
+basis:
+  capacity: "50 kt/a DMF (ASSUMED)"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
+references:
+  - {title: "US 4,098,820 A (1978) Process for the production of formamides (UCB SA)", url: "https://patents.google.com/patent/US4098820A/en"}
+  - {title: "US 4,354,041 A (1982) Method for deactivating catalyst in preparation of dimethylformamide from dimethylamine and carbon monoxide (E. I. du Pont)", url: "https://patents.google.com/patent/US4354041A/en"}
+  - {title: "US 4,302,598 A (1981) Recycling catalyst in preparation of dimethylformamide from dimethylamine and carbon monoxide (E. I. du Pont)", url: "https://patents.google.com/patent/US4302598A/en"}
+  - {title: "Formamides. Ullmann's Encyclopedia of Industrial Chemistry (identity checked, not audited)", doi: 10.1002/14356007.a12_001.pub2}
+  - {title: "NIST Chemistry WebBook, SRD 69 (DMF and dimethylamine thermochemistry)", url: "https://webbook.nist.gov"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/dmf-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0
