@@ -174,3 +174,34 @@ Decision: first-pass DN from velocity (gas 15 m/s above 1000 kPa(a), 20 m/s belo
 | ethanol-water distillation and sieve return | could be simulated with NRTL in DWSIM, which core benchmarks for ethanol-water (`cheme process methods`) | next stage: simulate C-202 alone with its ether-free feed |
 | molecular sieve | specified split | core #368 (adsorption PSA/TSA) not available |
 | fermentation variant | not designed | core #365 (solids) would gate it |
+| consumables in the LCI element balance | not assessable | `cheme assess lca --balance` asks for a composition of each consumable, but the lca schema of cheme-as-code 0.8.0 has no `composition` field on consumables (refused as an extra input): core finding |
+
+## D-013 Preliminary gate-to-gate LCI (2026-10-28)
+Decision: lca/lca.yaml quantifies every foreground exchange of the balanced flowsheet per kg of
+the anhydrous ethanol product (S23) and leaves every background unmapped (`missing:` with the
+background activity it should connect to): cradle-to-gate scope with all backgrounds open, as
+nitric-acid-1 (ADR 0022: an unmapped exchange of an internal process is a reported gap).
+Allocation none: ethanol is the only product; the purge and light-ends off-gas are a waste
+burned with energy recovery in the site fuel-gas system (cut-off, no credit), the blowdown a
+wastewater to biological treatment. No direct emission inside the boundary (no combustion, no
+tank, no discharge; leaks not estimated without a P&ID count): declared in
+`emission_exclusions`. Construction is cut off (no take-off at concept stage).
+Consumables, ASSUMED orders of magnitude without an open source (D-007): phosphoric acid
+make-up 1 kg/t ethanol (100 t/a), caustic soda 82 t/a (2 mol NaOH per mol acid), catalyst
+charge ~60 t every 4 years (~115 m3 from the space-time yield of SRC-2, ~0.5 t/m3), 3A sieve
+30 t every 5 years; each with a disposal (wastewater or landfill), unmapped.
+Overrides: lca/mappings.yaml names the shared `steam-heat` entry for feed:HPS and feed:LPS,
+because cheme counts steam as heat delivered (kWh) and the registry slug `steam` is per kg
+(the Atlas build refused the unit otherwise); everything else stays a gap.
+Result (cheme assess lca --inventory/--coverage, 2026-10-28), per kg product: ethylene
+0.646 kg (stoichiometric minimum 0.607 kg for 0.998 kg ethanol: 94.1 % yield), make-up water
+0.678 kg, electricity 0.055 kWh, HP steam heat 0.371 kWh (1.34 MJ), LP steam heat 1.430 kWh
+(5.15 MJ), heat to cooling water 2.21 kWh, off-gas 0.0517 kg, wastewater 0.272 kg, H3PO4
+1.0 g, NaOH 0.82 g, catalyst 0.15 g, sieve 0.06 g. 16 exchanges are gaps; classification
+"partial screening" (no background); mass and C, H, O balances of the dataset close
+(residuals 0.002 kg/h mass, 0.09 kg/h C on 16 575 kg/h); the element balance of the
+consumables is not assessable (D-012). Inventory mass against the flowsheet: in 8076.49 +
+8473.02 kg/h = out 12 502.09 + 645.94 + 3401.48 kg/h (16 549.51 kg/h each).
+Plausibility: the steam (6.5 MJ/kg) is dominated by the C-202 reboiler at reflux ratio 3; the
+duties are concept estimates (D-006).
+Assumptions: all inventory amounts inherit the ASSUMED splits and duties of D-005/D-006.
