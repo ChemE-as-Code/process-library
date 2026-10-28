@@ -30,7 +30,8 @@ run; this design does not use extraction, so #369/#384 does not apply (D-001).
   steam and power generation, cooling tower, wastewater treatment, waste treatment, storage.
 - **What crosses the boundary**: CRUDE, HCLA, NAOHS, ACF (raw materials); GLYC (product);
   MEOHR, FAL (co-products to the biodiesel plant); SALT, FOOTS, SPAC (wastes); WW
-  (wastewater); POWER, LSTM (live steam, material), LPS and HPS (heat), CW (utilities).
+  (wastewater); POWER, LSTM (live steam, material), MSTM (ejector motive steam, material), LPS,
+  MPS and HPS (heat), CW (utilities).
 - **Library links**: caustic soda from chlor-alkali-1 (membrane caustic); methanol for the
   biodiesel plant from methanol-1 (outside this boundary: the refinery returns methanol, it
   does not buy it). Hydrochloric acid is not made by any library process yet (chlor-alkali-1
@@ -78,16 +79,20 @@ were anhydrous; an industrial glycerol phase carries some water (open item).
 Inconsistency (open): Table 5 gives 26 wt% carbon for the same crude glycerol, but any mixture
 of glycerol (39 wt% C) and methanol (37.5 wt% C) has more than 37 wt% C; the sample analysed
 was probably dried or diluted differently. The model follows Tables 1, 3 and 6.
+The design basis (process/design-basis.yaml) carries the same composition (corrected
+2026-10-28 after review #1, which found an older draft composition with water and NaOH there).
 Variability: industrial crude glycerols range 30-80 wt% glycerol with up to 16 wt% ash and up
 to 40 wt% MONG (Attarbachi et al. 2024, Table 1); a second design case should cover a
 high-ash, high-MONG feed.
 
 ## D-005 Acidulation and neutralisation (2026-10-28)
-Decision: 32 wt% HCl at 10 % over the catalyst sodium in R-101 at about 338 K (pH about 3-4);
+Decision: 32 wt% HCl at 10 % over the catalyst sodium in R-101 at about 342 K (pH about 3-4);
 the catalyst is converted to NaCl and methanol (NEUT1, full conversion); the soaps split and
 the fatty matter separates. The excess acid is neutralised with 50 wt% NaOH in R-102 (NEUT2,
-stoichiometric). Both adiabatic (process/simulation.yaml): the neutralisation heat warms the
-liquid by a few K.
+stoichiometric). Both adiabatic (process/simulation.yaml): NEUT1 releases about 18 kW
+(1.16 kmol/h x 55.8 kJ/mol), NEUT2 1.8 kW; with the mixing of the cold acid and caustic and
+ASSUMED liquid heat capacities, scripts/glycerol_balance.py gives S3 341.6 K and S7 342.6 K
+(revised 2026-10-28 after review #6, which found the earlier "65 kW" a unit slip).
 Reason: acidulation to about pH 3 then neutralisation is the industrial practice reported by
 Attarbachi et al. (2024, section 1). Below pH 3 glycerol can dehydrate to acrolein; at high pH
 near 200 C it polymerises (Molecules review 2026, section 4.1): the still must see a neutral
@@ -102,16 +107,28 @@ Decision: 97 % of the fatty matter to the fatty layer S4; the layer holds 5 wt% 
 section 1). The 3 % left in the glycerol ends in the still residue.
 
 ## D-007 Methanol recovery (2026-10-28)
-Decision: atmospheric column C-201, 99.5 % of the methanol to a 99.5 wt% distillate, reflux
-ratio 1.0, bottoms about 383 K. ASSUMED (no VLE calculation: glycerol-methanol-water with NaCl
-is not covered by a qualified package, D-012). Methanol and water are easily separated in the
+Decision: atmospheric column C-201 (120 kPa(a) at the bottom), 99.5 % of the methanol to a
+99.5 wt% distillate, reflux ratio 1.0, bottoms about 425 K, reboiler E-201 on MP steam
+1000 kPa(a) (453 K). ASSUMED (no VLE calculation: glycerol-methanol-water with NaCl is not
+covered by a qualified package, D-012). Methanol and water are easily separated in the
 presence of glycerol; the reflux is a conservative placeholder for the duty.
+Revision (2026-10-28, review #3): nearly all the water stays in the bottoms (about 7 wt%,
+93 wt% glycerol salt-free), and aqueous glycerol of that strength boils near 418-425 K at
+1 atm (the reviewer's estimate from general glycerol-water boiling data, not re-read here),
+so the earlier 383 K was too low and LP steam (421 K) cannot serve E-201 with a 10 K approach.
+The bottoms temperature is ASSUMED 425 K and E-201 moved to MP steam. Holding more water or
+methanol in the bottoms is not an option: the water load is fixed by the acid and caustic.
 
 ## D-008 Dewatering (2026-10-28)
-Decision: falling-film evaporator E-301 at 10 kPa(a), 403 K, to 5 wt% water; all residual
+Decision: falling-film evaporator E-301 at 10 kPa(a), 403 K, to 1 wt% water; all residual
 methanol and 0.1 % of the glycerol go to the condensate. ASSUMED.
 Reason: the still feed must hold no more than 10-15 wt% water to keep the vacuum stable
-(Molecules review 2026, section 4.1); 5 % leaves margin.
+(Molecules review 2026, section 4.1). Revision (2026-10-28, review #3): the earlier 5 wt% water
+at 10 kPa(a) and 403 K was inconsistent (5 wt% water boils near 355 K at 10 kPa(a)). A Raoult
+estimate (water saturation pressure about 270 kPa at 403 K, water activity coefficient in
+glycerol about 0.9, ASSUMED) gives about 0.8-1 wt% water at 10 kPa(a) and 403 K, taken as
+1 wt%. The feed S9 arrives at about 425 K, so part of the water flashes and the steam duty Q3
+is small; the drier still feed also cuts the vapour the still vacuum system must handle.
 
 ## D-009 Vacuum distillation (2026-10-28)
 Decision: wiped-film or forced-circulation still C-401 at 1.5 kPa(a) and 448 K bottoms, live
@@ -122,6 +139,21 @@ scraped-wall evaporator (Molecules review 2026, section 4.1); 448 K stays below 
 polymerisation range near 200 C (same section). The live steam lowers the glycerol partial
 pressure (ASSUMED ratio). Recoveries are placeholders: no VLE of glycerol-water-NaCl is
 qualified (D-012). Overall glycerol recovery feed to product: 94.6 %.
+Vacuum system (added 2026-10-28, review #2): after the glycerol condenser E-402 the vapour
+(live steam S14, the residual water of S11 and a little glycerol, about 148 kg/h) cannot be
+condensed on cooling water at 1.5 kPa(a), where water saturates near 286 K, and at about
+1.5 kPa(a) it is of the order of 10^4 m3/h, beyond a mechanical vacuum pump of the size the
+power estimate allows. Decision: two steam-jet booster ejectors J-403 on MP steam 1000 kPa(a)
+(S22, feed MSTM) compress it to 8 kPa(a), where water saturates near 315 K (steam tables), so
+the intercondenser E-403 condenses vapour and motive steam on cooling water 298/308 K (S15 at
+313 K); a liquid-ring vacuum pump P-404 takes the non-condensables to atmosphere (in W4).
+Motive steam 1.5 kg per kg vapour drawn (ASSUMED engineering order of magnitude for a
+compression ratio of about 5 in two stages, not sourced; to be replaced by an ejector vendor's
+or a sourced steam-consumption curve): 222.5 kg/h, 0.18 kg per kg product. The motive steam
+is condensed into the wastewater (S15), not returned. Rejected for now: a chilled-water
+condenser at 1.5 kPa(a) (needs refrigeration below 280 K and a large condenser) and dry
+mechanical vacuum pumps on the full vapour load; both are lower-steam alternatives for a later
+comparison.
 
 ## D-010 Salt removal and residue (2026-10-28)
 Decision: the salt crystallises in the still residue; a decanter centrifuge S-402 separates 90 %
@@ -142,21 +174,24 @@ et al. 2024, results on the carbon step). Their crude-glycerol dose (50 g/L labo
 needs far less (ASSUMED 2 kg/t, to be checked with a supplier).
 
 ## D-012 Utilities and duties (2026-10-28)
-Decision: cooling water 298/308 K; LP steam 450 kPa(a) (421 K) for the methanol reboiler, the
-evaporator and the live steam; HP steam 3000 kPa(a) (507 K) for the still reboiler (thermal
-oil is the usual alternative); electric power 50 kWh/t product (pumps, agitators, vacuum
+Decision: cooling water 298/308 K; LP steam 450 kPa(a) (421 K) for the evaporator and the
+live steam; MP steam 1000 kPa(a) (453 K) for the methanol reboiler (D-007) and the ejector
+motive steam (D-009); HP steam 3000 kPa(a) (507 K) for the still reboiler (thermal oil is the
+usual alternative); electric power 50 kWh/t product (pumps, agitators, liquid-ring vacuum
 pumps, centrifuge), all ASSUMED. Duties from a lumped latent plus sensible heat balance in
 scripts/glycerol_balance.py: methanol 35.21 kJ/mol at its boiling point (NIST WebBook),
 water 2333 kJ/kg near 343 K (steam tables), glycerol 85 kJ/mol near 450 K (ASSUMED within the
 range of NIST WebBook entries), liquid heat capacities near 298 K (ASSUMED for the lumps).
-Result per t product: indirect steam heat 756 kWh (LP 424, HP 332), live steam 105 kg, power
-50 kWh, heat to cooling water 803 kWh.
+Result per t product (revised 2026-10-28 after review #2 and #3): indirect steam heat 757 kWh
+(MP 430, LP 29, HP 298), live steam 105 kg, ejector motive steam 178 kg, power 50 kWh, heat to
+cooling water 921 kWh.
 Cross-check: a reported 166.5 kWh heat per t at the reboiler of a vacuum distillation design
 starting from 80 wt% glycerol (Braga et al., as cited by Attarbachi et al. 2024, energy
 discussion) is below the latent heat of the glycerol itself (about 256 kWh/t), so it probably
 excludes evaporation or assumes heat recovery; a planned 50 000 t/a refinery to 99.7 % is
-quoted at about 1000 kWh/t heat and power together (same place). This design: about 885 kWh/t
-(756 + 105 kg live steam at about 0.75 kWh/kg + 50), the same order as the second figure.
+quoted at about 1000 kWh/t heat and power together (same place). This design: about
+1020 kWh/t (757 + 283 kg live and motive steam at about 0.75 kWh/kg + 50), the same order as
+the second figure.
 Heat integration not studied (E-402 condenses glycerol at about 420-450 K and could raise LP
 steam).
 Gated step: energy closure in core. `cheme process energy` reports every block not evaluable
@@ -175,10 +210,21 @@ substitution are open sensitivities. Carbon origin: biogenic fraction of the cru
 carbon 0.710 (glycerol and fatty chains from vegetable oil; methanol, methoxide and ester
 methyl fossil). No construction, transport or end of life at this stage. lca/mappings.yaml has
 no overrides (internal process, ADR 0022).
-Result (cheme assess lca --balance, per hour): mass in 2490.5 kg = out 2490.5 kg; C, H, O, Na,
-Cl closed within 0.01 %; carbon in 265.5 kg fossil + 643.8 kg biogenic. The inventory's
-boundary flows equal the flowsheet's boundary streams (S1, S2, S6, S14, S18 in; S4, S8, S10,
-S12, S13, S15, S19, S21 out). Coverage: partial (13 gaps), climate category only.
+Allocation variants (added 2026-10-28, review #5): the recovered methanol S8 is the biodiesel
+plant's own excess reactant, which arrives in the crude and leaves unchanged; under mass
+allocation it takes 32 % of the burden, including 32 % of the crude glycerol it arrived in.
+lca/lca.yaml therefore reports three variants side by side (`allocation.compare`): mass (the
+baseline until prices are sourced; glycerol share 0.594), `shares` with the methanol treated
+as a return (share 0; glycerol 0.873, fatty layer 0.127 by mass) and `none` (glycerol carries
+everything, 1.000). Before any background is linked, the preferred treatment is the return:
+either net the methanol off the crude feed or use system expansion; the choice is open until
+the crude-glycerol background is chosen, because that dataset's own allocation decides
+whether the methanol mass is already in it.
+Result (cheme assess lca --balance, per hour, revised after review #2): mass in 2713.0 kg = out
+2713.0 kg; C, H, O, Na, Cl closed within 0.01 %; carbon in 265.5 kg fossil + 643.8 kg
+biogenic. The inventory's boundary flows equal the flowsheet's boundary streams (S1, S2, S6,
+S14, S18, S22 in; S4, S8, S10, S12, S13, S15, S19, S21 out). Coverage: partial (15 gaps),
+climate category only.
 
 ## 3. Method and dependency table
 
@@ -221,8 +267,22 @@ S12, S13, S15, S19, S21 out). Coverage: partial (13 gaps), climate category only
   qualifies the mixtures; NaCl solubility in glycerol for D-010.
 - Sourced prices for allocation; substitution variant (D-013).
 - Emissions to air: methanol from the vacuum system vents and tank breathing are not
-  estimated (no tanks in the boundary; vents not modelled).
+  estimated (no tanks in the boundary; vents not modelled). After D-008 all residual methanol
+  leaves in the evaporator vapour, so the methanol vent is that of the E-302 vacuum pump; the
+  still vent (P-404) carries air in-leakage and traces of water and glycerol only. An ASSUMED
+  vent loss needs the E-302 vent design (review #9, open).
+- Feed analysis (review #7, open): D-004 says both that the paper's glycerol and its methanol
+  are "by difference"; which quantity Thompson & He measured decides whether the fat must be
+  subtracted from the glycerol. Not re-read in this revision (no PDF text extraction here).
+- Tool finding (review #10): `cheme maturity` prints a model basis "equilibrium-stage /
+  shortcut, predictive, sourced" for V102, C201 and C401, which declare no model; their
+  outlets are ASSUMED values from scripts/glycerol_balance.py. Not to be quoted as evidence;
+  to be reported to cheme-as-code.
 - Heat integration of the glycerol condenser (D-012); HP steam vs thermal oil.
+- Still vacuum: ejector motive-steam ratio (D-009, ASSUMED 1.5 kg/kg) from a vendor or sourced
+  curve; comparison with a chilled condenser or dry vacuum pumps.
+- Glycerol-water boiling points for S9 and S11 (D-007, D-008) from sourced data or a qualified
+  VLE (core #315).
 - Library/core findings of this run: the LCI dataset written by `cheme assess lca` omits
   `allocation.method` when it is mass, so `scripts/build_lci.py` warns "differs from the
   dataset's default None"; the maturity rule `sourced.boundary` asks for `given` flows of

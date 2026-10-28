@@ -49,8 +49,9 @@ PARAMETERS = {
     "meoh_purity": 0.995,          # D-007: distillate methanol mass fraction (rest water)
     "reflux_ratio": 1.0,           # D-007: C-201 reflux ratio (ASSUMED)
     "evap_gly_carryover": 0.001,   # D-008: glycerol entrained into the evaporator condensate
-    "evap_water_out": 0.05,        # D-008: water mass fraction of the dewatered glycerol
+    "evap_water_out": 0.01,        # D-008: water mass fraction of the dewatered glycerol (10 kPa(a), 403 K)
     "strip_steam": 0.10,           # D-009: live steam, kg per kg glycerol fed to the still
+    "ejector_motive": 1.5,         # D-009: MP motive steam of the booster ejectors, kg per kg vapour drawn
     "still_distillate": 0.95,      # D-009: glycerol of the still feed to the distillate
     "still_overhead": 0.005,       # D-009: glycerol of the still feed lost to the vacuum condenser
     "product_water": 0.003,        # D-003: water mass fraction of the distillate and product
@@ -67,11 +68,14 @@ PROPS = {
     "dhvap_water_vac": 2333.0,             # kJ/kg, saturated water at about 70 C (steam tables, IAPWS-IF97)
     "dhvap_water_still": 2380.0,           # kJ/kg, water evaporated near 50 C partial pressure (ASSUMED)
     "dhvap_gly": 85.0 / 92.094 * 1000,     # kJ/kg, 85 kJ/mol near 450 K (ASSUMED within the NIST WebBook range)
+    "dh_neut": -55.8,                      # kJ/mol, NEUT1 and NEUT2, dilute-water value (ASSUMED, D-005)
     "cp": {"GLY": 2.43, "MEOH": 2.53, "H2O": 4.18, "NACL": 0.86, "FAME": 2.0,
            "NAOME": 2.0, "NAOH": 3.2, "HCL": 3.0, "AC": 0.7},  # kJ/(kg K), liquids near 298 K (ASSUMED for the lumps)
 }
 
-T = {"feed": 333.15, "c201_bot": 383.15, "evap": 403.15, "still": 448.15, "bleach": 363.15, "product": 313.15}
+# c201_bot: about 93 wt% glycerol (salt-free) boils near 418-425 K at 1 atm (review
+# 2026-10-28-pfd-lci-review#3), a few K more at 120 kPa(a) with salt: ASSUMED 425 K (D-007)
+T = {"feed": 333.15, "hcl": 298.15, "c201_bot": 425.15, "evap": 403.15, "still": 448.15, "bleach": 363.15, "product": 313.15}
 
 
 def total(s):
@@ -152,6 +156,11 @@ def balance(feed_kg_h):
     g_o = p["still_overhead"] * s11["GLY"]
     st["S15"] = {"GLY": g_o, "H2O": s11["H2O"] + st["S14"]["H2O"] - st["S17"]["H2O"]}
     st["S16"] = sub(add(s11, st["S14"]), add(st["S17"], st["S15"]))
+    # Vacuum system (D-009): the vapour left after the glycerol condenser E-402 cannot condense
+    # on cooling water at 1.5 kPa(a); two booster ejectors on MP motive steam compress it to
+    # 8 kPa(a), where the intercondenser E-403 condenses vapour and motive steam together
+    st["S22"] = {"H2O": p["ejector_motive"] * total(st["S15"])}
+    st["S15"] = add(st["S15"], st["S22"])
     # S-402: salt centrifuge on the still residue
     s16 = st["S16"]
     crystals = p["salt_crystals"] * s16["NACL"]
@@ -176,7 +185,18 @@ def duties(st):
     q = {}
     d = st["S8"]
     vap = (1 + R) * (d["MEOH"] * pr["dhvap_meoh"] + d["H2O"] * 2257.0)
-    q["Q_C201_REB"] = vap + total(st["S7"]) * cp_mix(st["S7"]) * (T["c201_bot"] - T["feed"])
+    # R-101 and R-102 adiabatic (D-005): mixing temperature plus the neutralisation heat
+    n1 = st["S1"]["NAOME"] / MW["NAOME"]
+    m3 = total(st["S3"])
+    t0 = 298.15                                             # sensible enthalpy reference, K
+    h_in = total(st["S1"]) * cp_mix(st["S1"]) * (T["feed"] - t0) + total(st["S2"]) * cp_mix(st["S2"]) * (T["hcl"] - t0)
+    q["Q_NEUT1"] = -pr["dh_neut"] * n1 * 1000.0
+    T["S3"] = t0 + (h_in + q["Q_NEUT1"]) / (m3 * cp_mix(st["S3"]))
+    n2 = st["S6"]["NAOH"] / MW["NAOH"]
+    q["Q_NEUT2"] = -pr["dh_neut"] * n2 * 1000.0
+    h5 = total(st["S5"]) * cp_mix(st["S5"]) * (T["S3"] - t0) + total(st["S6"]) * cp_mix(st["S6"]) * (T["hcl"] - t0)
+    T["S7"] = t0 + (h5 + q["Q_NEUT2"]) / (total(st["S7"]) * cp_mix(st["S7"]))
+    q["Q_C201_REB"] = vap + total(st["S7"]) * cp_mix(st["S7"]) * (T["c201_bot"] - T["S7"])
     q["Q_C201_CND"] = vap
     v = st["S10"]
     lat = v["H2O"] * pr["dhvap_water_vac"] + v["MEOH"] * pr["dhvap_meoh"] + v["GLY"] * pr["dhvap_gly"]
@@ -187,6 +207,8 @@ def duties(st):
     q["Q_C401_REB"] = (g_vap * pr["dhvap_gly"] + s11["H2O"] * pr["dhvap_water_still"]
                        + total(s11) * cp_mix(s11) * (T["still"] - T["evap"]))
     q["Q_E402"] = st["S17"]["GLY"] * pr["dhvap_gly"] + total(st["S17"]) * cp_mix(st["S17"]) * (T["still"] - T["bleach"])
+    # intercondenser at 8 kPa(a): process vapour, live steam and motive steam (ASSUMED 2400 kJ/kg
+    # with the motive steam's superheat after expansion)
     q["Q_E403"] = st["S15"]["H2O"] * 2400.0 + st["S15"]["GLY"] * pr["dhvap_gly"]
     q["Q_E501"] = total(st["S20"]) * cp_mix(st["S20"]) * (T["bleach"] - T["product"])
     q = {k: v / 3600.0 for k, v in q.items()}       # kJ/h -> kW
@@ -209,7 +231,7 @@ def main():
     feed = 1000.0 * PARAMETERS["product_kg_h"] / total(probe["S21"])
     st = balance(feed)
     q = duties(st)
-    ins = ["S1", "S2", "S6", "S14", "S18"]
+    ins = ["S1", "S2", "S6", "S14", "S18", "S22"]
     outs = ["S4", "S8", "S10", "S12", "S13", "S15", "S19", "S21"]
     m_in = sum(total(st[s]) for s in ins)
     m_out = sum(total(st[s]) for s in outs)
@@ -234,7 +256,9 @@ def main():
     gly_rec = st["S21"]["GLY"] / st["S1"]["GLY"]
     print(f"glycerol recovery {gly_rec:.4f}")
     heat = (q["Q_C201_REB"] + q["Q_E301"] + q["Q_C401_REB"]) / (total(st["S21"]) / 1000)
-    print(f"indirect steam heat {heat:.1f} kWh/t product; live steam {st['S14']['H2O']:.1f} kg/h")
+    print(f"indirect steam heat {heat:.1f} kWh/t product; live steam {st['S14']['H2O']:.1f} kg/h; "
+          f"motive steam {st['S22']['H2O']:.1f} kg/h")
+    print(f"S3 {T['S3']:.2f} K, S7 {T['S7']:.2f} K")
     print("\n".join(lines))
 
 

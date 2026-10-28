@@ -38,8 +38,27 @@ feeds:
       pressure: {value: 450, provenance: assumed, source: "design basis, D-012"}
       supply_temperature: {value: 420.8, provenance: assumed, source: "saturation at 450 kPa(a), D-012"}
     ports: [{id: out, direction: out}]
+  - id: MSTM
+    title: MP steam 1000 kPa(a), motive steam of the still vacuum ejectors
+    category: utility
+    utility:
+      kind: steam
+      level: MP
+      pressure: {value: 1000, provenance: assumed, source: "design basis, D-009, D-012"}
+      supply_temperature: {value: 453.0, provenance: assumed, source: "saturation at 1000 kPa(a), D-012"}
+    ports: [{id: out, direction: out}]
+  - id: MPS
+    title: MP steam 1000 kPa(a) to the methanol column reboiler (condensate returned)
+    category: utility
+    utility:
+      kind: steam
+      level: MP
+      pressure: {value: 1000, provenance: assumed, source: "design basis, D-012"}
+      supply_temperature: {value: 453.0, provenance: assumed, source: "saturation at 1000 kPa(a), D-012"}
+      min_approach: {value: 10, provenance: assumed, source: D-012}
+    ports: [{id: c201, direction: out, kind: energy}]
   - id: LPS
-    title: LP steam 450 kPa(a) to reboiler and evaporator (condensate returned)
+    title: LP steam 450 kPa(a) to the dewatering evaporator (condensate returned)
     category: utility
     utility:
       kind: steam
@@ -47,7 +66,7 @@ feeds:
       pressure: {value: 450, provenance: assumed, source: "design basis, D-012"}
       supply_temperature: {value: 420.8, provenance: assumed, source: "saturation at 450 kPa(a), D-012"}
       min_approach: {value: 10, provenance: assumed, source: D-012}
-    ports: [{id: c201, direction: out, kind: energy}, {id: e301, direction: out, kind: energy}]
+    ports: [{id: e301, direction: out, kind: energy}]
   - id: HPS
     title: HP steam 3000 kPa(a) to the still reboiler (condensate returned)
     category: utility
@@ -132,6 +151,7 @@ blocks:
     ports:
       - {id: in, direction: in}
       - {id: strip, direction: in}
+      - {id: motive, direction: in}
       - {id: vac, direction: out}
       - {id: dist, direction: out}
       - {id: salt, direction: out}
@@ -211,15 +231,17 @@ steps:
       - {id: cw, direction: out, kind: energy, delegates: cw}
       - {id: power, direction: in, kind: energy, delegates: power}
   # D-009: wiped-film / forced-circulation still at 1.5 kPa(a) with live steam, glycerol
-  # condenser and vacuum condenser
+  # condenser, steam-jet booster ejectors on MP motive steam, intercondenser at 8 kPa(a) and a
+  # liquid-ring vacuum pump for the non-condensables
   - id: C401
     block: DST
-    title: Vacuum glycerol still with condensers
+    title: Vacuum glycerol still with condensers and ejectors
     class: Distilling
-    links: [{target: equipment, ref: C-401}, {target: equipment, ref: E-401}, {target: equipment, ref: E-402}, {target: equipment, ref: E-403}]
+    links: [{target: equipment, ref: C-401}, {target: equipment, ref: E-401}, {target: equipment, ref: E-402}, {target: equipment, ref: J-403}, {target: equipment, ref: E-403}, {target: equipment, ref: P-404}]
     ports:
       - {id: feed, direction: in, delegates: in}
       - {id: strip, direction: in, delegates: strip}
+      - {id: motive, direction: in, delegates: motive}
       - {id: vac, direction: out, delegates: vac}
       - {id: dist, direction: out, delegates: dist}
       - {id: res, direction: out}
@@ -290,7 +312,7 @@ streams:
     state:
       design:
         pressure: {value: 250, provenance: assumed, source: D-005}
-        temperature: {value: 338.15, provenance: assumed, source: "about 5 K rise from the heat of neutralisation (D-005)"}
+        temperature: {value: 341.6, provenance: assumed, source: "scripts/glycerol_balance.py: adiabatic mixing of S1 and S2 plus NEUT1 heat (about 18 kW, ASSUMED -55.8 kJ/mol) on ASSUMED liquid heat capacities (D-005)"}
         flow: {value: 2347.26, provenance: calculated, source: 'cheme process propagate: reactor R101 from S1 S2', fingerprint: ec17f09a58ef1918}
         composition: {basis: mole_fraction, values: {GLY: 0.332863, MEOH: 0.495939, H2O: 0.127715, NAOME: 0.0, FAME: 0.0137874, NAOH: 0.0, HCL: 0.00269947, NACL: 0.026996, AC: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S1 S2', fingerprint: ede556867979c089}
   - id: S4
@@ -301,7 +323,7 @@ streams:
     state:
       design:
         pressure: {value: 150, provenance: assumed, source: D-006}
-        temperature: {value: 338.15, provenance: assumed, source: D-006}
+        temperature: {value: 341.6, provenance: assumed, source: "decanter at the acidulator outlet temperature (D-006)"}
         flow: {value: 181.31, basis: mass, provenance: assumed, source: "scripts/glycerol_balance.py (D-006)"}
         composition: {basis: mass_fraction, values: {FAME: 0.94, MEOH: 0.05, GLY: 0.01}, provenance: assumed, source: "scripts/glycerol_balance.py: 97 % of fatty matter, 5 wt% methanol, 1 wt% glycerol (D-006)"}
   - id: S5
@@ -312,7 +334,7 @@ streams:
     state:
       design:
         pressure: {value: 250, provenance: assumed, source: D-006}
-        temperature: {value: 338.15, provenance: assumed, source: D-006}
+        temperature: {value: 341.6, provenance: assumed, source: "decanter at the acidulator outlet temperature (D-006)"}
         flow: {value: 2165.95, basis: mass, provenance: assumed, source: "scripts/glycerol_balance.py (D-006)"}
         composition: {basis: mass_fraction, values: {GLY: 0.6074867, MEOH: 0.31115935, H2O: 0.045658, FAME: 0.00243366, HCL: 0.00195328, NACL: 0.031309}, provenance: assumed, source: "scripts/glycerol_balance.py (D-006)"}
   - id: S6
@@ -334,7 +356,7 @@ streams:
     state:
       design:
         pressure: {value: 250, provenance: assumed, source: D-005}
-        temperature: {value: 338.15, provenance: assumed, source: D-005}
+        temperature: {value: 342.6, provenance: assumed, source: "scripts/glycerol_balance.py: adiabatic mixing of S5 and S6 plus NEUT2 heat (1.8 kW) (D-005)"}
         flow: {value: 2175.23, provenance: calculated, source: 'cheme process propagate: reactor R102 from S5 S6', fingerprint: c5b4e41e68303d58}
         composition: {basis: mole_fraction, values: {GLY: 0.336347, MEOH: 0.49516, H2O: 0.138027, NAOME: 0.0, FAME: 0.000418528, NAOH: 8.70035e-08, HCL: 0.0, NACL: 0.0300477, AC: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R102 from S5 S6', fingerprint: 594c53b4a8b65481}
   - id: S8
@@ -356,7 +378,7 @@ streams:
     state:
       design:
         pressure: {value: 120, provenance: assumed, source: D-007}
-        temperature: {value: 383.15, provenance: assumed, source: "estimated bubble point of the bottoms (D-007)"}
+        temperature: {value: 425.15, provenance: assumed, source: "estimated bubble point of the bottoms: about 93 wt% glycerol (salt-free) boils near 418-425 K at 1 atm, a few K more at 120 kPa(a) with salt; no qualified VLE (D-007)"}
         flow: {value: 1501.28, basis: mass, provenance: assumed, source: "scripts/glycerol_balance.py (D-007)"}
         composition: {basis: mass_fraction, values: {GLY: 0.87644474, MEOH: 0.00224461, H2O: 0.06811173, FAME: 0.00351114, NACL: 0.04968779}, provenance: assumed, source: "scripts/glycerol_balance.py (D-007)"}
   - id: S10
@@ -368,8 +390,8 @@ streams:
       design:
         pressure: {value: 200, provenance: assumed, source: "after the condensate pump (D-008)"}
         temperature: {value: 313.15, provenance: assumed, source: D-008}
-        flow: {value: 33.55, basis: mass, provenance: assumed, source: "scripts/glycerol_balance.py (D-008)"}
-        composition: {basis: mass_fraction, values: {MEOH: 0.10042858, GLY: 0.03921401, H2O: 0.86035741}, provenance: assumed, source: "scripts/glycerol_balance.py: residual methanol, 0.1 % glycerol carry-over (D-008)"}
+        flow: {value: 92.86, basis: mass, provenance: assumed, source: "scripts/glycerol_balance.py (D-008)"}
+        composition: {basis: mass_fraction, values: {MEOH: 0.03629041, GLY: 0.01417019, H2O: 0.9495394}, provenance: assumed, source: "scripts/glycerol_balance.py: residual methanol, 0.1 % glycerol carry-over (D-008)"}
   - id: S11
     title: Dewatered crude glycerol to the still
     from: E301.out
@@ -379,8 +401,8 @@ streams:
       design:
         pressure: {value: 250, provenance: assumed, source: "after the feed pump (D-008)"}
         temperature: {value: 403.15, provenance: assumed, source: "evaporator at 10 kPa(a) (D-008)"}
-        flow: {value: 1467.72, basis: mass, provenance: assumed, source: "scripts/glycerol_balance.py (D-008)"}
-        composition: {basis: mass_fraction, values: {GLY: 0.89558488, H2O: 0.05, FAME: 0.00359141, NACL: 0.05082371}, provenance: assumed, source: "scripts/glycerol_balance.py: 5 wt% water (D-008)"}
+        flow: {value: 1408.42, basis: mass, provenance: assumed, source: "scripts/glycerol_balance.py (D-008)"}
+        composition: {basis: mass_fraction, values: {GLY: 0.93329372, H2O: 0.01, FAME: 0.00374262, NACL: 0.05296366}, provenance: assumed, source: "scripts/glycerol_balance.py: 1 wt% water, Raoult estimate at 10 kPa(a) and 403 K (D-008)"}
   - id: S14
     title: Live stripping steam
     from: LSTM.out
@@ -392,17 +414,28 @@ streams:
         temperature: {value: 420.8, provenance: assumed, source: "saturation at 450 kPa(a), D-012"}
         flow: {value: 131.45, basis: mass, provenance: assumed, source: "scripts/glycerol_balance.py: 0.10 kg/kg glycerol fed (D-009)"}
         composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "saturated steam (D-009)"}
+  - id: S22
+    title: Motive steam to the still ejectors
+    from: MSTM.out
+    to: C401.motive
+    template: glycerol
+    state:
+      design:
+        pressure: {value: 1000, provenance: assumed, source: "design basis, D-009"}
+        temperature: {value: 453.0, provenance: assumed, source: "saturation at 1000 kPa(a), D-012"}
+        flow: {value: 222.52, basis: mass, provenance: assumed, source: "scripts/glycerol_balance.py: 1.5 kg motive steam per kg vapour drawn after E-402 (D-009)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "saturated steam (D-009)"}
   - id: S15
-    title: Vacuum condensate (stripping steam and water)
+    title: Vacuum intercondenser condensate (stripping, process and motive steam)
     from: C401.vac
     to: WW.vac
     template: glycerol
     state:
       design:
         pressure: {value: 200, provenance: assumed, source: "after the condensate pump (D-009)"}
-        temperature: {value: 313.15, provenance: assumed, source: D-009}
-        flow: {value: 207.65, basis: mass, provenance: assumed, source: "scripts/glycerol_balance.py (D-009)"}
-        composition: {basis: mass_fraction, values: {GLY: 0.03165141, H2O: 0.96834859}, provenance: assumed, source: "scripts/glycerol_balance.py: 0.5 % of the glycerol fed (D-009)"}
+        temperature: {value: 313.15, provenance: assumed, source: "intercondenser E-403 at 8 kPa(a) (water saturates near 315 K), cooling water 298/308 K (D-009)"}
+        flow: {value: 370.87, basis: mass, provenance: assumed, source: "scripts/glycerol_balance.py (D-009)"}
+        composition: {basis: mass_fraction, values: {GLY: 0.01772167, H2O: 0.98227833}, provenance: assumed, source: "scripts/glycerol_balance.py: 0.5 % of the glycerol fed, live and motive steam (D-009)"}
   - id: S16
     title: Still residue (salt slurry)
     from: C401.res
@@ -492,17 +525,17 @@ streams:
         flow: {value: 1250.0, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E501 from S20', fingerprint: be79254f16c01e13}
         composition: {basis: mass_fraction, values: {GLY: 0.997, H2O: 0.003}, provenance: calculated, source: 'cheme process propagate: pass-through E501 from S20', fingerprint: be79254f16c01e13}
   # Energy streams (duties from scripts/glycerol_balance.py, D-012; ASSUMED until core qualifies them)
-  - {id: Q1, title: C-201 reboiler duty, kind: energy, from: LPS.c201, to: C201.reb, state: {design: {duty: {value: 488.9, provenance: assumed, source: "scripts/glycerol_balance.py, reflux ratio 1.0 (D-007, D-012)"}}}}
+  - {id: Q1, title: C-201 reboiler duty, kind: energy, from: MPS.c201, to: C201.reb, state: {design: {duty: {value: 537.8, provenance: assumed, source: "scripts/glycerol_balance.py, reflux ratio 1.0 (D-007, D-012)"}}}}
   - {id: Q2, title: C-201 condenser duty, kind: energy, from: C201.cond, to: CW.c201, state: {design: {duty: {value: 413.6, provenance: assumed, source: "scripts/glycerol_balance.py (D-012)"}}}}
-  - {id: Q3, title: E-301 evaporator duty, kind: energy, from: LPS.e301, to: E301.heat, state: {design: {duty: {value: 40.7, provenance: assumed, source: "scripts/glycerol_balance.py (D-008, D-012)"}}}}
-  - {id: Q4, title: E-302 evaporator condenser duty, kind: energy, from: E301.cw, to: CW.e301, state: {design: {duty: {value: 20.1, provenance: assumed, source: "scripts/glycerol_balance.py (D-012)"}}}}
-  - {id: Q5, title: E-401 still reboiler duty, kind: energy, from: HPS.c401, to: C401.reb, state: {design: {duty: {value: 415.1, provenance: assumed, source: "scripts/glycerol_balance.py (D-009, D-012)"}}}}
+  - {id: Q3, title: E-301 evaporator duty, kind: energy, from: LPS.e301, to: E301.heat, state: {design: {duty: {value: 35.8, provenance: assumed, source: "scripts/glycerol_balance.py (D-008, D-012)"}}}}
+  - {id: Q4, title: E-302 evaporator condenser duty, kind: energy, from: E301.cw, to: CW.e301, state: {design: {duty: {value: 58.5, provenance: assumed, source: "scripts/glycerol_balance.py (D-012)"}}}}
+  - {id: Q5, title: E-401 still reboiler duty, kind: energy, from: HPS.c401, to: C401.reb, state: {design: {duty: {value: 372.7, provenance: assumed, source: "scripts/glycerol_balance.py (D-009, D-012)"}}}}
   - {id: Q6, title: E-402 glycerol condenser duty, kind: energy, from: C401.gcond, to: CW.c401g, state: {design: {duty: {value: 392.2, provenance: assumed, source: "scripts/glycerol_balance.py (D-012)"}}}}
-  - {id: Q7, title: E-403 vacuum condenser duty, kind: energy, from: C401.vcond, to: CW.c401v, state: {design: {duty: {value: 135.7, provenance: assumed, source: "scripts/glycerol_balance.py (D-012)"}}}}
+  - {id: Q7, title: E-403 vacuum intercondenser duty, kind: energy, from: C401.vcond, to: CW.c401v, state: {design: {duty: {value: 244.5, provenance: assumed, source: "scripts/glycerol_balance.py: vapour, live and motive steam condensed at 8 kPa(a) (D-009, D-012)"}}}}
   - {id: Q8, title: E-501 product cooler duty, kind: energy, from: E501.cw, to: CW.e501, state: {design: {duty: {value: 42.3, provenance: assumed, source: "scripts/glycerol_balance.py (D-012)"}}}}
   - {id: W1, title: Acidulation pumps and agitators, kind: energy, from: POWER.acd, to: R101.power, state: {design: {duty: {value: 12.5, provenance: assumed, source: "10 kWh/t product (D-012)"}}}}
   - {id: W2, title: Methanol recovery pumps, kind: energy, from: POWER.mrc, to: C201.power, state: {design: {duty: {value: 6.2, provenance: assumed, source: "5 kWh/t product (D-012)"}}}}
   - {id: W3, title: Evaporator vacuum pump and pumps, kind: energy, from: POWER.dew, to: E301.power, state: {design: {duty: {value: 12.5, provenance: assumed, source: "10 kWh/t product (D-012)"}}}}
-  - {id: W4, title: "Still vacuum system, pumps and salt centrifuge", kind: energy, from: POWER.dst, to: C401.power, state: {design: {duty: {value: 25.0, provenance: assumed, source: "20 kWh/t product (D-012)"}}}}
+  - {id: W4, title: "Still liquid-ring vacuum pump, pumps and salt centrifuge", kind: energy, from: POWER.dst, to: C401.power, state: {design: {duty: {value: 25.0, provenance: assumed, source: "20 kWh/t product (D-012)"}}}}
   - {id: W5, title: Bleaching pumps and filter, kind: energy, from: POWER.blc, to: V501.power, state: {design: {duty: {value: 6.2, provenance: assumed, source: "5 kWh/t product (D-012)"}}}}
 layout: {bfd: {}, pfd: {}}

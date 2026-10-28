@@ -184,19 +184,66 @@ exchanges:
     formulas:
       H2O: H2O
     source: stream table (S14)
-- key: feed:LPS
-  title: LP steam 450 kPa(a) to reboiler and evaporator (condensate returned)
+- key: feed:MSTM
+  title: MP steam 1000 kPa(a), motive steam of the still vacuum ejectors
   type: input
-  amount: 529.6
+  amount: 222.52
+  unit: kg
+  link:
+    source: 'stream S22: motive steam of the still booster ejectors J-403 (D-009)'
+    missing: 'no background linked yet. Connect: MP steam 1000 kPa(a) from the site boiler, per kg of
+      steam; ejector motive steam, condensed with the process vapour into the wastewater, condensate not
+      returned'
+  streams:
+  - S22
+  source: 'stream S22: motive steam of the still booster ejectors J-403 (D-009)'
+  pedigree:
+    scores: [4, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  carbon:
+    total: 0.0
+    source: composition and formulas
+  composition:
+    fractions:
+      H2O: 1.0
+    formulas:
+      H2O: H2O
+    source: stream table (S22)
+- key: feed:MPS
+  title: MP steam 1000 kPa(a) to the methanol column reboiler (condensate returned)
+  type: input
+  amount: 537.8
   unit: kWh
   link:
-    source: Q1 (C-201 reboiler) + Q3 (E-301 evaporator), D-012
+    source: Q1 (C-201 reboiler), D-007, D-012
+    missing: 'no background linked yet. Connect: heat delivered by MP steam 1000 kPa(a) from the site
+      boiler (condensate returned), per kWh of heat'
+  streams:
+  - Q1
+  source: Q1 (C-201 reboiler), D-007, D-012
+  pedigree:
+    scores: [4, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  carrier:
+    kind: steam
+    temperature: 179.85
+    pressure: 10.0
+    level: MP
+    source: utility of MPS in process/flowsheet.yaml
+- key: feed:LPS
+  title: LP steam 450 kPa(a) to the dewatering evaporator (condensate returned)
+  type: input
+  amount: 35.8
+  unit: kWh
+  link:
+    source: Q3 (E-301 evaporator), D-012
     missing: 'no background linked yet. Connect: heat delivered by LP steam 450 kPa(a) from the site boiler
       (condensate returned), per kWh of heat'
   streams:
-  - Q1
   - Q3
-  source: Q1 (C-201 reboiler) + Q3 (E-301 evaporator), D-012
+  source: Q3 (E-301 evaporator), D-012
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -210,7 +257,7 @@ exchanges:
 - key: feed:HPS
   title: HP steam 3000 kPa(a) to the still reboiler (condensate returned)
   type: input
-  amount: 415.1
+  amount: 372.7
   unit: kWh
   link:
     source: Q5 (E-401 still reboiler), D-012
@@ -324,7 +371,7 @@ exchanges:
   basic_uncertainty: 1.05
   state:
     pressure: 1.5
-    temperature: 65.0
+    temperature: 68.45
     purity: 0.94
     basis: mass
     component: FAME
@@ -444,23 +491,25 @@ exchanges:
 - key: product:WW
   title: Process wastewater to treatment
   type: output
-  amount: 241.2
+  amount: 463.73
   unit: kg
   link:
-    source: streams S10 (evaporator condensate) and S15 (vacuum condensate), D-008, D-009
+    source: streams S10 (evaporator condensate) and S15 (vacuum intercondenser condensate with the ejector
+      motive steam), D-008, D-009
     missing: 'no background linked yet. Connect: treatment of process wastewater with methanol (about
-      1.4 wt%) and glycerol (about 3.3 wt%) in a biological WWTP (processes/utility-wwtp), per kg or per
+      0.7 wt%) and glycerol (about 1.7 wt%) in a biological WWTP (processes/utility-wwtp), per kg or per
       m3, COD-based'
   streams:
   - S10
   - S15
-  source: streams S10 (evaporator condensate) and S15 (vacuum condensate), D-008, D-009
+  source: streams S10 (evaporator condensate) and S15 (vacuum intercondenser condensate with the ejector
+    motive steam), D-008, D-009
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
   carbon:
-    total: 0.018032007
+    total: 0.009379633
     biogenic_fraction: 0.708040157
     source: composition and formulas
   treatment:
@@ -468,9 +517,9 @@ exchanges:
     route: site or municipal biological wastewater treatment
   composition:
     fractions:
-      GLY: 0.032703339
-      MEOH: 0.013969232
-      H2O: 0.953327429
+      GLY: 0.017010501
+      MEOH: 0.007267003
+      H2O: 0.975722496
     formulas:
       GLY: C3H8O3
       MEOH: CH4O
@@ -479,7 +528,7 @@ exchanges:
 - key: product:CW
   title: Cooling water return
   type: output
-  amount: 1003.9000000000001
+  amount: 1151.1
   unit: kWh
   link:
     source: Q2, Q4, Q6, Q7, Q8 (D-012)
@@ -506,6 +555,14 @@ allocation:
   - GLYC
   - MEOHR
   - FAL
+  shares:
+    GLYC: 0.8733
+    FAL: 0.1267
+    MEOHR: 0.0
+  compare:
+  - mass
+  - shares
+  - none
   source: 'D-013: three outputs leave for use: refined glycerol (the functional unit), recovered methanol
     and the fatty layer, both returned to the biodiesel plant. Mass allocation is the preliminary choice
     because it needs no price or property data; it charges about a third of the refinery''s burden to
@@ -521,9 +578,9 @@ provenance:
   plant: Crude glycerol refining to USP glycerol (10 000 t/a, 99.7 wt%)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:997adb66fd9473fef39711b6bf2b678f18eb46bc05921ee5921360fc8dbb3bbd
-    lca/lca.yaml: sha256:ca97125ac94a35a9e8176a16e6432b7608b757441f6cd6a38d2f0d06f137fe05
-    process.yaml: sha256:93dd292794ec1420fdc8599cf7d65d7a764198ded70a546ae5262487d1124526
-    process/flowsheet.yaml: sha256:fc4e08395f17ed21deb65b550cdde58a2e8729fbf9a9927e2cd8b31de5421054
+    equipment/equipment-list.yaml: sha256:e4553c6004e75df7d14eaeef339626ac76648a2067b0fa33232222a7f045c433
+    lca/lca.yaml: sha256:3855e1e63f42fcb07c9f724ace521d2284a5d0d89707e6db9f7c7922e6ddbaa9
+    process.yaml: sha256:e0e50548d407a9acaf756235f8676f4f60080dd9384c47db78f1ce0f0d1a6668
+    process/flowsheet.yaml: sha256:ac44b81722c2cbdfdd70889a9be6f8f257841212cfded7c30df6615c817d4126
     process/materials.yaml: sha256:66966c66738c689767c1e74f166c957eeffea18cf2278bc9a7dc0f3abdc512e8
-    process/simulation.yaml: sha256:114f0825df0ae93945a62d75b78ef9251ae43bdfac2d0eb7045428f0eb914944
+    process/simulation.yaml: sha256:3ec759176f1695bf83e235c798a20a4a390b8034c819b6484bf624839dd1684a

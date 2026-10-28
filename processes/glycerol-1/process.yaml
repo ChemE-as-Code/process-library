@@ -42,17 +42,21 @@ validation:
     electrolyte route covers glycerol-methanol-water-NaCl (core #315, #364, #365), so energy
     closure is not evaluable in core. cheme maturity: balanced level blocked by the specified
     separator values (no sourced model); sourced level blocked by assumed feed flows. The
-    gate-to-gate LCI is preliminary, with every background unmapped. Not reviewed.
+    gate-to-gate LCI is preliminary, with every background unmapped. `cheme maturity` supports
+    no level and warns cheme.maturity-claim-exceeds on the `maturity: concept` claim, the
+    lowest value of the manifest; the warning stays until the feed flow basis is accepted as
+    sourced (DESIGN.md section 6). Agent review reviews/2026-10-28-pfd-lci-review.md answered
+    (PROGRESS.md); no human review.
 # No inventory_key: an inventory key would link the exchange to the registry slug's background
 # in the Atlas LCI build; this preliminary LCI leaves every background unmapped (D-013).
 chemistry:
   inputs:
     - {chemical: water, role: feedstock, note: "Water of the 32 wt% hydrochloric acid and the 50 wt% caustic soda. The raw materials crude glycerol (feed:CRUDE), hydrochloric acid (feed:HCLA), caustic soda (feed:NAOHS) and activated carbon (feed:ACF) have no registry entries yet"}
   outputs:
-    - {chemical: wastewater, role: waste, note: "product:WW, evaporator and vacuum condensates with about 1.4 wt% methanol and 3.3 wt% glycerol. The main product (refined glycerol, product:GLYC) and the co-products recovered methanol (product:MEOHR) and fatty layer (product:FAL) have no registry entries yet"}
+    - {chemical: wastewater, role: waste, note: "product:WW, evaporator and vacuum intercondenser condensates (with the ejector motive steam) with about 0.7 wt% methanol and 1.7 wt% glycerol. The main product (refined glycerol, product:GLYC) and the co-products recovered methanol (product:MEOHR) and fatty layer (product:FAL) have no registry entries yet"}
   utilities:
-    - {chemical: electricity, role: utility, note: "feed:POWER: pumps, agitators, vacuum pumps, salt centrifuge (50 kWh/t, ASSUMED)"}
-    - {chemical: steam, role: utility, note: "feed:LPS (heat, kWh) and feed:LSTM (live steam, kg): LP steam 450 kPa(a); feed:HPS (heat, kWh): HP steam 3000 kPa(a)"}
+    - {chemical: electricity, role: utility, note: "feed:POWER: pumps, agitators, liquid-ring vacuum pumps, salt centrifuge (50 kWh/t, ASSUMED)"}
+    - {chemical: steam, role: utility, note: "feed:LPS (heat, kWh) and feed:LSTM (live steam, kg): LP steam 450 kPa(a); feed:MPS (heat, kWh) and feed:MSTM (ejector motive steam, kg): MP steam 1000 kPa(a); feed:HPS (heat, kWh): HP steam 3000 kPa(a)"}
     - {chemical: cooling-water, role: utility, note: "product:CW, 25/35 C (ASSUMED)"}
 basis:
   capacity: "10 000 t/a refined glycerol, 1250 kg/h (ASSUMED normalisation basis)"

@@ -38,6 +38,12 @@ allocation:
     substitution needs background datasets that are not linked at this stage and no sourced
     prices for refined glycerol, recovered methanol and the fatty layer were collected in this
     run. Mass allocation is a declared preliminary placeholder until prices are sourced.
+  # Variants side by side (review 2026-10-28-pfd-lci-review#5, D-013): `none` (unallocated, the
+  # glycerol carries everything) and `shares` = mass allocation with the recovered methanol
+  # treated as a return of the biodiesel plant's own excess reactant (share 0), only glycerol
+  # and the fatty layer sharing: 1250 / (1250 + 181.31) = 0.8733 (streams S21, S4).
+  compare: [mass, shares, none]
+  shares: {GLYC: 0.8733, FAL: 0.1267, MEOHR: 0.0}
 flows:
   # ---- raw materials (backgrounds to connect later)
   - key: feed:CRUDE
@@ -56,9 +62,15 @@ flows:
   - key: feed:LSTM
     missing: "no background linked yet. Connect: LP steam 450 kPa(a) from the site boiler (natural gas fired, or shared with the biodiesel plant), per kg of steam; live steam, condensate not returned"
     source: "stream S14: live stripping steam of the still (D-009)"
+  - key: feed:MSTM
+    missing: "no background linked yet. Connect: MP steam 1000 kPa(a) from the site boiler, per kg of steam; ejector motive steam, condensed with the process vapour into the wastewater, condensate not returned"
+    source: "stream S22: motive steam of the still booster ejectors J-403 (D-009)"
+  - key: feed:MPS
+    missing: "no background linked yet. Connect: heat delivered by MP steam 1000 kPa(a) from the site boiler (condensate returned), per kWh of heat"
+    source: "Q1 (C-201 reboiler), D-007, D-012"
   - key: feed:LPS
     missing: "no background linked yet. Connect: heat delivered by LP steam 450 kPa(a) from the site boiler (condensate returned), per kWh of heat"
-    source: "Q1 (C-201 reboiler) + Q3 (E-301 evaporator), D-012"
+    source: "Q3 (E-301 evaporator), D-012"
   - key: feed:HPS
     missing: "no background linked yet. Connect: heat delivered by HP steam 3000 kPa(a) from the site boiler, or a thermal-oil heater as the usual alternative (condensate returned), per kWh of heat"
     source: "Q5 (E-401 still reboiler), D-012"
@@ -86,8 +98,8 @@ flows:
     source: "stream S19 (D-011)"
   - key: product:WW
     treatment: {kind: waste, route: "site or municipal biological wastewater treatment"}
-    missing: "no background linked yet. Connect: treatment of process wastewater with methanol (about 1.4 wt%) and glycerol (about 3.3 wt%) in a biological WWTP (processes/utility-wwtp), per kg or per m3, COD-based"
-    source: "streams S10 (evaporator condensate) and S15 (vacuum condensate), D-008, D-009"
+    missing: "no background linked yet. Connect: treatment of process wastewater with methanol (about 0.7 wt%) and glycerol (about 1.7 wt%) in a biological WWTP (processes/utility-wwtp), per kg or per m3, COD-based"
+    source: "streams S10 (evaporator condensate) and S15 (vacuum intercondenser condensate with the ejector motive steam), D-008, D-009"
 
 # Carbon origin (D-013): the glycerol and the fatty acid chains come from vegetable oil
 # (biogenic); the methanol, the methoxide and the methyl group of the esters are taken as fossil
