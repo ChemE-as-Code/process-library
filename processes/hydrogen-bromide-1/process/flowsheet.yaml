@@ -9,7 +9,7 @@
 # (hydrogen-1) are boundary feeds.
 # Where the values come from:
 # - feeds: pure liquid bromine (ASSUMED, D-003) and hydrogen-1's product S17 state (D-003);
-# - the reactor outlets S4 and S5 are calculated by cheme (conversion reactors R101, R102)
+# - the reactor outlets S4 and S5 are calculated by cheme (conversion reactor R101, equilibrium reactor R102)
 #   from the feeds; their temperatures are assumed (D-007);
 # - the absorption streams, the vent and the duties come from the independent balance
 #   scripts/balance.py (D-006), run with `cheme run scripts/balance.py`, given as ASSUMED; its
@@ -125,8 +125,7 @@ steps:
     title: Catalytic finishing bed (activated carbon)
     class: ReactingChemicals
     reactions: [HBR_SYN]
-    reactor: conversion
-    conversion: {HBR_SYN: 1.0}  # the residual Br2, at the equilibrium limit (D-005)
+    reactor: equilibrium        # ideal gas at the outlet T and p: the residual Br2 reacts (D-005)
     catalyst: ACT_C
     links: [{target: equipment, ref: R-102}]
     ports:
@@ -201,7 +200,7 @@ streams:
         temperature: {value: 448.15, provenance: assumed, source: "D-007: adiabatic rise over R102 0.5 K (scripts/balance.py), neglected"}
         pressure: {value: 240.0, provenance: assumed, source: D-007}
         flow: {value: 1000.81, provenance: calculated, source: 'cheme process propagate: reactor R102 from S4', fingerprint: e1dc33a5daeb2bd1}
-        composition: {basis: mole_fraction, values: {H2: 0.0243844, N2: 0.000512447, Br2: 0.0, HBr: 0.975103, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R102 from S4', fingerprint: 9e29173edf428cf2}
+        composition: {basis: mole_fraction, values: {H2: 0.0243844, N2: 0.000512447, Br2: 3.5874e-12, HBr: 0.975103, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R102 from S4', fingerprint: f2db6c915595922b}
   - {id: S6, title: Cooled HBr gas to the absorber, from: E102.out, to: C201.gas, template: gas, state: {design: {temperature: {value: 333.15, provenance: assumed, source: "D-007: 60 degC, the preferred outlet of the graphite cooling zone (US 6 036 936 A: 40-125 degC)"}, pressure: {value: 230.0, provenance: assumed, source: D-007}, flow: {value: 1000.805, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {HBr: 0.9991958, H2: 0.0006224, N2: 0.0001818}, provenance: assumed, source: scripts/balance.py}}}}
   - {id: S7, title: Acid from the absorber, from: C201.acid, to: P201.in, template: aqueous, state: {design: {temperature: {value: 313.15, provenance: assumed, source: D-008}, pressure: {value: 200.0, provenance: assumed, source: D-008}, flow: {value: 2083.333, basis: mass, provenance: assumed, source: "design basis, D-002"}, composition: {basis: mass_fraction, values: {HBr: 0.48, H2O: 0.52}, provenance: assumed, source: "design basis, D-002"}}}}
   - {id: S8, title: Absorber tail gas, from: C201.tail, to: C202.tail, template: gas, state: {design: {temperature: {value: 313.15, provenance: assumed, source: D-008}, pressure: {value: 200.0, provenance: assumed, source: D-008}, flow: {value: 6.023, basis: mass, provenance: assumed, source: "scripts/balance.py: 0.5 % of the HBr unabsorbed, water-saturated at 40 degC (D-008)"}, composition: {basis: mass_fraction, values: {HBr: 0.8301864, H2: 0.1034244, N2: 0.0302097, H2O: 0.0361795}, provenance: assumed, source: scripts/balance.py}}}}

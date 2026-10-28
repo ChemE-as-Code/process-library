@@ -1,36 +1,83 @@
-# Process Atlas manifest. Copy this folder to processes/<your-id>/ and edit.
-# Schema: schemas/process.schema.json (cheme-as-code/process/v1). Every slug used under
-# chemistry must exist in chemicals/chemicals.yaml; add new chemicals there in the same change.
-# A product in a defined state and purity names its registry grade: `chemical: oxygen/lox`.
+# Process Atlas manifest of hydrogen-bromide-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
 schema: cheme-as-code/process/v1
-id: my-process                  # = folder name; lowercase slug; never rename once listed
-title: Short descriptive process title
+id: hydrogen-bromide-1
+title: Hydrogen bromide synthesis burner with catalytic finishing and absorption (48 wt-% hydrobromic acid)
 summary: >-
-  One or two sentences for cards and search results: what goes in, what comes out, at what scale.
-# description: |                # optional longer Markdown for the process page
-families: [hydrogen]            # slugs of taxonomy/families.yaml (ISIC-mapped), e.g. ammonia, methanol, air-separation
-keywords: []
-# facets:                      # optional, for filtering in the Atlas; list only what the design has
-#   feedstock_basis: [water, electricity]   # fossil | biogenic | atmospheric | mineral | recycled | water | electricity
-#   product_classes: [fuels]               # slugs, e.g. industrial-gases, fuels, fertilizers, polymers, chemicals, materials
-#   unit_operations: [electrolysis]        # slugs, e.g. cryogenic-distillation, adsorption, compression, reaction, electrolysis
-#   region: generic                        # e.g. generic, EU
-# Design maturity (claimed, capped by evidence: the calculation maturity in checks/maturity.json
-# of an engineering project; at most concept beside a Tier 0/1 LCI dataset):
-maturity: concept               # concept | screening | basic-engineering | detail-engineering | operating-reference
-validation:                     # review status: set by people only; passing checks is not a review
-  status: unreviewed            # unreviewed | internally-reviewed | peer-reviewed | industry-validated
+  Bromine vapour burnt in a 5 % excess of hydrogen in a water-cooled burner, the residual
+  bromine converted on an activated-carbon bed, the HBr gas absorbed in a graphite falling-film
+  absorber to 48 wt-% hydrobromic acid and the tail gas scrubbed with the absorption water;
+  bromine (bromine-1, planned) and hydrogen (hydrogen-1) as boundary feeds. Concept stage,
+  8 kt/a HBr, assumed basis.
+description: |
+  Liquid bromine is vaporised with LP steam at 300 kPa(a) and burnt with hydrogen from
+  hydrogen-1 in a burner whose chamber is cooled by water; 99.97 % of the bromine reacts in
+  the flame (a sourced flame-reactor result), the rest on an adiabatic activated-carbon
+  finishing bed at about 175 degC. A graphite block cooler takes the gas to 60 degC and an
+  isothermal falling-film absorber dissolves it in weak acid from the tail gas scrubber to
+  48 wt-% acid, just above the 47.6 wt-% azeotrope. All absorption water passes the scrubber
+  first; the excess hydrogen and the nitrogen of the hydrogen feed leave through the vent.
+
+  All values are concept estimates. The reactor outlets and the burner duty are calculated by
+  cheme (a sourced conversion for the burner, ideal-gas equilibrium for the finishing bed); the absorber and scrubber are specified values from an
+  independent balance script, and the acid's enthalpy rests on an assumed heat of solution
+  because no ChemE-as-Code property method covers HBr-water yet (core #364). See DESIGN.md of
+  the engineering files for every assumption and gated step.
+families: [inorganic-chemicals]
+keywords: [hydrogen bromide, hydrobromic acid, HBr synthesis, bromine, burner, activated carbon, graphite absorber, falling-film absorption, tail gas scrubber, hydrogen]
+facets:
+  feedstock_basis: [mineral, fossil]
+  product_classes: [chemicals]
+  unit_operations: [evaporation, reaction, absorption, heat-exchange]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest; the feeds are assumed states, the
+# absorber and scrubber specified values, see validation.notes and DESIGN.md.
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances (cheme validate, cheme process
+    streams). The burner and finishing-bed outlets are calculated by cheme (99.97 %
+    Br2 conversion in the flame from US 3 988 427 A; the carbon bed as an ideal-gas equilibrium
+    reactor, K = 1.1e13 at 448 K, leaving a Br2 mole fraction of 4e-12); cheme maturity reaches
+    no level (assumed feed flows, specified absorber and scrubber splits); cheme's burner duty (166.4 kW) equals
+    the independent script's. The absorber, the scrubber and the acid's heat of solution are
+    specified or ASSUMED values: no property package covers Br2/HBr gas or HBr-water
+    (core #364), so energy closure is not evaluable in core. The preliminary gate-to-gate LCI
+    closes in mass and in Br and H; every background is a gap. Not reviewed. The chemicals
+    registry has no hydrogen-bromide / hydrobromic-acid or bromine entry yet, so the main
+    product and the bromine feed are not listed under chemistry (open library item).
 chemistry:
   inputs:
-    - {chemical: water, role: feedstock}
+    # no inventory_key on the feeds: the Atlas build would link them by their registry slug;
+    # every background stays a gap until the shared vocabulary has fitting entries
+    # (lca/mappings.yaml, DESIGN.md D-012)
+    - {chemical: hydrogen, role: feedstock, note: "Hydrogen 99.9 mol-% from hydrogen-1 (feed:H2: 0.0133 kg per kg HBr), 5 mol-% excess. The bromine feed (feed:BR2, 0.988 kg per kg HBr, from the planned bromine-1) has no registry entry yet"}
+    - {chemical: water, role: feedstock, note: "Demineralised water for the absorption (feed:DMW), 1.08 kg per kg HBr"}
   outputs:
-    - {chemical: hydrogen, role: main-product}
+    - {chemical: hydrogen, role: emission, inventory_key: "emission:H2", note: "Excess hydrogen vented after the tail gas scrubber, 0.62 g per kg HBr. The main product, hydrobromic acid 48 wt-% (product:HBRACID), has no registry entry yet"}
   utilities:
-    - {chemical: electricity, role: utility}
-# basis: {capacity: "1000 t/d product", operating_hours_per_year: 8000}
-# lca: {source: auto}           # auto: read lca/ of a ChemE-as-Code project; none: no LCA
-# references:
-#   - {title: "Author et al. (2024) Title", doi: 10.xxxx/xxxxx}
-# maintainers:
-#   - {name: Your Name, orcid: 0000-0000-0000-0000}
-# repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/my-process, access: private}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 450 kPa(a) for the bromine vaporiser, 0.058 kWh (0.098 kg) per kg HBr"}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Pump, burner management, instruments and analysers (ASSUMED)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED), burner, gas cooler and absorber, 0.41 kWh per kg HBr"}
+basis:
+  capacity: "1 000 kg/h HBr (100 %) as 2 083 kg/h hydrobromic acid 48 wt-% = 8 kt/a HBr (ASSUMED)"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
+references:
+  - {title: "US 6 036 936 A (Elf Atochem): Process for the production of hydrogen bromide gas and device for its implementation (burner, graphite cooling, activated-charcoal finishing stage)", url: "https://patents.google.com/patent/US6036936"}
+  - {title: "US 3 988 427 A (Ethyl Corp.): Flame reaction process for producing hydrogen bromide (Example: bromine conversion and hydrogen excess)", url: "https://patents.google.com/patent/US3988427"}
+  - {title: "Bromine Compounds. Ullmann's Encyclopedia of Industrial Chemistry, Wiley-VCH (route identity from issue #130; full text not read)", doi: 10.1002/14356007.a04_405}
+  - {title: "Wikipedia: Hydrogen bromide (Industrial preparation) and Hydrobromic acid (azeotrope, density of 48 % acid), facts only", url: "https://en.wikipedia.org/wiki/Hydrobromic_acid"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/hydrogen-bromide-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0
