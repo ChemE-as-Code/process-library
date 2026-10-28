@@ -158,7 +158,7 @@ heat-capacity fits start at 298 K and the tail gas is at 283 K.
 
 ## D-010 Utilities and energy (2026-10-28)
 Decision: E-101 raises 15.2 MW and B-301 15.4 MW of saturated MP steam at 1500 kPa(a); the plant
-uses 12.9 MW let down to LP (E-001 0.9, C-101 3.8, C-202 3.3, CR-401 4.5, D-401 0.2 MW) and
+uses 12.9 MW let down to LP (E-001 0.9, C-101 3.8, C-202 3.3, CR-401 4.5, DR-401 0.2 MW) and
 exports 17.8 MW (2.85 kWh per kg product). Power 1.03 MW (K-101 0.63 MW, the rest a 0.4 MW
 ASSUMED lump). Cooling water 298/308 K, 17.7 MW; chilled water 275/283 K, 4.8 MW.
 Assumptions: all duties are estimates of scripts/nacn_balance.py (simple sensible and latent
@@ -195,3 +195,27 @@ Result per kg product: natural gas 0.501 kg, ammonia 0.437 kg, 50 % caustic 1.62
 treatment, flue gas 7.53 kg with 0.493 kg fossil CO2. Mass closes (10.747 kg in and out), and by
 hand carbon (0.3748 kg C) and nitrogen (0.3598 kg N) close against the flowsheet; cheme reports
 the element balance as not assessable only because the gauze consumable has no composition.
+
+## Open inputs, missing registry entries and next stage
+
+Open inputs (each ASSUMED now): a licensor or open plant basis for the converter (gauze area,
+heat loss, preheat, pressure, platinum loss per kg HCN, gauze campaign); ammonia recovery split
+and stripping steam; phosphate and HCN-stabiliser acid make-up; HCN absorber/stripper recoveries
+and the purge's HCN content; heat of neutralisation and of crystallisation; NaCN solubility
+against temperature with NaOH present; NaCN hydrolysis (formate, vent NH3/HCN); tail gas boiler
+NOx and CO factors; the chemical exergy of NaCN (for exergy allocation of the exported steam);
+Ullmann's chapter (SRC-3) not read.
+
+Missing in the shared chemicals registry (`chemicals/chemicals.yaml`, for the consolidated
+PR): `sodium-cyanide` (main product, solid 98 wt%; possibly a solution grade), `hydrogen-cyanide`
+(intermediate), `ammonia` (feed from ammonia-1), `sodium-hydroxide` (feed, 50 wt% solution
+grade, from chlor-alkali-1); for the consumable `platinum` and `rhodium` (gauze). Present and
+used: methane, air, carbon-dioxide, steam, electricity, cooling-water, chilled-water, wastewater.
+
+Recommended next stage: (1) source the converter basis and the downstream recoveries (Ullmann
+SRC-3, open literature on Andrussow reactors, the EPA cyanide NESHAP background), (2) check the
+core electrolyte and solids support for NaCN/NaOH/water and, when qualified, replace the script
+values of C-201/C-202/CR-401 by cheme models (`process props`, `simulate`, the crystallizer with
+a second solute), (3) source the boiler emission factors and the NaCN exergy and map the LCI
+backgrounds (ammonia-1 and chlor-alkali-1 datasets pinned explicitly), (4) then P&IDs and HAZOP
+(HCN toxicity, flammable converter feed, HCN polymerisation).
