@@ -1,0 +1,92 @@
+schema: process-run/v1
+run_id: 20261027-223241-review
+process: soda-ash-1
+kind: agent
+complete: false
+incomplete_notes:
+- runner had uncommitted changes (runner_commit is not exact)
+task_file: /Users/arturschweidtmann/Developer/test/agent-cli/tasks/gen/soda-ash-1-review.md
+branch: case/soda-ash-1
+start_commit: adfad09f75080018ffd074c7ec4084395d4d7182
+end_commit: fa46c65da7c0742906727a2931b940c85a6f9e31
+started: '2026-10-27T22:32:41+00:00'
+finished: '2026-10-27T22:36:34+00:00'
+wall_s: 233
+cost_usd: 1.1277175999999998
+budget_usd: 3.0
+model: claude-opus-5-5
+effort: high
+num_turns: 25
+tokens:
+  input: 40
+  output: 21068
+  thinking: 12433
+  cache_read: 1410353
+  cache_write: 84753
+session_id: 10167b39-3645-46e4-8bf0-8948281dda00
+session_export:
+  file: session.jsonl.gz
+  sha256: 93bd4b779c8d1ba7b422633c72eef6db34a367607f01d1851500f82235939b64
+tools:
+  cheme: cheme 0.8.0 (pyDEXPI 2.1.0)
+  core_commit: 44680fa0e142849803577a235d78fd0a75ca3f7a
+  claude_agent_sdk: 0.2.174
+  runner_commit: 7a20577b50dd9f27795512cfd5d6fa65e7d257d8
+  runner_dirty: true
+checks_by_agent:
+- cheme assess lca --coverage 2>&1 | tail -50
+- cheme check 2>&1 | grep design-review
+- cheme check 2>&1 | tail -30
+- cheme maturity 2>&1 | tail -30; echo ===; cheme process propagate --check 2>&1 | tail -15; echo ===;
+  cheme assess lca --coverage 2>&1 | tail -40
+- cheme process propagate --check 2>&1 | tail -15
+- cheme process streams --md 2>&1 | head -120
+- cheme run scripts/solvay_balance.py 2>&1 | grep -i -E "S8 |S1 |S13|S23|S24|brine|vent|steam|limestone"
+  | head -20
+- cheme validate 2>&1 | tail -15; echo ===; cheme check 2>&1 | tail -30
+- cheme validate reviews/2026-10-27-pfd-lci-review.md 2>&1 | tail -3
+checks_after_run:
+- command: cheme check
+  exit: 1
+  summary:
+    counts:
+      ok: 12
+      FAIL: 10
+      n/a: 3
+    failed:
+    - basic/pids-exist
+    - concept/layout-plot-plan
+    - basic/layout-3d
+    - basic/lifting-study
+    - basic/mto
+    - basic/layout-review
+    - detail/layout-detail
+    - detail/electrical
+    - detail/hvac
+    - detail/datasheets
+- command: cheme maturity
+  exit: 0
+  summary:
+    counts:
+      ok: 10
+      FAIL: 5
+    failed:
+    - sourced.boundary
+    - balanced.model-basis
+    - predictive.simulation-spec
+    - predictive.model-basis
+    - engineering.datasheets
+    levels:
+      sourced: fail
+      balanced: fail
+      predictive: fail
+      engineering: fail
+- command: cheme process propagate --check
+  exit: 0
+  summary:
+    last_line: ''
+outcome:
+  result: success
+  guard_denials: 0
+  report: report.md
+observed_later: {}

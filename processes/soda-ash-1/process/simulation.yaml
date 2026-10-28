@@ -1,0 +1,13 @@
+# Simulation specs. Schema: `cheme schema process-simulation`.
+# The flowsheet is NOT simulated: DWSIM and the phase routes refuse NH3-CO2-NaCl-H2O
+# electrolytes and the solids of this process (core #364, #365; DESIGN.md D-007). This file only
+# records which reactor steps exchange no heat with a utility (D-008):
+schema: cheme/simulation/v1
+kind: simulation
+specs:
+  # fired by the coke charged with the limestone (a material feed), wall losses to ambient
+  R101: {mode: adiabatic}
+  # the slaking heat warms the milk of lime (353 K); no cooler
+  M101: {mode: adiabatic}
+  # heated by live steam S23, a material feed of the LP steam utility
+  D601: {mode: adiabatic}

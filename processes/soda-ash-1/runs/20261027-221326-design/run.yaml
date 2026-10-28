@@ -1,0 +1,171 @@
+schema: process-run/v1
+run_id: 20261027-221326-design
+process: soda-ash-1
+kind: agent
+complete: false
+incomplete_notes:
+- 'session export kept out of git: it used web tools (WebSearch) and may hold third-party text; local
+  copy agent-cli/logs/20261027-221326-design.session.jsonl.gz'
+- runner had uncommitted changes (runner_commit is not exact)
+task_file: /Users/arturschweidtmann/Developer/test/agent-cli/tasks/gen/soda-ash-1-design.md
+branch: case/soda-ash-1
+start_commit: 79a7cd4c1a4da2c8792ea0a38567af78c2a2d429
+end_commit: 8e16f623f424aefdb6bf1e61b95311b3da0f76c2
+started: '2026-10-27T22:13:26+00:00'
+finished: '2026-10-27T22:32:05+00:00'
+wall_s: 1119
+cost_usd: 5.487416200000001
+budget_usd: 13.83
+model: claude-opus-5-5
+effort: high
+num_turns: 104
+tokens:
+  input: 138
+  output: 100703
+  thinking: 36114
+  cache_read: 11259815
+  cache_write: 239315
+session_id: 7aadb87d-56e7-4f3a-96b3-e931a7d32c9b
+session_export: null
+tools:
+  cheme: cheme 0.8.0 (pyDEXPI 2.1.0)
+  core_commit: 44680fa0e142849803577a235d78fd0a75ca3f7a
+  claude_agent_sdk: 0.2.174
+  runner_commit: 7a20577b50dd9f27795512cfd5d6fa65e7d257d8
+  runner_dirty: true
+checks_by_agent:
+- 'cheme assess lca --check 2>&1 | tail -2; cheme impact 2>&1 | tail -5; git add . && git commit -q -m
+  "soda-ash-1: DESIGN.md decisions D-001..D-010, PROGRESS.md, references
+
+
+  Route and boundary memo, balance and model basis, cross-checks against EMEP/EEA and USGS
+
+  figures, LCI scope, missing chemicals registry entries, open inputs and gated steps
+
+  (Cantera for the kiln energy balance, core #364 electrolytes, energy closure).
+
+
+  Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" && git status --short | head; git log --oneline
+  -5'
+- cheme assess lca --coverage 2>&1 | head -80
+- cheme assess lca --coverage 2>&1 | head -90
+- 'cheme assess lca --write 2>&1 | grep -E "^wrote|error" ; cheme assess lca --check 2>&1 | tail -1; git
+  add . && git commit -q -m "soda-ash-1: rewrite LCA outputs (current with the inputs)
+
+
+  Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"; git status --short | wc -l; cheme check --stage
+  concept 2>&1 | grep -E "FAIL|ok" | cut -c1-80'
+- cheme check --stage concept 2>&1 | tail -15; cheme maturity 2>&1 | tail -30
+- 'cheme fmt 2>&1 | tail -2; cheme validate 2>&1 | tail -2 | head -1; git add . && git commit -q -m "soda-ash-1:
+  design basis, materials, reactions, kiln basis and balanced BFD/PFD
+
+
+  Solvay process at 1000 t/d light soda ash (ASSUMED basis): 6 blocks, 12 steps, 27 material
+
+  and 10 energy streams from the independent balance scripts/solvay_balance.py; reactive
+
+  element balances closed (cheme process streams). Kiln on the specific-energy fallback of
+
+  cheme process furnace (Cantera unavailable). Equipment and line lists as the PFD requires.
+
+
+  Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" && git log --oneline -1'
+- cheme process build 2>&1 | grep -v "^process/.*written" | head -3; cheme assess lca --inventory --write
+  2>&1 | tail -30; ls lca
+- cheme process build 2>&1 | tail -15; cheme validate 2>&1 | grep -v "^drawing" | tail -40
+- cheme process energy 2>&1 | grep -E "warning|error" | cut -c1-250 | head; cheme validate 2>&1 | grep
+  -E "error|warning" | grep -v link-unresolved | cut -c1-300 | head; cheme validate 2>&1 | tail -2 | head
+  -1
+- cheme process energy 2>&1 | grep -E "warning|error" | cut -c1-300 | head; cheme validate 2>&1 | grep
+  -E "error|warning" | grep -v link-unresolved | cut -c1-300 | head; cheme validate 2>&1 | tail -2 | head
+  -1
+- cheme process energy 2>&1 | grep -E "warning|error" | head; cheme validate 2>&1 | grep -E "error|warning"
+  | grep -v link-unresolved | head; cheme validate 2>&1 | tail -2 | head -1
+- cheme process energy 2>&1 | tail -30
+- cheme process furnace
+- cheme process furnace --help >/dev/null; grep -rn "mixed-feed-shaft" /Users/arturschweidtmann/.local/share/uv/tools/cheme-as-code/lib/python3.15/site-packages/chemeascode/
+  2>/dev/null | head -10
+- cheme process furnace; cheme process furnace --json | head -80
+- cheme process propagate --fill 2>&1 | tail -30
+- cheme process propagate --fill 2>&1 | tail -3; cheme process build 2>&1 | grep -c warning; cheme process
+  streams 2>&1 | tail -45
+- "cheme schema equipment | python3 -c \"\nimport json,sys; d=json.load(sys.stdin)\nfor k,v in d['\\$defs'].items():\n\
+  \  if 'type' in v.get('properties',{}): \n    t=v['properties']['type']; print(k, json.dumps(t)[:1500])\n\
+  \""
+- 'cheme schema furnaces | python3 -c "import json,sys; d=json.load(sys.stdin); print(json.dumps(d,indent=0))"
+  | sed -n ''300,700p'' | grep -v ''^"type": "null"'' | grep -v ''^{$\|^},\?$\|anyOf\|^\]'' | head -150'
+- cheme schema furnaces | python3 -c "import json,sys; d=json.load(sys.stdin); print(json.dumps(d,indent=1))"
+  | head -300
+- "cheme schema lca > /tmp/lca.json; python3 -c \"\nimport json; d=json.load(open('/tmp/lca.json'))\n\
+  for k in ['FlowMapping','Treatment','Elementary','Disposal']:\n  v=d['\\$defs'].get(k)\n  if not v:\
+  \ continue\n  print('==',k,(v.get('description') or '')[:300].replace('\\n',' '))\n  for p,pv in v.get('properties',{}).items():\
+  \ print('   ',p,':',(pv.get('description') or '')[:220].replace('\\n',' '), json.dumps(pv.get('enum')\
+  \ or [x.get('enum') for x in pv.get('anyOf',[]) if 'enum' in x])[:150])\nprint([k for k in d['\\$defs']])\n\
+  \""
+- "cheme schema process-flowsheet > /tmp/fs.json; python3 -c \"\nimport json; d=json.load(open('/tmp/fs.json'))\n\
+  for k,v in d['\\$defs'].items():\n    print('==',k, ':', (v.get('description') or '')[:200].replace('\\\
+  n',' '))\n    for p,pv in v.get('properties',{}).items():\n        print('   ',p, ':', (pv.get('description')\
+  \ or '')[:160].replace('\\n',' '))\n\""
+- "cheme schema process-materials > /tmp/m.json; cheme schema process-reactions > /tmp/r.json; python3\
+  \ -c \"\nimport json\nfor f in ['/tmp/m.json','/tmp/r.json']:\n  d=json.load(open(f))\n  for k,v in\
+  \ d['\\$defs'].items():\n    print('==',k, ':', (v.get('description') or '')[:200].replace('\\n',' '))\n\
+  \    for p,pv in v.get('properties',{}).items():\n        print('   ',p, ':', (pv.get('description')\
+  \ or '')[:200].replace('\\n',' '))\n\""
+- "cheme schema process-simulation | python3 -c \"\nimport json,sys; d=json.load(sys.stdin)\nprint(d.get('required'),\
+  \ list(d['properties']))\nfor k,v in d['\\$defs'].items():\n  if 'mode' in v.get('properties',{}) or\
+  \ k in ('StepSpec','Step'):\n    print(k, list(v['properties']), v.get('required'))\n    print(json.dumps(v['properties'].get('mode'))[:300])\n\
+  \""
+- cheme schema; cheme process furnace --help; cheme schema process-furnaces 2>/dev/null | head -c 6000
+- cheme validate 2>&1 | grep -E "error|warning|info" | cut -c1-250 | head; cheme validate 2>&1 | tail
+  -2 | head -1
+- cheme validate 2>&1 | grep -E "error|warning|info" | grep -v dexpi.load | cut -c1-250 | head; cheme
+  validate 2>&1 | tail -2 | head -1
+- cheme validate 2>&1 | grep -E "warning|error" | cut -c1-300
+- cheme validate 2>&1 | tail -2 | head -1; cheme assess lca --coverage 2>&1 | grep -E "warning|error|^result|^gaps|^balance|emission:"
+  | cut -c1-200
+checks_after_run:
+- command: cheme check
+  exit: 1
+  summary:
+    counts:
+      ok: 11
+      FAIL: 11
+      n/a: 3
+    failed:
+    - basic/pids-exist
+    - basic/design-review
+    - concept/layout-plot-plan
+    - basic/layout-3d
+    - basic/lifting-study
+    - basic/mto
+    - basic/layout-review
+    - detail/layout-detail
+    - detail/electrical
+    - detail/hvac
+    - detail/datasheets
+- command: cheme maturity
+  exit: 0
+  summary:
+    counts:
+      ok: 10
+      FAIL: 5
+    failed:
+    - sourced.boundary
+    - balanced.model-basis
+    - predictive.simulation-spec
+    - predictive.model-basis
+    - engineering.datasheets
+    levels:
+      sourced: fail
+      balanced: fail
+      predictive: fail
+      engineering: fail
+- command: cheme process propagate --check
+  exit: 0
+  summary:
+    last_line: ''
+outcome:
+  result: success
+  guard_denials: 0
+  report: report.md
+observed_later: {}

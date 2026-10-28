@@ -1,0 +1,40 @@
+# Components and templates of the process. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol,
+# normal_boiling_point in K at 101.325 kPa.
+#
+# Solvay process (D-001). Dissolved species are carried as neutral molecules (NaCl, NH3, CO2,
+# NH4Cl, CaCl2 in water): an inventory basis, not a speciation; core does not yet speciate
+# NH3-CO2-NaCl-CaCl2-H2O liquors (core #364, DESIGN.md D-007). "Free" ammonia of the mother
+# liquor (ammonium (bi)carbonate) is carried as NH3 + CO2. Solids are separate components
+# (phase: solid). The product's NaCl (dried residue of the cake liquor) is carried as NaCl.
+# Molar masses from IUPAC 2021 standard atomic weights; CAS from PubChem.
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.015, normal_boiling_point: 373.12}
+  - {id: NaCl, name: Sodium chloride (dissolved; dry residue in the product), formula: NaCl, cas: 7647-14-5, molar_mass: 58.443}
+  - {id: NH3, name: Ammonia, formula: NH3, cas: 7664-41-7, molar_mass: 17.031, normal_boiling_point: 239.82}
+  - {id: CO2, name: Carbon dioxide, formula: CO2, cas: 124-38-9, molar_mass: 44.010}
+  - {id: NH4Cl, name: Ammonium chloride (dissolved), formula: NH4Cl, cas: 12125-02-9, molar_mass: 53.491}
+  - {id: CaCl2, name: Calcium chloride (dissolved), formula: CaCl2, cas: 10043-52-4, molar_mass: 110.984}
+  - {id: N2, name: Nitrogen (with argon of the air), formula: N2, cas: 7727-37-9, molar_mass: 28.014, normal_boiling_point: 77.36}
+  - {id: O2, name: Oxygen, formula: O2, cas: 7782-44-7, molar_mass: 31.998, normal_boiling_point: 90.19}
+  - {id: NaHCO3, name: Sodium bicarbonate (crystals), formula: NaHCO3, cas: 144-55-8, molar_mass: 84.007, phase: solid}
+  - {id: Na2CO3, name: Sodium carbonate (light soda ash), formula: Na2CO3, cas: 497-19-8, molar_mass: 105.988, phase: solid}
+  - {id: CaCO3, name: Calcium carbonate (limestone), formula: CaCO3, cas: 471-34-1, molar_mass: 100.087, phase: solid}
+  - {id: CaO, name: Calcium oxide (burnt lime), formula: CaO, cas: 1305-78-8, molar_mass: 56.077, phase: solid}
+  - {id: CaOH2, name: Calcium hydroxide (milk of lime solids), formula: Ca(OH)2, cas: 1305-62-0, molar_mass: 74.093, phase: solid}
+  - {id: SiO2, name: Silica (stands for limestone impurities and coke ash), formula: SiO2, cas: 7631-86-9, molar_mass: 60.084, phase: solid}
+  - {id: C, name: Carbon (fixed carbon of the coke), formula: C, cas: 7440-44-0, molar_mass: 12.011, phase: solid}
+templates:
+  - id: solvay
+    title: Solvay process streams (gases, liquors, slurries, solids)
+    components: [H2O, NaCl, NH3, CO2, NH4Cl, CaCl2, N2, O2, NaHCO3, Na2CO3, CaCO3, CaO, CaOH2, SiO2, C]
+  - id: gas
+    title: Tower exit gas and vent gas
+    components: [CO2, N2, O2, NH3, H2O]
+# property_method is a placeholder: no benchmarked package covers aqueous electrolytes or solids
+# (D-007); `cheme process props --coverage` reports every stream as not covered.
+property_method:
+  adapter: thermo
+  status: placeholder
