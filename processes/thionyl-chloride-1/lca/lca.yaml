@@ -1,0 +1,103 @@
+# Goal and scope of the thionyl-chloride-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme assess
+# lca --inventory --write` and `--coverage` (lca/inventory.csv, gaps.csv, dataset.yaml,
+# manifest.json); never edit those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the plant
+# with its amount per functional unit from the balanced flowsheet. The background of every
+# purchased input and utility is deliberately left UNMAPPED (`missing:` with the activity it
+# should connect to later): a gap, never zero, and no values from licensed databases. The
+# plant's own emissions to air (SO2, Cl2 and sulfur chloride traces in the scrubbed vent) are
+# mapped as elementary flows.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of technical-grade thionyl chloride made from
+  sulfur, chlorine and sulfur dioxide over activated carbon at the concept stage: which raw
+  materials, utilities, wastes and emissions the plant exchanges per kg of thionyl chloride, as
+  the foreground for a later cradle-to-gate study. No impact results: the backgrounds are not
+  mapped yet (D-012).
+functional_unit: {product: SOCL2, amount: 1, unit: kg, source: "1 kg of liquid thionyl chloride (99.7 wt% SOCl2) at the plant gate to storage, stream S31 (D-002, D-012)"}
+# Gate-to-gate in the sense of the foreground (the plant's own exchanges). The boundary key stays
+# cradle-to-gate so that the purchased inputs remain open gaps instead of being mapped free (the
+# schema's gate-to-gate maps every feed free), as phosgene-1 and sulfuric-acid-1 do (D-012).
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Sulfur chlorinated to S2Cl2/SCl2 in the boundary; SCl2 + SO2 + Cl2 over activated carbon at 398-473 K; condensation, degassing and SO2/Cl2 recycle; distillation with sulfur; caustic purge scrubber; 3.75 t/h thionyl chloride"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+flows:
+  # raw materials
+  - key: feed:SULFUR
+    missing: "not mapped yet (D-012); connect to: elemental sulfur, liquid (molten), recovered from sour gas or refinery off-gas in a Claus sulfur recovery unit, delivered heated; no library process makes elemental sulfur yet"
+    source: "flowsheet stream S1 (D-003, D-004, D-008)"
+  - key: feed:CL2
+    missing: "not mapped yet (D-012); connect to: chlorine gas from membrane chlor-alkali electrolysis (processes/chlor-alkali-1, product:CL2), plus its drying, liquefaction and re-evaporation, not modelled in chlor-alkali-1 yet"
+    source: "flowsheet stream S2 (D-003)"
+  - key: feed:SO2
+    missing: "not mapped yet (D-012); connect to: liquid sulfur dioxide 99.9 %, from sulfur burning with oxygen or air and SO2 absorption/liquefaction; no library process makes pure liquid SO2 (sulfuric-acid-1 has only dilute burner gas)"
+    source: "flowsheet stream S3 (D-003)"
+  - key: feed:NAOH
+    missing: "not mapped yet (D-012); connect to: sodium hydroxide 50 wt% in water from membrane chlor-alkali electrolysis (processes/chlor-alkali-1, product:NAOH), allocated as there"
+    source: "flowsheet stream S40 (D-009)"
+  - key: feed:PW
+    missing: "not mapped yet (D-012); connect to: process (softened or demineralised) water from the site water treatment"
+    source: "flowsheet stream S41 (D-009)"
+  # utilities
+  - key: feed:POWER
+    missing: "not mapped yet (D-012); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy streams Q11 (recycle compressor), Q14-Q17 (pumps), D-010"
+  - key: feed:LPS
+    missing: "not mapped yet (D-012); connect to: steam in the chemical industry, 500 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per MJ of condensing heat"
+    source: "flowsheet energy streams Q3, Q4, Q5 (vaporisers, preheater), Q9 (degasser reboiler), Q13 (column reboiler), D-010"
+  - key: product:CW
+    missing: "not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system with cooling tower (pump and fan electricity, make-up water, evaporation, blowdown, treatment chemicals), per kWh removed (e.g. processes/utility-cooling-tower)"
+    source: "flowsheet energy streams Q1, Q2 (chlorinators), Q6 (reactor), Q7 (crude condenser), Q12 (column condenser), D-010"
+  - key: product:BRINE
+    missing: "not mapped yet (D-012); connect to: refrigeration at 253 K (brine) from an electric vapour-compression unit (e.g. processes/utility-chiller), per kWh of heat removed: compressor electricity at its COP, condenser cooling water, refrigerant losses"
+    source: "flowsheet energy streams Q8 (crude after-condenser) and Q10 (degasser condenser), D-007"
+  # waste
+  - key: product:EFF
+    treatment: {kind: waste, route: "site wastewater treatment: oxidation of the sulfite and thiosulfate, neutralisation of the excess NaOH, discharge of Na2SO4 and NaCl as dissolved salts"}
+    missing: "not mapped yet (D-012); connect to: treatment of alkaline saline process effluent with sulfite (Na2SO3, Na2SO4, NaCl, NaOH) in an industrial wastewater treatment plant (e.g. processes/utility-wwtp), per kg"
+    source: "flowsheet stream S44 (D-009)"
+  # emissions: the scrubbed vent to atmosphere (through a vent stack; non-urban high stack
+  # ASSUMED for a site not chosen, D-012)
+  - {key: product:STACK, emission: true, source: "scrubbed vent to atmosphere through the vent stack, stream S43 (D-009)"}
+  - {key: emission:O2, free: true, source: "the O2 impurity of the chlorine feed returned to the atmosphere"}
+  - {key: emission:H2O, free: true, source: "water vapour of the scrubber liquor leaving with the vent"}
+  - key: emission:SO2
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    source: "SO2 not absorbed in the caustic scrubber (0.1 %, ASSUMED, D-009), stream S43"
+  - key: emission:CL2
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    source: "chlorine not absorbed in the caustic scrubber (0.1 %, ASSUMED, D-009), stream S43"
+  - key: emission:SOCL2
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    source: "thionyl chloride slip of the scrubber (0.1 %, ASSUMED, D-009), stream S43; hydrolyses in moist air to SO2 and HCl (not modelled)"
+  - key: emission:SCL2
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    source: "sulfur dichloride slip of the scrubber (0.1 %, ASSUMED, D-009), stream S43"
+  - key: emission:S2CL2
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    source: "disulfur dichloride slip of the scrubber (0.1 %, ASSUMED, D-009), stream S43 (about 1e-9 kg/kg)"
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 25 a service life ASSUMED"
+cutoff:
+  - {id: activated-carbon, title: "Activated carbon catalyst of R-201 (make-up and spent carbon)", direction: input, unit: kg, catalyst: true, contains: [C], reason: "Not counted: no open source gives a carbon life or replacement rate for this service yet; amount unknown, so the cut-off criteria cannot be checked (open, D-012). The spent carbon leaves as a waste of the same amount."}
+  - {id: iron-catalyst, title: "Iron (FeCl3) catalyst traces of the sulfur chlorination", direction: input, unit: kg, catalyst: true, contains: [Fe], reason: "DE2430631A1 adds iron to the sulfur melt; not modelled in the balance, amount unknown (open, D-004, D-012)."}
+emission_exclusions:
+  - {id: fugitive-chlorides, method: equipment-leaks, reason: "No P&ID yet: fugitive SO2, Cl2, SCl2 and SOCl2 from flanges, valves and seals cannot be counted (open for basic engineering, D-011)."}
+  - {id: storage-breathing, method: storage-tank, reason: "Product and sulfur chloride storage are outside the boundary; their breathing vents to T-401 are not in the balance (D-011)."}
+  - {id: startup-shutdown, method: non-routine, reason: "Start-up, shutdown and carbon change-out releases (purged to T-401) are not estimated (D-012)."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals; CPC to be added
+  modelling: {principle: attributional}
+  geography: {description: "Generic site integrated with a chlor-alkali plant, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #138, unreviewed"
