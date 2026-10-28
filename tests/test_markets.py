@@ -45,6 +45,7 @@ def _asu_library(tmp: Path, user: bool = True) -> Path:
     library = tmp / "library"
     (library / "processes" / "asu-1" / "lca").mkdir(parents=True)
     shutil.copy(KIT / "processes" / "asu-1" / "process.yaml", library / "processes" / "asu-1")
+    shutil.copy(KIT / "processes" / "asu-1" / "lca" / "mappings.yaml", library / "processes" / "asu-1" / "lca")  # its own overrides
     for name in ("dataset.yaml", "lca.yaml", "factors.yaml"):
         shutil.copy(ASU / name, library / "processes" / "asu-1" / "lca")
     shutil.copytree(KIT / "chemicals", library / "chemicals")

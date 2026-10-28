@@ -48,6 +48,7 @@ def _library(tmp_path: Path, dataset: Path = KIT / "processes" / "asu-1" / "lca"
     library = tmp_path / "library"
     (library / "processes" / "asu-1" / "lca").mkdir(parents=True)
     shutil.copy(KIT / "processes" / "asu-1" / "process.yaml", library / "processes" / "asu-1")
+    shutil.copy(KIT / "processes" / "asu-1" / "lca" / "mappings.yaml", library / "processes" / "asu-1" / "lca")  # its own overrides
     shutil.copy(dataset, library / "processes" / "asu-1" / "lca" / "dataset.yaml")
     for folder in ("chemicals", "taxonomy", "lci", "benchmarks"):
         shutil.copytree(KIT / folder, library / folder)

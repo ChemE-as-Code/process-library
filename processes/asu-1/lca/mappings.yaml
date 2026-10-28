@@ -1,0 +1,57 @@
+# asu-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`. Moved unchanged from
+# lci/mappings.yaml exchanges ("asu-1/<key>").
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "product:CW":
+    atlas: false
+    source: >-
+      ASU-1's heat rejected stays on the cooling-water screening proxy until ASU-1 decides which
+      cooling configuration its site has (asu-1 DESIGN.md, #77). Then this override goes and the
+      exchange links processes/utility-cooling-tower with prefer_atlas (#45, What remains).
+  "product:LIN":
+    properties_reason: >-
+      The study's LIN is stream S11 to storage, subcooled at 5.2 bar and -181 C, not the grade's
+      reference state (saturated at 1.01325 bar). At the stream's state, NIST SRD 69 h and s with
+      Szargut's chemical exergy give about 710 kJ/kg, within 1 % of the study's 707 kJ/kg; the
+      grade's 787 kJ/kg is for the saturated liquid.
+  # asu-1 (D-092) characterises with open factors (desnz-ghg-2026:*, own estimates) and declares
+  # flows without an open factor missing: in the open study; for a licensed background the
+  # exchanges keep the ecoinvent mappings they had (by the former example factor ids).
+  "feed:POWER":
+    use: electricity-high-voltage
+    source: >-
+      ASU-1 takes its power from the grid at 33 kV (asu-1 D-036), which ecoinvent counts as high
+      voltage (above 24 kV), so it does not take the library's medium-voltage default. Before
+      D-092 the exchange used the factor electricity (medium voltage).
+  "construction:steel": {use: steel-sections, source: "the ecoinvent mapping of the former factor steel-sections (asu-1 D-092)"}
+  "construction:pipe": {use: pipe, source: "the ecoinvent mapping of the former factor pipe (asu-1 D-092)"}
+  "construction:concrete": {use: concrete, source: "the ecoinvent mapping of the former factor concrete (asu-1 D-092)"}
+  "construction:grating": {use: grating, source: "the ecoinvent mapping of the former factor grating (asu-1 D-092)"}
+  "construction:insulation": {use: insulation, source: "the ecoinvent mapping of the former factor insulation (asu-1 D-092)"}
+  "construction:valves": {use: fitting, source: "the ecoinvent mapping of the former factor fitting (asu-1 D-092)"}
+  "construction:flanges": {use: fitting, source: "the ecoinvent mapping of the former factor fitting (asu-1 D-092)"}
+  "construction:gaskets": {use: fitting, source: "the ecoinvent mapping of the former factor fitting (asu-1 D-092)"}
+  "construction:elbows": {use: fitting, source: "the ecoinvent mapping of the former factor fitting (asu-1 D-092)"}
+  "construction:tees": {use: fitting, source: "the ecoinvent mapping of the former factor fitting (asu-1 D-092)"}
+  "construction:reducers": {use: fitting, source: "the ecoinvent mapping of the former factor fitting (asu-1 D-092)"}
+  "construction:inline": {use: fitting, source: "the ecoinvent mapping of the former factor fitting (asu-1 D-092)"}
+  "construction:equipment-al": {use: aluminium, source: "the ecoinvent mapping of the former factor aluminium (asu-1 D-092)"}
+  "construction:equipment-cs": {use: steel-sections, source: "the ecoinvent mapping of the former factor steel-sections (asu-1 D-092)"}
+  "construction:equipment-ss": {use: stainless-steel, source: "the ecoinvent mapping of the former factor stainless-steel (asu-1 D-092)"}
+  "consumable:molecular-sieve": {use: adsorbent, source: "the ecoinvent mapping of the former factor adsorbent (asu-1 D-092)"}
+  "consumable:lube-oil": {use: lube-oil, source: "the ecoinvent mapping of the former factor lube-oil (asu-1 D-092)"}
+  "maintenance:steel": {use: steel-sections, source: "the ecoinvent mapping of the former factor steel-sections (asu-1 D-092)"}
+  "maintenance:pipe": {use: pipe, source: "the ecoinvent mapping of the former factor pipe (asu-1 D-092)"}
+  "maintenance:insulation": {use: insulation, source: "the ecoinvent mapping of the former factor insulation (asu-1 D-092)"}
+  "maintenance:valves": {use: fitting, source: "the ecoinvent mapping of the former factor fitting (asu-1 D-092)"}
+  "maintenance:equipment-al": {use: aluminium, source: "the ecoinvent mapping of the former factor aluminium (asu-1 D-092)"}
+  "maintenance:equipment-cs": {use: steel-sections, source: "the ecoinvent mapping of the former factor steel-sections (asu-1 D-092)"}
+  "maintenance:equipment-ss": {use: stainless-steel, source: "the ecoinvent mapping of the former factor stainless-steel (asu-1 D-092)"}
+  "transport:construction-to-site": {use: lorry, source: "the ecoinvent mapping of the former factor lorry (asu-1 D-092)"}
+  "transport:consumables-to-site": {use: lorry, source: "the ecoinvent mapping of the former factor lorry (asu-1 D-092)"}
+  # end of life: excluded under cut-off (cutoff_exclusions), a credit in the substitution variant
+  "end-of-life:steel-recycling": {use: steel-recycling, source: "cut-off: excluded, no credit (cutoff_exclusions.steel-recycling, process-library#52); substitution: the credit proxy"}
+  "end-of-life:aluminium-recycling": {use: aluminium-recycling, source: "cut-off: excluded, no credit (cutoff_exclusions.aluminium-recycling, process-library#52); substitution: the credit proxy"}

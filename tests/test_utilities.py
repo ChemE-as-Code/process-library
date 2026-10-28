@@ -167,6 +167,7 @@ def _library(tmp: Path, consumer: dict | None = None, mappings_change=None) -> P
         shutil.copytree(KIT / "processes" / pid, library / "processes" / pid)
     (library / "processes" / "asu-1" / "lca").mkdir(parents=True)
     shutil.copy(KIT / "processes" / "asu-1" / "process.yaml", library / "processes" / "asu-1")
+    shutil.copy(KIT / "processes" / "asu-1" / "lca" / "mappings.yaml", library / "processes" / "asu-1" / "lca")  # its own overrides
     shutil.copy(KIT / "processes" / "asu-1" / "lca" / "dataset.yaml", library / "processes" / "asu-1" / "lca")
     if consumer is not None:
         folder = library / "processes" / "test-consumer"
@@ -247,7 +248,11 @@ def test_utilities_link_one_another_inside_the_atlas_and_asu_1_stays_on_its_prox
 
 
 def test_without_the_override_asu_1_links_the_cooling_tower(tmp_path: Path) -> None:
-    library = _library(tmp_path, mappings_change=lambda m: m["exchanges"].pop("asu-1/product:CW"))
+    library = _library(tmp_path)
+    path = library / "processes" / "asu-1" / "lca" / "mappings.yaml"  # its own overrides (ADR 0022)
+    data = yaml.safe_load(path.read_text())
+    data["exchanges"].pop("product:CW")
+    path.write_text(yaml.safe_dump(data, sort_keys=False))
     assert _build(library, tmp_path).errors == []
     asu = _exchange(_activities(tmp_path)["asu-1:asu-1-500-t-d-gox:product:GOXP"], "product:CW")
     assert asu["atlas activity"] == "Cooling water, evaporative cooling tower, 25/35 degC"
