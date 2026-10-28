@@ -54,7 +54,7 @@ flows:
     source: "Q9 (K-101) + Q10 (P-202) + Q11 (P-401) + Q12 (auxiliaries, ASSUMED 20 kWh/t), D-008"
   - key: feed:MPS
     missing: "no background linked yet. Connect: heat from MP steam 2800 kPa(a) of the site's boiler or CHP plant (natural gas fired, condensate returned), per kWh of heat delivered; the library's utility-steam-ng-boiler is a candidate once its grade matches"
-    source: "Q5-Q8: MP steam import to the glycol column and drying column reboilers, net of the 83.5 MW steam raised in R-101 and used in the plant (D-008)"
+    source: "Q4-Q8 and Q23: MP steam import to the first evaporator effect (top-up), the glycol reactor feed heater and the drying and glycol column reboilers, net of the 66.3 MW steam raised in R-101 (reaction heat less the gas heating across the reactor) and used in the plant (D-008)"
   - key: product:CW
     missing: "no background linked yet. Connect: cooling water from a circulating evaporative cooling tower (pumping, fans, make-up water and treatment chemicals), per kWh of heat rejected; the library's utility-cooling-tower is a candidate"
     source: "Q13-Q22 (D-008)"
@@ -69,7 +69,7 @@ flows:
     treatment:
       kind: waste
       route: "combustion in the site fuel gas system (boiler or furnace) with energy recovery, BREF LVOC 7.2.2.1"
-    missing: "no background linked yet. Connect: combustion of a hydrocarbon purge gas in an industrial boiler (CO2 from its 35 wt% C2H4, 38 wt% CH4, 1.2 wt% C2H6 and 3.6 wt% CO2 as fossil emissions, about 2.7 kg CO2 per kg purge by carbon balance), per kg; the heat it displaces is a credit only under a crediting system model"
+    missing: "no background linked yet. Connect: combustion of a hydrocarbon purge gas in an industrial boiler (CO2 from its 35 wt% C2H4, 38 wt% CH4, 1.2 wt% C2H6 and 3.6 wt% CO2 as fossil emissions, about 2.2 kg CO2 per kg purge by carbon balance (0.60 kg C/kg)), per kg; the heat it displaces is a credit only under a crediting system model"
     source: "stream S16: 0.15 % of the recycle gas (D-004)"
   - key: product:WW
     treatment:
@@ -113,12 +113,31 @@ operation:
   life_years: 25
   source: "design basis operating_hours_per_year 8000 (ASSUMED); 25 a service life ASSUMED; no construction inventory at this stage (no take-off)"
 
-# Consumables not in the flowsheet: open items, not in this inventory yet (D-010). The silver
-# EO catalyst (about 0.2 kg/t EO, i.e. 0.16 g/kg MEG, inside the BREF LVOC 7.3.6.3 range of
-# 0.12-0.8 kg/t EO, to silver reclaimers), the potassium carbonate make-up, the organochlorine
-# moderator and the methane of the CO2 vent's oxidiser are left out until their compositions
-# are known: a consumable without one makes the element balance of the inventory not
-# assessable (cheme lci-balance-unassessable).
+# Consumables not in the flowsheet (D-010, review 2026-10-28 #4). The silver EO catalyst is
+# never cut (a catalyst with a precious metal): counted with an ASSUMED amount and no
+# background. The carbonate make-up and the moderator are cut with the reason; their amounts
+# are not known yet.
+# Silver catalyst: 0.2 kg spent catalyst per t EO (ASSUMED, inside the BREF LVOC 7.3.6.3 range
+# of 0.12-0.8 kg/t EO) x 39.11 t/h EO x 8000 h/a = 62 600 kg/a, about 0.16 g/kg MEG.
+consumables:
+  - id: eo-catalyst
+    title: "Silver EO catalyst on alumina (replacement charge, averaged)"
+    unit: kg
+    per_year: 62600
+    catalyst: true
+    # ASSUMED silver content 15 wt% on alpha-alumina: a round value inside the 10-20 wt% usually
+    # quoted for EO catalysts, not from a source read. Core takes no consumable composition from
+    # this file, so the element and carbon-origin balances report not assessable (D-010).
+    metals: {Ag: 0.15}
+    missing: "no background linked yet; silver content and support not sourced. Connect: silver catalyst manufacture (silver and alpha-alumina support), per kg; the silver is reclaimed from the spent catalyst"
+    source: "DESIGN.md D-010; ASSUMED 0.2 kg/t EO inside BREF LVOC 2017 7.3.6.3 (0.12-0.8 kg/t EO spent catalyst)"
+    disposal:
+      kind: recyclable
+      route: "silver recovery from the spent catalyst at a precious-metal reclaimer (BREF LVOC 2017 7.3.6.3)"
+      source: "BREF LVOC 2017 7.3.6.3: spent EO catalyst goes to silver recovery"
+cutoff:
+  - {id: k2co3-makeup, title: "Potassium carbonate make-up of the CO2 removal solution", unit: kg, cas: "584-08-7", reason: "solution losses not sourced at the concept stage (no open per-tonne figure found); a small make-up compared with the 1 % input-mass limit is expected but not shown", source: "DESIGN.md D-010"}
+  - {id: moderator, title: "Organochlorine moderator of the EO catalyst (e.g. ethyl chloride or 1,2-dichloroethane)", unit: kg, reason: "ppm-level feed to the reactor gas, amount and compound not sourced; its chlorine leaves with the purge, the vent and the bleed (emission_exclusions trace-byproducts)", source: "DESIGN.md D-001, D-010"}
 
 uncertainty:
   iterations: 1000

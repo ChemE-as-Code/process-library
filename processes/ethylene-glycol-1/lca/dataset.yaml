@@ -17,6 +17,17 @@ technology: 'EO/EG glycols-only plant: O2-based EO reactor (silver catalyst, met
   vacuum MEG/DEG/TEG columns; 50 t/h MEG'
 rights: 'CC-BY-4.0: the ChemE-as-Code process library''s own concept design (LICENSE-DATA)'
 cutoff:
+- key: cutoff:k2co3-makeup
+  title: Potassium carbonate make-up of the CO2 removal solution
+  reason: solution losses not sourced at the concept stage (no open per-tonne figure found); a small make-up
+    compared with the 1 % input-mass limit is expected but not shown
+  cas: 584-08-7
+  source: DESIGN.md D-010
+- key: cutoff:moderator
+  title: Organochlorine moderator of the EO catalyst (e.g. ethyl chloride or 1,2-dichloroethane)
+  reason: ppm-level feed to the reactor gas, amount and compound not sourced; its chlorine leaves with
+    the purge, the vent and the bleed (emission_exclusions trace-byproducts)
+  source: DESIGN.md D-001, D-010
 - key: emission-excluded:eo-vents
   title: non-routine emissions of C-202, C-203
   direction: output
@@ -155,21 +166,25 @@ exchanges:
 - key: feed:MPS
   title: MP steam 2800 kPa(a) import
   type: input
-  amount: 22472.8
+  amount: 54894.5
   unit: kWh
   link:
-    source: 'Q5-Q8: MP steam import to the glycol column and drying column reboilers, net of the 83.5
-      MW steam raised in R-101 and used in the plant (D-008)'
+    source: 'Q4-Q8 and Q23: MP steam import to the first evaporator effect (top-up), the glycol reactor
+      feed heater and the drying and glycol column reboilers, net of the 66.3 MW steam raised in R-101
+      (reaction heat less the gas heating across the reactor) and used in the plant (D-008)'
     missing: 'no background linked yet. Connect: heat from MP steam 2800 kPa(a) of the site''s boiler
       or CHP plant (natural gas fired, condensate returned), per kWh of heat delivered; the library''s
       utility-steam-ng-boiler is a candidate once its grade matches'
   streams:
+  - Q4
   - Q5
   - Q6
   - Q7
   - Q8
-  source: 'Q5-Q8: MP steam import to the glycol column and drying column reboilers, net of the 83.5 MW
-    steam raised in R-101 and used in the plant (D-008)'
+  - Q23
+  source: 'Q4-Q8 and Q23: MP steam import to the first evaporator effect (top-up), the glycol reactor
+    feed heater and the drying and glycol column reboilers, net of the 66.3 MW steam raised in R-101 (reaction
+    heat less the gas heating across the reactor) and used in the plant (D-008)'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -320,8 +335,8 @@ exchanges:
     source: 'stream S16: 0.15 % of the recycle gas (D-004)'
     missing: 'no background linked yet. Connect: combustion of a hydrocarbon purge gas in an industrial
       boiler (CO2 from its 35 wt% C2H4, 38 wt% CH4, 1.2 wt% C2H6 and 3.6 wt% CO2 as fossil emissions,
-      about 2.7 kg CO2 per kg purge by carbon balance), per kg; the heat it displaces is a credit only
-      under a crediting system model'
+      about 2.2 kg CO2 per kg purge by carbon balance (0.60 kg C/kg)), per kg; the heat it displaces is
+      a credit only under a crediting system model'
   streams:
   - S16
   source: 'stream S16: 0.15 % of the recycle gas (D-004)'
@@ -405,7 +420,7 @@ exchanges:
 - key: product:CW
   title: Cooling water return
   type: output
-  amount: 171619.5
+  amount: 170879.7
   unit: kWh
   link:
     source: Q13-Q22 (D-008)
@@ -544,6 +559,42 @@ exchanges:
     formulas:
       H2O: H2O
     source: stream table (S21)
+- key: consumable:eo-catalyst
+  title: Silver EO catalyst on alumina (replacement charge, averaged)
+  type: input
+  amount: 7.825
+  unit: kg
+  link:
+    source: DESIGN.md D-010; ASSUMED 0.2 kg/t EO inside BREF LVOC 2017 7.3.6.3 (0.12-0.8 kg/t EO spent
+      catalyst)
+    missing: 'no background linked yet; silver content and support not sourced. Connect: silver catalyst
+      manufacture (silver and alpha-alumina support), per kg; the silver is reclaimed from the spent catalyst'
+  source: DESIGN.md D-010; ASSUMED 0.2 kg/t EO inside BREF LVOC 2017 7.3.6.3 (0.12-0.8 kg/t EO spent catalyst)
+  pedigree:
+    scores: [4, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  metals:
+    Ag: 0.15
+- key: disposal:consumable.eo-catalyst
+  title: 'Disposal: Silver EO catalyst on alumina (replacement charge, averaged) (silver recovery from
+    the spent catalyst at a precious-metal reclaimer (BREF LVOC 2017 7.3.6.3))'
+  type: output
+  amount: 7.825
+  unit: kg
+  free: true
+  streams:
+  - consumable:eo-catalyst
+  source: 'BREF LVOC 2017 7.3.6.3: spent EO catalyst goes to silver recovery'
+  pedigree:
+    scores: [4, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  treatment:
+    kind: recyclable
+    route: silver recovery from the spent catalyst at a precious-metal reclaimer (BREF LVOC 2017 7.3.6.3)
+  metals:
+    Ag: 0.15
 allocation:
   coproducts:
   - MEG
@@ -561,9 +612,9 @@ provenance:
   plant: Ethylene glycol by ethylene oxide hydration (glycols only, 50 t/h MEG)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:dbc6697607cb24b9dfd825743974fd68f798c2b1059a70c2e529f2e97ab869e3
-    lca/lca.yaml: sha256:babbea4e8cf7da56b7f64073644ab5fc2e4f662ff97ff69d0f82e2cfeaeffba6
-    process.yaml: sha256:ea809e194c503f2b0b28f18b16ce9ea00cba1533bf9cdf87b46559e79a8e57b4
-    process/flowsheet.yaml: sha256:1721b16fc91f9ad2c0e3d3400637aa79f6f3361363d71964252629de47375c94
+    equipment/equipment-list.yaml: sha256:e1b62877b306d4740b1cb5cbae8847d0d5cb819907b9ff34c9fb43247bfca0ca
+    lca/lca.yaml: sha256:0f1579dcb2e6cf331faa97be1f748e87f50ee635e36e830998363c55fcd0c633
+    process.yaml: sha256:8f361df26cc0a5ddf7a7807f3dce2cb878f27b4ba0ca3dbbd922bc3abbb7104c
+    process/flowsheet.yaml: sha256:52628f15f2f7108bf34d20aa11468f7a2a3d246d63730ede35ffaf4ecba48a90
     process/materials.yaml: sha256:6a40eb7f65a7dc643a26d9bd8bb663d2e7b2a3fdc99d5abc109bb58c60f12f3c
     process/simulation.yaml: sha256:3b4098790fcf5c55a75eeca2da8745e351b2069cf2975a54740d7b82ee392ff0
