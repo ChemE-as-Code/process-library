@@ -229,6 +229,16 @@ Results (unallocated per kg aniline): nitrobenzene 1.329 kg, hydrogen 0.0674 kg,
 has no composition in the lca schema); its "energy closure 32 %" compares the energy exchanges
 only (power in, cooling water and steam out) and does not see the reaction heat, which the
 script's plant energy balance closes (D-006).
+Library build (`scripts/build_lci.py --strict`, run locally): aniline-1 reports 4 gaps
+(feed:NBF, product:FUELGAS, product:RESIDUE, consumable:hydrogenation-catalyst: no registry slug
+or mapping) and no warning of its own beyond the cut-off check that needs core installed (as
+for every process). Two side effects were removed: (1) by the slug hydrogen the build linked
+feed:H2F to chlor-alkali-1, the first Atlas producer, not hydrogen-1: lca/mappings.yaml sets
+`atlas: false` until the link to hydrogen-1 is pinned on purpose; (2) with the slug steam the
+export made aniline-1 the first Atlas steam producer, refused for hda-1's and soda-ash-1's HP
+steam (whose links it displaced): process.yaml lists the steam co-product without an
+inventory_key. The Atlas build still maps feed:POWER, product:CW and product:WW by their
+registry slugs through the shared vocabulary; this folder's lca.yaml keeps them `missing:`.
 Assumptions: the flows are concept estimates; geography generic (GLO).
 
 ## Missing entries of the chemicals registry (for the consolidated PR)
