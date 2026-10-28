@@ -80,6 +80,11 @@ Reason: two steps because a conversion reactor converts the inlet flows only (th
 works on the S2Cl2 that R-101 makes); also the usual practice of a sulfur chlorinator followed
 by a chlorine-rich stage. The reactor inlet gets the remaining S2Cl2 (4.8 mol% of the liquor),
 which R-201 chlorinates (D-005).
+Simplification (review R-05): the O2 of the chlorine is carried dissolved in the chlorinator
+liquors S10 and S11 (0.03-0.06 mol%), although D-006/D-007 treat O2 as insoluble elsewhere.
+Real liquid-phase chlorinators vent inerts and unreacted Cl2; the overall balance does not
+change, since the O2 reaches the same purge either way. When the P&IDs are drawn, R-101 and
+R-102 get an off-gas vent to the K-201 suction or to T-401.
 
 ## D-005 Reactor R-201 (2026-10-28)
 Decision: multitubular reactor with activated carbon in the tubes and a tempered-water shell
@@ -89,6 +94,10 @@ atmospheric, SRC-2). Feed: SO2 2.0 x and Cl2 1.05 x the stoichiometric need of t
 chlorides at the inlet (SRC-1 preferences), counting the recycle gas. Conversion model: 95 % of
 the inlet S2Cl2 to SCl2 (ASSUMED) and 75 % of the inlet SCl2 to SOCl2 (SRC-2: 70-75 % in the
 examples, 50-80 % stated). Heat of reaction -110.6 kJ/mol (ideal gas, materials.yaml).
+The 75 % applies to the SCl2 entering R-201 only (cheme's conversion-reactor rule); the SCl2
+formed in the bed from S2Cl2 passes unconverted, so the effective per-pass conversion of all
+SCl2 is 67.9 % (15.72 kmol/h converted of 20.96 entering plus 2.20 formed; review R-03), still
+inside SRC-2's 50-80 %.
 Reason: the per-pass conversion is the only sourced performance figure; no kinetics are
 published in the open sources read, and none are invented. Steam raising from the reactor heat
 (473 K allows LP steam) is an open heat-integration option, not taken in the base case.
@@ -126,8 +135,16 @@ electrolyte liquor).
 Decision: E-204 cools the reactor gas to 308 K on cooling water, E-205 to 263 K on brine
 (253 K supply); V-201 at 130 kPa(a). T-201 strips SO2 and Cl2 from the crude completely
 (ASSUMED sharp split), with a brine overhead condenser at 263 K whose vapour carries the heavies
-at their Raoult partial pressures; reboiler duty = heating of the crude to 345 K plus 1.5 x the
-latent heat of the stripped lights (ASSUMED). The separator and degasser gases are joined,
+at their Raoult partial pressures; the bottoms leave at the Raoult bubble point of the
+lights-free crude at the column pressure (350.1 K at 125 kPa(a), computed by the script);
+reboiler duty = heating of the crude to that temperature plus 1.5 x the latent heat of the
+stripped lights (ASSUMED). Revised 2026-10-28 after review R-01: the first balance took 345 K,
+below the crude bubble point at 125 kPa(a) (about 100 kPa at 345 K), so by Raoult some SO2/Cl2
+would have stayed in S22 and reached the T-301 distillate, which has no lights outlet. At the
+bubble point the sharp split is consistent with the Raoult basis of D-006 (the lights' partial
+pressure in the bottoms vapour tends to zero only with stripping stages; the stage count is not
+designed, see Open inputs). Q9 rises from 464.85 to 471.01 kW and the warmer T-301 feed lowers
+Q13 from 684.47 to 678.05 kW; the LP steam total is unchanged to 0.02 % (0.422 kWh/kg). The separator and degasser gases are joined,
 1 % is purged (ASSUMED, giving 7.2 mol% O2 in the loop) and the rest is recompressed by K-201
 (125 -> 180 kPa(a), isentropic 0.70, motor 0.95) to the reactor feed (SRC-1, SRC-5: off-gas
 recycled).
@@ -168,6 +185,12 @@ V dp / (0.6 x 0.95) with assumed pressure rises (300-400 kPa) and densities; the
 circulation 5 m3/h. Pressure profile as in the stream table (ASSUMED). No fuel.
 Reason: concept-stage allowances; the duties dominate the utility inventory, the pump power is
 small (2.5 kW of 17.7 kW electric).
+No heat integration in the base case, so the utilities per kg in D-012 are at the upper end.
+Open heat-integration items (review R-06), none evaluated: (1) a feed/bottoms interchanger at
+T-201 (the crude is chilled to 263 K on brine and reheated to 350 K by steam, Q9 471 kW);
+(2) the SO2 vaporiser E-202 on cooling water or recovered heat instead of 425 K LP steam
+(104 kW at 298 -> 313 K); (3) the R-201 heat at 473 K (387 kW, now to cooling water) raising LP
+steam. A heat-integrated LCI scenario follows once a pinch study is done.
 
 ## D-011 Safety notes for the next stage (2026-10-28)
 Not designed here (no HAZOP in scope): SOCl2 and the sulfur chlorides react violently with water
@@ -217,4 +240,6 @@ process.yaml lists only the registered flows under `chemistry` until then.
 Capacity and site; feed impurities (sulfur ash/carbon/H2S, water in Cl2 and SO2); R-102
 equilibrium; kinetics or a bed sizing basis for R-201 and the carbon life; product SO2Cl2 and
 colour specification; column design (stages, reflux) on a qualified VLE; emission limits for the
-vent (BREF); scrubber design and its heat; heat integration (reactor heat to LP steam).
+vent (BREF); scrubber design and its heat; heat integration (D-010: T-201 feed/bottoms
+interchange, SO2 vaporiser off steam, reactor heat to LP steam); T-201 stripping stages; full
+text of SRC-4 and SRC-5 before any value rests on them alone.

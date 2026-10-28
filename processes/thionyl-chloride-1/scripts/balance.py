@@ -53,7 +53,9 @@ SO2_EXCESS = 2.00       # D-005: SO2 100 % over stoichiometric (US2431823)
 X_R201_S2 = 0.95        # D-005: S2Cl2 + Cl2 -> 2 SCl2 in the reactor, ASSUMED
 X_R201 = 0.75           # D-005: SCl2 + SO2 + Cl2 -> 2 SOCl2, of the inlet SCl2 (DE2430631A1: 70-75 %)
 T_R101, T_R102, T_VAP, T_PRE, T_R201 = 343.15, 313.15, 383.15, 398.15, 473.15
-T_COND1, T_SEP, T_DEG_COND, T_CRUDE = 308.15, 263.15, 263.15, 345.15
+T_COND1, T_SEP, T_DEG_COND = 308.15, 263.15, 263.15
+# T201 bottoms (S22, S30): Raoult bubble point of the lights-free crude at P_DEG, computed in
+# main() (D-007; review 2026-10-28 R-01: a fixed 345 K lay below it and would leave SO2/Cl2)
 P_R201_IN, P_R201_OUT, P_SEP, P_DEG, P_K201 = 170.0, 140.0, 130.0, 125.0, 180.0
 PURGE = 0.01            # D-007: fraction of the recycle gas purged to the scrubber, ASSUMED
 S_EXCESS_PURIF = 1.10   # D-008: sulfur dosed 10 % over the SCl2 converted in T301, ASSUMED
@@ -79,6 +81,18 @@ def hvap(c, T):
 
 def psat(c, T):
     return _CHEM[c].VaporPressure(T) / 1000.0  # kPa
+
+
+def bubble_t(liq, P, lo=250.0, hi=450.0):
+    """Raoult bubble temperature (K) of a liquid {component: kmol/h} at P kPa, by bisection."""
+    x = {c: n / sum(liq.values()) for c, n in liq.items() if n > 0}
+    for _ in range(60):
+        mid = 0.5 * (lo + hi)
+        if sum(xc * psat(c, mid) for c, xc in x.items()) > P:
+            hi = mid
+        else:
+            lo = mid
+    return 0.5 * (lo + hi)
 
 
 def h_sulfur(T):
@@ -288,6 +302,7 @@ def main():
     cl2_r101, cl2_r102, cl2_m201 = r["cl2_r101"], r["cl2_r102"], r["cl2_m201"]
     o2 = r["o2_split"]
     cl2_tot = cl2_r101 + cl2_r102 + cl2_m201
+    T_CRUDE = bubble_t(r["crude"], P_DEG)
     st = {}
     st["S1"] = ({"S": s_a + s_b}, 413.15, "l")
     st["S1A"] = ({"S": s_a}, 413.15, "l")

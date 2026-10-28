@@ -28,13 +28,30 @@ reactions:
       key: S2CL2
       value: 0.90
       provenance: assumed
-      source: "D-004: 90 % of the inlet S2Cl2 chlorinated in R102 at 313 K, ASSUMED (no sourced equilibrium for the liquid); the reactor R201 overrides it with 0.95 (D-005)"
+      source: "D-004: 90 % of the inlet S2Cl2 chlorinated in R102 at 313 K, ASSUMED (no sourced equilibrium for the liquid)"
     heat_of_reaction:
       value: -18400.0
       provenance: given
       source: "ideal-gas formation enthalpies of materials.yaml (NIST WebBook), 298.15 K; gas basis"
     sources:
       - "US2431823A: chlorine converts S2Cl2 to SCl2 and the sulfur chlorides coexist in equilibrium, so which chloride is fed matters little (description)"
+  # the same reaction in R201 (gas over carbon, with Cl2 in excess): its own entry so that its
+  # conversion carries its provenance (review 2026-10-28 R-03; a step-level override cannot)
+  - id: SCL2_FORM_R201
+    equation: S2Cl2 + Cl2 <=> 2 SCl2
+    stoichiometry: {S2CL2: -1.0, CL2: -1.0, SCL2: 2.0}
+    reversible: true
+    conversion:
+      key: S2CL2
+      value: 0.95
+      provenance: assumed
+      source: "D-005: 95 % of the S2Cl2 entering R201 chlorinated to SCl2 over the carbon at 398-473 K with Cl2 5 % over stoichiometric, ASSUMED (no sourced gas-phase conversion)"
+    heat_of_reaction:
+      value: -18400.0
+      provenance: given
+      source: "ideal-gas formation enthalpies of materials.yaml (NIST WebBook), 298.15 K; gas basis"
+    sources:
+      - "US2431823A: a sulfur chloride, S2Cl2 or SCl2, may be fed with SO2 and Cl2 over the carbon (description)"
   # R201: the thionyl chloride synthesis over activated carbon
   - id: SOCL2_SYN
     equation: SCl2 + SO2 + Cl2 -> 2 SOCl2
