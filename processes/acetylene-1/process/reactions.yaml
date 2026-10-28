@@ -1,0 +1,103 @@
+# Reactions of acetylene-1. Schema: `cheme schema process-reactions`. Heats of reaction from the
+# ideal-gas formation enthalpies of materials.yaml at 298.15 K (soot as graphite, 0 kJ/mol).
+#
+# Burner R101 (DESIGN.md D-005): a sourced OUTLET-COMPOSITION model, not kinetics. The flame
+# chemistry of the BASF burner (millisecond pyrolysis and partial oxidation, quench) is lumped
+# into seven overall reactions run in parallel by a conversion reactor. Their conversions are
+# not free choices: scripts/balance.py fixes the seven extents so that the dry cracked gas has
+# the "typical" composition of US8975460B2 (description: H2 56, CH4 5, C2H2 7.5, CO 26,
+# CO2 3.5, higher hydrocarbons 1 vol%, rest N2/O2/Ar) and the acetylene-to-soot mass ratio of
+# US5824834A comparative example 2 (22 kg/kg), closing the C, H and O balances; residual O2
+# 0.1 vol% (ASSUMED). The O2/natural-gas ratio (0.602 vol/vol) and the adiabatic outlet
+# temperature (1970 K) are results, checked against US5824834A (0.58-0.75 in its examples) and
+# US8975460B2 (about 1700 C). Conversions of CH4-keyed reactions are fractions of the inlet
+# methane; of O2-keyed reactions fractions of the inlet oxygen (the O2 conversions sum to
+# 0.9970, the rest is the residual O2).
+#
+# Fired heater F101 (D-011): combustion of the off-gas, flash gas and support fuel, 99.95 %
+# of each fuel (ASSUMED); the nitrogen of NMP leaves as N2 (fuel NOx not estimated, lca.yaml).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  # ---- burner R101 -------------------------------------------------------------------------
+  - id: C2H2_PYR
+    equation: 2 CH4 -> C2H2 + 3 H2
+    stoichiometry: {CH4: -2.0, C2H2: 1.0, H2: 3.0}
+    reversible: false
+    conversion: {key: CH4, value: 0.2749233, provenance: assumed, source: "scripts/balance.py: extent for 7.5 vol% C2H2 in the dry cracked gas (US8975460B2, description), D-005"}
+    heat_of_reaction: {value: 377388.0, provenance: calculated, source: "ideal-gas formation enthalpies of materials.yaml (ATcT), 298.15 K"}
+    sources: ["US8975460B2 (BASF SE, 2015), description: typical cracked-gas composition of the Sachsse-Bartholome process"]
+  - id: CH4_POX
+    equation: 2 CH4 + O2 -> 2 CO + 4 H2
+    stoichiometry: {CH4: -2.0, O2: -1.0, CO: 2.0, H2: 4.0}
+    reversible: false
+    conversion: {key: O2, value: 0.3900109, provenance: assumed, source: "scripts/balance.py: extent for 26 vol% CO (US8975460B2), D-005"}
+    heat_of_reaction: {value: -71982.0, provenance: calculated, source: "ideal-gas formation enthalpies of materials.yaml (ATcT), 298.15 K"}
+  - id: CH4_COMB
+    equation: CH4 + 2 O2 -> CO2 + 2 H2O
+    stoichiometry: {CH4: -1.0, O2: -2.0, CO2: 1.0, H2O: 2.0}
+    reversible: false
+    conversion: {key: O2, value: 0.1933032, provenance: assumed, source: "scripts/balance.py: extent for 3.5 vol% CO2 (US8975460B2) less the CO2 of the natural gas, D-005"}
+    heat_of_reaction: {value: -802584.0, provenance: calculated, source: "ideal-gas formation enthalpies of materials.yaml (ATcT), 298.15 K"}
+  - id: H2_COMB
+    equation: 2 H2 + O2 -> 2 H2O
+    stoichiometry: {H2: -2.0, O2: -1.0, H2O: 2.0}
+    reversible: false
+    conversion: {key: O2, value: 0.4136827, provenance: assumed, source: "scripts/balance.py: extent that leaves 56 vol% H2 (US8975460B2) by the hydrogen balance, D-005"}
+    heat_of_reaction: {value: -483644.0, provenance: calculated, source: "ideal-gas formation enthalpies of materials.yaml (ATcT), 298.15 K"}
+  - id: SOOT
+    equation: CH4 -> C(s) + 2 H2
+    stoichiometry: {CH4: -1.0, C: 1.0, H2: 2.0}
+    reversible: false
+    conversion: {key: CH4, value: 0.0135453, provenance: assumed, source: "scripts/balance.py: acetylene/soot 22 kg/kg, US5824834A comparative example 2 (7.8 vol% C2H2), D-005"}
+    heat_of_reaction: {value: 74534.0, provenance: calculated, source: "formation enthalpy of methane (ATcT); graphite 0"}
+    sources: ["US5824834A (BASF AG, 1998), examples table: soot and acetylene per example"]
+  - id: C4H2_FORM
+    equation: 4 CH4 -> C4H2 + 7 H2
+    stoichiometry: {CH4: -4.0, C4H2: 1.0, H2: 7.0}
+    reversible: false
+    conversion: {key: CH4, value: 0.051319, provenance: assumed, source: "scripts/balance.py: 0.7 of the 1 vol% higher hydrocarbons of US8975460B2 as diacetylene (split ASSUMED), D-005"}
+    heat_of_reaction: {value: 758506.0, provenance: calculated, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K"}
+  - id: C6H6_FORM
+    equation: 6 CH4 -> C6H6 + 9 H2
+    stoichiometry: {CH4: -6.0, C6H6: 1.0, H2: 9.0}
+    reversible: false
+    conversion: {key: CH4, value: 0.0329908, provenance: assumed, source: "scripts/balance.py: 0.3 of the 1 vol% higher hydrocarbons of US8975460B2 as benzene (split ASSUMED), D-005"}
+    heat_of_reaction: {value: 530384.0, provenance: calculated, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K"}
+  # ---- fired heater F101 -------------------------------------------------------------------
+  - id: FB_CH4
+    equation: CH4 + 2 O2 -> CO2 + 2 H2O
+    stoichiometry: {CH4: -1.0, O2: -2.0, CO2: 1.0, H2O: 2.0}
+    reversible: false
+    conversion: {key: CH4, value: 0.9995, provenance: assumed, source: "D-011: fuel burnout in the fired heater, ASSUMED"}
+    heat_of_reaction: {value: -802584.0, provenance: calculated, source: "ideal-gas formation enthalpies of materials.yaml (ATcT), 298.15 K"}
+  - id: FB_C2H2
+    equation: C2H2 + 5/2 O2 -> 2 CO2 + H2O
+    stoichiometry: {C2H2: -1.0, O2: -2.5, CO2: 2.0, H2O: 1.0}
+    reversible: false
+    conversion: {key: C2H2, value: 0.9995, provenance: assumed, source: "D-011, ASSUMED"}
+    heat_of_reaction: {value: -1257090.0, provenance: calculated, source: "ideal-gas formation enthalpies of materials.yaml (ATcT), 298.15 K"}
+  - id: FB_C4H2
+    equation: C4H2 + 9/2 O2 -> 4 CO2 + H2O
+    stoichiometry: {C4H2: -1.0, O2: -4.5, CO2: 4.0, H2O: 1.0}
+    reversible: false
+    conversion: {key: C4H2, value: 0.9995, provenance: assumed, source: "D-011, ASSUMED"}
+    heat_of_reaction: {value: -2276088.0, provenance: calculated, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K"}
+  - id: FB_C6H6
+    equation: C6H6 + 15/2 O2 -> 6 CO2 + 3 H2O
+    stoichiometry: {C6H6: -1.0, O2: -7.5, CO2: 6.0, H2O: 3.0}
+    reversible: false
+    conversion: {key: C6H6, value: 0.9995, provenance: assumed, source: "D-011, ASSUMED"}
+    heat_of_reaction: {value: -3169490.0, provenance: calculated, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K"}
+  - id: FB_CO
+    equation: CO + 1/2 O2 -> CO2
+    stoichiometry: {CO: -1.0, O2: -0.5, CO2: 1.0}
+    reversible: false
+    conversion: {key: CO, value: 0.9995, provenance: assumed, source: "D-011, ASSUMED"}
+    heat_of_reaction: {value: -282949.0, provenance: calculated, source: "ideal-gas formation enthalpies of materials.yaml (ATcT), 298.15 K"}
+  - id: FB_NMP
+    equation: C5H9NO + 27/4 O2 -> 5 CO2 + 9/2 H2O + 1/2 N2
+    stoichiometry: {NMP: -1.0, O2: -6.75, CO2: 5.0, H2O: 4.5, N2: 0.5}
+    reversible: false
+    conversion: {key: NMP, value: 0.9995, provenance: assumed, source: "D-011, ASSUMED; fuel nitrogen to N2 (NOx not estimated)"}
+    heat_of_reaction: {value: -2860179.0, provenance: calculated, source: "ideal-gas formation enthalpies of materials.yaml (API TDB for NMP), 298.15 K"}
