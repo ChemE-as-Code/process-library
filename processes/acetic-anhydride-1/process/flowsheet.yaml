@@ -186,8 +186,7 @@ steps:
     title: Cracking furnace firebox
     class: ReactingChemicals
     reactions: [COMB_CH4, COMB_CO, COMB_C2H4, COMB_KET]
-    reactor: conversion
-    conversion: {COMB_CH4: 1.0, COMB_CO: 1.0, COMB_C2H4: 1.0, COMB_KET: 1.0}
+    reactor: conversion   # conversions 1.0 of process/reactions.yaml (complete combustion)
     links: [{target: equipment, ref: F-101}]
     ports:
       - {id: in, direction: in}
@@ -533,7 +532,7 @@ streams:
     title: Burner fuel and air
     from: M103.out
     to: H101.in
-    template: flue_gas
+    template: burner
     state:
       design:
         pressure: {value: 101.3, provenance: assumed, source: D-010}
@@ -550,7 +549,7 @@ streams:
         pressure: {value: 101.3, provenance: assumed, source: D-010}
         temperature: {value: 443.15, provenance: assumed, source: "D-010: after the convection section"}
         flow: {value: 7397.69, provenance: calculated, source: 'cheme process propagate: reactor H101 from S33', fingerprint: bfa1460281c1eb96}
-        composition: {basis: mole_fraction, values: {CO2: 0.105929, H2O: 0.152838, N2: 0.716395, O2: 0.0248386, CH4: 0.0, CO: 0.0, C2H4: 0.0, KET: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor H101 from S33', fingerprint: 3014d74096c8f935}
+        composition: {basis: mole_fraction, values: {CH4: 0.0, CO: 0.0, C2H4: 0.0, KET: 0.0, CO2: 0.105929, N2: 0.716395, O2: 0.0248386, H2O: 0.152838}, provenance: calculated, source: 'cheme process propagate: reactor H101 from S33', fingerprint: 3014d74096c8f935}
   # --- DST -----------------------------------------------------------------------------
   - id: S25
     title: Recycle acid (acid column distillate) to the absorbers

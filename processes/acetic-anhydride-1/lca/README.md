@@ -2,6 +2,14 @@
 
 The life cycle assessment of the plant's operation (ISO 14040/44), per functional unit.
 
+**This study (acetic-anhydride-1, DESIGN.md D-014):** a preliminary gate-to-gate foreground
+inventory per kg of acetic anhydride (`inventory.csv`, `dataset.yaml`). Every background is
+declared `missing:` with the activity it should connect to (`gaps.csv`, 11 gaps), so
+`results.csv` holds only the direct CO2 of the furnace and is **not** a carbon footprint
+(process.yaml `lca.source: none`). `mappings.yaml` holds this process's Atlas overrides (none
+yet, ADR 0022). Regenerate with `cheme assess lca --inventory --write` and
+`cheme assess lca --write` after any flowsheet change; check with `--coverage`.
+
 | file | what | written by |
 |---|---|---|
 | `lca.yaml` | goal and scope: the functional unit (a product of `process/flowsheet.yaml`), the case, the allocation between co-products, the impact categories, and the background of every feed, product and emitted component (`cheme schema lca`) | people; `cheme init` writes none, since the flowsheet has no products yet |
