@@ -146,6 +146,12 @@ chloride: SRC-1's 200 000-250 000 ppm read as mg/L at 1.2 kg/L, so that the salt
 facies, SRC-6, but no number found), density 1.2 kg/L, and the omission of NH3, NaI, Mg, K, Sr,
 Li, Fe and organics. Halite saturation of the brine at 195-229 degF is not checked (no
 electrolyte model, O-2). Rejected: a Dead Sea end brine (no open analysis found).
+How close to the edge (review R-05): sodium by charge balance is 85.5 g/kg brine. That is
+5.36 mol NaCl and 1.08 mol CaCl2 per kg water (`scripts/balance.py` prints both). NaCl alone
+dissolves to about 6.1-6.7 mol/kg water between 25 and 100 degC, and the chloride of the CaCl2
+lowers that (common ion). The basis brine may therefore sit near halite saturation, and the
+ASSUMED calcium sets how near. To be checked with the brine analysis and an electrolyte model
+(O-1, O-2) before the tower model.
 
 ### D-005 Reactions and recovery (2026-10-28)
 Decision: section 3: 95.5 % of the bromide oxidised and recovered; all H2S oxidised to sulfur;
@@ -160,7 +166,8 @@ live steam follows from the script's tower energy balance: brine heat-up from 19
 chlorine, minus the reaction heat (1.16 MW, SRC-7), with 3 % heat loss (ASSUMED); LP steam
 350 kPa(a) saturated, condensing into the brine. Result 21.8 t/h = 5.82 kg/kg Br2. Reason: the
 patent figure is a range for unspecified plants; calculating it from stated inputs makes the
-dependence visible (about 0.32 kg/kg Br2 per kelvin of feed temperature). Rejected: copying
+dependence visible (about 0.32 kg/kg Br2 per kelvin of feed temperature, and 0.21 kg/kg Br2,
+3.6 %, per 0.1 kJ/kg K of the ASSUMED brine cp, review R-05). Rejected: copying
 5.45 kg/kg from SRC-1 as an assumed value (the energy balance would then be unchecked).
 Assumptions: water activity 0.75, cp 2.9 kJ/kg K and density 1.2 kg/L of the brine
 (ASSUMED; no property package for this brine, core#364); tower at 105 kPa(a) top, 130 kPa(a)
