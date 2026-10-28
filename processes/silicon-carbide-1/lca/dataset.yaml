@@ -42,7 +42,7 @@ classification:
   isic: '2011'
 modelling:
   principle: attributional
-  multifunctionality: 'unallocated multi-output dataset; default allocation mass: D-010: crude crystalline
+  multifunctionality: 'unallocated multi-output dataset; default allocation shares: D-010: crude crystalline
     SiC and metallurgical-grade SiC come from the same furnace batch and are both sold; mass allocation
     (0.80 / 0.20) is the default at the concept stage because both are mostly SiC (98 and 88 wt%) and
     no prices are recorded. Economic allocation (crude crystalline SiC is the more valuable grade) is
@@ -163,7 +163,7 @@ exchanges:
   basic_uncertainty: 1.05
   state:
     pressure: 1.01325
-    temperature: 25.0
+    temperature: 50.0
     purity: 0.98
     basis: mass
     component: SiC
@@ -192,7 +192,7 @@ exchanges:
   basic_uncertainty: 1.05
   state:
     pressure: 1.01325
-    temperature: 25.0
+    temperature: 50.0
     purity: 0.88
     basis: mass
     component: SiC
@@ -311,15 +311,16 @@ exchanges:
     temperature: 25.0
     source: utility of CW in process/flowsheet.yaml
 - key: product:AMB
-  title: Heat to ambient air (natural cooling of the ingot, no fans)
+  title: Heat to ambient air (natural cooling of the ingot, burn-off heat; no fans)
   type: output
-  amount: 11754.3
+  amount: 32778.899999999994
   unit: kWh
   free: true
   streams:
   - Q5
-  source: 'Q5: heat of the cooling ingot released to the open air by natural convection and radiation:
-    no fans, no utility system, no burden'
+  - Q6
+  source: 'Q5: heat of the cooling ingot, and Q6: burn-off heat not carried by the flue gas, released
+    to the open air by natural convection and radiation: no fans, no utility system, no burden'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -553,21 +554,29 @@ exchanges:
       SiO2: SiO2
     source: stream table (S7)
 allocation:
+  method: shares
   coproducts:
   - SIC
   - MET
+  shares:
+    SIC: 0.8
+    MET: 0.2
   source: 'D-010: crude crystalline SiC and metallurgical-grade SiC come from the same furnace batch and
     are both sold; mass allocation (0.80 / 0.20) is the default at the concept stage because both are
     mostly SiC (98 and 88 wt%) and no prices are recorded. Economic allocation (crude crystalline SiC
     is the more valuable grade) is the open alternative; the purged mix is a waste, the flue gas an emission.'
+  deviation: 'Hierarchy step 3 (WBCSD price ratio) cannot be applied: no sourced prices of crude crystalline
+    and metallurgical-grade SiC are recorded for this concept design. Mass is used because both co-products
+    are mostly SiC (98 and 88 wt%) from the same batch; to be revisited with economic allocation once
+    prices are sourced (D-010).'
 provenance:
   generator: cheme assess lca
   plant: Silicon carbide by the Acheson process (5000 kg/h crude SiC, concept)
   case: design
   files:
     equipment/equipment-list.yaml: sha256:1b3122a13829ee269d08f10c1dfc68c25e2b65d37f5cb1ef5c0a1c89bdf30cf8
-    lca/lca.yaml: sha256:77e6011dd50ee7d023b5c1755f57a17462b3d60dd34249e1438e66ed770d9ab0
-    process.yaml: sha256:a39234a9a04ade0253d108eb8979c83f7b76b734fcb4c3e36257f54185f53d8f
-    process/flowsheet.yaml: sha256:de91640034e1ee82ae39c57c83a02b5933d6e06c694e6dcad0ae6c5d1743f482
+    lca/lca.yaml: sha256:ef5d85ace0e054e540258f2e25865c1c60fbbfb04f8a500c7934c40bfc4565d9
+    process.yaml: sha256:36ef6d0f23b8f7abb4ac64d502a54996e16be8c818870d22548c75fe481c416c
+    process/flowsheet.yaml: sha256:aef918cdb2a35de8c94208f83d569be793f2eb60ac403373d2423a2e332053d5
     process/materials.yaml: sha256:437fdbac630061ae7faf1031a37277f9f451d72c1f61e9e31a22a67961d8f1d2
-    process/simulation.yaml: sha256:1a22606854d9faef0e82f9aa560c287f373b8807e24bf39a0816e3ef28e99d7f
+    process/simulation.yaml: sha256:b200dfb74b9d05650df0d58bd8f43238f2de34a213be465f2a3bc885b32dee06

@@ -57,6 +57,9 @@ E_AUX = 0.15           # kWh/kg product: mixing, charging, handling, off-gas fan
 E_CRUSH = 0.10         # kWh/kg product: crushing and screening (D-008, ASSUMED)
 T_HOT, T_COOL = 1800.0, 323.15   # K, mean furnace contents at power-off and when broken (D-003, ASSUMED)
 CP_MEAN = 1.3          # kJ/(kg K), mean heat capacity of the contents over that range (D-008, ASSUMED)
+T_GAS, T_FLUE = 1000.0, 600.0    # K, raw gas at the charge surface (S5) and hood outlet (S7) (D-006, ASSUMED)
+CP_GAS = 1.25          # kJ/(kg K), mean of S5 (mostly CO, some CH4 and steam) over 298-1000 K (D-008, ASSUMED)
+CP_FLUE = 1.05         # kJ/(kg K), mean of S7 (N2, CO2, O2, steam) over 298-600 K (D-008, ASSUMED)
 
 
 def kmol(stream):
@@ -153,6 +156,17 @@ Q_COOL = total(ingot) * CP_MEAN * (T_HOT - T_COOL) / 3600   # kW to ambient air 
 dh1 = HF["SiC"] + 2 * HF["CO"] - HF["SiO2"]             # kJ/mol
 dh2 = HF["SiO"] + HF["CO"] - HF["SiO2"]
 q_rx = (xi1 * dh1 + xi2 * dh2) * 1000 / 3600            # kW (kmol/h * kJ/mol * 1000 / 3600)
+# Burn-off B101 (review R-03): heat released at 298 K by COX, CH4X, SOX, SIOX, plus the sensible
+# heat S5 brings, minus what S7 carries at T_FLUE; the rest leaves to ambient (Q6): radiation
+# from the burning charge surface and, in a real hood, the heating of dilution air (not modelled)
+dh_cox = HF["CO2"] - HF["CO"]
+dh_ch4x = HF["CO2"] + 2 * HF["H2O"] - HF["CH4"]
+dh_sox = HF["SO2"] - HF["S"]
+dh_siox = HF["SiO2"] - HF["SiO"]
+q_burn = -(b_co * dh_cox + b_ch4 * dh_ch4x + b_s * dh_sox + b_sio * dh_siox) * 1000 / 3600   # kW
+q_gas_in = total(gas) * CP_GAS * (T_GAS - 298.15) / 3600
+q_flue = total(flue) * CP_FLUE * (T_FLUE - 298.15) / 3600
+Q_LOSS = q_burn + q_gas_in - q_flue                     # kW to ambient
 
 STREAMS = [
     ("S1", "Silica sand", sand), ("S2", "Petroleum coke (green)", coke),
@@ -203,6 +217,8 @@ if __name__ == "__main__":
           f"Q3 auxiliaries {P_AUX:.1f}; Q4 crushing {P_CRU:.1f}; Q5 ingot cooling to ambient {Q_COOL:.1f}")
     print(f"  furnace closure: power {P_FUR:.0f} = reaction {q_rx:.0f} + contents at power-off "
           f"{Q_COOL:.0f} + off-gas and losses during heating {P_FUR - q_rx - Q_COOL:.0f} kW (lumped)")
+    print(f"  burn-off B101: released {q_burn:.0f} + raw gas sensible {q_gas_in:.0f} = flue sensible "
+          f"{q_flue:.0f} + Q6 to ambient {Q_LOSS:.1f} kW")
     print(f"  reaction enthalpy at 298 K: RX1 {dh1:.1f} kJ/mol, RX2 {dh2:.1f} kJ/mol, "
           f"total {q_rx:.0f} kW = {q_rx / P_FUR:.1%} of the furnace power")
     print("# per kg crushed crude SiC (unallocated)")
@@ -217,7 +233,6 @@ if __name__ == "__main__":
     co2_all = (n_co + n_ch4) * MW["CO2"]
     print(f"  CO2 if all gas carbon is oxidised: {co2_all / sic_out:.3f} kg/kg SiC (IPCC Tier 1: 2.62); "
           f"{co2_all / total(coke):.3f} kg/kg coke (IPCC: 2.30)")
-    print(f"  CO emitted per kg coke {flue['CO'] / total(coke):.3f} (IPCC 1996, Norwegian plant: 0.4)")
     c_in = elements(coke)["C"]
     print(f"  coke carbon retained in SiC {xi1 * (1) * 1 / c_in:.3f} of coke C fed (EPA TSD 2009: about 0.35)")
     print(f"  furnace charge {total(charge):.0f} kg/h; SiC formed / charge {sic_out / total(charge):.3f}")

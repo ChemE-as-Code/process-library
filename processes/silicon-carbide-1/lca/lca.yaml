@@ -15,7 +15,12 @@ goal: >-
   carbide by the Acheson process at the concept stage: which raw materials, electricity,
   emissions and wastes the balanced flowsheet implies per kg of product, ready to be linked to
   background datasets later. Flows are concept estimates on assumed yields and a
-  specific-energy furnace basis (DESIGN.md D-004, D-006).
+  specific-energy furnace basis (DESIGN.md D-004, D-006). The climate value this study reports
+  is the DIRECT (scope 1) furnace CO2 and CH4 only, NOT a carbon footprint: electricity (about
+  7.7 kWh per kg after allocation, the largest exchange), coke, sand, cooling water and landfill
+  are gaps, and the uncertainty interval covers only the direct amounts. Fossil CO is not
+  characterised by the method; counted by its atmospheric oxidation to CO2 (44/28 kg CO2 per
+  kg CO) it would add about 0.64 kg CO2-eq per kg (D-010).
 functional_unit: {product: SIC, amount: 1, unit: kg}
 boundary: cradle-to-gate
 year: 2026
@@ -23,14 +28,23 @@ location: GLO   # generic site, country not chosen (D-002)
 technology: "Acheson batch resistance furnaces (silica sand and green petroleum coke, graphite core), gas burn-off over the charge, ingot cooling, breaking and sorting with recycle of the unreacted mix, crushing and screening; 5000 kg/h crude SiC"
 rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
 allocation:
-  method: mass
+  # mass, given as shares: S12 5000 kg/h crude crystalline SiC and S10 1250 kg/h metallurgical
+  # SiC (0.80 / 0.20); core omits `method: mass` from the generated dataset, which the Atlas
+  # build reads as no method (CI of PR 225), so the shares are stated
+  method: shares
   coproducts: [SIC, MET]
+  shares: {SIC: 0.80, MET: 0.20}
   source: >-
     D-010: crude crystalline SiC and metallurgical-grade SiC come from the same furnace batch and
     are both sold; mass allocation (0.80 / 0.20) is the default at the concept stage because both
     are mostly SiC (98 and 88 wt%) and no prices are recorded. Economic allocation (crude
     crystalline SiC is the more valuable grade) is the open alternative; the purged mix is a
     waste, the flue gas an emission.
+  deviation: >-
+    Hierarchy step 3 (WBCSD price ratio) cannot be applied: no sourced prices of crude
+    crystalline and metallurgical-grade SiC are recorded for this concept design. Mass is used
+    because both co-products are mostly SiC (98 and 88 wt%) from the same batch; to be revisited
+    with economic allocation once prices are sourced (D-010).
 flows:
   # ---- raw materials (backgrounds to connect later)
   - key: feed:SAND
@@ -48,7 +62,7 @@ flows:
     source: "Q1 furnace (7.5 kWh/kg crude SiC, D-004) + Q3 auxiliaries + Q4 crushing (D-008)"
   - key: product:AMB
     free: true
-    source: "Q5: heat of the cooling ingot released to the open air by natural convection and radiation: no fans, no utility system, no burden"
+    source: "Q5: heat of the cooling ingot, and Q6: burn-off heat not carried by the flue gas, released to the open air by natural convection and radiation: no fans, no utility system, no burden"
   - key: product:CW
     missing: "no background linked yet. Connect: cooling water from a circulating evaporative cooling tower (pumping, fans, make-up water and treatment chemicals), per kWh of heat rejected"
     source: "Q2: transformer and bus-bar losses (D-008)"

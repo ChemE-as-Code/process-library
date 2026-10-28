@@ -119,16 +119,13 @@ splits, closed over the recycle loop; the PFD carries its values as ASSUMED. Par
   11.6 kg CH4/t SiC (EPA 2009, Table 4), all sulfur to SO2, air at twice the burn-off
   stoichiometry (hood dilution air not modelled);
 - crusher dust 0.2 kg/t after the bag filter.
-Result: SiC formed 6033 kg/h (150.5 kmol/h); charge 31.6 t/h, of which SiC formed is 19 %
-(an IISc hot-model study reports about 15 % conversion of the raw material to SiC; search
-summary, not audited); per kg crude crystalline SiC (unallocated): sand 1.954 kg, coke 1.361 kg,
+Result: SiC formed 6033 kg/h (150.5 kmol/h); charge 31.6 t/h, of which SiC formed is 19 %;
+per kg crude crystalline SiC (unallocated): sand 1.954 kg, coke 1.361 kg,
 purge 0.158 kg, CO2 2.12 kg, CO 0.507 kg, CH4 0.014 kg, SO2 0.041 kg, silica fume 9 g,
 electricity 9.63 kWh.
 Cross-checks (scripts/sic_balance.py prints them): coke 1.13 kg per kg SiC formed against the
 1.14 that the IPCC defaults imply (2.62 t CO2/t SiC over 2.30 t CO2/t coke); CO2 if all gas
-carbon were oxidised 2.45 kg/kg SiC against the IPCC 2.62 (-7 %); CO 0.37 kg/kg coke against
-the 0.4 t CO/t petroleum coke that the IPCC 1996 guidelines quote for a Norwegian plant (search
-summary, locator to confirm); coke carbon retained in SiC 29 % against "about 35 %" (EPA 2009,
+carbon were oxidised 2.45 kg/kg SiC against the IPCC 2.62 (-7 %); coke carbon retained in SiC 29 % against "about 35 %" (EPA 2009,
 section 2.1).
 Rejected: copying the IPCC factors as the inventory (they are country-inventory defaults with
 +/-10 % uncertainty and do not split CO from CO2); a Gibbs reactor (#179: a heterogeneous
@@ -136,6 +133,10 @@ furnace with steep temperature zones is not an equilibrium reactor).
 Assumptions: every parameter above is ASSUMED except where a source is named; the
 metallurgical ratio is the most uncertain (the US plant of EPA 2009 reported equal tonnages of
 abrasive and metallurgical grade, but its metallurgical grade may include crushed fines).
+Review response (2026-10-28-pfd-lci-review#4): two comparisons that rested on search summaries
+without a locator (a CO-per-coke factor attributed to the IPCC 1996 guidelines, and a 15 %
+conversion attributed to an unnamed hot-model study) were removed rather than kept unaudited;
+neither was an input.
 
 ## D-007 Reaction and thermodynamic model basis (2026-10-28)
 Decision: reactions in process/reactions.yaml as specified conversions (a sourced-range
@@ -143,7 +144,7 @@ conversion model): RX1 SiO2 + 3 C -> SiC + 2 CO and RX2 SiO2 + C -> SiO + CO in 
 SOX and SIOX in the burn-off B101. Heats of reaction from NIST-JANAF formation enthalpies (Chase
 1998; values recalled, to be checked, so ASSUMED). No property package: no benchmarked package
 covers solids or a 1000 K gas with SiO and sulfur (`cheme process props --coverage`); the
-flowsheet is not simulated (process/simulation.yaml only declares B101 adiabatic).
+flowsheet is not simulated (process/simulation.yaml holds no specs; B101 is not adiabatic, D-008).
 Reason: the literature describes the mechanism (SiO2 + C -> SiO + CO, then SiO + 2 C -> SiC +
 CO, with beta-SiC from about 1700 C and alpha-SiC from about 2100 C; Lima and Tenorio 2011,
 section 1) but gives no kinetics usable at furnace scale; #179 forbids invented kinetics.
@@ -157,7 +158,17 @@ handling, hood fans; Q3) and crushing and screening 0.10 kWh/kg (Q4), all ASSUME
 for transformer and bus-bar losses (Q2, 2 % of furnace power, ASSUMED); the ingot cools in the
 open air (Q5, 11.8 MW to ambient, no fans, no utility system). No steam, no fuel. The furnace
 transformers are fed from the grid above 24 kV (ASSUMED; lca/mappings.yaml uses the
-high-voltage entry).
+high-voltage entry). The ingot is broken and sorted at 323 K, and the sorted and crushed
+streams (S9-S13) stay at 323 K: sorting has no energy stream, so it does not cool them
+(review R-06; crushing heat neglected).
+Burn-off energy (review 2026-10-28-pfd-lci-review#3): B101 is not adiabatic. The burn-off
+releases 23.6 MW (COX, CH4X, SOX, SIOX at 298 K from the D-007 formation enthalpies) and S5
+brings 2.3 MW (1000 K, mean 1.25 kJ/(kg K), ASSUMED); S7 carries 4.9 MW at 600 K (mean 1.05
+kJ/(kg K), ASSUMED); the remaining 21.0 MW leave to ambient as Q6 (scripts/sic_balance.py).
+Adiabatic, S7 would leave at roughly 1600-1900 K. Physically Q6 stands for radiation from the
+burning charge surface plus the heating of hood dilution air, which is not modelled; so the
+S7 flow and temperature (and line FG-101) are a burn-off balance, NOT a stack, duct or fan
+sizing basis. A hood design needs the dilution ratio as an input (open item).
 Reason: the Acheson plant is an electrical plant; the only fired equipment of the US plant is
 the product dryer of the grain processing (EPA 2009, section 2.2), outside the boundary.
 
@@ -185,6 +196,19 @@ electricity 7.70 kWh, cooling water 0.15 kWh, purged mix 0.126 kg to landfill; t
 Si) and carbon by origin closed (residuals below 0.001 %); energy closure not evaluable (the
 chemical energy of the products is not counted). `--coverage`: partial screening carbon
 footprint, 9 gaps (5 unmapped backgrounds; CO, SO2, SiO2 and SiC outside the climate method).
+What the climate number is (review 2026-10-28-pfd-lci-review#1): the 2.03 kg CO2-eq/kg and its
+interval are the DIRECT (scope 1) furnace CO2 and CH4 only, not a carbon footprint; the
+electricity (7.70 kWh/kg, the largest exchange), coke, sand, cooling water and landfill are
+gaps. Said in the lca.yaml goal and in process.yaml validation.notes.
+Fossil CO (review #2): the method (IPCC 2021 GWP100 of the packaged profile) gives CO no
+factor, so it stays a gap rather than receiving a project factor. Counted by its atmospheric
+oxidation to CO2 (44.01/28.01 = 1.571 kg CO2 per kg CO, stoichiometry), the 0.406 kg CO per kg
+would add 0.64 kg CO2-eq, giving 2.67 kg CO2-eq/kg for the direct emission; the design's gas
+carbon as CO2 (2.45 kg/kg SiC formed) sits 7 % below the IPCC Tier 1 default (D-006), not 31 %.
+Allocation is written as `method: shares` (SIC 0.80, MET 0.20: the mass of S12 and S10), with
+`allocation.deviation` stating why the WBCSD price ratio is not applied (no sourced prices);
+same numbers as `mass`, but the generated dataset then carries its method, which the library's
+Atlas build requires (CI of PR 225).
 Open: CPC subclass of the dataset (not guessed); subcompartments of the emissions; a carbon
 check of the purged mix (35 wt% C) in the landfill dataset.
 
@@ -195,7 +219,6 @@ check of the purged mix (35 wt% C) in the landfill dataset.
 | Lima, T. C. F.; Tenorio, J. A. S. (2011) Rem: Revista Escola de Minas 64(3) 341-345, http://www.redalyc.org/articulo.oa?id=56419948013 | section 1 (p. 342): mechanism, phases, coke ash/sulfur, 6.5 kWh/kg thermodynamic, 6.3-9.02 kWh/kg European plants (Mehrwald 1992), world output about 750 kt/a (EIPPCB 2006); Fig. 1 (Nagamori model), section 2 (pilot furnace), Figs. 3-5 (carbon factor, kWh/kg, SiC content) | full text read | D-002, D-004, D-005, D-006, D-007 |
 | U.S. EPA (2009) TSD Silicon Carbide Production Sector (proposed GHG reporting rule) | section 1 (US output 2006), 2.1 (35 % of carbon in SiC; CH4 from coke volatiles), 2.2 (natural-gas product dryer), 5.1 Table 4 (IPCC Tier 1: 2.62 t CO2/t, 0.0116 t CH4/t; +/-10 %), 5.2 (coke C 90-95 %), 5.3 (four furnace stacks) | full text read | D-002, D-005, D-006, D-008 |
 | IPCC (2006) Guidelines Vol. 3 ch. 3.6 | default factors, read through EPA 2009 | not read directly | D-006 |
-| IPCC (1996) Revised Guidelines, Reference Manual ch. 2 (carbide production) | Norwegian CO factor 0.4 t CO/t petroleum coke | search summary only; locator to confirm | D-006 cross-check |
 | Fraunhofer IKTS (2023-06-01) press release "Energy-efficient and low in emissions: silicon carbide recycling with RECOSiC" | conventional Acheson: 7.15 MWh/t electricity, about 2.4 t CO2/t from the carbothermal reduction and 1.8 t from the energy, about 2500 C, furnace runs for days | press release read | D-004 cross-check |
 | Ullmann's: Silicon Carbide, doi:10.1002/14356007.a23_749.pub2 | production sections | not audited | lead for the next stage |
 | NIST-JANAF Thermochemical Tables (Chase 1998) | formation enthalpies of SiO2, SiC, CO, SiO, CH4, CO2, SO2, H2O | recalled, to be checked | D-007 |
