@@ -1,24 +1,511 @@
 # The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
 # never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
-# Units are explicit: a property without its own unit is in these. Pressure is absolute; a gauge
-# value needs its own unit (kPa(g)). Nm3/h needs normal_conditions.
+#
+# Phosphorus oxychloride by chlorination of molten white phosphorus to PCl3 in a boiling
+# reactor-still, oxidation of the liquid PCl3 with oxygen in a cooled loop reactor, and
+# distillation (light-ends column with PCl3 recycle, product column with a residue purge); the
+# vents of both reactors are scrubbed with caustic (DESIGN.md D-001). Where the values come from:
+# - feeds, temperatures, pressures, conversions and column splits: design basis and decisions
+#   D-002..D-010, ASSUMED, the ranges from the patents cited there;
+# - the reactors R101 and R201 and the mixers M201 and M401 are solved by
+#   `cheme process propagate --fill` (conversion model, calculated);
+# - the vent condensers V101/V201 (Raoult's law with thermo vapour pressures), the columns C301
+#   and C302 (specified splits), the scrubber T401 and every duty come from the independent
+#   balance scripts/balance.py (D-006), given here as ASSUMED: core has no property package for
+#   PCl3, POCl3, white phosphorus or the caustic liquor (core #315, #364), so it can neither
+#   flash the condensers nor close the energy balance of the liquid-phase reactors.
 schema: cheme/process/v1
 kind: flowsheet
-title: ""
+title: Phosphorus oxychloride from white phosphorus, chlorine and oxygen (4.0 t/h POCl3)
 units:
   pressure: kPa(a)
   temperature: K
   flow: kg/h
   duty: kW
   enthalpy: kJ/kmol
-  # normal_conditions: {temperature: 273.15, pressure: 101.325, basis: ideal_gas}
-  # enthalpy_reference: {state: ideal_gas, temperature: 298.15}
+  enthalpy_reference: {state: ideal_gas, temperature: 298.15}
 cases:
-  - {id: design, description: Design case, default: true}
+  - {id: design, description: "Design case: 4000 kg/h distilled POCl3 from molten white phosphorus, chlor-alkali-1 chlorine and asu-1 oxygen (D-002)", default: true}
 tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
-feeds: []      # external feeds (DEXPI Source): {id, title, ports: [{id: out, direction: out}]}
-products: []   # products (DEXPI Sink): {id, title, ports: [{id: in, direction: in}]}
-blocks: []     # BFD blocks: {id, title, class, ports: [{id, direction, kind}], links}
-steps: []      # PFD steps: {id, block, title, class, ports: [{id, direction, delegates}], links}
-streams: []    # {id, title, kind, from: NODE.port, to: NODE.port, template, state: {design: {...}}}
+
+feeds:
+  - {id: P4, title: Molten white phosphorus (thermal phosphorus furnace outside the boundary), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: CL2, title: Dry chlorine gas (chlor-alkali-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: O2, title: Gaseous oxygen 99.7 mol% (asu-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: NAOH, title: Caustic soda 50 wt% (chlor-alkali-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: PW, title: Process water (dilution), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: r101, direction: out, kind: energy}
+      - {id: r201, direction: out, kind: energy}
+      - {id: frac, direction: out, kind: energy}
+      - {id: t401, direction: out, kind: energy}
+  - id: LPS
+    title: LP steam 400 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 400, provenance: assumed, source: "design basis, D-008"}
+      supply_temperature: {value: 416.77, provenance: given, source: "saturation at 400 kPa(a), IAPWS-IF97"}
+      min_approach: {value: 10, provenance: assumed, source: D-008}
+    ports:
+      - {id: c301, direction: out, kind: energy}
+      - {id: c302, direction: out, kind: energy}
+products:
+  - {id: POCL3, title: Phosphorus oxychloride (distilled) to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: RES, title: Distillation residue to hazardous-waste incineration, category: by_product, ports: [{id: in, direction: in}]}
+  - {id: EFF, title: Spent scrubber liquor to wastewater treatment, category: wastewater, ports: [{id: in, direction: in}]}
+  - {id: STACK, title: Scrubbed vent gas to stack, category: off_gas, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis"}
+      min_approach: {value: 5, provenance: assumed, source: "design basis"}
+    ports:
+      - {id: r101, direction: in, kind: energy}
+      - {id: r201, direction: in, kind: energy}
+      - {id: c301, direction: in, kind: energy}
+      - {id: c302, direction: in, kind: energy}
+      - {id: e303, direction: in, kind: energy}
+  - id: CHW
+    title: Chilled water return (vent condensers)
+    category: utility
+    utility:
+      kind: refrigerant
+      supply_temperature: {value: 278.15, provenance: assumed, source: "design basis, D-007"}
+      return_temperature: {value: 283.15, provenance: assumed, source: "design basis, D-007"}
+      min_approach: {value: 5, provenance: assumed, source: "D-007"}
+    ports:
+      - {id: v101, direction: in, kind: energy}
+      - {id: v201, direction: in, kind: energy}
+
+blocks:
+  - id: PCL3
+    title: PCl3 synthesis (chlorination of white phosphorus)
+    class: ReactingChemicals
+    ports:
+      - {id: p4, direction: in}
+      - {id: cl2, direction: in}
+      - {id: pcl3, direction: out}
+      - {id: vent, direction: out}
+      - {id: cw, direction: out, kind: energy}
+      - {id: chw, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: OXID
+    title: PCl3 oxidation with oxygen
+    class: ReactingChemicals
+    ports:
+      - {id: pcl3, direction: in}
+      - {id: recycle, direction: in}
+      - {id: o2, direction: in}
+      - {id: crude, direction: out}
+      - {id: vent, direction: out}
+      - {id: cw, direction: out, kind: energy}
+      - {id: chw, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: FRAC
+    title: POCl3 distillation
+    class: Distilling
+    ports:
+      - {id: crude, direction: in}
+      - {id: recycle, direction: out}
+      - {id: product, direction: out}
+      - {id: residue, direction: out}
+      - {id: steam1, direction: in, kind: energy}
+      - {id: steam2, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+      - {id: cw3, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: SCRUB
+    title: Vent gas scrubbing (caustic)
+    class: Absorbing
+    ports:
+      - {id: vent1, direction: in}
+      - {id: vent2, direction: in}
+      - {id: naoh, direction: in}
+      - {id: water, direction: in}
+      - {id: gas, direction: out}
+      - {id: liquor, direction: out}
+      - {id: power, direction: in, kind: energy}
+
+steps:
+  # --- PCL3 ------------------------------------------------------------------------------------
+  - id: R101
+    block: PCL3
+    title: PCl3 reactor-still with reflux condenser E-101 (white phosphorus chlorination)
+    class: ReactingChemicals
+    reactions: [P_CHLOR, PCL3_OX_R101]
+    reactor: conversion
+    links: [{target: equipment, ref: R-101}, {target: equipment, ref: E-101}]
+    ports:
+      - {id: p4, direction: in, delegates: p4}
+      - {id: cl2, direction: in, delegates: cl2}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: cw}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: V101
+    block: PCL3
+    title: PCl3 receiver with vent condenser E-102 (chilled water)
+    class: SeparatingByFlash
+    links: [{target: equipment, ref: V-101}, {target: equipment, ref: E-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: liquid, direction: out, delegates: pcl3}
+      - {id: gas, direction: out, delegates: vent}
+      - {id: q, direction: out, kind: energy, delegates: chw}
+  # --- OXID ------------------------------------------------------------------------------------
+  - id: M201
+    block: OXID
+    title: PCl3 feed and recycle mixing
+    class: Mixing
+    ports:
+      - {id: pcl3, direction: in, delegates: pcl3}
+      - {id: rec, direction: in, delegates: recycle}
+      - {id: out, direction: out}
+  - id: R201
+    block: OXID
+    title: PCl3 oxidation loop reactor with circulation cooler E-201
+    class: ReactingChemicals
+    reactions: [PCL3_OX]
+    reactor: conversion
+    links: [{target: equipment, ref: R-201}, {target: equipment, ref: E-201}, {target: equipment, ref: P-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: o2, direction: in, delegates: o2}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: cw}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: V201
+    block: OXID
+    title: POCl3 reactor gas separator with vent condenser E-202 (chilled water)
+    class: SeparatingByFlash
+    links: [{target: equipment, ref: V-201}, {target: equipment, ref: E-202}]
+    ports:
+      - {id: in, direction: in}
+      - {id: liquid, direction: out, delegates: crude}
+      - {id: gas, direction: out, delegates: vent}
+      - {id: q, direction: out, kind: energy, delegates: chw}
+  # --- FRAC ------------------------------------------------------------------------------------
+  - id: C301
+    block: FRAC
+    title: Light-ends column (PCl3 recycle)
+    class: Distilling
+    links: [{target: equipment, ref: C-301}]
+    ports:
+      - {id: in, direction: in, delegates: crude}
+      - {id: top, direction: out, delegates: recycle}
+      - {id: bot, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam1}
+      - {id: cw, direction: out, kind: energy, delegates: cw1}
+  - id: C302
+    block: FRAC
+    title: POCl3 product column (residue purge)
+    class: Distilling
+    links: [{target: equipment, ref: C-302}]
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out}
+      - {id: bot, direction: out, delegates: residue}
+      - {id: steam, direction: in, kind: energy, delegates: steam2}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: E303
+    block: FRAC
+    title: POCl3 product cooler
+    class: Cooling
+    links: [{target: equipment, ref: E-303}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: product}
+      - {id: q, direction: out, kind: energy, delegates: cw3}
+  # --- SCRUB -----------------------------------------------------------------------------------
+  - id: M401
+    block: SCRUB
+    title: Caustic dilution
+    class: Mixing
+    ports:
+      - {id: naoh, direction: in, delegates: naoh}
+      - {id: water, direction: in, delegates: water}
+      - {id: out, direction: out}
+  - id: T401
+    block: SCRUB
+    title: Caustic vent scrubber
+    class: Absorbing
+    reactions: [PCL3_NAOH, POCL3_NAOH, CL2_NAOH]
+    links: [{target: equipment, ref: T-401}, {target: equipment, ref: P-401}]
+    ports:
+      - {id: gas1, direction: in, delegates: vent1}
+      - {id: gas2, direction: in, delegates: vent2}
+      - {id: liq_in, direction: in}
+      - {id: gas_out, direction: out, delegates: gas}
+      - {id: liq_out, direction: out, delegates: liquor}
+      - {id: power, direction: in, kind: energy, delegates: power}
+
+streams:
+  # --- PCl3 synthesis --------------------------------------------------------------------------
+  - id: S1
+    title: Molten white phosphorus
+    from: P4.out
+    to: R101.p4
+    template: phosphorus
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: "pumped from the water-sealed melt tank (CN115259114B: 0.4-0.6 MPa), D-003"}
+        temperature: {value: 333.15, provenance: assumed, source: "molten under water at 55-60 C (CN115259114B, disclosure item 1), D-003"}
+        phase: {value: liquid, provenance: assumed, source: "above the 317 K melting point"}
+        flow: {value: 812.554, basis: mass, provenance: assumed, source: "scripts/balance.py: phosphorus for 4000 kg/h POCl3 product (D-002)"}
+        composition: {basis: mole_fraction, values: {P4: 1.0}, provenance: assumed, source: "D-003: dry white phosphorus; water, arsenic and phosphorus mud not modelled"}
+  - id: S2
+    title: Dry chlorine gas
+    from: CL2.out
+    to: R101.cl2
+    template: chlorine
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: "chlor-alkali-1 chlorine product at 400 kPa(a) (its stream S42)"}
+        temperature: {value: 313.15, provenance: assumed, source: "chlor-alkali-1 chlorine product (its stream S42)"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 2814.428, basis: mass, provenance: assumed, source: "scripts/balance.py: 0.05 % molar Cl2 excess over the P4 (D-004)"}
+        composition: {basis: mass_fraction, values: {CL2: 0.9918815, O2: 0.0081185}, provenance: assumed, source: "chlor-alkali-1 stream S42: Cl2 0.9918815, O2 0.008118535 (mass)"}
+  - id: S3
+    title: PCl3 reactor outlet after the reflux condenser
+    from: R101.out
+    to: V101.in
+    template: pcl3-reactor
+    state:
+      design:
+        pressure: {value: 115.0, provenance: assumed, source: "reactor-still near atmospheric pressure (D-010)"}
+        temperature: {value: 308.15, provenance: assumed, source: "reflux condenser E-101 outlet on cooling water (CN115259114B condenser 30-35 C), D-007"}
+        phase: {value: two-phase, provenance: assumed, source: "liquid PCl3 with the Cl2/O2 vent gas"}
+        flow: {value: 3626.98, provenance: calculated, source: 'cheme process propagate: reactor R101 from S1 S2', fingerprint: 7001601e283ab492}
+        composition: {basis: mole_fraction, values: {P4: 0.0, CL2: 0.000749754, O2: 0.000271911, PCL3: 0.94514, POCL3: 0.0538384}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S1 S2', fingerprint: 24bbeeae179737ba}
+  - id: S4
+    title: Crude PCl3 to the oxidation
+    from: V101.liquid
+    to: M201.pcl3
+    template: chlorides
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: "transfer pump P-101 (D-010)"}
+        temperature: {value: 308.15, provenance: assumed, source: "D-007"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 3625.086, basis: mass, provenance: assumed, source: "scripts/balance.py: R101 outlet less the vapour carried by the vent at 283 K (D-006)"}
+        composition: {basis: mole_fraction, values: {PCL3: 0.9461032869, POCL3: 0.0538967131}, provenance: assumed, source: "scripts/balance.py (D-006)"}
+  - id: S5
+    title: PCl3 reactor vent gas
+    from: V101.gas
+    to: T401.gas1
+    template: vent
+    state:
+      design:
+        pressure: {value: 110.0, provenance: assumed, source: "D-010"}
+        temperature: {value: 283.15, provenance: assumed, source: "vent condenser E-102 outlet on chilled water (D-007)"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 1.903, basis: mass, provenance: assumed, source: "scripts/balance.py: unreacted Cl2 and O2 saturated with PCl3/POCl3 at 283 K, Raoult (D-006)"}
+        composition: {basis: mole_fraction, values: {CL2: 0.6820880508, O2: 0.2475437622, PCL3: 0.0693159445, POCL3: 0.0010522425}, provenance: assumed, source: "scripts/balance.py (D-006)"}
+  # --- oxidation -------------------------------------------------------------------------------
+  - id: S6
+    title: PCl3 feed to the oxidation reactor
+    from: M201.out
+    to: R201.in
+    template: chlorides
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: "D-010"}
+        temperature: {value: 308.15, provenance: assumed, source: "D-005 (recycle small, mixing temperature not resolved)"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 3661.09, provenance: calculated, source: 'cheme process propagate: mixer M201 from S4 S11', fingerprint: f4bbf4fd2992b47b}
+        composition: {basis: mole_fraction, values: {PCL3: 0.94193, POCL3: 0.0580699}, provenance: calculated, source: 'cheme process propagate: mixer M201 from S4 S11', fingerprint: 3fb259ed2a5111d7}
+  - id: S10
+    title: Gaseous oxygen
+    from: O2.out
+    to: R201.o2
+    template: oxygen
+    state:
+      design:
+        pressure: {value: 200.0, provenance: assumed, source: "let down from asu-1's 31 bar(a) GOX pipeline (its stream S8), D-003"}
+        temperature: {value: 303.15, provenance: assumed, source: "D-003"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 418.418, basis: mass, provenance: assumed, source: "scripts/balance.py: 5 % molar O2 excess over the PCl3 reacted (D-005)"}
+        composition: {basis: mole_fraction, values: {O2: 0.997115, AR: 0.002885}, provenance: assumed, source: "asu-1 GOX product (its stream S7/S8)"}
+  - id: S7
+    title: POCl3 reactor outlet
+    from: R201.out
+    to: V201.in
+    template: pocl3-reactor
+    state:
+      design:
+        pressure: {value: 130.0, provenance: assumed, source: "D-010 (US5183649: about atmospheric, up to 10 atm)"}
+        temperature: {value: 323.15, provenance: assumed, source: "D-005: lower zone of US4183905 30-50 C, upper zone up to 95 C"}
+        phase: {value: two-phase, provenance: assumed, source: "liquid POCl3 with the excess O2 and argon"}
+        flow: {value: 4079.51, provenance: calculated, source: 'cheme process propagate: reactor R201 from S6 S10', fingerprint: b232a6cc9c0612a0}
+        composition: {basis: mole_fraction, values: {PCL3: 0.00459544, POCL3: 0.971154, O2: 0.0228619, AR: 0.00138912}, provenance: calculated, source: 'cheme process propagate: reactor R201 from S6 S10', fingerprint: 13fcfac2e03405c9}
+  - id: S8
+    title: Crude POCl3 to the light-ends column
+    from: V201.liquid
+    to: C301.in
+    template: pocl3
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: "pump P-202 (D-010)"}
+        temperature: {value: 323.15, provenance: assumed, source: "D-005"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 4056.1, basis: mass, provenance: assumed, source: "scripts/balance.py: R201 outlet less the vapour carried by the vent at 283 K (D-006)"}
+        composition: {basis: mole_fraction, values: {PCL3: 0.00470326, POCL3: 0.99529674}, provenance: assumed, source: "scripts/balance.py (D-006)"}
+  - id: S9
+    title: POCl3 reactor vent gas
+    from: V201.gas
+    to: T401.gas2
+    template: vent
+    state:
+      design:
+        pressure: {value: 110.0, provenance: assumed, source: "D-010"}
+        temperature: {value: 283.15, provenance: assumed, source: "vent condenser E-202 outlet on chilled water, above the 274 K melting point of POCl3 (D-007)"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 23.391, basis: mass, provenance: assumed, source: "scripts/balance.py: excess O2 and Ar saturated with PCl3/POCl3 at 283 K, Raoult (D-006)"}
+        composition: {basis: mole_fraction, values: {O2: 0.9240754033, AR: 0.0561470927, PCL3: 0.0003450499, POCL3: 0.0194324541}, provenance: assumed, source: "scripts/balance.py (D-006)"}
+  # --- distillation ----------------------------------------------------------------------------
+  - id: S11
+    title: PCl3-rich distillate recycled to the oxidation
+    from: C301.top
+    to: M201.rec
+    template: chlorides
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: "reflux pump P-301 (D-010)"}
+        temperature: {value: 355.0, provenance: assumed, source: "D-008: about the bubble point of the 50/50 mol PCl3/POCl3 distillate at 120 kPa(a)"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 36.0, basis: mass, provenance: assumed, source: "scripts/balance.py: 99.5 % of the PCl3, distillate 50 mol% PCl3 (D-008)"}
+        composition: {basis: mole_fraction, values: {PCL3: 0.5, POCL3: 0.5}, provenance: assumed, source: "D-008"}
+  - id: S12
+    title: Topped POCl3 to the product column
+    from: C301.bot
+    to: C302.in
+    template: pocl3
+    state:
+      design:
+        pressure: {value: 125.0, provenance: assumed, source: "D-010"}
+        temperature: {value: 381.0, provenance: assumed, source: "D-008: bubble point of POCl3 at 125 kPa(a), about"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 4020.1, basis: mass, provenance: assumed, source: "scripts/balance.py (D-008)"}
+        composition: {basis: mole_fraction, values: {PCL3: 2.37385e-05, POCL3: 0.9999762615}, provenance: assumed, source: "scripts/balance.py (D-008)"}
+  - id: S13
+    title: POCl3 distillate
+    from: C302.top
+    to: E303.in
+    template: pocl3
+    state:
+      design:
+        pressure: {value: 110.0, provenance: assumed, source: "D-010"}
+        temperature: {value: 378.9, provenance: assumed, source: "D-008: boiling point of POCl3 near atmospheric pressure"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 4000.0, basis: mass, provenance: assumed, source: "scripts/balance.py: 99.5 % of the POCl3 overhead (D-008)"}
+        composition: {basis: mole_fraction, values: {PCL3: 2.38578e-05, POCL3: 0.9999761422}, provenance: assumed, source: "scripts/balance.py (D-008): 21 ppm(wt) PCl3"}
+  - id: S14
+    title: POCl3 product
+    from: E303.out
+    to: POCL3.in
+    template: pocl3
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: "product pump P-302 (D-010)"}
+        temperature: {value: 308.15, provenance: assumed, source: "D-002: product to storage at 35 C"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 4000.0, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E303 from S13', fingerprint: fc0b85c81bd5f1f4}
+        composition: {basis: mole_fraction, values: {PCL3: 2.38578e-05, POCL3: 0.9999761422}, provenance: calculated, source: 'cheme process propagate: pass-through E303 from S13', fingerprint: fc0b85c81bd5f1f4}
+  - id: S15
+    title: Distillation residue
+    from: C302.bot
+    to: RES.in
+    template: pocl3
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: "residue pump P-303 (D-010)"}
+        temperature: {value: 383.0, provenance: assumed, source: "D-008"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 20.1, basis: mass, provenance: assumed, source: "scripts/balance.py: 0.5 % of the C302 feed purged (D-008)"}
+        composition: {basis: mole_fraction, values: {POCL3: 1.0}, provenance: assumed, source: "D-008: modelled as POCl3 carrying the non-volatiles (metal chlorides, polyphosphoryl chlorides, not modelled)"}
+  # --- vent scrubbing --------------------------------------------------------------------------
+  - id: S20
+    title: Caustic soda 50 wt%
+    from: NAOH.out
+    to: M401.naoh
+    template: caustic
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: "site caustic header (D-009)"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-009"}
+        phase: {value: liquid, provenance: assumed, source: "solution"}
+        flow: {value: 15.474, basis: mass, provenance: assumed, source: "scripts/balance.py: 1.5 x the NaOH that the vent's PCl3, POCl3 and Cl2 consume (D-009)"}
+        composition: {basis: mass_fraction, values: {NAOH: 0.5, H2O: 0.5}, provenance: assumed, source: "commercial 50 wt% grade, as chlor-alkali-1 makes it"}
+  - id: S21
+    title: Dilution water
+    from: PW.out
+    to: M401.water
+    template: water
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: "site water header"}
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        phase: {value: liquid, provenance: assumed, source: "water"}
+        flow: {value: 27.509, basis: mass, provenance: assumed, source: "scripts/balance.py: dilution to 18 wt% NaOH (D-009)"}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: "process water"}
+  - id: S22
+    title: Scrubbing liquor 18 wt% NaOH
+    from: M401.out
+    to: T401.liq_in
+    template: caustic
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: "D-009"}
+        temperature: {value: 303.15, provenance: assumed, source: "D-009 (heat of dilution not counted)"}
+        phase: {value: liquid, provenance: assumed, source: "solution"}
+        flow: {value: 42.983, provenance: calculated, source: 'cheme process propagate: mixer M401 from S20 S21', fingerprint: a0842b050d017c78}
+        composition: {basis: mole_fraction, values: {NAOH: 0.0899752, H2O: 0.910025}, provenance: calculated, source: 'cheme process propagate: mixer M401 from S20 S21', fingerprint: 59b3bbf609f2e447}
+  - id: S23
+    title: Scrubbed vent gas to stack
+    from: T401.gas_out
+    to: STACK.in
+    template: stack
+    state:
+      design:
+        pressure: {value: 105.0, provenance: assumed, source: "D-010"}
+        temperature: {value: 303.15, provenance: assumed, source: "D-009"}
+        phase: {value: vapor, provenance: assumed, source: "gas, saturated with water"}
+        flow: {value: 22.093, basis: mass, provenance: assumed, source: "scripts/balance.py: 99.99 % of the PCl3, POCl3 and Cl2 destroyed, water-saturated at 303 K (D-009)"}
+        composition: {basis: mole_fraction, values: {CL2: 2.8379e-06, O2: 0.9051747166, PCL3: 3.218e-07, POCL3: 1.8862e-06, AR: 0.0543728962, H2O: 0.0404473413}, provenance: assumed, source: "scripts/balance.py (D-009)"}
+  - id: S24
+    title: Spent scrubber liquor
+    from: T401.liq_out
+    to: EFF.in
+    template: liquor
+    state:
+      design:
+        pressure: {value: 200.0, provenance: assumed, source: "liquor bleed from P-401 (D-009)"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-009"}
+        phase: {value: liquid, provenance: assumed, source: "solution"}
+        flow: {value: 46.184, basis: mass, provenance: assumed, source: "scripts/balance.py (D-009)"}
+        composition: {basis: mole_fraction, values: {NAOH: 0.029895005, NA2HPO3: 0.0010343425, NA3PO4: 0.0060625921, NACL: 0.0304121763, NAOCL: 0.0091213725, H2O: 0.9234745116}, provenance: assumed, source: "scripts/balance.py (D-009)"}
+  # --- energy ----------------------------------------------------------------------------------
+  - {id: Q1, title: PCl3 reactor heat to cooling water (reflux condenser E-101), kind: energy, from: R101.q, to: CW.r101, state: {design: {duty: {value: 2388.7, provenance: assumed, source: "scripts/balance.py: liquid-phase reaction heats at 298 K, sensible terms neglected (D-006)"}}}}
+  - {id: Q2, title: PCl3 vent condenser E-102 duty, kind: energy, from: V101.q, to: CHW.v101, state: {design: {duty: {value: 0.049, provenance: assumed, source: "scripts/balance.py: vapour condensed from 308 to 283 K saturation (D-007)"}}}}
+  - {id: Q3, title: POCl3 reactor heat to cooling water (circulation cooler E-201), kind: energy, from: R201.q, to: CW.r201, state: {design: {duty: {value: 1912.3, provenance: assumed, source: "scripts/balance.py: 277.4 kJ/mol PCl3 reacted (D-005, D-006)"}}}}
+  - {id: Q4, title: POCl3 vent condenser E-202 duty, kind: energy, from: V201.q, to: CHW.v201, state: {design: {duty: {value: 0.315, provenance: assumed, source: "scripts/balance.py (D-007)"}}}}
+  - {id: Q5, title: Light-ends column reboiler, kind: energy, from: LPS.c301, to: C301.steam, state: {design: {duty: {value: 64.5, provenance: assumed, source: "scripts/balance.py: reflux ratio 3 and feed heating 323-379 K (D-008)"}}}}
+  - {id: Q6, title: Light-ends column condenser, kind: energy, from: C301.cw, to: CW.c301, state: {design: {duty: {value: 7.9, provenance: assumed, source: "scripts/balance.py (D-008)"}}}}
+  - {id: Q7, title: Product column reboiler, kind: energy, from: LPS.c302, to: C302.steam, state: {design: {duty: {value: 298.4, provenance: assumed, source: "scripts/balance.py: reflux ratio 0.5 (D-008)"}}}}
+  - {id: Q8, title: Product column condenser, kind: energy, from: C302.cw, to: CW.c302, state: {design: {duty: {value: 298.4, provenance: assumed, source: "scripts/balance.py (D-008)"}}}}
+  - {id: Q9, title: Product cooler duty, kind: energy, from: E303.q, to: CW.e303, state: {design: {duty: {value: 70.75, provenance: assumed, source: "scripts/balance.py: 379 to 308 K, cp 0.9 kJ/(kg K) ASSUMED (D-008)"}}}}
+  - {id: Q10, title: PCl3 reactor agitator and transfer pump power, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 11.34, provenance: assumed, source: "scripts/balance.py: 11 kW agitator allowance and P-101 (D-010)"}}}}
+  - {id: Q11, title: Oxidation loop circulation and transfer pump power, kind: energy, from: POWER.r201, to: R201.power, state: {design: {duty: {value: 36.6, provenance: assumed, source: "scripts/balance.py: P-201 382 t/h at 300 kPa and P-202, wire-to-water 0.55 (D-005, D-010)"}}}}
+  - {id: Q12, title: Distillation pump power, kind: energy, from: POWER.frac, to: C302.power, state: {design: {duty: {value: 0.58, provenance: assumed, source: "scripts/balance.py: P-301, P-302, P-303 (D-010)"}}}}
+  - {id: Q13, title: Scrubber circulation pump power, kind: energy, from: POWER.t401, to: T401.power, state: {design: {duty: {value: 3.03, provenance: assumed, source: "scripts/balance.py: 20 m3/h at 300 kPa, wire-to-water 0.55 (D-010)"}}}}
 layout: {bfd: {}, pfd: {}}

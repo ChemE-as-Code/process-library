@@ -1,0 +1,85 @@
+# Reactions of phosphorus-oxychloride-1. Schema: `cheme schema process-reactions`.
+# Conversions are design inputs (ASSUMED, DESIGN.md D-004, D-005, D-009): a conversion model,
+# not kinetics. Heats of reaction are for the liquid chlorides (the reactors work in the liquid
+# phase) from the liquid formation enthalpies of chemicals (CRC): PCl3(l) -319.7 kJ/mol,
+# POCl3(l) -597.1 kJ/mol, white P(l) +0.62 kJ/mol per P atom (scripts/balance.py).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  # R-101: chlorination of molten white phosphorus in boiling PCl3 (phosphorus kept in slight
+  # excess in the reaction mass, so that steady state consumes the feed completely)
+  - id: P_CHLOR
+    title: Chlorination of white phosphorus
+    equation: P4 + 6 Cl2 -> 4 PCl3
+    stoichiometry: {P4: -1.0, CL2: -6.0, PCL3: 4.0}
+    phase: liquid
+    reversible: false
+    conversion:
+      key: P4
+      value: 1.0
+      provenance: assumed
+      source: >-
+        D-004: the phosphorus fed is consumed completely at steady state (the heel of the
+        reactor-still holds the small phosphorus excess that CN115259114B uses against PCl5;
+        its P:Cl2 mass ratio 1:3.40-3.45 is the stoichiometric 1:3.434); Cl2 fed with 0.05 %
+        molar excess, which leaves with the vent (ASSUMED)
+    heat_of_reaction:
+      value: -1281280.0
+      temperature: 298.15
+      provenance: given
+      source: "liquid PCl3 from molten P4 and gaseous Cl2: 4 x (-319.7) - 4 x 0.62 kJ/mol P4, liquid formation enthalpies of chemicals (CRC)"
+    sources:
+      - "CN115259114B (2023) Continuous production process of phosphorus trichloride, https://patents.google.com/patent/CN115259114B/en: disclosure items 1-4 and 8, example 1 (molten P 55-60 C, P:Cl2 mass ratio, slight P excess against PCl5, PCl3 purity 99.5 wt%)"
+  - id: PCL3_OX_R101
+    title: Oxidation of PCl3 by the oxygen of the chlorine feed
+    equation: PCl3 + 1/2 O2 -> POCl3
+    stoichiometry: {PCL3: -1.0, O2: -0.5, POCL3: 1.0}
+    phase: liquid
+    reversible: false
+    conversion: {key: O2, value: 0.99, provenance: assumed, source: "D-004: the 0.81 wt% O2 of chlor-alkali-1's chlorine is taken up by the boiling PCl3 (ASSUMED 99 %); the POCl3 formed goes on to R-201 with the PCl3"}
+    heat_of_reaction: {value: -277400.0, temperature: 298.15, provenance: given, source: "liquid formation enthalpies of chemicals (CRC): -597.1 + 319.7 kJ/mol"}
+  # R-201: oxidation of liquid PCl3 with gaseous oxygen (US4183905)
+  - id: PCL3_OX
+    title: Oxidation of PCl3 to POCl3
+    equation: PCl3 + 1/2 O2 -> POCl3
+    stoichiometry: {PCL3: -1.0, O2: -0.5, POCL3: 1.0}
+    phase: liquid
+    reversible: false
+    conversion:
+      key: PCL3
+      value: 0.995
+      provenance: assumed
+      source: >-
+        D-005: PCl3 conversion per pass, ASSUMED; US4183905 aims at substantially complete
+        conversion in one reactor with 1-10 % O2 excess (its example: about 9.47 of 9.48 parts
+        of feed leave as POCl3); the residual PCl3 is recycled from C-301
+    heat_of_reaction:
+      value: -277400.0
+      temperature: 298.15
+      provenance: given
+      source: >-
+        liquid formation enthalpies of chemicals (CRC): POCl3(l) -597.1, PCl3(l) -319.7 kJ/mol;
+        consistent with the 800-1000 BTU per lb of PCl3 (255-320 kJ/mol) that US4183905 says
+        must be removed
+    sources:
+      - "US4183905A (1980) Producing phosphorus oxyhalide, https://patents.google.com/patent/US4183905: description (two-zone column, 30-95 C, cooling-water jacket, excess O2 1-10 %, PCl3:O2 mass ratio 8.56-7.15, explosion hazard of vapour with >= 50 % PCl3) and example"
+      - "US5183649A (1993) Production of phosphorus compounds, https://patents.google.com/patent/US5183649: description (loop reactor, 50-110 C, about atmospheric pressure, circulating liquid as heat sink, fractional distillation of the product)"
+  # T-401: caustic vent scrubber
+  - id: PCL3_NAOH
+    equation: PCl3 + 5 NaOH -> Na2HPO3 + 3 NaCl + 2 H2O
+    stoichiometry: {PCL3: -1.0, NAOH: -5.0, NA2HPO3: 1.0, NACL: 3.0, H2O: 2.0}
+    phase: liquid
+    reversible: false
+    conversion: {key: PCL3, value: 0.9999, provenance: assumed, source: "D-009: hydrolysis and neutralisation of PCl3 in the caustic scrubber, ASSUMED"}
+  - id: POCL3_NAOH
+    equation: POCl3 + 6 NaOH -> Na3PO4 + 3 NaCl + 3 H2O
+    stoichiometry: {POCL3: -1.0, NAOH: -6.0, NA3PO4: 1.0, NACL: 3.0, H2O: 3.0}
+    phase: liquid
+    reversible: false
+    conversion: {key: POCL3, value: 0.9999, provenance: assumed, source: "D-009: hydrolysis and neutralisation of POCl3 in the caustic scrubber, ASSUMED"}
+  - id: CL2_NAOH
+    equation: Cl2 + 2 NaOH -> NaCl + NaOCl + H2O
+    stoichiometry: {CL2: -1.0, NAOH: -2.0, NACL: 1.0, NAOCL: 1.0, H2O: 1.0}
+    phase: liquid
+    reversible: false
+    conversion: {key: CL2, value: 0.9999, provenance: assumed, source: "D-009: chlorine absorption in caustic, ASSUMED"}
