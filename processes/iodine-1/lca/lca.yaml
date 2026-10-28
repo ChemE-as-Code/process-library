@@ -27,7 +27,7 @@ rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICE
 flows:
   # ---- inputs
   - key: feed:BRINE
-    missing: "background not mapped yet (preliminary LCI)"
+    missing: "deep iodide brine wellfield operation per t of brine delivered (lifting, degassing, de-oiling, gathering; iodide, salt and water as resources); no open dataset known, a library brine-field process is needed; not mapped yet"
     source: >-
       Raw iodide brine (S1, 462 t/h, 300 mg/kg iodine as iodide, about 10 wt% NaCl) at the plant
       battery limit: connect to the operation of a deep brine wellfield (production wells of
@@ -36,33 +36,33 @@ flows:
       resources of that activity. No such open dataset is known; a library utility or brine-field
       process is the likely home.
   - key: feed:CL2
-    missing: "background not mapped yet (preliminary LCI)"
+    missing: "chlorine gas, dry, 400 kPa(a), membrane-cell chlor-alkali (chlor-alkali-1 product CL2 once published, else a chlorine market); not mapped yet"
     source: >-
       Dry chlorine gas at 400 kPa(a) (S2 + S14): connect to the library process chlor-alkali-1
       (membrane cells, product CL2 of the same state) once its dataset is published in the
       Atlas, or else to a market for chlorine, gaseous, from membrane-cell chlor-alkali
       electrolysis (with its co-product allocation).
   - key: feed:SO2
-    missing: "background not mapped yet (preliminary LCI)"
+    missing: "sulfur dioxide, liquid, from sulfur burning and liquefaction (no registry slug or library producer yet); not mapped yet"
     source: >-
       Liquid sulfur dioxide (S11): connect to sulfur dioxide, liquid, production by burning
       elemental sulfur with air and liquefying the gas (or recovery from a smelter off-gas), at
       plant. The chemicals registry has no sulfur dioxide slug yet; the sulfur furnace of
       sulfuric-acid-1 is the nearest library process.
   - key: feed:H2SO4
-    missing: "background not mapped yet (preliminary LCI)"
+    missing: "sulfuric acid 98.5 wt%, sulfur burning double contact (sulfuric-acid-1 product ACID once published, else a sulfuric acid market); not mapped yet"
     source: >-
       Sulfuric acid 98.5 wt% (S18) for the iodine melter: connect to the library process
       sulfuric-acid-1 (sulfur burning, double contact, product ACID 98.5 wt%) once its dataset
       is published, or else to a market for sulfuric acid.
   - key: feed:NAOH
-    missing: "background not mapped yet (preliminary LCI)"
+    missing: "sodium hydroxide 50 wt% solution, membrane-cell chlor-alkali (chlor-alkali-1 product NAOH once published, else a caustic soda market); not mapped yet"
     source: >-
       Caustic soda 50 wt% (S22) for the spent brine neutralisation: connect to the library
       process chlor-alkali-1 (product NAOH 50 wt%), or else to a market for sodium hydroxide,
       without water, in 50 % solution state.
   - key: feed:PW
-    missing: "background not mapped yet (preliminary LCI)"
+    missing: "process water, softened or deionised, per kg (market for water; quality open); not mapped yet"
     source: >-
       Process water (S12, absorber make-up): connect to a market for water, deionised or
       decarbonised, per kg (the HI liquor tolerates softened water; quality open).
@@ -70,20 +70,20 @@ flows:
     free: true
     source: "ambient make-up air for the blowing-out loop (S10): a resource taken from nature without burden"
   - key: feed:POWER
-    missing: "background not mapped yet (preliminary LCI)"
+    missing: "electricity, medium voltage, market of the site's country (no site chosen); not mapped yet"
     source: >-
       Electricity for the circulation fan K-201, the reinjection pump P-401, the absorbent pump
       P-202 and the recovery drives (Q1-Q4): connect to a market for electricity, medium
       voltage, of the site's country.
   - key: feed:LPS
-    missing: "background not mapped yet (preliminary LCI)"
+    missing: "heat from LP steam 450 kPa(a), per kWh delivered (steam in chemical industry, or the library utility-steam-ng-boiler); not mapped yet"
     source: >-
       LP steam 450 kPa(a) to the iodine melter (Q5, heat delivered): connect to heat from steam
       in the chemical industry, or to the library process utility-steam-ng-boiler (natural gas
       boiler) per kWh of steam heat.
   # ---- outputs
   - key: product:CW
-    missing: "background not mapped yet (preliminary LCI)"
+    missing: "heat rejection to an evaporative cooling tower, per kWh removed (the library utility-cooling-tower); not mapped yet"
     source: >-
       Heat rejected to the site cooling water system by the flaker X-301 (Q6, 298/308 K): connect
       to cooling water supply / heat rejection in an evaporative cooling tower, or the library
@@ -92,7 +92,7 @@ flows:
     treatment:
       kind: waste
       route: reinjection of the neutralised spent brine into the producing formation (deep injection wells)
-    missing: "background not mapped yet (preliminary LCI)"
+    missing: "brine injection well operation per t of spent brine (wells and their upkeep; the injection pump P-401 is in the foreground); no open dataset known; not mapped yet"
     source: >-
       Neutralised spent brine (S24, 463 t/h at 3100 kPa(a): about 10 wt% NaCl, 0.025 wt%
       Na2SO4, about 30 mg/kg iodine as I2/iodide): returned to the formation it came from
@@ -121,8 +121,12 @@ flows:
       in T-201: geogenic carbon of the formation water, counted as fossil (D-011). The
       alkalinity is ASSUMED (D-003), so this emission is too.
   - key: emission:I2
-    elementary: {compartment: air}
-    source: "iodine vapour not absorbed in T-202 and carried out with the purge (0.5 % slip, D-005), ASSUMED"
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    source: >-
+      iodine vapour not absorbed in T-202 and carried out with the purge (0.5 % slip, D-005),
+      ASSUMED; released from the absorber vent stack at a site outside towns (subcompartment
+      ASSUMED). The schema gives every elementary flow a carbon origin (default fossil); for I2
+      it carries no meaning (a core limitation, not a claim).
 emission_exclusions:
   - id: fugitive-leaks
     method: equipment-leaks
@@ -136,7 +140,12 @@ emission_exclusions:
     reason: >-
       The melter at about 393 K may release HCl and iodine vapour from the cake liquor; the
       balance sends them to the spent acid (D-006). Its vent and scrubber are not designed at
-      concept stage. Open gap.
+      concept stage. Upper bound for HCl: all of the cake's HCl (S17, 0.46 kg/h, 3.7 g per kg
+      iodine, 0.4 % of the product mass) if none stayed in the acid. Iodine: not bounded, the
+      vent gas flow is not designed (the 2026-10-28 review estimates iodine's vapour pressure
+      near its melting point at the order of 10 kPa, not sourced here; the bound depends on
+      that flow). The schema has no amount field for an
+      exclusion, so the cut-off rule cannot be checked by cheme. Open gap.
   - id: storage-and-unloading
     method: storage-tank
     reason: >-

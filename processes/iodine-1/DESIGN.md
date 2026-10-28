@@ -230,7 +230,8 @@ method field is a Union; core finding, to be reported).
 ## D-011 Preliminary gate-to-gate LCI (2026-10-28)
 Decision: `lca/lca.yaml` with functional unit 1 kg iodine flakes at the gate, gate-to-gate,
 case design, no allocation (single product). Every foreground exchange comes from the balanced
-flowsheet. Backgrounds are left unmapped (`missing:` with the activity to connect): brine
+flowsheet. Backgrounds are left unmapped; each `missing:` names the activity to connect, so the
+published gap list (gaps.csv, dataset) says what each gap needs: brine
 wellfield, chlorine and caustic (chlor-alkali-1), sulfuric acid (sulfuric-acid-1), SO2,
 process water, electricity, LP steam, cooling water, reinjection. Make-up air free; vent N2, O2
 and water vapour free; vent CO2 elementary (air, fossil: geogenic carbon of the formation's
