@@ -4,6 +4,8 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-10-28 | DESIGN.md D-006, D-011 | energy cross-check restated on a consistent (liquid) basis, wastewater heat named, cooler left open; column model-basis overstatement of `cheme maturity` noted for core | review #8, #7 (low) |
+| 2026-10-28 | process/flowsheet.yaml S1/S2, BFD/PFD, checks/maturity.json, lca/* (generated), DESIGN.md D-006 | boundary feed flows and compositions `given` as the study's design specification; `cheme maturity` reaches balanced, written; concept claim within cap | review #2 (medium) |
 | 2026-10-28 | process.yaml, DESIGN.md D-013 | unregistered chemicals (methanol, ammonia, MMA, DMA, TMA) out of `chemistry`, named in `validation.notes`; library catalog build exits 0 | review 2026-10-28-pfd-lci-review#1 (high) |
 | 2026-10-28 | DESIGN.md, PROGRESS.md | route/boundary memo, source register, decisions D-001..D-014, open inputs, method table | record of the concept stage |
 | 2026-10-28 | lca/lca.yaml, lca/mappings.yaml, lca/* (generated) | preliminary gate-to-gate LCI per kg DMA, mass allocation, all backgrounds unmapped gaps; inventory, gaps, dataset written | scope step 4 (D-014) |

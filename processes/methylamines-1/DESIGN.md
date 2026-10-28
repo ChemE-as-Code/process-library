@@ -123,9 +123,22 @@ associating, azeotropic system (`cheme process props --coverage`: none applies);
 (no benchmarked package, D-011 gated step).
 Enthalpy model: ideal gas (Poling cp) minus the heat of vaporisation of each component
 (thermo 0.6.1), no mixing or solution enthalpy (amine-water mixing is strongly exothermic: not
-counted); bubble points by Raoult's law. Duties +/-30 % at best. Energy cross-check: steam 35.8 MW
-plus the heat of reaction (extents x formation-enthalpy heats, about 2.5 MW) equals the heat
-rejected, 38.3 MW, within 0.1 MW.
+counted); bubble points by Raoult's law. Duties +/-30 % at best. Energy cross-check (restated after
+review 2026-10-28-pfd-lci-review#8): steam 35.8 MW plus the gas-phase heat of reaction (extents x
+formation-enthalpy heats, about 2.5 MW) is close to the heat rejected to cooling water, 38.3 MW, but
+the bases differ: feeds enter and products and water leave liquid, so the consistent heat of
+reaction is the liquid-basis one, roughly 3.4 MW (reviewer estimate from heats of vaporisation, not
+recalculated here), and the wastewater S23 leaves at 393 K carrying about 0.7 MW that is in no duty.
+On a consistent basis heat in (35.8 + 3.4) and heat out (38.3 + 0.7) still agree within about
+0.2 MW, but the earlier 0.1 MW agreement was fortuitous and the check is no better than the +/-30 %
+duties. Open: a wastewater cooler to biological-treatment temperature (about 0.7 MW, about 2 % more
+cooling water in the LCI) is not yet in the flowsheet (O-3).
+Maturity: the boundary feeds S1 and S2 are `given` as the design specification of this study (the
+capacity and slate of D-002 and the pure feeds of D-003, themselves ASSUMED choices, with the
+stoichiometric flows that follow from them), so `cheme maturity` reaches **balanced** and writes
+checks/maturity.json; the claim `concept` stays inside that cap. (Before review #2 the feeds were
+`assumed`, the evaluation reached no level, and the run report of 20261028-145903-design wrongly
+said it stopped at balanced.)
 
 ## D-007 Recycles (2026-10-28)
 Decision: all ammonia and the whole TMA recycle leave the ammonia column overhead (S10, TMA 5.5
@@ -174,6 +187,10 @@ Power 26 kW. ASSUMED. Reflux and bottoms pumps are not counted (small; O-3).
   not propagated) and E-101 is `Evaporating`. To report to core.
 - No property package covers the system (`cheme process props --coverage`); predictive simulation
   is the gated step (section 5).
+- `cheme maturity` lists C-101..C-105 as "shortcut, predictive, sourced" and passes
+  `balanced.model-basis`, although the columns have no model: their outlets are ASSUMED sharp-split
+  stream values from scripts/mass_balance.py (D-006, D-008). Read the model-basis lines of that
+  report as overstated for the columns. To report to core (review 2026-10-28-pfd-lci-review#7).
 
 ## D-012 Equipment list at concept stage (2026-10-28)
 Decision: one item per PFD step with design pressure = highest operating + 10 % (at least + 2 bar)
