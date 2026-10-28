@@ -1,0 +1,104 @@
+# Goal and scope of the acetaldehyde-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme assess
+# lca --inventory --write` and `--coverage` (lca/inventory.csv, gaps.csv, dataset.yaml,
+# manifest.json, ...); never edit those by hand.
+#
+# A preliminary gate-to-gate inventory (DESIGN.md D-011): every foreground exchange from the
+# balanced flowsheet (process/flowsheet.yaml). No background is linked: each feed, utility and
+# waste is `missing:` with the background activity it should connect to later. No value from a
+# licensed database is used. The purge, the light ends and the side draw leave to treatment
+# outside the boundary (thermal oxidiser, incinerator), so their components are wastes to
+# treatment here, not direct emissions to air.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of acetaldehyde (99.9 wt%) by the one-stage
+  Wacker oxidation of ethylene at the concept stage, for the process library: the foreground
+  exchanges per kg of product with their provenance, and the list of backgrounds still to
+  link. Not an impact result: every background is a gap.
+functional_unit: {product: PROD, amount: 1, unit: kg}
+boundary: gate-to-gate
+year: 2026
+technology: "one-stage Wacker (Hoechst-Wacker) process: ethylene and 99.5 % oxygen in aqueous PdCl2/CuCl2, boiling bubble-column reactor with cycle gas and purge, water scrubbing, extractive light-ends column and acetaldehyde column with live steam; 100 kt/a"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+flows:
+  # --- raw materials
+  - key: feed:ETH
+    missing: "background not linked yet: ethylene, polymer grade, at about 6 bar(a) at the plant gate, from naphtha or ethane steam cracking (market for ethylene); no library process makes ethylene yet"
+    source: "stream S01, 676.5 kg C2H4/t product (D-003, D-004)"
+  - key: feed:OXY
+    missing: "background not linked yet: oxygen, gaseous, 99.5 %, at about 6 bar(a) from cryogenic air separation; link the LCI dataset of processes/asu-1 once published"
+    source: "stream S03, 409.6 kg/t (D-003, D-007)"
+  - key: feed:HCLA
+    missing: "background not linked yet: hydrochloric acid, 30 wt% in water (from HCl synthesis of chlor-alkali chlorine and hydrogen, or by-product HCl absorption); processes/chlor-alkali-1 products once published"
+    source: "stream S04, 54.2 kg/t of 30 wt% acid, replaces the chlorine leaving in the chlorinated by-products (D-004)"
+  - key: feed:DEMIN
+    missing: "background not linked yet: demineralised (deionised) water production from tap or river water, ion exchange or reverse osmosis"
+    source: "streams S05 and S23: reactor make-up and extraction water, scaled from US 4,237,073 (D-006)"
+  - key: feed:PW
+    missing: "background not linked yet: process (river or well) water, filtered, for the scrubber; tap water or decarbonised water production"
+    source: "stream S14: scrubber wash water, scaled from US 4,237,073 (D-006, D-007)"
+  # --- utilities
+  - key: feed:POWER
+    missing: "background not linked yet: electricity, medium voltage, grid of the site country (site not chosen)"
+    source: "streams Q01-Q04: cycle-gas compressor and pumps, 42.8 kWh/t (D-009)"
+  - key: feed:LPS
+    missing: "background not linked yet: LP steam 450 kPa(a), injected live (condensate not returned, leaves in the waste water): steam from a natural-gas boiler including its boiler feed water; processes/utility-steam-ng-boiler once published"
+    source: "streams S24 and S27: live steam to C-201 and C-202, 1.31 t/t, scaled from US 4,237,073 (D-006, D-008)"
+  - key: feed:MPS
+    missing: "background not linked yet: MP steam 1000 kPa(a), injected directly into the catalyst regenerator (condensate not returned); steam from a natural-gas boiler including its boiler feed water"
+    source: "stream S06, 0.115 t/t, scaled from US 4,237,073 (D-006)"
+  - key: product:CW
+    missing: "background not linked yet: heat rejected to a closed cooling-water circuit with an evaporative cooling tower (power, make-up water, chemicals); processes/utility-cooling-tower once published"
+    source: "streams Q05-Q08, Q10, Q11: precondenser, gas cooler, column condensers, waste-water trim and product coolers, 32.4 MW (D-005, D-007, D-008)"
+  # --- wastes to treatment
+  - key: product:WW
+    treatment: {kind: waste, route: "biological waste water treatment of an industrial effluent with acetic acid, aldehydes and about 200 mg/kg organic chlorine"}
+    missing: "background not linked yet: treatment of industrial waste water in a biological plant, per kg (COD load given by the composition); processes/utility-wwtp once published"
+    source: "stream S33: acetaldehyde column bottoms, 8.69 t/t (D-008)"
+  - key: product:PURGE
+    treatment: {kind: waste, route: "thermal oxidation of the cycle-gas purge (ethylene, ethane, acetaldehyde to CO2 and water)"}
+    missing: "background not linked yet: thermal oxidation (or flaring) of a hydrocarbon vent gas with its support fuel and the resulting CO2; processes/utility-flare once published"
+    source: "stream S18, 19.8 kg/t (D-007)"
+  - key: product:LIGHTS
+    treatment: {kind: waste, route: "thermal oxidation of light ends with chloroethane and chloromethane (HCl scrubbing of the flue gas)", hazardous: true}
+    missing: "background not linked yet: incineration of a chlorinated organic vent gas with flue-gas scrubbing"
+    source: "stream S25, 16.4 kg/t (D-008)"
+  - key: product:HEAVY
+    treatment: {kind: waste, route: "incineration of an aqueous organic liquid waste with crotonaldehyde and chlorinated aldehydes", hazardous: true}
+    missing: "background not linked yet: hazardous waste incineration of a chlorinated organic liquid (about 40 wt% organics, 50 wt% water)"
+    source: "stream S30, 71.3 kg/t (D-008)"
+
+# Emission sources the flowsheet does not carry (pre-release issue 176).
+emission_exclusions:
+  - id: crude-tank-breathing
+    method: storage-tank
+    equipment: [T-201]
+    reason: "The crude acetaldehyde tank is assumed vented to the thermal oxidiser with the light ends (D-008); its small breathing flow is not estimated separately at the concept stage."
+    source: "DESIGN.md D-008"
+  - id: fugitive-losses
+    method: equipment-leaks
+    reason: "Fugitive losses of ethylene and acetaldehyde from flanges, seals and valves are not estimated at the concept stage (no equipment count yet)."
+    source: "DESIGN.md D-011"
+
+location: GLO
+
+# Dataset documentation (cheme/lci_dataset/v2): what cheme cannot derive.
+dataset:
+  version: 0.1.0
+  geography:
+    description: "Generic concept design, site not chosen; consumptions checked against the 13 t/h comparative example of US 4,237,073 (Hoechst, 1980)."
+    site: not chosen
+  system_model: cutoff
+  technology_level: current
+  classification: {isic: "2011"}
+  modelling:
+    principle: attributional
+    sampling: "One concept design case (scripts/acet_balance.py), not plant data (DESIGN.md D-001..D-011)."
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library (agent-drafted concept design, unreviewed)"
+
+# Operation only; construction is out of scope at this stage (no 3D model or take-off).
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED, D-002); 25 a service life ASSUMED"

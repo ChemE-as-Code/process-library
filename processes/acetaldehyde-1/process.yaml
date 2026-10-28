@@ -1,36 +1,86 @@
-# Process Atlas manifest. Copy this folder to processes/<your-id>/ and edit.
-# Schema: schemas/process.schema.json (cheme-as-code/process/v1). Every slug used under
-# chemistry must exist in chemicals/chemicals.yaml; add new chemicals there in the same change.
-# A product in a defined state and purity names its registry grade: `chemical: oxygen/lox`.
+# Process Atlas manifest of acetaldehyde-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
 schema: cheme-as-code/process/v1
-id: my-process                  # = folder name; lowercase slug; never rename once listed
-title: Short descriptive process title
+id: acetaldehyde-1
+title: Acetaldehyde by the one-stage Wacker oxidation of ethylene (100 kt/a)
 summary: >-
-  One or two sentences for cards and search results: what goes in, what comes out, at what scale.
-# description: |                # optional longer Markdown for the process page
-families: [hydrogen]            # slugs of taxonomy/families.yaml (ISIC-mapped), e.g. ammonia, methanol, air-separation
-keywords: []
-# facets:                      # optional, for filtering in the Atlas; list only what the design has
-#   feedstock_basis: [water, electricity]   # fossil | biogenic | atmospheric | mineral | recycled | water | electricity
-#   product_classes: [fuels]               # slugs, e.g. industrial-gases, fuels, fertilizers, polymers, chemicals, materials
-#   unit_operations: [electrolysis]        # slugs, e.g. cryogenic-distillation, adsorption, compression, reaction, electrolysis
-#   region: generic                        # e.g. generic, EU
-# Design maturity (claimed, capped by evidence: the calculation maturity in checks/maturity.json
-# of an engineering project; at most concept beside a Tier 0/1 LCI dataset):
-maturity: concept               # concept | screening | basic-engineering | detail-engineering | operating-reference
-validation:                     # review status: set by people only; passing checks is not a review
-  status: unreviewed            # unreviewed | internally-reviewed | peer-reviewed | industry-validated
+  Ethylene and oxygen react in an aqueous PdCl2/CuCl2 catalyst solution in a boiling bubble
+  column; the cycle gas is cooled, scrubbed with water and recycled with a purge, and the crude
+  acetaldehyde is purified in two live-steam columns. Ethylene and oxygen are boundary feeds.
+  Concept stage.
+description: |
+  One-stage (Hoechst-Wacker) process: ethylene and 99.5 % oxygen are fed to a bubble-column
+  reactor with the aqueous palladium/copper chloride catalyst at about 130 C and 400 kPa(a). The
+  heat of reaction evaporates water; a precondenser returns it, a cooler condenses an
+  acetaldehyde-rich aqueous condensate and a water scrubber recovers the rest of the
+  acetaldehyde. The scrubbed cycle gas is recompressed and recycled; a small purge limits CO2,
+  argon and ethane. Crude acetaldehyde (about 12 wt%) passes an extractive light-ends column
+  (CO2, chloroethane, chloromethane) and the acetaldehyde column, which gives 99.9 wt% product
+  overhead, a side draw of crotonaldehyde and chlorinated aldehydes, and waste water with the
+  acetic acid at the bottom. A catalyst side stream is regenerated with direct steam.
+
+  All values are concept estimates (scripts/acet_balance.py of the engineering files): the
+  ethylene fate follows the product distribution reported for the industrial process; water,
+  steam and waste-water rates are scaled from the 13 t/h example of US 4,237,073; conversion per
+  pass and the cycle-gas oxygen content are assumptions. See DESIGN.md for every assumption and
+  gated step.
+families: [oxygenates]
+keywords: [acetaldehyde, Wacker process, ethylene oxidation, palladium chloride, copper chloride, homogeneous catalysis, oxygen, cycle gas, absorption, distillation]
+facets:
+  feedstock_basis: [fossil]
+  product_classes: [chemicals]
+  unit_operations: [reaction, compression, absorption, distillation, heat-exchange]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Mass, component and element
+# balances close in cheme; energy closure is not evaluable in core (no property package covers
+# the aqueous acetaldehyde system), duties come from the independent script.
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element (reaction extent) balances in every
+    block and step (cheme validate, cheme process streams). The reactor is a selectivity model
+    calculated by cheme (per-pass conversion ASSUMED 35 %, selectivities from the reported
+    ethylene fate); separator outlets, the cycle-gas loop and all duties are specified values of
+    an independent script (scripts/acet_balance.py). Consumptions agree with the 1980 patent
+    example (ethylene 677 vs 692 kg/t, oxygen 410 vs 408 kg/t, waste water 8.7 vs 8.7 m3/t).
+    Energy closure is not evaluable in core (core #315). The preliminary gate-to-gate LCI in
+    lca/ leaves every background unmapped (gaps). Not reviewed. The chemicals registry has no
+    acetaldehyde, ethylene or hydrochloric-acid entries yet (open library item), so the main
+    product and these feeds are not listed under chemistry.
 chemistry:
   inputs:
-    - {chemical: water, role: feedstock}
+    - {chemical: oxygen, role: feedstock, inventory_key: "feed:OXY", note: "99.5 mol% O2 at 600 kPa(a), 410 kg/t (boundary feed; e.g. processes/asu-1). Ethylene (feed:ETH, 677 kg/t) and 30 % hydrochloric acid (feed:HCLA) have no registry entry yet"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:DEMIN", note: "Demineralised water: reactor make-up and extraction water, 1.27 t/t"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Process water to the acetaldehyde scrubber, 5.96 t/t"}
   outputs:
-    - {chemical: hydrogen, role: main-product}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Column bottoms with acetic acid, residual aldehydes and organic chlorine, 8.7 t/t, to biological treatment. The main product acetaldehyde (product:PROD) has no registry entry yet"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:PURGE", note: "Cycle-gas purge (CO2, ethylene, argon, ethane, O2) to a thermal oxidiser outside the boundary"}
   utilities:
-    - {chemical: electricity, role: utility}
-# basis: {capacity: "1000 t/d product", operating_hours_per_year: 8000}
-# lca: {source: auto}           # auto: read lca/ of a ChemE-as-Code project; none: no LCA
-# references:
-#   - {title: "Author et al. (2024) Title", doi: 10.xxxx/xxxxx}
-# maintainers:
-#   - {name: Your Name, orcid: 0000-0000-0000-0000}
-# repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/my-process, access: private}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Cycle-gas compressor and pumps (ASSUMED electric drives), 42.8 kWh/t"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 450 kPa(a) injected live into the two columns, 1.31 t/t"}
+    - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "MP steam 1000 kPa(a) injected into the catalyst regenerator, 0.115 t/t"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED)"}
+basis:
+  capacity: "100 kt/a acetaldehyde, 99.9 wt% (ASSUMED)"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
+references:
+  - {title: "Eckert, M. et al. Acetaldehyde. Ullmann's Encyclopedia of Industrial Chemistry (route lead; full text not read for this design, values taken via the Wikipedia summary)", doi: 10.1002/14356007.a01_031.pub2}
+  - {title: "Wikipedia contributors. Wacker process, section Industrial process (one-stage conditions, ethylene fate per 100 mol fed), accessed 2026-10-28", url: "https://en.wikipedia.org/wiki/Wacker_process"}
+  - {title: "US 4,237,073 (Hoechst AG, 1980) Process for the manufacture of acetaldehyde: reactor conditions, regenerator temperature, comparative example at 13 t/h (feeds, water, steam, waste water)", url: "https://patents.google.com/patent/US4237073A/en"}
+  - {title: "US 7,339,084 (2008) Method for the production of acetaldehyde from ethylene and oxygen: one-stage reaction temperature range 110-140 C", url: "https://patents.google.com/patent/US7339084B2/en"}
+  - {title: "US 5,557,014 (Catalytica, 1996) Catalytic system for olefin oxidation to carbonyl products: background on chlorinated by-products and corrosion in Wacker systems", url: "https://patents.google.com/patent/US5557014A/en"}
+  - {title: "NIST Chemistry WebBook, SRD 69: Henry's law constants of CO2 and ethylene in water", url: "https://webbook.nist.gov/chemistry/"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/acetaldehyde-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0
