@@ -36,7 +36,11 @@ allocation:
     credit; exergy is the intended method, but the standard chemical exergy of solid NaCN has
     not been taken from a source in this run, so the preliminary inventory puts all burdens on
     the NaCN (shares 1/0, conservative for the product) and keeps the unallocated result in the
-    comparison. Exergy allocation is an open item for the next stage.
+    comparison. Exergy allocation is an open item for the next stage. The steam export is an
+    UPPER BOUND (review 2026-10-28-pfd-lci-review#1, D-010): the converter is adiabatic
+    (1429 K against about 1267 K at the sourced gauze), the waste heat boiler E-101 and the tail
+    gas boiler B-301 have no radiation or blowdown loss; the export is probably 15-20 % lower.
+    It must be corrected before any energy or exergy allocation is applied.
   deviation: >-
     Shares 1/0 instead of the library's exergy allocation of exported steam, because the
     chemical exergy of NaCN is not sourced yet (DESIGN.md D-012); the steam then carries no
@@ -130,12 +134,77 @@ consumables:
       US 6,596,251 B2 in air operation, several layers), renewed twice a year (the patents
       describe the selectivity falling until the gauze is renewed). The irrecoverable platinum
       loss per kg HCN, which drives this exchange in reality, is not known in this run (open
-      input).
+      input). WHEN MAPPED (review 2026-10-28-pfd-lci-review#5): model the net, irrecoverable
+      Pt/Rh loss per kg HCN (or the charge with the refined metal returned), not the primary
+      production of the whole charge every campaign; until then this stays a gap.
     disposal:
       kind: recyclable
       route: precious-metal refining of the spent gauze (refiner)
       missing: "no background: precious-metal refining of spent Pt/Rh gauze not mapped yet"
       source: "ASSUMED: the spent gauze and the metal caught in the downstream filters go to a precious-metal refiner"
+  # Supplies that exist but are not flowsheet streams (review 2026-10-28-pfd-lci-review#2):
+  # listed here so that each is an exchange and a gap, not silently left out. DESIGN.md D-012.
+  # Boiler feed water, ASSUMED from the steam duties of process/flowsheet.yaml (D-010, D-012):
+  # 30.65 MW of saturated steam at 1500 kPa(a) (E-101 15.24 + B-301 15.42 MW) from feed water
+  # at 378 K is about 46.9 t/h (2352 kJ/kg from steam tables); the exported 17.80 MW (Q8 + Q9)
+  # is about 27.2 t/h. Convention: the exported steam is counted as energy (product:MPSX, kWh)
+  # and its condensate is not returned, so its water enters here (bfw-export) and leaves with
+  # the steam; blowdown and condensate losses of the plant's own steam use are bfw-makeup.
+  # Together 30.6 t/h = 4.90 kg per kg product.
+  - id: bfw-export
+    title: Boiler feed water (demineralised, deaerated) leaving as the exported MP steam
+    unit: kg
+    per_year: 2.179e8
+    missing: "no background: demineralised boiler feed water production with deaeration and conditioning chemicals not mapped yet"
+    uncertainty: {gsd2: 1.3, source: "export upper bound (D-010) and ASSUMED feed water temperature"}
+    source: >-
+      ASSUMED: 27.24 t/h, the water of the 17.80 MW steam export (Q8 + Q9) at 2352 kJ/kg,
+      8000 h/a; the export is an upper bound (review 2026-10-28-pfd-lci-review#1).
+    disposal:
+      kind: recyclable
+      route: leaves as the exported MP steam (product:MPSX, counted as energy) to the steam consumer
+      source: "the water leaves with the steam co-product; its burden is carried by the co-product allocation, not by a treatment"
+  - id: bfw-makeup
+    title: Boiler feed water make-up for blowdown and condensate losses (E-101, B-301)
+    unit: kg
+    per_year: 2.700e7
+    missing: "no background: demineralised boiler feed water production with deaeration and conditioning chemicals not mapped yet"
+    uncertainty: {gsd2: 2.0, source: "ASSUMED blowdown and condensate loss"}
+    source: >-
+      ASSUMED: blowdown 3 % of the 46.9 t/h raised (1.41 t/h) and 10 % loss of the 19.7 t/h of
+      condensate of the plant's own LP steam use (1.97 t/h), 3.38 t/h, 8000 h/a.
+    disposal:
+      kind: waste
+      route: boiler blowdown and condensate drains to the site wastewater treatment
+      missing: "no background: treatment of boiler blowdown not mapped yet"
+      source: "ASSUMED: all of it to drains (part of the condensate loss evaporates in reality)"
+  - id: phosphate-makeup
+    title: Phosphoric acid make-up of the ammonium phosphate ammonia recovery loop (C-101)
+    unit: kg
+    per_year: 2.0e4
+    missing: "no background: phosphoric acid (as 100 % H3PO4) not mapped yet"
+    uncertainty: {gsd2: 10.0, source: "ASSUMED order of magnitude without a source: very wide"}
+    source: >-
+      ASSUMED placeholder without an open source (D-006 open input): 20 t/a H3PO4 (about
+      0.4 g per kg product) to replace the phosphate lost with the ammonia recovery water S10
+      and by degradation of the loop. Recorded so that the gap shows; the amount is to be
+      sourced in the next stage.
+    disposal:
+      kind: waste
+      route: with the ammonia recovery water S10 to cyanide destruction and wastewater treatment
+      missing: "no background: phosphate load of the wastewater treatment not mapped yet"
+      source: "ASSUMED: the phosphate lost from the loop leaves with the process water"
+  - id: hcn-stabiliser
+    title: Acid stabiliser of the HCN refining against polymerisation (C-202)
+    unit: kg
+    per_year: 2.7e4
+    missing: "no background: sulfuric acid (as 100 % H2SO4) not mapped yet; SO2 or H3PO4 are used instead in some plants"
+    uncertainty: {gsd2: 5.0, source: "ASSUMED dose without a source: very wide"}
+    source: >-
+      ASSUMED placeholder without an open source (D-007 open input): about 0.1 wt% acid on the
+      liquid HCN (3.38 t/h), 27 t/a as H2SO4 (about 0.5 g per kg product). The acid goes with the
+      HCN to R-401, where the caustic neutralises it; the sodium sulfate stays in the product
+      (not modelled in the flowsheet: 0.05 % of the product mass), so no disposal exchange.
 emission_exclusions:
   - id: fugitive-leaks
     method: equipment-leaks

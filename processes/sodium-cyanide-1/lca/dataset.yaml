@@ -67,7 +67,11 @@ modelling:
     allocates exported steam by energy or exergy, never by credit; exergy is the intended method, but
     the standard chemical exergy of solid NaCN has not been taken from a source in this run, so the preliminary
     inventory puts all burdens on the NaCN (shares 1/0, conservative for the product) and keeps the unallocated
-    result in the comparison. Exergy allocation is an open item for the next stage.'
+    result in the comparison. Exergy allocation is an open item for the next stage. The steam export is
+    an UPPER BOUND (review 2026-10-28-pfd-lci-review#1, D-010): the converter is adiabatic (1429 K against
+    about 1267 K at the sourced gauze), the waste heat boiler E-101 and the tail gas boiler B-301 have
+    no radiation or blowdown loss; the export is probably 15-20 % lower. It must be corrected before any
+    energy or exergy allocation is applied.'
 review:
 - type: none
 data_generator: ChemE-as-Code process library, sodium-cyanide-1 concept design (agent-drafted, not reviewed)
@@ -633,7 +637,9 @@ exchanges:
       11 m2 of gauze area from the specific output of about 300 kg HCN per h and m2 of US 6,596,251 B2
       in air operation, several layers), renewed twice a year (the patents describe the selectivity falling
       until the gauze is renewed). The irrecoverable platinum loss per kg HCN, which drives this exchange
-      in reality, is not known in this run (open input).'
+      in reality, is not known in this run (open input). WHEN MAPPED (review 2026-10-28-pfd-lci-review#5):
+      model the net, irrecoverable Pt/Rh loss per kg HCN (or the charge with the refined metal returned),
+      not the primary production of the whole charge every campaign; until then this stays a gap.'
     missing: 'no background: platinum-rhodium gauze production (and the refining of the spent gauze) not
       mapped yet'
   uncertainty:
@@ -643,7 +649,9 @@ exchanges:
     11 m2 of gauze area from the specific output of about 300 kg HCN per h and m2 of US 6,596,251 B2 in
     air operation, several layers), renewed twice a year (the patents describe the selectivity falling
     until the gauze is renewed). The irrecoverable platinum loss per kg HCN, which drives this exchange
-    in reality, is not known in this run (open input).'
+    in reality, is not known in this run (open input). WHEN MAPPED (review 2026-10-28-pfd-lci-review#5):
+    model the net, irrecoverable Pt/Rh loss per kg HCN (or the charge with the refined metal returned),
+    not the primary production of the whole charge every campaign; until then this stays a gap.'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -672,6 +680,143 @@ exchanges:
   metals:
     Pt: 0.045
     Rh: 0.005
+- key: consumable:bfw-export
+  title: Boiler feed water (demineralised, deaerated) leaving as the exported MP steam
+  type: input
+  amount: 27237.5
+  unit: kg
+  link:
+    source: 'ASSUMED: 27.24 t/h, the water of the 17.80 MW steam export (Q8 + Q9) at 2352 kJ/kg, 8000
+      h/a; the export is an upper bound (review 2026-10-28-pfd-lci-review#1).'
+    missing: 'no background: demineralised boiler feed water production with deaeration and conditioning
+      chemicals not mapped yet'
+  uncertainty:
+    gsd2: 1.3
+    source: export upper bound (D-010) and ASSUMED feed water temperature
+  source: 'ASSUMED: 27.24 t/h, the water of the 17.80 MW steam export (Q8 + Q9) at 2352 kJ/kg, 8000 h/a;
+    the export is an upper bound (review 2026-10-28-pfd-lci-review#1).'
+  pedigree:
+    scores: [4, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+- key: disposal:consumable.bfw-export
+  title: 'Disposal: Boiler feed water (demineralised, deaerated) leaving as the exported MP steam (leaves
+    as the exported MP steam (product:MPSX, counted as energy) to the steam consumer)'
+  type: output
+  amount: 27237.5
+  unit: kg
+  free: true
+  streams:
+  - consumable:bfw-export
+  source: the water leaves with the steam co-product; its burden is carried by the co-product allocation,
+    not by a treatment
+  pedigree:
+    scores: [4, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  treatment:
+    kind: recyclable
+    route: leaves as the exported MP steam (product:MPSX, counted as energy) to the steam consumer
+- key: consumable:bfw-makeup
+  title: Boiler feed water make-up for blowdown and condensate losses (E-101, B-301)
+  type: input
+  amount: 3375.0
+  unit: kg
+  link:
+    source: 'ASSUMED: blowdown 3 % of the 46.9 t/h raised (1.41 t/h) and 10 % loss of the 19.7 t/h of
+      condensate of the plant''s own LP steam use (1.97 t/h), 3.38 t/h, 8000 h/a.'
+    missing: 'no background: demineralised boiler feed water production with deaeration and conditioning
+      chemicals not mapped yet'
+  uncertainty:
+    gsd2: 2.0
+    source: ASSUMED blowdown and condensate loss
+  source: 'ASSUMED: blowdown 3 % of the 46.9 t/h raised (1.41 t/h) and 10 % loss of the 19.7 t/h of condensate
+    of the plant''s own LP steam use (1.97 t/h), 3.38 t/h, 8000 h/a.'
+  pedigree:
+    scores: [4, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+- key: disposal:consumable.bfw-makeup
+  title: 'Disposal: Boiler feed water make-up for blowdown and condensate losses (E-101, B-301) (boiler
+    blowdown and condensate drains to the site wastewater treatment)'
+  type: output
+  amount: 3375.0
+  unit: kg
+  link:
+    source: 'ASSUMED: all of it to drains (part of the condensate loss evaporates in reality)'
+    missing: 'no background: treatment of boiler blowdown not mapped yet'
+  streams:
+  - consumable:bfw-makeup
+  source: 'ASSUMED: all of it to drains (part of the condensate loss evaporates in reality)'
+  pedigree:
+    scores: [4, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  treatment:
+    kind: waste
+    route: boiler blowdown and condensate drains to the site wastewater treatment
+- key: consumable:phosphate-makeup
+  title: Phosphoric acid make-up of the ammonium phosphate ammonia recovery loop (C-101)
+  type: input
+  amount: 2.5
+  unit: kg
+  link:
+    source: 'ASSUMED placeholder without an open source (D-006 open input): 20 t/a H3PO4 (about 0.4 g
+      per kg product) to replace the phosphate lost with the ammonia recovery water S10 and by degradation
+      of the loop. Recorded so that the gap shows; the amount is to be sourced in the next stage.'
+    missing: 'no background: phosphoric acid (as 100 % H3PO4) not mapped yet'
+  uncertainty:
+    gsd2: 10.0
+    source: 'ASSUMED order of magnitude without a source: very wide'
+  source: 'ASSUMED placeholder without an open source (D-006 open input): 20 t/a H3PO4 (about 0.4 g per
+    kg product) to replace the phosphate lost with the ammonia recovery water S10 and by degradation of
+    the loop. Recorded so that the gap shows; the amount is to be sourced in the next stage.'
+  pedigree:
+    scores: [4, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+- key: disposal:consumable.phosphate-makeup
+  title: 'Disposal: Phosphoric acid make-up of the ammonium phosphate ammonia recovery loop (C-101) (with
+    the ammonia recovery water S10 to cyanide destruction and wastewater treatment)'
+  type: output
+  amount: 2.5
+  unit: kg
+  link:
+    source: 'ASSUMED: the phosphate lost from the loop leaves with the process water'
+    missing: 'no background: phosphate load of the wastewater treatment not mapped yet'
+  streams:
+  - consumable:phosphate-makeup
+  source: 'ASSUMED: the phosphate lost from the loop leaves with the process water'
+  pedigree:
+    scores: [4, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  treatment:
+    kind: waste
+    route: with the ammonia recovery water S10 to cyanide destruction and wastewater treatment
+- key: consumable:hcn-stabiliser
+  title: Acid stabiliser of the HCN refining against polymerisation (C-202)
+  type: input
+  amount: 3.375
+  unit: kg
+  link:
+    source: 'ASSUMED placeholder without an open source (D-007 open input): about 0.1 wt% acid on the
+      liquid HCN (3.38 t/h), 27 t/a as H2SO4 (about 0.5 g per kg product). The acid goes with the HCN
+      to R-401, where the caustic neutralises it; the sodium sulfate stays in the product (not modelled
+      in the flowsheet: 0.05 % of the product mass), so no disposal exchange.'
+    missing: 'no background: sulfuric acid (as 100 % H2SO4) not mapped yet; SO2 or H3PO4 are used instead
+      in some plants'
+  uncertainty:
+    gsd2: 5.0
+    source: 'ASSUMED dose without a source: very wide'
+  source: 'ASSUMED placeholder without an open source (D-007 open input): about 0.1 wt% acid on the liquid
+    HCN (3.38 t/h), 27 t/a as H2SO4 (about 0.5 g per kg product). The acid goes with the HCN to R-401,
+    where the caustic neutralises it; the sodium sulfate stays in the product (not modelled in the flowsheet:
+    0.05 % of the product mass), so no disposal exchange.'
+  pedigree:
+    scores: [4, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
 allocation:
   method: shares
   coproducts:
@@ -687,7 +832,10 @@ allocation:
     is the intended method, but the standard chemical exergy of solid NaCN has not been taken from a source
     in this run, so the preliminary inventory puts all burdens on the NaCN (shares 1/0, conservative for
     the product) and keeps the unallocated result in the comparison. Exergy allocation is an open item
-    for the next stage.'
+    for the next stage. The steam export is an UPPER BOUND (review 2026-10-28-pfd-lci-review#1, D-010):
+    the converter is adiabatic (1429 K against about 1267 K at the sourced gauze), the waste heat boiler
+    E-101 and the tail gas boiler B-301 have no radiation or blowdown loss; the export is probably 15-20
+    % lower. It must be corrected before any energy or exergy allocation is applied.'
   deviation: Shares 1/0 instead of the library's exergy allocation of exported steam, because the chemical
     exergy of NaCN is not sourced yet (DESIGN.md D-012); the steam then carries no burden, which overstates
     the product's burdens.
@@ -697,8 +845,8 @@ provenance:
   case: design
   files:
     equipment/equipment-list.yaml: sha256:c5b1f98dd494abced3574c42ebc588b9377c14ae3425e42c9a816ffd495b1966
-    lca/lca.yaml: sha256:98af4a23b4aaf15c485a8eefa7a772986438852c9c9c104c571dc22b69c612f5
-    process.yaml: sha256:6d59e2f71f1cdf565afcf04aedd61a87ed7c9d6fa43672de3f764b1e89cfe6f5
-    process/flowsheet.yaml: sha256:adf01b696910c42b97fe5be1a11e6f8187498b79548d28b72035146e5b51dec3
+    lca/lca.yaml: sha256:d76295ed8ca364ef864a5964c15987a6332abc77cd4d1580645a4fe15af04419
+    process.yaml: sha256:8725ce426704259420cda972d0826b7e1c94d7565d5bfe9f275a71ad6830bd2b
+    process/flowsheet.yaml: sha256:0e33c6d53d2b609247b9c4bb7853659c68658e9ec87e91088e0aff686df9bc59
     process/materials.yaml: sha256:90aaaf2959bfd87eb8e589922e38cae8d0236ce43c488dadeee228e7c20caecb
     process/simulation.yaml: sha256:e74614c713091b93979311a1eebf1bda2357c800b1a88fb0bdbeeb27e3047548

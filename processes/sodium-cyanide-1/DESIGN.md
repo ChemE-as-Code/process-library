@@ -90,8 +90,11 @@ Rejected: an equilibrium or Gibbs reactor (HCN is far from equilibrium; the Andr
 kinetic and mass-transfer controlled on the gauze); kinetics (no open rate law qualified for the
 gauze; none invented).
 Assumptions: the conversions other than the HCN yield are ASSUMED fits; the lumped CO path is
-not a mechanism. `cheme validate` warns that the cold converter inlet (349 K) lies outside the
-gauze temperature window: the window applies to the gauze, not the feed gas (accepted warning).
+not a mechanism. `cheme validate` warns (`cheme.process-catalyst`, R101/S5) that the cold
+converter inlet (349 K) lies outside the gauze temperature window: the window applies to the
+gauze, not the feed gas. This is a known warning, left visible: no gate covers the rule, so
+there is no gate acceptance to record, and no reviewer has accepted it (review
+2026-10-28-pfd-lci-review#6).
 
 ## D-005 Feed preparation and pressures (2026-10-28)
 Decision: air compressed to 180 kPa(a) by K-101 (isentropic efficiency 0.75, ASSUMED, outlet
@@ -146,13 +149,22 @@ only; cheme.process-propagate-crystallizer) - the outlets are the script's value
 Assumptions: heat of neutralisation about 12 kJ/mol HCN (ASSUMED, weak acid); NaCN hydrolysis to
 formate and ammonia in the hot liquor not modelled (its NH3/HCN traces in the vacuum vent are an
 emission gap); a multiple-effect or MVR crystalliser would cut the 4.5 MW steam (open).
+Known inconsistency (review 2026-10-28-pfd-lci-review#3, open): the R-401 product holds about
+0.84 kg NaCN per kg water at 343 K, above the 0.80 kg/kg of the mother liquor. The liquor value
+is a filtrate that carries the accumulated free NaOH, which probably lowers the NaCN solubility
+(common ion), so the R-401 product with less NaOH may still be undersaturated. No sourced NaCN
+solubility against temperature and NaOH is available to show it (open input). Until it is,
+basic engineering is to keep R-401 and its line to CR-401 above 343 K (heat-traced) or dilute
+the caustic; the balance is not changed.
 
 ## D-009 Tail gas boiler (2026-10-28)
 Decision: the tail gas (16 mol% H2, 4.8 mol% CO, 0.2 mol% CH4, 0.01 mol% HCN; LHV 17.3 MW) burns
 completely with 15 % excess air in B-301; flue gas at 423 K to the stack; 15.4 MW MP steam.
 Reason: SRC-1 notes the tail gas hydrogen is too dilute (below 18 vol%) to recover economically;
 burning it for steam is the usual use and makes the stack the plant's single emission point to air.
-Assumptions: complete combustion, no radiation loss, stack temperature ASSUMED; NOx and CO are
+Assumptions: complete combustion, stack temperature ASSUMED; boiler efficiency ASSUMED 89 % of
+the tail gas LHV (the stack loss only: no radiation or blowdown loss), so the B-301 steam is an
+upper bound (review 2026-10-28-pfd-lci-review#1; a real boiler loses a further 1-3 %); NOx and CO are
 not estimated (emission gap in lca/lca.yaml); cheme cannot check the B-301 duty because the
 heat-capacity fits start at 298 K and the tail gas is at 283 K.
 
@@ -161,6 +173,18 @@ Decision: E-101 raises 15.2 MW and B-301 15.4 MW of saturated MP steam at 1500 k
 uses 12.9 MW let down to LP (E-001 0.9, C-101 3.8, C-202 3.3, CR-401 4.5, DR-401 0.2 MW) and
 exports 17.8 MW (2.85 kWh per kg product). Power 1.03 MW (K-101 0.63 MW, the rest a 0.4 MW
 ASSUMED lump). Cooling water 298/308 K, 17.7 MW; chilled water 275/283 K, 4.8 MW.
+The steam export is an UPPER BOUND (review 2026-10-28-pfd-lci-review#1): the converter is
+adiabatic, 1429 K against about 1267 K at the sourced gauze of SRC-1 run 1 (D-004); E-101 cools
+1429 -> 523 K with no loss (15.2 MW), and B-301 has no radiation or blowdown loss (D-009).
+Scaling the E-101 duty to a 1267 K outlet gives roughly 2.5-3 MW less steam, so the export is
+probably 15-20 % lower. The NaCN burden is not affected while the allocation shares are 1/0
+(D-012), but the export must be corrected (converter heat loss as an R-101 duty, boiler losses)
+before an energy or exergy allocation is applied.
+The power of 1.03 MW does not include the chillers (review 2026-10-28-pfd-lci-review#4): the
+4.8 MW of chilled water needs roughly 0.8-1.2 MW of compressor power at a COP of 4-6
+(ASSUMED range), about as much again. That power belongs to the chilled-water background
+(product:CHW in lca/lca.yaml), so 0.164 kWh per kg is the plant's own electricity, not its
+whole electricity demand.
 Assumptions: all duties are estimates of scripts/nacn_balance.py (simple sensible and latent
 heats); steam levels, approaches and the power lump ASSUMED; no heat integration beyond the
 interchanger of C-202.
@@ -194,7 +218,27 @@ Result per kg product: natural gas 0.501 kg, ammonia 0.437 kg, 50 % caustic 1.62
 (co-product), cooling water 2.84 kWh, chilled water 0.766 kWh, process water 2.22 kg to
 treatment, flue gas 7.53 kg with 0.493 kg fossil CO2. Mass closes (10.747 kg in and out), and by
 hand carbon (0.3748 kg C) and nitrogen (0.3598 kg N) close against the flowsheet; cheme reports
-the element balance as not assessable only because the gauze consumable has no composition.
+the element balance as not assessable only because the consumables have no composition.
+Supplies outside the flowsheet (review 2026-10-28-pfd-lci-review#2), each a consumable with
+`missing:` so that it shows as a gap: boiler feed water, the phosphate make-up of C-101 and the
+HCN stabiliser acid. Steam convention: the exported MP steam is an energy co-product
+(product:MPSX, kWh) and its condensate is not returned, so the plant supplies the water of
+the export (bfw-export, 27.2 t/h, leaving with the steam) and the make-up for its own
+blowdown and condensate losses (bfw-makeup, 3.4 t/h, to drains), 4.90 kg per kg product
+together, from the steam duties at 2352 kJ/kg (feed water at 378 K). Phosphoric acid
+(20 t/a) and the stabiliser (27 t/a as H2SO4, about 0.1 wt% on the HCN, retained in the
+product as sodium sulfate) are ASSUMED placeholders with a very wide uncertainty, recorded so
+that the gap is visible. With the feed water the mass balance closes at 15.65 kg in and out.
+The gauze consumable counts the whole charge each campaign; when it is mapped, the net
+Pt/Rh loss is to be modelled instead (review 2026-10-28-pfd-lci-review#5).
+Energy closure (review 2026-10-28-pfd-lci-review#7): `cheme assess lca` reports 75.6 %. Its
+energy ledger counts only electricity (1028 kW) and heat rejected to cooling and chilled water
+(22 509 kW) against the steam exported (17 796 kW), and leaves out the enthalpy of the material
+streams. The feeds' chemical energy, the heat of the exothermic Andrussow reactions and the
+heating value of the tail gas burned in B-301, which raise the steam and cause most of the
+heat rejected, are therefore not in it. The missing quarter is a limit of the ledger, not a
+loss in the balance. The energy balance of R-101 closes in cheme (D-004); that of the
+separations cannot be evaluated in core (D-011).
 
 ## Open inputs, missing registry entries and next stage
 
