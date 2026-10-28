@@ -3,7 +3,7 @@
 Route (D-001): MnO2 ore + KOH roasted with air to K2MnO4 (R-201), leaching with recycled mother
 liquor and silicate removal with lime (M-301), residue filtration with condensate wash (F-301),
 electrolytic oxidation K2MnO4 -> KMnO4 in divided cells (EL-401), cooling crystallisation
-(X-501), centrifuge (C-501), steam dryer (D-501), mother-liquor split (S-601) to the leach, to
+(X-501), centrifuge (C-501), steam dryer (DR-501), mother-liquor split (S-601) to the leach, to
 the KOH evaporator (E-601, concentrate back to the roaster) and to the purge.
 
 Every design parameter below is ASSUMED unless its comment names a source; the numbers are
@@ -153,7 +153,7 @@ def solve(ore_flow, pw, mu, f_ev, ml):
         cake_c = {c: w * cl_liq for c, w in lq.items()}
         wet = add(cake_c, {"KMnO4": cryst})
         ml_new = add(liquor, scale(cake_c, -1))
-        # ---- D-501 dryer
+        # ---- DR-501 dryer
         dry = {c: v for c, v in wet.items() if c != "H2O"}
         dry["H2O"] = PROD_H2O / (1 - PROD_H2O) * tot(dry)
         vap = {"H2O": wet["H2O"] - dry["H2O"]}
@@ -241,7 +241,7 @@ def main():
     # E-601: double effect, 2400 kJ/kg vapour, economy 1.8; last-effect condenser = steam heat
     q_e601 = X["evap"] * 2400 / 1.8 * kw
     q_e601c = q_e601
-    # D-501: 2600 kJ/kg water removed, dryer thermal efficiency 0.65
+    # DR-501: 2600 kJ/kg water removed, dryer thermal efficiency 0.65
     q_d501 = S["vap"]["H2O"] * 2600 / 0.65 * kw
     p_aux = 150 * P_TARGET / 1000  # 150 kWh/t product (ASSUMED)
     E = dict(q_r201=q_r201, q_leach=q_leach, p_dc=p_dc, p_ac=p_ac, q_rect=q_rect, q_cell=q_cell,

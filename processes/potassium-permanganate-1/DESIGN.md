@@ -35,7 +35,7 @@ was not checked in this run).
 Decision: Two-stage manganate route as named in the case notes: MnO2 ore + KOH roasted with air
 to K2MnO4 (R-201), leaching with recycled mother liquor and silicate removal with lime (M-301,
 F-301), anodic oxidation of manganate to permanganate in divided cells (EL-401), cooling
-crystallisation, centrifuge and steam drying (X-501, C-501, D-501), and a mother-liquor split to
+crystallisation, centrifuge and steam drying (X-501, C-501, DR-501), and a mother-liquor split to
 the leach, to a KOH evaporator whose concentrate feeds the roaster (E-601), and to a purge.
 Overall 2 MnO2 + 2 KOH + O2 -> 2 KMnO4 + H2. Boundary: ore (dried and ground) to dried KMnO4 at
 the dryer outlet; packing, storage, effluent treatment of the purge and residue disposal are
@@ -123,7 +123,7 @@ balance basis, not a design. Heats of reaction at 298 K (cheme notes the 333 K d
 
 ## D-007 Crystallisation, centrifuge and drying (2026-10-28)
 Decision: the cell liquor is cooled from 333 to 303 K in X-501; the mother liquor leaves with
-1.5 wt% KMnO4 and 13 wt% KOH; C-501 delivers crystals with 6 wt% liquid (no wash); D-501 dries
+1.5 wt% KMnO4 and 13 wt% KOH; C-501 delivers crystals with 6 wt% liquid (no wash); DR-501 dries
 to 0.2 wt% moisture with LP steam.
 Reason: SRC-1 cools its crystalliser to about 30-50 degC and gives likely mother-liquor
 contents of 15-20 g/l KMnO4 and 125-175 g/l KOH (1.5 and 13 wt% at an ASSUMED density near
