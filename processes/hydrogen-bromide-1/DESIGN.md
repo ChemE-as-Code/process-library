@@ -221,8 +221,8 @@ only add noise to the coverage; revisit when the bed is sized with a vendor).
   (0.0985 kg), electricity 0.0031 kWh, cooling 0.411 kWh; vent 0.94 g (0.62 g H2, 0.18 g N2,
   0.13 g water, 0.036 mg HBr).
 - LCI (`cheme assess lca --inventory --write`, `--coverage`, `--balance`): mass, Br and H close
-  to 0.00 %; classification "partial screening carbon footprint" with 8 gaps (BR2, H2, DMW,
-  LPS, POWER, CW unlinked; H2 and HBr to air without a climate factor). The `--balance`
+  to 0.00 %; classification "partial screening carbon footprint" with 9 gaps (BR2, H2, DMW,
+  LPS, POWER, CW unlinked; H2, HBr and Br2 (0 kg) to air without a climate factor). The `--balance`
   "energy closure 0.0 %" counts steam, electricity and cooling only, not the reaction and
   absorption heat of the feeds, so it is not an energy-balance finding. A hand check of the
   whole unit at 298.15 K: 58.0 kW steam + 123.1 kW reaction heat from liquid bromine + 247.2 kW
@@ -235,8 +235,10 @@ only add noise to the coverage; revisit when the bed is sized with a vendor).
   C202 (ASSUMED recoveries, no source); R101 (sourced conversion) and R102 (equilibrium model)
   pass. "predictive" needs a simulation, gated by core#364.
 - Library build: `scripts/build_catalog.py --strict` accepts the manifest (only "no preview
-  rendered" warnings); `scripts/build_lci.py` was not run (openpyxl missing in this
-  environment).
+  rendered" warnings). The first CI run of PR #229 showed that the strict LCI build refused the
+  dataset (LP steam unit, free Br2); after the fix the library's tooling tests
+  `tests/test_utilities.py` and `tests/test_export_formats.py` pass locally with the CI's
+  environment (41 passed).
 
 ## 6. Methods, dependencies and gated steps
 
