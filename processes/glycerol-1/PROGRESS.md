@@ -4,6 +4,7 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-10-28 | lca/, DESIGN.md D-013 | LCA baseline allocation `shares` (methanol as a return; mass and none compared), commit 18e3250 | PR #218 CI: cheme drops the default `mass` from lca/dataset.yaml, so the library's strict LCI build warned (study 'mass' vs dataset None) and test_the_library_builds_strict_with_the_utilities failed |
 | 2026-10-28 | process/, equipment/, lca/, DESIGN.md, process.yaml, checks/ | answers to review 2026-10-28-pfd-lci-review (responses below), commit c0f8d04 | close the critical/high findings before merge |
 | 2026-10-28 | lca/, process.yaml, DESIGN.md | preliminary gate-to-gate LCI (13 exchanges, all backgrounds unmapped as gaps, mass allocation, carbon origin); process manifest; decisions D-001 to D-013, source register | issue #186 scope: design basis to LCI |
 | 2026-10-28 | process/, equipment/, scripts/glycerol_balance.py | design basis, materials, reactions, balanced BFD/PFD (5 blocks, 9 steps), equipment list | concept flowsheet of crude glycerol refining |
@@ -24,3 +25,5 @@ Newest first. One line per change: date, sheet or file, what, why.
 | 2026-10-28-pfd-lci-review#9 (low) | open | the still vent carries no methanol after D-008; the E-302 vent loss needs its vent design; recorded in DESIGN.md section 6 | - |
 | 2026-10-28-pfd-lci-review#10 (low) | open | tool finding for cheme-as-code (outside this folder); recorded in DESIGN.md section 6, not quoted as evidence | - |
 | 2026-10-28-pfd-lci-review#11 (low) | closed | checks.yaml template comment no longer cites a decision id | c0f8d04 |
+| 2026-10-28-pfd-lci-review#5 (medium), follow-up | closed | the methanol-return shares (GLYC 0.873, FAL 0.127, MEOHR 0) are now the baseline, as the review proposed before any background is linked; mass (0.594) and none stay as variants; also fixes the PR #218 CI warning (D-013) | 18e3250 |
+| 2026-10-28-pfd-lci-review#1, #2 (high) | re-checked | design-basis.yaml S1 composition and the J-403/E-403/P-404 vacuum system with motive steam S22 (MSTM) are present on this branch; no further change | c0f8d04 |
