@@ -1,8 +1,46 @@
 # What the plant must do. Schema: `cheme schema design_basis`.
-schema: cheme/design_basis/v1
-capacity: {}
-feeds: []
-products: []
-utilities: []
-site: {}
-assumptions: []
+# Glacial acetic acid by low-water iridium-catalysed methanol carbonylation, issue
+# ChemE-as-Code/process-library#128. Methanol and carbon monoxide are boundary feeds (D-001).
+# Values marked ASSUMED are engineering choices of this concept study, not client or licensor
+# data; every decision is in DESIGN.md. Stream values live in process/flowsheet.yaml only.
+capacity:
+  basis: Glacial acetic acid to storage (product stream incl. its water and propionic acid)
+  product_kg_per_h: 60000             # ASSUMED (D-002): a single-train world-scale size, not a client figure
+  product_t_per_a: 504000             # = 60 t/h x 8400 h
+  operating_hours_per_year: 8400      # ASSUMED
+  turndown_percent: 60                # ASSUMED, not checked
+feeds:
+  - name: Methanol, Grade AA (methanol-1 product, outside the boundary)
+    source_of_values: "methanol-1 stream S18 (water 0.05 wt% design target), D-005; the library process methanol-1 makes it"
+    conditions: {pressure_kPa_a: 300, temperature_K: 313.15}
+    flow: set by the product rate through the balance (scripts/balance.py); stream S01
+  - name: Carbon monoxide gas (from a syngas cold box or partial oxidation unit, outside the boundary)
+    source_of_values: "ASSUMED (D-005): 98.5 mol% CO, 1.0 % N2, 0.3 % H2, 0.2 % CH4; H2 inside the 0.06-0.86 vol% of US 6,140,535 Examples 1-5"
+    conditions: {pressure_kPa_a: 3200, temperature_K: 313.15}
+    note: delivered at reactor pressure; CO compression belongs to the CO supplier (outside the boundary)
+    flow: stream S03
+  - name: Methyl iodide make-up
+    source_of_values: "ASSUMED (D-007): equals the iodide slip of the off-gas; other iodide losses (product, heavy ends, catalyst purges) not quantified"
+products:
+  - name: Glacial acetic acid
+    purity: "acetic acid >= 99.85 wt%, water <= 1500 ppm(wt), propionic acid <= 400 ppm(wt) (the product limits of US 6,140,535, D-002); iodide and permanganate time not modelled"
+    design_point: "water 691 ppm(wt) (the net water of the reactions and the methanol feed), propionic acid 50 ppm(wt) (D-009)"
+    delivery: {pressure_kPa_a: 400, temperature_K: 313.15, battery_limit: storage (outside the boundary)}
+  - name: Scrubbed off-gas (CO, CO2, CH4, N2, H2 with traces of methanol and methyl iodide)
+    use: site flare or thermal oxidiser (outside the boundary, D-007)
+  - name: Heavy ends (propionic acid in acetic acid)
+    use: incineration (outside the boundary, D-009)
+utilities:
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: ASSUMED (D-008)}
+  - {name: MP steam, pressure_kPa_a: 1100, saturation_K: 457.2, use: column reboilers, note: "ASSUMED level (D-008): column bottoms at 410-425 K"}
+  - {name: Electric power, use: pumps, note: "ASSUMED electric drives; no CO compressor inside the boundary (D-010)"}
+site:
+  location: ASSUMED generic site, not chosen
+  design_ambient_K: 303.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Reactor 463 K and 2900 kPa(a), water 6 wt%, methyl iodide 8 wt%, methyl acetate 15 wt% in the reactor liquid: design choices inside US 6,140,535 Examples 1-5 (D-003)."
+  - "By-products from US 6,140,535 Examples 1-5: CO2 0.8 % and CH4 0.9 % of the carbonylation rate (mid values of the reported ranges); propionic acid 500 ppm(wt) of the product, ASSUMED (D-004)."
+  - "Lumped stoichiometric reactor: catalyst cycle, methyl acetate and HI equilibria not modelled; no kinetics (D-004)."
+  - "Flash, column, decanter and scrubber splits, reflux ratios and duties: a shortcut balance (scripts/balance.py) with rounded property data, accuracy not stated (D-006, D-008)."
+  - "Off-gas CO 45 mol% of the non-condensables after scrubbing (D-007): sets the CO loss and so the yield on CO (96.7 %)."

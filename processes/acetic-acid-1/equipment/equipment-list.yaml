@@ -1,3 +1,28 @@
 # Equipment list. Schema: `cheme schema equipment`.
+# Concept stage: the items of the PFD (process/flowsheet.yaml) with their service and the duty
+# of the shortcut balance (scripts/balance.py, DESIGN.md D-006, D-008), all ASSUMED. Design
+# pressures, temperatures, sizes and weights come at basic engineering. Materials: wet iodide
+# and acetic acid service at reaction temperature needs zirconium or Hastelloy-type alloys
+# (D-011, an open input for the materials engineer); no material is fixed here.
 schema: cheme/equipment/v1
-equipment: []
+equipment:
+  # ---- off-gas scrubbing (block SCR)
+  - {tag: P-101, type: CentrifugalPump, service: Methanol feed pump, notes: "32.3 t/h methanol to the HP scrubber, 300 -> 3000 kPa(a); ~49 kW at efficiency 0.65 (ASSUMED, D-010)"}
+  - {tag: T-101, type: Column, service: Vent gas scrubber (methanol), notes: "HP and LP vent absorbers lumped into one item in the PFD (D-007); scrubbing liquid is the fresh methanol, returned to the reactor"}
+  # ---- reaction (block RXN)
+  - {tag: R-101, type: Vessel, service: Carbonylation reactor, notes: "Liquid-phase stirred or circulated reactor, 463 K, 2900 kPa(a), Ir/Ru catalyst, methyl iodide promoter (D-003); volume not sized (no rate model, D-004)"}
+  - {tag: E-101, type: TubularHeatExchanger, service: Reactor cooler and HP vent condenser, notes: "~6.6 MW to cooling water (scripts/balance.py, ASSUMED, D-008); steam raising is an alternative (D-008)"}
+  - {tag: V-101, type: Vessel, service: Reactor HP vent knock-out, notes: "Separates the reactor head gas after the HP vent condenser (D-007)"}
+  - {tag: V-102, type: Vessel, service: Adiabatic flash vessel, notes: "2900 -> 250 kPa(a), 413 K; 39 % of the reactor liquid flashed (D-006)"}
+  - {tag: P-102, type: CentrifugalPump, service: Catalyst recycle pump, notes: "249 t/h flash liquid back to the reactor; ~269 kW (ASSUMED, D-010)"}
+  # ---- purification (block PUR)
+  - {tag: C-201, type: Column, service: Light-ends column, notes: "Vapour feed from V-102; overhead to V-201, wet acid side draw to C-202, bottoms to the reactor (D-006)"}
+  - {tag: E-201, type: TubularHeatExchanger, service: Light-ends column condenser, notes: "~27.9 MW to cooling water (ASSUMED, D-008)"}
+  - {tag: E-202, type: TubularHeatExchanger, service: Light-ends column reboiler, notes: "~0.7 MW MP steam (ASSUMED, D-008)"}
+  - {tag: V-201, type: Vessel, service: Light-ends decanter, notes: "Methyl iodide-rich heavy phase and aqueous light phase, both to the reactor; LP vent to T-101 (D-006)"}
+  - {tag: C-202, type: Column, service: Drying column, notes: "Water and some acid overhead to the reactor; dry acid bottoms to C-203; mass reflux ratio 3 (ASSUMED, D-008)"}
+  - {tag: E-203, type: TubularHeatExchanger, service: Drying column condenser, notes: "~15.1 MW to cooling water (ASSUMED, D-008)"}
+  - {tag: E-204, type: TubularHeatExchanger, service: Drying column reboiler, notes: "~14.0 MW MP steam (ASSUMED, D-008)"}
+  - {tag: C-203, type: Column, service: Heavy-ends column, notes: "Glacial acid overhead, propionic acid heavy ends bottoms; mass reflux ratio 1 (ASSUMED, D-008, D-009)"}
+  - {tag: E-205, type: TubularHeatExchanger, service: Heavy-ends column condenser and product cooler, notes: "~15.9 MW to cooling water (ASSUMED, D-008)"}
+  - {tag: E-206, type: TubularHeatExchanger, service: Heavy-ends column reboiler, notes: "~12.5 MW MP steam (ASSUMED, D-008)"}
