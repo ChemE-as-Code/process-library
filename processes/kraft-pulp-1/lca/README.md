@@ -1,5 +1,21 @@
 # LCA
 
+> **kraft-pulp-1, read first (DESIGN.md D-012, D-014).** This is a preliminary gate-to-gate
+> foreground. Every background is a gap, so `results.*` hold only the plant's direct
+> emissions. These are the authoritative values per kg of air-dry pulp: fossil CO2
+> **0.0823 kg** (kiln natural gas) and biogenic CO2 **2.30 kg** (black liquor 2.13, lime mud
+> calcination 0.172). Climate change in `results.*` is 0.0823 kg CO2-eq.
+> `carbon_accounting.trace_emissions: false` keeps the origin of each CO2 flow, because
+> cheme 0.8.0 would otherwise split every CO2 emission by the plant-wide pool share and report
+> 0.050.
+>
+> Known core limitation: the product's carbon content is still split by the pool share.
+> The PCF table's "fossil carbon content of the product" (0.0084 kg C) should be 0, since the
+> pulp's 0.400 kg C is all wood carbon. The biogenic withdrawal and the "PCF including
+> biogenic" lines are about 2 % off for the same reason. Classifying the calcination CO2 as
+> biogenic is an ASSUMED convention; counted fossil, it would add 0.172 kg CO2-eq/kg. The
+> "energy closure" of `--coverage` does not apply (D-014).
+
 The life cycle assessment of the plant's operation (ISO 14040/44), per functional unit.
 
 | file | what | written by |

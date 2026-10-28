@@ -171,8 +171,9 @@ exchanges:
     source: stream S14 (D-008)
     missing: 'no background linked yet. Connect: chlorine dioxide water (10 g/kg) from an on-site ClO2
       generator (sodium chlorate reduced with methanol (methanol-1) or hydrogen peroxide in sulfuric acid;
-      its by-product sesquisulfate is not credited); per kg of solution or per kg ClO2 with the water
-      as process water'
+      its by-product sesquisulfate is not credited). Basis: the exchange is per kg of SOLUTION (10 g ClO2
+      + 990 g water); a background per kg ClO2 must be scaled by 0.01 kg ClO2/kg solution and the 0.99
+      kg water added as process water (feed:FW basis), never linked 1:1'
   streams:
   - S14
   source: stream S14 (D-008)
@@ -225,8 +226,9 @@ exchanges:
   unit: kg
   link:
     source: stream S17 (D-008)
-    missing: 'no background linked yet. Connect: sulfuric acid 93 % (contact process, processes/sulfuric-acid-1),
-      per kg of acid'
+    missing: 'no background linked yet. Connect: sulfuric acid 93 % (contact process, processes/sulfuric-acid-1).
+      Basis: the exchange is per kg of 93 wt% acid as delivered (0.93 kg H2SO4); a background per kg H2SO4
+      (100 %) must be scaled by 0.93'
   streams:
   - S17
   source: stream S17 (D-008)
@@ -605,9 +607,9 @@ exchanges:
     temperature: 25.0
     source: utility of CW in process/flowsheet.yaml
 - key: emission:CO2
-  title: CO2 to the environment, fossil
+  title: CO2 to the environment
   type: emission
-  amount: 71.66120241748148
+  amount: 3428.9938844000003
   unit: kg
   link:
     elementary:
@@ -637,50 +639,7 @@ exchanges:
   basic_uncertainty: 1.05
   carbon:
     total: 0.272921448
-    biogenic_fraction: 0.0
-    source: traced from the carbon inputs (cheme assess lca)
-  composition:
-    fractions:
-      CO2: 1.0
-    formulas:
-      CO2: CO2
-    source: stream table (S29, S45, S50, S10, S22, S25)
-- key: emission:CO2.biogenic
-  title: CO2 to the environment, biogenic
-  type: emission
-  amount: 3357.332681982519
-  unit: kg
-  link:
-    elementary:
-      subcompartment: non-urban-high-stack
-      origin: biogenic
-    source: fossil CO2 from the natural gas burnt in the lime kiln (D-012)
-  cas: 124-38-9
-  flow:
-  - list: ef-3.1
-  - list: biosphere3
-    uuid: d6235194-e4e6-4548-bfa3-ac095131aef4
-    name: Carbon dioxide, non-fossil
-    categories:
-    - air
-    - non-urban air or from high stacks
-    unit: kg
-  streams:
-  - S29
-  - S45
-  - S50
-  - S10
-  - S22
-  - S25
-  source: fossil CO2 from the natural gas burnt in the lime kiln (D-012)
-  pedigree:
-    scores: [4, 4, 1, 3, 3]
-    rule: cheme default pedigree v1 (assumed, design maturity concept)
-  basic_uncertainty: 1.05
-  carbon:
-    total: 0.272921448
-    biogenic_fraction: 1.0
-    source: traced from the carbon inputs (cheme assess lca)
+    source: formula
   composition:
     fractions:
       CO2: 1.0
@@ -688,61 +647,18 @@ exchanges:
       CO2: CO2
     source: stream table (S29, S45, S50, S10, S22, S25)
 - key: emission:CO2B
-  title: CO2B to the environment, fossil
+  title: CO2B to the environment
   type: emission
-  amount: 2006.7724049243425
-  unit: kg
-  link:
-    elementary:
-      subcompartment: non-urban-high-stack
-    source: 'biogenic CO2: black liquor combustion (carbon from the wood) and lime mud calcination (carbonate
-      carbon formed from that combustion CO2 in the smelt); fossil limestone carbon does not enter, the
-      make-up is purchased CaO (D-012)'
-  cas: 124-38-9
-  flow:
-  - list: ef-3.1
-  - list: biosphere3
-    uuid: aa7cac3a-3625-41d4-bc54-33e2cf11ec46
-    name: Carbon dioxide, fossil
-    categories:
-    - air
-    - non-urban air or from high stacks
-    unit: kg
-  streams:
-  - S29
-  - S45
-  - S50
-  - S10
-  - S22
-  - S25
-  source: 'biogenic CO2: black liquor combustion (carbon from the wood) and lime mud calcination (carbonate
-    carbon formed from that combustion CO2 in the smelt); fossil limestone carbon does not enter, the
-    make-up is purchased CaO (D-012)'
-  pedigree:
-    scores: [4, 4, 1, 3, 3]
-    rule: cheme default pedigree v1 (assumed, design maturity concept)
-  basic_uncertainty: 1.05
-  carbon:
-    total: 0.272921448
-    biogenic_fraction: 0.0
-    source: traced from the carbon inputs (cheme assess lca)
-  composition:
-    fractions:
-      CO2B: 1.0
-    formulas:
-      CO2B: CO2
-    source: stream table (S29, S45, S50, S10, S22, S25)
-- key: emission:CO2B.biogenic
-  title: CO2B to the environment, biogenic
-  type: emission
-  amount: 94017.43695427566
+  amount: 96024.2093592
   unit: kg
   link:
     elementary:
       subcompartment: non-urban-high-stack
       origin: biogenic
     source: 'biogenic CO2: black liquor combustion (carbon from the wood) and lime mud calcination (carbonate
-      carbon formed from that combustion CO2 in the smelt); fossil limestone carbon does not enter, the
+      carbon formed from that combustion CO2 in the smelt; traced through the flowsheet''s components,
+      the classification of the calcination CO2 as biogenic is a convention ASSUMED here, not cited: counted
+      fossil it would add 0.172 kg CO2-eq/kg pulp, D-012); fossil limestone carbon does not enter, the
       make-up is purchased CaO (D-012)'
   cas: 124-38-9
   flow:
@@ -762,16 +678,17 @@ exchanges:
   - S22
   - S25
   source: 'biogenic CO2: black liquor combustion (carbon from the wood) and lime mud calcination (carbonate
-    carbon formed from that combustion CO2 in the smelt); fossil limestone carbon does not enter, the
-    make-up is purchased CaO (D-012)'
+    carbon formed from that combustion CO2 in the smelt; traced through the flowsheet''s components, the
+    classification of the calcination CO2 as biogenic is a convention ASSUMED here, not cited: counted
+    fossil it would add 0.172 kg CO2-eq/kg pulp, D-012); fossil limestone carbon does not enter, the make-up
+    is purchased CaO (D-012)'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
   carbon:
     total: 0.272921448
-    biogenic_fraction: 1.0
-    source: traced from the carbon inputs (cheme assess lca)
+    source: formula
   composition:
     fractions:
       CO2B: 1.0
@@ -998,7 +915,7 @@ provenance:
   case: design
   files:
     equipment/equipment-list.yaml: sha256:3cdc557be07a3bd5b07bcdcc693b931c84e194626f2cd30c1490f033e28f64d7
-    lca/lca.yaml: sha256:89204eef4aed4763453907d22fcb9c1c7aba9cc3b7202fda368e550276a71baf
-    process.yaml: sha256:b705bffc9ce1db33910942c6c28f0b244d34f4c72e9fb798d2ba56d78ae31b59
+    lca/lca.yaml: sha256:cace8849de7e6117166993450980dc52b78fd36a948ca9782fdcd53090e3ac11
+    process.yaml: sha256:c83cdb6c3d64ccb8da7ca7510f87c6a1810d61f2926353337665594ded47a411
     process/flowsheet.yaml: sha256:9e477a74c6b70c9d4d4fc0c6d6adb7e5c9a62d3abb3194025ff6fc087c8927ef
     process/materials.yaml: sha256:f1bd4bc81857cba275a3079f6c61b020c0332bb4f8c32ac31fde6de4de51e3ea

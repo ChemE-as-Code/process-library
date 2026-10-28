@@ -45,13 +45,13 @@ flows:
     missing: "no background linked yet. Connect: gaseous oxygen from cryogenic air separation (processes/asu-1), per kg O2 delivered at ~1000 kPa(a)"
     source: "streams S8 and S18 (D-006, D-008)"
   - key: feed:CLO2
-    missing: "no background linked yet. Connect: chlorine dioxide water (10 g/kg) from an on-site ClO2 generator (sodium chlorate reduced with methanol (methanol-1) or hydrogen peroxide in sulfuric acid; its by-product sesquisulfate is not credited); per kg of solution or per kg ClO2 with the water as process water"
+    missing: "no background linked yet. Connect: chlorine dioxide water (10 g/kg) from an on-site ClO2 generator (sodium chlorate reduced with methanol (methanol-1) or hydrogen peroxide in sulfuric acid; its by-product sesquisulfate is not credited). Basis: the exchange is per kg of SOLUTION (10 g ClO2 + 990 g water); a background per kg ClO2 must be scaled by 0.01 kg ClO2/kg solution and the 0.99 kg water added as process water (feed:FW basis), never linked 1:1"
     source: "stream S14 (D-008)"
   - key: feed:H2O2
     missing: "no background linked yet. Connect: hydrogen peroxide 50 % (anthraquinone process, processes/hydrogen-peroxide-1), per kg of solution"
     source: "stream S16 (D-008)"
   - key: feed:H2SO4
-    missing: "no background linked yet. Connect: sulfuric acid 93 % (contact process, processes/sulfuric-acid-1), per kg of acid"
+    missing: "no background linked yet. Connect: sulfuric acid 93 % (contact process, processes/sulfuric-acid-1). Basis: the exchange is per kg of 93 wt% acid as delivered (0.93 kg H2SO4); a background per kg H2SO4 (100 %) must be scaled by 0.93"
     source: "stream S17 (D-008)"
   - key: feed:SALT
     missing: "no background linked yet. Connect: sodium sulfate, anhydrous (natural or by-product), per kg"
@@ -89,7 +89,7 @@ flows:
   - {key: product:VENT, emission: true, source: "streams S10 (O2 stage blow vent), S22 (bleach plant vent), S25 (dryer exhaust), to atmosphere"}
   - key: emission:CO2B
     elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: biogenic}
-    source: "biogenic CO2: black liquor combustion (carbon from the wood) and lime mud calcination (carbonate carbon formed from that combustion CO2 in the smelt); fossil limestone carbon does not enter, the make-up is purchased CaO (D-012)"
+    source: "biogenic CO2: black liquor combustion (carbon from the wood) and lime mud calcination (carbonate carbon formed from that combustion CO2 in the smelt; traced through the flowsheet's components, the classification of the calcination CO2 as biogenic is a convention ASSUMED here, not cited: counted fossil it would add 0.172 kg CO2-eq/kg pulp, D-012); fossil limestone carbon does not enter, the make-up is purchased CaO (D-012)"
   - key: emission:CO2
     elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}
     source: "fossil CO2 from the natural gas burnt in the lime kiln (D-012)"
@@ -134,8 +134,13 @@ emission_exclusions:
     source: "DESIGN.md D-008"
 
 # Carbon by origin (D-012): the wood's carbon is biogenic; natural gas carbon is fossil (the
-# default for an input); the other feeds carry no carbon.
+# default for an input); the other feeds carry no carbon. The flowsheet keeps the two origins
+# apart as components (CO2B, CO2), so the origin declared on each elementary flow is the
+# physical split; tracing by the plant-wide pool share (2.1 % fossil) would count 98 % of the
+# kiln's fossil CO2 as biogenic (review 2026-10-28-pfd-lci-review#1, D-012).
 carbon_accounting:
+  trace_emissions: false
+  source: "D-012: CO2B (wood carbon) and CO2 (natural gas carbon) are separate components; the declared origin per elementary flow wins over the pool share"
   content:
     feed:CHIPS: {biogenic_fraction: 1.0, source: "wood carbon, taken up from the atmosphere by the trees (D-012)"}
 

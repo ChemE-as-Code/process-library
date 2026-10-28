@@ -10,8 +10,24 @@ Paper and Board (Suhr et al. 2015, EUR 27235 EN, doi 10.2791/370629), chapter 3 
 Run record of this stage (2026-10-28): library branch `case/kraft-pulp-1` from `bb3178a`;
 cheme-as-code 0.8.0 (pyDEXPI 2.1.0), Python 3.15.0, CoolProp (in cheme's interpreter) for
 the steam properties; DWSIM and Cantera not used. Core dependency issues named in #180
-(core #364 electrolytes, #365 solids, #370 furnace energy) were **not re-audited against core
-main in this run** (budget): the statements below rest on what cheme 0.8.0 reports here.
+(core #364 electrolytes, #365 solids, #370 furnace energy) were not re-audited in that run.
+
+Core audit (revision after review 2026-10-28-pfd-lci-review#2, 2026-10-28): core main at
+`7bed468` (ChemE-as-Code/core, 2026-10-28T14:52Z); the issues live in the archived
+repository ChemE-as-Code/core-archive and are all closed:
+- **#364** (closed 2026-10-27, core PR #394): electrolyte thermodynamics for aqueous
+  **NaCl-H2O only** (Pitzer, 273-373 K, up to 6 mol/kg); any other salt, acid or base, and
+  any compound of an alkali metal in a phase or DWSIM route, is refused. White, green and
+  black liquor (NaOH, Na2S, Na2CO3, Na2SO4, sodium organics at up to 80 % solids) remain
+  outside it: D-007 stands.
+- **#365** (closed 2026-10-27, core #395): `phase: solid` components, a slurry basis and a
+  one-solute crystallizer or solid separation. It adds a mass basis, not thermodynamics for
+  lime mud, dregs or smelt; the lumped kraft steps are already balanced by specified splits,
+  so nothing changes here.
+- **#370** (closed 2026-10-27, core #387): `cheme process furnace` for CaCO3 calcination in a
+  lime kiln. It applies to K901/K902 and was run (D-009; needs the `cantera` extra, run from
+  core `7bed468` in a temporary environment because the installed cheme 0.8.0 lacks it). The
+  recovery boiler (organic combustion with smelt reduction) is outside it.
 
 ## 1. Route and boundary memo
 
@@ -46,7 +62,15 @@ market pulp gives an air-dry product basis without a paper machine (skill
 tech-heavy-chem-kraft-pulping: a pulp dryer is not a paper machine).
 Rejected: hardwood/eucalyptus (less lignin and black liquor, Tran and Vakkilainen); integrated
 paper mill; tall oil and turpentine as co-products (would add allocation for ~1-2 % of the
-mass; listed as an open item).
+mass; listed as an open item). Other pulping routes (review #9; general knowledge, not
+re-sourced in this run):
+- sulfite (acid or bisulfite): weaker pulp, and the Mg or Na base recovery is a different
+  chemical cycle; a small share of world chemical pulp, mostly dissolving or speciality grades.
+- soda or soda-AQ: sulfur-free, but slower delignification and weaker pulp on softwood; used
+  for non-wood fibres and some hardwoods.
+- mechanical, TMP or CTMP: about 90 % yield, but electricity-driven, lower strength and
+  brightness stability; it has no chemical recovery cycle, which #180 asks for.
+Kraft is the dominant chemical pulping route and the one #180 names, so it was chosen.
 Assumptions: chips arrive debarked and screened; no wood room or bark boiler in the boundary.
 
 ## D-002 Capacity, product and hours (2026-10-28)
@@ -136,7 +160,16 @@ and fed at 80 % solids; calcination 0.95; Ca make-up as purchased burnt lime 8.4
 (BREF Table 3.3: 5-10 kg CaO/ADt). Kiln fuel 1.5 GJ/ADt natural gas (BREF 2015 sec.
 3.2.2.6.2: 1.5-1.8 GJ/t pulp), LHV 50 MJ/kg as methane, air ratio 1.10. ASSUMED within the
 ranges. The burner is its own step (K902) and only passes heat to the calcination (K901): see
-D-012. `cheme process furnace` (lime kiln energy closure) was not run in this stage (open).
+D-012.
+Furnace check (review #2; `process/furnaces.yaml`, `cheme process furnace` at core `7bed468`,
+NASA Glenn thermochemistry): with the flowsheet's mud feed (S42), degree of calcination 0.95,
+lime 523 K, off-gas 473 K, air ratio 1.10 and 15 % losses (ASSUMED), the solved fuel is
+15.4 MW against the flowsheet's 17.4 MW (1.5 GJ/ADt). Calcination takes 8.1 MW and mud
+moisture evaporation 2.9 MW. The 1.5 GJ/ADt closes the balance if about 24 % of the fuel is
+lost, which is plausible for a long rotary mud kiln. The sourced 1.5 GJ/ADt is kept. Core flags
+5.5 GJ/t lime at 15 % losses (6.2 GJ/t at 1.5 GJ/ADt) against its lime-BREF range of
+6-9.2 GJ/t for long rotary kilns. That range is for limestone kilns, not mud reburning, so it
+is only a reference here.
 
 ## D-010 Recovery boiler and emissions (2026-10-28)
 Decision: organics burnt completely, residual alkali carbonated, sulfate reduced to the 0.92
@@ -165,6 +198,13 @@ net export 263 kWh/ADt (BREF Table 3.5: modern market mills export). Cooling wat
 GJ/ADt (evaporator surface condenser, turbine condenser). Recovery boiler steam is the only
 steam source: no bark or power boiler (D-001). Energy closure is not evaluable in core (no
 stream enthalpies, D-007); the turbine balance closes in the script (losses 1.2 MW).
+Steam basis (review #5): the 3.5 kg/kg applies to the **model** BLDS mass of the flowsheet
+(1689 kg/ADt, lumped organics, D-003), not to a real-composition BLDS. A liquor with the
+BREF Table 3.12 analysis carrying the same wood carbon would weigh about 2.0 t/ADt, and
+3.5 kg/kg of that would give about 19 % more steam. The steam figure is therefore checked by
+energy, not by mass: 1689 kg x 13-15 MJ/kg (Tran and Vakkilainen HHV range) = 22-25 GJ/ADt
+fired, so 16.6 GJ/ADt of steam is about 66-75 % boiler efficiency on HHV, which is usual for
+recovery boilers. It is also inside the BREF 13-18 GJ/ADt process-steam range.
 
 ## D-012 Biogenic and fossil carbon (2026-10-28)
 Decision: CO2 with carbon from the wood is the component CO2B (biogenic), CO2 from natural gas
@@ -173,11 +213,27 @@ Na2CO3 in the smelt from black liquor combustion. No limestone enters (Ca make-u
 purchased CaO, whose calcination CO2 lies in its background). The kiln burner (K902) and the
 calcination (K901) are separate steps so that core's carbon tracing does not mix fossil and
 biogenic carbon in one reactive step. lca.yaml declares the chips' carbon biogenic.
-Reason: #180 asks to keep biogenic and fossil CO2 apart in the LCI; NCASI/WRI-type pulp and
-paper GHG guidance treats kiln calcination CO2 of recycled mud as biogenic (not re-read in
-this run; to be cited with locator before publication).
+Reason: #180 asks to keep biogenic and fossil CO2 apart in the LCI. The carbon of the
+calcination CO2 is traced through the flowsheet to the wood: the smelt Na2CO3 is formed from
+black liquor combustion CO2, and causticizing moves that carbon into CaCO3. **The
+classification of recycled lime mud calcination CO2 as biogenic is a convention, ASSUMED
+here** (review #3). Pulp and paper GHG guidance of the NCASI/WRI type is understood to treat
+it this way, but no such document was read in this run and none is cited. Fossil-case
+sensitivity: counted fossil, the calcination CO2 adds 0.172 kg CO2-eq per kg pulp, so the
+fossil total would be 0.254 instead of 0.082 kg/kg. Cite the guidance (document, edition,
+section) before publication.
 Result per kg pulp: fossil CO2 0.0823 kg (kiln gas only), biogenic CO2 2.30 kg (recovery
 boiler 2.13, kiln calcination 0.172, dissolved in the bleach effluent 0.0066 kg).
+Characterisation (review #1): `carbon_accounting.trace_emissions: false` in lca.yaml. Each CO2
+flow keeps the origin declared on its elementary flow (CO2 fossil, CO2B biogenic), and
+results.md now shows 0.0823 kg CO2-eq/kg fossil. With tracing on, cheme 0.8.0 split every
+CO2 emission by the plant-wide fossil share of the carbon pool (2.1 %) and reported
+0.050 kg/kg. The warning `cheme.lca-carbon-origin` that comes with this setting is expected:
+it compares the declared origin with that pool share. One known core limitation remains. The
+product's carbon content is still split by the pool share, so results.md shows a "fossil
+carbon content of the product" of 0.0084 kg C, and a biogenic withdrawal and a "PCF including
+biogenic" that are about 2 % off. Physically, the pulp's 0.400 kg C is 100 % wood carbon. A
+core finding to raise; lca/README.md carries the caveat.
 
 ## D-013 Stream conditions (2026-10-28)
 Decision: temperatures and pressures are nominal ASSUMED values for the stream table only;
@@ -192,6 +248,18 @@ model substitution. Local mapping overrides in lca/mappings.yaml only (H2SO4, la
 process water kept out of the deionised-water entry).
 Rejected: mass or economic allocation (no price; electricity has no mass); exergy (no sourced
 exergy of the pulp in this run).
+Energy closure in `cheme assess lca --coverage` (review #7): the reported 20.7 % does not
+measure this plant's energy balance, so the check does not apply at this stage. cheme counts
+only delivered energy carriers and declared product energy contents. Here that is 52.8 MW of
+heat rejected to cooling water on one side and 10.9 MW of electricity exported on the other.
+The two dominant energy carriers are not counted: the wood (about 2 t dry/ADt) and the pulp
+have no `properties.energy`, and the black liquor heating value is not predicted (D-003,
+D-011). The material streams also carry no enthalpy (D-007). The 20.7 % is therefore the
+ratio of two unrelated terms, not a residual. The plant's energy is checked instead in the
+script (turbine balance), against BREF ranges (D-011) and by the kiln furnace balance (D-009).
+Basis of chemicals (review #8): feed:CLO2 is per kg of 10 g/kg solution and feed:H2SO4 per kg
+of 93 wt% acid. lca.yaml and mappings.yaml state the conversion a background linked on a
+100 % basis needs.
 
 ## 3. Reaction and model evidence
 
@@ -206,7 +274,11 @@ exergy of the pulp in this run).
 | washers, filters, evaporators | carry-over fractions, solids contents | ASSUMED | specified |
 
 No kinetics, equilibrium or vendor data were used or invented. Heats of reaction are given
-only for the inorganic reactions (NBS tables, values recalled, to be checked).
+only for the inorganic reactions. CALC is checked (review #6): 178.32 kJ/mol at 298.15 K
+from the NASA Glenn data in Cantera, computed by `cheme process furnace`. The recalled
+CaCO3 value of -1207.6 kJ/mol did not reproduce the old +178.3 (it gives +179.0), and it is
+replaced. The other heats of reaction are still recalled NBS values (ASSUMED). They enter no
+balance, since no stream enthalpies are calculated (D-007).
 
 ## 4. Source register
 
@@ -216,7 +288,9 @@ only for the inorganic reactions (NBS tables, values recalled, to be checked).
 | Tran and Vakkilainen (2007), ICEP 3, eucalyptus.com.br/icep03/200Tran.text.pdf.pdf | sections "Recovery of pulping chemicals", "Recovery of heat", large boiler example | read | facts cited | reduction, causticity, BL HHV 13-15 MJ/kg, steam/solids, power, 84 bar 480 C, solids 80-85 % |
 | US EPA AP-42 sec. 10.2 (1990/1995) | process description; NOx statement | read | US public domain; cited | NOx order of magnitude only (old practice) |
 | Ullmann's, Pulp, doi 10.1002/14356007.a18_545.pub4 | - | not accessed | - | reference lead (#180) |
-| NBS tables (Wagman et al. 1982) | - | recalled values | facts | inorganic heats of reaction (ASSUMED until checked) |
+| NBS tables (Wagman et al. 1982) | - | recalled values | facts | inorganic heats of reaction other than CALC (ASSUMED until checked) |
+| NASA Glenn thermodynamic data (McBride, Gordon and Reno 1993, NASA TM-4513) via Cantera 3.2.0 in core `7bed468` | species CaCO3(calcite), CaO(s), CO2, CH4, H2O, air | computed by `cheme process furnace` | facts | CALC heat of reaction, lime kiln energy balance (D-009) |
+| core-archive issues #364, #365, #370 (ChemE-as-Code) | closing comments, 2026-10-27 | read | - | core capability audit (header) |
 
 ## 5. Open inputs, gated steps and registry entries
 
@@ -232,16 +306,19 @@ Missing in shared files (for the consolidated PR; not edited here):
 
 Gated or open steps:
 - **Energy closure**: no property package covers wood, black liquor, smelt or lime slurries
-  (core #364 electrolytes; nonconventional components). Duties are specific consumptions.
+  (core #364 closed with NaCl-H2O only; nonconventional components). Duties are specific
+  consumptions. The LCI "energy closure" of 20.7 % does not apply (D-014).
 - **Black liquor representation**: lumped components (D-003); a qualified nonconventional
   representation (elemental analysis, HHV) is a core/method question of #180.
-- **Furnace energy**: `cheme process furnace` for the lime kiln (core #370, Cantera not
-  installed) not run; the recovery boiler is out of its scope (solid-reaction furnace only).
-- **Climate result**: `cheme assess lca` characterises each CO2 emission with the plant-wide
-  fossil share of the carbon input (2.1 %), so results.csv shows 0.050 kg CO2-eq/kg instead
-  of the stoichiometric 0.082 kg fossil CO2/kg, although `--balance` traces the origins
-  exactly (fossil in 935.8 = fossil out 935.8 kg C/h). A core finding to raise; the
-  inventory's component split is authoritative.
+- **Furnace energy**: the lime kiln was run with `cheme process furnace` (D-009). The installed
+  cheme 0.8.0 has no Cantera, so it was run from core `7bed468` in a temporary environment;
+  `cheme validate` does not evaluate the furnace. The recovery boiler is out of the
+  furnace's scope (solid-reaction furnace only).
+- **Climate result**: fixed in the case (review #1, D-012). `trace_emissions: false` keeps
+  the declared origin per CO2 flow, and results.csv shows 0.0823 kg CO2-eq/kg fossil. Still
+  open in core (to raise there): with tracing on, CO2 emissions are split by the pool share,
+  and the product's carbon content is always split by the pool share (results.md "fossil
+  carbon content of the product" 0.0084 kg C, which should be 0).
 - Wood composition and species assay; tall oil/turpentine recovery; NCG system and TRS; AOX
   and chlorate; foul condensate stripping; ClO2 generator; wood room and bark boiler.
 - Elementary flow identities (pre-release issue 175): CO2B, Na2SO4 dust, H2O/N2/O2.
