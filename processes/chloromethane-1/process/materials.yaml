@@ -1,18 +1,65 @@
 # Components and templates of the process. Schema cheme/process/v1 (`cheme schema
 # process-materials`). Every component has a stable id; molar_mass in kg/kmol,
 # normal_boiling_point in K at 101.325 kPa.
+# Identity (formula, CAS, molar mass) from PubChem; normal boiling points from the NIST
+# Chemistry WebBook (rounded); ideal-gas formation data printed by `cheme chemistry thermo`
+# (chemicals: dHf ATcT, S CRC, cp Poling 5th ed.). Inerts in the HCl feed are lumped as N2 (D-003).
 schema: cheme/process/v1
 kind: materials
-components: []
-#  - {id: N2, name: Nitrogen, formula: N2, cas: 7727-37-9, molar_mass: 28.014, normal_boiling_point: 77.36}
-templates: []
-#  - {id: air, title: Air, components: [N2, O2, AR]}
-# property_method is a placeholder until `cheme process props --fill` records the method: its
-# benchmarked property package, package versions and application range. Packages:
-# air-pr-chemsep (N2/O2/Ar, 77-315 K, vapour 100-3200 kPa(a), liquid and two-phase 100-600
-# kPa(a)) and syngas-pr-vapor (H2/N2/Ar/CH4/CO/CO2 mixtures, NH3 pure or dilute with H2/N2/Ar/
-# CH4, vapour only, in benchmarked temperature-pressure boxes). `cheme process props --coverage` shows which applies
-# to each stream; `package: <id>` here chooses one.
+components:
+  - id: MEOH
+    name: Methanol
+    formula: CH4O
+    cas: 67-56-1
+    molar_mass: 32.042
+    normal_boiling_point: 337.8
+    ideal_gas: {dHf_298: -200700.0, S_298: 239.9, cp_R: [4.714, -0.006986, 4.211e-05, -4.443e-08, 1.535e-11], temperature_range: [50, 1000], provenance: "given", source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: HCL
+    name: Hydrogen chloride
+    formula: HCl
+    cas: 7647-01-0
+    molar_mass: 36.461
+    normal_boiling_point: 188.1
+    ideal_gas: {dHf_298: -92173.0, S_298: 186.9, cp_R: [3.827, -0.002936, 8.79e-06, -1.031e-08, 4.39e-12], temperature_range: [50, 1000], provenance: "given", source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: MECL
+    name: Chloromethane (methyl chloride)
+    formula: CH3Cl
+    cas: 74-87-3
+    molar_mass: 50.488
+    normal_boiling_point: 249.1
+    ideal_gas: {dHf_298: -82620.0, S_298: 234.6, cp_R: [3.578, -0.00175, 3.071e-05, -3.714e-08, 1.408e-11], temperature_range: [200, 1000], provenance: "given", source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: DME
+    name: Dimethyl ether
+    formula: C2H6O
+    cas: 115-10-6
+    molar_mass: 46.068
+    normal_boiling_point: 248.3
+    ideal_gas: {dHf_298: -184020.0, S_298: 266.4, cp_R: [4.361, 0.00607, 2.899e-05, -3.581e-08, 1.282e-11], temperature_range: [100, 1000], provenance: "given", source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: H2O
+    name: Water
+    formula: H2O
+    cas: 7732-18-5
+    molar_mass: 18.015
+    normal_boiling_point: 373.12
+    ideal_gas: {dHf_298: -241822.0, S_298: 188.8, cp_R: [4.395, -0.004186, 1.405e-05, -1.564e-08, 6.32e-12], temperature_range: [50, 1000], provenance: "given", source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: N2
+    name: Nitrogen (inerts of the HCl feed)
+    formula: N2
+    cas: 7727-37-9
+    molar_mass: 28.014
+    normal_boiling_point: 77.36
+    ideal_gas: {dHf_298: 0.0, S_298: 191.6, cp_R: [3.539, -0.000261, 7e-08, 1.57e-09, -9.9e-13], temperature_range: [50, 1000], provenance: "given", source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - {id: H2SO4, name: Sulfuric acid, formula: H2SO4, cas: 7664-93-9, molar_mass: 98.079, normal_boiling_point: 610.0}
+templates:
+  - {id: methanol, title: Methanol (methanol-1 product grade), components: [MEOH, H2O]}
+  - {id: hcl, title: Anhydrous hydrogen chloride, components: [HCL, N2]}
+  - {id: acid, title: Sulfuric acid solution, components: [H2SO4, H2O, MEOH, MECL, DME]}
+  - {id: aqhcl, title: Aqueous hydrochloric acid, components: [HCL, H2O, MEOH, MECL, DME]}
+  - id: process
+    title: Hydrochlorination gas
+    components: [MEOH, HCL, MECL, DME, H2O, N2]
+# No benchmarked property package covers the HCl-water-methanol electrolyte or the polar gas
+# (D-011): placeholder, not a method.
 property_method:
   adapter: thermo
   status: placeholder

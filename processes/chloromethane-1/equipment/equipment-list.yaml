@@ -1,3 +1,17 @@
 # Equipment list. Schema: `cheme schema equipment`.
+# Concept stage: one tag per PFD step (process/flowsheet.yaml links), no P&ID sheet yet.
+# Spares, pumps, reboilers, drums and the reactor coolant loop are not split out yet
+# (DESIGN.md D-012). Materials are first indications for the wet HCl and acid services, not a
+# materials selection.
 schema: cheme/equipment/v1
-equipment: []
+equipment:
+  - {tag: E-101, type: ShellTubeHeatExchanger, service: "Methanol vaporiser (fresh methanol and stripper recycle)", notes: "LP steam plus reactor coolant heat (Q01, Q03); wet HCl in the recycle: lined or graphite tubes to be decided (D-005, D-012)"}
+  - {tag: E-102, type: ShellTubeHeatExchanger, service: Reactor feed superheater, notes: "heated by the reactor coolant loop (Q02), 375 to 523 K (D-010)"}
+  - {tag: R-101, type: TubularReactor, service: "Hydrochlorination reactor, multitubular fixed bed of gamma-alumina", notes: "523 K in, 613 K out, 350/300 kPa(a); heat transfer fluid on the shell side (D-004, D-005); nickel-alloy tubes ASSUMED for dry HCl at temperature"}
+  - {tag: T-201, type: Column, service: Quench column (circulating hydrochloric acid), notes: "lumped with E-201 in step Q201; graphite or lined steel (D-006)"}
+  - {tag: E-201, type: PlateHeatExchanger, service: "Graphite acid cooler / condenser after the quench", notes: "gas to 313 K (D-006); type indicative (block graphite)"}
+  - {tag: C-202, type: Column, service: Methanol stripper on the quench acid, notes: "LP steam reboiler, overhead condenser on cooling water, condensate returned to E-101 (D-007)"}
+  - {tag: T-301, type: Column, service: Sulfuric acid drying tower, notes: "96 wt% acid in, about 80 % out with 8 wt% DME (D-008); acid circulation cooler lumped"}
+  - {tag: K-401, type: CentrifugalCompressor, service: "Methyl chloride compressor (two stages, intercooled)", notes: "190 to 1050 kPa(a), electric drive (D-009, D-010); reciprocating or screw machine possible at this size"}
+  - {tag: E-401, type: ShellTubeHeatExchanger, service: Compressor aftercooler and methyl chloride condenser, notes: "cooling water (Q09)"}
+  - {tag: C-401, type: Column, service: "HCl (light ends) column with partial condenser", notes: "1000 kPa(a); overhead vapour recycled to the reactor with a 10 % purge (D-009)"}

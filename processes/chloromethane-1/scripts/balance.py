@@ -215,6 +215,10 @@ def report():
     # E101: methanol 313 K liquid to saturated vapour at 400 kPa(a) (385 K)
     nm = r["meoh_feed"]["MEOH"] + r["meoh_feed"]["H2O"]
     q_e101 = nm * (81.0 * (385.0 - 313.15) + 33500.0)        # cp_l, dHvap(385 K) ASSUMED round
+    # plus the condensed stripper overhead (D-007), revaporised: methanol, water, dissolved gases
+    q_ovh_latent = (r["ovh"]["MEOH"] * 37000.0 + r["ovh"]["H2O"] * 41000.0
+                    + r["ovh"]["HCL"] * 63000.0 + (r["ovh"]["MECL"] + r["ovh"]["DME"]) * 20000.0)
+    q_e101 += q_ovh_latent
     # E102: reactor feed superheat from the mixed temperature (taken 375 K) to 523 K
     q_e102 = dh_gas(r["rin"], 375.0, 523.15)
     # R101: outlet 613 K; net heat to the coolant loop
@@ -225,8 +229,8 @@ def report():
               + r["aq"]["MEOH"] * 37000.0 + r["aq"]["HCL"] * 63000.0)
     # C202: feed 313 -> 383 K (cp 3.4 kJ/kg K), overhead vaporised
     aqkg = total(mass(r["aq"]))
-    q_c202 = (aqkg * 3.4 * 70.0 + r["ovh"]["MEOH"] * 37000.0 + r["ovh"]["H2O"] * 41000.0
-              + r["ovh"]["HCL"] * 63000.0)
+    q_c202 = aqkg * 3.4 * 70.0 + q_ovh_latent
+    q_c202_cond = q_ovh_latent              # overhead condensed on cooling water, returned as liquid
     # T301: water and methanol absorbed in the acid (condensation plus dilution), DME absorption
     q_t301 = (r["spent"]["H2O"] - r["acid"]["H2O"]) * 70000.0 + (
         r["spent"]["MEOH"] * 50000.0 + r["spent"]["DME"] * 30000.0)
@@ -244,12 +248,16 @@ def report():
     q_c401_reb = 0.3 * total(r["prod"]) * 19000.0
     q_c401_cond = q_c401_reb - r["top"]["MECL"] * 19300.0 - (r["top"]["HCL"] * 16000.0)
     p_pumps = 0.10 * p_k401
-    duties = {"Q01 E101 LP steam": q_e101, "Q02 E102 from R101 coolant": q_e102,
-              "Q03 R101 to CW (net)": q_r101 - q_e102, "Q04 Q201 to CW": q_q201,
+    # D-010: the reactor coolant loop superheats the feed (E102) and gives its surplus to the
+    # methanol vaporiser (E101); LP steam supplies the rest of E101
+    q_r101_e101 = q_r101 - q_e102
+    duties = {"Q01 E101 LP steam": q_e101 - q_r101_e101, "Q02 R101 coolant to E102": q_e102,
+              "Q03 R101 coolant to E101": q_r101_e101, "Q04 Q201 to CW": q_q201,
               "Q05 C202 LP steam": q_c202, "Q06 T301 to CW": q_t301,
               "Q07 K401 power": p_k401, "Q08 K401 intercooler CW": q_k401_cw,
               "Q09 E401 CW": q_e401, "Q10 C401 LP steam": q_c401_reb,
-              "Q11 C401 condenser CW": q_c401_cond, "Q12 pumps power": p_pumps}
+              "Q11 C401 condenser CW": q_c401_cond, "Q12 pumps power": p_pumps,
+              "Q13 C202 condenser CW": q_c202_cond}
     print(f"\nreaction heat {q_rxn*kw:.1f} kW; reactor sensible {q_sens*kw:.1f} kW")
     for name, q in duties.items():
         print(f"{name:30s} {q*kw:10.1f} kW  {q*kw/prod_kg:.5f} kWh/kg")

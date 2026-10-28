@@ -1,0 +1,23 @@
+# Reactions of chloromethane-1. Schema: `cheme schema process-reactions`.
+# A sourced conversion/selectivity model on R101, not kinetics (DESIGN.md D-004). The heats of
+# reaction follow from the ideal-gas formation data in process/materials.yaml (gas phase, as in
+# the reactor); `cheme process reactors` reports them and the distance from equilibrium.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: HYDROCHLORINATION
+    equation: CH3OH + HCl -> CH3Cl + H2O (gas phase, over alumina)
+    stoichiometry: {MEOH: -1, HCL: -1, MECL: 1, H2O: 1}
+    reversible: false
+    catalyst: gamma-alumina (fixed bed)
+    sources:
+      - "Schmidt et al. (2014) Green Process. Synth. 3(5) 345-352, doi:10.1515/gps-2014-0039 (abstract): gamma-alumina, best result 340 C, 97.6 % methanol conversion, 98.8 % selectivity, close to equilibrium"
+      - "WO 2000/076658 A1 (description, background): about equimolar methanol and HCl, fixed or fluidised beds, 250-300 C, strongly exothermic, hot spots above 400 C"
+  - id: DME_FORMATION
+    equation: 2 CH3OH -> CH3OCH3 + H2O (dimethyl ether, the main by-product)
+    stoichiometry: {MEOH: -2, DME: 1, H2O: 1}
+    reversible: false
+    catalyst: gamma-alumina (fixed bed)
+    sources:
+      - "US 4,794,204 (description): crude methyl chloride from the alumina process holds 0.3-2 % DME"
+      - "WO 2000/076658 A1: DME is the main by-product on gamma-alumina"
