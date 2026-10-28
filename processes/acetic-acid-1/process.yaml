@@ -1,0 +1,85 @@
+# Process Atlas manifest of acetic-acid-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: acetic-acid-1
+title: Acetic acid by low-water iridium methanol carbonylation (60 t/h glacial acid, concept)
+summary: >-
+  Liquid-phase carbonylation of methanol with carbon monoxide on an iridium/ruthenium catalyst
+  with methyl iodide promoter, a flash heated with reactor heat, light-ends, drying and heavy-ends columns and
+  methanol scrubbing of the vents, to glacial acetic acid. Concept stage, assumed basis.
+description: |
+  Methanol (the methanol-1 product) and carbon monoxide gas (from a syngas cold box outside the
+  boundary) react at about 190 C and 29 bar(a) in a low-water (6 wt%) iridium/ruthenium
+  carbonylation reactor. The reactor liquid is flashed, the flash heated by the reactor's cooling
+  circuit (about 11 MW of the reaction heat); the catalyst solution returns to the
+  reactor, and the flash vapour is purified in a light-ends column (methyl iodide and methyl
+  acetate overhead, decanted and recycled), a drying column (water recycled to the reactor) and
+  a heavy-ends column (propionic acid removed). The HP and LP vents are scrubbed with the fresh
+  methanol before the off-gas goes to a flare or thermal oxidiser.
+
+  The reactor is a lumped stoichiometric model whose by-product ratios (CO2 and CH4 formation,
+  each about 1 % of the carbonylation rate) come from the examples of an open patent; the flash,
+  columns, decanter and scrubber are specified splits of a shortcut balance, and the duties are
+  shortcut estimates. See DESIGN.md of the engineering files for every assumption and gated step.
+families: [oxygenates]
+keywords: [acetic acid, methanol carbonylation, Cativa, iridium, rhodium, Monsanto, methyl iodide, carbon monoxide, glacial acetic acid]
+facets:
+  feedstock_basis: [fossil]
+  product_classes: [chemicals]
+  unit_operations: [reaction, flash, distillation, decanting, absorption]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest; cheme maturity reports level none
+# (capacity and CO gas assumed, separators specified by an unsourced shortcut balance).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances (cheme validate, cheme process
+    streams: every block and step closes, the reactor's four extents explain every component
+    change). cheme maturity reaches no level: the capacity and the CO gas composition are
+    assumed, and the flash, columns, decanter and scrubber are specified values of an
+    independent shortcut balance (scripts/balance.py). Core cannot qualify flashes, columns or
+    enthalpies of the acetic acid / water / methyl iodide / methyl acetate system (core #315), so
+    the energy balance is not evaluable in core and every duty is an ASSUMED shortcut estimate.
+    The reactor by-product ratios come from US 6,140,535 Examples 1-5. Not reviewed. The
+    chemicals registry has no methanol, carbon-monoxide, acetic-acid, methyl-iodide or
+    propionic-acid entry yet, so the feeds and the main product are not listed under chemistry
+    (open library item).
+# Minor components of the CO gas and the off-gas carry no inventory_key: the exchange is the
+# whole gas (98.5 % CO; the off-gas to treatment), and a slug of a minor component would map it
+# to the wrong background (D-013).
+chemistry:
+  inputs:
+    # Not the feedstocks: the feedstocks are methanol (feed:MEOH) and carbon monoxide (feed:COGAS),
+    # which have no registry entry yet (DESIGN.md "Library items to add later"; review
+    # 2026-10-28 #2). Only this minor reactant can be listed until they exist.
+    - {chemical: hydrogen, role: reactant, note: "Minor component only (0.3 mol%, ASSUMED) of the CO feed gas feed:COGAS, consumed by the methanation and propionic acid side reactions. The FEEDSTOCKS are methanol (feed:MEOH, from methanol-1) and carbon monoxide (feed:COGAS, 98.5 mol% CO), not yet in the chemicals registry"}
+  outputs:
+    - {chemical: carbon-dioxide, role: waste, note: "CO2 formed by the water-gas shift side reaction, in the off-gas product:OFFGAS to the flare / thermal oxidiser. The main product, glacial acetic acid (product:HAC), has no registry entry yet"}
+    - {chemical: methane, role: waste, note: "CH4 formed from methanol and the CO feed's CH4, in the off-gas product:OFFGAS to the flare / thermal oxidiser"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Pumps (ASSUMED electric drives); no CO compression inside the boundary"}
+    - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "MP steam 1100 kPa(a) to the column reboilers"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED)"}
+basis:
+  capacity: "60 t/h glacial acetic acid, 504 kt/a (ASSUMED)"
+  operating_hours_per_year: 8400
+  location: generic (not chosen)
+references:
+  - {title: "BP Chemicals (2000) Iridium-catalyzed carbonylation process for the production of acetic acid. US Patent 6,140,535 (Examples 1-5, operating ranges)", url: "https://patents.google.com/patent/US6140535A/en"}
+  - {title: "Jones, J.H. (2000) The Cativa process for the manufacture of acetic acid. Platinum Metals Review 44(3), 94-105", doi: 10.1595/003214000X44394105}
+  - {title: "Sunley, G.J., Watson, D.J. (2000) High productivity methanol carbonylation catalysis using iridium: the Cativa process. Catalysis Today 58, 293-307", doi: 10.1016/S0920-5861(00)00263-7}
+  - {title: "Le Berre, C. et al. (2014) Acetic acid. Ullmann's Encyclopedia of Industrial Chemistry", doi: 10.1002/14356007.a01_045.pub3}
+  - {title: "Dimian, A.C., Kiss, A.A. (2020) Novel energy efficient process for acetic acid production by methanol carbonylation. Chem. Eng. Res. Des. 159, 1-12", doi: 10.1016/j.cherd.2020.04.013}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/acetic-acid-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0

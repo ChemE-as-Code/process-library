@@ -1,0 +1,36 @@
+# Reactions of the carbonylation reactor R-101. Schema: `cheme schema process-reactions`.
+# A lumped stoichiometric model (DESIGN.md D-004): the catalytic cycle (methyl iodide, methyl
+# acetate, HI, the iridium and ruthenium complexes) is not modelled, its intermediates stay
+# in the loop. The conversions are not kinetics: each is the extent that the sourced
+# by-product ratios and the product rate require, divided by the key's inlet flow of the
+# design balance (scripts/balance.py); they hold for the design case only.
+# Heats of reaction: from standard enthalpies of formation at 298.15 K (NIST Chemistry WebBook,
+# liquid methanol, acetic acid, propionic acid and water; gaseous CO, CO2, H2, CH4), rounded.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: CARB
+    equation: CH3OH + CO -> CH3COOH
+    stoichiometry: {CH3OH: -1, CO: -1, CH3COOH: 1}
+    conversion: {key: CH3OH, value: 0.954546117, provenance: assumed, source: "scripts/balance.py: carbonylation extent for 60 t/h product over the reactor-inlet methanol of the design balance (D-004, D-006)"}
+    heat_of_reaction: {value: -134600, provenance: given, source: "formation enthalpies at 298.15 K, NIST Chemistry WebBook (liquid CH3OH, CH3COOH; gas CO)"}
+    catalyst: "Ir/Ru with methyl iodide promoter (Cativa type, D-003)"
+    sources: ["US 6,140,535 (BP Chemicals), Examples 1-5", "doi:10.1595/003214000X44394105"]
+  - id: WGS
+    equation: CO + H2O -> CO2 + H2
+    stoichiometry: {CO: -1, H2O: -1, CO2: 1, H2: 1}
+    conversion: {key: CO, value: 0.007739094, provenance: assumed, source: "scripts/balance.py: CO2 formed = 0.8 % of the carbonylation rate (US 6,140,535 Examples 1-5 report 0.63-0.98 %), D-004"}
+    heat_of_reaction: {value: 2800, provenance: given, source: "formation enthalpies at 298.15 K, liquid water, NIST Chemistry WebBook"}
+    sources: ["US 6,140,535 (BP Chemicals), Examples 1-5"]
+  - id: MEOH_CH4
+    equation: CH3OH + H2 -> CH4 + H2O
+    stoichiometry: {CH3OH: -1, H2: -1, CH4: 1, H2O: 1}
+    conversion: {key: CH3OH, value: 0.008590915, provenance: assumed, source: "scripts/balance.py: CH4 formed = 0.9 % of the carbonylation rate (US 6,140,535 Examples 1-5 report 0.81-1.02 %), D-004; the lumped stoichiometry is a modelling choice"}
+    heat_of_reaction: {value: -121200, provenance: given, source: "formation enthalpies at 298.15 K, liquid CH3OH and H2O, NIST Chemistry WebBook"}
+    sources: ["US 6,140,535 (BP Chemicals), Examples 1-5"]
+  - id: PROP
+    equation: CH3COOH + CO + 2 H2 -> C2H5COOH + H2O
+    stoichiometry: {CH3COOH: -1, CO: -1, H2: -2, C2H5COOH: 1, H2O: 1}
+    conversion: {key: CO, value: 0.000391884, provenance: assumed, source: "scripts/balance.py: 500 ppm(wt) propionic acid on product (ASSUMED within the reported Cativa range, D-004); the lumped stoichiometry is a modelling choice, not the mechanism"}
+    heat_of_reaction: {value: -201700, provenance: given, source: "formation enthalpies at 298.15 K, liquid acids and water, NIST Chemistry WebBook"}
+    sources: ["doi:10.1595/003214000X44394105"]

@@ -1,0 +1,12 @@
+# acetic-acid-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# Preliminary gate-to-gate LCI of an internal process (DESIGN.md D-013): the feeds without a
+# registry slug (methanol, CO gas, methyl iodide) and the wastes to treatment (off-gas, heavy
+# ends) stay unmapped, reported as gaps by the build. Their intended backgrounds are named in
+# the `missing:` texts of lca/lca.yaml. Only the unit of the steam needs an override here.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:MPS": {use: steam-heat, source: "MP steam 1100 kPa(a) to the column reboilers, counted as the heat it delivers (kWh, condensate returned, D-008); the slug steam is counted by mass"}
