@@ -129,7 +129,7 @@ actual feed with Kx = 0.20 (mid of SRC-2's 0.18-0.24; SRC-3 gives 0.18): 28.9 % 
 SRC-3's 28-32 % at 1.42-1.82 and 25-30 % generally. The recycled ester (C-201 distillate,
 17.0 t/h MF) is 3.2 t per t HCOOH, inside SRC-3's 3-4 t/t; the hydrolyser sees 24.0 t/h MF. Core confirms ln(Q/K) = -0.11
 at the outlet with the given Kx. C-201 takes all the ester overhead with 2 wt% methanol (SRC-2),
-C-202 dry methanol overhead (100 ppm water, SRC-1) back to the carbonylation; the 31.8 wt% acid
+C-202 dry methanol overhead (100 ppm water, SRC-1) back to the carbonylation; the 48.9 wt% acid
 goes to C-301. Heat of hydrolysis +8 kJ/mol ASSUMED (nearly thermoneutral; core's ideal-gas
 value is +20.1 kJ/mol, which does not apply to the liquid; no sourced liquid value was read:
 open input, 0.26 MW of 22.7 MW steam either way).
