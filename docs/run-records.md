@@ -6,50 +6,33 @@ what it was asked, what it cost and how its result was checked. Records are orga
 not by stage: a revision is a new run, and an existing record is never edited. `runs/**` is not
 published in the Atlas or the viewer.
 
-```
-processes/<id>/runs/<YYYYMMDD-HHMMSS>-<slug>/
-  run.yaml           the record (below)
-  task.md            the exact prompt or brief
-  session.jsonl.gz   the Claude Code session export, when available (secret-scanned)
-```
+## Format and writer: core
 
-## run.yaml
+ChemE-as-Code core defines the record and writes it (core ADR 0029, core#403):
 
-```yaml
-schema: process-run/v1
-run_id: 20261027-202241-concept-to-pfd
-process: methanol-1
-kind: agent                 # agent | interactive | manual
-complete: true              # false when facts are missing; then incomplete_notes says which
-incomplete_notes: []
-branch: case/methanol-1
-start_commit: b43b479...    # HEAD before the run
-end_commit: 9b5639f...      # last design commit of the run (the record's own commit follows)
-started: 2026-10-27T20:22:41Z
-finished: 2026-10-27T20:38:02Z
-wall_s: 921
-cost_usd: 5.08              # as reported by the API client (total_cost_usd)
-budget_usd: 25
-model: claude-opus-5-5
-effort: high
-num_turns: 114
-tokens: {input: 160, output: 89211, thinking: 37364, cache_read: 11034284, cache_write: 218162}
-session_id: 4c866f29-...
-session_export: {file: session.jsonl.gz, sha256: ...}
-tools: {cheme: 0.8.0, core_commit: ..., claude_agent_sdk: 0.2.174, runner_commit: ...}
-checks_by_agent: [cheme check, cheme maturity, ...]      # what the agent ran, from the transcript
-checks_after_run:                                       # re-run by the runner on end_commit
-  - {command: cheme check, exit: 1, summary: "..."}
-outcome: {result: success, guard_denials: 0, report: "..."}
-observed_later: {}          # facts added after the run, with the date they were observed
-```
+- the folder layout and `run.yaml`: schema `process-run/v1`, printed by
+  `cheme schema process-run`; each process's `runs/README.md` (from core's project template)
+  summarises the files;
+- `cheme runs start` / `cheme runs record`: run by the SessionStart/SessionEnd hooks in each
+  process's `.claude/settings.json` (copied unchanged from core's template) and by the agent
+  runner; `cheme runs list` lists a process's records.
 
-Unknown values are `null`, never estimates.
+This page does not repeat the fields; the schema is the reference. A record written by hand
+(a manual change worth recording) must validate against it.
 
-## Writing records
+## What the library adds
 
-The agent runner (`agent.py`) writes the folder and commits it as the run's last commit. Write
-the records of other runs by hand in the same format.
+- **Where:** start Claude Code in `processes/<id>/`. The process folder is the plant repository
+  root, so the hooks write into `processes/<id>/runs/`.
+- **Committing:** the hook leaves an interactive session's record uncommitted; commit it with
+  the session's work (or delete it, before it is committed, when the session should not count).
+  The agent runner commits its record alone. Set `CHEME_RUN_RECORD=off` to switch the hooks off.
+- **Publication:** `runs/**` is in `DEFAULT_EXCLUDE` (`scripts/publication.py`): records stay in
+  git and out of the Atlas and viewer snapshots. A session transcript is committed only when
+  core's writer allows it; otherwise it stays in the ignored `build/run-records/`.
+- **Migration:** records written before core's schema were migrated once (2026-10-28): fields
+  core does not know moved under `observed_later.migrated_fields` with their values unchanged,
+  and each says so in `incomplete_notes`.
 
 ## Tagging a design for the paper
 
