@@ -1,0 +1,41 @@
+# The reactions of bromine-1 (DESIGN.md D-005, section 3). Schema `cheme schema
+# process-reactions`. Model basis: conversion (stoichiometric) reactions, no kinetics. The
+# conversions are the reported performance of conventional steaming-out towers (US 4 719 096,
+# Detailed Description), not predicted: no rate law or speciation model of chlorine and bromine in
+# a concentrated Ca/Na chloride brine is available (core#364).
+# Heats of reaction in kJ/kmol per extent as written, at 298.15 K for the aqueous ions, from the
+# standard enthalpies of formation of the NBS tables (Wagman et al. 1982): Cl-(aq) -167.16,
+# Br-(aq) -121.55, Br2(aq) -2.59, H2S(aq) -39.7 kJ/mol; recalled for this run, not re-read
+# (to verify, DESIGN.md O-5), hence `assumed`.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: BR_OX
+    title: Oxidation of bromide by chlorine (bromine liberation)
+    equation: 2 NaBr + Cl2 => 2 NaCl + Br2
+    stoichiometry: {NaBr: -2.0, Cl2: -1.0, NaCl: 2.0, Br2: 1.0}
+    reversible: false
+    conversion: {key: NaBr, value: 0.955, provenance: assumed, source: "D-005: 95-96 % bromine recovery of conventional steaming-out towers (US 4 719 096, Detailed Description); midpoint; equals the recovery to product because no other bromine loss is modelled"}
+    heat_of_reaction:
+      value: -93810.0
+      provenance: assumed
+      source: "2 Br-(aq) + Cl2(g) -> 2 Cl-(aq) + Br2(aq) from NBS tables (Wagman et al. 1982) formation enthalpies, recalled, to verify (O-5)"
+    sources: ["US 4 719 096 (Ethyl Corp.), https://patents.google.com/patent/US4719096"]
+  - id: H2S_OX
+    title: Side reaction - oxidation of the brine's hydrogen sulfide by chlorine to sulfur
+    equation: H2S + Cl2 => S + 2 HCl
+    stoichiometry: {H2S: -1.0, Cl2: -1.0, S: 1.0, HCl: 2.0}
+    reversible: false
+    conversion: {key: H2S, value: 1.0, provenance: assumed, source: "D-005: the representative side reaction that consumes the excess chlorine of natural brines (US 4 719 096, Background and Detailed Description: side reactions take about 25 % of the chlorine); all H2S taken to elemental sulfur (ASSUMED; further oxidation to sulfate and the ammonia demand not modelled)"}
+    heat_of_reaction:
+      value: -294620.0
+      provenance: assumed
+      source: "H2S(aq) + Cl2(g) -> S(rhombic) + 2 H+ + 2 Cl-(aq) from NBS tables (Wagman et al. 1982), recalled, to verify (O-5)"
+    sources: ["US 4 719 096 (Ethyl Corp.), https://patents.google.com/patent/US4719096"]
+  - id: NEUT
+    title: Neutralisation of the tail brine's hydrochloric acid with hydrated lime
+    equation: 2 HCl + CaOH2 => CaCl2 + 2 H2O
+    stoichiometry: {HCl: -2.0, CaOH2: -1.0, CaCl2: 1.0, H2O: 2.0}
+    reversible: false
+    conversion: {key: HCl, value: 1.0, provenance: assumed, source: "D-009: tail brine neutralised with lime before reinjection (US 4 719 096 names the lime requirement; the stoichiometric dose to full neutralisation is ASSUMED)"}
+    sources: ["US 4 719 096 (Ethyl Corp.), https://patents.google.com/patent/US4719096"]
