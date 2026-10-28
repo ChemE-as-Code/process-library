@@ -54,7 +54,7 @@ the identity was checked. Facts are in our own words; nothing copied.
 | SRC-3 | US 9 415 364 B2, "Facility and reactor for directly synthesizing hydrochloric acid from hydrogen and chlorine with heat recovery", https://patents.google.com/patent/US9415364B2/en | Background (reaction heat about 92 kJ/mol HCl, flame 2500-3000 degC, steam targets 7-16 bar, graphite limited to about 3.5 bar steam, acid up to 38 %); Description (gas about 250 degC leaving the convection section, reactor gas about 0.5 bar) | read (first 100 000 characters of the Google Patents text) | patent text: facts only | D-007 furnace outlet and steam level |
 | SRC-4 | US 2004/0175323 A1 (SGL Carbon), https://patents.google.com/patent/US20040175323A1/en | [0015]: prior art EP 0 362 666 B1 runs 2-15 vol-% excess hydrogen in the off-gas to avoid chlorine break-through | read | patent text: facts only | D-004 hydrogen excess range |
 | SRC-5 | Wikipedia, "Hydrochloric acid", https://en.wikipedia.org/wiki/Hydrochloric_acid | sections Production and Industrial market; physical properties table | read | CC BY-SA: facts only | product grade (bulk 30-35 %, up to 38 %), density of 32-34 % acid, world production split |
-| SRC-6 | NSRDS-NBS 2 (Parker 1965) as tabulated by Purdue Science Express "Enthalpy of Solution Reference" | HCl(g) at infinite dilution, -74.84 kJ/mol | search summary only (PDF 404 on fetch) | US government data | bound for D-009 |
+| SRC-6 | Parker, V. B. (1965) Thermal Properties of Aqueous Uni-Univalent Electrolytes, NSRDS-NBS 2, US GPO: heat of solution at infinite dilution (as tabulated by Purdue Science Express "Enthalpy of Solution Reference") and integral heats of dilution pp. 10-19 (as tabulated in Wikipedia "Heat of dilution", https://en.wikipedia.org/wiki/Heat_of_dilution) | HCl(g) to infinite dilution -74.84 kJ/mol; heat released on dilution to infinity from 1 and 10 mol water per mol HCl: 48.83 and 5.841 kJ/mol | infinite-dilution value from a search summary (Purdue PDF 404 on fetch); dilution values read on the Wikipedia page | US government data | consistency check for D-009 |
 | SRC-7 | Ullmann's Encyclopedia, "Hydrochloric Acid", doi:10.1002/14356007.a13_283 | none | metadata (issue #137 lead) | licensed | route identity only; no number taken |
 | SRC-8 | chlor-alkali-1 (this library), process/flowsheet.yaml streams S42, S44 | stream states | read | CC BY 4.0 (own) | D-003 feed states |
 | SRC-9 | IAPWS-IF97 steam properties | saturation at 1000 kPa(a) (453.0 K, h'' 2777.1 kJ/kg), water at 378 K (441 kJ/kg), psat 303/313 K | values from the standard as commonly tabulated | open standard | D-007, D-008 |
@@ -153,8 +153,11 @@ or vendor data.
 Decision: the integral enthalpy of solution of HCl(g) in water to the product (4.11 mol water
 per mol HCl) is taken as -61.4 kJ/mol at 298 K; acid heat capacity 2.55 kJ/(kg K). Both
 ASSUMED: interpolated from recalled NBS Circular 500 integral heats (about -61 kJ/mol at 4 mol
-water, -64 at 5), not read at source in this run; consistent with the verified infinite-dilution
-value -74.84 kJ/mol (SRC-6), which bounds it. The heat of solution is 1 544 of the 1 672 kW
+water, -64 at 5), not read at source in this run. Consistency check with Parker 1965 (SRC-6):
+the integral heat of solution to n mol water is -74.84 kJ/mol plus the heat of dilution from n
+to infinity, i.e. -26.0 kJ/mol at n = 1 and -69.0 kJ/mol at n = 10; the recalled values for
+n = 4-5 lie between and follow the same curve, but SRC-6 has no point at n = 4.11, so the value
+stays ASSUMED. The heat of solution is 1 544 of the 1 672 kW
 absorber duty (Q3), so a 10 % error moves Q3 by 9 %. Gate: core#364 (no HCl-water enthalpy).
 
 ## D-010 Cooling water 25/35 degC (2026-10-28)
@@ -176,7 +179,7 @@ Decision: `lca/lca.yaml`, functional unit 1 kg HCl in the 33 wt-% acid (3.0303 k
 background is declared `missing:` with the activity it should connect to (chlor-alkali-1's
 dataset for chlorine and hydrogen, demineralised water, grid electricity, cooling water), so
 each is a gap, never 0. Allocation: shares 1/0 between acid and exported steam under cut-off,
-as nitric-acid-1 (D-014 there): energy allocation would put everything on the steam (the acid
+as nitric-acid-1 (its decision 14): energy allocation would put everything on the steam (the acid
 has no energy content) and the acid's exergy cannot be calculated (core#364); substitution by
 natural-gas boiler steam is kept for comparison (missing). Emissions: the vent (H2, HCl, water)
 to air; the furnace burns no air and no carbon, so no combustion emission exists (declared
