@@ -1,0 +1,108 @@
+# Goal and scope of the ethanol-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme assess lca
+# --write` (lca/inventory.csv, results.csv, results.md, gaps.csv, dataset.yaml, manifest.json);
+# never edit those by hand.
+#
+# Preliminary run (DESIGN.md D-013): a cradle-to-gate scope with every background open, i.e. the
+# gate-to-gate foreground inventory of the balanced concept flowsheet only, per kg of anhydrous
+# ethanol. Every background (ethylene, water, power, steam, cooling water, wastewater and
+# off-gas treatment, consumables) is deliberately left UNMAPPED: each is a gap with a description
+# of the background activity it should connect to later, never 0 and never a value from a
+# licensed database. The plant has no direct emission to air or water inside the boundary: the
+# off-gas is burned and the blowdown treated outside it (emission_exclusions).
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of anhydrous ethanol (99.8 wt%) from vapour-phase
+  direct hydration of ethylene at concept stage, per kg of product, with every background still
+  open: only the foreground exchanges of the balanced flowsheet are quantified (ethylene, water,
+  power, HP and LP steam, cooling water, off-gas, wastewater, consumables); the backgrounds,
+  ethylene above all, are gaps to be linked later. Not a carbon footprint (D-013).
+functional_unit:
+  product: ETOH
+  amount: 1
+  unit: kg
+  source: "1 kg of the anhydrous ethanol product stream S23 (99.78 wt% ethanol, 0.2 wt% water, ~170 ppm(wt) diethyl ether; D-002)"
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "vapour-phase direct hydration of ethylene over H3PO4 on silica (513-541 K, 7 MPa, 5 % conversion per pass), gas recycle with water scrubbing, light-ends and concentrating distillation, 3A molecular-sieve dehydration; 100 000 t/a"
+system_model: cutoff
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+allocation:
+  method: none
+  coproducts: [ETOH]
+  source: >-
+    D-013: ethanol is the only product. The purge and light-ends off-gas go to the site
+    fuel-gas header and are classified as a waste burned with energy recovery outside the
+    boundary (cut-off: no credit); the blowdown is a wastewater.
+flows:
+  - {key: feed:ETHYLENE, missing: "not mapped in this preliminary run: should connect to polymer-grade ethylene at the plant gate, from naphtha or ethane steam cracking (market activity for the site region, incl. pipeline transport); the ethane and methane traces (0.1 mol%) ride with it", source: "fresh ethylene, stream S1 (D-002)"}
+  - {key: feed:WATER, missing: "not mapped in this preliminary run: should connect to demineralised (deionised) water production at the site, per kg", source: "make-up water, stream S28"}
+  - {key: feed:POWER, missing: "not mapped in this preliminary run: should connect to grid electricity, medium voltage, of the site country (not chosen)", source: "compressors K-101, K-102, pump P-101, sieve vacuum pump, streams Q1, Q2, Q6, Q12"}
+  - {key: feed:HPS, missing: "not mapped in this preliminary run: should connect to heat from HP steam (4200 kPa(a)) of the site steam system (e.g. a natural-gas-fired boiler or cogeneration), per kWh of heat", source: "reactor feed superheater E-102, stream Q4"}
+  - {key: feed:LPS, missing: "not mapped in this preliminary run: should connect to heat from LP steam (450 kPa(a)) of the site steam system, per kWh of heat", source: "column reboilers C-201 and C-202, streams Q7, Q9"}
+  - {key: product:CW, missing: "not mapped in this preliminary run: should connect to a recirculating cooling-water system per kWh of heat rejected (pumping and fan power, make-up water, treatment chemicals, evaporation; processes/utility-cooling-tower when linked)", source: "heat rejected to cooling water, streams Q3, Q5, Q8, Q10, Q11"}
+  - {key: product:FUELGAS, treatment: {kind: waste, route: "combustion in the site fuel-gas system (energy recovered outside the boundary)"}, missing: "not mapped in this preliminary run: should connect to combustion of a hydrocarbon/oxygenate off-gas in a site boiler or furnace (its CO2, NOx, CO emissions), with the recovered heat as a credit only under substitution; processes/utility-flare as a fallback", source: "loop purge S13 and light-ends off-gas S19 (D-005)"}
+  - {key: product:WW, treatment: {kind: waste, route: "biological wastewater treatment"}, missing: "not mapped in this preliminary run: should connect to treatment of a slightly organic wastewater (~100 ppm(wt) ethanol, sodium phosphate from the acid neutralisation) in a site or municipal biological plant, per kg or m3 (processes/utility-wwtp when linked)", source: "water-loop blowdown, stream S25 (D-005, D-007)"}
+# No combustion unit, flare or storage tank is inside the boundary, and no stream is released to
+# air or water inside it: the off-gas and the blowdown leave to site systems (flows above).
+emission_exclusions:
+  - {id: leaks, method: equipment-leaks, reason: "not estimated at concept stage: no P&ID component count yet; ethylene and ethanol fugitives to be estimated at basic engineering (D-013)", source: "DESIGN.md D-013"}
+  - {id: tanks, method: storage-tank, reason: "no storage tank inside the boundary: ethanol day tanks and storage are outside (D-002)", source: "DESIGN.md D-002"}
+  - {id: combustion, method: combustion, reason: "no combustion unit inside the boundary: the feed is heated by E-101 and HP steam (D-003); the off-gas is burned in the site fuel-gas system, counted as its treatment", source: "DESIGN.md D-003, D-013"}
+  - {id: effluent, method: effluent, reason: "the blowdown is not discharged inside the boundary: it goes to biological treatment, counted as its treatment (product:WW)", source: "DESIGN.md D-005"}
+# Consumables the flowsheet does not carry (D-007), all ASSUMED orders of magnitude without an
+# open source: to be replaced by licensor or plant data.
+consumables:
+  - id: phosphoric-acid
+    title: Phosphoric acid make-up to the catalyst (as 100 % H3PO4)
+    unit: t
+    per_year: 100
+    missing: "not mapped: should connect to phosphoric acid (wet process or thermal, market for the site region), per kg H3PO4"
+    uncertainty: {gsd2: 3.0, source: "ASSUMED order of magnitude, no open source"}
+    source: "ASSUMED: 1 kg H3PO4 per t ethanol carried out of the reactor and replaced (D-007); no open source of the loss rate found"
+    disposal: {kind: waste, route: "neutralised to sodium phosphate, leaves with the blowdown to biological wastewater treatment", missing: "not mapped: part of the blowdown treatment (product:WW)", source: "D-007"}
+  - id: caustic-soda
+    title: Caustic soda for the acid neutralisation (as 100 % NaOH)
+    unit: t
+    per_year: 82
+    missing: "not mapped: should connect to sodium hydroxide (50 % solution, chlor-alkali, market for the site region; processes/chlor-alkali-1 when linked), per kg NaOH"
+    uncertainty: {gsd2: 3.0, source: "follows the ASSUMED acid loss"}
+    source: "ASSUMED: 2 mol NaOH per mol H3PO4 carried over (to disodium phosphate): 100 t/a x 2 x 40.00/98.00 = 82 t/a (D-007)"
+    disposal: {kind: waste, route: "as sodium phosphate in the blowdown to biological wastewater treatment", missing: "not mapped: part of the blowdown treatment (product:WW)", source: "D-007"}
+  - id: hydration-catalyst
+    title: Hydration catalyst (H3PO4 on silica), R-101 charge
+    unit: t
+    per_replacement: 60
+    every_years: 4
+    catalyst: true
+    missing: "not mapped: should connect to the manufacture of a silica catalyst support impregnated with phosphoric acid (silica gel or pellets plus H3PO4), per kg"
+    uncertainty: {gsd2: 2.0, source: "ASSUMED charge and life"}
+    source: "ASSUMED: ~115 m3 of catalyst (US 5349096 space-time yield of about 0.11 kg ethanol per L and h, equipment list R-101) at ~0.5 t/m3, replaced every 4 years (the patents note a limited catalyst life; no figure taken)"
+    disposal: {kind: waste, route: "landfill of the spent acid-impregnated silica after neutralisation", missing: "not mapped: should connect to landfill of inert mineral waste (or hazardous if not neutralised)", source: "ASSUMED"}
+  - id: molecular-sieve
+    title: Molecular sieve 3A (V-301 beds)
+    unit: t
+    per_replacement: 30
+    every_years: 5
+    missing: "not mapped: should connect to zeolite 3A (potassium-exchanged type A) molecular sieve production, per kg"
+    uncertainty: {gsd2: 2.0, source: "ASSUMED bed inventory and life"}
+    source: "ASSUMED: two beds of ~15 t for 16.4 t/h of 93 wt% vapour, replaced every 5 years (D-005); to be confirmed by the sieve supplier"
+    disposal: {kind: waste, route: "landfill of spent zeolite (inert)", missing: "not mapped: should connect to landfill of inert mineral waste", source: "ASSUMED"}
+cutoff:
+  - {id: construction, title: "Plant construction (equipment, piping, steel, concrete)", unit: kg, reason: "no layout or take-off at concept stage (P&IDs and layout out of scope); infrastructure to be added with the take-off at basic engineering"}
+  - {id: lube-oil, title: "Lubricating and seal oil of K-101, K-102, P-101", unit: kg, reason: "not quantified at concept stage; small"}
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 25 a service life ASSUMED"
+dataset:
+  version: 0.1.0
+  geography: {description: "One concept design for a generic, undecided site; no regional background"}
+  system_model: cutoff
+  technology_level: current
+  classification: {isic: "2011", cpc: "34131"}  # CPC 2.1 undenatured ethyl alcohol >= 80 % vol (to verify against UNSD)
+  modelling: {principle: attributional}
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library, ethanol-1 concept run (agent-generated, not reviewed)"
