@@ -114,7 +114,10 @@ bromine/chlorine content, and the lime dose of a real tail-brine neutraliser.
 Decision: section 1. Reason: the issue asks for oxidation, stripping, condensation, separation
 and drying; brine production and reinjection are field operations with their own wells.
 Rejected: including well pumping (no open data on depths/rates for a design value). Assumptions:
-brine arrives at 150 kPa(a) and 195 degF.
+brine arrives at 150 kPa(a) and 195 degF. The tail brine leaves at the T-107 pressure
+(120 kPa(a)). The reinjection system outside the boundary starts with the transfer pump that
+draws from T-107 and lifts the 933 t/h (about 0.22 m3/s) to the injection header, followed by the
+injection pumps and wells (review R-02).
 
 ### D-002 Capacity and product (2026-10-28)
 Decision: 3 750 kg/h dry bromine, 8000 h/a = 30 kt/a, product 99.957 wt-% Br2 with 400 ppm Cl2
@@ -180,18 +183,34 @@ dissolved in the spent acid not modelled.
 
 ### D-009 Tail brine neutralisation and reinjection (2026-10-28)
 Decision: T-107 neutralises the 488 kg/h HCl of the side reaction with 496 kg/h hydrated lime
-(stoichiometric, pure Ca(OH)2 ASSUMED) and sends 933 t/h brine to reinjection at 375 K. Reason:
-SRC-1 names lime for the tail brine and SRC-2 a neutraliser before discharge; reinjection keeps
-the brine out of surface water. Free halogen in the tail brine (and its reduction, e.g. with
-sulfite) is not modelled (O-4).
+(stoichiometric, pure Ca(OH)2 ASSUMED) and sends 933 t/h brine to reinjection at 382.89 K and
+120 kPa(a). Reason: SRC-1 names lime for the tail brine and SRC-2 a neutraliser before
+discharge; reinjection keeps the brine out of surface water. Free halogen in the tail brine
+(and its reduction, e.g. with sulfite) is not modelled (O-4).
+Energy (review R-01, 2026-10-28): T-107 is a closed agitated tank held at 120 kPa(a) (ASSUMED,
+inside its 0.5 barg design), above the brine's boiling pressure at 229 degF (about 103 kPa(a),
+SRC-1), so the tail brine does not flash and no water vapour leaves T-107. Its vent carries only
+displaced gas to the vent scrubber (exclusion `vent`, O-9). The neutralisation
+Ca(OH)2(s) + 2 H+ -> Ca2+ + 2 H2O releases 128.4 kJ/mol (from the SRC-7 formation enthalpies of
+Ca(OH)2(s), Ca2+(aq) and H2O(l)): 239 kW, less 14 kW to heat the lime from 25 degC
+(cp 1.18 kJ/kg K ASSUMED), so the brine warms by 0.30 K to 382.89 K (tank heat loss neglected,
+ASSUMED). `scripts/balance.py` computes it. The earlier 375 K had no basis. Rejected: an
+atmospheric tank with a flash (about 1 t/h of vapour with halogen traces to treat, for no
+process benefit).
+Pressure (review R-02): S17 leaves at the T-107 pressure. The transfer pump from T-107 to the
+injection header belongs to the reinjection system outside the boundary (D-001). Its
+electricity is counted in the reinjection treatment that `product:TAILB` will link to
+(`lca/lca.yaml`), not in Q6.
 
 ### D-010 Cooling water 25/35 degC (2026-10-28)
 ASSUMED site cooling water; 671.5 kW in total (E-102, C-104 condenser, E-105).
 
 ### D-011 Power (2026-10-28)
 P-101: 913 t/h at 1.2 kg/L, 350 kPa rise, eta 0.70: 105.6 kW; other drives 15 kW lumped
-(ASSUMED). Brine well pumps and reinjection pumps are outside the boundary (D-001), so the
-plant's power is a known underestimate of the field's.
+(ASSUMED). Brine well pumps and the reinjection system are outside the boundary (D-001). That
+includes the tail-brine transfer pump from T-107, roughly 50-60 kW for a 170-200 kPa lift
+(review R-02). The plant's power is therefore a known underestimate of the field's: the gate's
+0.0322 kWh/kg would be about 0.047 kWh/kg with the transfer pump.
 
 ### D-012 Equipment materials (2026-10-28)
 Placeholders for the materials question only (equipment list): wet bromine and chlorine need

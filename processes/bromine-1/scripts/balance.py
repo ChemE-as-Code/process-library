@@ -134,6 +134,14 @@ S17 = dict(S15)
 del S17["HCl"]
 S17["CaCl2"] += n_H2S * M["CaCl2"]
 S17["H2O"] += 2 * n_H2S * M["H2O"]
+# T-107 energy balance (D-009): closed tank at 120 kPa(a), above the brine's boiling pressure at
+# T_tail, so no flash; heat of Ca(OH)2(s) + 2 H+ -> Ca2+ + 2 H2O from the same NBS tables
+# (Ca(OH)2(s) -986.09, Ca2+(aq) -542.83, H2O(l) -285.83 kJ/mol), lime heated from 298.15 K
+# (cp 1.18 kJ/kg K, ASSUMED), tank heat loss neglected (ASSUMED)
+dH_NEUT = (-542.83) + 2 * (-285.83) - (-986.09)                   # kJ/mol Ca(OH)2
+cp_lime = 1.18
+q_T107 = (-n_H2S * dH_NEUT * 1000 - lime * cp_lime * (T_tail - 298.15)) / 3600   # kW released
+T_S17 = T_tail + q_T107 * 3600 / (sum(S17.values()) * cp_brine)
 
 # condenser E-102: S5 vapour at T_top -> two liquids at T_cond
 q_E102 = (S5["H2O"] * (L_w(T_top) + cp_w * (T_top - T_cond))
@@ -168,6 +176,12 @@ print(f"steam {steam:.1f} kg/h = {steam / P:.3f} kg/kg Br2; tower heat demand {q
 print(f"E-102 {q_E102:.1f} kW; C-104 reboiler {q_reb:.1f} kW, condenser {q_C104c:.1f} kW; E-105 {q_E105:.1f} kW")
 print(f"P-101 {w_P101:.1f} kW; misc {w_misc} kW; lime {lime:.2f} kg/h; acid {acid:.3f} kg/h")
 print(f"T_brine {T_brine:.2f} K, T_tail {T_tail:.2f} K, T_top {T_top:.2f} K, pw {pw:.2f} kPa")
+print(f"T-107: neutralisation {dH_NEUT:.2f} kJ/mol, net heat {q_T107:.1f} kW, S17 {T_S17:.2f} K")
+dsteam_dcp = F * (T_tail - T_brine) / ((h_steam - h_cond) * (1 - loss)) * 0.1 / P
+print(f"steam sensitivity to the brine cp: {dsteam_dcp:.3f} kg/kg Br2 per 0.1 kJ/kg K")
+na = S1["NaCl"] * 22.990 / M["NaCl"] / F                        # sodium by charge balance (D-004)
+print(f"brine Na {1e3 * na:.1f} g/kg; NaCl {1e3 * S1['NaCl'] / M['NaCl'] / S1['H2O']:.3f},"
+      f" CaCl2 {1e3 * S1['CaCl2'] / M['CaCl2'] / S1['H2O']:.3f} mol/kg water")
 print(f"tail brine bromide {1e6 * S17['NaBr'] * M['Br'] / M['NaBr'] / sum(S17.values()):.0f} mg/kg;"
       f" recovery per m3 brine {prod['Br2'] / (F / rho_b):.3f} kg/m3 = {prod['Br2'] / (F / rho_b) * 0.158987 / 0.453592:.2f} lb/bbl")
 # closure
