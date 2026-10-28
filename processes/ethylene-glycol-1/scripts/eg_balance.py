@@ -53,7 +53,14 @@ DH_EO = 105.0e3                 # kJ/kmol released, C2H4 + 1/2 O2 -> EO (BREF 7.
 DH_COMB = 1323.0e3              # kJ/kmol C2H4 released, total combustion (BREF 7.2.1.1.1)
 DH_HYD = 95.0e3                 # kJ/kmol EO released per glycol step, ASSUMED (D-007)
 CP_GAS = 40.0                   # kJ/(kmol K) loop gas, ASSUMED
-DT_E101 = 60.0                  # K, trim cooler of the reactor effluent 373 -> 313 K, ASSUMED
+T_MIX_GAS = 333.15              # K, mixed feed gas leaving M-101 (recycle gas after K-101), ASSUMED
+T_RX_IN = 483.15                # K, reactor inlet after the E-101 feed/effluent exchanger, ASSUMED
+T_RX_OUT = 523.15               # K, reactor outlet (BREF 7.2.1.1.1: 200-300 C), ASSUMED
+T_ABS_IN = 313.15               # K, cooled reactor gas to the EO absorber, ASSUMED
+# glycol reactor feed (D-005, D-008): liquid heat capacities, kJ/(kg K), ASSUMED round values
+CP_LIQ = {"H2O": 4.18, "EO": 2.0, "MEG": 2.4}
+T_EO_WATER, T_MAKEUP, T_RECYCLE = 313.15, 303.15, 393.15   # K, S13, S22, S23 (= S30), ASSUMED
+T_GLY_IN = 423.15               # K, glycol reactor inlet (BREF 7.2.2.5: 150-250 C), ASSUMED
 DT_LEAN_COOLER = 25.0           # K, lean absorbent 333 -> 308 K, ASSUMED
 DT_LEAN_RICH = 15.0             # K, approach of the lean/rich exchanger, ASSUMED
 DH_EO_DESORB = 30.0e3           # kJ/kmol EO, desorption incl. overhead reflux, ASSUMED
@@ -295,11 +302,29 @@ def run():
     return feeds, loop, gly
 
 
+def glycol_mix(loop, gly):
+    """M-401 outlet temperature (adiabatic mixing of S13, S22, S23 with constant liquid heat
+    capacities; heat of mixing of EO and water neglected, ASSUMED) and the heat capacity flow of
+    the mixture, kW/K."""
+    parts = ((loop["eo_water"], T_EO_WATER), ({"H2O": gly["makeup"]}, T_MAKEUP),
+             (gly["rec_stream"], T_RECYCLE))
+    mcp = [sum(v * MW[c] * CP_LIQ[c] for c, v in s.items() if v) / 3600.0 for s, _ in parts]
+    t_mix = sum(m * t for m, (_, t) in zip(mcp, parts)) / sum(mcp)
+    return t_mix, sum(mcp)
+
+
 def energy(feeds, loop, gly):
     eo = loop["eo_water"]["EO"]
     q = {}
     q["R101"] = (eo * DH_EO + loop["c2h4_comb"] * DH_COMB) / 3600.0
-    q["E101"] = total(loop["R"]) * CP_GAS * DT_E101 / 3600.0
+    # E-101: the reactor effluent heats the reactor feed (S38 -> S5), the trim cooler takes the
+    # effluent to the absorber temperature. The reactor gas rises from T_RX_IN to T_RX_OUT; that
+    # sensible heat is reaction heat not available for steam (review 2026-10-28 #1).
+    n_feed, n_out = total(loop["F"]), total(loop["R"])
+    q["E101_interchanger"] = n_feed * CP_GAS * (T_RX_IN - T_MIX_GAS) / 3600.0
+    q["R101_gas_heating"] = n_feed * CP_GAS * (T_RX_OUT - T_RX_IN) / 3600.0
+    q["E101"] = n_out * CP_GAS * (T_RX_OUT - T_ABS_IN) / 3600.0 - q["E101_interchanger"]
+    q["E101_hot_out_K"] = T_RX_OUT - q["E101_interchanger"] * 3600.0 / (n_out * CP_GAS)
     lean_kg = loop["lean"]["H2O"] * MW["H2O"]
     q["C201_cw"] = lean_kg * 4.18 * DT_LEAN_COOLER / 3600.0
     q["C202_steam"] = (lean_kg * 4.18 * DT_LEAN_RICH + eo * DH_EO_DESORB) * STRIPPER_EXTRA / 3600.0
@@ -322,6 +347,10 @@ def energy(feeds, loop, gly):
     p = gly["prod"]
     steps = p["MEG"] + 2 * p["DEG"] + 3 * p["TEG"] + 4 * p["TTEG"] - gly["feed"]["MEG"]
     q["R401_heat"] = steps * DH_HYD / 3600.0
+    # E-401: the mixed feed (S39) is heated to T_GLY_IN with MP steam (review #2, D-008)
+    t_mix, mcp_mix = glycol_mix(loop, gly)
+    q["M401_out_K"] = t_mix
+    q["E401_steam"] = mcp_mix * (T_GLY_IN - t_mix)
     ev_kg = gly["ev_vap"]["H2O"] * MW["H2O"]
     q["EV501_steam"] = max(ev_kg / EVAP_ECONOMY * LAMBDA_STEAM / 3600.0 - q["R401_heat"], 0.0)
     q["EV501_cw"] = ev_kg / 4.0 * LAMBDA_W / 3600.0
@@ -337,15 +366,19 @@ def energy(feeds, loop, gly):
     t = gly["teg_top"]
     q["C603_steam"] = (t["TEG"] + t["DEG"]) * LAMBDA_KJ_KMOL["TEG"] * (1 + R_TEG) / 3600.0
     q["C603_cw"] = q["C603_steam"]
-    # steam: R-101 raises MP steam used for C-202, C-301 and part of EV-501; import the rest
-    raised = q["R101"]
-    q["R101_to_C202"] = q["C202_steam"]
-    q["R101_to_C301"] = q["C301_steam"]
-    q["R101_to_EV501"] = q["EV501_steam"]
-    q["R101_to_C601"] = raised - q["C202_steam"] - q["C301_steam"] - q["EV501_steam"]
-    assert 0 < q["R101_to_C601"] < q["C601_steam"], "steam allocation: not an import case"
-    q["MPS_C601"] = q["C601_steam"] - q["R101_to_C601"]
-    q["MPS_total"] = q["MPS_C601"] + q["C501_steam"] + q["C602_steam"] + q["C603_steam"]
+    # steam: R-101 raises MP steam from the reaction heat less the gas heating across the
+    # reactor; it serves C-202, C-301 and the first evaporator effect in that order, MP steam
+    # is imported for the rest (D-008)
+    raised = q["R101"] - q["R101_gas_heating"]
+    q["R101_steam_raised"] = raised
+    left = raised
+    for user in ("C202", "C301", "EV501", "C601"):
+        q[f"R101_to_{user}"] = min(left, q[f"{user}_steam"])
+        q[f"MPS_{user}"] = q[f"{user}_steam"] - q[f"R101_to_{user}"]
+        left -= q[f"R101_to_{user}"]
+    q["R101_steam_surplus"] = left
+    q["MPS_total"] = (q["MPS_EV501"] + q["MPS_C601"] + q["E401_steam"] + q["C501_steam"]
+                      + q["C602_steam"] + q["C603_steam"])
     q["steam_raised_kg_h"] = raised * 3600.0 / H_STEAM_RAISED
     q["power_total"] = q["K101_power"] + q["pumps_power"] + q["aux_power"]
     q["cw_total"] = sum(v for k2, v in q.items() if k2.endswith("_cw")) + q["E101"]
@@ -356,14 +389,16 @@ def stream_list(feeds, loop, gly):
     """(id, title, from, to, template, kmol dict, T K, P kPa(a))"""
     L, G = loop, gly
     makeup = {"H2O": G["makeup"]}
+    t_mix = round(glycol_mix(loop, gly)[0], 2)
     s = [
         ("S1", "Ethylene feed (pipeline)", "ETH.out", "M101.eth", "loop", feeds["ETH"], 298.15, 2400),
         ("S2", "Oxygen feed (pipeline GOX)", "OXY.out", "M101.oxy", "loop", feeds["OXY"], 298.15, 2400),
         ("S3", "Methane ballast make-up", "MET.out", "M101.met", "loop", feeds["MET"], 298.15, 2400),
         ("S4", "Recycle gas to the mixer", "M103.out", "M101.rec", "loop", L["recycle"], 333.15, 2200),
-        ("S5", "Reactor feed gas", "M101.out", "R101.in", "loop", L["F"], 333.15, 2200),
-        ("S6", "Reactor outlet gas", "R101.out", "E101.in", "loop", L["R"], 523.15, 2100),
-        ("S7", "Cooled reactor gas to the EO absorber", "E101.out", "C201.gas", "loop", L["R"], 313.15, 2050),
+        ("S38", "Mixed feed gas to the feed/effluent exchanger", "M101.out", "E100.in", "loop", L["F"], T_MIX_GAS, 2200),
+        ("S5", "Reactor feed gas (preheated)", "E100.out", "R101.in", "loop", L["F"], T_RX_IN, 2170),
+        ("S6", "Reactor outlet gas", "R101.out", "E101.in", "loop", L["R"], T_RX_OUT, 2100),
+        ("S7", "Cooled reactor gas to the EO absorber", "E101.out", "C201.gas", "loop", L["R"], T_ABS_IN, 2050),
         ("S8", "EO absorber off-gas", "C201.gasout", "M102.gas", "loop", L["A"], 308.15, 2000),
         ("S9", "Rich absorbent (aqueous EO)", "C201.rich", "C202.rich", "aq", L["rich"], 318.15, 2000),
         ("S10", "Lean absorbent (stripped water)", "C202.lean", "C201.lean", "aq", L["lean"], 308.15, 2200),
@@ -379,15 +414,16 @@ def stream_list(feeds, loop, gly):
         ("S20", "CO2-depleted gas", "C301.out", "M103.treated", "loop", L["treated"], 333.15, 2150),
         ("S21", "CO2 stripper vent to atmosphere", "C301.vent", "CO2V.in", "loop", L["vent"], 313.15, 120),
         ("S22", "Process water make-up (demineralised)", "PW.out", "M401.pw", "aq", makeup, 303.15, 3000),
-        ("S23", "Recycle water to the glycol reactor", "SP501.rec", "M401.rec", "aq", G["rec_stream"], 403.15, 3000),
-        ("S24", "Glycol reactor feed", "M401.out", "R401.in", "aq", G["feed"], 423.15, 3000),
+        ("S23", "Recycle water to the glycol reactor", "SP501.rec", "M401.rec", "aq", G["rec_stream"], T_RECYCLE, 3000),
+        ("S39", "Mixed glycol reactor feed to the feed heater", "M401.out", "E401.in", "aq", G["feed"], t_mix, 3000),
+        ("S24", "Glycol reactor feed (heated)", "E401.out", "R401.in", "aq", G["feed"], T_GLY_IN, 2950),
         ("S25", "Glycol reactor outlet", "R401.out", "EV501.in", "aq", G["prod"], 478.15, 2900),
         ("S26", "Evaporator condensate", "EV501.vap", "M501.ev", "aq", G["ev_vap"], 393.15, 200),
         ("S27", "Concentrated glycols to the drying column", "EV501.conc", "C501.in", "aq", G["ev_conc"], 403.15, 200),
         ("S28", "Drying column overhead water", "C501.ovh", "M501.dry", "aq", G["dry_ovh"], 330.15, 20),
         ("S29", "Crude glycols to the MEG column", "C501.btm", "C601.in", "aq", G["crude"], 433.15, 25),
-        ("S30", "Combined recycle water", "M501.out", "SP501.in", "aq", G["cond_all"], 393.15, 300),
-        ("S31", "Water bleed to biological treatment", "SP501.bleed", "WW.in", "aq", G["bleed"], 313.15, 300),
+        ("S30", "Combined recycle water", "M501.out", "SP501.in", "aq", G["cond_all"], T_RECYCLE, 300),
+        ("S31", "Water bleed to biological treatment", "SP501.bleed", "WW.in", "aq", G["bleed"], T_RECYCLE, 300),
         ("S32", "MEG product", "C601.top", "MEG.in", "aq", G["meg_top"], 313.15, 300),
         ("S33", "MEG column bottoms", "C601.btm", "C602.in", "aq", G["c601_bot"], 443.15, 15),
         ("S34", "DEG product", "C602.top", "DEG.in", "aq", G["deg_top"], 313.15, 300),
@@ -417,11 +453,37 @@ def fmt_stream(sid, title, frm, to, tpl, kmol, T, P):
     )
 
 
+def sensitivity():
+    """Rerun the balance for other relative rates and EO selectivities (review #3, D-005):
+    ethylene per kg MEG, MEG share of the crude glycols and of the co-products (the mass
+    allocation), heavies per t EO and MP steam import."""
+    global K_RATIO, S_EO
+    base = (K_RATIO, S_EO)
+    rows = []
+    for k_ratio, s_eo in ((2.0, 0.85), (3.0, 0.85), (2.0, 0.80), (3.0, 0.80)):
+        K_RATIO, S_EO = k_ratio, s_eo
+        feeds, loop, gly = run()
+        q = energy(feeds, loop, gly)
+        p = gly["prod"]
+        glyc = {c: p[c] * MW[c] for c in ("MEG", "DEG", "TEG", "TTEG")}
+        prods = {n: total(mass(gly[n])) for n in ("meg_top", "deg_top", "teg_top")}
+        eo_t_h = loop["eo_water"]["EO"] * MW["EO"] / 1000.0
+        rows.append((k_ratio, s_eo, total(mass(feeds["ETH"])) / MEG_PRODUCT_KG_H,
+                     100 * glyc["MEG"] / sum(glyc.values()),
+                     100 * prods["meg_top"] / sum(prods.values()),
+                     total(mass(gly["heavies"])) / eo_t_h, q["MPS_total"] / MEG_PRODUCT_KG_H * 3.6))
+    K_RATIO, S_EO = base
+    return rows
+
+
 def main():
     out_dir = sys.argv[1] if len(sys.argv) > 1 else "build"
     os.makedirs(out_dir, exist_ok=True)
     feeds, loop, gly = run()
     q = energy(feeds, loop, gly)
+    # the flowsheet's energy streams: R-101 steam to C-202, C-301 and EV-501 only (Q1-Q3)
+    assert q["MPS_C202"] == q["MPS_C301"] == 0 and q["R101_to_C601"] == 0 < q["R101_to_EV501"], \
+        "steam allocation no longer matches energy streams Q1-Q5 of process/flowsheet.yaml"
     streams = stream_list(feeds, loop, gly)
     with open(os.path.join(out_dir, "streams.yaml"), "w") as f:
         for s in streams:
@@ -459,6 +521,10 @@ def main():
     for k2, v in q.items():
         P(f"  {k2}: {v:.1f}")
     P(f"  MP steam import {q['MPS_total']/meg:.4f} kWh/kg MEG; power {q['power_total']/meg:.4f} kWh/kg; CW {q['cw_total']/meg:.4f} kWh/kg")
+    P("--- sensitivity (D-005): relative rate, EO selectivity -> ethylene kg/kg MEG, MEG wt% of"
+      " glycols, MEG mass share of MEG+DEG+TEG, heavies kg/t EO, MP steam GJ/t MEG")
+    for r in sensitivity():
+        P("  k %.1f  S_EO %.2f  ->  C2H4 %.4f  MEG %.2f wt%%  share %.2f %%  heavies %.3f  steam %.2f" % r)
     txt = "\n".join(lines)
     with open(os.path.join(out_dir, "summary.txt"), "w") as f:
         f.write(txt + "\n")

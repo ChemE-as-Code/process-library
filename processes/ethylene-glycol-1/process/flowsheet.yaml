@@ -11,8 +11,9 @@
 #   selectivities of the script, so cheme checks them by elements and extents;
 # - duties are a lumped estimate of the same script (D-008), ASSUMED; no property package covers
 #   these streams (D-007, core #315).
-# The steam raised in R-101 is used inside the plant (energy streams Q1-Q4); MP steam is imported
-# for the rest (D-008).
+# The steam raised in R-101 (its reaction heat less the gas heating across the reactor) is used
+# inside the plant (energy streams Q1-Q3); MP steam is imported for the rest (Q4-Q8, Q23). The
+# feed side of the E-101 feed/effluent exchanger is the step E100 (Q24), D-008.
 schema: cheme/process/v1
 kind: flowsheet
 title: Ethylene glycol by ethylene oxide hydration (glycols only, 50 t/h MEG)
@@ -45,6 +46,8 @@ feeds:
       pressure: {value: 2800, provenance: assumed, source: "design basis, D-008"}
       supply_temperature: {value: 503.6, provenance: assumed, source: "saturation at 2800 kPa(a), D-008"}
     ports:
+      - {id: ev501, direction: out, kind: energy}
+      - {id: e401, direction: out, kind: energy}
       - {id: c501, direction: out, kind: energy}
       - {id: c601, direction: out, kind: energy}
       - {id: c602, direction: out, kind: energy}
@@ -99,7 +102,6 @@ blocks:
       - {id: st1, direction: out, kind: energy}
       - {id: st2, direction: out, kind: energy}
       - {id: st3, direction: out, kind: energy}
-      - {id: st4, direction: out, kind: energy}
       - {id: cw, direction: out, kind: energy}
   - id: EOR
     title: EO absorption, stripping and light-gas removal
@@ -135,6 +137,7 @@ blocks:
       - {id: rec, direction: in}
       - {id: out, direction: out}
       - {id: power, direction: in, kind: energy}
+      - {id: steam, direction: in, kind: energy}
   - id: EVP
     title: Multi-effect evaporation and drying (water recycle)
     class: Evaporating
@@ -145,6 +148,7 @@ blocks:
       - {id: crude, direction: out}
       - {id: steam1, direction: in, kind: energy}
       - {id: steam2, direction: in, kind: energy}
+      - {id: steam3, direction: in, kind: energy}
       - {id: cw1, direction: out, kind: energy}
       - {id: cw2, direction: out, kind: energy}
   - id: PUR
@@ -156,7 +160,6 @@ blocks:
       - {id: deg, direction: out}
       - {id: teg, direction: out}
       - {id: hvy, direction: out}
-      - {id: steam0, direction: in, kind: energy}
       - {id: steam1, direction: in, kind: energy}
       - {id: steam2, direction: in, kind: energy}
       - {id: steam3, direction: in, kind: energy}
@@ -177,6 +180,17 @@ steps:
       - {id: met, direction: in, delegates: met}
       - {id: rec, direction: in, delegates: rec}
       - {id: out, direction: out}
+  - id: E100
+    block: RXN
+    title: Reactor feed gas preheating (cold side of the E-101 feed/effluent exchanger)
+    class: ExchangingThermalEnergy
+    # D-008: the mixed feed gas is heated from 333 to 483 K (ASSUMED, 40 K approach at the hot
+    # end) by the reactor effluent (Q24); review 2026-10-28 #1.
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: heat, direction: in, kind: energy}
   - id: R101
     block: RXN
     title: EO reactor (multitubular, silver catalyst, boiling-water shell)
@@ -194,15 +208,15 @@ steps:
       - {id: st1, direction: out, kind: energy, delegates: st1}
       - {id: st2, direction: out, kind: energy, delegates: st2}
       - {id: st3, direction: out, kind: energy, delegates: st3}
-      - {id: st4, direction: out, kind: energy, delegates: st4}
   - id: E101
     block: RXN
-    title: Reactor gas feed/effluent exchanger and trim cooler
+    title: Reactor gas feed/effluent exchanger (hot side) and trim cooler
     class: Cooling
     links: [{target: equipment, ref: E-101}]
     ports:
       - {id: in, direction: in}
       - {id: out, direction: out, delegates: gas}
+      - {id: ff, direction: out, kind: energy}
       - {id: cw, direction: out, kind: energy, delegates: cw}
   # ---------------------------------------------------------------- EO recovery (D-004)
   - id: C201
@@ -305,6 +319,17 @@ steps:
       - {id: rec, direction: in, delegates: rec}
       - {id: out, direction: out}
       - {id: power, direction: in, kind: energy, delegates: power}
+  - id: E401
+    block: GLY
+    title: Glycol reactor feed heater (MP steam)
+    class: ExchangingThermalEnergy
+    # D-008: the mixed feed (about 384 K) is heated to the 423 K reactor inlet with MP steam
+    # (Q23); review 2026-10-28 #2.
+    links: [{target: equipment, ref: E-401}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
   - id: R401
     block: GLY
     title: Glycol reactor (adiabatic tubular, no catalyst)
@@ -331,6 +356,7 @@ steps:
       - {id: vap, direction: out}
       - {id: conc, direction: out}
       - {id: steam, direction: in, kind: energy, delegates: steam1}
+      - {id: steam_mps, direction: in, kind: energy, delegates: steam3}
       - {id: cw, direction: out, kind: energy, delegates: cw1}
   - id: C501
     block: EVP
@@ -370,7 +396,6 @@ steps:
       - {id: in, direction: in, delegates: crude}
       - {id: top, direction: out, delegates: meg}
       - {id: btm, direction: out}
-      - {id: steam_r101, direction: in, kind: energy, delegates: steam0}
       - {id: steam, direction: in, kind: energy, delegates: steam1}
       - {id: power, direction: in, kind: energy, delegates: power}
       - {id: cw, direction: out, kind: energy, delegates: cw1}
@@ -415,8 +440,12 @@ streams:
       pressure: {value: 2200, provenance: assumed, source: D-004}, temperature: {value: 333.15, provenance: assumed, source: D-004},
       flow: {value: 838899.1, basis: mass, provenance: assumed, source: eg_balance.py D-006},
       composition: {basis: mass_fraction, values: {C2H4: 0.352591, O2: 0.083052, CH4: 0.383551, CO2: 0.020293, H2O: 0.001761, AR: 0.146088, C2H6: 0.012664}, provenance: assumed, source: eg_balance.py D-006}}}}
-  - {id: S5, title: "Reactor feed gas", from: M101.out, to: R101.in, template: loop, state: {design: {
+  - {id: S38, title: "Mixed feed gas to the feed/effluent exchanger", from: M101.out, to: E100.in, template: loop, state: {design: {
       pressure: {value: 2200, provenance: assumed, source: D-004}, temperature: {value: 333.15, provenance: assumed, source: D-004},
+      flow: {value: 898711.8, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {C2H4: 0.362243, O2: 0.110178, CH4: 0.358585, CO2: 0.018942, H2O: 0.001644, AR: 0.13657, C2H6: 0.011838}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S5, title: "Reactor feed gas (preheated)", from: E100.out, to: R101.in, template: loop, state: {design: {
+      pressure: {value: 2170, provenance: assumed, source: D-004}, temperature: {value: 483.15, provenance: assumed, source: "D-008: E-101 feed/effluent exchanger outlet, 40 K approach to the 523 K effluent"},
       flow: {value: 898711.8, basis: mass, provenance: assumed, source: eg_balance.py D-006},
       composition: {basis: mass_fraction, values: {C2H4: 0.362243, O2: 0.110178, CH4: 0.358585, CO2: 0.018942, H2O: 0.001644, AR: 0.13657, C2H6: 0.011838}, provenance: assumed, source: eg_balance.py D-006}}}}
   - {id: S6, title: "Reactor outlet gas", from: R101.out, to: E101.in, template: loop, state: {design: {
@@ -488,11 +517,15 @@ streams:
       flow: {value: 11522.9, basis: mass, provenance: assumed, source: eg_balance.py D-006},
       composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: eg_balance.py D-006}}}}
   - {id: S23, title: "Recycle water to the glycol reactor", from: SP501.rec, to: M401.rec, template: aq, state: {design: {
-      pressure: {value: 3000, provenance: assumed, source: D-004}, temperature: {value: 403.15, provenance: assumed, source: D-004},
+      pressure: {value: 3000, provenance: assumed, source: D-004}, temperature: {value: 393.15, provenance: assumed, source: "D-004: equal to S30 (a splitter carries no duty)"},
       flow: {value: 303379.4, basis: mass, provenance: assumed, source: eg_balance.py D-006},
       composition: {basis: mass_fraction, values: {H2O: 0.999, MEG: 0.001}, provenance: assumed, source: eg_balance.py D-006}}}}
-  - {id: S24, title: "Glycol reactor feed", from: M401.out, to: R401.in, template: aq, state: {design: {
-      pressure: {value: 3000, provenance: assumed, source: D-004}, temperature: {value: 423.15, provenance: assumed, source: D-004},
+  - {id: S39, title: "Mixed glycol reactor feed to the feed heater", from: M401.out, to: E401.in, template: aq, state: {design: {
+      pressure: {value: 3000, provenance: assumed, source: D-004}, temperature: {value: 384.43, provenance: assumed, source: "eg_balance.py D-008: adiabatic mixing of S13, S22 and S23 with ASSUMED liquid heat capacities"},
+      flow: {value: 359264.7, basis: mass, provenance: assumed, source: eg_balance.py D-006},
+      composition: {basis: mass_fraction, values: {H2O: 0.890301, EO: 0.108855, MEG: 0.000844}, provenance: assumed, source: eg_balance.py D-006}}}}
+  - {id: S24, title: "Glycol reactor feed (heated)", from: E401.out, to: R401.in, template: aq, state: {design: {
+      pressure: {value: 2950, provenance: assumed, source: D-004}, temperature: {value: 423.15, provenance: assumed, source: D-005},
       flow: {value: 359264.7, basis: mass, provenance: assumed, source: eg_balance.py D-006},
       composition: {basis: mass_fraction, values: {H2O: 0.890301, EO: 0.108855, MEG: 0.000844}, provenance: assumed, source: eg_balance.py D-006}}}}
   - {id: S25, title: "Glycol reactor outlet", from: R401.out, to: EV501.in, template: aq, state: {design: {
@@ -520,7 +553,7 @@ streams:
       flow: {value: 304903.9, basis: mass, provenance: assumed, source: eg_balance.py D-006},
       composition: {basis: mass_fraction, values: {H2O: 0.999, MEG: 0.001}, provenance: assumed, source: eg_balance.py D-006}}}}
   - {id: S31, title: "Water bleed to biological treatment", from: SP501.bleed, to: WW.in, template: aq, state: {design: {
-      pressure: {value: 300, provenance: assumed, source: D-004}, temperature: {value: 313.15, provenance: assumed, source: D-004},
+      pressure: {value: 300, provenance: assumed, source: D-004}, temperature: {value: 393.15, provenance: assumed, source: "D-004: equal to S30 (a splitter carries no duty); cooled outside the plant boundary"},
       flow: {value: 1524.5, basis: mass, provenance: assumed, source: eg_balance.py D-006},
       composition: {basis: mass_fraction, values: {H2O: 0.999, MEG: 0.001}, provenance: assumed, source: eg_balance.py D-006}}}}
   - {id: S32, title: "MEG product", from: C601.top, to: MEG.in, template: aq, state: {design: {
@@ -550,9 +583,9 @@ streams:
   # Energy streams: lumped duties of scripts/eg_balance.py (D-008), ASSUMED
   - {id: Q1, title: "R-101 steam to the EO stripper reboiler", kind: energy, from: R101.st1, to: C202.steam, state: {design: {duty: {value: 36661.8, provenance: assumed, source: "eg_balance.py: C-202 demand, covered by R-101 steam (D-008)"}}}}
   - {id: Q2, title: "R-101 steam to the CO2 regenerator", kind: energy, from: R101.st2, to: C301.steam, state: {design: {duty: {value: 11452.3, provenance: assumed, source: "eg_balance.py: 3.0 GJ/t CO2 ASSUMED (D-008)"}}}}
-  - {id: Q3, title: "R-101 steam to the first evaporator effect", kind: energy, from: R101.st3, to: EV501.steam, state: {design: {duty: {value: 22723.0, provenance: assumed, source: "eg_balance.py: economy 3.2, less the hydration heat (D-008)"}}}}
-  - {id: Q4, title: "R-101 steam to the MEG column reboiler (rest of the raised steam)", kind: energy, from: R101.st4, to: C601.steam_r101, state: {design: {duty: {value: 12628.1, provenance: assumed, source: "eg_balance.py: R-101 heat release 83465 kW less Q1-Q3 (D-008)"}}}}
-  - {id: Q5, title: "MP steam to the MEG column reboiler", kind: energy, from: MPS.c601, to: C601.steam, state: {design: {duty: {value: 12945.4, provenance: assumed, source: "eg_balance.py: reflux 1.2 ASSUMED, less Q4 (D-008)"}}}}
+  - {id: Q3, title: "R-101 steam to the first evaporator effect (rest of the raised steam)", kind: energy, from: R101.st3, to: EV501.steam, state: {design: {duty: {value: 18159.3, provenance: assumed, source: "eg_balance.py: R-101 steam raised 66273 kW (reaction heat 83465 kW less 17192 kW gas heating 483 to 523 K) less Q1 and Q2 (D-008)"}}}}
+  - {id: Q4, title: "MP steam to the first evaporator effect (top-up)", kind: energy, from: MPS.ev501, to: EV501.steam_mps, state: {design: {duty: {value: 4563.7, provenance: assumed, source: "eg_balance.py: evaporator demand 22723 kW (economy 3.2, less the hydration heat) less Q3 (D-008)"}}}}
+  - {id: Q5, title: "MP steam to the MEG column reboiler", kind: energy, from: MPS.c601, to: C601.steam, state: {design: {duty: {value: 25573.6, provenance: assumed, source: "eg_balance.py: reflux 1.2 ASSUMED (D-008)"}}}}
   - {id: Q6, title: "MP steam to the drying column reboiler", kind: energy, from: MPS.c501, to: C501.steam, state: {design: {duty: {value: 7602.5, provenance: assumed, source: "eg_balance.py: reflux 0.3 ASSUMED (D-008)"}}}}
   - {id: Q7, title: "MP steam to the DEG column reboiler", kind: energy, from: MPS.c602, to: C602.steam, state: {design: {duty: {value: 1864.6, provenance: assumed, source: "eg_balance.py: reflux 2.0 ASSUMED (D-008)"}}}}
   - {id: Q8, title: "MP steam to the TEG column reboiler", kind: energy, from: MPS.c603, to: C603.steam, state: {design: {duty: {value: 60.3, provenance: assumed, source: "eg_balance.py: reflux 2.0 ASSUMED (D-008)"}}}}
@@ -560,7 +593,7 @@ streams:
   - {id: Q10, title: "P-202 lean absorbent pump power", kind: energy, from: POWER.p202, to: C202.power, state: {design: {duty: {value: 999.4, provenance: assumed, source: "eg_balance.py: 200 to 2200 kPa(a), efficiency 0.7 (D-008)"}}}}
   - {id: Q11, title: "P-401 glycol reactor feed pump power", kind: energy, from: POWER.p401, to: M401.power, state: {design: {duty: {value: 399.2, provenance: assumed, source: "eg_balance.py: 200 to 3000 kPa(a), efficiency 0.7 (D-008)"}}}}
   - {id: Q12, title: "Auxiliary power (carbonate and column pumps, vacuum pumps, fans; lumped)", kind: energy, from: POWER.aux, to: C601.power, state: {design: {duty: {value: 1000.0, provenance: assumed, source: "20 kWh/t MEG ASSUMED (D-008)"}}}}
-  - {id: Q13, title: "E-101 trim cooler duty", kind: energy, from: E101.cw, to: CW.e101, state: {design: {duty: {value: 25491.8, provenance: assumed, source: "eg_balance.py: effluent 373 to 313 K (D-008)"}}}}
+  - {id: Q13, title: "E-101 trim cooler duty", kind: energy, from: E101.cw, to: CW.e101, state: {design: {duty: {value: 24752.0, provenance: assumed, source: "eg_balance.py: effluent 371 K (after Q24) to 313 K (D-008)"}}}}
   - {id: Q14, title: "Lean absorbent cooler duty", kind: energy, from: C201.cw, to: CW.c201, state: {design: {duty: {value: 36552.6, provenance: assumed, source: "eg_balance.py: 333 to 308 K (D-008)"}}}}
   - {id: Q15, title: "EO stripper condenser duty", kind: energy, from: C202.cw, to: CW.c202, state: {design: {duty: {value: 14730.2, provenance: assumed, source: "eg_balance.py (D-008)"}}}}
   - {id: Q16, title: "K-101 aftercooler duty", kind: energy, from: K101.cw, to: CW.k101, state: {design: {duty: {value: 4363.0, provenance: assumed, source: "eg_balance.py: the compression work (D-008)"}}}}
@@ -570,4 +603,6 @@ streams:
   - {id: Q20, title: "MEG column condenser duty", kind: energy, from: C601.cw, to: CW.c601, state: {design: {duty: {value: 25573.6, provenance: assumed, source: "eg_balance.py (D-008)"}}}}
   - {id: Q21, title: "DEG column condenser duty", kind: energy, from: C602.cw, to: CW.c602, state: {design: {duty: {value: 1864.6, provenance: assumed, source: "eg_balance.py (D-008)"}}}}
   - {id: Q22, title: "TEG column condenser duty", kind: energy, from: C603.cw, to: CW.c603, state: {design: {duty: {value: 60.3, provenance: assumed, source: "eg_balance.py (D-008)"}}}}
+  - {id: Q23, title: "MP steam to the glycol reactor feed heater", kind: energy, from: MPS.e401, to: E401.steam, state: {design: {duty: {value: 15229.8, provenance: assumed, source: "eg_balance.py: S39 384 K to S24 423 K, liquid heat capacities ASSUMED (D-008)"}}}}
+  - {id: Q24, title: "E-101 feed/effluent exchange (reactor effluent heats the reactor feed)", kind: energy, from: E101.ff, to: E100.heat, state: {design: {duty: {value: 64469.3, provenance: assumed, source: "eg_balance.py: feed gas 333 to 483 K, cp 40 kJ/(kmol K) ASSUMED (D-008)"}}}}
 layout: {bfd: {}, pfd: {}}
