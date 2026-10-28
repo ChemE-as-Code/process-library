@@ -1,0 +1,681 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Isobutene by gas-phase MTBE cracking (D-001). Where the values come from:
+# - all temperatures and pressures are design choices (design basis, D-004, D-007), ASSUMED;
+# - the reactor outlet S8 is calculated by cheme (conversion reactor with the D-005
+#   selectivities);
+# - flows and compositions through mixers, splitters, the pump and the exchangers are
+#   calculated by `cheme process propagate --fill`;
+# - the fresh MTBE and make-up water flows, every column and wash outlet and all duties come
+#   from the independent balance scripts/ib_balance.py (D-006), given here as ASSUMED: they
+#   rest on specified component splits (D-007) and shortcut duties, because core cannot yet
+#   qualify the polar, azeotropic MTBE / methanol / water / C4 system (core #315).
+schema: cheme/process/v1
+kind: flowsheet
+title: Isobutene by MTBE cracking (50 kt/a, gas-phase cleavage)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+  enthalpy_reference: {state: ideal_gas, temperature: 298.15}
+cases:
+  - {id: design, description: "Design case: 6.25 t/h isobutene, MTBE conversion 0.90 per pass at 553 K, unconverted MTBE recycled (D-002, D-004, D-005)", default: true}
+tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - {id: MTBEF, title: Fresh MTBE (boundary feed from an MTBE unit or terminal), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: DMW, title: Demineralised make-up water (wash-water loop), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports: [{id: p101, direction: out, kind: energy}, {id: h101, direction: out, kind: energy}]
+  - id: FUEL
+    title: Fired heat from natural gas (superheater and reactor heating)
+    category: utility
+    utility:
+      kind: fired_heat
+      level: natural gas firing
+      supply_temperature: {value: 900, provenance: assumed, source: "D-009: flue gas or hot-oil supply, a concept value"}
+      min_approach: {value: 50, provenance: assumed, source: D-009}
+    ports: [{id: h101, direction: out, kind: energy}, {id: r101, direction: out, kind: energy}]
+  - id: MPS
+    title: MP steam 1500 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: MP
+      pressure: {value: 1500, provenance: assumed, source: "design basis, D-009"}
+      supply_temperature: {value: 471.4, provenance: assumed, source: "saturation at 1500 kPa(a), D-009"}
+      min_approach: {value: 10, provenance: assumed, source: D-009}
+    ports: [{id: c101, direction: out, kind: energy}]
+  - id: LPS
+    title: LP steam 450 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 450, provenance: assumed, source: "design basis, D-009"}
+      supply_temperature: {value: 420.8, provenance: assumed, source: "saturation at 450 kPa(a), D-009"}
+      min_approach: {value: 10, provenance: assumed, source: D-009}
+    ports: [{id: c201, direction: out, kind: energy}, {id: c301, direction: out, kind: energy}, {id: c402, direction: out, kind: energy}, {id: c403, direction: out, kind: energy}]
+products:
+  - {id: IBP, title: High-purity isobutene to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: MEOHP, title: "Recovered methanol (co-product, back to MTBE synthesis or sale)", category: by_product, ports: [{id: in, direction: in}]}
+  - {id: HEAVIES, title: Heavy ends (C8 and MTBE) to the site fuel oil system, category: by_product, ports: [{id: in, direction: in}]}
+  - id: FUELGAS
+    title: DME-rich vents to the site fuel gas header
+    category: off_gas
+    ports: [{id: c402, direction: in}, {id: c403, direction: in}]
+  - {id: WW, title: Wash-water purge to the site wastewater treatment, category: wastewater, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-009"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-009"}
+      min_approach: {value: 5, provenance: assumed, source: D-009}
+    ports:
+      - {id: c101, direction: in, kind: energy}
+      - {id: e102, direction: in, kind: energy}
+      - {id: c201, direction: in, kind: energy}
+      - {id: c403, direction: in, kind: energy}
+      - {id: e403, direction: in, kind: energy}
+      - {id: c301, direction: in, kind: energy}
+      - {id: c402, direction: in, kind: energy}
+      - {id: e401, direction: in, kind: energy}
+      - {id: e301, direction: in, kind: energy}
+
+blocks:
+  - id: RXN
+    title: MTBE purification and cracking
+    class: ReactingChemicals
+    ports:
+      - {id: mtbe, direction: in}
+      - {id: rec, direction: in}
+      - {id: heavies, direction: out}
+      - {id: effluent, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: power2, direction: in, kind: energy}
+      - {id: mps1, direction: in, kind: energy}
+      - {id: fuel1, direction: in, kind: energy}
+      - {id: fuel2, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+  - id: IBPUR
+    title: Isobutene recovery, water wash and drying
+    class: Distilling
+    ports:
+      - {id: feed, direction: in}
+      - {id: water, direction: in}
+      - {id: bottoms, direction: out}
+      - {id: extract, direction: out}
+      - {id: decant, direction: out}
+      - {id: vent, direction: out}
+      - {id: product, direction: out}
+      - {id: lps4, direction: in, kind: energy}
+      - {id: lps3, direction: in, kind: energy}
+      - {id: cw3, direction: out, kind: energy}
+      - {id: cw4, direction: out, kind: energy}
+      - {id: cw5, direction: out, kind: energy}
+  - id: MEOHREC
+    title: Methanol recovery, MTBE recycle and wash-water loop
+    class: Distilling
+    ports:
+      - {id: feed, direction: in}
+      - {id: extract, direction: in}
+      - {id: decant, direction: in}
+      - {id: makeup, direction: in}
+      - {id: rec, direction: out}
+      - {id: wash, direction: out}
+      - {id: vent, direction: out}
+      - {id: purge, direction: out}
+      - {id: methanol, direction: out}
+      - {id: lps1, direction: in, kind: energy}
+      - {id: lps2, direction: in, kind: energy}
+      - {id: cw6, direction: out, kind: energy}
+      - {id: cw7, direction: out, kind: energy}
+      - {id: cw8, direction: out, kind: energy}
+      - {id: cw9, direction: out, kind: energy}
+
+steps:
+  - id: M101
+    block: RXN
+    title: MTBE feed drum (fresh + recycle)
+    class: Mixing
+    links: [{target: equipment, ref: V-101}]
+    ports:
+      - {id: fresh, direction: in, delegates: mtbe}
+      - {id: rec, direction: in, delegates: rec}
+      - {id: out, direction: out}
+  - id: P101
+    block: RXN
+    title: MTBE feed pump (power of all pumps lumped here, D-009)
+    class: GeneratingFlow
+    links: [{target: equipment, ref: P-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # D-007: all C8 to the bottoms with MTBE at 60 wt%; the vapour distillate feeds the reactor.
+  - id: C101
+    block: RXN
+    title: MTBE column (heavy-ends removal, vapour overhead to the reactor)
+    class: Distilling
+    links: [{target: equipment, ref: C-101}]
+    ports:
+      - {id: feed, direction: in}
+      - {id: top, direction: out}
+      - {id: bot, direction: out, delegates: heavies}
+      - {id: reb, direction: in, kind: energy, delegates: mps1}
+      - {id: cond, direction: out, kind: energy, delegates: cw1}
+  - id: E101
+    block: RXN
+    title: Feed / effluent exchanger
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: cold_in, direction: in}
+      - {id: cold_out, direction: out}
+      - {id: hot_in, direction: in}
+      - {id: hot_out, direction: out}
+  - id: H101
+    block: RXN
+    title: Feed superheater (fired / hot oil)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: H-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: fuel, direction: in, kind: energy, delegates: fuel1}
+      - {id: aux, direction: in, kind: energy, delegates: power2}
+  # D-004, D-005: heated multitubular reactor, 553 K outlet; MTBE conversion 0.90 per pass,
+  # per kmol MTBE converted 0.010 kmol DME and 0.001 kmol C8 (isobutene 0.998).
+  - id: R101
+    block: RXN
+    title: MTBE cracking reactor (gas phase, heated tubes)
+    class: ReactingChemicals
+    reactions: [CRACK, DMEF, DIM]
+    reactor: conversion
+    selectivity: {key: MTBE, conversion: 0.90, products: {DME: 0.010, DIB: 0.001}, provenance: assumed, source: "D-005: conversion inside the preferred 85-95 % of US 8,633,345 B2; DME and C8 per kmol MTBE converted ASSUMED, of the order of the patent's Example 2 effluent (Table 11)"}
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: heat, direction: in, kind: energy, delegates: fuel2}
+  - id: E102
+    block: RXN
+    title: Effluent condenser
+    class: Cooling
+    links: [{target: equipment, ref: E-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: effluent}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+  - id: C201
+    block: IBPUR
+    title: Isobutene column (cleavage products split)
+    class: Distilling
+    links: [{target: equipment, ref: C-201}]
+    ports:
+      - {id: feed, direction: in, delegates: feed}
+      - {id: top, direction: out}
+      - {id: bot, direction: out, delegates: bottoms}
+      - {id: reb, direction: in, kind: energy, delegates: lps4}
+      - {id: cond, direction: out, kind: energy, delegates: cw3}
+  - id: C401
+    block: IBPUR
+    title: Methanol extraction with water (wash column)
+    class: SeparatingByContact
+    links: [{target: equipment, ref: C-401}]
+    ports:
+      - {id: feed, direction: in}
+      - {id: water, direction: in, delegates: water}
+      - {id: raf, direction: out}
+      - {id: ext, direction: out, delegates: extract}
+  - id: C403
+    block: IBPUR
+    title: Drying and DME column (isobutene product bottoms)
+    class: Distilling
+    links: [{target: equipment, ref: C-403}]
+    ports:
+      - {id: feed, direction: in}
+      - {id: top, direction: out, delegates: vent}
+      - {id: water, direction: out, delegates: decant}
+      - {id: bot, direction: out}
+      - {id: reb, direction: in, kind: energy, delegates: lps3}
+      - {id: cond, direction: out, kind: energy, delegates: cw4}
+  - id: E403
+    block: IBPUR
+    title: Isobutene product cooler
+    class: Cooling
+    links: [{target: equipment, ref: E-403}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: product}
+      - {id: cw, direction: out, kind: energy, delegates: cw5}
+  - id: C301
+    block: MEOHREC
+    title: Methanol column (MTBE / methanol azeotrope overhead to recycle)
+    class: Distilling
+    links: [{target: equipment, ref: C-301}]
+    ports:
+      - {id: feed, direction: in, delegates: feed}
+      - {id: top, direction: out, delegates: rec}
+      - {id: bot, direction: out}
+      - {id: reb, direction: in, kind: energy, delegates: lps1}
+      - {id: cond, direction: out, kind: energy, delegates: cw6}
+  - id: C402
+    block: MEOHREC
+    title: Methanol / water column (extract regeneration)
+    class: Distilling
+    links: [{target: equipment, ref: C-402}]
+    ports:
+      - {id: feed, direction: in, delegates: extract}
+      - {id: top, direction: out}
+      - {id: vent, direction: out, delegates: vent}
+      - {id: bot, direction: out}
+      - {id: reb, direction: in, kind: energy, delegates: lps2}
+      - {id: cond, direction: out, kind: energy, delegates: cw7}
+  # D-007: 5 % of the regenerated water purged to keep the loop free of build-up.
+  - id: SPL401
+    block: MEOHREC
+    title: Wash-water purge
+    class: SplittingMaterial
+    split: {purge: 0.05}
+    ports:
+      - {id: in, direction: in}
+      - {id: purge, direction: out, delegates: purge}
+      - {id: rec, direction: out}
+  - id: E401
+    block: MEOHREC
+    title: Wash-water cooler
+    class: Cooling
+    links: [{target: equipment, ref: E-401}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw8}
+  - id: M401
+    block: MEOHREC
+    title: Wash-water tank (recycle, decanted water, make-up)
+    class: Mixing
+    links: [{target: equipment, ref: T-401}]
+    ports:
+      - {id: rec, direction: in}
+      - {id: dec, direction: in, delegates: decant}
+      - {id: mu, direction: in, delegates: makeup}
+      - {id: out, direction: out, delegates: wash}
+  - id: M301
+    block: MEOHREC
+    title: Methanol product junction
+    class: Mixing
+    ports:
+      - {id: c301, direction: in}
+      - {id: c402, direction: in}
+      - {id: out, direction: out}
+  - id: E301
+    block: MEOHREC
+    title: Methanol product cooler
+    class: Cooling
+    links: [{target: equipment, ref: E-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: methanol}
+      - {id: cw, direction: out, kind: energy, delegates: cw9}
+
+streams:
+  - id: S1
+    title: Fresh MTBE
+    from: MTBEF.out
+    to: M101.fresh
+    template: mixture
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "design basis, D-003"}
+        temperature: {value: 303.15, provenance: assumed, source: "design basis, D-003"}
+        flow: {value: 9915.8919, basis: mass, provenance: assumed, source: "scripts/ib_balance.py: the fresh MTBE that gives 6250 kg/h isobutene product (D-002, D-006)"}
+        composition: {basis: mole_fraction, values: {MTBE: 1.0}, provenance: assumed, source: "design basis, D-003: pure MTBE (technical-grade impurities not modelled)"}
+  - id: S2
+    title: MTBE column feed
+    from: M101.out
+    to: P101.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-004}
+        temperature: {value: 308.15, provenance: assumed, source: "D-004: fresh MTBE and recycle mixed"}
+        flow: {value: 11222.4, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S13', fingerprint: bb00a896ce17fba0}
+        composition: {basis: mole_fraction, values: {MTBE: 0.953851, IB: 0.00171399, MEOH: 0.0435784, DME: 0.0, H2O: 0.0, DIB: 0.000856993}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S13', fingerprint: f1cea7b1e08be5e0}
+  - id: S3
+    title: Pumped MTBE column feed
+    from: P101.out
+    to: C101.feed
+    template: mixture
+    state:
+      design:
+        pressure: {value: 1100, provenance: assumed, source: D-004}
+        temperature: {value: 308.15, provenance: assumed, source: D-004}
+        flow: {value: 11222.4, provenance: calculated, source: 'cheme process propagate: pass-through P101 from S2', fingerprint: 866be2a50bc0e114}
+        composition: {basis: mole_fraction, values: {MTBE: 0.953851, IB: 0.00171399, MEOH: 0.0435784, DME: 0.0, H2O: 0.0, DIB: 0.000856993}, provenance: calculated, source: 'cheme process propagate: pass-through P101 from S2', fingerprint: 866be2a50bc0e114}
+  - id: S4
+    title: MTBE column overhead vapour (reactor feed)
+    from: C101.top
+    to: E101.cold_in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 1000, provenance: assumed, source: D-004}
+        temperature: {value: 420.2, provenance: assumed, source: "scripts/ib_balance.py: ideal bubble point at 1000 kPa(a) (D-006)"}
+        flow: {value: 11190.9561, basis: mass, provenance: assumed, source: "scripts/ib_balance.py, C-101 split (D-006, D-007)"}
+        composition: {basis: mole_fraction, values: {MTBE: 0.954594396, IB: 0.00171827, MEOH: 0.043687334}, provenance: assumed, source: "scripts/ib_balance.py, C-101 split (D-007)"}
+  - id: S5
+    title: Heavy ends (MTBE column bottoms)
+    from: C101.bot
+    to: HEAVIES.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 1010, provenance: assumed, source: D-004}
+        temperature: {value: 435.9, provenance: assumed, source: "scripts/ib_balance.py: ideal bubble point (D-006)"}
+        flow: {value: 31.4930, basis: mass, provenance: assumed, source: "scripts/ib_balance.py: all C8 with MTBE at 60 wt% (D-007)"}
+        composition: {basis: mole_fraction, values: {MTBE: 0.6562935, DIB: 0.3437065}, provenance: assumed, source: "scripts/ib_balance.py (D-007)"}
+  - id: S6
+    title: Preheated reactor feed
+    from: E101.cold_out
+    to: H101.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 950, provenance: assumed, source: D-004}
+        temperature: {value: 523.15, provenance: assumed, source: "D-004: 30 K approach to the reactor outlet"}
+        flow: {value: 11190.9561, basis: mass, provenance: assumed, source: "scripts/ib_balance.py (D-006): S4 through the cold side of E-101"}
+        composition: {basis: mole_fraction, values: {MTBE: 0.954594396, IB: 0.00171827, MEOH: 0.043687334}, provenance: assumed, source: "scripts/ib_balance.py (D-006); must equal S4"}
+  - id: S7
+    title: Reactor feed
+    from: H101.out
+    to: R101.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 900, provenance: assumed, source: D-004}
+        temperature: {value: 553.15, provenance: assumed, source: D-004}
+        flow: {value: 11190.9561, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through H101 from S6', fingerprint: cee4b414594e940c}
+        composition: {basis: mole_fraction, values: {MTBE: 0.954594396, IB: 0.00171827, MEOH: 0.043687334}, provenance: calculated, source: 'cheme process propagate: pass-through H101 from S6', fingerprint: cee4b414594e940c}
+  - id: S8
+    title: Reactor effluent
+    from: R101.out
+    to: E101.hot_in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 750, provenance: assumed, source: D-004}
+        temperature: {value: 553.15, provenance: assumed, source: "D-004: heated reactor, outlet held at the inlet temperature"}
+        flow: {value: 11191.0, provenance: calculated, source: 'cheme process propagate: reactor R101 from S7', fingerprint: 281c100c95cee1a9}
+        composition: {basis: mole_fraction, values: {MTBE: 0.0513699, IB: 0.462329, MEOH: 0.476592, DME: 0.00462329, H2O: 0.00462329, DIB: 0.000462329}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S7', fingerprint: e2ee12811e47defa}
+  - id: S9
+    title: Effluent after feed / effluent exchanger
+    from: E101.hot_out
+    to: E102.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 720, provenance: assumed, source: D-004}
+        temperature: {value: 450.0, provenance: assumed, source: "scripts/ib_balance.py, E-101 energy balance on ideal-gas enthalpies (D-006)"}
+        flow: {value: 11190.9547, basis: mass, provenance: assumed, source: "scripts/ib_balance.py (D-006): S8 through the hot side of E-101"}
+        composition: {basis: mole_fraction, values: {MTBE: 0.051369898, IB: 0.462329083, MEOH: 0.476592108, DME: 0.004623291, H2O: 0.004623291, DIB: 0.000462329}, provenance: assumed, source: "scripts/ib_balance.py (D-006); must equal cheme's S8"}
+  - id: S10
+    title: Condensed effluent to the isobutene column
+    from: E102.out
+    to: C201.feed
+    template: mixture
+    state:
+      design:
+        pressure: {value: 700, provenance: assumed, source: D-004}
+        temperature: {value: 313.15, provenance: assumed, source: D-004}
+        flow: {value: 11190.9547, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S9', fingerprint: 1fbce16064a8c1a3}
+        composition: {basis: mole_fraction, values: {MTBE: 0.051369898, IB: 0.462329083, MEOH: 0.476592108, DME: 0.004623291, H2O: 0.004623291, DIB: 0.000462329}, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S9', fingerprint: 1fbce16064a8c1a3}
+  - id: S11
+    title: Crude isobutene (C-201 distillate)
+    from: C201.top
+    to: C401.feed
+    template: mixture
+    state:
+      design:
+        pressure: {value: 900, provenance: assumed, source: D-004}
+        temperature: {value: 313.15, provenance: assumed, source: "D-007: subcooled distillate to the wash"}
+        flow: {value: 6507.6954, basis: mass, provenance: assumed, source: "scripts/ib_balance.py, C-201 split (D-007)"}
+        composition: {basis: mole_fraction, values: {MTBE: 0.000105185, IB: 0.944772594, MEOH: 0.042815564, DME: 0.009466659, H2O: 0.002839998}, provenance: assumed, source: "scripts/ib_balance.py, C-201 split: 2.5 wt% methanol overhead (D-007)"}
+  - id: S12
+    title: C-201 bottoms (methanol, MTBE)
+    from: C201.bot
+    to: C301.feed
+    template: mixture
+    state:
+      design:
+        pressure: {value: 660, provenance: assumed, source: D-004}
+        temperature: {value: 394.0, provenance: assumed, source: "scripts/ib_balance.py: ideal bubble point (D-006)"}
+        flow: {value: 4683.2594, basis: mass, provenance: assumed, source: "scripts/ib_balance.py, C-201 split (D-007)"}
+        composition: {basis: mole_fraction, values: {MTBE: 0.100305196, IB: 0.001807301, MEOH: 0.8906583, H2O: 0.006325553, DIB: 0.00090365}, provenance: assumed, source: "scripts/ib_balance.py, C-201 split (D-007)"}
+  - id: S13
+    title: MTBE / methanol recycle
+    from: C301.top
+    to: M101.rec
+    template: mixture
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-004}
+        temperature: {value: 328.8, provenance: assumed, source: "scripts/ib_balance.py: ideal bubble point at 100 kPa(a) (D-006)"}
+        flow: {value: 1306.5572, basis: mass, provenance: assumed, source: "scripts/ib_balance.py, C-301 split (D-007)"}
+        composition: {basis: mole_fraction, values: {MTBE: 0.673337873, IB: 0.012132214, MEOH: 0.308463806, DIB: 0.006066107}, provenance: assumed, source: "scripts/ib_balance.py, C-301 split: 14 wt% methanol, near the MTBE / methanol azeotrope (D-007)"}
+  - id: S14
+    title: Methanol (C-301 bottoms)
+    from: C301.bot
+    to: M301.c301
+    template: mixture
+    state:
+      design:
+        pressure: {value: 500, provenance: assumed, source: D-004}
+        temperature: {value: 337.4, provenance: assumed, source: "scripts/ib_balance.py: ideal bubble point (D-006)"}
+        flow: {value: 3376.7022, basis: mass, provenance: assumed, source: "scripts/ib_balance.py, C-301 split (D-007)"}
+        composition: {basis: mole_fraction, values: {MEOH: 0.992567205, H2O: 0.007432795}, provenance: assumed, source: "scripts/ib_balance.py, C-301 split (D-007)"}
+  - id: S15
+    title: Washed isobutene (raffinate)
+    from: C401.raf
+    to: C403.feed
+    template: mixture
+    state:
+      design:
+        pressure: {value: 880, provenance: assumed, source: D-004}
+        temperature: {value: 313.15, provenance: assumed, source: D-007}
+        flow: {value: 6326.6879, basis: mass, provenance: assumed, source: "scripts/ib_balance.py, C-401 split (D-007)"}
+        composition: {basis: mole_fraction, values: {MTBE: 0.000110301, IB: 0.990413505, MEOH: 4.4898e-05, DME: 0.006948946, H2O: 0.00248235}, provenance: assumed, source: "scripts/ib_balance.py: 99.9 % methanol and 30 % DME extracted, raffinate water-saturated (0.08 wt%) (D-007)"}
+  - id: S16
+    title: Methanol / water extract
+    from: C401.ext
+    to: C402.feed
+    template: mixture
+    state:
+      design:
+        pressure: {value: 880, provenance: assumed, source: D-004}
+        temperature: {value: 313.15, provenance: assumed, source: D-007}
+        flow: {value: 1157.2544, basis: mass, provenance: assumed, source: "scripts/ib_balance.py, C-401 split (D-007)"}
+        composition: {basis: mole_fraction, values: {IB: 0.000582972, MEOH: 0.085029452, DME: 0.005642514, H2O: 0.908745061}, provenance: assumed, source: "scripts/ib_balance.py, C-401 split (D-007)"}
+  - id: S17
+    title: Recovered methanol (C-402 distillate)
+    from: C402.top
+    to: M301.c402
+    template: mixture
+    state:
+      design:
+        pressure: {value: 500, provenance: assumed, source: D-004}
+        temperature: {value: 348.3, provenance: assumed, source: "scripts/ib_balance.py: ideal bubble point at 150 kPa(a) (D-006)"}
+        flow: {value: 164.1673, basis: mass, provenance: assumed, source: "scripts/ib_balance.py, C-402 split: 99 wt% methanol (D-007)"}
+        composition: {basis: mole_fraction, values: {MEOH: 0.982342458, H2O: 0.017657542}, provenance: assumed, source: "scripts/ib_balance.py, C-402 split (D-007)"}
+  - id: S18
+    title: C-402 vent (dissolved isobutene and DME)
+    from: C402.vent
+    to: FUELGAS.c402
+    template: mixture
+    state:
+      design:
+        pressure: {value: 150, provenance: assumed, source: D-004}
+        temperature: {value: 313.15, provenance: assumed, source: D-004}
+        flow: {value: 17.4677, basis: mass, provenance: assumed, source: "scripts/ib_balance.py, C-402 split (D-007)"}
+        composition: {basis: mole_fraction, values: {IB: 0.093642843, DME: 0.906357157}, provenance: assumed, source: "scripts/ib_balance.py, C-402 split (D-007)"}
+  - id: S19
+    title: Regenerated water (C-402 bottoms)
+    from: C402.bot
+    to: SPL401.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-004}
+        temperature: {value: 384.5, provenance: assumed, source: "scripts/ib_balance.py: ideal bubble point (D-006)"}
+        flow: {value: 975.6194, basis: mass, provenance: assumed, source: "scripts/ib_balance.py, C-402 split: 100 ppm(w) methanol (D-007)"}
+        composition: {basis: mole_fraction, values: {MEOH: 5.622e-05, H2O: 0.99994378}, provenance: assumed, source: "scripts/ib_balance.py, C-402 split (D-007)"}
+  - id: S20
+    title: Wash-water purge
+    from: SPL401.purge
+    to: WW.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-004}
+        temperature: {value: 384.5, provenance: assumed, source: D-004}
+        flow: {value: 48.781, basis: mass, provenance: calculated, source: 'cheme process propagate: splitter SPL401 from S19', fingerprint: aa7757e262dde3c1}
+        composition: {basis: mole_fraction, values: {MEOH: 5.622e-05, H2O: 0.99994378}, provenance: calculated, source: 'cheme process propagate: splitter SPL401 from S19', fingerprint: 40f6d8e05a1f682c}
+  - id: S21
+    title: Recycled wash water
+    from: SPL401.rec
+    to: E401.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-004}
+        temperature: {value: 384.5, provenance: assumed, source: D-004}
+        flow: {value: 926.838, provenance: calculated, source: 'cheme process propagate: splitter SPL401 from S19 S20', fingerprint: ddd6cadd3a66ded1}
+        composition: {basis: mole_fraction, values: {MEOH: 5.622e-05, H2O: 0.99994378}, provenance: calculated, source: 'cheme process propagate: splitter SPL401 from S19', fingerprint: 40f6d8e05a1f682c}
+  - id: S22
+    title: Cooled recycled wash water
+    from: E401.out
+    to: M401.rec
+    template: mixture
+    state:
+      design:
+        pressure: {value: 280, provenance: assumed, source: D-004}
+        temperature: {value: 313.15, provenance: assumed, source: D-007}
+        flow: {value: 926.838, provenance: calculated, source: 'cheme process propagate: pass-through E401 from S21', fingerprint: c428c201686ae943}
+        composition: {basis: mole_fraction, values: {MEOH: 5.622e-05, H2O: 0.99994378}, provenance: calculated, source: 'cheme process propagate: pass-through E401 from S21', fingerprint: c428c201686ae943}
+  - id: S23
+    title: Demineralised make-up water
+    from: DMW.out
+    to: M401.mu
+    template: mixture
+    state:
+      design:
+        pressure: {value: 500, provenance: assumed, source: "design basis, D-003"}
+        temperature: {value: 298.15, provenance: assumed, source: "design basis, D-003"}
+        flow: {value: 44.4018, basis: mass, provenance: assumed, source: "scripts/ib_balance.py: the water that holds the wash at 0.15 kg per kg crude isobutene (D-007)"}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: "design basis, D-003"}
+  - id: S24
+    title: Decanted water (C-403 reflux drum)
+    from: C403.water
+    to: M401.dec
+    template: mixture
+    state:
+      design:
+        pressure: {value: 900, provenance: assumed, source: D-004}
+        temperature: {value: 323.0, provenance: assumed, source: D-004}
+        flow: {value: 5.0067, basis: mass, provenance: assumed, source: "scripts/ib_balance.py: 99 % of the raffinate water decanted (D-007)"}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: "scripts/ib_balance.py (D-007)"}
+  - id: S25
+    title: Wash water to C-401
+    from: M401.out
+    to: C401.water
+    template: mixture
+    state:
+      design:
+        pressure: {value: 900, provenance: assumed, source: D-004}
+        temperature: {value: 313.15, provenance: assumed, source: D-007}
+        flow: {value: 976.246, provenance: calculated, source: 'cheme process propagate: mixer M401 from S22 S23 S24', fingerprint: fd0d8b3d036910b3}
+        composition: {basis: mole_fraction, values: {MTBE: 0.0, IB: 0.0, MEOH: 5.33745e-05, DME: 0.0, H2O: 0.999947, DIB: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M401 from S22 S23 S24', fingerprint: 84a9eb752c76548a}
+  - id: S26
+    title: C-403 vapour distillate (DME with isobutene)
+    from: C403.top
+    to: FUELGAS.c403
+    template: mixture
+    state:
+      design:
+        pressure: {value: 900, provenance: assumed, source: D-004}
+        temperature: {value: 323.0, provenance: assumed, source: "scripts/ib_balance.py: ideal bubble point at 900 kPa(a) (D-006)"}
+        flow: {value: 71.6812, basis: mass, provenance: assumed, source: "scripts/ib_balance.py: 99 % of the DME with an equal mass of isobutene (D-007)"}
+        composition: {basis: mole_fraction, values: {IB: 0.450877914, DME: 0.549122086}, provenance: assumed, source: "scripts/ib_balance.py (D-007)"}
+  - id: S27
+    title: Dry isobutene (C-403 bottoms)
+    from: C403.bot
+    to: E403.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 920, provenance: assumed, source: D-004}
+        temperature: {value: 339.2, provenance: assumed, source: "scripts/ib_balance.py: ideal bubble point (D-006)"}
+        flow: {value: 6250.0, basis: mass, provenance: assumed, source: "scripts/ib_balance.py: the product rate (D-002)"}
+        composition: {basis: mole_fraction, values: {MTBE: 0.000111979, IB: 0.999746692, MEOH: 4.5581e-05, DME: 7.0547e-05, H2O: 2.5201e-05}, provenance: assumed, source: "scripts/ib_balance.py (D-007): 99.97 wt% isobutene"}
+  - id: S28
+    title: Isobutene product
+    from: E403.out
+    to: IBP.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 1500, provenance: assumed, source: "design basis, D-002"}
+        temperature: {value: 313.15, provenance: assumed, source: "design basis, D-002"}
+        flow: {value: 6250.0, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E403 from S27', fingerprint: 631db0c38bdb808f}
+        composition: {basis: mole_fraction, values: {MTBE: 0.000111979, IB: 0.999746692, MEOH: 4.5581e-05, DME: 7.0547e-05, H2O: 2.5201e-05}, provenance: calculated, source: 'cheme process propagate: pass-through E403 from S27', fingerprint: 631db0c38bdb808f}
+  - id: S29
+    title: Methanol product (hot)
+    from: M301.out
+    to: E301.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 500, provenance: assumed, source: D-004}
+        temperature: {value: 338.9, provenance: assumed, source: "D-004: adiabatic mixing of S14 and S17, approximate"}
+        flow: {value: 3540.87, provenance: calculated, source: 'cheme process propagate: mixer M301 from S14 S17', fingerprint: 0e903f874608bba7}
+        composition: {basis: mole_fraction, values: {MTBE: 0.0, IB: 0.0, MEOH: 0.992091, DME: 0.0, H2O: 0.00790889, DIB: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M301 from S14 S17', fingerprint: d30b9e8f38aa4d8c}
+  - id: S30
+    title: Methanol co-product
+    from: E301.out
+    to: MEOHP.in
+    template: mixture
+    state:
+      design:
+        pressure: {value: 480, provenance: assumed, source: "design basis, D-002"}
+        temperature: {value: 313.15, provenance: assumed, source: "design basis, D-002"}
+        flow: {value: 3540.87, provenance: calculated, source: 'cheme process propagate: pass-through E301 from S29', fingerprint: 4707e82b242aff79}
+        composition: {basis: mole_fraction, values: {MTBE: 0.0, IB: 0.0, MEOH: 0.992091, DME: 0.0, H2O: 0.00790889, DIB: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E301 from S29', fingerprint: 4707e82b242aff79}
+  # energy streams (kW): duties from scripts/ib_balance.py (D-006, D-009); shortcut estimates
+  - {id: Q1, title: "Pump power (P-101 to P-404, lumped)", kind: energy, from: POWER.p101, to: P101.power, state: {design: {duty: {value: 15.8, provenance: assumed, source: "scripts/ib_balance.py: V dP / 0.6 for nine pumps (D-009)"}}}}
+  - {id: Q2, title: C-101 reboiler duty, kind: energy, from: MPS.c101, to: C101.reb, state: {design: {duty: {value: 2013.1, provenance: assumed, source: "scripts/ib_balance.py, R 0.5 (D-006, D-007)"}}}}
+  - {id: Q3, title: C-101 partial condenser duty, kind: energy, from: C101.cond, to: CW.c101, state: {design: {duty: {value: 376.1, provenance: assumed, source: "scripts/ib_balance.py, R 0.5 (D-006, D-007)"}}}}
+  - {id: Q4, title: H-101 absorbed duty (superheat 523 to 553 K), kind: energy, from: FUEL.h101, to: H101.fuel, state: {design: {duty: {value: 222.2, provenance: assumed, source: "scripts/ib_balance.py, ideal-gas enthalpies (D-006)"}}}}
+  - {id: Q5, title: R-101 heat of reaction supplied (553 K), kind: energy, from: FUEL.r101, to: R101.heat, state: {design: {duty: {value: 1970.1, provenance: assumed, source: "scripts/ib_balance.py, ideal-gas enthalpies of S7 and S8 at 553.15 K (D-006)"}}}}
+  - {id: Q6, title: E-102 effluent condenser duty, kind: energy, from: E102.cw, to: CW.e102, state: {design: {duty: {value: 2767.9, provenance: assumed, source: "scripts/ib_balance.py: ideal gas 450 to 313 K plus condensation (D-006)"}}}}
+  - {id: Q7, title: C-201 reboiler duty, kind: energy, from: LPS.c201, to: C201.reb, state: {design: {duty: {value: 1422.5, provenance: assumed, source: "scripts/ib_balance.py, R 0.7 (US 8,633,345 B2 Example 2; D-006)"}}}}
+  - {id: Q8, title: C-201 condenser duty, kind: energy, from: C201.cond, to: CW.c201, state: {design: {duty: {value: 1062.3, provenance: assumed, source: "scripts/ib_balance.py, R 0.7 (D-006)"}}}}
+  - {id: Q9, title: C-403 reboiler duty, kind: energy, from: LPS.c403, to: C403.reb, state: {design: {duty: {value: 383.4, provenance: assumed, source: "scripts/ib_balance.py, R 30 (D-006, D-007)"}}}}
+  - {id: Q10, title: C-403 condenser duty, kind: energy, from: C403.cond, to: CW.c403, state: {design: {duty: {value: 260.6, provenance: assumed, source: "scripts/ib_balance.py, R 30 (D-006, D-007)"}}}}
+  - {id: Q11, title: E-403 product cooler duty, kind: energy, from: E403.cw, to: CW.e403, state: {design: {duty: {value: 115.3, provenance: assumed, source: "scripts/ib_balance.py, 339 to 313 K (D-006)"}}}}
+  - {id: Q12, title: C-301 reboiler duty, kind: energy, from: LPS.c301, to: C301.reb, state: {design: {duty: {value: 232.4, provenance: assumed, source: "scripts/ib_balance.py, R 1.9 (US 8,633,345 B2 Example 2; D-006), hot feed from C-201"}}}}
+  - {id: Q13, title: C-301 condenser duty, kind: energy, from: C301.cond, to: CW.c301, state: {design: {duty: {value: 454.5, provenance: assumed, source: "scripts/ib_balance.py, R 1.9 (D-006)"}}}}
+  - {id: Q14, title: C-402 reboiler duty, kind: energy, from: LPS.c402, to: C402.reb, state: {design: {duty: {value: 209.8, provenance: assumed, source: "scripts/ib_balance.py, R 1.5 (D-006, D-007)"}}}}
+  - {id: Q15, title: C-402 condenser duty, kind: energy, from: C402.cond, to: CW.c402, state: {design: {duty: {value: 124.5, provenance: assumed, source: "scripts/ib_balance.py, R 1.5 (D-006)"}}}}
+  - {id: Q16, title: E-401 wash-water cooler duty, kind: energy, from: E401.cw, to: CW.e401, state: {design: {duty: {value: 77.0, provenance: assumed, source: "scripts/ib_balance.py, 384.5 to 313 K (D-006)"}}}}
+  - {id: Q17, title: E-301 methanol cooler duty, kind: energy, from: E301.cw, to: CW.e301, state: {design: {duty: {value: 62.1, provenance: assumed, source: "scripts/ib_balance.py, C-301 bottoms 337 to 313 K (D-006)"}}}}
+  - {id: Q18, title: "H-101 combustion-air fan and hot-oil circulation power", kind: energy, from: POWER.h101, to: H101.aux, state: {design: {duty: {value: 30.0, provenance: assumed, source: "order of magnitude, not sized (D-009); was an LCA cut-off, moved into the inventory after review 2026-10-28-pfd-lci-review#3"}}}}
+layout: {bfd: {}, pfd: {}}

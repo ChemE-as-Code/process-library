@@ -1,0 +1,31 @@
+# Line list. Schema: `cheme schema lines`.
+# Concept stage: the main process lines of the PFD (stream id in the notes), no P&ID yet.
+# DN: first-pass size from velocity (D-010, ASSUMED): vapour 20 m/s (ideal gas), liquid 1.5 m/s
+# (thermo pure-component liquid volumes), inside diameter taken as the DN, DN25 the smallest
+# (scripts/ib_balance.py, "line sizes"). Small internal lines (S3, S20-S22, S24, S28, S29) and
+# column internals (reflux, reboiler circuits) are added with the P&IDs. Pressure classes come
+# with the pipe specs.
+schema: cheme/lines/v1
+lines:
+  - {number: MT-101, from: B/L, to: V-101, nominal_diameter: DN65, fluid: MTBE, notes: "S1 fresh MTBE, 13.5 m3/h"}
+  - {number: MT-102, from: V-101, to: C-101, nominal_diameter: DN65, fluid: MTBE, notes: "S2/S3 via P-101, 15.4 m3/h"}
+  - {number: PG-103, from: C-101, to: E-101, nominal_diameter: DN100, fluid: MTBE vapour, notes: "S4 column overhead, 420 K, 1000 kPa(a)"}
+  - {number: HO-104, from: C-101, to: B/L, nominal_diameter: DN25, fluid: Heavy ends, notes: "S5 C8 and MTBE to site fuel oil"}
+  - {number: PG-105, from: E-101, to: H-101, nominal_diameter: DN125, fluid: Reactor feed, notes: "S6, 523 K"}
+  - {number: PG-106, from: H-101, to: R-101, nominal_diameter: DN125, fluid: Reactor feed, notes: "S7, 553 K"}
+  - {number: PG-107, from: R-101, to: E-101, nominal_diameter: DN200, fluid: Reactor effluent, notes: "S8, 553 K, 750 kPa(a)"}
+  - {number: PG-108, from: E-101, to: E-102, nominal_diameter: DN150, fluid: Reactor effluent, notes: "S9, 450 K"}
+  - {number: PL-109, from: E-102, to: C-201, nominal_diameter: DN65, fluid: Condensed effluent, notes: "S10, 313 K"}
+  - {number: IB-110, from: C-201, to: C-401, nominal_diameter: DN65, fluid: Crude isobutene, notes: "S11 distillate"}
+  - {number: PL-111, from: C-201, to: C-301, nominal_diameter: DN50, fluid: Methanol / MTBE, notes: "S12 bottoms"}
+  - {number: PL-112, from: C-301, to: V-101, nominal_diameter: DN25, fluid: MTBE / methanol recycle, notes: "S13"}
+  - {number: ME-113, from: C-301, to: E-301, nominal_diameter: DN40, fluid: Methanol, notes: "S14 bottoms (joined by S17)"}
+  - {number: IB-114, from: C-401, to: C-403, nominal_diameter: DN65, fluid: Washed isobutene, notes: "S15 raffinate"}
+  - {number: PL-115, from: C-401, to: C-402, nominal_diameter: DN25, fluid: Methanol / water extract, notes: "S16"}
+  - {number: ME-116, from: C-402, to: ME-113, nominal_diameter: DN25, fluid: Methanol, notes: "S17 recovered methanol"}
+  - {number: FG-117, from: C-402, to: B/L, nominal_diameter: DN25, fluid: Fuel gas, notes: "S18 vent (DME, isobutene)"}
+  - {number: WA-118, from: C-402, to: T-401, nominal_diameter: DN25, fluid: Water, notes: "S19 regenerated water via E-401 (S21, S22); purge S20 to B/L"}
+  - {number: WA-119, from: T-401, to: C-401, nominal_diameter: DN25, fluid: Wash water, notes: "S25 via P-401"}
+  - {number: FG-120, from: C-403, to: B/L, nominal_diameter: DN25, fluid: Fuel gas, notes: "S26 vapour distillate (DME, isobutene)"}
+  - {number: IB-121, from: C-403, to: B/L, nominal_diameter: DN65, fluid: Isobutene, notes: "S27/S28 product via E-403 and P-404"}
+  - {number: ME-122, from: E-301, to: B/L, nominal_diameter: DN40, fluid: Methanol, notes: "S30 methanol co-product"}
