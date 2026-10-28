@@ -1,3 +1,28 @@
 # Equipment list. Schema: `cheme schema equipment`.
-schema: cheme/equipment/v1
-equipment: []
+# Concept stage: the items the PFD (process/flowsheet.yaml) needs, no P&ID yet (no sheet).
+# Duties and flows from scripts/kmno4_balance.py (D-004 to D-009), all ASSUMED; trains,
+# spares, sizes, design conditions and materials come at basic engineering.
+equipment:
+  # ---- ore oxidation (block OXD)
+  - {tag: R-201, type: Furnace, service: "Roaster (indirectly fired rotary kiln: ore in KOH melt, oxidised with air)",
+     notes: "0.98 t/h ore + 1.33 t/h 50 wt% KOH concentrate + 1.15 t/h KOH make-up + 1.10 t/h air at ~523 K; 2.35 t/h oxidised cake (72 wt% K2MnO4); ~1.24 MW fired heat delivered (D-004, D-009). Liquid-phase oxidiser or atomiser-plate reactor (US 5011672) are alternatives (D-001). Nickel-alloy or nickel-lined for hot KOH (D-004). ASSUMED."}
+  # ---- leaching and residue separation (block LCH)
+  - {tag: M-301, type: Tank, service: "Leach and lime treatment tanks (agitated, steam-heated)",
+     notes: "2.35 t/h cake + 23.3 t/h mother liquor + 1.64 t/h process water + 40 kg/h lime -> 27.4 t/h slurry at 333 K; ~0.68 MW LP steam (D-005, D-009). ASSUMED."}
+  - {tag: F-301, type: Filter, service: Residue filter with displacement wash (condensate),
+     notes: "27.4 t/h slurry; 0.49 t/h washed residue at 0.6 kg liquid/kg solids, 90 % solute recovery with 3.78 t/h condensate (D-005). ASSUMED."}
+  # ---- electrolysis (block ELY)
+  - {tag: T-401, type: CustomEquipment, service: Transformer-rectifiers,
+     notes: "682 kW AC -> 662 kW DC (60 cells x 4.41 kA x 2.5 V), efficiency 0.97 (D-006, D-009). ASSUMED."}
+  - {tag: EL-401, type: CustomEquipment, service: "Manganate cells (divided, cation-exchange membrane; nickel/Monel anodes, steel cathodes)",
+     notes: "60 cells in series, 4.41 m2 each at 1000 A/m2, 333 K; 30.6 t/h liquor, K2MnO4 6.0 -> 0.6 wt%; H2 10 kg/h and O2 12 kg/h vented; 0.21 MW cell heat to cooling water (process/cells.yaml, D-006). Cell count and electrode area are a balance basis, not a design. ASSUMED."}
+  # ---- crystallisation and drying (block CRY)
+  - {tag: X-501, type: Vessel, service: Cooling crystalliser (KMnO4),
+     notes: "30.6 t/h cell liquor 333 -> 303 K, 1.24 t/h KMnO4 crystallised; ~0.96 MW to cooling water (D-007, D-009). ASSUMED."}
+  - {tag: C-501, type: Centrifuge, service: Crystal centrifuge,
+     notes: "1.31 t/h wet crystals at 6 wt% liquid; 29.3 t/h mother liquor. The auxiliary power of the plant (Q11, 150 kWh/t) is booked here (D-009). ASSUMED."}
+  - {tag: D-501, type: HeatedSurfaceDryer, service: Steam-heated product dryer,
+     notes: "1.31 t/h wet crystals -> 1.25 t/h product at 0.2 wt% moisture; ~72 kW LP steam; product temperature kept well below the KMnO4 decomposition range (D-007). ASSUMED."}
+  # ---- KOH recovery (block KRC)
+  - {tag: E-601, type: HeatExchanger, service: Double-effect KOH evaporator,
+     notes: "5.11 t/h mother liquor (13 wt% KOH) -> 1.33 t/h concentrate at 50 wt% KOH; 3.78 t/h condensate to the residue wash; ~1.40 MW LP steam, economy 1.8 (D-008, D-009). Nickel tubes for the concentrated KOH. ASSUMED."}

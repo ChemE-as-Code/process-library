@@ -1,8 +1,52 @@
 # What the plant must do. Schema: `cheme schema design_basis`.
-schema: cheme/design_basis/v1
-capacity: {}
-feeds: []
-products: []
-utilities: []
-site: {}
-assumptions: []
+# Potassium permanganate from MnO2 ore, issue ChemE-as-Code/process-library#146.
+# Values marked ASSUMED are engineering choices of this concept study, not owner, licensor or
+# vendor data; every decision is in DESIGN.md. The case is a per-unit-product normalisation for
+# the inventory, not a claim about a commercial plant (issue #146 scope notes).
+capacity:
+  basis: dried technical-grade KMnO4 crystals at the dryer outlet (before screening, packing and storage)
+  product_t_per_d: 30.0                 # = 1250 kg/h x 24 h
+  product_kg_per_h: 1250.0              # ASSUMED (D-002): 10 000 t/a normalisation basis, not an owner figure
+  operating_hours_per_year: 8000        # ASSUMED (D-002)
+  turndown_percent: null                # not set at this stage
+feeds:
+  - name: Manganese ore (pyrolusite concentrate), dried and ground
+    source_of_values: ASSUMED (D-003), no ore assay
+    composition_wt_percent: {MnO2: 78.0, Fe2O3: 8.0, SiO2_and_other_gangue: 12.0, moisture: 2.0}   # US 5011672: ores of 70-80 % MnO2 usable, 80 % in its sizing example
+    size: "ground to about 98 % < 80 um (US 5011672 Claim 12); grinding outside the balance (aux power)"
+  - name: Potassium hydroxide make-up
+    source_of_values: ASSUMED (D-008)
+    composition_wt_percent: {KOH: 50.0, H2O: 50.0}   # ASSUMED commercial liquid grade; made by KCl electrolysis (no library process yet)
+  - name: Hydrated lime (silicate removal)
+    composition_wt_percent: {CaOH2: 100.0}           # ASSUMED pure
+  - name: Air (roaster oxidant)
+    composition_wt_percent: {O2: 23.2, N2_and_Ar: 76.8}   # dry air
+  - name: Process water
+    quality: not specified (ASSUMED demineralised; potassium salts of the product grade)
+products:
+  - name: Potassium permanganate, technical grade
+    purity: "KMnO4 98.9 wt%, KOH 0.8 wt%, moisture 0.2 wt% (result of the balance, D-007); the target is >= 98.5 wt% KMnO4 (ASSUMED technical grade)"
+    delivery: {temperature_K: 353.15, battery_limit: dryer outlet}
+  - name: Washed leach residue (unreacted MnO2, gangue, calcium silicate)
+    use: "to landfill or manganese recovery (outside the boundary, D-005)"
+  - name: Mother-liquor purge (alkaline, Mn-bearing)
+    use: "to effluent treatment: Mn(VI/VII) reduction and precipitation, neutralisation (outside the boundary, D-008)"
+  - name: Cathode hydrogen
+    use: "vented to atmosphere after dilution at this stage (ASSUMED; recovery as fuel is an option, D-006)"
+utilities:
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: ASSUMED (D-009)}
+  - {name: LP steam, pressure_kPa_a: 450, saturation_K: 420.8, use: "KOH evaporator, leach heating, dryer (condensate returned)", note: ASSUMED level (D-009)}
+  - {name: Fired heat (natural gas), use: "indirect firing of the roaster", note: ASSUMED (D-004, D-009)}
+  - {name: Electric power, use: "DC to the cells through transformer-rectifiers; drives (mills, blowers, pumps, agitators, centrifuges)", note: ASSUMED}
+site:
+  location: ASSUMED generic site, not chosen
+  atmospheric_pressure_kPa: 101.325     # ASSUMED
+  design_ambient_K: 298.15              # ASSUMED
+assumptions:
+  - "ASSUMED MnO2 conversion to K2MnO4 0.90 in the roaster at 523 K, KOH/MnO2 2.5 mol/mol (US 5011672 optimum), air O2 2.0 x stoichiometric, 25 % of the gangue silica dissolved (D-004)."
+  - "ASSUMED leach at 333 K with recycled mother liquor; lime 1.10 x the dissolved silicate; residue cake 0.6 kg liquid/kg solids, displacement wash recovering 90 % of the solutes (D-005)."
+  - "ASSUMED cell feed 6.0 wt% K2MnO4; 90 % conversion per pass; current efficiency 0.85; 2.5 V per cell; 1000 A/m2; 333 K (D-006)."
+  - "Mother liquor 1.5 wt% KMnO4 and 13 wt% KOH at 303 K, inside the likely ranges of US 5660712 (15-20 g/l KMnO4, 125-175 g/l KOH); centrifuge cake 6 wt% liquid; product 0.2 wt% moisture (D-007)."
+  - "ASSUMED mother liquor split: 3 % purge; the evaporator share set by the roaster KOH demand, concentrate 50 wt% KOH (D-008)."
+  - "ASSUMED duties from a lumped enthalpy balance (scripts/kmno4_balance.py): constant heat capacities, roaster losses 15 %, double-effect evaporator economy 1.8, dryer efficiency 0.65, rectifier efficiency 0.97, auxiliary power 150 kWh/t (D-009)."
+  - "No electrolyte thermodynamics: liquors are carried as neutral molecules; no property package covers the streams (D-010)."

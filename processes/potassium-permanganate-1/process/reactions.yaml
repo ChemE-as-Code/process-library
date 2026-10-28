@@ -1,0 +1,49 @@
+# Reactions of potassium-permanganate-1 (DESIGN.md D-001, D-004 to D-006). Schema: `cheme schema
+# process-reactions`. Overall: 2 MnO2 + 2 KOH + O2 -> 2 KMnO4 + H2.
+# Conversions are design specifications (a conversion model), not kinetics; none is predicted.
+# Heats of reaction at 298 K from standard enthalpies of formation of the NBS tables of chemical
+# thermodynamic properties (Wagman et al. 1982, J. Phys. Chem. Ref. Data 11 Suppl. 2): solids
+# for the roaster, aqueous ions at infinite dilution for the cell. The values were recalled for
+# this concept stage and are to be checked against the table (D-009), so ASSUMED.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: OX
+    title: Oxidation of MnO2 to potassium manganate in KOH with air (roaster)
+    equation: 2 MnO2(s) + 4 KOH + O2 -> 2 K2MnO4 + 2 H2O(g)
+    stoichiometry: {MnO2: -2, KOH: -4, O2: -1, K2MnO4: 2, H2O: 2}
+    phase: mixed
+    conversion: {key: MnO2, value: 0.90, provenance: assumed, source: "D-004: ASSUMED below the > 95 % US 5011672 reports for its atomiser-plate reactor (Description); roasting with air at about 225 degC and KOH melts of 65-90 wt% are the routes US 5660712 names (Background)"}
+    heat_of_reaction: {value: -112740, provenance: assumed, source: "formation enthalpies K2MnO4(s) -1184.1, H2O(g) -241.8, MnO2(s) -520.0, KOH(s) -424.8 kJ/mol (NBS tables, D-009)"}
+  - id: REDKM
+    title: Reversion of recycled permanganate to manganate in the hot KOH melt
+    equation: 4 KMnO4 + 4 KOH -> 4 K2MnO4 + O2 + 2 H2O(g)
+    stoichiometry: {KMnO4: -4, KOH: -4, K2MnO4: 4, O2: 1, H2O: 2}
+    phase: mixed
+    conversion: {key: KMnO4, value: 1.0, provenance: assumed, source: "D-004: permanganate is not stable in concentrated hot alkali; the KMnO4 of the recycled concentrate is taken as fully reduced to manganate"}
+    heat_of_reaction: {value: -172200, provenance: assumed, source: "formation enthalpies K2MnO4(s) -1184.1, H2O(g) -241.8, KMnO4(s) -837.2, KOH(s) -424.8 kJ/mol (NBS tables, D-009)"}
+  - id: SIL
+    title: Attack of silica gangue by KOH (alkali loss)
+    equation: SiO2(s) + 2 KOH -> K2SiO3 + H2O(g)
+    stoichiometry: {SiO2: -1, KOH: -2, K2SiO3: 1, H2O: 1}
+    phase: mixed
+    conversion: {key: SiO2, value: 0.25, provenance: assumed, source: "D-004: fraction of the gangue silica dissolved by the melt, ASSUMED"}
+  - id: LIME
+    title: Silicate removal with lime (causticising the silicate back to KOH)
+    equation: K2SiO3 + Ca(OH)2(s) -> CaSiO3(s) + 2 KOH
+    stoichiometry: {K2SiO3: -1, CaOH2: -1, CaSiO3: 1, KOH: 2}
+    phase: mixed
+    conversion: {key: K2SiO3, value: 1.0, provenance: assumed, source: "D-005: lime precipitates silicates and aluminates from the manganate solution before electrolysis (US 5011672, Description, background of the process); complete removal with 10 % excess lime ASSUMED"}
+  - id: ELEC
+    title: Anodic oxidation of manganate to permanganate (overall cell reaction)
+    equation: 2 K2MnO4 + 2 H2O -> 2 KMnO4 + 2 KOH + H2
+    stoichiometry: {K2MnO4: -2, H2O: -2, KMnO4: 2, KOH: 2, H2: 1}
+    phase: liquid
+    conversion: {key: K2MnO4, value: 0.90, provenance: assumed, source: "D-006: conversion per pass through the cell train, ASSUMED"}
+    heat_of_reaction: {value: 334880, provenance: assumed, source: "formation enthalpies (aq, infinite dilution) K+ -252.38, MnO4- -541.4, MnO4-2 -653, OH- -229.99, H2O(l) -285.83 kJ/mol (NBS tables, D-009)"}
+  - id: WATER_SPLIT
+    title: Anodic oxygen evolution (current-efficiency loss; net water electrolysis)
+    equation: 2 H2O -> 2 H2 + O2
+    stoichiometry: {H2O: -2, H2: 2, O2: 1}
+    phase: liquid
+    heat_of_reaction: {value: 571660, provenance: given, source: "CODATA Key Values (Cox et al. 1989): -2 x (-285.830) kJ/mol, H2O liquid"}

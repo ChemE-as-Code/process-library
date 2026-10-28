@@ -1,24 +1,530 @@
 # The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
 # never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
-# Units are explicit: a property without its own unit is in these. Pressure is absolute; a gauge
-# value needs its own unit (kPa(g)). Nm3/h needs normal_conditions.
+#
+# Potassium permanganate from MnO2 ore by KOH roasting and electrolytic oxidation, 1250 kg/h
+# technical-grade KMnO4 (D-001, D-002). Where the values come from:
+# - every flow and composition is from the independent sequential balance
+#   scripts/kmno4_balance.py (D-004 to D-008), given here as ASSUMED: it rests on ASSUMED design
+#   parameters (conversions, current efficiency, mother-liquor composition, cake liquids,
+#   purge) and a neutral-molecule basis for the liquors, because core cannot speciate
+#   KOH-manganate electrolytes (core #364) and its crystalliser refuses several solutes (D-007);
+# - reactor steps name their reactions (process/reactions.yaml), so cheme checks their balance
+#   by elements; the cells are checked by `cheme process cell` (process/cells.yaml);
+# - duties are from the same script (D-009), ASSUMED; no property package covers these streams.
 schema: cheme/process/v1
 kind: flowsheet
-title: ""
+title: Potassium permanganate from MnO2 ore by KOH roasting and electrolytic oxidation (1250 kg/h)
 units:
   pressure: kPa(a)
   temperature: K
   flow: kg/h
   duty: kW
   enthalpy: kJ/kmol
-  # normal_conditions: {temperature: 273.15, pressure: 101.325, basis: ideal_gas}
-  # enthalpy_reference: {state: ideal_gas, temperature: 298.15}
 cases:
-  - {id: design, description: Design case, default: true}
-tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
-feeds: []      # external feeds (DEXPI Source): {id, title, ports: [{id: out, direction: out}]}
-products: []   # products (DEXPI Sink): {id, title, ports: [{id: in, direction: in}]}
-blocks: []     # BFD blocks: {id, title, class, ports: [{id, direction, kind}], links}
-steps: []      # PFD steps: {id, block, title, class, ports: [{id, direction, delegates}], links}
-streams: []    # {id, title, kind, from: NODE.port, to: NODE.port, template, state: {design: {...}}}
+  - id: design
+    description: "Design case: 1250 kg/h technical-grade KMnO4 (10 000 t/a at 8000 h/a, D-002)"
+    default: true
+    capacity: 1250 kg/h KMnO4 product
+    provenance: assumed
+    source: "D-002: a normalisation basis for the inventory, not a commercial plant claim"
+tolerance: {abs: 0.5, rel: 0.002}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - {id: ORE, title: Manganese ore (MnO2 concentrate) dried and ground, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: KOH, title: Potassium hydroxide make-up (50 wt% solution), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: AIR, title: Roaster air, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: LIME, title: Hydrated lime, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: PW, title: Process water, category: raw_material, ports: [{id: out, direction: out}]}
+  - id: FUEL
+    title: Fired heat (natural gas, indirect firing of the roaster)
+    category: utility
+    utility:
+      kind: fired_heat
+      level: natural gas firing
+      supply_temperature: {value: 1100, provenance: assumed, source: "D-009: flue gas in the roaster firing jacket, a concept value"}
+      min_approach: {value: 50, provenance: assumed, source: D-009}
+    ports: [{id: r201, direction: out, kind: energy}]
+  - id: LPS
+    title: LP steam 450 kPa(a) (condensate returned)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 450, provenance: assumed, source: "design basis, D-009"}
+      supply_temperature: {value: 420.8, provenance: assumed, source: "saturation at 450 kPa(a), D-009"}
+      min_approach: {value: 10, provenance: assumed, source: D-009}
+    ports:
+      - {id: m301, direction: out, kind: energy}
+      - {id: e601, direction: out, kind: energy}
+      - {id: d501, direction: out, kind: energy}
+  - id: POWER
+    title: Electric power (AC, grid)
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: rect, direction: out, kind: energy}
+      - {id: aux, direction: out, kind: energy}
+products:
+  - {id: KMNO4, title: Potassium permanganate (technical grade) to packing, category: product, ports: [{id: in, direction: in}]}
+  - {id: RESIDUE, title: Washed leach residue to disposal, category: solid_waste, ports: [{id: in, direction: in}]}
+  - {id: PURGE, title: Mother-liquor purge to effluent treatment, category: wastewater, ports: [{id: in, direction: in}]}
+  - {id: OFFGAS, title: Roaster off-gas to atmosphere (after the dust scrubber), category: off_gas, ports: [{id: in, direction: in}]}
+  - {id: H2V, title: Cathode hydrogen to atmosphere (diluted vent), category: off_gas, ports: [{id: in, direction: in}]}
+  - {id: O2V, title: Anode oxygen to atmosphere, category: off_gas, ports: [{id: in, direction: in}]}
+  - {id: DRYV, title: Dryer exhaust vapour to atmosphere, category: off_gas, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-009"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-009"}
+      min_approach: {value: 5, provenance: assumed, source: D-009}
+    ports:
+      - {id: t401, direction: in, kind: energy}
+      - {id: el401, direction: in, kind: energy}
+      - {id: x501, direction: in, kind: energy}
+      - {id: e601, direction: in, kind: energy}
+
+blocks:
+  - id: OXD
+    title: Ore oxidation (KOH roasting with air)
+    class: ReactingChemicals
+    ports:
+      - {id: ore, direction: in}
+      - {id: koh, direction: in}
+      - {id: air, direction: in}
+      - {id: conc, direction: in}
+      - {id: cake, direction: out}
+      - {id: gas, direction: out}
+      - {id: heat, direction: in, kind: energy}
+  - id: LCH
+    title: Leaching, silicate removal and residue filtration
+    class: ReactingChemicals
+    ports:
+      - {id: cake, direction: in}
+      - {id: lime, direction: in}
+      - {id: ml, direction: in}
+      - {id: water, direction: in}
+      - {id: wash, direction: in}
+      - {id: residue, direction: out}
+      - {id: liquor, direction: out}
+      - {id: steam, direction: in, kind: energy}
+  - id: ELY
+    title: Electrolytic oxidation (rectifiers and cells)
+    class: ReactingChemicals
+    ports:
+      - {id: feed, direction: in}
+      - {id: liquor, direction: out}
+      - {id: h2, direction: out}
+      - {id: o2, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+  - id: CRY
+    title: Crystallisation, centrifuging and drying
+    class: Crystallizing
+    ports:
+      - {id: in, direction: in}
+      - {id: prod, direction: out}
+      - {id: vap, direction: out}
+      - {id: ml, direction: out}
+      - {id: cw, direction: out, kind: energy}
+      - {id: steam, direction: in, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: KRC
+    title: Mother-liquor split, KOH evaporation and purge
+    class: Evaporating
+    ports:
+      - {id: ml, direction: in}
+      - {id: leach, direction: out}
+      - {id: purge, direction: out}
+      - {id: conc, direction: out}
+      - {id: cond, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+
+steps:
+  # D-004: KOH roasting of the ore with air; recycled KMnO4 reverts to manganate in the melt
+  - id: R201
+    block: OXD
+    title: Roaster (indirectly fired rotary kiln, KOH melt with air)
+    class: ReactingChemicals
+    reactions: [REDKM, OX, SIL]
+    links: [{target: equipment, ref: R-201}]
+    ports:
+      - {id: ore, direction: in, delegates: ore}
+      - {id: koh, direction: in, delegates: koh}
+      - {id: air, direction: in, delegates: air}
+      - {id: conc, direction: in, delegates: conc}
+      - {id: cake, direction: out, delegates: cake}
+      - {id: gas, direction: out, delegates: gas}
+      - {id: heat, direction: in, kind: energy, delegates: heat}
+  # D-005: leach with recycled mother liquor, silicate removal with lime
+  - id: M301
+    block: LCH
+    title: Leach and lime treatment tanks (steam-heated)
+    class: ReactingChemicals
+    reactions: [LIME]
+    links: [{target: equipment, ref: M-301}]
+    ports:
+      - {id: cake, direction: in, delegates: cake}
+      - {id: lime, direction: in, delegates: lime}
+      - {id: ml, direction: in, delegates: ml}
+      - {id: water, direction: in, delegates: water}
+      - {id: out, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+  - id: F301
+    block: LCH
+    title: Residue filter with condensate wash
+    class: Filtering
+    links: [{target: equipment, ref: F-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: wash, direction: in, delegates: wash}
+      - {id: residue, direction: out, delegates: residue}
+      - {id: filtrate, direction: out, delegates: liquor}
+  # D-006: rectifiers and divided cells (process/cells.yaml)
+  - id: T401
+    block: ELY
+    title: Transformer-rectifiers
+    class: ProcessStep
+    links: [{target: equipment, ref: T-401}]
+    ports:
+      - {id: ac, direction: in, kind: energy, delegates: power}
+      - {id: dc, direction: out, kind: energy}
+      - {id: loss, direction: out, kind: energy, delegates: cw1}
+  - id: EL401
+    block: ELY
+    title: Manganate cells (cation-exchange membrane, 60 in series)
+    class: ReactingChemicals
+    reactions: [ELEC, WATER_SPLIT]
+    links: [{target: equipment, ref: EL-401}]
+    ports:
+      - {id: feed, direction: in, delegates: feed}
+      - {id: dc, direction: in, kind: energy}
+      - {id: liquor, direction: out, delegates: liquor}
+      - {id: h2, direction: out, delegates: h2}
+      - {id: o2, direction: out, delegates: o2}
+      - {id: heat, direction: out, kind: energy, delegates: cw2}
+  # D-007: cooling crystallisation, centrifuge, steam dryer
+  - id: X501
+    block: CRY
+    title: Cooling crystalliser (KMnO4)
+    class: Crystallizing
+    links: [{target: equipment, ref: X-501}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  - id: C501
+    block: CRY
+    title: Crystal centrifuge
+    class: SeparatingMechanically
+    links: [{target: equipment, ref: C-501}]
+    ports:
+      - {id: in, direction: in}
+      - {id: cake, direction: out}
+      - {id: ml, direction: out, delegates: ml}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: D501
+    block: CRY
+    title: Steam-heated product dryer
+    class: Drying
+    links: [{target: equipment, ref: D-501}]
+    ports:
+      - {id: in, direction: in}
+      - {id: prod, direction: out, delegates: prod}
+      - {id: vap, direction: out, delegates: vap}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+  # D-008: mother-liquor split and KOH evaporator
+  - id: S601
+    block: KRC
+    title: Mother-liquor splitter
+    class: SplittingMaterial
+    ports:
+      - {id: in, direction: in, delegates: ml}
+      - {id: leach, direction: out, delegates: leach}
+      - {id: evap, direction: out}
+      - {id: purge, direction: out, delegates: purge}
+  - id: E601
+    block: KRC
+    title: Double-effect KOH evaporator
+    class: Evaporating
+    links: [{target: equipment, ref: E-601}]
+    ports:
+      - {id: in, direction: in}
+      - {id: conc, direction: out, delegates: conc}
+      - {id: cond, direction: out, delegates: cond}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+
+# Generated from scripts/kmno4_balance.py output (build/streams.yaml); ASSUMED values, see the
+# header. Pressures and temperatures are concept values (D-009).
+streams:
+  - id: S1
+    title: Manganese ore, dried and ground
+    from: ORE.out
+    to: R201.ore
+    template: kmno4
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-009"}
+        temperature: {value: 298.15, provenance: assumed, source: "D-009"}
+        flow: {value: 984.24, basis: mass, provenance: assumed, source: "scripts/kmno4_balance.py (D-003)"}
+        composition: {basis: mass_fraction, values: {MnO2: 0.78, Fe2O3: 0.08, SiO2: 0.12, H2O: 0.02}, provenance: assumed, source: "D-003"}
+  - id: S2
+    title: KOH make-up (50 wt% solution)
+    from: KOH.out
+    to: R201.koh
+    template: kmno4
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "D-009"}
+        temperature: {value: 298.15, provenance: assumed, source: "D-009"}
+        flow: {value: 1149.6, basis: mass, provenance: assumed, source: "scripts/kmno4_balance.py: K balance closure, the K leaving with product, residue and purge (D-008)"}
+        composition: {basis: mass_fraction, values: {KOH: 0.5, H2O: 0.5}, provenance: assumed, source: "design basis"}
+  - id: S3
+    title: Roaster air
+    from: AIR.out
+    to: R201.air
+    template: kmno4
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-009"}
+        temperature: {value: 298.15, provenance: assumed, source: "D-009"}
+        flow: {value: 1096.16, basis: mass, provenance: assumed, source: "scripts/kmno4_balance.py: 2.0 x the O2 of the oxidation (D-004)"}
+        composition: {basis: mass_fraction, values: {O2: 0.232, N2: 0.768}, provenance: assumed, source: "dry air, argon counted as N2"}
+  - id: S4
+    title: Concentrated KOH liquor to the roaster
+    from: E601.conc
+    to: R201.conc
+    template: kmno4
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-009"}
+        temperature: {value: 413.15, provenance: assumed, source: "D-009"}
+        flow: {value: 1327.64, basis: mass, provenance: assumed, source: "scripts/kmno4_balance.py: 50 wt% KOH (D-008)"}
+        composition: {basis: mass_fraction, values: {KOH: 0.5, K2MnO4: 0.024064, KMnO4: 0.057692, H2O: 0.418244}, provenance: assumed, source: "scripts/kmno4_balance.py"}
+  - id: S5
+    title: Oxidised roaster cake (K2MnO4 melt)
+    from: R201.cake
+    to: M301.cake
+    template: kmno4
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-009"}
+        temperature: {value: 523.15, provenance: assumed, source: "D-004"}
+        flow: {value: 2349.07, basis: mass, provenance: assumed, source: "scripts/kmno4_balance.py: X(MnO2) 0.90, 3 wt% water (D-004)"}
+        composition: {basis: mass_fraction, values: {MnO2: 0.032682, Fe2O3: 0.033519, SiO2: 0.037709, KOH: 0.112588, K2MnO4: 0.721227, K2SiO3: 0.032275, H2O: 0.03}, provenance: assumed, source: "scripts/kmno4_balance.py"}
+  - id: S6
+    title: Roaster off-gas to the scrubber stack
+    from: R201.gas
+    to: OFFGAS.in
+    template: kmno4
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-009"}
+        temperature: {value: 523.15, provenance: assumed, source: "D-004"}
+        flow: {value: 2208.57, basis: mass, provenance: assumed, source: "scripts/kmno4_balance.py (D-004)"}
+        composition: {basis: mass_fraction, values: {O2: 0.059329, N2: 0.381175, H2O: 0.559496}, provenance: assumed, source: "scripts/kmno4_balance.py"}
+  - id: S7
+    title: Hydrated lime
+    from: LIME.out
+    to: M301.lime
+    template: kmno4
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-009"}
+        temperature: {value: 298.15, provenance: assumed, source: "D-009"}
+        flow: {value: 40.05, basis: mass, provenance: assumed, source: "scripts/kmno4_balance.py: 1.10 x K2SiO3 (D-005)"}
+        composition: {basis: mass_fraction, values: {CaOH2: 1.0}, provenance: assumed, source: "design basis"}
+  - id: S8
+    title: Mother liquor to the leach
+    from: S601.leach
+    to: M301.ml
+    template: kmno4
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "D-009"}
+        temperature: {value: 303.15, provenance: assumed, source: "D-009"}
+        flow: {value: 23326.73, basis: mass, provenance: assumed, source: "scripts/kmno4_balance.py: 79.6 % of the mother liquor (D-008)"}
+        composition: {basis: mass_fraction, values: {KOH: 0.13, K2MnO4: 0.006257, KMnO4: 0.015, H2O: 0.848743}, provenance: assumed, source: "scripts/kmno4_balance.py"}
+  - id: S9
+    title: Process water to the leach
+    from: PW.out
+    to: M301.water
+    template: kmno4
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "D-009"}
+        temperature: {value: 298.15, provenance: assumed, source: "D-009"}
+        flow: {value: 1641.84, basis: mass, provenance: assumed, source: "scripts/kmno4_balance.py: sets 6.0 wt% K2MnO4 in the cell feed (D-006)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: "design basis"}
+  - id: S10
+    title: Leach slurry
+    from: M301.out
+    to: F301.in
+    template: kmno4
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "D-009"}
+        temperature: {value: 333.15, provenance: assumed, source: "D-005"}
+        flow: {value: 27357.7, basis: mass, provenance: assumed, source: "scripts/kmno4_balance.py (D-005)"}
+        composition: {basis: mass_fraction, values: {MnO2: 0.002806, Fe2O3: 0.002878, SiO2: 0.003238, KOH: 0.122528, K2MnO4: 0.067263, KMnO4: 0.01279, H2O: 0.786277, CaOH2: 0.000133, CaSiO3: 0.002087}, provenance: assumed, source: "scripts/kmno4_balance.py"}
+  - id: S11
+    title: Evaporator condensate as residue wash
+    from: E601.cond
+    to: F301.wash
+    template: kmno4
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "D-009"}
+        temperature: {value: 318.15, provenance: assumed, source: "D-009"}
+        flow: {value: 3778.67, basis: mass, provenance: assumed, source: "scripts/kmno4_balance.py: water evaporated in E-601 (D-005, D-008)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: "scripts/kmno4_balance.py"}
+  - id: S12
+    title: Washed leach residue to disposal
+    from: F301.residue
+    to: RESIDUE.in
+    template: kmno4
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-009"}
+        temperature: {value: 333.15, provenance: assumed, source: "D-009"}
+        flow: {value: 487.71, basis: mass, provenance: assumed, source: "scripts/kmno4_balance.py: 0.6 kg liquid/kg solids, 90 % solute recovery (D-005)"}
+        composition: {basis: mass_fraction, values: {MnO2: 0.157411, Fe2O3: 0.161447, SiO2: 0.181628, CaSiO3: 0.117047, CaOH2: 0.007466, KOH: 0.004647, K2MnO4: 0.002551, KMnO4: 0.000485, H2O: 0.367318}, provenance: assumed, source: "scripts/kmno4_balance.py"}
+  - id: S13
+    title: Clarified manganate liquor (cell feed)
+    from: F301.filtrate
+    to: EL401.feed
+    template: kmno4
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "D-009"}
+        temperature: {value: 333.15, provenance: assumed, source: "D-006"}
+        flow: {value: 30648.66, basis: mass, provenance: assumed, source: "scripts/kmno4_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {KOH: 0.109298, K2MnO4: 0.06, KMnO4: 0.011409, H2O: 0.819293}, provenance: assumed, source: "scripts/kmno4_balance.py"}
+  - id: S14
+    title: Cell liquor with KMnO4
+    from: EL401.liquor
+    to: X501.in
+    template: kmno4
+    state:
+      design:
+        pressure: {value: 200, provenance: assumed, source: "D-009"}
+        temperature: {value: 333.15, provenance: assumed, source: "D-006"}
+        flow: {value: 30626.85, basis: mass, provenance: assumed, source: "scripts/kmno4_balance.py: X(K2MnO4) 0.90 per pass (D-006)"}
+        composition: {basis: mass_fraction, values: {KOH: 0.124755, K2MnO4: 0.006004, KMnO4: 0.054738, H2O: 0.814503}, provenance: assumed, source: "scripts/kmno4_balance.py"}
+  - id: S15
+    title: Cathode hydrogen to vent
+    from: EL401.h2
+    to: H2V.in
+    template: kmno4
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-009"}
+        temperature: {value: 333.15, provenance: assumed, source: "D-006"}
+        flow: {value: 9.96, basis: mass, provenance: assumed, source: "scripts/kmno4_balance.py: ELEC and WATER_SPLIT extents, dry basis (D-006)"}
+        composition: {basis: mass_fraction, values: {H2: 1.0}, provenance: assumed, source: "scripts/kmno4_balance.py"}
+  - id: S16
+    title: Anode oxygen to vent
+    from: EL401.o2
+    to: O2V.in
+    template: kmno4
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-009"}
+        temperature: {value: 333.15, provenance: assumed, source: "D-006"}
+        flow: {value: 11.85, basis: mass, provenance: assumed, source: "scripts/kmno4_balance.py: WATER_SPLIT extent, dry basis (D-006)"}
+        composition: {basis: mass_fraction, values: {O2: 1.0}, provenance: assumed, source: "scripts/kmno4_balance.py"}
+  - id: S17
+    title: Crystalliser slurry (KMnO4 crystals in mother liquor)
+    from: X501.out
+    to: C501.in
+    template: kmno4
+    state:
+      design:
+        pressure: {value: 200, provenance: assumed, source: "D-009"}
+        temperature: {value: 303.15, provenance: assumed, source: "D-007"}
+        flow: {value: 30626.85, basis: mass, provenance: assumed, source: "scripts/kmno4_balance.py (D-007)"}
+        composition: {basis: mass_fraction, values: {KOH: 0.124755, K2MnO4: 0.006004, KMnO4: 0.054738, H2O: 0.814503}, provenance: assumed, source: "scripts/kmno4_balance.py"}
+  - id: S18
+    title: Wet KMnO4 crystals
+    from: C501.cake
+    to: D501.in
+    template: kmno4
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-009"}
+        temperature: {value: 303.15, provenance: assumed, source: "D-007"}
+        flow: {value: 1314.44, basis: mass, provenance: assumed, source: "scripts/kmno4_balance.py: 6 wt% liquid (D-007)"}
+        composition: {basis: mass_fraction, values: {KOH: 0.0078, K2MnO4: 0.000375, KMnO4: 0.9409, H2O: 0.050925}, provenance: assumed, source: "scripts/kmno4_balance.py"}
+  - id: S19
+    title: Mother liquor
+    from: C501.ml
+    to: S601.in
+    template: kmno4
+    state:
+      design:
+        pressure: {value: 200, provenance: assumed, source: "D-009"}
+        temperature: {value: 303.15, provenance: assumed, source: "D-007"}
+        flow: {value: 29312.41, basis: mass, provenance: assumed, source: "scripts/kmno4_balance.py: 1.5 wt% KMnO4, 13 wt% KOH (D-007)"}
+        composition: {basis: mass_fraction, values: {KOH: 0.13, K2MnO4: 0.006257, KMnO4: 0.015, H2O: 0.848743}, provenance: assumed, source: "scripts/kmno4_balance.py"}
+  - id: S20
+    title: Potassium permanganate product
+    from: D501.prod
+    to: KMNO4.in
+    template: kmno4
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-009"}
+        temperature: {value: 353.15, provenance: assumed, source: "D-007"}
+        flow: {value: 1250.0, basis: mass, provenance: assumed, source: "design basis 1250 kg/h (D-002)"}
+        composition: {basis: mass_fraction, values: {KOH: 0.008202, K2MnO4: 0.000395, KMnO4: 0.989403, H2O: 0.002}, provenance: assumed, source: "scripts/kmno4_balance.py (D-007)"}
+  - id: S21
+    title: Dryer exhaust vapour
+    from: D501.vap
+    to: DRYV.in
+    template: kmno4
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-009"}
+        temperature: {value: 383.15, provenance: assumed, source: "D-007"}
+        flow: {value: 64.44, basis: mass, provenance: assumed, source: "scripts/kmno4_balance.py (D-007)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: "scripts/kmno4_balance.py"}
+  - id: S22
+    title: Mother liquor to the KOH evaporator
+    from: S601.evap
+    to: E601.in
+    template: kmno4
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "D-009"}
+        temperature: {value: 303.15, provenance: assumed, source: "D-009"}
+        flow: {value: 5106.31, basis: mass, provenance: assumed, source: "scripts/kmno4_balance.py: 17.4 % of the mother liquor, the roaster's KOH/MnO2 2.5 (D-008)"}
+        composition: {basis: mass_fraction, values: {KOH: 0.13, K2MnO4: 0.006257, KMnO4: 0.015, H2O: 0.848743}, provenance: assumed, source: "scripts/kmno4_balance.py"}
+  - id: S23
+    title: Mother-liquor purge to effluent treatment
+    from: S601.purge
+    to: PURGE.in
+    template: kmno4
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "D-009"}
+        temperature: {value: 303.15, provenance: assumed, source: "D-009"}
+        flow: {value: 879.37, basis: mass, provenance: assumed, source: "scripts/kmno4_balance.py: 3 % of the mother liquor (D-008)"}
+        composition: {basis: mass_fraction, values: {KOH: 0.13, K2MnO4: 0.006257, KMnO4: 0.015, H2O: 0.848743}, provenance: assumed, source: "scripts/kmno4_balance.py"}
+  # Energy streams (duties from scripts/kmno4_balance.py, D-009; ASSUMED)
+  - {id: Q1, title: R-201 roaster firing (heat delivered), kind: energy, from: FUEL.r201, to: R201.heat, state: {design: {duty: {value: 1238.7, provenance: assumed, source: "scripts/kmno4_balance.py: evaporation, sensible heat to 523 K less reaction heat, 15 % losses (D-009)"}}}}
+  - {id: Q2, title: Rectifier AC supply, kind: energy, from: POWER.rect, to: T401.ac, state: {design: {duty: {value: 682.3, provenance: assumed, source: "scripts/kmno4_balance.py: DC / 0.97 (D-009)"}}}}
+  - {id: Q3, title: DC power to the cells, kind: energy, from: T401.dc, to: EL401.dc, state: {design: {duty: {value: 661.8, provenance: assumed, source: "scripts/kmno4_balance.py: 60 x 4.412 kA x 2.5 V (D-006); = cheme process cell"}}}}
+  - {id: Q4, title: Transformer and rectifier losses, kind: energy, from: T401.loss, to: CW.t401, state: {design: {duty: {value: 20.5, provenance: assumed, source: "scripts/kmno4_balance.py (D-009)"}}}}
+  - {id: Q5, title: Cell heat (cell liquor coolers), kind: energy, from: EL401.heat, to: CW.el401, state: {design: {duty: {value: 212.5, provenance: assumed, source: "scripts/kmno4_balance.py: P - sum(extent dH) at 333 K (D-006); = cheme process cell"}}}}
+  - {id: Q6, title: X-501 crystalliser cooling, kind: energy, from: X501.cw, to: CW.x501, state: {design: {duty: {value: 962.4, provenance: assumed, source: "scripts/kmno4_balance.py: 333 to 303 K, cp 3.4 kJ/(kg K), crystallisation heat 43.56 kJ/mol (D-009)"}}}}
+  - {id: Q7, title: M-301 leach heating, kind: energy, from: LPS.m301, to: M301.steam, state: {design: {duty: {value: 681.8, provenance: assumed, source: "scripts/kmno4_balance.py: mixture to 333 K with the KOH dissolution heat (D-009)"}}}}
+  - {id: Q8, title: E-601 evaporator steam, kind: energy, from: LPS.e601, to: E601.steam, state: {design: {duty: {value: 1399.5, provenance: assumed, source: "scripts/kmno4_balance.py: 2400 kJ/kg vapour, economy 1.8 (D-009)"}}}}
+  - {id: Q9, title: E-601 last-effect condenser, kind: energy, from: E601.cw, to: CW.e601, state: {design: {duty: {value: 1399.5, provenance: assumed, source: "scripts/kmno4_balance.py: equal to the steam heat (D-009)"}}}}
+  - {id: Q10, title: D-501 dryer steam, kind: energy, from: LPS.d501, to: D501.steam, state: {design: {duty: {value: 71.6, provenance: assumed, source: "scripts/kmno4_balance.py: 2600 kJ/kg water, efficiency 0.65 (D-009)"}}}}
+  - {id: Q11, title: "Auxiliary power (mills, blowers, pumps, agitators, centrifuges, conveyors; lumped)", kind: energy, from: POWER.aux, to: C501.power, state: {design: {duty: {value: 187.5, provenance: assumed, source: "150 kWh/t product ASSUMED (D-009)"}}}}
 layout: {bfd: {}, pfd: {}}
