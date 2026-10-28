@@ -3,11 +3,15 @@
 # (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
 # exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
 #
-# None yet: formic-acid-1 is an internal process (publication.status: internal) and its
-# preliminary LCI leaves every background unmapped on purpose (DESIGN.md D-012). The build
-# reports each unmapped exchange as a gap (lci/gaps.json). The shared registry and vocabulary
-# have no entry yet for formic acid, methyl formate, carbon monoxide, methanol, sodium methoxide
-# or sodium formate, and no biosphere identity for methyl formate or methanol to air: those
-# belong to the consolidated shared-files PR (DESIGN.md D-013).
+# One override only: the LP steam is counted as the heat it delivers (kWh), while the registry
+# slug `steam` that process.yaml names is counted by mass (kg), so the build needs the shared
+# `steam-heat` entry (as hda-1, nitric-acid-1 and chlor-alkali-1). Otherwise formic-acid-1 is an
+# internal process (publication.status: internal) and its preliminary LCI leaves every other
+# background unmapped on purpose (DESIGN.md D-012). The build reports each unmapped exchange as
+# a gap (lci/gaps.json). The shared registry and vocabulary have no entry yet for formic acid,
+# methyl formate, carbon monoxide, methanol, sodium methoxide or sodium formate, and no
+# biosphere identity for methyl formate or methanol to air: those belong to the consolidated
+# shared-files PR (DESIGN.md D-013).
 schema: cheme-as-code/lci-process-mappings/v1
-exchanges: {}
+exchanges:
+  "feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a) to the column reboilers, the hydrolyser and its feed preheater, counted as heat delivered (kWh)"}
