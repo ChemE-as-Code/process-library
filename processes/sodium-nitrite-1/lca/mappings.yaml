@@ -1,0 +1,22 @@
+# sodium-nitrite-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# None yet (DESIGN.md D-013): the preliminary inventory leaves every background unlinked, so the
+# Atlas build reports the exchanges of this internal process as gaps (ADR 0022). What each
+# should connect to is in lca/lca.yaml (`missing:`). Candidates once the shared vocabulary has
+# them (not active, listed for the consolidated mapping PR):
+#   feed:NH3     -> `ammonia` (lci/mappings.yaml has it; no `ammonia` registry slug yet, so no
+#                   Atlas link to ammonia-1 is offered)
+#   feed:SODA    -> `sodium-carbonate` (lci/mappings.yaml has it; no registry slug yet; with
+#                   prefer_atlas the Atlas producer soda-ash-1)
+#   feed:HNO3    -> a nitric-acid entry counted per kg of 60 wt-% solution (none in
+#                   lci/mappings.yaml or chemicals/chemicals.yaml yet); Atlas producer nitric-acid-1
+#   feed:POWER   -> the library default (electricity, medium voltage)
+#   feed:LPS     -> steam-heat-kwh (LP steam heat per kWh)
+#   product:CW   -> cooling-water
+#   product:COND -> wastewater-kg (treatment of process condensate) or `atlas: false` if reused
+#   product:NANO2 / product:NANO3 -> new registry slugs `sodium-nitrite`, `sodium-nitrate`
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges: {}
