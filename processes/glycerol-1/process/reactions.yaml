@@ -1,0 +1,24 @@
+# Reactions of crude glycerol refining (D-005). Schema: `cheme schema process-reactions`.
+# Both are acid-base reactions of the acidulation and neutralisation steps, fast and complete
+# at the chosen excess: full conversion of the limiting reactant is a design specification
+# (conversion model), not kinetics. The soaps in the fatty-matter lump are split by the same
+# acid (the lump carries no sodium of its own, D-004); glycerol itself does not react in the
+# model. Side reactions (acrolein below pH 3, polyglycerol near 200 C at high pH, Molecules
+# review 2026 section 4.1) are avoided by the pH and temperature limits of D-005 and D-009 and
+# not modelled.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: NEUT1
+    title: Neutralisation of the residual catalyst (acidulator)
+    equation: CH3ONa + HCl -> NaCl + CH3OH
+    stoichiometry: {NAOME: -1, HCL: -1, NACL: 1, MEOH: 1}
+    phase: liquid
+    conversion: {key: NAOME, value: 1.0, provenance: assumed, source: "D-005: strong base and acid, HCl 10 % in excess; acidulation to about pH 3 (Attarbachi et al. 2024, section 1)"}
+  - id: NEUT2
+    title: Neutralisation of the excess acid (neutraliser)
+    equation: HCl + NaOH -> NaCl + H2O
+    stoichiometry: {HCL: -1, NAOH: -1, NACL: 1, H2O: 1}
+    phase: liquid
+    conversion: {key: HCL, value: 1.0, provenance: assumed, source: "D-005: caustic dosed to neutral, stoichiometric"}
+    heat_of_reaction: {value: -55800, provenance: assumed, source: "heat of neutralisation of a strong acid by a strong base in dilute water at 298 K (about -55.8 kJ/mol, textbook value); in the glycerol-methanol medium ASSUMED the same (D-005)"}

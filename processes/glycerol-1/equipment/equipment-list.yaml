@@ -1,3 +1,35 @@
 # Equipment list. Schema: `cheme schema equipment`.
-schema: cheme/equipment/v1
-equipment: []
+# Concept stage: the items the PFD (process/flowsheet.yaml) needs, no P&ID yet (no sheet).
+# Flows and duties from scripts/glycerol_balance.py (D-006 to D-012), all ASSUMED; trains,
+# spares, sizes, design conditions and materials come at basic engineering. Chloride service
+# below pH 7 (R-101, V-102, R-102) needs a corrosion-resistant material (lined steel or a
+# nickel alloy), not chosen yet (D-005).
+equipment:
+  # ---- acidulation, fatty-acid separation and neutralisation (block ACD)
+  - {tag: R-101, type: Reactor, service: Acidulator (agitated tank),
+     notes: "2072 kg/h crude glycerol + 136 kg/h HCl 32 wt%, ~338 K, pH 3-4; NaOH and soaps neutralised and split (D-005). ASSUMED."}
+  - {tag: V-102, type: Vessel, service: "Fatty-acid decanter (gravity settler; a three-phase decanter centrifuge is the alternative)",
+     notes: "Separates 163 kg/h fatty-acid layer from the glycerol phase (D-006). ASSUMED."}
+  - {tag: R-102, type: Reactor, service: Neutraliser (agitated tank),
+     notes: "8.7 kg/h NaOH 50 wt% to neutral (D-005). ASSUMED."}
+  # ---- methanol recovery (block MRC)
+  - {tag: C-201, type: ProcessColumn, service: Methanol recovery column (atmospheric),
+     notes: "2053 kg/h feed; 510 kg/h methanol 99.5 wt% overhead, reflux ratio 1.0 (D-007). ASSUMED."}
+  - {tag: E-201, type: HeatExchanger, service: C-201 reboiler (LP steam), notes: "385 kW (D-012). ASSUMED."}
+  - {tag: E-202, type: HeatExchanger, service: C-201 condenser (cooling water), notes: "313 kW (D-012). ASSUMED."}
+  # ---- dewatering (block DEW)
+  - {tag: E-301, type: HeatExchanger, service: "Dewatering evaporator (falling film, 10 kPa(a))",
+     notes: "1543 kg/h feed to 5 wt% water; 73 kW LP steam (D-008). ASSUMED."}
+  - {tag: E-302, type: HeatExchanger, service: Evaporator surface condenser, notes: "51 kW to cooling water (D-012). ASSUMED."}
+  # ---- vacuum distillation and salt removal (block DST)
+  - {tag: C-401, type: ProcessColumn, service: "Vacuum glycerol still (wiped-film or forced-circulation, 1.5 kPa(a), live steam)",
+     notes: "1462 kg/h feed, 131 kg/h live steam; 1253 kg/h distilled glycerol; bottoms 448 K (D-009). ASSUMED."}
+  - {tag: E-401, type: HeatExchanger, service: C-401 reboiler (HP steam), notes: "415 kW (D-012). ASSUMED."}
+  - {tag: E-402, type: HeatExchanger, service: Glycerol condenser, notes: "392 kW to cooling (tempered) water; heat recovery to LP steam not yet studied (D-012). ASSUMED."}
+  - {tag: E-403, type: HeatExchanger, service: Vacuum condenser (stripping steam), notes: "136 kW to cooling water (D-012). ASSUMED."}
+  - {tag: S-402, type: Centrifuge, service: Salt centrifuge on the still residue,
+     notes: "133 kg/h residue slurry; 78 kg/h salt cake, 55 kg/h foots (D-010). ASSUMED."}
+  # ---- bleaching (block BLC)
+  - {tag: V-501, type: Vessel, service: Activated carbon bleacher with guard filter,
+     notes: "1253 kg/h distilled glycerol at 363 K; 2.5 kg/h carbon (D-011). ASSUMED."}
+  - {tag: E-501, type: HeatExchanger, service: Product cooler, notes: "42 kW to cooling water, 363 -> 313 K (D-012). ASSUMED."}

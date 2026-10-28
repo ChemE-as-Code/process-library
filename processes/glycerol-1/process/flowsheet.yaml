@@ -1,24 +1,508 @@
 # The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
 # never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
-# Units are explicit: a property without its own unit is in these. Pressure is absolute; a gauge
-# value needs its own unit (kPa(g)). Nm3/h needs normal_conditions.
+#
+# Refining of biodiesel crude glycerol to USP-grade glycerol (D-001). Where the values come from:
+# - the S1 (crude glycerol) composition is given by Thompson & He (2006) (D-004); its flow is the
+#   capacity choice (D-002); the temperatures, pressures
+#   and the separator splits are design choices, ASSUMED (D-005 to D-011);
+# - the acidulator and neutraliser outlets (S3, S7) and the product after the cooler (S21) are
+#   calculated by `cheme process propagate --fill` from the conversions of process/reactions.yaml;
+# - separator outlets and all duties come from the independent balance
+#   scripts/glycerol_balance.py (D-006 to D-012), given here as ASSUMED: core cannot yet
+#   qualify the phase equilibria, salt solubility or enthalpies of glycerol-methanol-water-NaCl
+#   mixtures (core #315, #364, #365; DESIGN.md D-012).
 schema: cheme/process/v1
 kind: flowsheet
-title: ""
+title: Crude glycerol refining to USP glycerol (10 000 t/a, 99.7 wt%)
 units:
   pressure: kPa(a)
   temperature: K
   flow: kg/h
   duty: kW
   enthalpy: kJ/kmol
-  # normal_conditions: {temperature: 273.15, pressure: 101.325, basis: ideal_gas}
-  # enthalpy_reference: {state: ideal_gas, temperature: 298.15}
 cases:
-  - {id: design, description: Design case, default: true}
+  - {id: design, description: "Design case: 1250 kg/h refined glycerol from 2202 kg/h crude glycerol of the D-004 composition", default: true}
 tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
-feeds: []      # external feeds (DEXPI Source): {id, title, ports: [{id: out, direction: out}]}
-products: []   # products (DEXPI Sink): {id, title, ports: [{id: in, direction: in}]}
-blocks: []     # BFD blocks: {id, title, class, ports: [{id, direction, kind}], links}
-steps: []      # PFD steps: {id, block, title, class, ports: [{id, direction, delegates}], links}
-streams: []    # {id, title, kind, from: NODE.port, to: NODE.port, template, state: {design: {...}}}
+
+feeds:
+  - {id: CRUDE, title: Crude glycerol from the biodiesel plant, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: HCLA, title: Hydrochloric acid 32 wt%, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: NAOHS, title: Caustic soda 50 wt%, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: ACF, title: Activated carbon (fresh), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: LSTM
+    title: LP steam 450 kPa(a), live stripping steam to the still
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 450, provenance: assumed, source: "design basis, D-012"}
+      supply_temperature: {value: 420.8, provenance: assumed, source: "saturation at 450 kPa(a), D-012"}
+    ports: [{id: out, direction: out}]
+  - id: LPS
+    title: LP steam 450 kPa(a) to reboiler and evaporator (condensate returned)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 450, provenance: assumed, source: "design basis, D-012"}
+      supply_temperature: {value: 420.8, provenance: assumed, source: "saturation at 450 kPa(a), D-012"}
+      min_approach: {value: 10, provenance: assumed, source: D-012}
+    ports: [{id: c201, direction: out, kind: energy}, {id: e301, direction: out, kind: energy}]
+  - id: HPS
+    title: HP steam 3000 kPa(a) to the still reboiler (condensate returned)
+    category: utility
+    utility:
+      kind: steam
+      level: HP
+      pressure: {value: 3000, provenance: assumed, source: "design basis, D-012"}
+      supply_temperature: {value: 507.0, provenance: assumed, source: "saturation at 3000 kPa(a), D-012"}
+      min_approach: {value: 10, provenance: assumed, source: D-012}
+    ports: [{id: c401, direction: out, kind: energy}]
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: acd, direction: out, kind: energy}
+      - {id: mrc, direction: out, kind: energy}
+      - {id: dew, direction: out, kind: energy}
+      - {id: dst, direction: out, kind: energy}
+      - {id: blc, direction: out, kind: energy}
+products:
+  - {id: GLYC, title: Refined glycerol USP 99.7 wt% to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: MEOHR, title: Recovered methanol to the biodiesel plant, category: by_product, ports: [{id: in, direction: in}]}
+  - {id: FAL, title: Fatty-acid layer to the biodiesel plant, category: by_product, ports: [{id: in, direction: in}]}
+  - {id: SALT, title: Salt cake to disposal, category: solid_waste, ports: [{id: in, direction: in}]}
+  - {id: FOOTS, title: Glycerol foots (still residue liquor) to digestion or incineration, category: solid_waste, ports: [{id: in, direction: in}]}
+  - {id: SPAC, title: Spent activated carbon, category: solid_waste, ports: [{id: in, direction: in}]}
+  - id: WW
+    title: Process wastewater to treatment
+    category: wastewater
+    ports: [{id: evap, direction: in}, {id: vac, direction: in}]
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-012"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-012"}
+      min_approach: {value: 5, provenance: assumed, source: D-012}
+    ports:
+      - {id: c201, direction: in, kind: energy}
+      - {id: e301, direction: in, kind: energy}
+      - {id: c401g, direction: in, kind: energy}
+      - {id: c401v, direction: in, kind: energy}
+      - {id: e501, direction: in, kind: energy}
+
+blocks:
+  - id: ACD
+    title: Acidulation, fatty-acid separation and neutralisation
+    class: ReactingChemicals
+    balance_scope: reactive
+    ports:
+      - {id: crude, direction: in}
+      - {id: hcl, direction: in}
+      - {id: naoh, direction: in}
+      - {id: fa, direction: out}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy}
+  - id: MRC
+    title: Methanol recovery
+    class: Distilling
+    ports:
+      - {id: in, direction: in}
+      - {id: meoh, direction: out}
+      - {id: out, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: DEW
+    title: Dewatering (vacuum evaporation)
+    class: Evaporating
+    ports:
+      - {id: in, direction: in}
+      - {id: cond, direction: out}
+      - {id: out, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: DST
+    title: Vacuum distillation and salt removal
+    class: Distilling
+    ports:
+      - {id: in, direction: in}
+      - {id: strip, direction: in}
+      - {id: vac, direction: out}
+      - {id: dist, direction: out}
+      - {id: salt, direction: out}
+      - {id: foots, direction: out}
+      - {id: heat, direction: in, kind: energy}
+      - {id: cwg, direction: out, kind: energy}
+      - {id: cwv, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: BLC
+    title: Bleaching and product cooling
+    class: Adsorbing
+    ports:
+      - {id: in, direction: in}
+      - {id: ac, direction: in}
+      - {id: spent, direction: out}
+      - {id: prod, direction: out}
+      - {id: cw, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+
+steps:
+  # D-005: HCl 10 % over the catalyst sodium; the catalyst is neutralised, soaps split
+  - id: R101
+    block: ACD
+    title: Acidulator (agitated)
+    class: ReactingChemicals
+    reactions: [NEUT1]
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: crude, direction: in, delegates: crude}
+      - {id: hcl, direction: in, delegates: hcl}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # D-006: the fatty matter freed by the acid (fatty acids, esters, glycerides) floats as a layer
+  - id: V102
+    block: ACD
+    title: Fatty-acid decanter
+    class: SeparatingByPhaseSeparation
+    links: [{target: equipment, ref: V-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: fa, direction: out, delegates: fa}
+      - {id: gly, direction: out}
+  - id: R102
+    block: ACD
+    title: Neutraliser
+    class: ReactingChemicals
+    reactions: [NEUT2]
+    links: [{target: equipment, ref: R-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: naoh, direction: in, delegates: naoh}
+      - {id: out, direction: out, delegates: out}
+  # D-007: atmospheric methanol column, reflux ratio 1.0
+  - id: C201
+    block: MRC
+    title: Methanol recovery column
+    class: Distilling
+    links: [{target: equipment, ref: C-201}, {target: equipment, ref: E-201}, {target: equipment, ref: E-202}]
+    ports:
+      - {id: feed, direction: in, delegates: in}
+      - {id: top, direction: out, delegates: meoh}
+      - {id: bot, direction: out, delegates: out}
+      - {id: reb, direction: in, kind: energy, delegates: steam}
+      - {id: cond, direction: out, kind: energy, delegates: cw}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # D-008: falling-film evaporator at 10 kPa(a) with its surface condenser
+  - id: E301
+    block: DEW
+    title: Dewatering evaporator and condenser
+    class: Evaporating
+    links: [{target: equipment, ref: E-301}, {target: equipment, ref: E-302}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: cond, direction: out, delegates: cond}
+      - {id: out, direction: out, delegates: out}
+      - {id: heat, direction: in, kind: energy, delegates: steam}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # D-009: wiped-film / forced-circulation still at 1.5 kPa(a) with live steam, glycerol
+  # condenser and vacuum condenser
+  - id: C401
+    block: DST
+    title: Vacuum glycerol still with condensers
+    class: Distilling
+    links: [{target: equipment, ref: C-401}, {target: equipment, ref: E-401}, {target: equipment, ref: E-402}, {target: equipment, ref: E-403}]
+    ports:
+      - {id: feed, direction: in, delegates: in}
+      - {id: strip, direction: in, delegates: strip}
+      - {id: vac, direction: out, delegates: vac}
+      - {id: dist, direction: out, delegates: dist}
+      - {id: res, direction: out}
+      - {id: reb, direction: in, kind: energy, delegates: heat}
+      - {id: gcond, direction: out, kind: energy, delegates: cwg}
+      - {id: vcond, direction: out, kind: energy, delegates: cwv}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # D-010: salt crystals of the still residue separated by a decanter centrifuge
+  - id: S402
+    block: DST
+    title: Salt centrifuge
+    class: SeparatingByPhysicalProcess
+    links: [{target: equipment, ref: S-402}]
+    ports:
+      - {id: in, direction: in}
+      - {id: salt, direction: out, delegates: salt}
+      - {id: liq, direction: out, delegates: foots}
+  # D-011: activated carbon bed with guard filter
+  - id: V501
+    block: BLC
+    title: Activated carbon bleacher
+    class: Adsorbing
+    links: [{target: equipment, ref: V-501}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: ac, direction: in, delegates: ac}
+      - {id: spent, direction: out, delegates: spent}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: E501
+    block: BLC
+    title: Product cooler
+    class: Cooling
+    links: [{target: equipment, ref: E-501}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: prod}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+
+streams:
+  - id: S1
+    title: Crude glycerol
+    from: CRUDE.out
+    to: R101.crude
+    template: glycerol
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "design basis, D-004"}
+        temperature: {value: 333.15, provenance: assumed, source: "design basis, D-004"}
+        flow: {value: 2201.83, basis: mass, provenance: assumed, source: "scripts/glycerol_balance.py: the feed that gives 1250 kg/h product (D-002)"}
+        composition: {basis: mass_fraction, values: {GLY: 0.59841, MEOH: 0.29332, NAOME: 0.02847, FAME: 0.0798}, provenance: given, source: "Thompson & He (2006), Appl. Eng. Agric. 22(2) 261-265, soybean oil column: glycerol layer 16.16 g with 10.96 g glycerol by difference (Table 3) and 0.46 g NaOCH3 (Table 1), methanol the rest; fat 7.98 % (Table 6) taken out of the by-difference glycerol (D-004)"}
+  - id: S2
+    title: Hydrochloric acid 32 wt%
+    from: HCLA.out
+    to: R101.hcl
+    template: glycerol
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-005}
+        temperature: {value: 298.15, provenance: assumed, source: D-005}
+        flow: {value: 145.43, basis: mass, provenance: assumed, source: "scripts/glycerol_balance.py: 10 % over the catalyst sodium (D-005)"}
+        composition: {basis: mass_fraction, values: {HCL: 0.32, H2O: 0.68}, provenance: given, source: "commercial 32 wt% hydrochloric acid grade (D-005)"}
+  - id: S3
+    title: Acidulated crude glycerol
+    from: R101.out
+    to: V102.in
+    template: glycerol
+    state:
+      design:
+        pressure: {value: 250, provenance: assumed, source: D-005}
+        temperature: {value: 338.15, provenance: assumed, source: "about 5 K rise from the heat of neutralisation (D-005)"}
+        flow: {value: 2347.26, provenance: calculated, source: 'cheme process propagate: reactor R101 from S1 S2', fingerprint: ec17f09a58ef1918}
+        composition: {basis: mole_fraction, values: {GLY: 0.332863, MEOH: 0.495939, H2O: 0.127715, NAOME: 0.0, FAME: 0.0137874, NAOH: 0.0, HCL: 0.00269947, NACL: 0.026996, AC: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S1 S2', fingerprint: ede556867979c089}
+  - id: S4
+    title: Fatty-acid layer
+    from: V102.fa
+    to: FAL.in
+    template: glycerol
+    state:
+      design:
+        pressure: {value: 150, provenance: assumed, source: D-006}
+        temperature: {value: 338.15, provenance: assumed, source: D-006}
+        flow: {value: 181.31, basis: mass, provenance: assumed, source: "scripts/glycerol_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {FAME: 0.94, MEOH: 0.05, GLY: 0.01}, provenance: assumed, source: "scripts/glycerol_balance.py: 97 % of fatty matter, 5 wt% methanol, 1 wt% glycerol (D-006)"}
+  - id: S5
+    title: Acid glycerol phase
+    from: V102.gly
+    to: R102.in
+    template: glycerol
+    state:
+      design:
+        pressure: {value: 250, provenance: assumed, source: D-006}
+        temperature: {value: 338.15, provenance: assumed, source: D-006}
+        flow: {value: 2165.95, basis: mass, provenance: assumed, source: "scripts/glycerol_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {GLY: 0.6074867, MEOH: 0.31115935, H2O: 0.045658, FAME: 0.00243366, HCL: 0.00195328, NACL: 0.031309}, provenance: assumed, source: "scripts/glycerol_balance.py (D-006)"}
+  - id: S6
+    title: Caustic soda 50 wt%
+    from: NAOHS.out
+    to: R102.naoh
+    template: glycerol
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-005}
+        temperature: {value: 298.15, provenance: assumed, source: D-005}
+        flow: {value: 9.2823, basis: mass, provenance: assumed, source: "scripts/glycerol_balance.py: stoichiometric to the excess HCl (D-005)"}
+        composition: {basis: mass_fraction, values: {NAOH: 0.5, H2O: 0.5}, provenance: given, source: "commercial 50 wt% caustic soda grade (D-005)"}
+  - id: S7
+    title: Neutralised crude glycerol to the methanol column
+    from: R102.out
+    to: C201.feed
+    template: glycerol
+    state:
+      design:
+        pressure: {value: 250, provenance: assumed, source: D-005}
+        temperature: {value: 338.15, provenance: assumed, source: D-005}
+        flow: {value: 2175.23, provenance: calculated, source: 'cheme process propagate: reactor R102 from S5 S6', fingerprint: c5b4e41e68303d58}
+        composition: {basis: mole_fraction, values: {GLY: 0.336347, MEOH: 0.49516, H2O: 0.138027, NAOME: 0.0, FAME: 0.000418528, NAOH: 8.70035e-08, HCL: 0.0, NACL: 0.0300477, AC: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R102 from S5 S6', fingerprint: 594c53b4a8b65481}
+  - id: S8
+    title: Recovered methanol
+    from: C201.top
+    to: MEOHR.in
+    template: glycerol
+    state:
+      design:
+        pressure: {value: 150, provenance: assumed, source: D-007}
+        temperature: {value: 313.15, provenance: assumed, source: "condensed and cooled (D-007)"}
+        flow: {value: 673.96, basis: mass, provenance: assumed, source: "scripts/glycerol_balance.py: 99.5 % recovery (D-007)"}
+        composition: {basis: mass_fraction, values: {MEOH: 0.995, H2O: 0.005}, provenance: assumed, source: "design specification (D-007)"}
+  - id: S9
+    title: Methanol column bottoms
+    from: C201.bot
+    to: E301.in
+    template: glycerol
+    state:
+      design:
+        pressure: {value: 120, provenance: assumed, source: D-007}
+        temperature: {value: 383.15, provenance: assumed, source: "estimated bubble point of the bottoms (D-007)"}
+        flow: {value: 1501.28, basis: mass, provenance: assumed, source: "scripts/glycerol_balance.py (D-007)"}
+        composition: {basis: mass_fraction, values: {GLY: 0.87644474, MEOH: 0.00224461, H2O: 0.06811173, FAME: 0.00351114, NACL: 0.04968779}, provenance: assumed, source: "scripts/glycerol_balance.py (D-007)"}
+  - id: S10
+    title: Evaporator condensate
+    from: E301.cond
+    to: WW.evap
+    template: glycerol
+    state:
+      design:
+        pressure: {value: 200, provenance: assumed, source: "after the condensate pump (D-008)"}
+        temperature: {value: 313.15, provenance: assumed, source: D-008}
+        flow: {value: 33.55, basis: mass, provenance: assumed, source: "scripts/glycerol_balance.py (D-008)"}
+        composition: {basis: mass_fraction, values: {MEOH: 0.10042858, GLY: 0.03921401, H2O: 0.86035741}, provenance: assumed, source: "scripts/glycerol_balance.py: residual methanol, 0.1 % glycerol carry-over (D-008)"}
+  - id: S11
+    title: Dewatered crude glycerol to the still
+    from: E301.out
+    to: C401.feed
+    template: glycerol
+    state:
+      design:
+        pressure: {value: 250, provenance: assumed, source: "after the feed pump (D-008)"}
+        temperature: {value: 403.15, provenance: assumed, source: "evaporator at 10 kPa(a) (D-008)"}
+        flow: {value: 1467.72, basis: mass, provenance: assumed, source: "scripts/glycerol_balance.py (D-008)"}
+        composition: {basis: mass_fraction, values: {GLY: 0.89558488, H2O: 0.05, FAME: 0.00359141, NACL: 0.05082371}, provenance: assumed, source: "scripts/glycerol_balance.py: 5 wt% water (D-008)"}
+  - id: S14
+    title: Live stripping steam
+    from: LSTM.out
+    to: C401.strip
+    template: glycerol
+    state:
+      design:
+        pressure: {value: 450, provenance: assumed, source: "design basis, D-012"}
+        temperature: {value: 420.8, provenance: assumed, source: "saturation at 450 kPa(a), D-012"}
+        flow: {value: 131.45, basis: mass, provenance: assumed, source: "scripts/glycerol_balance.py: 0.10 kg/kg glycerol fed (D-009)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "saturated steam (D-009)"}
+  - id: S15
+    title: Vacuum condensate (stripping steam and water)
+    from: C401.vac
+    to: WW.vac
+    template: glycerol
+    state:
+      design:
+        pressure: {value: 200, provenance: assumed, source: "after the condensate pump (D-009)"}
+        temperature: {value: 313.15, provenance: assumed, source: D-009}
+        flow: {value: 207.65, basis: mass, provenance: assumed, source: "scripts/glycerol_balance.py (D-009)"}
+        composition: {basis: mass_fraction, values: {GLY: 0.03165141, H2O: 0.96834859}, provenance: assumed, source: "scripts/glycerol_balance.py: 0.5 % of the glycerol fed (D-009)"}
+  - id: S16
+    title: Still residue (salt slurry)
+    from: C401.res
+    to: S402.in
+    template: glycerol
+    state:
+      design:
+        pressure: {value: 200, provenance: assumed, source: D-009}
+        temperature: {value: 448.15, provenance: assumed, source: D-009}
+        flow: {value: 139.02, basis: mass, provenance: assumed, source: "scripts/glycerol_balance.py (D-009)"}
+        composition: {basis: mass_fraction, values: {GLY: 0.42549446, FAME: 0.03791746, NACL: 0.53658808}, provenance: assumed, source: "scripts/glycerol_balance.py: 4.5 % of the glycerol fed, all salt and fatty matter (D-009)"}
+  - id: S17
+    title: Distilled glycerol
+    from: C401.dist
+    to: V501.in
+    template: glycerol
+    state:
+      design:
+        pressure: {value: 250, provenance: assumed, source: "after the distillate pump (D-009)"}
+        temperature: {value: 363.15, provenance: assumed, source: "glycerol condenser outlet (D-009, D-011)"}
+        flow: {value: 1252.51, basis: mass, provenance: assumed, source: "scripts/glycerol_balance.py: 95 % of the glycerol fed (D-009)"}
+        composition: {basis: mass_fraction, values: {GLY: 0.997, H2O: 0.003}, provenance: assumed, source: "product specification (D-003)"}
+  - id: S12
+    title: Salt cake
+    from: S402.salt
+    to: SALT.in
+    template: glycerol
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: D-010}
+        temperature: {value: 373.15, provenance: assumed, source: D-010}
+        flow: {value: 83.92, basis: mass, provenance: assumed, source: "scripts/glycerol_balance.py (D-010)"}
+        composition: {basis: mass_fraction, values: {NACL: 0.82075492, GLY: 0.16457882, FAME: 0.01466626}, provenance: assumed, source: "scripts/glycerol_balance.py: 90 % of the salt, 0.25 kg liquor per kg crystals (D-010)"}
+  - id: S13
+    title: Glycerol foots
+    from: S402.liq
+    to: FOOTS.in
+    template: glycerol
+    state:
+      design:
+        pressure: {value: 200, provenance: assumed, source: D-010}
+        temperature: {value: 373.15, provenance: assumed, source: D-010}
+        flow: {value: 55.10, basis: mass, provenance: assumed, source: "scripts/glycerol_balance.py (D-010)"}
+        composition: {basis: mass_fraction, values: {GLY: 0.82289411, FAME: 0.07333129, NACL: 0.1037746}, provenance: assumed, source: "scripts/glycerol_balance.py (D-010)"}
+  - id: S18
+    title: Fresh activated carbon
+    from: ACF.out
+    to: V501.ac
+    template: glycerol
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: D-011}
+        temperature: {value: 298.15, provenance: assumed, source: D-011}
+        flow: {value: 2.51, basis: mass, provenance: assumed, source: "scripts/glycerol_balance.py: 2 kg/t distilled glycerol (D-011)"}
+        composition: {basis: mass_fraction, values: {AC: 1.0}, provenance: given, source: "activated carbon taken as pure carbon, dry (D-011)"}
+  - id: S19
+    title: Spent activated carbon
+    from: V501.spent
+    to: SPAC.in
+    template: glycerol
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: D-011}
+        temperature: {value: 363.15, provenance: assumed, source: D-011}
+        flow: {value: 5.01, basis: mass, provenance: assumed, source: "scripts/glycerol_balance.py: 1 kg glycerol held per kg carbon (D-011)"}
+        composition: {basis: mass_fraction, values: {AC: 0.5, GLY: 0.4985, H2O: 0.0015}, provenance: assumed, source: "scripts/glycerol_balance.py (D-011)"}
+  - id: S20
+    title: Bleached glycerol
+    from: V501.out
+    to: E501.in
+    template: glycerol
+    state:
+      design:
+        pressure: {value: 250, provenance: assumed, source: D-011}
+        temperature: {value: 363.15, provenance: assumed, source: D-011}
+        flow: {value: 1250.00, basis: mass, provenance: assumed, source: "scripts/glycerol_balance.py (D-011)"}
+        composition: {basis: mass_fraction, values: {GLY: 0.997, H2O: 0.003}, provenance: assumed, source: "product specification (D-003)"}
+  - id: S21
+    title: Refined glycerol USP to storage
+    from: E501.out
+    to: GLYC.in
+    template: glycerol
+    state:
+      design:
+        pressure: {value: 250, provenance: assumed, source: "design basis, D-003"}
+        temperature: {value: 313.15, provenance: assumed, source: "design basis, D-003"}
+        flow: {value: 1250.0, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E501 from S20', fingerprint: be79254f16c01e13}
+        composition: {basis: mass_fraction, values: {GLY: 0.997, H2O: 0.003}, provenance: calculated, source: 'cheme process propagate: pass-through E501 from S20', fingerprint: be79254f16c01e13}
+  # Energy streams (duties from scripts/glycerol_balance.py, D-012; ASSUMED until core qualifies them)
+  - {id: Q1, title: C-201 reboiler duty, kind: energy, from: LPS.c201, to: C201.reb, state: {design: {duty: {value: 488.9, provenance: assumed, source: "scripts/glycerol_balance.py, reflux ratio 1.0 (D-007, D-012)"}}}}
+  - {id: Q2, title: C-201 condenser duty, kind: energy, from: C201.cond, to: CW.c201, state: {design: {duty: {value: 413.6, provenance: assumed, source: "scripts/glycerol_balance.py (D-012)"}}}}
+  - {id: Q3, title: E-301 evaporator duty, kind: energy, from: LPS.e301, to: E301.heat, state: {design: {duty: {value: 40.7, provenance: assumed, source: "scripts/glycerol_balance.py (D-008, D-012)"}}}}
+  - {id: Q4, title: E-302 evaporator condenser duty, kind: energy, from: E301.cw, to: CW.e301, state: {design: {duty: {value: 20.1, provenance: assumed, source: "scripts/glycerol_balance.py (D-012)"}}}}
+  - {id: Q5, title: E-401 still reboiler duty, kind: energy, from: HPS.c401, to: C401.reb, state: {design: {duty: {value: 415.1, provenance: assumed, source: "scripts/glycerol_balance.py (D-009, D-012)"}}}}
+  - {id: Q6, title: E-402 glycerol condenser duty, kind: energy, from: C401.gcond, to: CW.c401g, state: {design: {duty: {value: 392.2, provenance: assumed, source: "scripts/glycerol_balance.py (D-012)"}}}}
+  - {id: Q7, title: E-403 vacuum condenser duty, kind: energy, from: C401.vcond, to: CW.c401v, state: {design: {duty: {value: 135.7, provenance: assumed, source: "scripts/glycerol_balance.py (D-012)"}}}}
+  - {id: Q8, title: E-501 product cooler duty, kind: energy, from: E501.cw, to: CW.e501, state: {design: {duty: {value: 42.3, provenance: assumed, source: "scripts/glycerol_balance.py (D-012)"}}}}
+  - {id: W1, title: Acidulation pumps and agitators, kind: energy, from: POWER.acd, to: R101.power, state: {design: {duty: {value: 12.5, provenance: assumed, source: "10 kWh/t product (D-012)"}}}}
+  - {id: W2, title: Methanol recovery pumps, kind: energy, from: POWER.mrc, to: C201.power, state: {design: {duty: {value: 6.2, provenance: assumed, source: "5 kWh/t product (D-012)"}}}}
+  - {id: W3, title: Evaporator vacuum pump and pumps, kind: energy, from: POWER.dew, to: E301.power, state: {design: {duty: {value: 12.5, provenance: assumed, source: "10 kWh/t product (D-012)"}}}}
+  - {id: W4, title: "Still vacuum system, pumps and salt centrifuge", kind: energy, from: POWER.dst, to: C401.power, state: {design: {duty: {value: 25.0, provenance: assumed, source: "20 kWh/t product (D-012)"}}}}
+  - {id: W5, title: Bleaching pumps and filter, kind: energy, from: POWER.blc, to: V501.power, state: {design: {duty: {value: 6.2, provenance: assumed, source: "5 kWh/t product (D-012)"}}}}
 layout: {bfd: {}, pfd: {}}
