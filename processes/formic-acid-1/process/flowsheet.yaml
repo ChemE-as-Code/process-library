@@ -1,0 +1,700 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Formic acid by methyl formate hydrolysis (DESIGN.md D-001): methanol carbonylation over sodium
+# methoxide to methyl formate, hydrolysis autocatalysed by formic acid, methyl formate and
+# methanol recovery and recycle, and concentration of the aqueous acid to 85 wt% by
+# pressure-swing distillation (203 kPa(a) / 12 kPa(a)). The carbonylation vent is burnt.
+# Where the values come from:
+# - feeds, temperatures, pressures, conversions and column splits: design basis and decisions
+#   D-002..D-010, ASSUMED where no source gives them, the ranges from open patents;
+# - the reactors R101, R201, X101, the mixers, pumps, exchangers and the splitter SP101 are
+#   solved by `cheme process propagate --fill` (conversion model, calculated);
+# - the separator V101 and the columns C101, C201, C202, C301, C302 (specified splits) and every
+#   duty come from the independent balance scripts/balance.py (D-006), given here as ASSUMED:
+#   no property package of core covers the liquid methanol / methyl formate / water / formic
+#   acid system, and the liquid-reactor energy basis is not verified (core #315).
+schema: cheme/process/v1
+kind: flowsheet
+title: Formic acid 85 wt% by methyl formate hydrolysis (6.25 t/h, 50 kt/a)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+  enthalpy_reference: {state: ideal_gas, temperature: 298.15}
+cases:
+  - {id: design, description: "Design case: 6250 kg/h formic acid 85 wt% (5312.5 kg/h HCOOH), 8000 h/a (D-002)", default: true}
+tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - {id: CO, title: Carbon monoxide (from a syngas cold box outside the boundary), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: MEOH, title: Methanol make-up (methanol-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: CAT, title: Sodium methoxide 30 wt% in methanol, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: PW, title: Process water (demineralised), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: AIR, title: Combustion air, category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: k101, direction: out, kind: energy}
+      - {id: p101, direction: out, kind: energy}
+      - {id: p201, direction: out, kind: energy}
+      - {id: c302, direction: out, kind: energy}
+  - id: LPS
+    title: Low-pressure steam (450 kPa(a), saturated)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 450.0, provenance: assumed, source: "design basis (D-011)"}
+      supply_temperature: {value: 420.8, provenance: assumed, source: "saturation at 450 kPa(a)"}
+      min_approach: {value: 10, provenance: assumed, source: "design basis"}
+    ports:
+      - {id: c101, direction: out, kind: energy}
+      - {id: e201, direction: out, kind: energy}
+      - {id: r201, direction: out, kind: energy}
+      - {id: c201, direction: out, kind: energy}
+      - {id: c202, direction: out, kind: energy}
+      - {id: c301, direction: out, kind: energy}
+      - {id: c302, direction: out, kind: energy}
+products:
+  - {id: FA, title: Formic acid 85 wt% to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: PURGE, title: Spent catalyst purge (sodium formate and methoxide in methanol) to incineration, category: by_product, ports: [{id: in, direction: in}]}
+  - {id: STACK, title: Oxidiser flue gas to stack, category: off_gas, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis (D-011)"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis (D-011)"}
+      min_approach: {value: 5, provenance: assumed, source: "design basis"}
+    ports:
+      - {id: k101, direction: in, kind: energy}
+      - {id: r101, direction: in, kind: energy}
+      - {id: e101, direction: in, kind: energy}
+      - {id: c101, direction: in, kind: energy}
+      - {id: c201, direction: in, kind: energy}
+      - {id: c202, direction: in, kind: energy}
+      - {id: c301, direction: in, kind: energy}
+      - {id: c302, direction: in, kind: energy}
+
+blocks:
+  - id: CARB
+    title: Methyl formate synthesis (methanol carbonylation)
+    class: ReactingChemicals
+    ports:
+      - {id: co, direction: in}
+      - {id: meoh, direction: in}
+      - {id: cat, direction: in}
+      - {id: meoh_rec, direction: in}
+      - {id: mf, direction: out}
+      - {id: vent, direction: out}
+      - {id: purge, direction: out}
+      - {id: p_k101, direction: in, kind: energy}
+      - {id: p_p101, direction: in, kind: energy}
+      - {id: q_k101, direction: out, kind: energy}
+      - {id: q_r101, direction: out, kind: energy}
+      - {id: q_e101, direction: out, kind: energy}
+      - {id: s_c101, direction: in, kind: energy}
+      - {id: q_c101, direction: out, kind: energy}
+  - id: HYD
+    title: Methyl formate hydrolysis, ester and methanol recovery
+    class: ReactingChemicals
+    ports:
+      - {id: mf, direction: in}
+      - {id: water, direction: in}
+      - {id: water_rec, direction: in}
+      - {id: acid_rec, direction: in}
+      - {id: meoh_rec, direction: out}
+      - {id: acid, direction: out}
+      - {id: p_p201, direction: in, kind: energy}
+      - {id: s_e201, direction: in, kind: energy}
+      - {id: s_r201, direction: in, kind: energy}
+      - {id: s_c201, direction: in, kind: energy}
+      - {id: q_c201, direction: out, kind: energy}
+      - {id: s_c202, direction: in, kind: energy}
+      - {id: q_c202, direction: out, kind: energy}
+  - id: DEHY
+    title: Formic acid concentration (pressure-swing distillation)
+    class: SeparatingByThermalProcess
+    ports:
+      - {id: in, direction: in}
+      - {id: product, direction: out}
+      - {id: water_rec, direction: out}
+      - {id: acid_rec, direction: out}
+      - {id: s_c301, direction: in, kind: energy}
+      - {id: q_c301, direction: out, kind: energy}
+      - {id: s_c302, direction: in, kind: energy}
+      - {id: q_c302, direction: out, kind: energy}
+      - {id: p_c302, direction: in, kind: energy}
+  - id: VENT
+    title: Thermal oxidation of the carbonylation vent
+    class: ReactingChemicals
+    ports:
+      - {id: vent, direction: in}
+      - {id: air, direction: in}
+      - {id: flue, direction: out}
+
+steps:
+  # --- CARB ------------------------------------------------------------------------------------
+  - id: K101
+    block: CARB
+    title: CO compressor (3 stages, intercooled)
+    class: Compressing
+    links: [{target: equipment, ref: K-101}]
+    ports:
+      - {id: in, direction: in, delegates: co}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: p_k101}
+      - {id: q, direction: out, kind: energy, delegates: q_k101}
+  - id: M101
+    block: CARB
+    title: Methanol feed mixer
+    class: Mixing
+    links: [{target: equipment, ref: M-101}]
+    ports:
+      - {id: meoh, direction: in, delegates: meoh}
+      - {id: cat, direction: in, delegates: cat}
+      - {id: rec, direction: in}
+      - {id: meoh_rec, direction: in, delegates: meoh_rec}
+      - {id: out, direction: out}
+  - id: P101
+    block: CARB
+    title: Carbonylation feed pump
+    # GeneratingFlow, the parent of Pumping: `cheme process build` (0.8.0) fails on Pumping
+    # (its method annotation is a Union in pyDEXPI 2.1.0; core item, DESIGN.md D-013)
+    class: GeneratingFlow
+    links: [{target: equipment, ref: P-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: p_p101}
+  - id: R101
+    block: CARB
+    title: Carbonylation reactor (loop, sodium methoxide)
+    class: ReactingChemicals
+    reactions: [CARB, DEACT]
+    reactor: conversion
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: co, direction: in}
+      - {id: liq, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: q_r101}
+  - id: E101
+    block: CARB
+    title: Reactor effluent cooler
+    class: Cooling
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: q_e101}
+  - id: V101
+    block: CARB
+    title: Carbonylation separator (vent / liquid)
+    class: SeparatingByFlash
+    links: [{target: equipment, ref: V-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out, delegates: vent}
+      - {id: liq, direction: out}
+  - id: C101
+    block: CARB
+    title: Methyl formate column (250 kPa(a))
+    class: Distilling
+    links: [{target: equipment, ref: C-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out, delegates: mf}
+      - {id: bot, direction: out}
+      - {id: reb, direction: in, kind: energy, delegates: s_c101}
+      - {id: cond, direction: out, kind: energy, delegates: q_c101}
+  - id: SP101
+    block: CARB
+    title: Catalyst liquor recycle / purge split
+    class: SplittingMaterial
+    split: {rec: 0.99, purge: 0.01}
+    # a branch on the C-101 bottoms line with a flow-controlled purge, not an equipment item
+    ports:
+      - {id: in, direction: in}
+      - {id: rec, direction: out}
+      - {id: purge, direction: out, delegates: purge}
+  # --- HYD -------------------------------------------------------------------------------------
+  - id: M201
+    block: HYD
+    title: Hydrolyser feed mixer
+    class: Mixing
+    links: [{target: equipment, ref: M-201}]
+    ports:
+      - {id: mf, direction: in, delegates: mf}
+      - {id: mf_rec, direction: in}
+      - {id: water, direction: in, delegates: water}
+      - {id: water_rec, direction: in, delegates: water_rec}
+      - {id: acid_rec, direction: in, delegates: acid_rec}
+      - {id: out, direction: out}
+  - id: P201
+    block: HYD
+    title: Hydrolyser feed pump
+    class: GeneratingFlow   # see P101
+    links: [{target: equipment, ref: P-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: p_p201}
+  - id: E201
+    block: HYD
+    title: Hydrolyser feed preheater (LP steam)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: in, kind: energy, delegates: s_e201}
+  - id: R201
+    block: HYD
+    title: Hydrolysis reactor (autocatalytic, 393 K, 600 kPa(a))
+    class: ReactingChemicals
+    reactions: [HYD]
+    reactor: conversion
+    links: [{target: equipment, ref: R-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: in, kind: energy, delegates: s_r201}
+  - id: C201
+    block: HYD
+    title: Methyl formate recovery column (250 kPa(a))
+    class: Distilling
+    links: [{target: equipment, ref: C-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out}
+      - {id: bot, direction: out}
+      - {id: reb, direction: in, kind: energy, delegates: s_c201}
+      - {id: cond, direction: out, kind: energy, delegates: q_c201}
+  - id: C202
+    block: HYD
+    title: Methanol column (120 kPa(a))
+    class: Distilling
+    links: [{target: equipment, ref: C-202}]
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out, delegates: meoh_rec}
+      - {id: bot, direction: out, delegates: acid}
+      - {id: reb, direction: in, kind: energy, delegates: s_c202}
+      - {id: cond, direction: out, kind: energy, delegates: q_c202}
+  # --- DEHY ------------------------------------------------------------------------------------
+  - id: C301
+    block: DEHY
+    title: Pressure column (203 kPa(a), water overhead)
+    class: Distilling
+    links: [{target: equipment, ref: C-301}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: top, direction: out, delegates: water_rec}
+      - {id: bot, direction: out}
+      - {id: reb, direction: in, kind: energy, delegates: s_c301}
+      - {id: cond, direction: out, kind: energy, delegates: q_c301}
+  - id: C302
+    block: DEHY
+    title: Vacuum column (12 kPa(a), 85 wt% acid overhead)
+    class: Distilling
+    links: [{target: equipment, ref: C-302}]
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out, delegates: product}
+      - {id: bot, direction: out, delegates: acid_rec}
+      - {id: reb, direction: in, kind: energy, delegates: s_c302}
+      - {id: cond, direction: out, kind: energy, delegates: q_c302}
+      - {id: vac, direction: in, kind: energy, delegates: p_c302}
+  # --- VENT ------------------------------------------------------------------------------------
+  - id: X101
+    block: VENT
+    title: Thermal oxidiser (vent gas)
+    class: ReactingChemicals
+    reactions: [CO_COMB, MF_COMB, MEOH_COMB]
+    reactor: conversion
+    links: [{target: equipment, ref: X-101}]
+    ports:
+      - {id: vent, direction: in, delegates: vent}
+      - {id: air, direction: in, delegates: air}
+      - {id: out, direction: out, delegates: flue}
+
+streams:
+  # --- carbonylation ---------------------------------------------------------------------------
+  - id: S1
+    title: Carbon monoxide feed
+    from: CO.out
+    to: K101.in
+    template: co
+    state:
+      design:
+        pressure: {value: 200.0, provenance: assumed, source: "battery limit (D-003)"}
+        temperature: {value: 303.15, provenance: assumed, source: "battery limit (D-003)"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 3552.877, basis: mass, provenance: assumed, source: "scripts/balance.py: carbonylation extent / 0.92 CO yield (US4216339A Example 1; D-005)"}
+        composition: {basis: mole_fraction, values: {CO: 0.99, N2: 0.01}, provenance: assumed, source: "D-003: CO 99 mol%, impurities lumped as N2"}
+  - id: S2
+    title: Compressed carbon monoxide
+    from: K101.out
+    to: R101.co
+    template: co
+    state:
+      design:
+        pressure: {value: 4600.0, provenance: assumed, source: "reactor 4500 kPa(a) plus distribution (D-005)"}
+        temperature: {value: 313.15, provenance: assumed, source: "aftercooler outlet (D-010)"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 3552.877, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S1', fingerprint: 794c28ad1c09e215}
+        composition: {basis: mole_fraction, values: {CO: 0.99, N2: 0.01}, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S1', fingerprint: 794c28ad1c09e215}
+  - id: S3
+    title: Methanol make-up
+    from: MEOH.out
+    to: M101.meoh
+    template: methanol
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: "battery limit"}
+        temperature: {value: 298.15, provenance: assumed, source: "battery limit"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 77.881, basis: mass, provenance: assumed, source: "scripts/balance.py: methanol balance of the loop (losses to the purge and the vent)"}
+        composition: {basis: mole_fraction, values: {MEOH: 1.0}, provenance: assumed, source: "D-003: AA-grade methanol, water neglected (< 0.1 wt%)"}
+  - id: S4
+    title: Sodium methoxide solution
+    from: CAT.out
+    to: M101.cat
+    template: catalyst
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: "battery limit"}
+        temperature: {value: 298.15, provenance: assumed, source: "battery limit"}
+        phase: {value: liquid, provenance: assumed, source: "solution"}
+        flow: {value: 14.493, basis: mass, provenance: assumed, source: "scripts/balance.py: methoxide destroyed by water plus purged (D-007)"}
+        composition: {basis: mole_fraction, values: {NAOME: 0.202672, MEOH: 0.797328}, provenance: assumed, source: "D-007: commercial 30 wt% solution in methanol"}
+  - id: S5
+    title: Carbonylation liquid feed
+    from: M101.out
+    to: P101.in
+    template: carb
+    state:
+      design:
+        pressure: {value: 260.0, provenance: assumed, source: "pressure profile (D-010)"}
+        temperature: {value: 350.0, provenance: assumed, source: "mixture of recycles at about 340-360 K, not calculated"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 12804.2, provenance: calculated, source: 'cheme process propagate: mixer M101 from S3 S4 S13 S24', fingerprint: 540b45488fdb686f}
+        composition: {basis: mole_fraction, values: {MEOH: 0.979507, H2O: 5.63504e-05, NAOME: 0.0148965, MF: 0.0, NAFORM: 0.00554037}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S3 S4 S13 S24', fingerprint: 91a15f4ee04666be}
+  - id: S6
+    title: Pumped carbonylation feed
+    from: P101.out
+    to: R101.liq
+    template: carb
+    state:
+      design:
+        pressure: {value: 4600.0, provenance: assumed, source: "D-005"}
+        temperature: {value: 351.0, provenance: assumed, source: "pump outlet, not calculated"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 12804.2, provenance: calculated, source: 'cheme process propagate: pass-through P101 from S5', fingerprint: f7c064e5c71a1f80}
+        composition: {basis: mole_fraction, values: {MEOH: 0.979507, H2O: 5.63504e-05, NAOME: 0.0148965, MF: 0.0, NAFORM: 0.00554037}, provenance: calculated, source: 'cheme process propagate: pass-through P101 from S5', fingerprint: f7c064e5c71a1f80}
+  - id: S7
+    title: Carbonylation effluent
+    from: R101.out
+    to: E101.in
+    template: carb_out
+    state:
+      design:
+        pressure: {value: 4500.0, provenance: assumed, source: "D-005: 44-45 bar (US4216339A Example 1; MDPI Catalysts 11, 869)"}
+        temperature: {value: 353.15, provenance: assumed, source: "D-005: 80 C (US4216339A Example 1)"}
+        phase: {value: two-phase, provenance: assumed, source: "unreacted CO and N2 with the liquid"}
+        flow: {value: 16357.1, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S6', fingerprint: 38e1576bc43ce8c0}
+        composition: {basis: mole_fraction, values: {CO: 0.0247831, N2: 0.00313622, MEOH: 0.666566, MF: 0.285648, NAOME: 0.0144258, NAFORM: 0.00544046, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S6', fingerprint: 0344698b9f82bc78}
+  - id: S8
+    title: Cooled carbonylation effluent
+    from: E101.out
+    to: V101.in
+    template: carb_out
+    state:
+      design:
+        pressure: {value: 4450.0, provenance: assumed, source: "pressure profile (D-010)"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-007: cooled to limit ester loss with the vent"}
+        phase: {value: two-phase, provenance: assumed, source: "gas and liquid"}
+        flow: {value: 16357.1, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S7', fingerprint: db988405e49fe9b4}
+        composition: {basis: mole_fraction, values: {CO: 0.0247831, N2: 0.00313622, MEOH: 0.666566, MF: 0.285648, NAOME: 0.0144258, NAFORM: 0.00544046, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S7', fingerprint: db988405e49fe9b4}
+  - id: S9
+    title: Carbonylation vent gas
+    from: V101.gas
+    to: X101.vent
+    template: vent
+    state:
+      design:
+        pressure: {value: 4450.0, provenance: assumed, source: "separator pressure, let down to the oxidiser (D-010)"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-007"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 324.425, basis: mass, provenance: assumed, source: "scripts/balance.py: all CO and N2, methyl formate and methanol vapour by Raoult's law at 313 K and 4500 kPa(a), CO solubility neglected (D-007)"}
+        composition: {basis: mole_fraction, values: {CO: 0.874948, N2: 0.110717, MF: 0.008922, MEOH: 0.005413}, provenance: assumed, source: "scripts/balance.py (D-007)"}
+  - id: S10
+    title: Crude methyl formate liquor
+    from: V101.liq
+    to: C101.in
+    template: carb
+    state:
+      design:
+        pressure: {value: 4450.0, provenance: assumed, source: "separator pressure (D-010)"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-007"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 16032.594, basis: mass, provenance: assumed, source: "scripts/balance.py (D-007)"}
+        composition: {basis: mole_fraction, values: {MEOH: 0.68584, NAOME: 0.014846, NAFORM: 0.005599, MF: 0.293715}, provenance: assumed, source: "scripts/balance.py (D-007)"}
+  - id: S11
+    title: Methyl formate (96 wt%) to hydrolysis
+    from: C101.top
+    to: M201.mf
+    template: ester
+    state:
+      design:
+        pressure: {value: 250.0, provenance: assumed, source: "C-101 top (D-007)"}
+        temperature: {value: 330.0, provenance: assumed, source: "condensate near the bubble point at 250 kPa(a), not calculated"}
+        phase: {value: liquid, provenance: assumed, source: "condensate"}
+        flow: {value: 7220.402, basis: mass, provenance: assumed, source: "scripts/balance.py: all methyl formate overhead, methanol to 4 wt% (EP2747883A1: fresh ester 4-6 wt% methanol; D-007)"}
+        composition: {basis: mole_fraction, values: {MF: 0.927566, MEOH: 0.072434}, provenance: assumed, source: "scripts/balance.py (D-007)"}
+  - id: S12
+    title: Methanol / catalyst bottoms
+    from: C101.bot
+    to: SP101.in
+    template: carb
+    state:
+      design:
+        pressure: {value: 260.0, provenance: assumed, source: "C-101 bottom (D-007)"}
+        temperature: {value: 358.0, provenance: assumed, source: "methanol near its boiling point at 260 kPa(a), not calculated"}
+        phase: {value: liquid, provenance: assumed, source: "liquid with suspended sodium formate"}
+        flow: {value: 8812.191, basis: mass, provenance: assumed, source: "scripts/balance.py (D-007)"}
+        composition: {basis: mole_fraction, values: {MEOH: 0.970081, NAOME: 0.021726, NAFORM: 0.008193}, provenance: assumed, source: "scripts/balance.py (D-007)"}
+  - id: S13
+    title: Recycle methanol and catalyst
+    from: SP101.rec
+    to: M101.rec
+    template: carb
+    state:
+      design:
+        pressure: {value: 260.0, provenance: assumed, source: "D-010"}
+        temperature: {value: 358.0, provenance: assumed, source: "as S12"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 8724.07, basis: mass, provenance: calculated, source: 'cheme process propagate: splitter SP101 from S12', fingerprint: 7b79cafa7452a56a}
+        composition: {basis: mole_fraction, values: {MEOH: 0.970081, NAOME: 0.021726, NAFORM: 0.008193}, provenance: calculated, source: 'cheme process propagate: splitter SP101 from S12', fingerprint: 57c5900769f02dcb}
+  - id: S14
+    title: Spent catalyst purge
+    from: SP101.purge
+    to: PURGE.in
+    template: carb
+    state:
+      design:
+        pressure: {value: 260.0, provenance: assumed, source: "D-010"}
+        temperature: {value: 358.0, provenance: assumed, source: "as S12"}
+        phase: {value: liquid, provenance: assumed, source: "liquid with suspended sodium formate"}
+        flow: {value: 88.1219, basis: mass, provenance: calculated, source: 'cheme process propagate: splitter SP101 from S12', fingerprint: 7b79cafa7452a56a}
+        composition: {basis: mole_fraction, values: {MEOH: 0.970081, NAOME: 0.021726, NAFORM: 0.008193}, provenance: calculated, source: 'cheme process propagate: splitter SP101 from S12', fingerprint: 57c5900769f02dcb}
+  # --- vent oxidation --------------------------------------------------------------------------
+  - id: S15
+    title: Combustion air
+    from: AIR.out
+    to: X101.air
+    template: air
+    state:
+      design:
+        pressure: {value: 106.3, provenance: assumed, source: "fan discharge (fan power within the oxidiser package, D-010)"}
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 1467.818, basis: mass, provenance: assumed, source: "scripts/balance.py: twice the stoichiometric O2 of the vent (D-010)"}
+        composition: {basis: mole_fraction, values: {N2: 0.7812, O2: 0.2095, AR: 0.0093}, provenance: assumed, source: "dry air, CO2 lumped into N2"}
+  - id: S16
+    title: Flue gas to stack
+    from: X101.out
+    to: STACK.in
+    template: flue
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "stack"}
+        phase: {value: vapor, provenance: assumed, source: "gas; outlet temperature not calculated (adiabatic, no heat recovery, D-010)"}
+        flow: {value: 1792.24, provenance: calculated, source: 'cheme process propagate: reactor X101 from S9 S15', fingerprint: e34e0140b392b688}
+        composition: {basis: mole_fraction, values: {CO: 0.000175032, N2: 0.713555, MF: 1.78483e-06, MEOH: 1.08286e-06, O2: 0.0928022, AR: 0.00823102, CO2: 0.179504, H2O: 0.00572964}, provenance: calculated, source: 'cheme process propagate: reactor X101 from S9 S15', fingerprint: 2f936bfe9a5c51c9}
+  # --- hydrolysis ------------------------------------------------------------------------------
+  - id: S17
+    title: Process water make-up
+    from: PW.out
+    to: M201.water
+    template: water
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: "site water header"}
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        phase: {value: liquid, provenance: assumed, source: "water"}
+        flow: {value: 3017.305, basis: mass, provenance: assumed, source: "scripts/balance.py: water consumed by the hydrolysis + water in the product + water to the carbonylation (D-008)"}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: "demineralised water"}
+  - id: S18
+    title: Hydrolyser feed
+    from: M201.out
+    to: P201.in
+    template: hydrolysate
+    state:
+      design:
+        pressure: {value: 250.0, provenance: assumed, source: "pressure profile (D-010)"}
+        temperature: {value: 340.0, provenance: assumed, source: "mixture of recycles, not calculated (E-201 duty basis, D-011)"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 38416.8, provenance: calculated, source: 'cheme process propagate: mixer M201 from S11 S17 S22 S26 S29', fingerprint: f93534bec2df7841}
+        composition: {basis: mole_fraction, values: {MF: 0.36835, MEOH: 0.0183335, H2O: 0.552525, FA: 0.0607908}, provenance: calculated, source: 'cheme process propagate: mixer M201 from S11 S17 S22 S26 S29', fingerprint: fe136ca53013ae61}
+  - id: S19
+    title: Pumped hydrolyser feed
+    from: P201.out
+    to: E201.in
+    template: hydrolysate
+    state:
+      design:
+        pressure: {value: 650.0, provenance: assumed, source: "D-008"}
+        temperature: {value: 340.0, provenance: assumed, source: "as S18"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 38416.8, provenance: calculated, source: 'cheme process propagate: pass-through P201 from S18', fingerprint: a01ae58737d6ebc9}
+        composition: {basis: mole_fraction, values: {MF: 0.36835, MEOH: 0.0183335, H2O: 0.552525, FA: 0.0607908}, provenance: calculated, source: 'cheme process propagate: pass-through P201 from S18', fingerprint: a01ae58737d6ebc9}
+  - id: S20
+    title: Preheated hydrolyser feed
+    from: E201.out
+    to: R201.in
+    template: hydrolysate
+    state:
+      design:
+        pressure: {value: 600.0, provenance: assumed, source: "D-008: 2-7 bar (EP2747883A1), liquid at 393 K"}
+        temperature: {value: 393.15, provenance: assumed, source: "D-008: 90-140 C (EP2747883A1, US4299981), below 140 C to avoid decomposition"}
+        phase: {value: liquid, provenance: assumed, source: "liquid under pressure"}
+        flow: {value: 38416.8, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S19', fingerprint: 7fa5fffe3469c088}
+        composition: {basis: mole_fraction, values: {MF: 0.36835, MEOH: 0.0183335, H2O: 0.552525, FA: 0.0607908}, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S19', fingerprint: 7fa5fffe3469c088}
+  - id: S21
+    title: Hydrolysate
+    from: R201.out
+    to: C201.in
+    template: hydrolysate
+    state:
+      design:
+        pressure: {value: 550.0, provenance: assumed, source: "D-010"}
+        temperature: {value: 393.15, provenance: assumed, source: "D-008: isothermal (LP steam supplies the reaction heat)"}
+        phase: {value: liquid, provenance: assumed, source: "liquid under pressure"}
+        flow: {value: 38416.8, provenance: calculated, source: 'cheme process propagate: reactor R201 from S20', fingerprint: 0f09c2d1be0a9f8a}
+        composition: {basis: mole_fraction, values: {MF: 0.261809, MEOH: 0.124875, H2O: 0.445984, FA: 0.167332}, provenance: calculated, source: 'cheme process propagate: reactor R201 from S20', fingerprint: bc08446ab6ca0092}
+  - id: S22
+    title: Recovered methyl formate (98 wt%)
+    from: C201.top
+    to: M201.mf_rec
+    template: ester
+    state:
+      design:
+        pressure: {value: 250.0, provenance: assumed, source: "C-201 top (D-008)"}
+        temperature: {value: 330.0, provenance: assumed, source: "condensate, not calculated"}
+        phase: {value: liquid, provenance: assumed, source: "condensate"}
+        flow: {value: 17381.185, basis: mass, provenance: assumed, source: "scripts/balance.py: all methyl formate overhead with 2 wt% methanol (EP2747883A1: recovered ester up to 1-2 wt% methanol; D-008)"}
+        composition: {basis: mole_fraction, values: {MF: 0.963161, MEOH: 0.036839}, provenance: assumed, source: "scripts/balance.py (D-008)"}
+  - id: S23
+    title: Methanol / water / formic acid
+    from: C201.bot
+    to: C202.in
+    template: hydrolysate
+    state:
+      design:
+        pressure: {value: 260.0, provenance: assumed, source: "C-201 bottom (D-008)"}
+        temperature: {value: 375.0, provenance: assumed, source: "not calculated"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 21035.621, basis: mass, provenance: assumed, source: "scripts/balance.py (D-008): reverse esterification in the column neglected"}
+        composition: {basis: mole_fraction, values: {MEOH: 0.157736, H2O: 0.612469, FA: 0.229795}, provenance: assumed, source: "scripts/balance.py (D-008)"}
+  - id: S24
+    title: Recycle methanol (dry, 100 ppm water) to carbonylation
+    from: C202.top
+    to: M101.meoh_rec
+    template: methanol
+    state:
+      design:
+        pressure: {value: 120.0, provenance: assumed, source: "C-202 top (D-008)"}
+        temperature: {value: 338.0, provenance: assumed, source: "methanol boiling point"}
+        phase: {value: liquid, provenance: assumed, source: "condensate"}
+        flow: {value: 3987.708, basis: mass, provenance: assumed, source: "scripts/balance.py: all methanol overhead with 100 ppm(wt) water, the limit of US4216339A (D-008)"}
+        composition: {basis: mole_fraction, values: {MEOH: 0.999822, H2O: 0.000178}, provenance: assumed, source: "scripts/balance.py (D-008)"}
+  - id: S25
+    title: Dilute formic acid (48.9 wt%) to concentration
+    from: C202.bot
+    to: C301.in
+    template: acid
+    state:
+      design:
+        pressure: {value: 220.0, provenance: assumed, source: "pumped to C-301 (D-010)"}
+        temperature: {value: 378.0, provenance: assumed, source: "not calculated"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 17047.914, basis: mass, provenance: assumed, source: "scripts/balance.py (D-008)"}
+        composition: {basis: mole_fraction, values: {H2O: 0.727161, FA: 0.272839}, provenance: assumed, source: "scripts/balance.py (D-008)"}
+  # --- concentration ---------------------------------------------------------------------------
+  - id: S26
+    title: Water distillate (0.5 wt% formic acid) recycled to hydrolysis
+    from: C301.top
+    to: M201.water_rec
+    template: acid
+    state:
+      design:
+        pressure: {value: 203.0, provenance: assumed, source: "D-009"}
+        temperature: {value: 393.0, provenance: assumed, source: "water boiling point at 203 kPa(a), condensate"}
+        phase: {value: liquid, provenance: assumed, source: "condensate"}
+        flow: {value: 6252.459, basis: mass, provenance: assumed, source: "scripts/balance.py: water needed for water/MF 1.5 at the hydrolyser (D-008, D-009)"}
+        composition: {basis: mole_fraction, values: {H2O: 0.998037, FA: 0.001963}, provenance: assumed, source: "scripts/balance.py (D-009)"}
+  - id: S27
+    title: Near-azeotropic acid (77 wt%)
+    from: C301.bot
+    to: C302.in
+    template: acid
+    state:
+      design:
+        pressure: {value: 210.0, provenance: assumed, source: "D-009"}
+        temperature: {value: 403.0, provenance: assumed, source: "about 7 K above the water boiling point (maximum azeotrope), not calculated"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 10795.455, basis: mass, provenance: assumed, source: "scripts/balance.py: lever rule 85 / 77 / 66 wt% (D-009)"}
+        composition: {basis: mole_fraction, values: {FA: 0.567174, H2O: 0.432826}, provenance: assumed, source: "D-009: 77 wt%, below the about 80 wt% azeotrope at 2.03 bar(a) (EP3661904B1)"}
+  - id: S28
+    title: Formic acid 85 wt% product
+    from: C302.top
+    to: FA.in
+    template: acid
+    state:
+      design:
+        pressure: {value: 12.0, provenance: assumed, source: "D-009: 8-20 kPa, preferably 10-13 (EP2747883A1)"}
+        temperature: {value: 318.0, provenance: assumed, source: "condensate, not calculated (EP2747883A1: final vacuum step at most about 60 C)"}
+        phase: {value: liquid, provenance: assumed, source: "condensate"}
+        flow: {value: 6250.0, basis: mass, provenance: assumed, source: "D-002: 50 kt/a at 8000 h"}
+        composition: {basis: mole_fraction, values: {FA: 0.689251, H2O: 0.310749}, provenance: assumed, source: "D-002: 85 wt% HCOOH; methanol and methyl formate below detection assumed"}
+  - id: S29
+    title: Vacuum bottoms (66 wt%) recycled to hydrolysis
+    from: C302.bot
+    to: M201.acid_rec
+    template: acid
+    state:
+      design:
+        pressure: {value: 13.0, provenance: assumed, source: "D-009"}
+        temperature: {value: 335.0, provenance: assumed, source: "not calculated"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 4545.455, basis: mass, provenance: assumed, source: "scripts/balance.py: lever rule (D-009)"}
+        composition: {basis: mole_fraction, values: {FA: 0.431757, H2O: 0.568243}, provenance: assumed, source: "D-009: 66 wt% (EP2747883A1: 63-66 wt% bottoms at 10-13 kPa), recycled as hydrolysis catalyst as there"}
+  # --- energy ----------------------------------------------------------------------------------
+  - {id: Q1, title: CO compressor power, kind: energy, from: POWER.k101, to: K101.power, state: {design: {duty: {value: 470.4, provenance: assumed, source: "scripts/balance.py: ideal gas, 3 stages 200 -> 4600 kPa(a), isentropic 0.75, motor 0.95 (D-010)"}}}}
+  - {id: Q2, title: CO compressor intercoolers and aftercooler, kind: energy, from: K101.q, to: CW.k101, state: {design: {duty: {value: 446.9, provenance: assumed, source: "scripts/balance.py: compression heat to 313 K (D-010)"}}}}
+  - {id: Q3, title: Carbonylation feed pump power, kind: energy, from: POWER.p101, to: P101.power, state: {design: {duty: {value: 34.0, provenance: assumed, source: "scripts/balance.py: 4300 kPa, pump 0.60, motor 0.95 (D-010)"}}}}
+  - {id: Q4, title: Carbonylation heat to cooling water, kind: energy, from: R101.q, to: CW.r101, state: {design: {duty: {value: 1209.8, provenance: assumed, source: "scripts/balance.py: -37.7 kJ/mol liquid-phase heat of reaction (D-005)"}}}}
+  - {id: Q5, title: Effluent cooler duty, kind: energy, from: E101.q, to: CW.e101, state: {design: {duty: {value: 454.4, provenance: assumed, source: "scripts/balance.py: 353 -> 313 K, cp 2.5 kJ/(kg K) (D-011)"}}}}
+  - {id: Q6, title: C-101 reboiler, kind: energy, from: LPS.c101, to: C101.reb, state: {design: {duty: {value: 1951.8, provenance: assumed, source: "scripts/balance.py: (R+1) D dHvap, R = 1.0 (D-011)"}}}}
+  - {id: Q7, title: C-101 condenser, kind: energy, from: C101.cond, to: CW.c101, state: {design: {duty: {value: 1951.8, provenance: assumed, source: "scripts/balance.py: equal to the reboiler duty (D-011)"}}}}
+  - {id: Q8, title: Hydrolyser feed pump power, kind: energy, from: POWER.p201, to: P201.power, state: {design: {duty: {value: 7.5, provenance: assumed, source: "scripts/balance.py: 400 kPa, pump 0.60, motor 0.95 (D-010)"}}}}
+  - {id: Q9, title: Hydrolyser feed preheat, kind: energy, from: LPS.e201, to: E201.q, state: {design: {duty: {value: 1696.7, provenance: assumed, source: "scripts/balance.py: 340 -> 393 K (S19 -> S20), cp 3.0 kJ/(kg K), no feed-effluent exchange (D-011)"}}}}
+  - {id: Q10, title: Hydrolysis reaction heat, kind: energy, from: LPS.r201, to: R201.q, state: {design: {duty: {value: 256.5, provenance: assumed, source: "scripts/balance.py: +8 kJ/mol ASSUMED (D-008)"}}}}
+  - {id: Q11, title: C-201 reboiler, kind: energy, from: LPS.c201, to: C201.reb, state: {design: {duty: {value: 4574.6, provenance: assumed, source: "scripts/balance.py: R = 1.0 (D-011)"}}}}
+  - {id: Q12, title: C-201 condenser, kind: energy, from: C201.cond, to: CW.c201, state: {design: {duty: {value: 4574.6, provenance: assumed, source: "scripts/balance.py (D-011)"}}}}
+  - {id: Q13, title: C-202 reboiler, kind: energy, from: LPS.c202, to: C202.reb, state: {design: {duty: {value: 3051.1, provenance: assumed, source: "scripts/balance.py: R = 1.5 (D-011)"}}}}
+  - {id: Q14, title: C-202 condenser, kind: energy, from: C202.cond, to: CW.c202, state: {design: {duty: {value: 3051.1, provenance: assumed, source: "scripts/balance.py (D-011)"}}}}
+  - {id: Q15, title: C-301 reboiler, kind: energy, from: LPS.c301, to: C301.reb, state: {design: {duty: {value: 13287.1, provenance: assumed, source: "scripts/balance.py: R = 2.4 = 1.2 R_min (scripts/c301_rmin.py, D-011)"}}}}
+  - {id: Q16, title: C-301 condenser, kind: energy, from: C301.cond, to: CW.c301, state: {design: {duty: {value: 13287.1, provenance: assumed, source: "scripts/balance.py (D-011)"}}}}
+  - {id: Q17, title: C-302 reboiler, kind: energy, from: LPS.c302, to: C302.reb, state: {design: {duty: {value: 3074.0, provenance: assumed, source: "scripts/balance.py: R = 1.5 (D-011)"}}}}
+  - {id: Q18, title: C-302 condenser, kind: energy, from: C302.cond, to: CW.c302, state: {design: {duty: {value: 3074.0, provenance: assumed, source: "scripts/balance.py (D-011)"}}}}
+  - {id: Q19, title: C-302 vacuum system power, kind: energy, from: POWER.c302, to: C302.vac, state: {design: {duty: {value: 15.0, provenance: assumed, source: "D-011: allowance, ASSUMED"}}}}
+layout: {bfd: {}, pfd: {}}

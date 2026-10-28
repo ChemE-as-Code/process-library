@@ -1,0 +1,87 @@
+# Reactions of formic-acid-1. Schema: `cheme schema process-reactions`. Conversions are design
+# inputs (DESIGN.md D-005, D-008, D-010): a conversion model, not kinetics. The carbonylation
+# and the hydrolysis are liquid-phase reactions; the heats of reaction given here are liquid
+# phase. Core's reactor energy uses ideal-gas formation data and is not verified for liquid
+# reactors (core #315), so the reactor duties of the flowsheet come from scripts/balance.py.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  # R-101: methanol carbonylation over sodium methoxide (liquid phase, 353 K, 4500 kPa(a))
+  - id: CARB
+    equation: CH3OH + CO <=> HCOOCH3
+    stoichiometry: {MEOH: -1.0, CO: -1.0, MF: 1.0}
+    phase: mixed
+    reversible: true
+    conversion:
+      key: MEOH
+      value: 0.30
+      provenance: given
+      source: >-
+        US4216339A (UCB, 1980), Example 1: 30 % methanol conversion at 80 C and 44 bar with pure
+        CO and sodium methoxide, stated as 75 % of the about 40 % equilibrium limit at those
+        conditions; the patent advises staying below 75-85 % of the limit (Example 2)
+    heat_of_reaction:
+      value: -37700.0
+      provenance: assumed
+      source: >-
+        liquid phase, CO gas: ideal-gas formation enthalpies (cheme chemistry thermo, ATcT) minus
+        the heats of vaporization at 298.15 K of methyl formate (28.57 kJ/mol) and methanol
+        (37.46 kJ/mol) (cheme chemistry props --source Thermo); scripts/balance.py
+    catalyst: sodium methoxide, 2.5 wt% in the liquid feed
+    sources:
+      - "US4216339A, UCB SA (granted 1980-08-05): loop reactor, 70-110 C, 20-110 bar, 0.2-4 wt% methoxide, CO yield 92 mol% (Example 1), water limits (description)"
+      - "MDPI Catalysts 11 (2021) 869 (open access): conventional route with 2.5 wt% sodium methoxide at 80 C and 4.5 MPa, about 30 % methanol conversion (introduction; identified through search, not read in full)"
+  # R-101: catalyst loss: water entering with the recycle methanol destroys methoxide; the
+  # hydroxide formed takes up CO to sodium formate (net reaction written in one step)
+  - id: DEACT
+    equation: NaOCH3 + H2O + CO -> HCOONa + CH3OH
+    stoichiometry: {NAOME: -1.0, H2O: -1.0, CO: -1.0, NAFORM: 1.0, MEOH: 1.0}
+    reversible: false
+    conversion: {key: H2O, value: 1.0, provenance: assumed, source: "D-007: all water entering the carbonylation is taken to react with the methoxide to sodium formate, which US4216339A (description) names as the deactivation and precipitate"}
+  # R-201: methyl formate hydrolysis, autocatalysed by formic acid (liquid, 383-403 K, 600 kPa(a))
+  - id: HYD
+    equation: HCOOCH3 + H2O <=> HCOOH + CH3OH
+    stoichiometry: {MF: -1.0, H2O: -1.0, FA: 1.0, MEOH: 1.0}
+    phase: liquid
+    reversible: true
+    conversion:
+      key: MF
+      value: 0.28924
+      provenance: assumed
+      source: >-
+        scripts/balance.py (D-008): 95 % of the equilibrium conversion of the reactor feed
+        (water/MF 1.5 mol/mol, formic acid and methanol of the recycles) with Kx = 0.20; Kx
+        from EP2747883A1 (background: K = 0.18-0.24) and EP3661904B1 (examples: Kx 0.18); the 95
+        % approach ASSUMED (US4299981, an unverified lead: its full text is not read, D-008).
+        EP3661904B1 reports 28 % and 32 % at water/ester 1.42 and 1.82
+    equilibrium_constant:
+      basis: mole_fraction
+      a: -1.6094      # ln Kx = ln 0.20, taken constant over 90-140 C (no temperature dependence sourced)
+      temperature_range: [363.15, 413.15]
+      provenance: given
+      source: "EP2747883A1 (background): K = 0.18-0.24; EP3661904B1 (examples): Kx 0.18; mid value 0.20 (D-008)"
+    heat_of_reaction:
+      value: 8000.0
+      provenance: assumed
+      source: "D-008: nearly thermoneutral, ASSUMED +8 kJ/mol (liquid); no sourced liquid-phase value read yet (open input)"
+    catalyst: formic acid (autocatalytic; EP2747883A1)
+    sources:
+      - "EP2747883A1, Taminco BV (2014): hydrolysis 90-140 C, 2-7 bar, autocatalysed by formic acid, K 0.18-0.24, decomposition to CO above about 140 C"
+      - "EP3661904B1, Eastman Chemical Co. (A1 2020, B1 2026): conversion 25-30 % even at water/ester 2, Kx 0.18"
+      - "US4299981 (unverified lead: claims and abstract as returned by search, full text not read): liquid-phase hydrolysis 90-140 C, 5-18 atm, a molar ratio of ester and water of 1.5-10 whose direction the search text leaves unclear (it covers the design's water/ester 1.5 only if read as water/ester), reactor for >= 95 % of equilibrium"
+  # X-101: thermal oxidation of the carbonylation vent
+  - id: CO_COMB
+    equation: CO + 1/2 O2 -> CO2
+    stoichiometry: {CO: -1.0, O2: -0.5, CO2: 1.0}
+    reversible: false
+    conversion: {key: CO, value: 0.999, provenance: assumed, source: "D-010: destruction efficiency of the thermal oxidiser, ASSUMED"}
+  - id: MF_COMB
+    equation: HCOOCH3 + 2 O2 -> 2 CO2 + 2 H2O
+    stoichiometry: {MF: -1.0, O2: -2.0, CO2: 2.0, H2O: 2.0}
+    reversible: false
+    conversion: {key: MF, value: 0.999, provenance: assumed, source: "D-010, ASSUMED"}
+  - id: MEOH_COMB
+    equation: CH3OH + 3/2 O2 -> CO2 + 2 H2O
+    stoichiometry: {MEOH: -1.0, O2: -1.5, CO2: 1.0, H2O: 2.0}
+    reversible: false
+    conversion: {key: MEOH, value: 0.999, provenance: assumed, source: "D-010, ASSUMED"}
