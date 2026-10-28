@@ -66,7 +66,24 @@ def psat_kpa(name, t):
     return Chemical(name, T=t, P=101325).Psat / 1000.0
 
 
+R_GAS = 8.314462                       # kJ/(kmol K)
+
+
+def hvap_cc(name, t, dt=1.0):
+    """Clausius-Clapeyron heat of vaporisation (kJ/kmol) from the slope of thermo's vapour
+    pressure at t: ideal vapour, liquid volume neglected (a few % high near 1 atm)."""
+    from math import log
+    return R_GAS * t * t * (log(psat_kpa(name, t + dt)) - log(psat_kpa(name, t - dt))) / (2 * dt)
+
+
 def hvap(name, t):
+    # POCl3: thermo's Hvap correlation is 20-26 % below its own vapour pressure (34.6 kJ/mol near
+    # the boiling point) and below the CRC formation enthalpies (gas -558.5, liquid -597.1 kJ/mol:
+    # 38.6 kJ/mol at 298 K), review 2026-10-28-pfd-lci-review#1. Take it from the vapour pressure
+    # the vent condensers use. PCl3: thermo's Hvap agrees with its own vapour pressure within
+    # 1-6 % over 283-379 K (printed by main) and is kept (D-008).
+    if name == "POCl3":
+        return hvap_cc(name, t)
     c = Chemical(name, T=t, P=101325)
     return c.Hvap * c.MW / 1000.0          # kJ/kmol
 
@@ -103,7 +120,7 @@ def run(p4_kmol):
     vap = vent_vapour(liq, sum(gas.values()), T_VENT, P_VENT)
     s4 = add(gas, vap)                              # vent of R-101
     s3 = {k: liq[k] - vap.get(k, 0.0) for k in liq} # crude PCl3 to M-201
-    q_r101 = -(p4_kmol * DH_R1 + o2_r1 * DH_R2) / 3600.0
+    q_r101 = -(p4_kmol * DH_R1 + 2 * o2_r1 * DH_R2) / 3600.0      # DH_R2 per kmol PCl3 = 2 O2
     # chilled-water vent condenser: vapour held at 308 K saturation condensed down to T_VENT
     vap308 = vent_vapour(liq, sum(gas.values()), 308.15, P_VENT)
     q_v101 = sum((vap308[k] - vap[k]) * hvap(n, T_VENT) for k, n in (("PCL3", "PCl3"), ("POCL3", "POCl3"))) / 3600.0
@@ -223,6 +240,10 @@ def main():
     p_out = r["s9"].get("PCL3", 0) + r["s9"]["POCL3"] + r["s12"]["POCL3"] + r["s21"].get("PCL3", 0) + r["s21"].get("POCL3", 0) + r["s22"]["NA2HPO3"] + r["s22"]["NA3PO4"]
     print(f"P atoms in {p_in:.6f}, out {p_out:.6f} kmol/h; P yield to product {r['s9']['POCL3'] / p_in:.5f}")
     print(f"DH_R1 {DH_R1:.0f} kJ/kmol P4, DH_R2 {DH_R2:.0f} kJ/kmol PCl3")
+    for t in (283.15, 298.15, 365.0, T_C302_TOP):
+        print(f"Hvap POCl3 at {t:.1f} K: {hvap('POCl3', t):.0f} kJ/kmol (thermo correlation "
+              f"{Chemical('POCl3', T=t).Hvap * MW['POCL3'] / 1000.0:.0f}); "
+              f"PCl3 {hvap('PCl3', t):.0f} (Clausius-Clapeyron {hvap_cc('PCl3', t):.0f})")
 
 
 if __name__ == "__main__":

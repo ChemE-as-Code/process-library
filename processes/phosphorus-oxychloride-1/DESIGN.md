@@ -84,8 +84,10 @@ that removes the heat by evaporation; SRC-3's pressurised microchannel reactor r
 130-150 C steam is an energy-recovery option for later (it would turn 2.4 MW of cooling-water
 duty into low-pressure steam).
 Rejected: chlorine excess (makes PCl5); liquefying the chlorine first (the O2 is harmless here).
-Heat: 1281.3 kJ per mol P4 (liquid PCl3 from molten P4 and gaseous Cl2 at 298 K, SRC-6) gives
-2388.7 kW to cooling water; sensible heat of the feeds neglected (< 2 %).
+Heat: 1281.3 kJ per mol P4 (liquid PCl3 from molten P4 and gaseous Cl2 at 298 K, SRC-6) plus
+277.4 kJ per mol of the PCl3 oxidised by the chlorine's O2 gives 2443.2 kW to cooling water;
+sensible heat of the feeds neglected (< 2 %). (Corrected from 2388.7 kW, which counted the
+oxidation heat per mol O2 instead of per mol PCl3: review 2026-10-28-pfd-lci-review#2.)
 
 ## D-005 PCl3 oxidation (R-201) (2026-10-28)
 Decision: liquid PCl3 oxidised with 5 % molar excess oxygen (inside the preferred 1-10 % of
@@ -132,9 +134,16 @@ Decision: C-301 light-ends column takes 99.5 % of the PCl3 overhead in a 50 mol%
 (36 kg/h) recycled to R-201, reflux ratio 3; C-302 takes the POCl3 overhead (product) and purges
 0.5 % of its feed as residue to hazardous-waste incineration, reflux ratio 0.5. LP steam at
 400 kPa(a) (417 K) on both reboilers, 38 K above the POCl3 boiling point. All splits and reflux
-ratios ASSUMED; constant molar overflow with thermo heats of vaporisation; liquid cp
-0.9 kJ/(kg K) ASSUMED (the thermo liquid heat capacities of PCl3/POCl3 looked implausibly low and
-were not used).
+ratios ASSUMED; constant molar overflow; liquid cp 0.9 kJ/(kg K) ASSUMED (the thermo liquid heat
+capacities of PCl3/POCl3 looked implausibly low and were not used). Heats of vaporisation: PCl3
+from thermo's correlation (within 1-6 % of its own vapour pressure over 283-379 K); POCl3 from
+the Clausius-Clapeyron slope of thermo's vapour pressure (34.6 kJ/mol at 378.9 K, 37.0 kJ/mol at
+298 K), because thermo's POCl3 correlation (27.5 and 30.3 kJ/mol) is 20-26 % below both that
+slope and the 38.6 kJ/mol at 298 K implied by the CRC formation enthalpies of materials.yaml
+(gas -558.5, liquid -597.1 kJ/mol). The slope neglects vapour non-ideality and liquid volume and
+stays about 4 % below the CRC value at 298 K; it is used because it is the same vapour pressure
+as the vent condensers' (review 2026-10-28-pfd-lci-review#1; check printed by
+scripts/balance.py). C-302 reboiler and condenser 376.4 kW (298.4 kW before the correction).
 Reason: PCl3 (349 K) and POCl3 (379 K) are 30 K apart, an easy separation (SRC-2 separates the
 chlorides by fractional distillation). Taking the product overhead leaves non-volatiles
 (metal chlorides, polyphosphoryl chlorides of SRC-2) in a small residue; their amount is not
