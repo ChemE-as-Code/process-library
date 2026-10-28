@@ -25,7 +25,7 @@ agent-drafted 2026-10-28, not reviewed. Numbers live in `process/*.yaml`, `lca/l
 | SRC-2 | US Bureau of Mines, Minerals Yearbook 1987, iodine chapter (p. 466 of the volume), https://search.library.wisc.edu/digital/APCUAWIWNUXSEF9A | Woodward brine paragraph | search-result extract read, not the full chapter | public-domain US government work | Woodward (Morrowan Formation, about 7500 ft) brine iodine averaging 300 ppm by weight (D-003) |
 | SRC-3 | US 2013/0243684 A1, "Systems, methods, and apparatus for iodine removal from high volume dilute brine", https://patents.google.com/patent/US20130243684 | Background of the invention | Google Patents text read (machine summary) | patent: facts with citation | blow-out as the reference process for brines of about 300 mg/L and more; H2S removal, acidification, chlorination, air stripping, absorber with HI/H2SO4 and SO2, chlorinated slip-stream precipitating iodine, filtering, melting under concentrated H2SO4; lime before reinjection; at 90 % recovery about 30 mg/L iodine returned (D-001, D-004..D-006, D-009) |
 | SRC-4 | US 4,282,324 A (Cetus, 1981), "Method for producing iodine", https://patents.google.com/patent/US4282324A/en | Background (conventional Michigan brine process) | read (machine summary) | patent: facts with citation | sequence clarification, H2SO4 acidification, slight chlorine excess, counter-current denuding tower, HI/H2SO4 absorption with SO2, partial bleed to a chlorination reactor, settling and filtering, melting under H2SO4 (D-004..D-006) |
-| SRC-5 | US 1,897,031 A (Dow, 1933), "Recovering iodine from natural waters and the like", https://patents.google.com/patent/US1897031A/en | description and claims 1-6 | read (machine summary of OCR text) | patent (expired): facts with citation | acidification with H2SO4 to about pH 3 (lower limit for full liberation); chlorine equivalent to the iodine, controlled by oxidation potential (about 0.50-0.54 V at the end point); counter-current tower blowing removes 90-100 % of the free iodine without excessive air (D-004, D-005) |
+| SRC-5 | US 1,897,031 A (Dow, 1933), "Recovering iodine from natural waters and the like", https://patents.google.com/patent/US1897031A/en | description and claims 1-6 | read (machine summary of OCR text) | patent (expired): facts with citation | acidification with H2SO4 to about pH 3 (the highest pH for complete liberation); chlorine equivalent to the iodine, controlled by oxidation potential (about 0.50-0.54 V at the end point); counter-current tower blowing removes 90-100 % of the free iodine without excessive air (D-004, D-005) |
 | SRC-6 | US 9,994,448 B2 (2018), "Iodine extraction processes", https://patents.google.com/patent/US9994448B2/en | Background and definitions | read (machine summary) | patent: facts with citation | natural brines typically about 100 ppm iodine (the Oklahoma brines are richer); blow-out leaves acidified brine of pH 1-3 needing neutralisation (sodium hydroxide named) (D-004, D-009) |
 | SRC-7 | chlor-alkali-1, sulfuric-acid-1 (this library), process/flowsheet.yaml products | CL2 (dry gas, 400 kPa(a)), NAOH (50 wt%), ACID (98.5 wt%) | read | own data | feed states and grades (D-002) |
 | SRC-8 | NBS tables of chemical thermodynamic properties (Wagman et al. 1982, J. Phys. Chem. Ref. Data 11 Suppl. 2) | standard enthalpies of formation of the ions | values recalled, not re-read in this run | facts | heats of reaction in process/reactions.yaml, ASSUMED until checked (D-007) |
@@ -46,11 +46,11 @@ The held-out benchmark of the issue was not searched for.
 | brine H2S, oil, solids, bromide, ammonium, organics | - | missing; removed at the wellhead or not modelled (D-003) |
 | acidification | pH about 2.4 (ideal estimate) | proposed inside SRC-5 (pH 3 limit) and SRC-6 (pH 1-3) |
 | chlorine | 5 % over stoichiometry, 98 % iodide oxidised | proposed: slight excess (SRC-4), redox end point (SRC-5); numbers ASSUMED |
-| blowing-out | 92 % of free iodine, 130 Nm3/m3 | 92 % inside SRC-5's 90-100 %; air ratio ASSUMED, checked against the sourced Henry constant (SRC-11, D-005) |
+| blowing-out | 92 % of free iodine, 130 Nm3/m3 | 92 % inside SRC-5's 90-100 %; air ratio ASSUMED; the sourced fresh-water Henry constant (SRC-11) gives only an upper bound of the stripping factor, chloride complexation open (D-005); gated sizing (D-007) |
 | absorber | 99.5 % absorbed, 2 % SO2 excess, bleed 10 wt% HI | scheme sourced (SRC-3, SRC-4); numbers ASSUMED |
 | precipitation and filter | 99.5 % HI oxidised, 99 % precipitated, cake 10 wt% liquor | scheme sourced (SRC-3, SRC-4); numbers ASSUMED |
 | melting | under 98.5 wt% H2SO4, 0.2 kg/kg | scheme sourced (SRC-3, SRC-4); amount ASSUMED |
-| overall recovery | 90.0 %, 29.8 mg/kg iodine left | calculated; agrees with SRC-3 (90 %, about 30 mg/L) |
+| overall recovery | 90.0 %, 29.8 mg/kg iodine left | calculated from the ASSUMED yields, which were chosen within sourced ranges so that the recovery equals SRC-3's 90 % (calibrated, not a check; D-006) |
 | product | 99.8 wt% I2 | ASSUMED (SRC-1 quotes about 98 % for Oklahoma flake/prill) |
 | neutralisation, reinjection | caustic to neutral, 3100 kPa(a) | reinjection sourced (SRC-1); caustic named in SRC-6; pressure ASSUMED |
 | kinetics, tower sizes, vendor data, utility prices, site | - | missing |
@@ -60,7 +60,7 @@ The held-out benchmark of the issue was not searched for.
 | calculation | method used | qualified by cheme? | gate |
 |---|---|---|---|
 | R-101, T-202, R-301, R-401 outlets | conversion model (specified conversions, process/reactions.yaml), element balances checked by cheme | yes (balance and extents); conversions specified, not predicted | none for a concept balance |
-| T-201 blowing-out split, F-301, M-301 | specified splits (scripts/iodine_balance.py) | no (specified stream values) | an I2/Cl2/CO2 vapour-liquid model in acid chloride brine needs electrolyte support (core #364) |
+| T-201 blowing-out split, F-301, M-301 (step M301 included: specified, script values for S19/S20, although `cheme maturity` infers "equilibrium-stage, predictive, sourced" from its DEXPI class SeparatingByPhaseSeparation; a core inference to report) | specified splits (scripts/iodine_balance.py) | no (specified stream values) | an I2/Cl2/CO2 vapour-liquid model in acid chloride brine needs electrolyte support (core #364) |
 | recycles (air loop, filtrate, spent acid) | successive substitution in scripts/iodine_balance.py; splitter and pass-throughs by `cheme process propagate --fill` | balances yes | - |
 | solids (I2 crystals, cake, melt) | I2 carried as one component; state in the stream title | no | solids support (core #365) |
 | stream enthalpies, energy closure | duties from hand enthalpy estimates (D-008); `cheme process energy`: not evaluable | no | no property package for these liquors (core #364); reactors declared adiabatic |
@@ -139,10 +139,21 @@ Reason: tower blowing and the HI/H2SO4-SO2 absorber with bleed are the sourced s
 SRC-4); 92 % lies in SRC-5's 90-100 %. Air ratio check (SRC-11): iodine's Henry solubility
 about 3.0e-2 mol/(m3 Pa) at 298 K with d ln H/d(1/T) about 4400 K gives 1.5e-2 at 313 K, a
 dimensionless gas/liquid ratio of about 0.026, and with 130 Nm3/m3 (144 m3/m3 at 313 K and
-105 kPa(a)) a stripping factor of about 3.7 in fresh water (salting-out raises it): enough for
-92 % with a few theoretical stages, so the air ratio is conservative. ASSUMED, to be sized with
-a qualified model (the I3- complex with residual iodide lowers the volatility, D-007). The closed loop keeps the iodine and chlorine
-emissions small; the purge carries out the CO2 and water.
+105 kPa(a)) a stripping factor of about 3.7 in fresh water. This is an upper bound, not a
+confirmation: salting-out raises the volatility, but two effects lower the free I2 and so the
+stripping factor, the I3- complex with the residual iodide and the chloride complex I2Cl- in a
+brine with about 1.9 mol/kg chloride. The I2Cl- formation constant is not sourced in this run;
+if it is of the order of 1-2 kg/mol (the 2026-10-28 review's estimate, to be verified) the
+stripping factor falls to about 1, and a factor near 1 cannot give 92 % at any number of
+stages. The air ratio is therefore an open, ASSUMED value: its sizing is gated with T-201
+(D-007). Sensitivity: at twice the air ratio K-201 needs about 200 kW at the same 4 kPa rise
+(more with the higher tower pressure drop), adding about 0.8 kWh/kg to the 4.8 kWh/kg of
+power (+17 %). The closed loop keeps the iodine and chlorine emissions small; the purge
+carries out the CO2 and water.
+Open check (T-202): 30 m3/h of absorbent in a tower of roughly 3 m diameter for about
+62 000 m3/h of loop gas is a wetting rate of about 4 m3/(m2 h), below the usual minimum for
+random packings. When T-202 is sized, raise the circulation (P-202 power, 4 kW, scales with
+it) or choose a packing or contactor suited to low liquid rates; the balance is unaffected.
 Rejected: once-through air (larger iodine slip to air); activated carbon adsorption (SRC-5)
 for this concentration.
 Assumptions: stripping fraction, air ratio, purge fraction, absorption fraction, SO2 excess,
@@ -161,8 +172,11 @@ head (recovering its dissolved iodine and HI). The cake is melted under 98.5 wt%
 returns to the brine head as its acid make-up.
 Reason: the scheme is sourced (SRC-3, SRC-4); returning the acid liquors to the brine head
 closes the acid and iodine loops (no liquid waste besides the spent brine).
-Result: overall recovery 90.0 %, 29.8 mg/kg iodine in the spent brine, matching SRC-3's 90 %
-and about 30 mg/L. Plant in 466 939.4 kg/h = out 466 939.4 kg/h.
+Result: overall recovery 90.0 %, 29.8 mg/kg iodine in the spent brine. This is calibrated, not
+a check: the yields (98 % x 92 % x 99.5 % x 99.5 % x 99 %, with the recycles) were chosen within
+sourced ranges so that the overall recovery equals the 90 % that SRC-3 states, and the
+29.8 mg/kg then follows from 300 mg/kg x (1 - 0.90). Plant in 466 939.4 kg/h = out
+466 939.4 kg/h.
 Assumptions: all yields, cake moisture and acid ratio ASSUMED; the iodine solubility in the
 mother liquor (triiodide) is represented by the 1 % that stays dissolved; melter vent (HCl,
 iodine vapour) not modelled (LCI exclusion).
@@ -178,8 +192,9 @@ Reason: core supports no electrolyte system beyond aqueous NaCl (`cheme process 
 and no solids (core #364, #365, as of core `47c8fa39`); I-/I2/I3-, Cl2/HOCl and HSO4-
 equilibria would be needed for a predictive model.
 Rejected: forcing an equation-of-state package on these streams (outside any validated range).
-Gated step: a predictive T-201/T-202 model and the energy balance wait for electrolyte support
-(core #364) and solids (core #365); until then the specified values stand, labelled.
+Gated step: a predictive T-201/T-202 model (stripping fraction and air ratio, with the I3- and
+I2Cl- complexes, D-005) and the energy balance wait for electrolyte support (core #364) and
+solids (core #365); until then the specified values stand, labelled.
 
 ## D-008 Conditions, duties and utilities (2026-10-28)
 Decision: the brine section runs at 313 K (brine temperature); towers near atmospheric
@@ -206,7 +221,8 @@ iodide/iodate at neutral pH; same element balance); the injection pressure is AS
 ## D-010 Lists (2026-10-28)
 Decision: equipment list with the 11 items the PFD links (R-101, T-201, T-202, P-202, K-201,
 R-301, F-301, M-301, X-301, R-401, P-401), ASSUMED design conditions (operating + 10 %, at least
-+2 bar; +25 K) and first-choice non-metallic or lined materials for wet chlorine and acid
++2 bar; +25 K over the operating temperature, or over the heating medium where that is hotter:
+M-301 at 175 °C against its 450 kPa(a) steam jacket) and first-choice non-metallic or lined materials for wet chlorine and acid
 iodide liquors. No line or instrument list (no P&ID at this stage). P-401 uses the DEXPI class
 TransportingFluids: `cheme process build` (core 0.8.0) fails on the class Pumping (its pyDEXPI
 method field is a Union; core finding, to be reported).
