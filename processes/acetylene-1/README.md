@@ -4,6 +4,12 @@ A plant design kept as plain files in git: DEXPI 2.0.1 P&IDs in `pid/`, engineer
 YAML, decisions and progress as Markdown. Edited by people and by coding agents (Claude Code),
 checked by [`cheme-as-code`](https://github.com/ChemE-as-Code/core).
 
+Status (2026-10-28): concept stage. 6.25 t/h acetylene by BASF-type partial oxidation of natural
+gas with oxygen, water quench, soot removal and NMP recovery, with synthesis gas as co-product;
+balanced BFD/PFD (`process/`), independent balance `scripts/balance.py`, preliminary
+gate-to-gate LCI with unmapped backgrounds (`lca/`). Decisions, sources and open inputs in
+`DESIGN.md`. No P&IDs, layout or HAZOP yet.
+
 | path | what |
 |---|---|
 | `plant.yaml` | name, stage, sheets |

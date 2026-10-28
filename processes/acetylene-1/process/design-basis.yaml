@@ -1,8 +1,52 @@
 # What the plant must do. Schema: `cheme schema design_basis`.
+# Acetylene by partial oxidation of natural gas with oxygen (BASF / Sachsse-Bartholome type),
+# issue ChemE-as-Code/process-library#184. Values marked ASSUMED are engineering choices of this
+# concept study, not client or licensor data; every decision is in DESIGN.md.
 schema: cheme/design_basis/v1
-capacity: {}
-feeds: []
-products: []
-utilities: []
-site: {}
-assumptions: []
+capacity:
+  basis: acetylene gas (99.5 mol%) at the battery limit to adjacent consumers (e.g. vinyl, butanediol or acrylic chemistry), not stored or compressed in the boundary
+  acetylene_kg_per_h: 6250            # ASSUMED (D-002): 50 kt/a C2H2 at 8000 h; product stream 6285 kg/h with CO2 and water
+  operating_hours_per_year: 8000      # ASSUMED (D-002)
+  turndown_percent: 60                # ASSUMED, not checked (burners switched in or out)
+feeds:
+  - name: Natural gas (pipeline)
+    source_of_values: ASSUMED (D-003)
+    composition: "CH4 98.0, CO2 0.5, N2 1.5 mol% (lean gas); ethane and heavier, sulfur and mercury to be specified for the site (open input, D-003)"
+    conditions: {temperature_K: 303.15, pressure_kPa_a: 400}
+  - name: Oxygen (cryogenic air separation by pipeline; e.g. asu-1 GOX)
+    source_of_values: ASSUMED (D-003)
+    composition: "O2 99.5, Ar 0.5 mol%"
+    conditions: {temperature_K: 303.15, pressure_kPa_a: 400}
+  - name: N-methyl-2-pyrrolidone make-up
+    source_of_values: ASSUMED (D-009)
+    composition: "NMP, technical grade; 2 g per kg acetylene"
+  - name: Combustion air for the fired preheater
+    composition_dry_mol_percent: {N2: 78.11, O2: 20.96, Ar: 0.93}   # CO2 lumped into N2
+products:
+  - name: Acetylene
+    purity: "99.55 mol% C2H2, 0.25 mol% CO2, 0.2 mol% H2O in the balance; higher acetylenes below detection in the model (removed in the pre-wash, D-009). Specification of the consumer open."
+    delivery: {temperature_K: 313.15, pressure_kPa_a: 120, battery_limit: "acetylene header to the consumers; no compression in the boundary (D-002)"}
+  - name: Synthesis gas (co-product)
+    note: "61 % H2, 28 % CO, 5.5 % CH4, 3.8 % CO2 (mol), H2/CO 2.15, 1070 kPa(a); 36.2 t/h = 5.8 kg per kg acetylene, to methanol or oxo users outside the boundary (D-009)"
+  - name: Soot sludge
+    note: "Carbon black, 10 wt% in water, 290 kg/h soot, to incineration (D-006)"
+  - name: Quench-water purge
+    note: "17 t/h water with traces of dissolved hydrocarbons after vacuum degassing, to wastewater treatment (D-006)"
+  - name: Fired-heater flue gas
+    note: "CO2 of the burnt off-gas and support fuel, traces of unburnt hydrocarbons; NOx not estimated (D-011)"
+utilities:
+  - {name: Electric power, use: "cracked-gas compressor, pumps, ESP, vacuum pump, air fan (D-007, D-012)"}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "circuit-water cooler (quench heat), compressor coolers, lean solvent cooler", note: ASSUMED}
+  - {name: MP steam, pressure_kPa_a: 1200, use: "acetylene stripper and hot-stripper reboiler (bottom 443 K)", note: "ASSUMED; site boiler; part of the hot-stripper heat comes from the fired heater's convection section (D-012)"}
+  - {name: Fuel, use: "natural-gas support fuel of the fired preheater, 10 % of the firing", note: "ASSUMED (D-011); the main fuel is the plant's own off-gas"}
+site:
+  location: ASSUMED generic site with natural gas, oxygen (air separation) and synthesis-gas users, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "ASSUMED natural gas and oxygen preheated separately to 873 K (600 C), the value of the examples of US5824834A and of US8975460B2 and US11459281B2 (D-004)."
+  - "Burner as a sourced outlet-composition model (D-005): dry cracked gas of US8975460B2 (H2 56, CH4 5, C2H2 7.5, CO 26, CO2 3.5, higher hydrocarbons 1 vol%), acetylene/soot 22 kg/kg (US5824834A comparative example 2), residual O2 0.1 vol% ASSUMED; O2/NG 0.602 and the adiabatic 1970 K follow."
+  - "ASSUMED water quench to 353 K (80-90 C per US11459281B2 claim 1), cooling column to 308 K, ESP; closed water circuit degassed at 400 mbar(a) (99.31 % of the dissolved hydrocarbons, US11459281B2) and cooled to 303 K with cooling water (D-006)."
+  - "ASSUMED three-stage compression to 11 bar(a), isentropic efficiency 0.78 (D-007)."
+  - "ASSUMED NMP recovery splits and solvent loading 20 Nm3 C2H2/m3 (inside the 15-35 cited in US10059640B2); 98.0 % of the acetylene formed reaches the product to product (D-009)."
+  - "All flows, temperatures and duties are concept estimates (scripts/balance.py); accuracy +/-30 % not demonstrated."
