@@ -1,0 +1,23 @@
+# potassium-permanganate-1's own exchange overrides for the Atlas LCI build (build_lci.py,
+# ADR 0022). Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange
+# keys (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml,
+# gives the exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# Only the unit conventions of the utilities are set here (steam and fired heat counted as heat
+# delivered in kWh, demineralised water by mass), as the other case processes do. The raw
+# materials and wastes stay UNMAPPED on purpose: this process is internal, so each is a reported
+# gap of the build (ADR 0022), never 0. What each should connect to is in lca/lca.yaml
+# (`missing:`) and DESIGN.md D-011:
+#   feed:ORE      manganese ore concentrate (~78 wt% MnO2), no shared entry yet
+#   feed:KOH      potassium hydroxide 50 wt% solution (KCl electrolysis), no shared entry yet
+#   feed:LIME     hydrated lime, no shared entry yet
+#   product:RESIDUE  alkaline Mn-bearing mineral residue to landfill; `inert-waste-landfill` is
+#                 not assumed because the residue holds manganate traces (a residual-material
+#                 landfill may be needed): left open
+#   product:PURGE alkaline Mn(VI/VII) effluent; the average municipal treatment behind
+#                 `wastewater` does not represent Mn reduction and neutralisation: left open
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a) to the leach, the KOH evaporator and the dryer, counted as heat delivered (kWh, condensate returned)"}
+  "feed:FUEL": {use: heat-natural-gas, source: "indirect natural gas firing of the roaster, counted as heat absorbed (kWh); combustion emissions in the background"}
+  "feed:PW": {use: water, chemical: water, source: "demineralised process water to the leach, by mass"}

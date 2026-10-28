@@ -1,36 +1,79 @@
-# Process Atlas manifest. Copy this folder to processes/<your-id>/ and edit.
-# Schema: schemas/process.schema.json (cheme-as-code/process/v1). Every slug used under
-# chemistry must exist in chemicals/chemicals.yaml; add new chemicals there in the same change.
-# A product in a defined state and purity names its registry grade: `chemical: oxygen/lox`.
+# Process Atlas manifest of potassium-permanganate-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
 schema: cheme-as-code/process/v1
-id: my-process                  # = folder name; lowercase slug; never rename once listed
-title: Short descriptive process title
+id: potassium-permanganate-1
+title: Potassium permanganate from MnO2 ore by KOH roasting and electrolysis (1250 kg/h, concept)
 summary: >-
-  One or two sentences for cards and search results: what goes in, what comes out, at what scale.
-# description: |                # optional longer Markdown for the process page
-families: [hydrogen]            # slugs of taxonomy/families.yaml (ISIC-mapped), e.g. ammonia, methanol, air-separation
-keywords: []
-# facets:                      # optional, for filtering in the Atlas; list only what the design has
-#   feedstock_basis: [water, electricity]   # fossil | biogenic | atmospheric | mineral | recycled | water | electricity
-#   product_classes: [fuels]               # slugs, e.g. industrial-gases, fuels, fertilizers, polymers, chemicals, materials
-#   unit_operations: [electrolysis]        # slugs, e.g. cryogenic-distillation, adsorption, compression, reaction, electrolysis
-#   region: generic                        # e.g. generic, EU
-# Design maturity (claimed, capped by evidence: the calculation maturity in checks/maturity.json
-# of an engineering project; at most concept beside a Tier 0/1 LCI dataset):
-maturity: concept               # concept | screening | basic-engineering | detail-engineering | operating-reference
-validation:                     # review status: set by people only; passing checks is not a review
-  status: unreviewed            # unreviewed | internally-reviewed | peer-reviewed | industry-validated
+  Technical-grade KMnO4 from manganese ore: KOH roasting with air to potassium manganate,
+  leaching, electrolytic oxidation in divided cells, crystallisation and drying, with the KOH
+  recycled by evaporation. Concept stage, assumed basis, preliminary gate-to-gate inventory.
+description: |
+  Dried, ground MnO2 ore is roasted with concentrated KOH (recycled from the evaporator plus
+  50 wt% make-up) and air in an indirectly gas-fired kiln at about 523 K, giving a potassium
+  manganate cake. The cake is leached with recycled mother liquor at 333 K; lime precipitates
+  the dissolved silicate, and the residue (unreacted MnO2, gangue, calcium silicate) is
+  filtered and washed with the evaporator condensate. The manganate liquor is oxidised to
+  permanganate in divided cells (cation-exchange membrane, 2.5 V, 1000 A/m2); hydrogen leaves
+  the cathodes. KMnO4 crystallises on cooling to 303 K, is centrifuged and steam-dried. Most of
+  the mother liquor returns to the leach; a share is concentrated to 50 wt% KOH for the roaster
+  and 3 % is purged. Overall 2 MnO2 + 2 KOH + O2 -> 2 KMnO4 + H2.
+
+  All flows are concept estimates from an independent sequential balance
+  (scripts/kmno4_balance.py) on assumed design parameters (roaster conversion, current
+  efficiency, cell voltage, mother-liquor composition, purge), anchored where possible to
+  patent ranges (US 5660712, US 5011672). No electrolyte speciation or solid-liquid
+  equilibrium is calculated. See DESIGN.md for every assumption and gated step.
+families: [inorganic-chemicals]
+keywords: [potassium permanganate, KMnO4, potassium manganate, manganese dioxide, pyrolusite, KOH roasting, electrolytic oxidation, membrane cell, crystallisation, potassium hydroxide recovery]
+facets:
+  feedstock_basis: [mineral, electricity]
+  product_classes: [chemicals]
+  unit_operations: [reaction, electrolysis, crystallization, filtration, evaporation, drying]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest; every design parameter is assumed.
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept BFD/PFD with closed mass, component and element balances (cheme validate, cheme
+    process streams: 5 blocks, 10 steps, reactive balances by extents) and a closed Faraday,
+    charge and energy balance of the cells (cheme process cell). All flows and compositions
+    are specified values of an independent balance (scripts/kmno4_balance.py) on assumed design
+    parameters; the current efficiency (0.85) has no open source and the cell voltage (2.5 V)
+    is only bracketed by a patent range. No electrolyte speciation (core #364) and no
+    multi-solute crystalliser (the core crystalliser models one solute, core #365); no property
+    package covers the liquors, melts and solids, so the duties are a lumped script estimate.
+    The gate-to-gate LCI is preliminary, with every background unmapped. Not reviewed.
 chemistry:
   inputs:
-    - {chemical: water, role: feedstock}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Demineralised process water to the leach. Manganese ore, KOH and hydrated lime have no registry entries yet"}
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Roaster oxidant"}
   outputs:
-    - {chemical: hydrogen, role: main-product}
+    - {chemical: wastewater, role: waste, inventory_key: "product:PURGE", note: "Mother-liquor purge (KOH, manganate, permanganate) to effluent treatment, ~0.70 kg/kg. The main product (potassium permanganate) has no registry entry yet"}
+    - {chemical: hydrogen, role: emission, inventory_key: "product:H2V", note: "Cathode hydrogen vented, ~8 g/kg; recovery as fuel is an open option"}
   utilities:
-    - {chemical: electricity, role: utility}
-# basis: {capacity: "1000 t/d product", operating_hours_per_year: 8000}
-# lca: {source: auto}           # auto: read lca/ of a ChemE-as-Code project; none: no LCA
-# references:
-#   - {title: "Author et al. (2024) Title", doi: 10.xxxx/xxxxx}
-# maintainers:
-#   - {name: Your Name, orcid: 0000-0000-0000-0000}
-# repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/my-process, access: private}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "DC for the cells through rectifiers (0.55 kWh/kg AC) and auxiliaries"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 450 kPa(a): KOH evaporator, leach heating, dryer (counted as heat, kWh)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED)"}
+basis:
+  capacity: "1250 kg/h technical-grade KMnO4, 10 000 t/a (ASSUMED normalisation basis)"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
+lca: {source: auto}
+references:
+  - {title: "Carus, P. III; Adolf, H.; Carus, P. II (1997) Electrolytic production of potassium permanganate using a cationic membrane in an electrolytic cell. US Patent 5,660,712 (Carus Chemical Co.): leach, cell and crystalliser conditions, mother-liquor composition ranges", url: "https://patents.google.com/patent/US5660712"}
+  - {title: "Garcia, M. O. G. (1991) Process for producing potassium manganate. US Patent 5,011,672 (Industrial Quimica del Nalon): ore grade, KOH/MnO2 ratio, oxidation temperatures, conventional process steps", url: "https://patents.google.com/patent/US5011672"}
+  - {title: "Okabe, T. et al. (1976) Process for the production of alkali permanganate. US Patent 3,986,941 (Nippon Chemical Industrial Co.): electrolysis temperature and KOH effects (alternative direct route, not designed)", url: "https://patents.google.com/patent/US3986941A/en"}
+  - {title: "Subramanian, K.; Gomathi, K.; Asokan, K. (2008) Electrosynthesis of potassium permanganate in a cation exchange membrane cell. Ind. Eng. Chem. Res. 47(22), 8526-8532 (abstract only read; full text not accessed)"}
+  - {title: "Ullmann's Encyclopedia of Industrial Chemistry: Potassium Compounds (route reference lead from issue #146; production sections not audited in this run)", doi: 10.1002/14356007.a22_039}
+  - {title: "Wagman, D. D. et al. (1982) The NBS tables of chemical thermodynamic properties. J. Phys. Chem. Ref. Data 11, Suppl. 2 (formation enthalpies and Gibbs energies; recalled values to be checked)"}
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/potassium-permanganate-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0
