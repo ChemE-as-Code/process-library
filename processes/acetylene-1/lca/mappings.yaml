@@ -3,11 +3,20 @@
 # (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
 # exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
 #
-# None yet: acetylene-1 is an internal process (publication.status: internal) and its
-# preliminary LCI leaves every background unmapped on purpose (DESIGN.md D-013). The build
-# reports each unmapped exchange as a gap (lci/gaps.json). The shared vocabulary has no entry yet
-# for natural gas, acetylene, synthesis gas, N-methyl-2-pyrrolidone, soot-sludge incineration or
-# spent-solvent incineration, and no biosphere identity for acetylene, diacetylene, benzene or
-# NMP to air: those belong to the consolidated shared-files PR (DESIGN.md D-014).
+# acetylene-1 is an internal process (publication.status: internal) and its preliminary LCI
+# leaves its backgrounds unmapped on purpose (DESIGN.md D-013); the build reports each unmapped
+# exchange as a gap (lci/gaps.json). The only override is a unit correction: the MP steam is
+# counted as the heat it delivers (kWh), so it takes the shared `steam-heat` entry, as hda-1,
+# nitric-acid-1, chlor-alkali-1 and soda-ash-1 do, instead of the slug `steam` (counted in kg).
+# The shared vocabulary has no entry yet for natural gas as a named feed of this process,
+# N-methyl-2-pyrrolidone, soot-sludge incineration or spent-solvent incineration, and no
+# biosphere identity for acetylene, diacetylene, benzene or NMP to air: those belong to the
+# consolidated shared-files PR (DESIGN.md D-014).
 schema: cheme-as-code/lci-process-mappings/v1
-exchanges: {}
+exchanges:
+  "feed:STEAM":
+    use: steam-heat
+    source: >-
+      MP steam (12 bar(a)) counted as the heat delivered to the acetylene stripper and the hot
+      stripper reboiler (flowsheet energy streams Q20, Q21, kWh); the shared entry converts kWh
+      to the background's heat from steam (D-012, D-013).

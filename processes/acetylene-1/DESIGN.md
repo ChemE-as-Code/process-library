@@ -207,6 +207,13 @@ condensed in the quench (13.2 MW) is counted. `--coverage`: partial screening ca
 check clean, publishable. No impact numbers are claimed.
 Exclusions (lca.yaml): heater NOx; fugitive hydrocarbons (no P&ID); air emissions from the
 soot separator's open surfaces. Construction, transport, end of life not included.
+Atlas build: lca/mappings.yaml holds one override, a unit correction: feed:STEAM (kWh) takes the
+shared `steam-heat` entry, as hda-1 and others do, because the slug `steam` is counted in kg.
+Electricity, cooling water and wastewater link by their registry slugs in the Atlas build; every
+other exchange stays a reported gap. The library's `scripts/build_lci.py --strict` run over the
+whole library passes (exit 0), with acetylene-1's 12 gaps exported unlinked (unpublished
+process). The allocation records a `deviation`: no sourced prices yet for the library's
+price-ratio step.
 
 ## D-014 Missing shared entries (for the consolidated library PR) (2026-10-28)
 Not edited here (outside this folder):
