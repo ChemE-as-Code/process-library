@@ -170,6 +170,48 @@ choices (stainless steel or lined steel for dilute sulfuric acid and hydroxylamm
 304L for the dilute-HNO3 condensate, heat-resistant alloy at the gauze). Line sizes from
 velocity. All ASSUMED; no datasheets at this stage.
 
+## D-011 Preliminary gate-to-gate LCI (2026-10-28)
+Decision: lca/lca.yaml, functional unit **1 kg NH2OH contained** in the 25.4 wt% solution
+(kg_per_unit 9.78222 kg of solution; per kg of solution divide every amount by 9.78222, per kg
+of (NH3OH)2SO4 multiply by 0.40247). Gate-to-gate, operation only, design case. Every
+foreground exchange comes from the balanced flowsheet (stream ids in `source:`); the three
+catalysts outside it are consumables with ASSUMED orders of magnitude: Pt/Rh gauze loss 0.5 g/t
+NH3 (9.2 kg/a; the per-NH3 equivalent of nitric-acid-1's assumption), Pt loss 5 %/a of a 23 kg
+inventory (1.2 kg/a), Ag-Mn O2-removal catalyst 800 kg/a (2.4 m3 at GHSV 10 000 1/h, 3-year
+life) with its disposal to silver recovery. Catalyst preparation (graphite, chemicals) and gauze
+fabrication/refining services are cut-off entries. Every background is **unmapped** (`missing:`
+with the activity it should connect to); air, N2, O2, Ar and water vapour of the flue gas are
+free; N2O, NO and H2 are elementary emissions to air. The MP steam export is a co-product with
+shares 1/0 (all burdens to the product, no credit; same reasoning as nitric-acid-1 D-014);
+substitution is given unmapped for comparison. lca/mappings.yaml only fixes the unit of the
+indirect steam (steam-heat, kWh) and blocks automatic Atlas links for H2 and the dilution steam
+until a supplier is chosen.
+Result (cheme assess lca --inventory --write, --coverage --write), per kg NH2OH: NH3 0.612 kg,
+GOX 1.538 kg, H2 0.131 kg, H2SO4 98.5 % 1.774 kg, demineralised water 2.700 kg, combustion air
+1.494 kg, dilution steam 3.118 kg, LP steam heat 0.198 kWh, electricity 0.095 kWh, cooling
+water 6.49 kWh, MP steam export 1.865 kWh, product solution 9.782 kg, flue gas 1.585 kg (N2O
+0.0259, NO 0.0337, N2 1.132, O2 0.239, H2O 0.126, Ar 0.029 kg). Mass balance: 11.3675 kg in and
+out (closed; the flowsheet gives 42 628.3 kg/h in, 42 628.2 out). The element balance is "not
+assessable" in cheme only because the catalyst consumables carry no composition. 84.2 % of the
+NH3 nitrogen ends as NH2OH. The coverage report classifies the result as a partial screening
+carbon footprint with 13 gaps; its only characterised flow is the direct N2O (7.08 kg CO2-eq
+per kg NH2OH with IPCC AR6 GWP100 273). **That number is the plant's direct N2O, not the
+product's footprint** (NH3, H2, O2, acid, steam and power are all gaps). The generated
+results.csv/results.md show it as a "total"; read it as the direct-emission line only.
+Reason: the issue asks for a preliminary LCI with every background left open and a mass balance
+check against the flowsheet. Per kg NH2OH is the comparable basis across salt and free-base
+products.
+Emission exclusions: equipment leaks (no P&ID yet), the acid make-up tank (no volatile source),
+thermal NOx of the oxidiser flame (small against the NO passed through).
+
+## Missing registry entries (for the consolidated library PR)
+chemicals/chemicals.yaml has no entry for: hydroxylammonium sulfate (main product, CAS
+10039-54-0; or hydroxylamine with a `hydroxylammonium-sulfate-solution` grade), ammonia (CAS
+7664-41-7), sulfuric acid (7664-93-9), nitrous oxide (10024-97-2), nitric oxide (10102-43-9),
+ammonium sulfate (7783-20-2), platinum/rhodium (catalyst metals). lci/mappings.yaml would need
+technosphere entries for the Pt catalyst loss, the Ag-Mn catalyst and its silver recovery, and
+an elementary-flow identity for NO (the packaged crosswalk has none).
+
 ## Open inputs
 - O-1: audit the route families and the BASF process description in Ullmann (L1) with exact
   locators; confirm or replace S1-S5 values with plant data.

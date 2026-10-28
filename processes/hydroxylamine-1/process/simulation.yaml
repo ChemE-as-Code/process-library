@@ -1,0 +1,13 @@
+# Simulation specs. Schema: `cheme schema process-simulation`.
+# Not a simulation model yet (no simulator, no property package covers nitrous gas with steam or
+# the aqueous salt solution: core #315, #364, DESIGN.md D-006). It only records which reactors
+# are adiabatic, so the LCA's boundary check knows that they exchange no heat with a utility:
+# the burner R101 and the O2-removal reactor R102 pass their heat to the waste-heat boiler and
+# the condenser downstream, the thermal oxidiser X301 sends it out with the flue gas (no heat
+# recovery, D-009); scripts/has_balance.py solves their outlet temperatures adiabatically.
+schema: cheme/simulation/v1
+kind: simulation
+specs:
+  R101: {mode: adiabatic}
+  R102: {mode: adiabatic}
+  X301: {mode: adiabatic}

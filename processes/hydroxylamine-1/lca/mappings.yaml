@@ -1,0 +1,23 @@
+# hydroxylamine-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# Every other exchange of this internal process stays unmapped (a reported gap, ADR 0022): NH3,
+# GOX, sulfuric acid, demineralised water, cooling water and the three catalysts. The background
+# each should connect to is described in lca/lca.yaml (`missing:`), DESIGN.md D-011.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  # The indirect LP steam is an energy exchange (kWh of heat delivered to the ammonia vaporiser
+  # E-100); the registry slug `steam` is counted in kg, so the build refuses it without this unit
+  # entry. The direct dilution steam feed:STEAMD (S04) is counted in kg and keeps the slug.
+  "feed:LPS": {use: steam-heat, source: "LP steam 500 kPa(a) to the ammonia vaporiser, counted as heat delivered (kWh), as nitric-acid-1 does"}
+  # The supplier is not decided (DESIGN.md D-001, D-011): the build would otherwise pick one of
+  # several Atlas producers by itself (chlor-alkali-1 for hydrogen, ammonia-1 for steam). Until a
+  # person chooses, no Atlas link; then this override goes and lca/lca.yaml links the dataset.
+  "feed:H2":
+    atlas: false
+    source: "hydrogen supplier undecided between processes/hydrogen-1 and chlor-alkali-1 by-product H2 (D-001, D-003)"
+  "feed:STEAMD":
+    atlas: false
+    source: "direct LP steam supplier undecided (site boiler, processes/utility-steam-ng-boiler, or a site network) (D-003, D-008)"
