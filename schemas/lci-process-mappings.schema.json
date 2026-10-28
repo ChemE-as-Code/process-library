@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atlas.cheme-as-code.org/schemas/lci-process-mappings/v1.json",
+  "title": "Per-process LCI mapping overrides (processes/<id>/lca/mappings.yaml)",
+  "description": "A process's own exchange overrides for build_lci.py, kept with the process (ADR 0022). Keys are the dataset exchange keys (<kind>:<id>) without the process id; each entry has the schema of an `exchanges:` entry of lci/mappings.yaml (schemas/lci-mappings.schema.json). The build merges them with lci/mappings.yaml, which keeps the shared vocabulary (technosphere, biosphere, proxies, allocation, ...); the same exchange in both files is an error.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "exchanges"],
+  "properties": {
+    "schema": {"const": "cheme-as-code/lci-process-mappings/v1"},
+    "exchanges": {
+      "description": "Overrides by \"<key>\" of this process's datasets: `use` a technosphere entry of lci/mappings.yaml, give the exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.",
+      "type": "object",
+      "propertyNames": {"pattern": "^[a-z][a-z-]*:[A-Za-z0-9_.\\-]+$"},
+      "additionalProperties": {"$ref": "https://atlas.cheme-as-code.org/schemas/lci-mappings/v1.json#/$defs/exchange_override"}
+    }
+  }
+}
