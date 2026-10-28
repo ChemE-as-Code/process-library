@@ -4,6 +4,7 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-10-28 | lca/lca.yaml, lca/ outputs, DESIGN.md D-014 | CI fix (PR #226, library tooling tests): the LCI export refused `allocation: substitution` and `system_model: substitution`. Allocation is now shares PULP 1.0 / EEXP 0.0 with `allocation.deviation` (export leaves without burden or credit), system model cutoff; substitution kept as a comparison for when the grid is chosen. Climate result unchanged (0.0823 kg CO2-eq/kg); 13 gaps. Response 2026-10-28-pfd-lci-review#1 (high) re-checked after this change: fossil CO2 still characterised by declared origin, caveat in place. Commit 4fd6cf7 | CI |
 | 2026-10-28 | review | Response 2026-10-28-pfd-lci-review#10 (low): **left open**. Pinning a tidier PFD layout (`layout.pfd`) is planned for the basic stage, as the review proposes | - |
 | 2026-10-28 | lca/lca.yaml, lca/mappings.yaml, DESIGN.md D-014 | Response 2026-10-28-pfd-lci-review#8 (low): feed:CLO2 is fixed per kg of 10 g/kg solution and feed:H2SO4 per kg of 93 wt% acid, each with the conversion a 100 %-basis background needs. Commit b356adc | review |
 | 2026-10-28 | DESIGN.md D-014, section 5 | Response 2026-10-28-pfd-lci-review#7 (low): the 20.7 % "energy closure" compares cooling-water heat with exported power only (wood, pulp and black liquor energy contents are not declared, and streams carry no enthalpy), so it is not a residual and the check does not apply; where the energy is checked instead. Commit b356adc | review |
