@@ -1,36 +1,80 @@
-# Process Atlas manifest. Copy this folder to processes/<your-id>/ and edit.
-# Schema: schemas/process.schema.json (cheme-as-code/process/v1). Every slug used under
-# chemistry must exist in chemicals/chemicals.yaml; add new chemicals there in the same change.
-# A product in a defined state and purity names its registry grade: `chemical: oxygen/lox`.
+# Process Atlas manifest of chloromethane-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
 schema: cheme-as-code/process/v1
-id: my-process                  # = folder name; lowercase slug; never rename once listed
-title: Short descriptive process title
+id: chloromethane-1
+title: Chloromethane from methanol and hydrogen chloride (gas-phase hydrochlorination, 100 kt/a)
 summary: >-
-  One or two sentences for cards and search results: what goes in, what comes out, at what scale.
-# description: |                # optional longer Markdown for the process page
-families: [hydrogen]            # slugs of taxonomy/families.yaml (ISIC-mapped), e.g. ammonia, methanol, air-separation
-keywords: []
-# facets:                      # optional, for filtering in the Atlas; list only what the design has
-#   feedstock_basis: [water, electricity]   # fossil | biogenic | atmospheric | mineral | recycled | water | electricity
-#   product_classes: [fuels]               # slugs, e.g. industrial-gases, fuels, fertilizers, polymers, chemicals, materials
-#   unit_operations: [electrolysis]        # slugs, e.g. cryogenic-distillation, adsorption, compression, reaction, electrolysis
-#   region: generic                        # e.g. generic, EU
-# Design maturity (claimed, capped by evidence: the calculation maturity in checks/maturity.json
-# of an engineering project; at most concept beside a Tier 0/1 LCI dataset):
-maturity: concept               # concept | screening | basic-engineering | detail-engineering | operating-reference
-validation:                     # review status: set by people only; passing checks is not a review
-  status: unreviewed            # unreviewed | internally-reviewed | peer-reviewed | industry-validated
+  Methanol and anhydrous hydrogen chloride react over alumina to methyl chloride and water; the
+  gas is quenched, dried with sulfuric acid (which also takes up the dimethyl ether by-product),
+  compressed, condensed and freed of HCl in a light-ends column. Concept stage, assumed basis,
+  preliminary gate-to-gate LCI per kg methyl chloride (foreground only).
+description: |
+  Fresh methanol and the methanol recovered from the quench acid are vaporised and mixed with
+  anhydrous HCl (HCl/MeOH 1.10 at the inlet) and the recycle from the HCl column. The feed is
+  superheated by the reactor coolant loop and reacts in a multitubular fixed bed of
+  gamma-alumina (523 K in, 613 K out, about 300 kPa(a)); 97.6 % of the methanol is converted
+  per pass, 98.8 % of it to methyl chloride and the rest to dimethyl ether (DME). A
+  hydrochloric acid quench and a graphite cooler condense the water of reaction with the
+  excess HCl as about 21 wt% acid; a stripper returns the dissolved methanol, and the dilute
+  acid leaves the plant. Sulfuric acid (96 wt%) dries the crude gas and absorbs the DME, since
+  DME and methyl chloride boil only 1 K apart. A two-stage compressor and a water-cooled
+  condenser liquefy the methyl chloride at about 1 MPa, and an HCl column strips the dissolved
+  HCl and inerts overhead; the overhead returns to the reactor with a 10 % purge.
+
+  All values are concept estimates: the conversion and selectivity are one open literature data
+  point (near equilibrium, checked with cheme process reactors), the separator splits are
+  ASSUMED and checked against the crude-gas, quench-acid and spent-acid ranges of US 4,794,204;
+  the utilities are hand estimates. See DESIGN.md for every assumption and gated step.
+families: [chlorinated-organics]
+keywords: [chloromethane, methyl chloride, methanol, hydrogen chloride, hydrochlorination, alumina, dimethyl ether, sulfuric acid drying, compression, distillation, silicones]
+facets:
+  feedstock_basis: [fossil]
+  product_classes: [chemicals]
+  unit_operations: [reaction, absorption, distillation, compression]
+  region: generic
+publication:
+  status: internal
+  license: CC-BY-4.0
+# Honest claim: concept is the lowest level of the manifest; cheme maturity reaches no level
+# (capacity, separator splits and HCl feed spec are assumed, not sourced), see validation.notes.
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD (4 blocks, 12 steps, 19 material and 13 energy streams, two recycles and an
+    inert purge) with closed mass, component and element balances (cheme validate, cheme process
+    streams: every block and step within tolerance). The reactor outlet is calculated by cheme
+    from a sourced conversion and selectivity (Schmidt et al. 2014); its hydrochlorination
+    quotient is 0.91 of the equilibrium constant (cheme process reactors), consistent with the
+    source's near-equilibrium statement. Crude gas DME 0.56 mol%, quench acid 20.5 wt% HCl and
+    spent acid 80.5 % fall inside the ranges of US 4,794,204. Fresh methanol 0.646 kg and HCl
+    0.823 kg per kg methyl chloride (stoichiometric 0.635 and 0.722). No rigorous energy
+    balance: no property package covers HCl-water-methanol (electrolyte, core #364 / #315);
+    duties are hand estimates; the reactor duty agrees with cheme's ideal-gas duty within
+    1.5 %. cheme maturity reaches no level. The LCI is foreground only, every background a gap
+    (9 gaps): no impact result (lca.source none). Not reviewed. The chemicals registry has no
+    methyl chloride, methanol, hydrogen chloride, sulfuric acid or DME entry yet, so those flows
+    are not listed under chemistry (DESIGN.md I-08).
 chemistry:
   inputs:
-    - {chemical: water, role: feedstock}
+    # No inventory_key: an impurity of feed:HCLG, not the exchange (as dmf-1 does)
+    - {chemical: nitrogen, role: feedstock, note: "Inerts of the anhydrous HCl feed (0.1 mol%, ASSUMED). The raw materials methanol (feed:MEOH, 0.646 kg/kg; from methanol-1), anhydrous HCl (feed:HCLG, 0.823 kg/kg) and sulfuric acid 96 wt% (feed:ACID, 52 g/kg; sulfuric-acid-1) have no registry entry yet"}
   outputs:
-    - {chemical: hydrogen, role: main-product}
+    - {chemical: nitrogen, role: emission, note: "Inerts in the purge (product:PURGE, 5.0 g/kg, to the site thermal oxidiser, a waste exchange). The main product methyl chloride (product:MECL), the dilute hydrochloric acid (product:DHCL, 0.447 kg/kg) and the spent sulfuric acid (product:SPENT, 69 g/kg) have no registry entry yet"}
   utilities:
-    - {chemical: electricity, role: utility}
-# basis: {capacity: "1000 t/d product", operating_hours_per_year: 8000}
-# lca: {source: auto}           # auto: read lca/ of a ChemE-as-Code project; none: no LCA
-# references:
-#   - {title: "Author et al. (2024) Title", doi: 10.xxxx/xxxxx}
-# maintainers:
-#   - {name: Your Name, orcid: 0000-0000-0000-0000}
-# repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/my-process, access: private}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.044 kWh/kg: methyl chloride compressor and pumps (hand estimate)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 500 kPa(a), 0.263 kWh/kg: methanol vaporiser (net of reactor heat), stripper and HCl column reboilers"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.649 kWh/kg, 25/35 C (ASSUMED); the quench is 69 % of it"}
+basis:
+  capacity: "100 kt/a methyl chloride (ASSUMED)"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
+references:
+  - {title: "US 4,794,204 (Hoechst, 1988) Process for the removal of dimethyl ether in methyl chloride (background: alumina process at 350-400 C, crude gas composition, sulfuric acid drying with 95 % acid, spent acid about 80 % with 5-10 % DME; plant embodiment: HCl quench and graphite cooler)", url: "https://patents.google.com/patent/US4794204"}
+  - {title: "Schmidt, S.A., Vajglova, Z., Eränen, K., Murzin, D.Yu., Salmi, T. (2014) Microreactor technology for on-site production of methyl chloride. Green Processing and Synthesis 3(5) 345-352 (abstract read)", doi: 10.1515/gps-2014-0039}
+  - {title: "WO 2000/076658 A1 (ICI/Ineos Chlor) Use of alkali metal doped eta-alumina as methanol hydrochlorination catalyst (background: equimolar feed, 250-300 C, hot spots, DME main by-product; claims: 1-10 bara)", url: "https://patents.google.com/patent/WO2000076658A1/en"}
+  - {title: "Chloromethanes. Ullmann's Encyclopedia of Industrial Chemistry (issue #151 lead; licensed, not read in this run)", doi: 10.1002/14356007.a06_233.pub4}
+lca:
+  source: none
+  notes: "Foreground LCI only (lca/inventory.csv, per kg methyl chloride, single product, wastes to treatment), every background a gap (D-013): no impact result."
