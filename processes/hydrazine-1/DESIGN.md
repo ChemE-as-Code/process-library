@@ -63,7 +63,7 @@ incinerator and waste water treatment. Utilities cross the boundary as energy st
 | S3 | US 12,134,558 B2 (2024), Process for preparing hydrazine hydrate with pyrazoline recycling, [Google Patents](https://patents.google.com/patent/US12134558) | step (f): reactive distillation 2-25 bar, bottom 150-200 C, 40-50 trays at 8-10 bar, water/azine 5-30 (pref. 10-20); Ex. 1: overhead 7.5-9.7 bar(a), condenser 160 C, bottom 178-190 C, reboiler 200 C at 16 bar, 5 000 kg/h azine + 10 000 kg/h water; pyrazolines (trimethyl-ethyl- and diethyl-methyl-pyrazoline) form mainly in hydrolysis, tray level kept at 1-3 wt% by a side purge recycled through the azine wash and distillation | page text via fetch | patent text: facts only | D-006, D-007 |
 | S4 | US 4,724,133 A (1988, Atochem), Preparation of concentrated aqueous solution of hydrazine hydrate, [Google Patents](https://patents.google.com/patent/US4724133) | search abstract: water/azine 3-7 mol/mol, column base 150-200 C (pref. 175-200 C); hydrolysing dilute acetone-azine solutions needs at least 10 t steam per t hydrate | search snippet, full text not audited | patent text: facts only | D-007 context, D-010 plausibility |
 | S9 | US 4,725,421 A (1988), Process for the preparation of concentrated solutions of hydrazine hydrate, [Google Patents](https://patents.google.com/patent/US4725421) | Description and claims: one hydrolysis/distillation column, water/azine 5-7.75 mol/mol (prior art above 8.3, often near 20), 2-15 bar (pref. 7-12), base 150-200 C (pref. 175-190 C), reflux 0.1-5; Ex. 1 (8 bar, head 150 C, evaporator 180 C): bottoms 48.5 % hydrazine hydrate; Ex. 2 (9 bar): bottoms 44.7 %, overhead about 88 % MEK; no steam figures | page text via fetch | patent text: facts only | D-007 (S41 composition), I-05 |
-| S5 | NIST Chemistry WebBook, SRD 69, [webbook.nist.gov](https://webbook.nist.gov/chemistry/) | standard formation enthalpies: H2O2(l) -187.8, H2O(l) -285.83, NH3(g) -45.9, N2H4(l) +50.6 kJ/mol | values as commonly tabulated, not re-fetched in this run | facts | D-010 reactor heat |
+| S5 | NIST Chemistry WebBook, SRD 69, species pages by CAS number: [H2O2, 7722-84-1](https://webbook.nist.gov/cgi/cbook.cgi?ID=C7722841), [H2O, 7732-18-5](https://webbook.nist.gov/cgi/cbook.cgi?ID=C7732185), [NH3, 7664-41-7](https://webbook.nist.gov/cgi/cbook.cgi?ID=C7664417), [N2H4, 302-01-2](https://webbook.nist.gov/cgi/cbook.cgi?ID=C302012) | standard formation enthalpies (condensed-phase or gas-phase thermochemistry section of each page): H2O2(l) -187.8, H2O(l) -285.83, NH3(g) -45.9, N2H4(l) +50.6 kJ/mol | values as commonly tabulated, not re-fetched in either run; checked against general knowledge by the review (2026-10-28#7); locators per species added in the revision | facts | D-010 reactor heat |
 | S6 | PubChem, [CID lookup by CAS 5921-54-0](https://pubchem.ncbi.nlm.nih.gov/) | 5921-54-0 = 2-butanone (1-methylpropylidene)hydrazone (methyl ethyl ketone azine) | REST query | open data | materials.yaml identity |
 | S7 | Wikipedia, "Peroxide process", [en.wikipedia.org](https://en.wikipedia.org/wiki/Peroxide_process) (CC BY-SA; secondary, citing Ullmann's and Hayashi et al. 1976 doi 10.1021/i360060a016) | developed early 1970s by PCUK; ketazine decants; ~50 C, atmospheric, H2O2:ketone:NH3 about 1:2:4; hydrolysis endothermic, ~8 bar, 130/179 C top/bottom; 30-45 % hydrate; no salt co-product; Lannemezan plant 17 kt/a of hydrazine products | page via fetch | facts only, secondary | route memo, D-002 scale check |
 | S8 | Schirmann, Bourdauducq: Hydrazine, Ullmann's Encyclopedia (doi 10.1002/14356007.a13_177) | not opened (licensed); issue #141 lead | not read | - | lead only |
@@ -105,7 +105,12 @@ as decomposed to O2, ASSUMED (no source on the split between decomposition and o
 NH3 to N2). A sourced range check, not kinetics.
 Rejected: the batch 81 % as the design value (continuous recycle of the working solution and
 of MEK is what the industrial process does; S2).
-Sensitivity: each 1 point of azine yield changes the H2O2 demand by about 1.2 %.
+Sensitivity: each 1 point of azine yield changes the H2O2 demand by about 1.2 %. Bracketing
+cases (review 2026-10-28#3), H2O2 (100 %) per kg N2H4 with the rest of D-004 unchanged: yield
+0.81 (S1 batch) 1.317 kg (+4.9 %), 0.85 (design) 1.255 kg, 0.95 (S2 Ex. 1 if its azine were
+pure) 1.123 kg (-10.5 %). H2O2 is expected to be the largest background burden, so the LCI's
+H2O2-driven results carry about -10/+5 % from this choice alone until I-01 is closed. Not a
+computed flowsheet case: a yield case in `lca/lca.yaml` needs a second balanced flowsheet case.
 
 ## D-005 Working solution and its regeneration (2026-10-28)
 Decision: the working solution (activator acetamide/ammonium acetate, lumped as acetamide;
@@ -150,10 +155,31 @@ Rejected: hydrolysis near atmospheric pressure (older patent US 3,481,701, searc
 S1/S3 describe pressure columns.
 
 ## D-008 Off-gas and waste water (2026-10-28)
-Decision: the reactor off-gas (O2 2.13 kmol/h, N2 1.42 kmol/h) leaves V-101 after a vent
-condenser/scrubber (lumped) with 1 mol% NH3 and 0.5 mol% MEK (ASSUMED, no emission source
-read). The waste water (C-202 bottoms) carries 1000 mg/kg MEK and 100 mg/kg NH3 (ASSUMED).
+Decision: the reactor off-gas (O2 2.13 kmol/h, N2 1.42 kmol/h from the side reaction plus the
+inerting sweep of D-015) leaves V-101 after a vent condenser/scrubber (lumped) with 1 mol% NH3
+and 0.5 mol% MEK (ASSUMED, no emission source read); with the sweep the vent is 26.6 kmol/h,
+so the NH3 and MEK losses scale with it. The waste water (C-202 bottoms) carries 1000 mg/kg MEK and 100 mg/kg NH3 (ASSUMED).
 Open: I-04.
+
+## D-015 Reactor and decanter headspaces inerted by a nitrogen sweep (2026-10-28)
+Decision: a continuous N2 sweep through the R-101 and V-101 headspaces (S04, lumped at the
+reactor feed in the flowsheet) keeps O2 at most 8 mol% in the vent S07 (ASSUMED target): 22.6
+kmol/h, 634 kg/h N2 (0.32 kg per kg hydrate), from site nitrogen (feed N2F, a background gap
+in the LCI).
+Reason (review 2026-10-28#2): the H2O2 decomposition (D-004) makes about 2.1 kmol/h O2, which
+without dilution is about 59 mol% of the off-gas, over a liquid that holds MEK (vapour
+pressure about 35 kPa at 323 K) and ammonia: the headspace and the vent condenser would hold a
+flammable, O2-enriched mixture. The target is about 3 points below a limiting oxygen
+concentration of about 11 vol% commonly quoted for ketones such as MEK with N2 as diluent
+(ASSUMED from general knowledge, not read here; the LOC, the margin and continuous O2
+monitoring are to be confirmed from a sourced value, I-04).
+Rejected: no inerting (flammable headspace); dilution with air (adds O2); operating above the
+upper flammable limit (not credible with a varying O2 make).
+Consequence: the vent grows from 3.6 to 26.6 kmol/h; at the assumed 1 mol% NH3 and 0.5 mol%
+MEK after the vent condenser/scrubber (D-008) the NH3 make-up rises by 3.9 kg/h and the MEK
+make-up by 8.3 kg/h; NH3 2.3 g and MEK 4.8 g per kg hydrate reach the air. A sweep sized on
+the O2 make at the design case only; start-up purging, O2 analysers and the trip on high O2
+belong to the P&ID and HAZOP stages.
 
 ## D-009 Balance method (2026-10-28)
 Decision: `scripts/balance.py` derives every assumed separator and boundary stream from D-002 to
@@ -167,20 +193,30 @@ Decision (kW, design case; per kg hydrate in brackets):
   scaled to 1.607 t/h H2O2, latent heat 1 912 kJ/kg; split heater 2 174 kW (S12 heated 323 to
   423 K at 3.4 kJ/(kg K), ASSUMED) and column 6 784 kW. The S2 feed entered the column at 50 C,
   so the heating is inside the patent figure, not added.
-- C-301 834 kW MP steam (overhead vapour at reflux ratio 1.5, latent heats at 1 atm, ASSUMED).
+- C-301 831 kW MP steam (overhead vapour at reflux ratio 1.5, latent heats at 1 atm, ASSUMED).
 - C-401 2 627 kW MP steam (MEK/water overhead at reflux ratio 1, plus heating the water feed
   373 to 458 K, ASSUMED); the hydrolysis heat (endothermic per S7) is not counted: unknown,
-  so C-401 steam is a lower bound.
+  so C-401 steam is a **lower bound**. High variant (review 2026-10-28#1, `scripts/balance.py`):
+  reflux ratio 2.5, more usual for a 40-50 tray reactive distillation column, plus a hydrolysis
+  heat of 25-75 kJ/mol azine (ASSUMED order of magnitude, no value read) gives 4 300-4 858 kW,
+  i.e. +1.7 to +2.2 MW of MP steam: MP steam up to 14 647 kW (7.32 kWh/kg, +18 %), total steam
+  +14 %, hydrolysis plus concentration about 6.6 instead of 4.8 t steam per t hydrate. The LCI
+  carries the central value; the `source:` of feed:MPS in `lca/lca.yaml` states the lower
+  bound and the variant. A computed scenario waits for the column simulation (I-02).
 - C-402 3 247 kW LP steam (overhead water at reflux 0.3, less the flash of the 458 K feed).
-- C-202 739 kW LP steam (0.2 kg stripping steam per kg feed water plus NH3 vaporisation).
+- C-202 737 kW LP steam (0.2 kg stripping steam per kg feed water plus NH3 vaporisation).
 - R-101 cooling 2 904 kW: -241.5 kJ/mol for H2O2 + 2 NH3(g) -> N2H4(l) + 2 H2O(l) (S5),
-  counted for the azine and the 2-butanol path, plus -98.2 kJ/mol H2O2 decomposed; the heat of
-  condensing hydrazine with MEK to the azine is neglected (exothermic if the hydrolysis is
-  endothermic, S7), so this is a lower bound.
+  counted for the azine and the 2-butanol path, plus -98.2 kJ/mol H2O2 decomposed. An
+  **order-of-magnitude estimate, not a bound** (review 2026-10-28#5): all NH3 is taken as gas,
+  but the fresh NH3 (S02, 85 kmol/h) is fed liquid, which lowers the exotherm by its heat of
+  vaporisation (about 0.5 MW), while the heat of dissolving the NH3 (liquid feed and recycle
+  vapour S23) in the working solution and the heat of condensing hydrazine with MEK to the
+  azine (exothermic if the hydrolysis is endothermic, S7) raise it; neither is quantified. Size
+  the cooling with margin until a property package exists (I-02).
 - Condensers equal to the reboilers (C-201, C-301), C-401 1 859 kW, C-402 3 802 kW (includes the
   feed flash), C-202 537 kW. Power 100 kW (pumps, agitators), ASSUMED hand estimate.
-Totals: MP steam 12 419 kW (6.21 kWh/kg), LP steam 3 986 kW (1.99 kWh/kg), cooling water
-18 894 kW (9.45 kWh/kg), power 0.05 kWh/kg. Steam at 2.2 MJ/kg corresponds to about 13 kg
+Totals: MP steam 12 416 kW (6.21 kWh/kg), LP steam 3 984 kW (1.99 kWh/kg), cooling water
+18 891 kW (9.45 kWh/kg), power 0.05 kWh/kg. Steam at 2.2 MJ/kg corresponds to about 13 kg
 steam per kg hydrate, 55 % of it the regeneration: a single patent example, the largest
 uncertainty of the LCI. No heat integration (the C-401 condenser at about 433 K, S3, could
 raise LP steam for C-402; I-05).
@@ -220,14 +256,16 @@ H2O2 stabiliser, resin/adsorbent consumption (S2), catalyst none (homogeneous).
 - Balances: `cheme process streams`: every block (AZN, WSR, AZD, HYD) and step closes; reactor
   extents AZINE 40.14, BUTANOL 1.42, DECOMP 2.13, AMIDATION 1.60, HYDROLYSIS 39.94,
   ISOMERISATION 0.20 kmol/h; `cheme validate` 0 errors, 0 warnings (element balances included).
-- Boundary (kg/h): in H2O2 70 % 2 294.8, NH3 1 444.0, MEK 149.2, acetic acid 96.4, Na2HPO4 4.8,
-  water 2 899.2 = 6 888.4; out hydrate 2 000.0, 2-butanol bleed 123.6, pyrazoline purge 56.3,
-  working-solution purge 199.2, waste water 4 399.7, off-gas 109.6 = 6 888.4.
-- Per kg N2H4: H2O2 (100 %) 1.255 kg (stoichiometric 1.061), NH3 1.128 kg (stoichiometric 1.063),
-  MEK 0.117 kg.
-- LCI per kg hydrate (lca/inventory.csv): inputs 3.44422 kg = outputs 3.44422 kg; MP steam 6.21
-  kWh, LP steam 1.99 kWh, cooling water 9.45 kWh, power 0.05 kWh. `cheme assess lca --coverage`:
-  mass, element and carbon balances closed, energy closure 0.0 %; 14 background gaps and 2
+- Boundary (kg/h): in H2O2 70 % 2 294.8, NH3 1 447.9, MEK 157.4, N2 sweep 633.8, acetic acid
+  96.4, Na2HPO4 4.8, water 2 899.2 = 7 534.4; out hydrate 2 000.0, 2-butanol bleed 123.6,
+  pyrazoline purge 56.3, working-solution purge 199.2, waste water 4 399.7, off-gas 755.6 =
+  7 534.4.
+- Per kg N2H4: H2O2 (100 %) 1.255 kg (stoichiometric 1.061), NH3 1.131 kg (stoichiometric 1.063),
+  MEK 0.123 kg.
+- LCI per kg hydrate (lca/inventory.csv): inputs 3.7672 kg = outputs 3.7672 kg; MP steam 6.21
+  kWh (a lower bound, D-010), LP steam 1.99 kWh, cooling water 9.45 kWh, power 0.05 kWh,
+  N2 0.317 kg. `cheme assess lca --coverage`:
+  mass, element and carbon balances closed, energy closure 0.0 %; 15 background gaps and 2
   uncharacterised emissions (NH3, MEK in GWP100); result class "partial screening", no impact
   claimed.
 - `cheme check`: concept gates ok except layout-plot-plan (out of scope); `cheme maturity`:
@@ -240,7 +278,13 @@ H2O2 stabiliser, resin/adsorbent consumption (S2), catalyst none (homogeneous).
 - I-02 Property package and electrolyte support (D-011), then simulate C-201, C-301, C-401,
   C-402 and replace the hand duties (D-010).
 - I-03 Activator loss mechanism, purge size and adsorber regeneration (D-005).
-- I-04 Off-gas treatment, NH3/MEK emissions, column vents, fugitive emissions (D-008, D-014).
+- I-04 Off-gas treatment, NH3/MEK emissions, column vents, fugitive emissions (D-008, D-014);
+  a sourced limiting oxygen concentration for the headspace mixture, the margin, O2
+  monitoring and the sweep at start-up and turndown (D-015).
+- I-11 Materials of construction for H2O2 and hydrazine service (passivated stainless steel, no
+  copper, iron or other decomposition catalysts in contact with peroxide or hydrazine; R-101,
+  C-401, C-402 and their feed lines): to be settled with sourced compatibility data before the
+  datasheets.
 - I-05 Heat integration: C-401 condenser to C-402, feed/bottoms exchange around C-201 (D-010).
   Design alternative: a hydrolysis water/azine ratio of 5-7.75 gives 45-48 % hydrate at the
   bottom directly (S9 Ex. 1-2) against 30 % here, which would roughly halve the water C-402

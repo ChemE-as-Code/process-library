@@ -22,6 +22,7 @@ feeds:
   - {id: H2O2, title: Hydrogen peroxide 70 wt% (hydrogen-peroxide-1), category: raw_material, ports: [{id: out, direction: out}]}
   - {id: NH3F, title: Ammonia liquid (ammonia-1), category: raw_material, ports: [{id: out, direction: out}]}
   - {id: MEKF, title: MEK make-up, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: N2F, title: Nitrogen for headspace inerting, category: utility, ports: [{id: out, direction: out}]}
   - {id: ACOHF, title: Acetic acid make-up, category: raw_material, ports: [{id: out, direction: out}]}
   - {id: PHOSF, title: Disodium phosphate make-up, category: raw_material, ports: [{id: out, direction: out}]}
   - {id: DW, title: Demineralised water, category: raw_material, ports: [{id: out, direction: out}]}
@@ -94,6 +95,7 @@ blocks:
       - {id: nh3rec, direction: in}
       - {id: mekrec, direction: in}
       - {id: mekhyd, direction: in}
+      - {id: n2, direction: in}
       - {id: vent, direction: out}
       - {id: org, direction: out}
       - {id: aq, direction: out}
@@ -153,6 +155,7 @@ steps:
       - {id: nh3rec, direction: in, delegates: nh3rec}
       - {id: mekrec, direction: in, delegates: mekrec}
       - {id: mekhyd, direction: in, delegates: mekhyd}
+      - {id: n2, direction: in, delegates: n2}
       - {id: out, direction: out}
   # D-003, D-004: stirred reactors in series, lumped; sourced yield model, not kinetics.
   - id: R101
@@ -279,14 +282,14 @@ streams:
   - {id: Q02, title: Power to hydrolysis and product pumps, kind: energy, from: POWER.c401, to: R401.power, state: {design: {duty: {value: 40, provenance: assumed, source: "D-010: hydrolysis feed pumps to about 900 kPa(a), reflux and product pumps, hand estimate"}}}}
   - {id: Q14, title: MP steam to the working-solution heater, kind: energy, from: MPS.e201, to: R201.steam, state: {design: {duty: {value: 2174, provenance: assumed, source: "D-010: S12 23 024 kg/h heated 323 -> 423 K at 3.4 kJ/(kg K) ASSUMED; part of the regeneration steam of US 6,605,265 Ex. 1 (feed enters that column at 50 C), not additional"}}}}
   - {id: Q03, title: MP steam to the regeneration column, kind: energy, from: MPS.c201, to: C201.steam, state: {design: {duty: {value: 6784, provenance: assumed, source: "D-010: 10.5 t of 18 bar(a) steam per t H2O2 (US 6,605,265 Ex. 1) x 1.6066 t/h H2O2, latent heat 1912 kJ/kg = 8958 kW, less the heater Q14"}}}}
-  - {id: Q04, title: MP steam to the azine column, kind: energy, from: MPS.c301, to: C301.steam, state: {design: {duty: {value: 834, provenance: assumed, source: "D-010: overhead vapour of S31 + S33 at reflux ratio 1.5, latent heats at 1 atm (scripts/balance.py)"}}}}
-  - {id: Q05, title: MP steam to the hydrolysis column, kind: energy, from: MPS.c401, to: C401.steam, state: {design: {duty: {value: 2627, provenance: assumed, source: "D-010: MEK/water overhead S41 at reflux ratio 1, plus heating the water feed 373-458 K (scripts/balance.py)"}}}}
-  - {id: Q06, title: LP steam to the ammonia recovery column, kind: energy, from: LPS.c202, to: C202.steam, state: {design: {duty: {value: 739, provenance: assumed, source: "D-010: stripping steam 0.2 kg/kg feed water plus NH3 vaporisation (scripts/balance.py)"}}}}
+  - {id: Q04, title: MP steam to the azine column, kind: energy, from: MPS.c301, to: C301.steam, state: {design: {duty: {value: 831, provenance: assumed, source: "D-010: overhead vapour of S31 + S33 at reflux ratio 1.5, latent heats at 1 atm (scripts/balance.py)"}}}}
+  - {id: Q05, title: MP steam to the hydrolysis column, kind: energy, from: MPS.c401, to: C401.steam, state: {design: {duty: {value: 2627, provenance: assumed, source: "D-010: MEK/water overhead S41 at reflux ratio 1, plus heating the water feed 373-458 K (scripts/balance.py); LOWER BOUND: the endothermic hydrolysis heat is not counted, high variant 4 300-4 858 kW (reflux 2.5, 25-75 kJ/mol azine, ASSUMED)"}}}}
+  - {id: Q06, title: LP steam to the ammonia recovery column, kind: energy, from: LPS.c202, to: C202.steam, state: {design: {duty: {value: 737, provenance: assumed, source: "D-010: stripping steam 0.2 kg/kg feed water plus NH3 vaporisation (scripts/balance.py)"}}}}
   - {id: Q07, title: LP steam to the concentration column, kind: energy, from: LPS.c402, to: C402.steam, state: {design: {duty: {value: 3247, provenance: assumed, source: "D-010: overhead water S43 at reflux ratio 0.3, less the flash of the hot S47 feed (scripts/balance.py)"}}}}
-  - {id: Q08, title: Azine reactor cooling, kind: energy, from: R101.cw, to: CW.r101, state: {design: {duty: {value: 2904, provenance: assumed, source: "D-010: -241.5 kJ/mol for H2O2 + 2 NH3(g) -> N2H4(l) + 2 H2O(l) (NIST WebBook formation enthalpies), azine condensation heat neglected; decomposition -98.2 kJ/mol H2O2"}}}}
+  - {id: Q08, title: Azine reactor cooling, kind: energy, from: R101.cw, to: CW.r101, state: {design: {duty: {value: 2904, provenance: assumed, source: "D-010: -241.5 kJ/mol for H2O2 + 2 NH3(g) -> N2H4(l) + 2 H2O(l) (NIST WebBook formation enthalpies), azine condensation heat neglected; decomposition -98.2 kJ/mol H2O2; order of magnitude only: liquid NH3 feed and NH3 dissolution heat not counted"}}}}
   - {id: Q09, title: Regeneration column condenser, kind: energy, from: C201.cw, to: CW.c201, state: {design: {duty: {value: 8958, provenance: assumed, source: "D-010: equal to the steam input"}}}}
   - {id: Q10, title: Ammonia recovery column condenser, kind: energy, from: C202.cw, to: CW.c202, state: {design: {duty: {value: 537, provenance: assumed, source: "D-010: steam input less the NH3 vapour returned to the reactors"}}}}
-  - {id: Q11, title: Azine column condenser, kind: energy, from: C301.cw, to: CW.c301, state: {design: {duty: {value: 834, provenance: assumed, source: "D-010: equal to the reboiler"}}}}
+  - {id: Q11, title: Azine column condenser, kind: energy, from: C301.cw, to: CW.c301, state: {design: {duty: {value: 831, provenance: assumed, source: "D-010: equal to the reboiler"}}}}
   - {id: Q12, title: Hydrolysis column condenser, kind: energy, from: C401.cw, to: CW.c401, state: {design: {duty: {value: 1859, provenance: assumed, source: "D-010: overhead condensation at reflux ratio 1; recoverable at about 433 K (US 12,134,558 Ex. 1), not integrated (I-05)"}}}}
   - {id: Q13, title: Concentration column condenser, kind: energy, from: C402.cw, to: CW.c402, state: {design: {duty: {value: 3802, provenance: assumed, source: "D-010: overhead water S43 at reflux ratio 0.3"}}}}
   - id: S01
@@ -309,7 +312,7 @@ streams:
       design:
         pressure: {value: 1500, provenance: assumed, source: design basis}
         temperature: {value: 298.15, provenance: assumed, source: design basis}
-        flow: {value: 1444.008, basis: mass, provenance: assumed, source: "scripts/balance.py: reaction demand plus vent and waste-water losses (D-004, D-008)"}
+        flow: {value: 1447.920, basis: mass, provenance: assumed, source: "scripts/balance.py: reaction demand plus vent and waste-water losses (D-004, D-008)"}
         composition: {basis: mass_fraction, values: {NH3: 1.0}, provenance: assumed, source: design basis}
   - id: S03
     title: MEK make-up
@@ -320,8 +323,19 @@ streams:
       design:
         pressure: {value: 300, provenance: assumed, source: design basis}
         temperature: {value: 298.15, provenance: assumed, source: design basis}
-        flow: {value: 149.160, basis: mass, provenance: assumed, source: "scripts/balance.py: MEK to 2-butanol and pyrazolines plus losses (D-004, D-008); US 6,605,265 Ex. 1 reports 100 kg/h per t/h H2O2 (here 93)"}
+        flow: {value: 157.442, basis: mass, provenance: assumed, source: "scripts/balance.py: MEK to 2-butanol and pyrazolines plus losses (D-004, D-008, D-015); US 6,605,265 Ex. 1 reports 100 kg/h per t/h H2O2 (here 98)"}
         composition: {basis: mass_fraction, values: {MEK: 1.0}, provenance: assumed, source: design basis}
+  - id: S04
+    title: Nitrogen sweep of the reactor and decanter headspaces
+    from: N2F.out
+    to: M101.n2
+    template: nitrogen
+    state:
+      design:
+        pressure: {value: 600, provenance: assumed, source: design basis}
+        temperature: {value: 298.15, provenance: assumed, source: design basis}
+        flow: {value: 633.813, basis: mass, provenance: assumed, source: "scripts/balance.py: O2 at most 8 mol% in the vent S07 (D-015, ASSUMED); lumped at the reactor feed, leaves with the off-gas"}
+        composition: {basis: mass_fraction, values: {N2: 1.0}, provenance: assumed, source: "D-015: site nitrogen"}
   - id: S05
     title: Azine reactor feed
     from: M101.out
@@ -329,8 +343,8 @@ streams:
     template: process
     state:
       design:
-        composition: {basis: mole_fraction, values: {H2O2: 0.0457401, H2O: 0.608842, NH3: 0.11435, MEK: 0.100628, AZN: 0.0, BUOH: 0.0, O2: 0.0, N2: 0.0, ACAM: 0.130379, ACOH: 0.0, NA2HPO4: 6.02779e-05}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S01 S02 S03 S20 S23 S31 S41', fingerprint: fb10df2361866813}
-        flow: {value: 30394.6, provenance: calculated, source: 'cheme process propagate: mixer M101 from S01 S02 S03 S20 S23 S31 S41', fingerprint: 743243fa51cf518f}
+        composition: {basis: mole_fraction, values: {H2O2: 0.04476, H2O: 0.595781, NH3: 0.1119, MEK: 0.0984719, N2: 0.0214428, AZN: 0.0, BUOH: 0.0, O2: 0.0, ACAM: 0.127585, ACOH: 0.0, NA2HPO4: 5.89862e-05}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S01 S02 S03 S04 S20 S23 S31 S41', fingerprint: 676a0243416297b7}
+        flow: {value: 31028.1, provenance: calculated, source: 'cheme process propagate: mixer M101 from S01 S02 S03 S04 S20 S23 S31 S41', fingerprint: 095487b1441896aa}
   - id: S06
     title: Azine reactor effluent
     from: R101.out
@@ -340,8 +354,8 @@ streams:
       design:
         pressure: {value: 150, provenance: assumed, source: D-003}
         temperature: {value: 323.15, provenance: assumed, source: "D-003: 50 C as in US 6,562,311 Ex. 4-5 and US 6,605,265 Ex. 1"}
-        flow: {value: 30394.6, provenance: calculated, source: 'cheme process propagate: reactor R101 from S05', fingerprint: a36f7b2469ba744d}
-        composition: {basis: mole_fraction, values: {H2O2: 0.0, H2O: 0.771318, NH3: 0.0337317, MEK: 0.0214241, AZN: 0.0387462, BUOH: 0.00136751, O2: 0.00205127, N2: 0.00136751, ACAM: 0.129933, ACOH: 0.0, NA2HPO4: 6.00719e-05}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S05', fingerprint: a50e0c4d5363a6b1}
+        flow: {value: 31028.1, provenance: calculated, source: 'cheme process propagate: reactor R101 from S05', fingerprint: ee221c478120b016}
+        composition: {basis: mole_fraction, values: {H2O2: 0.0, H2O: 0.754831, NH3: 0.0330116, MEK: 0.0209667, AZN: 0.0379187, BUOH: 0.00133831, O2: 0.00200746, N2: 0.0227094, ACAM: 0.127158, ACOH: 0.0, NA2HPO4: 5.87889e-05}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S05', fingerprint: 69ebb656f2834f6d}
   - id: S07
     title: Reactor off-gas to atmosphere
     from: V101.gas
@@ -351,8 +365,8 @@ streams:
       design:
         pressure: {value: 101.325, provenance: assumed, source: design basis}
         temperature: {value: 308.15, provenance: assumed, source: D-008}
-        flow: {value: 109.603, basis: mass, provenance: assumed, source: "scripts/balance.py (D-004, D-008)"}
-        composition: {basis: mass_fraction, values: {O2: 0.620450, N2: 0.362133, NH3: 0.005588, MEK: 0.011829}, provenance: assumed, source: "D-008: NH3 1 mol% and MEK 0.5 mol% after the vent condenser/scrubber, ASSUMED"}
+        flow: {value: 755.610, basis: mass, provenance: assumed, source: "scripts/balance.py (D-004, D-008, D-015)"}
+        composition: {basis: mass_fraction, values: {O2: 0.089998, N2: 0.891339, NH3: 0.005988, MEK: 0.012675}, provenance: assumed, source: "D-008: NH3 1 mol% and MEK 0.5 mol% after the vent condenser/scrubber, ASSUMED; D-015: O2 8 mol% with the N2 sweep"}
   - id: S08
     title: Azine phase (organic)
     from: V101.org
@@ -360,8 +374,8 @@ streams:
     template: process
     state:
       design:
-        flow: {value: 7362.009, basis: mass, provenance: assumed, source: "scripts/balance.py (D-006)"}
-        composition: {basis: mass_fraction, values: {AZN: 0.764641, MEK: 0.186094, BUOH: 0.014265, H2O: 0.030000, NH3: 0.005000}, provenance: assumed, source: "D-006: water 3 wt% and NH3 0.5 wt% dissolved, ASSUMED"}
+        flow: {value: 7353.468, basis: mass, provenance: assumed, source: "scripts/balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {AZN: 0.765529, MEK: 0.185189, BUOH: 0.014282, H2O: 0.030000, NH3: 0.005000}, provenance: assumed, source: "D-006: water 3 wt% and NH3 0.5 wt% dissolved, ASSUMED"}
   - id: S09
     title: Spent working solution (aqueous)
     from: V101.aq
@@ -369,8 +383,8 @@ streams:
     template: process
     state:
       design:
-        flow: {value: 22922.952, basis: mass, provenance: assumed, source: "scripts/balance.py (D-006)"}
-        composition: {basis: mass_fraction, values: {ACAM: 0.346886, NA2HPO4: 0.000385, H2O: 0.618396, NH3: 0.024333, MEK: 0.010000}, provenance: assumed, source: "D-006: MEK 1 wt% dissolved, ASSUMED"}
+        flow: {value: 22919.043, basis: mass, provenance: assumed, source: "scripts/balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {ACAM: 0.346945, NA2HPO4: 0.000385, H2O: 0.618502, NH3: 0.024168, MEK: 0.010000}, provenance: assumed, source: "D-006: MEK 1 wt% dissolved, ASSUMED"}
   - id: S10
     title: Acetic acid make-up
     from: ACOHF.out
@@ -401,8 +415,8 @@ streams:
     state:
       design:
         temperature: {value: 423.15, provenance: assumed, source: "D-005: above 403 K (US 6,605,265: preferably 423-523 K)"}
-        flow: {value: 23024.2, provenance: calculated, source: 'cheme process propagate: reactor R201 from S09 S10 S11', fingerprint: 5019eb6ce19bda40}
-        composition: {basis: mole_fraction, values: {H2O2: 0.0, H2O: 0.822082, NH3: 0.0324736, MEK: 0.00331452, AZN: 0.0, BUOH: 0.0, O2: 0.0, N2: 0.0, ACAM: 0.14203, ACOH: 0.0, NA2HPO4: 0.000100212}, provenance: calculated, source: 'cheme process propagate: reactor R201 from S09 S10 S11', fingerprint: fe1a9d9f4c62c649}
+        flow: {value: 23020.2, provenance: calculated, source: 'cheme process propagate: reactor R201 from S09 S10 S11', fingerprint: d37f19c49e2964cd}
+        composition: {basis: mole_fraction, values: {H2O2: 0.0, H2O: 0.822278, NH3: 0.032244, MEK: 0.00331474, AZN: 0.0, BUOH: 0.0, O2: 0.0, N2: 0.0, ACAM: 0.142063, ACOH: 0.0, NA2HPO4: 0.000100225}, provenance: calculated, source: 'cheme process propagate: reactor R201 from S09 S10 S11', fingerprint: 2a46dde9f37f3ad5}
   - id: S13
     title: Regeneration column overhead (water, NH3, MEK)
     from: C201.top
@@ -411,8 +425,8 @@ streams:
     state:
       design:
         pressure: {value: 90, provenance: given, source: "US 6,605,265 Ex. 1: head 0.9 bar(a)"}
-        flow: {value: 5154.583, basis: mass, provenance: assumed, source: "scripts/balance.py (D-005)"}
-        composition: {basis: mass_fraction, values: {H2O: 0.852621, NH3: 0.102908, MEK: 0.044471}, provenance: assumed, source: "D-005: all reaction and peroxide water, NH3 and MEK overhead"}
+        flow: {value: 5150.675, basis: mass, provenance: assumed, source: "scripts/balance.py (D-005)"}
+        composition: {basis: mass_fraction, values: {H2O: 0.853268, NH3: 0.102235, MEK: 0.044497}, provenance: assumed, source: "D-005: all reaction and peroxide water, NH3 and MEK overhead"}
   - id: S15
     title: Working-solution purge
     from: C201.purge
@@ -440,8 +454,8 @@ streams:
     state:
       design:
         pressure: {value: 300, provenance: assumed, source: D-005}
-        flow: {value: 754.837, basis: mass, provenance: assumed, source: "scripts/balance.py (D-005)"}
-        composition: {basis: mass_fraction, values: {NH3: 0.702148, MEK: 0.297852}, provenance: assumed, source: "D-005: sharp NH3/water split ASSUMED"}
+        flow: {value: 750.928, basis: mass, provenance: assumed, source: "scripts/balance.py (D-005)"}
+        composition: {basis: mass_fraction, values: {NH3: 0.700650, MEK: 0.299350}, provenance: assumed, source: "D-005: sharp NH3/water split ASSUMED"}
   - id: S24
     title: Waste water
     from: C202.bot
@@ -460,8 +474,8 @@ streams:
     template: process
     state:
       design:
-        flow: {value: 1609.162, basis: mass, provenance: assumed, source: "scripts/balance.py (D-006)"}
-        composition: {basis: mass_fraction, values: {MEK: 0.843712, NH3: 0.022875, H2O: 0.133413}, provenance: assumed, source: D-006}
+        flow: {value: 1600.621, basis: mass, provenance: assumed, source: "scripts/balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {MEK: 0.843065, NH3: 0.022971, H2O: 0.133964}, provenance: assumed, source: D-006}
   - id: S32
     title: Distilled azine
     from: C301.bot

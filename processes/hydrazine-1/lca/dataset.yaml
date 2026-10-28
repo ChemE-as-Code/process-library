@@ -71,13 +71,17 @@ exchanges:
   amount: 2294.847
   unit: kg
   link:
-    source: hydrogen peroxide S01 (D-003, D-004)
-    missing: 'no background chosen yet: hydrogen peroxide, 70 wt% in water, from the anthraquinone autoxidation
-      process (incl. transport); library hydrogen-peroxide-1 as a dataset once published (that design''s
-      product concentration must be checked against 70 wt%)'
+    source: hydrogen peroxide S01 (D-003, D-004); D-004 yield 0.85 ASSUMED, sensitivity 0.81-0.95 in DESIGN.md
+      D-004
+    missing: 'no background chosen yet: hydrogen peroxide from the anthraquinone autoxidation process
+      (incl. transport); library hydrogen-peroxide-1 as a dataset once published. The quantity is the
+      mass of 70 wt% SOLUTION (1.147 kg per kg hydrate = 0.803 kg H2O2 as 100 %): a background stated
+      per kg H2O2 (100 %, in solution) must be applied to 0.70 x this amount, its water separately or
+      not at all'
   streams:
   - S01
-  source: hydrogen peroxide S01 (D-003, D-004)
+  source: hydrogen peroxide S01 (D-003, D-004); D-004 yield 0.85 ASSUMED, sensitivity 0.81-0.95 in DESIGN.md
+    D-004
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -93,7 +97,7 @@ exchanges:
 - key: feed:NH3F
   title: Ammonia liquid (ammonia-1)
   type: input
-  amount: 1444.008
+  amount: 1447.92
   unit: kg
   link:
     source: ammonia S02 (D-004, D-008)
@@ -115,7 +119,7 @@ exchanges:
 - key: feed:MEKF
   title: MEK make-up
   type: input
-  amount: 149.16
+  amount: 157.442
   unit: kg
   link:
     source: MEK make-up S03 (D-004, D-008)
@@ -134,6 +138,30 @@ exchanges:
     formulas:
       MEK: C4H8O
     source: stream table (S03)
+- key: feed:N2F
+  title: Nitrogen for headspace inerting
+  type: input
+  amount: 633.813
+  unit: kg
+  link:
+    source: 'N2 sweep of the reactor and decanter headspaces S04 (D-015, ASSUMED: O2 at most 8 mol% in
+      the vent)'
+    missing: 'no background chosen yet: nitrogen, gaseous, from cryogenic air separation (site supply
+      or pipeline)'
+  streams:
+  - S04
+  source: 'N2 sweep of the reactor and decanter headspaces S04 (D-015, ASSUMED: O2 at most 8 mol% in the
+    vent)'
+  pedigree:
+    scores: [4, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  composition:
+    fractions:
+      N2: 1.0
+    formulas:
+      N2: N2
+    source: stream table (S04)
 - key: feed:ACOHF
   title: Acetic acid make-up
   type: input
@@ -223,10 +251,13 @@ exchanges:
 - key: feed:MPS
   title: MP steam 2000 kPa(a)
   type: input
-  amount: 12419.0
+  amount: 12416.0
   unit: kWh
   link:
-    source: regeneration, azine and hydrolysis column reboilers Q03-Q05 (D-010)
+    source: 'regeneration, azine and hydrolysis column reboilers Q03-Q05 (D-010). A LOWER BOUND: the hydrolysis
+      column C-401 (Q05) leaves out the endothermic hydrolysis heat and assumes reflux 1; its high variant
+      (reflux 2.5, 25-75 kJ/mol azine, ASSUMED) adds 1.7-2.2 MW, i.e. MP steam up to about 7.3 kWh instead
+      of 6.2 kWh per kg hydrate (+18 %), until the column can be simulated (I-02)'
     missing: 'no background chosen yet: steam, in chemical industry, 2000 kPa(a) (site boiler on natural
       gas), per kWh of condensing heat'
   streams:
@@ -234,7 +265,10 @@ exchanges:
   - Q03
   - Q04
   - Q05
-  source: regeneration, azine and hydrolysis column reboilers Q03-Q05 (D-010)
+  source: 'regeneration, azine and hydrolysis column reboilers Q03-Q05 (D-010). A LOWER BOUND: the hydrolysis
+    column C-401 (Q05) leaves out the endothermic hydrolysis heat and assumes reflux 1; its high variant
+    (reflux 2.5, 25-75 kJ/mol azine, ASSUMED) adds 1.7-2.2 MW, i.e. MP steam up to about 7.3 kWh instead
+    of 6.2 kWh per kg hydrate (+18 %), until the column can be simulated (I-02)'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -248,7 +282,7 @@ exchanges:
 - key: feed:LPS
   title: LP steam 500 kPa(a)
   type: input
-  amount: 3986.0
+  amount: 3984.0
   unit: kWh
   link:
     source: ammonia recovery and concentration column reboilers Q06, Q07 (D-010)
@@ -415,7 +449,7 @@ exchanges:
 - key: product:VENT
   title: Reactor off-gas to atmosphere
   type: output
-  amount: 109.603
+  amount: 755.61
   unit: kg
   streams:
   - S07
@@ -426,10 +460,10 @@ exchanges:
   basic_uncertainty: 1.05
   composition:
     fractions:
-      O2: 0.62045
-      N2: 0.362133
-      NH3: 0.005588
-      MEK: 0.011829
+      O2: 0.089998
+      N2: 0.891339
+      NH3: 0.005988
+      MEK: 0.012675
     formulas:
       O2: O2
       N2: N2
@@ -439,7 +473,7 @@ exchanges:
 - key: product:CW
   title: Cooling water return
   type: output
-  amount: 18894.0
+  amount: 18891.0
   unit: kWh
   link:
     source: heat to cooling water Q08-Q13 (D-010)
@@ -464,7 +498,7 @@ exchanges:
 - key: emission:MEK
   title: MEK to the environment
   type: emission
-  amount: 1.2964938869999998
+  amount: 9.57735675
   unit: kg
   link:
     elementary: {}
@@ -486,13 +520,14 @@ exchanges:
 - key: emission:N2
   title: N2 to the environment
   type: emission
-  amount: 39.690863199
+  amount: 673.50466179
   unit: kg
   free: true
   cas: 7727-37-9
   streams:
   - S07
-  source: N2 from the 2-butanol side reaction (BUTANOL), no characterised burden
+  source: N2 from the 2-butanol side reaction (BUTANOL) and the headspace N2 sweep (D-015), no characterised
+    burden
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -506,7 +541,7 @@ exchanges:
 - key: emission:NH3
   title: NH3 to the environment
   type: emission
-  amount: 0.612461564
+  amount: 4.5245926800000005
   unit: kg
   link:
     elementary: {}
@@ -536,7 +571,7 @@ exchanges:
 - key: emission:O2
   title: O2 to the environment
   type: emission
-  amount: 68.00318134999999
+  amount: 68.00338878
   unit: kg
   free: true
   cas: 7782-44-7
@@ -559,8 +594,8 @@ provenance:
   plant: Hydrazine hydrate by the peroxide (PCUK, methyl ethyl ketazine) process
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:f4acc23786b0eb610596b0615b3a7171c3536c66463156df07fe4b88c70f3838
-    lca/lca.yaml: sha256:11a0cc87f833036997842c6242e42b340b58bd78c02edb1bc3827e0910403e80
-    process.yaml: sha256:8f5812d40536caf4ee906569b5ad926c65f588b9bf1d5c4182d122ee95bd8d87
-    process/flowsheet.yaml: sha256:70730c51d2836d15e24798b21c1ccd792be0e11fab7dba25d6788e3e3c7d0983
-    process/materials.yaml: sha256:de531e369f602154541ea41d10d40dbe8efa2c09841ca4b8ef01143544e1700c
+    equipment/equipment-list.yaml: sha256:098b954460ee330977c8df675db7ff48055324f428187a33a9cc344f3c56aaac
+    lca/lca.yaml: sha256:33fa3c4736837f56fbe5e54f5e7100d165d4ced3e7e6373b7b67934a93bcb488
+    process.yaml: sha256:b90d8d3993e482f19b3a8afda00676c2b039285b8f9edb97dc45336c52b88960
+    process/flowsheet.yaml: sha256:81ed8d028a5102ef9a3c2fabb1c1191022980c3db853bad59f6c48718398c4c2
+    process/materials.yaml: sha256:7d6444ad585967e3bda824167905b1213c847a4cfdae6d44622df2b6c2f16414

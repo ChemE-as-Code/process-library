@@ -49,11 +49,15 @@ validation:
     process streams: every block and step ok); reactor outlets calculated by cheme from
     selectivity/conversion specifications, every separator specified (scripts/balance.py).
     Consumptions per kg N2H4: H2O2 (100 %) 1.25 kg (85 % azine yield on H2O2, patent range 81
-    to about 90 %), NH3 1.13 kg, MEK make-up 0.12 kg. Steam 8.2 kWh per kg hydrate, of which
-    the working-solution regeneration (a single patent example, scaled) is 55 %. No energy
+    to about 90 %; 1.32 kg at 81 %, 1.12 kg at 95 %), NH3 1.13 kg, MEK make-up 0.12 kg. The
+    reactor and decanter headspaces are inerted with 0.32 kg N2 per kg hydrate (O2 at most 8
+    mol% in the vent, ASSUMED). Steam 8.2 kWh per kg hydrate, of which the working-solution
+    regeneration (a single patent example, scaled) is 55 %; the hydrolysis column steam is a
+    lower bound (hydrolysis heat not counted), a high variant adds up to 1.1 kWh of MP steam
+    per kg hydrate (+18 % MP steam). No energy
     balance: no property package covers the aqueous hydrazine/MEK/amide mixture (cheme process
     props --coverage). cheme maturity reaches no level. The LCI is foreground only, every
-    background a gap (14 gaps plus 2 uncharacterised emissions): no impact result (lca.source
+    background a gap (15 gaps plus 2 uncharacterised emissions): no impact result (lca.source
     none). Not reviewed. The chemicals registry has no hydrazine, hydrogen peroxide, ammonia,
     MEK, acetic acid, 2-butanol or sodium phosphate entry yet, so those flows are not listed
     under chemistry (DESIGN.md I-09).
@@ -67,6 +71,7 @@ chemistry:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.05 kWh per kg hydrate, ASSUMED hand estimate (pumps, agitators)"}
     - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "MP steam 2000 kPa(a), 6.2 kWh per kg hydrate: working-solution regeneration (US 6,605,265 Ex. 1, scaled), azine and hydrolysis columns"}
     - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 500 kPa(a), 2.0 kWh per kg hydrate: ammonia recovery and hydrate concentration"}
+    - {chemical: nitrogen, role: utility, inventory_key: "feed:N2F", note: "Headspace inerting sweep of the azine reactors and decanter, 0.32 kg per kg hydrate (O2 at most 8 mol% in the vent, ASSUMED, D-015)"}
     - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED), 9.4 kWh rejected per kg hydrate"}
 basis:
   capacity: "16 kt/a hydrazine hydrate, 64 wt% N2H4 (10.2 kt/a N2H4) (ASSUMED)"
@@ -82,4 +87,4 @@ references:
   - {title: "NIST Chemistry WebBook, SRD 69: standard formation enthalpies of H2O2(l), H2O(l), NH3(g), N2H4(l)", url: "https://webbook.nist.gov/chemistry/"}
 lca:
   source: none
-  notes: "Foreground LCI only (lca/inventory.csv, per kg hydrazine hydrate 64 wt% N2H4), every background a gap (D-013): no impact result."
+  notes: "Foreground LCI only (lca/inventory.csv, per kg hydrazine hydrate 64 wt% N2H4), every background a gap (D-013): no impact result. The generated lca/results.csv shows a total of 0 for climate change: that is not a zero footprint, every contribution is a gap (results.md: no total); to be reported to cheme-as-code (review 2026-10-28#9). feed:H2O2 is the mass of 70 wt% solution; feed:MPS is a lower bound (DESIGN.md D-010)."

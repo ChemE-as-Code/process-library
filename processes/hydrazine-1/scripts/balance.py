@@ -37,6 +37,10 @@ W_HH_BOTTOMS = 0.30
 ORG_W_H2O, ORG_W_NH3 = 0.03, 0.005      # water and NH3 dissolved in the azine phase
 AQ_W_MEK = 0.01                         # MEK dissolved in the aqueous working solution
 VENT_Y_NH3, VENT_Y_MEK = 0.01, 0.005    # after the lumped vent condenser/scrubber
+# D-015 N2 sweep of the R-101/V-101 headspaces: O2 at most 8 mol% in the vent (ASSUMED, about
+# 3 points below a limiting oxygen concentration of about 11 vol% for MEK with N2; to be
+# sourced, I-04)
+VENT_Y_O2_MAX = 0.08
 WW_W_MEK, WW_W_NH3 = 0.001, 0.0001      # C202 bottoms
 BLEED_W = {"BUOH": 0.85, "MEK": 0.10, "H2O": 0.05}   # 2-butanol side draw of C301
 MEK_TOP_W_H2O = 0.11                    # C401 top: MEK-water near the azeotrope
@@ -106,10 +110,11 @@ def main():
     h2o_in_hyd = s47["H2O"] + 2 * n2h4 + s41["H2O"] + s46["H2O"]
     s40 = {"H2O": h2o_in_hyd - s43["H2O"]}  # demineralised make-up water
 
-    # --- vent (V101)
-    inert = o2 + n2
-    vent_tot = inert / (1 - VENT_Y_NH3 - VENT_Y_MEK)
-    s07 = {"O2": o2, "N2": n2, "NH3": VENT_Y_NH3 * vent_tot, "MEK": VENT_Y_MEK * vent_tot}
+    # --- vent (V101), N2 sweep S04 sized on the O2 limit (D-015)
+    vent_tot = o2 / VENT_Y_O2_MAX
+    s04 = {"N2": vent_tot * (1 - VENT_Y_NH3 - VENT_Y_MEK) - o2 - n2}
+    s07 = {"O2": o2, "N2": n2 + s04["N2"], "NH3": VENT_Y_NH3 * vent_tot,
+           "MEK": VENT_Y_MEK * vent_tot}
 
     # --- working solution (C201 bottoms recycle S20, purge S15)
     ws_kg = WS_PER_H2O2 * h2o2 * MW["H2O2"]
@@ -178,10 +183,10 @@ def main():
             break
         s24_h2o = new_s24_h2o
     s23 = {"NH3": s13["NH3"] - s24["NH3"], "MEK": s13["MEK"] - s24["MEK"]}
-    s05 = add(s01, s02, s03, s20, s23, s31, s41)
+    s05 = add(s01, s02, s03, s04, s20, s23, s31, s41)
 
     print("== feeds and recycles")
-    for n, d in [("S01 H2O2 70 wt%", s01), ("S02 NH3", s02), ("S03 MEK make-up", s03),
+    for n, d in [("S01 H2O2 70 wt%", s01), ("S02 NH3", s02), ("S03 MEK make-up", s03), ("S04 N2 sweep", s04),
                  ("S10 acetic acid", s10), ("S11 Na2HPO4", s11), ("S40 make-up water", s40),
                  ("S20 working solution recycle", s20), ("S23 NH3/MEK recycle", s23),
                  ("S31 MEK recycle (C301 top)", s31), ("S41 MEK from hydrolysis", s41),
@@ -198,7 +203,7 @@ def main():
     print(f"hydrolysis water/azine {h2o_in_hyd / azn_hyd:.2f}")
 
     # --- boundary closure
-    ins = [s01, s02, s03, s10, s11, s40]
+    ins = [s01, s02, s03, s04, s10, s11, s40]
     outs = [s07, s15, s24, s33, s46, s48]
     m_in = sum(sum(mass(d).values()) for d in ins)
     m_out = sum(sum(mass(d).values()) for d in outs)
@@ -239,6 +244,14 @@ def main():
     q["Q_C202_cw"] = q["Q_C202_steam"] - mass(s23)["NH3"] * 1370 / 3600
     for k, v in q.items():
         print(f"{k}: {v:.0f} kW")
+    # D-010 high-steam variant of C401 (review 2026-10-28#1): reflux ratio 2.5 instead of 1, plus
+    # a hydrolysis heat of 25-75 kJ/mol azine (ASSUMED order of magnitude; endothermic per the
+    # route's secondary source, no value read)
+    feed_heat = mass({"H2O": h2o_in_hyd})["H2O"] * 4.3 * 85 / 3600
+    top_lat = (t41["MEK"] * 330 + t41["H2O"] * 2030) / 3600
+    for dh_hyd in (25, 50, 75):
+        q_hi = top_lat * 3.5 + feed_heat + azn_hyd * dh_hyd / 3.6
+        print(f"Q_C401_steam high variant (R 2.5, hydrolysis {dh_hyd} kJ/mol): {q_hi:.0f} kW")
 
 
 if __name__ == "__main__":

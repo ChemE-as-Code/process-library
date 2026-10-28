@@ -22,14 +22,15 @@ year: 2026
 technology: "ammonia oxidation by hydrogen peroxide in the presence of methyl ethyl ketone in an activated (acetamide/ammonium acetate, phosphate) working solution at 323 K, azine decantation and distillation, working-solution regeneration by evaporation at 453 K with ammonia recovery, azine hydrolysis by reactive distillation at about 900 kPa(a), hydrate concentration; 16 kt/a hydrazine hydrate (10.2 kt/a N2H4), concept design"
 rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
 flows:
-  - {key: feed:H2O2, missing: "no background chosen yet: hydrogen peroxide, 70 wt% in water, from the anthraquinone autoxidation process (incl. transport); library hydrogen-peroxide-1 as a dataset once published (that design's product concentration must be checked against 70 wt%)", source: "hydrogen peroxide S01 (D-003, D-004)"}
+  - {key: feed:H2O2, missing: "no background chosen yet: hydrogen peroxide from the anthraquinone autoxidation process (incl. transport); library hydrogen-peroxide-1 as a dataset once published. The quantity is the mass of 70 wt% SOLUTION (1.147 kg per kg hydrate = 0.803 kg H2O2 as 100 %): a background stated per kg H2O2 (100 %, in solution) must be applied to 0.70 x this amount, its water separately or not at all", source: "hydrogen peroxide S01 (D-003, D-004); D-004 yield 0.85 ASSUMED, sensitivity 0.81-0.95 in DESIGN.md D-004"}
+  - {key: feed:N2F, missing: "no background chosen yet: nitrogen, gaseous, from cryogenic air separation (site supply or pipeline)", source: "N2 sweep of the reactor and decanter headspaces S04 (D-015, ASSUMED: O2 at most 8 mol% in the vent)"}
   - {key: feed:NH3F, missing: "no background chosen yet: ammonia, anhydrous liquid, from steam methane reforming and Haber-Bosch synthesis (or a low-carbon route); library ammonia-1 as a dataset once published", source: "ammonia S02 (D-004, D-008)"}
   - {key: feed:MEKF, missing: "no background chosen yet: methyl ethyl ketone, market for (dehydrogenation of 2-butanol from n-butenes), incl. transport", source: "MEK make-up S03 (D-004, D-008)"}
   - {key: feed:ACOHF, missing: "no background chosen yet: acetic acid, glacial, market for (methanol carbonylation); a library acetic-acid process as a dataset once published", source: "acetic acid make-up S10 (D-005)"}
   - {key: feed:PHOSF, missing: "no background chosen yet: disodium hydrogen phosphate (sodium phosphate), from phosphoric acid and sodium carbonate or hydroxide", source: "phosphate make-up S11 (D-005)"}
   - {key: feed:DW, missing: "no background chosen yet: water, deionised (demineralised), from the site water treatment, incl. the withdrawal from a river or well", source: "hydrolysis make-up water S40 (D-007)"}
   - {key: feed:POWER, missing: "no background chosen yet: electricity, medium voltage, market for the site's grid (site not chosen)", source: "agitators and pumps Q01, Q02 (D-010, ASSUMED hand estimate)"}
-  - {key: feed:MPS, missing: "no background chosen yet: steam, in chemical industry, 2000 kPa(a) (site boiler on natural gas), per kWh of condensing heat", source: "regeneration, azine and hydrolysis column reboilers Q03-Q05 (D-010)"}
+  - {key: feed:MPS, missing: "no background chosen yet: steam, in chemical industry, 2000 kPa(a) (site boiler on natural gas), per kWh of condensing heat", source: "regeneration, azine and hydrolysis column reboilers Q03-Q05 (D-010). A LOWER BOUND: the hydrolysis column C-401 (Q05) leaves out the endothermic hydrolysis heat and assumes reflux 1; its high variant (reflux 2.5, 25-75 kJ/mol azine, ASSUMED) adds 1.7-2.2 MW, i.e. MP steam up to about 7.3 kWh instead of 6.2 kWh per kg hydrate (+18 %), until the column can be simulated (I-02)"}
   - {key: feed:LPS, missing: "no background chosen yet: steam, in chemical industry, 500 kPa(a), per kWh of condensing heat", source: "ammonia recovery and concentration column reboilers Q06, Q07 (D-010)"}
   - {key: product:CW, missing: "no background chosen yet: cooling water circulation per kWh rejected (pump and fan electricity, make-up withdrawal and evaporation, blowdown, treatment chemicals)", source: "heat to cooling water Q08-Q13 (D-010)"}
   - key: product:BUOHB
@@ -50,7 +51,7 @@ flows:
     source: "regeneration water after ammonia recovery S24 (D-008); a hydrazine trace, peroxide residues and stabiliser are not modelled (D-014)"
   - {key: product:VENT, emission: true, source: "reactor off-gas after the lumped vent condenser/scrubber S07, to atmosphere (D-008)"}
   - {key: emission:O2, free: true, source: "O2 from the decomposition of hydrogen peroxide (DECOMP), no characterised burden"}
-  - {key: emission:N2, free: true, source: "N2 from the 2-butanol side reaction (BUTANOL), no characterised burden"}
+  - {key: emission:N2, free: true, source: "N2 from the 2-butanol side reaction (BUTANOL) and the headspace N2 sweep (D-015), no characterised burden"}
   - {key: emission:NH3, elementary: {compartment: air, subcompartment: unspecified}, source: "ammonia in the off-gas, 1 mol% after the vent condenser/scrubber ASSUMED (D-008)"}
   - {key: emission:MEK, elementary: {compartment: air, subcompartment: unspecified, origin: fossil}, source: "MEK in the off-gas, 0.5 mol% ASSUMED (D-008)"}
 emission_exclusions:
