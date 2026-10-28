@@ -178,7 +178,14 @@ These are gaps, not zeros (ADR 0022). Mass allocation over ethylene, propylene, 
 pyrolysis gasoline is proposed (ethylene share 91.6 %). `lca/inventory.csv` is per functional
 unit with the mass allocation applied to the inputs and emissions, while the co-products are
 listed unallocated; `lca/dataset.yaml` (per hour) is the unallocated dataset (corrected after
-review #1). `lca/mappings.yaml` holds no overrides yet.
+review #1). `lca/mappings.yaml` holds only the steam overrides: MPS, LPS and HPS are counted as
+heat in kWh, so they use the library's `steam-heat` entry instead of the mass-based `steam` slug
+(as hda-1 and nitric-acid-1 do). Mass allocation departs from the library's WBCSD price-ratio
+hierarchy because no co-product prices are set at concept stage. The departure is stated as
+`allocation.deviation` in `lca/lca.yaml`, to be re-tested once prices exist. The zero flue-gas
+C2H4 and C2H6 are elementary emissions to air, not `free`. An unburnt hydrocarbon is not
+burden-free, and the library's pass-through list does not hold them. At zero amount they are
+reported gaps without a GWP factor.
 Missing registry entries (for the consolidated chemicals PR): ethylene (polymer grade),
 propylene (polymer grade), ethane, natural-gas, sodium-hydroxide, crude C4 / 1,3-butadiene,
 pyrolysis-gasoline, nitrogen-oxides, carbon-monoxide, dinitrogen-monoxide.
