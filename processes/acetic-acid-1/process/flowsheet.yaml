@@ -167,6 +167,7 @@ steps:
       - {id: in, direction: in}
       - {id: out, direction: out}
       - {id: cw, direction: out, kind: energy, delegates: cw}
+      - {id: hx, direction: out, kind: energy}
   - id: V101
     block: RXN
     title: Reactor HP vent knock-out (non-condensables off the reactor head)
@@ -178,11 +179,12 @@ steps:
       - {id: liq, direction: out}
   - id: V102
     block: RXN
-    title: Adiabatic flash (catalyst separation)
+    title: Heated flash (catalyst separation; E-102 heated by reactor pumparound, D-014)
     class: SeparatingByFlash
-    links: [{target: equipment, ref: V-102}]
+    links: [{target: equipment, ref: V-102}, {target: equipment, ref: E-102}]
     ports:
       - {id: in, direction: in}
+      - {id: heat, direction: in, kind: energy}
       - {id: vap, direction: out, delegates: vap}
       - {id: liq, direction: out}
   - id: P102
@@ -321,7 +323,7 @@ streams:
     state:
       design:
         pressure: {value: 2900, provenance: assumed, source: "D-003 (US 6,140,535 Examples 1-5: 27.4-30.0 bar)"}
-        temperature: {value: 403.15, provenance: assumed, source: "mixed inlet, scripts/balance.py energy shortcut (D-008)"}
+        temperature: {value: 378.7, provenance: assumed, source: "enthalpy balance of mixer M101's inlets, scripts/balance.py energy shortcut (D-008; review 2026-10-28 #4)"}
         flow: {value: 412772.0, provenance: calculated, source: 'cheme process propagate: mixer M101 from S03 S04 S05 S12 S15 S17 S18 S19', fingerprint: ad51331df56edd81}
         composition: {basis: mole_fraction, values: {CO: 0.123488, H2: 0.000376104, N2: 0.00125368, CH4: 0.000250736, CH3I: 0.0278304, CO2: 0.0, CH3OH: 0.125148, H2O: 0.163416, CH3COOH: 0.458541, MEOAC: 0.0995027, C2H5COOH: 0.000193571}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S03 S04 S05 S12 S15 S17 S18 S19', fingerprint: 2db2ab63541e5e7d}
   - id: S07
@@ -447,7 +449,7 @@ streams:
         flow: {value: 52634.1, basis: mass, provenance: assumed, source: "scripts/balance.py (D-006)"}
         composition: {basis: mole_fraction, values: {CH3I: 0.36971977, MEOAC: 0.57417996, CH3OH: 0.016904062, H2O: 0.022684061, CH3COOH: 0.016512148}, provenance: assumed, source: "scripts/balance.py (D-006)"}
   - id: S18
-    title: Decanter light (aqueous) phase to reactor
+    title: Decanter light phase (methyl acetate-rich, about 22 wt% water) to reactor
     from: V201.light
     to: M101.aq
     template: process
@@ -504,7 +506,8 @@ streams:
   # --- energy streams (scripts/balance.py shortcut, D-008, D-010; ASSUMED until core qualifies them) ---
   - {id: Q01, title: P-101 power, kind: energy, from: POWER.p101, to: P101.power, state: {design: {duty: {value: 49, provenance: assumed, source: "scripts/balance.py, 2800 kPa rise, efficiency 0.65 (D-010)"}}}}
   - {id: Q02, title: P-102 power, kind: energy, from: POWER.p102, to: P102.power, state: {design: {duty: {value: 269, provenance: assumed, source: "scripts/balance.py, 2650 kPa rise, efficiency 0.65 (D-010)"}}}}
-  - {id: Q03, title: R-101 cooler and HP vent condenser duty, kind: energy, from: R101.cw, to: CW.r101, state: {design: {duty: {value: 6573, provenance: assumed, source: "scripts/balance.py: reaction heat 37.7 MW less the flash-vapour enthalpy and feed heating (D-008)"}}}}
+  - {id: Q03, title: R-101 cooler and HP vent condenser duty to cooling water, kind: energy, from: R101.cw, to: CW.r101, state: {design: {duty: {value: 6573, provenance: assumed, source: "scripts/balance.py: reactor heat removed 17.7 MW (reaction heat less feed heating) less the 11.2 MW passed to E-102 (Q13) (D-008, D-014)"}}}}
+  - {id: Q13, title: Reactor pumparound to V-102 flash heater E-102 (heat integration), kind: energy, from: R101.hx, to: V102.heat, state: {design: {duty: {value: 11169, provenance: assumed, source: "scripts/balance.py: enthalpy balance of V-102, S10 + S11 at 413 K less S09 at 463 K (D-014; review 2026-10-28 #1)"}}}}
   - {id: Q04, title: C-201 reboiler duty, kind: energy, from: MPS.c201, to: C201.reb, state: {design: {duty: {value: 694, provenance: assumed, source: "scripts/balance.py, energy balance of C-201 with vapour feed, reflux 1.0 (D-008)"}}}}
   - {id: Q05, title: C-201 condenser duty, kind: energy, from: C201.cond, to: CW.c201, state: {design: {duty: {value: 27927, provenance: assumed, source: "scripts/balance.py, reflux 1.0 (D-008)"}}}}
   - {id: Q06, title: C-201 reflux and recycle pumps, kind: energy, from: POWER.c201, to: C201.power, state: {design: {duty: {value: 117, provenance: assumed, source: "scripts/balance.py (D-010)"}}}}

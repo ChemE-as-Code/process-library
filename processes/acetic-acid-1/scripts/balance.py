@@ -197,9 +197,19 @@ def duties(s, xi):
     h_in = (enthalpy(s["S03"], T["cold"]) + enthalpy(s["S04"], T["cold"]) + enthalpy(s["S05"], T["cold"])
             + enthalpy(s["S12"], T["flash"]) + enthalpy(s["S15"], T["c201_bot"])
             + enthalpy(s["S17"], T["cold"]) + enthalpy(s["S18"], T["cold"]) + enthalpy(s["S19"], T["cold"]))
-    h_out = (enthalpy(s["S08"], T["cold"]) + enthalpy(s["S10"], T["flash"], allv)
-             + enthalpy(s["S11"], T["flash"]))
-    q["R101_cooling"] = (qr + h_in - h_out) / 3600          # reactor cooler + HP vent condenser, kW
+    # reactor R-101 (with HP vent condenser) and flash V-102 separately (review 2026-10-28 #1):
+    # the V-101 liquid S09 leaves the reactor at reactor temperature and is flashed to 413 K
+    h_s09 = enthalpy(s["S09"], T["reactor"])
+    h_flash_out = enthalpy(s["S10"], T["flash"], allv) + enthalpy(s["S11"], T["flash"])
+    q["R101_heat_removed"] = (qr + h_in - enthalpy(s["S08"], T["cold"]) - h_s09) / 3600
+    # the specified flash split is not adiabatic: E-102 heats the flash with reactor heat (D-014)
+    q["V102_heater"] = (h_flash_out - h_s09) / 3600
+    q["R101_cooling"] = q["R101_heat_removed"] - q["V102_heater"]   # reactor cooler to CW, kW
+    lo, hi = 298.15, T["reactor"]                            # mixer M101 outlet S06 (review #4)
+    for _ in range(60):
+        mid = (lo + hi) / 2
+        lo, hi = (mid, hi) if enthalpy(s["S06"], mid) < h_in else (lo, mid)
+    q["T_S06_K"] = (lo + hi) / 2
     q["reaction_heat"] = qr / 3600
     q["flash_vapour_enthalpy"] = enthalpy(s["S10"], T["flash"], allv) / 3600
 
@@ -256,7 +266,7 @@ def main():
     print(f"yield on CO {co_yield:.4f}, on methanol {meoh_yield:.4f}")
     print("water in product ppm(wt):", round(1e6 * s["S21"]["H2O"] * M["H2O"] / PRODUCT))
     for k, v in q.items():
-        print(f"{k}: {v:.0f} kW")
+        print(f"{k}: {v:.1f} K" if k.startswith("T_") else f"{k}: {v:.0f} kW")
 
 
 if __name__ == "__main__":

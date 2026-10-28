@@ -2,6 +2,13 @@
 
 The life cycle assessment of the plant's operation (ISO 14040/44), per functional unit.
 
+> **acetic-acid-1: a 0 is not a result.** Every background of this study is still a gap
+> (`gaps.csv`), so there is no total. The uncertainty row of `results.md` (deterministic 0,
+> interval 0 .. 0) and the total of 0 in `results.csv` are generated placeholders and mean
+> "no total", never a zero footprint (DESIGN.md D-013, review 2026-10-28 #10). The foreground
+> is gate-to-gate; `lca.yaml` declares cradle-to-gate because every feed is to be linked to its
+> background (D-013).
+
 | file | what | written by |
 |---|---|---|
 | `lca.yaml` | goal and scope: the functional unit (a product of `process/flowsheet.yaml`), the case, the allocation between co-products, the impact categories, and the background of every feed, product and emitted component (`cheme schema lca`) | people; `cheme init` writes none, since the flowsheet has no products yet |

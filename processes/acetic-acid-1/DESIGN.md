@@ -18,7 +18,8 @@ point: library commit 11d50ef, cheme 0.8.0 (pyDEXPI 2.1.0). Numbers live in the 
   process. Ethylene/acetaldehyde oxidation, butane/naphtha liquid-phase oxidation and
   fermentation are other routes, not designed here.
 - **Boundary (gate-to-gate):** from the methanol and CO battery limits to glacial acid at the
-  storage battery limit. Inside: reactor with cooler, HP vent knock-out, adiabatic flash, light-ends
+  storage battery limit. Inside: reactor with cooler, HP vent knock-out, flash heated by the
+  reactor circuit (D-014), light-ends
   column with decanter, drying column, heavy-ends column, vent scrubbing with the feed methanol.
   Outside: methanol production (library process **methanol-1**, whose Grade AA product S18 is
   the feed composition), CO production and compression (a syngas cold box or partial oxidation:
@@ -51,7 +52,7 @@ No values were taken from licensed databases; no tables, figures or text were co
 | reactor liquid | water 6, CH3I 8, MeOAc 15 wt% | S1 Examples: water 4.6-7.8, CH3I 6.6-10.3, MeOAc 14.3-22.3 wt% | design choice inside a sourced range |
 | CO2 make (water-gas shift) | 0.8 % of the carbonylation rate | S1 Examples 1-5: 0.63-0.98 % | sourced, mid value |
 | CH4 make | 0.9 % of the carbonylation rate | S1 Examples 1-5: 0.81-1.02 % | sourced, mid value; stoichiometry CH3OH + H2 -> CH4 + H2O is a modelling choice |
-| propionic acid | 500 ppm(wt) of the product formed | S2 (excerpt, unverified page): about 1/3 of 1200-2000 ppm; S1 Examples: 290-390 ppm in the product without a heavy-ends column | ASSUMED inside the reported order |
+| propionic acid | 500 ppm(wt) of the product formed | S1 Examples: 290-390 ppm in the product without a heavy-ends column (the reported fact); S2 is unread and not used as a basis | ASSUMED, a margin above S1's range |
 | propionic stoichiometry | CH3COOH + CO + 2 H2 -> C2H5COOH + H2O | balances elements; not the mechanism | modelling choice |
 | methanol conversion per pass | 0.9545 (lumped) | follows from the loop balance, not kinetics | derived |
 | kinetics | none | no rate law is used; the patent's carbonylation rate (17.3-20.3 mol/(l h)) gives a reaction liquid volume of about 53 m3 for 1000 kmol/h at the patent's catalyst concentrations (a first sizing hint, not a design) | open (O-5) |
@@ -80,8 +81,10 @@ it is the net water of the reactions and the methanol feed (691 ppm(wt)), inside
 ### D-003 Catalyst family and reactor conditions (2026-10-28)
 Decision: low-water iridium/ruthenium with methyl iodide promoter (Cativa type), 463 K,
 2900 kPa(a), water 6 wt%. Reason: one documented catalyst family (issue #128); the open patent
-S1 gives conditions and by-product rates for it; low water reduces the drying load and the
-water-gas shift (S2 per route description). Rejected: Monsanto rhodium at high water (more
+S1 gives conditions and by-product rates for it; low water reduces the drying load (less water
+to remove in C-202) and S1's examples report a CO2 make of only 0.63-0.98 % of the
+carbonylation rate at 4.6-7.8 wt% water. (S2, unread, no longer carries this reason: review
+2026-10-28 #3.) Rejected: Monsanto rhodium at high water (more
 drying, higher CO2 make); low-water rhodium with iodide salts (no open quantitative source found
 this run).
 
@@ -112,7 +115,12 @@ property package qualifies the acid/water/methyl iodide/methyl acetate system (p
 315, core #315; its current state could not be read from this environment) and `process
 simulate` has no qualified method for it; the issue allows a specified model at a declared
 lower level. All values ASSUMED; accuracy not stated. Rejected: an unqualified NRTL/UNIFAC
-simulation presented as predictive.
+simulation presented as predictive. The decanter V-201 split is not checked against
+liquid-liquid equilibrium: its light phase S18 is about 70 wt% methyl acetate and 22 wt% water,
+the heavy phase S17 about 54 wt% CH3I and 44 wt% methyl acetate, and at these methyl acetate
+contents the two phases may be close to merging. The balance and the LCI do not depend on it
+(both phases return to the reactor); the decanter and C-201 sizing do. To be re-checked with a
+qualified LLE model (core #315, O-7) (review 2026-10-28 #5).
 
 ### D-007 Vents and off-gas (2026-10-28)
 Decision: 70 % of the non-condensables leave by the HP vent, 30 % by the flash and the
@@ -126,13 +134,18 @@ methanol. ASSUMED; the CO loss is the most sensitive open value of the raw-mater
 
 ### D-008 Utilities and duties (2026-10-28)
 Decision: cooling water 298/308 K; MP steam 1100 kPa(a) (457 K) for reboilers (column bottoms
-410-425 K); reactor heat partly removed by the adiabatic flash (the flash vapour carries 32.7
-of the 37.7 MW reaction heat into the light-ends column), the rest (6.6 MW) by a cooler on
-cooling water. Column duties from mass reflux ratios 1.0 (C-201), 3.0 (C-202), 1.0 (C-203),
-rounded normal-boiling-point heats of vaporisation and constant liquid heat capacities (S8).
-Reason: energy is not evaluable in core for these streams (no enthalpies). Check: steam plus
-power (27.6 MW) equals the heat rejected minus the reaction heat (65.5 - 37.7 = 27.8 MW).
-ASSUMED; steam raising in the reactor cooler and heat integration are not considered.
+410-425 K). Reactor and flash are balanced separately in `scripts/balance.py` (corrected
+after review 2026-10-28 #1): of the 37.7 MW reaction heat, about 20 MW heats the feeds and
+recycles to reactor temperature and leaves with the reactor liquid S09; the reactor's external
+circuit removes 17.7 MW, of which 11.2 MW heats the flash V-102 through E-102 (D-014, Q13) and
+6.6 MW goes to cooling water (E-101, Q03, reactor cooling only). The specified flash split
+needs that 11.2 MW: it is not adiabatic. Column duties from mass reflux ratios 1.0 (C-201),
+3.0 (C-202), 1.0 (C-203), rounded normal-boiling-point heats of vaporisation and constant
+liquid heat capacities (S8). Reason: energy is not evaluable in core for these streams (no
+enthalpies). Checks: each of reactor, flash and columns closes on its own enthalpy balance in
+balance.py; globally, steam plus power (27.6 MW) equals the heat rejected minus the reaction
+heat (65.5 - 37.7 = 27.8 MW), a check that holds for any flash split and so cannot replace the
+unit balances. ASSUMED; steam raising in the reactor cooler is not considered.
 
 ### D-009 Heavy ends (2026-10-28)
 Decision: C-203 takes the product overhead; 90 % of the propionic acid leaves in the bottoms
@@ -160,6 +173,33 @@ heavy ends are wastes to treatment (hazardous), their combustion emissions belon
 treatment background. lca/mappings.yaml only counts the MP steam as heat (`steam-heat`). Minor
 gas components in process.yaml carry no inventory_key (a slug would map the whole gas wrongly).
 Catalyst (Ir/Ru) losses are not inventoried (no source, O-6): neither a zero nor a cut-off.
+Boundary wording (review 2026-10-28 #9): the foreground inventory is gate-to-gate (methanol and
+CO battery limits to product storage); lca.yaml declares `boundary: cradle-to-gate` because
+every feed is to be linked to its upstream background, which makes the study cradle-to-gate
+once the gaps are closed. Until then the results are a gate-to-gate foreground with gaps.
+The generated `results.md` uncertainty row and the `results.csv` total print 0 while every
+contribution is a gap: that 0 means "no total", not a zero footprint (review #10, lca/README.md;
+a core presentation issue to report to cheme-as-code).
+
+### D-014 Flash heated by the reactor circuit (2026-10-28)
+Decision: the flash V-102 receives 11.2 MW from the reactor's external circulation through a
+flash heater E-102 (reactor liquid at 463 K against the flash liquid at 413 K, a 50 K driving
+force), energy stream Q13 R101 -> V102. The flash split of D-006 is kept. Reason: review
+2026-10-28 #1 showed that the specified split (162 t/h vapour from 411 t/h of reactor liquid)
+needs 11.2 MW more than the liquid's sensible heat from 463 to 413 K provides; the reaction
+heat the reactor must reject anyway (17.7 MW) is the available source, so no utility changes:
+steam, cooling water and the LCI stay as they were. Rejected: (a) an adiabatic flash with less
+vapour, which would move the light-ends load onto the C-201 reboiler (about +11 MW MP steam,
++0.19 kWh/kg, about 40 % more steam, and the same more to cooling water) and change every loop
+stream; it is the sensitivity case if the integration is not realised. ASSUMED; no source shows
+this arrangement for this route. Open (O-9): exchanger arrangement (heater on the flash liquid
+or a heated flash vessel), control of the split, and catalyst stability in a heated flash at
+low CO partial pressure.
+
+### Stage gates of this case (2026-10-28)
+The concept gate `layout-plot-plan` is open on purpose: this library case is bounded to design
+basis, PFD and LCI and has no plot plan (review 2026-10-28 #8). The concept stage is not signed
+off until a plot plan exists; basic and detail gates are outside this case.
 
 ## Results (design case)
 
@@ -178,8 +218,11 @@ Per kg glacial acetic acid (lca/inventory.csv; flows from process/flowsheet.yaml
 
 Balances: cheme validate 0 errors; every block and step closes; the reactor's extents explain
 every component change (cheme process streams). LCI (cheme assess lca --balance): mass in
-61,621.9 kg/h, out 61,621.8; C, H, I, N, O close within 0.05 %. Classification: partial (9
-gaps, every exchange unmapped by design). Energy: not evaluable in core (no stream enthalpies).
+61,621.9 kg/h, out 61,621.8; C, H, I, N, O close within 0.05 %. Classification: partial (8
+gaps, every exchange unmapped by design). Energy: not evaluable in core (no stream enthalpies);
+balance.py closes reactor, flash (with the 11.2 MW of E-102, D-014) and columns separately. The
+steam and cooling-water rows hold with the flash heated by the reactor circuit; without that
+integration (adiabatic flash) steam would rise by about 0.19 kWh/kg (D-014).
 
 ## Method and dependency table
 
@@ -201,6 +244,8 @@ gaps, every exchange unmapped by design). Energy: not evaluable in core (no stre
 - O-6 Catalyst (Ir, Ru) and iodide losses and catalyst purge/recovery: no open rate found.
 - O-7 Rigorous column design (stages, reflux) once a property method is qualified.
 - O-8 Fugitive emissions, drains and aqueous effluents (not in the concept balance).
+- O-9 Flash heater E-102 (D-014): arrangement, split control, catalyst stability; or an
+  adiabatic flash with the reboiler-duty penalty.
 
 ## Library items to add later (shared files, not edited here)
 
