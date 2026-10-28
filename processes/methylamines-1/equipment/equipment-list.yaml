@@ -1,3 +1,44 @@
 # Equipment list. Schema: `cheme schema equipment`.
-schema: cheme/equipment/v1
-equipment: []
+# Concept stage: the items the PFD (process/flowsheet.yaml) needs, no P&ID yet (no sheet).
+# Design pressure and temperature are ASSUMED concept values (D-012): the highest operating
+# value of the balance (scripts/mass_balance.py) + 10 % (at least + 2 bar) and + 25 K. Materials
+# are placeholders: hot ammonia (nitriding) and amine/water corrosion need a materials review
+# (open input, D-012). Sizes, dimensions and weights come at basic engineering (datasheets).
+equipment:
+  # ---- feed preparation and synthesis (block RXN)
+  - {tag: V-101, type: Vessel, service: Converter feed drum (fresh feeds and recycles),
+     design_pressure_barg: 19, design_temperature_degc: 75, material: CS,
+     notes: "Liquid ammonia, methanol, MMA and NH3/TMA recycle, ~1500 kPa(a), 315 K. ASSUMED."}
+  - {tag: P-101, type: CentrifugalPump, service: Converter feed pump,
+     design_pressure_barg: 28, design_temperature_degc: 75, material: CS,
+     notes: "1500 -> 2400 kPa(a), 34.5 t/h; ~26 kW hydraulic/0.6 (D-010). Stands for the feed and recycle pumps, lumped in the PFD. ASSUMED."}
+  - {tag: E-101, type: TubularHeatExchanger, service: Feed vaporiser (MP steam),
+     design_pressure_barg: 26, design_temperature_degc: 225, material: CS,
+     notes: "315 -> 453 K, ~12.3 MW from MP steam 1500 kPa(a) (D-009). Heat integration with the effluent not done (D-009). ASSUMED."}
+  - {tag: E-102, type: TubularHeatExchanger, service: Converter feed/effluent exchanger,
+     design_pressure_barg: 24, design_temperature_degc: 465, material: "CS or low alloy, hot ammonia (nitriding) review open",
+     notes: "Feed 453 -> 625 K, effluent 713 -> 560 K, ~3.8 MW. ASSUMED."}
+  - {tag: R-101, type: Reactor, service: "Methylamines converter (adiabatic fixed bed, amorphous silica-alumina)",
+     design_pressure_barg: 24, design_temperature_degc: 465, material: "CS or low alloy, hot ammonia (nitriding) review open",
+     notes: "Inlet 625 K, outlet 713 K, 2200/2000 kPa(a), ideal-gas equilibrium outlet (D-005). Catalyst volume and bed size open (space velocity not sourced). ASSUMED."}
+  - {tag: E-103, type: TubularHeatExchanger, service: Effluent condenser (cooling water),
+     design_pressure_barg: 22, design_temperature_degc: 310, material: CS,
+     notes: "560 -> 313 K, total condensation, ~15.8 MW to cooling water. ASSUMED."}
+  # ---- ammonia recovery (block NHR)
+  - {tag: C-101, type: ProcessColumn, service: Ammonia column (NH3 and the TMA recycle overhead),
+     design_pressure_barg: 21, design_temperature_degc: 160, material: CS,
+     notes: "1900 kPa(a) top, reflux ratio 1.0; reboiler ~11.3 MW MP steam, condenser ~9.0 MW cooling water (D-008). Reboiler and condenser not listed separately at concept. ASSUMED."}
+  # ---- amine separation (block AMS)
+  - {tag: C-102, type: ProcessColumn, service: TMA extractive distillation column (water),
+     design_pressure_barg: 6, design_temperature_degc: 135, material: CS,
+     notes: "500 kPa(a), extraction water 1 kg/kg feed, reflux ratio 3; reboiler ~1.6 MW LP steam (D-008). Caustic dosing against corrosion (US 7,309,403 B2) not modelled. ASSUMED."}
+  - {tag: C-103, type: ProcessColumn, service: Dehydration column (MMA + DMA overhead),
+     design_pressure_barg: 6, design_temperature_degc: 190, material: CS,
+     notes: "600 kPa(a), reflux ratio 1.0; reboiler ~4.2 MW MP steam (D-008). Higher-amine side draw (US 4,283,254 A) not modelled. ASSUMED."}
+  - {tag: C-104, type: ProcessColumn, service: MMA / DMA column,
+     design_pressure_barg: 6, design_temperature_degc: 90, material: CS,
+     notes: "600 kPa(a), reflux ratio 4; reboiler ~5.0 MW LP steam (D-008). ASSUMED."}
+  # ---- methanol recovery and water (block MRW)
+  - {tag: C-105, type: ProcessColumn, service: Methanol recovery column,
+     design_pressure_barg: 3, design_temperature_degc: 145, material: CS,
+     notes: "150 kPa(a) top; reboiler ~1.4 MW LP steam; bottoms water with 100 ppm(wt) methanol (D-008). ASSUMED."}
