@@ -40,7 +40,9 @@ flows:
   - {key: emission:N2, free: true, source: "S11: the nitrogen of the hydrogen feed"}
   - {key: emission:H2O, free: true, source: "S11: water vapour of the vent"}
   # components of the vent that are absent (0 kg) in this balance
-  - {key: emission:Br2, free: true, source: "0 kg: Br2 fully converted in R101/R102 (D-005); bromine slip at upsets is excluded below (non-routine)"}
+  # Br2 is toxic: declared elementary (not free) so that a non-zero slip in a later balance is
+  # characterised or a gap, never burden-free
+  - {key: emission:Br2, elementary: {compartment: air}, source: "0 kg: Br2 fully converted in R101/R102 (D-005); bromine slip at upsets is excluded below (non-routine)"}
 operation: {hours_per_year: 8000, life_years: 20, source: "design basis, D-002; life ASSUMED"}
 emission_exclusions:
   - {id: burner-combustion, method: combustion, reason: "R101 burns hydrogen in bromine vapour: no air and no carbon enter the flame, so no NOx, CO, CO2, CH4, N2O or particulates form; its products are all in the balance (S4). The air of the burner start-up (US 6 036 936 A: ignition in air, then bromine replaces air) is non-routine", source: "D-012"}

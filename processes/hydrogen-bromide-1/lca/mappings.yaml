@@ -12,10 +12,12 @@
 #   feed:H2    -> `hydrogen` (kg H2); this feed is 0.986 kg H2 per kg (0.1 mol-% N2), close
 #                 enough by mass, or prefer_atlas hydrogen-1 (product H2)
 #   feed:DMW   -> a demineralised-water entry (#45: none yet; `water` is raw water)
-#   feed:LPS   -> heat-from-steam (kWh of heat, LP level 450 kPa(a)) or the Atlas utility
-#                 utility-steam-ng-boiler
 #   feed:POWER -> the library default (electricity, medium voltage)
 #   product:CW -> cooling-water (heat rejected, kWh; Atlas utility-cooling-tower)
-#   emission:HBr, emission:H2 -> biosphere identities for hydrogen bromide and hydrogen to air
+#   emission:HBr, emission:H2, emission:Br2 -> biosphere identities for hydrogen bromide,
+#                 hydrogen and bromine to air
+# The steam is counted as heat delivered (kWh, Q1), not by mass: without the override below the
+# utility slug `steam` (kg) would apply and the build refuses the unit mismatch.
 schema: cheme-as-code/lci-process-mappings/v1
-exchanges: {}
+exchanges:
+  "feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a) for the bromine vaporiser E-101, counted as heat delivered (kWh, Q1; D-007)"}
