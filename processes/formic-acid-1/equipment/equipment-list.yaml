@@ -1,3 +1,43 @@
 # Equipment list. Schema: `cheme schema equipment`.
+# As far as the PFD requires (concept stage): tags, types and services of the flowsheet steps and
+# the duty basis from scripts/balance.py (D-006, D-011). Design pressures, temperatures, sizes
+# and stage counts are not set yet (basic engineering); materials named are the usual service
+# choices to be confirmed (open input). All values ASSUMED.
 schema: cheme/equipment/v1
-equipment: []
+equipment:
+  # ---- methyl formate synthesis (block CARB)
+  - {tag: K-101, type: Compressor, service: "CO compressor (3 stages, intercooled)",
+     notes: "3.55 t/h CO, 200 -> 4600 kPa(a), 470 kW shaft+motor, 447 kW to cooling water (D-010)."}
+  - {tag: M-101, type: StaticMixer, service: Methanol feed mixer,
+     notes: "Make-up methanol, catalyst solution, recycle catalyst liquor and recycle methanol, 12.8 t/h (D-007)."}
+  - {tag: P-101, type: CentrifugalPump, service: Carbonylation feed pump,
+     notes: "12.8 t/h methanolic liquor to 4600 kPa(a), 34 kW (D-010). Multistage or high-speed pump; sodium formate solids in suspension (US4216339A)."}
+  - {tag: R-101, type: Vessel, service: "Carbonylation reactor (gas-liquid loop with ejector and external cooler)",
+     notes: "353 K, 4500 kPa(a), 2.5 wt% NaOMe; 30 % methanol conversion, 92 % CO yield (US4216339A Example 1; D-005). 1.21 MW to cooling water via the loop cooler. Volume not sized (no kinetics chosen; US4216339A Example 1 reports 0.81 kg/(h L) productivity)."}
+  - {tag: E-101, type: TubularHeatExchanger, service: Carbonylation effluent cooler,
+     notes: "353 -> 313 K, 0.45 MW to cooling water (D-007)."}
+  - {tag: V-101, type: Vessel, service: Carbonylation separator (vent / liquid),
+     notes: "4450 kPa(a), 313 K; vent 0.32 t/h (87 mol% CO) to X-101 (D-007)."}
+  - {tag: C-101, type: ProcessColumn, service: "Methyl formate column (250 kPa(a))",
+     notes: "Methyl formate (96 wt%) overhead to hydrolysis; methanol with catalyst at the bottom recycled. Reboiler 1.95 MW LP steam, R = 1.0 ASSUMED (D-011). Stage count not set."}
+  # ---- hydrolysis and recovery (block HYD)
+  - {tag: M-201, type: StaticMixer, service: Hydrolyser feed mixer,
+     notes: "Fresh and recycled methyl formate, make-up and recycled water, recycled 66 wt% acid, 38.4 t/h (D-008)."}
+  - {tag: P-201, type: CentrifugalPump, service: Hydrolyser feed pump,
+     notes: "38.4 t/h to 650 kPa(a), 7.5 kW (D-010). Formic acid service."}
+  - {tag: E-201, type: TubularHeatExchanger, service: Hydrolyser feed preheater (LP steam),
+     notes: "340 -> 393 K, 2.0 MW LP steam (D-011); a feed-effluent exchanger against the hydrolysate is the obvious first heat-integration step (D-011)."}
+  - {tag: R-201, type: Vessel, service: "Hydrolysis reactor (liquid, autocatalytic)",
+     notes: "393 K, 600 kPa(a), water/MF 1.5 mol/mol, 28.9 % conversion = 95 % of equilibrium (D-008). Residence time not sized (no kinetics chosen). Formic acid service: zirconium, high-alloy austenitic or lined steel to be selected (open)."}
+  - {tag: C-201, type: ProcessColumn, service: "Methyl formate recovery column (250 kPa(a))",
+     notes: "17.4 t/h methyl formate (98 wt%) overhead recycled; reboiler 4.57 MW LP steam, R = 1.0 ASSUMED (D-011). Short residence at the bottom to limit reverse esterification (EP2747883A1, D-008)."}
+  - {tag: C-202, type: ProcessColumn, service: "Methanol column (120 kPa(a))",
+     notes: "Dry methanol (100 ppm water, US4216339A limit) overhead to carbonylation; 31.8 wt% acid at the bottom. Reboiler 3.05 MW LP steam, R = 1.5 ASSUMED (D-011)."}
+  # ---- formic acid concentration (block DEHY)
+  - {tag: C-301, type: ProcessColumn, service: "Pressure column (203 kPa(a), water overhead)",
+     notes: "Water (0.5 wt% acid) overhead recycled to hydrolysis; 77 wt% acid at the bottom (azeotrope about 80 wt% at 2.03 bar(a), EP3661904B1). Reboiler 7.82 MW LP steam, R = 1.0 ASSUMED (D-009, D-011)."}
+  - {tag: C-302, type: ProcessColumn, service: "Vacuum column (12 kPa(a), product overhead)",
+     notes: "85 wt% product overhead; 66 wt% bottoms recycled to hydrolysis (EP2747883A1). Reboiler 3.07 MW LP steam, R = 1.5 ASSUMED; vacuum system 15 kW allowance (D-009, D-011)."}
+  # ---- vent treatment (block VENT)
+  - {tag: X-101, type: Furnace, service: Thermal oxidiser for the carbonylation vent,
+     notes: "Burns 10 kmol/h CO with twice the stoichiometric air, adiabatic, no support fuel and no heat recovery in the design case (D-010). Air fan within the package."}

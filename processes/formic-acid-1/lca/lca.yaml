@@ -1,0 +1,94 @@
+# Goal and scope of the formic-acid-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme assess lca
+# --inventory --write` and `--coverage` (lca/inventory.csv, gaps.csv, dataset.yaml,
+# manifest.json); never edit those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the plant
+# with its amount per functional unit from the balanced flowsheet. The background of every
+# purchased input and utility is deliberately left UNMAPPED (`missing:` with the activity it
+# should connect to later): a gap, never zero, and no values from licensed databases. The
+# plant's own emissions (CO2, CO, methyl formate, methanol in the oxidiser flue gas) are mapped
+# as elementary flows.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of formic acid 85 wt% made by methanol
+  carbonylation and methyl formate hydrolysis with pressure-swing concentration, at the concept
+  stage: which raw materials, utilities, wastes and emissions the plant exchanges per kg of
+  product, as the foreground for a later cradle-to-gate study. No impact results: the
+  backgrounds are not mapped yet (D-012).
+functional_unit: {product: FA, amount: 1, unit: kg, source: "1 kg of formic acid 85 wt% (0.85 kg HCOOH) at the plant gate, stream S28 (D-012)"}
+# Gate-to-gate in the sense of the foreground (the plant's own exchanges). The boundary key stays
+# cradle-to-gate so that the purchased inputs remain open gaps instead of being mapped free (the
+# schema's gate-to-gate maps every feed free), as phosgene-1 and sulfuric-acid-1 do (D-012).
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Methanol carbonylation over sodium methoxide (353 K, 4.5 MPa), methyl formate hydrolysis autocatalysed by formic acid (393 K), methyl formate and methanol recycle, pressure-swing distillation (203 / 12 kPa(a)) to 85 wt%; CO-rich vent burnt; 6.25 t/h"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+flows:
+  # raw materials
+  - key: feed:CO
+    missing: "not mapped yet (D-012); connect to: carbon monoxide 99 mol%, gaseous, from cryogenic separation (cold box) of natural-gas steam-reforming or partial-oxidation synthesis gas, delivered by pipeline at 2 bar(a); no library process makes pure CO yet"
+    source: "flowsheet stream S1 (scripts/balance.py, D-003, D-005)"
+  - key: feed:MEOH
+    missing: "not mapped yet (D-012); connect to: methanol, AA grade, from natural-gas-based synthesis (processes/methanol-1, product methanol), at the plant"
+    source: "flowsheet stream S3 (D-003, D-007): make-up for the methanol lost with the purge and the vent"
+  - key: feed:CAT
+    missing: "not mapped yet (D-012); connect to: sodium methoxide 30 wt% solution in methanol (made from sodium metal or caustic soda and methanol), at the plant"
+    source: "flowsheet stream S4 (D-007): methoxide destroyed by water plus purged"
+  - key: feed:PW
+    missing: "not mapped yet (D-012); connect to: demineralised (deionised) water from the site water treatment, per kg"
+    source: "flowsheet stream S17 (D-008)"
+  - {key: feed:AIR, free: true, source: "combustion air of the vent oxidiser: a resource taken from nature without burden (O2 consumed, N2/Ar returned)"}
+  # utilities
+  - key: feed:POWER
+    missing: "not mapped yet (D-012); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy streams Q1 (CO compressor), Q3, Q8 (pumps), Q19 (vacuum system), D-010, D-011"
+  - key: feed:LPS
+    missing: "not mapped yet (D-012); connect to: heat from low-pressure steam (450 kPa(a), saturated) from a natural-gas-fired industrial boiler (processes/utility-steam-ng-boiler), per kWh of heat delivered, condensate returned"
+    source: "flowsheet energy streams Q6, Q9, Q10, Q11, Q13, Q15, Q17 (reboilers, feed preheater, hydrolyser), D-011"
+  - key: product:CW
+    missing: "not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower: pump and fan electricity, make-up water, evaporation, blowdown, treatment chemicals), per kWh removed"
+    source: "flowsheet energy streams Q2, Q4, Q5, Q7, Q12, Q14, Q16, Q18, D-011"
+  # waste
+  - key: product:PURGE
+    treatment: {kind: waste, route: "incineration of the methanolic sodium formate / methoxide purge in a hazardous-waste or liquid-waste incinerator (methanol as fuel; sodium leaves as carbonate in the ash or slag)"}
+    missing: "not mapped yet (D-012); connect to: treatment of spent liquid organic waste (methanol with dissolved sodium salts) by incineration, per kg"
+    source: "flowsheet stream S14 (D-007)"
+  # emissions: the oxidiser flue gas to the stack (non-urban high stack ASSUMED, site not chosen)
+  - {key: product:STACK, emission: true, source: "oxidiser flue gas to atmosphere through the stack, stream S16 (D-010)"}
+  - {key: emission:N2, free: true, source: "atmospheric N2 (combustion air) and the N2 of the CO feed returned to the atmosphere"}
+  - {key: emission:O2, free: true, source: "excess atmospheric O2 of the combustion air returned"}
+  - {key: emission:AR, free: true, source: "atmospheric argon returned"}
+  - {key: emission:H2O, free: true, source: "water vapour from burning methyl formate and methanol in the oxidiser"}
+  - key: emission:CO2
+    elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}
+    source: "CO2 from burning the vent (unreacted CO, 8 % of the CO fed, plus methyl formate and methanol vapour) in the oxidiser (D-010); the CO comes from fossil synthesis gas"
+  - key: emission:CO
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    source: "CO not destroyed in the oxidiser: 0.1 % of the vent CO (99.9 % destruction ASSUMED, D-010), stream S16"
+  - key: emission:MF
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    source: "methyl formate slip: 0.1 % of the vent ester passes the oxidiser (ASSUMED, D-010), stream S16"
+  - key: emission:MEOH
+    elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}
+    source: "methanol slip: 0.1 % of the vent methanol passes the oxidiser (ASSUMED, D-010), stream S16"
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 25 a service life ASSUMED"
+emission_exclusions:
+  - {id: oxidiser-nox, method: combustion, equipment: [X-101], reason: "Thermal NOx of the oxidiser burning the CO-rich vent, and its pilot and start-up fuel, are not estimated: no sourced factor for this vent yet (open, D-010)."}
+  - {id: fugitive-organics, method: equipment-leaks, reason: "No P&ID yet: fugitive CO, methyl formate, methanol and formic acid from flanges, valves, pump seals and storage breathing cannot be counted; open for basic engineering (D-012)."}
+  - {id: column-vents, method: non-routine, reason: "Non-condensable vents of the column condensers (dissolved CO and N2 released in C-101, the vacuum system of C-302) are not modelled: dissolved CO is neglected in the separator V-101 (D-007); their routing to the oxidiser is the intended basic-engineering choice."}
+  - {id: decomposition-co, method: non-routine, reason: "Formic acid decomposition to CO and water above about 140 C (EP2747883A1) is neglected: the hydrolyser runs at 393 K and the reboilers below about 405 K (D-008); a residual decomposition would add CO to the column vents."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals; CPC to be added
+  modelling: {principle: attributional}
+  geography: {description: "Generic site with a CO supply (syngas cold box) and methanol from methanol-1, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #185, unreviewed"

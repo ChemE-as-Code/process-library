@@ -1,36 +1,87 @@
-# Process Atlas manifest. Copy this folder to processes/<your-id>/ and edit.
-# Schema: schemas/process.schema.json (cheme-as-code/process/v1). Every slug used under
-# chemistry must exist in chemicals/chemicals.yaml; add new chemicals there in the same change.
-# A product in a defined state and purity names its registry grade: `chemical: oxygen/lox`.
+# Process Atlas manifest of formic-acid-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here.
 schema: cheme-as-code/process/v1
-id: my-process                  # = folder name; lowercase slug; never rename once listed
-title: Short descriptive process title
+id: formic-acid-1
+title: Formic acid 85 wt% by methanol carbonylation and methyl formate hydrolysis (50 kt/a)
 summary: >-
-  One or two sentences for cards and search results: what goes in, what comes out, at what scale.
-# description: |                # optional longer Markdown for the process page
-families: [hydrogen]            # slugs of taxonomy/families.yaml (ISIC-mapped), e.g. ammonia, methanol, air-separation
-keywords: []
-# facets:                      # optional, for filtering in the Atlas; list only what the design has
-#   feedstock_basis: [water, electricity]   # fossil | biogenic | atmospheric | mineral | recycled | water | electricity
-#   product_classes: [fuels]               # slugs, e.g. industrial-gases, fuels, fertilizers, polymers, chemicals, materials
-#   unit_operations: [electrolysis]        # slugs, e.g. cryogenic-distillation, adsorption, compression, reaction, electrolysis
-#   region: generic                        # e.g. generic, EU
-# Design maturity (claimed, capped by evidence: the calculation maturity in checks/maturity.json
-# of an engineering project; at most concept beside a Tier 0/1 LCI dataset):
-maturity: concept               # concept | screening | basic-engineering | detail-engineering | operating-reference
-validation:                     # review status: set by people only; passing checks is not a review
-  status: unreviewed            # unreviewed | internally-reviewed | peer-reviewed | industry-validated
+  Methanol and carbon monoxide form methyl formate over sodium methoxide; the ester is
+  hydrolysed with water, methyl formate and methanol are recycled, and the aqueous acid is
+  concentrated to 85 wt% by pressure-swing distillation. Concept stage, assumed basis,
+  preliminary gate-to-gate LCI.
+description: |
+  Carbon monoxide (from a syngas cold box outside the boundary) is compressed to 4.6 MPa and
+  absorbed into recycled methanol with 2.5 wt% sodium methoxide in a gas-liquid loop reactor at
+  353 K; 30 % of the methanol is converted per pass and the CO-rich vent (8 % of the CO fed) is
+  burnt in a thermal oxidiser. Methyl formate is distilled off and hydrolysed at 393 K with
+  water (1.5 mol/mol), autocatalysed by recycled formic acid, to 95 % of the equilibrium
+  conversion (28.9 % per pass). Unreacted ester and the methanol formed are distilled off and
+  recycled; the methanol returns dry to the carbonylation, so only losses are made up. The
+  dilute acid (32 wt%) is concentrated by pressure-swing distillation across the maximum-boiling
+  formic acid / water azeotrope: a 203 kPa(a) column takes water overhead (recycled to the
+  hydrolysis) and a 12 kPa(a) column gives the 85 wt% product overhead, its 66 wt% bottoms
+  returning to the hydrolyser as catalyst.
+
+  The reactors are conversion models from open patents (US4216339A, EP2747883A1, EP3661904B1,
+  US4299981); separators and columns are specified splits and every duty a shortcut estimate
+  from an independent script (scripts/balance.py), because no property package of core covers
+  this liquid system (core #315). See DESIGN.md for every assumption and gated step.
+families: [oxygenates]
+keywords: [formic acid, methyl formate, methanol carbonylation, sodium methoxide, hydrolysis, pressure-swing distillation, azeotrope, carbon monoxide]
+facets:
+  feedstock_basis: [fossil, water]
+  product_classes: [chemicals]
+  unit_operations: [reaction, distillation, compression, incineration]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Feeds, conversions, splits and duties
+# are assumed or taken from patents (DESIGN.md D-002..D-011).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances on every block and step
+    (cheme validate, cheme process streams), recycles of methyl formate, methanol, water and
+    66 wt% acid closed by scripts/balance.py. The reactors and the oxidiser are calculated by
+    cheme (conversion model); core's equilibrium check puts the hydrolyser outlet just short of
+    the sourced Kx = 0.20 (ln Q/K = -0.11). Separator and column outlets are specified splits;
+    duties are shortcut estimates with assumed reflux ratios and no heat integration (3.64 kWh
+    LP steam heat per kg product, about 1.5 times the 2400 kWh/t of prior art quoted in
+    EP2747883A1). The energy balance is not evaluable in core: no property package covers the
+    liquid methanol / methyl formate / water / formic acid system and the liquid-reactor energy
+    basis is not verified (core #315). Capacity, feed purities, reflux ratios and the purge
+    fraction are assumed. Preliminary gate-to-gate LCI with every background unmapped (gaps).
+    Not reviewed. The chemicals registry has no formic-acid, methyl-formate, carbon-monoxide,
+    methanol, sodium-methoxide or sodium-formate entry yet, so the main product and those feeds
+    are not listed under chemistry (open library item, DESIGN.md D-013).
 chemistry:
+  # formic acid, CO, methanol and sodium methoxide have no registry entry yet (D-013); listed in the notes
   inputs:
-    - {chemical: water, role: feedstock}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Demineralised hydrolysis make-up water, 0.483 kg/kg product. The reactant carbon monoxide (feed:CO, 0.568 kg/kg), the methanol make-up (feed:MEOH, 12.5 g/kg, from methanol-1) and the sodium methoxide 30 wt% catalyst solution (feed:CAT, 2.3 g/kg) have no registry entry yet"}
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Combustion air of the vent oxidiser, 0.235 kg/kg product"}
   outputs:
-    - {chemical: hydrogen, role: main-product}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "72.4 g/kg product, from burning the carbonylation vent (unreacted CO) in the oxidiser (fossil). The main product, formic acid 85 wt% (product:FA), has no registry entry yet"}
   utilities:
-    - {chemical: electricity, role: utility}
-# basis: {capacity: "1000 t/d product", operating_hours_per_year: 8000}
-# lca: {source: auto}           # auto: read lca/ of a ChemE-as-Code project; none: no LCA
-# references:
-#   - {title: "Author et al. (2024) Title", doi: 10.xxxx/xxxxx}
-# maintainers:
-#   - {name: Your Name, orcid: 0000-0000-0000-0000}
-# repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/my-process, access: private}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "84 Wh/kg product: CO compressor (89 %), pumps, vacuum system (ASSUMED efficiencies)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "3.64 kWh heat/kg product as LP steam (450 kPa(a)): reboilers of five columns, hydrolyser feed preheat (shortcut, no heat integration, D-011)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "3.61 kWh/kg product removed, 25/35 C (ASSUMED)"}
+basis:
+  capacity: "6.25 t/h formic acid 85 wt% (50 kt/a), ASSUMED"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
+references:
+  - {title: "UCB SA (1980) US4216339A: Process for the production of methyl formate (Couteau, Ramioulle)", url: "https://patents.google.com/patent/US4216339A/en"}
+  - {title: "Taminco BV (2014) EP2747883A1: Process of formic acid production by hydrolysis of methyl formate (Pasek, Trejbal, Roose)", url: "https://patents.google.com/patent/EP2747883A1/en"}
+  - {title: "Eastman Chemical Co. (2020/2026) EP3661904B1: Process for producing formic acid using low-boiling formate esters", url: "https://patents.google.com/patent/EP3661904B1/de"}
+  - {title: "US4299981: Preparation of formic acid by hydrolysis of methyl formate (claims and abstract only, via search)", url: "https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/4299981"}
+  - {title: "Formic Acid. Ullmann's Encyclopedia of Industrial Chemistry (issue lead; not read, licensed)", doi: 10.1002/14356007.a12_013.pub3}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/formic-acid-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0
