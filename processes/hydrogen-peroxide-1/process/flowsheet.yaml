@@ -1,24 +1,755 @@
 # The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
 # never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
-# Units are explicit: a property without its own unit is in these. Pressure is absolute; a gauge
-# value needs its own unit (kPa(g)). Nm3/h needs normal_conditions.
+#
+# Hydrogen peroxide by the anthraquinone autoxidation (AO) process, 50 kt/a H2O2 (100 %) as a
+# 50 wt% solution (D-001, D-002). Where the values come from:
+# - temperatures, pressures and the specifications of every separator are design choices
+#   (ASSUMED, DESIGN.md decisions), set inside the ranges of the LVOC BREF 2017
+#   (doi:10.2760/77304, chapter 12) where it gives one;
+# - the reactor outlets (S05, S11) are calculated by cheme from the conversions of
+#   process/reactions.yaml; mixers and pass-through steps by `cheme process propagate --fill`;
+# - separator outlets and all duties come from the independent balance scripts/hp_balance.py
+#   (D-006), given here as ASSUMED: no property package of cheme covers the working solution or
+#   aqueous H2O2, and the extraction is a specified component split (core #369, #315).
 schema: cheme/process/v1
 kind: flowsheet
-title: ""
+title: Hydrogen peroxide, anthraquinone autoxidation process (50 kt/a H2O2, 50 wt%)
 units:
   pressure: kPa(a)
   temperature: K
   flow: kg/h
   duty: kW
   enthalpy: kJ/kmol
-  # normal_conditions: {temperature: 273.15, pressure: 101.325, basis: ideal_gas}
-  # enthalpy_reference: {state: ideal_gas, temperature: 298.15}
 cases:
-  - {id: design, description: Design case, default: true}
+  - {id: design, description: "Design case: 6250 kg/h H2O2 (100 %) as 12500 kg/h of 50 wt% solution, 8000 h/a (D-002)", default: true}
 tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
-feeds: []      # external feeds (DEXPI Source): {id, title, ports: [{id: out, direction: out}]}
-products: []   # products (DEXPI Sink): {id, title, ports: [{id: in, direction: in}]}
-blocks: []     # BFD blocks: {id, title, class, ports: [{id, direction, kind}], links}
-steps: []      # PFD steps: {id, block, title, class, ports: [{id, direction, delegates}], links}
-streams: []    # {id, title, kind, from: NODE.port, to: NODE.port, template, state: {design: {...}}}
+
+feeds:
+  - {id: H2, title: Hydrogen (boundary feed; e.g. from hydrogen-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: MKQ, title: 2-Ethylanthraquinone make-up, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: MKS, title: Working-solution solvent make-up, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: AIR, title: Ambient air, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: DEMIN, title: Demineralised water, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: ALU, title: Activated alumina (reversion agent), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: STEAMD
+    title: LP steam, direct use (adsorber regeneration, ejector)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 350, provenance: assumed, source: "design basis, D-010"}
+      supply_temperature: {value: 411.0, provenance: assumed, source: "saturation at 350 kPa(a), D-010"}
+    ports: [{id: ads, direction: out}, {id: ej, direction: out}]
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: k201, direction: out, kind: energy}
+      - {id: p101, direction: out, kind: energy}
+      - {id: c301, direction: out, kind: energy}
+      - {id: c501, direction: out, kind: energy}
+  - id: LPS
+    title: LP steam 350 kPa(a), indirect
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 350, provenance: assumed, source: "design basis, D-010"}
+      supply_temperature: {value: 411.0, provenance: assumed, source: "saturation at 350 kPa(a), D-010"}
+      min_approach: {value: 10, provenance: assumed, source: D-010}
+    ports: [{id: c501, direction: out, kind: energy}]
+products:
+  - {id: PROD, title: Hydrogen peroxide 50 wt% to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: H2VENT, title: Hydrogenation vent to atmosphere, category: off_gas, ports: [{id: in, direction: in}]}
+  - {id: OFFGAS, title: Oxidiser off-gas after adsorption to atmosphere, category: off_gas, ports: [{id: in, direction: in}]}
+  - id: WW
+    title: Aqueous effluent to biological waste water treatment
+    category: wastewater
+    ports: [{id: ads, direction: in}, {id: dry, direction: in}]
+  - {id: SPENT, title: Spent reversion agent (alumina with organics), category: solid_waste, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-010"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-010"}
+      min_approach: {value: 5, provenance: assumed, source: D-010}
+    ports:
+      - {id: r101, direction: in, kind: energy}
+      - {id: r201, direction: in, kind: energy}
+      - {id: e201, direction: in, kind: energy}
+      - {id: e202, direction: in, kind: energy}
+      - {id: c501, direction: in, kind: energy}
+      - {id: e501, direction: in, kind: energy}
+
+blocks:
+  - id: HYD
+    title: Working-solution hydrogenation
+    class: ReactingChemicals
+    ports:
+      - {id: h2, direction: in}
+      - {id: mkq, direction: in}
+      - {id: mks, direction: in}
+      - {id: rws, direction: in}
+      - {id: cond, direction: in}
+      - {id: solv, direction: in}
+      - {id: org, direction: in}
+      - {id: vent, direction: out}
+      - {id: hws, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+  - id: OXI
+    title: Oxidation and off-gas treatment
+    class: ReactingChemicals
+    ports:
+      - {id: hws, direction: in}
+      - {id: air, direction: in}
+      - {id: steam, direction: in}
+      - {id: ows, direction: out}
+      - {id: cond, direction: out}
+      - {id: solv, direction: out}
+      - {id: offgas, direction: out}
+      - {id: ww, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+      - {id: cw3, direction: out, kind: energy}
+  - id: EXT
+    title: Extraction and crude purification
+    class: SeparatingByContact
+    ports:
+      - {id: ows, direction: in}
+      - {id: demin, direction: in}
+      - {id: dist, direction: in}
+      - {id: crude, direction: out}
+      - {id: raf, direction: out}
+      - {id: org, direction: out}
+      - {id: power, direction: in, kind: energy}
+  - id: CON
+    title: Concentration (vacuum distillation)
+    class: Distilling
+    ports:
+      - {id: crude, direction: in}
+      - {id: prod, direction: out}
+      - {id: dist, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: steam, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+  - id: WSR
+    title: Working-solution drying and regeneration
+    class: SeparatingByPhysicalProcess
+    ports:
+      - {id: raf, direction: in}
+      - {id: steam, direction: in}
+      - {id: alu, direction: in}
+      - {id: rws, direction: out}
+      - {id: ww, direction: out}
+      - {id: spent, direction: out}
+
+steps:
+  # --- HYD
+  - id: T101
+    block: HYD
+    title: Working-solution tank (make-up and returns)
+    class: Mixing
+    links: [{target: equipment, ref: T-101}]
+    ports:
+      - {id: ws, direction: in, delegates: rws}
+      - {id: mkq, direction: in, delegates: mkq}
+      - {id: mks, direction: in, delegates: mks}
+      - {id: cond, direction: in, delegates: cond}
+      - {id: solv, direction: in, delegates: solv}
+      - {id: org, direction: in, delegates: org}
+      - {id: out, direction: out}
+  - id: P101
+    block: HYD
+    title: Working-solution circulation pumps
+    # TransportingFluids, not Pumping: cheme 0.8.0 process build fails on Pumping's optional
+    # method enum (TypeError in step_method; reported in DESIGN.md D-006).
+    class: TransportingFluids
+    links: [{target: equipment, ref: P-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # D-003, D-005: fixed-bed Pd hydrogenator, conversions of process/reactions.yaml; heat of
+  # reaction removed by a WS cooler on the recycle (in the R-101 duty).
+  - id: R101
+    block: HYD
+    title: Hydrogenator (fixed-bed Pd catalyst, with WS cooler)
+    class: ReactingChemicals
+    reactions: [HYD, HPD]
+    reactor: conversion
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: ws, direction: in}
+      - {id: h2, direction: in, delegates: h2}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  - id: V101
+    block: HYD
+    title: Hydrogenator gas separator and safety filter
+    class: SeparatingByFlash
+    links: [{target: equipment, ref: V-101}, {target: equipment, ref: F-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out, delegates: vent}
+      - {id: liq, direction: out, delegates: hws}
+  # --- OXI
+  - id: K201
+    block: OXI
+    title: Process air compressor
+    class: Compressing
+    method: CentrifugalMotion
+    links: [{target: equipment, ref: K-201}]
+    ports:
+      - {id: in, direction: in, delegates: air}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: E201
+    block: OXI
+    title: Process air aftercooler
+    class: Cooling
+    links: [{target: equipment, ref: E-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+  - id: R201
+    block: OXI
+    title: Oxidiser (co-current bubble columns, with WS coolers)
+    class: ReactingChemicals
+    reactions: [OXD]
+    reactor: conversion
+    links: [{target: equipment, ref: R-201}]
+    ports:
+      - {id: ws, direction: in, delegates: hws}
+      - {id: air, direction: in}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw1}
+  - id: V201
+    block: OXI
+    title: Oxidiser gas separator
+    class: SeparatingByFlash
+    links: [{target: equipment, ref: V-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out}
+      - {id: liq, direction: out, delegates: ows}
+  - id: E202
+    block: OXI
+    title: Off-gas condenser
+    class: Cooling
+    links: [{target: equipment, ref: E-202}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw3}
+  - id: V202
+    block: OXI
+    title: Off-gas knock-out drum
+    class: SeparatingByFlash
+    links: [{target: equipment, ref: V-202}]
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out}
+      - {id: liq, direction: out, delegates: cond}
+  - id: A201
+    block: OXI
+    title: Activated-carbon adsorbers with steam regeneration and decanter
+    class: Adsorbing
+    links: [{target: equipment, ref: A-201}]
+    ports:
+      - {id: gas, direction: in}
+      - {id: steam, direction: in, delegates: steam}
+      - {id: vent, direction: out, delegates: offgas}
+      - {id: solv, direction: out, delegates: solv}
+      - {id: cond, direction: out, delegates: ww}
+  # --- EXT
+  - id: M301
+    block: EXT
+    title: Extraction water make-up (demineralised water and distillate)
+    class: Mixing
+    links: [{target: equipment, ref: T-301}]
+    ports:
+      - {id: demin, direction: in, delegates: demin}
+      - {id: dist, direction: in, delegates: dist}
+      - {id: out, direction: out}
+  # D-008: a specified component split, not an equilibrium-stage calculation (core #369).
+  - id: C301
+    block: EXT
+    title: Extraction column (sieve trays) and coalescer
+    class: SeparatingByContact
+    links: [{target: equipment, ref: C-301}]
+    ports:
+      - {id: ws, direction: in, delegates: ows}
+      - {id: water, direction: in}
+      - {id: crude, direction: out}
+      - {id: raf, direction: out, delegates: raf}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: C302
+    block: EXT
+    title: Crude purification (solvent wash)
+    class: SeparatingByContact
+    links: [{target: equipment, ref: C-302}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: crude}
+      - {id: org, direction: out, delegates: org}
+  # --- CON
+  - id: C501
+    block: CON
+    title: Vacuum concentration column with reboiler and condenser
+    class: Distilling
+    links: [{target: equipment, ref: C-501}, {target: equipment, ref: E-502}, {target: equipment, ref: E-503}]
+    ports:
+      - {id: feed, direction: in, delegates: crude}
+      - {id: top, direction: out, delegates: dist}
+      - {id: bot, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+      - {id: reb, direction: in, kind: energy, delegates: steam}
+      - {id: cond, direction: out, kind: energy, delegates: cw1}
+  - id: E501
+    block: CON
+    title: Product cooler
+    class: Cooling
+    links: [{target: equipment, ref: E-501}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: prod}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+  # --- WSR
+  - id: V303
+    block: WSR
+    title: Working-solution vacuum dryer (ejector)
+    class: Drying
+    links: [{target: equipment, ref: V-303}]
+    ports:
+      - {id: in, direction: in, delegates: raf}
+      - {id: steam, direction: in, delegates: steam}
+      - {id: ws, direction: out}
+      - {id: water, direction: out, delegates: ww}
+  - id: X401
+    block: WSR
+    title: Reversion (activated-alumina beds)
+    class: Adsorbing
+    links: [{target: equipment, ref: A-401}]
+    ports:
+      - {id: in, direction: in}
+      - {id: alu, direction: in, delegates: alu}
+      - {id: ws, direction: out, delegates: rws}
+      - {id: spent, direction: out, delegates: spent}
+
+streams:
+  - id: S01
+    title: Hydrogen feed
+    from: H2.out
+    to: R101.h2
+    template: hydrogen
+    state:
+      design:
+        pressure: {value: 500, provenance: assumed, source: "design basis, D-003"}
+        temperature: {value: 313.15, provenance: assumed, source: "design basis, D-003"}
+        flow: {value: 396.97, basis: mass, provenance: assumed, source: "scripts/hp_balance.py: H2 reacted / (1 - 1 % vent), D-005"}
+        composition: {basis: mass_fraction, values: {H2: 1.0}, provenance: assumed, source: "pure H2, design basis D-003"}
+  - id: S02
+    title: Quinone make-up
+    from: MKQ.out
+    to: T101.mkq
+    template: makeup
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: D-011}
+        temperature: {value: 298.15, provenance: assumed, source: D-011}
+        flow: {value: 6.25, basis: mass, provenance: assumed, source: "1.0 kg/t H2O2, within the BREF range 0.7-1.6 kg/t (LVOC BREF 2017, Table 12.4 note 2), D-011"}
+        composition: {basis: mass_fraction, values: {EAQ: 1.0}, provenance: assumed, source: D-004}
+  - id: S03
+    title: Solvent make-up
+    from: MKS.out
+    to: T101.mks
+    template: makeup
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: D-011}
+        temperature: {value: 298.15, provenance: assumed, source: D-011}
+        flow: {value: 15.63, basis: mass, provenance: assumed, source: "scripts/hp_balance.py: the solvent leaving the loop, 2.5 kg/t (BREF 2-5 kg/t, Table 12.4), D-011"}
+        composition: {basis: mass_fraction, values: {DIBC: 0.46898527, TMB: 0.53101473}, provenance: assumed, source: "scripts/hp_balance.py, D-011"}
+  - id: S04
+    title: Working solution to the pumps
+    from: T101.out
+    to: P101.in
+    template: ws
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "N2-blanketed atmospheric tank, D-003"}
+        temperature: {value: 313.15, provenance: assumed, source: D-003}
+        flow: {value: 710590.0, provenance: calculated, source: 'cheme process propagate: mixer T101 from S02 S03 S16 S21 S27 S36', fingerprint: 2f884a8382987ca1}
+        composition: {basis: mole_fraction, values: {EAQ: 0.0806222, TMB: 0.583101, DIBC: 0.32389, H2O: 0.0113286, EAHQ: 0.0, H2O2: 0.00105779, H2: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer T101 from S02 S03 S16 S21 S27 S36', fingerprint: fb9f22cec3fa838d}
+  - id: S04A
+    title: Working solution to the hydrogenator
+    from: P101.out
+    to: R101.ws
+    template: ws
+    state:
+      design:
+        pressure: {value: 500, provenance: assumed, source: D-003}
+        temperature: {value: 313.15, provenance: assumed, source: D-003}
+        flow: {value: 710590.0, provenance: calculated, source: 'cheme process propagate: pass-through P101 from S04', fingerprint: d36694f4a728c310}
+        composition: {basis: mole_fraction, values: {EAQ: 0.0806222, TMB: 0.583101, DIBC: 0.32389, H2O: 0.0113286, EAHQ: 0.0, H2O2: 0.00105779, H2: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through P101 from S04', fingerprint: d36694f4a728c310}
+  - id: S05
+    title: Hydrogenator effluent
+    from: R101.out
+    to: V101.in
+    template: ws
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: "D-003: below the BREF 5 bar (12.2.2.2)"}
+        temperature: {value: 333.15, provenance: assumed, source: "D-003: 50-70 C, BREF 12.2.2.2"}
+        flow: {value: 710987.0, provenance: calculated, source: 'cheme process propagate: reactor R101 from S01 S04A', fingerprint: 1a8dacd2186258a4}
+        composition: {basis: mole_fraction, values: {H2: 0.000376774, EAQ: 0.0442787, EAHQ: 0.036228, TMB: 0.582266, DIBC: 0.323426, H2O: 0.0134249, H2O2: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S01 S04A', fingerprint: 4fba1f46076aa12c}
+  - id: S06
+    title: Hydrogenation vent
+    from: V101.gas
+    to: H2VENT.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: D-003}
+        temperature: {value: 333.15, provenance: assumed, source: D-003}
+        flow: {value: 4.08, basis: mass, provenance: assumed, source: "scripts/hp_balance.py: 1 % of the H2 feed, 100 g C/h solvent (BREF Table 12.2), D-005, D-009"}
+        composition: {basis: mass_fraction, values: {H2: 0.97275354, TMB: 0.02724646}, provenance: assumed, source: "scripts/hp_balance.py, D-009"}
+  - id: S07
+    title: Hydrogenated working solution
+    from: V101.liq
+    to: R201.ws
+    template: ws
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: D-003}
+        temperature: {value: 333.15, provenance: assumed, source: D-003}
+        flow: {value: 710983.02, basis: mass, provenance: assumed, source: "scripts/hp_balance.py, D-006"}
+        composition: {basis: mass_fraction, values: {DIBC: 0.3431195, EAHQ: 0.06348564, EAQ: 0.0769371, H2O: 0.00177867, TMB: 0.51467909}, provenance: assumed, source: "scripts/hp_balance.py, D-006"}
+  - id: S08
+    title: Ambient air
+    from: AIR.out
+    to: K201.in
+    template: air
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "design basis, D-007"}
+        temperature: {value: 298.15, provenance: assumed, source: "design basis, D-007"}
+        flow: {value: 34035.29, basis: mass, provenance: assumed, source: "scripts/hp_balance.py: 30 % O2 excess (BREF 20-40 %, 12.2.2.3), D-007"}
+        composition: {basis: mole_fraction, values: {N2: 0.7812, O2: 0.20946, AR: 0.00934}, provenance: assumed, source: "dry air, the 0.036 % of CO2 and trace gases counted as N2, D-007"}
+  - id: S09
+    title: Compressed air
+    from: K201.out
+    to: E201.in
+    template: air
+    state:
+      design:
+        pressure: {value: 450, provenance: assumed, source: D-007}
+        temperature: {value: 496.1, provenance: assumed, source: "scripts/hp_balance.py, one stage, isentropic efficiency 0.80, D-007"}
+        flow: {value: 34035.29, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through K201 from S08', fingerprint: 38f52889563f0373}
+        composition: {basis: mole_fraction, values: {N2: 0.7812, O2: 0.20946, AR: 0.00934}, provenance: calculated, source: 'cheme process propagate: pass-through K201 from S08', fingerprint: 38f52889563f0373}
+  - id: S10
+    title: Cooled air to the oxidiser
+    from: E201.out
+    to: R201.air
+    template: air
+    state:
+      design:
+        pressure: {value: 440, provenance: assumed, source: D-007}
+        temperature: {value: 313.15, provenance: assumed, source: D-007}
+        flow: {value: 34035.29, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S09', fingerprint: 6a07170de1b316ad}
+        composition: {basis: mole_fraction, values: {N2: 0.7812, O2: 0.20946, AR: 0.00934}, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S09', fingerprint: 6a07170de1b316ad}
+  - id: S11
+    title: Oxidiser effluent (two-phase)
+    from: R201.out
+    to: V201.in
+    template: ws-gas
+    state:
+      design:
+        pressure: {value: 350, provenance: assumed, source: "D-007: BREF atmospheric to 10 bar (12.2.2.3)"}
+        temperature: {value: 328.15, provenance: assumed, source: "D-007: BREF 40-70 C (12.2.2.3)"}
+        flow: {value: 745018.0, provenance: calculated, source: 'cheme process propagate: reactor R201 from S07 S10', fingerprint: 83710d46f44e7ad6}
+        composition: {basis: mole_fraction, values: {EAQ: 0.0657524, EAHQ: 0.0, TMB: 0.475555, DIBC: 0.264152, H2O: 0.0109646, H2O2: 0.0295886, H2: 0.0, N2: 0.143409, O2: 0.00886318, AR: 0.0017146}, provenance: calculated, source: 'cheme process propagate: reactor R201 from S07 S10', fingerprint: 477e8d3ca9999d75}
+  - id: S12
+    title: Oxidiser off-gas
+    from: V201.gas
+    to: E202.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 350, provenance: assumed, source: D-007}
+        temperature: {value: 328.15, provenance: assumed, source: D-007}
+        flow: {value: 28556.39, basis: mass, provenance: assumed, source: "scripts/hp_balance.py: water and solvent mole fractions ASSUMED, D-007"}
+        composition: {basis: mass_fraction, values: {AR: 0.01536123, DIBC: 0.00050821, H2O: 0.01142425, N2: 0.90055851, O2: 0.06367908, TMB: 0.00846873}, provenance: assumed, source: "scripts/hp_balance.py, D-007"}
+  - id: S13
+    title: Oxidised working solution
+    from: V201.liq
+    to: C301.ws
+    template: ws
+    state:
+      design:
+        pressure: {value: 350, provenance: assumed, source: D-007}
+        temperature: {value: 328.15, provenance: assumed, source: D-007}
+        flow: {value: 716461.92, basis: mass, provenance: assumed, source: "scripts/hp_balance.py, D-006"}
+        composition: {basis: mass_fraction, values: {DIBC: 0.34047536, EAQ: 0.13881592, H2O: 0.00130972, H2O2: 0.00899329, TMB: 0.51040572}, provenance: assumed, source: "scripts/hp_balance.py, D-006"}
+  - id: S14
+    title: Cooled off-gas
+    from: E202.out
+    to: V202.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 340, provenance: assumed, source: D-009}
+        temperature: {value: 308.15, provenance: assumed, source: D-009}
+        flow: {value: 28556.39, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E202 from S12', fingerprint: c1cdf01642c0d73e}
+        composition: {basis: mass_fraction, values: {AR: 0.01536123, DIBC: 0.00050821, H2O: 0.01142425, N2: 0.90055851, O2: 0.06367908, TMB: 0.00846873}, provenance: calculated, source: 'cheme process propagate: pass-through E202 from S12', fingerprint: c1cdf01642c0d73e}
+  - id: S15
+    title: Off-gas to the adsorbers
+    from: V202.gas
+    to: A201.gas
+    template: gas
+    state:
+      design:
+        pressure: {value: 340, provenance: assumed, source: D-009}
+        temperature: {value: 308.15, provenance: assumed, source: D-009}
+        flow: {value: 28439.39, basis: mass, provenance: assumed, source: "scripts/hp_balance.py: saturation mole fractions at 308 K ASSUMED, D-009"}
+        composition: {basis: mass_fraction, values: {AR: 0.01542442, DIBC: 0.00015274, H2O: 0.01049154, N2: 0.90426331, O2: 0.06394104, TMB: 0.00572693}, provenance: assumed, source: "scripts/hp_balance.py, D-009"}
+  - id: S16
+    title: Off-gas condensate to the WS tank
+    from: V202.liq
+    to: T101.cond
+    template: solvent
+    state:
+      design:
+        pressure: {value: 340, provenance: assumed, source: D-009}
+        temperature: {value: 308.15, provenance: assumed, source: D-009}
+        flow: {value: 117.00, basis: mass, provenance: assumed, source: "scripts/hp_balance.py, D-009"}
+        composition: {basis: mass_fraction, values: {DIBC: 0.08691437, H2O: 0.23814552, TMB: 0.67494011}, provenance: assumed, source: "scripts/hp_balance.py, D-009"}
+  - id: S17
+    title: Regeneration steam to the adsorbers
+    from: STEAMD.ads
+    to: A201.steam
+    template: water
+    state:
+      design:
+        pressure: {value: 350, provenance: assumed, source: D-010}
+        temperature: {value: 411.0, provenance: assumed, source: D-010}
+        flow: {value: 833.57, basis: mass, provenance: assumed, source: "scripts/hp_balance.py: 5 kg/kg solvent desorbed (BREF 4-6, 12.3.2 c), D-009"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-010}
+  - id: S18
+    title: Treated off-gas to atmosphere
+    from: A201.vent
+    to: OFFGAS.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 105, provenance: assumed, source: D-009}
+        temperature: {value: 313.15, provenance: assumed, source: D-009}
+        flow: {value: 28272.68, basis: mass, provenance: assumed, source: "scripts/hp_balance.py: 20 mg C/Nm3 at the outlet (BREF Table 12.8), D-009"}
+        composition: {basis: mass_fraction, values: {AR: 0.01551538, H2O: 0.01055341, N2: 0.90959544, O2: 0.06431808, TMB: 1.77e-05}, provenance: assumed, source: "scripts/hp_balance.py, D-009"}
+  - id: S19
+    title: Adsorber regeneration condensate (aqueous)
+    from: A201.cond
+    to: WW.ads
+    template: aqueous
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: D-009}
+        temperature: {value: 313.15, provenance: assumed, source: D-009}
+        flow: {value: 834.12, basis: mass, provenance: assumed, source: "scripts/hp_balance.py, D-009, D-011"}
+        composition: {basis: mass_fraction, values: {DIBC: 0.00059961, H2O: 0.99934343, TMB: 5.696e-05}, provenance: assumed, source: "scripts/hp_balance.py: dissolved organics D-011"}
+  - id: S21
+    title: Recovered solvent to the WS tank
+    from: A201.solv
+    to: T101.solv
+    template: solvent
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: D-009}
+        temperature: {value: 313.15, provenance: assumed, source: D-009}
+        flow: {value: 166.17, basis: mass, provenance: assumed, source: "scripts/hp_balance.py, D-009"}
+        composition: {basis: mass_fraction, values: {DIBC: 0.02313229, TMB: 0.97686771}, provenance: assumed, source: "scripts/hp_balance.py, D-009"}
+  - id: S23
+    title: Extraction water
+    from: M301.out
+    to: C301.water
+    template: aqueous
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-008}
+        temperature: {value: 303.15, provenance: assumed, source: D-008}
+        flow: {value: 10549.7, provenance: calculated, source: 'cheme process propagate: mixer M301 from S28 S29', fingerprint: f810059a4a9017bb}
+        composition: {basis: mole_fraction, values: {H2O: 0.999922, H2O2: 7.795e-05, TMB: 0.0, DIBC: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M301 from S28 S29', fingerprint: 03ae5b29dc65712f}
+  - id: S24
+    title: Crude aqueous H2O2 (40 wt%)
+    from: C301.crude
+    to: C302.in
+    template: aqueous
+    state:
+      design:
+        pressure: {value: 200, provenance: assumed, source: D-008}
+        temperature: {value: 313.15, provenance: assumed, source: D-008}
+        flow: {value: 15628.88, basis: mass, provenance: assumed, source: "scripts/hp_balance.py: 97 % recovery, 40 wt% (BREF 20-50 wt%, 12.2.2.4), D-008"}
+        composition: {basis: mass_fraction, values: {DIBC: 0.0015, H2O: 0.5984, H2O2: 0.4, TMB: 0.0001}, provenance: assumed, source: "scripts/hp_balance.py, D-008"}
+  - id: S25
+    title: Purified crude to concentration
+    from: C302.out
+    to: C501.feed
+    template: aqueous
+    state:
+      design:
+        pressure: {value: 200, provenance: assumed, source: D-008}
+        temperature: {value: 313.15, provenance: assumed, source: D-008}
+        flow: {value: 15605.13, basis: mass, provenance: assumed, source: "scripts/hp_balance.py: 95 % of the dissolved organics removed, D-008"}
+        composition: {basis: mass_fraction, values: {DIBC: 7.511e-05, H2O: 0.59931095, H2O2: 0.40060893, TMB: 5.01e-06}, provenance: assumed, source: "scripts/hp_balance.py, D-008"}
+  - id: S26
+    title: Raffinate working solution
+    from: C301.raf
+    to: V303.in
+    template: ws
+    state:
+      design:
+        pressure: {value: 200, provenance: assumed, source: D-008}
+        temperature: {value: 313.15, provenance: assumed, source: D-008}
+        flow: {value: 711382.69, basis: mass, provenance: assumed, source: "scripts/hp_balance.py: 0.30 wt% water, D-008"}
+        composition: {basis: mass_fraction, values: {DIBC: 0.34287337, EAQ: 0.13980705, H2O: 0.003, H2O2: 0.00027179, TMB: 0.51404779}, provenance: assumed, source: "scripts/hp_balance.py, D-008"}
+  - id: S27
+    title: Organics from crude purification to the WS tank
+    from: C302.org
+    to: T101.org
+    template: solvent
+    state:
+      design:
+        pressure: {value: 200, provenance: assumed, source: D-008}
+        temperature: {value: 313.15, provenance: assumed, source: D-008}
+        flow: {value: 23.76, basis: mass, provenance: assumed, source: "scripts/hp_balance.py, D-008"}
+        composition: {basis: mass_fraction, values: {DIBC: 0.9375, TMB: 0.0625}, provenance: assumed, source: "scripts/hp_balance.py, D-008"}
+  - id: S28
+    title: Concentrator distillate (recycled as extraction water)
+    from: C501.top
+    to: M301.dist
+    template: aqueous
+    state:
+      design:
+        pressure: {value: 10, provenance: assumed, source: D-010}
+        temperature: {value: 318.15, provenance: assumed, source: D-010}
+        flow: {value: 3105.13, basis: mass, provenance: assumed, source: "scripts/hp_balance.py, D-010"}
+        composition: {basis: mass_fraction, values: {H2O: 0.9995, H2O2: 0.0005}, provenance: assumed, source: "0.05 wt% H2O2 in the distillate, D-010"}
+  - id: S29
+    title: Demineralised water
+    from: DEMIN.out
+    to: M301.demin
+    template: water
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: D-010}
+        temperature: {value: 298.15, provenance: assumed, source: D-010}
+        flow: {value: 7444.53, basis: mass, provenance: assumed, source: "scripts/hp_balance.py: the extractor's water balance, 1.19 t/t (BREF 1-2 m3/t, Table 12.4), D-008"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-010}
+  - id: S20
+    title: Concentrator bottoms (50 wt% H2O2)
+    from: C501.bot
+    to: E501.in
+    template: aqueous
+    state:
+      design:
+        pressure: {value: 12, provenance: assumed, source: D-010}
+        temperature: {value: 333.15, provenance: assumed, source: D-010}
+        flow: {value: 12500.0, basis: mass, provenance: given, source: "design basis: 50 kt/a H2O2 (100 %) at 50 wt%, 8000 h/a, D-002"}
+        composition: {basis: mass_fraction, values: {DIBC: 9.377e-05, H2O: 0.49989998, H2O2: 0.5, TMB: 6.25e-06}, provenance: assumed, source: "scripts/hp_balance.py, D-002, D-008"}
+  - id: S30
+    title: Hydrogen peroxide 50 wt% product
+    from: E501.out
+    to: PROD.in
+    template: aqueous
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-002}
+        temperature: {value: 303.15, provenance: assumed, source: D-002}
+        flow: {value: 12500.0, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E501 from S20', fingerprint: fbe7f6a2b9b5f847}
+        composition: {basis: mass_fraction, values: {DIBC: 9.377e-05, H2O: 0.49989998, H2O2: 0.5, TMB: 6.25e-06}, provenance: calculated, source: 'cheme process propagate: pass-through E501 from S20', fingerprint: fbe7f6a2b9b5f847}
+  - id: S31
+    title: Ejector motive steam (WS dryer)
+    from: STEAMD.ej
+    to: V303.steam
+    template: water
+    state:
+      design:
+        pressure: {value: 350, provenance: assumed, source: D-010}
+        temperature: {value: 411.0, provenance: assumed, source: D-010}
+        flow: {value: 625.0, basis: mass, provenance: assumed, source: "0.1 t/t H2O2, D-010"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-010}
+  - id: S32
+    title: WS dryer water and ejector condensate
+    from: V303.water
+    to: WW.dry
+    template: aqueous
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: D-008}
+        temperature: {value: 313.15, provenance: assumed, source: D-008}
+        flow: {value: 1727.61, basis: mass, provenance: assumed, source: "scripts/hp_balance.py, D-008, D-011"}
+        composition: {basis: mass_fraction, values: {DIBC: 0.00038078, H2O: 0.99640985, H2O2: 0.00317319, TMB: 3.617e-05}, provenance: assumed, source: "scripts/hp_balance.py, D-008, D-011"}
+  - id: S33
+    title: Dried working solution
+    from: V303.ws
+    to: X401.in
+    template: ws
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: D-008}
+        temperature: {value: 313.15, provenance: assumed, source: D-008}
+        flow: {value: 710280.08, basis: mass, provenance: assumed, source: "scripts/hp_balance.py, D-008"}
+        composition: {basis: mass_fraction, values: {DIBC: 0.34340471, EAQ: 0.14002408, H2O: 0.00146103, H2O2: 0.00026449, TMB: 0.51484568}, provenance: assumed, source: "scripts/hp_balance.py, D-008"}
+  - id: S34
+    title: Fresh activated alumina
+    from: ALU.out
+    to: X401.alu
+    template: alumina
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: D-011}
+        temperature: {value: 298.15, provenance: assumed, source: D-011}
+        flow: {value: 37.5, basis: mass, provenance: assumed, source: "6 kg/t H2O2 (BREF 4-20 kg/t, Table 12.4), D-011"}
+        composition: {basis: mass_fraction, values: {AL2O3: 1.0}, provenance: assumed, source: D-011}
+  - id: S35
+    title: Spent alumina with degraded quinone and solvent
+    from: X401.spent
+    to: SPENT.in
+    template: alumina
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: D-011}
+        temperature: {value: 313.15, provenance: assumed, source: D-011}
+        flow: {value: 56.25, basis: mass, provenance: assumed, source: "scripts/hp_balance.py: 9 kg/t (BREF 0.5-16, typically 7-10 kg/t, Table 12.6), D-011"}
+        composition: {basis: mass_fraction, values: {AL2O3: 0.66666667, DIBC: 0.08888889, EAQ: 0.11111111, TMB: 0.13333333}, provenance: assumed, source: "scripts/hp_balance.py, D-011"}
+  - id: S36
+    title: Regenerated working solution to the WS tank
+    from: X401.ws
+    to: T101.ws
+    template: ws
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: D-011}
+        temperature: {value: 313.15, provenance: assumed, source: D-011}
+        flow: {value: 710261.33, basis: mass, provenance: assumed, source: "scripts/hp_balance.py, D-011"}
+        composition: {basis: mass_fraction, values: {DIBC: 0.34340673, EAQ: 0.14001898, H2O: 0.00146107, H2O2: 0.0002645, TMB: 0.51484872}, provenance: assumed, source: "scripts/hp_balance.py, D-011"}
+  # Energy streams (scripts/hp_balance.py, D-006, D-010; ASSUMED until core qualifies them)
+  - {id: Q01, title: K-201 shaft power, kind: energy, from: POWER.k201, to: K201.power, state: {design: {duty: {value: 1880.6, provenance: assumed, source: "scripts/hp_balance.py: 450 kPa(a), isentropic efficiency 0.80, D-007"}}}}
+  - {id: Q02, title: P-101 WS circulation pumps, kind: energy, from: POWER.p101, to: P101.power, state: {design: {duty: {value: 242.5, provenance: assumed, source: "scripts/hp_balance.py: 764 m3/h, 800 kPa loop, efficiency 0.70, D-010"}}}}
+  - {id: Q03, title: "Extraction water, crude and product pumps", kind: energy, from: POWER.c301, to: C301.power, state: {design: {duty: {value: 62.5, provenance: assumed, source: "10 kWh/t H2O2, D-010"}}}}
+  - {id: Q04, title: C-501 vacuum pump, kind: energy, from: POWER.c501, to: C501.power, state: {design: {duty: {value: 31.2, provenance: assumed, source: "5 kWh/t H2O2, D-010"}}}}
+  - {id: Q05, title: C-501 reboiler duty, kind: energy, from: LPS.c501, to: C501.reb, state: {design: {duty: {value: 2963.4, provenance: assumed, source: "scripts/hp_balance.py: reflux ratio 0.3, no vapour recompression, D-010"}}}}
+  - {id: Q06, title: R-101 heat of hydrogenation, kind: energy, from: R101.cw, to: CW.r101, state: {design: {duty: {value: 6392.8, provenance: assumed, source: "scripts/hp_balance.py: extents x heats of reaction (reactions.yaml), D-005"}}}}
+  - {id: Q07, title: R-201 heat of oxidation, kind: energy, from: R201.cw, to: CW.r201, state: {design: {duty: {value: 4078.0, provenance: assumed, source: "scripts/hp_balance.py: 77.5 kJ/mol (BREF 12.3.4 d), D-005"}}}}
+  - {id: Q08, title: E-201 duty, kind: energy, from: E201.cw, to: CW.e201, state: {design: {duty: {value: 1738.1, provenance: assumed, source: "scripts/hp_balance.py: air 496 K to 313 K, D-007"}}}}
+  - {id: Q09, title: E-202 duty, kind: energy, from: E202.cw, to: CW.e202, state: {design: {duty: {value: 186.4, provenance: assumed, source: "scripts/hp_balance.py, D-009"}}}}
+  - {id: Q10, title: C-501 condenser duty, kind: energy, from: C501.cond, to: CW.c501, state: {design: {duty: {value: 2668.7, provenance: assumed, source: "scripts/hp_balance.py, D-010"}}}}
+  - {id: Q11, title: E-501 duty, kind: energy, from: E501.cw, to: CW.e501, state: {design: {duty: {value: 343.8, provenance: assumed, source: "scripts/hp_balance.py: 333 K to 303 K, D-010"}}}}
 layout: {bfd: {}, pfd: {}}

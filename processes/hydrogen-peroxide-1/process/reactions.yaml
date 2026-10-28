@@ -1,0 +1,32 @@
+# Reactions of the anthraquinone autoxidation (AO) cycle. Schema: `cheme schema process-reactions`.
+# Conversion model (DESIGN.md D-005): the per-pass conversions are design choices inside the
+# ranges the LVOC BREF 2017 (DOI 10.2760/77304, section 12.2.2) reports; no kinetics are used.
+# Heats of reaction: OXD from the BREF (12.3.4 d, 75-80 kJ/mol, midpoint); HYD and HPD derived
+# by Hess's law from the standard enthalpies of formation of liquid H2O2 (-187.78 kJ/mol) and
+# liquid water (-285.83 kJ/mol) (NIST Chemistry WebBook, SRD 69), on the overall reaction
+# H2 + O2 -> H2O2(l) = HYD + OXD; heats of solution are neglected.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: HYD
+    equation: EAQ + H2 -> EAHQ
+    stoichiometry: {EAQ: -1.0, H2: -1.0, EAHQ: 1.0}
+    reversible: false
+    conversion: {key: EAQ, value: 0.45, provenance: assumed, source: "D-005: below the BREF limit of 60 % of the total quinone per pass (LVOC BREF 2017, 12.2.2.2)"}
+    heat_of_reaction: {value: -110300.0, provenance: assumed, source: "D-005: -187.78 kJ/mol (H2O2 liquid, NIST) minus the oxidation heat of -77.5 kJ/mol (BREF 12.3.4 d); derived, not measured"}
+    catalyst: "Pd on alumina, fixed bed (D-003)"
+    sources: ["doi:10.2760/77304"]
+  - id: HPD
+    equation: H2O2 + H2 -> 2 H2O
+    stoichiometry: {H2O2: -1.0, H2: -1.0, H2O: 2.0}
+    reversible: false
+    conversion: {key: H2O2, value: 1.0, provenance: assumed, source: "D-005: residual H2O2 in the recycled WS is destroyed on the Pd catalyst"}
+    heat_of_reaction: {value: -383880.0, provenance: given, source: "standard enthalpies of formation, liquid H2O2 and water, 298 K (NIST Chemistry WebBook)"}
+    catalyst: "Pd on alumina, fixed bed (D-003)"
+  - id: OXD
+    equation: EAHQ + O2 -> EAQ + H2O2
+    stoichiometry: {EAHQ: -1.0, O2: -1.0, EAQ: 1.0, H2O2: 1.0}
+    reversible: false
+    conversion: {key: EAHQ, value: 1.0, provenance: assumed, source: "D-005: complete autoxidation of the hydroquinone in the oxidiser"}
+    heat_of_reaction: {value: -77500.0, provenance: given, source: "LVOC BREF 2017 (doi:10.2760/77304), section 12.3.4 d): 75-80 kJ/mol, midpoint"}
+    sources: ["doi:10.2760/77304"]
