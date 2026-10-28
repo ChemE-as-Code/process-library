@@ -34,12 +34,14 @@ classification:
   isic: '2011'
 modelling:
   principle: attributional
-  multifunctionality: 'unallocated multi-output dataset; default allocation mass: D-013: three outputs
+  multifunctionality: 'unallocated multi-output dataset; default allocation shares: D-013: three outputs
     leave for use: refined glycerol (the functional unit), recovered methanol and the fatty layer, both
-    returned to the biodiesel plant. Mass allocation is the preliminary choice because it needs no price
-    or property data; it charges about a third of the refinery''s burden to the methanol pass-through,
-    so economic allocation and substitution (avoided methanol, avoided fatty feedstock) are open sensitivities.
-    The unallocated dataset (lca/dataset.yaml) lets a later study choose.'
+    returned to the biodiesel plant. The recovered methanol is the biodiesel plant''s own excess reactant,
+    which arrives in the crude and leaves unchanged, so it is treated as a return (share 0) and glycerol
+    and the fatty layer share the burden by mass (review 2026-10-28-pfd-lci-review#5). Plain mass allocation
+    (methanol as a co-product) and no allocation are reported side by side; economic allocation and substitution
+    (avoided fatty feedstock) are open sensitivities. The unallocated dataset (lca/dataset.yaml) lets
+    a later study choose.'
 review:
 - type: none
 data_generator: ChemE-as-Code process library, glycerol-1 concept design (agent run 2026-10-28)
@@ -551,6 +553,7 @@ exchanges:
     temperature: 25.0
     source: utility of CW in process/flowsheet.yaml
 allocation:
+  method: shares
   coproducts:
   - GLYC
   - MEOHR
@@ -564,22 +567,24 @@ allocation:
   - shares
   - none
   source: 'D-013: three outputs leave for use: refined glycerol (the functional unit), recovered methanol
-    and the fatty layer, both returned to the biodiesel plant. Mass allocation is the preliminary choice
-    because it needs no price or property data; it charges about a third of the refinery''s burden to
-    the methanol pass-through, so economic allocation and substitution (avoided methanol, avoided fatty
-    feedstock) are open sensitivities. The unallocated dataset (lca/dataset.yaml) lets a later study choose.'
+    and the fatty layer, both returned to the biodiesel plant. The recovered methanol is the biodiesel
+    plant''s own excess reactant, which arrives in the crude and leaves unchanged, so it is treated as
+    a return (share 0) and glycerol and the fatty layer share the burden by mass (review 2026-10-28-pfd-lci-review#5).
+    Plain mass allocation (methanol as a co-product) and no allocation are reported side by side; economic
+    allocation and substitution (avoided fatty feedstock) are open sensitivities. The unallocated dataset
+    (lca/dataset.yaml) lets a later study choose.'
   deviation: 'D-013: the library hierarchy prefers subdivision or system expansion, then economic (price
     ratio) allocation. Subdivision is not possible (one acidulation serves all three outputs), substitution
-    needs background datasets that are not linked at this stage and no sourced prices for refined glycerol,
-    recovered methanol and the fatty layer were collected in this run. Mass allocation is a declared preliminary
-    placeholder until prices are sourced.'
+    needs background datasets that are not linked at this stage and no sourced prices for refined glycerol
+    and the fatty layer were collected in this run. Mass shares with the methanol as a return are a declared
+    preliminary placeholder until prices are sourced and the crude-glycerol background is chosen.'
 provenance:
   generator: cheme assess lca
   plant: Crude glycerol refining to USP glycerol (10 000 t/a, 99.7 wt%)
   case: design
   files:
     equipment/equipment-list.yaml: sha256:e4553c6004e75df7d14eaeef339626ac76648a2067b0fa33232222a7f045c433
-    lca/lca.yaml: sha256:3855e1e63f42fcb07c9f724ace521d2284a5d0d89707e6db9f7c7922e6ddbaa9
+    lca/lca.yaml: sha256:a41af1e092d0a6bb7fca56b4a2501f1b888561831bfb4db5f178bbd547979f02
     process.yaml: sha256:e0e50548d407a9acaf756235f8676f4f60080dd9384c47db78f1ce0f0d1a6668
     process/flowsheet.yaml: sha256:ac44b81722c2cbdfdd70889a9be6f8f257841212cfded7c30df6615c817d4126
     process/materials.yaml: sha256:66966c66738c689767c1e74f166c957eeffea18cf2278bc9a7dc0f3abdc512e8

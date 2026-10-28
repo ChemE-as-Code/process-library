@@ -213,13 +213,20 @@ no overrides (internal process, ADR 0022).
 Allocation variants (added 2026-10-28, review #5): the recovered methanol S8 is the biodiesel
 plant's own excess reactant, which arrives in the crude and leaves unchanged; under mass
 allocation it takes 32 % of the burden, including 32 % of the crude glycerol it arrived in.
-lca/lca.yaml therefore reports three variants side by side (`allocation.compare`): mass (the
-baseline until prices are sourced; glycerol share 0.594), `shares` with the methanol treated
-as a return (share 0; glycerol 0.873, fatty layer 0.127 by mass) and `none` (glycerol carries
-everything, 1.000). Before any background is linked, the preferred treatment is the return:
-either net the methanol off the crude feed or use system expansion; the choice is open until
-the crude-glycerol background is chosen, because that dataset's own allocation decides
-whether the methanol mass is already in it.
+lca/lca.yaml therefore reports three variants side by side (`allocation.compare`): mass
+(glycerol share 0.594), `shares` with the methanol treated as a return (share 0; glycerol
+0.873, fatty layer 0.127 by mass) and `none` (glycerol carries everything, 1.000). Before any
+background is linked, the preferred treatment is the return: either net the methanol off the
+crude feed or use system expansion; the choice is open until the crude-glycerol background is
+chosen, because that dataset's own allocation decides whether the methanol mass is already in
+it.
+Baseline changed to `shares` (methanol as a return, 2026-10-28, PR #218 CI): the preferred
+treatment above becomes the baseline, mass and none stay as variants. Reason besides the
+review: `mass` is the schema default, and `cheme assess lca --write` leaves defaults out of
+lca/dataset.yaml, so the library's strict LCI build (scripts/build_lci.py) saw no dataset
+method and warned that the study's `mass` differed from it, which failed CI. An explicit
+non-default method is written and read back unchanged. Mass in the first paragraph of this
+decision is superseded by this; prices (economic) remain the open sensitivity.
 Result (cheme assess lca --balance, per hour, revised after review #2): mass in 2713.0 kg = out
 2713.0 kg; C, H, O, Na, Cl closed within 0.01 %; carbon in 265.5 kg fossil + 643.8 kg
 biogenic. The inventory's boundary flows equal the flowsheet's boundary streams (S1, S2, S6,
