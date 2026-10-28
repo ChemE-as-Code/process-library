@@ -256,6 +256,33 @@ def main():
         print(f"  {n}: {kw / 0.6:.2f} kW")
         tot += kw / 0.6
     print(f"pumps total {tot:.1f} kW")
+    # ---- first-pass line sizes (D-010): vapour 20 m/s, liquid 1.5 m/s, inside diameter = DN
+    DN = [25, 32, 40, 50, 65, 80, 100, 125, 150, 200, 250, 300, 350, 400, 450, 500, 600]
+    mw = lambda st: mass(st) / sum(st.values())
+    lines = {  # stream: (state, T K, P kPa(a), phase)
+        "S1": (s["fresh"], 303.15, 300, "L"), "S2": (s["f101"], 308.15, 300, "L"),
+        "S4": (d101, 420.2, 1000, "V"), "S5": (b101, 435.9, 1010, "L"),
+        "S6": (d101, 523.15, 950, "V"), "S7": (d101, 553.15, 900, "V"),
+        "S8": (r, 553.15, 750, "V"), "S9": (r, 450.0, 720, "V"), "S10": (r, 313.15, 700, "L"),
+        "S11": (s["d201"], 313.15, 900, "L"), "S12": (s["b201"], 394.0, 660, "L"),
+        "S13": (s["d301"], 328.8, 300, "L"), "S14": (b301, 337.4, 500, "L"),
+        "S15": (raf, 313.15, 880, "L"), "S16": (s["ext"], 313.15, 880, "L"),
+        "S17": (s["d402"], 348.3, 500, "L"), "S18": (s["v402"], 313.15, 150, "V"),
+        "S19": (s["b402"], 384.5, 300, "L"), "S23": (s["wash"], 313.15, 900, "L"),
+        "S26": (v403, 323.0, 900, "V"), "S27": (b403, 339.2, 920, "L"),
+        "S30": (add(b301, s["d402"]), 313.15, 480, "L"),
+    }
+    print("\nline sizes:")
+    for sid, (st, T, Pk, ph) in lines.items():
+        if ph == "V":
+            q = sum(st.values()) / 3600 * R * T / Pk  # m3/s, ideal gas
+            u = 20.0
+        else:
+            q = vol(st, T)
+            u = 1.5
+        d = (4 * q / (3.14159265 * u)) ** 0.5 * 1000
+        dn = next(x for x in DN if x >= d)
+        print(f"  {sid}: {q * 3600:.1f} m3/h, d {d:.0f} mm -> DN{dn}")
 
 
 if __name__ == "__main__":
