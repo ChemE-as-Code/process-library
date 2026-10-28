@@ -242,12 +242,18 @@ they enter no calculation.
 ## D-014 LCA scope and allocation (2026-10-28)
 Decision: functional unit 1 kg air-dry pulp at the gate; boundary declared cradle-to-gate
 with every background declared missing (the gate-to-gate foreground is the deliverable; as
-soda-ash-1 D-010). The net electricity export is a co-product: allocation by substitution
-(the displaced grid electricity, missing until the site country is chosen), dataset system
-model substitution. Local mapping overrides in lca/mappings.yaml only (H2SO4, landfill;
-process water kept out of the deionised-water entry).
-Rejected: mass or economic allocation (no price; electricity has no mass); exergy (no sourced
-exergy of the pulp in this run).
+soda-ash-1 D-010). The net electricity export is a co-product: allocation by explicit shares
+PULP 1.0 / EEXP 0.0 (the pulp carries every burden, the export leaves without burden or
+credit; conservative for the pulp), stated as `allocation.deviation` in lca.yaml; dataset
+system model cutoff. Local
+mapping overrides in lca/mappings.yaml only (H2SO4, landfill; process water kept out of the
+deionised-water entry).
+Rejected: mass or economic allocation (no price; electricity has no mass); energy and exergy
+(no declared energy content or sourced exergy of the pulp in this run); substitution (the
+first choice of this study, 2026-10-28, changed after the PR's CI: the library's LCI export
+needs one activity per co-product, which substitution cannot give, and the displaced grid is
+not linked until the site country is chosen, D-002). Substitution stays a comparison for
+when the grid is chosen: a credit of 0.263 kWh/kg pulp.
 Energy closure in `cheme assess lca --coverage` (review #7): the reported 20.7 % does not
 measure this plant's energy balance, so the check does not apply at this stage. cheme counts
 only delivered energy carriers and declared product energy contents. Here that is 52.8 MW of

@@ -24,15 +24,24 @@ location: GLO   # generic site, country not chosen (D-002)
 technology: "Bleached softwood kraft market pulp: continuous digester, O2 delignification, ECF D0-EOP-D1, drying machine, 7-effect evaporation to 80 % solids, recovery boiler 84 bar with extraction back-pressure turbine and condensing tail, recausticizing, natural gas lime kiln; 1000 ADt/d"
 rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
 allocation:
-  method: substitution
+  method: shares
   coproducts: [PULP, EEXP]
+  shares: {PULP: 1.0, EEXP: 0.0}
   source: >-
-    D-014: the pulp carries all burdens and the exported electricity (263 kWh/ADt, turbine
-    generation less mill use) is credited with the grid electricity it displaces (system
-    expansion). The avoided product is not linked yet, so the credit is a declared gap. The
-    unallocated dataset (lca/dataset.yaml) keeps the export as an output.
-  substitution:
-    EEXP: {missing: "not linked yet: grid electricity of the site's country (medium/high voltage) displaced by the mill's export; country not chosen (D-002)", source: "D-014"}
+    D-014: the pulp carries all burdens; the exported electricity (263 kWh/ADt, turbine
+    generation less mill use) leaves without a burden and without a credit (conservative for
+    the pulp). The unallocated dataset (lca/dataset.yaml) keeps the export as an output.
+  deviation: >-
+    The library hierarchy allocates exported electricity by energy or exergy
+    (docs/system-model.md). Neither applies yet: the pulp has no declared energy content or
+    exergy in this run (its heating value is not predicted, D-003), so energy allocation would
+    put every burden on the electricity; the electricity is counted in kWh, so the WBCSD price
+    ratio does not apply either. Substitution (crediting displaced grid electricity) cannot be
+    exported as one activity per co-product and its avoided product is not linked (country
+    not chosen, D-002). Shares 1/0 are the conservative choice for the pulp until the pulp's
+    exergy is available (DESIGN.md D-014).
+  # substitution (system expansion), for comparison only once the site's grid is chosen:
+  # credit -0.263 kWh/kg pulp of the country's medium/high-voltage grid electricity (D-014).
 flows:
   # ---- raw materials (backgrounds to connect later)
   - key: feed:CHIPS
@@ -160,7 +169,7 @@ uncertainty:
 dataset:
   version: 0.1.0
   geography: {description: "Generic site, country not chosen (D-002); no regional background linked"}
-  system_model: substitution   # the export credit is an avoided burden (D-014)
+  system_model: cutoff   # the export leaves without burden or credit (shares 1/0, D-014)
   technology_level: current
   classification: {isic: "1701", cpc: "3212"}
   modelling: {principle: attributional}

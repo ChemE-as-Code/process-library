@@ -51,7 +51,7 @@ geography:
 time:
   start: 2026
 valid_until: 2031
-system_model: substitution
+system_model: cutoff
 technology_level: current
 production_volume:
   amount: 350000280.0
@@ -62,11 +62,10 @@ classification:
   cpc: '3212'
 modelling:
   principle: attributional
-  multifunctionality: 'unallocated multi-output dataset; default allocation substitution: D-014: the pulp
-    carries all burdens and the exported electricity (263 kWh/ADt, turbine generation less mill use) is
-    credited with the grid electricity it displaces (system expansion). The avoided product is not linked
-    yet, so the credit is a declared gap. The unallocated dataset (lca/dataset.yaml) keeps the export
-    as an output.'
+  multifunctionality: 'unallocated multi-output dataset; default allocation shares: D-014: the pulp carries
+    all burdens; the exported electricity (263 kWh/ADt, turbine generation less mill use) leaves without
+    a burden and without a credit (conservative for the pulp). The unallocated dataset (lca/dataset.yaml)
+    keeps the export as an output.'
 review:
 - type: none
 data_generator: ChemE-as-Code process library, kraft-pulp-1 concept design (agent run 2026-10-28)
@@ -896,26 +895,30 @@ exchanges:
       SO2: SO2
     source: stream table (S29, S45, S50, S10, S22, S25)
 allocation:
-  method: substitution
+  method: shares
   coproducts:
   - PULP
   - EEXP
-  substitution:
-    EEXP:
-      source: D-014
-      missing: 'not linked yet: grid electricity of the site''s country (medium/high voltage) displaced
-        by the mill''s export; country not chosen (D-002)'
-  source: 'D-014: the pulp carries all burdens and the exported electricity (263 kWh/ADt, turbine generation
-    less mill use) is credited with the grid electricity it displaces (system expansion). The avoided
-    product is not linked yet, so the credit is a declared gap. The unallocated dataset (lca/dataset.yaml)
-    keeps the export as an output.'
+  shares:
+    PULP: 1.0
+    EEXP: 0.0
+  source: 'D-014: the pulp carries all burdens; the exported electricity (263 kWh/ADt, turbine generation
+    less mill use) leaves without a burden and without a credit (conservative for the pulp). The unallocated
+    dataset (lca/dataset.yaml) keeps the export as an output.'
+  deviation: 'The library hierarchy allocates exported electricity by energy or exergy (docs/system-model.md).
+    Neither applies yet: the pulp has no declared energy content or exergy in this run (its heating value
+    is not predicted, D-003), so energy allocation would put every burden on the electricity; the electricity
+    is counted in kWh, so the WBCSD price ratio does not apply either. Substitution (crediting displaced
+    grid electricity) cannot be exported as one activity per co-product and its avoided product is not
+    linked (country not chosen, D-002). Shares 1/0 are the conservative choice for the pulp until the
+    pulp''s exergy is available (DESIGN.md D-014).'
 provenance:
   generator: cheme assess lca
   plant: Bleached softwood kraft pulp with chemical recovery (1000 ADt/d market pulp)
   case: design
   files:
     equipment/equipment-list.yaml: sha256:3cdc557be07a3bd5b07bcdcc693b931c84e194626f2cd30c1490f033e28f64d7
-    lca/lca.yaml: sha256:cace8849de7e6117166993450980dc52b78fd36a948ca9782fdcd53090e3ac11
+    lca/lca.yaml: sha256:f890268e85ffcd6924c29a319d9fd3934837c87198e33a92372a90cf1ee90ccf
     process.yaml: sha256:c83cdb6c3d64ccb8da7ca7510f87c6a1810d61f2926353337665594ded47a411
     process/flowsheet.yaml: sha256:9e477a74c6b70c9d4d4fc0c6d6adb7e5c9a62d3abb3194025ff6fc087c8927ef
     process/materials.yaml: sha256:f1bd4bc81857cba275a3079f6c61b020c0332bb4f8c32ac31fde6de4de51e3ea
