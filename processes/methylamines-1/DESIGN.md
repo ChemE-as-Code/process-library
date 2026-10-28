@@ -184,8 +184,11 @@ instruments yet (no P&ID in scope).
 ## D-013 Registry and vocabulary entries missing (2026-10-28)
 `chemicals/chemicals.yaml` has no `methanol`, `ammonia`, `methylamine`, `dimethylamine`,
 `trimethylamine`; `lci/mappings.yaml` has no `methanol` technosphere entry (ammonia and steam-heat
-exist). process.yaml uses the intended slugs (marked PENDING REGISTRY) and lca/mappings.yaml maps
-only feed:NH3F, feed:MPS, feed:LPS to existing entries. To add in the consolidated PR: the five
+exist). Since the review 2026-10-28-pfd-lci-review#1, process.yaml lists only registered flows in
+`chemistry` (steam, electricity, cooling water, wastewater) and names the five unregistered
+chemicals with their inventory keys in `validation.notes`, as ammonia-1 does, so that the library
+catalog build (and CI) passes; they go back into `chemistry` with the registry PR. lca/mappings.yaml
+maps only feed:NH3F, feed:MPS, feed:LPS to existing entries. To add in the consolidated PR: the five
 chemicals (CAS 67-56-1, 7664-41-7, 74-89-5, 124-40-3, 75-50-3; products anhydrous, liquefied) and a
 `methanol` technosphere entry. The family is `nitrogen-organics`.
 

@@ -4,6 +4,7 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-10-28 | process.yaml, DESIGN.md D-013 | unregistered chemicals (methanol, ammonia, MMA, DMA, TMA) out of `chemistry`, named in `validation.notes`; library catalog build exits 0 | review 2026-10-28-pfd-lci-review#1 (high) |
 | 2026-10-28 | DESIGN.md, PROGRESS.md | route/boundary memo, source register, decisions D-001..D-014, open inputs, method table | record of the concept stage |
 | 2026-10-28 | lca/lca.yaml, lca/mappings.yaml, lca/* (generated) | preliminary gate-to-gate LCI per kg DMA, mass allocation, all backgrounds unmapped gaps; inventory, gaps, dataset written | scope step 4 (D-014) |
 | 2026-10-28 | process/simulation.yaml | R-101 declared adiabatic (no DWSIM run) | LCA boundary check |

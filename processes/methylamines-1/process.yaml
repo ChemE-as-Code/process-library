@@ -23,22 +23,24 @@ facets:
 maturity: concept
 validation:
   status: unreviewed
-# PENDING REGISTRY: methanol, ammonia, methylamine, dimethylamine and trimethylamine have no
-# entry in chemicals/chemicals.yaml yet; they are to be added in the consolidated registry PR
-# (DESIGN.md D-013). Until then the library's registry check reports these five slugs.
+  notes: >-
+    The chemicals registry has no methanol, ammonia, methylamine, dimethylamine or
+    trimethylamine entry yet (DESIGN.md D-013). Until the registry PR adds them, the feedstocks
+    (methanol feed:MEOH from methanol-1, anhydrous ammonia feed:NH3F from ammonia-1) and the
+    products (DMA product:DMAP 4.4 t/h main product; MMA product:MMAP 2.0 t/h and TMA
+    product:TMAP 1.6 t/h co-products) are left out of `chemistry` and named here, as in
+    ammonia-1; only registered flows are listed there. The steam is listed under inputs
+    because no registered feedstock exists.
+# REGISTRY: the five unregistered chemicals are named in validation.notes (D-013); add them to
+# `chemistry` when chemicals/chemicals.yaml has them.
 chemistry:
   inputs:
-    - {chemical: methanol, role: feedstock, inventory_key: "feed:MEOH", note: "Boundary feed, made by methanol-1; pure in the model"}
-    - {chemical: ammonia, role: feedstock, inventory_key: "feed:NH3F", note: "Anhydrous liquid ammonia, boundary feed made by ammonia-1"}
+    - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "MP steam 1500 kPa(a): feed vaporiser, C-101 and C-103 reboilers. The feedstocks methanol (feed:MEOH) and ammonia (feed:NH3F) have no registry entry yet"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 450 kPa(a): C-102, C-104, C-105 reboilers"}
   outputs:
-    - {chemical: dimethylamine, role: main-product, inventory_key: "product:DMAP", note: "Anhydrous, 4.4 t/h (ASSUMED slate)"}
-    - {chemical: methylamine, role: co-product, inventory_key: "product:MMAP", note: "Anhydrous monomethylamine, 2.0 t/h"}
-    - {chemical: trimethylamine, role: co-product, inventory_key: "product:TMAP", note: "Anhydrous, 1.6 t/h"}
-    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Reaction water to biological treatment, 100 ppm(wt) methanol (ASSUMED)"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Reaction water to biological treatment, 100 ppm(wt) methanol (ASSUMED). The products DMA (product:DMAP), MMA (product:MMAP) and TMA (product:TMAP) have no registry entry yet"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Feed and recycle pumps (ASSUMED electric drives)"}
-    - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "MP steam 1500 kPa(a): feed vaporiser, C-101 and C-103 reboilers"}
-    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 450 kPa(a): C-102, C-104, C-105 reboilers"}
     - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED)"}
 basis: {capacity: "8 t/h anhydrous methylamines (2.0 MMA + 4.4 DMA + 1.6 TMA), ASSUMED", operating_hours_per_year: 8000}
 lca: {source: auto}
