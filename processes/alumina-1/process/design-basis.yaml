@@ -1,8 +1,56 @@
 # What the plant must do. Schema: `cheme schema design_basis`.
+# Alumina by the Bayer process, issue ChemE-as-Code/process-library#178.
+# Values marked ASSUMED are engineering choices of this concept study, not owner, licensor or
+# vendor data; every decision is in DESIGN.md. The case is a per-unit-product normalisation for
+# the inventory, not a claim about a commercial plant (issue #178 scope notes).
 schema: cheme/design_basis/v1
-capacity: {}
-feeds: []
-products: []
-utilities: []
-site: {}
-assumptions: []
+capacity:
+  basis: smelter-grade alumina at the calciner cooler outlet
+  product_t_per_d: 3000                 # ASSUMED (D-002): normalisation basis in the range of world-scale refineries, not an owner figure
+  product_kg_per_h: 125000              # = 3000 t/d / 24 h
+  operating_hours_per_year: 8400        # ASSUMED (D-002)
+  turndown_percent: null                # not set at this stage
+feeds:
+  - name: Bauxite, gibbsitic (trihydrate), Guinea, Debele / Balaya plateau type
+    source_of_values: "Zainudeen et al. (2023) Heliyon 9:e19070 (CC BY 4.0), Table 6 column Balaya Plateau 2 (chemistry) and Table 5 (minerals); normative mineralogy derived in scripts/bayer_balance.py (D-003)"
+    assay_wt_percent_dry: {Al2O3: 54.69, Fe2O3: 12.25, SiO2: 0.76, TiO2: 2.85, LOI: 29.69, minor_oxides: 0.38}
+    normative_minerals_wt_percent_dry: {gibbsite: 80.90, diaspore_boehmite: 1.29, kaolinite: 1.09, quartz: 0.25, goethite: 10.59, hematite: 2.67, titania_and_minor: 3.21}
+    moisture_wt_percent: 10             # ASSUMED (D-003); IAI 2019 LCI report: bauxite typically carries 10-20 % water
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Quicklime
+    flow: "52 kg CaO per t alumina (IAI 2019 LCI report, 2019 surveyed lime consumption; D-004)"
+    composition_wt_percent: {CaO: 100}  # ASSUMED simplification (no MgO, residual CaCO3)
+  - name: Caustic soda make-up
+    composition_wt_percent: {NaOH: 50, H2O: 50}   # ASSUMED (D-005)
+    flow: "equal to the sodium losses of the circuit (DSP, residue liquor, product soda), solved by the balance (D-005)"
+  - name: Natural gas (calciner fuel)
+    composition: "methane (ASSUMED simplification, D-008)"
+    lhv_MJ_per_kg: 50.0
+  - name: Fresh water make-up
+    quality: not specified (ASSUMED fresh water)
+products:
+  - name: Smelter-grade alumina
+    purity: "Al2O3 99.0 wt%, Na2O 0.40 wt%, LOI (as H2O) 0.60 wt% (ASSUMED design grade, D-002)"
+    delivery: {temperature_K: 353.15, battery_limit: calciner cooler outlet; conveying and storage outside}
+  - name: Bauxite residue filter cake (70 wt% solids)
+    use: "to the residue storage area by dry stacking (outside the boundary, D-005); no residue reuse"
+  - name: Calciner flue gas
+    use: "to atmosphere after the electrostatic precipitator: CO2 of the natural gas, water vapour of the hydrate, air nitrogen and excess oxygen"
+utilities:
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: ASSUMED (D-007)}
+  - {name: MP steam, pressure_kPa_a: 1000, saturation_K: 453.0, use: digestion heaters E-202 (indirect, condensate returned), note: ASSUMED level (D-007)}
+  - {name: LP steam, pressure_kPa_a: 450, saturation_K: 420.8, use: "spent liquor heater trim E-101 and evaporators E-501 (condensate returned)", note: ASSUMED level (D-007)}
+  - {name: Electric power, use: "mills, pumps, agitators, filters, calciner fans (lumped)", note: "152 kWh/t alumina, the 2019 global average of the IAI LCI report Table 4 (D-007)"}
+site:
+  location: ASSUMED generic site, not chosen
+  atmospheric_pressure_kPa: 101.325     # ASSUMED
+  design_ambient_K: 298.15              # ASSUMED
+assumptions:
+  - "ASSUMED low-temperature digestion at 418 K (gibbsitic bauxite; 413-423 K per ICSOBA 2024 paper AA05), 98 % of the gibbsite dissolved, diaspore/boehmite and quartz not attacked (D-004)."
+  - "ASSUMED liquor: spent caustic 250 g/L as Na2CO3, A/C 0.38 spent and 0.70 at blow-off, density 1.30 kg/L for every liquor (D-004, D-006)."
+  - "ASSUMED kaolinite fully converted to DSP carried as hydroxysodalite Na8Al6Si6O24(OH)2; all lime leaves as TCA (D-004)."
+  - "ASSUMED settler underflow 2.0, washer underflow 1.0 and residue cake 0.43 kg liquor/kg solids; 6 ideal CCD stages at wash ratio 1.6 (D-005)."
+  - "ASSUMED seed charge 250 g/L, slurries 1 kg liquor/kg hydrate, hydrate cake 8 wt% free water, hydrate wash 0.25 kg/kg; occluded soda sets the product's 0.40 % Na2O (D-006)."
+  - "ASSUMED heat model: liquor cp 3.35 and solids cp 1.0 kJ/kg K, 3 flash/regenerative stages with 5 K approach, 70 % of the pregnant liquor cooler duty recovered, evaporator economy 3.0 (D-007)."
+  - "ASSUMED calciner specific energy 2.8 GJ/t alumina LHV (ICSOBA 2017 paper AA22: about 2.72 GJ/t for gas suspension calciners), air excess 1.15 (D-008)."
+  - "No electrolyte thermodynamics: liquors are carried as neutral NaOH + NaAlO2 + H2O; no property package covers the streams; carbonate, oxalate, organics and other impurities are not carried (D-006)."

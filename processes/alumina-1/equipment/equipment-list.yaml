@@ -1,3 +1,49 @@
 # Equipment list. Schema: `cheme schema equipment`.
-schema: cheme/equipment/v1
-equipment: []
+# Concept stage: the items the PFD (process/flowsheet.yaml) needs, no P&ID yet (no sheet).
+# Flows and duties from scripts/bayer_balance.py (D-004..D-008), all ASSUMED; trains, spares,
+# sizes, design conditions and materials come at basic engineering (D-009).
+equipment:
+  # ---- grinding, slaking, pre-desilication (block PRE)
+  - {tag: M-101, type: Mixer, service: Lime slaker (milk of lime),
+     notes: "6.5 t/h quicklime + 50.8 t/h condensate -> 57.3 t/h milk of lime at 15 wt% Ca(OH)2 (D-004). ASSUMED."}
+  - {tag: E-101, type: PlateHeatExchanger, service: Spent liquor heaters (recovered heat from E-401 and the flash train; LP steam trim),
+     notes: "2010 t/h spent liquor 335 -> 373 K; 82.3 MW, of which 66.4 MW recovered and 15.9 MW LP steam (D-007). ASSUMED."}
+  - {tag: G-101, type: Mill, service: Bauxite wet grinding mill (in spent liquor),
+     notes: "274 t/h wet bauxite; lumped plant electricity 19 MW counted here (152 kWh/t alumina, D-007). Several mill lines in practice. ASSUMED."}
+  - {tag: R-101, type: Tank, service: "Pre-desilication tanks (373 K, agitated)",
+     notes: "2342 t/h slurry; kaolinite to DSP, lime to TCA (D-004). Residence time not set. ASSUMED."}
+  # ---- digestion (block DIG)
+  - {tag: E-201, type: ShellAndTubeHeatExchanger, service: Regenerative slurry heaters (flash vapour),
+     notes: "3 stages; slurry 373 -> 397 K, 48.7 MW; flash vapour 134 t/h condensed (D-007). Scaling service. ASSUMED."}
+  - {tag: E-202, type: ShellAndTubeHeatExchanger, service: Digestion heaters (MP steam),
+     notes: "Slurry 397 -> 418 K plus dissolution heat; 57.8 MW MP steam 1000 kPa(a) (D-007). ASSUMED."}
+  - {tag: R-201, type: PressureVessel, service: Digesters (418 K),
+     notes: "2342 t/h slurry, 98 % of the gibbsite dissolved, blow-off A/C 0.70 (D-004). Number and residence time not set. Hot caustic under pressure: stress-relieved carbon steel (tech skill). ASSUMED."}
+  - {tag: V-201, type: PressureVessel, service: Blow-off flash tanks (3 stages),
+     notes: "418 -> 379 K, 134 t/h flash vapour to E-201 (D-007). ASSUMED."}
+  # ---- clarification (block CLA)
+  - {tag: T-301, type: Thickener, service: Settler (thickener) with flocculant; security filtration of the overflow,
+     notes: "2207 t/h flashed slurry + 210 t/h washer overflow; underflow 2.0 kg liquor/kg solids (D-005). Flocculant and filter aid not inventoried. ASSUMED."}
+  - {tag: T-302, type: Thickener, service: Counter-current residue washers (6 stages),
+     notes: "Wash ratio 1.6 on the last underflow, underflow 1.0 kg liquor/kg solids (D-005). ASSUMED."}
+  - {tag: F-301, type: Filter, service: Residue filter presses (dry stacking cake),
+     notes: "94.8 t/h residue cake at 70 wt% solids, 37.8 t/h filtrate back to the washers (D-005). ASSUMED."}
+  # ---- precipitation (block PRC)
+  - {tag: E-401, type: PlateHeatExchanger, service: Pregnant liquor coolers (heat interchange with spent liquor),
+     notes: "2219 t/h pregnant liquor 373 -> 351 K, 45.4 MW: 31.8 MW to the spent liquor, 13.6 MW to cooling water (D-007). ASSUMED."}
+  - {tag: R-401, type: Tank, service: Seeded precipitators with interstage coolers,
+     notes: "Seed charge 250 g/L, 351 -> 335 K, spent A/C 0.38; 46.9 MW to cooling water (D-006, D-007). Tank count and residence time not set. ASSUMED."}
+  - {tag: S-401, type: Hydrocyclone, service: "Hydrate classification (hydrocyclones, seed thickeners)",
+     notes: "Splits 3072 t/h discharge into seed slurry 853 t/h, product slurry 379 t/h and spent liquor 1840 t/h (D-006). ASSUMED."}
+  - {tag: F-401, type: Filter, service: Product hydrate filters with washing,
+     notes: "190 t/h dry hydrate; cake 8 wt% free water; wash 0.25 kg/kg (D-006). ASSUMED."}
+  # ---- evaporation and water (block EVA)
+  - {tag: E-501, type: Evaporator, service: Spent liquor multiple-effect evaporators with surface condenser,
+     notes: "52.9 t/h water evaporated at economy 3.0; 10.3 MW LP steam (D-006, D-007). ASSUMED."}
+  - {tag: T-501, type: Tank, service: Caustic make-up tank,
+     notes: "3.87 t/h 50 wt% NaOH into 2006 t/h evaporated spent liquor (D-005). ASSUMED."}
+  - {tag: T-502, type: Tank, service: Hot water (condensate) tank,
+     notes: "Collects flash and evaporator condensate (187 t/h) and 16.8 t/h fresh water; feeds slaking, residue and hydrate washing (D-005). ASSUMED."}
+  # ---- calcination (block CAL)
+  - {tag: R-601, type: Furnace, service: "Gas suspension calciner (preheating cyclones, furnace, fluid-bed coolers, ESP)",
+     notes: "207 t/h hydrate cake -> 125 t/h alumina; 7.0 t/h natural gas, 2.8 GJ/t alumina LHV (D-008). ASSUMED."}

@@ -1,24 +1,777 @@
 # The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
 # never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
-# Units are explicit: a property without its own unit is in these. Pressure is absolute; a gauge
-# value needs its own unit (kPa(g)). Nm3/h needs normal_conditions.
+#
+# Bayer alumina refinery, 3000 t/d smelter-grade alumina from Guinean gibbsitic bauxite by
+# low-temperature digestion (D-001, D-002, D-003). Where the values come from:
+# - every flow and composition is from the independent sequential balance
+#   scripts/bayer_balance.py (D-004..D-006), given here as ASSUMED: it rests on ASSUMED liquor
+#   ratios (A/C), extraction, washing and cake parameters and on a neutral-molecule basis for
+#   the caustic aluminate liquor, because core cannot speciate it (core #364) or predict
+#   gibbsite solubility and precipitation yield (core #365);
+# - the bauxite mineralogy is derived from a sourced assay (D-003); the lime dose and the
+#   lumped electricity are sourced industry averages (IAI 2019 LCI report, D-004, D-007); the
+#   calciner fuel is a sourced specific energy for gas suspension calciners (D-008), because
+#   cheme process furnace refuses gibbsite calcination (cheme.furnace-unsupported);
+# - reactor steps name their reactions (process/reactions.yaml), so cheme checks their balance
+#   by elements;
+# - duties are from the same script (D-007), ASSUMED; no property package covers these streams.
+# - S8, S11, S12 and S24 (heaters and coolers) are filled by cheme process propagate.
 schema: cheme/process/v1
 kind: flowsheet
-title: ""
+title: Alumina by the Bayer process (3000 t/d smelter-grade alumina)
 units:
   pressure: kPa(a)
   temperature: K
   flow: kg/h
   duty: kW
   enthalpy: kJ/kmol
-  # normal_conditions: {temperature: 273.15, pressure: 101.325, basis: ideal_gas}
-  # enthalpy_reference: {state: ideal_gas, temperature: 298.15}
 cases:
-  - {id: design, description: Design case, default: true}
+  - id: design
+    description: "Design case: 3000 t/d smelter-grade alumina (99.0 wt% Al2O3), 8400 h/a, Guinean gibbsitic bauxite (D-002, D-003)"
+    default: true
+    capacity: 3000 t/d smelter-grade alumina
+    provenance: assumed
+    source: "D-002: a normalisation basis for the inventory, not a commercial plant claim"
 tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
-feeds: []      # external feeds (DEXPI Source): {id, title, ports: [{id: out, direction: out}]}
-products: []   # products (DEXPI Sink): {id, title, ports: [{id: in, direction: in}]}
-blocks: []     # BFD blocks: {id, title, class, ports: [{id, direction, kind}], links}
-steps: []      # PFD steps: {id, block, title, class, ports: [{id, direction, delegates}], links}
-streams: []    # {id, title, kind, from: NODE.port, to: NODE.port, template, state: {design: {...}}}
+
+feeds:
+  - {id: BX, title: "Bauxite, gibbsitic (Guinea, Debele type), crushed", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: LIME, title: Quicklime, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: NAOH, title: "Caustic soda make-up, 50 wt% solution", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: PW, title: Fresh water make-up, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: NG, title: Natural gas (calciner fuel), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: AIR, title: Calciner combustion air, category: raw_material, ports: [{id: out, direction: out}]}
+  - id: MPS
+    title: MP steam 1000 kPa(a) to the digestion heaters (condensate returned)
+    category: utility
+    utility:
+      kind: steam
+      level: MP
+      pressure: {value: 1000, provenance: assumed, source: "design basis, D-007"}
+      supply_temperature: {value: 453.0, provenance: assumed, source: "saturation at 1000 kPa(a), D-007"}
+      min_approach: {value: 10, provenance: assumed, source: D-007}
+    ports: [{id: e202, direction: out, kind: energy}]
+  - id: LPS
+    title: LP steam 450 kPa(a) to the liquor heater and the evaporators (condensate returned)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 450, provenance: assumed, source: "design basis, D-007"}
+      supply_temperature: {value: 420.8, provenance: assumed, source: "saturation at 450 kPa(a), D-007"}
+      min_approach: {value: 10, provenance: assumed, source: D-007}
+    ports:
+      - {id: e101, direction: out, kind: energy}
+      - {id: e501, direction: out, kind: energy}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports: [{id: aux, direction: out, kind: energy}]
+products:
+  - {id: ALU, title: Smelter-grade alumina to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: RES, title: Bauxite residue filter cake to the residue storage area (dry stacking), category: solid_waste, ports: [{id: in, direction: in}]}
+  - {id: STACK, title: Calciner flue gas to atmosphere, category: off_gas, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-007"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-007"}
+      min_approach: {value: 5, provenance: assumed, source: D-007}
+    ports:
+      - {id: e501, direction: in, kind: energy}
+      - {id: e401, direction: in, kind: energy}
+      - {id: r401, direction: in, kind: energy}
+
+blocks:
+  - id: PRE
+    title: Bauxite grinding, lime slaking and pre-desilication
+    class: ReactingChemicals
+    ports:
+      - {id: bx, direction: in}
+      - {id: lime, direction: in}
+      - {id: slk, direction: in}
+      - {id: liq, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: heat, direction: in, kind: energy}
+      - {id: rec, direction: in, kind: energy}
+      - {id: flash, direction: in, kind: energy}
+  - id: DIG
+    title: Digestion (418 K) and flash heat recovery
+    class: ReactingChemicals
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: cond, direction: out}
+      - {id: heat, direction: in, kind: energy}
+      - {id: surplus, direction: out, kind: energy}
+  - id: CLA
+    title: Clarification, residue washing and filtration
+    class: Separating
+    ports:
+      - {id: in, direction: in}
+      - {id: water, direction: in}
+      - {id: ovf, direction: out}
+      - {id: cake, direction: out}
+  - id: PRC
+    title: Precipitation, classification and hydrate filtration
+    class: ReactingChemicals
+    ports:
+      - {id: in, direction: in}
+      - {id: wash, direction: in}
+      - {id: ovf, direction: out}
+      - {id: filtrate, direction: out}
+      - {id: cake, direction: out}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+      - {id: rec, direction: out, kind: energy}
+  - id: EVA
+    title: Spent liquor evaporation, caustic make-up and condensate
+    class: Evaporating
+    ports:
+      - {id: liq, direction: in}
+      - {id: filt, direction: in}
+      - {id: naoh, direction: in}
+      - {id: fc, direction: in}
+      - {id: pw, direction: in}
+      - {id: out, direction: out}
+      - {id: slk, direction: out}
+      - {id: wash, direction: out}
+      - {id: hwash, direction: out}
+      - {id: heat, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+  - id: CAL
+    title: Hydrate calcination (gas suspension calciner)
+    class: ReactingChemicals
+    ports:
+      - {id: in, direction: in}
+      - {id: fuel, direction: in}
+      - {id: air, direction: in}
+      - {id: prod, direction: out}
+      - {id: gas, direction: out}
+
+steps:
+  # PRE (D-004)
+  - id: M101
+    block: PRE
+    title: Lime slaker
+    class: ReactingChemicals
+    reactions: [SLAKE]
+    links: [{target: equipment, ref: M-101}]
+    ports:
+      - {id: lime, direction: in, delegates: lime}
+      - {id: water, direction: in, delegates: slk}
+      - {id: milk, direction: out}
+  - id: E101
+    block: PRE
+    title: Spent liquor heaters (recovered heat and LP steam)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: in, direction: in, delegates: liq}
+      - {id: out, direction: out}
+      - {id: heat, direction: in, kind: energy, delegates: heat}
+      - {id: rec, direction: in, kind: energy, delegates: rec}
+      - {id: flash, direction: in, kind: energy, delegates: flash}
+  - id: G101
+    block: PRE
+    title: Bauxite wet grinding mill (in spent liquor)
+    class: Grinding
+    links: [{target: equipment, ref: G-101}]
+    ports:
+      - {id: bx, direction: in, delegates: bx}
+      - {id: milk, direction: in}
+      - {id: liq, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: R101
+    block: PRE
+    title: Pre-desilication tanks (373 K)
+    class: ReactingChemicals
+    reactions: [DESIL, TCA]
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: out}
+  # DIG (D-004, D-007)
+  - id: E201
+    block: DIG
+    title: Regenerative slurry heaters (flash vapour)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-201}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: out, direction: out}
+      - {id: vap, direction: in}
+      - {id: cond, direction: out, delegates: cond}
+      - {id: surplus, direction: out, kind: energy, delegates: surplus}
+  - id: E202
+    block: DIG
+    title: Digestion heaters (MP steam)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-202}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: heat, direction: in, kind: energy, delegates: heat}
+  - id: R201
+    block: DIG
+    title: Digesters (418 K)
+    class: ReactingChemicals
+    reactions: [DIG]
+    links: [{target: equipment, ref: R-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+  - id: F201
+    block: DIG
+    title: Blow-off flash tanks
+    class: SeparatingByFlash
+    links: [{target: equipment, ref: V-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: vap, direction: out}
+      - {id: out, direction: out, delegates: out}
+  # CLA (D-005)
+  - id: T301
+    block: CLA
+    title: Settler (thickener) with flocculant and security filtration of the overflow
+    class: SeparatingByGravity
+    links: [{target: equipment, ref: T-301}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: wash, direction: in}
+      - {id: ovf, direction: out, delegates: ovf}
+      - {id: uf, direction: out}
+  - id: T302
+    block: CLA
+    title: Counter-current residue washers (6 stages)
+    class: SeparatingByGravity
+    links: [{target: equipment, ref: T-302}]
+    ports:
+      - {id: mud, direction: in}
+      - {id: water, direction: in, delegates: water}
+      - {id: filtrate, direction: in}
+      - {id: ovf, direction: out}
+      - {id: mud_out, direction: out}
+  - id: F301
+    block: CLA
+    title: Residue filter presses (dry stacking cake)
+    class: Filtering
+    links: [{target: equipment, ref: F-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: filtrate, direction: out}
+      - {id: cake, direction: out, delegates: cake}
+  # PRC (D-006)
+  - id: E401
+    block: PRC
+    title: Pregnant liquor coolers (heat interchange with spent liquor)
+    class: Cooling
+    links: [{target: equipment, ref: E-401}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw1}
+      - {id: rec, direction: out, kind: energy, delegates: rec}
+  - id: R401
+    block: PRC
+    title: Seeded precipitators with interstage cooling
+    class: ReactingChemicals
+    reactions: [PREC]
+    links: [{target: equipment, ref: R-401}]
+    ports:
+      - {id: in, direction: in}
+      - {id: seed, direction: in}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+  - id: S401
+    block: PRC
+    title: Hydrate classification (hydrocyclones, seed thickeners)
+    class: SeparatingByCyclonicMotion
+    links: [{target: equipment, ref: S-401}]
+    ports:
+      - {id: in, direction: in}
+      - {id: seed, direction: out}
+      - {id: prod, direction: out}
+      - {id: ovf, direction: out, delegates: ovf}
+  - id: F401
+    block: PRC
+    title: Product hydrate filters with washing
+    class: Filtering
+    links: [{target: equipment, ref: F-401}]
+    ports:
+      - {id: in, direction: in}
+      - {id: wash, direction: in, delegates: wash}
+      - {id: filtrate, direction: out, delegates: filtrate}
+      - {id: cake, direction: out, delegates: cake}
+  # EVA (D-005, D-006)
+  - id: E501
+    block: EVA
+    title: Spent liquor multiple-effect evaporators
+    class: Evaporating
+    links: [{target: equipment, ref: E-501}]
+    ports:
+      - {id: feed, direction: in, delegates: liq}
+      - {id: filt, direction: in, delegates: filt}
+      - {id: liq, direction: out}
+      - {id: cond, direction: out}
+      - {id: heat, direction: in, kind: energy, delegates: heat}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  - id: M501
+    block: EVA
+    title: Caustic make-up tank
+    class: Mixing
+    links: [{target: equipment, ref: T-501}]
+    ports:
+      - {id: in, direction: in}
+      - {id: naoh, direction: in, delegates: naoh}
+      - {id: out, direction: out, delegates: out}
+  - id: T501
+    block: EVA
+    title: Hot water (condensate) tank
+    class: Mixing
+    links: [{target: equipment, ref: T-502}]
+    ports:
+      - {id: fc, direction: in, delegates: fc}
+      - {id: ec, direction: in}
+      - {id: pw, direction: in, delegates: pw}
+      - {id: slk, direction: out, delegates: slk}
+      - {id: wash, direction: out, delegates: wash}
+      - {id: hwash, direction: out, delegates: hwash}
+  # CAL (D-008)
+  - id: R601
+    block: CAL
+    title: Gas suspension calciner (preheating cyclones, furnace, fluid-bed coolers, ESP)
+    class: ReactingChemicals
+    reactions: [CALC, SODA, COMB]
+    links: [{target: equipment, ref: R-601}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: fuel, direction: in, delegates: fuel}
+      - {id: air, direction: in, delegates: air}
+      - {id: prod, direction: out, delegates: prod}
+      - {id: gas, direction: out, delegates: gas}
+
+streams:
+  - id: S1
+    title: "Bauxite (wet, 10 % moisture)"
+    from: BX.out
+    to: G101.bx
+    template: bayer
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-007"}
+        temperature: {value: 298.15, provenance: assumed, source: "D-007"}
+        flow: {value: 274169.2, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: dry feed solved for 3000 t/d alumina; mineralogy D-003"}
+        composition: {basis: mass_fraction, values: {AlOH3: 0.7280592, AlOOH: 0.0116384, Kaol: 0.0098479, SiO2: 0.0022200, FeOOH: 0.0953454, Fe2O3: 0.0239901, TiO2: 0.0288991, H2O: 0.1000000}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S2
+    title: "Quicklime"
+    from: LIME.out
+    to: M101.lime
+    template: bayer
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-007"}
+        temperature: {value: 298.15, provenance: assumed, source: "D-007"}
+        flow: {value: 6500.0, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: 52 kg CaO/t alumina (IAI 2019 LCI report), D-004"}
+        composition: {basis: mass_fraction, values: {CaO: 1.0000000}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S3
+    title: "Slaking water (condensate)"
+    from: T501.slk
+    to: M101.water
+    template: bayer
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "D-007"}
+        temperature: {value: 353.15, provenance: assumed, source: "D-007"}
+        flow: {value: 50754.4, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: milk of lime 15 wt% Ca(OH)2, D-004"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0000000}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S4
+    title: "Milk of lime"
+    from: M101.milk
+    to: G101.milk
+    template: bayer
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "D-007"}
+        temperature: {value: 353.15, provenance: assumed, source: "D-007"}
+        flow: {value: 57254.4, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: D-004"}
+        composition: {basis: mass_fraction, values: {H2O: 0.8500000, CaOH2: 0.1500000}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S5
+    title: "Caustic soda make-up (50 wt% NaOH)"
+    from: NAOH.out
+    to: M501.naoh
+    template: bayer
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "D-007"}
+        temperature: {value: 298.15, provenance: assumed, source: "D-007"}
+        flow: {value: 3870.0, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: replaces the sodium leaving with DSP, residue liquor and product, D-005"}
+        composition: {basis: mass_fraction, values: {NaOH: 0.5000000, H2O: 0.5000000}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S6
+    title: "Evaporated spent liquor"
+    from: E501.liq
+    to: M501.in
+    template: bayer
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-007"}
+        temperature: {value: 335.15, provenance: assumed, source: "D-007"}
+        flow: {value: 2006491.3, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: evaporated to C 250 g/L (Na2CO3), D-006"}
+        composition: {basis: mass_fraction, values: {H2O: 0.7945579, NaAlO2: 0.1177585, NaOH: 0.0876835}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S7
+    title: "Spent liquor with caustic make-up"
+    from: M501.out
+    to: E101.in
+    template: bayer
+    state:
+      design:
+        pressure: {value: 500, provenance: assumed, source: "D-007"}
+        temperature: {value: 335.15, provenance: assumed, source: "D-007"}
+        flow: {value: 2010361.3, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: D-006"}
+        composition: {basis: mass_fraction, values: {H2O: 0.7939909, NaAlO2: 0.1175318, NaOH: 0.0884772}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S8
+    title: "Heated spent liquor to the mill"
+    from: E101.out
+    to: G101.liq
+    template: bayer
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: "D-007"}
+        temperature: {value: 373.15, provenance: assumed, source: "scripts/bayer_balance.py: D-007"}
+        flow: {value: 2010361.3, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S7', fingerprint: 81076a0f83086deb}
+        composition: {basis: mass_fraction, values: {H2O: 0.7939909, NaAlO2: 0.1175318, NaOH: 0.0884772}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S7', fingerprint: 81076a0f83086deb}
+  - id: S9
+    title: "Mill discharge slurry"
+    from: G101.out
+    to: R101.in
+    template: bayer
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-007"}
+        temperature: {value: 373.15, provenance: assumed, source: "D-007"}
+        flow: {value: 2341784.9, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: D-004"}
+        composition: {basis: mass_fraction, values: {AlOH3: 0.0852390, AlOOH: 0.0013626, Kaol: 0.0011530, SiO2: 0.0002599, FeOOH: 0.0111628, Fe2O3: 0.0028087, TiO2: 0.0033834, H2O: 0.7141099, CaOH2: 0.0036674, NaAlO2: 0.1008980, NaOH: 0.0759554}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S10
+    title: "Desilicated slurry"
+    from: R101.out
+    to: E201.in
+    template: bayer
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-007"}
+        temperature: {value: 373.15, provenance: assumed, source: "D-007"}
+        flow: {value: 2341784.9, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: kaolinite to DSP, lime to TCA, D-004"}
+        composition: {basis: mass_fraction, values: {AlOH3: 0.0852390, AlOOH: 0.0013626, SiO2: 0.0002599, FeOOH: 0.0111628, Fe2O3: 0.0028087, TiO2: 0.0033834, H2O: 0.7131623, NaAlO2: 0.0981932, NaOH: 0.0767989, DSP: 0.0013879, TCA: 0.0062413}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S11
+    title: "Slurry preheated by flash vapour"
+    from: E201.out
+    to: E202.in
+    template: bayer
+    state:
+      design:
+        pressure: {value: 800, provenance: assumed, source: "D-007"}
+        temperature: {value: 397.4, provenance: assumed, source: "scripts/bayer_balance.py: 3 flash stages, 5 K approach, D-007"}
+        flow: {value: 2341784.9, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: slurry side of E201 unchanged (indirect heaters), D-007"}
+        composition: {basis: mass_fraction, values: {AlOH3: 0.0852390, AlOOH: 0.0013626, SiO2: 0.0002599, FeOOH: 0.0111628, Fe2O3: 0.0028087, TiO2: 0.0033834, H2O: 0.7131623, NaAlO2: 0.0981932, NaOH: 0.0767989, DSP: 0.0013879, TCA: 0.0062413}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S12
+    title: "Slurry heated to digestion"
+    from: E202.out
+    to: R201.in
+    template: bayer
+    state:
+      design:
+        pressure: {value: 700, provenance: assumed, source: "D-007"}
+        temperature: {value: 418.15, provenance: assumed, source: "scripts/bayer_balance.py: D-007"}
+        flow: {value: 2341784.9, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E202 from S11', fingerprint: 932f428a32db322e}
+        composition: {basis: mass_fraction, values: {AlOH3: 0.085239, AlOOH: 0.0013626, SiO2: 0.0002599, FeOOH: 0.0111628, Fe2O3: 0.0028087, TiO2: 0.0033834, H2O: 0.7131623, NaAlO2: 0.0981932, NaOH: 0.0767989, DSP: 0.0013879, TCA: 0.0062413}, provenance: calculated, source: 'cheme process propagate: pass-through E202 from S11', fingerprint: 932f428a32db322e}
+  - id: S13
+    title: "Digester blow-off (A/C 0.70)"
+    from: R201.out
+    to: F201.in
+    template: bayer
+    state:
+      design:
+        pressure: {value: 600, provenance: assumed, source: "D-007"}
+        temperature: {value: 418.15, provenance: assumed, source: "D-007"}
+        flow: {value: 2341784.9, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: 98 % of the gibbsite dissolved, D-004"}
+        composition: {basis: mass_fraction, values: {AlOH3: 0.0017048, AlOOH: 0.0013626, SiO2: 0.0002599, FeOOH: 0.0111628, Fe2O3: 0.0028087, TiO2: 0.0033834, H2O: 0.7517472, NaAlO2: 0.1859757, NaOH: 0.0339657, DSP: 0.0013879, TCA: 0.0062413}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S14
+    title: "Flash vapour"
+    from: F201.vap
+    to: E201.vap
+    template: bayer
+    state:
+      design:
+        pressure: {value: 200, provenance: assumed, source: "D-007"}
+        temperature: {value: 393.15, provenance: assumed, source: "D-007"}
+        flow: {value: 134474.4, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: flash from 418 K to 379 K, D-007"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0000000}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S15
+    title: "Flash vapour condensate"
+    from: E201.cond
+    to: T501.fc
+    template: bayer
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "D-007"}
+        temperature: {value: 373.15, provenance: assumed, source: "D-007"}
+        flow: {value: 134474.4, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: D-007"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0000000}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S16
+    title: "Flashed slurry"
+    from: F201.out
+    to: T301.in
+    template: bayer
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-007"}
+        temperature: {value: 379.15, provenance: assumed, source: "D-007"}
+        flow: {value: 2207310.5, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: D-004"}
+        composition: {basis: mass_fraction, values: {AlOH3: 0.0018086, AlOOH: 0.0014456, SiO2: 0.0002757, FeOOH: 0.0118428, Fe2O3: 0.0029798, TiO2: 0.0035895, H2O: 0.7366231, NaAlO2: 0.1973057, NaOH: 0.0360350, DSP: 0.0014725, TCA: 0.0066215}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S17
+    title: "Washer overflow (weak liquor) to the settler"
+    from: T302.ovf
+    to: T301.wash
+    template: bayer
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-007"}
+        temperature: {value: 368.15, provenance: assumed, source: "D-007"}
+        flow: {value: 210168.4, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: D-005"}
+        composition: {basis: mass_fraction, values: {H2O: 0.8550785, NaAlO2: 0.1225412, NaOH: 0.0223803}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S18
+    title: "Pregnant liquor (settler overflow, after security filtration)"
+    from: T301.ovf
+    to: E401.in
+    template: bayer
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-007"}
+        temperature: {value: 373.15, provenance: assumed, source: "D-007"}
+        flow: {value: 2218581.4, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: solids-free (ASSUMED), D-005"}
+        composition: {basis: mass_fraction, values: {H2O: 0.7679832, NaAlO2: 0.1961863, NaOH: 0.0358305}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S19
+    title: "Settler underflow mud"
+    from: T301.uf
+    to: T302.mud
+    template: bayer
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-007"}
+        temperature: {value: 373.15, provenance: assumed, source: "D-007"}
+        flow: {value: 198897.6, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: 2.0 kg liquor/kg solids, D-005"}
+        composition: {basis: mass_fraction, values: {AlOH3: 0.0200718, AlOOH: 0.0160429, SiO2: 0.0030602, FeOOH: 0.1314283, Fe2O3: 0.0330690, TiO2: 0.0398357, DSP: 0.0163414, TCA: 0.0734841, H2O: 0.5119888, NaAlO2: 0.1307909, NaOH: 0.0238870}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S20
+    title: "Washed mud"
+    from: T302.mud_out
+    to: F301.in
+    template: bayer
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-007"}
+        temperature: {value: 353.15, provenance: assumed, source: "D-007"}
+        flow: {value: 132598.4, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: 6 CCD stages, wash ratio 1.6, D-005"}
+        composition: {basis: mass_fraction, values: {AlOH3: 0.0301077, AlOOH: 0.0240643, SiO2: 0.0045903, FeOOH: 0.1971424, Fe2O3: 0.0496035, TiO2: 0.0597536, DSP: 0.0245120, TCA: 0.1102262, NaAlO2: 0.0045548, NaOH: 0.0008319, H2O: 0.4946134}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S21
+    title: "Residue filtrate"
+    from: F301.filtrate
+    to: T302.filtrate
+    template: bayer
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-007"}
+        temperature: {value: 353.15, provenance: assumed, source: "D-007"}
+        flow: {value: 37790.5, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: D-005"}
+        composition: {basis: mass_fraction, values: {NaAlO2: 0.0091096, NaOH: 0.0016637, H2O: 0.9892267}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S22
+    title: "Residue wash water (condensate)"
+    from: T501.wash
+    to: T302.water
+    template: bayer
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "D-007"}
+        temperature: {value: 353.15, provenance: assumed, source: "D-007"}
+        flow: {value: 106078.7, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: D-005"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0000000}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S23
+    title: "Bauxite residue filter cake (70 wt% solids)"
+    from: F301.cake
+    to: RES.in
+    template: bayer
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-007"}
+        temperature: {value: 343.15, provenance: assumed, source: "D-007"}
+        flow: {value: 94807.8, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: D-005"}
+        composition: {basis: mass_fraction, values: {AlOH3: 0.0421086, AlOOH: 0.0336564, SiO2: 0.0064200, FeOOH: 0.2757237, Fe2O3: 0.0693755, TiO2: 0.0835715, DSP: 0.0342826, TCA: 0.1541625, NaAlO2: 0.0027392, NaOH: 0.0005003, H2O: 0.2974598}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S24
+    title: "Cooled pregnant liquor"
+    from: E401.out
+    to: R401.in
+    template: bayer
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "D-007"}
+        temperature: {value: 351.15, provenance: assumed, source: "scripts/bayer_balance.py: D-006"}
+        flow: {value: 2218581.4, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E401 from S18', fingerprint: 6e924fd5c163237d}
+        composition: {basis: mass_fraction, values: {H2O: 0.7679832, NaAlO2: 0.1961863, NaOH: 0.0358305}, provenance: calculated, source: 'cheme process propagate: pass-through E401 from S18', fingerprint: 6e924fd5c163237d}
+  - id: S25
+    title: "Seed slurry recycle"
+    from: S401.seed
+    to: R401.seed
+    template: bayer
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "D-007"}
+        temperature: {value: 335.15, provenance: assumed, source: "D-007"}
+        flow: {value: 853300.5, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: 250 g/L seed charge, D-006"}
+        composition: {basis: mass_fraction, values: {AlOH3: 0.5000000, H2O: 0.3982714, NaAlO2: 0.0582193, NaOH: 0.0435094}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S26
+    title: "Precipitator discharge"
+    from: R401.out
+    to: S401.in
+    template: bayer
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-007"}
+        temperature: {value: 335.15, provenance: assumed, source: "D-007"}
+        flow: {value: 3071881.9, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: spent A/C 0.38, D-006"}
+        composition: {basis: mass_fraction, values: {H2O: 0.6368146, NaAlO2: 0.0930895, NaOH: 0.0695691, AlOH3: 0.2005268}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S27
+    title: "Product hydrate slurry"
+    from: S401.prod
+    to: F401.in
+    template: bayer
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "D-007"}
+        temperature: {value: 335.15, provenance: assumed, source: "D-007"}
+        flow: {value: 378688.8, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: D-006"}
+        composition: {basis: mass_fraction, values: {AlOH3: 0.5000000, H2O: 0.3982714, NaAlO2: 0.0582193, NaOH: 0.0435094}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S28
+    title: "Spent liquor (classifier overflow)"
+    from: S401.ovf
+    to: E501.feed
+    template: bayer
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "D-007"}
+        temperature: {value: 335.15, provenance: assumed, source: "D-007"}
+        flow: {value: 1839892.6, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: D-006"}
+        composition: {basis: mass_fraction, values: {H2O: 0.7965427, NaAlO2: 0.1164386, NaOH: 0.0870187}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S29
+    title: "Hydrate wash water (condensate)"
+    from: T501.hwash
+    to: F401.wash
+    template: bayer
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "D-007"}
+        temperature: {value: 353.15, provenance: assumed, source: "D-007"}
+        flow: {value: 47336.1, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: 0.25 kg/kg hydrate, D-006"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0000000}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S30
+    title: "Hydrate filtrate and washings"
+    from: F401.filtrate
+    to: E501.filt
+    template: bayer
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-007"}
+        temperature: {value: 335.15, provenance: assumed, source: "D-007"}
+        flow: {value: 219514.3, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: D-006"}
+        composition: {basis: mass_fraction, values: {H2O: 0.8274456, NaAlO2: 0.1004353, NaOH: 0.0721191}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S31
+    title: "Washed hydrate cake"
+    from: F401.cake
+    to: R601.in
+    template: bayer
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-007"}
+        temperature: {value: 335.15, provenance: assumed, source: "D-007"}
+        flow: {value: 206510.6, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: 8 wt% free water; occluded soda for 0.4 % Na2O, D-006"}
+        composition: {basis: mass_fraction, values: {AlOH3: 0.9168751, NaOH: 0.0031249, H2O: 0.0800000}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S32
+    title: "Evaporator condensate"
+    from: E501.cond
+    to: T501.ec
+    template: bayer
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-007"}
+        temperature: {value: 333.15, provenance: assumed, source: "D-007"}
+        flow: {value: 52915.6, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: D-006"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0000000}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S33
+    title: "Fresh water make-up"
+    from: PW.out
+    to: T501.pw
+    template: bayer
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "D-007"}
+        temperature: {value: 298.15, provenance: assumed, source: "D-007"}
+        flow: {value: 16779.2, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: closes the water balance of the condensate tank, D-005"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0000000}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S34
+    title: "Natural gas (as methane)"
+    from: NG.out
+    to: R601.fuel
+    template: bayer
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: "D-007"}
+        temperature: {value: 298.15, provenance: assumed, source: "D-007"}
+        flow: {value: 7000.0, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: 2.8 GJ/t alumina LHV (ICSOBA 2017 AA22 range), D-008"}
+        composition: {basis: mass_fraction, values: {CH4: 1.0000000}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S35
+    title: "Calciner combustion air"
+    from: AIR.out
+    to: R601.air
+    template: bayer
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-007"}
+        temperature: {value: 298.15, provenance: assumed, source: "D-007"}
+        flow: {value: 138771.3, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: air excess 1.15, D-008"}
+        composition: {basis: mass_fraction, values: {O2: 0.2314000, N2: 0.7686000}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S36
+    title: "Smelter-grade alumina"
+    from: R601.prod
+    to: ALU.in
+    template: bayer
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-007"}
+        temperature: {value: 353.15, provenance: assumed, source: "D-007"}
+        flow: {value: 125000.0, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: design basis 3000 t/d, D-002"}
+        composition: {basis: mass_fraction, values: {Al2O3: 0.9900000, Na2O: 0.0040000, H2O: 0.0060000}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  - id: S37
+    title: "Calciner flue gas to the stack (after ESP)"
+    from: R601.gas
+    to: STACK.in
+    template: bayer
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-007"}
+        temperature: {value: 423.15, provenance: assumed, source: "D-007"}
+        flow: {value: 227281.9, basis: mass, provenance: assumed, source: "scripts/bayer_balance.py: D-008"}
+        composition: {basis: mass_fraction, values: {H2O: 0.4278010, O2: 0.0184286, N2: 0.4692835, CO2: 0.0844868}, provenance: assumed, source: "scripts/bayer_balance.py"}
+  # Energy streams (duties from scripts/bayer_balance.py, D-007; ASSUMED)
+  - {id: Q1, title: "E-202 digestion heater (MP steam)", kind: energy, from: MPS.e202, to: E202.heat, state: {design: {duty: {value: 57752.9, provenance: assumed, source: "scripts/bayer_balance.py: slurry to 418 K plus dissolution heat, 3 % losses (D-007)"}}}}
+  - {id: Q2, title: "E-101 spent liquor heater (LP steam)", kind: energy, from: LPS.e101, to: E101.heat, state: {design: {duty: {value: 15877.5, provenance: assumed, source: "scripts/bayer_balance.py: mill feed to 373 K less the recovered heat Q8, Q9 (D-007)"}}}}
+  - {id: Q3, title: "E-501 evaporator (LP steam)", kind: energy, from: LPS.e501, to: E501.heat, state: {design: {duty: {value: 10328.3, provenance: assumed, source: "scripts/bayer_balance.py: economy 3.0 kg/kg (D-007)"}}}}
+  - {id: Q4, title: "E-501 surface condenser", kind: energy, from: E501.cw, to: CW.e501, state: {design: {duty: {value: 10328.3, provenance: assumed, source: "scripts/bayer_balance.py: equal to the steam heat (D-007)"}}}}
+  - {id: Q5, title: "E-401 liquor cooler, part to cooling water", kind: energy, from: E401.cw, to: CW.e401, state: {design: {duty: {value: 13625.8, provenance: assumed, source: "scripts/bayer_balance.py: 30 % of the 373 -> 351 K duty (D-007)"}}}}
+  - {id: Q6, title: "R-401 precipitator interstage coolers", kind: energy, from: R401.cw, to: CW.r401, state: {design: {duty: {value: 46922.3, provenance: assumed, source: "scripts/bayer_balance.py: 351 -> 335 K plus precipitation heat (D-007)"}}}}
+  - {id: Q7, title: "Electric power (lumped: mills, pumps, agitators, filters, fans)", kind: energy, from: POWER.aux, to: G101.power, state: {design: {duty: {value: 19000.0, provenance: assumed, source: "scripts/bayer_balance.py: 152 kWh/t (IAI 2019 LCI report Table 4) (D-007)"}}}}
+  - {id: Q8, title: "E-401 heat recovered into the spent liquor", kind: energy, from: E401.rec, to: E101.rec, state: {design: {duty: {value: 31793.5, provenance: assumed, source: "scripts/bayer_balance.py: 70 % of the E-401 duty (D-007)"}}}}
+  - {id: Q9, title: "Flash vapour heat beyond E-201, to the spent liquor heater", kind: energy, from: E201.surplus, to: E101.flash, state: {design: {duty: {value: 34600.9, provenance: assumed, source: "scripts/bayer_balance.py: flash heat not taken by the slurry (D-007)"}}}}
 layout: {bfd: {}, pfd: {}}
