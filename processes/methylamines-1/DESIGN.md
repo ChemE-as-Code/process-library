@@ -45,12 +45,12 @@ session; no text, table or figure is copied. Reuse: facts and numbers only, with
 | id | source | locator | read status | used for |
 |---|---|---|---|---|
 | SR-1 | Corbin, Schwarz, Sonnichsen (1997) Methylamines synthesis: a review. Catal. Today 37, 71-102, doi:10.1016/S0920-5861(97)00003-5 | abstract (bibliographic record) | abstract only; full text not read | route context: equilibrium favours TMA, demand is DMA (D-001) |
-| SR-2 | US 4,485,261 A, Process for producing methylamines | background (equilibrium at 400 C, N/C 2.0: MMA 0.288, DMA 0.279, TMA 0.433); section 3 (four- and three-column separation trains); comparative example 1 (silica-alumina, 400 C, 20 atm) | summary read | equilibrium check (D-005), separation sequence (D-008), N/C (D-004) |
+| SR-2 | US 4,485,261 A, Process for producing methylamines | background (equilibrium at 400 C, N/C 2.0: MMA 0.288, DMA 0.279, TMA 0.433, basis not stated); prior art (DMA 0.270, TMA 0.445 by weight, 400 C, 20 atm); section 3 (four- and three-column separation trains); comparative example 1 (silica-alumina, 400 C, 20 atm) | summary read | equilibrium check (D-005), separation sequence (D-008), N/C (D-004) |
 | SR-3 | US 4,283,254 A, Methylamines purification by distillation and purge | background (silica-alumina, 350-450 C, 200-350 psig; NH3 first by pressure distillation; reaction water purged); detailed description (higher-amine purge 0.1-5 % of a column feed) | summary read | converter window (D-004), by-product purge (cutoff) |
 | SR-4 | US 3,387,032 A, Process for the manufacture of methylamines | description (200-500 C broad, 350-450 C and 150-300 psig preferred); example 1 (silica gel with 10-15 wt% alumina); claims 3-5 (recycle of MMA, DMA, TMA with excess NH3) | summary read; example tables poorly legible (OCR) | catalyst (SIAL), window (D-004), recycle (D-007) |
 | SR-5 | US 7,435,855 B2, Process for the continuous synthesis of methylamines (zeolite) | description: 250-450 C, 5-50 bar, N/C 0.6-4.0, methanol conversion 85-99 %; examples 97.5-99.6 % conversion; coke regeneration by burn-off 350-650 C | summary read (first 100 k characters) | plausibility of conversion (D-005), N/C range (D-004), catalyst regeneration (LCI exclusions) |
-| SR-6 | US 7,309,403 B2, Method for avoiding corrosion | abstract/summary: NH3 by plain distillation in column 1, TMA by extractive distillation with water in column 2, MMA and DMA in the last columns; alkali hydroxide added | search summary only (not fetched) | separation sequence (D-008), caustic dosing (cutoff) |
-| SR-7 | US 2,206,584 A | summary: NH3 and TMA form a constant-boiling mixture; recycling NH3 carries TMA back to the reactor | search summary only | TMA recycle with NH3 (D-007) |
+| SR-6 | US 7,309,403 B2, Method for avoiding corrosion | abstract, detailed description and claim 1: column 1 NH3 overhead as an azeotrope with TMA, recycled; column 2 TMA overhead by extractive distillation with water fed above the feed; column 3 MMA + DMA overhead, water, methanol and by-products to the bottoms; column 4 MMA overhead, DMA bottoms; claims 2-3 optional column 5 methanol recovery from column 3 water; claims 1, 4-6 and summary: aqueous NaOH/KOH (about 25 %) preferably to the column 3 feed, amount only "enough to leave free alkali in the column 3 bottoms", against corrosion by CO2, carbamate and formic acid | description read 2026-10-28 (Google Patents text, after review #5) | separation sequence (D-008), caustic dosing (cutoff) |
+| SR-7 | US 2,206,584 A | background, first column, about printed lines 15-35 (OCR): NH3 and TMA form a constant-boiling mixture, so distilling off NH3 takes TMA with it; acceptable because that NH3 is returned to the reactor; no composition, pressure or temperature of the mixture given | description read 2026-10-28 (OCR text, legible in this passage; after review #5) | TMA recycle with NH3 (D-007) |
 | SR-8 | CN 1229328 C | summary: NH3, TMA (with water injection, high reflux), dewatering and MMA/DMA columns | search summary only | high reflux in C-102 (D-008) |
 | SR-9 | chemicals 1.5.2 / thermo 0.6.1 (ATcT formation enthalpies, CRC entropies, Poling heat capacities, vapour pressures, heats of vaporisation) | `cheme chemistry thermo`, `thermo.Chemical` | used in this session | materials.yaml, equilibrium, duties |
 
@@ -77,6 +77,8 @@ Reason: a mid-size single train; DMA-led slate because DMA is the main demand (S
 is a design choice made possible by the MMA and TMA recycles.
 Rejected: the equilibrium slate without recycle (about 33/30/37 wt% at 400 C, D-005).
 Assumptions: ASSUMED, not a market study or client figure. Products pure in the model (D-008).
+The "DMA is the main demand" reason rests on the abstract of SR-1 only (full text not read; review
+#5): unverified.
 
 ## D-003 Feeds (2026-10-28)
 Decision: liquid methanol at 300 kPa(a), 303 K; liquid anhydrous ammonia at 1500 kPa(a), 298 K;
@@ -103,8 +105,19 @@ Reason: amorphous silica-alumina gives a near-equilibrium distribution (SR-2, SR
 are invented.
 Check against the source: at 400 C and N/C 2.0 from methanol and ammonia only, the model gives
 mass fractions among the amines MMA 0.326, DMA 0.302, TMA 0.372 (mole 0.447/0.285/0.268) and a
-methanol conversion of 99.1 %; SR-2 reports 0.288/0.279/0.433 (by weight, as far as the summary
-shows). The model under-predicts TMA by about 6 points. Likely causes: the formation data of DMA
+methanol conversion of 99.1 %; SR-2 reports 0.288/0.279/0.433 as thermodynamically calculated
+equilibrium ratios at 400 C and N/C 2.0 (Background of the Invention, paragraph beginning "However,
+the final ratios of formation ..."; Google Patents text, no column/line numbers). Basis (checked
+after review 2026-10-28-pfd-lci-review#4, page re-read 2026-10-28): the patent does **not** state
+whether these are weight or mole fractions. The only explicit basis in the document is in its prior
+art paragraph: a conventional catalyst at 400 C, 20 atm, equal amounts of ammonia and methanol
+gives DMA 0.270 and TMA 0.445 "based on the total weight of the three amines", said to almost equal
+the equilibrium values. Since those weight-basis ratios lie close to 0.279/0.433, the benchmark is
+read as weight fractions: ASSUMED, an inference, not a statement of the source. On that reading the
+model under-predicts TMA by about 6 points; if the basis were molar, the model's mole fractions
+(TMA 0.268) would miss by about 16 points and the recycle flows and steam would be much further
+off. The benchmark therefore stays weak until a second open source with a stated basis is found
+(O-1). Likely causes: the formation data of DMA
 and TMA (ATcT vs other compilations differ by a few kJ/mol) and ideal-gas behaviour. Effect: the
 per-pass distribution and so the recycle flows and duties are uncertain by that much; the net
 feeds and products (stoichiometric) are not affected. To resolve: fit an approach or the formation
@@ -147,7 +160,8 @@ unconverted methanol returns from C-105.
 Reason: NH3 and TMA form a constant-boiling mixture and are recycled together (SR-7; SR-2 section 3,
 three-column train); the TMA product is then taken in the extractive column. Recycles in the design
 case: NH3 842.6, TMA 49.5, MMA 94.8, methanol 3.9 kmol/h; converter feed 34.5 t/h.
-Assumptions: the azeotrope composition at 1900 kPa(a) is not sourced (O-2): a distillate with 5.5
+Assumptions: the azeotrope composition at 1900 kPa(a) is not sourced (O-2; SR-7 and SR-6 confirm
+that the mixture exists and is recycled, neither gives its composition): a distillate with 5.5
 mol% TMA is assumed feasible.
 
 ## D-008 Separation train: five sharp-split columns (2026-10-28)
@@ -162,8 +176,11 @@ column's feed is hotter than its bottoms (C-102, C-105) a minimum boil-up of 0.1
 bottoms is assumed and the condenser takes the rest of the column energy balance.
 Rejected: MMA column before dehydration (first draft): the MMA/DMA split on the wet stream needs
 more boil-up.
-Assumptions: all ASSUMED; sharp splits, products pure; no caustic dosing (SR-6), no higher-amine
-purge (SR-3), no stage counts (O-3).
+Assumptions: all ASSUMED; sharp splits, products pure; no caustic dosing (SR-6 doses aqueous
+NaOH/KOH to the dehydration-column feed but gives no rate: kept a cut-off flow), no higher-amine
+purge (SR-3), no stage counts (O-3). After review #5 the sequence was checked against the read
+description of SR-6 (columns 1-5 match C-101..C-105); C-102's high reflux still rests on SR-8, a
+search summary only, and is unverified.
 
 ## D-009 Utilities (2026-10-28)
 Decision: MP steam 1500 kPa(a) (471 K) to E-101, C-101, C-103; LP steam 450 kPa(a) (421 K) to
