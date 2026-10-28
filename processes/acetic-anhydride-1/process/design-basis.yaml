@@ -1,0 +1,55 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Acetic anhydride by the ketene route (acetic acid cracking), issue
+# ChemE-as-Code/process-library#131. Acetic acid is a boundary feed (DESIGN.md D-003). Values
+# marked ASSUMED are engineering choices of this concept study, not client or licensor data;
+# every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: Acetic anhydride 99.5 wt% to storage
+  product_t_per_a: 50000              # ASSUMED (D-002): a mid-size single-train ketene plant, chosen, not a client figure
+  product_kg_per_h: 6250              # = 50 000 t/a / 8000 h/a
+  operating_hours_per_year: 8000      # ASSUMED (D-002); cracking furnaces need periodic decoking
+  turndown_percent: 60                # ASSUMED, not checked
+feeds:
+  - name: Glacial acetic acid (boundary feed)
+    source_of_values: ASSUMED (D-003)
+    composition: "taken as pure acetic acid (commercial glacial acid is about 99.8 wt% or better; water and propionic/formic acid traces not modelled)"
+    origin: "outside the boundary; usually methanol carbonylation, whose methanol is made by processes like methanol-1 (no library process for acetic acid yet)"
+    conditions: {pressure_kPa_a: 300, temperature_K: 303.15}
+    flow: set by the product rate through the balance (D-006); stream S1 of process/flowsheet.yaml
+  - name: Triethyl phosphate (cracking catalyst)
+    rate: "0.2 wt% of the cracker feed (D-005; US 8,653,303 B2 gives 0.1-0.5 wt%)"
+  - name: Ammonia (catalyst neutraliser)
+    rate: "2 mol per mol phosphorus of the catalyst, ASSUMED (D-005); ammonia-1 of this library makes ammonia"
+  - name: Natural gas (furnace fuel, with the absorber vent gas)
+    composition: taken as methane, ASSUMED (D-010)
+products:
+  - name: Acetic anhydride
+    purity: "99.5 wt% acetic anhydride, 0.5 wt% acetic acid (ASSUMED, D-002; a common commercial minimum is about 99 wt%: to be fixed against a customer specification)"
+    delivery: {pressure_kPa_a: 300, temperature_K: 313.15, battery_limit: storage (outside the boundary)}
+  - name: Distillation residue (heavy ends)
+    use: incineration outside the boundary (D-008)
+  - name: Wastewater (from dilute acid recovery)
+    use: biological wastewater treatment outside the boundary (D-009)
+  - name: Furnace flue gas
+    use: to atmosphere from the cracking furnace stack (D-010)
+utilities:
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: ASSUMED (D-011)}
+  - {name: Brine, supply_K: 263.15, use: last cracked-gas condensers to -5 C, note: "temperature from US 4,455,439 example; refrigeration plant outside the boundary (D-011)"}
+  - {name: LP steam, pressure_kPa_a: 450, saturation_K: 420.8, use: acid vaporiser and dilute acid recovery, note: ASSUMED level (D-011)}
+  - {name: MP steam, pressure_kPa_a: 1500, saturation_K: 471.4, use: anhydride distillation reboilers, note: ASSUMED level (D-011)}
+  - {name: Electric power, use: vent vacuum pump and absorber circulation pumps, note: ASSUMED electric drives (D-011)}
+  - {name: Fuel, use: cracking furnace firebox, note: natural gas plus the absorber vent gas (D-010)}
+site:
+  location: ASSUMED generic site, not chosen
+  design_ambient_K: 303.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325   # ASSUMED
+assumptions:
+  - "Cracking at 700 C and 36 kPa(a) at the coil outlet with triethyl phosphate, acetic acid conversion 0.84 per pass and 0.92 kmol ketene per kmol acid converted: the example of US 4,455,439 (D-005). A sourced conversion model, not kinetics."
+  - "ASSUMED split of the 8 % cracking loss: half acid decomposition to CH4 + CO2, half ketene decomposition to ethylene + CO (D-005)."
+  - "Cracked gas condensed to -5 C at 27 kPa(a), cooling water then -10 C brine (US 4,455,439 example); the ketene gas leaves dry (ASSUMED, D-006)."
+  - "ASSUMED absorber: 99 % of the ketene absorbed, 99 % of it to anhydride and 1 % to heavy ends; crude 88 wt% anhydride; vent acid vapour neglected (D-007)."
+  - "ASSUMED distillation: acid column distillate 98 wt% acid recycled to the absorbers, reflux ratio 3; anhydride column reflux ratio 1, residue 50 wt% anhydride (D-008)."
+  - "ASSUMED dilute acid recovery: 99 % of the acid recovered at 99.8 wt%, 3.0 MJ LP steam per kg water in the dilute acid (D-009)."
+  - "ASSUMED firebox: complete combustion, 15 % excess air, stack 443 K, 2 % radiation loss (D-010)."
+  - "All flows and duties are concept estimates from scripts/ac2o_balance.py; no property method for these mixtures is qualified by ChemE-as-Code (core #315); accuracy not stated."

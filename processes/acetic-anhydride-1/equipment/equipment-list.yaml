@@ -1,0 +1,46 @@
+# Equipment list. Schema: `cheme schema equipment`.
+# Concept stage: the items the PFD (process/flowsheet.yaml) needs, no P&ID yet (no sheet).
+# Design pressure and temperature are ASSUMED concept values (D-013): vacuum equipment full
+# vacuum / 3.5 barg, others the highest operating pressure + 10 % (at least + 2 bar); design
+# temperature + 25 K. Sizes, dimensions and weights come at basic engineering (datasheets).
+# Materials: acetic acid, ketene and anhydride service in stainless steel (316L) as the concept
+# default; the cracking coil in a nickel-free alloy (D-013). All ASSUMED.
+schema: cheme/equipment/v1
+equipment:
+  # ---- ketene generation (block CRK)
+  - {tag: V-101, type: Vessel, service: Cracker feed drum (fresh + recovered acid + catalyst),
+     design_pressure_barg: 3.5, design_temperature_degc: 55, material: SS316L,
+     notes: "300 kPa(a), 303 K, 4.86 t/h (S5). ASSUMED."}
+  - {tag: E-101, type: TubularHeatExchanger, service: Acetic acid vaporiser (LP steam),
+     design_pressure_barg: 3.5, design_temperature_degc: 175, material: SS316L,
+     notes: "Full vacuum; 303 -> 367 K at 45 kPa(a), 731 kW (Q1, scripts/ac2o_balance.py). ASSUMED."}
+  - {tag: F-101, type: Furnace, service: "Ketene cracking furnace (coil R101, firebox H101)",
+     design_pressure_barg: 3.5, design_temperature_degc: 750, material: "nickel-free high-temperature alloy coil (US 4,455,439: nickel promotes coke and forms carbonyls; grade an open input)",
+     notes: "Full vacuum; coil 367 -> 973 K, outlet 36 kPa(a), absorbed 4.54 MW (Q2); fired with natural gas and the absorber vent gas, 15 % excess air, stack 443 K (D-010). Decoking provisions at basic engineering. ASSUMED."}
+  - {tag: E-102, type: TubularHeatExchanger, service: "Cracked gas condenser train (cooling water, then -10 C brine)",
+     design_pressure_barg: 3.5, design_temperature_degc: 725, material: SS316L,
+     notes: "Full vacuum; 973 -> 268 K, 2.38 MW on cooling water and 0.31 MW on brine (Q3, Q4); a train of several exchangers with separators as in US 4,455,439, number not chosen. ASSUMED."}
+  - {tag: V-102, type: Vessel, service: Condensate separator (ketene gas / dilute acid),
+     design_pressure_barg: 3.5, design_temperature_degc: 25, material: SS316L,
+     notes: "Full vacuum; 27 kPa(a), 268 K; 1.96 t/h dilute acid (S12). ASSUMED."}
+  # ---- ketene absorption (block ABS)
+  - {tag: T-301, type: ProcessColumn, service: "Ketene absorbers (reactive absorption in circulating crude anhydride)",
+     design_pressure_barg: 3.5, design_temperature_degc: 70, material: SS316L,
+     notes: "Full vacuum; 25-27 kPa(a), 318 K; reaction heat to cooling water 1.49 MW (Q5); number of towers not chosen. ASSUMED."}
+  - {tag: P-301, type: CentrifugalPump, service: Absorber circulation pumps,
+     design_pressure_barg: 5, design_temperature_degc: 70, material: SS316L,
+     notes: "About 262 t/h (100 kg per kg ketene, US 8,653,303 B2), 300 kPa rise, 32 kW (Q6). ASSUMED."}
+  - {tag: K-301, type: CentrifugalCompressor, service: "Vent vacuum pump (liquid ring, acid seal fluid)",
+     design_pressure_barg: 3.5, design_temperature_degc: 85, material: SS316L,
+     notes: "25 -> 120 kPa(a), 303 kg/h vent gas (S15), 33 kW at isothermal efficiency 0.35 (Q7). A liquid-ring machine, listed under the nearest type. ASSUMED."}
+  # ---- distillation (block DST)
+  - {tag: C-201, type: ProcessColumn, service: "Acid column (acetic acid overhead to the absorbers)",
+     design_pressure_barg: 3.5, design_temperature_degc: 165, material: SS316L,
+     notes: "Atmospheric; feed 7.11 t/h crude (S16); reflux ratio 3; reboiler 0.69 MW MP steam (Q8). Stages not designed. ASSUMED."}
+  - {tag: C-202, type: ProcessColumn, service: "Anhydride column (product overhead, residue bottoms)",
+     design_pressure_barg: 3.5, design_temperature_degc: 200, material: SS316L,
+     notes: "Atmospheric; product 6.25 t/h (S19); reflux ratio 1; reboiler 1.37 MW MP steam (Q10). Vacuum operation an option at basic engineering. ASSUMED."}
+  # ---- dilute acid recovery (block ARU)
+  - {tag: C-401, type: ProcessColumn, service: "Dilute acid recovery (extraction + azeotropic dehydration, lumped)",
+     design_pressure_barg: 3.5, design_temperature_degc: 150, material: SS316L,
+     notes: "Stands for an extractor, an azeotropic dehydration column with an entrainer (e.g. butyl acetate) and a solvent stripper; 0.98 MW LP steam (Q12), ASSUMED specific duty (D-009)."}
