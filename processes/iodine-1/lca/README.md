@@ -1,5 +1,16 @@
 # LCA
 
+**iodine-1: preliminary gate-to-gate LCI** (DESIGN.md D-011). Functional unit 1 kg iodine
+flakes (99.8 wt% I2) at the gate; single product, no allocation. Every foreground exchange
+comes from the balanced flowsheet (`process/flowsheet.yaml`, case design); every background is
+left unmapped (`missing:` in `lca.yaml` names the activity to link), so `results.*` hold no
+footprint beyond the plant's own CO2 (0.325 kg/kg, from the brine alkalinity, ASSUMED), only
+the gap list (`gaps.csv`). Mass check against the flowsheet: in 466 939.4 kg/h (brine S1
+461 936.0, chlorine S2+S14 76.8, make-up air S10 3 612.0, SO2 S11 35.1, water S12 1 112.0,
+acid S18 25.3, caustic S22 142.2), out 466 939.4 kg/h (iodine S21 125.0, spent brine S24
+462 995.9, purge S7 3 818.5); `cheme assess lca --balance` closes mass and every element
+(iodine 138.58 kg/h in and out).
+
 The life cycle assessment of the plant's operation (ISO 14040/44), per functional unit.
 
 | file | what | written by |

@@ -1,0 +1,157 @@
+# Goal and scope of the iodine-1 LCA. Schema: `cheme schema lca`. Outputs: `cheme assess lca
+# --write` (lca/inventory.csv, results.*, gaps.csv, dataset.yaml, manifest.json); never edit
+# those by hand. DESIGN.md D-011.
+#
+# PRELIMINARY GATE-TO-GATE LCI. Every foreground exchange comes from the balanced flowsheet
+# (process/flowsheet.yaml, case design). The background datasets are deliberately left
+# UNMAPPED: each technosphere flow carries `missing:` with the background activity it should
+# connect to later. No factor, no value from a licensed database, and no zero stands in for
+# them; the result is therefore a gap list, not a footprint.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of iodine flakes (99.8 wt% I2) recovered from a
+  natural iodide brine (300 mg/kg iodine) by chlorine oxidation, air blowing-out, SO2
+  absorption and chlorine precipitation, at concept stage: the foreground exchanges per kg of
+  iodine at the plant gate, ready to be linked to background datasets (brine wellfield,
+  chlorine and caustic from chlor-alkali-1, sulfuric acid from sulfuric-acid-1, sulfur
+  dioxide, grid power, steam, cooling water, spent brine reinjection) in the next stage
+  (DESIGN.md D-011). Flows are concept estimates; backgrounds are unmapped gaps.
+functional_unit: {product: IODINE, amount: 1, unit: kg}
+boundary: gate-to-gate
+case: design
+location: GLO      # generic concept design, no site chosen (brine of the Oklahoma type)
+year: 2026
+technology: "iodine from natural iodide brine: acidification with recycled liquors, chlorine oxidation, air blowing-out in a closed air loop, absorption in HI/H2SO4 with SO2, chlorine precipitation, filtration, melting under sulfuric acid, flaking; spent brine neutralised with caustic and reinjected; 1000 t/a"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+flows:
+  # ---- inputs
+  - key: feed:BRINE
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Raw iodide brine (S1, 462 t/h, 300 mg/kg iodine as iodide, about 10 wt% NaCl) at the plant
+      battery limit: connect to the operation of a deep brine wellfield (production wells of
+      2000-4000 m with their lifting power, wellhead degassing and de-oiling, gathering lines),
+      per t of brine delivered, with the iodide, salt and water withdrawn from the formation as
+      resources of that activity. No such open dataset is known; a library utility or brine-field
+      process is the likely home.
+  - key: feed:CL2
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Dry chlorine gas at 400 kPa(a) (S2 + S14): connect to the library process chlor-alkali-1
+      (membrane cells, product CL2 of the same state) once its dataset is published in the
+      Atlas, or else to a market for chlorine, gaseous, from membrane-cell chlor-alkali
+      electrolysis (with its co-product allocation).
+  - key: feed:SO2
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Liquid sulfur dioxide (S11): connect to sulfur dioxide, liquid, production by burning
+      elemental sulfur with air and liquefying the gas (or recovery from a smelter off-gas), at
+      plant. The chemicals registry has no sulfur dioxide slug yet; the sulfur furnace of
+      sulfuric-acid-1 is the nearest library process.
+  - key: feed:H2SO4
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Sulfuric acid 98.5 wt% (S18) for the iodine melter: connect to the library process
+      sulfuric-acid-1 (sulfur burning, double contact, product ACID 98.5 wt%) once its dataset
+      is published, or else to a market for sulfuric acid.
+  - key: feed:NAOH
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Caustic soda 50 wt% (S22) for the spent brine neutralisation: connect to the library
+      process chlor-alkali-1 (product NAOH 50 wt%), or else to a market for sodium hydroxide,
+      without water, in 50 % solution state.
+  - key: feed:PW
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Process water (S12, absorber make-up): connect to a market for water, deionised or
+      decarbonised, per kg (the HI liquor tolerates softened water; quality open).
+  - key: feed:AIR
+    free: true
+    source: "ambient make-up air for the blowing-out loop (S10): a resource taken from nature without burden"
+  - key: feed:POWER
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Electricity for the circulation fan K-201, the reinjection pump P-401, the absorbent pump
+      P-202 and the recovery drives (Q1-Q4): connect to a market for electricity, medium
+      voltage, of the site's country.
+  - key: feed:LPS
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      LP steam 450 kPa(a) to the iodine melter (Q5, heat delivered): connect to heat from steam
+      in the chemical industry, or to the library process utility-steam-ng-boiler (natural gas
+      boiler) per kWh of steam heat.
+  # ---- outputs
+  - key: product:CW
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Heat rejected to the site cooling water system by the flaker X-301 (Q6, 298/308 K): connect
+      to cooling water supply / heat rejection in an evaporative cooling tower, or the library
+      process utility-cooling-tower, per kWh of heat removed.
+  - key: product:SPENT
+    treatment:
+      kind: waste
+      route: reinjection of the neutralised spent brine into the producing formation (deep injection wells)
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Neutralised spent brine (S24, 463 t/h at 3100 kPa(a): about 10 wt% NaCl, 0.025 wt%
+      Na2SO4, about 30 mg/kg iodine as I2/iodide): returned to the formation it came from
+      (Oklahoma Geological Survey). Connect to the operation of brine injection wells (the
+      injection pump is in the foreground, P-401); the salts and residual iodine go back
+      underground, not to surface water. If a site discharges instead, its salts become
+      emissions to water and need their own exchanges.
+  - key: product:VENT
+    emission: true
+    source: >-
+      Purge of the closed blowing-out air loop (S7, 3.8 t/h) to atmosphere after the absorber:
+      air, water vapour evaporated from the brine, the CO2 released by acidifying the brine's
+      alkalinity, and the iodine the absorber does not take up.
+  - {key: emission:N2, free: true, source: "atmospheric N2 of the make-up air, returned unchanged"}
+  - {key: emission:O2, free: true, source: "atmospheric O2 of the make-up air, returned unchanged"}
+  - key: emission:H2O
+    free: true
+    source: >-
+      Water vapour evaporated from the brine into the purge (saturated loop gas, 1.3 kg/kg): no
+      effect in the categories assessed; the water withdrawn with the brine belongs to the
+      wellfield background (feed:BRINE), so it is not a resource of this foreground.
+  - key: emission:CO2
+    elementary: {compartment: air, origin: fossil}
+    source: >-
+      CO2 released from the brine's bicarbonate alkalinity on acidification (ALK) and stripped
+      in T-201: geogenic carbon of the formation water, counted as fossil (D-011). The
+      alkalinity is ASSUMED (D-003), so this emission is too.
+  - key: emission:I2
+    elementary: {compartment: air}
+    source: "iodine vapour not absorbed in T-202 and carried out with the purge (0.5 % slip, D-005), ASSUMED"
+emission_exclusions:
+  - id: fugitive-leaks
+    method: equipment-leaks
+    reason: >-
+      Not estimated in this preliminary LCI: leaks of chlorine, SO2, iodine and HCl need the
+      component count of the P&IDs (out of scope of this run). Open gap for basic engineering,
+      not negligible by evidence.
+  - id: melter-vent
+    method: non-routine
+    equipment: [M-301]
+    reason: >-
+      The melter at about 393 K may release HCl and iodine vapour from the cake liquor; the
+      balance sends them to the spent acid (D-006). Its vent and scrubber are not designed at
+      concept stage. Open gap.
+  - id: storage-and-unloading
+    method: storage-tank
+    reason: >-
+      Chlorine, SO2 and acid storage and unloading are outside the designed steps; their vents
+      (to a caustic scrubber in practice) are not estimated. Open gap.
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 25 a service life ASSUMED"
+dataset:
+  version: 0.1.0
+  geography: {description: "One generic concept design for an Oklahoma-type iodide brine; no site chosen, no country-specific data"}
+  classification: {isic: "2011"}
+  system_model: cutoff
+  technology_level: current
+  modelling: {principle: attributional}
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library, iodine-1 concept design (agent-drafted, not reviewed)"
