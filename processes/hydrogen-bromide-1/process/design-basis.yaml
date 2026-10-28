@@ -1,8 +1,50 @@
 # What the plant must do. Schema: `cheme schema design_basis`.
+# Hydrogen bromide synthesis (bromine vapour burnt in hydrogen, catalytic finishing) and
+# absorption to 48 wt-% hydrobromic acid, issue ChemE-as-Code/process-library#130. Values marked
+# ASSUMED are engineering choices of this concept study, not client, licensor or vendor data;
+# sourced values cite their document with the location. Every decision is in DESIGN.md.
 schema: cheme/design_basis/v1
-capacity: {}
-feeds: []
-products: []
-utilities: []
-site: {}
-assumptions: []
+capacity:
+  basis: "HBr (100 %) contained in 48 wt-% hydrobromic acid at the battery limit (D-001, D-002)"
+  hbr_100pct_kg_per_h: 1000           # ASSUMED (D-002): one burner line, 2.5 x the 400 kg/h example of US 6 036 936 A
+  acid_kg_per_h: 2083.33              # = 1 000 / 0.48
+  hbr_100pct_t_per_year: 8000         # = 1 000 kg/h x 8000 h
+  operating_hours_per_year: 8000      # ASSUMED
+  turndown_percent: 15                # US 3 988 427 A Example: stable flame from 15 to about 120 % of design; not checked for the absorber
+  hydrogen_excess_mol_percent: 5      # ASSUMED (D-004) inside H2/Br2 1.0-1.4 mol/mol of US 6 036 936 A (Summary, claim 6)
+feeds:
+  - name: Bromine
+    terminal: BR2
+    source_of_values: "ASSUMED pure liquid bromine from storage at 298.15 K, 400 kPa(a) (D-003); made by bromine-1 (planned library process, not in the library yet)"
+    composition_wt_percent: {Br2: 100.0}
+    note: "Commercial bromine carries chlorine (< 0.05 %) and water (< 0.01 %) (US 6 036 936 A, Example); the chlorine would leave as HCl in the acid. Not modelled (D-003)."
+  - name: Hydrogen
+    terminal: H2
+    source_of_values: "hydrogen-1 product S17 (processes/hydrogen-1, process/flowsheet.yaml); ASSUMED there"
+    composition_mol_percent: {H2: 99.9, N2: 0.1}
+    conditions: {pressure_kPa_a: 2850, temperature_K: 313.15}
+    note: "A boundary feed made by hydrogen-1 (13.3 kg/h of its 9 110 kg/h); not integrated (D-003). An electrolytic or chlor-alkali hydrogen would do as well."
+  - name: Demineralised water
+    terminal: DMW
+    source_of_values: ASSUMED pure water at 298.15 K, 300 kPa(a) (D-008)
+products:
+  - name: Hydrobromic acid 48 wt-%
+    terminal: HBRACID
+    purity: "48.0 wt-% HBr, just above the 47.6 wt-% constant-boiling azeotrope (Wikipedia 'Hydrobromic acid'); free bromine below 50 mg/kg HBr (US 6 036 936 A, Example) after the finishing bed, not modelled (D-005)"
+    delivery: {pressure_kPa_a: 300, temperature_K: 313.15, battery_limit: storage tanks}
+  - name: Vent
+    terminal: VENT
+    items: "excess hydrogen and the nitrogen of the hydrogen feed, water-saturated at 30 degC, with 5 mg/Nm3 HBr (ASSUMED, D-008), to atmosphere at a safe location"
+utilities:
+  - {name: LP steam, pressure_kPa_a: 450, use: "bromine vaporiser E-101", note: "D-007, ASSUMED level; condensate returned"}
+  - {name: Electric power, use: "product acid pump, burner management, instruments and analysers", note: "D-011, ASSUMED"}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "burner chamber R-101, gas cooler E-102, absorber C-201", note: "ASSUMED (D-010)"}
+site:
+  location: ASSUMED generic site, not chosen
+  design_ambient_K: 303.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325   # ASSUMED
+assumptions:
+  - "D-001 boundary: liquid bromine and hydrogen gas at the fence to 48 wt-% acid in storage and the vent; no anhydrous HBr product, no acid storage or loading, no utility generation"
+  - "D-005 R101 converts 99.97 % of the Br2 (sourced flame-reactor result), R102 the rest (equilibrium limit); no kinetics"
+  - "D-006 the balance is a specified-split model (scripts/balance.py); the acid enthalpy rests on an ASSUMED heat of solution (core#364)"
+  - "Construction, transport and end of life are outside the preliminary LCI (D-012)"
