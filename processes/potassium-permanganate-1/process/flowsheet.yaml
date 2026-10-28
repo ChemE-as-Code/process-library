@@ -56,7 +56,7 @@ feeds:
     ports:
       - {id: m301, direction: out, kind: energy}
       - {id: e601, direction: out, kind: energy}
-      - {id: d501, direction: out, kind: energy}
+      - {id: dr501, direction: out, kind: energy}
   - id: POWER
     title: Electric power (AC, grid)
     category: utility
@@ -227,7 +227,7 @@ steps:
       - {id: cake, direction: out}
       - {id: ml, direction: out, delegates: ml}
       - {id: power, direction: in, kind: energy, delegates: power}
-  - id: D501
+  - id: DR501
     block: CRY
     title: Steam-heated product dryer
     class: Drying
@@ -452,7 +452,7 @@ streams:
   - id: S18
     title: Wet KMnO4 crystals
     from: C501.cake
-    to: D501.in
+    to: DR501.in
     template: kmno4
     state:
       design:
@@ -473,7 +473,7 @@ streams:
         composition: {basis: mass_fraction, values: {KOH: 0.13, K2MnO4: 0.006257, KMnO4: 0.015, H2O: 0.848743}, provenance: assumed, source: "scripts/kmno4_balance.py"}
   - id: S20
     title: Potassium permanganate product
-    from: D501.prod
+    from: DR501.prod
     to: KMNO4.in
     template: kmno4
     state:
@@ -484,7 +484,7 @@ streams:
         composition: {basis: mass_fraction, values: {KOH: 0.008202, K2MnO4: 0.000395, KMnO4: 0.989403, H2O: 0.002}, provenance: assumed, source: "scripts/kmno4_balance.py (D-007)"}
   - id: S21
     title: Dryer exhaust vapour
-    from: D501.vap
+    from: DR501.vap
     to: DRYV.in
     template: gas
     state:
@@ -525,6 +525,6 @@ streams:
   - {id: Q7, title: M-301 leach heating, kind: energy, from: LPS.m301, to: M301.steam, state: {design: {duty: {value: 681.8, provenance: assumed, source: "scripts/kmno4_balance.py: mixture to 333 K with the KOH dissolution heat (D-009)"}}}}
   - {id: Q8, title: E-601 evaporator steam, kind: energy, from: LPS.e601, to: E601.steam, state: {design: {duty: {value: 1399.5, provenance: assumed, source: "scripts/kmno4_balance.py: 2400 kJ/kg vapour, economy 1.8 (D-009)"}}}}
   - {id: Q9, title: E-601 last-effect condenser, kind: energy, from: E601.cw, to: CW.e601, state: {design: {duty: {value: 1399.5, provenance: assumed, source: "scripts/kmno4_balance.py: equal to the steam heat (D-009)"}}}}
-  - {id: Q10, title: DR-501 dryer steam, kind: energy, from: LPS.d501, to: D501.steam, state: {design: {duty: {value: 71.6, provenance: assumed, source: "scripts/kmno4_balance.py: 2600 kJ/kg water, efficiency 0.65 (D-009)"}}}}
+  - {id: Q10, title: DR-501 dryer steam, kind: energy, from: LPS.dr501, to: DR501.steam, state: {design: {duty: {value: 71.6, provenance: assumed, source: "scripts/kmno4_balance.py: 2600 kJ/kg water, efficiency 0.65 (D-009)"}}}}
   - {id: Q11, title: "Auxiliary power (mills, blowers, pumps, agitators, centrifuges, conveyors; lumped)", kind: energy, from: POWER.aux, to: C501.power, state: {design: {duty: {value: 187.5, provenance: assumed, source: "150 kWh/t product ASSUMED (D-009)"}}}}
 layout: {bfd: {}, pfd: {}}

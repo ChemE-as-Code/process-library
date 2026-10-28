@@ -275,10 +275,10 @@ def main():
         ("S15", "h2", "Cathode hydrogen to vent", "EL401.h2", "H2V.in", 101.325, 333.15, "D-006, dry basis"),
         ("S16", "o2", "Anode oxygen to vent", "EL401.o2", "O2V.in", 101.325, 333.15, "D-006, dry basis"),
         ("S17", "cell", "Crystalliser slurry", "X501.out", "C501.in", 200, 303.15, "D-007"),
-        ("S18", "wet", "Wet KMnO4 crystals", "C501.cake", "D501.in", 101.325, 303.15, "6 wt% liquid (D-007)"),
+        ("S18", "wet", "Wet KMnO4 crystals", "C501.cake", "DR501.in", 101.325, 303.15, "6 wt% liquid (D-007)"),
         ("S19", "ml", "Mother liquor", "C501.ml", "S601.in", 200, 303.15, "1.5 wt% KMnO4, 13 wt% KOH (D-007)"),
-        ("S20", "prod", "Potassium permanganate product", "D501.prod", "KMNO4.in", 101.325, 353.15, "design basis 1250 kg/h (D-002)"),
-        ("S21", "vap", "Dryer exhaust vapour", "D501.vap", "DRYV.in", 101.325, 383.15, "D-007"),
+        ("S20", "prod", "Potassium permanganate product", "DR501.prod", "KMNO4.in", 101.325, 353.15, "design basis 1250 kg/h (D-002)"),
+        ("S21", "vap", "Dryer exhaust vapour", "DR501.vap", "DRYV.in", 101.325, 383.15, "D-007"),
         ("S22", "ml_ev", "Mother liquor to the KOH evaporator", "S601.evap", "E601.in", 300, 303.15, "D-008"),
         ("S23", "purge", "Mother-liquor purge to effluent treatment", "S601.purge", "PURGE.in", 300, 303.15, "3 % of the mother liquor (D-008)"),
     ]
