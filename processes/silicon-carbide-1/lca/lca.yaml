@@ -1,0 +1,122 @@
+# Goal and scope of the silicon-carbide-1 LCA. Schema: `cheme schema lca`. Outputs: `cheme
+# assess lca --write` (lca/inventory.csv, results.csv, results.md, gaps.csv, dataset.yaml,
+# manifest.json); never edit those by hand. Decisions: DESIGN.md D-010.
+#
+# This stage delivers the PRELIMINARY GATE-TO-GATE FOREGROUND INVENTORY: every exchange of the
+# balanced flowsheet per kg of crushed crude SiC. No background is connected yet: each feed,
+# utility and waste names the background activity it should link to later and is declared
+# `missing:` (a gap in every category, never 0). `boundary: cradle-to-gate` is the scope the
+# backgrounds will complete; `gate-to-gate` in cheme maps every feed free, which would hide the
+# raw materials and utilities (as in soda-ash-1, D-010).
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary foreground (gate-to-gate) life cycle inventory of crude crystalline silicon
+  carbide by the Acheson process at the concept stage: which raw materials, electricity,
+  emissions and wastes the balanced flowsheet implies per kg of product, ready to be linked to
+  background datasets later. Flows are concept estimates on assumed yields and a
+  specific-energy furnace basis (DESIGN.md D-004, D-006).
+functional_unit: {product: SIC, amount: 1, unit: kg}
+boundary: cradle-to-gate
+year: 2026
+location: GLO   # generic site, country not chosen (D-002)
+technology: "Acheson batch resistance furnaces (silica sand and green petroleum coke, graphite core), gas burn-off over the charge, ingot cooling, breaking and sorting with recycle of the unreacted mix, crushing and screening; 5000 kg/h crude SiC"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+allocation:
+  method: mass
+  coproducts: [SIC, MET]
+  source: >-
+    D-010: crude crystalline SiC and metallurgical-grade SiC come from the same furnace batch and
+    are both sold; mass allocation (0.80 / 0.20) is the default at the concept stage because both
+    are mostly SiC (98 and 88 wt%) and no prices are recorded. Economic allocation (crude
+    crystalline SiC is the more valuable grade) is the open alternative; the purged mix is a
+    waste, the flue gas an emission.
+flows:
+  # ---- raw materials (backgrounds to connect later)
+  - key: feed:SAND
+    missing: "no background linked yet. Connect: silica sand (quartz sand, >98 % SiO2), washed and screened, from a sand pit or quarry (market for silica sand), per kg as delivered (1 % moisture)"
+    source: "stream S1 (scripts/sic_balance.py, D-005, D-006)"
+  - key: feed:COKE
+    missing: "no background linked yet. Connect: petroleum coke (green, from delayed coking in a refinery), market for petroleum coke, per kg as charged (85.5 % fixed C, 8 % volatiles, 1.5 % S, D-005)"
+    source: "stream S2 (D-005, D-006)"
+  - key: feed:AIR
+    free: true
+    source: "air drawn over the furnace for the gas burn-off: ambient air, a resource taken without burden"
+  # ---- utilities
+  - key: feed:POWER
+    missing: "no background linked yet. Connect: grid electricity, high voltage (furnace transformers are fed at transmission or high distribution voltage), of the site's country (site not chosen, D-002), per kWh"
+    source: "Q1 furnace (7.5 kWh/kg crude SiC, D-004) + Q3 auxiliaries + Q4 crushing (D-008)"
+  - key: product:AMB
+    free: true
+    source: "Q5: heat of the cooling ingot released to the open air by natural convection and radiation: no fans, no utility system, no burden"
+  - key: product:CW
+    missing: "no background linked yet. Connect: cooling water from a circulating evaporative cooling tower (pumping, fans, make-up water and treatment chemicals), per kWh of heat rejected"
+    source: "Q2: transformer and bus-bar losses (D-008)"
+  # ---- wastes and emissions
+  - key: product:WASTE
+    treatment:
+      kind: waste
+      route: "landfill for inert industrial waste (silica, carbon, SiC and oxide impurities)"
+    missing: "no background linked yet. Connect: treatment of inert mineral waste, sanitary or inert-material landfill, per kg; the purged mix holds about 35 wt% carbon (stream S11), so check whether the landfill dataset accounts for its slow oxidation"
+    source: "stream S11: 5 % of the sorted unreacted mix (D-006)"
+  - key: product:VENT
+    emission: true
+    source: "stream S7: furnace flue gas after the burn-off, to atmosphere without abatement (D-006)"
+  - key: product:DUST
+    emission: true
+    source: "stream S13: crushing dust after the bag filter (D-006)"
+  - key: emission:CO2
+    elementary: {compartment: air, origin: fossil}
+    source: "CO and volatiles of the petroleum coke burnt over the charge: fossil carbon (D-006)"
+  - key: emission:CO
+    elementary: {compartment: air, origin: fossil}
+    source: "CO not burnt at the charge surface, 30 % ASSUMED (D-006)"
+  - key: emission:CH4
+    elementary: {compartment: air, origin: fossil}
+    source: "coke volatiles not burnt; IPCC 2006 Tier 1 default 11.6 kg/t SiC (D-006)"
+  - key: emission:SO2
+    elementary: {compartment: air}
+    source: "all coke sulfur (1.5 wt% ASSUMED) burnt to SO2 (D-006)"
+  - key: emission:SiO2
+    elementary: {compartment: air}
+    source: "amorphous silica fume from escaping SiO, particulate matter (D-006)"
+  - key: emission:SiC
+    elementary: {compartment: air}
+    source: "SiC dust after the crusher bag filter, particulate matter (D-006)"
+  - {key: emission:N2, free: true, source: "nitrogen of the air returned to the atmosphere"}
+  - {key: emission:O2, free: true, source: "excess oxygen of the air returned to the atmosphere"}
+  - {key: emission:H2O, free: true, source: "water vapour: feed moisture and combustion water"}
+
+# What the burn-off estimate leaves out: declared, never silently 0 (D-010).
+emission_exclusions:
+  - id: furnace-pollutants
+    method: combustion
+    equipment: [R-101, B-101]
+    exchange: product:VENT
+    reason: "The furnace gas of R-101 is carried by the flowsheet (S5) and burnt in B-101 (S7), so CO2, CO, CH4, SO2 and silica fume are estimated; NOx, H2S and COS (part of the coke sulfur leaves unburnt), PAH and other volatile organics from the green coke, and metals in the dust are not estimated at the concept stage; open item (D-010)"
+    source: "DESIGN.md D-010"
+
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 25 a service life ASSUMED; no construction inventory at this stage (no take-off)"
+
+uncertainty:
+  iterations: 1000
+  seed: 1
+  defaults:
+    assumed: {gsd2: 1.5, source: "concept estimate on assumed yields and grades (D-006)"}
+    calculated: {gsd2: 1.2, source: "calculated from assumed inputs"}
+    given: {gsd2: 1.1, source: "design basis"}
+
+dataset:
+  version: 0.1.0
+  geography: {description: "Generic site, country not chosen (D-002); no regional background linked"}
+  system_model: cutoff
+  technology_level: current
+  # ISIC Rev.4 2011 (basic chemicals: carbides are inorganic chemicals, family inorganic-chemicals);
+  # the CPC Ver. 2.1 subclass is not set: to be looked up, not guessed (D-010)
+  classification: {isic: "2011"}
+  modelling: {principle: attributional}
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library, silicon-carbide-1 concept design (agent run 2026-10-28)"

@@ -1,36 +1,74 @@
-# Process Atlas manifest. Copy this folder to processes/<your-id>/ and edit.
-# Schema: schemas/process.schema.json (cheme-as-code/process/v1). Every slug used under
-# chemistry must exist in chemicals/chemicals.yaml; add new chemicals there in the same change.
-# A product in a defined state and purity names its registry grade: `chemical: oxygen/lox`.
+# Process Atlas manifest of silicon-carbide-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here.
 schema: cheme-as-code/process/v1
-id: my-process                  # = folder name; lowercase slug; never rename once listed
-title: Short descriptive process title
+id: silicon-carbide-1
+title: Silicon carbide by the Acheson process (5000 kg/h crude SiC, concept)
 summary: >-
-  One or two sentences for cards and search results: what goes in, what comes out, at what scale.
-# description: |                # optional longer Markdown for the process page
-families: [hydrogen]            # slugs of taxonomy/families.yaml (ISIC-mapped), e.g. ammonia, methanol, air-separation
-keywords: []
-# facets:                      # optional, for filtering in the Atlas; list only what the design has
-#   feedstock_basis: [water, electricity]   # fossil | biogenic | atmospheric | mineral | recycled | water | electricity
-#   product_classes: [fuels]               # slugs, e.g. industrial-gases, fuels, fertilizers, polymers, chemicals, materials
-#   unit_operations: [electrolysis]        # slugs, e.g. cryogenic-distillation, adsorption, compression, reaction, electrolysis
-#   region: generic                        # e.g. generic, EU
-# Design maturity (claimed, capped by evidence: the calculation maturity in checks/maturity.json
-# of an engineering project; at most concept beside a Tier 0/1 LCI dataset):
-maturity: concept               # concept | screening | basic-engineering | detail-engineering | operating-reference
-validation:                     # review status: set by people only; passing checks is not a review
-  status: unreviewed            # unreviewed | internally-reviewed | peer-reviewed | industry-validated
+  Crude crystalline silicon carbide from silica sand and petroleum coke in batch Acheson
+  resistance furnaces: gas burn-off over the charge, ingot cooling, breaking and sorting with
+  recycle of the unreacted mix, crushing. Electricity per kg, CO and SO2 explicit. Concept
+  stage, assumed basis.
+description: |
+  Silica sand and green petroleum coke are mixed with the unreacted mix of earlier runs and
+  piled around a graphite core in batch Acheson furnaces. Electric resistance heating drives
+  SiO2 + 3 C -> SiC + 2 CO; the CO, the coke volatiles, the sulfur and escaping SiO burn partly
+  with air over the charge and leave through the hood stack. After cooling, the ingot is broken
+  and sorted into crude crystalline SiC, a metallurgical-grade fraction and unreacted mix, which
+  is recycled with a small purge; the crude SiC is crushed and screened.
+
+  All values are concept estimates from an independent sequential balance with assumed yields,
+  grades and splits, cross-checked against the IPCC/EPA emission factors for silicon carbide.
+  The furnace electricity is a labelled specific-energy basis (7.5 kWh/kg crude SiC, inside
+  the published range for European plants), because cheme process furnace does not cover
+  carbothermal SiC. See DESIGN.md for every assumption and gated step.
+families: [inorganic-chemicals]
+keywords: [silicon carbide, SiC, Acheson process, carborundum, carbothermal reduction, electric resistance furnace, petroleum coke, silica sand, abrasives, refractories, metallurgical SiC]
+facets:
+  feedstock_basis: [mineral, fossil, electricity]
+  product_classes: [materials, chemicals]
+  unit_operations: [reaction, comminution, separation]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest; every design parameter is assumed.
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept BFD/PFD with closed mass, component and element balances (cheme validate, cheme
+    process streams: 4 blocks, 7 steps, reactive balances by extents). All flows and
+    compositions are specified values of an independent balance (scripts/sic_balance.py) on
+    assumed yields, grades and splits; no furnace heat transfer, kinetics or SiO/CO gas-solid
+    model is calculated. cheme process furnace supports limestone calcination only (core #387)
+    and refuses carbothermal SiC, so the furnace electricity is a labelled specific-energy
+    basis; no property package covers the solids or the hot furnace gas, so energy closure is
+    a lumped script estimate. The gate-to-gate LCI is preliminary, with every background
+    unmapped. Not reviewed.
 chemistry:
   inputs:
-    - {chemical: water, role: feedstock}
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Air drawn over the furnace for the gas burn-off. Silica sand and petroleum coke have no registry entries yet"}
   outputs:
-    - {chemical: hydrogen, role: main-product}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:VENT", note: "Burnt furnace gas (fossil carbon of the coke), about 2.1 kg/kg crude SiC unallocated; with CO, CH4, SO2 and silica fume. The main product (silicon carbide) has no registry entry yet"}
   utilities:
-    - {chemical: electricity, role: utility}
-# basis: {capacity: "1000 t/d product", operating_hours_per_year: 8000}
-# lca: {source: auto}           # auto: read lca/ of a ChemE-as-Code project; none: no LCA
-# references:
-#   - {title: "Author et al. (2024) Title", doi: 10.xxxx/xxxxx}
-# maintainers:
-#   - {name: Your Name, orcid: 0000-0000-0000-0000}
-# repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/my-process, access: private}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Furnace transformers 7.5 kWh/kg crude SiC plus auxiliaries and crushing"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "Transformer and bus-bar cooling, 25/35 C (ASSUMED)"}
+basis:
+  capacity: "5000 kg/h crushed crude crystalline SiC, 40 kt/a (ASSUMED normalisation basis)"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
+lca: {source: auto}
+references:
+  - {title: "Lima, T. C. F.; Tenorio, J. A. S. (2011) Utilizacao de materia-prima aglomerada na producao de carbureto de silicio em escala-piloto. Rem: Revista Escola de Minas 64(3), 341-345 (pilot Acheson furnace; European specific energy range quoted from Mehrwald 1992)", url: "http://www.redalyc.org/articulo.oa?id=56419948013"}
+  - {title: "U.S. EPA (2009) Technical Support Document for the Silicon Carbide Production Sector: Proposed Rule for Mandatory Reporting of Greenhouse Gases (carbon retained in SiC; IPCC 2006 Tier 1 factors, Table 4)", url: "https://19january2021snapshot.epa.gov/sites/static/files/2015-03/documents/subpartbb-tsd-siliconcarbide.pdf"}
+  - {title: "IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Vol. 3 Industrial Processes and Product Use, ch. 3.6 Carbide production (default factors; read through EPA 2009, chapter not audited)"}
+  - {title: "Fraunhofer IKTS (2023) Energy-efficient and low in emissions: silicon carbide recycling with RECOSiC (press release; conventional Acheson electricity per t SiC)", url: "https://www.fraunhofer.de/en/press/research-news/2023/june-2023/energy-efficient-and-low-in-emissions-silicon-carbide-recycling-with-recosic.html"}
+  - {title: "Ullmann's Encyclopedia of Industrial Chemistry: Silicon Carbide (route reference lead from issue #179; production sections not audited in this run)", doi: 10.1002/14356007.a23_749.pub2}
+  - {title: "Chase, M. W. (1998) NIST-JANAF Thermochemical Tables, 4th ed., J. Phys. Chem. Ref. Data Monograph 9 (formation enthalpies; values to be checked)"}
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/silicon-carbide-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0

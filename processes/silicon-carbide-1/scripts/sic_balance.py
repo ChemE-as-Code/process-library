@@ -55,6 +55,8 @@ SEC = 7.5              # kWh electricity per kg crude SiC (crystalline + metallu
 CW_FRAC = 0.02         # transformer and bus-bar losses to cooling water, share of furnace power (ASSUMED)
 E_AUX = 0.15           # kWh/kg product: mixing, charging, handling, off-gas fans (D-008, ASSUMED)
 E_CRUSH = 0.10         # kWh/kg product: crushing and screening (D-008, ASSUMED)
+T_HOT, T_COOL = 1800.0, 323.15   # K, mean furnace contents at power-off and when broken (D-003, ASSUMED)
+CP_MEAN = 1.3          # kJ/(kg K), mean heat capacity of the contents over that range (D-008, ASSUMED)
 
 
 def kmol(stream):
@@ -147,6 +149,7 @@ P_FUR = SEC * (P_CRUDE + total(met))
 Q_CW = CW_FRAC * P_FUR
 P_AUX = E_AUX * P_CRUDE
 P_CRU = E_CRUSH * P_CRUDE
+Q_COOL = total(ingot) * CP_MEAN * (T_HOT - T_COOL) / 3600   # kW to ambient air (natural cooling)
 dh1 = HF["SiC"] + 2 * HF["CO"] - HF["SiO2"]             # kJ/mol
 dh2 = HF["SiO"] + HF["CO"] - HF["SiO2"]
 q_rx = (xi1 * dh1 + xi2 * dh2) * 1000 / 3600            # kW (kmol/h * kJ/mol * 1000 / 3600)
@@ -197,7 +200,9 @@ if __name__ == "__main__":
         3 * MW["C"] * xi1 / charge["C"], MW["C"] * xi2 / charge["C"]))
     print("# duties (kW)")
     print(f"  Q1 furnace power {P_FUR:.1f}; Q2 transformer/bus-bar cooling water {Q_CW:.1f}; "
-          f"Q3 auxiliaries {P_AUX:.1f}; Q4 crushing {P_CRU:.1f}")
+          f"Q3 auxiliaries {P_AUX:.1f}; Q4 crushing {P_CRU:.1f}; Q5 ingot cooling to ambient {Q_COOL:.1f}")
+    print(f"  furnace closure: power {P_FUR:.0f} = reaction {q_rx:.0f} + contents at power-off "
+          f"{Q_COOL:.0f} + off-gas and losses during heating {P_FUR - q_rx - Q_COOL:.0f} kW (lumped)")
     print(f"  reaction enthalpy at 298 K: RX1 {dh1:.1f} kJ/mol, RX2 {dh2:.1f} kJ/mol, "
           f"total {q_rx:.0f} kW = {q_rx / P_FUR:.1%} of the furnace power")
     print("# per kg crushed crude SiC (unallocated)")

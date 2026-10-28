@@ -58,6 +58,14 @@ products:
       return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-008"}
     ports:
       - {id: fur, direction: in, kind: energy}
+  - id: AMB
+    title: Heat to ambient air (natural cooling of the ingot, no fans)
+    category: utility
+    utility:
+      kind: air_cooling
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design ambient, design basis"}
+    ports:
+      - {id: h101, direction: in, kind: energy}
 
 blocks:
   - id: PRP
@@ -79,6 +87,7 @@ blocks:
       - {id: out, direction: out}
       - {id: power, direction: in, kind: energy}
       - {id: cw, direction: out, kind: energy}
+      - {id: amb, direction: out, kind: energy}
   - id: SRT
     title: Ingot breaking and sorting
     class: SeparatingMechanically
@@ -140,6 +149,7 @@ steps:
     ports:
       - {id: in, direction: in}
       - {id: out, direction: out, delegates: out}
+      - {id: amb, direction: out, kind: energy, delegates: amb}
   - id: Z101
     block: SRT
     title: Ingot breaking and sorting (crude, metallurgical grade, unreacted mix)
@@ -242,7 +252,7 @@ streams:
     title: Furnace flue gas to atmosphere
     from: B101.out
     to: VENT.in
-    template: gas
+    template: flue
     state:
       design:
         pressure: {value: 101.325, provenance: assumed, source: "stack, atmospheric"}
@@ -330,7 +340,7 @@ streams:
     title: Crushing dust after the bag filter
     from: Z201.dust
     to: DUST.in
-    template: solids
+    template: dust
     state:
       design:
         pressure: {value: 101.325, provenance: assumed, source: "atmospheric"}
@@ -342,4 +352,5 @@ streams:
   - {id: Q2, title: Transformer and bus-bar cooling, kind: energy, from: R101.cw, to: CW.fur, state: {design: {duty: {value: 937.5, provenance: assumed, source: "2 % of the furnace power (D-008)"}}}}
   - {id: Q3, title: "Auxiliary power (mixing, charging, handling, hood fans; lumped)", kind: energy, from: POWER.aux, to: M101.power, state: {design: {duty: {value: 750.0, provenance: assumed, source: "0.15 kWh/kg crude SiC (D-008)"}}}}
   - {id: Q4, title: Crushing and screening power, kind: energy, from: POWER.cru, to: Z201.power, state: {design: {duty: {value: 500.0, provenance: assumed, source: "0.10 kWh/kg crude SiC (D-008)"}}}}
+  - {id: Q5, title: Ingot cooling to ambient air, kind: energy, from: H101.amb, to: AMB.h101, state: {design: {duty: {value: 11754.3, provenance: assumed, source: "scripts/sic_balance.py: 22.0 t/h contents from 1800 to 323 K at a mean 1.3 kJ/(kg K) (D-008)"}}}}
 layout: {bfd: {}, pfd: {}}
