@@ -1,0 +1,22 @@
+# soda-ash-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`. Moved unchanged from
+# lci/mappings.yaml exchanges ("soda-ash-1/<key>").
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  # Batch of the case processes: inputs without a registry slug, steam and fired heat counted in
+  # kWh, and natural gas counted as methane. `atlas: false` where the exchange's registry slug would
+  # name a wrong Atlas producer (natural gas is not hda-1's fuel gas, which is also `methane`).
+  "feed:LST": {use: limestone, source: "crushed and screened kiln-grade limestone (no registry slug yet)"}
+  "feed:COKE": {use: coke, source: "metallurgical coke, kiln fuel, per kg as fired (no registry slug yet)"}
+  "feed:BRINE": {use: sodium-chloride-brine-26, source: "purified saturated brine, 26 wt-% NaCl, by mass of solution (no registry slug yet)"}
+  "feed:NH3": {use: ammonia, source: "anhydrous liquid ammonia make-up (no registry slug yet)"}
+  "feed:HPS": {use: steam-heat, source: "HP steam 3000 kPa(a) to the calciner, counted as heat delivered (kWh, condensate returned); the slug steam is counted by mass"}
+  "feed:LPS":
+    atlas: false
+    source: >-
+      LP steam 450 kPa(a), live steam to the distiller (kg). The Atlas has no LP steam producer:
+      ammonia-1's and hydrogen-1's export steam is superheated at 4300 to 4600 kPa(a) and
+      utility-steam-ng-boiler makes the grade steam/mp-11bara, so the input stays on the
+      background entry `steam` (heat above make-up water, per kg) until an LP grade exists.

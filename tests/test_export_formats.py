@@ -40,6 +40,7 @@ def _asu_library(tmp: Path) -> Path:
     (library / "processes" / "asu-1" / "lca").mkdir(parents=True)
     (library / "chemicals").mkdir()
     shutil.copy(KIT / "processes" / "asu-1" / "process.yaml", library / "processes" / "asu-1")
+    shutil.copy(KIT / "processes" / "asu-1" / "lca" / "mappings.yaml", library / "processes" / "asu-1" / "lca")  # its own overrides
     shutil.copy(KIT / "chemicals" / "chemicals.yaml", library / "chemicals")
     for name in ("dataset.yaml", "lca.yaml", "factors.yaml", "results.csv"):
         shutil.copy(ASU / name, library / "processes" / "asu-1" / "lca")
@@ -75,7 +76,7 @@ def test_index_lists_every_format_with_checksum_and_version(fixture_build: Path)
     index = json.loads((fixture_build / "index.json").read_text())
     names = [f["name"] for f in index["files"]]
     db = "cheme-as-code-atlas-0.1.0"
-    assert names == [f"{db}.xlsx", f"{db}-olca-jsonld.zip", f"{db}-multifunctional.json", "datapackage.json", "benchmarks.json"]
+    assert names == [f"{db}.xlsx", f"{db}-olca-jsonld.zip", f"{db}-multifunctional.json", "datapackage.json", "benchmarks.json", "gaps.json"]
     for entry in index["files"]:
         assert entry["format"] and entry["format_version"] and len(entry["sha256"]) == 64
         assert entry["bytes"] == (fixture_build / entry["name"]).stat().st_size

@@ -9,7 +9,10 @@ lci_dataset``; schema ``cheme/lci_dataset/v2``, and the v1 files), ``lca/dataset
 any hand-written ``lca/datasets/*.yaml`` of a manifest-only process; ``process.yaml`` for the
 title, maturity and the chemical slug of each inventory key; ``lca/lca.yaml`` for the study's
 allocation and functional unit. Linking comes from ``lci/mappings.yaml`` (library root, else the
-process library's own beside this script; schema ``schemas/lci-mappings.schema.json``); the
+process library's own beside this script; schema ``schemas/lci-mappings.schema.json``), the shared
+vocabulary, merged with each process's own exchange overrides in
+``processes/<id>/lca/mappings.yaml`` (schema ``schemas/lci-process-mappings.schema.json``; the
+same exchange in both is an error, ADR 0022); the
 latest check of its background names against a licensed background (``lci/mapping-checks/``,
 ``check_mappings.py``) is recorded in ``datapackage.json`` (``brightway.background_check``). YAML files only:
 chemeascode is never imported, except ``foundation.units`` for the benchmark unit conversion
@@ -30,6 +33,8 @@ Output (``--out``; ``<out>/lci/`` is replaced):
   link targets, header metadata, allocation, closure, citation, downloads; ``lci_activities.py``).
 - ``lci/benchmarks.json``: every KPI result of the build with its allocated value and the counts
   by status (``benchmarks.report``, docs/benchmarks.md), the stored report of the comparison
+- ``lci/gaps.json``: the mapping gaps of unpublished processes per process (below), always
+  written (``count`` 0 without gaps);
 - ``lci/index.json``: the summary the Atlas reads (files with size, sha256, format and format
   version, activities per process, caveats).
 - with ``--previous <dir>`` (an earlier build): ``lci/changes.json`` and ``lci/CHANGES.md``, the
@@ -92,7 +97,15 @@ Errors (exit 1): ``chemicals/chemicals.yaml`` failing its schema or ``registry.c
 first, before any process is read), a benchmark file failing its schema or ``benchmarks.load``,
 a market file failing its schema or ``markets.load``, a market whose supplier makes no activity of
 its product, an unknown grade, a dataset that fails validation, an
-allocation that cannot be exported, an exchange without a mapping. Warnings fail ``--strict``.
+allocation that cannot be exported, an exchange of a public process (or in a ``--public`` build)
+without a mapping. Warnings fail ``--strict``.
+
+Gaps (ADR 0022): an exchange of a process that is not public with no technosphere mapping or no
+biosphere identity is neither an error nor a warning: it is reported (``Report.gaps``, ``gap:``
+lines, ``lci/gaps.json``, ``datapackage.json`` ``processes[].gaps``, ``index.json`` ``gaps``) and
+exported unlinked with its amount: no database, categories or Atlas alternative, column
+``atlas gap``, the activity's ``atlas gaps`` and an ``UNLINKED`` comment line; never linked to a
+guess, dropped or zero-filled. ``--strict`` does not fail on gaps.
 
 Deterministic: sorted, no timestamps (the workbook's document properties and zip entry dates
 are fixed), so two runs on the same input are byte-identical.
@@ -126,6 +139,7 @@ from typing import Any
 import yaml
 from jsonschema import Draft202012Validator
 from openpyxl import Workbook
+from referencing import Registry, Resource
 
 import benchmarks as bm
 import check_mappings
@@ -137,7 +151,10 @@ import registry as reg
 from publication import is_public
 
 HERE = Path(__file__).resolve().parent
+#: a process's own exchange overrides, beside its LCI (ADR 0022)
+PROCESS_MAPPINGS = Path("lca") / "mappings.yaml"
 DATAPACKAGE_SCHEMA = "cheme-as-code/lci-datapackage/v1"
+GAPS_SCHEMA = "cheme-as-code/lci-gaps/v1"
 INDEX_SCHEMA = "cheme-as-code/lci-index/v1"
 #: Schema strings of core's LCI dataset: v2 (core#294) and the v1 files it still reads, which
 #: declared the LCA files' id (``cheme/lca/v1``, and ``plantcode/lca/v1`` before the rename).
@@ -259,6 +276,7 @@ EXCHANGE_COLUMNS = (
     "atlas plant location",
     "atlas plant code",
     "atlas plant check",
+    "atlas gap",
 )
 CAVEATS = (
     "No background data is included: link the database to the ecoinvent (or other) databases you "
@@ -277,16 +295,35 @@ class BuildError(Exception):
     """An input the builder cannot use; the message says where and why."""
 
 
+class GapError(BuildError):
+    """An exchange without a technosphere mapping or a biosphere identity. In a process that is
+    not public it is a gap of its preliminary LCI (reported, the exchange exported unlinked); in a
+    public process or a ``--public`` build an error (ADR 0022). *link* is the link it lacks:
+    ``technosphere`` or ``biosphere``."""
+
+    def __init__(self, message: str, link: str) -> None:
+        super().__init__(message)
+        self.link = link
+
+
 @dataclass
 class Report:
     errors: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
+    #: mapping gaps of processes that are not public (ADR 0022): neither errors nor warnings, so
+    #: ``--strict`` does not fail on them; one entry per dataset exchange (``lci/gaps.json``)
+    gaps: list[dict] = field(default_factory=list)
 
     def error(self, where: str, message: str) -> None:
         self.errors.append(f"{where}: {message}")
 
     def warn(self, where: str, message: str) -> None:
         self.warnings.append(f"{where}: {message}")
+
+    def gap(self, process: str, dataset: Dataset, exchange: dict, link: str, reason: str) -> None:
+        entry = {"process": process, "dataset": dataset.data["id"], "path": dataset.path, "key": exchange["key"], "type": exchange["type"], "link": link, "reason": reason}
+        if entry not in self.gaps:  # once per exchange, not per co-product
+            self.gaps.append(entry)
 
 
 def _yaml(path: Path) -> Any:
@@ -319,13 +356,21 @@ def _base_dir(name: str) -> Path:
 # --- inputs ----------------------------------------------------------------------------------
 
 
+def _schema_problems(data: Any, name: str) -> list[str]:
+    """*data* against ``schemas/<name>``; a ``$ref`` to the shared mappings schema resolves."""
+    schemas = _base_dir("schemas")
+    schema = json.loads((schemas / name).read_text(encoding="utf-8"))
+    shared = json.loads((schemas / "lci-mappings.schema.json").read_text(encoding="utf-8"))
+    registry = Registry().with_resource(shared["$id"], Resource.from_contents(shared))
+    return [
+        f"{'/'.join(map(str, e.absolute_path)) or '(root)'}: {e.message}"
+        for e in sorted(Draft202012Validator(schema, registry=registry).iter_errors(data), key=lambda e: list(map(str, e.absolute_path)))
+    ]
+
+
 def load_mappings(path: Path) -> dict:
     data = _yaml(path) or {}
-    schema = json.loads((_base_dir("schemas") / "lci-mappings.schema.json").read_text(encoding="utf-8"))
-    problems = [
-        f"{'/'.join(map(str, e.absolute_path)) or '(root)'}: {e.message}"
-        for e in sorted(Draft202012Validator(schema).iter_errors(data), key=lambda e: list(map(str, e.absolute_path)))
-    ]
+    problems = _schema_problems(data, "lci-mappings.schema.json")
     if problems:
         raise BuildError(f"{path}: " + "; ".join(problems))
     data.setdefault("proxies", {})
@@ -363,6 +408,30 @@ def load_mappings(path: Path) -> dict:
         if entry["method"] not in RULE_METHODS[entry["rule"]]:
             raise BuildError(f"{path}: allocation.{key}: rule {entry['rule']!r} does not allow method {entry['method']!r}")
     return data
+
+
+def merge_process_mappings(library: Path, mappings: dict, report: Report) -> None:
+    """Add each ``processes/<id>/lca/mappings.yaml`` (schema
+    ``schemas/lci-process-mappings.schema.json``) to *mappings* ``exchanges`` as
+    ``"<id>/<key>"``. A file failing its schema, or an exchange that ``lci/mappings.yaml``
+    overrides too, is an error with the file."""
+    for path in sorted((library / "processes").glob(f"*/{PROCESS_MAPPINGS}")):
+        pid, where = path.parents[1].name, str(path.relative_to(library))
+        try:
+            data = _yaml(path) or {}
+        except yaml.YAMLError as failure:
+            report.error(where, f"not YAML: {failure}")
+            continue
+        problems = _schema_problems(data, "lci-process-mappings.schema.json")
+        for message in problems:
+            report.error(where, message)
+        if problems:
+            continue
+        for key, entry in data["exchanges"].items():
+            if f"{pid}/{key}" in mappings["exchanges"]:
+                report.error(where, f"exchanges.{key} is also overridden in lci/mappings.yaml (exchanges.{pid}/{key}): keep one, in this file")
+                continue
+            mappings["exchanges"][f"{pid}/{key}"] = entry
 
 
 def profile(mappings: dict, model: str) -> dict:
@@ -936,7 +1005,7 @@ class Linker:
         if self.known(factor):
             return self.link(factor, unit, where, exchange["key"])
         tried = ", ".join(x for x in (f"chemical {chemical!r}" if chemical else "", f"factor {factor!r}" if factor else "") if x) or "no chemical slug or factor id"
-        raise BuildError(f"{where}: no mapping ({tried}); add it to lci/mappings.yaml technosphere or exchanges")
+        raise GapError(f"{where}: no mapping ({tried}); add it to lci/mappings.yaml technosphere or to the process's {PROCESS_MAPPINGS} exchanges", "technosphere")
 
     def elementary(self, exchange: dict, where: str) -> dict:
         """The biosphere flow of an emission or a resource, by the first of: its biosphere3
@@ -977,8 +1046,9 @@ class Linker:
         origin = (link.get("elementary") or {}).get("origin") or exchange.get("origin") or "fossil"
         entry = self.mappings["biosphere"].get(f"{component}/{origin}") or self.mappings["biosphere"].get(component)
         if entry is None:
-            raise BuildError(
-                f"{where}: {exchange['type']} of {component} ({origin}) has no biosphere3 flow identity and is not in lci/mappings.yaml biosphere"
+            raise GapError(
+                f"{where}: {exchange['type']} of {component} ({origin}) has no biosphere3 flow identity and is not in lci/mappings.yaml biosphere",
+                "biosphere",
             )
         found = {"name": entry["flow"]["name"], "categories": list(entry["flow"]["categories"]), "unit": BW_UNITS[unit], "amount factor": 1.0}
         if entry["flow"].get("uuid"):
@@ -1395,7 +1465,7 @@ def _successor_text(successor: dict, key: str) -> str:
     return same[0] if same else f"dataset {successor['id']} {successor['version']}" + ("" if successor["resolved"] else " (not in this build)")
 
 
-def _comment(process: Process, dataset: Dataset, row: dict, skipped: list[str], excluded: list[str], model: str, commit: str | None, version: str) -> str:
+def _comment(process: Process, dataset: Dataset, row: dict, skipped: list[str], excluded: list[str], model: str, commit: str | None, version: str, unlinked: list[str] | None = None) -> str:
     method = dataset.allocation.get("method", "mass")
     share_text = ", ".join(f"{_name({'key': k})} {v * 100:.1f} %" for k, v in sorted(dataset.shares.items(), key=lambda kv: -kv[1]))
     lines = [
@@ -1416,6 +1486,11 @@ def _comment(process: Process, dataset: Dataset, row: dict, skipped: list[str], 
         lines.append("Not exported: " + "; ".join(skipped) + ".")
     if excluded:
         lines.append("Excluded by the cut-off system model (no credit): " + "; ".join(excluded) + ".")
+    if unlinked:
+        lines.append(
+            "UNLINKED (mapping gaps of a preliminary LCI; the process is not published): " + "; ".join(unlinked)
+            + ". These exchanges have no background link; install() refuses the database until they are mapped."
+        )
     if dataset.allocation.get("source"):
         lines.append(f"Allocation source: {' '.join(str(dataset.allocation['source']).split())}")
     lines.append(f"Atlas LCI {version}; library commit {commit or 'unknown'}.")
@@ -1496,11 +1571,22 @@ def build_activities(processes: list[Process], mappings: dict, products: reg.Reg
             ]
             skipped: list[str] = []
             excluded: list[str] = []
+            unlinked: list[str] = []
             for exchange in dataset.data["exchanges"]:
                 if exchange["type"] == "product":
                     continue
                 try:
                     kind, target = linker.resolve(process, dataset, exchange)
+                except GapError as failure:
+                    if public or is_public(process.manifest):
+                        report.errors.append(str(failure))
+                        continue
+                    # a gap of a preliminary LCI: exported unlinked (no database, no guess), never dropped
+                    reason = str(failure).removeprefix(f"{dataset.path} {exchange['key']}: ")
+                    report.gap(process.pid, dataset, exchange, failure.link, reason)
+                    unlinked.append(f"{exchange['key']} ({reason})")
+                    kind = "biosphere" if failure.link == "biosphere" else "technosphere"
+                    target = {"name": _name(exchange), "unit": BW_UNITS[exchange["unit"]], "atlas gap": f"unlinked, no {failure.link} mapping: {reason}"}
                 except BuildError as failure:
                     report.errors.append(str(failure))
                     continue
@@ -1515,7 +1601,8 @@ def build_activities(processes: list[Process], mappings: dict, products: reg.Reg
                     continue
                 unallocated = float(exchange["amount"]) * (target.pop("amount factor", 1.0) if kind == "biosphere" else 1.0)
                 amount = _number(unallocated * per_unit)
-                if model == "cutoff" and kind == "technosphere" and amount < 0:
+                gap = "atlas gap" in target
+                if model == "cutoff" and kind == "technosphere" and amount < 0 and not gap:
                     refusal = (
                         f"{dataset.path} {exchange['key']}: negative technosphere amount: an avoided burden (credit), which a "
                         "cut-off build refuses; list the flow in lci/mappings.yaml cutoff_exclusions, or build the substitution variant"
@@ -1525,7 +1612,9 @@ def build_activities(processes: list[Process], mappings: dict, products: reg.Reg
                     continue
                 entry = {"amount": amount, "type": kind, "atlas key": exchange["key"], **target}
                 entry["_unallocated"] = _number(unallocated)  # per basis, for the multi-output formats (not a workbook column)
-                if kind == "biosphere":
+                if gap:
+                    pass  # unlinked: no categories, no provider, no Atlas alternative
+                elif kind == "biosphere":
                     entry["categories"] = "::".join(target["categories"])
                 elif target.get("atlas link") == "pinned":
                     # an exchange linked explicitly (link.dataset) has chosen its producer (its carrier was
@@ -1548,7 +1637,7 @@ def build_activities(processes: list[Process], mappings: dict, products: reg.Reg
                 if exchange.get("title"):
                     entry["comment"] = exchange["title"]
                 exchanges.append(entry)
-            comment = _comment(process, dataset, row, skipped, excluded, model, commit, version)
+            comment = _comment(process, dataset, row, skipped, excluded, model, commit, version, unlinked)
             metadata = {
                 "code": row["code"],
                 "reference product": row["reference product"],
@@ -1570,6 +1659,8 @@ def build_activities(processes: list[Process], mappings: dict, products: reg.Reg
                 metadata["atlas carrier"] = _carrier_text(row["carrier"])
             if dataset.successor:
                 metadata["atlas superseded by"] = _successor_text(dataset.successor, row["key"])
+            if unlinked:
+                metadata["atlas gaps"] = len(unlinked)
             activities.append(Activity(row, comment, metadata, exchanges))
 
     proxies: list[Activity] = []
@@ -1885,7 +1976,7 @@ def multi_output_datasets(processes: list[Process], activities: list[Activity], 
                     if amount < 0:
                         moved["negative"] = True
                 exchanges.append(moved)
-            notes = [line for line in first.comment.splitlines() if line.startswith(("Not exported:", "Excluded by the cut-off", "DEPRECATED:"))]
+            notes = [line for line in first.comment.splitlines() if line.startswith(("Not exported:", "Excluded by the cut-off", "DEPRECATED:", "UNLINKED"))]
             version, _ = _dataset_version(dataset)
             found.append(
                 {
@@ -2257,6 +2348,9 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
     except BuildError as failure:
         report.errors.append(str(failure))
         return report
+    merge_process_mappings(library, mappings, report)
+    if report.errors:
+        return report
     registry_path = library / "chemicals" / "chemicals.yaml"
     if not registry_path.is_file():
         report.error(str(registry_path), "missing chemical registry")
@@ -2374,6 +2468,16 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
             "Markets (code market:*) mix the Atlas's own producers of a product, not the region's actual production; most of their "
             "distances and losses are ASSUMED screening values (datapackage.json markets, docs/markets.md)."
         )
+    gaps_by_process: dict[str, list[dict]] = {}
+    for gap in report.gaps:
+        gaps_by_process.setdefault(gap["process"], []).append({k: v for k, v in gap.items() if k != "process"})
+    for entry in process_entries:
+        entry["gaps"] = gaps_by_process.get(entry["id"], [])
+    if report.gaps:
+        variant_caveats.append(
+            f"{len(report.gaps)} exchange(s) of {len(gaps_by_process)} unpublished process(es) are mapping gaps of a preliminary LCI "
+            "(lci/gaps.json): exported unlinked, without a background link (column atlas gap); install() refuses the database until they are mapped."
+        )
     findings = [f"{d.path}: {d.finding}" for p in processes for d in p.datasets if d.finding]
     datapackage = {
         "schema": DATAPACKAGE_SCHEMA,
@@ -2408,6 +2512,8 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
     # the stored report of the benchmark comparison (docs/benchmarks.md), allocated values included
     rows = [{"process": e["id"], "dataset": d["id"], **k} for e in process_entries for d in e["datasets"] for k in d["benchmarks"]]
     _write_json(lci / "benchmarks.json", bm.report(rows, "public" if public else "preview", {"commit": commit, "dirty": dirty}))
+    # the mapping gaps of unpublished processes (ADR 0022): what to map before publishing
+    _write_json(lci / "gaps.json", {"schema": GAPS_SCHEMA, "version": version, "database": db_name, "library_commit": commit, "count": len(report.gaps), "processes": gaps_by_process})
 
     reports = []
     if previous is not None:
@@ -2423,6 +2529,7 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
     file_formats = {f["name"]: {k: v for k, v in f.items() if k in ("format", "format_version")} for f in (workbook_format, *formats)}
     file_formats["datapackage.json"] = {"format": "Atlas LCI datapackage", "format_version": DATAPACKAGE_SCHEMA}
     file_formats["benchmarks.json"] = {"format": "Atlas benchmark report", "format_version": bm.REPORT_SCHEMA}
+    file_formats["gaps.json"] = {"format": "Atlas LCI mapping gaps", "format_version": GAPS_SCHEMA}
     file_formats.update({name: {"format": "Atlas LCI change report", "format_version": CHANGES_SCHEMA} for name in reports})
     caveats = [*CAVEATS, *variant_caveats]
     if background_check["status"] != "verified":
@@ -2438,12 +2545,13 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
         "library_commit": commit,
         "files": [
             {"name": name, "path": f"lci/{name}", "bytes": (lci / name).stat().st_size, "sha256": _sha256(lci / name), **file_formats.get(name, {})}
-            for name in (xlsx_name, *(f["name"] for f in formats), "datapackage.json", "benchmarks.json", *reports)
+            for name in (xlsx_name, *(f["name"] for f in formats), "datapackage.json", "benchmarks.json", "gaps.json", *reports)
         ],
         "system_model": model,
         "methodology_version": METHODOLOGY_VERSION,
         "processes": {e["id"]: [{"code": a["code"], "name": a["name"], "reference_product": a["reference_product"], "unit": a["unit"]} for a in e["activities"]] for e in process_entries},
         "markets": [{"code": m.row["code"], "name": m.row["name"], "reference_product": m.row["reference product"], "unit": m.row["unit"], "location": m.row["location"]} for m in built.markets],
+        "gaps": {pid: len(found) for pid, found in gaps_by_process.items()},
         "caveats": caveats,
     }
     _write_json(lci / "index.json", index)
@@ -2467,6 +2575,8 @@ def main(argv: list[str] | None = None) -> int:
         args.library.resolve(), args.out.resolve(), args.version, args.commit, args.mappings.resolve() if args.mappings else None, args.public,
         args.system_model, args.previous.resolve() if args.previous else None,
     )
+    for gap in report.gaps:
+        print(f"gap: {gap['process']}: {gap['path']} {gap['key']}: {gap['reason']}", file=sys.stderr)
     for message in report.warnings:
         print(f"warning: {message}", file=sys.stderr)
     for message in report.errors:
@@ -2477,6 +2587,8 @@ def main(argv: list[str] | None = None) -> int:
         count = sum(len(v) for v in index["processes"].values())
         markets = len(index.get("markets", []))
         print(f"lci: {count} activit{'y' if count == 1 else 'ies'} from {len(index['processes'])} process(es), {markets} market(s) -> {args.out / 'lci'}")
+        if report.gaps:
+            print(f"lci: {len(report.gaps)} mapping gap(s) in {len(index['gaps'])} unpublished process(es), exported unlinked -> {args.out / 'lci' / 'gaps.json'}")
     return 1 if failed else 0
 
 

@@ -25,6 +25,13 @@ Files (``<out>/lci/``):
   it; allocating it with the build's method gives the workbook's activities, with their codes.
   The markets and proxies are single-output processes under their activity codes.
 
+A mapping gap of an unpublished process (``atlas gap``, ADR 0022) is carried unlinked and flagged
+in both formats, never linked to a guess: in JSON-LD a flow of its own in the category
+``ChemE-as-Code Atlas/unlinked (mapping gaps)`` (``atlas_uuid("flow", "gap", <type>, <name>,
+<unit>)``) without a default provider, and the process description's ``UNLINKED`` note; in the
+multifunctional file the exchange keeps ``atlas gap`` and has no database, so the installer
+reports it unlinked and writes nothing.
+
 Identifiers (deterministic, documented in lci/README.md):
 
 - a dataset's process: the dataset's own ``uuid`` (core: uuid5 of ``<plant>/<dataset id>``) in
@@ -171,6 +178,13 @@ class _Olca:
 
     def exchange_flow(self, entry: dict, where: str) -> tuple[o.Ref, o.Ref | None, str]:
         """The flow of a non-product exchange, its default provider (an Atlas process) and a note."""
+        if entry.get("atlas gap"):
+            # a mapping gap of an unpublished process (ADR 0022): no provider, no elementary flow
+            # identity; an Atlas flow in its own category, flagged, never mapped to a guess
+            kind = o.FlowType.ELEMENTARY_FLOW if entry["type"] == "biosphere" else o.FlowType.PRODUCT_FLOW
+            fid = atlas_uuid("flow", "gap", entry["type"], entry["name"], entry["unit"])
+            ref = self.flow(fid, entry["name"], kind, entry["unit"], where, "ChemE-as-Code Atlas/unlinked (mapping gaps)", "UNLINKED: a mapping gap of a preliminary LCI; map it before use.")
+            return ref, None, f"UNLINKED ({entry['atlas gap']})."
         if entry["type"] == "biosphere":
             categories = [c for c in str(entry.get("categories", "")).split("::") if c]
             if entry.get("atlas flow uuid"):

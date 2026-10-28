@@ -1,0 +1,19 @@
+# chlor-alkali-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`. Moved unchanged from
+# lci/mappings.yaml exchanges ("chlor-alkali-1/<key>").
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  # Batch of the case processes: inputs without a registry slug, steam and fired heat counted in
+  # kWh, and natural gas counted as methane. `atlas: false` where the exchange's registry slug would
+  # name a wrong Atlas producer (natural gas is not hda-1's fuel gas, which is also `methane`).
+  "feed:SALT": {use: sodium-chloride, source: "rock salt, about 98.8 wt-% NaCl (no registry slug yet)"}
+  "feed:DMW": {use: water, chemical: water, source: "demineralised water (process.yaml has no inventory_key for it; feed:WATER is water)"}
+  "feed:NA2CO3": {use: sodium-carbonate, source: "soda ash (no registry slug yet)"}
+  "feed:HCL": {use: hydrochloric-acid-32, source: "hydrochloric acid 32 wt-% counted by mass of solution"}
+  "feed:NA2SO3": {use: sodium-sulfite, source: "sodium sulfite (no registry slug yet)"}
+  "feed:H2SO4": {use: sulfuric-acid, source: "sulfuric acid 98 wt-% for chlorine drying"}
+  "feed:MPS": {use: steam-heat, source: "MP steam 1000 kPa(a), counted as heat delivered (kWh)"}
+  "product:SPENT": {use: spent-sulfuric-acid, source: "cut-off: excluded, no credit (cutoff_exclusions.spent-sulfuric-acid); substitution: the credit proxy"}
+  "product:SLUDGE": {use: inert-waste-landfill, source: "brine filtration sludge to landfill (waste treatment without recovery stays in the system)"}

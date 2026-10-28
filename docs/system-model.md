@@ -155,8 +155,8 @@ the review checklist ([governance.md](governance.md)).
 
 - **Electricity:** industrial power links to the medium-voltage market of the site's country
   by default (`install(location=...)`). A process whose design states a supply above 24 kV links
-  to the high-voltage market instead, through an `exchanges` override in `lci/mappings.yaml`
-  (ASU-1: 33 kV, D-036).
+  to the high-voltage market instead, through an `exchanges` override in the process's `lca/mappings.yaml`
+  (ASU-1: 33 kV, D-036; ADR 0022).
 - **Data freshness:** primary data at most 5 years old and secondary data at most 10 years old
   at the reference year. A dataset records a `valid_until` year (core#179, reference year + 5 by
   default); `datapackage.json` carries it (null for a dataset that states none).

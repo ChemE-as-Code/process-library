@@ -1,0 +1,21 @@
+# hda-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`. Moved unchanged from
+# lci/mappings.yaml exchanges ("hda-1/<key>").
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  # Batch of the case processes: inputs without a registry slug, steam and fired heat counted in
+  # kWh, and natural gas counted as methane. `atlas: false` where the exchange's registry slug would
+  # name a wrong Atlas producer (natural gas is not hda-1's fuel gas, which is also `methane`).
+  "feed:H2MU": {use: hydrogen-methane-makeup, atlas: false, source: "95 mol% H2 with 5 mol% CH4, split by mass (proxy); not linked to hydrogen-1, whose 99.9 % H2 per kg would count the methane as hydrogen"}
+  "feed:TOLF": {use: toluene, source: "fresh toluene (no registry slug yet)"}
+  "feed:FUEL": {use: heat-natural-gas, source: "feed heater H-101 absorbed duty in kWh; the background heat activity includes the combustion (hda-1 counts no flue gas emissions)"}
+  "feed:MPS": {use: steam-heat, source: "MP steam 1500 kPa(a), counted as heat delivered (kWh)"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a), counted as heat delivered (kWh)"}
+  "feed:HPS": {use: steam-heat, source: "HP steam 4200 kPa(a), counted as heat delivered (kWh)"}
+  "product:FUELGAS":
+    properties_reason: >-
+      The fuel gas is about 40 mol% H2 and 59 mol% CH4 (hda-1 process.yaml), not methane: its
+      hydrogen raises the LHV per kg (the study's 54 250 kJ/kg) above methane's 50 010 kJ/kg. Its
+      inventory_key is listed under hydrogen and methane, and methane is the slug it takes.

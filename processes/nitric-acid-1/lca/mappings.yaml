@@ -1,0 +1,13 @@
+# nitric-acid-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`. Moved unchanged from
+# lci/mappings.yaml exchanges ("nitric-acid-1/<key>").
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  # Batch of the case processes: inputs without a registry slug, steam and fired heat counted in
+  # kWh, and natural gas counted as methane. `atlas: false` where the exchange's registry slug would
+  # name a wrong Atlas producer (natural gas is not hda-1's fuel gas, which is also `methane`).
+  "feed:NH3": {use: ammonia, source: "anhydrous liquid ammonia (no registry slug yet)"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a) to the SCR ammonia vaporiser, counted as heat delivered (kWh)"}
+  "consumable:pt-rh-gauze-loss": {use: pt-rh-gauze, source: "Pt/Rh 90/10 gauze lost per unit of acid (ASSUMED, O-3), as its metals"}

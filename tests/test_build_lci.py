@@ -84,7 +84,7 @@ def test_fixture_build_writes_workbook_datapackage_and_index(library: Path, tmp_
     out = tmp_path / "out"
     report = _build(library, out)
     assert report.errors == [] and report.warnings == []
-    assert sorted(p.name for p in (out / "lci").iterdir()) == sorted([f"{DB}.xlsx", f"{DB}-olca-jsonld.zip", f"{DB}-multifunctional.json", "datapackage.json", "benchmarks.json", "index.json"])
+    assert sorted(p.name for p in (out / "lci").iterdir()) == sorted([f"{DB}.xlsx", f"{DB}-olca-jsonld.zip", f"{DB}-multifunctional.json", "datapackage.json", "benchmarks.json", "gaps.json", "index.json"])
 
     index = _json(out / "lci" / "index.json")
     assert index["version"] == "0.1.0" and index["database"] == DB and index["library_commit"] == "fixture"
@@ -176,6 +176,7 @@ def test_asu_exports_four_exergy_allocated_activities(tmp_path: Path) -> None:
     (library / "processes" / "asu-1" / "lca").mkdir(parents=True)
     (library / "chemicals").mkdir()
     shutil.copy(KIT / "processes" / "asu-1" / "process.yaml", library / "processes" / "asu-1")
+    shutil.copy(KIT / "processes" / "asu-1" / "lca" / "mappings.yaml", library / "processes" / "asu-1" / "lca")  # its own overrides
     shutil.copy(KIT / "chemicals" / "chemicals.yaml", library / "chemicals")
     for name in ("dataset.yaml", "lca.yaml", "factors.yaml"):
         shutil.copy(ASU / name, library / "processes" / "asu-1" / "lca")
@@ -402,3 +403,145 @@ def test_without_core_the_cutoff_criteria_are_not_checked(library: Path, tmp_pat
     assert report.errors == []
     assert any("cut-off criteria are not checked" in w for w in report.warnings), report.warnings
     assert _cutoff_entry(out) == {"flows": ["aux:lubricant"], "checked": False, "findings": []}
+
+
+# --- mapping gaps of unpublished processes, per-process overrides (ADR 0022) -----------------
+
+AMMONIA = "processes/fixture-ammonia/lca/datasets/ammonia.yaml"
+OVERRIDES = "processes/fixture-ammonia/lca/mappings.yaml"
+
+
+def _unmapped_feed_and_emission(library: Path) -> None:
+    """fixture-ammonia (internal: no publication status) gets a feed and an emission that
+    nothing maps."""
+    path = library / AMMONIA
+    data = yaml.safe_load(path.read_text())
+    data["exchanges"].append({"key": "feed:CATALYST", "title": "Iron catalyst", "type": "input", "amount": 0.2, "unit": "kg"})
+    data["exchanges"].append({"key": "emission:XE", "title": "Xenon", "type": "emission", "amount": 0.01, "unit": "kg"})
+    path.write_text(yaml.safe_dump(data, sort_keys=False))
+
+
+def _overrides(library: Path, exchanges: dict) -> None:
+    (library / OVERRIDES).write_text(yaml.safe_dump({"schema": "cheme-as-code/lci-process-mappings/v1", "exchanges": exchanges}))
+
+
+def _walk(node):
+    if isinstance(node, dict):
+        yield node
+        for value in node.values():
+            yield from _walk(value)
+    elif isinstance(node, list):
+        for value in node:
+            yield from _walk(value)
+
+
+def test_an_internal_process_builds_strictly_with_its_gaps_unlinked(library: Path, tmp_path: Path, capsys) -> None:
+    _unmapped_feed_and_emission(library)
+    out = tmp_path / "out"
+    assert build_lci.main(["--library", str(library), "--out", str(out), "--version", "0.1.0", "--strict"]) == 0
+    printed = capsys.readouterr()
+    assert f"gap: fixture-ammonia: {AMMONIA} feed:CATALYST: no mapping" in printed.err
+    assert f"gap: fixture-ammonia: {AMMONIA} emission:XE: emission of XE (fossil) has no biosphere3 flow identity" in printed.err
+    assert "2 mapping gap(s) in 1 unpublished process(es)" in printed.out
+
+    report = build_lci.build(library, tmp_path / "again", "0.1.0", commit="fixture")
+    assert report.errors == [] and report.warnings == []
+    assert [(g["process"], g["key"], g["link"]) for g in report.gaps] == [("fixture-ammonia", "feed:CATALYST", "technosphere"), ("fixture-ammonia", "emission:XE", "biosphere")]
+
+    # the gaps file and the datapackage list them per process
+    gaps = _json(out / "lci" / "gaps.json")
+    assert gaps["schema"] == "cheme-as-code/lci-gaps/v1" and gaps["count"] == 2
+    assert [(g["key"], g["link"], g["path"]) for g in gaps["processes"]["fixture-ammonia"]] == [("feed:CATALYST", "technosphere", AMMONIA), ("emission:XE", "biosphere", AMMONIA)]
+    index = _json(out / "lci" / "index.json")
+    assert index["gaps"] == {"fixture-ammonia": 2} and "gaps.json" in [f["name"] for f in index["files"]]
+    assert any("mapping gaps" in c for c in index["caveats"])
+    package = _json(out / "lci" / "datapackage.json")
+    assert [g["key"] for g in next(p for p in package["processes"] if p["id"] == "fixture-ammonia")["gaps"]] == ["feed:CATALYST", "emission:XE"]
+    assert next(p for p in package["processes"] if p["id"] == "fixture-electrolysis")["gaps"] == []
+    page = next(a for a in package["activities"] if a["code"] == NH3)
+    assert {e["key"] for e in page["exchanges"] if "gap" in e} == {"feed:CATALYST", "emission:XE"}
+
+    # in the workbook: exported, with their amounts, unlinked (no database, no categories, no
+    # reference product, no Atlas alternative) and marked; nothing zero-filled or dropped
+    ammonia = _activities(out / "lci" / f"{DB}.xlsx")[NH3]
+    feed, emission = _exchange(ammonia, "feed:CATALYST"), _exchange(ammonia, "emission:XE")
+    assert (feed["type"], feed["amount"], feed["unit"]) == ("technosphere", pytest.approx(0.2 / 1000), "kilogram")
+    assert (emission["type"], emission["amount"], emission["unit"]) == ("biosphere", pytest.approx(0.01 / 1000), "kilogram")
+    for entry in (feed, emission):
+        assert entry["atlas gap"].startswith("unlinked, no ")
+        assert not {"database", "categories", "reference product", "location", "atlas activity", "atlas flow uuid"} & set(entry)
+    assert ammonia["meta"]["atlas gaps"] == 2 and "UNLINKED (mapping gaps" in ammonia["meta"]["comment"]
+    # the other activities are untouched
+    assert "atlas gaps" not in _activities(out / "lci" / f"{DB}.xlsx")[H2]["meta"]
+
+    # the other formats carry the gaps flagged, never linked
+    import zipfile
+    with zipfile.ZipFile(out / "lci" / f"{DB}-olca-jsonld.zip") as package_zip:
+        members = {n: json.loads(package_zip.read(n)) for n in package_zip.namelist() if n.endswith(".json")}
+    flows = [m for n, m in members.items() if n.startswith("flows/") and m.get("category") == "ChemE-as-Code Atlas/unlinked (mapping gaps)"]
+    assert sorted(f["name"] for f in flows) == ["CATALYST", "XE"]
+    process = next(m for n, m in members.items() if n.startswith("processes/") and "fixture-ammonia" in json.dumps(m) and "CATALYST" in json.dumps(m))
+    gap_ids = {f["@id"] for f in flows}
+    assert all(e.get("defaultProvider") is None for e in process["exchanges"] if e["flow"]["@id"] in gap_ids)
+    assert "UNLINKED" in json.dumps(process)
+    multifunctional = _json(out / "lci" / f"{DB}-multifunctional.json")
+    marked = [e for e in _walk(multifunctional) if "atlas gap" in e]
+    assert sorted(e["atlas key"] for e in marked) == ["emission:XE", "feed:CATALYST"]
+    assert not any({"database", "atlas code", "atlas activity code"} & set(e) for e in marked)
+
+
+def test_the_same_gaps_fail_a_public_process(library: Path, tmp_path: Path) -> None:
+    _unmapped_feed_and_emission(library)
+    manifest = library / "processes" / "fixture-ammonia" / "process.yaml"
+    data = yaml.safe_load(manifest.read_text())
+    data["publication"] = {"status": "public", "license": "CC-BY-4.0"}
+    manifest.write_text(yaml.safe_dump(data, sort_keys=False))
+    assert build_lci.main(["--library", str(library), "--out", str(tmp_path / "out"), "--strict"]) == 1
+    for public in (False, True):
+        report = build_lci.build(library, tmp_path / f"out-{public}", "0.1.0", commit="fixture", public=public)
+        assert report.gaps == []
+        assert any(f"{AMMONIA} feed:CATALYST: no mapping" in e for e in report.errors)
+        assert any(f"{AMMONIA} emission:XE: emission of XE (fossil) has no biosphere3 flow identity" in e for e in report.errors)
+        assert not (tmp_path / f"out-{public}" / "lci").exists()
+
+
+def test_a_process_override_is_applied(library: Path, tmp_path: Path) -> None:
+    _unmapped_feed_and_emission(library)
+    _overrides(library, {"feed:CATALYST": {"use": "steel-sections", "source": "test: the catalyst as steel"}, "feed:nitrogen": {"atlas": False}})
+    report = _build(library, tmp_path / "out")
+    assert report.errors == [] and [g["key"] for g in report.gaps] == ["emission:XE"]
+    ammonia = _activities(tmp_path / "out" / "lci" / f"{DB}.xlsx")[NH3]
+    shared = build_lci.load_mappings(library / "lci" / "mappings.yaml")
+    assert _exchange(ammonia, "feed:CATALYST")["name"] == shared["technosphere"]["steel-sections"]["activity"]["name"]
+    assert "atlas gap" not in _exchange(ammonia, "feed:CATALYST")
+
+
+def test_an_exchange_overridden_in_both_files_is_an_error(library: Path, tmp_path: Path) -> None:
+    _overrides(library, {"feed:nitrogen": {"atlas": False}})
+    path = library / "lci" / "mappings.yaml"
+    data = yaml.safe_load(path.read_text())
+    data["exchanges"] = {"fixture-ammonia/feed:nitrogen": {"atlas": False}}
+    path.write_text(yaml.safe_dump(data, sort_keys=False))
+    report = _build(library, tmp_path / "out")
+    assert report.errors == [f"{OVERRIDES}: exchanges.feed:nitrogen is also overridden in lci/mappings.yaml (exchanges.fixture-ammonia/feed:nitrogen): keep one, in this file"]
+    assert not (tmp_path / "out" / "lci").exists()
+
+
+@pytest.mark.parametrize(
+    ("exchanges", "message"),
+    [
+        ({"feed:nitrogen": {"atlas": False, "colour": "red"}}, "exchanges/feed:nitrogen: Additional properties are not allowed ('colour' was unexpected)"),
+        ({"fixture-ammonia/feed:nitrogen": {"atlas": False}}, "exchanges: 'fixture-ammonia/feed:nitrogen' does not match"),
+        ({"feed:nitrogen": {}}, "exchanges/feed:nitrogen: {} should be non-empty"),
+    ],
+)
+def test_a_process_mappings_file_is_validated_with_its_path(library: Path, tmp_path: Path, exchanges, message) -> None:
+    _overrides(library, exchanges)
+    report = _build(library, tmp_path / "out")
+    assert any(e.startswith(f"{OVERRIDES}: ") and message in e for e in report.errors), report.errors
+    assert not (tmp_path / "out" / "lci").exists()
+
+
+@pytest.mark.parametrize("path", sorted(KIT.glob("processes/*/lca/mappings.yaml")), ids=lambda p: p.parents[1].name)
+def test_process_mapping_files_are_valid(path: Path) -> None:
+    assert build_lci._schema_problems(yaml.safe_load(path.read_text()), "lci-process-mappings.schema.json") == []

@@ -13,6 +13,7 @@ Optional, as the process matures:
 | `process/flowsheet.yaml` | flowsheet and stream table |
 | `layout/plant-model.yaml` | 3D layout (in the Viewer) |
 | `lca/` with results (`cheme assess lca --write`) | footprint per functional unit, contributions, inventory |
+| `lca/mappings.yaml` (schema `schemas/lci-process-mappings.schema.json`) | nothing on its own: this process's exchange overrides for the LCI build (`exchanges:` by `<kind>:<id>`). Until the process is public, an unmapped exchange is a gap listed in `lci/gaps.json`, not an error ([lci/README.md](../../lci/README.md) "Linking") |
 | `checks/status.json` | engineering gate status |
 | `runs/<run-id>/` (one per agent or work session, [docs/run-records.md](../../docs/run-records.md)) | nothing: the effort record stays in git |
 

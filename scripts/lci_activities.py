@@ -124,7 +124,9 @@ def _exchange(entry: dict, source: dict | None, db_name: str, codes: dict[tuple,
         out["uncertainty"] = {"distribution": "lognormal", "loc": entry["loc"], "scale": entry["scale"], **({"negative": True} if entry.get("negative") else {})}
     if entry.get("atlas carrier"):
         out["carrier"] = entry["atlas carrier"]
-    if entry["type"] == "biosphere":
+    if entry.get("atlas gap"):
+        out["gap"] = entry["atlas gap"]  # unlinked (ADR 0022): no flow identity, no link target
+    elif entry["type"] == "biosphere":
         out["flow"] = {
             "name": entry["name"],
             "uuid": entry.get("atlas flow uuid"),
