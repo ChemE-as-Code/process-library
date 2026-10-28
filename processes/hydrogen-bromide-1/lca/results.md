@@ -85,9 +85,10 @@ It does not check:
 - construction (infrastructure, equipment) not included
 - end of life of the plant not included
 - transport of supplies not included
+- cut off by the study's criteria: cutoff:r102-carbon-makeup (fresh activated carbon for the R-102 finishing bed: about 285 Nm3/h of HBr gas at a gas hourly space velocity of 1 000 1/h (ASSUMED) gives 0.29 m3 of carbon, 130 kg at 450 kg/m3 bulk density (ASSUMED), changed once a year (ASSUMED; no bed life found in open sources))
+- cut off by the study's criteria: cutoff:r102-carbon-spent (the spent charge of the R-102 bed to hazardous waste treatment, same amount as the make-up (its adsorbed bromine not estimated; ASSUMED))
 - cut off by the study's criteria: emission-excluded:burner-combustion (R101 burns hydrogen in bromine vapour: no air and no carbon enter the flame, so no NOx, CO, CO2, CH4, N2O or particulates form; its products are all in the balance (S4). The air of the burner start-up (US 6 036 936 A: ignition in air, then bromine replaces air) is non-routine)
 - cut off by the study's criteria: emission-excluded:bromine-slip (bromine in the vent: zero in the balance (Br2 converted in R101/R102 and absorbed); at upsets bromine or HBr-bearing gas reaches the scrubber and vent, not estimated at the concept stage)
 - cut off by the study's criteria: emission-excluded:non-routine (start-up (purging, ignition), shutdown and burner trips send hydrogen and HBr/Br2-bearing gas to the scrubber and vent; not estimated at the concept stage (D-012))
-- cut off by the study's criteria: emission-excluded:catalyst (waste, not an emission: spent activated carbon of R102 (bromine-loaded) is replaced at intervals not found in open sources; amount not estimated (D-012))
 - cut off by the study's criteria: emission-excluded:tanks (bromine and acid storage are outside the boundary (D-001); their breathing is normally scrubbed (ASSUMED))
 - cut off by the study's criteria: emission-excluded:leaks (fugitive Br2, H2 and HBr from flanges and seals are not estimated at the concept stage; to be added with the P&IDs)

@@ -17,6 +17,27 @@ technology: HBr burner (bromine vapour in 5 mol-% excess hydrogen) with water-co
   HBr as 48 wt-% acid; LP steam bromine vaporiser
 rights: 'CC-BY-4.0: the ChemE-as-Code process library''s own concept design (LICENSE-DATA)'
 cutoff:
+- key: cutoff:r102-carbon-makeup
+  title: R-102 activated carbon make-up
+  amount: 0.01625
+  reason: 'fresh activated carbon for the R-102 finishing bed: about 285 Nm3/h of HBr gas at a gas hourly
+    space velocity of 1 000 1/h (ASSUMED) gives 0.29 m3 of carbon, 130 kg at 450 kg/m3 bulk density (ASSUMED),
+    changed once a year (ASSUMED; no bed life found in open sources)'
+  catalyst: true
+  contains:
+  - C
+  source: D-013
+- key: cutoff:r102-carbon-spent
+  title: R-102 spent activated carbon (bromine-loaded)
+  direction: output
+  amount: 0.01625
+  reason: the spent charge of the R-102 bed to hazardous waste treatment, same amount as the make-up (its
+    adsorbed bromine not estimated; ASSUMED)
+  catalyst: true
+  contains:
+  - C
+  - Br
+  source: D-013
 - key: emission-excluded:burner-combustion
   title: combustion emissions of the plant
   direction: output
@@ -35,12 +56,6 @@ cutoff:
   direction: output
   reason: start-up (purging, ignition), shutdown and burner trips send hydrogen and HBr/Br2-bearing gas
     to the scrubber and vent; not estimated at the concept stage (D-012)
-  source: D-012
-- key: emission-excluded:catalyst
-  title: non-routine emissions of the plant
-  direction: output
-  reason: 'waste, not an emission: spent activated carbon of R102 (bromine-loaded) is replaced at intervals
-    not found in open sources; amount not estimated (D-012)'
   source: D-012
 - key: emission-excluded:tanks
   title: storage-tank emissions of the plant
@@ -163,7 +178,7 @@ exchanges:
   basic_uncertainty: 1.05
   carrier:
     kind: steam
-    temperature: 147.65
+    temperature: 147.95
     pressure: 4.5
     level: LP
     source: utility of LPS in process/flowsheet.yaml
@@ -374,9 +389,9 @@ provenance:
   plant: Hydrogen bromide synthesis and absorption (2.08 t/h hydrobromic acid 48 wt-%)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:7b8fe57d0853000d732ba63e71943b10e6f3e8c216e1266210f08866755058e9
-    lca/lca.yaml: sha256:75958bf8e55f86ad94d4cb9f6e71b136570918b3bb4d79d65b0c6a63d166e8f3
-    process.yaml: sha256:45625a29d58e7488183aade7ea477198e65edf11b1dd14e8dde51d773af45c92
-    process/flowsheet.yaml: sha256:41d879fca4deed2bdce587deab6abdd44a81cfd80f5049ea02bd1ce2c2e5f85e
+    equipment/equipment-list.yaml: sha256:b4517e53889969f24bfe1eb213d10850a5a24f69c2aa7e276efb010f7b05e538
+    lca/lca.yaml: sha256:c473cad81496a8cfb3b0bb304a2158dc62456790b8f0e8f467cf3de3177a33dd
+    process.yaml: sha256:055dcd3ac3eb7c99e7ac10d867aa87d8be7f68ff166c50edaa1481cde4542c9f
+    process/flowsheet.yaml: sha256:445807120458bf58d6b21bb84bbe8a9c8f3c5d3115197af16e0526dbc866c76c
     process/materials.yaml: sha256:d86b054b1a023ee2c9d79b44ffb94113df9a0bb2d60595279c9bf950ae06d323
     process/simulation.yaml: sha256:2a612f0c72462d984e4d954e2151ac058b9b1b5940115ffe07bc770a8c982d25

@@ -62,7 +62,7 @@ our own words; nothing copied.
 | SRC-6 | Parker, V. B. (1965) Thermal Properties of Aqueous Uni-Univalent Electrolytes, NSRDS-NBS 2, as tabulated by Purdue Science Express "Enthalpy of Solution Reference" | HBr(g) to infinite dilution -85.14 kJ/mol at 25 degC | value from a search summary; PDF not opened | US government data | bound for D-009 |
 | SRC-7 | Ullmann's Encyclopedia, "Bromine Compounds", doi:10.1002/14356007.a04_405, and "Bromine", doi:10.1002/14356007.a04_391.pub2 | none | metadata (issue #130 leads) | licensed | route identity only; no number taken |
 | SRC-8 | hydrogen-1 (this library), process/flowsheet.yaml stream S17 | stream state | read | CC BY 4.0 (own) | D-003 hydrogen feed |
-| SRC-9 | IAPWS-IF97 steam properties | psat 303.15/313.15 K, latent heat at 450 kPa(a), saturation 420.8 K | values from the standard as commonly tabulated | open standard | D-007, D-008 |
+| SRC-9 | IAPWS R7-97(2012), Revised Release on the IAPWS Industrial Formulation 1997 (IAPWS-IF97), http://www.iapws.org/relguide/IF97-Rev.html | region 4: saturation-pressure equation (Eq. 30) psat(303.15 K) = 4.247 kPa, psat(313.15 K) = 7.384 kPa; saturation-temperature equation (Eq. 31) Tsat(450 kPa) = 421.06 K; latent heat h'' - h' at 450 kPa(a) = 2 120.2 kJ/kg from regions 1 and 2 at saturation | computed with the IF97 implementation of CoolProp 8.0.0 (`IF97::Water` backend), 2026-10-28 | open standard | D-007, D-008 |
 | SRC-10 | US 6 303 088 B1 and US 6 355 222 (HBr gas devices) | none | found by search, not read | patent | not used |
 
 Not found in open sources by this run: an integral heat of solution of HBr at about 5 mol water
@@ -71,7 +71,7 @@ the finishing carbon, a BAT-AEL or emission factor for HBr synthesis vents.
 
 ## 3. Reaction and model evidence
 
-- **Chemistry.** H2 + Br2(g) -> 2 HBr, dHr = -102.6 kJ per kmol extent from the ATcT data of
+- **Chemistry.** H2 + Br2(g) -> 2 HBr, dHr = -102.6 kJ per mol extent (MJ per kmol) from the ATcT data of
   SRC-5 (-103.1 to -103.8 kJ with SRC-3's range of dHf(HBr)); SRC-1 gives 12.3 kcal = 51.5 kJ
   per mol HBr, the same. From liquid bromine the reaction releases 30.9 kJ/mol less (the
   vaporisation enthalpy, supplied by E-101). The only reaction in `process/reactions.yaml`.
@@ -139,8 +139,8 @@ core#364) nor the bromine vaporiser (no package for Br2 liquid). The script clos
 
 ## D-007 Vaporiser, burner and cooler temperatures; LP steam (2026-10-28)
 Decision: E-101 vaporises bromine at 300 kPa(a) (saturation 368.7 K, SRC-5) and superheats it
-to 378 K (SRC-1 feeds bromine at 3 bar(a), 95 degC), with LP steam at 450 kPa(a) (420.8 K
-saturated, 42 K above the bromine, as methanol-1's LP level); Q1 = 58.0 kW = 98.5 kg/h steam,
+to 378 K (SRC-1 feeds bromine at 3 bar(a), 95 degC), with LP steam at 450 kPa(a) (421.1 K
+saturated, SRC-9; 42 K above the bromine, as methanol-1's LP level); Q1 = 58.0 kW = 98.5 kg/h steam,
 0.058 kWh per kg HBr. The burner chamber is water-cooled (SRC-1, SRC-2) and its gas leaves at
 175 degC (inside SRC-1's 150-200 degC entry to the finishing stage) at 250 kPa(a) (inside the
 1.8-10 bar(a) of SRC-1); E-102 cools to 60 degC (SRC-1's preferred value). Q2 = 166.4 kW and
@@ -157,6 +157,14 @@ demineralised water (298 K, 300 kPa(a)), runs at 190 kPa(a) and 303 K, and vents
 pressure control valve at 105 kPa(a), water-saturated at scrubber conditions, with 5 mg/Nm3
 HBr (ASSUMED; no limit value read). P201 pumps the acid to 300 kPa(a). All ASSUMED, to be
 replaced by an absorber model or vendor data.
+The weak acid S9 runs from C202 to C201 by gravity, without a pump: C202 is stacked above
+C201 (the usual arrangement of HCl and HBr falling-film absorbers with their tail gas
+scrubbers), and the liquid leg below the C202 packing, about 2 m of weak acid (about 20 kPa
+at 1 000 kg/m3), raises the 190 kPa(a) of the scrubber to 210 kPa(a) at its outlet, enough to
+enter the absorber head at 200 kPa(a) after about 10 kPa of line and distributor loss. ASSUMED
+(no elevation study at the concept stage; review 2026-10-28-pfd-lci-review#4). Rejected: a
+weak-acid pump (a rotating machine in HBr service for 20 kPa; its power would be negligible in
+the LCI).
 
 ## D-009 Heat of solution of HBr to 48 wt-% acid: -72.0 kJ/mol, ASSUMED (2026-10-28)
 Decision: the integral enthalpy of solution of HBr(g) in water to the product (4.87 mol water
@@ -183,11 +191,25 @@ background is declared `missing:` with the activity it should connect to (bromin
 bromine market, hydrogen-1's dataset, demineralised water, LP steam heat, grid electricity,
 cooling water), so each is a gap, never 0. One product, no allocation. Emissions: the vent
 (H2, HBr to air; N2 and water free); the burner burns no air and no carbon, so no combustion
-emission exists (declared exclusion); bromine slip, start-up and upset venting, spent carbon of
-R-102, tank breathing (outside) and leaks are declared exclusions without amounts.
-`lca/mappings.yaml` has no overrides (candidates listed there). The equipment list holds the
+emission exists (declared exclusion); bromine slip, start-up and upset venting, tank
+breathing (outside) and leaks are declared exclusions without amounts; the R-102 carbon is a
+cut-off flow with an amount (D-013). Br2 to air is declared elementary, not free, so that a
+non-zero slip in a later balance is characterised or a gap (review #3). `lca/mappings.yaml`
+maps only the LP steam, counted as heat delivered (kWh, `steam-heat`), for the Atlas build;
+the other candidates are listed there. The equipment list holds the
 seven PFD items with ASSUMED design data; the line and instrument lists stay empty until the
 P&IDs (out of scope of this run).
+
+## D-013 R-102 activated carbon: a cut-off flow with an ASSUMED amount (2026-10-28)
+Decision: the make-up activated carbon of the finishing bed and the bromine-loaded spent
+carbon are routine flows, recorded as `cutoff:` entries of `lca/lca.yaml` with 130 kg/a each,
+so that the 1 % mass criterion is checked, instead of a non-routine exclusion without an
+amount (review 2026-10-28-pfd-lci-review#2). Basis, all ASSUMED (no bed volume or bed life in
+the open sources read): 284 Nm3/h of gas through R-102 (S4, 12.7 kmol/h), a gas hourly space
+velocity of 1 000 1/h, so 0.29 m3 of carbon, 450 kg/m3 bulk density, one change-out a year.
+That is 1.6e-5 kg per kg HBr and 0.0008 % of the input mass, far below the 1 % rule. Rejected:
+a `missing:` carbon feed and a waste output in the inventory (a gap for a flow this small would
+only add noise to the coverage; revisit when the bed is sized with a vendor).
 
 ## 5. Results of this stage
 

@@ -43,12 +43,16 @@ flows:
   # Br2 is toxic: declared elementary (not free) so that a non-zero slip in a later balance is
   # characterised or a gap, never burden-free
   - {key: emission:Br2, elementary: {compartment: air}, source: "0 kg: Br2 fully converted in R101/R102 (D-005); bromine slip at upsets is excluded below (non-routine)"}
+# The R-102 finishing carbon is a routine consumable and waste, cut off with an amount so that the
+# 1 % mass rule is checked (D-013): about 130 kg/a against 16 670 t/a of inputs (0.0008 %)
+cutoff:
+  - {id: r102-carbon-makeup, title: "R-102 activated carbon make-up", direction: input, unit: kg, per_year: 130, catalyst: true, contains: [C], reason: "fresh activated carbon for the R-102 finishing bed: about 285 Nm3/h of HBr gas at a gas hourly space velocity of 1 000 1/h (ASSUMED) gives 0.29 m3 of carbon, 130 kg at 450 kg/m3 bulk density (ASSUMED), changed once a year (ASSUMED; no bed life found in open sources)", source: "D-013"}
+  - {id: r102-carbon-spent, title: "R-102 spent activated carbon (bromine-loaded)", direction: output, unit: kg, per_year: 130, catalyst: true, contains: [C, Br], reason: "the spent charge of the R-102 bed to hazardous waste treatment, same amount as the make-up (its adsorbed bromine not estimated; ASSUMED)", source: "D-013"}
 operation: {hours_per_year: 8000, life_years: 20, source: "design basis, D-002; life ASSUMED"}
 emission_exclusions:
   - {id: burner-combustion, method: combustion, reason: "R101 burns hydrogen in bromine vapour: no air and no carbon enter the flame, so no NOx, CO, CO2, CH4, N2O or particulates form; its products are all in the balance (S4). The air of the burner start-up (US 6 036 936 A: ignition in air, then bromine replaces air) is non-routine", source: "D-012"}
   - {id: bromine-slip, method: non-routine, reason: "bromine in the vent: zero in the balance (Br2 converted in R101/R102 and absorbed); at upsets bromine or HBr-bearing gas reaches the scrubber and vent, not estimated at the concept stage", source: "D-005, D-012"}
   - {id: non-routine, method: non-routine, reason: "start-up (purging, ignition), shutdown and burner trips send hydrogen and HBr/Br2-bearing gas to the scrubber and vent; not estimated at the concept stage (D-012)", source: "D-012"}
-  - {id: catalyst, method: non-routine, reason: "waste, not an emission: spent activated carbon of R102 (bromine-loaded) is replaced at intervals not found in open sources; amount not estimated (D-012)", source: "D-012"}
   - {id: tanks, method: storage-tank, reason: "bromine and acid storage are outside the boundary (D-001); their breathing is normally scrubbed (ASSUMED)", source: "D-012"}
   - {id: leaks, method: equipment-leaks, reason: "fugitive Br2, H2 and HBr from flanges and seals are not estimated at the concept stage; to be added with the P&IDs", source: "D-012"}
 dataset:
