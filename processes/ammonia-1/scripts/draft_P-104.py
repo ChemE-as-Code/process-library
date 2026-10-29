@@ -50,7 +50,7 @@ e203 = equipment(sheet, "TubularHeatExchanger", "E-203", shape="HEAT_EXCHANGER_F
 v201 = equipment(sheet, "Vessel", "V-201", shape=VESSEL, at=(320, 190), scale=(1.2, 1.6),
                  nozzles=[Nozzle("N1", (-12, -5), 450), Nozzle("N2", (0, -24), 400),
                           Nozzle("N3", (0, 24), 125), Nozzle("N4", (12, -10), 50),
-                          Nozzle("N5", (12, 10), 50)],
+                          Nozzle("N5", (12, 10), 50), Nozzle("N6", (-8, -22), 150)],
                  label_at=(300, 172))
 
 # Process gas: E-401 (CO2 removal sheet) -> R-202 -> E-202 -> E-203 -> V-201 -> C-301
@@ -65,6 +65,12 @@ line(sheet, "PG-1046", dn=450, fluid="Process gas", route=[
 line(sheet, "PG-1047", dn=400, fluid="Process gas", route=[
     v201["N2"], (320, 160), offpage("out", at=(EDGE, 160), note="to C-301")],
     label_at=(370, 164.5))
+# V-201 relief (fire case and blocked outlet, not sized: S8): globe valve placeholder made a
+# SpringLoadedGlobeSafetyValve with SAFETY_VALVE_SPRING_LOADED_SHAPE by hand (D-027)
+sheet.use_shape("SAFETY_VALVE_SPRING_LOADED_SHAPE")
+line(sheet, "PG-1055", dn=150, fluid="Process gas", route=[
+    v201["N6"], (312, 155), valve("PSV1310", "GlobeValve", tag="PSV-1310", at=(296, 155)),
+    offpage("out", at=(272, 155), note="to flare", rotation=180)], label_at=(292, 146.5))
 lv1307 = valve("LV1307", "GlobeValve", tag="LV-1307", at=(320, 228))
 line(sheet, "PC-1048", dn=125, fluid="Process condensate", route=[
     v201["N3"], lv1307, (320, 240), offpage("out", at=(EDGE, 240), note="to U-801 (stripper)")],

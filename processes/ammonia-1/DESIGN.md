@@ -576,8 +576,15 @@ temperatures, separator level, cooler outlet temperature) and four trips propose
 I-103 secondary reformer outlet high-high, I-104 separator level high-high). Equipment-list
 change: E-106 was typed AirCoolingSystem (an air-cooled exchanger); it is a flue gas / air
 preheater and is now TubularHeatExchanger, as drawn.
-Not drawn yet (open, for the reviews and S4/S8): relief devices (no relief scenarios exist
-yet, S8), burner management of H-101, control valve block and bypass valves, vents, drains and
+Relief: PSV-1212 on the K-101 discharge (before the check valve) and PSV-1310 on V-201,
+listed in `piping/special-items.yaml` without set pressure or relief case (no relief study
+yet, S8). The builder has no safety-valve class: each was drawn as a globe valve and turned
+into a SpringLoadedGlobeSafetyValve (tag in PositionNumber, catalogue shape
+SAFETY_VALVE_SPRING_LOADED_SHAPE) by a hand edit of the XML. Whether the reformers, shift
+converters and waste heat boilers need their own devices depends on the design pressures
+against the 4500 kPa(a) gas supply, which are not set yet.
+Not drawn yet (open, for the reviews and S4/S8): further relief devices (see above), burner
+management of H-101, control valve block and bypass valves, vents, drains and
 sample points, the K-101 intercoolers and drive (inside its package), the stack (not a listed
 item), steam drums (U-801, S3c).
 Reason: S3a of runs/plan.md; the block split keeps every PFD step on exactly one sheet.

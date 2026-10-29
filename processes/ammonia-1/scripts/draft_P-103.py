@@ -62,10 +62,17 @@ fv1201 = valve("FV1201", "ButterflyValve", tag="FV-1201", at=(30, 45))
 line(sheet, "PA-1030", dn=1200, fluid="Air", route=[
     offpage("in", at=(12, 45), note="from atmosphere (filter)", note_at=(29, 51)), fv1201,
     k101["N1"]], label_at=(60, 54))
+relief = tee("T1054", at=(100, 45), branch="down", branch_dn=100)
 blow = tee("T1022", at=(110, 45), branch="up", branch_dn=150)
 line(sheet, "PA-1022", dn=250, fluid="Process air", route=[
-    k101["N2"], blow, valve("CV1022", "SwingCheckValve", at=(135, 45)),
+    k101["N2"], relief, blow, valve("CV1022", "SwingCheckValve", at=(135, 45)),
     offpage("out", at=(EDGE, 45), note="to E-104, P-102")], label_at=(300, 36.5))
+# K-101 discharge relief: drawn with a globe valve placeholder that is then made a
+# SpringLoadedGlobeSafetyValve with SAFETY_VALVE_SPRING_LOADED_SHAPE by hand (D-027)
+sheet.use_shape("SAFETY_VALVE_SPRING_LOADED_SHAPE")
+line(sheet, "PA-1054", dn=100, fluid="Process air", route=[
+    relief.branch, valve("PSV1212", "GlobeValve", tag="PSV-1212", at=(100, 60)),
+    offpage("out", at=(100, 75), note="to atmosphere", rotation=90)], label_at=(113, 64))
 fv1202 = valve("FV1202", "GlobeValve", tag="FV-1202", at=(140, 18))
 line(sheet, "PA-1031", dn=150, fluid="Process air", route=[
     blow.branch, (110, 18), fv1202, valve("SL1031", "Silencer", at=(170, 18)),
@@ -119,9 +126,9 @@ line(sheet, "SM-1040", dn=125, fluid="Steam-water mixture", route=[
 # Instruments
 instrument(sheet, "FIC-1201", at=(30, 28), sensing="Line_PA1030_S1", sensing_at=(45, 45),
            signal_to=fv1201)
-instrument(sheet, "UIC-1202", at=(140, 32), sensing="Line_PA1022_S2", sensing_at=(122, 45),
+instrument(sheet, "UIC-1202", at=(140, 32), sensing="Line_PA1022_S3", sensing_at=(122, 45),
            signal_to=fv1202)
-instrument(sheet, "PI-1203", at=(160, 60), sensing="Line_PA1022_S2", sensing_at=(160, 45))
+instrument(sheet, "PI-1203", at=(160, 60), sensing="Line_PA1022_S3", sensing_at=(160, 45))
 instrument(sheet, "US-1204", at=(330, 92), signal_to=xv1204)
 instrument(sheet, "TZ-1205", at=(140, 182), sensing="Line_PG1032_S1", sensing_at=(170, 182))
 instrument(sheet, "TI-1206", at=(135, 158), sensing=r102["N4"])
