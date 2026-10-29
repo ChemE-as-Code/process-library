@@ -648,6 +648,82 @@ Rejected: one sheet for absorber and regenerator (too dense for A3 with the auxi
 the solvent loop as two bare columns as the PFD does (a P&ID needs the pumps, exchangers and the
 level and blow-by protection between the two pressures).
 
+## D-029 Loop and utility P&IDs P-109 to P-114 (2026-10-29, S3c)
+Decision: the rest of block SYN, blocks PGR and STM and the main utility headers are drawn on
+six A3 sheets: P-109 make-up / recycle junction M502, circulator K-502 with anti-surge recycle,
+feed/effluent exchanger E-501 (feed in the shell, effluent in the tubes) with the converter
+inlet bypass, converter R-501 (three beds drawn, interbed exchange inside) and waste heat boiler
+E-502; P-110 loop water cooler E-503, cold exchanger E-505, chiller E-504, separator V-501 with
+the purge take-off (SPL501), the separator let-down (LV501 as LV-1903) and let-down vessel
+V-502; P-111 product flash drum V-701, refrigeration package K-701 with condenser E-701 and the
+product to the storage interface (battery limit) with the recovered NH3 joining (M701); P-112
+the purge gas recovery package X-601 as one symbol (M601, NH3 wash, E601, cold box X602 and
+hydrogen compressor K601 inside, as the flowsheet links them); P-113 the steam system U-801 as
+one lumped symbol (deaerator, condensate stripper, steam drum, superheater, LP let-down: the
+flowsheet's U801 step, D-015) with the BFW pump P-801, the boiler water circuits of E-107, E-105,
+E-201 and E-502, the MP steam header, LP steam, condensate returns, make-up and blowdown; P-114
+the cooling water supply and return headers with a branch to each of the nine CW users and the
+flare header collecting five relief lines. Sheets hand-maintained; `scripts/draft_P-109.py` ..
+`draft_P-114.py` wrote their first revision (provenance, run with `cheme run`). Every PFD step of
+SYN (except K-501, P-108), PGR and STM is on a sheet, as an item or inside a listed package.
+Package boundaries (ASSUMED, as the flowsheet links them): the K-701 package holds the chiller
+and flash-gas compressor stages, the flash-gas intercooler, the receiver V702, the vent chiller
+E702 and its knock-out V703; the X-601 package as above. No equipment was added to the list:
+P-801 is drawn single (spare and three-element drum level control open, S4); the product pumps
+and storage are outside the battery limit.
+Lines: numbers continue D-028 (serials 1093-1146; 1094, 1103, 1110, 1112 not used; AL liquid
+ammonia, AG ammonia vapour, SL LP steam, BD blowdown, FLR relief gas). A line drawn on two
+sheets keeps its number (PG-1088, PG-1093, PG-1102, PG-1109, PG-1113, AL-1114, AL-1117,
+AG-1118, PG-1126, PG-1087, FG-1010, AL-1124, AG-1125, AL-1129, SL-1135, PC-1136, the boiler water
+circuits, the CW branches and the relief lines). DN from the design-case streams as D-027
+(build/ scratch calculation, ideal-gas density; gas 20 m/s, liquids 1.5 m/s, steam 30 m/s, CW
+2.2 m/s with 10 K rise, all ASSUMED); liquid NH3 density and the refrigerant properties
+(saturation pressure 236 kPa(a) at 258 K and 1555 kPa(a) at 313 K, heat of vaporisation, liquid
+heat capacity) from thermo's pure-component correlations in cheme's interpreter. Refrigerant
+flows follow from the simulated chiller duties (Q25 22.5 MW, Q34 2.3 MW, Q30 7 kW): 21.4 kg/s to
+E-504 (AG-1118 DN 900 at 236 kPa(a), AL-1117 DN 200); K-701 discharge DN 450 with an ASSUMED
+380 K discharge temperature. E-502 downcomer BW-1100 DN 400 from 25.9 kg/s steam (Q23 over the
+heat of vaporisation at 4600 kPa(a)) and the circulation ratio 5 of D-027; riser DN 250 in
+D-027's riser/downcomer ratio. MP steam header SM-1140 DN 350 for the 153.4 t/h raised, process
+steam SM-1005 DN 300 branching from it (as on P-101), export through PV-2203 at the header DN.
+LP steam level 450 kPa(a) ASSUMED (D-015 names an LP let-down without a pressure): SL-1135 DN 65
+for Q29. Cooling water headers DN 1400 for the 136.5 MW of CW duties (Q2, Q16, Q18, Q19, Q21,
+Q24, Q28, Q33). Flare header DN 300 and every relief line DN ASSUMED (no relief loads, S8). Small
+lines DN 25 minimum (ASSUMED). Two-phase let-down downstream of LV-1903 (S99, 0.243 m at 20 m/s)
+is drawn in the line's DN 150; the valve outlet size is open with the valve sizing.
+Instruments: loop numbers by sheet (18xx P-109 ... 23xx P-114). Regulatory loops: K-502
+anti-surge on the suction flow (UIC-1802), converter inlet temperature by the E-501 bypass
+(TIC-1803), separator level on the let-down valve (LIC-1903), purge flow (FIC-1905), V-502
+pressure (PIC-1906) and level (LIC-1907), chiller refrigerant level (LIC-1908), V-701 level on
+the product (LIC-2005), receiver vent pressure (PIC-2007), tail gas pressure (PIC-2104), LP steam
+to the NH3 distillation (FIC-2106), steam drum level on the BFW (LIC-2201), deaerator level on
+the make-up water (LIC-2202), MP header pressure on the export (PIC-2203), LP steam pressure
+(PIC-2206). Analysers: H2/N2 of the converter feed (AI-1804; D-026 asks it to trim the process
+air, the loop is S4's), H2 of the recovered gas (AI-2103). Trip proposed in
+`control/cause-effect.yaml`: I-107 V-501 level low-low closes XV-1904 (gas blow-by from
+14,700 kPa(a) into V-502 at 2500 kPa(a)). Converter high-temperature trips, K-502 and K-701 trips
+are left for S4 and the HAZOP.
+Relief: PSV-1911 (V-501), PSV-1912 (V-502), PSV-2010 (V-701) to the flare header, PSV-2210 on the
+MP steam header to atmosphere through a silencer; drawn as globe valves and made
+SpringLoadedGlobeSafetyValve by hand as in D-027; listed in `piping/special-items.yaml` without
+set pressure (S8). Whether ammonia reliefs need a separate NH3 flare system is open (S8).
+Changes to earlier sheets (S3a/S3b), texts only: the off-page notes of SM-1005 (P-101), BW-1024,
+BW-1025, FG-1010 (P-102), BW-1037, SM-1038, BW-1039, SM-1040, CWS-1041, CWR-1042 (P-103),
+PC-1048, PG-1055, CWS-1052, CWR-1053 (P-104), the CW pairs of P-105 to P-107, PC-1083, PC-1084
+(P-107), PG-1087, PG-1088, PG-1090 and the CW pair (P-108) now name the S3c sheet; six CW
+connectors on P-103, P-104 and P-108 moved 3 mm inwards (`cheme move`) so the longer texts stay
+inside the frame.
+Not drawn yet (open, for the reviews and S4/S8): control valve block and bypass valves, vents,
+drains and sample points, the converter start-up heater and catalyst reduction, K-502 and K-701
+seal, lube oil and drives, the steam drum's internals and its own relief (inside U-801), the
+deaerator relief, BFW pump minimum-flow line and spare, chemical dosing, refrigerant charge and
+oil drain of K-701, the X-601 internals.
+Reason: S3c of runs/plan.md; the split follows the loop's hot and cold parts, the refrigeration
+package, the recovery package and the steam system.
+Rejected: one sheet for the whole loop (too dense for A3 with the auxiliaries); drawing the
+packages' internals as separate items (the flowsheet and the equipment list keep them in the
+packages; splitting them would add items the PFD does not link).
+
 ## 3. Results of this stage (design case)
 
 Basic stage, S2 (the simulated flowsheet, D-026; lca/inventory.csv regenerated): per kg of NH3
