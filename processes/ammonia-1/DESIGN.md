@@ -341,7 +341,8 @@ Left out (`exclude`) and why:
   duties needs flows set from duties (an adjust), which core does not offer. Its streams stay
   the concept balance's (ASSUMED); the simulated boiler duties (Q8, Q10, Q13) are written.
 - **SYN and PGR** (synthesis loop, product flash, refrigeration, purge recovery): modelled in
-  DWSIM but not converged in core's terms. Evidence (runs of 2026-10-29, saved DWSIM files):
+  DWSIM but not converged in core's terms (superseded by D-026: simulated and converged on core
+  v1.0.1; the record below stays as the first session found it). Evidence (runs of 2026-10-29, saved DWSIM files):
   with the loop torn at S46 and S48 (or S47/S39, S46/S51), the first recycle settles exactly
   (S47 and its copy equal to the last digit, 85.05577895954663 kg/s), while the second
   recycle's copy never leaves its guess (S39-R stays 240,150.9 kg/h against 240,077.3 kg/h
@@ -436,6 +437,94 @@ Known weak spots: NH3 condensation with dissolved H2/N2/CH4/Ar at 263 K and 147 
 separator, let-down, flash) and CO2 solubility in the process condensate rest on DWSIM's own
 kij, not on sourced data (open input: kij for NH3-H2, NH3-N2, NH3-CH4, NH3-Ar, CO2-H2O).
 
+## D-026 Synthesis loop and purge recovery simulated on core v1.0.1 (2026-10-29, S2 round 2)
+Decision: with core v1.0.1 (core#57 fixed: tear iteration with Anderson acceleration, ADR 0033;
+core#59 fixed: the DEXPI class Pumping) the whole process side is simulated in one DWSIM
+solve: REF (without H101), SHF, CO2R, MET, SYN and PGR, one case (design, D-003), converged
+with seven tears (S4, S9, S27 as before; S44 the converter feed/effluent exchanger, S46 every
+loop path through E-501's hot side including the purge recovery's return, S48 the cold
+exchanger, S88 the product flash gas with its returned liquids). DWSIM 9.0.5, Peng-Robinson
+(D-025), core v1.0.1; run record process/simulation-run.json; 105 streams written as
+`calculated`. Left out: H101 (as D-024), the steam system U801 and the chiller refrigeration
+circuit K701: energy-only packages whose flows follow from duties (an adjust core does not
+offer); their values are evaluated on the simulated duties by
+scripts/packages_on_simulated_duties.py with the concept models (0.55 of Carnot, IAPWS-IF97;
+D-015, D-017) and stay ASSUMED with that source. scripts/loop_on_simulated_makeup.py is removed:
+none of its values is left.
+The loop model is D-024's DWSIM-ready description, with these changes found while running it:
+- **Let-downs are valves.** A DWSIM vessel given only a pressure holds its inlet temperature
+  (core's flash maps a pressure to OverrideP), which is no let-down: the first run flashed the
+  product at 313 K and the flash-gas loop ran away. The separator liquid is let down in a valve
+  LV501 to 2500 kPa(a) and V-502 flashes adiabatically (S53/S54 at 266.05 K, as the concept's
+  isenthalpic let-down, 266.07 K).
+- **The product flash runs at its adiabatic temperature.** An adiabatic let-down to 110 kPa(a)
+  fails DWSIM's PH flash for this mixture ("Unable to calculate PV Flash with P = 110000 and
+  VF = 0.01"); V-701 is therefore a TP flash at 110 kPa(a) whose temperature was set so that its
+  duty Q26 is about zero (238.7 K: -32 kW), the same device as the adiabatic beds of D-024. At
+  the design basis's 240.15 K the drum would need 3.0 MW of heat, because the dissolved inerts
+  carry NH3 vapour at its saturation pressure. D-017 had 238 K for this level.
+- **Flash gas, receiver and vent (D-017).** The flash gas S88 (7.27 t/h, 86 mol% NH3) is
+  compressed in K-701's flash-gas stages (K702, two stages, 0.78, 1.05 MW) to 1700 kPa(a) and
+  cooled to 313 K (0.85 MW to cooling water); at 1700 kPa(a) its NH3 partial pressure stays below
+  the vapour pressure at 313 K, so nothing condenses in the receiver V702 (S90 = 0) and the vent
+  chiller E702 condenses it all at 258 K (2.32 MW, to the refrigeration package); the vent S55,
+  1.26 t/h with 16 mol% NH3, goes to the HRU (concept 1.24 t/h, 14 mol%).
+- **HRU (D-013) at the vent pressure.** M601 mixes purge, let-down gas and vent at 1700 kPa(a)
+  (S57, 252.6 K, 3.95 t/h); X601 (NH3 wash, 99 % NH3) and X602 (cold box, D-013 recoveries) are
+  specified splits; K601 compresses the H2-rich gas S36 to 2850 kPa(a) (53 kW); E601 chills the
+  recovered NH3 to 240.15 K and lets it down to 110 kPa(a) (pressure drop in the step, a cooler
+  takes no outlet pressure in core).
+- **Converter at its outlet temperature.** DWSIM's adiabatic equilibrium reactor fails its flash
+  at R501 as it did for the beds (D-024): "TP Flash: one or more flash specification values are
+  invalid". R501 runs at 703.15 K (D-011) and its duty is the adiabatic check: 31 kW, 0.1 % of
+  the reaction heat, after the retune below.
+- **P301** is a Pumping step (core#59 fixed); no `unit:` override.
+Retuned (design choices, ASSUMED; the simulated values were not edited):
+- **Process air S12 67,184.1 kg/h** (concept 67,281.6): H2/N2 at the converter inlet 3.007
+  (D-007 asks 3.0; D-024 found 2.85 on the re-solved concept loop, the first converged run here
+  2.74). The loop ratio is very sensitive to the air: 2.4 kg/h of air (0.004 %) moved it from
+  3.012 to 2.993; 3.0 +/- 0.01 is what the tear tolerance resolves. The plant needs an H2/N2
+  analyser trimming the process air (a control loop for S4).
+- **E-502 outlet 532.6 K** (concept 547.21 K) so that the converter runs adiabatic (D-011:
+  overall adiabatic converter); at 547.21 K R501 needed -3.3 MW. Converter inlet 493.8 K (concept
+  505.2 K).
+Results (design case): product S60 62,470.7 kg/h at 238.7 K, 99.981 mol% NH3 (CH4 96, Ar 89 ppm
+by mole; 1,499.3 t/d, contained NH3 within 0.1 % of D-002); converter feed 294.0 t/h, NH3
+3.34 -> 18.44 mol%, inerts 12.1 %; purge S50 1.69 t/h; separator gas 229.7 t/h; duties: K-501
+12.72 MW (cooling 12.88 MW), K-502 1.61 MW, E-501 46.6 MW, E-502 43.2 MW (concept 39.7), E-503
+7.52 MW, E-505 7.80 MW, E-504 22.5 MW (22.7); refrigeration package (script) 10.08 MW power,
+34.96 MW condenser; steam (script) 153.4 t/h raised, 60.1 t/h exported (concept 55.1), DMW
+105.1 t/h. Utilities of the simulated plant (run record): hot 69.5 MW, cold 254.8 MW, power
+24.7 MW, recovered between process streams 125.3 MW.
+Findings (deviations kept, not edited away):
+- **Product at 238.7 K, not 240.15 K** (S56, S60): the adiabatic flash at 110 kPa(a) (above).
+  The design basis's product state is an assumption to revisit with the owner (I-02).
+- **S59 tail gas** leaves the cold box at the HRU feed state (252.6 K, 1700 kPa(a)) in the model,
+  against D-013's 303 K and 400 kPa(a): a component separator neither rewarms nor lets down. The
+  assumed values are the package's real outlet and stay; the fuel side (H101) is not simulated.
+- **S36** 305.5 K after K601 against D-013's 303.15 K (uncooled compressor).
+- Also still open from D-024: S66 stack 396.7 K (423.15 K), S28 and S35 pressures, Q18.
+- **Product purity**: 190 ppm (mol) of dissolved CH4 and Ar in the product; the concept assumed
+  NH3 1.0 (D-017); that assumed composition of S56 is replaced by the simulated one.
+- **E505** carries a phase change on its hot side (S46 condenses); its internal approach is not
+  checked by core (`sim-exchanger-zones`), least approach on the composites 10 K.
+- **K601 energy balance** with the stream enthalpies of `cheme process props` (thermo PR with
+  ChemSep kij, filled for the six streams inside the package's claim) differs from DWSIM's power
+  by 2.2 kW (4 %): two Peng-Robinson implementations with different kij.
+- LCA boundary check: R501 now runs at its outlet temperature too and is flagged like R102B,
+  R201, R202 (`boundary-utility-unassigned`); its 31 kW is the residual, not a utility.
+Energy audit (`cheme process energy`): every simulated unit closes (largest residual 0.17 kW at
+E-501; reactors on the formation basis, R501 residual 0); every exchanger without temperature
+cross (least approaches E-505 10 K, E-501 31 K); utility levels ok. The plant closure stays
+unsupported by core while component separators are in the flowsheet (C301, X401, X601, X602:
+"the sign of the component separator's energy imbalance is not established", core#60); block
+energy balances need stream enthalpies that `cheme process props` gives for 6 of 121 streams
+(core#315: no package covers H2O, O2, C2H6, or NH3 liquid and the loop above 5-15 MPa).
+Reason: the brief asks for the whole plant simulated and converged on v1.0.1; every change
+above is a modelling necessity or a retune of an ASSUMED design choice, recorded here.
+Rejected: loosening tolerances or tears, writing simulated values by hand, keeping the
+concept's loop values where the simulation covers them.
+
 ## 3. Results of this stage (design case)
 
 Per kg NH3 (lca/inventory.csv, from the flowsheet): natural gas 0.6034 kg (process 0.4721,
@@ -447,6 +536,8 @@ outputs of one concept design on assumed inputs, not validated performance figur
 
 ## 4. Model and dependency table
 
+Concept stage (D-006), superseded for the simulated part by S2 (D-024, D-026; table below):
+
 | item | model / basis | status |
 |---|---|---|
 | reformers, shifts, converter | equilibrium (cheme), approaches ASSUMED | calculated by cheme |
@@ -456,6 +547,20 @@ outputs of one concept design on assumed inputs, not validated performance figur
 | duties, compressors, steam, refrigeration | script: cheme ideal-gas enthalpies, PR, IAPWS-IF97 | ASSUMED; energy closure not evaluable in core |
 | stream properties (`props --fill`) | no package covers the mixtures (water, NH3 mixtures, hot CO/CH4) | gated: core #315 |
 | rigorous simulation (`process simulate`) | not attempted: needs a method accepted for syngas/NH3/water | gated: core #315 |
+
+Basic stage, S2 (core v1.0.1, DWSIM 9.0.5, Peng-Robinson):
+
+| item | model / basis | status |
+|---|---|---|
+| REF (without H101), SHF, CO2R, MET, SYN, PGR | DWSIM, one solve, 7 tears converged | calculated (`simulate --fill`) |
+| equilibrium reactors R101, R102B, R201, R202, R501 | DWSIM equilibrium; the adiabatic beds at their outlet temperature, duty the check | calculated; approaches ASSUMED |
+| conversion reactors R100, R102A, R401 | complete conversion, DWSIM | calculated; conversions ASSUMED (unsourced) |
+| flashes V201, V401, V501, V502, V701, V702, V703 | DWSIM PR flash (DWSIM's kij) | calculated; kij unsourced (D-025) |
+| CO2 removal, dryer, NH3 wash, cold box | specified splits (component separators) | ASSUMED recoveries (D-009, D-010, D-013) |
+| furnace radiant section H101 | complete combustion, `propagate` from the simulated S64 | calculated by cheme; fuel from the concept |
+| steam system U801, chiller refrigeration K701 | scripts/packages_on_simulated_duties.py on simulated duties | ASSUMED |
+| stream properties (`props --fill`) | syngas-pr-vapor for 6 of 121 streams | calculated where covered; rest gated: core #315 |
+| plant energy closure | not evaluated with component separators | unsupported: core #60 |
 
 Core findings for the core repository (not fixed here): `cheme process build` crashes
 (`TypeError: 'typing.Union' object is not iterable` in `build.step_method`) on the DEXPI classes

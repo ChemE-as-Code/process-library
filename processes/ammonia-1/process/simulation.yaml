@@ -24,17 +24,18 @@ method_selection:
     loop; Peng-Robinson is used on that basis, to be confirmed by the reviewer (D-025). Known
     weak spots: NH3 condensation with dissolved H2/N2/CH4/Ar at 263 K and 147 bar (separator,
     let-down, flash) and CO2 solubility in the process condensate, both with DWSIM's own kij.
-# Left out (D-024): the furnace radiant section H101 (it shares its energy stream Q9 with R101
-# and its fuel would need an adjust), the steam system U801 (an energy-only package balance),
-# and the synthesis loop and purge recovery (SYN, PGR): their recycles do not pass DWSIM's
-# recycle test through core v1.0.0 (D-024 gives the evidence), so their values stay those of
-# the concept balance. The SYN specs below are the loop model, kept for when it can run.
-exclude: [H101, U801, SYN, PGR]
+# Left out (D-024, D-026): the furnace radiant section H101 (it shares its energy stream Q9 with
+# R101 and its fuel would need an adjust), the steam system U801 and the closed refrigeration
+# circuit of the chillers K701 (energy-only package balances). The synthesis loop and the
+# purge recovery (SYN, PGR) are simulated since core v1.0.1 (core#57 fixed, D-026).
+exclude: [H101, U801, K701]
 # Tears where the loops cross, each with a first guess from the concept balance
-# (scripts/plant_balance.py): the convection coils (S4, S9: the flue gas runs against the
-# process gas) and the methanator feed heater (S27, the treated gas heated by the HTS effluent
-# ahead of the LTS). Guesses only.
-tear_streams: [S4, S9, S27]
+# (scripts/plant_balance.py and its loop model, D-024): the convection coils (S4,
+# S9: the flue gas runs against the process gas), the methanator feed heater (S27, the treated
+# gas heated by the HTS effluent ahead of the LTS), the converter feed/effluent exchanger (S44),
+# the loop with the purge recovery (S46: every loop path through E-501's hot side), the cold
+# exchanger (S48) and the product flash gas with its returned liquids (S88). Guesses only.
+tear_streams: [S4, S9, S27, S44, S46, S48, S88]
 guesses:
   S4:
     temperature: {value: 643.15, provenance: assumed}
@@ -51,6 +52,27 @@ guesses:
     pressure: {value: 3100, provenance: assumed}
     flow: {value: 66413.1, provenance: assumed}
     composition: {basis: mole_fraction, values: {CH4: 0.00418374, CO2: 0.000498789, N2: 0.244985, H2: 0.740576, CO: 0.00448488, H2O: 0.00242129, AR: 0.00285111}, provenance: assumed}
+  S44:
+    temperature: {value: 548.98, provenance: assumed}
+    pressure: {value: 15000, provenance: assumed}
+    flow: {value: 315058.0, provenance: assumed}
+    composition: {basis: mole_fraction, values: {CH4: 0.11381, N2: 0.180533, H2: 0.502869, AR: 0.0252268, NH3: 0.177561}, provenance: assumed}
+  S46:
+    temperature: {value: 313.15, provenance: assumed}
+    pressure: {value: 14800, provenance: assumed}
+    flow: {value: 315060.3, provenance: assumed}
+    composition: {basis: mole_fraction, values: {CH4: 0.11381, N2: 0.180533, H2: 0.502869, AR: 0.0252268, NH3: 0.177561}, provenance: assumed}
+  S48:
+    temperature: {value: 263.15, provenance: assumed}
+    pressure: {value: 14700, provenance: assumed}
+    flow: {value: 315060.3, provenance: assumed}
+    composition: {basis: mole_fraction, values: {CH4: 0.11381, N2: 0.180533, H2: 0.502869, AR: 0.0252268, NH3: 0.177561}, provenance: assumed}
+  S88:
+    # rough guess: the dissolved gases of the let-down liquid with NH3 near saturation
+    temperature: {value: 240.15, provenance: assumed}
+    pressure: {value: 110, provenance: assumed}
+    flow: {value: 2000, provenance: assumed}
+    composition: {basis: mole_fraction, values: {NH3: 0.6, CH4: 0.25, AR: 0.1, H2: 0.03, N2: 0.02}, provenance: assumed}
 specs:
   # ---- REF (D-007; pressure drops ASSUMED in D-007; mixers take no pressure drop in DWSIM, so
   # the drop the concept balance gave a mixer is put on the next item)
@@ -146,7 +168,6 @@ specs:
     pressure_drop: {value: 50, unit: kPa, provenance: assumed, source: D-009}
   # ---- CO2R (D-009): a specified split, not a solvent model
   P301:
-    unit: pump
     outlet_pressure: {value: 3100, provenance: assumed, source: "D-024: make-up water pumped to the absorber pressure"}
     efficiency: {value: 0.75, provenance: assumed, source: "D-009: solvent pump efficiency 0.75"}
   C301:
@@ -181,12 +202,14 @@ specs:
     hot_pressure_drop: {value: 100, unit: kPa, provenance: assumed, source: D-011}
     cold_pressure_drop: {value: 100, unit: kPa, provenance: assumed, source: D-011}
   R501:
-    # adiabatic as designed (the LCA boundary check reads it); when the loop runs it needs
-    # mode outlet_temperature 703.15 K (D-011) for the same reason as the beds above (D-024)
-    mode: adiabatic
+    # adiabatic as designed, but DWSIM's adiabatic equilibrium reactor fails its flash here too
+    # (core v1.0.1, run of 2026-10-29: "TP Flash: one or more flash specification values are
+    # invalid"); run at the outlet temperature of D-011 and its duty is the check (D-024, D-026)
+    mode: outlet_temperature
+    outlet_temperature: {value: 703.15, provenance: assumed, source: "D-011: converter outlet"}
     pressure_drop: {value: 300, unit: kPa, provenance: assumed, source: D-011}
   E502:
-    outlet_temperature: {value: 547.21, provenance: assumed, source: "D-011: waste heat boiler to 547 K (concept balance)"}
+    outlet_temperature: {value: 532.6, provenance: assumed, source: "D-026: retuned so that the converter runs adiabatic (D-011: overall adiabatic converter); concept balance 547.21 K"}
     pressure_drop: {value: 100, unit: kPa, provenance: assumed, source: D-011}
   E503:
     outlet_temperature: {value: 313.15, provenance: assumed, source: D-012}
@@ -200,8 +223,52 @@ specs:
     pressure_drop: {value: 50, unit: kPa, provenance: assumed, source: D-011}
   V501:
     outlets: {vap: vapor, liq: liquid}   # adiabatic at the chiller outlet, 14,700 kPa(a)
+  # the let-downs are valves and the vessels flash adiabatically at their inlet: a DWSIM vessel
+  # given a pressure holds the inlet temperature (OverrideP), which is no let-down (D-026)
+  LV501:
+    outlet_pressure: {value: 2500, provenance: assumed, source: "D-011: let-down pressure"}
   V502:
-    pressure: {value: 2500, provenance: assumed, source: "D-011: let-down pressure"}
-  # The product flash with its flash-gas loop and the HRU need the steps of D-024 (flash-gas
-  # compression and receiver, HRU split in NH3 wash, cold box and H2 compression) before they
-  # can be simulated; their specs are in D-024.
+    outlets: {gas: vapor, liq: liquid}
+  # Product flash and flash gas (D-017, D-026): V-701 flashes the let-down liquid and the
+  # returned liquids adiabatically at the product pressure; the flash gas is compressed in
+  # two intercooled stages to the receiver pressure and condensed against cooling water; the
+  # receiver gas is chilled to 258 K and its inerts are the vent to the HRU
+  V701:
+    # adiabatic as designed, but an adiabatic let-down to 110 kPa(a) fails DWSIM's PH flash for
+    # this mixture ("Unable to calculate PV Flash with P = 110000 and VF = 0.01", run of
+    # 2026-10-29); run at the temperature of the adiabatic flash instead and its duty Q26 (about
+    # 0) is the check, as for the adiabatic beds (D-024, D-026). At the design basis's 240.15 K
+    # the drum would need 3.0 MW of heat: the inerts carry NH3 vapour at its saturation pressure
+    temperature: {value: 238.7, provenance: assumed, source: "D-026: adiabatic flash temperature at 110 kPa(a) (Q26 about 0); D-017 gave 238 K"}
+    pressure: {value: 110, provenance: assumed, source: "design basis: product at 110 kPa(a) (D-002)"}
+    outlets: {vap: vapor, liq: liquid}
+  K702:
+    outlet_pressure: {value: 1700, provenance: assumed, source: "D-017: receiver and vent chiller at 1700 kPa(a)"}
+    efficiency: {value: 0.78, provenance: assumed, source: "D-016: isentropic efficiency per stage"}
+    stages: 2
+    outlet_temperature: {value: 313.15, provenance: assumed, source: "D-017: condensing at 313 K against cooling water (D-012)"}
+  V702:
+    outlets: {vap: vapor, liq: liquid}   # adiabatic at the condenser outlet
+  E702:
+    outlet_temperature: {value: 258.15, provenance: assumed, source: "D-017: vent chiller at 258 K"}
+  V703:
+    outlets: {vap: vapor, liq: liquid}   # adiabatic at the vent chiller outlet
+  # ---- PGR (D-013, D-026): X-601 as specified splits, not a model of the wash or the cold box
+  X601:
+    recovery_outlet: nh3
+    recoveries: {NH3: 0.99, H2: 0.0, N2: 0.0, CH4: 0.0, AR: 0.0}
+    basis_source: "D-013 (ASSUMED, I-08): the NH3 wash and distillation recover 99 % of the NH3 as anhydrous liquid; no vendor data"
+    operating_basis: "HRU feed at the vent pressure, 1700 kPa(a), about 255 K: purge, let-down gas and refrigeration vent mixed (D-026)"
+  E601:
+    outlet_temperature: {value: 240.15, provenance: assumed, source: "D-013: recovered NH3 chilled to the product temperature"}
+    # the let-down to the product pressure is taken in the chiller step (a cooler takes no
+    # outlet pressure): 1700 -> 110 kPa(a)
+    pressure_drop: {value: 1590, unit: kPa, provenance: assumed, source: "D-013: recovered NH3 let down to the product pressure, 110 kPa(a), from the HRU at 1700 kPa(a) (D-026)"}
+  X602:
+    recovery_outlet: h2
+    recoveries: {H2: 0.90, N2: 0.25, AR: 0.15, CH4: 0.05, NH3: 0.0}
+    basis_source: "D-013 (ASSUMED, I-08): cryogenic separation recovering 90 % H2, 25 % N2, 15 % Ar, 5 % CH4 to the H2-rich gas; no vendor data"
+    operating_basis: "washed purge gas at 1700 kPa(a), NH3-free to 1 % of the feed's NH3 (D-013, D-026)"
+  K601:
+    outlet_pressure: {value: 2850, provenance: assumed, source: "D-011: K-501 suction pressure (D-026: compressor inside X-601)"}
+    efficiency: {value: 0.78, provenance: assumed, source: "D-016: isentropic efficiency per stage"}
