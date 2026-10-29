@@ -520,6 +520,21 @@ unsupported by core while component separators are in the flowsheet (C301, X401,
 "the sign of the component separator's energy imbalance is not established", core#60); block
 energy balances need stream enthalpies that `cheme process props` gives for 6 of 121 streams
 (core#315: no package covers H2O, O2, C2H6, or NH3 liquid and the loop above 5-15 MPa).
+Maturity (`cheme maturity`, 2026-10-29, after this run): calculation maturity none. Requirements
+that fail, exactly: `sourced.boundary` (feed flows and compositions not given with a source:
+S1 natural gas, R-03/I-01, the process and combustion air S12, S61 and the demineralised
+water S26, S70, all ASSUMED; flows and compositions of each); `balanced.model-basis` (the complete conversions of R100, R102A, R401
+and H101 are assumed, unsourced); `predictive.coverage` (H101, K701, U801 excluded);
+`predictive.model-basis` (specified conversions and splits: R100, R102A, H101, R401, C301,
+X401, X601, X602); `predictive.property-regime` (core#315: core's benchmarked claim for DWSIM 9.0.5
+Peng-Robinson covers nitrogen, oxygen and argon only, so every feed and stream with CH4, C2H6,
+C3H8, CO, CO2, H2, H2O or NH3 is outside it: 266 cases); `predictive.energy-closure` unsupported (core#60, component
+separators). What passes: process rules, balances evaluable and closed, simulation spec, run
+record current and converged, solver recorded, property package with its recorded
+substitution, stream properties inside the claim, exchangers, formation data. The gate
+`maturity-balanced` therefore fails on `sourced.boundary` and `balanced.model-basis`; neither is
+a core limit: both need sources (I-01 for the gas; reaction evidence for the complete
+conversions).
 Reason: the brief asks for the whole plant simulated and converged on v1.0.1; every change
 above is a modelling necessity or a retune of an ASSUMED design choice, recorded here.
 Rejected: loosening tolerances or tears, writing simulated values by hand, keeping the
