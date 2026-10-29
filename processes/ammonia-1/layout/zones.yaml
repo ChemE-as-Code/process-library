@@ -1,0 +1,70 @@
+# Zones of the basic 3D layout (D-031). Schema: `cheme schema zones`.
+# Screening only: the volumes from sources are sized by cheme-as-code's indicative radius
+# table (ASSUMED), not by an area classification. The site's classification (IEC 60079-10-1
+# or EI 15 for the flammable gases; a vent study for the CO2 vent) must replace them, made or
+# reviewed by a competent person. Crane pads, laydown areas and their reach are ASSUMED
+# choices of this design for the lifting study (a 40 m working radius stands for a large
+# crawler crane; no crane has been selected, no load chart is given).
+schema: cheme/zones/v1
+zones:
+  # ---- hazardous areas (flammable gas), secondary grade sources: zone 2
+  - id: Z-HAZ-K501
+    title: "Synthesis gas compressor K-501 and circulator K-502 seals (hydrogen-rich gas)"
+    kind: hazardous
+    zone: 2
+    sources:
+      - {item: K-501, release_grade: secondary, substance: hydrogen, source_kind: compressor_seal}
+      - {item: K-502, release_grade: secondary, substance: hydrogen, source_kind: compressor_seal}
+    basis: "Dry gas or oil seals of hydrogen-rich synthesis gas compressors leak only on failure (secondary grade); D-031."
+  - id: Z-HAZ-K701
+    title: "Ammonia refrigeration compressor K-701 seals"
+    kind: hazardous
+    zone: 2
+    sources:
+      - {item: K-701, release_grade: secondary, substance: ammonia, source_kind: compressor_seal, substance_class: flammable_gas}
+    basis: "Ammonia is flammable (narrow range, high ignition energy) and toxic; whether the site's standard classifies an ammonia compressor area is the competent person's decision; drawn as zone 2 here so that the layout keeps ignition sources away until then (D-031)."
+  - id: Z-HAZ-NG
+    title: "Natural gas desulfuriser V-101 and prereformer R-100 flanges"
+    kind: hazardous
+    zone: 2
+    sources:
+      - {item: V-101/N1, release_grade: secondary, substance: natural gas, source_kind: flange}
+      - {item: V-101/N2, release_grade: secondary, substance: natural gas, source_kind: flange}
+      - {item: R-100/N1, release_grade: secondary, substance: natural gas, source_kind: flange}
+    basis: "Flanged connections of hydrogenated natural gas, secondary grade (D-031)."
+  # ---- oxygen-deficient zone: the CO2 vent of the regenerator overhead
+  - id: Z-O2D-CO2
+    title: "CO2 vent (regenerator overhead to atmosphere, CO2-1068) and the CO2 relief outlet (CO2-1076)"
+    kind: oxygen_deficient
+    sources:
+      - {item: CO2-1068, release_grade: continuous, substance: carbon dioxide, source_kind: vent}
+      - {item: CO2-1076, release_grade: secondary, substance: carbon dioxide, source_kind: psv_outlet}
+    basis: "The CO2 of the aMDEA regenerator is vented (D-009); CO2 is heavier than air and asphyxiant: the vent discharges above the C-302 top platform; the radius is the table's inert-gas value (D-031)."
+  # ---- crane pads (where the mobile crane stands) and laydown areas
+  - {id: CP-101, title: "Crane pad A-100 south (reactor row)", kind: crane_pad, shape: box, box: [85, 115, 0, 95, 125, 0.3], reach_m: 40, basis: "ASSUMED pad between PR-1 and the reactor row (D-031)."}
+  - {id: CP-102, title: "Crane pad A-100 north-west (furnace, R-101)", kind: crane_pad, shape: box, box: [60, 171, 0, 72, 177.5, 0.3], reach_m: 40, basis: "ASSUMED pad north of the radiant box (D-031)."}
+  - {id: CP-103, title: "Crane pad A-100 north-east (convection banks, fans, K-101)", kind: crane_pad, shape: box, box: [98, 174, 0, 110, 184, 0.3], reach_m: 40, basis: "ASSUMED pad north of the convection section (D-031)."}
+  - {id: CP-201, title: "Crane pad A-200 south (shift row)", kind: crane_pad, shape: box, box: [190, 115, 0, 200, 125, 0.3], reach_m: 40, basis: "ASSUMED pad between PR-1 and the shift row (D-031)."}
+  - {id: CP-202, title: "Crane pad A-200 north (columns, solvent loop, X-401)", kind: crane_pad, shape: box, box: [182, 193, 0, 194, 200, 0.3], reach_m: 40, basis: "ASSUMED pad north of the columns, from the north road (D-031)."}
+  - {id: CP-501, title: "Crane pad A-500 (compressors)", kind: crane_pad, shape: box, box: [185, 22, 0, 197, 32, 0.3], reach_m: 40, basis: "ASSUMED pad south of K-501 and K-502, from the south road (D-031)."}
+  - {id: CP-502, title: "Crane pad A-500 (converter and loop)", kind: crane_pad, shape: box, box: [200, 85, 0, 212, 95, 0.3], reach_m: 40, basis: "ASSUMED pad north of the loop exchangers (D-031)."}
+  - {id: CP-203, title: "Crane pad A-200 north-east (X-401, methanator exchangers)", kind: crane_pad, shape: box, box: [230, 178, 0, 240, 188, 0.3], reach_m: 40, basis: "ASSUMED pad east of X-401 (D-031)."}
+  - {id: CP-503, title: "Crane pad A-500 east (separators, chiller, cold exchangers)", kind: crane_pad, shape: box, box: [253, 74, 0, 260, 84, 0.3], reach_m: 40, basis: "ASSUMED pad on the east edge of A-500, from R-6 (D-031)."}
+  - {id: CP-702, title: "Crane pad A-700 north (E-701, V-701)", kind: crane_pad, shape: box, box: [300, 78, 0, 310, 88, 0.3], reach_m: 40, basis: "ASSUMED pad north of E-701 (D-031)."}
+  - {id: CP-601, title: "Crane pad A-600 (cold box)", kind: crane_pad, shape: box, box: [95, 70, 0, 107, 80, 0.3], reach_m: 40, basis: "ASSUMED pad north-west of X-601 (D-031)."}
+  - {id: CP-701, title: "Crane pad A-700 (refrigeration)", kind: crane_pad, shape: box, box: [300, 22, 0, 312, 32, 0.3], reach_m: 40, basis: "ASSUMED pad south-east of K-701 (D-031)."}
+  - {id: CP-801, title: "Crane pad A-800 (steam system)", kind: crane_pad, shape: box, box: [315, 170, 0, 327, 180, 0.3], reach_m: 40, basis: "ASSUMED pad north-east of U-801 (D-031)."}
+  # laydowns lie within the default 30 m crane reach of their pad (the lifting rule looks for
+  # the setdown from the pad) and are no more than 0.1 m high, so they obstruct no route
+  - {id: LD-101, title: "Laydown A-100 north (furnace modules, R-101 headers, coil banks)", kind: laydown, shape: box, box: [40, 178, 0, 82, 200, 0.1], basis: "ASSUMED (D-031)."}
+  - {id: LD-102, title: "Laydown A-100 south (reactor row)", kind: laydown, shape: box, box: [100, 115, 0, 118, 126, 0.1], basis: "ASSUMED (D-031)."}
+  - {id: LD-201, title: "Laydown A-200 north-east", kind: laydown, shape: box, box: [242, 166, 0, 258, 198, 0.1], basis: "ASSUMED (D-031)."}
+  - {id: LD-202, title: "Laydown A-200 south (shift row)", kind: laydown, shape: box, box: [203, 115, 0, 218, 126, 0.1], basis: "ASSUMED (D-031)."}
+  - {id: LD-203, title: "Laydown A-200 west (columns)", kind: laydown, shape: box, box: [160, 166, 0, 168, 186, 0.1], basis: "ASSUMED (D-031)."}
+  - {id: LD-502, title: "Laydown A-500 north (converter, loop exchangers)", kind: laydown, shape: box, box: [215, 86, 0, 235, 96, 0.1], basis: "ASSUMED (D-031)."}
+  - {id: LD-503, title: "Laydown A-500 north-east (separators)", kind: laydown, shape: box, box: [240, 86, 0, 258, 98, 0.1], basis: "ASSUMED (D-031)."}
+  - {id: LD-702, title: "Laydown A-700 north", kind: laydown, shape: box, box: [312, 80, 0, 335, 95, 0.1], basis: "ASSUMED (D-031)."}
+  - {id: LD-501, title: "Laydown A-500 south", kind: laydown, shape: box, box: [205, 22, 0, 245, 34, 0.1], basis: "ASSUMED (D-031)."}
+  - {id: LD-601, title: "Laydown A-600 south", kind: laydown, shape: box, box: [92, 22, 0, 128, 45, 0.1], basis: "ASSUMED (D-031)."}
+  - {id: LD-701, title: "Laydown A-700 south-east", kind: laydown, shape: box, box: [315, 22, 0, 338, 50, 0.1], basis: "ASSUMED (D-031)."}
+  - {id: LD-801, title: "Laydown A-800 north", kind: laydown, shape: box, box: [272, 175, 0, 312, 198, 0.1], basis: "ASSUMED (D-031)."}
