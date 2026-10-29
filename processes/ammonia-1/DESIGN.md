@@ -724,6 +724,61 @@ Rejected: one sheet for the whole loop (too dense for A3 with the auxiliaries); 
 packages' internals as separate items (the flowsheet and the equipment list keep them in the
 packages; splitting them would add items the PFD does not link).
 
+## D-030 Control: loops, sequences, trips, narrative and philosophy (2026-10-29, S4)
+Decision: the control records are written for the P&IDs as drawn in S3, PROPOSED for review and
+the HAZOP (S6): `control/loops.yaml` with one loop per controller on P-101 to P-114 (38 loops,
+three cascades TIC-1103/PIC-1101, AIC-1109/FIC-1110, AIC-1804/FIC-1201, two ratios on the load
+setter FIC-1002: steam FIC-1006 and process air FIC-1201); `control/sequences.yaml` with five
+sequences (SEQ-START-REF, SEQ-START-CO2R, SEQ-START-SYN, SEQ-SD-PLANT, SEQ-TRIP-FE);
+`control/cause-effect.yaml` completed with delay, latching, reset and bypass for I-101 to I-107;
+`process/narrative.md` (eight sections: the seven flowsheet blocks and the utilities) and
+`control/philosophy.md` (seven objectives, six failures). The strategy follows the usual practice
+of a natural-gas reforming ammonia plant (the guidance of skill `control-loops`, after Toghraei, *Piping and Instrumentation Diagram Development*, Wiley 2019,
+ch. 14): one load setter, steam and air as ratios to the gas, slow H2/N2 trim of the air at the
+converter, furnace fired on fuel pressure reset by the reformer outlet temperature, excess air by
+O2, anti-surge on every compressor, temperatures by bypasses of the process exchangers and by
+the cooling water of the utility coolers, levels on the outlet valves between pressure levels.
+P&ID change: the converter-feed analyser AI-1804 (P-109) is renamed AIC-1804 (`cheme rename`,
+tag, labels and ids) and its note text updated, because it is the master of the process air
+(D-026 asked for the trim; the P-103 note already said "FIC-1201 setpoint from the H2/N2
+ratio"); the instrument list follows. No other sheet changed.
+Setpoints: where a setpoint is a value of the design case it names its stream and property, so
+`cheme validate` keeps the two in step (17 loops); the rest are ASSUMED here: levels 50 % of
+span; anti-surge control line 10 % in flow from the vendor's surge line; furnace arch draft
+-25 Pa(g) (balanced draft; the flowsheet gives the radiant box 103 kPa(a), a value of the
+concept balance, not a draft); lean solvent 313.15 K (the absorber temperature of D-009); minimum
+burner fuel pressure 150 kPa(a) (low limit of PIC-1101 until the burner vendor gives it); LP
+steam to X-601 657 kg/h (Q29 386.8 kW over 2120 kJ/kg, the heat of vaporisation of water at
+450 kPa(a) and 421 K, from thermo's pure-water correlations in cheme's interpreter); ratios 3.146 kg/kg steam and 2.277 kg/kg air from S6/S3
+and S12/S3; O2 1.69 mol% wet from S66; H2/N2 3.0 from S42 (3.007 simulated).
+Fail positions (each for the HAZOP to confirm): feed gas, fuel, tail gas, process air, purge and
+make-up valves closed; process steam open (too little steam forms carbon); combustion air damper
+open; anti-surge valves open; cooling water valves open; level valves between pressure levels
+closed (blow-by), except the reflux LV-1506 (open, no pressure step) and the BFW and deaerator
+make-up valves (open, the boilers keep their water); the shift bypasses TV-1207 and TV-1601
+closed (cooler bed inlet), the converter bypass TV-1803 open (cooler converter feed); the MP
+export PV-2203 closed (process steam keeps priority, PSV-2210 is the relief of a blocked export);
+the ID fan drive holds its last speed. Trip delays 2 s (3 s for the furnace pressure, 5 s for the
+I-104 alarm), latching with manual reset, timed start-up bypasses for I-105 and I-107 (ASSUMED,
+usual practice). I-104 no longer opens LV-1307: a trip acting on the control valve of the loop
+it backs up is not independent of it; it is an alarm until the HAZOP decides on a feed trip.
+Sequence step times and start-up rates (30 % of the design gas and steam, 60 % load before
+shutdown, 673 K reformer outlet before steam) are ASSUMED and are not a licensor's procedure.
+Open (for the design review, the HAZOP and the P&ID revision): the sequences need connections
+the P&IDs do not show: start-up nitrogen to the reformers, a front-end vent to flare (start-up
+before the CO2 removal, a K-501 trip) and the converter start-up heater; four sequence actions
+name them as text (`cheme.control-logic-text`, info). Also open: burner management of H-101 and
+the fuel/air cross-limit; tube skin thermocouples; a three-element steam drum level control and
+a drum low-low trip; BFW pump spare; machine protection (seal, lube oil, vibration) of K-101,
+K-501, K-502 and K-701 inside the vendor packages; no loop pressure control (the loop floats on
+the conversion, the purge is set by the operator); no analyser on the feed gas; no turndown case
+in the flowsheet, so part-load behaviour of the loops is not checked; SIL screening (S6).
+Reason: S4 of runs/plan.md.
+Rejected: a loop pressure controller on the make-up (K-501 capacity) without a turndown case to
+size it; a separate H2/N2 controller acting directly on FV-1201 (it would fight the ratio);
+opening the anti-surge valve UV-1703 from I-103/I-106 (UIC-1703 does it as a loop, and a trip
+sharing the loop's valve is not independent).
+
 ## 3. Results of this stage (design case)
 
 Basic stage, S2 (the simulated flowsheet, D-026; lca/inventory.csv regenerated): per kg of NH3
