@@ -41,7 +41,7 @@ valid_until: 2031
 system_model: cutoff
 technology_level: current
 production_volume:
-  amount: 500000000.0
+  amount: 499510400.0
   unit: kg/a
   source: product:NH3 per hour x operation.hours_per_year (8000 h/a)
 classification:
@@ -73,7 +73,7 @@ exchanges:
   source: flowsheet S1 (S3 process feed + S2 furnace fuel)
   pedigree:
     scores: [4, 4, 1, 1, 3]
-    rule: cheme default pedigree v1 (assumed, maturity concept)
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
   composition:
     fractions:
@@ -101,7 +101,7 @@ exchanges:
   source: 'ambient air (process air S12, combustion air S61): a resource taken from nature without burden'
   pedigree:
     scores: [4, 4, 1, 1, 3]
-    rule: cheme default pedigree v1 (assumed, maturity concept)
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
   composition:
     fractions:
@@ -130,7 +130,7 @@ exchanges:
   source: flowsheet S70 (steam system) + S26 (CO2 removal make-up)
   pedigree:
     scores: [4, 4, 1, 1, 3]
-    rule: cheme default pedigree v1 (assumed, maturity concept)
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
   composition:
     fractions:
@@ -141,7 +141,7 @@ exchanges:
 - key: feed:POWER
   title: Electric power
   type: input
-  amount: 35205.6
+  amount: 35166.9297
   unit: kWh
   link:
     source: flowsheet Q1, Q11, Q12, Q17, Q20, Q22, Q27, Q31 (all drives electric, D-016)
@@ -149,6 +149,7 @@ exchanges:
       incl. transmission losses'
   streams:
   - Q1
+  - Q37
   - Q11
   - Q12
   - Q17
@@ -156,10 +157,11 @@ exchanges:
   - Q22
   - Q27
   - Q31
+  - Q36
   source: flowsheet Q1, Q11, Q12, Q17, Q20, Q22, Q27, Q31 (all drives electric, D-016)
   pedigree:
     scores: [4, 4, 1, 1, 3]
-    rule: cheme default pedigree v1 (assumed, maturity concept)
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
   carrier:
     kind: electricity
@@ -167,14 +169,14 @@ exchanges:
 - key: product:NH3
   title: Liquid ammonia product (refrigerated, to the battery limit)
   type: product
-  amount: 62500.0
+  amount: 62438.8
   unit: kg
   provenance: calculated
   streams:
   - S60
   pedigree:
     scores: [3, 4, 1, 1, 3]
-    rule: cheme default pedigree v1 (calculated, maturity concept)
+    rule: cheme default pedigree v1 (calculated, design maturity concept)
   basic_uncertainty: 1.05
   state:
     pressure: 1.1
@@ -191,43 +193,55 @@ exchanges:
 - key: product:CO2V
   title: Process CO2 from the regenerator, vented
   type: output
-  amount: 74862.28
+  amount: 74826.48
   unit: kg
   streams:
   - S28
+  - S87
   source: 'released to the environment: counted by its emission:* exchanges'
   pedigree:
     scores: [4, 4, 1, 1, 3]
-    rule: cheme default pedigree v1 (assumed, maturity concept)
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
   composition:
     fractions:
-      CO2: 0.979243463
-      H2O: 0.020756537
+      CH4: 1.0e-09
+      CO2: 0.978873441
+      N2: 1.303e-06
+      H2: 7.76e-07
+      CO: 2.5e-08
+      H2O: 0.021124083
+      AR: 3.71e-07
     formulas:
+      CH4: CH4
       CO2: CO2
+      N2: N2
+      H2: H2
+      CO: CO
       H2O: H2O
-    source: stream table (S28)
+      AR: Ar
+    source: stream table (S28, S87)
 - key: product:STACK
   title: Reformer furnace flue gas to stack
   type: output
-  amount: 176445.0
+  amount: 176516.0
   unit: kg
   provenance: calculated
+  origin: simulated
   streams:
   - S67
   source: 'released to the environment: counted by its emission:* exchanges'
   pedigree:
     scores: [3, 4, 1, 1, 3]
-    rule: cheme default pedigree v1 (calculated, maturity concept)
+    rule: cheme default pedigree v1 (simulated, design maturity concept)
   basic_uncertainty: 1.05
   composition:
     fractions:
-      CO2: 0.138286438
-      N2: 0.714755067
-      H2O: 0.110250969
-      O2: 0.019720322
-      AR: 0.016987204
+      CO2: 0.138565005
+      N2: 0.714750451
+      H2O: 0.110460731
+      O2: 0.019243612
+      AR: 0.016980202
     formulas:
       CO2: CO2
       N2: N2
@@ -244,7 +258,7 @@ exchanges:
   - S68
   pedigree:
     scores: [4, 4, 1, 1, 3]
-    rule: cheme default pedigree v1 (assumed, maturity concept)
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
   state:
     pressure: 46.0
@@ -272,7 +286,7 @@ exchanges:
   source: flowsheet S69, 2 % of steam raised (D-015)
   pedigree:
     scores: [4, 4, 1, 1, 3]
-    rule: cheme default pedigree v1 (assumed, maturity concept)
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
   composition:
     fractions:
@@ -283,7 +297,7 @@ exchanges:
 - key: product:CW
   title: Cooling water return
   type: output
-  amount: 131473.2
+  amount: 135343.41999999998
   unit: kWh
   link:
     source: flowsheet Q2, Q16, Q18, Q19, Q21, Q24, Q28
@@ -301,7 +315,7 @@ exchanges:
   source: flowsheet Q2, Q16, Q18, Q19, Q21, Q24, Q28
   pedigree:
     scores: [4, 4, 1, 1, 3]
-    rule: cheme default pedigree v1 (assumed, maturity concept)
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
   carrier:
     kind: cold
@@ -310,24 +324,25 @@ exchanges:
 - key: emission:AR
   title: AR to the environment
   type: emission
-  amount: 2997.307211629574
+  amount: 2997.3050266499677
   unit: kg
   free: true
   cas: 7440-37-1
   streams:
   - S28
+  - S87
   - S67
   source: atmospheric argon (process and combustion air) returned to the atmosphere
   pedigree:
     scores: [4, 4, 1, 1, 3]
-    rule: cheme default pedigree v1 (assumed, maturity concept)
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.5
   composition:
     fractions:
       AR: 1.0
     formulas:
       AR: Ar
-    source: stream table (S28, S67)
+    source: stream table (S28, S87, S67)
 - key: emission:C2H6
   title: C2H6 to the environment
   type: emission
@@ -341,19 +356,20 @@ exchanges:
   cas: 74-84-0
   streams:
   - S28
+  - S87
   - S67
   source: NOT ESTIMATED, 0 only because complete combustion is ASSUMED (D-014); open input I-07 (emission_exclusions
     below)
   pedigree:
     scores: [4, 4, 1, 1, 3]
-    rule: cheme default pedigree v1 (assumed, maturity concept)
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.5
   composition:
     fractions:
       C2H6: 1.0
     formulas:
       C2H6: C2H6
-    source: stream table (S28, S67)
+    source: stream table (S28, S87, S67)
 - key: emission:C3H8
   title: C3H8 to the environment
   type: emission
@@ -367,23 +383,24 @@ exchanges:
   cas: 74-98-6
   streams:
   - S28
+  - S87
   - S67
   source: NOT ESTIMATED, 0 only because complete combustion is ASSUMED (D-014); open input I-07 (emission_exclusions
     below)
   pedigree:
     scores: [4, 4, 1, 1, 3]
-    rule: cheme default pedigree v1 (assumed, maturity concept)
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.5
   composition:
     fractions:
       C3H8: 1.0
     formulas:
       C3H8: C3H8
-    source: stream table (S28, S67)
+    source: stream table (S28, S87, S67)
 - key: emission:CH4
   title: CH4 to the environment
   type: emission
-  amount: 0.0
+  amount: 5.3956175969783236e-05
   unit: kg
   link:
     elementary:
@@ -403,24 +420,25 @@ exchanges:
     unit: kg
   streams:
   - S28
+  - S87
   - S67
   source: 'NOT ESTIMATED, not a measured zero: 0 only because complete combustion (D-014) and no CO2-vent
     co-absorption (D-009) are ASSUMED; furnace slip and vent CH4 are open input I-07 (emission_exclusions
     below)'
   pedigree:
     scores: [4, 4, 1, 1, 3]
-    rule: cheme default pedigree v1 (assumed, maturity concept)
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.5
   composition:
     fractions:
       CH4: 1.0
     formulas:
       CH4: CH4
-    source: stream table (S28, S67)
+    source: stream table (S28, S87, S67)
 - key: emission:CO
   title: CO to the environment
   type: emission
-  amount: 0.0
+  amount: 0.0018653526543130434
   unit: kg
   link:
     elementary:
@@ -438,22 +456,23 @@ exchanges:
     unit: kg
   streams:
   - S28
+  - S87
   - S67
   source: 0 in this design (complete combustion ASSUMED, D-014); furnace CO is open input I-07
   pedigree:
     scores: [4, 4, 1, 1, 3]
-    rule: cheme default pedigree v1 (assumed, maturity concept)
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 5.0
   composition:
     fractions:
       CO: 1.0
     formulas:
       CO: CO
-    source: stream table (S28, S67)
+    source: stream table (S28, S87, S67)
 - key: emission:CO2
   title: CO2 to the environment
   type: emission
-  amount: 97708.34883081047
+  amount: 97704.5943133681
   unit: kg
   link:
     elementary:
@@ -472,23 +491,24 @@ exchanges:
     unit: kg
   streams:
   - S28
+  - S87
   - S67
   source: process CO2 (vent) and combustion CO2 (stack) from natural gas carbon; includes the atmospheric
     CO2 of the process and combustion air (about 0.2 % of the total), counted as fossil (ASSUMED, D-020)
   pedigree:
     scores: [4, 4, 1, 1, 3]
-    rule: cheme default pedigree v1 (assumed, maturity concept)
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
   composition:
     fractions:
       CO2: 1.0
     formulas:
       CO2: CO2
-    source: stream table (S28, S67)
+    source: stream table (S28, S87, S67)
 - key: emission:H2
   title: H2 to the environment
   type: emission
-  amount: 0.0
+  amount: 0.05806956570873241
   unit: kg
   link:
     elementary:
@@ -498,62 +518,65 @@ exchanges:
   cas: 1333-74-0
   streams:
   - S28
+  - S87
   - S67
   source: 'NOT ESTIMATED, not a measured zero: 0 only because complete combustion (D-014) and no CO2-vent
     co-absorption (D-009) are ASSUMED; open input I-07 (emission_exclusions below)'
   pedigree:
     scores: [4, 4, 1, 1, 3]
-    rule: cheme default pedigree v1 (assumed, maturity concept)
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.5
   composition:
     fractions:
       H2: 1.0
     formulas:
       H2: H2
-    source: stream table (S28, S67)
+    source: stream table (S28, S87, S67)
 - key: emission:H2O
   title: H2O to the environment
   type: emission
-  amount: 21007.113963442695
+  amount: 21078.72713329754
   unit: kg
   free: true
   cas: 7732-18-5
   streams:
   - S28
+  - S87
   - S67
   source: 'water vapour in the flue gas and the CO2 vent: not an inventoried elementary emission in this
     study (D-020)'
   pedigree:
     scores: [4, 4, 1, 1, 3]
-    rule: cheme default pedigree v1 (assumed, maturity concept)
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.5
   composition:
     fractions:
       H2O: 1.0
     formulas:
       H2O: H2O
-    source: stream table (S28, S67)
+    source: stream table (S28, S87, S67)
 - key: emission:N2
   title: N2 to the environment
   type: emission
-  amount: 126114.95784187947
+  amount: 126164.98817637489
   unit: kg
   free: true
   cas: 7727-37-9
   streams:
   - S28
+  - S87
   - S67
   source: atmospheric N2 (air, natural gas N2, NH3 combustion) returned to the atmosphere
   pedigree:
     scores: [4, 4, 1, 1, 3]
-    rule: cheme default pedigree v1 (assumed, maturity concept)
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.5
   composition:
     fractions:
       N2: 1.0
     formulas:
       N2: N2
-    source: stream table (S28, S67)
+    source: stream table (S28, S87, S67)
 - key: emission:NH3
   title: NH3 to the environment
   type: emission
@@ -576,40 +599,42 @@ exchanges:
     unit: kg
   streams:
   - S28
+  - S87
   - S67
   source: 0 in this design (tail-gas NH3 burnt, D-013, D-014); NH3 slip and fugitive NH3 are open input
     I-07
   pedigree:
     scores: [4, 4, 1, 1, 3]
-    rule: cheme default pedigree v1 (assumed, maturity concept)
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.5
   composition:
     fractions:
       NH3: 1.0
     formulas:
       NH3: NH3
-    source: stream table (S28, S67)
+    source: stream table (S28, S87, S67)
 - key: emission:O2
   title: O2 to the environment
   type: emission
-  amount: 3479.552152237788
+  amount: 3396.8053614349847
   unit: kg
   free: true
   cas: 7782-44-7
   streams:
   - S28
+  - S87
   - S67
   source: excess combustion O2 returned to the atmosphere
   pedigree:
     scores: [4, 4, 1, 1, 3]
-    rule: cheme default pedigree v1 (assumed, maturity concept)
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.5
   composition:
     fractions:
       O2: 1.0
     formulas:
       O2: O2
-    source: stream table (S28, S67)
+    source: stream table (S28, S87, S67)
 allocation:
   method: exergy
   coproducts:
@@ -650,9 +675,9 @@ provenance:
     loop)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:65f4fdf0c1a47012ccf16a5a5d60e1654dd51d6e90b66d189cad5f90df6ec01e
+    equipment/equipment-list.yaml: sha256:b94159acf814a97abd813c7f97045be578298a24d2d948f04c705773fcd31495
     lca/lca.yaml: sha256:fb665011d8951167700986139cd654f8096ef9879f102f4151eb24c3e55c0a69
-    process.yaml: sha256:0a1ad2960a5c1c7b5d7f95abc7b83372ae4c2c9790302ce0ea253beaf969f7b5
-    process/flowsheet.yaml: sha256:38e99d7308d0ccfca033c1676b4179811ad1159d021d93ea10042fec8ee425ce
+    process.yaml: sha256:30d16a5f81bc7326212f7140596b9d2c47517887ca475a6fecd590187aab2065
+    process/flowsheet.yaml: sha256:9439f9c5c8c53e75fa7fb3e6330c756e0e8c469b7a1e709893a842c62c0755e9
     process/materials.yaml: sha256:f580d458b4526944726ff43eee1a2f134d864e80d197c3a9c731e854002c8193
-    process/simulation.yaml: sha256:c4bc66c8e9f7fc18d7557caa7b98832fd255823caa0008d7790d2b720daabb40
+    process/simulation.yaml: sha256:bce53fcdb479ac58378cb0ba4abef86deab1f12e0619a50d1b37835bc6e183a7
