@@ -31,7 +31,8 @@ here (D-006).
   treatment, flare, power generation.
 - **Feed and fuel kept apart**: SPL101 splits the natural gas into process feed (S3,
   29.5 t/h) and furnace fuel (S2, 8.2 t/h); the HRU tail gas (S59) is the only other fuel.
-  Recovered heat is counted once: radiant heat to the tubes (Q9), convection coils (Q3-Q7),
+  Recovered heat is counted once: radiant heat to the tubes (Q9), convection coils (Q3-Q7;
+  since D-024 two-stream exchangers on the flue gas, S80-S84),
   the rest of the convection heat to steam (Q8); waste heat boilers (Q10, Q13, Q23) feed the
   steam system, which supplies process steam and exports the surplus (S68).
 - **The other scope** (synthesis loop with sourced front-end blocks) was not built: the full
@@ -143,7 +144,8 @@ replaced by a licensor or a rigorous model (I-06). Rejected: hot potassium carbo
 usual; aMDEA chosen for the lower regeneration heat it is generally credited with, unsourced).
 
 ## D-010 Methanation and drying (2026-10-27)
-Decision: methanator feed heated to 553 K by heat from E-201 (energy stream Q14); complete
+Decision: methanator feed heated to 553 K by heat from E-201 (energy stream Q14; since D-024 the
+HTS effluent itself heats it in the gas/gas exchanger E-401, between E-201 and the LTS); complete
 methanation (outlet 589 K); cooling to 313 K, knock-out, and a molecular sieve dryer removing
 all water before the loop, so that the product is anhydrous and the make-up can join the loop
 ahead of the converter. Regeneration of the dryer not modelled (I-05).
@@ -324,6 +326,110 @@ engineering; the verdict and the premises go with the concept sign-off for the o
 price the three missing utilities, a Rotterdam delivered import price with freight, and the
 steam-turbine alternative (I-09), which trades the 57 EUR/t of electricity against the
 steam credit.
+
+## D-024 Process simulation: scope, model and what it found (2026-10-29, S2)
+Decision: the plant is simulated with DWSIM 9.0.5 through `cheme process simulate` (core
+v1.0.0, Peng-Robinson, D-025; model in process/simulation.yaml, run record
+process/simulation-run.json). Simulated and filled as `calculated` (58 streams, design case,
+the only case of the design basis, D-003): REF without the radiant section, SHF, CO2R, MET,
+with their three recycles converged (convection coils S4, S9; methanator feed heater S27).
+Left out (`exclude`) and why:
+- **H101** (furnace radiant section): its radiant heat Q9 is R-101's duty; core refuses an
+  energy stream shared by two units and has no adjust to set the fuel from the radiant
+  balance. S65 stays `calculated` by `cheme process propagate` from the simulated S64.
+- **U801** (steam system) is an energy-only package balance; raising steam from the boiler
+  duties needs flows set from duties (an adjust), which core does not offer. Its streams stay
+  the concept balance's (ASSUMED); the simulated boiler duties (Q8, Q10, Q13) are written.
+- **SYN and PGR** (synthesis loop, product flash, refrigeration, purge recovery): modelled in
+  DWSIM but not converged in core's terms. Evidence (runs of 2026-10-29, saved DWSIM files):
+  with the loop torn at S46 and S48 (or S47/S39, S46/S51), the first recycle settles exactly
+  (S47 and its copy equal to the last digit, 85.05577895954663 kg/s), while the second
+  recycle's copy never leaves its guess (S39-R stays 240,150.9 kg/h against 240,077.3 kg/h
+  computed, run after run; S48-R and the flash-gas tear S71-R the same in the full plant), and
+  DWSIM still ends with "Recycle reached the maximum number of iterations"; core then writes
+  nothing. The loop as solved reached 306.2-306.5 t/h at the converter with a 0.1 kg/h
+  difference between runs, far inside the 0.5 % balance tolerance; core's recycle criteria
+  (1e-7 kg/s absolute, no acceleration, 500 iterations) are not met. This is a core/DWSIM
+  problem to report (orchestrator), not worked around. Until it is fixed, SYN and PGR keep the
+  concept balance's loop model, re-solved on the simulated make-up gas S34 at the flowsheet's
+  purge fraction (scripts/loop_on_simulated_makeup.py, values ASSUMED with that source); the
+  refrigeration duties Q26-Q28, Q29, Q30 are the concept balance's, not re-solved.
+  The DWSIM-ready loop model (kept here for the fix): V-701 as a flash at 110 kPa(a) /
+  240.15 K whose flash gas is compressed in two cooled stages to 1700 kPa(a) (K-701 duty),
+  chilled to 258.15 K and separated in the receiver (vent to the HRU, liquid back to V-701,
+  D-017); the HRU split into an NH3 wash (99 % NH3), a cold box (D-013 recoveries) and a
+  hydrogen compressor to 2850 kPa(a) inside the X-601 package (the mixed HRU feed is at the
+  vent pressure, below the make-up gas compressor suction); tears S44, S46, S48, S71; the loop
+  specs remain in process/simulation.yaml.
+Flowsheet changes this needed (the BFD/PFD are regenerated): the convection coils E-101,
+E-102, E-103, E-104, E-106 are two-stream exchangers on the flue gas (hottest coil first:
+E-103, E-102, E-104, E-101, E-106, then E-107, S80-S84; Q3-Q7 removed); E-401 is a gas/gas
+exchanger heated by the HTS effluent between E-201 and the LTS (S75; Q14 removed; E-201's
+outlet 611.2 K ASSUMED from the concept balance's split of that heat); the make-up water to the
+CO2 removal is pumped (P301, a ProcessStep with `unit: pump`: `cheme process build` fails on the
+DEXPI class Pumping in core v1.0.0) and mixed in M301 ahead of C301, which is now a one-inlet
+component separator; K-101's fourth stage is a step of its own (K101D, uncooled, as D-016),
+because core's intercooled machine also cools its last stage; the condensate stripper vent S87
+takes the gases dissolved in the simulated condensates (294.8 kg/h, 99.5 mol% CO2) out of the
+steam system to the CO2 vent (D-015 had neglected them).
+Model basis: specified splits, not predictions, for C301 (D-009: CO2 fraction 0.002273 and
+water 0.176006 to the treated gas, from the concept balance at the design flows) and X401
+(D-010); conversion reactors R100, R102A, R401 as before. DWSIM 9.0.5's equilibrium reactor in
+adiabatic mode fails its flash through core v1.0.0 (reproduced on R201 alone, with and without
+the approach), so the adiabatic beds R102B, R201, R202 run at the concept balance's adiabatic
+outlet temperatures and their duty is the check: 384 kW (R102B), 240 kW (R201) and 172 kW
+(R202), i.e. 0.4 to 2.6 % of their reaction heats; R101 68,616 kW (concept 68,386 kW).
+Mixers take no pressure drop in DWSIM: the drop the concept balance gave M101 and C301 is put on
+the next item (E-102, E-401).
+Findings (deviations kept, not edited away):
+- **Stack temperature 395.9 K, not 423 K** (S66): with the concept fuel flow the convection
+  coils take 1.75 MW more than in the concept balance (E-102 +0.9 MW, E-103 +0.4 MW, E-101
+  +0.3 MW). The furnace balance (fuel from the radiant balance, D-014) has to be redone once
+  H101 can be simulated; E-107's duty (589.5 kW) is held at the concept value.
+- **E-203 duty 34.7 MW** against 31.2 MW in the concept balance (water condensation in
+  Peng-Robinson against the IAPWS knock-out of the script); E-402 17.7 MW (17.5 MW).
+- **S28 (CO2 vent) and S35 (dryer water) pressures**: a component separator leaves its outlets
+  at the inlet pressure (3100, 2900 kPa(a)); the assumed 150 and 300 kPa(a) are the real
+  conditions and stay.
+- **Q18** (CO2 removal coolers): not written; the component separator's energy imbalance
+  (290 kW) is a bookkeeping residual of its split, the 21.9 MW stays ASSUMED (D-009).
+- **H2/N2 at the converter inlet 2.85, not 3.0** (D-007) in the re-solved concept loop: the
+  make-up H2/N2 fell from 3.005 to 3.000 with the simulated front end and the fixed purge
+  lets N2 accumulate; the process air (S12) would need to be retuned when the loop is
+  simulated. Product 62,438.8 kg/h (1,498.5 t/d, -0.1 %); inerts 12.2 % at the converter.
+Energy audit (`cheme process energy`, run record): every simulated reactor closes on the
+formation basis (residuals below 1e-4 kW); DWSIM's formation enthalpies differ from
+materials.yaml within the data tolerance (largest CO2, 36 kJ/kmol); no temperature cross in
+any exchanger (least approaches 35-348 K; no min_approach declared beyond D-012's 5 K for
+cooling water); utilities of the simulated part: hot 69.4 MW (radiant heat and the
+regenerator duty), cold 165.6 MW, power 9.2 MW, recovered between process streams 71.0 MW. The
+plant closure is not evaluated by core while component separators (C301, X401) are in the
+flowsheet ("sign of the component separator's energy imbalance not established"), and block
+energy balances need stream enthalpies that `cheme process props` cannot give: no property
+package covers H2O, O2 or C2H6 (core #315).
+Reason: build the simulation the brief asks for as far as core runs it, and keep every
+limitation visible. Rejected: tuning tolerances, tears or values to make the loop "converge",
+a relaxed recycle test, or writing the unconverged loop values by hand.
+
+## D-025 Property package for the simulation (2026-10-29, S2)
+Decision: Peng-Robinson (DWSIM 9.0.5's PR with its own kij) for the whole simulated plant.
+The model selection (skill thermodynamic-model-selection, Carlson's tree, facts recorded in
+process/simulation.yaml `method_selection`) with the facts polar (water, ammonia), no
+electrolytes in the simulated part, no pseudocomponents, 155 bar(a), no sourced PR kij for the
+loop pairs (uncertain, so answered conservatively), no liquid-liquid split, no association
+recommends PSRK or PR/RKS with modified Huron-Vidal mixing; the DWSIM route runs none of
+them, and Peng-Robinson is their executable substitute (methods.yml; it loses the polar
+mixing rule). The S2 brief (runs/plan.md) prescribes a cubic equation of state for the syngas
+and the loop; the substitution is recorded as `method_selection.substitution` and stays
+visible (`sim-method-substituted`) for the reviewer to accept or reject.
+The aMDEA CO2 removal needs an electrolyte model (amine protonation, carbamate/bicarbonate
+speciation, e.g. electrolyte NRTL) and rate-based absorption; `cheme process methods` lists
+ENRTL-PR and PITZER-RKS as unsupported on both routes, and core refuses electrolytes in
+simulation (`process-sim-electrolyte`). C301 therefore stays a specified separator (D-009),
+marked `basis: specified` in the run record.
+Known weak spots: NH3 condensation with dissolved H2/N2/CH4/Ar at 263 K and 147 bar (loop
+separator, let-down, flash) and CO2 solubility in the process condensate rest on DWSIM's own
+kij, not on sourced data (open input: kij for NH3-H2, NH3-N2, NH3-CH4, NH3-Ar, CO2-H2O).
 
 ## 3. Results of this stage (design case)
 

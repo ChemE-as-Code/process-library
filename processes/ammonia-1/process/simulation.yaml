@@ -1,15 +1,206 @@
-# Simulation specs. Schema: `cheme schema process-simulation`.
-# Not a simulation model yet (no simulator, no property package: core #315, D-006). It only
-# records which reactors are adiabatic, so the LCA's boundary check knows that they exchange
-# no heat with a utility (their duty is zero by design; scripts/plant_balance.py solves their
-# outlet temperatures adiabatically). The primary reformer R101 is fired (energy stream Q9).
+# The DWSIM model of ammonia-1 (`cheme process simulate`; schema `cheme schema process-simulation`).
+# Decisions D-024 (simulation scope and model) and D-025 (property package) in DESIGN.md.
+# Every spec repeats a design choice of DESIGN.md (source given) or is ASSUMED with its reason.
 schema: cheme/simulation/v1
 kind: simulation
+simulator: dwsim
+property_package: Peng-Robinson (PR)
+method_selection:
+  facts:
+    pressure_value: 155               # the highest pressure of the flowsheet: circulator discharge S41, 15,500 kPa(a) (D-011)
+    pressure_unit: bar(a)
+    is_polar: true                    # water (reforming, shift, knock-out) and ammonia (loop, product) are polar
+    is_electrolyte: false             # no salts or ions in the simulated part; the aMDEA solvent is not simulated (C301 is a specified split, D-009)
+    has_pseudocomponents: false       # eleven pure compounds with CAS numbers (materials.yaml)
+    interaction_parameters_available: false  # `cheme process phase NH3 H2 N2 CH4 AR --model PR` finds no sourced PR kij for any loop pair; uncertain, so the conservative answer
+    liquid_liquid_expected: false     # water and liquid NH3 never meet (the dryer X401 removes all water before the loop); hydrocarbon liquids do not form
+    vapor_association_expected: false # no carboxylic acids or HF
+  substitution: >-
+    The selection (Carlson tree) recommends PSRK or Peng-Robinson / RKS with modified
+    Huron-Vidal mixing rules for a polar mixture at 155 bar without interaction parameters;
+    the DWSIM route runs none of them, and methods.yml names Peng-Robinson as their executable
+    substitute (it loses the polar mixing rule). The section brief (runs/plan.md S2,
+    process-library#86) prescribes a cubic equation of state for the syngas and the synthesis
+    loop; Peng-Robinson is used on that basis, to be confirmed by the reviewer (D-025). Known
+    weak spots: NH3 condensation with dissolved H2/N2/CH4/Ar at 263 K and 147 bar (separator,
+    let-down, flash) and CO2 solubility in the process condensate, both with DWSIM's own kij.
+# Left out (D-024): the furnace radiant section H101 (it shares its energy stream Q9 with R101
+# and its fuel would need an adjust), the steam system U801 (an energy-only package balance),
+# and the synthesis loop and purge recovery (SYN, PGR): their recycles do not pass DWSIM's
+# recycle test through core v1.0.0 (D-024 gives the evidence), so their values stay those of
+# the concept balance. The SYN specs below are the loop model, kept for when it can run.
+exclude: [H101, U801, SYN, PGR]
+# Tears where the loops cross, each with a first guess from the concept balance
+# (scripts/plant_balance.py): the convection coils (S4, S9: the flue gas runs against the
+# process gas) and the methanator feed heater (S27, the treated gas heated by the HTS effluent
+# ahead of the LTS). Guesses only.
+tear_streams: [S4, S9, S27]
+guesses:
+  S4:
+    temperature: {value: 643.15, provenance: assumed}
+    pressure: {value: 4450, provenance: assumed}
+    flow: {value: 29508.3, provenance: assumed}
+    composition: {basis: mole_fraction, values: {CH4: 0.91, C2H6: 0.04, C3H8: 0.01, CO2: 0.01, N2: 0.03}, provenance: assumed}
+  S9:
+    temperature: {value: 659.41, provenance: assumed}
+    pressure: {value: 4150, provenance: assumed}
+    flow: {value: 122342.0, provenance: assumed}
+    composition: {basis: mole_fraction, values: {CH4: 0.212617, CO2: 0.00233644, N2: 0.00700934, H2: 0.0630841, CO: 0.0257009, H2O: 0.689252}, provenance: assumed}
+  S27:
+    temperature: {value: 313.15, provenance: assumed}
+    pressure: {value: 3100, provenance: assumed}
+    flow: {value: 66413.1, provenance: assumed}
+    composition: {basis: mole_fraction, values: {CH4: 0.00418374, CO2: 0.000498789, N2: 0.244985, H2: 0.740576, CO: 0.00448488, H2O: 0.00242129, AR: 0.00285111}, provenance: assumed}
 specs:
-  R100: {mode: adiabatic}
-  R102A: {mode: adiabatic}
-  R102B: {mode: adiabatic}
-  R201: {mode: adiabatic}
-  R202: {mode: adiabatic}
-  R401: {mode: adiabatic}
-  R501: {mode: adiabatic}
+  # ---- REF (D-007; pressure drops ASSUMED in D-007; mixers take no pressure drop in DWSIM, so
+  # the drop the concept balance gave a mixer is put on the next item)
+  E101:
+    cold_outlet_temperature: {value: 643.15, provenance: assumed, source: D-007}
+    cold_pressure_drop: {value: 50, unit: kPa, provenance: assumed, source: D-007}
+    hot_pressure_drop: {value: 0.5, unit: kPa, provenance: assumed, source: "D-014: 3 kPa across six coils"}
+  D101:
+    unit: heater     # the desulfuriser takes no heat; sulfur is not balanced (D-004)
+    duty: {value: 0, unit: kW, provenance: assumed, source: "D-004: adsorber, adiabatic"}
+    pressure_drop: {value: 50, unit: kPa, provenance: assumed, source: D-007}
+  E102:
+    cold_outlet_temperature: {value: 773.15, provenance: assumed, source: D-007}
+    cold_pressure_drop: {value: 150, unit: kPa, provenance: assumed, source: "D-007: 50 kPa plus the 100 kPa of M101"}
+    hot_pressure_drop: {value: 0.5, unit: kPa, provenance: assumed, source: D-014}
+  R100: {mode: adiabatic, pressure_drop: {value: 100, unit: kPa, provenance: assumed, source: D-007}}
+  E103:
+    cold_outlet_temperature: {value: 893.15, provenance: assumed, source: D-007}
+    cold_pressure_drop: {value: 50, unit: kPa, provenance: assumed, source: D-007}
+    hot_pressure_drop: {value: 0.5, unit: kPa, provenance: assumed, source: D-014}
+  R101:
+    mode: outlet_temperature
+    outlet_temperature: {value: 1083.15, provenance: assumed, source: D-007}
+    pressure_drop: {value: 600, unit: kPa, provenance: assumed, source: D-007}
+  # K-101: four stages of equal pressure ratio (101.325 -> 3600 kPa(a), ratio 2.4415), the
+  # first three intercooled to 313 K (core's intercooled machine also cools its last stage),
+  # the fourth uncooled to E-104 (D-016, D-024)
+  K101:
+    outlet_pressure: {value: 1474.6, provenance: assumed, source: "D-024: 101.325 kPa x 2.4415^3, equal stage ratios to 3600 kPa(a) (D-007)"}
+    efficiency: {value: 0.78, provenance: assumed, source: "D-016: isentropic efficiency per stage"}
+    stages: 3
+    outlet_temperature: {value: 313.15, provenance: assumed, source: "D-012: process coolers to 313 K"}
+  K101D:
+    outlet_pressure: {value: 3600, provenance: assumed, source: D-007}
+    efficiency: {value: 0.78, provenance: assumed, source: "D-016: isentropic efficiency per stage"}
+  E104:
+    cold_outlet_temperature: {value: 773.15, provenance: assumed, source: D-007}
+    cold_pressure_drop: {value: 50, unit: kPa, provenance: assumed, source: D-007}
+    hot_pressure_drop: {value: 0.5, unit: kPa, provenance: assumed, source: D-014}
+  R102A: {mode: adiabatic, pressure_drop: {value: 50, unit: kPa, provenance: assumed, source: D-007}}
+  R102B:
+    # DWSIM's adiabatic equilibrium reactor fails its flash at this inlet (1560 K); the bed is run
+    # at the adiabatic outlet temperature of the concept balance and its duty is the check (D-024)
+    mode: outlet_temperature
+    outlet_temperature: {value: 1264.97, provenance: assumed, source: "D-007: adiabatic outlet of the concept balance (scripts/plant_balance.py)"}
+    pressure_drop: {value: 50, unit: kPa, provenance: assumed, source: D-007}
+  E105:
+    outlet_temperature: {value: 643.15, provenance: assumed, source: "D-008: HTS inlet"}
+    pressure_drop: {value: 50, unit: kPa, provenance: assumed, source: D-007}
+  K102:
+    outlet_pressure: {value: 106.3, provenance: assumed, source: D-014}
+    efficiency: {value: 0.70, provenance: assumed, source: D-014}
+  E106:
+    cold_outlet_temperature: {value: 523.15, provenance: assumed, source: D-014}
+    cold_pressure_drop: {value: 1.3, unit: kPa, provenance: assumed, source: D-014}
+    hot_pressure_drop: {value: 0.5, unit: kPa, provenance: assumed, source: D-014}
+  E107:
+    # the concept balance's duty (D-014); the stack temperature is the result and S66's assumed
+    # 423 K the check (D-024)
+    duty: {value: -589.5, unit: kW, provenance: assumed, source: "D-014: convection heat left after the process coils in the concept balance"}
+    pressure_drop: {value: 0.5, unit: kPa, provenance: assumed, source: D-014}
+  K103:
+    outlet_pressure: {value: 105, provenance: assumed, source: D-014}
+    efficiency: {value: 0.70, provenance: assumed, source: D-014}
+  # ---- SHF (D-008, D-009)
+  # The adiabatic equilibrium beds (R102B, R201, R202, R501) run at their adiabatic outlet
+  # temperature, and their duty, about 0, is the check: DWSIM 9.0.5's equilibrium reactor in
+  # adiabatic mode fails its flash through core v1.0.0 (D-024)
+  R201:
+    mode: outlet_temperature
+    outlet_temperature: {value: 716.9, provenance: assumed, source: "D-008: adiabatic outlet of the concept balance"}
+    pressure_drop: {value: 50, unit: kPa, provenance: assumed, source: D-008}
+  E201:
+    # ASSUMED: E-201 cools the HTS effluent to the temperature from which E-401 can bring the
+    # methanator feed to 553 K (D-010) while cooling it to the LTS inlet, 478 K (D-008); first
+    # value from the concept balance's split of that heat (11.8 MW steam, 14.9 MW methanator feed)
+    outlet_temperature: {value: 611.2, provenance: assumed, source: "D-024: from the concept balance's E-201/E-401 duty split (D-010)"}
+    pressure_drop: {value: 25, unit: kPa, provenance: assumed, source: "D-008: 50 kPa shared by E-201 and E-401"}
+  E401:
+    hot_outlet_temperature: {value: 478.15, provenance: assumed, source: "D-008: LTS inlet"}
+    hot_pressure_drop: {value: 25, unit: kPa, provenance: assumed, source: D-008}
+    cold_pressure_drop: {value: 100, unit: kPa, provenance: assumed, source: "D-010: 50 kPa plus the 50 kPa of the CO2 absorber (a component separator takes none)"}
+  R202:
+    mode: outlet_temperature
+    outlet_temperature: {value: 507.5, provenance: assumed, source: "D-008: adiabatic outlet of the concept balance"}
+    pressure_drop: {value: 50, unit: kPa, provenance: assumed, source: D-008}
+  E202:
+    # the regeneration heat of D-009 (1.0 MJ/kg CO2) at the concept balance's CO2 flow
+    duty: {value: -20363.4, unit: kW, provenance: assumed, source: "D-009: 1.0 MJ/kg CO2 x 73.3 t/h CO2 removed (concept balance)"}
+    pressure_drop: {value: 50, unit: kPa, provenance: assumed, source: D-009}
+  E203:
+    outlet_temperature: {value: 313.15, provenance: assumed, source: D-012}
+    pressure_drop: {value: 50, unit: kPa, provenance: assumed, source: D-009}
+  # ---- CO2R (D-009): a specified split, not a solvent model
+  P301:
+    unit: pump
+    outlet_pressure: {value: 3100, provenance: assumed, source: "D-024: make-up water pumped to the absorber pressure"}
+    efficiency: {value: 0.75, provenance: assumed, source: "D-009: solvent pump efficiency 0.75"}
+  C301:
+    recovery_outlet: gas
+    recoveries: {H2: 1.0, N2: 1.0, CH4: 1.0, CO: 1.0, AR: 1.0, CO2: 0.002273, H2O: 0.176006}
+    basis_source: >-
+      D-009 (ASSUMED): 500 ppmv CO2 slip in the treated gas, co-absorption of H2, N2, CH4, CO
+      and Ar neglected, treated gas and CO2 water-saturated at 313 K; the CO2 and water fractions
+      are those of the concept balance at the design flows (scripts/plant_balance.py)
+    operating_basis: "absorber at 3100 kPa(a) and 313 K, regenerator at 150 kPa(a); aMDEA, regeneration 1.0 MJ/kg CO2 (D-009)"
+  # ---- MET (D-010)
+  R401: {mode: adiabatic, pressure_drop: {value: 50, unit: kPa, provenance: assumed, source: D-010}}
+  E402:
+    outlet_temperature: {value: 313.15, provenance: assumed, source: D-012}
+    pressure_drop: {value: 50, unit: kPa, provenance: assumed, source: D-010}
+  X401:
+    recovery_outlet: gas
+    recoveries: {H2: 1.0, N2: 1.0, CH4: 1.0, AR: 1.0, CO: 1.0, CO2: 1.0, NH3: 1.0, H2O: 0.0}
+    basis_source: "D-010 (ASSUMED): the molecular sieve removes all water; co-adsorption neglected; regeneration not modelled (I-05)"
+    operating_basis: "adsorption at 2900 kPa(a) and 313 K, water-saturated feed from V-401 (D-010)"
+  # ---- SYN (D-011, D-016, D-017)
+  K501:
+    outlet_pressure: {value: 14600, provenance: assumed, source: D-011}
+    efficiency: {value: 0.78, provenance: assumed, source: D-016}
+    stages: 3
+    outlet_temperature: {value: 313.15, provenance: assumed, source: "D-012, D-016: intercoolers and aftercooler to 313 K"}
+  K502:
+    outlet_pressure: {value: 15500, provenance: assumed, source: D-011}
+    efficiency: {value: 0.78, provenance: assumed, source: D-016}
+  E501:
+    hot_outlet_temperature: {value: 343.15, provenance: assumed, source: "D-011: above the NH3 dew point"}
+    hot_pressure_drop: {value: 100, unit: kPa, provenance: assumed, source: D-011}
+    cold_pressure_drop: {value: 100, unit: kPa, provenance: assumed, source: D-011}
+  R501:
+    mode: outlet_temperature
+    outlet_temperature: {value: 703.15, provenance: assumed, source: "D-011: converter outlet (overall adiabatic)"}
+    pressure_drop: {value: 300, unit: kPa, provenance: assumed, source: D-011}
+  E502:
+    outlet_temperature: {value: 547.21, provenance: assumed, source: "D-011: waste heat boiler to 547 K (concept balance)"}
+    pressure_drop: {value: 100, unit: kPa, provenance: assumed, source: D-011}
+  E503:
+    outlet_temperature: {value: 313.15, provenance: assumed, source: D-012}
+    pressure_drop: {value: 100, unit: kPa, provenance: assumed, source: D-011}
+  E505:
+    cold_outlet_temperature: {value: 303.15, provenance: assumed, source: "D-011: recycle gas 263 -> 303 K"}
+    cold_pressure_drop: {value: 50, unit: kPa, provenance: assumed, source: D-011}
+    hot_pressure_drop: {value: 50, unit: kPa, provenance: assumed, source: D-011}
+  E504:
+    outlet_temperature: {value: 263.15, provenance: assumed, source: "D-011: chiller to 263 K"}
+    pressure_drop: {value: 50, unit: kPa, provenance: assumed, source: D-011}
+  V501:
+    outlets: {vap: vapor, liq: liquid}   # adiabatic at the chiller outlet, 14,700 kPa(a)
+  V502:
+    pressure: {value: 2500, provenance: assumed, source: "D-011: let-down pressure"}
+  # The product flash with its flash-gas loop and the HRU need the steps of D-024 (flash-gas
+  # compression and receiver, HRU split in NH3 wash, cold box and H2 compression) before they
+  # can be simulated; their specs are in D-024.
