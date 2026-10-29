@@ -836,9 +836,15 @@ exchanger areas, compressor fluid powers, fan flows, pump powers and materials c
 datasheets (S7), and no CEPCI value with an exact source was found in this job. The TEA keeps
 the class 5 capital of D-023. Gate `tea` enabled as the template documents it; the vented CO2
 and the flue gas are listed `free` (their CO2 is charged under `emissions:`, a price would count
-it twice); it fails on the three utilities without a sourced price (DMW, blowdown, cooling
-water; open since D-023 and review 2026-10-29-concept#2).
-Reason: S5 of runs/plan.md.
+it twice). The three utilities without a price (open since D-023 and review
+2026-10-29-concept#2) are priced in the S5r fix on this design's premises, all ASSUMED, no quote:
+demineralised water 2.0 EUR/t bought at the battery limit (swing 0.5-2.0); heat to cooling water
+-2.85 EUR/MWh, the cooling tower's operating cost outside the boundary (pump 40 m at 0.75 and
+fans at 150 Pa and 0.65 for the D-012 10 K rise, 0.0173 MWh(e) per MWh at the feed:POWER price,
+plus make-up at 5 cycles of concentration and 0.60 EUR/t raw water including treatment; the
+calculation is in the price's source); blowdown `free`, ASSUMED to go to the cooling-tower make-up
+outside the boundary. The LCOP rises from 738.6 to 748.2 EUR/t.
+Reason: S5 of runs/plan.md; review 2026-10-29-design#1 (a).
 
 ## 3. Results of this stage (design case)
 
