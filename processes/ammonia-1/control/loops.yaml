@@ -2,29 +2,734 @@
 # PROPOSED control intent, not approved for implementation; the review status comes from reviews/.
 # Trips are not loops: they go in control/cause-effect.yaml, which `interlocks` refers to.
 # Conventions (action, fail, travel, split range) and the checks: skill control-loops.
-# Leave a value out until it is known (action, fail, value): validate reports it as
-# cheme.control-incomplete (info), and a stage gate decides when it must be given.
+# S4 (D-030): one entry per controller drawn on P-101 to P-114. Setpoints that are a design-case
+# value of process/flowsheet.yaml name their stream; levels, margins and the furnace draft are
+# ASSUMED (D-030). Fail positions are proposed in D-030 with their reason and are for the HAZOP
+# (S6) to confirm. Output 100 % opens a valve (default travel) unless travel says otherwise.
 schema: cheme/loops/v1
-loops: []
-#  - id: FIC-101                        # stable id, usually the loop tag
-#    title: Feed flow
-#    purpose: Hold the feed rate of the operating case.
-#    section: FEED                      # a section of process/narrative.md
-#    cases: [design]                    # operating cases of process/flowsheet.yaml
-#    variable: flow                     # flow, level, temperature, pressure, composition, ...
-#    measurement: [{tag: FT-101}]
-#    controller: FIC-101
-#    action: reverse                    # direct: output rises with the measurement
-#    final_elements:
-#      - {tag: FV-101, kind: valve, actuator: pneumatic, fail: closed}
-#    targets:
-#      - {kind: setpoint, value: 3600, unit: kg/h, provenance: given, source: basis of design,
-#         cases: [design], stream: S1, property: flow}
-#    modes: [manual, auto]
-#    normal_mode: auto
-#    links: []                          # cascade, ratio, feedforward, override
-#    alarms: [{tag: FT-101, condition: FAL, response: check the feed pump}]
-#    interlocks: []                     # related C&E ids
-#    rationale: ""
-#    operator: ""                       # judgement the operator has to make
-#    unresolved: []                     # open points, one per entry
+loops:
+  # ---------------------------------------------------------------- REF: feed, reforming, furnace
+  - id: FIC-1002
+    title: Process natural gas flow (plant load)
+    purpose: Hold the process natural gas rate of the operating case; every other front-end flow follows it.
+    section: REF
+    cases: [design]
+    variable: flow
+    measurement: [{tag: FIC-1002}]
+    controller: FIC-1002
+    action: reverse
+    final_elements:
+      - {tag: FV-1002, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 29508.3, unit: kg/h, provenance: calculated, source: process/flowsheet.yaml design case,
+         cases: [design], stream: S3, property: flow}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: FIC-1002, condition: FAL, response: Check FV-1002 and the supply pressure PI-1001; the steam and air ratios follow the measured gas flow.}
+    interlocks: [I-101]
+    rationale: The load setter of the plant. The steam (FIC-1006) and process air (FIC-1201) loops are ratioed to this measurement, so a load change moves the whole front end together. The trip valve XV-1001 is separate from FV-1002.
+    operator: Changes the load in small steps and only with the steam ratio in cascade (steam leads on a rise, gas leads on a fall, D-030).
+  - id: FIC-1006
+    title: Process steam flow, ratio to the natural gas (steam to carbon)
+    purpose: Keep the steam to carbon ratio of the design case so that no carbon forms on the prereforming and reforming catalysts.
+    section: REF
+    cases: [design]
+    variable: flow
+    measurement: [{tag: FIC-1006}]
+    controller: FIC-1006
+    action: reverse
+    final_elements:
+      - {tag: FV-1006, kind: valve, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: setpoint, value: 92833.6, unit: kg/h, provenance: assumed, source: "process/flowsheet.yaml design case (S6 ASSUMED, D-007)",
+         cases: [design], stream: S6, property: flow}
+    modes: [manual, auto, cascade]
+    normal_mode: cascade
+    links:
+      - {type: ratio, loop: FIC-1002, ratio: 3.146, notes: "kg steam per kg process natural gas, S6/S3 of the design case"}
+    transitions:
+      - {from: auto, to: cascade, by: operator, condition: {loop: FIC-1002, state: in auto}}
+    alarms:
+      - {tag: FIC-1006, condition: FAL, response: Check FV-1006 and the MP header pressure PIC-2203; reduce the gas rate before the low-low trip I-101 acts.}
+    interlocks: [I-101]
+    rationale: Ratio station on the measured gas flow. FV-1006 fails open because too little steam forms carbon, too much only costs energy. The low-low trip uses its own transmitter FZ-1007.
+    operator: Sets the ratio; never lowers it below the design ratio without the process engineer.
+  - id: TIC-1103
+    title: Primary reformer outlet temperature (master)
+    purpose: Hold the reformer outlet temperature, which sets the methane slip of the primary reformer.
+    section: REF
+    cases: [design]
+    variable: temperature
+    measurement: [{tag: TIC-1103}]
+    controller: TIC-1103
+    action: reverse
+    targets:
+      - {kind: setpoint, value: 1083.15, unit: K, provenance: assumed, source: "process/flowsheet.yaml design case (S11 ASSUMED, D-007)",
+         cases: [design], stream: S11, property: temperature}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: TIC-1103, condition: TAH, response: Check the firing and the tube skin temperatures; reduce the fuel pressure setpoint by hand if the master saturates.}
+    interlocks: [I-102]
+    rationale: Cascade onto the fuel gas pressure PIC-1101, so that a change in the fuel or tail gas supply is corrected by the slave before it reaches the reformer outlet.
+    operator: Watches the tube wall temperatures (no tube skin thermocouples drawn yet, D-030).
+  - id: PIC-1101
+    title: Fuel gas pressure to the burners (slave)
+    purpose: Hold the burner fuel pressure, which sets the natural gas firing of H-101.
+    section: REF
+    cases: [design]
+    variable: pressure
+    measurement: [{tag: PIC-1101}]
+    controller: PIC-1101
+    action: reverse
+    final_elements:
+      - {tag: PV-1101, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: low, value: 150, unit: kPa(a), provenance: assumed, source: "D-030: minimum burner fuel pressure for a stable flame, ASSUMED until the burner vendor gives it"}
+    modes: [manual, auto, cascade]
+    normal_mode: cascade
+    links:
+      - {type: cascade, loop: TIC-1103}
+    transitions:
+      - {from: auto, to: cascade, by: operator, condition: {loop: TIC-1103, state: in auto}}
+    interlocks: [I-102]
+    rationale: Fuel pressure is the usual measure of firing for a multi-burner box; its setpoint comes from TIC-1103 and is clamped at the low limit so that the burners are not starved.
+    operator: Lights burners and holds the pressure in auto during start-up before the master is put in.
+  - id: PIC-1107
+    title: Furnace draft (arch pressure)
+    purpose: Keep the radiant box below atmospheric pressure so that flue gas does not leak out through peep doors and casing.
+    section: REF
+    cases: [design]
+    variable: pressure
+    measurement: [{tag: PIC-1107}]
+    controller: PIC-1107
+    action: direct
+    final_elements:
+      - {tag: K-103, kind: drive, actuator: other, fail: last}
+    targets:
+      - {kind: setpoint, value: -25, unit: Pa(g), provenance: assumed, source: "D-030: balanced draft at the arch, usual practice for induced draft fired heaters, ASSUMED"}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: PIC-1107, condition: PAH, response: Check K-103 and its inlet; reduce the firing before the high-high trip I-102 acts.}
+    interlocks: [I-102]
+    rationale: The ID fan speed holds the draft; the trip I-102 uses its own transmitter PZ-1108.
+    operator: Confirms the draft before each burner is lit.
+  - id: AIC-1109
+    title: Excess oxygen in the flue gas (master)
+    purpose: Hold the excess air of the reformer furnace at the design value (complete combustion with the least stack loss).
+    section: REF
+    cases: [design]
+    variable: composition
+    measurement: [{tag: AIC-1109}]
+    controller: AIC-1109
+    action: reverse
+    targets:
+      - {kind: setpoint, value: 1.69, unit: mol%, provenance: calculated, source: "process/flowsheet.yaml design case, O2 mole fraction of S66 (10 % excess O2, D-014)"}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: AIC-1109, condition: AAL, response: Check for incomplete combustion; raise the combustion air by hand and reduce the firing if the oxygen keeps falling.}
+    rationale: Cascade onto the combustion air flow FIC-1110. A fuel/air cross limit (air leads on a rise, fuel follows on a fall) belongs with the burner management package (open, D-030).
+    operator: Puts the master in manual when the analyser is out of service.
+  - id: FIC-1110
+    title: Combustion air flow (slave)
+    purpose: Hold the combustion air flow to H-101.
+    section: REF
+    cases: [design]
+    variable: flow
+    measurement: [{tag: FIC-1110}]
+    controller: FIC-1110
+    action: reverse
+    final_elements:
+      - {tag: FV-1108, kind: damper, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: setpoint, value: 165407, unit: kg/h, provenance: calculated, source: process/flowsheet.yaml design case,
+         cases: [design], stream: S62, property: flow}
+    modes: [manual, auto, cascade]
+    normal_mode: cascade
+    links:
+      - {type: cascade, loop: AIC-1109}
+    transitions:
+      - {from: auto, to: cascade, by: operator, condition: {loop: AIC-1109, state: in auto}}
+    rationale: The damper fails open so that a loss of signal gives excess air, never fuel-rich firing.
+  - id: FIC-1201
+    title: Process air flow to the secondary reformer
+    purpose: Feed the nitrogen of the synthesis gas and the heat of the secondary reformer; the H2/N2 ratio of the loop follows from it.
+    section: REF
+    cases: [design]
+    variable: flow
+    measurement: [{tag: FIC-1201}]
+    controller: FIC-1201
+    action: reverse
+    final_elements:
+      - {tag: FV-1201, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 67184.1, unit: kg/h, provenance: assumed, source: "process/flowsheet.yaml design case (S12 ASSUMED, D-004)",
+         cases: [design], stream: S12, property: flow}
+    modes: [manual, auto, cascade]
+    normal_mode: cascade
+    links:
+      - {type: ratio, loop: FIC-1002, ratio: 2.277, notes: "kg process air per kg process natural gas, S12/S3 of the design case"}
+      - {type: cascade, loop: AIC-1804, notes: AIC-1804 trims the air to gas ratio}
+    transitions:
+      - {from: auto, to: cascade, by: operator, condition: {all: [{loop: FIC-1002, state: in auto}, {loop: AIC-1804, state: in auto}]}}
+    alarms:
+      - {tag: FIC-1201, condition: FAH, response: Check the ratio and AIC-1804; too much air overheats R-102 (trip I-103).}
+    interlocks: [I-101, I-103]
+    rationale: Suction throttling of K-101 (FV-1201) sets the flow; the ratio to the gas keeps the secondary reformer heat balance at a load change, and the slow H2/N2 analyser at the converter trims the ratio. FV-1201 fails closed so that a loss of signal does not overheat R-102; anti-surge UIC-1202 opens at the same time.
+    operator: Keeps AIC-1804 in manual until the loop has circulated long enough for a representative analysis.
+  - id: UIC-1202
+    title: K-101 anti-surge
+    purpose: Keep the process air compressor away from its surge line by blowing off to atmosphere.
+    section: REF
+    cases: [design]
+    variable: other
+    measurement: [{tag: UIC-1202}]
+    controller: UIC-1202
+    action: reverse
+    final_elements:
+      - {tag: FV-1202, kind: valve, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: setpoint, value: 10, unit: "%", provenance: assumed, source: "D-030: control line 10 % in flow from the vendor's surge line, ASSUMED usual practice"}
+    modes: [manual, auto]
+    normal_mode: auto
+    rationale: Blow-off is the usual anti-surge path of an air compressor (air may be vented). The surge line is the vendor's.
+    operator: Never in manual while K-101 runs, except at the vendor's instruction.
+  - id: TIC-1207
+    title: HT shift inlet temperature
+    purpose: Hold the HT shift inlet temperature by bypassing hot gas around the waste heat boiler E-105.
+    section: SHF
+    cases: [design]
+    variable: temperature
+    measurement: [{tag: TIC-1207}]
+    controller: TIC-1207
+    action: reverse
+    final_elements:
+      - {tag: TV-1207, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 643.15, unit: K, provenance: assumed, source: "process/flowsheet.yaml design case (S18 ASSUMED, D-008)",
+         cases: [design], stream: S18, property: temperature}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: TIC-1207, condition: TAH, response: Check TV-1207; a hot HT shift inlet ages the catalyst and raises the outlet temperature TI-1210.}
+    rationale: The hot bypass opens as the E-105 surface fouls or the load falls. It fails closed (all gas through E-105 gives a cooler shift inlet, the safe direction for an exothermic bed).
+  # ------------------------------------------------------------------ SHF: LT shift, gas cooling
+  - id: TIC-1601
+    title: LT shift inlet temperature
+    purpose: Hold the LT shift inlet temperature by bypassing the hot side of E-401.
+    section: SHF
+    cases: [design]
+    variable: temperature
+    measurement: [{tag: TIC-1601}]
+    controller: TIC-1601
+    action: reverse
+    final_elements:
+      - {tag: TV-1601, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 478.15, unit: K, provenance: assumed, source: "process/flowsheet.yaml design case (S20 ASSUMED, D-008)",
+         cases: [design], stream: S20, property: temperature}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: TIC-1601, condition: TAH, response: A hot LT shift inlet sinters the copper catalyst; check TV-1601.}
+      - {tag: TIC-1601, condition: TAL, response: Close to the dew point of the gas; condensate wets the catalyst. Check TV-1601 and E-401.}
+    rationale: Drawn on P-107 with E-401, controls the SHF feed. The bypass also sets the methanator inlet temperature (TI-1603 has no own loop, D-028), so the two are coupled; fails closed as TIC-1207.
+    operator: Watches the methanator inlet temperature TI-1603 when TIC-1601 moves.
+  - id: TIC-1306
+    title: Process gas temperature to the condensate separator
+    purpose: Cool the raw synthesis gas to the absorber inlet temperature with cooling water.
+    section: SHF
+    cases: [design]
+    variable: temperature
+    measurement: [{tag: TIC-1306}]
+    controller: TIC-1306
+    action: direct
+    final_elements:
+      - {tag: TV-1306, kind: valve, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: setpoint, value: 313.15, unit: K, provenance: assumed, source: "process/flowsheet.yaml design case (S23 ASSUMED, D-012)",
+         cases: [design], stream: S23, property: temperature}
+    modes: [manual, auto]
+    normal_mode: auto
+    rationale: Cooling water valve on the E-203 water; fails open (full cooling).
+  - id: LIC-1307
+    title: Condensate separator V-201 level
+    purpose: Keep a liquid seal in V-201 and pass the process condensate to the stripper in U-801.
+    section: SHF
+    cases: [design]
+    variable: level
+    measurement: [{tag: LIC-1307}]
+    controller: LIC-1307
+    action: direct
+    final_elements:
+      - {tag: LV-1307, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 50, unit: "%", provenance: assumed, source: D-030 (ASSUMED)}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: LIC-1307, condition: LAH, response: Check LV-1307; liquid carried over reaches the CO2 absorber (I-104 at high-high).}
+      - {tag: LIC-1307, condition: LAL, response: Check LV-1307 closes; gas blow-by into the condensate stripper.}
+    interlocks: [I-104]
+    rationale: Level on the outlet valve; fails closed against gas blow-by into the low-pressure stripper.
+  # ---------------------------------------------------------------------------- CO2R: aMDEA loop
+  - id: LIC-1405
+    title: CO2 absorber sump level
+    purpose: Keep the liquid seal in the C-301 sump and send the rich solvent to the regenerator.
+    section: CO2R
+    cases: [design]
+    variable: level
+    measurement: [{tag: LIC-1405}]
+    controller: LIC-1405
+    action: direct
+    final_elements:
+      - {tag: LV-1405, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 50, unit: "%", provenance: assumed, source: D-030 (ASSUMED)}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: LIC-1405, condition: LAL, response: Check LV-1405; the low-low trip I-105 closes XV-1406 against gas blow-by.}
+    interlocks: [I-105]
+    rationale: Level on the rich solvent letdown; fails closed against gas blow-by from 3100 to 150 kPa(a). The trip has its own transmitter LZ-1406 and valve XV-1406.
+  - id: FIC-1407
+    title: Lean solvent flow to the absorber
+    purpose: Feed the solvent circulation that removes the CO2 to the treated gas specification.
+    section: CO2R
+    cases: [design]
+    variable: flow
+    measurement: [{tag: FIC-1407}]
+    controller: FIC-1407
+    action: reverse
+    final_elements:
+      - {tag: FV-1407, kind: valve, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: setpoint, value: 1313, unit: m3/h, provenance: assumed, source: "D-009, D-028: 18 m3 solvent per t CO2, ASSUMED"}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: FIC-1407, condition: FAL, response: Check the running pump P-301A/B and FV-1407; CO2 slip AI-1403 rises and the methanator heats up (I-106).}
+    interlocks: [I-106]
+    rationale: Fails open (too much solvent costs energy, too little lets CO2 through to the methanator).
+    operator: Raises the circulation when AI-1403 shows CO2 slip rising.
+  - id: TIC-1408
+    title: Lean solvent temperature to the absorber
+    purpose: Cool the lean solvent to the absorber temperature.
+    section: CO2R
+    cases: [design]
+    variable: temperature
+    measurement: [{tag: TIC-1408}]
+    controller: TIC-1408
+    action: direct
+    final_elements:
+      - {tag: TV-1408, kind: valve, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: setpoint, value: 313.15, unit: K, provenance: assumed, source: "D-030: lean solvent at the treated gas temperature of C-301 (313.15 K, D-009), ASSUMED"}
+    modes: [manual, auto]
+    normal_mode: auto
+    rationale: Cooling water valve on E-302; fails open.
+  - id: PIC-1505
+    title: Regenerator pressure
+    purpose: Hold the C-302 pressure by venting the CO2.
+    section: CO2R
+    cases: [design]
+    variable: pressure
+    measurement: [{tag: PIC-1505}]
+    controller: PIC-1505
+    action: direct
+    final_elements:
+      - {tag: PV-1505, kind: valve, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: setpoint, value: 150, unit: kPa(a), provenance: assumed, source: "process/flowsheet.yaml design case (S28 ASSUMED, D-009)",
+         cases: [design], stream: S28, property: pressure}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: PIC-1505, condition: PAH, response: Check PV-1505; gas blow-by from C-301 (I-105) or a blocked vent. PSV-1513 is the relief.}
+    interlocks: [I-105]
+    rationale: Back-pressure valve on the CO2 vent; fails open so that the low-pressure regenerator is not pressurised.
+  - id: LIC-1506
+    title: Reflux drum V-302 level
+    purpose: Return the condensed water to C-302 as reflux.
+    section: CO2R
+    cases: [design]
+    variable: level
+    measurement: [{tag: LIC-1506}]
+    controller: LIC-1506
+    action: direct
+    final_elements:
+      - {tag: LV-1506, kind: valve, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: setpoint, value: 50, unit: "%", provenance: assumed, source: D-030 (ASSUMED)}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: LIC-1506, condition: LAL, response: Check LV-1506 and the reflux pumps P-302A/B (no minimum-flow line drawn yet).}
+    rationale: The reflux is all the drum's liquid (no water product), so level on the reflux valve. Fails open so that the drum does not flood the CO2 vent with water.
+  - id: FIC-1508
+    title: Make-up water flow
+    purpose: Replace the water leaving with the treated gas and the CO2 so that the solvent strength holds.
+    section: CO2R
+    cases: [design]
+    variable: flow
+    measurement: [{tag: FIC-1508}]
+    controller: FIC-1508
+    action: reverse
+    final_elements:
+      - {tag: FV-1508, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 1487.6, unit: kg/h, provenance: assumed, source: "process/flowsheet.yaml design case (S26 ASSUMED, D-009)",
+         cases: [design], stream: S26, property: flow}
+    modes: [manual, auto]
+    normal_mode: auto
+    rationale: Flow-controlled make-up; fails closed so that the solvent is not diluted.
+    operator: Trims the make-up from the regenerator inventory LI-1507 and the solvent strength from the laboratory.
+  # ------------------------------------------------------------------- MET: methanation, drying
+  - id: TIC-1608
+    title: Gas temperature to the knock-out drum V-401
+    purpose: Cool the methanator effluent so that its water condenses before the dryer.
+    section: MET
+    cases: [design]
+    variable: temperature
+    measurement: [{tag: TIC-1608}]
+    controller: TIC-1608
+    action: direct
+    final_elements:
+      - {tag: TV-1608, kind: valve, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: setpoint, value: 313.15, unit: K, provenance: assumed, source: "process/flowsheet.yaml design case (S31 ASSUMED, D-010)",
+         cases: [design], stream: S31, property: temperature}
+    modes: [manual, auto]
+    normal_mode: auto
+    rationale: Cooling water valve on E-402; fails open.
+  - id: LIC-1609
+    title: Knock-out drum V-401 level
+    purpose: Drain the methanator condensate to U-801 with a liquid seal.
+    section: MET
+    cases: [design]
+    variable: level
+    measurement: [{tag: LIC-1609}]
+    controller: LIC-1609
+    action: direct
+    final_elements:
+      - {tag: LV-1609, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 50, unit: "%", provenance: assumed, source: D-030 (ASSUMED)}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: LIC-1609, condition: LAH, response: Check LV-1609; water carried into X-401 shortens the sieve cycle (AI-1610).}
+    rationale: Level on the outlet valve; fails closed against gas blow-by.
+  # -------------------------------------------------------------------- SYN: compression, loop
+  - id: UIC-1703
+    title: K-501 anti-surge
+    purpose: Keep the synthesis gas compressor away from surge by recycling cooled discharge gas to the suction.
+    section: SYN
+    cases: [design]
+    variable: other
+    measurement: [{tag: UIC-1703}]
+    controller: UIC-1703
+    action: reverse
+    final_elements:
+      - {tag: UV-1703, kind: valve, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: setpoint, value: 10, unit: "%", provenance: assumed, source: "D-030: control line 10 % in flow from the vendor's surge line, ASSUMED usual practice"}
+    modes: [manual, auto]
+    normal_mode: auto
+    rationale: Recycle from after the aftercooler (PG-1089) to upstream of the suction flow measurement, so the controller sees the recycled flow. Fails open.
+    operator: Never in manual while K-501 runs, except at the vendor's instruction.
+  - id: UIC-1802
+    title: K-502 anti-surge
+    purpose: Keep the recycle circulator away from surge.
+    section: SYN
+    cases: [design]
+    variable: other
+    measurement: [{tag: UIC-1802}]
+    controller: UIC-1802
+    action: reverse
+    final_elements:
+      - {tag: UV-1802, kind: valve, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: setpoint, value: 10, unit: "%", provenance: assumed, source: "D-030: control line 10 % in flow from the vendor's surge line, ASSUMED usual practice"}
+    modes: [manual, auto]
+    normal_mode: auto
+    rationale: Recycle on the suction flow measurement; fails open.
+  - id: TIC-1803
+    title: Converter inlet temperature
+    purpose: Hold the first-bed inlet temperature of R-501 by bypassing feed gas around the cold side of E-501.
+    section: SYN
+    cases: [design]
+    variable: temperature
+    measurement: [{tag: TIC-1803}]
+    controller: TIC-1803
+    action: direct
+    final_elements:
+      - {tag: TV-1803, kind: valve, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: setpoint, value: 493.843, unit: K, provenance: calculated, source: "process/flowsheet.yaml design case (simulated, D-026)",
+         cases: [design], stream: S42, property: temperature}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: TIC-1803, condition: TAH, response: Open the bypass; watch the bed temperatures TI-1805 to TI-1807 for a runaway.}
+      - {tag: TIC-1803, condition: TAL, response: The converter may extinguish; reduce the bypass and the circulation.}
+    rationale: More bypass gives a cooler converter feed, so the bypass fails open (the safe direction for the exothermic converter, which can extinguish but not run away on a cold feed).
+    operator: Moves the setpoint with the catalyst age and watches all three bed temperatures; there is no interbed quench to trim individual beds (D-029).
+  - id: AIC-1804
+    title: H2/N2 ratio of the converter feed (master)
+    purpose: Hold the stoichiometric hydrogen to nitrogen ratio in the synthesis loop by trimming the process air.
+    section: SYN
+    cases: [design]
+    variable: composition
+    measurement: [{tag: AIC-1804}]
+    controller: AIC-1804
+    action: direct
+    targets:
+      - {kind: setpoint, value: 3.0, unit: mol/mol, provenance: calculated, source: "process/flowsheet.yaml design case, H2/N2 of S42 (0.6347/0.2111 = 3.007, simulated, D-026)"}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: AIC-1804, condition: deviation, response: Check FIC-1201 and the analyser; the loop accumulates the excess gas slowly; act on the trend.}
+    rationale: The loop holds about thirty minutes of inventory, so the ratio drifts slowly; the master acts on the air to gas ratio of FIC-1201 with long integral action (D-030).
+    operator: Puts the master in manual while the analyser is calibrated or the loop is not circulating.
+  - id: LIC-1903
+    title: Ammonia separator V-501 level
+    purpose: Let the separated liquid ammonia down to V-502 with a liquid seal.
+    section: SYN
+    cases: [design]
+    variable: level
+    measurement: [{tag: LIC-1903}]
+    controller: LIC-1903
+    action: direct
+    final_elements:
+      - {tag: LV-1903, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 50, unit: "%", provenance: assumed, source: D-030 (ASSUMED)}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: LIC-1903, condition: LAL, response: Check LV-1903; the low-low trip I-107 closes XV-1904 against gas blow-by into V-502.}
+      - {tag: LIC-1903, condition: LAH, response: Liquid carried into the recycle gas reaches K-502; check LV-1903.}
+    interlocks: [I-107]
+    rationale: Level on the let-down valve from 14,700 to 2500 kPa(a); fails closed against blow-by. The trip has its own transmitter LZ-1904 and valve XV-1904.
+  - id: FIC-1905
+    title: Loop purge flow
+    purpose: Purge the inerts (CH4, Ar) so that they stay at the design level at the converter inlet.
+    section: SYN
+    cases: [design]
+    variable: flow
+    measurement: [{tag: FIC-1905}]
+    controller: FIC-1905
+    action: reverse
+    final_elements:
+      - {tag: FV-1905, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 1693.02, unit: kg/h, provenance: calculated, source: "process/flowsheet.yaml design case (simulated, D-026)",
+         cases: [design], stream: S50, property: flow}
+    modes: [manual, auto]
+    normal_mode: auto
+    rationale: Flow control of the purge; the inert level is not measured by its own analyser, so the operator sets the purge from the laboratory and the loop pressure PI-1910. Fails closed (the loop keeps its inventory; PSV-1911 is the relief).
+    operator: Raises the purge when the loop pressure rises at constant load (inerts accumulating).
+  - id: PIC-1906
+    title: Let-down vessel V-502 pressure
+    purpose: Hold the let-down pressure and send the flashed gas to the purge gas recovery.
+    section: SYN
+    cases: [design]
+    variable: pressure
+    measurement: [{tag: PIC-1906}]
+    controller: PIC-1906
+    action: direct
+    final_elements:
+      - {tag: PV-1906, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 2500, unit: kPa(a), provenance: assumed, source: "process/flowsheet.yaml design case (S53 ASSUMED, D-011)",
+         cases: [design], stream: S53, property: pressure}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: PIC-1906, condition: PAH, response: Check PV-1906 and LV-1903 (blow-by from V-501); PSV-1912 is the relief.}
+    interlocks: [I-107]
+    rationale: Back-pressure valve on the let-down gas; fails closed so that X-601 is not overpressured from V-502 (PSV-1912 protects V-502).
+  - id: LIC-1907
+    title: Let-down vessel V-502 level
+    purpose: Send the let-down liquid ammonia to the product flash drum V-701.
+    section: SYN
+    cases: [design]
+    variable: level
+    measurement: [{tag: LIC-1907}]
+    controller: LIC-1907
+    action: direct
+    final_elements:
+      - {tag: LV-1907, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 50, unit: "%", provenance: assumed, source: D-030 (ASSUMED)}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: LIC-1907, condition: LAL, response: Check LV-1907; gas blow-by into V-701 (PSV-2010).}
+    rationale: Level on the outlet valve; fails closed against blow-by into the near-atmospheric flash drum.
+  - id: LIC-1908
+    title: Chiller E-504 refrigerant level
+    purpose: Keep the tubes of the chiller covered with boiling ammonia without flooding the refrigerant suction.
+    section: SYN
+    cases: [design]
+    variable: level
+    measurement: [{tag: LIC-1908}]
+    controller: LIC-1908
+    action: reverse
+    final_elements:
+      - {tag: LV-1908, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 50, unit: "%", provenance: assumed, source: D-030 (ASSUMED)}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: LIC-1908, condition: LAH, response: Liquid refrigerant may reach the K-701 suction; check LV-1908.}
+    rationale: Inlet valve on the refrigerant liquid (level falls, valve opens). Fails closed so that liquid cannot flood the K-701 suction; the chiller then warms up and the separator temperature rises (TI-1901).
+  - id: LIC-2005
+    title: Product flash drum V-701 level
+    purpose: Send the liquid ammonia product to storage at the rate it is made.
+    section: SYN
+    cases: [design]
+    variable: level
+    measurement: [{tag: LIC-2005}]
+    controller: LIC-2005
+    action: direct
+    final_elements:
+      - {tag: LV-2005, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 50, unit: "%", provenance: assumed, source: D-030 (ASSUMED)}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: LIC-2005, condition: LAH, response: Check the storage can take product; reduce the let-down from V-502.}
+    rationale: Level on the product valve; fails closed so that a loss of signal does not empty V-701 into storage (the storage overfill protection is outside the battery limit).
+  - id: PIC-2007
+    title: Refrigeration receiver vent pressure
+    purpose: Vent the inerts from the refrigeration receiver to the purge gas recovery at the receiver pressure.
+    section: SYN
+    cases: [design]
+    variable: pressure
+    measurement: [{tag: PIC-2007}]
+    controller: PIC-2007
+    action: direct
+    final_elements:
+      - {tag: PV-2007, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 1700, unit: kPa(a), provenance: assumed, source: "process/flowsheet.yaml design case (S55 ASSUMED, D-017)",
+         cases: [design], stream: S55, property: pressure}
+    modes: [manual, auto]
+    normal_mode: auto
+    rationale: Back-pressure valve on the vent; fails closed (the refrigerant stays in the package; PSV-2010 relieves V-701).
+  # ---------------------------------------------------------------- PGR: purge gas recovery
+  - id: PIC-2104
+    title: Tail gas pressure from the purge gas recovery
+    purpose: Hold the X-601 tail gas outlet pressure and send the tail gas to the reformer burners.
+    section: PGR
+    cases: [design]
+    variable: pressure
+    measurement: [{tag: PIC-2104}]
+    controller: PIC-2104
+    action: direct
+    final_elements:
+      - {tag: PV-2104, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 400, unit: kPa(a), provenance: assumed, source: "process/flowsheet.yaml design case (S59 ASSUMED, D-013)",
+         cases: [design], stream: S59, property: pressure}
+    modes: [manual, auto]
+    normal_mode: auto
+    rationale: The sensor is upstream of PV-2104 on FG-1010 (back pressure on the package). Fails closed as a fuel valve; the package then holds its pressure against its own relief (inside X-601, open).
+  - id: FIC-2106
+    title: LP steam to the ammonia distillation
+    purpose: Heat the NH3 wash distillation of X-601.
+    section: PGR
+    cases: [design]
+    variable: flow
+    measurement: [{tag: FIC-2106}]
+    controller: FIC-2106
+    action: reverse
+    final_elements:
+      - {tag: FV-2106, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 657, unit: kg/h, provenance: assumed, source: "D-030: Q29 386.8 kW (ASSUMED 3 MJ/kg recovered NH3, D-013) over the heat of vaporisation of water at 450 kPa(a), 2120 kJ/kg at 421 K (thermo's pure-water correlations in cheme's interpreter)"}
+    modes: [manual, auto]
+    normal_mode: auto
+    rationale: Flow-controlled heating; the package vendor may replace it by a temperature cascade inside X-601. Fails closed.
+  # -------------------------------------------------------------------- STM: steam and BFW
+  - id: LIC-2201
+    title: Steam drum level
+    purpose: Keep the steam drum level so that the waste heat boilers never run dry and no water is carried into the superheater.
+    section: STM
+    cases: [design]
+    variable: level
+    measurement: [{tag: LIC-2201}]
+    controller: LIC-2201
+    action: reverse
+    final_elements:
+      - {tag: LV-2201, kind: valve, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: setpoint, value: 50, unit: "%", provenance: assumed, source: D-030 (ASSUMED)}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: LIC-2201, condition: LAL, response: Check P-801 and LV-2201; a dry waste heat boiler is damaged within minutes. A low-low trip is open (D-030).}
+      - {tag: LIC-2201, condition: LAH, response: Water carry-over to the superheater and the process steam; check LV-2201.}
+    rationale: Single-element level control on the BFW valve, as drawn. A three-element control (steam and feed water flows) is usual for a drum of this size and is open (D-029, D-030). LV-2201 fails open so that the boilers keep their water.
+  - id: LIC-2202
+    title: Deaerator level
+    purpose: Keep the BFW inventory for P-801 by admitting demineralised make-up water.
+    section: STM
+    cases: [design]
+    variable: level
+    measurement: [{tag: LIC-2202}]
+    controller: LIC-2202
+    action: reverse
+    final_elements:
+      - {tag: LV-2202, kind: valve, actuator: pneumatic, fail: open}
+    targets:
+      - {kind: setpoint, value: 50, unit: "%", provenance: assumed, source: D-030 (ASSUMED)}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: LIC-2202, condition: LAL, response: Check the make-up supply and LV-2202; P-801 loses suction.}
+    rationale: Inlet valve on the make-up (level falls, valve opens); fails open so that the BFW pump keeps its suction (overflow of the deaerator is the lesser consequence).
+  - id: PIC-2203
+    title: MP steam header pressure
+    purpose: Hold the MP steam header pressure by exporting the surplus steam.
+    section: STM
+    cases: [design]
+    variable: pressure
+    measurement: [{tag: PIC-2203}]
+    controller: PIC-2203
+    action: direct
+    final_elements:
+      - {tag: PV-2203, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 4600, unit: kPa(a), provenance: assumed, source: "process/flowsheet.yaml design case (S68 ASSUMED, D-015)",
+         cases: [design], stream: S68, property: pressure}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms:
+      - {tag: PIC-2203, condition: PAL, response: The process steam FIC-1006 may fall short; reduce the load before the low-low trip I-101.}
+      - {tag: PIC-2203, condition: PAH, response: Check PV-2203 and the export consumer; PSV-2210 lifts at its set pressure.}
+    interlocks: [I-101]
+    rationale: The plant raises more steam than it uses (D-015), so the header floats on the export. Fails closed so that the process steam keeps priority over the export; PSV-2210 is the relief for a blocked export.
+  - id: PIC-2206
+    title: LP steam pressure
+    purpose: Let MP steam down to the LP level for the purge gas recovery.
+    section: STM
+    cases: [design]
+    variable: pressure
+    measurement: [{tag: PIC-2206}]
+    controller: PIC-2206
+    action: reverse
+    final_elements:
+      - {tag: PV-2206, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 450, unit: kPa(a), provenance: assumed, source: "D-029: LP steam level, ASSUMED"}
+    modes: [manual, auto]
+    normal_mode: auto
+    rationale: Let-down valve with the sensor downstream; fails closed so that the LP system is not exposed to MP pressure (an LP relief device is open, D-029).

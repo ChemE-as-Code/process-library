@@ -1,28 +1,360 @@
 # Operating sequences: startup, shutdown and abnormal modes. Schema: `cheme schema sequences`.
 # PROPOSED operating intent, not approved for implementation; the review status comes from reviews/.
 # Start permissives are not trips: trips stay in control/cause-effect.yaml, named by id here.
-# Skill control-sequences.
+# Skill control-sequences. S4 (D-030): the order follows the usual practice of a natural-gas
+# reforming ammonia plant (steam before gas, gas before air, front end on vent before the CO2
+# removal, loop on circulation before the converter is lit). Start-up rates, temperatures and
+# step times are ASSUMED (D-030) until the licensor's and the vendors' procedures are known.
+# Connections a step needs that the P&IDs do not show yet (start-up nitrogen, the front-end vent
+# to flare, the converter start-up heater) are named in the step and listed open in D-030.
 schema: cheme/sequences/v1
-sequences: []
-#  - id: SEQ-START
-#    title: Start up the feed section
-#    mode: startup                      # startup, shutdown, abnormal, normal, other
-#    section: FEED
-#    permissives:
-#      - {interlock: I-01, state: reset}
-#      - {all: [{loop: FIC-101, state: in manual}, {tag: XV-107, state: open}]}
-#    interlocks: [I-01]
-#    steps:
-#      - id: S1
-#        title: Admit feed
-#        actions:
-#          - {loop: FIC-101, action: setpoint, setpoint: {value: 1200, unit: kg/h, provenance: assumed}}
-#          - {loop: FIC-101, action: auto, by: operator}
-#        complete: {tag: LT-102, state: "> 30 %", delay: {value: 30, unit: s}}
-#        timeout: {value: 30, unit: min}
-#        on_timeout: abort
-#    abort:
-#      condition: {interlock: I-01, state: tripped}
-#      actions: [{tag: FV-101, action: close}]
-#      then: SEQ-STOP
-#    reset: {latching: true, manual: true, condition: {interlock: I-01, state: reset}}
+sequences:
+  - id: SEQ-START-REF
+    title: Start up the front end (furnace, reforming, shift) on vent
+    mode: startup
+    section: REF
+    cases: [design]
+    equipment: [H-101, K-102, K-103, V-101, R-100, R-101, K-101, R-102, E-105, R-201, R-202, V-201]
+    permissives:
+      - {interlock: I-101, state: reset}
+      - {interlock: I-102, state: reset}
+      - {interlock: I-103, state: reset}
+      - {all: [{tag: XV-1001, state: closed}, {tag: XV-1204, state: closed}, {tag: XV-1102, state: closed}]}
+      - {all: [{loop: FIC-1002, state: in manual}, {loop: FIC-1006, state: in manual}, {loop: FIC-1201, state: in manual}]}
+      - {all: [{loop: LIC-2201, state: in auto}, {loop: PIC-2203, state: in auto}]}
+      - {loop: LIC-1307, state: in auto}
+    interlocks: [I-101, I-102, I-103, I-104]
+    steps:
+      - id: S1
+        title: Start the fans and purge the furnace
+        actions:
+          - {tag: K-103, action: start, by: operator}
+          - {tag: K-102, action: start, by: operator}
+          - {loop: PIC-1107, action: auto, by: operator}
+          - {loop: FIC-1110, action: auto, by: operator}
+        complete: {all: [{loop: PIC-1107, state: in auto}, {tag: PIC-1107, state: at setpoint, delay: {value: 5, unit: min}}, {tag: H-101, state: purge complete (burner management)}]}
+        operator: The burner management of the furnace package runs the purge of the radiant box once the draft is established.
+        timeout: {value: 30, unit: min}
+        on_timeout: abort
+      - id: S2
+        title: Light the burners and heat the catalyst tubes with nitrogen
+        actions:
+          - {tag: XV-1102, action: open, by: operator}
+          - {loop: PIC-1101, action: auto, by: operator}
+          - {text: "Admit start-up nitrogen once through the reformers and shift to the front-end vent (connections not drawn, D-030)", by: operator}
+        complete: {tag: TIC-1103, state: "> 673 K"}
+        timeout: {value: 12, unit: h}
+        on_timeout: abort
+        operator: Raise the firing no faster than the heat-up rate of the catalyst supplier; watch the tube walls through the peep doors.
+      - id: S3
+        title: Admit process steam
+        actions:
+          - {loop: FIC-1006, action: setpoint, setpoint: {kind: setpoint, value: 27850, unit: kg/h, provenance: assumed, source: "D-030: 30 % of the design process steam (S6)"}, by: operator}
+          - {loop: FIC-1006, action: auto, by: operator}
+        complete: {all: [{loop: FIC-1006, state: in auto}, {tag: FZ-1007, state: healthy}, {tag: TI-1010, state: "> 623 K"}]}
+        timeout: {value: 4, unit: h}
+        on_timeout: abort
+        operator: Steam may only enter tubes that are above its condensation temperature at the start-up pressure; stop the nitrogen when the steam flow is established.
+      - id: S4
+        title: Admit natural gas
+        actions:
+          - {tag: XV-1001, action: open, by: operator}
+          - {loop: FIC-1002, action: setpoint, setpoint: {kind: setpoint, value: 8850, unit: kg/h, provenance: assumed, source: "D-030: 30 % of the design process natural gas (S3)"}, by: operator}
+          - {loop: FIC-1002, action: auto, by: operator}
+          - {loop: FIC-1006, action: cascade, by: operator}
+          - {loop: TIC-1103, action: auto, by: operator}
+          - {loop: PIC-1101, action: cascade, by: operator}
+        complete: {all: [{loop: FIC-1006, state: in cascade}, {tag: AI-1005, state: below the sulphur specification}, {tag: TIC-1103, state: at setpoint, delay: {value: 30, unit: min}}]}
+        timeout: {value: 4, unit: h}
+        on_timeout: abort
+        operator: The reformed gas goes to the front-end vent until the shift converters are in line.
+      - id: S5
+        title: Start the process air compressor and admit air
+        actions:
+          - {tag: K-101, action: start, by: operator}
+          - {loop: UIC-1202, action: auto, by: automatic}
+          - {tag: XV-1204, action: open, by: operator}
+          - {loop: FIC-1201, action: auto, by: operator}
+        complete: {all: [{loop: FIC-1201, state: in auto}, {tag: AI-1208, state: within the methane slip of the design case}, {tag: TZ-1205, state: healthy}]}
+        timeout: {value: 2, unit: h}
+        on_timeout: abort
+        operator: Raise the air in small steps watching the secondary reformer bed temperature TI-1206 and TZ-1205.
+      - id: S6
+        title: Bring the shift converters and gas cooling into line
+        actions:
+          - {loop: TIC-1207, action: auto, by: operator}
+          - {loop: TIC-1601, action: auto, by: operator}
+          - {loop: TIC-1306, action: auto, by: operator}
+          - {loop: FIC-1201, action: cascade, by: operator}
+        complete: {all: [{loop: TIC-1207, state: in auto}, {loop: TIC-1601, state: in auto}, {tag: AI-1304, state: within the CO slip of the design case}]}
+        timeout: {value: 4, unit: h}
+        on_timeout: abort
+        operator: The raw synthesis gas stays on the vent until SEQ-START-CO2R has the solvent circulating.
+    abort:
+      condition: {any: [{interlock: I-101, state: tripped}, {interlock: I-102, state: tripped}, {interlock: I-103, state: tripped}]}
+      actions:
+        - {tag: XV-1204, action: close}
+        - {tag: XV-1001, action: close}
+      then: SEQ-TRIP-FE
+    reset:
+      latching: true
+      manual: true
+      condition: {all: [{interlock: I-101, state: reset}, {interlock: I-102, state: reset}, {interlock: I-103, state: reset}]}
+      restart: {all: [{loop: FIC-1002, state: in manual}, {loop: FIC-1201, state: in manual}]}
+  - id: SEQ-START-CO2R
+    title: Start the solvent circulation and take the CO2 removal into line
+    mode: startup
+    section: CO2R
+    cases: [design]
+    equipment: [C-301, C-302, P-301A, P-301B, P-302A, P-302B, E-301, E-302, E-303, V-302]
+    permissives:
+      - {interlock: I-105, state: reset}
+      - {all: [{loop: LIC-1405, state: in manual}, {loop: FIC-1407, state: in manual}]}
+      - {loop: PIC-1505, state: in auto}
+      - {tag: LI-1507, state: above the pump suction minimum}
+    interlocks: [I-105]
+    steps:
+      - id: S1
+        title: Fill the absorber sump and start the lean solvent pump
+        entry: {interlock: I-105, state: start-up bypass granted}
+        actions:
+          - {tag: P-301A, action: start, by: operator}
+          - {loop: FIC-1407, action: auto, by: operator}
+        complete: {tag: LZ-1406, state: above the trip point, delay: {value: 60, unit: s}}
+        timeout: {value: 30, unit: min}
+        on_timeout: abort
+      - id: S2
+        title: Circulate the solvent through the regenerator
+        actions:
+          - {loop: LIC-1405, action: auto, by: operator}
+          - {loop: TIC-1408, action: auto, by: operator}
+          - {loop: FIC-1508, action: auto, by: operator}
+        complete: {all: [{loop: LIC-1405, state: in auto}, {interlock: I-105, state: healthy}]}
+        timeout: {value: 1, unit: h}
+        on_timeout: abort
+      - id: S3
+        title: Admit raw synthesis gas and regenerate with the process gas reboiler
+        actions:
+          - {text: "Close the front-end vent slowly so that the raw gas passes C-301 (vent not drawn, D-030)", by: operator}
+          - {tag: P-302A, action: start, by: operator}
+          - {loop: LIC-1506, action: auto, by: operator}
+        complete: {tag: AI-1403, state: below the CO2 slip of the design case, delay: {value: 30, unit: min}}
+        timeout: {value: 4, unit: h}
+        on_timeout: abort
+        operator: The treated gas stays on the vent upstream of the methanator until the CO2 slip is in specification.
+    abort:
+      condition: {interlock: I-105, state: tripped}
+      actions:
+        - {tag: XV-1406, action: close}
+      then: SEQ-TRIP-FE
+    reset:
+      latching: true
+      manual: true
+      condition: {interlock: I-105, state: reset}
+      restart: {loop: LIC-1405, state: in manual}
+  - id: SEQ-START-SYN
+    title: Start the methanation, the synthesis loop and the product system
+    mode: startup
+    section: SYN
+    cases: [design]
+    equipment: [R-401, V-401, X-401, K-501, K-502, E-501, R-501, E-502, E-503, E-505, E-504, V-501, V-502, V-701, K-701, X-601]
+    permissives:
+      - {interlock: I-106, state: reset}
+      - {interlock: I-107, state: reset}
+      - {tag: AI-1403, state: below the CO2 slip of the design case}
+      - {sequence: SEQ-START-CO2R, state: complete}
+      - {all: [{loop: LIC-1903, state: in manual}, {loop: AIC-1804, state: in manual}]}
+    interlocks: [I-106, I-107]
+    steps:
+      - id: S1
+        title: Methanator and dryer into line
+        actions:
+          - {tag: XV-1604, action: open, by: operator}
+          - {loop: TIC-1608, action: auto, by: operator}
+          - {loop: LIC-1609, action: auto, by: operator}
+        complete: {all: [{tag: AI-1607, state: below the CO + CO2 specification of the loop}, {tag: AI-1610, state: below the moisture specification}]}
+        timeout: {value: 4, unit: h}
+        on_timeout: abort
+        operator: Watch the bed temperature TI-1606; a CO2 slip from the absorber heats the bed (I-106).
+      - id: S2
+        title: Start the synthesis gas compressor and pressurise the loop
+        actions:
+          - {loop: UIC-1703, action: auto, by: automatic}
+          - {tag: K-501, action: start, by: operator}
+          - {loop: UIC-1802, action: auto, by: automatic}
+          - {tag: K-502, action: start, by: operator}
+        complete: {tag: PI-1809, state: "> 10000 kPa(a)"}
+        timeout: {value: 4, unit: h}
+        on_timeout: abort
+        operator: Pressurise the loop at the rate the converter vendor allows; the front-end gas not taken by K-501 goes to the vent.
+      - id: S3
+        title: Heat the converter and light the reaction
+        actions:
+          - {text: "Heat the converter feed with the start-up heater (not drawn, D-030)", by: operator}
+          - {loop: TIC-1803, action: manual, by: operator}
+        complete: {tag: TI-1805, state: rising without heater duty (reaction lit), delay: {value: 30, unit: min}}
+        timeout: {value: 24, unit: h}
+        on_timeout: abort
+      - id: S4
+        title: Converter temperature control and chilling
+        actions:
+          - {loop: TIC-1803, action: auto, by: operator}
+          - {tag: K-701, action: start, by: operator}
+          - {loop: LIC-1908, action: auto, by: operator}
+          - {loop: PIC-2007, action: auto, by: operator}
+        complete: {all: [{loop: TIC-1803, state: in auto}, {tag: TI-1901, state: at the design separator temperature}]}
+        timeout: {value: 4, unit: h}
+        on_timeout: abort
+      - id: S5
+        title: Separator level, let-down and product
+        entry: {interlock: I-107, state: start-up bypass granted}
+        actions:
+          - {loop: LIC-1903, action: auto, by: operator}
+          - {loop: PIC-1906, action: auto, by: operator}
+          - {loop: LIC-1907, action: auto, by: operator}
+          - {loop: LIC-2005, action: auto, by: operator}
+        complete: {all: [{tag: LZ-1904, state: above the trip point, delay: {value: 60, unit: s}}, {interlock: I-107, state: healthy}]}
+        timeout: {value: 2, unit: h}
+        on_timeout: abort
+        operator: Send off-specification product to the storage only with the storage operator's agreement.
+      - id: S6
+        title: Purge, recovery and ratio control
+        actions:
+          - {loop: FIC-1905, action: auto, by: operator}
+          - {loop: PIC-2104, action: auto, by: operator}
+          - {loop: FIC-2106, action: auto, by: operator}
+          - {loop: AIC-1804, action: auto, by: operator}
+        complete: {all: [{loop: AIC-1804, state: in auto}, {loop: FIC-1201, state: in cascade}]}
+        timeout: {value: 8, unit: h}
+        on_timeout: abort
+        operator: Raise the load with FIC-1002 in steps once the loop is stable; close the front-end vent as K-501 takes all the gas.
+    abort:
+      condition: {any: [{interlock: I-106, state: tripped}, {interlock: I-107, state: tripped}]}
+      actions:
+        - {tag: XV-1604, action: close}
+      then: SEQ-TRIP-FE
+    reset:
+      latching: true
+      manual: true
+      condition: {all: [{interlock: I-106, state: reset}, {interlock: I-107, state: reset}]}
+      restart: {loop: LIC-1903, state: in manual}
+  - id: SEQ-SD-PLANT
+    title: Normal shutdown of the plant
+    mode: shutdown
+    section: REF
+    cases: [design]
+    equipment: [K-101, K-501, K-502, K-701, H-101, P-301A, P-301B]
+    permissives:
+      - {all: [{loop: FIC-1002, state: in auto}, {loop: FIC-1006, state: in cascade}]}
+    interlocks: [I-101, I-102, I-103, I-105, I-106, I-107]
+    steps:
+      - id: S1
+        title: Reduce the load
+        actions:
+          - {loop: AIC-1804, action: manual, by: operator}
+          - {loop: FIC-1002, action: setpoint, setpoint: {kind: setpoint, value: 17700, unit: kg/h, provenance: assumed, source: "D-030: 60 % of the design process natural gas (S3)"}, by: operator}
+        complete: {tag: FIC-1002, state: at setpoint, delay: {value: 30, unit: min}}
+        timeout: {value: 4, unit: h}
+        on_timeout: S2
+      - id: S2
+        title: Take the loop off line
+        actions:
+          - {loop: TIC-1803, action: manual, by: operator}
+          - {tag: K-501, action: stop, by: operator}
+          - {tag: XV-1604, action: close, by: operator}
+          - {text: "Front-end gas to the vent (not drawn, D-030)", by: operator}
+          - {loop: FIC-1905, action: manual, by: operator}
+        complete: {all: [{tag: K-501, state: stopped}, {tag: XV-1604, state: closed}]}
+        timeout: {value: 1, unit: h}
+        on_timeout: abort
+        operator: Keep K-502 circulating and K-701 running while the converter cools at the catalyst supplier's rate, or block the loop in under pressure.
+      - id: S3
+        title: Cut the process air and the feed gas
+        actions:
+          - {loop: FIC-1201, action: manual, by: operator}
+          - {tag: XV-1204, action: close, by: operator}
+          - {tag: K-101, action: stop, by: operator}
+          - {loop: FIC-1002, action: manual, by: operator}
+          - {tag: XV-1001, action: close, by: operator}
+        complete: {all: [{tag: XV-1204, state: closed}, {tag: XV-1001, state: closed}]}
+        timeout: {value: 1, unit: h}
+        on_timeout: abort
+        operator: Air before gas; the steam stays on to purge hydrocarbons from the catalysts.
+      - id: S4
+        title: Purge with steam and cool down
+        actions:
+          - {loop: FIC-1006, action: manual, by: operator}
+          - {loop: TIC-1103, action: manual, by: operator}
+          - {loop: PIC-1101, action: manual, by: operator}
+        complete: {tag: TIC-1103, state: "< 673 K"}
+        timeout: {value: 12, unit: h}
+        on_timeout: abort
+        operator: Change from steam to nitrogen before the tubes fall below the steam's condensation temperature (connection not drawn, D-030).
+      - id: S5
+        title: Stop the solvent circulation and the firing
+        actions:
+          - {tag: P-301A, action: stop, by: operator}
+          - {tag: XV-1102, action: close, by: operator}
+          - {tag: K-701, action: stop, by: operator}
+        complete: {all: [{tag: XV-1102, state: closed}, {tag: P-301A, state: stopped}]}
+        timeout: {value: 2, unit: h}
+        on_timeout: abort
+    abort:
+      condition: {any: [{interlock: I-101, state: tripped}, {interlock: I-102, state: tripped}, {interlock: I-103, state: tripped}]}
+      actions:
+        - {tag: XV-1204, action: close}
+      then: SEQ-TRIP-FE
+    reset:
+      latching: false
+      manual: true
+      condition: {all: [{interlock: I-101, state: reset}, {interlock: I-102, state: reset}, {interlock: I-103, state: reset}]}
+      restart: {sequence: SEQ-START-REF, state: permissives met}
+  - id: SEQ-TRIP-FE
+    title: Front-end trip and hold for restart
+    mode: abnormal
+    section: REF
+    cases: [design]
+    equipment: [H-101, K-101, K-501, K-502, K-701]
+    permissives:
+      - {any: [{interlock: I-101, state: tripped}, {interlock: I-102, state: tripped}, {interlock: I-103, state: tripped}, {interlock: I-105, state: tripped}, {interlock: I-106, state: tripped}]}
+    interlocks: [I-101, I-102, I-103, I-105, I-106]
+    steps:
+      - id: S1
+        title: Put the loops of the tripped section in manual
+        actions:
+          - {loop: FIC-1002, action: manual, by: automatic}
+          - {loop: FIC-1201, action: manual, by: automatic}
+          - {loop: AIC-1804, action: manual, by: automatic}
+          - {loop: TIC-1103, action: manual, by: automatic}
+        complete: {all: [{loop: FIC-1002, state: in manual}, {loop: FIC-1201, state: in manual}]}
+        timeout: {value: 1, unit: min}
+        on_timeout: S2
+        operator: Confirm which trip acted (first-out) before any other action.
+      - id: S2
+        title: Keep the steam and the firing at the hold point
+        actions:
+          - {loop: FIC-1006, action: manual, by: operator}
+          - {loop: PIC-1101, action: manual, by: operator}
+        complete: {tag: TIC-1103, state: steady}
+        timeout: {value: 30, unit: min}
+        on_timeout: S3
+        operator: After I-102 the firing is out; keep the steam on only as long as the tubes stay above its condensation temperature. After I-101 the steam has failed; change to nitrogen.
+      - id: S3
+        title: Hold the loop
+        actions:
+          - {tag: K-501, action: stop, by: operator}
+          - {loop: TIC-1803, action: manual, by: operator}
+        complete: {tag: K-501, state: stopped}
+        timeout: {value: 30, unit: min}
+        on_timeout: abort
+        operator: Keep K-502 circulating and K-701 running so that the converter cools slowly and the restart is short; isolate and hold the loop under pressure if the outage will be long.
+    abort:
+      condition: {interlock: I-107, state: tripped}
+      actions:
+        - {tag: XV-1904, action: close}
+      then: SEQ-SD-PLANT
+    reset:
+      latching: true
+      manual: true
+      condition: {all: [{interlock: I-101, state: reset}, {interlock: I-102, state: reset}, {interlock: I-103, state: reset}]}
+      restart: {sequence: SEQ-START-REF, state: permissives met}
