@@ -1,0 +1,33 @@
+# Line list. Schema: `cheme schema lines`.
+# Concept stage: one line per material stream of the PFD (stream id in the notes), no P&ID yet.
+# DN: first-pass size from velocity (DESIGN.md D-010, ASSUMED): gas 20 m/s, liquid 1.5 m/s;
+# ideal-gas density, liquid densities ASSUMED (water 1000, caustic 1500, NaCN solution 1300,
+# liquid HCN 700, liquid NH3 610 kg/m3); inside diameter rounded up to the next DN, minimum DN25.
+# The converter outlet S6 has no line: R-101 is close-coupled to E-101. The internal ammonia
+# phosphate and HCN reflux loops are inside the lumped columns. Pressure classes come with the
+# pipe specs.
+schema: cheme/lines/v1
+lines:
+  - {number: NG-101, from: B/L, to: M-101, nominal_diameter: DN150, fluid: Natural gas, notes: "S1, 400 kPa(a)"}
+  - {number: NH3-102, from: B/L, to: E-001, nominal_diameter: DN40, fluid: Liquid ammonia, notes: "S2 from ammonia-1"}
+  - {number: NH3-103, from: E-001, to: M-101, nominal_diameter: DN100, fluid: Ammonia vapour, notes: "S2B"}
+  - {number: PA-104, from: B/L, to: K-101, nominal_diameter: DN700, fluid: Air, notes: "S3 blower intake"}
+  - {number: PA-105, from: K-101, to: M-101, nominal_diameter: DN600, fluid: Air, notes: "S4"}
+  - {number: NH3-106, from: C-101, to: M-101, nominal_diameter: DN100, fluid: Recycle ammonia, notes: "S9"}
+  - {number: PG-107, from: M-101, to: R-101, nominal_diameter: DN700, fluid: Converter feed, notes: "S5, flammable mixture (D-005)"}
+  - {number: PG-108, from: E-101, to: C-101, nominal_diameter: DN1000, fluid: Converter gas, notes: "S7, 523 K"}
+  - {number: PG-109, from: C-101, to: C-201, nominal_diameter: DN800, fluid: HCN gas, notes: "S8, 8.5 mol% HCN"}
+  - {number: PW-110, from: C-101, to: B/L, nominal_diameter: DN25, fluid: Process water, notes: "S10 to wastewater treatment"}
+  - {number: TG-111, from: C-201, to: B-301, nominal_diameter: DN600, fluid: Tail gas, notes: "S11"}
+  - {number: HW-112, from: C-201, to: C-202, nominal_diameter: DN200, fluid: Rich HCN water, notes: "S12"}
+  - {number: HCN-113, from: C-202, to: R-401, nominal_diameter: DN40, fluid: Liquid HCN, notes: "S13, stabilised"}
+  - {number: LW-114, from: C-202, to: E-202, nominal_diameter: DN200, fluid: Stripper bottoms, notes: "S14"}
+  - {number: LW-115, from: E-202, to: C-201, nominal_diameter: DN200, fluid: Lean water, notes: "S14B and S15 (purge take-off on this line)"}
+  - {number: PW-116, from: LW-115, to: B/L, nominal_diameter: DN32, fluid: Process water purge, notes: "S16 to cyanide destruction"}
+  - {number: CS-117, from: B/L, to: R-401, nominal_diameter: DN50, fluid: Caustic soda 50 wt%, notes: "S20 from chlor-alkali-1"}
+  - {number: SC-118, from: R-401, to: CR-401, nominal_diameter: DN50, fluid: Sodium cyanide solution, notes: "S21"}
+  - {number: VV-119, from: CR-401, to: E-401, nominal_diameter: DN1200, fluid: Vacuum vapour, notes: "S23, 13.3 kPa(a)"}
+  - {number: VV-120, from: DR-401, to: E-401, nominal_diameter: DN200, fluid: Dryer vapour, notes: "S24"}
+  - {number: PW-121, from: E-401, to: B/L, nominal_diameter: DN50, fluid: Condensate, notes: "S26 to wastewater treatment"}
+  - {number: CA-122, from: B/L, to: B-301, nominal_diameter: DN600, fluid: Combustion air, notes: "S30"}
+  - {number: FG-123, from: B-301, to: B/L, nominal_diameter: DN1100, fluid: Flue gas, notes: "S31 to stack"}
