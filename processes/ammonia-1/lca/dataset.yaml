@@ -41,7 +41,7 @@ valid_until: 2031
 system_model: cutoff
 technology_level: current
 production_volume:
-  amount: 499510400.0
+  amount: 499765600.0
   unit: kg/a
   source: product:NH3 per hour x operation.hours_per_year (8000 h/a)
 classification:
@@ -92,7 +92,7 @@ exchanges:
 - key: feed:AIR
   title: Ambient air (process air and combustion air)
   type: input
-  amount: 232688.75
+  amount: 232591.21
   unit: kg
   free: true
   streams:
@@ -118,7 +118,7 @@ exchanges:
 - key: feed:DMW
   title: Demineralised water make-up
   type: input
-  amount: 101448.3
+  amount: 106564.5
   unit: kg
   link:
     source: flowsheet S70 (steam system) + S26 (CO2 removal make-up)
@@ -141,7 +141,7 @@ exchanges:
 - key: feed:POWER
   title: Electric power
   type: input
-  amount: 35166.9297
+  amount: 36626.4665
   unit: kWh
   link:
     source: flowsheet Q1, Q11, Q12, Q17, Q20, Q22, Q27, Q31 (all drives electric, D-016)
@@ -155,6 +155,8 @@ exchanges:
   - Q17
   - Q20
   - Q22
+  - Q32
+  - Q35
   - Q27
   - Q31
   - Q36
@@ -169,31 +171,40 @@ exchanges:
 - key: product:NH3
   title: Liquid ammonia product (refrigerated, to the battery limit)
   type: product
-  amount: 62438.8
+  amount: 62470.7
   unit: kg
   provenance: calculated
+  origin: simulated
   streams:
   - S60
   pedigree:
     scores: [3, 4, 1, 1, 3]
-    rule: cheme default pedigree v1 (calculated, design maturity concept)
+    rule: cheme default pedigree v1 (simulated, design maturity concept)
   basic_uncertainty: 1.05
   state:
     pressure: 1.1
     temperature: -33.0
-    purity: 1.0
+    purity: 0.999814
     basis: mole
     component: NH3
   composition:
     fractions:
-      NH3: 1.0
+      CH4: 9.0481e-05
+      N2: 7.3e-08
+      H2: 4.7e-08
+      AR: 0.00020911
+      NH3: 0.999700289
     formulas:
+      CH4: CH4
+      N2: N2
+      H2: H2
+      AR: Ar
       NH3: NH3
     source: stream table (S60)
 - key: product:CO2V
   title: Process CO2 from the regenerator, vented
   type: output
-  amount: 74826.48
+  amount: 74823.07999999999
   unit: kg
   streams:
   - S28
@@ -206,12 +217,12 @@ exchanges:
   composition:
     fractions:
       CH4: 1.0e-09
-      CO2: 0.978873441
-      N2: 1.303e-06
+      CO2: 0.978873337
+      N2: 1.301e-06
       H2: 7.76e-07
       CO: 2.5e-08
-      H2O: 0.021124083
-      AR: 3.71e-07
+      H2O: 0.02112419
+      AR: 3.7e-07
     formulas:
       CH4: CH4
       CO2: CO2
@@ -224,7 +235,7 @@ exchanges:
 - key: product:STACK
   title: Reformer furnace flue gas to stack
   type: output
-  amount: 176516.0
+  amount: 176411.0
   unit: kg
   provenance: calculated
   origin: simulated
@@ -237,11 +248,11 @@ exchanges:
   basic_uncertainty: 1.05
   composition:
     fractions:
-      CO2: 0.138565005
-      N2: 0.714750451
-      H2O: 0.110460731
-      O2: 0.019243612
-      AR: 0.016980202
+      CO2: 0.138579216
+      N2: 0.714682421
+      H2O: 0.110442588
+      O2: 0.019379318
+      AR: 0.016916456
     formulas:
       CO2: CO2
       N2: N2
@@ -252,7 +263,7 @@ exchanges:
 - key: product:STEAM
   title: MP steam export (4600 kPa(a), 673 K)
   type: product
-  amount: 55081.6
+  amount: 60098.6
   unit: kg
   streams:
   - S68
@@ -275,7 +286,7 @@ exchanges:
 - key: product:BD
   title: Boiler blowdown
   type: output
-  amount: 2967.0
+  amount: 3067.8
   unit: kg
   link:
     source: flowsheet S69, 2 % of steam raised (D-015)
@@ -297,7 +308,7 @@ exchanges:
 - key: product:CW
   title: Cooling water return
   type: output
-  amount: 135343.41999999998
+  amount: 136494.671
   unit: kWh
   link:
     source: flowsheet Q2, Q16, Q18, Q19, Q21, Q24, Q28
@@ -311,6 +322,7 @@ exchanges:
   - Q19
   - Q21
   - Q24
+  - Q33
   - Q28
   source: flowsheet Q2, Q16, Q18, Q19, Q21, Q24, Q28
   pedigree:
@@ -324,7 +336,7 @@ exchanges:
 - key: emission:AR
   title: AR to the environment
   type: emission
-  amount: 2997.3050266499677
+  amount: 2984.2766996480764
   unit: kg
   free: true
   cas: 7440-37-1
@@ -400,7 +412,7 @@ exchanges:
 - key: emission:CH4
   title: CH4 to the environment
   type: emission
-  amount: 5.3956175969783236e-05
+  amount: 5.393791958206886e-05
   unit: kg
   link:
     elementary:
@@ -438,7 +450,7 @@ exchanges:
 - key: emission:CO
   title: CO to the environment
   type: emission
-  amount: 0.0018653526543130434
+  amount: 0.001864721501332516
   unit: kg
   link:
     elementary:
@@ -472,7 +484,7 @@ exchanges:
 - key: emission:CO2
   title: CO2 to the environment
   type: emission
-  amount: 97704.5943133681
+  amount: 97689.2160957047
   unit: kg
   link:
     elementary:
@@ -508,7 +520,7 @@ exchanges:
 - key: emission:H2
   title: H2 to the environment
   type: emission
-  amount: 0.05806956570873241
+  amount: 0.05806482923797413
   unit: kg
   link:
     elementary:
@@ -535,7 +547,7 @@ exchanges:
 - key: emission:H2O
   title: H2O to the environment
   type: emission
-  amount: 21078.72713329754
+  amount: 21063.864431386708
   unit: kg
   free: true
   cas: 7732-18-5
@@ -558,7 +570,7 @@ exchanges:
 - key: emission:N2
   title: N2 to the environment
   type: emission
-  amount: 126164.98817637489
+  amount: 126077.93795907883
   unit: kg
   free: true
   cas: 7727-37-9
@@ -616,7 +628,7 @@ exchanges:
 - key: emission:O2
   title: O2 to the environment
   type: emission
-  amount: 3396.8053614349847
+  amount: 3418.72483069302
   unit: kg
   free: true
   cas: 7782-44-7
@@ -678,6 +690,6 @@ provenance:
     equipment/equipment-list.yaml: sha256:b94159acf814a97abd813c7f97045be578298a24d2d948f04c705773fcd31495
     lca/lca.yaml: sha256:fb665011d8951167700986139cd654f8096ef9879f102f4151eb24c3e55c0a69
     process.yaml: sha256:30d16a5f81bc7326212f7140596b9d2c47517887ca475a6fecd590187aab2065
-    process/flowsheet.yaml: sha256:9439f9c5c8c53e75fa7fb3e6330c756e0e8c469b7a1e709893a842c62c0755e9
-    process/materials.yaml: sha256:f580d458b4526944726ff43eee1a2f134d864e80d197c3a9c731e854002c8193
-    process/simulation.yaml: sha256:bce53fcdb479ac58378cb0ba4abef86deab1f12e0619a50d1b37835bc6e183a7
+    process/flowsheet.yaml: sha256:4d3c6cd3cf3a8233fe92b2b2a80a38dc5fd440cc2e8c7c01bb2bdb8439c177c2
+    process/materials.yaml: sha256:33b016063379c48850ce29dcf67e2caff8530e4a01564773a1543bf53ce5142e
+    process/simulation.yaml: sha256:d6f4fde7046aef0670acea557b868cafaeca4b1280e6364b73671fd106ebcb37

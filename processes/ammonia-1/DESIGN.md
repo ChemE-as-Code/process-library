@@ -527,12 +527,15 @@ concept's loop values where the simulation covers them.
 
 ## 3. Results of this stage (design case)
 
-Per kg NH3 (lca/inventory.csv, from the flowsheet): natural gas 0.6034 kg (process 0.4721,
-fuel 0.1313), ambient air 3.723 kg, demineralised water 1.623 kg, electricity 0.563 kWh,
-heat to cooling water 2.104 kWh; outputs 1 kg NH3, MP steam 0.881 kg, blowdown 0.047 kg, CO2
-to air 1.563 kg (process vent 1.173, flue gas 0.390). Inventory mass balance: in 5.94962 kg,
-out 5.94970 kg; cheme reports mass, element and carbon-origin balances closed. These are the
-outputs of one concept design on assumed inputs, not validated performance figures.
+Basic stage, S2 (the simulated flowsheet, D-026; lca/inventory.csv regenerated): per kg of NH3
+product (62,470.7 kg/h), before allocation: natural gas 0.6037 kg, ambient air 3.723 kg,
+demineralised water 1.706 kg, electricity 0.586 kWh, heat to cooling water 2.185 kWh; outputs
+MP steam 0.962 kg, blowdown 0.049 kg, CO2 to air 1.564 kg. With the exergy allocation of D-021
+(NH3 94.3 %, steam 5.7 %) the inventory gives 1.475 kg CO2 per kg NH3, gate-to-gate direct
+fossil CO2 only (lca/results.md: a partial screening carbon footprint, backgrounds missing).
+Concept stage, for comparison: natural gas 0.6034 kg, electricity 0.563 kWh, MP steam 0.881
+kg, CO2 1.563 kg per kg NH3. These are the outputs of one design on assumed inputs, not
+validated performance figures.
 
 ## 4. Model and dependency table
 
