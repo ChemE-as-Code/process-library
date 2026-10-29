@@ -1,3 +1,103 @@
 # Line list. Schema: `cheme schema lines`.
+# Front end (S3a, sheets P-101 to P-104, D-027). Line number <fluid code>-<serial>; DN from a
+# first-pass velocity on the design-case stream (ideal-gas density): process gas and air
+# 20 m/s, MP steam 30 m/s, low-pressure air and flue gas ducts 15 m/s, liquids 1.5 m/s
+# (ASSUMED velocities, D-027). Ducts above DN 1600 carry an equivalent diameter (no DEXPI DN
+# standard). A line drawn on two sheets keeps its number on both (off-page connectors).
 schema: cheme/lines/v1
-lines: []
+lines:
+  # ---- P-101 feed gas, desulphurisation, prereforming (block REF)
+  - {number: NG-1001, from: battery limit, to: E-101, nominal_diameter: DN 150, fluid: Natural gas, sheet: P-101,
+     notes: "S1 to the fuel split, then S3 (process gas) to E-101 on P-102. XV-1001 trip, FV-1002 feed flow."}
+  - {number: FG-1002, from: NG-1001, to: H-101, nominal_diameter: DN 80, fluid: Fuel gas, sheet: P-101,
+     notes: "S2, fuel natural gas from the split tee T1001 to the H-101 burners (P-102)."}
+  - {number: NG-1003, from: E-101, to: V-101, nominal_diameter: DN 200, fluid: Natural gas, sheet: P-102,
+     notes: "S4, preheated natural gas (P-102 to P-101)."}
+  - {number: NG-1004, from: V-101, to: E-102, nominal_diameter: DN 400, fluid: Natural gas, sheet: P-101,
+     notes: "S5 desulphurised gas; process steam SM-1005 joins at T1004, then S7 mixed feed DN 400 to E-102 (P-102).",
+     segments: [{number: S1, nominal_diameter: DN 200}, {number: S2, nominal_diameter: DN 400}]}
+  - {number: SM-1005, from: U-801, to: NG-1004, nominal_diameter: DN 300, fluid: MP steam, sheet: P-101,
+     notes: "S6, process steam; FV-1006 on ratio to the feed (steam to carbon), check valve against back-flow of gas."}
+  - {number: PG-1006, from: E-102, to: R-100, nominal_diameter: DN 450, fluid: Process gas, sheet: P-102,
+     notes: "S8, prereformer feed (P-102 to P-101)."}
+  - {number: PG-1007, from: R-100, to: E-103, nominal_diameter: DN 450, fluid: Process gas, sheet: P-101,
+     notes: "S9, prereformer outlet (P-101 to P-102)."}
+  # ---- P-102 reformer furnace and convection section (block REF)
+  - {number: PG-1008, from: E-103, to: R-101, nominal_diameter: DN 500, fluid: Process gas, sheet: P-102,
+     notes: "S10, primary reformer feed to the tube inlet headers."}
+  - {number: PG-1009, from: R-101, to: R-102, nominal_diameter: DN 700, fluid: Process gas, sheet: P-102,
+     notes: "S11, refractory-lined transfer line, 1083 K (P-102 to P-103)."}
+  - {number: FG-1010, from: X-601, to: H-101, nominal_diameter: DN 125, fluid: Tail gas, sheet: P-102,
+     notes: "S59, purge recovery tail gas to the burners; X-601 is drawn on the loop sheets (S3c)."}
+  - {number: CA-1011, from: atmosphere, to: K-102, nominal_diameter: DN 1800, fluid: Air, sheet: P-102,
+     notes: "S61, combustion air duct; equivalent diameter, ASSUMED."}
+  - {number: CA-1012, from: K-102, to: E-106, nominal_diameter: DN 1800, fluid: Air, sheet: P-102,
+     notes: "S62; equivalent diameter, ASSUMED."}
+  - {number: CA-1013, from: E-106, to: H-101, nominal_diameter: DN 2400, fluid: Air, sheet: P-102,
+     notes: "S63, preheated combustion air to the burners, damper FV-1108; equivalent diameter, ASSUMED."}
+  - {number: FL-1014, from: H-101, to: E-103, nominal_diameter: DN 4000, fluid: Flue gas, sheet: P-102,
+     notes: "S65, radiant to convection section; duct, equivalent diameter, ASSUMED."}
+  - {number: FL-1015, from: E-103, to: E-102, nominal_diameter: DN 3600, fluid: Flue gas, sheet: P-102, notes: "S80; convection duct, ASSUMED."}
+  - {number: FL-1016, from: E-102, to: E-104, nominal_diameter: DN 3400, fluid: Flue gas, sheet: P-102, notes: "S81; convection duct, ASSUMED."}
+  - {number: FL-1017, from: E-104, to: E-101, nominal_diameter: DN 3000, fluid: Flue gas, sheet: P-102, notes: "S82; convection duct, ASSUMED."}
+  - {number: FL-1018, from: E-101, to: E-106, nominal_diameter: DN 2800, fluid: Flue gas, sheet: P-102, notes: "S83; convection duct, ASSUMED."}
+  - {number: FL-1019, from: E-106, to: E-107, nominal_diameter: DN 2400, fluid: Flue gas, sheet: P-102, notes: "S84; convection duct, ASSUMED."}
+  - {number: FL-1020, from: E-107, to: K-103, nominal_diameter: DN 2400, fluid: Flue gas, sheet: P-102, notes: "S66; duct, ASSUMED."}
+  - {number: FL-1021, from: K-103, to: stack, nominal_diameter: DN 2200, fluid: Flue gas, sheet: P-102,
+     notes: "S67 to the stack; the stack is not a listed item yet (layout, S5). Duct, ASSUMED."}
+  - {number: PA-1022, from: K-101, to: E-104, nominal_diameter: DN 250, fluid: Process air, sheet: P-103,
+     notes: "S13, compressed process air (P-103 to P-102); anti-surge blow-off PA-1031 at T1022, check valve."}
+  - {number: PA-1023, from: E-104, to: R-102, nominal_diameter: DN 300, fluid: Process air, sheet: P-102,
+     notes: "S14, preheated process air (P-102 to P-103); trip valve XV-1204 and check valve before R-102."}
+  - {number: BW-1024, from: U-801, to: E-107, nominal_diameter: DN 200, fluid: Boiler feed water, sheet: P-102,
+     notes: "Boiler feed water to the convection steam coil (Q8); flow not in the stream table, DN ASSUMED."}
+  - {number: BW-1025, from: E-107, to: U-801, nominal_diameter: DN 200, fluid: Boiler feed water, sheet: P-102,
+     notes: "Heated boiler feed water back to the steam system; DN ASSUMED."}
+  # ---- P-103 process air, secondary reformer, HT shift (blocks REF, SHF)
+  - {number: PA-1030, from: atmosphere, to: K-101, nominal_diameter: DN 1200, fluid: Air, sheet: P-103,
+     notes: "S12, process air from the intake filter; suction throttle FV-1201."}
+  - {number: PA-1031, from: PA-1022, to: atmosphere, nominal_diameter: DN 150, fluid: Process air, sheet: P-103,
+     notes: "K-101 anti-surge blow-off through FV-1202 and a silencer; DN ASSUMED (no surge study)."}
+  - {number: PA-1054, from: PA-1022, to: atmosphere, nominal_diameter: DN 100, fluid: Process air, sheet: P-103,
+     notes: "PSV-1212 K-101 discharge relief, upstream of the check valve; DN ASSUMED, no relief load yet (S8)."}
+  - {number: PG-1032, from: R-102, to: E-105, nominal_diameter: DN 900, fluid: Process gas, sheet: P-103,
+     notes: "S17, secondary reformer outlet, 1265 K, refractory lined."}
+  - {number: PG-1033, from: E-105, to: R-201, nominal_diameter: DN 600, fluid: Process gas, sheet: P-103,
+     notes: "S18, HT shift feed; TIC-1207 by the E-105 hot bypass PG-1036."}
+  - {number: PG-1034, from: R-201, to: E-201, nominal_diameter: DN 700, fluid: Process gas, sheet: P-103, notes: "S19, HT shift outlet."}
+  - {number: PG-1035, from: E-201, to: E-401, nominal_diameter: DN 600, fluid: Process gas, sheet: P-103,
+     notes: "S75, to the methanator feed heater E-401 (CO2 removal and methanation sheets, S3b)."}
+  - {number: PG-1036, from: PG-1032, to: PG-1033, nominal_diameter: DN 400, fluid: Process gas, sheet: P-103,
+     notes: "E-105 hot bypass with TV-1207 (HT shift inlet temperature); DN ASSUMED, no bypass fraction calculated."}
+  - {number: BW-1037, from: U-801, to: E-105, nominal_diameter: DN 450, fluid: Boiler water, sheet: P-103,
+     notes: "Downcomer from the steam drum; natural circulation ratio 5 ASSUMED on the E-105 duty (Q10)."}
+  - {number: SM-1038, from: E-105, to: U-801, nominal_diameter: DN 300, fluid: Steam-water mixture, sheet: P-103,
+     notes: "Riser to the steam drum; DN ASSUMED as BW-1037."}
+  - {number: BW-1039, from: U-801, to: E-201, nominal_diameter: DN 200, fluid: Boiler water, sheet: P-103,
+     notes: "Downcomer to E-201 (Q13); circulation ratio 5 ASSUMED."}
+  - {number: SM-1040, from: E-201, to: U-801, nominal_diameter: DN 125, fluid: Steam-water mixture, sheet: P-103, notes: "Riser; DN ASSUMED."}
+  - {number: CWS-1041, from: CW supply, to: K-101, nominal_diameter: DN 300, fluid: Cooling water, sheet: P-103,
+     notes: "K-101 intercoolers (Q2, 6.0 MW), 10 K rise ASSUMED."}
+  - {number: CWR-1042, from: K-101, to: CW return, nominal_diameter: DN 300, fluid: Cooling water, sheet: P-103, notes: "As CWS-1041."}
+  # ---- P-104 LT shift and process gas cooling (block SHF)
+  - {number: PG-1043, from: E-401, to: R-202, nominal_diameter: DN 600, fluid: Process gas, sheet: P-104,
+     notes: "S20, LT shift feed from E-401 (S3b sheets)."}
+  - {number: PG-1044, from: R-202, to: E-202, nominal_diameter: DN 600, fluid: Process gas, sheet: P-104, notes: "S21, LT shift outlet."}
+  - {number: PG-1045, from: E-202, to: E-203, nominal_diameter: DN 500, fluid: Process gas, sheet: P-104, notes: "S22, two-phase."}
+  - {number: PG-1046, from: E-203, to: V-201, nominal_diameter: DN 450, fluid: Process gas, sheet: P-104, notes: "S23, two-phase."}
+  - {number: PG-1047, from: V-201, to: C-301, nominal_diameter: DN 400, fluid: Process gas, sheet: P-104,
+     notes: "S24, raw synthesis gas to the CO2 absorber (S3b sheets)."}
+  - {number: PC-1048, from: V-201, to: U-801, nominal_diameter: DN 125, fluid: Process condensate, sheet: P-104,
+     notes: "S25, process condensate on level control LV-1307 to the condensate stripper in U-801 (S3c)."}
+  - {number: AM-1049, from: C-302, to: E-202, nominal_diameter: DN 600, fluid: aMDEA solution, sheet: P-104,
+     notes: "Regenerator bottoms to the kettle; solvent rate not calculated (D-009), DN ASSUMED."}
+  - {number: AM-1050, from: E-202, to: C-302, nominal_diameter: DN 800, fluid: aMDEA vapour, sheet: P-104,
+     notes: "Reboiler vapour to C-302 (Q15, 20.4 MW); DN ASSUMED."}
+  - {number: AM-1051, from: E-202, to: C-302, nominal_diameter: DN 600, fluid: aMDEA solution, sheet: P-104,
+     notes: "Lean solvent overflow to the C-302 sump / lean pumps; DN ASSUMED."}
+  - {number: PG-1055, from: V-201, to: flare, nominal_diameter: DN 150, fluid: Process gas, sheet: P-104,
+     notes: "PSV-1310 relief of V-201 and the shift / cooling train to the flare header (S3c); DN ASSUMED, no relief load yet (S8)."}
+  - {number: CWS-1052, from: CW supply, to: E-203, nominal_diameter: DN 700, fluid: Cooling water, sheet: P-104,
+     notes: "E-203 (Q16, 34.7 MW), 10 K rise ASSUMED."}
+  - {number: CWR-1053, from: E-203, to: CW return, nominal_diameter: DN 700, fluid: Cooling water, sheet: P-104,
+     notes: "TV-1306 (E-203 gas outlet temperature)."}

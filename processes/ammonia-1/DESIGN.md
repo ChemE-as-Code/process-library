@@ -540,6 +540,57 @@ above is a modelling necessity or a retune of an ASSUMED design choice, recorded
 Rejected: loosening tolerances or tears, writing simulated values by hand, keeping the
 concept's loop values where the simulation covers them.
 
+## D-027 Front-end P&IDs P-101 to P-104 (2026-10-29, S3a)
+Decision: the front end is drawn on four A3 sheets, one per PFD section of blocks REF and SHF:
+P-101 feed gas, desulphurisation V-101, process steam addition, prereformer R-100; P-102
+reformer furnace H-101 with the catalyst tubes R-101 drawn in its radiant box, the convection
+coils in flue gas order (E-103, E-102, E-104, E-101, E-106, E-107, D-024), FD fan K-102 and ID
+fan K-103; P-103 process air compressor K-101, secondary reformer R-102, waste heat boiler E-105
+with a hot bypass, HT shift R-201 and E-201; P-104 LT shift R-202, the process-gas side of the
+regenerator reboiler E-202, final cooler E-203 and condensate separator V-201. The split
+follows the flowsheet blocks: everything of SHF, including E-202, E-203 and V-201, is on P-104,
+so the CO2 removal sheets (S3b) start at C-301 and C-302 and the loop and utility sheets (S3c)
+at U-801. The sheets are hand-maintained; `scripts/draft_P-10x.py` wrote their first
+revision (provenance, run with `cheme run`), and two DN corrections were made after it with
+`cheme set` (NG-1004 is DN 400 with a DN 200 first segment; the builder takes one DN per line).
+Lines: number `<fluid code>-<serial>` (NG natural gas, FG fuel and tail gas, SM steam, PG
+process gas, PA process air, CA combustion air, FL flue gas, BW boiler water, CWS/CWR cooling
+water, PC process condensate, AM aMDEA solution), serials 1001-1055 (51 lines). A line drawn on two
+sheets keeps its number; the off-page text names the sheet when it is a front-end sheet.
+Interfaces to S3b/S3c, by line number, to be continued there: PG-1035 (S75 to E-401), PG-1043
+(S20 from E-401), PG-1047 (S24 to C-301), AM-1049/AM-1050/AM-1051 (E-202 shell side with C-302),
+SM-1005 (S6 from U-801), BW-1024/BW-1025 (E-107), BW-1037/SM-1038 (E-105), BW-1039/SM-1040
+(E-201), PC-1048 (S25 to U-801), FG-1010 (S59 from X-601), CWS-1041/CWR-1042, CWS-1052/CWR-1053.
+DN: first pass on the design-case stream of `process/flowsheet.yaml` with an ideal-gas density
+and ASSUMED velocities (process gas and air 20 m/s, MP steam 30 m/s, low-pressure air and flue
+gas 15 m/s, liquids 1.5 m/s); air and flue gas ducts above DN 1600 carry an equivalent
+diameter (no DEXPI DN standard). Boiler water downcomers and risers use a natural-circulation
+ratio of 5 (ASSUMED) on the waste heat boiler duties; the E-202 shell side, the anti-surge
+blow-off and the E-105 bypass have ASSUMED DN: the solvent rate and the bypass fraction are not
+calculated.
+Instruments: one loop number per measurement (sheet series 10xx-13xx), the regulatory loops a
+basic P&ID needs (feed flow, steam-to-carbon ratio, fuel pressure reset by the reformer outlet
+temperature, excess air by O2, draft, process air flow, anti-surge, HT and LT shift inlet
+temperatures, separator level, cooler outlet temperature) and four trips proposed in
+`control/cause-effect.yaml` (I-101 low-low process steam, I-102 furnace pressure high-high,
+I-103 secondary reformer outlet high-high, I-104 separator level high-high). Equipment-list
+change: E-106 was typed AirCoolingSystem (an air-cooled exchanger); it is a flue gas / air
+preheater and is now TubularHeatExchanger, as drawn.
+Relief: PSV-1212 on the K-101 discharge (before the check valve) and PSV-1310 on V-201,
+listed in `piping/special-items.yaml` without set pressure or relief case (no relief study
+yet, S8). The builder has no safety-valve class: each was drawn as a globe valve and turned
+into a SpringLoadedGlobeSafetyValve (tag in PositionNumber, catalogue shape
+SAFETY_VALVE_SPRING_LOADED_SHAPE) by a hand edit of the XML. Whether the reformers, shift
+converters and waste heat boilers need their own devices depends on the design pressures
+against the 4500 kPa(a) gas supply, which are not set yet.
+Not drawn yet (open, for the reviews and S4/S8): further relief devices (see above), burner
+management of H-101, control valve block and bypass valves, vents, drains and
+sample points, the K-101 intercoolers and drive (inside its package), the stack (not a listed
+item), steam drums (U-801, S3c).
+Reason: S3a of runs/plan.md; the block split keeps every PFD step on exactly one sheet.
+Rejected: drawing E-202 and V-201 with the CO2 removal (they are in block SHF), one sheet for
+the whole furnace and reforming (too dense for A3).
+
 ## 3. Results of this stage (design case)
 
 Basic stage, S2 (the simulated flowsheet, D-026; lca/inventory.csv regenerated): per kg of NH3
