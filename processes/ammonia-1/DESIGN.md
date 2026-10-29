@@ -889,6 +889,32 @@ calculation is in the price's source); blowdown `free`, ASSUMED to go to the coo
 outside the boundary. The LCOP rises from 738.6 to 748.2 EUR/t.
 Reason: S5 of runs/plan.md; review 2026-10-29-design#1 (a).
 
+## D-033 Crane lanes cleared by design (2026-10-30, S5b)
+Decision: of the 26 lanes blocked in S5, 15 are cleared by layout changes, without accepting
+any:
+- **13 crane pads beside the items**, on their clear side, so that the lane runs over the item
+  only. They were searched with core's own lane rule (scratch script `build/tools/pad_search.py`,
+  not part of the design). The pads are CP-105 (E-103), CP-106 (K-102), CP-107 (K-103),
+  CP-108 (E-105), CP-205 (R-201), CP-206 (R-401), CP-207 (E-201), CP-208 (E-202), CP-209
+  (E-203), CP-210 (E-401), CP-504 (K-502), CP-505 (E-503) and CP-506 (V-502). Each is 10 x 10 m
+  on open ground (no rack, structure, building, equipment or pipe below 4 m in plan), and each
+  is ASSUMED like the S5 pads.
+- **Laydowns**: LD-104 (beside CP-107, for K-101 and K-103) and LD-204 (beside CP-205, for
+  R-201) are new. LD-202 moved 18 m east and LD-503's west edge moved 6 m east, so that no
+  laydown lies on a pad.
+- **PG-1120** (V-502 relief to the flare header) now runs at x = 246 m, west of V-501, instead
+  of over it (piping/routing.yaml).
+- **E-504 moved 2 m north** (235, 62), so that its lane no longer meets the PR-7 bents.
+
+The 11 lanes left are blocked by the item's own piping, the adjacent exchanger's piping or,
+for H-101, its own catalyst tubes and headers. No pad position clears them; only the erection
+sequence does: H-101, E-104, E-402, E-301, E-303, K-501, E-501, E-502, E-505, E-504, V-701.
+They are listed for the owner, with the lifting plan's reason for each, in
+build/lifting-acceptance-proposal.md (copied into the PR). None is accepted, so the gate
+`lifting-study` fails until a competent person decides. No crane chart exists yet. The
+heaviest lifts, R-501 (658 t) and C-301 (514 t), need a crawler crane of the 1,000 t class.
+Reason: S5b item 2 (runs/interventions.md O-032); review 2026-10-29-design#1 (b).
+
 ## 3. Results of this stage (design case)
 
 Basic stage, S2 (the simulated flowsheet, D-026; lca/inventory.csv regenerated): per kg of NH3
