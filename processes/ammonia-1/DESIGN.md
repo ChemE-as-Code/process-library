@@ -555,7 +555,7 @@ revision (provenance, run with `cheme run`), and two DN corrections were made af
 `cheme set` (NG-1004 is DN 400 with a DN 200 first segment; the builder takes one DN per line).
 Lines: number `<fluid code>-<serial>` (NG natural gas, FG fuel and tail gas, SM steam, PG
 process gas, PA process air, CA combustion air, FL flue gas, BW boiler water, CWS/CWR cooling
-water, PC process condensate, AM aMDEA solution), serials 1001-1053. A line drawn on two
+water, PC process condensate, AM aMDEA solution), serials 1001-1055 (51 lines). A line drawn on two
 sheets keeps its number; the off-page text names the sheet when it is a front-end sheet.
 Interfaces to S3b/S3c, by line number, to be continued there: PG-1035 (S75 to E-401), PG-1043
 (S20 from E-401), PG-1047 (S24 to C-301), AM-1049/AM-1050/AM-1051 (E-202 shell side with C-302),
