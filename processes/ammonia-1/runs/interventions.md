@@ -39,3 +39,5 @@ reviewer agents are not listed here (see `ledger.csv`). Times are local (CET, UT
 | O-025 | 2026-10-29 19:40 | orchestrator (driver) | S3b merged; ledger PR for the section's accounting | plan | - |
 | O-026 | 2026-10-29 20:25 | orchestrator (driver) | S3c: pushed `stage/basic-pids-loop`, opened #253 with the job's own PR body (I-001) | plan | - |
 | O-027 | 2026-10-29 20:45 | orchestrator (driver) | S3c merged; ledger PR for the section's accounting | plan | - |
+| O-028 | 2026-10-29 21:19 | orchestrator (driver) | S4: pushed `stage/basic-control-lists`, opened #255 with the job's own PR body (I-001) | plan | - |
+| O-029 | 2026-10-29 21:37 | orchestrator (driver) | S4 merged; ledger PR for the section's accounting | plan | - |
