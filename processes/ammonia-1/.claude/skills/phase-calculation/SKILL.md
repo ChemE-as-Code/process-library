@@ -56,7 +56,7 @@ Coverage alone in Python: `thermodynamics.coverage.interaction_parameter_coverag
 model, accepted_zeros)`.
 
 Redlich-Kwong-Soave takes its `kij` from the ChemSep SRK file, which is not shipped (licence
-unconfirmed, core#55). `cheme data status` shows whether it is installed; the user installs it
+unconfirmed, pre-release issue 55). `cheme data status` shows whether it is installed; the user installs it
 with `cheme data fetch chemsep-srk` (downloads ChemSep-LITE; `--zip lite.zip` for a copy
 already downloaded). Ask before running the fetch: it downloads third-party data.
 
@@ -66,7 +66,12 @@ already downloaded). Ask before running the fetch: it downloads third-party data
   call again.
 - The recommended model is not available: report it; use a similar one only with approval.
 - A gauge pressure is refused, because no ambient pressure is known: give it as absolute.
-- An ion (a component with a charge) is refused: electrolytes are unsupported. A component
+- An ion (a component with a charge), or a salt, acid or base of `electrolytes.yml` together
+  with water (sodium chloride, sulfuric acid, any compound of an alkali or alkaline-earth
+  metal, ...), is refused: electrolytes are unsupported by
+  this route. For aqueous NaCl inside its claimed range use `cheme process electrolyte`
+  (activity and osmotic coefficients, water vapour pressure, heats of dilution); any other
+  electrolyte is unsupported. A component
   thermo does not identify (a petroleum pseudocomponent) is refused. Solids are never formed:
   below a melting point the result is still fluid (`limitations` says so). Report these as
   unsupported; do not work around them.

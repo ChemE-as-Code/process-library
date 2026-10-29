@@ -32,7 +32,10 @@ pass-through, mixer and splitter balances; simulate covers the energy balance an
   (`predictive.property-package`). A model the worker does not run has at most an explicit
   substitute (`methods[...].simulation.substitution`); use it only with approval and record
   why as `method_selection.substitution`. Electrolytes, solids and petroleum
-  pseudocomponents are not supported by this route. Where
+  pseudocomponents are not supported by this route; a salt, acid or base of `electrolytes.yml`
+  (listed, or any compound of an alkali or alkaline-earth metal) together with water is refused (`cheme.process-sim-electrolyte`). Keep such a step as a
+  specified split and take brine properties from `cheme process electrolyte` (aqueous NaCl
+  only). Where
   DWSIM's binary interaction parameter of PR, PR78 or SRK is not fitted to the data that
   matter (argon/oxygen near pure O2, for example), set the pair under
   `interaction_parameters: [{components: [AR, O2], kij: {value: ..., provenance: ...,
@@ -195,9 +198,13 @@ liquid forms); give it a `liquid` outlet otherwise (a liquid-phase reactor: `vap
 `liquid` outlets). DWSIM converts a liquid-phase reaction's key component in the inlet's
 liquid phase only: an inlet the package splits (Peng-Robinson and SRK can split a polar and a
 hydrocarbon liquid into a spurious "vapour" far above their vapour pressures) reaches less
-than the declared conversion, and nothing reports it (core#371). Check the reactor inlet's
-vapour fraction in the record and compare the outlet with the conversion; bring the inlet to
-one liquid (temperature) first.
+than the declared conversion (a `vapor` reaction likewise converts only the inlet's vapour,
+`mixed` the whole inlet). simulate reports each conversion reactor's `extents` and
+`conversions` from DWSIM's stream flows (summary and record) and raises
+`sim-conversion-mismatch` (error) when a key component's conversion is more than 0.001 off the
+declared one; with several reactions on one key the declared conversions add up on its inlet
+flow. Bring the inlet to one phase (temperature or pressure ahead of the reactor) or declare
+the reaction `phase: mixed`; a co-reactant that runs out before the key also falls short.
 
 A fixed bed (`reactor: pfr` with `bed:` and `catalyst:`, rate laws in `reactions.yaml`) is a
 `kinetic_pfr` unit, **coupled as an external unit, not a native DWSIM reactor**. DWSIM 9.0.5's

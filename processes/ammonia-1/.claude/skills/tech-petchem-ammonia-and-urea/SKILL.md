@@ -22,8 +22,10 @@ Quoted ammonia energy totals differ by roughly 10 % on non-uniform bases: do not
 
 Engineering guidance only; core has no calculation for this. Core's reaction library has `ammonia`, `steam_reforming`,
 `ht_shift`, `lt_shift` and `methanation` entries (equilibrium basis, see `reactions`). For property coverage see
-`process-design`: the syngas vapour package covers H2, N2, Ar, CH4, CO, CO2 and mixtures within boxes, and NH3 pure
-only; ammonia in a mixture and liquid synthesis products are refused, so give them with a source.
+`process-design`: the syngas vapour package covers H2, N2, Ar, CH4, CO, CO2 and mixtures within boxes, NH3 pure and
+in loop gas with H2, N2, Ar, CH4 up to mole fraction 0.25 (Ar then up to 0.10, CH4 up to 0.20), and CH4 in mixtures
+to 673.1 K. Richer ammonia, hotter converter gas with CH4, liquid ammonia and separator VLE are refused, so give them
+with a source.
 
 Units in flow order:
 

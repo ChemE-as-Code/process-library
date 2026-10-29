@@ -42,7 +42,11 @@ Every recommended model is resolved against the supported-method contract
 (`src/chemeascode/domains/process/thermodynamics/methods.yml`; `cheme process methods` prints
 it): whether `phase-calculation` (thermo) and `process-simulation` (DWSIM) run it, and where a
 route does not, the nearest model it runs as a `substitution` with what it `loses`, or no
-substitution (electrolytes, petroleum pseudocomponents: unsupported on both routes).
+substitution (electrolytes, petroleum pseudocomponents: unsupported on both routes; a sourced
+petroleum assay has its own limited Peng-Robinson flash, `cheme process assay`). For
+Pitzer, `methods[].electrolyte` names the qualified systems the electrolyte route runs
+(`cheme process electrolyte`: aqueous NaCl only, liquid properties in the range of
+`electrolytes.yml`); the result's `notes` say so.
 
 There is no CLI command for the selection itself. Units go through
 `chemeascode.foundation.units`; units other than K, °C, Pa, kPa, MPa, bar and the `(a)`/`(g)`
@@ -56,7 +60,9 @@ pressures need the `units` extra.
 - A recommended model a route does not run: say so, and offer only the table's substitution,
   named as a substitution with what it loses; use it only with the engineer's approval. With
   no substitution (electrolytes, pseudocomponents) the regime is unsupported: say that, do
-  not fall back to another model.
+  not fall back to another model. The one exception is a system the electrolyte route
+  qualifies (aqueous NaCl): use `cheme process electrolyte` for its liquid properties, inside
+  its range only.
 
 ## Outputs and provenance
 

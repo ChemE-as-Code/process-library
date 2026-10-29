@@ -58,24 +58,24 @@ Those marked in `empty-sheet.xml` are in it (after the reference shapes); for an
 | Shape_Vessel | VESSEL_SHAPE | ISO10628:2012-301-A | vessel, general | 1.0 (15 x 25 mm) |  | N1 0,-12.5, N2 0,12.5 |  |
 | Shape_VesselDishedEnds | VESSEL_DISHED_ENDS_SHAPE | ISO10628:2012-2062-A | vessel with dished ends (drum, reactor, flash drum) | 1.0 (18 x 25 mm); stretch with ScaleY |  | N1 0,-12.5, N2 0,12.5 |  |
 | Shape_VesselDishedEndsJacket | VESSEL_DISHED_ENDS_JACKET_SHAPE | ISO10628:2012-X2069-A | vessel with dished ends and heating/cooling jacket | 1.0 (18 x 25 mm) |  | N1 0,-12.5, N2 0,12.5, jacket_in -8.98,7.7, jacket_out 8.98,-7.7 |  |
-| Shape_VesselTubeCoil | VESSEL_TUBE_COIL_SHAPE | ISO10628:2012-X8000-A | vessel with internal tube coil | 1.0 (25 mm) |  | N1 0,-12.5, N2 0,12.5, coil_in -12.5,7.5, coil_out 12.5,-7.5 |  |
+| Shape_VesselTubeCoil | VESSEL_TUBE_COIL_SHAPE | ISO10628:2012-X8000-A | vessel with full-tube heating/cooling coil | 1.0 (25 mm) |  | N1 0,-12.5, N2 0,12.5, coil_in -12.5,7.5, coil_out 12.5,-7.5 |  |
 | Shape_VesselConicalEnds | VESSEL_CONICAL_ENDS_SHAPE | ISO10628:2012-X8009-A | vessel with conical roof and bottom | 1.0 (18 x 25 mm) |  | N1 0,-12.5, N2 0,12.5 |  |
-| Shape_VesselDishedBottomFlatRoof | VESSEL_DISHED_BOTTOM_FLAT_ROOF_SHAPE | ISO10628:2012-X8007-A | vessel with dished bottom and flat roof | 1.0 (20 x 25 mm) |  | N1 0,-12.5, N2 0,12.5 |  |
+| Shape_VesselDishedBottomFlatRoof | VESSEL_DISHED_BOTTOM_FLAT_ROOF_SHAPE | ISO10628:2012-X8007-A | vessel with dished bottom and surface indication | 1.0 (20 x 25 mm) |  | N1 0,-12.5, N2 0,12.5 |  |
 | Shape_TankOpen | TANK_OPEN_SHAPE | ISO10628:2012-2061-A | tank, open (basin) | 1.0 (30 x 21 mm) |  | N1 -15,-10.5, N2 0,10.5 |  |
 | Shape_TankConeRoof | TANK_CONE_ROOF_SHAPE | ISO10628:2012-X2063-A | storage tank with flat bottom and cone roof | 1.0-2.0 (20 x 25 mm at 1.0) |  | N1 0,-12.5, N2 0,12.5 | yes |
 | Shape_TankDishedRoof | TANK_DISHED_ROOF_SHAPE | ISO10628:2012-X8200-A | storage tank with flat bottom and dished roof | 1.0-2.0 (20 x 30 mm at 1.0) |  | N1 0,-15, N2 0,15 |  |
 | Shape_TankConicalBottom | TANK_CONICAL_BOTTOM_SHAPE | ISO10628:2012-X2062-A | tank with conical bottom | 1.0 (18 x 30 mm) |  | N1 0,-15, N2 0,15 |  |
-| Shape_Silo | SILO_SHAPE | ISO10628:2012-2064-A | silo (bulk solids) | 1.0 (18 x 30 mm) | Silo | N1 -9,-15, N2 0,15 |  |
+| Shape_Silo | SILO_SHAPE | ISO10628:2012-2064-A | bunker or silo with conical bottom (bulk solids) | 1.0 (18 x 30 mm) | Silo | N1 -9,-15, N2 0,15 |  |
 | Shape_Column | COLUMN_SHAPE | ISO10628:2012-X8100-A | column, general (20 x 50 mm); stretch it with ScaleY | ScaleX 1.0, ScaleY 1.0-3.0 (50-150 mm high); draw beds/trays as markers on it |  | feed -10,0, overhead 0,-25, bottoms 0,25 | yes |
 | Shape_ColumnTrays | COLUMN_TRAYS_SHAPE | ISO10628:2012-X8101-A | column with trays, general | ScaleX 1.0, ScaleY 1.0-3.0 | ProcessColumn | feed -10,0, overhead 0,-25, bottoms 0,25 |  |
 | Shape_ColumnFixedBed | COLUMN_FIXED_BED_SHAPE | ISO10628:2012-X8015-A | column with fixed bed (packed column, absorber, adsorber) | ScaleX 1.0, ScaleY 1.0-3.0 |  | feed -15,0, overhead 0,-25, bottoms 0,25 |  |
 | Shape_ColumnBubbleCapTrays | COLUMN_BUBBLE_CAP_TRAYS_SHAPE | ISO10628:2012-X8011-A | column with bubble-cap trays | ScaleX 1.0, ScaleY 1.0-3.0 |  | feed -12.55,0, overhead 0,-25, bottoms 0,25 |  |
 | Shape_ColumnValveTrays | COLUMN_VALVE_TRAYS_SHAPE | ISO10628:2012-X8012-A | column with valve trays | ScaleX 1.0, ScaleY 1.0-3.0 |  | feed -15,0, overhead 0,-25, bottoms 0,25 |  |
 | Shape_HeatExchanger | HEAT_EXCHANGER_SHAPE | ISO10628:2012-X8079-A | heat exchanger, cooler or heater, general | 1.0 (15 mm) | HeatExchanger, Heater | tube_in 7.5,-3.33, tube_out 7.5,3.33, shell_in -0.83,-6.67, shell_out -0.83,6.67 | yes |
-| Shape_HeatExchangerFixedTubes | HEAT_EXCHANGER_FIXED_TUBES_SHAPE | ISO10628:2012-X2511-A | shell-and-tube heat exchanger, fixed tube sheets | 1.0 (35 x 14 mm) |  | tube_in -17.5,0, tube_out 17.5,0, shell_in -7,-7, shell_out 7,7 | yes |
-| Shape_HeatExchangerFloatingHead | HEAT_EXCHANGER_FLOATING_HEAD_SHAPE | ISO10628:2012-X2512-A | shell-and-tube heat exchanger, floating head | 1.0 (35 x 14 mm) |  | tube_in -14,-6.81, tube_out -14,6.81, shell_in 3.5,6.81, shell_out 3.5,-6.81 |  |
-| Shape_HeatExchangerUTube | HEAT_EXCHANGER_U_TUBE_SHAPE | ISO10628:2012-X2513-A | shell-and-tube heat exchanger, U tubes | 1.0 (35 x 11 mm) |  | tube_in -13.12,-3.5, tube_out -13.12,3.5, shell_in 0,3.5, shell_out 0,-3.5 |  |
-| Shape_HeatExchangerPlate | HEAT_EXCHANGER_PLATE_SHAPE | ISO10628:2012-X2516-A | plate heat exchanger | 1.0 (20 x 8 mm) |  | hot_in -9,-4, hot_out 9,-4, cold_in 9,4, cold_out -9,4 |  |
+| Shape_HeatExchangerFixedTubes | HEAT_EXCHANGER_FIXED_TUBES_SHAPE | ISO10628:2012-2511-A | shell-and-tube heat exchanger, fixed tube sheets | 1.0 (35 x 14 mm) |  | tube_in -17.5,0, tube_out 17.5,0, shell_in -7,-7, shell_out 7,7 | yes |
+| Shape_HeatExchangerFloatingHead | HEAT_EXCHANGER_FLOATING_HEAD_SHAPE | ISO10628:2012-2512-A | shell-and-tube heat exchanger, floating head | 1.0 (35 x 14 mm) |  | tube_in -14,-6.81, tube_out -14,6.81, shell_in 3.5,6.81, shell_out 3.5,-6.81 |  |
+| Shape_HeatExchangerUTube | HEAT_EXCHANGER_U_TUBE_SHAPE | ISO10628:2012-2513-A | shell-and-tube heat exchanger, U tubes | 1.0 (35 x 11 mm) |  | tube_in -13.12,-3.5, tube_out -13.12,3.5, shell_in 0,3.5, shell_out 0,-3.5 |  |
+| Shape_HeatExchangerPlate | HEAT_EXCHANGER_PLATE_SHAPE | ISO10628:2012-2516-A | plate heat exchanger | 1.0 (20 x 8 mm) |  | hot_in -9,-4, hot_out 9,-4, cold_in 9,4, cold_out -9,4 |  |
 | Shape_HeatExchangerSpiral | HEAT_EXCHANGER_SPIRAL_SHAPE | ISO10628:2012-X2517-A | spiral heat exchanger | 1.0 (15 mm circle) | SpiralHeatExchanger | hot_in -7.5,0, hot_out 0,7.5, cold_in 7.5,0, cold_out 0,-7.5 |  |
 | Shape_HeatExchangerDoublePipe | HEAT_EXCHANGER_DOUBLE_PIPE_SHAPE | ISO10628:2012-X2515-A | double-pipe heat exchanger | 1.0 (25 x 12 mm) |  | tube_in -12.5,-3.57, tube_out -12.5,3.57, shell_in -1.78,5.95, shell_out -1.78,-5.95 |  |
 | Shape_AirCooler | AIR_COOLER_SHAPE | ISO10628:2012-X2505-A | air cooler: finned tubes with fan | 1.0 (20 x 25 mm) | AirCoolingSystem | tube_in -7.5,8.75, tube_out 7.5,8.75 | yes |

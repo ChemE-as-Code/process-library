@@ -1,0 +1,55 @@
+# Site plan of the concept plot plan (D-022). Schema: `cheme schema site_plan`.
+# x east, y north, metres from the south-west corner. A notional Rotterdam-area port plot:
+# plot size, area split, roads, rack and every separation below are ASSUMED screening choices
+# of this design (D-022), to be replaced by the site's own plot and the owner's spacing
+# standard and QRA at basic engineering.
+schema: cheme/site_plan/v1
+site: {name: "ammonia-1 notional plot (Rotterdam area, ASSUMED)", width: 360, depth: 220}
+areas:
+  - {id: A-100, title: "Reforming: desulfurisation, prereformer, furnace, secondary reformer, process air", box: [20, 120, 150, 200], kind: process}
+  - {id: A-200, title: "Shift, CO2 removal, methanation and drying", box: [160, 120, 260, 200], kind: process}
+  - {id: A-800, title: Steam system and boiler feed water, box: [270, 120, 340, 200], kind: utilities}
+  - {id: A-900, title: "Control room, substation, workshops (reserved)", box: [20, 20, 80, 100], kind: reserved}
+  - {id: A-600, title: Purge gas recovery, box: [90, 20, 150, 100], kind: process}
+  - {id: A-500, title: "Synthesis gas compression and ammonia loop", box: [160, 20, 260, 100], kind: process}
+  - {id: A-700, title: "Ammonia refrigeration and product flash", box: [270, 20, 340, 100], kind: process}
+roads:
+  - {id: R-1, title: South perimeter road, points: [[0, 10], [360, 10]], width: 6}
+  - {id: R-2, title: North perimeter road, points: [[0, 210], [360, 210]], width: 6}
+  - {id: R-3, title: West perimeter road, points: [[10, 0], [10, 220]], width: 6}
+  - {id: R-4, title: East perimeter road, points: [[350, 0], [350, 220]], width: 6}
+  - {id: R-5, title: "Access road between A-100/A-600 and A-200/A-500", points: [[155, 0], [155, 220]], width: 6}
+  - {id: R-6, title: "Access road between A-200/A-500 and A-800/A-700", points: [[265, 0], [265, 220]], width: 6}
+racks:
+  - {id: PR-1, title: Main pipe rack (east-west), points: [[20, 110], [340, 110]], width: 8, levels: [6, 8, 10], bent_spacing_m: 10}
+separations:
+  # fired equipment
+  - {from: H-101, to: site-boundary, min_m: 30, reason: "fired heater kept off the plot boundary", basis: D-022}
+  - {from: H-101, to: K-501, min_m: 30, reason: "open flame to the hydrogen-rich synthesis gas compressor", basis: D-022}
+  - {from: H-101, to: X-601, min_m: 30, reason: "open flame to the hydrogen and ammonia recovery package", basis: D-022}
+  - {from: H-101, to: K-701, min_m: 30, reason: "open flame to the ammonia refrigeration compressor", basis: D-022}
+  - {from: H-101, to: V-101, min_m: 15, reason: "open flame to the hydrogenated natural gas in the desulfuriser", basis: D-022}
+  - {from: H-101, to: A-900, min_m: 30, reason: "fired heater to the control room and substation plot", basis: D-022}
+  # parts of the furnace: the package's 15 m fired-equipment spacing does not apply to them
+  - {from: H-101, to: E-101, min_m: 1, reason: "convection coil bank of H-101", basis: D-022}
+  - {from: H-101, to: E-102, min_m: 1, reason: "convection coil bank of H-101", basis: D-022}
+  - {from: H-101, to: E-103, min_m: 1, reason: "convection coil bank of H-101", basis: D-022}
+  - {from: H-101, to: E-104, min_m: 1, reason: "convection coil bank of H-101", basis: D-022}
+  - {from: H-101, to: E-107, min_m: 1, reason: "convection coil bank of H-101", basis: D-022}
+  - {from: H-101, to: E-106, min_m: 1, reason: "combustion air preheater in the H-101 flue gas duct", basis: D-022}
+  # toppling of tall items
+  - {from: C-301, to: PR-1, min_factor_of_height: 1, reason: toppling, basis: D-022}
+  - {from: C-302, to: PR-1, min_factor_of_height: 1, reason: toppling, basis: D-022}
+  - {from: R-501, to: PR-1, min_factor_of_height: 1, reason: toppling, basis: D-022}
+  - {from: R-501, to: K-501, min_factor_of_height: 1, reason: toppling, basis: D-022}
+  - {from: X-601, to: PR-1, min_factor_of_height: 1, reason: "toppling of the cold box", basis: D-022}
+  # toxic ammonia and hydrogen inventories
+  - {from: V-701, to: site-boundary, min_m: 30, reason: "refrigerated ammonia inventory kept off the boundary", basis: D-022}
+  - {from: K-701, to: site-boundary, min_m: 30, reason: "ammonia refrigeration kept off the boundary", basis: D-022}
+  - {from: V-501, to: site-boundary, min_m: 30, reason: "loop separator ammonia inventory kept off the boundary", basis: D-022}
+  - {from: A-900, to: K-501, min_m: 60, reason: "control room plot to the high-pressure hydrogen compressor", basis: D-022}
+  - {from: A-900, to: V-701, min_m: 60, reason: "control room plot to the ammonia inventory", basis: D-022}
+notes: >-
+  ASSUMED: notional plot, roads, rack and spacing criteria (D-022); no site survey, no QRA, no
+  owner's spacing standard yet. Roads on all four sides and two north-south access roads give
+  every area fire-fighting access from at least two sides.
