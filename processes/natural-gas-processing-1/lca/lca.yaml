@@ -1,0 +1,138 @@
+# Goal and scope of the natural-gas-processing-1 LCI. Schema: `cheme schema lca`. Outputs:
+# `cheme assess lca --inventory --write` (lca/inventory.csv, dataset.yaml, gaps.csv,
+# manifest.json); never edit those by hand.
+#
+# A preliminary gate-to-gate inventory (DESIGN.md D-014): every foreground exchange of the
+# balanced flowsheet per kg of sales gas. No background is linked yet: the raw gas, every
+# utility, the consumables and the water disposal are declared `missing:` with the activity
+# they should connect to later, so each is a gap in every category, never 0. No values from
+# licensed databases are used. The combustion emissions of the fired heaters that the balance
+# does not carry (NOx, CO, CH4, N2O, PM, VOC) are estimated with US EPA AP-42 section 1.4.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of natural gas processing for the concept
+  stage: the foreground exchanges of the balanced flowsheet (D-006) per kg of sales gas, with
+  the C2+ NGL as co-product, ready to be linked to background datasets (raw gas production,
+  grid electricity, site steam, cooling water). No impact assessment is claimed.
+functional_unit: {product: SALESGAS, amount: 1, unit: kg}
+boundary: gate-to-gate
+year: 2026
+location: US
+technology: "Sweet gas plant: inlet separation, MDEA CO2 removal (acid gas vented), TEG dehydration with molecular sieve polishing, GSP-type turbo-expander NGL recovery (90 % C2, 98 % C3), electric-motor residue compression; 100 MMscf/d (about 0.8 Mt/a) of Barnett-type rich shale gas"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+case: design
+system_model: cutoff
+allocation:
+  method: energy
+  coproducts: [SALESGAS, NGL]
+  properties:
+    SALESGAS: {energy: 48.428}
+    NGL: {energy: 47.034}
+  source: >-
+    D-014: both products are fuels and feedstocks sold on their energy content; burdens shared
+    by lower heating value (MJ/kg, from the ideal-gas formation enthalpies of
+    process/materials.yaml in scripts/balance.py: sales gas 48.43, NGL 47.03). Because the two
+    LHVs differ by 3 %, energy and mass allocation give nearly the same split (sales gas about
+    72 % of the burden).
+  deviation: >-
+    Hierarchy step 3 (WBCSD price ratio) cannot be applied: no sourced prices of sales gas and
+    NGL are recorded for this concept design. Energy (LHV) is used because both co-products
+    are fuels and feedstocks traded on their energy content, the physical relationship
+    between them; mass would give nearly the same split since their LHVs differ by 3 %
+    (D-014). To be revisited when open price data are sourced.
+flows:
+  # raw materials
+  - {key: feed:RAWGAS, missing: "not linked yet: raw (wet, untreated) natural gas from onshore shale gas production and gathering at the plant inlet, per kg of raw gas including its water; a 'natural gas production, unprocessed, at extraction' activity for the United States (Barnett/Appalachian shale); no library process makes it", source: "S1, D-003, D-004"}
+  - {key: feed:DMW, missing: "not linked yet: demineralised water production by ion exchange or reverse osmosis", source: "S8, D-007"}
+  - {key: feed:AIR, free: true, source: "S33: ambient combustion air of the fired heaters, a resource without burden"}
+  # utilities
+  - {key: feed:POWER, missing: "not linked yet: grid electricity, medium voltage, for the site's market (Texas/ERCOT for a Barnett site, D-002); 98 % of it drives the residue compressor K-501", source: "Q3, Q5, Q9, Q10, Q12; D-010"}
+  - {key: feed:STEAM, missing: "not linked yet: heat from LP steam (450 kPa(a)) from a natural-gas-fired site boiler (processes/utility-steam-ng-boiler in this library), per kWh of steam heat", source: "Q1, D-007"}
+  - {key: product:CW, missing: "not linked yet: heat rejection to a recirculating cooling-water circuit with cooling tower (pump and fan electricity, make-up water, treatment chemicals) per kWh removed (processes/utility-cooling-tower in this library)", source: "Q2, Q7, Q11; D-010"}
+  # waste: the separated water
+  - {key: product:PWATER, treatment: {kind: waste, route: "produced-water disposal by injection into a disposal well (usual in the Barnett area) or treatment"}, missing: "not linked yet: produced water disposal (trucking or pipeline to a saltwater disposal well); no open dataset chosen", source: "S3, S18; D-004"}
+  # emissions: acid gas, TEG still vent and flue gas go to air
+  - {key: product:ACIDGAS, emission: true, source: "S10: amine regenerator acid gas vented (no H2S, D-007)"}
+  - {key: product:STILLVENT, emission: true, source: "S16: TEG still vent, water vapour with 10 % of the absorbed gas (D-008)"}
+  - {key: product:FLUE, emission: true, source: "S34: flue gas of the fuel-gas-fired heaters H-601 (D-011)"}
+  - {key: emission:CO2, elementary: {compartment: air, origin: fossil}, source: "S10 reservoir CO2 removed from the gas, and S34 combustion CO2 of fuel gas: both fossil"}
+  - {key: emission:CH4, elementary: {compartment: air, origin: fossil}, source: "S10, S16: methane slip of the amine regenerator and TEG still (ASSUMED co-absorption, EPA flash-tank recovery, D-007, D-008); plus unburnt methane of H-601 (AP-42 1.4, below)"}
+  - {key: emission:C2H6, elementary: {compartment: air, origin: fossil}, source: "S10, S16: ethane slip (D-007, D-008)"}
+  - {key: emission:C3H8, elementary: {compartment: air, origin: fossil}, source: "S10, S16: propane slip (D-007, D-008)"}
+  - {key: emission:H2O, free: true, source: "S10, S16, S34: water vapour"}
+  - {key: emission:N2, free: true, source: "S16, S34: nitrogen of the air and of the gas"}
+  - {key: emission:O2, free: true, source: "S34: excess oxygen of the combustion air"}
+  # combustion emissions of H-601 estimated with AP-42 1.4 (emission_estimates below)
+  - {key: emission:NOx, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "heaters-combustion estimate (AP-42 1.4), as NO2"}
+  - {key: emission:CO, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "heaters-combustion estimate (AP-42 1.4)"}
+  - {key: emission:N2O, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "heaters-combustion estimate (AP-42 1.4)"}
+  - {key: emission:PM, missing: "particulate matter has no CAS number: link to the elementary flow 'particulate matter, < 2.5 um, to air, non-urban high stack' (natural gas combustion PM is essentially all fine) when the crosswalk has it", source: "heaters-combustion estimate (AP-42 1.4), total PM (filterable and condensable)"}
+  - {key: emission:NMVOC, missing: "a lumped VOC has no CAS number: link to 'NMVOC, non-methane volatile organic compounds, to air, non-urban high stack' when the crosswalk has it", source: "heaters-combustion estimate (AP-42 1.4), VOC"}
+consumables:
+  - id: MDEA
+    title: MDEA make-up (losses by vaporisation, entrainment, degradation)
+    unit: kg
+    per_year: 15000
+    missing: "not linked yet: production of N-methyldiethanolamine (from methylamine and ethylene oxide)"
+    source: "ASSUMED (D-007): of order 1 lb amine per MMscf treated, a practitioner rule of thumb; no open source found; 100 MMscf/d x 8000/24 d"
+    disposal: {kind: waste, route: "amine reclaimer residue and degradation products to hazardous waste incineration", missing: "not linked yet: hazardous waste incineration", source: "ASSUMED (D-007): what is lost leaves as waste or traces in the gas"}
+  - id: TEG
+    title: TEG make-up (vaporisation and carry-over losses)
+    unit: kg
+    per_year: 14000
+    missing: "not linked yet: production of triethylene glycol (ethylene oxide hydration by-product)"
+    source: "ASSUMED (D-008): of order 0.1 US gal TEG per MMscf dried, a practitioner rule of thumb; no open source found"
+    disposal: {kind: waste, route: "spent glycol and filter residue to incineration", missing: "not linked yet: hazardous waste incineration", source: "ASSUMED (D-008)"}
+  - id: MOLSIEVE
+    title: Molecular sieve adsorbent (zeolite 4A), replaced every 4 years
+    unit: kg
+    per_replacement: 40000
+    every_years: 4
+    missing: "not linked yet: production of zeolite molecular sieve (synthetic sodium aluminosilicate)"
+    source: "ASSUMED (D-008): two beds of about 20 t; no sizing at concept stage"
+    disposal: {kind: waste, route: "spent zeolite to landfill (non-hazardous for sweet gas)", missing: "not linked yet: landfill of inert mineral waste", source: "ASSUMED (D-008)"}
+cutoff:
+  # R-03 of reviews/2026-10-28-pfd-lci-review.md: the excluded fugitive methane (emission
+  # exclusion `leaks`, below) with an order-of-magnitude amount so that the cut-off criteria
+  # can be checked; it is not added to the inventory (D-014, D-017).
+  - id: fugitive-CH4
+    title: Fugitive methane of equipment leaks (screening amount, not in the inventory)
+    direction: output
+    unit: kg
+    per_year: 519000
+    cas: 74-82-8
+    reason: "no P&ID component count at the concept stage; ASSUMED screening amount of 0.1 % of the methane processed (S1: 64 870 kg/h CH4 x 0.001 x 8000 h/a), the upper end of the 0.05-0.1 % suggested by the design review (R-03). Below 1 % of the input mass, but methane has a high characterisation factor: about 0.020 kg CO2-eq per kg sales gas allocated (GWP100 29.8), roughly twice the direct GHG of the inventory (D-017)"
+    source: "ASSUMED (D-017); order-of-magnitude bound: Alvarez et al. (2018), Science 361(6398) 186-188, whole US oil and gas supply chain methane 13 +- 2 Tg/a = 2.3 % of gross gas production, of which processing is a minor segment; to replace with EPA leak protocol factors per component once P&IDs exist"
+operation: {hours_per_year: 8000, life_years: 25, source: "design basis D-002; life ASSUMED"}
+emission_estimates:
+  - id: heaters-combustion
+    title: Combustion emissions of the fuel-gas-fired heaters (TEG reboiler, regeneration heater)
+    method: combustion
+    equipment: [H-601]
+    stream: S32
+    cas: {NOx: 10102-44-0, CO: 630-08-0, N2O: 10024-97-2}
+    lhv: {value: 44.57, unit: MJ/kg, source: "gross (HHV) basis like the AP-42 factors: fuel S32 LHV 40.27 MJ/kg (1027.4 kW / 0.80 / 114.82 kg/h) plus 1.762 kg water formed per kg x 2.443 MJ/kg (scripts/balance.py, D-011)"}
+    factors:
+      NOx: {value: 42.15, unit: g/GJ, source: "US EPA AP-42 section 1.4 (Natural Gas Combustion), Table 1.4-1, small boilers <100 MMBtu/h, uncontrolled: 100 lb/10^6 scf at 1020 Btu/scf HHV, converted to g/GJ HHV"}
+      CO: {value: 35.41, unit: g/GJ, source: "US EPA AP-42 section 1.4, Table 1.4-1, small boilers, uncontrolled: 84 lb/10^6 scf at 1020 Btu/scf HHV"}
+      CH4: {value: 0.969, unit: g/GJ, source: "US EPA AP-42 section 1.4, Table 1.4-2: methane 2.3 lb/10^6 scf at 1020 Btu/scf HHV"}
+      N2O: {value: 0.927, unit: g/GJ, source: "US EPA AP-42 section 1.4, Table 1.4-2: N2O uncontrolled 2.2 lb/10^6 scf at 1020 Btu/scf HHV"}
+      PM: {value: 3.203, unit: g/GJ, source: "US EPA AP-42 section 1.4, Table 1.4-2: PM total 7.6 lb/10^6 scf at 1020 Btu/scf HHV"}
+      NMVOC: {value: 2.318, unit: g/GJ, source: "US EPA AP-42 section 1.4, Table 1.4-2: VOC 5.5 lb/10^6 scf at 1020 Btu/scf HHV"}
+    add: true
+    source: "AP-42 section 1.4 factors for natural gas boilers applied to small direct-fired process heaters (4.4 MMBtu/h fuel), a proxy for heater type; SO2 left out: the sweet fuel gas carries no sulfur (D-003). https://www.epa.gov/sites/default/files/2020-09/documents/1.4_natural_gas_combustion.pdf"
+emission_exclusions:
+  - {id: leaks, method: equipment-leaks, reason: "fugitive methane and hydrocarbons from valves, flanges, compressor seals and the TEG/amine pumps are not estimated: no P&ID take-off at the concept stage. In gas processing they are a material methane source; to be added with the P&IDs and the EPA leak protocol factors (D-014); screening amount for the cut-off check in cutoff:fugitive-CH4 (D-017)", source: "D-014, D-017"}
+  - {id: non-routine, method: non-routine, reason: "blowdowns, compressor starts, mole sieve bed switching losses, pigging and flaring at upsets are not estimated at the concept stage (D-014)", source: "D-014"}
+  - {id: tanks, method: storage-tank, reason: "no hydrocarbon storage: NGL leaves by pipeline and there is no condensate (no C4+ in the feed); amine, TEG and produced-water tanks breathe negligible amounts (ASSUMED)", source: "D-014"}
+  - {id: water, method: effluent, exchange: product:PWATER, reason: "the separated water goes to disposal (a waste treatment, mapped as product:PWATER); its dissolved hydrocarbons and salts are not in the balance (D-004)", source: "D-014"}
+dataset:
+  version: 0.1.0
+  geography: {description: "One concept design for a US onshore shale gas plant (Barnett-type feed); no site-specific supply", site: "generic gas plant in a shale gathering area, not chosen"}
+  system_model: cutoff
+  technology_level: current
+  classification: {isic: "0910"}
+  modelling: {principle: attributional}
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library, natural-gas-processing-1 concept design (agent run, unreviewed)"
