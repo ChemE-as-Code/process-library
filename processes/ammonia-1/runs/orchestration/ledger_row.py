@@ -6,7 +6,7 @@
 Cost, tokens, turns, wall time and exit come from agent-cli's runs.jsonl (the API's numbers);
 start/end commit from the run record `runs/<run-id>/run.yaml` on the job's branch; gates and
 maturity from `cheme check` / `cheme maturity` run in WORKTREE/processes/ammonia-1 right after
-the job; findings by severity from the review record the job wrote (review jobs only).
+the job; findings by severity from the review's own summary, passed as --findings c,h,m,l (new findings only, not carried ones).
 Standard library only; nothing is estimated: a value that cannot be read stays empty.
 """
 
@@ -31,7 +31,7 @@ def main():
     p = argparse.ArgumentParser()
     for a in ("ledger", "runs_jsonl", "run_id", "job", "section", "role", "key_batch", "worktree"):
         p.add_argument(a)
-    for o in ("--pr", "--pushed-by", "--merged-by", "--review", "--core-issue", "--notes"):
+    for o in ("--pr", "--pushed-by", "--merged-by", "--review", "--core-issue", "--notes", "--findings"):
         p.add_argument(o, default="")
     a = p.parse_args()
     rec = next((json.loads(l) for l in Path(a.runs_jsonl).read_text().splitlines()
@@ -50,10 +50,8 @@ def main():
     levels = re.findall(r"^(sourced|balanced|predictive|engineering): .* -- (\w+)$", mat, re.M)
     reached = [lv for lv, verdict in levels if verdict == "ok"]
     sev = {"critical": "", "high": "", "medium": "", "low": ""}
-    if a.review and Path(a.review).exists():
-        body = Path(a.review).read_text().lower()
-        for s in sev:
-            sev[s] = str(len(re.findall(rf"\b(severity:\s*{s}|\({s}\)|\| {s} \|)", body)))
+    if a.findings:  # "c,h,m,l": the new findings of this review as its own summary states them
+        sev = dict(zip(sev, a.findings.split(",")))
     final = rec.get("final_status") or ""
     exit_ = {"DONE": "DONE", "BLOCKED": "BLOCKED"}.get(final, "") or (
         "cap" if rec.get("subtype") == "error_max_budget_usd" else
