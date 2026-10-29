@@ -253,6 +253,39 @@ exergy of water). NH3 then carries 94.8 % of the burdens. The original preferenc
 expansion (ISO 14044) stands as the comparison once a steam background exists. Rejected:
 allocation none (would hide the export); mass (above).
 
+## D-022 Concept plot plan (2026-10-29)
+Decision: a notional 360 m x 220 m port plot (`layout/site-plan.yaml`) with one east-west pipe
+rack PR-1 (y = 110 m, 8 m wide, tiers 6/8/10 m, bents every 10 m so that none stands in the
+access roads R-5 and R-6) and the process areas on both sides of it, upstream north and
+downstream south: A-100 reforming, A-200 shift/CO2 removal/methanation/drying, A-800 steam
+system (north); A-600 purge gas recovery, A-500 compression and loop, A-700 refrigeration and
+product flash (south); A-900 reserved for control room, substation and workshops at the
+south-west corner, as far as the plot allows from the loop and the ammonia inventory (its
+position against the prevailing wind is open: the wind rose is not known, I-03). Roads on
+all four sides and two north-south access roads give every area access from at least two
+sides. All 44 items are placed (`layout/equipment-placement.yaml`), sized by ASSUMED overall
+dimensions in the equipment list (engineering estimates for 1500 t/d, not sized from the
+balance; the datasheets replace them). `cheme layout build` reports no clash, no blocked
+bundle-pull space and no steel in a road.
+Modelling choices: H-101 is the radiant box (40 x 20 x 22 m); R-101 is drawn as the tube inlet
+headers on its roof (its heated tubes are inside H-101); the convection coils E-103, E-104,
+E-102, E-101, E-107 and the air preheater E-106 are drawn as a row of coil banks against the
+radiant box, hot end first. Their separations from H-101 are declared at 1 m because they are
+part of the furnace; the package's 15 m fired-equipment spacing does not apply to them.
+Spacing criteria (separations, all ASSUMED screening values chosen in this design, not taken
+from a standard; the owner's spacing standard and a QRA replace them at basic): fired heater
+H-101 30 m from the boundary, from K-501, X-601, K-701 and the A-900 plot, 15 m from V-101;
+toppling (1 x height) of C-301, C-302, R-501 and the X-601 cold box to PR-1 and of R-501 to
+K-501; V-701, V-501 and K-701 30 m from the boundary; A-900 60 m from K-501 and V-701.
+Measured (`cheme show <tag> --layout`, 2026-10-29): H-101 to boundary 40.0 m, to PR-1 36.0 m,
+to R-100 17.8 m, to A-900 50.0 m; R-501 to PR-1 29.2 m and to K-501 29.8 m (height 25 m); C-301
+to PR-1 58.5 m (height 40 m); V-701 to boundary 38.5 m. `cheme validate` reports no
+`layout-separation` finding.
+Reason: concept gate `layout-plot-plan`; an area layout in process order along one rack is the
+usual arrangement and keeps the reformer's flame away from the hydrogen and ammonia sections.
+Open: real plot and wind rose (I-03), nozzles and line routes (with the P&IDs), the cooling
+tower, flare and storage outside the boundary (D-001).
+
 ## 3. Results of this stage (design case)
 
 Per kg NH3 (lca/inventory.csv, from the flowsheet): natural gas 0.6034 kg (process 0.4721,
