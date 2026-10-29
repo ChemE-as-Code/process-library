@@ -838,8 +838,16 @@ around the CO2 vent CO2-1068 and the CO2 relief outlet CO2-1076. Not a classific
 S5r fix (review 2026-10-29-layout#4): zone 2 also at the flanges and valves of the synthesis
 loop (R-501, E-501..E-505, V-501, V-502 at its let-down valve), the purge gas recovery X-601
 and the ammonia items V-701 and E-701, same table and grade; the rebuilt model reports no zone
-finding. The H-101 fuel-gas and tail-gas valve trains are burner-management package scope and
-have no placed item to be a source yet: open until the package layout.
+finding. S5r fix round 2 (review 2026-10-29-layout#4): the H-101 fuel-gas (FG-1002: PV-1101,
+XV-1102) and tail-gas (FG-1010: XV-1105) valve trains get zone 2 Z-HAZ-FUEL with the burner
+inlet nozzles H-101/B2 and H-101/B1 as their sources (a line source must have an open end, so
+the line numbers cannot be used); same table and grade, ASSUMED until the burner-management
+package places its trains; no zone finding after the rebuild.
+S5r fix round 2 (review 2026-10-29-layout-r2#1): the pins of PC-1048 (P-113) and PC-1084
+(P-113) fall towards U-801 without a pocket: PC-1048 stays at 9.07 m from the PR-1 tier
+change to the north-south run (the 6 cm low point at 9.01 m is gone); PC-1084 drops from its
+8.0 m run to 6.5 m below the A-800 lines instead of rising to 9.5 m, then to its 5.5 m nozzle
+(1.5 m high point gone); no clash. The older hand pins of layout#8 are unchanged.
 Decision, lifting: screening empty weights for every item (`scripts/estimate_weights.py`:
 thin-wall shell at 1.1 x operating pressure, CS 138 MPa, factors for internals; envelope
 densities for machines and packages; lift weights for the field-erected furnace and the
