@@ -773,6 +773,16 @@ a drum low-low trip; BFW pump spare; machine protection (seal, lube oil, vibrati
 K-501, K-502 and K-701 inside the vendor packages; no loop pressure control (the loop floats on
 the conversion, the purge is set by the operator); no analyser on the feed gas; no turndown case
 in the flowsheet, so part-load behaviour of the loops is not checked; SIL screening (S6).
+Open for the HAZOP (S6), added in the S5r fix (reviews 2026-10-29-design#2, #3, #5; no
+interlock is proposed here because each needs sensors and valves that the P&IDs do not draw yet,
+and the HAZOP is to decide whether it is wanted): (1) a converter R-501 bed high-high
+temperature trip on TI-1805..TI-1808 (catalyst damage, hot spot and hydrogen attack of the
+15 MPa shell), and the K-502 and K-701 trips that D-029 left for S4 and that S4 did not add;
+(2) gas blow-by from V-502 (2500 kPa(a)) into V-701 (110 kPa(a)) on loss of the V-502 level:
+LV-1907 failing closed and PSV-2010 are the only layers, unlike I-107 on the V-501 let-down;
+either a V-502 low-low trip (LZ and an XV on the liquid outlet) or PSV-2010 sized for the full
+LV-1907 gas capacity (S8), with the reason; (3) the same question for V-201 into the process
+condensate system (LIC-1307 failing closed is the only layer; I-104 alarms only).
 Reason: S4 of runs/plan.md.
 Rejected: a loop pressure controller on the make-up (K-501 capacity) without a turndown case to
 size it; a separate H2/N2 controller acting directly on FV-1201 (it would fight the ratio);
