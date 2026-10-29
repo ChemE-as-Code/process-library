@@ -29,4 +29,5 @@ directory is `processes/ammonia-1` in the worktree of the section's branch; find
 - If the task says the section ends with a stage sign-off: on approve, do **not** merge; end.
 - Otherwise on approve: `git fetch origin && git merge origin/main` (never rebase), push,
   `gh pr checks <n> --watch` until green, then `gh pr merge <n> --merge`.
-- Final line of your answer: `VERDICT: approve` or `VERDICT: fix`.
+- End your answer with two lines: first `VERDICT: approve` or `VERDICT: fix`, then `STATUS: DONE`
+  (the runner recognises `STATUS:` lines; the orchestrator reads the verdict line).

@@ -10,4 +10,5 @@ agent review and then signed off by an author-side session. Find the PR with
 2. `cheme check --stage <stage>` passes; `git fetch origin && git merge origin/main` (never
    rebase), push (never force, never to main), `gh pr checks <n> --watch` until green.
 3. `gh pr merge <n> --merge`. Comment that the stage sign-off is now on `main`.
-4. Final line: `VERDICT: approve` (merged) or `VERDICT: fix` (not merged, with the reason).
+4. End with two lines: `VERDICT: approve` (merged) or `VERDICT: fix` (not merged, with the reason), then
+   `STATUS: DONE`.
