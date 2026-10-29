@@ -1,0 +1,35 @@
+# Pipe routing intent of the basic 3D layout (D-031). Schema: `cheme schema routing`.
+# Router defaults apply where nothing is said here (local_max_m 15, pipe-way 3.5 m, spacing
+# 0.1 m, road headroom 6 m: each ASSUMED package value). Battery limit points are ASSUMED
+# (D-031): the import lines enter at the west end of PR-1, exports, the flare header and the
+# product leave at its east end (the flare, storage and utilities are outside the boundary,
+# D-001), the furnace stack and the CO2 vent stack stand next to their sources.
+schema: cheme/routing/v1
+rules:
+  battery_limits:
+    - {id: BL-west-imports, lines: [NG-1001, DW-1073, DW-1137], rack: PR-1, rack_end: start}
+    - {id: BL-east-exports, lines: [AL-1128, SM-1140, BD-1141], rack: PR-1, rack_end: end}
+    - {id: BL-flare, lines: ["FLR-*"], rack: PR-1, rack_end: end}
+    - {id: CO2-vent-stack, lines: [CO2-1142], point: [213, 197, 3]}
+lines:
+  # furnace ductwork (D-031): the flue gas path through the convection section and the
+  # combustion air ducts are the furnace package's ductwork (DN 1800 to 4000), drawn with the
+  # furnace, not pipe routes; the coil banks E-103, E-102, E-104, E-101, E-106 and E-107 stand
+  # in the flue gas duct itself (D-022 modelling)
+  - {line: CA-1012, skip: "combustion air duct K-102 to E-106, furnace package ductwork (D-031)"}
+  - {line: CA-1013, skip: "preheated combustion air duct E-106 to the H-101 burners, furnace package ductwork (D-031)"}
+  - {line: FL-1014, skip: "flue gas duct H-101 radiant box to the convection section, furnace package ductwork (D-031)"}
+  - {line: FL-1015, skip: "flue gas path through the convection section (coil bank in the duct), furnace package (D-031)"}
+  - {line: FL-1016, skip: "flue gas path through the convection section (coil bank in the duct), furnace package (D-031)"}
+  - {line: FL-1017, skip: "flue gas path through the convection section (coil bank in the duct), furnace package (D-031)"}
+  - {line: FL-1018, skip: "flue gas path through the convection section (coil bank in the duct), furnace package (D-031)"}
+  - {line: FL-1019, skip: "flue gas path through the convection section (coil bank in the duct), furnace package (D-031)"}
+  - {line: FL-1020, skip: "flue gas duct E-107 to the ID fan K-103, furnace package ductwork (D-031)"}
+  # P-301B suction branch along the north side of the pumps at suction height, apart from the
+  # AM-1058 drop to P-301A (D-031)
+  - {line: AM-1061, via: [[167.5, 192.5, 1.5], [174.8, 192.5, 1.5]]}
+  - {line: FL-1021, skip: "flue gas duct K-103 to the stack, furnace package ductwork; the stack is part of H-101 (D-031)"}
+notes: >-
+  ASSUMED (D-031): battery limit points at the PR-1 ends; the CO2 vent stack is represented by
+  its foot north-east of V-302. Furnace ductwork is skipped as package scope. Utilities
+  (cooling water, steam, condensate) are routed at detail engineering (gate layout-detail).
