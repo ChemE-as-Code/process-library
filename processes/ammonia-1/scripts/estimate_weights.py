@@ -6,8 +6,10 @@
 Method (all parameters ASSUMED, chosen in this design, not taken from a source):
 - pressure shells (vessels, columns, shell-and-tube exchangers with a diameter): wall
   t = P D / (2 S E - 1.2 P) + c (the thin-wall cylinder formula of the pressure-vessel codes),
-  P = 1.1 x the operating gauge pressure of the item's notes (1000 kPa(a) where none is
-  given), S = 138 MPa (carbon steel allowable stress), E = 1, c = 3 mm, t >= 8 mm; straight
+  P = 1.1 x the operating gauge pressure, the higher of the item's notes and the design-case
+  pressures of the flowsheet streams entering or leaving the steps linked to it (both sides of
+  an exchanger; S5r fix of review 2026-10-29-design#4), 1000 kPa(a) only where neither gives
+  one, S = 138 MPa (carbon steel allowable stress), E = 1, c = 3 mm, t >= 8 mm; straight
   shell = overall length - D/2, two 2:1 ellipsoidal heads of 1.09 D^2 each; steel 7.85 t/m3;
   times a factor for what is not shell: vessels and reactors 1.3, columns 1.6, shell-and-tube
   exchangers 2.5 (tube bundle and channel); R-102 adds a 0.2 m refractory lining at 2.3 t/m3;
@@ -45,16 +47,47 @@ LIFT = {  # heaviest single lift, t (ASSUMED module sizes)
 }
 
 
-def pressure_kpa(notes: str) -> float:
-    found = re.findall(r"(\d[\d,]*)\s*kPa\(a\)", notes or "")
-    return max(float(f.replace(",", "")) for f in found) if found else 1000.0
+def stream_pressures(outlets_only: bool) -> dict:
+    """Highest design-case stream pressure (kPa(a)) at the steps linked to each equipment tag;
+    `outlets_only` counts only the streams leaving the step (a vessel or column fed through a
+    let-down valve the flowsheet does not draw as its own step, e.g. C-302, V-701)."""
+    flowsheet = yaml.safe_load(open("process/flowsheet.yaml"))
+    tags = {}
+    for step in flowsheet.get("steps", []):
+        for link in step.get("links") or []:
+            if link.get("target") == "equipment":
+                tags.setdefault(step["id"], []).append(link["ref"])
+    # a step standing for several items (CO2R: C-301 and C-302) says nothing about each one
+    tags = {step: refs for step, refs in tags.items() if len(refs) == 1}
+    found = {}
+    for stream in flowsheet.get("streams", []):
+        p = ((stream.get("state") or {}).get("design") or {}).get("pressure")
+        if not isinstance(p, dict) or "value" not in p:
+            continue
+        ends = (stream.get("from"),) if outlets_only else (stream.get("from"), stream.get("to"))
+        for end in ends:
+            for tag in tags.get(str(end or "").split(".")[0], []):
+                found[tag] = max(found.get(tag, 0.0), float(p["value"]))
+    return found
+
+
+STREAM_P_BOTH = stream_pressures(outlets_only=False)  # exchangers: both sides
+STREAM_P_OUT = stream_pressures(outlets_only=True)  # vessels, columns, reactors
+
+
+def pressure_kpa(notes: str, tag: str = "", kind: str = "") -> float:
+    found = [float(f.replace(",", "")) for f in re.findall(r"(\d[\d,]*)\s*kPa\(a\)", notes or "")]
+    streams = STREAM_P_BOTH if kind == "TubularHeatExchanger" else STREAM_P_OUT
+    if tag in streams:
+        found.append(streams[tag])
+    return max(found) if found else 1000.0
 
 
 def shell_weight(item: dict) -> float:
     d = item["dimensions"]
     dia = d["diameter"]
     length = d.get("height") or d.get("length")
-    p = 1.1 * max(pressure_kpa(item.get("notes", "")) - 101.3, 100.0) * 1e3
+    p = 1.1 * max(pressure_kpa(item.get("notes", ""), item["tag"], item["type"]) - 101.3, 100.0) * 1e3
     t = max(p * dia / (2 * S * E - 1.2 * p) + C, 0.008)
     shell = math.pi * dia * (length - dia / 2) * t * RHO
     heads = 2 * 1.09 * dia**2 * t * RHO
@@ -75,7 +108,7 @@ def main() -> None:
             how = f"envelope {volume:.0f} m3"
         else:
             w = shell_weight(item)
-            how = f"shell at {pressure_kpa(item.get('notes', '')):.0f} kPa(a)"
+            how = f"shell at {pressure_kpa(item.get('notes', ''), tag, item['type']):.0f} kPa(a)"
         lift = LIFT.get(tag)
         extra = f"; lift_weight {lift[0]:.0f} t ({lift[1]})" if lift else ""
         print(f"{tag:8s} {w:7.1f} t  ({how}){extra}")

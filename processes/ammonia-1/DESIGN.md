@@ -821,13 +821,25 @@ Decision, zones (`layout/zones.yaml`, screening, radii from the package table, A
 zone 2 around the K-501/K-502 and K-701 seals (ammonia drawn as flammable gas until the
 competent person decides) and the natural gas flanges of V-101/R-100; an oxygen-deficient zone
 around the CO2 vent CO2-1068 and the CO2 relief outlet CO2-1076. Not a classification.
+S5r fix (review 2026-10-29-layout#4): zone 2 also at the flanges and valves of the synthesis
+loop (R-501, E-501..E-505, V-501, V-502 at its let-down valve), the purge gas recovery X-601
+and the ammonia items V-701 and E-701, same table and grade; the rebuilt model reports no zone
+finding. The H-101 fuel-gas and tail-gas valve trains are burner-management package scope and
+have no placed item to be a source yet: open until the package layout.
 Decision, lifting: screening empty weights for every item (`scripts/estimate_weights.py`:
 thin-wall shell at 1.1 x operating pressure, CS 138 MPa, factors for internals; envelope
 densities for machines and packages; lift weights for the field-erected furnace and the
-packages; all ASSUMED), 13 crane pads (40 m working radius, no crane chosen) and 12 laydowns
-within 30 m of their pads. `layout/lifting-study.*`: every heavy item has a pad and a laydown;
-**26 lanes are blocked** by piping (often the item's own connections) or neighbours over the
-item (H-101 by R-101 on its roof: an erection-sequence question the rule cannot see). Not
+packages; all ASSUMED), 14 crane pads (40 m working radius, no crane chosen) and 12 laydowns
+within 30 m of their pads. S5r fix (review 2026-10-29-design#4): the shell pressure is now the
+higher of the item's notes and the design-case pressures of the streams at the flowsheet step
+linked to it alone (both sides for an exchanger, the outlets for a vessel fed through a let-down
+valve; a step standing for several items, CO2R, is not used), so the loop exchangers are taken
+at 14,750-15,500 kPa(a) (E-501 167.5 t instead of 13.0 t, E-502 168.8 t, E-504 133.0 t) and the
+shift, methanation and prereformer items at 2950-4150 kPa(a). S5r fix (review
+2026-10-29-layout#1): E-401 had no pad within reach; CP-204 added between PR-1 and E-401.
+`layout/lifting-study.*`: every heavy item now has a pad and a laydown; **25 lanes are blocked**
+by piping (often the item's own connections, E-401 by PC-1083 and PG-1079) or neighbours over
+the item (H-101 by R-101 on its roof: an erection-sequence question the rule cannot see). Not
 accepted: the gate `lifting-study` fails until the lifting plan reroutes or sequences them.
 Decision, cost: `estimate/mto.*` written (gate `mto` passes). The class 4 estimate is **not
 done**: the bulk take-off has no sourced unit rates (`estimate/rates.yaml` is still the example),
