@@ -851,8 +851,9 @@ valve; a step standing for several items, CO2R, is not used), so the loop exchan
 at 14,750-15,500 kPa(a) (E-501 167.5 t instead of 13.0 t, E-502 168.8 t, E-504 133.0 t) and the
 shift, methanation and prereformer items at 2950-4150 kPa(a). S5r fix (review
 2026-10-29-layout#1): E-401 had no pad within reach; CP-204 added between PR-1 and E-401.
-`layout/lifting-study.*`: every heavy item now has a pad and a laydown; **25 lanes are blocked**
-by piping (often the item's own connections, E-401 by PC-1083 and PG-1079) or neighbours over
+`layout/lifting-study.*`: every heavy item now has a pad and a laydown; **26 lanes are blocked**
+by piping (often the item's own connections, E-401 by PC-1083 and PG-1079, V-701 by AL-1128 and
+AL-1129 since they leave east to PR-11) or neighbours over
 the item (H-101 by R-101 on its roof: an erection-sequence question the rule cannot see). Not
 accepted: the gate `lifting-study` fails until the lifting plan reroutes or sequences them.
 Decision, cost: `estimate/mto.*` written (gate `mto` passes). What the take-off leaves out
