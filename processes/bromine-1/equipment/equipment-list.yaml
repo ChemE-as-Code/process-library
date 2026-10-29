@@ -1,0 +1,26 @@
+# Equipment list. Schema: `cheme schema equipment`.
+# The items of the PFD (process/flowsheet.yaml), concept stage: no P&ID, no sizing. Design
+# pressures and temperatures are ASSUMED placeholders for the materials question (wet bromine and
+# chlorine, hot chloride brine), not mechanical design values (DESIGN.md D-012).
+schema: cheme/equipment/v1
+equipment:
+  # ---- bromine liberation and steaming-out (LIB)
+  - {tag: P-101, type: Pump, service: Brine feed pump to the steaming-out tower, design_pressure_barg: 6, design_temperature_degc: 110, material: "Duplex or super-duplex stainless steel, or FRP-lined (hot sour chloride brine)",
+     notes: "913 t/h (about 760 m3/h) brine at 195 degF to the tower top, 350 kPa rise, 106 kW shaft at eta 0.70 (D-011). Well pumps and brine pipeline are outside the boundary. ASSUMED."}
+  - {tag: C-101, type: Column, service: "Steaming-out tower: chlorination and steam stripping of bromine", design_pressure_barg: 1.5, design_temperature_degc: 130, material: "Granite/acid-proof brick-lined or FRP shell, ceramic or PVDF packing (wet bromine, chlorine, hot brine)",
+     notes: "Brine at the top, chlorine and live steam (21.8 t/h LP) in the lower part; Br2 stripped overhead at about 92 degC, tail brine leaves at 229 degF; receives the bromine water S7 and the C-104 overhead S9 (D-005, D-006). ASSUMED."}
+  # ---- condensation and separation (REC)
+  - {tag: E-102, type: HeatExchanger, service: Bromine condenser, design_pressure_barg: 3, design_temperature_degc: 120, material: "Glass, PVDF/PTFE-lined or tantalum/titanium tubes (wet bromine)",
+     notes: "Condenses 4.48 t/h overhead (Br2 86 wt-%) to 30 degC, 623 kW to cooling water (D-007). ASSUMED."}
+  - {tag: V-103, type: Vessel, service: Bromine separator (gravity decanter), design_pressure_barg: 3, design_temperature_degc: 60, material: "Glass-lined steel or lead/PVDF-lined",
+     notes: "Separates crude bromine (bottom, 3.91 t/h) from bromine water (0.57 t/h, returned to C-101); the vent of non-condensables is not in the concept balance (D-007, D-013). ASSUMED."}
+  # ---- purification and drying (PUR)
+  - {tag: C-104, type: Column, service: "Bromine purification column (chlorine stripping)", design_pressure_barg: 3, design_temperature_degc: 100, material: "Glass or glass-lined steel, ceramic packing",
+     notes: "Strips Cl2 (and water) from the crude bromine to 400 ppm Cl2; overhead vapour returned to C-101; reboiler 61 kW LP steam, condenser 34 kW, reflux ratio 3 (D-007). ASSUMED."}
+  - {tag: E-105, type: HeatExchanger, service: Bromine cooler, design_pressure_barg: 4, design_temperature_degc: 100, material: "Glass, PTFE-lined or tantalum",
+     notes: "Cools 3.75 t/h bromine from 59 to 30 degC, 14 kW to cooling water (D-008). ASSUMED."}
+  - {tag: C-106, type: Column, service: "Bromine drying tower (98 wt-% sulfuric acid)", design_pressure_barg: 4, design_temperature_degc: 60, material: "Glass-lined steel or lead-lined; ceramic packing",
+     notes: "Dries bromine from 0.05 wt-% to 30 ppm water with 7.8 kg/h of 98 wt-% acid leaving at 80 wt-% (D-008). ASSUMED."}
+  # ---- tail brine neutralisation (TBT)
+  - {tag: T-107, type: Tank, service: Tail brine neutraliser (lime), design_pressure_barg: 0.5, design_temperature_degc: 120, material: "FRP or rubber-lined carbon steel, agitated",
+     notes: "Neutralises the HCl of the side reaction with 496 kg/h hydrated lime before reinjection; closed, operated at 120 kPa(a) so the 229 degF brine does not flash; the transfer and reinjection pumps and the wells are outside the boundary (D-001, D-009). ASSUMED."}

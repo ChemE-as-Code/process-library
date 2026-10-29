@@ -1,0 +1,393 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Natural gas processing of a sweet, CO2-bearing rich shale gas (Bullin and Krouskop 2009,
+# Table 1, Barnett well 2, D-003): inlet separation, MDEA CO2 removal, TEG dehydration with
+# molecular sieve polishing, turbo-expander NGL recovery (C2+), residue gas compression to
+# sales gas (DESIGN.md D-001..D-011). No H2S in the sourced feed: no sulfur recovery (D-002).
+# Where the values come from:
+# - every material stream and duty comes from the independent specified-split balance
+#   scripts/balance.py (D-006), run with `cheme run scripts/balance.py`, given as ASSUMED; its
+#   inputs are sourced or ASSUMED in DESIGN.md;
+# - the fired heaters H601 are a reactive step (complete combustion, process/reactions.yaml);
+# - no property package of cheme is benchmarked for C2/C3-rich natural gas, aqueous MDEA or
+#   TEG (D-012): enthalpies, phases and the cold-box energy balance are not calculated by cheme.
+schema: cheme/process/v1
+kind: flowsheet
+title: Natural gas processing (100 MMscf/d rich shale gas to sales gas and C2+ NGL)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: 100 MMscf/d (dry, 60 degF, 14.696 psia) of Barnett well 2 shale gas at 6000 kPa(a), 313 K, 8000 h/a; 90 % ethane and 98 % propane recovery (D-002, D-003, D-009)", default: true}
+tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - {id: RAWGAS, title: "Raw natural gas from field gathering (water-saturated, with free water)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: DMW, title: Demineralised make-up water (amine loop), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: AIR, title: Combustion air (ambient), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: STEAM
+    title: LP steam 450 kPa(a) from the site steam system (amine reboiler)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 450, provenance: assumed, source: "D-007: LP steam level for an amine reboiler (MDEA kept below about 400 K)"}
+      supply_temperature: {value: 420.8, provenance: assumed, source: "saturation at 450 kPa(a) (IAPWS-IF97), D-007"}
+      min_approach: {value: 10, provenance: assumed, source: D-007}
+    ports: [{id: t202, direction: out, kind: energy}]
+  - id: POWER
+    title: Electric power (AC, grid)
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: v101, direction: out, kind: energy}
+      - {id: t202, direction: out, kind: energy}
+      - {id: t302, direction: out, kind: energy}
+      - {id: p401, direction: out, kind: energy}
+      - {id: k501, direction: out, kind: energy}
+products:
+  - {id: SALESGAS, title: Sales gas to transmission pipeline (7000 kPa(a)), category: product, ports: [{id: in, direction: in}]}
+  - {id: NGL, title: "Natural gas liquids (C2+, ethane-propane mix) to NGL pipeline", category: product, ports: [{id: in, direction: in}]}
+  - {id: ACIDGAS, title: Amine regenerator acid gas (CO2) vented to atmosphere, category: emission, ports: [{id: in, direction: in}]}
+  - {id: STILLVENT, title: TEG still column vent to atmosphere, category: emission, ports: [{id: in, direction: in}]}
+  - {id: FLUE, title: Flue gas of the fuel-gas-fired heaters, category: emission, ports: [{id: in, direction: in}]}
+  - id: PWATER
+    title: Produced and separated water to disposal
+    category: wastewater
+    ports:
+      - {id: v101, direction: in}
+      - {id: a303, direction: in}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 303.15, provenance: assumed, source: "D-010: warm-climate cooling tower supply"}
+      return_temperature: {value: 313.15, provenance: assumed, source: D-010}
+      min_approach: {value: 5, provenance: assumed, source: D-010}
+    ports:
+      - {id: t202, direction: in, kind: energy}
+      - {id: a303, direction: in, kind: energy}
+      - {id: e501, direction: in, kind: energy}
+
+blocks:
+  - id: INL
+    title: Inlet separation
+    class: Separating
+    ports:
+      - {id: feed, direction: in}
+      - {id: gas, direction: out}
+      - {id: water, direction: out}
+      - {id: aux, direction: in, kind: energy}
+  - id: AGR
+    title: Acid gas removal (MDEA)
+    class: Absorbing
+    ports:
+      - {id: gas, direction: in}
+      - {id: dmw, direction: in}
+      - {id: gas_out, direction: out}
+      - {id: flash, direction: out}
+      - {id: acid, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: DEH
+    title: Dehydration (TEG and molecular sieve)
+    class: Absorbing
+    ports:
+      - {id: gas, direction: in}
+      - {id: gas_out, direction: out}
+      - {id: flash, direction: out}
+      - {id: vent, direction: out}
+      - {id: water, direction: out}
+      - {id: heat_teg, direction: in, kind: energy}
+      - {id: heat_regen, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: NGLR
+    title: NGL recovery (turbo-expander, demethaniser)
+    class: Separating
+    ports:
+      - {id: feed, direction: in}
+      - {id: ngl, direction: out}
+      - {id: residue, direction: out}
+      - {id: power, direction: in, kind: energy}
+  - id: CMP
+    title: Residue gas compression
+    class: Compressing
+    ports:
+      - {id: residue, direction: in}
+      - {id: sales, direction: out}
+      - {id: fuel, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+  - id: FUEL
+    title: Fuel gas system and fired heaters
+    class: ReactingChemicals
+    ports:
+      - {id: amine, direction: in}
+      - {id: teg, direction: in}
+      - {id: res, direction: in}
+      - {id: air, direction: in}
+      - {id: flue, direction: out}
+      - {id: heat_teg, direction: out, kind: energy}
+      - {id: heat_regen, direction: out, kind: energy}
+
+steps:
+  # INL: slug catcher and inlet separator in one step (D-004)
+  - id: V101
+    block: INL
+    title: Inlet separator (with slug catcher)
+    class: Separating
+    links: [{target: equipment, ref: V-101}]
+    ports:
+      - {id: in, direction: in, delegates: feed}
+      - {id: gas, direction: out, delegates: gas}
+      - {id: water, direction: out, delegates: water}
+      - {id: aux, direction: in, kind: energy, delegates: aux}
+  # AGR: absorber, rich flash drum, regenerator with reboiler, condenser, lean/rich exchanger,
+  # lean amine cooler and pump (D-007)
+  - id: T201
+    block: AGR
+    title: Amine absorber
+    class: Absorbing
+    links: [{target: equipment, ref: T-201}]
+    ports:
+      - {id: gas, direction: in, delegates: gas}
+      - {id: lean, direction: in}
+      - {id: gas_out, direction: out, delegates: gas_out}
+      - {id: rich, direction: out}
+  - id: V202
+    block: AGR
+    title: Rich amine flash drum
+    class: Separating
+    links: [{target: equipment, ref: V-202}]
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out, delegates: flash}
+      - {id: liq, direction: out}
+  - id: T202
+    block: AGR
+    title: Amine regenerator (reboiler, condenser, lean/rich exchanger, lean amine pump and cooler)
+    class: StrippingDistilling
+    links: [{target: equipment, ref: T-202}]
+    ports:
+      - {id: rich, direction: in}
+      - {id: dmw, direction: in, delegates: dmw}
+      - {id: lean, direction: out}
+      - {id: acid, direction: out, delegates: acid}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # DEH: TEG contactor, flash tank, still with fired reboiler, molecular sieve driers (D-008)
+  - id: T301
+    block: DEH
+    title: TEG contactor
+    class: Absorbing
+    links: [{target: equipment, ref: T-301}]
+    ports:
+      - {id: gas, direction: in, delegates: gas}
+      - {id: lean, direction: in}
+      - {id: gas_out, direction: out}
+      - {id: rich, direction: out}
+  - id: V302
+    block: DEH
+    title: TEG flash tank
+    class: Separating
+    links: [{target: equipment, ref: V-302}]
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out, delegates: flash}
+      - {id: liq, direction: out}
+  - id: T302
+    block: DEH
+    title: TEG regenerator (still column, reboiler, surge drum, lean TEG pump)
+    class: StrippingDistilling
+    links: [{target: equipment, ref: T-302}]
+    ports:
+      - {id: rich, direction: in}
+      - {id: lean, direction: out}
+      - {id: vent, direction: out, delegates: vent}
+      - {id: heat, direction: in, kind: energy, delegates: heat_teg}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: A303
+    block: DEH
+    title: Molecular sieve driers (TSA, regeneration gas loop)
+    class: Adsorbing
+    links: [{target: equipment, ref: A-303}]
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out, delegates: gas_out}
+      - {id: water, direction: out, delegates: water}
+      - {id: heat, direction: in, kind: energy, delegates: heat_regen}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  # NGLR: gas subcooled process (GSP) type turbo-expander plant (D-009)
+  - id: E401
+    block: NGLR
+    title: Cold box (gas/gas exchanger and demethaniser side reboilers)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-401}]
+    ports:
+      - {id: feed_in, direction: in, delegates: feed}
+      - {id: feed_out, direction: out}
+      - {id: res_in, direction: in}
+      - {id: res_out, direction: out}
+      - {id: reb, direction: out, kind: energy}
+  - id: V401
+    block: NGLR
+    title: Cold separator
+    class: Separating
+    links: [{target: equipment, ref: V-401}]
+    ports:
+      - {id: in, direction: in}
+      - {id: vap, direction: out}
+      - {id: liq, direction: out}
+  - id: K401
+    block: NGLR
+    title: Turbo-expander
+    class: DrivingByTurbine
+    links: [{target: equipment, ref: K-401}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: shaft, direction: out, kind: energy}
+  - id: T401
+    block: NGLR
+    title: Demethaniser
+    class: Distilling
+    links: [{target: equipment, ref: T-401}]
+    ports:
+      - {id: liq, direction: in}
+      - {id: vap, direction: in}
+      - {id: ovhd, direction: out}
+      - {id: btm, direction: out}
+      - {id: reb, direction: in, kind: energy}
+  - id: P401
+    block: NGLR
+    title: NGL product pump
+    class: GeneratingFlow
+    links: [{target: equipment, ref: P-401}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: ngl}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: C401
+    block: NGLR
+    title: Expander-driven booster compressor
+    class: Compressing
+    links: [{target: equipment, ref: C-401}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: residue}
+      - {id: shaft, direction: in, kind: energy}
+  # CMP: fuel gas draw, residue compressor and aftercooler (D-010, D-011)
+  - id: X501
+    block: CMP
+    title: Fuel gas draw-off
+    class: SplittingMaterial
+    split: {fuel: 0.0008025, comp: 0.9991975}
+    ports:
+      - {id: in, direction: in, delegates: residue}
+      - {id: comp, direction: out}
+      - {id: fuel, direction: out, delegates: fuel}
+  - id: K501
+    block: CMP
+    title: Residue gas compressor (electric motor drive)
+    class: Compressing
+    links: [{target: equipment, ref: K-501}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: E501
+    block: CMP
+    title: Sales gas aftercooler
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-501}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: sales}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  # FUEL: fuel gas header and fired heaters (D-011)
+  - id: M601
+    block: FUEL
+    title: Fuel gas header
+    class: Mixing
+    ports:
+      - {id: amine, direction: in, delegates: amine}
+      - {id: teg, direction: in, delegates: teg}
+      - {id: res, direction: in, delegates: res}
+      - {id: out, direction: out}
+  - id: H601
+    block: FUEL
+    title: Fuel-gas-fired heaters (TEG reboiler firebox, regeneration gas heater)
+    class: ReactingChemicals
+    reactions: [CH4_COMB, C2H6_COMB, C3H8_COMB]
+    reactor: conversion
+    links: [{target: equipment, ref: H-601}]
+    ports:
+      - {id: fuel, direction: in}
+      - {id: air, direction: in, delegates: air}
+      - {id: flue, direction: out, delegates: flue}
+      - {id: teg, direction: out, kind: energy, delegates: heat_teg}
+      - {id: regen, direction: out, kind: energy, delegates: heat_regen}
+
+# Material streams and duties from scripts/balance.py (D-006); temperatures and pressures are
+# design choices or ideal-gas estimates, ASSUMED.
+streams:
+  - {id: S1, title: "Raw gas from gathering", from: RAWGAS.out, to: V101.in, template: gas, state: {design: {temperature: {value: 313.15, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 6000.0, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 97518.92, basis: mass, provenance: given, source: "design specification (D-015): process/design-basis.yaml capacity 100 MMscf/d dry gas (D-002, capacity ASSUMED inside the 35-1000 MMscf/d of S-1 p. 3) of the S-1 composition, plus water: saturated at 313 K, 6000 kPa(a) by the Bukacek correlation (S-9, 75 lb/MMscf) and 1 bbl/MMscf free water ASSUMED (D-004); converted in scripts/balance.py"}, composition: {basis: mass_fraction, values: {CH4: 0.6652422, C2H6: 0.1812034, C3H8: 0.1171029, CO2: 0.0067428, N2: 0.0214593, H2O: 0.0082494}, provenance: given, source: "S-1 Bullin and Krouskop (2009), Oil & Gas Journal 107(10), Table 1 p. 3, Barnett well 2, dry 81.2/11.8/5.2/0.3/1.5 mol-% C1/C2/C3/CO2/N2 normalised (D-003); water from the Bukacek correlation (S-9) plus free water ASSUMED (D-004); to mass fractions in scripts/balance.py"}}}}
+  - {id: S2, title: "Water-saturated gas to amine absorber", from: V101.gas, to: T201.gas, template: gas, state: {design: {temperature: {value: 313.15, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 5980.0, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 96856.48, basis: mass, provenance: assumed, source: "scripts/balance.py: D-004: free water removed, gas saturated at inlet conditions (Bukacek)"}, composition: {basis: mass_fraction, values: {CH4: 0.6697921, C2H6: 0.1824427, C3H8: 0.1179039, CO2: 0.0067889, N2: 0.0216061, H2O: 0.0014664}, provenance: assumed, source: "scripts/balance.py"}}}}
+  - {id: S3, title: "Free water from inlet separator", from: V101.water, to: PWATER.v101, template: water, state: {design: {temperature: {value: 313.15, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 5980.0, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 662.45, basis: mass, provenance: assumed, source: "scripts/balance.py: D-004: 1 bbl/MMscf free water ASSUMED"}, composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: "scripts/balance.py"}}}}
+  - {id: S4, title: "Sweet water-saturated gas", from: T201.gas_out, to: T301.gas, template: gas, state: {design: {temperature: {value: 318.15, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 5950.0, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 96231.66, basis: mass, provenance: assumed, source: "scripts/balance.py: D-007: CO2 to 50 ppmv, co-absorption 0.02 % of each hydrocarbon, saturated at 318 K (Bukacek)"}, composition: {basis: mass_fraction, values: {CH4: 0.6740061, C2H6: 0.1835905, C3H8: 0.1186457, CO2: 0.0001135, N2: 0.0217464, H2O: 0.0018978}, provenance: assumed, source: "scripts/balance.py"}}}}
+  - {id: S5, title: "Rich amine", from: T201.rich, to: V202.in, template: amine, state: {design: {temperature: {value: 333.15, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 5950.0, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 16518.44, basis: mass, provenance: assumed, source: "scripts/balance.py: D-007: lean amine plus absorbed CO2 and hydrocarbons, less the water picked up by the gas"}, composition: {basis: mass_fraction, values: {MDEA: 0.4326191, H2O: 0.5262988, CO2: 0.0399444, CH4: 0.0007855, C2H6: 0.0002140, C3H8: 0.0001383}, provenance: assumed, source: "scripts/balance.py"}}}}
+  - {id: S6, title: "Rich amine flash gas to fuel", from: V202.gas, to: M601.amine, template: gas, state: {design: {temperature: {value: 333.15, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 600.0, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 36.31, basis: mass, provenance: assumed, source: "scripts/balance.py: D-007: 90 % of co-absorbed hydrocarbons and 3 % of absorbed CO2 flash at 600 kPa(a), ASSUMED"}, composition: {basis: mass_fraction, values: {CH4: 0.3215795, C2H6: 0.0875941, C3H8: 0.0566078, CO2: 0.5342187}, provenance: assumed, source: "scripts/balance.py"}}}}
+  - {id: S7, title: "Flashed rich amine to regenerator", from: V202.liq, to: T202.rich, template: amine, state: {design: {temperature: {value: 333.15, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 600.0, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 16482.12, basis: mass, provenance: assumed, source: "scripts/balance.py: D-007"}, composition: {basis: mass_fraction, values: {MDEA: 0.4335723, H2O: 0.5274583, CO2: 0.0388554, CH4: 0.0000787, C2H6: 0.0000214, C3H8: 0.0000139}, provenance: assumed, source: "scripts/balance.py"}}}}
+  - {id: S8, title: "Demineralised make-up water", from: DMW.out, to: T202.dmw, template: water, state: {design: {temperature: {value: 298.15, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 300.0, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 60.86, basis: mass, provenance: given, source: "design specification (D-015, D-007): the amine loop make-up equals the water leaving with the sweet gas (S4) and the acid gas (S10), so the loop inventory stays constant; scripts/balance.py"}, composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "design specification (D-015): demineralised water, taken as pure water"}}}}
+  - {id: S9, title: "Lean amine (MDEA 45 wt-%)", from: T202.lean, to: T201.lean, template: amine, state: {design: {temperature: {value: 323.15, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 6100.0, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 15893.62, basis: mass, provenance: assumed, source: "scripts/balance.py: D-007: MDEA 45 wt-%, loading 0.005 lean / 0.25 rich mol CO2/mol ASSUMED"}, composition: {basis: mass_fraction, values: {MDEA: 0.4496264, H2O: 0.5495433, CO2: 0.0008303}, provenance: assumed, source: "scripts/balance.py"}}}}
+  - {id: S10, title: "Acid gas to atmosphere", from: T202.acid, to: ACIDGAS.in, template: gas, state: {design: {temperature: {value: 323.15, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 170.0, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 649.36, basis: mass, provenance: assumed, source: "scripts/balance.py: D-007: absorbed CO2 less flash, 10 % of co-absorbed hydrocarbons, water-saturated at 323 K"}, composition: {basis: mass_fraction, values: {CO2: 0.9659129, CH4: 0.0019981, C2H6: 0.0005443, C3H8: 0.0003517, H2O: 0.0311931}, provenance: assumed, source: "scripts/balance.py"}}}}
+  - {id: S11, title: "TEG-dried gas", from: T301.gas_out, to: A303.in, template: gas, state: {design: {temperature: {value: 318.15, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 5920.0, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 96036.31, basis: mass, provenance: assumed, source: "scripts/balance.py: D-008: 7 lb/MMscf water, 1 scf gas absorbed per gal TEG (EPA)"}, composition: {basis: mass_fraction, values: {CH4: 0.6751949, C2H6: 0.1839144, C3H8: 0.1188549, CO2: 0.0001137, N2: 0.0217847, H2O: 0.0001373}, provenance: assumed, source: "scripts/balance.py"}}}}
+  - {id: S12, title: "Rich TEG", from: T301.rich, to: V302.in, template: teg, state: {design: {temperature: {value: 318.15, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 5920.0, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 4994.51, basis: mass, provenance: assumed, source: "scripts/balance.py: D-008: 3 gal TEG per lb water removed (EPA), lean TEG 99 wt-% ASSUMED"}, composition: {basis: mass_fraction, values: {TEG: 0.9512775, H2O: 0.0435339, CH4: 0.0035038, C2H6: 0.0009544, C3H8: 0.0006168, CO2: 0.0000006, N2: 0.0001130}, provenance: assumed, source: "scripts/balance.py"}}}}
+  - {id: S13, title: "TEG flash gas to fuel", from: V302.gas, to: M601.teg, template: gas, state: {design: {temperature: {value: 333.15, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 450.0, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 23.32, basis: mass, provenance: assumed, source: "scripts/balance.py: D-008: flash tank recovers 90 % of absorbed gas (EPA)"}, composition: {basis: mass_fraction, values: {CH4: 0.6752877, C2H6: 0.1839396, C3H8: 0.1188712, CO2: 0.0001137, N2: 0.0217877}, provenance: assumed, source: "scripts/balance.py"}}}}
+  - {id: S14, title: "Flashed rich TEG to still", from: V302.liq, to: T302.rich, template: teg, state: {design: {temperature: {value: 333.15, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 450.0, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 4971.18, basis: mass, provenance: assumed, source: "scripts/balance.py: D-008"}, composition: {basis: mass_fraction, values: {TEG: 0.9557405, H2O: 0.0437382, CH4: 0.0003520, C2H6: 0.0000959, C3H8: 0.0000620, CO2: 0.0000001, N2: 0.0000114}, provenance: assumed, source: "scripts/balance.py"}}}}
+  - {id: S15, title: "Lean TEG", from: T302.lean, to: T301.lean, template: teg, state: {design: {temperature: {value: 323.15, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 6000.0, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 4799.15, basis: mass, provenance: assumed, source: "scripts/balance.py: D-008: 99 wt-% TEG ASSUMED"}, composition: {basis: mass_fraction, values: {TEG: 0.99, H2O: 0.01}, provenance: assumed, source: "scripts/balance.py"}}}}
+  - {id: S16, title: "TEG still vent to atmosphere", from: T302.vent, to: STILLVENT.in, template: gas, state: {design: {temperature: {value: 373.15, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 105.0, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 172.03, basis: mass, provenance: assumed, source: "scripts/balance.py: D-008: removed water and 10 % of absorbed gas"}, composition: {basis: mass_fraction, values: {CH4: 0.0101724, C2H6: 0.0027708, C3H8: 0.0017907, CO2: 0.0000017, N2: 0.0003282, H2O: 0.9849361}, provenance: assumed, source: "scripts/balance.py"}}}}
+  - {id: S17, title: "Dry gas to cold box", from: A303.gas, to: E401.feed_in, template: gas, state: {design: {temperature: {value: 318.15, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 5880.0, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 96023.12, basis: mass, provenance: assumed, source: "scripts/balance.py: D-008: molecular sieve removes the remaining water"}, composition: {basis: mass_fraction, values: {CH4: 0.6752877, C2H6: 0.1839396, C3H8: 0.1188712, CO2: 0.0001137, N2: 0.0217877}, provenance: assumed, source: "scripts/balance.py"}}}}
+  - {id: S18, title: "Regeneration water knock-out", from: A303.water, to: PWATER.a303, template: water, state: {design: {temperature: {value: 313.15, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 5800.0, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 13.19, basis: mass, provenance: assumed, source: "scripts/balance.py: D-008"}, composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: "scripts/balance.py"}}}}
+  - {id: S19, title: "Chilled feed to cold separator", from: E401.feed_out, to: V401.in, template: gas, state: {design: {temperature: {value: 238.15, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 5800.0, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 96023.12, basis: mass, provenance: assumed, source: "scripts/balance.py: D-009: cooled against residue gas and side reboilers, 238 K ASSUMED"}, composition: {basis: mass_fraction, values: {CH4: 0.6752877, C2H6: 0.1839396, C3H8: 0.1188712, CO2: 0.0001137, N2: 0.0217877}, provenance: assumed, source: "scripts/balance.py"}}}}
+  - {id: S20, title: "Cold separator vapour to expander", from: V401.vap, to: K401.in, template: gas, state: {design: {temperature: {value: 238.15, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 5800.0, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 82142.04, basis: mass, provenance: assumed, source: "scripts/balance.py: D-009: V-401 liquid fractions ASSUMED"}, composition: {basis: mass_fraction, values: {CH4: 0.7578275, C2H6: 0.1612675, C3H8: 0.0555837, CO2: 0.0001064, N2: 0.0252149}, provenance: assumed, source: "scripts/balance.py"}}}}
+  - {id: S21, title: "Cold separator liquid to demethaniser", from: V401.liq, to: T401.liq, template: gas, state: {design: {temperature: {value: 238.15, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 5800.0, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 13881.08, basis: mass, provenance: assumed, source: "scripts/balance.py: D-009"}, composition: {basis: mass_fraction, values: {CH4: 0.1868535, C2H6: 0.3181030, C3H8: 0.4933789, CO2: 0.0001574, N2: 0.0015072}, provenance: assumed, source: "scripts/balance.py"}}}}
+  - {id: S22, title: "Expander outlet to demethaniser", from: K401.out, to: T401.vap, template: gas, state: {design: {temperature: {value: 197.10, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 2200.0, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 82142.04, basis: mass, provenance: assumed, source: "scripts/balance.py: D-009: ideal-gas expansion, isentropic efficiency 0.85 ASSUMED"}, composition: {basis: mass_fraction, values: {CH4: 0.7578275, C2H6: 0.1612675, C3H8: 0.0555837, CO2: 0.0001064, N2: 0.0252149}, provenance: assumed, source: "scripts/balance.py"}}}}
+  - {id: S23, title: "Demethaniser bottoms (NGL)", from: T401.btm, to: P401.in, template: ngl, state: {design: {temperature: {value: 283.15, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 2200.0, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 27258.48, basis: mass, provenance: assumed, source: "scripts/balance.py: D-009: 90 % ethane, 98 % propane recovery; C1/C2 0.02 mol/mol"}, composition: {basis: mass_fraction, values: {C2H6: 0.5831657, C3H8: 0.4103714, CO2: 0.0002404, CH4: 0.0062225}, provenance: assumed, source: "scripts/balance.py"}}}}
+  - {id: S24, title: "Cold residue gas", from: T401.ovhd, to: E401.res_in, template: gas, state: {design: {temperature: {value: 173.15, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 2200.0, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 68764.64, basis: mass, provenance: assumed, source: "scripts/balance.py: D-009"}, composition: {basis: mass_fraction, values: {CH4: 0.9405068, C2H6: 0.0256854, C3H8: 0.0033198, CO2: 0.0000635, N2: 0.0304244}, provenance: assumed, source: "scripts/balance.py"}}}}
+  - {id: S25, title: "Warm residue gas to booster", from: E401.res_out, to: C401.in, template: gas, state: {design: {temperature: {value: 308.15, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 2150.0, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 68764.64, basis: mass, provenance: assumed, source: "scripts/balance.py: D-009"}, composition: {basis: mass_fraction, values: {CH4: 0.9405068, C2H6: 0.0256854, C3H8: 0.0033198, CO2: 0.0000635, N2: 0.0304244}, provenance: assumed, source: "scripts/balance.py"}}}}
+  - {id: S26, title: "NGL product", from: P401.out, to: NGL.in, template: ngl, state: {design: {temperature: {value: 288.15, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 7000.0, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 27258.48, basis: mass, provenance: assumed, source: "scripts/balance.py: D-009: pumped to NGL pipeline"}, composition: {basis: mass_fraction, values: {C2H6: 0.5831657, C3H8: 0.4103714, CO2: 0.0002404, CH4: 0.0062225}, provenance: assumed, source: "scripts/balance.py"}}}}
+  - {id: S27, title: "Boosted residue gas", from: C401.out, to: X501.in, template: gas, state: {design: {temperature: {value: 349.35, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 3352.6, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 68764.64, basis: mass, provenance: assumed, source: "scripts/balance.py: D-010: booster driven by K-401 shaft work"}, composition: {basis: mass_fraction, values: {CH4: 0.9405068, C2H6: 0.0256854, C3H8: 0.0033198, CO2: 0.0000635, N2: 0.0304244}, provenance: assumed, source: "scripts/balance.py"}}}}
+  - {id: S28, title: "Residue gas to compressor", from: X501.comp, to: K501.in, template: gas, state: {design: {temperature: {value: 349.35, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 3352.6, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 68709.46, basis: mass, provenance: assumed, source: "scripts/balance.py: D-011: fuel draw closes the fired-heat balance"}, composition: {basis: mass_fraction, values: {CH4: 0.9405068, C2H6: 0.0256854, C3H8: 0.0033198, CO2: 0.0000635, N2: 0.0304244}, provenance: assumed, source: "scripts/balance.py"}}}}
+  - {id: S29, title: "Residue gas to fuel header", from: X501.fuel, to: M601.res, template: gas, state: {design: {temperature: {value: 349.35, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 3352.6, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 55.18, basis: mass, provenance: assumed, source: "scripts/balance.py: D-011"}, composition: {basis: mass_fraction, values: {CH4: 0.9405068, C2H6: 0.0256854, C3H8: 0.0033198, CO2: 0.0000635, N2: 0.0304244}, provenance: assumed, source: "scripts/balance.py"}}}}
+  - {id: S30, title: "Compressed residue gas", from: K501.out, to: E501.in, template: gas, state: {design: {temperature: {value: 425.19, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 7050.0, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 68709.46, basis: mass, provenance: assumed, source: "scripts/balance.py: D-010: isentropic efficiency 0.80 ASSUMED"}, composition: {basis: mass_fraction, values: {CH4: 0.9405068, C2H6: 0.0256854, C3H8: 0.0033198, CO2: 0.0000635, N2: 0.0304244}, provenance: assumed, source: "scripts/balance.py"}}}}
+  - {id: S31, title: "Sales gas", from: E501.out, to: SALESGAS.in, template: gas, state: {design: {temperature: {value: 313.15, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 7000.0, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 68709.46, basis: mass, provenance: assumed, source: "scripts/balance.py: D-010"}, composition: {basis: mass_fraction, values: {CH4: 0.9405068, C2H6: 0.0256854, C3H8: 0.0033198, CO2: 0.0000635, N2: 0.0304244}, provenance: assumed, source: "scripts/balance.py"}}}}
+  - {id: S32, title: "Fuel gas to fired heaters", from: M601.out, to: H601.fuel, template: gas, state: {design: {temperature: {value: 313.15, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 450.0, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 114.82, basis: mass, provenance: assumed, source: "scripts/balance.py: D-011"}, composition: {basis: mass_fraction, values: {CH4: 0.6908932, C2H6: 0.0774104, C3H8: 0.0436443, CO2: 0.1690039, N2: 0.0190481}, provenance: assumed, source: "scripts/balance.py"}}}}
+  - {id: S33, title: "Combustion air", from: AIR.out, to: H601.air, template: gas, state: {design: {temperature: {value: 298.15, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 101.3, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 1815.72, basis: mass, provenance: given, source: "design specification (D-015, D-011): 15 % excess air (ASSUMED) over the stoichiometric air of the fuel gas S32; scripts/balance.py"}, composition: {basis: mass_fraction, values: {O2: 0.2329212, N2: 0.7670788}, provenance: given, source: "design specification (D-015, D-011): dry air as 21/79 mol-% O2/N2, argon counted with nitrogen (ASSUMED simplification)"}}}}
+  - {id: S34, title: "Flue gas to atmosphere", from: H601.flue, to: FLUE.in, template: gas, state: {design: {temperature: {value: 473.15, provenance: assumed, source: "scripts/balance.py"}, pressure: {value: 101.3, provenance: assumed, source: "scripts/balance.py"}, flow: {value: 1930.54, basis: mass, provenance: assumed, source: "scripts/balance.py: D-011: complete combustion"}, composition: {basis: mass_fraction, values: {CO2: 0.1440300, H2O: 0.1048060, O2: 0.0285741, N2: 0.7225899}, provenance: assumed, source: "scripts/balance.py"}}}}
+  # Energy streams (duties from scripts/balance.py)
+  - {id: Q1, title: "Amine reboiler LP steam", kind: energy, from: STEAM.t202, to: T202.steam, state: {design: {duty: {value: 1078.4, provenance: assumed, source: "scripts/balance.py: D-007: 1.0 lb steam per gal lean amine ASSUMED, latent heat 2120 kJ/kg"}}}}
+  - {id: Q2, title: "Amine condenser and lean amine cooler", kind: energy, from: T202.cw, to: CW.t202, state: {design: {duty: {value: 1103.6, provenance: assumed, source: "scripts/balance.py: D-007: equals reboiler duty plus pump work"}}}}
+  - {id: Q3, title: "Lean amine pump power", kind: energy, from: POWER.t202, to: T202.power, state: {design: {duty: {value: 38.0, provenance: assumed, source: "scripts/balance.py: D-007: 5950 kPa rise, eta 0.70, motor 0.95 ASSUMED"}}}}
+  - {id: Q4, title: "TEG reboiler heat (fired)", kind: energy, from: H601.teg, to: T302.heat, state: {design: {duty: {value: 365.8, provenance: assumed, source: "scripts/balance.py: D-008: sensible 423-477 K plus water vaporisation, x1.25 ASSUMED"}}}}
+  - {id: Q5, title: "TEG pump power", kind: energy, from: POWER.t302, to: T302.power, state: {design: {duty: {value: 10.4, provenance: assumed, source: "scripts/balance.py: D-008: eta 0.70, motor 0.95 ASSUMED"}}}}
+  - {id: Q6, title: "Mole sieve regeneration heat (fired)", kind: energy, from: H601.regen, to: A303.heat, state: {design: {duty: {value: 661.6, provenance: assumed, source: "scripts/balance.py: D-008: 8 % regeneration gas to 561 K, heating half the cycle ASSUMED"}}}}
+  - {id: Q7, title: "Regeneration gas cooler", kind: energy, from: A303.cw, to: CW.a303, state: {design: {duty: {value: 661.6, provenance: assumed, source: "scripts/balance.py: D-008"}}}}
+  - {id: Q8, title: "Expander shaft work to booster", kind: energy, from: K401.shaft, to: C401.shaft, state: {design: {duty: {value: 1734.8, provenance: assumed, source: "scripts/balance.py: D-009: mechanical efficiency 0.97 ASSUMED"}}}}
+  - {id: Q9, title: "NGL pump power", kind: energy, from: POWER.p401, to: P401.power, state: {design: {duty: {value: 116.3, provenance: assumed, source: "scripts/balance.py: D-009: eta 0.70, motor 0.95 ASSUMED"}}}}
+  - {id: Q10, title: "Residue compressor motor power", kind: energy, from: POWER.k501, to: K501.power, state: {design: {duty: {value: 3671.7, provenance: assumed, source: "scripts/balance.py: D-010: ideal gas, isentropic 0.80, motor 0.96 ASSUMED"}}}}
+  - {id: Q11, title: "Sales gas aftercooler", kind: energy, from: E501.cw, to: CW.e501, state: {design: {duty: {value: 5084.7, provenance: assumed, source: "scripts/balance.py: D-010"}}}}
+  - {id: Q12, title: "Site auxiliaries (instrument air, controls, lighting)", kind: energy, from: POWER.v101, to: V101.aux, state: {design: {duty: {value: 150.0, provenance: assumed, source: "scripts/balance.py: D-010: 150 kW ASSUMED"}}}}
+  # Internal heat integration of the cold box (D-009): the demethaniser side and bottom
+  # reboilers are heated by the inlet gas in E-401, no external utility. Duty not calculated:
+  # no qualified property package for the condensing C1-C3 mixture (D-012).
+  - {id: Q13, title: "Demethaniser reboiler heat from the inlet gas (cold box)", kind: energy, from: E401.reb, to: T401.reb}
+layout: {bfd: {}, pfd: {}}

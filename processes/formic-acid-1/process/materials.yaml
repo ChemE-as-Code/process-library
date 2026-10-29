@@ -1,0 +1,113 @@
+# Components and templates of formic-acid-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol,
+# normal_boiling_point in K at 101.325 kPa.
+#
+# Ideal-gas data printed by `cheme chemistry thermo` (chemicals package: ATcT, CRC, Poling 5th
+# ed.); boiling points `cheme chemistry props ... -p temperature_boil --source Thermo`. Sodium
+# methoxide and sodium formate are molecular pseudo-components of the methanolic catalyst liquor
+# without ideal-gas data. No benchmarked property package of core covers the liquid
+# methanol / methyl formate / water / formic acid system (cheme process props --coverage; core
+# #315), so the separator and column outlets come from scripts/balance.py (DESIGN.md D-006).
+schema: cheme/process/v1
+kind: materials
+components:
+  - id: CO
+    name: Carbon monoxide
+    formula: CO
+    cas: 630-08-0
+    molar_mass: 28.010
+    normal_boiling_point: 81.6
+    critical: {Tc: 132.86, Pc: 3494.0, omega: 0.0497, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -110525.0, S_298: 197.7, cp_R: [3.912, -0.003913, 1.182e-05, -1.3e-08, 5.15e-12], temperature_range: [50, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: N2
+    name: Nitrogen
+    formula: N2
+    cas: 7727-37-9
+    molar_mass: 28.013
+    normal_boiling_point: 77.36
+    critical: {Tc: 126.192, Pc: 3395.8, omega: 0.0372, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 0.0, S_298: 191.6, cp_R: [3.539, -0.000261, 7.0e-08, 1.57e-09, -9.9e-13], temperature_range: [50, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: MEOH
+    name: Methanol
+    formula: CH4O
+    cas: 67-56-1
+    molar_mass: 32.042
+    normal_boiling_point: 337.63
+    critical: {Tc: 513.38, Pc: 8215.85, omega: 0.5625, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -200700.0, S_298: 239.9, cp_R: [4.714, -0.006986, 4.211e-05, -4.443e-08, 1.535e-11], temperature_range: [50, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: MF
+    name: Methyl formate
+    formula: C2H4O2
+    cas: 107-31-3
+    molar_mass: 60.052
+    normal_boiling_point: 304.75
+    critical: {Tc: 487.2, Pc: 6000.0, omega: 0.252, source: "chemicals: Tc IUPAC, Pc IUPAC, omega PSRK"}
+    ideal_gas: {dHf_298: -357800.0, S_298: 285.3, cp_R: [2.277, 0.018013, 1.16e-05, -2.921e-08, 1.342e-11], temperature_range: [298, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: H2O
+    name: Water
+    formula: H2O
+    cas: 7732-18-5
+    molar_mass: 18.015
+    normal_boiling_point: 373.12
+    critical: {Tc: 647.096, Pc: 22064.0, omega: 0.3443, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -241822.0, S_298: 188.8, cp_R: [4.395, -0.004186, 1.405e-05, -1.564e-08, 6.32e-12], temperature_range: [50, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: FA
+    name: Formic acid
+    formula: CH2O2
+    cas: 64-18-6
+    molar_mass: 46.025
+    normal_boiling_point: 374.15
+    critical: {Tc: 588.0, Pc: 5810.0, omega: 0.3222, source: "chemicals: Tc IUPAC, Pc PSRK, omega PSRK"}
+    ideal_gas: {dHf_298: -378700.0, S_298: 248.7, cp_R: [3.809, 0.001568, 3.587e-05, -4.41e-08, 1.672e-11], temperature_range: [50, 1000], source: "chemicals: dHf_298 CRC, S_298 WEBBOOK, cp_R Poling (5th ed.); monomer ideal gas (the real vapour dimerises)"}
+  - id: NAOME
+    name: Sodium methoxide (dissolved catalyst)
+    formula: CH3NaO
+    cas: 124-41-4
+    molar_mass: 54.024
+  - id: NAFORM
+    name: Sodium formate (dissolved or suspended)
+    formula: CHNaO2
+    cas: 141-53-7
+    molar_mass: 68.007
+  - id: O2
+    name: Oxygen
+    formula: O2
+    cas: 7782-44-7
+    molar_mass: 31.999
+    normal_boiling_point: 90.19
+    critical: {Tc: 154.581, Pc: 5043.0, omega: 0.0222, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 0.0, S_298: 205.2, cp_R: [3.63, -0.001794, 6.58e-06, -6.0e-09, 1.79e-12], temperature_range: [50, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: AR
+    name: Argon
+    formula: Ar
+    cas: 7440-37-1
+    molar_mass: 39.948
+    normal_boiling_point: 87.30
+    critical: {Tc: 150.687, Pc: 4863.0, omega: -0.00219, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 0.0, S_298: 154.8, cp_R: [2.5, 0.0, 0.0, 0.0, 0.0], temperature_range: [50, 3000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC; monatomic ideal gas"}
+  - id: CO2
+    name: Carbon dioxide
+    formula: CO2
+    cas: 124-38-9
+    molar_mass: 44.010
+    normal_boiling_point: 194.67
+    critical: {Tc: 304.128, Pc: 7377.3, omega: 0.22394, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -393474.0, S_298: 213.8, cp_R: [3.259, 0.001356, 1.502e-05, -2.374e-08, 1.056e-11], temperature_range: [50, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+templates:
+  - {id: co, title: Carbon monoxide feed, components: [CO, N2]}
+  - {id: methanol, title: Methanol, components: [MEOH, H2O]}
+  - {id: catalyst, title: Sodium methoxide in methanol, components: [NAOME, MEOH]}
+  - {id: carb, title: "Carbonylation liquor (methanol, methyl formate, catalyst)", components: [MEOH, MF, NAOME, NAFORM, H2O]}
+  - {id: carb_out, title: Carbonylation effluent, components: [CO, N2, MEOH, MF, NAOME, NAFORM, H2O]}
+  - {id: vent, title: Carbonylation vent gas, components: [CO, N2, MF, MEOH]}
+  - {id: ester, title: Methyl formate with methanol, components: [MF, MEOH]}
+  - {id: hydrolysate, title: Methyl formate / methanol / water / formic acid, components: [MF, MEOH, H2O, FA]}
+  - {id: acid, title: Aqueous formic acid, components: [FA, H2O]}
+  - {id: water, title: Process water, components: [H2O]}
+  - {id: air, title: Dry air, components: [N2, O2, AR]}
+  - {id: flue, title: Oxidiser flue gas, components: [N2, O2, AR, CO2, H2O, CO, MF, MEOH]}
+# No benchmarked property package covers the liquid streams of this process (cheme process
+# props --coverage; core #315). Values are assumed from scripts/balance.py with their source.
+property_method:
+  adapter: thermo
+  status: placeholder

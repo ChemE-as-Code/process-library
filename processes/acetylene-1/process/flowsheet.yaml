@@ -1,0 +1,685 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Acetylene by partial oxidation of natural gas with oxygen (BASF / Sachsse-Bartholome type):
+# separate preheating of natural gas and oxygen in a fired heater, burner with water quench,
+# cooling column and wet electrostatic precipitator for the soot, a closed quench-water circuit
+# with vacuum degassing and soot separation, three-stage compression, acetylene recovery with
+# N-methylpyrrolidone (absorber, degasser with gas recycle, acetylene stripper, hot stripper for
+# the higher acetylenes), synthesis gas as co-product (DESIGN.md D-001). Where values come from:
+# - feeds, temperatures, pressures, splits and duties: design basis and decisions D-002..D-012,
+#   ASSUMED, with the ranges and data of the open sources named there;
+# - the burner R101 and the fired heater F101 (conversion models), the mixers, the splitter
+#   SP101 and the pass-through steps are solved by `cheme process propagate --fill`;
+# - the separator outlets (quench, cooling column, ESP, flash, soot separator, knock-out drum,
+#   absorber, degasser, strippers), the exchanger E301 and every duty come from the independent
+#   balance scripts/balance.py, given here as ASSUMED: core has no property package for the
+#   cracked gas with soot, the quench water or the NMP solvent (core #315).
+schema: cheme/process/v1
+kind: flowsheet
+title: Acetylene by partial oxidation of natural gas with NMP recovery (6.25 t/h acetylene, synthesis-gas co-product)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+  enthalpy_reference: {state: ideal_gas, temperature: 298.15}
+cases:
+  - {id: design, description: "Design case: 6250 kg/h acetylene (50 kt/a at 8000 h) from natural gas and 99.5 % oxygen, cracked gas of US8975460B2 (D-002, D-005)", default: true}
+tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - {id: NG, title: Natural gas (pipeline), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: OXY, title: "Oxygen 99.5 mol% (air separation unit, e.g. asu-1)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: FUELNG, title: Natural-gas support fuel, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: AIR, title: Combustion air, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: NMP, title: NMP make-up, category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: k201, direction: out, kind: energy}
+      - {id: t301, direction: out, kind: energy}
+      - {id: sp101, direction: out, kind: energy}
+      - {id: x101, direction: out, kind: energy}
+      - {id: v102, direction: out, kind: energy}
+      - {id: k401, direction: out, kind: energy}
+  - id: STEAM
+    title: MP steam 1200 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: MP
+      pressure: {value: 1200.0, provenance: assumed, source: "design basis, D-012"}
+      supply_temperature: {value: 461.1, provenance: assumed, source: "saturation at 1200 kPa(a) (IAPWS-IF97), D-012"}
+    ports:
+      - {id: t303, direction: out, kind: energy}
+      - {id: t304, direction: out, kind: energy}
+products:
+  - {id: ACETYLENE, title: Acetylene to the consumers (1.2 bar(a)), category: product, ports: [{id: in, direction: in}]}
+  - {id: SYNGAS, title: Synthesis gas (H2/CO) to the consumers, category: by_product, ports: [{id: in, direction: in}]}
+  - {id: WW, title: Quench-water purge to wastewater treatment, category: wastewater, ports: [{id: in, direction: in}]}
+  - {id: SLUDGE, title: Soot sludge to incineration, category: solid_waste, ports: [{id: in, direction: in}]}
+  - {id: RESIDUE, title: Solvent regeneration residue to incineration, category: solid_waste, ports: [{id: in, direction: in}]}
+  - {id: STACK, title: Fired-heater flue gas to stack, category: off_gas, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis"}
+      min_approach: {value: 5, provenance: assumed, source: "design basis"}
+    ports:
+      - {id: e101, direction: in, kind: energy}
+      - {id: k201, direction: in, kind: energy}
+      - {id: e201, direction: in, kind: energy}
+      - {id: e302, direction: in, kind: energy}
+
+blocks:
+  - id: PRE
+    title: Feed preheating and off-gas firing
+    class: ExchangingThermalEnergy
+    ports:
+      - {id: ng, direction: in}
+      - {id: oxy, direction: in}
+      - {id: offgas, direction: in}
+      - {id: flash, direction: in}
+      - {id: fuel, direction: in}
+      - {id: air, direction: in}
+      - {id: ng_hot, direction: out}
+      - {id: oxy_hot, direction: out}
+      - {id: flue, direction: out}
+      - {id: heat, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: REACT
+    title: Partial oxidation burner and water quench
+    class: ReactingChemicals
+    ports:
+      - {id: ng, direction: in}
+      - {id: oxy, direction: in}
+      - {id: qw, direction: in}
+      - {id: gas, direction: out}
+      - {id: water, direction: out}
+  - id: SOOT
+    title: Cracked-gas cooling, soot removal and water circuit
+    class: SeparatingMechanically
+    ports:
+      - {id: gas, direction: in}
+      - {id: water, direction: in}
+      - {id: cond, direction: in}
+      - {id: qw, direction: out}
+      - {id: gas_out, direction: out}
+      - {id: flash, direction: out}
+      - {id: sludge, direction: out}
+      - {id: purge, direction: out}
+      - {id: p_pump, direction: in, kind: energy}
+      - {id: p_esp, direction: in, kind: energy}
+      - {id: p_vac, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+  - id: COMP
+    title: Cracked-gas compression
+    class: Compressing
+    ports:
+      - {id: gas, direction: in}
+      - {id: rec, direction: in}
+      - {id: gas_out, direction: out}
+      - {id: cond, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+  - id: REC
+    title: Acetylene recovery with NMP
+    class: Absorbing
+    ports:
+      - {id: gas, direction: in}
+      - {id: mu, direction: in}
+      - {id: syngas, direction: out}
+      - {id: product, direction: out}
+      - {id: rec, direction: out}
+      - {id: offgas, direction: out}
+      - {id: residue, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: steam1, direction: in, kind: energy}
+      - {id: steam2, direction: in, kind: energy}
+      - {id: heat, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+
+steps:
+  # --- PRE ---------------------------------------------------------------------------------
+  - id: H101
+    block: PRE
+    title: Natural-gas preheater coil (fired)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: H-101}]
+    ports:
+      - {id: in, direction: in, delegates: ng}
+      - {id: out, direction: out, delegates: ng_hot}
+      - {id: q, direction: in, kind: energy}
+  - id: H102
+    block: PRE
+    title: Oxygen preheater coil (fired)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: H-101}]
+    ports:
+      - {id: in, direction: in, delegates: oxy}
+      - {id: out, direction: out, delegates: oxy_hot}
+      - {id: q, direction: in, kind: energy}
+  - id: M401
+    block: PRE
+    title: Fuel-gas mixer
+    class: Mixing
+    links: [{target: equipment, ref: H-101}]
+    ports:
+      - {id: offgas, direction: in, delegates: offgas}
+      - {id: flash, direction: in, delegates: flash}
+      - {id: ng, direction: in, delegates: fuel}
+      - {id: out, direction: out}
+  - id: K401
+    block: PRE
+    title: Combustion air fan
+    class: Compressing
+    method: CentrifugalMotion
+    links: [{target: equipment, ref: K-401}]
+    ports:
+      - {id: in, direction: in, delegates: air}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: F101
+    block: PRE
+    title: Fired-heater firebox (off-gas, flash gas and support fuel)
+    class: ReactingChemicals
+    reactions: [FB_CH4, FB_C2H2, FB_C4H2, FB_C6H6, FB_CO, FB_NMP]
+    reactor: conversion
+    links: [{target: equipment, ref: H-101}]
+    ports:
+      - {id: fuel, direction: in}
+      - {id: air, direction: in}
+      - {id: out, direction: out, delegates: flue}
+      - {id: h101, direction: out, kind: energy}
+      - {id: h102, direction: out, kind: energy}
+      - {id: steam, direction: out, kind: energy, delegates: heat}
+  # --- REACT -------------------------------------------------------------------------------
+  - id: M101
+    block: REACT
+    title: Mixing diffuser (natural gas and oxygen)
+    class: Mixing
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: ng, direction: in, delegates: ng}
+      - {id: oxy, direction: in, delegates: oxy}
+      - {id: out, direction: out}
+  - id: R101
+    block: REACT
+    title: Burner (partial oxidation and pyrolysis)
+    class: ReactingChemicals
+    reactions: [C2H2_PYR, CH4_POX, CH4_COMB, H2_COMB, SOOT, C4H2_FORM, C6H6_FORM]
+    reactor: conversion
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+  - id: Q101
+    block: REACT
+    title: Water quench
+    class: Cooling
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: gas_in, direction: in}
+      - {id: water_in, direction: in, delegates: qw}
+      - {id: gas_out, direction: out, delegates: gas}
+      - {id: water_out, direction: out, delegates: water}
+  # --- SOOT --------------------------------------------------------------------------------
+  - id: T101
+    block: SOOT
+    title: Cooling column (direct water contact)
+    class: Cooling
+    links: [{target: equipment, ref: T-101}]
+    ports:
+      - {id: gas_in, direction: in, delegates: gas}
+      - {id: water_in, direction: in}
+      - {id: gas_out, direction: out}
+      - {id: water_out, direction: out}
+  - id: X101
+    block: SOOT
+    title: Wet electrostatic precipitator
+    class: SeparatingMechanically
+    links: [{target: equipment, ref: X-101}]
+    ports:
+      - {id: gas_in, direction: in}
+      - {id: water_in, direction: in}
+      - {id: gas_out, direction: out, delegates: gas_out}
+      - {id: drain, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: p_esp}
+  - id: M102
+    block: SOOT
+    title: Circuit-water collection
+    class: Mixing
+    links: [{target: equipment, ref: V-102}]
+    ports:
+      - {id: q, direction: in, delegates: water}
+      - {id: c, direction: in}
+      - {id: e, direction: in}
+      - {id: k, direction: in, delegates: cond}
+      - {id: out, direction: out}
+  - id: V102
+    block: SOOT
+    title: Vacuum degassing of the circuit water (400 mbar(a))
+    class: SeparatingByFlash
+    links: [{target: equipment, ref: V-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out, delegates: flash}
+      - {id: water, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: p_vac}
+  - id: V101
+    block: SOOT
+    title: Soot separator (flotation and thickening)
+    class: SeparatingMechanically
+    links: [{target: equipment, ref: V-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: sludge, direction: out, delegates: sludge}
+      - {id: water, direction: out}
+  - id: E101
+    block: SOOT
+    title: Circuit-water cooler
+    class: Cooling
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: cw}
+  - id: SP101
+    block: SOOT
+    title: Circuit-water distribution and purge
+    class: SplittingMaterial
+    split: {w1: 0.673661834, w2: 0.310463538, w10: 0.005880211, purge: 0.009994417}
+    links: [{target: equipment, ref: P-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: w1, direction: out, delegates: qw}
+      - {id: w2, direction: out}
+      - {id: w10, direction: out}
+      - {id: purge, direction: out, delegates: purge}
+      - {id: power, direction: in, kind: energy, delegates: p_pump}
+  # --- COMP --------------------------------------------------------------------------------
+  - id: M201
+    block: COMP
+    title: Compressor suction (cracked gas and recycle gas)
+    class: Mixing
+    links: [{target: equipment, ref: K-201}]
+    ports:
+      - {id: gas, direction: in, delegates: gas}
+      - {id: rec, direction: in, delegates: rec}
+      - {id: out, direction: out}
+  - id: K201
+    block: COMP
+    title: Cracked-gas compressor (three stages, intercooled)
+    class: Compressing
+    method: CentrifugalMotion
+    links: [{target: equipment, ref: K-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+      - {id: cw, direction: out, kind: energy, delegates: cw1}
+  - id: E201
+    block: COMP
+    title: Compressor aftercooler
+    class: Cooling
+    links: [{target: equipment, ref: E-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: cw2}
+  - id: V201
+    block: COMP
+    title: Knock-out drum
+    class: SeparatingByPhaseSeparation
+    links: [{target: equipment, ref: V-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out, delegates: gas_out}
+      - {id: liquid, direction: out, delegates: cond}
+  # --- REC ---------------------------------------------------------------------------------
+  - id: T301
+    block: REC
+    title: Absorber (NMP pre-wash and main wash)
+    class: Absorbing
+    links: [{target: equipment, ref: T-301}]
+    ports:
+      - {id: gas_in, direction: in, delegates: gas}
+      - {id: liq_in, direction: in}
+      - {id: gas_out, direction: out, delegates: syngas}
+      - {id: liq_out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: T302
+    block: REC
+    title: Degasser (pressure let-down, recycle gas)
+    class: SeparatingByFlash
+    links: [{target: equipment, ref: T-302}]
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out, delegates: rec}
+      - {id: liq, direction: out}
+  - id: E301
+    block: REC
+    title: Lean/rich solvent interchanger
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-301}]
+    ports:
+      - {id: rich_in, direction: in}
+      - {id: rich_out, direction: out}
+      - {id: lean_in, direction: in}
+      - {id: lean_out, direction: out}
+  - id: T303
+    block: REC
+    title: Acetylene stripper
+    class: SeparatingByThermalProcess
+    links: [{target: equipment, ref: T-303}]
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out, delegates: product}
+      - {id: liq, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam1}
+  - id: T304
+    block: REC
+    title: Hot stripper (higher acetylenes, water, solvent regeneration)
+    class: SeparatingByThermalProcess
+    links: [{target: equipment, ref: T-304}]
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out, delegates: offgas}
+      - {id: liq, direction: out}
+      - {id: residue, direction: out, delegates: residue}
+      - {id: steam, direction: in, kind: energy, delegates: steam2}
+      - {id: fired, direction: in, kind: energy, delegates: heat}
+  - id: E302
+    block: REC
+    title: Lean solvent cooler
+    class: Cooling
+    links: [{target: equipment, ref: E-302}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: cw}
+  - id: M301
+    block: REC
+    title: NMP make-up
+    class: Mixing
+    links: [{target: equipment, ref: P-301}]
+    ports:
+      - {id: lean, direction: in}
+      - {id: mu, direction: in, delegates: mu}
+      - {id: out, direction: out}
+
+streams:
+  # --- feeds and preheating ------------------------------------------------------------------
+  - {id: S1, title: Natural gas feed, from: NG.out, to: H101.in, template: ng, state: {design: {pressure: {value: 400.0, provenance: assumed, source: "battery limit (D-003)"}, temperature: {value: 303.15, provenance: assumed, source: "battery limit (D-003)"}, phase: {value: vapor, provenance: assumed, source: "gas"}, flow: {value: 29747.083, basis: mass, provenance: assumed, source: "scripts/balance.py: methane for the D-005 cracked gas by element balance"}, composition: {basis: mole_fraction, values: {CH4: 0.98, CO2: 0.005, N2: 0.015}, provenance: assumed, source: "D-003: lean pipeline gas, ASSUMED"}}}}
+  - {id: S3, title: Oxygen feed, from: OXY.out, to: H102.in, template: oxygen, state: {design: {pressure: {value: 400.0, provenance: assumed, source: "battery limit (D-003)"}, temperature: {value: 303.15, provenance: assumed, source: "battery limit (D-003)"}, phase: {value: vapor, provenance: assumed, source: "gas"}, flow: {value: 35047.962, basis: mass, provenance: assumed, source: "scripts/balance.py: oxygen for the D-005 cracked gas by element balance (O2/NG 0.602 vol/vol)"}, composition: {basis: mole_fraction, values: {O2: 0.995, AR: 0.005}, provenance: assumed, source: "D-003: 99.5 mol% O2, rest Ar, ASSUMED"}}}}
+  - id: S2
+    title: Preheated natural gas
+    from: H101.out
+    to: M101.ng
+    template: ng
+    state:
+      design:
+        pressure: {value: 160.0, provenance: assumed, source: "D-010"}
+        temperature: {value: 873.15, provenance: assumed, source: "D-004: 600 C (US5824834A examples; US8975460B2; US11459281B2)"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 29747.083, basis: mass, provenance: assumed, source: "= S1 (heating only)"}
+        composition: {basis: mole_fraction, values: {CH4: 0.98, CO2: 0.005, N2: 0.015}, provenance: assumed, source: "= S1"}
+  - id: S4
+    title: Preheated oxygen
+    from: H102.out
+    to: M101.oxy
+    template: oxygen
+    state:
+      design:
+        pressure: {value: 160.0, provenance: assumed, source: "D-010"}
+        temperature: {value: 873.15, provenance: assumed, source: "D-004: 600 C (US5824834A examples)"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 35047.962, basis: mass, provenance: assumed, source: "= S3 (heating only)"}
+        composition: {basis: mole_fraction, values: {O2: 0.995, AR: 0.005}, provenance: assumed, source: "= S3"}
+  # --- burner and quench ---------------------------------------------------------------------
+  - id: S5
+    title: Mixed feed to the burner
+    from: M101.out
+    to: R101.in
+    template: crackedgas
+    state:
+      design:
+        pressure: {value: 150.0, provenance: assumed, source: "D-010"}
+        temperature: {value: 873.15, provenance: assumed, source: "D-004"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 64795.0, provenance: calculated, source: 'cheme process propagate: mixer M101 from S2 S4', fingerprint: 82ba23c5a2bb4f2f}
+        composition: {basis: mole_fraction, values: {CH4: 0.611845, CO2: 0.00312166, N2: 0.00936497, O2: 0.37379, AR: 0.00187834}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S2 S4', fingerprint: 22fb79cdb0ce652f}
+  - id: S6
+    title: Hot cracked gas
+    from: R101.out
+    to: Q101.gas_in
+    template: crackedgas
+    state:
+      design:
+        pressure: {value: 130.0, provenance: assumed, source: "D-010"}
+        temperature: {value: 1969.84, provenance: assumed, source: "scripts/balance.py: adiabatic temperature on ideal-gas data, soot as graphite (D-005); US8975460B2: about 1700 C"}
+        flow: {value: 64795.0, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5', fingerprint: 8bb1c11f414b69b1}
+        composition: {basis: mole_fraction, values: {CH4: 0.037075, C2H2: 0.055612, H2: 0.415236, CO: 0.192788, CO2: 0.0259522, H2O: 0.252266, N2: 0.0061923, AR: 0.00124199, O2: 0.000742262, C4H2: 0.00519045, C6H6: 0.00222448, NMP: 0.0, C: 0.00547994}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5', fingerprint: 681dca750093f07c}
+  - {id: S7, title: Quenched cracked gas, from: Q101.gas_out, to: T101.gas_in, template: crackedgas, state: {design: {pressure: {value: 120.0, provenance: assumed, source: "D-010"}, temperature: {value: 353.15, provenance: assumed, source: "US11459281B2 claim 1: quench to 80-90 C"}, flow: {value: 82927.271, basis: mass, provenance: assumed, source: "scripts/balance.py: saturated at 353 K (NIST Antoine), 70 % of the soot to the quench water (D-006)"}, composition: {basis: mole_fraction, values: {C2H2: 0.0450657, H2: 0.338293, CO: 0.157032, CO2: 0.0211433, CH4: 0.0301932, C4H2: 0.00422866, C6H6: 0.00181026, N2: 0.00504487, AR: 0.00101186, O2: 0.000604715, H2O: 0.394233, C: 0.00133935}, provenance: assumed, source: "scripts/balance.py (D-006)"}}}}
+  - {id: W3, title: Quench water with soot, from: Q101.water_out, to: M102.q, template: water, state: {design: {pressure: {value: 120.0, provenance: assumed, source: "D-010"}, temperature: {value: 353.15, provenance: assumed, source: "D-006"}, phase: {value: liquid, provenance: assumed, source: "water with suspended soot"}, flow: {value: 1127509.246, basis: mass, provenance: assumed, source: "scripts/balance.py: quench water less evaporation, soot and dissolved hydrocarbons (D-006)"}, composition: {basis: mole_fraction, values: {H2O: 0.999705, C: 0.000269891, C2H2: 2.09502e-05, CO: 2.80657e-06, CH4: 1.0061e-06, C6H6: 1.7602e-07}, provenance: assumed, source: "scripts/balance.py (D-006)"}}}}
+  # --- cooling, soot removal, water circuit ----------------------------------------------------
+  - {id: S8, title: Cooled cracked gas, from: T101.gas_out, to: X101.gas_in, template: crackedgas, state: {design: {pressure: {value: 115.0, provenance: assumed, source: "D-010"}, temperature: {value: 308.15, provenance: assumed, source: "D-006"}, flow: {value: 47477.511, basis: mass, provenance: assumed, source: "scripts/balance.py: saturated at 308 K (D-006)"}, composition: {basis: mole_fraction, values: {C2H2: 0.0709105, H2: 0.532302, CO: 0.247089, CO2: 0.0332689, CH4: 0.0475087, C4H2: 0.00665378, C6H6: 0.00284843, N2: 0.00793807, AR: 0.00159215, O2: 0.000951516, H2O: 0.048901, C: 3.51243e-05}, provenance: assumed, source: "scripts/balance.py (D-006)"}}}}
+  - {id: W4, title: Cooling-column water, from: T101.water_out, to: M102.c, template: water, state: {design: {pressure: {value: 115.0, provenance: assumed, source: "D-010"}, temperature: {value: 343.15, provenance: assumed, source: "D-006"}, phase: {value: liquid, provenance: assumed, source: "water with soot"}, flow: {value: 563430.108, basis: mass, provenance: assumed, source: "scripts/balance.py (D-006)"}, composition: {basis: mole_fraction, values: {H2O: 0.999772, C: 0.000227611, C2H2: 8.98694e-08, CO: 1.20392e-08, CH4: 4.31583e-09, C6H6: 7.55067e-10}, provenance: assumed, source: "scripts/balance.py (D-006)"}}}}
+  - {id: S9, title: Soot-free cracked gas, from: X101.gas_out, to: M201.gas, template: crackedgas, state: {design: {pressure: {value: 110.0, provenance: assumed, source: "D-010"}, temperature: {value: 308.15, provenance: assumed, source: "D-006"}, phase: {value: vapor, provenance: assumed, source: "gas"}, flow: {value: 47476.062, basis: mass, provenance: assumed, source: "scripts/balance.py: ESP outlet about 1 mg/m3 soot (US11459281B2), taken as zero (D-006)"}, composition: {basis: mole_fraction, values: {C2H2: 0.070913, H2: 0.532321, CO: 0.247098, CO2: 0.0332701, CH4: 0.0475104, C4H2: 0.00665401, C6H6: 0.00284853, N2: 0.00793835, AR: 0.00159221, O2: 0.00095155, H2O: 0.0489027}, provenance: assumed, source: "scripts/balance.py (D-006)"}}}}
+  - {id: W5, title: ESP drain, from: X101.drain, to: M102.e, template: water, state: {design: {pressure: {value: 110.0, provenance: assumed, source: "D-010"}, temperature: {value: 308.15, provenance: assumed, source: "D-006"}, phase: {value: liquid, provenance: assumed, source: "water with soot"}, flow: {value: 10001.451, basis: mass, provenance: assumed, source: "scripts/balance.py (D-006)"}, composition: {basis: mole_fraction, values: {H2O: 0.999783, C: 0.00021733, C2H2: 9.58899e-08, CO: 1.28458e-08, CH4: 4.60496e-09, C6H6: 8.0565e-10}, provenance: assumed, source: "scripts/balance.py (D-006)"}}}}
+  - id: W6
+    title: Collected circuit water
+    from: M102.out
+    to: V102.in
+    template: water
+    state:
+      design:
+        pressure: {value: 110.0, provenance: assumed, source: "D-010"}
+        temperature: {value: 349.52, provenance: assumed, source: "scripts/balance.py: mixing (D-006)"}
+        phase: {value: liquid, provenance: assumed, source: "water with soot"}
+        flow: {value: 1703560.0, provenance: calculated, source: 'cheme process propagate: mixer M102 from W3 W4 W5 S13', fingerprint: 35aabc3ec9b33ea3}
+        composition: {basis: mole_fraction, values: {H2O: 0.999728, C: 0.000255184, C2H2: 1.38963e-05, CO: 1.8616e-06, CH4: 6.67347e-07, C6H6: 1.16754e-07}, provenance: calculated, source: 'cheme process propagate: mixer M102 from W3 W4 W5 S13', fingerprint: f08923a553e04003}
+  - {id: S41, title: Quench-water flash gas, from: V102.gas, to: M401.flash, template: fuel, state: {design: {pressure: {value: 101.3, provenance: assumed, source: "vacuum pump discharge (D-006)"}, temperature: {value: 313.15, provenance: assumed, source: "after the vacuum condenser (D-006)"}, phase: {value: vapor, provenance: assumed, source: "gas"}, flow: {value: 42.941, basis: mass, provenance: assumed, source: "scripts/balance.py: 99.31 % of the dissolved hydrocarbons at 400 mbar(a) (US11459281B2), saturated with water"}, composition: {basis: mole_fraction, values: {C2H2: 0.778876, CO: 0.104341, CH4: 0.0374043, C6H6: 0.00654398, H2O: 0.0728345}, provenance: assumed, source: "scripts/balance.py (D-006)"}}}}
+  - {id: W7, title: Degassed circuit water, from: V102.water, to: V101.in, template: water, state: {design: {pressure: {value: 40.0, provenance: assumed, source: "US11459281B2: 400 mbar(a)"}, temperature: {value: 349.15, provenance: assumed, source: "US11459281B2: 75.8 C after decompression to 400 mbar"}, phase: {value: liquid, provenance: assumed, source: "water with soot"}, flow: {value: 1703518.114, basis: mass, provenance: assumed, source: "scripts/balance.py (D-006)"}, composition: {basis: mole_fraction, values: {H2O: 0.999745, C: 0.000255189, C2H2: 9.58862e-08, CO: 1.28453e-08, CH4: 4.60478e-09, C6H6: 8.05619e-10}, provenance: assumed, source: "scripts/balance.py (D-006)"}}}}
+  - {id: S50, title: Soot sludge, from: V101.sludge, to: SLUDGE.in, template: water, state: {design: {pressure: {value: 101.3, provenance: assumed, source: "D-006"}, temperature: {value: 349.15, provenance: assumed, source: "D-006"}, phase: {value: liquid, provenance: assumed, source: "slurry, 10 wt% soot"}, flow: {value: 2898.612, basis: mass, provenance: assumed, source: "scripts/balance.py: all soot as a sludge of 90 wt% water (US5824834A) (D-006)"}, composition: {basis: mole_fraction, values: {C: 0.142847, H2O: 0.857153, C2H2: 8.22101e-08, CO: 1.10132e-08, CH4: 3.94801e-09, C6H6: 6.90715e-10}, provenance: assumed, source: "scripts/balance.py (D-006)"}}}}
+  - {id: W8, title: Clarified circuit water, from: V101.water, to: E101.in, template: water, state: {design: {pressure: {value: 101.3, provenance: assumed, source: "D-006"}, temperature: {value: 349.15, provenance: assumed, source: "D-006"}, phase: {value: liquid, provenance: assumed, source: "water"}, flow: {value: 1700619.502, basis: mass, provenance: assumed, source: "scripts/balance.py (D-006)"}, composition: {basis: mole_fraction, values: {H2O: 1.0, C2H2: 9.59107e-08, CO: 1.28486e-08, CH4: 4.60596e-09, C6H6: 8.05825e-10}, provenance: assumed, source: "scripts/balance.py (D-006)"}}}}
+  - id: W9
+    title: Cooled circuit water
+    from: E101.out
+    to: SP101.in
+    template: water
+    state:
+      design:
+        pressure: {value: 500.0, provenance: assumed, source: "circuit pumps (D-006)"}
+        temperature: {value: 303.15, provenance: assumed, source: "D-006"}
+        phase: {value: liquid, provenance: assumed, source: "water"}
+        flow: {value: 1700619.502, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E101 from W8', fingerprint: baabd543e98edfe2}
+        composition: {basis: mole_fraction, values: {H2O: 1.0, C2H2: 9.59107e-08, CO: 1.28486e-08, CH4: 4.60596e-09, C6H6: 8.05825e-10}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from W8', fingerprint: baabd543e98edfe2}
+  - id: W1
+    title: Quench water
+    from: SP101.w1
+    to: Q101.water_in
+    template: water
+    state:
+      design:
+        pressure: {value: 500.0, provenance: assumed, source: "D-006"}
+        temperature: {value: 303.15, provenance: assumed, source: "D-006"}
+        phase: {value: liquid, provenance: assumed, source: "water"}
+        flow: {value: 1145640.0, basis: mass, provenance: calculated, source: 'cheme process propagate: splitter SP101 from W9', fingerprint: dd2242d160a401e3}
+        composition: {basis: mole_fraction, values: {H2O: 1.0, C2H2: 9.59107e-08, CO: 1.28486e-08, CH4: 4.60596e-09, C6H6: 8.05825e-10}, provenance: calculated, source: 'cheme process propagate: splitter SP101 from W9', fingerprint: 42df9abcb051ced2}
+  - id: W2
+    title: Cooling-column water feed
+    from: SP101.w2
+    to: T101.water_in
+    template: water
+    state:
+      design:
+        pressure: {value: 500.0, provenance: assumed, source: "D-006"}
+        temperature: {value: 303.15, provenance: assumed, source: "D-006"}
+        phase: {value: liquid, provenance: assumed, source: "water"}
+        flow: {value: 527980.0, basis: mass, provenance: calculated, source: 'cheme process propagate: splitter SP101 from W9', fingerprint: dd2242d160a401e3}
+        composition: {basis: mole_fraction, values: {H2O: 1.0, C2H2: 9.59107e-08, CO: 1.28486e-08, CH4: 4.60596e-09, C6H6: 8.05825e-10}, provenance: calculated, source: 'cheme process propagate: splitter SP101 from W9', fingerprint: 42df9abcb051ced2}
+  - id: W10
+    title: ESP irrigation water
+    from: SP101.w10
+    to: X101.water_in
+    template: water
+    state:
+      design:
+        pressure: {value: 500.0, provenance: assumed, source: "D-006"}
+        temperature: {value: 303.15, provenance: assumed, source: "D-006"}
+        phase: {value: liquid, provenance: assumed, source: "water"}
+        flow: {value: 10000.0, basis: mass, provenance: calculated, source: 'cheme process propagate: splitter SP101 from W9', fingerprint: dd2242d160a401e3}
+        composition: {basis: mole_fraction, values: {H2O: 1.0, C2H2: 9.59107e-08, CO: 1.28486e-08, CH4: 4.60596e-09, C6H6: 8.05825e-10}, provenance: calculated, source: 'cheme process propagate: splitter SP101 from W9', fingerprint: 42df9abcb051ced2}
+  - id: S51
+    title: Quench-water purge
+    from: SP101.purge
+    to: WW.in
+    template: water
+    state:
+      design:
+        pressure: {value: 500.0, provenance: assumed, source: "D-006"}
+        temperature: {value: 303.15, provenance: assumed, source: "D-006"}
+        phase: {value: liquid, provenance: assumed, source: "water"}
+        flow: {value: 16996.7, basis: mass, provenance: calculated, source: 'cheme process propagate: splitter SP101 from W9', fingerprint: dd2242d160a401e3}
+        composition: {basis: mole_fraction, values: {H2O: 1.0, C2H2: 9.59107e-08, CO: 1.28486e-08, CH4: 4.60596e-09, C6H6: 8.05825e-10}, provenance: calculated, source: 'cheme process propagate: splitter SP101 from W9', fingerprint: 42df9abcb051ced2}
+  # --- compression ---------------------------------------------------------------------------
+  - {id: S22, title: Degasser recycle gas, from: T302.gas, to: M201.rec, template: crackedgas, state: {design: {pressure: {value: 130.0, provenance: assumed, source: "D-009"}, temperature: {value: 313.15, provenance: assumed, source: "D-009"}, phase: {value: vapor, provenance: assumed, source: "gas"}, flow: {value: 2104.688, basis: mass, provenance: assumed, source: "scripts/balance.py: less soluble gases and 15 % of the absorbed acetylene released (D-009)"}, composition: {basis: mole_fraction, values: {C2H2: 0.599227, H2: 0.0513231, CO: 0.0597388, CO2: 0.265995, CH4: 0.0230884, N2: 0.0003823, AR: 0.000153511, O2: 9.17425e-05}, provenance: assumed, source: "scripts/balance.py (D-009)"}}}}
+  - id: S10
+    title: Compressor suction gas
+    from: M201.out
+    to: K201.in
+    template: crackedgas
+    state:
+      design:
+        pressure: {value: 105.0, provenance: assumed, source: "D-007"}
+        temperature: {value: 308.75, provenance: assumed, source: "D-007"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 49580.8, provenance: calculated, source: 'cheme process propagate: mixer M201 from S9 S22', fingerprint: b4fcd129ea93f545}
+        composition: {basis: mole_fraction, values: {CH4: 0.0470131, C2H2: 0.0816707, H2: 0.522527, CO: 0.243283, CO2: 0.0380089, H2O: 0.0479069, N2: 0.00778449, AR: 0.00156292, O2: 0.000934043, C4H2: 0.00651852, C6H6: 0.00279053, NMP: 0.0, C: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M201 from S9 S22', fingerprint: 5cb5520d96bd96eb}
+  - id: S11
+    title: Compressor discharge
+    from: K201.out
+    to: E201.in
+    template: crackedgas
+    state:
+      design:
+        pressure: {value: 1100.0, provenance: assumed, source: "D-007: 11 bar(a), ASSUMED"}
+        temperature: {value: 404.5, provenance: assumed, source: "scripts/balance.py: third stage, isentropic efficiency 0.78 (D-007)"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 49580.8, provenance: calculated, source: 'cheme process propagate: pass-through K201 from S10', fingerprint: 4428aa4c88af2aa8}
+        composition: {basis: mole_fraction, values: {CH4: 0.0470131, C2H2: 0.0816707, H2: 0.522527, CO: 0.243283, CO2: 0.0380089, H2O: 0.0479069, N2: 0.00778449, AR: 0.00156292, O2: 0.000934043, C4H2: 0.00651852, C6H6: 0.00279053, NMP: 0.0, C: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through K201 from S10', fingerprint: 4428aa4c88af2aa8}
+  - id: S12
+    title: Cooled compressed gas
+    from: E201.out
+    to: V201.in
+    template: crackedgas
+    state:
+      design:
+        pressure: {value: 1090.0, provenance: assumed, source: "D-007"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-007"}
+        phase: {value: two-phase, provenance: assumed, source: "gas with condensed water"}
+        flow: {value: 49580.8, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S11', fingerprint: 8507b1882c950af2}
+        composition: {basis: mole_fraction, values: {CH4: 0.0470131, C2H2: 0.0816707, H2: 0.522527, CO: 0.243283, CO2: 0.0380089, H2O: 0.0479069, N2: 0.00778449, AR: 0.00156292, O2: 0.000934043, C4H2: 0.00651852, C6H6: 0.00279053, NMP: 0.0, C: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S11', fingerprint: 8507b1882c950af2}
+  - {id: S13, title: Compressor condensate, from: V201.liquid, to: M102.k, template: water, state: {design: {pressure: {value: 1090.0, provenance: assumed, source: "D-007"}, temperature: {value: 313.15, provenance: assumed, source: "D-007"}, phase: {value: liquid, provenance: assumed, source: "water"}, flow: {value: 2620.249, basis: mass, provenance: assumed, source: "scripts/balance.py: water above saturation at 313 K, 11 bar(a), intercooler condensate included (D-007)"}, composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: "scripts/balance.py: dissolved gases neglected (D-007)"}}}}
+  - {id: S14, title: Compressed cracked gas, from: V201.gas, to: T301.gas_in, template: crackedgas, state: {design: {pressure: {value: 1090.0, provenance: assumed, source: "D-007"}, temperature: {value: 313.15, provenance: assumed, source: "D-007"}, phase: {value: vapor, provenance: assumed, source: "gas"}, flow: {value: 46960.501, basis: mass, provenance: assumed, source: "scripts/balance.py: saturated at 313 K (D-007)"}, composition: {basis: mole_fraction, values: {C2H2: 0.0852048, H2: 0.545138, CO: 0.253811, CO2: 0.0396536, CH4: 0.0490475, C4H2: 0.0068006, C6H6: 0.00291128, N2: 0.00812135, AR: 0.00163054, O2: 0.00097446, H2O: 0.00670739}, provenance: assumed, source: "scripts/balance.py (D-007)"}}}}
+  # --- acetylene recovery --------------------------------------------------------------------
+  - id: S30
+    title: Lean solvent to the absorber
+    from: M301.out
+    to: T301.liq_in
+    template: solvent
+    state:
+      design:
+        pressure: {value: 1150.0, provenance: assumed, source: "D-009"}
+        temperature: {value: 308.15, provenance: assumed, source: "D-009"}
+        phase: {value: liquid, provenance: assumed, source: "solution"}
+        flow: {value: 338789.0, provenance: calculated, source: 'cheme process propagate: mixer M301 from S23 S24', fingerprint: c8e27119451eb48e}
+        composition: {basis: mole_fraction, values: {NMP: 0.854563, H2O: 0.145437, C2H2: 0.0, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, C4H2: 0.0, C6H6: 0.0, N2: 0.0, AR: 0.0, O2: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M301 from S23 S24', fingerprint: debd80a3785a5f5a}
+  - {id: S15, title: Synthesis gas, from: T301.gas_out, to: SYNGAS.in, template: crackedgas, state: {design: {pressure: {value: 1070.0, provenance: assumed, source: "D-009"}, temperature: {value: 308.15, provenance: assumed, source: "D-009"}, phase: {value: vapor, provenance: assumed, source: "gas"}, flow: {value: 36184.508, basis: mass, provenance: assumed, source: "scripts/balance.py: absorber splits (D-009)"}, composition: {basis: mole_fraction, values: {C2H2: 0.000382983, H2: 0.611353, CO: 0.283784, CO2: 0.0378754, CH4: 0.0545641, N2: 0.00911694, AR: 0.0018286, O2: 0.00109282, NMP: 2.10776e-06}, provenance: assumed, source: "scripts/balance.py (D-009)"}}}}
+  - {id: S16, title: Rich solvent, from: T301.liq_out, to: T302.in, template: solvent, state: {design: {pressure: {value: 1070.0, provenance: assumed, source: "D-009"}, temperature: {value: 308.15, provenance: assumed, source: "D-009"}, phase: {value: liquid, provenance: assumed, source: "solution"}, flow: {value: 349564.779, basis: mass, provenance: assumed, source: "scripts/balance.py: lean solvent plus the absorbed gas (D-009)"}, composition: {basis: mole_fraction, values: {NMP: 0.780141, H2O: 0.138078, C2H2: 0.0671289, H2: 0.000862428, CO: 0.00100384, CO2: 0.00470501, CH4: 0.000387975, C4H2: 0.00537939, C6H6: 0.00230287, N2: 6.42413e-06, AR: 2.57958e-06, O2: 1.54163e-06}, provenance: assumed, source: "scripts/balance.py (D-009)"}}}}
+  - {id: S17, title: Degassed solvent, from: T302.liq, to: E301.rich_in, template: solvent, state: {design: {pressure: {value: 130.0, provenance: assumed, source: "D-009"}, temperature: {value: 308.15, provenance: assumed, source: "D-009"}, phase: {value: liquid, provenance: assumed, source: "solution"}, flow: {value: 347460.090, basis: mass, provenance: assumed, source: "scripts/balance.py (D-009)"}, composition: {basis: mole_fraction, values: {NMP: 0.793475, H2O: 0.140438, C2H2: 0.0580348, CO2: 0.000239271, C4H2: 0.00547133, C6H6: 0.00234223}, provenance: assumed, source: "scripts/balance.py (D-009)"}}}}
+  - {id: S25, title: Heated rich solvent, from: E301.rich_out, to: T303.in, template: solvent, state: {design: {pressure: {value: 800.0, provenance: assumed, source: "US10059640B2: 7.5-8.5 bar into the first column (rich-solvent pump within T302)"}, temperature: {value: 403.15, provenance: assumed, source: "US10059640B2: 125-135 C"}, phase: {value: liquid, provenance: assumed, source: "solution"}, flow: {value: 347460.090, basis: mass, provenance: assumed, source: "scripts/balance.py (D-009)"}, composition: {basis: mole_fraction, values: {NMP: 0.793475, H2O: 0.140438, C2H2: 0.0580348, CO2: 0.000239271, C4H2: 0.00547133, C6H6: 0.00234223}, provenance: assumed, source: "scripts/balance.py (D-009)"}}}}
+  - {id: S18, title: Acetylene product, from: T303.gas, to: ACETYLENE.in, template: crackedgas, state: {design: {pressure: {value: 120.0, provenance: assumed, source: "D-002: 1.2 bar(a), below the 1.4 bar acetylene partial pressure of US10059640B2"}, temperature: {value: 313.15, provenance: assumed, source: "D-002"}, phase: {value: vapor, provenance: assumed, source: "gas"}, flow: {value: 6285.084, basis: mass, provenance: assumed, source: "scripts/balance.py: 99 % of the acetylene reaching T303 (D-009)"}, composition: {basis: mole_fraction, values: {C2H2: 0.995512, CO2: 0.00248751, H2O: 0.002}, provenance: assumed, source: "scripts/balance.py (D-009)"}}}}
+  - {id: S19, title: Semi-lean solvent, from: T303.liq, to: T304.in, template: solvent, state: {design: {pressure: {value: 140.0, provenance: assumed, source: "US10059640B2: 1.0-1.5 bar"}, temperature: {value: 418.15, provenance: assumed, source: "US10059640B2: side take-off 140-150 C"}, phase: {value: liquid, provenance: assumed, source: "solution"}, flow: {value: 341175.007, basis: mass, provenance: assumed, source: "scripts/balance.py (D-009)"}, composition: {basis: mole_fraction, values: {NMP: 0.842073, H2O: 0.148917, C2H2: 0.000615893, CO2: 0.00010157, C4H2: 0.00580644, C6H6: 0.00248569}, provenance: assumed, source: "scripts/balance.py (D-009)"}}}}
+  - {id: S40, title: Hot-stripper off-gas (higher acetylenes), from: T304.gas, to: M401.offgas, template: fuel, state: {design: {pressure: {value: 120.0, provenance: assumed, source: "US10059640B2: 1.2 bar(a) release pressure"}, temperature: {value: 313.15, provenance: assumed, source: "D-009"}, phase: {value: vapor, provenance: assumed, source: "gas, diluted with water vapour"}, flow: {value: 2387.471, basis: mass, provenance: assumed, source: "scripts/balance.py: higher acetylenes, aromatics, rest of the acetylene and water (D-009)"}, composition: {basis: mole_fraction, values: {C2H2: 0.0421395, CO2: 0.00694947, C4H2: 0.397278, C6H6: 0.170071, H2O: 0.383452, NMP: 0.000109576}, provenance: assumed, source: "scripts/balance.py (D-009)"}}}}
+  - {id: S21, title: Solvent regeneration residue, from: T304.residue, to: RESIDUE.in, template: solvent, state: {design: {pressure: {value: 140.0, provenance: assumed, source: "D-009"}, temperature: {value: 443.15, provenance: assumed, source: "D-009"}, phase: {value: liquid, provenance: assumed, source: "liquid"}, flow: {value: 11.250, basis: mass, provenance: assumed, source: "scripts/balance.py: 90 % of the NMP make-up; polymers not modelled (D-009)"}, composition: {basis: mole_fraction, values: {NMP: 1.0}, provenance: assumed, source: "scripts/balance.py (D-009)"}}}}
+  - {id: S20, title: Hot lean solvent, from: T304.liq, to: E301.lean_in, template: solvent, state: {design: {pressure: {value: 140.0, provenance: assumed, source: "US10059640B2: 1.2-1.5 bar"}, temperature: {value: 443.15, provenance: assumed, source: "US10059640B2: bottom 165-180 C"}, phase: {value: liquid, provenance: assumed, source: "solution"}, flow: {value: 338776.286, basis: mass, provenance: assumed, source: "scripts/balance.py (D-009)"}, composition: {basis: mole_fraction, values: {NMP: 0.854558, H2O: 0.145442}, provenance: assumed, source: "scripts/balance.py: lean solvent 3 wt% water (ASSUMED, D-009)"}}}}
+  - {id: S26, title: Lean solvent after interchanger, from: E301.lean_out, to: E302.in, template: solvent, state: {design: {pressure: {value: 1200.0, provenance: assumed, source: "D-009: after the lean solvent pump"}, temperature: {value: 348.15, provenance: assumed, source: "D-009"}, phase: {value: liquid, provenance: assumed, source: "solution"}, flow: {value: 338776.286, basis: mass, provenance: assumed, source: "scripts/balance.py (D-009)"}, composition: {basis: mole_fraction, values: {NMP: 0.854558, H2O: 0.145442}, provenance: assumed, source: "scripts/balance.py (D-009)"}}}}
+  - id: S23
+    title: Cooled lean solvent
+    from: E302.out
+    to: M301.lean
+    template: solvent
+    state:
+      design:
+        pressure: {value: 1180.0, provenance: assumed, source: "D-009"}
+        temperature: {value: 308.15, provenance: assumed, source: "D-009"}
+        phase: {value: liquid, provenance: assumed, source: "solution"}
+        flow: {value: 338776.286, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E302 from S26', fingerprint: db90f66c659ac887}
+        composition: {basis: mole_fraction, values: {NMP: 0.854558, H2O: 0.145442}, provenance: calculated, source: 'cheme process propagate: pass-through E302 from S26', fingerprint: db90f66c659ac887}
+  - {id: S24, title: NMP make-up, from: NMP.out, to: M301.mu, template: solvent, state: {design: {pressure: {value: 1200.0, provenance: assumed, source: "D-009"}, temperature: {value: 298.15, provenance: assumed, source: "D-009"}, phase: {value: liquid, provenance: assumed, source: "liquid"}, flow: {value: 12.500, basis: mass, provenance: assumed, source: "D-009: 2 kg NMP per t acetylene, ASSUMED"}, composition: {basis: mole_fraction, values: {NMP: 1.0}, provenance: assumed, source: "D-009"}}}}
+  # --- fired heater --------------------------------------------------------------------------
+  - {id: S42, title: Natural-gas support fuel, from: FUELNG.out, to: M401.ng, template: ng, state: {design: {pressure: {value: 400.0, provenance: assumed, source: "battery limit (D-003)"}, temperature: {value: 303.15, provenance: assumed, source: "battery limit (D-003)"}, phase: {value: vapor, provenance: assumed, source: "gas"}, flow: {value: 203.064, basis: mass, provenance: assumed, source: "scripts/balance.py: 10 % of the firing on LHV (ASSUMED, D-011)"}, composition: {basis: mole_fraction, values: {CH4: 0.98, CO2: 0.005, N2: 0.015}, provenance: assumed, source: "D-003"}}}}
+  - id: S43
+    title: Fuel gas to the burners
+    from: M401.out
+    to: F101.fuel
+    template: fuel
+    state:
+      design:
+        pressure: {value: 115.0, provenance: assumed, source: "D-011"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-011"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 2633.48, provenance: calculated, source: 'cheme process propagate: mixer M401 from S41 S40 S42', fingerprint: 7f42c91b2a64d00b}
+        composition: {basis: mole_fraction, values: {CH4: 0.170683, C2H2: 0.0520742, CO: 0.00244111, CO2: 0.00644909, H2O: 0.309743, N2: 0.00259911, C4H2: 0.319146, C6H6: 0.136776, NMP: 8.80258e-05}, provenance: calculated, source: 'cheme process propagate: mixer M401 from S41 S40 S42', fingerprint: 159417122bdc0ee4}
+  - {id: S44, title: Combustion air, from: AIR.out, to: K401.in, template: air, state: {design: {pressure: {value: 101.325, provenance: assumed, source: "ambient"}, temperature: {value: 298.15, provenance: assumed, source: "design basis"}, phase: {value: vapor, provenance: assumed, source: "gas"}, flow: {value: 33405.736, basis: mass, provenance: assumed, source: "scripts/balance.py: 15 % excess air (ASSUMED, D-011)"}, composition: {basis: mole_fraction, values: {N2: 0.7811, O2: 0.2096, AR: 0.0093}, provenance: assumed, source: "dry air, CO2 lumped into N2"}}}}
+  - id: S45
+    title: Air to the burners
+    from: K401.out
+    to: F101.air
+    template: air
+    state:
+      design:
+        pressure: {value: 106.3, provenance: assumed, source: "fan discharge, 5 kPa (D-011)"}
+        temperature: {value: 303.15, provenance: assumed, source: "D-011"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 33405.736, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through K401 from S44', fingerprint: 08cbcfb01ed7ad51}
+        composition: {basis: mole_fraction, values: {N2: 0.7811, O2: 0.2096, AR: 0.0093}, provenance: calculated, source: 'cheme process propagate: pass-through K401 from S44', fingerprint: 08cbcfb01ed7ad51}
+  - id: S46
+    title: Flue gas to stack
+    from: F101.out
+    to: STACK.in
+    template: flue
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "stack"}
+        temperature: {value: 433.15, provenance: assumed, source: "D-011: 85 % firing efficiency on LHV, stack about 160 C (ASSUMED)"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 36039.2, provenance: calculated, source: 'cheme process propagate: reactor F101 from S43 S45', fingerprint: 49ba9f4887132df0}
+        composition: {basis: mole_fraction, values: {CH4: 5.02394e-06, C2H2: 1.53277e-06, CO: 7.18525e-08, CO2: 0.14012, H2O: 0.0843289, N2: 0.740708, C4H2: 9.39385e-06, C6H6: 4.02591e-06, NMP: 2.59098e-09, O2: 0.0260061, AR: 0.00881723}, provenance: calculated, source: 'cheme process propagate: reactor F101 from S43 S45', fingerprint: 062c06e38e5edb9b}
+  # --- energy --------------------------------------------------------------------------------
+  - {id: Q1, title: Cracked-gas compressor power, kind: energy, from: POWER.k201, to: K201.power, state: {design: {duty: {value: 8830.9, provenance: assumed, source: "scripts/balance.py: 3 stages 1.05 -> 11 bar(a), ideal gas, isentropic 0.78, motor 0.96 (D-007)"}}}}
+  - {id: Q2, title: Solvent pumps power, kind: energy, from: POWER.t301, to: T301.power, state: {design: {duty: {value: 133.5, provenance: assumed, source: "scripts/balance.py: 330 m3/h to 11.5 bar, pump 0.70, motor 0.96 (D-012)"}}}}
+  - {id: Q3, title: Circuit-water pumps power, kind: energy, from: POWER.sp101, to: SP101.power, state: {design: {duty: {value: 259.6, provenance: assumed, source: "scripts/balance.py: 1690 m3/h, 400 kPa, pump 0.75, motor 0.96 (D-012)"}}}}
+  - {id: Q4, title: Electrostatic precipitator power, kind: energy, from: POWER.x101, to: X101.power, state: {design: {duty: {value: 150.0, provenance: assumed, source: "D-012: ASSUMED allowance"}}}}
+  - {id: Q5, title: Vacuum pump power (degassing), kind: energy, from: POWER.v102, to: V102.power, state: {design: {duty: {value: 120.0, provenance: assumed, source: "D-012: ASSUMED allowance"}}}}
+  - {id: Q6, title: Combustion air fan power, kind: energy, from: POWER.k401, to: K401.power, state: {design: {duty: {value: 57.5, provenance: assumed, source: "scripts/balance.py: 5 kPa, fan 0.65, motor 0.96 (D-011)"}}}}
+  - {id: Q10, title: Natural-gas preheat duty, kind: energy, from: F101.h101, to: H101.q, state: {design: {duty: {value: 14760.3, provenance: assumed, source: "scripts/balance.py: 303 -> 873 K, ideal gas (D-004)"}}}}
+  - {id: Q11, title: Oxygen preheat duty, kind: energy, from: F101.h102, to: H102.q, state: {design: {duty: {value: 5514.0, provenance: assumed, source: "scripts/balance.py: 303 -> 873 K, ideal gas (D-004)"}}}}
+  - {id: Q12, title: Convection-section steam to the hot stripper, kind: energy, from: F101.steam, to: T304.fired, state: {design: {duty: {value: 2773.4, provenance: assumed, source: "scripts/balance.py: 85 % of the 27.1 MW firing (LHV) less the preheat duties (D-011)"}}}}
+  - {id: Q20, title: Acetylene stripper heating (MP steam), kind: energy, from: STEAM.t303, to: T303.steam, state: {design: {duty: {value: 1671.1, provenance: assumed, source: "scripts/balance.py: desorption heat 25 kJ/mol (ASSUMED, D-012)"}}}}
+  - {id: Q21, title: Hot stripper reboiler (MP steam), kind: energy, from: STEAM.t304, to: T304.steam, state: {design: {duty: {value: 5246.7, provenance: assumed, source: "scripts/balance.py: 8020 kW (solvent 403 -> 443 K, desorption, water evaporation) less Q12 (D-012)"}}}}
+  - {id: Q30, title: Circuit-water cooler duty, kind: energy, from: E101.q, to: CW.e101, state: {design: {duty: {value: 91554.1, provenance: assumed, source: "scripts/balance.py: quench and cooling-column water back to 303 K, vacuum condenser included (D-006)"}}}}
+  - {id: Q31, title: Compressor intercoolers duty, kind: energy, from: K201.cw, to: CW.k201, state: {design: {duty: {value: 5651.8, provenance: assumed, source: "scripts/balance.py: two intercoolers (D-007)"}}}}
+  - {id: Q32, title: Compressor aftercooler duty, kind: energy, from: E201.q, to: CW.e201, state: {design: {duty: {value: 4563.2, provenance: assumed, source: "scripts/balance.py: third stage and the latent heat of the condensate (D-007)"}}}}
+  - {id: Q33, title: Lean solvent cooler duty, kind: energy, from: E302.q, to: CW.e302, state: {design: {duty: {value: 9648.3, provenance: assumed, source: "scripts/balance.py: 348 -> 308 K and the heat of absorption (D-009)"}}}}
+layout: {bfd: {}, pfd: {}}

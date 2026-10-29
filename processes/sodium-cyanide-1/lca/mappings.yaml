@@ -1,0 +1,30 @@
+# sodium-cyanide-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# The preliminary LCI leaves every background unmapped (lca/lca.yaml `missing:`); an unmapped
+# exchange of this internal process is a reported gap (ADR 0022). Overrides likely needed when
+# the backgrounds are connected (DESIGN.md D-012):
+# - product:NACN: the registry has no sodium-cyanide slug yet (to be added in the consolidated
+#   chemicals PR);
+# - feed:NAOHF: 50 wt% solution counted with its water; the background is per kg NaOH 100 %
+#   (a properties_reason or a converted amount when linking chlor-alkali-1);
+# - feed:NH3F and feed:NAOHF: link explicitly to ammonia-1 and chlor-alkali-1 (dataset:), not by
+#   slug (another producer could be chosen first, as happened for aniline-1's hydrogen);
+# - product:MPSX: MP steam co-product counted in kWh of heat (1500 kPa(a) saturated);
+# - product:WW, product:CHW, product:CW: the treatment and utility entries of the shared file.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:NH3F":
+    atlas: false
+    source: >-
+      Not linked inside the Atlas by slug: the design basis of this feed is the product of the
+      library process ammonia-1; the link is to be pinned explicitly (dataset: in lca/lca.yaml)
+      when the backgrounds are connected (DESIGN.md D-012). Until then the exchange stays a gap.
+  "feed:NAOHF":
+    atlas: false
+    source: >-
+      Not linked inside the Atlas by slug: the design basis of this feed is the 50 wt% caustic of
+      the library process chlor-alkali-1, and the exchange counts the solution with its water;
+      the link is to be pinned explicitly with the NaOH content (DESIGN.md D-012).

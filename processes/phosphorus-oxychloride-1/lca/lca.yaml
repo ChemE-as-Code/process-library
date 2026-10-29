@@ -1,0 +1,98 @@
+# Goal and scope of the phosphorus-oxychloride-1 LCI. Schema: `cheme schema lca`. Outputs:
+# `cheme assess lca --inventory --write` and `--coverage` (lca/inventory.csv, gaps.csv,
+# dataset.yaml, manifest.json); never edit those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the plant
+# with its amount per functional unit from the balanced flowsheet. The background of every
+# purchased input, utility and waste treatment is deliberately left UNMAPPED (`missing:` with
+# the activity it should connect to later): a gap, never zero, and no values from licensed
+# databases. The plant's own emissions (Cl2, PCl3, POCl3 slip of the scrubber) are mapped as
+# elementary flows.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of distilled phosphorus oxychloride made from
+  molten white phosphorus, chlorine and oxygen via phosphorus trichloride, at the concept stage:
+  which raw materials, utilities, wastes and emissions the plant exchanges per kg of POCl3, as
+  the foreground for a later cradle-to-gate study. No impact results: the backgrounds are not
+  mapped yet (D-012).
+functional_unit: {product: POCL3, amount: 1, unit: kg, source: "1 kg of distilled phosphorus oxychloride (99.998 wt% POCl3, 21 ppm(wt) PCl3, D-002) at the plant gate, stream S14 (D-012)"}
+# Gate-to-gate in the sense of the foreground (the plant's own exchanges). The boundary key stays
+# cradle-to-gate so that the purchased inputs remain open gaps instead of being mapped free (the
+# schema's gate-to-gate maps every feed free), as phosgene-1 and sulfuric-acid-1 do (D-012).
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Chlorination of molten white phosphorus to PCl3 in a boiling reactor-still, liquid-phase oxidation of PCl3 with oxygen in a cooled loop reactor, two-column distillation with PCl3 recycle and residue purge, caustic vent scrubber; 4.0 t/h POCl3"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+flows:
+  # raw materials
+  - key: feed:P4
+    missing: "not mapped yet (D-012); connect to: white (yellow) phosphorus, molten, from the electrothermal reduction of phosphate rock with coke and silica in a submerged-arc furnace, delivered liquid under water; no library process makes phosphorus yet"
+    source: "flowsheet stream S1 (scripts/balance.py, D-002, D-003)"
+  - key: feed:CL2
+    missing: "not mapped yet (D-012); connect to: dry chlorine gas from membrane chlor-alkali electrolysis (processes/chlor-alkali-1, product:CL2, 0.81 wt% O2), allocated as there"
+    source: "flowsheet stream S2 (D-003, D-004)"
+  - key: feed:O2
+    missing: "not mapped yet (D-012); connect to: gaseous oxygen 99.7 mol% from cryogenic air separation by pipeline (processes/asu-1, product:GOXP)"
+    source: "flowsheet stream S10 (D-003, D-005)"
+  - key: feed:NAOH
+    missing: "not mapped yet (D-012); connect to: sodium hydroxide 50 wt% in water from membrane chlor-alkali electrolysis (processes/chlor-alkali-1, product:NAOH), allocated as there. The amount is kg of 50 wt% SOLUTION (3.87 g/kg POCl3 = 1.93 g NaOH as 100 %): halve it if the background is per kg NaOH (100 %)"
+    source: "flowsheet stream S20, mass of the 50 wt% solution (D-009)"
+  - key: feed:PW
+    missing: "not mapped yet (D-012); connect to: process (decarbonised or softened) water from the site water treatment"
+    source: "flowsheet stream S21 (D-009)"
+  # utilities
+  - key: feed:POWER
+    missing: "not mapped yet (D-012); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy streams Q10 (R-101 agitator, P-101), Q11 (R-201 loop pump P-201, P-202), Q12 (distillation pumps), Q13 (scrubber pump), D-010"
+  - key: feed:LPS
+    missing: "not mapped yet (D-012); connect to: heat from LP steam 400 kPa(a) of a natural-gas-fired site boiler (processes/utility-steam-ng-boiler), per kWh of condensing heat (about 1.6 kg steam per kWh at 400 kPa(a))"
+    source: "flowsheet energy streams Q5, Q7 (column reboilers), D-008"
+  - key: product:CW
+    missing: "not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower: pump and fan electricity, make-up water, evaporation, blowdown, treatment chemicals), per kWh removed"
+    source: "flowsheet energy streams Q1 (R-101 reflux condenser), Q3 (R-201 loop cooler), Q6, Q8 (column condensers), Q9 (product cooler), D-005, D-007"
+  - key: product:CHW
+    missing: "not mapped yet (D-012); connect to: chilled water 278/283 K from an electric vapour-compression chiller (processes/utility-chiller), per kWh removed"
+    source: "flowsheet energy streams Q2, Q4 (vent condensers), D-007"
+  # wastes
+  - key: product:RES
+    treatment: {kind: waste, route: "hazardous-waste incineration of the chlorinated phosphorus residue with flue-gas scrubbing (HCl and phosphoric acid captured); not a sold co-product"}
+    missing: "not mapped yet (D-012); connect to: incineration of hazardous liquid chlorinated waste (phosphorus chlorides), per kg"
+    source: "flowsheet stream S15 (D-008)"
+  - key: product:EFF
+    treatment: {kind: waste, route: "site wastewater treatment: dechlorination of the hypochlorite, neutralisation of the excess NaOH, discharge of NaCl and dissolved sodium phosphate and phosphite (phosphorus load to be checked against the discharge permit)"}
+    missing: "not mapped yet (D-012); connect to: treatment of saline alkaline process effluent (NaCl, Na3PO4, Na2HPO3, NaOH, NaOCl) in an industrial wastewater treatment plant, per kg"
+    source: "flowsheet stream S24 (D-009)"
+  # emissions: the scrubbed vent to atmosphere (low stack ASSUMED: subcompartment unspecified)
+  - {key: product:STACK, emission: true, source: "scrubbed reactor vents to atmosphere, stream S23 (D-009)"}
+  - {key: emission:O2, free: true, source: "excess oxygen of R-201 and the unconverted oxygen of the chlorine feed, returned to the atmosphere"}
+  - {key: emission:AR, free: true, source: "argon of the asu-1 oxygen returned to the atmosphere"}
+  - {key: emission:H2O, free: true, source: "water vapour of the scrubber leaving with the vent gas"}
+  - key: emission:CL2
+    elementary: {compartment: air, subcompartment: unspecified}
+    source: "chlorine slip of the scrubber: 0.01 % of the 0.05 % Cl2 excess of R-101 (both ASSUMED, D-004, D-009), stream S23"
+  - key: emission:PCL3
+    elementary: {compartment: air, subcompartment: unspecified}
+    source: "PCl3 slip of the scrubber (0.01 %, ASSUMED, D-009), stream S23; hydrolyses in moist air to phosphorous acid and HCl"
+  - key: emission:POCL3
+    elementary: {compartment: air, subcompartment: unspecified}
+    source: "POCl3 slip of the scrubber (0.01 %, ASSUMED, D-009), stream S23; hydrolyses in moist air to phosphoric acid and HCl"
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 25 a service life ASSUMED"
+emission_exclusions:
+  - {id: fugitive-chlorides, method: equipment-leaks, reason: "No P&ID yet: fugitive PCl3, POCl3, Cl2 and HCl from flanges, valves, seals and tank breathing cannot be counted; tank vents and the reactor vents go to the scrubber (D-011). Open for basic engineering."}
+  - {id: storage-breathing, method: storage-tank, reason: "Product and intermediate storage (dry-nitrogen padded, vented to the scrubber) is outside the PFD; its nitrogen and breathing losses are not counted (D-011)."}
+  - {id: phosphorus-mud, method: effluent, reason: "The phosphorus mud filtered from the molten phosphorus (0.2-0.5 wt% phosphorus mud in CN115259114B, SRC-3) and the phosphorus-bearing wash water of the melt tank are not in the balance: the P feed is modelled as pure P4 (D-003)."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals; CPC to be added
+  modelling: {principle: attributional}
+  geography: {description: "Generic site integrated with a chlor-alkali plant and an air separation unit, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #135, unreviewed"

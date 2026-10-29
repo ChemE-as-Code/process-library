@@ -1,0 +1,177 @@
+# Goal and scope of the kraft-pulp-1 LCA. Schema: `cheme schema lca`. Outputs: `cheme assess lca
+# --write` (lca/inventory.csv, results.csv, results.md, gaps.csv, dataset.yaml, manifest.json);
+# never edit those by hand. Decisions: DESIGN.md D-012, D-014.
+#
+# This stage delivers the PRELIMINARY GATE-TO-GATE FOREGROUND INVENTORY: every exchange of the
+# balanced flowsheet per kg of air-dry bleached kraft pulp. No background is connected yet: each
+# feed, utility and waste names the background activity it should link to later and is declared
+# `missing:` (a gap in every category, never 0). `boundary: cradle-to-gate` is the scope the
+# backgrounds will complete; `gate-to-gate` in cheme maps every feed free, which would hide the
+# raw materials (as in soda-ash-1 D-010). Biogenic and fossil CO2 are separate components
+# (CO2B, CO2) and separate elementary flows (D-012).
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary foreground (gate-to-gate) life cycle inventory of bleached softwood kraft market
+  pulp at the concept stage: which wood, chemicals, utilities, emissions (biogenic and fossil
+  CO2 apart) and wastes the balanced flowsheet implies per kg of air-dry pulp, ready to be
+  linked to background datasets later. Flows are concept estimates on sourced ranges and
+  assumed design parameters (DESIGN.md D-003 to D-011).
+functional_unit: {product: PULP, amount: 1, unit: kg}
+boundary: cradle-to-gate
+year: 2026
+location: GLO   # generic site, country not chosen (D-002)
+technology: "Bleached softwood kraft market pulp: continuous digester, O2 delignification, ECF D0-EOP-D1, drying machine, 7-effect evaporation to 80 % solids, recovery boiler 84 bar with extraction back-pressure turbine and condensing tail, recausticizing, natural gas lime kiln; 1000 ADt/d"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+allocation:
+  method: shares
+  coproducts: [PULP, EEXP]
+  shares: {PULP: 1.0, EEXP: 0.0}
+  source: >-
+    D-014: the pulp carries all burdens; the exported electricity (263 kWh/ADt, turbine
+    generation less mill use) leaves without a burden and without a credit (conservative for
+    the pulp). The unallocated dataset (lca/dataset.yaml) keeps the export as an output.
+  deviation: >-
+    The library hierarchy allocates exported electricity by energy or exergy
+    (docs/system-model.md). Neither applies yet: the pulp has no declared energy content or
+    exergy in this run (its heating value is not predicted, D-003), so energy allocation would
+    put every burden on the electricity; the electricity is counted in kWh, so the WBCSD price
+    ratio does not apply either. Substitution (crediting displaced grid electricity) cannot be
+    exported as one activity per co-product and its avoided product is not linked (country
+    not chosen, D-002). Shares 1/0 are the conservative choice for the pulp until the pulp's
+    exergy is available (DESIGN.md D-014).
+  # substitution (system expansion), for comparison only once the site's grid is chosen:
+  # credit -0.263 kWh/kg pulp of the country's medium/high-voltage grid electricity (D-014).
+flows:
+  # ---- raw materials (backgrounds to connect later)
+  - key: feed:CHIPS
+    missing: "no background linked yet. Connect: softwood chips from roundwood (spruce/pine, forest operations, debarking and chipping), per kg wet chips at 50 % moisture (1.0 kg dry wood = 2.0 kg wet); biogenic carbon uptake of the wood counted with the chips (D-012)"
+    source: "stream S1 (scripts/kraft_balance.py, D-003, D-004)"
+  - key: feed:NAOH
+    missing: "no background linked yet. Connect: sodium hydroxide, 50 % solution, from chlor-alkali (membrane) electrolysis (processes/chlor-alkali-1 when published), per kg of solution (0.5 kg NaOH)"
+    source: "streams S6 (O2-stage make-up) and S15 (bleaching) (D-006, D-008)"
+  - key: feed:O2
+    missing: "no background linked yet. Connect: gaseous oxygen from cryogenic air separation (processes/asu-1), per kg O2 delivered at ~1000 kPa(a)"
+    source: "streams S8 and S18 (D-006, D-008)"
+  - key: feed:CLO2
+    missing: "no background linked yet. Connect: chlorine dioxide water (10 g/kg) from an on-site ClO2 generator (sodium chlorate reduced with methanol (methanol-1) or hydrogen peroxide in sulfuric acid; its by-product sesquisulfate is not credited). Basis: the exchange is per kg of SOLUTION (10 g ClO2 + 990 g water); a background per kg ClO2 must be scaled by 0.01 kg ClO2/kg solution and the 0.99 kg water added as process water (feed:FW basis), never linked 1:1"
+    source: "stream S14 (D-008)"
+  - key: feed:H2O2
+    missing: "no background linked yet. Connect: hydrogen peroxide 50 % (anthraquinone process, processes/hydrogen-peroxide-1), per kg of solution"
+    source: "stream S16 (D-008)"
+  - key: feed:H2SO4
+    missing: "no background linked yet. Connect: sulfuric acid 93 % (contact process, processes/sulfuric-acid-1). Basis: the exchange is per kg of 93 wt% acid as delivered (0.93 kg H2SO4); a background per kg H2SO4 (100 %) must be scaled by 0.93"
+    source: "stream S17 (D-008)"
+  - key: feed:SALT
+    missing: "no background linked yet. Connect: sodium sulfate, anhydrous (natural or by-product), per kg"
+    source: "stream S27: sulfur make-up equal to the sulfur losses (D-006)"
+  - key: feed:CAO
+    missing: "no background linked yet. Connect: quicklime, burnt in a lime kiln (market for quicklime), per kg CaO; its calcination CO2 is fossil and sits in the background (D-012)"
+    source: "stream S35 (D-009)"
+  - key: feed:NG
+    missing: "no background linked yet. Connect: natural gas, high pressure, delivered to an industrial consumer (production, processing, transport), per kg or per MJ LHV (50 MJ/kg as methane, D-009); the combustion emissions are in the foreground (STACK)"
+    source: "stream S43: 1.5 GJ/ADt (BREF 2015 sec. 3.2.2.6.2) (D-009)"
+  - key: feed:FW
+    missing: "no background linked yet. Connect: process water from surface water, mechanically and chemically treated at the mill (or the elementary resource, water from a river or lake, with the treatment as a separate activity), per kg"
+    source: "streams S19 (bleach plant) and S48 (post-O2 washer) (D-006, D-008)"
+  - key: feed:AIR
+    free: true
+    source: "recovery boiler and lime kiln combustion air: ambient air, a resource taken without burden"
+  # ---- utilities
+  - key: product:CW
+    missing: "no background linked yet. Connect: cooling water from a circulating evaporative cooling tower (processes/utility-cooling-tower: pumping, fans, make-up water and treatment chemicals), per kWh of heat rejected"
+    source: "Q8 (evaporator surface condenser) and Q9 (turbine condensing tail) (D-011)"
+  # ---- wastes and emissions
+  - key: product:WW
+    treatment:
+      kind: waste
+      route: "biological treatment of the bleach plant effluent at the mill (activated sludge), then discharge to surface water"
+    missing: "no background linked yet. Connect: treatment of pulp mill effluent in an activated sludge plant (processes/utility-wwtp when it covers pulp effluent), with the treated discharge (COD, BOD, AOX, N, P, TSS per BREF 2015 Table 3.11 ranges) as elementary flows to water and the sludge; the composition (dissolved organics, NaCl, Na2SO4, biogenic CO2) is in stream S21 (lca/dataset.yaml)"
+    source: "stream S21: 18 m3/ADt (BREF 2015 sec. 3.3.8) (D-008)"
+  - key: product:SW
+    treatment:
+      kind: waste
+      route: "landfill of green liquor dregs, slaker grits and lime mud purge (inorganic, alkaline)"
+    missing: "no background linked yet. Connect: disposal of inorganic pulp mill residues (dregs, grits, lime mud) to an inert or non-hazardous landfill, per kg wet residue"
+    source: "streams S32, S34, S41 (D-009; BREF 2015 Table 3.17: 10-20 kg/ADt dregs, grits and green liquor sludge and 10-20 kg/ADt lime purge)"
+  - {key: product:STACK, emission: true, source: "streams S29 (recovery boiler after ESP), S45 (kiln calcination gas) and S50 (kiln burner gas), to atmosphere (D-010, D-012)"}
+  - {key: product:VENT, emission: true, source: "streams S10 (O2 stage blow vent), S22 (bleach plant vent), S25 (dryer exhaust), to atmosphere"}
+  - key: emission:CO2B
+    elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: biogenic}
+    source: "biogenic CO2: black liquor combustion (carbon from the wood) and lime mud calcination (carbonate carbon formed from that combustion CO2 in the smelt; traced through the flowsheet's components, the classification of the calcination CO2 as biogenic is a convention ASSUMED here, not cited: counted fossil it would add 0.172 kg CO2-eq/kg pulp, D-012); fossil limestone carbon does not enter, the make-up is purchased CaO (D-012)"
+  - key: emission:CO2
+    elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}
+    source: "fossil CO2 from the natural gas burnt in the lime kiln (D-012)"
+  - key: emission:SO2
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    source: "recovery boiler, 0.1 kg S/ADt ASSUMED inside BREF Table 3.13 (<0.002-0.65 kg S/ADt) (D-010)"
+  - key: emission:NO2
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    source: "nitrogen oxides as NO2: recovery boiler 1.2 kg/ADt (BREF Table 3.13: 0.73-2.0) and lime kiln 0.4 kg/ADt ASSUMED (D-010)"
+  - key: emission:Na2SO4
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    source: "particulate matter after the recovery boiler ESP, as sodium sulfate, 0.3 kg/ADt ASSUMED inside BREF Table 3.13 (0.02-1.6 kg/ADt); size split (PM2.5/PM10) not estimated (D-010)"
+  - {key: emission:N2, free: true, source: "nitrogen of the combustion air returned to the atmosphere"}
+  - {key: emission:O2, free: true, source: "excess oxygen of the combustion air and unreacted bleaching and delignification oxygen returned to the atmosphere"}
+  - {key: emission:H2O, free: true, source: "water vapour of the flue gases and the dryer exhaust"}
+
+# Emissions not estimated at this stage: declared, never silently 0 (D-010).
+emission_exclusions:
+  - id: trs-co-voc
+    method: combustion
+    equipment: [B-701, K-901]
+    exchange: product:STACK
+    reason: "Total reduced sulfur (H2S, methyl mercaptan, dimethyl sulfide; BREF Table 3.13: 0.0007-0.4 kg S/ADt from the recovery boiler), CO, VOC and the collected non-condensable gases (burnt in the boiler or kiln) are not estimated: no sulfur species beyond SO2 are in the component set (D-010)"
+    source: "DESIGN.md D-010"
+  - id: kiln-so2-dust
+    method: combustion
+    equipment: [K-901]
+    exchange: product:STACK
+    reason: "Lime kiln SO2 and dust are not estimated: natural gas firing without NCG incineration is assumed, but a kiln burning NCG emits SO2 (BREF 2015 Table 3.26 and Figures 3.72-3.73, 3.80-3.81) (D-010)"
+    source: "DESIGN.md D-010"
+  - id: dissolving-tank-vent
+    method: storage-tank
+    equipment: [T-702]
+    exchange: product:STACK
+    reason: "The smelt dissolving tank vent (water vapour with sodium salt particulates and TRS, scrubbed; BREF 2015 sec. 3.2.2.6) is not a stream of the flowsheet: its water is counted in the green liquor balance and its particulates and TRS are not estimated (D-010)"
+    source: "DESIGN.md D-010"
+  - id: diffuse-and-water-organics
+    method: effluent
+    equipment: [R-401, E-601]
+    exchange: product:WW
+    reason: "Methanol and reduced sulfur in the evaporator foul condensates, chlorate and chlorinated organics (AOX) of the ClO2 stages and the chelating agents are not components; the effluent is passed to treatment as a waste flow with its lumped composition (D-008)"
+    source: "DESIGN.md D-008"
+
+# Carbon by origin (D-012): the wood's carbon is biogenic; natural gas carbon is fossil (the
+# default for an input); the other feeds carry no carbon. The flowsheet keeps the two origins
+# apart as components (CO2B, CO2), so the origin declared on each elementary flow is the
+# physical split; tracing by the plant-wide pool share (2.1 % fossil) would count 98 % of the
+# kiln's fossil CO2 as biogenic (review 2026-10-28-pfd-lci-review#1, D-012).
+carbon_accounting:
+  trace_emissions: false
+  source: "D-012: CO2B (wood carbon) and CO2 (natural gas carbon) are separate components; the declared origin per elementary flow wins over the pool share"
+  content:
+    feed:CHIPS: {biogenic_fraction: 1.0, source: "wood carbon, taken up from the atmosphere by the trees (D-012)"}
+
+operation:
+  hours_per_year: 8400
+  life_years: 25
+  source: "design basis operating_hours_per_year 8400 (ASSUMED); 25 a service life ASSUMED; no construction inventory at this stage (no take-off)"
+
+uncertainty:
+  iterations: 1000
+  seed: 1
+  defaults:
+    assumed: {gsd2: 1.5, source: "concept estimate on sourced ranges and assumed design parameters (D-004 to D-011)"}
+    calculated: {gsd2: 1.2, source: "calculated from assumed inputs"}
+    given: {gsd2: 1.1, source: "design basis"}
+
+dataset:
+  version: 0.1.0
+  geography: {description: "Generic site, country not chosen (D-002); no regional background linked"}
+  system_model: cutoff   # the export leaves without burden or credit (shares 1/0, D-014)
+  technology_level: current
+  classification: {isic: "1701", cpc: "3212"}
+  modelling: {principle: attributional}
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library, kraft-pulp-1 concept design (agent run 2026-10-28)"

@@ -1,0 +1,49 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Formic acid by methanol carbonylation and methyl formate hydrolysis, issue
+# ChemE-as-Code/process-library#185. Values marked ASSUMED are engineering choices of this concept
+# study, not client or licensor data; every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: formic acid 85 wt% (aqueous) at the plant gate, to storage
+  product_kg_per_h: 6250              # ASSUMED (D-002): 5312.5 kg/h HCOOH
+  product_t_per_year: 50000           # at 8000 h
+  operating_hours_per_year: 8000      # ASSUMED (D-002)
+  turndown_percent: 50                # ASSUMED, not checked
+feeds:
+  - name: Carbon monoxide (from a syngas cold box outside the boundary; no library process makes pure CO yet)
+    source_of_values: ASSUMED (D-003)
+    composition: "CO 99 mol%, impurities lumped as N2; water below 5 ppm and CO2 low (US4216339A: water poisons the methoxide); H2, CH4, CO2, sulfur to be specified by the supplier (open input)"
+    conditions: {temperature_K: 303.15, pressure_kPa_a: 200}
+  - name: Methanol make-up (processes/methanol-1 product)
+    source_of_values: ASSUMED (D-003)
+    composition: "AA-grade methanol, water < 0.1 wt% (taken as pure)"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 400}
+  - name: Sodium methoxide 30 wt% in methanol (catalyst make-up)
+    source_of_values: ASSUMED (D-007)
+  - name: Process water (demineralised), hydrolysis make-up
+    source_of_values: ASSUMED (D-008)
+  - name: Combustion air for the vent oxidiser
+    composition_dry_mol_percent: {N2: 78.12, O2: 20.95, Ar: 0.93}   # CO2 lumped into N2
+products:
+  - name: Formic acid 85 wt%
+    purity: "85.0 wt% HCOOH, balance water; methanol and methyl formate below detection assumed (sharp splits, D-009)"
+    delivery: {temperature_K: 318.15, battery_limit: "product storage (outside the boundary); stream S28 leaves the C-302 condenser at 12 kPa(a), the product pump is within the power allowance (D-011)"}
+  - name: Spent catalyst purge
+    note: "Sodium formate, residual sodium methoxide and methanol, 1 % of the C-101 bottoms, to incineration outside the boundary (D-007)"
+  - name: Oxidiser flue gas
+    note: "CO2 of the burnt carbonylation vent (8 % of the CO fed), residual CO, N2, O2, Ar, water; explicit in stream S16 and the LCI (D-010)"
+utilities:
+  - {name: Electric power, use: "CO compressor K-101, feed pumps P-101 and P-201, vacuum system of C-302 (D-010, D-011)"}
+  - {name: LP steam, pressure_kPa_a: 450, temperature_K: 420.8, use: "all reboilers, hydrolyser feed preheater and reactor heat (D-011)", note: "ASSUMED one level; C-301 bottoms at about 403 K leave 18 K approach"}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "column condensers, carbonylation reactor, effluent cooler, compressor intercoolers", note: ASSUMED}
+  - {name: Fuel, use: none in the design case, note: "the oxidiser burns the CO-rich vent without support fuel; pilot and start-up fuel excluded (D-010)"}
+site:
+  location: ASSUMED generic site with a CO supply (syngas cold box) and methanol from methanol-1, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Carbonylation at 353 K, 4500 kPa(a), 2.5 wt% sodium methoxide, 30 % methanol conversion per pass and 92 mol% CO yield (US4216339A Example 1; D-005)."
+  - "Hydrolysis at 393 K, 600 kPa(a), water/methyl formate 1.5 mol/mol, 95 % (ASSUMED) of the equilibrium conversion with Kx = 0.20 (EP2747883A1, EP3661904B1; US4299981 an unverified lead; D-008): 28.9 % per pass."
+  - "Pressure-swing concentration: C-301 at 203 kPa(a) to 77 wt% (azeotrope about 80 wt%), C-302 at 12 kPa(a) to 85 wt% overhead and 66 wt% bottoms recycled to the hydrolyser (EP3661904B1, EP2747883A1; D-009)."
+  - "All column splits are sharp except the stated methanol in the methyl formate distillates and the 0.5 wt% acid in the C-301 water (D-007..D-009); reverse esterification and formic acid decomposition neglected (D-008)."
+  - "Duties are shortcut estimates ((R+1) D dHvap, ASSUMED reflux ratios, C-301 at 1.2 times its estimated minimum, no heat integration; D-011); total LP steam heat 4.46 kWh/kg product, about 1.9 times the 2400 kWh/t of prior art quoted in EP2747883A1."

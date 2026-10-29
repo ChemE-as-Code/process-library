@@ -1,0 +1,80 @@
+# Process Atlas manifest of acetic-anhydride-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: acetic-anhydride-1
+title: Acetic anhydride by the ketene route (acetic acid cracking, 50 kt/a, concept)
+summary: >-
+  Acetic acid cracked to ketene at 700 C under vacuum with a triethyl phosphate catalyst,
+  ketene absorbed and reacted in acetic acid, crude anhydride distilled to 99.5 wt%; the
+  dilute acid is recovered and the vent gas fuels the furnace. Concept stage, assumed basis.
+description: |
+  Glacial acetic acid (a boundary feed) is vaporised and cracked in a fired tubular furnace at
+  700 C and about 36 kPa(a) with triethyl phosphate; ammonia neutralises the catalyst at the
+  coil outlet. The cracked gas is condensed to -5 C (cooling water, then brine), which removes
+  the reaction water and the unconverted acid as dilute acid. The ketene is absorbed and
+  reacted in acetic acid to crude anhydride, which an acid column and an anhydride column
+  refine; the dilute acid is recovered (extraction and azeotropic dehydration, lumped) and
+  recycled, and the absorber vent gas is burned in the furnace with natural gas.
+
+  The cracking conversion (0.84) and ketene selectivity (0.92) are the example of a published
+  patent (US 4,455,439); the absorber, column and acid-recovery performances, all duties and
+  the capacity are assumed concept values from an independent balance script. See DESIGN.md of
+  the engineering files for every assumption and gated step.
+families: [oxygenates]
+keywords: [acetic anhydride, ketene, acetic acid, pyrolysis, cracking furnace, triethyl phosphate, absorption, distillation, dilute acid recovery]
+facets:
+  feedstock_basis: [fossil]
+  product_classes: [chemicals]
+  unit_operations: [reaction, heat-exchange, absorption, distillation, extraction]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest; see validation.notes.
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances on every block and step
+    (cheme validate, cheme process streams; overall 14 892 kg/h in and out). The cracking coil,
+    absorber and firebox outlets are calculated by cheme conversion reactors; the separator,
+    column and acid-recovery outlets, all temperatures, pressures and duties are ASSUMED values
+    from scripts/ac2o_balance.py. Energy closure is not evaluable in core (no property package
+    covers acetic acid, ketene, anhydride and water; core #315); the script closes it on its own
+    property data. Preliminary gate-to-gate LCI with every background unmapped (11 gaps). Not
+    reviewed. The chemicals registry has no acetic acid, acetic anhydride, ammonia, triethyl
+    phosphate or carbon monoxide entry yet (open library item), so only registry slugs are listed
+    under chemistry.
+chemistry:
+  inputs:
+    - {chemical: methane, role: feedstock, inventory_key: "feed:NG", note: "Natural gas to the cracking furnace, taken as methane (D-010). The main feed, glacial acetic acid (feed:AA, 1.246 kg/kg product), the catalyst triethyl phosphate (feed:TEP) and ammonia (feed:NH3) have no registry entry yet"}
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Combustion air of the furnace"}
+  outputs:
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Wastewater of the dilute acid recovery, about 0.65 wt% acetic acid. The main product, acetic anhydride (product:AC2O), has no registry entry yet"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:STACK", note: "CO2 of the furnace flue gas (natural gas and vent gas burned), 0.195 kg/kg product"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Vent vacuum pump and absorber circulation pumps"}
+    # Steam without inventory_key: the inventory counts it as heat delivered (kWh), the registry
+    # slug by mass (kg); the Atlas link (lci/mappings.yaml steam-heat) is the mapping step's
+    # decision, so feed:LPS and feed:MPS stay gaps (D-014).
+    - {chemical: steam, role: utility, note: "LP steam 450 kPa(a), vaporiser and dilute acid recovery (feed:LPS); MP steam 1500 kPa(a), distillation reboilers (feed:MPS); both in kWh of heat delivered"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED)"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:BRINE", note: "Brine at -10 C on the last cracked-gas condensers; the registry has chilled water, not brine (closest entry)"}
+basis:
+  capacity: "50 kt/a acetic anhydride 99.5 wt% (ASSUMED)"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
+references:
+  - {title: "Hoechst AG (1984) Process for the preparation of ketene, US 4,455,439 (Example: cracking conditions, conversion, ketene yield, condensate)", url: "https://patents.google.com/patent/US4455439A/en"}
+  - {title: "Celanese (2014) Processes for preparing acetic anhydride, US 8,653,303 B2 (catalyst rate, absorber conditions, heat of reaction, crude composition)", url: "https://patents.google.com/patent/US8653303B2/en"}
+  - {title: "Padmanabhan, N., Deshpande, P.K., Kuloor, N.R. (1968) Catalytic cracking of acetic acid to acetic anhydride. I&EC Process Design and Development 7(4) 511-516"}
+  - {title: "Arpe, H.-J. et al. Acetic Anhydride and Mixed Fatty Acid Anhydrides. Ullmann's Encyclopedia of Industrial Chemistry (route reference lead, not audited in this run)", doi: 10.1002/14356007.a01_065}
+lca:
+  source: none   # every background is a gap: the generated total holds only the direct CO2 (D-014)
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/acetic-anhydride-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0

@@ -1,0 +1,114 @@
+# Reactions of thionyl-chloride-1. Schema: `cheme schema process-reactions`. Heats of reaction
+# from the ideal-gas formation enthalpies of materials.yaml at 298.15 K where every species has
+# them; reactions with condensed sulfur or aqueous salts carry none here (their duties come from
+# scripts/balance.py, DESIGN.md D-006). Conversions are design inputs (DESIGN.md D-004, D-005,
+# D-008, D-009): a conversion model, not kinetics; the per-pass conversion of the main reaction
+# is the reported range of DE2430631A1, not a prediction.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  # R101: sulfur chlorinated to disulfur dichloride in a pool of sulfur chlorides
+  - id: S2CL2_FORM
+    equation: 2 S + Cl2 -> S2Cl2
+    stoichiometry: {S: -2.0, CL2: -1.0, S2CL2: 1.0}
+    reversible: false
+    conversion:
+      key: S
+      value: 1.0
+      provenance: assumed
+      source: "D-004: the sulfur fed (fresh and dissolved in the recycled still bottoms) is chlorinated completely with the stoichiometric chlorine, ASSUMED"
+    sources:
+      - "US2431823A (Pechukas, Pittsburgh Plate Glass, 1947): still bottoms of S2Cl2 with sulfur are chlorinated and returned (description)"
+  # R102 (liquid, with chlorine) and R201 (gas, over carbon): S2Cl2 chlorinated to SCl2
+  - id: SCL2_FORM
+    equation: S2Cl2 + Cl2 <=> 2 SCl2
+    stoichiometry: {S2CL2: -1.0, CL2: -1.0, SCL2: 2.0}
+    reversible: true
+    conversion:
+      key: S2CL2
+      value: 0.90
+      provenance: assumed
+      source: "D-004: 90 % of the inlet S2Cl2 chlorinated in R102 at 313 K, ASSUMED (no sourced equilibrium for the liquid)"
+    heat_of_reaction:
+      value: -18400.0
+      provenance: given
+      source: "ideal-gas formation enthalpies of materials.yaml (NIST WebBook), 298.15 K; gas basis"
+    sources:
+      - "US2431823A: chlorine converts S2Cl2 to SCl2 and the sulfur chlorides coexist in equilibrium, so which chloride is fed matters little (description)"
+  # the same reaction in R201 (gas over carbon, with Cl2 in excess): its own entry so that its
+  # conversion carries its provenance (review 2026-10-28 R-03; a step-level override cannot)
+  - id: SCL2_FORM_R201
+    equation: S2Cl2 + Cl2 <=> 2 SCl2
+    stoichiometry: {S2CL2: -1.0, CL2: -1.0, SCL2: 2.0}
+    reversible: true
+    conversion:
+      key: S2CL2
+      value: 0.95
+      provenance: assumed
+      source: "D-005: 95 % of the S2Cl2 entering R201 chlorinated to SCl2 over the carbon at 398-473 K with Cl2 5 % over stoichiometric, ASSUMED (no sourced gas-phase conversion)"
+    heat_of_reaction:
+      value: -18400.0
+      provenance: given
+      source: "ideal-gas formation enthalpies of materials.yaml (NIST WebBook), 298.15 K; gas basis"
+    sources:
+      - "US2431823A: a sulfur chloride, S2Cl2 or SCl2, may be fed with SO2 and Cl2 over the carbon (description)"
+  # R201: the thionyl chloride synthesis over activated carbon
+  - id: SOCL2_SYN
+    equation: SCl2 + SO2 + Cl2 -> 2 SOCl2
+    stoichiometry: {SCL2: -1.0, SO2: -1.0, CL2: -1.0, SOCL2: 2.0}
+    reversible: true
+    conversion:
+      key: SCL2
+      value: 0.75
+      provenance: given
+      source: >-
+        DE2430631A1 (Bayer, 1976), description and examples 1A/2: 50-80 % per pass, 70-75 % in
+        the examples, gas phase over activated carbon at 160-240 C without pressure; the
+        upper end of the examples taken (D-005)
+    heat_of_reaction:
+      value: -110630.0
+      provenance: given
+      source: "ideal-gas formation enthalpies of materials.yaml (CRC, NIST WebBook), 298.15 K"
+    catalyst: activated carbon
+    sources:
+      - "DE2430631A1, Bayer AG (1976): Purifying crude gaseous thionyl chloride, https://patents.google.com/patent/DE2430631A1/en (description, examples 1A, 1B, 2)"
+      - "US2431823A, Pechukas (1947): Manufacturing thionyl chloride, https://patents.google.com/patent/US2431823 (preferred 175-225 C, about 200 C optimum, SO2 about 100 % and Cl2 0-10 % over stoichiometric)"
+  # T301: SCl2 left in the crude converted with sulfur to the high-boiling S2Cl2
+  - id: SCL2_SULFUR
+    equation: SCl2 + S -> S2Cl2
+    stoichiometry: {SCL2: -1.0, S: -1.0, S2CL2: 1.0}
+    reversible: true
+    conversion:
+      key: SCL2
+      value: 0.99504
+      provenance: assumed
+      source: "D-008: set so that the distillate holds 0.1 wt% SCl2 (scripts/balance.py); US4759826A and DE2430631A1 report the conversion of SCl2 with sulfur during distillation, not its extent"
+    sources:
+      - "US4759826A (Occidental, 1988): double distillation of crude SOCl2 in the presence of sulfur, SCl2 shifted to S2Cl2 that stays in the reboiler (description, examples)"
+      - "EP0042530B1 (1981): sulfur added at 1-15 wt%, preferably 2.5-7 wt%, of the thionyl chloride before or during distillation (description)"
+  # T401: caustic scrubbing of the purge gas
+  - id: SO2_NAOH
+    equation: SO2 + 2 NaOH -> Na2SO3 + H2O
+    stoichiometry: {SO2: -1.0, NAOH: -2.0, NA2SO3: 1.0, H2O: 1.0}
+    reversible: false
+    conversion: {key: SO2, value: 0.999, provenance: assumed, source: "D-009: absorption in the caustic scrubber, ASSUMED"}
+  - id: CL2_SULFITE
+    equation: Cl2 + Na2SO3 + 2 NaOH -> Na2SO4 + 2 NaCl + H2O
+    stoichiometry: {CL2: -1.0, NA2SO3: -1.0, NAOH: -2.0, NA2SO4: 1.0, NACL: 2.0, H2O: 1.0}
+    reversible: false
+    conversion: {key: CL2, value: 0.999, provenance: assumed, source: "D-009: chlorine absorbed and reduced by the sulfite formed from the SO2 (sulfite in excess, so no hypochlorite remains), ASSUMED"}
+  - id: SOCL2_NAOH
+    equation: SOCl2 + 4 NaOH -> Na2SO3 + 2 NaCl + 2 H2O
+    stoichiometry: {SOCL2: -1.0, NAOH: -4.0, NA2SO3: 1.0, NACL: 2.0, H2O: 2.0}
+    reversible: false
+    conversion: {key: SOCL2, value: 0.999, provenance: assumed, source: "D-009: hydrolysis and neutralisation in the scrubber, ASSUMED"}
+  - id: SCL2_NAOH
+    equation: 2 SCl2 + 6 NaOH -> Na2S2O3 + 4 NaCl + 3 H2O
+    stoichiometry: {SCL2: -2.0, NAOH: -6.0, NA2S2O3: 1.0, NACL: 4.0, H2O: 3.0}
+    reversible: false
+    conversion: {key: SCL2, value: 0.999, provenance: assumed, source: "D-009: alkaline hydrolysis of SCl2 written to thiosulfate (simplified, ASSUMED; the real products include sulfur and polythionates)"}
+  - id: S2CL2_NAOH
+    equation: 2 S2Cl2 + 6 NaOH -> Na2S2O3 + 2 S + 4 NaCl + 3 H2O
+    stoichiometry: {S2CL2: -2.0, NAOH: -6.0, NA2S2O3: 1.0, S: 2.0, NACL: 4.0, H2O: 3.0}
+    reversible: false
+    conversion: {key: S2CL2, value: 0.999, provenance: assumed, source: "D-009: alkaline hydrolysis of S2Cl2 to thiosulfate and sulfur (simplified, ASSUMED)"}

@@ -1,0 +1,526 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Bleached softwood kraft market pulp mill with chemical recovery, 1000 ADt/d (D-001, D-002).
+# Where the values come from:
+# - every flow and composition is from the independent sequential balance
+#   scripts/kraft_balance.py (`cheme run scripts/kraft_balance.py --yaml`), given here as
+#   ASSUMED: it rests on sourced ranges and ASSUMED design parameters (wood composition,
+#   yields, alkali and bleaching charges, washing carry-over, reduction, causticity,
+#   calcination; DESIGN.md D-003 to D-010) and on lumped model components for wood and black
+#   liquor (materials.yaml), because core represents neither wood nor electrolyte liquors (D-007);
+# - reactive steps name their reactions (process/reactions.yaml): cheme checks their element
+#   balances by extents;
+# - duties are from the same script (D-011): sourced specific heat and power figures split by
+#   consumer (ASSUMED), recovery boiler steam from the steam-to-solids ratio, turbine with
+#   IAPWS-IF97 (CoolProp); no property package covers these streams, so cheme cannot close
+#   the energy balance (D-011);
+# - temperatures and pressures are ASSUMED nominal values (D-013).
+schema: cheme/process/v1
+kind: flowsheet
+title: Bleached softwood kraft pulp with chemical recovery (1000 ADt/d market pulp)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - id: design
+    description: "Design case: 1000 ADt/d bleached softwood kraft market pulp (90 % dry), 8400 h/a (D-002)"
+    default: true
+    capacity: 1000 ADt/d bleached softwood kraft pulp
+    provenance: assumed
+    source: "D-002: a normalisation basis for the inventory, not a commercial plant claim"
+tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - {id: CHIPS, title: "Softwood chips, screened (50 % moisture)", category: raw_material, ports: [{id: out, direction: out}]}
+  - id: NAOH
+    title: Sodium hydroxide 50 wt% (make-up to the O2 stage, bleaching alkali)
+    category: raw_material
+    ports: [{id: o2, direction: out}, {id: ble, direction: out}]
+  - id: O2
+    title: Oxygen (O2 delignification and EOP stage)
+    category: raw_material
+    ports: [{id: o2, direction: out}, {id: ble, direction: out}]
+  - {id: CLO2, title: "Chlorine dioxide water, 10 g/kg (generated outside the boundary)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: H2O2, title: Hydrogen peroxide 50 wt%, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: H2SO4, title: Sulfuric acid 93 wt%, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: SALT, title: Sodium sulfate (saltcake make-up), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: CAO, title: Purchased burnt lime (Ca make-up), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: NG, title: Natural gas (lime kiln fuel), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: AIR
+    title: Combustion air
+    category: raw_material
+    ports: [{id: rb, direction: out}, {id: kiln, direction: out}]
+  - id: FW
+    title: Process water (fresh, treated)
+    category: raw_material
+    ports: [{id: ble, direction: out}, {id: w301, direction: out}]
+products:
+  - {id: PULP, title: "Bleached softwood kraft market pulp, 90 % dry (bales)", category: product, ports: [{id: in, direction: in}]}
+  - id: EEXP
+    title: Electricity export to the grid (turbine generation less mill use)
+    category: utility
+    utility: {kind: electricity}
+    ports: [{id: in, direction: in, kind: energy}]
+  - {id: WW, title: Bleach plant effluent to the biological treatment plant, category: wastewater, ports: [{id: in, direction: in}]}
+  - id: STACK
+    title: Flue gases (recovery boiler after ESP, lime kiln) to stack
+    category: off_gas
+    ports: [{id: rb, direction: in}, {id: kiln, direction: in}, {id: burner, direction: in}]
+  - id: VENT
+    title: Vents to atmosphere (O2 stage, bleach plant, pulp dryer exhaust)
+    category: off_gas
+    ports: [{id: o2, direction: in}, {id: ble, direction: in}, {id: dry, direction: in}]
+  - id: SW
+    title: Solid wastes to landfill (dregs, grits, lime mud purge)
+    category: solid_waste
+    ports: [{id: dregs, direction: in}, {id: grits, direction: in}, {id: mud, direction: in}]
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-011"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-011"}
+      min_approach: {value: 5, provenance: assumed, source: D-011}
+    ports:
+      - {id: e601, direction: in, kind: energy}
+      - {id: u1001, direction: in, kind: energy}
+
+blocks:
+  - id: DIG
+    title: Cooking (chip steaming, continuous digester)
+    class: ReactingChemicals
+    ports:
+      - {id: chips, direction: in}
+      - {id: wl, direction: in}
+      - {id: out, direction: out}
+      - {id: mp, direction: in, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: BSW
+    title: Brown stock washing and screening
+    class: Filtering
+    ports:
+      - {id: in, direction: in}
+      - {id: filt, direction: in}
+      - {id: pulp, direction: out}
+      - {id: wbl, direction: out}
+      - {id: power, direction: in, kind: energy}
+  - id: OXD
+    title: Oxygen delignification and post-O2 washing
+    class: ReactingChemicals
+    ports:
+      - {id: pulp, direction: in}
+      - {id: naoh, direction: in}
+      - {id: wl, direction: in}
+      - {id: o2, direction: in}
+      - {id: cond, direction: in}
+      - {id: water, direction: in}
+      - {id: vent, direction: out}
+      - {id: pulp_out, direction: out}
+      - {id: filt, direction: out}
+      - {id: mp, direction: in, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: BLE
+    title: ECF bleaching D0-EOP-D1 (outline)
+    class: ReactingChemicals
+    ports:
+      - {id: pulp, direction: in}
+      - {id: clo2, direction: in}
+      - {id: naoh, direction: in}
+      - {id: h2o2, direction: in}
+      - {id: acid, direction: in}
+      - {id: o2, direction: in}
+      - {id: water, direction: in}
+      - {id: press, direction: in}
+      - {id: pulp_out, direction: out}
+      - {id: eff, direction: out}
+      - {id: vent, direction: out}
+      - {id: mp, direction: in, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: DRY
+    title: Pulp drying machine
+    class: Drying
+    ports:
+      - {id: in, direction: in}
+      - {id: press, direction: out}
+      - {id: prod, direction: out}
+      - {id: vap, direction: out}
+      - {id: lp, direction: in, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: EVP
+    title: Black liquor evaporation
+    class: Evaporating
+    ports:
+      - {id: wbl, direction: in}
+      - {id: sbl, direction: out}
+      - {id: c_oxd, direction: out}
+      - {id: c_mud, direction: out}
+      - {id: c_dt, direction: out}
+      - {id: lp, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: REC
+    title: Recovery boiler and smelt dissolving
+    class: ReactingChemicals
+    ports:
+      - {id: sbl, direction: in}
+      - {id: salt, direction: in}
+      - {id: air, direction: in}
+      - {id: ww, direction: in}
+      - {id: cond, direction: in}
+      - {id: flue, direction: out}
+      - {id: gl, direction: out}
+      - {id: mp, direction: in, kind: energy}
+      - {id: steam, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: CAU
+    title: Recausticizing (green liquor clarification, slaking, causticizing, white liquor and lime mud filtration)
+    class: ReactingChemicals
+    ports:
+      - {id: gl, direction: in}
+      - {id: cao, direction: in}
+      - {id: lime, direction: in}
+      - {id: wash, direction: in}
+      - {id: dregs, direction: out}
+      - {id: grits, direction: out}
+      - {id: wl_dig, direction: out}
+      - {id: wl_o2, direction: out}
+      - {id: ww, direction: out}
+      - {id: purge, direction: out}
+      - {id: mud, direction: out}
+      - {id: power, direction: in, kind: energy}
+  - id: KLN
+    title: Lime kiln
+    class: ReactingChemicals
+    ports:
+      - {id: mud, direction: in}
+      - {id: fuel, direction: in}
+      - {id: air, direction: in}
+      - {id: gas, direction: out}
+      - {id: fgas, direction: out}
+      - {id: lime, direction: out}
+      - {id: power, direction: in, kind: energy}
+  - id: UTL
+    title: Steam turbine generator and steam distribution
+    class: ProcessStep
+    ports:
+      - {id: hp, direction: in, kind: energy}
+      - {id: mp_dig, direction: out, kind: energy}
+      - {id: mp_oxd, direction: out, kind: energy}
+      - {id: mp_ble, direction: out, kind: energy}
+      - {id: mp_rec, direction: out, kind: energy}
+      - {id: lp_evp, direction: out, kind: energy}
+      - {id: lp_dry, direction: out, kind: energy}
+      - {id: pw_dig, direction: out, kind: energy}
+      - {id: pw_bsw, direction: out, kind: energy}
+      - {id: pw_oxd, direction: out, kind: energy}
+      - {id: pw_ble, direction: out, kind: energy}
+      - {id: pw_dry, direction: out, kind: energy}
+      - {id: pw_evp, direction: out, kind: energy}
+      - {id: pw_rec, direction: out, kind: energy}
+      - {id: pw_cau, direction: out, kind: energy}
+      - {id: pw_kln, direction: out, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+      - {id: exp, direction: out, kind: energy}
+
+steps:
+  - id: R101
+    block: DIG
+    title: Continuous digester (with chip steaming and impregnation)
+    class: ReactingChemicals
+    reactions: [COOK_LIG, PEEL_C, PEEL_H, SAPON]
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: chips, direction: in, delegates: chips}
+      - {id: wl, direction: in, delegates: wl}
+      - {id: out, direction: out, delegates: out}
+      - {id: mp, direction: in, kind: energy, delegates: mp}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: W201
+    block: BSW
+    title: Brown stock wash presses (counter-current) and screening
+    class: Filtering
+    links: [{target: equipment, ref: W-201}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: filt, direction: in, delegates: filt}
+      - {id: pulp, direction: out, delegates: pulp}
+      - {id: wbl, direction: out, delegates: wbl}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: R301
+    block: OXD
+    title: Two-stage medium-consistency O2 delignification reactor
+    class: ReactingChemicals
+    reactions: [OXD_LIG, PEEL_H, SULF_OX]
+    links: [{target: equipment, ref: R-301}]
+    ports:
+      - {id: pulp, direction: in, delegates: pulp}
+      - {id: naoh, direction: in, delegates: naoh}
+      - {id: wl, direction: in, delegates: wl}
+      - {id: o2, direction: in, delegates: o2}
+      - {id: out, direction: out}
+      - {id: vent, direction: out, delegates: vent}
+      - {id: mp, direction: in, kind: energy, delegates: mp}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: W301
+    block: OXD
+    title: Post-O2 wash presses
+    class: Filtering
+    links: [{target: equipment, ref: W-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: cond, direction: in, delegates: cond}
+      - {id: water, direction: in, delegates: water}
+      - {id: pulp, direction: out, delegates: pulp_out}
+      - {id: filt, direction: out, delegates: filt}
+  - id: R401
+    block: BLE
+    title: Bleach plant D0-EOP-D1 with washers (lumped)
+    class: ReactingChemicals
+    # BL_O2 = BL_H2O2 - PER_DEC/2 is linearly dependent: the EOP oxygen that reacts is
+    # counted through BL_H2O2 and PER_DEC (net oxygen released), so extents stay unique
+    reactions: [BL_CLO2, BL_H2O2, PER_DEC, CARB_OX, PEEL_C, PEEL_H, NEUT]
+    links: [{target: equipment, ref: R-401}]
+    ports:
+      - {id: pulp, direction: in, delegates: pulp}
+      - {id: clo2, direction: in, delegates: clo2}
+      - {id: naoh, direction: in, delegates: naoh}
+      - {id: h2o2, direction: in, delegates: h2o2}
+      - {id: acid, direction: in, delegates: acid}
+      - {id: o2, direction: in, delegates: o2}
+      - {id: water, direction: in, delegates: water}
+      - {id: press, direction: in, delegates: press}
+      - {id: pulp_out, direction: out, delegates: pulp_out}
+      - {id: eff, direction: out, delegates: eff}
+      - {id: vent, direction: out, delegates: vent}
+      - {id: mp, direction: in, kind: energy, delegates: mp}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: D501
+    block: DRY
+    title: Pulp drying machine (wire and press section, airborne dryer, baling)
+    class: Drying
+    links: [{target: equipment, ref: D-501}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: press, direction: out, delegates: press}
+      - {id: prod, direction: out, delegates: prod}
+      - {id: vap, direction: out, delegates: vap}
+      - {id: lp, direction: in, kind: energy, delegates: lp}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: E601
+    block: EVP
+    title: Seven-effect evaporator train with concentrator (15 to 80 % solids)
+    class: Evaporating
+    links: [{target: equipment, ref: E-601}]
+    ports:
+      - {id: wbl, direction: in, delegates: wbl}
+      - {id: sbl, direction: out, delegates: sbl}
+      - {id: c_oxd, direction: out, delegates: c_oxd}
+      - {id: c_mud, direction: out, delegates: c_mud}
+      - {id: c_dt, direction: out, delegates: c_dt}
+      - {id: lp, direction: in, kind: energy, delegates: lp}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: B701
+    block: REC
+    title: Recovery boiler (with ESP)
+    class: ReactingChemicals
+    reactions: [BURN_LIG, BURN_OXL, BURN_ISA, BURN_EXT, CARBON, REDUC, SO2_REL, NOX]
+    links: [{target: equipment, ref: B-701}]
+    ports:
+      - {id: sbl, direction: in, delegates: sbl}
+      - {id: salt, direction: in, delegates: salt}
+      - {id: air, direction: in, delegates: air}
+      - {id: flue, direction: out, delegates: flue}
+      - {id: smelt, direction: out}
+      - {id: mp, direction: in, kind: energy, delegates: mp}
+      - {id: steam, direction: out, kind: energy, delegates: steam}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: T702
+    block: REC
+    title: Smelt dissolving tank
+    class: Mixing
+    links: [{target: equipment, ref: T-702}]
+    ports:
+      - {id: smelt, direction: in}
+      - {id: ww, direction: in, delegates: ww}
+      - {id: cond, direction: in, delegates: cond}
+      - {id: gl, direction: out, delegates: gl}
+  - id: C801
+    block: CAU
+    title: Green liquor clarifier (dregs removal)
+    class: Separating
+    links: [{target: equipment, ref: C-801}]
+    ports:
+      - {id: in, direction: in, delegates: gl}
+      - {id: dregs, direction: out, delegates: dregs}
+      - {id: gl, direction: out}
+  - id: R802
+    block: CAU
+    title: Slaker and causticizers (grits removal)
+    class: ReactingChemicals
+    reactions: [SLAKE, CAUST]
+    links: [{target: equipment, ref: R-802}]
+    ports:
+      - {id: gl, direction: in}
+      - {id: lime, direction: in, delegates: lime}
+      - {id: cao, direction: in, delegates: cao}
+      - {id: grits, direction: out, delegates: grits}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: F804
+    block: CAU
+    title: White liquor pressure disc filter
+    class: Filtering
+    links: [{target: equipment, ref: F-804}]
+    ports:
+      - {id: in, direction: in}
+      - {id: wl, direction: out}
+      - {id: mud, direction: out}
+  - id: X805
+    block: CAU
+    title: White liquor distribution (digester, O2 stage)
+    class: Splitting
+    ports:
+      - {id: in, direction: in}
+      - {id: dig, direction: out, delegates: wl_dig}
+      - {id: o2, direction: out, delegates: wl_o2}
+  - id: F806
+    block: CAU
+    title: Lime mud washer and precoat mud filter
+    class: Filtering
+    links: [{target: equipment, ref: F-806}]
+    ports:
+      - {id: mud, direction: in}
+      - {id: wash, direction: in, delegates: wash}
+      - {id: ww, direction: out, delegates: ww}
+      - {id: purge, direction: out, delegates: purge}
+      - {id: kiln, direction: out, delegates: mud}
+  - id: K901
+    block: KLN
+    title: Rotary lime kiln, calcination (drying, calcining, lime cooling)
+    class: ReactingChemicals
+    reactions: [CALC]
+    links: [{target: equipment, ref: K-901}]
+    ports:
+      - {id: mud, direction: in, delegates: mud}
+      - {id: heat, direction: in, kind: energy}
+      - {id: gas, direction: out, delegates: gas}
+      - {id: lime, direction: out, delegates: lime}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # D-012: the burner is a step of its own so that fossil (natural gas) and biogenic (lime mud)
+  # carbon never mix in one reactive step; the two gases pass the same kiln and stack.
+  - id: K902
+    block: KLN
+    title: Lime kiln burner (natural gas combustion)
+    class: ReactingChemicals
+    reactions: [COMB_NG, NOX]
+    links: [{target: equipment, ref: K-901}]
+    ports:
+      - {id: fuel, direction: in, delegates: fuel}
+      - {id: air, direction: in, delegates: air}
+      - {id: gas, direction: out, delegates: fgas}
+      - {id: heat, direction: out, kind: energy}
+  - id: U1001
+    block: UTL
+    title: Extraction back-pressure turbine with condensing tail, generator, deaerator and steam headers
+    class: ProcessStep
+    links: [{target: equipment, ref: TG-1001}]
+    ports:
+      - {id: hp, direction: in, kind: energy, delegates: hp}
+      - {id: mp_dig, direction: out, kind: energy, delegates: mp_dig}
+      - {id: mp_oxd, direction: out, kind: energy, delegates: mp_oxd}
+      - {id: mp_ble, direction: out, kind: energy, delegates: mp_ble}
+      - {id: mp_rec, direction: out, kind: energy, delegates: mp_rec}
+      - {id: lp_evp, direction: out, kind: energy, delegates: lp_evp}
+      - {id: lp_dry, direction: out, kind: energy, delegates: lp_dry}
+      - {id: pw_dig, direction: out, kind: energy, delegates: pw_dig}
+      - {id: pw_bsw, direction: out, kind: energy, delegates: pw_bsw}
+      - {id: pw_oxd, direction: out, kind: energy, delegates: pw_oxd}
+      - {id: pw_ble, direction: out, kind: energy, delegates: pw_ble}
+      - {id: pw_dry, direction: out, kind: energy, delegates: pw_dry}
+      - {id: pw_evp, direction: out, kind: energy, delegates: pw_evp}
+      - {id: pw_rec, direction: out, kind: energy, delegates: pw_rec}
+      - {id: pw_cau, direction: out, kind: energy, delegates: pw_cau}
+      - {id: pw_kln, direction: out, kind: energy, delegates: pw_kln}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+      - {id: exp, direction: out, kind: energy, delegates: exp}
+
+# Values: B = scripts/kraft_balance.py (D-004 to D-010); conditions ASSUMED nominal (D-013).
+streams:
+  - {id: S1, title: Softwood chips, from: CHIPS.out, to: R101.chips, template: kraft, state: {design: {pressure: {value: 101.325, provenance: assumed, source: D-013}, temperature: {value: 288.15, provenance: assumed, source: D-013}, flow: {value: 170454.5, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py: 2045 kg dry wood/ADt at 44 % bleached yield (D-003, D-004)"}, composition: {basis: mass_fraction, values: {H2O: 0.5, CELL: 0.205, HEMI: 0.14, LIG: 0.135, EXTR: 0.0175, ASH: 0.0025}, provenance: assumed, source: "D-003"}}}}
+  - {id: S2, title: White liquor to the digester, from: X805.dig, to: R101.wl, template: kraft, state: {design: {pressure: {value: 800, provenance: assumed, source: D-013}, temperature: {value: 358.15, provenance: assumed, source: D-013}, flow: {value: 183783.7, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py: EA 19 % on wood, sulfidity 35 %, causticity 81 %, reduction 92 % (D-005)"}, composition: {basis: mass_fraction, values: {H2O: 0.866767, NaOH: 0.06942, Na2S: 0.036467, Na2CO3: 0.021575, Na2SO4: 0.005771}, provenance: assumed, source: "scripts/kraft_balance.py (D-005)"}}}}
+  - {id: S3, title: Cooked brown stock with black liquor, from: R101.out, to: W201.in, template: kraft, state: {design: {pressure: {value: 300, provenance: assumed, source: D-013}, temperature: {value: 363.15, provenance: assumed, source: D-013}, flow: {value: 354238.2, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py (D-004)"}, composition: {basis: mass_fraction, values: {H2O: 0.696798, CELL: 0.090463, HEMI: 0.017804, LIG: 0.004812, ASH: 0.001203, NaOH: 0.007308, Na2S: 0.01892, Na2CO3: 0.011193, Na2SO4: 0.002994, NaLIG: 0.067485, NaISA: 0.071986, NaEXT: 0.009033}, provenance: assumed, source: "scripts/kraft_balance.py (D-004)"}}}}
+  - {id: S4, title: Washed brown stock (25 % consistency), from: W201.pulp, to: R301.pulp, template: kraft, state: {design: {pressure: {value: 101.325, provenance: assumed, source: D-013}, temperature: {value: 343.15, provenance: assumed, source: D-013}, flow: {value: 160227.3, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py: 3 % of dissolved solids carried (D-006)"}, composition: {basis: mass_fraction, values: {H2O: 0.73642, CELL: 0.2, HEMI: 0.039362, LIG: 0.010638, ASH: 0.000082, NaOH: 0.000615, Na2S: 0.001255, Na2CO3: 0.000809, Na2SO4: 0.00042, NaLIG: 0.004606, NaOXL: 0.000187, NaISA: 0.00499, NaEXT: 0.000616}, provenance: assumed, source: "scripts/kraft_balance.py (D-006)"}}}}
+  - {id: S5, title: Weak black liquor (15 % solids), from: W201.wbl, to: E601.wbl, template: kraft, state: {design: {pressure: {value: 300, provenance: assumed, source: D-013}, temperature: {value: 353.15, provenance: assumed, source: D-013}, flow: {value: 469035.3, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py (D-006, D-007)"}, composition: {basis: mass_fraction, values: {H2O: 0.850001, ASH: 0.000907, NaOH: 0.006796, Na2S: 0.01386, Na2CO3: 0.008932, Na2SO4: 0.00464, NaLIG: 0.050874, NaOXL: 0.002064, NaISA: 0.055117, NaEXT: 0.006809}, provenance: assumed, source: "scripts/kraft_balance.py (D-007)"}}}}
+  - {id: S6, title: NaOH make-up to the O2 stage, from: NAOH.o2, to: R301.naoh, template: kraft, state: {design: {pressure: {value: 300, provenance: assumed, source: D-013}, temperature: {value: 298.15, provenance: assumed, source: D-013}, flow: {value: 245.2, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py: sodium make-up equal to the sodium losses less the saltcake sodium (D-006)"}, composition: {basis: mass_fraction, values: {NaOH: 0.5, H2O: 0.5}, provenance: assumed, source: D-006}}}}
+  - {id: S7, title: White liquor to the O2 stage, from: X805.o2, to: R301.wl, template: kraft, state: {design: {pressure: {value: 800, provenance: assumed, source: D-013}, temperature: {value: 358.15, provenance: assumed, source: D-013}, flow: {value: 11438.9, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py: 22 kg NaOH/ADt O2-stage alkali less the make-up (D-006)"}, composition: {basis: mass_fraction, values: {H2O: 0.866767, NaOH: 0.06942, Na2S: 0.036467, Na2CO3: 0.021575, Na2SO4: 0.005771}, provenance: assumed, source: "scripts/kraft_balance.py (D-005)"}}}}
+  - {id: S8, title: Oxygen to the O2 stage, from: O2.o2, to: R301.o2, template: kraft, state: {design: {pressure: {value: 1000, provenance: assumed, source: D-013}, temperature: {value: 298.15, provenance: assumed, source: D-013}, flow: {value: 916.7, basis: mass, provenance: assumed, source: "22 kg/ADt (BREF 2015 sec. 3.2.2.2: 20-25 kg/ADt softwood), D-006"}, composition: {basis: mass_fraction, values: {O2: 1.0}, provenance: assumed, source: D-006}}}}
+  - {id: S9, title: O2-delignified pulp, from: R301.out, to: W301.in, template: kraft, state: {design: {pressure: {value: 500, provenance: assumed, source: D-013}, temperature: {value: 368.15, provenance: assumed, source: D-013}, flow: {value: 172493.9, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py (D-006)"}, composition: {basis: mass_fraction, values: {H2O: 0.742734, CELL: 0.185777, HEMI: 0.034586, LIG: 0.004941, ASH: 0.000076, NaOH: 0.004302, Na2CO3: 0.002182, Na2SO4: 0.007296, NaLIG: 0.004278, NaOXL: 0.006156, NaISA: 0.007099, NaEXT: 0.000573}, provenance: assumed, source: "scripts/kraft_balance.py (D-006)"}}}}
+  - {id: S10, title: O2 stage blow vent (unreacted oxygen), from: R301.vent, to: VENT.o2, template: gas, state: {design: {pressure: {value: 101.325, provenance: assumed, source: D-013}, temperature: {value: 368.15, provenance: assumed, source: D-013}, flow: {value: 334.0, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py (D-006)"}, composition: {basis: mass_fraction, values: {O2: 1.0}, provenance: assumed, source: D-006}}}}
+  - {id: S11, title: Pulp to bleaching (25 % consistency), from: W301.pulp, to: R401.pulp, template: kraft, state: {design: {pressure: {value: 101.325, provenance: assumed, source: D-013}, temperature: {value: 343.15, provenance: assumed, source: D-013}, flow: {value: 155454.5, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py: 6 % of dissolved solids carried over (D-006)"}, composition: {basis: mass_fraction, values: {H2O: 0.747873, CELL: 0.20614, HEMI: 0.038377, LIG: 0.005482, ASH: 0.000005, NaOH: 0.000286, Na2CO3: 0.000145, Na2SO4: 0.000486, NaLIG: 0.000285, NaOXL: 0.00041, NaISA: 0.000473, NaEXT: 0.000038}, provenance: assumed, source: "scripts/kraft_balance.py (D-006)"}}}}
+  - {id: S12, title: O2 stage filtrate to brown stock washing (counter-current), from: W301.filt, to: W201.filt, template: kraft, state: {design: {pressure: {value: 300, provenance: assumed, source: D-013}, temperature: {value: 343.15, provenance: assumed, source: D-013}, flow: {value: 275024.3, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py (D-006)"}, composition: {basis: mass_fraction, values: {H2O: 0.981158, ASH: 0.000045, NaOH: 0.002536, Na2CO3: 0.001286, Na2SO4: 0.004301, NaLIG: 0.002522, NaOXL: 0.003629, NaISA: 0.004185, NaEXT: 0.000338}, provenance: assumed, source: "scripts/kraft_balance.py (D-006)"}}}}
+  - {id: S13, title: Evaporator condensate to the post-O2 washer, from: E601.c_oxd, to: W301.cond, template: kraft, state: {design: {pressure: {value: 300, provenance: assumed, source: D-013}, temperature: {value: 333.15, provenance: assumed, source: D-013}, flow: {value: 204099.9, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py: condensate left after the causticizing plant (D-007)"}, composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-007}}}}
+  - {id: S14, title: Chlorine dioxide water, from: CLO2.out, to: R401.clo2, template: kraft, state: {design: {pressure: {value: 300, provenance: assumed, source: D-013}, temperature: {value: 283.15, provenance: assumed, source: D-013}, flow: {value: 41666.7, basis: mass, provenance: assumed, source: "10 kg ClO2/ADt at 10 g/kg (D-008)"}, composition: {basis: mass_fraction, values: {ClO2: 0.01, H2O: 0.99}, provenance: assumed, source: D-008}}}}
+  - {id: S15, title: NaOH to bleaching, from: NAOH.ble, to: R401.naoh, template: kraft, state: {design: {pressure: {value: 300, provenance: assumed, source: D-013}, temperature: {value: 298.15, provenance: assumed, source: D-013}, flow: {value: 1500.0, basis: mass, provenance: assumed, source: "18 kg NaOH/ADt (D-008)"}, composition: {basis: mass_fraction, values: {NaOH: 0.5, H2O: 0.5}, provenance: assumed, source: D-008}}}}
+  - {id: S16, title: Hydrogen peroxide to the EOP stage, from: H2O2.out, to: R401.h2o2, template: kraft, state: {design: {pressure: {value: 300, provenance: assumed, source: D-013}, temperature: {value: 298.15, provenance: assumed, source: D-013}, flow: {value: 250.0, basis: mass, provenance: assumed, source: "3 kg H2O2/ADt (D-008)"}, composition: {basis: mass_fraction, values: {H2O2: 0.5, H2O: 0.5}, provenance: assumed, source: D-008}}}}
+  - {id: S17, title: Sulfuric acid to the D stages, from: H2SO4.out, to: R401.acid, template: kraft, state: {design: {pressure: {value: 300, provenance: assumed, source: D-013}, temperature: {value: 298.15, provenance: assumed, source: D-013}, flow: {value: 179.2, basis: mass, provenance: assumed, source: "4 kg H2SO4/ADt (D-008)"}, composition: {basis: mass_fraction, values: {H2SO4: 0.93, H2O: 0.07}, provenance: assumed, source: D-008}}}}
+  - {id: S18, title: Oxygen to the EOP stage, from: O2.ble, to: R401.o2, template: kraft, state: {design: {pressure: {value: 1000, provenance: assumed, source: D-013}, temperature: {value: 298.15, provenance: assumed, source: D-013}, flow: {value: 166.7, basis: mass, provenance: assumed, source: "4 kg O2/ADt (D-008)"}, composition: {basis: mass_fraction, values: {O2: 1.0}, provenance: assumed, source: D-008}}}}
+  - {id: S19, title: Process water to the bleach plant, from: FW.ble, to: R401.water, template: kraft, state: {design: {pressure: {value: 300, provenance: assumed, source: D-013}, temperature: {value: 288.15, provenance: assumed, source: D-013}, flow: {value: 630146.6, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py: closes the bleach plant water balance at 18 m3/ADt effluent (D-008)"}, composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-008}}}}
+  - {id: S20, title: Bleached stock to the drying machine (10 % consistency), from: R401.pulp_out, to: D501.in, template: kraft, state: {design: {pressure: {value: 300, provenance: assumed, source: D-013}, temperature: {value: 343.15, provenance: assumed, source: D-013}, flow: {value: 375000.0, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py (D-008)"}, composition: {basis: mass_fraction, values: {CELL: 0.084545, HEMI: 0.015455, H2O: 0.9}, provenance: assumed, source: "scripts/kraft_balance.py (D-004)"}}}}
+  - {id: S21, title: Bleach plant effluent, from: R401.eff, to: WW.in, template: kraft, state: {design: {pressure: {value: 101.325, provenance: assumed, source: D-013}, temperature: {value: 333.15, provenance: assumed, source: D-013}, flow: {value: 750000.0, basis: mass, provenance: assumed, source: "18 m3/ADt (BREF 2015 sec. 3.3.8: 15-20 m3/ADt for a modern ECF bleach plant), D-008"}, composition: {basis: mass_fraction, values: {H2O: 0.996206, ASH: 0.000001, NaOH: 0.000436, Na2CO3: 0.00003, Na2SO4: 0.000423, NaLIG: 0.000059, NaOXL: 0.000085, NaISA: 0.000667, NaEXT: 0.000008, OXL: 0.001237, NaCl: 0.000481, CO2B: 0.000366}, provenance: assumed, source: "scripts/kraft_balance.py (D-008)"}}}}
+  - {id: S22, title: Bleach plant vent (unreacted and released oxygen), from: R401.vent, to: VENT.ble, template: gas, state: {design: {pressure: {value: 101.325, provenance: assumed, source: D-013}, temperature: {value: 343.15, provenance: assumed, source: D-013}, flow: {value: 197.0, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py (D-008)"}, composition: {basis: mass_fraction, values: {O2: 1.0}, provenance: assumed, source: D-008}}}}
+  - {id: S23, title: Press water back to the bleach plant, from: D501.press, to: R401.press, template: kraft, state: {design: {pressure: {value: 300, provenance: assumed, source: D-013}, temperature: {value: 333.15, provenance: assumed, source: D-013}, flow: {value: 295833.3, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py: press section to 50 % dry (D-009)"}, composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-009}}}}
+  - {id: S24, title: Bleached kraft market pulp (90 % dry), from: D501.prod, to: PULP.in, template: kraft, state: {design: {pressure: {value: 101.325, provenance: assumed, source: D-013}, temperature: {value: 313.15, provenance: assumed, source: D-013}, flow: {value: 41666.7, basis: mass, provenance: assumed, source: "D-002: 1000 ADt/d"}, composition: {basis: mass_fraction, values: {CELL: 0.760909, HEMI: 0.139091, H2O: 0.1}, provenance: assumed, source: "D-002, D-004"}}}}
+  - {id: S25, title: Dryer exhaust vapour, from: D501.vap, to: VENT.dry, template: gas, state: {design: {pressure: {value: 101.325, provenance: assumed, source: D-013}, temperature: {value: 353.15, provenance: assumed, source: D-013}, flow: {value: 37500.0, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py: water evaporated from 50 to 90 % dry (D-009)"}, composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-009}}}}
+  - {id: S26, title: Strong black liquor (80 % solids), from: E601.sbl, to: B701.sbl, template: kraft, state: {design: {pressure: {value: 400, provenance: assumed, source: D-013}, temperature: {value: 393.15, provenance: assumed, source: D-013}, flow: {value: 87944.1, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py: 1689 kg BLDS/ADt at 80 % solids (D-007)"}, composition: {basis: mass_fraction, values: {H2O: 0.2, ASH: 0.004837, NaOH: 0.036248, Na2S: 0.073922, Na2CO3: 0.047637, Na2SO4: 0.024747, NaLIG: 0.271327, NaOXL: 0.011009, NaISA: 0.293957, NaEXT: 0.036317}, provenance: assumed, source: "scripts/kraft_balance.py (D-007)"}}}}
+  - {id: S27, title: Saltcake make-up, from: SALT.out, to: B701.salt, template: kraft, state: {design: {pressure: {value: 101.325, provenance: assumed, source: D-013}, temperature: {value: 298.15, provenance: assumed, source: D-013}, flow: {value: 136.5, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py: sulfur make-up equal to the sulfur losses (D-006)"}, composition: {basis: mass_fraction, values: {Na2SO4: 1.0}, provenance: assumed, source: D-006}}}}
+  - {id: S28, title: Recovery boiler combustion air, from: AIR.rb, to: B701.air, template: kraft, state: {design: {pressure: {value: 105, provenance: assumed, source: D-013}, temperature: {value: 298.15, provenance: assumed, source: D-013}, flow: {value: 387099.4, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py: air ratio 1.15 (D-010)"}, composition: {basis: mass_fraction, values: {O2: 0.2314, N2: 0.7686}, provenance: assumed, source: "dry air, argon counted with N2"}}}}
+  - {id: S29, title: Recovery boiler flue gas after ESP, from: B701.flue, to: STACK.rb, template: gas, state: {design: {pressure: {value: 101.325, provenance: assumed, source: D-013}, temperature: {value: 453.15, provenance: assumed, source: D-013}, flow: {value: 444275.7, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py (D-010)"}, composition: {basis: mass_fraction, values: {O2: 0.027394, N2: 0.66965, CO2B: 0.19997, SO2: 0.000019, NO2: 0.000113, H2O: 0.102826, Na2SO4: 0.000028}, provenance: assumed, source: "scripts/kraft_balance.py: SO2 0.1 kg S/ADt, NOx 1.2 kg NO2/ADt, dust 0.3 kg/ADt inside BREF Table 3.13 ranges (D-010)"}}}}
+  - {id: S30, title: Smelt, from: B701.smelt, to: T702.smelt, template: kraft, state: {design: {pressure: {value: 101.325, provenance: assumed, source: D-013}, temperature: {value: 1123.15, provenance: assumed, source: D-013}, flow: {value: 30904.3, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py: reduction efficiency 0.92 (D-005)"}, composition: {basis: mass_fraction, values: {Na2CO3: 0.718847, Na2S: 0.230854, Na2SO4: 0.036536, ASH: 0.013763}, provenance: assumed, source: "scripts/kraft_balance.py (D-005)"}}}}
+  - {id: S31, title: Raw green liquor, from: T702.gl, to: C801.in, template: kraft, state: {design: {pressure: {value: 300, provenance: assumed, source: D-013}, temperature: {value: 363.15, provenance: assumed, source: D-013}, flow: {value: 212975.3, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py: dissolving water sets the white liquor strength (D-005)"}, composition: {basis: mass_fraction, values: {H2O: 0.849139, ASH: 0.001997, NaOH: 0.002998, Na2S: 0.035073, Na2CO3: 0.105242, Na2SO4: 0.005551}, provenance: assumed, source: "scripts/kraft_balance.py (D-005)"}}}}
+  - {id: S32, title: Green liquor dregs, from: C801.dregs, to: SW.dregs, template: kraft, state: {design: {pressure: {value: 101.325, provenance: assumed, source: D-013}, temperature: {value: 343.15, provenance: assumed, source: D-013}, flow: {value: 850.7, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py: wood ash with 50 % entrained liquor (D-009)"}, composition: {basis: mass_fraction, values: {H2O: 0.425419, ASH: 0.5, NaOH: 0.001502, Na2S: 0.017572, Na2CO3: 0.052726, Na2SO4: 0.002781}, provenance: assumed, source: D-009}}}}
+  - {id: S33, title: Clarified green liquor, from: C801.gl, to: R802.gl, template: kraft, state: {design: {pressure: {value: 300, provenance: assumed, source: D-013}, temperature: {value: 363.15, provenance: assumed, source: D-013}, flow: {value: 212124.6, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py (D-005)"}, composition: {basis: mass_fraction, values: {H2O: 0.850838, NaOH: 0.003004, Na2S: 0.035144, Na2CO3: 0.105452, Na2SO4: 0.005562}, provenance: assumed, source: "scripts/kraft_balance.py (D-005)"}}}}
+  - {id: S34, title: Slaker grits, from: R802.grits, to: SW.grits, template: kraft, state: {design: {pressure: {value: 101.325, provenance: assumed, source: D-013}, temperature: {value: 343.15, provenance: assumed, source: D-013}, flow: {value: 208.3, basis: mass, provenance: assumed, source: "5 kg/ADt, washed and drained (D-009)"}, composition: {basis: mass_fraction, values: {CaCO3: 1.0}, provenance: assumed, source: D-009}}}}
+  - {id: S35, title: Purchased lime make-up, from: CAO.out, to: R802.cao, template: kraft, state: {design: {pressure: {value: 101.325, provenance: assumed, source: D-013}, temperature: {value: 298.15, provenance: assumed, source: D-013}, flow: {value: 349.7, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py: Ca make-up equal to grits and mud purge, 8.4 kg CaO/ADt (BREF Table 3.3: 5-10), D-009"}, composition: {basis: mass_fraction, values: {CaO: 1.0}, provenance: assumed, source: D-009}}}}
+  - {id: S36, title: Causticized slurry, from: R802.out, to: F804.in, template: kraft, state: {design: {pressure: {value: 300, provenance: assumed, source: D-013}, temperature: {value: 373.15, provenance: assumed, source: D-013}, flow: {value: 222314.6, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py: causticity 0.81 (D-005)"}, composition: {basis: mass_fraction, values: {H2O: 0.79811, NaOH: 0.063921, Na2S: 0.033578, Na2CO3: 0.019866, Na2SO4: 0.005314, CaCO3: 0.079211}, provenance: assumed, source: "scripts/kraft_balance.py (D-005)"}}}}
+  - {id: S37, title: White liquor, from: F804.wl, to: X805.in, template: kraft, state: {design: {pressure: {value: 800, provenance: assumed, source: D-013}, temperature: {value: 358.15, provenance: assumed, source: D-013}, flow: {value: 195222.6, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py (D-005)"}, composition: {basis: mass_fraction, values: {H2O: 0.866767, NaOH: 0.06942, Na2S: 0.036467, Na2CO3: 0.021575, Na2SO4: 0.005771}, provenance: assumed, source: "scripts/kraft_balance.py (D-005)"}}}}
+  - {id: S38, title: White liquor filter mud cake, from: F804.mud, to: F806.mud, template: kraft, state: {design: {pressure: {value: 101.325, provenance: assumed, source: D-013}, temperature: {value: 353.15, provenance: assumed, source: D-013}, flow: {value: 27092.0, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py: 65 % solids (D-009)"}, composition: {basis: mass_fraction, values: {H2O: 0.303368, NaOH: 0.024297, Na2S: 0.012763, Na2CO3: 0.007551, Na2SO4: 0.00202, CaCO3: 0.65}, provenance: assumed, source: D-009}}}}
+  - {id: S39, title: Evaporator condensate to lime mud washing, from: E601.c_mud, to: F806.wash, template: kraft, state: {design: {pressure: {value: 300, provenance: assumed, source: D-013}, temperature: {value: 333.15, provenance: assumed, source: D-013}, flow: {value: 26414.7, basis: mass, provenance: assumed, source: "1.5 kg per kg dry mud (D-009)"}, composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-009}}}}
+  - {id: S40, title: Weak wash to the dissolving tank, from: F806.ww, to: T702.ww, template: kraft, state: {design: {pressure: {value: 300, provenance: assumed, source: D-013}, temperature: {value: 343.15, provenance: assumed, source: D-013}, flow: {value: 31494.5, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py (D-009)"}, composition: {basis: mass_fraction, values: {H2O: 0.96109, NaOH: 0.020274, Na2S: 0.01065, Na2CO3: 0.006301, Na2SO4: 0.001686}, provenance: assumed, source: D-009}}}}
+  - {id: S41, title: Lime mud purge, from: F806.purge, to: SW.mud, template: kraft, state: {design: {pressure: {value: 101.325, provenance: assumed, source: D-013}, temperature: {value: 333.15, provenance: assumed, source: D-013}, flow: {value: 519.7, basis: mass, provenance: assumed, source: "10 kg dry mud/ADt for non-process element control (D-009)"}, composition: {basis: mass_fraction, values: {H2O: 0.198278, NaOH: 0.000897, Na2S: 0.000471, Na2CO3: 0.000279, Na2SO4: 0.000075, CaCO3: 0.8}, provenance: assumed, source: D-009}}}}
+  - {id: S42, title: Washed lime mud to the kiln (80 % solids), from: F806.kiln, to: K901.mud, template: kraft, state: {design: {pressure: {value: 101.325, provenance: assumed, source: D-013}, temperature: {value: 333.15, provenance: assumed, source: D-013}, flow: {value: 21492.6, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py (D-009)"}, composition: {basis: mass_fraction, values: {H2O: 0.198278, NaOH: 0.000897, Na2S: 0.000471, Na2CO3: 0.000279, Na2SO4: 0.000075, CaCO3: 0.8}, provenance: assumed, source: D-009}}}}
+  - {id: S43, title: Natural gas to the lime kiln, from: NG.out, to: K902.fuel, template: kraft, state: {design: {pressure: {value: 400, provenance: assumed, source: D-013}, temperature: {value: 298.15, provenance: assumed, source: D-013}, flow: {value: 1250.0, basis: mass, provenance: assumed, source: "1.5 GJ/ADt (BREF 2015 sec. 3.2.2.6.2: 1.5-1.8 GJ/t) at LHV 50 MJ/kg (D-009)"}, composition: {basis: mass_fraction, values: {CH4: 1.0}, provenance: assumed, source: "natural gas as methane (D-009)"}}}}
+  - {id: S44, title: Lime kiln combustion air, from: AIR.kiln, to: K902.air, template: kraft, state: {design: {pressure: {value: 101.325, provenance: assumed, source: D-013}, temperature: {value: 298.15, provenance: assumed, source: D-013}, flow: {value: 23703.2, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py: air ratio 1.10 (D-009)"}, composition: {basis: mass_fraction, values: {O2: 0.2314, N2: 0.7686}, provenance: assumed, source: "dry air, argon counted with N2"}}}}
+  - {id: S45, title: Lime kiln calcination gas (mud CO2 and moisture), from: K901.gas, to: STACK.kiln, template: gas, state: {design: {pressure: {value: 101.325, provenance: assumed, source: D-013}, temperature: {value: 473.15, provenance: assumed, source: D-013}, flow: {value: 11443.9, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py: calcination 0.95 (D-009, D-012)"}, composition: {basis: mass_fraction, values: {CO2B: 0.627618, H2O: 0.372382}, provenance: assumed, source: "scripts/kraft_balance.py (D-009)"}}}}
+  - {id: S50, title: Lime kiln combustion gas (natural gas burner), from: K902.gas, to: STACK.burner, template: gas, state: {design: {pressure: {value: 101.325, provenance: assumed, source: D-013}, temperature: {value: 473.15, provenance: assumed, source: D-013}, flow: {value: 24953.2, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py: air ratio 1.10 (D-009)"}, composition: {basis: mass_fraction, values: {O2: 0.019518, N2: 0.729895, CO2: 0.137417, NO2: 0.000668, H2O: 0.112503}, provenance: assumed, source: "scripts/kraft_balance.py: NOx 0.4 kg/ADt (D-009, D-010)"}}}}
+  - {id: S46, title: Reburned lime, from: K901.lime, to: R802.lime, template: kraft, state: {design: {pressure: {value: 101.325, provenance: assumed, source: D-013}, temperature: {value: 523.15, provenance: assumed, source: D-013}, flow: {value: 10048.7, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py (D-009)"}, composition: {basis: mass_fraction, values: {NaOH: 0.001919, Na2S: 0.001008, Na2CO3: 0.000596, Na2SO4: 0.00016, CaO: 0.910763, CaCO3: 0.085554}, provenance: assumed, source: D-009}}}}
+  - {id: S47, title: Evaporator condensate to the dissolving tank, from: E601.c_dt, to: T702.cond, template: kraft, state: {design: {pressure: {value: 300, provenance: assumed, source: D-013}, temperature: {value: 333.15, provenance: assumed, source: D-013}, flow: {value: 150576.5, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py: white liquor at 125 g/L active alkali (D-005)"}, composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-005}}}}
+  - {id: S48, title: Hot process water to the post-O2 washer, from: FW.w301, to: W301.water, template: kraft, state: {design: {pressure: {value: 300, provenance: assumed, source: D-013}, temperature: {value: 333.15, provenance: assumed, source: D-013}, flow: {value: 53885.1, basis: mass, provenance: assumed, source: "scripts/kraft_balance.py: wash water the condensate does not cover (D-006)"}, composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-006}}}}
+
+  # ---- energy streams (scripts/kraft_balance.py, D-011; ASSUMED, core cannot close them)
+  - {id: Q1, title: HP steam 8400 kPa(a) 753 K raised in the recovery boiler (heat above feedwater), kind: energy, from: B701.steam, to: U1001.hp, state: {design: {duty: {value: 192428.3, provenance: assumed, source: "3.5 kg steam/kg BLDS (Tran and Vakkilainen), IAPWS-IF97 enthalpies (D-011)"}}}}
+  - {id: Q2, title: MP steam heat to cooking, kind: energy, from: U1001.mp_dig, to: R101.mp, state: {design: {duty: {value: 20833.3, provenance: assumed, source: "1.8 GJ/ADt (D-011)"}}}}
+  - {id: Q3, title: MP steam heat to O2 delignification, kind: energy, from: U1001.mp_oxd, to: R301.mp, state: {design: {duty: {value: 5787.0, provenance: assumed, source: "0.5 GJ/ADt (D-011)"}}}}
+  - {id: Q4, title: MP steam heat to bleaching, kind: energy, from: U1001.mp_ble, to: R401.mp, state: {design: {duty: {value: 13888.9, provenance: assumed, source: "1.2 GJ/ADt (D-011)"}}}}
+  - {id: Q5, title: "MP steam heat to the recovery boiler (air preheating, liquor heating, sootblowing)", kind: energy, from: U1001.mp_rec, to: B701.mp, state: {design: {duty: {value: 11574.1, provenance: assumed, source: "1.0 GJ/ADt (D-011)"}}}}
+  - {id: Q6, title: LP steam heat to evaporation, kind: energy, from: U1001.lp_evp, to: E601.lp, state: {design: {duty: {value: 37050.5, provenance: assumed, source: "steam economy 6.0, 2100 kJ/kg (D-007, D-011)"}}}}
+  - {id: Q7, title: LP steam heat to the pulp dryer, kind: energy, from: U1001.lp_dry, to: D501.lp, state: {design: {duty: {value: 35416.7, provenance: assumed, source: "3.4 MJ/kg water evaporated (D-011)"}}}}
+  - {id: Q8, title: Evaporator surface condenser to cooling water, kind: energy, from: E601.cw, to: CW.e601, state: {design: {duty: {value: 33345.5, provenance: assumed, source: "0.9 of the LP heat to the evaporators (D-011)"}}}}
+  - {id: Q9, title: Turbine condensing tail to cooling water, kind: energy, from: U1001.cw, to: CW.u1001, state: {design: {duty: {value: 19414.2, provenance: assumed, source: "scripts/kraft_balance.py: steam not needed by the process, 10 kPa(a) (D-011)"}}}}
+  - {id: Q10, title: Net electricity export, kind: energy, from: U1001.exp, to: EEXP.in, state: {design: {duty: {value: 10944.8, provenance: assumed, source: "scripts/kraft_balance.py: generation 38028 kW less mill use 27083 kW (D-011)"}}}}
+  - {id: Q11, title: Power to cooking, kind: energy, from: U1001.pw_dig, to: R101.power, state: {design: {duty: {value: 2500.0, provenance: assumed, source: "60 kWh/ADt (D-011)"}}}}
+  - {id: Q12, title: Power to brown stock washing and screening, kind: energy, from: U1001.pw_bsw, to: W201.power, state: {design: {duty: {value: 2916.7, provenance: assumed, source: "70 kWh/ADt (D-011)"}}}}
+  - {id: Q13, title: Power to O2 delignification, kind: energy, from: U1001.pw_oxd, to: R301.power, state: {design: {duty: {value: 2083.3, provenance: assumed, source: "50 kWh/ADt (D-011)"}}}}
+  - {id: Q14, title: Power to bleaching, kind: energy, from: U1001.pw_ble, to: R401.power, state: {design: {duty: {value: 4166.7, provenance: assumed, source: "100 kWh/ADt (D-011)"}}}}
+  - {id: Q15, title: Power to the pulp drying machine, kind: energy, from: U1001.pw_dry, to: D501.power, state: {design: {duty: {value: 5416.7, provenance: assumed, source: "130 kWh/ADt (D-011)"}}}}
+  - {id: Q16, title: Power to evaporation, kind: energy, from: U1001.pw_evp, to: E601.power, state: {design: {duty: {value: 1666.7, provenance: assumed, source: "40 kWh/ADt (D-011)"}}}}
+  - {id: Q17, title: Power to the recovery boiler, kind: energy, from: U1001.pw_rec, to: B701.power, state: {design: {duty: {value: 2916.7, provenance: assumed, source: "70 kWh/ADt (D-011)"}}}}
+  - {id: Q18, title: Power to recausticizing, kind: energy, from: U1001.pw_cau, to: R802.power, state: {design: {duty: {value: 1666.7, provenance: assumed, source: "40 kWh/ADt (D-011)"}}}}
+  - {id: Q19, title: Power to the lime kiln, kind: energy, from: U1001.pw_kln, to: K901.power, state: {design: {duty: {value: 1250.0, provenance: assumed, source: "30 kWh/ADt (D-011)"}}}}
+  - {id: Q20, title: Burner heat to the lime kiln (fuel LHV), kind: energy, from: K902.heat, to: K901.heat, state: {design: {duty: {value: 17361.1, provenance: assumed, source: "1.5 GJ/ADt (BREF 2015 sec. 3.2.2.6.2), D-009"}}}}
+layout: {bfd: {}, pfd: {}}

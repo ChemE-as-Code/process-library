@@ -1,0 +1,15 @@
+# thionyl-chloride-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# thionyl-chloride-1 is an internal process (publication.status: internal) and its preliminary
+# LCI leaves the backgrounds unmapped on purpose (DESIGN.md D-012). The build reports each
+# unmapped exchange as a gap (lci/gaps.json). One override only: the LP steam is counted as heat
+# delivered (kWh), while the default `steam` entry is per kg, a unit error otherwise. The shared
+# vocabulary has no entry yet for elemental sulfur, liquid sulfur dioxide, chlorine, sodium
+# hydroxide, refrigeration or thionyl chloride, and no biosphere identity for Cl2, SOCl2, SCl2 or
+# S2Cl2 to air: those belong to the consolidated shared-files PR (DESIGN.md D-013).
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:LPS": {use: steam-heat, source: "LP steam 500 kPa(a) to the vaporisers, preheater and reboilers (Q3, Q4, Q5, Q9, Q13), counted as heat delivered (kWh), D-010"}

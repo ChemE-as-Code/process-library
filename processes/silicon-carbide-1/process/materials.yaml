@@ -1,0 +1,43 @@
+# Components and templates of the process. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol,
+# normal_boiling_point in K at 101.325 kPa.
+#
+# Acheson silicon carbide (D-001). Solids are separate components (phase: solid). Lumped
+# components (D-005): Al2O3 stands for all oxide impurities of the sand and the coke ash (Fe2O3,
+# Al2O3, CaO, MgO, TiO2); CH4 stands for the volatile matter of the green petroleum coke; S is
+# the coke sulfur, carried as the element until it is burnt to SO2 at the furnace surface.
+# Molar masses from IUPAC 2021 standard atomic weights; CAS from PubChem.
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: SiO2, name: Silica (quartz sand), formula: SiO2, cas: 14808-60-7, molar_mass: 60.083, phase: solid}
+  - {id: C, name: Carbon (fixed carbon of the petroleum coke), formula: C, cas: 7440-44-0, molar_mass: 12.011, phase: solid}
+  - {id: SiC, name: Silicon carbide, formula: SiC, cas: 409-21-2, molar_mass: 40.096, phase: solid}
+  - {id: Al2O3, name: Oxide impurities (lumped as alumina), formula: Al2O3, cas: 1344-28-1, molar_mass: 101.961, phase: solid}
+  - {id: S, name: Sulfur (of the coke; as the element), formula: S, cas: 7704-34-9, molar_mass: 32.06}
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.015, normal_boiling_point: 373.12}
+  - {id: CH4, name: Methane (stands for the coke volatile matter), formula: CH4, cas: 74-82-8, molar_mass: 16.043, normal_boiling_point: 111.66}
+  - {id: CO, name: Carbon monoxide, formula: CO, cas: 630-08-0, molar_mass: 28.010, normal_boiling_point: 81.6}
+  - {id: SiO, name: Silicon monoxide (gas), formula: SiO, cas: 10097-28-6, molar_mass: 44.084}
+  - {id: CO2, name: Carbon dioxide, formula: CO2, cas: 124-38-9, molar_mass: 44.009}
+  - {id: SO2, name: Sulfur dioxide, formula: SO2, cas: 7446-09-5, molar_mass: 64.058, normal_boiling_point: 263.1}
+  - {id: N2, name: Nitrogen (with argon of the air), formula: N2, cas: 7727-37-9, molar_mass: 28.014, normal_boiling_point: 77.36}
+  - {id: O2, name: Oxygen, formula: O2, cas: 7782-44-7, molar_mass: 31.998, normal_boiling_point: 90.19}
+templates:
+  - id: solids
+    title: Raw materials, furnace charge and solid products
+    components: [SiO2, C, SiC, Al2O3, S, H2O, CH4]
+  - id: gas
+    title: Raw furnace gas and air
+    components: [CO, SiO, CH4, S, H2O, CO2, SO2, SiO2, N2, O2]
+  - id: flue
+    title: Flue gas after the burn-off (S and SiO fully oxidised)
+    components: [CO, CH4, H2O, CO2, SO2, SiO2, N2, O2]
+  - id: dust
+    title: Crushing dust after the bag filter
+    components: [SiC]
+# property_method is a placeholder: no benchmarked package covers solids or the hot furnace
+# gas (D-007); `cheme process props --coverage` reports the streams as not covered.
+property_method:
+  adapter: thermo
+  status: placeholder

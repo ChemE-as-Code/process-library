@@ -1,0 +1,23 @@
+# Equipment list. Schema: `cheme schema equipment`.
+# The items of the PFD (process/flowsheet.yaml), concept stage: no P&ID, no sizing. Design
+# pressures and temperatures are ASSUMED placeholders for the materials question, not
+# mechanical design values (DESIGN.md D-012).
+schema: cheme/equipment/v1
+equipment:
+  # ---- bromine vaporisation (VAP)
+  - {tag: E-101, type: HeatExchanger, service: "Bromine vaporiser and superheater (LP steam)", design_pressure_barg: 5, design_temperature_degc: 160, material: "Process side glass-lined steel, tantalum or nickel alloy suited to wet-free bromine (to be selected)",
+     notes: "Vaporises 988 kg/h liquid bromine at 300 kPa(a) (saturation 368.7 K) and superheats it to 378 K with 98.5 kg/h LP steam 450 kPa(a), duty 58 kW (D-007). ASSUMED."}
+  # ---- synthesis, finishing and gas cooling (SYN)
+  - {tag: R-101, type: Furnace, service: "HBr burner with water-cooled combustion chamber", design_pressure_barg: 5, design_temperature_degc: 300, material: "Burner tube silica, quartz or nickel (US 6 036 936 A); chamber water-jacketed",
+     notes: "Burns bromine vapour in 5 mol-% excess hydrogen (H2 let down from 2850 kPa(a) in the package), 99.97 % Br2 conversion; flame above 1600 degC (US 6 036 936 A), gas leaves at 175 degC; cooling water duty 166 kW; burner management and analysers 3 kW (D-004, D-005, D-007). The design temperature of 300 degC applies to the water-cooled chamber shell and its jacket only; the burner tube (silica, quartz or nickel) sees the flame and gets its own design temperature at the datasheet stage (TBD). ASSUMED."}
+  - {tag: R-102, type: Vessel, service: "Catalytic finishing bed (activated carbon)", design_pressure_barg: 5, design_temperature_degc: 250, material: "Steel shell, jacketed, carbon bed (US 6 036 936 A, FIG. 3 variant)",
+     notes: "Converts the 1.85 mol/h of bromine left by the burner at 150-200 degC; heat released 0.05 kW (0.5 K rise), no utility (D-005). ASSUMED size."}
+  - {tag: E-102, type: HeatExchanger, service: "Graphite block HBr gas cooler", design_pressure_barg: 5, design_temperature_degc: 250, material: "Resin-impregnated graphite blocks in a steel jacket (US 6 036 936 A)",
+     notes: "Cools 1.0 t/h HBr gas from 175 to 60 degC, cooling water 11.8 kW (D-007). ASSUMED."}
+  # ---- absorption and tail gas scrubbing (ABS)
+  - {tag: C-201, type: Column, service: "Falling-film HBr absorber (water-cooled)", design_pressure_barg: 3, design_temperature_degc: 150, material: "Resin-impregnated graphite (tubes or blocks), PTFE-lined steel heads",
+     notes: "Isothermal falling-film absorption of the HBr gas in weak acid from C-202 to 2.08 t/h of 48 wt-% acid at 40 degC; 99.5 % of the HBr absorbed; cooling water duty 232 kW (D-008, D-009). ASSUMED."}
+  - {tag: C-202, type: Column, service: "Tail gas scrubber (packed, demineralised water)", design_pressure_barg: 2, design_temperature_degc: 80, material: "FRP or PVDF-lined steel, plastic packing",
+     notes: "Scrubbing of the absorber tail gas with all of the absorption water (1.08 t/h DMW) at 190 kPa(a); vent of excess hydrogen and nitrogen through a pressure control valve to atmosphere at a safe location with 5 mg/Nm3 HBr (D-008). ASSUMED."}
+  - {tag: P-201, type: Pump, service: Product acid pump, design_pressure_barg: 4, design_temperature_degc: 60, material: "PTFE/PFA-lined centrifugal",
+     notes: "2.08 t/h of 48 wt-% acid (1 490 kg/m3) to storage, 100 kPa differential, 0.08 kW at eta 0.5 (D-011). ASSUMED."}

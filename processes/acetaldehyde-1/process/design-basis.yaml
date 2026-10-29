@@ -1,0 +1,49 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Acetaldehyde by the one-stage Wacker (Hoechst-Wacker) oxidation of ethylene with oxygen, issue
+# ChemE-as-Code/process-library#183. Ethylene and oxygen are boundary feeds (DESIGN.md D-001).
+# Values marked ASSUMED are engineering choices of this concept study, not client or licensor
+# data; "US 4,237,073" is the Hoechst patent whose 13 t/h comparative example (fresh-water case)
+# gives the water, steam and waste-water figures we scale; every decision is in DESIGN.md.
+capacity:
+  basis: acetaldehyde product (99.9 wt%) to storage
+  acetaldehyde_t_per_a: 100000         # ASSUMED (D-002): a single train near the 13 t/h of the patent example
+  operating_hours_per_year: 8000       # ASSUMED (D-002)
+  product_kg_per_h: 12500.0            # = 100 000 t/a / 8000 h
+  turndown_percent: 50                 # ASSUMED, not checked
+feeds:
+  - name: Ethylene (boundary feed)
+    source_of_values: "ASSUMED (D-003): polymer grade, 99.9 mol% C2H4 with 0.1 mol% ethane, 600 kPa(a), 298 K from a steam cracker or pipeline outside the boundary (no library process makes ethylene yet)"
+    consumption: "676.5 kg C2H4/t product (S01); US 4,237,073 example 692 kg/t"
+  - name: Oxygen (boundary feed)
+    source_of_values: "ASSUMED (D-003): 99.5 mol% O2, rest argon (standing for all inerts), 600 kPa(a), 298 K, e.g. gaseous oxygen from processes/asu-1"
+    consumption: "409.6 kg/t product (S03); US 4,237,073 example 408 kg/t"
+  - name: Hydrochloric acid 30 wt% (catalyst chloride make-up)
+    source_of_values: "calculated from the chlorine leaving in the chlorinated by-products (D-004): 54.2 kg/t of 30 wt% acid"
+  - name: Demineralised water (reactor make-up, extraction water) and process water (scrubber)
+    source_of_values: "scaled from the US 4,237,073 comparative example (D-006): 1.15, 0.115 and 5.96 t/t product"
+products:
+  - name: Acetaldehyde, 99.9 wt% (rest water)
+    purity: "99.9 wt% acetaldehyde, 0.1 wt% water (ASSUMED, D-002); acetic acid, crotonaldehyde and chlorinated aldehydes below detection in the model"
+    delivery: {pressure_kPa_a: 300, temperature_K: 303.15, battery_limit: product storage (outside the boundary)}
+  - name: Cycle-gas purge (ethylene, CO2, argon, ethane, O2) to a thermal oxidiser outside the boundary
+  - name: Light ends (CO2, chloroethane, chloromethane, dissolved ethylene, acetaldehyde) to a thermal oxidiser outside the boundary
+  - name: Side draw of crotonaldehyde and chlorinated aldehydes with water to incineration outside the boundary
+  - name: Waste water (acetic acid, residual aldehydes and organic chlorine) to biological treatment outside the boundary
+utilities:
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: "ASSUMED (D-009)"}
+  - {name: MP steam, pressure_kPa_a: 1000, saturation_K: 453.0, use: "catalyst regenerator, injected directly (165-180 C per US 4,237,073)", note: "ASSUMED level (D-009)"}
+  - {name: LP steam, pressure_kPa_a: 450, saturation_K: 421.0, use: "live steam to the light-ends and acetaldehyde columns", note: "ASSUMED level (D-009)"}
+  - {name: Electric power, use: "cycle-gas compressor, catalyst circulation, wash-water, crude, reflux and waste-water pumps", note: "ASSUMED electric drives (D-009)"}
+site:
+  location: ASSUMED generic site, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325   # ASSUMED
+assumptions:
+  - "Route: one-stage Wacker process, ethylene and oxygen reacting together in an aqueous PdCl2/CuCl2/HCl catalyst solution in a bubble-column reactor at about 403 K and 400 kPa(a) (Wikipedia 'Wacker process', citing Ullmann's; US 4,237,073: 125-135 C, 3-4.5 bar abs) (D-001, D-005)."
+  - "Ethylene fate per 100 mol fed: 95 acetaldehyde, 1.9 chlorinated aldehydes, 1.1 unconverted, 0.8 CO2, 0.7 acetic acid (Wikipedia, citing Ullmann's); our split of the remainder: crotonaldehyde 0.25, chloroethane 0.15, chloromethane 0.10; chlorinated aldehydes 1.6 plus 0.3 of acetaldehyde losses (D-004)."
+  - "ASSUMED ethylene conversion per pass 35 % and 8 mol% O2 in the cycle gas (kept below the limiting oxygen concentration), not sourced (D-004, D-007)."
+  - "Heat of reaction removed by evaporating water from the catalyst solution; the precondenser returns the water needed to close the reactor energy balance (D-005)."
+  - "ASSUMED gas cooling to 318 K with 30 % of the acetaldehyde condensed; water scrubber to 0.05 mol% acetaldehyde in the cycle gas; CO2 and ethylene dissolved in the crude by Henry's law (NIST WebBook), chloroethane and chloromethane fully absorbed (D-007)."
+  - "Distillation: an extractive light-ends column and an acetaldehyde column, both heated with live steam at the rates of US 4,237,073 scaled to 12.5 t/h; 0.2 % of the acetaldehyde lost to the light ends; waste water at the patent's 200 mg/kg organic chlorine and 360 mg/kg aldehyde; side draw 40 wt% heavy organics, 10 wt% acetaldehyde (D-008)."
+  - "The catalyst inventory (Pd, Cu) and its losses are not quantified (no open source found): an open item of the LCI (D-010)."
+  - "All flows and duties are concept estimates from scripts/acet_balance.py (D-006); accuracy not stated, roughly +/-30 % for duties."

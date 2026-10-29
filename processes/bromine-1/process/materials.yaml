@@ -1,0 +1,35 @@
+# Components and templates of bromine-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). molar_mass in kg/kmol (from IUPAC standard atomic weights, the same values
+# as scripts/balance.py so that the element balances close), normal_boiling_point in K at
+# 101.325 kPa where the substance boils.
+#
+# The brine is an electrolyte solution (Na+, Ca2+, Cl-, Br-, about 31 wt-% salts): its salts are
+# carried as neutral formula units (NaCl, CaCl2, NaBr), the hydrochloric acid formed by the side
+# reaction as HCl and the sulfur as a suspended solid. No ChemE-as-Code property method covers
+# this brine (core#364: NaCl-H2O only), so stream properties are not filled (DESIGN.md D-006).
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.015, normal_boiling_point: 373.12}
+  - {id: NaCl, name: Sodium chloride, formula: NaCl, cas: 7647-14-5, molar_mass: 58.443}
+  - {id: CaCl2, name: Calcium chloride, formula: CaCl2, cas: 10043-52-4, molar_mass: 110.984}
+  - {id: NaBr, name: "Sodium bromide (the brine's bromide, as NaBr)", formula: NaBr, cas: 7647-15-6, molar_mass: 102.894}
+  - {id: H2S, name: Hydrogen sulfide (dissolved), formula: H2S, cas: 7783-06-4, molar_mass: 34.081, normal_boiling_point: 212.8}
+  - {id: Br2, name: Bromine, formula: Br2, cas: 7726-95-6, molar_mass: 159.808, normal_boiling_point: 331.9}
+  - {id: Cl2, name: Chlorine, formula: Cl2, cas: 7782-50-5, molar_mass: 70.906, normal_boiling_point: 239.11}
+  - {id: HCl, name: Hydrogen chloride (as hydrochloric acid in the tail brine), formula: HCl, cas: 7647-01-0, molar_mass: 36.461, normal_boiling_point: 188.1}
+  - {id: S, name: "Sulfur (suspended, from H2S oxidation)", formula: S, cas: 7704-34-9, molar_mass: 32.065}
+  - {id: CaOH2, name: Calcium hydroxide (hydrated lime), formula: Ca(OH)2, cas: 1305-62-0, molar_mass: 74.092}
+  - {id: H2SO4, name: Sulfuric acid, formula: H2SO4, cas: 7664-93-9, molar_mass: 98.079}
+templates:
+  - {id: brine, title: "Raw and tail brine (Smackover-type, D-004)", components: [H2O, NaCl, CaCl2, NaBr, H2S, S, HCl]}
+  - {id: halogen, title: "Bromine, chlorine and water (overhead, crude and product bromine, bromine water)", components: [Br2, Cl2, H2O]}
+  - {id: chlorine, title: Chlorine feed, components: [Cl2]}
+  - {id: water, title: Live steam, components: [H2O]}
+  - {id: acid, title: Sulfuric acid, components: [H2SO4, H2O]}
+  - {id: lime, title: Hydrated lime, components: [CaOH2]}
+# placeholder: no benchmarked package covers the brine, bromine or chlorine (core#364); stream
+# properties are not filled (D-006)
+property_method:
+  adapter: thermo
+  status: placeholder

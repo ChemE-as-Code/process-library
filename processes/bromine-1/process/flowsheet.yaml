@@ -1,0 +1,234 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Bromine from a Smackover-type bromide brine by chlorine oxidation and steaming-out
+# (hot-process / Kubierschky type tower), condensation, gravity separation, chlorine stripping and
+# drying with sulfuric acid; the tail brine neutralised with lime for reinjection. Chlorine from
+# chlor-alkali-1 as liquefied (inert-free) chlorine (DESIGN.md D-001..D-003).
+# Where the values come from:
+# - every flow and composition is from the independent balance scripts/balance.py (D-006), run
+#   with `cheme run scripts/balance.py`, given here as `assumed`; its inputs are sourced (brine,
+#   temperatures, recovery: Arkansas Geological Survey, US 4 719 096) or ASSUMED in DESIGN.md;
+# - the steam is calculated by the script's energy balance of the tower (5.82 kg/kg Br2) and
+#   checked against the 5.2-5.7 lb/lb Br2 of US 4 719 096 (D-006);
+# - the brine is an electrolyte: no property package covers it (core#364), so no enthalpies,
+#   phases or densities are filled by cheme.
+schema: cheme/process/v1
+kind: flowsheet
+title: Bromine from bromide brine by chlorine oxidation and steaming-out (3 750 kg/h Br2)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: 3 750 kg/h dry bromine at the gate (30 kt/a at 8000 h), brine 4 300 mg/kg bromide, 95.5 % recovery (D-002, D-004, D-005)", default: true}
+tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - {id: BRINE, title: "Raw bromide brine from the brine field (Smackover-type, 195 degF)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: CL2, title: "Chlorine, vaporised liquid chlorine (chlor-alkali-1 product, liquefied)", category: raw_material, ports: [{id: out, direction: out}]}
+  - id: LPS
+    title: LP steam 350 kPa(a), live steam to the steaming-out tower
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 350, provenance: assumed, source: "design basis, D-006"}
+      supply_temperature: {value: 411.0, provenance: assumed, source: "saturation at 350 kPa(a) (IAPWS-IF97), D-006"}
+    ports: [{id: out, direction: out}]
+  - id: LPH
+    title: LP steam 350 kPa(a) to the C-104 reboiler (condensate returned)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 350, provenance: assumed, source: "design basis, D-006"}
+      supply_temperature: {value: 411.0, provenance: assumed, source: "saturation at 350 kPa(a) (IAPWS-IF97), D-006"}
+      min_approach: {value: 10, provenance: assumed, source: D-006}
+    ports: [{id: c104, direction: out, kind: energy}]
+  - {id: H2SO4, title: "Sulfuric acid 98 wt-% for bromine drying", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: LIME, title: "Hydrated lime for tail brine neutralisation", category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power (AC, grid)
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: p101, direction: out, kind: energy}
+      - {id: t107, direction: out, kind: energy}
+products:
+  - {id: BR2, title: "Bromine, dry (99.96 wt-% Br2) to storage", category: product, ports: [{id: in, direction: in}]}
+  - {id: SPACID, title: "Spent sulfuric acid (80 wt-%) to neutralisation or regeneration", category: wastewater, ports: [{id: in, direction: in}]}
+  - {id: TAILB, title: "Neutralised tail brine to reinjection into the brine formation", category: wastewater, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: D-010}
+      return_temperature: {value: 308.15, provenance: assumed, source: D-010}
+      min_approach: {value: 5, provenance: assumed, source: D-010}
+    ports:
+      - {id: e102, direction: in, kind: energy}
+      - {id: c104, direction: in, kind: energy}
+      - {id: e105, direction: in, kind: energy}
+
+blocks:
+  - id: LIB
+    title: Bromine liberation and steaming-out
+    class: ReactingChemicals
+    ports:
+      - {id: brine, direction: in}
+      - {id: cl2, direction: in}
+      - {id: steam, direction: in}
+      - {id: bw, direction: in}
+      - {id: recyc, direction: in}
+      - {id: ovhd, direction: out}
+      - {id: tail, direction: out}
+      - {id: power, direction: in, kind: energy}
+  - id: REC
+    title: Condensation and separation
+    class: Separating
+    ports:
+      - {id: ovhd, direction: in}
+      - {id: bw, direction: out}
+      - {id: crude, direction: out}
+      - {id: cw, direction: out, kind: energy}
+  - id: PUR
+    title: Bromine purification and drying
+    class: Separating
+    ports:
+      - {id: crude, direction: in}
+      - {id: acid, direction: in}
+      - {id: recyc, direction: out}
+      - {id: bromine, direction: out}
+      - {id: spent, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+  - id: TBT
+    title: Tail brine neutralisation
+    class: ReactingChemicals
+    ports:
+      - {id: tail, direction: in}
+      - {id: lime, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy}
+
+steps:
+  # LIB: brine feed pump and the steaming-out tower (chlorinator section, stripping section)
+  - id: P101
+    block: LIB
+    title: Brine feed pump
+    class: GeneratingFlow
+    links: [{target: equipment, ref: P-101}]
+    ports:
+      - {id: in, direction: in, delegates: brine}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: C101
+    block: LIB
+    title: Steaming-out tower (chlorination and steam stripping)
+    class: ReactingChemicals
+    reactions: [BR_OX, H2S_OX]
+    links: [{target: equipment, ref: C-101}]
+    ports:
+      - {id: brine, direction: in}
+      - {id: cl2, direction: in, delegates: cl2}
+      - {id: steam, direction: in, delegates: steam}
+      - {id: bw, direction: in, delegates: bw}
+      - {id: recyc, direction: in, delegates: recyc}
+      - {id: ovhd, direction: out, delegates: ovhd}
+      - {id: tail, direction: out, delegates: tail}
+  # REC: overhead condenser and gravity separator
+  - id: E102
+    block: REC
+    title: Bromine condenser
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-102}]
+    ports:
+      - {id: in, direction: in, delegates: ovhd}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  - id: V103
+    block: REC
+    title: Bromine separator (gravity, bromine and bromine water)
+    class: Separating
+    links: [{target: equipment, ref: V-103}]
+    ports:
+      - {id: in, direction: in}
+      - {id: water, direction: out, delegates: bw}
+      - {id: crude, direction: out, delegates: crude}
+  # PUR: chlorine stripping column, cooler, sulfuric acid drying tower
+  - id: C104
+    block: PUR
+    title: Bromine purification column (chlorine stripping)
+    class: Separating
+    links: [{target: equipment, ref: C-104}]
+    ports:
+      - {id: in, direction: in, delegates: crude}
+      - {id: ovhd, direction: out, delegates: recyc}
+      - {id: btm, direction: out}
+      - {id: reb, direction: in, kind: energy, delegates: steam}
+      - {id: cond, direction: out, kind: energy, delegates: cw1}
+  - id: E105
+    block: PUR
+    title: Bromine cooler
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-105}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+  - id: C106
+    block: PUR
+    title: Bromine drying tower (sulfuric acid)
+    class: Separating
+    links: [{target: equipment, ref: C-106}]
+    ports:
+      - {id: in, direction: in}
+      - {id: acid, direction: in, delegates: acid}
+      - {id: out, direction: out, delegates: bromine}
+      - {id: spent, direction: out, delegates: spent}
+  # TBT: lime neutraliser (agitated tank)
+  - id: T107
+    block: TBT
+    title: Tail brine neutraliser (lime)
+    class: ReactingChemicals
+    reactions: [NEUT]
+    links: [{target: equipment, ref: T-107}]
+    ports:
+      - {id: in, direction: in, delegates: tail}
+      - {id: lime, direction: in, delegates: lime}
+      - {id: out, direction: out, delegates: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+
+# Material streams: flow (kg/h) and composition (mass fractions) from scripts/balance.py (D-006);
+# temperatures and pressures are sourced or design choices (D-004..D-009), ASSUMED.
+streams:
+  - {id: S1, title: Raw brine, from: BRINE.out, to: P101.in, template: brine, state: {design: {temperature: {value: 363.71, provenance: assumed, source: "195 degF, midpoint of the 180-210 degF well brine of US 4 719 096 (Detailed Description), D-004"}, pressure: {value: 150.0, provenance: assumed, source: D-004}, flow: {value: 912793.74, basis: mass, provenance: assumed, source: "scripts/balance.py: bromide for 3 750 kg/h product at 95.5 % recovery (D-002, D-005)"}, composition: {basis: mass_fraction, values: {NaBr: 0.0055372, CaCl2: 0.083076, H2S: 0.00025, NaCl: 0.217472, H2O: 0.6936648}, provenance: assumed, source: "D-004: 4 300 mg/kg Br- (AGS 4 000-4 600 ppm), 185 000 mg/kg Cl- (US 4 719 096: 200 000-250 000 ppm, read as mg/L at 1.2 kg/L), 30 000 mg/kg Ca ASSUMED, 250 mg/kg H2S (US 4 719 096: 100-300 ppm)"}}}}
+  - {id: S2, title: Brine to the tower top, from: P101.out, to: C101.brine, template: brine, state: {design: {temperature: {value: 363.71, provenance: assumed, source: D-004}, pressure: {value: 450.0, provenance: assumed, source: "D-006: 350 kPa pump rise, ASSUMED"}, flow: {value: 912793.74, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {NaBr: 0.0055372, CaCl2: 0.083076, H2S: 0.00025, NaCl: 0.217472, H2O: 0.6936648}, provenance: assumed, source: "as S1"}}}}
+  - {id: S3, title: Chlorine feed, from: CL2.out, to: C101.cl2, template: chlorine, state: {design: {temperature: {value: 313.15, provenance: assumed, source: D-003}, pressure: {value: 400.0, provenance: assumed, source: "D-003: as chlor-alkali-1 S42 delivery pressure"}, flow: {value: 2139.41, basis: mass, provenance: assumed, source: "scripts/balance.py: Cl2 for BR_OX, H2S_OX and the product's Cl2; 0.571 kg/kg Br2, inside the 0.55-0.60 lb/lb of US 4 719 096 (D-005)"}, composition: {basis: mass_fraction, values: {Cl2: 1.0}, provenance: assumed, source: "D-003: liquefied chlorine, inerts not modelled"}}}}
+  - {id: S4, title: Live steam, from: LPS.out, to: C101.steam, template: water, state: {design: {temperature: {value: 411.0, provenance: assumed, source: D-006}, pressure: {value: 350.0, provenance: assumed, source: D-006}, flow: {value: 21806.34, basis: mass, provenance: assumed, source: "scripts/balance.py: tower energy balance (brine heat-up 195 -> 229 degF, overhead water, reaction heat, 3 % loss); 5.82 kg/kg Br2 vs 5.2-5.7 lb/lb of US 4 719 096 (D-006)"}, composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-006}}}}
+  - {id: S5, title: Tower overhead vapour, from: C101.ovhd, to: E102.in, template: halogen, state: {design: {temperature: {value: 365.71, provenance: assumed, source: "D-006: feed brine + 2 K"}, pressure: {value: 105.0, provenance: assumed, source: D-006}, flow: {value: 4479.34, basis: mass, provenance: assumed, source: "scripts/balance.py: water from the vapour pressure over the brine (a_w 0.75 ASSUMED)"}, composition: {basis: mass_fraction, values: {Br2: 0.8583984, Cl2: 0.0174449, H2O: 0.1241567}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S6, title: Condensate (bromine and water phases), from: E102.out, to: V103.in, template: halogen, state: {design: {temperature: {value: 303.15, provenance: assumed, source: D-007}, pressure: {value: 101.3, provenance: assumed, source: D-007}, flow: {value: 4479.34, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {Br2: 0.8583984, Cl2: 0.0174449, H2O: 0.1241567}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S7, title: Bromine water returned to the tower, from: V103.water, to: C101.bw, template: halogen, state: {design: {temperature: {value: 303.15, provenance: assumed, source: D-007}, pressure: {value: 200.0, provenance: assumed, source: D-007}, flow: {value: 572.26, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {H2O: 0.965, Br2: 0.035}, provenance: assumed, source: "D-007: saturated with Br2, about 3.5 wt-% (ASSUMED from the solubility of bromine in water near 20-30 degC)"}}}}
+  - {id: S8, title: Crude bromine, from: V103.crude, to: C104.in, template: halogen, state: {design: {temperature: {value: 303.15, provenance: assumed, source: D-007}, pressure: {value: 200.0, provenance: assumed, source: D-007}, flow: {value: 3907.08, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {Br2: 0.979, Cl2: 0.02, H2O: 0.001}, provenance: assumed, source: "D-007: 2 wt-% Cl2, 0.1 wt-% water ASSUMED"}}}}
+  - {id: S9, title: Chlorine-bromine vapour returned to the tower, from: C104.ovhd, to: C101.recyc, template: halogen, state: {design: {temperature: {value: 320.0, provenance: assumed, source: D-007}, pressure: {value: 110.0, provenance: assumed, source: D-007}, flow: {value: 155.31, basis: mass, provenance: assumed, source: "scripts/balance.py: all Cl2 above the product spec with 1 kg Br2 per kg Cl2 (ASSUMED)"}, composition: {basis: mass_fraction, values: {Br2: 0.493461, Cl2: 0.493461, H2O: 0.013078}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S10, title: Wet bromine from C-104, from: C104.btm, to: E105.in, template: halogen, state: {design: {temperature: {value: 331.9, provenance: assumed, source: "D-007: Br2 boiling point"}, pressure: {value: 120.0, provenance: assumed, source: D-007}, flow: {value: 3751.76, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {Br2: 0.9991002, Cl2: 0.0003998, H2O: 0.0005}, provenance: assumed, source: "D-008: 0.05 wt-% water ASSUMED"}}}}
+  - {id: S11, title: Cooled wet bromine, from: E105.out, to: C106.in, template: halogen, state: {design: {temperature: {value: 303.15, provenance: assumed, source: D-008}, pressure: {value: 200.0, provenance: assumed, source: D-008}, flow: {value: 3751.76, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {Br2: 0.9991002, Cl2: 0.0003998, H2O: 0.0005}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S12, title: Dry bromine product, from: C106.out, to: BR2.in, template: halogen, state: {design: {temperature: {value: 303.15, provenance: assumed, source: D-008}, pressure: {value: 200.0, provenance: assumed, source: D-008}, flow: {value: 3750.0, basis: mass, provenance: assumed, source: "design basis, D-002"}, composition: {basis: mass_fraction, values: {Br2: 0.99957, Cl2: 0.0004, H2O: 0.00003}, provenance: assumed, source: "design basis, D-002 (product spec ASSUMED)"}}}}
+  - {id: S13, title: Sulfuric acid 98 wt-%, from: H2SO4.out, to: C106.acid, template: acid, state: {design: {temperature: {value: 298.15, provenance: assumed, source: D-008}, pressure: {value: 200.0, provenance: assumed, source: D-008}, flow: {value: 7.84, basis: mass, provenance: assumed, source: "scripts/balance.py: diluted from 98 to 80 wt-% by the water removed (D-008)"}, composition: {basis: mass_fraction, values: {H2SO4: 0.98, H2O: 0.02}, provenance: assumed, source: D-008}}}}
+  - {id: S14, title: Spent sulfuric acid, from: C106.spent, to: SPACID.in, template: acid, state: {design: {temperature: {value: 303.15, provenance: assumed, source: D-008}, pressure: {value: 150.0, provenance: assumed, source: D-008}, flow: {value: 9.6, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {H2SO4: 0.8, H2O: 0.2}, provenance: assumed, source: "D-008: 80 wt-% ASSUMED; dissolved bromine not modelled"}}}}
+  - {id: S15, title: Tail brine from the tower, from: C101.tail, to: T107.in, template: brine, state: {design: {temperature: {value: 382.59, provenance: assumed, source: "229 degF: brine boils at 228-230 degF in conventional towers (US 4 719 096, Background), D-006"}, pressure: {value: 130.0, provenance: assumed, source: D-006}, flow: {value: 932987.72, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {CaCl2: 0.0812779, H2O: 0.7020214, NaCl: 0.2157035, NaBr: 0.0002438, S: 0.0002301, HCl: 0.0005233}, provenance: assumed, source: "scripts/balance.py: 189 mg/kg bromide left (US 4 719 096: 50-200 ppm in tail brine)"}}}}
+  - {id: S16, title: Hydrated lime, from: LIME.out, to: T107.lime, template: lime, state: {design: {temperature: {value: 298.15, provenance: assumed, source: D-009}, pressure: {value: 101.325, provenance: assumed, source: D-009}, flow: {value: 496.1, basis: mass, provenance: assumed, source: "scripts/balance.py: stoichiometric for the HCl of H2S_OX (D-009)"}, composition: {basis: mass_fraction, values: {CaOH2: 1.0}, provenance: assumed, source: "D-009: pure Ca(OH)2 ASSUMED"}}}}
+  - {id: S17, title: Neutralised tail brine to reinjection, from: T107.out, to: TAILB.in, template: brine, state: {design: {temperature: {value: 382.89, provenance: assumed, source: "scripts/balance.py: S15 plus the lime neutralisation heat (225 kW, NBS tables), no flash at 120 kPa(a), tank heat loss neglected ASSUMED (D-009)"}, pressure: {value: 120.0, provenance: assumed, source: "D-009: T-107 operating pressure ASSUMED; the transfer pump to the injection header belongs to the reinjection system (D-001)"}, flow: {value: 933483.83, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {CaCl2: 0.0820307, H2O: 0.7019068, NaCl: 0.2155888, NaBr: 0.0002437, S: 0.00023}, provenance: assumed, source: scripts/balance.py}}}}
+  # Energy streams (duties from scripts/balance.py, D-006..D-011)
+  - {id: Q1, title: Bromine condenser duty, kind: energy, from: E102.cw, to: CW.e102, state: {design: {duty: {value: 622.9, provenance: assumed, source: "scripts/balance.py: condensing S5 to 303 K (D-007)"}}}}
+  - {id: Q2, title: C-104 reboiler duty, kind: energy, from: LPH.c104, to: C104.reb, state: {design: {duty: {value: 60.7, provenance: assumed, source: "scripts/balance.py: crude to 331.9 K, overhead boiled up (1 + R) times, R = 3 ASSUMED (D-007)"}}}}
+  - {id: Q3, title: C-104 condenser duty, kind: energy, from: C104.cond, to: CW.c104, state: {design: {duty: {value: 34.4, provenance: assumed, source: "scripts/balance.py: reflux R = 3 (D-007)"}}}}
+  - {id: Q4, title: Bromine cooler duty, kind: energy, from: E105.cw, to: CW.e105, state: {design: {duty: {value: 14.2, provenance: assumed, source: "scripts/balance.py: 331.9 -> 303.15 K (D-008)"}}}}
+  - {id: Q5, title: Brine feed pump power, kind: energy, from: POWER.p101, to: P101.power, state: {design: {duty: {value: 105.6, provenance: assumed, source: "scripts/balance.py: 350 kPa, 1.2 kg/L, eta 0.70 (D-011)"}}}}
+  - {id: Q6, title: "Other drives: bromine, acid and lime pumps, neutraliser agitator", kind: energy, from: POWER.t107, to: T107.power, state: {design: {duty: {value: 15.0, provenance: assumed, source: "D-011: ASSUMED lump"}}}}
+layout: {bfd: {}, pfd: {}}

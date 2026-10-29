@@ -1,0 +1,141 @@
+# Goal and scope of the glycerol-1 LCA. Schema: `cheme schema lca`. Outputs: `cheme assess lca
+# --write` (lca/inventory.csv, results.csv, results.md, gaps.csv, dataset.yaml, manifest.json);
+# never edit those by hand. Decisions: DESIGN.md D-013.
+#
+# This stage delivers the PRELIMINARY GATE-TO-GATE FOREGROUND INVENTORY: every exchange of the
+# balanced flowsheet per kg of refined glycerol. No background is connected yet: each feed,
+# utility and waste names the background activity it should link to later and is declared
+# `missing:` (a gap in every category, never 0). `boundary: cradle-to-gate` is the scope the
+# backgrounds will complete; `gate-to-gate` in cheme maps every feed free, which would hide the
+# raw materials and utilities (as soda-ash-1 D-010).
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary foreground (gate-to-gate) life cycle inventory of USP-grade glycerol refined from
+  biodiesel crude glycerol at the concept stage: which raw materials, utilities, co-products,
+  emissions and wastes the balanced flowsheet implies per kg of refined glycerol, ready to be
+  linked to background datasets later. Flows are concept estimates on assumed separation and
+  utility parameters (DESIGN.md D-006 to D-012).
+functional_unit: {product: GLYC, amount: 1, unit: kg}
+boundary: cradle-to-gate
+year: 2026
+location: GLO   # generic site next to a biodiesel plant, country not chosen (D-002)
+technology: "Crude glycerol refining: HCl acidulation, fatty-layer decanting, NaOH neutralisation, atmospheric methanol column, vacuum dewatering, vacuum still with live steam and salt centrifuge, activated carbon bleaching; 10 000 t/a glycerol 99.7 wt%"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+allocation:
+  # Baseline `shares` = mass allocation with the recovered methanol treated as a return of the
+  # biodiesel plant's own excess reactant (share 0), only glycerol and the fatty layer sharing:
+  # 1250 / (1250 + 181.31) = 0.8733 (streams S21, S4). Plain `mass` is the schema default and
+  # cheme leaves a default out of dataset.yaml, so the library build could not see the
+  # dataset's method (CI warning, D-013).
+  method: shares
+  coproducts: [GLYC, MEOHR, FAL]
+  shares: {GLYC: 0.8733, FAL: 0.1267, MEOHR: 0.0}
+  source: >-
+    D-013: three outputs leave for use: refined glycerol (the functional unit), recovered
+    methanol and the fatty layer, both returned to the biodiesel plant. The recovered methanol
+    is the biodiesel plant's own excess reactant, which arrives in the crude and leaves
+    unchanged, so it is treated as a return (share 0) and glycerol and the fatty layer share
+    the burden by mass (review 2026-10-28-pfd-lci-review#5). Plain mass allocation (methanol
+    as a co-product) and no allocation are reported side by side; economic allocation and
+    substitution (avoided fatty feedstock) are open sensitivities. The unallocated dataset
+    (lca/dataset.yaml) lets a later study choose.
+  deviation: >-
+    D-013: the library hierarchy prefers subdivision or system expansion, then economic (price
+    ratio) allocation. Subdivision is not possible (one acidulation serves all three outputs),
+    substitution needs background datasets that are not linked at this stage and no sourced
+    prices for refined glycerol and the fatty layer were collected in this run. Mass shares
+    with the methanol as a return are a declared preliminary placeholder until prices are
+    sourced and the crude-glycerol background is chosen.
+  # Variants side by side (review 2026-10-28-pfd-lci-review#5, D-013): `mass` (methanol as a
+  # co-product) and `none` (unallocated, the glycerol carries everything).
+  compare: [mass, shares, none]
+flows:
+  # ---- raw materials (backgrounds to connect later)
+  - key: feed:CRUDE
+    missing: "no background linked yet. Connect: crude glycerol (glycerol phase, about 60 wt% glycerol with methanol, catalyst and fatty matter) from a sodium-methylate catalysed biodiesel (FAME) plant on vegetable oil, as a co-product of transesterification with that plant's own allocation; per kg as delivered. No library process makes it yet (D-001)"
+    source: "stream S1 (composition Thompson & He 2006, D-004)"
+  - key: feed:HCLA
+    missing: "no background linked yet. Connect: hydrochloric acid, 32 wt% in water (market for hydrochloric acid, without water, in 30 % solution state, scaled to 32 %), per kg of solution or per kg HCl with the water as process water"
+    source: "stream S2 (D-005)"
+  - key: feed:NAOHS
+    missing: "no background linked yet. Connect: sodium hydroxide 50 wt% solution from the chlor-alkali membrane process (chlor-alkali-1 when it publishes its dataset), per kg of solution or per kg NaOH"
+    source: "stream S6 (D-005)"
+  - key: feed:ACF
+    missing: "no background linked yet. Connect: activated carbon, granular, from hard coal or coconut shell (market for activated carbon), per kg"
+    source: "stream S18 (D-011)"
+  # ---- utilities
+  - key: feed:LSTM
+    missing: "no background linked yet. Connect: LP steam 450 kPa(a) from the site boiler (natural gas fired, or shared with the biodiesel plant), per kg of steam; live steam, condensate not returned"
+    source: "stream S14: live stripping steam of the still (D-009)"
+  - key: feed:MSTM
+    missing: "no background linked yet. Connect: MP steam 1000 kPa(a) from the site boiler, per kg of steam; ejector motive steam, condensed with the process vapour into the wastewater, condensate not returned"
+    source: "stream S22: motive steam of the still booster ejectors J-403 (D-009)"
+  - key: feed:MPS
+    missing: "no background linked yet. Connect: heat delivered by MP steam 1000 kPa(a) from the site boiler (condensate returned), per kWh of heat"
+    source: "Q1 (C-201 reboiler), D-007, D-012"
+  - key: feed:LPS
+    missing: "no background linked yet. Connect: heat delivered by LP steam 450 kPa(a) from the site boiler (condensate returned), per kWh of heat"
+    source: "Q3 (E-301 evaporator), D-012"
+  - key: feed:HPS
+    missing: "no background linked yet. Connect: heat delivered by HP steam 3000 kPa(a) from the site boiler, or a thermal-oil heater as the usual alternative (condensate returned), per kWh of heat"
+    source: "Q5 (E-401 still reboiler), D-012"
+  - key: feed:POWER
+    missing: "no background linked yet. Connect: grid electricity, medium voltage, of the site's country (not chosen, D-002), per kWh"
+    source: "W1 to W5, 50 kWh/t product ASSUMED (D-012)"
+  - key: product:CW
+    missing: "no background linked yet. Connect: cooling water from a circulating evaporative cooling tower (pumping, fans, make-up water and treatment chemicals; processes/utility-cooling-tower), per kWh of heat rejected"
+    source: "Q2, Q4, Q6, Q7, Q8 (D-012)"
+  # ---- co-products (allocation partners, `allocation.coproducts`; no flow entry): MEOHR is
+  # stream S8, recovered methanol 99.5 wt% to the biodiesel plant (D-007); FAL is stream S4,
+  # the fatty layer to the biodiesel plant's esterification (D-006)
+  # ---- wastes
+  - key: product:SALT
+    treatment: {kind: waste, route: "landfill of the NaCl cake (with adhering glycerol and fatty matter)"}
+    missing: "no background linked yet. Connect: treatment of salt residue, sanitary or hazardous-waste landfill depending on the organic load; or use as technical salt if a buyer accepts it (D-010)"
+    source: "stream S12 (D-010)"
+  - key: product:FOOTS
+    treatment: {kind: waste, route: "anaerobic digestion (biogas) or incineration of the still residue liquor"}
+    missing: "no background linked yet. Connect: anaerobic digestion of glycerol-rich residue (biogas plant co-substrate) or treatment by incineration; the residue holds about 10 wt% NaCl (D-010)"
+    source: "stream S13 (D-010)"
+  - key: product:SPAC
+    treatment: {kind: waste, route: "thermal regeneration or incineration of spent activated carbon"}
+    missing: "no background linked yet. Connect: treatment of spent activated carbon by thermal reactivation, or hazardous-waste incineration, per kg wet spent carbon (D-011)"
+    source: "stream S19 (D-011)"
+  - key: product:WW
+    treatment: {kind: waste, route: "site or municipal biological wastewater treatment"}
+    missing: "no background linked yet. Connect: treatment of process wastewater with methanol (about 0.7 wt%) and glycerol (about 1.7 wt%) in a biological WWTP (processes/utility-wwtp), per kg or per m3, COD-based"
+    source: "streams S10 (evaporator condensate) and S15 (vacuum intercondenser condensate with the ejector motive steam), D-008, D-009"
+
+# Carbon origin (D-013): the glycerol and the fatty acid chains come from vegetable oil
+# (biogenic); the methanol, the methoxide and the methyl group of the esters are taken as fossil
+# (methanol from natural gas). Per kg crude: C 0.4118 kg, of it biogenic 0.2923 kg.
+carbon_accounting:
+  content:
+    "feed:CRUDE":
+      biogenic_fraction: 0.710
+      source: "D-013: carbon of S1 by component (glycerol 0.2341, fatty chains 0.0582 biogenic; methanol 0.1100, methoxide 0.0063, ester methyl 0.0032 fossil, kg C per kg)"
+  source: "D-013: fossil methanol assumed; bio-methanol would raise the biogenic share"
+
+operation:
+  hours_per_year: 8000
+  life_years: 20
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 20 a service life ASSUMED; no construction inventory at this stage (no take-off)"
+
+uncertainty:
+  iterations: 1000
+  seed: 1
+  defaults:
+    assumed: {gsd2: 1.5, source: "concept estimate on assumed separation and utility parameters (D-006 to D-012)"}
+    calculated: {gsd2: 1.2, source: "calculated from assumed inputs"}
+    given: {gsd2: 1.1, source: "laboratory crude glycerol composition (D-004)"}
+
+dataset:
+  version: 0.1.0
+  geography: {description: "Generic site next to a biodiesel plant, country not chosen (D-002); no regional background linked"}
+  system_model: cutoff
+  technology_level: current
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 basic chemicals (glycerol); CPC 2.1 code not looked up (open)
+  modelling: {principle: attributional}
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library, glycerol-1 concept design (agent run 2026-10-28)"

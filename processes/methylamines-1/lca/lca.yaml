@@ -1,0 +1,79 @@
+# Goal and scope of the methylamines-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme assess
+# lca --write` (lca/inventory.csv, results.csv, results.md, gaps.csv, dataset.yaml, manifest.json,
+# uncertainty.csv); never edit those by hand.
+#
+# Preliminary run (DESIGN.md D-014): the foreground inventory of the balanced concept flowsheet
+# only, per kg of dimethylamine, i.e. a gate-to-gate inventory. The scope is declared
+# cradle-to-gate so that every background stays visible: each (methanol, ammonia, power, steam,
+# cooling water, wastewater treatment) is deliberately left UNMAPPED, a gap with a description of
+# the background activity it should connect to later, never 0 and never a value from a licensed
+# database. The plant has no direct emission to air in the model (D-014).
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of anhydrous dimethylamine co-produced with
+  monomethylamine and trimethylamine from methanol and ammonia (amorphous silica-alumina,
+  equilibrium converter with recycle, five-column separation) at concept stage, per kg of DMA:
+  raw materials, utilities by level, co-products and wastewater from the balanced flowsheet. The
+  backgrounds are gaps to be linked later; no impact result is claimed (D-014).
+functional_unit:
+  product: DMAP
+  amount: 1
+  unit: kg
+  source: "1 kg anhydrous dimethylamine at the plant gate (stream S18, D-002)"
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "vapour-phase amination of methanol over amorphous silica-alumina (adiabatic, 625-713 K, 2.2 MPa), N/C 2.0, recycle of NH3, TMA, MMA and methanol; NH3 column, TMA extractive distillation with water, dehydration, MMA/DMA and methanol columns; 8 t/h amines (25/55/20 wt% MMA/DMA/TMA)"
+system_model: cutoff
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+allocation:
+  method: mass
+  coproducts: [DMAP, MMAP, TMAP]
+  source: >-
+    D-014: mass allocation between the three anhydrous amines. They come from one reactor and
+    one separation train; the product slate is set by recycling MMA and TMA, so no product can be
+    singled out as the cause of a utility. The amines are close in molar heating value per kg
+    and are sold at similar prices per kg (no open price source checked), so mass is the simple,
+    transparent physical basis; economic allocation is to be compared once prices are sourced.
+  deviation: >-
+    The library hierarchy asks for the WBCSD price ratio to decide between physical and economic
+    allocation. No open, dated prices of anhydrous MMA, DMA and TMA were sourced in this run (open
+    input O-8), so the ratio is unknown; mass is used as the physical basis for three chemically
+    similar co-products of one reactor and train, and is to be checked against economic
+    allocation once prices are sourced (DESIGN.md D-014).
+flows:
+  - {key: feed:MEOH, missing: "not mapped in this preliminary run: should connect to methanol at the plant gate (market activity for the site region; in the library processes/methanol-1, natural-gas route, once its dataset is published); no registry slug or shared technosphere entry for methanol yet (D-013)", source: "fresh methanol, stream S1"}
+  - {key: feed:NH3F, missing: "not mapped in this preliminary run: should connect to anhydrous liquid ammonia at the plant gate (market activity for the site region; in the library processes/ammonia-1)", source: "fresh liquid ammonia, stream S2"}
+  - {key: feed:POWER, missing: "not mapped in this preliminary run: should connect to grid electricity, medium voltage, of the site country (not chosen)", source: "feed and recycle pumps, stream Q1 (D-010)"}
+  - {key: feed:MPS, missing: "not mapped in this preliminary run: should connect to heat from MP steam (1500 kPa(a)) of the site steam system (e.g. a natural-gas boiler, processes/utility-steam-ng-boiler), per kWh of heat", source: "feed vaporiser and C-101, C-103 reboilers, streams Q2, Q4, Q8; upper estimate, no heat integration (D-009), concept duties +/-30 % (D-006)"}
+  - {key: feed:LPS, missing: "not mapped in this preliminary run: should connect to heat from LP steam (450 kPa(a)) of the site steam system, per kWh of heat", source: "C-102, C-104, C-105 reboilers, streams Q6, Q10, Q12; upper estimate, no heat integration (D-009), concept duties +/-30 % (D-006)"}
+  - {key: product:CW, missing: "not mapped in this preliminary run: should connect to a recirculating cooling-water system per kWh of heat rejected (pumping and fan power, make-up water, treatment chemicals, evaporation; processes/utility-cooling-tower)", source: "heat rejected to cooling water, streams Q3, Q5, Q7, Q9, Q11, Q13"}
+  - {key: product:WW, missing: "not mapped in this preliminary run: should connect to treatment of industrial wastewater in a biological treatment plant, per kg (or m3) of water with 100 ppm(wt) methanol; amines and caustic not modelled (D-008)", source: "reaction water to treatment, stream S23"}
+# No combustion unit, flare or storage tank is inside the boundary (feed and product storage are
+# outside, D-001); no vent stream is modelled (no inerts in the feeds, D-005).
+emission_exclusions:
+  - {id: leaks, method: equipment-leaks, reason: "not estimated at concept stage: no P&ID component count yet; ammonia, methanol and amine fugitives to be estimated at basic engineering (D-014)", source: "DESIGN.md D-014"}
+  - {id: tanks, method: storage-tank, reason: "no storage tank inside the boundary: methanol, ammonia and product storage are outside (D-001)", source: "DESIGN.md D-001"}
+  - {id: combustion, method: combustion, reason: "no fired unit: the feed is vaporised with MP steam and the converter is adiabatic; catalyst regeneration by burn-off (US 7,435,855 B2) is periodic and not modelled (D-014)", source: "DESIGN.md D-014"}
+  - {id: vents, method: non-routine, reason: "no vent or purge in the model: the feeds carry no inerts and no decomposition gases (CO, H2, CH4) are modelled (D-005); a column vent to a flare or scrubber is expected at basic engineering", source: "DESIGN.md D-005"}
+# Known foreground exchanges without a sourced amount (DESIGN.md open inputs): recorded here so
+# that the gap is visible in the dataset's cut-off list.
+cutoff:
+  - {id: silica-alumina-catalyst, title: "Amorphous silica-alumina converter catalyst (R-101)", unit: kg, catalyst: true, contains: [Si, Al], reason: "silica gel with about 10-15 wt% alumina, no precious or critical metal (US 3,387,032 A; the patent's optional silver, rhenium, molybdenum or cobalt promoters are not assumed); catalyst volume, space velocity and life not sourced (O-4); should connect to its manufacture and to the treatment of the spent catalyst"}
+  - {id: caustic-dosing, title: "Sodium hydroxide dosed against corrosion in the amine columns", unit: kg, reason: "practice reported (US 7,309,403 B2) but no amount sourced (O-6); should connect to sodium hydroxide (50 % solution) and leaves with the wastewater"}
+  - {id: higher-amine-purge, title: "Higher-amine impurity purge (decanted organic phase)", unit: kg, reason: "by-product formation not modelled (D-005); US 4,283,254 A reports the purge stream; should connect to hazardous-waste incineration"}
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 25 a service life ASSUMED"
+dataset:
+  version: 0.1.0
+  geography: {description: "One concept design for a generic, undecided site; no regional background"}
+  system_model: cutoff
+  technology_level: current
+  classification: {isic: "2011"}
+  modelling: {principle: attributional}
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library, methylamines-1 concept run (agent-generated, not reviewed)"

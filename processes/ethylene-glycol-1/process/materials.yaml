@@ -1,0 +1,41 @@
+# Components and templates of the process. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol,
+# normal_boiling_point in K at 101.325 kPa.
+#
+# Ethylene oxide by direct oxidation with oxygen and glycols by thermal hydration (D-001).
+# Molar masses from IUPAC 2021 standard atomic weights; CAS numbers from PubChem. Normal
+# boiling points are rounded literature values recalled for this concept stage (PubChem /
+# NIST WebBook entries of each compound), to be checked when a property package is chosen
+# (D-007). Argon stands for all the inerts of the oxygen (Ar, N2). TTEG (tetraethylene
+# glycol) stands for the heavy glycols residue. Traces not modelled: acetaldehyde,
+# formaldehyde, organic acids, the organochlorine moderator (D-006).
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: C2H4, name: Ethylene, formula: C2H4, cas: 74-85-1, molar_mass: 28.054, normal_boiling_point: 169.4}
+  - {id: O2, name: Oxygen, formula: O2, cas: 7782-44-7, molar_mass: 31.998, normal_boiling_point: 90.19}
+  - {id: CH4, name: Methane (ballast gas), formula: CH4, cas: 74-82-8, molar_mass: 16.043, normal_boiling_point: 111.66}
+  - {id: CO2, name: Carbon dioxide, formula: CO2, cas: 124-38-9, molar_mass: 44.009}
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.015, normal_boiling_point: 373.12}
+  - {id: AR, name: Argon (with the other inerts of the oxygen), formula: Ar, cas: 7440-37-1, molar_mass: 39.948, normal_boiling_point: 87.3}
+  - {id: C2H6, name: Ethane (ethylene impurity), formula: C2H6, cas: 74-84-0, molar_mass: 30.070, normal_boiling_point: 184.6}
+  - {id: EO, name: Ethylene oxide, formula: C2H4O, cas: 75-21-8, molar_mass: 44.053, normal_boiling_point: 283.8}
+  - {id: MEG, name: Monoethylene glycol, formula: C2H6O2, cas: 107-21-1, molar_mass: 62.068, normal_boiling_point: 470.5}
+  - {id: DEG, name: Diethylene glycol, formula: C4H10O3, cas: 111-46-6, molar_mass: 106.120, normal_boiling_point: 518.0}
+  - {id: TEG, name: Triethylene glycol, formula: C6H14O4, cas: 112-27-6, molar_mass: 150.173, normal_boiling_point: 560.5}
+  - {id: TTEG, name: Tetraethylene glycol (stands for the heavy glycols), formula: C8H18O5, cas: 112-60-7, molar_mass: 194.226, normal_boiling_point: 601.0}
+templates:
+  - id: loop
+    title: Reaction loop gas, feeds, purge and vent
+    components: [C2H4, O2, CH4, CO2, H2O, AR, C2H6, EO]
+  - id: vent
+    title: CO2 stripper vent (CO2, water, dissolved hydrocarbons)
+    components: [CO2, H2O, CH4, C2H4]
+  - id: aq
+    title: Aqueous EO, water and glycol streams
+    components: [H2O, EO, CO2, C2H4, CH4, MEG, DEG, TEG, TTEG]
+# property_method is a placeholder: no benchmarked package covers EO-water-glycol liquids or the
+# methane-ethylene-oxygen loop gas with EO (D-007); `cheme process props --coverage` reports it.
+property_method:
+  adapter: thermo
+  status: placeholder

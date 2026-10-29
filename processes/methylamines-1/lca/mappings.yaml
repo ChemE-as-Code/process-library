@@ -1,0 +1,14 @@
+# methylamines-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# Only exchanges whose input has no registry slug but an existing shared technosphere entry are
+# overridden here. Methanol (feed:MEOH) has neither: it stays a reported gap (ADR 0022) until the
+# consolidated registry/vocabulary PR adds a `methanol` chemical and technosphere entry
+# (DESIGN.md D-013). The products (MMA, DMA, TMA) need registry slugs in the same PR.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:NH3F": {use: ammonia, source: "anhydrous liquid ammonia (no registry slug yet); processes/ammonia-1 makes it"}
+  "feed:MPS": {use: steam-heat, source: "MP steam 1500 kPa(a) to the feed vaporiser and the C-101, C-103 reboilers, counted as heat delivered (kWh)"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a) to the C-102, C-104, C-105 reboilers, counted as heat delivered (kWh)"}

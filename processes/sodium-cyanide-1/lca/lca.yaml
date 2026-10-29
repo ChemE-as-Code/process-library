@@ -1,0 +1,251 @@
+# Goal and scope of the sodium-cyanide-1 LCA. Schema: `cheme schema lca`. Outputs: `cheme assess
+# lca --write` (lca/inventory.csv, results.*, gaps.csv, dataset.yaml, manifest.json); never edit
+# those by hand. DESIGN.md D-012.
+#
+# PRELIMINARY GATE-TO-GATE LCI. Every foreground exchange comes from the balanced flowsheet
+# (process/flowsheet.yaml, case design). The background datasets are deliberately left
+# UNMAPPED: each technosphere flow carries `missing:` with the background activity it should
+# connect to later. No factor, no value from a licensed database, and no zero stands in for
+# them; the result is therefore a gap list, not a footprint. The plant's own emissions to air
+# (the tail gas boiler stack) are elementary flows from the flowsheet.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of solid sodium cyanide (98 wt% NaCN) from
+  Andrussow HCN, ammonia recycle, HCN refining, neutralisation with caustic soda, evaporative
+  crystallisation and drying at concept stage: the foreground exchanges per kg of product at the
+  plant gate, ready to be linked to background datasets (natural gas, ammonia from ammonia-1,
+  caustic soda from chlor-alkali-1, grid power, cooling and chilled water, cyanide wastewater
+  treatment, Pt/Rh gauze) in the next stage (DESIGN.md D-012). Flows are concept estimates;
+  backgrounds are unmapped gaps.
+functional_unit: {product: NACN, amount: 1, unit: kg}
+boundary: gate-to-gate
+case: design
+location: GLO      # generic concept design, no site chosen
+year: 2026
+technology: "air-operated Andrussow converter on Pt/Rh gauze, waste heat boiler, ammonium phosphate ammonia recovery and recycle, HCN absorption in chilled water and rectification, neutralisation with 50 wt% NaOH, vacuum evaporative crystallisation, steam drying, tail gas boiler; 6.25 t/h solid NaCN"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+allocation:
+  method: shares
+  coproducts: [NACN, MPSX]
+  shares: {NACN: 1.0, MPSX: 0.0}
+  compare: [none]
+  source: >-
+    D-012: the exported MP steam (Q8 + Q9, net of the plant's own steam use) is a co-product of
+    the sodium cyanide. The library allocates exported steam by energy or exergy, never by
+    credit; exergy is the intended method, but the standard chemical exergy of solid NaCN has
+    not been taken from a source in this run, so the preliminary inventory puts all burdens on
+    the NaCN (shares 1/0, conservative for the product) and keeps the unallocated result in the
+    comparison. Exergy allocation is an open item for the next stage. The steam export is an
+    UPPER BOUND (review 2026-10-28-pfd-lci-review#1, D-010): the converter is adiabatic
+    (1429 K against about 1267 K at the sourced gauze), the waste heat boiler E-101 and the tail
+    gas boiler B-301 have no radiation or blowdown loss; the export is probably 15-20 % lower.
+    It must be corrected before any energy or exergy allocation is applied.
+  deviation: >-
+    Shares 1/0 instead of the library's exergy allocation of exported steam, because the
+    chemical exergy of NaCN is not sourced yet (DESIGN.md D-012); the steam then carries no
+    burden, which overstates the product's burdens.
+flows:
+  # ---- inputs
+  - key: feed:NG
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Natural gas (S1, modelled as methane, 400 kPa(a)): connect to a market for natural gas,
+      high pressure, of the site's country (production, processing and transport to the
+      consumer). Used as feedstock (its carbon leaves in the HCN, the tail gas CO/CO2 and so in
+      the stack CO2), not burned as fuel.
+  - key: feed:NH3F
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Anhydrous liquid ammonia (S2, 1100 kPa(a)): connect to the library process ammonia-1
+      (natural-gas reforming and Haber-Bosch synthesis) once its dataset is published in the
+      Atlas, or else to a market for ammonia, anhydrous, liquid. The link to ammonia-1 is to be
+      pinned explicitly (dataset:), not left to the slug.
+  - key: feed:NAOHF
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Caustic soda 50 wt% (S20, flow incl. its water; 0.81 kg NaOH per kg product): connect to
+      the library process chlor-alkali-1 (membrane cell caustic) once its dataset is published,
+      with its chlorine/hydrogen co-product allocation, or else to a market for sodium
+      hydroxide, without water, in 50 % solution state (per kg NaOH 100 %: the inventory counts
+      the solution, so convert by the 0.5 mass fraction when linking).
+  - key: feed:POWER
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Electricity for the process air blower K-101 (Q1) and the lumped pumps, vacuum pumps,
+      centrifuge, dryer drive, briquetting press and boiler fan (Q2, ASSUMED 400 kW): connect to
+      a market for electricity, medium voltage, of the site's country.
+  - {key: feed:AIR, free: true, source: "ambient process air (S3): a resource taken from nature without burden; its N2 and unused O2 leave in the stack gas"}
+  - {key: feed:BAIR, free: true, source: "ambient combustion air of the tail gas boiler (S30): a resource without burden"}
+  # ---- outputs
+  - key: product:CW
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Heat rejected to the site cooling water system (Q10-Q14, 298/308 K): connect to cooling
+      water supply / heat rejection in an evaporative cooling tower (pumping and fan power,
+      make-up water, blowdown, treatment chemicals) per kWh of heat removed, e.g. the library
+      process utility-cooling-tower.
+  - key: product:CHW
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Heat removed by chilled water at 275/283 K (Q15 HCN absorber, Q16 lean water chiller):
+      connect to chilled water production in a compression chiller (electricity at its COP,
+      refrigerant losses, heat rejection to cooling water) per kWh of cold, e.g. the library
+      process utility-chiller.
+  - key: product:WW
+    treatment:
+      kind: waste
+      route: cyanide destruction (alkaline oxidation) followed by biological wastewater treatment
+      hazardous: true
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Process water (S10 ammonia recovery water 3.0 t/h with 0.11 wt% NH3; S16 absorber purge
+      3.6 t/h with about 470 ppm(wt) HCN and 930 ppm(wt) NH3; S26 vapour condensate 7.3 t/h):
+      connect to treatment of cyanide-bearing industrial wastewater (oxidative cyanide
+      destruction, e.g. with hydrogen peroxide or hypochlorite, then biological treatment with
+      nitrogen removal) per m3 with its cyanide and ammonia load. Residual cyanide and ammonia
+      discharges are emissions of that treatment, not of this plant.
+  - {key: product:STACK, emission: true, source: "flue gas of the tail gas boiler B-301 to atmosphere (S31, D-009)"}
+  - {key: emission:N2, free: true, source: "atmospheric N2 of the process and combustion air returned (with the N2 from ammonia decomposition and HCN combustion, which is not a burden)"}
+  - {key: emission:O2, free: true, source: "unused O2 of the combustion air returned"}
+  - {key: emission:H2O, free: true, source: "water vapour of combustion and of the tail gas, to air"}
+  - {key: emission:CO2, elementary: {compartment: air, subcompartment: unspecified, origin: fossil}, source: "S31: CO2 from the natural gas carbon not leaving in the product (converter CO and CO2, residual CH4, HCN slip, burned in B-301); fossil"}
+  # components of the stack template whose flows are zero in this design (complete combustion
+  # ASSUMED, D-009): mapped so that a non-zero value in a later case is characterised, not
+  # dropped. NOT ESTIMATED, not measured zeros (emission_exclusions below).
+  - {key: emission:CO, elementary: {compartment: air, subcompartment: unspecified, origin: fossil}, source: "0 only because complete combustion is ASSUMED (D-009); boiler CO is an open emission estimate"}
+  - {key: emission:CH4, elementary: {compartment: air, subcompartment: unspecified, origin: fossil}, source: "0 only because complete combustion is ASSUMED (D-009)"}
+  - {key: emission:H2, elementary: {compartment: air, subcompartment: unspecified}, source: "0 only because complete combustion is ASSUMED (D-009)"}
+  - {key: emission:HCN, elementary: {compartment: air, subcompartment: unspecified}, source: "0 only because complete destruction of the 0.1 % HCN slip in B-301 is ASSUMED (D-009)"}
+  - {key: emission:NH3, elementary: {compartment: air, subcompartment: unspecified}, source: "0 in the stack: the NH3 slip is absorbed in C-201 and leaves with the process water (D-006, D-007)"}
+consumables:
+  - id: pt-rh-gauze
+    title: Pt/Rh 90/10 gauze pack of the converter (R-101)
+    unit: t
+    per_replacement: 0.05
+    every_years: 0.5
+    catalyst: true
+    metals: {Pt: 0.045, Rh: 0.005}
+    missing: "no background: platinum-rhodium gauze production (and the refining of the spent gauze) not mapped yet"
+    uncertainty: {gsd2: 3.0, source: "ASSUMED inventory and campaign length: very wide"}
+    source: >-
+      ASSUMED without an open source: about 50 kg of Pt/Rh 90/10 gauze in the converters
+      (roughly 11 m2 of gauze area from the specific output of about 300 kg HCN per h and m2 of
+      US 6,596,251 B2 in air operation, several layers), renewed twice a year (the patents
+      describe the selectivity falling until the gauze is renewed). The irrecoverable platinum
+      loss per kg HCN, which drives this exchange in reality, is not known in this run (open
+      input). WHEN MAPPED (review 2026-10-28-pfd-lci-review#5): model the net, irrecoverable
+      Pt/Rh loss per kg HCN (or the charge with the refined metal returned), not the primary
+      production of the whole charge every campaign; until then this stays a gap.
+    disposal:
+      kind: recyclable
+      route: precious-metal refining of the spent gauze (refiner)
+      missing: "no background: precious-metal refining of spent Pt/Rh gauze not mapped yet"
+      source: "ASSUMED: the spent gauze and the metal caught in the downstream filters go to a precious-metal refiner"
+  # Supplies that exist but are not flowsheet streams (review 2026-10-28-pfd-lci-review#2):
+  # listed here so that each is an exchange and a gap, not silently left out. DESIGN.md D-012.
+  # Boiler feed water, ASSUMED from the steam duties of process/flowsheet.yaml (D-010, D-012):
+  # 30.65 MW of saturated steam at 1500 kPa(a) (E-101 15.24 + B-301 15.42 MW) from feed water
+  # at 378 K is about 46.9 t/h (2352 kJ/kg from steam tables); the exported 17.80 MW (Q8 + Q9)
+  # is about 27.2 t/h. Convention: the exported steam is counted as energy (product:MPSX, kWh)
+  # and its condensate is not returned, so its water enters here (bfw-export) and leaves with
+  # the steam; blowdown and condensate losses of the plant's own steam use are bfw-makeup.
+  # Together 30.6 t/h = 4.90 kg per kg product.
+  - id: bfw-export
+    title: Boiler feed water (demineralised, deaerated) leaving as the exported MP steam
+    unit: kg
+    per_year: 2.179e8
+    missing: "no background: demineralised boiler feed water production with deaeration and conditioning chemicals not mapped yet"
+    uncertainty: {gsd2: 1.3, source: "export upper bound (D-010) and ASSUMED feed water temperature"}
+    source: >-
+      ASSUMED: 27.24 t/h, the water of the 17.80 MW steam export (Q8 + Q9) at 2352 kJ/kg,
+      8000 h/a; the export is an upper bound (review 2026-10-28-pfd-lci-review#1).
+    disposal:
+      kind: recyclable
+      route: leaves as the exported MP steam (product:MPSX, counted as energy) to the steam consumer
+      source: "the water leaves with the steam co-product; its burden is carried by the co-product allocation, not by a treatment"
+  - id: bfw-makeup
+    title: Boiler feed water make-up for blowdown and condensate losses (E-101, B-301)
+    unit: kg
+    per_year: 2.700e7
+    missing: "no background: demineralised boiler feed water production with deaeration and conditioning chemicals not mapped yet"
+    uncertainty: {gsd2: 2.0, source: "ASSUMED blowdown and condensate loss"}
+    source: >-
+      ASSUMED: blowdown 3 % of the 46.9 t/h raised (1.41 t/h) and 10 % loss of the 19.7 t/h of
+      condensate of the plant's own LP steam use (1.97 t/h), 3.38 t/h, 8000 h/a.
+    disposal:
+      kind: waste
+      route: boiler blowdown and condensate drains to the site wastewater treatment
+      missing: "no background: treatment of boiler blowdown not mapped yet"
+      source: "ASSUMED: all of it to drains (part of the condensate loss evaporates in reality)"
+  - id: phosphate-makeup
+    title: Phosphoric acid make-up of the ammonium phosphate ammonia recovery loop (C-101)
+    unit: kg
+    per_year: 2.0e4
+    missing: "no background: phosphoric acid (as 100 % H3PO4) not mapped yet"
+    uncertainty: {gsd2: 10.0, source: "ASSUMED order of magnitude without a source: very wide"}
+    source: >-
+      ASSUMED placeholder without an open source (D-006 open input): 20 t/a H3PO4 (about
+      0.4 g per kg product) to replace the phosphate lost with the ammonia recovery water S10
+      and by degradation of the loop. Recorded so that the gap shows; the amount is to be
+      sourced in the next stage.
+    disposal:
+      kind: waste
+      route: with the ammonia recovery water S10 to cyanide destruction and wastewater treatment
+      missing: "no background: phosphate load of the wastewater treatment not mapped yet"
+      source: "ASSUMED: the phosphate lost from the loop leaves with the process water"
+  - id: hcn-stabiliser
+    title: Acid stabiliser of the HCN refining against polymerisation (C-202)
+    unit: kg
+    per_year: 2.7e4
+    missing: "no background: sulfuric acid (as 100 % H2SO4) not mapped yet; SO2 or H3PO4 are used instead in some plants"
+    uncertainty: {gsd2: 5.0, source: "ASSUMED dose without a source: very wide"}
+    source: >-
+      ASSUMED placeholder without an open source (D-007 open input): about 0.1 wt% acid on the
+      liquid HCN (3.38 t/h), 27 t/a as H2SO4 (about 0.5 g per kg product). The acid goes with the
+      HCN to R-401, where the caustic neutralises it; the sodium sulfate stays in the product
+      (not modelled in the flowsheet: 0.05 % of the product mass), so no disposal exchange.
+emission_exclusions:
+  - id: fugitive-leaks
+    method: equipment-leaks
+    reason: >-
+      Not estimated in this preliminary LCI: equipment leaks of HCN, ammonia, methane and CO
+      need the component count of the P&IDs (out of scope of this run). Recorded as an open gap
+      for basic engineering, not as negligible (HCN is acutely toxic).
+  - id: boiler-nox-co
+    method: combustion
+    equipment: [B-301]
+    reason: >-
+      NOx (thermal NOx and the fuel nitrogen of the HCN and NH3 traces) and CO of the tail gas
+      boiler are not estimated: no sourced emission factor for a hydrogen-rich, low-calorific
+      tail gas was read in this run. Open gap for the next stage, not negligible.
+  - id: vents-and-dust
+    method: non-routine
+    equipment: [CR-401, DR-401]
+    reason: >-
+      The crystalliser vacuum vent (NH3 and HCN from NaCN hydrolysis, which forms the formate
+      of real products) and the dryer/briquetting dust filter (NaCN particulate) emit traces not
+      in the flowsheet; amounts not known at concept stage. Open gap.
+  - id: start-up-and-flaring
+    method: flare
+    reason: >-
+      Converter light-off, gauze changes, trips and relief send HCN-bearing gas to a flare;
+      not part of the steady design case and no flare is designed at concept stage. Open gap.
+  - id: storage
+    method: storage-tank
+    reason: >-
+      Ammonia, caustic and intermediate HCN/NaCN solution tanks (breathing to a scrubber) are not
+      designed at concept stage; liquid HCN is not stored (fed directly to R-401). Open gap.
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 25 a service life ASSUMED"
+dataset:
+  version: 0.1.0
+  geography: {description: "One generic concept design; no site chosen, no country-specific data"}
+  classification: {isic: "2011"}
+  system_model: cutoff
+  technology_level: current
+  modelling: {principle: attributional}
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library, sodium-cyanide-1 concept design (agent-drafted, not reviewed)"

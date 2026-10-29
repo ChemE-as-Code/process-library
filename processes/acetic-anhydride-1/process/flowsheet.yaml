@@ -1,0 +1,635 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Acetic anhydride by the ketene route (D-001): acetic acid cracked to ketene and water at
+# 700 C under vacuum with triethyl phosphate, ammonia quench, cracked gas condensed to -5 C
+# (dilute acid out), ketene absorbed and reacted in acetic acid, crude anhydride distilled;
+# the dilute acid is recovered and recycled; the vent is burned in the cracking furnace.
+# Where the values come from:
+# - the reactor outlets S7 (cracking coil, US 4,455,439 example conversion and selectivity),
+#   S14 (absorber, ASSUMED) and S32 (firebox, complete combustion) are calculated by cheme;
+#   mixers, the splitter and pass-through steps by `cheme process propagate --fill`;
+# - feed flows, separator, column and acid-recovery outlets, the recycle streams S21 and S25,
+#   all temperatures, pressures and duties come from the independent balance
+#   scripts/ac2o_balance.py (D-006), given here as ASSUMED: core has no property package for
+#   acetic acid / ketene / anhydride / water (core #315).
+schema: cheme/process/v1
+kind: flowsheet
+title: Acetic anhydride by acetic acid cracking to ketene (50 kt/a, concept)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+  enthalpy_reference: {state: ideal_gas, temperature: 298.15}
+cases:
+  - {id: design, description: "Design case: 6250 kg/h acetic anhydride 99.5 wt%, cracking conversion 0.84 and ketene selectivity 0.92 (US 4,455,439 example), D-002, D-005", default: true}
+tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - {id: AA, title: "Glacial acetic acid (boundary feed; e.g. methanol carbonylation, D-003)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: TEP, title: Triethyl phosphate (cracking catalyst), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: NH3, title: Ammonia (catalyst neutraliser; ammonia-1 makes it), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: NG, title: Natural gas to the furnace burners, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: AIR, title: Combustion air, category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports: [{id: p301, direction: out, kind: energy}, {id: k301, direction: out, kind: energy}]
+  - id: LPS
+    title: LP steam 450 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 450, provenance: assumed, source: "design basis, D-011"}
+      supply_temperature: {value: 420.8, provenance: assumed, source: "saturation at 450 kPa(a), D-011"}
+      min_approach: {value: 10, provenance: assumed, source: D-011}
+    ports: [{id: e101, direction: out, kind: energy}, {id: c401, direction: out, kind: energy}]
+  - id: MPS
+    title: MP steam 1500 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: MP
+      pressure: {value: 1500, provenance: assumed, source: "design basis, D-011"}
+      supply_temperature: {value: 471.4, provenance: assumed, source: "saturation at 1500 kPa(a), D-011"}
+      min_approach: {value: 10, provenance: assumed, source: D-011}
+    ports: [{id: c201, direction: out, kind: energy}, {id: c202, direction: out, kind: energy}]
+products:
+  - {id: AC2O, title: Acetic anhydride 99.5 wt% to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: RESIDUE, title: "Distillation residue (heavy ends, liquid) to incineration", category: solid_waste, ports: [{id: in, direction: in}]}
+  - {id: WW, title: Wastewater from dilute acid recovery, category: wastewater, ports: [{id: in, direction: in}]}
+  - {id: STACK, title: Furnace flue gas to atmosphere, category: emission, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-011"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-011"}
+      min_approach: {value: 5, provenance: assumed, source: D-011}
+    ports:
+      - {id: e102, direction: in, kind: energy}
+      - {id: t301, direction: in, kind: energy}
+      - {id: c201, direction: in, kind: energy}
+      - {id: c202, direction: in, kind: energy}
+      - {id: c401, direction: in, kind: energy}
+  - id: BRINE
+    title: Brine -10 C (refrigeration) return
+    category: utility
+    utility:
+      kind: refrigerant
+      level: brine -10 C
+      supply_temperature: {value: 263.15, provenance: given, source: "US 4,455,439 Example: brine at -10 C on the last condensers"}
+      return_temperature: {value: 266.15, provenance: assumed, source: D-011}
+      min_approach: {value: 3, provenance: assumed, source: D-011}
+    ports: [{id: e102, direction: in, kind: energy}]
+
+blocks:
+  - id: CRK
+    title: Ketene generation (vaporiser, cracking furnace, quench and condensation)
+    class: ReactingChemicals
+    ports:
+      - {id: aa, direction: in}
+      - {id: tep, direction: in}
+      - {id: nh3, direction: in}
+      - {id: ng, direction: in}
+      - {id: air, direction: in}
+      - {id: vent, direction: in}
+      - {id: rec, direction: in}
+      - {id: acid_abs, direction: out}
+      - {id: ketgas, direction: out}
+      - {id: dilute, direction: out}
+      - {id: flue, direction: out}
+      - {id: lps, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+      - {id: brine, direction: out, kind: energy}
+  - id: ABS
+    title: Ketene absorption in acetic acid and vent compression
+    class: ReactingChemicals
+    ports:
+      - {id: acid, direction: in}
+      - {id: ketgas, direction: in}
+      - {id: rec, direction: in}
+      - {id: vent, direction: out}
+      - {id: crude, direction: out}
+      - {id: cw, direction: out, kind: energy}
+      - {id: power1, direction: in, kind: energy}
+      - {id: power2, direction: in, kind: energy}
+  - id: DST
+    title: Crude anhydride distillation (acid and anhydride columns)
+    class: Distilling
+    ports:
+      - {id: crude, direction: in}
+      - {id: rec, direction: out}
+      - {id: product, direction: out}
+      - {id: residue, direction: out}
+      - {id: steam1, direction: in, kind: energy}
+      - {id: steam2, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+  - id: ARU
+    title: Dilute acid recovery (solvent extraction and azeotropic dehydration)
+    class: SeparatingByThermalProcess
+    ports:
+      - {id: dilute, direction: in}
+      - {id: acid, direction: out}
+      - {id: ww, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+
+steps:
+  # --- CRK -----------------------------------------------------------------------------
+  - id: SP101
+    block: CRK
+    title: Fresh acid split (cracker / absorber)
+    class: SplittingMaterial
+    split: {crk: 0.52421}   # D-006: fresh acid to the cracker, from scripts/ac2o_balance.py
+    ports:
+      - {id: in, direction: in, delegates: aa}
+      - {id: crk, direction: out}
+      - {id: abs, direction: out, delegates: acid_abs}
+  - id: M101
+    block: CRK
+    title: Cracker feed (fresh + recovered acid + catalyst)
+    class: Mixing
+    links: [{target: equipment, ref: V-101}]
+    ports:
+      - {id: fresh, direction: in}
+      - {id: rec, direction: in, delegates: rec}
+      - {id: tep, direction: in, delegates: tep}
+      - {id: out, direction: out}
+  - id: E101
+    block: CRK
+    title: Acetic acid vaporiser
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: lps}
+  - id: M103
+    block: CRK
+    title: Burners (natural gas, vent gas, air)
+    class: Mixing
+    ports:
+      - {id: vent, direction: in, delegates: vent}
+      - {id: ng, direction: in, delegates: ng}
+      - {id: air, direction: in, delegates: air}
+      - {id: out, direction: out}
+  # D-010: firebox of the cracking furnace F-101, complete combustion with 15 % excess air.
+  - id: H101
+    block: CRK
+    title: Cracking furnace firebox
+    class: ReactingChemicals
+    reactions: [COMB_CH4, COMB_CO, COMB_C2H4, COMB_KET]
+    reactor: conversion   # conversions 1.0 of process/reactions.yaml (complete combustion)
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: flue}
+      - {id: heat, direction: out, kind: energy}
+  # D-005: acetic acid conversion 0.84 per pass and ketene 0.92 kmol per kmol acid converted
+  # (US 4,455,439 example); the 8 % loss split equally (ASSUMED) between acid decomposition to
+  # CH4 + CO2 (0.04) and ketene decomposition to ethylene + CO.
+  - id: R101
+    block: CRK
+    title: Cracking coil (700 C, 36 kPa(a), TEP catalyst)
+    class: ReactingChemicals
+    reactions: [CRACK, DECARB, KETDEC]
+    reactor: conversion
+    selectivity: {key: ACOH, conversion: 0.84, products: {KET: 0.92, CH4: 0.04}, provenance: assumed, source: "D-005: conversion and ketene selectivity from US 4,455,439 example; CH4 share ASSUMED"}
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: heat, direction: in, kind: energy}
+  - id: M102
+    block: CRK
+    title: Ammonia injection at the coil outlet
+    class: Mixing
+    ports:
+      - {id: in, direction: in}
+      - {id: nh3, direction: in, delegates: nh3}
+      - {id: out, direction: out}
+  - id: E102
+    block: CRK
+    title: Cracked gas condenser train (cooling water, then -10 C brine)
+    class: Cooling
+    links: [{target: equipment, ref: E-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+      - {id: brine, direction: out, kind: energy, delegates: brine}
+  - id: V102
+    block: CRK
+    title: Condensate separator (ketene gas / dilute acid)
+    class: SeparatingByPhaseSeparation
+    links: [{target: equipment, ref: V-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out, delegates: ketgas}
+      - {id: liq, direction: out, delegates: dilute}
+  # --- ABS -----------------------------------------------------------------------------
+  - id: M301
+    block: ABS
+    title: Absorber inlets (ketene gas, fresh and recycled acid)
+    class: Mixing
+    ports:
+      - {id: ket, direction: in, delegates: ketgas}
+      - {id: acid, direction: in, delegates: acid}
+      - {id: rec, direction: in, delegates: rec}
+      - {id: out, direction: out}
+  # D-007: 99 % of the ketene absorbed (1 % to the vent) and 99 % of it to anhydride, 1 % to
+  # heavy ends (lumped as DHA); ASSUMED.
+  - id: T301
+    block: ABS
+    title: Ketene absorbers (reactive absorption in circulating crude, 45 C)
+    class: ReactingChemicals
+    reactions: [ABSORB, OLIGO]
+    reactor: conversion
+    # Per-reaction conversions of the inlet ketene (RStoic-like) instead of a selectivity: a
+    # second selectivity step trips a core bug in cheme 0.8.0 (D-012).
+    conversion: {ABSORB: 0.9801, OLIGO: 0.0099}
+    links: [{target: equipment, ref: T-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+      - {id: power, direction: in, kind: energy, delegates: power1}
+  - id: V301
+    block: ABS
+    title: Absorber top (vent / crude anhydride)
+    class: SeparatingByPhaseSeparation
+    ports:
+      - {id: in, direction: in}
+      - {id: vent, direction: out}
+      - {id: crude, direction: out, delegates: crude}
+  - id: K301
+    block: ABS
+    title: Vent vacuum pump (liquid ring)
+    class: Compressing
+    links: [{target: equipment, ref: K-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: vent}
+      - {id: power, direction: in, kind: energy, delegates: power2}
+  # --- DST -----------------------------------------------------------------------------
+  - id: C201
+    block: DST
+    title: Acid column (acetic acid overhead to the absorbers)
+    class: Distilling
+    links: [{target: equipment, ref: C-201}]
+    ports:
+      - {id: in, direction: in, delegates: crude}
+      - {id: top, direction: out, delegates: rec}
+      - {id: bot, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam1}
+      - {id: cw, direction: out, kind: energy, delegates: cw1}
+  - id: C202
+    block: DST
+    title: Anhydride column (product overhead, residue bottoms)
+    class: Distilling
+    links: [{target: equipment, ref: C-202}]
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out, delegates: product}
+      - {id: bot, direction: out, delegates: residue}
+      - {id: steam, direction: in, kind: energy, delegates: steam2}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+  # --- ARU -----------------------------------------------------------------------------
+  - id: C401
+    block: ARU
+    title: Dilute acid recovery (extraction + azeotropic dehydration, lumped)
+    class: SeparatingByThermalProcess
+    links: [{target: equipment, ref: C-401}]
+    ports:
+      - {id: in, direction: in, delegates: dilute}
+      - {id: acid, direction: out, delegates: acid}
+      - {id: ww, direction: out, delegates: ww}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+
+streams:
+  # --- boundary feeds ------------------------------------------------------------------
+  - id: S1
+    title: Fresh glacial acetic acid
+    from: AA.out
+    to: SP101.in
+    template: process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-003}
+        temperature: {value: 303.15, provenance: assumed, source: D-003}
+        flow: {value: 7786.11, basis: mass, provenance: assumed, source: "scripts/ac2o_balance.py (D-006): set by the product rate"}
+        composition: {basis: mole_fraction, values: {ACOH: 1.0}, provenance: assumed, source: "D-003: glacial acid taken as pure"}
+  - id: S4
+    title: Triethyl phosphate
+    from: TEP.out
+    to: M101.tep
+    template: process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-005}
+        temperature: {value: 303.15, provenance: assumed, source: D-005}
+        flow: {value: 9.72, basis: mass, provenance: assumed, source: "D-005: 0.2 wt% of the cracker feed (US 8,653,303: 0.1-0.5 wt%); scripts/ac2o_balance.py"}
+        composition: {basis: mole_fraction, values: {TEP: 1.0}, provenance: assumed, source: D-005}
+  - id: S8
+    title: Ammonia
+    from: NH3.out
+    to: M102.nh3
+    template: process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-005}
+        temperature: {value: 298.15, provenance: assumed, source: D-005}
+        flow: {value: 1.82, basis: mass, provenance: assumed, source: "D-005: 2 mol NH3 per mol P of the TEP; scripts/ac2o_balance.py"}
+        composition: {basis: mole_fraction, values: {NH3: 1.0}, provenance: assumed, source: D-005}
+  - id: S30
+    title: Natural gas (as methane)
+    from: NG.out
+    to: M103.ng
+    template: natural_gas
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-010}
+        temperature: {value: 303.15, provenance: assumed, source: D-010}
+        flow: {value: 250.40, basis: mass, provenance: assumed, source: "scripts/ac2o_balance.py (D-010): firebox energy balance"}
+        composition: {basis: mole_fraction, values: {CH4: 1.0}, provenance: assumed, source: "D-010: natural gas taken as methane"}
+  - id: S31
+    title: Combustion air
+    from: AIR.out
+    to: M103.air
+    template: air
+    state:
+      design:
+        pressure: {value: 103, provenance: assumed, source: D-010}
+        temperature: {value: 298.15, provenance: assumed, source: D-010}
+        flow: {value: 6844.04, basis: mass, provenance: assumed, source: "scripts/ac2o_balance.py (D-010): 15 % excess O2"}
+        composition: {basis: mole_fraction, values: {N2: 0.79, O2: 0.21}, provenance: assumed, source: "D-010: dry air without argon"}
+  # --- CRK -----------------------------------------------------------------------------
+  - id: S2
+    title: Fresh acid to the cracker
+    from: SP101.crk
+    to: M101.fresh
+    template: process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-006}
+        temperature: {value: 303.15, provenance: assumed, source: D-006}
+        flow: {value: 4081.56, basis: mass, provenance: calculated, source: 'cheme process propagate: splitter SP101 from S1', fingerprint: 3a1d14ecc9ab2ad0}
+        composition: {basis: mole_fraction, values: {ACOH: 1.0}, provenance: calculated, source: 'cheme process propagate: splitter SP101 from S1', fingerprint: dcff1f3f6e093818}
+  - id: S3
+    title: Fresh acid to the absorbers
+    from: SP101.abs
+    to: M301.acid
+    template: process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-006}
+        temperature: {value: 303.15, provenance: assumed, source: D-006}
+        flow: {value: 3704.55, provenance: calculated, source: 'cheme process propagate: splitter SP101 from S1 S2', fingerprint: c0b4b41f20c33885}
+        composition: {basis: mole_fraction, values: {ACOH: 1.0}, provenance: calculated, source: 'cheme process propagate: splitter SP101 from S1', fingerprint: dcff1f3f6e093818}
+  - id: S5
+    title: Cracker feed
+    from: M101.out
+    to: E101.in
+    template: process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-006}
+        temperature: {value: 303.15, provenance: assumed, source: "D-006: recovered acid cooled to the fresh acid's temperature"}
+        flow: {value: 4861.02, provenance: calculated, source: 'cheme process propagate: mixer M101 from S4 S2 S21', fingerprint: 26a4a97ad717dd58}
+        composition: {basis: mole_fraction, values: {ACOH: 0.998284, KET: 0.0, H2O: 0.00105635, CH4: 0.0, CO2: 0.0, CO: 0.0, C2H4: 0.0, AC2O: 0.0, DHA: 0.0, TEP: 0.000659609, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S4 S2 S21', fingerprint: 156ef89d32f8a32d}
+  - id: S6
+    title: Acetic acid vapour to the furnace
+    from: E101.out
+    to: R101.in
+    template: process
+    state:
+      design:
+        pressure: {value: 45, provenance: assumed, source: "D-005: coil inlet, about 9 kPa above the outlet"}
+        temperature: {value: 367.0, provenance: assumed, source: "D-006: acetic acid saturation near 45 kPa(a) (thermo vapour pressure)"}
+        flow: {value: 4861.02, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S5', fingerprint: f10d7b870fa892f3}
+        composition: {basis: mole_fraction, values: {ACOH: 0.998284, KET: 0.0, H2O: 0.00105635, CH4: 0.0, CO2: 0.0, CO: 0.0, C2H4: 0.0, AC2O: 0.0, DHA: 0.0, TEP: 0.000659609, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S5', fingerprint: f10d7b870fa892f3}
+  - id: S7
+    title: Cracked gas
+    from: R101.out
+    to: M102.in
+    template: process
+    state:
+      design:
+        pressure: {value: 36, provenance: given, source: "US 4,455,439 Example: 358 mbar at the furnace outlet"}
+        temperature: {value: 973.15, provenance: given, source: "US 4,455,439 Example: 700 C"}
+        flow: {value: 4861.02, provenance: calculated, source: 'cheme process propagate: reactor R101 from S6', fingerprint: dd4c668887121f14}
+        composition: {basis: mole_fraction, values: {ACOH: 0.0860901, KET: 0.415815, H2O: 0.434463, CH4: 0.0180789, CO2: 0.0180789, CO: 0.0180789, C2H4: 0.00903946, AC2O: 0.0, DHA: 0.0, TEP: 0.000355521, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S6', fingerprint: 5c693e39682d21d3}
+  - id: S9
+    title: Cracked gas after ammonia injection
+    from: M102.out
+    to: E102.in
+    template: process
+    state:
+      design:
+        pressure: {value: 35.8, provenance: assumed, source: D-006}
+        temperature: {value: 960.0, provenance: assumed, source: "D-006: estimate, the condenser duty is counted from S7"}
+        flow: {value: 4862.84, provenance: calculated, source: 'cheme process propagate: mixer M102 from S8 S7', fingerprint: dd81dd5db5baa29e}
+        composition: {basis: mole_fraction, values: {ACOH: 0.0860289, KET: 0.415519, H2O: 0.434154, CH4: 0.018066, CO2: 0.018066, CO: 0.018066, C2H4: 0.00903303, AC2O: 0.0, DHA: 0.0, TEP: 0.000355268, NH3: 0.000711479}, provenance: calculated, source: 'cheme process propagate: mixer M102 from S8 S7', fingerprint: 5cc58abc9718f5b2}
+  - id: S10
+    title: Cooled cracked gas and condensate
+    from: E102.out
+    to: V102.in
+    template: process
+    state:
+      design:
+        pressure: {value: 27, provenance: given, source: "US 4,455,439 Example: 266 mbar at the condenser outlet"}
+        temperature: {value: 268.15, provenance: given, source: "US 4,455,439 Example: crude ketene at -5 C"}
+        flow: {value: 4862.84, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S9', fingerprint: d7ea96f73f132473}
+        composition: {basis: mole_fraction, values: {ACOH: 0.0860289, KET: 0.415519, H2O: 0.434154, CH4: 0.018066, CO2: 0.018066, CO: 0.018066, C2H4: 0.00903303, AC2O: 0.0, DHA: 0.0, TEP: 0.000355268, NH3: 0.000711479}, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S9', fingerprint: d7ea96f73f132473}
+  - id: S11
+    title: Crude ketene gas
+    from: V102.gas
+    to: M301.ket
+    template: process
+    state:
+      design:
+        pressure: {value: 27, provenance: given, source: "US 4,455,439 Example: 266 mbar"}
+        temperature: {value: 268.15, provenance: given, source: "US 4,455,439 Example: -5 C"}
+        flow: {value: 2900.58, basis: mass, provenance: assumed, source: "scripts/ac2o_balance.py (D-006): all ketene and non-condensables, dry"}
+        composition: {basis: mole_fraction, values: {KET: 0.867925, CH4: 0.037736, CO2: 0.037736, C2H4: 0.018868, CO: 0.037736}, provenance: assumed, source: "scripts/ac2o_balance.py (D-006)"}
+  - id: S12
+    title: Dilute acetic acid (condensate)
+    from: V102.liq
+    to: C401.in
+    template: process
+    state:
+      design:
+        pressure: {value: 27, provenance: assumed, source: D-006}
+        temperature: {value: 268.15, provenance: assumed, source: D-006}
+        flow: {value: 1962.25, basis: mass, provenance: assumed, source: "scripts/ac2o_balance.py (D-006): water, unconverted acid, catalyst residues (39.5 wt% acid; US 4,455,439 example 38 wt%)"}
+        composition: {basis: mole_fraction, values: {ACOH: 0.165044, H2O: 0.832911, TEP: 0.000682, NH3: 0.001363}, provenance: assumed, source: "scripts/ac2o_balance.py (D-006)"}
+  # --- ABS -----------------------------------------------------------------------------
+  - id: S13
+    title: Absorber feed
+    from: M301.out
+    to: T301.in
+    template: process
+    state:
+      design:
+        pressure: {value: 27, provenance: assumed, source: D-007}
+        temperature: {value: 300.0, provenance: assumed, source: "D-007: mixed inlets, estimate"}
+        flow: {value: 7417.93, provenance: calculated, source: 'cheme process propagate: mixer M301 from S3 S11 S25', fingerprint: f15cda5cb491f87b}
+        composition: {basis: mole_fraction, values: {ACOH: 0.509815, KET: 0.424504, H2O: 0.0, CH4: 0.0184567, CO2: 0.0184567, CO: 0.0184567, C2H4: 0.00922837, AC2O: 0.00108304, DHA: 0.0, TEP: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M301 from S3 S11 S25', fingerprint: 78975ba5761c37d3}
+  - id: S14
+    title: Absorber outlet
+    from: T301.out
+    to: V301.in
+    template: process
+    state:
+      design:
+        pressure: {value: 25, provenance: assumed, source: D-007}
+        temperature: {value: 318.15, provenance: assumed, source: "D-007: 45 C (US 8,653,303: overhead 35-55 C)"}
+        flow: {value: 7417.93, provenance: calculated, source: 'cheme process propagate: reactor T301 from S13', fingerprint: 50b129d857e04a77}
+        composition: {basis: mole_fraction, values: {ACOH: 0.161432, KET: 0.00730905, H2O: 0.0, CH4: 0.0317785, CO2: 0.0317785, CO: 0.0317785, C2H4: 0.0158893, AC2O: 0.718225, DHA: 0.00180899, TEP: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor T301 from S13', fingerprint: ea7faedf1f3d6cb6}
+  - id: S15
+    title: Absorber vent gas
+    from: V301.vent
+    to: K301.in
+    template: offgas
+    state:
+      design:
+        pressure: {value: 25, provenance: assumed, source: D-007}
+        temperature: {value: 318.15, provenance: assumed, source: D-007}
+        flow: {value: 303.25, basis: mass, provenance: assumed, source: "scripts/ac2o_balance.py (D-007): non-condensables and the unabsorbed ketene; acid vapour neglected"}
+        composition: {basis: mole_fraction, values: {KET: 0.061662, CH4: 0.268097, CO2: 0.268097, C2H4: 0.134048, CO: 0.268097}, provenance: assumed, source: "scripts/ac2o_balance.py (D-007)"}
+  - id: S16
+    title: Crude acetic anhydride
+    from: V301.crude
+    to: C201.in
+    template: process
+    state:
+      design:
+        pressure: {value: 25, provenance: assumed, source: D-007}
+        temperature: {value: 318.15, provenance: assumed, source: D-007}
+        flow: {value: 7114.75, basis: mass, provenance: assumed, source: "scripts/ac2o_balance.py (D-007): 88 wt% Ac2O"}
+        composition: {basis: mole_fraction, values: {AC2O: 0.814805, ACOH: 0.183143, DHA: 0.002052}, provenance: assumed, source: "scripts/ac2o_balance.py (D-007)"}
+  - id: S17
+    title: Vent gas to the furnace burners
+    from: K301.out
+    to: M103.vent
+    template: offgas
+    state:
+      design:
+        pressure: {value: 120, provenance: assumed, source: D-007}
+        temperature: {value: 333.15, provenance: assumed, source: "D-007: liquid-ring pump, near isothermal"}
+        flow: {value: 303.25, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through K301 from S15', fingerprint: d02daeb25954443d}
+        composition: {basis: mole_fraction, values: {KET: 0.061662, CH4: 0.268097, CO2: 0.268097, C2H4: 0.134048, CO: 0.268097}, provenance: calculated, source: 'cheme process propagate: pass-through K301 from S15', fingerprint: d02daeb25954443d}
+  # --- firebox -------------------------------------------------------------------------
+  - id: S33
+    title: Burner fuel and air
+    from: M103.out
+    to: H101.in
+    template: burner
+    state:
+      design:
+        pressure: {value: 101.3, provenance: assumed, source: D-010}
+        temperature: {value: 300.0, provenance: assumed, source: "D-010: estimate"}
+        flow: {value: 7397.69, provenance: calculated, source: 'cheme process propagate: mixer M103 from S30 S31 S17', fingerprint: 0c398ea00650bd49}
+        composition: {basis: mole_fraction, values: {CH4: 0.0696784, N2: 0.712699, O2: 0.189452, KET: 0.00237337, CO2: 0.010319, C2H4: 0.00515951, CO: 0.010319}, provenance: calculated, source: 'cheme process propagate: mixer M103 from S30 S31 S17', fingerprint: 031ed5e604b8a309}
+  - id: S32
+    title: Flue gas to stack
+    from: H101.out
+    to: STACK.in
+    template: flue_gas
+    state:
+      design:
+        pressure: {value: 101.3, provenance: assumed, source: D-010}
+        temperature: {value: 443.15, provenance: assumed, source: "D-010: after the convection section"}
+        flow: {value: 7397.69, provenance: calculated, source: 'cheme process propagate: reactor H101 from S33', fingerprint: bfa1460281c1eb96}
+        composition: {basis: mole_fraction, values: {CH4: 0.0, CO: 0.0, C2H4: 0.0, KET: 0.0, CO2: 0.105929, N2: 0.716395, O2: 0.0248386, H2O: 0.152838}, provenance: calculated, source: 'cheme process propagate: reactor H101 from S33', fingerprint: 3014d74096c8f935}
+  # --- DST -----------------------------------------------------------------------------
+  - id: S25
+    title: Recycle acid (acid column distillate) to the absorbers
+    from: C201.top
+    to: M301.rec
+    template: process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-008}
+        temperature: {value: 318.15, provenance: assumed, source: "D-008: subcooled to the absorber temperature"}
+        flow: {value: 812.80, basis: mass, provenance: assumed, source: "scripts/ac2o_balance.py (D-008): 98 wt% acid"}
+        composition: {basis: mole_fraction, values: {ACOH: 0.988138, AC2O: 0.011862}, provenance: assumed, source: "scripts/ac2o_balance.py (D-008)"}
+  - id: S18
+    title: Acid column bottoms (anhydride and heavies)
+    from: C201.bot
+    to: C202.in
+    template: process
+    state:
+      design:
+        pressure: {value: 110, provenance: assumed, source: D-008}
+        temperature: {value: 413.0, provenance: assumed, source: "D-008: anhydride boiling point"}
+        flow: {value: 6301.95, basis: mass, provenance: assumed, source: "scripts/ac2o_balance.py (D-008)"}
+        composition: {basis: mole_fraction, values: {AC2O: 0.989088, ACOH: 0.008414, DHA: 0.002498}, provenance: assumed, source: "scripts/ac2o_balance.py (D-008)"}
+  - id: S19
+    title: Acetic anhydride product
+    from: C202.top
+    to: AC2O.in
+    template: process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-002}
+        temperature: {value: 313.15, provenance: assumed, source: D-002}
+        flow: {value: 6250.0, basis: mass, provenance: assumed, source: "D-002: 50 kt/a at 8000 h/a"}
+        composition: {basis: mole_fraction, values: {AC2O: 0.99153, ACOH: 0.00847}, provenance: assumed, source: "D-002: 99.5 wt% Ac2O, 0.5 wt% acetic acid"}
+  - id: S20
+    title: Distillation residue
+    from: C202.bot
+    to: RESIDUE.in
+    template: process
+    state:
+      design:
+        pressure: {value: 120, provenance: assumed, source: D-008}
+        temperature: {value: 450.0, provenance: assumed, source: D-008}
+        flow: {value: 51.95, basis: mass, provenance: assumed, source: "scripts/ac2o_balance.py (D-008): 50 wt% Ac2O, 50 wt% heavies"}
+        composition: {basis: mole_fraction, values: {AC2O: 0.62222, DHA: 0.37778}, provenance: assumed, source: "scripts/ac2o_balance.py (D-008)"}
+  # --- ARU -----------------------------------------------------------------------------
+  - id: S21
+    title: Recovered glacial acid to the cracker
+    from: C401.acid
+    to: M101.rec
+    template: process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-009}
+        temperature: {value: 303.15, provenance: assumed, source: D-009}
+        flow: {value: 769.74, basis: mass, provenance: assumed, source: "scripts/ac2o_balance.py (D-009): 99 % acid recovery, 99.8 wt% acid"}
+        composition: {basis: mole_fraction, values: {ACOH: 0.993364, H2O: 0.006636}, provenance: assumed, source: "scripts/ac2o_balance.py (D-009)"}
+  - id: S22
+    title: Wastewater
+    from: C401.ww
+    to: WW.in
+    template: process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-009}
+        temperature: {value: 313.15, provenance: assumed, source: D-009}
+        flow: {value: 1192.51, basis: mass, provenance: assumed, source: "scripts/ac2o_balance.py (D-009): water, 1 % of the dilute acid's acid, catalyst residues"}
+        composition: {basis: mole_fraction, values: {ACOH: 0.001975, H2O: 0.995577, TEP: 0.000816, NH3: 0.001632}, provenance: assumed, source: "scripts/ac2o_balance.py (D-009)"}
+  # --- energy --------------------------------------------------------------------------
+  - {id: Q1, title: E-101 vaporiser LP steam, kind: energy, from: LPS.e101, to: E101.steam, state: {design: {duty: {value: 731.0, provenance: assumed, source: "scripts/ac2o_balance.py (D-006)"}}}}
+  - {id: Q2, title: F-101 fired duty absorbed by the coil, kind: energy, from: H101.heat, to: R101.heat, state: {design: {duty: {value: 4543.8, provenance: assumed, source: "scripts/ac2o_balance.py (D-006, D-010)"}}}}
+  - {id: Q3, title: E-102 condenser cooling water, kind: energy, from: E102.cw, to: CW.e102, state: {design: {duty: {value: 2380.1, provenance: assumed, source: "scripts/ac2o_balance.py (D-006)"}}}}
+  - {id: Q4, title: E-102 condenser brine, kind: energy, from: E102.brine, to: BRINE.e102, state: {design: {duty: {value: 308.7, provenance: assumed, source: "scripts/ac2o_balance.py (D-006)"}}}}
+  - {id: Q5, title: T-301 absorber coolers, kind: energy, from: T301.cw, to: CW.t301, state: {design: {duty: {value: 1485.7, provenance: assumed, source: "scripts/ac2o_balance.py (D-007)"}}}}
+  - {id: Q6, title: P-301 absorber circulation pumps, kind: energy, from: POWER.p301, to: T301.power, state: {design: {duty: {value: 32.0, provenance: assumed, source: "scripts/ac2o_balance.py (D-007)"}}}}
+  - {id: Q7, title: K-301 vent vacuum pump, kind: energy, from: POWER.k301, to: K301.power, state: {design: {duty: {value: 33.3, provenance: assumed, source: "scripts/ac2o_balance.py (D-007)"}}}}
+  - {id: Q8, title: C-201 reboiler MP steam, kind: energy, from: MPS.c201, to: C201.steam, state: {design: {duty: {value: 685.7, provenance: assumed, source: "scripts/ac2o_balance.py (D-008)"}}}}
+  - {id: Q9, title: C-201 condenser and distillate cooler, kind: energy, from: C201.cw, to: CW.c201, state: {design: {duty: {value: 398.1, provenance: assumed, source: "scripts/ac2o_balance.py (D-008)"}}}}
+  - {id: Q10, title: C-202 reboiler MP steam, kind: energy, from: MPS.c202, to: C202.steam, state: {design: {duty: {value: 1370.3, provenance: assumed, source: "scripts/ac2o_balance.py (D-008)"}}}}
+  - {id: Q11, title: C-202 condenser and product cooler, kind: energy, from: C202.cw, to: CW.c202, state: {design: {duty: {value: 1668.1, provenance: assumed, source: "scripts/ac2o_balance.py (D-008)"}}}}
+  - {id: Q12, title: C-401 acid recovery LP steam, kind: energy, from: LPS.c401, to: C401.steam, state: {design: {duty: {value: 979.0, provenance: assumed, source: "scripts/ac2o_balance.py (D-009): 3.0 MJ per kg water, ASSUMED"}}}}
+  - {id: Q13, title: C-401 acid recovery coolers, kind: energy, from: C401.cw, to: CW.c401, state: {design: {duty: {value: 900.9, provenance: assumed, source: "scripts/ac2o_balance.py (D-009)"}}}}
+layout: {bfd: {}, pfd: {}}

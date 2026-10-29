@@ -1,0 +1,45 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Methylamines (MMA, DMA, TMA) from methanol and ammonia, issues ChemE-as-Code/process-library
+# #171 (methylamine) and #166 (dimethylamine) as one co-production plant (DESIGN.md D-001).
+# Methanol and ammonia are boundary feeds (made by methanol-1 and ammonia-1 in this library).
+# Values marked ASSUMED are engineering choices of this concept study, not client, licensor or
+# literature data; every decision is in DESIGN.md.
+capacity:
+  basis: Net anhydrous methylamines to storage (MMA + DMA + TMA)
+  product_kg_per_h: 8000              # ASSUMED (D-002): 2.0 t/h MMA + 4.4 t/h DMA + 1.6 t/h TMA
+  product_t_per_a: 64000              # = 8000 kg/h x 8000 h/a
+  operating_hours_per_year: 8000      # ASSUMED
+  product_slate_wt_percent: {MMA: 25, DMA: 55, TMA: 20}   # ASSUMED (D-002): DMA-led market; set by the recycle of MMA and TMA
+  turndown_percent: 60                # ASSUMED, not checked
+feeds:
+  - name: Methanol (boundary feed, e.g. methanol-1 Grade AA)
+    source_of_values: "ASSUMED pure methanol (D-003); Grade AA allows 0.10 wt% water, not modelled"
+    conditions: {pressure_kPa_a: 300, temperature_K: 303.15}
+    flow: stoichiometric, set by the product slate (stream S1 of process/flowsheet.yaml)
+  - name: Anhydrous liquid ammonia (boundary feed, e.g. ammonia-1)
+    source_of_values: ASSUMED pure ammonia (D-003)
+    conditions: {pressure_kPa_a: 1500, temperature_K: 298.15}
+    flow: stoichiometric, set by the product slate (stream S2)
+products:
+  - name: Anhydrous monomethylamine, dimethylamine and trimethylamine (liquefied, to pressurised storage)
+    purity: "pure in the model (sharp splits, D-008); commercial anhydrous grades (typically >= 99 wt%) and the 40 wt% aqueous solutions are made downstream of the boundary and not modelled"
+    delivery: {battery_limit: product storage (outside the boundary)}
+  - name: Process wastewater (reaction water)
+    use: "to biological wastewater treatment (outside the boundary); 100 ppm(wt) methanol ASSUMED (D-008), amines and caustic not modelled"
+utilities:
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: ASSUMED (D-009)}
+  - {name: MP steam, pressure_kPa_a: 1500, saturation_K: 471.4, use: "feed vaporiser, C-101 and C-103 reboilers", note: ASSUMED level (D-009)}
+  - {name: LP steam, pressure_kPa_a: 450, saturation_K: 420.8, use: "C-102, C-104 and C-105 reboilers", note: ASSUMED level (D-009)}
+  - {name: Electric power, use: feed and recycle pumps, note: ASSUMED electric drives (D-010)}
+site:
+  location: ASSUMED generic site, not chosen
+  design_ambient_K: 303.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Converter: adiabatic fixed bed of amorphous silica-alumina, inlet 625 K / 2200 kPa(a), outlet 713 K / 2000 kPa(a); window 350-450 C and 150-350 psig from US 3,387,032 A and US 4,283,254 A (D-004)."
+  - "Converter outlet at the ideal-gas equilibrium of the three methylations at the outlet temperature, ATcT/CRC/Poling data; a model basis, not kinetics (D-005). Checked against the published equilibrium at 400 C, N/C 2.0 (US 4,485,261 A): TMA under-predicted (0.37 vs 0.43 among the amines on a weight basis, D-005). The source does not state the basis of its equilibrium ratios; weight is ASSUMED from its weight-basis prior-art ratios (on a mole basis the miss would be about 16 points, D-005)."
+  - "Converter feed N/C ratio 2.0 (mol N / mol methyl carbon), ASSUMED inside the ranges of US 7,435,855 B2 and US 4,485,261 A (D-004)."
+  - "All ammonia and the TMA recycle return as the ammonia column distillate; MMA beyond the product rate and unconverted methanol are recycled (D-007)."
+  - "Columns are sharp splits; reflux ratios, pressures, extraction water ratio 1 kg/kg and a minimum boil-up of 0.1 kmol/kmol bottoms are ASSUMED (D-008)."
+  - "No by-products (dimethyl ether, higher amines, CO/H2 from decomposition, coke), no inert purge and no caustic dosing modelled (D-005, D-008)."
+  - "Duties are concept estimates (ideal gas + heats of vaporisation, no mixing enthalpy), +/-30 % at best; no heat integration beyond the feed/effluent exchanger (D-006, D-009)."

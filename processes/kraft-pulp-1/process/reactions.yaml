@@ -1,0 +1,81 @@
+# Reactions of the kraft mill (DESIGN.md D-004 to D-010). Schema: `cheme schema
+# process-reactions`.
+#
+# These are LUMPED BOOKKEEPING REACTIONS over the model components of materials.yaml, chosen so
+# that elements balance; they are not mechanisms and carry no kinetics. Their extents follow
+# from imposed yields, charges and efficiencies of scripts/kraft_balance.py (a specified
+# conversion model, sourced or ASSUMED per parameter in DESIGN.md); none is predicted. No
+# conversion is given here because one reaction runs in several steps at different extents
+# (PEEL_H in the digester, O2 stage and bleach plant); cheme checks each reactive step's
+# element balance by extents. Heats of reaction are given only where standard formation
+# enthalpies of all species exist (NBS tables, Wagman et al. 1982, J. Phys. Chem. Ref. Data 11
+# Suppl. 2; values recalled for the concept stage and to be checked, so ASSUMED); the
+# lumped organics have none (D-011: duties are specific-consumption estimates instead).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  # ---- cooking (R101)
+  - {id: COOK_LIG, title: Lignin dissolution as sodium lignate, equation: "LIG + NaOH -> NaLIG + H2O", stoichiometry: {LIG: -1, NaOH: -1, NaLIG: 1, H2O: 1}, phase: mixed}
+  - {id: PEEL_C, title: Alkaline peeling of cellulose to isosaccharinate, equation: "CELL + NaOH -> NaISA", stoichiometry: {CELL: -1, NaOH: -1, NaISA: 1}, phase: mixed}
+  - {id: PEEL_H, title: Alkaline dissolution and peeling of hemicellulose, equation: "HEMI + NaOH -> NaISA", stoichiometry: {HEMI: -1, NaOH: -1, NaISA: 1}, phase: mixed}
+  - {id: SAPON, title: Saponification of extractives to resin soap, equation: "EXTR + NaOH -> NaEXT + H2O", stoichiometry: {EXTR: -1, NaOH: -1, NaEXT: 1, H2O: 1}, phase: mixed}
+  # ---- oxygen delignification (R301)
+  - {id: OXD_LIG, title: Oxidative lignin dissolution in the O2 stage, equation: "2 LIG + 2 NaOH + O2 -> 2 NaOXL + 2 H2O", stoichiometry: {LIG: -2, NaOH: -2, O2: -1, NaOXL: 2, H2O: 2}, phase: mixed}
+  - id: SULF_OX
+    title: Oxidation of the sulfide of the white liquor alkali to sulfate
+    equation: "Na2S + 2 O2 -> Na2SO4"
+    stoichiometry: {Na2S: -1, O2: -2, Na2SO4: 1}
+    phase: mixed
+    heat_of_reaction: {value: -1022300, provenance: assumed, source: "formation enthalpies Na2SO4(s) -1387.1, Na2S(s) -364.8 kJ/mol (NBS tables); solid-state value used for the dissolved salts"}
+  # ---- ECF bleaching D0-EOP-D1 (R401)
+  - {id: BL_CLO2, title: Lignin oxidation by chlorine dioxide (5 electrons per ClO2), equation: "5 LIG + 2 ClO2 + 2 NaOH -> 5 OXL + 2 NaCl + H2O", stoichiometry: {LIG: -5, ClO2: -2, NaOH: -2, OXL: 5, NaCl: 2, H2O: 1}, phase: mixed}
+  - {id: BL_H2O2, title: Lignin oxidation by hydrogen peroxide, equation: "LIG + H2O2 -> OXL + H2O", stoichiometry: {LIG: -1, H2O2: -1, OXL: 1, H2O: 1}, phase: mixed}
+  # Lignin oxidation by the EOP oxygen (2 LIG + O2 -> 2 OXL) is used in scripts/kraft_balance.py
+  # but is BL_H2O2 minus half of PER_DEC, so the step counts it through those two (unique extents).
+  - id: PER_DEC
+    title: Peroxide decomposition
+    equation: "2 H2O2 -> 2 H2O + O2"
+    stoichiometry: {H2O2: -2, H2O: 2, O2: 1}
+    heat_of_reaction: {value: -196000, provenance: assumed, source: "formation enthalpies H2O2(l) -187.8, H2O(l) -285.8 kJ/mol (NBS tables), per 2 mol H2O2"}
+  - {id: CARB_OX, title: Oxidation of carbohydrate by the ClO2 not used on lignin (yield loss), equation: "5 CELL + 24 ClO2 + 24 NaOH -> 30 CO2B + 24 NaCl + 37 H2O", stoichiometry: {CELL: -5, ClO2: -24, NaOH: -24, CO2B: 30, NaCl: 24, H2O: 37}, phase: mixed}
+  - id: NEUT
+    title: Neutralisation (pH control with sulfuric acid)
+    equation: "H2SO4 + 2 NaOH -> Na2SO4 + 2 H2O"
+    stoichiometry: {H2SO4: -1, NaOH: -2, Na2SO4: 1, H2O: 2}
+    heat_of_reaction: {value: -114000, provenance: assumed, source: "about -57 kJ per mol water formed (strong acid and base in dilute solution)"}
+  # ---- recovery boiler (B701)
+  - {id: BURN_LIG, title: Combustion of sodium lignate, equation: "2 NaLIG + 23 O2 -> Na2CO3 + 19 CO2B + 11 H2O", stoichiometry: {NaLIG: -2, O2: -23, Na2CO3: 1, CO2B: 19, H2O: 11}}
+  - {id: BURN_OXL, title: Combustion of oxidised sodium lignate, equation: "2 NaOXL + 22 O2 -> Na2CO3 + 19 CO2B + 11 H2O", stoichiometry: {NaOXL: -2, O2: -22, Na2CO3: 1, CO2B: 19, H2O: 11}}
+  - {id: BURN_ISA, title: Combustion of sodium isosaccharinate, equation: "2 NaISA + 12 O2 -> Na2CO3 + 11 CO2B + 11 H2O", stoichiometry: {NaISA: -2, O2: -12, Na2CO3: 1, CO2B: 11, H2O: 11}}
+  - {id: BURN_EXT, title: Combustion of resin soap, equation: "2 NaEXT + 53 O2 -> Na2CO3 + 39 CO2B + 29 H2O", stoichiometry: {NaEXT: -2, O2: -53, Na2CO3: 1, CO2B: 39, H2O: 29}}
+  - {id: CARBON, title: Carbonation of residual alkali in the furnace, equation: "2 NaOH + CO2B -> Na2CO3 + H2O", stoichiometry: {NaOH: -2, CO2B: -1, Na2CO3: 1, H2O: 1}}
+  - id: REDUC
+    title: Sulfate reduction in the char bed (formal net reaction; the reductant is the char carbon of the combustion reactions)
+    equation: "Na2SO4 -> Na2S + 2 O2"
+    stoichiometry: {Na2SO4: -1, Na2S: 1, O2: 2}
+    heat_of_reaction: {value: 1022300, provenance: assumed, source: "reverse of SULF_OX (NBS tables)"}
+  - {id: SO2_REL, title: Sulfur release as SO2 to the flue gas, equation: "2 Na2S + 2 CO2B + 3 O2 -> 2 Na2CO3 + 2 SO2", stoichiometry: {Na2S: -2, CO2B: -2, O2: -3, Na2CO3: 2, SO2: 2}}
+  - {id: NOX, title: "NOx formation (fuel and thermal, as NO2)", equation: "N2 + 2 O2 -> 2 NO2", stoichiometry: {N2: -1, O2: -2, NO2: 2}}
+  # ---- causticizing and lime kiln (R802, K901)
+  - id: SLAKE
+    title: Lime slaking
+    equation: "CaO + H2O -> Ca(OH)2"
+    stoichiometry: {CaO: -1, H2O: -1, CaOH2: 1}
+    phase: mixed
+    heat_of_reaction: {value: -64300, provenance: assumed, source: "formation enthalpies Ca(OH)2(s) -985.2, CaO(s) -635.1, H2O(l) -285.8 kJ/mol (NBS tables)"}
+  - id: CAUST
+    title: Causticizing
+    equation: "Na2CO3 + Ca(OH)2 -> CaCO3 + 2 NaOH"
+    stoichiometry: {Na2CO3: -1, CaOH2: -1, CaCO3: 1, NaOH: 2}
+    phase: mixed
+    heat_of_reaction: {value: -5200, provenance: assumed, source: "formation enthalpies Na2CO3(aq) -1157.4, NaOH(aq) -470.1, CaCO3(s) -1207.6, Ca(OH)2(s) -985.2 kJ/mol (NBS tables)"}
+  - id: CALC
+    title: Lime mud calcination (biogenic carbonate carbon)
+    equation: "CaCO3 -> CaO + CO2B"
+    stoichiometry: {CaCO3: -1, CaO: 1, CO2B: 1}
+    heat_of_reaction: {value: 178320, provenance: given, source: "CaCO3(calcite) -> CaO(s) + CO2(g) at 298.15 K, 178.32 kJ/mol: NASA Glenn polynomials (McBride, Gordon and Reno 1993, NASA TM-4513) in Cantera 3.2.0, as reported by cheme process furnace (process/furnaces.yaml, core 7bed468); replaces the recalled NBS values (review 2026-10-28-pfd-lci-review#6)"}
+  - id: COMB_NG
+    title: Natural gas combustion (fossil)
+    equation: "CH4 + 2 O2 -> CO2 + 2 H2O"
+    stoichiometry: {CH4: -1, O2: -2, CO2: 1, H2O: 2}
+    heat_of_reaction: {value: -802300, provenance: assumed, source: "formation enthalpies CH4(g) -74.8, CO2(g) -393.5, H2O(g) -241.8 kJ/mol (NBS tables)"}

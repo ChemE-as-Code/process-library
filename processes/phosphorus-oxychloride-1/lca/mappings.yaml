@@ -1,0 +1,17 @@
+# phosphorus-oxychloride-1's own exchange overrides for the Atlas LCI build (build_lci.py,
+# ADR 0022). Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange
+# keys (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml,
+# gives the exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# phosphorus-oxychloride-1 is an internal process (publication.status: internal) and its
+# preliminary LCI leaves the backgrounds unmapped on purpose (DESIGN.md D-012). The build
+# reports each unmapped exchange as a gap (lci/gaps.json). The only override is a unit fix: the
+# LP steam is counted as the heat it delivers (kWh), while the default `steam` entry the build
+# picks for the utility counts kg (a unit error otherwise; as acetone-1, dmf-1 and ethanol-1
+# do). The shared vocabulary has no entry
+# yet for white phosphorus, chlorine, sodium hydroxide, chilled water, hazardous-waste
+# incineration or phosphorus oxychloride, and no biosphere identity for Cl2, PCl3 or POCl3 to
+# air: those belong to the consolidated shared-files PR (DESIGN.md D-013).
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:LPS": {use: steam-heat, source: "LP steam 400 kPa(a) to the column reboilers C-301 and C-302, counted as heat delivered (kWh), energy streams Q5 and Q7, D-008"}

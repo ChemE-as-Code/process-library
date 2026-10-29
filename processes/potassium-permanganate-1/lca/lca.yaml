@@ -1,0 +1,133 @@
+# Goal and scope of the potassium-permanganate-1 LCA. Schema: `cheme schema lca`. Outputs:
+# `cheme assess lca --write` (lca/inventory.csv, results.csv, results.md, gaps.csv,
+# dataset.yaml, manifest.json); never edit those by hand. Decisions: DESIGN.md D-011.
+#
+# This stage delivers the PRELIMINARY GATE-TO-GATE FOREGROUND INVENTORY: every exchange of the
+# balanced flowsheet per kg of KMnO4 product. No background is connected yet: each feed,
+# utility and waste names the background activity it should link to later and is declared
+# `missing:` (a gap in every category, never 0). `boundary: cradle-to-gate` is the scope the
+# backgrounds will complete; `gate-to-gate` in cheme maps every feed free, which would hide
+# the raw materials and utilities (D-011).
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary foreground (gate-to-gate) life cycle inventory of technical-grade potassium
+  permanganate from manganese ore by KOH roasting and electrolytic oxidation at the concept
+  stage: which raw materials, utilities, emissions and wastes the balanced flowsheet implies
+  per kg of product, ready to be linked to background datasets later. Flows are concept
+  estimates on assumed design parameters (DESIGN.md D-004 to D-009).
+functional_unit: {product: KMNO4, amount: 1, unit: kg}
+boundary: cradle-to-gate
+year: 2026
+location: GLO   # generic site, country not chosen (D-002)
+technology: "MnO2 ore roasted with KOH and air in an indirectly fired kiln, leach with recycled mother liquor and lime, divided-membrane electrolysis of manganate, cooling crystallisation, centrifuge, steam dryer, double-effect KOH evaporator; 1250 kg/h KMnO4"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+allocation:
+  method: none
+  source: "D-011: one product (KMnO4); the cathode hydrogen is vented at this stage (D-006) and the residue and purge are wastes, not co-products"
+flows:
+  # ---- raw materials (backgrounds to connect later)
+  - key: feed:ORE
+    missing: "no background linked yet. Connect: manganese ore concentrate (about 78 wt% MnO2, i.e. ~49 wt% Mn), mined, beneficiated, dried and ground, market for manganese concentrate, per kg as delivered (2 % moisture, D-003)"
+    source: "stream S1 (scripts/kmno4_balance.py, D-003)"
+  - key: feed:KOH
+    missing: "no background linked yet. Connect: potassium hydroxide, 50 wt% solution, from KCl membrane electrolysis (market for potassium hydroxide), per kg of solution or per kg KOH (100 %) with the water as process water; no library process makes KOH yet (chlor-alkali-1 makes NaOH)"
+    source: "stream S2: make-up equal to the K leaving with product, residue and purge (D-008)"
+  - key: feed:LIME
+    missing: "no background linked yet. Connect: hydrated lime, Ca(OH)2 (market for lime, hydrated, packed or loose), per kg"
+    source: "stream S7 (D-005)"
+  - key: feed:PW
+    missing: "no background linked yet. Connect: demineralised (or deionised) water from the site's water treatment, per kg"
+    source: "stream S9 (D-006)"
+  - key: feed:AIR
+    free: true
+    source: "roaster air: ambient air, a resource taken without burden"
+  # ---- utilities
+  - key: feed:POWER
+    missing: "no background linked yet. Connect: grid electricity, medium voltage, of the site's country (site not chosen, D-002), per kWh"
+    source: "Q2 (rectifier AC for the cells, 0.546 kWh/kg) + Q11 (auxiliaries, ASSUMED 150 kWh/t), D-006, D-009"
+  - key: feed:FUEL
+    missing: "no background linked yet. Connect: heat from natural gas in an industrial furnace (indirect firing, > 100 kW), per MJ or kWh of heat delivered; the combustion emissions belong to that background (D-009)"
+    source: "Q1: roaster heat delivered, from the lumped balance (D-009)"
+  - key: feed:LPS
+    missing: "no background linked yet. Connect: heat from LP steam 450 kPa(a) of the site's boiler (natural gas boiler assumed for a later screening, fuel to be decided), per kWh of heat delivered, condensate returned"
+    source: "Q7 (leach heating) + Q8 (KOH evaporator) + Q10 (dryer), D-009"
+  - key: product:CW
+    missing: "no background linked yet. Connect: cooling water from a circulating evaporative cooling tower (pumping, fans, make-up water and treatment chemicals), per kWh of heat rejected"
+    source: "Q4, Q5, Q6, Q9 (D-009)"
+  # ---- wastes and emissions
+  - key: product:RESIDUE
+    treatment:
+      kind: waste
+      route: "landfill of the washed leach residue (unreacted MnO2, iron oxide, silica gangue, calcium silicate; alkaline, traces of manganate)"
+    missing: "no background linked yet. Connect: disposal of inert/alkaline mineral residue to a sanitary or inert-material landfill, per kg wet residue (37 wt% water); a manganese recovery route would change this exchange (D-005)"
+    source: "stream S12 (D-005)"
+  - key: product:PURGE
+    treatment:
+      kind: waste
+      route: "wastewater to effluent treatment: reduction of Mn(VI/VII) to MnO2 and precipitation, neutralisation of the KOH, discharge of the potassium salts"
+    missing: "no background linked yet. Connect: treatment of an alkaline, manganese-bearing industrial effluent (13 wt% KOH, 0.6 wt% K2MnO4, 1.5 wt% KMnO4, stream S23), per kg; the neutralising acid and the sludge are part of that background"
+    source: "stream S23 (D-008)"
+  - key: product:OFFGAS
+    emission: true
+    source: "stream S6: roaster off-gas after the dust scrubber (scrubber not modelled), to atmosphere (D-004)"
+  - key: product:H2V
+    emission: true
+    source: "stream S15: cathode hydrogen, diluted and vented (D-006)"
+  - key: product:O2V
+    emission: true
+    source: "stream S16: anode oxygen, vented (D-006)"
+  - key: product:DRYV
+    emission: true
+    source: "stream S21: dryer exhaust vapour (D-007)"
+  - key: emission:H2
+    elementary: {compartment: air, subcompartment: unspecified}
+    # origin stays the schema default "fossil": the enum has no non-carbon/inorganic origin; the H2 comes from water (lca/README.md)
+    source: "cathode hydrogen vented (S15), 8.0 g/kg product; recovery as fuel is an open design option (D-006)"
+  - {key: emission:N2, free: true, source: "nitrogen of the roaster air returned to the atmosphere"}
+  - {key: emission:O2, free: true, source: "excess oxygen of the roaster air and the anode oxygen returned to the atmosphere"}
+  - {key: emission:H2O, free: true, source: "water vapour of the roaster off-gas and the dryer exhaust"}
+
+# Not estimated at this stage: declared, never silently 0 (D-011). The dust of the roaster
+# off-gas (KOH, Mn) and of the dryer exhaust (KMnO4) is not estimated either; the schema has no
+# dust method, so that open item is recorded in DESIGN.md D-011 and lca/README.md.
+emission_exclusions:
+  - id: purge-effluent
+    method: effluent
+    equipment: [S-601]
+    exchange: product:PURGE
+    reason: "the purge leaves to effluent treatment outside the boundary; its discharges (K+, residual Mn, neutralisation salts) belong to that treatment's background, linked later (D-011)"
+    source: "DESIGN.md D-011"
+  - id: roaster-firing
+    method: combustion
+    equipment: [R-201]
+    reason: "the roaster is fired indirectly: its flue gas never meets the process streams, and the combustion emissions (CO2, NOx, CO) belong to the background of the fired heat feed:FUEL, linked later (D-009, D-011)"
+    source: "DESIGN.md D-011"
+  - id: leach-tanks
+    method: storage-tank
+    equipment: [M-301]
+    reason: "aqueous KOH-manganate liquor at 333 K without volatile components: no breathing or working losses of any substance the inventory tracks (D-011)"
+    source: "DESIGN.md D-011"
+
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 25 a service life ASSUMED; no construction inventory at this stage (no take-off)"
+
+uncertainty:
+  iterations: 1000
+  seed: 1
+  defaults:
+    assumed: {gsd2: 1.5, source: "concept estimate on assumed design parameters (D-004 to D-009)"}
+    calculated: {gsd2: 1.2, source: "calculated from assumed inputs"}
+    given: {gsd2: 1.1, source: "design basis"}
+
+dataset:
+  version: 0.1.0
+  geography: {description: "Generic site, country not chosen (D-002); no regional background linked"}
+  classification: {isic: "2011"}   # ISIC 4 manufacture of basic chemicals; CPC 2.1 code not looked up (open)
+  system_model: cutoff
+  technology_level: current
+  modelling: {principle: attributional}
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library, potassium-permanganate-1 concept design (agent run 2026-10-28)"
