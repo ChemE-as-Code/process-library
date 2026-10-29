@@ -1,0 +1,48 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Ethylene and propylene by steam cracking, issue ChemE-as-Code/process-library#176. Route:
+# ethane feed (DESIGN.md D-001). Values marked ASSUMED are choices of this concept study, not
+# client, licensor or vendor data; every decision is in DESIGN.md.
+capacity:
+  basis: polymer-grade ethylene to the battery limit
+  product_kt_per_a: 1000              # ASSUMED (D-002): a world-scale single cracker, not a client figure
+  product_kg_per_h: 125000            # = 1000 kt/a / 8000 h
+  operating_hours_per_year: 8000      # ASSUMED (D-002), furnace decoking covered by spare furnace capacity (not sized)
+feeds:
+  - name: Purity ethane (pipeline, from natural gas liquids fractionation)
+    source_of_values: ASSUMED (D-003)
+    composition_mol_percent: {C2H6: 96.8, C3H8: 2.5, CH4: 0.5, CO2: 0.2}   # ASSUMED (D-003)
+    conditions: {pressure_kPa_a: 3000, temperature_K: 313.15}                # ASSUMED
+    note: "Library link: no ethane-producing process in the library yet; boundary feed."
+  - name: Natural gas (fuel make-up)
+    composition_mol_percent: {CH4: 95, C2H6: 3, CO2: 1, N2: 1}               # ASSUMED (D-013)
+  - name: Caustic soda 10 wt% (from 50 wt% NaOH)
+    note: "Library link: processes/chlor-alkali-1 makes the NaOH; boundary feed (D-009)."
+  - name: Boiler feed water (dilution steam make-up)
+products:
+  - name: Ethylene, polymer grade
+    purity: "C2H4 >= 99.95 mol% (ethane the only impurity modelled; the acetylene, CO, CO2, H2 and oxygenate limits of a polymer-grade specification are not modelled, D-002)"
+    delivery: {pressure_kPa_a: 1900, temperature_K: 243.15, battery_limit: "C2 splitter top; product pumping/compression and storage outside the boundary"}
+  - name: Propylene, polymer grade
+    purity: "C3H6 >= 99.5 mol% (propane the only impurity modelled, D-002)"
+  - name: Crude C4 cut (butadiene-rich), to a butadiene extraction outside the boundary
+  - name: Pyrolysis gasoline (C5/C6 cut, lumped as benzene, D-005), to hydrotreating outside the boundary
+  - name: Fuel gas (tail gas, vents)
+    use: "burnt in the cracking furnaces; with the natural gas make-up there is no export (D-013)"
+  - name: Pyrolysis fuel oil
+    use: "not formed in a sourced quantity from ethane (BREF LVOC 2017 Table 3.3 gives no C7+ yield for ethane, D-005)"
+utilities:
+  - {name: Electric power, use: "cracked gas and refrigeration compressor drives (D-015)", note: "ASSUMED electric drives in the inventory; steam turbines are usual"}
+  - {name: SHP steam raised, pressure_kPa_a: 11500, temperature_K: 793.15, use: export (D-007), note: ASSUMED level}
+  - {name: MP steam, pressure_kPa_a: 1800, use: dilution steam generation, note: ASSUMED level (D-007)}
+  - {name: LP steam, pressure_kPa_a: 450, use: column reboilers, note: ASSUMED level (D-014)}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: ASSUMED (D-014)}
+  - {name: Refrigeration, note: "propylene and ethylene cascade inside the plant (K-701), driven by power (D-014)"}
+site:
+  location: ASSUMED generic site, not chosen
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Furnace: once-through yields of BREF LVOC 2017 Table 3.3 (ethane: 70 % conversion; propane column for the C3 recycle coil) as a conversion model, coil outlet 840 C, 200 kPa(a), 0.30 kg steam/kg hydrocarbon (D-004, D-005). Sourced yields, not kinetics."
+  - "Separations are specified splits (recoveries, purities) in scripts/balance.py, not rigorous columns (D-006, D-010)."
+  - "Firebox: complete combustion, 15 % excess air, stack 120 C, casing loss 1.5 % of the LHV (D-013)."
+  - "Compressor isentropic efficiency 0.78; refrigeration COP 60 % of Carnot (D-008, D-014)."
+  - "All values are concept estimates; accuracy not stated."

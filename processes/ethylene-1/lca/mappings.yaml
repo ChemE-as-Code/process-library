@@ -1,0 +1,17 @@
+# ethylene-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>) without the process id.
+#
+# Only the steam exchanges, which the dataset counts as heat in kWh while their registry slug
+# `steam` is counted by mass (kg): they use the shared `steam-heat` entry (kWh), as hda-1 and
+# nitric-acid-1 do. Every other background stays unmapped at this stage, deliberately:
+# ethylene-1 is internal (publication.status: internal) and lca/lca.yaml `missing:` names the
+# activity each exchange should link to. Unmapped exchanges are reported gaps (ADR 0022), not
+# errors. The products' `chemical` slugs (ethylene, propylene, crude C4, pyrolysis gasoline) and
+# the feeds' (ethane, natural gas, sodium hydroxide) are missing from chemicals/chemicals.yaml
+# and are listed for the consolidated registry PR (DESIGN.md D-016).
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:MPS": {use: steam-heat, source: "MP steam 1800 kPa(a) to the dilution steam generator, counted as heat delivered (kWh)"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a) to the column reboilers, counted as heat delivered (kWh)"}
+  "product:HPS": {use: steam-heat, source: "SHP steam 11500 kPa(a), 520 C exported, counted as heat (kWh); without a burden in the mass allocation (D-015, D-016)"}

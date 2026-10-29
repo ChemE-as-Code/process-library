@@ -1,0 +1,113 @@
+# Reactions of the ethane steam cracker. Schema: `cheme schema process-reactions`.
+#
+# Furnace (H101): a lumped conversion model, NOT kinetics (DESIGN.md D-005). Each formation
+# reaction converts a fraction of the inlet ethane (or propane) such that pure ethane gives the
+# 'once-through' furnace yields of the BREF LVOC 2017 (JRC109279, Table 3.3, ethane column:
+# 70 % ethane conversion) and the propane recycle the ethylene, propylene and ethane yields of its
+# propane column. The conversions are calculated by scripts/balance.py from those yields
+# (provenance given: a sourced yield turned into a conversion by arithmetic, no fitted
+# parameter). Lumps: C5/C6 as C6H6, propadiene for MAPD, 1-butene for the butylenes (D-005).
+# C2H6_DH and C2H6_TO_C3 came from `cheme chemistry library ethane_cracking` (stoichiometry
+# only); C2H6_TO_C3 is not used by the furnace model (propane formation is C2H6_C3H8 here, so
+# that methane comes from hydrogenolysis alone, as the yield table needs).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: C2H6_DH
+    equation: C2H6 <=> C2H4 + H2
+    stoichiometry: {C2H6: -1.0, C2H4: 1.0, H2: 1.0}
+    reversible: true
+    conversion: {key: C2H6, value: 0.600240, provenance: given, source: "BREF LVOC 2017 Table 3.3 ethane: 56 wt% C2H4 per pass (scripts/balance.py, D-005)"}
+    sources: ["https://eippcb.jrc.ec.europa.eu/reference/production-large-volume-organic-chemicals-0"]
+  - id: C2H6_TO_C3
+    equation: 2 C2H6 -> C3H8 + CH4
+    stoichiometry: {C2H6: -2.0, C3H8: 1.0, CH4: 1.0}
+  - id: C2H6_C2H2
+    equation: C2H6 -> C2H2 + 2 H2
+    stoichiometry: {C2H6: -1, C2H2: 1, H2: 2}
+    conversion: {key: C2H6, value: 0.004619, provenance: given, source: "BREF LVOC 2017 Table 3.3 ethane: 0.4 wt% C2H2 (D-005)"}
+  - id: C2H6_HGL
+    equation: C2H6 + H2 -> 2 CH4
+    stoichiometry: {C2H6: -1, H2: -1, CH4: 2}
+    conversion: {key: C2H6, value: 0.039361, provenance: given, source: "BREF LVOC 2017 Table 3.3 ethane: 4.2 wt% CH4 (D-005)"}
+  - id: C2H6_C3H6
+    equation: 3 C2H6 -> 2 C3H6 + 3 H2
+    stoichiometry: {C2H6: -3, C3H6: 2, H2: 3}
+    conversion: {key: C2H6, value: 0.010719, provenance: given, source: "BREF LVOC 2017 Table 3.3 ethane: 1.0 wt% C3H6 (D-005)"}
+  - id: C2H6_C3H8
+    equation: 3 C2H6 -> 2 C3H8 + H2
+    stoichiometry: {C2H6: -3, C3H8: 2, H2: 1}
+    conversion: {key: C2H6, value: 0.002046, provenance: given, source: "BREF LVOC 2017 Table 3.3 ethane: 0.2 wt% C3H8 (D-005)"}
+  - id: C2H6_C3H4
+    equation: 3 C2H6 -> 2 C3H4 + 5 H2
+    stoichiometry: {C2H6: -3, C3H4: 2, H2: 5}
+    conversion: {key: C2H6, value: 0.001126, provenance: given, source: "BREF LVOC 2017 Table 3.3 ethane: 0.1 wt% propadiene (D-005)"}
+  - id: C2H6_C4H6
+    equation: 2 C2H6 -> C4H6 + 3 H2
+    stoichiometry: {C2H6: -2, C4H6: 1, H2: 3}
+    conversion: {key: C2H6, value: 0.017789, provenance: given, source: "BREF LVOC 2017 Table 3.3 ethane: 1.6 wt% butadiene (D-005)"}
+  - id: C2H6_C4H8
+    equation: 2 C2H6 -> C4H8 + 2 H2
+    stoichiometry: {C2H6: -2, C4H8: 1, H2: 2}
+    conversion: {key: C2H6, value: 0.002144, provenance: given, source: "BREF LVOC 2017 Table 3.3 ethane: 0.2 wt% butylenes (D-005)"}
+  - id: C2H6_C4H10
+    equation: 2 C2H6 -> C4H10 + H2
+    stoichiometry: {C2H6: -2, C4H10: 1, H2: 1}
+    conversion: {key: C2H6, value: 0.002069, provenance: given, source: "BREF LVOC 2017 Table 3.3 ethane: 0.2 wt% butane (D-005)"}
+  - id: C2H6_C6H6
+    equation: 3 C2H6 -> C6H6 + 6 H2
+    stoichiometry: {C2H6: -3, C6H6: 1, H2: 6}
+    conversion: {key: C2H6, value: 0.020787, provenance: given, source: "BREF LVOC 2017 Table 3.3 ethane: 1.8 wt% C5/C6, lumped as C6H6 (D-005)"}
+  - id: C3H8_C2H4
+    equation: C3H8 -> C2H4 + CH4
+    stoichiometry: {C3H8: -1, C2H4: 1, CH4: 1}
+    conversion: {key: C3H8, value: 0.642889, provenance: given, source: "BREF LVOC 2017 Table 3.3 propane: 40.9 wt% C2H4 (D-005)"}
+  - id: C3H8_DH
+    equation: C3H8 -> C3H6 + H2
+    stoichiometry: {C3H8: -1, C3H6: 1, H2: 1}
+    conversion: {key: C3H8, value: 0.120509, provenance: given, source: "BREF LVOC 2017 Table 3.3 propane: 11.5 wt% C3H6 (D-005)"}
+  - id: C3H8_HGL
+    equation: C3H8 + H2 -> C2H6 + CH4
+    stoichiometry: {C3H8: -1, H2: -1, C2H6: 1, CH4: 1}
+    conversion: {key: C3H8, value: 0.052793, provenance: given, source: "BREF LVOC 2017 Table 3.3 propane: 3.6 wt% C2H6 (D-005)"}
+  # Selective hydrogenation (R501 acetylene converter, R601 MAPD converter): complete alkyne
+  # removal with an ASSUMED split between olefin and paraffin (D-011); Pd catalyst typical.
+  - id: AH_C2H4
+    equation: C2H2 + H2 -> C2H4
+    stoichiometry: {C2H2: -1, H2: -1, C2H4: 1}
+    conversion: {key: C2H2, value: 0.80, provenance: assumed, source: "D-011: 80 % of the acetylene to ethylene"}
+    catalyst: palladium on alumina (typical, not selected)
+  - id: AH_C2H6
+    equation: C2H2 + 2 H2 -> C2H6
+    stoichiometry: {C2H2: -1, H2: -2, C2H6: 1}
+    conversion: {key: C2H2, value: 0.20, provenance: assumed, source: "D-011: 20 % of the acetylene over-hydrogenated to ethane"}
+  - id: MAPD_C3H6
+    equation: C3H4 + H2 -> C3H6
+    stoichiometry: {C3H4: -1, H2: -1, C3H6: 1}
+    conversion: {key: C3H4, value: 0.90, provenance: assumed, source: "D-011"}
+  - id: MAPD_C3H8
+    equation: C3H4 + 2 H2 -> C3H8
+    stoichiometry: {C3H4: -1, H2: -2, C3H8: 1}
+    conversion: {key: C3H4, value: 0.10, provenance: assumed, source: "D-011"}
+  # Furnace firebox (H102): complete combustion of the fuel gas (D-013).
+  - id: COMB_H2
+    equation: H2 + 0.5 O2 -> H2O
+    stoichiometry: {H2: -1, O2: -0.5, H2O: 1}
+    conversion: {key: H2, value: 1.0, provenance: assumed, source: "D-013: complete combustion"}
+  - id: COMB_CH4
+    equation: CH4 + 2 O2 -> CO2 + 2 H2O
+    stoichiometry: {CH4: -1, O2: -2, CO2: 1, H2O: 2}
+    conversion: {key: CH4, value: 1.0, provenance: assumed, source: "D-013: complete combustion"}
+  - id: COMB_C2H4
+    equation: C2H4 + 3 O2 -> 2 CO2 + 2 H2O
+    stoichiometry: {C2H4: -1, O2: -3, CO2: 2, H2O: 2}
+    conversion: {key: C2H4, value: 1.0, provenance: assumed, source: "D-013: complete combustion"}
+  - id: COMB_C2H6
+    equation: C2H6 + 3.5 O2 -> 2 CO2 + 3 H2O
+    stoichiometry: {C2H6: -1, O2: -3.5, CO2: 2, H2O: 3}
+    conversion: {key: C2H6, value: 1.0, provenance: assumed, source: "D-013: complete combustion"}
+  # Caustic tower (T310): CO2 absorbed into sodium hydroxide solution (D-009).
+  - id: CAUSTIC
+    equation: CO2 + 2 NaOH -> Na2CO3 + H2O
+    stoichiometry: {CO2: -1, NAOH: -2, NA2CO3: 1, H2O: 1}
+    phase: liquid

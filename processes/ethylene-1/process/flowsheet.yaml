@@ -1,0 +1,1179 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Ethylene and propylene by steam cracking of ethane, 1000 kt/a polymer-grade ethylene
+# (DESIGN.md D-001, D-002). Where the values come from:
+# - the furnace outlet S106, the hydrogenation reactor outlets S503/S603, the firebox flue gas
+#   S804 and the mixer/pass-through streams are calculated by `cheme process propagate --fill`
+#   from the reactions in process/reactions.yaml (furnace: conversions from the sourced BREF
+#   yields, D-005);
+# - feeds, separator and column outlets, the recycles and all duties come from the independent
+#   balance scripts/balance.py (D-006), given here as ASSUMED: the separations are specified
+#   splits, not a rigorous simulation, because core has no qualified property package for the
+#   C2+ hydrocarbons yet (core #315; D-012);
+# - temperatures and pressures are design choices (D-004, D-007, D-008), ASSUMED.
+schema: cheme/process/v1
+kind: flowsheet
+title: Ethylene and propylene by ethane steam cracking (1000 kt/a ethylene)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+  enthalpy_reference: {state: ideal_gas, temperature: 298.15}
+cases:
+  - {id: design, description: "Design case: 125 t/h polymer-grade ethylene from purity ethane, ethane and propane recycled to extinction (D-002)", default: true}
+tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - {id: ETHANE, title: Purity ethane feed (pipeline), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: NATGAS, title: Natural gas make-up to the fuel header, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: AIR, title: Combustion air, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: BFW, title: Boiler feed water make-up to the dilution steam system, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: CAUSTIC, title: Fresh caustic soda solution 10 wt%, category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power (machine drives, D-015)
+    category: utility
+    utility: {kind: electricity}
+    ports: [{id: k301, direction: out, kind: energy}, {id: k302, direction: out, kind: energy}, {id: k701, direction: out, kind: energy}]
+  - id: MPS
+    title: MP steam 1800 kPa(a) to the dilution steam generator
+    category: utility
+    utility:
+      kind: steam
+      level: MP
+      pressure: {value: 1800, provenance: assumed, source: "D-007"}
+      supply_temperature: {value: 480.3, provenance: assumed, source: "saturation at 1800 kPa(a), D-007"}
+      min_approach: {value: 10, provenance: assumed, source: "D-007"}
+    ports: [{id: d210, direction: out, kind: energy}]
+  - id: LPS
+    title: LP steam 450 kPa(a) to the column reboilers
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 450, provenance: assumed, source: "D-014"}
+      supply_temperature: {value: 420.8, provenance: assumed, source: "saturation at 450 kPa(a), D-014"}
+      min_approach: {value: 10, provenance: assumed, source: "D-014"}
+    ports: [{id: t501, direction: out, kind: energy}, {id: t601, direction: out, kind: energy}, {id: t602, direction: out, kind: energy}, {id: t603, direction: out, kind: energy}]
+products:
+  - {id: ETHYLENE, title: Polymer-grade ethylene, category: product, ports: [{id: in, direction: in}]}
+  - {id: PROPYLENE, title: Polymer-grade propylene, category: by_product, ports: [{id: in, direction: in}]}
+  - {id: CRUDEC4, title: Crude C4 cut, category: by_product, ports: [{id: in, direction: in}]}
+  - {id: PYGAS, title: Pyrolysis gasoline (C5/C6 cut), category: by_product, ports: [{id: in, direction: in}]}
+  - {id: FLUE, title: Cracking furnace flue gas to atmosphere, category: emission, ports: [{id: in, direction: in}]}
+  - {id: BLOWDOWN, title: Process water blowdown to wastewater treatment, category: wastewater, ports: [{id: in, direction: in}]}
+  - {id: SPENTCAUSTIC, title: Spent caustic to treatment, category: wastewater, ports: [{id: in, direction: in}]}
+  - id: HPS
+    title: SHP steam raised in the TLEs and convection sections (11500 kPa(a), 520 C)
+    category: utility
+    utility:
+      kind: steam
+      level: HP
+      pressure: {value: 11500, provenance: assumed, source: "D-007"}
+      supply_temperature: {value: 793.15, provenance: assumed, source: "D-007"}
+      min_approach: {value: 20, provenance: assumed, source: "D-007"}
+    ports: [{id: tle, direction: in, kind: energy}, {id: conv, direction: in, kind: energy}]
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "D-014"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "D-014"}
+      min_approach: {value: 5, provenance: assumed, source: "D-014"}
+    ports:
+      - {id: t201, direction: in, kind: energy}
+      - {id: k301, direction: in, kind: energy}
+      - {id: k302, direction: in, kind: energy}
+      - {id: k701, direction: in, kind: energy}
+      - {id: t601, direction: in, kind: energy}
+      - {id: t602, direction: in, kind: energy}
+      - {id: t603, direction: in, kind: energy}
+
+blocks:
+  - id: CRK
+    title: Cracking furnaces, TLEs and fuel header
+    class: ReactingChemicals
+    ports:
+      - {id: fresh, direction: in}
+      - {id: c2rec, direction: in}
+      - {id: c3gas, direction: in}
+      - {id: steam, direction: in}
+      - {id: tail, direction: in}
+      - {id: c2vent, direction: in}
+      - {id: c3vent, direction: in}
+      - {id: ng, direction: in}
+      - {id: air, direction: in}
+      - {id: gas, direction: out}
+      - {id: flue, direction: out}
+      - {id: hps_tle, direction: out, kind: energy}
+      - {id: hps_conv, direction: out, kind: energy}
+      - {id: heat3, direction: out, kind: energy}
+  - id: CRK3
+    title: Propane recycle cracking coil
+    class: ReactingChemicals
+    ports:
+      - {id: c3rec, direction: in}
+      - {id: steam3, direction: in}
+      - {id: out, direction: out}
+      - {id: heat, direction: in, kind: energy}
+  - id: QW
+    title: Quench and dilution steam system
+    class: SeparatingByThermalProcess
+    ports:
+      - {id: gas_in, direction: in}
+      - {id: ko1, direction: in}
+      - {id: ko2, direction: in}
+      - {id: ko3, direction: in}
+      - {id: bfw, direction: in}
+      - {id: gas_out, direction: out}
+      - {id: steam, direction: out}
+      - {id: steam3, direction: out}
+      - {id: bd, direction: out}
+      - {id: cw, direction: out, kind: energy}
+      - {id: mps, direction: in, kind: energy}
+  - id: CGC
+    title: Cracked gas compression, caustic wash and drying
+    class: Compressing
+    ports:
+      - {id: gas_in, direction: in}
+      - {id: caustic, direction: in}
+      - {id: ko1, direction: out}
+      - {id: ko2, direction: out}
+      - {id: ko3, direction: out}
+      - {id: spent, direction: out}
+      - {id: gas_out, direction: out}
+      - {id: power1, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: power2, direction: in, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+  - id: CHL
+    title: Chilling train, demethaniser, hydrogen recovery and refrigeration
+    class: SeparatingByThermalProcess
+    ports:
+      - {id: gas_in, direction: in}
+      - {id: c2plus, direction: out}
+      - {id: h2a, direction: out}
+      - {id: h2m, direction: out}
+      - {id: tail, direction: out}
+      - {id: ref501, direction: in, kind: energy}
+      - {id: ref502, direction: in, kind: energy}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+  - id: C2F
+    title: Deethaniser, acetylene hydrogenation and C2 splitter
+    class: Distilling
+    ports:
+      - {id: feed, direction: in}
+      - {id: h2, direction: in}
+      - {id: c3plus, direction: out}
+      - {id: vent, direction: out}
+      - {id: ethylene, direction: out}
+      - {id: ethane, direction: out}
+      - {id: lps, direction: in, kind: energy}
+      - {id: ref501, direction: out, kind: energy}
+      - {id: ref502, direction: out, kind: energy}
+  - id: C3F
+    title: Depropaniser, MAPD hydrogenation, C3 splitter and debutaniser
+    class: Distilling
+    ports:
+      - {id: feed, direction: in}
+      - {id: h2, direction: in}
+      - {id: vent, direction: out}
+      - {id: propylene, direction: out}
+      - {id: propane, direction: out}
+      - {id: c4, direction: out}
+      - {id: pygas, direction: out}
+      - {id: lps1, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: lps2, direction: in, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+      - {id: lps3, direction: in, kind: energy}
+      - {id: cw3, direction: out, kind: energy}
+
+steps:
+  # --- CRK
+  - id: M101
+    block: CRK
+    title: Furnace feed and dilution steam mixing
+    class: Mixing
+    ports:
+      - {id: fresh, direction: in, delegates: fresh}
+      - {id: c2rec, direction: in, delegates: c2rec}
+      - {id: steam, direction: in, delegates: steam}
+      - {id: out, direction: out}
+  - id: H101
+    block: CRK
+    title: Cracking furnace radiant coils (ethane)
+    class: ReactingChemicals
+    reactor: conversion
+    reactions: [C2H6_DH, C2H6_C2H2, C2H6_HGL, C2H6_C3H6, C2H6_C3H8, C2H6_C3H4, C2H6_C4H6, C2H6_C4H8, C2H6_C4H10, C2H6_C6H6]
+    links: [{target: equipment, ref: H-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: heat, direction: in, kind: energy}
+  - id: M102
+    block: CRK3
+    title: Propane recycle and dilution steam mixing
+    class: Mixing
+    ports:
+      - {id: c3rec, direction: in, delegates: c3rec}
+      - {id: steam, direction: in, delegates: steam3}
+      - {id: out, direction: out}
+  - id: H103
+    block: CRK3
+    title: Recycle cracking coil (propane)
+    class: ReactingChemicals
+    reactor: conversion
+    reactions: [C3H8_C2H4, C3H8_DH, C3H8_HGL]
+    links: [{target: equipment, ref: H-103}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: out}
+      - {id: heat, direction: in, kind: energy, delegates: heat}
+  - id: M103
+    block: CRK
+    title: Coil outlet collection
+    class: Mixing
+    ports:
+      - {id: c2, direction: in}
+      - {id: c3, direction: in, delegates: c3gas}
+      - {id: out, direction: out}
+  - id: E101
+    block: CRK
+    title: Transfer line exchangers (SHP steam)
+    class: Cooling
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: gas}
+      - {id: hps, direction: out, kind: energy, delegates: hps_tle}
+  - id: M801
+    block: CRK
+    title: Fuel gas header
+    class: Mixing
+    ports:
+      - {id: tail, direction: in, delegates: tail}
+      - {id: c2vent, direction: in, delegates: c2vent}
+      - {id: c3vent, direction: in, delegates: c3vent}
+      - {id: ng, direction: in, delegates: ng}
+      - {id: out, direction: out}
+  - id: H102
+    block: CRK
+    title: Cracking furnace firebox and convection section
+    class: ReactingChemicals
+    reactor: conversion
+    reactions: [COMB_H2, COMB_CH4, COMB_C2H4, COMB_C2H6]
+    links: [{target: equipment, ref: H-101}]
+    ports:
+      - {id: fuel, direction: in}
+      - {id: air, direction: in, delegates: air}
+      - {id: out, direction: out, delegates: flue}
+      - {id: coil, direction: out, kind: energy}
+      - {id: coil3, direction: out, kind: energy, delegates: heat3}
+      - {id: hps, direction: out, kind: energy, delegates: hps_conv}
+  # --- QW
+  - id: T201
+    block: QW
+    title: Quench water tower
+    class: SeparatingByThermalProcess
+    links: [{target: equipment, ref: T-201}]
+    ports:
+      - {id: in, direction: in, delegates: gas_in}
+      - {id: gas, direction: out, delegates: gas_out}
+      - {id: water, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  - id: D210
+    block: QW
+    title: Process water stripper and dilution steam generator
+    class: Evaporating
+    links: [{target: equipment, ref: E-210}]
+    ports:
+      - {id: qw, direction: in}
+      - {id: ko1, direction: in, delegates: ko1}
+      - {id: ko2, direction: in, delegates: ko2}
+      - {id: ko3, direction: in, delegates: ko3}
+      - {id: bfw, direction: in, delegates: bfw}
+      - {id: steam, direction: out, delegates: steam}
+      - {id: steam3, direction: out, delegates: steam3}
+      - {id: bd, direction: out, delegates: bd}
+      - {id: mps, direction: in, kind: energy, delegates: mps}
+  # --- CGC
+  - id: K301
+    block: CGC
+    title: Cracked gas compressor stages 1-3 with intercoolers
+    class: Compressing
+    method: CentrifugalMotion
+    links: [{target: equipment, ref: K-301}]
+    ports:
+      - {id: in, direction: in, delegates: gas_in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power1}
+      - {id: cw, direction: out, kind: energy, delegates: cw1}
+  - id: V301
+    block: CGC
+    title: Stage 3 discharge drum
+    class: SeparatingByPhaseSeparation
+    links: [{target: equipment, ref: V-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: water, direction: out, delegates: ko1}
+      - {id: gas, direction: out}
+  - id: T310
+    block: CGC
+    title: Caustic tower
+    class: Absorbing
+    reactions: [CAUSTIC]
+    links: [{target: equipment, ref: T-310}]
+    ports:
+      - {id: gas, direction: in}
+      - {id: caustic, direction: in, delegates: caustic}
+      - {id: spent, direction: out, delegates: spent}
+      - {id: out, direction: out}
+  - id: K302
+    block: CGC
+    title: Cracked gas compressor stages 4-5 with aftercooler
+    class: Compressing
+    method: CentrifugalMotion
+    links: [{target: equipment, ref: K-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power2}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+  - id: V302
+    block: CGC
+    title: Compressor discharge drum
+    class: SeparatingByPhaseSeparation
+    links: [{target: equipment, ref: V-302}]
+    ports:
+      - {id: in, direction: in}
+      - {id: water, direction: out, delegates: ko2}
+      - {id: gas, direction: out}
+  - id: D320
+    block: CGC
+    title: Cracked gas dryers (molecular sieve)
+    class: Adsorbing
+    links: [{target: equipment, ref: D-320}]
+    ports:
+      - {id: in, direction: in}
+      - {id: water, direction: out, delegates: ko3}
+      - {id: out, direction: out, delegates: gas_out}
+  # --- CHL
+  - id: T401
+    block: CHL
+    title: Chilling train and demethaniser
+    class: Distilling
+    links: [{target: equipment, ref: T-401}]
+    ports:
+      - {id: in, direction: in, delegates: gas_in}
+      - {id: ovhd, direction: out}
+      - {id: bot, direction: out, delegates: c2plus}
+      - {id: ref, direction: out, kind: energy}
+  - id: V402
+    block: CHL
+    title: Cold box hydrogen separation
+    class: SeparatingByPhysicalProcess
+    links: [{target: equipment, ref: E-402}]
+    ports:
+      - {id: in, direction: in}
+      - {id: h2a, direction: out, delegates: h2a}
+      - {id: h2m, direction: out, delegates: h2m}
+      - {id: fuel, direction: out, delegates: tail}
+  - id: K701
+    block: CHL
+    title: Propylene and ethylene refrigeration compressors
+    class: Compressing
+    links: [{target: equipment, ref: K-701}]
+    ports:
+      - {id: chill, direction: in, kind: energy}
+      - {id: ref501, direction: in, kind: energy, delegates: ref501}
+      - {id: ref502, direction: in, kind: energy, delegates: ref502}
+      - {id: power, direction: in, kind: energy, delegates: power}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  # --- C2F
+  - id: T501
+    block: C2F
+    title: Deethaniser
+    class: Distilling
+    links: [{target: equipment, ref: T-501}]
+    ports:
+      - {id: in, direction: in, delegates: feed}
+      - {id: ovhd, direction: out}
+      - {id: bot, direction: out, delegates: c3plus}
+      - {id: reb, direction: in, kind: energy, delegates: lps}
+      - {id: cond, direction: out, kind: energy, delegates: ref501}
+  - id: R501
+    block: C2F
+    title: Acetylene converter (tail end)
+    class: ReactingChemicals
+    reactor: conversion
+    reactions: [AH_C2H4, AH_C2H6]
+    links: [{target: equipment, ref: R-501}]
+    ports:
+      - {id: in, direction: in}
+      - {id: h2, direction: in, delegates: h2}
+      - {id: out, direction: out}
+  - id: T502
+    block: C2F
+    title: C2 splitter with pasteurisation section
+    class: Distilling
+    links: [{target: equipment, ref: T-502}]
+    ports:
+      - {id: in, direction: in}
+      - {id: vent, direction: out, delegates: vent}
+      - {id: top, direction: out, delegates: ethylene}
+      - {id: bot, direction: out, delegates: ethane}
+      - {id: cond, direction: out, kind: energy, delegates: ref502}
+  # --- C3F
+  - id: T601
+    block: C3F
+    title: Depropaniser
+    class: Distilling
+    links: [{target: equipment, ref: T-601}]
+    ports:
+      - {id: in, direction: in, delegates: feed}
+      - {id: ovhd, direction: out}
+      - {id: bot, direction: out}
+      - {id: reb, direction: in, kind: energy, delegates: lps1}
+      - {id: cond, direction: out, kind: energy, delegates: cw1}
+  - id: R601
+    block: C3F
+    title: MAPD converter
+    class: ReactingChemicals
+    reactor: conversion
+    reactions: [MAPD_C3H6, MAPD_C3H8]
+    links: [{target: equipment, ref: R-601}]
+    ports:
+      - {id: in, direction: in}
+      - {id: h2, direction: in, delegates: h2}
+      - {id: out, direction: out}
+  - id: T602
+    block: C3F
+    title: C3 splitter
+    class: Distilling
+    links: [{target: equipment, ref: T-602}]
+    ports:
+      - {id: in, direction: in}
+      - {id: vent, direction: out, delegates: vent}
+      - {id: top, direction: out, delegates: propylene}
+      - {id: bot, direction: out, delegates: propane}
+      - {id: reb, direction: in, kind: energy, delegates: lps2}
+      - {id: cond, direction: out, kind: energy, delegates: cw2}
+  - id: T603
+    block: C3F
+    title: Debutaniser
+    class: Distilling
+    links: [{target: equipment, ref: T-603}]
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out, delegates: c4}
+      - {id: bot, direction: out, delegates: pygas}
+      - {id: reb, direction: in, kind: energy, delegates: lps3}
+      - {id: cond, direction: out, kind: energy, delegates: cw3}
+
+streams:
+  # ---------------------------------------------------------------- cracking
+  - id: S101
+    title: Fresh ethane
+    from: ETHANE.out
+    to: M101.fresh
+    template: cracked_gas
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: D-003}
+        pressure: {value: 3000, provenance: assumed, source: D-003}
+        flow: {value: 158554.1, basis: mass, provenance: assumed, source: "scripts/balance.py: fresh feed for 125 t/h ethylene (D-002, D-006)"}
+        composition: {basis: mole_fraction, values: {C2H6: 0.968, C3H8: 0.025, CH4: 0.005, CO2: 0.002}, provenance: assumed, source: "purity ethane, D-003"}
+  - id: S102
+    title: Ethane recycle
+    from: T502.bot
+    to: M101.c2rec
+    template: cracked_gas
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: D-006}
+        pressure: {value: 600, provenance: assumed, source: D-006}
+        flow: {value: 66028.3, basis: mass, provenance: assumed, source: "scripts/balance.py, D-006"}
+        composition: {basis: mole_fraction, values: {C2H6: 0.99, C2H4: 0.01}, provenance: assumed, source: "scripts/balance.py, D-010"}
+  - id: S103
+    title: Propane recycle
+    from: T602.bot
+    to: M102.c3rec
+    template: cracked_gas
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: D-006}
+        pressure: {value: 600, provenance: assumed, source: D-006}
+        flow: {value: 7971.8, basis: mass, provenance: assumed, source: "scripts/balance.py, D-006"}
+        composition: {basis: mole_fraction, values: {C3H8: 0.95, C3H6: 0.05}, provenance: assumed, source: "scripts/balance.py, D-010"}
+  - id: S104
+    title: Dilution steam
+    from: D210.steam
+    to: M101.steam
+    template: water
+    state:
+      design:
+        temperature: {value: 443.6, provenance: assumed, source: "saturated at 800 kPa(a), D-007"}
+        pressure: {value: 800, provenance: assumed, source: D-007}
+        flow: {value: 67374.7, basis: mass, provenance: assumed, source: "0.30 kg/kg hydrocarbon, D-004; scripts/balance.py"}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-007}
+  - id: S105
+    title: Furnace feed with dilution steam
+    from: M101.out
+    to: H101.in
+    template: cracked_gas
+    state:
+      design:
+        temperature: {value: 343.64, provenance: assumed, source: "ideal-gas adiabatic mixing of S101-S104, scripts/balance.py"}
+        pressure: {value: 600, provenance: assumed, source: D-004}
+        flow: {value: 291957.0, provenance: calculated, source: 'cheme process propagate: mixer M101 from S101 S102 S104', fingerprint: 889d684b63549021}
+        composition: {basis: mole_fraction, values: {H2: 0.0, CH4: 0.00233916, C2H2: 0.0, C2H4: 0.00196955, C2H6: 0.647848, C3H4: 0.0, C3H6: 0.0, C3H8: 0.0116958, C4H6: 0.0, C4H8: 0.0, C4H10: 0.0, C6H6: 0.0, H2O: 0.335212, CO2: 0.000935666}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S101 S102 S104', fingerprint: 870f1b1b0920d942}
+  - id: S106
+    title: Cracked gas at the ethane coil outlet
+    from: H101.out
+    to: M103.c2
+    template: cracked_gas
+    state:
+      design:
+        temperature: {value: 1113.15, provenance: assumed, source: "coil outlet 840 C, D-004"}
+        pressure: {value: 200, provenance: assumed, source: D-004}
+        flow: {value: 291957.0, provenance: calculated, source: 'cheme process propagate: reactor H101 from S105', fingerprint: 9f1d23084812ac60}
+        composition: {basis: mole_fraction, values: {H2: 0.296535, CH4: 0.0372837, C2H2: 0.00209168, C2H4: 0.273191, C2H6: 0.135445, C3H4: 0.000339934, C3H6: 0.00323601, C3H8: 0.00879298, C4H6: 0.00402781, C4H8: 0.000485447, C4H10: 0.000468465, C6H6: 0.00313774, H2O: 0.234311, CO2: 0.000654025}, provenance: calculated, source: 'cheme process propagate: reactor H101 from S105', fingerprint: 733f2d2e8617a9c4}
+  - id: S108
+    title: Dilution steam to the propane recycle coil
+    from: D210.steam3
+    to: M102.steam
+    template: water
+    state:
+      design:
+        temperature: {value: 443.6, provenance: assumed, source: "saturated at 800 kPa(a), D-007"}
+        pressure: {value: 800, provenance: assumed, source: D-007}
+        flow: {value: 2391.5, basis: mass, provenance: assumed, source: "0.30 kg/kg hydrocarbon, D-004; scripts/balance.py"}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-007}
+  - id: S109
+    title: Propane recycle coil feed with dilution steam
+    from: M102.out
+    to: H103.in
+    template: cracked_gas
+    state:
+      design:
+        temperature: {value: 344.51, provenance: assumed, source: "ideal-gas adiabatic mixing of S103 and S108, scripts/balance.py"}
+        pressure: {value: 600, provenance: assumed, source: D-004}
+        flow: {value: 10363.3, provenance: calculated, source: 'cheme process propagate: mixer M102 from S103 S108', fingerprint: f92dc53ef87a9d9c}
+        composition: {basis: mole_fraction, values: {H2: 0.0, CH4: 0.0, C2H2: 0.0, C2H4: 0.0, C2H6: 0.0, C3H4: 0.0, C3H6: 0.0288582, C3H8: 0.548305, C4H6: 0.0, C4H8: 0.0, C4H10: 0.0, C6H6: 0.0, H2O: 0.422837, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M102 from S103 S108', fingerprint: 5b282b1150dcb1df}
+  - id: S110
+    title: Cracked gas at the propane coil outlet
+    from: H103.out
+    to: M103.c3
+    template: cracked_gas
+    state:
+      design:
+        temperature: {value: 1113.15, provenance: assumed, source: "coil outlet 840 C, D-004"}
+        pressure: {value: 200, provenance: assumed, source: D-004}
+        flow: {value: 10363.3, provenance: calculated, source: 'cheme process propagate: reactor H103 from S109', fingerprint: 17f86147350bed88}
+        composition: {basis: mole_fraction, values: {H2: 0.0261735, CH4: 0.268894, C2H2: 0.0, C2H4: 0.248488, C2H6: 0.0204055, C3H4: 0.0, C3H6: 0.066922, C3H8: 0.0710455, C4H6: 0.0, C4H8: 0.0, C4H10: 0.0, C6H6: 0.0, H2O: 0.298072, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor H103 from S109', fingerprint: 9f123ad3e88ca1cf}
+  - id: S107
+    title: Combined cracked gas to the TLEs
+    from: M103.out
+    to: E101.in
+    template: cracked_gas
+    state:
+      design:
+        temperature: {value: 1113.15, provenance: assumed, source: D-004}
+        pressure: {value: 200, provenance: assumed, source: D-004}
+        flow: {value: 302320.0, provenance: calculated, source: 'cheme process propagate: mixer M103 from S106 S110', fingerprint: b3a0805abd427584}
+        composition: {basis: mole_fraction, values: {H2: 0.289196, CH4: 0.0435708, C2H2: 0.0020349, C2H4: 0.27252, C2H6: 0.132322, C3H4: 0.000330706, C3H6: 0.00496479, C3H8: 0.0104828, C4H6: 0.00391847, C4H8: 0.000472269, C4H10: 0.000455748, C6H6: 0.00305257, H2O: 0.236042, CO2: 0.000636271}, provenance: calculated, source: 'cheme process propagate: mixer M103 from S106 S110', fingerprint: 6511a4477ab095bd}
+  - id: S111
+    title: Cracked gas from the TLEs
+    from: E101.out
+    to: T201.in
+    template: cracked_gas
+    state:
+      design:
+        temperature: {value: 623.15, provenance: assumed, source: D-007}
+        pressure: {value: 170, provenance: assumed, source: D-007}
+        flow: {value: 302320.0, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S107', fingerprint: f44080c69379708f}
+        composition: {basis: mole_fraction, values: {H2: 0.289196, CH4: 0.0435708, C2H2: 0.0020349, C2H4: 0.27252, C2H6: 0.132322, C3H4: 0.000330706, C3H6: 0.00496479, C3H8: 0.0104828, C4H6: 0.00391847, C4H8: 0.000472269, C4H10: 0.000455748, C6H6: 0.00305257, H2O: 0.236042, CO2: 0.000636271}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S107', fingerprint: f44080c69379708f}
+  - id: Q104
+    title: Fired heat absorbed by the propane recycle coil
+    kind: energy
+    from: H102.coil3
+    to: H103.heat
+    state:
+      design:
+        duty: {value: 9514.2, provenance: assumed, source: "ideal-gas enthalpy S109 -> S110 at 1113 K, scripts/balance.py (D-006)"}
+  - id: Q101
+    title: Fired heat absorbed by the radiant coils (incl. feed preheat)
+    kind: energy
+    from: H102.coil
+    to: H101.heat
+    state:
+      design:
+        duty: {value: 372194.5, provenance: assumed, source: "ideal-gas enthalpy S105 -> S106 at 1113 K, scripts/balance.py (D-006)"}
+  - id: Q102
+    title: Convection section duty to SHP steam (BFW preheat, superheat)
+    kind: energy
+    from: H102.hps
+    to: HPS.conv
+    state:
+      design:
+        duty: {value: 195682.0, provenance: assumed, source: "scripts/balance.py, D-007"}
+  - id: Q103
+    title: TLE duty (SHP steam generation)
+    kind: energy
+    from: E101.hps
+    to: HPS.tle
+    state:
+      design:
+        duty: {value: 141555.9, provenance: assumed, source: "ideal-gas enthalpy S106 1113 -> 623 K, scripts/balance.py"}
+  # ---------------------------------------------------------------- fuel and firebox
+  - id: S405
+    title: Methane-rich tail gas to fuel
+    from: V402.fuel
+    to: M801.tail
+    template: fuel_gas
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: D-006}
+        pressure: {value: 500, provenance: assumed, source: D-006}
+        flow: {value: 21242.4, basis: mass, provenance: assumed, source: "scripts/balance.py, D-010"}
+        composition: {basis: mole_fraction, values: {H2: 0.865994, CH4: 0.131527, C2H4: 0.002479}, provenance: assumed, source: "scripts/balance.py, D-010"}
+  - id: S801
+    title: Natural gas make-up
+    from: NATGAS.out
+    to: M801.ng
+    template: fuel_gas
+    state:
+      design:
+        temperature: {value: 288.15, provenance: assumed, source: D-013}
+        pressure: {value: 2000, provenance: assumed, source: D-013}
+        flow: {value: 9626.5, basis: mass, provenance: assumed, source: "scripts/balance.py: closes the firebox heat balance (D-013)"}
+        composition: {basis: mole_fraction, values: {CH4: 0.95, C2H6: 0.03, CO2: 0.01, N2: 0.01}, provenance: assumed, source: D-013}
+  - id: S802
+    title: Fuel gas to the burners
+    from: M801.out
+    to: H102.fuel
+    template: fuel_gas
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: D-013}
+        pressure: {value: 400, provenance: assumed, source: D-013}
+        flow: {value: 31194.2, provenance: calculated, source: 'cheme process propagate: mixer M801 from S405 S801 S504 S604', fingerprint: fec9468285a1e1c8}
+        composition: {basis: mole_fraction, values: {H2: 0.782227, CH4: 0.209294, C2H4: 0.00372662, C2H6: 0.00285119, CO2: 0.000950396, N2: 0.000950396}, provenance: calculated, source: 'cheme process propagate: mixer M801 from S405 S801 S504 S604', fingerprint: 40a566ab24c52dc0}
+  - id: S803
+    title: Combustion air
+    from: AIR.out
+    to: H102.air
+    template: air
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: D-013}
+        pressure: {value: 101.325, provenance: assumed, source: D-013}
+        flow: {value: 788489.3, basis: mass, provenance: assumed, source: "15 % excess air, scripts/balance.py (D-013)"}
+        composition: {basis: mole_fraction, values: {N2: 0.79, O2: 0.21}, provenance: assumed, source: "dry air, argon counted as N2 (D-013)"}
+  - id: S804
+    title: Flue gas to stack
+    from: H102.out
+    to: FLUE.in
+    template: flue_gas
+    state:
+      design:
+        temperature: {value: 393.15, provenance: assumed, source: "stack 120 C, D-013"}
+        pressure: {value: 101.325, provenance: assumed, source: D-013}
+        flow: {value: 819684.0, provenance: calculated, source: 'cheme process propagate: reactor H102 from S802 S803', fingerprint: 3b11d11b1ccf9837}
+        composition: {basis: mole_fraction, values: {H2: 0.0, CH4: 0.0, C2H4: 0.0, C2H6: 0.0, CO2: 0.0432923, N2: 0.69675, O2: 0.024152, H2O: 0.235806}, provenance: calculated, source: 'cheme process propagate: reactor H102 from S802 S803', fingerprint: 05cd4d89561f534d}
+  # ---------------------------------------------------------------- quench and dilution steam
+  - id: S201
+    title: Quenched cracked gas to compression
+    from: T201.gas
+    to: K301.in
+    template: cracked_gas
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: D-007}
+        pressure: {value: 150, provenance: assumed, source: D-007}
+        flow: {value: 244247.2, basis: mass, provenance: assumed, source: "scripts/balance.py, D-006"}
+        composition: {basis: mole_fraction, values: {H2: 0.359913, C2H4: 0.339159, C2H6: 0.164679, CH4: 0.0542252, H2O: 0.0492329, C3H8: 0.0130461, C3H6: 0.00617867, C4H6: 0.00487661, C6H6: 0.00379904, C2H2: 0.0025327, CO2: 0.000791859, C4H8: 0.000587675, C4H10: 0.000567292, C3H4: 0.000411496}, provenance: assumed, source: "scripts/balance.py: water saturated at 40 C, D-007"}
+  - id: S202
+    title: Condensed process water from the quench
+    from: T201.water
+    to: D210.qw
+    template: water
+    state:
+      design:
+        temperature: {value: 358.15, provenance: assumed, source: D-007}
+        pressure: {value: 160, provenance: assumed, source: D-007}
+        flow: {value: 58073.8, basis: mass, provenance: assumed, source: "scripts/balance.py, D-006"}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-007}
+  - id: S203
+    title: BFW make-up
+    from: BFW.out
+    to: D210.bfw
+    template: water
+    state:
+      design:
+        temperature: {value: 388.15, provenance: assumed, source: D-007}
+        pressure: {value: 1000, provenance: assumed, source: D-007}
+        flow: {value: 2093.0, basis: mass, provenance: assumed, source: "replaces the blowdown, scripts/balance.py (D-007)"}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-007}
+  - id: S204
+    title: Process water blowdown
+    from: D210.bd
+    to: BLOWDOWN.in
+    template: water
+    state:
+      design:
+        temperature: {value: 443.6, provenance: assumed, source: D-007}
+        pressure: {value: 800, provenance: assumed, source: D-007}
+        flow: {value: 2093.0, basis: mass, provenance: assumed, source: "3 % of the process water, D-007"}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: "dissolved hydrocarbons and oils not modelled, D-007"}
+  - id: Q201
+    title: Quench water heat rejected (cooling and steam condensation)
+    kind: energy
+    from: T201.cw
+    to: CW.t201
+    state:
+      design:
+        duty: {value: 105521.4, provenance: assumed, source: "scripts/balance.py, D-007"}
+  - id: Q210
+    title: Dilution steam generation
+    kind: energy
+    from: MPS.d210
+    to: D210.mps
+    state:
+      design:
+        duty: {value: 46269.3, provenance: assumed, source: "process water 90 C to saturated steam at 800 kPa(a), scripts/balance.py (D-007)"}
+  # ---------------------------------------------------------------- compression, wash, drying
+  - id: S301
+    title: Cracked gas at stage 3 discharge
+    from: K301.out
+    to: V301.in
+    template: cracked_gas
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: D-008}
+        pressure: {value: 1010, provenance: assumed, source: "stage pressure ratio 1.89, D-008"}
+        flow: {value: 244247.2, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through K301 from S201', fingerprint: dcad62e889b6d54c}
+        composition: {basis: mole_fraction, values: {H2: 0.359913, C2H4: 0.339159, C2H6: 0.164679, CH4: 0.0542252, H2O: 0.0492329, C3H8: 0.0130461, C3H6: 0.00617867, C4H6: 0.00487661, C6H6: 0.00379904, C2H2: 0.0025327, CO2: 0.000791859, C4H8: 0.000587675, C4H10: 0.000567292, C3H4: 0.000411496}, provenance: calculated, source: 'cheme process propagate: pass-through K301 from S201', fingerprint: dcad62e889b6d54c}
+  - id: S302
+    title: Interstage condensate (water)
+    from: V301.water
+    to: D210.ko1
+    template: water
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: D-008}
+        pressure: {value: 1010, provenance: assumed, source: D-008}
+        flow: {value: 10028.9, basis: mass, provenance: assumed, source: "scripts/balance.py, D-008"}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: "hydrocarbon condensate not modelled, D-008"}
+  - id: S303
+    title: Cracked gas to the caustic tower
+    from: V301.gas
+    to: T310.gas
+    template: cracked_gas
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: D-008}
+        pressure: {value: 1000, provenance: assumed, source: D-008}
+        flow: {value: 234218.3, basis: mass, provenance: assumed, source: "scripts/balance.py, D-006"}
+        composition: {basis: mole_fraction, values: {H2: 0.375781, C2H4: 0.354112, C2H6: 0.17194, CH4: 0.056616, C3H8: 0.0136213, H2O: 0.00731356, C3H6: 0.00645109, C4H6: 0.00509162, C6H6: 0.00396654, C2H2: 0.00264436, CO2: 0.000826772, C4H8: 0.000613585, C4H10: 0.000592304, C3H4: 0.000429639}, provenance: assumed, source: "scripts/balance.py, D-006"}
+  - id: S304
+    title: Fresh caustic
+    from: CAUSTIC.out
+    to: T310.caustic
+    template: caustic
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: D-009}
+        pressure: {value: 1200, provenance: assumed, source: D-009}
+        flow: {value: 12525.8, basis: mass, provenance: assumed, source: "3 mol NaOH per mol CO2, 10 wt%, D-009"}
+        composition: {basis: mole_fraction, values: {H2O: 0.952339, NAOH: 0.0476608}, provenance: assumed, source: D-009}
+  - id: S305
+    title: Spent caustic
+    from: T310.spent
+    to: SPENTCAUSTIC.in
+    template: caustic
+    state:
+      design:
+        temperature: {value: 318.15, provenance: assumed, source: D-009}
+        pressure: {value: 1000, provenance: assumed, source: D-009}
+        flow: {value: 12985.2, basis: mass, provenance: assumed, source: "scripts/balance.py, D-009"}
+        composition: {basis: mole_fraction, values: {H2O: 0.968226, NAOH: 0.0158869, NA2CO3: 0.0158869}, provenance: assumed, source: "all CO2 as carbonate; sulphides, dissolved hydrocarbons and polymer not modelled (D-009)"}
+  - id: S306
+    title: Washed cracked gas
+    from: T310.out
+    to: K302.in
+    template: cracked_gas
+    state:
+      design:
+        temperature: {value: 318.15, provenance: assumed, source: D-009}
+        pressure: {value: 990, provenance: assumed, source: D-009}
+        flow: {value: 233758.9, basis: mass, provenance: assumed, source: "scripts/balance.py, D-009"}
+        composition: {basis: mole_fraction, values: {H2: 0.376092, C2H4: 0.354405, C2H6: 0.172082, CH4: 0.0566628, C3H8: 0.0136326, H2O: 0.00731961, C3H6: 0.00645642, C4H6: 0.00509583, C6H6: 0.00396983, C2H2: 0.00264655, C4H8: 0.000614093, C4H10: 0.000592794, C3H4: 0.000429995}, provenance: assumed, source: "scripts/balance.py, D-009"}
+  - id: S307
+    title: Cracked gas at compressor discharge
+    from: K302.out
+    to: V302.in
+    template: cracked_gas
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: D-008}
+        pressure: {value: 3600, provenance: assumed, source: D-008}
+        flow: {value: 233758.9, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through K302 from S306', fingerprint: 067c38b8fa135aef}
+        composition: {basis: mole_fraction, values: {H2: 0.376092, C2H4: 0.354405, C2H6: 0.172082, CH4: 0.0566628, C3H8: 0.0136326, H2O: 0.00731961, C3H6: 0.00645642, C4H6: 0.00509583, C6H6: 0.00396983, C2H2: 0.00264655, C4H8: 0.000614093, C4H10: 0.000592794, C3H4: 0.000429995}, provenance: calculated, source: 'cheme process propagate: pass-through K302 from S306', fingerprint: 067c38b8fa135aef}
+  - id: S308
+    title: Discharge drum condensate (water)
+    from: V302.water
+    to: D210.ko2
+    template: water
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: D-008}
+        pressure: {value: 3600, provenance: assumed, source: D-008}
+        flow: {value: 1199.8, basis: mass, provenance: assumed, source: "scripts/balance.py, D-008"}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-008}
+  - id: S309
+    title: Cracked gas to the dryers
+    from: V302.gas
+    to: D320.in
+    template: cracked_gas
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: D-008}
+        pressure: {value: 3600, provenance: assumed, source: D-008}
+        flow: {value: 232559.1, basis: mass, provenance: assumed, source: "scripts/balance.py, D-008"}
+        composition: {basis: mole_fraction, values: {H2: 0.378088, C2H4: 0.356286, C2H6: 0.172996, CH4: 0.0569635, C3H8: 0.0137049, C3H6: 0.00649069, C4H6: 0.00512288, C6H6: 0.00399089, C2H2: 0.0026606, H2O: 0.00205137, C4H8: 0.000617352, C4H10: 0.00059594, C3H4: 0.000432277}, provenance: assumed, source: "scripts/balance.py, D-008"}
+  - id: S310
+    title: Water from dryer regeneration
+    from: D320.water
+    to: D210.ko3
+    template: water
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: D-008}
+        pressure: {value: 300, provenance: assumed, source: D-008}
+        flow: {value: 463.8, basis: mass, provenance: assumed, source: "scripts/balance.py, D-008"}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-008}
+  - id: S311
+    title: Dry cracked gas to the cold section
+    from: D320.out
+    to: T401.in
+    template: cracked_gas
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: D-008}
+        pressure: {value: 3550, provenance: assumed, source: D-008}
+        flow: {value: 232095.3, basis: mass, provenance: assumed, source: "scripts/balance.py, D-008"}
+        composition: {basis: mole_fraction, values: {H2: 0.378865, C2H4: 0.357019, C2H6: 0.173351, CH4: 0.0570806, C3H8: 0.0137331, C3H6: 0.00650403, C4H6: 0.00513341, C6H6: 0.0039991, C2H2: 0.00266607, C4H8: 0.000618621, C4H10: 0.000597165, C3H4: 0.000433165}, provenance: assumed, source: "scripts/balance.py, D-008"}
+  - id: Q301
+    title: CGC stages 1-3 shaft power
+    kind: energy
+    from: POWER.k301
+    to: K301.power
+    state:
+      design:
+        duty: {value: 24804.4, provenance: assumed, source: "ideal gas, isentropic efficiency 0.78, scripts/balance.py (D-008)"}
+  - id: Q302
+    title: CGC stages 1-3 intercoolers
+    kind: energy
+    from: K301.cw
+    to: CW.k301
+    state:
+      design:
+        duty: {value: 31507.0, provenance: assumed, source: "shaft power plus water condensation, scripts/balance.py (D-008)"}
+  - id: Q303
+    title: CGC stages 4-5 shaft power
+    kind: energy
+    from: POWER.k302
+    to: K302.power
+    state:
+      design:
+        duty: {value: 15815.7, provenance: assumed, source: "ideal gas, isentropic efficiency 0.78, scripts/balance.py (D-008)"}
+  - id: Q304
+    title: CGC stages 4-5 coolers
+    kind: energy
+    from: K302.cw
+    to: CW.k302
+    state:
+      design:
+        duty: {value: 16617.5, provenance: assumed, source: "scripts/balance.py (D-008)"}
+  # ---------------------------------------------------------------- cold section
+  - id: S401
+    title: Demethaniser overhead (H2 and methane)
+    from: T401.ovhd
+    to: V402.in
+    template: cracked_gas
+    state:
+      design:
+        temperature: {value: 173.15, provenance: assumed, source: D-010}
+        pressure: {value: 3300, provenance: assumed, source: D-010}
+        flow: {value: 21408.9, basis: mass, provenance: assumed, source: "scripts/balance.py, D-010"}
+        composition: {basis: mole_fraction, values: {H2: 0.866935, CH4: 0.130614, C2H4: 0.002451}, provenance: assumed, source: "all H2 and CH4, 0.3 % of the ethylene, D-010"}
+  - id: S402
+    title: Demethaniser bottoms (C2+)
+    from: T401.bot
+    to: T501.in
+    template: cracked_gas
+    state:
+      design:
+        temperature: {value: 263.15, provenance: assumed, source: D-010}
+        pressure: {value: 3350, provenance: assumed, source: D-010}
+        flow: {value: 210686.4, basis: mass, provenance: assumed, source: "scripts/balance.py, D-010"}
+        composition: {basis: mole_fraction, values: {C2H4: 0.632252, C2H6: 0.307915, C3H8: 0.0243935, C3H6: 0.0115528, C4H6: 0.00911822, C6H6: 0.0071034, C2H2: 0.0047356, C4H8: 0.00109883, C4H10: 0.00106072, C3H4: 0.00076941}, provenance: assumed, source: "scripts/balance.py, D-010"}
+  - id: S403
+    title: Hydrogen to the acetylene converter
+    from: V402.h2a
+    to: R501.h2
+    template: cracked_gas
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: D-010}
+        pressure: {value: 3200, provenance: assumed, source: D-010}
+        flow: {value: 143.2, basis: mass, provenance: assumed, source: "1.5 mol H2 per mol C2H2, scripts/balance.py (D-011)"}
+        composition: {basis: mole_fraction, values: {H2: 0.95, CH4: 0.05}, provenance: assumed, source: D-010}
+  - id: S404
+    title: Hydrogen to the MAPD converter
+    from: V402.h2m
+    to: R601.h2
+    template: cracked_gas
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: D-010}
+        pressure: {value: 3200, provenance: assumed, source: D-010}
+        flow: {value: 23.3, basis: mass, provenance: assumed, source: "1.5 mol H2 per mol C3H4, scripts/balance.py (D-011)"}
+        composition: {basis: mole_fraction, values: {H2: 0.95, CH4: 0.05}, provenance: assumed, source: D-010}
+  - id: Q401
+    title: Chilling train and demethaniser condenser refrigeration
+    kind: energy
+    from: T401.ref
+    to: K701.chill
+    state:
+      design:
+        duty: {value: 37944.4, provenance: assumed, source: "C2+ cooled to -100 C and condensed, H2/CH4 cold recovered, scripts/balance.py (D-014)"}
+  - id: Q402
+    title: Refrigeration compressor shaft power
+    kind: energy
+    from: POWER.k701
+    to: K701.power
+    state:
+      design:
+        duty: {value: 78290.6, provenance: assumed, source: "COP 60 % of Carnot per level, scripts/balance.py (D-014); conservative upper estimate: no reboiler credit"}
+  - id: Q403
+    title: Refrigeration condensers
+    kind: energy
+    from: K701.cw
+    to: CW.k701
+    state:
+      design:
+        duty: {value: 212190.7, provenance: assumed, source: "refrigeration loads plus shaft power (D-014)"}
+  # ---------------------------------------------------------------- C2 fractionation
+  - id: S501
+    title: Deethaniser overhead (C2)
+    from: T501.ovhd
+    to: R501.in
+    template: cracked_gas
+    state:
+      design:
+        temperature: {value: 258.15, provenance: assumed, source: D-010}
+        pressure: {value: 2500, provenance: assumed, source: D-010}
+        flow: {value: 191199.1, basis: mass, provenance: assumed, source: "sharp split, scripts/balance.py (D-010)"}
+        composition: {basis: mole_fraction, values: {C2H4: 0.669118, C2H6: 0.32587, C2H2: 0.00501173}, provenance: assumed, source: "scripts/balance.py, D-010"}
+  - id: S502
+    title: Deethaniser bottoms (C3+)
+    from: T501.bot
+    to: T601.in
+    template: cracked_gas
+    state:
+      design:
+        temperature: {value: 343.15, provenance: assumed, source: D-010}
+        pressure: {value: 2550, provenance: assumed, source: D-010}
+        flow: {value: 19487.3, basis: mass, provenance: assumed, source: "sharp split, scripts/balance.py (D-010)"}
+        composition: {basis: mole_fraction, values: {C3H8: 0.442737, C3H6: 0.209682, C4H6: 0.165495, C6H6: 0.128926, C4H8: 0.0199435, C4H10: 0.0192518, C3H4: 0.0139647}, provenance: assumed, source: "scripts/balance.py, D-010"}
+  - id: S503
+    title: Acetylene converter effluent
+    from: R501.out
+    to: T502.in
+    template: cracked_gas
+    state:
+      design:
+        temperature: {value: 333.15, provenance: assumed, source: D-011}
+        pressure: {value: 2400, provenance: assumed, source: D-011}
+        flow: {value: 191342.0, provenance: calculated, source: 'cheme process propagate: reactor R501 from S403 S501', fingerprint: a69e6a90c0033aeb}
+        composition: {basis: mole_fraction, values: {H2: 0.0014982, CH4: 0.000394784, C2H2: 0.0, C2H4: 0.671853, C2H6: 0.326254, C3H4: 0.0, C3H6: 0.0, C3H8: 0.0, C4H6: 0.0, C4H8: 0.0, C4H10: 0.0, C6H6: 0.0, H2O: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R501 from S403 S501', fingerprint: 05102111e86e415c}
+  - id: S504
+    title: C2 splitter pasteurisation vent to fuel
+    from: T502.vent
+    to: M801.c2vent
+    template: fuel_gas
+    state:
+      design:
+        temperature: {value: 243.15, provenance: assumed, source: D-010}
+        pressure: {value: 1900, provenance: assumed, source: D-010}
+        flow: {value: 314.1, basis: mass, provenance: assumed, source: "scripts/balance.py, D-010"}
+        composition: {basis: mole_fraction, values: {H2: 0.463271, C2H4: 0.414815, CH4: 0.121914}, provenance: assumed, source: "H2, CH4 and 0.2 % of the ethylene, D-010"}
+  - id: S505
+    title: Polymer-grade ethylene product
+    from: T502.top
+    to: ETHYLENE.in
+    template: cracked_gas
+    state:
+      design:
+        temperature: {value: 243.15, provenance: assumed, source: D-002}
+        pressure: {value: 1900, provenance: assumed, source: D-002}
+        flow: {value: 125000.0, basis: mass, provenance: assumed, source: "1000 kt/a at 8000 h/a, D-002"}
+        composition: {basis: mole_fraction, values: {C2H4: 0.9995, C2H6: 0.0005}, provenance: assumed, source: "polymer grade, D-002"}
+  - id: Q502
+    title: Deethaniser reboiler
+    kind: energy
+    from: LPS.t501
+    to: T501.reb
+    state:
+      design:
+        duty: {value: 39024.4, provenance: assumed, source: "equal to the condenser duty, reflux ratio 1, scripts/balance.py (D-014)"}
+  - id: Q501
+    title: Deethaniser condenser refrigeration
+    kind: energy
+    from: T501.cond
+    to: K701.ref501
+    state:
+      design:
+        duty: {value: 39024.4, provenance: assumed, source: "reflux ratio 1, latent heat of pure ethane, scripts/balance.py (D-014); upper bound"}
+  - id: Q503
+    title: C2 splitter condenser refrigeration
+    kind: energy
+    from: T502.cond
+    to: K701.ref502
+    state:
+      design:
+        duty: {value: 56931.3, provenance: assumed, source: "reflux ratio 4, scripts/balance.py (D-014); reboiler duty not modelled and not credited, upper bound"}
+  # ---------------------------------------------------------------- C3/C4 fractionation
+  - id: S601
+    title: Depropaniser overhead (C3)
+    from: T601.ovhd
+    to: R601.in
+    template: cracked_gas
+    state:
+      design:
+        temperature: {value: 318.15, provenance: assumed, source: D-010}
+        pressure: {value: 1800, provenance: assumed, source: D-010}
+        flow: {value: 11228.6, basis: mass, provenance: assumed, source: "sharp split, scripts/balance.py (D-010)"}
+        composition: {basis: mole_fraction, values: {C3H8: 0.664388, C3H6: 0.314656, C3H4: 0.0209559}, provenance: assumed, source: "scripts/balance.py, D-010"}
+  - id: S602
+    title: Depropaniser bottoms (C4+)
+    from: T601.bot
+    to: T603.in
+    template: cracked_gas
+    state:
+      design:
+        temperature: {value: 358.15, provenance: assumed, source: D-010}
+        pressure: {value: 1850, provenance: assumed, source: D-010}
+        flow: {value: 8258.7, basis: mass, provenance: assumed, source: "sharp split, scripts/balance.py (D-010)"}
+        composition: {basis: mole_fraction, values: {C4H6: 0.496063, C6H6: 0.38645, C4H8: 0.05978, C4H10: 0.0577066}, provenance: assumed, source: "scripts/balance.py, D-010"}
+  - id: S603
+    title: MAPD converter effluent
+    from: R601.out
+    to: T602.in
+    template: cracked_gas
+    state:
+      design:
+        temperature: {value: 318.15, provenance: assumed, source: D-011}
+        pressure: {value: 1700, provenance: assumed, source: D-011}
+        flow: {value: 11251.9, provenance: calculated, source: 'cheme process propagate: reactor R601 from S404 S601', fingerprint: 7d17fee7a1c8f789}
+        composition: {basis: mole_fraction, values: {H2: 0.00833371, CH4: 0.00163975, C2H2: 0.0, C2H4: 0.0, C2H6: 0.0, C3H4: 0.0, C3H6: 0.33019, C3H8: 0.659837, C4H6: 0.0, C4H8: 0.0, C4H10: 0.0, C6H6: 0.0, H2O: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R601 from S404 S601', fingerprint: 838bd2f726902615}
+  - id: S604
+    title: C3 splitter vent to fuel
+    from: T602.vent
+    to: M801.c3vent
+    template: fuel_gas
+    state:
+      design:
+        temperature: {value: 318.15, provenance: assumed, source: D-010}
+        pressure: {value: 1600, provenance: assumed, source: D-010}
+        flow: {value: 11.2, basis: mass, provenance: assumed, source: "scripts/balance.py, D-010"}
+        composition: {basis: mole_fraction, values: {H2: 0.835165, CH4: 0.164835}, provenance: assumed, source: "scripts/balance.py, D-010"}
+  - id: S605
+    title: Polymer-grade propylene product
+    from: T602.top
+    to: PROPYLENE.in
+    template: cracked_gas
+    state:
+      design:
+        temperature: {value: 318.15, provenance: assumed, source: D-002}
+        pressure: {value: 1600, provenance: assumed, source: D-002}
+        flow: {value: 3268.8, basis: mass, provenance: assumed, source: "scripts/balance.py, D-010"}
+        composition: {basis: mole_fraction, values: {C3H6: 0.995, C3H8: 0.005}, provenance: assumed, source: "polymer grade, D-002"}
+  - id: S606
+    title: Crude C4 product
+    from: T603.top
+    to: CRUDEC4.in
+    template: cracked_gas
+    state:
+      design:
+        temperature: {value: 318.15, provenance: assumed, source: D-010}
+        pressure: {value: 500, provenance: assumed, source: D-010}
+        flow: {value: 4346.7, basis: mass, provenance: assumed, source: "sharp split, scripts/balance.py (D-010)"}
+        composition: {basis: mole_fraction, values: {C4H6: 0.808513, C4H8: 0.097433, C4H10: 0.0940537}, provenance: assumed, source: "scripts/balance.py, D-010"}
+  - id: S607
+    title: Pyrolysis gasoline product
+    from: T603.bot
+    to: PYGAS.in
+    template: cracked_gas
+    state:
+      design:
+        temperature: {value: 383.15, provenance: assumed, source: D-010}
+        pressure: {value: 550, provenance: assumed, source: D-010}
+        flow: {value: 3912.0, basis: mass, provenance: assumed, source: "scripts/balance.py, D-010"}
+        composition: {basis: mole_fraction, values: {C6H6: 1.0}, provenance: assumed, source: "C5/C6 cut lumped as C6H6, D-005"}
+  - id: Q601
+    title: Depropaniser reboiler
+    kind: energy
+    from: LPS.t601
+    to: T601.reb
+    state:
+      design:
+        duty: {value: 1763.7, provenance: assumed, source: "reflux ratio 1, scripts/balance.py (D-014)"}
+  - id: Q602
+    title: Depropaniser condenser
+    kind: energy
+    from: T601.cond
+    to: CW.t601
+    state:
+      design:
+        duty: {value: 1763.7, provenance: assumed, source: "scripts/balance.py (D-014)"}
+  - id: Q603
+    title: C3 splitter reboiler
+    kind: energy
+    from: LPS.t602
+    to: T602.reb
+    state:
+      design:
+        duty: {value: 4233.1, provenance: assumed, source: "reflux ratio 15, scripts/balance.py (D-014)"}
+  - id: Q604
+    title: C3 splitter condenser
+    kind: energy
+    from: T602.cond
+    to: CW.t602
+    state:
+      design:
+        duty: {value: 4233.1, provenance: assumed, source: "scripts/balance.py (D-014)"}
+  - id: Q605
+    title: Debutaniser reboiler
+    kind: energy
+    from: LPS.t603
+    to: T603.reb
+    state:
+      design:
+        duty: {value: 865.4, provenance: assumed, source: "reflux ratio 1, scripts/balance.py (D-014)"}
+  - id: Q606
+    title: Debutaniser condenser
+    kind: energy
+    from: T603.cond
+    to: CW.t603
+    state:
+      design:
+        duty: {value: 865.4, provenance: assumed, source: "scripts/balance.py (D-014)"}
+layout: {bfd: {}, pfd: {}}
