@@ -1,0 +1,361 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Formaldehyde by methanol oxidation over iron molybdate (Formox type), 20 t/h of 50 wt%
+# formalin (D-001, D-002). Where the values come from:
+# - boundary conditions, temperatures and pressures: design basis and decisions, ASSUMED;
+# - the reactor R101 outlet: cheme (conversion reactor from the sourced per-pass conversion and
+#   selectivities, D-004); the ECS R301 outlet: cheme (assumed conversions, D-008);
+# - mixers, blower, exchanger sides and the recycle splitter: `cheme process propagate --fill`;
+# - the absorber C201 outlets (off-gas, formalin), the process water, the air rate, the split
+#   fraction, all temperatures that need a liquid enthalpy and every duty: the independent
+#   balance scripts/formox_balance.py (D-006), given here as ASSUMED: no property method of core
+#   covers aqueous formaldehyde (core #315, #364; D-009).
+schema: cheme/process/v1
+kind: flowsheet
+title: Formaldehyde (Formox, iron molybdate), 20 t/h formalin 50 wt%
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+  enthalpy_reference: {state: ideal_gas, temperature: 298.15}
+cases:
+  - {id: design, description: "Design case: 20 t/h formalin 50 wt% HCHO (10 t/h HCHO), yield 93 %, off-gas recycle 71 % (D-002, D-004, D-005)", default: true}
+tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - {id: AIR, title: Ambient air (humid), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: MEOH, title: "Methanol from storage (boundary feed; made by processes/methanol-1)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: PW, title: Process water (demineralised) to the absorber, category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports: [{id: k101, direction: out, kind: energy}, {id: c201, direction: out, kind: energy}]
+products:
+  - {id: FORMALIN, title: Formalin 50 wt% to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: STACK, title: ECS outlet to stack (atmosphere), category: emission, ports: [{id: in, direction: in}]}
+  - id: STEAM
+    title: MP steam export 1500 kPa(a) (hot-oil steam generator and ECS steam generator)
+    category: utility
+    utility:
+      kind: steam
+      level: MP
+      pressure: {value: 1500, provenance: assumed, source: "design basis, D-007"}
+      supply_temperature: {value: 471.4, provenance: assumed, source: "saturation at 1500 kPa(a), D-007"}
+      min_approach: {value: 20, provenance: assumed, source: D-007}
+    ports: [{id: r101, direction: in, kind: energy}, {id: r301, direction: in, kind: energy}]
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-007"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-007"}
+      min_approach: {value: 5, provenance: assumed, source: D-007}
+    ports: [{id: c201, direction: in, kind: energy}]
+
+blocks:
+  - id: FEED
+    title: Gas circulation and methanol feed
+    class: Mixing
+    ports:
+      - {id: air, direction: in}
+      - {id: meoh, direction: in}
+      - {id: rec, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy}
+  - id: RXN
+    title: Methanol vaporisation and oxidation
+    class: ReactingChemicals
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: steam, direction: out, kind: energy}
+  - id: ABS
+    title: Formaldehyde absorption and off-gas recycle
+    class: SeparatingByPhysicalProcess
+    ports:
+      - {id: gas, direction: in}
+      - {id: water, direction: in}
+      - {id: product, direction: out}
+      - {id: rec, direction: out}
+      - {id: vent, direction: out}
+      - {id: cw, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: ECS
+    title: Emission control system (catalytic oxidation)
+    class: ReactingChemicals
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: steam, direction: out, kind: energy}
+
+steps:
+  - id: M101
+    block: FEED
+    title: Fresh air / recycle gas junction (blower suction)
+    class: Mixing
+    ports:
+      - {id: air, direction: in, delegates: air}
+      - {id: rec, direction: in, delegates: rec}
+      - {id: out, direction: out}
+  - id: K101
+    block: FEED
+    title: Process gas blower
+    class: Compressing
+    method: CentrifugalMotion
+    links: [{target: equipment, ref: K-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: M102
+    block: FEED
+    title: Methanol injection into the process gas (vaporiser inlet)
+    class: Mixing
+    ports:
+      - {id: gas, direction: in}
+      - {id: meoh, direction: in, delegates: meoh}
+      - {id: out, direction: out, delegates: out}
+  # D-005: the methanol is vaporised and the feed preheated by the reaction gas (no steam).
+  # One exchanger E-101 written as its two sides joined by the energy stream Q6, so that
+  # propagate passes flow and composition through each side.
+  - id: E101C
+    block: RXN
+    title: E-101 methanol vaporiser / feed preheater, process gas side
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: out, direction: out}
+      - {id: heat, direction: in, kind: energy}
+  - id: E101H
+    block: RXN
+    title: E-101 methanol vaporiser / feed preheater, reaction gas side
+    class: Cooling
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: out}
+      - {id: heat, direction: out, kind: energy}
+  # D-004: conversion reactor from the per-pass methanol conversion and the selectivities that
+  # reproduce BREF LVOC Table 6.10 (yield 93 %) and section 6.2.3 (conversion > 99 %), not kinetics.
+  - id: R101
+    block: RXN
+    title: Multitubular Fe-Mo oxide reactor (boiling hot-oil shell, steam generator)
+    class: ReactingChemicals
+    reactions: [FORMOX, HCHO_OX, DME_FORM]
+    reactor: conversion
+    selectivity:
+      key: CH3OH
+      conversion: 0.9878593
+      products: {HCHO: 0.9372342, CO: 0.0571416, DME: 0.0028121}
+      provenance: assumed
+      source: "scripts/formox_balance.py: plant yield 0.93 (BREF LVOC 2017 Table 6.10: 91-94 %), plant conversion 0.993 (s. 6.2.3: > 99 mol%), DME 1.0 kmol/h ASSUMED (D-004)"
+    catalyst: FEMO
+    links: [{target: equipment, ref: R-101}, {target: equipment, ref: E-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: heat, direction: out, kind: energy, delegates: steam}
+  - id: C201
+    block: ABS
+    title: Formaldehyde absorber (water, pump-around coolers)
+    class: SeparatingByPhysicalProcess
+    links: [{target: equipment, ref: C-201}, {target: equipment, ref: E-201}, {target: equipment, ref: P-201}]
+    ports:
+      - {id: gas, direction: in, delegates: gas}
+      - {id: water, direction: in, delegates: water}
+      - {id: top, direction: out}
+      - {id: bot, direction: out, delegates: product}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # D-005: the recycle fraction that gives 8.5 mol% methanol at the reactor inlet
+  - id: SPL
+    block: ABS
+    title: Off-gas recycle / vent split
+    class: SplittingMaterial
+    split: {recycle: 0.712087}
+    ports:
+      - {id: in, direction: in}
+      - {id: recycle, direction: out, delegates: rec}
+      - {id: vent, direction: out, delegates: vent}
+  # D-008: ECS: feed/effluent preheater, noble-metal catalytic oxidiser and steam generator
+  # lumped in one step; heat to steam = combustion heat less the stack gas sensible heat.
+  - id: R301
+    block: ECS
+    title: Catalytic oxidiser with steam generator (ECS)
+    class: ReactingChemicals
+    reactions: [CO_OX, HCHO_COMB, MEOH_COMB, DME_COMB]
+    reactor: conversion
+    catalyst: PT_ECS
+    links: [{target: equipment, ref: R-301}, {target: equipment, ref: E-301}, {target: equipment, ref: E-302}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: out, direction: out, delegates: out}
+      - {id: heat, direction: out, kind: energy, delegates: steam}
+
+streams:
+  - id: S1
+    title: Fresh air
+    from: AIR.out
+    to: M101.air
+    template: gas
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "design basis, D-005"}
+        temperature: {value: 298.15, provenance: assumed, source: "design basis, D-005"}
+        flow: {value: 34991.1, basis: mass, provenance: assumed, source: "scripts/formox_balance.py: off-gas O2 6.0 mol% (D-005)"}
+        composition: {basis: mole_fraction, values: {N2: 0.773310, O2: 0.207440, AR: 0.009250, H2O: 0.010000}, provenance: assumed, source: "dry air N2/O2/Ar (CO2 neglected) with 1.0 mol% water, D-005"}
+  - id: S2
+    title: Blower suction gas
+    from: M101.out
+    to: K101.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 100.5, provenance: assumed, source: D-005}
+        temperature: {value: 301.59, provenance: assumed, source: "scripts/formox_balance.py, adiabatic mixing (D-006)"}
+        flow: {value: 109626.0, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S11', fingerprint: 3e0b922d32364b6b}
+        composition: {basis: mole_fraction, values: {N2: 0.840253, O2: 0.106125, AR: 0.0100505, H2O: 0.0293354, CH3OH: 0.000481014, HCHO: 0.000153924, CO: 0.0129633, DME: 0.000637687, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S11', fingerprint: 956670e4b49f5fd2}
+  - id: S3
+    title: Blower discharge
+    from: K101.out
+    to: M102.gas
+    template: gas
+    state:
+      design:
+        pressure: {value: 150.0, provenance: assumed, source: D-005}
+        temperature: {value: 350.12, provenance: assumed, source: "scripts/formox_balance.py, eta 0.75 (D-007)"}
+        flow: {value: 109626.0, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S2', fingerprint: 9200e5509e61a07c}
+        composition: {basis: mole_fraction, values: {N2: 0.840253, O2: 0.106125, AR: 0.0100505, H2O: 0.0293354, CH3OH: 0.000481014, HCHO: 0.000153924, CO: 0.0129633, DME: 0.000637687, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S2', fingerprint: 9200e5509e61a07c}
+  - id: S4
+    title: Liquid methanol feed
+    from: MEOH.out
+    to: M102.meoh
+    template: methanol
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: "design basis, D-003"}
+        temperature: {value: 298.15, provenance: assumed, source: "design basis, D-003"}
+        flow: {value: 11474.6, basis: mass, provenance: assumed, source: "scripts/formox_balance.py: 10 t/h HCHO at 93 % yield (D-002, D-004)"}
+        composition: {basis: mole_fraction, values: {CH3OH: 1.0}, provenance: assumed, source: "design basis, D-003 (Grade AA, water <= 0.1 wt% neglected)"}
+  - id: S5
+    title: Process gas with injected methanol (two-phase, vaporiser inlet)
+    from: M102.out
+    to: E101C.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 148.0, provenance: assumed, source: D-005}
+        flow: {value: 121101.0, provenance: calculated, source: 'cheme process propagate: mixer M102 from S3 S4', fingerprint: 81b07986f85c7a23}
+        composition: {basis: mole_fraction, values: {N2: 0.769201, O2: 0.0971511, AR: 0.00920063, H2O: 0.0268548, CH3OH: 0.0850003, HCHO: 0.000140908, CO: 0.0118671, DME: 0.000583764, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M102 from S3 S4', fingerprint: 810a7bf335d151af}
+  - id: S6
+    title: Reactor feed gas (8.5 mol% methanol)
+    from: E101C.out
+    to: R101.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 145.0, provenance: assumed, source: D-005}
+        temperature: {value: 399.01, provenance: assumed, source: "scripts/formox_balance.py, E101 energy balance (D-006)"}
+        flow: {value: 121101.0, provenance: calculated, source: 'cheme process propagate: pass-through E101C from S5', fingerprint: 1fdfabac223cb92c}
+        composition: {basis: mole_fraction, values: {N2: 0.769201, O2: 0.0971511, AR: 0.00920063, H2O: 0.0268548, CH3OH: 0.0850003, HCHO: 0.000140908, CO: 0.0118671, DME: 0.000583764, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E101C from S5', fingerprint: 1fdfabac223cb92c}
+  - id: S7
+    title: Reaction gas
+    from: R101.out
+    to: E101H.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 128.0, provenance: assumed, source: D-005}
+        temperature: {value: 553.15, provenance: assumed, source: "D-005 (catalyst 270-430 C, BREF LVOC s. 6.2.3)"}
+        flow: {value: 121101.0, provenance: calculated, source: 'cheme process propagate: reactor R101 from S6', fingerprint: 9a388938043c5f51}
+        composition: {basis: mole_fraction, values: {N2: 0.736679, O2: 0.050763, AR: 0.00881163, H2O: 0.110507, CH3OH: 0.000988332, HCHO: 0.0755056, CO: 0.0159606, DME: 0.000785226, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S6', fingerprint: 15a83f03fcd2fcb3}
+  - id: S8
+    title: Cooled reaction gas to absorber
+    from: E101H.out
+    to: C201.gas
+    template: gas
+    state:
+      design:
+        pressure: {value: 124.0, provenance: assumed, source: D-005}
+        temperature: {value: 403.15, provenance: assumed, source: D-005}
+        flow: {value: 121101.0, provenance: calculated, source: 'cheme process propagate: pass-through E101H from S7', fingerprint: a6811ed1aaae58dd}
+        composition: {basis: mole_fraction, values: {N2: 0.736679, O2: 0.050763, AR: 0.00881163, H2O: 0.110507, CH3OH: 0.000988332, HCHO: 0.0755056, CO: 0.0159606, DME: 0.000785226, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E101H from S7', fingerprint: a6811ed1aaae58dd}
+  - id: S9
+    title: Process water
+    from: PW.out
+    to: C201.water
+    template: water
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: D-006}
+        temperature: {value: 298.15, provenance: assumed, source: D-006}
+        flow: {value: 3711.0, basis: mass, provenance: assumed, source: "scripts/formox_balance.py: water balance of the absorber for 50 wt% formalin (D-006)"}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-006}
+  - id: S10
+    title: Absorber off-gas
+    from: C201.top
+    to: SPL.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 112.0, provenance: assumed, source: D-006}
+        temperature: {value: 303.15, provenance: assumed, source: D-006}
+        flow: {value: 104811.7, basis: mass, provenance: assumed, source: "scripts/formox_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {N2: 0.870730, AR: 0.010415, O2: 0.060000, CO: 0.018865, DME: 0.000928, H2O: 0.038138, CH3OH: 0.000700, HCHO: 0.000224}, provenance: assumed, source: "scripts/formox_balance.py: O2 6 mol%, HCHO 300 and CH3OH 1000 mg/Nm3 (BREF LVOC Table 6.6), water saturated at 303 K (D-006)"}
+  - id: S11
+    title: Recycle gas
+    from: SPL.recycle
+    to: M101.rec
+    template: gas
+    state:
+      design:
+        pressure: {value: 112.0, provenance: assumed, source: D-006}
+        temperature: {value: 303.15, provenance: assumed, source: D-006}
+        flow: {value: 74635.0, basis: mass, provenance: calculated, source: 'cheme process propagate: splitter SPL from S10', fingerprint: 901f0ffd72d6ab19}
+        composition: {basis: mole_fraction, values: {N2: 0.87073, AR: 0.010415, O2: 0.06, CO: 0.018865, DME: 0.000928, H2O: 0.038138, CH3OH: 0.0007, HCHO: 0.000224}, provenance: calculated, source: 'cheme process propagate: splitter SPL from S10', fingerprint: 402ba4f9e56bcdca}
+  - id: S12
+    title: Vent gas to ECS
+    from: SPL.vent
+    to: R301.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 112.0, provenance: assumed, source: D-006}
+        temperature: {value: 303.15, provenance: assumed, source: D-006}
+        flow: {value: 30176.7, provenance: calculated, source: 'cheme process propagate: splitter SPL from S10 S11', fingerprint: b26e8c697c92a56f}
+        composition: {basis: mole_fraction, values: {N2: 0.87073, AR: 0.010415, O2: 0.06, CO: 0.018865, DME: 0.000928, H2O: 0.038138, CH3OH: 0.0007, HCHO: 0.000224}, provenance: calculated, source: 'cheme process propagate: splitter SPL from S10', fingerprint: 402ba4f9e56bcdca}
+  - id: S13
+    title: Treated gas to stack
+    from: R301.out
+    to: STACK.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 101.8, provenance: assumed, source: D-008}
+        temperature: {value: 423.15, provenance: assumed, source: D-008}
+        flow: {value: 30176.7, provenance: calculated, source: 'cheme process propagate: reactor R301 from S12', fingerprint: 1457998e5a085ee5}
+        composition: {basis: mole_fraction, values: {N2: 0.877882, O2: 0.046945, AR: 0.0105005, H2O: 0.0428592, CH3OH: 3.52875e-06, HCHO: 1.1292e-06, CO: 3.80399e-05, DME: 9.35622e-06, CO2: 0.0217614}, provenance: calculated, source: 'cheme process propagate: reactor R301 from S12', fingerprint: 17f8897a68869ee9}
+  - id: S14
+    title: Formalin 50 wt% product
+    from: C201.bot
+    to: FORMALIN.in
+    template: formalin
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: "design basis, D-002"}
+        temperature: {value: 333.15, provenance: assumed, source: "design basis, D-002 (kept warm against paraformaldehyde)"}
+        flow: {value: 20000.0, basis: mass, provenance: assumed, source: "design basis, D-002"}
+        composition: {basis: mole_fraction, values: {HCHO: 0.375573, CH3OH: 0.001977, H2O: 0.622450}, provenance: assumed, source: "scripts/formox_balance.py: 50.0 wt% HCHO, 0.28 wt% CH3OH (D-002, D-004)"}
+  - {id: Q1, title: K-101 blower motor power, kind: energy, from: POWER.k101, to: K101.power, state: {design: {duty: {value: 1609.9, provenance: assumed, source: "scripts/formox_balance.py, eta 0.75, motor 0.95 (D-007)"}}}}
+  - {id: Q2, title: "Absorber pump-around, water and product pumps power", kind: energy, from: POWER.c201, to: C201.power, state: {design: {duty: {value: 80.0, provenance: assumed, source: "D-007: ASSUMED lump, three pump-arounds of about 200 m3/h at 30 m plus feed and product pumps"}}}}
+  - {id: Q3, title: R-101 reaction heat to steam (hot oil), kind: energy, from: R101.heat, to: STEAM.r101, state: {design: {duty: {value: 10143.7, provenance: assumed, source: "scripts/formox_balance.py, ideal-gas enthalpies 399 -> 553 K (D-006)"}}}}
+  - {id: Q4, title: ECS heat to steam, kind: energy, from: R301.heat, to: STEAM.r301, state: {design: {duty: {value: 1081.8, provenance: assumed, source: "scripts/formox_balance.py, stack 423 K (D-008)"}}}}
+  - {id: Q5, title: C-201 absorber cooling, kind: energy, from: C201.cw, to: CW.c201, state: {design: {duty: {value: 13099.2, provenance: assumed, source: "scripts/formox_balance.py, heat of solution of HCHO ASSUMED (D-006)"}}}}
+  - {id: Q6, title: E-101 duty (reaction gas to process gas), kind: energy, from: E101H.heat, to: E101C.heat, state: {design: {duty: {value: 5750.4, provenance: assumed, source: "scripts/formox_balance.py, ideal-gas enthalpies, methanol liquid at 298 K (D-006)"}}}}
+layout: {bfd: {}, pfd: {}}

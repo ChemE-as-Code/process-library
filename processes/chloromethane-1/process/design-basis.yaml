@@ -1,0 +1,47 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Chloromethane (methyl chloride) by gas-phase hydrochlorination of methanol over alumina,
+# issue ChemE-as-Code/process-library#151. Methanol and anhydrous HCl are boundary feeds
+# (D-001). Values marked ASSUMED are choices of this concept study, not client or licensor
+# data; every decision and its source is in DESIGN.md. Stream values are in process/flowsheet.yaml.
+schema: cheme/design_basis/v1
+capacity:
+  basis: methyl chloride product (liquid) to storage
+  methyl_chloride_kt_per_a: 100        # ASSUMED (D-002): a single-train scale for a silicones site; no sourced plant basis
+  methyl_chloride_kg_per_h: 12500      # = 100 kt/a / 8000 h
+  operating_hours_per_year: 8000       # ASSUMED
+  turndown_percent: 50                 # ASSUMED, not checked
+feeds:
+  - name: Methanol, from a methanol plant outside the boundary (library methanol-1)
+    purity: "methanol 99.95 wt%, water 0.05 wt% (methanol-1 product design target; US Fed. Spec. O-M-232 Grade AA water <= 0.10 wt%)"
+    conditions: {pressure_kPa_a: 300, temperature_K: 313.15}   # methanol-1 product delivery
+    flow: set by the product rate (stream S01)
+  - name: Anhydrous hydrogen chloride gas (by-product HCl of a chlorination or silicone plant, or HCl desorbed from acid; D-003)
+    purity: "HCl 99.9 mol%, inerts 0.1 mol% lumped as N2 (ASSUMED, D-003)"
+    conditions: {pressure_kPa_a: 450, temperature_K: 303.15}   # ASSUMED battery limit
+    note: "library hydrogen-chloride-1 makes 33 wt% hydrochloric acid, not anhydrous gas: a desorption step outside this boundary would link the two (D-003)"
+  - name: Sulfuric acid 96 wt% (drying; library sulfuric-acid-1)
+    conditions: {pressure_kPa_a: 400, temperature_K: 303.15}   # ASSUMED
+products:
+  - name: Methyl chloride
+    purity: "CH3Cl >= 99.9 wt% design target (ASSUMED, D-009); model 99.994 wt% with 56 ppm DME; water, HCl and methanol not resolved by the model"
+    delivery: {pressure_kPa_a: 1020, temperature_K: 318.15, phase: liquid}   # ASSUMED, storage outside the boundary
+  - name: Dilute hydrochloric acid (about 21 wt%), to HCl recovery or neutralisation outside the boundary (D-007)
+  - name: Spent sulfuric acid (about 80 %, 8 wt% DME), to acid regeneration outside the boundary (D-008)
+  - name: Inert purge (N2, HCl, CH3Cl) to the site thermal oxidiser (D-009)
+utilities:
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: ASSUMED}
+  - {name: LP steam, pressure_kPa_a: 500, use: "methanol vaporiser, methanol stripper and HCl column reboilers", note: "ASSUMED level (D-010)"}
+  - {name: Electric power, use: "methyl chloride compressor, pumps", note: "hand estimate (D-010)"}
+site:
+  location: ASSUMED generic site, not chosen
+  design_ambient_K: 298.15             # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Route: gas-phase hydrochlorination of methanol over gamma-alumina, water quench, sulfuric acid drying, compression and distillation (D-001)."
+  - "ASSUMED reactor: HCl/MeOH 1.10 mol/mol at the inlet, 523 K in, 613 K out, 350/300 kPa(a) (WO 2000/076658: about equimolar, 250-300 C, 1-10 bar) (D-004, D-005)."
+  - "Reactor model: methanol conversion 0.976 and CH3Cl selectivity 0.988 per pass (Schmidt et al. 2014, best result at 340 C, near equilibrium); rest to DME. A sourced conversion model, not kinetics (D-004)."
+  - "ASSUMED quench/condensation to 313 K, 200 kPa(a); crude gas 0.5 mol% HCl and water from a water activity of 0.7 over the acid (D-006)."
+  - "ASSUMED methanol stripper: 99 % methanol recovery, returned to the vaporiser (D-007)."
+  - "ASSUMED drying: 96 wt% acid at a rate giving 8 wt% DME in the spent acid (limit 5-10 %, US 4,794,204) (D-008)."
+  - "ASSUMED HCl column: overhead 70 mol% CH3Cl, recycled to the reactor with a 10 % purge for the inerts (D-009)."
+  - "Utilities are hand estimates (scripts/balance.py), not a rigorous energy balance: no property package qualified for HCl-water-methanol (D-010, D-011)."

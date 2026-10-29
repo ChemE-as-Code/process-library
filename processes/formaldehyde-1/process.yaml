@@ -1,0 +1,72 @@
+# Process Atlas manifest of formaldehyde-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: formaldehyde-1
+title: Formaldehyde by methanol oxidation over iron molybdate (Formox type, 20 t/h formalin 50 wt%)
+summary: >-
+  Methanol is vaporised into a recycle-diluted air stream, oxidised over an iron molybdate
+  catalyst below the explosion limit, and the formaldehyde absorbed in water to 50 wt% formalin;
+  the vent is cleaned in a catalytic oxidiser and both the reactor and the oxidiser raise
+  steam. Concept stage, assumed basis, preliminary gate-to-gate inventory.
+description: |
+  Fresh air and recycled absorber off-gas are drawn through one blower, liquid methanol is
+  injected and vaporised against the hot reaction gas, and the 8.5 mol% methanol feed reacts
+  in a multitubular reactor whose boiling hot-oil shell raises MP steam. The reactor is a
+  conversion model whose per-pass conversion and selectivities (formaldehyde, CO, dimethyl
+  ether) reproduce the open plant ranges of the EU BREF on large volume organic chemicals
+  (2017): yield 93 % on methanol, conversion above 99 %. It is not kinetics. The absorber, the
+  liquid-side heats and all duties come from an independent balance script; core has no
+  qualified property method for aqueous formaldehyde, so the energy balance is not checked by
+  cheme. Methanol is a boundary feed (processes/methanol-1 makes it in this library).
+families: [oxygenates]
+keywords: [formaldehyde, formalin, Formox, metal oxide process, iron molybdate, methanol oxidation, absorption, catalytic oxidiser, ECS]
+facets:
+  feedstock_basis: [fossil]
+  product_classes: [chemicals]
+  unit_operations: [compression, reaction, heat-exchange, absorption]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest (see validation.notes and DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances (cheme validate, cheme process
+    streams); the reactor and ECS outlets are calculated by cheme from the stated conversion and
+    selectivities, and cheme's reactor duties reproduce the script's (R101 10.14 MW, R301 1.08
+    MW). The absorber outlets, the recycle split and every duty come from
+    scripts/formox_balance.py with ideal-gas enthalpies and assumed liquid-side heats (heat of
+    solution of formaldehyde ASSUMED); core cannot evaluate the energy balance (no property
+    package covers the O2/H2O/organics gas or aqueous formaldehyde, core #315). Capacity, air
+    humidity, reactor inlet methanol, temperatures and pressures are assumed. Not reviewed.
+    The chemicals registry has no formaldehyde, methanol, carbon-monoxide or dimethyl-ether
+    entry yet: the main product and the feed are not listed under chemistry (open library item).
+chemistry:
+  inputs:
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Ambient air, 1.0 mol% water ASSUMED; the oxidant. The methanol feed (feed:MEOH, 11.47 t/h) has no registry entry yet"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Demineralised process water to the absorber, sets the formalin strength"}
+  outputs:
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:STACK", note: "Fossil CO2 from the catalytic oxidation of CO, DME, methanol and formaldehyde in the ECS. The main product, formalin 50 wt% (product:FORMALIN), has no registry entry yet"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Process gas blower and pumps (ASSUMED electric drives)"}
+    - {chemical: steam, role: co-product, inventory_key: "product:STEAM", note: "MP steam 1500 kPa(a) exported (ASSUMED level)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED), absorber coolers"}
+basis:
+  capacity: "20 t/h formalin 50 wt% = 80 000 t/a HCHO (100 %) at 8000 h/a (ASSUMED)"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
+references:
+  - {title: "European Commission JRC (2017) Best Available Techniques (BAT) Reference Document for the Production of Large Volume Organic Chemicals, EUR 28882 EN, chapter 6 Formaldehyde", url: "https://eippcb.jrc.ec.europa.eu/reference/production-large-volume-organic-chemicals-0"}
+  - {title: "US EPA (1991) Locating and Estimating Air Emissions from Sources of Formaldehyde (Revised), EPA-450/4-91-012", url: "https://www.epa.gov/sites/default/files/2020-11/documents/formaldehyde.pdf"}
+  - {title: "Reuss, G. et al. Formaldehyde. Ullmann's Encyclopedia of Industrial Chemistry (route reference lead; not audited in this run)", doi: 10.1002/14356007.a11_619}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/formaldehyde-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0

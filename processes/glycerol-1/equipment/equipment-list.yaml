@@ -1,0 +1,41 @@
+# Equipment list. Schema: `cheme schema equipment`.
+# Concept stage: the items the PFD (process/flowsheet.yaml) needs, no P&ID yet (no sheet).
+# Flows and duties are not repeated here: the notes name the streams (S..) and duties (Q.., W..)
+# of process/flowsheet.yaml, whose values come from scripts/glycerol_balance.py (D-006 to
+# D-012), all ASSUMED; trains, spares, sizes, design conditions and materials come at basic
+# engineering. Chloride service below pH 7 (R-101, V-102, R-102) needs a corrosion-resistant
+# material (lined steel or a nickel alloy), not chosen yet (D-005).
+equipment:
+  # ---- acidulation, fatty-acid separation and neutralisation (block ACD)
+  - {tag: R-101, type: Reactor, service: Acidulator (agitated tank),
+     notes: "Crude glycerol S1 and HCl 32 wt% S2 to S3, pH 3-4, adiabatic (NEUT1 heat about 18 kW); catalyst neutralised and soaps split (D-005). ASSUMED."}
+  - {tag: V-102, type: Vessel, service: "Fatty-acid decanter (gravity settler; a three-phase decanter centrifuge is the alternative)",
+     notes: "Separates the fatty-acid layer S4 from the glycerol phase S5 (D-006). ASSUMED."}
+  - {tag: R-102, type: Reactor, service: Neutraliser (agitated tank),
+     notes: "NaOH 50 wt% S6 to neutral, outlet S7 (D-005). ASSUMED."}
+  # ---- methanol recovery (block MRC)
+  - {tag: C-201, type: ProcessColumn, service: Methanol recovery column (atmospheric),
+     notes: "Feed S7; methanol 99.5 wt% overhead S8, reflux ratio 1.0; bottoms S9 (D-007). ASSUMED."}
+  - {tag: E-201, type: HeatExchanger, service: C-201 reboiler (MP steam), notes: "Duty Q1; MP steam because the bottoms boil near 425 K (D-007, D-012). ASSUMED."}
+  - {tag: E-202, type: HeatExchanger, service: C-201 condenser (cooling water), notes: "Duty Q2 (D-012). ASSUMED."}
+  # ---- dewatering (block DEW)
+  - {tag: E-301, type: HeatExchanger, service: "Dewatering evaporator (falling film, 10 kPa(a), 403 K)",
+     notes: "Feed S9 to S11 with 1 wt% water; condensate S10; duty Q3 on LP steam (D-008). ASSUMED."}
+  - {tag: E-302, type: HeatExchanger, service: Evaporator surface condenser, notes: "Duty Q4 to cooling water; non-condensables to the evaporator vacuum pump (D-008, D-012). ASSUMED."}
+  # ---- vacuum distillation and salt removal (block DST)
+  - {tag: C-401, type: ProcessColumn, service: "Vacuum glycerol still (wiped-film or forced-circulation, 1.5 kPa(a), live steam)",
+     notes: "Feed S11, live steam S14; distilled glycerol S17; residue S16, bottoms 448 K (D-009). ASSUMED."}
+  - {tag: E-401, type: HeatExchanger, service: C-401 reboiler (HP steam), notes: "Duty Q5 (D-012). ASSUMED."}
+  - {tag: E-402, type: HeatExchanger, service: Glycerol condenser, notes: "Duty Q6 to cooling (tempered) water; heat recovery to LP steam not yet studied (D-012). ASSUMED."}
+  - {tag: J-403, type: Ejector, service: "Still vacuum booster ejectors (two stages, MP motive steam, 1.5 to 8 kPa(a))",
+     notes: "Draw the live steam, residual water vapour and non-condensables after E-402; motive steam S22 at 1.5 kg per kg drawn (D-009). ASSUMED."}
+  - {tag: E-403, type: HeatExchanger, service: "Vacuum intercondenser (8 kPa(a), cooling water)",
+     notes: "Condenses the ejector discharge (vapour and motive steam) to S15; duty Q7; non-condensables to the liquid-ring vacuum pump P-404 (D-009, D-012). ASSUMED."}
+  - {tag: P-404, type: LiquidRingVacuumPump, service: "Still vacuum pump (non-condensables from E-403 to atmosphere)",
+     notes: "Part of W4 (D-012). ASSUMED."}
+  - {tag: S-402, type: Centrifuge, service: Salt centrifuge on the still residue,
+     notes: "Residue slurry S16 to salt cake S12 and foots S13 (D-010). ASSUMED."}
+  # ---- bleaching (block BLC)
+  - {tag: V-501, type: Vessel, service: Activated carbon bleacher with guard filter,
+     notes: "Distilled glycerol S17 at 363 K; carbon S18, spent carbon S19 (D-011). ASSUMED."}
+  - {tag: E-501, type: HeatExchanger, service: Product cooler, notes: "Duty Q8 to cooling water, S20 to S21, 363 -> 313 K (D-012). ASSUMED."}

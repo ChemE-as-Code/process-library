@@ -1,0 +1,70 @@
+# Components and templates of the process. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol,
+# normal_boiling_point in K at 101.325 kPa.
+# Ideal-gas and critical data: `cheme chemistry thermo 1634-04-4 115-11-7 67-56-1 115-10-6
+# 7732-18-5 107-39-1 --fit 298.15,700` (the `chemicals` package: ATcT/CRC formation enthalpies,
+# CRC/NIST WebBook/Yaws entropies, heat capacities fitted to thermo's TRC ideal-gas
+# correlations, HEOS/IUPAC critical constants). Normal boiling points: `chemicals` (Tb).
+# DIB stands for the C8 dimers of isobutene ("diisobutene", mainly 2,4,4-trimethylpentenes,
+# US 8,633,345 B2): represented by 2,4,4-trimethyl-1-pentene (ASSUMED lumping, D-005); its
+# heat capacity is a Joback estimate.
+schema: cheme/process/v1
+kind: materials
+components:
+  - id: MTBE
+    name: Methyl tert-butyl ether
+    formula: C5H12O
+    cas: 1634-04-4
+    molar_mass: 88.148
+    normal_boiling_point: 328.25
+    critical: {Tc: 497.1, Pc: 3430, omega: 0.267, provenance: given, source: "chemicals: Tc IUPAC, Pc IUPAC, omega PSRK"}
+    ideal_gas: {dHf_298: -283700.0, S_298: 357.8, cp_R: [9.18733, -0.00698804, 0.000157748, -2.15719e-07, 9.34807e-11], temperature_range: [298.15, 700], provenance: given, source: "chemicals: dHf_298 CRC, S_298 WEBBOOK, cp_R fitted to thermo TRCIG 298.15-700 K (max deviation 0.04%)"}
+  - id: IB
+    name: Isobutene (2-methylpropene)
+    formula: C4H8
+    cas: 115-11-7
+    molar_mass: 56.106
+    normal_boiling_point: 266.15
+    critical: {Tc: 418.09, Pc: 4009.8, omega: 0.193, provenance: given, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -17600.0, S_298: 293.59, cp_R: [3.38712, 0.0179196, 3.76558e-05, -6.48818e-08, 3.03488e-11], temperature_range: [298.15, 700], provenance: given, source: "chemicals: dHf_298 ATCT_G, S_298 WEBBOOK, cp_R fitted to thermo TRCIG 298.15-700 K (max deviation 0.02%)"}
+  - id: MEOH
+    name: Methanol
+    formula: CH4O
+    cas: 67-56-1
+    molar_mass: 32.042
+    normal_boiling_point: 337.63
+    critical: {Tc: 513.38, Pc: 8215.85, omega: 0.5625, provenance: given, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -200700.0, S_298: 239.9, cp_R: [5.50344, -0.0151027, 7.0746e-05, -8.59838e-08, 3.65802e-11], temperature_range: [298.15, 700], provenance: given, source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 298.15-700 K (max deviation 0.04%)"}
+  - id: DME
+    name: Dimethyl ether
+    formula: C2H6O
+    cas: 115-10-6
+    molar_mass: 46.068
+    normal_boiling_point: 248.37
+    critical: {Tc: 400.378, Pc: 5336.8, omega: 0.196, provenance: given, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -184020.0, S_298: 266.4, cp_R: [4.95853, 0.000138109, 4.94792e-05, -6.52517e-08, 2.78177e-11], temperature_range: [298.15, 700], provenance: given, source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 298.15-700 K (max deviation 0.02%)"}
+  - id: H2O
+    name: Water
+    formula: H2O
+    cas: 7732-18-5
+    molar_mass: 18.015
+    normal_boiling_point: 373.12
+    critical: {Tc: 647.096, Pc: 22064, omega: 0.3443, provenance: given, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -241822.0, S_298: 188.8, cp_R: [4.38266, -0.00362257, 1.14244e-05, -1.19492e-08, 4.84609e-12], temperature_range: [298.15, 700], provenance: given, source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo HEOS_FIT 298.15-700 K (max deviation 0.00%)"}
+  - id: DIB
+    name: Diisobutene (2,4,4-trimethyl-1-pentene, lumped C8 dimers)
+    formula: C8H16
+    cas: 107-39-1
+    molar_mass: 112.21
+    normal_boiling_point: 374.45
+    critical: {Tc: 550, Pc: 2680, omega: 0.301, provenance: given, source: "chemicals: Tc PINAMARTINES, Pc PINAMARTINES, omega YAWS"}
+    ideal_gas: {dHf_298: -110500.0, S_298: 406.13, cp_R: [-3.79327, 0.104586, -7.31737e-05, 2.10597e-08], temperature_range: [298.15, 700], provenance: given, source: "chemicals: dHf_298 CRC, S_298 YAWS, cp_R fitted to thermo JOBACK 298.15-700 K (max deviation 0.00%)"}
+templates:
+  - {id: mixture, title: MTBE cracking process mixture, components: [MTBE, IB, MEOH, DME, H2O, DIB]}
+# property_method is a placeholder until `cheme process props --fill` records the method. No
+# packaged property package covers MTBE / methanol / water / C4 (polar, azeotropic, two liquid
+# phases; core #315): the stream values come from scripts/ib_balance.py (specified splits and
+# shortcut duties, D-006), given as ASSUMED.
+property_method:
+  adapter: thermo
+  status: placeholder

@@ -1,0 +1,71 @@
+# Components and templates of the process. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol,
+# normal_boiling_point in K at 101.325 kPa. Ideal-gas and critical data printed by
+# `cheme chemistry thermo` (sources on each entry). C4H8 is 1-butene standing for the ethylene
+# oligomers (butenes and heavier) of the hydration reactor (DESIGN.md D-004).
+schema: cheme/process/v1
+kind: materials
+components:
+  - id: C2H4
+    name: Ethylene
+    formula: C2H4
+    cas: 74-85-1
+    molar_mass: 28.053
+    normal_boiling_point: 169.4
+    ideal_gas: {dHf_298: 52560.0, S_298: 219.3, cp_R: [4.221, -0.008782, 5.795e-05, -6.729e-08, 2.511e-11], temperature_range: [50, 1000], provenance: given, source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+    critical: {Tc: 282.35, Pc: 5041.8, omega: 0.0866, provenance: given, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+  - id: C2H6
+    name: Ethane
+    formula: C2H6
+    cas: 74-84-0
+    molar_mass: 30.069
+    normal_boiling_point: 184.6
+    ideal_gas: {dHf_298: -83780.0, S_298: 229.2, cp_R: [4.178, -0.004427, 5.66e-05, -6.651e-08, 2.487e-11], temperature_range: [50, 1000], provenance: given, source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+    critical: {Tc: 305.322, Pc: 4872.2, omega: 0.0995, provenance: given, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+  - id: CH4
+    name: Methane
+    formula: CH4
+    cas: 74-82-8
+    molar_mass: 16.042
+    normal_boiling_point: 111.7
+    ideal_gas: {dHf_298: -74534.0, S_298: 186.3, cp_R: [4.568, -0.008975, 3.631e-05, -3.407e-08, 1.091e-11], temperature_range: [50, 1000], provenance: given, source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+    critical: {Tc: 190.564, Pc: 4599.2, omega: 0.01142, provenance: given, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+  - id: H2O
+    name: Water
+    formula: H2O
+    cas: 7732-18-5
+    molar_mass: 18.015
+    normal_boiling_point: 373.15
+    ideal_gas: {dHf_298: -241822.0, S_298: 188.8, cp_R: [4.395, -0.004186, 1.405e-05, -1.564e-08, 6.32e-12], temperature_range: [50, 1000], provenance: given, source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+    critical: {Tc: 647.096, Pc: 22064, omega: 0.3443, provenance: given, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+  - id: ETOH
+    name: Ethanol
+    formula: C2H6O
+    cas: 64-17-5
+    molar_mass: 46.068
+    normal_boiling_point: 351.4
+    ideal_gas: {dHf_298: -234570.0, S_298: 281.6, cp_R: [4.396, 0.000628, 5.546e-05, -7.024e-08, 2.685e-11], temperature_range: [50, 1000], provenance: given, source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+    critical: {Tc: 514.71, Pc: 6268, omega: 0.646, provenance: given, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+  - id: DEE
+    name: Diethyl ether
+    formula: C4H10O
+    cas: 60-29-7
+    molar_mass: 74.122
+    normal_boiling_point: 307.6
+    ideal_gas: {dHf_298: -252100.0, S_298: 342.7, cp_R: [4.612, 0.037492, -1.87e-05, 1.316e-08, -6.98e-12], temperature_range: [100, 1000], provenance: given, source: "chemicals: dHf_298 CRC, S_298 CRC, cp_R Poling (5th ed.)"}
+    critical: {Tc: 466.7, Pc: 3720.2, omega: 0.29, provenance: given, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+  - id: C4H8
+    name: 1-Butene (lumped ethylene oligomers)
+    formula: C4H8
+    cas: 106-98-9
+    molar_mass: 56.106
+    normal_boiling_point: 266.9
+    ideal_gas: {dHf_298: -30.0, S_298: 307.88, cp_R: [4.389, 0.007984, 6.143e-05, -8.2e-08, 3.165e-11], temperature_range: [50, 1000], provenance: given, source: "chemicals: dHf_298 ATCT_G, S_298 YAWS, cp_R Poling (5th ed.)"}
+    critical: {Tc: 419.29, Pc: 4005.1, omega: 0.192, provenance: given, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+templates:
+  - {id: mixture, title: Hydration loop and crude ethanol mixture, components: [C2H4, C2H6, CH4, H2O, ETOH, DEE, C4H8]}
+# property_method is a placeholder: no benchmarked package of cheme-as-code covers ethylene /
+# water / ethanol at loop pressure (core #315); NRTL is benchmarked for ethanol-water only.
+property_method:
+  adapter: thermo
+  status: placeholder

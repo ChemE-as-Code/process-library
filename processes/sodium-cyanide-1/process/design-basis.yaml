@@ -1,0 +1,58 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Solid sodium cyanide from Andrussow HCN, issue ChemE-as-Code/process-library#150. Methane,
+# ammonia (library process ammonia-1) and caustic soda (library process chlor-alkali-1) are
+# boundary feeds (DESIGN.md D-001). Values marked ASSUMED are engineering choices of this concept
+# study, not client or licensor data; every decision is in DESIGN.md.
+capacity:
+  basis: Solid sodium cyanide (98 wt% NaCN) to packing
+  product_t_per_d: 150                # = 6.25 t/h; ASSUMED (D-002): a single-train size, chosen, not a client figure
+  product_kg_per_h: 6250.0            # ASSUMED (D-002)
+  operating_hours_per_year: 8000      # ASSUMED: 50 kt/a
+  turndown_percent: 60                # ASSUMED, not checked yet
+feeds:
+  - name: Natural gas (site grid), modelled as methane
+    source_of_values: ASSUMED (D-003); higher hydrocarbons, CO2, N2 and sulfur of a real natural gas not modelled
+    composition_mol_percent: {CH4: 100}
+    conditions: {pressure_kPa_a: 400, temperature_K: 298.15}
+    flow: "CH4/NH3 0.98 mol/mol at the converter inlet (US 6,596,251 B2, Table 2 run 1); stream S1"
+  - name: Anhydrous liquid ammonia (from the ammonia plant, library process ammonia-1)
+    source_of_values: ASSUMED (D-003); pure NH3
+    composition_mol_percent: {NH3: 100}
+    conditions: {pressure_kPa_a: 1100, temperature_K: 298.15}
+    flow: converter NH3 less the recycle (D-006); stream S2
+  - name: Process air and boiler combustion air (ambient)
+    source_of_values: "ASSUMED dry air 21 mol% O2, argon lumped with N2 (D-003)"
+    composition_mol_percent: {O2: 21, N2: 79}
+    conditions: {pressure_kPa_a: 101.325, temperature_K: 298.15}
+    flow: "O2/NH3 1.15 mol/mol at the converter inlet (US 6,596,251 B2, Table 2 run 1); streams S3, S30"
+  - name: Caustic soda 50 wt% (from the chlor-alkali plant, library process chlor-alkali-1)
+    source_of_values: "ASSUMED 50 wt% NaOH, as used in US 4,847,062 A (D-003); carbonate and chloride impurities not modelled"
+    conditions: {pressure_kPa_a: 400, temperature_K: 313.15}
+    flow: NaOH for the HCN plus the product's free NaOH (D-008); stream S20
+products:
+  - name: Solid sodium cyanide (briquettes)
+    purity: "NaCN 98.0 wt%, free NaOH 1.0 wt%, water 1.0 wt% (ASSUMED, D-002); Na2CO3 and sodium formate, which real products carry at a few tenths of a percent to a few percent (US 4,847,062 A examples), are not modelled"
+    delivery: {pressure_kPa_a: 101.325, temperature_K: 313.15, battery_limit: packing (outside the boundary)}
+  - name: MP steam 1500 kPa(a)
+    use: export to the site header, net of the plant's own steam use (D-010)
+  - name: Flue gas of the tail gas boiler
+    use: to atmosphere through a stack (D-009)
+  - name: Process water (ammonia recovery water, absorber purge, vapour condensate)
+    use: "cyanide destruction and wastewater treatment (outside the boundary, D-007)"
+utilities:
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: ASSUMED (D-010)}
+  - {name: Chilled water, supply_K: 275.15, return_K: 283.15, note: "ASSUMED, from a site refrigeration plant (D-010)"}
+  - {name: MP steam raised in E-101 and B-301, pressure_kPa_a: 1500, saturation_K: 471.4, use: "let down to the plant's LP users (E-001, C-101, C-202, CR-401, DR-401), rest exported", note: ASSUMED level (D-010)}
+  - {name: Electric power, use: "air blower K-101, pumps, vacuum pumps, centrifuge, dryer, briquetting, boiler fan", note: "ASSUMED electric drives (D-010)"}
+site:
+  location: ASSUMED generic site, not chosen
+  design_ambient_K: 303.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325   # ASSUMED
+assumptions:
+  - "ASSUMED converter: air-operated Andrussow converter on Pt/Rh 90/10 gauze, adiabatic, no feed preheat, at the feed ratios and HCN yield of US 6,596,251 B2 Table 2 run 1 (O2/NH3 1.15, CH4/NH3 0.98, 62.9 % on NH3) (D-004)."
+  - "ASSUMED by-product split of the converter gas from the commercial converter gas of US 4,847,062 A Example 1 (NH3, CH4, CO, CO2 per HCN); O2 99.9 % consumed (D-004)."
+  - "ASSUMED ammonia recovery by ammonium phosphate absorption and stripping, 99 % of the converter NH3 recycled, 0.5 % to the process water, 0.5 % slip (D-006); 10 kg LP steam per kg NH3 recovered (no source)."
+  - "ASSUMED HCN absorption in chilled water to 2.5 wt% (US 6,596,251 B2 background: 2-3 wt%), 99.9 % recovery; stripping and rectification to 99.5 wt% HCN; 0.05 % of the HCN to the purge (D-007)."
+  - "ASSUMED neutralisation with 50 wt% NaOH at 343 K; evaporative crystallisation at 343 K and 13.3 kPa(a) (US 4,847,062 A examples 6-7), mother liquor 0.80 kg NaCN per kg water, cake 10 wt% liquor, all filtrate recycled; steam dryer (D-008)."
+  - "ASSUMED complete combustion of the tail gas with 15 % excess air, stack 423 K, no radiation loss (D-009)."
+  - "All absorber, stripper, crystalliser and duty values are concept estimates of scripts/nacn_balance.py (D-011); accuracy not stated."

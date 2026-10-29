@@ -1,0 +1,71 @@
+# The reactions of sodium-nitrite-1 (DESIGN.md section 3, D-005, D-006, D-009). Schema
+# `cheme schema process-reactions`. Model basis: a specification (conversion) model, not
+# kinetics and not equilibrium. The burner's three parallel NH3 reactions carry conversions
+# that sum to 1 (complete NH3 conversion); the absorber and inversion reactions carry none:
+# their extents follow from the specified outlet streams of scripts/balance.py, and cheme
+# checks the element balance of those steps. "NO" is quoted: unquoted YAML reads it as false.
+# Heats of reaction of the gas reactions follow from the ideal-gas formation enthalpies of
+# process/materials.yaml (ATcT); the aqueous ones from NBS standard enthalpies of formation of
+# the dissolved salts (Wagman et al. 1982), dilute standard state, estimate (D-010).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  # Burner R101 (Pt/Rh gauze, near atmospheric pressure)
+  - id: NH3_OX
+    title: Ammonia oxidation to nitric oxide
+    equation: 4 NH3 + 5 O2 -> 4 NO + 6 H2O
+    stoichiometry: {NH3: -4, O2: -5, "NO": 4, H2O: 6}
+    reversible: false
+    conversion: {key: NH3, value: 0.97, provenance: assumed, source: "D-005: NO selectivity at a near-atmospheric Pt/Rh gauze, ASSUMED inside the 0.93-0.98 range usually stated for low-pressure burners; US 12 565 427 B2 calculates 92 % for its six-gauze burner (Detailed Description)"}
+    catalyst: Pt/Rh gauze (95/5)
+    sources: ["https://patents.google.com/patent/US12565427B2/en (Detailed Description, gauze and burner sections)", "doi:10.1002/14356007.a17_265 (Ullmann, Nitrates and Nitrites: route identity only, full text not read)"]
+  - id: NH3_N2O
+    title: Ammonia oxidation to nitrous oxide (side reaction)
+    equation: 4 NH3 + 4 O2 -> 2 N2O + 6 H2O
+    stoichiometry: {NH3: -4, O2: -4, N2O: 2, H2O: 6}
+    reversible: false
+    conversion: {key: NH3, value: 0.014, provenance: assumed, source: "D-005: transferred from the IPCC 2006 default for atmospheric-pressure nitric acid plants (5 kg N2O per t HNO3, Vol. 3 Ch. 3 Table 3.3), i.e. 0.0143 mol N2O-N per mol product N; an analogy, not a nitrite-plant measurement"}
+    catalyst: Pt/Rh gauze (95/5)
+    sources: ["IPCC 2006 Guidelines Vol. 3 Ch. 3, section 3.3, Table 3.3"]
+  - id: NH3_N2
+    title: Ammonia oxidation to nitrogen (side reaction)
+    equation: 4 NH3 + 3 O2 -> 2 N2 + 6 H2O
+    stoichiometry: {NH3: -4, O2: -3, N2: 2, H2O: 6}
+    reversible: false
+    conversion: {key: NH3, value: 0.016, provenance: assumed, source: "D-005: the remainder 1 - 0.97 - 0.014 (complete NH3 conversion, ASSUMED)"}
+    catalyst: Pt/Rh gauze (95/5)
+  # Absorption train C201: gas-phase NO oxidation and the two alkaline absorption reactions
+  - id: NO_OX
+    title: Oxidation of nitric oxide (oxidation volume and tower gas spaces)
+    equation: 2 NO + O2 -> 2 NO2
+    stoichiometry: {"NO": -2, O2: -1, NO2: 2}
+    reversible: true
+    sources: ["https://patents.google.com/patent/US2032699 (Description: NO partly oxidised on cooling; NO excess favours nitrite)"]
+  - id: NITRITE_ABS
+    title: Absorption of equimolar NO + NO2 (N2O3) in soda solution to nitrite
+    equation: Na2CO3 + NO + NO2 -> 2 NaNO2 + CO2
+    stoichiometry: {Na2CO3: -1, "NO": -1, NO2: -1, NaNO2: 2, CO2: 1}
+    reversible: false
+    heat_of_reaction: {value: -50800.0, provenance: assumed, source: "D-010: NBS dHf of NaNO2(aq) -344.8, Na2CO3(aq) -1157.38 kJ/mol (Wagman et al. 1982) with ATcT gas values; dilute standard state, scripts/balance.py"}
+    sources: ["https://patents.google.com/patent/US2032699", "https://en.wikipedia.org/wiki/Sodium_nitrite (section Production)"]
+  - id: NITRATE_ABS
+    title: Absorption of excess NO2 in soda solution to nitrite and nitrate (side reaction)
+    equation: Na2CO3 + 2 NO2 -> NaNO2 + NaNO3 + CO2
+    stoichiometry: {Na2CO3: -1, NO2: -2, NaNO2: 1, NaNO3: 1, CO2: 1}
+    reversible: false
+    heat_of_reaction: {value: -96400.0, provenance: assumed, source: "D-010: NBS dHf of NaNO2(aq), NaNO3(aq) -447.48, Na2CO3(aq) (Wagman et al. 1982) with ATcT gas values, scripts/balance.py"}
+    sources: ["https://patents.google.com/patent/US2032699"]
+  # Inversion R401: the mother-liquor purge converted to nitrate with nitric acid
+  - id: INVERSION
+    title: Inversion of sodium nitrite to sodium nitrate with nitric acid
+    equation: 3 NaNO2 + 2 HNO3 -> 3 NaNO3 + 2 NO + H2O
+    stoichiometry: {NaNO2: -3, HNO3: -2, NaNO3: 3, "NO": 2, H2O: 1}
+    reversible: false
+    conversion: {key: NaNO2, value: 1.0, provenance: assumed, source: "D-009: complete conversion of the purge's nitrite (acid slightly in excess in practice, not modelled)"}
+    sources: ["https://patents.google.com/patent/US2013984A/en (nitrite converted to nitrate by nitric acid, the nitrogen oxides returned to the absorption)"]
+  - id: CARB_NEU
+    title: Neutralisation of the residual carbonate with nitric acid
+    equation: Na2CO3 + 2 HNO3 -> 2 NaNO3 + CO2 + H2O
+    stoichiometry: {Na2CO3: -1, HNO3: -2, NaNO3: 2, CO2: 1, H2O: 1}
+    reversible: false
+    conversion: {key: Na2CO3, value: 1.0, provenance: assumed, source: "D-009"}

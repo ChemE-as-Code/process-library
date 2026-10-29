@@ -1,0 +1,30 @@
+# Equipment list. Schema: `cheme schema equipment`.
+# As far as the PFD requires (concept stage): tags, types and services of the flowsheet steps,
+# the duty basis from scripts/balance.py (D-006). Design pressures, temperatures, materials and
+# sizes are not set yet (basic engineering); materials named are the usual service choices to
+# be confirmed (open input). All values ASSUMED. The whole phosgene-containing train sits in a
+# containment enclosure vented to the scrubber (D-011).
+schema: cheme/equipment/v1
+equipment:
+  # ---- phosgene synthesis (block REACT)
+  - {tag: M-101, type: StaticMixer, service: CO / chlorine gas mixer,
+     notes: "5.2 t/h CO and 12.5 t/h Cl2 at 390 kPa(a), 308 K (D-004)."}
+  - {tag: R-101, type: TubularHeatExchanger, service: "Phosgene reactor (multitubular, activated carbon in the tubes, boiling water in the shell)",
+     notes: "Fixed beds of activated carbon in the tubes; 5.18 MW removed by water boiling at 0.2-0.3 bar(a) in the shell, condensed against cooling water (EP1640341A2; D-005). Tube count and length not sized: no kinetics chosen (D-005). Carbon steel per EP1640341A2, to be confirmed."}
+  # ---- condensation (block COND)
+  - {tag: E-102, type: TubularHeatExchanger, service: Phosgene condenser (cooling water),
+     notes: "353 -> 308 K, partial condensation, 1.08 MW to cooling water (D-007)."}
+  - {tag: E-103, type: TubularHeatExchanger, service: Phosgene after-condenser (brine),
+     notes: "308 -> 253 K, 0.48 MW to brine at 243 K (D-007)."}
+  - {tag: V-101, type: Vessel, service: Phosgene separator,
+     notes: "Liquid phosgene 17.3 t/h to the consumer; vent 0.35 t/h (86 mol% CO, 9 mol% phosgene) to T-201 (D-007). Hold-up to be minimised (inventory, D-011)."}
+  # ---- residual phosgene destruction (block SCRUB)
+  - {tag: M-201, type: StaticMixer, service: Caustic dilution (50 -> 18 wt% NaOH),
+     notes: "0.44 t/h 50 wt% caustic and 0.79 t/h process water (D-008)."}
+  - {tag: T-201, type: ProcessColumn, service: "Caustic scrubber (packed, circulating NaOH)",
+     notes: "Destroys 99.99 % of the phosgene and chlorine of the vent (D-008); also the emergency scrubber of the containment (sizing for the release case open, D-011). Circulation pump within the item (4.4 kW)."}
+  # ---- thermal oxidation (block OX)
+  - {tag: K-301, type: Fan, service: Combustion air fan,
+     notes: "2.5 t/h air, 5 kPa, 4.8 kW (D-010)."}
+  - {tag: X-301, type: Furnace, service: Thermal oxidiser for the CO-rich vent,
+     notes: "Burns 8.8 kmol/h CO adiabatically to 1123 K, no support fuel in the design case; no heat recovery (D-009)."}

@@ -1,0 +1,56 @@
+# Reactions of acetone-1. Schema: `cheme schema process-reactions`.
+# A sourced conversion/selectivity model, not kinetics (DESIGN.md D-004, D-005, D-008). Heats of
+# reaction from ideal-gas formation enthalpies (cheme chemistry thermo: CRC, ATcT, NIST WebBook):
+# gas basis, without heats of vaporisation; screening only.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: OX_CHP
+    equation: C9H12 + O2 -> C9H12O2 (cumene hydroperoxide)
+    stoichiometry: {CUM: -1, O2: -1, CHP: 1}
+    reversible: false
+    heat_of_reaction: {value: -82400, provenance: given, source: "CALCULATED (schema allows given/assumed only) from ideal-gas dHf CRC (cumene 4.0, CHP -78.4 kJ/mol) via cheme chemistry thermo; gas basis, liquid-phase heat larger in magnitude (D-011)"}
+    sources: ["BREF LVOC 2017 (JRC109279) section 8.2.2, Figure 8.1"]
+  - id: OX_DMBA
+    equation: C9H12 + 1/2 O2 -> C9H12O (dimethylbenzyl alcohol, net of CHP decomposition)
+    stoichiometry: {CUM: -1, O2: -0.5, DMBA: 1}
+    reversible: false
+    # no heat_of_reaction: the side-reaction heat is omitted from Q09, not zero (D-011)
+    sources: ["BREF LVOC 2017 section 8.2.2.1: DMBA and acetophenone main side products"]
+  - id: OX_ACP
+    equation: C9H12 + O2 -> C8H8O + CH3OH (acetophenone and methanol, net)
+    stoichiometry: {CUM: -1, O2: -1, ACP: 1, MEOH: 1}
+    reversible: false
+    sources: ["BREF LVOC 2017 section 8.2.2.1 and 8.3.6 b: methanol formed in oxidation"]
+  - id: CLEAVAGE
+    equation: C9H12O2 -> C6H6O + C3H6O (acid-catalysed Hock cleavage)
+    stoichiometry: {CHP: -1, PHEN: 1, ACET: 1}
+    reversible: false
+    conversion: {key: CHP, value: 1.0, provenance: assumed, source: "D-005: cleavage fast and essentially complete (US 5,245,090 background)"}
+    heat_of_reaction: {value: -234070, provenance: given, source: "CALCULATED from ideal-gas dHf CRC/ATcT (phenol -96.4, acetone -216.07, CHP -78.4 kJ/mol) via cheme chemistry thermo"}
+    catalyst: sulfuric acid (homogeneous)
+    sources: ["BREF LVOC 2017 section 8.2.2.3"]
+  - id: DMBA_DEHYD
+    equation: C9H12O -> C9H10 + H2O (DMBA to alpha-methylstyrene)
+    stoichiometry: {DMBA: -1, AMS: 1, H2O: 1}
+    reversible: false
+    conversion: {key: DMBA, value: 0.75, provenance: assumed, source: "D-005"}
+    sources: ["BREF LVOC 2017 section 8.2.2.3"]
+  - id: HEAVIES
+    equation: C9H12O + C6H6O -> C15H16O + H2O (DMBA with phenol to cumylphenol, the heavies surrogate)
+    stoichiometry: {DMBA: -1, PHEN: -1, CUMPH: 1, H2O: 1}
+    reversible: false
+    conversion: {key: DMBA, value: 0.25, provenance: assumed, source: "D-005"}
+  - id: NEUTRALISATION
+    equation: H2SO4 + 2 NaOH -> Na2SO4 + 2 H2O
+    stoichiometry: {H2SO4: -1, NAOH: -2, NA2SO4: 1, H2O: 2}
+    reversible: false
+    conversion: {key: H2SO4, value: 1.0, provenance: assumed, source: "D-007: stoichiometric caustic"}
+  - id: AMS_HYD
+    equation: C9H10 + H2 -> C9H12 (alpha-methylstyrene to cumene)
+    stoichiometry: {AMS: -1, H2: -1, CUM: 1}
+    reversible: false
+    conversion: {key: AMS, value: 1.0, provenance: assumed, source: "D-008: complete hydrogenation on Pd"}
+    heat_of_reaction: {value: -114300, provenance: given, source: "CALCULATED from ideal-gas dHf (AMS 118.3 NIST WebBook, cumene 4.0 CRC kJ/mol) via cheme chemistry thermo"}
+    catalyst: palladium on alumina
+    sources: ["BREF LVOC 2017 section 8.2.2.4 and 8.3.3 d/e"]

@@ -1,0 +1,25 @@
+# chloromethane-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# chloromethane-1 is internal and its preliminary LCI leaves the backgrounds open (DESIGN.md
+# D-013): exchanges without a mapping are reported gaps. Only two overrides are set: the steam
+# counted in kWh (the default `steam` entry is per kg, a unit error otherwise) and the anhydrous
+# HCl, which must not be linked to an aqueous hydrochloric acid producer. Proposed later, once
+# the shared vocabulary has the entries (DESIGN.md I-08):
+#   feed:MEOH     -> a `methanol` entry (new) or methanol-1 when published
+#   feed:HCLG     -> a `hydrogen-chloride-anhydrous` entry (new); not `hydrochloric-acid`
+#   feed:ACID     -> sulfuric-acid (exists; its basis 100 % or as sold still to be checked)
+#   product:SPENT -> spent-sulfuric-acid (exists, cut-off re-use) or a regeneration entry (new)
+#   product:DHCL  -> a dilute hydrochloric acid treatment entry (new)
+#   product:PURGE -> a chlorinated vent gas thermal oxidation entry (new)
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:LPS": {use: steam-heat, source: "LP steam 500 kPa(a) to the methanol vaporiser, stripper and HCl column reboilers, counted as heat delivered (kWh), D-010"}
+  "feed:HCLG":
+    atlas: false
+    source: >-
+      Anhydrous HCl gas (99.9 mol%). The library's hydrogen-chloride-1 and the shared
+      `hydrochloric-acid` entries are aqueous acid (33 / 30 wt%); linking them would count the
+      wrong product state and leave out the desorption. The supplier is not decided (D-003).

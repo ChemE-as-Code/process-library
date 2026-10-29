@@ -1,0 +1,25 @@
+# aniline-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# None yet: the preliminary LCI leaves every background unmapped (lca/lca.yaml `missing:`), and an
+# unmapped exchange of this internal process is a reported gap (ADR 0022). Overrides likely
+# needed when the backgrounds are connected (DESIGN.md D-013):
+# - feed:NBF and product:ANILINE: the registry has no nitrobenzene or aniline slug yet (to be
+#   added in the consolidated chemicals PR), then a technosphere entry for nitrobenzene;
+# - feed:H2F: links to the Atlas producer hydrogen-1 by the slug hydrogen (same purity and
+#   pressure), no override expected;
+# - product:MPSX: MP steam co-product counted in kWh of heat (a properties_reason if the grade's
+#   reference state differs from 1500 kPa(a) saturated);
+# - product:RESIDUE, product:WW, product:FUELGAS: the treatment entries of the shared file.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:H2F":
+    atlas: false
+    source: >-
+      Not linked inside the Atlas yet: by the slug hydrogen the build chose the first producer,
+      chlor-alkali-1 (cell hydrogen), not hydrogen-1, whose product S17 is the design basis of
+      this feed (DESIGN.md D-002, D-013). The link to hydrogen-1 is to be pinned explicitly
+      (dataset: in lca/lca.yaml) when the backgrounds are connected; until then the exchange
+      keeps its background mapping or stays a gap.

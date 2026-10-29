@@ -1,0 +1,66 @@
+# Goal and scope of the THF-1 preliminary LCI. Schema: `cheme schema lca`. Outputs: `cheme
+# assess lca --write` (lca/inventory.csv, results.csv, results.md, gaps.csv, dataset.yaml,
+# manifest.json); never edit those by hand.
+#
+# A gate-to-gate foreground inventory (DESIGN.md D-011): every exchange comes from the balanced
+# flowsheet (process/flowsheet.yaml, design case). No background is linked yet: every feed,
+# utility and waste treatment is `missing:` with the activity it should connect to later, so
+# the inventory carries them as gaps (never 0) and no impact result is claimed (process.yaml
+# lca.source none keeps the all-gap total out of the catalog). Omissions are declared below
+# (emission_exclusions, cutoff). No values from licensed databases are used.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of tetrahydrofuran from 1,4-butanediol
+  cyclodehydration with pressure-swing distillation at the concept stage (issue #126): the
+  foreground exchanges per kg of THF at the plant gate, with their provenance. Backgrounds (the
+  BDO, the catalyst, the utilities and the waste treatments) are gaps until datasets are chosen.
+  Not an impact assessment: no background is linked (D-011).
+functional_unit: {product: THFP, amount: 1, unit: kg}
+boundary: gate-to-gate
+case: design
+location: GLO
+year: 2026
+technology: "liquid-phase BDO cyclodehydration with homogeneous p-toluenesulfonic acid by reactive distillation (145 C), THF/water pressure-swing distillation at 110 / 800 kPa(a) with condenser-reboiler integration; 50 kt/a THF, concept design"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+# One product: the process water and the heavies bleed are wastes with a treatment, not
+# co-products, so no allocation is needed (D-011).
+allocation:
+  method: none
+  coproducts: [THFP]
+  source: "D-011: THF is the only product; the process water and the heavies bleed are wastes to treatment"
+flows:
+  - {key: feed:BDOF, missing: "no background chosen yet: 1,4-butanediol, liquid, market for (Reppe acetylene-formaldehyde, butadiene acetoxylation, maleic anhydride hydrogenation, propylene oxide / allyl alcohol or sugar fermentation route: to be chosen with the site), delivered to the plant; no library process makes BDO yet", source: "BDO feed S1 (design basis D-003)"}
+  - {key: feed:PTSAF, missing: "no background chosen yet: p-toluenesulfonic acid (toluene sulfonation), market for, per kg anhydrous acid; a proxy such as an organic sulfonic acid or sulfuric acid plus toluene is to be decided", source: "catalyst make-up S2 (D-004)"}
+  - {key: feed:POWER, missing: "no background chosen yet: electricity, medium voltage, market for the site's grid (site not chosen)", source: "pumps P-101 and P-201 (Q1, Q2; D-008)"}
+  - {key: feed:MPS, missing: "no background chosen yet: steam, in chemical industry, 1000 kPa(a) (site boiler on natural gas), per MJ of condensing heat; utility-steam-ng-boiler of this library once its level matches", source: "R-101 heating and HP column reboiler E-206 (Q3, Q8; D-008)"}
+  - {key: feed:LPS, missing: "no background chosen yet: steam, in chemical industry, 450 kPa(a), per MJ of condensing heat; utility-steam-ng-boiler of this library once its level matches", source: "LP column trim reboiler E-202 (Q5; D-009)"}
+  - {key: product:CW, missing: "no background chosen yet: cooling water circulation per MJ rejected (pump and fan electricity, make-up water withdrawal and evaporation, blowdown, treatment chemicals); utility-cooling-tower of this library", source: "heat to cooling water Q4, Q7, Q9, Q10 (D-008)"}
+  - key: product:WW
+    treatment: {kind: waste, route: "biological wastewater treatment of process water with about 80 ppm(wt) THF (COD about 0.25 g/kg water)"}
+    missing: "no background chosen yet: treatment of wastewater from chemical production (organic load), per m3 or per kg COD; utility-wwtp of this library"
+    source: "LP column bottoms S13 (D-007)"
+  - key: product:BLEED
+    treatment: {kind: waste, hazardous: true, route: "incineration of liquid hazardous organic waste (BDO, heavy ethers, p-toluenesulfonic acid, water)"}
+    missing: "no background chosen yet: hazardous waste incineration of a liquid organic waste with about 1 wt% sulfur (from the acid); BDO recovery from the bleed is an open option (DESIGN.md I-05)"
+    source: "reactor heavies bleed S7 (D-005)"
+emission_exclusions:
+  - {id: storage-tanks, method: storage-tank, reason: "BDO and THF tanks are outside the battery limit (design basis): their breathing losses belong to the storage, not to this plant boundary (D-011)", source: "design basis"}
+  - {id: fugitive-leaks, method: equipment-leaks, reason: "fugitive THF from flanges, seals and valves is not estimated, not claimed negligible: an equipment-leak estimate needs the P&ID component counts, which do not exist at the concept stage; to become an emission_estimates entry once P&IDs are drawn (DESIGN.md I-07, D-011)", source: "DESIGN.md I-07"}
+  - {id: condenser-vents, method: non-routine, reason: "the vents of the reactor overhead condenser E-101 and the LP condenser E-205 carry the inert gas of the pressure control (nitrogen blanket) with THF at its vapour pressure at the condenser outlet; no inert flow is set at the concept stage, so the THF vented is not estimated, not claimed negligible (DESIGN.md I-07)", source: "DESIGN.md I-07"}
+  - {id: wastewater-effluent, method: effluent, exchange: product:WW, reason: "the process water goes to the site wastewater treatment (product:WW with its treatment); the emissions to water after treatment belong to that treatment background, not to this foreground (D-011)", source: "D-011"}
+cutoff:
+  - {id: small-pumps-and-agitator, title: "Reflux, bottoms and process-water pumps and the R-101 agitator, power", unit: kWh, per_year: 200000, reason: "reflux pumps of C-101, C-201 and C-202, the LP bottoms pump and the R-101 agitator are not in the flowsheet's power feed; together about 25 kW x 8000 h/a (ASSUMED order of magnitude, not sized, D-008): below 1 % of the plant's energy input (steam 6.3 MW)", source: "D-008"}
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 25 a service life ASSUMED; no construction inventory at this stage (D-011)"
+dataset:
+  version: 0.1.0
+  geography: {description: "One concept design for a generic, not chosen site; no regional background"}
+  system_model: cutoff
+  technology_level: current
+  classification: {isic: "2011"}
+  modelling: {principle: attributional}
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library, thf-1 concept run (agent-generated, unreviewed)"

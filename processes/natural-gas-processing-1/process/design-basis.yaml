@@ -1,0 +1,63 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Natural gas processing, issue ChemE-as-Code/process-library#181. Values marked ASSUMED are
+# engineering choices of this concept study, not client, licensor or vendor data; sourced
+# values cite their document with the location. Every decision is in DESIGN.md.
+capacity:
+  basis: "raw gas at the plant inlet, dry basis at 60 degF and 14.696 psia (D-002)"
+  raw_gas_mmscf_per_day: 100          # ASSUMED (D-002): inside the 35-1000 MMscf/d of the Barnett plants named by Bullin and Krouskop (2009), p. 3
+  raw_gas_dry_kmol_per_h: 4980.3      # = 100e6 scf/d / 379.49 scf/lbmol / 24 h x 0.45359 kmol/lbmol
+  raw_gas_dry_kg_per_h: 96714.5
+  sales_gas_kg_per_h: 68709.5         # result, scripts/balance.py (D-006)
+  ngl_kg_per_h: 27258.5               # result
+  operating_hours_per_year: 8000      # ASSUMED
+  turndown_percent: 50                # ASSUMED, not checked
+feeds:
+  - name: Raw natural gas
+    terminal: RAWGAS
+    source_of_values: "Bullin and Krouskop (2009), Oil & Gas Journal 107(10), Table 1 (Barnett shale gas composition, well 2), normalised to the reported compounds; open copy https://www.bre.com/PDF/Composition-Variety-Complicates-Processing-Plans-for-US-Shale-Gas.pdf"
+    composition_mol_percent_dry: {CH4: 81.2, C2H6: 11.8, C3H8: 5.2, CO2: 0.3, N2: 1.5}
+    not_reported: "H2S, C4+, water, mercury, helium, oxygen: not in the source; taken as absent (H2S, C4+, Hg) or calculated (water at saturation), D-003, D-005"
+    conditions: {pressure_kPa_a: 6000, temperature_K: 313.15}   # ASSUMED (D-004)
+    water: "saturated at inlet conditions (Bukacek correlation, 75 lb/MMscf) plus 1 bbl/MMscf free water (ASSUMED, D-004)"
+  - name: Demineralised water
+    terminal: DMW
+    source_of_values: ASSUMED pure water at 298.15 K, 300 kPa(a) (D-007)
+  - name: Combustion air
+    terminal: AIR
+    source_of_values: ASSUMED dry air, 79/21 mol N2/O2 (argon lumped with N2), 298.15 K (D-011)
+products:
+  - name: Sales gas
+    terminal: SALESGAS
+    specification: "pipeline quality (US): water at most 7 lb/MMscf, CO2 at most 2-3 mol-%, H2S about 4 ppmv (0.25 grain/100 scf), heating value about 1035 Btu/scf +-5 % (Wikipedia 'Natural-gas processing', section Natural gas quality standards; discovery source, to be replaced by the tariff of the receiving pipeline)"
+    result: "96.7 % CH4, 1.4 % C2H6, 0.12 % C3H8, 1.8 % N2, 20 ppmv CO2; HHV about 1003 Btu/scf (within the band); water below 0.1 ppmv after the molecular sieve"
+    delivery: {pressure_kPa_a: 7000, temperature_K: 313.15, battery_limit: transmission pipeline}   # ASSUMED (D-010)
+  - name: Natural gas liquids (C2+)
+    terminal: NGL
+    specification: "demethaniser bottoms, C1/C2 0.02 mol/mol (ASSUMED, D-009); 58 wt-% ethane, 41 wt-% propane; no C4+ (none in the feed)"
+    delivery: {pressure_kPa_a: 7000, temperature_K: 288.15, battery_limit: NGL pipeline to a fractionator}   # ASSUMED
+  - name: Acid gas
+    terminal: ACIDGAS
+    items: "CO2 with water vapour and 0.3 wt-% hydrocarbon slip, vented (no H2S, D-007)"
+  - name: TEG still vent
+    terminal: STILLVENT
+    items: "water vapour with 10 % of the gas absorbed in the TEG (D-008)"
+  - name: Flue gas
+    terminal: FLUE
+    items: "combustion products of 115 kg/h fuel gas (D-011)"
+  - name: Produced water
+    terminal: PWATER
+    items: "free water from the inlet separator and the mole sieve regeneration knock-out, to disposal (D-004)"
+utilities:
+  - {name: Electric power, use: "residue compressor K-501 (3.67 MW), pumps, auxiliaries", note: "D-010, ASSUMED efficiencies"}
+  - {name: LP steam, pressure_kPa_a: 450, use: "amine reboiler", note: "1.0 lb steam per US gal lean amine, ASSUMED (D-007)"}
+  - {name: Cooling water, supply_K: 303.15, return_K: 313.15, use: "amine condenser and lean cooler, mole sieve regeneration gas cooler, sales gas aftercooler", note: "ASSUMED (D-010)"}
+  - {name: Fuel gas, use: "TEG reboiler firebox and regeneration gas heater", note: "internal: flash gases plus a residue-gas draw (D-011)"}
+site:
+  location: ASSUMED generic US onshore shale gas area (Barnett-type), not chosen
+  design_ambient_K: 308.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325   # ASSUMED
+assumptions:
+  - "D-001 boundary: raw gas at the plant inlet to sales gas and C2+ NGL at their pipelines; no field compression, no NGL fractionation, no utility generation, no storage"
+  - "D-002 no sulfur recovery: the sourced feed reports no H2S"
+  - "D-006 the balance is a specified-split model (scripts/balance.py); no qualified property package (D-012)"
+  - "Construction, transport and end of life are outside the preliminary LCI (D-014)"

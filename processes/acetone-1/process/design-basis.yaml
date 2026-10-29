@@ -1,0 +1,50 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Phenol and acetone from cumene by the cumene hydroperoxide (Hock) route, issue
+# ChemE-as-Code/process-library#132. Cumene is a boundary feed (no cumene unit in the boundary,
+# D-001). Values marked ASSUMED are choices of this concept study, not client or licensor data;
+# every decision and its source is in DESIGN.md. The stream values are in process/flowsheet.yaml.
+capacity:
+  basis: phenol product to storage; acetone is the fixed co-product of the cleavage (D-002)
+  phenol_kt_per_a: 200                # ASSUMED (D-002): inside the 185-680 kt/a of the EU plants listed in the LVOC BREF (2017) Table 8.1
+  phenol_kg_per_h: 25000              # = 200 kt/a / 8000 h
+  acetone_kg_per_h: 15718             # follows from the stoichiometry and the losses (scripts/balance.py)
+  operating_hours_per_year: 8000      # ASSUMED
+  turndown_percent: 60                # ASSUMED, not checked
+feeds:
+  - name: Cumene (fresh), from a cumene unit outside the boundary
+    purity: "pure cumene in the model; real feed max 0.001 wt% benzene (BREF LVOC 8.3.1.1 refers to the standard specification), not modelled"
+    conditions: {pressure_kPa_a: 400, temperature_K: 313.15}   # ASSUMED battery limit
+    flow: set by the phenol rate (stream S01)
+  - name: Air, ambient, dry in the model (humidity not modelled, D-003)
+  - name: Hydrogen for AMS hydrogenation, from a hydrogen process (library hydrogen-1) or the site header
+    conditions: {pressure_kPa_a: 2000, temperature_K: 313.15}  # ASSUMED
+  - name: Sulfuric acid 98 wt% (cleavage catalyst, D-007)
+  - name: Sodium hydroxide 50 wt% (neutralisation, D-007; library chlor-alkali-1 makes caustic)
+  - name: Process (wash) water for the neutraliser/decanter (D-007)
+products:
+  - name: Acetone
+    purity: "acetone 99.7 wt%, water 0.3 wt% (ASSUMED design target, D-009); aldehydes, mesityl oxide not modelled"
+    delivery: {pressure_kPa_a: 300, temperature_K: 313.15}    # ASSUMED
+  - name: Phenol
+    purity: "phenol 100 wt% in the model (ASSUMED, D-009); trace impurities (2-methylbenzofuran, mesityl oxide, AMS) not modelled"
+    delivery: {pressure_kPa_a: 300, temperature_K: 333.15}    # ASSUMED, above the phenol melting point
+  - name: Tar (heavy ends) with acetophenone, to a furnace or boiler as fuel (BREF LVOC 8.3.6)
+  - name: Aqueous effluent (neutralisation brine, acetone column bottoms) to the site waste water treatment
+  - name: Spent air after condensation and carbon adsorption; hydrogenation flash vent
+utilities:
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: ASSUMED}
+  - {name: LP steam, pressure_kPa_a: 500, use: CHP concentration vaporisers, note: "level from BREF LVOC Table 8.5 (5 bar); amount D-011"}
+  - {name: MP steam, pressure_kPa_a: 1800, use: fractionation reboilers, note: "level from BREF LVOC Table 8.5 (18 bar); amount D-011"}
+  - {name: Electric power, use: oxidation air compressor, pumps, vacuum systems, note: "total from BREF LVOC Table 8.5 (D-011)"}
+site:
+  location: ASSUMED generic site, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "ASSUMED oxidation: dry oxidation with air, 4 bubble columns in series, 368-388 K, 500 kPa(a); CHP 25 wt% at the outlet (BREF: 80-120 C, up to 700 kPa, 17-30 % CHP) (D-003, D-004)."
+  - "ASSUMED oxidation selectivity per kmol cumene converted: CHP 0.94, DMBA 0.05, acetophenone (+ methanol) 0.01; a sourced range check, not kinetics (D-004)."
+  - "ASSUMED concentration to 80 wt% CHP under vacuum (BREF 65-85 %) (D-006)."
+  - "ASSUMED cleavage: CHP fully cleaved; DMBA 75 % dehydrated to AMS, 25 % to cumylphenol (heavies) (D-005)."
+  - "ASSUMED AMS fully hydrogenated back to cumene; hydrogen vent 1 Nm3/t phenol (BREF 0.8-1.2) (D-008)."
+  - "Utilities from BREF LVOC Table 8.5 (one plant data set), not calculated for this design (D-011)."
+  - "Accuracy: concept estimate; no property method qualified for the polar mixture (core#315)."

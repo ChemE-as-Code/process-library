@@ -1,0 +1,33 @@
+# Components and templates of the process. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol,
+# normal_boiling_point in K at 101.325 kPa (rounded handbook values, NIST Chemistry WebBook
+# phase-change data). The rhodium/iridium catalyst, the ruthenium promoter, HI and the
+# corrosion metals are not modelled (DESIGN.md D-006): they stay in the reaction loop.
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: CO, name: Carbon monoxide, formula: CO, cas: 630-08-0, molar_mass: 28.010, normal_boiling_point: 81.6}
+  - {id: H2, name: Hydrogen, formula: H2, cas: 1333-74-0, molar_mass: 2.016, normal_boiling_point: 20.3}
+  - {id: CO2, name: Carbon dioxide, formula: CO2, cas: 124-38-9, molar_mass: 44.009}
+  - {id: CH4, name: Methane, formula: CH4, cas: 74-82-8, molar_mass: 16.043, normal_boiling_point: 111.7}
+  - {id: N2, name: Nitrogen, formula: N2, cas: 7727-37-9, molar_mass: 28.014, normal_boiling_point: 77.4}
+  - {id: CH3OH, name: Methanol, formula: CH4O, cas: 67-56-1, molar_mass: 32.042, normal_boiling_point: 337.8}
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.015, normal_boiling_point: 373.1}
+  - {id: CH3COOH, name: Acetic acid, formula: C2H4O2, cas: 64-19-7, molar_mass: 60.052, normal_boiling_point: 391.1}
+  - {id: CH3I, name: Methyl iodide (iodomethane), formula: CH3I, cas: 74-88-4, molar_mass: 141.939, normal_boiling_point: 315.6}
+  - {id: MEOAC, name: Methyl acetate, formula: C3H6O2, cas: 79-20-9, molar_mass: 74.079, normal_boiling_point: 330.0}
+  - {id: C2H5COOH, name: Propionic acid, formula: C3H6O2, cas: 79-09-4, molar_mass: 74.079, normal_boiling_point: 414.3}
+templates:
+  - {id: methanol, title: Methanol feed (Grade AA), components: [CH3OH, H2O]}
+  - {id: co-gas, title: Carbon monoxide feed gas, components: [CO, H2, N2, CH4]}
+  - {id: iodide, title: Methyl iodide make-up, components: [CH3I]}
+  - id: process
+    title: Carbonylation process mixture
+    components: [CO, H2, CO2, CH4, N2, CH3OH, H2O, CH3COOH, CH3I, MEOAC, C2H5COOH]
+  - {id: acid, title: Acetic acid product and heavy ends, components: [CH3COOH, H2O, C2H5COOH]}
+  - {id: offgas, title: Scrubbed off-gas, components: [CO, H2, CO2, CH4, N2, CH3OH, CH3I]}
+# No benchmarked package covers this polar, associating liquid (acetic acid dimerises in the
+# vapour; methyl iodide, methyl acetate, water): core #315. Stream properties are not filled.
+property_method:
+  adapter: thermo
+  status: placeholder

@@ -1,0 +1,546 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Aniline by adiabatic gas-phase hydrogenation of nitrobenzene (DESIGN.md D-001). Where the
+# values come from:
+# - feeds S1 and S2 and every temperature and pressure are design choices (design basis,
+#   D-002..D-009), ASSUMED; S1 and S2 flows follow from the 25 t/h product (scripts/aniline_balance.py);
+# - the reactor outlet S7 is calculated by cheme (selectivity reactor, D-004);
+# - flows and compositions through the pump, circulator, exchangers, mixers and the purge
+#   splitter are calculated by `cheme process propagate --fill`;
+# - the separator, decanter and column outlets and all duties come from the independent balance
+#   scripts/aniline_balance.py (D-006), given here as ASSUMED: core cannot yet qualify the
+#   vapour-liquid-liquid equilibrium of aniline, water and hydrogen or their liquid enthalpies
+#   (core #315, polar/activity-coefficient benchmark).
+schema: cheme/process/v1
+kind: flowsheet
+title: Aniline by gas-phase hydrogenation of nitrobenzene (25 t/h)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+  enthalpy_reference: {state: ideal_gas, temperature: 298.15}
+cases:
+  - {id: design, description: "Design case: 25 t/h aniline (99.95 wt%), adiabatic Pd/alumina reactor, H2/NB 60 mol/mol at the inlet (D-002, D-005)", default: true}
+tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - {id: NBF, title: Nitrobenzene from the nitration plant, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: H2F, title: Hydrogen from the hydrogen plant (hydrogen-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: k101, direction: out, kind: energy}
+      - {id: p101, direction: out, kind: energy}
+      - {id: pumps, direction: out, kind: energy}
+products:
+  - {id: ANILINE, title: Aniline to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: FUELGAS, title: Loop purge to the fuel gas header, category: off_gas, ports: [{id: in, direction: in}]}
+  - id: RESIDUE
+    title: Low boilers and distillation residue to incineration
+    category: by_product
+    ports: [{id: lights, direction: in}, {id: heavies, direction: in}]
+  - {id: WW, title: Stripped process water to wastewater treatment, category: wastewater, ports: [{id: in, direction: in}]}
+  - id: MPSX
+    title: MP steam export (1500 kPa(a)), net of the reboilers
+    category: utility
+    utility:
+      kind: steam
+      level: MP
+      pressure: {value: 1500, provenance: assumed, source: "design basis, D-009"}
+      supply_temperature: {value: 471.4, provenance: assumed, source: "saturation at 1500 kPa(a), D-009"}
+      min_approach: {value: 10, provenance: assumed, source: D-009}
+    ports: [{id: e103, direction: in, kind: energy}]
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-009"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-009"}
+      min_approach: {value: 5, provenance: assumed, source: D-009}
+    ports:
+      - {id: e104, direction: in, kind: energy}
+      - {id: d101, direction: in, kind: energy}
+      - {id: c201, direction: in, kind: energy}
+      - {id: c202, direction: in, kind: energy}
+      - {id: c102, direction: in, kind: energy}
+
+blocks:
+  - id: RXN
+    title: Nitrobenzene hydrogenation loop
+    class: ReactingChemicals
+    ports:
+      - {id: nb, direction: in}
+      - {id: h2, direction: in}
+      - {id: purge, direction: out}
+      - {id: crude, direction: out}
+      - {id: power_k, direction: in, kind: energy}
+      - {id: power_p, direction: in, kind: energy}
+      - {id: steam201, direction: out, kind: energy}
+      - {id: steam202, direction: out, kind: energy}
+      - {id: steam102, direction: out, kind: energy}
+      - {id: steamx, direction: out, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+  - id: PUR
+    title: Aniline recovery and purification
+    class: Distilling
+    ports:
+      - {id: crude, direction: in}
+      - {id: product, direction: out}
+      - {id: lights, direction: out}
+      - {id: heavies, direction: out}
+      - {id: water, direction: out}
+      - {id: steam201, direction: in, kind: energy}
+      - {id: steam202, direction: in, kind: energy}
+      - {id: steam102, direction: in, kind: energy}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw101, direction: out, kind: energy}
+      - {id: cw201, direction: out, kind: energy}
+      - {id: cw202, direction: out, kind: energy}
+      - {id: cw102, direction: out, kind: energy}
+
+steps:
+  - id: P101
+    block: RXN
+    title: Nitrobenzene feed pump
+    # TransportingFluids, not Pumping: cheme 0.8.0 process build fails on Pumping (its method
+    # annotation is a Union in pyDEXPI 2.1.0, step_method cannot list it); core issue to raise.
+    class: TransportingFluids
+    links: [{target: equipment, ref: P-101}]
+    ports:
+      - {id: in, direction: in, delegates: nb}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power_p}
+  - id: M101
+    block: RXN
+    title: Make-up hydrogen / recycle gas junction
+    class: Mixing
+    ports:
+      - {id: h2, direction: in, delegates: h2}
+      - {id: rec, direction: in}
+      - {id: out, direction: out}
+  - id: K101
+    block: RXN
+    title: Recycle gas circulator
+    class: Compressing
+    method: CentrifugalMotion
+    links: [{target: equipment, ref: K-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power_k}
+  - id: E102
+    block: RXN
+    title: Feed/effluent exchanger
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-102}]
+    ports:
+      - {id: cold_in, direction: in}
+      - {id: cold_out, direction: out}
+      - {id: hot_in, direction: in}
+      - {id: hot_out, direction: out}
+  # D-005: liquid nitrobenzene is sprayed into the preheated recycle gas and evaporates in it;
+  # the gas is preheated in E-102 just enough to reach the reactor inlet temperature.
+  - id: M102
+    block: RXN
+    title: Nitrobenzene evaporator (into the recycle gas)
+    class: Mixing
+    links: [{target: equipment, ref: V-102}]
+    ports:
+      - {id: gas, direction: in}
+      - {id: nb, direction: in}
+      - {id: out, direction: out}
+  # D-003, D-004: adiabatic fixed bed, complete conversion, selectivities of D-004.
+  - id: R101
+    block: RXN
+    title: Adiabatic hydrogenation reactor (Pd/alumina fixed bed)
+    class: ReactingChemicals
+    reactions: [NB_HYD, BZ_FORM, DPA_FORM]
+    reactor: conversion
+    selectivity:
+      key: NB
+      conversion: 1.0
+      products: {ANL: 0.997, C6H6: 0.002, DPA: 0.0005}
+      provenance: assumed
+      source: >-
+        D-004: aniline 0.997 is the average selectivity of US 2008/0234518 A1 example 3;
+        complete conversion is the nitrobenzene-free crude of its examples before breakthrough;
+        the split of the remaining 0.3 % between benzene (0.002) and diphenylamine (0.0005
+        kmol/kmol, 0.001 of the NB) is ASSUMED
+    catalyst: PD_AL2O3
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+  - id: E103
+    block: RXN
+    title: Reactor effluent steam generator (MP steam)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-103}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: s201, direction: out, kind: energy, delegates: steam201}
+      - {id: s202, direction: out, kind: energy, delegates: steam202}
+      - {id: s102, direction: out, kind: energy, delegates: steam102}
+      - {id: exp, direction: out, kind: energy, delegates: steamx}
+  - id: E104
+    block: RXN
+    title: Effluent condenser
+    class: Cooling
+    links: [{target: equipment, ref: E-104}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  - id: V101
+    block: RXN
+    title: Three-phase separator (gas / crude condensate)
+    class: SeparatingByFlash
+    links: [{target: equipment, ref: V-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: vap, direction: out}
+      - {id: liq, direction: out, delegates: crude}
+  # D-005: the purge fraction that holds N2 at 5 mol% in the loop gas (scripts/aniline_balance.py).
+  - id: SPL101
+    block: RXN
+    title: Purge take-off
+    class: SplittingMaterial
+    split: {purge: 0.00096614}
+    ports:
+      - {id: in, direction: in}
+      - {id: purge, direction: out, delegates: purge}
+      - {id: recycle, direction: out}
+  - id: D101
+    block: PUR
+    title: Crude aniline decanter
+    class: SeparatingByPhaseSeparation
+    links: [{target: equipment, ref: D-101}]
+    ports:
+      - {id: crude, direction: in, delegates: crude}
+      - {id: dehyd, direction: in}
+      - {id: strip, direction: in}
+      - {id: org, direction: out}
+      - {id: aq, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw101}
+  - id: C201
+    block: PUR
+    title: Dehydration column (heteroazeotrope overhead, low-boiler draw)
+    class: Distilling
+    links: [{target: equipment, ref: C-201}]
+    ports:
+      - {id: feed, direction: in}
+      - {id: top, direction: out}
+      - {id: lights, direction: out, delegates: lights}
+      - {id: bot, direction: out}
+      - {id: reb, direction: in, kind: energy, delegates: steam201}
+      - {id: cond, direction: out, kind: energy, delegates: cw201}
+  - id: C202
+    block: PUR
+    title: Aniline column (vacuum)
+    class: Distilling
+    links: [{target: equipment, ref: C-202}]
+    ports:
+      - {id: feed, direction: in}
+      - {id: top, direction: out, delegates: product}
+      - {id: bot, direction: out, delegates: heavies}
+      - {id: reb, direction: in, kind: energy, delegates: steam202}
+      - {id: power, direction: in, kind: energy, delegates: power}
+      - {id: cond, direction: out, kind: energy, delegates: cw202}
+  - id: C102
+    block: PUR
+    title: Process water stripper
+    class: Distilling
+    links: [{target: equipment, ref: C-102}]
+    ports:
+      - {id: feed, direction: in}
+      - {id: top, direction: out}
+      - {id: bot, direction: out, delegates: water}
+      - {id: reb, direction: in, kind: energy, delegates: steam102}
+      - {id: cond, direction: out, kind: energy, delegates: cw102}
+
+streams:
+  - id: S1
+    title: Nitrobenzene feed
+    from: NBF.out
+    to: P101.in
+    template: process
+    state:
+      design:
+        pressure: {value: 500, provenance: assumed, source: "design basis, D-002"}
+        temperature: {value: 313.15, provenance: assumed, source: "design basis, D-002"}
+        flow: {value: 33222.31, basis: mass, provenance: assumed, source: "scripts/aniline_balance.py: the feed that gives 25 t/h product (D-002, D-006)"}
+        composition: {basis: mole_fraction, values: {NB: 1.0}, provenance: assumed, source: "design basis: pure nitrobenzene, contaminants not modelled (D-002)"}
+  - id: S1B
+    title: Nitrobenzene to the evaporator
+    from: P101.out
+    to: M102.nb
+    template: process
+    state:
+      design:
+        pressure: {value: 650, provenance: assumed, source: D-005}
+        temperature: {value: 313.15, provenance: assumed, source: D-005}
+        flow: {value: 33222.31, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through P101 from S1', fingerprint: 27b3599e6d394714}
+        composition: {basis: mole_fraction, values: {NB: 1.0}, provenance: calculated, source: 'cheme process propagate: pass-through P101 from S1', fingerprint: 27b3599e6d394714}
+  - id: S2
+    title: Make-up hydrogen
+    from: H2F.out
+    to: M101.h2
+    template: process
+    state:
+      design:
+        pressure: {value: 2850, provenance: assumed, source: "design basis: hydrogen-1 product S17 at its battery limit (D-002)"}
+        temperature: {value: 313.15, provenance: assumed, source: "design basis: hydrogen-1 product S17 (D-002)"}
+        flow: {value: 1686.20, basis: mass, provenance: assumed, source: "scripts/aniline_balance.py: consumption plus purge loss (D-005, D-006)"}
+        composition: {basis: mole_fraction, values: {H2: 0.999, N2: 0.001}, provenance: assumed, source: "design basis: hydrogen-1 product, 99.9 mol% H2, rest N2 (D-002)"}
+  - id: S3
+    title: Circulator suction
+    from: M101.out
+    to: K101.in
+    template: process
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: D-005}
+        temperature: {value: 332.24, provenance: assumed, source: "scripts/aniline_balance.py, adiabatic mixing (D-006)"}
+        flow: {value: 74465.4, provenance: calculated, source: 'cheme process propagate: mixer M101 from S2 S13', fingerprint: 9daa08334228d734}
+        composition: {basis: mole_fraction, values: {NB: 0.0, ANL: 0.00165208, H2O: 0.0460731, H2: 0.904345, N2: 0.04774, C6H6: 0.000190067, DPA: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S2 S13', fingerprint: 49a3b2272f8ce0b9}
+  - id: S4
+    title: Circulator discharge
+    from: K101.out
+    to: E102.cold_in
+    template: process
+    state:
+      design:
+        pressure: {value: 560, provenance: assumed, source: D-005}
+        temperature: {value: 376.53, provenance: assumed, source: "scripts/aniline_balance.py, isentropic efficiency 0.75 (D-006)"}
+        flow: {value: 74465.4, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S3', fingerprint: 917ba3aab4dbfb59}
+        composition: {basis: mole_fraction, values: {NB: 0.0, ANL: 0.00165208, H2O: 0.0460731, H2: 0.904345, N2: 0.04774, C6H6: 0.000190067, DPA: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S3', fingerprint: 917ba3aab4dbfb59}
+  - id: S5
+    title: Preheated recycle gas
+    from: E102.cold_out
+    to: M102.gas
+    template: process
+    state:
+      design:
+        pressure: {value: 540, provenance: assumed, source: D-005}
+        temperature: {value: 555.59, provenance: assumed, source: "scripts/aniline_balance.py: hot enough to evaporate the NB and give 513.15 K after M-102 (D-005, D-006)"}
+        flow: {value: 74465.37, basis: mass, provenance: assumed, source: "scripts/aniline_balance.py (D-006): S4 through the cold side of E-102"}
+        composition: {basis: mole_fraction, values: {ANL: 0.001652079, H2O: 0.046073097, H2: 0.90434481, N2: 0.047739948, C6H6: 0.000190067}, provenance: assumed, source: "scripts/aniline_balance.py (D-006); must equal S4"}
+  - id: S6
+    title: Reactor feed
+    from: M102.out
+    to: R101.in
+    template: process
+    state:
+      design:
+        pressure: {value: 530, provenance: assumed, source: D-003}
+        temperature: {value: 513.15, provenance: assumed, source: "D-003: 240 C, within the preferred inlet range of US 2008/0234518 A1"}
+        flow: {value: 107688.0, provenance: calculated, source: 'cheme process propagate: mixer M102 from S1B S5', fingerprint: 68f6d6558291c880}
+        composition: {basis: mole_fraction, values: {NB: 0.0148486, ANL: 0.00162755, H2O: 0.045389, H2: 0.890917, N2: 0.0470311, C6H6: 0.000187245, DPA: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M102 from S1B S5', fingerprint: 1721185dfe9a96d3}
+  - id: S7
+    title: Reactor effluent
+    from: R101.out
+    to: E103.in
+    template: process
+    state:
+      design:
+        pressure: {value: 500, provenance: assumed, source: D-003}
+        temperature: {value: 729.11, provenance: assumed, source: "scripts/aniline_balance.py, adiabatic outlet, ideal gas (D-006)"}
+        flow: {value: 107688.0, provenance: calculated, source: 'cheme process propagate: reactor R101 from S6', fingerprint: 66addd4780fe82c9}
+        composition: {basis: mole_fraction, values: {NB: 0.0, ANL: 0.0166793, H2O: 0.0762179, H2: 0.859097, N2: 0.0477399, C6H6: 0.000220212, DPA: 7.5362e-06, NH3: 3.7681e-05}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S6', fingerprint: 22e567c94ca8034b}
+  - id: S8
+    title: Effluent after the steam generator
+    from: E103.out
+    to: E102.hot_in
+    template: process
+    state:
+      design:
+        pressure: {value: 485, provenance: assumed, source: D-005}
+        temperature: {value: 585.59, provenance: assumed, source: "D-009: 30 K above the E-102 cold outlet"}
+        flow: {value: 107688.0, provenance: calculated, source: 'cheme process propagate: pass-through E103 from S7', fingerprint: 21532010126c6ba4}
+        composition: {basis: mole_fraction, values: {NB: 0.0, ANL: 0.0166793, H2O: 0.0762179, H2: 0.859097, N2: 0.0477399, C6H6: 0.000220212, DPA: 7.5362e-06, NH3: 3.7681e-05}, provenance: calculated, source: 'cheme process propagate: pass-through E103 from S7', fingerprint: 21532010126c6ba4}
+  - id: S9
+    title: Effluent after the feed/effluent exchanger
+    from: E102.hot_out
+    to: E104.in
+    template: process
+    state:
+      design:
+        pressure: {value: 460, provenance: assumed, source: D-005}
+        temperature: {value: 419.82, provenance: assumed, source: "scripts/aniline_balance.py, E-102 energy balance, above the dew point (D-006)"}
+        flow: {value: 107687.22, basis: mass, provenance: assumed, source: "scripts/aniline_balance.py (D-006): S8 through the hot side of E-102"}
+        composition: {basis: mole_fraction, values: {ANL: 0.016679275, H2O: 0.076217924, H2: 0.859097424, N2: 0.047739948, C6H6: 0.000220212, DPA: 0.000007536, NH3: 0.000037681}, provenance: assumed, source: "scripts/aniline_balance.py (D-006); must equal cheme's S7"}
+  - id: S10
+    title: Cooled effluent to the separator
+    from: E104.out
+    to: V101.in
+    template: process
+    state:
+      design:
+        pressure: {value: 410, provenance: assumed, source: D-007}
+        temperature: {value: 333.15, provenance: assumed, source: D-007}
+        flow: {value: 107687.22, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E104 from S9', fingerprint: 31463781a40a07d4}
+        composition: {basis: mole_fraction, values: {ANL: 0.016679275, H2O: 0.076217924, H2: 0.859097424, N2: 0.047739948, C6H6: 0.000220212, DPA: 7.536e-06, NH3: 3.7681e-05}, provenance: calculated, source: 'cheme process propagate: pass-through E104 from S9', fingerprint: 31463781a40a07d4}
+  - id: S11
+    title: Separator gas
+    from: V101.vap
+    to: SPL101.in
+    template: process
+    state:
+      design:
+        pressure: {value: 410, provenance: assumed, source: D-007}
+        temperature: {value: 333.15, provenance: assumed, source: D-007}
+        flow: {value: 72849.55, basis: mass, provenance: assumed, source: "scripts/aniline_balance.py, separator model (D-006, D-007)"}
+        composition: {basis: mole_fraction, values: {H2: 0.899767875, N2: 0.05, H2O: 0.048300905, ANL: 0.001731963, C6H6: 0.000199257}, provenance: assumed, source: "scripts/aniline_balance.py, separator model (D-007)"}
+  - id: S12
+    title: Purge gas
+    from: SPL101.purge
+    to: FUELGAS.in
+    template: process
+    state:
+      design:
+        pressure: {value: 410, provenance: assumed, source: D-005}
+        temperature: {value: 333.15, provenance: assumed, source: D-005}
+        flow: {value: 70.3829, basis: mass, provenance: calculated, source: 'cheme process propagate: splitter SPL101 from S11', fingerprint: fb9d7c0072401933}
+        composition: {basis: mole_fraction, values: {H2: 0.899767875, N2: 0.05, H2O: 0.048300905, ANL: 0.001731963, C6H6: 0.000199257}, provenance: calculated, source: 'cheme process propagate: splitter SPL101 from S11', fingerprint: 8de9fe5c37997e8f}
+  - id: S13
+    title: Recycle gas
+    from: SPL101.recycle
+    to: M101.rec
+    template: process
+    state:
+      design:
+        pressure: {value: 410, provenance: assumed, source: D-005}
+        temperature: {value: 333.15, provenance: assumed, source: D-005}
+        flow: {value: 72779.2, provenance: calculated, source: 'cheme process propagate: splitter SPL101 from S11 S12', fingerprint: d4ac7eb036f53b4c}
+        composition: {basis: mole_fraction, values: {H2: 0.899767875, N2: 0.05, H2O: 0.048300905, ANL: 0.001731963, C6H6: 0.000199257}, provenance: calculated, source: 'cheme process propagate: splitter SPL101 from S11', fingerprint: 8de9fe5c37997e8f}
+  - id: S14
+    title: Crude condensate (both liquid phases)
+    from: V101.liq
+    to: D101.crude
+    template: process
+    state:
+      design:
+        pressure: {value: 410, provenance: assumed, source: D-007}
+        temperature: {value: 333.15, provenance: assumed, source: D-007}
+        flow: {value: 34837.67, basis: mass, provenance: assumed, source: "scripts/aniline_balance.py, separator model (D-006, D-007)"}
+        composition: {basis: mole_fraction, values: {ANL: 0.332417042, H2O: 0.665919761, C6H6: 0.000662839, DPA: 0.000166726, NH3: 0.000833632}, provenance: assumed, source: "scripts/aniline_balance.py, separator model (D-007)"}
+  - id: S15
+    title: Organic phase to the dehydration column
+    from: D101.org
+    to: C201.feed
+    template: process
+    state:
+      design:
+        pressure: {value: 150, provenance: assumed, source: D-007}
+        temperature: {value: 313.15, provenance: assumed, source: D-007}
+        flow: {value: 26748.32, basis: mass, provenance: assumed, source: "scripts/aniline_balance.py: organic phase 5 wt% water (D-007)"}
+        composition: {basis: mole_fraction, values: {ANL: 0.784170384, H2O: 0.213895325, C6H6: 0.001545536, DPA: 0.000388755}, provenance: assumed, source: "scripts/aniline_balance.py (D-007)"}
+  - id: S16
+    title: Aqueous phase to the process water stripper
+    from: D101.aq
+    to: C102.feed
+    template: process
+    state:
+      design:
+        pressure: {value: 150, provenance: assumed, source: D-007}
+        temperature: {value: 313.15, provenance: assumed, source: D-007}
+        flow: {value: 11881.89, basis: mass, provenance: assumed, source: "scripts/aniline_balance.py: aqueous phase 3.6 wt% aniline (D-007)"}
+        composition: {basis: mole_fraction, values: {ANL: 0.007171957, H2O: 0.991774634, NH3: 0.001053409}, provenance: assumed, source: "scripts/aniline_balance.py (D-007)"}
+  - id: S17
+    title: Dehydration column overhead condensate
+    from: C201.top
+    to: D101.dehyd
+    template: process
+    state:
+      design:
+        pressure: {value: 150, provenance: assumed, source: D-008}
+        temperature: {value: 313.15, provenance: assumed, source: D-008}
+        flow: {value: 1618.85, basis: mass, provenance: assumed, source: "scripts/aniline_balance.py: feed water less the product's, aniline at the heteroazeotrope at 60 kPa(a) (D-008)"}
+        composition: {basis: mole_fraction, values: {ANL: 0.041151119, H2O: 0.958848881}, provenance: assumed, source: "scripts/aniline_balance.py (D-008)"}
+  - id: S18
+    title: Low-boiler draw
+    from: C201.lights
+    to: RESIDUE.lights
+    template: process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-008}
+        temperature: {value: 313.15, provenance: assumed, source: D-008}
+        flow: {value: 83.80, basis: mass, provenance: assumed, source: "scripts/aniline_balance.py: all benzene with its own mass of aniline (D-008)"}
+        composition: {basis: mole_fraction, values: {ANL: 0.456160432, C6H6: 0.543839568}, provenance: assumed, source: "scripts/aniline_balance.py (D-008)"}
+  - id: S19
+    title: Dry crude aniline
+    from: C201.bot
+    to: C202.feed
+    template: process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-008}
+        temperature: {value: 443.50, provenance: assumed, source: "scripts/aniline_balance.py: aniline boiling point at 70 kPa(a) (D-008)"}
+        flow: {value: 25045.67, basis: mass, provenance: assumed, source: "scripts/aniline_balance.py (D-008)"}
+        composition: {basis: mole_fraction, values: {ANL: 0.996923473, H2O: 0.002575663, DPA: 0.000500864}, provenance: assumed, source: "scripts/aniline_balance.py (D-008)"}
+  - id: S20
+    title: Aniline product
+    from: C202.top
+    to: ANILINE.in
+    template: process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "design basis, D-002"}
+        temperature: {value: 313.15, provenance: assumed, source: "design basis, D-002"}
+        flow: {value: 25000.00, basis: mass, provenance: assumed, source: "design basis 25 t/h, D-002"}
+        composition: {basis: mole_fraction, values: {ANL: 0.997420698, H2O: 0.002579302}, provenance: assumed, source: "design basis: 0.05 wt% water target (D-002)"}
+  - id: S21
+    title: Distillation residue
+    from: C202.bot
+    to: RESIDUE.heavies
+    template: process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-008}
+        temperature: {value: 425.14, provenance: assumed, source: "scripts/aniline_balance.py: aniline boiling point at 25 kPa(a) plus 15 K (D-008)"}
+        flow: {value: 45.67, basis: mass, provenance: assumed, source: "scripts/aniline_balance.py: residue 50 wt% diphenylamine (D-008)"}
+        composition: {basis: mole_fraction, values: {ANL: 0.645026034, DPA: 0.354973966}, provenance: assumed, source: "scripts/aniline_balance.py (D-008)"}
+  - id: S22
+    title: Stripper overhead condensate
+    from: C102.top
+    to: D101.strip
+    template: process
+    state:
+      design:
+        pressure: {value: 150, provenance: assumed, source: D-008}
+        temperature: {value: 313.15, provenance: assumed, source: D-008}
+        flow: {value: 2173.69, basis: mass, provenance: assumed, source: "scripts/aniline_balance.py: aniline of the feed at the heteroazeotrope at 101.3 kPa(a) (D-008)"}
+        composition: {basis: mole_fraction, values: {ANL: 0.045177362, H2O: 0.954822638}, provenance: assumed, source: "scripts/aniline_balance.py (D-008)"}
+  - id: S23
+    title: Stripped process water
+    from: C102.bot
+    to: WW.in
+    template: process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-008}
+        temperature: {value: 313.15, provenance: assumed, source: "D-008: cooled to 313.15 K before discharge"}
+        flow: {value: 9708.20, basis: mass, provenance: assumed, source: "scripts/aniline_balance.py: 50 ppm(wt) aniline, all NH3 (D-008)"}
+        composition: {basis: mole_fraction, values: {ANL: 0.000011412, H2O: 0.998736708, NH3: 0.001251881}, provenance: assumed, source: "scripts/aniline_balance.py (D-008)"}
+  # Energy streams (duties from scripts/aniline_balance.py, D-006; ASSUMED until core qualifies them)
+  - {id: Q1, title: K-101 shaft power, kind: energy, from: POWER.k101, to: K101.power, state: {design: {duty: {value: 6484.0, provenance: assumed, source: "scripts/aniline_balance.py, isentropic efficiency 0.75 (D-006)"}}}}
+  - {id: Q2, title: P-101 power, kind: energy, from: POWER.p101, to: P101.power, state: {design: {duty: {value: 1.9, provenance: assumed, source: "scripts/aniline_balance.py, 150 kPa, efficiency 0.6 (D-006)"}}}}
+  - {id: Q3, title: Column pumps and C-202 vacuum pump, kind: energy, from: POWER.pumps, to: C202.power, state: {design: {duty: {value: 150.0, provenance: assumed, source: "D-009: lumped estimate, not sized"}}}}
+  - {id: Q4, title: MP steam to the C-201 reboiler, kind: energy, from: E103.s201, to: C201.reb, state: {design: {duty: {value: 3104.3, provenance: assumed, source: "scripts/aniline_balance.py, enthalpy balance with 30 % reflux margin (D-008)"}}}}
+  - {id: Q5, title: MP steam to the C-202 reboiler, kind: energy, from: E103.s202, to: C202.reb, state: {design: {duty: {value: 4750.5, provenance: assumed, source: "scripts/aniline_balance.py, reflux ratio 0.5 (D-008)"}}}}
+  - {id: Q6, title: Let-down steam to the C-102 reboiler, kind: energy, from: E103.s102, to: C102.reb, state: {design: {duty: {value: 2393.9, provenance: assumed, source: "scripts/aniline_balance.py, enthalpy balance with 30 % reflux margin (D-008)"}}}}
+  - {id: Q7, title: MP steam export, kind: energy, from: E103.exp, to: MPSX.e103, state: {design: {duty: {value: 13297.4, provenance: assumed, source: "scripts/aniline_balance.py: E-103 duty 23546.1 kW less the three reboilers (D-009)"}}}}
+  - {id: Q8, title: E-104 duty, kind: energy, from: E104.cw, to: CW.e104, state: {design: {duty: {value: 23694.8, provenance: assumed, source: "scripts/aniline_balance.py (D-006)"}}}}
+  - {id: Q12, title: D-101 condensate cooler duty (333 to 313 K), kind: energy, from: D101.cw, to: CW.d101, state: {design: {duty: {value: 477.9, provenance: assumed, source: "scripts/aniline_balance.py, decanter enthalpy balance (D-007)"}}}}
+  - {id: Q9, title: C-201 condenser duty, kind: energy, from: C201.cond, to: CW.c201, state: {design: {duty: {value: 1274.3, provenance: assumed, source: "scripts/aniline_balance.py, 30 % reflux margin (D-008)"}}}}
+  - {id: Q10, title: C-202 condenser and product cooler duty, kind: energy, from: C202.cond, to: CW.c202, state: {design: {duty: {value: 6578.0, provenance: assumed, source: "scripts/aniline_balance.py, reflux ratio 0.5 (D-008)"}}}}
+  - {id: Q11, title: C-102 condenser and process water cooler duty, kind: energy, from: C102.cond, to: CW.c102, state: {design: {duty: {value: 2393.9, provenance: assumed, source: "scripts/aniline_balance.py: condenser 1686.2 kW + water cooler 707.7 kW (D-008)"}}}}
+layout: {bfd: {}, pfd: {}}

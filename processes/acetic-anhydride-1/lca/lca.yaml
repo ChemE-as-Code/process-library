@@ -1,0 +1,112 @@
+# Goal and scope of the acetic-anhydride-1 preliminary LCI. Schema: `cheme schema lca`.
+# Outputs: `cheme assess lca --write` (lca/inventory.csv, results.csv, results.md, gaps.csv,
+# dataset.yaml, manifest.json); never edit those by hand.
+#
+# A gate-to-gate foreground inventory (DESIGN.md D-014): every exchange comes from the balanced
+# flowsheet (process/flowsheet.yaml, design case). No background is linked yet: every feed,
+# utility and waste treatment is `missing:` with the activity it should connect to later, so
+# the inventory carries them as gaps (never 0) and no impact result is claimed (process.yaml
+# lca.source none keeps the all-gap total out of the catalog). The firebox is inside the
+# boundary: its CO2 is a foreground emission. Omissions are declared (emission_exclusions,
+# cutoff). No values from licensed databases are used.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of acetic anhydride by the ketene route
+  (acetic acid cracking) at the concept stage (issue #131): the foreground exchanges per kg of
+  acetic anhydride at the plant gate with their provenance, ready to be linked to background
+  datasets later. Not an impact assessment: no background is linked (D-014). Flows are
+  concept estimates on a sourced cracking yield and assumed separation parameters (D-005 to
+  D-010).
+functional_unit: {product: AC2O, amount: 1, unit: kg}
+boundary: cradle-to-gate
+case: design
+location: GLO   # generic site, country not chosen
+year: 2026
+technology: "acetic acid cracking to ketene at 700 C / 36 kPa(a) with triethyl phosphate, ammonia quench, condensation to -5 C, reactive absorption of ketene in acetic acid, two-column distillation, dilute acid recovery; furnace fired with natural gas and the vent gas; 50 kt/a, concept design"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+flows:
+  # ---- raw materials
+  - {key: feed:AA, missing: "no background chosen yet: acetic acid, glacial (about 99.8 wt%), market for, from methanol carbonylation (methanol from natural gas, e.g. methanol-1 of this library, and CO); per kg", source: "fresh acid S1 (D-003)"}
+  - {key: feed:TEP, missing: "no background chosen yet: triethyl phosphate (organophosphorus chemical, from ethanol and phosphorus oxychloride), per kg; a generic organic chemical is the usual proxy", source: "catalyst S4 (D-005)"}
+  - {key: feed:NH3, missing: "no background chosen yet: ammonia, anhydrous, liquid, market for (ammonia-1 of this library makes it), per kg", source: "neutraliser S8 (D-005)"}
+  - {key: feed:NG, missing: "no background chosen yet: natural gas, high pressure, market for the site's region, per kg (taken as methane; the background counts it per m3, 0.7175 kg/m3 at 0 C); its combustion is in the foreground", source: "furnace fuel S30 (D-010)"}
+  - {key: feed:AIR, free: true, source: "ambient combustion air, stream S31: a resource taken from nature without burden"}
+  # ---- utilities
+  - {key: feed:POWER, missing: "no background chosen yet: electricity, medium voltage, market for the site's grid (site not chosen), per kWh", source: "K-301 vent vacuum pump and P-301 absorber circulation pumps (Q6, Q7; D-011)"}
+  - {key: feed:LPS, missing: "no background chosen yet: heat from steam in the chemical industry, LP 450 kPa(a) (site boiler on natural gas), per kWh of condensing heat", source: "E-101 vaporiser and C-401 acid recovery (Q1, Q12; D-011)"}
+  - {key: feed:MPS, missing: "no background chosen yet: heat from steam in the chemical industry, MP 1500 kPa(a), per kWh of condensing heat", source: "C-201 and C-202 reboilers (Q8, Q10; D-011)"}
+  - {key: product:CW, missing: "no background chosen yet: cooling water from a recirculating evaporative cooling tower (pump and fan electricity, make-up water withdrawal and evaporation, blowdown, treatment chemicals), per kWh of heat rejected; processes/utility-cooling-tower of this library", source: "Q3, Q5, Q9, Q11, Q13 (D-011)"}
+  - {key: product:BRINE, missing: "no background chosen yet: refrigeration at -10 C (brine), per kWh of heat removed: compression chiller electricity at its COP plus its condenser cooling water; processes/utility-chiller of this library", source: "E-102 brine condensers Q4 (D-011)"}
+  # ---- wastes and emissions
+  - key: product:WW
+    treatment:
+      kind: waste
+      route: "biological wastewater treatment (acetic acid is readily biodegradable); ammonium phosphate salts from the catalyst"
+    missing: "no background chosen yet: treatment of industrial wastewater with organic load (about 0.65 wt% acetic acid, 0.8 wt% TEP residues and ammonium salts), per kg (1 m3 = 1000 kg); processes/utility-wwtp of this library"
+    source: "stream S22 (D-009)"
+  - key: product:RESIDUE
+    treatment:
+      kind: waste
+      route: "incineration of the liquid organic residue (heavy ends and acetic anhydride), hazardous waste"
+      hazardous: true
+    missing: "no background chosen yet: incineration of hazardous liquid organic waste (C, H, O only), per kg; its heat could be recovered"
+    source: "stream S20 (D-008)"
+  - key: product:STACK
+    emission: true
+    source: "stream S32: furnace flue gas from the firebox H101 (natural gas and vent gas burned completely, D-010)"
+  - key: emission:CO2
+    elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}
+    source: "CO2 of natural gas combustion and of the vent gas (cracking by-products CH4, CO2, CO, ethylene and unabsorbed ketene); the vent carbon comes from the acetic acid, fossil when the acid is made from natural-gas methanol and CO (ASSUMED, D-014)"
+  # Unburnt fuel components of the flue gas template: 0 under the complete-combustion model
+  # (D-010); identified so a later combustion estimate (I-05) has its flows.
+  - {key: emission:CH4, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "unburnt methane, 0 kg under complete combustion (D-010); not estimated, see emission_exclusions furnace-pollutants"}
+  # CO, ethylene and ketene: 0 kg in the model; the packaged IPCC method has no direct GWP100
+  # for them (cheme.lca-elementary-uncharacterised warns, a 0 kg gap). Not `free`: a free
+  # emission must be curated in the shared lci/mappings.yaml pass_through (D-014).
+  - {key: emission:CO, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "carbon monoxide, 0 kg under complete combustion (D-010); not estimated, see emission_exclusions furnace-pollutants (I-05)"}
+  - {key: emission:C2H4, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "unburnt ethylene, 0 kg under complete combustion (D-010); see I-05"}
+  - {key: emission:KET, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "unburnt ketene, 0 kg under complete combustion (D-010); see I-05"}
+  - {key: emission:N2, free: true, source: "nitrogen of the combustion air returned to the atmosphere"}
+  - {key: emission:O2, free: true, source: "excess oxygen of the combustion air returned to the atmosphere"}
+  - {key: emission:H2O, free: true, source: "water vapour formed by combustion"}
+
+emission_exclusions:
+  - id: furnace-pollutants
+    method: combustion
+    equipment: [F-101]
+    exchange: product:STACK
+    reason: "NOx, CO, unburnt hydrocarbons and particulates of the cracking furnace are not estimated, not claimed negligible: the flowsheet assumes complete combustion and no sourced emission factor for this furnace has been chosen (e.g. EMEP/EEA guidebook or AP-42 natural gas combustion factors, to be added as an emission_estimates entry with its source; DESIGN.md I-05)"
+    source: "DESIGN.md D-014, I-05"
+  - id: fugitive-leaks
+    method: equipment-leaks
+    reason: "fugitive acetic acid, acetic anhydride and ketene from flanges, seals and valves are not estimated, not claimed negligible: an equipment-leak estimate needs P&ID component counts, which do not exist at the concept stage (DESIGN.md I-06)"
+    source: "DESIGN.md I-06"
+  - id: storage-tanks
+    method: storage-tank
+    reason: "acid feed, product and residue tanks are outside the battery limit (design basis): their breathing losses belong to the storage, not to this boundary"
+    source: "design basis"
+  - id: no-other-effluent
+    method: effluent
+    reason: "the only liquid effluent is the acid-recovery wastewater S22, in the inventory; the liquid-ring pump seal fluid is acetic acid/anhydride returned to the process (US 8,653,303 B2), not an effluent"
+    source: "D-007, D-009"
+
+cutoff:
+  - {id: small-pumps-power, title: "Feed, reflux, distillate and transfer pumps power", unit: kWh, per_year: 200000, reason: "feed pump, the reflux and distillate pumps of C-201, C-202 and C-401 and transfer pumps, each a few kW, together about 25 kW x 8000 h/a (ASSUMED upper estimate, D-011); not in the flowsheet's power feed", source: "D-011"}
+  - {id: entrainer-makeup, title: "Extraction/entrainer solvent make-up (e.g. butyl acetate) of the acid recovery", unit: kg, per_year: 8000, reason: "solvent losses of the extraction and azeotropic dehydration, about 1 kg/h (ASSUMED order of magnitude, not designed: C-401 is a lumped unit, D-009)", source: "D-009"}
+  - {id: decoking, title: "Furnace coil decoking (steam and air, burnt coke)", unit: kg, per_year: 5000, reason: "coke burnt off the cracking coil during periodic decoking, as CO2; amount not known (ASSUMED order of magnitude), the coke yield is not in the conversion model (D-005)", source: "D-005"}
+
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 25 a service life ASSUMED; no construction inventory at this stage (no take-off)"
+
+dataset:
+  version: 0.1.0
+  geography: {description: "One concept design for a generic, not chosen site; no regional background"}
+  system_model: cutoff
+  technology_level: current
+  classification: {isic: "2011"}
+  modelling: {principle: attributional}
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library, acetic-anhydride-1 concept run (agent-generated, unreviewed)"

@@ -1,0 +1,173 @@
+# Goal and scope of the aniline-1 LCA. Schema: `cheme schema lca`. Outputs: `cheme assess lca
+# --write` (lca/inventory.csv, results.*, gaps.csv, dataset.yaml, manifest.json); never edit
+# those by hand. DESIGN.md D-013.
+#
+# PRELIMINARY GATE-TO-GATE LCI. Every foreground exchange comes from the balanced flowsheet
+# (process/flowsheet.yaml, case design). The background datasets are deliberately left
+# UNMAPPED: each technosphere flow carries `missing:` with the background activity it should
+# connect to later. No factor, no value from a licensed database, and no zero stands in for
+# them; the result is therefore a gap list, not a footprint.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of aniline (99.95 wt%) from the adiabatic
+  gas-phase hydrogenation of nitrobenzene at concept stage: the foreground exchanges per kg of
+  aniline at the plant gate, ready to be linked to background datasets (nitrobenzene,
+  hydrogen from hydrogen-1, grid power, cooling water, waste treatment) in the next stage
+  (DESIGN.md D-013). Flows are concept estimates; backgrounds are unmapped gaps.
+functional_unit: {product: ANILINE, amount: 1, unit: kg}
+boundary: gate-to-gate
+case: design
+location: GLO      # generic concept design, no site chosen
+year: 2026
+technology: "adiabatic gas-phase hydrogenation of nitrobenzene on Pd-V-Pb/alpha-alumina, H2/NB 60, steam raising, decanting, dehydration and vacuum distillation, process water stripping; 25 t/h aniline"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+allocation:
+  method: exergy
+  coproducts: [ANILINE, MPSX]
+  properties:
+    ANILINE:
+      exergy: 36931.3
+      source: >-
+        scripts/allocation_exergy.py: standard chemical exergy of liquid aniline, 3439.3 kJ/mol,
+        from the ideal-gas formation data of process/materials.yaml (CRC) and Szargut's
+        standard element exergies (Szargut, Morris and Steward 1988), less the Gibbs energy of
+        condensation at 298.15 K; physical exergy at 313 K / 300 kPa neglected
+    MPSX:
+      exergy: 1278.9
+      source: >-
+        scripts/allocation_exergy.py: exergy added per kWh of heat raised in E-103, saturated
+        steam at 1500 kPa(a) from boiler feed water at 378.15 K (ASSUMED), dead state 298.15 K,
+        101.325 kPa, IAPWS-95 (thermo)
+  compare: [none, shares]
+  shares: {ANILINE: 1.0, MPSX: 0.0}
+  source: >-
+    D-013: the exported MP steam (Q7, net of the reboilers) is a co-product of aniline. The
+    library allocates exported steam by energy or exergy, never by credit (docs/system-model.md
+    section 2); exergy is chosen because it weighs the steam by its work potential: about 1.8 %
+    of the burdens go to the steam. Shares 1/0 (everything on aniline) and the unallocated
+    result are kept in the comparison.
+  deviation: >-
+    Aniline and the steam are not products of one separation, so neither curated physical rule
+    of the hierarchy fits exactly, and the WBCSD price ratio does not apply (the steam is
+    counted in kWh, and no sourced prices exist at concept). Exergy is chosen because the
+    library allocates exported steam by energy or exergy; energy (LHV) would charge the steam's
+    enthalpy at the value of fuel, exergy charges its work potential (DESIGN.md D-013).
+flows:
+  # ---- inputs
+  - key: feed:NBF
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Nitrobenzene (S1, liquid, 500 kPa(a)) at the plant gate: connect to nitrobenzene
+      production by mixed-acid nitration of benzene (benzene, nitric acid, sulfuric acid
+      reconcentration, caustic washing and its wastewater), at plant, or to a future library
+      nitrobenzene process. The chemicals registry has no nitrobenzene slug yet.
+  - key: feed:H2F
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Hydrogen 99.9 mol% at 2850 kPa(a) (S2): connect to the library process hydrogen-1
+      (natural-gas steam reforming with PSA, product S17 of the same purity and pressure) once
+      its dataset is published in the Atlas, or else to a market for hydrogen, gaseous, from
+      steam methane reforming.
+  - key: feed:POWER
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Electricity for the recycle gas circulator K-101, the nitrobenzene pump P-101 and the
+      lumped column pumps and vacuum pump (Q1-Q3): connect to a market for electricity, medium
+      voltage, of the site's country.
+  # ---- outputs
+  - key: product:CW
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Heat rejected to the site cooling water system (Q8-Q11: E-104 and the three column
+      condensers and coolers, 298/308 K): connect to cooling water supply / heat rejection in
+      an evaporative cooling tower (pumping and fan power, make-up water, blowdown, treatment
+      chemicals), per kWh of heat removed.
+  - key: product:FUELGAS
+    treatment:
+      kind: waste
+      route: thermal treatment by combustion in the site fuel gas system
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Loop purge (S12, 70 kg/h: 90 mol% H2, 5 mol% N2, water and traces of aniline and
+      benzene) to the site fuel gas header. Classified as a waste for thermal treatment
+      (conservative: its burden of combustion stays with aniline, no credit): 0.3 % of the
+      output mass and about 1 MW LHV, 0.4 % of the aniline's heating value, too small to
+      share burdens as a co-product (D-013). Connect to the combustion of a hydrogen-rich gas
+      in a fired heater or boiler (NOx and the traces' CO2); its heating value displaces
+      natural gas only in a substitution variant.
+  - key: product:RESIDUE
+    treatment:
+      kind: waste
+      route: incineration of hazardous organic liquid waste
+      hazardous: true
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Low-boiler draw (S18: benzene with its own mass of aniline) and distillation residue
+      (S21: diphenylamine with aniline), 129 kg/h together: connect to incineration of
+      hazardous organic liquid waste (with energy recovery if the site has it), per kg of
+      waste of this elemental composition (C, H, N; no halogens or sulfur).
+  - key: product:WW
+    treatment:
+      kind: waste
+      route: biological wastewater treatment
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Stripped process water (S23, 9.7 t/h: 50 ppm(wt) aniline and about 0.1 wt% dissolved
+      ammonia, the reaction water of the hydrogenation): connect to treatment of industrial
+      wastewater in a biological plant, per m3 with its nitrogen and organic load (aniline is
+      readily biodegradable in an adapted plant; its residual discharge is an emission of that
+      treatment, not of this plant).
+consumables:
+  - id: hydrogenation-catalyst
+    title: Pd-V-Pb on alpha-alumina hydrogenation catalyst (R-101)
+    unit: t
+    per_replacement: 22
+    every_years: 4
+    catalyst: true
+    metals: {Pd: 0.009}
+    missing: "no background: palladium catalyst on alumina production (and the precious-metal recovery of the spent catalyst) not mapped yet"
+    uncertainty: {gsd2: 2.0, source: "ASSUMED inventory and life: wide"}
+    source: >-
+      ASSUMED: about 22 t in the bed (33.2 t/h nitrobenzene at the average loading of about
+      1.5 g per g catalyst and hour of US 2008/0234518 A1, example 3) replaced every 4 years;
+      the patent's cycles of about 1100-1500 h end in an in-situ regeneration, not a
+      replacement. Palladium about 0.9 mass% (the same example): about 0.2 t Pd per charge,
+      recovered.
+    disposal:
+      kind: recyclable
+      route: precious-metal recovery of the spent palladium catalyst (refiner), alumina support to landfill
+      missing: "no background: precious-metal refining of spent catalyst not mapped yet"
+      source: "ASSUMED: the spent charge goes to a precious-metal refiner, as is usual for palladium catalysts"
+emission_exclusions:
+  - id: fugitive-leaks
+    method: equipment-leaks
+    reason: >-
+      Not estimated in this preliminary LCI: equipment leaks of hydrogen, aniline, benzene and
+      nitrobenzene need the component count of the P&IDs (out of scope of this run). Recorded
+      as an open gap for basic engineering, not as negligible.
+  - id: catalyst-regeneration
+    method: non-routine
+    equipment: [R-101]
+    reason: >-
+      The periodic in-situ regeneration of the catalyst (burning off the carbon deposits with
+      air, US 2008/0234518 A1) emits CO2 and possibly NOx; amount and frequency are not known
+      at concept stage. Open gap for basic engineering, not negligible by evidence.
+  - id: start-up-and-flaring
+    method: flare
+    reason: >-
+      Start-up, shutdown and relief to a flare are not part of the steady design case; no flare
+      is designed at concept stage. Open gap.
+operation:
+  hours_per_year: 8400
+  life_years: 25
+  source: "design basis operating_hours_per_year 8400 (ASSUMED); 25 a service life ASSUMED"
+dataset:
+  version: 0.1.0
+  geography: {description: "One generic concept design; no site chosen, no country-specific data"}
+  classification: {isic: "2011"}
+  system_model: cutoff
+  technology_level: current
+  modelling: {principle: attributional}
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library, aniline-1 concept design (agent-drafted, not reviewed)"

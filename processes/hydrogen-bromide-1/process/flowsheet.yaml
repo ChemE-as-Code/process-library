@@ -1,0 +1,218 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Hydrogen bromide synthesis: liquid bromine vaporised with LP steam, burnt in a small excess of
+# hydrogen in a water-cooled burner, the residual bromine converted on an activated-carbon
+# finishing bed, the gas cooled in a graphite block cooler and absorbed to 48 wt-% hydrobromic
+# acid in a water-cooled graphite falling-film absorber with a tail gas scrubber
+# (DESIGN.md D-001..D-008). Bromine (planned library process bromine-1) and hydrogen
+# (hydrogen-1) are boundary feeds.
+# Where the values come from:
+# - feeds: pure liquid bromine (ASSUMED, D-003) and hydrogen-1's product S17 state (D-003);
+# - the reactor outlets S4 and S5 are calculated by cheme (conversion reactor R101, equilibrium reactor R102)
+#   from the feeds; their temperatures are assumed (D-007);
+# - the absorption streams, the vent and the duties come from the independent balance
+#   scripts/balance.py (D-006), run with `cheme run scripts/balance.py`, given as ASSUMED; its
+#   inputs are sourced or ASSUMED in DESIGN.md;
+# - hydrobromic acid is an electrolyte (core#364): its enthalpy is not calculated by cheme;
+#   the absorber duty rests on an ASSUMED heat of solution in scripts/balance.py (D-009).
+schema: cheme/process/v1
+kind: flowsheet
+title: Hydrogen bromide synthesis and absorption (2.08 t/h hydrobromic acid 48 wt-%)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: 2 083.3 kg/h hydrobromic acid 48 wt-% (1 000 kg/h HBr) at the gate, 8000 h/a, 5 mol-% hydrogen excess (D-002, D-004)", default: true}
+tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - {id: BR2, title: "Liquid bromine from storage (made by bromine-1, planned library process)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: H2, title: "Hydrogen 99.9 mol-% from hydrogen-1 (S17 there, 2850 kPa(a))", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: DMW, title: Demineralised water for absorption, category: raw_material, ports: [{id: out, direction: out}]}
+  - id: LPS
+    title: LP steam 450 kPa(a) (condensate returned)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 450, provenance: assumed, source: "D-007: site LP steam level, as methanol-1"}
+      supply_temperature: {value: 421.1, provenance: assumed, source: "saturation at 450 kPa(a): IAPWS-IF97 region 4 saturation-temperature equation (R7-97(2012) Eq. 31), 421.06 K, D-007"}
+      min_approach: {value: 10, provenance: assumed, source: D-007}
+    ports: [{id: e101, direction: out, kind: energy}]
+  - id: POWER
+    title: Electric power (AC, grid)
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: r101, direction: out, kind: energy}
+      - {id: p201, direction: out, kind: energy}
+products:
+  - {id: HBRACID, title: Hydrobromic acid 48 wt-% to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: VENT, title: "Tail gas scrubber vent to atmosphere (excess hydrogen, nitrogen)", category: emission, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: D-010}
+      return_temperature: {value: 308.15, provenance: assumed, source: D-010}
+      min_approach: {value: 5, provenance: assumed, source: D-010}
+    ports:
+      - {id: r101, direction: in, kind: energy}
+      - {id: e102, direction: in, kind: energy}
+      - {id: c201, direction: in, kind: energy}
+
+blocks:
+  - id: VAP
+    title: Bromine vaporisation
+    class: Evaporating
+    ports:
+      - {id: br2, direction: in}
+      - {id: vap, direction: out}
+      - {id: heat, direction: in, kind: energy}
+  - id: SYN
+    title: HBr synthesis, catalytic finishing and gas cooling
+    class: ReactingChemicals
+    ports:
+      - {id: br2, direction: in}
+      - {id: h2, direction: in}
+      - {id: gas, direction: out}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+      - {id: aux, direction: in, kind: energy}
+  - id: ABS
+    title: Absorption and tail gas scrubbing
+    class: Absorbing
+    ports:
+      - {id: gas, direction: in}
+      - {id: dmw, direction: in}
+      - {id: acid, direction: out}
+      - {id: vent, direction: out}
+      - {id: cw, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+
+steps:
+  # VAP: steam-heated kettle vaporiser with superheater (D-007)
+  - id: E101
+    block: VAP
+    title: Bromine vaporiser (LP steam)
+    class: Evaporating
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: in, direction: in, delegates: br2}
+      - {id: out, direction: out, delegates: vap}
+      - {id: heat, direction: in, kind: energy, delegates: heat}
+  # SYN: burner with water-cooled combustion chamber, hydrogen let-down valve in its package
+  - id: R101
+    block: SYN
+    title: HBr burner with water-cooled combustion chamber
+    class: ReactingChemicals
+    reactions: [HBR_SYN]
+    reactor: conversion        # Br2 conversion 0.9997, the reaction's own (D-005)
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: br2, direction: in, delegates: br2}
+      - {id: h2, direction: in, delegates: h2}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw1}
+      - {id: aux, direction: in, kind: energy, delegates: aux}
+  - id: R102
+    block: SYN
+    title: Catalytic finishing bed (activated carbon)
+    class: ReactingChemicals
+    reactions: [HBR_SYN]
+    reactor: equilibrium        # ideal gas at the outlet T and p: the residual Br2 reacts (D-005)
+    catalyst: ACT_C
+    links: [{target: equipment, ref: R-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+  - id: E102
+    block: SYN
+    title: Graphite block HBr gas cooler
+    class: Cooling
+    links: [{target: equipment, ref: E-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: gas}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+  # ABS: isothermal falling-film absorber, tail gas scrubber, product pump (D-008)
+  - id: C201
+    block: ABS
+    title: Falling-film absorber (graphite, water-cooled)
+    class: Absorbing
+    links: [{target: equipment, ref: C-201}]
+    ports:
+      - {id: gas, direction: in, delegates: gas}
+      - {id: weak, direction: in}
+      - {id: acid, direction: out}
+      - {id: tail, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  - id: C202
+    block: ABS
+    title: Tail gas scrubber (packed, demineralised water)
+    class: Absorbing
+    links: [{target: equipment, ref: C-202}]
+    ports:
+      - {id: tail, direction: in}
+      - {id: dmw, direction: in, delegates: dmw}
+      - {id: weak, direction: out}
+      - {id: vent, direction: out, delegates: vent}
+  - id: P201
+    block: ABS
+    title: Product acid pump
+    class: GeneratingFlow
+    links: [{target: equipment, ref: P-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: acid}
+      - {id: power, direction: in, kind: energy, delegates: power}
+
+# Material streams: flow (kg/h) and composition (mass fractions) from scripts/balance.py
+# (D-006) unless calculated by cheme; temperatures and pressures are design choices (D-007,
+# D-008), ASSUMED.
+streams:
+  - {id: S1, title: Liquid bromine feed, from: BR2.out, to: E101.in, template: bromine, state: {design: {temperature: {value: 298.15, provenance: assumed, source: "D-003: from storage at ambient"}, pressure: {value: 400.0, provenance: assumed, source: "D-003: delivered by the tank farm's transfer pump (outside the boundary)"}, flow: {value: 987.542, basis: mass, provenance: assumed, source: "scripts/balance.py: Br2 for 1 000 kg/h HBr in the acid plus the vent loss (D-002, D-006)"}, composition: {basis: mass_fraction, values: {Br2: 1.0}, provenance: assumed, source: "D-003: pure bromine; real bromine carries < 0.05 % Cl2 and < 0.01 % water (US 6 036 936 A, Example), not modelled"}}}}
+  - {id: S2, title: Bromine vapour to the burner, from: E101.out, to: R101.br2, template: bromine, state: {design: {temperature: {value: 378.15, provenance: assumed, source: "D-007: 9.5 K above saturation at 300 kPa(a) (368.7 K, thermo); US 6 036 936 A Example feeds bromine at 3 bar(a), 95 degC"}, pressure: {value: 300.0, provenance: assumed, source: D-007}, flow: {value: 987.542, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {Br2: 1.0}, provenance: assumed, source: D-003}}}}
+  - {id: S3, title: Hydrogen feed, from: H2.out, to: R101.h2, template: gas, state: {design: {temperature: {value: 313.15, provenance: assumed, source: "hydrogen-1 S17 delivery, D-003"}, pressure: {value: 2850.0, provenance: assumed, source: "hydrogen-1 S17 delivery, D-003; let down to the burner in R-101's package"}, flow: {value: 13.263, basis: mass, provenance: assumed, source: "scripts/balance.py: 5 mol-% H2 excess over Br2 (D-004)"}, composition: {basis: mass_fraction, values: {H2: 0.9862816, N2: 0.0137184}, provenance: assumed, source: "hydrogen-1 S17 composition (99.9 mol-% H2, 0.1 mol-% N2), D-003"}}}}
+  - id: S4
+    title: Burner gas to the finishing bed
+    from: R101.out
+    to: R102.in
+    template: gas
+    state:
+      design:
+        temperature: {value: 448.15, provenance: assumed, source: "D-007: gas entering the catalytic finishing stage at 150-200 degC (US 6 036 936 A, description of the FIG. 3 variant)"}
+        pressure: {value: 250.0, provenance: assumed, source: "D-007: inside the 1.8-10 bar(a) preferred reaction pressure of US 6 036 936 A"}
+        flow: {value: 1000.81, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S3', fingerprint: fae91aabbee545d1}
+        composition: {basis: mole_fraction, values: {Br2: 0.000146265, H2: 0.0245307, N2: 0.000512447, HBr: 0.974811, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S3', fingerprint: 680174d483fa6615}
+  - id: S5
+    title: Finished HBr gas to the cooler
+    from: R102.out
+    to: E102.in
+    template: gas
+    state:
+      design:
+        temperature: {value: 448.15, provenance: assumed, source: "D-007: adiabatic rise over R102 0.5 K (scripts/balance.py), neglected"}
+        pressure: {value: 240.0, provenance: assumed, source: D-007}
+        flow: {value: 1000.81, provenance: calculated, source: 'cheme process propagate: reactor R102 from S4', fingerprint: e1dc33a5daeb2bd1}
+        composition: {basis: mole_fraction, values: {H2: 0.0243844, N2: 0.000512447, Br2: 3.5874e-12, HBr: 0.975103, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R102 from S4', fingerprint: f2db6c915595922b}
+  - {id: S6, title: Cooled HBr gas to the absorber, from: E102.out, to: C201.gas, template: gas, state: {design: {temperature: {value: 333.15, provenance: assumed, source: "D-007: 60 degC, the preferred outlet of the graphite cooling zone (US 6 036 936 A: 40-125 degC)"}, pressure: {value: 230.0, provenance: assumed, source: D-007}, flow: {value: 1000.805, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {HBr: 0.9991958, H2: 0.0006224, N2: 0.0001818}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S7, title: Acid from the absorber, from: C201.acid, to: P201.in, template: aqueous, state: {design: {temperature: {value: 313.15, provenance: assumed, source: D-008}, pressure: {value: 200.0, provenance: assumed, source: D-008}, flow: {value: 2083.333, basis: mass, provenance: assumed, source: "design basis, D-002"}, composition: {basis: mass_fraction, values: {HBr: 0.48, H2O: 0.52}, provenance: assumed, source: "design basis, D-002"}}}}
+  - {id: S8, title: Absorber tail gas, from: C201.tail, to: C202.tail, template: gas, state: {design: {temperature: {value: 313.15, provenance: assumed, source: D-008}, pressure: {value: 200.0, provenance: assumed, source: D-008}, flow: {value: 6.023, basis: mass, provenance: assumed, source: "scripts/balance.py: 0.5 % of the HBr unabsorbed, water-saturated at 40 degC (D-008)"}, composition: {basis: mass_fraction, values: {HBr: 0.8301864, H2: 0.1034244, N2: 0.0302097, H2O: 0.0361795}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S9, title: Weak acid to the absorber, from: C202.weak, to: C201.weak, template: aqueous, state: {design: {temperature: {value: 303.15, provenance: assumed, source: D-008}, pressure: {value: 210.0, provenance: assumed, source: "D-008: C202 sump at 190 kPa(a) plus about 2 m weak-acid leg (C202 stacked above C201, gravity flow)"}, flow: {value: 1088.551, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {HBr: 0.0045932, H2O: 0.9954068}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S10, title: Demineralised water, from: DMW.out, to: C202.dmw, template: aqueous, state: {design: {temperature: {value: 298.15, provenance: assumed, source: D-008}, pressure: {value: 300.0, provenance: assumed, source: D-008}, flow: {value: 1083.463, basis: mass, provenance: assumed, source: "scripts/balance.py: water of the acid and the vent (no water enters with the feeds or forms, D-006)"}, composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-008}}}}
+  - {id: S11, title: Vent to atmosphere, from: C202.vent, to: VENT.in, template: gas, state: {design: {temperature: {value: 303.15, provenance: assumed, source: D-008}, pressure: {value: 105.0, provenance: assumed, source: "D-008: after the scrubber pressure control valve"}, flow: {value: 0.935, basis: mass, provenance: assumed, source: "scripts/balance.py: excess H2 and N2, water-saturated at 30 degC and 190 kPa(a), 5 mg HBr/Nm3 (D-008)"}, composition: {basis: mass_fraction, values: {HBr: 0.0000387, H2: 0.6663303, N2: 0.1946312, H2O: 0.1389998}, provenance: assumed, source: scripts/balance.py}}}}
+  - {id: S12, title: Hydrobromic acid 48 wt-% product, from: P201.out, to: HBRACID.in, template: aqueous, state: {design: {temperature: {value: 313.15, provenance: assumed, source: D-008}, pressure: {value: 300.0, provenance: assumed, source: D-008}, flow: {value: 2083.333, basis: mass, provenance: assumed, source: "design basis, D-002"}, composition: {basis: mass_fraction, values: {HBr: 0.48, H2O: 0.52}, provenance: assumed, source: "design basis, D-002"}}}}
+  # Energy streams (duties from scripts/balance.py, D-006, D-007, D-010, D-011)
+  - {id: Q1, title: Bromine vaporiser LP steam duty, kind: energy, from: LPS.e101, to: E101.heat, state: {design: {duty: {value: 58.0, provenance: assumed, source: "scripts/balance.py: Br2 vaporisation enthalpy at 298 K (30.88 kJ/mol) and gas superheat to 378 K; 98.5 kg/h LP steam (D-007)"}}}}
+  - {id: Q2, title: Burner chamber cooling water duty, kind: energy, from: R101.cw, to: CW.r101, state: {design: {duty: {value: 166.4, provenance: assumed, source: "scripts/balance.py: heat released from the feeds at 378/313 K to the outlet at 448 K (D-007)"}}}}
+  - {id: Q3, title: Graphite gas cooler duty, kind: energy, from: E102.cw, to: CW.e102, state: {design: {duty: {value: 11.8, provenance: assumed, source: "scripts/balance.py: HBr gas 448 to 333 K (D-007)"}}}}
+  - {id: Q4, title: Absorber cooling water duty, kind: energy, from: C201.cw, to: CW.c201, state: {design: {duty: {value: 232.4, provenance: assumed, source: "scripts/balance.py: gas cooling and heat of solution -72.0 kJ/mol HBr ASSUMED (D-009)"}}}}
+  - {id: Q5, title: Product acid pump power, kind: energy, from: POWER.p201, to: P201.power, state: {design: {duty: {value: 0.08, provenance: assumed, source: "scripts/balance.py: 100 kPa, 1 490 kg/m3, eta 0.5 (D-011)"}}}}
+  - {id: Q6, title: "Burner management, instruments and analysers", kind: energy, from: POWER.r101, to: R101.aux, state: {design: {duty: {value: 3.0, provenance: assumed, source: "D-011: ASSUMED allowance"}}}}
+layout: {bfd: {}, pfd: {}}

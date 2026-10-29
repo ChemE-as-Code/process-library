@@ -1,0 +1,92 @@
+# Reactions of the ketene route to acetic anhydride (DESIGN.md D-005, D-007, D-010).
+# Schema cheme/reactions/v1. Heats of reaction from the ideal-gas formation enthalpies of
+# process/materials.yaml at 298.15 K (kJ per kmol of extent as written). No rate law: the
+# cracking coil R101 and the absorber T301 are conversion reactors with the conversion and
+# selectivities of a published patent example (cracking) or ASSUMED values (absorption), and
+# the firebox H101 burns its fuels completely. Sourced conversion model, not kinetics.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: CRACK
+    equation: CH3COOH -> CH2CO + H2O
+    stoichiometry: {ACOH: -1.0, KET: 1.0, H2O: 1.0}
+    reversible: false
+    heat_of_reaction:
+      value: 141808.0
+      provenance: calculated
+      source: "ideal-gas formation enthalpies of process/materials.yaml at 298.15 K (-48570 - 241822 + 432200 kJ/kmol)"
+    catalyst: triethyl phosphate (homogeneous, about 0.1-0.5 wt% of the feed), neutralised by NH3 after the coil
+    sources:
+      - "US 4,455,439 (Hoechst, 1984), Example: 700 C, 358 mbar furnace outlet, 84 % conversion, 92 % ketene on acid reacted"
+      - "US 8,653,303 B2 (Celanese, 2014), section on ketene: TEP 0.1-0.5 wt% of the feed"
+      - "Padmanabhan, Deshpande, Kuloor (1968) I&EC Process Des. Dev. 7(4) 511-516: TEP better than silica gel, best ketene yield at 750 C and 100 mmHg"
+  - id: DECARB
+    equation: CH3COOH -> CH4 + CO2
+    stoichiometry: {ACOH: -1.0, CH4: 1.0, CO2: 1.0}
+    reversible: false
+    heat_of_reaction:
+      value: -35808.0
+      provenance: calculated
+      source: "ideal-gas formation enthalpies of process/materials.yaml at 298.15 K (-74534 - 393474 + 432200 kJ/kmol)"
+    catalyst: none (thermal side reaction)
+    sources: ["US 4,455,439 (description): methane, CO2, CO, ethylene and allene named as cracking by-products, no amounts"]
+  - id: KETDEC
+    equation: 2 CH2CO -> C2H4 + 2 CO
+    stoichiometry: {KET: -2.0, C2H4: 1.0, CO: 2.0}
+    reversible: false
+    heat_of_reaction:
+      value: -71350.0
+      provenance: calculated
+      source: "ideal-gas formation enthalpies of process/materials.yaml at 298.15 K (52560 - 2 x 110525 + 2 x 48570 kJ/kmol)"
+    catalyst: none (thermal side reaction)
+    sources: ["US 4,455,439 (description): methane, CO2, CO, ethylene and allene named as cracking by-products, no amounts"]
+  - id: ABSORB
+    equation: CH2CO + CH3COOH -> (CH3CO)2O
+    stoichiometry: {KET: -1.0, ACOH: -1.0, AC2O: 1.0}
+    reversible: false
+    conversion: {key: KET, value: 0.9801, provenance: assumed, source: "D-007: 99 % of the ketene absorbed, 99 % of that to anhydride"}
+    heat_of_reaction:
+      value: -91730.0
+      provenance: calculated
+      source: "ideal-gas formation enthalpies of process/materials.yaml at 298.15 K (-572500 + 48570 + 432200 kJ/kmol); US 8,653,303 B2 (Primary Reaction) states -63 kJ/mol, see DESIGN.md D-007"
+    catalyst: none (liquid-phase reactive absorption)
+    sources: ["US 8,653,303 B2 (Celanese, 2014), Primary Reaction section"]
+  - id: OLIGO
+    equation: 4 CH2CO -> C8H8O4 (heavy ends, lumped as dehydroacetic acid)
+    stoichiometry: {KET: -4.0, DHA: 1.0}
+    reversible: false
+    conversion: {key: KET, value: 0.0099, provenance: assumed, source: "D-007: 1 % of the absorbed ketene (0.99 x 0.01 of the inlet) to heavy ends"}
+    catalyst: none (side reaction in the absorber)
+    sources: ["D-007: lumped heavy-ends model, ASSUMED"]
+  - id: COMB_CH4
+    equation: CH4 + 2 O2 -> CO2 + 2 H2O
+    stoichiometry: {CH4: -1.0, O2: -2.0, CO2: 1.0, H2O: 2.0}
+    reversible: false
+    conversion: {key: CH4, value: 1.0, provenance: assumed, source: "D-010: complete combustion"}
+    heat_of_reaction: {value: -802584.0, provenance: calculated, source: "ideal-gas formation enthalpies of process/materials.yaml at 298.15 K"}
+    catalyst: none (combustion)
+    sources: ["stoichiometry"]
+  - id: COMB_CO
+    equation: CO + 0.5 O2 -> CO2
+    stoichiometry: {CO: -1.0, O2: -0.5, CO2: 1.0}
+    reversible: false
+    conversion: {key: CO, value: 1.0, provenance: assumed, source: "D-010: complete combustion"}
+    heat_of_reaction: {value: -282949.0, provenance: calculated, source: "ideal-gas formation enthalpies of process/materials.yaml at 298.15 K"}
+    catalyst: none (combustion)
+    sources: ["stoichiometry"]
+  - id: COMB_C2H4
+    equation: C2H4 + 3 O2 -> 2 CO2 + 2 H2O
+    stoichiometry: {C2H4: -1.0, O2: -3.0, CO2: 2.0, H2O: 2.0}
+    reversible: false
+    conversion: {key: C2H4, value: 1.0, provenance: assumed, source: "D-010: complete combustion"}
+    heat_of_reaction: {value: -1323152.0, provenance: calculated, source: "ideal-gas formation enthalpies of process/materials.yaml at 298.15 K"}
+    catalyst: none (combustion)
+    sources: ["stoichiometry"]
+  - id: COMB_KET
+    equation: CH2CO + 2 O2 -> 2 CO2 + H2O
+    stoichiometry: {KET: -1.0, O2: -2.0, CO2: 2.0, H2O: 1.0}
+    reversible: false
+    conversion: {key: KET, value: 1.0, provenance: assumed, source: "D-010: complete combustion"}
+    heat_of_reaction: {value: -980200.0, provenance: calculated, source: "ideal-gas formation enthalpies of process/materials.yaml at 298.15 K"}
+    catalyst: none (combustion)
+    sources: ["stoichiometry"]

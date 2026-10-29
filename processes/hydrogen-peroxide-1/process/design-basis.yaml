@@ -1,0 +1,49 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Hydrogen peroxide by the anthraquinone autoxidation (AO) process, issue
+# ChemE-as-Code/process-library#170. Hydrogen is a boundary feed (DESIGN.md D-001). Values
+# marked ASSUMED are engineering choices of this concept study, not client or licensor data;
+# ranges cited as "BREF" are from the EU LVOC BREF 2017 (Falcke et al., EUR 28882 EN,
+# doi:10.2760/77304), chapter 12; every decision is in DESIGN.md.
+capacity:
+  basis: H2O2 (100 %) contained in the 50 wt% product to storage
+  h2o2_t_per_a: 50000                  # ASSUMED (D-002): a mid-size single train, not a client figure
+  operating_hours_per_year: 8000       # ASSUMED (D-002)
+  h2o2_kg_per_h: 6250.0                # = 50 000 t/a / 8000 h
+  product_kg_per_h: 12500.0            # 50 wt% solution
+  turndown_percent: 50                 # ASSUMED, not checked
+feeds:
+  - name: Hydrogen (boundary feed)
+    source_of_values: "ASSUMED (D-003): pure H2 at 500 kPa(a), 313 K from a hydrogen plant outside the boundary (library process hydrogen-1, or a by-product H2 such as chlor-alkali-1)"
+    consumption: "63.5 kg/t H2O2 (stream S01), inside the BREF 60-70 kg/t (Table 12.4)"
+  - name: Ambient air for the oxidation
+    source_of_values: "dry air (D-007), 30 % O2 excess ASSUMED within the BREF 20-40 % (12.2.2.3)"
+  - name: Demineralised water for the extraction
+    source_of_values: "1.19 t/t H2O2 (S29), inside the BREF 1-2 m3/t (Table 12.4, 12.3.5)"
+  - name: Working-solution make-ups (2-ethylanthraquinone, C9 aromatic and diisobutylcarbinol) and activated alumina
+    source_of_values: "ASSUMED within the BREF ranges (Table 12.4): quinone 1.0 kg/t, solvents 2.5 kg/t, reversion agent 6 kg/t (D-011)"
+products:
+  - name: Hydrogen peroxide, 50 wt% aqueous solution (technical grade)
+    purity: "50.0 wt% H2O2; residual organics ~100 mg/kg (DIBC, TMB: ASSUMED, D-008); stabilisers not modelled (D-002)"
+    delivery: {pressure_kPa_a: 300, temperature_K: 303.15, battery_limit: product storage (outside the boundary)}
+  - name: Treated oxidiser off-gas (N2, O2, Ar, water, residual VOC) to atmosphere
+  - name: Hydrogenation vent (H2 with solvent vapour) to atmosphere
+  - name: Aqueous effluent (dryer water, ejector and adsorber condensate) to biological waste water treatment outside the boundary
+  - name: Spent activated alumina with degraded quinone and solvent, to disposal outside the boundary
+utilities:
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: "ASSUMED (D-010)"}
+  - {name: LP steam, pressure_kPa_a: 350, saturation_K: 411.0, use: "concentrator reboiler (indirect), adsorber regeneration and WS dryer ejector (direct)", note: "ASSUMED level (D-010)"}
+  - {name: Electric power, use: "air compressor, WS pumps, auxiliary pumps, vacuum pump", note: "ASSUMED electric drives (D-010)"}
+site:
+  location: ASSUMED generic site, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325   # ASSUMED
+assumptions:
+  - "ASSUMED working solution: 2-ethylanthraquinone 14 wt% in 60:40 (mass) 1,2,4-trimethylbenzene : diisobutylcarbinol, 0.15 wt% water, 930 kg/m3; 'anthra' system, no tetrahydro derivatives modelled (D-004)."
+  - "ASSUMED hydrogenation: fixed-bed Pd, 333 K, 400 kPa(a), 45 % of the quinone hydrogenated per pass (BREF: < 60 %), residual H2O2 in the recycled WS destroyed on the catalyst, 1 % of the H2 feed vented (D-003, D-005)."
+  - "ASSUMED oxidation: air, 328 K, 350 kPa(a) (BREF 40-70 C, atmospheric-10 bar), complete oxidation of the hydroquinone (D-005, D-007)."
+  - "ASSUMED extraction: 97 % of the H2O2 to a 40 wt% crude (BREF 20-50 wt%), raffinate 0.30 wt% water; a specified split, not an equilibrium-stage calculation (D-008)."
+  - "ASSUMED concentration: vacuum column 10-12 kPa(a), reflux ratio 0.3, distillate 0.05 wt% H2O2 recycled to the extraction, no vapour recompression (D-010)."
+  - "ASSUMED off-gas treatment: condenser at 308 K, activated carbon to 20 mg C/Nm3 (inside the BREF Table 12.8 plant values), regeneration steam 5 kg/kg (BREF 4-6) (D-009)."
+  - "ASSUMED no H2O2 decomposition other than the hydrogenation of the residual H2O2 (D-005); stabilisers, nitric acid, caustic, Pd catalyst, activated carbon and ion-exchange resin are consumables outside the flowsheet (lca/lca.yaml, D-011)."
+  - "Heats of reaction: oxidation 77.5 kJ/mol (BREF 12.3.4 d); hydrogenation -110.3 kJ/mol derived by Hess's law (D-005)."
+  - "All flows and duties are concept estimates from scripts/hp_balance.py (D-006); accuracy not stated, roughly +/-30 %."

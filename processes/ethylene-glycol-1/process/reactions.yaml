@@ -1,0 +1,55 @@
+# Reactions of ethylene-glycol-1 (D-004, D-005). Schema: `cheme schema process-reactions`.
+# Model basis: conversion/selectivity specifications, not kinetics. The EO reactor (R-101) is a
+# selectivity reactor (per-pass ethylene conversion and EO selectivity inside the ranges of the
+# BREF LVOC 2017, section 7.2.1.1.1); the glycol reactor (R-401) converts all EO and its product
+# split comes from a consecutive-reaction model with an ASSUMED relative rate (D-005,
+# scripts/eg_balance.py). Heats of reaction: EO formation and total combustion of ethylene as
+# stated in the BREF LVOC 2017, section 7.2.1.1.1 (gas phase); the hydration steps ASSUMED
+# about -95 kJ/mol each (liquid phase, from standard formation enthalpies; to be checked against
+# a sourced table, D-007). Sign: negative = exothermic, J/mol.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: EOX
+    title: Partial oxidation of ethylene to ethylene oxide (silver catalyst)
+    equation: C2H4 + 0.5 O2 -> EO
+    stoichiometry: {C2H4: -1, O2: -0.5, EO: 1}
+    catalyst: silver on alpha-alumina, promoted, with an organochlorine moderator in the feed gas
+    conversion: {key: C2H4, value: 0.0765, provenance: assumed, source: "D-004: fraction of the inlet C2H4 converted to EO = per-pass conversion 0.09 x EO selectivity 0.85 (BREF LVOC 2017 7.2.1.1.1: 8-10 %, 75-90 %)"}
+    heat_of_reaction: {value: -105000, provenance: given, source: "BREF LVOC 2017 (JRC109279), section 7.2.1.1.1, p. 363"}
+    sources: ["BREF LVOC 2017 (JRC109279), sections 7.2.1.1.1 and 7.2.2.1, pp. 363-366"]
+  - id: COMB
+    title: Total combustion of ethylene (side reaction, R-101)
+    equation: C2H4 + 3 O2 -> 2 CO2 + 2 H2O
+    stoichiometry: {C2H4: -1, O2: -3, CO2: 2, H2O: 2}
+    conversion: {key: C2H4, value: 0.0135, provenance: assumed, source: "D-004: fraction of the inlet C2H4 burnt = 0.09 x (1 - 0.85)"}
+    heat_of_reaction: {value: -1323000, provenance: given, source: "BREF LVOC 2017 (JRC109279), section 7.2.1.1.1, p. 363"}
+    sources: ["BREF LVOC 2017 (JRC109279), section 7.2.1.1.1, p. 363"]
+  - id: HYD1
+    title: Hydration of EO to monoethylene glycol
+    equation: EO + H2O -> MEG
+    stoichiometry: {EO: -1, H2O: -1, MEG: 1}
+    phase: liquid
+    heat_of_reaction: {value: -95000, provenance: assumed, source: "D-007: from standard formation enthalpies, to be checked"}
+    sources: ["BREF LVOC 2017 (JRC109279), section 7.2.1.2.1, p. 364 (reaction scheme)"]
+  - id: HYD2
+    title: Ethoxylation of MEG to diethylene glycol
+    equation: EO + MEG -> DEG
+    stoichiometry: {EO: -1, MEG: -1, DEG: 1}
+    phase: liquid
+    heat_of_reaction: {value: -95000, provenance: assumed, source: "D-007, ASSUMED equal to HYD1"}
+    sources: ["BREF LVOC 2017 (JRC109279), section 7.2.1.2.1, p. 364 (reaction scheme)"]
+  - id: HYD3
+    title: Ethoxylation of DEG to triethylene glycol
+    equation: EO + DEG -> TEG
+    stoichiometry: {EO: -1, DEG: -1, TEG: 1}
+    phase: liquid
+    heat_of_reaction: {value: -95000, provenance: assumed, source: "D-007, ASSUMED equal to HYD1"}
+    sources: ["BREF LVOC 2017 (JRC109279), section 7.2.1.2.1, p. 364 (reaction scheme)"]
+  - id: HYD4
+    title: Ethoxylation of TEG to heavy glycols (tetraethylene glycol)
+    equation: EO + TEG -> TTEG
+    stoichiometry: {EO: -1, TEG: -1, TTEG: 1}
+    phase: liquid
+    heat_of_reaction: {value: -95000, provenance: assumed, source: "D-007, ASSUMED equal to HYD1"}
+    sources: ["BREF LVOC 2017 (JRC109279), section 7.2.1.2.1, p. 364 (heavier glycols)"]

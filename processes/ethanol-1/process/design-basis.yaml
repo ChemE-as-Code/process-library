@@ -1,0 +1,47 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Anhydrous ethanol by vapour-phase direct hydration of ethylene over supported phosphoric acid,
+# issue ChemE-as-Code/process-library#129. Ethylene comes from a steam cracker outside the
+# boundary (no library process makes it yet); fermentation, the dominant route worldwide, is
+# not designed here (DESIGN.md D-001). Values marked ASSUMED are choices of this concept study,
+# not client, licensor or plant data; every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: anhydrous ethanol to storage (product stream incl. its water)
+  product_t_per_a: 100000             # ASSUMED (D-002): mid-size synthetic ethanol train, not a client figure
+  product_kg_per_h: 12500             # = 100 000 t/a / 8000 h
+  operating_hours_per_year: 8000      # ASSUMED
+  turndown_percent: 60                # ASSUMED, not checked
+feeds:
+  - name: Polymer-grade ethylene (pipeline, from a steam cracker outside the boundary)
+    source_of_values: ASSUMED (D-002) polymer-grade quality; no library process makes ethylene yet
+    composition_mol_percent: {C2H4: 99.9, C2H6: 0.08, CH4: 0.02}   # ASSUMED
+    conditions: {pressure_kPa_a: 7300, temperature_K: 303.15}   # ASSUMED battery limit at loop pressure (no make-up compressor, D-002)
+    flow: set by the product rate through the balance (scripts/balance.py); stream S1
+  - name: Demineralised make-up water
+    source_of_values: ASSUMED (D-002); boiler-feed quality, from the site water treatment
+    conditions: {pressure_kPa_a: 400, temperature_K: 303.15}
+products:
+  - name: Anhydrous ethanol
+    purity: "ethanol >= 99.7 wt%, water <= 0.3 wt% (the water limit of EN 15376 fuel ethanol, used as the target; the full specification is not modelled, D-002)"
+    design_target: "water 0.2 wt% (ASSUMED margin), ethanol 99.78 wt%, diethyl ether ~170 ppm(wt) by the balance"
+    delivery: {pressure_kPa_a: 150, temperature_K: 313.15, battery_limit: day tanks / storage (outside the boundary)}
+  - name: Loop purge and light-ends off-gas
+    use: "site fuel-gas header (outside the boundary); ethylene, ethane, methane, butenes, diethyl ether, some ethanol"
+  - name: Wastewater (water-loop blowdown)
+    use: site biological wastewater treatment (outside the boundary); carries ~100 ppm(wt) ethanol and the sodium phosphate of the acid neutralisation (not modelled, D-007)
+utilities:
+  - {name: HP steam, pressure_kPa_a: 4200, saturation_K: 526.4, use: reactor feed superheater E-102, note: ASSUMED level (D-008)}
+  - {name: LP steam, pressure_kPa_a: 450, saturation_K: 420.8, use: column reboilers, note: ASSUMED level (D-008)}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: ASSUMED (D-008)}
+  - {name: Electric power, use: recycle and flash-gas compressors, process water pump, sieve vacuum pump, note: ASSUMED electric drives}
+site:
+  location: ASSUMED generic site, not chosen
+  design_ambient_K: 303.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325   # ASSUMED
+assumptions:
+  - "Reactor R-101: adiabatic fixed bed of phosphoric acid on silica, inlet 513.15 K and 7050 kPa(a), water/ethylene 0.35 mol/mol (US 5349096 ranges; D-003)."
+  - "Conversion of ethylene 5 % per pass (US 4003952, prior-art description: 4-5 %); selectivity 0.97 ethanol, 0.01 diethyl ether, 0.005 butenes per kmol ethylene converted, ASSUMED (D-004)."
+  - "Separators, scrubber and columns: specified component splits, ASSUMED (D-005); duties from scripts/balance.py, ideal gas plus latent heats (D-006)."
+  - "Loop purge 0.1 % of the scrubbed gas, water-loop blowdown 10 % of the C-202 bottoms, ASSUMED (D-005)."
+  - "Phosphoric acid carried out of the reactor is made up to the catalyst and neutralised with caustic soda in the effluent: both small, not in the stream table, counted in the LCI as ASSUMED consumables (D-007)."
+  - "All flows, temperatures and duties are concept estimates from an unqualified method (D-006); accuracy not stated."

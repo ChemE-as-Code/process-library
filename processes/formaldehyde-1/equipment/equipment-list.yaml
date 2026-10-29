@@ -1,0 +1,42 @@
+# Equipment list. Schema: `cheme schema equipment`.
+# Concept stage: the items the PFD (process/flowsheet.yaml) needs, no P&ID yet (no sheet).
+# Design pressure and temperature are ASSUMED concept values (D-011): the plant runs near
+# atmospheric pressure, so one design pressure of 3.5 barg (blower shut-off head plus margin,
+# ASSUMED) for the gas loop; design temperature the highest operating value + 25 K (hot-oil
+# side: the oil's boiling temperature + 25 K, ASSUMED). Sizes, dimensions and weights come at
+# basic engineering (datasheets).
+equipment:
+  # ---- gas circulation and methanol feed (block FEED)
+  - {tag: K-101, type: CentrifugalCompressor, service: Process gas blower (fresh air and recycle gas),
+     design_pressure_barg: 3.5, design_temperature_degc: 105, material: CS,
+     notes: "100.5 -> 150 kPa(a), 109.6 t/h; ~1.53 MW shaft, 1.61 MW electric at isentropic efficiency 0.75 and motor 0.95 (D-007, ASSUMED). The BREF names a turbocharger on the air as an energy option (D-007); not in the PFD."}
+  # ---- methanol vaporisation and oxidation (block RXN)
+  - {tag: E-101, type: TubularHeatExchanger, service: Methanol vaporiser / feed preheater (reaction gas heated),
+     design_pressure_barg: 3.5, design_temperature_degc: 305, material: "CS (process gas side), SS for the hot reaction gas inlet ASSUMED (formic acid traces, open input)",
+     notes: "Process gas with injected methanol to 399 K, reaction gas 553 -> 403 K, ~5.75 MW (D-005, D-006). ASSUMED."}
+  - {tag: R-101, type: TubularHeatExchanger, service: "Multitubular Fe-Mo oxide reactor (catalyst in the tubes, boiling hot oil in the shell)",
+     design_pressure_barg: 3.5, design_temperature_degc: 400, material: "tubes and shell CS or low-alloy ASSUMED (open input)",
+     notes: "Iron molybdate (FEMO), outlet 553 K / 128 kPa(a); ~10.1 MW to the hot oil (D-004, D-005). Inert rings at the tube inlet preheat the 399 K feed on the hot oil (BREF LVOC 2017 s. 6.2.3). Catalyst volume and tube count not sized: no kinetics chosen (D-004). At 10 t/h HCHO two reactors in parallel are likely (open input, D-002). Listed as a tubular exchanger: DEXPI has no tubular-reactor class in this list."}
+  - {tag: E-102, type: TubularHeatExchanger, service: Hot-oil condenser / steam generator,
+     design_pressure_barg: 15, design_temperature_degc: 325, material: CS,
+     notes: "Condenses the boiling hot oil of R-101, raises MP steam at 1500 kPa(a) (D-007); ~10.1 MW. Shell design pressure ASSUMED for the steam side."}
+  # ---- formaldehyde absorption (block ABS)
+  - {tag: C-201, type: Column, service: Formaldehyde absorber (packed and tray sections),
+     design_pressure_barg: 3.5, design_temperature_degc: 155, material: "SS (formalin service, ASSUMED)",
+     notes: "Reaction gas 403 K in, off-gas 303 K / 112 kPa(a), formalin 50 wt% at 333 K, process water 3.7 t/h to the top (D-006). Sections and stages not designed: no qualified VLE model for formaldehyde-water-methanol (D-009)."}
+  - {tag: E-201, type: PlateHeatExchanger, service: Absorber pump-around coolers,
+     design_pressure_barg: 6, design_temperature_degc: 155, material: "SS (formalin side, ASSUMED)",
+     notes: "~13.1 MW to cooling water in total (D-006); number of pump-arounds open (ASSUMED three)."}
+  - {tag: P-201, type: CentrifugalPump, service: Absorber pump-around and product pumps,
+     design_pressure_barg: 6, design_temperature_degc: 85, material: SS,
+     notes: "One tag for the pump group of the PFD; ~80 kW in total ASSUMED (D-007). Split into individual pumps at basic engineering."}
+  # ---- emission control system (block ECS)
+  - {tag: R-301, type: Vessel, service: "ECS catalytic oxidiser (noble-metal catalyst)",
+     design_pressure_barg: 3.5, design_temperature_degc: 600, material: "SS ASSUMED",
+     notes: "Vent 1077 kmol/h (24 100 Nm3/h); CO 99.8 %, HCHO and methanol 99.5 %, DME 99.0 % converted (D-008, ASSUMED). Outlet temperature not calculated (preheat, rise and steam generator lumped in R301)."}
+  - {tag: E-301, type: TubularHeatExchanger, service: ECS feed/effluent preheater,
+     design_pressure_barg: 3.5, design_temperature_degc: 600, material: "SS ASSUMED",
+     notes: "Lumped into step R301 of the PFD (D-008)."}
+  - {tag: E-302, type: TubularHeatExchanger, service: ECS steam generator,
+     design_pressure_barg: 15, design_temperature_degc: 600, material: CS,
+     notes: "Raises MP steam at 1500 kPa(a); ~1.08 MW with the stack at 423 K (D-008)."}

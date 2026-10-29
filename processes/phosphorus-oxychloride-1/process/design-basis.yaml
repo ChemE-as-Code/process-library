@@ -1,0 +1,53 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Phosphorus oxychloride from white phosphorus, chlorine and oxygen via PCl3, issue
+# ChemE-as-Code/process-library#135. Values marked ASSUMED are engineering choices of this concept
+# study, not client or licensor data; every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: distilled phosphorus oxychloride (POCl3) to storage at the plant gate
+  pocl3_kg_per_h: 4000                 # ASSUMED (D-002); about 32 kt/a at 8000 h
+  operating_hours_per_year: 8000       # ASSUMED (D-002)
+  turndown_percent: 50                 # ASSUMED, not checked
+feeds:
+  - name: Molten white phosphorus (electrothermal phosphorus furnace outside the boundary; no library process yet)
+    source_of_values: ASSUMED (D-003)
+    composition: "P4 100 % in the balance; arsenic, organic and inorganic impurities (phosphorus mud, 0.2-0.5 wt% in CN115259114B) and entrained water not modelled (open input, D-003)"
+    conditions: {temperature_K: 333.15, pressure_kPa_a: 400}
+  - name: Dry chlorine gas (chlor-alkali-1, stream S42, used as delivered)
+    source_of_values: "chlor-alkali-1 design case (D-003)"
+    composition: "Cl2 99.19 wt%, O2 0.81 wt% (mass fractions of chlor-alkali-1 S42)"
+    conditions: {temperature_K: 313.15, pressure_kPa_a: 400}
+  - name: Gaseous oxygen (asu-1 GOX pipeline)
+    source_of_values: "asu-1 design case (D-003)"
+    composition: "O2 99.71 mol%, Ar 0.29 mol% (asu-1 S7/S8)"
+    conditions: {temperature_K: 303.15, pressure_kPa_a: 200, note: "let down from the 31 bar(a) pipeline"}
+  - name: Caustic soda 50 wt% (chlor-alkali-1) and process water, for the vent scrubber
+    source_of_values: ASSUMED (D-009)
+products:
+  - name: Phosphorus oxychloride (distilled)
+    purity: "target >= 99.9 wt% POCl3, PCl3 <= 0.1 wt% (ASSUMED, D-002); 99.998 wt% POCl3 and 21 ppm(wt) PCl3 in the balance; metal chlorides, polyphosphoryl chlorides and moisture not modelled"
+    delivery: {temperature_K: 308.15, pressure_kPa_a: 300, battery_limit: "product storage (dry, nitrogen padded) outside the PFD"}
+  - name: Distillation residue
+    note: "0.5 % of the product column feed, chlorinated phosphorus compounds, to hazardous-waste incineration (D-008)"
+  - name: Spent scrubber liquor
+    note: "NaCl, Na3PO4, Na2HPO3, NaOCl and residual NaOH in water, to the site wastewater treatment (D-009)"
+  - name: Scrubbed vent gas
+    note: "excess oxygen, argon, water vapour and the Cl2, PCl3, POCl3 slip, explicit in stream S23 and the LCI (D-009)"
+utilities:
+  - {name: Electric power, use: "R-201 loop circulation pump, R-101 agitator, transfer, reflux and scrubber pumps (D-010)"}
+  - {name: LP steam, pressure_kPa_a: 400, use: "reboilers of C-301 and C-302", note: ASSUMED}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "R-101 reflux condenser, R-201 loop cooler, column condensers, product cooler", note: ASSUMED}
+  - {name: Chilled water, supply_K: 278.15, return_K: 283.15, use: "vent condensers E-102 and E-202 (above the 274 K melting point of POCl3)", note: ASSUMED}
+  - {name: Dry nitrogen, use: "padding and purging of tanks and equipment; outside the PFD, not counted (D-011)"}
+site:
+  location: ASSUMED generic site, integrated with chlor-alkali-1 and asu-1, not chosen
+  design_ambient_K: 298.15             # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "ASSUMED: phosphorus fully converted in R-101 with 0.05 % molar Cl2 excess to the vent (D-004); CN115259114B keeps phosphorus in slight excess against PCl5, not modelled as a heel."
+  - "ASSUMED: 99 % of the O2 in the chlorine converts PCl3 to POCl3 in R-101 (D-004)."
+  - "ASSUMED: R-201 PCl3 conversion 99.5 % per pass with 5 % molar O2 excess, 313-363 K, 130 kPa(a), heat to cooling water through an external loop cooler with 20 K rise (D-005; US4183905: 1-10 % O2 excess, 30-95 C)."
+  - "ASSUMED: vent condensers at 283 K, Raoult's law with thermo vapour pressures, non-condensables insoluble (D-006, D-007)."
+  - "ASSUMED: C-301 recovers 99.5 % of the PCl3 in a 50 mol% distillate, reflux ratio 3; C-302 purges 0.5 % of its feed as residue, reflux ratio 0.5 (D-008)."
+  - "ASSUMED: caustic scrubber 18 wt% NaOH, 1.5 x stoichiometric, 99.99 % destruction of PCl3, POCl3 and Cl2 (D-009)."
+  - "All flows, temperatures and duties are concept estimates (scripts/balance.py, D-006); accuracy +/-30 % not demonstrated."

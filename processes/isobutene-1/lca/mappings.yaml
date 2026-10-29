@@ -1,0 +1,17 @@
+# isobutene-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# Only the unit conventions are fixed here (steam and fired heat counted in kWh of heat, the
+# wastewater purge in kg), as hda-1 does. The fresh MTBE, the methanol co-product, the heavy
+# ends and the DME-rich vents have no registry slug and no shared entry yet: they stay
+# unmapped and are reported as gaps of this internal process (ADR 0022), never linked to a
+# guess. The background each should connect to is described in lca/lca.yaml (`missing:`).
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:FUEL": {use: heat-natural-gas, source: "H-101 absorbed duty (superheat and reactor heat) in kWh; the background heat activity includes the combustion (isobutene-1 counts no flue gas emissions)"}
+  "feed:MPS": {use: steam-heat, source: "MP steam 1500 kPa(a), counted as heat delivered (kWh)"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a), counted as heat delivered (kWh)"}
+  "feed:DMW": {use: water, source: "demineralised wash-water make-up, per kg"}
+  "product:WW": {use: wastewater, source: "wash-water purge counted by mass (kg), about 100 mg/kg methanol"}

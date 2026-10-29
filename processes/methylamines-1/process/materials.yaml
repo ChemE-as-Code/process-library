@@ -1,0 +1,67 @@
+# Components and templates of the process. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol,
+# normal_boiling_point in K at 101.325 kPa.
+# Ideal-gas and critical data printed by `cheme chemistry thermo ammonia methanol methylamine
+# dimethylamine trimethylamine water` (chemicals 1.5.2: ATcT formation enthalpies, CRC entropies,
+# Poling 5th ed. heat capacities); normal boiling points from thermo 0.6.1 (same session).
+# By-products (dimethyl ether, higher amines, carbon monoxide, hydrogen) are not modelled (D-005).
+schema: cheme/process/v1
+kind: materials
+components:
+  - id: NH3
+    name: Ammonia
+    formula: NH3
+    cas: 7664-41-7
+    molar_mass: 17.031
+    normal_boiling_point: 239.83
+    critical: {Tc: 405.56, Pc: 11363.4, omega: 0.256, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -45558.0, S_298: 192.8, cp_R: [4.238, -0.004215, 2.041e-05, -2.126e-08, 7.61e-12], temperature_range: [50, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: CH3OH
+    name: Methanol
+    formula: CH4O
+    cas: 67-56-1
+    molar_mass: 32.042
+    normal_boiling_point: 337.63
+    critical: {Tc: 513.38, Pc: 8215.85, omega: 0.5625, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -200700.0, S_298: 239.9, cp_R: [4.714, -0.006986, 4.211e-05, -4.443e-08, 1.535e-11], temperature_range: [50, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: MMA
+    name: Methylamine (monomethylamine)
+    formula: CH5N
+    cas: 74-89-5
+    molar_mass: 31.057
+    normal_boiling_point: 266.75
+    critical: {Tc: 430.8, Pc: 7620, omega: 0.275, source: "chemicals: Tc IUPAC, Pc IUPAC, omega PSRK"}
+    ideal_gas: {dHf_298: -20910.0, S_298: 242.9, cp_R: [4.193, -0.002122, 4.039e-05, -4.738e-08, 1.751e-11], temperature_range: [50, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: DMA
+    name: Dimethylamine
+    formula: C2H7N
+    cas: 124-40-3
+    molar_mass: 45.084
+    normal_boiling_point: 280.45
+    critical: {Tc: 437.2, Pc: 5340, omega: 0.288, source: "chemicals: Tc IUPAC, Pc IUPAC, omega PSRK"}
+    ideal_gas: {dHf_298: -15890.0, S_298: 273.1, cp_R: [2.469, 0.015462, 2.642e-05, -4.025e-08, 1.564e-11], temperature_range: [273, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: TMA
+    name: Trimethylamine
+    formula: C3H9N
+    cas: 75-50-3
+    molar_mass: 59.11
+    normal_boiling_point: 275.95
+    critical: {Tc: 433, Pc: 4080, omega: 0.195, source: "chemicals: Tc IUPAC, Pc IUPAC, omega PSRK"}
+    ideal_gas: {dHf_298: -24020.0, S_298: 287.1, cp_R: [1.66, 0.027899, 2.517e-05, -5.1e-08, 2.19e-11], temperature_range: [298, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: H2O
+    name: Water
+    formula: H2O
+    cas: 7732-18-5
+    molar_mass: 18.015
+    normal_boiling_point: 373.12
+    critical: {Tc: 647.096, Pc: 22064, omega: 0.3443, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -241822.0, S_298: 188.8, cp_R: [4.395, -0.004186, 1.405e-05, -1.564e-08, 6.32e-12], temperature_range: [50, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+templates:
+  # One component set for every process stream (D-005).
+  - {id: mixture, title: Methanol / ammonia / methylamines / water, components: [NH3, CH3OH, MMA, DMA, TMA, H2O]}
+# property_method is a placeholder until `cheme process props --fill` records the method. No
+# benchmarked package covers this polar, associating, partly azeotropic amine-water-methanol
+# system (core #315): the stream temperatures and duties are concept estimates (D-006).
+property_method:
+  adapter: thermo
+  status: placeholder

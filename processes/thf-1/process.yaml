@@ -1,0 +1,90 @@
+# Process Atlas manifest of thf-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: thf-1
+title: Tetrahydrofuran from 1,4-butanediol (50 kt/a, cyclodehydration and pressure-swing distillation)
+summary: >-
+  Acid-catalysed cyclodehydration of purchased 1,4-butanediol to THF by reactive distillation
+  with homogeneous p-toluenesulfonic acid, then pressure-swing distillation of the THF/water
+  azeotrope at 110 and 800 kPa(a) with condenser-reboiler integration. Concept stage, assumed
+  basis, preliminary gate-to-gate LCI (foreground only).
+description: |
+  1,4-Butanediol (BDO, a boundary feed) is dehydrated at 145 C and 130 kPa(a) in a stirred,
+  steam-heated reactor with 2 wt% p-toluenesulfonic acid in the liquid, within the ranges of a
+  published reactive-distillation patent (US 9284289 B2). A short rectifying column on the
+  reactor holds BDO and heavies back; THF and the water of reaction leave overhead as an
+  80 wt% THF condensate. Heavies (lumped as the BDO dimer ether) are held at 30 wt% in the
+  reactor liquid by a bleed to incineration, which also removes the acid. The condensate and the
+  high-pressure column's distillate are separated in a low-pressure column (110 kPa(a)) into
+  process water and a near-azeotropic distillate, which a high-pressure column (800 kPa(a))
+  splits into THF (99.95 wt%) and a recycle near the high-pressure azeotrope. The high-pressure
+  condenser reboils the low-pressure column.
+
+  All values are concept estimates. The selectivity, bleed and column specifications are
+  assumed; the stream and duty values come from an independent script whose property method
+  (NRTL with the ChemSep THF/water parameters in thermo) is not qualified by ChemE-as-Code for
+  this mixture yet. The same NRTL parameters predict two liquid phases in part of the
+  low-pressure column's stripping range, while its reflux and duties come from a calculation
+  that assumes one homogeneous liquid, so the LP column duties are unverified; see DESIGN.md of the engineering files for every assumption and gated step.
+families: [oxygenates]
+keywords: [tetrahydrofuran, THF, "1,4-butanediol", BDO, cyclodehydration, reactive distillation, p-toluenesulfonic acid, pressure-swing distillation, azeotrope, solvent]
+facets:
+  feedstock_basis: [fossil]
+  product_classes: [chemicals]
+  unit_operations: [reaction, reactive-distillation, distillation, heat-exchange]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest; cheme maturity reports level none
+# (the feeds and the capacity are assumed, not sourced, and the reactor and columns are
+# specified values from an independent, unqualified script), see validation.notes and DESIGN.md.
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances (cheme validate, cheme process
+    streams, cheme assess lca --balance: mass, C, H, O, S closed to 0.01 %) and an independent
+    overall energy closure of 0.01 % (scripts/thf_balance.py). cheme maturity reaches no level:
+    the feeds and the capacity are assumed (no sourced or owner-given feed), the reactor is a
+    conversion model with an assumed selectivity, and the three columns are specified values
+    from an independent NRTL script that core cannot qualify for THF/water (core #315: polar
+    activity-coefficient benchmark, liquid-phase reactor energy). The LCI is a gate-to-gate
+    foreground inventory with every background open (8 gaps): no impact result, and no LCA
+    result passed to the catalog (lca.source none). Not reviewed. The chemicals registry has no
+    1,4-butanediol, tetrahydrofuran or p-toluenesulfonic acid entry yet, so the feed and the
+    product are not listed under chemistry; the consumed steam stands in as the one input the
+    schema requires (open library item, DESIGN.md).
+# The utilities are listed without inventory_key on purpose: their backgrounds stay unmapped
+# gaps at this stage (DESIGN.md D-011); the main feed (BDO, feed:BDOF, 1.267 kg per kg THF), the
+# catalyst (feed:PTSAF) and the product (product:THFP) have no registry slug yet. The schema
+# needs at least one input, so the consumed steam (a registry slug, role utility) is listed
+# under inputs instead of utilities until the BDO entry exists (DESIGN.md, missing registry entries).
+chemistry:
+  inputs:
+    - {chemical: steam, role: utility, note: "MP steam 1000 kPa(a), R-101 and HP column reboiler (feed:MPS); LP steam 450 kPa(a), LP column trim reboiler (feed:LPS). Listed here because the main feed, 1,4-butanediol (feed:BDOF, 1.267 kg per kg THF), and the catalyst p-toluenesulfonic acid (feed:PTSAF) have no registry entry yet"}
+  outputs:
+    - {chemical: wastewater, role: waste, note: "Process water with about 80 ppm(wt) THF to treatment (product:WW, 0.249 kg per kg THF). The main product THF (product:THFP) has no registry entry yet"}
+  utilities:
+    - {chemical: electricity, role: utility, note: "Pumps P-101 and P-201 (feed:POWER)"}
+    - {chemical: cooling-water, role: utility, note: "25/35 C (ASSUMED), product:CW"}
+basis:
+  capacity: "50 kt/a THF (ASSUMED)"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
+references:
+  - {title: "US 9284289 B2 (Mitsubishi Chemical, 2016) Method for producing tetrahydrofuran (reactive distillation of BDO with a homogeneous sulfonic acid: temperature, catalyst, water ranges; condensate composition)", url: "https://patents.google.com/patent/US9284289"}
+  - {title: "Hunter, S.E.; Ehrenberger, C.E.; Savage, P.E. (2006) Kinetics and mechanism of tetrahydrofuran synthesis via 1,4-butanediol dehydration in high-temperature water. J. Org. Chem. 71, 6229-6239", doi: 10.1021/jo061017o}
+  - {title: "Li, K.-T.; Chen, K.-W. (2019) Cyclodehydration of 1,4-butanediol over Zr-Al catalysts: effect of reaction medium. Materials 12, 2092 (CC BY 4.0)", doi: 10.3390/ma12132092}
+  - {title: "Ullmann's Encyclopedia of Industrial Chemistry: Tetrahydrofuran (route reference lead; not read in this run)", doi: 10.1002/14356007.a26_221.pub3}
+  - {title: "ChemSep NRTL binary parameters for THF/water as packaged in thermo 0.6.1 (Caleb Bell et al.), used by scripts/thf_balance.py"}
+lca:
+  source: none
+  notes: "Gate-to-gate foreground LCI only (lca/inventory.csv, per kg THF), every background a gap (D-011): no impact result. Back to auto once backgrounds are linked."
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/thf-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0

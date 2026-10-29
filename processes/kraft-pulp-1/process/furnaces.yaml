@@ -1,0 +1,32 @@
+# Energy basis of the lime kiln (K901 calcination + K902 burner, one rotary kiln). Schema:
+# `cheme schema furnaces`; run `cheme process furnace`. Every input is the flowsheet's ASSUMED
+# stream value (streams S42, S43, S46, S45/S50); the check is whether the 1.5 GJ/ADt fuel of
+# BREF 2015 sec. 3.2.2.6.2 closes the kiln's energy balance (DESIGN.md D-009, review
+# 2026-10-28-pfd-lci-review#2). The 0.17 % sodium salts of the mud are not in the furnace
+# component set: they are entered as SiO2, an inert solid proxy (ASSUMED, negligible).
+schema: cheme/furnaces/v1
+furnaces:
+  - id: KILN
+    name: Lime kiln (natural gas, long rotary, lime mud reburning)
+    kiln_type: long-rotary
+    reaction: calcination-caco3
+    method: energy-balance
+    feed:
+      mass_flow: {value: 21492.6, unit: kg/h, provenance: assumed, source: "stream S42 (D-009)"}
+      temperature: {value: 333.15, unit: K, provenance: assumed, source: "stream S42 (D-013)"}
+      composition:
+        fractions: {CaCO3: 0.8, H2O: 0.198278, SiO2: 0.001722}
+        provenance: assumed
+        source: "stream S42: mud washed and filtered to 80 % solids (D-009); the residual Na salts (0.001722) as SiO2, an inert solid proxy for their sensible heat"
+    conversion: {value: 0.95, unit: "1", provenance: assumed, source: "D-009: degree of calcination ASSUMED"}
+    product_temperature: {value: 523.15, unit: K, provenance: assumed, source: "stream S46 (D-013)"}
+    off_gas_temperature: {value: 473.15, unit: K, provenance: assumed, source: "streams S45, S50 (D-013)"}
+    fuel:
+      gas: {fractions: {CH4: 1.0}, provenance: assumed, source: "natural gas as methane (D-009)"}
+      lhv: {value: 50, unit: MJ/kg, provenance: assumed, source: "D-009"}
+      # mass_flow left out: the fuel is solved and compared with stream S43 (1250 kg/h,
+      # 1.5 GJ/ADt, BREF 2015 sec. 3.2.2.6.2) in DESIGN.md D-009.
+    air:
+      excess: {value: 1.10, unit: "1", provenance: assumed, source: "D-009"}
+    losses:
+      fraction: {value: 0.15, unit: "1", provenance: assumed, source: "ASSUMED: shell, cooler and dust losses of a long rotary lime kiln as a fraction of the fuel heat input; no kiln survey read in this run"}

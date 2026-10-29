@@ -1,0 +1,67 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Ethylene glycol by ethylene oxide hydration, issue ChemE-as-Code/process-library#172.
+# Values marked ASSUMED are engineering choices of this concept study, not owner, licensor or
+# vendor data; every decision is in DESIGN.md. The capacity is a per-unit-product
+# normalisation for the inventory, not a claim about a commercial plant (issue #172 notes).
+schema: cheme/design_basis/v1
+capacity:
+  basis: MEG product at the MEG column top (fibre-grade quality aimed at), glycols-only plant (no high-purity EO product)
+  product_t_per_d: 1200                 # ASSUMED (D-002): normalisation basis, not an owner figure
+  product_kg_per_h: 50000               # = 1200 t/d / 24 h; 400 kt/a at 8000 h/a
+  operating_hours_per_year: 8000        # ASSUMED (D-002)
+  turndown_percent: null                # not set at this stage
+feeds:
+  - name: Ethylene (pipeline, polymer grade)
+    terminal: ETH
+    source_of_values: ASSUMED (D-003); in the library, an olefins (steam cracker) process would supply it - none exists yet
+    composition_mol_percent: {C2H4: 99.95, C2H6: 0.05}   # ASSUMED; sulfur and acetylene below catalyst limits (not modelled)
+    conditions: {pressure_kPa_a: 2400, temperature_K: 298.15}   # ASSUMED pipeline delivery above loop pressure
+  - name: Oxygen (pipeline GOX)
+    terminal: OXY
+    source_of_values: "library process asu-1 (product GOXP: >= 99.5 mol% O2 at 30 barg), D-003"
+    composition_mol_percent: {O2: 99.5, Ar: 0.5}           # rest counted as argon
+    conditions: {pressure_kPa_a: 2400, temperature_K: 298.15}   # let down from the asu-1 pipeline pressure
+  - name: Methane (ballast make-up)
+    terminal: MET
+    source_of_values: ASSUMED pure methane (natural gas impurities neglected, D-004)
+  - name: Process water make-up (demineralised)
+    terminal: PW
+    quality: demineralised (ASSUMED)
+products:
+  - name: Monoethylene glycol (MEG)
+    terminal: MEG
+    purity: "MEG 99.90 wt%, DEG 0.06 wt%, water 0.04 wt% (ASSUMED design grade, D-002)"
+  - name: Diethylene glycol (DEG)
+    terminal: DEG
+    purity: "DEG about 99.4 wt% (MEG and TEG the rest; calculated, D-005)"
+  - name: Triethylene glycol (TEG)
+    terminal: TEG
+    purity: "TEG about 99.5 wt% (calculated, D-005)"
+  - name: Heavy glycols residue
+    terminal: HVY
+    use: "sale for glycol recovery or incineration (BREF LVOC 7.3.6.4); modelled as waste to incineration (D-010)"
+  - name: Inerts purge
+    terminal: PURGE
+    use: "to the site fuel gas header (BREF LVOC 7.2.2.1)"
+  - name: CO2 stripper vent
+    terminal: CO2V
+    use: "to atmosphere without oxidation in the base case (D-006); catalytic oxidation or CO2 sale are options"
+  - name: Recycle water bleed
+    terminal: WW
+    use: "to biological waste water treatment (BREF LVOC 7.3.2.2)"
+utilities:
+  - {name: MP steam import, pressure_kPa_a: 2800, saturation_K: 503.6, use: "reboilers of the drying and glycol columns (D-008)", note: ASSUMED level}
+  - {name: Steam raised in R-101, pressure_kPa_a: 2800, use: "EO stripper, CO2 regenerator, evaporators, MEG column (internal, D-008)", note: ASSUMED level}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: ASSUMED (D-008)}
+  - {name: Electric power, use: "recycle gas compressor, pumps, auxiliaries (electric drives ASSUMED, D-008)"}
+site:
+  location: ASSUMED generic site, not chosen
+  atmospheric_pressure_kPa: 101.325
+  design_ambient_K: 288.15
+assumptions:
+  - "ASSUMED per-pass ethylene conversion 9 % and EO selectivity 85 mol% (BREF LVOC 2017 7.2.1.1.1: 8-10 % and 75-90 %), D-004."
+  - "ASSUMED reactor inlet 30 mol% C2H4, 8 mol% O2, 1 mol% CO2, methane ballast; loop 2000-2200 kPa(a), reactor 523 K (BREF: 200-300 C, 15-25 bar), D-004."
+  - "ASSUMED inerts purge 0.15 % of the recycle gas (BREF 7.2.2.1: 0.1-0.2 %), CO2 removal 90 % of the slip stream by hot potassium carbonate, D-004."
+  - "ASSUMED water:EO 20 mol/mol at the glycol reactor inlet, full EO conversion, relative rate of EO with glycols vs water 2.0 per mol (consecutive model), D-005; result 92.0 wt% MEG in the glycols (BREF 7.2.2.5: 75-92 wt%)."
+  - "ASSUMED 0.5 % bleed of the recycle water, 4-effect evaporation (economy 3.2), vacuum drying and three vacuum glycol columns, D-005, D-008."
+  - "No property package covers EO-water-glycol or the loop gas: duties from a lumped estimate in scripts/eg_balance.py (D-007, D-008)."

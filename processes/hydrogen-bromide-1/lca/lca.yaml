@@ -1,0 +1,66 @@
+# Goal and scope of the hydrogen-bromide-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme
+# assess lca --inventory --write` (lca/inventory.csv, dataset.yaml, gaps.csv, manifest.json);
+# never edit those by hand.
+#
+# A preliminary gate-to-gate inventory (DESIGN.md D-012): every foreground exchange of the
+# balanced flowsheet per kg of HBr (100 %) contained in 48 wt-% hydrobromic acid. No background
+# is linked yet: every feed and utility is declared `missing:` with the activity it should
+# connect to later, so it is a gap in every category, never 0. No values from licensed
+# databases are used. The plant has one product: no allocation.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of hydrobromic acid (48 wt-%) by burning
+  bromine vapour in hydrogen with catalytic finishing and absorption in water, for the concept
+  stage: the foreground exchanges of the balanced flowsheet (D-006) per kg of contained HBr,
+  ready to be linked to background datasets (bromine-1's bromine and hydrogen-1's hydrogen
+  first). No impact assessment is claimed.
+# 1 kg of contained HBr: the product S12 is 2 083.33 kg/h of acid holding 1 000 kg/h HBr
+functional_unit: {product: HBRACID, amount: 1, unit: kg, kg_per_unit: 2.083333, source: "S12: 2 083.33 kg/h acid at 48.0 wt-% HBr holds 1 000 kg/h HBr (1 / 0.48 kg acid per kg HBr)"}
+boundary: gate-to-gate
+year: 2026
+location: GLO
+technology: "HBr burner (bromine vapour in 5 mol-% excess hydrogen) with water-cooled chamber, activated-carbon finishing bed, graphite gas cooler, graphite falling-film absorber and water tail gas scrubber; 8 kt/a HBr as 48 wt-% acid; LP steam bromine vaporiser"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+case: design
+system_model: cutoff
+flows:
+  # raw materials (boundary feeds made by other library processes, D-003)
+  - {key: feed:BR2, missing: "not linked yet: liquid bromine (bulk, > 99.9 %) from brine (e.g. Dead Sea or US brines) by chlorine oxidation and steam stripping, at the plant gate; link the planned library process bromine-1 or a market for bromine", source: "S1, D-003"}
+  - {key: feed:H2, missing: "not linked yet: hydrogen 99.9 mol-% (0.1 mol-% N2) from steam methane reforming with PSA at the plant gate; link processes/hydrogen-1 lca/dataset.yaml (product H2) or a market for hydrogen, gaseous; by mass the feed is 0.986 kg H2 per kg", source: "S3, D-003"}
+  - {key: feed:DMW, missing: "not linked yet: demineralised (deionised) water production by ion exchange or reverse osmosis", source: "S10, D-008"}
+  # utilities
+  - {key: feed:LPS, missing: "not linked yet: heat from LP steam (450 kPa(a)) from the site's natural-gas boiler (utility-steam-ng-boiler in this library), condensate returned, per kWh of heat", source: "Q1; D-007"}
+  - {key: feed:POWER, missing: "not linked yet: grid electricity, medium voltage, for the site's market (site not decided, D-002); the packaged open profile desnz-ghg-2026 is available for a later screening", source: "Q5, Q6; D-011"}
+  - {key: product:CW, missing: "not linked yet: heat rejection to a recirculating cooling-water circuit with cooling tower (utility-cooling-tower in this library: pump and fan electricity, make-up water, treatment chemicals) per kWh removed", source: "Q2, Q3, Q4; D-010"}
+  # emissions: the vent S11 goes to air
+  - {key: product:VENT, emission: true, source: "S11: tail gas scrubber vent, excess hydrogen and nitrogen with water vapour and HBr traces, to air (D-008)"}
+  - {key: emission:H2, elementary: {compartment: air}, source: "S11: excess hydrogen of the burner (5 mol-%, D-004) vented to air; an indirect greenhouse gas without a characterisation in most methods"}
+  - {key: emission:HBr, elementary: {compartment: air}, source: "S11: hydrogen bromide after the tail gas scrubber, 5 mg/Nm3 ASSUMED (D-008)"}
+  - {key: emission:N2, free: true, source: "S11: the nitrogen of the hydrogen feed"}
+  - {key: emission:H2O, free: true, source: "S11: water vapour of the vent"}
+  # components of the vent that are absent (0 kg) in this balance
+  # Br2 is toxic: declared elementary (not free) so that a non-zero slip in a later balance is
+  # characterised or a gap, never burden-free
+  - {key: emission:Br2, elementary: {compartment: air}, source: "0 kg: Br2 fully converted in R101/R102 (D-005); bromine slip at upsets is excluded below (non-routine)"}
+# The R-102 finishing carbon is a routine consumable and waste, cut off with an amount so that the
+# 1 % mass rule is checked (D-013): about 130 kg/a against 16 670 t/a of inputs (0.0008 %)
+cutoff:
+  - {id: r102-carbon-makeup, title: "R-102 activated carbon make-up", direction: input, unit: kg, per_year: 130, catalyst: true, contains: [C], reason: "fresh activated carbon for the R-102 finishing bed: about 285 Nm3/h of HBr gas at a gas hourly space velocity of 1 000 1/h (ASSUMED) gives 0.29 m3 of carbon, 130 kg at 450 kg/m3 bulk density (ASSUMED), changed once a year (ASSUMED; no bed life found in open sources)", source: "D-013"}
+  - {id: r102-carbon-spent, title: "R-102 spent activated carbon (bromine-loaded)", direction: output, unit: kg, per_year: 130, catalyst: true, contains: [C, Br], reason: "the spent charge of the R-102 bed to hazardous waste treatment, same amount as the make-up (its adsorbed bromine not estimated; ASSUMED)", source: "D-013"}
+operation: {hours_per_year: 8000, life_years: 20, source: "design basis, D-002; life ASSUMED"}
+emission_exclusions:
+  - {id: burner-combustion, method: combustion, reason: "R101 burns hydrogen in bromine vapour: no air and no carbon enter the flame, so no NOx, CO, CO2, CH4, N2O or particulates form; its products are all in the balance (S4). The air of the burner start-up (US 6 036 936 A: ignition in air, then bromine replaces air) is non-routine", source: "D-012"}
+  - {id: bromine-slip, method: non-routine, reason: "bromine in the vent: zero in the balance (Br2 converted in R101/R102 and absorbed); at upsets bromine or HBr-bearing gas reaches the scrubber and vent, not estimated at the concept stage", source: "D-005, D-012"}
+  - {id: non-routine, method: non-routine, reason: "start-up (purging, ignition), shutdown and burner trips send hydrogen and HBr/Br2-bearing gas to the scrubber and vent; not estimated at the concept stage (D-012)", source: "D-012"}
+  - {id: tanks, method: storage-tank, reason: "bromine and acid storage are outside the boundary (D-001); their breathing is normally scrubbed (ASSUMED)", source: "D-012"}
+  - {id: leaks, method: equipment-leaks, reason: "fugitive Br2, H2 and HBr from flanges and seals are not estimated at the concept stage; to be added with the P&IDs", source: "D-012"}
+dataset:
+  version: 0.1.0
+  geography: {description: "One concept design for an undecided site; no site-specific supply", site: "generic industrial site"}
+  system_model: cutoff
+  technology_level: current
+  classification: {isic: "2011"}
+  modelling: {principle: attributional}
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library, hydrogen-bromide-1 concept design (agent run, unreviewed)"

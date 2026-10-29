@@ -1,0 +1,519 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Iodine from natural iodide brine by the blowing-out process, 1000 t/a (DESIGN.md D-001, D-002).
+# Where the values come from:
+# - the brine's iodine content (300 mg/kg as iodide) is sourced (D-003); its salinity,
+#   alkalinity and temperature are ASSUMED;
+# - every flow and composition is from the independent sequential balance
+#   scripts/iodine_balance.py (D-006), given here as ASSUMED: it rests on ASSUMED design
+#   parameters (chlorine excess, oxidation and stripping fractions, air ratio, purge, absorber
+#   bleed strength, cake moisture, melter acid) and a neutral-molecule basis for the liquors,
+#   because core cannot speciate the I-/I2/I3-/Cl2 electrolyte system (core #364, D-007);
+# - reactor steps name their reactions (process/reactions.yaml), so cheme checks their element
+#   balance; pass-through and splitter streams are filled by cheme process propagate;
+# - duties and powers are from the same script (D-008), ASSUMED; no property package covers
+#   these streams.
+schema: cheme/process/v1
+kind: flowsheet
+title: Iodine from natural brine by chlorine oxidation, air blowing-out and SO2 absorption (1000 t/a)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - id: design
+    description: "Design case: 125 kg/h iodine flakes (99.8 wt% I2), 8000 h/a, brine with 300 mg/kg iodine (D-002, D-003)"
+    default: true
+    capacity: 1000 t/a iodine
+    provenance: assumed
+    source: "D-002: a normalisation basis for the inventory, not a commercial plant claim"
+tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - {id: BRINE, title: "Raw iodide brine from the wellfield (degassed, de-oiled)", category: raw_material, ports: [{id: out, direction: out}]}
+  - id: CL2
+    title: Chlorine gas 400 kPa(a) (chlor-alkali-1 product CL2)
+    category: raw_material
+    ports: [{id: r101, direction: out}, {id: r301, direction: out}]
+  - {id: SO2, title: Liquid sulfur dioxide (vaporised at the absorber), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: H2SO4, title: Sulfuric acid 98.5 wt% (sulfuric-acid-1 product ACID), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: NAOH, title: Caustic soda 50 wt% (chlor-alkali-1 product NAOH), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: AIR, title: Make-up air to the blowing-out loop, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: PW, title: Process water (absorber make-up), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: k201, direction: out, kind: energy}
+      - {id: p401, direction: out, kind: energy}
+      - {id: t202, direction: out, kind: energy}
+      - {id: rec, direction: out, kind: energy}
+  - id: LPS
+    title: LP steam 450 kPa(a) to the iodine melter (condensate returned)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 450, provenance: assumed, source: "design basis, D-008"}
+      supply_temperature: {value: 420.8, provenance: assumed, source: "saturation at 450 kPa(a), D-008"}
+      min_approach: {value: 20, provenance: assumed, source: D-008}
+    ports: [{id: m301, direction: out, kind: energy}]
+products:
+  - {id: IODINE, title: Iodine flakes (99.8 wt% I2) to packing, category: product, ports: [{id: in, direction: in}]}
+  - {id: SPENT, title: Neutralised spent brine to reinjection into the producing formation, category: wastewater, ports: [{id: in, direction: in}]}
+  - {id: VENT, title: Blowing-out loop purge to atmosphere, category: off_gas, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-008"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-008"}
+      min_approach: {value: 5, provenance: assumed, source: D-008}
+    ports: [{id: x301, direction: in, kind: energy}]
+
+blocks:
+  - id: OXD
+    title: Brine acidification and chlorination
+    class: ReactingChemicals
+    ports:
+      - {id: brine, direction: in}
+      - {id: cl2, direction: in}
+      - {id: filtrate, direction: in}
+      - {id: acid, direction: in}
+      - {id: out, direction: out}
+  - id: BLO
+    title: Air blowing-out and SO2 absorption
+    class: SeparatingByThermalProcess
+    ports:
+      - {id: brine, direction: in}
+      - {id: air, direction: in}
+      - {id: so2, direction: in}
+      - {id: water, direction: in}
+      - {id: brine_out, direction: out}
+      - {id: bleed, direction: out}
+      - {id: purge, direction: out}
+      - {id: power1, direction: in, kind: energy}
+      - {id: power2, direction: in, kind: energy}
+  - id: REC
+    title: Iodine precipitation, filtration, melting and flaking
+    class: ReactingChemicals
+    ports:
+      - {id: bleed, direction: in}
+      - {id: cl2, direction: in}
+      - {id: acid, direction: in}
+      - {id: filtrate, direction: out}
+      - {id: acid_out, direction: out}
+      - {id: product, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: heat, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+  - id: NEU
+    title: Spent brine neutralisation and reinjection
+    class: ReactingChemicals
+    ports:
+      - {id: in, direction: in}
+      - {id: naoh, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy}
+
+steps:
+  # D-004: acid (recycled liquors) and chlorine mixed into the brine in static mixers in series
+  - id: R101
+    block: OXD
+    title: Brine acidifier and chlorinator (static mixers, redox end point)
+    class: ReactingChemicals
+    reactions: [ALK, OXI, OXH1]
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: brine, direction: in, delegates: brine}
+      - {id: cl2, direction: in, delegates: cl2}
+      - {id: filtrate, direction: in, delegates: filtrate}
+      - {id: acid, direction: in, delegates: acid}
+      - {id: out, direction: out, delegates: out}
+  # D-005: packed tower, brine down, circulating air up
+  - id: T201
+    block: BLO
+    title: Blowing-out tower
+    class: SeparatingByThermalProcess
+    links: [{target: equipment, ref: T-201}]
+    ports:
+      - {id: brine, direction: in, delegates: brine}
+      - {id: gas_in, direction: in}
+      - {id: air, direction: in, delegates: air}
+      - {id: brine_out, direction: out, delegates: brine_out}
+      - {id: gas, direction: out}
+  # D-005: packed absorber irrigated with circulating HI/H2SO4 liquor (P-202), SO2 injected
+  - id: T202
+    block: BLO
+    title: Iodine absorber (HI/H2SO4 liquor with SO2, circulation pump P-202)
+    class: ReactingChemicals
+    reactions: [ABS, CLSA]
+    links: [{target: equipment, ref: T-202}, {target: equipment, ref: P-202}]
+    ports:
+      - {id: gas, direction: in}
+      - {id: so2, direction: in, delegates: so2}
+      - {id: water, direction: in, delegates: water}
+      - {id: gas_out, direction: out}
+      - {id: bleed, direction: out, delegates: bleed}
+      - {id: power, direction: in, kind: energy, delegates: power2}
+  - id: S201
+    block: BLO
+    title: Loop purge split
+    class: SplittingMaterial
+    split: {purge: 0.05}
+    ports:
+      - {id: in, direction: in}
+      - {id: purge, direction: out, delegates: purge}
+      - {id: rec, direction: out}
+  - id: K201
+    block: BLO
+    title: Air circulation fan
+    class: Compressing
+    links: [{target: equipment, ref: K-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power1}
+  # D-006: stirred, rubber-lined reactor; chlorine to a redox end point
+  - id: R301
+    block: REC
+    title: Iodine precipitation reactor
+    class: ReactingChemicals
+    reactions: [OXH2, CLSB]
+    links: [{target: equipment, ref: R-301}]
+    ports:
+      - {id: in, direction: in, delegates: bleed}
+      - {id: cl2, direction: in, delegates: cl2}
+      - {id: out, direction: out}
+  - id: F301
+    block: REC
+    title: Iodine filter
+    class: Filtering
+    links: [{target: equipment, ref: F-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: cake, direction: out}
+      - {id: filtrate, direction: out, delegates: filtrate}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # D-006: iodine melted under a layer of concentrated sulfuric acid, which takes up the water
+  - id: M301
+    block: REC
+    title: Iodine melter (under sulfuric acid)
+    class: SeparatingByPhaseSeparation
+    links: [{target: equipment, ref: M-301}]
+    ports:
+      - {id: cake, direction: in}
+      - {id: acid, direction: in, delegates: acid}
+      - {id: melt, direction: out}
+      - {id: acid_out, direction: out, delegates: acid_out}
+      - {id: heat, direction: in, kind: energy, delegates: heat}
+  - id: X301
+    block: REC
+    title: Iodine flaker (cooled drum)
+    class: Cooling
+    links: [{target: equipment, ref: X-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: product}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  # D-009: caustic to neutral before reinjection
+  - id: R401
+    block: NEU
+    title: Spent brine neutraliser
+    class: ReactingChemicals
+    reactions: [NEU1, NEU2, NEU3]
+    links: [{target: equipment, ref: R-401}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: naoh, direction: in, delegates: naoh}
+      - {id: out, direction: out}
+  - id: P401
+    block: NEU
+    title: Reinjection pump
+    # TransportingFluids, not Pumping: cheme process build fails on the Pumping class (its
+    # pyDEXPI method field is a Union; core finding, DESIGN.md D-010)
+    class: TransportingFluids
+    links: [{target: equipment, ref: P-401}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+
+# Generated from scripts/iodine_balance.py output (D-006); ASSUMED values, see the header.
+streams:
+  - id: S1
+    title: "Raw brine from the wellfield"
+    from: BRINE.out
+    to: R101.brine
+    template: iodine
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: "D-008"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-008"}
+        flow: {value: 461935.9814, basis: mass, provenance: assumed, source: "scripts/iodine_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {H2O: 0.8994776378, NaCl: 0.1, NaI: 0.0003543481687, NaHCO3: 0.000168014}, provenance: assumed, source: "iodine 300 mg/kg as iodide (D-003, sourced); NaCl, alkalinity ASSUMED (D-003)"}
+  - id: S2
+    title: "Chlorine to the brine chlorination"
+    from: CL2.r101
+    to: R101.cl2
+    template: iodine
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: "chlor-alkali-1 product CL2 (D-008)"}
+        temperature: {value: 298.15, provenance: assumed, source: "D-008"}
+        flow: {value: 40.83663207, basis: mass, provenance: assumed, source: "scripts/iodine_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {Cl2: 1.0}, provenance: assumed, source: "scripts/iodine_balance.py (D-006)"}
+  - id: S3
+    title: "Acidified chlorinated brine"
+    from: R101.out
+    to: T201.brine
+    template: iodine
+    state:
+      design:
+        pressure: {value: 250.0, provenance: assumed, source: "D-008"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-008"}
+        flow: {value: 463189.6002, basis: mass, provenance: assumed, source: "scripts/iodine_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {H2O: 0.8994375466, NaCl: 0.09986437997, I2: 0.0002972656701, Na2SO4: 0.0001416555699, CO2: 8.778177459e-05, HCl: 8.628406961e-05, H2SO4: 7.211343027e-05, NaI: 7.067782566e-06, Cl2: 5.877597719e-06, HI: 2.755863776e-08}, provenance: assumed, source: "scripts/iodine_balance.py (D-006)"}
+  - id: S4
+    title: "Stripped brine"
+    from: T201.brine_out
+    to: R401.in
+    template: iodine
+    state:
+      design:
+        pressure: {value: 110.0, provenance: assumed, source: "D-008"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-008"}
+        flow: {value: 462853.7351, basis: mass, provenance: assumed, source: "scripts/iodine_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {H2O: 0.8997319847, NaCl: 0.09993684554, Na2SO4: 0.0001417583608, HCl: 8.634668077e-05, H2SO4: 7.216575865e-05, I2: 2.379851023e-05, NaI: 7.07291123e-06, HI: 2.75786354e-08}, provenance: assumed, source: "scripts/iodine_balance.py (D-006)"}
+  - id: S5
+    title: "Iodine-laden air"
+    from: T201.gas
+    to: T202.gas
+    template: loopgas
+    state:
+      design:
+        pressure: {value: 104.0, provenance: assumed, source: "D-008"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-008"}
+        flow: {value: 76499.27559, basis: mass, provenance: assumed, source: "scripts/iodine_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {N2: 0.7243807354, O2: 0.2199413088, H2O: 0.04334887495, CO2: 0.01062969016, I2: 0.001663802895, Cl2: 3.558781592e-05}, provenance: assumed, source: "scripts/iodine_balance.py (D-006)"}
+  - id: S6
+    title: "Absorber exit gas"
+    from: T202.gas_out
+    to: S201.in
+    template: vent
+    state:
+      design:
+        pressure: {value: 102.0, provenance: assumed, source: "D-008"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-008"}
+        flow: {value: 76369.90983, basis: mass, provenance: assumed, source: "scripts/iodine_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {N2: 0.7256077902, O2: 0.2203138754, H2O: 0.04342230519, CO2: 0.01064769618, I2: 8.333106355e-06}, provenance: assumed, source: "scripts/iodine_balance.py (D-006)"}
+  - id: S7
+    title: "Loop purge to the vent"
+    from: S201.purge
+    to: VENT.in
+    template: vent
+    state:
+      design:
+        pressure: {value: 102.0, provenance: assumed, source: "D-008"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-008"}
+        flow: {value: 3818.5, basis: mass, provenance: calculated, source: 'cheme process propagate: splitter S201 from S6', fingerprint: 3366cf7342f30be5}
+        composition: {basis: mass_fraction, values: {N2: 0.7256077902, O2: 0.2203138754, H2O: 0.04342230519, CO2: 0.01064769618, I2: 8.333106355e-06}, provenance: calculated, source: 'cheme process propagate: splitter S201 from S6', fingerprint: 0a1bdd4df3c0161a}
+  - id: S8
+    title: "Return air to the fan"
+    from: S201.rec
+    to: K201.in
+    template: vent
+    state:
+      design:
+        pressure: {value: 102.0, provenance: assumed, source: "D-008"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-008"}
+        flow: {value: 72551.4, provenance: calculated, source: 'cheme process propagate: splitter S201 from S6 S7', fingerprint: 7d9250a68c464a62}
+        composition: {basis: mass_fraction, values: {N2: 0.7256077902, O2: 0.2203138754, H2O: 0.04342230519, CO2: 0.01064769618, I2: 8.333106355e-06}, provenance: calculated, source: 'cheme process propagate: splitter S201 from S6', fingerprint: 0a1bdd4df3c0161a}
+  - id: S9
+    title: "Circulating air to the blowing-out tower"
+    from: K201.out
+    to: T201.gas_in
+    template: vent
+    state:
+      design:
+        pressure: {value: 106.0, provenance: assumed, source: "D-008"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-008"}
+        flow: {value: 72551.4, provenance: calculated, source: 'cheme process propagate: pass-through K201 from S8', fingerprint: 307259e9c1ab1d34}
+        composition: {basis: mass_fraction, values: {N2: 0.7256077902, O2: 0.2203138754, H2O: 0.04342230519, CO2: 0.01064769618, I2: 8.333106355e-06}, provenance: calculated, source: 'cheme process propagate: pass-through K201 from S8', fingerprint: 307259e9c1ab1d34}
+  - id: S10
+    title: "Make-up air"
+    from: AIR.out
+    to: T201.air
+    template: vent
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-008"}
+        temperature: {value: 298.15, provenance: assumed, source: "D-008"}
+        flow: {value: 3611.997615, basis: mass, provenance: assumed, source: "scripts/iodine_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {N2: 0.767090782, O2: 0.232909218}, provenance: assumed, source: "dry air, argon counted as N2 (D-006)"}
+  - id: S11
+    title: "Sulfur dioxide"
+    from: SO2.out
+    to: T202.so2
+    template: iodine
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: "D-008"}
+        temperature: {value: 298.15, provenance: assumed, source: "D-008"}
+        flow: {value: 35.1154304, basis: mass, provenance: assumed, source: "scripts/iodine_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {SO2: 1.0}, provenance: assumed, source: "scripts/iodine_balance.py (D-006)"}
+  - id: S12
+    title: "Absorber make-up water"
+    from: PW.out
+    to: T202.water
+    template: iodine
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: "D-008"}
+        temperature: {value: 298.15, provenance: assumed, source: "D-008"}
+        flow: {value: 1112.007287, basis: mass, provenance: assumed, source: "scripts/iodine_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: "scripts/iodine_balance.py (D-006)"}
+  - id: S13
+    title: "Absorber bleed (HI/H2SO4 liquor)"
+    from: T202.bleed
+    to: R301.in
+    template: iodine
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: "D-008"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-008"}
+        flow: {value: 1276.487441, basis: mass, provenance: assumed, source: "scripts/iodine_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {H2O: 0.855978644, HI: 0.1, H2SO4: 0.04128855632, HCl: 0.002193399282, SO2: 0.0005394004117}, provenance: assumed, source: "scripts/iodine_balance.py (D-006)"}
+  - id: S14
+    title: "Chlorine to the iodine precipitation"
+    from: CL2.r301
+    to: R301.cl2
+    template: iodine
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: "chlor-alkali-1 product CL2 (D-008)"}
+        temperature: {value: 298.15, provenance: assumed, source: "D-008"}
+        flow: {value: 35.96518347, basis: mass, provenance: assumed, source: "scripts/iodine_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {Cl2: 1.0}, provenance: assumed, source: "scripts/iodine_balance.py (D-006)"}
+  - id: S15
+    title: "Iodine slurry"
+    from: R301.out
+    to: F301.in
+    template: iodine
+    state:
+      design:
+        pressure: {value: 200.0, provenance: assumed, source: "D-008"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-008"}
+        flow: {value: 1312.45311, basis: mass, provenance: assumed, source: "scripts/iodine_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {H2O: 0.8322268844, I2: 0.09601112609, H2SO4: 0.04096025195, HCl: 0.03031543924, HI: 0.0004862983032}, provenance: assumed, source: "scripts/iodine_balance.py (D-006)"}
+  - id: S16
+    title: "Filtrate to the brine head"
+    from: F301.filtrate
+    to: R101.filtrate
+    template: iodine
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: "D-008"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-008"}
+        flow: {value: 1173.841999, basis: mass, provenance: assumed, source: "scripts/iodine_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {H2O: 0.9196395576, H2SO4: 0.04526249836, HCl: 0.03349961129, I2: 0.001060956227, HI: 0.0005373764833}, provenance: assumed, source: "scripts/iodine_balance.py (D-006)"}
+  - id: S17
+    title: "Crude iodine cake"
+    from: F301.cake
+    to: M301.cake
+    template: iodine
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-008"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-008"}
+        flow: {value: 138.6111111, basis: mass, provenance: assumed, source: "scripts/iodine_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {I2: 0.9001060956, H2O: 0.09196395576, H2SO4: 0.004526249836, HCl: 0.003349961129, HI: 5.373764833e-05}, provenance: assumed, source: "scripts/iodine_balance.py (D-006)"}
+  - id: S18
+    title: "Sulfuric acid 98.5 wt%"
+    from: H2SO4.out
+    to: M301.acid
+    template: iodine
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: "D-008"}
+        temperature: {value: 298.15, provenance: assumed, source: "D-008"}
+        flow: {value: 25.32994924, basis: mass, provenance: assumed, source: "scripts/iodine_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {H2SO4: 0.985, H2O: 0.015}, provenance: assumed, source: "sulfuric-acid-1 product ACID grade (D-006)"}
+  - id: S19
+    title: "Spent melter acid to the brine head"
+    from: M301.acid_out
+    to: R101.acid
+    template: iodine
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: "D-008"}
+        temperature: {value: 393.15, provenance: assumed, source: "D-008"}
+        flow: {value: 38.94106035, basis: mass, provenance: assumed, source: "scripts/iodine_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {H2SO4: 0.6568231139, H2O: 0.3306837362, HCl: 0.01192422163, I2: 0.0003776484773, HI: 0.0001912797206}, provenance: assumed, source: "scripts/iodine_balance.py (D-006)"}
+  - id: S20
+    title: "Molten iodine"
+    from: M301.melt
+    to: X301.in
+    template: iodine
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-008"}
+        temperature: {value: 393.15, provenance: assumed, source: "D-008"}
+        flow: {value: 125.0, basis: mass, provenance: assumed, source: "D-002: product rate"}
+        composition: {basis: mass_fraction, values: {I2: 0.998, H2O: 0.002}, provenance: assumed, source: "D-002: product purity, water standing for all impurities"}
+  - id: S21
+    title: "Iodine flakes to packing"
+    from: X301.out
+    to: IODINE.in
+    template: iodine
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "D-008"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-008"}
+        flow: {value: 125.0, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through X301 from S20', fingerprint: 22c9794336cfa0eb}
+        composition: {basis: mass_fraction, values: {I2: 0.998, H2O: 0.002}, provenance: calculated, source: 'cheme process propagate: pass-through X301 from S20', fingerprint: 22c9794336cfa0eb}
+  - id: S22
+    title: "Caustic soda 50 wt%"
+    from: NAOH.out
+    to: R401.naoh
+    template: iodine
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: "D-008"}
+        temperature: {value: 298.15, provenance: assumed, source: "D-008"}
+        flow: {value: 142.1777366, basis: mass, provenance: assumed, source: "scripts/iodine_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {NaOH: 0.5, H2O: 0.5}, provenance: assumed, source: "chlor-alkali-1 product NAOH grade (D-009)"}
+  - id: S23
+    title: "Neutralised spent brine"
+    from: R401.out
+    to: P401.in
+    template: iodine
+    state:
+      design:
+        pressure: {value: 110.0, provenance: assumed, source: "D-008"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-008"}
+        flow: {value: 462995.9118, basis: mass, provenance: assumed, source: "scripts/iodine_balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {H2O: 0.8996783924, NaCl: 0.1000445187, Na2SO4: 0.0002461946537, I2: 2.379120219e-05, NaI: 7.103047451e-06}, provenance: assumed, source: "scripts/iodine_balance.py (D-006)"}
+  - id: S24
+    title: "Spent brine to reinjection"
+    from: P401.out
+    to: SPENT.in
+    template: iodine
+    state:
+      design:
+        pressure: {value: 3100.0, provenance: assumed, source: "D-008"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-008"}
+        flow: {value: 462995.9118, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through P401 from S23', fingerprint: fccb3cc3fd8a719a}
+        composition: {basis: mass_fraction, values: {H2O: 0.8996783924, NaCl: 0.1000445187, Na2SO4: 0.0002461946537, I2: 2.379120219e-05, NaI: 7.103047451e-06}, provenance: calculated, source: 'cheme process propagate: pass-through P401 from S23', fingerprint: fccb3cc3fd8a719a}
+  - {id: Q1, title: K-201 fan power, kind: energy, from: POWER.k201, to: K201.power, state: {design: {duty: {value: 100.25, provenance: assumed, source: "scripts/iodine_balance.py: 4 kPa rise, efficiency 0.70 (D-008)"}}}}
+  - {id: Q2, title: P-401 reinjection pump power, kind: energy, from: POWER.p401, to: P401.power, state: {design: {duty: {value: 479.68, provenance: assumed, source: "scripts/iodine_balance.py: 3000 kPa rise, efficiency 0.75 (D-008)"}}}}
+  - {id: Q3, title: P-202 absorbent circulation pump power, kind: energy, from: POWER.t202, to: T202.power, state: {design: {duty: {value: 4.17, provenance: assumed, source: "scripts/iodine_balance.py: 30 m3/h, 300 kPa, efficiency 0.60 (D-008)"}}}}
+  - {id: Q4, title: "Filter, melter agitator and flaker drives", kind: energy, from: POWER.rec, to: F301.power, state: {design: {duty: {value: 15.00, provenance: assumed, source: "scripts/iodine_balance.py: lumped estimate, not sized (D-008)"}}}}
+  - {id: Q5, title: LP steam to the M-301 melter, kind: energy, from: LPS.m301, to: M301.heat, state: {design: {duty: {value: 8.13, provenance: assumed, source: "scripts/iodine_balance.py: heating, fusion and acid heating with 50 % losses (D-008)"}}}}
+  - {id: Q6, title: X-301 flaker cooling duty, kind: energy, from: X301.cw, to: CW.x301, state: {design: {duty: {value: 2.81, provenance: assumed, source: "scripts/iodine_balance.py: solidification and cooling of the iodine (D-008)"}}}}
+layout: {bfd: {}, pfd: {}}

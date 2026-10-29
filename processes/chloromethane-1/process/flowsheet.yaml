@@ -1,0 +1,475 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+# Chloromethane (methyl chloride) by gas-phase hydrochlorination of methanol over alumina,
+# concept stage, issue ChemE-as-Code/process-library#151. Assumed stream values come from
+# scripts/balance.py (D-002 to D-009); mixer, heater, reactor, compressor and splitter outlets
+# are calculated by `cheme process propagate --fill`. Utility duties are hand estimates of
+# scripts/balance.py (D-010), not a rigorous energy balance (no qualified property package, D-011).
+schema: cheme/process/v1
+kind: flowsheet
+title: Chloromethane from methanol and hydrogen chloride (gas-phase hydrochlorination)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: 100 kt/a methyl chloride, 8000 h/a (D-002)", default: true}
+tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - {id: MEOH, title: Methanol (methanol-1 product grade), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: HCLG, title: Anhydrous hydrogen chloride gas, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: ACID, title: Sulfuric acid 96 wt% (drying), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: k401, direction: out, kind: energy}
+      - {id: pumps, direction: out, kind: energy}
+  - id: LPS
+    title: LP steam 500 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 500, provenance: assumed, source: "D-010: lowest common site level that serves the methanol vaporiser (about 385 K) and the stripper reboiler (about 383 K)"}
+      supply_temperature: {value: 424.98, provenance: given, source: "saturation at 500 kPa(a), IAPWS-IF97"}
+      min_approach: {value: 10, provenance: assumed, source: D-010}
+    ports:
+      - {id: e101, direction: out, kind: energy}
+      - {id: c202, direction: out, kind: energy}
+      - {id: c401, direction: out, kind: energy}
+
+products:
+  - {id: MECL, title: "Methyl chloride product (liquid, to storage)", category: product, ports: [{id: in, direction: in}]}
+  - {id: DHCL, title: Dilute hydrochloric acid (about 21 wt%) to HCl recovery or neutralisation, category: by_product, ports: [{id: in, direction: in}]}
+  - {id: SPENT, title: Spent sulfuric acid (about 80 %) to acid regeneration, category: by_product, ports: [{id: in, direction: in}]}
+  - {id: PURGE, title: Inert purge to the site thermal oxidiser, category: off_gas, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis"}
+      min_approach: {value: 5, provenance: assumed, source: "design basis"}
+    ports:
+      - {id: q201, direction: in, kind: energy}
+      - {id: c202, direction: in, kind: energy}
+      - {id: t301, direction: in, kind: energy}
+      - {id: k401, direction: in, kind: energy}
+      - {id: e401, direction: in, kind: energy}
+      - {id: c401, direction: in, kind: energy}
+
+blocks:
+  - id: RXN
+    title: Feed vaporisation and hydrochlorination
+    class: ReactingChemicals
+    ports:
+      - {id: meoh, direction: in}
+      - {id: hcl, direction: in}
+      - {id: rec_strip, direction: in}
+      - {id: rec_col, direction: in}
+      - {id: effluent, direction: out}
+      - {id: steam, direction: in, kind: energy}
+  - id: QCH
+    title: Quench, acid condensation and methanol stripping
+    class: SeparatingByPhysicalProcess
+    ports:
+      - {id: effluent, direction: in}
+      - {id: crude, direction: out}
+      - {id: dhcl, direction: out}
+      - {id: rec, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw_q, direction: out, kind: energy}
+      - {id: cw_s, direction: out, kind: energy}
+  - id: DRY
+    title: Sulfuric acid drying
+    class: Absorbing
+    ports:
+      - {id: crude, direction: in}
+      - {id: acid, direction: in}
+      - {id: dry, direction: out}
+      - {id: spent, direction: out}
+      - {id: cw, direction: out, kind: energy}
+  - id: PUR
+    title: Compression and distillation
+    class: Distilling
+    ports:
+      - {id: dry, direction: in}
+      - {id: product, direction: out}
+      - {id: purge, direction: out}
+      - {id: rec, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: steam, direction: in, kind: energy}
+      - {id: cw_k, direction: out, kind: energy}
+      - {id: cw_e, direction: out, kind: energy}
+      - {id: cw_c, direction: out, kind: energy}
+
+steps:
+  # ---- RXN (D-004, D-005, D-010)
+  - id: M100
+    block: RXN
+    title: Methanol junction (fresh and stripper recycle)
+    class: Mixing
+    ports:
+      - {id: fresh, direction: in, delegates: meoh}
+      - {id: rec, direction: in, delegates: rec_strip}
+      - {id: out, direction: out}
+  - id: E101
+    block: RXN
+    title: Methanol vaporiser
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: heat, direction: in, kind: energy}
+  - id: M101
+    block: RXN
+    title: Reactor feed junction (methanol vapour, HCl, HCl column recycle)
+    class: Mixing
+    ports:
+      - {id: meoh, direction: in}
+      - {id: hcl, direction: in, delegates: hcl}
+      - {id: rec, direction: in, delegates: rec_col}
+      - {id: out, direction: out}
+  - id: E102
+    block: RXN
+    title: Feed superheater (heated by the reactor coolant loop)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: heat, direction: in, kind: energy}
+  # D-004: multitubular fixed bed of gamma-alumina; sourced conversion/selectivity, not kinetics
+  - id: R101
+    block: RXN
+    title: Hydrochlorination reactor (multitubular, gamma-alumina)
+    class: ReactingChemicals
+    reactions: [HYDROCHLORINATION, DME_FORMATION]
+    reactor: conversion
+    selectivity: {key: MEOH, conversion: 0.976, products: {MECL: 0.988, DME: 0.006}, provenance: assumed, source: "D-004: best result of Schmidt et al. 2014 (doi:10.1515/gps-2014-0039, abstract) at 340 C, 97.6 % conversion and 98.8 % selectivity, reported close to equilibrium; the rest of the converted methanol to DME (2 mol MeOH per mol DME)"}
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: effluent}
+      - {id: hx1, direction: out, kind: energy}
+      - {id: hx2, direction: out, kind: energy}
+  # ---- QCH (D-006, D-007)
+  - id: Q201
+    block: QCH
+    title: Quench column and graphite acid cooler
+    class: SeparatingByContact
+    links: [{target: equipment, ref: T-201}, {target: equipment, ref: E-201}]
+    ports:
+      - {id: in, direction: in, delegates: effluent}
+      - {id: gas, direction: out, delegates: crude}
+      - {id: liq, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+      - {id: cw, direction: out, kind: energy, delegates: cw_q}
+  - id: C202
+    block: QCH
+    title: Methanol stripper
+    class: Distilling
+    links: [{target: equipment, ref: C-202}]
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out, delegates: rec}
+      - {id: bot, direction: out, delegates: dhcl}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: cw, direction: out, kind: energy, delegates: cw_s}
+  # ---- DRY (D-008)
+  - id: T301
+    block: DRY
+    title: Sulfuric acid drying tower
+    class: Absorbing
+    links: [{target: equipment, ref: T-301}]
+    ports:
+      - {id: gas, direction: in, delegates: crude}
+      - {id: acid, direction: in, delegates: acid}
+      - {id: dry, direction: out, delegates: dry}
+      - {id: spent, direction: out, delegates: spent}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  # ---- PUR (D-009)
+  - id: K401
+    block: PUR
+    title: Methyl chloride compressor (two stages, intercooled)
+    class: Compressing
+    method: CentrifugalMotion
+    links: [{target: equipment, ref: K-401}]
+    ports:
+      - {id: in, direction: in, delegates: dry}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+      - {id: cw, direction: out, kind: energy, delegates: cw_k}
+  - id: E401
+    block: PUR
+    title: Aftercooler and condenser
+    class: Cooling
+    links: [{target: equipment, ref: E-401}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw_e}
+  - id: C401
+    block: PUR
+    title: HCl (light ends) column with partial condenser
+    class: Distilling
+    links: [{target: equipment, ref: C-401}]
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out}
+      - {id: bot, direction: out, delegates: product}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: cw, direction: out, kind: energy, delegates: cw_c}
+  - id: S401
+    block: PUR
+    title: Purge take-off
+    class: SplittingMaterial
+    split: {purge: 0.10}
+    ports:
+      - {id: in, direction: in}
+      - {id: purge, direction: out, delegates: purge}
+      - {id: rec, direction: out, delegates: rec}
+
+streams:
+  # ---- feeds
+  - id: S01
+    title: Fresh methanol
+    from: MEOH.out
+    to: M100.fresh
+    template: methanol
+    state:
+      design:
+        pressure: {value: 300, provenance: given, source: "methanol-1 product delivery (its design basis)"}
+        temperature: {value: 313.15, provenance: given, source: "methanol-1 product delivery (its design basis)"}
+        flow: {value: 8076.64, basis: mass, provenance: assumed, source: "scripts/balance.py: set by the product rate (D-002)"}
+        composition: {basis: mass_fraction, values: {MEOH: 0.9995, H2O: 0.0005}, provenance: given, source: "methanol-1 product design target, water 0.05 wt% (US Fed. Spec. O-M-232 Grade AA <= 0.10 wt%), D-003"}
+  - id: S03
+    title: Anhydrous HCl
+    from: HCLG.out
+    to: M101.hcl
+    template: hcl
+    state:
+      design:
+        pressure: {value: 450, provenance: assumed, source: "design basis battery limit"}
+        temperature: {value: 303.15, provenance: assumed, source: "design basis battery limit"}
+        flow: {value: 10282.59, basis: mass, provenance: assumed, source: "scripts/balance.py: tops the reactor inlet up to HCl/MeOH 1.10 (D-004)"}
+        composition: {basis: mass_fraction, values: {HCL: 0.999231, N2: 0.000769}, provenance: assumed, source: "D-003: 99.9 mol% HCl, inerts 0.1 mol% lumped as N2"}
+  - id: S11
+    title: Sulfuric acid 96 wt%
+    from: ACID.out
+    to: T301.acid
+    template: acid
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: design basis}
+        temperature: {value: 303.15, provenance: assumed, source: design basis}
+        flow: {value: 651.89, basis: mass, provenance: assumed, source: "scripts/balance.py: rate set by 8 wt% DME in the spent acid (D-008)"}
+        composition: {basis: mass_fraction, values: {H2SO4: 0.96, H2O: 0.04}, provenance: assumed, source: "D-008: 96 wt% (95 % most used, US 4,794,204)"}
+  # ---- RXN
+  - id: S02a
+    title: Methanol feed to the vaporiser
+    from: M100.out
+    to: E101.in
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {MEOH: 0.970644, H2O: 0.0211741, HCL: 0.00301355, MECL: 0.00486903, DME: 0.000299146}, provenance: calculated, source: 'cheme process propagate: mixer M100 from S01 S09', fingerprint: 27adf63f0f9e6aba}
+        flow: {value: 8466.93, provenance: calculated, source: 'cheme process propagate: mixer M100 from S01 S09', fingerprint: 2a4a994225f48075}
+  - id: S02
+    title: Methanol vapour
+    from: E101.out
+    to: M101.meoh
+    template: process
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: D-005}
+        temperature: {value: 385.0, provenance: assumed, source: "D-005: saturation of methanol at 400 kPa(a) (about 385 K)"}
+        flow: {value: 8466.93, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S02a', fingerprint: fa6cfd964c426dbc}
+        composition: {basis: mole_fraction, values: {MEOH: 0.970644, H2O: 0.0211741, HCL: 0.00301355, MECL: 0.00486903, DME: 0.000299146}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S02a', fingerprint: fa6cfd964c426dbc}
+  - id: S04
+    title: Mixed reactor feed
+    from: M101.out
+    to: E102.in
+    template: process
+    state:
+      design:
+        pressure: {value: 380, provenance: assumed, source: D-005}
+        temperature: {value: 375.0, provenance: assumed, source: "D-010: mixing estimate, not calculated"}
+        flow: {value: 19307.3, provenance: calculated, source: 'cheme process propagate: mixer M101 from S03 S02 S19', fingerprint: 0b7999eacdf57fcb}
+        composition: {basis: mole_fraction, values: {HCL: 0.506439, N2: 0.00503377, MEOH: 0.460399, MECL: 0.0179438, DME: 0.000141892, H2O: 0.0100434}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S03 S02 S19', fingerprint: bf260ab2252b45dc}
+  - id: S05
+    title: Superheated reactor feed
+    from: E102.out
+    to: R101.in
+    template: process
+    state:
+      design:
+        pressure: {value: 350, provenance: assumed, source: "D-005: inside 1-10 bar(a) of WO 2000/076658 claim 12"}
+        temperature: {value: 523.15, provenance: assumed, source: "D-005: 250 C, the low end of the 250-300 C typical inlet (WO 2000/076658)"}
+        flow: {value: 19307.3, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S04', fingerprint: cd432ef072d299ae}
+        composition: {basis: mole_fraction, values: {HCL: 0.506439, N2: 0.00503377, MEOH: 0.460399, MECL: 0.0179438, DME: 0.000141892, H2O: 0.0100434}, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S04', fingerprint: cd432ef072d299ae}
+  - id: S06
+    title: Reactor effluent
+    from: R101.out
+    to: Q201.in
+    template: process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-005}
+        temperature: {value: 613.15, provenance: assumed, source: "D-005: 340 C, the temperature of the sourced conversion (Schmidt et al. 2014)"}
+        flow: {value: 19307.3, provenance: calculated, source: 'cheme process propagate: reactor R101 from S05', fingerprint: ff1127489d2f81c7}
+        composition: {basis: mole_fraction, values: {MEOH: 0.0110496, HCL: 0.0624817, MECL: 0.461901, DME: 0.00283799, H2O: 0.456696, N2: 0.00503377}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S05', fingerprint: 4c9ec86d49ed460a}
+  # ---- QCH
+  - id: S07
+    title: Crude methyl chloride gas
+    from: Q201.gas
+    to: T301.gas
+    template: process
+    state:
+      design:
+        pressure: {value: 200, provenance: assumed, source: D-006}
+        temperature: {value: 313.15, provenance: assumed, source: "D-006: 40-45 C after the graphite cooler (US 4,794,204, plant embodiment)"}
+        flow: {value: 13329.29, basis: mass, provenance: assumed, source: "scripts/balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {MEOH: 0.00013, HCL: 0.003697, MECL: 0.975582, DME: 0.005222, H2O: 0.009441, N2: 0.005928}, provenance: assumed, source: "D-006: HCl 0.5 mol%, methanol 0.02 mol%, water 2.6 mol% (water activity 0.7 over the acid at 313 K)"}
+  - id: S08
+    title: Quench acid (about 21 wt% HCl with methanol)
+    from: Q201.liq
+    to: C202.in
+    template: aqhcl
+    state:
+      design:
+        pressure: {value: 200, provenance: assumed, source: D-006}
+        temperature: {value: 313.15, provenance: assumed, source: D-006}
+        flow: {value: 5978.05, basis: mass, provenance: assumed, source: "scripts/balance.py (D-006)"}
+        composition: {basis: mass_fraction, values: {MEOH: 0.032901, HCL: 0.205324, MECL: 0.010931, DME: 0.000613, H2O: 0.750231}, provenance: assumed, source: "D-006: water of reaction, excess HCl, unconverted methanol; 0.5 % of the CH3Cl and 5 % of the DME dissolved (ASSUMED)"}
+  - id: S09
+    title: Stripper overhead, condensed (methanol recycle)
+    from: C202.top
+    to: M100.rec
+    template: aqhcl
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: D-007}
+        temperature: {value: 313.15, provenance: assumed, source: D-007}
+        flow: {value: 390.29, basis: mass, provenance: assumed, source: "scripts/balance.py (D-007)"}
+        composition: {basis: mass_fraction, values: {MEOH: 0.4989, HCL: 0.074835, MECL: 0.167428, DME: 0.009386, H2O: 0.249451}, provenance: assumed, source: "D-007: 99 % of the methanol, all dissolved CH3Cl and DME; 0.5 kg water and 0.15 kg HCl per kg methanol (ASSUMED)"}
+  - id: S10
+    title: Dilute hydrochloric acid
+    from: C202.bot
+    to: DHCL.in
+    template: aqhcl
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-007}
+        temperature: {value: 313.15, provenance: assumed, source: "D-007: after a product cooler, lumped into C202"}
+        flow: {value: 5587.76, basis: mass, provenance: assumed, source: "scripts/balance.py (D-007)"}
+        composition: {basis: mass_fraction, values: {MEOH: 0.000352, HCL: 0.214438, H2O: 0.78521}, provenance: assumed, source: "D-007: by difference"}
+  # ---- DRY
+  - id: S12
+    title: Spent sulfuric acid
+    from: T301.spent
+    to: SPENT.in
+    template: acid
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-008}
+        temperature: {value: 313.15, provenance: assumed, source: D-008}
+        flow: {value: 861.37, basis: mass, provenance: assumed, source: "scripts/balance.py (D-008)"}
+        composition: {basis: mass_fraction, values: {MEOH: 0.002011, MECL: 0.015097, DME: 0.08, H2O: 0.176363, H2SO4: 0.726529}, provenance: assumed, source: "D-008: DME 8 wt% (limit 5-10 %, US 4,794,204); strength 80.5 % follows (about 80 % in the patent)"}
+  - id: S13
+    title: Dry methyl chloride gas
+    from: T301.dry
+    to: K401.in
+    template: process
+    state:
+      design:
+        pressure: {value: 190, provenance: assumed, source: D-008}
+        temperature: {value: 313.15, provenance: assumed, source: D-008}
+        flow: {value: 13119.81, basis: mass, provenance: assumed, source: "scripts/balance.py (D-008)"}
+        composition: {basis: mass_fraction, values: {HCL: 0.003756, MECL: 0.990168, DME: 0.000053, N2: 0.006023}, provenance: assumed, source: "D-008: water and methanol fully, DME 99 % and CH3Cl 0.1 % absorbed (ASSUMED)"}
+  # ---- PUR
+  - id: S14
+    title: Compressed methyl chloride gas
+    from: K401.out
+    to: E401.in
+    template: process
+    state:
+      design:
+        pressure: {value: 1050, provenance: assumed, source: "D-009: condensation of CH3Cl on cooling water (vapour pressure about 0.9 MPa at 313 K)"}
+        flow: {value: 13119.81, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through K401 from S13', fingerprint: deb87359d14ae7d3}
+        composition: {basis: mass_fraction, values: {HCL: 0.003756, MECL: 0.990168, DME: 5.3e-05, N2: 0.006023}, provenance: calculated, source: 'cheme process propagate: pass-through K401 from S13', fingerprint: deb87359d14ae7d3}
+  - id: S15
+    title: Condensed crude methyl chloride
+    from: E401.out
+    to: C401.in
+    template: process
+    state:
+      design:
+        pressure: {value: 1030, provenance: assumed, source: D-009}
+        temperature: {value: 313.15, provenance: assumed, source: D-009}
+        flow: {value: 13119.81, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E401 from S14', fingerprint: f5ba0a2b719aafe3}
+        composition: {basis: mass_fraction, values: {HCL: 0.003756, MECL: 0.990168, DME: 5.3e-05, N2: 0.006023}, provenance: calculated, source: 'cheme process propagate: pass-through E401 from S14', fingerprint: f5ba0a2b719aafe3}
+  - id: S16
+    title: HCl column overhead vapour
+    from: C401.top
+    to: S401.in
+    template: process
+    state:
+      design:
+        pressure: {value: 1000, provenance: assumed, source: D-009}
+        temperature: {value: 308.15, provenance: assumed, source: D-009}
+        flow: {value: 619.81, basis: mass, provenance: assumed, source: "scripts/balance.py (D-009)"}
+        composition: {basis: mass_fraction, values: {HCL: 0.079499, MECL: 0.793006, N2: 0.127495}, provenance: assumed, source: "D-009: all HCl and inerts, CH3Cl 70 mol% (partial condenser on cooling water, ASSUMED)"}
+  - id: S17
+    title: Methyl chloride product
+    from: C401.bot
+    to: MECL.in
+    template: process
+    state:
+      design:
+        pressure: {value: 1020, provenance: assumed, source: "design basis: liquid to storage"}
+        temperature: {value: 318.15, provenance: assumed, source: "D-009: bubble point at the column bottom, about 318 K"}
+        flow: {value: 12500.0, basis: mass, provenance: assumed, source: "D-002: 100 kt/a / 8000 h"}
+        composition: {basis: mass_fraction, values: {MECL: 0.999944, DME: 0.000056}, provenance: assumed, source: "D-009: DME slip of the drying tower; HCl and water below detection in the model"}
+  - id: S18
+    title: Inert purge
+    from: S401.purge
+    to: PURGE.in
+    template: process
+    state:
+      design:
+        composition: {basis: mass_fraction, values: {HCL: 0.079499, MECL: 0.793006, N2: 0.127495}, provenance: calculated, source: 'cheme process propagate: splitter S401 from S16', fingerprint: 136e6b07551a0383}
+        flow: {value: 61.981, basis: mass, provenance: calculated, source: 'cheme process propagate: splitter S401 from S16', fingerprint: 6124d52ab6337a49}
+  - id: S19
+    title: HCl and methyl chloride recycle
+    from: S401.rec
+    to: M101.rec
+    template: process
+    state:
+      design:
+        composition: {basis: mass_fraction, values: {HCL: 0.079499, MECL: 0.793006, N2: 0.127495}, provenance: calculated, source: 'cheme process propagate: splitter S401 from S16', fingerprint: 136e6b07551a0383}
+        flow: {value: 557.829, provenance: calculated, source: 'cheme process propagate: splitter S401 from S16 S18', fingerprint: df7c3e9732e53aa4}
+  # ---- energy streams (scripts/balance.py hand estimates, D-010)
+  - {id: Q01, title: LP steam to the methanol vaporiser, kind: energy, from: LPS.e101, to: E101.steam, state: {design: {duty: {value: 2353.4, provenance: assumed, source: "scripts/balance.py: fresh methanol and the condensed recycle heated and vaporised at 400 kPa(a), 2899.8 kW, less the reactor heat Q03 (D-010)"}}}}
+  - {id: Q02, title: Reactor coolant loop to the feed superheater, kind: energy, from: R101.hx1, to: E102.heat, state: {design: {duty: {value: 964.4, provenance: assumed, source: "scripts/balance.py: ideal-gas cp of S05, 375 to 523 K (D-010)"}}}}
+  - {id: Q03, title: Reactor coolant loop to the methanol vaporiser, kind: energy, from: R101.hx2, to: E101.heat, state: {design: {duty: {value: 546.4, provenance: assumed, source: "cheme process reactors: R101 duty -1510.8 kW (ideal gas, 523 K in, 613 K out; scripts/balance.py hand estimate -1534 kW) less Q02 (D-010)"}}}}
+  - {id: Q04, title: Quench and acid cooler heat to cooling water, kind: energy, from: Q201.cw, to: CW.q201, state: {design: {duty: {value: 5634.6, provenance: assumed, source: "scripts/balance.py: S06 cooled 613 to 313 K, water and methanol condensed, HCl absorbed (63 kJ/mol ASSUMED) (D-010)"}}}}
+  - {id: Q05, title: LP steam to the methanol stripper, kind: energy, from: LPS.c202, to: C202.steam, state: {design: {duty: {value: 540.9, provenance: assumed, source: "scripts/balance.py: feed heated 313 to 383 K and overhead vaporised (D-010)"}}}}
+  - {id: Q06, title: Drying tower acid cooler, kind: energy, from: T301.cw, to: CW.t301, state: {design: {duty: {value: 149.0, provenance: assumed, source: "scripts/balance.py: water absorbed into the acid at 70 kJ/mol, methanol 50, DME 30 kJ/mol (ASSUMED, D-010)"}}}}
+  - {id: Q07, title: Compressor power, kind: energy, from: POWER.k401, to: K401.power, state: {design: {duty: {value: 494.7, provenance: assumed, source: "scripts/balance.py: two stages 190 to 1050 kPa(a), intercooled to 313 K, isentropic efficiency 0.75, motor 0.95 (D-010)"}}}}
+  - {id: Q08, title: Compressor intercooler, kind: energy, from: K401.cw, to: CW.k401, state: {design: {duty: {value: 235.0, provenance: assumed, source: "scripts/balance.py: first-stage work (D-010)"}}}}
+  - {id: Q09, title: Aftercooler and condenser, kind: energy, from: E401.cw, to: CW.e401, state: {design: {duty: {value: 1614.4, provenance: assumed, source: "scripts/balance.py: second-stage work and CH3Cl condensation 19.3 kJ/mol at 313 K (D-010)"}}}}
+  - {id: Q10, title: LP steam to the HCl column reboiler, kind: energy, from: LPS.c401, to: C401.steam, state: {design: {duty: {value: 392.0, provenance: assumed, source: "scripts/balance.py: boil-up 0.3 kmol per kmol bottoms, 19 kJ/mol (ASSUMED, D-010)"}}}}
+  - {id: Q11, title: HCl column partial condenser, kind: energy, from: C401.cw, to: CW.c401, state: {design: {duty: {value: 333.8, provenance: assumed, source: "scripts/balance.py: reboiler duty less the overhead leaving as vapour (D-010)"}}}}
+  - {id: Q12, title: "Pump power (quench, acid and product pumps)", kind: energy, from: POWER.pumps, to: Q201.power, state: {design: {duty: {value: 49.5, provenance: assumed, source: "D-010: 10 % of the compressor power (ASSUMED allowance)"}}}}
+  - {id: Q13, title: Stripper condenser, kind: energy, from: C202.cw, to: CW.c202, state: {design: {duty: {value: 145.7, provenance: assumed, source: "scripts/balance.py: latent heat of the overhead (D-010)"}}}}
+layout: {bfd: {}, pfd: {}}

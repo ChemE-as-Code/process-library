@@ -1,0 +1,28 @@
+# Reactions of the ethylene hydration reactor R-101. Schema: `cheme schema process-reactions`.
+# The reactor model is a sourced conversion with ASSUMED selectivities (DESIGN.md D-004), set
+# on the step R101 of process/flowsheet.yaml; no kinetics are used or claimed. Heats of
+# reaction: ideal gas at 298.15 K from the formation enthalpies of process/materials.yaml.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: HYD
+    equation: C2H4 + H2O <=> C2H5OH
+    stoichiometry: {C2H4: -1, H2O: -1, ETOH: 1}
+    reversible: true
+    heat_of_reaction: {value: -45308.0, provenance: calculated, source: "ideal-gas formation enthalpies of materials.yaml (ATcT), 298.15 K"}
+    catalyst: H3PO4_SIO2
+    sources: ["US 4003952 (Background: phosphoric acid on celite, 4-5 % of the ethylene converted per pass)", "US 5349096 (phosphoric acid on silica, 225-280 C, 3-10 MPa, water/ethylene 0.15-0.50 mol)"]
+  - id: ETHER
+    equation: 2 C2H4 + H2O <=> (C2H5)2O
+    stoichiometry: {C2H4: -2, H2O: -1, DEE: 1}
+    reversible: true
+    heat_of_reaction: {value: -115398.0, provenance: calculated, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K"}
+    catalyst: H3PO4_SIO2
+    sources: ["US 4003952 (Background: diethyl ether the principal by-product, 1-10 % of the ethanol made)"]
+  - id: OLIGO
+    equation: 2 C2H4 => C4H8
+    stoichiometry: {C2H4: -2, C4H8: 1}
+    reversible: false
+    heat_of_reaction: {value: -105150.0, provenance: calculated, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K (1-butene)"}
+    catalyst: H3PO4_SIO2
+    sources: ["lumped oligomer by-product, ASSUMED (DESIGN.md D-004)"]

@@ -1,0 +1,37 @@
+# Line list. Schema: `cheme schema lines`.
+# Concept stage: one line per material stream of the PFD (stream id in the notes), no P&ID yet.
+# DN: first-pass size from velocity (D-010, ASSUMED): gas 15 m/s above 1000 kPa(a), 20 m/s
+# below, two-phase 10 m/s, liquid 1.5 m/s; gas density ideal gas with an ASSUMED
+# compressibility (0.6 for the loop gas at 313 K, 0.9 at reactor temperature); inside diameter
+# taken as the DN, rounded up. Pressure classes come with the pipe specs.
+schema: cheme/lines/v1
+lines:
+  - {number: ET-101, from: B/L, to: ET-102, nominal_diameter: DN50, fluid: Ethylene, notes: "S1 fresh ethylene, 7300 kPa(a), joins the cycle gas (M101)"}
+  - {number: PG-102, from: ET-101, to: E-101, nominal_diameter: DN200, fluid: Cycle gas, notes: "S2, process water injected before E-101 (M102)"}
+  - {number: PG-103, from: PG-102, to: E-101, nominal_diameter: DN300, fluid: Wet reactor feed, notes: "S3, two-phase"}
+  - {number: PG-104, from: E-101, to: E-102, nominal_diameter: DN400, fluid: Wet reactor feed, notes: "S4, two-phase, 477 K"}
+  - {number: PG-105, from: E-102, to: R-101, nominal_diameter: DN350, fluid: Reactor feed, notes: "S5, 513 K"}
+  - {number: PG-106, from: R-101, to: E-101, nominal_diameter: DN350, fluid: Reactor effluent, notes: "S6, 541 K, acid carry-over (D-007)"}
+  - {number: PG-107, from: E-101, to: E-103, nominal_diameter: DN300, fluid: Reactor effluent, notes: "S7, two-phase"}
+  - {number: PG-108, from: E-103, to: V-101, nominal_diameter: DN300, fluid: Reactor effluent, notes: "S8, two-phase, caustic injection point (D-007)"}
+  - {number: PG-109, from: V-101, to: C-101, nominal_diameter: DN200, fluid: Cycle gas, notes: "S9"}
+  - {number: PG-110, from: C-101, to: K-101, nominal_diameter: DN200, fluid: Cycle gas, notes: "S11 scrubbed gas, S14 recycle after the purge take-off"}
+  - {number: FG-111, from: PG-110, to: B/L, nominal_diameter: DN25, fluid: Purge gas, notes: "S13 loop purge to the fuel-gas header"}
+  - {number: PG-112, from: K-101, to: PG-102, nominal_diameter: DN200, fluid: Cycle gas, notes: "S15 compressed recycle gas"}
+  - {number: CE-113, from: V-101, to: V-102, nominal_diameter: DN125, fluid: Crude ethanol, notes: "S10, let-down valve before V-102"}
+  - {number: CE-114, from: C-101, to: V-102, nominal_diameter: DN40, fluid: Crude ethanol, notes: "S12 scrubber bottoms, let-down valve"}
+  - {number: FG-115, from: V-102, to: K-102, nominal_diameter: DN80, fluid: Flash gas, notes: "S16, 300 kPa(a)"}
+  - {number: FG-116, from: K-102, to: PG-102, nominal_diameter: DN25, fluid: Flash gas, notes: "S34 recompressed flash gas"}
+  - {number: CE-201, from: V-102, to: E-201, nominal_diameter: DN125, fluid: Crude ethanol, notes: "S18"}
+  - {number: CE-202, from: E-201, to: C-201, nominal_diameter: DN125, fluid: Crude ethanol, notes: "S35, 370 K"}
+  - {number: FG-203, from: C-201, to: B/L, nominal_diameter: DN50, fluid: Light-ends off-gas, notes: "S19 to the fuel-gas header"}
+  - {number: CE-204, from: C-201, to: C-202, nominal_diameter: DN125, fluid: Crude ethanol, notes: "S21 stripped crude"}
+  - {number: EV-205, from: C-202, to: V-301, nominal_diameter: DN350, fluid: Hydrous ethanol vapour, notes: "S22, 200 kPa(a)"}
+  - {number: PW-206, from: C-202, to: E-201, nominal_diameter: DN100, fluid: Process water, notes: "S24 bottoms, 398 K"}
+  - {number: PW-207, from: E-201, to: P-101, nominal_diameter: DN100, fluid: Process water, notes: "S36, S26 after the blowdown take-off, S29 with the make-up water"}
+  - {number: WW-208, from: PW-207, to: B/L, nominal_diameter: DN40, fluid: Wastewater, notes: "S25 blowdown to wastewater treatment"}
+  - {number: PW-209, from: B/L, to: PW-207, nominal_diameter: DN50, fluid: Demineralised water, notes: "S28 make-up water"}
+  - {number: PW-210, from: P-101, to: PG-102, nominal_diameter: DN100, fluid: Process water, notes: "S30, S31 reactor process water, 7300 kPa(a)"}
+  - {number: PW-211, from: PW-210, to: C-101, nominal_diameter: DN40, fluid: Process water, notes: "S20 scrubber wash water"}
+  - {number: EP-301, from: V-301, to: B/L, nominal_diameter: DN80, fluid: Anhydrous ethanol, notes: "S23 product to storage, after the product condenser"}
+  - {number: CE-302, from: V-301, to: C-202, nominal_diameter: DN40, fluid: Regeneration condensate, notes: "S27"}

@@ -1,0 +1,32 @@
+# The reactions of hydrogen-chloride-1 (DESIGN.md D-005, section 3). Schema
+# `cheme schema process-reactions`. Heats of reaction in kJ/kmol per extent as written, from
+# the gas-phase standard enthalpies of formation at 298.15 K of NIST-JANAF (Chase 1998, 4th ed.,
+# tables Cl-026 HCl and H-064 H2O(g)): HCl -92.31, H2O(g) -241.826 kJ/mol.
+# Model basis: chemical equilibrium (ideal gas) at the furnace outlet, no kinetics: the
+# hydrogen-chlorine flame is a radical chain reaction far faster than the residence time in the
+# furnace, and K is so large at the outlet that Cl2 and O2 are used up (D-005).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: HCL_SYN
+    title: Hydrogen chloride synthesis (chlorine burnt in hydrogen)
+    equation: H2 + Cl2 <=> 2 HCl
+    stoichiometry: {H2: -1.0, Cl2: -1.0, HCl: 2.0}
+    reversible: true
+    conversion: {key: Cl2, value: 1.0, provenance: assumed, source: "D-005: equilibrium limit with 10 mol-% H2 excess; K = 2.6e19 at 523 K from the ideal-gas data leaves y(Cl2) about 7e-19 (scripts/balance.py); free Cl2 in product acid of real burners is of order 1 ppm (not modelled)"}
+    heat_of_reaction:
+      value: -184620.0
+      provenance: given
+      source: "NIST-JANAF Thermochemical Tables (Chase 1998), table Cl-026: dHf(HCl, g, 298.15 K) = -92.31 kJ/mol, x 2"
+    sources: ["https://janaf.nist.gov/tables/Cl-026.html", "doi:10.1002/14356007.a13_283 (Ullmann, Hydrochloric Acid: route identity only, full text not read)"]
+  - id: H2_OX
+    title: Combustion of the oxygen in the chlorine feed with excess hydrogen
+    equation: 2 H2 + O2 <=> 2 H2O
+    stoichiometry: {H2: -2.0, O2: -1.0, H2O: 2.0}
+    reversible: true
+    conversion: {key: O2, value: 1.0, provenance: assumed, source: "D-005: equilibrium limit with excess H2 (K of order 1e40 at 523 K); the oxygen of the chlorine burns to water in the hydrogen flame"}
+    heat_of_reaction:
+      value: -483652.0
+      provenance: given
+      source: "NIST-JANAF Thermochemical Tables (Chase 1998), table H-064: dHf(H2O, g, 298.15 K) = -241.826 kJ/mol, x 2"
+    sources: ["https://janaf.nist.gov/tables/H-064.html"]

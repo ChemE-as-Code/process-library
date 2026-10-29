@@ -1,0 +1,89 @@
+# Process Atlas manifest of thionyl-chloride-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: thionyl-chloride-1
+title: Thionyl chloride from sulfur, chlorine and SO2 over activated carbon (3.75 t/h)
+summary: >-
+  Sulfur is chlorinated to sulfur chlorides, whose SCl2 reacts with sulfur dioxide and chlorine
+  over activated carbon at about 200 C; the crude is condensed, degassed (SO2 and Cl2 recycled)
+  and distilled with sulfur to 99.7 wt% thionyl chloride. Concept stage, assumed basis,
+  preliminary gate-to-gate LCI.
+description: |
+  Molten sulfur and chlorine (from chlor-alkali-1) form S2Cl2 in a pool of sulfur chlorides and
+  are chlorinated on to SCl2 inside the boundary, together with the still bottoms of the
+  purification. The SCl2 vapour is mixed with liquid SO2 (bought, vaporised), chlorine make-up
+  and the recycle gas (SO2 2.0 x, Cl2 1.05 x stoichiometric, after US2431823A) and converted over
+  activated carbon in a cooled multitubular reactor (398 K in, 473 K out; 75 % of the SCl2 per
+  pass, the range of DE2430631A1). The reactor gas is condensed against cooling water and brine,
+  the crude degassed, and the SO2/Cl2 gas recompressed to the reactor; 1 % is purged to a caustic
+  scrubber to carry out the O2 of the chlorine. The degassed crude (84 wt% SOCl2, 16 wt% SCl2) is
+  distilled with sulfur, which turns the SCl2 into high-boiling S2Cl2 (US4759826A, EP0042530B1);
+  the S2Cl2-rich bottoms return to the chlorination, so the only sulfur-chloride exit is the
+  product.
+
+  Every stream value and duty comes from an independent script (Raoult's law, ideal gas,
+  conversion reactors; scripts/balance.py) because no property package of core is qualified for
+  the sulfur chlorides, thionyl chloride or the caustic liquor (core #315, #364). cheme closes
+  the mass, component and element balances and reproduces the reactor duty. See DESIGN.md for
+  every assumption and gated step.
+families: [sulfuric-acid, inorganic-chemicals]
+keywords: [thionyl chloride, sulfur dichloride, sulfur monochloride, disulfur dichloride, sulfur dioxide, chlorine, sulfur, activated carbon, multitubular reactor, distillation, caustic scrubber, chlorinating agent]
+facets:
+  feedstock_basis: [mineral, fossil, electricity]
+  product_classes: [chemicals]
+  unit_operations: [reaction, condensation, distillation, absorption, compression]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Capacity, feed purities, conversions
+# (except the sourced per-pass range), separations and recycle rules are assumed (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances (cheme validate, cheme process
+    streams: all 5 blocks and 20 steps within tolerance; cheme process propagate --check
+    agrees). The reactor R201 is a conversion model; core reproduces its duty from the
+    ideal-gas data (-386.6 kW). The condensers, degasser, column and scrubber are specified
+    values from scripts/balance.py: no property package of core covers the sulfur chlorides,
+    thionyl chloride or the caustic liquor (core #315, #364), so their energy balance is not
+    evaluable in core. The ideal-gas equilibrium of SCl2 + SO2 + Cl2 lies far beyond the
+    published 50-80 % per-pass conversion (ln(Q/K) = -8.6): the conversion is taken from the
+    patent, not predicted. Preliminary gate-to-gate LCI with every background unmapped (gaps).
+    cheme maturity reaches no level (assumed feeds, conversions and separations, DESIGN.md);
+    the claim `maturity: concept` is the lowest value of the schema, not an evidenced level,
+    and cheme maturity reports it as cheme.maturity-claim-exceeds (accepted, review R-04).
+    Not reviewed. The chemicals registry has no thionyl-chloride, sulfur, sulfur-dioxide,
+    chlorine or sodium-hydroxide entry yet, so the main product and those feeds are not listed
+    under chemistry (open library item, DESIGN.md D-013).
+chemistry:
+  # thionyl chloride, sulfur, SO2, chlorine and caustic soda have no registry entry yet (D-013)
+  inputs:
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Dilution water of the scrubber caustic, 84 g/kg SOCl2. The reactants sulfur (feed:SULFUR, 0.136 kg/kg), chlorine (feed:CL2, 0.598 kg/kg) and sulfur dioxide (feed:SO2, 0.274 kg/kg) and the caustic soda 50 wt% (feed:NAOH, 21 g/kg) have no registry entry yet"}
+  outputs:
+    - {chemical: wastewater, role: waste, inventory_key: "product:EFF", note: "Spent scrubber liquor, 113 g/kg SOCl2: Na2SO3, Na2SO4, NaCl and excess NaOH in water, to treatment. The main product, thionyl chloride (product:SOCL2), has no registry entry yet"}
+    - {chemical: oxygen, role: emission, inventory_key: "emission:O2", note: "0.27 g/kg SOCl2: the O2 impurity of the chlorine, vented after the scrubber with traces of SO2 (5.3 mg/kg) and Cl2 (1.7 mg/kg)"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "4.7 Wh/kg SOCl2: recycle gas compressor and pumps (ASSUMED efficiencies); the brine refrigeration's power is in its own exchange"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.422 kWh (1.52 MJ)/kg SOCl2 of LP steam at 500 kPa(a): vaporisers, feed preheater, degasser and column reboilers"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.501 kWh/kg SOCl2: chlorinators, reactor, crude and column condensers, 25/35 C (ASSUMED)"}
+basis:
+  capacity: "3750 kg/h thionyl chloride (30 kt/a at 8000 h), ASSUMED"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
+references:
+  - {title: "Pechukas, A. (Pittsburgh Plate Glass) (1947) US2431823A: Manufacturing thionyl chloride", url: "https://patents.google.com/patent/US2431823"}
+  - {title: "Bayer AG (1976) DE2430631A1: Purifying crude gaseous thionyl chloride by contact with molten sulphur or polysulphur chlorides", url: "https://patents.google.com/patent/DE2430631A1/en"}
+  - {title: "Occidental Chemical (1988) US4759826A: Process for purifying thionyl chloride", url: "https://patents.google.com/patent/US4759826"}
+  - {title: "EP0042530B1 (1981): Verfahren zur Reinigung von Thionylchlorid", url: "https://patents.google.com/patent/EP0042530B1/de"}
+  - {title: "Lauss, H.-D.; Steffens, W. Sulfur Halides. Ullmann's Encyclopedia of Industrial Chemistry (route reference, not read; licensed)", doi: 10.1002/14356007.a25_623}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/thionyl-chloride-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0

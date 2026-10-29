@@ -1,0 +1,82 @@
+# Process Atlas manifest of phosgene-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: phosgene-1
+title: Phosgene from CO and chlorine over activated carbon (17.3 t/h liquid phosgene, captive)
+summary: >-
+  Carbon monoxide and chlorine react over activated carbon in a boiling-water-cooled
+  multitubular reactor; the phosgene is condensed and delivered as a liquid to an adjacent
+  isocyanate plant, and the CO-rich vent is scrubbed with caustic and burnt. Concept stage,
+  assumed basis, preliminary gate-to-gate LCI.
+description: |
+  Phosgene-grade chlorine (the 12.5 t/h Cl2 of chlor-alkali-1, after liquefaction and
+  re-evaporation) is mixed with 5 % molar excess carbon monoxide and converted over activated
+  carbon in a multitubular reactor whose shell holds water boiling below atmospheric pressure
+  (the arrangement of EP1640341A2). The outlet is condensed in two stages (cooling water, then
+  brine to 253 K) and the liquid phosgene goes to the captive consumer without storage. The vent
+  (mostly CO, with 9 mol% phosgene) passes a caustic scrubber that destroys the phosgene and
+  chlorine, and a thermal oxidiser that burns the CO to CO2; every emission is explicit in the
+  flue-gas stream and the inventory.
+
+  The reactor is a conversion model (99.995 % of the chlorine) checked against the ideal-gas
+  equilibrium by cheme; the condenser and scrubber values come from an independent script
+  (Raoult's law, scripts/balance.py) because no property package of core covers phosgene or the
+  caustic liquor. See DESIGN.md for every assumption and gated step.
+families: [chlorinated-organics]
+keywords: [phosgene, carbonyl chloride, carbon monoxide, chlorine, activated carbon, multitubular reactor, condensation, caustic scrubber, thermal oxidiser, isocyanates, captive production]
+facets:
+  feedstock_basis: [fossil, electricity]
+  product_classes: [chemicals]
+  unit_operations: [reaction, condensation, absorption, incineration]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Feeds, conversions and the
+# condenser and scrubber outlets are assumed (DESIGN.md D-002..D-010).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances (cheme validate, cheme process
+    streams). The reactor and the thermal oxidiser are calculated by cheme (conversion model);
+    core reproduces the reactor duty of the independent balance (-5180.8 kW) and confirms the
+    oxidiser is adiabatic (duty 0.0004 kW) on ideal-gas data. The condensation (Raoult's law)
+    and the caustic scrubber are specified values from scripts/balance.py: no property package
+    of core covers phosgene or the caustic liquor (core #315, #364), so their energy balance is
+    not evaluable in core. The capacity, feed purities, conversions and destruction
+    efficiencies are assumed. Preliminary gate-to-gate LCI with every background unmapped
+    (gaps). cheme maturity reaches no level (assumed feeds and conversions, DESIGN.md).
+    Not reviewed.
+    The chemicals registry has no phosgene, carbon-monoxide, chlorine or sodium-hydroxide
+    entry yet, so the main product and those feeds are not listed under chemistry (open library
+    item, DESIGN.md D-013).
+chemistry:
+  # CO, chlorine and caustic soda have no registry entry yet (D-013); listed in the notes
+  inputs:
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Dilution water of the scrubber caustic, 46 g/kg phosgene. The reactants carbon monoxide (feed:CO, 0.300 kg/kg) and chlorine (feed:CL2, 0.721 kg/kg) and the caustic soda 50 wt% (feed:NAOH, 25.6 g/kg) have no registry entry yet"}
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Combustion air of the thermal oxidiser, 0.146 kg/kg phosgene"}
+  outputs:
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "22.4 g/kg phosgene, from burning the 5 % CO excess in the thermal oxidiser (fossil). The main product, liquid phosgene (product:PHOSGENE), has no registry entry yet"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:EFF", note: "Spent scrubber liquor, 76 g/kg phosgene: NaCl, Na2CO3 and excess NaOH in water, to treatment"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "1.1 Wh/kg phosgene: coolant-circuit vacuum pump, scrubber pump, air fan (ASSUMED); the brine refrigeration's power is in its own exchange"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.361 kWh/kg phosgene: reactor heat via the boiling-water circuit and the first condenser, 25/35 C (ASSUMED)"}
+basis:
+  capacity: "17.3 t/h liquid phosgene (about 139 kt/a), set by the 12.5 t/h chlorine of chlor-alkali-1 (ASSUMED)"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
+references:
+  - {title: "Hughes, R.; Rossi, G. E.; Lennon, D. (2023) Operational parameters relevant to the examination of phosgene synthesis catalysis. React. Chem. Eng. 8, 3150-3161 (CC BY 3.0)", doi: 10.1039/D3RE00354J}
+  - {title: "Mitchell, C. J. et al. (2012) Selection of carbon catalysts for the industrial manufacture of phosgene. Catal. Sci. Technol. 2, 2109-2115", doi: 10.1039/C2CY20224G}
+  - {title: "Cotarca, L.; Lange, C.; Meurer, K.; Pauluhn, J. (2019) Phosgene. Ullmann's Encyclopedia of Industrial Chemistry", doi: 10.1002/14356007.a19_411.pub2}
+  - {title: "Bayer MaterialScience AG (2006) EP1640341A2: Verfahren und Vorrichtung zur Herstellung von Phosgen (process and apparatus for the production of phosgene)", url: "https://patents.google.com/patent/EP1640341A2/en"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/phosgene-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0

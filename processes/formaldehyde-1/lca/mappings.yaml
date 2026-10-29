@@ -1,0 +1,17 @@
+# formaldehyde-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# Everything else of this process stays a reported gap (methanol, the catalysts, oil and filters,
+# their disposal, and the methanol, formaldehyde and DME emissions without a biosphere identity):
+# see DESIGN.md D-010 and lca/gaps.csv. The shared entries they need (methanol, formaldehyde /
+# formalin, the catalysts, emission identities) belong in one consolidated PR of lci/mappings.yaml.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "product:STEAM":
+    use: steam-heat
+    source: >-
+      MP steam 1500 kPa(a) exported from the hot-oil and ECS steam generators, counted as the heat
+      it delivers (kWh) as hda-1, nitric-acid-1, chlor-alkali-1 and soda-ash-1 count steam; the
+      slug steam is counted by mass. A co-product: its allocation or credit is still open (D-010).

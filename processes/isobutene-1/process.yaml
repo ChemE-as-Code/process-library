@@ -1,0 +1,89 @@
+# Process Atlas manifest of isobutene-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: isobutene-1
+title: Isobutene by MTBE cracking (50 kt/a, gas-phase cleavage)
+summary: >-
+  High-purity isobutene by gas-phase cracking of MTBE over an acidic catalyst, with MTBE
+  recycle, a water wash for methanol, a drying/DME column and methanol recovery; methanol is a
+  co-product. Concept stage, assumed basis, preliminary LCI (foreground inventory only).
+description: |
+  Fresh MTBE (a boundary feed) and the MTBE/methanol recycle are freed of heavy ends in the
+  MTBE column, whose vapour overhead is superheated against the reactor effluent and in a fired
+  hot-oil heater and cracked at 553 K and about 0.9 MPa in a heated multitubular reactor over
+  an acidic silica-alumina type catalyst (MTBE conversion 0.90 per pass, assumed inside the
+  range of US 8,633,345 B2). Dimethyl ether and C8 dimers form as by-products. The condensed
+  effluent is split in the isobutene column: crude isobutene overhead, methanol and
+  unconverted MTBE as bottoms, from which the methanol column recycles the MTBE/methanol
+  azeotrope and leaves methanol. Methanol is washed out of the crude isobutene with water;
+  the drying column removes DME and water overhead and gives 99.97 wt% isobutene as bottoms
+  (pure MTBE feed: the linear butenes and C5 that technical MTBE brings, which decide the
+  polymer grade in a real plant, are not modelled; DESIGN.md D-003).
+  The wash water is regenerated in a methanol/water column.
+
+  All values are concept estimates. The column, wash and duty values come from an independent
+  script with specified component splits and shortcut duties from pure-component data; core
+  cannot qualify the polar, azeotropic MTBE/methanol/water/C4 system yet (core #315). See
+  DESIGN.md of the engineering files for every assumption and gated step. Designed
+  independently from the open patent literature; no licensor data are used.
+families: [olefins]
+keywords: [isobutene, isobutylene, MTBE, methyl tert-butyl ether, ether cracking, back-cracking, methanol, dimethyl ether, diisobutene, water wash, distillation]
+facets:
+  feedstock_basis: [fossil]
+  product_classes: [chemicals]
+  unit_operations: [reaction, heat-exchange, distillation, extraction]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest; cheme maturity reports level none
+# (the feed and the capacity are assumed, not sourced, and the separators are specified
+# values), see validation.notes and DESIGN.md D-006.
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances (cheme validate, cheme
+    process streams: every block and step ok) and a closed LCI mass and element balance (cheme
+    assess lca --coverage). cheme maturity reaches no level: the MTBE feed and the capacity are
+    assumed, and the columns and the wash are specified component splits from an independent
+    script (scripts/ib_balance.py) whose shortcut duties rest on pure-component data and ideal
+    Raoult bubble points; no qualified property package covers MTBE / methanol / water / C4
+    (core #315). The reactor outlet is calculated by cheme (conversion reactor with assumed
+    conversion and selectivities inside the patent ranges); cheme's ideal-gas reactor duty
+    (1970.08 kW) reproduces the script's 1970.1 kW. The LCI is a foreground inventory with
+    every background open (8 gaps): no impact result, and no LCA result passed to the catalog
+    (lca.source none). Not reviewed. The chemicals registry has no isobutene, MTBE, methanol,
+    dimethyl ether or diisobutene entry yet, so those flows are not listed under chemistry
+    (open library item).
+chemistry:
+  inputs:
+    - {chemical: water, role: feedstock, inventory_key: "feed:DMW", note: "Demineralised wash-water make-up. The main feedstock, MTBE (feed:MTBEF, 1.587 kg per kg isobutene before allocation), has no registry entry yet"}
+  outputs:
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Wash-water purge, ~100 mg/kg methanol. The main product, isobutene (product:IBP), and the methanol co-product (product:MEOHP, 0.567 kg/kg) have no registry entry yet"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Pumps and the H-101 combustion-air fan and hot-oil pump (ASSUMED electric drives)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "MP steam 1500 kPa(a), C-101 reboiler"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 450 kPa(a), C-201, C-301, C-402 and C-403 reboilers"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED)"}
+basis:
+  capacity: "50 kt/a isobutene (ASSUMED)"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
+references:
+  - {title: "US 8,633,345 B2 (2014) Process for preparing isobutene by cleaving MTBE-containing mixtures (Evonik Oxeno): catalyst, reactor conditions, conversion range, column and wash ranges, Example 2 stream data", url: "https://patents.google.com/patent/US8633345B2/en"}
+  - {title: "Ullmann's Encyclopedia of Industrial Chemistry: Butenes (route context; not audited for numbers)", doi: 10.1002/14356007.a04_483.pub3}
+  - {title: "Cox, J.D., Wagman, D.D., Medvedev, V.A. (1989) CODATA Key Values for Thermodynamics. Hemisphere (CO2 and H2O formation enthalpies for the LHV)"}
+  - {title: "Bell, C. et al. chemicals and thermo (Python): formation enthalpies, heat capacities, latent heats and vapour pressures used in the balance", url: "https://github.com/CalebBell/chemicals"}
+# source: none until a background is linked: every LCA contribution is a gap, and the all-gap
+# `total` row of 0 in lca/results.csv must not reach the catalog as a 0 kg CO2-eq result.
+lca:
+  source: none
+  notes: "Foreground LCI only (lca/inventory.csv, per kg isobutene, mass allocation), every background a gap (D-011): no impact result."
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/isobutene-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0

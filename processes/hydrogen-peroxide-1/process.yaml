@@ -1,0 +1,84 @@
+# Process Atlas manifest of hydrogen-peroxide-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: hydrogen-peroxide-1
+title: Hydrogen peroxide by the anthraquinone autoxidation process (50 kt/a H2O2, 50 wt%)
+summary: >-
+  Cyclic hydrogenation of a 2-ethylanthraquinone working solution on palladium, autoxidation
+  with air, water extraction, crude purification and vacuum concentration to 50 wt% H2O2, with
+  working-solution drying and alumina regeneration; hydrogen is a boundary feed. Concept stage,
+  assumed basis set inside the EU LVOC BREF ranges.
+description: |
+  A working solution of 2-ethylanthraquinone in a C9 aromatic / diisobutylcarbinol mixture is
+  hydrogenated over a fixed-bed Pd catalyst (45 % of the quinone per pass), separated from the
+  vent gas, filtered and oxidised with compressed air in bubble columns, which forms H2O2 and
+  regenerates the quinone. The H2O2 is extracted with water to a 40 wt% crude, washed with
+  solvent and concentrated to 50 wt% in a vacuum column whose distillate returns as extraction
+  water. The raffinate working solution is dried, part-regenerated on activated alumina and
+  returned. The oxidiser off-gas passes a condenser and steam-regenerated activated carbon.
+
+  All values are concept estimates (scripts/hp_balance.py of the engineering files): the
+  conversions, splits and duties are design choices set inside the ranges the EU LVOC BREF
+  2017 (chapter 12) reports, not plant or licensor data; see DESIGN.md for every assumption
+  and gated step.
+families: [inorganic-chemicals]
+keywords: [hydrogen peroxide, anthraquinone process, autoxidation, working solution, 2-ethylanthraquinone, palladium, hydrogenation, oxidation, liquid-liquid extraction, vacuum distillation]
+facets:
+  feedstock_basis: [atmospheric, water]
+  product_classes: [chemicals]
+  unit_operations: [reaction, compression, extraction, distillation, adsorption, heat-exchange]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest; cheme maturity reaches no level
+# (the feeds and separator specifications are assumed, not sourced or owner-given), as for
+# methanol-1. Mass, component and element balances close in cheme; energy closure is not
+# evaluable in core (no property package covers the working solution or aqueous H2O2).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element (reaction extent) balances in every
+    block and step (cheme validate, cheme process streams). The reactors are conversion models
+    calculated by cheme; the separator outlets and all duties are specified values from an
+    independent script (scripts/hp_balance.py) whose specifications sit inside the EU LVOC BREF
+    2017 ranges (H2 63.5 kg/t, air 4215 Nm3/t, demineralised water 1.19 t/t, total energy
+    about 3.6 GJ/t). Energy closure is not evaluable in core (core #315), the extraction is a
+    specified split (core #369). cheme maturity: calculation maturity none (feed flows and
+    separator specifications assumed, not sourced). The preliminary gate-to-gate LCI in lca/
+    leaves every background unmapped (gaps); its mass and element balances close. Not
+    reviewed. The chemicals registry has no hydrogen-peroxide,
+    working-compound or solvent entries yet, so the main product and the make-ups are not
+    listed under chemistry (open library item).
+chemistry:
+  inputs:
+    - {chemical: hydrogen, role: feedstock, inventory_key: "feed:H2", note: "Pure H2 at 500 kPa(a), 63.5 kg/t H2O2 (ASSUMED boundary feed; e.g. from processes/hydrogen-1)"}
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Dry air for the oxidation, 30 % O2 excess (ASSUMED)"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:DEMIN", note: "Demineralised water to the extraction, 1.19 t/t H2O2. The working-solution make-ups (2-ethylanthraquinone, C9 aromatic, diisobutylcarbinol) and the activated alumina have no registry entry yet"}
+  outputs:
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Dryer water, ejector and adsorber condensate with dissolved organics and H2O2, to biological treatment. The main product, 50 wt% hydrogen peroxide (product:PROD), has no registry entry yet"}
+    - {chemical: nitrogen, role: emission, inventory_key: "product:OFFGAS", note: "Oxidiser off-gas after activated carbon: N2, O2, Ar, water and residual VOC to atmosphere"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Air compressor, working-solution and auxiliary pumps, vacuum pump (ASSUMED electric drives)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 350 kPa(a) to the concentrator reboiler"}
+    - {chemical: steam, role: utility, inventory_key: "feed:STEAMD", note: "LP steam used directly: adsorber regeneration and the WS dryer ejector"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED)"}
+basis:
+  capacity: "50 kt/a H2O2 (100 %) as 50 wt% solution (ASSUMED)"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
+references:
+  - {title: "Falcke, H. et al. (2017) Best Available Techniques (BAT) Reference Document for the Production of Large Volume Organic Chemicals, EUR 28882 EN, JRC, chapter 12 Hydrogen peroxide", doi: 10.2760/77304}
+  - {title: "Goor, G., Glenneberg, J., Jacobi, S. (2007) Hydrogen Peroxide. Ullmann's Encyclopedia of Industrial Chemistry (lead only; not read for this design)", doi: 10.1002/14356007.a13_443.pub3}
+  - {title: "Campos-Martin, J. M., Blanco-Brieva, G., Fierro, J. L. G. (2006) Hydrogen peroxide synthesis: an outlook beyond the anthraquinone process. Angew. Chem. Int. Ed. 45, 6962 (lead only; not read for this design)", doi: 10.1002/anie.200503779}
+  - {title: "NIST Chemistry WebBook, SRD 69: standard enthalpies of formation of H2O2 and H2O (liquid)", url: "https://webbook.nist.gov/chemistry/"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/hydrogen-peroxide-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0

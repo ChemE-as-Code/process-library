@@ -1,0 +1,52 @@
+# Equipment list. Schema: `cheme schema equipment`.
+# Concept stage: the items the PFD (process/flowsheet.yaml) needs, no P&ID yet (no sheet).
+# Design pressure and temperature are ASSUMED concept values (D-012): the highest operating
+# value of the balance (scripts/hp_balance.py) + 10 % (at least + 2 bar) and + 25 K. Sizes,
+# dimensions and weights come at basic engineering (datasheets). Materials: H2O2 service in
+# passivated stainless steel or aluminium (D-012), open input.
+schema: cheme/equipment/v1
+equipment:
+  # ---- hydrogenation (block HYD)
+  - {tag: T-101, type: Tank, service: Working-solution tank (make-up and returns), design_pressure_barg: 0.05, design_temperature_degc: 65, material: CS,
+     notes: "Atmospheric, N2 blanketed, vent to A-201 (D-009). Receives the regenerated WS and all organic returns; ~711 t/h through. Hold-up not sized. ASSUMED."}
+  - {tag: P-101, type: CentrifugalPump, service: Working-solution circulation pumps, design_pressure_barg: 9, design_temperature_degc: 65, material: CS,
+     notes: "764 m3/h, 800 kPa loop pressure rise, ~243 kW at efficiency 0.70 (D-010, ASSUMED). Spares and the split into stage pumps at basic engineering."}
+  - {tag: R-101, type: Vessel, service: Hydrogenator (fixed-bed Pd on alumina) with WS cooler loop, design_pressure_barg: 5, design_temperature_degc: 90, material: CS,
+     notes: "333 K, 400 kPa(a); 45 % of the quinone hydrogenated per pass; ~6.4 MW to cooling water (D-003, D-005). Catalyst volume not sized: no kinetics (D-005). ASSUMED."}
+  - {tag: V-101, type: Vessel, service: Hydrogenator gas separator, design_pressure_barg: 5, design_temperature_degc: 90, material: CS,
+     notes: "Vent ~4 kg/h H2 to atmosphere (D-005, D-009). ASSUMED."}
+  - {tag: F-101, type: Filter, service: Safety filter (Pd catalyst fines before the oxidiser), design_pressure_barg: 5, design_temperature_degc: 90, material: SS,
+     notes: "Keeps Pd out of the oxidiser and extractor (LVOC BREF 2017, 12.2.2.3). No mass in the balance. ASSUMED."}
+  # ---- oxidation and off-gas (block OXI)
+  - {tag: K-201, type: CentrifugalCompressor, service: Process air compressor, design_pressure_barg: 5.5, design_temperature_degc: 250, material: CS,
+     notes: "34.0 t/h dry air, 101 -> 450 kPa(a), ~1.88 MW shaft at isentropic efficiency 0.80, one stage (D-007, ASSUMED). An off-gas expander (BREF 12.3.4 d) is not included."}
+  - {tag: E-201, type: TubularHeatExchanger, service: Process air aftercooler, design_pressure_barg: 5.5, design_temperature_degc: 250, material: CS,
+     notes: "496 -> 313 K, ~1.74 MW to cooling water (D-007). ASSUMED."}
+  - {tag: R-201, type: Vessel, service: Oxidiser (co-current bubble columns) with WS coolers, design_pressure_barg: 4.5, design_temperature_degc: 80, material: "SS (H2O2 service)",
+     notes: "328 K, 350 kPa(a); ~4.1 MW to cooling water (D-005, D-007). Number of columns and volume not sized. ASSUMED."}
+  - {tag: V-201, type: Vessel, service: Oxidiser gas separator, design_pressure_barg: 4.5, design_temperature_degc: 80, material: SS, notes: "ASSUMED."}
+  - {tag: E-202, type: TubularHeatExchanger, service: Off-gas condenser, design_pressure_barg: 4.5, design_temperature_degc: 80, material: SS,
+     notes: "328 -> 308 K, ~0.19 MW (D-009). ASSUMED."}
+  - {tag: V-202, type: Vessel, service: Off-gas knock-out drum, design_pressure_barg: 4.5, design_temperature_degc: 80, material: SS, notes: "ASSUMED."}
+  - {tag: A-201, type: Vessel, service: Activated-carbon adsorbers with steam regeneration and decanter, design_pressure_barg: 4.5, design_temperature_degc: 165, material: CS,
+     notes: "~22 500 Nm3/h off-gas, outlet 20 mg C/Nm3 (LVOC BREF 2017, Table 12.8 range), ~0.83 t/h regeneration steam (D-009). Number of beds and cycle not sized. ASSUMED."}
+  # ---- extraction and purification (block EXT)
+  - {tag: T-301, type: Tank, service: Extraction water tank (demineralised water and distillate), design_pressure_barg: 0.05, design_temperature_degc: 70, material: SS, notes: "ASSUMED."}
+  - {tag: C-301, type: ProcessColumn, service: Extraction column (sieve trays) and coalescer, design_pressure_barg: 3, design_temperature_degc: 80, material: "SS or Al (H2O2 service)",
+     notes: "Countercurrent water extraction, 97 % H2O2 recovery to a 40 wt% crude (D-008). Stage count not calculated (core #369). ASSUMED."}
+  - {tag: C-302, type: ProcessColumn, service: Crude purification (solvent wash), design_pressure_barg: 3, design_temperature_degc: 65, material: SS,
+     notes: "Removes 95 % of the dissolved organics (D-008). ASSUMED."}
+  # ---- concentration (block CON)
+  - {tag: C-501, type: ProcessColumn, service: Vacuum concentration column, design_pressure_barg: 3.5, design_temperature_degc: 85, material: "SS or Al (H2O2 service)",
+     notes: "10-12 kPa(a), 40 -> 50 wt%, reflux ratio 0.3 (D-010). Full vacuum design. ASSUMED."}
+  - {tag: E-502, type: TubularHeatExchanger, service: C-501 reboiler (LP steam), design_pressure_barg: 3.5, design_temperature_degc: 165, material: SS,
+     notes: "~2.96 MW (D-010). ASSUMED."}
+  - {tag: E-503, type: TubularHeatExchanger, service: C-501 condenser, design_pressure_barg: 3.5, design_temperature_degc: 85, material: SS,
+     notes: "~2.67 MW to cooling water (D-010). ASSUMED."}
+  - {tag: E-501, type: TubularHeatExchanger, service: Product cooler, design_pressure_barg: 5, design_temperature_degc: 85, material: SS,
+     notes: "333 -> 303 K, ~0.34 MW (D-010). ASSUMED."}
+  # ---- WS drying and regeneration (block WSR)
+  - {tag: V-303, type: Vessel, service: Working-solution vacuum dryer with steam ejector, design_pressure_barg: 3, design_temperature_degc: 65, material: CS,
+     notes: "Removes ~1.1 t/h water from the raffinate; 0.625 t/h motive steam (D-008, D-010). ASSUMED."}
+  - {tag: A-401, type: Vessel, service: Reversion beds (activated alumina), design_pressure_barg: 3, design_temperature_degc: 65, material: CS,
+     notes: "37.5 kg/h alumina consumed, spent 56 kg/h with organics (D-011). Side-stream fraction and bed size not set. ASSUMED."}

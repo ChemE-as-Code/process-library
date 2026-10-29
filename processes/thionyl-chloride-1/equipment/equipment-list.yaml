@@ -1,0 +1,43 @@
+# Equipment list. Schema: `cheme schema equipment`.
+# As far as the PFD requires (concept stage): tags, types and services of the flowsheet steps,
+# the duty basis from scripts/balance.py (D-006). Design pressures, temperatures, materials and
+# sizes are not set yet (basic engineering); materials named are usual service choices to be
+# confirmed (open input). All values ASSUMED. Everything wetted by sulfur chlorides and thionyl
+# chloride must stay dry (hydrolysis to HCl and SO2, D-011).
+schema: cheme/equipment/v1
+equipment:
+  # ---- sulfur chlorination (block SCHL)
+  - {tag: R-101, type: StirredTankReactor, service: "S2Cl2 reactor (molten sulfur and chlorine into a pool of sulfur chlorides)",
+     notes: "0.25 t/h fresh sulfur and the 1.26 t/h still bottoms chlorinated to S2Cl2 at 343 K, 200 kPa(a); 91 kW to cooling water (D-004)."}
+  - {tag: R-102, type: StirredTankReactor, service: SCl2 chlorinator,
+     notes: "90 % of the S2Cl2 chlorinated to SCl2 at 313 K with 0.74 t/h Cl2; 127 kW to cooling water; feed pump P-101 within the item (0.3 kW) (D-004). An iron catalyst (FeCl3) as in DE2430631A1 is not modelled."}
+  # ---- thionyl chloride synthesis (block REACT)
+  - {tag: E-201, type: TubularHeatExchanger, service: Sulfur chloride vaporiser (LP steam),
+     notes: "2.56 t/h liquor 313 -> 383 K vapour, 240 kW LP steam (D-005)."}
+  - {tag: E-202, type: TubularHeatExchanger, service: SO2 vaporiser (LP steam),
+     notes: "1.03 t/h liquid SO2 vaporised to 313 K, 104 kW (D-005)."}
+  - {tag: M-201, type: StaticMixer, service: Reactor feed mixer,
+     notes: "Sulfur chloride vapour, Cl2 make-up, SO2 and 2.77 t/h recycle gas; SO2 2.0 x and Cl2 1.05 x stoichiometric at the reactor inlet (D-005)."}
+  - {tag: E-203, type: TubularHeatExchanger, service: Reactor feed preheater (LP steam),
+     notes: "7.55 t/h gas 327 -> 398 K, 88 kW (D-005)."}
+  - {tag: R-201, type: TubularHeatExchanger, service: "Thionyl chloride reactor (multitubular, activated carbon in the tubes, tempered-water shell)",
+     notes: "SCl2 + SO2 + Cl2 -> 2 SOCl2 over activated carbon, 398 K in, 473 K out, 170 -> 140 kPa(a); 75 % SCl2 conversion per pass (DE2430631A1); 387 kW to the tempered-water circuit and cooling water (D-005). Tubes and carbon volume not sized: no kinetics (D-005)."}
+  # ---- condensation, degassing, recycle (block REC)
+  - {tag: E-204, type: TubularHeatExchanger, service: Crude condenser (cooling water),
+     notes: "473 -> 308 K, partial condensation, 538 kW (D-007)."}
+  - {tag: E-205, type: TubularHeatExchanger, service: Crude after-condenser (brine),
+     notes: "308 -> 263 K, 324 kW to brine at 253 K (D-007)."}
+  - {tag: V-201, type: Vessel, service: Crude separator,
+     notes: "263 K, 130 kPa(a); 7.24 t/h raw crude to T-201, 0.31 t/h gas to the recycle (D-007)."}
+  - {tag: T-201, type: ProcessColumn, service: "Degasser (SO2 and Cl2 stripping, LP steam reboiler, brine overhead condenser)",
+     notes: "Strips 2.49 t/h SO2/Cl2 from the crude; bottoms at the crude bubble point 350 K, reboiler 471 kW, condenser 121 kW (D-007, factor 1.5 on the latent heat ASSUMED); crude pump P-201 within the item."}
+  - {tag: K-201, type: Compressor, service: Recycle gas compressor (SO2 / Cl2),
+     notes: "2.77 t/h, 125 -> 180 kPa(a), 15 kW (isentropic 0.70, D-007); wet-gas-free dry service."}
+  # ---- purification (block PURIF)
+  - {tag: T-301, type: ProcessColumn, service: "Thionyl chloride column (sulfur in the reboiler converts SCl2 to S2Cl2)",
+     notes: "5.01 t/h crude with 258 kg/h sulfur; 3.75 t/h distillate 99.7 wt% SOCl2, 1.26 t/h bottoms to R-101; reflux ratio 2 ASSUMED, reboiler 678 kW, condenser 737 kW (D-008). Stages not designed (no qualified VLE for the sulfur chlorides)."}
+  # ---- purge gas scrubbing (block SCRUB)
+  - {tag: M-401, type: StaticMixer, service: Caustic dilution (50 -> 10 wt% NaOH),
+     notes: "79 kg/h caustic 50 wt% and 317 kg/h process water (D-009)."}
+  - {tag: T-401, type: ProcessColumn, service: "Caustic scrubber (packed, circulating NaOH)",
+     notes: "Absorbs 99.9 % of the SO2, Cl2 and sulfur chlorides of the 28 kg/h purge (D-009); also the vent scrubber of the storage and the emergency scrubber (sizing open, D-011). Circulation pump within the item (0.7 kW)."}

@@ -1,0 +1,87 @@
+# Goal and scope of the isobutene-1 preliminary LCI. Schema: `cheme schema lca`. Outputs: `cheme
+# assess lca --write` (lca/inventory.csv, results.csv, results.md, gaps.csv, dataset.yaml,
+# manifest.json); never edit those by hand.
+#
+# A gate-to-gate foreground inventory in a cradle-to-gate study frame (DESIGN.md D-011): every
+# exchange comes from the balanced flowsheet (process/flowsheet.yaml, design case). No
+# background is linked yet: every feed, utility, treatment and avoided product is `missing:`
+# with the activity it should connect to later, so the inventory carries them as gaps (never 0)
+# and no impact result is claimed (process.yaml lca.source none). Omissions known in DESIGN.md
+# are declared below (emission_exclusions, cutoff). No values from licensed databases are used.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary life cycle inventory of high-purity isobutene from gas-phase MTBE cracking at the
+  concept stage (issue #165), foreground inventory only: the foreground exchanges per kg of
+  isobutene at the plant gate, with their provenance; the upstream (every background) is a gap
+  until background datasets are chosen. Not an impact assessment: no background is linked
+  (D-011).
+functional_unit: {product: IBP, amount: 1, unit: kg}
+boundary: cradle-to-gate
+case: design
+location: GLO
+year: 2026
+technology: "gas-phase MTBE cracking over an acidic silica-alumina type catalyst, heated multitubular reactor 553 K / 0.9 MPa, conversion 0.90 per pass with MTBE recycle, water wash, drying/DME column, methanol recovery; 50 kt/a isobutene, concept design"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+# system_model unset (cut-off, the Atlas default): the exported dataset is allocated by mass;
+# energy and system expansion are computed as comparisons only (D-011). `method` is left at
+# the schema default (mass): cheme writes no method into lca/dataset.yaml for the default, and
+# a study method the dataset does not repeat makes the Atlas build warn.
+allocation:
+  coproducts: [IBP, MEOHP, HEAVIES, FUELGAS]
+  source: >-
+    D-011 (agent proposal, for the LCA practitioner to confirm): mass allocation as the
+    exported default. The cracking splits the MTBE molecule into isobutene and methanol, which
+    both leave as chemical feedstocks, so mass follows the physical relation of the split (ISO
+    14044 4.3.4.2, step 2); the heavy ends and the DME-rich vents (1.5 % of the output mass)
+    are kept as co-products sent to the site fuel systems. Energy (LHV) and system expansion
+    (the methanol displaces methanol from synthesis gas, e.g. the library's methanol-1; the
+    heavy ends displace fuel oil, the vents natural gas) are computed for comparison.
+  deviation: >-
+    The WBCSD price-ratio rule cannot be applied: no co-product prices are set at the concept
+    stage and the registry holds none for isobutene or methanol.
+  substitution:
+    MEOHP: {missing: "no background chosen yet: methanol, at plant, from natural gas via synthesis gas (link processes/methanol-1 of this library when it publishes an inventory), per kg methanol", source: "methanol co-product S30, 99.5 wt% (D-008)"}
+    HEAVIES: {missing: "no background chosen yet: heavy fuel oil burned in an industrial furnace, per MJ LHV, for the site fuel oil system", source: "C-101 bottoms S5 (C8 and MTBE) to site fuel (D-008)"}
+    FUELGAS: {missing: "no background chosen yet: heat from natural gas in an industrial furnace, per MJ LHV of the vents, site fuel gas header", source: "C-402 and C-403 vents S18 + S26 (D-008)"}
+  compare: [energy, substitution]
+  # LHV per kg, ideal gas at 298.15 K, from the formation enthalpies of process/materials.yaml
+  # and CO2(g) -393.51, H2O(g) -241.826 kJ/mol (CODATA key values, Cox et al. 1989); the
+  # mixtures by their flowsheet compositions. Calculated, D-011.
+  properties:
+    IBP: {energy: 44970, source: "LHV of S28 (99.97 wt% isobutene, 44981 kJ/kg pure) from formation enthalpies, gas basis (D-011)"}
+    MEOHP: {energy: 21020, source: "LHV of S30 (99.55 wt% methanol, 21112 kJ/kg pure; water carries none) from formation enthalpies, gas basis (D-011)"}
+    HEAVIES: {energy: 39060, source: "LHV of S5 (60 wt% MTBE 35563 kJ/kg, 40 wt% C8 44311 kJ/kg) from formation enthalpies (D-011)"}
+    FUELGAS: {energy: 35680, source: "LHV of S18 + S26 (42 wt% isobutene, 58 wt% DME 28837 kJ/kg) from formation enthalpies (D-011)"}
+flows:
+  - {key: feed:MTBEF, missing: "no background chosen yet: methyl tert-butyl ether, liquid, at plant (etherification of isobutene in a C4 cut with methanol over an acid ion-exchange resin), market for, delivered; no library process makes MTBE yet", source: "fresh MTBE S1 (design basis D-003)"}
+  - {key: feed:DMW, missing: "no background chosen yet: water, deionised / demineralised, at plant (ion exchange or reverse osmosis), per kg", source: "wash-water make-up S23 (D-007)"}
+  - {key: feed:POWER, missing: "no background chosen yet: electricity, medium voltage, market for the site's grid (site not chosen)", source: "pumps, lumped Q1, and H-101 fan and hot-oil circulation Q18 (ASSUMED 30 kW, D-009)"}
+  - {key: feed:FUEL, missing: "no background chosen yet: heat, from natural gas, at an industrial furnace >100 kW (combustion emissions included in that activity), per MJ absorbed", source: "H-101 absorbed duty Q4 + Q5 (feed superheat and reactor heat, D-009)"}
+  - {key: feed:MPS, missing: "no background chosen yet: steam, in chemical industry, 1500 kPa(a) (site boiler on natural gas, e.g. processes/utility-steam-ng-boiler), per MJ of condensing heat", source: "C-101 reboiler Q2 (D-009)"}
+  - {key: feed:LPS, missing: "no background chosen yet: steam, in chemical industry, 450 kPa(a), per MJ of condensing heat", source: "C-201, C-301, C-402, C-403 reboilers Q7, Q12, Q14, Q9 (D-009)"}
+  - {key: product:CW, missing: "no background chosen yet: cooling water circulation per MJ rejected (pump and fan electricity, make-up water and evaporation, blowdown, treatment chemicals; e.g. processes/utility-cooling-tower)", source: "heat to cooling water Q3, Q6, Q8, Q10, Q11, Q13, Q15, Q16, Q17 (D-009)"}
+  - key: product:WW
+    missing: "no background chosen yet: treatment of wastewater from chemical production in a municipal or industrial biological plant, per kg or m3 (about 100 mg/kg methanol as the organic load; e.g. processes/utility-wwtp)"
+    treatment: {kind: waste, route: wastewater treatment}
+    source: "wash-water purge S20, 5 % of the regenerated water (D-007)"
+emission_exclusions:
+  - {id: heater-combustion, method: combustion, equipment: [H-101], reason: "the fired heater's combustion emissions (CO2, NOx, CO, CH4, N2O, PM) belong to the purchased-heat background of feed:FUEL (heat from natural gas at an industrial furnace), which is per MJ delivered and includes them; counting them here would double count (D-011)", source: "D-011"}
+  - {id: storage-tanks, method: storage-tank, reason: "MTBE, isobutene and methanol tanks are outside the battery limit (design basis): their breathing and pressure-storage losses belong to the storage, not to this plant boundary (D-011)", source: "design basis"}
+  - {id: fugitive-leaks, method: equipment-leaks, reason: "fugitive isobutene, MTBE, methanol and DME from flanges, seals and valves are not estimated, not claimed negligible: an equipment-leak estimate needs the P&ID component counts, which do not exist at the concept stage (DESIGN.md I-05, D-011)", source: "DESIGN.md I-05"}
+  - {id: vents-to-fuel, method: combustion, reason: "the DME-rich vents and the heavy ends leave the boundary as co-products to the site fuel systems (FUELGAS, HEAVIES); their combustion emissions belong to the user of the fuel, not to this plant (D-008, D-011)", source: "D-008"}
+cutoff:
+  - {id: catalyst, title: "R-101 cracking catalyst (silica-alumina type)", unit: t, per_year: 3.0, reason: "catalyst charge of roughly 4-11 t (WHSV 1-3 1/h of US 8,633,345 B2 for 11.2 t/h feed) replaced every few years, about 3 t/a (ASSUMED order of magnitude, life not sourced; D-005, I-03); no catalyst inventory at this stage", source: "D-005"}
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 25 a service life ASSUMED; no construction inventory at this stage (D-011)"
+dataset:
+  version: 0.1.0
+  geography: {description: "One concept design for a generic, not chosen site; no regional background"}
+  system_model: cutoff   # mass-allocated, no avoided-burden credits in the exported dataset (D-011)
+  technology_level: current
+  classification: {isic: "2011", cpc: "34110"}
+  modelling: {principle: attributional}
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library, isobutene-1 concept run (agent-generated, unreviewed)"

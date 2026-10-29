@@ -1,0 +1,54 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# High-purity isobutene by gas-phase cracking (back-splitting) of MTBE, issue
+# ChemE-as-Code/process-library#165. An independent concept design: the operating ranges come
+# from the open patent literature (US 8,633,345 B2, cited per value in DESIGN.md); no plant or
+# licensor data are used. Values marked ASSUMED are engineering choices of this concept study,
+# not client or licensor data; every decision is in DESIGN.md.
+capacity:
+  basis: Isobutene product stream to storage (incl. its impurities)
+  product_t_per_a: 50000              # ASSUMED (D-002): a single train of typical size, not a client figure
+  product_kg_per_h: 6250.0            # = 50 kt/a / 8000 h
+  operating_hours_per_year: 8000      # ASSUMED (D-002)
+  turndown_percent: 60                # ASSUMED, not checked
+feeds:
+  - name: Fresh MTBE (boundary feed from an MTBE unit or a terminal, outside the boundary)
+    source_of_values: ASSUMED (D-003)
+    composition_mol_percent: {MTBE: 100.0}   # ASSUMED: pure; technical MTBE carries ~1 wt% methanol, MSBE, TBA, C8 and C5 (US 8,633,345 B2, Table 2), not modelled (D-003)
+    conditions: {pressure_kPa_a: 300, temperature_K: 303.15}   # ASSUMED battery limit
+    flow: set by the product rate through the balance (D-006); stream S1 of process/flowsheet.yaml
+    link: "MTBE is made from isobutene (C4 raffinate) and methanol; methanol-1 of this library makes the methanol, no library process makes MTBE yet"
+  - name: Demineralised water (wash-water make-up)
+    source_of_values: ASSUMED (D-007)
+    conditions: {pressure_kPa_a: 500, temperature_K: 298.15}
+    flow: stream S23
+products:
+  - name: Isobutene
+    purity: "99.97 wt% isobutene; MTBE ~180 ppm(w), DME ~60 ppm(w), methanol ~26 ppm(w), water ~8 ppm(w) (D-002, D-007). ASSUMED target >= 99.9 wt%, the purity US 8,633,345 B2 states as achievable; linear butenes and C5 are outside the model (pure MTBE feed)"
+    delivery: {pressure_kPa_a: 1500, temperature_K: 313.15, battery_limit: product storage (outside the boundary)}
+  - name: Methanol co-product
+    purity: "99.55 wt% methanol, 0.45 wt% water (S30, D-007); US 8,633,345 B2 Example 2 reports a similar grade (about 99 wt%) from its methanol column"
+    use: returned to an MTBE synthesis or sold (outside the boundary, D-008)
+  - name: Heavy ends (C8 and MTBE)
+    use: site fuel oil or C8 sale (outside the boundary, D-008)
+  - name: DME-rich vents (C-402, C-403)
+    use: site fuel gas header (outside the boundary, D-008)
+  - name: Wash-water purge
+    use: site wastewater treatment (outside the boundary, D-008)
+utilities:
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: ASSUMED (D-009)}
+  - {name: LP steam, pressure_kPa_a: 450, saturation_K: 420.8, use: "C-201, C-301, C-402, C-403 reboilers", note: ASSUMED level (D-009)}
+  - {name: MP steam, pressure_kPa_a: 1500, saturation_K: 471.4, use: "C-101 reboiler", note: ASSUMED level (D-009)}
+  - {name: Fired heat (natural gas), use: "H-101: feed superheat and reactor heating (hot oil)", note: "ASSUMED purchased natural gas; burning the DME vents and heavy ends there is the usual alternative (D-009)"}
+  - {name: Electric power, use: pumps, note: ASSUMED electric drives (D-009)}
+  - {name: Demineralised water, use: wash-water make-up, note: ASSUMED (D-007)}
+site:
+  location: ASSUMED generic site, not chosen
+  design_ambient_K: 303.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325   # ASSUMED
+assumptions:
+  - "ASSUMED gas-phase cracking over an acidic silica-alumina type catalyst in a heated multitubular reactor at 553 K, 900 kPa(a) inlet (inside 150-500 C and 0.05-2 MPa of US 8,633,345 B2; D-004)."
+  - "ASSUMED MTBE conversion 0.90 per pass (patent's preferred range 85-95 %); per kmol MTBE converted 0.010 kmol DME and 0.001 kmol C8 dimer: a conversion/selectivity model, not kinetics (D-005)."
+  - "ASSUMED separations by component split specifications (D-007), shortcut duties from pure-component data (D-006); not a rigorous simulation (core #315)."
+  - "ASSUMED pure MTBE feed: no MSBE (source of linear butenes), TBA, C5 or water in the feed (D-003)."
+  - "ASSUMED pump efficiency 0.6; fans, the hot-oil circulation and instrument air not counted (D-009)."
+  - "All flows, temperatures and duties are concept estimates; accuracy not stated."

@@ -1,0 +1,52 @@
+# Components and templates of sodium-nitrite-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). molar_mass in kg/kmol (IUPAC conventional atomic weights, summed so
+# that the reactions balance in mass), normal_boiling_point in K at 101.325 kPa.
+#
+# ideal_gas: formation enthalpy (ATcT), entropy (CRC) and cp/R polynomial (Poling 5th ed.;
+# NO2 fitted to thermo TRCIG) as printed by `cheme chemistry thermo` (the `chemicals`
+# package); used by the conversion reactor R101 and its duty (D-005).
+#
+# The salts (NaNO2, NaNO3, Na2CO3) and HNO3 appear dissolved in water, as crystals and as
+# dried solids. They are carried as neutral components without phase distinction: an
+# inventory basis, not a speciation (no core package covers these electrolytes, core#364;
+# DESIGN.md D-007). Crystals, cake and dried product are told apart by the stream, not the
+# component. "NO" is quoted: unquoted YAML reads it as false.
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: NH3, name: Ammonia, formula: NH3, cas: 7664-41-7, molar_mass: 17.031, normal_boiling_point: 239.82,
+     ideal_gas: {dHf_298: -45558.0, S_298: 192.8, cp_R: [4.238, -0.004215, 2.041e-05, -2.126e-08, 7.61e-12], temperature_range: [50, 1000], provenance: given, source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.), via cheme chemistry thermo"}}
+  - {id: O2, name: Oxygen, formula: O2, cas: 7782-44-7, molar_mass: 31.998, normal_boiling_point: 90.19,
+     ideal_gas: {dHf_298: 0.0, S_298: 205.2, cp_R: [3.63, -0.001794, 6.58e-06, -6e-09, 1.79e-12], temperature_range: [50, 1000], provenance: given, source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.), via cheme chemistry thermo"}}
+  - {id: N2, name: Nitrogen, formula: N2, cas: 7727-37-9, molar_mass: 28.014, normal_boiling_point: 77.36,
+     ideal_gas: {dHf_298: 0.0, S_298: 191.6, cp_R: [3.539, -0.000261, 7e-08, 1.57e-09, -9.9e-13], temperature_range: [50, 1000], provenance: given, source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.), via cheme chemistry thermo"}}
+  - {id: AR, name: Argon, formula: Ar, cas: 7440-37-1, molar_mass: 39.948, normal_boiling_point: 87.30,
+     ideal_gas: {dHf_298: 0.0, S_298: 154.8, cp_R: [2.5, 0.0, 0.0, 0.0, 0.0], temperature_range: [50, 1000], provenance: given, source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.), via cheme chemistry thermo"}}
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.015, normal_boiling_point: 373.12,
+     ideal_gas: {dHf_298: -241822.0, S_298: 188.8, cp_R: [4.395, -0.004186, 1.405e-05, -1.564e-08, 6.32e-12], temperature_range: [50, 1000], provenance: given, source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.), via cheme chemistry thermo"}}
+  - {id: "NO", name: Nitric oxide, formula: "NO", cas: 10102-43-9, molar_mass: 30.006, normal_boiling_point: 121.4,
+     ideal_gas: {dHf_298: 91089.0, S_298: 210.8, cp_R: [4.534, -0.007644, 2.066e-05, -2.156e-08, 8.06e-12], temperature_range: [50, 1000], provenance: given, source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.), via cheme chemistry thermo"}}
+  - {id: NO2, name: Nitrogen dioxide (incl. N2O4 and N2O3 as NO2 + NO), formula: NO2, cas: 10102-44-0, molar_mass: 46.005, normal_boiling_point: 294.3,
+     ideal_gas: {dHf_298: 34017.0, S_298: 240.1, cp_R: [3.32923, 0.00319672, 4.62313e-06, -7.24457e-09, 2.71219e-12], temperature_range: [298.15, 1000], provenance: given, source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 298.15-1000 K, via cheme chemistry thermo"}}
+  - {id: N2O, name: Nitrous oxide, formula: N2O, cas: 10024-97-2, molar_mass: 44.013, normal_boiling_point: 184.67,
+     ideal_gas: {dHf_298: 82574.0, S_298: 220.0, cp_R: [3.165, 0.003401, 9.89e-06, -1.88e-08, 8.9e-12], temperature_range: [50, 1000], provenance: given, source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.), via cheme chemistry thermo"}}
+  - {id: CO2, name: Carbon dioxide, formula: CO2, cas: 124-38-9, molar_mass: 44.009, normal_boiling_point: 194.7,
+     ideal_gas: {dHf_298: -393474.0, S_298: 213.8, cp_R: [3.259, 0.001356, 1.502e-05, -2.374e-08, 1.056e-11], temperature_range: [50, 1000], provenance: given, source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.), via cheme chemistry thermo"}}
+  - {id: Na2CO3, name: Sodium carbonate (soda ash; dissolved in the soda solution and liquors), formula: Na2CO3, cas: 497-19-8, molar_mass: 105.988}
+  - {id: NaNO2, name: "Sodium nitrite (dissolved, crystals and dried product)", formula: NaNO2, cas: 7632-00-0, molar_mass: 68.995}
+  - {id: NaNO3, name: "Sodium nitrate (dissolved, crystals and dried co-product)", formula: NaNO3, cas: 7631-99-4, molar_mass: 84.994}
+  - {id: HNO3, name: Nitric acid (in the 60 wt-% feed acid), formula: HNO3, cas: 7697-37-2, molar_mass: 63.012, normal_boiling_point: 356.15}
+templates:
+  - {id: ammonia, title: Ammonia, components: [NH3]}
+  - {id: air, title: Humid air, components: [N2, O2, AR, H2O]}
+  - {id: nitrous_gas, title: "Nitrous gas, inversion gas and tail gas", components: [NH3, N2, O2, AR, H2O, "NO", NO2, N2O, CO2]}
+  - {id: liquor, title: "Soda solution, nitrite liquors, mother liquor, cakes and dried salts", components: [Na2CO3, NaNO2, NaNO3, H2O]}
+  - {id: soda, title: "Soda ash (dense, solid)", components: [Na2CO3]}
+  - {id: water, title: "Condensate and water vapour", components: [H2O]}
+  - {id: acid, title: Nitric acid 60 wt-%, components: [HNO3, H2O]}
+  - {id: nitrate, title: "Sodium nitrate liquor, cake and product", components: [NaNO3, H2O]}
+# property_method is a placeholder: no benchmarked package covers these aqueous electrolytes
+# or the salts (core#364, `cheme process methods`); stream properties are not filled (D-007).
+property_method:
+  adapter: thermo
+  status: placeholder

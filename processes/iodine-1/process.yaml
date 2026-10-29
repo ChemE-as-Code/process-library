@@ -1,0 +1,85 @@
+# Process Atlas manifest of iodine-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: iodine-1
+title: Iodine from natural iodide brine by chlorine oxidation, air blowing-out and SO2 absorption (1000 t/a)
+summary: >-
+  An Oklahoma-type formation brine with 300 mg/kg iodide is acidified, chlorinated and blown
+  out with circulating air; the iodine is absorbed in HI/H2SO4 liquor with SO2, re-liberated
+  with chlorine, filtered, melted under sulfuric acid and flaked; the spent brine is
+  neutralised and reinjected. Concept stage, assumed basis, preliminary gate-to-gate inventory.
+description: |
+  Raw brine (462 t/h, 300 mg/kg iodine as iodide, the average of the Woodward trench brines of
+  northwest Oklahoma) is acidified to about pH 2.4 by the plant's own recycled acid liquors and
+  chlorinated to an oxidation-potential end point. A packed tower blows the liberated iodine out
+  into a closed air loop (130 Nm3 air per m3 brine, 5 % purge); a second tower absorbs it in a
+  circulating hydriodic/sulfuric acid liquor into which SO2 is injected. A bleed of the liquor is
+  chlorinated again, the iodine precipitates, is filtered, melted under concentrated sulfuric
+  acid and flaked (99.8 wt% I2). Filtrate and spent melter acid return to the brine head; the
+  stripped brine is neutralised with caustic and pumped back into the formation. Overall
+  recovery 90 %.
+
+  All values are concept estimates. The route and its steps follow open patent backgrounds and
+  the Oklahoma Geological Survey; the design parameters (chlorine excess, stripping fraction,
+  air ratio, absorber and precipitation yields) are ASSUMED and come from the independent script
+  scripts/iodine_balance.py, whose neutral-molecule liquor basis is not an electrolyte model
+  (core #364); see DESIGN.md of the engineering files for every assumption and gated step.
+families: [inorganic-chemicals]
+keywords: [iodine, brine, iodide, blowing-out, air stripping, chlorine oxidation, sulfur dioxide absorption, hydriodic acid, precipitation, iodine melting, reinjection, Oklahoma, Woodward trench]
+facets:
+  feedstock_basis: [mineral]
+  product_classes: [chemicals]
+  unit_operations: [reaction, stripping, absorption, filtration, melting, neutralisation]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest; cheme maturity reports the level
+# the evidence supports (see validation.notes and DESIGN.md D-006, D-012).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances (cheme validate, cheme process
+    streams, cheme assess lca --balance: every element within 0.01 %). Only the brine iodine
+    content (300 mg/kg, Oklahoma Geological Survey; US Bureau of Mines, Minerals Yearbook 1987) is sourced; the
+    route steps follow patent backgrounds (US 2013/0243684 A1, US 4,282,324, US 1,897,031, US
+    9,994,448 B2); every flow, conversion and duty is ASSUMED or comes from
+    scripts/iodine_balance.py. The yields were chosen within sourced ranges so that the overall
+    recovery equals the 90 % that US 2013/0243684 A1 states (about 30 mg/kg iodine left then
+    follows by arithmetic): the recovery is calibrated to the patent, not an independent check
+    of the model.
+    Energy closure is not evaluable in core (no electrolyte enthalpies, core #364). Not
+    reviewed. The chemicals registry has no iodine, chlorine, sodium hydroxide, sulfuric acid or
+    sulfur dioxide entry yet, so the main product and most feedstocks are not listed under
+    chemistry (open library item).
+chemistry:
+  inputs:
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Absorber make-up water, 8.9 kg/kg iodine. The iodide brine (feed:BRINE, 3.7 t/kg), chlorine (feed:CL2, from chlor-alkali-1), SO2 (feed:SO2), sulfuric acid (feed:H2SO4, from sulfuric-acid-1) and caustic soda (feed:NAOH, from chlor-alkali-1) have no registry entry yet"}
+  outputs:
+    - {chemical: wastewater, role: waste, inventory_key: "product:SPENT", note: "Neutralised spent brine, 3.7 t/kg iodine, reinjected into the producing formation (about 30 mg/kg iodine left). The main product iodine (product:IODINE) has no registry entry yet"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Air circulation fan, reinjection pump (dominant, ASSUMED 3000 kPa), absorbent pump and recovery drives: 4.8 kWh/kg"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 450 kPa(a) to the iodine melter (ASSUMED)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "Flaker, 25/35 C (ASSUMED)"}
+basis:
+  capacity: "1000 t/a iodine flakes, 125 kg/h (ASSUMED)"
+  operating_hours_per_year: 8000
+  location: generic (Oklahoma-type brine; site not chosen)
+references:
+  - {title: "Iodine and Iodine Compounds. Ullmann's Encyclopedia of Industrial Chemistry (Wiley-VCH); route reference lead, not audited in this run", doi: 10.1002/14356007.a14_381.pub2}
+  - {title: "Oklahoma Geological Survey: Iodine (brine iodine content, blow-out towers, reinjection)", url: "https://www.ou.edu/ogs/research/minerals/iodine"}
+  - {title: "US 2013/0243684 A1, Systems, methods and apparatus for iodine removal from high volume dilute brine (background: blow-out process)", url: "https://patents.google.com/patent/US20130243684"}
+  - {title: "US 4,282,324 A (1981) Method for producing iodine (background: conventional brine process)", url: "https://patents.google.com/patent/US4282324A/en"}
+  - {title: "US 1,897,031 A (1933) Recovering iodine from natural waters and the like (Dow)", url: "https://patents.google.com/patent/US1897031A/en"}
+  - {title: "US 9,994,448 B2 (2018) Iodine extraction processes (background: blow-out effluent pH)", url: "https://patents.google.com/patent/US9994448B2/en"}
+  - {title: "U.S. Bureau of Mines, Minerals Yearbook 1987, Iodine chapter (Woodward brines about 300 ppm iodine)", url: "https://search.library.wisc.edu/digital/APCUAWIWNUXSEF9A"}
+lca:
+  source: none
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/iodine-1
+  access: private
+publication:
+  status: internal
+  license: CC-BY-4.0

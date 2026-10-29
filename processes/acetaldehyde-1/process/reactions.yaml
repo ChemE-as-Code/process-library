@@ -1,0 +1,51 @@
+# Reactions of the one-stage Wacker oxidation of ethylene. Schema: `cheme schema
+# process-reactions`. A conversion/selectivity model (DESIGN.md D-004): the reactor step R101
+# gives the ethylene conversion per pass (ASSUMED) and the product selectivities derived from
+# the ethylene fate reported for the industrial process (Wikipedia "Wacker process", section
+# Industrial process, citing Eckert et al., Ullmann's Encyclopedia, doi:10.1002/14356007.a01_031.pub2);
+# no kinetics are used. The overall reactions are the net stoichiometry of the Pd/Cu redox cycle
+# (C2H4 + PdCl2 + H2O -> CH3CHO + Pd + 2 HCl; Pd + 2 CuCl2 -> PdCl2 + 2 CuCl;
+# 2 CuCl + 2 HCl + 1/2 O2 -> 2 CuCl2 + H2O): the catalyst and HCl of the cycle cancel.
+# R4 and R6 are lumped overall stoichiometries of the chlorinated by-products (D-004), not
+# mechanisms. Heats of reaction: ideal-gas formation enthalpies at 298.15 K of
+# process/materials.yaml (cheme chemistry thermo), kJ per kmol of extent as written.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: R1
+    equation: C2H4 + 0.5 O2 -> ACH
+    stoichiometry: {C2H4: -1.0, O2: -0.5, ACH: 1.0}
+    reversible: false
+    heat_of_reaction: {value: -217930.0, provenance: calculated, source: "ideal-gas formation enthalpies (ATcT) of materials.yaml, 298.15 K"}
+    catalyst: "PdCl2/CuCl2 in aqueous HCl (homogeneous)"
+    sources: ["doi:10.1002/14356007.a01_031.pub2", "https://en.wikipedia.org/wiki/Wacker_process"]
+  - id: R2
+    equation: C2H4 + O2 -> ACOH
+    stoichiometry: {C2H4: -1.0, O2: -1.0, ACOH: 1.0}
+    reversible: false
+    heat_of_reaction: {value: -484760.0, provenance: calculated, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K"}
+  - id: R3
+    equation: C2H4 + 3 O2 -> 2 CO2 + 2 H2O
+    stoichiometry: {C2H4: -1.0, O2: -3.0, CO2: 2.0, H2O: 2.0}
+    reversible: false
+    heat_of_reaction: {value: -1323152.0, provenance: calculated, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K"}
+  - id: R4
+    equation: C2H4 + HCL + O2 -> CAC + H2O
+    stoichiometry: {C2H4: -1.0, HCL: -1.0, O2: -1.0, CAC: 1.0, H2O: 1.0}
+    reversible: false
+    heat_of_reaction: {value: -393209.0, provenance: calculated, source: "ideal-gas formation enthalpies of materials.yaml (CAC: Yaws estimate), 298.15 K; lumped stoichiometry (D-004)"}
+  - id: R5
+    equation: C2H4 + HCL -> ETCL
+    stoichiometry: {C2H4: -1.0, HCL: -1.0, ETCL: 1.0}
+    reversible: false
+    heat_of_reaction: {value: -71627.0, provenance: calculated, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K"}
+  - id: R6
+    equation: C2H4 + HCL + 1.5 O2 -> MECL + CO2 + H2O
+    stoichiometry: {C2H4: -1.0, HCL: -1.0, O2: -1.5, MECL: 1.0, CO2: 1.0, H2O: 1.0}
+    reversible: false
+    heat_of_reaction: {value: -678303.0, provenance: calculated, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K; lumped stoichiometry (D-004)"}
+  - id: R7
+    equation: 2 ACH -> CROT + H2O
+    stoichiometry: {ACH: -2.0, CROT: 1.0, H2O: 1.0}
+    reversible: false
+    heat_of_reaction: {value: -11682.0, provenance: calculated, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K"}

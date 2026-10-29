@@ -1,0 +1,53 @@
+# Components and templates of hydrogen-chloride-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). molar_mass in kg/kmol, normal_boiling_point in K at 101.325 kPa.
+# ideal_gas: formation enthalpy (ATcT), entropy (CRC) and cp/R polynomial (Poling 5th ed.,
+# 50-1000 K) as printed by `cheme chemistry thermo` (the `chemicals` package); used by the
+# equilibrium furnace R101 and its duty (D-005). The hydrochloric acid itself is an electrolyte
+# solution: no package covers it (core#364, `cheme process methods`), so its enthalpy and
+# phase are not calculated by cheme (D-009).
+schema: cheme/process/v1
+kind: materials
+components:
+  - id: HCl
+    name: Hydrogen chloride
+    formula: HCl
+    cas: 7647-01-0
+    molar_mass: 36.461
+    normal_boiling_point: 188.1
+    ideal_gas: {dHf_298: -92173.0, S_298: 186.9, cp_R: [3.827, -0.002936, 8.79e-06, -1.031e-08, 4.39e-12], temperature_range: [50, 1000], provenance: given, source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.), via cheme chemistry thermo"}
+  - id: H2
+    name: Hydrogen
+    formula: H2
+    cas: 1333-74-0
+    molar_mass: 2.016
+    normal_boiling_point: 20.28
+    ideal_gas: {dHf_298: 0.0, S_298: 130.7, cp_R: [2.883, 0.003681, -7.72e-06, 6.92e-09, -2.13e-12], temperature_range: [50, 1000], provenance: given, source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.), via cheme chemistry thermo"}
+  - id: Cl2
+    name: Chlorine
+    formula: Cl2
+    cas: 7782-50-5
+    molar_mass: 70.906
+    normal_boiling_point: 239.11
+    ideal_gas: {dHf_298: 0.0, S_298: 223.1, cp_R: [3.056, 0.0053708, -8.098e-06, 5.693e-09, -1.5256e-12], temperature_range: [50, 1000], provenance: given, source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.), via cheme chemistry thermo"}
+  - id: O2
+    name: Oxygen
+    formula: O2
+    cas: 7782-44-7
+    molar_mass: 31.998
+    normal_boiling_point: 90.19
+    ideal_gas: {dHf_298: 0.0, S_298: 205.2, cp_R: [3.63, -0.001794, 6.58e-06, -6e-09, 1.79e-12], temperature_range: [50, 1000], provenance: given, source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.), via cheme chemistry thermo"}
+  - id: H2O
+    name: Water
+    formula: H2O
+    cas: 7732-18-5
+    molar_mass: 18.015
+    normal_boiling_point: 373.12
+    ideal_gas: {dHf_298: -241822.0, S_298: 188.8, cp_R: [4.395, -0.004186, 1.405e-05, -1.564e-08, 6.32e-12], temperature_range: [50, 1000], provenance: given, source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.), via cheme chemistry thermo"}
+templates:
+  - {id: gas, title: "Chlorine, hydrogen, synthesis gas and vent gas", components: [Cl2, O2, H2, H2O, HCl]}
+  - {id: aqueous, title: "Hydrochloric acid, weak acid and demineralised water", components: [HCl, H2O]}
+# property_method is a placeholder: no benchmarked package covers HCl-water (an electrolyte,
+# core#364) or wet chlorine/HCl gas; stream properties are not filled (D-006).
+property_method:
+  adapter: thermo
+  status: placeholder
