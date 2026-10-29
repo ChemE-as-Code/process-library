@@ -4,8 +4,16 @@
 schema: cheme/placement/v1
 equipment:
   # ---- A-100 reforming
-  - {tag: V-101, position: [60, 130, 0]}
-  - {tag: R-100, position: [75, 130, 0]}
+  # access (D-031): the platforms build proposed for the nozzles and valves above 2.5 m, kept
+  # at their elevations; where a pipe crossed one below the 2.1 m headroom its arc stops short
+  # of that pipe (8 degrees clear), a top-head platform is lowered under the pipes leaving the
+  # head, and three low platforms serving only a piped flange are left out (C-301 N6, C-302 N4,
+  # R-501 N2: reached from a mobile platform for maintenance). ASSUMED until the vendor nozzle
+  # orientations.
+  - {tag: V-101, position: [60, 130, 0],
+     access: {platforms: [{elevation: 5.72, arc_deg: [0, 210]}, {elevation: 11.26, arc_deg: [330, 30]}]}}
+  - {tag: R-100, position: [75, 130, 0],
+     access: {platforms: [{elevation: 4.75, arc_deg: [102.7, 210]}, {elevation: 9.38, arc_deg: [330, 30]}]}}
   - {tag: H-101, position: [60, 160, 0], shape: box,
      notes: "fuel and tail gas headers onto the roof south of the R-101 inlet headers (D-031)",
      nozzles: [{id: B1, face: top, offset: [-6.4, -7]}, {id: B2, face: top, offset: [1.5, -7]},
@@ -26,24 +34,37 @@ equipment:
   - {tag: E-106, position: [111, 160, 0], shape: box, notes: "convection section, cold end"}
   - {tag: K-102, position: [120, 152, 0]}
   - {tag: K-103, position: [120, 168, 0]}
-  - {tag: R-102, position: [100, 130, 0]}
+  - {tag: R-102, position: [100, 130, 0],
+     access: {platforms: [{elevation: 6.54, arc_deg: [49.4, 210]}, {elevation: 9.35, arc_deg: [24, 79.4]},
+                          {elevation: 14.4, arc_deg: [330, 30]}]}}
   - {tag: E-105, position: [125, 130, 0]}
   - {tag: K-101, position: [126, 185, 0], notes: "moved 9 m west for the branch rack PR-3 and its motor removal space (D-031)"}
   # ---- A-200 shift, CO2 removal, methanation and drying
   # vessels in the row next to the rack, exchangers in a row behind them with the bundle-pull
   # space to the west of each, columns behind
-  - {tag: R-201, position: [170, 128, 0]}
-  - {tag: R-202, position: [185, 128, 0]}
-  - {tag: V-201, position: [200, 128, 0], nozzles: [{id: N6, face: top, offset: [0, 1.1], notes: "PSV-1310 nozzle apart from the gas outlet N2 (D-031)"}]}
-  - {tag: R-401, position: [215, 128, 0]}
-  - {tag: V-401, position: [230, 128, 0]}
+  - {tag: R-201, position: [170, 128, 0],
+     access: {platforms: [{elevation: 4.75, arc_deg: [0, 210]}, {elevation: 9.4, arc_deg: [330, 30]}]}}
+  - {tag: R-202, position: [185, 128, 0],
+     access: {platforms: [{elevation: 4.75, arc_deg: [72.4, 210]}, {elevation: 9.4, arc_deg: [330, 30]}]}}
+  - {tag: V-201, position: [200, 128, 0], nozzles: [{id: N6, face: top, offset: [0, 1.1], notes: "PSV-1310 nozzle apart from the gas outlet N2 (D-031)"}],
+     access: {platforms: [{elevation: 3.03, arc_deg: [350, 76.9]}, {elevation: 6.0, arc_deg: [349.8, 120]}]}}
+  - {tag: R-401, position: [215, 128, 0],
+     access: {platforms: [{elevation: 3.66, arc_deg: [103.6, 210]}, {elevation: 8.4, arc_deg: [330, 30]}]}}
+  - {tag: V-401, position: [230, 128, 0],
+     access: {platforms: [{elevation: 2.56, arc_deg: [330, 210]}, {elevation: 6.33, arc_deg: [330, 30]}]}}
   - {tag: E-201, position: [177, 145, 0]}
   - {tag: E-202, position: [199, 145, 0], nozzles: [{id: T1, along: 0.6, angle_deg: 0}, {id: T2, along: 0.6, angle_deg: 90}]}
   - {tag: E-203, position: [221, 145, 0]}
   - {tag: E-401, position: [243, 145, 0]}
   - {tag: E-402, position: [243, 152, 0]}
-  - {tag: C-301, position: [175, 175, 0]}
-  - {tag: C-302, position: [195, 175, 0]}
+  - {tag: C-301, position: [175, 175, 0],
+     access: {platforms: [{elevation: 1.6, arc_deg: [205, 351.8]},
+                          {elevation: 6.27}, {elevation: 29.12, arc_deg: [49.4, 210]},
+                          {elevation: 33.87, arc_deg: [330, 79.4]}, {elevation: 39.33, arc_deg: [330, 30]}]}}
+  - {tag: C-302, position: [195, 175, 0],
+     access: {platforms: [{elevation: 5.31, arc_deg: [330, 76.7]},
+                          {elevation: 8.03, arc_deg: [226.7, 346.4]}, {elevation: 27.06, arc_deg: [150, 256.7]},
+                          {elevation: 30.32, arc_deg: [25, 210]}, {elevation: 34.4, arc_deg: [330, 30]}]}}
   - {tag: X-401, position: [222, 188, 0], shape: box}
   # solvent loop items of the P&IDs P-105/P-106 (S3b, D-028): pumps north of the columns,
   # exchangers and the reflux drum east of C-302; positions ASSUMED like the rest (D-022)
@@ -56,22 +77,28 @@ equipment:
                {id: C2, face: front, offset: [0.4, -1.0]}, {id: H2, face: front, offset: [-0.4, -1.0]}]}
   - {tag: E-302, position: [207, 174, 0]}
   - {tag: E-303, position: [207, 181, 0]}
-  - {tag: V-302, position: [207, 192, 0]}
+  - {tag: V-302, position: [207, 192, 0],
+     access: {platforms: [{elevation: 1.51, arc_deg: [330, 210]}, {elevation: 4.4}]}}
   # ---- A-500 synthesis gas compression and loop
   - {tag: K-501, position: [180, 40, 0]}
   - {tag: K-502, position: [200, 40, 0]}
-  - {tag: R-501, position: [190, 75, 0]}
+  - {tag: R-501, position: [190, 75, 0],
+     access: {platforms: [{elevation: 10.24, arc_deg: [330, 85.6]},
+                          {elevation: 13.0, arc_deg: [274.4, 30]}, {elevation: 15.76, arc_deg: [330, 85.6]},
+                          {elevation: 24.35, arc_deg: [330, 30]}]}}
   - {tag: E-501, position: [215, 80, 0]}
   - {tag: E-502, position: [215, 70, 0]}
   - {tag: E-503, position: [235, 80, 0]}
   - {tag: E-505, position: [235, 70, 0]}
   - {tag: E-504, position: [235, 60, 0]}
-  - {tag: V-501, position: [250, 70, 0]}
+  - {tag: V-501, position: [250, 70, 0],
+     access: {platforms: [{elevation: 2.6, arc_deg: [340.1, 210]}, {elevation: 5.8, arc_deg: [332.9, 30]}]}}
   - {tag: V-502, position: [250, 47, 0], notes: "moved 3 m south, clear of the area rack PR-7 (D-031)"}
   # ---- A-700 refrigeration and product
   - {tag: K-701, position: [290, 40, 0]}
   - {tag: E-701, position: [290, 70, 0]}
-  - {tag: V-701, position: [320, 70, 0]}
+  - {tag: V-701, position: [320, 70, 0],
+     access: {platforms: [{elevation: 3.05, arc_deg: [335.3, 210]}, {elevation: 5.8, arc_deg: [330.5, 30]}]}}
   # ---- A-600 purge gas recovery
   - {tag: X-601, position: [120, 60, 0], shape: box}
   # ---- A-800 steam system
