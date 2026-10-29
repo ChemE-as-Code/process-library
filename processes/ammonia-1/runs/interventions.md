@@ -42,3 +42,4 @@ reviewer agents are not listed here (see `ledger.csv`). Times are local (CET, UT
 | O-028 | 2026-10-29 21:19 | orchestrator (driver) | S4: pushed `stage/basic-control-lists`, opened #255 with the job's own PR body (I-001) | plan | - |
 | O-029 | 2026-10-29 21:37 | orchestrator (driver) | S4 merged; ledger PR for the section's accounting | plan | - |
 | O-030 | 2026-10-29 22:46 | orchestrator (driver) | S5: pushed `stage/basic-layout`, opened #257 with the job's own PR body (I-001) | plan | - |
+| O-031 | 2026-10-29 23:48 | orchestrator (driver) | S5: review says fix after two rounds; a third round runs under the owner's standing permission to continue autonomously | owner 2026-10-29 evening | - |
