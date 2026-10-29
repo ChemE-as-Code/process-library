@@ -54,10 +54,14 @@ SECTIONS = [  # id, tag, branch, worktree, cap, task key in sections.md, signoff
     dict(id="S4", tag="S4", branch="stage/basic-control-lists", wt="nh3-basic-control-lists", cap=15, key="S4", reviews=["control-lists"]),
     dict(id="S5", tag="S5", branch="stage/basic-layout", wt="nh3-basic-layout", cap=25, key="S5",
          reviews=["design", "layout"], signoff="basic"),
+    # O-032: S5 stopped after 3 rounds; S5b closes the two failing basic gates on the same branch/PR.
+    # On a further stop the run continues with S6-S8 (from main) and leaves PR #257 open; S9 needs S5b.
+    dict(id="S5b", tag="S5", branch="stage/basic-layout", wt="nh3-basic-layout", cap=20, key="S5b",
+         reviews=["design", "layout"], signoff="basic", continue_on_stop=True),
     dict(id="S6", tag="S6", branch="stage/basic-hazop", wt="nh3-basic-hazop", cap=20, key="S6", reviews=["hazop"]),
     dict(id="S7", tag="S7", branch="stage/detail-datasheets", wt="nh3-detail-datasheets", cap=20, key="S7", reviews=["datasheets"]),
     dict(id="S8", tag="S8", branch="stage/detail-relief", wt="nh3-detail-relief", cap=15, key="S8", reviews=["relief"]),
-    dict(id="S9", tag="S9", branch="stage/detail-gates", wt="nh3-detail-gates", cap=15, key="S9", reviews=["detail-gates"]),
+    dict(id="S9", needs="S5b", tag="S9", branch="stage/detail-gates", wt="nh3-detail-gates", cap=15, key="S9", reviews=["detail-gates"]),
 ]
 
 
@@ -325,9 +329,17 @@ def main():
     for sec in SECTIONS:
         if st["done"].get(sec["id"]):
             continue
+        if sec.get("needs") and not st["done"].get(sec["needs"]):
+            log(f"STOP {sec['id']}: needs {sec['needs']}, which is not merged")
+            raise SystemExit(6)
         try:
             run_section(st, sec)
-        except SystemExit:
+        except SystemExit as e:
+            if sec.get("continue_on_stop") and e.code in (3, 4):
+                intervention(st, f"{sec['id']} stopped (exit {e.code}); its PR stays open, the run goes on with the next independent sections", "owner 2026-10-29: work autonomously")
+                commit_ledger(f"ammonia-1 run: {sec['id']} stopped, continuing")
+                log(f"NOTIFY {sec['id']} stopped, continuing with the next sections")
+                continue
             raise
         except Exception as e:  # noqa: BLE001  a driver error stops the run for the orchestrator
             log(f"STOP {sec['id']}: driver error {e}")
