@@ -591,6 +591,63 @@ Reason: S3a of runs/plan.md; the block split keeps every PFD step on exactly one
 Rejected: drawing E-202 and V-201 with the CO2 removal (they are in block SHF), one sheet for
 the whole furnace and reforming (too dense for A3).
 
+## D-028 Mid-section P&IDs P-105 to P-108 (2026-10-29, S3b)
+Decision: the CO2 removal, methanation and make-up gas compression are drawn on four A3 sheets:
+P-105 CO2 absorber C-301 with the lean solvent pumps P-301A/B and the lean solvent cooler E-302;
+P-106 CO2 regenerator C-302 with the lean/rich exchanger E-301, the overhead condenser E-303,
+the reflux drum V-302 and the reflux pumps P-302A/B; P-107 E-401 (HTS effluent in the tubes,
+treated gas in the shell), methanator R-401, effluent cooler E-402, knock-out drum V-401 and the
+molecular sieve package X-401 (one adsorber symbol for the package); P-108 synthesis gas
+compressor K-501 (three stages, intercoolers and aftercooler in the package as for K-101 in
+D-027) with the recovered hydrogen junction M501. The recycle circulator K-502 is in the loop
+and left to S3c. Sheets hand-maintained; `scripts/draft_P-105.py` .. `draft_P-108.py` wrote
+their first revision (provenance, run with `cheme run`).
+Solvent loop items: the flowsheet lumps the aMDEA loop in step C301 (D-009), so a P&ID needs
+items the PFD does not have. Added to the equipment list and the plot plan as the generic amine
+absorber/regenerator loop (lean/rich exchange, lean pumps and cooler, overhead condenser, reflux
+drum and pumps; skill `tech-gas-acid-gas-removal`): E-301, E-302, E-303, V-302, P-301A/B,
+P-302A/B, every size and position ASSUMED, no duty calculated. E-301 is a plate exchanger
+(ASSUMED, the usual choice for lean/rich service). Not drawn: a rich solvent flash drum (the
+flowsheet has no co-absorption, I-07; its flash gas would be a stream the PFD lacks), a
+semi-lean split, solvent filtration, storage and drain system, antifoam injection. The make-up
+water of step P301 (S26) is drawn into V-302 on FIC-1508; the lean solvent pumps raise it to
+absorber pressure, as D-024 describes (the P301 step stays linked to C-301). The E-202 kettle
+overflow AM-1051 goes to E-301 (P-104 off-page text and line-list `to:` changed from C-302).
+Lines: numbers continue D-027 (serials 1056-1092; CO2 for CO2 vapour, DW demineralised water).
+Gas DN as D-027 (20 m/s, ideal gas; CO2 vent CO2-1068 at 15 m/s, 150 kPa(a), DN 900); PG-1081
+is DN 350 on both sheets (S34 needs 0.345 m, S37 after the hydrogen joins 0.351 m: 20.1 m/s
+accepted). Solvent lines from the ASSUMED 18 m3 per t CO2 of D-009: 1,313 m3/h at 1.5 m/s gives
+DN 600, the pump discharges DN 500 (1.9 m/s). Regenerator overhead DN 1200 and reflux DN 100
+ASSUMED (about one mole of water per mole of CO2 in the overhead, not calculated). Cooling water
+10 K rise and up to 2.2 m/s (ASSUMED); E-302 and E-303 each take half of Q18 (ASSUMED split).
+Small liquid lines DN 25 minimum (ASSUMED). Bypass, anti-surge and relief lines have ASSUMED DN.
+Instruments: loop numbers by sheet (14xx P-105, 15xx P-106, 16xx P-107, 17xx P-108). Regulatory
+loops: absorber level on the rich solvent (LIC-1405), lean solvent flow (FIC-1407) and
+temperature (TIC-1408 on the E-302 water), regenerator pressure on the CO2 vent (PIC-1505),
+reflux drum level on the reflux (LIC-1506), make-up water flow (FIC-1508), LT shift inlet
+temperature by an E-401 hot-side bypass (TIC-1601, PG-1082: the loop D-027 lists, now drawn),
+V-401 inlet temperature on the E-402 water (TIC-1608), V-401 level (LIC-1609), K-501 anti-surge
+(UIC-1703, recycle PG-1089 from after the aftercooler to upstream of the suction flow
+measurement). The methanator inlet temperature (TI-1603) has no independent control: it follows
+the TV-1601 bypass; a start-up heater is not drawn (open, S4). Trips proposed in
+`control/cause-effect.yaml`: I-105 C-301 level low-low closes XV-1406 (gas blow-by into the
+low-pressure regenerator), I-106 R-401 bed temperature high-high closes XV-1604 (CO/CO2
+breakthrough, runaway methanation); whether K-501 trips is left for the HAZOP. Analysers: CO2
+slip (AI-1403), CO + CO2 before and after R-401 (AI-1604, AI-1607), moisture after X-401
+(AI-1610).
+Relief: PSV-1513 on C-302 (cases include gas blow-by through LV-1405) and PSV-1704 on the K-501
+discharge, drawn as globe valves and made SpringLoadedGlobeSafetyValve by hand as in D-027;
+listed in `piping/special-items.yaml` without set pressure (S8). Spec break at the K-501
+discharge noted on P-108, pipe classes not chosen.
+Not drawn yet (open, for the reviews and S4/S8): pump minimum-flow lines and discharge gauges,
+control valve block and bypass valves, vents, drains and sample points, the X-401 regeneration
+circuit (inside the package, I-05), K-501 seal gas, lube oil and drive, further relief devices
+(V-401, V-302, E-401 shell, depending on design pressures not set yet).
+Reason: S3b of runs/plan.md; the split follows blocks CO2R, MET and the compressor of SYN.
+Rejected: one sheet for absorber and regenerator (too dense for A3 with the auxiliaries); drawing
+the solvent loop as two bare columns as the PFD does (a P&ID needs the pumps, exchangers and the
+level and blow-by protection between the two pressures).
+
 ## 3. Results of this stage (design case)
 
 Basic stage, S2 (the simulated flowsheet, D-026; lca/inventory.csv regenerated): per kg of NH3
