@@ -779,6 +779,67 @@ size it; a separate H2/N2 controller acting directly on FV-1201 (it would fight 
 opening the anti-surge valve UV-1703 from I-103/I-106 (UIC-1703 does it as a loop, and a trip
 sharing the loop's valve is not independent).
 
+## D-031 Basic 3D layout, zones, lifting study, take-off and TEA gate (2026-10-29, S5)
+Decision, racks: the concept rack PR-1 (D-022) left most nozzles more than the 30 m rack reach
+from it (34 `direct` fallback routes, 6 process lines unrouted, 98 clash and headroom findings).
+Area racks in a comb on PR-1 (`layout/site-plan.yaml`, positions, widths and tiers ASSUMED):
+PR-2 (A-100, east-west at y 142 between the reactor row and the furnace), PR-3 (A-100 east edge to
+K-101), PR-4 (A-200, east-west at y 162 between the exchanger row and the columns, over R-6 to
+PR-5), PR-8 (A-200 east edge), PR-5 (A-800, west of U-801, 8 m, three tiers), PR-6 (PR-1 to the
+south rack at the west edge of A-500), PR-7 (south rack at y 55 through A-600, A-500 and A-700,
+over R-5 and R-6), PR-10 (west connector from PR-7 over PR-1 to PR-2, east of X-601). East-west
+racks carry their tiers at 6/8(/10) m, north-south racks at 7/9(/11) m, so lines change
+elevation where they change direction; bent spacings are chosen so that no bent stands in a
+road or among the lanes of a rack it joins. Moved for them: K-101 9 m west, E-301 3.5 m north,
+V-502 3 m south. Toppling (1 x height, D-022) is kept as a criterion to the main rack PR-1 only
+(measured: C-301 58.5 m, R-501 29.2 m, X-601 41.0 m); the area racks stand next to the columns
+as in a rack-type layout (C-301 to PR-4 7.5 m, R-501 to PR-7 15.2 m, X-601 to PR-7 2.0 m): open
+for the QRA and the owner's spacing standard.
+Decision, routing (`piping/routing.yaml`): battery limits at the PR-1 ends (natural gas and
+demineralised water west; NH3 product, steam export, blowdown and the flare header east;
+ASSUMED: the flare, storage and utilities are outside the boundary, D-001); the CO2 vent stack
+represented by its foot north-east of V-302; FLR-1146 starts at V-201, its first tie-in (the line
+list's "relief valves" left the header with no end to start from); the furnace ductwork
+(CA-1012, CA-1013, FL-1014 to FL-1021, DN 1800-4000) skipped as package scope (the coil banks
+stand in the flue gas duct, D-022); nozzle orientations of U-801, H-101, the convection banks,
+E-202, E-301, V-201 and X-601 set towards their racks (ASSUMED until vendor drawings); vias for
+AM-1061 and PA-1022, the relief lines PG-1119/PG-1120/AG-1134 at 9.6 m over the vessel
+platforms, the CO2 vent and relief outlets raised clear of the platforms (`vents`); six
+routes pinned after review, four of them corrected by hand where they met another line at a
+rack junction (NG-1001, BD-1141, SL-1135, PC-1136; the comments in the file say where).
+Result: every DN 25+ process line routed or skipped with a reason; no pipe, steel, equipment or
+headroom clash; 186 generated and 6 pinned pipes, 10,875 m of pipe in the take-off; 3 chains
+still `direct`/`rack+direct` without a clash (review). Utilities (cooling water) stay unrouted
+for the detail gate.
+Decision, access: the platforms the build proposed for nozzles and valves above 2.5 m are
+declared at their elevations; arcs stop 8 degrees short of a pipe crossing them below 2.1 m;
+the top platforms of V-201, V-501 and V-701 lowered under the pipes leaving their heads (6.0,
+5.8, 5.8 m); three low platforms that served only a piped flange left out (C-301 N6, C-302 N4,
+R-501 N2: mobile platform). Left as review findings, not gate items: 31 operability, 11 escape
+ways (one ladder on long platforms), 13 access-blocked, 74 free-span and 63 support-missing.
+Decision, zones (`layout/zones.yaml`, screening, radii from the package table, ASSUMED):
+zone 2 around the K-501/K-502 and K-701 seals (ammonia drawn as flammable gas until the
+competent person decides) and the natural gas flanges of V-101/R-100; an oxygen-deficient zone
+around the CO2 vent CO2-1068 and the CO2 relief outlet CO2-1076. Not a classification.
+Decision, lifting: screening empty weights for every item (`scripts/estimate_weights.py`:
+thin-wall shell at 1.1 x operating pressure, CS 138 MPa, factors for internals; envelope
+densities for machines and packages; lift weights for the field-erected furnace and the
+packages; all ASSUMED), 13 crane pads (40 m working radius, no crane chosen) and 12 laydowns
+within 30 m of their pads. `layout/lifting-study.*`: every heavy item has a pad and a laydown;
+**26 lanes are blocked** by piping (often the item's own connections) or neighbours over the
+item (H-101 by R-101 on its roof: an erection-sequence question the rule cannot see). Not
+accepted: the gate `lifting-study` fails until the lifting plan reroutes or sequences them.
+Decision, cost: `estimate/mto.*` written (gate `mto` passes). The class 4 estimate is **not
+done**: the bulk take-off has no sourced unit rates (`estimate/rates.yaml` is still the example),
+and the equipment estimate (`cheme assess equipment`) covers 13 of 52 items, purchased cost only:
+exchanger areas, compressor fluid powers, fan flows, pump powers and materials come with the
+datasheets (S7), and no CEPCI value with an exact source was found in this job. The TEA keeps
+the class 5 capital of D-023. Gate `tea` enabled as the template documents it; the vented CO2
+and the flue gas are listed `free` (their CO2 is charged under `emissions:`, a price would count
+it twice); it fails on the three utilities without a sourced price (DMW, blowdown, cooling
+water; open since D-023 and review 2026-10-29-concept#2).
+Reason: S5 of runs/plan.md.
+
 ## 3. Results of this stage (design case)
 
 Basic stage, S2 (the simulated flowsheet, D-026; lca/inventory.csv regenerated): per kg of NH3
