@@ -1,0 +1,101 @@
+# Screening techno-economic analysis of the concept (D-023). Schema: `cheme schema tea`.
+# Every value has its status and source; ASSUMED values are choices of this design, stated as
+# such. Prices are 2025 values in EUR. Run: cheme assess tea [--write].
+schema: cheme/tea/v1
+kind: tea
+currency: EUR
+cost_year: 2025
+decision:
+  question: >-
+    Proceed to basic engineering of the 1500 t/d natural-gas ammonia plant in the Rotterdam
+    area: is its levelised cost of production at or below the price of imported ammonia?
+  metric: lcop
+  threshold: 439
+  confidence: 0.5
+  # Threshold: the 2025 average US Gulf Coast ammonia price (USGS) converted to EUR/t, without
+  # freight to Rotterdam (which would raise the import price): see product:NH3 below.
+basis:
+  product: NH3
+  unit: t
+  specification: "NH3 >= 99.5 wt%, refrigerated liquid at 240.15 K, 110 kPa(a), at the battery limit (D-002)"
+  boundary: "natural gas, air, demineralised water and electricity in; liquid NH3, MP steam export, vented CO2, flue gas, blowdown and heat to cooling water out (D-001); storage, loading, cooling tower and water treatment outside"
+  scale: 1500 t/d
+  location: NL (Rotterdam area)
+case: design
+capex:
+  # Reference: IEAGHG Technical Report 2017-03 (Amec Foster Wheeler for IEAGHG), Case 4A-1,
+  # Table 1 (report sheet 26 of 80): installed cost of the ammonia/urea plant 493 MEUR at 4Q2014
+  # prices (class 4 in the report), greenfield, north-east Netherlands, SMR with air-blown
+  # secondary reformer. The value here is 493 MEUR x 0.70, the ammonia share of the
+  # ammonia/urea complex, ASSUMED (the report does not split it; D-023). Installed cost with EPC
+  # services; contingency, utilities/BoP and owner's cost are added below.
+  isbl:
+    source: given
+    estimate_class: 5
+    value: {value: 345100000, status: ASSUMED, source: "IEAGHG 2017-03 Case 4A-1 Table 1: ammonia/urea plant installed cost 493 MEUR (4Q2014) x ammonia share 0.70 ASSUMED (D-023)", year: 2014}
+    scaling:
+      reference: {value: 450000, source: "IEAGHG 2017-03 Case 4A-1 ammonia plant, 1350 t/d NH3, on the 8000 h/a of this design (D-002) so that the ratio is 1500/1350"}
+      unit: t
+      exponent: {value: 0.67, status: ASSUMED, source: "capacity exponent chosen in this design for a single-train plant (D-023); the reference states none"}
+    escalation: {value: 1.397, source: "Eurostat sts_inppd_a, domestic producer prices, NL, NACE C28 (machinery and equipment), index 2021=100: 121.4 (2025) / 86.9 (2014), read 2026-10-29; a proxy for plant cost escalation, ASSUMED"}
+    location_factor: {value: 1.0, source: "the reference plant is sited in the Netherlands (IEAGHG 2017-03, Case 4A-1)"}
+  osbl: {value: 0.109, source: "IEAGHG 2017-03 Case 4A-1, Table 1: utilities and balance of plant 53.6 MEUR over the 493 MEUR process plant"}
+  owners_cost: {value: 0.07, source: "IEAGHG 2017-03, section 2.8.1: owner's cost 7 % of the total plant cost"}
+  contingency: {value: 0.20, source: "IEAGHG 2017-03, section 2.8.1: 20 % contingency on the installed cost (a class 4 estimate there; the class 5 range of this estimate is applied in the uncertainty)"}
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  utilisation: {value: 1.0, status: ASSUMED, source: "the 8000 h/a of D-002 already hold the downtime"}
+  source: "D-002 (8000 h/a ASSUMED); 25-year life ASSUMED for the screening (D-023)"
+prices:
+  - key: feed:NG
+    value: 11.397
+    unit: GJ
+    conversion: {value: 0.051081, source: "gross calorific value of the D-004 gas, own calculation: standard heats of combustion of CH4 890.63, C2H6 1560.7, C3H8 2219.2 kJ/mol (NIST Chemistry WebBook) over a molar mass of 17.523 g/mol: 51.08 MJ/kg"}
+    status: QUOTED
+    source: "Eurostat nrg_pc_203, non-household gas prices, NL, band I6 (4,000,000 GJ or over), excluding VAT and recoverable taxes, EUR per GJ (GCV): mean of 2025-S1 12.4122 and 2025-S2 10.3818 (both flagged estimated), read 2026-10-29"
+    year: 2025
+    swing: {low: 0.6, high: 1.6}
+  - key: feed:POWER
+    value: 100.65
+    unit: MWh
+    status: QUOTED
+    source: "Eurostat nrg_pc_205, non-household electricity prices, NL, band IG (150,000 MWh or over), excluding VAT and recoverable taxes: mean of 2025-S1 0.1062 and 2025-S2 0.0951 EUR/kWh, read 2026-10-29"
+    year: 2025
+  - key: product:NH3
+    value: 439.0
+    unit: t
+    status: ASSUMED
+    source: "USGS Mineral Commodity Summaries 2026, Nitrogen (fixed)-ammonia, salient statistics: average price f.o.b. US Gulf Coast 450 USD per short ton (2025, estimated) = 496.0 USD/t, at 1.1300 USD/EUR (Eurostat ert_bil_eur_a, 2025 annual average) 439.0 EUR/t; a proxy for the Rotterdam import price without freight, ASSUMED (D-023)"
+    year: 2025
+    swing: {low: 0.8, high: 1.5}
+  - key: product:STEAM
+    value: 38.39
+    unit: t
+    status: ASSUMED
+    source: "value of MP steam export as the gas a boiler would burn to raise it: 3.0313 GJ/t (IAPWS-IF97, BFW 313 K to 4600 kPa(a), 673 K, calculated with the functions of scripts/plant_balance.py) / boiler efficiency 0.90 on GCV (ASSUMED) x 11.397 EUR/GJ (feed:NG); no steam buyer or contract (D-023)"
+    year: 2025
+free:
+  - {key: feed:AIR, reason: "ambient air for the process and the furnace"}
+emissions:
+  price: {value: 74, status: ASSUMED, source: "EU ETS allowance (EUA) annual average 2025, 74 EUR/t CO2e, ESMA annual report on EU carbon markets 2026 as reported by Lovguiden 2026-07-09 (secondary)", year: 2025}
+  sources:
+    - {id: process-co2, key: product:CO2V, component: CO2, factor: {value: 1, source: "CO2 itself"}}
+    - {id: flue-co2, key: product:STACK, component: CO2, factor: {value: 1, source: "CO2 itself"}}
+  # No free allocation in the base case, ASSUMED: free allocation for the CBAM sectors (ammonia
+  # among them) is phased out from 2026 to 2034 (Directive (EU) 2023/959 amending Directive
+  # 2003/87/EC, Art. 10a(1a)), so over a plant life starting after 2030 the direct CO2 is almost
+  # fully exposed. Scenario no-carbon-price shows the other end (D-023).
+fixed_opex:
+  maintenance: {value: 0.03, status: ASSUMED, source: "screening value chosen in this design, fraction of fixed capital per year (D-023)"}
+  labour: {operators: {value: 60, status: ASSUMED, source: "screening value: about 12 positions in five shifts (D-023)"}, cost_per_operator: {value: 80000, status: ASSUMED, source: "screening value, EUR per operator-year including overheads, NL (D-023)"}}
+  insurance_tax: {value: 0.01, status: ASSUMED, source: "screening value, fraction of fixed capital per year (D-023)"}
+finance:
+  discount_rate: {value: 0.08, status: ASSUMED, source: "real discount rate chosen for the screening (D-023)"}
+  tax_rate: {value: 0.258, source: "Dutch corporate income tax, top rate 25.8 % (Belastingdienst, rates since 2022)"}
+  construction: [0.3, 0.4, 0.3]
+sensitivity: {swing: {low: 0.8, high: 1.2}}
+scenarios:
+  - {id: no-carbon-price, prices: {carbon: 0}, source: "full free allocation or no carbon price: the lower bound of the carbon cost"}
+  - {id: gas-2024, prices: {feed:NG: 8.845}, source: "Eurostat nrg_pc_203 NL band I6 excl. VAT, mean of 2024-S1 10.6905 and 2024-S2 6.9994 EUR/GJ (GCV), read 2026-10-29"}
+  - {id: capex-urea-share-0.6, scale: {capex:isbl: 0.857}, source: "ammonia share of the IEAGHG reference complex 0.60 instead of 0.70 (ASSUMED premise of D-023)"}

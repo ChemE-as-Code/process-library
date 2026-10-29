@@ -21,7 +21,12 @@ Ask for any that is missing.
 
 Engineering guidance only; core has no calculation for this. To record units as blocks and steps, use
 skill `process-design`. Crude and petroleum fractions are pseudocomponents; check
-`cheme process methods` for what core covers before relying on a simulation.
+`cheme process methods` for what core covers before relying on a simulation. A sourced naphtha
+assay (TBP or D86 curve with its density, or its cuts) goes in `process/assays.yaml`;
+`cheme process assay` characterises it into pseudocomponents, refuses an insufficient assay or
+one outside the correlations' range (light ends, heavy fractions), and flashes it with
+Peng-Robinson only inside its benchmarked claim (`docs/framework/assay.md`). DWSIM does not take
+pseudocomponents.
 
 The spine: desalting, atmospheric distillation, vacuum distillation, conversion of the heavy cuts,
 treating of every product, blending, storage and shipping. Distillation separates what is already

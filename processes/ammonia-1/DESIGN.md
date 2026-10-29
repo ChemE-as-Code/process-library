@@ -253,6 +253,78 @@ exergy of water). NH3 then carries 94.8 % of the burdens. The original preferenc
 expansion (ISO 14044) stands as the comparison once a steam background exists. Rejected:
 allocation none (would hide the export); mass (above).
 
+## D-022 Concept plot plan (2026-10-29)
+Decision: a notional 360 m x 220 m port plot (`layout/site-plan.yaml`) with one east-west pipe
+rack PR-1 (y = 110 m, 8 m wide, tiers 6/8/10 m, bents every 10 m so that none stands in the
+access roads R-5 and R-6) and the process areas on both sides of it, upstream north and
+downstream south: A-100 reforming, A-200 shift/CO2 removal/methanation/drying, A-800 steam
+system (north); A-600 purge gas recovery, A-500 compression and loop, A-700 refrigeration and
+product flash (south); A-900 reserved for control room, substation and workshops at the
+south-west corner, as far as the plot allows from the loop and the ammonia inventory (its
+position against the prevailing wind is open: the wind rose is not known, I-03). Roads on
+all four sides and two north-south access roads give every area access from at least two
+sides. All 44 items are placed (`layout/equipment-placement.yaml`), sized by ASSUMED overall
+dimensions in the equipment list (engineering estimates for 1500 t/d, not sized from the
+balance; the datasheets replace them). `cheme layout build` reports no clash, no blocked
+bundle-pull space and no steel in a road.
+Modelling choices: H-101 is the radiant box (40 x 20 x 22 m); R-101 is drawn as the tube inlet
+headers on its roof (its heated tubes are inside H-101); the convection coils E-103, E-104,
+E-102, E-101, E-107 and the air preheater E-106 are drawn as a row of coil banks against the
+radiant box, hot end first. Their separations from H-101 are declared at 1 m because they are
+part of the furnace; the package's 15 m fired-equipment spacing does not apply to them.
+Spacing criteria (separations, all ASSUMED screening values chosen in this design, not taken
+from a standard; the owner's spacing standard and a QRA replace them at basic): fired heater
+H-101 30 m from the boundary, from K-501, X-601, K-701 and the A-900 plot, 15 m from V-101;
+toppling (1 x height) of C-301, C-302, R-501 and the X-601 cold box to PR-1 and of R-501 to
+K-501; V-701, V-501 and K-701 30 m from the boundary; A-900 60 m from K-501 and V-701.
+Measured (`cheme show <tag> --layout`, 2026-10-29): H-101 to boundary 40.0 m, to PR-1 36.0 m,
+to R-100 17.8 m, to A-900 50.0 m; R-501 to PR-1 29.2 m and to K-501 29.8 m (height 25 m); C-301
+to PR-1 58.5 m (height 40 m); V-701 to boundary 38.5 m. `cheme validate` reports no
+`layout-separation` finding.
+Reason: concept gate `layout-plot-plan`; an area layout in process order along one rack is the
+usual arrangement and keeps the reformer's flame away from the hydrogen and ammonia sections.
+Open: real plot and wind rose (I-03), nozzles and line routes (with the P&IDs), the cooling
+tower, flare and storage outside the boundary (D-001).
+
+## D-023 Class 5 capital estimate and screening TEA (2026-10-29)
+Decision question (for the owner, `estimate/tea.yaml`): proceed to basic engineering of the
+1500 t/d plant in the Rotterdam area, judged by whether its levelised cost of production (LCOP)
+is at or below the price of imported ammonia (439 EUR/t: the 2025 US Gulf Coast average from
+USGS at the Eurostat 2025 exchange rate, without freight, ASSUMED as the import parity).
+Capital (AACE class 5, capacity-factored): reference IEAGHG Technical Report 2017-03, Case 4A-1
+(SMR with air-blown secondary reformer, north-east Netherlands, 1350 t/d NH3 with a urea plant;
+Table 1, 4Q2014 EUR): process plant installed cost 493 MEUR for ammonia and urea together. The
+report does not split it: the ammonia share is ASSUMED 0.70 (scenario 0.60). Scaled to
+1500 t/d with an ASSUMED exponent 0.67 and escalated 2014 to 2025 by the Eurostat producer
+price index of machinery (NACE C28, NL; 1.397, a proxy, ASSUMED). OSBL 0.109, owner's cost 0.07
+and contingency 0.20 follow the reference's own build-up. Result: ISBL 517 MEUR, fixed capital
+737 MEUR (2025), class 5 range about 368-589 MEUR at the low end to 958-1473 MEUR at the high
+end. core's equipment correlations (`cheme assess equipment`) were not used: they need
+exchanger areas, compressor fluid powers and material factors that the concept does not have,
+and the two columns lie outside the correlation range.
+Prices (2025): natural gas 11.397 EUR/GJ (GCV) and electricity 100.65 EUR/MWh, Eurostat
+non-household prices NL, bands I6 and IG, excluding VAT (QUOTED: a published series); NH3
+439 EUR/t (ASSUMED proxy); MP steam export 38.39 EUR/t as the gas a 90 % boiler would burn
+(ASSUMED); CO2 74 EUR/t (EU ETS 2025 average, ESMA via a secondary report, ASSUMED), on all
+direct CO2 because free allocation for ammonia is phased out by 2034 under CBAM. Demineralised
+water, blowdown treatment and cooling water are **not priced** (`tea-price-missing`): no
+sourced price was found; they are small next to gas and lower the LCOP that is shown. Fixed
+cost (maintenance 3 %, insurance 1 % of fixed capital, 60 operators at 80 kEUR), discount rate
+8 % real and 25-year life are ASSUMED screening values; Dutch corporate tax 25.8 %.
+Result (`estimate/tea.md`): LCOP 739 EUR/t (gas 351, electricity 57, CO2 116, steam credit
+-34, fixed cost 69, capital and tax 181); cash cost 558 EUR/t; NPV -1019 MEUR at 8 %. The
+criterion is **not met** in the baseline or any scenario (no carbon price 624, 2024 gas price
+661, ammonia share 0.60 705 EUR/t). Dominant premises: the gas price (LCOP 599-950 EUR/t
+over x0.6-1.6; the decision turns only at 1.66 EUR/GJ), then the ammonia price and plant
+output, capital and the carbon price.
+Consequence: on these premises a new conventional plant in the Netherlands does not compete
+with imported ammonia; that is the owner's investment question (I-02), not a design defect. The
+issue #86 brief commissions this plant as a design case, so the design continues to basic
+engineering; the verdict and the premises go with the concept sign-off for the owner. Next:
+price the three missing utilities, a Rotterdam delivered import price with freight, and the
+steam-turbine alternative (I-09), which trades the 57 EUR/t of electricity against the
+steam credit.
+
 ## 3. Results of this stage (design case)
 
 Per kg NH3 (lca/inventory.csv, from the flowsheet): natural gas 0.6034 kg (process 0.4721,
@@ -291,7 +363,13 @@ convection coils therefore use `ExchangingThermalEnergy` and the steam system `P
 | skill tech-petchem-ammonia-and-urea (Speight 2011, ch. 8) | conditions table | yes | plausibility of reformer conditions and loop pressure window |
 | EC LVIC-AAF BREF (2007), ch. 2 | issue comments | no | route/boundary guide only; no values used |
 | Appl, Ullmann's "Ammonia, 2. Production Processes" | doi 10.1002/14356007.o02_o11 | no | reference for the next stage |
-| IEA Ammonia Technology Roadmap (2021); Mayer et al. (2023); Lee et al. (2022) | issue comments | no | not used (design-visible benchmarks; kept out) |
+| IEA Ammonia Technology Roadmap (2021); Mayer et al. (2023); Lee et al. (2022) | issue comments | no | not used (design-visible benchmarks; kept out). Also kept out: Musa et al. (2025), Sci. Rep. 16:661, whose SMR CAPEX is back-calculated from Lee et al. (2022) |
+| Gasunie Transport Services, "The transmission network" and "Gas quality and metering" / FAQ pages | gasunietransportservices.nl/en/network-operations/the-transmission-network; .../connected-parties/gas-quality-and-metering | yes (2026-10-29) | I-01/R-03: no public composition for a connection; HTL carries H-gas, RTL almost only G-gas |
+| IEAGHG Technical Report 2017-03, Techno-Economic Evaluation of HYCO Plant Integrated to Ammonia/Urea or Methanol Production with CCS (Amec Foster Wheeler), Feb. 2017; free download, all rights reserved (numbers used, nothing copied) | Case 4A-1, Table 1 (report sheet 26 of 80); section 2.8.1 | yes (2026-10-29, read by a research sub-agent of this job) | D-023: reference installed cost, OSBL, owner's cost, contingency |
+| Eurostat nrg_pc_203, nrg_pc_205, ert_bil_eur_a, sts_inppd_a (CC BY 4.0) | NL, bands I6 / IG, excl. VAT, 2024-S1 to 2025-S2; USD per EUR 2025; PPI NACE C28 2014 and 2025 | yes (API, 2026-10-29) | D-023: gas and electricity prices, exchange rate, escalation |
+| USGS, Mineral Commodity Summaries 2026, Nitrogen (fixed)-ammonia (public domain) | salient statistics, price f.o.b. Gulf Coast, 2025e | via the search index of the document (the PDF text could not be extracted here) | D-023: NH3 price proxy, ASSUMED |
+| ESMA annual report on EU carbon markets 2026, as reported by Lovguiden (2026-07-09) | EUA annual average 2025 | secondary only | D-023: carbon price, ASSUMED |
+| NIST Chemistry WebBook | standard enthalpies of combustion of CH4, C2H6, C3H8 | values used | D-023: gross calorific value of the D-004 gas |
 
 ## 6. Open inputs and gated steps
 
@@ -312,6 +390,34 @@ convection coils therefore use `ExchangingThermalEnergy` and the steam system `P
 - I-10 Background datasets for the LCI (section D-020), with licences recorded.
 - Gated: stream properties and energy closure in core, rigorous simulation (core #315);
   `cheme process build` class bug (section 4).
+
+### Concept close-out (S1, 2026-10-29)
+
+Each open input is either resolved or kept ASSUMED, with the reason and where it is taken up:
+
+| input | status at concept sign-off | reason | taken up in |
+|---|---|---|---|
+| I-01 natural gas | **kept ASSUMED** (benchmark lean gas, 4500 kPa(a), 288.15 K) | no open, citable composition exists for an H-gas connection in the Rotterdam area: GTS supplies composition data per connection as a customer information service, and its public network description says only that the HTL main network carries H-gas and the RTL almost only G-gas, with no composition or pressure figures (gasunietransportservices.nl, "The transmission network" and "Gas quality and metering"/FAQ pages, read 2026-10-29). A different gas would need a rerun of scripts/plant_balance.py and a regenerated LCI (R-03 below) | S2 (the flowsheet is re-solved by simulation; owner's gas quality or a measured GTS composition) |
+| I-02 brief | kept: the #86 proposed brief is the basis | only the owner can freeze it; no change proposed | owner, before basic sign-off |
+| I-03 ambient, cooling water | **kept ASSUMED** (ISO ambient, CW 298/308 K) | site data change the balance; the plot plan (D-022) also needs the wind rose | S2 (simulation cases) and S5 (layout) |
+| I-04 approaches, kinetics | **kept ASSUMED** | reaction evidence not gathered; it is also what `cheme maturity` (`balanced.model-basis`) asks for | S2 |
+| I-05 HDS recycle, dryer regeneration, condensate stripper | kept: not modelled | small flows; they come with the simulation and the P&IDs | S2, S3 |
+| I-06 CO2 removal | **kept ASSUMED** (D-009) | licensor data or a solvent model is not available in this run | basic (licensor) |
+| I-07 emissions not quantified | kept NOT ESTIMATED, declared in `emission_exclusions` (D-020) | no sourced factor or guarantee; never set to a silent zero | basic (burner and licensor data) |
+| I-08 HRU recoveries | **kept ASSUMED** (D-013) | vendor data | basic |
+| I-09 drives | kept: electric drives (D-016) are the concept base | the comparison with steam turbines is a design alternative, not needed to close concept; the screening TEA (D-023) shows the weight of electricity | basic, as a branch alternative |
+| I-10 LCI backgrounds | kept missing (D-020) | licensed backgrounds may not be copied into the library; linking them is outside S1 | LCA stage |
+
+Review 2026-10-27-pfd-lci-review: closing or carrying each finding (the reviewer of this branch
+records the status; an author does not close a finding in someone else's record):
+
+| finding | response | evidence |
+|---|---|---|
+| R-01 (medium) | fixed, for closing: D-020 and process.yaml `validation.notes` say the printed figure is gate-to-gate direct fossil CO2 only, not a footprint | commit 7ac6c8b; the run report is a run record and is not edited |
+| R-02 (medium) | fixed, for closing: `emission_exclusions` for H-101 and the C-302 CO2 vent (I-07); the CH4, H2, C2H6, C3H8 source texts say NOT ESTIMATED; `lci-emissions-incomplete [H-101]` gone | commit 7ac6c8b, `lca/lca.yaml` |
+| R-03 (medium) | **carried** to S2 with the reason of I-01. Effect on `cheme maturity` (run 2026-10-29): calculation maturity none; `sourced.boundary` fails on S1 (natural gas) and also on S12, S61 and the other feeds whose flows are results of the balance, not given; `balanced.model-basis` fails independently on the unsourced specified conversions and splits (R100, R102A, H101, R401, C301, X401, X601). Sourcing the gas alone would therefore not raise the level | `cheme maturity` |
+| R-04 (low) | fixed, for closing: `validation.notes` states that `cheme maturity` reaches no level and concept is the lowest manifest value (D-019) | commit 7ac6c8b |
+| R-05 (low) | **carried**: the D-006 note (read step extents; block extents of a dependent reaction set are not unique) is in; reporting it to cheme-as-code core is the orchestrator's (runs/plan.md: one core issue per platform problem, linked in the ledger), which this job cannot do | commit 7ac6c8b |
 
 Chemicals registry entries missing (to add in the consolidated PR, not here): `ammonia` (with
 a refrigerated anhydrous liquid grade), `natural-gas`, `ethane`, `propane`, a demineralised

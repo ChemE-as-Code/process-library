@@ -1,6 +1,6 @@
 ---
 name: lci-estimate
-description: Screening LCI dataset for a process without a flowsheet - cheme assess lci-estimate (Tier 0 stoichiometric from process/reactions.yaml, a yield and the sourced defaults of Hischier et al. 2005; Tier 1 with yields, utilities and emissions taken from open literature, patents or BREFs), every default exchange assumed and cited, element balance mandatory, maturity and DQR capped by the tier. Use when a process must enter an LCI database or the Atlas before it has a design, when breadth is asked for, or when a stoichiometric or literature-based estimate is compared with a full design.
+description: Screening LCI dataset for a process without a flowsheet - cheme assess lci-estimate (Tier 0 stoichiometric from process/reactions.yaml, a yield and the sourced defaults of Hischier et al. 2005; Tier 1 with yields, utilities and emissions taken from open literature, patents or BREFs), every default exchange assumed and cited, element balance mandatory, calculation maturity, design maturity and DQR capped by the tier. Use when a process must enter an LCI database or the Atlas before it has a design, when breadth is asked for, or when a stoichiometric or literature-based estimate is compared with a full design.
 ---
 
 # Tiered LCI estimate
@@ -59,7 +59,7 @@ estimate.
 
 - The element balance is mandatory: a dataset whose elements do not close is never written.
   Fix the reaction or the formula; never add a balancing exchange without a physical reason.
-- `cheme.lci-tier-maturity`: the library manifest claims more than `concept` beside a Tier 0
+- `cheme.lci-tier-maturity`: the library manifest claims a design maturity above `concept` beside a Tier 0
   or 1 dataset. Lower the claim; reaching `balanced` needs a flowsheet.
 - `cheme.lci-tier-quality`: a pedigree better than the tier's floor. The tier caps the data
   quality; a better rating needs better data (Tier 1, then a design).
@@ -82,7 +82,7 @@ process, and whether a screening estimate is fit for the question are the engine
 practitioner's decisions. An agent writes the estimate, cites each value, runs and compares,
 and says plainly that the result is a Tier 0 or Tier 1 estimate. It never upgrades a tier by
 inventing sources, never presents an estimate as a design, and never raises a manifest's
-maturity because a dataset exists.
+design maturity because a dataset exists.
 
 ## References
 

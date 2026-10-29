@@ -176,8 +176,8 @@ finding ids or statuses (`cheme.review-*`).
    (`reviewer_kind: agent`); a `self` record needs `approved_by: <human>`. A `kind: validate`
    gate with `fail_on: warning` and the drawing `rules` (see `checks/checks.yaml`) fails while a
    drawing finding is neither fixed nor accepted. A `kind: maturity` gate fails while
-   `cheme maturity` puts the plant below its `require` level (or, with `max_claim: true`, while
-   `process.yaml` claims more than the evidence); it never sets the review status. Then
+   `cheme maturity` puts the plant's calculation maturity below its `require` level (or, with
+   `max_claim: true`, while `process.yaml` claims a design maturity above the evidence); it never sets the review status. Then
    `cheme check --stage <stage> --write --review reviews/<record>.md` runs the gates of every
    stage up to `<stage>` and writes its entry to `checks/status.json` (commit, date, signer,
    branch, review). It refuses, and writes nothing, when the tree is not committed, a gate

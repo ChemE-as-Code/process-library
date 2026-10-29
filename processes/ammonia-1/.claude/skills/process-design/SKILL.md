@@ -164,24 +164,27 @@ range is calculated:
 | package | components | claimed | benchmark |
 |---|---|---|---|
 | `air-pr-chemsep` | N2, O2, Ar | 77 to 315 K; vapour 100 to 3200 kPa(a); liquid and two-phase 100 to 600 kPa(a) (Peng-Robinson, ChemSep kij, COSTALD liquid density) | NIST WebBook reference EOS values, `tests/test_process_props.py` |
-| `syngas-pr-vapor` | H2, N2, Ar, CH4, CO, CO2 and their mixtures; NH3 pure only | vapour only, 250 to 1000 K, 100 to 30000 kPa(a), in per-component boxes (cold, dense gas excluded; CO to 500 K, CH4 to 625 K, NH3 350 to 725 K away from saturation) | CoolProp 8.0.0 reference EOS and GERG-2008 mixtures, density within 2 % (pure) / 3 % (mixtures), enthalpy differences within 300 kJ/kmol, `tests/test_property_packages.py` |
+| `syngas-pr-vapor` | H2, N2, Ar, CH4, CO, CO2 and their mixtures; NH3 pure, and in mixtures with H2, N2, Ar, CH4 up to mole fraction 0.25 (Ar and CH4 then up to 0.10 and 0.20) | vapour only, 250 to 1000 K, 100 to 30000 kPa(a), in per-component boxes (cold, dense gas excluded; CO to 500 K; CH4 to 625 K, in mixtures up to mole fraction 0.2026 to 673.1 K; NH3 pure 350 to 725 K, dilute 320 to 725 K, away from saturation) | CoolProp 8.0.0 reference EOS, GERG-2008 mixtures and the Neumann et al. (2020) NH3 mixture models; measured N2-NH3/Ar-NH3 (Date 1973) and hot H2-CO2-CH4 (Cheng et al. 2019) densities; density within 2 % (pure) / 3 % (mixtures, measured), enthalpy differences within 300 kJ/kmol, `tests/test_property_packages.py` |
 
 - Run `cheme process props --coverage` first: it names the package (the one recorded as
   `property_method.package`, else the one covering the most streams' component sets) and, per
   stream, whether it is covered or why not, with the nearest package and what it lacks
-  (component, pair, temperature-pressure box). It writes nothing and needs no thermo.
+  (component, pair, temperature-pressure box, a mole fraction above a box's or a pair's
+  limit). It writes nothing and needs no thermo.
 - To use a package for a process whose streams it does not all cover, set
   `property_method: {package: <id>}` in `materials.yaml`; an unknown id is an error
   (`cheme.process-property-package`). Streams outside it are refused, never computed with
   another method.
-- What no package covers (water, methanol, ammonia in a mixture, liquid synthesis products, hot
-  converter gas with CH4 above 625 K or CO above 500 K) stays refused: give such values with
+- What no package covers (water, methanol, ammonia above mole fraction 0.25 or with CO or CO2,
+  liquid synthesis products, hot converter gas with CH4 above 673.1 K or above mole fraction
+  0.2026 beyond 625 K, CO above 500 K) stays refused: give such values with
   their source (`given`, or `assumed` with the reason), or run the flowsheet in
   `process simulate` with a method its skill accepts. Do not widen a range in `materials.yaml`
   to make a stream pass (a recorded range only narrows the package's).
 - **Adding a package** (a cheme-as-code change, not a plant edit): add a `Package` to
   `domains/process/property_packages.py` (adapter, EOS and models, BIP source, components by
-  CAS, validated phases, per-component boxes and benchmarked pairs) and a test that compares
+  CAS, validated phases, per-component boxes, benchmarked pairs and any mole-fraction limits
+  of a box or a pair) and a test that compares
   the adapter's own results with an authoritative reference over every claimed box and pair
   (a reference equation of state evaluated by a pinned package, or published data with the
   source cited in the test), with the tolerance recorded in `benchmark.tolerances`. A
