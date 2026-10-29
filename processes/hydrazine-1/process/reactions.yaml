@@ -1,0 +1,44 @@
+# Reactions of hydrazine-1. Schema: `cheme schema process-reactions`.
+# A sourced conversion/selectivity model, not kinetics (DESIGN.md D-004, D-006, D-007). No
+# heats of reaction are given here: no formation enthalpy of methyl ethyl ketazine or of the
+# pyrazolines is to hand, and the reactor and column duties of the flowsheet are hand
+# estimates (D-010), not computed from these reactions.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: AZINE
+    equation: 2 NH3 + H2O2 + 2 C4H8O -> C8H16N2 + 4 H2O (methyl ethyl ketazine)
+    stoichiometry: {NH3: -2, H2O2: -1, MEK: -2, AZN: 1, H2O: 4}
+    reversible: false
+    catalyst: "activated working solution: acetamide / ammonium acetate with disodium phosphate (homogeneous)"
+    sources: ["US 6,562,311 B1 (2003), description stage (a) and Examples 4-5", "US 6,605,265 B1 (2003), description and Example 1"]
+  - id: BUTANOL
+    equation: 2 NH3 + 2 H2O2 + C4H8O -> N2 + C4H10O + 4 H2O (net reduction of MEK to 2-butanol via a diimine intermediate)
+    stoichiometry: {NH3: -2, H2O2: -2, MEK: -1, N2: 1, BUOH: 1, H2O: 4}
+    reversible: false
+    sources: ["US 6,562,311 B1, definitions: 2-butanol formed by reduction of MEK by a hydrazine derivative; net equation written by this study (D-004)"]
+  - id: DECOMP
+    equation: 2 H2O2 -> 2 H2O + O2 (unproductive peroxide decomposition)
+    stoichiometry: {H2O2: -2, H2O: 2, O2: 1}
+    reversible: false
+    sources: ["D-004: the H2O2 not converted to azine or 2-butanol is counted as decomposed (ASSUMED pathway)"]
+  - id: AMIDATION
+    equation: CH3COOH + NH3 -> CH3CONH2 + H2O (activator make-up, at the regeneration temperature)
+    stoichiometry: {ACOH: -1, NH3: -1, ACAM: 1, H2O: 1}
+    reversible: false
+    conversion: {key: ACOH, value: 1.0, provenance: assumed, source: "D-005: acetic acid make-up converted to the activator above 130 C (US 6,605,265: working solution heated to 150-250 C)"}
+    sources: ["US 6,605,265 B1, description of step (c) and the make-up reagent"]
+  - id: HYDROLYSIS
+    equation: C8H16N2 + 2 H2O -> N2H4 + 2 C4H8O (azine hydrolysis, reactive distillation)
+    stoichiometry: {AZN: -1, H2O: -2, N2H4: 1, MEK: 2}
+    # an equilibrium in the liquid, driven to completion by removing MEK overhead in the
+    # reactive distillation column; modelled as irreversible with full conversion (D-007)
+    reversible: false
+    conversion: {key: AZN, value: 0.995, provenance: assumed, source: "D-007: complete conversion of the azine fed, less the 0.5 % isomerised (parallel on the inlet azine)"}
+    sources: ["US 6,562,311 B1, stage (f)", "US 12,134,558 B2, step (f) and Example 1", "US 4,724,133 A"]
+  - id: ISOMERISATION
+    equation: C8H16N2 (azine) -> C8H16N2 (pyrazolines)
+    stoichiometry: {AZN: -1, PYR: 1}
+    reversible: false
+    conversion: {key: AZN, value: 0.005, provenance: assumed, source: "D-007: pyrazoline formation ASSUMED, kept below the 1-3 wt% tray level of US 12,134,558 by the side purge"}
+    sources: ["US 12,134,558 B2: pyrazolines form mainly in the hydrolysis column"]

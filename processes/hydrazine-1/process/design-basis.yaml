@@ -1,0 +1,51 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Hydrazine hydrate by the peroxide (Pechiney-Ugine-Kuhlmann, PCUK) process, issue
+# ChemE-as-Code/process-library#141. Ammonia and hydrogen peroxide are boundary feeds (D-001).
+# Values marked ASSUMED are choices of this concept study, not client or licensor data; every
+# decision and its source is in DESIGN.md. The stream values are in process/flowsheet.yaml.
+capacity:
+  basis: hydrazine hydrate solution (64.0 wt% N2H4, i.e. 100 % N2H4.H2O) to storage (D-002)
+  product_kg_per_h: 2000                # ASSUMED (D-002)
+  product_kt_per_a: 16                  # = 2000 kg/h x 8000 h/a
+  n2h4_kt_per_a: 10.24                  # contained N2H4
+  operating_hours_per_year: 8000        # ASSUMED
+  turndown_percent: 50                  # ASSUMED, not checked
+feeds:
+  - name: Hydrogen peroxide 70 wt% (stabilised), from a hydrogen peroxide plant (library hydrogen-peroxide-1, anthraquinone process)
+    purity: "H2O2 70 wt% in water (US 6,605,265 Ex. 1 uses 70 %); stabiliser not modelled"
+    conditions: {pressure_kPa_a: 300, temperature_K: 298.15}   # ASSUMED battery limit
+    flow: set by the product rate (stream S01)
+  - name: Ammonia, anhydrous liquid, from an ammonia plant (library ammonia-1)
+    purity: "NH3 100 % in the model"
+    conditions: {pressure_kPa_a: 1500, temperature_K: 298.15}  # ASSUMED
+  - name: Methyl ethyl ketone (make-up), purchased
+    purity: "MEK 100 % in the model"
+  - name: Acetic acid (working-solution make-up) and disodium phosphate (catalyst make-up), purchased (D-005)
+  - name: Demineralised water to the azine hydrolysis (D-007)
+products:
+  - name: Hydrazine hydrate
+    purity: "N2H4 64.0 wt%, water 36.0 wt% (100 % hydrazine hydrate grade, ASSUMED design target, D-002); organic traces (MEK, pyrazolines) not modelled"
+    delivery: {pressure_kPa_a: 300, temperature_K: 313.15}    # ASSUMED
+  - name: 2-Butanol bleed (with MEK), to incineration or MEK recovery outside the boundary (D-004)
+  - name: Pyrazoline purge from the hydrolysis column, to incineration (D-007)
+  - name: Working-solution purge (acetamide, phosphate), to incineration or waste water treatment (D-005)
+  - name: Waste water (reaction water and peroxide water), with traces of MEK and ammonia, to the site waste water treatment (D-008)
+  - name: Reactor off-gas (O2 from peroxide decomposition, N2 from the side reaction and the inerting sweep) after a vent condenser/scrubber, to atmosphere (D-008, D-015)
+utilities:
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: ASSUMED}
+  - {name: MP steam, pressure_kPa_a: 2000, use: "working-solution regeneration, azine column and hydrolysis column reboilers (bottoms up to about 473 K)", note: "level ASSUMED from US 6,605,265 Ex. 1 (18 bar(a)) and US 12,134,558 Ex. 1 (reboiler 200 C at 16 bar); D-010"}
+  - {name: LP steam, pressure_kPa_a: 500, use: "hydrazine hydrate concentration and ammonia recovery columns", note: "ASSUMED, D-010"}
+  - {name: Electric power, use: pumps, reactor agitation, note: "ASSUMED lump, D-010"}
+  - {name: Nitrogen, pressure_kPa_a: 600, use: "sweep of the azine reactor and decanter headspaces, O2 at most 8 mol% in the vent", note: "ASSUMED supply, D-015"}
+site:
+  location: ASSUMED generic site, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "ASSUMED azine synthesis at 323 K, about 150 kPa(a), in the activated working solution; inlet MEK/H2O2 2.2 and NH3/H2O2 2.5 mol/mol (patent ranges 0.2-5 and 0.1-10, preferred 1.5-4) (D-003)."
+  - "ASSUMED H2O2 fully converted; per kmol H2O2: 0.85 kmol azine, 0.03 kmol 2-butanol (0.06 kmol H2O2), the rest (0.09 kmol) decomposed to O2 and water. Azine yield inside the 81-82 % (US 6,562,311 Ex. 4-5) to 'up to 90 %' (US 6,562,311, US 6,605,265) range; a sourced range check, not kinetics (D-004)."
+  - "ASSUMED working solution circulation 11 kg per kg H2O2, make-up 60 kg acetic acid and 3 kg Na2HPO4 per t H2O2 (US 6,605,265 Ex. 1) (D-005)."
+  - "Working-solution regeneration steam 10.5 t of 18 bar(a) steam per t H2O2, scaled from US 6,605,265 Ex. 1 (D-010)."
+  - "ASSUMED hydrolysis by reactive distillation at about 900 kPa(a), bottoms 30 wt% hydrazine hydrate, 0.5 % of the azine lost to pyrazolines (US 6,562,311 stage (f); US 12,134,558) (D-007)."
+  - "ASSUMED other column duties, reactor cooling and power: hand estimates (D-010)."
+  - "Accuracy: concept estimate; no property method qualified for the mixture (D-011)."
