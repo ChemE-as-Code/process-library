@@ -397,6 +397,11 @@ Findings (deviations kept, not edited away):
   make-up H2/N2 fell from 3.005 to 3.000 with the simulated front end and the fixed purge
   lets N2 accumulate; the process air (S12) would need to be retuned when the loop is
   simulated. Product 62,438.8 kg/h (1,498.5 t/d, -0.1 %); inerts 12.2 % at the converter.
+- **LCA boundary check**: it reads the reactor modes of process/simulation.yaml and now flags
+  R102B, R201 and R202 (run at their outlet temperature, above) as exchanging heat with no
+  utility; their simulated duties (0.4 to 2.6 % of the reaction heat) are the residual of that
+  workaround, not a utility. lca/ was regenerated; the per-kg figures of section 3 are the
+  concept stage's and are superseded by lca/inventory.csv.
 Energy audit (`cheme process energy`, run record): every simulated reactor closes on the
 formation basis (residuals below 1e-4 kW); DWSIM's formation enthalpies differ from
 materials.yaml within the data tolerance (largest CO2, 36 kJ/kmol); no temperature cross in
