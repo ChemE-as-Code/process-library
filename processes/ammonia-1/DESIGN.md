@@ -797,7 +797,11 @@ PR-2 (A-100, east-west at y 142 between the reactor row and the furnace), PR-3 (
 K-101), PR-4 (A-200, east-west at y 162 between the exchanger row and the columns, over R-6 to
 PR-5), PR-8 (A-200 east edge), PR-5 (A-800, west of U-801, 8 m, three tiers), PR-6 (PR-1 to the
 south rack at the west edge of A-500), PR-7 (south rack at y 55 through A-600, A-500 and A-700,
-over R-5 and R-6), PR-10 (west connector from PR-7 over PR-1 to PR-2, east of X-601). East-west
+over R-5 and R-6), PR-10 (west connector from PR-7 over PR-1 to PR-2, east of X-601), PR-11
+(S5r fix, review 2026-10-29-layout#2: east connector from PR-7, extended to x 338, up to PR-1 at
+the east edge of A-700; the A-500/A-700 exports had run west to PR-6 and back east on PR-1:
+AL-1128 432 -> 77 m; the rerouted PC-1048 and PC-1084 met BD-1141, BW-1025 and SM-1040 in A-800
+and are pinned clear of them; pipe 10,875 -> 10,687 m, steel 539 -> 554 t). East-west
 racks carry their tiers at 6/8(/10) m, north-south racks at 7/9(/11) m, so lines change
 elevation where they change direction; bent spacings are chosen so that no bent stands in a
 road or among the lanes of a rack it joins. Moved for them: K-101 9 m west, E-301 3.5 m north,
@@ -851,7 +855,15 @@ shift, methanation and prereformer items at 2950-4150 kPa(a). S5r fix (review
 by piping (often the item's own connections, E-401 by PC-1083 and PG-1079) or neighbours over
 the item (H-101 by R-101 on its roof: an erection-sequence question the rule cannot see). Not
 accepted: the gate `lifting-study` fails until the lifting plan reroutes or sequences them.
-Decision, cost: `estimate/mto.*` written (gate `mto` passes). The class 4 estimate is **not
+Decision, cost: `estimate/mto.*` written (gate `mto` passes). What the take-off leaves out
+(S5r, review 2026-10-29-layout#3), so that no estimate reads it as complete: pipe classes and
+insulation (the line list carries no `pressure_class` or `insulation` yet, so every pipe is
+`bare` without a class, including the cold liquid ammonia AL-1128 and the hot reformed-gas and
+waste-heat lines; classes and insulation by service come with the line list revision and
+`piping/pipe-specs.yaml` at the datasheets, S7); the cooling water headers (unrouted until the
+detail gate); the furnace ductwork CA-1012, CA-1013, FL-1014..FL-1021 (package scope); small
+bore below DN 25, supports and the field-run vents and drains. Until then a bulk estimate built on
+it must carry these as allowances, not as zero. The class 4 estimate is **not
 done**: the bulk take-off has no sourced unit rates (`estimate/rates.yaml` is still the example),
 and the equipment estimate (`cheme assess equipment`) covers 13 of 52 items, purchased cost only:
 exchanger areas, compressor fluid powers, fan flows, pump powers and materials come with the
