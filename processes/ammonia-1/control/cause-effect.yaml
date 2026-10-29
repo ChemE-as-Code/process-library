@@ -1,7 +1,40 @@
 # Cause and effect list: interlocks and trips. Schema: `cheme schema interlocks`.
 # On a sheet, refer to an interlock ("see C&E I-01") instead of spelling out what it trips.
 schema: cheme/interlocks/v1
-interlocks: []
+# Front end (S3a, D-027): the trips drawn on P-101 to P-104, PROPOSED; delays, latching, reset,
+# bypass and SIL are left for the control and safety work (S4, S6).
+interlocks:
+  - id: I-101
+    title: Process steam low-low flow (carbon formation on the reforming catalysts)
+    cause: {tag: FZ-1007, condition: LL}
+    effects:
+      - {tag: XV-1001, action: close}
+      - {tag: XV-1204, action: close}
+    sheet: P-101
+    notes: D-027. Feed gas and then process air stop when the steam to carbon ratio cannot be held.
+  - id: I-102
+    title: Reformer furnace pressure high-high (loss of draft)
+    cause: {tag: PZ-1108, condition: HH}
+    effects:
+      - {tag: XV-1102, action: close}
+      - {tag: XV-1105, action: close}
+    sheet: P-102
+    notes: D-027. Burner management (flame failure, purge) is part of the furnace package, not drawn yet.
+  - id: I-103
+    title: Secondary reformer outlet temperature high-high
+    cause: {tag: TZ-1205, condition: HH}
+    effects:
+      - {tag: XV-1204, action: close}
+    sheet: P-103
+    notes: D-027. Process air is cut first; the check valve on PA-1023 stops back-flow of gas into the air line.
+  - id: I-104
+    title: Process condensate separator level high-high (liquid carry-over to the CO2 absorber)
+    cause: {tag: LZ-1308, condition: HH}
+    effects:
+      - {tag: LZ-1308, action: alarm}
+      - {tag: LV-1307, action: open}
+    sheet: P-104
+    notes: D-027. Whether a trip of the feed is needed is left for the HAZOP (S6).
 #  - id: I-01
 #    title: LIN tank low-low level
 #    cause: {tag: LIA-101, condition: LALL}
