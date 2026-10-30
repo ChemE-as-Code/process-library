@@ -1323,6 +1323,75 @@ supports are a structural item) and 4 more `layout-lifting` findings (K-101, K-1
 K-701: the motor branch tray runs over the machine; the electrical list has no motor cable entry
 point to feed it from the side).
 
+## D-040 Representative feed specification and furnace combustion basis (2026-10-30, S5c)
+Decision (the owner's decision I-006 of 2026-10-30: this is a paper case study, a representative
+feed specification is approved): the five feeds are `given` with a published source and the
+owner's approval named in each source note.
+- **Natural gas S1**: Enbridge Gas Inc., *Learn about natural gas*, table "Chemical composition of
+  natural gas", column Typical (a system-wide average of western Canadian, US and Ontario gas,
+  read 2026-10-30): CH4 94.6, C2H6 4.4, C3H8 0.2, N2 0.4, CO2 0.3 mol%. The C4+ traces
+  (0.027 mol% in total) are counted as C3H8, the O2 and H2 traces (0.015 mol%) are left out, and
+  the rest is normalised: CH4 94.67, C2H6 4.40, C3H8 0.23, CO2 0.30, N2 0.40 mol%. 4500 kPa(a),
+  288.15 K (the owner's supply conditions; 15 C the ISO 13443 reference temperature).
+- **Air S12, S61**: dry air of the NASA Earth Fact Sheet (last updated 15 November 2024): N2
+  78.08 %, O2 20.95 %, Ar 9340 ppm, CO2 420 ppm, normalised; 101.325 kPa, 288.15 K (ISO 13443
+  reference conditions); humidity neglected as before.
+- **Demineralised water S26, S70**: pure water. IAPWS TGD3-10(2015), p. 28, sets the make-up
+  limits (Na, Cl, SO4 below 3 ug/kg, SiO2 below 10 ug/kg, conductivity below 0.1 uS/cm), far
+  below the balance's resolution.
+- **Flows** follow from the design capacity (1500 t/d NH3, design basis). `scripts/plant_balance.py`
+  (with the new gas and air as its constants) gives feed and fuel 35,645.6 kg/h, fuel split
+  0.22244, steam 92,566.7 kg/h, combustion air 168,003.5 kg/h, CO2-removal water 1,476.7 kg/h and
+  purge fraction 0.006007. The process air was retuned on the simulated loop (D-026) to
+  68,660 kg/h: H2/N2 2.994 at the converter inlet (S42; before 3.007). The loop is very
+  sensitive to it: 68,760 kg/h gives 2.72 and 69,250 kg/h gives 1.80 with the loop flow up by a
+  third, because surplus N2 builds up behind the small purge. S70 (108,373.6 kg/h) is the
+  steam-system water balance of `scripts/packages_on_simulated_duties.py`.
+- The simulation specs taken from the concept balance were updated with it
+  (`process/simulation.yaml`: R102B 1272.81 K, R201 717.1 K, R202 507.35 K, E-107 duty 2723.2 kW,
+  E-202 20,213.7 kW, C-301 CO2 and water fractions 0.002287 and 0.176850). Then
+  `cheme process simulate --fill`, `propagate --fill` (S65), simulate again (S66, S67),
+  `props --fill`, and `cheme process build`. Five loop setpoints follow their streams
+  (FIC-1002, FIC-1110, FIC-1201, FIC-1508, FIC-1905).
+
+Result: product 62,471.8 kg/h NH3 (before 62,470.7). The boiler duties of
+`scripts/packages_on_simulated_duties.py` go from 130.0 to 132.8 MW (+2.8 MW, +2.2 %), MP steam
+export from 60.1 to 63.7 t/h, and the chiller duty barely moves (K-701 power 10,074 kW, before
+10,076). **Cause of the S5b jump (D-034), found:** E-107, the last flue-gas coil, closes the
+convection section. Its duty is a simulation *spec* taken from the concept balance (D-014,
+`process/simulation.yaml`), set to the heat left over after the process coils at the 423 K
+stack. A change in the gas changes the furnace balance, and the surplus lands on E-107: with
+this gas the concept balance gives 2.72 MW, not 0.59 MW. E-107 is one of the four energy
+streams whose sum is the "boiler duty" (Q8, E-107; D-034's partial trace), so the boiler duty
+follows it directly. The simulated stack temperature (S66) stays at 397 K (396.1 K before), so the
+spec is consistent; the assumed 423 K of S66 is the D-014 target and differs from the
+simulation as before (warning `process-sim-deviation`). In S5b, rescaling the EBTF gas (7 % ethane, butanes,
+pentanes, 2 % CO2) without carrying the concept balance's outlet specs (R102B, E-107, E-202,
+C-301) through to the simulation is the most likely reason the duties of the DWSIM coils and
+E-107 no longer matched. That run was not kept, so this cannot be shown number by number. The
+mechanism and size of the change are shown here with the gas actually used. The natural gas
+flow changes by -5.5 % (methane-richer, fewer inerts), the purge by -18 % (1,384 kg/h, fewer
+inerts) and the air by +2 %.
+
+Furnace H-101 model basis (`balanced.model-basis`): complete combustion of the fuel with excess
+air, standard design practice, is now the `given` basis of H2_COMB and NH3_COMB. The sources:
+D. Schmitt (Increase Performance Inc.), *Correctly modeling and calculating combustion
+efficiencies in fired equipment*, an American Flame Research Committee paper (University of Utah
+digital library, ark:/87278/s6fc0529), pp. 1-6. Its combustion calculation, for a reformer
+furnace of hydrogen and ammonia plants, burns every fuel component, hydrogen included, by its
+combustion equation at the set excess air, and its worked flue gas has no CO or unburnt fuel.
+US EPA Method 19 (40 CFR 60 App. A-7, §12.3.2.1, Eq. 19-13) builds its F factors as the
+stoichiometric products of complete combustion of the fuel's H, C, S, N and O, with fuel
+nitrogen leaving as N2. S5b's analogies stay as supporting evidence.
+
+`cheme maturity`: calculation maturity **balanced** (before: none). The design maturity the
+evidence supports is screening. maturity-balanced passes. Predictive still fails, for the
+reasons D-026 records: H101, K701 and U801 not simulated, specified splits and conversions, and
+the property claim (core#315).
+Rejected: the EBTF gas again (C4/C5 components would need new reactions and components, and the
+owner allows a lean gas close to the current one); keeping the D-004 placeholder (not
+published).
+
 ## 3. Results of this stage (design case)
 
 Basic stage, S2 (the simulated flowsheet, D-026; lca/inventory.csv regenerated): per kg of NH3
