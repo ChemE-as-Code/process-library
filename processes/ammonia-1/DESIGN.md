@@ -1706,6 +1706,213 @@ Rejected:
   beside the machine is what core#73 provides.
 - Moving the instrument trunk IT-PR-7-3 off PR-7: the rack itself was in E-504's old lane.
 
+## D-047 Pipe supports: intermediate rack steel, small lines low or on the racks (2026-10-30, S10)
+
+Owner's decision I-009 (detail stage, branch `stage/detail-supports`, core v1.1.0).
+
+Problem: `cheme layout build` proposed 420 single T-posts (HEB200 from grade, `review_needed`)
+under 83 lines wherever a level run spans farther than the DN's suggested span (core table
+`pipe-spans.yaml`, after ASME B31.1 Table 121.5, ASSUMED): median 7.9 m tall, 166 above 8 m, max
+15.3 m; about 208 t of HEB200 at 61.3 kg/m (EN 10365) had they been pinned. 173 of them stood
+inside rack footprints: small lines (DN 25 to 50) on 8 to 10 m bents with no steel between.
+
+Span table: kept core's ASSUMED table. Core v1.1.0 reads the per-DN spans only from its packaged
+`pipe-spans.yaml`; the plant has no input for them, and the site plan's `max_unsupported_length`
+is one number, the rack reach (30 m), not a span per DN. The B31.1 table is not openly licensed,
+and no open span table was looked for once it was clear nothing could take it. Gap for core (with
+core#90).
+
+Decision:
+1. **Intermediate rack steel** (`intermediate_supports`, site plan) on the tiers that carry
+   lines whose span is shorter than the bay, spacing from the shortest such span: PR-7 tier 8,
+   PR-1 tier 10, PR-4 tier 8 and PR-8 tier 9 at 2.0 m (DN 25 liquid, 2.1 m); PR-2 tier 8 at 4.0 m
+   (FG-1002, DN 80, 4.6 m). Section IPE240 for stringers and cross beams, ASSUMED (screening: a
+   10 m stringer with four beam reactions of about 5 kN deflects about L/300; a default by span
+   would have made the 10 m stringers HEB500). The structural design sizes them.
+   Left without intermediate steel: PR-10 (its steel at bay 9 stood in E-105's crane lane from
+   CP-108), PR-5 (its tier-9 stringers met PC-1048 and SM-1140 where they leave the rack, and
+   tier 11 pushed SM-1038 and SM-1040 into each other), PR-6 and PR-11 (one line each, DN 150,
+   whose spans exceed the 8 m bays only as free-span warnings; their steel moved SM-1101 to
+   another rack), PR-4 tier 6 (its stringers would stand in road R-6 below the 6 m headroom),
+   PR-3 (no line runs along it). The lower, large-bore tiers keep their 10 m bents: DN 300 gas
+   (9.1 m) and DN 400 liquid (8.2 m) exceed that by up to 1.8 m (warnings `layout-free-span`,
+   open, for the structural design: bent spacing or one beam per bay; the bents are placed so
+   that none stands in a road, D-036).
+2. **Small lines routed low or onto the racks** (`piping/routing.yaml`, each with its reason):
+   CO2-1142 (U-801 stripper overhead to the CO2 vent stack) along the PR-4 top tier and north on
+   sleepers in the 2 m gap between X-401 and CP-203 beside DW-1073, across north of X-401 level
+   with the DW-1073 crossing (pinned; the stack foot is 35 m from PR-4, beyond the 30 m rack reach,
+   and the router hops over a tier's beams between via points); PC-1084 down from X-401 to
+   sleepers in the same gap instead of 23 m at 8.85 m; PC-1083 east from V-401 on sleepers (y 127)
+   instead of 20 m at 9.85 m; the DW-1073 grade leg lowered from 0.6 m to sleepers (centreline
+   0.35 m). The three lines in the X-401/CP-203 gap run grouped, below X-401's crane lane from
+   CP-203. The grade legs are low points: drain valves, and a drain pot on the wet CO2-1142
+   vent (ASSUMED; where each is drawn or tracked: S10 fix below).
+3. **Pinned to keep the reviewed basic routes** where the new steel moved them: SM-1040 and
+   SM-1101 as generated at basic sign-off; the drops of SL-1135 (PR-1/PR-10 junction, x 133.4)
+   and PC-1136 (onto PR-4, x 255.3) moved clear of the new beams.
+
+Result (`cheme layout build`, 2026-10-30): proposed support steel 420 T-posts -> 252 T-posts and
+3 stubs under 82 lines; median height 8.7 m (the 7.9 m posts on the racks are gone, so the median
+rises), 144 above 8 m, max 15.3 m; about 128 t of HEB200 if all were pinned. PG-1126 54 -> 7,
+PG-1109 27 -> 11, CO2-1142 27 -> 0, AL-1124 24 -> 3, DW-1073 22 -> 6, AG-1125 17 -> 2, PC-1083
+11 -> 1, PC-1084 11 -> 1. Of the 252, 190 stand off the racks and 62 within rack footprints
+(within half the width plus 0.5 m of a centreline): at junctions and rack ends, and under lines
+the build does not count as riding on a rack (below).
+`layout-free-span` warnings 73 -> 41; `layout-support-missing` (info) 107 -> 132, because pipes
+now carried along the racks are listed for the short off-rack stretches left. 0 clashes; the
+lifting study has the same 8 blocked lanes as at basic sign-off (H-101, E-104, E-402, K-501, E-501,
+E-502, E-505, E-504), and K-501's lane, blocked already by PG-1088, PG-1089 and PG-1090, also
+listed its motor tray PT-M-K-501, whose drop the PR-7 intermediate steel moved (moved back out
+of the lane in the S10 fix below). Take-off: +117.1 t
+IPE240 (rack steel 549.6 -> 666.7 t, all steel 555.1 -> 672.2 t; the proposals are counted only
+once pinned). Bulk estimate 99,423 -> 103,268 (+3.9 %, example placeholder rates); TEA unchanged
+(gate `tea` current: it rests on the equipment estimate, D-045).
+
+The posts left and why:
+- relief lines PG-1119, PG-1120, AG-1134 (29 posts, 9.4 to 9.5 m): run at 9.6 m over the vessel
+  platforms and clear of V-501's crane lane on purpose (D-036, D-037); routing them over the
+  racks would make them several times longer, adding back pressure. They want a small pipe
+  bridge or supports from the vessel platforms' steel, which the model has no way to show;
+- PA-1022 (14, DN 250 process air, via points of D-036) and the off-rack legs of the DN 300 to
+  600 process lines at the pipe-way (3.4 to 5.5 m): local runs between items;
+- legs between a rack and a nozzle (PG-1109, PG-1113, AL-1127, AL-1114, AL-1129, PG-1097, ...):
+  the vertical-to-horizontal runs at tier height from a rack to an item 10 to 15 m away;
+- BW-1138, BW-1139 (15.1 m, `direct` routes at U-801) and SM-1040 (15.3 m): high runs on the
+  U-801 package, whose own steel is not modelled;
+- the DW-1073 / CO2-1142 crossing north of X-401 (about 16 m at 8.0 m over the access from R-2):
+  needs one pipe bridge spanning the access (posts there would stand in the vehicle way);
+- posts on rack footprints, among them pipes that run along a rack but carry no `racks` in the model
+  (the router assigns a chain's rack only to a segment whose points are the rack run's own,
+  `routing.py` `_plan`; FLR-1146, PG-1126, PG-1109, AL-1124, AG-1125 and others split at an
+  off-page connector or tee). Core issue, with core#90; not worked around.
+
+S10 fix (review 2026-10-30-layout-s10, round 1):
+- s10#1 PC-1083 at V-401's ladder: the pin now leaves V-401 east at y 128 to x 233.5, drops to
+  the sleepers and runs along y 128 to x 249, jogging to y 127 only there, before the riser at
+  x 250.3 (clear of PG-1079 coming down at y 128). It passes 1.0 m north of the platform-1 ladder
+  (rails y 126.59-127.00) and its step-off, and stays north of LD-202 (north edge y 126). A low
+  support (SLP-V401-00) carries the 0.583 m run from the bottom nozzle. `layout-ladder-clearance`
+  9 -> 8: the V-401 instance is gone (main has 9, among them PG-1113 at PR-7, gone since S10).
+- s10#2 low points: DW-1073's drain is drawn on P-106 (tee DW1073_LPD at the foot of the drop,
+  DN 25 ball valve, branch segment S3; the run is split there into S1 and S2 and its pin with
+  it). The drains of PC-1083 and PC-1084 (P-107) and the CO2-1142 drain pot (P-113) are in the
+  line-list notes with their sheet, ASSUMED, not drawn yet: cheme 1.1.0 here has no `cheme pid`
+  command, and each hand-drawn tee splits the run segment and its pinned route, which this
+  fix session's budget did not cover for three more lines. They stay to be drawn before the
+  P&IDs are issued for detail.
+  CO2-1142 dip: S87 is modelled dry, but the stripper overhead is water-saturated, so the dip
+  collects condensate. Drain pot (DN 150 boot, 0.5 m, ASSUMED) at the foot of the downstream
+  riser, with the dip sloped 1:100 towards it in the gas flow direction (the model's routes are
+  level; the slope is for the piping design). The pot drains through an isolation valve and a
+  DN 25 float drain trap to the process condensate collection of U-801 (closed; carbonic
+  condensate is not drained to grade), so no liquid seal builds up against the stripper.
+  Against freezing (site frost in winter, ASSUMED; ambient data are open input I-03): the pot,
+  trap and drain line electrically heat-traced and insulated, the grade leg insulated. All
+  ASSUMED; no source was looked up for these sizes, they are the usual arrangement.
+  The HAZOP input P-106 changed (`hazop-input-changed`): the team reassesses the node; not
+  stamped here.
+- s10#3 K-501 motor tray: `cable_entry` offset 4.25 -> 4.5 m (electrical list), so the drop off
+  PR-7 at x 184.5 falls between the tier-8 intermediate beams at x 183.5 and 185.5 and comes
+  straight down at the rack edge. PT-M-K-501 is out of the lane from CP-501 again; lift height
+  9.8 -> 9.636 m as at D-046. The lane stays blocked by PG-1088, PG-1089, PG-1090, as at basic
+  sign-off.
+- s10#4 crossings and sleepers: the sleepers are now steel in the model and the take-off
+  (`pipe_supports` in layout/structures.yaml): 26 low HEB100 posts at 2.0 m (DN 25 liquid span
+  2.1 m), top of steel 0.1 m below the pipe bottom, each with a footing; 0.574 t (28.1 m at
+  20.4 kg/m, EN 10365) and 4.68 m3 of concrete. Section, spacing and footing ASSUMED; the civil
+  design may make them concrete sleepers. Estimate 103,268 -> 103,354 (example rates).
+  Crossings: the model proposes step-overs only where a declared walkway crosses a low pipe, and
+  this plot declares none here, so `step_overs` stays empty and the take-off has none. Where
+  people cross (ASSUMED, a grating step-over about 0.6 m wide with two steps each side, to be
+  added with the walkways): PC-1083 at the approach to V-401's ladder (x about 234) and midway
+  (x about 242); the three lines in the X-401/CP-203 gap at mid-length (y about 180), between
+  the pad and X-401. No road or vehicle way crosses a grade run; the crane on CP-203 sets up
+  with its outrigger mats clear of the sleepers (ASSUMED). Three step-overs are an allowance
+  outside the take-off.
+
+Rejected:
+- Intermediate steel on every tier at 2 m: about 3 times the steel, for lower tiers whose large
+  lines exceed the 10 m bays only slightly.
+- Larger rack reach to pull CO2-1142 onto PR-4: it is the criterion `cheme validate` checks line
+  routes with, not a routing knob.
+- Pinning the proposed posts: they stay proposals (`review_needed`) until the pipe support design.
+
+## D-048 Buried cooling water declared, headers routed by the router, power trays by voltage class (2026-10-30, S11)
+
+Owner's decision I-008 (branch `stage/detail-core120`, core v1.2.0: core#70 buried lines,
+core#71 several power trays per rack, core#72 headers with battery limits at both ends).
+
+Decision:
+1. **Cooling water declared buried** (`piping/routing.yaml`, `buried:` on all 20 CW lines of
+   D-038): the owner accepted the four buried road crossings of the headers (I-006, D-041); the
+   model now says so. Least cover over the pipe top `cover_m` 1.0 m (ASSUMED: no site frost depth
+   or traffic load is known, open input I-03; the usual order of cover for buried water mains),
+   under roads the package's `road_cover_m` 1.2 m (ASSUMED, package default, not set here).
+   Crossing protection (sleeve or slab under R-5 and R-6) stays as D-041 states it.
+2. **Headers routed by the router**: the 20 pinned header segments of D-038 are replaced by intent
+   (elevation, buried) and a second battery-limit rule per header for its dead end ("CW users"
+   on P-114: supply x 295, return x 125, ASSUMED just past the last tee); the router runs each
+   header along PR-1 from its rack-end battery limit (supply west, return east, as D-038) to that
+   point. It puts each tee where its branch's user projects onto the header, in the P-114 order
+   (core v1.2.0 `routing._cuts`), not at the S9 tee positions (x 205 to 216). The S9 branch
+   lanes, drawn for those positions, then sent branches back and forth, hopping up to 0.8 m below
+   grade where they crossed (10 `layout-buried-cover` findings, 0.55 to 0.94 m of cover).
+3. **Depths** (ASSUMED): headers 3.8 m below grade at the centreline (top of the DN 1400 pipe
+   3.09 m below grade), branches 2.4 m (DN 700 bottom 2.76 m, 0.33 m above the header tops), so
+   that a branch the router lifts 1 m over another keeps at least 1.0 m of cover (a DN 700 at
+   1.4 m: 1.04 m). The S9 lane vias are dropped; new lanes only where the router left two branches
+   closer than the 0.1 m spacing: E-503 supply at y 106 and return at y 104.5; E-701 supply at
+   y 106.5; the K-701 supply crossing CWS-1130 square, 1 m over it, at x 293. The three returns
+   with a temperature control valve (CWR-1053, CWR-1064, CWR-1086) keep their valve-height vias
+   and take no elevation intent (with one, the router lowered the first leg below the valve:
+   TV-1408 handwheel at -0.1 m); their vias carry them down to 2.4 m and on to the tee.
+4. **Power trays by voltage class** (`electrical/tray-rules.yaml`, new): PR-1 `[hv, hv, lv]`
+   (nine 10 kV feeders from SWG-1, two 400 V reflux pump feeders from MCC-1), PR-10 and PR-7
+   `[hv, hv]` (the 10 kV feeders of K-501, K-502, K-701). Widths, fill (30 %) and spacing are the
+   package defaults (ASSUMED).
+
+Result (`cheme layout build`, core v1.2.0):
+- `layout-headroom`: the four header road crossings are gone (no headroom finding left at all);
+  their four owner acceptances in `checks/checks.yaml` named no finding any more and are removed
+  (nothing added or widened). `layout-buried-cover`: 0. `layout-support-missing` (info) 131 -> 87
+  (the buried runs need no steel); support steel unchanged: 260 generated T-posts, 3 stubs, 26
+  declared sleepers; no steel serves a CW line.
+- CW lines: 56 pipes, 1,890.8 m (main: 1,861.0 m), all routed; the take-off lists 1,803.9 m as
+  `buried` (DN 1400 493 m; risers above grade are counted as pipe). Bulk estimate 103,353.55 ->
+  103,367.80 (example rates). Excavation, bedding and backfill of the trenches are not in the
+  take-off (no rate or quantity in core's MTO): a gap of the estimate.
+- Lifting study: the same 8 blocked lanes as at basic sign-off with the same blockers, no lane
+  reopened, no CW line in a lane.
+- Electrical: the 8 `layout-tray-fill` findings are gone, no `layout-tray-voltage` or
+  `-separation`; gate `electrical` passes. Cable schedule rewritten: 11 power cables 3,339 m,
+  169 instrument cables 9,941 m, 95 trays (the schedule on main was not current, s10-r2#1).
+- **Left open, core defect**: three `layout-clash-pipe` findings, CWS-1052, CWS-1063 and CWS-1074
+  against the header segment that ends at their own tee, 0.00 m apart. The router ends the header
+  segments at x 219.652, 221.652 and 223.652 but starts the branches at 219.653, 221.653 and
+  223.653: the 1 mm difference means the clash check does not see the branch as leaving that
+  run. Where the two agree (CWS-1085 at 241.705, every return) there is no finding. Not accepted
+  and not worked around (no via, pin or battery-limit move to dodge the rounding): to be filed
+  as a core issue. Gates `layout-3d` (basic) and `layout-detail` fail on them alone.
+- **Rebuilt on core v1.2.1** (fixes core#95, this tee offset; no design input changed, no new
+  decision): `cheme layout build` moves only the ends of the three header segments of CWS-1144
+  from x 219.652, 221.652 and 223.652 to 219.653, 221.653 and 223.653, where their branches start
+  (6 coordinates; segment lengths unchanged at the model's 1 mm precision). The three
+  `layout-clash-pipe` findings are gone; no other build finding changed (support-missing 87,
+  free-span 41, ladder-clearance 8, lifting 8, operability 32, access-blocked 13, tray-span 19,
+  no headroom, buried-cover, tray-fill or clash finding). Gates `layout-3d` and `layout-detail`
+  pass, nothing accepted. `cheme validate` 0 errors, warnings 231 -> 228 (the three clashes).
+  Lifting study, cable schedule, MTO and bulk estimate rewritten: only the model fingerprint in
+  their headers changed (quantities, the 103,367.80 estimate, cables and lanes as above). LCA and
+  TEA current without a rewrite. `cheme skills update`: all 131 skill files already current.
+
+Rejected: keeping the 20 header pins (the owner asked for the router, and the skill says pin a
+header only after review); pinning the branches to force the S9 tee positions (more pins than
+before); keeping 3.0/1.8 m and accepting the shallow crossings (cover findings may not be accepted
+to pass); reordering the P-114 tees to the plot order (a P&ID change to all branch tees, outside
+this job; it would remove the branches that run back along the header, worth doing when P-114
+is next revised).
+
 ## 3. Results of this stage (design case)
 
 Basic stage, S5c (the D-040 feed, re-simulated; lca/inventory.csv regenerated): per kg of NH3

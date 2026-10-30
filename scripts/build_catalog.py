@@ -38,6 +38,11 @@ byte-identical:
   stored report of the benchmark comparison (docs/benchmarks.md)
 - ``scenarios/<id>/<scenario>.json``: core's per-scenario LCA records (``cheme assess
   lca-scenarios --write``), for Brightway jobs and other consumers
+- ``reactions.json``: every reaction of the processes' ``process/reactions.yaml``, the same
+  reaction (species and coefficients up to a factor) once, with each process's statement of it
+  (conversion, heat of reaction, catalyst of ``process/catalysts.yaml``, sources), its species
+  mapped to registry chemicals by CAS (``reactions.py``); with ``--cheme``, the toolkit's
+  reaction library templates of the same stoichiometry
 
 Each process with LCI datasets (``lca/dataset.yaml``, ``lca/datasets/*.yaml``) gets its
 ``benchmarks``: the KPIs of the benchmark registry (``benchmarks/<family>.yaml``,
@@ -74,11 +79,13 @@ library has it) or ``public`` (``--public``, for publication; rules in ``publica
   ``scenarios/<id>/<scenario>.json``;
 - an LCA's ``data_sources`` (from core's run manifest) stay in every build: the attribution its
   sources' licences ask for travels with the numbers;
+- ``reactions.json`` holds the published processes only, and none of a file their
+  ``publication.exclude`` covers;
 - a viewer snapshot is copied only if its manifest's ``excluded`` covers the publication
   excludes (else an error), and for a withheld LCA without its ``lca`` answer and LCA result
   files.
 
-    uv run build_catalog.py --library ../process-library --out dist [--artifacts build/previews] [--public]
+    uv run build_catalog.py --library ../process-library --out dist [--artifacts build/previews] [--public] [--cheme cheme]
 """
 
 from __future__ import annotations
@@ -87,6 +94,7 @@ import argparse
 import csv
 import json
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -100,6 +108,7 @@ import yaml
 from jsonschema import Draft202012Validator
 
 import benchmarks as bm
+import reactions as rx
 import registry as reg
 import routes as rt
 from publication import LCA_RESULT_FILES, is_public, lca_withheld, snapshot_excludes
@@ -648,6 +657,7 @@ def build(
     snapshots: Path | None = None,
     public: bool = False,
     issues: Path | None = None,
+    cheme: list[str] | None = None,
 ) -> Report:
     report = Report()
     issues_data = None
@@ -911,6 +921,14 @@ def build(
         "critical_review": rt.CRITICAL_REVIEW,
         "products": rt.build(library, details, chemicals),
     })
+    templates = rx.load_templates(cheme, report) if cheme else None
+    _write(out / "reactions.json", {
+        "schema": CATALOG_SCHEMA,
+        "mode": "public" if public else "preview",
+        "library": library_info,
+        "templates": None if templates is None else {"reactions": len(templates), "entries": len({t["entry"] for t in templates}), "command": rx.TEMPLATE_COMMAND},
+        "reactions": rx.build(library, details, chemicals, report, public, templates),
+    })
     _write(out / "benchmarks.json", bm.report([{"process": d["id"], **k} for d in details for k in d["benchmarks"]], "public" if public else "preview", library_info))
 
     # every link in the output must resolve
@@ -1094,6 +1112,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--strict", action="store_true", help="fail on warnings too")
     parser.add_argument("--issues", type=Path, help="the library's issues (fetch_issues.py output); each process gets its open items")
     parser.add_argument("--public", action="store_true", help="build for publication: published processes only, footprints the LCA's publication policy does not permit withheld")
+    parser.add_argument("--cheme", metavar="CMD", help="core's command (e.g. cheme): reactions name the templates of its reaction library with the same stoichiometry; without it none")
     args = parser.parse_args(argv)
 
     report = build(
@@ -1104,6 +1123,7 @@ def main(argv: list[str] | None = None) -> int:
         args.snapshots.resolve() if args.snapshots else None,
         args.public,
         args.issues.resolve() if args.issues else None,
+        shlex.split(args.cheme) if args.cheme else None,
     )
     for message in report.warnings:
         print(f"warning: {message}", file=sys.stderr)

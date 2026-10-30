@@ -22,7 +22,7 @@ says how to add a process. The repository is private for now.
 | `docs/` | `system-model.md` (the LCI database's methodology: system model, allocation hierarchy, cut-off rules), `markets.md` (markets, their layers and the chaining of Atlas processes), `governance.md` (versions, change reports, releases and DOIs, review, contribution policy draft), `registry.md`, `coverage.md`, `benchmarks.md`, and `adr/` (architecture decision records: why the library is built this way) |
 | `schemas/` | JSON Schemas of process.yaml, the registry, the mappings, the taxonomy, the coverage roadmap, the benchmarks and the markets |
 | `templates/process/` | starter folder for a new process |
-| `scripts/` | `build_catalog.py` (catalog for the Atlas), `build_lci.py` (Brightway workbook), `render_previews.py` and `export_snapshots.py` (drawings and viewer snapshots, via `cheme`); `publication.py` (the rules of `--public`); `registry.py` (grades and registry checks); `benchmarks.py` (KPI evaluation); `check_mappings.py` (the check of the background names against a licensed copy); `markets.py` (market files and the default market of an input); `reference_impacts.py` (reference GWP deltas of the LCI change report) |
+| `scripts/` | `build_catalog.py` (catalog for the Atlas), `build_lci.py` (Brightway workbook), `render_previews.py` and `export_snapshots.py` (drawings and viewer snapshots, via `cheme`); `publication.py` (the rules of `--public`); `registry.py` (grades and registry checks); `benchmarks.py` (KPI evaluation); `reactions.py` (the reactions of the catalog, `reactions.json`); `check_mappings.py` (the check of the background names against a licensed copy); `markets.py` (market files and the default market of an input); `reference_impacts.py` (reference GWP deltas of the LCI change report) |
 | `python/` | `cheme-as-code-lci`, the one-call Brightway installer of the LCI database |
 | `tests/` | tests of the scripts, with a synthetic fixture library |
 
@@ -67,7 +67,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md): copy `templates/process/` to `processes/
 ## Building the catalog and the LCI database
 
 ```sh
-uv run scripts/build_catalog.py --library . --out dist [--artifacts <previews>] [--snapshots <snapshots>] [--strict] [--public]
+uv run scripts/build_catalog.py --library . --out dist [--artifacts <previews>] [--snapshots <snapshots>] [--strict] [--public] [--cheme cheme]
 uv run scripts/build_lci.py --library . --out dist --version 0.1.0 [--strict] [--public] [--system-model substitution] [--previous <earlier build>]
 uv run --python 3.12 --with pytest --with pyyaml --with jsonschema --with openpyxl --with ./python --with bw2calc pytest -q tests
 ```
@@ -79,6 +79,33 @@ uv run --python 3.12 --with pytest --with pyyaml --with jsonschema --with openpy
 clone) to the `uv run` of the builds and the tests; CI does, with core pinned to one commit
 (`.github/workflows/validate.yml`), and sets `ATLAS_REQUIRE_CORE` so a missing core fails the
 tests there.
+
+**Reactions.** The catalog's `reactions.json` lists every reaction of the processes'
+`process/reactions.yaml` once (`scripts/reactions.py`, ADR 0023): the same species (by the
+component's CAS number in `process/materials.yaml`) with the same coefficients up to a factor,
+in the same direction unless reversible. Each reaction has its slug (from the equation with each
+formula in one order, stable while the reaction is), equation, species (with the registry chemical of the same CAS number,
+else none), the processes and families that use it and its variants (the same stoichiometry
+reversible or written the other way); each process's statement of it keeps its own id,
+equation, conversion, heat of reaction (kJ/kmol, as given and `per_equation` for the merged
+equation), equilibrium constant, rate, catalyst (with its `process/catalysts.yaml` entry and
+window: K, kPa), phase, sources, and the process's maturity and review status. Each statement
+also has its element balance (`balance`), core's rule (`cheme.reaction-element-balance`, with
+core's formula parser when core is installed, else a copy of it): the atoms per element of its
+own stoichiometry with its components' formulas, `balanced` within 1e-9, `unbalanced` (with
+`change`, atoms created per element) or `not-checkable` (with `missing`: each component not in
+`materials.yaml`, without a formula, with one the parser does not read, or withheld from a
+public build); never balanced when not checked. A reaction sums them per process, as a process
+can state it more than once (a process balances only when each of its statements does;
+`balance`: `balanced` in every process, `unbalanced` in any, `not-checkable` when none balances,
+else `partial`; with the counts of processes and the `reasons` a statement was not checkable)
+and says whether any statement cites a source (`has_sources`: a non-blank source for the
+reaction, its conversion, its heat of reaction or its catalyst entry). A public build
+lists the published processes only, without a file their `publication.exclude` covers
+(core's glob rules, `publication.excluded`). With
+`--cheme <command>`, a reaction also names the templates of core's reaction library
+(`cheme chemistry library --json`) of the same stoichiometry (`templates`, and the command to
+add one); without it, or when the command fails (a warning), `templates` is null.
 
 **Design cases and regional scenarios.** One engineering project serves several operating
 cases (flowsheet `cases:`, each with its declared `capacity`) and several geographical
