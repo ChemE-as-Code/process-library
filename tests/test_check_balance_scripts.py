@@ -224,3 +224,17 @@ def test_main_strict_fails_on_not_migrated(tmp_path, cheme):
     argv = ["--library", str(tmp_path), "--cheme", " ".join(f'"{c}"' for c in cheme)]
     assert cbs.main(argv) == 0
     assert cbs.main([*argv, "--strict"]) == 1
+
+
+def test_long_form_carries_a_basis_that_must_match():
+    cited = cbs.cited_values(FLOWSHEET)[1]  # S1 composition, mole_fraction
+    assert cited.basis == "mole_fraction"
+    same = {"basis": "mole_fraction", "values": {"A": 0.6, "B": 0.4}}
+    other = {"basis": "mass_fraction", "values": {"A": 0.6, "B": 0.4}}
+    ok = cbs.compare("p", cited, {"design": {"S1": {"composition": same}}}, FLOWSHEET)
+    (bad,) = cbs.compare("p", cited, {"design": {"S1": {"composition": other}}}, FLOWSHEET)
+    assert all(f.status == "ok" for f in ok)
+    assert (bad.quantity, bad.status) == ("composition.basis", "drift")
+    flow = cbs.cited_values(FLOWSHEET)[0]
+    (f,) = cbs.compare("p", flow, {"design": {"S1": {"flow": {"value": 1000.0}}}}, FLOWSHEET)
+    assert f.status == "ok"

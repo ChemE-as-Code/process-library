@@ -24,7 +24,9 @@ stops the two from drifting apart (ADR 0024):
                              "Q1": {"duty": 18.8}}}}
 
    Numbers are in the flowsheet's own units and basis (``units:``, the ``basis`` of the flow and
-   of the composition), so they compare directly.
+   of the composition), so they compare directly. A quantity may also be given in the long form
+   ``{"value": 29303.44, "basis": "mass"}`` / ``{"values": {...}, "basis": "mass_fraction"}``;
+   its basis must then be the flowsheet's (else ``drift`` of ``<quantity>.basis``).
 3. Every cited value must be in the output (else ``missing``) and agree within the tolerance
    (else ``drift``); a script that fails is an ``error``. A script without the contract is
    ``not-migrated``: reported, and run only with ``--run-unmigrated`` (then just for its exit
@@ -87,6 +89,7 @@ class Cited:
     quantity: str
     value: object
     source: str
+    basis: str | None = None
 
 
 @dataclass
@@ -146,6 +149,7 @@ def cited_values(flowsheet: dict) -> list[Cited]:
                         quantity,
                         value,
                         str(entry.get("source")),
+                        entry.get("basis"),
                     )
                 )
     return out
@@ -181,6 +185,20 @@ def compare(process: str, cited: Cited, emitted: dict, flowsheet: dict) -> list[
     if cited.quantity not in entry:
         return [Finding(**base, quantity=cited.quantity, status="missing", flowsheet=cited.value)]
     got = entry[cited.quantity]
+    if isinstance(got, dict) and ("value" in got or "values" in got):
+        # the long form {"value"|"values": ..., "basis": ...}: the basis must be the flowsheet's
+        basis = got.get("basis")
+        if basis is not None and cited.basis is not None and basis != cited.basis:
+            return [
+                Finding(
+                    **base,
+                    quantity=f"{cited.quantity}.basis",
+                    status="drift",
+                    flowsheet=cited.basis,
+                    script_value=basis,
+                )
+            ]
+        got = got.get("values", got.get("value"))
     tol = tolerance(flowsheet, cited.quantity)
     if cited.quantity == "phase":
         ok = str(got) == str(cited.value)
