@@ -983,6 +983,34 @@ gave its air rate). The agent may not invent one. BREF Table 2.6 (EFMA 2000: 22.
 7.2-9.0 GJ/t fuel, LHV) is a check on the design: feed 21.8 GJ/t, fuel 6.1 GJ/t plus tail gas.
 Reason: S5b item 1 (O-032); reviews 2026-10-29-simulation#1, 2026-10-27-pfd-lci-review#3.
 
+## D-035 Equipment estimate started on a sourced cost index; class 5, not 4 (2026-10-30, S5b fix)
+Decision: `estimate/cost-basis.yaml` escalates the package's Turton et al. (CAPCOST)
+correlations (base CEPCI 397, 2001) with the CEPCI annual average 2023 = 797.9. The source is
+Chemical Engineering, Economic Indicators, Sept. 2024, p. 45, read from the publisher's PDF. It
+is the latest annual value openly readable; the 2024 and 2025 annual values are behind a login.
+Draft datasheets for all 52 items (`cheme datasheets draft`, `fill`; `draft: true`, every fill
+value ASSUMED with its basis) give the vessel and column volumes. K-502 is sized from the
+simulated gas power (1609 kW, process/simulation-run.json).
+Result (`estimate/equipment-cost.md`): 14 items have a purchased cost, none a bare module cost,
+and 38 are not covered. The estimate is therefore declared **class 5** (AACE 18R-97, -20 to
+-50 % / +30 to +100 %), not the class 4 S5b asked for:
+- **No exchanger area.** `datasheets fill` cannot give a duty where an exchanger's linked node
+  has more than one material inlet and outlet. That is every two-sided exchanger here, so the
+  area needs the duty, LMTD and a U per item (S7).
+- **No material.** The equipment list carries no material, so there is no Fm and no bare
+  module cost. Choosing CS, low-alloy or SS per service is a mechanical-design decision (S7).
+- **Out of range.** K-101 (8568 kW) and K-501 (12723 kW) lie above the compressor
+  correlation's range, and C-301 and C-302 above the tower volume range. They are not
+  extrapolated or split. H-101 has no duty on a datasheet (excluded from the simulation).
+- **Bulk rates.** estimate/rates.yaml stays the package example (it prices nothing), so
+  `cheme assess estimate` writes no bulk estimate. No openly published set of piping, steel,
+  grating, insulation and concrete unit rates was found that may be published under CC BY 4.0.
+  The usual sources (RSMeans, Compass, Aspen) are licensed databases, which the library rules
+  exclude. The rates need the owner's or a contractor's prices, or quotations.
+The TEA is unchanged: its CAPEX stays the scaled IEAGHG reference-plant basis of D-023
+(estimate/tea.yaml `capex:`) until the bottom-up estimate covers the plant.
+Reason: S5b item 3 (O-032); review 2026-10-29-design#1 (c).
+
 ## 3. Results of this stage (design case)
 
 Basic stage, S2 (the simulated flowsheet, D-026; lca/inventory.csv regenerated): per kg of NH3

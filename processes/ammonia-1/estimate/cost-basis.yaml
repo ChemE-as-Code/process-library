@@ -1,0 +1,21 @@
+# Equipment cost basis (S5b fix, D-035). Schema: `cheme schema cost_basis`.
+# The equipment estimate (`cheme assess equipment`) prices each listed item with the Turton et
+# al. (CAPCOST) correlations of the package (base CEPCI 397, 2001) and escalates it with the
+# index below. Sizes come from the draft datasheets (`cheme datasheets draft`/`fill`, all
+# ASSUMED, draft: true) or the list dimensions; S7 completes them.
+schema: cheme/cost_basis/v1
+# AACE 18R-97 class 5, not 4: exchanger areas, compressor and pump powers and the furnace duty
+# are not yet on the datasheets, and no material is chosen, so most items have no cost or a
+# purchased cost only (D-035). Class 5 accuracy: low -20 % to -50 %, high +30 % to +100 %.
+estimate_class: 5
+cost_index:
+  value: 797.9
+  year: 2023
+  month: annual
+  source: "Chemical Engineering, Economic Indicators, Sept. 2024 issue, p. 45 (CEPCI table, 'Annual Index: ... 2023 = 797.9'), https://www.chemengonline.com/wp-content/uploads/2024/08/19_CHE_0924_EconInd_p45.pdf; the latest annual average found in an openly readable source (the 2024 and 2025 annual values are behind the publisher's login)"
+notes: "Escalation 2001 -> 2023 by CEPCI 797.9 / 397. Currency USD (the correlations' currency); conversion to EUR for the TEA is not done here. Items not covered (no size) and items with a purchased cost only (no material factor) are listed by `cheme assess equipment`; they are not priced by any guess (D-035)."
+items:
+  # the gas power DWSIM reports for the compressor step is the enthalpy rise of the gas (the
+  # correlation's fluid power). K-101 (K101 + K101D, 8568 kW) and K-501 (12723 kW) are above
+  # the correlation's range and are not priced (D-035)
+  - {tag: K-502, size: 1609.4, size_source: "process/simulation-run.json, case design, step K502 duty_kW (DWSIM compressor power, the gas's enthalpy rise)"}
