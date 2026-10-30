@@ -1,3 +1,3 @@
 # Contributing
 
-<!-- include: CONTRIBUTING.md :: # Adding a process -->
+<!-- include: CONTRIBUTING.md :: # Contributing to the process library | body -->
