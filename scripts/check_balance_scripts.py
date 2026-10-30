@@ -58,6 +58,7 @@ import shlex
 import subprocess
 import sys
 import tempfile
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
@@ -383,6 +384,24 @@ def markdown(results: list[ScriptResult]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _report(res: ScriptResult) -> None:
+    n_bad = sum(f.status != "ok" for f in res.findings)
+    extra = f", {n_bad} not ok" if res.findings else ""
+    msg = f" ({res.message})" if res.message else ""
+    print(
+        f"{res.process:28s} {res.script:36s} {res.status:13s} {res.cited:4d} cited{extra}{msg}",
+        flush=True,
+    )
+    for f in res.findings:
+        if f.status != "ok":
+            bound = f" (|d| {f.deviation:.4g} > {f.allowed:.4g})" if f.deviation is not None else ""
+            print(
+                f"    {f.case}/{f.stream}.{f.quantity}: {f.status} flowsheet "
+                f"{_fmt(f.flowsheet)} script {_fmt(f.script_value)}{bound}",
+                flush=True,
+            )
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--library", type=Path, default=Path("."), help="library root")
@@ -405,40 +424,30 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--strict", action="store_true", help="fail on not-migrated scripts too")
     parser.add_argument("--markdown", type=Path, help="write the summary and drift table here")
     parser.add_argument("--json", type=Path, help="write the full report here")
+    parser.add_argument(
+        "--jobs", type=int, default=1, help="processes checked in parallel (default 1)"
+    )
     args = parser.parse_args(argv)
 
-    cheme = shlex.split(args.cheme, posix=os.name != "nt") if args.cheme else ["cheme"]
+    cheme = [t.strip("\"'") for t in shlex.split(args.cheme, posix=os.name != "nt")] or ["cheme"]
     root = args.library / "processes"
     folders = (
         [root / p for p in args.process]
         if args.process
         else sorted(p for p in root.iterdir() if p.is_dir())
     )
-    results: list[ScriptResult] = []
     for folder in folders:
         if not folder.is_dir():
             parser.error(f"no process folder {folder}")
-        for res in check_process(folder, cheme, args.run_unmigrated):
-            results.append(res)
-            n_bad = sum(f.status != "ok" for f in res.findings)
-            extra = f", {n_bad} not ok" if res.findings else ""
-            msg = f" ({res.message})" if res.message else ""
-            print(
-                f"{res.process:28s} {res.script:36s} {res.status:13s} "
-                f"{res.cited:4d} cited{extra}{msg}",
-                flush=True,
-            )
-            for f in res.findings:
-                if f.status != "ok":
-                    print(
-                        f"    {f.case}/{f.stream}.{f.quantity}: {f.status} flowsheet "
-                        f"{_fmt(f.flowsheet)} script {_fmt(f.script_value)}"
-                        + (
-                            f" (|d| {f.deviation:.4g} > {f.allowed:.4g})"
-                            if f.deviation is not None
-                            else ""
-                        )
-                    )
+    with ThreadPoolExecutor(max_workers=max(1, args.jobs)) as pool:
+        per_process = pool.map(
+            lambda folder: check_process(folder, cheme, args.run_unmigrated), folders
+        )
+        results: list[ScriptResult] = []
+        for batch in per_process:  # in folder order, as each one finishes
+            for res in batch:
+                results.append(res)
+                _report(res)
     if args.markdown:
         args.markdown.write_text(markdown(results), encoding="utf-8")
     if args.json:
