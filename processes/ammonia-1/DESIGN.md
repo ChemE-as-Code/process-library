@@ -1747,7 +1747,7 @@ Decision:
    instead of 20 m at 9.85 m; the DW-1073 grade leg lowered from 0.6 m to sleepers (centreline
    0.35 m). The three lines in the X-401/CP-203 gap run grouped, below X-401's crane lane from
    CP-203. The grade legs are low points: drain valves, and a drain pot on the wet CO2-1142
-   vent (ASSUMED, to be drawn on P-113/P-106/P-107 with the next P&ID revision).
+   vent (ASSUMED; where each is drawn or tracked: S10 fix below).
 3. **Pinned to keep the reviewed basic routes** where the new steel moved them: SM-1040 and
    SM-1101 as generated at basic sign-off; the drops of SL-1135 (PR-1/PR-10 junction, x 133.4)
    and PC-1136 (onto PR-4, x 255.3) moved clear of the new beams.
@@ -1763,7 +1763,8 @@ the build does not count as riding on a rack (below).
 now carried along the racks are listed for the short off-rack stretches left. 0 clashes; the
 lifting study has the same 8 blocked lanes as at basic sign-off (H-101, E-104, E-402, K-501, E-501,
 E-502, E-505, E-504), and K-501's lane, blocked already by PG-1088, PG-1089 and PG-1090, also
-lists its motor tray PT-M-K-501, whose drop the PR-7 intermediate steel moved. Take-off: +117.1 t
+listed its motor tray PT-M-K-501, whose drop the PR-7 intermediate steel moved (moved back out
+of the lane in the S10 fix below). Take-off: +117.1 t
 IPE240 (rack steel 549.6 -> 666.7 t, all steel 555.1 -> 672.2 t; the proposals are counted only
 once pinned). Bulk estimate 99,423 -> 103,268 (+3.9 %, example placeholder rates); TEA unchanged
 (gate `tea` current: it rests on the equipment estimate, D-045).
@@ -1785,6 +1786,50 @@ The posts left and why:
   (the router assigns a chain's rack only to a segment whose points are the rack run's own,
   `routing.py` `_plan`; FLR-1146, PG-1126, PG-1109, AL-1124, AG-1125 and others split at an
   off-page connector or tee). Core issue, with core#90; not worked around.
+
+S10 fix (review 2026-10-30-layout-s10, round 1):
+- s10#1 PC-1083 at V-401's ladder: the pin now leaves V-401 east at y 128 to x 233.5, drops to
+  the sleepers and runs along y 128 to x 249, jogging to y 127 only there, before the riser at
+  x 250.3 (clear of PG-1079 coming down at y 128). It passes 1.0 m north of the platform-1 ladder
+  (rails y 126.59-127.00) and its step-off, and stays north of LD-202 (north edge y 126). A low
+  support (SLP-V401-00) carries the 0.583 m run from the bottom nozzle. `layout-ladder-clearance`
+  9 -> 8: the V-401 instance is gone (main has 9, among them PG-1113 at PR-7, gone since S10).
+- s10#2 low points: DW-1073's drain is drawn on P-106 (tee DW1073_LPD at the foot of the drop,
+  DN 25 ball valve, branch segment S3; the run is split there into S1 and S2 and its pin with
+  it). The drains of PC-1083 and PC-1084 (P-107) and the CO2-1142 drain pot (P-113) are in the
+  line-list notes with their sheet, ASSUMED, not drawn yet: cheme 1.1.0 here has no `cheme pid`
+  command, and each hand-drawn tee splits the run segment and its pinned route, which this
+  fix session's budget did not cover for three more lines. They stay to be drawn before the
+  P&IDs are issued for detail.
+  CO2-1142 dip: S87 is modelled dry, but the stripper overhead is water-saturated, so the dip
+  collects condensate. Drain pot (DN 150 boot, 0.5 m, ASSUMED) at the foot of the downstream
+  riser, with the dip sloped 1:100 towards it in the gas flow direction (the model's routes are
+  level; the slope is for the piping design). The pot drains through an isolation valve and a
+  DN 25 float drain trap to the process condensate collection of U-801 (closed; carbonic
+  condensate is not drained to grade), so no liquid seal builds up against the stripper.
+  Against freezing (site frost in winter, ASSUMED; ambient data are open input I-03): the pot,
+  trap and drain line electrically heat-traced and insulated, the grade leg insulated. All
+  ASSUMED; no source was looked up for these sizes, they are the usual arrangement.
+  The HAZOP input P-106 changed (`hazop-input-changed`): the team reassesses the node; not
+  stamped here.
+- s10#3 K-501 motor tray: `cable_entry` offset 4.25 -> 4.5 m (electrical list), so the drop off
+  PR-7 at x 184.5 falls between the tier-8 intermediate beams at x 183.5 and 185.5 and comes
+  straight down at the rack edge. PT-M-K-501 is out of the lane from CP-501 again; lift height
+  9.8 -> 9.636 m as at D-046. The lane stays blocked by PG-1088, PG-1089, PG-1090, as at basic
+  sign-off.
+- s10#4 crossings and sleepers: the sleepers are now steel in the model and the take-off
+  (`pipe_supports` in layout/structures.yaml): 26 low HEB100 posts at 2.0 m (DN 25 liquid span
+  2.1 m), top of steel 0.1 m below the pipe bottom, each with a footing; 0.574 t (28.1 m at
+  20.4 kg/m, EN 10365) and 4.68 m3 of concrete. Section, spacing and footing ASSUMED; the civil
+  design may make them concrete sleepers. Estimate 103,268 -> 103,354 (example rates).
+  Crossings: the model proposes step-overs only where a declared walkway crosses a low pipe, and
+  this plot declares none here, so `step_overs` stays empty and the take-off has none. Where
+  people cross (ASSUMED, a grating step-over about 0.6 m wide with two steps each side, to be
+  added with the walkways): PC-1083 at the approach to V-401's ladder (x about 234) and midway
+  (x about 242); the three lines in the X-401/CP-203 gap at mid-length (y about 180), between
+  the pad and X-401. No road or vehicle way crosses a grade run; the crane on CP-203 sets up
+  with its outrigger mats clear of the sleepers (ASSUMED). Three step-overs are an allowance
+  outside the take-off.
 
 Rejected:
 - Intermediate steel on every tier at 2 m: about 3 times the steel, for lower tiers whose large
