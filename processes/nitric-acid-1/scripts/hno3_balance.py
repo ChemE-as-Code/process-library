@@ -354,3 +354,50 @@ for k in ["NH3 liquid feed", "air total", "process water", "weak acid", "V101 ga
     print(f"{k}: flow {s['kg_h']:.1f}; composition {{{comp}}}")
 (ROOT / "build").mkdir(exist_ok=True)
 (ROOT / "build/hno3_balance.json").write_text(json.dumps(out, indent=1))
+
+# ---- the values process/flowsheet.yaml cites from this script (balance-output contract)
+W_X101_TO_K102 = -W_X101 - W_K101  # expander power beyond K-101's, to K-102
+
+
+def _y(n):
+    t = sum(n.values())
+    return {c: v / t for c, v in n.items() if v > 1e-12}
+
+
+FLOWSHEET = {
+    "S01": {"flow": kg({"NH3": nh3_total})}, "S06": {"flow": kg(air_all)},
+    "S07": {"temperature": T_K101}, "S08": {"temperature": T_K101}, "S09": {"temperature": T_K101},
+    "S10": {"temperature": T_MIX}, "S11": {"temperature": T_R101},
+    "S13": {"temperature": T_E103_HOT},
+    "S16": {"flow": kg(v101_gas), "composition": _y(v101_gas)}, "S17": {"flow": kg(weak)},
+    "S19": {"flow": kg(bleach_gas), "composition": _y(bleach_gas)},
+    "S20": {"temperature": T_M102}, "S21": {"temperature": T_K102},
+    "S22": {"temperature": T_E106_HOT}, "S24": {"flow": kg(pw_n)}, "S25": {"flow": kg(tail)},
+    "S28": {"temperature": T_R102}, "S29": {"temperature": T_STACK}, "S30": {"flow": kg(raw)},
+    "Q01": {"duty": W_K101}, "Q02": {"duty": W_X101_TO_K102},
+    "Q03": {"duty": W_K102 - W_X101_TO_K102}, "Q04": {"duty": W_P101}, "Q05": {"duty": Q_E102},
+    "Q06": {"duty": Q_E104}, "Q07": {"duty": Q_E105}, "Q08": {"duty": Q_E107},
+    "Q09": {"duty": Q_C101_CW}, "Q10": {"duty": Q_C102}, "Q11": {"duty": Q_E101},
+    "Q12": {"duty": Q_E108},
+}
+
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
+
+
+write_balance_output({"design": FLOWSHEET})
