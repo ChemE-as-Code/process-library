@@ -67,6 +67,10 @@ SECTIONS = [  # id, tag, branch, worktree, cap, task key in sections.md, signoff
     # I-006: owner decisions on #257; close-out, basic reviews, sign-off, merge to main.
     dict(id="S5c", tag="S5", branch="stage/basic-layout", wt="nh3-basic-layout", cap=30, key="S5c",
          reviews=["design", "layout"], signoff="basic"),
+    # I-007: S5c's implement is done (BLOCKED on core#73); core 1.1.0 adds cable_entry. S5e clears the
+    # tray lanes, then the basic reviews, sign-off and merge to main (S5c's own reviews never ran).
+    dict(id="S5e", tag="S5", branch="stage/basic-layout", wt="nh3-basic-layout", cap=12, key="S5e",
+         reviews=["design", "layout"], signoff="basic"),
 ]
 
 
