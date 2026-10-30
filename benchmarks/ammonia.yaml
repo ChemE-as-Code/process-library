@@ -1,0 +1,285 @@
+# Benchmarks of ammonia (natural-gas steam reforming): KPIs and reference ranges.
+# Schema: schemas/benchmarks.schema.json; rules: docs/benchmarks.md.
+#
+# HELD BACK for the ammonia-1 platform-paper run (process-library#86): written before the run on
+# branch benchmark/ammonia, which no design job checks out; no job prompt contains these values.
+# The dataset binding (datasets:) is added only after the design is final, then evaluated.
+#
+# Ranges are facts from cited open sources, in our own form, with the conditions the source
+# states. Appl (Ammonia: Principles and Industrial Practice) and Ullmann's "Ammonia" chapter are not
+# open access and were not used for any range here.
+schema: cheme-as-code/benchmarks/v1
+family: ammonia
+
+kpis:
+  specific-energy-net:
+    title: Net specific energy consumption per t of ammonia (LHV)
+    unit: GJ/t
+    description: >-
+      Natural gas as feed and fuel plus imported energy minus exported energy (steam, power),
+      lower heating value basis, per t of ammonia product. Both sources state net consumption;
+      the BREF notes the levels vary by up to +/-1.5 GJ with site conditions and relate to steady
+      operation as in a performance test.
+    references:
+      - id: bref-lvic-aaf-bat-energy
+        range: [27.6, 31.8]
+        basis: unallocated
+        conditions:
+          technology: conventional reforming, reduced primary reforming or heat exchange autothermal reforming (BAT)
+          product: anhydrous ammonia
+          region: EU
+          year: 2007
+        source: &bref
+          citation: "European Commission, JRC/EIPPCB (2007) Reference Document on Best Available Techniques for the Manufacture of Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF BREF), adopted August 2007; document BS/EIPPCB/LVIC-AAF_BREF_FINAL dated December 2006"
+          url: https://eippcb.jrc.ec.europa.eu/reference/large-volume-inorganic-chemicals-ammonia-acids-and-fertilisers
+          locator: Chapter 2, Section 2.5, Table 2.14 (Energy consumption levels associated with BAT), p. 93
+          kind: bref
+          accessed: "2026-10-29"
+      - id: iea-2021-smr-bat-net
+        range: [27.6, 27.6]
+        basis: unallocated
+        conditions:
+          technology: natural gas steam methane reforming, best available technology
+          product: anhydrous ammonia
+          region: global
+          year: 2021
+        source: &iea
+          citation: "IEA (2021) Ammonia Technology Roadmap: Towards more sustainable nitrogen fertiliser production. International Energy Agency, Paris"
+          url: https://www.iea.org/reports/ammonia-technology-roadmap
+          locator: Chapter 2, table "Energy needs to produce one tonne of ammonia for each route using BAT", row Natural gas SMR, column Net (PDF p. 35 of the IFA-hosted copy)
+          kind: iea
+          accessed: "2026-10-29"
+        note: >-
+          A single value, recorded as a zero-width range. The same report's text rounds it to 28
+          GJ/t net (32 GJ/t gross) for natural-gas BAT (Chapter 1, PDF p. 31).
+
+  specific-energy-gross:
+    title: Gross specific energy consumption per t of ammonia (LHV)
+    unit: GJ/t
+    description: >-
+      Feed plus fuel plus electricity, without the credit for exported steam, per t of ammonia.
+    references:
+      - id: iea-2021-smr-bat-gross
+        range: [32.4, 32.4]
+        basis: unallocated
+        conditions:
+          technology: natural gas steam methane reforming, best available technology
+          product: anhydrous ammonia
+          region: global
+          year: 2021
+        source:
+          <<: *iea
+          locator: Chapter 2, table "Energy needs to produce one tonne of ammonia for each route using BAT", row Natural gas SMR, column Gross (PDF p. 35)
+
+  natural-gas-feed-plus-fuel:
+    title: Natural gas consumed as feedstock plus fuel per t of ammonia (LHV)
+    unit: GJ/t
+    description: >-
+      Natural gas to the process (feed) plus natural gas fired (primary reformer, auxiliary
+      boilers, preheaters), LHV, per t of ammonia; no electricity or steam.
+    references:
+      - id: iea-2021-smr-bat-feed-fuel
+        range: [32.1, 32.1]
+        basis: unallocated
+        conditions:
+          technology: natural gas steam methane reforming, best available technology
+          product: anhydrous ammonia
+          region: global
+          year: 2021
+        source:
+          <<: *iea
+          locator: Chapter 2, table "Energy needs to produce one tonne of ammonia for each route using BAT", row Natural gas SMR, columns Feedstock (21.0) and Fuel (11.1) (PDF p. 35)
+        note: Our sum of the two columns, 21.0 + 11.1 GJ/t.
+      - id: bref-lvic-aaf-conventional-feed-fuel
+        range: [29.3, 31.1]
+        basis: unallocated
+        conditions:
+          technology: conventional steam reforming (reported levels)
+          product: anhydrous ammonia
+          region: EU
+          year: 2000
+        source:
+          <<: *bref
+          locator: Chapter 2, Section 2.3.1, Table 2.6 (Reported energy consumption levels for the production of ammonia), row Conventional steam reforming, feedstock 22.1 and fuel 7.2-9.0 GJ(LHV)/t NH3 [1, EFMA, 2000], p. 50
+        note: Our sum of the reported feedstock (22.1) and fuel (7.2 to 9.0) GJ(LHV)/t.
+
+  process-co2:
+    title: Process CO2 generated per t of ammonia (excluding combustion flue gas)
+    unit: t/t
+    description: >-
+      CO2 formed in reforming and shift and removed from the synthesis gas (vented, used or
+      captured), per t of ammonia; the CO2 in the reformer and boiler flue gases is not included.
+    references:
+      - id: bref-lvic-aaf-process-co2
+        range: [1.15, 1.40]
+        basis: unallocated
+        conditions:
+          technology: steam/air reforming of natural gas, depending on the degree of air reforming
+          product: anhydrous ammonia
+          region: EU
+          year: 2007
+        source:
+          <<: *bref
+          locator: Chapter 2, Section 2.2.2.2 (Carbon dioxide), p. 38 (1.15-1.40 kg/kg NH3, combustion gases not included)
+
+  direct-co2-total:
+    title: Total direct CO2 emitted per t of ammonia (process plus combustion)
+    unit: t/t
+    description: >-
+      All CO2 leaving the plant boundary to air from the process (CO2 removal vent) and from
+      combustion (reformer, boilers), per t of ammonia, with no CO2 used or stored.
+    references:
+      - id: iea-2021-smr-bat-direct-co2
+        range: [1.8, 1.8]
+        basis: unallocated
+        conditions:
+          technology: natural gas steam methane reforming, best available technology, without CCS
+          product: anhydrous ammonia
+          region: global
+          year: 2021
+        source:
+          <<: *iea
+          locator: Chapter 2, table "Energy needs to produce one tonne of ammonia for each route using BAT", row Natural gas SMR, column Direct CO2 intensity (PDF p. 35)
+        note: >-
+          A single value as a zero-width range. The same report's world average over all routes,
+          about 2.4 t CO2/t (executive summary), includes coal-based production and does not apply.
+
+  steam-net-export:
+    title: Net steam export per t of ammonia (positive = export)
+    unit: GJ/t
+    description: >-
+      Steam leaving the plant boundary minus steam imported, as energy per t of ammonia.
+    references:
+      - id: iea-2021-smr-bat-steam
+        range: [4.8, 4.8]
+        basis: unallocated
+        conditions:
+          technology: natural gas steam methane reforming, best available technology
+          product: anhydrous ammonia
+          region: global
+          year: 2021
+        source:
+          <<: *iea
+          locator: Chapter 2, table "Energy needs to produce one tonne of ammonia for each route using BAT", row Natural gas SMR, column Steam (-4.8, negative = net generation available for export) (PDF p. 35)
+        note: >-
+          Sign changed to this KPI's convention (export positive). The BREF states no range: modern
+          steam reforming "can be designed with no steam export or with some export", surplus
+          steam typically where a gas turbine drives the process air compressor (Section 2.2.2.4,
+          p. 38).
+
+  synthesis-loop-pressure:
+    title: Ammonia synthesis loop pressure
+    unit: bar
+    description: Operating pressure of the ammonia synthesis loop (converter inlet).
+    references:
+      - id: bref-lvic-aaf-loop-pressure
+        range: [100, 250]
+        basis: unallocated
+        conditions:
+          technology: ammonia synthesis on iron catalyst, 350-550 degC
+          product: anhydrous ammonia
+          year: 2007
+        source:
+          <<: *bref
+          locator: Chapter 2, Section 2.2.3.8 (NH3 synthesis), p. 43
+        note: The source does not say whether gauge or absolute; at these pressures the difference is within the range's precision.
+
+  synthesis-conversion-per-pass:
+    title: Synthesis gas converted to ammonia per pass through the converter
+    unit: "%"
+    description: Share of the synthesis gas entering the converter that is converted to ammonia in one pass.
+    references:
+      - id: bref-lvic-aaf-conversion-per-pass
+        range: [20, 30]
+        basis: unallocated
+        conditions:
+          technology: ammonia synthesis on iron catalyst, 100-250 bar
+          product: anhydrous ammonia
+          year: 2007
+        source:
+          <<: *bref
+          locator: Chapter 2, Section 2.2.3.8 (NH3 synthesis), p. 43 ("only 20 - 30 % of the synthesis gas is converted per pass")
+        note: The source does not define the basis (moles of H2 + N2, or of total gas); compare with the design's definition stated in the binding.
+
+  nox-concentration-reformer:
+    title: NOx in the primary reformer flue gas (as NO2, dry)
+    unit: mg/m^3
+    description: >-
+      NOx concentration expressed as NO2 in the dry flue gas of the fired primary reformer,
+      per normal cubic metre (the source's mg/Nm3; reference conditions as the BREF states them).
+    references:
+      - id: bref-lvic-aaf-bat-nox
+        range: [90, 230]
+        basis: unallocated
+        conditions:
+          technology: advanced conventional reforming processes and processes with reduced primary reforming (BAT); low end for best existing performers and new installations
+          product: anhydrous ammonia
+          region: EU
+          year: 2007
+        source:
+          <<: *bref
+          locator: Chapter 2, Section 2.5, Table 2.13 (NOx emission levels associated with BAT), p. 92
+
+  nox-emission-factor:
+    title: NOx emitted per t of ammonia (as NO2)
+    unit: kg/t
+    description: NOx expressed as NO2 from all combustion sources of the plant, per t of ammonia.
+    references:
+      - id: bref-lvic-aaf-bat-nox-factor
+        range: [0.29, 0.32]
+        basis: unallocated
+        conditions:
+          technology: conventional reforming and reduced primary reforming (BAT benchmark)
+          product: anhydrous ammonia
+          region: EU
+          year: 2007
+        source:
+          <<: *bref
+          locator: Chapter 2, Section 2.5, note to Table 2.13, p. 92 ("emission factors of 0.29 - 0.32 kg/tonne NH3 are seen as a benchmark")
+      - id: bref-lvic-aaf-reported-nox-factor
+        range: [0.6, 1.3]
+        basis: unallocated
+        conditions:
+          technology: steam reforming with fired primary reformer (reported levels, without additional measures named)
+          product: anhydrous ammonia
+          region: EU
+          year: 2000
+        source:
+          <<: *bref
+          locator: Chapter 2, Section 2.3.2, Table 2.7 (Reported NOx emission levels for the production of ammonia), first row [1, EFMA, 2000], p. 52
+
+# Binding added 2026-10-30 after the design was final (basic stage signed off on main, tag
+# nh3-run-S5). The values were computed blind by a separate job (processes/ammonia-1/runs/
+# benchmark-kpis.md) that saw no range of this file. Only the two CO2 indicators can be expressed
+# over the dataset's exchanges: the energy KPIs need heating values and steam enthalpies, which
+# the dataset does not carry, and the loop pressure, conversion and NOx have no exchange. Their
+# blind values and the comparison with these ranges are in processes/ammonia-1/runs/benchmark-kpis.md
+# and process-library#86.
+datasets:
+  - process: ammonia-1
+    dataset: ammonia-from-natural-gas-1500-t-d-steam-reforming-air-fed-secondary-reformer-haber-bosch-loop
+    conditions:
+      technology: natural gas steam reforming, air-fed secondary reformer, aMDEA CO2 removal, methanation, synthesis loop (DESIGN.md)
+      product: anhydrous liquid ammonia, refrigerated
+      drives: all electric, power imported (D-016); MP steam exported (D-015)
+      capacity: 1500 t/d
+      region: EU (Netherlands site basis)
+      year: 2026
+    kpis:
+      process-co2:
+        # CO2 vented from the CO2 removal (product:CO2V) times its CO2 mass fraction 0.978874
+        # (stream S87 composition); flue-gas CO2 excluded.
+        expression: product:CO2V * 0.978874105 / product:NH3
+        per: product:NH3
+        reference: bref-lvic-aaf-process-co2
+      direct-co2-total:
+        expression: emission:CO2 / product:NH3
+        per: product:NH3
+        reference: iea-2021-smr-bat-direct-co2
+        out_of_range_reason: >-
+          Below the IEA single BAT value because less natural gas is burnt on site: all machine
+          drives are electric with the power imported (D-016 in processes/ammonia-1/DESIGN.md),
+          so no fuel is fired for the compressors, whose emissions fall outside this boundary;
+          the furnace fuel follows the radiant balance with complete combustion and no heat loss
+          (D-014, D-040). Natural gas feed plus fuel is 28.0 GJ/t (LHV), against 32.1 GJ/t in the
+          IEA BAT row (processes/ammonia-1/runs/benchmark-kpis.md).
