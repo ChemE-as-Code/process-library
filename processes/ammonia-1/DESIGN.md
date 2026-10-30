@@ -982,6 +982,12 @@ stream changes. `balanced.model-basis` now fails again on exactly these two: H10
 NH3_COMB. What would close it is a published source that states fuel H2 and NH3 burnout in an
 excess-air fired heater or furnace. None was found in this job, so this is left open and is not
 relabelled.
+S5b fix r2: searched again. For NH3, Sharma et al. (2024, doi:10.1299/jtst.24-00063) report
+NH3 hardly detected at the exhaust of a gas-fired furnace on 30 % NH3 / 70 % CH4. It is added
+to NH3_COMB's source but does not cover this duty: it is a 40 kW bench furnace with air at about
+1000 C (E-106 preheats to 250 C), and the excess air is not stated in the abstract. For H2, the
+field reports of 100 % hydrogen-fired heaters found (e.g. the ExxonMobil Baytown burner trial
+reported by Zeeco) give CO and NOx but no measured unburnt H2. Both stay `assumed`.
 
 What was tried and left out:
 - **Sourced feed basis.** I tried the EBTF (2011) Table 2-2-3 natural gas (with i/n-butane and
