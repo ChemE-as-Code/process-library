@@ -969,6 +969,17 @@ What was tried and left out:
   and a chiller duty 21 % higher. These jumps are not explained, and the job's budget did not
   allow tracing them or carrying them through the PFD, datasheets and TEA. The change was
   reverted, and the flowsheet is as before.
+  S5b fix (review design-s5b#2), partial trace: the script calculates no duty. Its boiler duty
+  is the sum of the absolute values of four simulated energy streams in flowsheet.yaml, each
+  mapped one to one: Q8 (E-107 flue-gas coil, 0.6 MW), Q10 (E-105 process-gas boiler,
+  74.0 MW), Q13 (E-201, 12.2 MW) and Q23 (E-502, 43.2 MW), 130.0 MW in total. Its units (kW)
+  and signs are consistent. So the +67.5 MW of the trial came from DWSIM's duties of these
+  exchangers, not from the script. The per-stream values of the reverted trial were not kept,
+  so which exchanger moved cannot be read back. The likely candidate is E-107: it closes the
+  convection section on its outlet temperature, so any surplus of the furnace balance lands
+  there. That is a hypothesis, not a finding. Rerunning the EBTF case and comparing Q8/Q10/Q13/
+  Q23 one by one is the remaining step. It belongs with the sourced feed basis, which waits for
+  the owner's decision (below).
 - **Gibbs and equilibrium models for H101.** Both were tried as alternatives to sourced
   conversions. Core's `propagate` reports "no step lowers the Gibbs energy" for the Gibbs model,
   and no Newton convergence in 200 steps for the equilibrium model (combustion K is very large).
