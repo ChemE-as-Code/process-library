@@ -1,14 +1,14 @@
 # Building and CI
 
-<!-- readme: ## Building the catalog and the LCI database | body -->
+<!-- include: REFERENCE.md :: ## Building the catalog and the LCI database | body -->
 
-<!-- readme: ## Repository size -->
+<!-- include: REFERENCE.md :: ## Repository size -->
 
 ## These docs
 
 The site is built with MkDocs and the Material theme, pinned in `requirements-docs.txt` to the
 versions ChemE-as-Code/core uses. Pages include their sections from the repository's files with
-comments such as `<!-- readme: ## Repository size -->` (`docs/hooks/includes.py`, core's hook);
+comments such as `<!-- include: REFERENCE.md :: ## Repository size -->` (`docs/hooks/includes.py`, core's hook);
 the process and schema pages are generated (`docs/hooks/library.py`). A section renamed or
 removed in a source fails the strict build:
 

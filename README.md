@@ -1,127 +1,133 @@
-# ChemE-as-Code process library
+# Process library by [<img src=".github/readme/pi-research-logo-white.png" alt="Process Intelligence Research" height="40">](https://www.pi-research.org/)
 
-Versioned designs of chemical processes, one folder per process, kept as plain files in git. It
-is the source of the Process Atlas (atlas.cheme-as-code.org, not yet public; built in
-[`ChemE-as-Code/website`](https://github.com/ChemE-as-Code/website), `apps/atlas`) and of its
-Brightway LCI database.
+<p align="center">
+  <a href="https://cheme-as-code.org"><img src=".github/readme/atlas-og-default.png" alt="Process Atlas" width="720"></a>
+</p>
 
-> Private.
+<p align="center">
+  <a href="https://cheme-as-code.org"><img src="https://img.shields.io/badge/Home_page-cheme--as--code.org-1f6feb" alt="Home page"></a>
+  <a href="https://atlas.cheme-as-code.org"><img src="https://img.shields.io/badge/Process_Atlas-atlas.cheme--as--code.org-0b7285" alt="Process Atlas"></a>
+  <a href="https://docs.cheme-as-code.org"><img src="https://img.shields.io/badge/Docs-docs.cheme--as--code.org-6f42c1" alt="Docs"></a>
+  <a href="LICENSE-DATA"><img src="https://img.shields.io/badge/Data-CC_BY_4.0-lightgrey" alt="Data licence: CC BY 4.0"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/Code-MIT-green" alt="Code licence: MIT"></a>
+  <img src="https://img.shields.io/badge/Python-3.12%20%7C%203.13%20%7C%203.14-3776ab" alt="Python 3.12, 3.13, 3.14">
+  <a href="https://github.com/ChemE-as-Code/process-library/actions/workflows/validate.yml"><img src="https://github.com/ChemE-as-Code/process-library/actions/workflows/validate.yml/badge.svg" alt="Validate"></a>
+  <a href="https://github.com/ChemE-as-Code/process-library/actions/workflows/docs.yml"><img src="https://github.com/ChemE-as-Code/process-library/actions/workflows/docs.yml/badge.svg?event=pull_request" alt="Docs build"></a>
+  <img src="https://img.shields.io/badge/status-research_preview-orange" alt="Status: research preview">
+</p>
 
-| path | what |
-|---|---|
-| `processes/<id>/process.yaml` | the Atlas manifest of a process (schema `schemas/process.schema.json`): title, families, inputs and outputs by chemical, design maturity, review status, references |
-| `processes/<id>/plant.yaml` and the rest | optional: a ChemE-as-Code engineering project: P&IDs, BFD/PFD, lists, layout, LCA. Its own README says how to work in it |
-| `processes/<id>/lca/dataset.yaml`, `lca/datasets/*.yaml` | optional: unallocated LCI datasets (core's `lci_dataset`), the input of the LCI database |
-| `processes/<id>/lca/scenarios/<id>.json` | optional: core's per-scenario records (`cheme assess lca-scenarios --write`): the design case, regional background scenarios (geography, year, electricity), linked exchanges and their states, totals per functional unit; the catalog publishes them (see below) |
-| `chemicals/chemicals.yaml` | chemicals and products registry: the slugs processes name, which link them in the Atlas graph, with identity (CAS, InChIKey, ChEBI), grades (`oxygen/lox`) for LCI reference products, sourced properties, CPC/HS codes and crosswalk names ([docs/registry.md](docs/registry.md)) |
-| `taxonomy/families.yaml` | process families mapped to ISIC Rev.4 and NACE Rev. 2; `process.yaml` `families` are validated against it |
-| `markets/<substance>.yaml` | market datasets: per product grade and region, the Atlas producers weighted by production volume, transport by mode and distance, and losses, each number with its source or marked assumed; activities `market:<product>:<region>` of the LCI database, the default link of an Atlas input ([docs/markets.md](docs/markets.md)) |
-| `benchmarks/<family>.yaml` | the benchmark registry: KPIs per process family with reference ranges from cited open sources (or a recorded "no open reference"), evaluated on each LCI dataset by both builders and stored per build in `benchmarks.json` ([docs/benchmarks.md](docs/benchmarks.md)) |
-| `coverage.yaml` | the coverage roadmap: ranked products and processes with variants, value-chain links, open sources and the planned tier ([docs/coverage.md](docs/coverage.md)) |
-| `lci/mappings.yaml` | how LCI exchanges link to Brightway background and biosphere data (by name; no licensed data), the system model (cut-off), its exclusions and the substitution variant, and the database's allocation per process: the shared vocabulary. A process's own exchange overrides are in `processes/<id>/lca/mappings.yaml` (ADR 0022) |
-| `lci/mapping-checks/` | the recorded checks of those names against a licensed background (`scripts/check_mappings.py`, ADR 0017); the build reports the latest as `verified`, `failed`, `stale` or `unchecked` |
-| `docs/` | `system-model.md` (the LCI database's methodology: system model, allocation hierarchy, cut-off rules), `markets.md` (markets, their layers and the chaining of Atlas processes), `governance.md` (versions, change reports, releases and DOIs, review, contribution policy draft), `registry.md`, `coverage.md`, `benchmarks.md`, and `adr/` (architecture decision records: why the library is built this way) |
-| `schemas/` | JSON Schemas of process.yaml, the registry, the mappings, the taxonomy, the coverage roadmap, the benchmarks and the markets |
-| `templates/process/` | starter folder for a new process |
-| `scripts/` | `build_catalog.py` (catalog for the Atlas), `build_lci.py` (Brightway workbook), `render_previews.py` and `export_snapshots.py` (drawings and viewer snapshots, via `cheme`); `publication.py` (the rules of `--public`); `registry.py` (grades and registry checks); `benchmarks.py` (KPI evaluation); `check_mappings.py` (the check of the background names against a licensed copy); `markets.py` (market files and the default market of an input); `reference_impacts.py` (reference GWP deltas of the LCI change report) |
-| `python/` | `cheme-as-code-lci`, the one-call Brightway installer of the LCI database |
-| `tests/` | tests of the scripts, with a synthetic fixture library |
+## Overview
 
-## Processes
+The process library is a collection of 50 chemical processes kept as code, from air separation,
+ammonia and methanol to chlor-alkali, sulfuric acid and the utilities a plant needs. Each process
+is one folder with a manifest, `process.yaml`: what goes in, what comes out, how far the design
+is taken and who has reviewed it. Most folders are also ChemE-as-Code engineering projects,
+checked by the `cheme` toolkit: each has a block and a process flow diagram in the DEXPI exchange
+standard, a flowsheet and an equipment list; the most advanced (`asu-1`, `ammonia-1`) also have
+P&IDs and a 3D layout. The [home page](https://cheme-as-code.org) explains what "chemical
+engineering as code" means.
 
-| id | process | design maturity | engineering project |
-|---|---|---|---|
-| [`asu-1`](processes/asu-1/) | Cryogenic air separation unit, 500 t/d GOX | screening (calculation maturity: balanced; not independently reviewed) | yes (DEXPI P&IDs, BFD/PFD, 3D layout, MTO, LCA, DWSIM checks) |
-| [`utility-steam-ng-boiler`](processes/utility-steam-ng-boiler/) | Steam, saturated 11 bar(a), natural-gas boiler (library utility) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
-| [`utility-cooling-tower`](processes/utility-cooling-tower/) | Cooling water, evaporative cooling tower, 25/35 degC (library utility) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
-| [`utility-wwtp`](processes/utility-wwtp/) | Wastewater treatment, activated sludge (library utility) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
-| [`utility-flare`](processes/utility-flare/) | Flaring of methane-rich waste gas (library utility) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
-| [`utility-chiller`](processes/utility-chiller/) | Chilled water at 6 degC, electric chiller (library utility; refrigerant losses not yet counted) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
-| [`utility-instrument-air`](processes/utility-instrument-air/) | Instrument air, dried, 8 bar(a) (library utility) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
+The library is the source of the [Process Atlas](https://atlas.cheme-as-code.org) (a preview;
+processes appear there as they pass review), which links the processes through the chemicals
+they make and use. From the same files it builds open life cycle inventory (LCI) datasets for
+[Brightway](https://docs.brightway.dev) and openLCA. All of it is plain text in git, so every
+change is reviewed and versioned. This is research software
+in active development: research output, not engineering advice.
 
-Three separate axes, named as in core's [glossary](https://github.com/ChemE-as-Code/core/blob/main/docs/concepts/glossary.md) (ChemE-as-Code/core#323):
+<p align="center">
+  <img src=".github/readme/atlas.png" alt="A process page of the Process Atlas" width="820">
+</p>
 
-- **design maturity** is `process.yaml` `maturity` (`concept` to `operating-reference`): how far
-  the design is claimed to be taken. The claim is capped by evidence: in an engineering project
-  `cheme maturity` warns (`cheme.maturity-claim-exceeds`) when it exceeds what the calculation
-  maturity supports; beside a Tier 0/1 LCI dataset it is at most `concept`
-  (`cheme.lci-tier-maturity`).
-- **calculation maturity** is `checks/maturity.json` (`sourced`, `balanced`, `predictive`,
-  `engineering`): the level `cheme maturity` evaluates from the files of an engineering project.
-  `sourced` supports at most `concept`, `balanced` and `predictive` at most `screening`,
-  `engineering` at most `basic-engineering`.
-- **review status** is `process.yaml` `validation.status` (`unreviewed` to `industry-validated`):
-  who has checked the design. Only people set it; passing automated checks is not a review.
+## Features
 
-## Working on a process
+- **One folder per process**: 44 engineering projects (`plant.yaml`) and 6 library utilities
+  (steam, cooling water, chilled water, instrument air, wastewater treatment, flaring).
+- **A manifest per process** (`process.yaml`, with a JSON Schema): families mapped to the ISIC
+  Rev. 4 and NACE Rev. 2 industry classifications, and separate fields for design maturity and
+  review status.
+- **A chemicals registry** with CAS, InChIKey and ChEBI identities and product grades; it links
+  the processes to each other in the Atlas.
+- **LCI database builds**: a Brightway workbook, an openLCA JSON-LD package and a file for
+  Brightway's `multifunctional` package (the last two keep the unallocated multi-output
+  datasets), plus a one-call Brightway installer (`python/`). Background data (e.g. ecoinvent)
+  are referenced by name; no licensed data are shipped.
+- **Markets and regional scenarios**: supply chains per product and region, and one design
+  assessed against several regional backgrounds without copying its folder.
+- **Benchmarks** per process family, with reference ranges from cited open sources.
+- **Continuous checks**: CI validates every plant with `cheme`, runs the tests and builds the
+  catalog and the LCI database; only processes marked public enter the public build.
 
-Each engineering project is self-contained: run `cheme` and Claude Code **in its folder**
-(`cd processes/asu-1`). `cheme` finds the plant by walking up to `plant.yaml`, and what its
-docs call "the repository root" is that folder. Once per clone, in a process folder:
-`cheme git-setup` (readable P&ID diffs and the pre-commit check of that plant).
+## Quick start
 
-## Adding a process
-
-See [CONTRIBUTING.md](CONTRIBUTING.md): copy `templates/process/` to `processes/<id>/`, fill in
-`process.yaml`, add new chemicals to the registry. No change to the Atlas is needed.
-
-## Building the catalog and the LCI database
+The [Process Atlas](https://atlas.cheme-as-code.org) shows the published processes. To open
+every plant of the library in the ChemE-as-Code Viewer on your own machine (`cheme serve` in
+library mode, core 1.1.0 or later), you need [uv](https://docs.astral.sh/uv/), Node.js and access
+to the private ChemE-as-Code repositories:
 
 ```sh
-uv run scripts/build_catalog.py --library . --out dist [--artifacts <previews>] [--snapshots <snapshots>] [--strict] [--public]
-uv run scripts/build_lci.py --library . --out dist --version 0.1.0 [--strict] [--public] [--system-model substitution] [--previous <earlier build>]
-uv run --python 3.12 --with pytest --with pyyaml --with jsonschema --with openpyxl --with ./python --with bw2calc pytest -q tests
+git clone https://github.com/ChemE-as-Code/core.git && uv tool install './core[serve]'
+(cd core/viewer && npm install && npm run build)
+git clone https://github.com/ChemE-as-Code/process-library.git && cd process-library
+cheme serve --repo . --ui ../core/viewer/dist   # http://127.0.0.1:8765, each plant under /p/<id>/
 ```
 
-**Benchmarks need core.** The KPIs of `benchmarks/` are converted to their units by core's
-`foundation.units` ([docs/benchmarks.md](docs/benchmarks.md)). Without core a KPI is
-`unchecked`, which fails `--strict`, and the tests that need core are skipped. Add core with
-`--with "cheme-as-code[units] @ git+https://github.com/ChemE-as-Code/core.git"` (or a local
-clone) to the `uv run` of the builds and the tests; CI does, with core pinned to one commit
-(`.github/workflows/validate.yml`), and sets `ATLAS_REQUIRE_CORE` so a missing core fails the
-tests there.
+To work on one process, run `cheme` in its folder (`cd processes/asu-1`). To add a process, copy
+`templates/process/` and follow [CONTRIBUTING.md](CONTRIBUTING.md).
 
-**Design cases and regional scenarios.** One engineering project serves several operating
-cases (flowsheet `cases:`, each with its declared `capacity`) and several geographical
-backgrounds (`scenarios:` in `lca/lca.yaml` with `location`, `year`, `electricity`, `missing:`,
-`proxy:`; core docs/framework/lci-scenarios.md). No folder is copied per region or capacity.
-Run `cheme assess lca-scenarios --write` in the process folder and commit `lca/scenarios/`; the
-catalog gives each process `lca.design_cases` and `lca.scenarios` and copies the records to
-`scenarios/<id>/<scenario>.json`. A scenario whose values may not be published, or whose record
-is stale, keeps its geography, states and gaps but loses its totals. Each scenario also carries
-core's comparability verdict against the baseline (`comparability`: `like-for-like`, `proxy`,
-`not comparable`; core#306, ADR 0016), the study `boundary`, and each link's factor `scope`.
-ASU-1 has `nl-grid` and `de-grid` on core's packaged EEA 2024 grid factors (D-107). They are
-**not comparable** with the UK baseline (D-110): EEA counts direct emissions at generation,
-while the baseline factor is at the consumer with T&D and well-to-tank, a difference in basis
-that a declared proxy discloses but does not bridge. A scenario missing data the baseline has
-is not comparable as well.
+## Documentation
 
-CI (`.github/workflows/validate.yml`): every `processes/*/plant.yaml` is validated with `cheme`
-in its folder; the library job runs the tests (including the Brightway round trip) and builds
-the catalog and the LCI database, and the public catalog (`--public`: only processes with
-`publication.status: public`, placeholder footprints withheld; see CONTRIBUTING.md). Nothing is
-published. `.github/workflows/release.yml` (started by hand) drafts an LCI release with its
-change report and archive metadata as a workflow artifact; it publishes nothing, as the release
-decision is the owner's (docs/governance.md).
+- Technical documentation of the toolkit: [docs.cheme-as-code.org](https://docs.cheme-as-code.org).
+  This library's methodology and governance pages are in [`docs/`](docs/) (an MkDocs site, built
+  in CI but not yet published).
+- Plain-language pages: [cheme-as-code.org](https://cheme-as-code.org) and the
+  [Process Atlas](https://atlas.cheme-as-code.org).
+- The full reference of this repository (paths, processes, builds, CI, repository size):
+  [REFERENCE.md](REFERENCE.md). The reference sections of the earlier README now live there.
+- Adding and publishing a process: [CONTRIBUTING.md](CONTRIBUTING.md). The LCI export:
+  [lci/README.md](lci/README.md).
 
-## Repository size
+## Citation
 
-A DEXPI P&ID is 1 to 3 MB of XML (ASU-1's folder is about 14 MB), and every revision stays in
-the history, so the clone grows with each process and each P&ID change. To keep that cheap:
+Both papers are in preparation and their titles are working titles. If you use the library,
+please cite the Process Atlas paper, and ChemE-as-Code for the toolkit. See also
+[cheme-as-code.org/about/cite](https://cheme-as-code.org/about/cite/).
 
-- **Shallow clones where no history is needed.** CI checks out with `fetch-depth: 1`, except
-  the library job, which builds the catalog: its git facts (each folder's last commit, whether
-  previews and snapshots are behind it) need the history, so it uses `fetch-depth: 0`. A
-  catalog built from a shallow clone gives every folder the head commit. For work on one
-  process, a shallow sparse clone is enough:
-  `git clone --depth 1 --filter=blob:none --sparse <url> && git sparse-checkout set processes/<id>`.
-- **Keep generated output out of git.** `build/` and `dist/` are ignored: previews, viewer
-  snapshots (about 14 MB per process) and the catalog are rebuilt from the sources.
-  `export_snapshots.py --cache DIR` reuses a snapshot until its folder, the `cheme` version or
-  the export options change.
-- **Git LFS only for large generated binaries** that must be versioned (renders, meshes,
-  spreadsheets exported for others), should they ever be committed. Never for the DEXPI XML or
-  other engineering sources: they must stay text, diffable (`diff=dexpi`, `.gitattributes`) and
-  reviewable. Blobs committed before a file moves to LFS stay in the history unless it is
-  rewritten (`git lfs migrate`), so decide before the first commit.
+```bibtex
+@misc{schweidtmann_process_atlas,
+  author = {Schweidtmann, Artur M. and Weber, Jana M.},
+  title  = {Process Atlas: an open, git-native, reproducible library and life cycle inventory of chemical processes (working title)},
+  url    = {https://atlas.cheme-as-code.org},
+  note   = {in preparation}
+}
+
+@misc{schweidtmann_cheme_as_code,
+  author = {Schweidtmann, Artur M.},
+  title  = {ChemE-as-Code: An Open-Source Platform for AI-Accelerated Chemical Process Engineering (working title)},
+  url    = {https://cheme-as-code.org},
+  note   = {in preparation}
+}
+```
+
+## Contributors
+
+| | Name | Role |
+|---|---|---|
+| <img src=".github/readme/schweidtmann.jpg" alt="Artur M. Schweidtmann" width="50"> | [Artur M. Schweidtmann](https://www.pi-research.org/author/artur-schweidtmann/) ([LinkedIn](https://www.linkedin.com/in/schweidtmann/)) | ChemE-as-Code and Process Atlas (principal investigator); Process Intelligence Research, Department of Chemical Engineering, Delft University of Technology |
+| <img src=".github/readme/weber.jpg" alt="Jana M. Weber" width="50"> | Jana M. Weber | Process Atlas; Delft Bioinformatics Lab, Department of Computer Science, Delft University of Technology |
+
+Everyone who contributes is credited in the git history: see the
+[contributors of this repository](https://github.com/ChemE-as-Code/process-library/graphs/contributors).
+
+## License
+
+The process data and designs are licensed under [CC BY 4.0](LICENSE-DATA), unless a process
+states otherwise in its `process.yaml`; third-party data keep their own terms. The code
+(scripts, schemas, the Python package and the tests) is licensed under the [MIT License](LICENSE).
+Copyright (C) 2026 Artur Schweidtmann; TU Delft disclaims copyright interest (see [NOTICE](NOTICE)).
+
+## Contact
+
+Questions, or working with industry: Artur Schweidtmann,
+[a.schweidtmann@tudelft.nl](mailto:a.schweidtmann@tudelft.nl). Ways to collaborate:
+[pi-research.org/industry](https://www.pi-research.org/industry/) and
+[cheme-as-code.org/about](https://cheme-as-code.org/about/#contact).

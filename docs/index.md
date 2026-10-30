@@ -1,6 +1,6 @@
 # ChemE-as-Code process library
 
-<!-- readme: # ChemE-as-Code process library | body | intro -->
+<!-- include: REFERENCE.md :: # Process library reference | body | intro -->
 
 ## In these docs
 
@@ -13,7 +13,7 @@
 - **[Architecture decisions](adr/README.md)**: why the library's structure, formats and
   pipelines are as they are.
 
-The pages are assembled from the repository's files (README.md, CONTRIBUTING.md,
+The pages are assembled from the repository's files (REFERENCE.md, CONTRIBUTING.md,
 lci/README.md, the schemas and the process folders), so they do not drift from them.
 
-<!-- readme: ## Working on a process -->
+<!-- include: REFERENCE.md :: ## Working on a process -->
