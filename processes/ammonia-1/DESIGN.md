@@ -836,6 +836,81 @@ Rejected: replacing the example risk matrix by invented criteria (an agent may n
 company's tolerable risk); crediting residual risk to alarms or uncalculated relief devices;
 one study per sheet (the blow-by and reverse-flow scenarios cross sheets).
 
+## D-032 Equipment datasheets (2026-10-30, S7)
+Decision: one datasheet per equipment-list item (52, equipment/datasheets/<TAG>.yaml with its
+outline drawing <TAG>.svg), drafted by `cheme datasheets draft`, sized by `cheme datasheets fill`
+from the simulated case (D-026) and completed by scripts/complete_datasheets.py (`inputs` before
+the fill, `final` after it; provenance, rerunnable). Every value names its stream, run-record
+unit, decision or table; assumed values are marked.
+- **Design conditions** (also written to the equipment list, which had none): design pressure
+  = max(1.10 x, +1.7 bar over) the highest operating gauge pressure of the item's streams,
+  rounded up to 0.5 bar; design temperature = highest operating temperature + 28 K (50 degF),
+  rounded up to 5 degC; minimum design metal temperature = lowest operating temperature - 14 K
+  (25 degF) for items below 0 degC. The heuristics are Walas (1988), Turton et al. (2012) and
+  Towler and Sinnott (2013) as summarised by the Northwestern University Process Design wiki
+  (section 5); the books were not read, and 1.7 bar is the upper end of the "10-25 psi" quoted.
+  Exchangers carry each side's design pressure; a convection coil is designed on its process
+  side, its flue-gas casing by the furnace vendor. Compressor casings include the hottest
+  stage discharge (ideal gas, k from process/materials.yaml cp at suction, efficiency 0.78,
+  D-016): K-101 429.7 K, K-501 380.8 K, K-701 flash-gas stages 466.0 K. The aMDEA loop items
+  (no flowsheet streams, D-028) take 422.3 K, the E-202 process-gas outlet: the kettle pool
+  boils below every point of its heating side. Utility sides: MP steam 4600 kPa(a) (D-015);
+  ammonia refrigerant at its 313.15 K vapour pressure, 1554.5 kPa(a) (thermo 0.6.1); cooling
+  water awaits the site's design pressure (D-012 gives temperatures only). Above 345 degC the
+  margin is a process allowance; refractory-lined and fired items (H-101, R-101, R-102, E-105)
+  have their metal temperatures from the vendor. Not set by the rule (`supplier`): pump casings
+  (shut-off pressure), fan casings, the H-101 box and the E-106 air preheater (draft).
+- **Materials**: a preliminary class per item, ASSUMED, with the reason on the sheet: low-alloy
+  Cr-Mo for hydrogen-bearing gas above the carbon-steel range of API RP 941 (Nelson curves);
+  austenitic stainless for wet CO2 condensate and the aMDEA regenerator side; impact-tested
+  low-temperature carbon steel below -29 degC; refractory-lined shells for H-101 and R-102;
+  heat-resistant cast alloy for the reformer tubes; carbon steel otherwise. No grade is chosen;
+  the materials and corrosion review is open (V-701's -50 degC MDMT is below the usual LTCS
+  range).
+- **Sizes from the simulation**: exchanger duties from process/simulation-run.json (fill's
+  enthalpies are refused for water, C2H6 and the loop states, core#315); areas with the middle
+  of the Sinnott Table 12.1 row of the core table (rows per item in the script), counter-current,
+  no margin, cooling water 298/308 K, MP steam boiling at 531.93 K, refrigerant at 258.15 K;
+  compressor and fan fluid powers = the simulated Q streams (K-701: Q27 package estimate + Q32
+  simulated); vessel volumes from the list dimensions (upper bounds); P-801 from the steam
+  package's basis (156.5 t/h, 101.3 -> 5600 kPa(a), efficiency 0.70): 565 m, 344 kW (Q31 341 kW).
+- **Done outside the fill, same method** (core v1.0.x limits, to report): `fill` sizes an
+  exchanger only from a node with one inlet and one outlet, so the eight two-stream exchanger
+  nodes (E-101 to E-104, E-106, E-401, E-501, E-505) are calculated in the script; E-701's
+  linked nodes are the flash-gas compressor's (K702, K701), so its area is calculated there
+  too; P-801 is linked to the lumped U801 and gets the same pump equations in the script.
+- **Awaited (`supplier`, each with what is awaited)**: what core does not calculate (rating,
+  mechanical design, corrosion allowance, NPSHr, shaft power over a mechanical efficiency no
+  source here gives, relief: section S8); the aMDEA loop (C-301, C-302 stages and flooding,
+  E-301 to E-303 duties, P-302 duty, P-301 head: licensor, I-06); catalyst beds of R-100,
+  R-102, R-201, R-202, R-401, R-501 (no sourced space velocity: a search on 2026-10-30 found
+  only one patent figure for a shift bed, not used); radiant tubes R-101 and the furnace;
+  packages X-401, X-601, U-801, the refrigeration staging of K-701; E-107 and E-202, whose
+  other-side temperatures belong to the steam package and the licensor.
+Findings (kept, not edited away):
+- **High-pressure gas areas are upper bounds**: the Table 12.1 gas rows are for gases near
+  atmospheric pressure; E-501 44,544 m2, E-502 21,610 m2, E-505 12,251 m2, E-504 9,510 m2 (and
+  the other gas services above 10 barg, noted on their sheets) will shrink with a rating.
+  An estimate that reads these areas would overstate the loop exchangers.
+- **E-502 cold-end approach 0.67 K**: its process outlet 532.6 K (D-026 retune) is 0.67 K above
+  MP steam saturation at 4600 kPa(a), 531.93 K; the area is dominated by that end. The retune
+  should be revisited (lower steam level, BFW preheat on the cold end, or an outlet limit).
+- **E-107**: the flue gas reaches it at 406.9 K (S84) while S66 keeps the assumed 423.15 K
+  (simulated stack 396.7 K, D-026); its duty Q8 is the concept value. Not sized.
+- **Reactor duty residuals**: `fill` writes ideal-gas residual duties (R-201 8 kW, R-501
+  454 kW), the simulation 237 and 31 kW; both are checks of an adiabatic bed, not utilities.
+- **V-701 design pressure 26.5 barg** is governed by S54 at 2500 kPa(a), upstream of the
+  let-down valve (blow-by); the relief study may lower it.
+- `cheme.datasheet-dimension-layout` (12 warnings): the coil banks' length and width in the
+  list (4 x 14 m) are swapped in the layout model (14 x 4 m); a layout question of S5, not
+  changed here.
+Status: the sheets have no `draft: true`, because the `datasheets` gate counts only final
+sheets and every open field is a named `supplier` item; they were checked by the authoring
+agent, not by an engineer, and every size is preliminary process sizing.
+Reason: S7 of runs/plan.md. Rejected: GHSVs, U values or mechanical efficiencies from memory;
+`not_applicable` for values that do apply; leaving the gate failing on fields core cannot
+calculate by design.
+
 ## 3. Results of this stage (design case)
 
 Basic stage, S2 (the simulated flowsheet, D-026; lca/inventory.csv regenerated): per kg of NH3
@@ -900,6 +975,11 @@ convection coils therefore use `ExchangingThermalEnergy` and the steam system `P
 | USGS, Mineral Commodity Summaries 2026, Nitrogen (fixed)-ammonia (public domain) | salient statistics, price f.o.b. Gulf Coast, 2025e | via the search index of the document (the PDF text could not be extracted here) | D-023: NH3 price proxy, ASSUMED |
 | ESMA annual report on EU carbon markets 2026, as reported by Lovguiden (2026-07-09) | EUA annual average 2025 | secondary only | D-023: carbon price, ASSUMED |
 | NIST Chemistry WebBook | standard enthalpies of combustion of CH4, C2H6, C3H8 | values used | D-023: gross calorific value of the D-004 gas |
+| Northwestern University Process Design wiki, "Pressure Vessels" (summarising Turton et al. 2012, Towler and Sinnott 2013, Peters and Timmerhaus 2003) | sections Design Temperature, Design Pressure | yes (2026-10-30) | D-032: design pressure and temperature margins, MDMT margin |
+| Walas, Chemical Process Equipment (1988), Rules of Thumb: Summary, Pressure vessels | as quoted in a public summary deck (slideshare, search 2026-10-30) | no (secondary only) | D-032: "10 % or 10-25 psi", "+50 degF" |
+| Sinnott, Coulson & Richardson's Chemical Engineering Vol. 6, 4th ed. (2005), Table 12.1 | rows as in `cheme datasheets fill --list` (core's table) | no (core's data file) | D-032: typical overall coefficients |
+| API RP 941 (Nelson curves) | title only, no value used | no | D-032: reason for low-alloy steel in hot hydrogen service |
+| thermo 0.6.1 (HEOS fit, IAPWS) | `Chemical('ammonia').Psat`, `Chemical('water')` | yes | D-032: NH3 vapour pressure at 313.15 K, BFW density, viscosity, vapour pressure |
 
 ## 6. Open inputs and gated steps
 

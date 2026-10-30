@@ -1,0 +1,148 @@
+# Datasheet drafted by `cheme datasheets draft`, sized by `cheme datasheets fill` and completed by
+# scripts/complete_datasheets.py (DESIGN.md D-032). Preliminary process datasheet: every value
+# says where it comes from; assumed: true marks an assumption; `supplier` names what a vendor,
+# licensor or study still has to give. Checked by the authoring agent, not yet by an engineer.
+tag: P-302A
+type: CentrifugalPump
+service: Reflux pump (running)
+operating:
+  operating_pressure:
+    value: 150.0
+    unit: kPa(a)
+    source: CO2 regenerator pressure 150 kPa(a) (stream S28, D-009)
+    assumed: true
+  maximum_temperature:
+    value: 422.284
+    unit: K
+    source: 'bound of the aMDEA loop: E-202 process-gas outlet S22 422.28 K (calculated, D-026); the kettle
+      pool boils below it (D-032)'
+    assumed: true
+  case: design
+design:
+  pressure_barg:
+    value: supplier
+    unit: barg
+    source: 'pump casing design pressure: shut-off pressure from the vendor''s curve'
+    reason: 'pump casing design pressure: shut-off pressure from the vendor''s curve'
+  temperature_degc:
+    value: 180.0
+    unit: degC
+    source: 'design temperature = maximum operating temperature + 28 K (50 degF of Towler and Sinnott,
+      Chemical Engineering Design, 2nd ed., 2013 / UOP and of Walas 1988, as summarised by the Northwestern
+      University Process Design wiki, ''Pressure Vessels''; at least Turton''s 25 degC), rounded up to
+      5 degC, D-032; maximum operating 422.28 K: bound of the aMDEA loop: E-202 process-gas outlet S22
+      422.28 K (calculated, D-026); the kettle pool boils below it (D-032)'
+    assumed: true
+materials:
+  main:
+    value: austenitic stainless steel (grade by the materials review)
+    material_class: stainless_steel
+    assumed: true
+    source: 'DESIGN.md D-032: preliminary material class by service (wet CO2 condensate (carbonic acid
+      corrosion of carbon steel)); the materials selection review is open'
+dimensions:
+  overall_length:
+    value: 2.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.length
+  overall_width:
+    value: 1.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.width
+  overall_height:
+    value: 1.2
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.height
+  axis_deg:
+    value: 0.0
+    unit: deg
+    source: layout/plant-model.yaml P-302A rotation_deg (layout/equipment-placement.yaml)
+nozzles:
+- name: N1
+  dn: 100
+  lines:
+  - PC-1069
+  source: pid/P-106.xml
+- name: N2
+  dn: 100
+  lines:
+  - PC-1071
+  source: pid/P-106.xml
+type_specific:
+  height_m:
+    value: 1.2
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  length_m:
+    value: 2.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  width_m:
+    value: 1.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  flow_m3_h:
+    value: supplier
+    unit: m3/h
+    source: 'aMDEA licensor''s solvent-loop design (solvent rate, heat balance, column internals; I-06,
+      D-009): reflux rate and the regenerator''s reflux elevation'
+    reason: 'aMDEA licensor''s solvent-loop design (solvent rate, heat balance, column internals; I-06,
+      D-009): reflux rate and the regenerator''s reflux elevation'
+  differential_head_m:
+    value: supplier
+    unit: m
+    source: 'aMDEA licensor''s solvent-loop design (solvent rate, heat balance, column internals; I-06,
+      D-009): reflux rate and the regenerator''s reflux elevation'
+    reason: 'aMDEA licensor''s solvent-loop design (solvent rate, heat balance, column internals; I-06,
+      D-009): reflux rate and the regenerator''s reflux elevation'
+  npsh_available_m:
+    value: supplier
+    unit: m
+    source: 'aMDEA licensor''s solvent-loop design (solvent rate, heat balance, column internals; I-06,
+      D-009): reflux rate and the regenerator''s reflux elevation'
+    reason: 'aMDEA licensor''s solvent-loop design (solvent rate, heat balance, column internals; I-06,
+      D-009): reflux rate and the regenerator''s reflux elevation'
+  shaft_power_kw:
+    value: supplier
+    unit: kW
+    source: 'aMDEA licensor''s solvent-loop design (solvent rate, heat balance, column internals; I-06,
+      D-009): reflux rate and the regenerator''s reflux elevation'
+    reason: 'aMDEA licensor''s solvent-loop design (solvent rate, heat balance, column internals; I-06,
+      D-009): reflux rate and the regenerator''s reflux elevation'
+  npsh_required_m:
+    value: supplier
+    unit: m
+    source: pump vendor's NPSHr at the rated point
+    reason: pump vendor's NPSHr at the rated point
+  mechanical_design:
+    value: supplier
+    unit: ''
+    source: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+    reason: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+  corrosion_allowance_mm:
+    value: supplier
+    unit: mm
+    source: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+    reason: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+  relief_protection:
+    value: supplier
+    unit: ''
+    source: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+    reason: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+sizing_basis:
+- parameter: sizing_scope
+  value: preliminary
+  reference: 'cheme datasheets fill: the values it writes are preliminary process sizing (short-cut methods,
+    declared or typical parameters), not a rating or a design to a code; not calculated: rating, mechanical
+    code, materials corrosion, relief, dynamics controls (docs/framework/sizing.md)'
+- parameter: design conditions
+  value: rule of D-032 on the item's operating streams
+  reference: DESIGN.md D-032
+notes: V-302 condensate back to C-302 on LIC-1506 (D-028). Electric drive ASSUMED. Dimensions ASSUMED
+  (D-028).

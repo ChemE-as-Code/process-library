@@ -1,0 +1,213 @@
+# Datasheet drafted by `cheme datasheets draft`, sized by `cheme datasheets fill` and completed by
+# scripts/complete_datasheets.py (DESIGN.md D-032). Preliminary process datasheet: every value
+# says where it comes from; assumed: true marks an assumption; `supplier` names what a vendor,
+# licensor or study still has to give. Checked by the authoring agent, not yet by an engineer.
+tag: R-501
+type: Vessel
+service: Ammonia converter
+operating:
+  case: design
+  streams:
+  - S42
+  - S43
+  inlet_pressure:
+    value: 15400.0
+    unit: kPa(a)
+    source: 'process/flowsheet.yaml stream S42 (case design), assumed: D-011'
+    assumed: true
+  inlet_temperature:
+    value: 493.843
+    unit: K
+    source: 'process/flowsheet.yaml stream S42 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+    origin: simulated
+  inlet_flow:
+    value: 293991.0
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S42 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+    origin: simulated
+  outlet_pressure:
+    value: 15100.0
+    unit: kPa(a)
+    source: 'process/flowsheet.yaml stream S43 (case design), assumed: D-011'
+    assumed: true
+  outlet_temperature:
+    value: 703.15
+    unit: K
+    source: 'process/flowsheet.yaml stream S43 (case design), assumed: D-011'
+    assumed: true
+  outlet_flow:
+    value: 293991.0
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S43 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+    origin: simulated
+design:
+  pressure_barg:
+    value: 168.5
+    unit: barg
+    source: 'design pressure = max(1.10 x, +1.7 bar over) the maximum operating gauge pressure, rounded
+      up to 0.5 bar (heuristic ''10 % or 10-25 psi, whichever is greater'' of Walas, Chemical Process
+      Equipment, 1988, Rules of Thumb, and Turton et al., 4th ed., 2012, as summarised by the Northwestern
+      University Process Design wiki, ''Pressure Vessels''; the books were not read; the upper end 1.7
+      bar taken), D-032; maximum operating 15400 kPa(a): stream S42 (assumed: D-011)'
+    assumed: true
+  temperature_degc:
+    value: 460.0
+    unit: degC
+    source: 'design temperature = maximum operating temperature + 28 K (50 degF of Towler and Sinnott,
+      Chemical Engineering Design, 2nd ed., 2013 / UOP and of Walas 1988, as summarised by the Northwestern
+      University Process Design wiki, ''Pressure Vessels''; at least Turton''s 25 degC), rounded up to
+      5 degC, D-032; maximum operating 703.15 K: stream S43 (assumed: D-011)'
+    assumed: true
+  note: above 345 degC the D-032 margin is a process allowance; the metal temperature (refractory, tube
+    wall, flue-gas side) is the vendor's
+materials:
+  main:
+    value: low-alloy Cr-Mo steel (grade by the materials review)
+    material_class: low_alloy_steel
+    assumed: true
+    source: 'DESIGN.md D-032: preliminary material class by service (hydrogen-bearing gas above the carbon-steel
+      range of API RP 941 (Nelson curves); nitriding of the internals by the vendor); the materials selection
+      review is open'
+dimensions:
+  orientation: vertical
+  outside_diameter:
+    value: 3.5
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.diameter
+  overall_height:
+    value: 25.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.height
+  tangent_length:
+    value: 20.25
+    unit: m
+    source: 'layout/plant-model.yaml part R-501/shell: the generated shell between the heads (the 3D model''s
+      proportions, not a vessel design)'
+    assumed: true
+  support:
+    height:
+      value: 3.875
+      unit: m
+      source: 'layout/plant-model.yaml parts R-501/shell, R-501/skirt: the bottom tangent line above the
+        base (the 3D model''s proportions, not a design)'
+      assumed: true
+nozzles:
+- name: N1
+  dn: 400
+  lines:
+  - PG-1096
+  source: pid/P-109.xml
+- name: N2
+  dn: 450
+  lines:
+  - PG-1098
+  source: pid/P-109.xml
+- name: N3
+  dn: 25
+  lines: []
+  source: pid/P-109.xml
+- name: N4
+  dn: 25
+  lines: []
+  source: pid/P-109.xml
+- name: N5
+  dn: 25
+  lines: []
+  source: pid/P-109.xml
+type_specific:
+  diameter_m:
+    value: 3.5
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  height_m:
+    value: 25.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  volume_m3:
+    value: supplier
+    unit: m3
+    source: 'catalyst vendor''s bed design: no catalyst space velocity or bed data with a source is declared
+      in process/ (no process/catalysts.yaml), so cheme datasheets fill cannot size the bed (D-032)'
+    reason: 'catalyst vendor''s bed design: no catalyst space velocity or bed data with a source is declared
+      in process/ (no process/catalysts.yaml), so cheme datasheets fill cannot size the bed (D-032)'
+  process_streams:
+  - stream: S42
+    direction: in
+    title: Converter feed
+    source: process/flowsheet.yaml (case design)
+  - stream: S43
+    direction: out
+    title: Converter effluent
+    source: process/flowsheet.yaml (case design)
+  catalyst_mass_kg:
+    value: supplier
+    unit: kg
+    source: 'catalyst vendor''s bed design: no catalyst space velocity or bed data with a source is declared
+      in process/ (no process/catalysts.yaml), so cheme datasheets fill cannot size the bed (D-032)'
+    reason: 'catalyst vendor''s bed design: no catalyst space velocity or bed data with a source is declared
+      in process/ (no process/catalysts.yaml), so cheme datasheets fill cannot size the bed (D-032)'
+  catalyst_volume_m3:
+    value: supplier
+    unit: m3
+    source: 'catalyst vendor''s bed design: no catalyst space velocity or bed data with a source is declared
+      in process/ (no process/catalysts.yaml), so cheme datasheets fill cannot size the bed (D-032)'
+    reason: 'catalyst vendor''s bed design: no catalyst space velocity or bed data with a source is declared
+      in process/ (no process/catalysts.yaml), so cheme datasheets fill cannot size the bed (D-032)'
+  pressure_drop_kpa:
+    value: supplier
+    unit: kPa
+    source: 'catalyst vendor''s bed design: no catalyst space velocity or bed data with a source is declared
+      in process/ (no process/catalysts.yaml), so cheme datasheets fill cannot size the bed (D-032)'
+    reason: 'catalyst vendor''s bed design: no catalyst space velocity or bed data with a source is declared
+      in process/ (no process/catalysts.yaml), so cheme datasheets fill cannot size the bed (D-032)'
+  duty_kw:
+    value: 453.6
+    unit: kW
+    source: 'cheme datasheets fill: H(out) - H(in) of R501, ideal gas on the elements basis (cheme process
+      reactors, case design): positive is heat added'
+    assumed: true
+    fingerprint: c46c4d00e0a2633f
+    origin: correlation
+  rating:
+    value: supplier
+    unit: ''
+    source: vendor's thermal, hydraulic or machine rating on these process conditions (not calculated
+      by cheme-as-code, docs/framework/sizing.md)
+    reason: vendor's thermal, hydraulic or machine rating on these process conditions (not calculated
+      by cheme-as-code, docs/framework/sizing.md)
+  mechanical_design:
+    value: supplier
+    unit: ''
+    source: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+    reason: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+  corrosion_allowance_mm:
+    value: supplier
+    unit: mm
+    source: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+    reason: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+  relief_protection:
+    value: supplier
+    unit: ''
+    source: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+    reason: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+sizing_basis:
+- parameter: sizing_scope
+  value: preliminary
+  reference: 'cheme datasheets fill: the values it writes are preliminary process sizing (short-cut methods,
+    declared or typical parameters), not a rating or a design to a code; not calculated: rating, mechanical
+    code, materials corrosion, relief, dynamics controls (docs/framework/sizing.md)'
+- parameter: design conditions
+  value: rule of D-032 on the item's operating streams
+  reference: DESIGN.md D-032
+notes: 'Three adiabatic beds with interbed exchange, promoted iron catalyst; outlet 703 K, 15,100 kPa(a),
+  equilibrium approach 15 K, Peng-Robinson (D-011). Catalyst volume not sized: no kinetics chosen. Dimensions
+  ASSUMED (D-022).'
