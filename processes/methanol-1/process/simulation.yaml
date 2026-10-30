@@ -1,0 +1,126 @@
+# The DWSIM model of methanol-1 (`cheme process simulate`; schema `cheme schema process-simulation`).
+# Decision D-013 in DESIGN.md (simulation scope, specs and property package). NOT RUN YET:
+# written and validated offline (cheme validate, cheme maturity); no DWSIM was available, so
+# no stream value of the flowsheet comes from this file and process/simulation-run.json does
+# not exist. Every spec repeats a design choice of DESIGN.md (D-003 to D-010) or the value of
+# the independent balance scripts/loop_balance.py (D-006), ASSUMED, with its source.
+schema: cheme/simulation/v1
+kind: simulation
+simulator: dwsim
+property_package: Peng-Robinson (PR)
+method_selection:
+  facts:
+    pressure_value: 81.5              # the highest pressure of the flowsheet: circulator discharge S5, 8150 kPa(a) (D-003)
+    pressure_unit: bar(a)
+    is_polar: true                    # methanol and water (converter effluent, crude, both columns)
+    is_electrolyte: false             # no salts, acids or ions in the model (D-005: no by-products, no formic acid)
+    has_pseudocomponents: false       # seven pure compounds with CAS numbers (process/materials.yaml)
+    interaction_parameters_available: false  # uncertain: no sourced PR kij for the syngas/methanol/water pairs is recorded in this project (the balance script uses thermo's ChemSep set, DWSIM its own database); the conservative answer
+    liquid_liquid_expected: false     # methanol and water are fully miscible; the dissolved gases do not form a second liquid
+    vapor_association_expected: false # no carboxylic acids or HF (methanol's weak vapour-phase association is not this fact)
+  substitution: >-
+    The selection (Carlson tree) recommends PSRK or Peng-Robinson / RKS with modified
+    Huron-Vidal mixing rules for this polar mixture at 81.5 bar(a) without interaction
+    parameters; the DWSIM route runs none of them, and methods.yml names Peng-Robinson as their
+    executable substitute (it loses the polar mixing rule). One property package serves the
+    whole flowsheet (simulation.yaml takes no package per unit), and the loop with its
+    supercritical H2, CO, CO2, CH4 and N2 sets it. For the columns alone (C-201, C-202 at
+    110-200 kPa(a)) the same facts at 2 bar(a) recommend NRTL with interaction parameters known
+    (UNIFAC without), so methanol-water VLE under PR with DWSIM's own kij is the known weak spot
+    of this model, as are the methanol and water condensation in E-103 / V-101 at 75 bar and
+    CO2 solubility in the crude. Neither package is qualified here: methods.yml benchmarks DWSIM
+    PR for nitrogen, oxygen and argon only and DWSIM NRTL for ethanol-water bubble points at
+    101.3 kPa only, not methanol-water. PR is used on that basis, as in the balance script
+    (D-006), so that the run checks the script; to be confirmed by the reviewer (D-013).
+# Tears: the recycle loop (S12, recycle gas to the junction M-101) and the converter
+# feed/effluent exchanger (S6, E-102 cold outlet = converter feed, whose hot side is the
+# converter effluent). First guesses are the flowsheet's values (scripts/loop_balance.py,
+# D-006, and cheme process propagate); guesses only, never stream values.
+tear_streams: [S12, S6]
+guesses:
+  S12:
+    temperature: {value: 313.15, provenance: assumed}
+    pressure: {value: 7500, provenance: assumed}
+    flow: {value: 476375.0, basis: mass, provenance: assumed}
+    composition: {basis: mole_fraction, values: {H2: 0.60343771, CO: 0.03060702, CO2: 0.05290659, CH4: 0.2524232, N2: 0.05335568, CH3OH: 0.00685297, H2O: 0.00041683}, provenance: assumed}
+  S6:
+    temperature: {value: 498.15, provenance: assumed}
+    pressure: {value: 8100, provenance: assumed}
+    flow: {value: 607896.0, basis: mass, provenance: assumed}
+    composition: {basis: mole_fraction, values: {H2: 0.61875017, CO: 0.06748562, CO2: 0.05732527, CH4: 0.20693856, N2: 0.04368455, CH3OH: 0.00548238, H2O: 0.00033347}, provenance: assumed}
+specs:
+  # ---- CMP (D-010): one casing, no intercooling in the PFD; shaft power (no drive_efficiency:
+  # the design basis states no motor efficiency, Q1/Q3 carry the script's shaft power)
+  K101:
+    outlet_pressure: {value: 7550, provenance: assumed, source: D-010}
+    efficiency: {value: 0.75, provenance: assumed, source: "D-010: isentropic efficiency"}
+  E101:
+    outlet_temperature: {value: 313.15, provenance: assumed, source: "D-009: process coolers to 313.15 K"}
+    pressure_drop: {value: 50, unit: kPa, provenance: assumed, source: "D-003: 7550 -> 7500 kPa(a)"}
+  # ---- SYN (D-003, D-005, D-007); the junction M-101 takes no spec, the purge split is on
+  # the step SPL (D-007)
+  K102:
+    outlet_pressure: {value: 8150, provenance: assumed, source: D-003}
+    efficiency: {value: 0.75, provenance: assumed, source: "D-010: isentropic efficiency"}
+  E102:
+    cold_outlet_temperature: {value: 498.15, provenance: assumed, source: "D-003: converter inlet"}
+    cold_pressure_drop: {value: 50, unit: kPa, provenance: assumed, source: "D-003: 8150 -> 8100 kPa(a)"}
+    hot_pressure_drop: {value: 100, unit: kPa, provenance: assumed, source: "D-003: 7900 -> 7800 kPa(a) (S7 -> S8)"}
+  R101:
+    # Boiling-water converter (D-003): cooled, so run at its outlet temperature and the duty
+    # (heat to MP steam, Q4) is a result. Not adiabatic, so core #58 (DWSIM's adiabatic
+    # equilibrium reactor fails its flash) does not apply; never switch this to adiabatic
+    # without that fix. The 10 K approach comes from the step (D-005). reactions.yaml gives no
+    # equilibrium_constant, so DWSIM takes ln K from its own formation data: a difference to
+    # cheme's S7 (formation data of materials.yaml) is the check, not an error to silence.
+    mode: outlet_temperature
+    outlet_temperature: {value: 528.15, provenance: assumed, source: "D-003: converter outlet"}
+    pressure_drop: {value: 200, unit: kPa, provenance: assumed, source: "D-003: 8100 -> 7900 kPa(a)"}
+  E103:
+    outlet_temperature: {value: 313.15, provenance: assumed, source: "D-008: HP separator temperature"}
+    pressure_drop: {value: 300, unit: kPa, provenance: assumed, source: "D-003: 7800 -> 7500 kPa(a)"}
+  V101:
+    outlets: {vap: vapor, liq: liquid}   # adiabatic at the cooler outlet, 313.15 K and 7500 kPa(a) (D-008)
+  # ---- PUR (D-008)
+  V102:
+    # The let-down to 600 kPa(a) is isenthalpic (D-008), but the flowsheet has no valve before
+    # the drum, and a DWSIM vessel given only a pressure holds its inlet temperature (found in
+    # ammonia-1, decision 26 of its DESIGN.md). So the drum is run at the script's adiabatic
+    # flash temperature and its duty (about 0) is the check, as ammonia-1 does for V-701.
+    temperature: {value: 315.10, provenance: assumed, source: "scripts/loop_balance.py: isenthalpic let-down to 600 kPa(a) (D-006, D-008)"}
+    pressure: {value: 600, provenance: assumed, source: D-008}
+    outlets: {gas: vapor, liq: liquid}
+  C201:
+    # Topping column as a Fenske-Underwood-Gilliland shortcut with a partial condenser: the
+    # off-gas S16 is its vapour distillate (D-008). Keys: CO2, the heaviest dissolved gas, and
+    # methanol. The balance sends every dissolved gas overhead (D-008); the shortcut needs a
+    # nonzero light key in the bottoms, 1e-6 stands for that (ASSUMED, D-013). The methanol in
+    # the off-gas is the script's S16 (methanol at its vapour pressure at 313.15 K and 150
+    # kPa(a)). Reflux: D-008's 0.3 kmol per kmol feed is L = 1219.8 kmol/h on S15
+    # (4065.9 kmol/h) against D = 33.80 kmol/h of S16, so L/D = 36.08 (ASSUMED, D-008).
+    # The partial condenser's temperature is a result: the 313.15 K of S16 is the check.
+    light_key: CO2
+    heavy_key: CH3OH
+    light_key_in_bottoms: 1.0e-6         # ASSUMED (D-013): "no dissolved gas in the bottoms" of D-008
+    heavy_key_in_distillate: 0.22571202  # scripts/loop_balance.py, S16 methanol mole fraction (D-008)
+    reflux_ratio: 36.08                  # ASSUMED, D-008: 0.3 kmol reflux per kmol feed, as L/D
+    condenser: partial
+    condenser_pressure: {value: 150, provenance: assumed, source: D-008}
+    reboiler_pressure: {value: 200, provenance: assumed, source: D-008}
+    outlets: {top: distillate, bot: bottoms}
+  C202:
+    # Refining column as a shortcut (D-008: stages and minimum reflux not yet calculated; the
+    # shortcut prints both, the first numbers of a rigorous column later). Keys methanol and
+    # water at the D-008 product and bottoms specifications as mole fractions (S18 0.05 wt%
+    # water, S19 100 ppm(wt) methanol). The distillate leaves at its bubble point at
+    # 110 kPa(a): the flowsheet's S18 (313.15 K, 300 kPa(a), subcooled and pumped, D-008) has
+    # no product cooler or pump step, so S18's temperature and pressure will deviate (D-013).
+    light_key: CH3OH
+    heavy_key: H2O
+    light_key_in_bottoms: 0.00005623     # D-008: 100 ppm(wt) methanol in S19, as mole fraction
+    heavy_key_in_distillate: 0.00088895  # D-008: 0.05 wt% water in S18, as mole fraction
+    reflux_ratio: 1.5                    # ASSUMED, D-008
+    condenser: total
+    condenser_pressure: {value: 110, provenance: assumed, source: D-008}
+    reboiler_pressure: {value: 200, provenance: assumed, source: D-008}
+    outlets: {top: distillate, bot: bottoms}
