@@ -904,10 +904,12 @@ any:
   laydown lies on a pad.
 - **PG-1120** (V-502 relief to the flare header) now runs at x = 246 m, west of V-501, instead
   of over it (piping/routing.yaml).
-- **E-504 moved 2 m north** (235, 62), so that its lane no longer meets the PR-7 bents.
+- **E-504** was tried 2 m north, which cleared the PR-7 bents from its lane, but the reroute
+  that followed put PG-1107 under the V-501 platform (`layout-headroom`). It stays at
+  (235, 60).
 
-The 11 lanes left are blocked by the item's own piping, the adjacent exchanger's piping or,
-for H-101, its own catalyst tubes and headers. No pad position clears them; only the erection
+The 11 lanes left are blocked by the item's own piping, the adjacent exchanger's piping, the
+PR-7 bents (E-504) or, for H-101, its own catalyst tubes and headers. No pad position clears them; only the erection
 sequence does: H-101, E-104, E-402, E-301, E-303, K-501, E-501, E-502, E-505, E-504, V-701.
 They are listed for the owner, with the lifting plan's reason for each, in
 build/lifting-acceptance-proposal.md (copied into the PR). None is accepted, so the gate
