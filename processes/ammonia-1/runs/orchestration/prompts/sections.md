@@ -103,6 +103,70 @@ Rebuild layout, MTO and estimate; `cheme validate` 0 errors; `cheme check --stag
 report each gate. End with STATUS: DONE when both gates pass, else BLOCKED with the exact
 remaining requirement. The reviews after this job are the S5r reviews (topics `design`, `layout`).
 
+## S5c basic close-out with the owner's decisions (on stage/basic-layout, PR #257; interventions I-006)
+The branch now holds S5, S5b, S6-S8 (via main) and S9 (#264 merged into it). The owner (a
+human, the project owner) decided on 2026-10-30, recorded as I-006 in `runs/interventions.md`:
+- **Lifting:** the owner accepts the 8 lanes H-101, E-104, E-402, K-501, E-501, E-502, E-505,
+  E-504 with the lifting plan's reason in `build/lifting-acceptance-proposal.md` (regenerate it
+  if missing). Record the acceptance the way `cheme layout lifting` documents, with accepted_by
+  `owner (I-006, 2026-10-30)` and the reason. The other lanes (cable trays over K-101, K-102,
+  K-103, K-701 added in S9, and any other) are **not** accepted: clear them by design (tray route
+  or elevation, crane pad on the free side, lift lane); if core cannot do it (core#73), stop and
+  say so precisely.
+- **Buried cooling-water road crossings:** the owner accepts the 4 `cheme.layout-headroom`
+  findings of the buried DN 1400 headers under roads R-5/R-6 (reason: buried crossing in a sleeve
+  under the road; core#70), accepted_by `owner (I-006, 2026-10-30)`.
+- **Feed specification:** this is a paper case study; the owner approves a *representative*
+  feed specification. Give the natural gas (S1), process and combustion air (S12, S61) and
+  water feeds (S26, S70) a representative composition and conditions with provenance `given`
+  and a published source (a representative pipeline natural gas, standard dry air, demineralised
+  water), with the owner's approval (I-006) named in the source note; flows follow from the
+  design capacity in the design basis (say so in the source). If the composition changes the
+  gas, rerun `cheme process simulate --fill` and carry the effects. S5b saw the boiler duty jump
+  130 -> 197.5 MW with the EBTF gas and reverted (D-034): find and explain the cause before
+  accepting a change of that size; if you cannot, choose a representative published lean gas
+  close to the current one.
+- **Furnace H-101 model basis:** give the fuel combustion a sourced model basis (complete
+  combustion of the fuel with excess air is standard design practice: cite a published source
+  for it) so `maturity-balanced` passes; likewise any other step `cheme maturity` names.
+- **Risk matrix:** the owner allows an assumed matrix. Replace the example 4x4 in
+  `safety/risk-matrix.yaml` with a project matrix close to industry practice (e.g. 5x5,
+  order-of-magnitude frequency bands per year, severity for people, environment, asset,
+  reputation), written in our own words with the published practice it follows cited, marked
+  ASSUMED, `example: false`, accepted_by `owner (I-006, 2026-10-30), assumed for the paper case`.
+  Re-rate the HAZOP with `cheme safety hazop rate --write`; HAZOP entries stay `status: proposed`.
+- **Estimate:** look up online a published cost index (CEPCI, value and year), published bulk
+  unit rates and installation/factor-method factors (open literature, textbooks, public cost
+  guides), each in `estimate/rates.yaml` with status, source (URL/DOI, locator) and year, in our
+  own words. Equipment costs from the sized datasheets. Bring the estimate to class 4 (state the
+  accuracy range and what is ASSUMED), rebuild `cheme assess estimate --write`, update the TEA.
+- **Datasheets:** fill the main dimensions the detail gate `datasheets` reports missing
+  (`cheme datasheets fill`, sized from the simulation, provenance on every value).
+Then: rebuild layout, MTO, estimate; `cheme validate` 0 errors; `cheme check` (all stages) and
+`cheme maturity`, report each gate. STATUS: DONE when every basic gate except the two review
+gates passes, else BLOCKED with the exact remaining requirement. The reviews after this job are
+the basic reviews (topics `design`, `layout`), then the basic sign-off and merge.
+
+## S5e lifting lanes with motor cable entry points (on stage/basic-layout, PR #257; I-007)
+cheme is now core v1.1.0 (installed; the same version CI pins): a motor's `cable_entry` in
+`electrical/electrical-list.yaml` ends its tray beside the machine (core#73, ADR 0035; skill
+`electrical-cabling`). S5c (D-041) left gate `lifting-study` failing on the lanes of K-101,
+K-102, K-103 and K-701, blocked by their motor trays; the owner did not accept these and asked
+to clear them by design (I-007). Also, three lanes the owner accepted in I-006 (K-501, E-504,
+E-505) picked up extra blockers in S9 (K-501 motor tray, E-504 instrument tray, E-505 cooling-water
+lines of E-503): clear those extra blockers by design too where possible, and otherwise say so;
+the acceptance covers only the blockers named in the original proposal.
+1. Run `cheme skills update` for the skills changed in 1.1.0 (keep local changes, report them).
+2. Give cable entry points to K-101, K-102, K-103, K-701 and K-501 (side away from the lift lane,
+   real terminal-box side where the datasheet says), rebuild `cheme layout build`, then
+   `cheme layout lifting`; fix the remaining tray/line blockers by routing intents, pad or lane
+   changes. Never accept a lane yourself.
+3. Rebuild cable schedule (`cheme layout cables --write`), MTO and estimate if quantities moved;
+   `cheme validate` 0 errors; `cheme check` and `cheme maturity`; DESIGN.md decision (next free
+   D-number) and PROGRESS.md; commit; `build/pr-comment.md` short summary.
+STATUS: DONE when every basic gate except the two review gates passes, else BLOCKED with the
+exact remaining requirement. The basic reviews (topics `design`, `layout`), sign-off and merge follow.
+
 ## S6 HAZOP (branch stage/basic-hazop)
 HAZOP of all P&IDs (skills `hazop-study`, `hazop-equipment-causes`, `hazop-assessment`,
 `safeguard-crediting`): nodes, deviations, causes, consequences, safeguards, actions; rated with

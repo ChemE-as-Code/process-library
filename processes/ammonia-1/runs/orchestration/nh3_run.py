@@ -64,6 +64,13 @@ SECTIONS = [  # id, tag, branch, worktree, cap, task key in sections.md, signoff
     # O-041: S5 (#257) waits for the owner; S9 stacks on it: base stage/basic-layout, brought up to
     # date with main by a sync job first; the S9 PR is approved but not merged (stacked).
     dict(id="S9", base="stage/basic-layout", sync="nh3-basic-layout", no_merge=True, tag="S9", branch="stage/detail-gates", wt="nh3-detail-gates", cap=15, key="S9", reviews=["detail-gates"]),
+    # I-006: owner decisions on #257; close-out, basic reviews, sign-off, merge to main.
+    dict(id="S5c", tag="S5", branch="stage/basic-layout", wt="nh3-basic-layout", cap=30, key="S5c",
+         reviews=["design", "layout"], signoff="basic"),
+    # I-007: S5c's implement is done (BLOCKED on core#73); core 1.1.0 adds cable_entry. S5e clears the
+    # tray lanes, then the basic reviews, sign-off and merge to main (S5c's own reviews never ran).
+    dict(id="S5e", tag="S5", branch="stage/basic-layout", wt="nh3-basic-layout", cap=12, key="S5e",
+         reviews=["design", "layout"], signoff="basic"),
 ]
 
 
