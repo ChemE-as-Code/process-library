@@ -1,6 +1,6 @@
 # Processes
 
-<!-- readme: ## Processes | body -->
+<!-- include: REFERENCE.md :: ## Processes | body -->
 
 Each published process has a page generated from its `process.yaml` and its folder's README.md.
 The publication rules of [Contributing](../contributing.md) apply: only a process with

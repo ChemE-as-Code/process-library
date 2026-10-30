@@ -1,0 +1,135 @@
+# Pipe routing intent of the basic 3D layout (D-036). Schema: `cheme schema routing`.
+# Router defaults apply where nothing is said here (local_max_m 15, pipe-way 3.5 m, spacing
+# 0.1 m, road headroom 6 m: each ASSUMED package value). Battery limit points are ASSUMED
+# (D-036): the import lines enter at the west end of PR-1, exports, the flare header and the
+# product leave at its east end (the flare, storage and utilities are outside the boundary,
+# D-001), the furnace stack and the CO2 vent stack stand next to their sources.
+schema: cheme/routing/v1
+rules:
+  # the CO2 vent and the CO2 relief outlet discharge above every platform near them: their
+  # outlets rise until the zone sphere (Z-O2D-CO2) clears the walking levels (D-036)
+  vents:
+    - {lines: [CO2-1068, CO2-1076], max_rise_m: 20}
+  battery_limits:
+    - {id: BL-west-imports, lines: [NG-1001, DW-1073, DW-1137], rack: PR-1, rack_end: start}
+    - {id: BL-east-exports, lines: [AL-1128, SM-1140, BD-1141], rack: PR-1, rack_end: end}
+    - {id: BL-flare, lines: ["FLR-*"], rack: PR-1, rack_end: end}
+    - {id: CO2-vent-stack, lines: [CO2-1142], point: [213, 197, 3]}
+    # cooling water (S9, D-038): the P-114 headers are a reverse return, supply from the K-101
+    # end (west), return leaving past K-701 (east); the cooling water plant is outside the
+    # boundary (D-001), its mains meet the headers at the PR-1 ends (ASSUMED)
+    - {id: BL-cw-supply, lines: [CWS-1144], rack: PR-1, rack_end: start}
+    - {id: BL-cw-return, lines: [CWR-1145], rack: PR-1, rack_end: end}
+lines:
+  # furnace ductwork (D-036): the flue gas path through the convection section and the
+  # combustion air ducts are the furnace package's ductwork (DN 1800 to 4000), drawn with the
+  # furnace, not pipe routes; the coil banks E-103, E-102, E-104, E-101, E-106 and E-107 stand
+  # in the flue gas duct itself (D-022 modelling)
+  - {line: CA-1012, skip: "combustion air duct K-102 to E-106, furnace package ductwork (D-036)"}
+  - {line: CA-1013, skip: "preheated combustion air duct E-106 to the H-101 burners, furnace package ductwork (D-036)"}
+  - {line: FL-1014, skip: "flue gas duct H-101 radiant box to the convection section, furnace package ductwork (D-036)"}
+  - {line: FL-1015, skip: "flue gas path through the convection section (coil bank in the duct), furnace package (D-036)"}
+  - {line: FL-1016, skip: "flue gas path through the convection section (coil bank in the duct), furnace package (D-036)"}
+  - {line: FL-1017, skip: "flue gas path through the convection section (coil bank in the duct), furnace package (D-036)"}
+  - {line: FL-1018, skip: "flue gas path through the convection section (coil bank in the duct), furnace package (D-036)"}
+  - {line: FL-1019, skip: "flue gas path through the convection section (coil bank in the duct), furnace package (D-036)"}
+  - {line: FL-1020, skip: "flue gas duct E-107 to the ID fan K-103, furnace package ductwork (D-036)"}
+  # P-301B suction branch along the north side of the pumps at suction height, apart from the
+  # AM-1058 drop to P-301A (D-036)
+  - {line: AM-1061, via: [[167.5, 192.5, 1.5], [174.8, 192.5, 1.5]]}
+  # P-301B discharge to the AM-1059 tee over the P-301A motor's cable drop (tray PT-M-P-301A
+  # at 3 m) instead of through it (S9, D-039)
+  - {line: AM-1062, elevation: 4.5}
+  # process air to E-104: off the tee of the PA-1031 vent branch westwards before dropping
+  # onto PR-2, clear of its own run down PR-3 (D-036)
+  - {line: PA-1022, segment: P-103/Line_PA1022_S3, via: [[141.5, 142.188, 10.21], [141.5, 144.813, 10.21]]}
+  # relief discharges from the loop separators and the refrigerant receiver to the flare
+  # header: up from the safety valve and over the vessel platforms at 9.6 m (D-036)
+  - {line: PG-1119, elevation: 9.6}
+  # PG-1120 (V-502 relief): west of V-501 instead of over it, so that the separator's crane
+  # lane from CP-503 stays clear (S5b, D-037)
+  - {line: PG-1120, elevation: 9.6, segment: P-110/Line_PG1120_S1, via: [[246, 47, 9.6], [246, 78.356, 9.6]]}
+  - {line: AG-1134, elevation: 9.6}
+  # pinned (S5b fix, layout-s5b#1, D-037): AL-1129 leaves PR-7 east of V-701 and drops to the
+  # T1129 tee at grade, instead of running north along the vessel crown at 8.85 m, so that
+  # V-701's lane from CP-703 (south) is clear
+  - {line: AL-1129, segment: P-111/Line_AL1129_S1, route: [[234.219, 56.732, 8.017], [326.0, 56.732, 8.017], [326.0, 56.732, 8.851], [326.0, 71.663, 8.851], [326.0, 71.663, 0.629], [320.0, 71.663, 0.629]]}
+  # pinned (S5b fix, layout-s5b#1, D-037): DW-1073 leaves PR-4 east of X-401 and reaches V-302
+  # from the north, instead of running north at 8.85 m over E-301, E-302 and E-303, whose
+  # lanes it blocked. S5b fix r2 (layout-s5b-r2#1): the grade leg runs at x 229, in the 2 m gap
+  # between X-401 (east face 228) and CP-203 (west edge 230), off the pad; at y 195.5 it rises to
+  # 8.0 m and crosses westward as an elevated run, so vehicles from R-2 reach CP-211, CP-212 and
+  # X-401 under it (about 7.9 m clear) and no grade run lies across their access
+  - {line: DW-1073, segment: P-106/Line_DW1073_S1, route: [[20.0, 106.067, 10.017], [254.0, 106.067, 10.017], [254.0, 106.067, 10.851], [257.0, 106.067, 10.851], [257.0, 110.067, 10.851], [256.933, 110.067, 10.851], [256.933, 110.067, 9.017], [256.933, 162.0, 9.017], [256.933, 162.0, 9.851], [256.933, 164.0, 9.851], [254.0, 164.0, 9.851], [254.0, 163.97, 9.851], [254.0, 163.97, 8.017], [229.0, 163.97, 8.017], [229.0, 163.97, 0.6], [229.0, 195.5, 0.6], [229.0, 195.5, 8.017], [209.5, 195.5, 8.017], [209.5, 195.5, 3.102], [209.5, 192.0, 3.102], [208.417, 192.0, 3.102]]}
+  - {line: FL-1021, skip: "flue gas duct K-103 to the stack, furnace package ductwork; the stack is part of H-101 (D-036)"}
+  # pinned after review (D-036): NG-1001 leaves PR-1 north of its strip and drops onto PR-10
+  # between the bents (the generated route lay in the PR-10 beam at y = 110); BD-1141 rises off
+  # PR-5 at y = 113 instead of on the PR-1 centreline, where PC-1048 crosses over
+  - {line: NG-1001, segment: P-101/Line_NG1001_S1, route: [[20.0, 113.865, 10.084], [132.454, 113.865, 10.084], [132.454, 114.6, 10.084], [132.454, 114.6, 9.084], [132.454, 142.5, 9.084], [132.454, 142.5, 10.052], [132.454, 142.0, 10.052], [132.954, 142.0, 10.052], [132.954, 144.0, 10.052], [134.454, 144.0, 10.052], [134.454, 144.0, 8.052], [134.454, 144.226, 8.052], [134.454, 144.226, 8.084], [99.0, 144.226, 8.084], [99.0, 144.226, 9.052], [99.0, 149.313, 9.052]]}
+  - {line: BD-1141, segment: P-113/Line_BD1141_S1, route: [[289.829, 160.8, 9.0], [289.529, 160.8, 9.0], [289.529, 160.8, 11.864], [289.529, 162.0, 11.864], [286.928, 162.0, 11.864], [286.928, 162.0, 11.021], [286.928, 113.0, 11.021], [286.928, 113.0, 12.735], [285.0, 113.0, 12.735], [285.0, 113.928, 12.735], [285.0, 113.928, 10.021], [340.0, 113.928, 10.021]]}
+  # pinned after review (D-036): SL-1135 and PC-1136 as generated, except where they met
+  # BW-1025 at the PR-1/PR-5 junction (SL-1135 drops 0.6 m further west) and SM-1040 beside
+  # U-801 (PC-1136 drops off PR-4 short of PR-5 and runs to its nozzle at 5.5 m)
+  - {line: SL-1135, segment: P-112/Line_SL1135_S1, route: [[207.46, 107.351, 10.038], [133.916, 107.351, 10.038], [133.916, 107.351, 9.914], [133.916, 107.5, 9.914], [133.916, 107.5, 10.914], [132.916, 107.5, 10.914], [132.916, 107.5, 9.038], [132.916, 55, 9.038], [132.916, 55, 9.914], [132.916, 54.512, 9.914], [123, 54.512, 9.914], [123, 54.512, 8.22], [123, 54.812, 8.22]]}
+  - {line: SL-1135, segment: P-113/Line_SL1135_S1, route: [[289.812, 158.8, 9], [289.512, 158.8, 9], [289.512, 159.8, 9], [289.512, 159.8, 11.914], [287.704, 159.8, 11.914], [287.704, 158.8, 11.914], [286.204, 158.8, 11.914], [286.204, 158.8, 11.038], [286.204, 110, 11.038], [286.204, 110, 12.476], [286.204, 107.351, 12.476], [284.4, 107.351, 12.476], [284.4, 107.351, 10.038], [207.46, 107.351, 10.038]]}
+  - {line: PC-1136, segment: P-112/Line_PC1136_S1, route: [[126, 54.833, 6.45], [126, 54.533, 6.45], [126, 54.533, 9.45], [126, 54.033, 9.45], [126, 54.033, 9.851], [133, 54.033, 9.851], [133, 54.033, 8.851], [133.071, 54.033, 8.851], [133.071, 54.033, 9.017], [133.071, 108, 9.017], [133.071, 108, 10.851], [134.071, 108, 10.851], [134.071, 108, 10.351], [135.071, 108, 10.351], [135.071, 107.5, 10.351], [135, 107.5, 10.351], [135, 107.506, 10.351], [135, 107.506, 10.017], [212.156, 107.506, 10.017]]}
+  - {line: PC-1136, segment: P-113/Line_PC1136_S1, route: [[212.156, 107.506, 10.017], [254, 107.506, 10.017], [254, 107.506, 10.851], [254.5, 107.506, 10.851], [254.5, 107.506, 10.351], [254.5, 109.506, 10.351], [256.5, 109.506, 10.351], [256.5, 109.506, 9.351], [256.5, 110.006, 9.351], [256.425, 110.006, 9.351], [256.425, 110.006, 9.017], [256.425, 162, 9.017], [256.425, 162, 9.851], [255.925, 162, 9.851], [255.925, 163.5, 9.851], [254.425, 163.5, 9.851], [254.425, 163.5, 7.851], [254.425, 163.702, 7.851], [254.425, 163.702, 8.017], [287.5, 163.702, 8.017], [287.5, 163.702, 5.5], [287.5, 164, 5.5], [289.833, 164, 5.5]]}
+  - {line: PC-1048, segment: P-104/Line_PC1048_S1, route: [[200, 128, 0.98], [200, 128, 0.68], [202.42, 128, 0.68], [202.42, 128, 11.01], [202.42, 112.68, 11.01], [202.42, 112.68, 10.07], [256.951, 112.68, 10.07]]}
+  - {line: PC-1048, segment: P-113/Line_PC1048_S1, route: [[256.951, 112.68, 10.07], [285, 112.68, 10.07], [285, 112.68, 9.07], [288.16, 112.68, 9.07], [288.16, 158.5, 9.07], [289.16, 158.5, 9.07], [289.16, 158.5, 8.07], [289.48, 158.5, 8.07], [289.48, 158.5, 7.93], [289.48, 158, 7.93], [289.48, 158, 5.5], [289.78, 158, 5.5]]}
+  - {line: PC-1084, segment: P-107/Line_PC1084_S1, route: [[228.167, 188, 4.091], [228.467, 188, 4.091], [228.467, 188, 8.851], [228.467, 165.031, 8.851], [228.467, 165.031, 8.017], [228.467, 164.531, 8.017], [249.493, 164.531, 8.017]]}
+  # cooling water headers (S9, D-038): buried along PR-1, centreline 3.0 m below grade
+  # (ASSUMED), supply at y 108.5, return at y 111.5; the tees in the P-114 order. Given here
+  # because the router cannot start a chain whose both ends are battery limits (BL west/east,
+  # the dead header ends "CW users"). The branches run buried at 1.8 m below grade (centreline,
+  # ASSUMED), over the headers, and rise at their user; the long branches along the headers
+  # have lanes of their own (north of the return header, south of the supply header) so that
+  # they pass over no other branch's tee (a branch chain runs from its user to its tee, so the
+  # via points are in that order)
+  - {line: CWS-1041, elevation: -1.8}
+  - {line: CWR-1042, elevation: -1.8}
+  - {line: CWS-1052, elevation: -1.8, via: [[219.653, 114.0, -1.8], [205, 114.0, -1.8]]}
+  # the returns with a temperature control valve (TV-1306, TV-1408, TV-1608) leave their side
+  # nozzle level for 1.5 m before going down, so that the valve stands above grade
+  # (TV-1306, DN 700: its handwheel is out of reach from grade; valve access platform
+  # VP-TV-1306 south of it, the return turning west clear of its columns)
+  - {line: CWR-1053, via: [[222.923, 142.1, 1.25], [221.3, 142.1, 1.25], [221.3, 142.1, -1.8], [221.3, 115.5, -1.8], [206, 115.5, -1.8]]}
+  - {line: CWS-1063, elevation: -1.8}
+  - {line: CWR-1064, via: [[206.214, 172.3, 0.4], [206.214, 171.0, 0.4], [206.214, 171.0, -1.8], [208.5, 113.0, -1.8]]}
+  - {line: CWS-1074, elevation: -1.8}
+  - {line: CWR-1075, elevation: -1.8}
+  - {line: CWS-1085, elevation: -1.8, via: [[241.705, 117.0, -1.8], [212.5, 117.0, -1.8]]}
+  - {line: CWR-1086, via: [[245.045, 149.5, 0.9], [245.045, 149.5, -1.8], [245.045, 118.5, -1.8], [213.5, 118.5, -1.8]]}
+  - {line: CWS-1091, elevation: -1.8, via: [[181.377, 106.0, -1.8], [215, 106.0, -1.8]]}
+  - {line: CWR-1092, elevation: -1.8, via: [[182.377, 104.5, -1.8], [216, 104.5, -1.8]]}
+  - {line: CWS-1115, elevation: -1.8}
+  - {line: CWR-1116, elevation: -1.8}
+  - {line: CWS-1130, elevation: -1.8, via: [[297.0, 106.0, -1.8], [289, 106.0, -1.8]]}
+  - {line: CWR-1131, elevation: -1.8}
+  - {line: CWS-1132, elevation: -1.8}
+  - {line: CWR-1133, elevation: -1.8}
+  - {line: CWS-1144, segment: P-114/Line_CWS1144_S1, route: [[20, 108.5, -3.0], [127, 108.5, -3.0]]}
+  - {line: CWS-1144, segment: P-114/Line_CWS1144_S2, route: [[127, 108.5, -3.0], [205, 108.5, -3.0]]}
+  - {line: CWS-1144, segment: P-114/Line_CWS1144_S3, route: [[205, 108.5, -3.0], [207.5, 108.5, -3.0]]}
+  - {line: CWS-1144, segment: P-114/Line_CWS1144_S4, route: [[207.5, 108.5, -3.0], [210, 108.5, -3.0]]}
+  - {line: CWS-1144, segment: P-114/Line_CWS1144_S5, route: [[210, 108.5, -3.0], [212.5, 108.5, -3.0]]}
+  - {line: CWS-1144, segment: P-114/Line_CWS1144_S6, route: [[212.5, 108.5, -3.0], [215, 108.5, -3.0]]}
+  - {line: CWS-1144, segment: P-114/Line_CWS1144_S7, route: [[215, 108.5, -3.0], [232, 108.5, -3.0]]}
+  - {line: CWS-1144, segment: P-114/Line_CWS1144_S8, route: [[232, 108.5, -3.0], [289, 108.5, -3.0]]}
+  - {line: CWS-1144, segment: P-114/Line_CWS1144_S9, route: [[289, 108.5, -3.0], [292, 108.5, -3.0]]}
+  - {line: CWS-1144, segment: P-114/Line_CWS1144_S10, route: [[292, 108.5, -3.0], [295, 108.5, -3.0]]}
+  - {line: CWR-1145, segment: P-114/Line_CWR1145_S1, route: [[125, 111.5, -3.0], [128, 111.5, -3.0]]}
+  - {line: CWR-1145, segment: P-114/Line_CWR1145_S2, route: [[128, 111.5, -3.0], [206, 111.5, -3.0]]}
+  - {line: CWR-1145, segment: P-114/Line_CWR1145_S3, route: [[206, 111.5, -3.0], [208.5, 111.5, -3.0]]}
+  - {line: CWR-1145, segment: P-114/Line_CWR1145_S4, route: [[208.5, 111.5, -3.0], [211, 111.5, -3.0]]}
+  - {line: CWR-1145, segment: P-114/Line_CWR1145_S5, route: [[211, 111.5, -3.0], [213.5, 111.5, -3.0]]}
+  - {line: CWR-1145, segment: P-114/Line_CWR1145_S6, route: [[213.5, 111.5, -3.0], [216, 111.5, -3.0]]}
+  - {line: CWR-1145, segment: P-114/Line_CWR1145_S7, route: [[216, 111.5, -3.0], [233, 111.5, -3.0]]}
+  - {line: CWR-1145, segment: P-114/Line_CWR1145_S8, route: [[233, 111.5, -3.0], [290, 111.5, -3.0]]}
+  - {line: CWR-1145, segment: P-114/Line_CWR1145_S9, route: [[290, 111.5, -3.0], [293, 111.5, -3.0]]}
+  - {line: CWR-1145, segment: P-114/Line_CWR1145_S10, route: [[293, 111.5, -3.0], [340, 111.5, -3.0]]}
+  - {line: PC-1084, segment: P-113/Line_PC1084_S1, route: [[249.493, 164.531, 8.017], [288.683, 164.531, 8.017], [288.683, 164.531, 6.5], [288.683, 161, 6.5], [288.683, 161, 5.5], [289.833, 161, 5.5]]}
+notes: >-
+  ASSUMED (D-036): battery limit points at the PR-1 ends; the CO2 vent stack is represented by
+  its foot north-east of V-302. Furnace ductwork is skipped as package scope. Cooling water
+  (S9, D-038): headers and branches buried (depths ASSUMED), battery limits at the PR-1 west
+  (supply) and east (return) ends ASSUMED.

@@ -1,5 +1,27 @@
 # EXAMPLE RATES - THEY PRICE NOTHING. Schema: `cheme schema rates`.
 #
+# ammonia-1 (S5b fix, design-s5b-r2#1, D-035): the indirect and contingency factors are now
+# published values with their sources. The unit rates and the two erection factors are still the
+# placeholders: no openly published, citable set of bulk unit prices (pipe per metre by DN,
+# fittings, valves, steel per tonne) for this scope was found, so they wait for the owner's or a
+# contractor's prices. That, not the licence, is why `example: true` stays.
+#
+# S5d (D-045): searched again for open bulk unit rates; none found. The class 4 capital estimate
+# no longer needs them: it is the equipment-factored estimate of estimate/equipment-cost.md, whose
+# bare module factors (Turton et al.) already hold each item's piping, instruments, electrical,
+# foundations, structural steel, insulation, paint, erection labour and indirects. The factor
+# method the job asked for is therefore applied per equipment item in estimate/cost-basis.yaml,
+# not here: a factor in this file multiplies the take-off's own material cost (schema: applies_to
+# take-off categories), and a per-equipment installation factor cannot be written in it. The
+# take-off (estimate/mto.md) stays the check of the bulk quantities. Cross-check of the factor
+# level: Towler and Sinnott, Chemical Engineering Design, 3rd ed. (2022), installation factors
+# for fluids plants (erection 0.3, piping 0.8, instruments 0.3, electrical 0.2, civil 0.3,
+# structures 0.2, lagging and paint 0.1, as listed in the OpenPyTEA documentation, "Process
+# installation factors"): 3.2 x purchased cost for a carbon-steel item, against Turton's FBM 3.2
+# (CS exchanger) and 4.1 (CS vertical vessel) at low pressure; Hand's factors (1958) 3.5 for
+# exchangers, 4 for vessels, 2.5 for compressors (van Amsterdam, MSc thesis TU Delft 2018, Table
+# 3.13). So `example: true` stays, and `cheme assess estimate` remains an example.
+#
 # This file shows the shape of the project's unit rates and estimate factors. The numbers are
 # round placeholders in no currency (XXX, ISO 4217 "no currency"), not prices: cheme-as-code holds
 # no cost data. `cheme assess estimate` warns while `example: true` stands, and a gate that
@@ -36,6 +58,10 @@ factors:
   # direct: factor x the material cost of the categories in applies_to (all when empty)
   - {id: piping-erection, title: "Piping erection and testing", kind: direct, factor: 1, applies_to: [pipe, elbow, tee, reducer, flange, gasket, valve, inline, insulation], status: ASSUMED, source: "EXAMPLE placeholder, not a factor", year: 2026}
   - {id: steel-erection, title: "Steel and grating erection", kind: direct, factor: 1, applies_to: [steel, grating], status: ASSUMED, source: "EXAMPLE placeholder, not a factor", year: 2026}
+  # The two erection factors above stay placeholders: no published factor for erection labour
+  # as a multiple of the bulk material cost was found; they need the contractor's labour norms
+  # (D-035, design-s5b-r2#1). The indirect and contingency factors below are published values.
   # indirect: factor x the direct cost; contingency: factor x direct plus indirect cost
-  - {id: indirects, title: "Engineering and construction management", kind: indirect, factor: 0.1, status: ASSUMED, source: "EXAMPLE placeholder, not a factor", year: 2026}
-  - {id: contingency, title: "Contingency", kind: contingency, factor: 0.1, status: ASSUMED, source: "EXAMPLE placeholder, not a factor", year: 2026}
+  - {id: design-engineering, title: "Design and engineering", kind: indirect, factor: 0.30, status: ASSUMED, source: "Towler and Sinnott, Chemical Engineering Design, 2nd ed. (Butterworth-Heinemann, 2013), Table 6.3 'Typical factors for estimation of project fixed capital cost', design and engineering (D&E) for fluids processing: 0.30 of ISBL plus OSBL", year: 2013, notes: "applied here to the direct bulk cost; Towler and Sinnott give a lower share (about 0.10) for large projects, 0.30 kept as the table's fluids value (ASSUMED reading)"}
+  - {id: contractor-fee, title: "Contractor's fee", kind: indirect, factor: 0.03, status: ASSUMED, source: "Turton, Bailie, Whiting, Shaeiwitz and Bhattacharyya, Analysis, Synthesis, and Design of Chemical Processes, 4th ed. (Prentice Hall, 2012), section 7.3, total module cost: fee 0.03 of the bare module cost", year: 2012}
+  - {id: contingency, title: "Contingency", kind: contingency, factor: 0.15, status: ASSUMED, source: "Turton et al. (2012), section 7.3, total module cost: contingency 0.15 of the bare module cost; above the minimum of 0.10 in Towler and Sinnott (2013), Table 6.3", year: 2012}

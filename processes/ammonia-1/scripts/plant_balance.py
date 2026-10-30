@@ -50,8 +50,13 @@ CRIT = {c["id"]: SimpleNamespace(**{k: c["critical"][k] for k in ("Tc", "Pc", "o
 
 # ---- design basis and ASSUMED design choices (DESIGN.md)
 NH3_KG_H = 1500e3 / 24                                   # D-002 contained NH3
-NG = {"CH4": 0.910, "C2H6": 0.040, "C3H8": 0.010, "CO2": 0.010, "N2": 0.030}   # D-004 ASSUMED
-AIR = {"N2": 0.78080, "O2": 0.20946, "AR": 0.00934, "CO2": 0.00040}            # dry air, D-004
+# D-040 (I-006): Enbridge Gas typical analysis, trace C4+ (0.027 mol%) counted as C3H8, O2 and
+# H2 traces (0.015 mol%) left out, normalised; until S5c the ASSUMED D-004 gas
+# {"CH4": 0.910, "C2H6": 0.040, "C3H8": 0.010, "CO2": 0.010, "N2": 0.030}
+NG = {"CH4": 0.9467, "C2H6": 0.0440, "C3H8": 0.0023, "CO2": 0.0030, "N2": 0.0040}
+# D-040: dry air of the NASA Earth Fact Sheet (2024), normalised; until S5c N2 0.78080,
+# O2 0.20946, Ar 0.00934, CO2 0.00040
+AIR = {"N2": 0.78075, "O2": 0.20949, "AR": 0.00934, "CO2": 0.00042}
 T_AMB, P_AMB = 288.15, 101.325
 S_C = 3.0                       # D-007 steam to hydrocarbon carbon
 T_R100_IN, T_R101_IN, T_R101 = 773.15, 893.15, 1083.15   # D-007

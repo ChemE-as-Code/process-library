@@ -23,25 +23,22 @@ basis:
   location: NL (Rotterdam area)
 case: design
 capex:
-  # Reference: IEAGHG Technical Report 2017-03 (Amec Foster Wheeler for IEAGHG), Case 4A-1,
-  # Table 1 (report sheet 26 of 80): installed cost of the ammonia/urea plant 493 MEUR at 4Q2014
-  # prices (class 4 in the report), greenfield, north-east Netherlands, SMR with air-blown
-  # secondary reformer. The value here is 493 MEUR x 0.70, the ammonia share of the
-  # ammonia/urea complex, ASSUMED (the report does not split it; D-023). Installed cost with EPC
-  # services; contingency, utilities/BoP and owner's cost are added below.
+  # S5d (D-045): the ISBL is the equipment-factored estimate of estimate/equipment-cost.md (the
+  # bare module costs of the listed items, Turton et al. CAPCOST correlations with the factors of
+  # estimate/cost-basis.yaml, 2023 USD), AACE 18R-97 class 4. Until S5c it was the class 5
+  # capacity-factored IEAGHG 2017-03 Case 4A-1 reference (493 MEUR 4Q2014 x ammonia share 0.70,
+  # scaled 1500/1350 t/d with exponent 0.67, escalated 1.397: 736.5 MEUR fixed capital, D-023),
+  # now the cross-check in D-045. The OSBL, owner's cost and contingency fractions stay IEAGHG's.
   isbl:
-    source: given
-    estimate_class: 5
-    value: {value: 345100000, status: ASSUMED, source: "IEAGHG 2017-03 Case 4A-1 Table 1: ammonia/urea plant installed cost 493 MEUR (4Q2014) x ammonia share 0.70 ASSUMED (D-023)", year: 2014}
-    scaling:
-      reference: {value: 450000, source: "IEAGHG 2017-03 Case 4A-1 ammonia plant, 1350 t/d NH3, on the 8000 h/a of this design (D-002) so that the ratio is 1500/1350"}
-      unit: t
-      exponent: {value: 0.67, status: ASSUMED, source: "capacity exponent chosen in this design for a single-train plant (D-023); the reference states none"}
-    escalation: {value: 1.397, source: "Eurostat sts_inppd_a, domestic producer prices, NL, NACE C28 (machinery and equipment), index 2021=100: 121.4 (2025) / 86.9 (2014), read 2026-10-29; a proxy for plant cost escalation, ASSUMED"}
-    location_factor: {value: 1.0, source: "the reference plant is sited in the Netherlands (IEAGHG 2017-03, Case 4A-1)"}
+    source: equipment
+    estimate_class: 4
+    exchange_rate: {value: 0.92481, source: "Eurostat ert_bil_eur_a, euro exchange rates, annual average 2023: 1.0813 USD per EUR (the year of the equipment costs' CEPCI), read 2026-10-30 through the Eurostat API", year: 2023}
+    escalation: {value: 1.052, source: "Eurostat sts_inppd_a, domestic producer prices, NL, NACE C28 (machinery and equipment), index 2021=100: 121.4 (2025) / 115.4 (2023), read 2026-10-30; the proxy of D-023 for plant cost escalation, used because the CEPCI annual averages 2024 and 2025 are not openly published (D-045), ASSUMED"}
+    location_factor: {value: 1.0, status: ASSUMED, source: "US Gulf Coast basis of the Turton correlations to the Netherlands: no openly readable, citable location factor was found (searched 2026-10-30; the published tables of Towler and Sinnott, S&P Global PEP and Intratec are not open), so 1.0 is kept and named as an accuracy driver of the class 4 estimate (D-045)"}
+    uncovered_allowance: {value: 0.10, status: ASSUMED, source: "items no correlation prices, as a fraction of the costed ISBL: the purge gas recovery package X-601 (cryogenic), the steam system U-801 (drums, deaerator, superheater), the dryer package X-401, the refractory lining of R-102 and the unsized E-107, E-202, E-301, E-302, E-303 and P-302A/B; a judgement of this design, no source (D-045)"}
   osbl: {value: 0.109, source: "IEAGHG 2017-03 Case 4A-1, Table 1: utilities and balance of plant 53.6 MEUR over the 493 MEUR process plant"}
   owners_cost: {value: 0.07, source: "IEAGHG 2017-03, section 2.8.1: owner's cost 7 % of the total plant cost"}
-  contingency: {value: 0.20, source: "IEAGHG 2017-03, section 2.8.1: 20 % contingency on the installed cost (a class 4 estimate there; the class 5 range of this estimate is applied in the uncertainty)"}
+  contingency: {value: 0.20, source: "IEAGHG 2017-03, section 2.8.1: 20 % contingency on the installed cost (a class 4 estimate there, as this one since S5d, D-045)"}
 operation:
   hours_per_year: 8000
   life_years: 25
@@ -51,7 +48,7 @@ prices:
   - key: feed:NG
     value: 11.397
     unit: GJ
-    conversion: {value: 0.051081, source: "gross calorific value of the D-004 gas, own calculation: standard heats of combustion of CH4 890.63, C2H6 1560.7, C3H8 2219.2 kJ/mol (NIST Chemistry WebBook) over a molar mass of 17.523 g/mol: 51.08 MJ/kg"}
+    conversion: {value: 0.054397, source: "gross calorific value of the D-040 feed gas (S5c), own calculation: standard heats of combustion of CH4 890.63, C2H6 1560.7, C3H8 2219.2 kJ/mol (NIST Chemistry WebBook) over a molar mass of 16.856 g/mol: 54.40 MJ/kg (38.78 MJ/m3 at 15 C, against 38.9 MJ/m3 typical in the Enbridge table the composition comes from); 51.08 MJ/kg on the D-004 gas before"}
     status: QUOTED
     source: "Eurostat nrg_pc_203, non-household gas prices, NL, band I6 (4,000,000 GJ or over), excluding VAT and recoverable taxes, EUR per GJ (GCV): mean of 2025-S1 12.4122 and 2025-S2 10.3818 (both flagged estimated), read 2026-10-29"
     year: 2025
@@ -75,8 +72,30 @@ prices:
     status: ASSUMED
     source: "value of MP steam export as the gas a boiler would burn to raise it: 3.0313 GJ/t (IAPWS-IF97, BFW 313 K to 4600 kPa(a), 673 K, calculated with the functions of scripts/plant_balance.py) / boiler efficiency 0.90 on GCV (ASSUMED) x 11.397 EUR/GJ (feed:NG); no steam buyer or contract (D-023)"
     year: 2025
+  # S5r fix (2026-10-29-design#1, D-036): the two water utilities on this design's own premises;
+  # no supplier quote exists, so both are ASSUMED and carry a wide swing
+  - key: feed:DMW
+    value: 2.0
+    unit: t
+    status: ASSUMED
+    source: "screening value chosen in this design for demineralised water bought from an industrial water supplier at the battery limit (water treatment is outside the boundary, D-001); no quote (D-036)"
+    year: 2025
+    swing: {low: 0.5, high: 2.0}
+  - key: product:CW
+    value: -2.85
+    unit: MWh
+    status: ASSUMED
+    source: "operating cost of the cooling tower outside the boundary per MWh of heat rejected, own calculation on premises of this design (D-036): circulation 86.12 t/MWh at the 10 K rise of D-012; pump 40 m head, efficiency 0.75 (ASSUMED) 0.01252 MWh(e); fans with air flow equal to the water flow, 1.16 kg/m3, 150 Pa, efficiency 0.65 (ASSUMED) 0.00476 MWh(e); together 0.01728 MWh(e) x 100.65 EUR/MWh (feed:POWER) = 1.74 EUR; make-up: evaporation 3600 MJ / 2430 kJ/kg (latent heat of water near 303 K) = 1.481 t at 5 cycles of concentration (ASSUMED) = 1.852 t x 0.60 EUR/t raw water including treatment (ASSUMED) = 1.11 EUR; total 2.85 EUR/MWh as a cost"
+    year: 2025
+    swing: {low: 0.5, high: 2.0}
 free:
   - {key: feed:AIR, reason: "ambient air for the process and the furnace"}
+  # S5 (D-036): the two emission streams have no market value; the CO2 they carry is charged by
+  # emissions: below (EU ETS), so a price here would count it twice
+  - {key: product:CO2V, reason: "process CO2 vented to atmosphere; its CO2 is charged under emissions (process-co2)"}
+  - {key: product:STACK, reason: "furnace flue gas to atmosphere; its CO2 is charged under emissions (flue-co2)"}
+  # S5r fix (2026-10-29-design#1): blowdown neither earns nor costs anything at this boundary
+  - {key: product:BD, reason: "boiler blowdown (3.1 t/h, low-solids boiler water) goes to the cooling-tower make-up outside the boundary, ASSUMED (D-036); no disposal charge, and its small water value is not credited"}
 emissions:
   price: {value: 74, status: ASSUMED, source: "EU ETS allowance (EUA) annual average 2025, 74 EUR/t CO2e, ESMA annual report on EU carbon markets 2026 as reported by Lovguiden 2026-07-09 (secondary)", year: 2025}
   sources:

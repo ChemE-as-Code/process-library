@@ -3,8 +3,9 @@
 #
 # Natural-gas ammonia plant, 1500 t/d NH3 (D-001, D-002). Where the values come from (D-006,
 # D-024):
-# - feeds, temperatures, pressures, split and purge fractions: design choices of DESIGN.md,
-#   ASSUMED;
+# - feeds (S1, S12, S61, S26, S70): the representative feed specification the owner approved
+#   for this paper case study (I-006, D-040), `given` with its published source;
+# - temperatures, pressures, split and purge fractions: design choices of DESIGN.md, ASSUMED;
 # - every stream and duty of the simulated plant (all blocks but the furnace radiant section and
 #   the energy-only packages) is `calculated` by `cheme process simulate` (DWSIM,
 #   Peng-Robinson; process/simulation.yaml; the synthesis loop and purge recovery since core
@@ -26,7 +27,7 @@ units:
   enthalpy: kJ/kmol
   enthalpy_reference: {state: ideal_gas, temperature: 298.15}
 cases:
-  - {id: design, description: "Design case: 1500 t/d contained NH3 as refrigerated liquid, ASSUMED benchmark natural gas (D-004)", default: true}
+  - {id: design, description: "Design case: 1500 t/d contained NH3 as refrigerated liquid, representative pipeline natural gas approved by the owner (D-040)", default: true}
 tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
 
 feeds:
@@ -189,7 +190,7 @@ blocks:
 
 steps:
   # ---- REF: natural gas, desulfurisation, reforming (D-004, D-005, D-007)
-  - {id: SPL101, block: REF, title: Feed / fuel gas split, class: SplittingMaterial, split: {fuel: 0.2175884},
+  - {id: SPL101, block: REF, title: Feed / fuel gas split, class: SplittingMaterial, split: {fuel: 0.2224399},
      ports: [{id: in, direction: in, delegates: ng}, {id: proc, direction: out}, {id: fuel, direction: out}]}
   # D-024: the convection coils are two-stream exchangers on the flue gas, hottest coil first
   - {id: E101, block: REF, title: Natural gas preheat coil (convection), class: ExchangingThermalEnergy, links: [{target: equipment, ref: E-101}],
@@ -317,7 +318,7 @@ steps:
      ports: [{id: in, direction: in}, {id: out, direction: out}, {id: ref, direction: out, kind: energy}]}
   - {id: V501, block: SYN, title: Ammonia separator, class: SeparatingByFlash, links: [{target: equipment, ref: V-501}],
      ports: [{id: in, direction: in}, {id: vap, direction: out}, {id: liq, direction: out}]}
-  - {id: SPL501, block: SYN, title: Purge take-off, class: SplittingMaterial, split: {purge: 0.00736974},
+  - {id: SPL501, block: SYN, title: Purge take-off, class: SplittingMaterial, split: {purge: 0.00600735},
      ports: [{id: in, direction: in}, {id: purge, direction: out, delegates: purge}, {id: rec, direction: out}]}
   # D-026: the let-downs are valves (isenthalpic); a flash vessel given a pressure holds its
   # inlet temperature in DWSIM
@@ -418,10 +419,10 @@ streams:
     template: process
     state:
       design:
-        pressure: {value: 4500, provenance: assumed, source: "design basis, D-004"}
-        temperature: {value: 288.15, provenance: assumed, source: "design basis, D-004"}
-        flow: {value: 37714.52, basis: mass, provenance: assumed, source: "scripts/plant_balance.py: feed and fuel for 1500 t/d NH3 (D-006)"}
-        composition: {basis: mole_fraction, values: {CH4: 0.910, C2H6: 0.040, C3H8: 0.010, CO2: 0.010, N2: 0.030}, provenance: assumed, source: "D-004: benchmark lean natural gas, not a sourced pipeline gas (open input I-01)"}
+        pressure: {value: 4500, provenance: given, source: "representative feed specification approved by the owner for this paper case study (I-006, 2026-10-30, D-040): battery-limit supply pressure of the design basis"}
+        temperature: {value: 288.15, provenance: given, source: "representative feed specification approved by the owner (I-006, D-040): the standard reference temperature of natural gas, 15 C (ISO 13443)"}
+        flow: {value: 35645.59, basis: mass, provenance: given, source: "representative feed specification approved by the owner (I-006, D-040): the flow follows from the design capacity of process/design-basis.yaml (1500 t/d NH3, D-002), feed and fuel on this composition by scripts/plant_balance.py (D-006)"}
+        composition: {basis: mole_fraction, values: {CH4: 0.9467, C2H6: 0.0440, C3H8: 0.0023, CO2: 0.0030, N2: 0.0040}, provenance: given, source: "representative pipeline natural gas approved by the owner (I-006, 2026-10-30, D-040): Enbridge Gas Inc., Learn about natural gas, table Chemical composition of natural gas, column Typical (a system-wide average), https://enbridgegas.com/about-enbridge-gas/learn-about-natural-gas, read 2026-10-30: CH4 94.6, C2H6 4.4, C3H8 0.2, N2 0.4, CO2 0.3 mol%; the C4+ traces (0.027 mol%) counted as C3H8, the O2 and H2 traces (0.015 mol%) left out, normalised; sulfur not stated there, removed by hydrogenation and ZnO and not balanced (D-004)"}
   - id: S2
     links: [{target: line, ref: FG-1002, sheet: P-101}]
     title: Fuel natural gas
@@ -431,9 +432,9 @@ streams:
     state:
       design:
         temperature: {value: 288.15, provenance: assumed, source: D-014}
-        composition: {basis: mole_fraction, values: {CH4: 0.91, C2H6: 0.04, C3H8: 0.01, CO2: 0.01, N2: 0.03, H2: 0.0, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 8206.24, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        pressure: {value: 4500.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.9467, C2H6: 0.044, C3H8: 0.0023, CO2: 0.003, N2: 0.004, H2: 0.0, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 7929.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        pressure: {value: 4500.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S3
     links: [{target: line, ref: NG-1001, sheet: P-101}]
     title: Process natural gas
@@ -444,8 +445,8 @@ streams:
       design:
         pressure: {value: 4500, provenance: assumed, source: D-004}
         temperature: {value: 288.15, provenance: assumed, source: D-004}
-        composition: {basis: mole_fraction, values: {CH4: 0.91, C2H6: 0.04, C3H8: 0.01, CO2: 0.01, N2: 0.03, H2: 0.0, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 29508.3, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.9467, C2H6: 0.044, C3H8: 0.0023, CO2: 0.003, N2: 0.004, H2: 0.0, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 27716.6, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S4
     links: [{target: line, ref: NG-1003, sheet: P-102}]
     title: Preheated natural gas
@@ -456,8 +457,8 @@ streams:
       design:
         pressure: {value: 4450, provenance: assumed, source: D-007}
         temperature: {value: 643.15, provenance: assumed, source: D-007}
-        composition: {basis: mole_fraction, values: {CH4: 0.91, C2H6: 0.04, C3H8: 0.01, CO2: 0.01, N2: 0.03, H2: 0.0, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 29508.3, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.9467, C2H6: 0.044, C3H8: 0.0023, CO2: 0.003, N2: 0.004, H2: 0.0, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 27716.6, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S5
     links: [{target: line, ref: NG-1004, sheet: P-101}]
     title: Desulfurised natural gas
@@ -468,8 +469,8 @@ streams:
       design:
         pressure: {value: 4400, provenance: assumed, source: D-007}
         temperature: {value: 643.15, provenance: assumed, source: D-007}
-        composition: {basis: mole_fraction, values: {CH4: 0.91, C2H6: 0.04, C3H8: 0.01, CO2: 0.01, N2: 0.03, H2: 0.0, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 29508.3, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.9467, C2H6: 0.044, C3H8: 0.0023, CO2: 0.003, N2: 0.004, H2: 0.0, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 27716.6, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S6
     links: [{target: line, ref: SM-1005, sheet: P-101}]
     title: Process steam
@@ -480,7 +481,7 @@ streams:
       design:
         pressure: {value: 4600, provenance: assumed, source: "design basis, D-015"}
         temperature: {value: 673.15, provenance: assumed, source: "design basis, D-015"}
-        flow: {value: 92833.61, basis: mass, provenance: assumed, source: "scripts/plant_balance.py: steam to carbon 3.0 (D-007)"}
+        flow: {value: 92566.67, basis: mass, provenance: assumed, source: "scripts/plant_balance.py: steam to carbon 3.0 (D-007), on the D-040 feed gas"}
         composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-015}
   - id: S7
     links: [{target: line, ref: NG-1004, sheet: P-101}]
@@ -490,10 +491,10 @@ streams:
     template: process
     state:
       design:
-        temperature: {value: 657.585, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        pressure: {value: 4400.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 122342.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        composition: {basis: mole_fraction, values: {CH4: 0.224136, C2H6: 0.00985215, C3H8: 0.00246304, CO2: 0.00246304, N2: 0.00738911, H2: 0.0, CO: 0.0, H2O: 0.753696, O2: 0.0, AR: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        temperature: {value: 657.662, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        pressure: {value: 4400.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 120283.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.229512, C2H6: 0.0106671, C3H8: 0.000557598, CO2: 0.000727302, N2: 0.000969736, H2: 0.0, CO: 0.0, H2O: 0.757566, O2: 0.0, AR: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S8
     links: [{target: line, ref: PG-1006, sheet: P-102}]
     title: Prereformer feed
@@ -504,8 +505,8 @@ streams:
       design:
         pressure: {value: 4250, provenance: assumed, source: D-007}
         temperature: {value: 773.15, provenance: assumed, source: D-007}
-        composition: {basis: mole_fraction, values: {CH4: 0.224136, C2H6: 0.00985215, C3H8: 0.00246304, CO2: 0.00246304, N2: 0.00738911, H2: 0.0, CO: 0.0, H2O: 0.753696, O2: 0.0, AR: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 122342.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.229512, C2H6: 0.0106671, C3H8: 0.000557598, CO2: 0.000727302, N2: 0.000969736, H2: 0.0, CO: 0.0, H2O: 0.757566, O2: 0.0, AR: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 120283.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S9
     links: [{target: line, ref: PG-1007, sheet: P-101}]
     title: Prereformer outlet
@@ -515,9 +516,9 @@ streams:
     state:
       design:
         pressure: {value: 4150, provenance: assumed, source: D-007}
-        composition: {basis: mole_fraction, values: {CH4: 0.212616, C2H6: 0.0, C3H8: 0.0, CO2: 0.00233643, N2: 0.0070093, H2: 0.0630837, CO: 0.0257008, H2O: 0.689254, O2: 0.0, AR: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 122342.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        temperature: {value: 661.651, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.219416, C2H6: 0.0, C3H8: 0.0, CO2: 0.000695308, N2: 0.000927078, H2: 0.0547208, CO: 0.0219949, H2O: 0.702246, O2: 0.0, AR: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 120283.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        temperature: {value: 677.719, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S10
     links: [{target: line, ref: PG-1008, sheet: P-102}]
     title: Primary reformer feed
@@ -528,8 +529,8 @@ streams:
       design:
         pressure: {value: 4100, provenance: assumed, source: D-007}
         temperature: {value: 893.15, provenance: assumed, source: D-007}
-        composition: {basis: mole_fraction, values: {CH4: 0.212616, C2H6: 0.0, C3H8: 0.0, CO2: 0.00233643, N2: 0.0070093, H2: 0.0630837, CO: 0.0257008, H2O: 0.689254, O2: 0.0, AR: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 122342.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.219416, C2H6: 0.0, C3H8: 0.0, CO2: 0.000695308, N2: 0.000927078, H2: 0.0547208, CO: 0.0219949, H2O: 0.702246, O2: 0.0, AR: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 120283.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S11
     links: [{target: line, ref: PG-1009, sheet: P-102}]
     title: Primary reformer outlet
@@ -540,8 +541,8 @@ streams:
       design:
         pressure: {value: 3500, provenance: assumed, source: D-007}
         temperature: {value: 1083.15, provenance: assumed, source: D-007}
-        composition: {basis: mole_fraction, values: {CH4: 0.0725355, C2H6: 0.0, C3H8: 0.0, CO2: 0.0618039, N2: 0.00563147, H2: 0.405467, CO: 0.0590077, H2O: 0.395554, O2: 0.0, AR: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 122342.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.0734391, C2H6: 0.0, C3H8: 0.0, CO2: 0.060855, N2: 0.000738964, H2: 0.408284, CO: 0.0586864, H2O: 0.397997, O2: 0.0, AR: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 120283.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S12
     links: [{target: line, ref: PA-1030, sheet: P-103}]
     title: Process air
@@ -550,10 +551,10 @@ streams:
     template: process
     state:
       design:
-        pressure: {value: 101.325, provenance: assumed, source: "design basis, site"}
-        temperature: {value: 288.15, provenance: assumed, source: "design basis, site"}
-        flow: {value: 67184.1, basis: mass, provenance: assumed, source: "D-026: retuned on the simulated loop for H2/N2 = 3.0 at the converter inlet (D-007); concept balance 67281.64"}
-        composition: {basis: mole_fraction, values: {N2: 0.78080, O2: 0.20946, AR: 0.00934, CO2: 0.00040}, provenance: assumed, source: "D-004: dry air, humidity neglected"}
+        pressure: {value: 101.325, provenance: given, source: "representative feed specification approved by the owner (I-006, 2026-10-30, D-040): standard reference pressure, 101.325 kPa (ISO 13443)"}
+        temperature: {value: 288.15, provenance: given, source: "representative feed specification approved by the owner (I-006, D-040): standard reference temperature, 15 C (ISO 13443)"}
+        flow: {value: 68660.0, basis: mass, provenance: given, source: "representative feed specification approved by the owner (I-006, D-040): the flow follows from the design capacity of process/design-basis.yaml (1500 t/d NH3, D-002) and H2/N2 = 3.0 at the converter inlet (D-007), retuned on the simulated loop (D-026); scripts/plant_balance.py on the D-040 gas gives 68747.45"}
+        composition: {basis: mole_fraction, values: {N2: 0.78075, O2: 0.20949, AR: 0.00934, CO2: 0.00042}, provenance: given, source: "standard dry air approved by the owner (I-006, D-040): NASA Goddard, Earth Fact Sheet, Terrestrial atmosphere (last updated 15 November 2024), https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html: N2 78.08 %, O2 20.95 %, Ar 9340 ppm, CO2 420 ppm by volume, normalised; humidity neglected (D-004)"}
   - id: S86
     title: Process air after the third stage and its intercooler
     from: K101.out
@@ -561,10 +562,10 @@ streams:
     template: process
     state:
       design:
-        temperature: {value: 313.15, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        pressure: {value: 1474.6, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 67184.1, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, CO2: 0.0004, N2: 0.7808, H2: 0.0, CO: 0.0, H2O: 0.0, O2: 0.20946, AR: 0.00934, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        temperature: {value: 313.15, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        pressure: {value: 1474.6, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 68660.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, CO2: 0.00042, N2: 0.78075, H2: 0.0, CO: 0.0, H2O: 0.0, O2: 0.20949, AR: 0.00934, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S13
     links: [{target: line, ref: PA-1022, sheet: P-103}]
     title: Compressed process air
@@ -574,9 +575,9 @@ streams:
     state:
       design:
         pressure: {value: 3600, provenance: assumed, source: D-007}
-        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, CO2: 0.0004, N2: 0.7808, H2: 0.0, CO: 0.0, H2O: 0.0, O2: 0.20946, AR: 0.00934, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 67184.1, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        temperature: {value: 429.231, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, CO2: 0.00042, N2: 0.78075, H2: 0.0, CO: 0.0, H2O: 0.0, O2: 0.20949, AR: 0.00934, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 68660.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        temperature: {value: 429.23, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S14
     links: [{target: line, ref: PA-1023, sheet: P-102}]
     title: Preheated process air
@@ -587,8 +588,8 @@ streams:
       design:
         pressure: {value: 3550, provenance: assumed, source: D-007}
         temperature: {value: 773.15, provenance: assumed, source: D-007}
-        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, CO2: 0.0004, N2: 0.7808, H2: 0.0, CO: 0.0, H2O: 0.0, O2: 0.20946, AR: 0.00934, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 67184.1, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, CO2: 0.00042, N2: 0.78075, H2: 0.0, CO: 0.0, H2O: 0.0, O2: 0.20949, AR: 0.00934, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 68660.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S15
     title: Secondary reformer burner feed
     from: M103.out
@@ -597,9 +598,9 @@ streams:
     state:
       design:
         pressure: {value: 3500, provenance: assumed, source: D-007}
-        composition: {basis: mole_fraction, values: {CH4: 0.0576344, C2H6: 0.0, C3H8: 0.0, CO2: 0.0491896, N2: 0.164876, H2: 0.322171, CO: 0.0468856, H2O: 0.314294, O2: 0.0430299, AR: 0.00191874, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 189526.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        temperature: {value: 1029.17, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.0579946, C2H6: 0.0, C3H8: 0.0, CO2: 0.0481454, N2: 0.164777, H2: 0.322421, CO: 0.0463445, H2O: 0.314297, O2: 0.0440563, AR: 0.00196423, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 188943.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        temperature: {value: 1027.87, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S16
     title: Combustion zone outlet
     from: R102A.out
@@ -608,9 +609,9 @@ streams:
     state:
       design:
         pressure: {value: 3450, provenance: assumed, source: D-007}
-        composition: {basis: mole_fraction, values: {CH4: 0.0602259, C2H6: 0.0, C3H8: 0.0, CO2: 0.0514014, N2: 0.17229, H2: 0.246728, CO: 0.0489938, H2O: 0.418356, O2: 0.0, AR: 0.00200502, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 189526.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        temperature: {value: 1560.07, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.0606674, C2H6: 0.0, C3H8: 0.0, CO2: 0.0503642, N2: 0.172371, H2: 0.245106, CO: 0.0484803, H2O: 0.420955, O2: 0.0, AR: 0.00205475, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 188943.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        temperature: {value: 1571.14, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S17
     links: [{target: line, ref: PG-1032, sheet: P-103}]
     title: Secondary reformer outlet
@@ -620,9 +621,9 @@ streams:
     state:
       design:
         pressure: {value: 3400, provenance: assumed, source: D-007}
-        composition: {basis: mole_fraction, values: {CH4: 0.00270848, C2H6: 0.0, C3H8: 0.0, CO2: 0.0493396, N2: 0.154601, H2: 0.378615, CO: 0.0920824, H2O: 0.320854, O2: 0.0, AR: 0.00179917, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 189526.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        temperature: {value: 1264.97, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.00236585, C2H6: 0.0, C3H8: 0.0, CO2: 0.0484939, N2: 0.154447, H2: 0.378965, CO: 0.0920652, H2O: 0.321822, O2: 0.0, AR: 0.00184109, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 188943.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        temperature: {value: 1272.81, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S18
     links: [{target: line, ref: PG-1033, sheet: P-103}]
     title: Raw synthesis gas to HT shift
@@ -633,8 +634,8 @@ streams:
       design:
         pressure: {value: 3350, provenance: assumed, source: D-008}
         temperature: {value: 643.15, provenance: assumed, source: D-008}
-        composition: {basis: mole_fraction, values: {CH4: 0.00270848, C2H6: 0.0, C3H8: 0.0, CO2: 0.0493396, N2: 0.154601, H2: 0.378615, CO: 0.0920824, H2O: 0.320854, O2: 0.0, AR: 0.00179917, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 189526.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.00236585, C2H6: 0.0, C3H8: 0.0, CO2: 0.0484939, N2: 0.154447, H2: 0.378965, CO: 0.0920652, H2O: 0.321822, O2: 0.0, AR: 0.00184109, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 188943.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S61
     links: [{target: line, ref: CA-1011, sheet: P-102}]
     title: Combustion air
@@ -643,10 +644,10 @@ streams:
     template: process
     state:
       design:
-        pressure: {value: 101.325, provenance: assumed, source: "design basis, site"}
-        temperature: {value: 288.15, provenance: assumed, source: "design basis, site"}
-        flow: {value: 165407.11, basis: mass, provenance: assumed, source: "scripts/plant_balance.py: 10 % excess O2 (D-014)"}
-        composition: {basis: mole_fraction, values: {N2: 0.78080, O2: 0.20946, AR: 0.00934, CO2: 0.00040}, provenance: assumed, source: "D-004: dry air"}
+        pressure: {value: 101.325, provenance: given, source: "representative feed specification approved by the owner (I-006, 2026-10-30, D-040): standard reference pressure, 101.325 kPa (ISO 13443)"}
+        temperature: {value: 288.15, provenance: given, source: "representative feed specification approved by the owner (I-006, D-040): standard reference temperature, 15 C (ISO 13443)"}
+        flow: {value: 168003.53, basis: mass, provenance: given, source: "representative feed specification approved by the owner (I-006, D-040): the flow follows from the design capacity of process/design-basis.yaml (1500 t/d NH3, D-002), the furnace fuel and 10 % excess O2 (D-014), scripts/plant_balance.py on the D-040 gas"}
+        composition: {basis: mole_fraction, values: {N2: 0.78075, O2: 0.20949, AR: 0.00934, CO2: 0.00042}, provenance: given, source: "standard dry air approved by the owner (I-006, D-040): NASA Goddard, Earth Fact Sheet (last updated 15 November 2024), as S12"}
   - id: S62
     links: [{target: line, ref: CA-1012, sheet: P-102}]
     title: Combustion air after FD fan
@@ -656,9 +657,9 @@ streams:
     state:
       design:
         pressure: {value: 106.3, provenance: assumed, source: D-014}
-        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, CO2: 0.0004, N2: 0.7808, H2: 0.0, CO: 0.0, H2O: 0.0, O2: 0.20946, AR: 0.00934, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 165407.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        temperature: {value: 293.787, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, CO2: 0.00042, N2: 0.78075, H2: 0.0, CO: 0.0, H2O: 0.0, O2: 0.20949, AR: 0.00934, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 168004.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        temperature: {value: 293.786, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S63
     links: [{target: line, ref: CA-1013, sheet: P-102}]
     title: Preheated combustion air
@@ -669,8 +670,8 @@ streams:
       design:
         pressure: {value: 105.0, provenance: assumed, source: D-014}
         temperature: {value: 523.15, provenance: assumed, source: D-014}
-        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, CO2: 0.0004, N2: 0.7808, H2: 0.0, CO: 0.0, H2O: 0.0, O2: 0.20946, AR: 0.00934, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 165407.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, CO2: 0.00042, N2: 0.78075, H2: 0.0, CO: 0.0, H2O: 0.0, O2: 0.20949, AR: 0.00934, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 168004.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S64
     title: Burner fuel and air
     from: M102.out
@@ -679,9 +680,9 @@ streams:
     state:
       design:
         pressure: {value: 104.0, provenance: assumed, source: D-014}
-        composition: {basis: mole_fraction, values: {CH4: 0.0787493, C2H6: 0.00296821, C3H8: 0.000742051, CO2: 0.00110398, N2: 0.713107, H2: 0.00192645, CO: 0.0, H2O: 0.0, O2: 0.189522, AR: 0.0118366, NH3: 4.36234e-05}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 176411.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        temperature: {value: 491.168, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.0799861, C2H6: 0.00323788, C3H8: 0.000169253, CO2: 0.000601843, N2: 0.712376, H2: 0.00162724, CO: 0.0, H2O: 0.0, O2: 0.190076, AR: 0.0118842, NH3: 4.10256e-05}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 178547.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        temperature: {value: 491.969, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S65
     links: [{target: line, ref: FL-1014, sheet: P-102}]
     title: Flue gas leaving the radiant section
@@ -692,8 +693,8 @@ streams:
       design:
         pressure: {value: 103.0, provenance: assumed, source: D-014}
         temperature: {value: 1323.15, provenance: assumed, source: "D-014: bridgewall temperature"}
-        flow: {value: 176411.0, provenance: calculated, source: 'cheme process propagate: reactor H101 from S64', fingerprint: f38b1ad74602f711}
-        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, CO2: 0.0879039, N2: 0.712222, H2: 0.0, CO: 0.0, H2O: 0.171145, O2: 0.0169069, AR: 0.0118216, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor H101 from S64', fingerprint: 311883a4bb5a2d12}
+        flow: {value: 178547.0, provenance: calculated, source: 'cheme process propagate: reactor H101 from S64', fingerprint: b0f98817f9e0fddf}
+        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, CO2: 0.0874853, N2: 0.711696, H2: 0.0, CO: 0.0, H2O: 0.171882, O2: 0.0170638, AR: 0.0118725, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor H101 from S64', fingerprint: 2f18a884f925b918}
   - id: S80
     links: [{target: line, ref: FL-1015, sheet: P-102}]
     title: Flue gas after the prereformed gas coil
@@ -702,10 +703,10 @@ streams:
     template: process
     state:
       design:
-        temperature: {value: 1009.78, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        pressure: {value: 102.5, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 176411.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, CO2: 0.087904, N2: 0.712222, H2: 0.0, CO: 0.0, H2O: 0.171145, O2: 0.0169069, AR: 0.0118216, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        temperature: {value: 1037.51, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        pressure: {value: 102.5, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 178547.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, CO2: 0.0874853, N2: 0.711696, H2: 0.0, CO: 0.0, H2O: 0.171882, O2: 0.0170638, AR: 0.0118725, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S81
     links: [{target: line, ref: FL-1016, sheet: P-102}]
     title: Flue gas after the mixed feed coil
@@ -714,10 +715,10 @@ streams:
     template: process
     state:
       design:
-        temperature: {value: 849.548, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        pressure: {value: 102.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 176411.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, CO2: 0.087904, N2: 0.712222, H2: 0.0, CO: 0.0, H2O: 0.171145, O2: 0.0169069, AR: 0.0118216, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        temperature: {value: 881.68, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        pressure: {value: 102.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 178547.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, CO2: 0.0874853, N2: 0.711696, H2: 0.0, CO: 0.0, H2O: 0.171882, O2: 0.0170638, AR: 0.0118725, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S82
     links: [{target: line, ref: FL-1017, sheet: P-102}]
     title: Flue gas after the process air coil
@@ -726,10 +727,10 @@ streams:
     template: process
     state:
       design:
-        temperature: {value: 735.675, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        pressure: {value: 101.5, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 176411.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, CO2: 0.087904, N2: 0.712222, H2: 0.0, CO: 0.0, H2O: 0.171145, O2: 0.0169069, AR: 0.0118216, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        temperature: {value: 767.642, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        pressure: {value: 101.5, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 178547.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, CO2: 0.0874853, N2: 0.711696, H2: 0.0, CO: 0.0, H2O: 0.171882, O2: 0.0170638, AR: 0.0118725, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S83
     links: [{target: line, ref: FL-1018, sheet: P-102}]
     title: Flue gas after the natural gas coil
@@ -738,10 +739,10 @@ streams:
     template: process
     state:
       design:
-        temperature: {value: 598.714, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        pressure: {value: 101.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 176411.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, CO2: 0.087904, N2: 0.712222, H2: 0.0, CO: 0.0, H2O: 0.171145, O2: 0.0169069, AR: 0.0118216, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        temperature: {value: 636.631, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        pressure: {value: 101.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 178547.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, CO2: 0.0874853, N2: 0.711696, H2: 0.0, CO: 0.0, H2O: 0.171882, O2: 0.0170638, AR: 0.0118725, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S84
     links: [{target: line, ref: FL-1019, sheet: P-102}]
     title: Flue gas after the combustion air preheater
@@ -750,10 +751,10 @@ streams:
     template: process
     state:
       design:
-        temperature: {value: 406.893, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        pressure: {value: 100.5, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 176411.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, CO2: 0.087904, N2: 0.712222, H2: 0.0, CO: 0.0, H2O: 0.171145, O2: 0.0169069, AR: 0.0118216, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        temperature: {value: 445.942, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        pressure: {value: 100.5, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 178547.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, CO2: 0.0874853, N2: 0.711696, H2: 0.0, CO: 0.0, H2O: 0.171882, O2: 0.0170638, AR: 0.0118725, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S66
     links: [{target: line, ref: FL-1020, sheet: P-102}]
     title: Flue gas leaving the convection section
@@ -764,8 +765,8 @@ streams:
       design:
         pressure: {value: 100.0, provenance: assumed, source: D-014}
         temperature: {value: 423.15, provenance: assumed, source: "D-014: stack temperature"}
-        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, CO2: 0.087904, N2: 0.712222, H2: 0.0, CO: 0.0, H2O: 0.171145, O2: 0.0169069, AR: 0.0118216, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 176411.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, CO2: 0.0874853, N2: 0.711696, H2: 0.0, CO: 0.0, H2O: 0.171882, O2: 0.0170638, AR: 0.0118725, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 178547.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S67
     links: [{target: line, ref: FL-1021, sheet: P-102}]
     title: Flue gas to stack
@@ -775,9 +776,9 @@ streams:
     state:
       design:
         pressure: {value: 105.0, provenance: assumed, source: D-014}
-        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, CO2: 0.087904, N2: 0.712222, H2: 0.0, CO: 0.0, H2O: 0.171145, O2: 0.0169069, AR: 0.0118216, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 176411.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        temperature: {value: 403.5, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, CO2: 0.0874853, N2: 0.711696, H2: 0.0, CO: 0.0, H2O: 0.171882, O2: 0.0170638, AR: 0.0118725, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 178547.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        temperature: {value: 404.365, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
 
   # ---- SHF
   - id: S19
@@ -789,9 +790,9 @@ streams:
     state:
       design:
         pressure: {value: 3300, provenance: assumed, source: D-008}
-        composition: {basis: mole_fraction, values: {CH4: 0.00270848, C2H6: 0.0, C3H8: 0.0, CO2: 0.114507, N2: 0.154601, H2: 0.443783, CO: 0.0269145, H2O: 0.255687, O2: 0.0, AR: 0.00179917, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 189526.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        temperature: {value: 716.9, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.00236585, C2H6: 0.0, C3H8: 0.0, CO2: 0.113816, N2: 0.154447, H2: 0.444287, CO: 0.0267427, H2O: 0.256499, O2: 0.0, AR: 0.00184109, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 188943.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        temperature: {value: 717.1, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S75
     links: [{target: line, ref: PG-1035, sheet: P-103}]
     title: HTS effluent after the waste heat boiler
@@ -800,10 +801,10 @@ streams:
     template: process
     state:
       design:
-        temperature: {value: 611.2, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        pressure: {value: 3275.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 189526.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        composition: {basis: mole_fraction, values: {CH4: 0.00270848, C2H6: 0.0, C3H8: 0.0, CO2: 0.114507, N2: 0.154601, H2: 0.443783, CO: 0.0269145, H2O: 0.255687, O2: 0.0, AR: 0.00179917, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        temperature: {value: 611.2, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        pressure: {value: 3275.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 188943.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.00236585, C2H6: 0.0, C3H8: 0.0, CO2: 0.113816, N2: 0.154447, H2: 0.444287, CO: 0.0267427, H2O: 0.256499, O2: 0.0, AR: 0.00184109, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S20
     links: [{target: line, ref: PG-1043, sheet: P-104}]
     title: LT shift feed
@@ -814,8 +815,8 @@ streams:
       design:
         pressure: {value: 3250, provenance: assumed, source: D-008}
         temperature: {value: 478.15, provenance: assumed, source: D-008}
-        composition: {basis: mole_fraction, values: {CH4: 0.00270848, C2H6: 0.0, C3H8: 0.0, CO2: 0.114507, N2: 0.154601, H2: 0.443783, CO: 0.0269145, H2O: 0.255687, O2: 0.0, AR: 0.00179917, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 189526.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.00236585, C2H6: 0.0, C3H8: 0.0, CO2: 0.113816, N2: 0.154447, H2: 0.444287, CO: 0.0267427, H2O: 0.256499, O2: 0.0, AR: 0.00184109, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 188943.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S21
     links: [{target: line, ref: PG-1044, sheet: P-104}]
     title: LT shift outlet
@@ -825,9 +826,9 @@ streams:
     state:
       design:
         pressure: {value: 3200, provenance: assumed, source: D-008}
-        composition: {basis: mole_fraction, values: {CH4: 0.00270848, C2H6: 0.0, C3H8: 0.0, CO2: 0.138533, N2: 0.154601, H2: 0.467808, CO: 0.00288926, H2O: 0.231661, O2: 0.0, AR: 0.00179917, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 189526.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        temperature: {value: 507.5, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.00236585, C2H6: 0.0, C3H8: 0.0, CO2: 0.137704, N2: 0.154447, H2: 0.468175, CO: 0.00285492, H2O: 0.232612, O2: 0.0, AR: 0.00184109, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 188943.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        temperature: {value: 507.35, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S22
     links: [{target: line, ref: PG-1045, sheet: P-104}]
     title: Gas after the regenerator reboiler (two-phase)
@@ -837,9 +838,9 @@ streams:
     state:
       design:
         pressure: {value: 3150, provenance: assumed, source: D-009}
-        composition: {basis: mole_fraction, values: {CH4: 0.00270848, C2H6: 0.0, C3H8: 0.0, CO2: 0.138533, N2: 0.154601, H2: 0.467808, CO: 0.00288926, H2O: 0.231661, O2: 0.0, AR: 0.00179917, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 189526.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        temperature: {value: 422.284, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.00236585, C2H6: 0.0, C3H8: 0.0, CO2: 0.137704, N2: 0.154447, H2: 0.468175, CO: 0.00285492, H2O: 0.232612, O2: 0.0, AR: 0.00184109, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 188943.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        temperature: {value: 422.625, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S23
     links: [{target: line, ref: PG-1046, sheet: P-104}]
     title: Cooled process gas (two-phase)
@@ -850,8 +851,8 @@ streams:
       design:
         pressure: {value: 3100, provenance: assumed, source: D-009}
         temperature: {value: 313.15, provenance: assumed, source: D-012}
-        composition: {basis: mole_fraction, values: {CH4: 0.00270848, C2H6: 0.0, C3H8: 0.0, CO2: 0.138533, N2: 0.154601, H2: 0.467808, CO: 0.00288926, H2O: 0.231661, O2: 0.0, AR: 0.00179917, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 189526.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.00236585, C2H6: 0.0, C3H8: 0.0, CO2: 0.137704, N2: 0.154447, H2: 0.468175, CO: 0.00285492, H2O: 0.232612, O2: 0.0, AR: 0.00184109, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 188943.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S24
     links: [{target: line, ref: PG-1047, sheet: P-104}]
     title: Raw synthesis gas to CO2 absorber
@@ -862,8 +863,8 @@ streams:
       design:
         pressure: {value: 3100, provenance: assumed, source: D-009}
         temperature: {value: 313.15, provenance: assumed, source: D-012}
-        composition: {basis: mole_fraction, values: {CH4: 0.00351857, C2H6: 0.0, C3H8: 0.0, CO2: 0.179245, N2: 0.200842, H2: 0.607725, CO: 0.00375342, H2O: 0.00257911, O2: 0.0, AR: 0.00233722, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 139409.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.00307727, C2H6: 0.0, C3H8: 0.0, CO2: 0.17839, N2: 0.20089, H2: 0.608956, CO: 0.00371341, H2O: 0.00257832, O2: 0.0, AR: 0.00239464, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 138686.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S25
     links: [{target: line, ref: PC-1048, sheet: P-104}]
     title: Process condensate
@@ -874,8 +875,8 @@ streams:
       design:
         pressure: {value: 3100, provenance: assumed, source: D-009}
         temperature: {value: 313.15, provenance: assumed, source: D-012}
-        composition: {basis: mole_fraction, values: {CH4: 1.08416e-09, C2H6: 0.0, C3H8: 0.0, CO2: 0.00241368, N2: 1.23261e-06, H2: 1.02206e-05, CO: 2.39983e-08, H2O: 0.997575, O2: 0.0, AR: 2.45923e-07, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 50117.4, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 9.47991e-10, C2H6: 0.0, C3H8: 0.0, CO2: 0.00240225, N2: 1.23268e-06, H2: 1.02392e-05, CO: 2.37383e-08, H2O: 0.997586, O2: 0.0, AR: 2.51933e-07, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 50257.7, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
 
   # ---- CO2R
   - id: S26
@@ -886,10 +887,10 @@ streams:
     template: water
     state:
       design:
-        pressure: {value: 500, provenance: assumed, source: D-009}
-        temperature: {value: 298.15, provenance: assumed, source: D-009}
-        flow: {value: 1487.6, basis: mass, provenance: assumed, source: "scripts/plant_balance.py: water leaving with treated gas and CO2 (D-009)"}
-        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-009}
+        pressure: {value: 500, provenance: given, source: "representative feed specification approved by the owner (I-006, 2026-10-30, D-040): demineralised water header pressure of the design basis (D-009)"}
+        temperature: {value: 298.15, provenance: given, source: "representative feed specification approved by the owner (I-006, D-040): demineralised water at 25 C (D-009)"}
+        flow: {value: 1476.7, basis: mass, provenance: given, source: "representative feed specification approved by the owner (I-006, D-040): the flow follows from the design capacity of process/design-basis.yaml (1500 t/d NH3, D-002), the water leaving with the treated gas and the CO2 (D-009), scripts/plant_balance.py on the D-040 gas"}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: given, source: "demineralised water approved by the owner (I-006, D-040): IAPWS TGD3-10(2015), Volatile treatments for the steam-water circuits of fossil and combined cycle/HRSG power plants, section Customization of base tables to consider makeup requirements, p. 28: make-up with Na, Cl and SO4 below 3 ug/kg, SiO2 below 10 ug/kg, TOC below 300 ug/kg and conductivity below 0.1 uS/cm, so water at the balance's resolution"}
   - id: S85
     title: Pumped make-up water
     from: P301.out
@@ -897,10 +898,10 @@ streams:
     template: water
     state:
       design:
-        temperature: {value: 298.375, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        pressure: {value: 3100.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 1487.6, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        temperature: {value: 298.375, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        pressure: {value: 3100.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 1476.7, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S79
     title: Raw synthesis gas and make-up water to the absorber
     from: M301.out
@@ -908,10 +909,10 @@ streams:
     template: process
     state:
       design:
-        temperature: {value: 312.872, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        pressure: {value: 3100.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 140897.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        composition: {basis: mole_fraction, values: {CH4: 0.0034875, C2H6: 0.0, C3H8: 0.0, CO2: 0.177663, N2: 0.199068, H2: 0.602358, CO: 0.00372027, H2O: 0.0113869, O2: 0.0, AR: 0.00231658, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        temperature: {value: 312.873, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        pressure: {value: 3100.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 140163.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.00305023, C2H6: 0.0, C3H8: 0.0, CO2: 0.176823, N2: 0.199125, H2: 0.603604, CO: 0.00368078, H2O: 0.0113443, O2: 0.0, AR: 0.00237359, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S27
     links: [{target: line, ref: PG-1056, sheet: P-105}]
     title: Treated synthesis gas
@@ -921,9 +922,9 @@ streams:
     state:
       design:
         temperature: {value: 313.15, provenance: assumed, source: D-009}
-        composition: {basis: mole_fraction, values: {CH4: 0.00428778, C2H6: 0.0, C3H8: 0.0, CO2: 0.000496493, N2: 0.244748, H2: 0.740581, CO: 0.00457396, H2O: 0.00246405, O2: 0.0, AR: 0.00284816, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 66368.1, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        pressure: {value: 3100.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.00374609, C2H6: 0.0, C3H8: 0.0, CO2: 0.000496649, N2: 0.244552, H2: 0.741306, CO: 0.00452049, H2O: 0.00246393, O2: 0.0, AR: 0.00291509, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 66180.1, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        pressure: {value: 3100.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S28
     links: [{target: line, ref: CO2-1068, sheet: P-106}]
     title: Process CO2 to vent
@@ -934,8 +935,8 @@ streams:
       design:
         pressure: {value: 150, provenance: assumed, source: D-009}
         temperature: {value: 313.15, provenance: assumed, source: D-009}
-        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, CO2: 0.949729, N2: 0.0, H2: 0.0, CO: 0.0, H2O: 0.0502713, O2: 0.0, AR: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 74528.4, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, CO2: 0.94973, N2: 0.0, H2: 0.0, CO: 0.0, H2O: 0.0502705, O2: 0.0, AR: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 73982.5, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
 
   # ---- MET
   - id: S29
@@ -948,8 +949,8 @@ streams:
       design:
         pressure: {value: 3000, provenance: assumed, source: D-010}
         temperature: {value: 553.15, provenance: assumed, source: D-010}
-        composition: {basis: mole_fraction, values: {CH4: 0.00428778, C2H6: 0.0, C3H8: 0.0, CO2: 0.000496493, N2: 0.244748, H2: 0.740581, CO: 0.00457396, H2O: 0.00246405, O2: 0.0, AR: 0.00284816, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 66368.1, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.00374609, C2H6: 0.0, C3H8: 0.0, CO2: 0.000496649, N2: 0.244552, H2: 0.741306, CO: 0.00452049, H2O: 0.00246393, O2: 0.0, AR: 0.00291509, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 66180.1, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S30
     links: [{target: line, ref: PG-1078, sheet: P-107}]
     title: Methanator outlet
@@ -959,9 +960,9 @@ streams:
     state:
       design:
         pressure: {value: 2950, provenance: assumed, source: D-010}
-        composition: {basis: mole_fraction, values: {CH4: 0.00945411, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.247256, H2: 0.732299, CO: 0.0, H2O: 0.00811328, O2: 0.0, AR: 0.00287734, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 66368.1, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        temperature: {value: 590.171, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.00885205, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.247031, H2: 0.733114, CO: 0.0, H2O: 0.00805858, O2: 0.0, AR: 0.00294464, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 66180.1, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        temperature: {value: 589.819, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S31
     links: [{target: line, ref: PG-1079, sheet: P-107}]
     title: Cooled methanator outlet (two-phase)
@@ -972,8 +973,8 @@ streams:
       design:
         pressure: {value: 2900, provenance: assumed, source: D-010}
         temperature: {value: 313.15, provenance: assumed, source: D-012}
-        composition: {basis: mole_fraction, values: {CH4: 0.00945411, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.247256, H2: 0.732299, CO: 0.0, H2O: 0.00811328, O2: 0.0, AR: 0.00287734, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 66368.1, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.00885205, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.247031, H2: 0.733114, CO: 0.0, H2O: 0.00805858, O2: 0.0, AR: 0.00294464, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 66180.1, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S32
     links: [{target: line, ref: PG-1080, sheet: P-107}]
     title: Synthesis gas to dryer
@@ -984,8 +985,8 @@ streams:
       design:
         pressure: {value: 2900, provenance: assumed, source: D-010}
         temperature: {value: 313.15, provenance: assumed, source: D-012}
-        composition: {basis: mole_fraction, values: {CH4: 0.00950698, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.248639, H2: 0.736395, CO: 0.0, H2O: 0.0025658, O2: 0.0, AR: 0.00289343, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 65613.8, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.00890107, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.248399, H2: 0.737174, CO: 0.0, H2O: 0.00256574, O2: 0.0, AR: 0.00296094, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 65434.2, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S33
     links: [{target: line, ref: PC-1083, sheet: P-107}]
     title: Methanator condensate
@@ -996,8 +997,8 @@ streams:
       design:
         pressure: {value: 2900, provenance: assumed, source: D-010}
         temperature: {value: 313.15, provenance: assumed, source: D-012}
-        composition: {basis: mole_fraction, values: {CH4: 2.62963e-09, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 1.3793e-06, H2: 1.11879e-05, CO: 0.0, H2O: 0.999987, O2: 0.0, AR: 2.78512e-07, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 754.353, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 2.46215e-09, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 1.37799e-06, H2: 1.11997e-05, CO: 0.0, H2O: 0.999987, O2: 0.0, AR: 2.85016e-07, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 745.875, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S34
     links: [{target: line, ref: PG-1081, sheet: P-107}]
     title: Dry make-up synthesis gas
@@ -1007,15 +1008,15 @@ streams:
     state:
       design:
         temperature: {value: 313.15, provenance: assumed, source: D-012}
-        composition: {basis: mole_fraction, values: {CH4: 0.00953144, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.249278, H2: 0.738289, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.00290088, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 65267.7, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        pressure: {value: 2900.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.00892396, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.249037, H2: 0.73907, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.00296856, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 65088.6, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        pressure: {value: 2900.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
         calculated:
-          molar_mass: {value: 8.74022, unit: kg/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: cd1709056d3c53f6, origin: correlation}
-          density: {value: 9.67376, unit: kg/m3, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: cd1709056d3c53f6, origin: correlation}
-          enthalpy: {value: 397.112, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: cd1709056d3c53f6, origin: correlation}
-          exergy: {value: 189215.0, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: chemical (Szargut 1988, model II) + physical, dead state 298.15 K, 101.325 kPa', fingerprint: cd1709056d3c53f6, origin: correlation}
-        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: cd1709056d3c53f6}
+          molar_mass: {value: 8.728, unit: kg/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: 82dcfae7d8c159e7, origin: correlation}
+          density: {value: 9.66003, unit: kg/m3, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: 82dcfae7d8c159e7, origin: correlation}
+          enthalpy: {value: 397.23, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: 82dcfae7d8c159e7, origin: correlation}
+          exergy: {value: 188901.0, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: chemical (Szargut 1988, model II) + physical, dead state 298.15 K, 101.325 kPa', fingerprint: 82dcfae7d8c159e7, origin: correlation}
+        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: 82dcfae7d8c159e7}
   - id: S35
     links: [{target: line, ref: PC-1084, sheet: P-107}]
     title: Dryer regeneration water
@@ -1026,8 +1027,8 @@ streams:
       design:
         pressure: {value: 300, provenance: assumed, source: D-010}
         temperature: {value: 313.15, provenance: assumed, source: D-010}
-        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.0, H2: 0.0, CO: 0.0, H2O: 1.0, O2: 0.0, AR: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 346.062, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.0, H2: 0.0, CO: 0.0, H2O: 1.0, O2: 0.0, AR: 0.0, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 345.588, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
 
   # ---- SYN
   - id: S37
@@ -1039,15 +1040,15 @@ streams:
     state:
       design:
         pressure: {value: 2850, provenance: assumed, source: D-011}
-        composition: {basis: mole_fraction, values: {CH4: 0.00986396, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.246356, H2: 0.740431, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.00334922, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 65958.2, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        temperature: {value: 313.003, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.00925455, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.246495, H2: 0.740817, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.00343424, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 65706.7, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        temperature: {value: 313.034, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
         calculated:
-          molar_mass: {value: 8.68592, unit: kg/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: 73033e302feb0acb, origin: correlation}
-          density: {value: 9.45348, unit: kg/m3, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: 73033e302feb0acb, origin: correlation}
-          enthalpy: {value: 393.581, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: 73033e302feb0acb, origin: correlation}
-          exergy: {value: 189955.0, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: chemical (Szargut 1988, model II) + physical, dead state 298.15 K, 101.325 kPa', fingerprint: 73033e302feb0acb, origin: correlation}
-        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: 73033e302feb0acb}
+          molar_mass: {value: 8.68421, unit: kg/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: 23dd683c264d0e5b, origin: correlation}
+          density: {value: 9.45051, unit: kg/m3, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: 23dd683c264d0e5b, origin: correlation}
+          enthalpy: {value: 394.551, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: 23dd683c264d0e5b, origin: correlation}
+          exergy: {value: 189545.0, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: chemical (Szargut 1988, model II) + physical, dead state 298.15 K, 101.325 kPa', fingerprint: 23dd683c264d0e5b, origin: correlation}
+        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: 23dd683c264d0e5b}
   - id: S38
     links: [{target: line, ref: PG-1088, sheet: P-108}]
     title: Compressed make-up gas
@@ -1058,8 +1059,8 @@ streams:
       design:
         pressure: {value: 14600, provenance: assumed, source: D-011}
         temperature: {value: 313.15, provenance: assumed, source: "D-016: after the aftercooler"}
-        composition: {basis: mole_fraction, values: {CH4: 0.00986396, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.246356, H2: 0.740431, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.00334922, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 65958.2, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.00925455, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.246495, H2: 0.740817, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.00343424, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 65706.7, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S40
     links: [{target: line, ref: PG-1093, sheet: P-109}]
     title: Circulator suction
@@ -1069,9 +1070,9 @@ streams:
     state:
       design:
         pressure: {value: 14600, provenance: assumed, source: D-011}
-        composition: {basis: mole_fraction, values: {CH4: 0.0990724, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.211061, H2: 0.634735, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0217069, NH3: 0.033425}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 293991.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        temperature: {value: 305.255, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.0972146, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.211921, H2: 0.634567, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0228804, NH3: 0.0334168}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 294703.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        temperature: {value: 305.253, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S41
     links: [{target: line, ref: PG-1095, sheet: P-109}]
     title: Circulator discharge
@@ -1081,9 +1082,9 @@ streams:
     state:
       design:
         pressure: {value: 15500, provenance: assumed, source: D-011}
-        composition: {basis: mole_fraction, values: {CH4: 0.0990724, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.211061, H2: 0.634735, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0217069, NH3: 0.033425}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 293991.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        temperature: {value: 311.91, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.0972146, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.211921, H2: 0.634567, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0228804, NH3: 0.0334168}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 294703.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        temperature: {value: 311.913, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S42
     links: [{target: line, ref: PG-1096, sheet: P-109}]
     title: Converter feed
@@ -1093,9 +1094,9 @@ streams:
     state:
       design:
         pressure: {value: 15400, provenance: assumed, source: D-011}
-        composition: {basis: mole_fraction, values: {CH4: 0.0990724, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.211061, H2: 0.634735, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0217069, NH3: 0.033425}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 293991.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        temperature: {value: 493.843, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.0972146, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.211921, H2: 0.634567, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0228804, NH3: 0.0334168}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 294703.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        temperature: {value: 493.804, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S43
     links: [{target: line, ref: PG-1098, sheet: P-109}]
     title: Converter effluent
@@ -1106,8 +1107,8 @@ streams:
       design:
         pressure: {value: 15100, provenance: assumed, source: D-011}
         temperature: {value: 703.15, provenance: assumed, source: D-011}
-        composition: {basis: mole_fraction, values: {CH4: 0.113545, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.168853, H2: 0.50834, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0248778, NH3: 0.184385}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 293991.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.111441, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.169764, H2: 0.50792, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0262287, NH3: 0.184646}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 294703.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S44
     links: [{target: line, ref: PG-1099, sheet: P-109}]
     title: Effluent after waste heat boiler
@@ -1117,14 +1118,14 @@ streams:
     state:
       design:
         pressure: {value: 15000, provenance: assumed, source: D-011}
-        composition: {basis: mole_fraction, values: {CH4: 0.113545, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.168853, H2: 0.50834, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0248778, NH3: 0.184385}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 293991.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        temperature: {value: 532.6, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.111441, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.169764, H2: 0.50792, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0262287, NH3: 0.184646}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 294703.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        temperature: {value: 532.6, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
         calculated:
-          molar_mass: {value: 11.7104, unit: kg/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: f27b5660b18e373c, origin: correlation}
-          density: {value: 38.7285, unit: kg/m3, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: f27b5660b18e373c, origin: correlation}
-          enthalpy: {value: 7268.59, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: f27b5660b18e373c, origin: correlation}
-        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: f27b5660b18e373c}
+          molar_mass: {value: 11.7598, unit: kg/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: bebcf803c3380cbc, origin: correlation}
+          density: {value: 38.8912, unit: kg/m3, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: bebcf803c3380cbc, origin: correlation}
+          enthalpy: {value: 7260.7, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: bebcf803c3380cbc, origin: correlation}
+        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: bebcf803c3380cbc}
   - id: S45
     links: [{target: line, ref: PG-1102, sheet: P-109}]
     title: Effluent after feed/effluent exchanger
@@ -1135,8 +1136,8 @@ streams:
       design:
         pressure: {value: 14900, provenance: assumed, source: D-011}
         temperature: {value: 343.15, provenance: assumed, source: "D-011: above the NH3 dew point"}
-        composition: {basis: mole_fraction, values: {CH4: 0.113545, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.168853, H2: 0.508339, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0248775, NH3: 0.184385}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 293989.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.111438, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.169766, H2: 0.507921, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0262289, NH3: 0.184646}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 294702.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S46
     links: [{target: line, ref: PG-1105, sheet: P-110}]
     title: Effluent after water cooler (two-phase)
@@ -1147,8 +1148,8 @@ streams:
       design:
         pressure: {value: 14800, provenance: assumed, source: D-011}
         temperature: {value: 313.15, provenance: assumed, source: D-012}
-        composition: {basis: mole_fraction, values: {CH4: 0.113545, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.168853, H2: 0.508339, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0248775, NH3: 0.184385}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 293989.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.111438, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.169766, H2: 0.507921, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0262289, NH3: 0.184646}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 294702.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S47
     links: [{target: line, ref: PG-1106, sheet: P-110}]
     title: Effluent after cold exchanger (two-phase)
@@ -1158,9 +1159,9 @@ streams:
     state:
       design:
         pressure: {value: 14750, provenance: assumed, source: D-011}
-        composition: {basis: mole_fraction, values: {CH4: 0.113545, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.168852, H2: 0.508339, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0248788, NH3: 0.184385}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 293990.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        temperature: {value: 301.929, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.111436, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.169767, H2: 0.507921, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0262291, NH3: 0.184647}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 294701.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        temperature: {value: 301.99, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S48
     links: [{target: line, ref: PG-1107, sheet: P-110}]
     title: Chilled effluent to separator
@@ -1171,8 +1172,8 @@ streams:
       design:
         pressure: {value: 14700, provenance: assumed, source: D-011}
         temperature: {value: 263.15, provenance: assumed, source: D-011}
-        composition: {basis: mole_fraction, values: {CH4: 0.113545, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.168852, H2: 0.508339, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0248788, NH3: 0.184385}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 293990.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.111436, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.169767, H2: 0.507921, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0262291, NH3: 0.184647}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 294701.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S49
     links: [{target: line, ref: PG-1108, sheet: P-110}]
     title: Separator gas
@@ -1183,8 +1184,8 @@ streams:
       design:
         pressure: {value: 14700, provenance: assumed, source: D-011}
         temperature: {value: 263.15, provenance: assumed, source: D-011}
-        composition: {basis: mole_fraction, values: {CH4: 0.131058, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.198406, H2: 0.596837, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0282891, NH3: 0.0454096}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 229725.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.128665, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.19956, H2: 0.596577, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0298334, NH3: 0.045365}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 230381.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S50
     links: [{target: line, ref: PG-1109, sheet: P-110}]
     title: Loop purge gas
@@ -1195,8 +1196,8 @@ streams:
       design:
         pressure: {value: 14700, provenance: assumed, source: D-011}
         temperature: {value: 263.15, provenance: assumed, source: D-011}
-        composition: {basis: mole_fraction, values: {CH4: 0.131058, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.198406, H2: 0.596837, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0282891, NH3: 0.0454096}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 1693.02, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.128665, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.19956, H2: 0.596577, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0298334, NH3: 0.045365}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 1383.98, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S51
     links: [{target: line, ref: PG-1108, sheet: P-110}]
     title: Cold recycle gas
@@ -1207,8 +1208,8 @@ streams:
       design:
         pressure: {value: 14700, provenance: assumed, source: D-011}
         temperature: {value: 263.15, provenance: assumed, source: D-011}
-        composition: {basis: mole_fraction, values: {CH4: 0.131058, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.198406, H2: 0.596837, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0282891, NH3: 0.0454096}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 228032.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.128665, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.19956, H2: 0.596577, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0298334, NH3: 0.045365}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 228997.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S39
     links: [{target: line, ref: PG-1093, sheet: P-109}]
     title: Warm recycle gas
@@ -1219,8 +1220,8 @@ streams:
       design:
         pressure: {value: 14650, provenance: assumed, source: D-011}
         temperature: {value: 303.15, provenance: assumed, source: D-011}
-        composition: {basis: mole_fraction, values: {CH4: 0.131058, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.198406, H2: 0.596837, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0282891, NH3: 0.0454096}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 228032.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.128665, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.19956, H2: 0.596577, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0298334, NH3: 0.045365}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 228997.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S52
     links: [{target: line, ref: AL-1111, sheet: P-110}]
     title: Separator liquid ammonia
@@ -1231,8 +1232,8 @@ streams:
       design:
         pressure: {value: 14700, provenance: assumed, source: D-011}
         temperature: {value: 263.15, provenance: assumed, source: D-011}
-        composition: {basis: mole_fraction, values: {CH4: 0.0144072, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.00155198, H2: 0.00735891, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.00557598, NH3: 0.971106}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 64265.4, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.0141443, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.00156042, H2: 0.00735233, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.00587963, NH3: 0.971063}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 64320.1, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S99
     links: [{target: line, ref: AL-1111, sheet: P-110}]
     title: Let-down separator liquid (two-phase)
@@ -1242,9 +1243,9 @@ streams:
     state:
       design:
         pressure: {value: 2500, provenance: assumed, source: D-011}
-        composition: {basis: mole_fraction, values: {CH4: 0.0144072, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.00155198, H2: 0.00735891, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.00557598, NH3: 0.971106}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 64265.4, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        temperature: {value: 266.054, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.0141443, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.00156042, H2: 0.00735233, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.00587963, NH3: 0.971063}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 64320.1, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        temperature: {value: 266.051, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S53
     links: [{target: line, ref: PG-1113, sheet: P-110}]
     title: Let-down gas
@@ -1254,9 +1255,9 @@ streams:
     state:
       design:
         pressure: {value: 2500, provenance: assumed, source: D-011}
-        composition: {basis: mole_fraction, values: {CH4: 0.320975, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.0771492, H2: 0.354342, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0915775, NH3: 0.155957}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 997.385, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        temperature: {value: 266.054, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.315309, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.0776749, H2: 0.354501, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0966135, NH3: 0.155901}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 1004.97, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        temperature: {value: 266.051, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S54
     links: [{target: line, ref: AL-1114, sheet: P-110}]
     title: Let-down liquid ammonia
@@ -1266,9 +1267,9 @@ streams:
     state:
       design:
         pressure: {value: 2500, provenance: assumed, source: D-011}
-        composition: {basis: mole_fraction, values: {CH4: 0.00864304, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.00013058, H2: 0.000834833, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.00395896, NH3: 0.986433}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 63268.1, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        temperature: {value: 266.054, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.00849023, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.000131446, H2: 0.000834977, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.00417619, NH3: 0.986367}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 63315.1, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        temperature: {value: 266.051, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S88
     links: [{target: line, ref: AG-1121, sheet: P-111}]
     title: Product flash gas
@@ -1278,9 +1279,9 @@ streams:
     state:
       design:
         pressure: {value: 110, provenance: assumed, source: "design basis, D-002"}
-        composition: {basis: mole_fraction, values: {CH4: 0.0858639, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.00118842, H2: 0.00761447, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.041475, NH3: 0.863858}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 7274.49, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        temperature: {value: 238.7, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.0838726, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.00118936, H2: 0.00757162, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.04351, NH3: 0.863856}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 7340.51, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        temperature: {value: 238.7, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S89
     title: Compressed and condensed flash gas (two-phase)
     from: K702.out
@@ -1290,8 +1291,8 @@ streams:
       design:
         pressure: {value: 1700, provenance: assumed, source: D-017}
         temperature: {value: 313.15, provenance: assumed, source: "D-017: condensing at 313 K"}
-        composition: {basis: mole_fraction, values: {CH4: 0.0858626, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.00118841, H2: 0.00761443, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0414764, NH3: 0.863858}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 7274.52, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.0838707, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.00118939, H2: 0.0075717, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0435118, NH3: 0.863856}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 7340.52, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S90
     title: Receiver liquid ammonia returned to the flash drum
     from: V702.liq
@@ -1301,8 +1302,8 @@ streams:
       design:
         pressure: {value: 1700, provenance: assumed, source: D-017}
         temperature: {value: 313.15, provenance: assumed, source: "D-017: condensing at 313 K"}
-        composition: {basis: mole_fraction, values: {CH4: 0.00222923, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 3.99261e-06, H2: 3.34474e-05, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.00135509, NH3: 0.996378}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 0.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.00217741, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 3.99561e-06, H2: 3.32573e-05, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.00142151, NH3: 0.996364}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 0.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S91
     title: Receiver gas to the vent chiller
     from: V702.vap
@@ -1312,8 +1313,8 @@ streams:
       design:
         pressure: {value: 1700, provenance: assumed, source: D-017}
         temperature: {value: 313.15, provenance: assumed, source: "D-017: condensing at 313 K"}
-        composition: {basis: mole_fraction, values: {CH4: 0.0858626, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.00118841, H2: 0.00761443, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0414764, NH3: 0.863858}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 7274.52, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.0838707, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.00118939, H2: 0.0075717, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0435118, NH3: 0.863856}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 7340.52, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S92
     title: Chilled receiver gas (two-phase)
     from: E702.out
@@ -1323,8 +1324,8 @@ streams:
       design:
         pressure: {value: 1700, provenance: assumed, source: D-017}
         temperature: {value: 258.15, provenance: assumed, source: D-017}
-        composition: {basis: mole_fraction, values: {CH4: 0.0858626, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.00118841, H2: 0.00761443, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0414764, NH3: 0.863858}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 7274.52, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.0838707, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.00118939, H2: 0.0075717, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0435118, NH3: 0.863856}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 7340.52, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S93
     links: [{target: line, ref: AL-1127, sheet: P-111}]
     title: Vent chiller condensate returned to the flash drum
@@ -1335,8 +1336,8 @@ streams:
       design:
         pressure: {value: 1700, provenance: assumed, source: D-017}
         temperature: {value: 258.15, provenance: assumed, source: D-017}
-        composition: {basis: mole_fraction, values: {CH4: 0.00994403, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 8.29164e-06, H2: 7.35069e-05, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.00753551, NH3: 0.982439}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 6012.91, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.0097237, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 8.30835e-06, H2: 7.31642e-05, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0079115, NH3: 0.982283}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 6054.99, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S55
     links: [{target: line, ref: PG-1126, sheet: P-111}]
     title: Refrigeration inert vent
@@ -1347,8 +1348,8 @@ streams:
       design:
         pressure: {value: 1700, provenance: assumed, source: D-017}
         temperature: {value: 258.15, provenance: assumed, source: D-017}
-        composition: {basis: mole_fraction, values: {CH4: 0.535468, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.00817734, H2: 0.0522733, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.242481, NH3: 0.1616}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 1261.6, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.523571, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.00819332, H2: 0.0520389, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.254626, NH3: 0.161571}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 1285.52, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S56
     links: [{target: line, ref: AL-1128, sheet: P-111}]
     title: Flashed liquid ammonia
@@ -1359,8 +1360,8 @@ streams:
       design:
         pressure: {value: 110, provenance: assumed, source: "design basis, D-002"}
         temperature: {value: 240.15, provenance: assumed, source: "design basis, D-002"}
-        flow: {value: 62006.5, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        composition: {basis: mole_fraction, values: {CH4: 9.67893e-05, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 4.49251e-08, H2: 3.98027e-07, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 8.98275e-05, NH3: 0.999813}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        flow: {value: 62029.6, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 9.45448e-05, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 4.49609e-08, H2: 3.95788e-07, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 9.42348e-05, NH3: 0.999811}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S60
     links: [{target: line, ref: AL-1128, sheet: P-111}]
     title: Liquid ammonia product
@@ -1371,8 +1372,8 @@ streams:
       design:
         pressure: {value: 110, provenance: assumed, source: "design basis, D-002"}
         temperature: {value: 240.15, provenance: assumed, source: "design basis, D-002"}
-        composition: {basis: mole_fraction, values: {CH4: 9.607e-05, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 4.45913e-08, H2: 3.9507e-07, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 8.916e-05, NH3: 0.999814}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 62470.7, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 9.38756e-05, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 4.46427e-08, H2: 3.92986e-07, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 9.35678e-05, NH3: 0.999812}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 62471.8, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
 
   # ---- PGR (D-026: the HRU feed at the vent pressure; X-601 as wash, cold box and H2 compressor)
   - id: S57
@@ -1382,10 +1383,10 @@ streams:
     template: process
     state:
       design:
-        temperature: {value: 252.639, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        pressure: {value: 1700.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 3952.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        composition: {basis: mole_fraction, values: {CH4: 0.260819, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.129601, H2: 0.425328, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0879393, NH3: 0.0963132}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        temperature: {value: 253.35, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        pressure: {value: 1700.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 3674.47, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.270482, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.122328, H2: 0.405162, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0998798, NH3: 0.102148}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S94
     title: Washed purge gas to the cold box
     from: X601.gas
@@ -1393,10 +1394,10 @@ streams:
     template: process
     state:
       design:
-        temperature: {value: 252.639, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        pressure: {value: 1700.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 3487.82, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        composition: {basis: mole_fraction, values: {CH4: 0.288309, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.14326, H2: 0.470158, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0972081, NH3: 0.00106465}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        temperature: {value: 253.35, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        pressure: {value: 1700.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 3232.31, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.300913, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.13609, H2: 0.450744, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.111117, NH3: 0.0011364}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S96
     title: Recovered ammonia from the wash distillation
     from: X601.nh3
@@ -1404,10 +1405,10 @@ streams:
     template: process
     state:
       design:
-        temperature: {value: 252.639, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        pressure: {value: 1700.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 464.182, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.0, H2: 0.0, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0, NH3: 1.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        temperature: {value: 253.35, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        pressure: {value: 1700.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 442.157, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.0, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.0, H2: 0.0, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0, NH3: 1.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S95
     title: Hydrogen-rich gas from the cold box
     from: X602.h2
@@ -1415,16 +1416,16 @@ streams:
     template: process
     state:
       design:
-        temperature: {value: 252.639, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        pressure: {value: 1700.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 690.462, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        composition: {basis: mole_fraction, values: {CH4: 0.0295426, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.0733986, H2: 0.867176, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0298823, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        temperature: {value: 253.35, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        pressure: {value: 1700.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 618.019, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.0319166, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.0721725, H2: 0.860554, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0353571, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
         calculated:
-          molar_mass: {value: 5.47194, unit: kg/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: 94c10d3e3fd59c18, origin: correlation}
-          density: {value: 4.4199, unit: kg/m3, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: 94c10d3e3fd59c18, origin: correlation}
-          enthalpy: {value: -1330.01, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: 94c10d3e3fd59c18, origin: correlation}
-          exergy: {value: 235513.0, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: chemical (Szargut 1988, model II) + physical, dead state 298.15 K, 101.325 kPa', fingerprint: 94c10d3e3fd59c18, origin: correlation}
-        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: 94c10d3e3fd59c18}
+          molar_mass: {value: 5.68104, unit: kg/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: 77fc253dd830f596, origin: correlation}
+          density: {value: 4.57661, unit: kg/m3, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: 77fc253dd830f596, origin: correlation}
+          enthalpy: {value: -1309.47, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: 77fc253dd830f596, origin: correlation}
+          exergy: {value: 235927.0, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: chemical (Szargut 1988, model II) + physical, dead state 298.15 K, 101.325 kPa', fingerprint: 77fc253dd830f596, origin: correlation}
+        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: 77fc253dd830f596}
   - id: S36
     links: [{target: line, ref: PG-1087, sheet: P-108}]
     title: Recovered hydrogen-rich gas
@@ -1435,14 +1436,14 @@ streams:
       design:
         pressure: {value: 2850, provenance: assumed, source: D-013}
         temperature: {value: 303.15, provenance: assumed, source: D-013}
-        composition: {basis: mole_fraction, values: {CH4: 0.0295426, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.0733986, H2: 0.867176, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0298823, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 690.462, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.0319166, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.0721725, H2: 0.860554, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.0353571, NH3: 0.0}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 618.019, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
         calculated:
-          molar_mass: {value: 5.47194, unit: kg/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: cb6297f80064ec05, origin: correlation}
-          density: {value: 6.14786, unit: kg/m3, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: cb6297f80064ec05, origin: correlation}
-          enthalpy: {value: 117.056, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: cb6297f80064ec05, origin: correlation}
-          exergy: {value: 236690.0, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: chemical (Szargut 1988, model II) + physical, dead state 298.15 K, 101.325 kPa', fingerprint: cb6297f80064ec05, origin: correlation}
-        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: cb6297f80064ec05}
+          molar_mass: {value: 5.68104, unit: kg/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: f5b976f677a579d8, origin: correlation}
+          density: {value: 6.38396, unit: kg/m3, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: f5b976f677a579d8, origin: correlation}
+          enthalpy: {value: 115.524, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: f5b976f677a579d8, origin: correlation}
+          exergy: {value: 237107.0, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: chemical (Szargut 1988, model II) + physical, dead state 298.15 K, 101.325 kPa', fingerprint: f5b976f677a579d8, origin: correlation}
+        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: f5b976f677a579d8}
   - id: S58
     links: [{target: line, ref: AL-1129, sheet: P-111}]
     title: Recovered liquid ammonia
@@ -1454,7 +1455,7 @@ streams:
         pressure: {value: 110, provenance: assumed, source: D-013}
         temperature: {value: 240.15, provenance: assumed, source: "D-013: chilled to the product temperature"}
         composition: {basis: mole_fraction, values: {NH3: 1.0}, provenance: assumed, source: D-013}
-        flow: {value: 464.182, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        flow: {value: 442.157, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: S59
     links: [{target: line, ref: FG-1010, sheet: P-102}]
     title: Tail gas to reformer fuel
@@ -1465,8 +1466,8 @@ streams:
       design:
         pressure: {value: 400, provenance: assumed, source: D-013}
         temperature: {value: 303.15, provenance: assumed, source: D-013}
-        composition: {basis: mole_fraction, values: {CH4: 0.5349, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.209835, H2: 0.0918195, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.161366, NH3: 0.0020792}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-        flow: {value: 2797.35, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        composition: {basis: mole_fraction, values: {CH4: 0.540806, C2H6: 0.0, C3H8: 0.0, CO2: 0.0, N2: 0.193092, H2: 0.0852721, CO: 0.0, H2O: 0.0, O2: 0.0, AR: 0.17868, NH3: 0.00214986}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+        flow: {value: 2614.29, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
 
   # ---- STM (not simulated, D-024: values from scripts/plant_balance.py, ASSUMED)
   - id: S70
@@ -1477,10 +1478,10 @@ streams:
     template: water
     state:
       design:
-        pressure: {value: 500, provenance: assumed, source: D-015}
-        temperature: {value: 298.15, provenance: assumed, source: D-015}
-        flow: {value: 105076.9, basis: mass, provenance: assumed, source: "scripts/packages_on_simulated_duties.py: steam system water balance on the simulated boiler duties and condensates (D-015, D-026)"}
-        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-015}
+        pressure: {value: 500, provenance: given, source: "representative feed specification approved by the owner (I-006, 2026-10-30, D-040): demineralised water header pressure of the design basis (D-015)"}
+        temperature: {value: 298.15, provenance: given, source: "representative feed specification approved by the owner (I-006, D-040): demineralised water at 25 C (D-015)"}
+        flow: {value: 108373.6, basis: mass, provenance: given, source: "representative feed specification approved by the owner (I-006, D-040): the flow follows from the design capacity of process/design-basis.yaml (1500 t/d NH3, D-002), the steam system water balance on the simulated boiler duties and condensates (scripts/packages_on_simulated_duties.py, D-015, D-026)"}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: given, source: "demineralised water approved by the owner (I-006, D-040): IAPWS TGD3-10(2015), make-up limits p. 28, as S26"}
   - id: S68
     links: [{target: line, ref: SM-1140, sheet: P-113}]
     title: MP steam export
@@ -1491,7 +1492,7 @@ streams:
       design:
         pressure: {value: 4600, provenance: assumed, source: "design basis, D-015"}
         temperature: {value: 673.15, provenance: assumed, source: "design basis, D-015"}
-        flow: {value: 60098.6, basis: mass, provenance: assumed, source: "scripts/packages_on_simulated_duties.py: steam raised from the simulated boiler duties less process steam and LP let-down (D-015, D-026)"}
+        flow: {value: 63727.3, basis: mass, provenance: assumed, source: "scripts/packages_on_simulated_duties.py: steam raised from the simulated boiler duties less process steam and LP let-down (D-015, D-026)"}
         composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-015}
   - id: S69
     links: [{target: line, ref: BD-1141, sheet: P-113}]
@@ -1503,7 +1504,7 @@ streams:
       design:
         pressure: {value: 4600, provenance: assumed, source: D-015}
         temperature: {value: 531.93, provenance: assumed, source: "saturation at 4600 kPa(a), D-015"}
-        flow: {value: 3067.8, basis: mass, provenance: assumed, source: "scripts/packages_on_simulated_duties.py: 2 % of steam raised (D-015, D-026)"}
+        flow: {value: 3134.6, basis: mass, provenance: assumed, source: "scripts/packages_on_simulated_duties.py: 2 % of steam raised (D-015, D-026)"}
         composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-015}
   - id: S87
     links: [{target: line, ref: CO2-1142, sheet: P-113}]
@@ -1515,14 +1516,14 @@ streams:
       design:
         pressure: {value: 150, provenance: assumed, source: "D-024: vented with the process CO2 (D-009)"}
         temperature: {value: 313.15, provenance: assumed, source: "D-024, ASSUMED"}
-        flow: {value: 294.68, basis: mass, provenance: assumed, source: "D-024: the gases dissolved in the simulated process condensates S25, S33, S35 (scripts/packages_on_simulated_duties.py), all stripped; water vapour not counted"}
-        composition: {basis: mole_fraction, values: {CO2: 0.9950865, N2: 0.0005168, H2: 0.0042833, CO: 0.0000099, AR: 0.0001031, CH4: 0.0000005}, provenance: assumed, source: "D-024: the simulated condensates' dissolved gases"}
+        flow: {value: 294.11, basis: mass, provenance: assumed, source: "D-024: the gases dissolved in the simulated process condensates S25, S33, S35 (scripts/packages_on_simulated_duties.py), all stripped; water vapour not counted"}
+        composition: {basis: mole_fraction, values: {CO2: 0.9950542, N2: 0.0005191, H2: 0.0043103, CO: 0.0000098, AR: 0.0001061, CH4: 0.0000004}, provenance: assumed, source: "D-024: the simulated condensates' dissolved gases"}
         calculated:
-          molar_mass: {value: 43.8208, unit: kg/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: d9bdf573dcd9fcef, origin: correlation}
-          density: {value: 2.54239, unit: kg/m3, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: d9bdf573dcd9fcef, origin: correlation}
-          enthalpy: {value: 504.818, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: d9bdf573dcd9fcef, origin: correlation}
-          exergy: {value: 21685.7, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: chemical (Szargut 1988, model II) + physical, dead state 298.15 K, 101.325 kPa', fingerprint: d9bdf573dcd9fcef, origin: correlation}
-        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: d9bdf573dcd9fcef}
+          molar_mass: {value: 43.8196, unit: kg/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: 052253c3eb7de242, origin: correlation}
+          density: {value: 2.54232, unit: kg/m3, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: 052253c3eb7de242, origin: correlation}
+          enthalpy: {value: 504.816, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: 052253c3eb7de242, origin: correlation}
+          exergy: {value: 21690.9, unit: kJ/kmol, provenance: calculated, source: 'cheme process props: chemical (Szargut 1988, model II) + physical, dead state 298.15 K, 101.325 kPa', fingerprint: 052253c3eb7de242, origin: correlation}
+        phase: {value: vapor, vapor_fraction: 1.0, provenance: calculated, source: 'cheme process props: thermo 0.6.1, PR, package syngas-pr-vapor', fingerprint: 052253c3eb7de242}
 
   # ---- energy streams: duties of the simulated units are written by `cheme process simulate`;
   # those of units left out of the simulation stay ASSUMED from scripts/plant_balance.py (D-024)
@@ -1533,7 +1534,7 @@ streams:
     to: K101.power
     state:
       design:
-        duty: {value: 6381.83, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        duty: {value: 6521.92, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: Q37
     title: "K-101 shaft power, fourth stage"
     kind: energy
@@ -1541,7 +1542,7 @@ streams:
     to: K101D.power
     state:
       design:
-        duty: {value: 2186.02, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        duty: {value: 2234.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: Q2
     title: K-101 intercoolers
     kind: energy
@@ -1549,7 +1550,7 @@ streams:
     to: CW.k101
     state:
       design:
-        duty: {value: 5975.65, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        duty: {value: 6106.82, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: Q8
     title: E-107 convection steam coil to steam system
     kind: energy
@@ -1557,7 +1558,7 @@ streams:
     to: U801.h1
     state:
       design:
-        duty: {value: 589.5, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        duty: {value: 2723.2, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: Q9
     title: Radiant heat to the reformer tubes
     kind: energy
@@ -1565,7 +1566,7 @@ streams:
     to: R101.heat
     state:
       design:
-        duty: {value: 68616.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        duty: {value: 69829.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: Q10
     title: E-105 waste heat boiler duty
     kind: energy
@@ -1573,7 +1574,7 @@ streams:
     to: U801.h2
     state:
       design:
-        duty: {value: 74009.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        duty: {value: 74849.3, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: Q11
     title: K-102 FD fan power
     kind: energy
@@ -1581,7 +1582,7 @@ streams:
     to: K102.power
     state:
       design:
-        duty: {value: 260.042, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        duty: {value: 264.119, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: Q12
     title: K-103 ID fan power
     kind: energy
@@ -1589,7 +1590,7 @@ streams:
     to: K103.power
     state:
       design:
-        duty: {value: 402.88, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        duty: {value: 408.824, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: Q13
     title: E-201 duty to steam system
     kind: energy
@@ -1597,7 +1598,7 @@ streams:
     to: U801.h3
     state:
       design:
-        duty: {value: 12155.6, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        duty: {value: 12156.8, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: Q15
     title: E-202 regenerator reboiler duty
     kind: energy
@@ -1605,7 +1606,7 @@ streams:
     to: C301.heat
     state:
       design:
-        duty: {value: 20363.4, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        duty: {value: 20213.7, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: Q16
     title: E-203 duty
     kind: energy
@@ -1613,9 +1614,9 @@ streams:
     to: CW.e203
     state:
       design:
-        duty: {value: 34692.1, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-  - {id: Q17, title: CO2 removal solvent pumps, kind: energy, from: POWER.c301, to: C301.power, state: {design: {duty: {value: 1539.5, provenance: assumed, source: "scripts/plant_balance.py: 21 kWh/t CO2 (D-009)"}}}}
-  - {id: Q18, title: "CO2 removal coolers (overhead condenser, lean solvent)", kind: energy, from: C301.cw, to: CW.c301, state: {design: {duty: {value: 21902.9, provenance: assumed, source: "scripts/plant_balance.py: regeneration heat plus pump work (D-009)"}}}}
+        duty: {value: 34884.9, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+  - {id: Q17, title: CO2 removal solvent pumps, kind: energy, from: POWER.c301, to: C301.power, state: {design: {duty: {value: 1528.2, provenance: assumed, source: "scripts/plant_balance.py: 21 kWh/t CO2 (D-009)"}}}}
+  - {id: Q18, title: "CO2 removal coolers (overhead condenser, lean solvent)", kind: energy, from: C301.cw, to: CW.c301, state: {design: {duty: {value: 21741.8, provenance: assumed, source: "scripts/plant_balance.py: regeneration heat plus pump work (D-009)"}}}}
   - id: Q19
     title: E-402 duty
     kind: energy
@@ -1623,7 +1624,7 @@ streams:
     to: CW.e402
     state:
       design:
-        duty: {value: 17716.4, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        duty: {value: 17658.6, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: Q20
     title: K-501 shaft power
     kind: energy
@@ -1631,7 +1632,7 @@ streams:
     to: K501.power
     state:
       design:
-        duty: {value: 12722.9, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        duty: {value: 12677.8, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: Q21
     title: K-501 intercoolers and aftercooler
     kind: energy
@@ -1639,7 +1640,7 @@ streams:
     to: CW.k501
     state:
       design:
-        duty: {value: 12880.7, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        duty: {value: 12836.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: Q22
     title: K-502 shaft power
     kind: energy
@@ -1647,7 +1648,7 @@ streams:
     to: K502.power
     state:
       design:
-        duty: {value: 1609.39, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        duty: {value: 1607.07, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: Q23
     title: E-502 waste heat boiler duty
     kind: energy
@@ -1655,7 +1656,7 @@ streams:
     to: U801.h4
     state:
       design:
-        duty: {value: 43216.3, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        duty: {value: 43071.1, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: Q24
     title: E-503 duty
     kind: energy
@@ -1663,7 +1664,7 @@ streams:
     to: CW.e503
     state:
       design:
-        duty: {value: 7519.81, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        duty: {value: 7500.8, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: Q25
     title: E-504 chiller duty
     kind: energy
@@ -1671,7 +1672,7 @@ streams:
     to: K701.chiller
     state:
       design:
-        duty: {value: 22521.7, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        duty: {value: 22515.5, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: Q26
     title: V-701 product chilling duty
     kind: energy
@@ -1679,7 +1680,7 @@ streams:
     to: K701.product
     state:
       design:
-        duty: {value: 31.7032, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        duty: {value: 17.7828, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: Q32
     title: "K-701 flash gas stages, shaft power"
     kind: energy
@@ -1687,7 +1688,7 @@ streams:
     to: K702.power
     state:
       design:
-        duty: {value: 1052.38, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        duty: {value: 1059.17, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: Q33
     title: "K-701 flash gas intercooler and condenser (E-701)"
     kind: energy
@@ -1695,7 +1696,7 @@ streams:
     to: CW.k702
     state:
       design:
-        duty: {value: 849.111, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        duty: {value: 854.841, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: Q34
     title: Receiver vent chiller duty
     kind: energy
@@ -1703,7 +1704,7 @@ streams:
     to: K701.vent
     state:
       design:
-        duty: {value: 2321.31, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        duty: {value: 2335.89, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
   - id: Q35
     title: Hydrogen-rich gas compressor power (X-601)
     kind: energy
@@ -1711,10 +1712,10 @@ streams:
     to: K601.power
     state:
       design:
-        duty: {value: 52.8868, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-  - {id: Q27, title: K-701 refrigeration compressor power, kind: energy, from: POWER.k701, to: K701.power, state: {design: {duty: {value: 10075.8, provenance: assumed, source: "scripts/packages_on_simulated_duties.py: 0.55 of Carnot on the simulated chiller duties Q25, Q26, Q30, Q34 (D-017, D-026)"}}}}
-  - {id: Q28, title: E-701 refrigerant condenser duty, kind: energy, from: K701.cw, to: CW.k701, state: {design: {duty: {value: 34958.0, provenance: assumed, source: "scripts/packages_on_simulated_duties.py: chiller duties plus Q27 (D-017, D-026)"}}}}
-  - {id: Q29, title: LP steam to purge recovery (NH3 distillation), kind: energy, from: U801.lp, to: X601.lp, state: {design: {duty: {value: 386.8, provenance: assumed, source: "scripts/packages_on_simulated_duties.py: 3 MJ/kg of the simulated recovered NH3 S58 (D-013, D-026)"}}}}
+        duty: {value: 45.7195, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+  - {id: Q27, title: K-701 refrigeration compressor power, kind: energy, from: POWER.k701, to: K701.power, state: {design: {duty: {value: 10073.8, provenance: assumed, source: "scripts/packages_on_simulated_duties.py: 0.55 of Carnot on the simulated chiller duties Q25, Q26, Q30, Q34 (D-017, D-026)"}}}}
+  - {id: Q28, title: E-701 refrigerant condenser duty, kind: energy, from: K701.cw, to: CW.k701, state: {design: {duty: {value: 34950.5, provenance: assumed, source: "scripts/packages_on_simulated_duties.py: chiller duties plus Q27 (D-017, D-026)"}}}}
+  - {id: Q29, title: LP steam to purge recovery (NH3 distillation), kind: energy, from: U801.lp, to: X601.lp, state: {design: {duty: {value: 368.5, provenance: assumed, source: "scripts/packages_on_simulated_duties.py: 3 MJ/kg of the simulated recovered NH3 S58 (D-013, D-026)"}}}}
   - id: Q30
     title: Recovered NH3 chilling duty
     kind: energy
@@ -1722,8 +1723,8 @@ streams:
     to: K701.hru
     state:
       design:
-        duty: {value: 7.42348, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
-  - {id: Q31, title: BFW pump power, kind: energy, from: POWER.p801, to: U801.power, state: {design: {duty: {value: 341.4, provenance: assumed, source: "scripts/packages_on_simulated_duties.py, eta 0.70 (D-015, D-026)"}}}}
+        duty: {value: 7.46628, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
+  - {id: Q31, title: BFW pump power, kind: energy, from: POWER.p801, to: U801.power, state: {design: {duty: {value: 348.8, provenance: assumed, source: "scripts/packages_on_simulated_duties.py, eta 0.70 (D-015, D-026)"}}}}
   - id: Q36
     title: CO2 removal make-up water pump power
     kind: energy
@@ -1731,5 +1732,5 @@ streams:
     to: P301.power
     state:
       design:
-        duty: {value: 1.4377, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 2788651f68a5b4a2, origin: simulated}
+        duty: {value: 1.42716, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: e087b6cd14c0e3d2, origin: simulated}
 layout: {bfd: {}, pfd: {}}
