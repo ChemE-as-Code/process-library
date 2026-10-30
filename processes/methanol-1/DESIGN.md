@@ -168,6 +168,74 @@ Decision: design pressure = highest operating pressure + 10 % (at least + 2 bar)
 the HP loop (89 barg); design temperature = highest operating temperature + 25 K. ASSUMED
 concept values; relief and materials (hydrogen service) at basic engineering.
 
+## D-013 DWSIM simulation inputs: scope, specs and property package (2026-10-30)
+Decision: `process/simulation.yaml` declares the whole flowsheet for `cheme process simulate`
+(nothing excluded), with Peng-Robinson (PR) as the one property package and the recorded method
+selection. Not run: no DWSIM or Docker was available on the machine this was written on, so
+no stream value comes from it and `process/simulation-run.json` does not exist. The flowsheet's
+values stay those of D-006 (script and propagate).
+- Specs repeat D-003, D-008, D-009 and D-010 (all ASSUMED): K-101 to 7550 kPa(a), K-102 to
+  8150 kPa(a), both isentropic 0.75 (shaft power: no motor efficiency is stated, so no
+  `drive_efficiency`); E-101 and E-103 to 313.15 K; E-102 cold outlet 498.15 K; pressure drops
+  as the D-003 stream pressures give them; V-101 adiabatic at its inlet; the purge split on
+  SPL (D-007).
+- Converter R-101: DWSIM's equilibrium reactor (MEOH_CO and WGS, 10 K approach of D-005) at the
+  outlet temperature 528.15 K, duty = heat to MP steam (Q4). It is a cooled reactor, so the
+  adiabatic mode that fails in DWSIM 9.0.5 (core #58, open) is not used; it must not be
+  switched to adiabatic until that is fixed. `reactions.yaml` gives no equilibrium constant,
+  so DWSIM takes ln K from its own formation data and its S7 can differ from cheme's (formation
+  data of `materials.yaml`, PR fugacity, D-006): that difference is the check.
+- LP flash V-102: no valve step precedes it, and a DWSIM vessel given only a pressure keeps its
+  inlet temperature (found in ammonia-1). It is therefore run at 600 kPa(a) and the script's
+  isenthalpic let-down temperature 315.10 K; its duty, about 0 if both agree, is the check.
+  Adding a let-down valve step to the flowsheet is the cleaner alternative (it changes the PFD;
+  left for review).
+- Topping column C-201: a Fenske-Underwood-Gilliland shortcut with a partial condenser (the
+  off-gas is its vapour distillate), keys CO2 / CH3OH, methanol in the off-gas 0.2257 (script
+  S16), reflux ratio L/D = 36.08 (D-008's 0.3 kmol reflux per kmol feed: 1219.8 kmol/h against
+  33.80 kmol/h of off-gas), 150 / 200 kPa(a). The light key in the bottoms, 1e-6, is ASSUMED:
+  D-008 sends all dissolved gas overhead, and the shortcut needs a value above zero. A shortcut
+  with non-condensable light components is a stretch of the Underwood method; if it does not
+  converge, the next step is a rigorous column, not new numbers.
+- Refining column C-202: shortcut, keys CH3OH / H2O at D-008's product and bottoms purities
+  as mole fractions (0.00088895 water in the distillate, 0.00005623 methanol in the bottoms),
+  reflux ratio 1.5, total condenser, 110 / 200 kPa(a). The shortcut's minimum reflux and stage
+  count are the first numbers of a rigorous column; a reflux ratio below its minimum would not
+  converge and means D-008's 1.5 is too low.
+- Tears: S12 (recycle) and S6 (feed/effluent exchanger loop: the converter feed is E-102's
+  cold outlet, the converter effluent its hot inlet), guesses from the flowsheet's values.
+Property package: one per simulation (the schema takes no package per unit), so the loop sets
+it. Facts (recorded in `simulation.yaml`): 81.5 bar(a) at the circulator discharge, polar
+(methanol, water), no electrolytes, no pseudocomponents, interaction parameters not available
+(uncertain; the conservative answer), no liquid-liquid split, no vapour association. The
+selection recommends PSRK or PR / RKS with modified Huron-Vidal mixing rules; the DWSIM route
+runs none of them and methods.yml names PR as the executable substitute (it loses the polar
+mixing rule): recorded as `method_selection.substitution` (`sim-method-substituted`, info).
+For the columns alone the same facts at 2 bar(a) recommend NRTL when interaction parameters
+are known (UNIFAC otherwise, which the DWSIM route does not run). NRTL with an ideal-gas vapour
+cannot carry the loop's supercritical H2, CO, CO2, CH4 and N2, so it is not used for the
+whole flowsheet. Neither package is qualified for this mixture: core's methods.yml
+benchmarks DWSIM's PR for nitrogen, oxygen and argon only, and DWSIM's NRTL for ethanol-water
+bubble points at 101.3 kPa only, not methanol-water. A run will therefore fail
+`predictive.property-regime` until core qualifies a package for syngas with methanol and
+water (I-06).
+Expected deviations once it runs (to be read, not silenced): S18 leaves the shortcut column at
+its bubble point at 110 kPa(a), while the flowsheet's S18 is the subcooled, pumped product at
+313.15 K and 300 kPa(a) (no product cooler or pump step), and Q9 includes that subcooling; S16's
+313.15 K against the partial condenser's dew point; the flash splits S10/S13 and S14/S15 and
+the column duties, where DWSIM's PR kij differ from the ChemSep kij of the script; S7 and Q4
+(formation data and real-gas reactor duty, D-006).
+Reason: the simulation is the independent check of the script's separator, column and duty
+values that D-006 asks for, and the specs are the existing decisions, so it adds no new design
+choice except the column representation and the 1e-6 above.
+Rejected: NRTL for the whole flowsheet (above); excluding the columns to simulate them later
+with NRTL (simulate takes one package per process, so a column-only NRTL run needs a separate
+setup or a core change); rigorous columns now (no stage numbers or feed stages exist yet, D-008).
+Note for review: with this file present `cheme maturity` (cheme 1.1.0) passes
+`balanced.model-basis` and `predictive.model-basis` and lists V-101, V-102, C-201 and C-202 as
+predictive, although nothing has been simulated; the `predictive.run-record` and later checks
+stay missing. The calculation maturity stays none (S1 is ASSUMED, `sourced.boundary`).
+
 ## 3. Reaction and model evidence
 
 | item | basis in this case | source and status | consistency check |
@@ -213,8 +281,8 @@ No table, figure or text of these sources is reproduced here.
 | Converter duty | cheme process reactors (formation basis, ideal gas) | done: 63.9 MW; script 65.7 MW (real gas) |
 | HP/LP flash, column splits, exchanger and compressor duties | scripts/loop_balance.py (PR, thermo) | done, values ASSUMED; **gated**: no qualified package (core #315) |
 | Stream enthalpies, block energy closure | cheme process props --fill / process energy | **gated**: props refuses S3-S19 (CH3OH outside syngas-pr-vapor; S3 outside its CO2/H2 box) |
-| Predictive simulation (DWSIM) | cheme process simulate | **gated**: no benchmarked package for this mixture (core #315, #399 covers ethanol-water bubble points only) |
-| Column stages and reflux | shortcut or rigorous | not done: needs qualified methanol-water VLE |
+| Predictive simulation (DWSIM) | cheme process simulate | inputs written (`process/simulation.yaml`, D-013), translation checked with `--check` up to `sim-unavailable`; **not run** (no DWSIM here) and not qualified: no benchmarked package for this mixture (core #315, #399 covers ethanol-water bubble points only) |
+| Column stages and reflux | shortcut (DWSIM, D-013), then rigorous | shortcut specs written, not run; needs qualified methanol-water VLE |
 | Converter sizing | PFR with a rate law | not done: kinetics input missing (process input, not a core gap) |
 
 `cheme maturity` reports level none: `sourced.boundary` fails because the make-up gas (S1) is
