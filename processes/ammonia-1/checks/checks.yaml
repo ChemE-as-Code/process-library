@@ -197,14 +197,17 @@ checks:
     # require: [dimensions, weights, nozzle-schedule, drawing-current]  # main dimensions,
     #   weights, a located nozzle schedule and current outline drawings (<TAG>.svg)
   # Prefer on-sheet over grep for what a P&ID must show: it finds printed tags in the model.
-  # - id: relief-on-pid
-  #   title: Relief devices drawn and connected
-  #   stage: basic
-  #   kind: on-sheet
-  #   sheets: [P-01]            # or sheet: P-01; omitted: any sheet
-  #   tags: [PSV-101]           # equipment, instrument (PICSA-101), valve or line tags
-  #   classes: [SafetyValve]    # at least min_count (1) of each class
-  #   connected: true           # piped, on a segment, with a measuring/signal line
+  # Enabled in S8 (D-033): the eight relief valves of piping/special-items.yaml, each with its
+  # relief case in safety/relief/relief-study.md. No `sheets:`: every listed tag must be on
+  # each listed sheet, and the valves are on seven sheets (P-103, P-104, P-106, P-108, P-110,
+  # P-111, P-113, as special-items.yaml gives them).
+  - id: relief-on-pid
+    title: Relief devices drawn and connected
+    stage: basic
+    kind: on-sheet
+    tags: [PSV-1212, PSV-1310, PSV-1513, PSV-1704, PSV-1911, PSV-1912, PSV-2010, PSV-2210]
+    classes: [SafetyValve]
+    connected: true
 
   # Open items (plant.yaml issues:): every action, engineering hold, technical query and design
   # change labelled gate:<stage> (or an earlier stage) is closed out before the stage is signed
