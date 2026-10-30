@@ -1254,6 +1254,41 @@ E-202, E-301, E-302, E-303, P-302A/B, X-401, X-601, U-801). Purchased cost of th
 bare module of the 8 USD 15.2 M (CEPCI 797.9). Still class 5; the TEA is unchanged.
 Reason: S5b item 3 (O-032); review 2026-10-29-design#1 (c).
 
+## D-038 Cooling water distribution routed, buried (2026-10-30, S9)
+Decision: the 20 cooling water lines of P-114 and the user sheets (headers CWS-1144/CWR-1145
+DN 1400 and the nine supply/return branch pairs) are routed in the 3D model:
+- **Headers buried** along PR-1, centreline 3.0 m below grade (ASSUMED), supply at y 108.5,
+  return at y 111.5. The P-114 headers are a reverse return (supply enters at the K-101 end,
+  the return leaves past K-701), so the supply battery limit is the PR-1 west end and the return
+  battery limit its east end (ASSUMED; the cooling water plant is outside the boundary, D-001).
+  The tees follow the P-114 order (x 127 ... 292, `piping/routing.yaml`).
+- **Branches buried** at 1.8 m below grade (centreline, ASSUMED) over the headers, rising at their
+  user; the long ones (to E-203, E-402, K-501, E-701) have lanes of their own so that no branch
+  passes over another's tee.
+- **Nozzles turned** (layout only, the P&IDs unchanged): the CW outlets of E-203 (S2), E-402 (S2)
+  and E-302 (S1) on the south side of the shell at mid height, so that the temperature control
+  valves TV-1306, TV-1608 and TV-1408 on the returns stand above grade within reach (they would
+  otherwise lie under or below the shell); the E-701 CW outlet T1 radial on the channel, out of
+  the bundle pull space. TV-1306 (DN 700) has its handwheel 3.4 m up: valve access platform
+  VP-TV-1306 (as proposed by the build, `layout/structures.yaml`, ASSUMED sizes).
+Reason: S9, gate layout-detail (every line routed, utilities included). DN 1400 headers are
+normally buried: two water-filled DN 1400 lines weigh about 1.5 t/m each (water alone,
+pi/4 x 1.4^2 x 1000 kg/m3), and the PR-1 tiers are crossed at every north-south rack junction by
+the tier-7/9 steel and by the pinned lines of D-036/D-037 at 9 to 11 m. Rejected: the headers on
+PR-1 tier 6 or 8 (clash with the junction steel and the pinned crossings; rack loads);
+elevated road crossings of the buried headers (a 10 m DN 1400 riser on each side of R-5 and R-6,
+high points in the CW circuit, only to suit the headroom rule).
+Assumptions and limits: the depths, the BL points and the tee positions are ASSUMED. The router
+cannot start a chain whose both ends are battery limits (the header ends are the BL and the dead
+"CW users" connector), so the header routes are given in `routing.yaml` (core v1.0.0
+`routing._place`: an `edge` end needs the other end placed first). The road headroom rule
+(core v1.0.0 `model_rules.headroom`) counts a buried crossing as a pipe under the road: the
+four crossings of R-5 and R-6 by the headers are reported `cheme.layout-headroom` (-3.71 m
+clear) and fail gate layout-detail and, since S9, gate layout-3d; they are not accepted here
+(an acceptance is the reviewer's call). The buried runs carry no support steel in the model
+(44 more `layout-support-missing` infos). The K-101, K-501 and K-701 CW supply and return
+nozzles coincide in the model (P&ID-side placement), left as they are.
+
 ## 3. Results of this stage (design case)
 
 Basic stage, S2 (the simulated flowsheet, D-026; lca/inventory.csv regenerated): per kg of NH3
