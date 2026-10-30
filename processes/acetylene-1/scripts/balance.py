@@ -468,8 +468,13 @@ def fmt(v):
     return float(f"{v:.6g}")
 
 
+_Y = []  # (sid, T, p, phase, stream) of every y() call, for the balance output below
+FLOWSHEET = {}
+
+
 def y(sid, title, frm, to, tmpl, T, p, phase, sx, src, calc=False):
     sx = {c: n for c, n in (sx or {}).items() if n > 1e-12}
+    _Y.append((sid, T, p, phase, sx))
     st = (f"pressure: {{value: {p}, provenance: assumed, source: \"{src[0]}\"}}, "
           f"temperature: {{value: {T:.2f}, provenance: assumed, source: \"{src[1]}\"}}, "
           f"phase: {{value: {phase}, provenance: assumed, source: \"{src[2]}\"}}")
@@ -547,3 +552,45 @@ print(f"W1 {mass(sW1):.1f} W2 {mass(sW2):.1f} W10 {mass(sW10):.1f} purge {mass(s
 print("purge comp", {c: fmt(n / sum(sPurge.values())) for c, n in sPurge.items()})
 print(f"E101 {q_e101:.1f} kW; W6 T mix approx {(sW3['H2O']*T_QUENCH + sW4['H2O']*s['T_col_out'] + sW5['H2O']*T_COL + sKO['H2O']*T_IC)/sW6['H2O']:.2f}")
 print(f"S30 lean {mass(sS30):.1f} kg/h")
+
+# the values process/flowsheet.yaml cites from this script (balance-output contract): the
+# streams printed by y() above, and the duties
+for sid, T, p, phase, sx in _Y:
+    n = sum(sx.values())
+    FLOWSHEET[sid] = {"temperature": T, "pressure": p, "phase": phase}
+    if n > 0:
+        FLOWSHEET[sid] |= {"flow": {"value": mass(sx), "basis": "mass"},
+                           "composition": {"values": {c: v / n for c, v in sx.items()},
+                                           "basis": "mole_fraction"}}
+FLOWSHEET["S11"] = {"temperature": t_dis}
+FLOWSHEET["W6"] = {"temperature": (sW3["H2O"] * T_QUENCH + sW4["H2O"] * s["T_col_out"]
+                                   + sW5["H2O"] * T_COL + sKO["H2O"] * T_IC) / sW6["H2O"]}
+# the compressor's coolers: three equal stages, so the two intercoolers take 2/3 of the shaft
+# work and the aftercooler the last third plus the condensate's latent heat (q_ic in total)
+q_after = w_comp / 3 + r["cond"] * 43.0 / 3.6
+FLOWSHEET |= {qid: {"duty": v} for qid, v in {
+    "Q1": w_comp / ETA_MOT, "Q2": p_solv, "Q3": p_water, "Q6": p_fan, "Q10": q_h101,
+    "Q11": q_h102, "Q12": q_steam_gen, "Q20": q_t303, "Q21": q_t304 - q_steam_gen,
+    "Q30": q_e101, "Q31": q_ic - q_after, "Q32": q_after, "Q33": q_e302}.items()}
+
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
+
+
+write_balance_output({"design": FLOWSHEET})
