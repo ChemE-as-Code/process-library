@@ -4,9 +4,11 @@
 # index below. Sizes come from the draft datasheets (`cheme datasheets draft`/`fill`, all
 # ASSUMED, draft: true) or the list dimensions; S7 completes them.
 schema: cheme/cost_basis/v1
-# AACE 18R-97 class 5, not 4: exchanger areas, compressor and pump powers and the furnace duty
-# are not yet on the datasheets, and no material is chosen, so most items have no cost or a
-# purchased cost only (D-035). Class 5 accuracy: low -20 % to -50 %, high +30 % to +100 %.
+# AACE 18R-97 class 5, not 4 (S5c, D-044): the sizes are now on the datasheets and the items
+# above their correlation's range are priced as split units, but most items are low-alloy Cr-Mo,
+# lined or above 140 barg, for which the package has no material or pressure factor, and the
+# bulk rates are placeholders, so the equipment-factored estimate class 4 requires is not
+# complete. Class 5 accuracy: low -20 % to -50 %, high +30 % to +100 %.
 estimate_class: 5
 cost_index:
   value: 797.9
@@ -17,9 +19,22 @@ notes: "Escalation 2001 -> 2023 by CEPCI 797.9 / 397. Currency USD (the correlat
 items:
   # the gas power DWSIM reports for the compressor step is the enthalpy rise of the gas (the
   # correlation's fluid power). K-101 (K101 + K101D, 8568 kW) and K-501 (12723 kW) are above
-  # the correlation's range and are not priced (D-035)
+  # the correlation's range: priced as split units below (S5c, D-044)
   # the fans' correlation takes the actual inlet gas flow (m3/s): mass flow of the linked stream
   # over its ideal-gas density at the stream's T, P and molar mass (design-s5b-r2#3)
-  - {tag: K-102, size: 37.5, size_source: "process/flowsheet.yaml stream S61 (case design): 165407 kg/h dry air (M 28.965 kg/kmol) at 288.15 K, 101.325 kPa, ideal-gas density 1.225 kg/m3; the flow is the D-014 design value (assumed), the same the simulation runs on"}
-  - {tag: K-103, size: 61.8, size_source: "process/flowsheet.yaml stream S66 (case design, simulated): 176411 kg/h flue gas, M 27.92 kg/kmol from its simulated composition, at 423.15 K, 100 kPa, ideal-gas density 0.794 kg/m3"}
-  - {tag: K-502, size: 1609.4, size_source: "process/simulation-run.json, case design, step K502 duty_kW (DWSIM compressor power, the gas's enthalpy rise)"}
+  - {tag: K-102, size: 38.1, size_source: "process/flowsheet.yaml stream S61 (case design): 168003.5 kg/h dry air (M 28.965 kg/kmol) at 288.15 K, 101.325 kPa, ideal-gas density 1.225 kg/m3; the flow is the given D-040 feed value, the same the simulation runs on"}
+  - {tag: K-103, size: 62.5, size_source: "process/flowsheet.yaml stream S66 (case design, simulated): 178547 kg/h flue gas, M 27.90 kg/kmol from its simulated composition, at 423.15 K (the D-014 stack design temperature), 100 kPa, ideal-gas density 0.793 kg/m3"}
+  - {tag: K-502, size: 1607.1, size_source: "process/simulation-run.json, case design, step K502 duty_kW (DWSIM compressor power, the gas's enthalpy rise; S5c run on the D-040 feed)"}
+  # S5c (D-044): items above their correlation's range, priced as identical units within it by
+  # scripts/split_equipment_costs.py (cheme assess equipment: "split it into units within the
+  # range (and say so)"); sizes from the datasheets (filled before the D-040 feed change, within
+  # about 2 % of the current simulation). Not priced this way: the Cr-Mo exchangers (no material
+  # factor), the loop exchangers above 140 barg (pressure factor range) and the pumps P-301A/B,
+  # P-801 and E-106 (no design pressure in the equipment list): not covered (D-044).
+  - {tag: K-101, cost: 9464170, currency: USD, year: 2023, status: ASSUMED, source: "3 identical units of 2856 kW (the item's fluid power 8568 kW, datasheet type_specific.fluid_power_kw: gas power of K101 + K101D, process/simulation-run.json, D-026), over the correlation's maximum 3000 kW, each 3154723 USD bare module (Compressor, centrifugal, Turton et al. CAPCOST correlation of the package, FBM 2.7, CEPCI 797.9 / 397); an upper estimate: n small units cost more than one large item (D-044)"}
+  - {tag: K-501, cost: 14623609, currency: USD, year: 2023, status: ASSUMED, source: "5 identical units of 2545 kW (the item's fluid power 12723 kW, datasheet type_specific.fluid_power_kw: Q20, process/simulation-run.json, D-026), over the correlation's maximum 3000 kW, each 2924722 USD bare module (Compressor, centrifugal, Turton et al. CAPCOST correlation of the package, FBM 2.7, CEPCI 797.9 / 397); an upper estimate (D-044)"}
+  - {tag: K-701, cost: 12405062, currency: USD, year: 2023, status: ASSUMED, source: "4 identical units of 2782 kW (the item's fluid power 11130 kW, datasheet type_specific.fluid_power_kw: Q27 + Q32, D-017, D-026), over the correlation's maximum 3000 kW, each 3101265 USD bare module (Compressor, centrifugal, Turton et al. CAPCOST correlation of the package, FBM 2.7, CEPCI 797.9 / 397); an upper estimate (D-044)"}
+  - {tag: E-203, cost: 4864492, currency: USD, year: 2023, status: ASSUMED, source: "5 identical units of 887.8 m2 (the item's area 4439 m2, datasheet type_specific.area_m2, D-032), over the correlation's maximum 1000 m2, each 972898 USD bare module (Shell and tube exchanger, fixed tube sheet, Turton et al. CAPCOST correlation of the package, FBM 6.81, CEPCI 797.9 / 397); an upper estimate (D-044)"}
+  - {tag: E-701, cost: 2491778, currency: USD, year: 2023, status: ASSUMED, source: "5 identical units of 925.6 m2 (the item's area 4628 m2, datasheet type_specific.area_m2, D-032), over the correlation's maximum 1000 m2, each 498356 USD bare module (Shell and tube exchanger, fixed tube sheet, Turton et al. CAPCOST correlation of the package, FBM 3.39, CEPCI 797.9 / 397); an upper estimate (D-044)"}
+  - {tag: C-301, cost: 27472649, currency: USD, year: 2023, status: ASSUMED, source: "2 identical units of 338.7 m3 (the item's shell volume 677.4 m3, datasheet type_specific.volume_m3: pi/4 D^2 L over the outside diameter, an upper bound), over the correlation's maximum 520 m3, each 13736324 USD bare module (Tower, shell, Turton et al. CAPCOST correlation of the package, FBM 32.8 from the 3100 kPa(a) pressure factor at 5 m diameter, CEPCI 797.9 / 397); internals not included; an upper estimate (D-044)"}
+  - {tag: C-302, cost: 16408720, currency: USD, year: 2023, status: ASSUMED, source: "2 identical units of 410 m3 (the item's shell volume 820 m3, datasheet type_specific.volume_m3: pi/4 D^2 L over the outside diameter, an upper bound), over the correlation's maximum 520 m3, each 8204360 USD bare module (Tower, shell, Turton et al. CAPCOST correlation of the package, FBM 16.2, CEPCI 797.9 / 397); internals not included; an upper estimate (D-044)"}

@@ -1479,6 +1479,48 @@ shell ID differs from the equipment list diameter, which is the S5 layout envelo
 moved the streams by about 2 %. The final datasheets are refreshed with the S7 workflow
 (`complete_datasheets.py inputs`, `datasheets fill`, `final`); this was not done in S5c.
 
+## D-044 Estimate: split-unit pricing, TEA on the new gas; still class 5 (2026-10-30, S5c)
+Decision:
+- **Cost index**: the CEPCI annual average 2023 = 797.9 stays (Chemical Engineering, Economic
+  Indicators, Sept. 2024, p. 45, D-035). It is still the latest annual value openly readable.
+- **Split units**: seven items above their Turton (CAPCOST) correlation's range are priced as n
+  identical units within it, as `cheme assess equipment` advises ("split it into units within
+  the range (and say so)"). `scripts/split_equipment_costs.py` uses core's own costing functions
+  and prints the `estimate/cost-basis.yaml` entries; each entry gives n, the unit size, the FBM
+  and the escalation. This is an upper estimate, because n small units cost more than one large
+  item. In 2023 USD, bare module:
+  - K-101: 3 x 2856 kW, 9.46 M
+  - K-501: 5 x 2545 kW, 14.62 M
+  - K-701: 4 x 2782 kW, 12.41 M
+  - E-203: 5 x 888 m2, 4.86 M
+  - E-701: 5 x 926 m2, 2.49 M
+  - C-301: 2 x 339 m3 shell, 27.47 M
+  - C-302: 2 x 410 m3 shell, 16.41 M
+  The fan and K-502 sizes follow the D-040 streams.
+- **TEA**: `estimate/tea.yaml` takes the gross calorific value of the D-040 gas, 54.40 MJ/kg
+  (NIST heats of combustion; 38.78 MJ/m3 at 15 C, against the 38.9 of the Enbridge table). Before
+  it was 51.08 MJ/kg. `cheme assess tea --write`: fixed capital 736.5 MEUR (unchanged, IEAGHG
+  basis); natural gas cost -176.8 MEUR/a (before -175.7); emissions 7.788e5 t CO2-eq/a (before
+  7.815e5); NPV -1,049.4 MEUR (before -1,049.5).
+Result: `estimate/equipment-cost.md` covers 52 items. 8 have a bare module cost from a
+correlation (15.2 MUSD), 7 have the split-unit costs above (87.7 MUSD), 12 have a purchased cost
+only (8.7 MUSD) and 25 are not covered.
+Not reached: **class 4**. AACE 18R-97 class 4 needs an equipment-factored or parametric
+estimate on priced major equipment. That fails here for four reasons:
+- Most items are low-alloy Cr-Mo (D-032) or refractory-lined. The package has material factors
+  only for CS and SS, and an Fm read from a printed table is not available to this job.
+- The loop exchangers E-503, E-504 and E-505 are above the pressure factor's 140 barg range.
+- Splitting still leaves no bare module cost for the out-of-range items E-501, E-502, E-104,
+  E-105, E-201, E-401 and E-402 (Cr-Mo), for E-503 to E-505 (pressure), or for E-106, P-301A/B
+  and P-801 (no design pressure in the equipment list for the pressure factor).
+- The bulk unit rates of `estimate/rates.yaml` are still the example placeholders. No openly
+  published, citable set of pipe, valve, steel and concrete unit prices was found (searched
+  again in S5c), and no erection labour factor either (D-035).
+So the TEA's fixed capital stays the class 5 capacity-factored IEAGHG 2017-03 basis (D-023):
+accuracy -20 to -50 % low, +30 to +100 % high, 368-589 MEUR to 957-1,473 MEUR. To close class 4
+the project needs vendor or contractor prices for the Cr-Mo and high-pressure items and for the
+bulk materials, or a licensed cost database. None of these may be copied in here.
+
 ## 3. Results of this stage (design case)
 
 Basic stage, S2 (the simulated flowsheet, D-026; lca/inventory.csv regenerated): per kg of NH3
