@@ -61,7 +61,9 @@ SECTIONS = [  # id, tag, branch, worktree, cap, task key in sections.md, signoff
     dict(id="S6", tag="S6", branch="stage/basic-hazop", wt="nh3-basic-hazop", cap=20, key="S6", reviews=["hazop"]),
     dict(id="S7", tag="S7", branch="stage/detail-datasheets", wt="nh3-detail-datasheets", cap=20, key="S7", reviews=["datasheets"]),
     dict(id="S8", tag="S8", branch="stage/detail-relief", wt="nh3-detail-relief", cap=15, key="S8", reviews=["relief"]),
-    dict(id="S9", needs="S5b", tag="S9", branch="stage/detail-gates", wt="nh3-detail-gates", cap=15, key="S9", reviews=["detail-gates"]),
+    # O-033: S5 (#257) waits for the owner; S9 stacks on it: base stage/basic-layout, brought up to
+    # date with main by a sync job first; the S9 PR is approved but not merged (stacked).
+    dict(id="S9", base="stage/basic-layout", sync="nh3-basic-layout", no_merge=True, tag="S9", branch="stage/detail-gates", wt="nh3-detail-gates", cap=15, key="S9", reviews=["detail-gates"]),
 ]
 
 
@@ -246,10 +248,34 @@ def run_section(st, sec):
     sid, wt = sec["id"], WT / sec["wt"]
     plant = wt / "processes/ammonia-1"
     sh(["git", "fetch", "-q", "origin"], cwd=LIB)
+    base = sec.get("base", "main")
+    if sec.get("sync") and not st.get("synced", {}).get(sid):
+        swt = WT / sec["sync"]
+        sname = f"{sid}-sync-{base.split('/')[-1]}"
+        recs, out = run_job(st, sname, swt / "processes/ammonia-1", "implement.md",
+                            f"# Your job: bring `{base}` (checked out, open PR) up to date with main\n"
+                            "Merge `origin/main` into this branch (`git fetch origin` then `git merge origin/main`). "
+                            "main has the merged S6 HAZOP, S7 datasheets and S8 relief; this branch has the S5/S5b layout, "
+                            "lifting and estimate work. Resolve every conflict by keeping both sides' intent: datasheets from "
+                            "main (S7, complete) with this branch's sizing additions where they are better sourced; DESIGN.md "
+                            "and PROGRESS.md with both sides' entries (renumber a clashing decision id and fix its references); "
+                            "regenerate generated files (`cheme process build`, `cheme layout build`, `cheme assess mto --write`, "
+                            "estimate) instead of hand-merging them. No engineering change beyond what the merge needs. "
+                            "`cheme validate` 0 errors, report `cheme check --stage basic`. Commit the merge; do not push. "
+                            "Write nothing to build/pr-body.md.\n", 6.0, "deny")
+        row(recs, sname, sid, "sync", swt, pushed="orchestrator")
+        push(swt, base)
+        st.setdefault("synced", {})[sid] = True
+        save(st)
+        commit_ledger(f"ammonia-1 run: {sname} row")
     if not wt.exists():
-        sh(["git", "worktree", "add", "-q", "-b", sec["branch"], str(wt), "origin/main"], cwd=LIB)
+        sh(["git", "worktree", "add", "-q", "-b", sec["branch"], str(wt), f"origin/{base}"], cwd=LIB)
     text = section_text(sec["key"])
     head = f"Branch: {sec['branch']} (checked out). Earlier sections are merged on main.\n\n"
+    if base != "main":
+        head = (f"Branch: {sec['branch']} (checked out), stacked on `{base}` (open PR, waiting for the owner's "
+                "decisions: lifting acceptance, feed specification, risk matrix, estimate rates); its PR's base is "
+                f"`{base}`. S6-S8 are merged on main and in `{base}`.\n\n")
     if not sec.get("resume_after"):
         recs, out = run_job(st, f"{sid}-implement", plant, "implement.md", f"# Your section: {sid} of ammonia-1\n" + head + text, sec["cap"], "deny")
         row(recs, f"{sid}-implement", sid, "implement", wt, pushed="orchestrator")
@@ -265,6 +291,7 @@ def run_section(st, sec):
     if not num:
         body = plant / "build/pr-body.md"
         args = ["gh", "pr", "create", "--base", "main", "--head", sec["branch"], "--title", f"ammonia-1 {sid}: {sec['branch'].split('/')[-1]} (#86)"]
+        args[4] = base
         args += ["--body-file", str(body)] if body.exists() else ["--body", f"Section {sid} of the ammonia-1 run (#86); the job wrote no build/pr-body.md.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)"]
         sh(args, cwd=LIB, check=False)
         num, state = pr_of(sec["branch"])
@@ -277,6 +304,7 @@ def run_section(st, sec):
             rname = f"{sid}-review-{topic}-r{rnd}"
             rtask = (f"# Review this section's PR: {sid} of ammonia-1 (PR #{num}), round {rnd}\nReview topic for the record: `{topic}`.\n"
                      + ("This section ends with a stage sign-off: on `VERDICT: approve` do **not** merge.\n" if signoff or len(sec['reviews']) > 1 else "")
+                     + (f"This PR is stacked on `{base}` (open): on `VERDICT: approve` do **not** merge.\n" if sec.get("no_merge") else "")
                      + head + text + FIND_RULE)
             recs, out = run_job(st, rname, plant, "review.md", rtask, CAPS["review"], "auto")
             v, f = verdict(out)
@@ -309,7 +337,7 @@ def run_section(st, sec):
         num, state = pr_of(sec["branch"])
         row(recs, f"{sid}-merge", sid, "merge", wt, pr=num, merged=(recs[-1]["session_id"] if state == "MERGED" and recs else ""), notes=f"VERDICT: {verdict(out)[0]}")
     num, state = pr_of(sec["branch"])
-    if state != "MERGED":
+    if state != "MERGED" and not sec.get("no_merge"):
         recs, out = run_job(st, f"{sid}-ci-merge", plant, "review.md", f"# PR #{num} ({sid}) is approved by its review but not merged\n"
                             "Get its CI green (fix only what CI reports, in this section's scope) and merge it; if a fix needs more than CI causes, do not merge and say why.\n" + FIND_RULE, CAPS["ci-merge"], "auto")
         num, state = pr_of(sec["branch"])
