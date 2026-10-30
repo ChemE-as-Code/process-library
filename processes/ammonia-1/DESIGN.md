@@ -1706,6 +1706,93 @@ Rejected:
   beside the machine is what core#73 provides.
 - Moving the instrument trunk IT-PR-7-3 off PR-7: the rack itself was in E-504's old lane.
 
+## D-047 Pipe supports: intermediate rack steel, small lines low or on the racks (2026-10-30, S10)
+
+Owner's decision I-009 (detail stage, branch `stage/detail-supports`, core v1.1.0).
+
+Problem: `cheme layout build` proposed 420 single T-posts (HEB200 from grade, `review_needed`)
+under 83 lines wherever a level run spans farther than the DN's suggested span (core table
+`pipe-spans.yaml`, after ASME B31.1 Table 121.5, ASSUMED): median 7.9 m tall, 166 above 8 m, max
+15.3 m; about 208 t of HEB200 at 61.3 kg/m (EN 10365) had they been pinned. 173 of them stood
+inside rack footprints: small lines (DN 25 to 50) on 8 to 10 m bents with no steel between.
+
+Span table: kept core's ASSUMED table. Core v1.1.0 reads the per-DN spans only from its packaged
+`pipe-spans.yaml`; the plant has no input for them, and the site plan's `max_unsupported_length`
+is one number, the rack reach (30 m), not a span per DN. The B31.1 table is not openly licensed,
+and no open span table was looked for once it was clear nothing could take it. Gap for core (with
+core#90).
+
+Decision:
+1. **Intermediate rack steel** (`intermediate_supports`, site plan) on the tiers that carry
+   lines whose span is shorter than the bay, spacing from the shortest such span: PR-7 tier 8,
+   PR-1 tier 10, PR-4 tier 8 and PR-8 tier 9 at 2.0 m (DN 25 liquid, 2.1 m); PR-2 tier 8 at 4.0 m
+   (FG-1002, DN 80, 4.6 m). Section IPE240 for stringers and cross beams, ASSUMED (screening: a
+   10 m stringer with four beam reactions of about 5 kN deflects about L/300; a default by span
+   would have made the 10 m stringers HEB500). The structural design sizes them.
+   Left without intermediate steel: PR-10 (its steel at bay 9 stood in E-105's crane lane from
+   CP-108), PR-5 (its tier-9 stringers met PC-1048 and SM-1140 where they leave the rack, and
+   tier 11 pushed SM-1038 and SM-1040 into each other), PR-6 and PR-11 (one line each, DN 150,
+   whose spans exceed the 8 m bays only as free-span warnings; their steel moved SM-1101 to
+   another rack), PR-4 tier 6 (its stringers would stand in road R-6 below the 6 m headroom),
+   PR-3 (no line runs along it). The lower, large-bore tiers keep their 10 m bents: DN 300 gas
+   (9.1 m) and DN 400 liquid (8.2 m) exceed that by up to 1.8 m (warnings `layout-free-span`,
+   open, for the structural design: bent spacing or one beam per bay; the bents are placed so
+   that none stands in a road, D-036).
+2. **Small lines routed low or onto the racks** (`piping/routing.yaml`, each with its reason):
+   CO2-1142 (U-801 stripper overhead to the CO2 vent stack) along the PR-4 top tier and north on
+   sleepers in the 2 m gap between X-401 and CP-203 beside DW-1073, across north of X-401 level
+   with the DW-1073 crossing (pinned; the stack foot is 35 m from PR-4, beyond the 30 m rack reach,
+   and the router hops over a tier's beams between via points); PC-1084 down from X-401 to
+   sleepers in the same gap instead of 23 m at 8.85 m; PC-1083 east from V-401 on sleepers (y 127)
+   instead of 20 m at 9.85 m; the DW-1073 grade leg lowered from 0.6 m to sleepers (centreline
+   0.35 m). The three lines in the X-401/CP-203 gap run grouped, below X-401's crane lane from
+   CP-203. The grade legs are low points: drain valves, and a drain pot on the wet CO2-1142
+   vent (ASSUMED, to be drawn on P-113/P-106/P-107 with the next P&ID revision).
+3. **Pinned to keep the reviewed basic routes** where the new steel moved them: SM-1040 and
+   SM-1101 as generated at basic sign-off; the drops of SL-1135 (PR-1/PR-10 junction, x 133.4)
+   and PC-1136 (onto PR-4, x 255.3) moved clear of the new beams.
+
+Result (`cheme layout build`, 2026-10-30): proposed support steel 420 T-posts -> 252 T-posts and
+3 stubs under 82 lines; median height 8.7 m (the 7.9 m posts on the racks are gone, so the median
+rises), 144 above 8 m, max 15.3 m; about 128 t of HEB200 if all were pinned. PG-1126 54 -> 7,
+PG-1109 27 -> 11, CO2-1142 27 -> 0, AL-1124 24 -> 3, DW-1073 22 -> 6, AG-1125 17 -> 2, PC-1083
+11 -> 1, PC-1084 11 -> 1. Of the 252, 190 stand off the racks and 62 within rack footprints
+(within half the width plus 0.5 m of a centreline): at junctions and rack ends, and under lines
+the build does not count as riding on a rack (below).
+`layout-free-span` warnings 73 -> 41; `layout-support-missing` (info) 107 -> 132, because pipes
+now carried along the racks are listed for the short off-rack stretches left. 0 clashes; the
+lifting study has the same 8 blocked lanes as at basic sign-off (H-101, E-104, E-402, K-501, E-501,
+E-502, E-505, E-504), and K-501's lane, blocked already by PG-1088, PG-1089 and PG-1090, also
+lists its motor tray PT-M-K-501, whose drop the PR-7 intermediate steel moved. Take-off: +117.1 t
+IPE240 (rack steel 549.6 -> 666.7 t, all steel 555.1 -> 672.2 t; the proposals are counted only
+once pinned). Bulk estimate 99,423 -> 103,268 (+3.9 %, example placeholder rates); TEA unchanged
+(gate `tea` current: it rests on the equipment estimate, D-045).
+
+The posts left and why:
+- relief lines PG-1119, PG-1120, AG-1134 (29 posts, 9.4 to 9.5 m): run at 9.6 m over the vessel
+  platforms and clear of V-501's crane lane on purpose (D-036, D-037); routing them over the
+  racks would make them several times longer, adding back pressure. They want a small pipe
+  bridge or supports from the vessel platforms' steel, which the model has no way to show;
+- PA-1022 (14, DN 250 process air, via points of D-036) and the off-rack legs of the DN 300 to
+  600 process lines at the pipe-way (3.4 to 5.5 m): local runs between items;
+- legs between a rack and a nozzle (PG-1109, PG-1113, AL-1127, AL-1114, AL-1129, PG-1097, ...):
+  the vertical-to-horizontal runs at tier height from a rack to an item 10 to 15 m away;
+- BW-1138, BW-1139 (15.1 m, `direct` routes at U-801) and SM-1040 (15.3 m): high runs on the
+  U-801 package, whose own steel is not modelled;
+- the DW-1073 / CO2-1142 crossing north of X-401 (about 16 m at 8.0 m over the access from R-2):
+  needs one pipe bridge spanning the access (posts there would stand in the vehicle way);
+- posts on rack footprints, among them pipes that run along a rack but carry no `racks` in the model
+  (the router assigns a chain's rack only to a segment whose points are the rack run's own,
+  `routing.py` `_plan`; FLR-1146, PG-1126, PG-1109, AL-1124, AG-1125 and others split at an
+  off-page connector or tee). Core issue, with core#90; not worked around.
+
+Rejected:
+- Intermediate steel on every tier at 2 m: about 3 times the steel, for lower tiers whose large
+  lines exceed the 10 m bays only slightly.
+- Larger rack reach to pull CO2-1142 onto PR-4: it is the criterion `cheme validate` checks line
+  routes with, not a routing knob.
+- Pinning the proposed posts: they stay proposals (`review_needed`) until the pipe support design.
+
 ## 3. Results of this stage (design case)
 
 Basic stage, S5c (the D-040 feed, re-simulated; lca/inventory.csv regenerated): per kg of NH3
