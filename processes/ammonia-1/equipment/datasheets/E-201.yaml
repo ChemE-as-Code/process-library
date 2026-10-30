@@ -1,0 +1,248 @@
+# Datasheet drafted by `cheme datasheets draft`, sized by `cheme datasheets fill` and completed by
+# scripts/complete_datasheets.py (DESIGN.md D-032). Preliminary process datasheet: every value
+# says where it comes from; assumed: true marks an assumption; `supplier` names what a vendor,
+# licensor or study still has to give. Checked by the authoring agent, not yet by an engineer.
+tag: E-201
+type: TubularHeatExchanger
+service: HTS effluent cooler
+operating:
+  case: design
+  streams:
+  - S19
+  - S75
+  - Q13
+  inlet_pressure:
+    value: 3300.0
+    unit: kPa(a)
+    source: 'process/flowsheet.yaml stream S19 (case design), assumed: D-008'
+    assumed: true
+  inlet_temperature:
+    value: 716.9
+    unit: K
+    source: 'process/flowsheet.yaml stream S19 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+    origin: simulated
+  inlet_flow:
+    value: 189526.0
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S19 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+    origin: simulated
+design:
+  pressure_barg:
+    value: 49.5
+    unit: barg
+    source: 'design pressure = max(1.10 x, +1.7 bar over) the maximum operating gauge pressure, rounded
+      up to 0.5 bar (heuristic ''10 % or 10-25 psi, whichever is greater'' of Walas, Chemical Process
+      Equipment, 1988, Rules of Thumb, and Turton et al., 4th ed., 2012, as summarised by the Northwestern
+      University Process Design wiki, ''Pressure Vessels''; the books were not read; the upper end 1.7
+      bar taken), D-032; governing side steam: 4600 kPa(a) from MP steam system 4600 kPa(a) (design basis
+      utilities, D-015)'
+    assumed: true
+  process_pressure_barg:
+    value: 35.5
+    unit: barg
+    source: design pressure = max(1.10 x, +1.7 bar over) the maximum operating gauge pressure, rounded
+      up to 0.5 bar (heuristic '10 % or 10-25 psi, whichever is greater' of Walas, Chemical Process Equipment,
+      1988, Rules of Thumb, and Turton et al., 4th ed., 2012, as summarised by the Northwestern University
+      Process Design wiki, 'Pressure Vessels'; the books were not read; the upper end 1.7 bar taken),
+      D-032; 3300 kPa(a) from stream S19, stream S75
+    assumed: true
+  steam_pressure_barg:
+    value: 49.5
+    unit: barg
+    source: design pressure = max(1.10 x, +1.7 bar over) the maximum operating gauge pressure, rounded
+      up to 0.5 bar (heuristic '10 % or 10-25 psi, whichever is greater' of Walas, Chemical Process Equipment,
+      1988, Rules of Thumb, and Turton et al., 4th ed., 2012, as summarised by the Northwestern University
+      Process Design wiki, 'Pressure Vessels'; the books were not read; the upper end 1.7 bar taken),
+      D-032; 4600 kPa(a) from MP steam system 4600 kPa(a) (design basis utilities, D-015)
+    assumed: true
+  temperature_degc:
+    value: 475.0
+    unit: degC
+    source: 'design temperature = maximum operating temperature + 28 K (50 degF of Towler and Sinnott,
+      Chemical Engineering Design, 2nd ed., 2013 / UOP and of Walas 1988, as summarised by the Northwestern
+      University Process Design wiki, ''Pressure Vessels''; at least Turton''s 25 degC), rounded up to
+      5 degC, D-032; maximum operating 716.90 K: stream S19 (calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR))'
+    assumed: true
+  note: above 345 degC the D-032 margin is a process allowance; the metal temperature (refractory, tube
+    wall, flue-gas side) is the vendor's
+materials:
+  main:
+    value: low-alloy Cr-Mo steel (grade by the materials review)
+    material_class: low_alloy_steel
+    assumed: true
+    source: 'DESIGN.md D-032: preliminary material class by service (hydrogen-bearing gas above the carbon-steel
+      range of API RP 941 (Nelson curves)); the materials selection review is open'
+dimensions:
+  orientation: horizontal
+  outside_diameter:
+    value: 2.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.diameter
+  overall_length:
+    value: 10.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.length
+  tangent_length:
+    value: 8.3
+    unit: m
+    source: 'layout/plant-model.yaml part E-201/shell: the generated shell between the heads (the 3D model''s
+      proportions, not a vessel design)'
+    assumed: true
+  axis_deg:
+    value: 0.0
+    unit: deg
+    source: layout/plant-model.yaml E-201 rotation_deg (layout/equipment-placement.yaml)
+nozzles:
+- name: T1
+  dn: 700
+  lines:
+  - PG-1034
+  source: pid/P-103.xml
+- name: T2
+  dn: 600
+  lines:
+  - PG-1035
+  source: pid/P-103.xml
+- name: S1
+  dn: 200
+  lines:
+  - BW-1039
+  source: pid/P-103.xml
+- name: S2
+  dn: 125
+  lines:
+  - SM-1040
+  source: pid/P-103.xml
+type_specific:
+  diameter_m:
+    value: 2.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  length_m:
+    value: 10.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  duty_kw:
+    value: 12155.6
+    unit: kW
+    source: process/simulation-run.json (case design, cheme process simulate, DWSIM 9.0.5, Peng-Robinson,
+      D-026) unit E201 (= Q13)
+  area_m2:
+    value: 1499.0
+    unit: m2
+    source: 'cheme datasheets fill: A = Q / (U F LMTD) (1 + margin) = 1.216e+04 kW / (65 x 1 x 124.7 K)
+      x 1; U 65 W/(m2 K) ASSUMED as design typical (middle of 30-100), Sinnott, Coulson & Richardson''s
+      Chemical Engineering Vol. 6, 4th ed. (2005), Table 12.1, p. 637: heater, flue gases / steam; no
+      margin (none declared); Q given type_specific.duty_kw 12155.6 (process/simulation-run.json (case
+      design, cheme process simulate, DWSIM 9.0.5, Peng-Robinson, D-026) unit E201 (= Q13))'
+    assumed: true
+    fingerprint: ada9e3f33efb49e3
+    inputs:
+    - table:overall-coefficients/heater/flue-gases-steam
+    - datasheet:type_specific.duty_kw
+    - param:utility_inlet_temperature_degc
+    - param:utility_outlet_temperature_degc
+    - param:arrangement
+    - param:overall_u_w_m2k
+    - param:u_service
+    - param:area_margin
+    origin: correlation
+  process_streams:
+  - stream: S19
+    direction: in
+    title: HT shift outlet
+    source: process/flowsheet.yaml (case design)
+  - stream: S75
+    direction: out
+    title: HTS effluent after the waste heat boiler
+    source: process/flowsheet.yaml (case design)
+  - stream: Q13
+    direction: out
+    title: E-201 duty to steam system
+    source: process/flowsheet.yaml (case design)
+  u_service: heater/flue-gases-steam
+  arrangement: counter-current
+  utility_inlet_temperature_degc:
+    value: 258.78
+    unit: degC
+    source: saturation of MP steam at 4600 kPa(a), 531.93 K (stream S69, IAPWS, D-015)
+    assumed: true
+  utility_outlet_temperature_degc:
+    value: 258.78
+    unit: degC
+    source: saturation of MP steam at 4600 kPa(a), 531.93 K (stream S69, IAPWS, D-015)
+    assumed: true
+  lmtd_k:
+    value: 124.7
+    unit: K
+    source: 'cheme datasheets fill: LMTD, counter-current (datasheet type_specific.arrangement), hot 716.9
+      -> 611.2 K, cold 531.93 -> 531.93 K (streams S19 -> S75; other side 258.78 (ASSUMED: saturation
+      of MP steam at 4600 kPa(a), 531.93 K (stream S69, IAPWS, D-015)) -> 258.78 (ASSUMED: saturation
+      of MP steam at 4600 kPa(a), 531.93 K (stream S69, IAPWS, D-015)) degC)'
+    assumed: true
+    fingerprint: a8764d790dc14bed
+    inputs:
+    - param:utility_inlet_temperature_degc
+    - param:utility_outlet_temperature_degc
+    - param:arrangement
+    origin: correlation
+  overall_u_w_m2k:
+    value: 65.0
+    unit: W/(m2 K)
+    source: 'cheme datasheets fill: U 65 W/(m2 K) ASSUMED as design typical (middle of 30-100), Sinnott,
+      Coulson & Richardson''s Chemical Engineering Vol. 6, 4th ed. (2005), Table 12.1, p. 637: heater,
+      flue gases / steam'
+    assumed: true
+    fingerprint: 986fbc52c5c6287c
+    inputs:
+    - table:overall-coefficients/heater/flue-gases-steam
+    - param:overall_u_w_m2k
+    - param:u_service
+    origin: correlation
+  rating:
+    value: supplier
+    unit: ''
+    source: vendor's thermal, hydraulic or machine rating on these process conditions (not calculated
+      by cheme-as-code, docs/framework/sizing.md)
+    reason: vendor's thermal, hydraulic or machine rating on these process conditions (not calculated
+      by cheme-as-code, docs/framework/sizing.md)
+  mechanical_design:
+    value: supplier
+    unit: ''
+    source: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+    reason: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+  corrosion_allowance_mm:
+    value: supplier
+    unit: mm
+    source: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+    reason: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+  relief_protection:
+    value: supplier
+    unit: ''
+    source: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+    reason: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+sizing_basis:
+- parameter: sizing_scope
+  value: preliminary
+  reference: 'cheme datasheets fill: the values it writes are preliminary process sizing (short-cut methods,
+    declared or typical parameters), not a rating or a design to a code; not calculated: rating, mechanical
+    code, materials corrosion, relief, dynamics controls (docs/framework/sizing.md)'
+- parameter: design conditions
+  value: rule of D-032 on the item's operating streams
+  reference: DESIGN.md D-032
+- parameter: typical overall coefficient
+  value: heater/flue-gases-steam
+  reference: DESIGN.md D-032 (Sinnott, C&R Vol. 6, 4th ed., Table 12.1)
+notes: '717 -> 478 K, 26.6 MW: 14.9 MW to the methanator feed, 11.8 MW to steam / BFW (D-008, D-010).
+  Dimensions ASSUMED (D-022). Area: the typical-U row for gases (Sinnott Table 12.1) is for gases near
+  atmospheric pressure; at this design pressure the gas film coefficients are higher, so the area is an
+  upper bound until the vendor''s rating (D-032).'

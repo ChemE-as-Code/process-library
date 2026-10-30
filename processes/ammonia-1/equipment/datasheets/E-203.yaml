@@ -1,0 +1,242 @@
+# Datasheet drafted by `cheme datasheets draft`, sized by `cheme datasheets fill` and completed by
+# scripts/complete_datasheets.py (DESIGN.md D-032). Preliminary process datasheet: every value
+# says where it comes from; assumed: true marks an assumption; `supplier` names what a vendor,
+# licensor or study still has to give. Checked by the authoring agent, not yet by an engineer.
+tag: E-203
+type: TubularHeatExchanger
+service: Process gas final cooler
+operating:
+  case: design
+  streams:
+  - S22
+  - S23
+  - Q16
+  inlet_pressure:
+    value: 3150.0
+    unit: kPa(a)
+    source: 'process/flowsheet.yaml stream S22 (case design), assumed: D-009'
+    assumed: true
+  inlet_temperature:
+    value: 422.284
+    unit: K
+    source: 'process/flowsheet.yaml stream S22 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+    origin: simulated
+  inlet_flow:
+    value: 189526.0
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S22 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+    origin: simulated
+design:
+  pressure_barg:
+    value: 34.0
+    unit: barg
+    source: 'design pressure = max(1.10 x, +1.7 bar over) the maximum operating gauge pressure, rounded
+      up to 0.5 bar (heuristic ''10 % or 10-25 psi, whichever is greater'' of Walas, Chemical Process
+      Equipment, 1988, Rules of Thumb, and Turton et al., 4th ed., 2012, as summarised by the Northwestern
+      University Process Design wiki, ''Pressure Vessels''; the books were not read; the upper end 1.7
+      bar taken), D-032; governing side process: 3150 kPa(a) from stream S22, stream S23'
+    assumed: true
+  process_pressure_barg:
+    value: 34.0
+    unit: barg
+    source: design pressure = max(1.10 x, +1.7 bar over) the maximum operating gauge pressure, rounded
+      up to 0.5 bar (heuristic '10 % or 10-25 psi, whichever is greater' of Walas, Chemical Process Equipment,
+      1988, Rules of Thumb, and Turton et al., 4th ed., 2012, as summarised by the Northwestern University
+      Process Design wiki, 'Pressure Vessels'; the books were not read; the upper end 1.7 bar taken),
+      D-032; 3150 kPa(a) from stream S22, stream S23
+    assumed: true
+  cooling_water_pressure_barg:
+    value: supplier
+    unit: barg
+    source: 'cooling-water side design pressure: the site cooling-water system''s design pressure (owner''s
+      utility specification; the design basis gives temperatures only, D-012)'
+    reason: 'cooling-water side design pressure: the site cooling-water system''s design pressure (owner''s
+      utility specification; the design basis gives temperatures only, D-012)'
+  temperature_degc:
+    value: 180.0
+    unit: degC
+    source: 'design temperature = maximum operating temperature + 28 K (50 degF of Towler and Sinnott,
+      Chemical Engineering Design, 2nd ed., 2013 / UOP and of Walas 1988, as summarised by the Northwestern
+      University Process Design wiki, ''Pressure Vessels''; at least Turton''s 25 degC), rounded up to
+      5 degC, D-032; maximum operating 422.28 K: stream S22 (calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR))'
+    assumed: true
+materials:
+  main:
+    value: austenitic stainless steel (grade by the materials review)
+    material_class: stainless_steel
+    assumed: true
+    source: 'DESIGN.md D-032: preliminary material class by service (wet CO2 condensate (carbonic acid
+      corrosion of carbon steel)); the materials selection review is open'
+dimensions:
+  orientation: horizontal
+  outside_diameter:
+    value: 2.5
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.diameter
+  overall_length:
+    value: 10.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.length
+  tangent_length:
+    value: 8.175
+    unit: m
+    source: 'layout/plant-model.yaml part E-203/shell: the generated shell between the heads (the 3D model''s
+      proportions, not a vessel design)'
+    assumed: true
+  axis_deg:
+    value: 0.0
+    unit: deg
+    source: layout/plant-model.yaml E-203 rotation_deg (layout/equipment-placement.yaml)
+nozzles:
+- name: T1
+  dn: 500
+  lines:
+  - PG-1045
+  source: pid/P-104.xml
+- name: T2
+  dn: 450
+  lines:
+  - PG-1046
+  source: pid/P-104.xml
+- name: S1
+  dn: 700
+  lines:
+  - CWS-1052
+  source: pid/P-104.xml
+- name: S2
+  dn: 700
+  lines:
+  - CWR-1053
+  source: pid/P-104.xml
+type_specific:
+  diameter_m:
+    value: 2.5
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  length_m:
+    value: 10.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  duty_kw:
+    value: 34692.1
+    unit: kW
+    source: process/simulation-run.json (case design, cheme process simulate, DWSIM 9.0.5, Peng-Robinson,
+      D-026) unit E203 (= Q16)
+  u_service: cooler/gases-water
+  arrangement: counter-current
+  utility_inlet_temperature_degc:
+    value: 25.0
+    unit: degC
+    source: DESIGN.md D-012 cooling water supply 298.15 K
+    assumed: true
+  utility_outlet_temperature_degc:
+    value: 35.0
+    unit: degC
+    source: DESIGN.md D-012 cooling water return 308.15 K
+    assumed: true
+  area_m2:
+    value: 4439.0
+    unit: m2
+    source: 'cheme datasheets fill: A = Q / (U F LMTD) (1 + margin) = 3.469e+04 kW / (160 x 1 x 48.85
+      K) x 1; U 160 W/(m2 K) ASSUMED as design typical (middle of 20-300), Sinnott, Coulson & Richardson''s
+      Chemical Engineering Vol. 6, 4th ed. (2005), Table 12.1, p. 637: cooler, gases / water; no margin
+      (none declared); Q given type_specific.duty_kw 34692.1 (process/simulation-run.json (case design,
+      cheme process simulate, DWSIM 9.0.5, Peng-Robinson, D-026) unit E203 (= Q16))'
+    assumed: true
+    fingerprint: d4a82a5f4a7ce317
+    inputs:
+    - table:overall-coefficients/cooler/gases-water
+    - datasheet:type_specific.duty_kw
+    - param:utility_inlet_temperature_degc
+    - param:utility_outlet_temperature_degc
+    - param:arrangement
+    - param:overall_u_w_m2k
+    - param:u_service
+    - param:area_margin
+    origin: correlation
+  process_streams:
+  - stream: S22
+    direction: in
+    title: Gas after the regenerator reboiler (two-phase)
+    source: process/flowsheet.yaml (case design)
+  - stream: S23
+    direction: out
+    title: Cooled process gas (two-phase)
+    source: process/flowsheet.yaml (case design)
+  - stream: Q16
+    direction: out
+    title: E-203 duty
+    source: process/flowsheet.yaml (case design)
+  lmtd_k:
+    value: 48.85
+    unit: K
+    source: 'cheme datasheets fill: LMTD, counter-current (datasheet type_specific.arrangement), hot 422.28
+      -> 313.15 K, cold 298.15 -> 308.15 K (streams S22 -> S23; other side 25.0 (ASSUMED: DESIGN.md D-012
+      cooling water supply 298.15 K) -> 35.0 (ASSUMED: DESIGN.md D-012 cooling water return 308.15 K)
+      degC)'
+    assumed: true
+    fingerprint: e7dde9135a8408aa
+    inputs:
+    - param:utility_inlet_temperature_degc
+    - param:utility_outlet_temperature_degc
+    - param:arrangement
+    origin: correlation
+  overall_u_w_m2k:
+    value: 160.0
+    unit: W/(m2 K)
+    source: 'cheme datasheets fill: U 160 W/(m2 K) ASSUMED as design typical (middle of 20-300), Sinnott,
+      Coulson & Richardson''s Chemical Engineering Vol. 6, 4th ed. (2005), Table 12.1, p. 637: cooler,
+      gases / water'
+    assumed: true
+    fingerprint: c773baebd74cfe29
+    inputs:
+    - table:overall-coefficients/cooler/gases-water
+    - param:overall_u_w_m2k
+    - param:u_service
+    origin: correlation
+  rating:
+    value: supplier
+    unit: ''
+    source: vendor's thermal, hydraulic or machine rating on these process conditions (not calculated
+      by cheme-as-code, docs/framework/sizing.md)
+    reason: vendor's thermal, hydraulic or machine rating on these process conditions (not calculated
+      by cheme-as-code, docs/framework/sizing.md)
+  mechanical_design:
+    value: supplier
+    unit: ''
+    source: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+    reason: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+  corrosion_allowance_mm:
+    value: supplier
+    unit: mm
+    source: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+    reason: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+  relief_protection:
+    value: supplier
+    unit: ''
+    source: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+    reason: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+sizing_basis:
+- parameter: sizing_scope
+  value: preliminary
+  reference: 'cheme datasheets fill: the values it writes are preliminary process sizing (short-cut methods,
+    declared or typical parameters), not a rating or a design to a code; not calculated: rating, mechanical
+    code, materials corrosion, relief, dynamics controls (docs/framework/sizing.md)'
+- parameter: design conditions
+  value: rule of D-032 on the item's operating streams
+  reference: DESIGN.md D-032
+- parameter: typical overall coefficient
+  value: cooler/gases-water
+  reference: DESIGN.md D-032 (Sinnott, C&R Vol. 6, 4th ed., Table 12.1)
+notes: '424 -> 313 K, 31.2 MW to cooling water (D-012). Dimensions ASSUMED (D-022). Area: the typical-U
+  row for gases (Sinnott Table 12.1) is for gases near atmospheric pressure; at this design pressure the
+  gas film coefficients are higher, so the area is an upper bound until the vendor''s rating (D-032).'

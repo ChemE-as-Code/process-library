@@ -1,0 +1,160 @@
+# Datasheet drafted by `cheme datasheets draft`, sized by `cheme datasheets fill` and completed by
+# scripts/complete_datasheets.py (DESIGN.md D-032). Preliminary process datasheet: every value
+# says where it comes from; assumed: true marks an assumption; `supplier` names what a vendor,
+# licensor or study still has to give. Checked by the authoring agent, not yet by an engineer.
+tag: E-302
+type: TubularHeatExchanger
+service: Lean solvent cooler
+operating:
+  maximum_temperature:
+    value: 422.284
+    unit: K
+    source: 'bound of the aMDEA loop: E-202 process-gas outlet S22 422.28 K (calculated, D-026); the kettle
+      pool boils below it (D-032)'
+    assumed: true
+  case: design
+design:
+  pressure_barg:
+    value: 33.0
+    unit: barg
+    source: 'design pressure = max(1.10 x, +1.7 bar over) the maximum operating gauge pressure, rounded
+      up to 0.5 bar (heuristic ''10 % or 10-25 psi, whichever is greater'' of Walas, Chemical Process
+      Equipment, 1988, Rules of Thumb, and Turton et al., 4th ed., 2012, as summarised by the Northwestern
+      University Process Design wiki, ''Pressure Vessels''; the books were not read; the upper end 1.7
+      bar taken), D-032; governing side solvent: 3100 kPa(a) from CO2 absorber pressure 3100 kPa(a) (D-009)'
+    assumed: true
+  solvent_pressure_barg:
+    value: 33.0
+    unit: barg
+    source: design pressure = max(1.10 x, +1.7 bar over) the maximum operating gauge pressure, rounded
+      up to 0.5 bar (heuristic '10 % or 10-25 psi, whichever is greater' of Walas, Chemical Process Equipment,
+      1988, Rules of Thumb, and Turton et al., 4th ed., 2012, as summarised by the Northwestern University
+      Process Design wiki, 'Pressure Vessels'; the books were not read; the upper end 1.7 bar taken),
+      D-032; 3100 kPa(a) from CO2 absorber pressure 3100 kPa(a) (D-009)
+    assumed: true
+  cooling_water_pressure_barg:
+    value: supplier
+    unit: barg
+    source: 'cooling-water side design pressure: the site cooling-water system''s design pressure (owner''s
+      utility specification; the design basis gives temperatures only, D-012)'
+    reason: 'cooling-water side design pressure: the site cooling-water system''s design pressure (owner''s
+      utility specification; the design basis gives temperatures only, D-012)'
+  temperature_degc:
+    value: 180.0
+    unit: degC
+    source: 'design temperature = maximum operating temperature + 28 K (50 degF of Towler and Sinnott,
+      Chemical Engineering Design, 2nd ed., 2013 / UOP and of Walas 1988, as summarised by the Northwestern
+      University Process Design wiki, ''Pressure Vessels''; at least Turton''s 25 degC), rounded up to
+      5 degC, D-032; maximum operating 422.28 K: bound of the aMDEA loop: E-202 process-gas outlet S22
+      422.28 K (calculated, D-026); the kettle pool boils below it (D-032)'
+    assumed: true
+materials:
+  main:
+    value: austenitic stainless steel (grade by the materials review)
+    material_class: stainless_steel
+    assumed: true
+    source: 'DESIGN.md D-032: preliminary material class by service (aMDEA service: licensor''s materials
+      to confirm (I-06)); the materials selection review is open'
+dimensions:
+  orientation: horizontal
+  outside_diameter:
+    value: 1.2
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.diameter
+  overall_length:
+    value: 6.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.length
+  tangent_length:
+    value: 4.98
+    unit: m
+    source: 'layout/plant-model.yaml part E-302/shell: the generated shell between the heads (the 3D model''s
+      proportions, not a vessel design)'
+    assumed: true
+  axis_deg:
+    value: 0.0
+    unit: deg
+    source: layout/plant-model.yaml E-302 rotation_deg (layout/equipment-placement.yaml)
+nozzles:
+- name: T1
+  dn: 500
+  lines:
+  - AM-1060
+  source: pid/P-105.xml
+- name: T2
+  dn: 500
+  lines:
+  - AM-1059
+  source: pid/P-105.xml
+- name: S1
+  dn: 400
+  lines:
+  - CWR-1064
+  source: pid/P-105.xml
+- name: S2
+  dn: 400
+  lines:
+  - CWS-1063
+  source: pid/P-105.xml
+type_specific:
+  diameter_m:
+    value: 1.2
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  length_m:
+    value: 6.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  duty_kw:
+    value: supplier
+    unit: kW
+    source: 'aMDEA licensor''s solvent-loop design (solvent rate, heat balance, column internals; I-06,
+      D-009): E-302 and E-303 share Q18 (21.9 MW, assumed, D-009), the split is the licensor''s'
+    reason: 'aMDEA licensor''s solvent-loop design (solvent rate, heat balance, column internals; I-06,
+      D-009): E-302 and E-303 share Q18 (21.9 MW, assumed, D-009), the split is the licensor''s'
+  area_m2:
+    value: supplier
+    unit: m2
+    source: 'aMDEA licensor''s solvent-loop design (solvent rate, heat balance, column internals; I-06,
+      D-009): E-302 and E-303 share Q18 (21.9 MW, assumed, D-009), the split is the licensor''s'
+    reason: 'aMDEA licensor''s solvent-loop design (solvent rate, heat balance, column internals; I-06,
+      D-009): E-302 and E-303 share Q18 (21.9 MW, assumed, D-009), the split is the licensor''s'
+  rating:
+    value: supplier
+    unit: ''
+    source: vendor's thermal, hydraulic or machine rating on these process conditions (not calculated
+      by cheme-as-code, docs/framework/sizing.md)
+    reason: vendor's thermal, hydraulic or machine rating on these process conditions (not calculated
+      by cheme-as-code, docs/framework/sizing.md)
+  mechanical_design:
+    value: supplier
+    unit: ''
+    source: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+    reason: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+  corrosion_allowance_mm:
+    value: supplier
+    unit: mm
+    source: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+    reason: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+  relief_protection:
+    value: supplier
+    unit: ''
+    source: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+    reason: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+sizing_basis:
+- parameter: sizing_scope
+  value: preliminary
+  reference: 'cheme datasheets fill: the values it writes are preliminary process sizing (short-cut methods,
+    declared or typical parameters), not a rating or a design to a code; not calculated: rating, mechanical
+    code, materials corrosion, relief, dynamics controls (docs/framework/sizing.md)'
+- parameter: design conditions
+  value: rule of D-032 on the item's operating streams
+  reference: DESIGN.md D-032
+notes: Lean solvent to the C-301 inlet temperature on cooling water; its duty is part of Q18 (21.9 MW
+  with E-303, ASSUMED in the flowsheet, D-009). Dimensions ASSUMED (D-028).

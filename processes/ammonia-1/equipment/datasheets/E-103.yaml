@@ -1,0 +1,246 @@
+# Datasheet drafted by `cheme datasheets draft`, sized by `cheme datasheets fill` and completed by
+# scripts/complete_datasheets.py (DESIGN.md D-032). Preliminary process datasheet: every value
+# says where it comes from; assumed: true marks an assumption; `supplier` names what a vendor,
+# licensor or study still has to give. Checked by the authoring agent, not yet by an engineer.
+tag: E-103
+type: TubularHeatExchanger
+service: Prereformed gas reheat coil (convection)
+operating:
+  S9_cold_in_pressure:
+    value: 4150
+    unit: kPa(a)
+    source: 'process/flowsheet.yaml stream S9 (case design), assumed: D-007'
+    assumed: true
+  S9_cold_in_temperature:
+    value: 661.651
+    unit: K
+    source: 'process/flowsheet.yaml stream S9 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  S9_cold_in_flow:
+    value: 122342.0
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S9 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  S10_cold_out_pressure:
+    value: 4100
+    unit: kPa(a)
+    source: 'process/flowsheet.yaml stream S10 (case design), assumed: D-007'
+    assumed: true
+  S10_cold_out_temperature:
+    value: 893.15
+    unit: K
+    source: 'process/flowsheet.yaml stream S10 (case design), assumed: D-007'
+    assumed: true
+  S10_cold_out_flow:
+    value: 122342.0
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S10 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  S65_hot_in_pressure:
+    value: 103.0
+    unit: kPa(a)
+    source: 'process/flowsheet.yaml stream S65 (case design), assumed: D-014'
+    assumed: true
+  S65_hot_in_temperature:
+    value: 1323.15
+    unit: K
+    source: 'process/flowsheet.yaml stream S65 (case design), assumed: D-014: bridgewall temperature'
+    assumed: true
+  S65_hot_in_flow:
+    value: 176411.0
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S65 (case design), calculated: cheme process propagate: reactor
+      H101 from S64'
+  S80_hot_out_pressure:
+    value: 102.5
+    unit: kPa(a)
+    source: 'process/flowsheet.yaml stream S80 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  S80_hot_out_temperature:
+    value: 1009.78
+    unit: K
+    source: 'process/flowsheet.yaml stream S80 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  S80_hot_out_flow:
+    value: 176411.0
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S80 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  case: design
+design:
+  pressure_barg:
+    value: 45.0
+    unit: barg
+    source: 'design pressure = max(1.10 x, +1.7 bar over) the maximum operating gauge pressure, rounded
+      up to 0.5 bar (heuristic ''10 % or 10-25 psi, whichever is greater'' of Walas, Chemical Process
+      Equipment, 1988, Rules of Thumb, and Turton et al., 4th ed., 2012, as summarised by the Northwestern
+      University Process Design wiki, ''Pressure Vessels''; the books were not read; the upper end 1.7
+      bar taken), D-032; governing side process: 4150 kPa(a) from stream S9, stream S10'
+    assumed: true
+  process_pressure_barg:
+    value: 45.0
+    unit: barg
+    source: design pressure = max(1.10 x, +1.7 bar over) the maximum operating gauge pressure, rounded
+      up to 0.5 bar (heuristic '10 % or 10-25 psi, whichever is greater' of Walas, Chemical Process Equipment,
+      1988, Rules of Thumb, and Turton et al., 4th ed., 2012, as summarised by the Northwestern University
+      Process Design wiki, 'Pressure Vessels'; the books were not read; the upper end 1.7 bar taken),
+      D-032; 4150 kPa(a) from stream S9, stream S10
+    assumed: true
+  flue_gas_pressure_barg:
+    value: supplier
+    unit: barg
+    source: 'flue-gas side: part of the H-101 convection casing, designed for draft by the furnace vendor'
+    reason: 'flue-gas side: part of the H-101 convection casing, designed for draft by the furnace vendor'
+  temperature_degc:
+    value: 650.0
+    unit: degC
+    source: 'design temperature = maximum operating temperature + 28 K (50 degF of Towler and Sinnott,
+      Chemical Engineering Design, 2nd ed., 2013 / UOP and of Walas 1988, as summarised by the Northwestern
+      University Process Design wiki, ''Pressure Vessels''; at least Turton''s 25 degC), rounded up to
+      5 degC, D-032; maximum operating 893.15 K: stream S10 (assumed: D-007)'
+    assumed: true
+  note: above 345 degC the D-032 margin is a process allowance; the metal temperature (refractory, tube
+    wall, flue-gas side) is the vendor's
+materials:
+  main:
+    value: austenitic stainless steel (grade by the materials review)
+    material_class: stainless_steel
+    assumed: true
+    source: 'DESIGN.md D-032: preliminary material class by service (flue gas from 1050 degC, process
+      gas to 620 degC: tube metal temperature); the materials selection review is open'
+dimensions:
+  overall_length:
+    value: 4.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.length
+  overall_width:
+    value: 14.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.width
+  overall_height:
+    value: 12.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.height
+nozzles:
+- name: F1
+  dn: 4000
+  lines:
+  - FL-1014
+  source: pid/P-102.xml
+- name: F2
+  dn: 3600
+  lines:
+  - FL-1015
+  source: pid/P-102.xml
+- name: P1
+  dn: 450
+  lines:
+  - PG-1007
+  source: pid/P-102.xml
+- name: P2
+  dn: 500
+  lines:
+  - PG-1008
+  source: pid/P-102.xml
+type_specific:
+  height_m:
+    value: 12.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  length_m:
+    value: 4.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  width_m:
+    value: 14.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  duty_kw:
+    value: 20388.8
+    unit: kW
+    source: process/simulation-run.json (case design, cheme process simulate, DWSIM 9.0.5, Peng-Robinson,
+      D-026) unit E103
+  area_m2:
+    value: 809.0
+    unit: m2
+    source: 'A = Q / (U LMTD) = 20388.8 kW / (65 x 387.62 K), no margin, by scripts/complete_datasheets.py:
+      cheme datasheets fill (core v1.0.x) sizes an exchanger only from a linked node with one material
+      inlet and one outlet; this item is one two-stream exchanger node of the flowsheet, so the same method
+      (counter-current LMTD, Table 12.1 middle U, no margin) is applied here; DESIGN.md D-032'
+    assumed: true
+  process_streams:
+  - stream: S9
+    direction: in
+    title: Prereformer outlet
+    source: process/flowsheet.yaml (case design)
+  - stream: S10
+    direction: out
+    title: Primary reformer feed
+    source: process/flowsheet.yaml (case design)
+  - stream: S65
+    direction: in
+    title: Flue gas leaving the radiant section
+    source: process/flowsheet.yaml (case design)
+  - stream: S80
+    direction: out
+    title: Flue gas after the prereformed gas coil
+    source: process/flowsheet.yaml (case design)
+  u_service: heater/flue-gases-hydrocarbon-vapours
+  arrangement: counter-current
+  lmtd_k:
+    value: 387.62
+    unit: K
+    source: LMTD counter-current, hot 1323.15 -> 1009.78 K (S65 -> S80), cold 661.65 -> 893.15 K (S9 ->
+      S10); DESIGN.md D-032
+    assumed: true
+  overall_u_w_m2k:
+    value: 65.0
+    unit: W/(m2 K)
+    source: 'design typical, middle of 30-100: Sinnott, Coulson & Richardson''s Chemical Engineering Vol.
+      6, 4th ed. (2005), Table 12.1, heater/flue-gases-hydrocarbon-vapours (the row table of cheme datasheets
+      fill --list); DESIGN.md D-032'
+    assumed: true
+  rating:
+    value: supplier
+    unit: ''
+    source: vendor's thermal, hydraulic or machine rating on these process conditions (not calculated
+      by cheme-as-code, docs/framework/sizing.md)
+    reason: vendor's thermal, hydraulic or machine rating on these process conditions (not calculated
+      by cheme-as-code, docs/framework/sizing.md)
+  mechanical_design:
+    value: supplier
+    unit: ''
+    source: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+    reason: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+  corrosion_allowance_mm:
+    value: supplier
+    unit: mm
+    source: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+    reason: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+  relief_protection:
+    value: supplier
+    unit: ''
+    source: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+    reason: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+sizing_basis:
+- parameter: sizing_scope
+  value: preliminary
+  reference: 'cheme datasheets fill: the values it writes are preliminary process sizing (short-cut methods,
+    declared or typical parameters), not a rating or a design to a code; not calculated: rating, mechanical
+    code, materials corrosion, relief, dynamics controls (docs/framework/sizing.md)'
+- parameter: design conditions
+  value: rule of D-032 on the item's operating streams
+  reference: DESIGN.md D-032
+- parameter: typical overall coefficient
+  value: heater/flue-gases-hydrocarbon-vapours
+  reference: DESIGN.md D-032 (Sinnott, C&R Vol. 6, 4th ed., Table 12.1)
+notes: '659 -> 893 K, 20.0 MW (D-014). Dimensions: coil bank of the convection section, ASSUMED (D-022).
+  Area: the typical-U row for gases (Sinnott Table 12.1) is for gases near atmospheric pressure; at this
+  design pressure the gas film coefficients are higher, so the area is an upper bound until the vendor''s
+  rating (D-032).'

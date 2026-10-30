@@ -1,0 +1,163 @@
+# Datasheet drafted by `cheme datasheets draft`, sized by `cheme datasheets fill` and completed by
+# scripts/complete_datasheets.py (DESIGN.md D-032). Preliminary process datasheet: every value
+# says where it comes from; assumed: true marks an assumption; `supplier` names what a vendor,
+# licensor or study still has to give. Checked by the authoring agent, not yet by an engineer.
+tag: K-502
+type: CentrifugalCompressor
+service: Recycle circulator
+operating:
+  outlet_pressure:
+    value: 15500.0
+    unit: kPa(a)
+    source: 'process/flowsheet.yaml stream S41 (case design), assumed: D-011'
+    assumed: true
+  outlet_temperature:
+    value: 311.91
+    unit: K
+    source: 'process/flowsheet.yaml stream S41 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+    origin: simulated
+  outlet_flow:
+    value: 293991.0
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S41 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+    origin: simulated
+  case: design
+design:
+  pressure_barg:
+    value: 169.5
+    unit: barg
+    source: 'design pressure = max(1.10 x, +1.7 bar over) the maximum operating gauge pressure, rounded
+      up to 0.5 bar (heuristic ''10 % or 10-25 psi, whichever is greater'' of Walas, Chemical Process
+      Equipment, 1988, Rules of Thumb, and Turton et al., 4th ed., 2012, as summarised by the Northwestern
+      University Process Design wiki, ''Pressure Vessels''; the books were not read; the upper end 1.7
+      bar taken), D-032; maximum operating 15500 kPa(a): stream S41 (assumed: D-011)'
+    assumed: true
+  temperature_degc:
+    value: 70.0
+    unit: degC
+    source: 'design temperature = maximum operating temperature + 28 K (50 degF of Towler and Sinnott,
+      Chemical Engineering Design, 2nd ed., 2013 / UOP and of Walas 1988, as summarised by the Northwestern
+      University Process Design wiki, ''Pressure Vessels''; at least Turton''s 25 degC), rounded up to
+      5 degC, D-032; maximum operating 311.91 K: stream S41 (calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR))'
+    assumed: true
+materials:
+  main:
+    value: carbon steel (grade by the materials review)
+    material_class: carbon_steel
+    assumed: true
+    source: 'DESIGN.md D-032: preliminary material class by service (synthesis gas at 30-40 degC); the
+      materials selection review is open'
+dimensions:
+  overall_length:
+    value: 8.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.length
+  overall_width:
+    value: 5.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.width
+  overall_height:
+    value: 4.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.height
+  axis_deg:
+    value: 0.0
+    unit: deg
+    source: layout/plant-model.yaml K-502 rotation_deg (layout/equipment-placement.yaml)
+nozzles:
+- name: N1
+  dn: 300
+  lines:
+  - PG-1093
+  source: pid/P-109.xml
+- name: N2
+  dn: 300
+  lines:
+  - PG-1095
+  source: pid/P-109.xml
+type_specific:
+  height_m:
+    value: 4.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  length_m:
+    value: 8.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  width_m:
+    value: 5.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  fluid_power_kw:
+    value: 1609.4
+    unit: kW
+    source: Q22, process/simulation-run.json (case design, cheme process simulate, DWSIM 9.0.5, Peng-Robinson,
+      D-026) unit K502, isentropic efficiency 0.78 (D-016)
+    assumed: true
+  shaft_power_kw:
+    value: supplier
+    unit: kW
+    source: 'machine vendor''s shaft power: the fluid power on this sheet over the mechanical efficiency
+      (bearings, seals, gear), which no source in DESIGN.md gives'
+    reason: 'machine vendor''s shaft power: the fluid power on this sheet over the mechanical efficiency
+      (bearings, seals, gear), which no source in DESIGN.md gives'
+  process_streams:
+  - stream: S40
+    direction: in
+    title: Circulator suction
+    source: process/flowsheet.yaml (case design)
+  - stream: S41
+    direction: out
+    title: Circulator discharge
+    source: process/flowsheet.yaml (case design)
+  - stream: Q22
+    direction: in
+    title: K-502 shaft power
+    source: process/flowsheet.yaml (case design)
+  number_of_stages:
+    value: 1
+    unit: ''
+    source: process/simulation.yaml K502 (one casing, D-011)
+    assumed: true
+  rating:
+    value: supplier
+    unit: ''
+    source: vendor's thermal, hydraulic or machine rating on these process conditions (not calculated
+      by cheme-as-code, docs/framework/sizing.md)
+    reason: vendor's thermal, hydraulic or machine rating on these process conditions (not calculated
+      by cheme-as-code, docs/framework/sizing.md)
+  mechanical_design:
+    value: supplier
+    unit: ''
+    source: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+    reason: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+  corrosion_allowance_mm:
+    value: supplier
+    unit: mm
+    source: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+    reason: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+  relief_protection:
+    value: supplier
+    unit: ''
+    source: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+    reason: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+sizing_basis:
+- parameter: sizing_scope
+  value: preliminary
+  reference: 'cheme datasheets fill: the values it writes are preliminary process sizing (short-cut methods,
+    declared or typical parameters), not a rating or a design to a code; not calculated: rating, mechanical
+    code, materials corrosion, relief, dynamics controls (docs/framework/sizing.md)'
+- parameter: design conditions
+  value: rule of D-032 on the item's operating streams
+  reference: DESIGN.md D-032
+notes: 14,600 -> 15,500 kPa(a), 1.6 MW (D-016); usually on the K-501 shaft, drawn as its own casing here.
+  Dimensions ASSUMED (D-022).

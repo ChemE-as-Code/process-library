@@ -1,0 +1,252 @@
+# Datasheet drafted by `cheme datasheets draft`, sized by `cheme datasheets fill` and completed by
+# scripts/complete_datasheets.py (DESIGN.md D-032). Preliminary process datasheet: every value
+# says where it comes from; assumed: true marks an assumption; `supplier` names what a vendor,
+# licensor or study still has to give. Checked by the authoring agent, not yet by an engineer.
+tag: E-501
+type: TubularHeatExchanger
+service: Converter feed/effluent exchanger
+operating:
+  S41_cold_in_pressure:
+    value: 15500
+    unit: kPa(a)
+    source: 'process/flowsheet.yaml stream S41 (case design), assumed: D-011'
+    assumed: true
+  S41_cold_in_temperature:
+    value: 311.91
+    unit: K
+    source: 'process/flowsheet.yaml stream S41 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  S41_cold_in_flow:
+    value: 293991.0
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S41 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  S42_cold_out_pressure:
+    value: 15400
+    unit: kPa(a)
+    source: 'process/flowsheet.yaml stream S42 (case design), assumed: D-011'
+    assumed: true
+  S42_cold_out_temperature:
+    value: 493.843
+    unit: K
+    source: 'process/flowsheet.yaml stream S42 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  S42_cold_out_flow:
+    value: 293991.0
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S42 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  S44_hot_in_pressure:
+    value: 15000
+    unit: kPa(a)
+    source: 'process/flowsheet.yaml stream S44 (case design), assumed: D-011'
+    assumed: true
+  S44_hot_in_temperature:
+    value: 532.6
+    unit: K
+    source: 'process/flowsheet.yaml stream S44 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  S44_hot_in_flow:
+    value: 293991.0
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S44 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  S45_hot_out_pressure:
+    value: 14900
+    unit: kPa(a)
+    source: 'process/flowsheet.yaml stream S45 (case design), assumed: D-011'
+    assumed: true
+  S45_hot_out_temperature:
+    value: 343.15
+    unit: K
+    source: 'process/flowsheet.yaml stream S45 (case design), assumed: D-011: above the NH3 dew point'
+    assumed: true
+  S45_hot_out_flow:
+    value: 293989.0
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S45 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  case: design
+design:
+  pressure_barg:
+    value: 169.5
+    unit: barg
+    source: 'design pressure = max(1.10 x, +1.7 bar over) the maximum operating gauge pressure, rounded
+      up to 0.5 bar (heuristic ''10 % or 10-25 psi, whichever is greater'' of Walas, Chemical Process
+      Equipment, 1988, Rules of Thumb, and Turton et al., 4th ed., 2012, as summarised by the Northwestern
+      University Process Design wiki, ''Pressure Vessels''; the books were not read; the upper end 1.7
+      bar taken), D-032; governing side cold_converter_feed: 15500 kPa(a) from stream S41, stream S42'
+    assumed: true
+  cold_converter_feed_pressure_barg:
+    value: 169.5
+    unit: barg
+    source: design pressure = max(1.10 x, +1.7 bar over) the maximum operating gauge pressure, rounded
+      up to 0.5 bar (heuristic '10 % or 10-25 psi, whichever is greater' of Walas, Chemical Process Equipment,
+      1988, Rules of Thumb, and Turton et al., 4th ed., 2012, as summarised by the Northwestern University
+      Process Design wiki, 'Pressure Vessels'; the books were not read; the upper end 1.7 bar taken),
+      D-032; 15500 kPa(a) from stream S41, stream S42
+    assumed: true
+  hot_converter_effluent_pressure_barg:
+    value: 164.0
+    unit: barg
+    source: design pressure = max(1.10 x, +1.7 bar over) the maximum operating gauge pressure, rounded
+      up to 0.5 bar (heuristic '10 % or 10-25 psi, whichever is greater' of Walas, Chemical Process Equipment,
+      1988, Rules of Thumb, and Turton et al., 4th ed., 2012, as summarised by the Northwestern University
+      Process Design wiki, 'Pressure Vessels'; the books were not read; the upper end 1.7 bar taken),
+      D-032; 15000 kPa(a) from stream S44, stream S45
+    assumed: true
+  temperature_degc:
+    value: 290.0
+    unit: degC
+    source: 'design temperature = maximum operating temperature + 28 K (50 degF of Towler and Sinnott,
+      Chemical Engineering Design, 2nd ed., 2013 / UOP and of Walas 1988, as summarised by the Northwestern
+      University Process Design wiki, ''Pressure Vessels''; at least Turton''s 25 degC), rounded up to
+      5 degC, D-032; maximum operating 532.60 K: stream S44 (calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR))'
+    assumed: true
+materials:
+  main:
+    value: low-alloy Cr-Mo steel (grade by the materials review)
+    material_class: low_alloy_steel
+    assumed: true
+    source: 'DESIGN.md D-032: preliminary material class by service (hydrogen-bearing gas above the carbon-steel
+      range of API RP 941 (Nelson curves) at 150 bar); the materials selection review is open'
+dimensions:
+  orientation: horizontal
+  outside_diameter:
+    value: 1.8
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.diameter
+  overall_length:
+    value: 12.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.length
+  tangent_length:
+    value: 10.11
+    unit: m
+    source: 'layout/plant-model.yaml part E-501/shell: the generated shell between the heads (the 3D model''s
+      proportions, not a vessel design)'
+    assumed: true
+  axis_deg:
+    value: 0.0
+    unit: deg
+    source: layout/plant-model.yaml E-501 rotation_deg (layout/equipment-placement.yaml)
+nozzles:
+- name: T1
+  dn: 300
+  lines:
+  - PG-1102
+  source: pid/P-109.xml
+- name: T2
+  dn: 400
+  lines:
+  - PG-1099
+  source: pid/P-109.xml
+- name: S1
+  dn: 300
+  lines:
+  - PG-1095
+  source: pid/P-109.xml
+- name: S2
+  dn: 400
+  lines:
+  - PG-1096
+  source: pid/P-109.xml
+type_specific:
+  diameter_m:
+    value: 1.8
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  length_m:
+    value: 12.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  duty_kw:
+    value: 46588.7
+    unit: kW
+    source: process/simulation-run.json (case design, cheme process simulate, DWSIM 9.0.5, Peng-Robinson,
+      D-026) unit E501
+  area_m2:
+    value: 44544.0
+    unit: m2
+    source: 'A = Q / (U LMTD) = 46588.7 kW / (30 x 34.86 K), no margin, by scripts/complete_datasheets.py:
+      cheme datasheets fill (core v1.0.x) sizes an exchanger only from a linked node with one material
+      inlet and one outlet; this item is one two-stream exchanger node of the flowsheet, so the same method
+      (counter-current LMTD, Table 12.1 middle U, no margin) is applied here; DESIGN.md D-032'
+    assumed: true
+  process_streams:
+  - stream: S41
+    direction: in
+    title: Circulator discharge
+    source: process/flowsheet.yaml (case design)
+  - stream: S42
+    direction: out
+    title: Converter feed
+    source: process/flowsheet.yaml (case design)
+  - stream: S44
+    direction: in
+    title: Effluent after waste heat boiler
+    source: process/flowsheet.yaml (case design)
+  - stream: S45
+    direction: out
+    title: Effluent after feed/effluent exchanger
+    source: process/flowsheet.yaml (case design)
+  u_service: exchanger/gases-gases
+  arrangement: counter-current
+  lmtd_k:
+    value: 34.86
+    unit: K
+    source: LMTD counter-current, hot 532.60 -> 343.15 K (S44 -> S45), cold 311.91 -> 493.84 K (S41 ->
+      S42); DESIGN.md D-032
+    assumed: true
+  overall_u_w_m2k:
+    value: 30.0
+    unit: W/(m2 K)
+    source: 'design typical, middle of 10-50: Sinnott, Coulson & Richardson''s Chemical Engineering Vol.
+      6, 4th ed. (2005), Table 12.1, exchanger/gases-gases (the row table of cheme datasheets fill --list);
+      DESIGN.md D-032'
+    assumed: true
+  rating:
+    value: supplier
+    unit: ''
+    source: vendor's thermal, hydraulic or machine rating on these process conditions (not calculated
+      by cheme-as-code, docs/framework/sizing.md)
+    reason: vendor's thermal, hydraulic or machine rating on these process conditions (not calculated
+      by cheme-as-code, docs/framework/sizing.md)
+  mechanical_design:
+    value: supplier
+    unit: ''
+    source: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+    reason: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+  corrosion_allowance_mm:
+    value: supplier
+    unit: mm
+    source: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+    reason: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+  relief_protection:
+    value: supplier
+    unit: ''
+    source: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+    reason: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+sizing_basis:
+- parameter: sizing_scope
+  value: preliminary
+  reference: 'cheme datasheets fill: the values it writes are preliminary process sizing (short-cut methods,
+    declared or typical parameters), not a rating or a design to a code; not calculated: rating, mechanical
+    code, materials corrosion, relief, dynamics controls (docs/framework/sizing.md)'
+- parameter: design conditions
+  value: rule of D-032 on the item's operating streams
+  reference: DESIGN.md D-032
+- parameter: typical overall coefficient
+  value: exchanger/gases-gases
+  reference: DESIGN.md D-032 (Sinnott, C&R Vol. 6, 4th ed., Table 12.1)
+notes: 'Feed 312 -> 503 K, effluent 547 -> 343 K, 48.4 MW (D-011). Dimensions ASSUMED (D-022). Area: the
+  typical-U row for gases (Sinnott Table 12.1) is for gases near atmospheric pressure; at this design
+  pressure the gas film coefficients are higher, so the area is an upper bound until the vendor''s rating
+  (D-032).'

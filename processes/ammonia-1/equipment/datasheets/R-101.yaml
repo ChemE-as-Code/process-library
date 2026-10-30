@@ -1,0 +1,164 @@
+# Datasheet drafted by `cheme datasheets draft`, sized by `cheme datasheets fill` and completed by
+# scripts/complete_datasheets.py (DESIGN.md D-032). Preliminary process datasheet: every value
+# says where it comes from; assumed: true marks an assumption; `supplier` names what a vendor,
+# licensor or study still has to give. Checked by the authoring agent, not yet by an engineer.
+tag: R-101
+type: TubularHeatExchanger
+service: Primary reformer catalyst tubes (in H-101)
+operating:
+  outlet_pressure:
+    value: 3500.0
+    unit: kPa(a)
+    source: 'process/flowsheet.yaml stream S11 (case design), assumed: D-007'
+    assumed: true
+  outlet_temperature:
+    value: 1083.15
+    unit: K
+    source: 'process/flowsheet.yaml stream S11 (case design), assumed: D-007'
+    assumed: true
+  outlet_flow:
+    value: 122342.0
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S11 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+    origin: simulated
+  case: design
+design:
+  pressure_barg:
+    value: 44.0
+    unit: barg
+    source: 'design pressure = max(1.10 x, +1.7 bar over) the maximum operating gauge pressure, rounded
+      up to 0.5 bar (heuristic ''10 % or 10-25 psi, whichever is greater'' of Walas, Chemical Process
+      Equipment, 1988, Rules of Thumb, and Turton et al., 4th ed., 2012, as summarised by the Northwestern
+      University Process Design wiki, ''Pressure Vessels''; the books were not read; the upper end 1.7
+      bar taken), D-032; maximum operating 4100 kPa(a): stream S10 (assumed: D-007)'
+    assumed: true
+  temperature_degc:
+    value: 840.0
+    unit: degC
+    source: 'design temperature = maximum operating temperature + 28 K (50 degF of Towler and Sinnott,
+      Chemical Engineering Design, 2nd ed., 2013 / UOP and of Walas 1988, as summarised by the Northwestern
+      University Process Design wiki, ''Pressure Vessels''; at least Turton''s 25 degC), rounded up to
+      5 degC, D-032; maximum operating 1083.15 K: stream S11 (assumed: D-007)'
+    assumed: true
+  note: above 345 degC the D-032 margin is a process allowance; the metal temperature (refractory, tube
+    wall, flue-gas side) is the vendor's
+materials:
+  main:
+    value: centrifugally cast heat-resistant alloy tubes (grade by the furnace vendor)
+    material_class: other
+    assumed: true
+    source: 'DESIGN.md D-032: preliminary material class by service (reformer tubes at 810 degC outlet,
+      metal above it: heat-resistant cast alloy); the materials selection review is open'
+dimensions:
+  overall_length:
+    value: 40.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.length
+  overall_width:
+    value: 6.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.width
+  overall_height:
+    value: 4.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.height
+  support:
+    elevation:
+      value: 22.0
+      unit: m
+      source: 'layout/plant-model.yaml R-101 position z (layout/equipment-placement.yaml): the base above
+        grade'
+    stands_on:
+      value: H-101
+      source: 'layout/plant-model.yaml: the top of H-101 at the base of R-101, under its plan outline'
+nozzles:
+- name: N1
+  dn: 500
+  lines:
+  - PG-1008
+  source: pid/P-102.xml
+- name: N2
+  dn: 700
+  lines:
+  - PG-1009
+  source: pid/P-102.xml
+type_specific:
+  height_m:
+    value: 4.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  length_m:
+    value: 40.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  width_m:
+    value: 6.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  duty_kw:
+    value: 68616.0
+    unit: kW
+    source: process/simulation-run.json (case design, cheme process simulate, DWSIM 9.0.5, Peng-Robinson,
+      D-026) unit R101 (= Q9)
+  area_m2:
+    value: supplier
+    unit: m2
+    source: 'furnace vendor''s radiant tube design (tube count, length, heat flux): no typical-U row applies
+      to radiant heat transfer'
+    reason: 'furnace vendor''s radiant tube design (tube count, length, heat flux): no typical-U row applies
+      to radiant heat transfer'
+  process_streams:
+  - stream: S10
+    direction: in
+    title: Primary reformer feed
+    source: process/flowsheet.yaml (case design)
+  - stream: S11
+    direction: out
+    title: Primary reformer outlet
+    source: process/flowsheet.yaml (case design)
+  - stream: Q9
+    direction: in
+    title: Radiant heat to the reformer tubes
+    source: process/flowsheet.yaml (case design)
+  rating:
+    value: supplier
+    unit: ''
+    source: vendor's thermal, hydraulic or machine rating on these process conditions (not calculated
+      by cheme-as-code, docs/framework/sizing.md)
+    reason: vendor's thermal, hydraulic or machine rating on these process conditions (not calculated
+      by cheme-as-code, docs/framework/sizing.md)
+  mechanical_design:
+    value: supplier
+    unit: ''
+    source: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+    reason: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+  corrosion_allowance_mm:
+    value: supplier
+    unit: mm
+    source: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+    reason: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+  relief_protection:
+    value: supplier
+    unit: ''
+    source: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+    reason: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+sizing_basis:
+- parameter: sizing_scope
+  value: preliminary
+  reference: 'cheme datasheets fill: the values it writes are preliminary process sizing (short-cut methods,
+    declared or typical parameters), not a rating or a design to a code; not calculated: rating, mechanical
+    code, materials corrosion, relief, dynamics controls (docs/framework/sizing.md)'
+- parameter: design conditions
+  value: rule of D-032 on the item's operating streams
+  reference: DESIGN.md D-032
+notes: 'Outlet 1083 K, 3500 kPa(a), equilibrium approach 10 K (D-005, D-007). Tube count and metallurgy
+  not chosen. Listed as a tubular exchanger: no tubular-reactor class in this list. Dimensions: the tube
+  inlet headers and pigtails above the H-101 roof, where the plot plan shows R-101; the heated tubes are
+  inside H-101 (D-022), ASSUMED.'

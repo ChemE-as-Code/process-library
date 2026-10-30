@@ -1,0 +1,145 @@
+# Datasheet drafted by `cheme datasheets draft`, sized by `cheme datasheets fill` and completed by
+# scripts/complete_datasheets.py (DESIGN.md D-032). Preliminary process datasheet: every value
+# says where it comes from; assumed: true marks an assumption; `supplier` names what a vendor,
+# licensor or study still has to give. Checked by the authoring agent, not yet by an engineer.
+tag: P-301B
+type: CentrifugalPump
+service: Lean solvent pump (spare)
+operating:
+  operating_pressure:
+    value: 3100.0
+    unit: kPa(a)
+    source: CO2 absorber pressure 3100 kPa(a) (D-009)
+    assumed: true
+  maximum_temperature:
+    value: 422.284
+    unit: K
+    source: 'bound of the aMDEA loop: E-202 process-gas outlet S22 422.28 K (calculated, D-026); the kettle
+      pool boils below it (D-032)'
+    assumed: true
+  case: design
+design:
+  pressure_barg:
+    value: supplier
+    unit: barg
+    source: 'pump casing design pressure: shut-off pressure from the vendor''s curve'
+    reason: 'pump casing design pressure: shut-off pressure from the vendor''s curve'
+  temperature_degc:
+    value: 180.0
+    unit: degC
+    source: 'design temperature = maximum operating temperature + 28 K (50 degF of Towler and Sinnott,
+      Chemical Engineering Design, 2nd ed., 2013 / UOP and of Walas 1988, as summarised by the Northwestern
+      University Process Design wiki, ''Pressure Vessels''; at least Turton''s 25 degC), rounded up to
+      5 degC, D-032; maximum operating 422.28 K: bound of the aMDEA loop: E-202 process-gas outlet S22
+      422.28 K (calculated, D-026); the kettle pool boils below it (D-032)'
+    assumed: true
+materials:
+  main:
+    value: austenitic stainless steel (grade by the materials review)
+    material_class: stainless_steel
+    assumed: true
+    source: 'DESIGN.md D-032: preliminary material class by service (aMDEA service: licensor''s materials
+      to confirm (I-06)); the materials selection review is open'
+dimensions:
+  overall_length:
+    value: 4.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.length
+  overall_width:
+    value: 1.5
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.width
+  overall_height:
+    value: 1.8
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.height
+  axis_deg:
+    value: 0.0
+    unit: deg
+    source: layout/plant-model.yaml P-301B rotation_deg (layout/equipment-placement.yaml)
+nozzles:
+- name: N1
+  dn: 600
+  lines:
+  - AM-1061
+  source: pid/P-105.xml
+- name: N2
+  dn: 500
+  lines:
+  - AM-1062
+  source: pid/P-105.xml
+type_specific:
+  height_m:
+    value: 1.8
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  length_m:
+    value: 4.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  width_m:
+    value: 1.5
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  flow_m3_h:
+    value: 1313.1
+    unit: m3/h
+    source: '18 m3 solvent per t CO2 (assumed, D-009) x 72.95 t/h CO2 in the vent S28 (calculated): the
+      whole lean solvent on the running pump'
+    assumed: true
+  differential_head_m:
+    value: supplier
+    unit: m
+    source: 'aMDEA licensor''s solvent-loop design (solvent rate, heat balance, column internals; I-06,
+      D-009): solvent density, regenerator elevation and suction line'
+    reason: 'aMDEA licensor''s solvent-loop design (solvent rate, heat balance, column internals; I-06,
+      D-009): solvent density, regenerator elevation and suction line'
+  npsh_available_m:
+    value: supplier
+    unit: m
+    source: 'aMDEA licensor''s solvent-loop design (solvent rate, heat balance, column internals; I-06,
+      D-009): solvent density, regenerator elevation and suction line'
+    reason: 'aMDEA licensor''s solvent-loop design (solvent rate, heat balance, column internals; I-06,
+      D-009): solvent density, regenerator elevation and suction line'
+  shaft_power_kw:
+    value: 1539.5
+    unit: kW
+    source: 'process/flowsheet.yaml Q17 (assumed: 21 kWh/t CO2, D-009), the whole solvent pumping of the
+      loop on the running pump'
+    assumed: true
+  npsh_required_m:
+    value: supplier
+    unit: m
+    source: pump vendor's NPSHr at the rated point
+    reason: pump vendor's NPSHr at the rated point
+  mechanical_design:
+    value: supplier
+    unit: ''
+    source: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+    reason: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+  corrosion_allowance_mm:
+    value: supplier
+    unit: mm
+    source: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+    reason: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+  relief_protection:
+    value: supplier
+    unit: ''
+    source: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+    reason: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+sizing_basis:
+- parameter: sizing_scope
+  value: preliminary
+  reference: 'cheme datasheets fill: the values it writes are preliminary process sizing (short-cut methods,
+    declared or typical parameters), not a rating or a design to a code; not calculated: rating, mechanical
+    code, materials corrosion, relief, dynamics controls (docs/framework/sizing.md)'
+- parameter: design conditions
+  value: rule of D-032 on the item's operating streams
+  reference: DESIGN.md D-032
+notes: Installed spare of P-301A (D-028). Dimensions ASSUMED (D-028).

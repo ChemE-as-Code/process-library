@@ -1,0 +1,274 @@
+# Datasheet drafted by `cheme datasheets draft`, sized by `cheme datasheets fill` and completed by
+# scripts/complete_datasheets.py (DESIGN.md D-032). Preliminary process datasheet: every value
+# says where it comes from; assumed: true marks an assumption; `supplier` names what a vendor,
+# licensor or study still has to give. Checked by the authoring agent, not yet by an engineer.
+tag: C-301
+type: ProcessColumn
+service: CO2 absorber (aMDEA)
+operating:
+  S24_gas_pressure:
+    value: 3100
+    unit: kPa(a)
+    source: 'process/flowsheet.yaml stream S24 (case design), assumed: D-009'
+    assumed: true
+  S24_gas_temperature:
+    value: 313.15
+    unit: K
+    source: 'process/flowsheet.yaml stream S24 (case design), assumed: D-012'
+    assumed: true
+  S24_gas_flow:
+    value: 139409.0
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S24 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  S26_in_pressure:
+    value: 500
+    unit: kPa(a)
+    source: 'process/flowsheet.yaml stream S26 (case design), assumed: D-009'
+    assumed: true
+  S26_in_temperature:
+    value: 298.15
+    unit: K
+    source: 'process/flowsheet.yaml stream S26 (case design), assumed: D-009'
+    assumed: true
+  S26_in_flow:
+    value: 1487.6
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S26 (case design), assumed: scripts/plant_balance.py: water
+      leaving with treated gas and CO2 (D-009)'
+    assumed: true
+  S27_gas_pressure:
+    value: 3100.0
+    unit: kPa(a)
+    source: 'process/flowsheet.yaml stream S27 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  S27_gas_temperature:
+    value: 313.15
+    unit: K
+    source: 'process/flowsheet.yaml stream S27 (case design), assumed: D-009'
+    assumed: true
+  S27_gas_flow:
+    value: 66368.1
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S27 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  S28_co2_pressure:
+    value: 150
+    unit: kPa(a)
+    source: 'process/flowsheet.yaml stream S28 (case design), assumed: D-009'
+    assumed: true
+  S28_co2_temperature:
+    value: 313.15
+    unit: K
+    source: 'process/flowsheet.yaml stream S28 (case design), assumed: D-009'
+    assumed: true
+  S28_co2_flow:
+    value: 74528.4
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S28 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  case: design
+design:
+  pressure_barg:
+    value: 33.0
+    unit: barg
+    source: 'design pressure = max(1.10 x, +1.7 bar over) the maximum operating gauge pressure, rounded
+      up to 0.5 bar (heuristic ''10 % or 10-25 psi, whichever is greater'' of Walas, Chemical Process
+      Equipment, 1988, Rules of Thumb, and Turton et al., 4th ed., 2012, as summarised by the Northwestern
+      University Process Design wiki, ''Pressure Vessels''; the books were not read; the upper end 1.7
+      bar taken), D-032; maximum operating 3100 kPa(a): stream S24 (assumed: D-009)'
+    assumed: true
+  temperature_degc:
+    value: 180.0
+    unit: degC
+    source: 'design temperature = maximum operating temperature + 28 K (50 degF of Towler and Sinnott,
+      Chemical Engineering Design, 2nd ed., 2013 / UOP and of Walas 1988, as summarised by the Northwestern
+      University Process Design wiki, ''Pressure Vessels''; at least Turton''s 25 degC), rounded up to
+      5 degC, D-032; maximum operating 422.28 K: bound of the aMDEA loop: E-202 process-gas outlet S22
+      422.28 K (calculated, D-026); the kettle pool boils below it (D-032)'
+    assumed: true
+materials:
+  main:
+    value: carbon steel (grade by the materials review)
+    material_class: carbon_steel
+    assumed: true
+    source: 'DESIGN.md D-032: preliminary material class by service (aMDEA service: licensor''s materials
+      to confirm (I-06)); the materials selection review is open'
+dimensions:
+  orientation: vertical
+  outside_diameter:
+    value: 5.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.diameter
+  overall_height:
+    value: 40.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.height
+  tangent_length:
+    value: 34.5
+    unit: m
+    source: 'layout/plant-model.yaml part C-301/shell: the generated shell between the heads (the 3D model''s
+      proportions, not a vessel design)'
+    assumed: true
+  support:
+    height:
+      value: 4.25
+      unit: m
+      source: 'layout/plant-model.yaml parts C-301/shell, C-301/skirt: the bottom tangent line above the
+        base (the 3D model''s proportions, not a design)'
+      assumed: true
+nozzles:
+- name: N1
+  dn: 400
+  lines:
+  - PG-1047
+  source: pid/P-105.xml
+- name: N2
+  dn: 350
+  lines:
+  - PG-1056
+  source: pid/P-105.xml
+- name: N3
+  dn: 500
+  lines:
+  - AM-1060
+  source: pid/P-105.xml
+- name: N4
+  dn: 600
+  lines:
+  - AM-1057
+  source: pid/P-105.xml
+- name: N5
+  dn: 50
+  lines: []
+  source: pid/P-105.xml
+- name: N6
+  dn: 50
+  lines: []
+  source: pid/P-105.xml
+- name: N7
+  dn: 25
+  lines: []
+  source: pid/P-105.xml
+type_specific:
+  diameter_m:
+    value: 5.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  height_m:
+    value: 40.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  volume_m3:
+    value: 677.4
+    unit: m3
+    source: 'cheme datasheets fill: pi/4 D^2 L, D 5 m (dimensions.outside_diameter), L 34.5 m (dimensions.tangent_length);
+      the cylindrical shell between the tangent lines, heads not included; over the outside diameter:
+      an upper bound of the shell'
+    assumed: true
+    fingerprint: 9316ff265c47ff3e
+    inputs:
+    - datasheet:dimensions.orientation
+    - datasheet:dimensions.inside_diameter
+    - datasheet:dimensions.outside_diameter
+    - datasheet:dimensions.tangent_length
+    - datasheet:dimensions.overall_length
+    - datasheet:dimensions.overall_height
+    - datasheet:type_specific.diameter_m
+    - datasheet:type_specific.length_m
+    - datasheet:type_specific.height_m
+  number_of_stages:
+    value: supplier
+    unit: ''
+    source: 'aMDEA licensor''s solvent-loop design (solvent rate, heat balance, column internals; I-06,
+      D-009): a reactive amine absorber is not a Fenske-Underwood-Gilliland column'
+    reason: 'aMDEA licensor''s solvent-loop design (solvent rate, heat balance, column internals; I-06,
+      D-009): a reactive amine absorber is not a Fenske-Underwood-Gilliland column'
+  process_streams:
+  - stream: S24
+    direction: in
+    title: Raw synthesis gas to CO2 absorber
+    source: process/flowsheet.yaml (case design)
+  - stream: S26
+    direction: in
+    title: Make-up water to the CO2 removal
+    source: process/flowsheet.yaml (case design)
+  - stream: S85
+    direction: in
+    title: Pumped make-up water
+    source: process/flowsheet.yaml (case design)
+  - stream: S85
+    direction: out
+    title: Pumped make-up water
+    source: process/flowsheet.yaml (case design)
+  - stream: S79
+    direction: in
+    title: Raw synthesis gas and make-up water to the absorber
+    source: process/flowsheet.yaml (case design)
+  - stream: S79
+    direction: out
+    title: Raw synthesis gas and make-up water to the absorber
+    source: process/flowsheet.yaml (case design)
+  - stream: S27
+    direction: out
+    title: Treated synthesis gas
+    source: process/flowsheet.yaml (case design)
+  - stream: S28
+    direction: out
+    title: Process CO2 to vent
+    source: process/flowsheet.yaml (case design)
+  - stream: Q15
+    direction: in
+    title: E-202 regenerator reboiler duty
+    source: process/flowsheet.yaml (case design)
+  - stream: Q17
+    direction: in
+    title: CO2 removal solvent pumps
+    source: process/flowsheet.yaml (case design)
+  - stream: Q18
+    direction: out
+    title: CO2 removal coolers (overhead condenser, lean solvent)
+    source: process/flowsheet.yaml (case design)
+  - stream: Q36
+    direction: in
+    title: CO2 removal make-up water pump power
+    source: process/flowsheet.yaml (case design)
+  flooding_diameter_m:
+    value: supplier
+    unit: m
+    source: aMDEA licensor's solvent-loop design (solvent rate, heat balance, column internals; I-06,
+      D-009)
+    reason: aMDEA licensor's solvent-loop design (solvent rate, heat balance, column internals; I-06,
+      D-009)
+  mechanical_design:
+    value: supplier
+    unit: ''
+    source: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+    reason: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+  corrosion_allowance_mm:
+    value: supplier
+    unit: mm
+    source: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+    reason: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+  relief_protection:
+    value: supplier
+    unit: ''
+    source: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+    reason: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+sizing_basis:
+- parameter: sizing_scope
+  value: preliminary
+  reference: 'cheme datasheets fill: the values it writes are preliminary process sizing (short-cut methods,
+    declared or typical parameters), not a rating or a design to a code; not calculated: rating, mechanical
+    code, materials corrosion, relief, dynamics controls (docs/framework/sizing.md)'
+- parameter: design conditions
+  value: rule of D-032 on the item's operating streams
+  reference: DESIGN.md D-032
+notes: 3100 kPa(a), 313 K; 500 ppmv CO2 slip (D-009). Stages and solvent rate not calculated. Dimensions
+  ASSUMED (D-022).
