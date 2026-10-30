@@ -61,7 +61,7 @@ SECTIONS = [  # id, tag, branch, worktree, cap, task key in sections.md, signoff
     dict(id="S6", tag="S6", branch="stage/basic-hazop", wt="nh3-basic-hazop", cap=20, key="S6", reviews=["hazop"]),
     dict(id="S7", tag="S7", branch="stage/detail-datasheets", wt="nh3-detail-datasheets", cap=20, key="S7", reviews=["datasheets"]),
     dict(id="S8", tag="S8", branch="stage/detail-relief", wt="nh3-detail-relief", cap=15, key="S8", reviews=["relief"]),
-    # O-033: S5 (#257) waits for the owner; S9 stacks on it: base stage/basic-layout, brought up to
+    # O-041: S5 (#257) waits for the owner; S9 stacks on it: base stage/basic-layout, brought up to
     # date with main by a sync job first; the S9 PR is approved but not merged (stacked).
     dict(id="S9", base="stage/basic-layout", sync="nh3-basic-layout", no_merge=True, tag="S9", branch="stage/detail-gates", wt="nh3-detail-gates", cap=15, key="S9", reviews=["detail-gates"]),
 ]
