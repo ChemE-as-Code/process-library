@@ -1521,6 +1521,112 @@ accuracy -20 to -50 % low, +30 to +100 % high, 368-589 MEUR to 957-1,473 MEUR. T
 the project needs vendor or contractor prices for the Cr-Mo and high-pressure items and for the
 bulk materials, or a licensed cost database. None of these may be copied in here.
 
+## D-045 Estimate class 4: open material, pressure and furnace factors; TEA on the equipment estimate (2026-10-30, S5d)
+Owner decision I-006b asked for one more focused attempt to reach class 4 with sourced data found
+online. Sources were read on 2026-10-30. Numbers are used in our own form; no table is copied.
+`scripts/estimate_factors_s5d.py` names every source and prints the `estimate/cost-basis.yaml`
+entries.
+
+Decision:
+- **Cost index.** The CEPCI 2023 annual average of 797.9 stays (D-035). It is the latest annual
+  value openly readable. The 2024 and 2025 annual values are behind the publisher's login.
+  Chemical Engineering's open teaser of 2 April 2026 says only that the 2025 average rose 1.6 %
+  over 2024, with no index value. Every correlation is escalated from its own base: Turton
+  et al. at CEPCI 397 (2001), the package's base. The TEA escalates 2023 to 2025 with the D-023
+  proxy, Eurostat sts_inppd_a NL C28, 121.4 / 115.4 = 1.052. It converts at 1.0813 USD per EUR,
+  the 2023 average (Eurostat ert_bil_eur_a).
+- **Material factors, Cr-Mo** (Seider et al., Product and Process Design Principles, 3rd ed.
+  2009, ch. 22, as implemented with that citation in IDAES `idaes/models/costing/SSLW.py`;
+  BioSTEAM `specification_factors` gives the same values for the 4th ed., pp. 426-485):
+  - Vessels V-101, R-100, R-201, R-202, R-401 and R-501 take low-alloy steel Fm 1.2.
+  - Exchangers E-101, E-104, E-105, E-201, E-401, E-402, E-501 and E-502 take Cr-Mo/Cr-Mo
+    FM = 1.70 + (A / 100 ft2)^0.07 on the area of each unit, which gives 3.04 to 3.09.
+  - These go into Turton's B1 + B2 Fm Fp: ASSUMED, because the bases of the two books differ.
+    Seider's SS/SS exchanger factor is about 1.5 times Turton's 2.73 at the same area, so the
+    Cr-Mo exchanger costs lean high.
+- **Pressure above 140 barg.** E-501 to E-505 (161.5 to 169.5 barg) take Turton's exchanger Fp
+  equation at their design pressure. That extrapolates the 5-140 barg range by at most 21 %;
+  Fp is 1.545 to 1.564 (ASSUMED). Cross-check: the 600-3000 psig form noted in IDAES (commented
+  out there and not verified against the book) rises 13 % from 140 to 170 barg, against
+  Turton's 5 %. Vessels keep the package's thickness-based Fp, which has no upper limit. R-501
+  (168.5 barg, D 3.5 m) gets Fp 63.4 and FBM 141, an upper estimate for a multi-wall converter
+  shell.
+- **Reformer furnace H-101.**
+  - Correlation: Turton 5th ed. Table A.1, reformer furnace (K 3.068, 0.6597, 0.0194;
+    3000-100000 kW; row as reproduced in OpenPyTEA, MIT licence), at the absorbed radiant duty of
+    68.6 MW.
+  - Factors: Turton's fired-heater FBM 2.81 for stainless tubes (ASSUMED for the cast alloy
+    tubes) and Fp 1.05 at the 44 barg tube design pressure. Both are from Turton 3rd ed.,
+    Tables A.6 and A.2, as reproduced in the eqcost catalogue.
+  - Result: 30.6 MUSD (2023). R-101, the catalyst tubes, is excluded as part of it. The
+    convection coils stay their own items.
+- **Refractory-lined R-102.** No open costing approach was found. The shell is priced as a CS
+  vessel (Fm 1) on its outside diameter, at the shell temperature the lining allows (ASSUMED),
+  which gives 13.6 MUSD. The lining is in the allowance.
+- **Fans** K-102 and K-103 take FBM 2.5, Hand's factor for compressors (Hand 1958, via van
+  Amsterdam, MSc thesis TU Delft 2018, Table 3.13; ASSUMED for a fan).
+- **Horizontal vessel V-502** takes the package's vertical B1/B2 with its Fp, FBM 15.1 (ASSUMED).
+- **Pumps.** P-301A/B and P-801 take Turton's pump Fp at the receiving item's design pressure:
+  33 barg for C-301 and 49.5 barg for U-801 (D-032 rule; ASSUMED, static head not counted).
+- **Split units.** Items above their range are still split into identical units as in D-044:
+  E-104, E-105, E-106, E-201, E-401, E-402, E-501 (45 units), E-502 (22), E-503, E-504, E-505,
+  P-301A/B and P-801. These are upper estimates.
+- **Bulk and installation.** No open bulk unit rates exist (searched again), so
+  `estimate/rates.yaml` stays `example: true`. The factor method lives per item instead, in
+  Turton's bare module factors. They include piping, instruments, electrical, foundations,
+  structures, insulation, paint, erection labour and indirects.
+  - Cross-checks of the factor level: Towler and Sinnott 3rd ed. fluids installation factors,
+    3.2 x purchased cost for a CS item; Hand's 3.5 for exchangers and 4 for vessels. Turton's
+    FBM at low pressure is 3.2 (CS exchanger) and 4.1 (CS vessel).
+  - The rates schema's factors multiply take-off material only, so they cannot carry a
+    per-equipment factor. The take-off stays a quantity check.
+- **TEA.** `isbl: source: equipment`, `estimate_class: 4`. The uncovered allowance is 10 % of
+  the costed ISBL, ASSUMED with no source. It covers X-601, U-801, X-401, the R-102 lining and
+  the unsized E-107, E-202, E-301, E-302, E-303 and P-302A/B. Location factor 1.0, ASSUMED: no
+  open US Gulf Coast to Netherlands factor was found. OSBL 0.109, owner's cost 0.07 and
+  contingency 0.20 stay IEAGHG's (D-023).
+
+Result:
+- **Equipment.** `estimate/equipment-cost.md` covers 52 items: 19 at bare module from a
+  correlation (106.8 MUSD), 22 at project cost from correlation and factors (255.2 MUSD),
+  1 excluded and 10 not covered. That is 362.0 MUSD in 2023, against 102.9 MUSD of bare module
+  plus split costs in S5c.
+- **Largest items**, together 64 % of the equipment:
+  - E-501: 66.7 M
+  - R-501: 42.3 M
+  - E-502: 32.2 M
+  - H-101: 30.6 M
+  - C-301: 27.5 M
+  - C-302: 16.4 M
+  - K-501: 14.6 M
+- **TEA** (`cheme assess tea --write`):
+  - ISBL: 387.4 MEUR, of which 35.2 MEUR is the allowance.
+  - Fixed capital: 551.7 MEUR, against 736.5 MEUR on the IEAGHG basis.
+  - LCOP: 688.1 EUR/t, against 748.2.
+  - NPV: -845.3 MEUR, against -1,049.4.
+  - The decision is unchanged: LCOP stays above the 439 EUR/t threshold.
+
+**Class 4 per AACE 18R-97.** The source is AACE RP 18R-97, rev. 29 Nov 2011, Table 1, Tables
+2b/2c and Table 3; read from a public procurement copy at canadabuys.canada.ca.
+- Class 4 is "equipment factored or parametric", at 1-15 % project definition. Its inputs are
+  PFDs and preliminary equipment lists, with P&IDs, plot plan and datasheets started.
+- This design has PFDs, H&MB, P&IDs, a 3D layout and datasheets: at or beyond class 4 input,
+  short of class 3, whose method is unit-cost line items.
+- The estimate is now equipment-factored on every major item, so it meets class 4.
+- Expected accuracy: -15 to -30 % low and +20 to +50 % high. On the fixed capital that is
+  386-469 MEUR low and 662-828 MEUR high. The IEAGHG capacity-factored value (736.5 MEUR) lies
+  inside the high band.
+- What drives the accuracy:
+  1. E-501 and E-502 are 27 % of the equipment, on ASSUMED overall coefficients (D-032) and
+     split pricing.
+  2. The Cr-Mo and >140 barg factors come from another textbook or are extrapolated.
+  3. The 10 % allowance for the packages has no source.
+  4. Location factor 1.0 and CEPCI 2023 (the 2024/2025 values are not open).
+- What would firm it up: vendor or licensor prices for the PGRU, steam system, dryer, converter
+  and loop exchangers; an open or licensed location factor; the current CEPCI.
+- `cheme.tea-class-stage` warns because `plant.yaml` still says stage concept until the basic
+  sign-off. The class 4 claim belongs to this basic-stage branch.
+
 ## 3. Results of this stage (design case)
 
 Basic stage, S5c (the D-040 feed, re-simulated; lca/inventory.csv regenerated): per kg of NH3
@@ -1600,6 +1706,15 @@ convection coils therefore use `ExchangingThermalEnergy` and the steam system `P
 | API Std 521, Pressure-relieving and Depressuring Systems, 6th ed. (2014) | 4.4.13.2.4 fire heat absorption of a wetted surface (SI 43 200 / 70 900 F A^0.82 W, 7.6 m); tube rupture of two open ends | no: equation as published in secondary sources (open-exam-prep.com PE study guide 17.2; DIERS fire-case report of ioMosaic citing 4.4.13.2.4.2), searched 2026-10-30 | D-033: fire and tube-rupture loads |
 | ASME BPVC VIII-1 / API 520 Part I | accumulation 10 % (single valve), 21 % (fire) | no (commonly cited values) | D-033: relieving pressure |
 | IEC 60534-2-1 | compressible-flow sizing equation, N6 = 27.3, choked x = F_gamma xT, Y = 2/3 | no (equation as commonly published) | D-033: blow-by per unit Kv |
+| AACE International RP 18R-97, rev. 2011-11-29 (public procurement copy, canadabuys.canada.ca, attachment 2021/10/28) | Table 1 (p. 2), Tables 2a-2c (pp. 5-6), Table 3 (p. 9) | yes, by a research sub-agent of S5d (2026-10-30) | D-045: class 4 criteria and accuracy |
+| IDAES `idaes/models/costing/SSLW.py` (github.com/IDAES/idaes-pse, main), citing Seider et al. 3rd ed. (2009) ch. 22 | `hx_material_factor_dict` (Cr-Mo rows), `VesselMaterial.LowAlloySteel`, exchanger Fp equations | yes (raw file, 2026-10-30) | D-045: Cr-Mo Fm, Fp cross-check |
+| BioSTEAM `design_tools/specification_factors` (Seider et al. 4th ed. 2017, pp. 426-485) | pressure vessel material factors | via a research sub-agent (docs page) | D-045: low-alloy 1.2 confirmed |
+| OpenPyTEA `src/openpytea/data/cost_correlations.csv` (MIT) reproducing Turton et al. 5th ed. Table A.1 | row reformer_furnace_turton_2001 | yes (raw file, 2026-10-30) | D-045: H-101 correlation |
+| eqcost `internal/core/catalog.toml` (github.com/Jubel075/eqcost) reproducing Turton et al. 3rd ed. Tables A.2 and A.6 | fired_heater: FBM by tube material, Fp | yes (raw file, 2026-10-30) | D-045: H-101 FBM and Fp |
+| M. F. van Amsterdam, Factorial Techniques applied in Chemical Plant Cost Estimation, MSc thesis TU Delft (2018) | Table 3.13 (Hand's factors), p. 36 | via a research sub-agent | D-045: fan FBM, factor cross-check |
+| OpenPyTEA documentation, "Process installation factors" (Towler and Sinnott, 3rd ed. 2022) | user_guide/equipment | via a research sub-agent | D-045: installation factor cross-check |
+| Eurostat ert_bil_eur_a, sts_inppd_a (CC BY 4.0) | USD 2023 annual 1.0813; NL C28 2023 115.4, 2025 121.4 | yes (API, 2026-10-30) | D-045: TEA conversion and escalation |
+| Chemical Engineering, "Inflationary pressures push 2025 CEPCI annual average higher than 2024" (2026-04-02) | open teaser only | yes (teaser, by a sub-agent) | D-045: no 2024/2025 index value openly available |
 | thermo 0.6.1 | `Chemical('water'/'ammonia').Tsat`, `.Hvap`, `.Pc`, `Chemical(CAS).Cpgm` | yes | D-033: latent heats, critical pressure, ideal-gas k |
 
 ## 6. Open inputs and gated steps

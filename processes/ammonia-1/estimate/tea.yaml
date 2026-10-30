@@ -23,25 +23,22 @@ basis:
   location: NL (Rotterdam area)
 case: design
 capex:
-  # Reference: IEAGHG Technical Report 2017-03 (Amec Foster Wheeler for IEAGHG), Case 4A-1,
-  # Table 1 (report sheet 26 of 80): installed cost of the ammonia/urea plant 493 MEUR at 4Q2014
-  # prices (class 4 in the report), greenfield, north-east Netherlands, SMR with air-blown
-  # secondary reformer. The value here is 493 MEUR x 0.70, the ammonia share of the
-  # ammonia/urea complex, ASSUMED (the report does not split it; D-023). Installed cost with EPC
-  # services; contingency, utilities/BoP and owner's cost are added below.
+  # S5d (D-045): the ISBL is the equipment-factored estimate of estimate/equipment-cost.md (the
+  # bare module costs of the listed items, Turton et al. CAPCOST correlations with the factors of
+  # estimate/cost-basis.yaml, 2023 USD), AACE 18R-97 class 4. Until S5c it was the class 5
+  # capacity-factored IEAGHG 2017-03 Case 4A-1 reference (493 MEUR 4Q2014 x ammonia share 0.70,
+  # scaled 1500/1350 t/d with exponent 0.67, escalated 1.397: 736.5 MEUR fixed capital, D-023),
+  # now the cross-check in D-045. The OSBL, owner's cost and contingency fractions stay IEAGHG's.
   isbl:
-    source: given
-    estimate_class: 5
-    value: {value: 345100000, status: ASSUMED, source: "IEAGHG 2017-03 Case 4A-1 Table 1: ammonia/urea plant installed cost 493 MEUR (4Q2014) x ammonia share 0.70 ASSUMED (D-023)", year: 2014}
-    scaling:
-      reference: {value: 450000, source: "IEAGHG 2017-03 Case 4A-1 ammonia plant, 1350 t/d NH3, on the 8000 h/a of this design (D-002) so that the ratio is 1500/1350"}
-      unit: t
-      exponent: {value: 0.67, status: ASSUMED, source: "capacity exponent chosen in this design for a single-train plant (D-023); the reference states none"}
-    escalation: {value: 1.397, source: "Eurostat sts_inppd_a, domestic producer prices, NL, NACE C28 (machinery and equipment), index 2021=100: 121.4 (2025) / 86.9 (2014), read 2026-10-29; a proxy for plant cost escalation, ASSUMED"}
-    location_factor: {value: 1.0, source: "the reference plant is sited in the Netherlands (IEAGHG 2017-03, Case 4A-1)"}
+    source: equipment
+    estimate_class: 4
+    exchange_rate: {value: 0.92481, source: "Eurostat ert_bil_eur_a, euro exchange rates, annual average 2023: 1.0813 USD per EUR (the year of the equipment costs' CEPCI), read 2026-10-30 through the Eurostat API", year: 2023}
+    escalation: {value: 1.052, source: "Eurostat sts_inppd_a, domestic producer prices, NL, NACE C28 (machinery and equipment), index 2021=100: 121.4 (2025) / 115.4 (2023), read 2026-10-30; the proxy of D-023 for plant cost escalation, used because the CEPCI annual averages 2024 and 2025 are not openly published (D-045), ASSUMED"}
+    location_factor: {value: 1.0, status: ASSUMED, source: "US Gulf Coast basis of the Turton correlations to the Netherlands: no openly readable, citable location factor was found (searched 2026-10-30; the published tables of Towler and Sinnott, S&P Global PEP and Intratec are not open), so 1.0 is kept and named as an accuracy driver of the class 4 estimate (D-045)"}
+    uncovered_allowance: {value: 0.10, status: ASSUMED, source: "items no correlation prices, as a fraction of the costed ISBL: the purge gas recovery package X-601 (cryogenic), the steam system U-801 (drums, deaerator, superheater), the dryer package X-401, the refractory lining of R-102 and the unsized E-107, E-202, E-301, E-302, E-303 and P-302A/B; a judgement of this design, no source (D-045)"}
   osbl: {value: 0.109, source: "IEAGHG 2017-03 Case 4A-1, Table 1: utilities and balance of plant 53.6 MEUR over the 493 MEUR process plant"}
   owners_cost: {value: 0.07, source: "IEAGHG 2017-03, section 2.8.1: owner's cost 7 % of the total plant cost"}
-  contingency: {value: 0.20, source: "IEAGHG 2017-03, section 2.8.1: 20 % contingency on the installed cost (a class 4 estimate there; the class 5 range of this estimate is applied in the uncertainty)"}
+  contingency: {value: 0.20, source: "IEAGHG 2017-03, section 2.8.1: 20 % contingency on the installed cost (a class 4 estimate there, as this one since S5d, D-045)"}
 operation:
   hours_per_year: 8000
   life_years: 25
