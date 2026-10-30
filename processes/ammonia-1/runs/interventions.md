@@ -48,3 +48,5 @@ reviewer agents are not listed here (see `ledger.csv`). Times are local (CET, UT
 | O-034 | 2026-10-30 02:29 | orchestrator (driver) | S5b: review says fix after two rounds; a third round runs under the owner's standing permission to continue autonomously | owner 2026-10-29 evening | - |
 | O-035 | 2026-10-30 03:06 | orchestrator (driver) | S5b stopped (exit 3); its PR stays open, the run goes on with the next independent sections | owner 2026-10-29: work autonomously | - |
 | O-036 | 2026-10-30 04:00 | orchestrator (driver) | S6 merged; ledger PR for the section's accounting | plan | - |
+| O-037 | 2026-10-30 04:43 | orchestrator (driver) | S7: pushed `stage/detail-datasheets`, opened #260 with the job's own PR body (I-001) | plan | - |
+| O-038 | 2026-10-30 05:01 | orchestrator (driver) | S7 merged; ledger PR for the section's accounting | plan | - |
