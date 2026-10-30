@@ -166,6 +166,43 @@ def main():
     print(f"MP steam {mp:.0f} kW, LP steam {lp:.0f} kW, power total {power:.0f} kW,"
           f" other power {power - w_k:.0f} kW")
 
+    # the values process/flowsheet.yaml cites from this script (balance-output contract), kg/h
+    c402_bot = {"H2O": top["H2O"] - p * ACET_PRODUCT_H2O, "MEOH": top["MEOH"],
+                "ACET": b_tot * C402_BOTTOMS_ACET}
+    flows = {
+        "S01": fresh, "S02": n2 * MW["N2"] + 0.21 * air * MW["O2"], "S06": sum(spent.values()),
+        "S07": cum_oxidate + sum(oxid_heavy.values()),
+        "S08": n2 * MW["N2"] + o2_out * MW["O2"] + cum_vent_kg, "S09": rec_cum,
+        "S10": cum_conc + sum(oxid_heavy.values()), "S11": cum_oxidate - cum_conc,
+        "S16": sum(aq.values()), "S17": sum(org.values()), "S18": sum(top.values()),
+        "S19": sum(bot.values()), "S20": acet_prod, "S21": sum(c402_bot.values()),
+        "S22": bot["CUM"] + bot["AMS"], "S23": bot["PHEN"] + bot["ACP"] + bot["CUMPH"],
+        "S25": tar * TAR_PHEN + acp * MW["ACP"] + cumph * MW["CUMPH"],
+        "S26": (ams + h2_vent) * MW["H2"], "S29": hyd_cum,
+    }
+    fs = {sid: {"flow": {"value": v, "basis": "mass"}} for sid, v in flows.items()}
+    fs["Q01"] = {"duty": w_k}
+    write_balance_output({"design": fs})
+
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
+
 
 if __name__ == "__main__":
     main()

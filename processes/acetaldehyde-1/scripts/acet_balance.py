@@ -390,3 +390,37 @@ with open("build/acet_streams.yaml", "w") as f:
         f.write(f"  - {{id: {qid}, title: {title}, kind: energy, from: {fr}, to: {to}, state: {{design: "
                 f"{{duty: {{value: {v:.1f}, provenance: assumed, source: \"{SRC}: {src}\"}}}}}}}}\n")
 print("wrote build/acet_streams.yaml")
+
+# the values process/flowsheet.yaml cites from this script (balance-output contract): the
+# stream table above, flow in kg/h and mass fractions
+FLOWSHEET = {}
+for sid, title, fr, to, tpl, p, t, dec, calc in STREAMS:
+    s = {k: v for k, v in kgh[sid].items() if v > 1e-9}
+    FLOWSHEET[sid] = {"flow": {"value": tot(s), "basis": "mass"},
+                      "composition": {"values": {k: v / tot(s) for k, v in s.items()},
+                                      "basis": "mass_fraction"},
+                      "temperature": t, "pressure": p}
+for qid, title, fr, to, v, src in Q:
+    FLOWSHEET[qid] = {"duty": v}
+
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
+
+
+write_balance_output({"design": FLOWSHEET})
