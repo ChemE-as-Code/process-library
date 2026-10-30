@@ -929,10 +929,12 @@ E-402, K-501, E-501, E-502, E-505, E-504. E-402's blockers PG-1056 and PG-1077 a
 lines between C-301, E-401 and E-402, a larger re-route than a utility via.
 They are listed for the owner, with the lifting plan's reason for each, in
 build/lifting-acceptance-proposal.md (copied into the PR). None is accepted, so the gate
-`lifting-study` fails until a competent person decides. No crane chart exists yet: a
-manufacturer's load chart is a third-party table that may not be copied into the library, so
-the chart has to come from the crane contractor or the owner. The
-heaviest lifts, R-501 (658 t) and C-301 (514 t), need a crawler crane of the 1,000 t class.
+`lifting-study` fails until a competent person decides. No crane chart exists yet. S5b fix
+r2 (review design-s5b-r2#2, correcting the earlier reason): a few capacity-at-radius values of
+a named crane, with their source, could be cited. No such values were recorded in this job, so
+the crane selection is left to the crane contractor and **is not checked** at basic. The
+heaviest lifts, R-501 (658 t) and C-301 (514 t), are expected to need a crawler crane of the
+1,000 t class. This is an estimate, not a checked selection.
 Reason: S5b item 2 (runs/interventions.md O-032); review 2026-10-29-design#1 (b).
 
 ## D-034 Reactor model basis sourced; feed basis left open (2026-10-30, S5b)
@@ -1014,10 +1016,18 @@ and 38 are not covered. The estimate is therefore declared **class 5** (AACE 18R
   correlation's range, and C-301 and C-302 above the tower volume range. They are not
   extrapolated or split. H-101 has no duty on a datasheet (excluded from the simulation).
 - **Bulk rates.** estimate/rates.yaml stays the package example (it prices nothing), so
-  `cheme assess estimate` writes no bulk estimate. No openly published set of piping, steel,
-  grating, insulation and concrete unit rates was found that may be published under CC BY 4.0.
-  The usual sources (RSMeans, Compass, Aspen) are licensed databases, which the library rules
-  exclude. The rates need the owner's or a contractor's prices, or quotations.
+  `cheme assess estimate` writes no bulk estimate. S5b fix r2 (review design-s5b-r2#1,
+  correcting the reason given above): published factors are facts we may cite, so the
+  indirect and contingency factors now carry them: design and engineering 0.30 (Towler and
+  Sinnott 2013, Table 6.3, fluids), contractor's fee 0.03 and contingency 0.15 (Turton et al.
+  2012, section 7.3). The unit rates and the two erection factors stay placeholders. The reason
+  is not the licence: no openly published set of bulk unit prices for piping by DN, fittings,
+  valves, steel, grating, insulation and concrete, and no published erection-to-material factor,
+  was found for this scope. The usual price sources (RSMeans, Compass, Aspen) are licensed
+  databases. So the rates need the owner's or a contractor's prices, or quotations.
+- **Fans.** K-102 and K-103 are priced from the actual inlet gas flow of their linked streams
+  (S61: 37.5 m3/s, S66: 61.8 m3/s; review design-s5b-r2#3), at purchased cost only, because
+  the package has no bare module factor for the fan correlation.
 The TEA is unchanged: its CAPEX stays the scaled IEAGHG reference-plant basis of D-023
 (estimate/tea.yaml `capex:`) until the bottom-up estimate covers the plant.
 Reason: S5b item 3 (O-032); review 2026-10-29-design#1 (c).
