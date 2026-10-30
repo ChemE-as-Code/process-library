@@ -52,6 +52,9 @@ def _library(tmp_path: Path, dataset: Path = KIT / "processes" / "asu-1" / "lca"
     shutil.copy(dataset, library / "processes" / "asu-1" / "lca" / "dataset.yaml")
     for folder in ("chemicals", "taxonomy", "lci", "benchmarks"):
         shutil.copytree(KIT / folder, library / folder)
+    for other in (library / "benchmarks").glob("*.yaml"):  # other families bind datasets this library lacks
+        if other.name != "air-separation.yaml":
+            other.unlink()
     return library
 
 
