@@ -935,6 +935,26 @@ a named crane, with their source, could be cited. No such values were recorded i
 the crane selection is left to the crane contractor and **is not checked** at basic. The
 heaviest lifts, R-501 (658 t) and C-301 (514 t), are expected to need a crawler crane of the
 1,000 t class. This is an estimate, not a checked selection.
+S5b fix r2 (reviews layout-s5b-r2#1, #2 and #3):
+- **DW-1073** no longer runs over CP-203 or at grade across the open area of A-200. Its grade
+  leg runs at x 229, in the gap between X-401 (east face 228) and CP-203 (west edge 230). At
+  y 195.5 it rises to 8.0 m and crosses west as an elevated run. Vehicles from R-2 reach X-401,
+  CP-211 and CP-212 under it (about 7.9 m clear), so no sleeper crossing is needed. The earlier
+  "sleeper height" wording is withdrawn.
+- **Pads checked for overhead piping.** `scripts/pad_search.py overhead` now tests every pad
+  against all pipes in plan, at any height (the core's lifting rule does not check this), and
+  searches for shifted or new pads that stay off all pipes, roads, pads and laydowns and keep
+  their lanes clear. As a result, CP-204 moved 2 m south and CP-212 0.5 m west. CP-205 (R-201)
+  moved east of R-201, CP-206 (R-401) west of R-401 and CP-207 (E-201) south of E-201. A new
+  pad, CP-213 north of C-301, takes the C-301 and C-302 lifts. The rebuilt model still shows
+  the same 8 blocked lanes and no new one. Two pads still lie under pipe, and the search finds
+  no pipe-clear pad or shift within 4 m for them. CP-211 (E-301) has AM-1059 at 4.75 m 0.4 m
+  inside its west edge, and moving the line west would put it into E-301's lane. CP-703
+  (V-701) lies under AG-1121 (4.6 m) and AL-1114/AL-1127 (9 m). Both are left open for the
+  routing of those lines at detail, so their lane-clear results are not yet shown to be
+  workable.
+- **E-504**: the acceptance proposal no longer offers the 2 m move, because E-504's own
+  refrigerant lines would still cross the lane.
 Reason: S5b item 2 (runs/interventions.md O-032); review 2026-10-29-design#1 (b).
 
 ## D-034 Reactor model basis sourced; feed basis left open (2026-10-30, S5b)

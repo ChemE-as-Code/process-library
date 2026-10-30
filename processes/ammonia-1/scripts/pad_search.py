@@ -41,8 +41,10 @@ for kind in ("structures", "buildings"):
 for e in model.get("equipment", []):
     x0, y0, _, x1, y1, _ = e["bbox"]
     obst.append((e["tag"], (x0, y0, x1, y1)))
+overhead = []  # every pipe in plan, at any height (S5b fix r2, layout-s5b-r2#2)
 for capsule, pipe, _ in eng.base.capsules:
     bb = capsule.aabb
+    overhead.append((pipe["id"], (bb[0], bb[1], bb[3], bb[4]), round(bb[2], 2)))
     if bb[2] < 4.0:  # a pipe low enough to be under a crane's outriggers
         obst.append((pipe["id"], (bb[0], bb[1], bb[3], bb[4])))
 
@@ -59,6 +61,62 @@ if len(sys.argv) > 1 and sys.argv[1] == "test":
                  for v in z.get("volumes", []) if v.get("shape") == "box"
                  and overlap(r, (v["box"][0], v["box"][1], v["box"][3], v["box"][4]))]
         print(arg, "obstacles:", [n for n, o in obst if overlap(r, o)], "pads/laydowns:", zones)
+    sys.exit()
+if len(sys.argv) > 1 and sys.argv[1] == "overhead":
+    # every crane pad against the piping above it in plan, at any height; for a pad under pipe,
+    # candidate pads beside each item it lifts that are clear of all pipes and have a clear lane
+    pads = {z["id"]: (v["box"][0], v["box"][1], v["box"][3], v["box"][4]) for z in model.get("zones", [])
+            if z["kind"] == "crane_pad" for v in z.get("volumes", []) if v.get("shape") == "box"}
+    others = [(z["id"], (v["box"][0], v["box"][1], v["box"][3], v["box"][4])) for z in model.get("zones", [])
+              if z["kind"] in ("crane_pad", "laydown") for v in z.get("volumes", []) if v.get("shape") == "box"]
+    import yaml
+    for road in yaml.safe_load((root / "layout/site-plan.yaml").read_text()).get("roads", []):
+        rw = road["width"] / 2
+        for a, b in zip(road["points"], road["points"][1:]):
+            others.append(("road " + road["id"], (min(a[0], b[0]) - rw, min(a[1], b[1]) - rw, max(a[0], b[0]) + rw, max(a[1], b[1]) + rw)))
+    by_pad = {}
+    for lift in res.lifts:
+        pad = getattr(lift, "pad", None)
+        if pad:
+            by_pad.setdefault(pad, []).append((lift.tag.split(" ")[0], lift.status))
+    for pid, box in sorted(pads.items()):
+        under = sorted({(n, z) for n, o, z in overhead if overlap(box, o)}, key=lambda t: t[1])
+        if not under:
+            continue
+        print(pid, [round(v, 1) for v in box], "under:", under[:6], "lifts:", by_pad.get(pid, []))
+        shifts = sorted(((dx / 2, dy / 2) for dx in range(-8, 9) for dy in range(-8, 9)), key=lambda d: abs(d[0]) + abs(d[1]))
+        for dx, dy in shifts:
+            cand = (box[0] + dx, box[1] + dy, box[2] + dx, box[3] + dy)
+            if any(overlap(cand, o) for _, o in obst) or any(overlap(cand, o) for _, o, _ in overhead):
+                continue
+            if any(overlap(cand, o) for n, o in others if n != pid):
+                continue
+            if all(not eng._lane(items[t], cand, low=None) for t, _ in by_pad.get(pid, [])):
+                print("    shifted", (dx, dy), [round(v, 2) for v in cand], "keeps every lane clear")
+                break
+        else:
+            print("    no shift within 4 m keeps it clear of pipes with every lane clear")
+        for tag, _ in by_pad.get(pid, []):
+            item = items[tag]
+            x0, y0, _, x1, y1, _ = item["bbox"]
+            w, h = box[2] - box[0], box[3] - box[1]
+            found = []
+            for gap in (0.5, 1.0, 2.0, 4.0, 7.0, 10.0, 14.0):
+                for side in ("N", "S", "E", "W"):
+                    for shift in (0.0, -0.5, 0.5, -1.0, 1.0):
+                        cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+                        c = {"N": (cx + shift * w, y1 + gap + h / 2), "S": (cx + shift * w, y0 - gap - h / 2),
+                             "E": (x1 + gap + w / 2, cy + shift * h), "W": (x0 - gap - w / 2, cy + shift * h)}[side]
+                        cand = (c[0] - w / 2, c[1] - h / 2, c[0] + w / 2, c[1] + h / 2)
+                        if any(overlap(cand, o) for _, o in obst) or any(overlap(cand, o) for _, o, _ in overhead):
+                            continue
+                        if any(overlap(cand, o) for n, o in others if n != pid):
+                            continue
+                        if not eng._lane(item, cand, low=None):
+                            found.append((gap, side, shift, [round(v, 2) for v in cand]))
+                if found:
+                    break
+            print("   ", tag, "candidates:", found[:3] or "none clear of pipes")
     sys.exit()
 if len(sys.argv) > 1 and sys.argv[1] == "why":
     for tag in sys.argv[2:]:
