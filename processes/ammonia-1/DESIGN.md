@@ -915,6 +915,46 @@ build/lifting-acceptance-proposal.md (copied into the PR). None is accepted, so 
 heaviest lifts, R-501 (658 t) and C-301 (514 t), need a crawler crane of the 1,000 t class.
 Reason: S5b item 2 (runs/interventions.md O-032); review 2026-10-29-design#1 (b).
 
+## D-034 Reactor model basis sourced; feed basis left open (2026-10-30, S5b)
+Decision: the specified conversions of R100, R102A, R401 and H101 keep their D-005 values
+(1.0), now `given`, each with its published source and locator in process/reactions.yaml:
+- **Prereformer, C2H6/C3H8**: EP 1586535 A2 (Air Products, 2005), para. [0003]: substantially
+  all higher hydrocarbons are converted.
+- **Secondary reformer burner, O2**: Al-Dhfeery & Jassem (2012), Int. J. Ind. Chem. 3:14, p. 2.
+  Complete O2 consumption in the combustion zone; their model is checked against plant data in
+  Table 2.
+- **Methanation, CO and CO2**: BREF LVIC-AAF (2007), §2.2.3.6, p. 42: usually below 10 ppmv left.
+- **Furnace, hydrocarbons**: AP-42 §1.4, Table 1.4-2, footnote b: about 100 % of the fuel carbon
+  goes to CO2.
+- **Furnace, NH3**: Lin et al. (2024), Engineering 40, doi:10.1016/j.eng.2024.06.003: below 1 ppm
+  NH3 at the furnace outlet.
+- **Furnace, H2**: complete burnout is an inference. The secondary-reformer source shows H2 burns
+  even with O2 limiting, and the furnace runs with 10 % excess O2. No source measures it directly.
+
+`cheme maturity`: `balanced.model-basis` passes.
+
+What was tried and left out:
+- **Sourced feed basis.** I tried the EBTF (2011) Table 2-2-3 natural gas (with i/n-butane and
+  i/n-pentane) and the U.S. Standard Atmosphere 1976 air, rescaled the feed and fuel, and ran
+  DWSIM to convergence. That needed 2 % more fuel for the convection coils. The packages script
+  (`scripts/packages_on_simulated_duties.py`) then gave boiler duties of 197.5 MW (130 MW before)
+  and a chiller duty 21 % higher. These jumps are not explained, and the job's budget did not
+  allow tracing them or carrying them through the PFD, datasheets and TEA. The change was
+  reverted, and the flowsheet is as before.
+- **Gibbs and equilibrium models for H101.** Both were tried as alternatives to sourced
+  conversions. Core's `propagate` reports "no step lowers the Gibbs energy" for the Gibbs model,
+  and no Newton convergence in 200 steps for the equilibrium model (combustion K is very large).
+  Reverted to conversion.
+
+Still open: `sourced.boundary`. The flows of S1 (natural gas), S12 and S61 (air) and S26 and
+S70 (demineralised water) are design results: the radiant balance, H2/N2 = 3, 10 % excess O2
+and the water balances. Their compositions are ASSUMED (D-004). A published composition exists
+(EBTF, above). No published source gives these flows for this flowsheet. Recording them as
+`given` would need an owner's specification of the gas, air and water rates (as asu-1's owner
+gave its air rate). The agent may not invent one. BREF Table 2.6 (EFMA 2000: 22.1 GJ/t feed,
+7.2-9.0 GJ/t fuel, LHV) is a check on the design: feed 21.8 GJ/t, fuel 6.1 GJ/t plus tail gas.
+Reason: S5b item 1 (O-032); reviews 2026-10-29-simulation#1, 2026-10-27-pfd-lci-review#3.
+
 ## 3. Results of this stage (design case)
 
 Basic stage, S2 (the simulated flowsheet, D-026; lca/inventory.csv regenerated): per kg of NH3
