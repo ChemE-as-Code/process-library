@@ -49,7 +49,7 @@ Sensitivity, Climate change (kg CO2-eq) (Spearman rank correlation with the tota
 
 | flow | phase | per functional unit | provenance | background |
 |---|---|---|---|---|
-| feed:NG (input) | operation | 0.536386 kg | given | missing: not linked yet: natural gas, high pressure, delivered to an industrial consumer in the Netherlands (production, processing, long-distance transport and distribution, incl. methane leakage), per kg (feed and fuel); composition is the ASSUMED benchmark gas (D-004) |
+| feed:NG (input) | operation | 0.536386 kg | given | missing: not linked yet: natural gas, high pressure, delivered to an industrial consumer in the Netherlands (production, processing, long-distance transport and distribution, incl. methane leakage), per kg (feed and fuel); composition is the representative pipeline gas of D-040 (owner-approved, I-006) |
 | feed:AIR (input) | operation | 3.56125 kg | given | free |
 | feed:DMW (input) | operation | 1.653 kg | given | missing: not linked yet: demineralised (deionised) water production from tap or surface water by ion exchange / reverse osmosis, NL |
 | feed:POWER (input) | operation | 0.553318 kWh | assumed | missing: not linked yet: electricity, high voltage, Dutch grid market mix at the consumer (2026), incl. transmission losses |
@@ -80,7 +80,7 @@ These exchanges have no burden in the category: the totals exclude them (they ar
 
 | category | flow | quantity | why |
 |---|---|---|---|
-| climate-change | feed:NG | 0.536386 kg | declared missing: no background available (not linked yet: natural gas, high pressure, delivered to an industrial consumer in the Netherlands (production, processing, long-distance transport and distribution, incl. methane leakage), per kg (feed and fuel); composition is the ASSUMED benchmark gas (D-004)) |
+| climate-change | feed:NG | 0.536386 kg | declared missing: no background available (not linked yet: natural gas, high pressure, delivered to an industrial consumer in the Netherlands (production, processing, long-distance transport and distribution, incl. methane leakage), per kg (feed and fuel); composition is the representative pipeline gas of D-040 (owner-approved, I-006)) |
 | climate-change | feed:DMW | 1.653 kg | declared missing: no background available (not linked yet: demineralised (deionised) water production from tap or surface water by ion exchange / reverse osmosis, NL) |
 | climate-change | feed:POWER | 0.553318 kWh | declared missing: no background available (not linked yet: electricity, high voltage, Dutch grid market mix at the consumer (2026), incl. transmission losses) |
 | climate-change | product:BD | 0.0471687 kg | declared missing: no background available (not linked yet: treatment of boiler blowdown (low-TDS, phosphate/amine-conditioned water) in the site wastewater treatment plant) |

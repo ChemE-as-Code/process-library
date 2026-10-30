@@ -1523,6 +1523,12 @@ bulk materials, or a licensed cost database. None of these may be copied in here
 
 ## 3. Results of this stage (design case)
 
+Basic stage, S5c (the D-040 feed, re-simulated; lca/inventory.csv regenerated): per kg of NH3
+product (62,471.8 kg/h), before allocation: natural gas 0.5706 kg, ambient air 3.788 kg,
+demineralised water 1.758 kg, electricity 0.589 kWh. The LCA screening result is 1.465 kg
+CO2-eq per kg NH3 (lca/results.md, gate-to-gate direct fossil CO2 with the D-021 allocation;
+backgrounds still missing). The S2 figures below are kept for comparison.
+
 Basic stage, S2 (the simulated flowsheet, D-026; lca/inventory.csv regenerated): per kg of NH3
 product (62,470.7 kg/h), before allocation: natural gas 0.6037 kg, ambient air 3.723 kg,
 demineralised water 1.706 kg, electricity 0.586 kWh, heat to cooling water 2.185 kWh; outputs
@@ -1598,8 +1604,9 @@ convection coils therefore use `ExchangingThermalEnergy` and the steam system `P
 
 ## 6. Open inputs and gated steps
 
-- I-01 Sourced natural-gas composition, pressure, temperature and sulfur specification (the
-  benchmark gas is a placeholder; blocks `sourced` maturity).
+- I-01 Sourced natural-gas composition, pressure, temperature and sulfur specification.
+  **Closed in S5c** for the paper case study: the owner-approved representative specification
+  (I-006, D-040); the sulfur specification stays ASSUMED (D-004).
 - I-02 Freeze the brief (capacity, purity, delivery state, hours) with the owner.
 - I-03 Ambient and cooling-water conditions of the site (ISO conditions used).
 - I-04 Sourced approaches to equilibrium / kinetics and catalysts (reaction evidence file).
