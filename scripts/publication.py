@@ -49,6 +49,27 @@ def snapshot_excludes(manifest: dict[str, Any] | None) -> list[str]:
     return sorted({*DEFAULT_EXCLUDE, MANIFEST, *own})
 
 
+def excluded(path: str, globs: list[str]) -> bool:
+    """Whether *path* (relative to the process folder, ``/``-separated) matches one of *globs*
+    as core's ``export-static --exclude`` matches it (its ``path_matches``): segment by segment,
+    ``**`` is zero or more whole segments, any other segment an :func:`fnmatch.fnmatchcase`
+    pattern (``*``, ``?``, ``[...]``) within one; without a ``/`` a glob is the root file. Case
+    is always ignored: core ignores it on a case-insensitive filesystem, and a build that may
+    run on either withholds the file whenever an export could."""
+    from fnmatch import fnmatchcase
+
+    parts = path.casefold().split("/")
+
+    def match(segments: list[str], i: int, j: int) -> bool:
+        if j == len(segments):
+            return i == len(parts)
+        if segments[j] == "**":
+            return any(match(segments, k, j + 1) for k in range(i, len(parts) + 1))
+        return i < len(parts) and fnmatchcase(parts[i], segments[j]) and match(segments, i + 1, j + 1)
+
+    return any(match(glob.casefold().split("/"), 0, 0) for glob in globs)
+
+
 def lca_withheld(folder: Path) -> str | None:
     """Why the process's LCA values may not be published, or None when they may.
 
