@@ -779,6 +779,51 @@ size it; a separate H2/N2 controller acting directly on FV-1201 (it would fight 
 opening the anti-surge valve UV-1703 from I-103/I-106 (UIC-1703 does it as a loop, and a trip
 sharing the loop's valve is not independent).
 
+## D-031 HAZOP H-01 of P-101 to P-114, agent draft (2026-10-30, S6)
+Decision: one HAZOP study `safety/hazop/H-01/study.yaml` covers all fourteen P&IDs with the
+C&E (I-101 to I-107), the loops (alarms, fail positions) and the special-items list as analysed
+inputs, stamped at their current revisions by `cheme safety hazop init`. 16 nodes (one per
+section of a sheet with one design intent; P-102 and P-103 two each), 62 deviations, 66
+scenarios, 59 safeguards, 40 actions (A2 to A41; the example matrix, the team and the package
+HAZOPs are study-level items in the study's `notes:`). Guide words were applied per node from the skills
+`hazop-study` and `hazop-equipment-causes`: levels between pressure levels (gas blow-by), reverse
+flow at every machine and pump stop, temperature runaway of the exothermic beds, utility
+failures as common causes (steam, BFW, cooling water, instrument air), a blocked-in cooling water
+side, and the tube-rupture case of the one exchanger with a
+large pressure step (E-504). Everything is `status: proposed, by: agent`; no team has met, and
+`team:` stays empty rather than naming anyone.
+Ratings: initial severity and likelihood per category for every scenario, residual only where
+a trip has its own sensor and its own final element separate from the loop whose failure is the
+cause (I-101, I-102, I-103, I-105, I-106, I-107; 8 scenarios); alarms, the failing loop itself,
+check valves and relief devices without a relief case are listed but not credited (skill
+`safeguard-crediting`). Codes are qualitative judgements in the matrix's own words; no frequency
+or failure rate was estimated. Bands by `cheme safety hazop rate H-01 --write` against
+`safety/risk-matrix.yaml`, which is the **example matrix** (example-4x4, `example: true`): the
+bands are provisional. Governing band (residual where rated, else initial): 32 high, 26 medium,
+8 low; every high scenario carries an action. `cheme safety hazop check H-01`: 0 errors, 0
+warnings; state draft (proposals not accepted, example matrix).
+Main findings (proposals for the team): gas blow-by into low-pressure equipment without an
+independent trip (V-201 to the condensate stripper S18, V-502 to V-701 S45, V-401 S30); reverse
+flow of loop gas through K-501 into the 2900 kPa(a) front end behind one check valve (S33) and of
+process gas into the air line on a K-101 trip, XV-1204 closing only on I-103 (S12); a blocked
+front end at an I-106 trip or a K-501 trip with no front-end vent drawn (S21); E-504 tube
+rupture into the refrigerant side with no relief drawn there (S46); steam drum low level with a
+single BFW pump and no low-low trip (S55); burner management and tube protection of H-101 not
+drawn (S5, S8); no converter high-temperature trip (S37); loss of loop circulation with no loop
+pressure protection (S39); ammonia and hydrogen reliefs in one flare header (S52, S62). The
+C&E notes that left questions to this HAZOP are answered as actions, not by changing the C&E:
+I-102 and the feed (A8), I-104 trip or alarm (A15), I-106 and K-501 (A16), I-107 and PSV-1912
+(A28), SIL of all trips (A2). Relief cases named for S8: A11, A14, A17, A18, A26, A28, A30, A31,
+A34, A36, A41.
+Not changed: no P&ID, list, loop or C&E was changed by this section; every action is carried
+with an owner and a reason, none is closed (closing needs the team). Not added: a `kind: hazop`
+gate in checks/checks.yaml; it could not pass until a team accepts the study and the example
+matrix is replaced, and the plan does not name it.
+Reason: S6 of runs/plan.md.
+Rejected: replacing the example risk matrix by invented criteria (an agent may not set a
+company's tolerable risk); crediting residual risk to alarms or uncalculated relief devices;
+one study per sheet (the blow-by and reverse-flow scenarios cross sheets).
+
 ## 3. Results of this stage (design case)
 
 Basic stage, S2 (the simulated flowsheet, D-026; lca/inventory.csv regenerated): per kg of NH3
