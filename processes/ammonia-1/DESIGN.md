@@ -1446,6 +1446,39 @@ Every entry stays `status: proposed` and the study stays a draft. The study's tw
 piping/special-items.yaml from S8) are for the HAZOP team to reassess before re-stamping. They
 were not stamped here.
 
+## D-043 Main dimensions on the datasheets (2026-10-30, S5c)
+Decision: `scripts/datasheet_dimensions.py` (run with `cheme run`, provenance like
+`complete_datasheets.py`, D-032) writes the main dimensions that the detail gate `datasheets`
+reported missing on 51 sheets. It never writes over a value already there.
+- **11 shell-and-tube exchangers** are sized from the area `cheme datasheets fill` gave them
+  from the simulated duties (D-032). Tubes are 19.05 mm OD, 6.096 m long, 2 passes, on a 1.25 x
+  OD triangular pitch (ASSUMED standard choices). The tube count is area / (pi OD L). The
+  bundle diameter uses K1 0.249 and n1 2.207 (Sinnott, Coulson and Richardson's Chemical
+  Engineering Vol. 6, 4th ed., 2005, eq. 12.3b, Table 12.4). The shell ID is the bundle plus
+  20 mm (ASSUMED). Above a 2.5 m shell (ASSUMED limit) the area is split over parallel shells.
+  E-105 gets 1 shell of 2.29 m, E-201 1 of 1.57 m, E-203 2 of 1.87 m, E-401 2 of 1.96 m, E-402
+  1 of 1.43 m, E-501 11 of 2.45 m, E-502 6 of 2.33 m, E-503 1 of 1.78 m, E-504 3 of 2.20 m,
+  E-505 3 of 2.46 m and E-701 2 of 1.91 m.
+- **13 vessels and 2 columns** get 2:1 ellipsoidal heads, a skirt (vertical) or two saddles
+  (V-502), and for C-301 and C-302 one packed section between a 2 m sump and 3 m top
+  disengagement (all ASSUMED).
+- **Markers** (as the datasheet schema provides; each counts as given for the gate):
+  - `supplier`: the 11 machines' baseplate and shaft height (vendor's general arrangement);
+    the six convection coils E-101..E-104, E-106, E-107 (furnace vendor's coil design); R-101's
+    catalyst tubes (licensor); E-202, E-302 and E-303, whose area is awaited (multi-stream
+    nodes, D-032); the plate pack E-301.
+  - `not_applicable`, with the reason: the shell of the coils and of R-101; the vessel
+    dimensions of the packages U-801, X-401 and X-601, whose envelope is given.
+Result: the gate no longer reports missing main dimensions. It still fails on operating and
+test weights (52 sheets) and on nozzles without a face, orientation and elevation (52 sheets).
+Those are outside S5c's datasheet item and are left for the detail datasheets.
+Known inconsistencies, open (warnings): 13 `datasheet-dimension-mismatch`, where the computed
+shell ID differs from the equipment list diameter, which is the S5 layout envelope of one shell
+(E-501 needs 11 shells). The list and the 3D layout follow the thermal sizing at detail. Also
+12 `datasheet-stale`, where areas and reactor duties were filled before the D-040 feed change
+moved the streams by about 2 %. The final datasheets are refreshed with the S7 workflow
+(`complete_datasheets.py inputs`, `datasheets fill`, `final`); this was not done in S5c.
+
 ## 3. Results of this stage (design case)
 
 Basic stage, S2 (the simulated flowsheet, D-026; lca/inventory.csv regenerated): per kg of NH3
