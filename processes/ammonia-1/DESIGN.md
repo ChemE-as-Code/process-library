@@ -1838,6 +1838,81 @@ Rejected:
   routes with, not a routing knob.
 - Pinning the proposed posts: they stay proposals (`review_needed`) until the pipe support design.
 
+## D-048 Buried cooling water declared, headers routed by the router, power trays by voltage class (2026-10-30, S11)
+
+Owner's decision I-008 (branch `stage/detail-core120`, core v1.2.0: core#70 buried lines,
+core#71 several power trays per rack, core#72 headers with battery limits at both ends).
+
+Decision:
+1. **Cooling water declared buried** (`piping/routing.yaml`, `buried:` on all 20 CW lines of
+   D-038): the owner accepted the four buried road crossings of the headers (I-006, D-041); the
+   model now says so. Least cover over the pipe top `cover_m` 1.0 m (ASSUMED: no site frost depth
+   or traffic load is known, open input I-03; the usual order of cover for buried water mains),
+   under roads the package's `road_cover_m` 1.2 m (ASSUMED, package default, not set here).
+   Crossing protection (sleeve or slab under R-5 and R-6) stays as D-041 states it.
+2. **Headers routed by the router**: the 20 pinned header segments of D-038 are replaced by intent
+   (elevation, buried) and a second battery-limit rule per header for its dead end ("CW users"
+   on P-114: supply x 295, return x 125, ASSUMED just past the last tee); the router runs each
+   header along PR-1 from its rack-end battery limit (supply west, return east, as D-038) to that
+   point. It puts each tee where its branch's user projects onto the header, in the P-114 order
+   (core v1.2.0 `routing._cuts`), not at the S9 tee positions (x 205 to 216). The S9 branch
+   lanes, drawn for those positions, then sent branches back and forth, hopping up to 0.8 m below
+   grade where they crossed (10 `layout-buried-cover` findings, 0.55 to 0.94 m of cover).
+3. **Depths** (ASSUMED): headers 3.8 m below grade at the centreline (top of the DN 1400 pipe
+   3.09 m below grade), branches 2.4 m (DN 700 bottom 2.76 m, 0.33 m above the header tops), so
+   that a branch the router lifts 1 m over another keeps at least 1.0 m of cover (a DN 700 at
+   1.4 m: 1.04 m). The S9 lane vias are dropped; new lanes only where the router left two branches
+   closer than the 0.1 m spacing: E-503 supply at y 106 and return at y 104.5; E-701 supply at
+   y 106.5; the K-701 supply crossing CWS-1130 square, 1 m over it, at x 293. The three returns
+   with a temperature control valve (CWR-1053, CWR-1064, CWR-1086) keep their valve-height vias
+   and take no elevation intent (with one, the router lowered the first leg below the valve:
+   TV-1408 handwheel at -0.1 m); their vias carry them down to 2.4 m and on to the tee.
+4. **Power trays by voltage class** (`electrical/tray-rules.yaml`, new): PR-1 `[hv, hv, lv]`
+   (nine 10 kV feeders from SWG-1, two 400 V reflux pump feeders from MCC-1), PR-10 and PR-7
+   `[hv, hv]` (the 10 kV feeders of K-501, K-502, K-701). Widths, fill (30 %) and spacing are the
+   package defaults (ASSUMED).
+
+Result (`cheme layout build`, core v1.2.0):
+- `layout-headroom`: the four header road crossings are gone (no headroom finding left at all);
+  their four owner acceptances in `checks/checks.yaml` named no finding any more and are removed
+  (nothing added or widened). `layout-buried-cover`: 0. `layout-support-missing` (info) 131 -> 87
+  (the buried runs need no steel); support steel unchanged: 260 generated T-posts, 3 stubs, 26
+  declared sleepers; no steel serves a CW line.
+- CW lines: 56 pipes, 1,890.8 m (main: 1,861.0 m), all routed; the take-off lists 1,803.9 m as
+  `buried` (DN 1400 493 m; risers above grade are counted as pipe). Bulk estimate 103,353.55 ->
+  103,367.80 (example rates). Excavation, bedding and backfill of the trenches are not in the
+  take-off (no rate or quantity in core's MTO): a gap of the estimate.
+- Lifting study: the same 8 blocked lanes as at basic sign-off with the same blockers, no lane
+  reopened, no CW line in a lane.
+- Electrical: the 8 `layout-tray-fill` findings are gone, no `layout-tray-voltage` or
+  `-separation`; gate `electrical` passes. Cable schedule rewritten: 11 power cables 3,339 m,
+  169 instrument cables 9,941 m, 95 trays (the schedule on main was not current, s10-r2#1).
+- **Left open, core defect**: three `layout-clash-pipe` findings, CWS-1052, CWS-1063 and CWS-1074
+  against the header segment that ends at their own tee, 0.00 m apart. The router ends the header
+  segments at x 219.652, 221.652 and 223.652 but starts the branches at 219.653, 221.653 and
+  223.653: the 1 mm difference means the clash check does not see the branch as leaving that
+  run. Where the two agree (CWS-1085 at 241.705, every return) there is no finding. Not accepted
+  and not worked around (no via, pin or battery-limit move to dodge the rounding): to be filed
+  as a core issue. Gates `layout-3d` (basic) and `layout-detail` fail on them alone.
+- **Rebuilt on core v1.2.1** (fixes core#95, this tee offset; no design input changed, no new
+  decision): `cheme layout build` moves only the ends of the three header segments of CWS-1144
+  from x 219.652, 221.652 and 223.652 to 219.653, 221.653 and 223.653, where their branches start
+  (6 coordinates; segment lengths unchanged at the model's 1 mm precision). The three
+  `layout-clash-pipe` findings are gone; no other build finding changed (support-missing 87,
+  free-span 41, ladder-clearance 8, lifting 8, operability 32, access-blocked 13, tray-span 19,
+  no headroom, buried-cover, tray-fill or clash finding). Gates `layout-3d` and `layout-detail`
+  pass, nothing accepted. `cheme validate` 0 errors, warnings 231 -> 228 (the three clashes).
+  Lifting study, cable schedule, MTO and bulk estimate rewritten: only the model fingerprint in
+  their headers changed (quantities, the 103,367.80 estimate, cables and lanes as above). LCA and
+  TEA current without a rewrite. `cheme skills update`: all 131 skill files already current.
+
+Rejected: keeping the 20 header pins (the owner asked for the router, and the skill says pin a
+header only after review); pinning the branches to force the S9 tee positions (more pins than
+before); keeping 3.0/1.8 m and accepting the shallow crossings (cover findings may not be accepted
+to pass); reordering the P-114 tees to the plot order (a P&ID change to all branch tees, outside
+this job; it would remove the branches that run back along the header, worth doing when P-114
+is next revised).
+
 ## 3. Results of this stage (design case)
 
 Basic stage, S5c (the D-040 feed, re-simulated; lca/inventory.csv regenerated): per kg of NH3
