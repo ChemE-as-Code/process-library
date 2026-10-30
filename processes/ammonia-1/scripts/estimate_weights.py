@@ -1,5 +1,5 @@
 """Screening empty weights of the equipment-list items for the basic layout's lifting study
-(D-031). Provenance only: prints the values entered by hand as `dimensions.weight` (and
+(D-036). Provenance only: prints the values entered by hand as `dimensions.weight` (and
 `lift_weight`) in equipment/equipment-list.yaml; every value is ASSUMED until the datasheets
 (S7) and the vendors replace it.
 

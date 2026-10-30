@@ -6,6 +6,7 @@
 | `safety/risk-matrix.yaml` | the risk matrix the studies rate against (`cheme schema risk-matrix`). **The one `cheme init` writes is example data** (`example: true`): replace it with your company's matrix before anything is assessed. A matrix is `status: proposed` until the team accepts it (`status: accepted`, `accepted_by:`); a study rated against a proposed matrix stays a draft |
 | `build/hazop/<study-id>.md`, `.html` | the report, derived from the study (`cheme safety hazop report`); never edited |
 | `reviews/<date>-hazop-<study-id>.md` | the review record of the study (skill `review`, `cheme safety hazop review`) |
+| `safety/relief/relief-study.md` | the preliminary relief study of the drawn relief devices (skill `relief-scenarios`, DESIGN.md D-033): cases, rates, governing case and required capacity per device; loads from `scripts/relief_loads.py`; status proposed |
 
 There is no study until you start one: `cheme safety hazop init H-01 --title "..." --input
 pid/P-01.xml --input control/cause-effect.yaml`. A new study is a draft and has no judgements.

@@ -789,7 +789,193 @@ size it; a separate H2/N2 controller acting directly on FV-1201 (it would fight 
 opening the anti-surge valve UV-1703 from I-103/I-106 (UIC-1703 does it as a loop, and a trip
 sharing the loop's valve is not independent).
 
-## D-031 Basic 3D layout, zones, lifting study, take-off and TEA gate (2026-10-29, S5)
+## D-031 HAZOP H-01 of P-101 to P-114, agent draft (2026-10-30, S6)
+Decision: one HAZOP study `safety/hazop/H-01/study.yaml` covers all fourteen P&IDs with the
+C&E (I-101 to I-107), the loops (alarms, fail positions) and the special-items list as analysed
+inputs, stamped at their current revisions by `cheme safety hazop init`. 16 nodes (one per
+section of a sheet with one design intent; P-102 and P-103 two each), 67 deviations, 72
+scenarios, 59 safeguards, 46 actions (A2 to A47; the example matrix, the team and the package
+HAZOPs are study-level items in the study's `notes:`). Guide words were applied per node from the skills
+`hazop-study` and `hazop-equipment-causes`: levels between pressure levels (gas blow-by), reverse
+flow at every machine and pump stop, temperature runaway of the exothermic beds, utility
+failures as common causes (steam, BFW, cooling water, instrument air), a blocked-in cooling water
+side, and the tube-rupture case of every exchanger whose high-pressure side can overpressure the
+other side: E-504 (loop gas into the refrigerant, S46), E-202 (process gas into the C-302
+reboiler side, S65), E-203 and E-402 (process gas into cooling water, S66, S67), E-502 (loop gas
+into the MP steam system, S68), E-503 (loop gas into cooling water, S69) and E-701 (ammonia into
+cooling water, S70); the cooling water pressure is not stated in the repository, so the
+pressure ratio of the four coolers is left to S8 (A43, A44, A46, A47). Everything is `status: proposed, by: agent`; no team has met, and
+`team:` stays empty rather than naming anyone.
+Ratings: initial severity and likelihood per category for every scenario, residual only where
+a trip has its own sensor and its own final element separate from the loop whose failure is the
+cause (I-101, I-102, I-103, I-105, I-106, I-107; 8 scenarios), with one credit rule stated in
+the study's `assessment_basis`: one credited trip lowers the likelihood by one code, never more,
+until A2 sets the integrity levels; alarms, the failing loop itself,
+check valves and relief devices without a relief case are listed but not credited (skill
+`safeguard-crediting`). Codes are qualitative judgements in the matrix's own words; no frequency
+or failure rate was estimated. Bands by `cheme safety hazop rate H-01 --write` against
+`safety/risk-matrix.yaml`, which is the **example matrix** (example-4x4, `example: true`): the
+bands are provisional. Governing band (residual where rated, else initial): 41 high, 23 medium,
+8 low; every high scenario carries an action. `cheme safety hazop check H-01`: 0 errors, 0
+warnings; state draft (proposals not accepted, example matrix).
+Main findings (proposals for the team): gas blow-by into low-pressure equipment without an
+independent trip (V-201 to the condensate stripper S18, V-502 to V-701 S45, V-401 S30); reverse
+flow of loop gas through K-501 into the 2900 kPa(a) front end behind one check valve (S33) and of
+process gas into the air line on a K-101 trip, no trip initiated by K-101 or by low process air
+flow closing XV-1204 (I-101 and I-103 close it on other causes; S12); a blocked
+front end at an I-106 trip or a K-501 trip with no front-end vent drawn (S21); tube rupture of
+E-504, E-202, E-203, E-402, E-502, E-503 and E-701 into a low-pressure side with no relief case
+for it (S46, S65 to S70); steam drum low level with a
+single BFW pump and no low-low trip (S55); burner management and tube protection of H-101 not
+drawn (S5, S8); no converter high-temperature trip (S37); loss of loop circulation with no loop
+pressure protection (S39); ammonia and hydrogen reliefs in one flare header (S52, S62). The
+C&E notes that left questions to this HAZOP are answered as actions, not by changing the C&E:
+I-102 and the feed (A8), I-104 trip or alarm (A15), I-106 and K-501 (A16), I-107 and PSV-1912
+(A28), SIL of all trips (A2). Relief cases named for S8: A11, A14, A17, A18, A26, A28, A30, A31,
+A34, A36, A41, A42 to A47.
+Revised after review 2026-10-30-hazop round 1: the tube-rupture scenarios S65 to S70 and actions
+A42 to A47 added (#1); the residual likelihoods of S22, S25, S29 and S41 brought to the one-code
+rule, which turns S22, S29 and S41 back to high (#2); S12, S13, the N3-RF note and S18 corrected
+(#3 to #5).
+Not changed: no P&ID, list, loop or C&E was changed by this section; every action is carried
+with an owner and a reason, none is closed (closing needs the team). Not added: a `kind: hazop`
+gate in checks/checks.yaml; it could not pass until a team accepts the study and the example
+matrix is replaced, and the plan does not name it.
+Reason: S6 of runs/plan.md.
+Rejected: replacing the example risk matrix by invented criteria (an agent may not set a
+company's tolerable risk); crediting residual risk to alarms or uncalculated relief devices;
+one study per sheet (the blow-by and reverse-flow scenarios cross sheets).
+
+## D-032 Equipment datasheets (2026-10-30, S7)
+Decision: one datasheet per equipment-list item (52, equipment/datasheets/<TAG>.yaml with its
+outline drawing <TAG>.svg), drafted by `cheme datasheets draft`, sized by `cheme datasheets fill`
+from the simulated case (D-026) and completed by scripts/complete_datasheets.py (`inputs` before
+the fill, `final` after it; provenance, rerunnable). Every value names its stream, run-record
+unit, decision or table; assumed values are marked.
+- **Design conditions** (also written to the equipment list, which had none): design pressure
+  = max(1.10 x, +1.7 bar over) the highest operating gauge pressure of the item's streams,
+  rounded up to 0.5 bar; design temperature = highest operating temperature + 28 K (50 degF),
+  rounded up to 5 degC; minimum design metal temperature = lowest operating temperature - 14 K
+  (25 degF) for items below 0 degC. The heuristics are Walas (1988), Turton et al. (2012) and
+  Towler and Sinnott (2013) as summarised by the Northwestern University Process Design wiki
+  (section 5); the books were not read, and 1.7 bar is the upper end of the "10-25 psi" quoted.
+  Exchangers carry each side's design pressure; a convection coil is designed on its process
+  side, its flue-gas casing by the furnace vendor. Compressor casings include the hottest
+  stage discharge (ideal gas, k from process/materials.yaml cp at suction, efficiency 0.78,
+  D-016): K-101 429.7 K, K-501 380.8 K, K-701 flash-gas stages 466.0 K. The aMDEA loop items
+  (no flowsheet streams, D-028) take 422.3 K, the E-202 process-gas outlet: the kettle pool
+  boils below every point of its heating side. Utility sides: MP steam 4600 kPa(a) (D-015);
+  ammonia refrigerant at its 313.15 K vapour pressure, 1554.5 kPa(a) (thermo 0.6.1); cooling
+  water awaits the site's design pressure (D-012 gives temperatures only). Above 345 degC the
+  margin is a process allowance; refractory-lined and fired items (H-101, R-101, R-102, E-105)
+  have their metal temperatures from the vendor. Not set by the rule (`supplier`): pump casings
+  (shut-off pressure), fan casings, the H-101 box and the E-106 air preheater (draft).
+- **Materials**: a preliminary class per item, ASSUMED, with the reason on the sheet: low-alloy
+  Cr-Mo for hydrogen-bearing gas above the carbon-steel range of API RP 941 (Nelson curves);
+  austenitic stainless for wet CO2 condensate and the aMDEA regenerator side; impact-tested
+  low-temperature carbon steel below -29 degC; refractory-lined shells for H-101 and R-102;
+  heat-resistant cast alloy for the reformer tubes; carbon steel otherwise. No grade is chosen;
+  the materials and corrosion review is open (V-701's -50 degC MDMT is below the usual LTCS
+  range).
+- **Sizes from the simulation**: exchanger duties from process/simulation-run.json (fill's
+  enthalpies are refused for water, C2H6 and the loop states, core#315); areas with the middle
+  of the Sinnott Table 12.1 row of the core table (rows per item in the script), counter-current,
+  no margin, cooling water 298/308 K, MP steam boiling at 531.93 K, refrigerant at 258.15 K;
+  compressor and fan fluid powers = the simulated Q streams (K-701: Q27 package estimate + Q32
+  simulated); vessel volumes from the list dimensions (upper bounds); P-801 from the steam
+  package's basis (156.5 t/h, 101.3 -> 5600 kPa(a), efficiency 0.70): 565 m, 344 kW (Q31 341 kW).
+- **Done outside the fill, same method** (core v1.0.x limits, to report): `fill` sizes an
+  exchanger only from a node with one inlet and one outlet, so the eight two-stream exchanger
+  nodes (E-101 to E-104, E-106, E-401, E-501, E-505) are calculated in the script; E-701's
+  linked nodes are the flash-gas compressor's (K702, K701), so its area is calculated there
+  too; P-801 is linked to the lumped U801 and gets the same pump equations in the script.
+- **Awaited (`supplier`, each with what is awaited)**: what core does not calculate (rating,
+  mechanical design, corrosion allowance, NPSHr, shaft power over a mechanical efficiency no
+  source here gives, relief: section S8); the aMDEA loop (C-301, C-302 stages and flooding,
+  E-301 to E-303 duties, P-302 duty, P-301 head: licensor, I-06); catalyst beds of R-100,
+  R-102, R-201, R-202, R-401, R-501 (no sourced space velocity: a search on 2026-10-30 found
+  only one patent figure for a shift bed, not used); radiant tubes R-101 and the furnace;
+  packages X-401, X-601, U-801, the refrigeration staging of K-701; E-107 and E-202, whose
+  other-side temperatures belong to the steam package and the licensor.
+Findings (kept, not edited away):
+- **High-pressure gas areas are upper bounds**: the Table 12.1 gas rows are for gases near
+  atmospheric pressure; E-501 44,544 m2, E-502 21,610 m2, E-505 12,251 m2, E-504 9,510 m2 (and
+  the other gas services above 10 barg, noted on their sheets) will shrink with a rating.
+  An estimate that reads these areas would overstate the loop exchangers.
+- **E-502 cold-end approach 0.67 K**: its process outlet 532.6 K (D-026 retune) is 0.67 K above
+  MP steam saturation at 4600 kPa(a), 531.93 K; the area is dominated by that end. The retune
+  should be revisited (lower steam level, BFW preheat on the cold end, or an outlet limit).
+- **E-107**: the flue gas reaches it at 406.9 K (S84) while S66 keeps the assumed 423.15 K
+  (simulated stack 396.7 K, D-026); its duty Q8 is the concept value. Not sized.
+- **Reactor duty residuals**: `fill` writes ideal-gas residual duties (R-201 8 kW, R-501
+  454 kW), the simulation 237 and 31 kW; both are checks of an adiabatic bed, not utilities.
+- **V-701 design pressure 26.5 barg** is governed by S54 at 2500 kPa(a), upstream of the
+  let-down valve (blow-by); the relief study may lower it.
+- `cheme.datasheet-dimension-layout` (12 warnings): the coil banks' length and width in the
+  list (4 x 14 m) are swapped in the layout model (14 x 4 m); a layout question of S5, not
+  changed here.
+Status: the sheets have no `draft: true`, because the `datasheets` gate counts only final
+sheets and every open field is a named `supplier` item; they were checked by the authoring
+agent, not by an engineer, and every size is preliminary process sizing.
+Reason: S7 of runs/plan.md. Rejected: GHSVs, U values or mechanical efficiencies from memory;
+`not_applicable` for values that do apply; leaving the gate failing on fields core cannot
+calculate by design.
+
+## D-033 Relief cases of the eight drawn relief valves (2026-10-30, S8)
+Decision: a preliminary relief study, `safety/relief/relief-study.md` (status proposed, by
+agent), gives for each of PSV-1212, -1310, -1513, -1704, -1911, -1912, -2010 and -2210 the cases
+that can demand it, the relieving rate of each where the repository allows it, the case claimed
+to govern and the required capacity; `piping/special-items.yaml` carries the set pressure and
+the governing case. Loads from `scripts/relief_loads.py` (`cheme run`, prints only; provenance).
+- **Set pressure** = design pressure of the protected item (D-032), ASSUMED until the MAWP is
+  known. Relieving pressure set + 10 % (process cases), + 21 % (fire), single valve.
+- **Method**: CCPS chapter 14 and 15.1.7 (skill `relief-scenarios`): one device, its largest
+  single credible case; no trip credited in place of a device; a control valve in the position
+  that worsens the load; normal-position valves not credited to open further. Fire by the API 521
+  wetted-area equation (SI coefficients 43 200 / 70 900, F = 1, wetted area to 7.6 m, base at
+  grade; drained and undrained both given, undrained claimed: drainage not designed). Latent heat
+  of pure water or ammonia (thermo 0.6.1). Tube rupture as two choked tube bores (14.83 mm ID,
+  ASSUMED). Gas blow-by per unit Kv by the IEC 60534-2-1 choked-gas equation (xT 0.7 ASSUMED),
+  with an indicative value from the Kv of the normal liquid duty at 70 % opening (ASSUMED).
+- **Results** (required capacity, kg/h): PSV-1212 67,184 (K-101 blocked discharge); PSV-1310
+  139,409 (front end blocked at XV-1604 or K-501, sources at 44-45 barg); PSV-1704 65,958 (blocked
+  loop with full make-up; set below every loop item, so it also takes the loop's make-up case);
+  PSV-2010 10,014 (fire; blow-by and blocked vapour removed by rating, V-701 26.5 barg above the
+  V-502 source); PSV-2210 92,834 (process steam valve FV-1006 closed at full raising; export
+  blocked 60,099). Not established: PSV-1513 (LV-1405 blow-by, 355 kg/h per Kv, indicative
+  127,000; the blocked vent, 74,528, is a lower bound), PSV-1912 (LV-1903 blow-by, 1,566 kg/h
+  per Kv, indicative 16,000), PSV-1911 (V-501 fire at a relieving pressure above the ammonia
+  critical pressure: transient method needed).
+- **Findings** (for the team; nothing on a P&ID changed): R-1 a K-501 stop with XV-1604 open
+  pressurises R-401, E-402, V-401, X-401 (31-32 barg) above design plus accumulation, PSV-1310
+  does not protect them; R-2 the PSV-1513 blow-by and E-202 tube-rupture cases discharge
+  hydrogen-rich gas to atmosphere; R-3 LV-1907 blow-by reaches the K-701 suction (18 barg
+  package); R-4 an E-502 tube rupture (17,725 kg/h of loop gas, design ratio 0.30) reaches the
+  steam side, whose only drawn relief, PSV-2210, vents to atmosphere; R-5 every relief line DN
+  and the DN 300 flare header (ASSUMED in D-029) are far too small for these loads. The governing
+  flare load is the plant power failure, about 139 t/h through PSV-1310.
+- **Gate**: the template gate `relief-on-pid` (stage basic, kind on-sheet) is enabled for the
+  eight tags with `classes: [SafetyValve]` and `connected: true`, without `sheets:` (with it
+  every tag would have to be on every listed sheet). It passes.
+- **Not done, and why**: orifice, inlet-loss and tail-pipe sizing, back pressure and the flare
+  network (core v1.0.0 has no relief sizing; this is the relief study proper); the supercritical
+  fire case (no method in core, properties near the critical point not qualified, core#315); the
+  blow-by rates (LV-1405, LV-1903 not sized); compressor cases on the vendors' curves; two-phase
+  relief. The HAZOP actions A11, A17, A18, A26, A28, A30, A36, A42, A45 are answered in the
+  study as proposals; none is closed (the team closes them), and H-01 is not re-stamped: its
+  input `piping/special-items.yaml` changed and the team should reassess the nodes it touches
+  (`cheme.hazop-input-changed`, left visible).
+Reason: S8 of runs/plan.md.
+Rejected: set pressures above the design pressure; crediting I-105, I-107 or I-101 to reduce a
+load; resizing relief lines without orifice and back-pressure calculations; a full-bore bound
+for the blow-by cases (the line bore of LV-1405, DN 600, would give a meaningless rate).
+
+## D-036 Basic 3D layout, zones, lifting study, take-off and TEA gate (2026-10-29, S5)
+Numbering: written as D-031 on stage/basic-layout; renumbered D-036 (and the crane-lane
+decision D-033 to D-037) when main, which had given D-031 to the HAZOP and D-033 to the relief
+study, was merged into the branch (2026-10-30). The review and run records of S5/S5b
+(`reviews/2026-10-29-*`, `reviews/2026-10-30-*-s5b*`, `reviews/2026-10-30-*-r3`, `runs/`)
+keep the old numbers: there D-031 means D-036 and D-033 means D-037.
 Decision, racks: the concept rack PR-1 (D-022) left most nozzles more than the 30 m rack reach
 from it (34 `direct` fallback routes, 6 process lines unrouted, 98 clash and headroom findings).
 Area racks in a comb on PR-1 (`layout/site-plan.yaml`, positions, widths and tiers ASSUMED):
@@ -889,7 +1075,7 @@ calculation is in the price's source); blowdown `free`, ASSUMED to go to the coo
 outside the boundary. The LCOP rises from 738.6 to 748.2 EUR/t.
 Reason: S5 of runs/plan.md; review 2026-10-29-design#1 (a).
 
-## D-033 Crane lanes cleared by design (2026-10-30, S5b)
+## D-037 Crane lanes cleared by design (2026-10-30, S5b)
 Decision: of the 26 lanes blocked in S5, 15 are cleared by layout changes, without accepting
 any:
 - **13 crane pads beside the items**, on their clear side, so that the lane runs over the item
@@ -1056,6 +1242,16 @@ and 38 are not covered. The estimate is therefore declared **class 5** (AACE 18R
   the package has no bare module factor for the fan correlation.
 The TEA is unchanged: its CAPEX stays the scaled IEAGHG reference-plant basis of D-023
 (estimate/tea.yaml `capex:`) until the bottom-up estimate covers the plant.
+Update at the merge of main (2026-10-30): the S5b draft datasheets were replaced by the S7
+datasheets of main (D-032; the S5b screening empty weight of D-036 added to each), and
+`cheme assess equipment --write` was rerun on them, nothing else changed. With S7's exchanger
+areas, powers and preliminary materials: 8 items have a bare module cost (E-102, E-103, V-201,
+V-302, V-401, K-502, V-501, V-701), 12 a purchased cost only (no Fm for low-alloy or lined
+shells, no bare module factor for the fired heater and fans), 32 are not covered: 21 outside
+the correlations' ranges (13 exchangers above 1000 m2, K-101, K-501, K-701, P-301A/B, P-801,
+C-301, C-302), not extrapolated or split, and 11 without a size on their datasheet (R-101, E-107,
+E-202, E-301, E-302, E-303, P-302A/B, X-401, X-601, U-801). Purchased cost of the costed items USD 8.74 M,
+bare module of the 8 USD 15.2 M (CEPCI 797.9). Still class 5; the TEA is unchanged.
 Reason: S5b item 3 (O-032); review 2026-10-29-design#1 (c).
 
 ## 3. Results of this stage (design case)
@@ -1122,6 +1318,16 @@ convection coils therefore use `ExchangingThermalEnergy` and the steam system `P
 | USGS, Mineral Commodity Summaries 2026, Nitrogen (fixed)-ammonia (public domain) | salient statistics, price f.o.b. Gulf Coast, 2025e | via the search index of the document (the PDF text could not be extracted here) | D-023: NH3 price proxy, ASSUMED |
 | ESMA annual report on EU carbon markets 2026, as reported by Lovguiden (2026-07-09) | EUA annual average 2025 | secondary only | D-023: carbon price, ASSUMED |
 | NIST Chemistry WebBook | standard enthalpies of combustion of CH4, C2H6, C3H8 | values used | D-023: gross calorific value of the D-004 gas |
+| Northwestern University Process Design wiki, "Pressure Vessels" (summarising Turton et al. 2012, Towler and Sinnott 2013, Peters and Timmerhaus 2003) | sections Design Temperature, Design Pressure | yes (2026-10-30) | D-032: design pressure and temperature margins, MDMT margin |
+| Walas, Chemical Process Equipment (1988), Rules of Thumb: Summary, Pressure vessels | as quoted in a public summary deck (slideshare, search 2026-10-30) | no (secondary only) | D-032: "10 % or 10-25 psi", "+50 degF" |
+| Sinnott, Coulson & Richardson's Chemical Engineering Vol. 6, 4th ed. (2005), Table 12.1 | rows as in `cheme datasheets fill --list` (core's table) | no (core's data file) | D-032: typical overall coefficients |
+| API RP 941 (Nelson curves) | title only, no value used | no | D-032: reason for low-alloy steel in hot hydrogen service |
+| thermo 0.6.1 (HEOS fit, IAPWS) | `Chemical('ammonia').Psat`, `Chemical('water')` | yes | D-032: NH3 vapour pressure at 313.15 K, BFW density, viscosity, vapour pressure |
+| CCPS, Guidelines for Engineering Design for Process Safety (AIChE) | ch. 14 (14.2.1-14.2.4, 14.5.2), 15.1.7, 4.4.2, as summarised in the skill `relief-scenarios` | no (skill summary) | D-033: relief causes, governing-case and crediting rules |
+| API Std 521, Pressure-relieving and Depressuring Systems, 6th ed. (2014) | 4.4.13.2.4 fire heat absorption of a wetted surface (SI 43 200 / 70 900 F A^0.82 W, 7.6 m); tube rupture of two open ends | no: equation as published in secondary sources (open-exam-prep.com PE study guide 17.2; DIERS fire-case report of ioMosaic citing 4.4.13.2.4.2), searched 2026-10-30 | D-033: fire and tube-rupture loads |
+| ASME BPVC VIII-1 / API 520 Part I | accumulation 10 % (single valve), 21 % (fire) | no (commonly cited values) | D-033: relieving pressure |
+| IEC 60534-2-1 | compressible-flow sizing equation, N6 = 27.3, choked x = F_gamma xT, Y = 2/3 | no (equation as commonly published) | D-033: blow-by per unit Kv |
+| thermo 0.6.1 | `Chemical('water'/'ammonia').Tsat`, `.Hvap`, `.Pc`, `Chemical(CAS).Cpgm` | yes | D-033: latent heats, critical pressure, ideal-gas k |
 
 ## 6. Open inputs and gated steps
 
