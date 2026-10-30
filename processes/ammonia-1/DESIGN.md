@@ -951,7 +951,15 @@ Decision: the specified conversions of R100, R102A, R401 and H101 keep their D-0
 - **Furnace, H2**: complete burnout is an inference. The secondary-reformer source shows H2 burns
   even with O2 limiting, and the furnace runs with 10 % excess O2. No source measures it directly.
 
-`cheme maturity`: `balanced.model-basis` passes.
+`cheme maturity`: `balanced.model-basis` passed with these six.
+
+S5b fix (review design-s5b#1): the last two entries were relabelled `assumed`. The H2 entry is
+an inference, and the NH3 source is a coal boiler co-firing NH3, an analogy for traces of NH3
+in the tail-gas fuel; neither is a published fact for this duty. Values unchanged (1.0), so no
+stream changes. `balanced.model-basis` now fails again on exactly these two: H101 H2_COMB and
+NH3_COMB. What would close it is a published source that states fuel H2 and NH3 burnout in an
+excess-air fired heater or furnace. None was found in this job, so this is left open and is not
+relabelled.
 
 What was tried and left out:
 - **Sourced feed basis.** I tried the EBTF (2011) Table 2-2-3 natural gas (with i/n-butane and
