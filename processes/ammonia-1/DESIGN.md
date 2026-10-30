@@ -1894,6 +1894,17 @@ Result (`cheme layout build`, core v1.2.0):
   run. Where the two agree (CWS-1085 at 241.705, every return) there is no finding. Not accepted
   and not worked around (no via, pin or battery-limit move to dodge the rounding): to be filed
   as a core issue. Gates `layout-3d` (basic) and `layout-detail` fail on them alone.
+- **Rebuilt on core v1.2.1** (fixes core#95, this tee offset; no design input changed, no new
+  decision): `cheme layout build` moves only the ends of the three header segments of CWS-1144
+  from x 219.652, 221.652 and 223.652 to 219.653, 221.653 and 223.653, where their branches start
+  (6 coordinates; segment lengths unchanged at the model's 1 mm precision). The three
+  `layout-clash-pipe` findings are gone; no other build finding changed (support-missing 87,
+  free-span 41, ladder-clearance 8, lifting 8, operability 32, access-blocked 13, tray-span 19,
+  no headroom, buried-cover, tray-fill or clash finding). Gates `layout-3d` and `layout-detail`
+  pass, nothing accepted. `cheme validate` 0 errors, warnings 231 -> 228 (the three clashes).
+  Lifting study, cable schedule, MTO and bulk estimate rewritten: only the model fingerprint in
+  their headers changed (quantities, the 103,367.80 estimate, cables and lanes as above). LCA and
+  TEA current without a rewrite. `cheme skills update`: all 131 skill files already current.
 
 Rejected: keeping the 20 header pins (the owner asked for the router, and the skill says pin a
 header only after review); pinning the branches to force the S9 tee positions (more pins than
