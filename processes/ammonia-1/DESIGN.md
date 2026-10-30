@@ -911,6 +911,55 @@ Reason: S7 of runs/plan.md. Rejected: GHSVs, U values or mechanical efficiencies
 `not_applicable` for values that do apply; leaving the gate failing on fields core cannot
 calculate by design.
 
+## D-033 Relief cases of the eight drawn relief valves (2026-10-30, S8)
+Decision: a preliminary relief study, `safety/relief/relief-study.md` (status proposed, by
+agent), gives for each of PSV-1212, -1310, -1513, -1704, -1911, -1912, -2010 and -2210 the cases
+that can demand it, the relieving rate of each where the repository allows it, the case claimed
+to govern and the required capacity; `piping/special-items.yaml` carries the set pressure and
+the governing case. Loads from `scripts/relief_loads.py` (`cheme run`, prints only; provenance).
+- **Set pressure** = design pressure of the protected item (D-032), ASSUMED until the MAWP is
+  known. Relieving pressure set + 10 % (process cases), + 21 % (fire), single valve.
+- **Method**: CCPS chapter 14 and 15.1.7 (skill `relief-scenarios`): one device, its largest
+  single credible case; no trip credited in place of a device; a control valve in the position
+  that worsens the load; normal-position valves not credited to open further. Fire by the API 521
+  wetted-area equation (SI coefficients 43 200 / 70 900, F = 1, wetted area to 7.6 m, base at
+  grade; drained and undrained both given, undrained claimed: drainage not designed). Latent heat
+  of pure water or ammonia (thermo 0.6.1). Tube rupture as two choked tube bores (14.83 mm ID,
+  ASSUMED). Gas blow-by per unit Kv by the IEC 60534-2-1 choked-gas equation (xT 0.7 ASSUMED),
+  with an indicative value from the Kv of the normal liquid duty at 70 % opening (ASSUMED).
+- **Results** (required capacity, kg/h): PSV-1212 67,184 (K-101 blocked discharge); PSV-1310
+  139,409 (front end blocked at XV-1604 or K-501, sources at 44-45 barg); PSV-1704 65,958 (blocked
+  loop with full make-up; set below every loop item, so it also takes the loop's make-up case);
+  PSV-2010 10,014 (fire; blow-by and blocked vapour removed by rating, V-701 26.5 barg above the
+  V-502 source); PSV-2210 92,834 (process steam valve FV-1006 closed at full raising; export
+  blocked 60,099). Not established: PSV-1513 (LV-1405 blow-by, 355 kg/h per Kv, indicative
+  127,000; the blocked vent, 74,528, is a lower bound), PSV-1912 (LV-1903 blow-by, 1,566 kg/h
+  per Kv, indicative 16,000), PSV-1911 (V-501 fire at a relieving pressure above the ammonia
+  critical pressure: transient method needed).
+- **Findings** (for the team; nothing on a P&ID changed): R-1 a K-501 stop with XV-1604 open
+  pressurises R-401, E-402, V-401, X-401 (31-32 barg) above design plus accumulation, PSV-1310
+  does not protect them; R-2 the PSV-1513 blow-by and E-202 tube-rupture cases discharge
+  hydrogen-rich gas to atmosphere; R-3 LV-1907 blow-by reaches the K-701 suction (18 barg
+  package); R-4 an E-502 tube rupture (17,725 kg/h of loop gas, design ratio 0.30) reaches the
+  steam side, whose only drawn relief, PSV-2210, vents to atmosphere; R-5 every relief line DN
+  and the DN 300 flare header (ASSUMED in D-029) are far too small for these loads. The governing
+  flare load is the plant power failure, about 139 t/h through PSV-1310.
+- **Gate**: the template gate `relief-on-pid` (stage basic, kind on-sheet) is enabled for the
+  eight tags with `classes: [SafetyValve]` and `connected: true`, without `sheets:` (with it
+  every tag would have to be on every listed sheet). It passes.
+- **Not done, and why**: orifice, inlet-loss and tail-pipe sizing, back pressure and the flare
+  network (core v1.0.0 has no relief sizing; this is the relief study proper); the supercritical
+  fire case (no method in core, properties near the critical point not qualified, core#315); the
+  blow-by rates (LV-1405, LV-1903 not sized); compressor cases on the vendors' curves; two-phase
+  relief. The HAZOP actions A11, A17, A18, A26, A28, A30, A36, A42, A45 are answered in the
+  study as proposals; none is closed (the team closes them), and H-01 is not re-stamped: its
+  input `piping/special-items.yaml` changed and the team should reassess the nodes it touches
+  (`cheme.hazop-input-changed`, left visible).
+Reason: S8 of runs/plan.md.
+Rejected: set pressures above the design pressure; crediting I-105, I-107 or I-101 to reduce a
+load; resizing relief lines without orifice and back-pressure calculations; a full-bore bound
+for the blow-by cases (the line bore of LV-1405, DN 600, would give a meaningless rate).
+
 ## 3. Results of this stage (design case)
 
 Basic stage, S2 (the simulated flowsheet, D-026; lca/inventory.csv regenerated): per kg of NH3
@@ -980,6 +1029,11 @@ convection coils therefore use `ExchangingThermalEnergy` and the steam system `P
 | Sinnott, Coulson & Richardson's Chemical Engineering Vol. 6, 4th ed. (2005), Table 12.1 | rows as in `cheme datasheets fill --list` (core's table) | no (core's data file) | D-032: typical overall coefficients |
 | API RP 941 (Nelson curves) | title only, no value used | no | D-032: reason for low-alloy steel in hot hydrogen service |
 | thermo 0.6.1 (HEOS fit, IAPWS) | `Chemical('ammonia').Psat`, `Chemical('water')` | yes | D-032: NH3 vapour pressure at 313.15 K, BFW density, viscosity, vapour pressure |
+| CCPS, Guidelines for Engineering Design for Process Safety (AIChE) | ch. 14 (14.2.1-14.2.4, 14.5.2), 15.1.7, 4.4.2, as summarised in the skill `relief-scenarios` | no (skill summary) | D-033: relief causes, governing-case and crediting rules |
+| API Std 521, Pressure-relieving and Depressuring Systems, 6th ed. (2014) | 4.4.13.2.4 fire heat absorption of a wetted surface (SI 43 200 / 70 900 F A^0.82 W, 7.6 m); tube rupture of two open ends | no: equation as published in secondary sources (open-exam-prep.com PE study guide 17.2; DIERS fire-case report of ioMosaic citing 4.4.13.2.4.2), searched 2026-10-30 | D-033: fire and tube-rupture loads |
+| ASME BPVC VIII-1 / API 520 Part I | accumulation 10 % (single valve), 21 % (fire) | no (commonly cited values) | D-033: relieving pressure |
+| IEC 60534-2-1 | compressible-flow sizing equation, N6 = 27.3, choked x = F_gamma xT, Y = 2/3 | no (equation as commonly published) | D-033: blow-by per unit Kv |
+| thermo 0.6.1 | `Chemical('water'/'ammonia').Tsat`, `.Hvap`, `.Pc`, `Chemical(CAS).Cpgm` | yes | D-033: latent heats, critical pressure, ideal-gas k |
 
 ## 6. Open inputs and gated steps
 
