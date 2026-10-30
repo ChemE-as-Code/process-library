@@ -50,6 +50,7 @@ figures, text); the flowsheet and its drawings are our own.
 | exchangers, machines | pass-through propagate; duties from the script | stream enthalpies: no package covers H2O/NO/NO2/HNO3 (`props --coverage`) | energy balance gated (core #315); script closes it (D-010) |
 | BFD/PFD | `cheme process build` | supported; Pumping step crashes the build (D-012) | done with a workaround |
 | LCI | `cheme assess lca --inventory --write` | supported | done, backgrounds unmapped (D-014) |
+| DWSIM simulation | `process/simulation.yaml`, gas-phase part only (D-015) | translates (cheme 1.1.0); HNO3 with water refused, shaft-coupled machines and two-inlet reactors not mapped | input written, not run (no DWSIM here) |
 
 ## D-001 Route and boundary (2026-10-27)
 Decision: weak nitric acid by the dual-pressure Ostwald process: ammonia evaporation, air
@@ -180,7 +181,7 @@ of the grid).
   it ("'typing.Union' object is not iterable"). Workaround: P-101 is a `TransportingFluids` step.
   To be reported to core.
 - `process/simulation.yaml` only declares R-101 and R-102 adiabatic (boundary check), no
-  simulation model.
+  simulation model. Superseded on 2026-10-30 by D-015 (a DWSIM input for the gas-phase part).
 - `cheme maturity` prints V-101 (`SeparatingByFlash`) as "equilibrium-stage, predictive,
   sourced" although its outlets are script specifications (D-007) and no property package
   covers HNO3-water: the model basis is inferred from the step class without a model or package
@@ -226,6 +227,83 @@ Ar, H, N, O element balances close (< 0.01 %); the reported energy closure (57.9
 delivered utilities, not the reaction enthalpy (D-010 closes the energy).
 Reason: the run's scope: a preliminary inventory, no background data and nothing from licensed
 databases.
+
+## D-015 DWSIM simulation inputs: boundary of the simulated part (2026-10-30)
+Decision: `process/simulation.yaml` is now a complete DWSIM input for the gas-phase part of the
+plant, so that `cheme process simulate` can run it where DWSIM is installed. It has not been run:
+the authoring machine has neither DWSIM nor Docker, so no stream value comes from it and nothing
+was filled (`--fill` not run). Checked offline with the library's CI cheme (1.1.0, core
+c2a45135): the file translates into a DWSIM model for case `design` (13 units, 8 compounds, no
+recycle; `cheme maturity`: `predictive.simulation-spec` ok), `cheme validate` 0 errors.
+
+Simulated (13 steps): ammonia split S-101, evaporator E-101, SCR ammonia vaporiser E-108, air
+compressor K-101, air split S-102, mixer M-101, burner R-101 (adiabatic conversion reactor,
+reactions.yaml conversions, D-005), waste-heat boiler E-102, tail-gas heater E-103 (both sides),
+economiser E-104, NOx junction M-102, tail-gas exchanger E-106 (both sides) and NOx gas cooler
+E-107. Every spec repeats a design choice already in D-003 to D-011 or in
+`scripts/hno3_balance.py` (outlet temperatures, efficiencies, pressure levels), ASSUMED as the
+choice it repeats. Two lumpings, ASSUMED: the let-down from the 1600 kPa(a) liquid ammonia is put
+on E-101 (to 600 kPa(a)) and on E-108 (to 1300 kPa(a)), since the flowsheet has no valve steps;
+DWSIM mixes at the lowest inlet pressure, so the 10 kPa the concept balance gave M-101 is put on
+R-101 (30 kPa in all, D-003). M-102 has no next simulated item, so its outlet S20 will be at
+465 kPa(a) against 460 assumed (a deviation warning, not an input change).
+
+Left out (`exclude`), and why:
+
+- the cooler-condenser E-105, the weak-acid separator V-101 and pump P-101, the absorber C-101
+  and the bleacher C-102: they form, carry or absorb aqueous nitric acid. The DWSIM route has no
+  electrolyte package and refuses HNO3 with water outright (`cheme.process-sim-electrolyte`,
+  checked: the full flowsheet does not translate), and the absorption is a reactive absorption
+  with no model in core (D-008; core #315). E-105 holds the NO oxidation (NO_OX) and the
+  weak-acid formation (NO_ABS) in one step, so the NO oxidation cannot be simulated without the
+  acid; it stays a specification (D-007).
+- the absorber is not a `component_separator` (the core ADR 0019 / 0024 pattern of a specified
+  split). Checked against core 1.1.0: that unit takes one material inlet and two outlets and
+  keeps every component's flow; C-101 has three inlets (nitrous gas, weak acid, process water)
+  and forms HNO3 from NO, NO2, O2 and water, so no set of recoveries represents it, and its HNO3
+  would trip the electrolyte refusal anyway. C-102 has two inlets. Representing the absorption
+  as a specified unit would need either a flowsheet split into a mixer, a conversion reactor and
+  a component separator (still refused while HNO3 meets water in DWSIM) or a core unit for a
+  specified reactive separator; neither is done here (follow-up F-1).
+- the tertiary reactor R-102: two material inlets (tail gas S27 and SCR ammonia S05), the DWSIM
+  conversion reactor takes one; the flowsheet has no mixer for the ammonia injection (F-2). Its
+  `mode: adiabatic` stays in the file for the boundary check.
+- the NOx compressor K-102 and the tail-gas expander X-101: the machine train is drawn as energy
+  streams between units (Q01 X-101 -> K-101, Q02 X-101 -> K-102, Q03 motor -> K-102). Core 1.1.0
+  (and core main 1.2.0, same code) refuses an energy stream between two simulated units and a
+  unit with two energy streams in one direction (`cheme.process-sim-unmapped`), so X-101 can never
+  be simulated with this flowsheet and K-102 neither; K-101 is simulated with X-101 left out (its
+  power goes to Q01). The specs of K-102 and X-101 are written and translate once the train is
+  decoupled (checked on a scratch copy with Q01 and Q02 removed: 15 units, no error); F-3.
+
+Streams from the excluded steps into the simulated part (S16, S19, S21, S25) are feeds with their
+flowsheet values; streams into them (S05, S14, S20, S23, S27) are simulated outlets.
+
+Property package: Peng-Robinson. The recorded selection (polar, no interaction parameters,
+1150 kPa) recommends PSRK or PR/RKS with modified Huron-Vidal mixing; the route runs none of them
+and methods.yml names Peng-Robinson as their substitute. The substitution is not recorded as
+accepted: that is a reviewer's call, so `cheme.process-sim-method-not-recommended` stays a
+warning (and `predictive.property-package` fails) until a person accepts it. Known weak spots of
+the gas-phase model: NO2 dimerisation to N2O4 is not modelled (D-006 lumps it into NO2), which
+matters most in the cold, high-pressure NOx gas (E-106, E-107); water condenses in E-107 (water
+partial pressure about 10.3 kPa against 7.4 kPa saturation at 313 K, CoolProp), and the model
+keeps the condensate in the one outlet as water without NO2 dissolving or acid forming; the
+absorber tail gas S25 (0.4 mol% water at 1100 kPa(a), 303 K) is slightly above its dew point
+(4.4 against 4.25 kPa), so DWSIM may show a trace of liquid in that feed (D-008's water content
+is a round ASSUMED figure).
+
+Consequence for `cheme maturity`: `predictive.simulation-spec` now passes; `predictive.coverage`
+fails (eight steps excluded) and stays failing until F-1 to F-3. V-101 is no longer reported as
+"equilibrium-stage, predictive, sourced" (the overstatement of D-012): excluded, it shows as
+stream values, specified.
+Rejected: changing the flowsheet (valves, an injection mixer, decoupled machine energy streams)
+in this change: it would alter the BFD/PFD and the utility accounting the LCI uses, and is a
+design decision for review, not a simulation input.
+Follow-ups: F-1 aqueous HNO3 and reactive absorption in core (core #315; a specified reactive
+separator unit as an interim); F-2 an ammonia-injection mixer step ahead of R-102 in the
+flowsheet; F-3 a shaft-coupled machine train in core's DWSIM translation, or per-machine energy
+streams in the flowsheet with the shaft balance stated outside; then run `cheme process simulate
+--check` and, after review, `--fill`.
 
 ## Open inputs
 - O-1: check D-005, D-008, D-011 against the BREF consumption and emission ranges (S2 sections 3.3, 3.4) with exact locators: NH3 per t HNO3 (here 0.285 t/t), steam export, power, cooling water, tail-gas NOx.
