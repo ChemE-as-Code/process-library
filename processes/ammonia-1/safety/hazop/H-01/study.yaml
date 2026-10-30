@@ -66,8 +66,11 @@ assessment_basis: >-
   I-101, I-102, I-103, I-105, I-106 and I-107 against a failure of the regulatory loop they back up),
   and its basis names it; alarms acting through the operator, the control loop whose failure is
   the cause, check valves and relief devices without a relief case (S8) are listed as
-  safeguards but not credited in a residual rating. Logic-solver independence and the integrity
-  level of every trip are open (action A2). All codes are agent proposals for the team.
+  safeguards but not credited in a residual rating. Credit rule, applied to every residual row:
+  one credited independent trip lowers the likelihood by one code and never more, the severity
+  is kept, until A2 has set an integrity level for each trip and the team decides the credit a
+  trip of that level earns. Logic-solver independence and the integrity level of every trip are
+  open (action A2). All codes are agent proposals for the team.
 team: []            # no team has met: the study is an agent draft (D-031)
 notes: >-
   Open for the whole study, not for one scenario (carried, owner: project HSE lead, before the
@@ -111,7 +114,7 @@ nodes:
                 - {category: people, severity: "3", likelihood: C, basis: "A tube failing in the firebox releases hot process gas that burns inside H-101; a lost-time injury to a person at the peepholes is credible (matrix 3). A single loop failure: C.", status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b6fe1208a949a698, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: C}}}
                 - {category: asset, severity: "4", likelihood: C, basis: "Carbon on both reforming catalysts and failed R-101 tubes: loss of the reforming section for a long period (matrix 4, loss of the unit). C as above.", status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 93e154c44de9f515, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: C}}}
               residual:
-                - {category: people, severity: "3", likelihood: B, basis: "Credits I-101 (SG1): FZ-1007 is its own flow measurement, not FIC-1006, and it closes XV-1001, which is not the control valve FV-1002. Not credited: the FAL alarm of FIC-1006 (same loop). Likelihood one code lower as the team's judgement of one independent trip; integrity not set (A2).", status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: aa86891dd127d418, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: B}}}
+                - {category: people, severity: "3", likelihood: B, basis: "Credits I-101 (SG1): FZ-1007 is its own flow measurement, not FIC-1006, and it closes XV-1001, which is not the control valve FV-1002. Not credited: the FAL alarm of FIC-1006 (same loop). Likelihood one code lower for one independent trip (the credit rule of assessment_basis, an agent proposal; no team has met); integrity not set (A2).", status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: aa86891dd127d418, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '3', likelihood: B}}}
                 - {category: asset, severity: "4", likelihood: B, basis: "As for people: I-101 credited, alarms not. With one trip of unknown integrity the asset band stays medium.", status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: f33c22768a8b83e6, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: B}}}
           - id: S2
             cause: "The gas flow rises above the steam the ratio can deliver: FIC-1002 fails high or FV-1002 sticks open, and FV-1006 reaches its full opening; the steam flow stays above the I-101 low-low point."
@@ -296,7 +299,7 @@ nodes:
       - id: N3-RF
         guide_word: reverse
         parameter: flow (process air in E-104)
-        notes: "Process gas flowing back into E-104 when K-101 trips is S13 of N4 (the coil is in the air line PA-1023)."
+        notes: "Process gas flowing back into E-104 when K-101 trips is S12 of N4 (the coil is in the air line PA-1023)."
   # ------------------------------------------------------------------ P-103 process air
   - id: N4
     title: Process air compressor K-101 and the air line to R-102 (P-103)
@@ -316,7 +319,7 @@ nodes:
         parameter: flow
         scenarios:
           - id: S12
-            cause: "K-101 trips (power dip, machine protection inside the package) while R-102 is at about 3400 kPa(a); XV-1204 stays open because I-103 is the only trip that closes it."
+            cause: "K-101 trips (power dip, machine protection inside the package) while R-102 is at about 3400 kPa(a); XV-1204 stays open because no trip initiated by K-101 or by low process air flow closes it (I-101 and I-103 close it, on other causes)."
             consequence: Hot process gas (H2, CO, CH4) flows back into the air line through E-104 to K-101 and mixes with air; an explosive mixture ignites in the hot coil or the compressor discharge; rupture of the air line and a fire.
             refs: [K-101, XV-1204, PA-1023, E-104, R-102]
             safeguards: [SG14, SG15]
@@ -334,7 +337,7 @@ nodes:
         parameter: pressure (K-101 discharge)
         scenarios:
           - id: S13
-            cause: "I-103 closes XV-1204 (or it closes spuriously) while K-101 runs."
+            cause: "I-101 or I-103 closes XV-1204 (or it closes spuriously) while K-101 runs."
             consequence: K-101 runs against a closed outlet; UIC-1202 opens the blow-off FV-1202 to atmosphere; if it does not, the discharge pressure rises to the machine's shut-off pressure and the line between K-101 and XV-1204 can be overpressured.
             refs: [XV-1204, K-101, UIC-1202, FV-1202, PSV-1212]
             safeguards: [SG16, SG17]
@@ -438,7 +441,7 @@ nodes:
         scenarios:
           - id: S18
             cause: "LIC-1307 fails low or LV-1307 sticks open (it fails closed); V-201 empties."
-            consequence: "Process gas at about 3100 kPa(a) blows through PC-1048 into the condensate stripper of U-801; its overhead goes to the CO2 vent (CO2-1142), so it is taken here to run near atmospheric pressure (inferred from the P&ID, its pressure is not stated); overpressure and rupture of the stripper or the deaerator, release of hydrogen and CO."
+            consequence: "Process gas at about 3100 kPa(a) blows through PC-1048 into the condensate stripper of U-801; its overhead goes to the CO2 vent (CO2-1142), and the stripper overhead stream S87 of process/flowsheet.yaml is at 150 kPa(a) (ASSUMED, D-024), a ratio of about 20; overpressure and rupture of the stripper or the deaerator, release of hydrogen and CO."
             refs: [LIC-1307, LV-1307, V-201, PC-1048, U-801]
             safeguards: [SG20]
             actions: [A14]
@@ -507,6 +510,36 @@ nodes:
                 - {category: people, severity: "4", likelihood: C, basis: "Overpressure of hot hydrogen-rich equipment: rupture, fire, fatality credible (matrix 4); every I-106 trip or K-501 trip: C.", status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ac0a4b03e3d8d0c2, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: C}}}
                 - {category: environment, severity: "3", likelihood: C, basis: "Relief of synthesis gas (CO) to flare or atmosphere: reportable release (matrix 3).", status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 1fb9317519cce7ee, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '3', likelihood: C}}}
             notes: "This is the open item of the C&E note on I-106 and of SEQ-TRIP-FE. Whether the front-end design pressure is set at or above the supply pressure (no relief needed for this case) is for the process engineer and S8."
+      - id: N6-TR
+        guide_word: other-than
+        parameter: pressure (tube rupture into the low-pressure side of E-202 and E-203)
+        scenarios:
+          - id: S65
+            cause: "A tube fails in the regenerator reboiler E-202: process gas at about 3200 kPa(a) (LT shift outlet S21) enters the aMDEA side, which is the kettle of C-302 at about 150 kPa(a) (S28, ASSUMED; D-009)."
+            consequence: "The aMDEA side of E-202, the vapour return AM-1050 to C-302, the lean solvent outlet AM-1051 to E-301 and C-302 itself are overpressured by a factor of about twenty; rupture of the reboiler shell or the column, release of hydrogen and CO; synthesis gas leaves with the CO2 at the vent."
+            refs: [E-202, AM-1049, AM-1050, AM-1051, C-302, E-301, PSV-1513]
+            safeguards: [SG26, SG32]
+            actions: [A42]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, basis: "Rupture of a large low-pressure column by flammable and toxic (CO) gas: fatality credible (matrix 4); tube rupture: B.", status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+                - {category: asset, severity: "4", likelihood: B, basis: "Loss of C-302 and of the reboiler (matrix 4).", status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: f33c22768a8b83e6, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: B}}}
+            notes: "PSV-1513 on C-302 is the only relief device on this side; its candidate cases (special-items list) do not include an E-202 tube rupture, so it is not credited. Not analysed before; named by the 2026-10-30-hazop review (#1)."
+          - id: S66
+            cause: "A tube fails in the process gas final cooler E-203: process gas at about 3150 kPa(a) (S22) enters the cooling water side (CWS-1052, CWR-1053), whose pressure is not stated in the repository (no cooling water stream in process/flowsheet.yaml; TBD, A43)."
+            consequence: "The cooling water side of E-203 and the return CWR-1053 are overpressured; rupture of the water side or the return line; hydrogen, CO and CO2 flow with the return water into the header CWR-1145 and are released at the cooling tower (outside the battery limit); flammable gas in the return header."
+            refs: [E-203, CWS-1052, CWR-1053, CWR-1145, TV-1306]
+            safeguards: [SG59]
+            actions: [A43, A38]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, basis: "Rupture of cooling water piping by flammable and toxic (CO) gas, or a hydrogen fire at the cooling tower: fatality credible (matrix 4); tube rupture: B.", status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+                - {category: environment, severity: "3", likelihood: B, basis: "Synthesis gas (CO) released at the cooling tower: reportable release (matrix 3).", status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 92790e212f41fb89, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '3', likelihood: B}}}
+            notes: "No relief device is drawn on the cooling water side of E-203; the PI-2302 and TI-2301 indications on the supply header (SG59) do not see a return-side overpressure. The leak case of the same exchangers is S61."
   # ------------------------------------------------------------------ P-105
   - id: N7
     title: CO2 absorber C-301 with the lean solvent pumps P-301A/B and cooler E-302 (P-105)
@@ -538,8 +571,8 @@ nodes:
                 - {category: people, severity: "4", likelihood: C, basis: "Rupture of a large low-pressure column by high-pressure flammable gas: fatality credible (matrix 4); loop failure: C.", status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ac0a4b03e3d8d0c2, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: C}}}
                 - {category: asset, severity: "4", likelihood: C, basis: "Loss of C-302 (matrix 4).", status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 93e154c44de9f515, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: C}}}
               residual:
-                - {category: people, severity: "4", likelihood: A, basis: "Credits I-105 (SG25): LZ-1406 is its own level measurement, separate from LIC-1405, and it closes XV-1406, a separate valve in AM-1057. The LAL alarm (SG24) is not credited; PSV-1513 (SG26) is not credited until S8 shows it can take the gas blow-by through a fully open LV-1405 (A18). A/one code is the agent's proposal; the team to confirm with the integrity of I-105 (A2).", status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ddcedc61b5d20d1a, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: A}}}
-                - {category: asset, severity: "4", likelihood: A, basis: "As for people.", status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: eca0767de9ee2296, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: A}}}
+                - {category: people, severity: "4", likelihood: B, basis: "Credits I-105 (SG25): LZ-1406 is its own level measurement, separate from LIC-1405, and it closes XV-1406, a separate valve in AM-1057. The LAL alarm (SG24) is not credited; PSV-1513 (SG26) is not credited until S8 shows it can take the gas blow-by through a fully open LV-1405 (A18). C to B, one code for one independent trip (credit rule of assessment_basis, an agent proposal); the team to confirm with the integrity of I-105 (A2).", status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+                - {category: asset, severity: "4", likelihood: B, basis: "As for people.", status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: f33c22768a8b83e6, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: B}}}
           - id: S23
             cause: "During start-up I-105 is bypassed (timed bypass, SEQ-START-CO2R) while the sump is filled and LV-1405 is opened too early or by hand."
             consequence: Gas blow-by into C-302 as in S22, with the trip unavailable.
@@ -583,7 +616,7 @@ nodes:
               initial:
                 - {category: people, severity: "4", likelihood: D, basis: "Methanator runaway, shell over-temperature (consequence of S29): fatality credible (matrix 4); a pump trip or a loop failure: D, once a year or more.", status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 6d0bae6b7c1304c8, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: D}}}
               residual:
-                - {category: people, severity: "4", likelihood: B, basis: "Credits I-106 (SG30): TZ-1605 on the methanator bed is independent of the solvent pumps and of FIC-1407, and closes XV-1604. The FAL alarm and the AI-1403 analyser act through the operator and are not credited. Two codes lower is the agent's proposal for one automatic trip against a frequent cause; the team to judge (A2).", status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+                - {category: people, severity: "4", likelihood: C, basis: "Credits I-106 (SG30): TZ-1605 on the methanator bed is independent of the solvent pumps and of FIC-1407, and closes XV-1604. The FAL alarm and the AI-1403 analyser act through the operator and are not credited. D to C, one code for one independent trip (credit rule of assessment_basis, an agent proposal); the team to judge with the integrity of I-106 (A2).", status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ac0a4b03e3d8d0c2, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: C}}}
             notes: "No auto-start of the spare P-301B is drawn or described."
             actions: [A2, A21]
       - id: N7-RF
@@ -691,8 +724,8 @@ nodes:
                 - {category: people, severity: "4", likelihood: C, basis: "Shell failure of a hydrogen reactor: jet fire, fatality credible (matrix 4); upstream upsets several times in the plant life: C.", status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ac0a4b03e3d8d0c2, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: C}}}
                 - {category: asset, severity: "4", likelihood: C, basis: "Loss of R-401 and its catalyst (matrix 4).", status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 93e154c44de9f515, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: C}}}
               residual:
-                - {category: people, severity: "4", likelihood: A, basis: "Credits I-106 (SG30): TZ-1605 is separate from the indicator TI-1606 and the analysers, and XV-1604 is a dedicated trip valve. Analyser alarms (SG29, SG34) act through the operator and are not credited. The consequence of the trip itself (blocked front end) is S21.", status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ddcedc61b5d20d1a, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: A}}}
-                - {category: asset, severity: "4", likelihood: A, basis: "As for people.", status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: eca0767de9ee2296, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: A}}}
+                - {category: people, severity: "4", likelihood: B, basis: "Credits I-106 (SG30): TZ-1605 is separate from the indicator TI-1606 and the analysers, and XV-1604 is a dedicated trip valve. Analyser alarms (SG29, SG34) act through the operator and are not credited. C to B, one code for one independent trip (credit rule of assessment_basis, an agent proposal; A2). The consequence of the trip itself (blocked front end) is S21.", status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+                - {category: asset, severity: "4", likelihood: B, basis: "As for people.", status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: f33c22768a8b83e6, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: B}}}
       - id: N9-LL
         guide_word: less
         parameter: level (V-401)
@@ -737,6 +770,23 @@ nodes:
             risk:
               initial:
                 - {category: asset, severity: "3", likelihood: C, basis: "Loss of converter activity and production for weeks (matrix 3); C.", status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 4255ea3f73fe5efe, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '3', likelihood: C}}}
+      - id: N9-TR
+        guide_word: other-than
+        parameter: pressure (tube rupture into the cooling water side of E-402)
+        scenarios:
+          - id: S67
+            cause: "A tube fails in the methanator effluent cooler E-402: hydrogen-rich gas at about 2950 kPa(a) (S30, 73 mol% H2) enters the cooling water side (CWS-1085, CWR-1086), whose pressure is not stated in the repository (TBD, A44)."
+            consequence: "The cooling water side of E-402 and the return CWR-1086 are overpressured; rupture of the water side or the return line; hydrogen flows with the return water into CWR-1145 and is released at the cooling tower; a hydrogen fire at the ruptured line or at the tower."
+            refs: [E-402, CWS-1085, CWR-1086, CWR-1145, TV-1608]
+            safeguards: [SG59]
+            actions: [A44, A38]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, basis: "Rupture of cooling water piping by high-pressure hydrogen, or a hydrogen fire at the cooling tower: fatality credible (matrix 4); tube rupture: B.", status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+                - {category: asset, severity: "3", likelihood: B, basis: "Damage to the cooler, the return line and the cooling tower fill by fire: weeks down (matrix 3).", status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 579975b5e9fe3f0e, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '3', likelihood: B}}}
+            notes: "No relief device is drawn on the cooling water side of E-402. Named by the 2026-10-30-hazop review (#1)."
   # ------------------------------------------------------------------ P-108
   - id: N10
     title: Synthesis gas compressor K-501 (P-108)
@@ -890,6 +940,23 @@ nodes:
             risk:
               initial:
                 - {category: asset, severity: "2", likelihood: C, basis: "Production loss, days (matrix 2); analyser failure: C.", status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: b67377b30017f4a1, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '2', likelihood: C}}}
+      - id: N11-TR
+        guide_word: other-than
+        parameter: pressure (tube rupture into the steam side of E-502)
+        scenarios:
+          - id: S68
+            cause: "A tube fails in the converter effluent waste heat boiler E-502: loop gas at about 15,100 kPa(a) (S43; H2, N2, CH4 and 18 mol% NH3) enters the boiler water side, which is the MP steam system at about 4600 kPa(a) (U-801, S68)."
+            consequence: "The boiler water side of E-502, the downcomer BW-1100, the riser SM-1101 and the U-801 steam drum are overpressured by a factor of about three; rupture of the boiler shell or the drum; hydrogen and ammonia pass with the steam into the MP header SM-1140, the process steam SM-1005 to the reformer, the export and the atmospheric outlet of PSV-2210 (toxic and flammable release where only steam is expected)."
+            refs: [E-502, BW-1100, SM-1101, U-801, SM-1140, SM-1005, PSV-2210]
+            safeguards: [SG56, SG57]
+            actions: [A45]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, basis: "Rupture of the steam system by loop gas, or ammonia and hydrogen at the steam outlets: fatality credible (matrix 4); tube rupture: B.", status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+                - {category: asset, severity: "4", likelihood: B, basis: "Loss of E-502 and damage to the steam drum: loss of the unit (matrix 4).", status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: f33c22768a8b83e6, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '4', likelihood: B}}}
+            notes: "PSV-2210 on the MP header is the only relief device drawn on the steam side; its candidate cases do not include an E-502 tube rupture, and it relieves to atmosphere, so it is not credited. The steam drum relief inside U-801 is not drawn (A36). Named by the 2026-10-30-hazop review (#1) and the earlier 2026-10-29-pids-loop#2."
   # ------------------------------------------------------------------ P-110
   - id: N12
     title: Loop cooling E-503 / E-505 / E-504, ammonia separator V-501 and let-down vessel V-502 (P-110)
@@ -921,8 +988,8 @@ nodes:
                 - {category: people, severity: "4", likelihood: C, basis: "Rupture of a vessel with liquid ammonia and hydrogen: toxic and fire, fatality credible (matrix 4); loop failure: C.", status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ac0a4b03e3d8d0c2, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: C}}}
                 - {category: environment, severity: "3", likelihood: C, basis: "Ammonia release: reportable (matrix 3).", status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 1fb9317519cce7ee, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '3', likelihood: C}}}
               residual:
-                - {category: people, severity: "4", likelihood: A, basis: "Credits I-107 (SG46): LZ-1904 is separate from LIC-1903 and closes XV-1904, a dedicated valve in AL-1111. The LAL alarm is not credited; PSV-1912 is not credited until S8 shows it takes the full blow-by (A28).", status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: ddcedc61b5d20d1a, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: A}}}
-                - {category: environment, severity: "3", likelihood: A, basis: "As for people.", status: proposed, by: agent, band: {value: low, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 010c0843e9e2e8f6, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '3', likelihood: A}}}
+                - {category: people, severity: "4", likelihood: B, basis: "Credits I-107 (SG46): LZ-1904 is separate from LIC-1903 and closes XV-1904, a dedicated valve in AL-1111. The LAL alarm is not credited; PSV-1912 is not credited until S8 shows it takes the full blow-by (A28). C to B, one code for one independent trip (credit rule of assessment_basis, an agent proposal; A2).", status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+                - {category: environment, severity: "3", likelihood: B, basis: "As for people.", status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 92790e212f41fb89, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '3', likelihood: B}}}
           - id: S42
             cause: "During start-up I-107 is bypassed (timed bypass, SEQ-START-SYN) and LV-1903 is opened before the separator has made a level."
             consequence: Gas blow-by into V-502 as in S41, with the trip unavailable.
@@ -1030,6 +1097,23 @@ nodes:
               initial:
                 - {category: environment, severity: "2", likelihood: C, basis: "Loop gas to flare if the operator does not reduce the load (matrix 2); C.", status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 286f676bb8108832, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '2', likelihood: C}}}
                 - {category: asset, severity: "2", likelihood: D, basis: "Production loss, days (matrix 2); refrigeration compressor trips: D.", status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 48ca2a645e2b1182, inputs: {matrix: b6caa11838fe6bc7, category: asset, severity: '2', likelihood: D}}}
+      - id: N12-TR
+        guide_word: other-than
+        parameter: pressure (tube rupture into the cooling water side of E-503)
+        scenarios:
+          - id: S69
+            cause: "A tube fails in the loop water cooler E-503: loop gas at about 14,900 kPa(a) (S45; H2, N2, CH4 and 18 mol% NH3) enters the cooling water side (CWS-1115, CWR-1116), whose pressure is not stated in the repository (TBD, A46)."
+            consequence: "The cooling water side of E-503 and the return CWR-1116 are overpressured by loop gas at the full loop pressure; rupture of the water side or the return line; hydrogen and ammonia flow with the return water into CWR-1145 and are released at the cooling tower; toxic and flammable release in the plant and at the tower."
+            refs: [E-503, CWS-1115, CWR-1116, CWR-1145]
+            safeguards: [SG59]
+            actions: [A46, A38]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, basis: "Rupture of cooling water piping by loop gas, ammonia and hydrogen released: fatality credible (matrix 4); tube rupture: B.", status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+                - {category: environment, severity: "3", likelihood: B, basis: "Ammonia released at the cooling tower: reportable release (matrix 3).", status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 92790e212f41fb89, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '3', likelihood: B}}}
+            notes: "No relief device is drawn on the cooling water side of E-503. The leak case is S61 (A38); the rupture case here is the overpressure of the water side. Named by the 2026-10-30-hazop review (#1) and the earlier 2026-10-29-pids-loop#2."
   # ------------------------------------------------------------------ P-111
   - id: N13
     title: Product flash drum V-701, refrigeration package K-701 and condenser E-701 (P-111)
@@ -1103,6 +1187,23 @@ nodes:
                 - {category: people, severity: "4", likelihood: B, basis: "Brittle fracture of the flare header during a relief: ammonia and hydrogen release, fatality credible (matrix 4); B.", status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
                 - {category: environment, severity: "3", likelihood: B, basis: "Ammonia emission at the flare: reportable (matrix 3); B.", status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 92790e212f41fb89, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '3', likelihood: B}}}
             notes: "D-029 left open whether ammonia reliefs need a separate ammonia flare."
+      - id: N13-TR
+        guide_word: other-than
+        parameter: pressure (tube rupture into the cooling water side of E-701)
+        scenarios:
+          - id: S70
+            cause: "A tube fails in the refrigerant condenser E-701: ammonia condensing at about 1555 kPa(a) (saturation at 313 K, DESIGN.md D-029) from the K-701 discharge AG-1122 enters the cooling water side (CWS-1130, CWR-1131), whose pressure is not stated in the repository (TBD, A47)."
+            consequence: "The cooling water side of E-701 and the return CWR-1131 are overpressured; rupture of the water side or the return line; ammonia flows with the return water into CWR-1145 and is released at the cooling tower; the refrigeration inventory drains into the cooling water; toxic release."
+            refs: [E-701, AG-1122, AL-1123, CWS-1130, CWR-1131, CWR-1145, K-701]
+            safeguards: [SG59]
+            actions: [A47, A38]
+            status: proposed
+            by: agent
+            risk:
+              initial:
+                - {category: people, severity: "4", likelihood: B, basis: "Ammonia released from a ruptured cooling water line or at the cooling tower: fatality credible (matrix 4); tube rupture: B.", status: proposed, by: agent, band: {value: high, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: c7123d4b67bd5af0, inputs: {matrix: b6caa11838fe6bc7, category: people, severity: '4', likelihood: B}}}
+                - {category: environment, severity: "3", likelihood: B, basis: "Ammonia released at the cooling tower and in the cooling water: reportable release (matrix 3).", status: proposed, by: agent, band: {value: medium, provenance: calculated, source: 'cheme safety hazop rate: example-4x4 (safety/risk-matrix.yaml)', fingerprint: 92790e212f41fb89, inputs: {matrix: b6caa11838fe6bc7, category: environment, severity: '3', likelihood: B}}}
+            notes: "No relief device is drawn on the cooling water side of E-701; E-701 is outside the K-701 package symbol on P-111, so its relief is not left to the package HAZOP. Named by the 2026-10-30-hazop review (#1) and the earlier 2026-10-29-pids-loop#2."
   # ------------------------------------------------------------------ P-112
   - id: N14
     title: Purge gas recovery package X-601 (P-112)
@@ -1275,6 +1376,7 @@ nodes:
             consequence: Hydrogen and ammonia enter the cooling water return and are released at the cooling tower (outside the battery limit); flammable gas in the return header.
             refs: [E-503, E-701, CWR-1145, CWR-1116, CWR-1131]
             actions: [A38]
+            notes: "A leak changing the composition of the return. The tube rupture that overpressures the water side is analysed per exchanger: E-203 S66, E-402 S67, E-503 S69, E-701 S70 (and E-202 S65, E-502 S68 for the solvent and steam sides)."
             status: proposed
             by: agent
             risk:
@@ -1430,3 +1532,9 @@ actions:
   - {id: A40, text: "Check the fail positions of control/loops.yaml as one set for a plant-wide instrument air failure (which relief devices are demanded together, which machines must trip on low instrument air pressure) and state the air receiver hold-up time. Carried: the instrument air system is not drawn.", owner: control engineer (next control revision), status: proposed, by: agent}
   - {id: A41, text: "Thermal relief of the cooling water side of the coolers that can be blocked in (or a rule that the cooling water control valves sit on the inlet and the isolation is locked open), as a relief case for S8. Carried to S8; block valves are not drawn yet.", owner: relief study (S8), status: proposed, by: agent}
   - {id: A38, text: "Detect process leaks into the cooling water return (ammonia or conductivity analyser on CWR-1145, or on the returns of E-503 and E-701). Carried: a P&ID change for the team.", owner: process engineer (next P&ID revision), status: proposed, by: agent}
+  - {id: A42, text: "Tube rupture of E-202 (S65): set the design pressure of the E-202 aMDEA side, AM-1050, AM-1051 and C-302 against the process gas side (about 3200 kPa(a)), or add the E-202 tube rupture as a relief case of PSV-1513 (or a relief device on the E-202 shell) and size it. Carried to S8; design pressures are not set yet.", owner: relief study (S8), status: proposed, by: agent}
+  - {id: A43, text: "Tube rupture of E-203 (S66): state the cooling water design and operating pressure, then decide whether the E-203 water side and CWR-1053 are designed for the process gas side (about 3150 kPa(a)) or need a relief device and a tube-rupture relief case. Carried to S8; the cooling water pressure is not stated in the repository.", owner: relief study (S8), status: proposed, by: agent}
+  - {id: A44, text: "Tube rupture of E-402 (S67): as A43 for the E-402 water side and CWR-1086 against the methanator effluent (about 2950 kPa(a), hydrogen-rich). Carried to S8.", owner: relief study (S8), status: proposed, by: agent}
+  - {id: A45, text: "Tube rupture of E-502 (S68): a tube-rupture relief case for the steam side (E-502 shell, BW-1100, SM-1101, the U-801 steam drum) against loop gas at about 15,100 kPa(a), with a relief device that does not discharge hydrogen and ammonia to atmosphere at a steam outlet, or a design pressure of the steam side that makes it unnecessary; and detection of loop gas in the steam (e.g. a conductivity or ammonia analyser on the drum blowdown) so that the boiler is isolated before the steam goes to the process and the export. Carried to S8 and the next P&ID revision.", owner: relief study (S8) / process engineer (next P&ID revision), status: proposed, by: agent}
+  - {id: A46, text: "Tube rupture of E-503 (S69): a tube-rupture relief case and relief device on the E-503 cooling water side against loop gas at about 14,900 kPa(a) (a design pressure covering the loop pressure is unlikely for a cooling water circuit, but S8 decides), with its discharge routed away from the cooling water return. Carried to S8; the cooling water pressure is not stated.", owner: relief study (S8), status: proposed, by: agent}
+  - {id: A47, text: "Tube rupture of E-701 (S70): as A43 for the E-701 water side and CWR-1131 against condensing ammonia (about 1555 kPa(a)); include the refrigerant inventory that can drain into the cooling water. Carried to S8.", owner: relief study (S8), status: proposed, by: agent}
