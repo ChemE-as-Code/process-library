@@ -21,20 +21,31 @@ roads:
   - {id: R-5, title: "Access road between A-100/A-600 and A-200/A-500", points: [[155, 0], [155, 220]], width: 6}
   - {id: R-6, title: "Access road between A-200/A-500 and A-800/A-700", points: [[265, 0], [265, 220]], width: 6}
 racks:
-  - {id: PR-1, title: Main pipe rack (east-west), points: [[20, 110], [340, 110]], width: 8, levels: [6, 8, 10], bent_spacing_m: 10}
+  # intermediate steel (S10, D-047): a stringer along each edge and a beam across between the
+  # bents, only on the tiers that carry lines whose suggested span (core table after ASME
+  # B31.1, ASSUMED) is shorter than the bay; spacing set by the shortest such span on the rack
+  # (DN 25 liquid 2.1 m -> 2.0 m; DN 32 gas 2.7 m -> 2.5 m; DN 80 to 150 -> 4.0 m). Section
+  # IPE240 ASSUMED (screening: a 10 m stringer with four beam reactions of about 5 kN deflects
+  # about L/300); the structural design sizes it
+  - {id: PR-1, title: Main pipe rack (east-west), points: [[20, 110], [340, 110]], width: 8, levels: [6, 8, 10], bent_spacing_m: 10,
+     intermediate_supports: {spacing_m: 2.0, levels: [10], section: IPE240, notes: "DW-1073, PC-1136 (DN 25 liquid), BD-1141 (DN 32) on the top tier (D-047)"}}
   # area racks of the basic layout (D-036): a comb on PR-1, so that every nozzle lies within
   # the 30 m rack reach; widths, tiers and positions ASSUMED (D-036). East-west racks have
   # their tiers at 6/8(/10) m, north-south racks at 7/9 m, so lines change elevation where
   # they change direction and cross the other racks' lanes without meeting them.
-  - {id: PR-2, title: "A-100 area rack (east-west, between the reactor row and the furnace)", points: [[30, 142], [146, 142]], width: 6, levels: [6, 8], bent_spacing_m: 7.25}
+  - {id: PR-2, title: "A-100 area rack (east-west, between the reactor row and the furnace)", points: [[30, 142], [146, 142]], width: 6, levels: [6, 8], bent_spacing_m: 7.25,
+     intermediate_supports: {spacing_m: 4.0, levels: [8], section: IPE240, notes: "FG-1002 (DN 80 gas, 4.6 m) on the top tier (D-047)"}}
   - {id: PR-3, title: "A-100 branch rack (north-south, east edge, to K-101)", points: [[146, 110], [146, 190]], width: 6, levels: [7, 9], bent_spacing_m: 8}
-  - {id: PR-4, title: "A-200 area rack (east-west, between the exchanger row and the columns, over R-6 to PR-5)", points: [[164, 162], [289, 162]], width: 6, levels: [6, 8], bent_spacing_m: 9.6}
-  - {id: PR-8, title: "A-200 branch rack (north-south, east edge, PR-1 to PR-4)", points: [[254, 110], [254, 162]], width: 6, levels: [7, 9], bent_spacing_m: 8}
+  - {id: PR-4, title: "A-200 area rack (east-west, between the exchanger row and the columns, over R-6 to PR-5)", points: [[164, 162], [289, 162]], width: 6, levels: [6, 8], bent_spacing_m: 9.6,
+     intermediate_supports: {spacing_m: 2.0, levels: [8], section: IPE240, notes: "DW-1073, PC-1084, PC-1136 (DN 25 liquid) on the top tier; not on tier 6, where its stringers would stand in R-6 below the 6 m headroom (D-047)"}}
+  - {id: PR-8, title: "A-200 branch rack (north-south, east edge, PR-1 to PR-4)", points: [[254, 110], [254, 162]], width: 6, levels: [7, 9], bent_spacing_m: 8,
+     intermediate_supports: {spacing_m: 2.0, levels: [9], section: IPE240, notes: "DW-1073, PC-1083, PC-1136 (DN 25 liquid) on the top tier (D-047)"}}
   - {id: PR-5, title: "A-800 branch rack (north-south, west of U-801)", points: [[285, 110], [285, 170]], width: 8, levels: [7, 9, 11], bent_spacing_m: 8}
   - {id: PR-6, title: "South connector (north-south, PR-1 to PR-7, west edge of A-500)", points: [[164, 110], [164, 55]], width: 6, levels: [7, 9], bent_spacing_m: 8}
   # PR-10: bents every 8 m from y = 54 put one on the PR-1 centreline, as on the other branches
   - {id: PR-10, title: "West connector (north-south, PR-7 over PR-1 to PR-2, east of X-601 and E-105)", points: [[135, 54], [135, 142]], width: 6, levels: [7, 9], bent_spacing_m: 8}
-  - {id: PR-7, title: "South area rack (east-west through A-600, A-500 and A-700, over R-5 and R-6)", points: [[130, 55], [338, 55]], width: 6, levels: [6, 8], bent_spacing_m: 10}
+  - {id: PR-7, title: "South area rack (east-west through A-600, A-500 and A-700, over R-5 and R-6)", points: [[130, 55], [338, 55]], width: 6, levels: [6, 8], bent_spacing_m: 10,
+     intermediate_supports: {spacing_m: 2.0, levels: [8], section: IPE240, notes: "AL-1124, AL-1129 (DN 25 liquid), AG-1125, PG-1109, PG-1113, PG-1126, AL-1127 on the top tier (D-047)"}}
   # PR-11 (S5r fix, review 2026-10-29-layout#2): without an east connector the A-500/A-700 exports
   # to the east battery limit ran west on PR-7 to PR-6 and back east on PR-1
   - {id: PR-11, title: "East connector (north-south, PR-1 to PR-7, east edge of A-700)", points: [[338, 110], [338, 55]], width: 6, levels: [7, 9], bent_spacing_m: 8}
