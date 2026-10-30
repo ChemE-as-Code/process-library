@@ -47,3 +47,4 @@ reviewer agents are not listed here (see `ledger.csv`). Times are local (CET, UT
 | O-033 | 2026-10-30 01:46 | orchestrator (driver) | Key switch at a clean point before S5b-fix-r1: batch 1 booked $144.34 of 150; next cap 6.0. From here batch 2 (the owner's second key; never printed) | brief: switch keys only between jobs; owner 2026-10-29 evening | - |
 | O-034 | 2026-10-30 02:29 | orchestrator (driver) | S5b: review says fix after two rounds; a third round runs under the owner's standing permission to continue autonomously | owner 2026-10-29 evening | - |
 | O-035 | 2026-10-30 03:06 | orchestrator (driver) | S5b stopped (exit 3); its PR stays open, the run goes on with the next independent sections | owner 2026-10-29: work autonomously | - |
+| O-036 | 2026-10-30 04:00 | orchestrator (driver) | S6 merged; ledger PR for the section's accounting | plan | - |
