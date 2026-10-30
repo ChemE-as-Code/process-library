@@ -20,6 +20,11 @@ rules:
     # boundary (D-001), its mains meet the headers at the PR-1 ends (ASSUMED)
     - {id: BL-cw-supply, lines: [CWS-1144], rack: PR-1, rack_end: start}
     - {id: BL-cw-return, lines: [CWR-1145], rack: PR-1, rack_end: end}
+    # S11 (D-048): the dead ends of the headers ("CW users" on P-114) just past their last tee,
+    # so that the router runs each header along PR-1 between its battery limit and its dead end
+    # (core v1.2.0, a line with battery limits at both ends) instead of a pinned route
+    - {id: CWS-dead-end, lines: [CWS-1144], point: [295, 108.5, -3.8]}
+    - {id: CWR-dead-end, lines: [CWR-1145], point: [125, 111.5, -3.8]}
 lines:
   # furnace ductwork (D-036): the flue gas path through the convection section and the
   # combustion air ducts are the furnace package's ductwork (DN 1800 to 4000), drawn with the
@@ -114,59 +119,52 @@ lines:
   # leg in the gap between X-401 and CP-203 (x 228.6, 0.4 m west of it), then rises onto the
   # PR-4 top tier, instead of a 23 m run at 8.85 m on posts; the low point gets a drain
   - {line: PC-1084, segment: P-107/Line_PC1084_S1, route: [[228.167, 188, 4.091], [228.6, 188, 4.091], [228.6, 188, 0.35], [228.6, 164.531, 0.35], [228.6, 164.531, 8.017], [249.493, 164.531, 8.017]]}
-  # cooling water headers (S9, D-038): buried along PR-1, centreline 3.0 m below grade
-  # (ASSUMED), supply at y 108.5, return at y 111.5; the tees in the P-114 order. Given here
-  # because the router cannot start a chain whose both ends are battery limits (BL west/east,
-  # the dead header ends "CW users"). The branches run buried at 1.8 m below grade (centreline,
-  # ASSUMED), over the headers, and rise at their user; the long branches along the headers
-  # have lanes of their own (north of the return header, south of the supply header) so that
-  # they pass over no other branch's tee (a branch chain runs from its user to its tee, so the
-  # via points are in that order)
-  - {line: CWS-1041, elevation: -1.8}
-  - {line: CWR-1042, elevation: -1.8}
-  - {line: CWS-1052, elevation: -1.8, via: [[219.653, 114.0, -1.8], [205, 114.0, -1.8]]}
+  # cooling water headers (S9, D-038): buried along PR-1; the tees in the P-114 order. S11
+  # (D-048, core v1.2.0): routed by the router along PR-1 between their battery limit and
+  # their dead end (rules above) at the elevation given here, no longer pinned; the router
+  # puts each tee where its branch's user projects onto the header, in the P-114 order. The
+  # branches run buried over the headers and rise at their user (a branch chain runs from its
+  # user to its tee, so the via points are in that order).
+  # S11 (D-048, core#70): every cooling-water line is declared buried, so its runs below grade
+  # are checked for soil cover (cover_m 1.0 m over the pipe top, ASSUMED; under roads the
+  # package's road_cover_m 1.2 m, ASSUMED) instead of road headroom and above-grade clashes;
+  # the risers at the users stay pipes above grade
+  # S11 (D-048): with the tees where the router puts them (near each user, in the P-114 order)
+  # the S9 branch lanes, drawn for the S9 tee positions, no longer fit: the headers go 0.8 m
+  # deeper (centreline 3.8 m below grade, ASSUMED) and the branches to 2.4 m (centreline,
+  # ASSUMED), so that a branch crossing another one passes over it with its cover kept
+  - {line: CWS-1041, elevation: -2.4, buried: {cover_m: 1.0, basis: "D-038, D-048 (cover ASSUMED)"}}
+  - {line: CWR-1042, elevation: -2.4, buried: {cover_m: 1.0, basis: "D-038, D-048 (cover ASSUMED)"}}
+  - {line: CWS-1052, elevation: -2.4, buried: {cover_m: 1.0, basis: "D-038, D-048 (cover ASSUMED)"}}
   # the returns with a temperature control valve (TV-1306, TV-1408, TV-1608) leave their side
   # nozzle level for 1.5 m before going down, so that the valve stands above grade
   # (TV-1306, DN 700: its handwheel is out of reach from grade; valve access platform
   # VP-TV-1306 south of it, the return turning west clear of its columns)
-  - {line: CWR-1053, via: [[222.923, 142.1, 1.25], [221.3, 142.1, 1.25], [221.3, 142.1, -1.8], [221.3, 115.5, -1.8], [206, 115.5, -1.8]]}
-  - {line: CWS-1063, elevation: -1.8}
-  - {line: CWR-1064, via: [[206.214, 172.3, 0.4], [206.214, 171.0, 0.4], [206.214, 171.0, -1.8], [208.5, 113.0, -1.8]]}
-  - {line: CWS-1074, elevation: -1.8}
-  - {line: CWR-1075, elevation: -1.8}
-  - {line: CWS-1085, elevation: -1.8, via: [[241.705, 117.0, -1.8], [212.5, 117.0, -1.8]]}
-  - {line: CWR-1086, via: [[245.045, 149.5, 0.9], [245.045, 149.5, -1.8], [245.045, 118.5, -1.8], [213.5, 118.5, -1.8]]}
-  - {line: CWS-1091, elevation: -1.8, via: [[181.377, 106.0, -1.8], [215, 106.0, -1.8]]}
-  - {line: CWR-1092, elevation: -1.8, via: [[182.377, 104.5, -1.8], [216, 104.5, -1.8]]}
-  - {line: CWS-1115, elevation: -1.8}
-  - {line: CWR-1116, elevation: -1.8}
-  - {line: CWS-1130, elevation: -1.8, via: [[297.0, 106.0, -1.8], [289, 106.0, -1.8]]}
-  - {line: CWR-1131, elevation: -1.8}
-  - {line: CWS-1132, elevation: -1.8}
-  - {line: CWR-1133, elevation: -1.8}
-  - {line: CWS-1144, segment: P-114/Line_CWS1144_S1, route: [[20, 108.5, -3.0], [127, 108.5, -3.0]]}
-  - {line: CWS-1144, segment: P-114/Line_CWS1144_S2, route: [[127, 108.5, -3.0], [205, 108.5, -3.0]]}
-  - {line: CWS-1144, segment: P-114/Line_CWS1144_S3, route: [[205, 108.5, -3.0], [207.5, 108.5, -3.0]]}
-  - {line: CWS-1144, segment: P-114/Line_CWS1144_S4, route: [[207.5, 108.5, -3.0], [210, 108.5, -3.0]]}
-  - {line: CWS-1144, segment: P-114/Line_CWS1144_S5, route: [[210, 108.5, -3.0], [212.5, 108.5, -3.0]]}
-  - {line: CWS-1144, segment: P-114/Line_CWS1144_S6, route: [[212.5, 108.5, -3.0], [215, 108.5, -3.0]]}
-  - {line: CWS-1144, segment: P-114/Line_CWS1144_S7, route: [[215, 108.5, -3.0], [232, 108.5, -3.0]]}
-  - {line: CWS-1144, segment: P-114/Line_CWS1144_S8, route: [[232, 108.5, -3.0], [289, 108.5, -3.0]]}
-  - {line: CWS-1144, segment: P-114/Line_CWS1144_S9, route: [[289, 108.5, -3.0], [292, 108.5, -3.0]]}
-  - {line: CWS-1144, segment: P-114/Line_CWS1144_S10, route: [[292, 108.5, -3.0], [295, 108.5, -3.0]]}
-  - {line: CWR-1145, segment: P-114/Line_CWR1145_S1, route: [[125, 111.5, -3.0], [128, 111.5, -3.0]]}
-  - {line: CWR-1145, segment: P-114/Line_CWR1145_S2, route: [[128, 111.5, -3.0], [206, 111.5, -3.0]]}
-  - {line: CWR-1145, segment: P-114/Line_CWR1145_S3, route: [[206, 111.5, -3.0], [208.5, 111.5, -3.0]]}
-  - {line: CWR-1145, segment: P-114/Line_CWR1145_S4, route: [[208.5, 111.5, -3.0], [211, 111.5, -3.0]]}
-  - {line: CWR-1145, segment: P-114/Line_CWR1145_S5, route: [[211, 111.5, -3.0], [213.5, 111.5, -3.0]]}
-  - {line: CWR-1145, segment: P-114/Line_CWR1145_S6, route: [[213.5, 111.5, -3.0], [216, 111.5, -3.0]]}
-  - {line: CWR-1145, segment: P-114/Line_CWR1145_S7, route: [[216, 111.5, -3.0], [233, 111.5, -3.0]]}
-  - {line: CWR-1145, segment: P-114/Line_CWR1145_S8, route: [[233, 111.5, -3.0], [290, 111.5, -3.0]]}
-  - {line: CWR-1145, segment: P-114/Line_CWR1145_S9, route: [[290, 111.5, -3.0], [293, 111.5, -3.0]]}
-  - {line: CWR-1145, segment: P-114/Line_CWR1145_S10, route: [[293, 111.5, -3.0], [340, 111.5, -3.0]]}
+  - {line: CWR-1053, elevation: -2.4, via: [[222.923, 142.1, 1.25], [221.3, 142.1, 1.25], [221.3, 142.1, -2.4]], buried: {cover_m: 1.0, basis: "D-038, D-048 (cover ASSUMED)"}}
+  - {line: CWS-1063, elevation: -2.4, buried: {cover_m: 1.0, basis: "D-038, D-048 (cover ASSUMED)"}}
+  - {line: CWR-1064, elevation: -2.4, via: [[206.214, 172.3, 0.4], [206.214, 171.0, 0.4], [206.214, 171.0, -2.4]], buried: {cover_m: 1.0, basis: "D-038, D-048 (cover ASSUMED)"}}
+  - {line: CWS-1074, elevation: -2.4, buried: {cover_m: 1.0, basis: "D-038, D-048 (cover ASSUMED)"}}
+  - {line: CWR-1075, elevation: -2.4, buried: {cover_m: 1.0, basis: "D-038, D-048 (cover ASSUMED)"}}
+  - {line: CWS-1085, elevation: -2.4, buried: {cover_m: 1.0, basis: "D-038, D-048 (cover ASSUMED)"}}
+  - {line: CWR-1086, elevation: -2.4, via: [[245.045, 149.5, 0.9], [245.045, 149.5, -2.4]], buried: {cover_m: 1.0, basis: "D-038, D-048 (cover ASSUMED)"}}
+  - {line: CWS-1091, elevation: -2.4, buried: {cover_m: 1.0, basis: "D-038, D-048 (cover ASSUMED)"}}
+  - {line: CWR-1092, elevation: -2.4, buried: {cover_m: 1.0, basis: "D-038, D-048 (cover ASSUMED)"}}
+  # E-503 (S11): supply lane y 106, return lane y 104.5, apart instead of side by side
+  - {line: CWS-1115, elevation: -2.4, via: [[233.959, 106.0, -2.4], [245.705, 106.0, -2.4]], buried: {cover_m: 1.0, basis: "D-038, D-048 (cover ASSUMED)"}}
+  - {line: CWR-1116, elevation: -2.4, via: [[236.625, 104.5, -2.4], [249.045, 104.5, -2.4]], buried: {cover_m: 1.0, basis: "D-038, D-048 (cover ASSUMED)"}}
+  # E-701 supply (S11): leaves its tee south to a lane at y 106.5, clear of the K-701 supply riser
+  - {line: CWS-1130, elevation: -2.4, via: [[296.822, 106.5, -2.4], [291.0, 106.5, -2.4]], buried: {cover_m: 1.0, basis: "D-038, D-048 (cover ASSUMED)"}}
+  - {line: CWR-1131, elevation: -2.4, buried: {cover_m: 1.0, basis: "D-038, D-048 (cover ASSUMED)"}}
+  # K-701 supply (S11): its tee lies east of the E-701 tee, its user west of E-701's: it
+  # crosses CWS-1130 square, 1 m over it, at x 293 instead of beside it along the header
+  - {line: CWS-1132, elevation: -2.4, via: [[291.057, 104.0, -1.4], [293.0, 104.0, -1.4]], buried: {cover_m: 1.0, basis: "D-038, D-048 (cover ASSUMED)"}}
+  - {line: CWR-1133, elevation: -2.4, buried: {cover_m: 1.0, basis: "D-038, D-048 (cover ASSUMED)"}}
+  - {line: CWS-1144, elevation: -3.8, buried: {cover_m: 1.0, basis: "D-038, D-048 (cover ASSUMED); road crossings R-5, R-6 accepted buried by the owner (I-006, D-041)"}}
+  - {line: CWR-1145, elevation: -3.8, buried: {cover_m: 1.0, basis: "D-038, D-048 (cover ASSUMED); road crossings R-5, R-6 accepted buried by the owner (I-006, D-041)"}}
   - {line: PC-1084, segment: P-113/Line_PC1084_S1, route: [[249.493, 164.531, 8.017], [288.683, 164.531, 8.017], [288.683, 164.531, 6.5], [288.683, 161, 6.5], [288.683, 161, 5.5], [289.833, 161, 5.5]]}
 notes: >-
   ASSUMED (D-036): battery limit points at the PR-1 ends; the CO2 vent stack is represented by
   its foot north-east of V-302. Furnace ductwork is skipped as package scope. Cooling water
-  (S9, D-038): headers and branches buried (depths ASSUMED), battery limits at the PR-1 west
-  (supply) and east (return) ends ASSUMED.
+  (S9, D-038; S11, D-048): headers (centreline 3.8 m below grade) and branches (2.4 m) buried,
+  declared `buried` with 1.0 m least cover (depths and cover ASSUMED), battery limits at the
+  PR-1 west (supply) and east (return) ends and the header dead ends ASSUMED.
