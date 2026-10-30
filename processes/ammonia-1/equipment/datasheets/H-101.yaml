@@ -1,0 +1,165 @@
+# Datasheet drafted by `cheme datasheets draft`, sized by `cheme datasheets fill` and completed by
+# scripts/complete_datasheets.py (DESIGN.md D-032). Preliminary process datasheet: every value
+# says where it comes from; assumed: true marks an assumption; `supplier` names what a vendor,
+# licensor or study still has to give. Checked by the authoring agent, not yet by an engineer.
+tag: H-101
+type: Furnace
+service: Primary reformer furnace (radiant and convection sections)
+operating:
+  inlet_pressure:
+    value: 104.0
+    unit: kPa(a)
+    source: 'process/flowsheet.yaml stream S64 (case design), assumed: D-014'
+    assumed: true
+  inlet_temperature:
+    value: 491.168
+    unit: K
+    source: 'process/flowsheet.yaml stream S64 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+    origin: simulated
+  inlet_flow:
+    value: 176411.0
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S64 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+    origin: simulated
+  case: design
+design:
+  pressure_barg:
+    value: supplier
+    unit: barg
+    source: firebox casing design pressure (draft, fan shut-off) by the furnace vendor
+    reason: firebox casing design pressure (draft, fan shut-off) by the furnace vendor
+  temperature_degc:
+    value: 1080.0
+    unit: degC
+    source: 'design temperature = maximum operating temperature + 28 K (50 degF of Towler and Sinnott,
+      Chemical Engineering Design, 2nd ed., 2013 / UOP and of Walas 1988, as summarised by the Northwestern
+      University Process Design wiki, ''Pressure Vessels''; at least Turton''s 25 degC), rounded up to
+      5 degC, D-032; maximum operating 1323.15 K: stream S65 (assumed: D-014: bridgewall temperature)'
+    assumed: true
+  note: above 345 degC the D-032 margin is a process allowance; the metal temperature (refractory, tube
+    wall, flue-gas side) is the vendor's
+materials:
+  main:
+    value: steel shell with internal refractory lining (by the vendor)
+    material_class: lined_steel
+    assumed: true
+    source: 'DESIGN.md D-032: preliminary material class by service (fired box: refractory-lined casing);
+      the materials selection review is open'
+dimensions:
+  overall_length:
+    value: 40.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.length
+  overall_width:
+    value: 20.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.width
+  overall_height:
+    value: 22.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.height
+nozzles:
+- name: B1
+  dn: 125
+  lines:
+  - FG-1010
+  source: pid/P-102.xml
+- name: B2
+  dn: 80
+  lines:
+  - FG-1002
+  source: pid/P-102.xml
+- name: B3
+  dn: 2400
+  lines:
+  - CA-1013
+  source: pid/P-102.xml
+- name: F1
+  dn: 4000
+  lines:
+  - FL-1014
+  source: pid/P-102.xml
+- name: N1
+  dn: 25
+  lines: []
+  source: pid/P-102.xml
+- name: N2
+  dn: 25
+  lines: []
+  source: pid/P-102.xml
+type_specific:
+  height_m:
+    value: 22.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  length_m:
+    value: 40.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  width_m:
+    value: 20.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  duty_kw:
+    value: 68616.0
+    unit: kW
+    source: absorbed radiant duty = R-101 duty Q9, process/simulation-run.json (case design, cheme process
+      simulate, DWSIM 9.0.5, Peng-Robinson, D-026) unit R101
+  process_streams:
+  - stream: S64
+    direction: in
+    title: Burner fuel and air
+    source: process/flowsheet.yaml (case design)
+  - stream: S65
+    direction: out
+    title: Flue gas leaving the radiant section
+    source: process/flowsheet.yaml (case design)
+  - stream: Q9
+    direction: out
+    title: Radiant heat to the reformer tubes
+    source: process/flowsheet.yaml (case design)
+  fired_duty_lhv_kw:
+    value: 121500.0
+    unit: kW
+    source: DESIGN.md D-014 (concept balance, about 121.5 MW fuel LHV; H101 is not simulated, D-024)
+    assumed: true
+  rating:
+    value: supplier
+    unit: ''
+    source: furnace vendor's radiant and convection design (burners, tube layout, efficiency)
+    reason: furnace vendor's radiant and convection design (burners, tube layout, efficiency)
+  mechanical_design:
+    value: supplier
+    unit: ''
+    source: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+    reason: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+  corrosion_allowance_mm:
+    value: supplier
+    unit: mm
+    source: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+    reason: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+  relief_protection:
+    value: supplier
+    unit: ''
+    source: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+    reason: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+sizing_basis:
+- parameter: sizing_scope
+  value: preliminary
+  reference: 'cheme datasheets fill: the values it writes are preliminary process sizing (short-cut methods,
+    declared or typical parameters), not a rating or a design to a code; not calculated: rating, mechanical
+    code, materials corrosion, relief, dynamics controls (docs/framework/sizing.md)'
+- parameter: design conditions
+  value: rule of D-032 on the item's operating streams
+  reference: DESIGN.md D-032
+notes: 'Fired with natural gas and HRU tail gas, 10 % excess O2, bridgewall 1323 K, stack 423 K; radiant
+  duty 68.4 MW (D-014). ASSUMED. Dimensions: the radiant box; the convection coils are listed and placed
+  as their own banks (D-022), ASSUMED.'

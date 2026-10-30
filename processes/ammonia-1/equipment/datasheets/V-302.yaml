@@ -1,0 +1,161 @@
+# Datasheet drafted by `cheme datasheets draft`, sized by `cheme datasheets fill` and completed by
+# scripts/complete_datasheets.py (DESIGN.md D-032). Preliminary process datasheet: every value
+# says where it comes from; assumed: true marks an assumption; `supplier` names what a vendor,
+# licensor or study still has to give. Checked by the authoring agent, not yet by an engineer.
+tag: V-302
+type: Vessel
+service: Regenerator reflux drum
+operating:
+  operating_pressure:
+    value: 150.0
+    unit: kPa(a)
+    source: CO2 regenerator pressure 150 kPa(a) (stream S28, D-009)
+    assumed: true
+  maximum_temperature:
+    value: 422.284
+    unit: K
+    source: 'bound of the aMDEA loop: E-202 process-gas outlet S22 422.28 K (calculated, D-026); the kettle
+      pool boils below it (D-032)'
+    assumed: true
+  case: design
+design:
+  pressure_barg:
+    value: 2.5
+    unit: barg
+    source: 'design pressure = max(1.10 x, +1.7 bar over) the maximum operating gauge pressure, rounded
+      up to 0.5 bar (heuristic ''10 % or 10-25 psi, whichever is greater'' of Walas, Chemical Process
+      Equipment, 1988, Rules of Thumb, and Turton et al., 4th ed., 2012, as summarised by the Northwestern
+      University Process Design wiki, ''Pressure Vessels''; the books were not read; the upper end 1.7
+      bar taken), D-032; maximum operating 150 kPa(a): CO2 regenerator pressure 150 kPa(a) (stream S28,
+      D-009)'
+    assumed: true
+  temperature_degc:
+    value: 180.0
+    unit: degC
+    source: 'design temperature = maximum operating temperature + 28 K (50 degF of Towler and Sinnott,
+      Chemical Engineering Design, 2nd ed., 2013 / UOP and of Walas 1988, as summarised by the Northwestern
+      University Process Design wiki, ''Pressure Vessels''; at least Turton''s 25 degC), rounded up to
+      5 degC, D-032; maximum operating 422.28 K: bound of the aMDEA loop: E-202 process-gas outlet S22
+      422.28 K (calculated, D-026); the kettle pool boils below it (D-032)'
+    assumed: true
+materials:
+  main:
+    value: austenitic stainless steel (grade by the materials review)
+    material_class: stainless_steel
+    assumed: true
+    source: 'DESIGN.md D-032: preliminary material class by service (wet CO2 condensate (carbonic acid
+      corrosion of carbon steel)); the materials selection review is open'
+dimensions:
+  orientation: vertical
+  outside_diameter:
+    value: 2.5
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.diameter
+  overall_height:
+    value: 5.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.height
+  tangent_length:
+    value: 3.0
+    unit: m
+    source: 'layout/plant-model.yaml part V-302/shell: the generated shell between the heads (the 3D model''s
+      proportions, not a vessel design)'
+    assumed: true
+  support:
+    height:
+      value: 1.375
+      unit: m
+      source: 'layout/plant-model.yaml parts V-302/shell, V-302/leg-1: the bottom tangent line above the
+        base (the 3D model''s proportions, not a design)'
+      assumed: true
+nozzles:
+- name: N1
+  dn: 1200
+  lines:
+  - CO2-1067
+  source: pid/P-106.xml
+- name: N2
+  dn: 900
+  lines:
+  - CO2-1068
+  source: pid/P-106.xml
+- name: N3
+  dn: 100
+  lines:
+  - PC-1069
+  source: pid/P-106.xml
+- name: N4
+  dn: 25
+  lines:
+  - DW-1073
+  source: pid/P-106.xml
+- name: N5
+  dn: 50
+  lines: []
+  source: pid/P-106.xml
+type_specific:
+  diameter_m:
+    value: 2.5
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  height_m:
+    value: 5.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  volume_m3:
+    value: 14.73
+    unit: m3
+    source: 'cheme datasheets fill: pi/4 D^2 L, D 2.5 m (dimensions.outside_diameter), L 3 m (dimensions.tangent_length);
+      the cylindrical shell between the tangent lines, heads not included; over the outside diameter:
+      an upper bound of the shell'
+    assumed: true
+    fingerprint: 0f0b8dd7d368a80b
+    inputs:
+    - datasheet:dimensions.orientation
+    - datasheet:dimensions.inside_diameter
+    - datasheet:dimensions.outside_diameter
+    - datasheet:dimensions.tangent_length
+    - datasheet:dimensions.overall_length
+    - datasheet:dimensions.overall_height
+    - datasheet:type_specific.diameter_m
+    - datasheet:type_specific.length_m
+    - datasheet:type_specific.height_m
+  rating:
+    value: supplier
+    unit: ''
+    source: vendor's thermal, hydraulic or machine rating on these process conditions (not calculated
+      by cheme-as-code, docs/framework/sizing.md)
+    reason: vendor's thermal, hydraulic or machine rating on these process conditions (not calculated
+      by cheme-as-code, docs/framework/sizing.md)
+  mechanical_design:
+    value: supplier
+    unit: ''
+    source: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+    reason: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+  corrosion_allowance_mm:
+    value: supplier
+    unit: mm
+    source: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+    reason: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+  relief_protection:
+    value: supplier
+    unit: ''
+    source: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+    reason: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+sizing_basis:
+- parameter: sizing_scope
+  value: preliminary
+  reference: 'cheme datasheets fill: the values it writes are preliminary process sizing (short-cut methods,
+    declared or typical parameters), not a rating or a design to a code; not calculated: rating, mechanical
+    code, materials corrosion, relief, dynamics controls (docs/framework/sizing.md)'
+- parameter: design conditions
+  value: rule of D-032 on the item's operating streams
+  reference: DESIGN.md D-032
+notes: About 150 kPa(a); CO2 (S28) to the vent stack on PIC-1505, condensate as reflux, make-up water
+  (S26) added here (D-028). Dimensions ASSUMED (D-028).

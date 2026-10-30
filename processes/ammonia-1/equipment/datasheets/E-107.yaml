@@ -1,0 +1,182 @@
+# Datasheet drafted by `cheme datasheets draft`, sized by `cheme datasheets fill` and completed by
+# scripts/complete_datasheets.py (DESIGN.md D-032). Preliminary process datasheet: every value
+# says where it comes from; assumed: true marks an assumption; `supplier` names what a vendor,
+# licensor or study still has to give. Checked by the authoring agent, not yet by an engineer.
+tag: E-107
+type: TubularHeatExchanger
+service: Convection steam coil
+operating:
+  inlet_pressure:
+    value: 100.5
+    unit: kPa(a)
+    source: 'process/flowsheet.yaml stream S84 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+    origin: simulated
+  inlet_temperature:
+    value: 406.893
+    unit: K
+    source: 'process/flowsheet.yaml stream S84 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+    origin: simulated
+  inlet_flow:
+    value: 176411.0
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S84 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+    origin: simulated
+  case: design
+design:
+  pressure_barg:
+    value: 49.5
+    unit: barg
+    source: 'design pressure = max(1.10 x, +1.7 bar over) the maximum operating gauge pressure, rounded
+      up to 0.5 bar (heuristic ''10 % or 10-25 psi, whichever is greater'' of Walas, Chemical Process
+      Equipment, 1988, Rules of Thumb, and Turton et al., 4th ed., 2012, as summarised by the Northwestern
+      University Process Design wiki, ''Pressure Vessels''; the books were not read; the upper end 1.7
+      bar taken), D-032; governing side bfw: 4600 kPa(a) from MP steam system 4600 kPa(a) (design basis
+      utilities, D-015)'
+    assumed: true
+  bfw_pressure_barg:
+    value: 49.5
+    unit: barg
+    source: design pressure = max(1.10 x, +1.7 bar over) the maximum operating gauge pressure, rounded
+      up to 0.5 bar (heuristic '10 % or 10-25 psi, whichever is greater' of Walas, Chemical Process Equipment,
+      1988, Rules of Thumb, and Turton et al., 4th ed., 2012, as summarised by the Northwestern University
+      Process Design wiki, 'Pressure Vessels'; the books were not read; the upper end 1.7 bar taken),
+      D-032; 4600 kPa(a) from MP steam system 4600 kPa(a) (design basis utilities, D-015)
+    assumed: true
+  flue_gas_pressure_barg:
+    value: supplier
+    unit: barg
+    source: 'flue-gas side: part of the H-101 convection casing, designed for draft by the furnace vendor'
+    reason: 'flue-gas side: part of the H-101 convection casing, designed for draft by the furnace vendor'
+  temperature_degc:
+    value: 165.0
+    unit: degC
+    source: 'design temperature = maximum operating temperature + 28 K (50 degF of Towler and Sinnott,
+      Chemical Engineering Design, 2nd ed., 2013 / UOP and of Walas 1988, as summarised by the Northwestern
+      University Process Design wiki, ''Pressure Vessels''; at least Turton''s 25 degC), rounded up to
+      5 degC, D-032; maximum operating 406.89 K: flue gas inlet S84 (calculated): the boiler feed water
+      stays below it'
+    assumed: true
+materials:
+  main:
+    value: carbon steel (grade by the materials review)
+    material_class: carbon_steel
+    assumed: true
+    source: 'DESIGN.md D-032: preliminary material class by service (boiler feed water and flue gas below
+      150 degC); the materials selection review is open'
+dimensions:
+  overall_length:
+    value: 4.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.length
+  overall_width:
+    value: 14.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.width
+  overall_height:
+    value: 12.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.height
+nozzles:
+- name: F1
+  dn: 2400
+  lines:
+  - FL-1019
+  source: pid/P-102.xml
+- name: F2
+  dn: 2400
+  lines:
+  - FL-1020
+  source: pid/P-102.xml
+- name: P1
+  dn: 200
+  lines:
+  - BW-1024
+  source: pid/P-102.xml
+- name: P2
+  dn: 200
+  lines:
+  - BW-1025
+  source: pid/P-102.xml
+type_specific:
+  height_m:
+    value: 12.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  length_m:
+    value: 4.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  width_m:
+    value: 14.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  duty_kw:
+    value: 589.5
+    unit: kW
+    source: process/flowsheet.yaml Q8 (calculated; the duty specified in process/simulation.yaml E107
+      is the concept balance's, D-014, D-024)
+    assumed: true
+  area_m2:
+    value: supplier
+    unit: m2
+    source: the boiler-feed-water side belongs to the lumped steam system U-801 (D-015) and its temperatures
+      are not modelled; flue gas 406.9 K in (S84, calculated) and 396.7 K stack (simulated, D-026; S66
+      keeps the assumed 423.15 K); area by the furnace vendor with the BFW conditions
+    reason: the boiler-feed-water side belongs to the lumped steam system U-801 (D-015) and its temperatures
+      are not modelled; flue gas 406.9 K in (S84, calculated) and 396.7 K stack (simulated, D-026; S66
+      keeps the assumed 423.15 K); area by the furnace vendor with the BFW conditions
+  process_streams:
+  - stream: S84
+    direction: in
+    title: Flue gas after the combustion air preheater
+    source: process/flowsheet.yaml (case design)
+  - stream: S66
+    direction: out
+    title: Flue gas leaving the convection section
+    source: process/flowsheet.yaml (case design)
+  - stream: Q8
+    direction: out
+    title: E-107 convection steam coil to steam system
+    source: process/flowsheet.yaml (case design)
+  rating:
+    value: supplier
+    unit: ''
+    source: vendor's thermal, hydraulic or machine rating on these process conditions (not calculated
+      by cheme-as-code, docs/framework/sizing.md)
+    reason: vendor's thermal, hydraulic or machine rating on these process conditions (not calculated
+      by cheme-as-code, docs/framework/sizing.md)
+  mechanical_design:
+    value: supplier
+    unit: ''
+    source: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+    reason: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+  corrosion_allowance_mm:
+    value: supplier
+    unit: mm
+    source: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+    reason: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+  relief_protection:
+    value: supplier
+    unit: ''
+    source: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+    reason: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+sizing_basis:
+- parameter: sizing_scope
+  value: preliminary
+  reference: 'cheme datasheets fill: the values it writes are preliminary process sizing (short-cut methods,
+    declared or typical parameters), not a rating or a design to a code; not calculated: rating, mechanical
+    code, materials corrosion, relief, dynamics controls (docs/framework/sizing.md)'
+- parameter: design conditions
+  value: rule of D-032 on the item's operating streams
+  reference: DESIGN.md D-032
+notes: '0.6 MW, the convection heat left after the process coils (D-014). Dimensions: coil bank of the
+  convection section, ASSUMED (D-022).'

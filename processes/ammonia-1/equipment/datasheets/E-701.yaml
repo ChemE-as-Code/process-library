@@ -1,0 +1,246 @@
+# Datasheet drafted by `cheme datasheets draft`, sized by `cheme datasheets fill` and completed by
+# scripts/complete_datasheets.py (DESIGN.md D-032). Preliminary process datasheet: every value
+# says where it comes from; assumed: true marks an assumption; `supplier` names what a vendor,
+# licensor or study still has to give. Checked by the authoring agent, not yet by an engineer.
+tag: E-701
+type: TubularHeatExchanger
+service: Refrigerant condenser
+operating:
+  S88_in_pressure:
+    value: 110
+    unit: kPa(a)
+    source: 'process/flowsheet.yaml stream S88 (case design), assumed: design basis, D-002'
+    assumed: true
+  S88_in_temperature:
+    value: 238.7
+    unit: K
+    source: 'process/flowsheet.yaml stream S88 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  S88_in_flow:
+    value: 7274.49
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S88 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  S89_out_pressure:
+    value: 1700
+    unit: kPa(a)
+    source: 'process/flowsheet.yaml stream S89 (case design), assumed: D-017'
+    assumed: true
+  S89_out_temperature:
+    value: 313.15
+    unit: K
+    source: 'process/flowsheet.yaml stream S89 (case design), assumed: D-017: condensing at 313 K'
+    assumed: true
+  S89_out_flow:
+    value: 7274.52
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S89 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  case: design
+design:
+  pressure_barg:
+    value: 18.0
+    unit: barg
+    source: 'design pressure = max(1.10 x, +1.7 bar over) the maximum operating gauge pressure, rounded
+      up to 0.5 bar (heuristic ''10 % or 10-25 psi, whichever is greater'' of Walas, Chemical Process
+      Equipment, 1988, Rules of Thumb, and Turton et al., 4th ed., 2012, as summarised by the Northwestern
+      University Process Design wiki, ''Pressure Vessels''; the books were not read; the upper end 1.7
+      bar taken), D-032; governing side refrigerant: 1700 kPa(a) from flash-gas stages discharge 1700
+      kPa(a) condensing here (Q33, D-017), above the refrigerant''s settle-out 1554.5 kPa(a) at 313.15
+      K'
+    assumed: true
+  refrigerant_pressure_barg:
+    value: 18.0
+    unit: barg
+    source: design pressure = max(1.10 x, +1.7 bar over) the maximum operating gauge pressure, rounded
+      up to 0.5 bar (heuristic '10 % or 10-25 psi, whichever is greater' of Walas, Chemical Process Equipment,
+      1988, Rules of Thumb, and Turton et al., 4th ed., 2012, as summarised by the Northwestern University
+      Process Design wiki, 'Pressure Vessels'; the books were not read; the upper end 1.7 bar taken),
+      D-032; 1700 kPa(a) from flash-gas stages discharge 1700 kPa(a) condensing here (Q33, D-017), above
+      the refrigerant's settle-out 1554.5 kPa(a) at 313.15 K
+    assumed: true
+  cooling_water_pressure_barg:
+    value: supplier
+    unit: barg
+    source: 'cooling-water side design pressure: the site cooling-water system''s design pressure (owner''s
+      utility specification; the design basis gives temperatures only, D-012)'
+    reason: 'cooling-water side design pressure: the site cooling-water system''s design pressure (owner''s
+      utility specification; the design basis gives temperatures only, D-012)'
+  temperature_degc:
+    value: 70.0
+    unit: degC
+    source: 'design temperature = maximum operating temperature + 28 K (50 degF of Towler and Sinnott,
+      Chemical Engineering Design, 2nd ed., 2013 / UOP and of Walas 1988, as summarised by the Northwestern
+      University Process Design wiki, ''Pressure Vessels''; at least Turton''s 25 degC), rounded up to
+      5 degC, D-032; maximum operating 313.15 K: condensing 313.15 K (D-017)'
+    assumed: true
+  minimum_design_metal_temperature_degc:
+    value: -50.0
+    unit: degC
+    source: 'minimum design metal temperature = minimum operating temperature - 14 K (25 degF, Towler
+      and Sinnott 2013 as summarised by the Northwestern Process Design wiki, Pressure Vessels), rounded
+      down to 5 degC, D-032; minimum operating 238.70 K: flash gas S88 238.7 K (calculated)'
+    assumed: true
+materials:
+  main:
+    value: carbon steel (grade by the materials review)
+    material_class: carbon_steel
+    assumed: true
+    source: 'DESIGN.md D-032: preliminary material class by service (ammonia refrigerant condensing at
+      40 degC); the materials selection review is open'
+dimensions:
+  orientation: horizontal
+  outside_diameter:
+    value: 2.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.diameter
+  overall_length:
+    value: 10.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.length
+  tangent_length:
+    value: 8.3
+    unit: m
+    source: 'layout/plant-model.yaml part E-701/shell: the generated shell between the heads (the 3D model''s
+      proportions, not a vessel design)'
+    assumed: true
+  axis_deg:
+    value: 0.0
+    unit: deg
+    source: layout/plant-model.yaml E-701 rotation_deg (layout/equipment-placement.yaml)
+nozzles:
+- name: T1
+  dn: 700
+  lines:
+  - CWR-1131
+  source: pid/P-111.xml
+- name: T2
+  dn: 700
+  lines:
+  - CWS-1130
+  source: pid/P-111.xml
+- name: S1
+  dn: 450
+  lines:
+  - AG-1122
+  source: pid/P-111.xml
+- name: S2
+  dn: 200
+  lines:
+  - AL-1123
+  source: pid/P-111.xml
+type_specific:
+  diameter_m:
+    value: 2.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  length_m:
+    value: 10.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  duty_kw:
+    value: 35807.1
+    unit: kW
+    source: Q28 refrigerant condenser (assumed, scripts/packages_on_simulated_duties.py, D-026) + Q33
+      flash-gas intercooler and condenser (calculated, process/simulation-run.json (case design, cheme
+      process simulate, DWSIM 9.0.5, Peng-Robinson, D-026) unit K702 cooling_kW)
+    assumed: true
+  area_m2:
+    value: 4628.0
+    unit: m2
+    source: 'A = Q / (U LMTD) = 35807.1 kW / (850 x 9.10 K), no margin, by scripts/complete_datasheets.py:
+      the linked flowsheet nodes (K702, K701) are the flash-gas compressor''s, so cheme datasheets fill
+      would take the wrong sides; same method applied here; DESIGN.md D-032'
+    assumed: true
+  process_streams:
+  - stream: S88
+    direction: in
+    title: Product flash gas
+    source: process/flowsheet.yaml (case design)
+  - stream: S89
+    direction: out
+    title: Compressed and condensed flash gas (two-phase)
+    source: process/flowsheet.yaml (case design)
+  - stream: Q25
+    direction: in
+    title: E-504 chiller duty
+    source: process/flowsheet.yaml (case design)
+  - stream: Q26
+    direction: in
+    title: V-701 product chilling duty
+    source: process/flowsheet.yaml (case design)
+  - stream: Q32
+    direction: in
+    title: K-701 flash gas stages, shaft power
+    source: process/flowsheet.yaml (case design)
+  - stream: Q33
+    direction: out
+    title: K-701 flash gas intercooler and condenser (E-701)
+    source: process/flowsheet.yaml (case design)
+  - stream: Q34
+    direction: in
+    title: Receiver vent chiller duty
+    source: process/flowsheet.yaml (case design)
+  - stream: Q27
+    direction: in
+    title: K-701 refrigeration compressor power
+    source: process/flowsheet.yaml (case design)
+  - stream: Q28
+    direction: out
+    title: E-701 refrigerant condenser duty
+    source: process/flowsheet.yaml (case design)
+  - stream: Q30
+    direction: in
+    title: Recovered NH3 chilling duty
+    source: process/flowsheet.yaml (case design)
+  lmtd_k:
+    value: 9.1
+    unit: K
+    source: LMTD counter-current, hot 313.15 -> 313.15 K (ammonia condensing, D-017), cold 298.15 -> 308.15
+      K (cooling water, D-012); DESIGN.md D-032
+    assumed: true
+  overall_u_w_m2k:
+    value: 850.0
+    unit: W/(m2 K)
+    source: 'design typical, middle of 700-1000: Sinnott, Coulson & Richardson''s Chemical Engineering
+      Vol. 6, 4th ed. (2005), Table 12.1, condenser/organic-vapours-water (the row table of cheme datasheets
+      fill --list); DESIGN.md D-032'
+    assumed: true
+  rating:
+    value: supplier
+    unit: ''
+    source: vendor's thermal, hydraulic or machine rating on these process conditions (not calculated
+      by cheme-as-code, docs/framework/sizing.md)
+    reason: vendor's thermal, hydraulic or machine rating on these process conditions (not calculated
+      by cheme-as-code, docs/framework/sizing.md)
+  mechanical_design:
+    value: supplier
+    unit: ''
+    source: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+    reason: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+  corrosion_allowance_mm:
+    value: supplier
+    unit: mm
+    source: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+    reason: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+  relief_protection:
+    value: supplier
+    unit: ''
+    source: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+    reason: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+sizing_basis:
+- parameter: sizing_scope
+  value: preliminary
+  reference: 'cheme datasheets fill: the values it writes are preliminary process sizing (short-cut methods,
+    declared or typical parameters), not a rating or a design to a code; not calculated: rating, mechanical
+    code, materials corrosion, relief, dynamics controls (docs/framework/sizing.md)'
+- parameter: design conditions
+  value: rule of D-032 on the item's operating streams
+  reference: DESIGN.md D-032
+notes: 34.7 MW to cooling water, condensing about 313 K (D-017). Dimensions ASSUMED (D-022).

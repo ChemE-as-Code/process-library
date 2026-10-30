@@ -1,0 +1,225 @@
+# Datasheet drafted by `cheme datasheets draft`, sized by `cheme datasheets fill` and completed by
+# scripts/complete_datasheets.py (DESIGN.md D-032). Preliminary process datasheet: every value
+# says where it comes from; assumed: true marks an assumption; `supplier` names what a vendor,
+# licensor or study still has to give. Checked by the authoring agent, not yet by an engineer.
+tag: E-106
+type: TubularHeatExchanger
+service: Combustion air preheater (flue gas)
+operating:
+  S62_cold_in_pressure:
+    value: 106.3
+    unit: kPa(a)
+    source: 'process/flowsheet.yaml stream S62 (case design), assumed: D-014'
+    assumed: true
+  S62_cold_in_temperature:
+    value: 293.787
+    unit: K
+    source: 'process/flowsheet.yaml stream S62 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  S62_cold_in_flow:
+    value: 165407.0
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S62 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  S63_cold_out_pressure:
+    value: 105.0
+    unit: kPa(a)
+    source: 'process/flowsheet.yaml stream S63 (case design), assumed: D-014'
+    assumed: true
+  S63_cold_out_temperature:
+    value: 523.15
+    unit: K
+    source: 'process/flowsheet.yaml stream S63 (case design), assumed: D-014'
+    assumed: true
+  S63_cold_out_flow:
+    value: 165407.0
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S63 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  S83_hot_in_pressure:
+    value: 101.0
+    unit: kPa(a)
+    source: 'process/flowsheet.yaml stream S83 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  S83_hot_in_temperature:
+    value: 598.714
+    unit: K
+    source: 'process/flowsheet.yaml stream S83 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  S83_hot_in_flow:
+    value: 176411.0
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S83 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  S84_hot_out_pressure:
+    value: 100.5
+    unit: kPa(a)
+    source: 'process/flowsheet.yaml stream S84 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  S84_hot_out_temperature:
+    value: 406.893
+    unit: K
+    source: 'process/flowsheet.yaml stream S84 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  S84_hot_out_flow:
+    value: 176411.0
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S84 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  case: design
+design:
+  pressure_barg:
+    value: supplier
+    unit: barg
+    source: air preheater ducting and casing design pressure (draft, fan shut-off) by the vendor
+    reason: air preheater ducting and casing design pressure (draft, fan shut-off) by the vendor
+  temperature_degc:
+    value: 355.0
+    unit: degC
+    source: 'design temperature = maximum operating temperature + 28 K (50 degF of Towler and Sinnott,
+      Chemical Engineering Design, 2nd ed., 2013 / UOP and of Walas 1988, as summarised by the Northwestern
+      University Process Design wiki, ''Pressure Vessels''; at least Turton''s 25 degC), rounded up to
+      5 degC, D-032; maximum operating 598.71 K: stream S83 (calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR))'
+    assumed: true
+materials:
+  main:
+    value: carbon steel (grade by the materials review)
+    material_class: carbon_steel
+    assumed: true
+    source: 'DESIGN.md D-032: preliminary material class by service (air to 250 degC, flue gas from 326
+      degC; cold-end dew point to be checked by the vendor); the materials selection review is open'
+dimensions:
+  overall_length:
+    value: 4.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.length
+  overall_width:
+    value: 14.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.width
+  overall_height:
+    value: 12.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.height
+nozzles:
+- name: F1
+  dn: 2800
+  lines:
+  - FL-1018
+  source: pid/P-102.xml
+- name: F2
+  dn: 2400
+  lines:
+  - FL-1019
+  source: pid/P-102.xml
+- name: P1
+  dn: 1800
+  lines:
+  - CA-1012
+  source: pid/P-102.xml
+- name: P2
+  dn: 2400
+  lines:
+  - CA-1013
+  source: pid/P-102.xml
+type_specific:
+  height_m:
+    value: 12.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  length_m:
+    value: 4.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  width_m:
+    value: 14.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  duty_kw:
+    value: 10728.6
+    unit: kW
+    source: process/simulation-run.json (case design, cheme process simulate, DWSIM 9.0.5, Peng-Robinson,
+      D-026) unit E106
+  area_m2:
+    value: 3842.0
+    unit: m2
+    source: 'A = Q / (U LMTD) = 10728.6 kW / (30 x 93.08 K), no margin, by scripts/complete_datasheets.py:
+      cheme datasheets fill (core v1.0.x) sizes an exchanger only from a linked node with one material
+      inlet and one outlet; this item is one two-stream exchanger node of the flowsheet, so the same method
+      (counter-current LMTD, Table 12.1 middle U, no margin) is applied here; DESIGN.md D-032'
+    assumed: true
+  process_streams:
+  - stream: S62
+    direction: in
+    title: Combustion air after FD fan
+    source: process/flowsheet.yaml (case design)
+  - stream: S63
+    direction: out
+    title: Preheated combustion air
+    source: process/flowsheet.yaml (case design)
+  - stream: S83
+    direction: in
+    title: Flue gas after the natural gas coil
+    source: process/flowsheet.yaml (case design)
+  - stream: S84
+    direction: out
+    title: Flue gas after the combustion air preheater
+    source: process/flowsheet.yaml (case design)
+  u_service: exchanger/gases-gases
+  arrangement: counter-current
+  lmtd_k:
+    value: 93.08
+    unit: K
+    source: LMTD counter-current, hot 598.71 -> 406.89 K (S83 -> S84), cold 293.79 -> 523.15 K (S62 ->
+      S63); DESIGN.md D-032
+    assumed: true
+  overall_u_w_m2k:
+    value: 30.0
+    unit: W/(m2 K)
+    source: 'design typical, middle of 10-50: Sinnott, Coulson & Richardson''s Chemical Engineering Vol.
+      6, 4th ed. (2005), Table 12.1, exchanger/gases-gases (the row table of cheme datasheets fill --list);
+      DESIGN.md D-032'
+    assumed: true
+  rating:
+    value: supplier
+    unit: ''
+    source: vendor's thermal, hydraulic or machine rating on these process conditions (not calculated
+      by cheme-as-code, docs/framework/sizing.md)
+    reason: vendor's thermal, hydraulic or machine rating on these process conditions (not calculated
+      by cheme-as-code, docs/framework/sizing.md)
+  mechanical_design:
+    value: supplier
+    unit: ''
+    source: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+    reason: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+  corrosion_allowance_mm:
+    value: supplier
+    unit: mm
+    source: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+    reason: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+  relief_protection:
+    value: supplier
+    unit: ''
+    source: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+    reason: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+sizing_basis:
+- parameter: sizing_scope
+  value: preliminary
+  reference: 'cheme datasheets fill: the values it writes are preliminary process sizing (short-cut methods,
+    declared or typical parameters), not a rating or a design to a code; not calculated: rating, mechanical
+    code, materials corrosion, relief, dynamics controls (docs/framework/sizing.md)'
+- parameter: design conditions
+  value: rule of D-032 on the item's operating streams
+  reference: DESIGN.md D-032
+- parameter: typical overall coefficient
+  value: exchanger/gases-gases
+  reference: DESIGN.md D-032 (Sinnott, C&R Vol. 6, 4th ed., Table 12.1)
+notes: '288 -> 523 K, 11.0 MW (D-014). Type: recuperative tubular air preheater (class TubularHeatExchanger,
+  D-027; was AirCoolingSystem, an air-cooled exchanger), regenerative still open. Dimensions ASSUMED (D-022).'

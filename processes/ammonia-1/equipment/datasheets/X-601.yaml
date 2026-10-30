@@ -1,0 +1,278 @@
+# Datasheet drafted by `cheme datasheets draft`, sized by `cheme datasheets fill` and completed by
+# scripts/complete_datasheets.py (DESIGN.md D-032). Preliminary process datasheet: every value
+# says where it comes from; assumed: true marks an assumption; `supplier` names what a vendor,
+# licensor or study still has to give. Checked by the authoring agent, not yet by an engineer.
+tag: X-601
+type: Vessel
+service: 'Purge gas recovery unit (package: NH3 wash and distillation, cryogenic H2 recovery)'
+operating:
+  S57_in_pressure:
+    value: 1700.0
+    unit: kPa(a)
+    source: 'process/flowsheet.yaml stream S57 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  S57_in_temperature:
+    value: 252.639
+    unit: K
+    source: 'process/flowsheet.yaml stream S57 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  S57_in_flow:
+    value: 3952.0
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S57 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  S36_out_pressure:
+    value: 2850
+    unit: kPa(a)
+    source: 'process/flowsheet.yaml stream S36 (case design), assumed: D-013'
+    assumed: true
+  S36_out_temperature:
+    value: 303.15
+    unit: K
+    source: 'process/flowsheet.yaml stream S36 (case design), assumed: D-013'
+    assumed: true
+  S36_out_flow:
+    value: 690.462
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S36 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  S58_out_pressure:
+    value: 110
+    unit: kPa(a)
+    source: 'process/flowsheet.yaml stream S58 (case design), assumed: D-013'
+    assumed: true
+  S58_out_temperature:
+    value: 240.15
+    unit: K
+    source: 'process/flowsheet.yaml stream S58 (case design), assumed: D-013: chilled to the product temperature'
+    assumed: true
+  S58_out_flow:
+    value: 464.182
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S58 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  S59_tail_pressure:
+    value: 400
+    unit: kPa(a)
+    source: 'process/flowsheet.yaml stream S59 (case design), assumed: D-013'
+    assumed: true
+  S59_tail_temperature:
+    value: 303.15
+    unit: K
+    source: 'process/flowsheet.yaml stream S59 (case design), assumed: D-013'
+    assumed: true
+  S59_tail_flow:
+    value: 2797.35
+    unit: kg/h
+    source: 'process/flowsheet.yaml stream S59 (case design), calculated: cheme process simulate: DWSIM
+      9.0.5.0, Peng-Robinson (PR)'
+  case: design
+design:
+  pressure_barg:
+    value: 30.5
+    unit: barg
+    source: 'design pressure = max(1.10 x, +1.7 bar over) the maximum operating gauge pressure, rounded
+      up to 0.5 bar (heuristic ''10 % or 10-25 psi, whichever is greater'' of Walas, Chemical Process
+      Equipment, 1988, Rules of Thumb, and Turton et al., 4th ed., 2012, as summarised by the Northwestern
+      University Process Design wiki, ''Pressure Vessels''; the books were not read; the upper end 1.7
+      bar taken), D-032; maximum operating 2850 kPa(a): stream S36 (assumed: D-013)'
+    assumed: true
+  temperature_degc:
+    value: 60.0
+    unit: degC
+    source: 'design temperature = maximum operating temperature + 28 K (50 degF of Towler and Sinnott,
+      Chemical Engineering Design, 2nd ed., 2013 / UOP and of Walas 1988, as summarised by the Northwestern
+      University Process Design wiki, ''Pressure Vessels''; at least Turton''s 25 degC), rounded up to
+      5 degC, D-032; maximum operating 303.15 K: stream S36 (assumed: D-013)'
+    assumed: true
+  minimum_design_metal_temperature_degc:
+    value: -50.0
+    unit: degC
+    source: 'minimum design metal temperature = minimum operating temperature - 14 K (25 degF, Towler
+      and Sinnott 2013 as summarised by the Northwestern Process Design wiki, Pressure Vessels), rounded
+      down to 5 degC, D-032; minimum operating 240.15 K: stream S58 (assumed: D-013: chilled to the product
+      temperature)'
+    assumed: true
+materials:
+  main:
+    value: package materials by the vendor (cryogenic cold box)
+    material_class: other
+    assumed: true
+    source: 'DESIGN.md D-032: preliminary material class by service (below -29 degC minimum metal temperature:
+      impact-tested steel; cryogenic cold box); the materials selection review is open'
+dimensions:
+  overall_length:
+    value: 16.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.length
+  overall_width:
+    value: 10.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.width
+  overall_height:
+    value: 20.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions.height
+nozzles:
+- name: N1
+  dn: 25
+  lines:
+  - PG-1109
+  source: pid/P-112.xml
+- name: N2
+  dn: 40
+  lines:
+  - PG-1113
+  source: pid/P-112.xml
+- name: N3
+  dn: 40
+  lines:
+  - PG-1126
+  source: pid/P-112.xml
+- name: N4
+  dn: 65
+  lines:
+  - SL-1135
+  source: pid/P-112.xml
+- name: N5
+  dn: 25
+  lines:
+  - PC-1136
+  source: pid/P-112.xml
+- name: N6
+  dn: 50
+  lines:
+  - PG-1087
+  source: pid/P-112.xml
+- name: N7
+  dn: 125
+  lines:
+  - FG-1010
+  source: pid/P-112.xml
+- name: N8
+  dn: 25
+  lines:
+  - AL-1129
+  source: pid/P-112.xml
+- name: N9
+  dn: 25
+  lines:
+  - AL-1124
+  source: pid/P-112.xml
+- name: N10
+  dn: 25
+  lines:
+  - AG-1125
+  source: pid/P-112.xml
+type_specific:
+  height_m:
+    value: 20.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  length_m:
+    value: 16.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  width_m:
+    value: 10.0
+    unit: m
+    source: equipment/equipment-list.yaml dimensions
+  volume_m3:
+    value: supplier
+    unit: m3
+    source: 'package vendor''s design (the package is a lumped flowsheet step with specified performance):
+      NH3 wash, distillation and cold box (D-013)'
+    reason: 'package vendor''s design (the package is a lumped flowsheet step with specified performance):
+      NH3 wash, distillation and cold box (D-013)'
+  process_streams:
+  - stream: S57
+    direction: in
+    title: Purge recovery feed
+    source: process/flowsheet.yaml (case design)
+  - stream: S94
+    direction: in
+    title: Washed purge gas to the cold box
+    source: process/flowsheet.yaml (case design)
+  - stream: S94
+    direction: out
+    title: Washed purge gas to the cold box
+    source: process/flowsheet.yaml (case design)
+  - stream: S96
+    direction: in
+    title: Recovered ammonia from the wash distillation
+    source: process/flowsheet.yaml (case design)
+  - stream: S96
+    direction: out
+    title: Recovered ammonia from the wash distillation
+    source: process/flowsheet.yaml (case design)
+  - stream: S95
+    direction: in
+    title: Hydrogen-rich gas from the cold box
+    source: process/flowsheet.yaml (case design)
+  - stream: S95
+    direction: out
+    title: Hydrogen-rich gas from the cold box
+    source: process/flowsheet.yaml (case design)
+  - stream: S36
+    direction: out
+    title: Recovered hydrogen-rich gas
+    source: process/flowsheet.yaml (case design)
+  - stream: S58
+    direction: out
+    title: Recovered liquid ammonia
+    source: process/flowsheet.yaml (case design)
+  - stream: S59
+    direction: out
+    title: Tail gas to reformer fuel
+    source: process/flowsheet.yaml (case design)
+  - stream: Q35
+    direction: in
+    title: Hydrogen-rich gas compressor power (X-601)
+    source: process/flowsheet.yaml (case design)
+  - stream: Q29
+    direction: in
+    title: LP steam to purge recovery (NH3 distillation)
+    source: process/flowsheet.yaml (case design)
+  - stream: Q30
+    direction: out
+    title: Recovered NH3 chilling duty
+    source: process/flowsheet.yaml (case design)
+  rating:
+    value: supplier
+    unit: ''
+    source: vendor's thermal, hydraulic or machine rating on these process conditions (not calculated
+      by cheme-as-code, docs/framework/sizing.md)
+    reason: vendor's thermal, hydraulic or machine rating on these process conditions (not calculated
+      by cheme-as-code, docs/framework/sizing.md)
+  mechanical_design:
+    value: supplier
+    unit: ''
+    source: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+    reason: vendor's mechanical design to the code on the design conditions of this sheet (wall thickness,
+      MAWP, nozzle loads)
+  corrosion_allowance_mm:
+    value: supplier
+    unit: mm
+    source: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+    reason: corrosion allowance from the materials and corrosion review with the vendor; the material
+      class on this sheet is preliminary (D-032)
+  relief_protection:
+    value: supplier
+    unit: ''
+    source: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+    reason: 'relief study, section S8 (skill relief-scenarios): governing case, device and set pressure;
+      the devices drawn are listed in piping/special-items.yaml'
+sizing_basis:
+- parameter: sizing_scope
+  value: preliminary
+  reference: 'cheme datasheets fill: the values it writes are preliminary process sizing (short-cut methods,
+    declared or typical parameters), not a rating or a design to a code; not calculated: rating, mechanical
+    code, materials corrosion, relief, dynamics controls (docs/framework/sizing.md)'
+- parameter: design conditions
+  value: rule of D-032 on the item's operating streams
+  reference: DESIGN.md D-032
+notes: 'Recoveries NH3 0.99, H2 0.90, N2 0.25, Ar 0.15, CH4 0.05 (D-013). ASSUMED. Dimensions: package
+  plot with the cold box, ASSUMED (D-022).'
