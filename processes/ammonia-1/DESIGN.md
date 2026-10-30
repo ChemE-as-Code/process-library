@@ -1392,6 +1392,60 @@ Rejected: the EBTF gas again (C4/C5 components would need new reactions and comp
 owner allows a lean gas close to the current one); keeping the D-004 placeholder (not
 published).
 
+## D-041 The owner's acceptances of lifting lanes and buried road crossings (2026-10-30, S5c)
+Decision (owner's decision I-006, 2026-10-30; `checks/checks.yaml` `accept:`, each reason
+beginning `accepted_by: owner (I-006, 2026-10-30)`; the accept schema has only `id` and
+`reason`, so the acceptor is written into the reason):
+- **Lifting**: the eight lanes of build/lifting-acceptance-proposal.md (D-037), each with the
+  lifting plan's reason from that proposal: H-101, E-104, E-402, K-501, E-501, E-502, E-505,
+  E-504. The erection sequence clears them: each item is set before its own or the
+  neighbouring piping. Since the proposal, three lanes carry blockers added in S9. The reasons
+  name them for the owner's confirmation in the review: K-501 also crosses its own motor branch
+  tray PT-M-K-501, E-505 the cooling-water lines CWS-1115/CWR-1116 of the adjacent E-503, and
+  E-504 the instrument trunk IT-PR-7-3 on the PR-7 bents.
+- **Headroom**: the four `layout-headroom` findings of the buried DN 1400 cooling-water headers
+  CWS-1144 and CWR-1145 under roads R-5 and R-6 (D-038): buried crossings in a sleeve. The rule
+  has no notion of buried lines (core#70).
+
+Not accepted, open: the lanes of **K-101, K-102, K-103 and K-701**, blocked only by their motor
+branch trays PT-M-K-101, -102, -103 and -701 (S9). They cannot be cleared by design in core
+v1.0.0:
+- The lane (`engineering_rules.py`, `_lane`) runs from the pad over the whole item to its far
+  side. It counts every tray run above the item top + 0.5 m, except the last vertical drop of
+  the item's own tray.
+- A motor's branch tray (`trays.py`, `route`) runs at at least the branch elevation to above
+  the motor terminal and drops only there. The terminal is the motor's top, inside the item's
+  footprint, so the last horizontal run always lies over the item.
+- Even at the lowest possible elevation (the terminal + 0.5 m) the run is above the item top +
+  0.5 m: K-102's terminal is at 3.46 m and its top at 3.0 m.
+- No pad position, lane direction, tray tier or elevation changes this. The electrical list has
+  no field for a motor's cable entry point that would let the tray drop beside the machine
+  (core#73, open).
+So the gate lifting-study stays failing on these four lanes, by the owner's instruction (no
+acceptance) and by this core limit.
+
+## D-042 Project risk matrix, ASSUMED 5x5 (2026-10-30, S5c)
+Decision: `safety/risk-matrix.yaml` is now the project matrix ammonia-1-5x5. It is ASSUMED,
+`example: false`, `status: accepted`, accepted_by `owner (I-006, 2026-10-30), assumed for the
+paper case`. Five likelihood levels A-E are order-of-magnitude frequencies per year of the
+scenario at this plant (below 1e-3, 1e-3 to 1e-2, 1e-2 to 1e-1, 1e-1 to 1, 1 or more). Five
+severity levels for people, environment, asset and reputation run from first aid to multiple
+fatalities. There are four bands: low, medium (ALARP), high (action), very high (intolerable,
+action).
+Reason: the owner allows an assumed matrix close to industry practice. Its form follows the
+published 5x5 risk assessment matrix practice with people, assets, environment and reputation
+and likelihood A-E (Sakhalin Energy, Managing Risk Standard 0000-S-90-04-O-0006-00-E Appendix 5
+Rev 07, pp. 1 and 8). The decades make the HAZOP's credit rule (one credited independent trip
+lowers one code) equal to an IPL with a PFD of at most 0.1, the upper edge of SIL 1 in IEC
+61511-1:2016 Table 4. Codes A-D and 1-4 keep the meanings of the example matrix, so the 117
+proposed ratings stay valid. Every band is unchanged except people/environment severity 4 at
+C and D, which go from high to very high.
+Result: `cheme safety hazop rate H-01 --write` gives 12 low, 41 medium, 48 high and 16 very high.
+Every entry stays `status: proposed` and the study stays a draft. The study's two
+`hazop-input-changed` warnings (control/loops.yaml: setpoints only, D-040; and
+piping/special-items.yaml from S8) are for the HAZOP team to reassess before re-stamping. They
+were not stamped here.
+
 ## 3. Results of this stage (design case)
 
 Basic stage, S2 (the simulated flowsheet, D-026; lca/inventory.csv regenerated): per kg of NH3
