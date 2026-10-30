@@ -49,6 +49,9 @@ def main():
     mat = run(["cheme", "maturity"], plant).stdout
     levels = re.findall(r"^(sourced|balanced|predictive|engineering): .* -- (\w+)$", mat, re.M)
     reached = [lv for lv, verdict in levels if verdict == "ok"]
+    calc = re.search(r"^calculation maturity: (\w+)", mat, re.M)  # the summary line of cheme v1
+    if calc:
+        reached = [calc.group(1)]
     sev = {"critical": "", "high": "", "medium": "", "low": ""}
     if a.findings:  # "c,h,m,l": the new findings of this review as its own summary states them
         sev = dict(zip(sev, a.findings.split(",")))
