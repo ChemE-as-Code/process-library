@@ -1,0 +1,57 @@
+# Electrical rooms, motors and junction boxes (skill electrical-cabling, S9, D-039).
+# Schema: `cheme schema electrical`. Every voltage, rating and the motor powers marked assumed
+# are ASSUMED until the electrical engineer's load list and the machine vendors' data.
+schema: cheme/electrical/v1
+substations:
+  - {id: SS-1, title: Main substation (grid intake), building: ECB-1, incoming_kv: 150,
+     notes: "ASSUMED: grid connection at 150 kV for about 38 MW of motor load (D-039)."}
+transformers:
+  - {tag: TR-1, substation: SS-1, rating_kva: 50000, primary_kv: 150, secondary_v: 10000, feeds: [SWG-1],
+     notes: "ASSUMED: two 50 MVA units, each able to carry the plant (one on standby)."}
+  - {tag: TR-2, substation: SS-1, rating_kva: 50000, primary_kv: 150, secondary_v: 10000, feeds: [SWG-1]}
+  - {tag: TR-3, substation: SS-1, rating_kva: 2500, primary_kv: 10, secondary_v: 400, feeds: [MCC-1],
+     notes: "ASSUMED: two 2.5 MVA units for the 400 V MCC (one on standby)."}
+  - {tag: TR-4, substation: SS-1, rating_kva: 2500, primary_kv: 10, secondary_v: 400, feeds: [MCC-1]}
+rooms:
+  - {id: SWG-1, kind: switchgear, title: 10 kV switchgear room, building: ECB-1, substation: SS-1, voltage_v: 10000}
+  - {id: MCC-1, kind: mcc, title: 400 V motor control centre, building: ECB-1, substation: SS-1, voltage_v: 400}
+  - {id: RR-1, kind: rack_room, title: Instrument rack room (DCS and SIS marshalling), building: ECB-1}
+  - {id: CR-1, kind: control, title: Control room, building: ECB-1}
+defaults:
+  lv_room: MCC-1
+  mv_room: SWG-1
+  control_room: RR-1
+  lv_voltage_v: 400
+  mv_voltage_v: 10000
+  mv_above_kw: 250
+motors:
+  # compressors and fans: the gas power the datasheet calculates (`fluid_power_kw`); the shaft
+  # power is the supplier's, so the motor rating is ASSUMED equal to it (mechanical and motor
+  # losses of a few per cent left out; it sizes the trays only)
+  - {driven: K-101, power_kw: 8567.9, assumed: true, source: "equipment/datasheets/K-101.yaml fluid_power_kw (calculated, S7); shaft power by the supplier"}
+  - {driven: K-102, power_kw: 260.0, assumed: true, source: "equipment/datasheets/K-102.yaml fluid_power_kw; shaft power by the supplier"}
+  - {driven: K-103, power_kw: 402.9, assumed: true, source: "equipment/datasheets/K-103.yaml fluid_power_kw; shaft power by the supplier"}
+  - {driven: K-501, power_kw: 12722.9, assumed: true, source: "equipment/datasheets/K-501.yaml fluid_power_kw; shaft power by the supplier"}
+  - {driven: K-502, power_kw: 1609.4, assumed: true, source: "equipment/datasheets/K-502.yaml fluid_power_kw; shaft power by the supplier"}
+  - {driven: K-701, power_kw: 11128.2, assumed: true, source: "equipment/datasheets/K-701.yaml fluid_power_kw; shaft power by the supplier"}
+  # pumps: the datasheet's shaft power where it has one
+  - {driven: P-301A, power_kw: 1539.5, assumed: true, source: "equipment/datasheets/P-301A.yaml shaft_power_kw (ASSUMED there, Q17)"}
+  - {driven: P-301B, power_kw: 1539.5, assumed: true, source: "equipment/datasheets/P-301B.yaml shaft_power_kw (ASSUMED there, Q17)"}
+  - {driven: P-801, power_kw: 344.1, assumed: true, source: "equipment/datasheets/P-801.yaml shaft_power_kw (calculated, S7)"}
+  # reflux pumps: no power on the datasheet (reflux rate by the aMDEA licensor, I-06); estimate
+  # 7.6 kW = 992 kg/m3 x 9.81 x 0.00854 m3/s x 50 m / 0.55, the reflux taken as one mole of
+  # water per mole of the 74,528 kg/h CO2 vented (S28; the DESIGN.md overhead assumption),
+  # 50 m head and 0.55 efficiency ASSUMED
+  - {driven: P-302A, power_kw: 7.6, assumed: true, source: "estimate D-039 (reflux 30.5 t/h from S28 and 1 mol H2O/mol CO2, 50 m head, efficiency 0.55, all ASSUMED)"}
+  - {driven: P-302B, power_kw: 7.6, assumed: true, source: "estimate D-039, as P-302A"}
+instruments:
+  # instruments on the furnace package ductwork, whose ducts are skipped in the routing (D-036):
+  # their points on the ducts ASSUMED from the item positions
+  - {tag: AIC-1109, point: [116.0, 168.0, 3.0], notes: "flue gas duct FL-1020, E-107 to the ID fan K-103"}
+  - {tag: FIC-1110, point: [90.0, 149.0, 3.0], notes: "preheated combustion air duct CA-1013, E-106 to the H-101 burners"}
+  - {tag: TI-1111, point: [81.0, 160.0, 15.0], notes: "flue gas duct FL-1014, H-101 radiant box to the convection section"}
+  - {tag: TI-1112, point: [123.0, 168.0, 2.0], notes: "flue gas duct FL-1021, K-103 to the stack"}
+notes: >-
+  ASSUMED (D-039): 10 kV for motors above 250 kW, 400 V below; one switchgear room and one MCC
+  in ECB-1; instrument cables to the rack room RR-1 through the junction boxes the build
+  proposes per area (to be decided by the instrument engineer).

@@ -1,0 +1,32 @@
+# Ventilation of the clad buildings (skill hvac-ducts, S9, D-039). Schema: `cheme schema hvac`.
+# Supply air per room from an ASSUMED heat load to remove at a 10 K rise:
+# flow = load / (1.2 kg/m3 x 1.006 kJ/(kg K) x 10 K), i.e. 298 m3/h per kW. The heat loads are
+# screening values (ASSUMED) until the switchgear, MCC, DCS/SIS vendors give their losses and
+# the HVAC engineer sizes the cooling; the rooms are kept above ambient (extract 0.9 of supply).
+schema: cheme/hvac/v1
+units:
+  - {id: AHU-1, title: Air handling unit of ECB-1, building: ECB-1, position: [73, 91], rotation_deg: 90,
+     capacity_m3h: 12000, intake: LV-IN, exhaust: LV-EX,
+     notes: "ASSUMED capacity (MCC-1, RR-1 and CR-1 take 9,840 m3/h) and default size 4 x 2 x 2.2 m."}
+  # the switchgear room at the far (west) end has a unit of its own: from AHU-1 its mains found
+  # no way past the MCC room's ducts
+  - {id: AHU-2, title: Air handling unit of the switchgear room, building: ECB-1, position: [43, 91], rotation_deg: 90,
+     capacity_m3h: 8000, intake: LV-IN2, exhaust: LV-EX2,
+     notes: "ASSUMED capacity (SWG-1 takes 5,960 m3/h) and default size 4 x 2 x 2.2 m."}
+rooms:
+  - {id: SWG-1, title: 10 kV switchgear room, building: ECB-1, extent: [40, 82, 54, 100], flow_m3h: 5960,
+     extract_fraction: 0.9, unit: AHU-2,
+     basis: "ASSUMED heat load 20 kW (switchgear panel losses) at 10 K rise: 298 m3/h per kW (D-039)"}
+  - {id: MCC-1, title: 400 V motor control centre, building: ECB-1, extent: [54, 82, 64, 100], flow_m3h: 4470,
+     extract_fraction: 0.9, unit: AHU-1,
+     basis: "ASSUMED heat load 15 kW (MCC and LV transformer-side losses) at 10 K rise (D-039)"}
+  - {id: RR-1, title: Instrument rack room, building: ECB-1, extent: [64, 82, 70, 91], flow_m3h: 2980,
+     extract_fraction: 0.9, unit: AHU-1,
+     basis: "ASSUMED heat load 10 kW (DCS, SIS and marshalling cabinets) at 10 K rise (D-039)"}
+  - {id: CR-1, title: Control room, building: ECB-1, extent: [64, 91, 70, 100], flow_m3h: 2390,
+     extract_fraction: 0.9, unit: AHU-1,
+     basis: "ASSUMED heat load 8 kW (consoles, lighting, up to six operators) at 10 K rise; kept above ambient (D-039)"}
+notes: >-
+  ASSUMED (D-039): one air handling unit in the plant room at the east end of ECB-1 (x 70-76),
+  outdoor air by louvre LV-IN (east wall), exhaust by LV-EX (south wall); package duct
+  velocity limits.

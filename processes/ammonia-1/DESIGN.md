@@ -1289,6 +1289,40 @@ clear) and fail gate layout-detail and, since S9, gate layout-3d; they are not a
 (44 more `layout-support-missing` infos). The K-101, K-501 and K-701 CW supply and return
 nozzles coincide in the model (P&ID-side placement), left as they are.
 
+## D-039 Electrical and control building, cabling and ventilation (2026-10-30, S9)
+Decision: one electrical and control building ECB-1 (36 x 18 x 5 m, use substation) in the
+reserved area A-900 (D-022), 6 m south of the PR-1 strip (x 40-76, y 82-100), with the 10 kV
+switchgear SWG-1 (motors above 250 kW), the 400 V MCC-1, the rack room RR-1 (DCS/SIS marshalling,
+the instrument cables' room) and the control room CR-1 (`layout/building.yaml`,
+`electrical/electrical-list.yaml`). Grid intake SS-1 at 150 kV with two 50 MVA 150/10 kV and two
+2.5 MVA 10/0.4 kV transformers, each pair one running and one standby. Motor ratings: the
+datasheets' gas power for the compressors and fans (their shaft power is the supplier's), the
+datasheets' shaft power for P-301A/B and P-801, and for the reflux pumps P-302A/B an estimate of
+7.6 kW (reflux 30.5 t/h = one mole of water per mole of the 74,528 kg/h CO2 vented, S28, as
+D-028's overhead assumption; 50 m head and pump efficiency 0.55 ASSUMED). The four instruments
+on the furnace package ducts (AIC-1109, FIC-1110, TI-1111, TI-1112) are given points on the
+skipped ducts. Junction boxes are the build's proposals per area (review_needed). Ventilation
+(`layout/hvac.yaml`): AHU-1 (east plant room) for MCC-1, RR-1 and CR-1, AHU-2 at the west end for
+SWG-1 (from AHU-1 its ducts found no way past the MCC room's), supply air from ASSUMED heat
+loads at a 10 K rise (298 m3/h per kW: SWG-1 20 kW, MCC-1 15 kW, RR-1 10 kW, CR-1 8 kW), rooms
+kept above ambient (extract 0.9 of supply), louvres sized for the package face velocity. AM-1062
+(P-301B discharge) runs at 4.5 m over the P-301A motor's cable drop.
+Reason: S9, gates electrical and hvac. 10 kV is the usual voltage for multi-megawatt
+compressor motors; the voltages, ratings, heat loads, building size and position are ASSUMED
+until the electrical, instrument and HVAC engineers' load lists and the vendors' data.
+Results and limits: 274 cables in `electrical/cable-schedule.*` (11 motor cables, the rest
+instrument pairs); gate hvac passes. Gate electrical fails on 8 `layout-tray-fill` findings:
+the power trunk on PR-1 carries the three multi-megawatt motors' 10 kV cables (2-3 x 3C x 300
+mm2 each, package catalogue sizes) and is 53-54 % full at the largest 900 mm width (limit 30 %);
+core v1.0.0 lays one power tray per rack (`trays.py`, one `tiers` elevation per rack), so the
+second tray beside it that the finding asks for cannot be declared, and raising the fill limit
+would relax the criterion. Not accepted. Also open (warnings, not gate criteria): 19
+`layout-tray-span` (branch and room trays running more than 6 m with no steel within 1 m; a
+T-post under a tray does not count as tray support in core v1.0.0, so cable bridges or tray
+supports are a structural item) and 4 more `layout-lifting` findings (K-101, K-102, K-103,
+K-701: the motor branch tray runs over the machine; the electrical list has no motor cable entry
+point to feed it from the side).
+
 ## 3. Results of this stage (design case)
 
 Basic stage, S2 (the simulated flowsheet, D-026; lca/inventory.csv regenerated): per kg of NH3
