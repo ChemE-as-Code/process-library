@@ -63,16 +63,12 @@ the slugs other processes already use:
 
 ### 4. Optional, as the process matures
 
-<details>
-<summary><strong>An engineering project</strong> in the same folder</summary>
+#### An engineering project in the same folder
 
 Start one with `cheme init`, then add P&IDs, the process YAML, the layout and the LCA. The
 catalog derives its sheets, gates, design basis and LCA results.
 
-</details>
-
-<details>
-<summary><strong>An LCI dataset</strong>, its mappings, gaps and allocation</summary>
+#### An LCI dataset, its mappings, gaps and allocation
 
 - The dataset is `lca/dataset.yaml`, written by `cheme assess lca --write`, or hand-written
   `lca/datasets/*.yaml`.
@@ -90,26 +86,18 @@ catalog derives its sheets, gates, design basis and LCA results.
   [docs/system-model.md](docs/system-model.md), often a curated `allocation:` entry in the
   mappings. Recycling or energy-recovery outputs need a `cutoff_exclusions:` decision.
 
-</details>
-
-<details>
-<summary><strong>Markets</strong> for the products other processes consume</summary>
+#### Markets for the products other processes consume
 
 Add the process as a supplier of the product's market in `markets/<substance>.yaml` (or a new
 market), with its production volume and the transport and losses to the consumer, each with a
 source or marked ASSUMED ([docs/markets.md](docs/markets.md)). An Atlas input whose grade has no
 market is linked at the plant gate, which is a build warning.
 
-</details>
-
-<details>
-<summary><strong>Benchmarks</strong> for its LCI dataset</summary>
+#### Benchmarks for its LCI dataset
 
 A public process needs at least two KPIs in `benchmarks/<family>.yaml`, each with a range from a
 cited open source or a recorded `no_open_reference` ([docs/benchmarks.md](docs/benchmarks.md)).
 Never invent a range.
-
-</details>
 
 ### 5. Check
 
@@ -173,9 +161,8 @@ What the public build contains:
   spans directories, `*` stays in one, and a plain name is the file at the folder root (for
   example `DESIGN.md` or `docs/private/**`).
 
-> [!IMPORTANT]
-> Everything else in the folder, including `README.md` and `DESIGN.md`, is published as text:
-> write it for the public, or exclude it.
+> **Important:** everything else in the folder, including `README.md` and `DESIGN.md`, is
+> published as text: write it for the public, or exclude it.
 
 ```yaml
 publication: {status: public, license: CC-BY-4.0, exclude: ["docs/private/**"]}
