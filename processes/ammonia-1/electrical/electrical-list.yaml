@@ -27,13 +27,27 @@ defaults:
 motors:
   # compressors and fans: the gas power the datasheet calculates (`fluid_power_kw`); the shaft
   # power is the supplier's, so the motor rating is ASSUMED equal to it (mechanical and motor
-  # losses of a few per cent left out; it sizes the trays only)
-  - {driven: K-101, power_kw: 8567.9, assumed: true, source: "equipment/datasheets/K-101.yaml fluid_power_kw (calculated, S7); shaft power by the supplier"}
-  - {driven: K-102, power_kw: 260.0, assumed: true, source: "equipment/datasheets/K-102.yaml fluid_power_kw; shaft power by the supplier"}
-  - {driven: K-103, power_kw: 402.9, assumed: true, source: "equipment/datasheets/K-103.yaml fluid_power_kw; shaft power by the supplier"}
-  - {driven: K-501, power_kw: 12722.9, assumed: true, source: "equipment/datasheets/K-501.yaml fluid_power_kw; shaft power by the supplier"}
+  # losses of a few per cent left out; it sizes the trays only).
+  # cable_entry (S5e, D-046): the tray ends beside the machine, on the side its tray arrives
+  # from and away from the crane lane, and the cable drops from there to the terminal box. No
+  # datasheet gives the terminal-box side (motor and train dimensions ASSUMED, D-022), so the
+  # side is ASSUMED; the vendor's terminal-box drawing replaces it.
+  - {driven: K-101, power_kw: 8567.9, assumed: true, source: "equipment/datasheets/K-101.yaml fluid_power_kw (calculated, S7); shaft power by the supplier",
+     cable_entry: {side: east, clearance_m: 3.0, elevation_m: 4.5},
+     notes: "cable_entry ASSUMED: east end of the train (the motor end the model puts the terminal at), facing the PR-3 tray; 3 m out from the east side, so the tray's drop from 11 m stays outside the lane from CP-107, which runs about 13 degrees off north and is 15 m wide (at the default clearance its corner reached into it); tray end at 4.5 m, below the 5 m machine top and the 4.8 m terminal box (cable entering from below) (D-046)"}
+  - {driven: K-102, power_kw: 260.0, assumed: true, source: "equipment/datasheets/K-102.yaml fluid_power_kw; shaft power by the supplier",
+     cable_entry: {side: south},
+     notes: "cable_entry ASSUMED: south side, facing the PR-2 tray, away from crane pad CP-106 to the north (D-046)"}
+  - {driven: K-103, power_kw: 402.9, assumed: true, source: "equipment/datasheets/K-103.yaml fluid_power_kw; shaft power by the supplier",
+     cable_entry: {side: east},
+     notes: "cable_entry ASSUMED: east side, facing the PR-3 tray, beside the north-south lane from crane pad CP-107 (D-046)"}
+  - {driven: K-501, power_kw: 12722.9, assumed: true, source: "equipment/datasheets/K-501.yaml fluid_power_kw; shaft power by the supplier",
+     cable_entry: {side: north, offset_m: 4.25, elevation_m: 5.5},
+     notes: "cable_entry ASSUMED: north side at the motor end, facing the PR-7 tray, away from crane pad CP-501 to the south-east; tray end at 5.5 m, below the 6 m machine top and the 5.75 m terminal box (cable entering from below), so the diagonal lane passes over it (at the 6.35 m default the 0.6 m tray reached 6.65 m, into the lane) (D-046)"}
   - {driven: K-502, power_kw: 1609.4, assumed: true, source: "equipment/datasheets/K-502.yaml fluid_power_kw; shaft power by the supplier"}
-  - {driven: K-701, power_kw: 11128.2, assumed: true, source: "equipment/datasheets/K-701.yaml fluid_power_kw; shaft power by the supplier"}
+  - {driven: K-701, power_kw: 11128.2, assumed: true, source: "equipment/datasheets/K-701.yaml fluid_power_kw; shaft power by the supplier",
+     cable_entry: {side: north, offset_m: 3.2, elevation_m: 4.5},
+     notes: "cable_entry ASSUMED: north side at the motor end, facing the PR-7 tray, away from crane pad CP-701 to the south-east; tray end at 4.5 m, below the 5 m machine top and the 4.8 m terminal box (cable entering from below), so the diagonal lane passes over it (D-046)"}
   # pumps: the datasheet's shaft power where it has one
   - {driven: P-301A, power_kw: 1539.5, assumed: true, source: "equipment/datasheets/P-301A.yaml shaft_power_kw (ASSUMED there, Q17)"}
   - {driven: P-301B, power_kw: 1539.5, assumed: true, source: "equipment/datasheets/P-301B.yaml shaft_power_kw (ASSUMED there, Q17)"}

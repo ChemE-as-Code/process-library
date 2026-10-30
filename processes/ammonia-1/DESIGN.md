@@ -1627,6 +1627,85 @@ Result:
 - `cheme.tea-class-stage` warns because `plant.yaml` still says stage concept until the basic
   sign-off. The class 4 claim belongs to this basic-stage branch.
 
+## D-046 Motor cable entry points; crane lanes cleared by design (2026-10-30, S5e)
+Context: D-041 left gate lifting-study failing on the lanes of K-101, K-102, K-103 and K-701.
+Each was blocked only by the machine's own motor branch tray, which core v1.0.0 always ran over
+the machine to its terminal box. The owner did not accept these lanes and asked for a design fix
+(I-007). Core v1.1.0 adds a motor's `cable_entry` in `electrical/electrical-list.yaml` (core#73,
+ADR 0035): the tray ends beside the machine and the cable drops from there to the terminal box.
+Three lanes the owner accepted in I-006 had picked up blockers in S9 that the acceptance does not
+name: K-501 its motor tray PT-M-K-501, E-505 the cooling-water lines CWS-1115/CWR-1116 of E-503,
+and E-504 the instrument trunk IT-PR-7-3 on PR-7.
+
+Decision:
+- **Cable entry points**, all ASSUMED. No datasheet gives a terminal-box side: the machine and
+  motor dimensions are ASSUMED (D-022). Each entry is on the side the tray arrives from, away from
+  the crane pad. The tray end sits below the machine top, so the cable enters the terminal box
+  from below and the load passes over the tray:
+  - K-101: east side (the motor end, towards PR-3), 3 m out, at 4.5 m. The CP-107 lane runs
+    about 13 degrees off north and is 15 m wide. At the default clearance the tray's drop from
+    11 m reached into the lane, and the lift went to CP-103 at a 22.8 m radius.
+  - K-102: south side (towards PR-2); pad CP-106 is to the north.
+  - K-103: east side (towards PR-3), beside the north-south lane from CP-107.
+  - K-501: north side at the motor end (offset 4.25 m, towards PR-7), at 5.5 m. At the default
+    6.35 m the 0.6 m tray reached 6.65 m, above the 6.5 m lift level of the diagonal lane from
+    CP-501.
+  - K-701: north side at the motor end (offset 3.2 m), at 4.5 m. At the default the lift fell
+    back to CP-506 at the 40 m reach limit.
+- **E-505**: E-503's cooling-water nozzles S1 and S2 are radial, pointing north
+  (`equipment-placement.yaml`). The lines leave below the shell top and go straight down to
+  their buried branches, instead of rising over the shell into E-505's lane. Crane pad CP-505
+  moves 0.5 m north (y 82.3 to 92.3), clear of the nozzle leads; otherwise
+  `layout-zone-crossing` CWR-1116/CP-505.
+- **E-504**: no tray on PR-7 can leave a lane that crosses PR-7 itself. So the lane no longer
+  crosses the rack:
+  - New crane pad CP-507 (x 219-229, y 59-68), on open ground west of E-504 between PR-7 and
+    E-502. No pipe, tray or duct passes over it, and it does not overlap a rack, structure or
+    building.
+  - E-504 moves 1 m north to (235, 61). Its 4 m wide lane from the west then clears the PR-7
+    columns at y 58 instead of grazing them (the first try at y 60 named PR-7 bents 10 and 11).
+  - CP-507 is also the nearest pad for E-502 and E-505, which now lift from it.
+
+Result (`layout/lifting-study.md`):
+- **Lane clear**: K-101 from CP-107 (radius 11.2 m), K-102 from CP-106 (7.5 m), K-103 from
+  CP-107 (7.5 m), K-701 from CP-701 (20.6 m, lift height 5.2 m over its tray end).
+- **Blocked, within the owner's I-006 acceptance**: all the S9 extra blockers are gone. Each
+  remaining blocker is named in the accepted reason (D-041):
+  - K-501: PG-1088, PG-1089, PG-1090.
+  - E-505 (now from CP-507): PG-1108, PG-1109.
+  - E-504 (from CP-507, radius 11.3 m instead of 25.2 m): AG-1118, AG-1125, AL-1117, AL-1124,
+    PG-1093, PG-1109. No rack steel, no tray, no SM-1101 or loop pipe nest any more.
+  - E-502 (now from CP-507): PG-1095 only.
+- The "Note (S5c)" sentences in those accept reasons describe the S9 blockers, now cleared. The
+  reasons are the owner's words and are left as written. Nothing new is accepted, and no
+  acceptance was removed.
+- Gates lifting-study and layout-3d pass. Apart from the four K lanes and one tray-span finding
+  (PT-M-K-102) removed, the build findings are the same as before.
+
+Quantities:
+- The motor cables grow 0.6-1.2 m each: the drop from the tray end is counted as cable.
+- The instrument cables of the moved P-110/P-111 lines and of the proposed junction boxes
+  (JB-1, JB-2, JB-A-700-1; still `review_needed`) shift by a few metres. IC-PI-2004 moves from
+  JB-A-700-1 to JB-1, and IC-TI-2303 from JB-1 to JB-2.
+- MTO: DN 350 pipe -8.2 m (the shorter E-503 cooling-water lines), DN 25 elbows -8; other DNs
+  within 1 m.
+- Bulk estimate total: 99,494.68 to 99,423.38 (example rates, currency XXX; -0.07 %).
+- The LCA results are unchanged (only the take-off fingerprint in `lca/dataset.yaml`). The TEA
+  is on the equipment estimate (D-045) and is unchanged.
+
+Not covered, for the lifting plan (competent person, crane contractor):
+- How a crane reaches CP-507. ASSUMED: under PR-7, whose lowest tier is at 6 m, or through the
+  loop area from road R-6.
+- Whether a crane of about 205 t needed capacity (E-504) can set up on the 10 m x 9 m pad, and
+  the ground bearing.
+- The motor terminal-box sides and heights, from the vendors' drawings.
+
+Rejected:
+- Accepting any lane: the owner asked for design fixes (I-007).
+- Bringing the motor cables in at grade: there are no cable trenches in the model, and a tray end
+  beside the machine is what core#73 provides.
+- Moving the instrument trunk IT-PR-7-3 off PR-7: the rack itself was in E-504's old lane.
+
 ## 3. Results of this stage (design case)
 
 Basic stage, S5c (the D-040 feed, re-simulated; lca/inventory.csv regenerated): per kg of NH3
