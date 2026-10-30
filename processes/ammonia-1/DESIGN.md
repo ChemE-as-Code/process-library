@@ -773,6 +773,16 @@ a drum low-low trip; BFW pump spare; machine protection (seal, lube oil, vibrati
 K-501, K-502 and K-701 inside the vendor packages; no loop pressure control (the loop floats on
 the conversion, the purge is set by the operator); no analyser on the feed gas; no turndown case
 in the flowsheet, so part-load behaviour of the loops is not checked; SIL screening (S6).
+Open for the HAZOP (S6), added in the S5r fix (reviews 2026-10-29-design#2, #3, #5; no
+interlock is proposed here because each needs sensors and valves that the P&IDs do not draw yet,
+and the HAZOP is to decide whether it is wanted): (1) a converter R-501 bed high-high
+temperature trip on TI-1805..TI-1808 (catalyst damage, hot spot and hydrogen attack of the
+15 MPa shell), and the K-502 and K-701 trips that D-029 left for S4 and that S4 did not add;
+(2) gas blow-by from V-502 (2500 kPa(a)) into V-701 (110 kPa(a)) on loss of the V-502 level:
+LV-1907 failing closed and PSV-2010 are the only layers, unlike I-107 on the V-501 let-down;
+either a V-502 low-low trip (LZ and an XV on the liquid outlet) or PSV-2010 sized for the full
+LV-1907 gas capacity (S8), with the reason; (3) the same question for V-201 into the process
+condensate system (LIC-1307 failing closed is the only layer; I-104 alarms only).
 Reason: S4 of runs/plan.md.
 Rejected: a loop pressure controller on the make-up (K-501 capacity) without a turndown case to
 size it; a separate H2/N2 controller acting directly on FV-1201 (it would fight the ratio);
@@ -960,7 +970,749 @@ Rejected: set pressures above the design pressure; crediting I-105, I-107 or I-1
 load; resizing relief lines without orifice and back-pressure calculations; a full-bore bound
 for the blow-by cases (the line bore of LV-1405, DN 600, would give a meaningless rate).
 
+## D-036 Basic 3D layout, zones, lifting study, take-off and TEA gate (2026-10-29, S5)
+Numbering: written as D-031 on stage/basic-layout; renumbered D-036 (and the crane-lane
+decision D-033 to D-037) when main, which had given D-031 to the HAZOP and D-033 to the relief
+study, was merged into the branch (2026-10-30). The review and run records of S5/S5b
+(`reviews/2026-10-29-*`, `reviews/2026-10-30-*-s5b*`, `reviews/2026-10-30-*-r3`, `runs/`)
+keep the old numbers: there D-031 means D-036 and D-033 means D-037.
+Decision, racks: the concept rack PR-1 (D-022) left most nozzles more than the 30 m rack reach
+from it (34 `direct` fallback routes, 6 process lines unrouted, 98 clash and headroom findings).
+Area racks in a comb on PR-1 (`layout/site-plan.yaml`, positions, widths and tiers ASSUMED):
+PR-2 (A-100, east-west at y 142 between the reactor row and the furnace), PR-3 (A-100 east edge to
+K-101), PR-4 (A-200, east-west at y 162 between the exchanger row and the columns, over R-6 to
+PR-5), PR-8 (A-200 east edge), PR-5 (A-800, west of U-801, 8 m, three tiers), PR-6 (PR-1 to the
+south rack at the west edge of A-500), PR-7 (south rack at y 55 through A-600, A-500 and A-700,
+over R-5 and R-6), PR-10 (west connector from PR-7 over PR-1 to PR-2, east of X-601), PR-11
+(S5r fix, review 2026-10-29-layout#2: east connector from PR-7, extended to x 338, up to PR-1 at
+the east edge of A-700; the A-500/A-700 exports had run west to PR-6 and back east on PR-1:
+AL-1128 432 -> 77 m; the rerouted PC-1048 and PC-1084 met BD-1141, BW-1025 and SM-1040 in A-800
+and are pinned clear of them; pipe 10,875 -> 10,687 m, steel 539 -> 554 t). East-west
+racks carry their tiers at 6/8(/10) m, north-south racks at 7/9(/11) m, so lines change
+elevation where they change direction; bent spacings are chosen so that no bent stands in a
+road or among the lanes of a rack it joins. Moved for them: K-101 9 m west, E-301 3.5 m north,
+V-502 3 m south. Toppling (1 x height, D-022) is kept as a criterion to the main rack PR-1 only
+(measured: C-301 58.5 m, R-501 29.2 m, X-601 41.0 m); the area racks stand next to the columns
+as in a rack-type layout (C-301 to PR-4 7.5 m, R-501 to PR-7 15.2 m, X-601 to PR-7 2.0 m): open
+for the QRA and the owner's spacing standard.
+Decision, routing (`piping/routing.yaml`): battery limits at the PR-1 ends (natural gas and
+demineralised water west; NH3 product, steam export, blowdown and the flare header east;
+ASSUMED: the flare, storage and utilities are outside the boundary, D-001); the CO2 vent stack
+represented by its foot north-east of V-302; FLR-1146 starts at V-201, its first tie-in (the line
+list's "relief valves" left the header with no end to start from); the furnace ductwork
+(CA-1012, CA-1013, FL-1014 to FL-1021, DN 1800-4000) skipped as package scope (the coil banks
+stand in the flue gas duct, D-022); nozzle orientations of U-801, H-101, the convection banks,
+E-202, E-301, V-201 and X-601 set towards their racks (ASSUMED until vendor drawings); vias for
+AM-1061 and PA-1022, the relief lines PG-1119/PG-1120/AG-1134 at 9.6 m over the vessel
+platforms, the CO2 vent and relief outlets raised clear of the platforms (`vents`); six
+routes pinned after review, four of them corrected by hand where they met another line at a
+rack junction (NG-1001, BD-1141, SL-1135, PC-1136; the comments in the file say where).
+Result: every DN 25+ process line routed or skipped with a reason; no pipe, steel, equipment or
+headroom clash; 186 generated and 6 pinned pipes, 10,875 m of pipe in the take-off; 3 chains
+still `direct`/`rack+direct` without a clash (review). Utilities (cooling water) stay unrouted
+for the detail gate.
+Decision, access: the platforms the build proposed for nozzles and valves above 2.5 m are
+declared at their elevations; arcs stop 8 degrees short of a pipe crossing them below 2.1 m;
+the top platforms of V-201, V-501 and V-701 lowered under the pipes leaving their heads (6.0,
+5.8, 5.8 m); three low platforms that served only a piped flange left out (C-301 N6, C-302 N4,
+R-501 N2: mobile platform). Left as review findings, not gate items: 31 operability, 11 escape
+ways (one ladder on long platforms), 13 access-blocked, 74 free-span and 63 support-missing.
+Decision, zones (`layout/zones.yaml`, screening, radii from the package table, ASSUMED):
+zone 2 around the K-501/K-502 and K-701 seals (ammonia drawn as flammable gas until the
+competent person decides) and the natural gas flanges of V-101/R-100; an oxygen-deficient zone
+around the CO2 vent CO2-1068 and the CO2 relief outlet CO2-1076. Not a classification.
+S5r fix (review 2026-10-29-layout#4): zone 2 also at the flanges and valves of the synthesis
+loop (R-501, E-501..E-505, V-501, V-502 at its let-down valve), the purge gas recovery X-601
+and the ammonia items V-701 and E-701, same table and grade; the rebuilt model reports no zone
+finding. S5r fix round 2 (review 2026-10-29-layout#4): the H-101 fuel-gas (FG-1002: PV-1101,
+XV-1102) and tail-gas (FG-1010: XV-1105) valve trains get zone 2 Z-HAZ-FUEL with the burner
+inlet nozzles H-101/B2 and H-101/B1 as their sources (a line source must have an open end, so
+the line numbers cannot be used); same table and grade, ASSUMED until the burner-management
+package places its trains; no zone finding after the rebuild.
+S5r fix round 2 (review 2026-10-29-layout-r2#1): the pins of PC-1048 (P-113) and PC-1084
+(P-113) fall towards U-801 without a pocket: PC-1048 stays at 9.07 m from the PR-1 tier
+change to the north-south run (the 6 cm low point at 9.01 m is gone); PC-1084 drops from its
+8.0 m run to 6.5 m below the A-800 lines instead of rising to 9.5 m, then to its 5.5 m nozzle
+(1.5 m high point gone); no clash. The older hand pins of layout#8 are unchanged.
+Decision, lifting: screening empty weights for every item (`scripts/estimate_weights.py`:
+thin-wall shell at 1.1 x operating pressure, CS 138 MPa, factors for internals; envelope
+densities for machines and packages; lift weights for the field-erected furnace and the
+packages; all ASSUMED), 14 crane pads (40 m working radius, no crane chosen) and 12 laydowns
+within 30 m of their pads. S5r fix (review 2026-10-29-design#4): the shell pressure is now the
+higher of the item's notes and the design-case pressures of the streams at the flowsheet step
+linked to it alone (both sides for an exchanger, the outlets for a vessel fed through a let-down
+valve; a step standing for several items, CO2R, is not used), so the loop exchangers are taken
+at 14,750-15,500 kPa(a) (E-501 167.5 t instead of 13.0 t, E-502 168.8 t, E-504 133.0 t) and the
+shift, methanation and prereformer items at 2950-4150 kPa(a). S5r fix (review
+2026-10-29-layout#1): E-401 had no pad within reach; CP-204 added between PR-1 and E-401.
+`layout/lifting-study.*`: every heavy item now has a pad and a laydown; **26 lanes are blocked**
+by piping (often the item's own connections, E-401 by PC-1083 and PG-1079, V-701 by AL-1128 and
+AL-1129 since they leave east to PR-11) or neighbours over
+the item (H-101 by R-101 on its roof: an erection-sequence question the rule cannot see). Not
+accepted: the gate `lifting-study` fails until the lifting plan reroutes or sequences them.
+Decision, cost: `estimate/mto.*` written (gate `mto` passes). What the take-off leaves out
+(S5r, review 2026-10-29-layout#3), so that no estimate reads it as complete: pipe classes and
+insulation (the line list carries no `pressure_class` or `insulation` yet, so every pipe is
+`bare` without a class, including the cold liquid ammonia AL-1128 and the hot reformed-gas and
+waste-heat lines; classes and insulation by service come with the line list revision and
+`piping/pipe-specs.yaml` at the datasheets, S7); the cooling water headers (unrouted until the
+detail gate); the furnace ductwork CA-1012, CA-1013, FL-1014..FL-1021 (package scope); small
+bore below DN 25, supports and the field-run vents and drains. Until then a bulk estimate built on
+it must carry these as allowances, not as zero. The class 4 estimate is **not
+done**: the bulk take-off has no sourced unit rates (`estimate/rates.yaml` is still the example),
+and the equipment estimate (`cheme assess equipment`) covers 13 of 52 items, purchased cost only:
+exchanger areas, compressor fluid powers, fan flows, pump powers and materials come with the
+datasheets (S7), and no CEPCI value with an exact source was found in this job. The TEA keeps
+the class 5 capital of D-023. Gate `tea` enabled as the template documents it; the vented CO2
+and the flue gas are listed `free` (their CO2 is charged under `emissions:`, a price would count
+it twice). The three utilities without a price (open since D-023 and review
+2026-10-29-concept#2) are priced in the S5r fix on this design's premises, all ASSUMED, no quote:
+demineralised water 2.0 EUR/t bought at the battery limit (swing 0.5-2.0); heat to cooling water
+-2.85 EUR/MWh, the cooling tower's operating cost outside the boundary (pump 40 m at 0.75 and
+fans at 150 Pa and 0.65 for the D-012 10 K rise, 0.0173 MWh(e) per MWh at the feed:POWER price,
+plus make-up at 5 cycles of concentration and 0.60 EUR/t raw water including treatment; the
+calculation is in the price's source); blowdown `free`, ASSUMED to go to the cooling-tower make-up
+outside the boundary. The LCOP rises from 738.6 to 748.2 EUR/t.
+Reason: S5 of runs/plan.md; review 2026-10-29-design#1 (a).
+
+## D-037 Crane lanes cleared by design (2026-10-30, S5b)
+Decision: of the 26 lanes blocked in S5, 15 are cleared by layout changes, without accepting
+any:
+- **13 crane pads beside the items**, on their clear side, so that the lane runs over the item
+  only. They were searched with core's own lane rule (`scripts/pad_search.py`, provenance only,
+  run with `cheme run scripts/pad_search.py`; it was in the ignored build/ until the S5b fix,
+  design-s5b#3). The pads are CP-105 (E-103), CP-106 (K-102), CP-107 (K-103),
+  CP-108 (E-105), CP-205 (R-201), CP-206 (R-401), CP-207 (E-201), CP-208 (E-202), CP-209
+  (E-203), CP-210 (E-401), CP-504 (K-502), CP-505 (E-503) and CP-506 (V-502). Each is 10 x 10 m
+  on open ground (no rack, structure, building, equipment or pipe below 4 m in plan), and each
+  is ASSUMED like the S5 pads.
+- **Laydowns**: LD-104 (beside CP-107, for K-101 and K-103) and LD-204 (beside CP-205, for
+  R-201) are new. LD-202 moved 18 m east and LD-503's west edge moved 6 m east, so that no
+  laydown lies on a pad.
+- **PG-1120** (V-502 relief to the flare header) now runs at x = 246 m, west of V-501, instead
+  of over it (piping/routing.yaml).
+- **E-504** was tried 2 m north, which cleared the PR-7 bents from its lane, but the reroute
+  that followed put PG-1107 under the V-501 platform (`layout-headroom`). It stays at
+  (235, 60).
+
+S5b fix (review layout-s5b#1, #2): three of the 11 lanes left were blocked by small routed
+lines, not by the item's own piping, and are now cleared by re-routing them:
+- **AL-1129** (DN 25 recovered NH3 from X-601) leaves PR-7 at x = 326 m, east of V-701, and drops
+  to the T1129 tee at grade, instead of running north along the drum's crown at 8.85 m. New pad
+  CP-703 (8 x 8 m) south of V-701 between PR-7 and the drum.
+- **DW-1073** (DN 25 DMW make-up) leaves PR-4 at x = 230.5 m, east of X-401, runs north at
+  sleeper height (0.6 m) and reaches V-302 from the north, instead of running north at 8.85 m
+  over E-301, E-302 and E-303. New pads CP-211 (E-301) and CP-212 (E-303), 8 x 8 m, between the
+  exchanger row and X-401.
+- **LD-204** moved 2.5 m east, off access road R-5 (x 152-158).
+The build reports no clash or headroom finding after the change; the two lines get the
+generic free-span support proposals (layout#8 kind, detail).
+
+The 8 lanes left are blocked by the item's own piping, the adjacent exchanger's piping, the
+PR-7 bents (E-504) or, for H-101, its own catalyst tubes and headers. `scripts/pad_search.py`
+finds no open-ground pad that clears them; only the erection sequence does: H-101, E-104,
+E-402, K-501, E-501, E-502, E-505, E-504. E-402's blockers PG-1056 and PG-1077 are process
+lines between C-301, E-401 and E-402, a larger re-route than a utility via.
+They are listed for the owner, with the lifting plan's reason for each, in
+build/lifting-acceptance-proposal.md (copied into the PR). None is accepted, so the gate
+`lifting-study` fails until a competent person decides. No crane chart exists yet. S5b fix
+r2 (review design-s5b-r2#2, correcting the earlier reason): a few capacity-at-radius values of
+a named crane, with their source, could be cited. No such values were recorded in this job, so
+the crane selection is left to the crane contractor and **is not checked** at basic. The
+heaviest lifts, R-501 (658 t) and C-301 (514 t), are expected to need a crawler crane of the
+1,000 t class. This is an estimate, not a checked selection.
+S5b fix r2 (reviews layout-s5b-r2#1, #2 and #3):
+- **DW-1073** no longer runs over CP-203 or at grade across the open area of A-200. Its grade
+  leg runs at x 229, in the gap between X-401 (east face 228) and CP-203 (west edge 230). At
+  y 195.5 it rises to 8.0 m and crosses west as an elevated run. Vehicles from R-2 reach X-401,
+  CP-211 and CP-212 under it (about 7.9 m clear), so no sleeper crossing is needed. The earlier
+  "sleeper height" wording is withdrawn.
+- **Pads checked for overhead piping.** `scripts/pad_search.py overhead` now tests every pad
+  against all pipes in plan, at any height (the core's lifting rule does not check this), and
+  searches for shifted or new pads that stay off all pipes, roads, pads and laydowns and keep
+  their lanes clear. As a result, CP-204 moved 2 m south and CP-212 0.5 m west. CP-205 (R-201)
+  moved east of R-201, CP-206 (R-401) west of R-401 and CP-207 (E-201) south of E-201. A new
+  pad, CP-213 north of C-301, takes the C-301 and C-302 lifts. The rebuilt model still shows
+  the same 8 blocked lanes and no new one. Two pads still lie under pipe, and the search finds
+  no pipe-clear pad or shift within 4 m for them. CP-211 (E-301) has AM-1059 at 4.75 m 0.4 m
+  inside its west edge, and moving the line west would put it into E-301's lane. CP-703
+  (V-701) lies under AG-1121 (4.6 m) and AL-1114/AL-1127 (9 m). Both are left open for the
+  routing of those lines at detail, so their lane-clear results are not yet shown to be
+  workable.
+- **E-504**: the acceptance proposal no longer offers the 2 m move, because E-504's own
+  refrigerant lines would still cross the lane.
+Reason: S5b item 2 (runs/interventions.md O-032); review 2026-10-29-design#1 (b).
+
+## D-034 Reactor model basis sourced; feed basis left open (2026-10-30, S5b)
+Decision: the specified conversions of R100, R102A, R401 and H101 keep their D-005 values
+(1.0), now `given`, each with its published source and locator in process/reactions.yaml:
+- **Prereformer, C2H6/C3H8**: EP 1586535 A2 (Air Products, 2005), para. [0003]: substantially
+  all higher hydrocarbons are converted.
+- **Secondary reformer burner, O2**: Al-Dhfeery & Jassem (2012), Int. J. Ind. Chem. 3:14, p. 2.
+  Complete O2 consumption in the combustion zone; their model is checked against plant data in
+  Table 2.
+- **Methanation, CO and CO2**: BREF LVIC-AAF (2007), §2.2.3.6, p. 42: usually below 10 ppmv left.
+- **Furnace, hydrocarbons**: AP-42 §1.4, Table 1.4-2, footnote b: about 100 % of the fuel carbon
+  goes to CO2.
+- **Furnace, NH3**: Lin et al. (2024), Engineering 40, doi:10.1016/j.eng.2024.06.003: below 1 ppm
+  NH3 at the furnace outlet.
+- **Furnace, H2**: complete burnout is an inference. The secondary-reformer source shows H2 burns
+  even with O2 limiting, and the furnace runs with 10 % excess O2. No source measures it directly.
+
+`cheme maturity`: `balanced.model-basis` passed with these six.
+
+S5b fix (review design-s5b#1): the last two entries were relabelled `assumed`. The H2 entry is
+an inference, and the NH3 source is a coal boiler co-firing NH3, an analogy for traces of NH3
+in the tail-gas fuel; neither is a published fact for this duty. Values unchanged (1.0), so no
+stream changes. `balanced.model-basis` now fails again on exactly these two: H101 H2_COMB and
+NH3_COMB. What would close it is a published source that states fuel H2 and NH3 burnout in an
+excess-air fired heater or furnace. None was found in this job, so this is left open and is not
+relabelled.
+S5b fix r2: searched again. For NH3, Sharma et al. (2024, doi:10.1299/jtst.24-00063) report
+NH3 hardly detected at the exhaust of a gas-fired furnace on 30 % NH3 / 70 % CH4. It is added
+to NH3_COMB's source but does not cover this duty: it is a 40 kW bench furnace with air at about
+1000 C (E-106 preheats to 250 C), and the excess air is not stated in the abstract. For H2, the
+field reports of 100 % hydrogen-fired heaters found (e.g. the ExxonMobil Baytown burner trial
+reported by Zeeco) give CO and NOx but no measured unburnt H2. Both stay `assumed`.
+
+What was tried and left out:
+- **Sourced feed basis.** I tried the EBTF (2011) Table 2-2-3 natural gas (with i/n-butane and
+  i/n-pentane) and the U.S. Standard Atmosphere 1976 air, rescaled the feed and fuel, and ran
+  DWSIM to convergence. That needed 2 % more fuel for the convection coils. The packages script
+  (`scripts/packages_on_simulated_duties.py`) then gave boiler duties of 197.5 MW (130 MW before)
+  and a chiller duty 21 % higher. These jumps are not explained, and the job's budget did not
+  allow tracing them or carrying them through the PFD, datasheets and TEA. The change was
+  reverted, and the flowsheet is as before.
+  S5b fix (review design-s5b#2), partial trace: the script calculates no duty. Its boiler duty
+  is the sum of the absolute values of four simulated energy streams in flowsheet.yaml, each
+  mapped one to one: Q8 (E-107 flue-gas coil, 0.6 MW), Q10 (E-105 process-gas boiler,
+  74.0 MW), Q13 (E-201, 12.2 MW) and Q23 (E-502, 43.2 MW), 130.0 MW in total. Its units (kW)
+  and signs are consistent. So the +67.5 MW of the trial came from DWSIM's duties of these
+  exchangers, not from the script. The per-stream values of the reverted trial were not kept,
+  so which exchanger moved cannot be read back. The likely candidate is E-107: it closes the
+  convection section on its outlet temperature, so any surplus of the furnace balance lands
+  there. That is a hypothesis, not a finding. Rerunning the EBTF case and comparing Q8/Q10/Q13/
+  Q23 one by one is the remaining step. It belongs with the sourced feed basis, which waits for
+  the owner's decision (below).
+- **Gibbs and equilibrium models for H101.** Both were tried as alternatives to sourced
+  conversions. Core's `propagate` reports "no step lowers the Gibbs energy" for the Gibbs model,
+  and no Newton convergence in 200 steps for the equilibrium model (combustion K is very large).
+  Reverted to conversion.
+
+Still open: `sourced.boundary`. The flows of S1 (natural gas), S12 and S61 (air) and S26 and
+S70 (demineralised water) are design results: the radiant balance, H2/N2 = 3, 10 % excess O2
+and the water balances. Their compositions are ASSUMED (D-004). A published composition exists
+(EBTF, above). No published source gives these flows for this flowsheet. Recording them as
+`given` would need an owner's specification of the gas, air and water rates (as asu-1's owner
+gave its air rate). The agent may not invent one. BREF Table 2.6 (EFMA 2000: 22.1 GJ/t feed,
+7.2-9.0 GJ/t fuel, LHV) is a check on the design: feed 21.8 GJ/t, fuel 6.1 GJ/t plus tail gas.
+Reason: S5b item 1 (O-032); reviews 2026-10-29-simulation#1, 2026-10-27-pfd-lci-review#3.
+
+## D-035 Equipment estimate started on a sourced cost index; class 5, not 4 (2026-10-30, S5b fix)
+Decision: `estimate/cost-basis.yaml` escalates the package's Turton et al. (CAPCOST)
+correlations (base CEPCI 397, 2001) with the CEPCI annual average 2023 = 797.9. The source is
+Chemical Engineering, Economic Indicators, Sept. 2024, p. 45, read from the publisher's PDF. It
+is the latest annual value openly readable; the 2024 and 2025 annual values are behind a login.
+Draft datasheets for all 52 items (`cheme datasheets draft`, `fill`; `draft: true`, every fill
+value ASSUMED with its basis) give the vessel and column volumes. K-502 is sized from the
+simulated gas power (1609 kW, process/simulation-run.json).
+Result (`estimate/equipment-cost.md`): 14 items have a purchased cost, none a bare module cost,
+and 38 are not covered. The estimate is therefore declared **class 5** (AACE 18R-97, -20 to
+-50 % / +30 to +100 %), not the class 4 S5b asked for:
+- **No exchanger area.** `datasheets fill` cannot give a duty where an exchanger's linked node
+  has more than one material inlet and outlet. That is every two-sided exchanger here, so the
+  area needs the duty, LMTD and a U per item (S7).
+- **No material.** The equipment list carries no material, so there is no Fm and no bare
+  module cost. Choosing CS, low-alloy or SS per service is a mechanical-design decision (S7).
+- **Out of range.** K-101 (8568 kW) and K-501 (12723 kW) lie above the compressor
+  correlation's range, and C-301 and C-302 above the tower volume range. They are not
+  extrapolated or split. H-101 has no duty on a datasheet (excluded from the simulation).
+- **Bulk rates.** estimate/rates.yaml stays the package example (it prices nothing), so
+  `cheme assess estimate` writes no bulk estimate. S5b fix r2 (review design-s5b-r2#1,
+  correcting the reason given above): published factors are facts we may cite, so the
+  indirect and contingency factors now carry them: design and engineering 0.30 (Towler and
+  Sinnott 2013, Table 6.3, fluids), contractor's fee 0.03 and contingency 0.15 (Turton et al.
+  2012, section 7.3). The unit rates and the two erection factors stay placeholders. The reason
+  is not the licence: no openly published set of bulk unit prices for piping by DN, fittings,
+  valves, steel, grating, insulation and concrete, and no published erection-to-material factor,
+  was found for this scope. The usual price sources (RSMeans, Compass, Aspen) are licensed
+  databases. So the rates need the owner's or a contractor's prices, or quotations.
+- **Fans.** K-102 and K-103 are priced from the actual inlet gas flow of their linked streams
+  (S61: 37.5 m3/s, S66: 61.8 m3/s; review design-s5b-r2#3), at purchased cost only, because
+  the package has no bare module factor for the fan correlation.
+The TEA is unchanged: its CAPEX stays the scaled IEAGHG reference-plant basis of D-023
+(estimate/tea.yaml `capex:`) until the bottom-up estimate covers the plant.
+Update at the merge of main (2026-10-30): the S5b draft datasheets were replaced by the S7
+datasheets of main (D-032; the S5b screening empty weight of D-036 added to each), and
+`cheme assess equipment --write` was rerun on them, nothing else changed. With S7's exchanger
+areas, powers and preliminary materials: 8 items have a bare module cost (E-102, E-103, V-201,
+V-302, V-401, K-502, V-501, V-701), 12 a purchased cost only (no Fm for low-alloy or lined
+shells, no bare module factor for the fired heater and fans), 32 are not covered: 21 outside
+the correlations' ranges (13 exchangers above 1000 m2, K-101, K-501, K-701, P-301A/B, P-801,
+C-301, C-302), not extrapolated or split, and 11 without a size on their datasheet (R-101, E-107,
+E-202, E-301, E-302, E-303, P-302A/B, X-401, X-601, U-801). Purchased cost of the costed items USD 8.74 M,
+bare module of the 8 USD 15.2 M (CEPCI 797.9). Still class 5; the TEA is unchanged.
+Reason: S5b item 3 (O-032); review 2026-10-29-design#1 (c).
+
+## D-038 Cooling water distribution routed, buried (2026-10-30, S9)
+Decision: the 20 cooling water lines of P-114 and the user sheets (headers CWS-1144/CWR-1145
+DN 1400 and the nine supply/return branch pairs) are routed in the 3D model:
+- **Headers buried** along PR-1, centreline 3.0 m below grade (ASSUMED), supply at y 108.5,
+  return at y 111.5. The P-114 headers are a reverse return (supply enters at the K-101 end,
+  the return leaves past K-701), so the supply battery limit is the PR-1 west end and the return
+  battery limit its east end (ASSUMED; the cooling water plant is outside the boundary, D-001).
+  The tees follow the P-114 order (x 127 ... 292, `piping/routing.yaml`).
+- **Branches buried** at 1.8 m below grade (centreline, ASSUMED) over the headers, rising at their
+  user; the long ones (to E-203, E-402, K-501, E-701) have lanes of their own so that no branch
+  passes over another's tee.
+- **Nozzles turned** (layout only, the P&IDs unchanged): the CW outlets of E-203 (S2), E-402 (S2)
+  and E-302 (S1) on the south side of the shell at mid height, so that the temperature control
+  valves TV-1306, TV-1608 and TV-1408 on the returns stand above grade within reach (they would
+  otherwise lie under or below the shell); the E-701 CW outlet T1 radial on the channel, out of
+  the bundle pull space. TV-1306 (DN 700) has its handwheel 3.4 m up: valve access platform
+  VP-TV-1306 (as proposed by the build, `layout/structures.yaml`, ASSUMED sizes).
+Reason: S9, gate layout-detail (every line routed, utilities included). DN 1400 headers are
+normally buried: two water-filled DN 1400 lines weigh about 1.5 t/m each (water alone,
+pi/4 x 1.4^2 x 1000 kg/m3), and the PR-1 tiers are crossed at every north-south rack junction by
+the tier-7/9 steel and by the pinned lines of D-036/D-037 at 9 to 11 m. Rejected: the headers on
+PR-1 tier 6 or 8 (clash with the junction steel and the pinned crossings; rack loads);
+elevated road crossings of the buried headers (a 10 m DN 1400 riser on each side of R-5 and R-6,
+high points in the CW circuit, only to suit the headroom rule).
+Assumptions and limits: the depths, the BL points and the tee positions are ASSUMED. The router
+cannot start a chain whose both ends are battery limits (the header ends are the BL and the dead
+"CW users" connector), so the header routes are given in `routing.yaml` (core v1.0.0
+`routing._place`: an `edge` end needs the other end placed first). The road headroom rule
+(core v1.0.0 `model_rules.headroom`) counts a buried crossing as a pipe under the road: the
+four crossings of R-5 and R-6 by the headers are reported `cheme.layout-headroom` (-3.71 m
+clear) and fail gate layout-detail and, since S9, gate layout-3d; they are not accepted here
+(an acceptance is the reviewer's call). The buried runs carry no support steel in the model
+(44 more `layout-support-missing` infos). The K-101, K-501 and K-701 CW supply and return
+nozzles coincide in the model (P&ID-side placement), left as they are.
+
+## D-039 Electrical and control building, cabling and ventilation (2026-10-30, S9)
+Decision: one electrical and control building ECB-1 (36 x 18 x 5 m, use substation) in the
+reserved area A-900 (D-022), 6 m south of the PR-1 strip (x 40-76, y 82-100), with the 10 kV
+switchgear SWG-1 (motors above 250 kW), the 400 V MCC-1, the rack room RR-1 (DCS/SIS marshalling,
+the instrument cables' room) and the control room CR-1 (`layout/building.yaml`,
+`electrical/electrical-list.yaml`). Grid intake SS-1 at 150 kV with two 50 MVA 150/10 kV and two
+2.5 MVA 10/0.4 kV transformers, each pair one running and one standby. Motor ratings: the
+datasheets' gas power for the compressors and fans (their shaft power is the supplier's), the
+datasheets' shaft power for P-301A/B and P-801, and for the reflux pumps P-302A/B an estimate of
+7.6 kW (reflux 30.5 t/h = one mole of water per mole of the 74,528 kg/h CO2 vented, S28, as
+D-028's overhead assumption; 50 m head and pump efficiency 0.55 ASSUMED). The four instruments
+on the furnace package ducts (AIC-1109, FIC-1110, TI-1111, TI-1112) are given points on the
+skipped ducts. Junction boxes are the build's proposals per area (review_needed). Ventilation
+(`layout/hvac.yaml`): AHU-1 (east plant room) for MCC-1, RR-1 and CR-1, AHU-2 at the west end for
+SWG-1 (from AHU-1 its ducts found no way past the MCC room's), supply air from ASSUMED heat
+loads at a 10 K rise (298 m3/h per kW: SWG-1 20 kW, MCC-1 15 kW, RR-1 10 kW, CR-1 8 kW), rooms
+kept above ambient (extract 0.9 of supply), louvres sized for the package face velocity. AM-1062
+(P-301B discharge) runs at 4.5 m over the P-301A motor's cable drop.
+Reason: S9, gates electrical and hvac. 10 kV is the usual voltage for multi-megawatt
+compressor motors; the voltages, ratings, heat loads, building size and position are ASSUMED
+until the electrical, instrument and HVAC engineers' load lists and the vendors' data.
+Results and limits: 274 cables in `electrical/cable-schedule.*` (11 motor cables, the rest
+instrument pairs); gate hvac passes. Gate electrical fails on 8 `layout-tray-fill` findings:
+the power trunk on PR-1 carries the three multi-megawatt motors' 10 kV cables (2-3 x 3C x 300
+mm2 each, package catalogue sizes) and is 53-54 % full at the largest 900 mm width (limit 30 %);
+core v1.0.0 lays one power tray per rack (`trays.py`, one `tiers` elevation per rack), so the
+second tray beside it that the finding asks for cannot be declared, and raising the fill limit
+would relax the criterion. Not accepted. Also open (warnings, not gate criteria): 19
+`layout-tray-span` (branch and room trays running more than 6 m with no steel within 1 m; a
+T-post under a tray does not count as tray support in core v1.0.0, so cable bridges or tray
+supports are a structural item) and 4 more `layout-lifting` findings (K-101, K-102, K-103,
+K-701: the motor branch tray runs over the machine; the electrical list has no motor cable entry
+point to feed it from the side).
+
+## D-040 Representative feed specification and furnace combustion basis (2026-10-30, S5c)
+Decision (the owner's decision I-006 of 2026-10-30: this is a paper case study, a representative
+feed specification is approved): the five feeds are `given` with a published source and the
+owner's approval named in each source note.
+- **Natural gas S1**: Enbridge Gas Inc., *Learn about natural gas*, table "Chemical composition of
+  natural gas", column Typical (a system-wide average of western Canadian, US and Ontario gas,
+  read 2026-10-30): CH4 94.6, C2H6 4.4, C3H8 0.2, N2 0.4, CO2 0.3 mol%. The C4+ traces
+  (0.027 mol% in total) are counted as C3H8, the O2 and H2 traces (0.015 mol%) are left out, and
+  the rest is normalised: CH4 94.67, C2H6 4.40, C3H8 0.23, CO2 0.30, N2 0.40 mol%. 4500 kPa(a),
+  288.15 K (the owner's supply conditions; 15 C the ISO 13443 reference temperature).
+- **Air S12, S61**: dry air of the NASA Earth Fact Sheet (last updated 15 November 2024): N2
+  78.08 %, O2 20.95 %, Ar 9340 ppm, CO2 420 ppm, normalised; 101.325 kPa, 288.15 K (ISO 13443
+  reference conditions); humidity neglected as before.
+- **Demineralised water S26, S70**: pure water. IAPWS TGD3-10(2015), p. 28, sets the make-up
+  limits (Na, Cl, SO4 below 3 ug/kg, SiO2 below 10 ug/kg, conductivity below 0.1 uS/cm), far
+  below the balance's resolution.
+- **Flows** follow from the design capacity (1500 t/d NH3, design basis). `scripts/plant_balance.py`
+  (with the new gas and air as its constants) gives feed and fuel 35,645.6 kg/h, fuel split
+  0.22244, steam 92,566.7 kg/h, combustion air 168,003.5 kg/h, CO2-removal water 1,476.7 kg/h and
+  purge fraction 0.006007. The process air was retuned on the simulated loop (D-026) to
+  68,660 kg/h: H2/N2 2.994 at the converter inlet (S42; before 3.007). The loop is very
+  sensitive to it: 68,760 kg/h gives 2.72 and 69,250 kg/h gives 1.80 with the loop flow up by a
+  third, because surplus N2 builds up behind the small purge. S70 (108,373.6 kg/h) is the
+  steam-system water balance of `scripts/packages_on_simulated_duties.py`.
+- The simulation specs taken from the concept balance were updated with it
+  (`process/simulation.yaml`: R102B 1272.81 K, R201 717.1 K, R202 507.35 K, E-107 duty 2723.2 kW,
+  E-202 20,213.7 kW, C-301 CO2 and water fractions 0.002287 and 0.176850). Then
+  `cheme process simulate --fill`, `propagate --fill` (S65), simulate again (S66, S67),
+  `props --fill`, and `cheme process build`. Five loop setpoints follow their streams
+  (FIC-1002, FIC-1110, FIC-1201, FIC-1508, FIC-1905).
+
+Result: product 62,471.8 kg/h NH3 (before 62,470.7). The boiler duties of
+`scripts/packages_on_simulated_duties.py` go from 130.0 to 132.8 MW (+2.8 MW, +2.2 %), MP steam
+export from 60.1 to 63.7 t/h, and the chiller duty barely moves (K-701 power 10,074 kW, before
+10,076). **Cause of the S5b jump (D-034), found:** E-107, the last flue-gas coil, closes the
+convection section. Its duty is a simulation *spec* taken from the concept balance (D-014,
+`process/simulation.yaml`), set to the heat left over after the process coils at the 423 K
+stack. A change in the gas changes the furnace balance, and the surplus lands on E-107: with
+this gas the concept balance gives 2.72 MW, not 0.59 MW. E-107 is one of the four energy
+streams whose sum is the "boiler duty" (Q8, E-107; D-034's partial trace), so the boiler duty
+follows it directly. The simulated stack temperature (S66) stays at 397 K (396.1 K before), so the
+spec is consistent; the assumed 423 K of S66 is the D-014 target and differs from the
+simulation as before (warning `process-sim-deviation`). In S5b, rescaling the EBTF gas (7 % ethane, butanes,
+pentanes, 2 % CO2) without carrying the concept balance's outlet specs (R102B, E-107, E-202,
+C-301) through to the simulation is the most likely reason the duties of the DWSIM coils and
+E-107 no longer matched. That run was not kept, so this cannot be shown number by number. The
+mechanism and size of the change are shown here with the gas actually used. The natural gas
+flow changes by -5.5 % (methane-richer, fewer inerts), the purge by -18 % (1,384 kg/h, fewer
+inerts) and the air by +2 %.
+
+Furnace H-101 model basis (`balanced.model-basis`): complete combustion of the fuel with excess
+air, standard design practice, is now the `given` basis of H2_COMB and NH3_COMB. The sources:
+D. Schmitt (Increase Performance Inc.), *Correctly modeling and calculating combustion
+efficiencies in fired equipment*, an American Flame Research Committee paper (University of Utah
+digital library, ark:/87278/s6fc0529), pp. 1-6. Its combustion calculation, for a reformer
+furnace of hydrogen and ammonia plants, burns every fuel component, hydrogen included, by its
+combustion equation at the set excess air, and its worked flue gas has no CO or unburnt fuel.
+US EPA Method 19 (40 CFR 60 App. A-7, §12.3.2.1, Eq. 19-13) builds its F factors as the
+stoichiometric products of complete combustion of the fuel's H, C, S, N and O, with fuel
+nitrogen leaving as N2. S5b's analogies stay as supporting evidence.
+
+`cheme maturity`: calculation maturity **balanced** (before: none). The design maturity the
+evidence supports is screening. maturity-balanced passes. Predictive still fails, for the
+reasons D-026 records: H101, K701 and U801 not simulated, specified splits and conversions, and
+the property claim (core#315).
+Rejected: the EBTF gas again (C4/C5 components would need new reactions and components, and the
+owner allows a lean gas close to the current one); keeping the D-004 placeholder (not
+published).
+
+## D-041 The owner's acceptances of lifting lanes and buried road crossings (2026-10-30, S5c)
+Decision (owner's decision I-006, 2026-10-30; `checks/checks.yaml` `accept:`, each reason
+beginning `accepted_by: owner (I-006, 2026-10-30)`; the accept schema has only `id` and
+`reason`, so the acceptor is written into the reason):
+- **Lifting**: the eight lanes of build/lifting-acceptance-proposal.md (D-037), each with the
+  lifting plan's reason from that proposal: H-101, E-104, E-402, K-501, E-501, E-502, E-505,
+  E-504. The erection sequence clears them: each item is set before its own or the
+  neighbouring piping. Since the proposal, three lanes carry blockers added in S9. The reasons
+  name them for the owner's confirmation in the review: K-501 also crosses its own motor branch
+  tray PT-M-K-501, E-505 the cooling-water lines CWS-1115/CWR-1116 of the adjacent E-503, and
+  E-504 the instrument trunk IT-PR-7-3 on the PR-7 bents.
+- **Headroom**: the four `layout-headroom` findings of the buried DN 1400 cooling-water headers
+  CWS-1144 and CWR-1145 under roads R-5 and R-6 (D-038): buried crossings in a sleeve. The rule
+  has no notion of buried lines (core#70).
+
+Not accepted, open: the lanes of **K-101, K-102, K-103 and K-701**, blocked only by their motor
+branch trays PT-M-K-101, -102, -103 and -701 (S9). They cannot be cleared by design in core
+v1.0.0:
+- The lane (`engineering_rules.py`, `_lane`) runs from the pad over the whole item to its far
+  side. It counts every tray run above the item top + 0.5 m, except the last vertical drop of
+  the item's own tray.
+- A motor's branch tray (`trays.py`, `route`) runs at at least the branch elevation to above
+  the motor terminal and drops only there. The terminal is the motor's top, inside the item's
+  footprint, so the last horizontal run always lies over the item.
+- Even at the lowest possible elevation (the terminal + 0.5 m) the run is above the item top +
+  0.5 m: K-102's terminal is at 3.46 m and its top at 3.0 m.
+- No pad position, lane direction, tray tier or elevation changes this. The electrical list has
+  no field for a motor's cable entry point that would let the tray drop beside the machine
+  (core#73, open).
+So the gate lifting-study stays failing on these four lanes, by the owner's instruction (no
+acceptance) and by this core limit.
+
+## D-042 Project risk matrix, ASSUMED 5x5 (2026-10-30, S5c)
+Decision: `safety/risk-matrix.yaml` is now the project matrix ammonia-1-5x5. It is ASSUMED,
+`example: false`, `status: accepted`, accepted_by `owner (I-006, 2026-10-30), assumed for the
+paper case`. Five likelihood levels A-E are order-of-magnitude frequencies per year of the
+scenario at this plant (below 1e-3, 1e-3 to 1e-2, 1e-2 to 1e-1, 1e-1 to 1, 1 or more). Five
+severity levels for people, environment, asset and reputation run from first aid to multiple
+fatalities. There are four bands: low, medium (ALARP), high (action), very high (intolerable,
+action).
+Reason: the owner allows an assumed matrix close to industry practice. Its form follows the
+published 5x5 risk assessment matrix practice with people, assets, environment and reputation
+and likelihood A-E (Sakhalin Energy, Managing Risk Standard 0000-S-90-04-O-0006-00-E Appendix 5
+Rev 07, pp. 1 and 8). The decades make the HAZOP's credit rule (one credited independent trip
+lowers one code) equal to an IPL with a PFD of at most 0.1, the upper edge of SIL 1 in IEC
+61511-1:2016 Table 4. Codes A-D and 1-4 keep the meanings of the example matrix, so the 117
+proposed ratings stay valid. Every band is unchanged except people/environment severity 4 at
+C and D, which go from high to very high.
+Result: `cheme safety hazop rate H-01 --write` gives 12 low, 41 medium, 48 high and 16 very high.
+Every entry stays `status: proposed` and the study stays a draft. The study's two
+`hazop-input-changed` warnings (control/loops.yaml: setpoints only, D-040; and
+piping/special-items.yaml from S8) are for the HAZOP team to reassess before re-stamping. They
+were not stamped here.
+
+## D-043 Main dimensions on the datasheets (2026-10-30, S5c)
+Decision: `scripts/datasheet_dimensions.py` (run with `cheme run`, provenance like
+`complete_datasheets.py`, D-032) writes the main dimensions that the detail gate `datasheets`
+reported missing on 51 sheets. It never writes over a value already there.
+- **11 shell-and-tube exchangers** are sized from the area `cheme datasheets fill` gave them
+  from the simulated duties (D-032). Tubes are 19.05 mm OD, 6.096 m long, 2 passes, on a 1.25 x
+  OD triangular pitch (ASSUMED standard choices). The tube count is area / (pi OD L). The
+  bundle diameter uses K1 0.249 and n1 2.207 (Sinnott, Coulson and Richardson's Chemical
+  Engineering Vol. 6, 4th ed., 2005, eq. 12.3b, Table 12.4). The shell ID is the bundle plus
+  20 mm (ASSUMED). Above a 2.5 m shell (ASSUMED limit) the area is split over parallel shells.
+  E-105 gets 1 shell of 2.29 m, E-201 1 of 1.57 m, E-203 2 of 1.87 m, E-401 2 of 1.96 m, E-402
+  1 of 1.43 m, E-501 11 of 2.45 m, E-502 6 of 2.33 m, E-503 1 of 1.78 m, E-504 3 of 2.20 m,
+  E-505 3 of 2.46 m and E-701 2 of 1.91 m.
+- **13 vessels and 2 columns** get 2:1 ellipsoidal heads, a skirt (vertical) or two saddles
+  (V-502), and for C-301 and C-302 one packed section between a 2 m sump and 3 m top
+  disengagement (all ASSUMED).
+- **Markers** (as the datasheet schema provides; each counts as given for the gate):
+  - `supplier`: the 11 machines' baseplate and shaft height (vendor's general arrangement);
+    the six convection coils E-101..E-104, E-106, E-107 (furnace vendor's coil design); R-101's
+    catalyst tubes (licensor); E-202, E-302 and E-303, whose area is awaited (multi-stream
+    nodes, D-032); the plate pack E-301.
+  - `not_applicable`, with the reason: the shell of the coils and of R-101; the vessel
+    dimensions of the packages U-801, X-401 and X-601, whose envelope is given.
+Result: the gate no longer reports missing main dimensions. It still fails on operating and
+test weights (52 sheets) and on nozzles without a face, orientation and elevation (52 sheets).
+Those are outside S5c's datasheet item and are left for the detail datasheets.
+Known inconsistencies, open (warnings): 13 `datasheet-dimension-mismatch`, where the computed
+shell ID differs from the equipment list diameter, which is the S5 layout envelope of one shell
+(E-501 needs 11 shells). The list and the 3D layout follow the thermal sizing at detail. Also
+12 `datasheet-stale`, where areas and reactor duties were filled before the D-040 feed change
+moved the streams by about 2 %. The final datasheets are refreshed with the S7 workflow
+(`complete_datasheets.py inputs`, `datasheets fill`, `final`); this was not done in S5c.
+
+## D-044 Estimate: split-unit pricing, TEA on the new gas; still class 5 (2026-10-30, S5c)
+Decision:
+- **Cost index**: the CEPCI annual average 2023 = 797.9 stays (Chemical Engineering, Economic
+  Indicators, Sept. 2024, p. 45, D-035). It is still the latest annual value openly readable.
+- **Split units**: seven items above their Turton (CAPCOST) correlation's range are priced as n
+  identical units within it, as `cheme assess equipment` advises ("split it into units within
+  the range (and say so)"). `scripts/split_equipment_costs.py` uses core's own costing functions
+  and prints the `estimate/cost-basis.yaml` entries; each entry gives n, the unit size, the FBM
+  and the escalation. This is an upper estimate, because n small units cost more than one large
+  item. In 2023 USD, bare module:
+  - K-101: 3 x 2856 kW, 9.46 M
+  - K-501: 5 x 2545 kW, 14.62 M
+  - K-701: 4 x 2782 kW, 12.41 M
+  - E-203: 5 x 888 m2, 4.86 M
+  - E-701: 5 x 926 m2, 2.49 M
+  - C-301: 2 x 339 m3 shell, 27.47 M
+  - C-302: 2 x 410 m3 shell, 16.41 M
+  The fan and K-502 sizes follow the D-040 streams.
+- **TEA**: `estimate/tea.yaml` takes the gross calorific value of the D-040 gas, 54.40 MJ/kg
+  (NIST heats of combustion; 38.78 MJ/m3 at 15 C, against the 38.9 of the Enbridge table). Before
+  it was 51.08 MJ/kg. `cheme assess tea --write`: fixed capital 736.5 MEUR (unchanged, IEAGHG
+  basis); natural gas cost -176.8 MEUR/a (before -175.7); emissions 7.788e5 t CO2-eq/a (before
+  7.815e5); NPV -1,049.4 MEUR (before -1,049.5).
+Result: `estimate/equipment-cost.md` covers 52 items. 8 have a bare module cost from a
+correlation (15.2 MUSD), 7 have the split-unit costs above (87.7 MUSD), 12 have a purchased cost
+only (8.7 MUSD) and 25 are not covered.
+Not reached: **class 4**. AACE 18R-97 class 4 needs an equipment-factored or parametric
+estimate on priced major equipment. That fails here for four reasons:
+- Most items are low-alloy Cr-Mo (D-032) or refractory-lined. The package has material factors
+  only for CS and SS, and an Fm read from a printed table is not available to this job.
+- The loop exchangers E-503, E-504 and E-505 are above the pressure factor's 140 barg range.
+- Splitting still leaves no bare module cost for the out-of-range items E-501, E-502, E-104,
+  E-105, E-201, E-401 and E-402 (Cr-Mo), for E-503 to E-505 (pressure), or for E-106, P-301A/B
+  and P-801 (no design pressure in the equipment list for the pressure factor).
+- The bulk unit rates of `estimate/rates.yaml` are still the example placeholders. No openly
+  published, citable set of pipe, valve, steel and concrete unit prices was found (searched
+  again in S5c), and no erection labour factor either (D-035).
+So the TEA's fixed capital stays the class 5 capacity-factored IEAGHG 2017-03 basis (D-023):
+accuracy -20 to -50 % low, +30 to +100 % high, 368-589 MEUR to 957-1,473 MEUR. To close class 4
+the project needs vendor or contractor prices for the Cr-Mo and high-pressure items and for the
+bulk materials, or a licensed cost database. None of these may be copied in here.
+
+## D-045 Estimate class 4: open material, pressure and furnace factors; TEA on the equipment estimate (2026-10-30, S5d)
+Owner decision I-006b asked for one more focused attempt to reach class 4 with sourced data found
+online. Sources were read on 2026-10-30. Numbers are used in our own form; no table is copied.
+`scripts/estimate_factors_s5d.py` names every source and prints the `estimate/cost-basis.yaml`
+entries.
+
+Decision:
+- **Cost index.** The CEPCI 2023 annual average of 797.9 stays (D-035). It is the latest annual
+  value openly readable. The 2024 and 2025 annual values are behind the publisher's login.
+  Chemical Engineering's open teaser of 2 April 2026 says only that the 2025 average rose 1.6 %
+  over 2024, with no index value. Every correlation is escalated from its own base: Turton
+  et al. at CEPCI 397 (2001), the package's base. The TEA escalates 2023 to 2025 with the D-023
+  proxy, Eurostat sts_inppd_a NL C28, 121.4 / 115.4 = 1.052. It converts at 1.0813 USD per EUR,
+  the 2023 average (Eurostat ert_bil_eur_a).
+- **Material factors, Cr-Mo** (Seider et al., Product and Process Design Principles, 3rd ed.
+  2009, ch. 22, as implemented with that citation in IDAES `idaes/models/costing/SSLW.py`;
+  BioSTEAM `specification_factors` gives the same values for the 4th ed., pp. 426-485):
+  - Vessels V-101, R-100, R-201, R-202, R-401 and R-501 take low-alloy steel Fm 1.2.
+  - Exchangers E-101, E-104, E-105, E-201, E-401, E-402, E-501 and E-502 take Cr-Mo/Cr-Mo
+    FM = 1.70 + (A / 100 ft2)^0.07 on the area of each unit, which gives 3.04 to 3.09.
+  - These go into Turton's B1 + B2 Fm Fp: ASSUMED, because the bases of the two books differ.
+    Seider's SS/SS exchanger factor is about 1.5 times Turton's 2.73 at the same area, so the
+    Cr-Mo exchanger costs lean high.
+- **Pressure above 140 barg.** E-501 to E-505 (161.5 to 169.5 barg) take Turton's exchanger Fp
+  equation at their design pressure. That extrapolates the 5-140 barg range by at most 21 %;
+  Fp is 1.545 to 1.564 (ASSUMED). Cross-check: the 600-3000 psig form noted in IDAES (commented
+  out there and not verified against the book) rises 13 % from 140 to 170 barg, against
+  Turton's 5 %. Vessels keep the package's thickness-based Fp, which has no upper limit. R-501
+  (168.5 barg, D 3.5 m) gets Fp 63.4 and FBM 141, an upper estimate for a multi-wall converter
+  shell.
+- **Reformer furnace H-101.**
+  - Correlation: Turton 5th ed. Table A.1, reformer furnace (K 3.068, 0.6597, 0.0194;
+    3000-100000 kW; row as reproduced in OpenPyTEA, MIT licence), at the absorbed radiant duty of
+    68.6 MW.
+  - Factors: Turton's fired-heater FBM 2.81 for stainless tubes (ASSUMED for the cast alloy
+    tubes) and Fp 1.05 at the 44 barg tube design pressure. Both are from Turton 3rd ed.,
+    Tables A.6 and A.2, as reproduced in the eqcost catalogue.
+  - Result: 30.6 MUSD (2023). R-101, the catalyst tubes, is excluded as part of it. The
+    convection coils stay their own items.
+- **Refractory-lined R-102.** No open costing approach was found. The shell is priced as a CS
+  vessel (Fm 1) on its outside diameter, at the shell temperature the lining allows (ASSUMED),
+  which gives 13.6 MUSD. The lining is in the allowance.
+- **Fans** K-102 and K-103 take FBM 2.5, Hand's factor for compressors (Hand 1958, via van
+  Amsterdam, MSc thesis TU Delft 2018, Table 3.13; ASSUMED for a fan).
+- **Horizontal vessel V-502** takes the package's vertical B1/B2 with its Fp, FBM 15.1 (ASSUMED).
+- **Pumps.** P-301A/B and P-801 take Turton's pump Fp at the receiving item's design pressure:
+  33 barg for C-301 and 49.5 barg for U-801 (D-032 rule; ASSUMED, static head not counted).
+- **Split units.** Items above their range are still split into identical units as in D-044:
+  E-104, E-105, E-106, E-201, E-401, E-402, E-501 (45 units), E-502 (22), E-503, E-504, E-505,
+  P-301A/B and P-801. These are upper estimates.
+- **Bulk and installation.** No open bulk unit rates exist (searched again), so
+  `estimate/rates.yaml` stays `example: true`. The factor method lives per item instead, in
+  Turton's bare module factors. They include piping, instruments, electrical, foundations,
+  structures, insulation, paint, erection labour and indirects.
+  - Cross-checks of the factor level: Towler and Sinnott 3rd ed. fluids installation factors,
+    3.2 x purchased cost for a CS item; Hand's 3.5 for exchangers and 4 for vessels. Turton's
+    FBM at low pressure is 3.2 (CS exchanger) and 4.1 (CS vessel).
+  - The rates schema's factors multiply take-off material only, so they cannot carry a
+    per-equipment factor. The take-off stays a quantity check.
+- **TEA.** `isbl: source: equipment`, `estimate_class: 4`. The uncovered allowance is 10 % of
+  the costed ISBL, ASSUMED with no source. It covers X-601, U-801, X-401, the R-102 lining and
+  the unsized E-107, E-202, E-301, E-302, E-303 and P-302A/B. Location factor 1.0, ASSUMED: no
+  open US Gulf Coast to Netherlands factor was found. OSBL 0.109, owner's cost 0.07 and
+  contingency 0.20 stay IEAGHG's (D-023).
+
+Result:
+- **Equipment.** `estimate/equipment-cost.md` covers 52 items: 19 at bare module from a
+  correlation (106.8 MUSD), 22 at project cost from correlation and factors (255.2 MUSD),
+  1 excluded and 10 not covered. That is 362.0 MUSD in 2023, against 102.9 MUSD of bare module
+  plus split costs in S5c.
+- **Largest items**, together 64 % of the equipment:
+  - E-501: 66.7 M
+  - R-501: 42.3 M
+  - E-502: 32.2 M
+  - H-101: 30.6 M
+  - C-301: 27.5 M
+  - C-302: 16.4 M
+  - K-501: 14.6 M
+- **TEA** (`cheme assess tea --write`):
+  - ISBL: 387.4 MEUR, of which 35.2 MEUR is the allowance.
+  - Fixed capital: 551.7 MEUR, against 736.5 MEUR on the IEAGHG basis.
+  - LCOP: 688.1 EUR/t, against 748.2.
+  - NPV: -845.3 MEUR, against -1,049.4.
+  - The decision is unchanged: LCOP stays above the 439 EUR/t threshold.
+
+**Class 4 per AACE 18R-97.** The source is AACE RP 18R-97, rev. 29 Nov 2011, Table 1, Tables
+2b/2c and Table 3; read from a public procurement copy at canadabuys.canada.ca.
+- Class 4 is "equipment factored or parametric", at 1-15 % project definition. Its inputs are
+  PFDs and preliminary equipment lists, with P&IDs, plot plan and datasheets started.
+- This design has PFDs, H&MB, P&IDs, a 3D layout and datasheets: at or beyond class 4 input,
+  short of class 3, whose method is unit-cost line items.
+- The estimate is now equipment-factored on every major item, so it meets class 4.
+- Expected accuracy: -15 to -30 % low and +20 to +50 % high. On the fixed capital that is
+  386-469 MEUR low and 662-828 MEUR high. The IEAGHG capacity-factored value (736.5 MEUR) lies
+  inside the high band.
+- What drives the accuracy:
+  1. E-501 and E-502 are 27 % of the equipment, on ASSUMED overall coefficients (D-032) and
+     split pricing.
+  2. The Cr-Mo and >140 barg factors come from another textbook or are extrapolated.
+  3. The 10 % allowance for the packages has no source.
+  4. Location factor 1.0 and CEPCI 2023 (the 2024/2025 values are not open).
+- What would firm it up: vendor or licensor prices for the PGRU, steam system, dryer, converter
+  and loop exchangers; an open or licensed location factor; the current CEPCI.
+- `cheme.tea-class-stage` warns because `plant.yaml` still says stage concept until the basic
+  sign-off. The class 4 claim belongs to this basic-stage branch.
+
+## D-046 Motor cable entry points; crane lanes cleared by design (2026-10-30, S5e)
+Context: D-041 left gate lifting-study failing on the lanes of K-101, K-102, K-103 and K-701.
+Each was blocked only by the machine's own motor branch tray, which core v1.0.0 always ran over
+the machine to its terminal box. The owner did not accept these lanes and asked for a design fix
+(I-007). Core v1.1.0 adds a motor's `cable_entry` in `electrical/electrical-list.yaml` (core#73,
+ADR 0035): the tray ends beside the machine and the cable drops from there to the terminal box.
+Three lanes the owner accepted in I-006 had picked up blockers in S9 that the acceptance does not
+name: K-501 its motor tray PT-M-K-501, E-505 the cooling-water lines CWS-1115/CWR-1116 of E-503,
+and E-504 the instrument trunk IT-PR-7-3 on PR-7.
+
+Decision:
+- **Cable entry points**, all ASSUMED. No datasheet gives a terminal-box side: the machine and
+  motor dimensions are ASSUMED (D-022). Each entry is on the side the tray arrives from, away from
+  the crane pad. The tray end sits below the machine top, so the cable enters the terminal box
+  from below and the load passes over the tray:
+  - K-101: east side (the motor end, towards PR-3), 3 m out, at 4.5 m. The CP-107 lane runs
+    about 13 degrees off north and is 15 m wide. At the default clearance the tray's drop from
+    11 m reached into the lane, and the lift went to CP-103 at a 22.8 m radius.
+  - K-102: south side (towards PR-2); pad CP-106 is to the north.
+  - K-103: east side (towards PR-3), beside the north-south lane from CP-107.
+  - K-501: north side at the motor end (offset 4.25 m, towards PR-7), at 5.5 m. At the default
+    6.35 m the 0.6 m tray reached 6.65 m, above the 6.5 m lift level of the diagonal lane from
+    CP-501.
+  - K-701: north side at the motor end (offset 3.2 m), at 4.5 m. At the default the lift fell
+    back to CP-506 at the 40 m reach limit.
+- **E-505**: E-503's cooling-water nozzles S1 and S2 are radial, pointing north
+  (`equipment-placement.yaml`). The lines leave below the shell top and go straight down to
+  their buried branches, instead of rising over the shell into E-505's lane. Crane pad CP-505
+  moves 0.5 m north (y 82.3 to 92.3), clear of the nozzle leads; otherwise
+  `layout-zone-crossing` CWR-1116/CP-505.
+- **E-504**: no tray on PR-7 can leave a lane that crosses PR-7 itself. So the lane no longer
+  crosses the rack:
+  - New crane pad CP-507 (x 219-229, y 59-68), on open ground west of E-504 between PR-7 and
+    E-502. No pipe, tray or duct passes over it, and it does not overlap a rack, structure or
+    building.
+  - E-504 moves 1 m north to (235, 61). Its 4 m wide lane from the west then clears the PR-7
+    columns at y 58 instead of grazing them (the first try at y 60 named PR-7 bents 10 and 11).
+  - CP-507 is also the nearest pad for E-502 and E-505, which now lift from it.
+
+Result (`layout/lifting-study.md`):
+- **Lane clear**: K-101 from CP-107 (radius 11.2 m), K-102 from CP-106 (7.5 m), K-103 from
+  CP-107 (7.5 m), K-701 from CP-701 (20.6 m, lift height 5.2 m over its tray end).
+- **Blocked, within the owner's I-006 acceptance**: all the S9 extra blockers are gone. Each
+  remaining blocker is named in the accepted reason (D-041):
+  - K-501: PG-1088, PG-1089, PG-1090.
+  - E-505 (now from CP-507): PG-1108, PG-1109.
+  - E-504 (from CP-507, radius 11.3 m instead of 25.2 m): AG-1118, AG-1125, AL-1117, AL-1124,
+    PG-1093, PG-1109. No rack steel, no tray, no SM-1101 or loop pipe nest any more.
+  - E-502 (now from CP-507): PG-1095 only.
+- The "Note (S5c)" sentences in those accept reasons describe the S9 blockers, now cleared. The
+  reasons are the owner's words and are left as written. Nothing new is accepted, and no
+  acceptance was removed.
+- Gates lifting-study and layout-3d pass. Apart from the four K lanes and one tray-span finding
+  (PT-M-K-102) removed, the build findings are the same as before.
+
+Quantities:
+- The motor cables grow 0.6-1.2 m each: the drop from the tray end is counted as cable.
+- The instrument cables of the moved P-110/P-111 lines and of the proposed junction boxes
+  (JB-1, JB-2, JB-A-700-1; still `review_needed`) shift by a few metres. IC-PI-2004 moves from
+  JB-A-700-1 to JB-1, and IC-TI-2303 from JB-1 to JB-2.
+- MTO: DN 350 pipe -8.2 m (the shorter E-503 cooling-water lines), DN 25 elbows -8; other DNs
+  within 1 m.
+- Bulk estimate total: 99,494.68 to 99,423.38 (example rates, currency XXX; -0.07 %).
+- The LCA results are unchanged (only the take-off fingerprint in `lca/dataset.yaml`). The TEA
+  is on the equipment estimate (D-045) and is unchanged.
+
+Not covered, for the lifting plan (competent person, crane contractor):
+- How a crane reaches CP-507. ASSUMED: under PR-7, whose lowest tier is at 6 m, or through the
+  loop area from road R-6.
+- Whether a crane of about 205 t needed capacity (E-504) can set up on the 10 m x 9 m pad, and
+  the ground bearing.
+- The motor terminal-box sides and heights, from the vendors' drawings.
+
+Rejected:
+- Accepting any lane: the owner asked for design fixes (I-007).
+- Bringing the motor cables in at grade: there are no cable trenches in the model, and a tray end
+  beside the machine is what core#73 provides.
+- Moving the instrument trunk IT-PR-7-3 off PR-7: the rack itself was in E-504's old lane.
+
 ## 3. Results of this stage (design case)
+
+Basic stage, S5c (the D-040 feed, re-simulated; lca/inventory.csv regenerated): per kg of NH3
+product (62,471.8 kg/h), before allocation: natural gas 0.5706 kg, ambient air 3.788 kg,
+demineralised water 1.758 kg, electricity 0.589 kWh. The LCA screening result is 1.465 kg
+CO2-eq per kg NH3 (lca/results.md, gate-to-gate direct fossil CO2 with the D-021 allocation;
+backgrounds still missing). The S2 figures below are kept for comparison.
 
 Basic stage, S2 (the simulated flowsheet, D-026; lca/inventory.csv regenerated): per kg of NH3
 product (62,470.7 kg/h), before allocation: natural gas 0.6037 kg, ambient air 3.723 kg,
@@ -1033,12 +1785,22 @@ convection coils therefore use `ExchangingThermalEnergy` and the steam system `P
 | API Std 521, Pressure-relieving and Depressuring Systems, 6th ed. (2014) | 4.4.13.2.4 fire heat absorption of a wetted surface (SI 43 200 / 70 900 F A^0.82 W, 7.6 m); tube rupture of two open ends | no: equation as published in secondary sources (open-exam-prep.com PE study guide 17.2; DIERS fire-case report of ioMosaic citing 4.4.13.2.4.2), searched 2026-10-30 | D-033: fire and tube-rupture loads |
 | ASME BPVC VIII-1 / API 520 Part I | accumulation 10 % (single valve), 21 % (fire) | no (commonly cited values) | D-033: relieving pressure |
 | IEC 60534-2-1 | compressible-flow sizing equation, N6 = 27.3, choked x = F_gamma xT, Y = 2/3 | no (equation as commonly published) | D-033: blow-by per unit Kv |
+| AACE International RP 18R-97, rev. 2011-11-29 (public procurement copy, canadabuys.canada.ca, attachment 2021/10/28) | Table 1 (p. 2), Tables 2a-2c (pp. 5-6), Table 3 (p. 9) | yes, by a research sub-agent of S5d (2026-10-30) | D-045: class 4 criteria and accuracy |
+| IDAES `idaes/models/costing/SSLW.py` (github.com/IDAES/idaes-pse, main), citing Seider et al. 3rd ed. (2009) ch. 22 | `hx_material_factor_dict` (Cr-Mo rows), `VesselMaterial.LowAlloySteel`, exchanger Fp equations | yes (raw file, 2026-10-30) | D-045: Cr-Mo Fm, Fp cross-check |
+| BioSTEAM `design_tools/specification_factors` (Seider et al. 4th ed. 2017, pp. 426-485) | pressure vessel material factors | via a research sub-agent (docs page) | D-045: low-alloy 1.2 confirmed |
+| OpenPyTEA `src/openpytea/data/cost_correlations.csv` (MIT) reproducing Turton et al. 5th ed. Table A.1 | row reformer_furnace_turton_2001 | yes (raw file, 2026-10-30) | D-045: H-101 correlation |
+| eqcost `internal/core/catalog.toml` (github.com/Jubel075/eqcost) reproducing Turton et al. 3rd ed. Tables A.2 and A.6 | fired_heater: FBM by tube material, Fp | yes (raw file, 2026-10-30) | D-045: H-101 FBM and Fp |
+| M. F. van Amsterdam, Factorial Techniques applied in Chemical Plant Cost Estimation, MSc thesis TU Delft (2018) | Table 3.13 (Hand's factors), p. 36 | via a research sub-agent | D-045: fan FBM, factor cross-check |
+| OpenPyTEA documentation, "Process installation factors" (Towler and Sinnott, 3rd ed. 2022) | user_guide/equipment | via a research sub-agent | D-045: installation factor cross-check |
+| Eurostat ert_bil_eur_a, sts_inppd_a (CC BY 4.0) | USD 2023 annual 1.0813; NL C28 2023 115.4, 2025 121.4 | yes (API, 2026-10-30) | D-045: TEA conversion and escalation |
+| Chemical Engineering, "Inflationary pressures push 2025 CEPCI annual average higher than 2024" (2026-04-02) | open teaser only | yes (teaser, by a sub-agent) | D-045: no 2024/2025 index value openly available |
 | thermo 0.6.1 | `Chemical('water'/'ammonia').Tsat`, `.Hvap`, `.Pc`, `Chemical(CAS).Cpgm` | yes | D-033: latent heats, critical pressure, ideal-gas k |
 
 ## 6. Open inputs and gated steps
 
-- I-01 Sourced natural-gas composition, pressure, temperature and sulfur specification (the
-  benchmark gas is a placeholder; blocks `sourced` maturity).
+- I-01 Sourced natural-gas composition, pressure, temperature and sulfur specification.
+  **Closed in S5c** for the paper case study: the owner-approved representative specification
+  (I-006, D-040); the sulfur specification stays ASSUMED (D-004).
 - I-02 Freeze the brief (capacity, purity, delivery state, hours) with the owner.
 - I-03 Ambient and cooling-water conditions of the site (ISO conditions used).
 - I-04 Sourced approaches to equilibrium / kinetics and catalysts (reaction evidence file).

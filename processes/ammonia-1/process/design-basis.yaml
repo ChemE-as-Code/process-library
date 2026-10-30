@@ -12,16 +12,17 @@ capacity:
   turndown_percent: 70                # ASSUMED, not checked
 feeds:
   - name: Natural gas (process feed and furnace fuel), pipeline battery limit
-    source_of_values: "ASSUMED benchmark lean gas (D-004): not a sourced composition and not representative of Rotterdam pipeline gas; open input I-01"
-    composition_mol_percent: {CH4: 91.0, C2H6: 4.0, C3H8: 1.0, CO2: 1.0, N2: 3.0}   # ASSUMED (D-004), dry
+    source_of_values: "representative pipeline natural gas approved by the owner for this paper case study (I-006, 2026-10-30, D-040): Enbridge Gas Inc., Learn about natural gas, table Chemical composition of natural gas, column Typical (system-wide average), read 2026-10-30; C4+ traces counted as C3H8, O2 and H2 traces left out, normalised. Not Rotterdam pipeline gas. Until S5c the ASSUMED D-004 gas (CH4 91.0, C2H6 4.0, C3H8 1.0, CO2 1.0, N2 3.0)"
+    composition_mol_percent: {CH4: 94.67, C2H6: 4.40, C3H8: 0.23, CO2: 0.30, N2: 0.40}   # given (D-040), dry
     sulfur: "ASSUMED a few mg/Nm3 as H2S and mercaptans, removed by hydrogenation and ZnO; not balanced (trace; D-004)"
-    conditions: {pressure_kPa_a: 4500, temperature_K: 288.15}   # ASSUMED (D-004)
+    conditions: {pressure_kPa_a: 4500, temperature_K: 288.15}   # owner's representative specification (I-006, D-040); 288.15 K the ISO 13443 reference temperature
     flow: set by the product rate through the balance (D-006); stream S1 of process/flowsheet.yaml
   - name: Ambient air (process air to the secondary reformer, combustion air to the furnace)
-    composition_mol_percent: {N2: 78.080, O2: 20.946, Ar: 0.934, CO2: 0.040}   # dry air, humidity neglected (ASSUMED, D-004)
-    conditions: {pressure_kPa_a: 101.325, temperature_K: 288.15}
+    composition_mol_percent: {N2: 78.075, O2: 20.949, Ar: 0.934, CO2: 0.042}   # dry air of the NASA Earth Fact Sheet (2024), normalised, humidity neglected (D-040)
+    conditions: {pressure_kPa_a: 101.325, temperature_K: 288.15}   # ISO 13443 standard reference conditions (D-040)
   - name: Demineralised water (boiler feed make-up, CO2 removal make-up)
-    conditions: {pressure_kPa_a: 500, temperature_K: 298.15}   # ASSUMED (D-015)
+    conditions: {pressure_kPa_a: 500, temperature_K: 298.15}   # owner's representative specification (I-006, D-040; D-015)
+    purity: "make-up quality of IAPWS TGD3-10(2015), p. 28 (conductivity below 0.1 uS/cm), modelled as pure water (D-040)"
 products:
   - name: Anhydrous liquid ammonia
     purity: ">= 99.5 wt% NH3 (issue #86 proposed acceptance criterion, D-002); the model gives NH3 only (dissolved gases vented, water removed upstream by the dryer; oil and water traces not modelled)"
