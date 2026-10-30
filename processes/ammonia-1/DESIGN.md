@@ -893,8 +893,9 @@ Reason: S5 of runs/plan.md; review 2026-10-29-design#1 (a).
 Decision: of the 26 lanes blocked in S5, 15 are cleared by layout changes, without accepting
 any:
 - **13 crane pads beside the items**, on their clear side, so that the lane runs over the item
-  only. They were searched with core's own lane rule (scratch script `build/tools/pad_search.py`,
-  not part of the design). The pads are CP-105 (E-103), CP-106 (K-102), CP-107 (K-103),
+  only. They were searched with core's own lane rule (`scripts/pad_search.py`, provenance only,
+  run with `cheme run scripts/pad_search.py`; it was in the ignored build/ until the S5b fix,
+  design-s5b#3). The pads are CP-105 (E-103), CP-106 (K-102), CP-107 (K-103),
   CP-108 (E-105), CP-205 (R-201), CP-206 (R-401), CP-207 (E-201), CP-208 (E-202), CP-209
   (E-203), CP-210 (E-401), CP-504 (K-502), CP-505 (E-503) and CP-506 (V-502). Each is 10 x 10 m
   on open ground (no rack, structure, building, equipment or pipe below 4 m in plan), and each
@@ -908,12 +909,29 @@ any:
   that followed put PG-1107 under the V-501 platform (`layout-headroom`). It stays at
   (235, 60).
 
-The 11 lanes left are blocked by the item's own piping, the adjacent exchanger's piping, the
-PR-7 bents (E-504) or, for H-101, its own catalyst tubes and headers. No pad position clears them; only the erection
-sequence does: H-101, E-104, E-402, E-301, E-303, K-501, E-501, E-502, E-505, E-504, V-701.
+S5b fix (review layout-s5b#1, #2): three of the 11 lanes left were blocked by small routed
+lines, not by the item's own piping, and are now cleared by re-routing them:
+- **AL-1129** (DN 25 recovered NH3 from X-601) leaves PR-7 at x = 326 m, east of V-701, and drops
+  to the T1129 tee at grade, instead of running north along the drum's crown at 8.85 m. New pad
+  CP-703 (8 x 8 m) south of V-701 between PR-7 and the drum.
+- **DW-1073** (DN 25 DMW make-up) leaves PR-4 at x = 230.5 m, east of X-401, runs north at
+  sleeper height (0.6 m) and reaches V-302 from the north, instead of running north at 8.85 m
+  over E-301, E-302 and E-303. New pads CP-211 (E-301) and CP-212 (E-303), 8 x 8 m, between the
+  exchanger row and X-401.
+- **LD-204** moved 2.5 m east, off access road R-5 (x 152-158).
+The build reports no clash or headroom finding after the change; the two lines get the
+generic free-span support proposals (layout#8 kind, detail).
+
+The 8 lanes left are blocked by the item's own piping, the adjacent exchanger's piping, the
+PR-7 bents (E-504) or, for H-101, its own catalyst tubes and headers. `scripts/pad_search.py`
+finds no open-ground pad that clears them; only the erection sequence does: H-101, E-104,
+E-402, K-501, E-501, E-502, E-505, E-504. E-402's blockers PG-1056 and PG-1077 are process
+lines between C-301, E-401 and E-402, a larger re-route than a utility via.
 They are listed for the owner, with the lifting plan's reason for each, in
 build/lifting-acceptance-proposal.md (copied into the PR). None is accepted, so the gate
-`lifting-study` fails until a competent person decides. No crane chart exists yet. The
+`lifting-study` fails until a competent person decides. No crane chart exists yet: a
+manufacturer's load chart is a third-party table that may not be copied into the library, so
+the chart has to come from the crane contractor or the owner. The
 heaviest lifts, R-501 (658 t) and C-301 (514 t), need a crawler crane of the 1,000 t class.
 Reason: S5b item 2 (runs/interventions.md O-032); review 2026-10-29-design#1 (b).
 
