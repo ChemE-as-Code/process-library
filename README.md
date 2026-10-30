@@ -97,6 +97,7 @@ please cite the Process Atlas paper, and ChemE-as-Code for the toolkit. See also
   author = {Schweidtmann, Artur M. and Weber, Jana M.},
   title  = {Process Atlas: an open, git-native, reproducible library and life cycle inventory of chemical processes (working title)},
   url    = {https://atlas.cheme-as-code.org},
+  year   = {2026},
   note   = {in preparation}
 }
 
@@ -104,6 +105,7 @@ please cite the Process Atlas paper, and ChemE-as-Code for the toolkit. See also
   author = {Schweidtmann, Artur M.},
   title  = {ChemE-as-Code: An Open-Source Platform for AI-Accelerated Chemical Process Engineering (working title)},
   url    = {https://cheme-as-code.org},
+  year   = {2026},
   note   = {in preparation}
 }
 ```
