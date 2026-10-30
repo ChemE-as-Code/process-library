@@ -247,3 +247,39 @@ kpis:
         source:
           <<: *bref
           locator: Chapter 2, Section 2.3.2, Table 2.7 (Reported NOx emission levels for the production of ammonia), first row [1, EFMA, 2000], p. 52
+
+# Binding added 2026-10-30 after the design was final (basic stage signed off on main, tag
+# nh3-run-S5). The values were computed blind by a separate job (processes/ammonia-1/runs/
+# benchmark-kpis.md) that saw no range of this file. Only the two CO2 indicators can be expressed
+# over the dataset's exchanges: the energy KPIs need heating values and steam enthalpies, which
+# the dataset does not carry, and the loop pressure, conversion and NOx have no exchange. Their
+# blind values and the comparison with these ranges are in processes/ammonia-1/runs/benchmark-kpis.md
+# and process-library#86.
+datasets:
+  - process: ammonia-1
+    dataset: ammonia-from-natural-gas-1500-t-d-steam-reforming-air-fed-secondary-reformer-haber-bosch-loop
+    conditions:
+      technology: natural gas steam reforming, air-fed secondary reformer, aMDEA CO2 removal, methanation, synthesis loop (DESIGN.md)
+      product: anhydrous liquid ammonia, refrigerated
+      drives: all electric, power imported (D-016); MP steam exported (D-015)
+      capacity: 1500 t/d
+      region: EU (Netherlands site basis)
+      year: 2026
+    kpis:
+      process-co2:
+        # CO2 vented from the CO2 removal (product:CO2V) times its CO2 mass fraction 0.978874
+        # (stream S87 composition); flue-gas CO2 excluded.
+        expression: product:CO2V * 0.978874105 / product:NH3
+        per: product:NH3
+        reference: bref-lvic-aaf-process-co2
+      direct-co2-total:
+        expression: emission:CO2 / product:NH3
+        per: product:NH3
+        reference: iea-2021-smr-bat-direct-co2
+        out_of_range_reason: >-
+          Below the IEA single BAT value because less natural gas is burnt on site: all machine
+          drives are electric with the power imported (D-016 in processes/ammonia-1/DESIGN.md),
+          so no fuel is fired for the compressors, whose emissions fall outside this boundary;
+          the furnace fuel follows the radiant balance with complete combustion and no heat loss
+          (D-014, D-040). Natural gas feed plus fuel is 28.0 GJ/t (LHV), against 32.1 GJ/t in the
+          IEA BAT row (processes/ammonia-1/runs/benchmark-kpis.md).
