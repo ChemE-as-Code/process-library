@@ -203,9 +203,43 @@ def main():
           f"C201 cooling {q_c201 / 3600:.1f} kW; R301 heat to steam {q_r301 / 3600:.1f} kW")
     for kk in ("CO", "HCHO", "CH3OH", "DME"):
         print(f"stack {kk}: {stack[kk] * MW[kk] * 1e6 / (sum(stack.values()) * NM3):.2f} mg/Nm3 (wet)")
+    # the values process/flowsheet.yaml cites from this script (balance-output contract), by the
+    # flowsheet's stream ids: its S10 is the absorber off-gas (printed "S11"), its S14 the
+    # formalin product (printed "S12"); compositions as mole fractions
+    def state(d):
+        return {"flow": {"value": sum(n * MW[kk] for kk, n in d.items()), "basis": "mass"},
+                "composition": {"values": {kk: n / sum(d.values()) for kk, n in d.items()},
+                                "basis": "mole_fraction"}}
+
+    write_balance_output({"design": {
+        "S1": state(air), "S2": {"temperature": t_in}, "S3": {"temperature": t_out},
+        "S4": {"flow": {"value": meoh_feed * MW["CH3OH"], "basis": "mass"}},
+        "S6": {"temperature": t6}, "S9": {"flow": {"value": pw * MW["H2O"], "basis": "mass"}},
+        "S10": state(offgas_all), "S14": state(product),
+        "Q1": {"duty": p_el}, "Q3": {"duty": q_r101 / 3600}, "Q4": {"duty": q_r301 / 3600},
+        "Q5": {"duty": q_c201 / 3600}, "Q6": {"duty": q_e101 / 3600}}})
     mass_in = (sum(n * MW[kk] for kk, n in air.items()) + meoh_feed * MW["CH3OH"] + pw * MW["H2O"])
     mass_out = I["product_kg_h"] + sum(n * MW[kk] for kk, n in vent.items())
     print(f"plant mass in {mass_in:.2f} out {mass_out:.2f} kg/h")
+
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
 
 
 if __name__ == "__main__":
