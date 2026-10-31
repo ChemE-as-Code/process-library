@@ -64,9 +64,10 @@ Options considered:
   + rel 0.005, a component on one side only compared with zero; `phase` equal.
 - **CI.** The `balance-scripts` job of `validate.yml` installs the core commit that the other
   jobs pin, with the property extras the scripts import (`props,units,cantera`), runs the
-  checker over the library and puts its table in the job summary. It fails on drift, missing
-  values and errors of migrated scripts. A script not migrated yet is listed as `not-migrated`
-  and does not fail the job (`--strict` makes it fail; to be switched on once all are migrated).
+  checker over the library with `--strict` and puts its table in the job summary. It fails on
+  drift, missing values and errors, and on a cited script that does not follow the contract
+  (`not-migrated`): every script cited today follows it, so a new one must too. Without
+  `--strict` (a local run) a `not-migrated` script is only listed.
 - **Changing a number.** A script change that moves a cited value updates the flowsheet in the
   same commit. Drift that the checker finds is reported and decided by the process owner; only a
   plain transcription error is corrected without a design decision.
@@ -75,8 +76,9 @@ Options considered:
 
 - A flowsheet value sourced to a script is now as reproducible as the script: a stale paste
   fails CI instead of reaching the catalog.
-- Every migration touches the script (about 30 lines) without changing what it prints. Scripts
-  not migrated yet stay unchecked: the checker lists them, so the gap is visible.
+- Every migration touches the script (about 30 lines) without changing what it prints. All 43
+  cited scripts (42 processes) were migrated with this ADR; their printed output was compared
+  before and after and is unchanged.
 - The scripts run with the pinned core: a core bump that changes property values (thermo,
   CoolProp, Cantera) can now turn the job red, which is the intended signal; the owner then
   re-runs the script and updates the flowsheet with the bump.
@@ -84,16 +86,18 @@ Options considered:
   themselves run in seconds).
 - Values the flowsheet cites from documents (`D-00x`) or from core's own calculations are out of
   scope; so are equipment sizes and costs a script may also print.
-- Open: switch on `--strict` when every cited script follows the contract; consider moving the
-  helper into core (`cheme run` could set and read `BALANCE_OUTPUT` itself) if more projects
-  outside the library adopt the pattern.
+- The first run found two values that do not reproduce (chloromethane-1 Q01, thf-1 S9
+  temperature); they are reported in the pull request and left to the process owner, so the
+  job stays red until they are decided.
+- Open: consider moving the helper into core (`cheme run` could set and read `BALANCE_OUTPUT`
+  itself) if more projects outside the library adopt the pattern.
 
 ## Evidence
 
 - `scripts/check_balance_scripts.py`, `tests/test_check_balance_scripts.py`
 - `.github/workflows/validate.yml`, job `balance-scripts`
 - Migrated scripts: `processes/{hydrogen-1,methanol-1,hda-1,nitric-acid-1}/scripts/` first,
-  then further processes on the branch `quality/balance-script-reproducibility`; the checker's
-  `not-migrated` lines list the rest.
+  then every other process whose flowsheet cites a script (branch
+  `quality/balance-script-reproducibility`).
 - [CONTRIBUTING.md](../../CONTRIBUTING.md), "A balance script whose numbers go into the
   flowsheet"
