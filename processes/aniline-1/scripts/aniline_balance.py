@@ -358,3 +358,38 @@ for e in "CHNO":
     ein = sum(n.get(c, 0) * EL[c].get(e, 0) for n in (nb_feed, h2_feed) for c in n)
     eout = sum(n.get(c, 0) * EL[c].get(e, 0) for n in (product, purge, lights, residue, ww) for c in n)
     print(f"element {e}: in {ein:.5f} out {eout:.5f} kmol/h")
+
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
+
+
+# the values process/flowsheet.yaml cites from this script (balance-output contract): the streams
+# of build/aniline_balance.yaml (mass flow, mole fractions) and the duties; Q11 is the C-102
+# condenser plus the process water cooler
+FLOWSHEET = {}
+for sid, title, n, T, Pk, ph in streams:
+    FLOWSHEET[sid] = {"temperature": T, "pressure": Pk,
+                      "flow": {"value": mass(n), "basis": "mass"},
+                      "composition": {"values": {c: f / sum(n.values()) for c, f in n.items()},
+                                      "basis": "mole_fraction"}}
+FLOWSHEET.update({qid: {"duty": q} for qid, q in {
+    "Q1": W_K, "Q2": W_P101, "Q4": Q_C201_reb, "Q5": Q_C202_reb, "Q6": Q_C102_reb,
+    "Q7": Q_export, "Q8": Q_E104, "Q9": Q_C201_cond, "Q10": Q_C202_cond,
+    "Q11": Q_C102_cond + Q_WW_cool, "Q12": Q_D101}.items()})
+write_balance_output({"design": FLOWSHEET})
