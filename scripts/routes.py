@@ -177,6 +177,10 @@ def _footprint(detail: dict, folder: Path, study_applies: bool) -> dict | None:
         return out
     value = (lca.get("totals") or {}).get("baseline", {}).get(first["id"])
     out["value"] = value
+    missing = (lca.get("not_computed") or {}).get("baseline", {}).get(first["id"])
+    if missing:
+        # no total, with why (ADR 0024): every contribution a gap, never 0
+        out["not_computed"] = missing["reason"]
     out["interval"] = _uncertainty(folder, first["id"]) if value is not None else None
     return out
 

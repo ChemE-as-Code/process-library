@@ -218,6 +218,37 @@ def _sheets(plant: dict) -> list[dict]:
 #: What the catalog gives of each LCA data source (core's run manifest background.sources).
 DATA_SOURCE_FIELDS = ("id", "title", "provider", "version", "url", "licence", "publication", "attribution")
 
+#: core's category of the product carbon footprint breakdown rows in ``lca/results.csv``
+#: (``report.PCF_CATEGORY``): lines in kg CO2-eq, kg C and kg CO2, not an impact category.
+PCF_CATEGORY = "pcf"
+#: Gap reasons that leave no burden unknown: the flow is outside the method's scope (core's
+#: ``impacts.OUTSIDE_METHOD``). Every other reason in ``lca/gaps.csv`` (``missing``,
+#: ``no-weight``, ...) leaves a burden unknown.
+OUTSIDE_METHOD = ("elementary-uncharacterised", "biosphere-uncharacterised")
+#: Why a category has no total (ADR 0024): it has gaps and not one characterised contribution.
+#: core says the same ("no total (every contribution a gap)" in lca/results.md) but writes a
+#: total row of 0 in lca/results.csv, which must never reach a reader as a footprint.
+EVERY_CONTRIBUTION_A_GAP = "every-contribution-a-gap"
+
+
+def _not_computed(gaps: list[dict], contributed: set[tuple[str, str]]) -> dict[str, dict[str, dict]]:
+    """Per scenario and category: why no total can be given, from core's ``lca/gaps.csv``.
+
+    A category has no total when it has at least one gap that leaves a burden unknown and not one
+    characterised contribution (core's ``LcaReport.comparability`` rule): its sum, 0, would
+    read as "no footprint". A category without gaps keeps its total, also when it is 0 (a real
+    zero), and one with contributions keeps it with its gaps listed beside it."""
+    unknown: dict[tuple[str, str], set[str]] = defaultdict(set)
+    for gap in gaps:
+        if gap.get("reason") in OUTSIDE_METHOD:
+            continue
+        unknown[(gap.get("scenario", ""), gap.get("category", ""))].add(gap.get("key", ""))
+    found: dict[str, dict[str, dict]] = defaultdict(dict)
+    for (scenario, category), keys in sorted(unknown.items()):
+        if (scenario, category) not in contributed:
+            found[scenario][category] = {"reason": EVERY_CONTRIBUTION_A_GAP, "gaps": len(keys)}
+    return dict(found)
+
 
 def _lca(folder: Path, where: str, report: Report, capacity: str | None = None) -> dict | None:
     """Functional unit, totals per scenario and category, contributions and inventory."""
@@ -241,13 +272,23 @@ def _lca(folder: Path, where: str, report: Report, capacity: str | None = None) 
     units: dict[str, str] = {}
     contributions = []
     statuses = set()
+    contributed: set[tuple[str, str]] = set()
+    pcf = []
     for row in results:
         impact = _number(row.get("impact")) or 0.0
+        if row["category"] == PCF_CATEGORY:
+            # the PCF breakdown of a climate category: its own lines, never summed
+            if row["scenario"] == "baseline":
+                pcf.append(
+                    {"key": row["key"], "basis": row.get("basis", ""), "value": impact, "unit": row.get("category_unit", "")}
+                )
+            continue
         units[row["category"]] = row.get("category_unit", "")
         if row["key"] == "total":
             stated[row["scenario"]][row["category"]] = impact
             continue
         sums[row["scenario"]][row["category"]] += impact
+        contributed.add((row["scenario"], row["category"]))
         statuses.add(row.get("status", ""))
         if row["scenario"] == "baseline":
             contributions.append(
@@ -263,6 +304,11 @@ def _lca(folder: Path, where: str, report: Report, capacity: str | None = None) 
             )
     contributions.sort(key=lambda c: (c["category"], -abs(c["impact"]), c["key"]))
     totals = {s: {**sums.get(s, {}), **stated.get(s, {})} for s in sums.keys() | stated.keys()}
+    gaps = _csv(lca_dir / "gaps.csv") if (lca_dir / "gaps.csv").is_file() else []
+    not_computed = _not_computed(gaps, contributed)
+    for scenario, cats in not_computed.items():
+        for cat in cats:
+            (totals.get(scenario) or {}).pop(cat, None)
 
     run = {}
     sources: list[dict] = []
@@ -277,6 +323,9 @@ def _lca(folder: Path, where: str, report: Report, capacity: str | None = None) 
     example = bool((factors or {}).get("example"))
     if example:
         factors_status = "placeholder"
+    elif not statuses:
+        # not one characterised contribution: no factor stands behind any number
+        factors_status = "none"
     elif statuses <= {"PUBLISHED", "EPD"}:
         factors_status = "published"
     else:
@@ -332,7 +381,12 @@ def _lca(folder: Path, where: str, report: Report, capacity: str | None = None) 
             scenario: {cat: round(value, 6) for cat, value in sorted(cats.items())}
             for scenario, cats in sorted(totals.items())
         },
+        # categories without a total, per scenario, with why (ADR 0024): never 0
+        "not_computed": {s: dict(sorted(c.items())) for s, c in sorted(not_computed.items())},
         "contributions": contributions,
+        # core's product carbon footprint breakdown of the baseline (fossil, biogenic, carbon
+        # content, ...), each line with its own unit; [] when the study declares none
+        "pcf": pcf,
         "inventory": [
             {
                 "key": r["key"],
@@ -817,6 +871,10 @@ def build(
                 "functional_unit": lca["functional_unit"]["label"],
                 "factors_status": lca["factors_status"],
             }
+            missing = (lca.get("not_computed") or {}).get("baseline", {}).get(first["id"])
+            if missing:
+                # value null with the reason, never 0 (ADR 0024)
+                headline["not_computed"] = missing["reason"]
             if "values_withheld" in lca:
                 headline["values_withheld"] = lca["values_withheld"]
         summaries.append(
@@ -1074,7 +1132,7 @@ def _publish(detail: dict) -> None:
             item["url"] = None
     lca = detail.get("lca")
     if lca and not lca["publishable"]:
-        del lca["totals"], lca["contributions"]
+        del lca["totals"], lca["contributions"], lca["pcf"]
         lca["values_withheld"] = lca["withheld_reason"]
     for scenario in (lca or {}).get("scenarios", []):
         if scenario["withheld_reason"]:
