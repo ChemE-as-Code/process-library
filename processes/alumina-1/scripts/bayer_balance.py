@@ -417,6 +417,7 @@ def elements(s: dict) -> dict:
 
 
 SRC = "scripts/bayer_balance.py"
+FLOWSHEET = {}  # filled by yaml_streams(), see write_balance_output()
 PASS_THROUGH = {"S8", "S11", "S12", "S24"}   # heaters and coolers without a phase change
 
 
@@ -495,11 +496,23 @@ def yaml_streams(st: dict, du: dict) -> str:
     for qid, title, fr, to, d, note in e:
         out.append(f"  - {{id: {qid}, title: \"{title}\", kind: energy, from: {fr}, to: {to}, state: "
                    f"{{design: {{duty: {{value: {d:.1f}, provenance: assumed, source: \"{SRC}: {note} (D-007)\"}}}}}}}}")
+    # the values process/flowsheet.yaml cites from this script (balance-output contract), in the
+    # flowsheet's ids: kept for main() to write
+    FLOWSHEET.clear()
+    for sid, title, fr, to, s, t, p, note in rows:
+        m = total(s)
+        FLOWSHEET[sid] = {"temperature": t, "pressure": p,
+                          "flow": {"value": m, "basis": "mass"},
+                          "composition": {"values": {c: v / m for c, v in s.items()},
+                                          "basis": "mass_fraction"}}
+    FLOWSHEET.update({qid: {"duty": d} for qid, title, fr, to, d, note in e})
     return "\n".join(out)
 
 
 def main():
     st, du, info, it, err = solve()
+    yaml_streams(st, du)  # fills FLOWSHEET
+    write_balance_output({"design": FLOWSHEET})
     yaml = "--yaml" in sys.argv
     if yaml:
         print(yaml_streams(st, du))
@@ -544,6 +557,25 @@ def main():
         for e in sorted(ei):
             print(f"  {e:2s} in {ei[e]:12.2f} out {eo.get(e, 0):12.2f} "
                   f"recycle mismatch {eo_rec.get(e, 0):10.2f}")
+
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
 
 
 if __name__ == "__main__":
