@@ -16,6 +16,7 @@ Run: cheme run scripts/balance.py  (writes build/balance.txt and prints the stre
 """
 
 import math
+import os
 
 R = 8.314462618  # kJ/(kmol K)
 C = ["C2H4", "C2H6", "CH4", "H2O", "ETOH", "DEE", "C4H8"]
@@ -369,9 +370,44 @@ for k in GIVEN:
     comp = ", ".join(f"{c}: {s[c]/n:.8f}" for c in C if s[c] / n > 5e-9)
     y.append(f"{k}: T {T[k]:.2f} P {P[k]} | flow: {{value: {mass(s):.2f}, basis: mass}} "
              f"composition: {{basis: mole_fraction, values: {{{comp}}}}}")
+os.makedirs("build", exist_ok=True)  # build/ is not in git: a fresh checkout lacks it
 with open("build/streams.txt", "w") as f:
     f.write("\n".join(y) + "\n")
 text = "\n".join(out)
 print(text)
 with open("build/balance.txt", "w") as f:
     f.write(text + "\n")
+
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
+
+
+# the values process/flowsheet.yaml cites from this script (balance-output contract): streams, T
+# and P as printed (mass flow, mole fractions over C), and the duties
+FLOWSHEET = {}
+for k, s in streams.items():
+    n = sum(s.values())
+    FLOWSHEET[k] = {"temperature": T[k], "pressure": P[k],
+                    "flow": {"value": mass(s), "basis": "mass"},
+                    "composition": {"values": {c: s[c] / n for c in C}, "basis": "mole_fraction"}}
+FLOWSHEET.update({qid: {"duty": q} for qid, q in {
+    "Q1": W_K101, "Q2": W_K102, "Q3": Q_K102, "Q4": Q_E102 / 3600, "Q5": Q_E103 / 3600,
+    "Q6": W_P101, "Q7": Q_C201, "Q8": Q_C201_COND, "Q9": Q_C202, "Q10": Q_C202_COND,
+    "Q11": Q_V301}.items()})
+write_balance_output({"design": FLOWSHEET})
