@@ -231,10 +231,11 @@ choice except the column representation and the 1e-6 above.
 Rejected: NRTL for the whole flowsheet (above); excluding the columns to simulate them later
 with NRTL (simulate takes one package per process, so a column-only NRTL run needs a separate
 setup or a core change); rigorous columns now (no stage numbers or feed stages exist yet, D-008).
-Note for review: with this file present `cheme maturity` (cheme 1.1.0) passes
-`balanced.model-basis` and `predictive.model-basis` and lists V-101, V-102, C-201 and C-202 as
-predictive, although nothing has been simulated; the `predictive.run-record` and later checks
-stay missing. The calculation maturity stays none (S1 is ASSUMED, `sourced.boundary`).
+Note for review: with this file present `cheme maturity` (cheme 1.1.0 and 1.2.1, the library CI
+pin since #282) passes `balanced.model-basis` and `predictive.model-basis` and lists V-101,
+V-102, C-201 and C-202 as predictive, although nothing has been simulated; the
+`predictive.run-record` and later checks stay missing. The calculation maturity stays none (S1
+is ASSUMED, `sourced.boundary`).
 
 ## 3. Reaction and model evidence
 
