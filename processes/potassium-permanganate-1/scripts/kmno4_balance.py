@@ -296,9 +296,38 @@ def main():
             f"        composition: {{basis: mass_fraction, values: {{{comp}}}, provenance: assumed, source: \"{src}\"}}",
         ]
     Path("build/streams.yaml").write_text("\n".join(lines) + "\n")
+    # the values process/flowsheet.yaml cites from this script (balance-output contract)
+    flowsheet = {sid: {"flow": {"value": tot(S[key]), "basis": "mass"},
+                       "composition": {"values": frac(S[key]), "basis": "mass_fraction"}}
+                 for sid, key, title, fr, to, p_, t_, note in table}
+    duties = {"Q1": "q_r201", "Q2": "p_ac", "Q3": "p_dc", "Q4": "q_rect", "Q5": "q_cell",
+              "Q6": "q_x501", "Q8": "q_e601", "Q9": "q_e601c", "Q10": "q_d501"}
+    flowsheet.update({qid: {"duty": E[k]} for qid, k in duties.items()})
+    # q_leach is the M-301 cooling; negative here, so the flowsheet gives it as heating (Q7, LPS)
+    flowsheet["Q7"] = {"duty": -E["q_leach"]}
+    write_balance_output({"design": flowsheet})
     ins = sum(tot(S[k]) for k in ("ore", "koh", "air", "lime", "water"))
     outs = sum(tot(S[k]) for k in ("offgas", "residue", "h2", "o2", "prod", "vap", "purge"))
     print(f"overall in {ins:.3f} out {outs:.3f} kg/h")
+
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
 
 
 if __name__ == "__main__":

@@ -340,3 +340,36 @@ out_dir.mkdir(exist_ok=True)
 print("split SPM product %.9f, SPW solvent %.9f" % (P["MMA"] / out_mma if (out_mma := S["S14"]["MMA"]) else 0, f_solv))
 for sid in ["S7"]:
     print(sid, {c: round(v / sum(S[sid].values()), 8) for c, v in S[sid].items()}, round(kg(S[sid]), 1))
+
+
+# the values process/flowsheet.yaml cites from this script (balance-output contract)
+FLOWSHEET = {}
+for sid, title, fr, to, tsrc in TOPO:
+    n = S[sid]
+    FLOWSHEET[sid] = {"temperature": Tc[sid], "pressure": Pp[sid],
+                      "flow": {"value": kg(n), "basis": "mass"},
+                      "composition": {"values": {c: v / sum(n.values()) for c, v in n.items()},
+                                      "basis": "mole_fraction"}}
+FLOWSHEET.update({qid: {"duty": kW[key]} for qid, title, fr, to, key, src in ENERGY})
+
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
+
+
+write_balance_output({"design": FLOWSHEET})

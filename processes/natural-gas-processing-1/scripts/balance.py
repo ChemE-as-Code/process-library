@@ -348,7 +348,36 @@ def fmt_stream(sid, title, frm, to, tpl, n, t, p, src):
             f'composition: {{basis: mass_fraction, values: {{{comp}}}, provenance: assumed, source: "scripts/balance.py"}}}}}}}}')
 
 
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
+
+
 if __name__ == "__main__":
+    # the values process/flowsheet.yaml cites from this script (balance-output contract)
+    FLOWSHEET = {}
+    for sid, title, frm, to, tpl, n, t, p, src in STREAMS:
+        m = kg(n)
+        FLOWSHEET[sid] = {"temperature": t, "pressure": p,
+                          "flow": {"value": sum(m.values()), "basis": "mass"},
+                          "composition": {"values": {k: v / sum(m.values()) for k, v in m.items()},
+                                          "basis": "mass_fraction"}}
+    FLOWSHEET.update({qid: {"duty": q} for qid, title, frm, to, q, src in ENERGY})
+    write_balance_output({"design": FLOWSHEET})
     print("streams:")
     for s in STREAMS:
         print(fmt_stream(*s))
