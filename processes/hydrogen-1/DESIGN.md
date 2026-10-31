@@ -243,8 +243,9 @@ validate` reports no error, and the translation into the simulator model succeed
 cheme 1.1.0 (the version library CI pins) and 1.2.0: `cheme process simulate --check` stops
 only at `sim-unavailable`, after the translation. `cheme maturity` now passes
 `predictive.simulation-spec` and `predictive.property-package` (both failed or were missing
-before) and fails `predictive.coverage` (three parts left out, below). No stream value was
-written.
+before). It fails `predictive.coverage` (three parts left out, below) and
+`predictive.model-basis`, because U-301 is a specified split (D-008), which caps the level at
+balanced. No stream value was written.
 Scope (17 units, 25 material streams of which 5 are feeds S1, S6, S20, S22, S25, and 9 energy
 streams in the translated model, read with core's `translate.translation()` under cheme 1.1.0):
 - simulated: FPT (M101, E101, R101 as a heater with zero duty, D-005), REF (M102, E102, R102
@@ -290,11 +291,14 @@ conversion` and a conversion on the flowsheet step, replacing a predictive equil
 specified conversion (ADR 0030 then checks only that conversion). Also rejected: waiting for
 the core fix.
 Side effect of the workaround: R201 is no longer declared `mode: adiabatic`, so the LCA
-boundary check (`cheme assess lca`) reports `boundary-utility-unassigned` for R201, and
-`lca/results.md` would headline an incomplete boundary. R-201 is adiabatic and has no
-utility. lca/ was **not** regenerated in this change. To settle (owner): accept the flag as
-ammonia-1 did, or ask core for a way to declare a reactor adiabatic while it is simulated at a
-fixed outlet temperature.
+boundary check (`cheme assess lca`) reports `boundary-utility-unassigned` for R201, though
+R-201 is adiabatic and has no utility. lca/ was regenerated with cheme 1.1.0 (`cheme assess
+lca --write`), as ammonia-1 did under D-024: `lca/results.md` now headlines an incomplete
+boundary with R201 as its only gap, and the run manifest fingerprints the new
+simulation.yaml, so the catalog does not withhold the LCA as `stale-run-manifest`. The
+impacts (results.csv) are unchanged. To settle (owner): accept the flag as ammonia-1 did, or
+ask core for a way to declare a reactor adiabatic while it is simulated at a fixed outlet
+temperature.
 What the first run should show (pre-run expectations, not results):
 - pressure deviations by construction: S7 3850 vs 3800 kPa(a) (mixer); a component separator
   leaves both outlets at its inlet pressure, so S16, S17, S18 (2850) and S19, S21 (130 kPa(a))
