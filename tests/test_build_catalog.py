@@ -952,6 +952,27 @@ def test_the_pcf_breakdown_is_not_an_impact_category(library: Path) -> None:
     assert "pcf" not in detail["lca"] and "totals" not in detail["lca"]
 
 
+def test_the_pcf_impact_lines_of_a_gap_only_category_are_unknown(library: Path) -> None:
+    # glycerol-1 (#250): fossil 0 and "including" -1.08 (biogenic withdrawal only) beside a
+    # climate total that does not exist; the carbon content of the product stays a fact
+    folder = library / "processes" / "fixture-electrolysis"
+    _results(
+        folder,
+        GAP_ONLY_RESULTS
+        + "baseline,pcf,kg CO2-eq,fossil,climate-change,,,,0,,,,,\n"
+        + "baseline,pcf,kg CO2-eq,including,climate-change,,,,-1.07551,,,,,\n"
+        + "baseline,pcf,kg C,product_carbon,climate-change,,,,0.39,,,,,\n",
+        "baseline,climate-change,feed:POWER,missing,55,kWh,operation,background to link\n",
+    )
+    lca = build_catalog._lca(folder, "fixture", build_catalog.Report())
+    reason = "every-contribution-a-gap"
+    assert lca["pcf"] == [
+        {"key": "fossil", "basis": "climate-change", "value": None, "unit": "kg CO2-eq", "not_computed": reason},
+        {"key": "including", "basis": "climate-change", "value": None, "unit": "kg CO2-eq", "not_computed": reason},
+        {"key": "product_carbon", "basis": "climate-change", "value": 0.39, "unit": "kg C"},
+    ]
+
+
 def test_the_shipped_library_reports_no_gap_only_total_as_zero(tmp_path: Path) -> None:
     # every process whose study has a gap-only category: none of them shows 0 for it (#250)
     for folder in sorted((KIT / "processes").glob("*/lca/results.csv")):
@@ -959,4 +980,7 @@ def test_the_shipped_library_reports_no_gap_only_total_as_zero(tmp_path: Path) -
         for scenario, cats in lca["not_computed"].items():
             for category in cats:
                 assert category not in lca["totals"].get(scenario, {}), (folder, scenario, category)
+        for line in lca["pcf"]:
+            if line["basis"] in lca["not_computed"].get("baseline", {}) and line["unit"].endswith("CO2-eq"):
+                assert line["value"] is None, (folder, line)
         assert "pcf" not in {c["id"] for c in lca["categories"]}, folder

@@ -55,6 +55,11 @@ chose (b) now; (a) remains a follow-up for core, and the catalog rule stays corr
 - `pcf` rows are not an impact category. They go to `lca.pcf` (the baseline lines, each
   `{key, basis, value, unit}`) and never into `categories`, `totals`, `contributions` or the
   factor status. A withheld LCA loses `lca.pcf` with its totals.
+- A PCF line in the unit of its basis category (kg CO2-eq: fossil, biogenic, including,
+  excluding, ...) is a part of that category's total. When the baseline has no total for that
+  category, the line gets `value: null` and `not_computed` with the same reason. Lines in other
+  units (kg C carbon contents, kg CO2 flows) describe the product and the plant and keep their
+  values.
 - `factors_status` is `none` when not one contribution was characterised.
 
 ## Consequences
@@ -67,6 +72,8 @@ chose (b) now; (a) remains a follow-up for core, and the catalog rule stays corr
   process without a total.
 - `pcf` disappears from `lca.categories` and `lca.totals` (glycerol-1, kraft-pulp-1, urea-1). A
   consumer that showed it there showed a sum of mixed units.
+- glycerol-1 shows its PCF impact lines (fossil 0, including -1.08 kg CO2-eq from the biogenic
+  withdrawal alone) as not computed; its carbon contents stay.
 - kraft-pulp-1 and urea-1 move from `mixed` to `published` factors, because the PCF rows no
   longer count.
 - The rule depends on `lca/gaps.csv`. A study without that file, or one written by a core that
@@ -84,6 +91,7 @@ chose (b) now; (a) remains a follow-up for core, and the catalog rule stays corr
 - Tests: `tests/test_build_catalog.py` (`test_a_category_whose_every_contribution_is_a_gap_has_no_total`,
   `test_a_real_zero_stays_zero`, `test_a_category_with_contributions_keeps_its_total_beside_its_gaps`,
   `test_the_pcf_breakdown_is_not_an_impact_category`,
+  `test_the_pcf_impact_lines_of_a_gap_only_category_are_unknown`,
   `test_the_shipped_library_reports_no_gap_only_total_as_zero`), `tests/test_routes.py`
   (`test_a_gap_only_footprint_is_null_with_its_reason`).
 - #250; core `chemeascode/domains/assessment/lca/report.py` (`comparability`, the `total`

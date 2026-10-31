@@ -309,6 +309,14 @@ def _lca(folder: Path, where: str, report: Report, capacity: str | None = None) 
     for scenario, cats in not_computed.items():
         for cat in cats:
             (totals.get(scenario) or {}).pop(cat, None)
+    # the PCF's impact lines (in the unit of its climate category) are parts of that category's
+    # total: with no total they are unknown too, never 0 or a biogenic-only sum (ADR 0024). Its
+    # carbon contents (kg C) and CO2 flows (kg CO2) describe the product and the plant and stay.
+    for line in pcf:
+        missing = not_computed.get("baseline", {}).get(line["basis"])
+        if missing and line["unit"] == units.get(line["basis"]):
+            line["value"] = None
+            line["not_computed"] = missing["reason"]
 
     run = {}
     sources: list[dict] = []
