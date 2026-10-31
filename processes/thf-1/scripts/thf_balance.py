@@ -292,3 +292,48 @@ h_prod = h_bin(x_p, T_COND, P_HP, "l")
 E_in = H_in / 3600.0 + steam + W_pump1 + W_pump2
 E_out = (n_ww * h_ww + n_p * h_prod + H_bleed) / 3600.0 + cw
 print(f"energy closure: in {E_in:.1f} kW, out {E_out:.1f} kW, difference {E_in - E_out:.1f} kW ({(E_in - E_out) / steam * 100:.2f} % of steam)")
+
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
+
+
+# the values process/flowsheet.yaml cites from this script (balance-output contract), by the
+# flowsheet's stream ids (its S6 is the condensate printed as "S5" above); binary THF/water
+# streams as mass flow and mass fractions, temperatures at the columns' bubble points
+def _binary(n, x):
+    return {"flow": {"value": kg(n, x), "basis": "mass"},
+            "composition": {"values": {"THF": wfrac(x), "H2O": 1 - wfrac(x)},
+                            "basis": "mass_fraction"}}
+
+
+FLOWSHEET = {
+    "S1": {"flow": {"value": bdo_feed, "basis": "mass"}},
+    "S2": {"flow": {"value": ptsa, "basis": "mass"}},
+    "S6": _binary(n_oh, x_oh),
+    "S7": {"flow": {"value": m_bleed, "basis": "mass"}},
+    "S8": {**_binary(n_rec, xd_hp), "temperature": hp["Td"]},
+    "S10": {**_binary(n_d1, xd_lp), "temperature": lp["Td"]},
+    "S12": {**_binary(lp["B"], X_THF_WW), "temperature": lp["Tb"]},
+    "S14": {**_binary(n_p, x_p), "temperature": hp["Tb"]},
+    "Q1": {"duty": W_pump1}, "Q2": {"duty": W_pump2}, "Q3": {"duty": Q_R},
+    "Q4": {"duty": Q_cond_r}, "Q5": {"duty": lp["Qr"] - q_int}, "Q6": {"duty": q_int},
+    "Q7": {"duty": lp["Qc"]}, "Q8": {"duty": hp["Qr"]}, "Q9": {"duty": Q_prod},
+    "Q10": {"duty": Q_ww},
+}
+write_balance_output({"design": FLOWSHEET})
