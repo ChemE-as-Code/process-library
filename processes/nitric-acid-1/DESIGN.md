@@ -279,6 +279,18 @@ Left out (`exclude`), and why:
 Streams from the excluded steps into the simulated part (S16, S19, S21, S25) are feeds with their
 flowsheet values; streams into them (S05, S14, S20, S23, S27) are simulated outlets.
 
+Against the scope asked for this change (absorber as a specified `component_separator`, NO
+oxidation and the tail-gas expander simulated), three parts are not met, each checked on a
+scratch copy of this process with cheme 1.1.0 and again with core main 1.2.0 (same result):
+the absorber as a `component_separator` is refused twice (`cheme.process-sim-unmapped`: three
+material inlets, the unit takes one; `cheme.process-sim-electrolyte`: HNO3 with water); E-105
+taken into the simulation is refused (`cheme.process-sim-electrolyte`), so the NO oxidation is
+not simulated; X-101 with K-101 left out instead is still refused (`cheme.process-sim-unmapped`:
+two energy streams Q01, Q02 out of the expander). The refusal of HNO3 applies to the whole model
+as soon as HNO3 and water are among its compounds, whichever unit carries them, so no unit
+choice in this file gets the absorber in. Meeting the asked scope needs the flowsheet changes
+or the core units of F-1 to F-3, which are left for review (below).
+
 Property package: Peng-Robinson. The recorded selection (polar, no interaction parameters,
 1150 kPa) recommends PSRK or PR/RKS with modified Huron-Vidal mixing; the route runs none of them
 and methods.yml names Peng-Robinson as their substitute. The substitution is not recorded as
