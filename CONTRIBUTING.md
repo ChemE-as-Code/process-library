@@ -68,6 +68,26 @@ the slugs other processes already use:
 Start one with `cheme init`, then add P&IDs, the process YAML, the layout and the LCA. The
 catalog derives its sheets, gates, design basis and LCA results.
 
+#### A balance script whose numbers go into the flowsheet
+
+When core cannot calculate the flowsheet yet, a standalone script
+(`processes/<id>/scripts/<name>.py`, run with `cheme run`) may supply its stream values and
+duties; the flowsheet gives each as `provenance: assumed` with a `source` that starts with the
+script's path (`"scripts/<name>.py: ..."`). Such a script follows the balance-output contract
+([ADR 0024](docs/adr/0024-balance-scripts-reproduce-the-flowsheet.md)): when the environment
+variable `BALANCE_OUTPUT` names a file, it writes there, as JSON, every value the flowsheet
+cites from it (`{"contract": "balance-output/1", "script": "scripts/<name>.py", "cases":
+{"design": {"<stream id>": {"flow": ..., "composition": {...}}}}}`), in the flowsheet's units
+and basis. Copy `write_balance_output()` from a migrated script (e.g.
+`processes/hydrogen-1/scripts/h2_balance.py`). CI re-runs it and compares:
+
+```sh
+uv run scripts/check_balance_scripts.py --library . --process <id>
+```
+
+When the script changes, update the flowsheet values it sources in the same commit; a drift
+fails the `balance-scripts` job.
+
 #### An LCI dataset, its mappings, gaps and allocation
 
 - The dataset is `lca/dataset.yaml`, written by `cheme assess lca --write`, or hand-written
