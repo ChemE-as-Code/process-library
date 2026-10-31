@@ -432,6 +432,17 @@ def main():
     print("# energy streams, kW")
     for sid, title, frm, to, q in energy:
         print(f"  - {{id: {sid}, title: {title}, kind: energy, from: {frm}, to: {to}, duty: {q:.1f}}}")
+    # the values process/flowsheet.yaml cites from this script (balance-output contract): the
+    # streams (kg/h, mass fractions) and duties printed above
+    flowsheet = {}
+    for sid, title, frm, to, comp, t, p in streams:
+        comp = {k: v for k, v in comp.items() if v > 1e-12}
+        flowsheet[sid] = {"temperature": t, "pressure": p,
+                          "flow": {"value": total(comp) * 3600, "basis": "mass"},
+                          "composition": {"values": {k: v / total(comp) for k, v in comp.items()},
+                                          "basis": "mass_fraction"}}
+    flowsheet.update({sid: {"duty": q} for sid, title, frm, to, q in energy})
+    write_balance_output({"design": flowsheet})
     print("# key figures")
     print(f"xi {xi:.5f} mol/s, Cl2 formed {kg('Cl2', xi) * 3600:.2f} kg/h, side extent {c['xs']:.5f} mol/s")
     print(f"current {c['current']:.1f} A total, {n_cells} cells x {i_cell:.1f} A, "
@@ -461,6 +472,25 @@ def main():
            g["hcl_dcl"], g["sulfite"], acid_feed]
     outs = [b["sludge"], b["regen"], b["vent"], b["purge"], spent, dry, g["h2_cooled"], product50]
     print(f"overall in {sum(map(total, ins)) * 3600:.3f} kg/h, out {sum(map(total, outs)) * 3600:.3f} kg/h")
+
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
 
 
 if __name__ == "__main__":
