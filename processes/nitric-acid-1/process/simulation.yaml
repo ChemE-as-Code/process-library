@@ -10,7 +10,7 @@ simulator: dwsim
 property_package: Peng-Robinson (PR)
 method_selection:
   facts:
-    pressure_value: 1150              # the highest pressure of the simulated part: NOx compressor discharge S21 (D-003)
+    pressure_value: 1150              # highest gas-phase pressure: NOx compressor discharge S21 (D-003); the liquid NH3 feed S01 (1600) is let down in E-101/E-108
     pressure_unit: kPa
     is_polar: true                    # water (air humidity, burner water) and ammonia (feed, SCR) are polar
     is_electrolyte: false             # no aqueous HNO3 in the simulated part: every step that forms or carries it is excluded below (D-015)
@@ -48,10 +48,10 @@ specs:
   E101:
     # liquid NH3 1600 kPa(a) to vapour at 600 kPa(a): the let-down valve ahead of the evaporator
     # is not a flowsheet step, so its drop is put on E-101
-    outlet_temperature: {value: 288.15, provenance: assumed, source: "D-011: NH3 vapour to the mixer, about 6 K superheat at 600 kPa(a)"}
-    pressure_drop: {value: 1000, unit: kPa, provenance: assumed, source: "D-004 (1600 kPa(a) liquid) and D-011 (600 kPa(a) evaporation): let-down lumped into E-101"}
+    outlet_temperature: {value: 288.15, provenance: assumed, source: "scripts/hno3_balance.py T_NH3V (D-010 balance): NH3 vapour to the mixer at 600 kPa(a)"}
+    pressure_drop: {value: 1000, unit: kPa, provenance: assumed, source: "D-004 (1600 kPa(a) liquid) and scripts/hno3_balance.py P_NH3V (600 kPa(a) evaporation): let-down lumped into E-101"}
   E108:
-    outlet_temperature: {value: 323.15, provenance: assumed, source: "D-009: SCR ammonia vapour above the tail-gas pressure"}
+    outlet_temperature: {value: 323.15, provenance: assumed, source: "scripts/hno3_balance.py T_NH3S (D-010 balance; D-009: SCR ammonia vapour above the tail-gas pressure)"}
     pressure_drop: {value: 300, unit: kPa, provenance: assumed, source: "D-004 (1600 kPa(a)) and D-009 (1300 kPa(a)): let-down lumped into E-108"}
   K101:
     outlet_pressure: {value: 520, provenance: assumed, source: D-003}
@@ -64,7 +64,7 @@ specs:
     mode: adiabatic
     pressure_drop: {value: 30, unit: kPa, provenance: assumed, source: "D-003: 520 -> 490 kPa(a), the 10 kPa of M-101 and 20 kPa over the gauze"}
   E102:
-    outlet_temperature: {value: 793.15, provenance: assumed, source: "D-011: boiler outlet set for the tail-gas heater approach"}
+    outlet_temperature: {value: 793.15, provenance: assumed, source: "scripts/hno3_balance.py T_E102 (D-010 balance): boiler outlet set for the tail-gas heater approach"}
     pressure_drop: {value: 5, unit: kPa, provenance: assumed, source: "D-003: 490 -> 485 kPa(a)"}
   E103:
     # the tail gas is heated to the tertiary reactor inlet; the process-gas outlet follows
@@ -72,7 +72,7 @@ specs:
     hot_pressure_drop: {value: 5, unit: kPa, provenance: assumed, source: "D-003: 485 -> 480 kPa(a)"}
     cold_pressure_drop: {value: 20, unit: kPa, provenance: assumed, source: "D-003: 1090 -> 1070 kPa(a)"}
   E104:
-    outlet_temperature: {value: 453.15, provenance: assumed, source: "D-011: economiser outlet"}
+    outlet_temperature: {value: 453.15, provenance: assumed, source: "scripts/hno3_balance.py T_E104 (D-010 balance): economiser outlet"}
     pressure_drop: {value: 5, unit: kPa, provenance: assumed, source: "D-003: 480 -> 475 kPa(a)"}
   # ---- ABS, the gas side only (D-003, D-011); M102 mixes at the lowest inlet pressure
   K102:
@@ -81,13 +81,13 @@ specs:
   E106:
     # the tail gas is heated to 30 K below the NOx compressor discharge of the concept balance
     # (427.96 K); the NOx gas outlet follows
-    cold_outlet_temperature: {value: 397.96, provenance: assumed, source: "D-011: 30 K approach to the NOx compressor discharge (scripts/hno3_balance.py)"}
+    cold_outlet_temperature: {value: 397.96, provenance: assumed, source: "scripts/hno3_balance.py E106 (D-010 balance): 30 K approach to the NOx compressor discharge"}
     hot_pressure_drop: {value: 10, unit: kPa, provenance: assumed, source: "D-003: 1150 -> 1140 kPa(a)"}
     cold_pressure_drop: {value: 10, unit: kPa, provenance: assumed, source: "D-003: 1100 -> 1090 kPa(a)"}
   E107:
     # water condenses here in the model (about 0.9 mol% at 1130 kPa(a), 313 K); the outlet is
     # one stream, the condensate stays in it (D-015)
-    outlet_temperature: {value: 313.15, provenance: assumed, source: "D-011: absorber gas inlet"}
+    outlet_temperature: {value: 313.15, provenance: assumed, source: "scripts/hno3_balance.py T_E107 (D-010 balance): absorber gas inlet"}
     pressure_drop: {value: 10, unit: kPa, provenance: assumed, source: "D-003: 1140 -> 1130 kPa(a)"}
   # ---- TGT (D-003, D-009, D-011)
   R102: {mode: adiabatic}   # excluded; kept for the boundary check (no heat exchanged with a utility, D-009)

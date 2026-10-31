@@ -50,7 +50,7 @@ figures, text); the flowsheet and its drawings are our own.
 | exchangers, machines | pass-through propagate; duties from the script | stream enthalpies: no package covers H2O/NO/NO2/HNO3 (`props --coverage`) | energy balance gated (core #315); script closes it (D-010) |
 | BFD/PFD | `cheme process build` | supported; Pumping step crashes the build (D-012) | done with a workaround |
 | LCI | `cheme assess lca --inventory --write` | supported | done, backgrounds unmapped (D-014) |
-| DWSIM simulation | `process/simulation.yaml`, gas-phase part only (D-015) | translates (cheme 1.1.0); HNO3 with water refused, shaft-coupled machines and two-inlet reactors not mapped | input written, not run (no DWSIM here) |
+| DWSIM simulation | `process/simulation.yaml`, gas-phase part only (D-015) | translates (cheme 1.2.1); HNO3 with water refused, shaft-coupled machines and two-inlet reactors not mapped | input written, not run (no DWSIM here) |
 
 ## D-001 Route and boundary (2026-10-27)
 Decision: weak nitric acid by the dual-pressure Ostwald process: ammonia evaporation, air
@@ -232,9 +232,10 @@ databases.
 Decision: `process/simulation.yaml` is now a complete DWSIM input for the gas-phase part of the
 plant, so that `cheme process simulate` can run it where DWSIM is installed. It has not been run:
 the authoring machine has neither DWSIM nor Docker, so no stream value comes from it and nothing
-was filled (`--fill` not run). Checked offline with the library's CI cheme (1.1.0, core
-c2a45135): the file translates into a DWSIM model for case `design` (13 units, 8 compounds, no
-recycle; `cheme maturity`: `predictive.simulation-spec` ok), `cheme validate` 0 errors.
+was filled (`--fill` not run). Checked offline with the cheme the library CI pins (core v1.2.1,
+8042b716; first written against 1.1.0, core c2a45135, and core main 1.2.0, same results): the
+file translates into a DWSIM model for case `design` (13 units, 8 compounds, no recycle;
+`cheme maturity`: `predictive.simulation-spec` ok), `cheme validate` 0 errors.
 
 Simulated (13 steps): ammonia split S-101, evaporator E-101, SCR ammonia vaporiser E-108, air
 compressor K-101, air split S-102, mixer M-101, burner R-101 (adiabatic conversion reactor,
@@ -281,7 +282,7 @@ flowsheet values; streams into them (S05, S14, S20, S23, S27) are simulated outl
 
 Against the scope asked for this change (absorber as a specified `component_separator`, NO
 oxidation and the tail-gas expander simulated), three parts are not met, each checked on a
-scratch copy of this process with cheme 1.1.0 and again with core main 1.2.0 (same result):
+scratch copy of this process with cheme 1.1.0, core main 1.2.0 and core v1.2.1 (same result):
 the absorber as a `component_separator` is refused twice (`cheme.process-sim-unmapped`: three
 material inlets, the unit takes one; `cheme.process-sim-electrolyte`: HNO3 with water); E-105
 taken into the simulation is refused (`cheme.process-sim-electrolyte`), so the NO oxidation is
