@@ -38,8 +38,9 @@ here (D-006).
 - **The other scope** (synthesis loop with sourced front-end blocks) was not built: the full
   plant tests the feed/fuel/steam accounting the issue asks for; the loop alone would leave
   the LCI without its dominant flows.
-- **Comparisons**: no benchmark values were looked up or used. The literature named in the
-  issue is design-visible; none of its numbers is in this design (section 5).
+- **Comparisons**: no benchmark values were looked up for this basis. Job S5b later opened the
+  BREF named in the issue: D-034 takes the methanation conversion from its section 2.2.3.6 and
+  quotes the feed and fuel figures of its Table 2.6 as a check on the design (section 5).
 
 ## 2. Decisions
 
@@ -1974,7 +1975,7 @@ convection coils therefore use `ExchangingThermalEnergy` and the steam system `P
 | thermo IPDB "ChemSep PR" kij | scripts/plant_balance.py | yes | loop flash |
 | IAPWS-IF97 / IAPWS-95 (chemicals.iapws) | scripts/plant_balance.py | yes | steam enthalpies, water vapour pressure |
 | skill tech-petchem-ammonia-and-urea (Speight 2011, ch. 8) | conditions table | yes | plausibility of reformer conditions and loop pressure window |
-| EC LVIC-AAF BREF (2007), ch. 2 | issue comments | no | route/boundary guide only; no values used |
+| EC LVIC-AAF BREF (2007), ch. 2 | issue comments | yes (S5b) | route/boundary guide; D-034: section 2.2.3.6 (methanation conversion), Table 2.6 (check on feed and fuel) |
 | Appl, Ullmann's "Ammonia, 2. Production Processes" | doi 10.1002/14356007.o02_o11 | no | reference for the next stage |
 | IEA Ammonia Technology Roadmap (2021); Mayer et al. (2023); Lee et al. (2022) | issue comments | no | not used (design-visible benchmarks; kept out). Also kept out: Musa et al. (2025), Sci. Rep. 16:661, whose SMR CAPEX is back-calculated from Lee et al. (2022) |
 | Gasunie Transport Services, "The transmission network" and "Gas quality and metering" / FAQ pages | gasunietransportservices.nl/en/network-operations/the-transmission-network; .../connected-parties/gas-quality-and-metering | yes (2026-10-29) | I-01/R-03: no public composition for a connection; HTL carries H-gas, RTL almost only G-gas |
