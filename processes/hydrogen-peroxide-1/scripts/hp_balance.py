@@ -244,6 +244,17 @@ def duties(s):
 def main():
     s = solve()
     q = duties(s)
+    # the values process/flowsheet.yaml cites from this script (balance-output contract): the
+    # streams (kg/h, mass fractions), the K-201 outlet temperature and the duties
+    flowsheet = {k: {"flow": {"value": tot(s[k]), "basis": "mass"},
+                     "composition": {"values": {c: v / tot(s[k]) for c, v in s[k].items()},
+                                     "basis": "mass_fraction"}}
+                 for k in s if not k.startswith("_")}
+    flowsheet["S09"]["temperature"] = s["_t_k201"]["v"]
+    flowsheet.update({qid: {"duty": q[k]} for qid, k in {
+        "Q01": "K201", "Q02": "P101", "Q05": "C501_reb", "Q06": "R101", "Q07": "R201",
+        "Q08": "E201", "Q09": "E202", "Q10": "C501_cond", "Q11": "E501"}.items()})
+    write_balance_output({"design": flowsheet})
     if "--yaml" in sys.argv:
         for k in sorted(x for x in s if not x.startswith("_")):
             m = tot(s[k])
@@ -277,6 +288,25 @@ def main():
         + tot(s["S29"]) + tot(s["S31"]) + tot(s["S34"])
     outs = tot(s["S06"]) + tot(s["S18"]) + tot(s["S19"]) + tot(s["S30"]) + tot(s["S32"]) + tot(s["S35"])
     print(f"overall in {ins:.2f} out {outs:.2f} kg/h, diff {ins - outs:.4f}")
+
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
 
 
 if __name__ == "__main__":
