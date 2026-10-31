@@ -277,6 +277,34 @@ DUTY = {"Q1": q_steam, "Q2": q_e101, "Q3": w_k101, "Q4": q_c201, "Q5": POWER["C2
         "Q14": q_cr401, "Q15": q_cr401_cw, "Q16": POWER["CR401"], "Q17": q_d401,
         "Q18": POWER["D401"]}
 
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
+
+
+# the values process/flowsheet.yaml cites from this script (balance-output contract): S and DUTY
+write_balance_output({"design": {
+    **{sid: {"temperature": t, "pressure": p, "flow": {"value": tot(m), "basis": "mass"},
+             "composition": {"values": {c: v / tot(m) for c, v in m.items()},
+                             "basis": "mass_fraction"}}
+       for sid, (m, t, p) in S.items()},
+    **{q: {"duty": v} for q, v in DUTY.items()}}})
+
 if "--yaml" in sys.argv:
     for sid, (m, t, p) in S.items():
         f = tot(m)

@@ -284,3 +284,46 @@ print("duties kW: WHB", round(kW(Q_whb), 1), "E-201", round(kW(Q_hot_hot), 1), "
       "E-203", round(kW(Q_cold), 1), "E-204", round(kW(Q_eco1), 1), "E-205", round(kW(Q_eco2), 1),
       "E-301", round(kW(Q_acid_cooler), 1), "E-302", round(kW(Q_prod_cooler), 1),
       "K-101", round(W_blower, 1), "P-301", round(W_pump, 1))
+
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
+
+
+# the values process/flowsheet.yaml cites from this script (balance-output contract): gas streams
+# as mass flow and mole fractions, the tower acid returns as mass flow and mass fractions, the
+# temperatures and duties printed above
+FLOWSHEET = {}
+for sid, g in [("S1", n_air), ("S2", dry), ("S5", g5), ("S7", g7), ("S9", g9), ("S11", g11),
+               ("S14", g14), ("S17", g17), ("S19", g19)]:
+    FLOWSHEET[sid] = {"flow": {"value": mass(g), "basis": "mass"},
+                      "composition": {"values": frac(g), "basis": "mole_fraction"}}
+for sid, a, w in [("S28", a_dt, w_dt), ("S29", a_ipa_out, w_ipa), ("S30", a_fat_out, w_fat)]:
+    FLOWSHEET[sid] = {"flow": {"value": a + w, "basis": "mass"},
+                      "composition": {"values": {"H2SO4": a / (a + w), "H2O": w / (a + w)},
+                                      "basis": "mass_fraction"}}
+FLOWSHEET["S4"] = {"flow": {"value": n_S * MW["S"], "basis": "mass"}}
+FLOWSHEET["S31"] = {"flow": {"value": m_pw, "basis": "mass"}}
+for sid, t in [("S3", T_blow), ("S5", T_furn), ("S7", T7), ("S9", T9), ("S11", T11), ("S12", T12),
+               ("S15", T15), ("S17", T17), ("S20", T_tank)]:
+    FLOWSHEET.setdefault(sid, {})["temperature"] = t
+FLOWSHEET.update({qid: {"duty": q} for qid, q in {
+    "Q1": W_blower, "Q2": W_pump, "Q3": kW(Q_whb), "Q4": kW(Q_sh), "Q5": kW(Q_eco1),
+    "Q6": kW(Q_eco2), "Q7": kW(Q_acid_cooler), "Q8": kW(Q_prod_cooler),
+    "QE201": kW(Q_hot_hot), "QE203": kW(Q_cold)}.items()})
+write_balance_output({"design": FLOWSHEET})
