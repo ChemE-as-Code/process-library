@@ -132,9 +132,9 @@ jobs:
         env:
           PLANTCODE_READ_TOKEN: ${{ secrets.PLANTCODE_READ_TOKEN }}
       - uses: astral-sh/setup-uv@v6
-      # core v1.1.0 with the property extras the balance scripts import (thermo, CoolProp,
+      # core v1.2.1 with the property extras the balance scripts import (thermo, CoolProp,
       # scipy through thermo, Cantera); the same commit as the validate job
-      - run: uv tool install --python 3.12 "cheme-as-code[props,units,cantera] @ git+https://github.com/ChemE-as-Code/core.git@c2a45135e0fc922b614305f7259f64fd6f48c322"
+      - run: uv tool install --python 3.12 "cheme-as-code[props,units,cantera] @ git+https://github.com/ChemE-as-Code/core.git@8042b716d21dd9234eee8c6f2a16cf5120c2636b"
       - name: balance scripts reproduce the flowsheet
         run: |
           uv run --python 3.12 scripts/check_balance_scripts.py --library . --jobs 4 \
