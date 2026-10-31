@@ -40,23 +40,24 @@ validation:
     change). cheme maturity reaches no level: the capacity and the CO gas composition are
     assumed, and the flash, columns, decanter and scrubber are specified values of an
     independent shortcut balance (scripts/balance.py). Core cannot qualify flashes, columns or
-    enthalpies of the acetic acid / water / methyl iodide / methyl acetate system (core #315), so
-    the energy balance is not evaluable in core and every duty is an ASSUMED shortcut estimate.
-    The reactor by-product ratios come from US 6,140,535 Examples 1-5. Not reviewed. The
-    chemicals registry has no methanol, carbon-monoxide, acetic-acid, methyl-iodide or
-    propionic-acid entry yet, so the feeds and the main product are not listed under chemistry
-    (open library item).
+    enthalpies of the acetic acid / water / methyl iodide / methyl acetate system (core #315),
+    so the energy balance is not evaluable in core and every duty is an ASSUMED shortcut
+    estimate. The reactor by-product ratios come from US 6,140,535 Examples 1-5. Not reviewed.
+    Main products and feeds are listed under chemistry with their chemicals registry entries
+    (issue #251).
 # Minor components of the CO gas and the off-gas carry no inventory_key: the exchange is the
 # whole gas (98.5 % CO; the off-gas to treatment), and a slug of a minor component would map it
 # to the wrong background (D-013).
 chemistry:
   inputs:
-    # Not the feedstocks: the feedstocks are methanol (feed:MEOH) and carbon monoxide (feed:COGAS),
-    # which have no registry entry yet (DESIGN.md "Library items to add later"; review
-    # 2026-10-28 #2). Only this minor reactant can be listed until they exist.
-    - {chemical: hydrogen, role: reactant, note: "Minor component only (0.3 mol%, ASSUMED) of the CO feed gas feed:COGAS, consumed by the methanation and propionic acid side reactions. The FEEDSTOCKS are methanol (feed:MEOH, from methanol-1) and carbon monoxide (feed:COGAS, 98.5 mol% CO), not yet in the chemicals registry"}
+    - {chemical: methanol, role: feedstock, note: "feed:MEOH: methanol, Grade AA (e.g. from methanol-1), 0.539 kg/kg acetic acid"}
+    - {chemical: carbon-monoxide, role: feedstock, note: "feed:COGAS: carbon monoxide gas from a syngas cold box outside the boundary, 0.488 kg/kg"}
+    - {chemical: iodomethane, role: feedstock, note: "feed:MEI: methyl iodide make-up (iodide promoter), 2.7 mg/kg"}
+    # Not a feedstock: a minor component of the CO gas (feed:COGAS), listed as a reactant.
+    - {chemical: hydrogen, role: reactant, note: "Minor component only (0.3 mol%, ASSUMED) of the CO feed gas feed:COGAS, consumed by the methanation and propionic acid side reactions"}
   outputs:
-    - {chemical: carbon-dioxide, role: waste, note: "CO2 formed by the water-gas shift side reaction, in the off-gas product:OFFGAS to the flare / thermal oxidiser. The main product, glacial acetic acid (product:HAC), has no registry entry yet"}
+    - {chemical: acetic-acid, role: main-product, inventory_key: "product:HAC", note: "Glacial acetic acid to storage"}
+    - {chemical: carbon-dioxide, role: waste, note: "CO2 formed by the water-gas shift side reaction, in the off-gas product:OFFGAS to the flare / thermal oxidiser"}
     - {chemical: methane, role: waste, note: "CH4 formed from methanol and the CO feed's CH4, in the off-gas product:OFFGAS to the flare / thermal oxidiser"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Pumps (ASSUMED electric drives); no CO compression inside the boundary"}

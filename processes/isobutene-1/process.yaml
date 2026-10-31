@@ -41,24 +41,26 @@ maturity: concept
 validation:
   status: unreviewed
   notes: >-
-    Concept PFD with closed mass, component and element balances (cheme validate, cheme
-    process streams: every block and step ok) and a closed LCI mass and element balance (cheme
-    assess lca --coverage). cheme maturity reaches no level: the MTBE feed and the capacity are
+    Concept PFD with closed mass, component and element balances (cheme validate, cheme process
+    streams: every block and step ok) and a closed LCI mass and element balance (cheme assess
+    lca --coverage). cheme maturity reaches no level: the MTBE feed and the capacity are
     assumed, and the columns and the wash are specified component splits from an independent
     script (scripts/ib_balance.py) whose shortcut duties rest on pure-component data and ideal
     Raoult bubble points; no qualified property package covers MTBE / methanol / water / C4
     (core #315). The reactor outlet is calculated by cheme (conversion reactor with assumed
     conversion and selectivities inside the patent ranges); cheme's ideal-gas reactor duty
-    (1970.08 kW) reproduces the script's 1970.1 kW. The LCI is a foreground inventory with
-    every background open (8 gaps): no impact result, and no LCA result passed to the catalog
-    (lca.source none). Not reviewed. The chemicals registry has no isobutene, MTBE, methanol,
-    dimethyl ether or diisobutene entry yet, so those flows are not listed under chemistry
-    (open library item).
+    (1970.08 kW) reproduces the script's 1970.1 kW. The LCI is a foreground inventory with every
+    background open (8 gaps): no impact result, and no LCA result passed to the catalog
+    (lca.source none). Not reviewed. Main products and feeds are listed under chemistry with
+    their chemicals registry entries (issue #251).
 chemistry:
   inputs:
-    - {chemical: water, role: feedstock, inventory_key: "feed:DMW", note: "Demineralised wash-water make-up. The main feedstock, MTBE (feed:MTBEF, 1.587 kg per kg isobutene before allocation), has no registry entry yet"}
+    - {chemical: methyl-tert-butyl-ether, role: feedstock, note: "feed:MTBEF: fresh MTBE from an MTBE unit or terminal, 1.000 kg/kg isobutene (allocated)"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:DMW", note: "Demineralised wash-water make-up"}
   outputs:
-    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Wash-water purge, ~100 mg/kg methanol. The main product, isobutene (product:IBP), and the methanol co-product (product:MEOHP, 0.567 kg/kg) have no registry entry yet"}
+    - {chemical: isobutene, role: main-product, inventory_key: "product:IBP", note: "High-purity isobutene to storage"}
+    - {chemical: methanol, role: co-product, inventory_key: "product:MEOHP", note: "Recovered methanol, 0.567 kg/kg isobutene"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Wash-water purge, ~100 mg/kg methanol"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Pumps and the H-101 combustion-air fan and hot-oil pump (ASSUMED electric drives)"}
     - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "MP steam 1500 kPa(a), C-101 reboiler"}

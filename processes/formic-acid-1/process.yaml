@@ -39,29 +39,32 @@ maturity: concept
 validation:
   status: unreviewed
   notes: >-
-    Concept PFD with closed mass, component and element balances on every block and step
-    (cheme validate, cheme process streams), recycles of methyl formate, methanol, water and
-    66 wt% acid closed by scripts/balance.py. The reactors and the oxidiser are calculated by
-    cheme (conversion model); core's equilibrium check puts the hydrolyser outlet just short of
-    the sourced Kx = 0.20 (ln Q/K = -0.11). Separator and column outlets are specified splits;
+    Concept PFD with closed mass, component and element balances on every block and step (cheme
+    validate, cheme process streams), recycles of methyl formate, methanol, water and 66 wt%
+    acid closed by scripts/balance.py. The reactors and the oxidiser are calculated by cheme
+    (conversion model); core's equilibrium check puts the hydrolyser outlet just short of the
+    sourced Kx = 0.20 (ln Q/K = -0.11). Separator and column outlets are specified splits;
     duties are shortcut estimates with assumed reflux ratios (C-301 at 1.2 times a shortcut
     minimum reflux) and no heat integration (4.46 kWh LP steam heat per kg product, about 1.9
-    times the 2400 kWh/t of prior art quoted in EP2747883A1). The energy balance is not evaluable in core: no property package covers the
-    liquid methanol / methyl formate / water / formic acid system and the liquid-reactor energy
-    basis is not verified (core #315). Capacity, feed purities, reflux ratios and the purge
-    fraction are assumed. cheme maturity reaches no calculation level (feeds and the hydrolysis
-    and oxidiser conversions are assumed), so `maturity: concept` is claimed as the lowest level
-    the manifest allows, not as evidence-backed (DESIGN.md D-014). Preliminary gate-to-gate LCI with every background unmapped (gaps).
-    Not reviewed. The chemicals registry has no formic-acid, methyl-formate, carbon-monoxide,
-    methanol, sodium-methoxide or sodium-formate entry yet, so the main product and those feeds
-    are not listed under chemistry (open library item, DESIGN.md D-013).
+    times the 2400 kWh/t of prior art quoted in EP2747883A1). The energy balance is not
+    evaluable in core: no property package covers the liquid methanol / methyl formate / water /
+    formic acid system and the liquid-reactor energy basis is not verified (core #315).
+    Capacity, feed purities, reflux ratios and the purge fraction are assumed. cheme maturity
+    reaches no calculation level (feeds and the hydrolysis and oxidiser conversions are
+    assumed), so `maturity: concept` is claimed as the lowest level the manifest allows, not as
+    evidence-backed (DESIGN.md D-014). Preliminary gate-to-gate LCI with every background
+    unmapped (gaps). Not reviewed. Main products and feeds are listed under chemistry with their
+    chemicals registry entries (issue #251).
 chemistry:
-  # formic acid, CO, methanol and sodium methoxide have no registry entry yet (D-013); listed in the notes
   inputs:
-    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Demineralised hydrolysis make-up water, 0.483 kg/kg product. The reactant carbon monoxide (feed:CO, 0.568 kg/kg), the methanol make-up (feed:MEOH, 12.5 g/kg, from methanol-1) and the sodium methoxide 30 wt% catalyst solution (feed:CAT, 2.3 g/kg) have no registry entry yet"}
+    - {chemical: carbon-monoxide, role: feedstock, note: "feed:CO: carbon monoxide from a syngas cold box outside the boundary, 0.568 kg/kg product"}
+    - {chemical: methanol, role: feedstock, note: "feed:MEOH: methanol make-up (e.g. methanol-1), 0.012 kg/kg"}
+    - {chemical: sodium-methoxide, role: feedstock, note: "feed:CAT: catalyst: sodium methoxide 30 wt% in methanol, counted by mass of the solution"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Demineralised hydrolysis make-up water, 0.483 kg/kg product"}
     - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Combustion air of the vent oxidiser, 0.235 kg/kg product"}
   outputs:
-    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "72.4 g/kg product, from burning the carbonylation vent (unreacted CO) in the oxidiser (fossil). The main product, formic acid 85 wt% (product:FA), has no registry entry yet"}
+    - {chemical: formic-acid, role: main-product, inventory_key: "product:FA", note: "Formic acid 85 wt% to storage, counted by mass of the solution"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "72.4 g/kg product, from burning the carbonylation vent (unreacted CO) in the oxidiser (fossil)"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "84 Wh/kg product: CO compressor (89 %), pumps, vacuum system (ASSUMED efficiencies)"}
     - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "4.46 kWh heat/kg product as LP steam (450 kPa(a)): reboilers of five columns, hydrolyser feed preheat (shortcut, no heat integration, D-011)"}

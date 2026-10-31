@@ -33,22 +33,25 @@ maturity: concept
 validation:
   status: unreviewed
   notes: >-
-    Concept PFD with closed mass, component and element balances on every block and step
-    (cheme validate, cheme process streams; overall 14 892 kg/h in and out). The cracking coil,
+    Concept PFD with closed mass, component and element balances on every block and step (cheme
+    validate, cheme process streams; overall 14 892 kg/h in and out). The cracking coil,
     absorber and firebox outlets are calculated by cheme conversion reactors; the separator,
     column and acid-recovery outlets, all temperatures, pressures and duties are ASSUMED values
     from scripts/ac2o_balance.py. Energy closure is not evaluable in core (no property package
     covers acetic acid, ketene, anhydride and water; core #315); the script closes it on its own
     property data. Preliminary gate-to-gate LCI with every background unmapped (11 gaps). Not
-    reviewed. The chemicals registry has no acetic acid, acetic anhydride, ammonia, triethyl
-    phosphate or carbon monoxide entry yet (open library item), so only registry slugs are listed
-    under chemistry.
+    reviewed. Main products and feeds are listed under chemistry with their chemicals registry
+    entries (issue #251).
 chemistry:
   inputs:
-    - {chemical: methane, role: feedstock, inventory_key: "feed:NG", note: "Natural gas to the cracking furnace, taken as methane (D-010). The main feed, glacial acetic acid (feed:AA, 1.246 kg/kg product), the catalyst triethyl phosphate (feed:TEP) and ammonia (feed:NH3) have no registry entry yet"}
+    - {chemical: acetic-acid, role: feedstock, note: "feed:AA: glacial acetic acid, the main feed, 1.246 kg/kg product (e.g. from acetic-acid-1, D-003)"}
+    - {chemical: triethyl-phosphate, role: feedstock, note: "feed:TEP: cracking catalyst triethyl phosphate, 1.6 g/kg"}
+    - {chemical: ammonia, role: feedstock, note: "feed:NH3: ammonia, the catalyst neutraliser, 0.3 g/kg (e.g. from ammonia-1)"}
+    - {chemical: methane, role: feedstock, inventory_key: "feed:NG", note: "Natural gas to the cracking furnace, taken as methane (D-010)"}
     - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Combustion air of the furnace"}
   outputs:
-    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Wastewater of the dilute acid recovery, about 0.65 wt% acetic acid. The main product, acetic anhydride (product:AC2O), has no registry entry yet"}
+    - {chemical: acetic-anhydride, role: main-product, inventory_key: "product:AC2O", note: "Acetic anhydride 99.5 wt% to storage"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Wastewater of the dilute acid recovery, about 0.65 wt% acetic acid"}
     - {chemical: carbon-dioxide, role: emission, inventory_key: "product:STACK", note: "CO2 of the furnace flue gas (natural gas and vent gas burned), 0.195 kg/kg product"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Vent vacuum pump and absorber circulation pumps"}

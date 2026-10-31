@@ -48,18 +48,20 @@ validation:
     Energy closure is not evaluable in core (core #315); aqueous speciation of the salt solution
     is not modelled (core #364 covers aqueous NaCl only). cheme maturity: none (feeds, purge and
     per-pass conversion assumed). The preliminary gate-to-gate LCI in lca/ leaves every
-    background unmapped (gaps); its mass balance closes against the flowsheet. Not reviewed. The
-    chemicals registry has no entry for hydroxylammonium sulfate, ammonia, sulfuric acid, nitric
-    oxide, nitrous oxide or ammonium sulfate yet, so the main product, two feeds and the
-    emissions of N2O and NO are not listed under chemistry (open library item).
+    background unmapped (gaps); its mass balance closes against the flowsheet. Not reviewed.
+    Main products and feeds are listed under chemistry with their chemicals registry entries
+    (issue #251).
 chemistry:
   inputs:
-    - {chemical: hydrogen, role: feedstock, inventory_key: "feed:H2", note: "99.9 mol% H2, 0.131 kg/kg NH2OH (ASSUMED boundary feed; e.g. from processes/hydrogen-1). The other feeds, liquid ammonia (feed:NH3, 0.612 kg/kg NH2OH; processes/ammonia-1) and sulfuric acid 98.5 wt% (feed:ACID, 1.77 kg/kg; processes/sulfuric-acid-1), have no registry entry yet"}
+    - {chemical: ammonia, role: feedstock, note: "feed:NH3: liquid ammonia (e.g. ammonia-1), 0.612 kg/kg NH2OH"}
+    - {chemical: sulfuric-acid, role: feedstock, note: "feed:ACID: sulfuric acid 98.5 wt% (e.g. sulfuric-acid-1), 1.77 kg/kg"}
+    - {chemical: hydrogen, role: feedstock, inventory_key: "feed:H2", note: "99.9 mol% H2, 0.131 kg/kg NH2OH (ASSUMED boundary feed; e.g. from processes/hydrogen-1)"}
     - {chemical: oxygen, role: feedstock, inventory_key: "feed:GOX", note: "GOX 99.5 mol% at 300 kPa(a), 1.54 kg/kg NH2OH (ASSUMED boundary feed; e.g. from processes/asu-1)"}
     - {chemical: water, role: feedstock, inventory_key: "feed:DEMIN", note: "Demineralised water for the acid make-up, 2.70 kg/kg NH2OH"}
     - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Combustion air of the off-gas thermal oxidiser"}
   outputs:
-    - {chemical: nitrogen, role: emission, inventory_key: "product:STACK", note: "Thermal-oxidiser flue gas: N2, O2, Ar, water, NO and N2O to atmosphere. The main product, 25.4 wt% hydroxylammonium sulfate solution (product:PROD), has no registry entry yet"}
+    - {chemical: hydroxylammonium-sulfate, role: main-product, inventory_key: "product:PROD", note: "Hydroxylammonium sulfate solution 25.4 wt% to storage, counted by mass of the solution (9.78 kg per kg NH2OH)"}
+    - {chemical: nitrogen, role: emission, inventory_key: "product:STACK", note: "Thermal-oxidiser flue gas: N2, O2, Ar, water, NO and N2O to atmosphere"}
     - {chemical: steam, role: co-product, inventory_key: "product:MPS", note: "MP steam 1500 kPa(a) raised in the waste-heat boiler, counted as heat (kWh)"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "NO gas compressor, cascade agitators, recycle blower, acid pump, oxidiser fan (ASSUMED electric drives)"}

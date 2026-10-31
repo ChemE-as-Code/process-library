@@ -42,20 +42,21 @@ validation:
     oxidiser is adiabatic (duty 0.0004 kW) on ideal-gas data. The condensation (Raoult's law)
     and the caustic scrubber are specified values from scripts/balance.py: no property package
     of core covers phosgene or the caustic liquor (core #315, #364), so their energy balance is
-    not evaluable in core. The capacity, feed purities, conversions and destruction
-    efficiencies are assumed. Preliminary gate-to-gate LCI with every background unmapped
-    (gaps). cheme maturity reaches no level (assumed feeds and conversions, DESIGN.md).
-    Not reviewed.
-    The chemicals registry has no phosgene, carbon-monoxide, chlorine or sodium-hydroxide
-    entry yet, so the main product and those feeds are not listed under chemistry (open library
-    item, DESIGN.md D-013).
+    not evaluable in core. The capacity, feed purities, conversions and destruction efficiencies
+    are assumed. Preliminary gate-to-gate LCI with every background unmapped (gaps). cheme
+    maturity reaches no level (assumed feeds and conversions, DESIGN.md). Not reviewed. Main
+    products and feeds are listed under chemistry with their chemicals registry entries (issue
+    #251).
 chemistry:
-  # CO, chlorine and caustic soda have no registry entry yet (D-013); listed in the notes
   inputs:
-    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Dilution water of the scrubber caustic, 46 g/kg phosgene. The reactants carbon monoxide (feed:CO, 0.300 kg/kg) and chlorine (feed:CL2, 0.721 kg/kg) and the caustic soda 50 wt% (feed:NAOH, 25.6 g/kg) have no registry entry yet"}
+    - {chemical: carbon-monoxide, role: feedstock, note: "feed:CO: carbon monoxide from a syngas cold box outside the boundary, 0.300 kg/kg phosgene"}
+    - {chemical: chlorine, role: feedstock, note: "feed:CL2: phosgene-grade chlorine (chlor-alkali-1), 0.721 kg/kg"}
+    - {chemical: sodium-hydroxide, role: feedstock, note: "feed:NAOH: caustic soda 50 wt% (chlor-alkali-1), counted by mass of the solution"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Dilution water of the scrubber caustic, 46 g/kg phosgene"}
     - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Combustion air of the thermal oxidiser, 0.146 kg/kg phosgene"}
   outputs:
-    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "22.4 g/kg phosgene, from burning the 5 % CO excess in the thermal oxidiser (fossil). The main product, liquid phosgene (product:PHOSGENE), has no registry entry yet"}
+    - {chemical: phosgene, role: main-product, inventory_key: "product:PHOSGENE", note: "Liquid phosgene to the captive consumer"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "22.4 g/kg phosgene, from burning the 5 % CO excess in the thermal oxidiser (fossil)"}
     - {chemical: wastewater, role: waste, inventory_key: "product:EFF", note: "Spent scrubber liquor, 76 g/kg phosgene: NaCl, Na2CO3 and excess NaOH in water, to treatment"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "1.1 Wh/kg phosgene: coolant-circuit vacuum pump, scrubber pump, air fan (ASSUMED); the brine refrigeration's power is in its own exchange"}

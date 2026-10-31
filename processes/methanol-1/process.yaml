@@ -42,15 +42,17 @@ validation:
     core cannot qualify for methanol-water-syngas (core #315). The converter outlet is
     calculated by cheme (equilibrium reactor) and reproduces the script's extents. Energy
     closure is not evaluable in core (no property package covers the streams). Not reviewed.
-    The chemicals registry has no methanol or carbon-monoxide entry yet, so the main product
-    and the CO of the feed are not listed under chemistry (open library item).
+    Main products and feeds are listed under chemistry with their chemicals registry entries
+    (issue #251).
 chemistry:
   inputs:
-    - {chemical: hydrogen, role: feedstock, inventory_key: "feed:SYNGAS", note: "H2 of the make-up synthesis gas (68 mol%, ASSUMED); the gas also carries 21.5 % CO, which the registry does not list yet"}
+    - {chemical: hydrogen, role: feedstock, inventory_key: "feed:SYNGAS", note: "H2 of the make-up synthesis gas (68 mol%, ASSUMED); the gas also carries 21.5 % CO (next line)"}
+    - {chemical: carbon-monoxide, role: feedstock, note: "CO of the make-up synthesis gas feed:SYNGAS (21.5 mol%, ASSUMED); no inventory_key, the exchange is the whole gas"}
     - {chemical: carbon-dioxide, role: feedstock, inventory_key: "feed:SYNGAS", note: "CO2 of the make-up synthesis gas (7.5 mol%, ASSUMED)"}
     - {chemical: methane, role: feedstock, inventory_key: "feed:SYNGAS", note: "Unconverted methane of the make-up gas (2.5 mol%, ASSUMED), an inert of the loop, leaves with the purge"}
   outputs:
-    - {chemical: water, role: waste, inventory_key: "product:WW", note: "Refining column bottoms water, 100 ppm(wt) methanol (ASSUMED). The main product, Grade AA methanol (product:MEOH), has no registry entry yet"}
+    - {chemical: methanol, role: main-product, note: "Grade AA methanol to storage (product:MEOH of the flowsheet), 2500 t/d"}
+    - {chemical: water, role: waste, inventory_key: "product:WW", note: "Refining column bottoms water, 100 ppm(wt) methanol (ASSUMED)"}
     - {chemical: carbon-dioxide, role: emission, inventory_key: "product:FUELGAS", note: "CO2 of the flash gas and topping-column off-gas, to the fuel gas header"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Make-up compressor and circulator (ASSUMED electric drives)"}

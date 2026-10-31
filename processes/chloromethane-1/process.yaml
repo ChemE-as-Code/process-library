@@ -51,17 +51,20 @@ validation:
     spent acid 80.5 % fall inside the ranges of US 4,794,204. Fresh methanol 0.646 kg and HCl
     0.823 kg per kg methyl chloride (stoichiometric 0.635 and 0.722). No rigorous energy
     balance: no property package covers HCl-water-methanol (electrolyte, core #364 / #315);
-    duties are hand estimates; the reactor duty agrees with cheme's ideal-gas duty within
-    1.5 %. cheme maturity reaches no level. The LCI is foreground only, every background a gap
-    (9 gaps): no impact result (lca.source none). Not reviewed. The chemicals registry has no
-    methyl chloride, methanol, hydrogen chloride, sulfuric acid or DME entry yet, so those flows
-    are not listed under chemistry (DESIGN.md I-08).
+    duties are hand estimates; the reactor duty agrees with cheme's ideal-gas duty within 1.5 %.
+    cheme maturity reaches no level. The LCI is foreground only, every background a gap (9
+    gaps): no impact result (lca.source none). Not reviewed. Main products and feeds are listed
+    under chemistry with their chemicals registry entries (issue #251).
 chemistry:
   inputs:
+    - {chemical: methanol, role: feedstock, note: "feed:MEOH: methanol (e.g. methanol-1 product grade), 0.646 kg/kg"}
+    - {chemical: hydrogen-chloride, role: feedstock, note: "feed:HCLG: anhydrous hydrogen chloride gas, 0.823 kg/kg"}
+    - {chemical: sulfuric-acid, role: feedstock, note: "feed:ACID: sulfuric acid 96 wt% for drying"}
     # No inventory_key: an impurity of feed:HCLG, not the exchange (as dmf-1 does)
-    - {chemical: nitrogen, role: feedstock, note: "Inerts of the anhydrous HCl feed (0.1 mol%, ASSUMED). The raw materials methanol (feed:MEOH, 0.646 kg/kg; from methanol-1), anhydrous HCl (feed:HCLG, 0.823 kg/kg) and sulfuric acid 96 wt% (feed:ACID, 52 g/kg; sulfuric-acid-1) have no registry entry yet"}
+    - {chemical: nitrogen, role: feedstock, note: "Inerts of the anhydrous HCl feed (0.1 mol%, ASSUMED)"}
   outputs:
-    - {chemical: nitrogen, role: emission, note: "Inerts in the purge (product:PURGE, 5.0 g/kg, to the site thermal oxidiser, a waste exchange). The main product methyl chloride (product:MECL), the dilute hydrochloric acid (product:DHCL, 0.447 kg/kg) and the spent sulfuric acid (product:SPENT, 69 g/kg) have no registry entry yet"}
+    - {chemical: chloromethane, role: main-product, inventory_key: "product:MECL", note: "Methyl chloride, liquid, to storage"}
+    - {chemical: nitrogen, role: emission, note: "Inerts in the purge (product:PURGE, 5.0 g/kg, to the site thermal oxidiser, a waste exchange). The dilute hydrochloric acid (product:DHCL, 0.447 kg/kg) and the spent sulfuric acid (product:SPENT, 69 g/kg) are not listed under chemistry yet"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.044 kWh/kg: methyl chloride compressor and pumps (hand estimate)"}
     - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 500 kPa(a), 0.263 kWh/kg: methanol vaporiser (net of reactor heat), stripper and HCl column reboilers"}

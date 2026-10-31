@@ -46,16 +46,18 @@ validation:
     an independent script (scripts/acet_balance.py). Consumptions agree with the 1980 patent
     example (ethylene 677 vs 692 kg/t, oxygen 410 vs 408 kg/t, waste water 8.7 vs 8.7 m3/t).
     Energy closure is not evaluable in core (core #315). The preliminary gate-to-gate LCI in
-    lca/ leaves every background unmapped (gaps). Not reviewed. The chemicals registry has no
-    acetaldehyde, ethylene or hydrochloric-acid entries yet (open library item), so the main
-    product and these feeds are not listed under chemistry.
+    lca/ leaves every background unmapped (gaps). Not reviewed. Main products and feeds are
+    listed under chemistry with their chemicals registry entries (issue #251).
 chemistry:
   inputs:
-    - {chemical: oxygen, role: feedstock, inventory_key: "feed:OXY", note: "99.5 mol% O2 at 600 kPa(a), 410 kg/t (boundary feed; e.g. processes/asu-1). Ethylene (feed:ETH, 677 kg/t) and 30 % hydrochloric acid (feed:HCLA) have no registry entry yet"}
+    - {chemical: ethylene, role: feedstock, note: "feed:ETH: polymer-grade ethylene, 0.676 kg/kg acetaldehyde (boundary feed; e.g. a steam cracker such as ethylene-1)"}
+    - {chemical: hydrogen-chloride, role: feedstock, note: "feed:HCLA: hydrochloric acid 30 wt% (catalyst make-up), counted by mass of the solution"}
+    - {chemical: oxygen, role: feedstock, inventory_key: "feed:OXY", note: "99.5 mol% O2 at 600 kPa(a), 410 kg/t (boundary feed; e.g. processes/asu-1)"}
     - {chemical: water, role: feedstock, inventory_key: "feed:DEMIN", note: "Demineralised water: reactor make-up and extraction water, 1.27 t/t"}
     - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Process water to the acetaldehyde scrubber, 5.96 t/t"}
   outputs:
-    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Column bottoms with acetic acid, residual aldehydes and organic chlorine, 8.7 t/t, to biological treatment. The main product acetaldehyde (product:PROD) has no registry entry yet"}
+    - {chemical: acetaldehyde, role: main-product, inventory_key: "product:PROD", note: "Acetaldehyde 99.9 wt% to storage"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Column bottoms with acetic acid, residual aldehydes and organic chlorine, 8.7 t/t, to biological treatment"}
     - {chemical: carbon-dioxide, role: emission, inventory_key: "product:PURGE", note: "Cycle-gas purge (CO2, ethylene, argon, ethane, O2) to a thermal oxidiser outside the boundary"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Cycle-gas compressor and pumps (ASSUMED electric drives), 42.8 kWh/t"}

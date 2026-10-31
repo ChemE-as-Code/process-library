@@ -36,24 +36,28 @@ maturity: concept
 validation:
   status: unreviewed
   notes: >-
-    Concept PFD with closed mass, component and element balances in every block and step
-    (cheme validate, cheme process streams; reactive extents agree with the elements). The
+    Concept PFD with closed mass, component and element balances in every block and step (cheme
+    validate, cheme process streams; reactive extents agree with the elements). The
     electrolysers are checked by cheme process cell (specified 3.0 V, CE 0.965, side reaction
-    O2): DC 2 351 kWh/t Cl2, AC 2 423 kWh/t with rectifier losses, inside the EU BREF 2014
-    Table 3.10 bipolar range 2 279-2 865. The other units are specified values of
-    scripts/balance.py; energy balances outside the cell are not evaluable in core (no
-    property package for NaCl/NaOH electrolytes, core#364). Consumptions per t Cl2 (salt
-    1.71 t, steam 0.98 t, HCl 10.9 kg, Na2CO3 7.7 kg, H2SO4 18.7 kg, purge 0.33 m3) fall inside
-    the BREF 2014 Chapter 3 ranges, which is a plausibility check, not a validation. The
-    chemicals registry has no chlorine, sodium hydroxide, sodium chloride or treatment
-    chemicals yet, so they are not listed under chemistry (DESIGN.md section 7). cheme
-    maturity reaches no level yet: the feed flows are design choices (ASSUMED, not sourced or
-    owner-given) and the treatment steps are specified values. Not reviewed.
+    O2): DC 2 351 kWh/t Cl2, AC 2 423 kWh/t with rectifier losses, inside the EU BREF 2014 Table
+    3.10 bipolar range 2 279-2 865. The other units are specified values of scripts/balance.py;
+    energy balances outside the cell are not evaluable in core (no property package for
+    NaCl/NaOH electrolytes, core#364). Consumptions per t Cl2 (salt 1.71 t, steam 0.98 t, HCl
+    10.9 kg, Na2CO3 7.7 kg, H2SO4 18.7 kg, purge 0.33 m3) fall inside the BREF 2014 Chapter 3
+    ranges, which is a plausibility check, not a validation. Main products and feeds are listed
+    under chemistry with their chemicals registry entries (issue #251). Not reviewed.
 chemistry:
   inputs:
-    - {chemical: water, role: feedstock, inventory_key: "feed:WATER", note: "Make-up process water to the salt saturator, 0.93 kg/kg Cl2; demineralised water (feed:DMW, 1.12 kg/kg) to the catholyte and resin rinse. Rock salt (feed:SALT, 1.71 kg/kg Cl2) has no registry entry yet"}
+    - {chemical: sodium-chloride, role: feedstock, note: "feed:SALT: rock salt, about 98.8 wt-% NaCl, 0.796 kg/kg chlorine gas"}
+    - {chemical: sodium-carbonate, role: feedstock, note: "feed:NA2CO3: soda ash for brine treatment"}
+    - {chemical: hydrogen-chloride, role: feedstock, note: "feed:HCL: hydrochloric acid 32 wt-%, counted by mass of the solution"}
+    - {chemical: sodium-sulfite, role: feedstock, note: "feed:NA2SO3: sodium sulfite for brine dechlorination"}
+    - {chemical: sulfuric-acid, role: feedstock, note: "feed:H2SO4: sulfuric acid 98 wt-% for chlorine drying"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:WATER", note: "Make-up process water to the salt saturator, 0.93 kg/kg Cl2; demineralised water (feed:DMW, 1.12 kg/kg) to the catholyte and resin rinse"}
   outputs:
-    - {chemical: hydrogen, role: co-product, inventory_key: "product:H2", note: "29.5 g H2 per kg Cl2, water-saturated at 35 degC, 140 kPa(a). The main product chlorine (product:CL2) and the co-product caustic soda 50 wt-% (product:NAOH) have no registry entry yet"}
+    - {chemical: chlorine, role: main-product, inventory_key: "product:CL2", note: "Dry chlorine gas to the consumer (400 kPa(a))"}
+    - {chemical: sodium-hydroxide, role: co-product, inventory_key: "product:NAOH", note: "Caustic soda 50 wt-% to storage, counted by mass of the solution"}
+    - {chemical: hydrogen, role: co-product, inventory_key: "product:H2", note: "29.5 g H2 per kg Cl2, water-saturated at 35 degC, 140 kPa(a)"}
     - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Brine purge and resin regeneration effluent, 0.49 kg/kg Cl2 with 57 g NaCl and 2.9 g Na2SO4, dechlorinated and neutral"}
     - {chemical: carbon-dioxide, role: emission, inventory_key: "product:VENT", note: "2.4 g/kg Cl2 from neutralising the excess soda ash in the feed brine (mineral carbon)"}
   utilities:

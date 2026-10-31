@@ -40,15 +40,16 @@ validation:
     conversions are values within published ranges rather than a sourced design point, and the
     tower outlets, temperatures and duties come from an independent script (scripts/balance.py)
     whose energy balance core cannot check (no property package for SO2/SO3 or aqueous acid:
-    core #315, #364). Not reviewed. The chemicals registry has no sulfur, sulfuric-acid or
-    sulfur-dioxide entries yet, so the feed, the main product and the SO2 emission are not
-    listed under chemistry (open library item).
+    core #315, #364). Not reviewed. Main products and feeds are listed under chemistry with
+    their chemicals registry entries (issue #251).
 chemistry:
   inputs:
-    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Combustion and oxidation oxygen; the molten sulfur (feed:SULFUR, 0.323 kg/kg acid) has no registry entry yet"}
+    - {chemical: sulfur, role: feedstock, note: "feed:SULFUR: molten sulfur, 0.323 kg/kg acid"}
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Combustion and oxidation oxygen"}
     - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Dilution water to the acid pump tank (0.166 kg/kg acid)"}
   outputs:
-    - {chemical: nitrogen, role: emission, inventory_key: "product:STACK", note: "Tail gas, mostly N2 with 4.5 mol% O2, 0.04 mol% SO2 (1.94 g SO2/kg acid) and SO3/acid mist; the main product, 98.5 wt% sulfuric acid (product:ACID), has no registry entry yet"}
+    - {chemical: sulfuric-acid, role: main-product, inventory_key: "product:ACID", note: "Sulfuric acid 98.5 wt% to storage, counted by mass of the acid"}
+    - {chemical: nitrogen, role: emission, inventory_key: "product:STACK", note: "Tail gas, mostly N2 with 4.5 mol% O2, 0.04 mol% SO2 (1.94 g SO2/kg acid) and SO3/acid mist"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Main air blower and acid pump (ASSUMED electric drives), 0.055 kWh/kg acid"}
     - {chemical: steam, role: co-product, inventory_key: "product:HPS", note: "HP steam 4100 kPa(a), 673 K, 1.34 kg/kg acid (1.03 kWh/kg above boiler feed water)"}
