@@ -111,9 +111,45 @@ def test_lca_uses_the_stated_total_and_flags_placeholder_factors(tmp_path: Path)
     lca = _json(tmp_path / "out" / "processes" / "fixture-electrolysis.json")["lca"]
     assert lca["totals"] == {"baseline": {"climate-change": 24.0}}
     assert lca["factors_status"] == "placeholder"
-    assert lca["functional_unit"]["label"] == "1 kg H2"
+    assert lca["functional_unit"]["label"] == "1 kg hydrogen"
     assert [c["key"] for c in lca["contributions"]] == ["feed:POWER", "construction:steel"]
     assert {r["key"] for r in lca["inventory"]} == {"feed:WATER", "feed:POWER", "product:H2", "product:O2"}
+
+
+def test_functional_unit_is_labelled_with_the_product_name_and_keeps_the_id(tmp_path: Path) -> None:
+    """Issue #249: the label names the product (registry name), the id stays for tools."""
+    _build(LIBRARY, tmp_path / "out")
+    fu = _json(tmp_path / "out" / "processes" / "fixture-electrolysis.json")["lca"]["functional_unit"]
+    assert fu["product"] == "H2" and fu["chemical"] == "hydrogen" and fu["grade"] is None
+    assert fu["product_name"] == "Hydrogen" and fu["product_title"] == "Hydrogen"
+    summary = next(p for p in _json(tmp_path / "out" / "catalog.json")["processes"] if p["id"] == "fixture-electrolysis")
+    assert summary["lca"]["functional_unit"] == "1 kg hydrogen"
+
+
+def test_a_process_without_a_main_product_is_reported(library: Path, tmp_path: Path) -> None:
+    """Issue #251: the build names processes whose main product the graph would miss."""
+    manifest = library / "processes" / "fixture-ammonia" / "process.yaml"
+    manifest.write_text(manifest.read_text().replace("role: main-product", "role: co-product"))
+    report = _build(library, tmp_path / "out")
+    assert report.errors == []
+    assert any("fixture-ammonia" in w and "no main-product" in w for w in report.warnings)
+    assert not any("fixture-electrolysis" in w and "no main-product" in w for w in report.warnings)
+
+
+def test_functional_unit_label_uses_the_grade_name(library: Path, tmp_path: Path) -> None:
+    manifest = library / "processes" / "fixture-electrolysis" / "process.yaml"
+    manifest.write_text(manifest.read_text().replace("chemical: hydrogen,", "chemical: hydrogen/gaseous-30bar,"))
+    assert _build(library, tmp_path / "out").errors == []
+    fu = _json(tmp_path / "out" / "processes" / "fixture-electrolysis.json")["lca"]["functional_unit"]
+    assert fu["grade"] == "gaseous-30bar" and fu["label"] == "1 kg hydrogen, gaseous, 30 bar"
+
+
+def test_functional_unit_without_a_chemistry_flow_keeps_the_id(library: Path, tmp_path: Path) -> None:
+    manifest = library / "processes" / "fixture-electrolysis" / "process.yaml"
+    manifest.write_text(manifest.read_text().replace(', inventory_key: "product:H2"', ""))
+    assert _build(library, tmp_path / "out").errors == []
+    fu = _json(tmp_path / "out" / "processes" / "fixture-electrolysis.json")["lca"]["functional_unit"]
+    assert fu["label"] == "1 kg H2" and fu["chemical"] is None and fu["product_name"] is None
 
 
 def test_lca_without_a_total_row_sums_the_contributions(library: Path, tmp_path: Path) -> None:
