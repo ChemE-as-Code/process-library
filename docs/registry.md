@@ -161,6 +161,41 @@ Natural gas, naphtha and fuel gas are not in the registry yet. They are added, w
 composition and its source, with the first process that uses them. A mixture entry may go in
 without a composition (the schema allows it), but no composition is entered without a source.
 
+## Identities and how they are verified
+
+A substance's identity is its `cas`, `inchikey`, `formula` and, where checked, `chebi` and
+`pubchem_cid`. The entries added for issue #251 (the main products and feeds of the processes)
+were verified when they were added, in this order:
+
+1. CAS -> InChIKey, formula and molar mass in the offline database of the `chemicals` Python
+   package (1.5.2, a dev dependency of core), and InChIKey -> the same CAS (cross-check);
+2. the PubChem CID against the same InChIKey (PubChem PUG REST);
+3. the ChEBI id against the same InChIKey (ChEBI web service); an id that could not be checked
+   is left out.
+
+Where the sources disagree, the entry says so in its `note` and keeps what PubChem gives for the
+CAS (hydroxylammonium sulfate: the package has the 1:1 salt), or leaves the field out (aluminium
+oxide has no InChIKey: the package and PubChem give different keys for CAS 1344-28-1).
+`tests/test_registry.py` repeats step 1 offline wherever the `chemicals` package is installed,
+and checks everywhere that a CAS, InChIKey, ChEBI id or CID names one entry only.
+
+Molar mass, elemental composition and carbon content of these entries are derived from the
+formula with the IUPAC 2021 atomic weights. Their standard chemical exergy is not given yet (a
+follow-up with its Szargut-type source); exergy allocation of their products is therefore not
+possible from registry data.
+
+## How processes name these chemicals
+
+Every process lists its main product (`role: main-product`) and its feeds under `chemistry`, so
+that the Atlas graph links producers to consumers. Feeds added for issue #251 carry **no**
+`inventory_key` (the note starts with the key, e.g. `feed:CUM: ...`): with a key the LCI build
+would resolve the exchange through the registry slug and link it to a background or another
+Atlas process, which is a change of the LCI that each process decides with its own mapping
+review. Main products carry their `inventory_key` where the process had no reason against it,
+so that the LCI export names the chemical in the reference product and the catalog labels the
+functional unit with the product's name (issue #249). The catalog build warns for a process
+without a main product.
+
 ## Build-time checks
 
 `registry.check`, run by `build_catalog.py` and `build_lci.py`, fails the build on:
