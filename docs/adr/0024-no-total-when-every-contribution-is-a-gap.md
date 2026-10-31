@@ -17,7 +17,7 @@ The cause is in how results reach the catalog, not in the studies:
   (preliminary inventories, site not chosen), and the plant's direct emissions are not
   greenhouse gases (water, nitrogen, oxygen, SO2, chlorine; outside GWP100). No characterised
   contribution exists. The gaps are listed in `lca/gaps.csv`.
-- core (1.1.0, the version CI pins) still writes a `total` row of 0 to `lca/results.csv` for
+- core (1.1.0, and still 1.2.1 at 8042b71, the version CI pins now) writes a `total` row of 0 to `lca/results.csv` for
   such a category. Its own `lca/results.md` says "no total (every contribution a gap)" for the
   same category (core `LcaReport.comparability`: a category with gaps and no contribution has
   no total, never 0).
@@ -96,4 +96,4 @@ chose (b) now; (a) remains a follow-up for core, and the catalog rule stays corr
   (`test_a_gap_only_footprint_is_null_with_its_reason`).
 - #250; core `chemeascode/domains/assessment/lca/report.py` (`comparability`, the `total`
   row of `results.csv`, `PCF_CATEGORY`) and `impacts.py` (`OUTSIDE_METHOD`, `real_gaps`) at
-  c2a45135.
+  c2a45135 (1.1.0) and 8042b71 (1.2.1, unchanged in these parts).
