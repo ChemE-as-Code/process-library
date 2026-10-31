@@ -188,3 +188,39 @@ print(f"tail brine bromide {1e6 * S17['NaBr'] * M['Br'] / M['NaBr'] / sum(S17.va
 tin = sum(S1.values()) + cl2_fresh + steam + lime + sum(S13.values())
 tout = sum(prod.values()) + sum(S14.values()) + sum(S17.values())
 print(f"overall in {tin:.2f} out {tout:.2f} kg/h")
+
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
+
+
+# the values process/flowsheet.yaml cites from this script (balance-output contract): mass flows
+# and mass fractions of the streams printed above (S2 is S1 pumped, S11 the cooled S10), the
+# S17 temperature and the duties as printed
+FLOWSHEET = {}
+for sid, d in [("S1", S1), ("S2", S1), ("S3", {"Cl2": cl2_fresh}), ("S4", {"H2O": steam}),
+               ("S5", S5), ("S6", {k: S7.get(k, 0) + S8.get(k, 0) for k in S5}), ("S7", S7),
+               ("S8", S8), ("S9", S9), ("S10", wet), ("S11", wet), ("S12", prod), ("S13", S13),
+               ("S14", S14), ("S15", S15), ("S16", {"CaOH2": lime}), ("S17", S17)]:
+    FLOWSHEET[sid] = {"flow": {"value": sum(d.values()), "basis": "mass"},
+                      "composition": {"values": {k: v / sum(d.values()) for k, v in d.items()},
+                                      "basis": "mass_fraction"}}
+FLOWSHEET["S17"]["temperature"] = T_S17
+FLOWSHEET.update({"Q1": {"duty": q_E102}, "Q2": {"duty": q_reb}, "Q3": {"duty": q_C104c},
+                  "Q4": {"duty": q_E105}, "Q5": {"duty": w_P101}})
+write_balance_output({"design": FLOWSHEET})

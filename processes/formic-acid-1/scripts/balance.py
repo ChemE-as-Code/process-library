@@ -257,3 +257,39 @@ print(f"heat per t 85 % acid {steam / PRODUCT_KG_H * 1000:.0f} kWh/t (EP2747883A
 os.makedirs("build", exist_ok=True)
 with open("build/balance.json", "w") as f:
     json.dump(out, f, indent=1)
+
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
+
+
+# the values process/flowsheet.yaml cites from this script (balance-output contract): the streams
+# of build/balance.json (mass flow, mole fractions) and the duties; a condenser carries its
+# column's reboiler duty (cond)
+FLOWSHEET = {}
+for k, d in out["streams"].items():
+    FLOWSHEET["S" + k[1:]] = {"flow": {"value": mass(d), "basis": "mass"},
+                              "composition": {"values": {c: v / sum(d.values()) for c, v in d.items()},
+                                              "basis": "mole_fraction"}}
+for qid, k in {"Q1": "K101", "Q2": "K101_cool", "Q3": "P101", "Q4": "R101", "Q5": "E101",
+               "Q6": "C101", "Q8": "P201", "Q9": "E201", "Q10": "R201", "Q11": "C201",
+               "Q13": "C202", "Q15": "C301", "Q17": "C302"}.items():
+    FLOWSHEET[qid] = {"duty": duty[k]}
+for qid, k in {"Q7": "C101", "Q12": "C201", "Q14": "C202", "Q16": "C301", "Q18": "C302"}.items():
+    FLOWSHEET[qid] = {"duty": cond[k]}
+write_balance_output({"design": FLOWSHEET})
