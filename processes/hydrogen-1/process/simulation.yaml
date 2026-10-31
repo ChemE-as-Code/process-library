@@ -1,9 +1,108 @@
-# Simulation specs of hydrogen-1. Schema: `cheme schema process-simulation`.
-# Not run yet (DESIGN.md D-006, D-011): no DWSIM property package of core is qualified for
-# water-bearing synthesis gas, steam and flue gas (core #315). This file only declares the HT
-# shift converter adiabatic, as the balance (scripts/h2_balance.py) and cheme process reactors
-# (duty 0.03 kW at the solved outlet temperature) have it.
+# The DWSIM model of hydrogen-1 (`cheme process simulate`; schema `cheme schema process-simulation`).
+# Decision D-015 in DESIGN.md (scope, property package, the adiabatic shift bed, what the first
+# run is expected to show). Prepared 2026-10-30 and NOT RUN: no DWSIM on the machine that wrote
+# it; it translates (`cheme process simulate --check` stops at sim-unavailable after the
+# translation). Every spec repeats a design choice of DESIGN.md (source given) or a value of
+# the concept balance scripts/h2_balance.py (D-006), ASSUMED with its source.
 schema: cheme/simulation/v1
 kind: simulation
+simulator: dwsim
+property_package: Peng-Robinson (PR)
+method_selection:
+  facts:
+    pressure_value: 43                # the highest pressure of the simulated part: process steam S6, 4300 kPa(a) (D-010)
+    pressure_unit: bar(a)
+    is_polar: true                    # water: process steam, reformed and shifted gas, process condensate (V-201)
+    is_electrolyte: false             # no salts or ions; dissolved CO2 in the condensate is a molecular solute
+    has_pseudocomponents: false       # ten pure compounds with CAS numbers (materials.yaml)
+    interaction_parameters_available: false  # `cheme process phase` (ChemSep PR in thermo 0.6.1) has no kij for water/H2, water/CH4, water/CO, water/N2 (only water/CO2); DWSIM's own set not checked: conservative answer
+    liquid_liquid_expected: false     # one liquid only, water at V-201 (313 K, 2950 kPa(a)); C2H6 and C3H8 are reformed to ppm, no hydrocarbon liquid
+    vapor_association_expected: false # no carboxylic acids or HF
+  substitution: >-
+    The selection (Carlson tree) recommends PSRK or Peng-Robinson / RKS with modified
+    Huron-Vidal mixing rules for a polar mixture at 43 bar(a) without interaction parameters;
+    the DWSIM route runs none of them, and methods.yml names Peng-Robinson as the executable
+    substitute of PR-MHV2 (it loses the excess-Gibbs-energy mixing rule). Used as in ammonia-1
+    for the same water-bearing synthesis gas. Proposed by the agent (D-015), not
+    yet accepted by the owner or a reviewer. Known weak spots, all outside the range core
+    claims for PR (methods.yml: N2, O2, Ar only; core #315): water condensation and CO2
+    solubility at V-201 (313 K, 2950 kPa(a)) on DWSIM's own kij, and the enthalpy of steam at
+    4300 kPa(a) in the steam mixing M-102.
+# Left out (D-015):
+# - H301 (furnace radiant section): its radiant heat Q4 is R-102's duty, and core refuses an
+#   energy stream shared by two units; the trim fuel that closes the radiant balance would need
+#   an adjust core does not offer (as H101 in ammonia-1);
+# - E305 (convection section, flue gas side): one cooler with four energy streams to the coils
+#   E101, E102, E402 and D401; a DWSIM cooler has one. Simulating it needs the coils as
+#   two-stream exchangers on the flue gas (the ammonia-1 restructuring), a flowsheet change
+#   left to a later decision;
+# - STM (steam system: M401, P401, E402, E401, D401, SPL401): a pure-water package balance
+#   whose steam flow follows from duties (an adjust), as U801 in ammonia-1. The process steam
+#   S6 enters the simulated part as a feed with the flowsheet's values; the process condensate
+#   S15 leaves it as a product.
+exclude: [H301, E305, STM]
+# The hydrogenator recycle (U301 -> SPL301 -> K101 -> M101 -> ... -> V201 -> U301), torn at the
+# recycle hydrogen S2; its flowsheet values are the first guess (no `guesses:` needed).
+tear_streams: [S2]
 specs:
-  R201: {mode: adiabatic}
+  # ---- FPT (D-005)
+  E101:
+    outlet_temperature: {value: 643.15, provenance: assumed, source: "D-005: feed preheated to 643 K (design basis)"}
+    pressure_drop: {value: 100, unit: kPa, provenance: assumed, source: "D-005: S3 4000 -> S4 3900 kPa(a)"}
+  R101:
+    unit: heater     # the hydrogenator and ZnO beds take no heat; sulfur is not balanced (D-004, D-005)
+    duty: {value: 0, unit: kW, provenance: assumed, source: "D-005: no heat of reaction in R-101"}
+    pressure_drop: {value: 50, unit: kPa, provenance: assumed, source: "D-005: S4 3900 -> S5 3850 kPa(a)"}
+  # ---- REF (D-003, D-007). Mixers take no pressure drop in DWSIM: the 50 kPa the flowsheet
+  # gives M-102 (S5 3850 -> S7 3800 kPa(a)) is put on E-102
+  E102:
+    outlet_temperature: {value: 893.15, provenance: assumed, source: "D-007: reformer inlet 893 K"}
+    pressure_drop: {value: 350, unit: kPa, provenance: assumed, source: "D-007: S7 3800 -> S8 3500 kPa(a), plus the 50 kPa of M-102"}
+  R102:
+    # equilibrium reactor (SMR, WGS, ETH_REF, PRO_REF, approach -10 K from the flowsheet) at the
+    # design outlet temperature; its duty is the radiant heat Q4
+    mode: outlet_temperature
+    outlet_temperature: {value: 1143.15, provenance: assumed, source: "D-007: reformer outlet 1143 K"}
+    pressure_drop: {value: 300, unit: kPa, provenance: assumed, source: "D-007: 3500 -> 3200 kPa(a)"}
+  E104:
+    outlet_temperature: {value: 623.15, provenance: assumed, source: "D-007: waste heat boiler to the HT shift inlet, 623 K"}
+    pressure_drop: {value: 50, unit: kPa, provenance: assumed, source: "D-007: S9 3200 -> S10 3150 kPa(a)"}
+  # ---- SFT (D-007, D-010)
+  R201:
+    # Adiabatic as designed (D-003, D-007), but DWSIM 9.0.5's equilibrium reactor in adiabatic
+    # mode fails its flash (core #58, reproduced on ammonia-1's HT shift bed). Run at the
+    # adiabatic outlet temperature of the concept balance; the simulated duty (about 0) is the
+    # check of the adiabatic assumption (D-015), as ammonia-1 does for its adiabatic beds
+    mode: outlet_temperature
+    outlet_temperature: {value: 691.77, provenance: assumed, source: "D-006, D-007: adiabatic equilibrium outlet of scripts/h2_balance.py (S11); cheme process reactors 0.03 kW at it"}
+    pressure_drop: {value: 100, unit: kPa, provenance: assumed, source: "D-007: 3150 -> 3050 kPa(a)"}
+  E201:
+    # the heat the boiler feed water needs from 345 to 503 K (D-010); the gas outlet
+    # temperature (428.33 K in the concept balance, with condensation) is the check
+    duty: {value: -36573.5, unit: kW, provenance: assumed, source: "D-010: Q8 of scripts/h2_balance.py, boiler feed water 345 -> 503 K (IAPWS-IF97)"}
+    pressure_drop: {value: 50, unit: kPa, provenance: assumed, source: "D-007: S11 3050 -> S12 3000 kPa(a)"}
+  E202:
+    outlet_temperature: {value: 313.15, provenance: assumed, source: "D-007: cooling to 313 K before the separator"}
+    pressure_drop: {value: 50, unit: kPa, provenance: assumed, source: "D-007: S12 3000 -> S13 2950 kPa(a)"}
+  V201:
+    outlets: {vap: vapor, liq: liquid}   # adiabatic at the trim cooler outlet, 313.15 K, 2950 kPa(a)
+  # ---- PSA (D-008): a specified split, not a cycle model
+  U301:
+    recovery_outlet: prod
+    # N2 0.176966: the fraction that gives the 99.9 mol% product at the design feed (S14, S16)
+    recoveries: {H2: 0.88, N2: 0.176966, CH4: 0.0, CO: 0.0, CO2: 0.0, H2O: 0.0, C2H6: 0.0, C3H8: 0.0}
+    basis_source: >-
+      D-008 (ASSUMED, no vendor or cited value): H2 recovery 0.88 into a 99.9 mol% H2 product,
+      remainder N2; CH4, CO, CO2 and water all to the tail gas. The N2 fraction is the one that
+      gives that purity on the concept balance's PSA feed (S14, scripts/h2_balance.py)
+    operating_basis: "adsorption at 2950 kPa(a) and 313 K on the water-saturated V-201 gas; product 2850, tail gas 130 kPa(a) (D-008); cycle average"
+  K101:
+    outlet_pressure: {value: 4100, provenance: assumed, source: "D-005: recycle hydrogen 2850 -> 4100 kPa(a)"}
+    efficiency: {value: 0.75, provenance: assumed, source: "D-012: isentropic efficiency"}
+  # ---- FUR without H301 and E305 (D-009, D-012)
+  K301:
+    outlet_pressure: {value: 106.325, provenance: assumed, source: "D-012: forced draft fan, 5 kPa rise from 101.325 kPa(a)"}
+    efficiency: {value: 0.70, provenance: assumed, source: "D-012: fans 0.70"}
+  K302:
+    outlet_pressure: {value: 103.0, provenance: assumed, source: "D-012: induced draft fan, 4 kPa rise from 99 kPa(a)"}
+    efficiency: {value: 0.70, provenance: assumed, source: "D-012: fans 0.70"}
