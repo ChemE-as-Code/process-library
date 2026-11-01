@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-pytest.importorskip("yaml")
+yaml = pytest.importorskip("yaml")
 pytest.importorskip("openpyxl")
 
 KIT = Path(__file__).resolve().parents[1]
@@ -114,6 +114,24 @@ def test_entry_documents_header_allocation_provenance_pedigree_and_links(library
     assert entries[MARKET]["used_by"] == [NH3]
     assert h2["used_by"] == [MARKET]  # the plant supplies the market
     assert entries[NH3]["publication"] == "preview"  # fixture-ammonia is internal
+
+
+def test_exchange_names_its_flowsheet_streams_and_nothing_else(library: Path, tmp_path: Path) -> None:
+    root = library / "processes" / "fixture-electrolysis"
+    stream = "S1"
+    (root / "process" / "flowsheet.yaml").write_text(yaml.safe_dump({"streams": [{"id": stream}]}), encoding="utf-8")
+    path = root / "lca" / "dataset.yaml"
+    dataset = yaml.safe_load(path.read_text(encoding="utf-8"))
+    water = next(e for e in dataset["exchanges"] if e["key"] == "feed:WATER")
+    water["streams"] = [stream, "steel HEB200 steel rack"]  # a material item is no stream
+    steel = next(e for e in dataset["exchanges"] if e["key"] == "construction:steel")
+    steel["streams"] = ["steel HEB200 steel rack"]
+    path.write_text(yaml.safe_dump(dataset, sort_keys=False), encoding="utf-8")
+    entries = {e["code"]: e for e in _package(library, tmp_path / "out")["activities"]}
+    by_key = {e["key"]: e for e in entries[H2]["exchanges"]}
+    assert by_key["feed:WATER"]["streams"] == [stream]
+    assert "streams" not in by_key["construction:steel"]
+    assert "streams" not in by_key["feed:POWER"]  # the dataset names none
 
 
 def test_public_build_withholds_unpublished_processes_from_the_activities(library: Path, tmp_path: Path) -> None:
