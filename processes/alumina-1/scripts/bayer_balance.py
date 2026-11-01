@@ -1,8 +1,8 @@
 """Heat and material balance of the Bayer alumina refinery (alumina-1), concept stage.
 
 An independent sequential balance on a component basis. Core cannot speciate caustic
-aluminate liquors (core #364 covers aqueous NaCl only) or predict gibbsite solubility and
-precipitation yield (core #365: single-salt crystallisers only), so the liquor is carried as
+aluminate liquors (core's electrolyte support covers aqueous NaCl only) or predict gibbsite solubility and
+precipitation yield (single-salt crystallisers only), so the liquor is carried as
 neutral NaOH + NaAlO2 + H2O and the digestion and precipitation are fixed by the industry's
 liquor ratios (A/C) as ASSUMED design specifications. Every design parameter below is ASSUMED
 unless its comment names a source; DESIGN.md D-004..D-008 list them with the reasons.
@@ -562,7 +562,7 @@ def main():
 def write_balance_output(cases):
     """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
 
-    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
     stream id -> quantity, in the flowsheet's units and basis. The library's
     scripts/check_balance_scripts.py re-runs this script and compares them with
     process/flowsheet.yaml.

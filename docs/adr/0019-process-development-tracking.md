@@ -1,7 +1,7 @@
 # 0019. Track process development with issues and separate workflow from evidence
 
 - **Status:** Proposed, 2026-10-27
-- **Scope:** issue forms and docs/process-development.md; tracker #114
+- **Scope:** issue forms and docs/process-development.md; tracker #306
 
 ## Context
 coverage.yaml already implements the coverage roadmap (#47). Parallel process development needs
@@ -24,5 +24,5 @@ and evidence links and can become stale. Candidate issues and absent data cannot
 No scientific schemas or publication gates change.
 
 ## Evidence
-Tracker #114, literature #115/#116 and first-batch issues #117–#124; existing #86/#42.
+Tracker #306, literature #115/#116 and first-batch issues #117–#124; existing #304/#302.
 See [tracking guide](../process-development.md) and the new issue forms in .github/ISSUE_TEMPLATE/.

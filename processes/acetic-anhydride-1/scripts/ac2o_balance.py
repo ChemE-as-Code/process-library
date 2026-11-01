@@ -1,7 +1,7 @@
 """Concept heat and material balance of acetic-anhydride-1 (ketene route), DESIGN.md D-006.
 
 An independent balance: core cannot qualify flashes, enthalpies or distillation of acetic
-acid / ketene / acetic anhydride / water (no property package; core #315), so the values the
+acid / ketene / acetic anhydride / water (no property package), so the values the
 flowsheet cannot calculate itself (separator and column outlets, recycle streams, utility
 duties, the natural gas and air of the firebox) come from here and are entered in
 process/flowsheet.yaml as ASSUMED with this script as their source. The reactor outlets,
@@ -345,7 +345,7 @@ for qid, key in {"Q1": "E101_LPS", "Q2": "R101_fired", "Q3": "E102_CW", "Q4": "E
 def write_balance_output(cases):
     """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
 
-    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
     stream id -> quantity, in the flowsheet's units and basis. The library's
     scripts/check_balance_scripts.py re-runs this script and compares them with
     process/flowsheet.yaml.

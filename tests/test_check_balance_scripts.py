@@ -1,4 +1,4 @@
-"""Balance-script reproducibility (scripts/check_balance_scripts.py, ADR 0024): the checker
+"""Balance-script reproducibility (scripts/check_balance_scripts.py, ADR 0027): the checker
 re-runs a process's balance script and compares its balance-output with the flowsheet values
 that cite it."""
 

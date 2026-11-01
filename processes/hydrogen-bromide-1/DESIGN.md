@@ -6,7 +6,7 @@ The numbers live in `process/*.yaml` and `scripts/balance.py`; the stream table 
 ChemE-as-Code/process-library#130.
 
 Run record of this stage (2026-10-28): library branch `case/hydrogen-bromide-1` from `cc5624f`;
-cheme-as-code 0.8.0 (pyDEXPI 2.1.0), Python 3.15.0; DWSIM not used. Core#364 (electrolytes)
+cheme-as-code 0.8.0 (pyDEXPI 2.1.0), Python 3.15.0; DWSIM not used. The core issue on electrolytes
 could not be opened from this run (`gh`: not resolvable), so its state is taken from the
 installed cheme: `cheme process methods` lists ENRTL-PR and PITZER-RKS as unsupported and the
 electrolyte route as NaCl-H2O only, so **HBr-water is not supported** by any phase, property or
@@ -90,7 +90,7 @@ the finishing carbon, a BAT-AEL or emission factor for HBr synthesis vents.
   cooling water; R102 0.05 kW = 0.5 K adiabatic rise). Block SYN: -178.3 kW = Q2 + Q3.
 - **Absorption**: specified-value model (C201: 99.5 % of the HBr absorbed; C202: vent at
   5 mg/Nm3 HBr), not predicted. HBr-water VLE and heats of solution need an electrolyte model
-  (core#364, unsupported). The 48 wt-% product lies just above the 47.6 wt-% azeotrope
+  (unsupported). The 48 wt-% product lies just above the 47.6 wt-% azeotrope
   (SRC-4), so it is made by cooled (isothermal) absorption, as for HCl; an adiabatic absorber
   boiling off water would tend to the azeotrope and needs a separate check.
 
@@ -134,7 +134,7 @@ Decision: `scripts/balance.py` (run `cheme run scripts/balance.py`) gives the fl
 compositions of S1-S3 and S6-S12 and the duties Q1-Q6, entered as `assumed` with
 `source: scripts/balance.py`; S4 and S5 are calculated by cheme (propagate) and agree with the
 script (1 000.805 kg/h). Reason: cheme cannot solve the absorber or the scrubber (electrolyte,
-core#364) nor the bromine vaporiser (no package for Br2 liquid). The script closes mass
+core's electrolyte support) nor the bromine vaporiser (no package for Br2 liquid). The script closes mass
 (2 084.27 kg/h) and Br and H; cheme validate confirms every block, step and element balance.
 
 ## D-007 Vaporiser, burner and cooler temperatures; LP steam (2026-10-28)
@@ -173,7 +173,7 @@ ASSUMED: the infinite-dilution value is -85.14 kJ/mol (SRC-6); for HCl the integ
 about 4 mol water is about 0.82 of its infinite-dilution value (hydrogen-chloride-1 D-009), and
 the same fraction of about 0.85 at 4.87 mol water is applied here. The heat of solution is
 247 kW and the absorber duty Q4 232 kW (the acid leaves 15 K above the reference), so a 10 %
-error moves Q4 by about 11 %. Gate: core#364 (no HBr-water enthalpy).
+error moves Q4 by about 11 %. Gate: core's electrolyte support (no HBr-water enthalpy).
 
 ## D-010 Cooling water 25/35 degC (2026-10-28)
 ASSUMED, as hydrogen-chloride-1. R-101, E-102 and C-201 are cooled: Q2 + Q3 + Q4 = 410.6 kW =
@@ -233,7 +233,7 @@ only add noise to the coverage; revisit when the bed is sized with a vendor).
   exceeds the evidence (warning, as in hydrogen-chloride-1): "balanced" fails on the feed flows
   S1, S3, S10 (design choices, `assumed`, not `given`) and on the specified splits of C201 and
   C202 (ASSUMED recoveries, no source); R101 (sourced conversion) and R102 (equilibrium model)
-  pass. "predictive" needs a simulation, gated by core#364.
+  pass. "predictive" needs a simulation, gated by core's electrolyte support.
 - Library build: `scripts/build_catalog.py --strict` accepts the manifest (only "no preview
   rendered" warnings). The first CI run of PR #229 showed that the strict LCI build refused the
   dataset (LP steam unit, free Br2); after the fix the library's tooling tests
@@ -248,7 +248,7 @@ only add noise to the coverage; revisit when the bed is sized with a vendor).
 | finishing bed | equilibrium reactor, ideal gas (section 3), adiabatic | calculated by cheme | none |
 | burner and cooler duties | cheme reactor duty (ideal gas) | calculated, equal to the script | none for the gas side |
 | bromine vaporiser | script (dHf of Br2 gas as latent heat at 298 K + ideal-gas superheat) | ASSUMED path | no package covers liquid Br2 (`props --coverage`) |
-| absorber, scrubber | specified values (script) | ASSUMED | core#364: HBr-water VLE, heat of solution, acid enthalpy unsupported |
+| absorber, scrubber | specified values (script) | ASSUMED | core's electrolyte support: HBr-water VLE, heat of solution, acid enthalpy unsupported |
 | stream properties, energy balances | not filled | not evaluable | no package for Br2/HBr gas or HBr-water |
 | simulation | none | not run | DWSIM route refuses electrolytes |
 | LCI | foreground from the flowsheet | written | backgrounds missing; registry entries missing (section 7) |
@@ -266,5 +266,5 @@ only add noise to the coverage; revisit when the bed is sized with a vendor).
   exists), a demineralised-water entry (#45), biosphere identities for hydrogen bromide and
   hydrogen to air. The library has no bromine-1 process yet.
 - Next stage: review of this concept, then a bromine-1 case to give the main feed a dataset;
-  source the burner and absorber data, replace D-009 when core#364 supports HBr-water, then the
+  source the burner and absorber data, replace D-009 when core supports HBr-water, then the
   P&IDs (pid-draft) and the LCI backgrounds (link hydrogen-1's dataset and the utilities).

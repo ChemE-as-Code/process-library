@@ -4,7 +4,7 @@ One-step carbonylation of dimethylamine (DMA) with CO in methanol, sodium methox
 deactivated in situ, salt filtered, methanol/DMA recovered and recycled, DMF finished under
 vacuum. Every parameter below is a design input with its decision id; the sourced ones name
 their source in DESIGN.md. Plain arithmetic only: no property package covers this polar,
-salt-bearing liquid (core #315), so duties are short-cut estimates (latent + sensible heat,
+salt-bearing liquid, so duties are short-cut estimates (latent + sensible heat,
 ASSUMED heat capacities and reflux ratios), not a qualified energy balance.
 
 Run: cheme run scripts/dmf_balance.py   (prints the stream table and duties used in
@@ -164,7 +164,7 @@ print("ASSUMED power: R-101 loop pump 30 kW, C-201 pumps 5 kW, C-202 vacuum syst
 def write_balance_output(cases):
     """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
 
-    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
     stream id -> quantity, in the flowsheet's units and basis. The library's
     scripts/check_balance_scripts.py re-runs this script and compares them with
     process/flowsheet.yaml.

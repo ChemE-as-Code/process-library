@@ -6,7 +6,7 @@ The numbers live in `process/*.yaml`; the stream table is generated: `cheme proc
 
 Run record of this stage (2026-10-27): library branch `case/sulfuric-acid-1` from `79a7cd4`;
 cheme-as-code 0.8.0 (pyDEXPI 2.1.0), Python 3.15.0, CoolProp 8.0.0 in cheme's interpreter;
-DWSIM not used. Core #315 open (checked 2026-10-27); core #364 closed by core PR #394 with an
+DWSIM not used. The core issue on property qualification is open (checked 2026-10-27); the one on electrolytes closed with an
 electrolyte route for aqueous NaCl only: sulfuric acid stays unsupported, and the phase and
 DWSIM routes refuse acid with water (issue comment of 2026-10-27).
 
@@ -99,7 +99,7 @@ neglected (a few % of the absorption heat; it understates the cooling duty). Fur
 (1402 K) extrapolates the Cp/R fits beyond their 1000 K range. Whole-plant energy residual:
 0.00 kW (adiabatic plant, no losses).
 Why not core: no property package covers SO2/SO3 gas or aqueous acid (`cheme process props
---coverage`, `cheme process methods`: electrolyte models unsupported; core #315, #364), so
+--coverage`, `cheme process methods`: electrolyte models unsupported), so
 `cheme process energy` cannot evaluate stream enthalpies and core cannot close the energy
 balance: **gated step**. `process/simulation.yaml` records only the adiabatic modes.
 The gas/gas exchangers are written as two steps each (hot side, cold side) joined by an energy
@@ -223,8 +223,8 @@ sourced benchmark yet.
 | mass / element balances | supported | closed (cheme validate, process streams) |
 | conversion reactors, extents | supported | furnace, beds, absorbers |
 | ideal-gas equilibrium check | supported | beds, ln(Q/K) |
-| gas enthalpy of SO2/SO3 mixtures | no benchmarked package (core #315) | script with ideal-gas Cp |
-| aqueous H2SO4 (electrolyte) | unsupported, refused (core #364 covers NaCl only) | molecular pseudo-component, liquid formation enthalpy, constant Cp |
+| gas enthalpy of SO2/SO3 mixtures | no benchmarked package | script with ideal-gas Cp |
+| aqueous H2SO4 (electrolyte) | unsupported, refused (core's electrolyte support covers NaCl only) | molecular pseudo-component, liquid formation enthalpy, constant Cp |
 | block energy balances (cheme process energy) | not evaluable without stream enthalpies | gated; script closes to 0.00 kW |
 | DWSIM simulation | refused for acid/water | not run |
 | BFD/PFD build | Pumping step crashes (D-010) | GeneratingFlow workaround |

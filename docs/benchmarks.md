@@ -99,7 +99,8 @@ explanation may live in DESIGN.md or a dataset note, but the link to it is alway
 with `no_open_reference` has no range, so an `out_of_range_reason` on it is a registry error.
 
 **Coverage.** In a library with a `benchmarks/` folder, every public process with an LCI dataset
-needs at least two KPIs, each with a source or a recorded `no_open_reference`. Otherwise both
+should have at least two KPIs, each with a source or a recorded `no_open_reference`. A process with
+fewer gets a warning that does not fail `--strict` (ADR 0026). Otherwise both
 builds warn. A binding that names no dataset of the library (for example after a rename) is a
 warning too, and so is a binding under a family that the process's `process.yaml` does not list
 in `families`.
@@ -119,7 +120,7 @@ in `families`.
   (`<out>/benchmarks.json`) is unallocated; the LCI build's (`<out>/lci/benchmarks.json`, listed
   in `index.json`) adds `allocated`. A public build holds the public processes only. CI keeps the
   public catalog's report with the catalog artifact, and the release draft keeps the LCI build's
-  (#50), so a comparison a paper reports can be traced to one commit (#85).
+  (#50), so a comparison a paper reports can be traced to one commit (#303).
 
 Both additions are additive: no existing field changes.
 
@@ -144,6 +145,22 @@ The O2 recovery reference is a single typical value, recorded as a zero-width ra
 dataset's recovery needs its own explanation until a source states a range. ASU-1's 82.8 % is
 well below it: the simulated double column without an argon column needs more air for 99.5 %
 GOX (DESIGN.md D-066, which revised the concept's 94 % of D-018).
+
+**Decision (2026-10-30): the zero-width O2 recovery reference stays until a range can be read
+in its source.** A second search for an open source that states a recovery range for
+cryogenic double columns found two leads, but neither text could be read and checked here.
+Luberti, Capocelli and Santori (2026, Chem. Eng. Sci. 320, 122660, open access) gives 83 to
+99 % at 95 to 99.6 % purity in a search-engine summary, but the full text could not be retrieved.
+Singla and Chowdhury (2021, Chem. Eng. Process. 162, 108354) gives 90 to 95 % at above
+99.5 % O2 without argon extraction in a search-engine summary, but it is not open access and the figure is cited from an
+earlier source. A range seen only in a search-engine summary is not recorded (never invent a range),
+and Pfaff and Kather's single value is not widened by a margin. So the reference, the
+`explained` status and its D-066 reason stay unchanged. The next step is to read Luberti et
+al. and, if it states the range with its conditions, add it as a second reference with its
+locator and bind ASU-1 to it. The leads are recorded in the KPI's note in
+`benchmarks/air-separation.yaml`. The alternative was to replace the single value with
+`no_open_reference`; it was not taken, because the single value is a real, cited figure and
+the reader still sees how far ASU-1 sits from it.
 
 `tests/fixtures/benchmarks/asu-1-mis-scaled.yaml` is a deliberately wrong copy of the dataset,
 with the power in Wh labelled kWh. Its 501,700 kWh/t falls outside the range, so the strict LCI

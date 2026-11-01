@@ -7,7 +7,7 @@ DESIGN.md; "BREF" is the EU JRC Best Available Techniques Reference Document for
 Chlor-alkali (2014, DOI 10.2791/13138). Values written into the flowsheet are `assumed` with this
 script as their source; cheme checks the balances (cheme validate, cheme process cell).
 
-Simplifications (DESIGN.md D-006): electrolyte enthalpies are not modelled (core#364), so the
+Simplifications (DESIGN.md D-006): electrolyte enthalpies are not modelled, so the
 downstream duties use constant heat capacities and latent heats (ASSUMED); hypochlorite and
 chlorate in the anolyte, chloride in the caustic and dissolved gases other than Cl2 are
 neglected.
@@ -348,7 +348,7 @@ def main():
     w_aux = AUX_TOTAL * t_h - w_k503 - w_k602
     q_ev_steam = steam_kg * HFG_STEAM
     # evaporator energy closure on constant heat capacities (reference 298.15 K); the heat of
-    # dilution of NaOH is not included (core#364): the condenser takes the rest
+    # dilution of NaOH is not included: the condenser takes the rest
     h_in = total(to_evap) * CP_CAUSTIC32 * (358.15 - 298.15)
     h_out = total(product50) * CP_CAUSTIC50 * (413.15 - 298.15) + proc_cond["H2O"] * CP_WATER * 25
     q_ev_cw = q_ev_steam + h_in - h_out
@@ -477,7 +477,7 @@ def main():
 def write_balance_output(cases):
     """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
 
-    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
     stream id -> quantity, in the flowsheet's units and basis. The library's
     scripts/check_balance_scripts.py re-runs this script and compares them with
     process/flowsheet.yaml.

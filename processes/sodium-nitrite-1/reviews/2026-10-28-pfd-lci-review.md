@@ -111,8 +111,8 @@ and no `cheme.generated-edited`. I did not render or read them visually (see Not
 - **Provenance.** Key values are sourced or marked ASSUMED in `design-basis.yaml`,
   `reactions.yaml`, DESIGN.md section 4 and the stream provenance (`[A]` everywhere except the
   calculated S5).
-- **Gated steps.** Electrolyte enthalpies and the multi-solute crystalliser are named precisely
-  (core#364, #365/PR #395). The source register honestly separates read, summary, metadata and
+- **Gated steps.** Electrolyte enthalpies and the multi-solute crystalliser are named precisely.
+The source register honestly separates read, summary, metadata and
   unverified entries (SRC-8 formation enthalpies flagged as recalled). The SRC-8 values used
   (NaNO2(aq) -344.8, NaNO3(aq) -447.48, Na2CO3(aq) -1157.38, Na2CO3(cr) -1130.68, HNO3(aq)
   -207.36 kJ/mol) agree with my own knowledge of the NBS tables, but I did not re-read the

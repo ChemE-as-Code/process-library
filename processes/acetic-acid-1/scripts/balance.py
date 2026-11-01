@@ -8,7 +8,7 @@ the pumps and the reactor (`cheme process propagate --fill`) and checks every ba
 
 Run: cheme run scripts/balance.py            (prints the streams, conversions and duties)
      cheme run scripts/balance.py --yaml     (the streams as YAML for flowsheet.yaml)
-No property package covers this polar, associating mixture (core #315): the duties use rounded
+No property package covers this polar, associating mixture: the duties use rounded
 normal-boiling-point heats of vaporisation and constant liquid heat capacities (D-008).
 """
 import sys
@@ -286,7 +286,7 @@ def main():
 def write_balance_output(cases):
     """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
 
-    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
     stream id -> quantity, in the flowsheet's units and basis. The library's
     scripts/check_balance_scripts.py re-runs this script and compares them with
     process/flowsheet.yaml.

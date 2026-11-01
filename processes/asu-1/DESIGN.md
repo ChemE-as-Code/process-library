@@ -1013,7 +1013,7 @@ fire protection.
 
 ## D-039 Layout changes for the fifth layout review: stair, headroom, hatch, tank fills, breather (2026-10-22)
 Decision (reviews/2026-10-22-layout-review5.md, example-asu#4; amends D-038 (1), (2), (3),
-(10); every value ASSUMED; checked by the core rules of core#61: access headroom 2.1 m over
+(10); every value ASSUMED; checked by the core layout-operability rules: access headroom 2.1 m over
 every walking surface above grade, standing space in front of valves and hatches, landing
 width of stacked stairs, ways off a roof outside vent zones):
 (1) **The cold box stair stands beside the platforms, not on them** (review5#1, #3, #7). ST1 ..
@@ -1077,7 +1077,7 @@ for the stress engineer with the reaction forces) and the expander casing extens
 KT-3101 (layout#15: vendor data, the cold box vendor's drawing).
 Reason: the fifth, independent layout review found the stair across the walking and hatch
 space of the platforms, lines at head height over P10 and over the tank roof access, and the
-breather zone over the roof ladder; the core rules now report each of these (core#61), and
+breather zone over the roof ladder; the core rules now report each of these, and
 the rebuilt model has 0 headroom, landing-width and egress-zone findings.
 Rejected: widening the platforms to 2.2 m over the stair bay (more steel on the unbraced north
 face, and the stair would still run across the hatch); moving the stair to the west end (the
@@ -1086,7 +1086,7 @@ Result (core feat/open-points): 214 of 218 segments routed, 0 clashes, 0 layout-
 0 landing-width, 0 egress-zone; take-off 4,671 m pipe, 724 elbows, 324 t steel.
 
 ## D-040 Valves and transmitters out of reach: operating criteria (2026-10-22)
-Decision (review3#3, the 73 layout-operability findings of the core#61 rules; amends D-034;
+Decision (review3#3, the 73 layout-operability findings of the core rules; amends D-034;
 every limit ASSUMED until the owner's standard and the valve and instrument suppliers confirm
 it). A valve's handwheel or lever is within reach at most 1.8 m above a floor (a transmitter
 head 2 m), with a free 0.6 m standing square within 0.6 m in plan; the rules check it. What
@@ -1970,7 +1970,7 @@ Open:
 - Core: a column solver that follows a spec change from the converged profile. The variants
   above failed on DWSIM's own convergence: the mass-balance check at 1e-4, and iterations.
 
-## D-060 Issue #8 round: core#66 rebuild, supports, datasheet markers, pump heads, valves (2026-10-23)
+## D-060 Issue #8 round: rebuild on the core fix, supports, datasheet markers, pump heads, valves (2026-10-23)
 Numbered from D-060: D-058 and D-059 are kept for the parallel process-simulation work (inlet
 humidity, double-column simulation, E-3102 / E-3103), which this round does not touch
 (`process/flowsheet.yaml`, `simulation.yaml`, `design-basis.yaml` unchanged here).
@@ -2502,7 +2502,7 @@ simulation and design basis stay with the process-simulation work (D-058, D-059,
      their vapour fraction 1 (or the dew-point state) in the flowsheet and refill the
      properties. The E-3101 datasheet already takes them as saturated vapour (D-063 (6),
      D-065 (4)). **Closed by D-087**: the owner stated S14 / S15 / S16 vapour (D-066), and
-     `props --fill` now fills them on the EOS vapour root (core #102).
+     `props --fill` now fills them on the EOS vapour root.
 
 ## D-066 GOX 99.5 %: more air through the HP column, subcooler, feed stages, fitted Ar/O2 VLE (2026-10-23)
 Closes D-059 and revises D-018 and the design basis recovery. The 99.5 % O2 specification, the 500
@@ -2524,7 +2524,7 @@ Decision:
   to -180.1 C against the cold waste N2, 304 kW. It closes the balance of the
   condenser-reboiler E-3103: C-3101 condenses 4,172 kW, C-3102 reboils 4,166 kW.
 - **Fitted Ar/O2 VLE.** The Peng-Robinson Ar/O2 kij is set to 0.0143 in
-  process/simulation.yaml (core #92). It is fitted to the Lemmon-Jacobsen Helmholtz mixture
+  process/simulation.yaml. It is fitted to the Lemmon-Jacobsen Helmholtz mixture
   model of REFPROP/CoolProp: alpha(Ar/O2) is 1.558 at 1.30 bara and 1.547 at 1.40 bara near
   pure O2. DWSIM's own 0.0107 gives about 5 % less, which overstates how hard the argon is to
   strip. The Helmholtz model is itself fitted to the Ar/O2 VLE literature (e.g. Clark, Din and
@@ -3793,7 +3793,7 @@ Decision:
   top waste N2) as `vapor`, `assumed` (D-065 (7), D-066). Until now `props --fill` flashed them
   at the simulated temperature, pressure and composition, found liquid (S14, S15) or two-phase
   (S16) within 0.1 K of the dew point, and wrote nothing. The phase-constrained flash of
-  cheme-as-code (core #102, in the installed core main da8c09d) evaluates a stream of a stated
+  cheme-as-code (in the installed core main da8c09d) evaluates a stream of a stated
   phase on that phase's EOS root (thermo 0.6.1, Peng-Robinson) when it is metastable by only a
   small Gibbs energy; the values are marked `phase-constrained` in their `source`.
   `cheme process props --fill` now writes, as `calculated`:
@@ -3812,7 +3812,7 @@ Decision:
   result changed). No datasheet changes: E-3101 already takes S14 / S15 as saturated vapour
   (D-063 (6), D-065 (4)).
 
-Reason: D-065 (7) (c), core #102.
+Reason: D-065 (7) (c).
 
 ## D-088 Review-13 low findings: run record, front-end hold, S12D, I-03 specification, E-3105 tag (2026-10-24)
 Answers layout-review13#1 .. #5.
@@ -4178,7 +4178,7 @@ for detail engineering, if the project goes on to it:
 
 ## D-092 LCA on open background data, gaps declared (2026-10-24)
 The LCA's example factors (`example: true`, round placeholders) are replaced by open data that
-may be published, following core#138. Core 0.8 with the source registry, gaps and publication
+may be published, following core's publication policy. Core 0.8 with the source registry, gaps and publication
 policy (`cheme assess lca --coverage`) computes it.
 
 Decision:
@@ -4207,7 +4207,7 @@ Decision:
   substitutes of GAN, LOX and LIN are also declared missing; they are not gaps of the result
   (exergy allocation), but the allocation comparison reports substitution as not applicable.
   The 18th: E-3103 has no weight in the equipment list, a gap of the aluminium equipment of
-  unknown amount (`no-weight:equipment-al/E-3103`, core#163), until its weight is given.
+  unknown amount (`no-weight:equipment-al/E-3103`), until its weight is given.
 - (4) **Scenario grid-2040 removed.** It used an example factor without a source; it returns
   with a published, openly licensed grid projection for the site's country.
 - (5) **Result.** 66.7 kg CO2-eq per t GOX (95 % 33 .. 133, Monte Carlo 2000, seed 1): a
@@ -4225,7 +4225,7 @@ does not cover instead of counting it as zero.
 Rejected:
 - Keeping the example factors: no source, nothing real.
 - Mapping the flows without an open factor `free` or dropping them: that would count them as
-  zero (core#138: never silent zeros).
+  zero (never silent zeros).
 
 ## D-093 HAZOP of ASU-1 (draft, proposed by agent) (2026-10-24)
 Revised by D-098 (H-04 reassessed for D-095 / D-096, inputs re-stamped after D-097; the counts
@@ -4386,7 +4386,7 @@ gas, H02-N2-LT).
 ## D-094 Control intent: loop register, sequences, narrative and control philosophy (2026-10-24)
 Revised by D-095 and D-096 (the control conflicts it recorded, decided by the user).
 
-Decision: the plant's control intent is written down in the formats of core#140, next to the
+Decision: the plant's control intent is written down in core's control formats, next to the
 HAZOP draft (D-093):
 - `control/loops.yaml`: the 31 regulatory loops of the instrument list. Each gives its
   measurement, the final element it moves (the valve tags drawn on the P&IDs; the inlet guide
@@ -5016,7 +5016,7 @@ Reason: the owner fixes the design air and the design air rate, so they are the 
 and not estimates. With them the air feed is sourced, and the calculation evidence supports the
 level that `cheme maturity` reports.
 ## D-100 Regional LCI background scenarios on the one design case (2026-10-24)
-The LCA gains two regional background scenarios on the same 500 t/d design case (core#172):
+The LCA gains two regional background scenarios on the same 500 t/d design case:
 `nl-grid` and `de-grid` (`lca/lca.yaml`, records in `lca/scenarios/`). They change the
 background only; flows, duties and capacity stay those of the design case (500 t/d GOX,
 `process.yaml` `basis.capacity`). The flowsheet is not touched, so the HAZOP and maturity
@@ -5342,7 +5342,7 @@ balance holds; the model's own artefact must not be read as margin.
 ## D-105 P-04 drawing fixes after pid-review1: PV-4105 noted as operator-set, UY-4151 output and note, cascade line jump (2026-10-25)
 Decided by the agent on the owner's delegation of 2026-10-25 ("resolve all of these issues, make
 good decisions"). These are not the owner's own engineering judgement; the owner may reverse any
-of them. Closes pid-review1#1 - #5; #6 is a core gap, raised as core issue #296.
+of them. Closes pid-review1#1 - #5; #6 is a core gap, raised as a core issue.
 
 Decision:
 - (1) **PV-4105 role** (pid-review1#1, #2). PV-4105 stays an actuated valve on GAN-4002 that the
@@ -5365,7 +5365,7 @@ Decision:
   UV-4103. The solid UIC-4103 measuring line is crossed plainly (solid over dashed reads
   unambiguously).
 - (5) **Guide-vane outputs** (pid-review1#6, informational): no change on the sheet; core has
-  no actuator object for compressor guide vanes. Raised as ChemE-as-Code/core#296.
+  no actuator object for compressor guide vanes. Raised as a core issue.
 
 Checked: `cheme validate`: 0 errors; P-04 still 4 line crossings (all accepted), 0 labels
 through lines, 0 overlaps. Crops looked at: UY-4151 (build/P-04_crop-65-10-110-40.png), the jump
@@ -5407,8 +5407,8 @@ review of this revision.
 
 
 ## D-107 Regional scenarios on the sourced EEA grid factors (2026-10-25)
-Supersedes the proxy and missing declarations of D-100. Core now packages open grid factors
-(core#268), so `nl-grid` and `de-grid` link `eea-ener038-2024:electricity-nl` (0.245 kg
+Supersedes the proxy and missing declarations of D-100. Core now packages open grid factors,
+so `nl-grid` and `de-grid` link `eea-ener038-2024:electricity-nl` (0.245 kg
 CO2e/kWh) and `electricity-de` (0.291), the EEA ENER038 2024 values. EEA re-use is CC BY under
 its legal notice, so the results stay publishable.
 
@@ -5931,9 +5931,9 @@ was not available for this change.
 Rejected: an evaporation-only estimate of the site tower's make-up from the latent heat of water
 (the scale #45 quotes). It would leave out sensible heat loss, drift and blowdown, and its
 evaporation share would be a guess; the #45 dataset gives the amount with its basis.
-## D-110 Regional scenarios labelled not comparable with the UK baseline (core#306) (2026-10-26)
-Audit of D-107 against core's comparison basis (core `docs/framework/lci-comparison-basis.md`,
-core#318). The three ASU results per t GOX (exergy allocation, cradle-to-gate, partial: 18
+## D-110 Regional scenarios labelled not comparable with the UK baseline (2026-10-26)
+Audit of D-107 against core's comparison basis (core `docs/framework/lci-comparison-basis.md`).
+The three ASU results per t GOX (exergy allocation, cradle-to-gate, partial: 18
 gaps in construction, maintenance, consumables and end-of-life credits, `lca/gaps.csv`) are UK
 66.7, NL 88.3 and DE 104.7 kg CO2e. Only the electricity and the cooling water change between
 them; construction, transport and materials stay on the UK (DESNZ) factors in all three
@@ -5944,9 +5944,9 @@ them; construction, transport and materials stay on the UK (DESNZ) factors in al
 - `nl-grid` / `de-grid` on `eea-ener038-2024`: direct emissions per kWh of gross generation,
   no T&D losses, no upstream (basis `direct`, delivery `generation`, CO2e, GWP basis not stated).
 
-The basis differs, which core's rules (core#318) treat as a hard difference: both scenarios are
+The basis differs, which core's rules treat as a hard difference: both scenarios are
 **not comparable** with the baseline. The records, `results.md` and the catalog carry that
-verdict once they are regenerated after core#318 is merged (see Pending below); the records
+verdict once they are regenerated after that basis is merged (see Pending below); the records
 committed today predate it.
 The declared proxies of D-107 disclose this but never make the pair comparable. The NL and DE
 numbers stay screening sensitivities of the grid: they are not like-for-like country
@@ -5968,8 +5968,29 @@ has independent industrial validation.
   added, is separate and never replaces EEA.
 
 Pending: the records and `results.md` carry the verdict only once regenerated with core main
-after core#318 is merged (`cheme assess lca --write` and `cheme assess lca-scenarios --write` here); the
+after the comparison basis is merged (`cheme assess lca --write` and `cheme assess lca-scenarios --write` here); the
 inputs (`lca/lca.yaml`, `lca/factors.yaml`) are unchanged, and the flowsheet and sheets are
 untouched.
 
 Reason: say plainly which numbers can be set side by side and which cannot.
+
+## D-117 Maturity regenerated with cheme 1.2.1: the property regime fails, the level stays balanced (2026-11-01)
+`checks/maturity.json` was rewritten with cheme 1.2.1 (the core version library CI pins) after
+the rebase onto main. Two results differ from the earlier statements in D-097 and the later
+maturity notes in this file, which said the property regime is unsupported:
+
+- `predictive.property-regime` now **fails** instead of being unsupported. Core 1.2.1 claims a
+  regime for the DWSIM Peng-Robinson package (N2/O2/Ar only, benchmarked in core), and ASU-1
+  lies outside it: `simulation.yaml` sets the Ar/O2 interaction parameter (the claim holds for
+  DWSIM's own), and the feed S1 and other streams carry CO2, water and further components that
+  the claim does not cover.
+- `predictive.formation-data` is a new requirement and passes.
+
+The level is unchanged (balanced, which supports `maturity: screening`). The property-regime
+failure is left open on purpose: removing CO2 and water from the simulated streams or dropping
+the Ar/O2 kij would change the design basis and the separation results, and extending core's
+benchmark is core work. Predictive stays blocked anyway by coverage (C1102), the TSA model
+basis (V2101) and the plant energy closure (D-097). The `process.yaml` maturity comment and
+validation notes cite this decision. No engineering number changes.
+
+Reason: keep DESIGN.md and `process.yaml` saying the same thing about the evidence.

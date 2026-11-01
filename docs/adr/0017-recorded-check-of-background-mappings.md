@@ -1,7 +1,7 @@
 # 0017. Verify background mappings by a recorded check against a licensed copy
 
 - **Status:** Proposed, 2026-10-27
-- **Deciders:** the owner (proposed by an agent session, #85)
+- **Deciders:** the owner (proposed by an agent session, #303)
 - **Scope:** the LCI pipeline (`lci/mappings.yaml`, `scripts/build_lci.py`), a new schema and
   record folder
 
@@ -11,7 +11,7 @@
 unit and location, and to biosphere3 flows by UUID or name and categories (ADR 0008). No
 ecoinvent data may be in the library (ADR 0013), so the build cannot know whether a name exists.
 The file said the names were "NOT checked against a licensed ecoinvent copy", and the only
-safeguard was `install()`, which reports unlinked names to whoever installs the database. #85
+safeguard was `install()`, which reports unlinked names to whoever installs the database. #303
 asks for every name to be checked against licensed ecoinvent 3.11 (cut-off), and for the check
 to be recorded: version, date, who, and the unmatched names. Before the library grows, a reader
 of a build also needs to see whether that check was done and whether it still applies.
@@ -43,7 +43,7 @@ a script that a licence holder runs, writing a record the build reads (chosen).
 
 ## Consequences
 
-- The check required by #85 has a fixed form, and every build says whether it holds.
+- The check required by #303 has a fixed form, and every build says whether it holds.
 - A name that a curator changes after the check is visible as `stale` at once, without
   rerunning the check in CI.
 - Only a licence holder can produce a record. Until one is committed, every build reports
@@ -55,7 +55,7 @@ a script that a licence holder runs, writing a record the build reads (chosen).
 
 ## Evidence
 
-- #85 (to-do: "check every `lci/mappings.yaml` name against a licensed ecoinvent 3.11 copy").
+- #303 (to-do: "check every `lci/mappings.yaml` name against a licensed ecoinvent 3.11 copy").
 - `scripts/check_mappings.py`, `schemas/lci-mapping-check.schema.json`, `scripts/build_lci.py`
   (`background_check`), `lci/README.md` ("Linking").
 - Tests: `tests/test_check_mappings.py` (matching, reasons, hash, build status) and

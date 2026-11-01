@@ -73,7 +73,7 @@ generated sheets were not rendered or read tile by tile (see Not checked).
 - **Provenance**: the feed, conditions, approaches, splits, recoveries and efficiencies are
   marked ASSUMED in the design basis, the flowsheet (`[A]`) and DESIGN.md. Reactor outlets
   are `[C]` by cheme's equilibrium and conversion models. D-006 states openly that the
-  script's flash and duty methods are not qualified (core #315).
+  script's flash and duty methods are not qualified.
 - **LCI**: it is per 1 kg NH3. Every exchange traces to a flowsheet terminal (the `streams`
   column of `inventory.csv`). The inventory balances (in 5.94962 kg, out 5.94970 kg). No
   background is zero-filled and no licensed value is used: `factors.yaml` holds only the
@@ -88,7 +88,7 @@ generated sheets were not rendered or read tile by tile (see Not checked).
   reports no drawing findings.
 - `scripts/plant_balance.py` was not re-run and its code was not read line by line. I checked
   its outputs only through cheme's balances and the hand estimates above. Energy closure is
-  not evaluable in core (core #315), so the duties, the steam raised (148 t/h) and the
+  not evaluable in core, so the duties, the steam raised (148 t/h) and the
   cooling-water heat (2.10 kWh/kg) remain unchecked by any tool.
 - The equipment list's 44 items were not compared one by one with the PFD (the
   `process-links` gate passes).

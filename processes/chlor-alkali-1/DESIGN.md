@@ -6,11 +6,11 @@ The numbers live in `process/*.yaml` and `scripts/balance.py`; the stream table 
 ChemE-as-Code/process-library#121.
 
 Run record of this stage (2026-10-27): library branch `case/chlor-alkali-1` from `79a7cd4`;
-cheme-as-code 0.8.0 (pyDEXPI 2.1.0), Python 3.15.0; DWSIM not used. Core#366 (electrochemical
-cell, merged as core PR #396) is in this cheme: `process/cells.yaml` and `cheme process cell`
-are used. Core PR #394 (`cheme process electrolyte`, Pitzer brine properties) is **not** in the
+cheme-as-code 0.8.0 (pyDEXPI 2.1.0), Python 3.15.0; DWSIM not used. Core's electrochemical
+cell is in this cheme: `process/cells.yaml` and `cheme process cell`
+are used. `cheme process electrolyte` (Pitzer brine properties) is **not** in the
 installed 0.8.0 (`No such command 'electrolyte'`), so the water activity of the brine is an
-estimate (D-007). Core#364 (electrolyte/caustic thermodynamics) remains the gate for stream
+estimate (D-007). Core's electrolyte/caustic thermodynamics remains the gate for stream
 enthalpies.
 
 "BREF" below is: European Commission JRC (2014), *Best Available Techniques (BAT) Reference
@@ -114,7 +114,7 @@ and, where reactions are named, in elements and extents (`cheme process streams`
 is recomputed by `cheme process cell` and agrees (extents 176.317 kmol/h, Q2 = cell power).
 Duties outside the cell use constant heat capacities (brine 3.3, 32 % caustic 3.5, 50 %
 caustic 3.2, water 4.18 kJ/(kg K)) and latent heats of water (IAPWS), ASSUMED; heats of
-dilution of NaOH are left out. Rejected: DWSIM (no electrolyte package, core#364). Gated:
+dilution of NaOH are left out. Rejected: DWSIM (no electrolyte package). Gated:
 energy closure of every step (`cheme process energy`: not evaluable, no stream enthalpies);
 the evaporator duty and the cell heat split.
 
@@ -127,7 +127,7 @@ vapour pressure of water at 90 degC (IAPWS) -> 22.8 wt-% water, 290 kg condensat
 temperature). Hydrogen leaves with 28 kPa water partial pressure over 32 wt-% caustic
 (ASSUMED; no NaOH activity model) -> 69 kg condensate per t Cl2 at 35 degC, inside BREF
 4.3.2.2.3 (50-100 kg/t). Chlorine-water condensate holds 7 g/kg Cl2 (ASSUMED). Gated: brine
-water activity by `cheme process electrolyte` once the installed cheme has core PR #394.
+water activity by `cheme process electrolyte` once the installed cheme has that command.
 
 ## D-008 Chlorine and hydrogen treatment (2026-10-27)
 Decision: wet chlorine cooled to 40 degC on cooling water and 20 degC on chilled water (above
@@ -198,7 +198,7 @@ life are outside this inventory.
 | model element | basis | status |
 |---|---|---|
 | Overall cell reaction, n = 2 | stoichiometry; Faraday constant (CODATA 2018) | exact |
-| Heat of reaction 445.79 kJ/mol | CODATA Key Values (Cox et al. 1989), aqueous ions at infinite dilution; U_tn 2.310 V | sourced; no heats of dilution (core#364) |
+| Heat of reaction 445.79 kJ/mol | CODATA Key Values (Cox et al. 1989), aqueous ions at infinite dilution; U_tn 2.310 V | sourced; no heats of dilution |
 | Cell voltage 3.0 V at 6.0 kA/m2, 90 degC | BREF 4.3.2.3.2 | sourced point value, specified (not predicted) |
 | Current efficiency 0.965, rest to O2 | BREF 2.4.1 (loss 3-7 %, O2 0.5-2.0 vol-%), 4.3.2.3.2 (> 95 %) | ASSUMED inside sourced ranges |
 | Water transport 4.0 mol/mol Na+ | BREF 2.4.1 (3.5-4.5) | sourced range, midpoint chosen |
@@ -231,10 +231,10 @@ median 0.33), filter cake 21.9 kg/t (Table 3.2 rock salt 15-45), sulfate 2.0 kg 
 | step | method | status |
 |---|---|---|
 | mass, component, element balances | cheme validate / process streams | done, all 7 blocks and 22 steps close |
-| cell balance | cheme process cell (core#366, PR #396) | done; specified performance |
-| brine properties (water activity, vapour pressure, heats of dilution) | `cheme process electrolyte` (core PR #394) | **gated**: not in installed cheme 0.8.0; estimate used (D-007) |
-| caustic (NaOH-H2O) properties, Cl2 solubility, salt saturation | core#364 | **gated**: unsupported; specified values (D-006, D-007) |
-| energy closure outside the cell | cheme process energy | **gated** by core#364: not evaluable (no stream enthalpies) |
+| cell balance | cheme process cell | done; specified performance |
+| brine properties (water activity, vapour pressure, heats of dilution) | `cheme process electrolyte` | **gated**: not in installed cheme 0.8.0; estimate used (D-007) |
+| caustic (NaOH-H2O) properties, Cl2 solubility, salt saturation | core's electrolyte support | **gated**: unsupported; specified values (D-006, D-007) |
+| energy closure outside the cell | cheme process energy | **gated** by core's electrolyte support: not evaluable (no stream enthalpies) |
 | DWSIM simulation | cheme process simulate | not applicable (no electrolyte package) |
 | LCI | cheme assess lca --inventory / --coverage | done; partial (all backgrounds unmapped by design) |
 

@@ -75,7 +75,7 @@ the balance but estimated in the LCI from AP-42 (S-3).
 CO2 absorption in aqueous MDEA is reactive chemistry (carbamate-free acid-base reaction for a
 tertiary amine). It is represented as a **specified split** (CO2 to 50 ppmv, ASSUMED loadings),
 not as equilibrium or rate chemistry: no sourced VLE/speciation model for MDEA-CO2-water is used
-and core cannot evaluate electrolyte speciation (core#364). The NGL recovery, TEG drying and
+and core cannot evaluate electrolyte speciation. The NGL recovery, TEG drying and
 mole sieve are likewise **specified recoveries/splits** (sourced where the register says so,
 ASSUMED otherwise), not predicted. No kinetics or vendor data are used.
 
@@ -148,7 +148,7 @@ lean TEG pump (no energy-exchange pump, so no pump gas). Reboiler duty: rich TEG
 (13 kg/h); regeneration with 8 % of the gas heated to 561 K during half the cycle (ASSUMED) =
 0.66 MW fired, the same duty rejected in the regeneration gas cooler; regeneration gas loop
 internal to A-303. Adsorbent 40 t replaced every 4 years (ASSUMED).
-Note: core can now calculate a TSA bed with sourced isotherms (core PR #398); none are bundled
+Note: core can now calculate a TSA bed with sourced isotherms; none are bundled
 for natural gas and none were sourced here, so the split stays specified.
 
 ## D-009 NGL recovery: GSP-type expander plant, 90 % C2 and 98 % C3 (2026-10-28)
@@ -188,8 +188,8 @@ Evidence: `cheme process props --coverage` reports no package for any stream: ai
 covers N2/O2/Ar only, syngas-pr-vapor lacks ethane, propane and water; `cheme process methods`
 claims DWSIM Peng-Robinson only for N2/O2/Ar. The right methods for this plant (skill
 `thermodynamic-model-selection`) would be Peng-Robinson or GERG-2008 for the hydrocarbon
-sections with sourced binary parameters, an electrolyte model for MDEA-CO2-water (core#364) and
-a polar/association model for TEG-water (core#315 polar benchmark). Consequence: the cold-box
+sections with sourced binary parameters, an electrolyte model for MDEA-CO2-water and
+a polar/association model for TEG-water (core's polar benchmark). Consequence: the cold-box
 energy balance, the expander and compressor duties, the TEG and amine heats are ideal-gas or
 rule-of-thumb estimates, and energy closure is not evaluated (gated, section 6).
 
@@ -296,12 +296,12 @@ manifest claims concept, the lowest level, and says so.
 | step | status | gate |
 |---|---|---|
 | mass, component and element balances | done in cheme (validate, streams, propagate --check) | - |
-| stream enthalpies, phases, energy closure | **gated**: no benchmarked package for C1-C3/CO2/N2/H2O (props --coverage), DWSIM PR claimed for N2/O2/Ar only | core#315 (qualify the actual mixture and range) |
-| amine CO2 VLE / speciation | **gated** | core#364 (electrolyte support); a sourced MDEA model is a process input |
-| TEG-water dehydration equilibrium | **gated** | core#315 (polar/activity benchmark) |
-| mole sieve TSA | possible now in core (PR #398) with sourced natural-gas isotherms; none sourced | process input |
-| predictive demethaniser / expander | after a qualified PR/GERG package; would replace the ASSUMED V-401 split, temperatures and duties | core#315 |
-| C4+ characterisation | not needed for this feed (none reported); core#367 assay support covers naphtha only | - |
+| stream enthalpies, phases, energy closure | **gated**: no benchmarked package for C1-C3/CO2/N2/H2O (props --coverage), DWSIM PR claimed for N2/O2/Ar only | core's property-package qualification (qualify the actual mixture and range) |
+| amine CO2 VLE / speciation | **gated** | core's electrolyte support; a sourced MDEA model is a process input |
+| TEG-water dehydration equilibrium | **gated** | core's property-package qualification (polar/activity benchmark) |
+| mole sieve TSA | possible now in core with sourced natural-gas isotherms; none sourced | process input |
+| predictive demethaniser / expander | after a qualified PR/GERG package; would replace the ASSUMED V-401 split, temperatures and duties | core's property-package qualification |
+| C4+ characterisation | not needed for this feed (none reported); core's assay support covers naphtha only | - |
 
 ## 7. Open inputs and library items
 

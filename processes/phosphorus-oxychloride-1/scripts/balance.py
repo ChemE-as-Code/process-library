@@ -7,7 +7,7 @@ the conversion reactors are recalculated by `cheme process propagate --fill`, wh
 script.
 
 Why a script: no property package of core covers PCl3, POCl3, white phosphorus or the caustic
-liquor (core #315, #364), so the vent condensers (Raoult's law with thermo vapour pressures),
+liquor, so the vent condensers (Raoult's law with thermo vapour pressures),
 the columns (specified splits) and the liquid-phase reaction heats are computed here.
 
 Every number below that is not a molar mass or a thermo property is a design choice: the
@@ -265,7 +265,7 @@ def main():
 def write_balance_output(cases):
     """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
 
-    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
     stream id -> quantity, in the flowsheet's units and basis. The library's
     scripts/check_balance_scripts.py re-runs this script and compares them with
     process/flowsheet.yaml.

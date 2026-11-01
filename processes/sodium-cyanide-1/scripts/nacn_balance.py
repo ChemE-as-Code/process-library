@@ -4,7 +4,7 @@ Independent estimate: plain Python, ideal-gas enthalpies from the cp polynomials
 process/materials.yaml (chemicals/thermo data written there by `cheme chemistry thermo`), simple
 latent-heat and sensible-heat estimates for the liquid duties. Every separation split and every
 liquid-side duty here is an ASSUMED design value (DESIGN.md), not a rigorous model: core does not
-qualify HCN-water-NH3-salt electrolytes (core #364). The converter outlet is recomputed by
+qualify HCN-water-NH3-salt electrolytes. The converter outlet is recomputed by
 `cheme process propagate` from the conversions printed here; this script only finds them and
 the adiabatic gauze temperature.
 
@@ -63,7 +63,7 @@ def show(name, st, T=None, P=None):
 def write_balance_output(cases):
     """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
 
-    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
     stream id -> quantity, in the flowsheet's units and basis. The library's
     scripts/check_balance_scripts.py re-runs this script and compares them with
     process/flowsheet.yaml.

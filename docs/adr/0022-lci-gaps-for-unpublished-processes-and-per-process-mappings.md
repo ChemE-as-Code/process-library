@@ -1,6 +1,8 @@
 # 0022. Report LCI mapping gaps of unpublished processes; keep a process's overrides with it
 
-- **Status:** Accepted, 2026-10-28
+- **Status:** Accepted, 2026-10-28. Partly superseded by
+  [ADR 0026](0026-public-processes-may-be-preliminary.md): a gap of a public process or in a
+  `--public` build is no longer an error.
 - **Deciders:** the owner (implemented by an agent session)
 - **Scope:** the LCI pipeline (`scripts/build_lci.py`, `scripts/export_formats.py`,
   `scripts/lci_activities.py`), the mappings (`lci/mappings.yaml`, the new

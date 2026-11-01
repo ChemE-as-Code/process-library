@@ -3,7 +3,7 @@
 # (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
 # exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
 #
-# hydrazine-1 is internal and its preliminary LCI leaves the backgrounds open (DESIGN.md D-013):
+# hydrazine-1's preliminary LCI leaves the backgrounds open (DESIGN.md D-013):
 # exchanges without a mapping are reported gaps. Only the steam is set: it is counted in kWh of
 # heat delivered, and the default `steam` entry is per kg (a unit error otherwise). Proposed
 # later, once the shared vocabulary and the registry have the entries (DESIGN.md I-09):
@@ -21,3 +21,8 @@ schema: cheme-as-code/lci-process-mappings/v1
 exchanges:
   "feed:MPS": {use: steam-heat, source: "MP steam 2000 kPa(a) to the regeneration, azine and hydrolysis column reboilers, counted as heat delivered (kWh), D-010"}
   "feed:LPS": {use: steam-heat, source: "LP steam 500 kPa(a) to the ammonia recovery and concentration column reboilers, counted as heat delivered (kWh), D-010"}
+  # Mapping step of 2026-11-01 (ADR 0026): each entry below uses a reference the library already
+  # holds. Notes above that call these exchanges unmapped describe the state before it. What is
+  # still unmapped is a gap (lci/gaps.json), and this process is marked preliminary.
+  "feed:ACOHF": {dataset: {path: processes/acetic-acid-1/lca/dataset.yaml, product: "product:HAC"}, source: "the Atlas producer acetic-acid-1, glacial acetic acid"}
+  "feed:NH3F": {dataset: {path: processes/ammonia-1/lca/dataset.yaml, product: "product:NH3"}, source: "the Atlas producer ammonia-1, liquid ammonia, which this exchange's design names"}

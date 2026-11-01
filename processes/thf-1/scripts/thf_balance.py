@@ -2,7 +2,7 @@
 
 Provenance of the ASSUMED stream and duty values in process/flowsheet.yaml: core cannot yet
 qualify a polar activity-coefficient mixture (THF / water / BDO) or a liquid-phase reactor's
-energy balance (core #315), so the values are calculated here and entered as ASSUMED.
+energy balance, so the values are calculated here and entered as ASSUMED.
 
 Method (all concept-level, stated in DESIGN.md):
 - VLE: thermo, NRTL liquid with the ChemSep THF/water parameters packaged in thermo, ideal gas,
@@ -297,7 +297,7 @@ print(f"energy closure: in {E_in:.1f} kW, out {E_out:.1f} kW, difference {E_in -
 def write_balance_output(cases):
     """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
 
-    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
     stream id -> quantity, in the flowsheet's units and basis. The library's
     scripts/check_balance_scripts.py re-runs this script and compares them with
     process/flowsheet.yaml.

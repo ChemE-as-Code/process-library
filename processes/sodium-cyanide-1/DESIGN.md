@@ -35,7 +35,7 @@ Reason: the issue's case notes fix the route (Andrussow, caustic neutralisation,
 caustic as boundary feeds, containment and emissions explicit). Refining HCN before the
 neutralisation (rather than absorbing the whole converter gas in caustic, as SRC-2 does) keeps
 CO2 out of the caustic, so the product carries no co-crystallised carbonate and the balance needs
-no carbonate chemistry (core #364).
+no carbonate chemistry.
 Rejected: BMA (Degussa) methane-ammonia process without air (endothermic, externally fired; not
 the route of the issue); Shawinigan process; HCN as a by-product of acrylonitrile (feed origin
 then belongs to another process); direct absorption of the converter gas in caustic (SRC-2:
@@ -196,10 +196,9 @@ outlets (propagate) and checks every block's mass, component and element balance
 ASSUMED from scripts/nacn_balance.py.
 Gated steps, by the cheme 0.8.0 messages: (a) no property package covers the converter gas with
 HCN at 1429 K (syngas-pr-vapor has no HCN), the aqueous HCN/NH3/water absorption, or the
-NaCN/NaOH electrolyte (core electrolyte/speciation and polar benchmarks, issue #150 names core
-#364 and #315); `cheme process props`/`simulate` are therefore not run and energy closure of the
-separations is not evaluable in core; (b) cheme's crystallizer model (solids, core #365) handles
-one solute in one solvent and refuses the free NaOH of the liquor. The state of core #364/#365
+NaCN/NaOH electrolyte (core electrolyte/speciation and polar benchmarks, as issue #150 names them); `cheme process props`/`simulate` are therefore not run and energy closure of the
+separations is not evaluable in core; (b) cheme's crystallizer model (solids) handles
+one solute in one solvent and refuses the free NaOH of the liquor. The state of the core issues on electrolytes and solids
 could not be read from this environment (gh: issue not resolvable); the refusal in (b) is the
 evidence for this route. `cheme maturity`: calculation maturity none (feeds assumed, specified
 separations), as for the other concept cases.

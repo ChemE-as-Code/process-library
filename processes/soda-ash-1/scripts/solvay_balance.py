@@ -1,7 +1,7 @@
 """Heat and material balance of the Solvay soda ash plant (soda-ash-1), concept stage.
 
 An independent sequential balance on a component basis (no electrolyte thermodynamics: core
-cannot yet speciate NH3-CO2-NaCl-H2O liquors, core #364). Dissolved ammonia and carbon dioxide
+cannot yet speciate NH3-CO2-NaCl-H2O liquors). Dissolved ammonia and carbon dioxide
 are carried as NH3 and CO2; "free" ammonia in the mother liquor is ammonium bicarbonate
 (NH3 + CO2 + H2O, molar ratio CO2/free NH3 = 1). Every design parameter below is ASSUMED unless
 its comment names a source; DESIGN.md D-006 lists them with the reasons.
@@ -322,7 +322,7 @@ def main():
 def write_balance_output(cases):
     """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
 
-    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
     stream id -> quantity, in the flowsheet's units and basis. The library's
     scripts/check_balance_scripts.py re-runs this script and compares them with
     process/flowsheet.yaml.

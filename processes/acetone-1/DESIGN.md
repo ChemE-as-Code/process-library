@@ -149,12 +149,12 @@ the compression and Q10 are compared, and the bias above sits inside them.
 Rejected: S1's second data set (6.32 t/t steam, 326 kWh/t), which is a less integrated plant;
 the spread is the main uncertainty of the utility inventory.
 Gated: an enthalpy balance by cheme needs a property package for the polar
-cumene/CHP/phenol/acetone/water system (core #315; no package covers it, D-012).
+cumene/CHP/phenol/acetone/water system (no package covers it, D-012).
 
 ## D-012 Property method: none qualified (2026-10-28)
 `property_method` stays a placeholder. The benchmarked packages (air-pr-chemsep,
 syngas-pr-vapor) do not cover these components; a polar activity-coefficient benchmark is
-open work under core #315 (issue #132 comment). No `props --fill`, no `simulate`: temperatures
+open work under core's property-package qualification (issue #132 comment). No `props --fill`, no `simulate`: temperatures
 and pressures on the streams are assumed, the separators are specified. Phenol-water,
 acetone-water and the cumene/phenol/AMS azeotropes need NRTL/UNIQUAC with sourced binary
 parameters before any column is designed.
@@ -212,7 +212,7 @@ I-05 adds these streams or a sourced allowance replaces them (I-11).
 
 - I-01 Selectivities and conversion (D-004, D-005) are assumed: find an open source with
   measured CHP selectivity versus conversion and DMBA/AMS yields in cleavage.
-- I-02 Property package for the polar system (core #315), then simulate the concentration
+- I-02 Property package for the polar system, then simulate the concentration
   and the four columns; replace D-011's literature utilities with calculated duties.
 - I-03 Heat integration (oxidation heat to the pre-flash, S1 8.2.2.2) not modelled.
 - I-04 Vacuum/fractionation vents, RTO, methane in the off-gas, fugitive emissions.

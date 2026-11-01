@@ -3,7 +3,7 @@
 BASF-type partial oxidation of natural gas with oxygen (Sachsse-Bartholome), water quench,
 soot removal, compression and N-methylpyrrolidone (NMP) acetylene recovery, synthesis-gas
 co-product. Independent of cheme-as-code's property packages, which cover neither the burner
-(soot, millisecond pyrolysis) nor the NMP solvent (core #315).
+(soot, millisecond pyrolysis) nor the NMP solvent.
 
 Method (every number below is a design input with its source or ASSUMED, see DESIGN.md):
 - burner R101: a sourced outlet-composition model. The dry cracked-gas composition of
@@ -577,7 +577,7 @@ FLOWSHEET |= {qid: {"duty": v} for qid, v in {
 def write_balance_output(cases):
     """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
 
-    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
     stream id -> quantity, in the flowsheet's units and basis. The library's
     scripts/check_balance_scripts.py re-runs this script and compares them with
     process/flowsheet.yaml.

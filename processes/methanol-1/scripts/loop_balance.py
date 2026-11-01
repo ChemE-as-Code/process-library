@@ -1,7 +1,7 @@
 """Independent heat and material balance of the methanol loop and purification (DESIGN.md D-006).
 
 This is NOT a cheme-as-code calculation. Core cannot yet qualify the property regime of this
-plant (core #315: no benchmarked package for syngas with methanol and water, hot converter gas
+plant (no benchmarked package for syngas with methanol and water, hot converter gas
 with CO above 500 K, or liquid methanol-water; DWSIM PR/NRTL are benchmarked only for N2/O2/Ar
 and ethanol-water). Its results go into process/flowsheet.yaml as `assumed` values with this
 script as their source, and cheme checks them: mass and element balances, the reaction
@@ -334,7 +334,7 @@ for sid, key in {"Q1": "K101", "Q2": "E104", "Q3": "K102", "Q4": "R101", "Q5": "
 def write_balance_output(cases):
     """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
 
-    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
     stream id -> quantity, in the flowsheet's units and basis. The library's
     scripts/check_balance_scripts.py re-runs this script and compares them with
     process/flowsheet.yaml.

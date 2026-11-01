@@ -1,7 +1,7 @@
 """Independent heat and material balance of the HDA plant (DESIGN.md D-006).
 
 This is NOT a cheme-as-code calculation. Core has no qualified property package for aromatics
-with hydrogen and methane (the packaged ones cover air and syngas, core #315), so flashes,
+with hydrogen and methane (the packaged ones cover air and syngas), so flashes,
 column splits and duties are computed here and enter process/flowsheet.yaml as `assumed`
 values with this script as their source. cheme then checks them: mass, component and element
 balances, the reactor extents (cheme computes the reactor outlet itself from the same
@@ -478,7 +478,7 @@ def main():
 def write_balance_output(cases):
     """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
 
-    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
     stream id -> quantity, in the flowsheet's units and basis. The library's
     scripts/check_balance_scripts.py re-runs this script and compares them with
     process/flowsheet.yaml.

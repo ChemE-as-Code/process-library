@@ -6,10 +6,10 @@ ChemE-as-Code/process-library#185. Concept stage: design basis, balanced BFD/PFD
 preliminary gate-to-gate LCI. Out of scope here: P&IDs, layout, HAZOP, TEA, datasheets.
 
 Starting point (2026-10-28): branch `case/formic-acid-1` from library commit 57b916c,
-cheme-as-code 0.8.0 (pyDEXPI 2.1.0). Core issues #315 and #369 could not be opened from this
-session (`gh` does not resolve them); their state is taken from the issue comments (#315 open;
-#369 closed by core #384, `cheme process extract`, qualified only for water / 1-propanol /
-n-butyl acetate). The route chosen here needs no extraction, so #369 does not gate it (D-004).
+cheme-as-code 0.8.0 (pyDEXPI 2.1.0). The core issues on property qualification and on extraction could not be opened from this
+session (`gh` does not resolve them); their state is taken from the issue comments (property qualification open;
+extraction closed by `cheme process extract`, qualified only for water / 1-propanol /
+n-butyl acetate). The route chosen here needs no extraction, so that issue does not gate it (D-004).
 
 ## Source register
 
@@ -73,7 +73,7 @@ recycled to the hydrolyser where it serves as the acid catalyst (as in SRC-2).
 Reason: SRC-3 names pressure-swing distillation as the conventional separation, and it needs no
 auxiliary solvent; an amide extraction (the other industrial option named in the brief) would
 need an extraction model with sourced NRTL parameters that core qualifies only for another
-system (core #369 / #384), plus a solvent inventory. C-301 is kept at 203 kPa(a) so that its
+system, plus a solvent inventory. C-301 is kept at 203 kPa(a) so that its
 bottoms (about 403 K, not calculated) stay below the about 413 K at which the acid starts to
 decompose (SRC-2).
 Rejected: extractive distillation and amide extraction (energy-saving candidates for basic
@@ -104,11 +104,11 @@ reactors R101, R201, X101 (conversion model); `cheme validate` checks every bloc
 balance (all close; the carbonylation block within 0.01 kg/h).
 Reason: no property package of core covers liquid methanol / methyl formate / water / formic
 acid or the methoxide catalyst (`cheme process props --coverage`), DWSIM is not qualified for
-this mixture and the liquid-reactor energy basis is not verified (core #315). The energy
+this mixture and the liquid-reactor energy basis is not verified. The energy
 balance of the blocks is therefore not evaluable in core (`cheme process energy`: stream
 enthalpies missing); the duties are shortcut estimates (D-011). Gated step: a predictive
 column and energy balance needs a qualified NRTL/UNIQUAC (or similar) package with vapour
-association of formic acid (core #315).
+association of formic acid.
 
 ## D-007 Carbonylation separation, catalyst loss and purge (2026-10-28)
 Decision: The effluent is cooled to 313 K (E-101); V-101 sends all CO and N2 with methyl formate
@@ -220,10 +220,10 @@ routed to X-101 and so already counted as CO2 (D-007); fugitives cannot be bound
   object is not iterable" for a step of class `Pumping` (its `method` annotation is
   `PumpingMethod | Undefined | None`, which `step_method` in domains/process/build.py iterates).
   P101 and P201 use the parent class `GeneratingFlow` until it is fixed.
-- Core #315: property package and liquid-reactor energy for this mixture (gated step, D-006).
+- Core: property package and liquid-reactor energy for this mixture (gated step, D-006).
 
 ## D-014 Gated steps and next stage (2026-10-28)
-Gated: predictive simulation and energy closure (core #315: no qualified package for
+Gated: predictive simulation and energy closure (no qualified package for
 methanol / methyl formate / water / formic acid with acid association; liquid-reactor energy).
 `cheme maturity` reaches no calculation level: feeds, the hydrolysis and oxidiser conversions
 and the column splits are assumed (only the carbonylation conversion is given with a source).

@@ -1,7 +1,7 @@
 """Concept heat and material balance of thionyl-chloride-1 (DESIGN.md D-006).
 
 Independent of cheme-as-code's property packages, none of which is qualified for the sulfur
-chlorides, thionyl chloride or the alkaline scrubber liquor (core #315, #364; DESIGN.md D-006).
+chlorides, thionyl chloride or the alkaline scrubber liquor (DESIGN.md D-006).
 
 Model (every choice is a decision in DESIGN.md):
 - ideal gas with the Cp/R polynomials and formation enthalpies of process/materials.yaml;
@@ -420,7 +420,7 @@ def main():
 def write_balance_output(cases):
     """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
 
-    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
     stream id -> quantity, in the flowsheet's units and basis. The library's
     scripts/check_balance_scripts.py re-runs this script and compares them with
     process/flowsheet.yaml.

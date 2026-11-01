@@ -68,7 +68,7 @@ incinerator and waste water treatment. Utilities cross the boundary as energy st
 | S7 | Wikipedia, "Peroxide process", [en.wikipedia.org](https://en.wikipedia.org/wiki/Peroxide_process) (CC BY-SA; secondary, citing Ullmann's and Hayashi et al. 1976 doi 10.1021/i360060a016) | developed early 1970s by PCUK; ketazine decants; ~50 C, atmospheric, H2O2:ketone:NH3 about 1:2:4; hydrolysis endothermic, ~8 bar, 130/179 C top/bottom; 30-45 % hydrate; no salt co-product; Lannemezan plant 17 kt/a of hydrazine products | page via fetch | facts only, secondary | route memo, D-002 scale check |
 | S8 | Schirmann, Bourdauducq: Hydrazine, Ullmann's Encyclopedia (doi 10.1002/14356007.a13_177) | not opened (licensed); issue #141 lead | not read | - | lead only |
 
-Core issues #315 and #364 named in the issue could not be read from this environment (`gh`:
+The core issues on property qualification and on electrolytes named in the issue could not be read from this environment (`gh`:
 not resolvable in ChemE-as-Code/core); the gated steps below are stated from what cheme 0.8.0
 itself reports (`cheme process props --coverage`).
 
@@ -229,7 +229,7 @@ hydrazine, MEK, the azine, acetamide, acetic acid and the phosphate are outside 
 Gated step: energy balances and a DWSIM simulation (`cheme process simulate`) need a qualified
 activity-coefficient package for hydrazine-water-MEK-azine-NH3 (the hydrazine-water azeotrope,
 MEK-water heterogeneous azeotrope) and electrolyte support for the ammonium acetate/phosphate
-working solution (the issue names core #315 and #364; not readable from here).
+working solution (the issue names the core issues on property qualification and on electrolytes; not readable from here).
 
 ## D-012 Lists at concept (2026-10-28)
 Decision: one equipment tag per PFD step (pumps, reboilers, condensers, coolers, the vent

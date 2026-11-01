@@ -5,7 +5,7 @@ time average over many furnaces in rotation (charge, heat, cool, break), in kg/h
 independent sequential balance on a component basis with imposed yields and splits (a sourced
 conversion/recovery model, DESIGN.md D-006): no reaction kinetics, no furnace heat transfer
 model. `cheme process furnace` supports limestone calcination only and refuses carbothermal
-SiC (core #387), so the furnace electricity is a labelled specific-energy basis (D-004).
+SiC, so the furnace electricity is a labelled specific-energy basis (D-004).
 
 Every design parameter below is ASSUMED unless its comment names a source; DESIGN.md lists
 them with the reasons. Run: `cheme run scripts/sic_balance.py` (standard library only). It
@@ -197,7 +197,7 @@ def check(name, ins, outs):
 def write_balance_output(cases):
     """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
 
-    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
     stream id -> quantity, in the flowsheet's units and basis. The library's
     scripts/check_balance_scripts.py re-runs this script and compares them with
     process/flowsheet.yaml.

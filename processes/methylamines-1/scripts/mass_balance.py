@@ -13,7 +13,7 @@ Model (every choice is a DESIGN.md decision, values ASSUMED unless a source is n
 - columns as sharp splits (D-008); the only loss is methanol in the wastewater (100 ppm(wt));
 - enthalpies: ideal gas from the cp_R polynomials, liquid = ideal gas minus the heat of
   vaporisation of each component (thermo 0.6.1), no mixing enthalpy; reboiler duty from the
-  column energy balance with condenser duty (R + 1) D dHvap (D-006: +/-30 %, core #315).
+  column energy balance with condenser duty (R + 1) D dHvap (D-006: +/-30 %).
 """
 import math
 from pathlib import Path
@@ -356,7 +356,7 @@ FLOWSHEET.update({qid: {"duty": kW[key]} for qid, title, fr, to, key, src in ENE
 def write_balance_output(cases):
     """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
 
-    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
     stream id -> quantity, in the flowsheet's units and basis. The library's
     scripts/check_balance_scripts.py re-runs this script and compares them with
     process/flowsheet.yaml.

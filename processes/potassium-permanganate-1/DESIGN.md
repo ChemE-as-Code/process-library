@@ -190,7 +190,7 @@ Reason: SRC-1 cools its crystalliser to about 30-50 degC and gives likely mother
 contents of 15-20 g/l KMnO4 and 125-175 g/l KOH (1.5 and 13 wt% at an ASSUMED density near
 1.15 kg/l). KMnO4 is a single component whether dissolved or crystalline; the crystal amount is
 what exceeds the mother-liquor content (scripts/kmno4_balance.py).
-Rejected: the core crystalliser (`crystallizer:`, core PR 395): it models one solute in one
+Rejected: the core crystalliser (`crystallizer:`): it models one solute in one
 solvent and refuses KOH-K2MnO4-KMnO4 liquors (checked in chemeascode/domains/process/
 crystallization.py: "impurities and several solutes" are refused), so a solubility-equilibrium
 basis is not available; the crystalliser is a specified (imposed mother-liquor composition)
@@ -259,10 +259,10 @@ command help; the core issues themselves were not re-read):
 
 | method | core status for this route | effect here |
 |---|---|---|
-| electrochemical cell balance (core #366) | supported: Faraday, charge, element and energy balance with specified voltage and current efficiency (`cheme process cell`) | used, closes; CE and voltage remain inputs |
-| solid-reaction / furnace energy (core #370) | `cheme process furnace` covers lime kilns and calciners (calcination of CaCO3); other solid reactions are refused | not applicable to MnO2-KOH roasting: roaster energy is the lumped D-009 estimate (gated) |
-| electrolyte speciation (core #364) | `cheme process electrolyte` supports aqueous NaCl only | KOH-K2MnO4-KMnO4 liquors not covered: no activity, density or enthalpy; line sizing and energy closure gated |
-| crystalliser / solid separation (core #365, PR 395) | one solute in one solvent (`crystallizer:`), or a specified filter/centrifuge | crystalliser refuses the multi-solute liquor; X-501/C-501 stay specified (`imposed` composition) |
+| electrochemical cell balance | supported: Faraday, charge, element and energy balance with specified voltage and current efficiency (`cheme process cell`) | used, closes; CE and voltage remain inputs |
+| solid-reaction / furnace energy | `cheme process furnace` covers lime kilns and calciners (calcination of CaCO3); other solid reactions are refused | not applicable to MnO2-KOH roasting: roaster energy is the lumped D-009 estimate (gated) |
+| electrolyte speciation | `cheme process electrolyte` supports aqueous NaCl only | KOH-K2MnO4-KMnO4 liquors not covered: no activity, density or enthalpy; line sizing and energy closure gated |
+| crystalliser / solid separation | one solute in one solvent (`crystallizer:`), or a specified filter/centrifuge | crystalliser refuses the multi-solute liquor; X-501/C-501 stay specified (`imposed` composition) |
 | DWSIM simulation | no package for these electrolytes and solids | not run (process/simulation.yaml not written) |
 
 Reason: the case's chemistry (alkaline manganese electrolytes, melts, solids) is outside every
@@ -311,9 +311,9 @@ Mn to product 88.6 %, K to product 76 % (theory 0.550 kg MnO2 and 0.355 kg KOH p
 - Current efficiency and cell voltage of industrial manganate cells (open source needed; Ullmann
   SRC-6 and the full text of SRC-5 to audit). DC energy scales with V/CE.
 - Roaster: conversion, energy use and off-gas dust for a real kiln or liquid-phase oxidiser;
-  core furnace model does not cover this reaction (gated, core #370 scope).
-- KMnO4 and K2MnO4 solubility in KOH liquors (for a solubility-based crystalliser: core #365
-  supports one solute only) and electrolyte properties (core #364) for energy closure and line
+  core furnace model does not cover this reaction (gated).
+- KMnO4 and K2MnO4 solubility in KOH liquors (for a solubility-based crystalliser: core's solids support
+  supports one solute only) and electrolyte properties for energy closure and line
   sizes.
 - Impurity balance (soluble silicates, aluminates, carbonate) to set the purge.
 - Ore assay; KOH make-up grade; effluent treatment route of the purge; residue disposal route.

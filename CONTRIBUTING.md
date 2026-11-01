@@ -14,6 +14,10 @@ The terms (design maturity, calculation maturity, review status, …) follow cor
 
 ---
 
+## Contribution terms
+
+By submitting a contribution to this repository, you agree to make it available under the public license applicable to that part of the repository. You also grant a non-exclusive, worldwide, perpetual, irrevocable, royalty-free license to use, reproduce, modify, distribute, and sublicense your contribution under other terms. You retain ownership of your contribution.
+
 ## Adding a process
 
 ### 1. Create the folder
@@ -74,7 +78,7 @@ When core cannot calculate the flowsheet yet, a standalone script
 (`processes/<id>/scripts/<name>.py`, run with `cheme run`) may supply its stream values and
 duties; the flowsheet gives each as `provenance: assumed` with a `source` that starts with the
 script's path (`"scripts/<name>.py: ..."`). Such a script follows the balance-output contract
-([ADR 0024](docs/adr/0024-balance-scripts-reproduce-the-flowsheet.md)): when the environment
+([ADR 0027](docs/adr/0027-balance-scripts-reproduce-the-flowsheet.md)): when the environment
 variable `BALANCE_OUTPUT` names a file, it writes there, as JSON, every value the flowsheet
 cites from it (`{"contract": "balance-output/1", "script": "scripts/<name>.py", "cases":
 {"design": {"<stream id>": {"flow": ..., "composition": {...}}}}}`), in the flowsheet's units
@@ -93,14 +97,14 @@ fails the `balance-scripts` job.
 - The dataset is `lca/dataset.yaml`, written by `cheme assess lca --write`, or hand-written
   `lca/datasets/*.yaml`.
 - **Overrides for this process's exchanges** go in its own `lca/mappings.yaml`, not in the shared
-  file: `use` an existing technosphere entry, a `chemical` slug, `atlas: false`, a
-  `properties_reason`.
+  file: `use` an existing technosphere entry, a `chemical` slug, a `dataset` (an Atlas producer),
+  `atlas: false`, a `properties_reason`.
 - **Shared vocabulary** gets its own PR in `lci/mappings.yaml`: a new technosphere entry,
   biosphere identity, proxy or pass-through decision.
-- **Gaps.** While the process is not public, an exchange without a mapping is a gap: the strict
-  build passes, lists it (`gap:` lines, `lci/gaps.json`) and exports it unlinked. Map every gap
-  before the process goes public: then a missing mapping fails the build
-  ([ADR 0022](docs/adr/0022-lci-gaps-for-unpublished-processes-and-per-process-mappings.md),
+- **Gaps.** An exchange without a mapping is a gap, in a public process too: the strict build
+  passes, lists it (`gap:` lines, `lci/gaps.json`), exports it unlinked and marks the process
+  preliminary. Never map to a guess to close a gap: a correct gap is better than a doubtful link
+  ([ADR 0026](docs/adr/0026-public-processes-may-be-preliminary.md),
   [lci/README.md](lci/README.md) "Linking").
 - **Several outputs.** A multi-output process needs an allocation that follows the hierarchy of
   [docs/system-model.md](docs/system-model.md), often a curated `allocation:` entry in the
@@ -128,20 +132,25 @@ uv run scripts/build_lci.py ... --strict   # with an LCI dataset
 
 CI runs the same, and the public build (`--public`, see [Publishing a process](#publishing-a-process)).
 
+CI needs secrets to read core and pyDEXPI, and GitHub gives a pull request from a fork no secrets. Its
+`validate` and `library` jobs therefore fail at the deploy-key step, whatever you changed, and only
+the docs build tells you anything. Run the commands above yourself and say so in the pull request.
+
 ---
 
 ## Sources, licences and what may not be copied
 
 The library is published: process data and designs under
-[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) (`LICENSE-DATA`), code under MIT
-(`LICENSE`). Contribute only what may be published under these licences.
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) (`LICENSE-DATA`); code, skills and scripts, including those inside process folders, under
+AGPL-3.0-or-later (`LICENSE`); the LCI data installer in `python/` under MIT (`python/LICENSE`).
+Contribute only what may be published under these licences.
 
 | | |
 | --- | --- |
 | ❌ **Never copy third-party content** | Tables, figures, drawings, P&IDs, datasheet or manual text, screenshots or text from papers, books, standards, vendor documents or websites. No values from licensed databases (ecoinvent factors or results, commercial property data). |
 | ✅ **Facts and numbers in your own form, with their source** | `source:` / `provenance:` fields, `references:` in `process.yaml`, `DESIGN.md`. Estimates are marked ASSUMED. |
 | ✅ **Draw and write everything yourself** | Drawings are generated from the library's own files. |
-| ⚠️ **Openly licensed material** | Only with its licence and attribution in a `NOTICE.md` next to it, and only if that licence is compatible with CC BY 4.0 / MIT. |
+| ⚠️ **Openly licensed material** | Only with its licence and attribution in a `NOTICE.md` next to it, and only if that licence is compatible with the licence of the place it goes (see above). |
 
 By contributing you agree that your contribution is published under these licences.
 
@@ -158,8 +167,9 @@ The Atlas has two builds:
 What the public build contains:
 
 - **Only public processes.** Only processes with `publication.status: public` in `process.yaml`
-  are in it; `internal` (the default) and `candidate` are left out entirely. Setting `public` is
-  the maintainers' decision, made in its own change.
+  are in it; `internal` (the default) and `candidate` are left out entirely. Every process of
+  the library is public today; a new one stays out until `public` is set, which is the
+  maintainers' decision, made in its own change.
 - **A stated licence.** `publication.license` names the licence it is published under (an SPDX
   id, e.g. `CC-BY-4.0`). There is no default: state it when you set `public`.
 - **The repository** is shown only when its `access` is `public`.
@@ -269,7 +279,7 @@ The `issue-labels` workflow turns the form fields into labels:
 - Use the **Process development** form for a canonical chemical or process issue, and the
   **Process development tracker** form for batches.
 - See [the tracking guide](docs/process-development.md) and
-  [tracker #114](https://github.com/ChemE-as-Code/process-library/issues/114) for issue links,
+  [tracker #306](https://github.com/ChemE-as-Code/process-library/issues/306) for issue links,
   reference records, labels and GitHub Project setup.
 - Workflow status, entry tier, calculation maturity, design maturity, review status and
   publication approval are separate.

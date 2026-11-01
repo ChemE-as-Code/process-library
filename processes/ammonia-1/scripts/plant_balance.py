@@ -1,6 +1,6 @@
 """Heat and material balance of ammonia-1 (DESIGN.md D-006): the independent balance whose
 values process/flowsheet.yaml gives as ASSUMED where core cannot calculate them (separators,
-the steam system, the furnace, duties; core #315).
+the steam system, the furnace, duties).
 
 Run: ``cheme run scripts/plant_balance.py`` (cheme-as-code's interpreter: chemicals, thermo,
 scipy and cheme's own equilibrium functions). Writes build/balance.json and prints the stream
@@ -14,7 +14,7 @@ Models (all ASSUMED where not stated, decisions in DESIGN.md):
 - adiabatic outlet temperatures on cheme's ideal-gas enthalpies (elements basis, 298.15 K);
 - water knock-out: water saturated at the drum (IAPWS-95 vapour pressure), gases insoluble;
 - loop separator, let-down and the loop cold-end duties: thermo Peng-Robinson flash with ChemSep
-  interaction parameters (not qualified by ChemE-as-Code for NH3 mixtures: core #315);
+  interaction parameters (not qualified by ChemE-as-Code for NH3 mixtures: core's property-package qualification);
 - compressors: ideal gas, isentropic efficiency per stage, intercooled;
 - steam: IAPWS-IF97 regions 1 and 2 (chemicals.iapws).
 The flows are solved per 1000 kmol/h of process natural gas and scaled to 1500 t/d of NH3.
@@ -560,7 +560,7 @@ def main():
 def write_balance_output(cases):
     """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
 
-    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
     stream id -> quantity, in the flowsheet's units and basis. The library's
     scripts/check_balance_scripts.py re-runs this script and compares them with
     process/flowsheet.yaml.

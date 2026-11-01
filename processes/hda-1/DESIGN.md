@@ -1,7 +1,7 @@
 # Design decisions
 
 One entry per decision: what was decided, why, what was rejected, and what it assumes.
-Issue: ChemE-as-Code/process-library#42. Run of 2026-10-27 (concept: design basis to balanced
+Issue: ChemE-as-Code/process-library#302. Run of 2026-10-27 (concept: design basis to balanced
 PFD and preliminary LCI: a cradle-to-gate study, foreground inventory only). Starting library commit 79a7cd4, cheme-as-code 0.8.0
 (pyDEXPI 2.1.0, Python 3.15), thermo/chemicals as bundled with cheme.
 
@@ -33,7 +33,7 @@ cross the boundary as energy streams (power, fired heat, three steam levels, coo
           └──────────────── toluene recycle <────────────────┘
 ```
 
-**Reference model (not used as data).** The IDAES HDA examples (issue #42) model this route
+**Reference model (not used as data).** The IDAES HDA examples (issue #302) model this route
 with a specified reaction, flash separation and recycle/purge. Their flowsheet values are not
 used: feeds, scale, conversion, specifications and topology here are this study's own
 choices (D-001). Not a reference reconstruction: a comparison with IDAES is a separate job
@@ -78,14 +78,14 @@ below the hydrocracking limit.
 Results: FEHE minimum internal approach 53 K (20-point profile, scripts/hda_balance.py), duty
 24.5 MW; combined feed vapour fraction 0.92 at 321 K.
 
-### D-005 Reaction model: specified conversion, sourced selectivity (2026-10-27)
+### D-005 Reaction model: specified conversion, selectivity from a recalled correlation (2026-10-27)
 Decision: conversion reactor (cheme `reactor: conversion` with `selectivity:`): toluene
 conversion X = 0.75 per pass (ASSUMED design variable); benzene formed per toluene converted
-S = 1 - 0.0036/(1 - X)^1.544 = 0.96939 (Douglas 1988 HDA selectivity correlation); the rest of
+S = 1 - 0.0036/(1 - X)^1.544 = 0.96939 (Douglas 1988 HDA selectivity correlation, recalled and not read in this run, not verified: I-06); the rest of
 the benzene goes to biphenyl (0.0153 kmol per kmol toluene converted). No kinetics: the
 reactor volume is not sized. No other side reactions (hydrocracking to light paraffins,
 methylbiphenyls, coke) until sourced selectivities exist.
-Reason: a published, widely used selectivity correlation for this route at the concept stage;
+Reason: a selectivity correlation for this route from the literature, used from memory at the concept stage;
 no rate law is invented. The conversion of 0.75 is a typical design choice; it trades reactor
 size against biphenyl make and recycle.
 Results: extents HDA 167.865 kmol/h, BIPH 2.569 kmol/h, calculated identically by cheme and by
@@ -105,7 +105,7 @@ formation enthalpies of process/materials.yaml), given in the flowsheet as `assu
 script as source. cheme calculates mixers, splitters, pass-throughs and the reactor and checks
 every balance.
 Reason: core has no qualified package for aromatics with H2/CH4 (packaged ones: air,
-syngas; core #315), so `props --fill` and `process simulate` cannot be used; the methanol-1
+syngas), so `props --fill` and `process simulate` cannot be used; the methanol-1
 pattern.
 Results: loop residual 3.5e-10; overall mass 16334.02 in / 16334.04 kg/h out; overall energy
 closure 7978.3 kW in / 7958.4 kW out (19.9 kW, 0.25 %; the neglected pump temperature rise is
@@ -166,7 +166,7 @@ water 9207 kW.
   `GeneratingFlow`, H101 `ExchangingThermalEnergy` (both comments in flowsheet.yaml). To report
   to core; revert once fixed.
 - `cheme process propagate` treats `Heating` as unknown; `HeatingInFurnace` is a pass-through.
-- No property package for aromatics + H2 (core #315, as for methanol-1): energy closure,
+- No property package for aromatics + H2 (as for methanol-1): energy closure,
   simulation and column design stay in the script.
 - `cheme assess lca --write` writes a `total` row of 0 into `lca/results.csv` (and 0 in the
   allocation table of `results.md`) although every contribution is a gap, and the library's
@@ -211,6 +211,7 @@ Publication: `publication: public` in `lca/manifest.json` and `results.md` is ch
 the licences of the sources the results rest on (no restricted source), i.e. that they *may* be
 published; whether the process *is* published is process.yaml `publication.status`, which is
 `internal` and governs (review 2026-10-27-pfd-lci-review#10).
+Note 2026-11-01: the owner has since marked all 50 processes public, so this one is no longer internal.
 Results: see the LCI summary below.
 
 ## LCI summary (lca/inventory.csv, per kg benzene)
@@ -250,7 +251,7 @@ primary data share 0 %. No impact result is claimed.
 | Selectivity correlation | S = 1 - 0.0036/(1 - X)^1.544 | Douglas 1988 | recalled; validity range to verify |
 | Conversion per pass | 0.75 | design choice | ASSUMED |
 | Kinetics | none | - | not used; reactor volume not sized |
-| IDAES HDA examples | none used | issue #42 links | read only as context; no data taken |
+| IDAES HDA examples | none used | issue #302 links | read only as context; no data taken |
 
 ## Source register
 
@@ -260,7 +261,7 @@ primary data share 0 %. No impact result is claimed.
 | Speight (2011) Handbook of Industrial Hydrocarbon Processes, Elsevier | Ch. 11 | via the library skill tech-petchem-aromatics | facts cited only | HDA temperature/pressure range |
 | `chemicals`/`thermo` Python packages (bundled with cheme) | ATcT, CRC, Yaws, HEOS, IUPAC, TRC ideal-gas, ChemSep PR kij | used | MIT; underlying data facts | formation data, critical constants, PR flash |
 | Cox, Wagman, Medvedev (1989) CODATA Key Values | CO2(g), H2O(g) formation enthalpies | recalled values | facts | LHV for allocation |
-| IDAES examples-pse v2.0.0 HDA documentation | URLs in issue #42 | not opened in this run | BSD-style licence of IDAES (to record before any reuse) | context only |
+| IDAES examples-pse v2.0.0 HDA documentation | URLs in issue #302 | not opened in this run | BSD-style licence of IDAES (to record before any reuse) | context only |
 
 ## Method and dependency table
 
@@ -269,9 +270,9 @@ primary data share 0 %. No impact result is claimed.
 | Mass, component, element balances | cheme validate / process streams | closed |
 | Reactor outlet | cheme conversion reactor with selectivity | calculated by cheme |
 | Mixers, splitters, pass-throughs | cheme process propagate | calculated by cheme |
-| Flashes, column splits, duties | scripts/hda_balance.py, PR (thermo) | ASSUMED values; gated by core #315 for qualification |
-| Energy closure in core | `cheme process props --fill` | gated: no package for aromatics + H2 (core #315) |
-| Simulation | `cheme process simulate` (DWSIM) | not run: property regime not qualified (core #315) |
+| Flashes, column splits, duties | scripts/hda_balance.py, PR (thermo) | ASSUMED values; gated by core's property-package qualification |
+| Energy closure in core | `cheme process props --fill` | gated: no package for aromatics + H2 |
+| Simulation | `cheme process simulate` (DWSIM) | not run: property regime not qualified |
 | BFD/PFD build | `cheme process build` | works with class workarounds (D-011) |
 | LCI | `cheme assess lca --inventory/--coverage/--balance` | written; backgrounds open |
 

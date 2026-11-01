@@ -1,7 +1,7 @@
 """Concept heat and material balance of formic-acid-1 (DESIGN.md D-006).
 
 Independent of cheme-as-code's property packages: none of them covers the liquid
-methanol / methyl formate / water / formic acid system or the methoxide catalyst (core #315).
+methanol / methyl formate / water / formic acid system or the methoxide catalyst.
 Mass balance: specified conversions (US4216339 Example 1 for the carbonylation; the hydrolysis
 at 95 % of the equilibrium conversion of a mole-fraction constant Kx = 0.20, EP2747883A1 and
 EP3661904B1) and specified column splits (DESIGN.md D-007..D-009). Recycles are solved by
@@ -262,7 +262,7 @@ with open("build/balance.json", "w") as f:
 def write_balance_output(cases):
     """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
 
-    The process library's balance-output contract (docs/adr/0024 of the library): case ->
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
     stream id -> quantity, in the flowsheet's units and basis. The library's
     scripts/check_balance_scripts.py re-runs this script and compares them with
     process/flowsheet.yaml.

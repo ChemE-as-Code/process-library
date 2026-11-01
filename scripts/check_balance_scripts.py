@@ -8,7 +8,7 @@ A process whose flowsheet cannot be calculated by core yet gets its stream value
 from a standalone balance script, ``processes/<id>/scripts/<name>.py``, run with ``cheme run``.
 The flowsheet (``process/flowsheet.yaml``) gives those values as ``provenance: assumed`` with a
 ``source`` that starts with the script's path (``"scripts/h2_balance.py: ..."``). This checker
-stops the two from drifting apart (ADR 0024):
+stops the two from drifting apart (ADR 0027):
 
 1. It collects every flowsheet value whose ``source`` starts with ``scripts/<name>.py``:
    ``streams[].state.<case>.<quantity>`` with quantity ``flow``, ``temperature``,
