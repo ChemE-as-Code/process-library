@@ -157,8 +157,11 @@ owner against a licensed copy.
 
 ## Fuel mixtures
 
-Natural gas, naphtha and fuel gas are not in the registry yet. They are added, with a typical
-composition and its source, with the first process that uses them. A mixture entry may go in
+Raw natural gas (`raw-natural-gas`) and pyrolysis gasoline are in the registry as mixtures
+without a composition. Sales gas is not a separate entry: natural-gas-processing-1 and the
+library's natural-gas consumers take it as `methane`. Naphtha and fuel gas are not in the
+registry yet. A typical composition is added, with its source, with the first process that
+needs one. A mixture entry may go in
 without a composition (the schema allows it), but no composition is entered without a source.
 
 ## Identities and how they are verified
@@ -176,7 +179,8 @@ were verified when they were added, in this order:
 Where the sources disagree, the entry says so in its `note` and keeps what PubChem gives for the
 CAS (hydroxylammonium sulfate: the package has the 1:1 salt), or leaves the field out (aluminium
 oxide has no InChIKey: the package and PubChem give different keys for CAS 1344-28-1).
-`tests/test_registry.py` repeats step 1 offline wherever the `chemicals` package is installed,
+`tests/test_registry.py` repeats step 1 offline wherever the `chemicals` package is installed (CI
+installs 1.5.2 for the tooling tests),
 and checks everywhere that a CAS, InChIKey, ChEBI id or CID names one entry only.
 
 Molar mass, elemental composition and carbon content of these entries are derived from the

@@ -62,3 +62,4 @@ with an ADR in the same pull request.
 | [0021](0021-design-maturity-calculation-maturity-review-status.md) | Name the three axes design maturity, calculation maturity and review status; labels only | **Proposed**, 2026-10-27 |
 | [0022](0022-lci-gaps-for-unpublished-processes-and-per-process-mappings.md) | Report LCI mapping gaps of unpublished processes; keep a process's overrides with it | Accepted, 2026-10-28 |
 | [0023](0023-reactions-in-the-catalog.md) | List the processes' reactions in the catalog as reactions.json, each reaction once | **Proposed**, 2026-10-30 |
+| [0025](0025-registry-covers-main-products-and-feeds.md) | Register every process's main product and feeds with verified identities; label functional units by product name | **Proposed**, 2026-10-31 |
