@@ -2505,6 +2505,7 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
         "schema": DATAPACKAGE_SCHEMA,
         "name": db_name,
         "version": version,
+        "citation": {"text": lci_activities.database_citation(version), "authors": list(lci_activities.CITATION_AUTHORS), "doi": None},
         "system_model": {
             "id": model,
             "label": SYSTEM_MODELS[model],

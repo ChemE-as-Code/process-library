@@ -107,8 +107,10 @@ them there. To add a process, copy
 
 ## Citation
 
-Both papers are in preparation and their titles are working titles. If you use the library,
-please cite the Process Atlas paper, and ChemE-as-Code for the toolkit. See also
+Both papers are in preparation and their titles are working titles; neither has a DOI yet. If you
+use the library, please cite the Process Atlas paper, and ChemE-as-Code for the toolkit. If you use
+the LCI database, cite the Process Atlas paper (in preparation, 2026), by Artur M. Schweidtmann and
+Jana M. Weber, and the database version. See also
 [cheme-as-code.org/about/cite](https://cheme-as-code.org/about/cite/).
 
 ```bibtex
