@@ -19,10 +19,11 @@ description: |
   taken overhead in the benzene column, and the vacuum toluene column returns toluene to the
   reactor and leaves biphenyl as bottoms.
 
-  All values are concept estimates. The separator, column and duty values come from an
-  independent script whose property method (Peng-Robinson) is not qualified for this mixture
-  by ChemE-as-Code yet; see DESIGN.md of the engineering files for every assumption and gated
-  step. Designed independently: no flowsheet data of the IDAES HDA examples are used.
+  All values are concept estimates. The separator, column and duty values come from a DWSIM
+  simulation of the whole plant (Peng-Robinson). ChemE-as-Code has not yet qualified that
+  property package for this mixture, so the simulation is a cross-check of an independent
+  balance script, not validated data; see DESIGN.md of the engineering files (D-014) for every
+  assumption and gated step. Designed independently: no flowsheet data of the IDAES HDA examples are used.
 families: [aromatics]
 keywords: [benzene, toluene, hydrodealkylation, HDA, hydrogen recycle, purge, biphenyl, diphenyl, distillation, aromatics]
 facets:
@@ -40,8 +41,11 @@ validation:
     Concept PFD with closed mass, component and element balances (cheme validate, cheme process
     streams) and an independent overall energy closure of 0.25 % (scripts/hda_balance.py).
     cheme maturity reaches no level: the feeds and the capacity are assumed (no sourced or
-    owner-given feed), and the separator and the three columns are specified values from an
-    independent Peng-Robinson script that core cannot qualify for aromatics with hydrogen.
+    owner-given feed). The separator and the three columns are simulated in DWSIM
+    (Peng-Robinson, converged, D-014), but core has not qualified that package for aromatics
+    with hydrogen (predictive.property-regime fails). The reactor loop and C-203 agree with the
+    independent script within about 1.5 %; C-202's duties are about 50 % higher (the script's
+    saturated-liquid feed simplification).
     The reactor outlet is calculated by cheme (conversion reactor with the
     selectivity correlation recalled, not verified, and an assumed conversion) and reproduces the script's
     extents; cheme's ideal-gas reactor duty (-45 kW) confirms the script's adiabatic outlet
