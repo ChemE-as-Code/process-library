@@ -192,7 +192,7 @@ values stay those of D-006 (script and propagate).
   left for review).
 - Topping column C-201: a Fenske-Underwood-Gilliland shortcut with a partial condenser (the
   off-gas is its vapour distillate), keys CO2 / CH3OH, methanol in the off-gas 0.2257 (script
-  S16), reflux ratio L/D = 36.08 (D-008's 0.3 kmol reflux per kmol feed: 1219.8 kmol/h against
+  S16), reflux ratio L/D = 36.09 (D-008's 0.3 kmol reflux per kmol feed: 1219.8 kmol/h against
   33.80 kmol/h of off-gas), 150 / 200 kPa(a). The light key in the bottoms, 1e-6, is ASSUMED:
   D-008 sends all dissolved gas overhead, and the shortcut needs a value above zero. A shortcut
   with non-condensable light components is a stretch of the Underwood method; if it does not
@@ -209,8 +209,9 @@ it. Facts (recorded in `simulation.yaml`): 81.5 bar(a) at the circulator dischar
 (methanol, water), no electrolytes, no pseudocomponents, interaction parameters not available
 (uncertain; the conservative answer), no liquid-liquid split, no vapour association. The
 selection recommends PSRK or PR / RKS with modified Huron-Vidal mixing rules; the DWSIM route
-runs none of them and methods.yml names PR as the executable substitute (it loses the polar
-mixing rule): recorded as `method_selection.substitution` (`sim-method-substituted`, info).
+runs none of them. methods.yml names PR as the executable substitute for PR-MHV2 (it loses the
+polar mixing rule) and RKS for PSRK and RKS-MHV2; PR is chosen to match the balance script
+(D-006): recorded as `method_selection.substitution` (`sim-method-substituted`, info).
 For the columns alone the same facts at 2 bar(a) recommend NRTL when interaction parameters
 are known (UNIFAC otherwise, which the DWSIM route does not run). NRTL with an ideal-gas vapour
 cannot carry the loop's supercritical H2, CO, CO2, CH4 and N2, so it is not used for the
@@ -235,7 +236,11 @@ Note for review: with this file present `cheme maturity` (cheme 1.1.0 and 1.2.1,
 pin since #282) passes `balanced.model-basis` and `predictive.model-basis` and lists V-101,
 V-102, C-201 and C-202 as predictive, although nothing has been simulated; the
 `predictive.run-record` and later checks stay missing. The calculation maturity stays none (S1
-is ASSUMED, `sourced.boundary`).
+is ASSUMED, `sourced.boundary`). V-102's 315.10 K is the script's value, not a prediction.
+Accepted for this draft only: the model-basis credit from the declaration alone is a core
+question (it should need a run record) and is not settled here; the PR stays draft until a run
+exists or that is decided. The let-down valve step ahead of V-102 (ammonia-1 D-026) remains the
+cleaner fix and is left for review because it changes the PFD.
 
 ## 3. Reaction and model evidence
 

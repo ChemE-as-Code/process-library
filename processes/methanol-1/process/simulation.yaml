@@ -21,8 +21,9 @@ method_selection:
   substitution: >-
     The selection (Carlson tree) recommends PSRK or Peng-Robinson / RKS with modified
     Huron-Vidal mixing rules for this polar mixture at 81.5 bar(a) without interaction
-    parameters; the DWSIM route runs none of them, and methods.yml names Peng-Robinson as their
-    executable substitute (it loses the polar mixing rule). One property package serves the
+    parameters; the DWSIM route runs none of them. methods.yml names Peng-Robinson as the
+    executable substitute for PR-MHV2 (it loses the polar mixing rule) and RKS for PSRK and
+    RKS-MHV2. One property package serves the
     whole flowsheet (simulation.yaml takes no package per unit), and the loop with its
     supercritical H2, CO, CO2, CH4 and N2 sets it. For the columns alone (C-201, C-202 at
     110-200 kPa(a)) the same facts at 2 bar(a) recommend NRTL with interaction parameters known
@@ -97,13 +98,13 @@ specs:
     # nonzero light key in the bottoms, 1e-6 stands for that (ASSUMED, D-013). The methanol in
     # the off-gas is the script's S16 (methanol at its vapour pressure at 313.15 K and 150
     # kPa(a)). Reflux: D-008's 0.3 kmol per kmol feed is L = 1219.8 kmol/h on S15
-    # (4065.9 kmol/h) against D = 33.80 kmol/h of S16, so L/D = 36.08 (ASSUMED, D-008).
+    # (4065.9 kmol/h) against D = 33.80 kmol/h of S16, so L/D = 36.09 (ASSUMED, D-008).
     # The partial condenser's temperature is a result: the 313.15 K of S16 is the check.
     light_key: CO2
     heavy_key: CH3OH
     light_key_in_bottoms: 1.0e-6         # ASSUMED (D-013): "no dissolved gas in the bottoms" of D-008
     heavy_key_in_distillate: 0.22571202  # scripts/loop_balance.py, S16 methanol mole fraction (D-008)
-    reflux_ratio: 36.08                  # ASSUMED, D-008: 0.3 kmol reflux per kmol feed, as L/D
+    reflux_ratio: 36.09                  # ASSUMED, D-008: 0.3 kmol reflux per kmol feed, as L/D
     condenser: partial
     condenser_pressure: {value: 150, provenance: assumed, source: D-008}
     reboiler_pressure: {value: 200, provenance: assumed, source: D-008}
