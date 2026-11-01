@@ -194,6 +194,25 @@ def check(name, ins, outs):
     print(f"  {name:6s} mass in {mi:10.1f} out {mo:10.1f} kg/h  worst element imbalance {worst:.2e} kmol/h")
 
 
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
+
+
 if __name__ == "__main__":
     print("# streams (kg/h, mass fractions)")
     for sid, title, s in STREAMS:
@@ -221,6 +240,16 @@ if __name__ == "__main__":
           f"{q_flue:.0f} + Q6 to ambient {Q_LOSS:.1f} kW")
     print(f"  reaction enthalpy at 298 K: RX1 {dh1:.1f} kJ/mol, RX2 {dh2:.1f} kJ/mol, "
           f"total {q_rx:.0f} kW = {q_rx / P_FUR:.1%} of the furnace power")
+    # the values process/flowsheet.yaml cites from this script (balance-output contract):
+    # STREAMS plus S10B, the sorted unreacted mix (recycle and purge), and the duties
+    flowsheet = {}
+    for sid, title, s in STREAMS + [("S10B", "Sorted unreacted mix", add(rec, purge))]:
+        flowsheet[sid] = {"flow": {"value": total(s), "basis": "mass"},
+                          "composition": {"values": {k: v / total(s) for k, v in s.items()},
+                                          "basis": "mass_fraction"}}
+    flowsheet.update({qid: {"duty": q} for qid, q in {
+        "Q1": P_FUR, "Q2": Q_CW, "Q3": P_AUX, "Q4": P_CRU, "Q5": Q_COOL, "Q6": Q_LOSS}.items()})
+    write_balance_output({"design": flowsheet})
     print("# per kg crushed crude SiC (unallocated)")
     for name, v in [("sand", total(sand)), ("coke", total(coke)), ("metallurgical SiC", total(met)),
                     ("purge", total(purge)), ("CO2", flue["CO2"]), ("CO", flue["CO"]),

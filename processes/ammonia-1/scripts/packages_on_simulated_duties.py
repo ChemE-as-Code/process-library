@@ -18,7 +18,8 @@ flowsheet gives these packages as ASSUMED with this script as their source:
   returned condensates (S25, S33, S35 less their dissolved gases), BFW pump power Q31, and the
   stripper vent S87 (the gases dissolved in the condensates).
 
-Run with `cheme run scripts/packages_on_simulated_duties.py`; it writes nothing.
+Run with `cheme run scripts/packages_on_simulated_duties.py`; it writes nothing (with
+`BALANCE_OUTPUT` set, the values above as JSON for the library's balance check).
 """
 
 import sys
@@ -32,6 +33,25 @@ import plant_balance as pb  # noqa: E402
 ROOT = Path(__file__).resolve().parents[1]
 FS = yaml.safe_load((ROOT / "process/flowsheet.yaml").read_text())
 ST = {s["id"]: s["state"]["design"] for s in FS["streams"] if "state" in s}
+
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
 
 
 def duty(sid):
@@ -85,3 +105,8 @@ n = sum(gas.values())
 m = sum(v * pb.MW[c] for c, v in gas.items())
 print(f"S87 stripper vent {m:.2f} kg/h " + str({c: round(v / n, 7) for c, v in gas.items()}))
 print(f"condensate water returned {water:.1f} kg/h")
+
+# the values process/flowsheet.yaml cites from this script (balance-output contract)
+write_balance_output({"design": {"S68": {"flow": m_export}, "S69": {"flow": m_bd},
+                                 "Q27": {"duty": w_ref}, "Q28": {"duty": q_cond},
+                                 "Q29": {"duty": q_hru}, "Q31": {"duty": w_bfw}}})
