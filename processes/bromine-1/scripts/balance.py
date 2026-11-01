@@ -14,7 +14,7 @@ Inputs (each in DESIGN.md with its source or ASSUMED):
 - crude bromine 2 wt-% Cl2 and 0.1 wt-% H2O, bromine water 3.5 wt-% Br2, wet bromine
   0.05 wt-% H2O, spent acid 80 wt-% H2SO4 (D-007, D-008, ASSUMED);
 - overhead vapour at feed temperature + 2 K and 105 kPa(a), water activity of the brine 0.75
-  (D-006, ASSUMED: no electrolyte package covers this brine, core#364).
+  (D-006, ASSUMED: no electrolyte package covers this brine).
 """
 
 import math

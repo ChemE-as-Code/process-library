@@ -7,7 +7,7 @@ dataset whose reference product is that substance. Everything is read from what 
 already has; nothing is estimated here:
 
 - the route: the process's ``maturity`` and ``validation``, the dataset's ``technology``, tier
-  (core#182 ``generation.tier`` and ``method``; none for a dataset derived from a flowsheet or
+  (``generation.tier`` and ``method``; none for a dataset derived from a flowsheet or
   written by hand), review records, geography (``location``, else the manifest's
   ``facets.region``), year, system model, boundary and allocation;
 - the reference product: its registry grade (``registry.flow_grade``) and the state the dataset

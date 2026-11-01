@@ -3,7 +3,7 @@
 # (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
 # exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
 #
-# None yet, on purpose (DESIGN.md D-011): thf-1 is internal and its preliminary gate-to-gate LCI
+# None yet, on purpose (DESIGN.md D-011): thf-1's preliminary gate-to-gate LCI
 # leaves every background unmapped, so the build reports 8 gaps (lci/gaps.json) and exports them
 # unlinked. What each exchange should connect to later (also in lca/lca.yaml `missing:`):
 #   feed:BDOF    1,4-butanediol, market for (route to be chosen); needs a registry slug and a
@@ -17,4 +17,12 @@
 #   product:BLEED liquid hazardous organic waste (~1 wt% S) to incineration: needs a new shared
 #                treatment entry (hazardous waste incineration)
 schema: cheme-as-code/lci-process-mappings/v1
-exchanges: {}
+exchanges:
+  # Mapping step of 2026-11-01 (ADR 0026): each entry below uses a reference the library already
+  # holds. Notes above that call these exchanges unmapped describe the state before it. What is
+  # still unmapped is a gap (lci/gaps.json), and this process is marked preliminary.
+  "feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a), counted as heat delivered (kWh); the shared entry converts it to the background's heat from steam, which does not distinguish pressure levels"}
+  "feed:MPS": {use: steam-heat, source: "MP steam 1000 kPa(a), counted as heat delivered (kWh); the shared entry converts it to the background's heat from steam, which does not distinguish pressure levels"}
+  "feed:POWER": {use: electricity, source: "the library default: the design states no supply voltage"}
+  "product:CW": {chemical: cooling-water, source: "heat rejected to cooling water (kWh)"}
+  "product:WW": {chemical: wastewater, source: "process water with about 80 ppm(wt) THF to treatment, by mass"}

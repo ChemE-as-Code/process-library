@@ -6,9 +6,9 @@ The numbers live in `process/*.yaml`; the stream table is generated: `cheme proc
 
 Run record of this stage (2026-10-27): library branch `case/methanol-1` from `b43b479`;
 cheme-as-code 0.8.0 (pyDEXPI 2.1.0), Python 3.15.0; thermo 0.6.1, chemicals 1.5.2, scipy 1.18.1
-in cheme's interpreter; DWSIM not used. Core #315 open (checked 2026-10-27): the syngas
+in cheme's interpreter; DWSIM not used. Core state (checked 2026-10-27): the syngas
 package extension (CH3OH, CO above 500 K) and a polar / activity-coefficient benchmark are
-still open; liquid-phase reactor energy closure was verified in core #393 (not used here: the
+still open; liquid-phase reactor energy closure was verified in core (not used here: the
 converter is vapour phase).
 
 ## 1. Route and boundary memo
@@ -110,8 +110,8 @@ the converter outlet itself and propagates every pass-through, mixer and splitte
 Reason: core cannot yet qualify the property regime: `cheme process props --coverage` covers
 only the make-up gas S1/S2 (syngas-pr-vapor excludes methanol and water, and CO2/H2 at 313 K
 and 7500 kPa(a)); DWSIM PR is benchmarked for N2/O2/Ar only and the activity-coefficient
-benchmark (core #399) covers ethanol-water bubble points only. So `process simulate` would not
-be qualified (core #315), and `props --fill` refuses every loop stream.
+benchmark covers ethanol-water bubble points only. So `process simulate` would not
+be qualified, and `props --fill` refuses every loop stream.
 Check: cheme's equilibrium converter reproduces the script's extents (MEOH_CO 3267.50 vs
 3267.51 kmol/h, WGS -783.394 vs -783.397 kmol/h) and `ln(Q/K)` is about -2e-6 at the outlet;
 every block and step balance closes (mass, components, elements). The converter duty differs:
@@ -193,7 +193,7 @@ up to 8 MPa, and methanol-water VLE at 100-200 kPa for the columns.
 | source | locator | read status | reuse terms | used for |
 |---|---|---|---|---|
 | Ott, J. et al. (2012) Methanol, Ullmann's Encyclopedia of Industrial Chemistry, doi:10.1002/14356007.a16_465.pub3 | sections on production and purification | not read in this run (subscription); #118 checked identity and contents | cite only | route description, SN target, two-column purification (to be confirmed with locators, I-01) |
-| cheme reaction library, entry `methanol` | `cheme chemistry library methanol` (cheme-as-code 0.8.0) | read | MIT (core) | reactions, catalyst window (ASSUMED), components |
+| cheme reaction library, entry `methanol` | `cheme chemistry library methanol` (cheme-as-code 0.8.0) | read | AGPL-3.0-or-later (core) | reactions, catalyst window (ASSUMED), components |
 | `chemicals` 1.5.2 / `thermo` 0.6.1 (C. Bell et al.) | ATcT and CRC data, Poling heat capacities, ChemSep PR kij | used | MIT | formation data, critical constants, PR flashes and enthalpies |
 | US Federal Specification O-M-232, Methanol, Grade AA | Grade AA requirements | not read in this run | US government specification | product limits (to be verified, I-07) |
 | Vanden Bussche, K.M.; Froment, G.F. (1996) J. Catal. 161, 1-10, doi:10.1006/jcat.1996.0156 | whole paper | citation verified in #118, content not audited | cite only | not used (candidate kinetics) |
@@ -211,9 +211,9 @@ No table, figure or text of these sources is reproduced here.
 | Pass-through, mixer, splitter streams | cheme process propagate --fill | done (calculated) |
 | Converter outlet | cheme equilibrium reactor, PR fugacity | done (calculated); model basis equilibrium + ASSUMED approach |
 | Converter duty | cheme process reactors (formation basis, ideal gas) | done: 63.9 MW; script 65.7 MW (real gas) |
-| HP/LP flash, column splits, exchanger and compressor duties | scripts/loop_balance.py (PR, thermo) | done, values ASSUMED; **gated**: no qualified package (core #315) |
+| HP/LP flash, column splits, exchanger and compressor duties | scripts/loop_balance.py (PR, thermo) | done, values ASSUMED; **gated**: no qualified package |
 | Stream enthalpies, block energy closure | cheme process props --fill / process energy | **gated**: props refuses S3-S19 (CH3OH outside syngas-pr-vapor; S3 outside its CO2/H2 box) |
-| Predictive simulation (DWSIM) | cheme process simulate | **gated**: no benchmarked package for this mixture (core #315, #399 covers ethanol-water bubble points only) |
+| Predictive simulation (DWSIM) | cheme process simulate | **gated**: no benchmarked package for this mixture (core's benchmark covers ethanol-water bubble points only) |
 | Column stages and reflux | shortcut or rigorous | not done: needs qualified methanol-water VLE |
 | Converter sizing | PFR with a rate law | not done: kinetics input missing (process input, not a core gap) |
 
@@ -231,7 +231,7 @@ feed (I-01, I-02), the second a qualified separation model or sourced split valu
 - I-04 By-product selectivities (DME, ethanol, higher alcohols, methyl formate, ketones) for the
   Grade AA impurity limits and a fusel-oil draw.
 - I-05 Check the formation-data equilibrium constants against Graaf et al. (1986).
-- I-06 A qualified property method for methanol-water-syngas (core #315) to replace D-006's
+- I-06 A qualified property method for methanol-water-syngas to replace D-006's
   script values and close the energy balances.
 - I-07 Read the current O-M-232 Grade AA limits.
 - I-08 Recycle ratio / purge / inerts trade-off and purge hydrogen recovery.

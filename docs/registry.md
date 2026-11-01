@@ -56,10 +56,10 @@ Units are fixed per property so that values compare:
 | property | unit | used for |
 |---|---|---|
 | `molar_mass` | g/mol | balances; checked against the formula |
-| `elemental_composition` | kg/kg | element balances (core#174); checked against the formula |
-| `carbon_content` | kg C/kg | carbon balances, biogenic carbon reporting (core#181) |
+| `elemental_composition` | kg/kg | element balances; checked against the formula |
+| `carbon_content` | kg C/kg | carbon balances, biogenic carbon reporting |
 | `biogenic_carbon_fraction` | kg/kg of the carbon | the biogenic share where it is a property of the grade |
-| `lhv`, `hhv` | MJ/kg | energy allocation, fuels (core#177) |
+| `lhv`, `hhv` | MJ/kg | energy allocation, fuels |
 | `density` | kg/m3 | volume to mass (`conditions` required) |
 | `standard_chemical_exergy` | kJ/mol | exergy allocation (Szargut reference environment) |
 | `exergy` | kJ/kg | a grade's specific exergy at its state (`conditions` required) |

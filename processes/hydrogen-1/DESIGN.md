@@ -6,9 +6,9 @@ table is `cheme process streams` (generated). Issue: ChemE-as-Code/process-libra
 
 Starting point of this run (2026-10-27): library branch `case/hydrogen-1` from `79a7cd4`,
 cheme-as-code 0.8.0 (pyDEXPI 2.1.0), Python 3.15, CoolProp and thermo in cheme's interpreter.
-Core dependencies named in the issue, as they stand for this route: core #366 (electrochemical
-cell) is not needed (no electrolysis); core #368 / PR #398 (adsorption) has no PSA cycle model,
-so the PSA is a specified split (D-008); pre-release issue 315 (property qualification) is open for
+Core dependencies named in the issue, as they stand for this route: core's electrochemical
+cell is not needed (no electrolysis); core's adsorption model has no PSA cycle model,
+so the PSA is a specified split (D-008); the core issue on property qualification is open for
 water-bearing synthesis gas, steam and flue gas, so the flashes, enthalpies and duties are
 specified values from an independent script (D-006, D-011).
 
@@ -104,7 +104,7 @@ cheme calculates the rest (`cheme process propagate --fill`): the reformer, shif
 outlets and every mixer, splitter, exchanger and machine stream.
 Reason: core has no property package for water-bearing synthesis gas, steam or flue gas
 (the packaged `syngas-pr-vapor` excludes water; `air-pr-chemsep` stops at 315 K), and no
-flash with water (pre-release issue 315); `cheme process simulate` would need an unqualified DWSIM
+flash with water; `cheme process simulate` would need an unqualified DWSIM
 package for the same mixtures.
 Checks (2026-10-27): cheme's equilibrium outlets agree with the script to five significant
 figures (CH4 in S9 0.0400201 vs 0.0400217; CO in S11 0.0239751 vs 0.0239757); the PSA and
@@ -132,11 +132,11 @@ Assumptions: all ASSUMED; the reformer and shift catalyst windows of the library
 ## D-008 PSA as a specified split (2026-10-27)
 Decision: U-301 recovers 0.88 of the hydrogen of its feed into a 99.9 mol% product (rest N2);
 all CH4, CO, CO2, water and the remaining N2 and H2 leave in the tail gas at 130 kPa(a).
-Reason: core has no PSA cycle model (core #368, PR #398: `performance: external` with a cited
+Reason: core has no PSA cycle model (`performance: external` with a cited
 or vendor recovery). 0.88 is an ASSUMED value inside the range usually quoted for
 multi-bed hydrogen PSA; no source was read in this run, so it must be replaced by a vendor
 or cited model value (open input).
-Rejected: `process/adsorption.yaml` with `performance: external` (PR #398) in this run: its
+Rejected: `process/adsorption.yaml` with `performance: external` in this run: its
 recovery and utilities need a citation this run does not have.
 Assumptions: no PSA power (pressure-driven), no product slip of CO/CO2.
 
@@ -179,9 +179,9 @@ cheme's own (D-006); the block energy balances are `not-evaluable` in `cheme pro
 because no stream has an enthalpy (`cheme process props` covers none of the water-bearing or
 hot streams).
 Gated steps:
-- stream enthalpies, flashes and a predictive heat and material balance: pre-release issue 315 (a property
+- stream enthalpies, flashes and a predictive heat and material balance: core's property-package qualification (a property
   package qualified for H2/CO/CO2/CH4/N2/H2O vapour and liquid water, and for flue gas);
-- PSA performance: core #368 / PR #398 with a cited or vendor recovery;
+- PSA performance: core's adsorption model with a cited or vendor recovery;
 - core bug found: `cheme process build` 0.8.0 fails (`TypeError: 'typing.Union' object is not
   iterable`) on the step classes `Pumping` and `GeneratingSteam`, whose `method` is a Union in
   pyDEXPI 2.1.0; P401 is therefore `GeneratingFlow` and the steam steps `Evaporating`.
@@ -282,7 +282,7 @@ SRK (RKS, the substitute methods.yml names for PSRK): core's SRK claim holds no 
 because DWSIM 9.0.5's SRK database has no kij even for the nitrogen, oxygen and argon pairs,
 while PR carries DWSIM's database kij and its claim covers those mixtures (methods.yml PR and
 SRK notes); whether DWSIM's PR set holds kij for the water pairs here was not inspected. Core
-claims PR only for N2, O2 and Ar (methods.yml; pre-release issue 315), so the results for this
+claims PR only for N2, O2 and Ar (methods.yml; the core issue on property qualification is open), so the results for this
 mixture are not qualified. The substitution is the agent's proposal and needs the owner's or a
 reviewer's acceptance (not given as of 2026-11-01; the acceptance, with who gave it, goes into
 this decision and the substitution text).
@@ -334,5 +334,5 @@ What the first run should show (pre-run expectations, not results):
   once the deviations have been reviewed.
 Open: H301, E305 and STM in the simulation (convection coils as two-stream exchangers on the
 flue gas, as ammonia-1 did; an adjust or a fixed fuel for the radiant balance); property
-qualification for water-bearing syngas (pre-release issue 315); a sourced PSA recovery (D-008); DWSIM's
+qualification for water-bearing syngas (open core issue); a sourced PSA recovery (D-008); DWSIM's
 own PR kij for water pairs, to be read from the saved flowsheet (`--save`).

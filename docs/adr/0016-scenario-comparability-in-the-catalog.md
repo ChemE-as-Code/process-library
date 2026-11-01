@@ -1,7 +1,7 @@
 # 0016. Carry core's scenario comparability verdict and factor scope into the catalog
 
 - **Status:** Proposed, 2026-10-26
-- **Deciders:** the owner (proposed by an agent session, core#306)
+- **Deciders:** the owner (proposed by an agent session)
 - **Scope:** the Atlas catalog (`scripts/build_catalog.py`), LCA scenarios
 
 ## Context
@@ -11,7 +11,7 @@ The catalog publishes each process's LCA scenarios from core's records
 whether an exchange the baseline characterises is a gap in the scenario. Two scenarios without
 gaps could still rest on electricity factors that measure different things: ASU-1's UK baseline
 (DESNZ, at the consumer with T&D and well-to-tank) against NL and DE on EEA ENER038 (direct
-emissions per kWh of gross generation). core#318 (core#306) adds to each record a verdict
+emissions per kWh of gross generation). Core adds to each record a verdict
 from the factors' structured scope (core `docs/framework/lci-comparison-basis.md`):
 `like-for-like`, `proxy` or `not comparable`, with the reasons and the dimensions compared, and
 the scope of each linked exchange.
@@ -23,7 +23,7 @@ the scope of each linked exchange.
   cradle-to-gate; not the foreground boundary of `design_cases[].foreground.boundary`), beside
   the existing `functional_unit` and `allocation`. Each link carries `scope` (null: not
   declared).
-- A record written before core#306 has no verdict: `comparability` is null. A consumer (the
+- A record written before that core change has no verdict: `comparability` is null. A consumer (the
   Atlas, the viewer) shows null with `comparable: false` as "not comparable" (a gap: the total
   does not stand), and null with `comparable: true` as "not assessed"; never as like-for-like.
 - The verdict holds no numbers, so it stays on a scenario whose values are withheld.
@@ -35,7 +35,7 @@ the scope of each linked exchange.
   every scenario number; a `not comparable` scenario must not be presented as a country
   comparison.
 - The fields are additive; consumers that ignore them are unaffected.
-- The verdict exists only in records regenerated with core after core#318 is merged; until
+- The verdict exists only in records regenerated with core after that change is merged; until
   then it is null, and consumers must apply the null rule above.
 - Two "comparable" signals exist side by side (`comparable` for gaps, `comparability` for the
   basis); a consumer that reads only `comparable` still overstates comparability.
@@ -45,4 +45,4 @@ the scope of each linked exchange.
 
 - `scripts/build_catalog.py` (`_scenarios`, `_lca`, `LINK_FIELDS`), `tests/test_build_catalog.py`,
   `tests/fixtures/make_scenario_records.py` (a fixture record with a verdict and a link scope).
-- core#306, core#318; ASU-1 decision D-110 (`processes/asu-1/DESIGN.md`).
+- ASU-1 decision D-110 (`processes/asu-1/DESIGN.md`).

@@ -7,11 +7,11 @@ ChemE-as-Code/process-library#179.
 
 Run record of this stage (2026-10-28): library branch `case/silicon-carbide-1` from `7da4a74`;
 cheme-as-code 0.8.0 (pyDEXPI 2.1.0), Python 3.15.0; DWSIM not used. Core dependencies as stated
-in #179 and its last comment (not re-audited against core main in this run): core #370 is
-implemented for limestone calcination only (core #387, `cheme process furnace`); its schema
+in #179 and its last comment (not re-audited against core main in this run): core's furnace energy is
+implemented for limestone calcination only (`cheme process furnace`); its schema
 accepts `reaction: calcination-caco3` only, so carbothermal SiC has no furnace energy basis in
-core and this case uses a labelled specific-energy basis (D-004). Core #365 (solids and solid
-separations) is not used: the sorting of the ingot is a specified split (D-006).
+core and this case uses a labelled specific-energy basis (D-004). Core's solids and solid
+separations support is not used: the sorting of the ingot is a specified split (D-006).
 
 ## 1. Route and boundary memo
 
@@ -77,7 +77,7 @@ dependence. Mean contents temperature at power-off 1800 K and 323 K when broken 
 ## D-004 Furnace energy: labelled specific-energy basis (2026-10-28)
 Decision: furnace electricity 7.5 kWh per kg crude SiC (crystalline + metallurgical, 6250 kg/h),
 46.9 MW time average.
-Reason: `cheme process furnace` refuses carbothermal SiC (only `calcination-caco3`; core #387),
+Reason: `cheme process furnace` refuses carbothermal SiC (only `calcination-caco3`),
 so no predictive furnace energy balance exists in core. The value is inside the 6.3-9.02 kWh/kg
 reported for European plants (Mehrwald 1992, quoted by Lima and Tenorio 2011, section 1) and
 close to the about 7.15 MWh/t that Fraunhofer IKTS (2023) gives for conventional Acheson
@@ -240,11 +240,11 @@ No text, table or figure of these sources is reproduced; facts are restated in o
 
 ## 5. Open inputs and gated steps
 
-- **Gated (core)**: predictive furnace energy for carbothermal SiC (core #370 implemented for
-  CaCO3 calcination only, core #387; `reaction` accepts `calcination-caco3` only) -> labelled
+- **Gated (core)**: predictive furnace energy for carbothermal SiC (core's furnace energy is implemented for
+  CaCO3 calcination only; `reaction` accepts `calcination-caco3` only) -> labelled
   specific-energy basis (D-004). Energy closure of blocks needs stream enthalpies of solids and
   of the hot furnace gas: no benchmarked property package, so `balanced.energy-closure` stays
-  missing. Ingot sorting as a predicted solid separation (core #365) is not attempted.
+  missing. Ingot sorting as a predicted solid separation is not attempted.
 - **Calculation maturity**: `cheme maturity` reports none: feed flows and the specified
   conversions and splits are ASSUMED, not given with a source (sourced.boundary,
   balanced.model-basis fail; every balance closes). The manifest keeps the lowest claim,

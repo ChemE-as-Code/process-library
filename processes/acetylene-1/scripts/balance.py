@@ -3,7 +3,7 @@
 BASF-type partial oxidation of natural gas with oxygen (Sachsse-Bartholome), water quench,
 soot removal, compression and N-methylpyrrolidone (NMP) acetylene recovery, synthesis-gas
 co-product. Independent of cheme-as-code's property packages, which cover neither the burner
-(soot, millisecond pyrolysis) nor the NMP solvent (core #315).
+(soot, millisecond pyrolysis) nor the NMP solvent.
 
 Method (every number below is a design input with its source or ASSUMED, see DESIGN.md):
 - burner R101: a sourced outlet-composition model. The dry cracked-gas composition of

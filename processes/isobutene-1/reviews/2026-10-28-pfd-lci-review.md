@@ -105,7 +105,7 @@ it in tiles. No P&ID exists (out of scope).
   non-ideality. Per kg isobutene: 2.46 MJ of steam, 1.26 MJ of fired heat and 3.05 MJ of
   cooling. That is plausible for a gas-phase cracker whose whole feed is evaporated.
 - **Marking of values.** Key values are ASSUMED or sourced with their decision. The method
-  limits are stated honestly: ideal Raoult with no qualified package, core #315, about ±30 %
+  limits are stated honestly: ideal Raoult with no qualified package, about ±30 %
   on the duties. No kinetics are invented.
 - **LCI.**
   - It is per 1 kg isobutene, by mass allocation. I recomputed the isobutene share,
@@ -126,7 +126,7 @@ it in tiles. No P&ID exists (out of scope).
 
 ## Not checked
 - The column, wash and split specifications against rigorous VLE/LLE (NRTL/UNIQUAC with sourced
-  binaries). That is not possible until core #315; the azeotrope-limited values (2.5 wt% and
+  binaries). That is not possible until core's property-package qualification; the azeotrope-limited values (2.5 wt% and
   14 wt% methanol, the 0.08 wt% water saturation) are estimates (I-02).
 - `scripts/ib_balance.py` line by line. I checked its results against hand calculations only.
 - The line-list DN against velocities.

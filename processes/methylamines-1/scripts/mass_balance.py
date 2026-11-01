@@ -13,7 +13,7 @@ Model (every choice is a DESIGN.md decision, values ASSUMED unless a source is n
 - columns as sharp splits (D-008); the only loss is methanol in the wastewater (100 ppm(wt));
 - enthalpies: ideal gas from the cp_R polynomials, liquid = ideal gas minus the heat of
   vaporisation of each component (thermo 0.6.1), no mixing enthalpy; reboiler duty from the
-  column energy balance with condenser duty (R + 1) D dHvap (D-006: +/-30 %, core #315).
+  column energy balance with condenser duty (R + 1) D dHvap (D-006: +/-30 %).
 """
 import math
 from pathlib import Path

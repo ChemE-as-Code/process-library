@@ -7,11 +7,11 @@ ChemE-as-Code/process-library#178.
 
 Run record of this stage (2026-10-28): library branch `case/alumina-1` from `5ecbd1e`;
 cheme-as-code 0.8.0 (pyDEXPI 2.1.0), Python 3.15.0; DWSIM not used. Core dependencies as
-reported in the #178 comments (not re-audited against core main in this run): core #364 adds an
+reported in the #178 comments (not re-audited against core main in this run): core adds an
 electrolyte route for aqueous NaCl only, so NaOH-NaAl(OH)4-H2O liquors stay unsupported; core
-#365 supports one-solute crystallisers and solid separations with sourced solubility (gibbsite
+supports one-solute crystallisers and solid separations with sourced solubility (gibbsite
 from an impure multi-component caustic aluminate liquor is not that case: imposed yield); core
-#370 (`cheme process furnace`) covers limestone calcination only and refuses gibbsite
+`cheme process furnace` covers limestone calcination only and refuses gibbsite
 (`cheme.furnace-unsupported`).
 
 ## 1. Route and boundary memo
@@ -112,7 +112,7 @@ fill at 351 K (ASSUMED), seed charge 250 g/L, seed and product slurries 1 kg liq
 hydrate, hydrate cake 8 wt% free water after washing with 0.25 kg/kg; occluded soda sets the
 product's 0.40 % Na2O (ASSUMED). The evaporators return the liquor to 250 g/L (water removal
 solved, 0.42 t/t). Rejected: a gibbsite solubility or precipitation-kinetics model (core
-#364/#365 do not cover caustic aluminate; no sourced equilibrium for this liquor in this run).
+core does not cover caustic aluminate; no sourced equilibrium for this liquor in this run).
 Assumptions: carbonate, oxalate, organics, chloride and sulfate of real liquors are not
 carried; the A/C values are typical design choices to be replaced by a sourced or simulated
 equilibrium.
@@ -134,14 +134,14 @@ digestion, coal-fired steam and older plants; the ICSOBA 2024 AA05 abstract puts
 about 55 % and calcination at about 35 % of a refinery's energy, i.e. steam about 1.6 times
 the calciner; here it is 0.9 times. The steam figure is therefore likely LOW: no tank and
 pipe losses, no heat for pre-desilication residence, ideal heat recovery and no steam to
-other users. Rejected: DWSIM (refuses the electrolytes and solids, core #364/#365).
+other users. Rejected: DWSIM (refuses the electrolytes and solids).
 
 ## D-008 Calcination (2026-10-28)
 Decision: gas suspension calciner on natural gas (taken as methane, LHV 50 MJ/kg), specific
 energy 2.8 GJ/t alumina LHV, ASSUMED a little above the about 2.72 GJ/t that the ICSOBA 2017
 paper AA22 (abstract level) reports as an average for gas suspension calciners; air excess
 1.15 (ASSUMED); complete calcination and soda fixation (CALC, SODA, COMB). Flue gas leaves at
-423 K after the ESP. Reason: `cheme process furnace` refuses gibbsite calcination (core #370
+423 K after the ESP. Reason: `cheme process furnace` refuses gibbsite calcination (core's furnace energy
 covers limestone only), so this is the labelled specific-energy fallback. A self-made
 enthalpy estimate (reaction 1.81 GJ/t from formation enthalpies, moisture, flue gas and
 product sensible heat) gives about 2.5 GJ/t before losses, consistent with the sourced value.
@@ -209,9 +209,9 @@ Key recycles: spent liquor 2006 t/h (16.1 t/t alumina), seed slurry 853 t/h, was
   Mass, component and element balances close (`balanced.balances-closed` ok). The design
   maturity claim stays `concept` (the lowest the manifest has); cheme warns that it exceeds
   the evidence.
-- **Gated by core**: caustic aluminate speciation and gibbsite solubility (core #364 covers
-  aqueous NaCl only; core #365 needs a single sourced solute) - the A/C values of digestion
-  and precipitation stay specifications; gibbsite calcination energy (core #370 limestone
+- **Gated by core**: caustic aluminate speciation and gibbsite solubility (core's electrolyte support covers
+  aqueous NaCl only; core's solids support needs a single sourced solute) - the A/C values of digestion
+  and precipitation stay specifications; gibbsite calcination energy (core's furnace energy covers limestone
   only: `cheme.furnace-unsupported`); energy closure of the blocks (no property package for
   the liquors and solids, `cheme process props --coverage`).
 - **Open process inputs** (would replace ASSUMED values): a refinery or licensor liquor

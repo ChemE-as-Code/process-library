@@ -76,7 +76,7 @@ No critical or high finding.
 ## Not reviewed / limits
 
 - No P&IDs, layout, HAZOP, datasheets or TEA exist (outside the issue scope).
-- The condenser and scrubber energies cannot be cross-checked in core (core #315, #364); the
+- The condenser and scrubber energies cannot be cross-checked in core; the
   condenser duties were checked by hand above, the scrubber energy gave R-01.
 - CO dissolved in the liquid phosgene and CCl4 formation are not modelled; both are disclosed
   in D-005 as open items and were not raised again.

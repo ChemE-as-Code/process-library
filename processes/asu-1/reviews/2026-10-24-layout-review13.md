@@ -29,7 +29,7 @@ It covers `git diff origin/main...HEAD`:
 - 2bc2850 D-084 (valves out of reach);
 - 70af126 D-085 (supports);
 - eb403e7 D-086 (review12 lows);
-- ca0c32b (rebuild with core #105);
+- ca0c32b (rebuild with a core fix);
 - 235f66e D-087 (S14 / S15 / S16 props).
 
 The reviewer designed none of this. cheme-as-code is the global `cheme` 0.7.0 (core main with
