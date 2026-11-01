@@ -259,7 +259,7 @@ The `issue-labels` workflow turns the form fields into labels:
 - Use the **Process development** form for a canonical chemical or process issue, and the
   **Process development tracker** form for batches.
 - See [the tracking guide](docs/process-development.md) and
-  [tracker #114](https://github.com/ChemE-as-Code/process-library/issues/114) for issue links,
+  [tracker #306](https://github.com/ChemE-as-Code/process-library/issues/306) for issue links,
   reference records, labels and GitHub Project setup.
 - Workflow status, entry tier, calculation maturity, design maturity, review status and
   publication approval are separate.

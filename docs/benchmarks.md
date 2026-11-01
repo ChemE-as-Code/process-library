@@ -120,7 +120,7 @@ in `families`.
   (`<out>/benchmarks.json`) is unallocated; the LCI build's (`<out>/lci/benchmarks.json`, listed
   in `index.json`) adds `allocated`. A public build holds the public processes only. CI keeps the
   public catalog's report with the catalog artifact, and the release draft keeps the LCI build's
-  (#50), so a comparison a paper reports can be traced to one commit (#85).
+  (#50), so a comparison a paper reports can be traced to one commit (#303).
 
 Both additions are additive: no existing field changes.
 

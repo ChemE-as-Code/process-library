@@ -331,7 +331,7 @@ def test_catalog_carries_the_same_kpis(tmp_path: Path) -> None:
 
 @needs_core
 def test_both_builds_store_the_benchmark_report(tmp_path: Path) -> None:
-    """benchmarks.json (#85): every result with its process and dataset, the counts by status;
+    """benchmarks.json (#303): every result with its process and dataset, the counts by status;
     the LCI build's adds the allocated values and is listed in index.json."""
     library = _library(tmp_path)
     assert build_catalog.build(library, tmp_path / "cat", None, "fixture").errors == []

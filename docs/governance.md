@@ -1,7 +1,7 @@
 # Governance of the Atlas LCI database
 
 > **Status: draft for the owner's review** (process-library#50). Section 6, the data contribution
-> policy, is a **DRAFT for TU Delft legal** (website#6) and has no force until legal and the
+> policy, is a **DRAFT for TU Delft legal** (website#144) and has no force until legal and the
 > owner have approved it.
 
 How the Atlas LCI database is versioned, released, reviewed and fed with contributed data. The
@@ -172,7 +172,7 @@ report does not yet list a superseded dataset with its successor (follow-up).
 
 ## 6. Data contribution policy (DRAFT for TU Delft legal)
 
-> **DRAFT.** Not approved. Written for review by TU Delft legal (website#6) and the owner. It is
+> **DRAFT.** Not approved. Written for review by TU Delft legal (website#144) and the owner. It is
 > not legal advice and grants no rights. Numbers marked PROPOSED are open for decision.
 
 **Scope.** Measured or industrial data (operating data, bills of material, emission measurements)
