@@ -1,10 +1,98 @@
-# Simulation specs. Schema: `cheme schema process-simulation`.
-# Not a simulation model yet: no property package of cheme or DWSIM is qualified for nitrous gas
-# with water and aqueous nitric acid, and the absorber needs a reactive-absorption model
-# (DESIGN.md D-012). This file only declares the two adiabatic reactors, so that the
-# boundary check knows they exchange no heat with a utility.
+# The DWSIM model of nitric-acid-1 (`cheme process simulate`; schema `cheme schema
+# process-simulation`). Decision D-015 in DESIGN.md: what is simulated, what is left out and why.
+# Every spec repeats a design choice of DESIGN.md or of the concept balance
+# scripts/hno3_balance.py (source given) and is ASSUMED like the choice it repeats. Nothing here
+# is a simulation result. First run 2026-11-01 (D-016): converged with these specs unchanged;
+# the outlets and duties of the simulated part are filled in process/flowsheet.yaml and the run
+# is recorded in process/simulation-run.json.
 schema: cheme/simulation/v1
 kind: simulation
+simulator: dwsim
+property_package: Peng-Robinson (PR)
+method_selection:
+  facts:
+    pressure_value: 1150              # highest gas-phase pressure: NOx compressor discharge S21 (D-003); the liquid NH3 feed S01 (1600) is let down in E-101/E-108
+    pressure_unit: kPa
+    is_polar: true                    # water (air humidity, burner water) and ammonia (feed, SCR) are polar
+    is_electrolyte: false             # no aqueous HNO3 in the simulated part: every step that forms or carries it is excluded below (D-015)
+    has_pseudocomponents: false       # eight pure compounds with CAS numbers (materials.yaml, D-006)
+    interaction_parameters_available: false  # no sourced PR kij for the NOx / water / ammonia pairs was looked up; the conservative answer
+    liquid_liquid_expected: false     # the only liquids are pure NH3 (E-101, E-108 inlets) and water condensing in E-107
+    vapor_association_expected: true  # NO2 dimerises to N2O4 strongly at 1150 kPa, 313-430 K (physically expected); D-006 lumps N2O4 into NO2, so it is not modelled. At this pressure the method recommendation is unchanged
+  # No `substitution:` recorded on purpose: the selection recommends PSRK or PR / RKS with
+  # modified Huron-Vidal mixing rules for a polar mixture without kij, the route runs none of
+  # them, and methods.yml names Peng-Robinson as their substitute. Accepting that substitution is
+  # a reviewer's call (D-015), so `cheme.process-sim-method-not-recommended` stays a warning until
+  # then.
+# Left out (D-015): every step that forms, carries or absorbs aqueous nitric acid, because the
+# DWSIM route has no electrolyte package and refuses HNO3 with water
+# (cheme.process-sim-electrolyte) and the reactive absorption has no model (D-008, core #315);
+# and the steps core's translation cannot map as drawn:
+# - E105, the cooler-condenser: its conversion reactions form HNO3 (NO_ABS) beside the NO
+#   oxidation (NO_OX), in one step, so the NO oxidation is left out with it;
+# - V101 (weak-acid separator) and P101 (weak-acid pump): aqueous HNO3;
+# - C101 (absorber) and C102 (bleacher): reactive absorption with three inlets (C-101) and two
+#   (C-102); a component_separator takes one inlet and two outlets and keeps every component's
+#   flow, so it cannot stand for HNO3 formed from NO2 (D-015);
+# - R102 (tertiary reactor): two material inlets (tail gas and SCR ammonia) and the DWSIM
+#   conversion reactor takes one; the flowsheet has no mixer for the ammonia injection (D-015,
+#   follow-up F-2);
+# - K102 (NOx compressor) and X101 (tail-gas expander): the machine train is drawn as energy
+#   streams between units (Q01, Q02) and K-102 takes two (Q02, Q03); core's translation refuses
+#   both (cheme.process-sim-unmapped). Their specs below are ready for when the train is
+#   decoupled (D-015, follow-up F-3). K101 is simulated; its power goes to Q01.
+# Streams from the excluded steps into the simulated part (S16, S19, S21, S25) are feeds with
+# their flowsheet values; streams into them (S05, S14, S20, S23, S27) are simulated outlets.
+exclude: [E105, V101, P101, C101, C102, R102, K102, X101]
 specs:
-  R101: {mode: adiabatic}   # D-005: adiabatic gauze; its heat leaves with the burner gas to E-102
-  R102: {mode: adiabatic}   # D-009: adiabatic tertiary reactor
+  # ---- PREP (D-004, D-009, D-011)
+  E101:
+    # liquid NH3 1600 kPa(a) to vapour at 600 kPa(a): the let-down valve ahead of the evaporator
+    # is not a flowsheet step, so its drop is put on E-101
+    outlet_temperature: {value: 288.15, provenance: assumed, source: "scripts/hno3_balance.py T_NH3V (D-010 balance): NH3 vapour to the mixer at 600 kPa(a)"}
+    pressure_drop: {value: 1000, unit: kPa, provenance: assumed, source: "D-004 (1600 kPa(a) liquid) and scripts/hno3_balance.py P_NH3V (600 kPa(a) evaporation): let-down lumped into E-101"}
+  E108:
+    outlet_temperature: {value: 323.15, provenance: assumed, source: "scripts/hno3_balance.py T_NH3S (D-010 balance; D-009: SCR ammonia vapour above the tail-gas pressure)"}
+    pressure_drop: {value: 300, unit: kPa, provenance: assumed, source: "D-004 (1600 kPa(a)) and D-009 (1300 kPa(a)): let-down lumped into E-108"}
+  K101:
+    outlet_pressure: {value: 520, provenance: assumed, source: D-003}
+    efficiency: {value: 0.85, provenance: assumed, source: "D-011: isentropic efficiency of K-101"}
+  # S102 and S101: split fractions on the flowsheet steps (scripts/hno3_balance.py, D-008, D-009)
+  # M101: DWSIM mixes at the lowest inlet pressure (520 kPa(a)); the 10 kPa the concept balance
+  # gave the mixer (520 -> 510) is put on R-101
+  # ---- OX (D-003, D-005, D-011)
+  R101:
+    mode: adiabatic
+    pressure_drop: {value: 30, unit: kPa, provenance: assumed, source: "D-003: 520 -> 490 kPa(a) over M-101 + R-101; split per scripts/hno3_balance.py P_K101 520 -> P_MIX 510 -> P_R101 490"}
+  E102:
+    outlet_temperature: {value: 793.15, provenance: assumed, source: "scripts/hno3_balance.py T_E102 (D-010 balance): boiler outlet set for the tail-gas heater approach"}
+    pressure_drop: {value: 5, unit: kPa, provenance: assumed, source: "scripts/hno3_balance.py: P_R101 490 -> P_E102 485 kPa(a) (D-003: 5-20 kPa per exchanger)"}
+  E103:
+    # the tail gas is heated to the tertiary reactor inlet; the process-gas outlet follows
+    cold_outlet_temperature: {value: 703.15, provenance: assumed, source: "D-009: tertiary reactor inlet"}
+    hot_pressure_drop: {value: 5, unit: kPa, provenance: assumed, source: "scripts/hno3_balance.py: P_E102 485 -> P_E103 480 kPa(a) (D-003: 5-20 kPa per exchanger)"}
+    cold_pressure_drop: {value: 20, unit: kPa, provenance: assumed, source: "scripts/hno3_balance.py: P_E106C 1090 -> P_E103C 1070 kPa(a) (D-003: 5-20 kPa per exchanger)"}
+  E104:
+    outlet_temperature: {value: 453.15, provenance: assumed, source: "scripts/hno3_balance.py T_E104 (D-010 balance): economiser outlet"}
+    pressure_drop: {value: 5, unit: kPa, provenance: assumed, source: "scripts/hno3_balance.py: P_E103 480 -> P_E104 475 kPa(a) (D-003: 5-20 kPa per exchanger)"}
+  # ---- ABS, the gas side only (D-003, D-011); M102 mixes at the lowest inlet pressure
+  K102:
+    outlet_pressure: {value: 1150, provenance: assumed, source: D-003}
+    efficiency: {value: 0.80, provenance: assumed, source: "D-011: isentropic efficiency of K-102"}
+  E106:
+    # the tail gas is heated to 30 K below the NOx compressor discharge of the concept balance
+    # (427.96 K); the NOx gas outlet follows
+    cold_outlet_temperature: {value: 397.96, provenance: assumed, source: "scripts/hno3_balance.py E106 (D-010 balance): 30 K approach to the NOx compressor discharge"}
+    hot_pressure_drop: {value: 10, unit: kPa, provenance: assumed, source: "scripts/hno3_balance.py: P_K102 1150 -> P_E106 1140 kPa(a) (D-003: 5-20 kPa per exchanger)"}
+    cold_pressure_drop: {value: 10, unit: kPa, provenance: assumed, source: "scripts/hno3_balance.py: P_TAIL 1100 -> P_E106C 1090 kPa(a) (D-003: 5-20 kPa per exchanger)"}
+  E107:
+    # water condenses here in the model (about 0.9 mol% at 1130 kPa(a), 313 K); the outlet is
+    # one stream, the condensate stays in it (D-015)
+    outlet_temperature: {value: 313.15, provenance: assumed, source: "scripts/hno3_balance.py T_E107 (D-010 balance): absorber gas inlet"}
+    pressure_drop: {value: 10, unit: kPa, provenance: assumed, source: "scripts/hno3_balance.py: P_E106 1140 -> P_C101 1130 kPa(a) (D-003: 5-20 kPa per exchanger)"}
+  # ---- TGT (D-003, D-009, D-011)
+  R102: {mode: adiabatic}   # excluded; kept for the boundary check (no heat exchanged with a utility, D-009)
+  X101:
+    unit: expander     # DrivingByTurbine maps to no unit by its class
+    efficiency: {value: 0.85, provenance: assumed, source: "D-011: isentropic efficiency of X-101"}
+    pressure_drop: {value: 935, unit: kPa, provenance: assumed, source: "scripts/hno3_balance.py: X-101 inlet P_R102 - 10 = 1040 -> P_STACK 105 kPa(a)"}   # the script takes 20 kPa over R-102 (1070 -> 1050), D-003 says 30 kPa; open, see D-015
