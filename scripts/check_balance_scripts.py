@@ -41,8 +41,17 @@ Tolerances: ``|flowsheet - script| <= abs + rel * |script|``.
   compared with zero;
 - ``phase``: equal.
 
-Exit status: 1 when any migrated script has a drift, a missing value or an error (``--strict``:
-also when a cited script is not migrated), else 0. ``--markdown`` writes the drift table that a
+Known deviations: ``scripts/balance_known_deviations.yaml`` (``--known``) lists findings that
+await an owner decision, each with the flowsheet value and the script value observed and a reason
+that names where it is decided. A finding that matches an entry (same process, script, case,
+stream, quantity and status; flowsheet value equal; script value within abs 0.01 + rel 1e-4) is
+reported as ``known`` and does not fail. If either value moves, it fails again; an entry that
+matches no finding of a script that ran is ``stale`` and fails, so the list shrinks with its
+deviations.
+
+Exit status: 1 when any migrated script has a drift, a missing value or an error that is not a
+known deviation, or the known list has a stale entry (``--strict``: also when a cited script is
+not migrated), else 0. ``--markdown`` writes the drift table that a
 pull request carries; ``--json`` the full report.
 
 Run it with the cheme of library CI (pinned in .github/workflows/validate.yml): ``uv run
@@ -75,6 +84,8 @@ FIXED_TOLERANCE = {
     "pressure": {"abs": 0.5, "rel": 0.001},
     "composition": {"abs": 1e-4, "rel": 0.005},
 }
+KNOWN_FILE = Path("scripts") / "balance_known_deviations.yaml"
+KNOWN_SCRIPT_TOL = {"abs": 0.01, "rel": 1e-4}
 SOURCE = re.compile(r"^\s*(scripts/[\w.\-]+\.py)\b")
 TIMEOUT_S = 900
 
@@ -101,11 +112,12 @@ class Finding:
     case: str
     stream: str
     quantity: str
-    status: str  # ok | drift | missing
+    status: str  # ok | drift | missing | known (matches an entry of the known-deviation list)
     flowsheet: object = None
     script_value: object = None
     deviation: float | None = None
     allowed: float | None = None
+    note: str = ""
 
 
 @dataclass
@@ -120,7 +132,7 @@ class ScriptResult:
     @property
     def failed(self) -> bool:
         return self.status in ("error", "missing-script") or any(
-            f.status != "ok" for f in self.findings
+            f.status not in ("ok", "known") for f in self.findings
         )
 
 
@@ -275,6 +287,63 @@ def compare(process: str, cited: Cited, emitted: dict, flowsheet: dict) -> list[
     ]
 
 
+def load_known(path: Path) -> list[dict]:
+    """The entries of a known-deviation file; an absent file is an empty list."""
+    if not path.is_file():
+        return []
+    doc = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    entries = doc.get("known") or []
+    keys = ("process", "script", "case", "stream", "quantity", "status", "reason")
+    for e in entries:
+        lacking = [k for k in keys if not e.get(k)]
+        if lacking:
+            raise ValueError(f"{path}: known entry {e!r} lacks {', '.join(lacking)}")
+    return entries
+
+
+def _same(observed: object, recorded: object, tol: dict | None) -> bool:
+    if recorded is None or observed is None:
+        return recorded is None and observed is None
+    a, b = _number(observed), _number(recorded)
+    if a is None or b is None:
+        return str(observed) == str(recorded)
+    if tol is None:
+        return a == b
+    return abs(a - b) <= tol["abs"] + tol["rel"] * abs(b)
+
+
+def matches_known(f: Finding, entry: dict) -> bool:
+    keys = ("process", "script", "case", "stream", "quantity", "status")
+    if any(str(getattr(f, k)) != str(entry[k]) for k in keys):
+        return False
+    return _same(f.flowsheet, entry.get("flowsheet"), None) and _same(
+        f.script_value, entry.get("script_value"), KNOWN_SCRIPT_TOL
+    )
+
+
+def apply_known(results: list[ScriptResult], known: list[dict]) -> set[int]:
+    """Mark findings that match a known entry as ``known``; return the indices of those entries."""
+    used = set()
+    for r in results:
+        for f in r.findings:
+            if f.status not in ("drift", "missing"):
+                continue
+            for i, entry in enumerate(known):
+                if matches_known(f, entry):
+                    f.status, f.note = "known", " ".join(str(entry["reason"]).split())
+                    used.add(i)
+                    break
+    return used
+
+
+def stale_known(results: list[ScriptResult], known: list[dict], used: set[int]) -> list[dict]:
+    """Entries that match no finding of a script that was checked (others are not judged)."""
+    checked = {(r.process, r.script) for r in results if r.status == "checked"}
+    return [
+        e for i, e in enumerate(known) if i not in used and (e["process"], e["script"]) in checked
+    ]
+
+
 def is_migrated(script: Path) -> bool:
     try:
         return ENV in script.read_text(encoding="utf-8")
@@ -372,16 +441,17 @@ def _fmt(x: object) -> str:
     return "" if x is None else str(x)
 
 
-def markdown(results: list[ScriptResult]) -> str:
+def markdown(results: list[ScriptResult], stale: list[dict] | None = None) -> str:
     lines = [
-        "| process | script | status | cited | ok | drift | missing |",
-        "|---|---|---|---:|---:|---:|---:|",
+        "| process | script | status | cited | ok | drift | missing | known |",
+        "|---|---|---|---:|---:|---:|---:|---:|",
     ]
+    statuses = ("ok", "drift", "missing", "known")
     for r in results:
-        n = {s: sum(f.status == s for f in r.findings) for s in ("ok", "drift", "missing")}
+        n = {s: sum(f.status == s for f in r.findings) for s in statuses}
         lines.append(
             f"| {r.process} | `{r.script}` | {r.status} | {r.cited} | {n['ok']} | "
-            f"{n['drift']} | {n['missing']} |"
+            f"{n['drift']} | {n['missing']} | {n['known']} |"
         )
     bad = [f for r in results for f in r.findings if f.status != "ok"]
     if bad:
@@ -399,12 +469,24 @@ def markdown(results: list[ScriptResult]) -> str:
     errors = [r for r in results if r.message and r.status in ("error", "missing-script")]
     if errors:
         lines += ["", "Errors:", ""] + [f"- {r.process} `{r.script}`: {r.message}" for r in errors]
+    known = [f for r in results for f in r.findings if f.status == "known"]
+    if known:
+        lines += ["", f"Known deviations (`{KNOWN_FILE.as_posix()}`, not failing):", ""]
+        lines += [f"- {f.process} {f.case}/{f.stream}.{f.quantity}: {f.note}" for f in known]
+    if stale:
+        lines += ["", "Stale known-deviation entries (failing):", ""]
+        lines += [
+            f"- {e['process']} {e['case']}/{e['stream']}.{e['quantity']} ({e['status']})"
+            for e in stale
+        ]
     return "\n".join(lines) + "\n"
 
 
 def _report(res: ScriptResult) -> None:
-    n_bad = sum(f.status != "ok" for f in res.findings)
+    n_bad = sum(f.status not in ("ok", "known") for f in res.findings)
+    n_known = sum(f.status == "known" for f in res.findings)
     extra = f", {n_bad} not ok" if res.findings else ""
+    extra += f", {n_known} known" if n_known else ""
     msg = f" ({res.message})" if res.message else ""
     print(
         f"{res.process:28s} {res.script:36s} {res.status:13s} {res.cited:4d} cited{extra}{msg}",
@@ -415,7 +497,8 @@ def _report(res: ScriptResult) -> None:
             bound = f" (|d| {f.deviation:.4g} > {f.allowed:.4g})" if f.deviation is not None else ""
             print(
                 f"    {f.case}/{f.stream}.{f.quantity}: {f.status} flowsheet "
-                f"{_fmt(f.flowsheet)} script {_fmt(f.script_value)}{bound}",
+                f"{_fmt(f.flowsheet)} script {_fmt(f.script_value)}{bound}"
+                + (f"\n      known deviation: {f.note}" if f.note else ""),
                 flush=True,
             )
 
@@ -439,6 +522,11 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="also run scripts without the contract, for their exit code",
     )
+    parser.add_argument(
+        "--known",
+        type=Path,
+        help=f"known-deviation list (default: <library>/{KNOWN_FILE.as_posix()} if present)",
+    )
     parser.add_argument("--strict", action="store_true", help="fail on not-migrated scripts too")
     parser.add_argument("--markdown", type=Path, help="write the summary and drift table here")
     parser.add_argument("--json", type=Path, help="write the full report here")
@@ -457,23 +545,37 @@ def main(argv: list[str] | None = None) -> int:
     for folder in folders:
         if not folder.is_dir():
             parser.error(f"no process folder {folder}")
+    known_path = args.known or args.library / KNOWN_FILE
+    if args.known and not known_path.is_file():
+        parser.error(f"no known-deviation file {known_path}")
+    known = load_known(known_path)
+    used: set[int] = set()
     with ThreadPoolExecutor(max_workers=max(1, args.jobs)) as pool:
         per_process = pool.map(
             lambda folder: check_process(folder, cheme, args.run_unmigrated), folders
         )
         results: list[ScriptResult] = []
         for batch in per_process:  # in folder order, as each one finishes
+            used |= apply_known(batch, known)
             for res in batch:
                 results.append(res)
                 _report(res)
+    stale = stale_known(results, known, used)
+    for e in stale:
+        print(
+            f"stale known deviation: {e['process']} {e['case']}/{e['stream']}.{e['quantity']} "
+            f"({e['status']}) matches no finding; remove or update it in {known_path}",
+            flush=True,
+        )
     if args.markdown:
-        args.markdown.write_text(markdown(results), encoding="utf-8")
+        args.markdown.write_text(markdown(results, stale), encoding="utf-8")
     if args.json:
         args.json.write_text(
             json.dumps([asdict(r) | {"failed": r.failed} for r in results], indent=1, default=str),
             encoding="utf-8",
         )
     failed = [r for r in results if r.failed or (args.strict and r.status == "not-migrated")]
+    n_known = sum(f.status == "known" for r in results for f in r.findings)
     counts = {
         s: sum(r.status == s for r in results)
         for s in ("checked", "not-migrated", "error", "missing-script")
@@ -481,9 +583,9 @@ def main(argv: list[str] | None = None) -> int:
     print(
         f"\n{len(results)} scripts: "
         + ", ".join(f"{v} {k}" for k, v in counts.items())
-        + f"; {len(failed)} failing"
+        + f"; {len(failed)} failing; {n_known} known deviations; {len(stale)} stale entries"
     )
-    return 1 if failed else 0
+    return 1 if failed or stale else 0
 
 
 if __name__ == "__main__":

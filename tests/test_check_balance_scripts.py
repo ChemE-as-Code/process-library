@@ -238,3 +238,64 @@ def test_long_form_carries_a_basis_that_must_match():
     flow = cbs.cited_values(FLOWSHEET)[0]
     (f,) = cbs.compare("p", flow, {"design": {"S1": {"flow": {"value": 1000.0}}}}, FLOWSHEET)
     assert f.status == "ok"
+
+
+def _known(tmp_path: Path, entries: list[dict]) -> Path:
+    path = tmp_path / "known.yaml"
+    path.write_text(yaml.safe_dump({"known": entries}))
+    return path
+
+
+KNOWN_Q1 = {
+    "process": "p-1",
+    "script": "scripts/bal.py",
+    "case": "design",
+    "stream": "Q1",
+    "quantity": "duty",
+    "status": "drift",
+    "flowsheet": 50.0,
+    "script_value": 60.0,
+    "reason": "pending owner decision, process-library#292",
+}
+
+
+def test_known_deviation_is_reported_but_does_not_fail(tmp_path, cheme):
+    _process(tmp_path, {**GOOD, "Q1": {"duty": 60.0}})
+    md = tmp_path / "drift.md"
+    argv = ["--library", str(tmp_path), "--cheme", " ".join(f'"{c}"' for c in cheme)]
+    assert cbs.main(argv) == 1  # no known list: the drift fails
+    known = _known(tmp_path, [KNOWN_Q1])
+    assert cbs.main([*argv, "--known", str(known), "--markdown", str(md)]) == 0
+    text = md.read_text(encoding="utf-8")
+    assert "| p-1 | design | Q1 | duty | known |" in text
+    assert "process-library#292" in text
+
+
+def test_known_deviation_fails_again_when_a_value_moves(tmp_path, cheme):
+    _process(tmp_path, {**GOOD, "Q1": {"duty": 61.0}})  # recorded script value is 60.0
+    known = _known(tmp_path, [KNOWN_Q1])
+    argv = ["--library", str(tmp_path), "--cheme", " ".join(f'"{c}"' for c in cheme)]
+    assert cbs.main([*argv, "--known", str(known)]) == 1
+
+
+def test_stale_known_entry_fails(tmp_path, cheme):
+    _process(tmp_path, GOOD)  # Q1 agrees now: the entry matches nothing
+    known = _known(tmp_path, [KNOWN_Q1])
+    argv = ["--library", str(tmp_path), "--cheme", " ".join(f'"{c}"' for c in cheme)]
+    assert cbs.main([*argv, "--known", str(known)]) == 1
+
+
+def test_known_missing_value_matches_without_script_value(tmp_path, cheme):
+    _process(tmp_path, {"S1": GOOD["S1"]})  # Q1 missing
+    entry = {k: v for k, v in KNOWN_Q1.items() if k != "script_value"} | {"status": "missing"}
+    known = _known(tmp_path, [entry])
+    argv = ["--library", str(tmp_path), "--cheme", " ".join(f'"{c}"' for c in cheme)]
+    assert cbs.main([*argv, "--known", str(known)]) == 0
+
+
+def test_library_known_deviation_file_is_well_formed():
+    entries = cbs.load_known(KIT / cbs.KNOWN_FILE)
+    assert entries, "the known-deviation list is expected to exist while entries are pending"
+    for e in entries:
+        assert "process-library#" in e["reason"]
+        assert (KIT / "processes" / e["process"] / e["script"]).is_file()

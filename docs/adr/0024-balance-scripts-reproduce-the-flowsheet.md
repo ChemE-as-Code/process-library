@@ -67,7 +67,8 @@ Options considered:
   checker over the library with `--strict` and puts its table in the job summary. It fails on
   drift, missing values and errors, and on a cited script that does not follow the contract
   (`not-migrated`): every script cited today follows it, so a new one must too. Without
-  `--strict` (a local run) a `not-migrated` script is only listed.
+  `--strict` (a local run) a `not-migrated` script is only listed. Deviations awaiting an owner
+  decision are listed in `scripts/balance_known_deviations.yaml` (see Consequences).
 - **Changing a number.** A script change that moves a cited value updates the flowsheet in the
   same commit. Drift that the checker finds is reported and decided by the process owner; only a
   plain transcription error is corrected without a design decision.
@@ -86,9 +87,20 @@ Options considered:
   themselves run in seconds).
 - Values the flowsheet cites from documents (`D-00x`) or from core's own calculations are out of
   scope; so are equipment sizes and costs a script may also print.
-- The first run found two values that do not reproduce (chloromethane-1 Q01, thf-1 S9
-  temperature); they are reported in the pull request and left to the process owner, so the
-  job stays red until they are decided.
+- The first run found two values that do not reproduce, left to the process owner:
+  chloromethane-1 Q01 (the flowsheet subtracts core's Q03 = 546.4 kW from the script's gross
+  E101 duty, the script its own estimate Q03 = 570.0 kW: a choice of basis, not a stale paste)
+  and thf-1 S9 temperature (the script computes none; 339.6 K is the azeotrope temperature it
+  prints). They are listed in `scripts/balance_known_deviations.yaml`, with the observed values
+  and a reference to where they are decided. A finding that matches an entry is reported as
+  `known` and does not fail the job; if either value moves it fails again, and an entry that
+  matches nothing is `stale` and fails, so the list cannot outlive its deviations.
+- Coverage is limited to values whose `source` starts with the script path. Values that cite a
+  script only part-way through the source text, as supporting context (today 61 stream values
+  in 12 processes, e.g. `"= S21 (D-008); scripts/hno3_balance.py ..."`), are not checked. Open:
+  normalise those sources or have the checker list them as `unchecked`.
+- The basis of a flow or composition is compared only when the script uses the long form and
+  the flowsheet entry carries a basis; otherwise a mass/mole mismatch shows only as drift.
 - Open: consider moving the helper into core (`cheme run` could set and read `BALANCE_OUTPUT`
   itself) if more projects outside the library adopt the pattern.
 
@@ -99,5 +111,5 @@ Options considered:
 - Migrated scripts: `processes/{hydrogen-1,methanol-1,hda-1,nitric-acid-1}/scripts/` first,
   then every other process whose flowsheet cites a script (branch
   `quality/balance-script-reproducibility`).
-- [CONTRIBUTING.md](../../CONTRIBUTING.md), "A balance script whose numbers go into the
+- `CONTRIBUTING.md` (repository root), "A balance script whose numbers go into the
   flowsheet"
