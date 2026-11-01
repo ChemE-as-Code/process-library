@@ -9,7 +9,7 @@
 # - the electrolysers EL301 are checked by `cheme process cell` (process/cells.yaml, D-004):
 #   Faraday, charge, element and energy balance from the specified voltage and efficiency;
 # - temperatures and pressures are design choices (D-007, D-008, D-010), ASSUMED;
-# - electrolyte stream enthalpies are not modelled (core#364): duties outside the cell rest on
+# - electrolyte stream enthalpies are not modelled: duties outside the cell rest on
 #   constant heat capacities and latent heats in scripts/balance.py (D-006).
 schema: cheme/process/v1
 kind: flowsheet
@@ -413,7 +413,7 @@ steps:
 
 # Material streams: flow (kg/h) and composition (mass fractions) from scripts/balance.py
 # (D-006); temperatures and pressures D-007/D-008/D-010. All ASSUMED until core qualifies
-# electrolyte balances (core#364).
+# electrolyte balances.
 streams:
   - {id: S1, title: Rock salt, from: SALT.out, to: D101.salt, template: salt, state: {design: {temperature: {value: 288.15, provenance: assumed, source: D-007}, pressure: {value: 101.325, provenance: assumed, source: D-007}, flow: {value: 21390.37, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {NaCl: 0.988, CaSO4: 0.0015, MgCl2: 0.0005, SiO2: 0.005, H2O: 0.005}, provenance: assumed, source: "rock salt analysis, D-003"}}}}
   - {id: S2, title: Make-up process water, from: WATER.out, to: D101.water, template: aqueous, state: {design: {temperature: {value: 288.15, provenance: assumed, source: D-007}, pressure: {value: 300, provenance: assumed, source: D-007}, flow: {value: 11623.03, basis: mass, provenance: assumed, source: scripts/balance.py}, composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: scripts/balance.py}}}}
