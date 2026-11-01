@@ -44,10 +44,17 @@ def mass(kmol):
     return {c: n * M[c] for c, n in kmol.items()}
 
 
+SHOWN = {}  # the streams show() printed, by id (balance-output contract)
+
+
 def show(name, kmol, t, p):
     m = mass(kmol)
     tot = sum(m.values())
     frac = {c: round(v / tot, 7) for c, v in m.items() if v > 0}
+    SHOWN[name.split()[0]] = {"temperature": t, "pressure": p,
+                              "flow": {"value": tot, "basis": "mass"},
+                              "composition": {"values": {c: v / tot for c, v in m.items()},
+                                              "basis": "mass_fraction"}}
     print(f"{name}: T {t:.2f} K, p {p:.1f} kPa(a), flow {tot:.2f} kg/h, mass fractions {frac}")
     return tot
 
@@ -189,3 +196,29 @@ for el, f in {"Cl": {"HCl": 1, "Cl2": 2}, "H": {"HCl": 1, "H2": 2, "H2O": 2},
     ein = cnt(feed_cl2) + cnt(feed_h2) + n_dmw * f.get("H2O", 0)
     eout = cnt(acid) + cnt(vent)
     print(f"element {el}: in {ein:.4f} kmol/h, out {eout:.4f} kmol/h")
+
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
+
+
+# the values process/flowsheet.yaml cites from this script (balance-output contract): the
+# streams as printed by show(), the duties as printed under "energy"
+SHOWN.update({"Q1": {"duty": q_steam / 3600}, "Q2": {"duty": p_bfw + 3.0},
+              "Q3": {"duty": q_cw / 3600}, "Q4": {"duty": p_acid}})
+write_balance_output({"design": SHOWN})

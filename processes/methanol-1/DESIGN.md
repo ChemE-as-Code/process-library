@@ -168,6 +168,54 @@ Decision: design pressure = highest operating pressure + 10 % (at least + 2 bar)
 the HP loop (89 barg); design temperature = highest operating temperature + 25 K. ASSUMED
 concept values; relief and materials (hydrogen service) at basic engineering.
 
+## D-015 Preliminary gate-to-gate LCI, functional unit and exergy allocation (2026-11-01)
+Numbered D-015 because open PR #286 takes D-013 and D-014 here. Regenerate the dataset and the
+exergy values when #286 lands: it replaces the stream values this is built on.
+Decision: `lca/lca.yaml` with functional unit 1 kg of Grade AA methanol (product MEOH, S18) at the
+gate, boundary gate-to-gate as D-001 (no reforming, no storage). Every foreground exchange comes
+from the balanced flowsheet: feeds SYNGAS, POWER, LPS; products MEOH, MPS, PURGE, FUELGAS, WW and
+heat to CW. Backgrounds are `missing:` in the study, so its result is a gap list, not a footprint.
+Allocation: **exergy** among three co-products, MEOH 94.81 %, MPS 3.72 %, FUELGAS 1.47 %
+(`scripts/allocation_exergy.py`, values in `lca/lca.yaml`).
+Purge (I-09, decided by the owner's delegate, the main session, 2026-11-01): **PURGE is not a
+co-product.** It returns to the plant's own reformer fuel, back upstream of feed:SYNGAS, and leaves
+for no third party, so allocating to it would move burden off methanol with nothing receiving it.
+In `lca/lca.yaml` it is `free: true`: the exchange stays in the dataset with its amount (mass and
+carbon balances keep it) and carries no burden and no credit. Its fuel credit belongs in the future
+feed:SYNGAS link, as less fired fuel in the reformer section.
+Alternatives: `none` (unallocated) is computed in `allocation.compare`; exergy with the purge as a
+co-product (MEOH 81.81 %, PURGE 13.71 %, MPS 3.21 %, FUELGAS 1.27 %) is printed by the script and
+stated in `allocation.source`, because core's comparison only computes the listed co-products.
+Reason: docs/system-model.md section 2 makes exported steam and fuels co-products, allocated by
+energy or exergy and never credited. FUELGAS goes to fuel (D-001), so it is not waste, and MPS is
+exported from this boundary. Exergy is the one basis common to the three: LHV gives
+steam nothing (hierarchy step 2 then sends it to step 3), and the WBCSD rule of step 3 needs every
+co-product in kg and sourced prices (MPS is in kWh; no prices at concept). This is not the
+curated `physical-exergy` case (the products are not from one separation), so it is recorded as
+`allocation.deviation`, as hydrogen-1 D-013 and aniline-1 D-013 do.
+Rejected: treating purge and fuel gas as wastes to thermal treatment (ethanol-1, aniline-1 do so
+for their off-gases): both have a named fuel use. Rejected: the purge as a co-product (above).
+Rejected: system expansion (a substitution variant only).
+Two exergy values stand on product:MPS in `lca/dataset.yaml`, each with its own source: the
+allocation uses 1394.0 kJ per kWh of heat (saturated vapour from boiler feed water, the script);
+the exchange's `properties` carry core's generated Carnot value, 1467.8 (isothermal heat at the
+saturation temperature), which the study's value overrides and which cannot be set from here. The
+script checks its value against Carnot and the vapour density.
+Assumptions: boiler feed water at 378.15 K for the steam's exergy (ASSUMED, not in the flowsheet);
+25 a life (ASSUMED). The exergy values depend on the stream table: `scripts/allocation_exergy.py`
+reads the flowsheet, and its printed values must be copied to `lca/lca.yaml` when the streams change.
+Consequence to read with the numbers: the plant has no fired equipment and releases nothing inside
+the boundary. The carbon of purge and fuel gas is burnt outside it, so no direct CO2 appears here,
+and the MPS raised is not netted against the LP steam imported (D-009).
+Mappings for the Atlas (`lca/mappings.yaml`): feed:LPS to `steam-heat` (heat in kWh, as urea-1 and
+others) and product:WW to `wastewater`. feed:POWER and product:CW follow their registry slugs.
+feed:SYNGAS stays a listed gap: no library entry is this gas. Its chemistry entries (H2, CO, CO2,
+CH4) carry no `inventory_key`, because the build would resolve the whole gas through the last
+slug, and a future `methane` entry would link it silently. In `process.yaml` product:MPS and
+product:FUELGAS lost their `inventory_key` too: the slug offered
+the steam to other processes as an Atlas supply, which displaced their links and raised warnings
+that fail `--strict` (as aniline-1 D-013 records), and named the fuel gas "Carbon dioxide".
+
 ## 3. Reaction and model evidence
 
 | item | basis in this case | source and status | consistency check |
@@ -235,3 +283,4 @@ feed (I-01, I-02), the second a qualified separation model or sourced split valu
   script values and close the energy balances.
 - I-07 Read the current O-M-232 Grade AA limits.
 - I-08 Recycle ratio / purge / inerts trade-off and purge hydrogen recovery.
+- I-09 Closed 2026-11-01: the purge, which returns to the reformer fuel, is not a co-product (D-015).

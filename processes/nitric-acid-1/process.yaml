@@ -45,16 +45,17 @@ validation:
     aqueous nitric acid, no reactive-absorption model: core's property-package qualification and electrolyte support). Energy closure is not
     evaluable in core; the script closes its own energy balance to 7 kW of 62 MW. The N2O
     formation and abated emission rest on the IPCC 2006 default factors (Table 3.3), not on
-    plant data. Preliminary cradle-to-gate LCI with every background open (foreground only, gaps), see DESIGN.md D-014.
-    Not reviewed. The chemicals registry has no ammonia, nitric-acid or nitrous-oxide entry yet,
-    so the main feed, the main product and the N2O emission are not listed under chemistry
-    (open library item).
+    plant data. Preliminary cradle-to-gate LCI with every background open (foreground only,
+    gaps), see DESIGN.md D-014. Not reviewed. Main products and feeds are listed under chemistry
+    with their chemicals registry entries (issue #251).
 chemistry:
   inputs:
-    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Ambient air, 1 mol% humidity (ASSUMED). The main feedstock, liquid ammonia (feed:NH3, 0.285 kg/kg HNO3), has no registry entry yet"}
+    - {chemical: ammonia, role: feedstock, note: "feed:NH3: liquid ammonia from storage (e.g. ammonia-1), 0.285 kg/kg HNO3"}
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Ambient air, 1 mol% humidity (ASSUMED)"}
     - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Demineralised process water to the absorber"}
   outputs:
-    - {chemical: steam, role: co-product, inventory_key: "product:HPS", note: "HP steam 4000 kPa(a), 673 K exported (0.71 kWh heat per kg HNO3). The main product, 60 wt% nitric acid (product:ACID), has no registry entry yet"}
+    - {chemical: nitric-acid, role: main-product, inventory_key: "product:ACID", note: "Weak nitric acid 60 wt% to storage, counted by mass of the acid (1.667 kg per kg HNO3)"}
+    - {chemical: steam, role: co-product, inventory_key: "product:HPS", note: "HP steam 4000 kPa(a), 673 K exported (0.71 kWh heat per kg HNO3)"}
     - {chemical: nitrogen, role: emission, inventory_key: "product:STACK", note: "Treated tail gas (N2 with 3 mol% O2); its N2O (2.5 g/kg HNO3) and NO (0.22 g/kg) have no registry entries yet"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Compressor-train motor deficit and pump (ASSUMED electric motor on the train)"}

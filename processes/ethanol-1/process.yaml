@@ -35,19 +35,20 @@ maturity: concept
 validation:
   status: unreviewed
   notes: >-
-    Concept PFD with closed mass, component and element balances in every block and step
-    (cheme validate, cheme process streams). The reactor outlet is calculated by cheme from a
-    sourced per-pass conversion (US 4003952) with assumed selectivities, and its adiabatic
-    energy balance closes on the ideal-gas data; separators, columns, the molecular sieve and
-    all other duties are specified values from an independent script (scripts/balance.py)
-    whose method core cannot qualify for ethylene/water/ethanol. Not reviewed.
-    The chemicals registry has no ethanol, ethylene or by-product entries yet, so the main
-    product and the main feed are not listed under chemistry (open library item).
+    Concept PFD with closed mass, component and element balances in every block and step (cheme
+    validate, cheme process streams). The reactor outlet is calculated by cheme from a sourced
+    per-pass conversion (US 4003952) with assumed selectivities, and its adiabatic energy
+    balance closes on the ideal-gas data; separators, columns, the molecular sieve and all other
+    duties are specified values from an independent script (scripts/balance.py) whose method
+    core cannot qualify for ethylene/water/ethanol. Not reviewed. Main products and feeds are
+    listed under chemistry with their chemicals registry entries (issue #251).
 chemistry:
   inputs:
-    - {chemical: water, role: feedstock, inventory_key: "feed:WATER", note: "Demineralised make-up water: reaction water and the water-loop blowdown. The main feed, polymer-grade ethylene (feed:ETHYLENE), has no registry entry yet"}
+    - {chemical: ethylene, role: feedstock, note: "feed:ETHYLENE: polymer-grade ethylene from a steam cracker (e.g. ethylene-1), 0.646 kg/kg ethanol"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:WATER", note: "Demineralised make-up water: reaction water and the water-loop blowdown"}
   outputs:
-    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Water-loop blowdown, ~100 ppm(wt) ethanol and the neutralised acid. The main product, anhydrous ethanol (product:ETOH), has no registry entry yet"}
+    - {chemical: ethanol, role: main-product, inventory_key: "product:ETOH", note: "Anhydrous ethanol to storage"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Water-loop blowdown, ~100 ppm(wt) ethanol and the neutralised acid"}
     - {chemical: flare-gas, role: waste, inventory_key: "product:FUELGAS", note: "Loop purge and light-ends off-gas (ethylene, ethane, butenes, diethyl ether, ethanol) burned in the site fuel-gas system (a waste with energy recovery outside the boundary, D-013); the registry has no fuel-gas entry, flare-gas is the nearest"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Compressors, process water pump, sieve vacuum pump (ASSUMED electric drives)"}

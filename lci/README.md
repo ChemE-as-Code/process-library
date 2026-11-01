@@ -299,7 +299,7 @@ so every process links to the same documented models instead of its own proxy:
 
 | process | dataset, per | operating range |
 |---|---|---|
-| `utility-steam-ng-boiler` | saturated steam, natural-gas boiler, kg | steam at 11 bar(a) or below, heat up to 184 degC |
+| `utility-steam-ng-boiler` | saturated steam, natural-gas boiler, kg | steam at 11 bar(a) or below, heat up to 184 degC; emission factors for a boiler up to about 30.7 t/h of steam (not checked), above which NOx may be 1.7 to 2.8 times higher |
 | `utility-cooling-tower` | heat rejected, evaporative tower, kWh | cooling water at 25 degC supply or warmer |
 | `utility-wwtp` | wastewater, activated sludge, kg (1 m3 = 1000 kg) | a fixed design COD of 1 kg/m3 (ASSUMED) |
 | `utility-flare` | gas flared, as methane, kg | methane-rich gas |
@@ -316,8 +316,9 @@ so every process links to the same documented models instead of its own proxy:
   element balance is recorded and closed, design maturity is `concept`. Physical properties and
   stoichiometry have their sources; every design parameter (efficiencies, cycles of
   concentration, heads, yields, the ambient state) is **ASSUMED** with a TODO, so the datasets
-  are first-principles screening models with pedigree `[4, 4, 3, 4, 4]`. What each leaves out is
-  in its `system_boundary.excluded` and README (e.g. NOx of the boiler, cooling-water chemicals,
+  are first-principles screening models with pedigree `[4, 4, 3, 4, 4]` (the steam boiler's combustion
+  emissions are cited AP-42 factors, see its README). What each leaves out is
+  in its `system_boundary.excluded` and README (e.g. the boiler's water chemicals, cooling-water chemicals,
   N2O of the WWTP, the chiller's refrigerant losses).
 - **Linking: Atlas first, background as the alternative.** Each utility product has a registry
   slug of kind `utility` (`steam`, `cooling-water`, `wastewater`, `flare-gas`, `chilled-water`,
