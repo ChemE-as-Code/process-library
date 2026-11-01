@@ -9,7 +9,7 @@
   <a href="https://atlas.cheme-as-code.org"><img src="https://img.shields.io/badge/Process_Atlas-atlas.cheme--as--code.org-0b7285" alt="Process Atlas"></a>
   <a href="https://docs.cheme-as-code.org"><img src="https://img.shields.io/badge/Docs-docs.cheme--as--code.org-6f42c1" alt="Docs"></a>
   <a href="LICENSE-DATA"><img src="https://img.shields.io/badge/Data-CC_BY_4.0-lightgrey" alt="Data licence: CC BY 4.0"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/Code-MIT-green" alt="Code licence: MIT"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/Code-AGPL--3.0--or--later-blue" alt="Code licence: AGPL-3.0-or-later"></a>
   <img src="https://img.shields.io/badge/Python-3.12%20%7C%203.13%20%7C%203.14-3776ab" alt="Python 3.12, 3.13, 3.14">
   <a href="https://github.com/ChemE-as-Code/process-library/actions/workflows/validate.yml"><img src="https://github.com/ChemE-as-Code/process-library/actions/workflows/validate.yml/badge.svg" alt="Validate"></a>
   <a href="https://github.com/ChemE-as-Code/process-library/actions/workflows/docs.yml"><img src="https://github.com/ChemE-as-Code/process-library/actions/workflows/docs.yml/badge.svg?event=pull_request" alt="Docs build"></a>
@@ -123,8 +123,10 @@ Everyone who contributes is credited in the git history: see the
 ## License
 
 The process data and designs are licensed under [CC BY 4.0](LICENSE-DATA), unless a process
-states otherwise in its `process.yaml`; third-party data keep their own terms. The code
-(scripts, schemas, the Python package and the tests) is licensed under the [MIT License](LICENSE).
+states otherwise in its `process.yaml`; third-party data keep their own terms. The code (scripts,
+schemas and tests) and the skills and scripts inside process folders are licensed under
+[AGPL-3.0-or-later](LICENSE). The one exception is the small LCI data installer in `python/`, which
+is under the [MIT License](python/LICENSE) so that you can use it in any workflow.
 Copyright (C) 2026 Artur Schweidtmann; TU Delft disclaims copyright interest (see [NOTICE](NOTICE)).
 
 ## Contact

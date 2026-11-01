@@ -9,7 +9,7 @@
 
 Users cite and compare LCI data across releases, so they need to know what changed and whether a
 result moved by design or by correction. Publishing on Zenodo and minting a DOI cannot be undone,
-and the repository mixes MIT code with CC BY 4.0 data. Industrial partners may offer measured
+and the repository mixes AGPL and MIT code with CC BY 4.0 data. Industrial partners may offer measured
 data under restricted terms.
 
 ## Decision

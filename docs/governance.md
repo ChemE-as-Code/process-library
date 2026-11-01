@@ -95,7 +95,7 @@ When the owner decides to release:
       deposits on a published GitHub release and reads `.zenodo.json`; enabling it is itself a
       release decision). Once the integration is on, the root `.zenodo.json` applies to
       **every** GitHub release of the repository, which would then be deposited as the LCI
-      database under CC BY 4.0, although the repository also holds MIT code: tag LCI releases
+      database under CC BY 4.0, although the repository also holds AGPL and MIT code: tag LCI releases
       only, or deposit by hand;
 - [ ] add the DOI to `CITATION.cff` and the database's README in a follow-up commit.
 

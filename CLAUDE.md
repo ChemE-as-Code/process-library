@@ -4,8 +4,9 @@ A change to the library structure, a schema, the LCI pipeline or the publication
 
 ## Sources and licences (applies to every process folder)
 
-Everything in this library is published: data and designs under CC BY 4.0, code under MIT. Only
-put in what we may publish under those licences.
+Everything in this library is published: data and designs under CC BY 4.0, code, skills and
+scripts under AGPL-3.0-or-later, the LCI data installer (`python/`) under MIT. Only put in what
+we may publish under those licences.
 
 - **Never copy third-party content into the library**: no tables, figures, drawings, diagrams,
   P&IDs, datasheet or manual text, screenshots, or passages of papers, books, standards, vendor
@@ -20,5 +21,5 @@ put in what we may publish under those licences.
   own files by `cheme`, never traced or copied from a publication.
 - **Openly licensed material** (e.g. the DEXPI reference P&ID, CC BY 4.0) may be used only with
   its licence and attribution recorded next to it (a `NOTICE.md`), and only if the licence
-  allows publication under CC BY 4.0 / MIT.
+  allows publication under the licence of the place it goes.
 - When unsure whether something may be published, leave it out and ask.
