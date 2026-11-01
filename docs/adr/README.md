@@ -65,3 +65,4 @@ with an ADR in the same pull request.
 | [0024](0024-agpl-for-code-skills-and-scripts.md) | AGPL for code, skills and scripts; MIT for the LCI data installer; CC BY 4.0 for data and designs | Accepted, 2026-11-01; the MIT licence of `python/` awaits the owner's confirmation |
 | [0025](0025-skills-not-in-git.md) | Keep the agent skills out of git; a person installs them with `cheme skills update` | **Proposed**, 2026-11-01 |
 | [0026](0026-public-processes-may-be-preliminary.md) | Public processes may carry LCI mapping gaps, marked preliminary | Accepted, 2026-11-01 |
+| [0027](0027-balance-scripts-reproduce-the-flowsheet.md) | Balance scripts write the values the flowsheet cites; CI re-runs them and compares | **Proposed**, 2026-10-31 |

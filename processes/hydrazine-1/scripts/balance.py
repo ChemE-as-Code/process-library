@@ -52,9 +52,15 @@ def mass(d):
     return {k: v * MW[k] for k, v in d.items() if abs(v) > 1e-12}
 
 
+SHOWN = {}  # the streams show() printed, by id (balance-output contract)
+
+
 def show(name, d_kmol):
     m = mass(d_kmol)
     tot = sum(m.values())
+    SHOWN[name.split()[0]] = {"flow": {"value": tot, "basis": "mass"},
+                              "composition": {"values": {k: v / tot for k, v in m.items()},
+                                              "basis": "mass_fraction"}}
     print(f"{name}: {tot:.3f} kg/h  " + ", ".join(f"{k}: {v / tot:.6f}" for k, v in m.items()))
     return tot
 
@@ -252,6 +258,28 @@ def main():
     for dh_hyd in (25, 50, 75):
         q_hi = top_lat * 3.5 + feed_heat + azn_hyd * dh_hyd / 3.6
         print(f"Q_C401_steam high variant (R 2.5, hydrolysis {dh_hyd} kJ/mol): {q_hi:.0f} kW")
+    # the values process/flowsheet.yaml cites from this script (balance-output contract): the
+    # stream flows as show() printed them
+    write_balance_output({"design": SHOWN})
+
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
 
 
 if __name__ == "__main__":

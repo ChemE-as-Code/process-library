@@ -112,3 +112,33 @@ jobs:
           name: catalog
           path: dist-public/
           retention-days: 14
+
+  # Balance scripts reproduce the flowsheet values that cite them (ADR 0027): every process
+  # script that follows the balance-output contract is re-run with the pinned cheme and its
+  # output compared with process/flowsheet.yaml; --strict: every cited script follows the contract.
+  balance-scripts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 1  # the files only, no history (see "Repository size" in README.md)
+      - uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555  # v0.10.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_KEY_PYDEXPI }}
+      - run: |
+          git config --global url."git@github.com:process-intelligence-research/".insteadOf "https://github.com/process-intelligence-research/"
+          git config --global url."https://x-access-token:${PLANTCODE_READ_TOKEN}@github.com/ChemE-as-Code/core".insteadOf "https://github.com/ChemE-as-Code/core"
+        env:
+          PLANTCODE_READ_TOKEN: ${{ secrets.PLANTCODE_READ_TOKEN }}
+      - uses: astral-sh/setup-uv@v6
+      # core v1.2.1 with the property extras the balance scripts import (thermo, CoolProp,
+      # scipy through thermo, Cantera); the same commit as the validate job
+      - run: uv tool install --python 3.12 "cheme-as-code[props,units,cantera] @ git+https://github.com/ChemE-as-Code/core.git@8042b716d21dd9234eee8c6f2a16cf5120c2636b"
+      - name: balance scripts reproduce the flowsheet
+        run: |
+          uv run --python 3.12 scripts/check_balance_scripts.py --library . --strict --jobs 4 \
+            --markdown balance-check.md --json balance-check.json
+      - name: summary
+        if: always()
+        run: if [ -f balance-check.md ]; then cat balance-check.md >> "$GITHUB_STEP_SUMMARY"; fi
