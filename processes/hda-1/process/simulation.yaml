@@ -1,9 +1,36 @@
 # Simulation specs. Schema: `cheme schema process-simulation`.
-# Not run yet (DESIGN.md D-006, D-011): no property package is qualified by core for aromatics
-# with hydrogen and methane (core #315), so `cheme process simulate` is not used at this stage.
-# The file records what is decided already: the HDA reactor R-101 is adiabatic (D-004), so it
-# exchanges no heat with a utility (its outlet temperature comes from the energy balance).
+# simulator: idaes runs the flowsheet in IDAES (core ADR 0039, draft core PR #104); it needs
+# CHEME_IDAES_PYTHON, a Python with idaes-pse and its solvers. Every spec below is a design
+# value of DESIGN.md (D-004, D-007, D-010), so the same specs serve simulator: dwsim.
+# The simulated boundary and why the separation section is left out: DESIGN.md D-012.
 schema: cheme/simulation/v1
 kind: simulation
+simulator: idaes
+# Peng-Robinson, every kij 0 (the only IDAES package of the backend with a compressor).
+# Not benchmarked by cheme-as-code: not predictive (D-006, D-012).
+property_package: IDAES Peng-Robinson
+exclude: [SEP]
 specs:
-  R101: {mode: adiabatic}
+  P101:
+    unit: pump
+    outlet_pressure: {value: 3600, provenance: assumed, source: D-004}
+    efficiency: {value: 0.65, provenance: assumed, source: D-010}
+  E101:
+    cold_outlet_temperature: {value: 840.0, provenance: assumed, source: D-004}
+    cold_pressure_drop: {value: 80, unit: kPa, provenance: assumed, source: "D-004: 3600 to 3520 kPa(a)"}
+    hot_pressure_drop: {value: 70, unit: kPa, provenance: assumed, source: "D-004: 3380 to 3310 kPa(a)"}
+  H101:
+    outlet_temperature: {value: 895.15, provenance: assumed, source: D-004}
+    pressure_drop: {value: 70, unit: kPa, provenance: assumed, source: "D-004: 3520 to 3450 kPa(a)"}
+  R101:
+    mode: adiabatic
+    pressure_drop: {value: 70, unit: kPa, provenance: assumed, source: "D-004: 3450 to 3380 kPa(a)"}
+  E102:
+    outlet_temperature: {value: 313.15, provenance: assumed, source: D-004}
+    pressure_drop: {value: 60, unit: kPa, provenance: assumed, source: "D-004: 3310 to 3250 kPa(a)"}
+  V101:
+    outlets: {vap: vapor, liq: liquid}
+    temperature: {value: 313.15, provenance: assumed, source: D-004}
+  K101:
+    outlet_pressure: {value: 3600, provenance: assumed, source: D-004}
+    efficiency: {value: 0.75, provenance: assumed, source: D-010}
