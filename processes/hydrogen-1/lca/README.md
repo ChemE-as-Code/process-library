@@ -42,7 +42,7 @@ lowers the product by 0.35 % and raises the per-kg flows by about as much); `inv
 | out: hydrogen (reference flow) | S17 | 1 kg | - |
 | out: export steam, 4.3 MPa / 673 K (co-product) | S33 | 10.55 kg | co-product, exergy allocation (1256.6 kJ/kg against 121 243.5 kJ/kg for H2, `scripts/allocation_exergy.py`); system expansion kept for a substitution variant |
 | out: boiler blowdown (waste water) | S34 | 0.210 kg | treatment of waste water |
-| out: CO2 (and traces of H2, CO), fossil, to air from the deaerator vent (since D-016) | S35 | 0.028 kg | elementary (characterised by CAS) |
+| out: CO2 (and traces of H2, CO), fossil, to air from the deaerator vent (since D-016) | S35 | 0.028 kg (simulated basis, unallocated; inventory.csv has 0.0253 exergy-allocated) | elementary (characterised by CAS) |
 | out: heat to cooling water | Q9 | 3.30 kWh | cooling water supply / heat rejection in a cooling tower |
 | out: CO2, fossil, to air | S26 | 10.10 kg | elementary (characterised by CAS) |
 | out: H2O vapour to air | S26 | 4.06 kg | elementary (no climate factor) |

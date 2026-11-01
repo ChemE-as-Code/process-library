@@ -340,22 +340,30 @@ own PR kij for water pairs, to be read from the saved flowsheet (`--save`).
 Decision: the model of D-015 was run with `cheme process simulate` (cheme-as-code 1.2.1, the
 version library CI pins; DWSIM 9.0.5.0 in the `cheme-dwsim:9.0.5` Docker image; Peng-Robinson).
 It converged on the first attempt: the tear S2 closed in 5 iterations from its flowsheet values,
-and again with S2 emptied (no `guesses:` needed). Run record: process/simulation-run.json. The
+and again with S2 emptied (no `guesses:` needed). Run record: process/simulation-run.json; it
+holds only the final run (689.92 K, below), which closed the tear in 2 iterations. The
 simulated values are filled as `calculated` (`origin: simulated`) in 28 streams. Before that,
 the concept-balance values (scripts/h2_balance.py, D-006) and the `cheme process propagate`
 values that the simulation now calculates were removed, so that `--fill` could write them:
-temperatures of S2, S3, S7, S11, S12, S23, S26; flows and compositions of S2 to S5, S7 to S19,
-S21, S23, S26; the duties Q1 to Q5 and Q9 to Q11. Kept, because they are design choices that
+temperatures of S2, S3, S7, S11, S12, S23, S26; flows and compositions of S2 to S5, S7 to S19
+(except the S16 composition, kept below), S21, S23, S26; the duties Q1 to Q5 and Q9 to Q11.
+Kept, because they are design choices that
 the specs reproduce or real conditions the model cannot represent: the design-basis
 temperatures and pressures (S4, S8, S9, S10, S13 to S19), the composition of S16 (99.9 mol%,
 D-002; the U-301 split reproduces it), and Q8 (E-201's duty spec, which feeds the excluded
-E-401).
+E-401). Also kept, although it is a script value and not a design-basis one: the S21
+temperature 310.02 K (scripts/h2_balance.py, adiabatic mixing). The simulated M-301 gives
+309.33 K, within tolerance; the excluded furnace balance (H301, S24, S25, S20) was closed on
+310.02 K, so it stays until H301 is simulated.
 Only change to the specs: **R-201 outlet temperature 691.77 -> 689.92 K.** At the concept
-balance's 691.77 K the bed needed +206.8 kW in DWSIM (WGS extent 595.5 kmol/h). The WGS heat at
+balance's 691.77 K the bed needed +206.8 kW in DWSIM (WGS extent 595.5 kmol/h in that 691.77 K
+run; the final 689.92 K run has 598.4 kmol/h). The WGS heat at
 690 K is 37.9 MJ/kmol (ideal gas; thermo 0.6.1 formation enthalpies and heat capacities through
 cheme's interpreter), so the reaction heat is 6.27 MW and the duty is 3.3 % of it. That is above
 the 3 % criterion D-015 fixed before the run. As D-015 prescribes, the temperature was re-solved
-to zero duty by secant: 689.00 K gave -103.5 kW, 689.92 K gives -0.45 kW (0.007 %). The bed is
+to zero duty by secant: 689.00 K gave -103.5 kW, 689.92 K gives -0.45 kW (0.007 %). The
+691.77 K and 689.00 K runs (duties, the 595.5 kmol/h extent) are not in the committed record,
+which keeps only the final run, so those numbers cannot be checked from committed data. The bed is
 therefore simulated as adiabatic at DWSIM's own equilibrium (approach +10 K). The 1.85 K
 difference comes from Peng-Robinson's enthalpies at 3.1 MPa against the script's ideal-gas
 enthalpies. It is recorded here and in the spec's source.
@@ -392,14 +400,14 @@ equilibria). Deviation = (sim - script) / script.
 | WHB duty Q5 (E-104), kW | 50,537.1 | 50,896.3 | +0.71 % | PR enthalpies of the wet gas |
 | feed preheat Q2 (E-101), kW | 7,792.8 | 8,096.3 | +3.9 % | real-gas heat capacity of the natural gas at 3.9 to 4.0 MPa; inlet S3 0.75 K colder |
 | mixed feed preheat Q3 (E-102), kW | 19,789.8 | 20,957.5 | +5.9 % | the steam's real-gas enthalpy at 3.8 MPa: after M-102, S7 is 656.75 K against 663.03 K, because PR mixes the 4.3 MPa steam colder than the script's ideal-gas mixing |
-| E-202 duty Q9, kW | 30,071.1 | 31,046.3 | +3.2 % | water condensation in PR against the script's Raoult/IAPWS knock-out; S12 1.5 K colder |
+| E-202 duty Q9, kW | 30,071.1 | 31,046.3 | +3.2 % | mostly PR's enthalpy of the wet gas at 3 MPa: the extra condensate (about 100 kg/h, about 70 kW latent heat) explains little of the +975 kW; S12 1.5 K colder |
 | S12 (after E-201), K | 428.33 | 426.81 | -0.35 % | the same duty Q8 on PR enthalpies |
 | PSA feed S14, kg/h | 74,072.1 | 73,717.5 | -0.48 % | more water and CO2 to the condensate |
 | S14 water, mol% | 0.2503 | 0.2630 | +5.1 % | PR flash with DWSIM's kij; the thermo pre-check of D-015 gave 0.2613 |
 | condensate S15, kg/h | 48,952.4 | 49,306.7 | +0.72 % | dissolved CO2 (254 kg/h; D-010 neglected it) and more condensed water |
 | tail gas S19, kg/h | 64,858.3 | 64,536.3 | -0.50 % | follows S14 |
 | K-101 power Q1, kW | 18.8 | 17.07 | -9.2 % | K-101 compresses from 2950, not 2850 kPa(a) (component separator outlet pressure, below); S2 354.7 against 359.1 K |
-| K-301 / K-302 power, kW | 448.1 / 669.3 | 444.7 / 665.0 | -0.8 / -0.6 % | PR against the script's ideal-gas fan model |
+| K-301 / K-302 power, kW | 448.1 / 669.3 | 444.7 / 664.8 | -0.8 / -0.7 % | PR against the script's ideal-gas fan model |
 | climate change, kg CO2-eq/kg H2 (exergy allocated) | 9.109 | 9.138 | +0.3 % | less product from the same feed; the vent's CO2 was already in the stack total |
 
 Pressure deviations kept on purpose (`sim-deviation` warnings of `--check`, as D-015 expected):
@@ -412,9 +420,10 @@ The flowsheet values are the real conditions and stay. Let-down valves on the PS
 tail gas would remove the deviation (open).
 Energy audit (run record): R-102 and R-201 close on the heat-of-formation basis (residuals
 0.0002 and 0 kW). The plant closure is `unsupported` because U-301 is a component separator:
-core has not established the sign of its energy imbalance. `sim-formation-data` reports the
+core has not established the sign of its energy imbalance; DWSIM reports U-301 with a duty of
+251.0 kW, i.e. an energy imbalance of that size. `sim-formation-data` reports the
 project's formation enthalpies within the data tolerance (13.4 kW of 693 kW for R-102, 6.5 of
-68.1 kW for R-201). Utilities of the simulated part: hot 131.3 MW, cold 118.5 MW, power 1.13 MW.
+68.4 kW for R-201). Utilities of the simulated part: hot 131.3 MW, cold 118.5 MW, power 1.13 MW.
 **Property package: not qualified.** Core benchmarks Peng-Robinson only for N2/O2/Ar mixtures
 (and NRTL only for ethanol-water). Nothing in this flowsheet is inside a qualified range: not the
 water-bearing synthesis gas, not the steam at 4.3 MPa, not the V-201 condensate. The core issue
