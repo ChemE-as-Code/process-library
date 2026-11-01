@@ -1,4 +1,4 @@
-Engineering work happens in a process folder: start Claude Code in `processes/<id>/` (e.g. `processes/asu-1/`), where that project's `CLAUDE.md`, `AGENTS.md` and `.claude/` skills apply. At this root: the library tooling (`scripts/`, `schemas/`, `chemicals/`, `lci/`, `tests/`); see README.md, REFERENCE.md and CONTRIBUTING.md.
+Engineering work happens in a process folder: start Claude Code in `processes/<id>/` (e.g. `processes/asu-1/`), where that project's `CLAUDE.md`, `AGENTS.md` and `.claude/` skills apply (the skills are not in git: a person runs `cheme skills update` once in the folder after cloning). At this root: the library tooling (`scripts/`, `schemas/`, `chemicals/`, `lci/`, `tests/`); see README.md, REFERENCE.md and CONTRIBUTING.md.
 
 A change to the library structure, a schema, the LCI pipeline or the publication rules comes with an Architecture Decision Record (`docs/adr/`, see its README) in the same PR; a process's engineering decisions stay in its `DESIGN.md`.
 

@@ -31,7 +31,7 @@ gate-to-gate LCI with unmapped backgrounds (`lca/`). Decisions, sources and open
 | `runs/` | one record per design session, written by `cheme runs record` (`runs/README.md`); never edited |
 | `DESIGN.md`, `PROGRESS.md`, `STAGES.md` | decisions, change log, stage definitions |
 | `scripts/` | generator scripts: the source of generated sheets (`generator:` in `plant.yaml`), provenance for the others |
-| `.claude/skills/` | how an agent works here |
+| `.claude/skills/` | how an agent works here (not in git: run `cheme skills update` once after cloning) |
 
 ## How this repository works
 
@@ -43,10 +43,10 @@ gate-to-gate LCI with unmapped backgrounds (`lca/`). Decisions, sources and open
 - **Licences.** This folder is part of the ChemE-as-Code process library. Its data and designs are
   under CC BY 4.0 (`LICENSE-DATA`, unless `process.yaml` states otherwise); its skills and scripts
   are under AGPL-3.0-or-later (`LICENSE`), like the ChemE-as-Code tools.
-- **The skills in `.claude/skills/` are copies** of the ones in cheme-as-code, so that Claude Code
-  finds them here. After upgrading (`uv tool upgrade cheme-as-code`), run `cheme skills update` to
-  refresh them; `cheme skills status` shows which are out of date. A skill you changed here is
-  kept.
+- **The skills in `.claude/skills/` are not in git.** They come with cheme-as-code: run
+  `cheme skills update` once in this folder after cloning, so that Claude Code finds them here. Run
+  it again after upgrading (`uv tool upgrade cheme-as-code`); `cheme skills status` shows which are
+  out of date. A skill you changed here is kept, but only on your machine.
 - The CI needs the secrets named in `.github/workflows/validate.yml`.
 
 ## Working here
@@ -54,6 +54,7 @@ gate-to-gate LCI with unmapped backgrounds (`lca/`). Decisions, sources and open
 ```sh
 uv tool install cheme-as-code           # once (see the cheme-as-code README)
 cheme git-setup                 # once per clone: readable P&ID diffs + pre-commit hook
+cheme skills update             # once per clone: installs the agent skills in .claude/skills/
 cheme status                    # where the plant stands: sheets, findings, gates, sign-offs
 cheme validate                  # after every change
 cheme fmt                       # canonical XML, stable ids

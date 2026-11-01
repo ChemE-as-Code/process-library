@@ -33,6 +33,8 @@ should still be AGPL".
 - `publication.license` in `process.yaml` names the licence of a process's data and designs, not of
   its skills and scripts.
 - Copies of the repository from before this decision remain under the licences they came with.
+- [0025](0025-skills-not-in-git.md) takes the skill copies out of git; the licences above still
+  apply to skills installed in a process folder.
 
 ## Evidence
 

@@ -23,7 +23,7 @@ checked by [`cheme-as-code`](https://github.com/ChemE-as-Code/core).
 | `reviews/` | review records |
 | `DESIGN.md`, `PROGRESS.md`, `STAGES.md` | decisions, change log, stage definitions |
 | `scripts/` | generator scripts: the source of generated sheets (`generator:` in `plant.yaml`), provenance for the others |
-| `.claude/skills/` | how an agent works here |
+| `.claude/skills/` | how an agent works here (not in git: run `cheme skills update` once after cloning) |
 
 ## LCA results and what they compare
 
@@ -50,6 +50,7 @@ regenerated after it is merged.
 ```sh
 uv tool install cheme-as-code           # once (see the cheme-as-code README)
 cheme git-setup                 # once per clone: readable P&ID diffs + pre-commit hook
+cheme skills update             # once per clone: installs the agent skills in .claude/skills/
 cheme status                    # where the plant stands: sheets, findings, gates, sign-offs
 cheme validate                  # after every change
 cheme fmt                       # canonical XML, stable ids

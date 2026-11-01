@@ -81,7 +81,9 @@ git clone https://github.com/ChemE-as-Code/process-library.git && cd process-lib
 cheme serve --repo . --ui ../core/viewer/dist   # http://127.0.0.1:8765, each plant under /p/<id>/
 ```
 
-To work on one process, run `cheme` in its folder (`cd processes/asu-1`). To add a process, copy
+To work on one process, run `cheme` in its folder (`cd processes/asu-1`). The agent skills are not
+in git: run `cheme skills update` once in a process folder after cloning, so that Claude Code finds
+them there. To add a process, copy
 `templates/process/` and follow [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Documentation
