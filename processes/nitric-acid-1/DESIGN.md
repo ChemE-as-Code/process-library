@@ -47,10 +47,10 @@ figures, text); the flowsheet and its drawings are our own.
 | cooler-condenser E105 | conversion reactor, conversions from the script (D-007) | supported (conversion) | done |
 | weak-acid separator V101, absorber C101, bleacher C102 | outlets specified from the script (D-007, D-008); reactions named, cheme checks extents | no aqueous HNO3 VLE/electrolyte package, no reactive-absorption model | gated: core's property-package qualification (open), core's electrolyte support (closed 2026-10-27 for NaCl-H2O only: "no acids"; not in the installed 0.8.0 either) |
 | tertiary reactor R102 | conversion reactor (D-009) | supported | done |
-| exchangers, machines | pass-through propagate; duties from the script | stream enthalpies: no package covers H2O/NO/NO2/HNO3 (`props --coverage`) | energy balance gated; script closes it (D-010) |
+| exchangers, machines | gas-phase part: DWSIM (D-016); acid section: pass-through propagate, duties from the script | stream enthalpies: no package covers H2O/NO/NO2/HNO3 (`props --coverage`) | gas-phase part simulated (unqualified package); acid section closed by the script (D-010) |
 | BFD/PFD | `cheme process build` | supported; Pumping step crashes the build (D-012) | done with a workaround |
 | LCI | `cheme assess lca --inventory --write` | supported | done, backgrounds unmapped (D-014) |
-| DWSIM simulation | `process/simulation.yaml`, gas-phase part only (D-015) | translates (cheme 1.2.1); HNO3 with water refused, shaft-coupled machines and two-inlet reactors not mapped | input written, not run (no DWSIM here) |
+| DWSIM simulation | `process/simulation.yaml`, gas-phase part only (D-015, D-016) | runs (cheme 1.2.1, DWSIM 9.0.5; PR unqualified for this mixture); HNO3 with water refused, shaft-coupled machines and two-inlet reactors not mapped | gas-phase part converged and filled 2026-11-01 (D-016) |
 
 ## D-001 Route and boundary (2026-10-27)
 Decision: weak nitric acid by the dual-pressure Ostwald process: ammonia evaporation, air
@@ -232,7 +232,7 @@ databases.
 Decision: `process/simulation.yaml` is now a complete DWSIM input for the gas-phase part of the
 plant, so that `cheme process simulate` can run it where DWSIM is installed. It has not been run:
 the authoring machine has neither DWSIM nor Docker, so no stream value comes from it and nothing
-was filled (`--fill` not run). Checked offline with the cheme the library CI pins (core v1.2.1,
+was filled (`--fill` not run). (Run since: D-016, 2026-11-01.) Checked offline with the cheme the library CI pins (core v1.2.1,
 8042b716; first written against 1.1.0, core c2a45135, and core main 1.2.0, same results): the
 file translates into a DWSIM model for case `design` (13 units, 8 compounds, no recycle;
 `cheme maturity`: `predictive.simulation-spec` ok), `cheme validate` 0 errors.
@@ -324,6 +324,112 @@ separator unit as an interim); F-2 an ammonia-injection mixer step ahead of R-10
 flowsheet; F-3 a shaft-coupled machine train in core's DWSIM translation, or per-machine energy
 streams in the flowsheet with the shaft balance stated outside; then run `cheme process simulate
 --check` and, after review, `--fill`.
+
+## D-016 First DWSIM run of the gas-phase part (2026-11-01)
+Decision: the gas-phase model of D-015 is run with `cheme process simulate` (core v1.2.1, DWSIM
+9.0.5 in the core Docker image `cheme-dwsim:9.0.5`, Peng-Robinson) and its results are filled:
+the outlet streams and duties of the 13 simulated steps are now `calculated` (origin
+`simulated`) in `process/flowsheet.yaml`, and the run is recorded in
+`process/simulation-run.json`. The run converged on the first attempt (no recycle, one solver
+pass, no solver message) with the specs of D-015 unchanged; no spec, guess or exclusion was
+added. Energy closure: R-101 on the formation basis 3e-5 kW (tolerance 9.9 kW), plant 9e-5 kW
+(tolerance 402 kW).
+
+Stream values removed before `--fill`, so that the simulation writes them (they were pasted from
+`scripts/hno3_balance.py` or propagated, and would otherwise stay and be reported as
+deviations): outlet temperatures of K-101 (S07, S08, S09), M-101 (S10), R-101 (S11), E-103 hot
+side (S13), M-102 (S20) and E-106 hot side (S22); the intermediate pressures that D-003 does not
+state (S10, S12, S13, S14, S20, S22, S26, S27; script constants, D-015); every propagated flow
+and composition of the simulated outlets; and the duties Q01 (K-101), Q05 (E-102), Q06 (E-104),
+Q08 (E-107), Q11 (E-101), Q12 (E-108). Kept as ASSUMED: the feeds, the design choices that are
+also specs (outlet temperatures of E-101, E-108, E-102, E-104, E-107, the E-103 and E-106 cold
+outlets; the pressure levels of D-003, D-009, D-011), and every value of the excluded part. The
+flows and compositions downstream of the excluded part that `cheme process propagate` writes
+(S15, S21, S28) were propagated again from the simulated values (numbers unchanged to the
+fifth digit). BFD/PFD rebuilt and the LCI outputs rewritten (`cheme assess lca --write`).
+
+Simulation against the concept balance (`scripts/hno3_balance.py`, D-010; the values the
+flowsheet held before this run):
+
+| item | balance script | DWSIM (PR) | deviation |
+|---|---|---|---|
+| S07 K-101 discharge temperature | 487.82 K | 487.78 K | -0.04 K |
+| Q01 K-101 power | 12055.9 kW | 12056.6 kW | +0.01 % |
+| S10 burner inlet temperature | 463.04 K | 462.14 K | -0.9 K |
+| S10 burner inlet pressure | 510 kPa(a) | 520 kPa(a) | +2.0 % (a) |
+| S11 burner outlet temperature | 1143.72 K | 1144.07 K | +0.35 K |
+| Q05 E-102 waste-heat boiler | 23574.0 kW | 23590.3 kW | +0.07 % |
+| E-103 tail-gas heater (no energy stream) | 15224.9 kW | 15315.7 kW | +0.60 % (b) |
+| S13 E-103 process-gas outlet | 551.21 K | 549.95 K | -1.3 K |
+| Q06 E-104 economiser | 5939.8 kW | 5890.0 kW | -0.84 % |
+| HP steam export (Q05 + Q06) | 29513.8 kW | 29480.3 kW | -0.11 % |
+| S20 NOx compressor suction pressure | 460 kPa(a) | 465 kPa(a) | +1.1 % (a) |
+| E-106 tail-gas exchanger (no energy stream) | 4610.6 kW | 4710.5 kW | +2.2 % (b) |
+| S22 E-106 NOx-gas outlet | 345.11 K | 344.58 K | -0.5 K |
+| Q08 E-107 NOx gas cooler | 1768.1 kW | 2035.7 kW | +15.1 % (c) |
+| Q11 E-101 NH3 evaporator | 4003.3 kW | 4113.0 kW | +2.7 % (d) |
+| Q12 E-108 SCR NH3 vaporiser | 16.2 kW | 16.7 kW | +3.0 % (d) |
+| mass flows of all simulated streams | | | 0.00 % |
+
+Reasons for the deviations:
+
+- (a) model convention, not a balance difference: DWSIM mixes at the lowest inlet pressure, so the
+  10 kPa the script gives M-101 sits on R-101 (S11 is 490 kPa(a) in both) and M-102's outlet is
+  at the separator-gas pressure 465 kPa(a) (both foreseen in D-015).
+- (b) the script uses ideal-gas enthalpies (D-010); Peng-Robinson adds the pressure dependence of
+  the heat capacity at 1.1 MPa(a) on the tail-gas side. E-106 also evaporates the trace of liquid
+  water DWSIM finds in the absorber tail gas S25 (D-015: S25 is slightly above its dew point;
+  `sim-exchanger-zones` reports the phase change). Not separated further in this run.
+- (c) water condenses in E-107 in the simulation and not in the script. Rough estimate, ASSUMED
+  (round numbers, not a DWSIM output): S22 carries about 6750 kmol/h with 0.92 mol% water; at
+  1130 kPa(a) and 313 K the saturated gas holds about 0.65 mol% (7.4 kPa, D-015), so about
+  18 kmol/h condense, about 0.21 MW at about 43 kJ/mol, most of the 0.27 MW difference; the rest
+  is again the real-gas heat capacity. The condensate stays in the one outlet S23 as pure water:
+  in the plant it would take up NO2 and form weak acid, which neither model represents (D-015).
+  The script's E-107 duty is the less complete figure; the absorber's cooling duty, which the
+  script closes against it (D-010), is not re-balanced here.
+- (d) property methods: the script takes liquid and vapour ammonia from CoolProp (a reference
+  equation of state for ammonia); DWSIM takes them from Peng-Robinson, which is not qualified for
+  liquid ammonia (below). The CoolProp figures are the better ones; the 2.7 % on E-101 is a
+  property-method difference, not a balance error. The let-down lumped into E-101 and E-108
+  (D-015) does not change the duty (an isenthalpic valve ahead of the evaporator gives the same
+  total).
+
+Property package, qualification status: unqualified for this mixture. Core's
+`thermodynamics/methods.yml` benchmarks Peng-Robinson only for N2/O2/Ar (air separation) and NRTL
+only for ethanol/water; nothing for NH3, H2O, NO, NO2 or N2O together with air (core #315).
+`cheme process props --coverage` confirms that no package of core covers any stream here, and
+`cheme maturity` fails `predictive.property-regime` and `predictive.property-package` (the
+substitution of PR for PSRK / PR-MHV of D-015 is still not accepted by a reviewer). The
+simulated values are therefore a consistency check of the concept balance with a second,
+independent property method, not a qualified prediction. Formation enthalpies: DWSIM's (ChemSep)
+differ from the ATcT values core falls back on by up to 839 kJ/kmol (NO); the burner reaction
+heat differs by 88 kW, within the data tolerance (444 kW); no `dHf_298` is declared in
+`process/materials.yaml` yet.
+
+Findings left open (no change in this run):
+
+- `cheme.process-sim-utility-level` (warning) on E-104: the economiser heats boiler feed water
+  (378 K, D-011), but its energy stream Q06 goes to the HP steam terminal HPS, which declares
+  673 K; the check therefore reports a level E-104's 453 K outlet cannot reach, and
+  `predictive.exchangers` fails. A boiler-feed-water terminal (or one HP steam system terminal
+  with the BFW inlet) would fix the declaration; it changes the flowsheet, the PFD and the LCI
+  utility accounting, so it is left for review.
+- no `min_approach` declared for E-103 (least approach 90 K) and E-106 (30 K) (info).
+- the shaft balance: Q01 (K-101) is now simulated (12056.6 kW) while Q02 and Q03 stay the
+  script's values computed with 12055.9 kW; 0.7 kW, below the balance tolerance.
+- the absorber cooling duty Q09 and the CW total stay the script's; the LCI cooling-water output
+  moves from 46741 to 47009 kWh/h (+0.6 %) through E-107 only; HP steam export from 29514 to
+  29480 kWh/h (-0.1 %).
+
+Checks run: `cheme process simulate --check` (converged; afterwards no stale value and no
+deviation), `cheme process propagate --check`, `cheme validate` 0 errors / 0 warnings,
+`cheme fmt`, `cheme assess lca --check` (current after `--write`), `cheme maturity` (above).
+Reason: D-015 prepared the inputs on a machine without DWSIM; this is the run it left open.
+Rejected: tuning specs, or treating the simulated values as better than the script's where the
+simulation is the weaker model (ammonia enthalpies, the undrained E-107 outlet); the script stays
+the balance of the excluded acid section.
+Follow-ups: the open items above, and F-1 to F-3 of D-015 for the excluded part.
 
 ## Open inputs
 - O-1: check D-005, D-008, D-011 against the BREF consumption and emission ranges (S2 sections 3.3, 3.4) with exact locators: NH3 per t HNO3 (here 0.285 t/t), steam export, power, cooling water, tail-gas NOx.
