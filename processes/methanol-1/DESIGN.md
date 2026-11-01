@@ -169,6 +169,8 @@ the HP loop (89 barg); design temperature = highest operating temperature + 25 K
 concept values; relief and materials (hydrogen service) at basic engineering.
 
 ## D-013 DWSIM simulation inputs: scope, specs and property package (2026-10-30)
+Superseded in part by D-014: the model was run there, and C-201's reflux spec is now L/D 20.76
+(the L/D 36.09 below was the translation with the script's off-gas flow).
 Decision: `process/simulation.yaml` declares the whole flowsheet for `cheme process simulate`
 (nothing excluded), with Peng-Robinson (PR) as the one property package and the recorded method
 selection. Not run: no DWSIM or Docker was available on the machine this was written on, so
@@ -250,14 +252,24 @@ from `scripts/loop_balance.py` (D-006) or from `cheme process propagate` downstr
 junction M-101 was removed from `process/flowsheet.yaml` and filled by `simulate --fill` as
 `calculated` (`origin: simulated`); the run is recorded in `process/simulation-run.json`. The
 design choices stay `assumed` with their D-00x source: stream temperatures and pressures fixed
-by D-003, D-007, D-008, D-009 and D-010, the make-up gas S1 (D-004), and the product S18 (design
-basis). S2 and S3 keep their propagate values (pass-through of S1, identical in the run).
+by D-003, D-007, D-008, D-009 and D-010, the make-up gas S1 (D-004), and the temperature and
+pressure of the product S18 (design basis). S18's flow and composition are the simulated ones
+(103734 kg/h, 2490 t/d): the first commit kept the design 2500 t/d there, which made C-202
+deliver 13.5 kmol/h more methanol than it receives and left the plant element balance open by
+13 kmol/h C (inside the flowsheet tolerance, so no check flagged it; review on PR #286). The
+capacity 2500 t/d stays the design basis the make-up gas was sized for. S2 and S3 keep their propagate values (pass-through of S1, identical in the run).
 `cheme process props --fill` added properties for S1 and S2 only (the `syngas-pr-vapor` package
 covers no stream with methanol or water) and configured that package in `materials.yaml`.
 Run: converged on the first attempt without changes to the D-013 specs, 29 iterations of the
 two tears (S12, S6), no solver message; energy closure of R-101 on the formation basis 1.5 kW
 (tolerance 672 kW) and of the plant -4.4 kW (tolerance 1537 kW). One spec was then
-re-translated and the run repeated (the recorded run):
+re-translated and the run repeated; after the review, S18's flow and composition were removed
+and filled by a third run of the same model (same `model_fingerprint` 758c7021f74bc684, identical
+results; the recorded run, 2026-11-01T18:04:13Z). The earlier records carried the
+`materials.yaml` fingerprint from before `props --fill` changed that file; the recorded run read
+the committed file, so its input fingerprints match (only `flowsheet.yaml` is dirty, the state
+before the fill). Core judges currency by `model_fingerprint`, unchanged by `props --fill`. The first run itself is not recorded in a file
+(its record was overwritten by the repeat), so its duties below are only stated here:
 - C-201 reflux: D-008 fixes the reflux as 0.3 kmol per kmol feed; the shortcut takes L/D, which
   D-013 had computed with the script's off-gas flow (33.80 kmol/h, L/D 36.09). The run's
   off-gas is 58.75 kmol/h (DWSIM dissolves about twice the script's CO2 in the crude, below), so
@@ -280,9 +292,9 @@ Results against the balance script (script = `cheme run scripts/loop_balance.py`
 | recycle ratio S12/S3, molar | 4.00 | 4.10 | +2.4 % | the D-007 purge fraction is held, not the ratio |
 | S13 crude, kg/h; its CO2 mole fraction | 120906; 0.0095 | 121153; 0.0144 | +0.2 %; +51 % | DWSIM's PR kij dissolve more CO2 in methanol-water at 7500 kPa(a) than thermo's ChemSep kij |
 | S14 LP flash gas, kg/h | 1429 | 1250 | -12.5 % | less CH4 (0.32 vs 0.40) and more CO2 retained in the liquid at 600 kPa(a) |
-| S16 topping off-gas, kg/h | 1260 | 2337 | +85.5 % | the extra dissolved CO2 leaves here (CO2 0.72 vs 0.63) |
+| S16 topping off-gas, kg/h | 1260 | 2337 | +85.5 % | the extra dissolved CO2 leaves here (CO2 0.72 vs 0.63); its methanol fraction 0.2257 is the shortcut's key spec taken from the script (D-013), not a prediction |
 | S17 stabilised methanol, kg/h | 118217 | 117566 | -0.6 % | |
-| S18 product, kg/h (t/d) | 104167 (2500) | 103734 (2490) | -0.4 % | make-up S1 fixed at the script's value; slightly more methanol lost to S14/S16 |
+| S18 product, kg/h (t/d) | 104167 (2500) | 103734 (2490) | -0.4 % | make-up S1 fixed at the script's value; slightly more methanol lost to S14/S16. The flowsheet carries the simulated value |
 | S19 bottoms water, kg/h | 14051 | 13832 | -1.6 % | less reverse shift, less water made |
 | make-up CO + CO2 carbon to product | 95.7 % | 95.3 % | -0.4 pt | |
 | Q1 K-101 power, kW | 14124 | 14129 | +0.0 % | |
@@ -294,18 +306,24 @@ Results against the balance script (script = `cheme run scripts/loop_balance.py`
 | Q6 C-201 reboiler, kW | 18989 | 18008 | -5.2 % | shortcut with DWSIM's PR enthalpies; the same reflux L |
 | Q7 C-201 condenser, kW | 13402 | 12879 | -3.9 % | as Q6 |
 | Q8 C-202 reboiler, kW | 87409 | 83151 | -4.9 % | PR methanol-water enthalpies and the shortcut's balance (DWSIM kij vs ChemSep) |
-| Q9 C-202 condenser, kW | 91853 | 84496 | -8.0 % | the script includes subcooling the product to 313.15 K; the simulated condenser stops at the bubble point (no product cooler step) |
+| Q9 C-202 condenser, kW | 91853 | 84496 | -8.0 % | the script includes subcooling the product to 313.15 K, the simulated condenser stops at the bubble point (no product cooler step); and the same PR enthalpy and balance difference as Q8 (script Q9 - Q8 = 4.4 MW, run 1.3 MW) |
 
 Kept against the simulation (`sim-deviation` warnings, not silenced):
 - S16 temperature: DWSIM's shortcut reports 69.5 K for the partial condenser, which is not
-  physical (a vapour with 23 % methanol at 150 kPa(a) has its dew point near 313 K; 69 K is about
-  the bubble point of the off-gas with its H2 and N2). S16 keeps D-008's 313.15 K. The condenser
+  physical (a vapour with 23 % methanol at 150 kPa(a) has its dew point near 313 K; methanol's
+  vapour pressure there is about 35 kPa). Why the shortcut prints 69 K is not known. S16 keeps
+  D-008's 313.15 K. The condenser
   duty follows the reflux (about 1220 kmol/h of methanol condensed) and is plausible, but it is a
   shortcut duty and only a rigorous column with a partial condenser can confirm it. In the core
   route that needs a third outlet (vapour, liquid distillate, bottoms), i.e. a flowsheet change.
-- S18 temperature and pressure: the product leaves the shortcut at its bubble point at 110 kPa(a)
-  (339.8 K); the flowsheet's 313.15 K / 300 kPa(a) needs a product cooler and pump step that the
-  flowsheet does not have (D-013).
+- S18 temperature and pressure (only these; its flow and composition are simulated): the product
+  leaves the shortcut at its bubble point at 110 kPa(a) (339.8 K); the flowsheet's 313.15 K /
+  300 kPa(a) needs a product cooler and pump step that the flowsheet does not have (D-013).
+  Consequence: Q9 is the C-202 condenser duty only (titled so), and the product cooling duty
+  from 339.8 to 313.15 K is in no energy stream until that step exists. A hand estimate, about
+  2 MW to cooling water (103.7 t/h, liquid cp about 2.6 kJ/(kg K) ASSUMED, 26.7 K), is not a
+  flowsheet value. E-203 in `equipment/equipment-list.yaml` remains the condenser and product
+  cooler.
 
 Other findings of the run:
 - `sim-utility-level` (warning; `predictive.exchangers` fails): R-101's MPS (503.4 K
@@ -321,12 +339,13 @@ Other findings of the run:
   it), minimum stages 17.0, 27.3 theoretical stages at reflux 1.5: the first numbers of a rigorous
   column.
 - V-102 duty 6.1 kW at the script's let-down temperature 315.10 K: the isenthalpic let-down of
-  D-008 and DWSIM agree to about 6 kW on a 121 t/h stream.
+  D-008 and DWSIM agree to about 6 kW on a 121 t/h stream. The 315.10 K of S14/S15 is that input
+  spec (D-013), written back by simulate as `origin: simulated`; it is not a DWSIM prediction.
 - E-102: least approach 30 K, no min_approach declared (info); S7 condenses partly in E-102, so
   its internal approach is not checked (`sim-exchanger-zones`, info).
-- `cheme validate` warns that S16's simulated mole fractions add up to 1.0000254 (BFD/PFD
-  composition check, tolerance 1e-6): DWSIM's shortcut distillate is not normalised and
-  simulate writes it as it comes. Left as is (a generated value); a core question.
+- `cheme validate` warns that S16's simulated mole fractions add up to 1.0000254 and S18's to
+  1.0000012 (BFD/PFD composition check, tolerance 1e-6): DWSIM's shortcut distillates are not
+  normalised and simulate writes them as they come. Left as is (a generated value); a core question.
 
 Property package qualification: the run is **not qualified**. Peng-Robinson with DWSIM's
 interaction parameters is a recorded substitution (D-013) for the PSRK / MHV2 models the
@@ -346,17 +365,23 @@ the simulation is that check, and holding both sets of numbers would leave the f
 values that contradict its own run record.
 Rejected: keeping the script's values as `assumed` (every one would stay a `sim-deviation`
 against the run); a rigorous C-201 now (needs a third column outlet, a PFD change for review);
-changing V-102 or S18 to match the run (D-013's open let-down valve and product cooler/pump
-questions stand).
+changing V-102 or S18's temperature and pressure to match the run (D-013's open let-down valve
+and product cooler/pump questions stand).
+Follow-up (not done here): `equipment/equipment-list.yaml` and `piping/line-list.yaml` still carry
+the script's sizes (E-102 about 96 MW, K-102 608 t/h, V-101 gas 487 t/h, E-202/E-203/E-204 duties,
+C-202 stages not calculated). FG-116 (DN125) was sized for 1260 kg/h of off-gas; at the simulated
+2337 kg/h it is about 1.9 times over D-011's 20 m/s criterion. A lists-sync pass against these
+values is the next step.
 
 ## D-015 Preliminary gate-to-gate LCI, functional unit and exergy allocation (2026-11-01)
-Numbered D-015 because open PR #286 takes D-013 and D-014 here. Regenerate the dataset and the
-exergy values when #286 lands: it replaces the stream values this is built on.
+Numbered D-015 because PR #286 takes D-013 and D-014 here. The exergy values and the dataset
+were regenerated on the simulated streams of D-014 when #286 merged main (the first values,
+on the script's streams: MEOH 94.81 %, MPS 3.72 %, FUELGAS 1.47 %; fuel gas 13481.9 kJ/kg).
 Decision: `lca/lca.yaml` with functional unit 1 kg of Grade AA methanol (product MEOH, S18) at the
 gate, boundary gate-to-gate as D-001 (no reforming, no storage). Every foreground exchange comes
 from the balanced flowsheet: feeds SYNGAS, POWER, LPS; products MEOH, MPS, PURGE, FUELGAS, WW and
 heat to CW. Backgrounds are `missing:` in the study, so its result is a gap list, not a footprint.
-Allocation: **exergy** among three co-products, MEOH 94.81 %, MPS 3.72 %, FUELGAS 1.47 %
+Allocation: **exergy** among three co-products, MEOH 94.95 %, MPS 3.72 %, FUELGAS 1.33 %
 (`scripts/allocation_exergy.py`, values in `lca/lca.yaml`).
 Purge (I-09, decided by the owner's delegate, the main session, 2026-11-01): **PURGE is not a
 co-product.** It returns to the plant's own reformer fuel, back upstream of feed:SYNGAS, and leaves
@@ -365,7 +390,7 @@ In `lca/lca.yaml` it is `free: true`: the exchange stays in the dataset with its
 carbon balances keep it) and carries no burden and no credit. Its fuel credit belongs in the future
 feed:SYNGAS link, as less fired fuel in the reformer section.
 Alternatives: `none` (unallocated) is computed in `allocation.compare`; exergy with the purge as a
-co-product (MEOH 81.81 %, PURGE 13.71 %, MPS 3.21 %, FUELGAS 1.27 %) is printed by the script and
+co-product (MEOH 81.47 %, PURGE 14.19 %, MPS 3.20 %, FUELGAS 1.14 %) is printed by the script and
 stated in `allocation.source`, because core's comparison only computes the listed co-products.
 Reason: docs/system-model.md section 2 makes exported steam and fuels co-products, allocated by
 energy or exergy and never credited. FUELGAS goes to fuel (D-001), so it is not waste, and MPS is

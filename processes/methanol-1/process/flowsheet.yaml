@@ -10,8 +10,9 @@
 #   D-013, D-014), calculated. The property package is not qualified for this mixture (D-014);
 #   the independent balance scripts/loop_balance.py (D-006) is the cross-check, compared in D-014.
 # - kept against the simulation (sim-deviation, D-014): S16 313.15 K (D-008 condenser
-#   temperature; the shortcut prints a non-physical 69 K) and S18 product state and flow
-#   (design basis; no product cooler or pump step).
+#   temperature; the shortcut's 69 K is not a usable condenser temperature) and S18 temperature
+#   and pressure (design basis; no product cooler or pump step). S18 flow and composition are
+#   the simulated ones: 103734 kg/h = 2490 t/d from the make-up gas sized for 2500 t/d (D-014).
 schema: cheme/process/v1
 kind: flowsheet
 title: Methanol synthesis loop and purification (2500 t/d Grade AA)
@@ -23,7 +24,7 @@ units:
   enthalpy: kJ/kmol
   enthalpy_reference: {state: ideal_gas, temperature: 298.15}
 cases:
-  - {id: design, description: "Design case: 2500 t/d Grade AA methanol from the D-004 make-up gas, recycle ratio 4 (D-007)", default: true}
+  - {id: design, description: "Design case: make-up gas of D-004 sized for 2500 t/d Grade AA methanol (2490 t/d simulated, D-014), recycle ratio 4 (D-007)", default: true}
 tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
 
 feeds:
@@ -441,8 +442,8 @@ streams:
       design:
         pressure: {value: 300, provenance: assumed, source: "design basis, D-008"}
         temperature: {value: 313.15, provenance: assumed, source: "design basis, D-008"}
-        flow: {value: 104166.7, basis: mass, provenance: assumed, source: "design basis 2500 t/d, D-002"}
-        composition: {basis: mole_fraction, values: {CH3OH: 0.99911105, H2O: 0.00088895}, provenance: assumed, source: "water 0.05 wt% design target (D-008)"}
+        composition: {basis: mole_fraction, values: {H2: 3.79814e-13, CO: 8.31155e-14, CO2: 1.23705e-06, CH4: 5.53634e-11, N2: 2.45866e-12, CH3OH: 0.999111, H2O: 0.00088895}, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 758c7021f74bc684, origin: simulated}
+        flow: {value: 103734.0, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 758c7021f74bc684, origin: simulated}
   - id: S19
     title: Refining column bottoms water
     from: C202.bot
@@ -521,7 +522,7 @@ streams:
       design:
         duty: {value: 83150.7, provenance: calculated, source: 'cheme process simulate: DWSIM 9.0.5.0, Peng-Robinson (PR)', fingerprint: 758c7021f74bc684, origin: simulated}
   - id: Q9
-    title: C-202 condenser and product cooler duty
+    title: C-202 condenser duty (product cooler not modelled, D-014)
     kind: energy
     from: C202.cond
     to: CW.c202
