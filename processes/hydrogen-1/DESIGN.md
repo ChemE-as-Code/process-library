@@ -8,7 +8,7 @@ Starting point of this run (2026-10-27): library branch `case/hydrogen-1` from `
 cheme-as-code 0.8.0 (pyDEXPI 2.1.0), Python 3.15, CoolProp and thermo in cheme's interpreter.
 Core dependencies named in the issue, as they stand for this route: core #366 (electrochemical
 cell) is not needed (no electrolysis); core #368 / PR #398 (adsorption) has no PSA cycle model,
-so the PSA is a specified split (D-008); core #315 (property qualification) is open for
+so the PSA is a specified split (D-008); pre-release issue 315 (property qualification) is open for
 water-bearing synthesis gas, steam and flue gas, so the flashes, enthalpies and duties are
 specified values from an independent script (D-006, D-011).
 
@@ -104,7 +104,7 @@ cheme calculates the rest (`cheme process propagate --fill`): the reformer, shif
 outlets and every mixer, splitter, exchanger and machine stream.
 Reason: core has no property package for water-bearing synthesis gas, steam or flue gas
 (the packaged `syngas-pr-vapor` excludes water; `air-pr-chemsep` stops at 315 K), and no
-flash with water (core #315); `cheme process simulate` would need an unqualified DWSIM
+flash with water (pre-release issue 315); `cheme process simulate` would need an unqualified DWSIM
 package for the same mixtures.
 Checks (2026-10-27): cheme's equilibrium outlets agree with the script to five significant
 figures (CH4 in S9 0.0400201 vs 0.0400217; CO in S11 0.0239751 vs 0.0239757); the PSA and
@@ -179,7 +179,7 @@ cheme's own (D-006); the block energy balances are `not-evaluable` in `cheme pro
 because no stream has an enthalpy (`cheme process props` covers none of the water-bearing or
 hot streams).
 Gated steps:
-- stream enthalpies, flashes and a predictive heat and material balance: core #315 (a property
+- stream enthalpies, flashes and a predictive heat and material balance: pre-release issue 315 (a property
   package qualified for H2/CO/CO2/CH4/N2/H2O vapour and liquid water, and for flue gas);
 - PSA performance: core #368 / PR #398 with a cited or vendor recovery;
 - core bug found: `cheme process build` 0.8.0 fails (`TypeError: 'typing.Union' object is not
@@ -243,7 +243,10 @@ validate` reports no error, and the translation into the simulator model succeed
 cheme 1.1.0, 1.2.0 and 1.2.1 (the version library CI now pins): `cheme process simulate --check` stops
 only at `sim-unavailable`, after the translation. `cheme maturity` now passes
 `predictive.simulation-spec` and `predictive.property-package` (both failed or were missing
-before). It fails `predictive.coverage` (three parts left out, below) and
+before). The `property-package` pass is **not earned yet**: it rests on the PR substitution
+below, which nobody has accepted; core reads `method_selection.substitution` as an accepted
+substitution. It counts only once the owner or a reviewer accepts it and the acceptance is
+recorded here and in the substitution text. It fails `predictive.coverage` (three parts left out, below) and
 `predictive.model-basis`, because U-301 is a specified split (D-008), which caps the level at
 balanced. No stream value was written.
 Scope (17 units, 25 material streams of which 5 are feeds S1, S6, S20, S22, S25, and 9 energy
@@ -274,16 +277,27 @@ interaction parameters (`cheme process phase` finds ChemSep PR kij for water/CO2
 for water with H2, CH4, CO or N2; DWSIM's own set was not inspected, so the conservative
 answer). The tree then recommends PSRK or PR/RKS with modified Huron-Vidal mixing rules; the
 DWSIM route runs none of them and methods.yml names PR as the executable substitute of PR-MHV2
-(it loses the excess-Gibbs-energy mixing rule), as ammonia-1 does for the same gas. Core
-claims PR only for N2, O2 and Ar (methods.yml; core #315), so the results for this mixture
-are not qualified. The substitution is the agent's proposal and needs the owner's or a
-reviewer's acceptance.
+(it loses the excess-Gibbs-energy mixing rule), as ammonia-1 does for the same gas. PR rather than
+SRK (RKS, the substitute methods.yml names for PSRK): core's SRK claim holds no mixture,
+because DWSIM 9.0.5's SRK database has no kij even for the nitrogen, oxygen and argon pairs,
+while PR carries DWSIM's database kij and its claim covers those mixtures (methods.yml PR and
+SRK notes); whether DWSIM's PR set holds kij for the water pairs here was not inspected. Core
+claims PR only for N2, O2 and Ar (methods.yml; pre-release issue 315), so the results for this
+mixture are not qualified. The substitution is the agent's proposal and needs the owner's or a
+reviewer's acceptance (not given as of 2026-11-01; the acceptance, with who gave it, goes into
+this decision and the substitution text).
 HT shift R-201 (core #58): DWSIM 9.0.5's equilibrium reactor in adiabatic mode fails its flash
 (reproduced through core v1.0.0 on ammonia-1's HT shift bed; the issue is open, and core 1.1.0,
 1.2.0 and 1.2.1 contain no fix). R-201 is therefore run with `mode: outlet_temperature` at the
 concept balance's adiabatic outlet, 691.77 K (S11, scripts/h2_balance.py), and its simulated
 duty is the check of the adiabatic assumption: it should be near zero (ammonia-1's beds gave
-0.4 to 2.6 % of their reaction heat). The equilibrium itself stays DWSIM's (WGS, approach
+0.4 to 2.6 % of their reaction heat). Criterion, fixed before the run (ASSUMED, from that
+ammonia-1 range): the check passes if |Q_R201| is at most 3 % of the WGS reaction heat of the
+simulated S10 to S11 extent (extent times |dH_WGS| at the bed temperature, from the run's
+streams). If it is exceeded, the run's R-201 outlet is not used: the outlet temperature spec
+is re-solved until the simulated duty is zero (within the 3 %), the new temperature and the
+deviation from 691.77 K are recorded in a new decision, and only then are stream values
+filled. The equilibrium itself stays DWSIM's (WGS, approach
 +10 K, ln K from DWSIM's Gibbs energies of formation: reactions.yaml gives no
 `equilibrium_constant`). Rejected: a conversion reactor at the concept conversion, run
 adiabatic (conversion reactors run adiabatic in ammonia-1). It would need `reactor:
@@ -292,8 +306,9 @@ specified conversion (ADR 0030 then checks only that conversion). Also rejected:
 the core fix.
 Side effect of the workaround: R201 is no longer declared `mode: adiabatic`, so the LCA
 boundary check (`cheme assess lca`) reports `boundary-utility-unassigned` for R201, though
-R-201 is adiabatic and has no utility. lca/ was regenerated with cheme 1.2.1 (`cheme assess
-lca --write`), as ammonia-1 did under D-024: `lca/results.md` now headlines an incomplete
+R-201 is adiabatic and has no utility. lca/ was regenerated with cheme 1.1.0 (`cheme assess
+lca --write`, commit d0c03dc), as ammonia-1 did under D-024, and its run manifest again with
+cheme 1.2.1 (386c7f0; `cheme assess lca --check` passes on 1.2.1): `lca/results.md` now headlines an incomplete
 boundary with R201 as its only gap, and the run manifest fingerprints the new
 simulation.yaml, so the catalog does not withhold the LCA as `stale-run-manifest`. The
 impacts (results.csv) are unchanged. To settle (owner): accept the flag as ammonia-1 did, or
@@ -319,5 +334,5 @@ What the first run should show (pre-run expectations, not results):
   once the deviations have been reviewed.
 Open: H301, E305 and STM in the simulation (convection coils as two-stream exchangers on the
 flue gas, as ammonia-1 did; an adjust or a fixed fuel for the radiant balance); property
-qualification for water-bearing syngas (core #315); a sourced PSA recovery (D-008); DWSIM's
+qualification for water-bearing syngas (pre-release issue 315); a sourced PSA recovery (D-008); DWSIM's
 own PR kij for water pairs, to be read from the saved flowsheet (`--save`).
