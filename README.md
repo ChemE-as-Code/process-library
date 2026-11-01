@@ -44,7 +44,7 @@ P&IDs and a 3D layout. The [home page](https://cheme-as-code.org) explains what 
 engineering as code" means.
 
 The library is the source of the [Process Atlas](https://atlas.cheme-as-code.org) (a preview;
-it shows the processes marked public in their `process.yaml`, reviewed or not), which links the processes through the chemicals
+it shows the processes marked public, which is all 50, as unreviewed research output), which links the processes through the chemicals
 they make and use. From the same files it builds open life cycle inventory (LCI) datasets for
 [Brightway](https://docs.brightway.dev) and openLCA. All of it is plain text in git, so every
 change is reviewed and versioned. This is research software

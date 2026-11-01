@@ -218,6 +218,7 @@ Decision: `process.yaml` keeps `maturity: concept`, `validation: unreviewed`,
 `publication.status: internal`. `cheme maturity` reaches no level (feed not sourced; separators
 specified by an unqualified script): concept is the manifest's lowest value and the
 `maturity-claim-exceeds` warning is accepted and explained here, as in methanol-1.
+Note 2026-11-01: the owner has since marked all 50 processes public, so this one is no longer internal.
 
 ## D-020 Preliminary gate-to-gate LCI (2026-10-27)
 Decision: `lca/lca.yaml`, functional unit 1 kg NH3 at the gate, boundary gate-to-gate, case

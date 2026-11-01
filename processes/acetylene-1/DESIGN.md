@@ -213,7 +213,9 @@ Electricity, cooling water and wastewater link by their registry slugs in the At
 other exchange stays a reported gap. The library's `scripts/build_lci.py --strict` run over the
 whole library passes (exit 0), with acetylene-1's 10 mapping gaps (natural gas, support gas, oxygen, NMP, sludge and residue
 treatment; C2H2, C4H2, C6H6 and NMP to air without a biosphere identity) exported unlinked (unpublished
-process). The allocation records a `deviation`: no sourced prices yet for the library's
+process).
+Note 2026-11-01: the owner has since marked all 50 processes public, so this one is no longer internal.
+The allocation records a `deviation`: no sourced prices yet for the library's
 price-ratio step.
 
 ## D-014 Missing shared entries (for the consolidated library PR) (2026-10-28)
