@@ -5,9 +5,9 @@ decided, why, what was rejected, and what it assumes. Numbers live in `process/*
 `scripts/urea_balance.py` and `lca/`; this file keeps the decisions and their sources.
 
 Run context (2026-10-27): library `main` at 79a7cd4 (branch `case/urea-1`), cheme-as-code
-0.8.0 (pyDEXPI 2.1.0). Core issues checked at start: #315 open; #364 closed (merged scope
+0.8.0 (pyDEXPI 2.1.0). Core issues checked at start: property qualification open; electrolytes closed (merged scope
 excludes NH3/NH4+ weak-electrolyte speciation, and `cheme process methods` 0.8.0 still lists
-the electrolyte regime as unsupported); #365 closed (solids; not needed for this scope).
+the electrolyte regime as unsupported); solids closed (not needed for this scope).
 
 ## Source register
 
@@ -82,7 +82,7 @@ Assumptions: product cooling, screening and anti-caking outside the boundary.
 Decision: NH3 liquid 100 % at 2200 kPa(a)/293 K. CO2 98.5 mol% with 0.5 % water and 1.0 %
 inerts (lumped as N2) at 160 kPa(a)/313 K. Passivation air dosed to 0.6 mol% O2 in the CO2
 (corrosion protection of the stainless HP loop). Ar of air lumped into N2.
-Reason: no ammonia plant interface exists yet (issue #86). The values are typical forms of an
+Reason: no ammonia plant interface exists yet (issue #304). The values are typical forms of an
 ammonia-plant CO2 removal and warm ammonia product: ASSUMED. Per the issue, captured CO2 is
 not assumed free or pressure-ready: it is compressed in the plant (K-101) and its supply
 burden stays an open background.
@@ -166,13 +166,13 @@ Decision: no property package is used (`materials.yaml` property method stays a 
 `cheme process props`/`simulate` are not run.
 Reason: the HP and LP liquids are concentrated aqueous electrolyte solutions (NH4+, carbamate,
 bicarbonate) with urea, and the finishing has a solid. `cheme process methods` (0.8.0)
-reports the electrolyte regime unsupported for phase and simulation. Core #364's merged scope
-excludes NH3/NH4+ weak-electrolyte speciation and electrolyte VLE. Core #315 (whole-flowsheet
-energy basis, polar/activity benchmark) is open.
+reports the electrolyte regime unsupported for phase and simulation. Core's merged electrolyte scope
+excludes NH3/NH4+ weak-electrolyte speciation and electrolyte VLE. The core issue on the whole-flowsheet
+energy basis and polar/activity benchmark is open.
 **Gated steps:** (1) a predictive HP loop (carbamate speciation and VLE in stripper,
 condenser, reactor and scrubber) needs an NH3-CO2-H2O-urea electrolyte/activity model in core
-(the follow-up of #364 under #81/#137) with a benchmark of this system; (2) energy closure of
-the blocks needs absolute enthalpies of these liquids (#315). Until then the PFD stays at
+(the follow-up of the electrolyte issue under #81/#137) with a benchmark of this system; (2) energy closure of
+the blocks needs absolute enthalpies of these liquids. Until then the PFD stays at
 "balanced with specified separations", and `cheme maturity` reaches no level (the sourced
 level fails on the assumed feeds; balanced.model-basis on the unsourced specified values).
 
@@ -261,7 +261,7 @@ per kWh or the steam in kg, the urea dust flow, biuret dropped or curated), remo
 `.gitignore` line and commit the dataset.
 
 ## Open inputs
-- O-1 Ammonia plant interface (issue #86): NH3 and CO2 conditions, CO2 impurities (H2, see
+- O-1 Ammonia plant interface (issue #304): NH3 and CO2 conditions, CO2 impurities (H2, see
   O-8), and
   the LCI datasets the urea feeds link to.
 - O-2 Site and country: grid, steam and cooling-water backgrounds.

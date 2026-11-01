@@ -69,7 +69,7 @@ Counted as fossil (no biogenic fraction declared): feed:CO2.
 
 | flow | phase | per functional unit | provenance | background |
 |---|---|---|---|---|
-| feed:NH3 (input) | operation | 0.565306 kg | assumed | missing: background to link: liquid anhydrous ammonia at the ammonia plant gate, from natural-gas steam reforming (the integrated ammonia plant; coordinate with library issue #86 and its LCI dataset). Not linked yet |
+| feed:NH3 (input) | operation | 0.565306 kg | assumed | missing: background to link: liquid anhydrous ammonia at the ammonia plant gate, from natural-gas steam reforming (the integrated ammonia plant; coordinate with library issue #304 and its LCI dataset). Not linked yet |
 | feed:CO2 (input) | operation | 0.738097 kg | assumed | missing: background to link: CO2 from the ammonia plant's CO2 removal (fossil process CO2), with the separation and delivery burden the ammonia plant dataset allocates to it; no capture or avoided-emission credit (D-011). The quantity is the whole CO2 feed gas (98.5 mol% CO2, 0.5 % H2O, 1.0 % inerts; 0.738 kg/kg urea), 0.86 % more mass than the 0.7318 kg/kg of contained CO2: link a background per kg of feed gas, or scale it to the contained CO2. Not linked yet |
 | feed:PAIR (input) | operation | 0.0139162 kg | assumed | free |
 | feed:AIR (input) | operation | 8.4784 kg | assumed | free |
@@ -97,7 +97,7 @@ These exchanges have no burden in the category: the totals exclude them (they ar
 
 | category | flow | quantity | why |
 |---|---|---|---|
-| climate-change | feed:NH3 | 0.565306 kg | declared missing: no background available (background to link: liquid anhydrous ammonia at the ammonia plant gate, from natural-gas steam reforming (the integrated ammonia plant; coordinate with library issue #86 and its LCI dataset). Not linked yet) |
+| climate-change | feed:NH3 | 0.565306 kg | declared missing: no background available (background to link: liquid anhydrous ammonia at the ammonia plant gate, from natural-gas steam reforming (the integrated ammonia plant; coordinate with library issue #304 and its LCI dataset). Not linked yet) |
 | climate-change | feed:CO2 | 0.738097 kg | declared missing: no background available (background to link: CO2 from the ammonia plant's CO2 removal (fossil process CO2), with the separation and delivery burden the ammonia plant dataset allocates to it; no capture or avoided-emission credit (D-011). The quantity is the whole CO2 feed gas (98.5 mol% CO2, 0.5 % H2O, 1.0 % inerts; 0.738 kg/kg urea), 0.86 % more mass than the 0.7318 kg/kg of contained CO2: link a background per kg of feed gas, or scale it to the contained CO2. Not linked yet) |
 | climate-change | feed:POWER | 0.096132 kWh | declared missing: no background available (background to link: grid electricity, medium voltage, market mix of the site's country (site not chosen, D-002). Not linked yet) |
 | climate-change | feed:MPS | 0.408 kWh | declared missing: no background available (background to link: MP steam 24 bar (saturated) from the site steam system: a natural-gas-fired utility boiler or the ammonia plant's steam export, per kWh of heat. Not linked yet) |

@@ -1,7 +1,7 @@
 """Concept heat and material balance of acetic-anhydride-1 (ketene route), DESIGN.md D-006.
 
 An independent balance: core cannot qualify flashes, enthalpies or distillation of acetic
-acid / ketene / acetic anhydride / water (no property package; core #315), so the values the
+acid / ketene / acetic anhydride / water (no property package), so the values the
 flowsheet cannot calculate itself (separator and column outlets, recycle streams, utility
 duties, the natural gas and air of the firebox) come from here and are entered in
 process/flowsheet.yaml as ASSUMED with this script as their source. The reactor outlets,
@@ -327,3 +327,38 @@ m_out = tot(kg(S19)) + tot(kg(S20)) + tot(kg(S22)) + tot(kg(FLUE))
 print(f"overall mass in {m_in:.2f} out {m_out:.2f} kg/h")
 print(f"specific: acid {tot(kg(S1)) / PRODUCT_KG_H:.4f} kg/kg, NG {tot(kg(NGs)) / PRODUCT_KG_H:.4f} kg/kg, "
       f"yield on acid {2 * P_ac2o / S1['ACOH']:.4f} mol/mol (Ac2O product x 2 / acid)")
+
+# the values process/flowsheet.yaml cites from this script (balance-output contract)
+FLOWSHEET = {}
+for name, n, t, p, phase in streams:
+    FLOWSHEET[name.split()[0]] = {
+        "flow": {"value": tot(kg(n)), "basis": "mass"},
+        "composition": {"values": {c: x / tot(n) for c, x in n.items()}, "basis": "mole_fraction"},
+        "temperature": t, "pressure": p}
+for qid, key in {"Q1": "E101_LPS", "Q2": "R101_fired", "Q3": "E102_CW", "Q4": "E102_BRINE",
+                 "Q5": "T301_CW", "Q6": "T301_POWER", "Q7": "K301_POWER", "Q8": "C201_MPS",
+                 "Q9": "C201_CW", "Q10": "C202_MPS", "Q11": "C202_CW", "Q12": "C401_LPS",
+                 "Q13": "C401_CW"}.items():
+    FLOWSHEET[qid] = {"duty": duties[key]}
+
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
+
+
+write_balance_output({"design": FLOWSHEET})

@@ -6,7 +6,7 @@ repository). Every value it produces is ASSUMED: it rests on the sourced brine i
 (300 mg/kg I, D-003) and the ASSUMED design parameters below, each with its decision.
 
 Dissolved species are carried as neutral molecules (NaI, NaCl, HI, HCl, H2SO4, Na2SO4, NaHCO3,
-I2, Cl2, SO2, CO2 in water): an inventory basis, not a speciation (core #364, D-007). The
+I2, Cl2, SO2, CO2 in water): an inventory basis, not a speciation (D-007). The
 recycles (absorber gas loop, filtrate and spent melter acid to the brine head) are solved by
 successive substitution; the plant is linear in the brine flow, which is then scaled to the
 product rate.
@@ -245,3 +245,34 @@ print(f"Q fan {q_fan:.1f} kW, inj {q_inj:.1f} kW, abs {q_abs:.1f} kW, rec {q_rec
 ins = sum(total(S[k]) for k in ("S1", "S2", "S10", "S11", "S12", "S14", "S18", "S22"))
 outs = sum(total(S[k]) for k in ("S7", "S21", "S24"))
 print(f"plant in {ins:.3f} out {outs:.3f} diff {ins-outs:.2e} kg/h")
+
+
+# the values process/flowsheet.yaml cites from this script (balance-output contract)
+FLOWSHEET = {}
+for sid in TP:
+    if sid not in PROPAGATED:
+        s = {k: v for k, v in S[sid].items() if v > 1e-12}
+        FLOWSHEET[sid] = {"flow": total(s), "composition": {k: v / total(s) for k, v in s.items()}}
+FLOWSHEET.update({qid: {"duty": q} for qid, title, fr, to, q, src in Q})
+
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
+
+
+write_balance_output({"design": FLOWSHEET})

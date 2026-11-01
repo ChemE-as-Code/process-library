@@ -3,7 +3,7 @@
 # (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
 # exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
 #
-# thionyl-chloride-1 is an internal process (publication.status: internal) and its preliminary
+# thionyl-chloride-1's preliminary
 # LCI leaves the backgrounds unmapped on purpose (DESIGN.md D-012). The build reports each
 # unmapped exchange as a gap (lci/gaps.json). One override only: the LP steam is counted as heat
 # delivered (kWh), while the default `steam` entry is per kg, a unit error otherwise. The shared
@@ -13,3 +13,9 @@
 schema: cheme-as-code/lci-process-mappings/v1
 exchanges:
   "feed:LPS": {use: steam-heat, source: "LP steam 500 kPa(a) to the vaporisers, preheater and reboilers (Q3, Q4, Q5, Q9, Q13), counted as heat delivered (kWh), D-010"}
+  # Mapping step of 2026-11-01 (ADR 0026): each entry below uses a reference the library already
+  # holds. Notes above that call these exchanges unmapped describe the state before it. What is
+  # still unmapped is a gap (lci/gaps.json), and this process is marked preliminary.
+  "feed:CL2": {dataset: {path: processes/chlor-alkali-1/lca/dataset.yaml, product: "product:CL2"}, source: "the Atlas producer chlor-alkali-1, dry chlorine gas 400 kPa(a); this feed is re-evaporated liquid chlorine, whose liquefaction and re-evaporation are not counted (screening)"}
+  "feed:NAOH": {dataset: {path: processes/chlor-alkali-1/lca/dataset.yaml, product: "product:NAOH"}, source: "the Atlas producer chlor-alkali-1, caustic soda 50 wt-%, per kg of solution as this exchange counts it, which this feed names"}
+  "feed:SULFUR": {use: sulfur, source: "molten elemental sulfur, the shared entry"}

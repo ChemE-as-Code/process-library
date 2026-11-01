@@ -108,7 +108,7 @@ beside the input's background link, and `install(prefer_atlas=True)` links to it
    (`carrier_refusal`): outside its operating range a default link is refused (a warning, and a
    `refused` entry in `atlas_links`) and a `link.dataset` is an error.
 
-### Compatibility check (core#168)
+### Compatibility check
 
 Every Atlas-to-Atlas link is checked: a consumer's input to a market or a plant, a market's
 suppliers, a consumption mix's imports, and an explicit `link.dataset`. The result is written into
@@ -139,13 +139,13 @@ warning in the report. The report prints the Atlas system model and methodology 
   The site then needs a site dataset with the shares of each source. Shared utilities belong to
   the site, not to each plant (#45). This is built when the library has a second process that
   shares a site with another; until then every plant is a stand-alone plant feeding its markets.
-- **CO2 along chains** (core#181): a CO2 input from an Atlas point source is a technosphere link,
+- **CO2 along chains**: a CO2 input from an Atlas point source is a technosphere link,
   never a removal, and the source's capture is counted once, at the source.
 
 ## Regional and technology variants
 
 A market is per region; the plant datasets stay the same foreground. Core's regional scenarios
-(core#172, `lca/scenarios/`) change a plant's background (grid, location), and the markets of
+(`lca/scenarios/`) change a plant's background (grid, location), and the markets of
 other regions take those plant variants as their suppliers once they are exported as datasets of
 their own. A technology market (`layer: technology`) keeps a single technology's supply for
 comparisons (for example cryogenic versus PSA oxygen) without changing the regional mix.

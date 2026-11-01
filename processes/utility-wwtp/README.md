@@ -1,11 +1,17 @@
 # Wastewater treatment, activated sludge
 
+> **AI-generated research output, not engineering advice.** This design was produced by AI coding
+> agents (Claude Code) under human direction and is checked by automated tools; it has had
+> no independent human review. It is not approved for construction, operation, procurement or
+> safety decisions and comes with no warranty. Check the design maturity and review status in
+> `process.yaml` before relying on any number.
+
 Library utility (process-library#45), manifest only. Biological treatment of 1 m3 (1000 kg) of industrial wastewater at an ASSUMED design COD of 1 kg/m3. The organics are a CH2O model substrate, the biomass C5H7NO2: the oxygen demand is the COD removed minus the COD of the biomass grown, the CO2 that of the carbon oxidised (fossil, ASSUMED). Excess sludge goes to incineration with energy recovery (ASSUMED route), which the cut-off model leaves burden-free.
 
 ## How it is built
 
 `lca/datasets/wwtp-activated-sludge-per-m3.yaml` is a hand-written LCI dataset (`cheme/lci_dataset/v2`) in core's Tier 1
-form (core#182): every amount is the `formula` of the dataset's `parameters`, which core's
+form: every amount is the `formula` of the dataset's `parameters`, which core's
 validator re-checks, and `generation.balance` records the element balance (closed).
 Physical properties and stoichiometry have their sources (IAPWS-95 and humid-air properties
 evaluated with CoolProp 8.0.0, IUPAC 2021 atomic weights, the chemicals registry). **Every

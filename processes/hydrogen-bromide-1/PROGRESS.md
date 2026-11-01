@@ -4,7 +4,7 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
-| 2026-10-28 | PROGRESS.md | Response to review 2026-10-28-pfd-lci-review: #1 (medium) left open: the HBr integral heat of solution still needs reading at source (NBS tables, Wagman et al. 1982 or Parker 1965) before Q4 and the LCI are re-run; not a quick fix (D-009, gate core#364) | review responses |
+| 2026-10-28 | PROGRESS.md | Response to review 2026-10-28-pfd-lci-review: #1 (medium) left open: the HBr integral heat of solution still needs reading at source (NBS tables, Wagman et al. 1982 or Parker 1965) before Q4 and the LCI are re-run; not a quick fix (D-009, gate core's electrolyte support) | review responses |
 | 2026-10-28 | PROGRESS.md | Response to review #8 (low) left open by design: the `maturity-claim-exceeds` disclosure stays in process.yaml until the feeds and absorber recoveries are sourced, as the review proposes | review responses |
 | 2026-10-28 | process.yaml, equipment/equipment-list.yaml | Response to review #7 (low): R-101's 300 degC design temperature applies to the chamber shell and jacket; the burner tube gets its own (TBD) at the datasheet stage (commit 9eebaf5) | review responses |
 | 2026-10-28 | DESIGN.md SRC-9, D-007, process/flowsheet.yaml, process.yaml, BFD/PFD | Response to review #6 (low): IF97 cited as IAPWS R7-97(2012) region 4 Eq. 30/31 with values computed by CoolProp 8.0.0 IF97; LPS saturation corrected 420.8 -> 421.1 K; Hydrogen bromide Wikipedia URL and IAPWS as their own references. SRC-6 remains a search summary (#1) (commit 9eebaf5) | review responses |

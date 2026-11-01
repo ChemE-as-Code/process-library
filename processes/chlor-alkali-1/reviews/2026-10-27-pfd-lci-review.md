@@ -111,7 +111,7 @@ in tiles (see Not checked). There are no P&IDs: they are out of scope for this r
 - **Provenance.** Every stream value is `assumed` with scripts/balance.py as the source (208
   entries). Every input in the script and DESIGN.md is either sourced with a BREF section or
   table locator, or marked ASSUMED. Gated steps (energy closure, electrolyte properties) are
-  named with their core issues (core#364, PR #394).
+  named with their core issues.
 - **Licences.** DESIGN.md, the design basis and lca.yaml use BREF facts and ranges in their own
   words with section and table locators. No tables, figures or passages are copied, and no
   third-party drawings are present. The BFD and PFD are generated from our own YAML.
@@ -127,7 +127,7 @@ in tiles (see Not checked). There are no P&IDs: they are out of scope for this r
 - Re-running `scripts/balance.py` to confirm it reproduces the committed stream values
   byte-for-byte. Spot checks of the cell, water, steam, drying and sulfate balances agree
   (above).
-- Energy closure of the steps outside the cell (not evaluable in core, core#364). The duties
+- Energy closure of the steps outside the cell (not evaluable in core). The duties
   rest on constant heat capacities (D-006). The evaporator duty and the cell heat split were
   only checked for order of magnitude.
 - The BREF locators themselves (section and table numbers) were not opened by the reviewer.

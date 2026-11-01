@@ -4,7 +4,7 @@
 # exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
 #
 # None yet (DESIGN.md D-013): the preliminary inventory leaves every background unlinked, so the
-# Atlas build reports the exchanges of this internal process as gaps (ADR 0022). What each
+# Atlas build reports the exchanges of this process as gaps (ADR 0022). What each
 # should connect to is in lca/lca.yaml (`missing:`). Candidates once the shared vocabulary has
 # them (not active, listed for the consolidated mapping PR):
 #   feed:BRINE   -> a brine-extraction entry (well pumping, with the resource bromine in ground
@@ -31,3 +31,9 @@ exchanges:
       has no LP steam producer: ammonia-1's and hydrogen-1's export steam is superheated at high
       pressure and utility-steam-ng-boiler makes steam/mp-11bara. Not linked inside the Atlas
       until the steam supply is decided.
+  # Mapping step of 2026-11-01 (ADR 0026): each entry below uses a reference the library already
+  # holds. Notes above that call these exchanges unmapped describe the state before it. What is
+  # still unmapped is a gap (lci/gaps.json), and this process is marked preliminary.
+  "feed:CL2": {dataset: {path: processes/chlor-alkali-1/lca/dataset.yaml, product: "product:CL2"}, source: "the Atlas producer chlor-alkali-1, dry chlorine gas 400 kPa(a); this feed is vaporised liquid chlorine, whose liquefaction is not counted (screening)"}
+  "feed:H2SO4": {use: sulfuric-acid, source: "sulfuric acid 98 wt-% for drying, the shared entry, counted as the solution"}
+  "feed:LPH": {use: steam-heat, source: "LP steam 350 kPa(a), counted as heat delivered (kWh); the shared entry converts it to the background's heat from steam, which does not distinguish pressure levels"}

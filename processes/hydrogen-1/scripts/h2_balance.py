@@ -376,6 +376,41 @@ def main():
           f" tail gas LHV {lhv(s['tail']) / 3.6e6:.2f} MW; trim LHV {lhv(s['trim']) / 3.6e6:.2f} MW; export steam {w['m_ex'] / m_h2:.2f} kg/kg")
     print(f"ln(Q/K) check reformer approach {APPROACH_REF}, HTS approach {APPROACH_HTS}; steam/dry-gas, CH4 slip dry {s['ref']['CH4'] / (sum(s['ref'].values()) - s['ref']['H2O']):.4f}")
 
+    # the values process/flowsheet.yaml cites from this script (balance-output contract)
+    out = {}
+    for name, n, T, P in rows:
+        out[name.split()[0]] = {"flow": mass(n), "temperature": T, "pressure": P,
+                                "composition": frac(n)}
+    out["S27"] = {"flow": w["m_mu"], "temperature": 298.15}
+    out["S28"] = {"flow": w["m_fw"], "temperature": t["T_mix_w"]}
+    out["S29"] = {"flow": w["m_fw"], "temperature": t["T_pump"]}
+    out["S30"] = {"flow": w["m_fw"], "temperature": t["T_bfw_int"]}
+    out["S32"] = {"flow": w["m_s"], "temperature": T_STEAM}
+    out["S34"] = {"flow": w["m_bd"], "temperature": w["T_bd"]}
+    duties = {"Q1": "K101", "Q2": "E101", "Q3": "E102", "Q4": "R102", "Q5": "E104",
+              "Q6": "E401_coil", "Q7": "E402", "Q8": "E201", "Q9": "E202", "Q10": "K301",
+              "Q11": "K302", "Q12": "P401"}
+    out.update({sid: {"duty": q[k]} for sid, k in duties.items()})
+    write_balance_output({"design": out})
+
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
+
 
 if __name__ == "__main__":
     main()

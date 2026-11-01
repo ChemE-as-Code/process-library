@@ -22,7 +22,7 @@ description: |
 
   The separations are specified splits from an independent balance script, and the energy
   figures rest on ideal-gas enthalpies: core has no qualified property package for C2+
-  hydrocarbon mixtures yet (core #315). See DESIGN.md for every assumption and gated step.
+  hydrocarbon mixtures yet. See DESIGN.md for every assumption and gated step.
 families: [olefins]
 keywords: [ethylene, propylene, steam cracking, ethane, olefins, cracked gas compression, demethaniser, C2 splitter, acetylene hydrogenation, pyrolysis gasoline]
 facets:
@@ -39,13 +39,16 @@ validation:
     warnings). Furnace, hydrogenation reactors and firebox outlets are calculated by cheme
     (conversion reactors; furnace conversions derived from the BREF LVOC 2017 Table 3.3 yields).
     Capacity, feed composition, splits, purities, efficiencies and utility levels are ASSUMED;
-    separations and duties come from scripts/balance.py on ideal-gas enthalpies (core #315: no
-    qualified property package for the C2+ hydrocarbons), so the energy balance is not evaluable
-    in core beyond the reactor duties, which cheme process reactors reproduces. The preliminary
+    separations and duties come from scripts/balance.py on ideal-gas enthalpies (no qualified
+    property package for the C2+ hydrocarbons), so the energy balance is not evaluable in core
+    beyond the reactor duties, which cheme process reactors reproduces. The preliminary
     gate-to-gate LCI closes in mass, elements and carbon by origin, with every background
     unmapped (gaps). Not reviewed. Main products and feeds are listed under chemistry with their
-    chemicals registry entries (issue #251). The refrigeration power is a conservative upper
-    estimate (D-014).
+    chemicals registry entries (issue #251). cheme maturity: calculation maturity none (sourced
+    boundary fails: capacity and feed are ASSUMED; balanced model basis fails: the splits and
+    conversions of H102, T201, D210, T310, D320, V402, R501 and R601 are unsourced). concept is
+    claimed as the lowest level of the manifest; the warning cheme.maturity-claim-exceeds is
+    acknowledged. The refrigeration power is a conservative upper estimate (D-014).
 chemistry:
   inputs:
     - {chemical: ethane, role: feedstock, note: "feed:ETHANE: purity ethane by pipeline, 1.16 kg/kg ethylene"}
@@ -81,7 +84,7 @@ maintainers:
 repository:
   url: https://github.com/ChemE-as-Code/process-library
   path: processes/ethylene-1
-  access: private
+  access: public
 publication:
-  status: internal
+  status: public
   license: CC-BY-4.0

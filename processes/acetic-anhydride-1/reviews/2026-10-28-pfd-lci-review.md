@@ -92,7 +92,7 @@ reactive absorption, two-column distillation, dilute acid recovery) and the boun
 acid as a boundary feed, no blending with carbonylation data) match issue #131. The mass,
 component and element balances close. Key values are sourced or marked ASSUMED, and every
 unmapped background is a described gap, not a zero. Energy closure is evaluable only in
-`scripts/ac2o_balance.py` (core #315), which is honestly stated.
+`scripts/ac2o_balance.py`, which is honestly stated.
 
 ## Previous findings
 

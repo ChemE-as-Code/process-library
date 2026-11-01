@@ -1,7 +1,7 @@
 # 0018. Store each build's benchmark comparison as benchmarks.json
 
 - **Status:** Accepted, 2026-10-28 (proposed 2026-10-27)
-- **Deciders:** the owner (proposed by an agent session, #85)
+- **Deciders:** the owner (proposed by an agent session, #303)
 - **Scope:** the Atlas catalog (`scripts/build_catalog.py`) and the LCI pipeline
   (`scripts/build_lci.py`), `scripts/benchmarks.py`
 
@@ -9,7 +9,7 @@
 
 The benchmark registry (ADR 0011) is evaluated at build time. Its results end up spread over
 `processes/<id>.json` (catalog) and `datapackage.json` (LCI, per dataset). No single file holds
-a build's whole comparison, and the release draft builds only the LCI database. #85 asks for the
+a build's whole comparison, and the release draft builds only the LCI database. #303 asks for the
 KPI results to be stored per build, so that a reported comparison (for example ASU-1's O2
 recovery of about 83 % against 97.85 %, explained by D-066) can be traced to one build and
 commit.
@@ -37,7 +37,7 @@ commit.
 
 ## Evidence
 
-- #85 (to-do: "store the benchmark KPI results per build").
+- #303 (to-do: "store the benchmark KPI results per build").
 - Accepted by the owner on 2026-10-28. The website's public check publishes both reports and
   checks their content (a public build, public processes only): website#88.
 - `scripts/benchmarks.py` (`report`), `scripts/build_catalog.py`, `scripts/build_lci.py`,

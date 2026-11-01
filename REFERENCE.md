@@ -1,10 +1,10 @@
 # Process library reference
 
 Versioned designs of chemical processes, one folder per process, kept as plain files in git. It
-is the source of the [Process Atlas](https://atlas.cheme-as-code.org) (not yet public; built in
+is the source of the [Process Atlas](https://atlas.cheme-as-code.org) (built in
 [`ChemE-as-Code/website`](https://github.com/ChemE-as-Code/website), `apps/atlas`) and of its
 LCI database. The [README](README.md) introduces the library; [CONTRIBUTING.md](CONTRIBUTING.md)
-says how to add a process. The repository is private for now.
+says how to add a process.
 
 | path | what |
 |---|---|
@@ -28,17 +28,65 @@ says how to add a process. The repository is private for now.
 
 ## Processes
 
+The library has 50 process folders: 44 engineering projects (a `plant.yaml` with a process
+flowsheet) and 6 library utilities (manifest and LCI dataset only). The table is generated
+from each folder's `process.yaml` and `checks/maturity.json`; `coverage.yaml` names the
+coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
+
 | id | process | design maturity | engineering project |
 |---|---|---|---|
+| [`acetaldehyde-1`](processes/acetaldehyde-1/) | Acetaldehyde by the one-stage Wacker oxidation of ethylene (100 kt/a) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`acetic-acid-1`](processes/acetic-acid-1/) | Acetic acid by low-water iridium methanol carbonylation (60 t/h glacial acid, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`acetic-anhydride-1`](processes/acetic-anhydride-1/) | Acetic anhydride by the ketene route (acetic acid cracking, 50 kt/a, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`acetone-1`](processes/acetone-1/) | Acetone and phenol from cumene (cumene hydroperoxide route, 200 kt/a phenol; cumene bought in, no alkylation step) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`acetylene-1`](processes/acetylene-1/) | Acetylene by partial oxidation of natural gas with NMP recovery (6.25 t/h, synthesis-gas co-product) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`alumina-1`](processes/alumina-1/) | Alumina by the Bayer process (3000 t/d smelter-grade alumina, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`ammonia-1`](processes/ammonia-1/) | Ammonia from natural gas (1500 t/d, steam reforming with air-fed secondary reformer, Haber-Bosch loop) | concept (calculation maturity: not recorded; not reviewed) | yes (DEXPI P&IDs (14), BFD/PFD, flowsheet, LCI dataset) |
+| [`aniline-1`](processes/aniline-1/) | Aniline by adiabatic gas-phase hydrogenation of nitrobenzene (25 t/h) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`asu-1`](processes/asu-1/) | Cryogenic air separation unit, 500 t/d GOX | screening (calculation maturity: balanced; not independently reviewed) | yes (DEXPI P&IDs, BFD/PFD, 3D layout, MTO, LCA, DWSIM checks) |
-| [`utility-steam-ng-boiler`](processes/utility-steam-ng-boiler/) | Steam, saturated 11 bar(a), natural-gas boiler (library utility) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
-| [`utility-cooling-tower`](processes/utility-cooling-tower/) | Cooling water, evaporative cooling tower, 25/35 degC (library utility) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
-| [`utility-wwtp`](processes/utility-wwtp/) | Wastewater treatment, activated sludge (library utility) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
-| [`utility-flare`](processes/utility-flare/) | Flaring of methane-rich waste gas (library utility) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
+| [`bromine-1`](processes/bromine-1/) | Bromine from bromide brine by chlorine oxidation and steaming-out (Smackover-type brine) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`chlor-alkali-1`](processes/chlor-alkali-1/) | Chlor-alkali by membrane-cell electrolysis (100 kt/a Cl2, 50 wt-% caustic soda, hydrogen) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`chloromethane-1`](processes/chloromethane-1/) | Chloromethane from methanol and hydrogen chloride (gas-phase hydrochlorination, 100 kt/a) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`dmf-1`](processes/dmf-1/) | N,N-Dimethylformamide by carbonylation of dimethylamine (50 kt/a, sodium methoxide in methanol) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`ethanol-1`](processes/ethanol-1/) | Ethanol by direct hydration of ethylene (100 000 t/a anhydrous, phosphoric acid catalyst) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`ethylene-1`](processes/ethylene-1/) | Ethylene and propylene by ethane steam cracking (1000 kt/a ethylene, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`ethylene-glycol-1`](processes/ethylene-glycol-1/) | Ethylene glycol by ethylene oxide hydration (glycols-only EO/EG plant, 1200 t/d MEG) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`formaldehyde-1`](processes/formaldehyde-1/) | Formaldehyde by methanol oxidation over iron molybdate (Formox type, 20 t/h formalin 50 wt%) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`formic-acid-1`](processes/formic-acid-1/) | Formic acid 85 wt% by methanol carbonylation and methyl formate hydrolysis (50 kt/a) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`glycerol-1`](processes/glycerol-1/) | Refined glycerol (USP) from biodiesel crude glycerol (10 000 t/a, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`hda-1`](processes/hda-1/) | Toluene hydrodealkylation to benzene (100 kt/a, thermal HDA) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`hydrazine-1`](processes/hydrazine-1/) | Hydrazine hydrate by the peroxide process (PCUK, methyl ethyl ketazine route, 16 kt/a) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`hydrogen-1`](processes/hydrogen-1/) | Hydrogen by natural-gas steam methane reforming with PSA (100 000 Nm3/h, steam export) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`hydrogen-bromide-1`](processes/hydrogen-bromide-1/) | Hydrogen bromide synthesis burner with catalytic finishing and absorption (48 wt-% hydrobromic acid) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`hydrogen-chloride-1`](processes/hydrogen-chloride-1/) | Hydrogen chloride synthesis burner and absorption (33 wt-% hydrochloric acid, steam recovery) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`hydrogen-peroxide-1`](processes/hydrogen-peroxide-1/) | Hydrogen peroxide by the anthraquinone autoxidation process (50 kt/a H2O2, 50 wt%) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`hydroxylamine-1`](processes/hydroxylamine-1/) | Hydroxylammonium sulfate by catalytic NO hydrogenation (30 kt/a NH2OH, 25 wt% solution) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`iodine-1`](processes/iodine-1/) | Iodine from natural iodide brine by chlorine oxidation, air blowing-out and SO2 absorption (1000 t/a) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`isobutene-1`](processes/isobutene-1/) | Isobutene by MTBE cracking (50 kt/a, gas-phase cleavage) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`kraft-pulp-1`](processes/kraft-pulp-1/) | Bleached softwood kraft pulp with chemical recovery (1000 ADt/d market pulp, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`methanol-1`](processes/methanol-1/) | Methanol synthesis loop and purification (2500 t/d Grade AA, natural-gas syngas) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, no LCI dataset yet) |
+| [`methylamines-1`](processes/methylamines-1/) | Methylamines (MMA, DMA, TMA) from methanol and ammonia | concept (calculation maturity: balanced, report from core 0.8.0, re-checked with core v1.2.1; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`natural-gas-processing-1`](processes/natural-gas-processing-1/) | Natural gas processing (amine CO2 removal, TEG dehydration, turbo-expander NGL recovery) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`nitric-acid-1`](processes/nitric-acid-1/) | Weak nitric acid by dual-pressure ammonia oxidation (1000 t/d HNO3 as 60 wt% acid) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`phosgene-1`](processes/phosgene-1/) | Phosgene from CO and chlorine over activated carbon (17.3 t/h liquid phosgene, captive) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`phosphorus-oxychloride-1`](processes/phosphorus-oxychloride-1/) | Phosphorus oxychloride from white phosphorus, chlorine and oxygen via PCl3 (4.0 t/h) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`potassium-permanganate-1`](processes/potassium-permanganate-1/) | Potassium permanganate from MnO2 ore by KOH roasting and electrolysis (1250 kg/h, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`silicon-carbide-1`](processes/silicon-carbide-1/) | Silicon carbide by the Acheson process (5000 kg/h crude SiC, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`soda-ash-1`](processes/soda-ash-1/) | Soda ash by the Solvay ammonia-soda process (1000 t/d light ash, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`sodium-cyanide-1`](processes/sodium-cyanide-1/) | Solid sodium cyanide from Andrussow HCN (6.25 t/h, 50 kt/a) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`sodium-nitrite-1`](processes/sodium-nitrite-1/) | Sodium nitrite from ammonia oxidation and soda absorption (with sodium nitrate by inversion) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`sulfuric-acid-1`](processes/sulfuric-acid-1/) | Sulfuric acid from sulfur burning, double contact / double absorption (1000 t/d, 98.5 wt%) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`thf-1`](processes/thf-1/) | Tetrahydrofuran from 1,4-butanediol (50 kt/a, cyclodehydration and pressure-swing distillation) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`thionyl-chloride-1`](processes/thionyl-chloride-1/) | Thionyl chloride from sulfur, chlorine and SO2 over activated carbon (3.75 t/h) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`urea-1`](processes/urea-1/) | Urea by CO2 stripping, total recycle, prilling (2000 t/d, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, no LCI dataset yet) |
 | [`utility-chiller`](processes/utility-chiller/) | Chilled water at 6 degC, electric chiller (library utility; refrigerant losses not yet counted) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
+| [`utility-cooling-tower`](processes/utility-cooling-tower/) | Cooling water, evaporative cooling tower, 25/35 degC (library utility) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
+| [`utility-flare`](processes/utility-flare/) | Flaring of methane-rich waste gas (library utility) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
 | [`utility-instrument-air`](processes/utility-instrument-air/) | Instrument air, dried, 8 bar(a) (library utility) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
+| [`utility-steam-ng-boiler`](processes/utility-steam-ng-boiler/) | Steam, saturated 11 bar(a), natural-gas boiler (library utility) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
+| [`utility-wwtp`](processes/utility-wwtp/) | Wastewater treatment, activated sludge (library utility) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
 
-Three separate axes, named as in core's [glossary](https://github.com/ChemE-as-Code/core/blob/main/docs/concepts/glossary.md) (ChemE-as-Code/core#323):
+Three separate axes, named as in core's [glossary](https://github.com/ChemE-as-Code/core/blob/main/docs/concepts/glossary.md):
 
 - **design maturity** is `process.yaml` `maturity` (`concept` to `operating-reference`): how far
   the design is claimed to be taken. The claim is capped by evidence: in an engineering project
@@ -116,7 +164,7 @@ catalog gives each process `lca.design_cases` and `lca.scenarios` and copies the
 `scenarios/<id>/<scenario>.json`. A scenario whose values may not be published, or whose record
 is stale, keeps its geography, states and gaps but loses its totals. Each scenario also carries
 core's comparability verdict against the baseline (`comparability`: `like-for-like`, `proxy`,
-`not comparable`; core#306, ADR 0016), the study `boundary`, and each link's factor `scope`.
+`not comparable`, ADR 0016), the study `boundary`, and each link's factor `scope`.
 ASU-1 has `nl-grid` and `de-grid` on core's packaged EEA 2024 grid factors (D-107). They are
 **not comparable** with the UK baseline (D-110): EEA counts direct emissions at generation,
 while the baseline factor is at the consumer with T&D and well-to-tank, a difference in basis

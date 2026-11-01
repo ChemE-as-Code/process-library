@@ -51,7 +51,7 @@ with an ADR in the same pull request.
 | [0010](0010-public-and-preview-builds-fail-closed.md) | Preview and public builds; the public build fails closed | Accepted, 2026-10-23 |
 | [0011](0011-benchmark-registry-with-cited-ranges.md) | Benchmark registry of KPIs with cited open reference ranges | Accepted, 2026-10-25 |
 | [0012](0012-versioning-releases-and-dois.md) | Semantic versions; releases drafted by CI, decided by the owner | **Proposed**, 2026-10-25 |
-| [0013](0013-licences-and-no-third-party-content.md) | MIT for code, CC BY 4.0 for data; never copy third-party content | Accepted, 2026-10-23 |
+| [0013](0013-licences-and-no-third-party-content.md) | MIT for code, CC BY 4.0 for data; never copy third-party content | Superseded by 0024 for the code licence, 2026-11-01 |
 | [0014](0014-coverage-roadmap-as-a-plan.md) | Ranked coverage roadmap with planned tiers, a plan not a commitment | Accepted as a working plan, 2026-10-25 |
 | [0015](0015-datapackage-documents-every-activity.md) | datapackage.json documents every exported activity; the Atlas renders it without LCI logic | **Proposed**, 2026-10-26 |
 | [0016](0016-scenario-comparability-in-the-catalog.md) | Carry core's scenario comparability verdict and factor scope into the catalog | **Proposed**, 2026-10-26 |
@@ -62,4 +62,8 @@ with an ADR in the same pull request.
 | [0021](0021-design-maturity-calculation-maturity-review-status.md) | Name the three axes design maturity, calculation maturity and review status; labels only | **Proposed**, 2026-10-27 |
 | [0022](0022-lci-gaps-for-unpublished-processes-and-per-process-mappings.md) | Report LCI mapping gaps of unpublished processes; keep a process's overrides with it | Accepted, 2026-10-28 |
 | [0023](0023-reactions-in-the-catalog.md) | List the processes' reactions in the catalog as reactions.json, each reaction once | **Proposed**, 2026-10-30 |
-| [0025](0025-registry-covers-main-products-and-feeds.md) | Register every process's main product and feeds with verified identities; label functional units by product name | **Proposed**, 2026-10-31 |
+| [0024](0024-agpl-for-code-skills-and-scripts.md) | AGPL for code, skills and scripts; MIT for the LCI data installer; CC BY 4.0 for data and designs | Accepted, 2026-11-01; the MIT licence of `python/` awaits the owner's confirmation |
+| [0025](0025-skills-not-in-git.md) | Keep the agent skills out of git; a person installs them with `cheme skills update` | **Proposed**, 2026-11-01 |
+| [0026](0026-public-processes-may-be-preliminary.md) | Public processes may carry LCI mapping gaps, marked preliminary | Accepted, 2026-11-01 |
+| [0027](0027-balance-scripts-reproduce-the-flowsheet.md) | Balance scripts write the values the flowsheet cites; CI re-runs them and compares | **Proposed**, 2026-10-31 |
+| [0028](0028-registry-covers-main-products-and-feeds.md) | Register every process's main product and feeds with verified identities; label functional units by product name | **Proposed**, 2026-10-31 |

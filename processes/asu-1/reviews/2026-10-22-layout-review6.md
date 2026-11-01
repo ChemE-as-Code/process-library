@@ -31,7 +31,7 @@ No layout file was changed by this review.
 Verdict: **not acceptable for a stage sign-off** while #1 (high) is open. Every finding of
 review5 is fixed: the cold box stair stands beside the platforms, P10, the tank roofs and RV
 are clear, the vent zones are back, the breather is away from LD4, and the tray-span acceptances
-are listed by name. The core#61 rules confirm all of this (0 headroom, landing-width,
+are listed by name. The core layout-operability rules confirm all of this (0 headroom, landing-width,
 egress-zone and zone-source findings), and the lifting study has a clear lane for all 14
 maintenance lifts. Those rules still do not look at **ladders** or at **pipes that run
 vertically through a walkway**. The scans found that the DCAC top outlet AIR-1004, pinned by

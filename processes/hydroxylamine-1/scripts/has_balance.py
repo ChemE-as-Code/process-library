@@ -222,36 +222,38 @@ def main():
         tot = sum(m.values())
         fr = {k: round(v / tot, 8) for k, v in m.items() if v > 0}
         print(f"{name}: T={T:.2f} K P={P} kPa  flow={tot:.2f} kg/h  w={fr}")
+        return {"flow": tot, "temperature": T, "composition": fr}
 
     print(f"NH3 = {nh3:.4f} kmol/h = {nh3 * MW['NH3']:.2f} kg/h; X_N2O={X_N2O:.6f} X_N2={X_N2:.6f}")
     print(f"S_HA={S_HA:.6f} S_NH3={S_NH3:.6f} S_N2O={S_N2O}; pass conversions HAS={X_PASS*S_HA:.6f} "
           f"AS={X_PASS*S_NH3:.6f} N2O={X_PASS*S_N2O:.6f}")
     print(f"burner feed T={ns['T_mix']:.1f} K, gauze outlet {ns['T_burn']:.1f} K, R102 out {ns['T_r102']:.1f} K")
     f = ns["feed"]
-    show("S01 NH3", {"NH3": f["NH3"]}, 298.15, 1200)
-    show("S03 O2 (GOX)", {"O2": f["O2"], "AR": f["AR"]}, 298.15, 300)
-    show("S04 steam", {"H2O": f["H2O"]}, 425.0, 500)
+    s = {}  # the shown streams by name, for the balance output
+    s["S01"] = show("S01 NH3", {"NH3": f["NH3"]}, 298.15, 1200)
+    s["S03"] = show("S03 O2 (GOX)", {"O2": f["O2"], "AR": f["AR"]}, 298.15, 300)
+    s["S04"] = show("S04 steam", {"H2O": f["H2O"]}, 425.0, 500)
     show("burner out", ns["burn"], ns["T_burn"], 130)
-    show("S08 H2 to R102", {"H2": ns["h2_o2"]}, 298.15, 300)
+    s["S08"] = show("S08 H2 to R102", {"H2": ns["h2_o2"]}, 298.15, 300)
     show("R102 out", ns["r102"], ns["T_r102"], 120)
-    show("V101 gas (NO gas)", ns["no_gas"], 313.15, 115)
-    show("V101 condensate", ns["cond"], 313.15, 115)
+    s["S11"] = show("V101 gas (NO gas)", ns["no_gas"], 313.15, 115)
+    s["S12"] = show("V101 condensate", ns["cond"], 313.15, 115)
     T_k101, W_k101 = compress(ns["no_gas"], 313.15, 115.0, P_K101, 0.75)
     print(f"K101: out {T_k101:.1f} K, {W_k101:.1f} kW")
-    show("S15 fresh H2", {"H2": cs["h2_fresh"]}, 298.15, 300)
+    s["S19"] = show("S15 fresh H2", {"H2": cs["h2_fresh"]}, 298.15, 300)
     off = cs["off"]
     T_k201, W_k201 = compress(cs["rec"], T_R, P_R201 - 5, P_R201 + 15, 0.70)
     print(f"K201: out {T_k201:.1f} K, {W_k201:.1f} kW")
     show("cascade gas in", cs["gin"], 0, 210)
-    show("V201 off-gas", off, T_R, 200)
+    s["S22"] = show("V201 off-gas", off, T_R, 200)
     show("purge", cs["purge"], T_R, 200)
     show("recycle", cs["rec"], T_R, 200)
     yoff = {k: v / sum(off.values()) for k, v in off.items()}
     print("off-gas mole fractions:", {k: round(v, 4) for k, v in yoff.items()})
     prod = {"HAS": m_has, "AS": m_as, "H2SO4": m_free, "HNO3": m_hno3, "H2O": m_w_prod}
-    show("V201 liquid = product", prod, T_R, 200, molar=False)
-    show("S11 acid 98.5 %", {"H2SO4": acid_feed * 0.985, "H2O": acid_feed * 0.015}, 298.15, 300, molar=False)
-    show("S13 demin water", {"H2O": demin * MW["H2O"]}, 298.15, 300, molar=False)
+    s["S23"] = show("V201 liquid = product", prod, T_R, 200, molar=False)
+    s["S14"] = show("S11 acid 98.5 %", {"H2SO4": acid_feed * 0.985, "H2O": acid_feed * 0.015}, 298.15, 300, molar=False)
+    s["S15"] = show("S13 demin water", {"H2O": demin * MW["H2O"]}, 298.15, 300, molar=False)
     show("acid make-up", acid_mix, 313.15, 300, molar=False)
     print(f"acid make-up H2SO4 {w_acid*100:.2f} wt% (EP 0 945 401: 19 %)")
 
@@ -291,7 +293,7 @@ def main():
         else:
             hi = a
     W_k301 = a * 22.414 / 3600 * 5.0 / 0.6 * 1.0                # m3/s x 5 kPa / 0.6 -> kW
-    show("air to oxidiser", air, 298.15, 106)
+    s["S28"] = show("air to oxidiser", air, 298.15, 106)
     show("flue gas", flue, 1173.15, 101.325)
     print("--- duties kW")
     for k, v in [("Q01 E100 NH3 vaporiser (LPS)", Q_e100), ("Q02 E101 to MP steam", ns["Q_whb"]),
@@ -302,6 +304,21 @@ def main():
                  ("Q10 K301 air fan", W_k301)]:
         print(f"{k}: {v:.1f}")
     print(f"gas into R201 {T_gin:.1f} K; liquid hold-up {V_liq:.1f} m3")
+
+    # the values process/flowsheet.yaml cites from this script (balance-output contract); the
+    # flowsheet's ids differ from some printed labels (printed S11/S13/S15 are S14/S15/S19)
+    out = {sid: {"flow": v["flow"], "composition": v["composition"]} for sid, v in s.items()}
+    out["S05"] = {"temperature": ns["T_mix"]}
+    out["S06"] = {"temperature": ns["T_burn"]}
+    out["S09"] = {"temperature": ns["T_r102"]}
+    out["S13"] = {"temperature": T_k101}
+    out["S20"] = {"temperature": T_gin}
+    out["S27"] = {"temperature": T_k201}
+    duties = {"Q01": Q_e100, "Q02": ns["Q_whb"], "Q03": ns["Q_e102"], "Q04": W_k101,
+              "Q05": Q_e201, "Q06": W_p201, "Q07": Q_r201, "Q08": W_agit, "Q09": W_k201,
+              "Q10": W_k301}
+    out.update({sid: {"duty": q} for sid, q in duties.items()})
+    write_balance_output({"design": out})
     # ---- checks
     no_fresh = no_gas["NO"]
     print(f"NO utilisation {cs['c'] * 0 + (no_fresh - cs['purge']['NO']) / no_fresh:.4f}; "
@@ -315,6 +332,24 @@ def main():
     tot_out = M + sum(kg(cs["purge"]).values())
     print(f"overall mass in {tot_in:.2f} out {tot_out:.2f} kg/h (oxidiser excluded)")
 
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
 
 if __name__ == "__main__":
     main()

@@ -67,7 +67,7 @@ Decision: molecular salts HAS (NH3OH)2SO4 and AS (NH4)2SO4, H2SO4, HNO3 and wate
 no ions or HSO4-/SO4-- speciation. The product is set to the S5 analysis (25.4 / 1.86 / 1.30
 wt%) by the acid feed (H2SO4 bound in both salts plus the free acid) and the demineralised
 water. The condensate's HNO3 (0.26 wt% of the product) is carried into the product unchanged.
-Reason: element balances need only the salts; speciation is not supported in core (core #364:
+Reason: element balances need only the salts; speciation is not supported in core (core's electrolyte support:
 aqueous NaCl only, issue comment 27 Oct 2026). Whether nitrate is hydrogenated over Pt in the
 cascade is not known to us; S2 hydrogenates its stronger condensate separately (reactor 11) and
 feeds a weak one (<= 0.2 % HNO3) to the acid make-up. Carrying the nitrate through is the
@@ -108,7 +108,7 @@ cheme calculates the five reactor outlets, the mixers, the splitter and the pass
 out). The script's reactor outlets agree with cheme's extents (e.g. HAS_FORM 56.7665 kmol/h).
 Energy closure is **not evaluable in core**: no property package covers NO, N2O, steam-rich
 nitrous gas or the aqueous salt solution (`cheme process props --coverage`: every stream
-refused; core #315 for gas mixtures, core #364 for electrolytes: aqueous NaCl only, weak
+refused; core's property-package qualification for gas mixtures, core's electrolyte support for electrolytes: aqueous NaCl only, weak
 electrolytes and speciation not covered). The gated steps are exactly: (1) `cheme process
 props --fill` enthalpies for the nitrous gas (NH3/O2/H2O/NO/N2O/N2/Ar) and (2) for the
 H2SO4-(NH3OH)2SO4-(NH4)2SO4-water solution; until then the duties are the script's.

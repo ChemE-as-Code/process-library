@@ -95,9 +95,8 @@ SRC-6; the condensation at 253 K extrapolates them 45 K); condensation by Raoult
 phosgene's NIST Antoine equation above 281 K and the Thermo vapour pressures below (phosgene
 30.6 kPa, Cl2 180.4 kPa at 253.15 K); CO, N2, O2 insoluble; liquid enthalpy = ideal-gas
 enthalpy minus the Watson-scaled heat of vaporization (phosgene 26.0, Cl2 19.8 kJ/mol at 253 K).
-Gated (core #315): no benchmarked property package of core covers phosgene (`cheme process
-props --coverage`), so core can neither flash V-101 nor evaluate the condensers' energy. Core
-#364: the caustic liquor (NaOH, NaCl, Na2CO3, NaOCl in water) is an electrolyte outside core;
+Gated: no benchmarked property package of core covers phosgene (`cheme process
+props --coverage`), so core can neither flash V-101 nor evaluate the condensers' energy. The caustic liquor (NaOH, NaCl, Na2CO3, NaOCl in water) is an electrolyte outside core;
 the scrubber species are molecular pseudo-components without ideal-gas data, so T-201's energy
 is not evaluable either. Where core can evaluate: R-101 duty reproduced, X-301 adiabatic (0.0004
 kW), element balances of every reactive step closed.
@@ -202,6 +201,6 @@ lift it to "balanced".
   chlorine O2 and CO2 content; product CCl4 specification.
 - Kinetics or a sourced space velocity for the activated carbon (tube count, catalyst mass,
   hot spot); catalyst life and its replacement in the LCI.
-- Core #315: phosgene VLE and condensation energy; core #364: caustic liquor energy.
+- Core: phosgene VLE and condensation energy; caustic liquor energy.
 - Emission factors for the oxidiser (NOx) and fugitive emissions (needs P&IDs).
 - Steam raising from the reaction heat and heat recovery from the oxidiser.

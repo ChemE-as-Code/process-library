@@ -22,7 +22,7 @@ No figure, table or text of a source is copied; values are restated with their l
 ## D-001 Route: ethane steam cracking (2026-10-28)
 Decision: ethane feed, molecular components only.
 Reason: the issue recommends a molecular ethane brief unless a traceable naphtha assay exists.
-None was found in this run. Ethane needs no pseudocomponents (core #367 support for naphtha
+None was found in this run. Ethane needs no pseudocomponents (core's support for naphtha
 assays is recent and cannot enter `simulation.yaml`), and core's reaction library has
 `ethane_cracking`. The BREF gives sourced once-through yields for ethane.
 Rejected: naphtha. It would need a sourced assay, a much larger yield slate (aromatics, fuel
@@ -120,11 +120,11 @@ alkyne. No selectivity was sourced: these are placeholders to replace with catal
 
 ## D-012 Thermodynamics and the gated energy balance
 No core property package covers C2+ hydrocarbons (`air-pr-chemsep`, `syngas-pr-vapor` only),
-so `cheme process props` fills nothing. DWSIM simulation is not qualified for this mixture
-(core #315), and the stream energy balances are "not evaluable" in `cheme process energy`.
+so `cheme process props` fills nothing. DWSIM simulation is not qualified for this mixture,
+and the stream energy balances are "not evaluable" in `cheme process energy`.
 Gated step: the energy closure of the separation train and an equilibrium-stage design of the
 columns (relative volatilities, stages, reflux) wait for a qualified Peng-Robinson/SRK
-package for light hydrocarbons in core (#315). The reactor and firebox energy closure is
+package for light hydrocarbons in core. The reactor and firebox energy closure is
 evaluated by core on ideal-gas data (D-006). The LCI "energy closure 57.8 %" of
 `cheme assess lca --balance` counts only utilities, not the fuels' LHV, and does not measure the
 plant's heat balance.
@@ -152,7 +152,7 @@ Upper bound (review 2026-10-28-pfd-lci-review#2): the refrigeration shaft power 
 78.3 MW, about twice the CGC's 40.6 MW, whereas the CGC is normally the largest machine of an
 ethane cracker) is therefore a conservative upper estimate, and so is feed:POWER
 (0.87 kWh/kg). Crediting the T401/T502 reboilers and using mixture latent heats waits for
-the qualified property package (D-012, core #315).
+the qualified property package (D-012).
 
 ## D-015 Machine drives in the inventory
 The CGC (40.6 MW) and refrigeration compressors (78.3 MW) are shown as electric motors
@@ -217,8 +217,8 @@ SO2 from sulphur doping, non-routine flaring, effluent loads. Each is declared i
 ## Open inputs and next stage
 Sourced feed specification and capacity; sourced hydrogenation selectivities; a coke make and
 decoking schedule; quench and dilution steam heat integration; drive choice (D-015); a
-qualified property package (core #315) for columns and the energy balance. Next stage: basic
-engineering of the separation train with simulated columns once core #315 allows. Before that:
+qualified property package for columns and the energy balance. Next stage: basic
+engineering of the separation train with simulated columns once core's property-package qualification allows. Before that:
 link the LCI backgrounds (library processes first) and decide the allocation.
 No stage sign-off (review #10): this case study is not taken to a concept sign-off in this
 issue. The concept gate `layout-plot-plan` (and the basic and detail gates for P&IDs, layout,

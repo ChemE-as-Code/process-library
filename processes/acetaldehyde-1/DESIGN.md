@@ -92,8 +92,8 @@ ASSUMED with the decision ids; cheme calculates the reactor outlet, mixers, pass
 and the purge splitter and checks every balance. Water and steam rates are those of the SRC-3
 comparative example scaled by 12.5/13: reactor make-up 14.4 t/h, wash water 74.5 t/h, extraction
 water 1.44 t/h, regeneration steam 1.44 t/h, live steam 2.88 and 13.46 t/h.
-Reason: no property package of cheme covers this system (props --coverage refuses acetaldehyde;
-pre-release issue 315); the patent is the only open plant-scale data.
+Reason: no property package of cheme covers this system (props --coverage refuses acetaldehyde);
+the patent is the only open plant-scale data.
 Check against SRC-3 (scaled per t product): ethylene 677 vs 692 kg/t, oxygen 410 vs 408 kg/t,
 waste water 8.69 vs 8.65 m3/t. Our ethylene is lower because SRC-1's 95 % yield is newer than
 the 1980 example (SRC-4 reports a later yield gain).
@@ -166,9 +166,8 @@ corrosive, SRC-5), stainless steel downstream; to confirm.
 ## Gated steps and open items
 - Energy closure, predictive scrubber and columns: no benchmarked property package for aqueous
   acetaldehyde / acetic acid / chlorinated aldehydes (`cheme process props --coverage` refuses
-  every stream with acetaldehyde): pre-release issue 315 (core). The catalyst solution is an
-  electrolyte (pre-release issue 364). The core issues could not be opened from this session
-  (not found under ChemE-as-Code/core), so their current state was not checked.
+  every stream with acetaldehyde). The catalyst solution is an
+  electrolyte. The current state of both in core was not checked.
 - cheme maturity: calculation maturity none (feed flows are script results, not given with a
   source; R101, V101, V102, C101, C201, C202 specified, not sourced models).
 - O-1 audit Ullmann's sections 4.3.1 and 5 (SRC-2) for conditions, by-products and product
