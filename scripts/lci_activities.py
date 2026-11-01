@@ -14,7 +14,10 @@ single-output activity per 1 unit of its reference product. It carries
 - ``exchanges``: every exported exchange with its amount per reference unit, unit, provenance
   (given, calculated, assumed), source text, pedigree scores and the lognormal they imply, the
   background link target by name (database, name, reference product, location, location rule),
-  Atlas-internal links by code, and for elementary flows the biosphere3 UUID and compartment;
+  Atlas-internal links by code, for elementary flows the biosphere3 UUID and compartment, and
+  ``streams``: the flowsheet streams the dataset derives the exchange from (only ids the process's
+  flowsheet has, not the material items or other exchanges a dataset's ``streams`` may also name;
+  one exchange can come from several streams, and its amount is allocated and per reference unit);
 - ``used_by``: the activities of the database that link to this one;
 - for a market (``kind: market``, ``markets/``, docs/markets.md): its suppliers and shares,
   transport and losses as exchanges with the status (cited, calculated, assumed) and source of
@@ -44,6 +47,7 @@ import re
 from pathlib import Path
 from typing import Any
 
+import yaml
 from export_formats import _process_id
 from publication import is_public
 
@@ -100,7 +104,17 @@ def _classification(process: Any, dataset: Any, row: dict, products: Any, famili
     return out
 
 
-def _exchange(entry: dict, source: dict | None, db_name: str, codes: dict[tuple, str]) -> dict:
+def _stream_ids(library: Path, pid: str) -> set[str]:
+    """The ids of the streams in the process's flowsheet (none without a flowsheet)."""
+    path = library / "processes" / pid / "process" / "flowsheet.yaml"
+    if not path.is_file():
+        return set()
+    with path.open(encoding="utf-8") as handle:
+        streams = (yaml.safe_load(handle) or {}).get("streams") or []
+    return {s["id"] for s in streams if isinstance(s, dict) and s.get("id")}
+
+
+def _exchange(entry: dict, source: dict | None, db_name: str, codes: dict[tuple, str], stream_ids: set[str] = frozenset()) -> dict:
     """One exported exchange of the workbook (*entry*) with the dataset exchange it comes from."""
     source = source or {}
     out: dict[str, Any] = {
@@ -122,6 +136,9 @@ def _exchange(entry: dict, source: dict | None, db_name: str, codes: dict[tuple,
         out["pedigree"] = {"scores": list(pedigree["scores"]), "rule": pedigree.get("rule", "")}
     if entry.get("uncertainty type") == 2:
         out["uncertainty"] = {"distribution": "lognormal", "loc": entry["loc"], "scale": entry["scale"], **({"negative": True} if entry.get("negative") else {})}
+    streams = [s for s in source.get("streams") or [] if s in stream_ids]
+    if streams:
+        out["streams"] = streams
     if entry.get("atlas carrier"):
         out["carrier"] = entry["atlas carrier"]
     if entry.get("atlas gap"):
@@ -232,6 +249,7 @@ def entries(
         meta, row = activity.metadata, activity.row
         process, dataset = datasets[(meta["atlas process"], meta["atlas dataset"])]
         by_key = {e["key"]: e for e in dataset.data["exchanges"]}
+        stream_ids = _stream_ids(library, process.pid)
         dataset_products = sum(1 for e in dataset.data["exchanges"] if e["type"] == "product")
         doc = dataset.data
         product = products.chemicals.get(row.get("chemical") or "") or {}
@@ -280,7 +298,7 @@ def entries(
                     "finding": dataset.finding,
                 },
                 "reference_exchange": {"key": row["key"], "amount": 1, "unit": row["unit"]},
-                "exchanges": [_exchange(e, by_key.get(e.get("atlas key")), db_name, codes) for e in activity.exchanges[1:]],
+                "exchanges": [_exchange(e, by_key.get(e.get("atlas key")), db_name, codes, stream_ids) for e in activity.exchanges[1:]],
                 "closure": _closure(library, process, dataset),
                 "superseded_by": row.get("superseded_by"),
                 "citation": {
