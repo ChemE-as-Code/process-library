@@ -1,10 +1,10 @@
 # Process library reference
 
 Versioned designs of chemical processes, one folder per process, kept as plain files in git. It
-is the source of the [Process Atlas](https://atlas.cheme-as-code.org) (not yet public; built in
+is the source of the [Process Atlas](https://atlas.cheme-as-code.org) (built in
 [`ChemE-as-Code/website`](https://github.com/ChemE-as-Code/website), `apps/atlas`) and of its
 LCI database. The [README](README.md) introduces the library; [CONTRIBUTING.md](CONTRIBUTING.md)
-says how to add a process. The repository is private for now.
+says how to add a process.
 
 | path | what |
 |---|---|

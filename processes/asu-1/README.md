@@ -48,7 +48,7 @@ regenerated after it is merged.
 ## Working here
 
 ```sh
-uv tool install cheme-as-code           # once (see the cheme-as-code README while it is private)
+uv tool install cheme-as-code           # once (see the cheme-as-code README)
 cheme git-setup                 # once per clone: readable P&ID diffs + pre-commit hook
 cheme status                    # where the plant stands: sheets, findings, gates, sign-offs
 cheme validate                  # after every change

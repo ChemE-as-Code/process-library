@@ -111,8 +111,8 @@ acid 0.25, propionic 0.20), acid recycles of 3 % (light-ends overhead), 10 % (li
 bottoms) and 8 % (drying overhead) of the acid output, 60 % of the flash-vapour water overhead in
 C-201, decanter heavy-phase fractions. The values enter flowsheet.yaml as `assumed` with this
 source; cheme recalculates the mixer, pumps and reactor and closes every balance. Reason: no
-property package qualifies the acid/water/methyl iodide/methyl acetate system (pre-release issue
-315, core #315; its current state could not be read from this environment) and `process
+property package qualifies the acid/water/methyl iodide/methyl acetate system
+(the current state of this gap in core could not be read from this environment) and `process
 simulate` has no qualified method for it; the issue allows a specified model at a declared
 lower level. All values ASSUMED; accuracy not stated. Rejected: an unqualified NRTL/UNIFAC
 simulation presented as predictive. The decanter V-201 split is not checked against
@@ -228,7 +228,7 @@ integration (adiabatic flash) steam would rise by about 0.19 kWh/kg (D-014).
 
 | step | needs | state | consequence |
 |---|---|---|---|
-| flash, columns, decanter, scrubber | qualified property package for acid/water/CH3I/MeOAc/CO (activity model with vapour association) | pre-release issue 315 / core #315 (not readable here) | specified splits (D-006), maturity none |
+| flash, columns, decanter, scrubber | qualified property package for acid/water/CH3I/MeOAc/CO (activity model with vapour association) | no qualified package; current state in core not readable here | specified splits (D-006), maturity none |
 | energy closure, duties | stream enthalpies | same | shortcut duties (D-008) |
 | reactor | kinetics or a sourced equilibrium | none open | lumped conversions (D-004) |
 | HI/iodide speciation, corrosion | electrolyte model (core #364) | not needed at this level | not modelled |

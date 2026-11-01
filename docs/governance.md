@@ -79,8 +79,7 @@ token) drafts a release:
 4. drafts the archive metadata (`scripts/release_metadata.py`): `.zenodo.json` and
    `CITATION.cff` with the version and date, in `release/archive/`;
 5. uploads everything as a workflow artifact (30 days). Its visibility follows the
-   repository's: only repository members can download it while the repository is private, but
-   any signed-in GitHub user can once it is public. The artifact holds the `--public` build
+   repository's: any signed-in GitHub user can download it. The artifact holds the `--public` build
    only.
 
 It does not tag, create a GitHub release, deposit on Zenodo, mint a DOI or deploy, and it never

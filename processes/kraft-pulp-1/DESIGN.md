@@ -13,18 +13,18 @@ the steam properties; DWSIM and Cantera not used. Core dependency issues named i
 (core #364 electrolytes, #365 solids, #370 furnace energy) were not re-audited in that run.
 
 Core audit (revision after review 2026-10-28-pfd-lci-review#2, 2026-10-28): core main at
-`7bed468` (ChemE-as-Code/core, 2026-10-28T14:52Z); the issues live in the archived
-repository ChemE-as-Code/core-archive and are all closed:
-- **#364** (closed 2026-10-27, core PR #394): electrolyte thermodynamics for aqueous
+`7bed468` (ChemE-as-Code/core, 2026-10-28T14:52Z). Three capabilities were
+audited, each finished on 2026-10-27:
+- **Electrolytes**: electrolyte thermodynamics for aqueous
   **NaCl-H2O only** (Pitzer, 273-373 K, up to 6 mol/kg); any other salt, acid or base, and
   any compound of an alkali metal in a phase or DWSIM route, is refused. White, green and
   black liquor (NaOH, Na2S, Na2CO3, Na2SO4, sodium organics at up to 80 % solids) remain
   outside it: D-007 stands.
-- **#365** (closed 2026-10-27, core #395): `phase: solid` components, a slurry basis and a
+- **Solids**: `phase: solid` components, a slurry basis and a
   one-solute crystallizer or solid separation. It adds a mass basis, not thermodynamics for
   lime mud, dregs or smelt; the lumped kraft steps are already balanced by specified splits,
   so nothing changes here.
-- **#370** (closed 2026-10-27, core #387): `cheme process furnace` for CaCO3 calcination in a
+- **Lime kiln furnace**: `cheme process furnace` for CaCO3 calcination in a
   lime kiln. It applies to K901/K902 and was run (D-009; needs the `cantera` extra, run from
   core `7bed468` in a temporary environment because the installed cheme 0.8.0 lacks it). The
   recovery boiler (organic combustion with smelt reduction) is outside it.
@@ -296,7 +296,7 @@ balance, since no stream enthalpies are calculated (D-007).
 | Ullmann's, Pulp, doi 10.1002/14356007.a18_545.pub4 | - | not accessed | - | reference lead (#180) |
 | NBS tables (Wagman et al. 1982) | - | recalled values | facts | inorganic heats of reaction other than CALC (ASSUMED until checked) |
 | NASA Glenn thermodynamic data (McBride, Gordon and Reno 1993, NASA TM-4513) via Cantera 3.2.0 in core `7bed468` | species CaCO3(calcite), CaO(s), CO2, CH4, H2O, air | computed by `cheme process furnace` | facts | CALC heat of reaction, lime kiln energy balance (D-009) |
-| core-archive issues #364, #365, #370 (ChemE-as-Code) | closing comments, 2026-10-27 | read | - | core capability audit (header) |
+| core issues on electrolytes, solids and the lime kiln furnace (ChemE-as-Code) | closing comments, 2026-10-27 | read | - | core capability audit (header) |
 
 ## 5. Open inputs, gated steps and registry entries
 
@@ -327,4 +327,4 @@ Gated or open steps:
   carbon content of the product" 0.0084 kg C, which should be 0).
 - Wood composition and species assay; tall oil/turpentine recovery; NCG system and TRS; AOX
   and chlorate; foul condensate stripping; ClO2 generator; wood room and bark boiler.
-- Elementary flow identities (pre-release issue 175): CO2B, Na2SO4 dust, H2O/N2/O2.
+- Elementary flow identities: CO2B, Na2SO4 dust, H2O/N2/O2.

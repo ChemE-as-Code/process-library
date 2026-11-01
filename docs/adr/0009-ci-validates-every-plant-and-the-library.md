@@ -31,8 +31,8 @@ gates that are progress, not errors.
 - LCI warnings (allocation findings, benchmark values outside their range) fail CI through the
   strict LCI build; the catalog build in CI is not strict (its preview warnings are expected
   there), so `--strict` on the catalog is a contributor's check (CONTRIBUTING.md step 5).
-- CI depends on private repositories while they are in development (core through a fine-grained
-  token, pyDEXPI through a deploy key); a fork cannot run it.
+- CI reads core through a fine-grained token and pyDEXPI through a deploy key; a fork cannot
+  run it.
 - Gate failures are visible but not blocking; sign-off relies on the process's own review.
 
 ## Evidence

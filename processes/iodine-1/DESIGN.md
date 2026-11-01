@@ -8,9 +8,9 @@ agent-drafted 2026-10-28, not reviewed. Numbers live in `process/*.yaml`, `lca/l
 ## Run record (2026-10-28)
 
 - Library: branch `case/iodine-1` from main `cc5624f`; cheme 0.8.0 (pyDEXPI 2.1.0); core
-  checkout at `47c8fa39`. The core issues named in #145 (#364 electrolytes, #365 solids, #369
-  extraction) are not reachable as `ChemE-as-Code/core#...` with `gh` (pre-release tracker);
-  their state was checked only through what this core supports today: `cheme process
+  checkout at `47c8fa39`. The core capabilities named in #145 (electrolytes, solids,
+  extraction) were checked only
+  through what this core supports today: `cheme process
   electrolyte` covers aqueous NaCl only (no iodide, iodine, HI or acid liquors), `cheme process
   props --coverage` has no package for these streams, `cheme process simulate` was not used
   (D-007).

@@ -10,7 +10,7 @@
 `processes/` under CC BY 4.0. That did not fit what the repository holds. The skills in
 `processes/*/.claude/skills/` are copies of the ones in core, which is under AGPL-3.0-or-later,
 and the scripts in a process folder were caught by the CC BY 4.0 of `processes/`, a licence not
-meant for code. Before going public the owner decided: "processes are CC BY but skills and scripts
+meant for code. The owner decided: "processes are CC BY but skills and scripts
 should still be AGPL".
 
 ## Decision

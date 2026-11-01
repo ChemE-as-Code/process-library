@@ -72,8 +72,7 @@ in active development.
 
 The [Process Atlas](https://atlas.cheme-as-code.org) shows the published processes. To open
 every plant of the library in the ChemE-as-Code Viewer on your own machine (`cheme serve` in
-library mode, core 1.1.0 or later), you need [uv](https://docs.astral.sh/uv/), Node.js and access
-to the private ChemE-as-Code repositories:
+library mode, core 1.1.0 or later), you need [uv](https://docs.astral.sh/uv/) and Node.js:
 
 ```sh
 git clone https://github.com/ChemE-as-Code/core.git && uv tool install './core[serve]'

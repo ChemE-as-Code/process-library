@@ -93,8 +93,7 @@ are present. The equipment, line and instrument lists are unchanged.
 - **Spot-check of two cited values.** NH3 dHf_298 -45558 kJ/kmol and CH4 -74534 kJ/kmol in
   `process/materials.yaml` ("chemicals: dHf_298 ATCT_G") match `chemicals.Hfg(cas,
   method="ATCT_G")` exactly. I ran `cheme run build/check_hf.py`, and H2O -241822 matches too.
-  core#60 and core#57 exist with the titles and states the PR cites. core#315 is the
-  core-archive umbrella issue that the plan names.
+  core#60 and core#57 exist with the titles and states the PR cites.
 - **Property package (D-025, left for the reviewer).** Peng-Robinson with DWSIM's kij is an
   acceptable basic-stage substitute for PSRK/MHV in the syngas train and the loop. Cubic EOS
   are the usual choice there. The weak spot is the one D-025 names: NH3 condensation with

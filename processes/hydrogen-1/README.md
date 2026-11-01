@@ -40,13 +40,12 @@ checked by [`cheme-as-code`](https://github.com/ChemE-as-Code/core).
   finds them here. After upgrading (`uv tool upgrade cheme-as-code`), run `cheme skills update` to
   refresh them; `cheme skills status` shows which are out of date. A skill you changed here is
   kept.
-- **While cheme-as-code is private**, you need read access to it, and the CI needs the secrets
-  named in `.github/workflows/validate.yml`.
+- The CI needs the secrets named in `.github/workflows/validate.yml`.
 
 ## Working here
 
 ```sh
-uv tool install cheme-as-code           # once (see the cheme-as-code README while it is private)
+uv tool install cheme-as-code           # once (see the cheme-as-code README)
 cheme git-setup                 # once per clone: readable P&ID diffs + pre-commit hook
 cheme status                    # where the plant stands: sheets, findings, gates, sign-offs
 cheme validate                  # after every change

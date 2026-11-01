@@ -8,9 +8,9 @@ the scripts; this file keeps the decisions and where each fact comes from.
 ## Run record (2026-10-28)
 
 - Library: branch `case/aniline-1` from main `11d50ef`; cheme 0.8.0 (pyDEXPI 2.1.0), thermo
-  0.6.1, chemicals 1.5.2; core main at `7bed468` (GitHub API, read only). The core issue
-  "#315" named in the issue is not reachable as `ChemE-as-Code/core#315` with `gh` (pre-release
-  tracker); its status was not checked beyond what `cheme process props --coverage` and
+  0.6.1, chemicals 1.5.2; core main at `7bed468` (GitHub API, read only). Core's property
+  coverage was not checked beyond what
+  `cheme process props --coverage` and
   `cheme maturity` report today (D-012).
 - Scope: design basis, balanced BFD/PFD, preliminary gate-to-gate LCI. Out of scope: P&IDs,
   layout, HAZOP, TEA, datasheets.
