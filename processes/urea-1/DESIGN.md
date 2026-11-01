@@ -82,7 +82,7 @@ Assumptions: product cooling, screening and anti-caking outside the boundary.
 Decision: NH3 liquid 100 % at 2200 kPa(a)/293 K. CO2 98.5 mol% with 0.5 % water and 1.0 %
 inerts (lumped as N2) at 160 kPa(a)/313 K. Passivation air dosed to 0.6 mol% O2 in the CO2
 (corrosion protection of the stainless HP loop). Ar of air lumped into N2.
-Reason: no ammonia plant interface exists yet (issue #86). The values are typical forms of an
+Reason: no ammonia plant interface exists yet (issue #304). The values are typical forms of an
 ammonia-plant CO2 removal and warm ammonia product: ASSUMED. Per the issue, captured CO2 is
 not assumed free or pressure-ready: it is compressed in the plant (K-101) and its supply
 burden stays an open background.
@@ -261,7 +261,7 @@ per kWh or the steam in kg, the urea dust flow, biuret dropped or curated), remo
 `.gitignore` line and commit the dataset.
 
 ## Open inputs
-- O-1 Ammonia plant interface (issue #86): NH3 and CO2 conditions, CO2 impurities (H2, see
+- O-1 Ammonia plant interface (issue #304): NH3 and CO2 conditions, CO2 impurities (H2, see
   O-8), and
   the LCI datasets the urea feeds link to.
 - O-2 Site and country: grid, steam and cooling-water backgrounds.
