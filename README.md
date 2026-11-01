@@ -126,6 +126,9 @@ please cite the Process Atlas paper, and ChemE-as-Code for the toolkit. See also
 |---|---|---|
 | <img src=".github/readme/schweidtmann.jpg" alt="Artur M. Schweidtmann" width="50"> | [Artur M. Schweidtmann](https://www.pi-research.org/author/artur-schweidtmann/) ([LinkedIn](https://www.linkedin.com/in/schweidtmann/)) | ChemE-as-Code and Process Atlas (principal investigator); Process Intelligence Research, Department of Chemical Engineering, Delft University of Technology |
 | <img src=".github/readme/weber.jpg" alt="Jana M. Weber" width="50"> | Jana M. Weber | Process Atlas; Delft Bioinformatics Lab, Department of Computer Science, Delft University of Technology |
+| <img src=".github/readme/alimin.png" alt="Achmad A. Alimin (Angga)" width="50"> | Achmad A. Alimin (Angga) | Safety and HAZOP; layout STL export; Process Intelligence Research, Department of Chemical Engineering, Delft University of Technology |
+| <img src=".github/readme/rupprecht.jpg" alt="Sophia Rupprecht" width="50"> | Sophia Rupprecht | Inherited thermodynamic model selection, phase calculations, units and skills; design case study; Process Intelligence Research, Department of Chemical Engineering, Delft University of Technology |
+| <img src=".github/readme/evanvoorbergen.png" alt="Placeholder image for Elise" width="50"> | Elise | Inherited reaction identification, kinetics retrieval, filtering and unit conversion |
 
 Everyone who contributes is credited in the git history: see the
 [contributors of this repository](https://github.com/ChemE-as-Code/process-library/graphs/contributors).
