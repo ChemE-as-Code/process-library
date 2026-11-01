@@ -198,7 +198,7 @@ def test_a_co_product_of_a_multi_output_dataset_gets_no_unallocated_inventory(tm
 
 
 def test_a_gap_only_footprint_is_null_with_its_reason(routes_copy: Path, tmp_path: Path) -> None:
-    # issue #250 (ADR 0024): core's total of 0 for a category whose every contribution is a gap
+    # issue #250 (ADR 0026): core's total of 0 for a category whose every contribution is a gap
     # is no footprint
     lca = routes_copy / "processes" / "route-electrolysis" / "lca"
     (lca / "results.csv").write_text(

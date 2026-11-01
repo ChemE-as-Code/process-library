@@ -1,4 +1,4 @@
-# 0024. Give no total, with the reason, when every contribution to a category is a gap
+# 0026. Give no total, with the reason, when every contribution to a category is a gap
 
 - **Status:** Proposed, 2026-10-30
 - **Deciders:** the owner (proposed by an agent session, #250)
@@ -7,13 +7,20 @@
 
 ## Context
 
-14 of the 33 processes with an LCA headline in the catalog showed a footprint of exactly
-0 kg CO2-eq (13 at the audit of 2026-10-29, #250; glycerol-1 since). The Atlas reads this as
-"no footprint". Six of them are cradle-to-gate studies, so 0 cannot be a result.
+The audit of 2026-10-29 (#250) found 13 processes whose LCA headline in the catalog was exactly
+0 kg CO2-eq; glycerol-1 followed. A recount on the shipped `lca/results.csv` and `lca/gaps.csv`
+files (core 1.2.1, 2026-11-01) finds **21 processes** whose headline category (climate-change,
+baseline) has gaps and not one contribution: acetaldehyde-1, acetic-acid-1, acetone-1,
+aniline-1, bromine-1, chloromethane-1, dmf-1, ethanol-1, glycerol-1, hda-1, hydrazine-1,
+hydrogen-bromide-1, hydrogen-chloride-1, hydrogen-peroxide-1, isobutene-1, methylamines-1,
+phosphorus-oxychloride-1, potassium-permanganate-1, sulfuric-acid-1, thf-1 and
+thionyl-chloride-1. 18 of them publish their values and showed 0; hydrazine-1, thf-1 and
+thionyl-chloride-1 are withheld (`values_withheld`) and showed no value. The Atlas reads 0 as
+"no footprint", but a study with unlinked backgrounds has an unknown footprint, not a zero one.
 
 The cause is in how results reach the catalog, not in the studies:
 
-- In all 14 studies every exchange is a gap. Their backgrounds are declared `missing:`
+- In all 21 studies every exchange of the category is a gap. Their backgrounds are declared `missing:`
   (preliminary inventories, site not chosen), and the plant's direct emissions are not
   greenhouse gases (water, nitrogen, oxygen, SO2, chlorine; outside GWP100). No characterised
   contribution exists. The gaps are listed in `lca/gaps.csv`.
@@ -23,7 +30,7 @@ The cause is in how results reach the catalog, not in the studies:
   no total, never 0).
 - The catalog took the `total` row as authoritative and never read `lca/gaps.csv`. Only
   processes with scenario records (`lca/scenarios/*.json`) had their gap-only totals dropped,
-  and none of the 14 has scenario records.
+  and none of the 21 has scenario records.
 
 The same reading found two more faults in `_lca`:
 
@@ -36,7 +43,7 @@ The same reading found two more faults in `_lca`:
   subset of {PUBLISHED, EPD}.
 
 The options were: (a) fix core so that it writes no total row, and wait for a pinned core
-release, or (b) apply core's own rule in the catalog from the files core already writes. We
+release, or (b) mirror core's every-contribution-a-gap rule in the catalog from the files core already writes. We
 chose (b) now; (a) remains a follow-up for core, and the catalog rule stays correct after it.
 
 ## Decision
@@ -46,7 +53,10 @@ chose (b) now; (a) remains a follow-up for core, and the catalog rule stays corr
   reasons `elementary-uncharacterised` and `biosphere-uncharacterised` (core's
   `OUTSIDE_METHOD`: the flow is outside the method) do not count. The catalog leaves the
   category out of `lca.totals` and records it in `lca.not_computed`
-  (`{scenario: {category: {reason: "every-contribution-a-gap", gaps: <exchanges>}}}`).
+  (`{scenario: {category: {reason: "every-contribution-a-gap", gaps: <number of distinct
+  exchanges>}}}`). Only this case of core's `LcaReport.comparability` is mirrored; its other
+  case (a scenario that loses exchanges the baseline characterises: "not comparable") is not,
+  and does not bear on the baseline headline.
 - A category without such gaps keeps its total, **also when it is 0**: that is a real zero.
   A category with contributions keeps its total, and its gaps stay listed beside it, as before.
 - The catalog summary's `lca` headline and the route footprint in `routes.json` give
@@ -54,17 +64,24 @@ chose (b) now; (a) remains a follow-up for core, and the catalog rule stays corr
   website#96) shows "not computed" with the reason, never 0.
 - `pcf` rows are not an impact category. They go to `lca.pcf` (the baseline lines, each
   `{key, basis, value, unit}`) and never into `categories`, `totals`, `contributions` or the
-  factor status. A withheld LCA loses `lca.pcf` with its totals.
+  factor status. A withheld LCA loses `lca.pcf` and `lca.not_computed` (its gap counts come
+  from `lca/gaps.csv`) with its totals; its headline carries `values_withheld`, not
+  `not_computed`.
 - A PCF line in the unit of its basis category (kg CO2-eq: fossil, biogenic, including,
   excluding, ...) is a part of that category's total. When the baseline has no total for that
-  category, the line gets `value: null` and `not_computed` with the same reason. Lines in other
+  category, **every** line in that unit gets `value: null` and `not_computed` with the same
+  reason. This includes the lines derived from the product's carbon content (`withdrawal`,
+  `withdrawal_other`, and any other kg CO2-eq line): the catalog does not know which of core's
+  kg CO2-eq lines depend on the missing backgrounds, so it nulls them all (conservative). For
+  glycerol-1 this nulls fossil 0, including -1.07551, withdrawal -1.01201 and withdrawal_other
+  -0.0634975; its carbon contents in kg C (product 0.390089, biogenic 0.276199, fossil 0.11389) stay. Lines in other
   units (kg C carbon contents, kg CO2 flows) describe the product and the plant and keep their
   values.
 - `factors_status` is `none` when not one contribution was characterised.
 
 ## Consequences
 
-- The Atlas no longer shows 0 for these 14 processes. Their value is null with the reason.
+- The Atlas no longer shows 0 for the 18 published ones of these 21 processes. Their value is null with the reason.
   Their footprint remains unknown until their backgrounds are linked (per process, in
   `lca/lca.yaml`; a foreground decision of each process's DESIGN.md, not of this ADR).
 - `lca.not_computed`, `lca.pcf`, `headline.not_computed` and the `factors_status` value `none`

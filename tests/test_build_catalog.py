@@ -872,7 +872,7 @@ def test_issue_forms_are_read_as_yaml(tmp_path: Path):
     assert build_catalog._issue_forms(tmp_path) == {"action": "a.yml", "hold": "b.yml"}
 
 
-# --- issue #250: a category whose every contribution is a gap has no total, never 0 (ADR 0024) ---
+# --- issue #250: a category whose every contribution is a gap has no total, never 0 (ADR 0026) ---
 
 #: core's lca/results.csv of a study whose every exchange is a gap: a total row of 0 and nothing else
 GAP_ONLY_RESULTS = (
@@ -950,6 +950,7 @@ def test_the_pcf_breakdown_is_not_an_impact_category(library: Path) -> None:
     detail = {"repository": None, "publication": None, "lca": {**lca, "publishable": False, "withheld_reason": "placeholder-factors"}}
     build_catalog._publish(detail)
     assert "pcf" not in detail["lca"] and "totals" not in detail["lca"]
+    assert "not_computed" not in detail["lca"]  # its gap counts come from lca/gaps.csv
 
 
 def test_the_pcf_impact_lines_of_a_gap_only_category_are_unknown(library: Path) -> None:
@@ -974,13 +975,33 @@ def test_the_pcf_impact_lines_of_a_gap_only_category_are_unknown(library: Path) 
 
 
 def test_the_shipped_library_reports_no_gap_only_total_as_zero(tmp_path: Path) -> None:
-    # every process whose study has a gap-only category: none of them shows 0 for it (#250)
+    # read from the raw files, independently of _not_computed: every shipped baseline category
+    # with a gap that leaves a burden unknown and no contribution row has no total (#250)
+    gap_only = []
     for folder in sorted((KIT / "processes").glob("*/lca/results.csv")):
-        lca = build_catalog._lca(folder.parents[1], folder.parents[1].name, build_catalog.Report())
-        for scenario, cats in lca["not_computed"].items():
-            for category in cats:
-                assert category not in lca["totals"].get(scenario, {}), (folder, scenario, category)
+        process = folder.parents[1]
+        lca = build_catalog._lca(process, process.name, build_catalog.Report())
+        gaps_csv = folder.parent / "gaps.csv"
+        gapped = set()
+        if gaps_csv.is_file():
+            gapped = {
+                g["category"]
+                for g in build_catalog._csv(gaps_csv)
+                if g.get("scenario") == "baseline" and g.get("reason") not in build_catalog.OUTSIDE_METHOD
+            }
+        contributed = {
+            r["category"]
+            for r in build_catalog._csv(folder)
+            if r.get("scenario") == "baseline" and r["key"] != "total" and r["category"] != "pcf"
+        }
+        for category in gapped - contributed:
+            assert category not in lca["totals"].get("baseline", {}), (process.name, category)
+            assert category in lca["not_computed"]["baseline"], (process.name, category)
+            gap_only.append(process.name)
         for line in lca["pcf"]:
             if line["basis"] in lca["not_computed"].get("baseline", {}) and line["unit"].endswith("CO2-eq"):
-                assert line["value"] is None, (folder, line)
-        assert "pcf" not in {c["id"] for c in lca["categories"]}, folder
+                assert line["value"] is None, (process.name, line)
+        assert "pcf" not in {c["id"] for c in lca["categories"]}, process.name
+    # 21 shipped processes had a gap-only headline at core 1.2.1 (ADR 0026); not pinned, so that
+    # linking a background is no test change, but the rule must reach the shipped studies
+    assert gap_only

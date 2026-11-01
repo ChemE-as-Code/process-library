@@ -87,7 +87,7 @@ catalog derives its sheets, gates, design basis and LCA results.
   catalog leaves it out of `lca.totals`, lists it in `lca.not_computed` and gives the headline
   and route footprint `value: null` with `not_computed: every-contribution-a-gap`, never 0. A
   category without such gaps keeps its total, also 0
-  ([ADR 0024](docs/adr/0024-no-total-when-every-contribution-is-a-gap.md)).
+  ([ADR 0026](docs/adr/0026-no-total-when-every-contribution-is-a-gap.md)).
 - **Several outputs.** A multi-output process needs an allocation that follows the hierarchy of
   [docs/system-model.md](docs/system-model.md), often a curated `allocation:` entry in the
   mappings. Recycling or energy-recovery outputs need a `cutoff_exclusions:` decision.

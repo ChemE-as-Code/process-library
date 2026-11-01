@@ -62,4 +62,4 @@ with an ADR in the same pull request.
 | [0021](0021-design-maturity-calculation-maturity-review-status.md) | Name the three axes design maturity, calculation maturity and review status; labels only | **Proposed**, 2026-10-27 |
 | [0022](0022-lci-gaps-for-unpublished-processes-and-per-process-mappings.md) | Report LCI mapping gaps of unpublished processes; keep a process's overrides with it | Accepted, 2026-10-28 |
 | [0023](0023-reactions-in-the-catalog.md) | List the processes' reactions in the catalog as reactions.json, each reaction once | **Proposed**, 2026-10-30 |
-| [0024](0024-no-total-when-every-contribution-is-a-gap.md) | Give no total, with the reason, when every contribution to a category is a gap | **Proposed**, 2026-10-30 |
+| [0026](0026-no-total-when-every-contribution-is-a-gap.md) | Give no total, with the reason, when every contribution to a category is a gap | **Proposed**, 2026-10-30 |
