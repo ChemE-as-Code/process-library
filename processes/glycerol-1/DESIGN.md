@@ -210,6 +210,7 @@ substitution are open sensitivities. Carbon origin: biogenic fraction of the cru
 carbon 0.710 (glycerol and fatty chains from vegetable oil; methanol, methoxide and ester
 methyl fossil). No construction, transport or end of life at this stage. lca/mappings.yaml has
 no overrides (internal process, ADR 0022).
+Note 2026-11-01: the owner has since marked all 50 processes public, so this one is no longer internal.
 Allocation variants (added 2026-10-28, review #5): the recovered methanol S8 is the biodiesel
 plant's own excess reactant, which arrives in the crude and leaves unchanged; under mass
 allocation it takes 32 % of the burden, including 32 % of the crude glycerol it arrived in.

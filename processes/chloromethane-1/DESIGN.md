@@ -200,7 +200,9 @@ to; no allocation (single product); the dilute HCl, spent acid and purge are was
 (cut-off system model, no credits). Overrides in lca/mappings.yaml: LP steam counted as heat
 (kWh) and the anhydrous HCl kept from linking to an aqueous acid producer.
 Reason: library ADR on LCI gaps (an internal process reports gaps, never zeros); no licensed data
-used. Treating the 21 % acid and the 80 % spent acid as wastes is conservative; if they are sold
+used.
+Note 2026-11-01: the owner has since marked all 50 processes public, so this one is no longer internal.
+Treating the 21 % acid and the 80 % spent acid as wastes is conservative; if they are sold
 or regenerated in a library process, the shared entry `spent-sulfuric-acid` (cut-off re-use) and
 a new dilute-acid entry would replace the treatment (I-04, I-08).
 

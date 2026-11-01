@@ -211,6 +211,7 @@ Publication: `publication: public` in `lca/manifest.json` and `results.md` is ch
 the licences of the sources the results rest on (no restricted source), i.e. that they *may* be
 published; whether the process *is* published is process.yaml `publication.status`, which is
 `internal` and governs (review 2026-10-27-pfd-lci-review#10).
+Note 2026-11-01: the owner has since marked all 50 processes public, so this one is no longer internal.
 Results: see the LCI summary below.
 
 ## LCI summary (lca/inventory.csv, per kg benzene)

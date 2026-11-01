@@ -194,6 +194,7 @@ wastewater effluent (belongs to the treatment background). Cut-off: small pumps 
 power (about 25 kW, D-008).
 Reason: the run's scope (issue #126, ADR 0022: an unmapped exchange of an internal process is a
 reported gap); no licensed values are used.
+Note 2026-11-01: the owner has since marked all 50 processes public, so this one is no longer internal.
 
 ## LCI summary (lca/inventory.csv, per kg THF)
 
