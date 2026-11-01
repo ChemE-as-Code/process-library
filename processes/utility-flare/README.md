@@ -1,11 +1,17 @@
 # Flaring of methane-rich waste gas
 
+> **AI-generated research output, not engineering advice.** This design was produced by AI coding
+> agents (Claude Code) under human direction and is checked by automated tools; it has had
+> no independent human review. It is not approved for construction, operation, procurement or
+> safety decisions and comes with no warranty. Check the design maturity and review status in
+> `process.yaml` before relying on any number.
+
 Library utility (process-library#45), manifest only. Combustion of 1 kg of waste gas, taken as methane, in an elevated flare at an ASSUMED combustion efficiency of 98 %: CO2 and water of the burnt fraction, the unburnt methane to air.
 
 ## How it is built
 
 `lca/datasets/flare-methane-per-kg.yaml` is a hand-written LCI dataset (`cheme/lci_dataset/v2`) in core's Tier 1
-form (core#182): every amount is the `formula` of the dataset's `parameters`, which core's
+form: every amount is the `formula` of the dataset's `parameters`, which core's
 validator re-checks, and `generation.balance` records the element balance (closed).
 Physical properties and stoichiometry have their sources (IAPWS-95 and humid-air properties
 evaluated with CoolProp 8.0.0, IUPAC 2021 atomic weights, the chemicals registry). **Every

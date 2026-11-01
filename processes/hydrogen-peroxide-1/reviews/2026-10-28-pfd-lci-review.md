@@ -99,8 +99,8 @@ flowsheet only; I did not check labels or tiles.
 ## Not checked
 - I did not check the BREF locators and ranges against the document itself (I had no copy). They
   were checked only for plausibility against general knowledge of the AO process.
-- Energy balances in cheme (core #315, not evaluable) and the extraction equilibrium (core
-  #369): both are gated in core, as D-006 states.
+- Energy balances in cheme (not evaluable) and the extraction equilibrium:
+  both are gated in core, as D-006 states.
 - `scripts/build_lci.py --strict` of the library (not re-run; the design report says it exits 1
   for an environment reason common to all processes).
 - The equipment and line list design data (design pressures, temperatures, line sizes from

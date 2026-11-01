@@ -287,7 +287,7 @@ def _lca(folder: Path, where: str, report: Report, capacity: str | None = None) 
     # has is missing there (or all of whose contributions are gaps) has no total, never the
     # lower sum results.csv gives
     for scenario in scenario_part.get("scenarios", []):
-        # the study's system boundary beside every scenario's numbers (core#306)
+        # the study's system boundary beside every scenario's numbers
         scenario["boundary"] = study.get("boundary", "")
         if scenario["id"] in totals:
             totals[scenario["id"]] = {
@@ -457,9 +457,9 @@ def _scenarios(folder: Path, where: str, report: Report, lca_withheld_reason: st
                 "partial_categories": impacts.get("partial_categories", []),
                 "comparable": impacts.get("comparable", True),
                 "dropped": impacts.get("dropped", []),
-                # core's verdict against the baseline (core#306: like-for-like, proxy, not
+                # core's verdict against the baseline (like-for-like, proxy, not
                 # comparable; baseline for the baseline), read from the factors' structured scope.
-                # `comparable` above covers gaps only. A record from before core#306 has none:
+                # `comparable` above covers gaps only. A record from before core wrote verdicts has none:
                 # null, which a consumer shows as "not comparable" when `comparable` is false and
                 # as "not assessed" otherwise, never as like-for-like (ADR 0016).
                 "comparability": data.get("comparability"),

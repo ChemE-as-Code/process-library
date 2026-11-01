@@ -33,8 +33,8 @@ air separation unit such as processes/asu-1 makes it), NMP make-up, combustion a
 steam, cooling water in; acetylene (1.2 bar(a)), synthesis gas (11 bar(a)), soot sludge,
 quench-water purge, solvent residue, flue gas out.
 Reason: The route the issue names; it is the dominant hydrocarbon route, and every step of it
-can be balanced with an explicit sourced composition model, without the carbide furnace (core
-#370 refuses the carbothermal step) or solids handling (#365).
+can be balanced with an explicit sourced composition model, without the carbide furnace
+(core refuses the carbothermal step) or solids handling.
 Rejected: calcium carbide hydrolysis (a different boundary: lime kiln, carbide furnace, carbide
 lime residue); electric-arc pyrolysis (Hüls) and thermal cracking (Wulff); ethylene co-product
 recovery from steam crackers; the oil-quench variant with heat recovery (the issue fixes a water
@@ -152,7 +152,7 @@ with the syngas, 5 % burnt with the off-gas, 90 % as residue to incineration.
 Results: product 99.55 mol% C2H2 (0.25 % CO2, 0.2 % H2O); of the acetylene formed 98.0 % to
 product, 0.5 % with the syngas, 1.0 % with the off-gas, 0.5 % in the quench water (flash gas);
 recycle 2.1 t/h (60 % C2H2).
-Gated: no qualified property model for NMP with acetylene (core #315); the splits are specified,
+Gated: no qualified property model for NMP with acetylene; the splits are specified,
 not predicted. Diacetylene in the off-gas (40 mol%, diluted by 38 % water vapour) is
 deflagration-prone (S-4): its handling is a safety item for basic engineering.
 
@@ -242,10 +242,10 @@ marking); layout-plot-plan fails (out of scope).
 | step | method used | core capability | status |
 |---|---|---|---|
 | burner mass balance | conversion reactor from a sourced composition (D-005) | conversion reactor | done in core |
-| burner energy | adiabatic temperature in scripts/balance.py | needs condensed-phase carbon and C4H2/C6H6 Cp to 2000 K | gated (data range; not core #370, which covers lime kilns) |
-| quench, cooling column, water circuit | specified outlets, energy in the script | no package for water with soot / dissolved gases (core #315) | gated |
-| soot as a solid | `phase: solid` pseudo-component, mass only | core #365 solids basis | sufficient for balances; no solid separation model needed at concept |
-| NMP absorption and stripping | specified splits (D-009) | no qualified NMP / acetylene property model (core #315, polar/activity benchmark) | gated |
+| burner energy | adiabatic temperature in scripts/balance.py | needs condensed-phase carbon and C4H2/C6H6 Cp to 2000 K | gated (data range; not core's furnace energy, which covers lime kilns) |
+| quench, cooling column, water circuit | specified outlets, energy in the script | no package for water with soot / dissolved gases | gated |
+| soot as a solid | `phase: solid` pseudo-component, mass only | core's solids basis | sufficient for balances; no solid separation model needed at concept |
+| NMP absorption and stripping | specified splits (D-009) | no qualified NMP / acetylene property model (polar/activity benchmark) | gated |
 | compression, preheat, duties | ideal gas in the script | DWSIM route not qualified for this mixture | gated |
 | fired heater | conversion reactor; duty checked by `cheme process reactors` | available | done |
 | LCI | `cheme assess lca` | available | done (backgrounds unmapped by design) |
@@ -258,5 +258,5 @@ marking); layout-plot-plan fails (out of scope).
 - Compression pressure, NMP splits, loading, water content and loss; desorption heat; electric
   allowances (ESP, vacuum); fired-heater efficiency and support-fuel share; NOx factor.
 - Gated in core: burner energy (data for solid carbon, Cp of C4H2/C6H6 above 1000 K); property
-  packages for the quench water and the NMP section (core #315); predictive burner kinetics.
+  packages for the quench water and the NMP section; predictive burner kinetics.
 - Heat recovery from the quench (91.6 MW to cooling water) not studied.

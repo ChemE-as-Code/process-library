@@ -37,7 +37,7 @@ ranked by reach rather than volume, because every process needs them (#45).
 
 ## Tiers
 
-`tier` is the planned entry tier (core#182). **0** is stoichiometric, with the screening
+`tier` is the planned entry tier. **0** is stoichiometric, with the screening
 defaults of Hischier et al. 2005, as reported in, capped in maturity (calculation maturity
 `sourced`, design maturity at most `concept`) and DQR. **1** is sourced conceptual data (BREF
 ranges, published balances). **2** is a flowsheet design (a ChemE-as-Code
@@ -84,12 +84,12 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 (#47). It is a plan, not a commitment: the order can change, and a change goes through
 `coverage.yaml`.
 
-1. **ammonia** (SMR): the first reactive process. It exercises element balances with carbon
-   (core#174), combustion and flue gas outside the stream table (core#176), the CO2 co-product
+1. **ammonia** (SMR): the first reactive process. It exercises element balances with carbon,
+  combustion and flue gas outside the stream table, the CO2 co-product
    cut-off (decision 4) and steam and cooling water as library utilities (#45).
 2. **hydrogen** (PEM and alkaline electrolysis; SMR as the reference variant).
 3. **methanol** (natural gas; e-methanol as the variant that reuses the hydrogen and CO2).
-4. **nitric acid**: N2O as a process emission (core#176) and the NH3 → HNO3 chain.
+4. **nitric acid**: N2O as a process emission and the NH3 → HNO3 chain.
 5. **urea**: consumes the ammonia plant's CO2 and closes the first fertiliser chain.
 6. **chlor-alkali** (membrane): electricity-driven. Its sector PCR (Euro Chlor) overrides the
    allocation hierarchy, and it has a hydrogen co-product (energy allocation).

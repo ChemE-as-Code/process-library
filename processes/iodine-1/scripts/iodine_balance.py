@@ -6,7 +6,7 @@ repository). Every value it produces is ASSUMED: it rests on the sourced brine i
 (300 mg/kg I, D-003) and the ASSUMED design parameters below, each with its decision.
 
 Dissolved species are carried as neutral molecules (NaI, NaCl, HI, HCl, H2SO4, Na2SO4, NaHCO3,
-I2, Cl2, SO2, CO2 in water): an inventory basis, not a speciation (core #364, D-007). The
+I2, Cl2, SO2, CO2 in water): an inventory basis, not a speciation (D-007). The
 recycles (absorber gas loop, filtrate and spent melter acid to the brine head) are solved by
 successive substitution; the plant is linear in the brine flow, which is then scaled to the
 product rate.

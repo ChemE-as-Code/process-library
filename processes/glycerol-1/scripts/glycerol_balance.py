@@ -4,8 +4,8 @@ A sequential, specified-split balance: the reactors are full-conversion neutrali
 (process/reactions.yaml), every separator is a set of ASSUMED split and purity parameters
 (PARAMETERS below, each with its decision), and the duties are lumped latent plus sensible heat
 estimates with the property values in PROPS. Nothing here is a phase-equilibrium or
-electrolyte calculation: core cannot yet qualify glycerol-water-methanol-NaCl mixtures (core
-#315, #364, #365). The results are copied into process/flowsheet.yaml as `assumed` values with
+electrolyte calculation: core cannot yet qualify glycerol-water-methanol-NaCl mixtures.
+The results are copied into process/flowsheet.yaml as `assumed` values with
 this script as their source; cheme recalculates the reactor outlets and pass-through streams
 itself (`cheme process propagate --fill`) and its balances must agree.
 

@@ -150,13 +150,13 @@ def test_public_build_withholds_unpublished_processes_from_the_activities(librar
 def test_closure_comes_from_the_manifest_balance_or_says_why_not(library: Path, tmp_path: Path) -> None:
     package = _package(library, tmp_path / "a")
     entries = {e["code"]: e for e in package["activities"]}
-    assert entries[H2]["closure"]["status"] == "not-assessed" and "core#174" in entries[H2]["closure"]["reason"]
+    assert entries[H2]["closure"]["status"] == "not-assessed" and "balance" in entries[H2]["closure"]["reason"]
     assert entries[NH3]["closure"]["status"] == "not-assessed" and "hand-written" in entries[NH3]["closure"]["reason"]
     manifest = library / "processes" / "fixture-electrolysis" / "lca" / "manifest.json"
     balance = {"dataset": "fixture-electrolysis", "status": {"lci-mass-balance": "closed"}, "tolerance": 0.05, "mass": {"unit": "kg", "residual": 0.0}}
     manifest.write_text(json.dumps({"balance": balance}), encoding="utf-8")
     entries = {e["code"]: e for e in _package(library, tmp_path / "b")["activities"]}
-    assert entries[H2]["closure"] == {"status": "assessed", "source": "lca/manifest.json balance (core#174)", "balance": balance}
+    assert entries[H2]["closure"] == {"status": "assessed", "source": "lca/manifest.json balance", "balance": balance}
     manifest.write_text(json.dumps({"balance": {**balance, "dataset": "another"}}), encoding="utf-8")
     entries = {e["code"]: e for e in _package(library, tmp_path / "c")["activities"]}
     assert entries[H2]["closure"]["status"] == "not-assessed"

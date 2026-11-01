@@ -5,7 +5,7 @@ Prints the separator and column outlets, the feed flows and the duties that
 process/flowsheet.yaml carries as ASSUMED values with this script as the source. Mixers,
 splitters, pass-through steps and the reactor are recalculated by `cheme process propagate`.
 
-Method (concept shortcut, not a rigorous simulation; core #315 has no qualified polar /
+Method (concept shortcut, not a rigorous simulation; core's property-package qualification has no qualified polar /
 activity-coefficient package for MTBE / methanol / water / C4):
 - separators: component split specifications (D-007), linear in the fresh feed, so the
   balance is solved for 1 kmol/h fresh MTBE and scaled to the product rate;

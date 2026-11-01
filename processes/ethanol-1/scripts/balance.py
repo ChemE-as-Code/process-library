@@ -1,6 +1,6 @@
 """Concept heat and material balance of ethanol-1 (ethylene direct hydration), DESIGN.md D-006.
 
-An independent estimate, not a qualified simulation (core #315: no property package of
+An independent estimate, not a qualified simulation (no property package of
 cheme-as-code covers ethylene/water/ethanol at loop pressure). What it does:
 - solves the recycle loops (reaction gas loop, flash-gas return, water loop, sieve
   regeneration return) by successive substitution;

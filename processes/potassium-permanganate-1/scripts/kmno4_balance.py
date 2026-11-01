@@ -8,7 +8,7 @@ the KOH evaporator (E-601, concentrate back to the roaster) and to the purge.
 
 Every design parameter below is ASSUMED unless its comment names a source; the numbers are
 copied into process/flowsheet.yaml as `assumed` with this script as their source. Liquors are
-carried as neutral molecules (no speciation, core #364). Run: python3 -I scripts/kmno4_balance.py
+carried as neutral molecules (no speciation). Run: python3 -I scripts/kmno4_balance.py
 (standard library only); it writes build/kmno4_balance.json and build/streams.yaml.
 """
 

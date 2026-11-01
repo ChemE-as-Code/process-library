@@ -9,7 +9,7 @@
 
 Users cite and compare LCI data across releases, so they need to know what changed and whether a
 result moved by design or by correction. Publishing on Zenodo and minting a DOI cannot be undone,
-and the repository mixes MIT code with CC BY 4.0 data. Industrial partners may offer measured
+and the repository mixes AGPL and MIT code with CC BY 4.0 data. Industrial partners may offer measured
 data under restricted terms.
 
 ## Decision
@@ -43,6 +43,6 @@ data under restricted terms.
 ## Evidence
 
 - `2f6c009` and `d39f60a`, [#68](https://github.com/ChemE-as-Code/process-library/pull/68) (closes #50).
-- `0733ec0` dataset governance fields of core's contract v2 (core#179),
+- `0733ec0` dataset governance fields of core's contract v2,
   [#75](https://github.com/ChemE-as-Code/process-library/pull/75).
 - [governance.md](../governance.md) status banner, `.github/workflows/release.yml`.

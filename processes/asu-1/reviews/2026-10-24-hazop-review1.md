@@ -38,7 +38,7 @@ layout, datasheet or C&E file changed. Every node, scenario, safeguard, rating a
 `status: proposed`, `by: agent`. No team, session or approval is recorded. A safeguard was
 checked against the files whenever a finding depended on it: PIC-3110 / PV-3110B, LICA-3102 and
 its low alarm, TSLL-4113 / 4114, SSHH-3108, PDSLL-3115 and the fire wall FW-4101 (D-026, D-030,
-layout). The HAZOP tool of core#147 writes the bands with `cheme safety hazop rate`. It reports
+layout). Core's HAZOP tool writes the bands with `cheme safety hazop rate`. It reports
 every band as current in all four studies.
 
 Recounted from the files, the totals match D-092 (3): 207 scenarios; worst policy band 77 high,

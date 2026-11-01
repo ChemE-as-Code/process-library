@@ -110,7 +110,7 @@ then calculated by `cheme process propagate --fill` and cheme's conversion react
 reproduce the script (block and step balances close).
 Reason: cheme 0.8.0 qualifies NRTL only for ethanol/water (`cheme process methods`), and no
 property package covers THF/water/BDO (`props --coverage`): `cheme process simulate` and `props
---fill` cannot be used (gated, core-archive#315, open on 2026-10-27).
+--fill` cannot be used (gated, open on 2026-10-27).
 Method: thermo NRTL with the ChemSep THF/water parameters packaged in thermo 0.6.1 (b12 460.821 K,
 b21 868.103 K, alpha 0.4522; `cheme process phase 109-99-9 7732-18-5 --liquid NRTL` reports them
 sourced), ideal gas, Psat basis; the bubble point is solved directly (thermo's PVF flash failed
@@ -252,9 +252,9 @@ unsourced).
 |---|---|---|
 | Mass and element balances | `cheme process streams`, `cheme validate`, `cheme assess lca --balance` | closed |
 | Reactor outlet | cheme conversion reactor (`selectivity:`) | calculated; selectivity ASSUMED |
-| VLE, columns, duties | scripts/thf_balance.py, NRTL (thermo) | ASSUMED values; gated by core-archive#315 for qualification (polar activity-coefficient benchmark) |
-| Energy closure in core | `cheme process props --fill` | gated: no package for THF/water/BDO (core-archive#315) |
-| Liquid-phase reactor energy in core | `cheme process reactors` / simulate | gated: liquid-reactor energy verification (core-archive#315) |
+| VLE, columns, duties | scripts/thf_balance.py, NRTL (thermo) | ASSUMED values; gated for qualification (polar activity-coefficient benchmark) |
+| Energy closure in core | `cheme process props --fill` | gated: no package for THF/water/BDO |
+| Liquid-phase reactor energy in core | `cheme process reactors` / simulate | gated: liquid-reactor energy verification |
 | Simulation | `cheme process simulate` (DWSIM, NRTL) | not run: NRTL qualified for ethanol/water only in cheme 0.8.0 |
 | LCI | `cheme assess lca --inventory --write`, `--coverage`, `--balance`; library `build_lci.py --strict` | written; 8 gaps |
 

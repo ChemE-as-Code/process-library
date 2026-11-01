@@ -116,11 +116,11 @@ from the column energy balance on saturated liquids; coolers). cheme's ideal-gas
 Reason: core has no property package qualified for MTBE / methanol / water / C4 (`cheme process
 props --coverage`: every stream unsupported; `cheme process methods`: NRTL/UNIQUAC/UNIFAC only
 as substitutes, no benchmark), so neither `props --fill` nor `simulate --fill` can be used
-(core #315: polar/activity-coefficient benchmark). Ideal Raoult misses the MTBE/methanol and
+(polar/activity-coefficient benchmark). Ideal Raoult misses the MTBE/methanol and
 C4/methanol azeotropes: temperatures and latent heats are approximate, duties perhaps
 +/-30 %. Not a rigorous simulation; accuracy not stated.
 Gated step: predictive simulation and enthalpy-based energy closure of every block wait for a
-qualified activity-coefficient package for this system (core #315).
+qualified activity-coefficient package for this system.
 
 ## D-007 Separation specifications (2026-10-28)
 Decision (all ASSUMED unless a patent value is named; patent = US 8,633,345 B2):
@@ -211,7 +211,7 @@ element and carbon-origin balances closed.
 
 - I-01 Capacity and site: 50 kt/a and a generic site are ASSUMED; a traceable plant basis
   (sourced capacity, MTBE assay) would lift the maturity check `sourced-boundary`.
-- I-02 Property method: no qualified package for MTBE/methanol/water/C4 (core #315); the
+- I-02 Property method: no qualified package for MTBE/methanol/water/C4; the
   column temperatures, the azeotrope-limited splits (2.5 wt% methanol over C-201, 14 wt% in
   the C-301 recycle) and all duties must be rechecked with NRTL/UNIQUAC and sourced binary
   parameters, and the wash with liquid-liquid equilibrium data.

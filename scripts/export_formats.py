@@ -45,7 +45,7 @@ Identifiers (deterministic, documented in lci/README.md):
   ecoinvent elementary exchange id as distributed with bw2io, from core's crosswalk or the
   mappings). Otherwise ``atlas_uuid("flow", "elementary", <name>, <categories>, <unit>)``, said
   in the flow's description: it is **not** an EF 3.1 or ecoinvent identifier and must be mapped
-  by name and category. EF 3.1 UUIDs are not recorded by core yet (core#313) and are never
+  by name and category. EF 3.1 UUIDs are not recorded by core yet and are never
   guessed here.
 
 ``atlas_uuid`` is uuid5 in the namespace ``uuid5(NAMESPACE_URL,

@@ -1,6 +1,6 @@
 # 0013. MIT for code, CC BY 4.0 for data and designs; never copy third-party content
 
-- **Status:** Accepted, 2026-10-23
+- **Status:** Superseded by [0024](0024-agpl-for-code-skills-and-scripts.md) for the licence of the code; the rule never to copy third-party content stays in force. Accepted, 2026-10-23
 - **Scope:** `LICENSE`, `LICENSE-DATA`, CLAUDE.md, CONTRIBUTING.md, every process folder
 
 ## Context

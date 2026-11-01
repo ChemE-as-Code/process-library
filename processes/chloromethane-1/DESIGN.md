@@ -5,7 +5,7 @@ Issue: ChemE-as-Code/process-library#151. Run of 2026-10-28 (concept: design bas
 balanced PFD and a preliminary gate-to-gate LCI). Starting library commit cc5624f,
 cheme-as-code 0.8.0 (pyDEXPI 2.1.0, Python 3.15). Designed independently from open sources;
 no published flowsheet, stream table or plant data set was copied. The issue's core links
-(#315, #364) could not be opened from this environment (`gh` cannot resolve them); the gated
+could not be opened from this environment (`gh` cannot resolve them); the gated
 steps below are stated from what `cheme process methods` and `props --coverage` report today.
 
 ## Route and boundary memo
@@ -184,8 +184,8 @@ C401) stay specified.
 Reason: `cheme process props --coverage` finds no package for any stream (the benchmarked
 packages cover N2/O2/Ar and syngas only); `cheme process methods` lists the electrolyte models
 (ENRTL, Pitzer) as unsupported, the electrolyte route covering NaCl-water only. HCl-water and
-H2SO4-water are electrolytes (core electrolyte support, issue #364); the polar CH3Cl-methanol-
-water-DME gas needs a qualified package (core #315). These are the gated steps for a predictive
+H2SO4-water are electrolytes (core electrolyte support); the polar CH3Cl-methanol-
+water-DME gas needs a qualified package. These are the gated steps for a predictive
 balance.
 
 ## D-012 Lists at concept (2026-10-28)
@@ -225,7 +225,7 @@ Reason: fugitive estimates need P&ID component counts; no open source with amoun
 ## Open items
 - I-01 Capacity, site and HCl source not chosen (D-002, D-003).
 - I-02 Rigorous energy balance and separator splits gated on electrolyte and polar property
-  packages in core (#364, #315) (D-011).
+  packages in core (D-011).
 - I-03 Reactor: one literature data point; read S2 and S7 in full for the HCl ratio and kinetics
   before basic engineering; hot-spot and catalyst life (coking, S3) not assessed
   (`cheme process reactor-hazards` once a bed is defined).

@@ -1,7 +1,7 @@
 """Independent heat and material balance of the methanol loop and purification (DESIGN.md D-006).
 
 This is NOT a cheme-as-code calculation. Core cannot yet qualify the property regime of this
-plant (core #315: no benchmarked package for syngas with methanol and water, hot converter gas
+plant (no benchmarked package for syngas with methanol and water, hot converter gas
 with CO above 500 K, or liquid methanol-water; DWSIM PR/NRTL are benchmarked only for N2/O2/Ar
 and ethanol-water). Its results go into process/flowsheet.yaml as `assumed` values with this
 script as their source, and cheme checks them: mass and element balances, the reaction

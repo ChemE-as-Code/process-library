@@ -1,11 +1,17 @@
 # Cooling water, evaporative cooling tower, 25/35 degC
 
+> **AI-generated research output, not engineering advice.** This design was produced by AI coding
+> agents (Claude Code) under human direction and is checked by automated tools; it has had
+> no independent human review. It is not approved for construction, operation, procurement or
+> safety decisions and comes with no warranty. Check the design maturity and review status in
+> `process.yaml` before relying on any number.
+
 Library utility (process-library#45), manifest only. Heat rejection from cooling water supplied at 25 degC and returned at 35 degC in a mechanical-draught wet tower, per MWh rejected. The dry air flow follows from the air-side energy balance (ambient 20 degC, 60 % RH; air leaving saturated at 30 degC, both ASSUMED); evaporation is that air flow times its humidity pick-up, about 1.18 kg per kWh rejected. Make-up (about 1.57 kg/kWh) is a water resource withdrawn from nature; blowdown goes to wastewater treatment.
 
 ## How it is built
 
 `lca/datasets/cooling-tower-evaporative-25-35.yaml` is a hand-written LCI dataset (`cheme/lci_dataset/v2`) in core's Tier 1
-form (core#182): every amount is the `formula` of the dataset's `parameters`, which core's
+form: every amount is the `formula` of the dataset's `parameters`, which core's
 validator re-checks, and `generation.balance` records the element balance (closed).
 Physical properties and stoichiometry have their sources (IAPWS-95 and humid-air properties
 evaluated with CoolProp 8.0.0, IUPAC 2021 atomic weights, the chemicals registry). **Every

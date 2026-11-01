@@ -5,9 +5,9 @@ decided, why, what was rejected, and what it assumes. Numbers live in `process/*
 `scripts/urea_balance.py` and `lca/`; this file keeps the decisions and their sources.
 
 Run context (2026-10-27): library `main` at 79a7cd4 (branch `case/urea-1`), cheme-as-code
-0.8.0 (pyDEXPI 2.1.0). Core issues checked at start: #315 open; #364 closed (merged scope
+0.8.0 (pyDEXPI 2.1.0). Core issues checked at start: property qualification open; electrolytes closed (merged scope
 excludes NH3/NH4+ weak-electrolyte speciation, and `cheme process methods` 0.8.0 still lists
-the electrolyte regime as unsupported); #365 closed (solids; not needed for this scope).
+the electrolyte regime as unsupported); solids closed (not needed for this scope).
 
 ## Source register
 
@@ -166,13 +166,13 @@ Decision: no property package is used (`materials.yaml` property method stays a 
 `cheme process props`/`simulate` are not run.
 Reason: the HP and LP liquids are concentrated aqueous electrolyte solutions (NH4+, carbamate,
 bicarbonate) with urea, and the finishing has a solid. `cheme process methods` (0.8.0)
-reports the electrolyte regime unsupported for phase and simulation. Core #364's merged scope
-excludes NH3/NH4+ weak-electrolyte speciation and electrolyte VLE. Core #315 (whole-flowsheet
-energy basis, polar/activity benchmark) is open.
+reports the electrolyte regime unsupported for phase and simulation. Core's merged electrolyte scope
+excludes NH3/NH4+ weak-electrolyte speciation and electrolyte VLE. The core issue on the whole-flowsheet
+energy basis and polar/activity benchmark is open.
 **Gated steps:** (1) a predictive HP loop (carbamate speciation and VLE in stripper,
 condenser, reactor and scrubber) needs an NH3-CO2-H2O-urea electrolyte/activity model in core
-(the follow-up of #364 under #81/#137) with a benchmark of this system; (2) energy closure of
-the blocks needs absolute enthalpies of these liquids (#315). Until then the PFD stays at
+(the follow-up of the electrolyte issue under #81/#137) with a benchmark of this system; (2) energy closure of
+the blocks needs absolute enthalpies of these liquids. Until then the PFD stays at
 "balanced with specified separations", and `cheme maturity` reaches no level (the sourced
 level fails on the assumed feeds; balanced.model-basis on the unsourced specified values).
 

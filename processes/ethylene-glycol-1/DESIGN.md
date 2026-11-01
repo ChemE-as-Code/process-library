@@ -157,7 +157,7 @@ Reason: the loop gas (CH4-C2H4-O2-Ar-CO2 with EO) needs an equation of state wit
 binary parameters; the EO-water-glycol liquids are strongly non-ideal (activity-coefficient
 model with sourced NRTL/UNIQUAC pairs). Core's benchmarked packages cover air and syngas
 mixtures only; the polar/activity-coefficient benchmark and liquid-reactor energy verification
-are open in core #315 (pre-release issue 315), so `cheme process props` and `cheme process
+are open, so `cheme process props` and `cheme process
 simulate` cannot qualify these streams. Gated steps: (1) stream enthalpies and energy closure
 of blocks and steps; (2) a predictive simulation of the absorber, strippers, evaporators and
 glycol columns (DWSIM with a recorded method selection); (3) R-101 energy balance from the

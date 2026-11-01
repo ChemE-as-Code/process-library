@@ -112,20 +112,25 @@ uv run scripts/build_lci.py ... --strict   # with an LCI dataset
 
 CI runs the same, and the public build (`--public`, see [Publishing a process](#publishing-a-process)).
 
+CI needs secrets to read core and pyDEXPI, and GitHub gives a pull request from a fork no secrets. Its
+`validate` and `library` jobs therefore fail at the deploy-key step, whatever you changed, and only
+the docs build tells you anything. Run the commands above yourself and say so in the pull request.
+
 ---
 
 ## Sources, licences and what may not be copied
 
 The library is published: process data and designs under
-[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) (`LICENSE-DATA`), code under MIT
-(`LICENSE`). Contribute only what may be published under these licences.
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) (`LICENSE-DATA`); code, skills and scripts, including those inside process folders, under
+AGPL-3.0-or-later (`LICENSE`); the LCI data installer in `python/` under MIT (`python/LICENSE`).
+Contribute only what may be published under these licences.
 
 | | |
 | --- | --- |
 | ❌ **Never copy third-party content** | Tables, figures, drawings, P&IDs, datasheet or manual text, screenshots or text from papers, books, standards, vendor documents or websites. No values from licensed databases (ecoinvent factors or results, commercial property data). |
 | ✅ **Facts and numbers in your own form, with their source** | `source:` / `provenance:` fields, `references:` in `process.yaml`, `DESIGN.md`. Estimates are marked ASSUMED. |
 | ✅ **Draw and write everything yourself** | Drawings are generated from the library's own files. |
-| ⚠️ **Openly licensed material** | Only with its licence and attribution in a `NOTICE.md` next to it, and only if that licence is compatible with CC BY 4.0 / MIT. |
+| ⚠️ **Openly licensed material** | Only with its licence and attribution in a `NOTICE.md` next to it, and only if that licence is compatible with the licence of the place it goes (see above). |
 
 By contributing you agree that your contribution is published under these licences.
 

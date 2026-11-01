@@ -1,7 +1,7 @@
 # 0021. Name the three axes design maturity, calculation maturity and review status
 
 - **Status:** Proposed, 2026-10-27
-- **Deciders:** the owner (core#323, #87)
+- **Deciders:** the owner
 - **Scope:** documentation and the descriptions of `schemas/process.schema.json`; no field, file
   or data changes
 
@@ -13,7 +13,7 @@ maturity` evaluates a different scale from the files of an engineering project (
 `balanced`, `predictive`, `engineering`) into `checks/maturity.json`, and maps each level onto
 the highest manifest label it supports, warning (`cheme.maturity-claim-exceeds`) when a manifest
 claims more. `validation.status` is a third, independent thing: who has checked the design.
-The README mixed them in one parenthesis per process, and the papers need one vocabulary. core#323
+The README mixed them in one parenthesis per process, and the papers need one vocabulary. Core
 sets it for every repository in a glossary (`docs/concepts/glossary.md` in core). This refines
 the wording of ADR 0004 (the manifest's honest maturity, review and publication status) and
 ADR 0019 (workflow kept separate from evidence); it changes neither decision.
@@ -41,8 +41,7 @@ of the docs site (`docs/hooks/library.py`) use the terms. The project is called 
 - No migration: manifests, the catalog and the LCI database are unchanged.
 - The field name `maturity` remains bare in files and in the catalog's JSON; consumers (the
   Atlas, the viewer) label it "design maturity" themselves (ChemE-as-Code/website#71).
-- The glossary link points at core's `docs/concepts/glossary.md`, which core#323 adds; until it
-  is merged the link does not resolve.
+- The glossary link points at core's `docs/concepts/glossary.md`.
 - Generated texts of the build scripts (e.g. the LCI comments "Maturity: ...") are not relabelled
   here: changing them changes build outputs and is left to a follow-up.
 - The README no longer carries the "Formerly `ChemE-as-Code/example-asu`" note that ADR 0003
@@ -50,7 +49,7 @@ of the docs site (`docs/hooks/library.py`) use the terms. The project is called 
 
 ## Evidence
 
-- core#323 (the glossary), #87 (this change); ADR 0004 and ADR 0019.
+- Core's glossary, #87 (this change); ADR 0004 and ADR 0019.
 - `schemas/process.schema.json` (`maturity`, `validation` descriptions), README.md (process table
   and the axes), CONTRIBUTING.md, `templates/process/`.
 - core's `src/chemeascode/project/maturity.py` (`LEVELS`, `LIBRARY_MATURITY`,

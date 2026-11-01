@@ -6,12 +6,12 @@ The numbers live in `process/*.yaml` and `scripts/balance.py`; the stream table 
 ChemE-as-Code/process-library#136.
 
 Run record of this stage (2026-10-28): library branch `case/bromine-1` from `cc5624f`;
-cheme-as-code 0.8.0 (pyDEXPI 2.1.0), Python 3.15.0; DWSIM not used. Core issues #364
-(electrolytes) and #369 (LLE) named in the issue could not be read (`gh`: not resolvable from this
+cheme-as-code 0.8.0 (pyDEXPI 2.1.0), Python 3.15.0; DWSIM not used. The core issues on
+electrolytes and on LLE named in the issue could not be read (`gh`: not resolvable from this
 account). As installed, `cheme process methods` lists ENRTL-PR and PITZER-RKS as unsupported and
 the electrolyte route as **NaCl-H2O only**, so the Ca/Na chloride brine with Br2/Cl2 is not
 covered by any phase, property or simulation route of this cheme (section 6). The route uses no
-liquid-liquid extraction, so #369 does not apply.
+liquid-liquid extraction, so that issue does not apply.
 
 ## 1. Route and boundary memo
 
@@ -88,7 +88,7 @@ bromine/chlorine content, and the lime dose of a real tail-brine neutraliser.
   and nearly complete in acid brine; what limits recovery in practice is stripping, chlorine
   distribution and side reactions, none of which a conversion reactor predicts. A speciation
   model (Br2/Br3-/BrCl/HOBr in a 31 wt-% Ca/Na chloride brine) would need an electrolyte
-  package (core#364, not available). Labelled in cheme as specified, unsourced conversions
+  package (not available). Labelled in cheme as specified, unsourced conversions
   (`cheme maturity`: model basis "conversion, specified").
 - **Side reaction as the chlorine sink** (D-005). SRC-1 reports that natural brines need
   0.55-0.60 lb Cl2/lb Br2 against 0.42-0.44 stoichiometric because side reactions consume part
@@ -170,7 +170,7 @@ dependence visible (about 0.32 kg/kg Br2 per kelvin of feed temperature, and 0.2
 3.6 %, per 0.1 kJ/kg K of the ASSUMED brine cp, review R-05). Rejected: copying
 5.45 kg/kg from SRC-1 as an assumed value (the energy balance would then be unchecked).
 Assumptions: water activity 0.75, cp 2.9 kJ/kg K and density 1.2 kg/L of the brine
-(ASSUMED; no property package for this brine, core#364); tower at 105 kPa(a) top, 130 kPa(a)
+(ASSUMED; no property package for this brine); tower at 105 kPa(a) top, 130 kPa(a)
 bottom.
 
 ### D-007 Condensation, separation and chlorine stripping (2026-10-28)
@@ -276,11 +276,11 @@ A level below concept is a library item (section 8).
 
 | step | method now | what it needs | gate |
 |---|---|---|---|
-| tower and separations | specified splits (scripts/balance.py) | rate-based or equilibrium-stage model of Br2/Cl2 stripping from a Ca/Na chloride brine, with speciation (Br3-, BrCl, HOBr) | core#364 (electrolytes; installed cheme: NaCl-H2O only) |
-| stream enthalpies, energy closure in core | script energy balance, brine cp and water activity ASSUMED | an electrolyte property package for NaCl-CaCl2-NaBr-H2O and Br2/Cl2 solubility | core#364 |
-| halite saturation, solids | not checked | solid-liquid equilibrium of NaCl in CaCl2 brine at 90-110 degC | core#364 |
-| DWSIM simulation (`cheme process simulate`) | not run | a property package for the brine and liquid bromine; P101 maps to no unit operation in the current translation | core#364 |
-| LLE | not used | n/a | core#369 not applicable |
+| tower and separations | specified splits (scripts/balance.py) | rate-based or equilibrium-stage model of Br2/Cl2 stripping from a Ca/Na chloride brine, with speciation (Br3-, BrCl, HOBr) | core's electrolyte support (electrolytes; installed cheme: NaCl-H2O only) |
+| stream enthalpies, energy closure in core | script energy balance, brine cp and water activity ASSUMED | an electrolyte property package for NaCl-CaCl2-NaBr-H2O and Br2/Cl2 solubility | core's electrolyte support |
+| halite saturation, solids | not checked | solid-liquid equilibrium of NaCl in CaCl2 brine at 90-110 degC | core's electrolyte support |
+| DWSIM simulation (`cheme process simulate`) | not run | a property package for the brine and liquid bromine; P101 maps to no unit operation in the current translation | core's electrolyte support |
+| LLE | not used | n/a | core's extraction support not applicable |
 | LCI background | all gaps | registry entries and shared mappings (section 8); chlor-alkali-1 and sulfuric-acid-1 datasets | library consolidated PR |
 
 ## 7. Open inputs
@@ -315,8 +315,8 @@ calculation maturity is none (review R-03).
 
 ## 9. Recommended next stage
 
-Basic engineering of the tower model once an electrolyte property route covers the brine
-(core#364): replace the specified splits of C-101/V-103/C-104 by a stripping model checked
+Basic engineering of the tower model once an electrolyte property route covers the brine:
+replace the specified splits of C-101/V-103/C-104 by a stripping model checked
 against SRC-1's recovery, chlorine and steam figures; close O-1..O-4 (brine analysis, side
 reactions, vent and scrubber); add brine preheating with the hot tail brine and the vacuum
 variant as an alternative (heating the brine, 13.9 MW, is more than the tower's whole net demand of 13.4 MW); then P&IDs. Acceptance checks:

@@ -146,7 +146,7 @@ loop connected to it.
   it expands, and the relieving rate follows from the transient heating of the inventory
   (the supercritical-fluid fire method of API Std 521) with real-fluid properties. **Not
   calculated**: core v1.0.0 has no such method, thermo's pure-component correlations are not
-  qualified near the critical point (core#315), and the liquid inventory is not set.
+  qualified near the critical point, and the liquid inventory is not set.
 - The gas-filled part of the vessel wall can fail by overheating before the valve protects it
   (CCPS 14.2.1): depressuring of the loop is a question for the team.
 
@@ -260,7 +260,7 @@ added in S8:
 - No relief-load, orifice (API 520), back-pressure or flare-network calculation exists in core;
   the loads above come from `scripts/relief_loads.py`, a provenance script using published
   equations, not from a qualified tool.
-- The supercritical fire case of V-501 (PSV-1911) needs a transient real-fluid method; core#315
+- The supercritical fire case of V-501 (PSV-1911) needs a transient real-fluid method; core's property-package qualification
   (property qualification) covers neither the near-critical region nor this method.
 - The blow-by cases (PSV-1513, PSV-1912) need the Kv of LV-1405 and LV-1903 and of any bypass;
   no control valve is sized.
