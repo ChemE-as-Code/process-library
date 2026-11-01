@@ -212,9 +212,9 @@ def _exchange(activity: dict, key: str) -> dict:
 
 def test_the_library_builds_strict_with_the_utilities(tmp_path: Path) -> None:
     report = build_lci.build(KIT, tmp_path / "out", "0.1.0", commit="test")
-    assert (report.errors, report.warnings) == ([], [])
+    assert (report.errors, report.strict_failures) == ([], [])
     variant = build_lci.build(KIT, tmp_path / "substitution", "0.1.0", commit="test", system_model="substitution")
-    assert (variant.errors, variant.warnings) == ([], [])
+    assert (variant.errors, variant.strict_failures) == ([], [])
     package = json.loads((tmp_path / "out" / "lci" / "datapackage.json").read_text())
     built = {p["id"] for p in package["processes"]}
     assert set(UTILITIES) <= built

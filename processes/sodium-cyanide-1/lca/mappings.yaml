@@ -16,15 +16,13 @@
 # - product:WW, product:CHW, product:CW: the treatment and utility entries of the shared file.
 schema: cheme-as-code/lci-process-mappings/v1
 exchanges:
-  "feed:NH3F":
-    atlas: false
-    source: >-
-      Not linked inside the Atlas by slug: the design basis of this feed is the product of the
-      library process ammonia-1; the link is to be pinned explicitly (dataset: in lca/lca.yaml)
-      when the backgrounds are connected (DESIGN.md D-012). Until then the exchange stays a gap.
-  "feed:NAOHF":
-    atlas: false
-    source: >-
-      Not linked inside the Atlas by slug: the design basis of this feed is the 50 wt% caustic of
-      the library process chlor-alkali-1, and the exchange counts the solution with its water;
-      the link is to be pinned explicitly with the NaOH content (DESIGN.md D-012).
+  # Mapping step of 2026-11-01 (ADR 0026): each entry below uses a reference the library already
+  # holds. Notes above that call these exchanges unmapped describe the state before it. What is
+  # still unmapped is a gap (lci/gaps.json), and this process is marked preliminary.
+  "consumable:bfw-export": {use: water, source: "boiler feed water, demineralised; deaeration not counted"}
+  "consumable:bfw-makeup": {use: water, source: "boiler feed water, demineralised; deaeration not counted"}
+  "disposal:consumable.bfw-makeup": {use: wastewater, source: "blowdown and condensate drains to the site wastewater treatment, by mass"}
+  "consumable:pt-rh-gauze": {use: pt-rh-gauze, source: "Pt/Rh 90/10 gauze pack, as nitric-acid-1 counts it"}
+  "feed:NAOHF": {dataset: {path: processes/chlor-alkali-1/lca/dataset.yaml, product: "product:NAOH"}, source: "the Atlas producer chlor-alkali-1, caustic soda 50 wt-%, per kg of solution as this exchange counts it, which this feed names (D-012)"}
+  "feed:NG": {use: natural-gas, source: "natural gas by mass, taken as methane (the shared unit proxy); not linked to an Atlas producer of the slug methane, which is hda-1's fuel gas", atlas: false}
+  "feed:NH3F": {dataset: {path: processes/ammonia-1/lca/dataset.yaml, product: "product:NH3"}, source: "the Atlas producer ammonia-1, liquid ammonia, which this exchange's design names (D-012)"}

@@ -13,4 +13,12 @@
 # and new shared entries needed first: acetic acid (feed:AA), triethyl phosphate (feed:TEP),
 # refrigeration at -10 C (product:BRINE), hazardous liquid waste incineration (product:RESIDUE).
 schema: cheme-as-code/lci-process-mappings/v1
-exchanges: {}
+exchanges:
+  # Mapping step of 2026-11-01 (ADR 0026): each entry below uses a reference the library already
+  # holds. Notes above that call these exchanges unmapped describe the state before it. What is
+  # still unmapped is a gap (lci/gaps.json), and this process is marked preliminary.
+  "feed:AA": {dataset: {path: processes/acetic-acid-1/lca/dataset.yaml, product: "product:HAC"}, source: "the Atlas producer acetic-acid-1, glacial acetic acid by methanol carbonylation, the route this feed names"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a), counted as heat delivered (kWh); the shared entry converts it to the background's heat from steam, which does not distinguish pressure levels"}
+  "feed:MPS": {use: steam-heat, source: "MP steam 1500 kPa(a), counted as heat delivered (kWh); the shared entry converts it to the background's heat from steam, which does not distinguish pressure levels"}
+  "feed:NG": {use: natural-gas, source: "natural gas by mass, taken as methane (the shared unit proxy); not linked to an Atlas producer of the slug methane, which is hda-1's fuel gas", atlas: false}
+  "feed:NH3": {use: ammonia, source: "anhydrous liquid ammonia, the shared background entry; the design names no plant, so no Atlas producer is chosen"}
