@@ -27,3 +27,9 @@ from cheme_as_code_lci import install_multifunctional
 
 report = install_multifunctional("lci/", background="ecoinvent-3.11-cutoff", location="FR")
 ```
+
+## Licence
+
+This package is under the [MIT License](LICENSE), so that you can use the data installer in any
+workflow. The rest of the repository is not: see [`../NOTICE`](../NOTICE). The LCI database it
+installs is under CC BY 4.0.

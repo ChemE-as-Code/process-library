@@ -4,7 +4,7 @@ on: [pull_request, push]
 permissions:
   contents: read
 
-# core is pinned to a commit (bfb5215: core main 2026-10-25, core#310; core has no tags
+# core is pinned to a commit (bfb5215: core main 2026-10-25; core has no tags
 # yet). An unpinned install turned validate red when core changed its generated LCA records
 # (#91). Bump the pin deliberately, in every URL of validate.yml and release.yml at once, together
 # with the records that core regenerates (cheme assess lca-scenarios --write);
@@ -37,8 +37,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           fetch-depth: 1  # the files only, no history (see "Repository size" in README.md)
-      # cheme-as-code and pyDEXPI are private while in development. cheme-as-code is read with the
-      # fine-grained token in the secret PLANTCODE_READ_TOKEN (contents: read on
+      # cheme-as-code is read with the fine-grained token in the secret
+      # PLANTCODE_READ_TOKEN (contents: read on
       # ChemE-as-Code/core), pyDEXPI with a read-only deploy key, private half in the
       # secret DEPLOY_KEY_PYDEXPI.
       - uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555  # v0.10.0
@@ -54,7 +54,7 @@ jobs:
       - run: uv tool install "git+https://github.com/ChemE-as-Code/core.git@8042b716d21dd9234eee8c6f2a16cf5120c2636b"
       - run: cheme fmt --check
       - run: cheme validate
-      # core's per-scenario LCA records (lca/scenarios/<id>.json, core#172) must be current
+      # core's per-scenario LCA records (lca/scenarios/<id>.json) must be current
       - name: LCA scenario records current
         run: if [ -d lca/scenarios ]; then cheme assess lca-scenarios --check; fi
       # Stage gates report progress (e.g. no design review recorded yet); they do not fail the build.
@@ -97,7 +97,7 @@ jobs:
       # errors fail; warnings (e.g. previews, which the Atlas build renders with cheme) are listed
       - name: catalog
         run: uv run --with "$CORE" scripts/build_catalog.py --library . --out dist
-      # the public build: only processes with publication.status public (none may be today)
+      # the public build: only processes with publication.status public (all of them today)
       - name: catalog (public)
         run: uv run --with "$CORE" scripts/build_catalog.py --library . --out dist-public --public
       - name: LCI database (strict)

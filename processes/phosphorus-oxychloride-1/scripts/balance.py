@@ -7,7 +7,7 @@ the conversion reactors are recalculated by `cheme process propagate --fill`, wh
 script.
 
 Why a script: no property package of core covers PCl3, POCl3, white phosphorus or the caustic
-liquor (core #315, #364), so the vent condensers (Raoult's law with thermo vapour pressures),
+liquor, so the vent condensers (Raoult's law with thermo vapour pressures),
 the columns (specified splits) and the liquid-phase reaction heats are computed here.
 
 Every number below that is not a molar mass or a thermo property is a design choice: the

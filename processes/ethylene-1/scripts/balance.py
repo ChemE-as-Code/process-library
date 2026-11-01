@@ -5,7 +5,7 @@ interpreter). Reads process/materials.yaml; prints the furnace reaction conversi
 converged recycle balance, the duties and the energy indicators, and writes the stream values to
 build/balance.json (scratch). The values are typed into process/flowsheet.yaml as ASSUMED with
 this script as their source (DESIGN.md D-006): separators, columns and the recycle loop are
-specified splits, not a rigorous simulation (core #315: no qualified property package for the
+specified splits, not a rigorous simulation (no qualified property package for the
 C2+ hydrocarbons).
 
 Every design parameter below names its decision in DESIGN.md; sourced numbers name the source.

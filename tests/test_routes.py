@@ -50,7 +50,9 @@ def _edit(path: Path, change) -> None:
 
 def test_two_routes_to_one_product_per_the_same_functional_unit(tmp_path: Path) -> None:
     report = build_catalog.build(ROUTES, tmp_path / "out", None, commit="fixture")
-    assert report.errors == [] and report.warnings == []
+    # route-smr's deliberate apos fails the cut-off LCI build, so preliminary cannot be marked
+    (warning,) = report.warnings
+    assert report.errors == [] and "preliminary processes cannot be marked" in warning and "system_model 'apos'" in warning
     data = json.loads((tmp_path / "out" / "routes.json").read_text())
     assert data["schema"] == "cheme-as-code/catalog/v1" and data["mode"] == "preview"
     assert "critical review" in data["critical_review"] and set(data["criteria"]) == {
@@ -165,8 +167,10 @@ def test_a_route_without_a_dataset_is_listed_without_numbers(routes_copy: Path, 
     assert {(f["criterion"], f["status"]) for f in smr["flags"]} >= {("functional_unit", "unknown"), ("system_model", "unknown")}
 
 
-def test_public_build_keeps_a_publishable_footprint_with_its_interval(tmp_path: Path) -> None:
-    data = _routes(ROUTES, tmp_path / "pub", public=True)
+def test_public_build_keeps_a_publishable_footprint_with_its_interval(routes_copy: Path, tmp_path: Path) -> None:
+    # a public catalog needs the LCI build to mark preliminary processes; apos fails it
+    _edit(routes_copy / "processes/route-smr/lca/datasets/smr.yaml", lambda d: d.update(system_model="cutoff"))
+    data = _routes(routes_copy, tmp_path / "pub", public=True)
     assert data["mode"] == "public"
     pem = _by_process(_group(data, "hydrogen"))["route-electrolysis"]
     assert pem["footprint"]["value"] == 11.0 and pem["footprint"]["interval"]["high"] == 15.9

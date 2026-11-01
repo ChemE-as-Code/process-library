@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-pytest.importorskip("yaml")
+yaml = pytest.importorskip("yaml")
 pytest.importorskip("openpyxl")
 
 KIT = Path(__file__).resolve().parents[1]
@@ -19,6 +19,7 @@ sys.path.insert(0, str(KIT / "scripts"))
 sys.path.insert(0, str(KIT / "tests"))
 
 import build_lci  # noqa: E402
+import lci_activities  # noqa: E402
 from test_build_lci import ASU, DB, H2, LIBRARY, NH3, _activities  # noqa: E402
 
 #: Keys that would carry an impact value; the LCI has no characterisation factors, so an
@@ -94,6 +95,9 @@ def test_entry_documents_header_allocation_provenance_pedigree_and_links(library
     assert h2["allocation"]["method"] == "mass" and h2["allocation"]["share"] == dataset["allocation"]["shares"]["product:H2"]
     assert h2["header"]["geography"]["location"] == "GLO"
     assert h2["citation"]["doi"] is None and H2 in h2["citation"]["text"]
+    assert "Cite the Process Atlas paper (in preparation, 2026), by Artur M. Schweidtmann and Jana M. Weber" in h2["citation"]["text"]
+    assert package["citation"]["doi"] is None and package["citation"]["text"].endswith(f"database version {package['version']}.")
+    assert all(a["citation"]["doi"] is None and "in preparation, 2026" in a["citation"]["text"] for a in package["activities"])
     by_key = {e["key"]: e for e in h2["exchanges"]}
     steel = by_key["construction:steel"]
     assert steel["provenance"] == "calculated" and steel["direction"] == "input"
@@ -116,6 +120,24 @@ def test_entry_documents_header_allocation_provenance_pedigree_and_links(library
     assert entries[NH3]["publication"] == "preview"  # fixture-ammonia is internal
 
 
+def test_exchange_names_its_flowsheet_streams_and_nothing_else(library: Path, tmp_path: Path) -> None:
+    root = library / "processes" / "fixture-electrolysis"
+    stream = "S1"
+    (root / "process" / "flowsheet.yaml").write_text(yaml.safe_dump({"streams": [{"id": stream}]}), encoding="utf-8")
+    path = root / "lca" / "dataset.yaml"
+    dataset = yaml.safe_load(path.read_text(encoding="utf-8"))
+    water = next(e for e in dataset["exchanges"] if e["key"] == "feed:WATER")
+    water["streams"] = [stream, "steel HEB200 steel rack"]  # a material item is no stream
+    steel = next(e for e in dataset["exchanges"] if e["key"] == "construction:steel")
+    steel["streams"] = ["steel HEB200 steel rack"]
+    path.write_text(yaml.safe_dump(dataset, sort_keys=False), encoding="utf-8")
+    entries = {e["code"]: e for e in _package(library, tmp_path / "out")["activities"]}
+    by_key = {e["key"]: e for e in entries[H2]["exchanges"]}
+    assert by_key["feed:WATER"]["streams"] == [stream]
+    assert "streams" not in by_key["construction:steel"]
+    assert "streams" not in by_key["feed:POWER"]  # the dataset names none
+
+
 def test_public_build_withholds_unpublished_processes_from_the_activities(library: Path, tmp_path: Path) -> None:
     package = _package(library, tmp_path / "out", public=True)
     codes = {e["code"] for e in package["activities"]}
@@ -132,13 +154,13 @@ def test_public_build_withholds_unpublished_processes_from_the_activities(librar
 def test_closure_comes_from_the_manifest_balance_or_says_why_not(library: Path, tmp_path: Path) -> None:
     package = _package(library, tmp_path / "a")
     entries = {e["code"]: e for e in package["activities"]}
-    assert entries[H2]["closure"]["status"] == "not-assessed" and "core#174" in entries[H2]["closure"]["reason"]
+    assert entries[H2]["closure"]["status"] == "not-assessed" and "balance" in entries[H2]["closure"]["reason"]
     assert entries[NH3]["closure"]["status"] == "not-assessed" and "hand-written" in entries[NH3]["closure"]["reason"]
     manifest = library / "processes" / "fixture-electrolysis" / "lca" / "manifest.json"
     balance = {"dataset": "fixture-electrolysis", "status": {"lci-mass-balance": "closed"}, "tolerance": 0.05, "mass": {"unit": "kg", "residual": 0.0}}
     manifest.write_text(json.dumps({"balance": balance}), encoding="utf-8")
     entries = {e["code"]: e for e in _package(library, tmp_path / "b")["activities"]}
-    assert entries[H2]["closure"] == {"status": "assessed", "source": "lca/manifest.json balance (core#174)", "balance": balance}
+    assert entries[H2]["closure"] == {"status": "assessed", "source": "lca/manifest.json balance", "balance": balance}
     manifest.write_text(json.dumps({"balance": {**balance, "dataset": "another"}}), encoding="utf-8")
     entries = {e["code"]: e for e in _package(library, tmp_path / "c")["activities"]}
     assert entries[H2]["closure"]["status"] == "not-assessed"
@@ -183,3 +205,10 @@ def test_a_market_of_an_unpublished_supplier_is_preview(library: Path, tmp_path:
     path.write_text(path.read_text().replace("status: public", "status: candidate"))
     entries = {e["code"]: e for e in _package(library, tmp_path / "out")["activities"]}
     assert entries[MARKET]["publication"] == "preview" and entries[H2]["publication"] == "preview"
+
+
+def test_the_citation_names_the_authors_of_citation_cff_and_no_journal() -> None:
+    cff = yaml.safe_load((Path(__file__).resolve().parents[1] / "CITATION.cff").read_text(encoding="utf-8"))["preferred-citation"]
+    assert cff["status"] == "in-preparation" and "journal" not in cff and "doi" not in cff
+    assert tuple(f"{a['given-names']} {a['family-names']}" for a in cff["authors"]) == lci_activities.CITATION_AUTHORS
+    assert lci_activities.database_citation("1.2.3") == "Cite the Process Atlas paper (in preparation, 2026), by Artur M. Schweidtmann and Jana M. Weber, and the ChemE-as-Code Process Atlas LCI database version 1.2.3."

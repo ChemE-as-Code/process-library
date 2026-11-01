@@ -29,7 +29,7 @@ numbers.
 
 - Progress can be reported ("N of the top 50 covered, at these tiers").
 - The ranking is a judgement and open to dispute; `coverage.json` says so in `summary.basis`.
-- Tiers 0 and 1 depend on core's tiered generation (core#182) and have no library example yet.
+- Tiers 0 and 1 depend on core's tiered generation and have no library example yet.
 
 ## Evidence
 

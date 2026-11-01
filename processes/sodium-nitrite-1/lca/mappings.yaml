@@ -5,7 +5,7 @@
 #
 # Only feed:LPS so far, to give the Atlas build its unit (kWh of steam heat, not kg of steam):
 # the preliminary inventory otherwise leaves every background unlinked (DESIGN.md D-013), so the
-# Atlas build reports the exchanges of this internal process as gaps (ADR 0022). What each
+# Atlas build reports the exchanges of this process as gaps (ADR 0022). What each
 # should connect to is in lca/lca.yaml (`missing:`). Candidates once the shared vocabulary has
 # them (not active, listed for the consolidated mapping PR):
 #   feed:NH3     -> `ammonia` (lci/mappings.yaml has it; no `ammonia` registry slug yet, so no
@@ -22,3 +22,9 @@ schema: cheme-as-code/lci-process-mappings/v1
 exchanges:
   # LP steam is counted as heat delivered (kWh); the registry slug `steam` is counted by mass (kg)
   "feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a) to E-301, the NH3 vaporiser and the dryers, counted as heat delivered (kWh), as nitric-acid-1 does"}
+  # Mapping step of 2026-11-01 (ADR 0026): each entry below uses a reference the library already
+  # holds. Notes above that call these exchanges unmapped describe the state before it. What is
+  # still unmapped is a gap (lci/gaps.json), and this process is marked preliminary.
+  "feed:HNO3": {dataset: {path: processes/nitric-acid-1/lca/dataset.yaml, product: "product:ACID"}, source: "the Atlas producer nitric-acid-1, weak nitric acid 60 wt%, which this feed names"}
+  "feed:NH3": {dataset: {path: processes/ammonia-1/lca/dataset.yaml, product: "product:NH3"}, source: "the Atlas producer ammonia-1, liquid ammonia, which this exchange's design names"}
+  "feed:SODA": {use: sodium-carbonate, source: "soda ash, dense, the shared entry; soda-ash-1 makes light soda ash, not this grade"}

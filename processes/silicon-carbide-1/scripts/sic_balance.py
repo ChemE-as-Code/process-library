@@ -5,7 +5,7 @@ time average over many furnaces in rotation (charge, heat, cool, break), in kg/h
 independent sequential balance on a component basis with imposed yields and splits (a sourced
 conversion/recovery model, DESIGN.md D-006): no reaction kinetics, no furnace heat transfer
 model. `cheme process furnace` supports limestone calcination only and refuses carbothermal
-SiC (core #387), so the furnace electricity is a labelled specific-energy basis (D-004).
+SiC, so the furnace electricity is a labelled specific-energy basis (D-004).
 
 Every design parameter below is ASSUMED unless its comment names a source; DESIGN.md lists
 them with the reasons. Run: `cheme run scripts/sic_balance.py` (standard library only). It

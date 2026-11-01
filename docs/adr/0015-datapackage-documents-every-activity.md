@@ -43,7 +43,7 @@ Atlas's fail-closed public check (website `scripts/check-public.mjs`) would each
   that file keeps unallocated), the process id and zip member in the openLCA JSON-LD package.
 - Dataset-level facts stay in `processes[].datasets[]` (review, data quality, data status,
   benchmarks, property checks); an entry names its dataset, and the site joins by id.
-- `closure` is the `balance` core writes into `lca/manifest.json` (core#174) for the plant's
+- `closure` is the `balance` core writes into `lca/manifest.json` for the plant's
   generated dataset, else `status: not-assessed` with the reason. `citation.doi` is null until a
   release is deposited (ADR 0012). Per-dataset files do not exist.
 - No entry holds an impact value: the LCI has no characterisation factors. A `--public` build
@@ -54,8 +54,8 @@ Atlas's fail-closed public check (website `scripts/check-public.mjs`) would each
 - The Atlas renders `/lci/<code>/` pages and per-activity JSON-LD from one file it already
   publishes; new fields reach the pages without site changes to LCI rules.
 - `datapackage.json` grows with the exchanges (about 35 kB per ASU-1 activity as written, indented).
-- Open: an activity UUID (core#179 gives the dataset one), per-dataset files in each format
-  (#51), the closure once core#174 is in, the DOI once a release is deposited (#50), and the
+- Open: an activity UUID (core's dataset contract v2 gives the dataset one), per-dataset files in each format
+  (#51), the closure once core writes the balance, the DOI once a release is deposited (#50), and the
   impact deltas of the change report (#50) stay outside `activities`.
 
 ## Evidence

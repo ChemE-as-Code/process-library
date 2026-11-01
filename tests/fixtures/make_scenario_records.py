@@ -51,8 +51,8 @@ def _record(sid, kind, case, power, power_link, total, *, title=None, location=N
             reasons=None, gaps=(), dropped=(), notes=(), extrapolated=False, comparability=None) -> dict:
     exchanges = _exchanges(power)
     per_fu = power * SHARE / 41.7
-    # core#306's verdict: only on the records that model it (the others stand for records
-    # written before core#306, which have none)
+    # core's verdict: only on the records that model it (the others stand for records
+    # written before core wrote verdicts, which have none)
     return ({"comparability": comparability} if comparability is not None else {}) | {
         "schema": "cheme/lca-scenario/v1",
         "id": f"{DATASET}/{case['id']}/{sid}",

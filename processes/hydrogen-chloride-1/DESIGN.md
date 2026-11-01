@@ -6,9 +6,9 @@ The numbers live in `process/*.yaml` and `scripts/balance.py`; the stream table 
 ChemE-as-Code/process-library#137.
 
 Run record of this stage (2026-10-28): library branch `case/hydrogen-chloride-1` from `11d50ef`;
-cheme-as-code 0.8.0 (pyDEXPI 2.1.0), Python 3.15.0; DWSIM not used. Core#364 as installed:
+cheme-as-code 0.8.0 (pyDEXPI 2.1.0), Python 3.15.0; DWSIM not used. Electrolytes as installed:
 `cheme process methods` lists ENRTL-PR and PITZER-RKS as unsupported and the electrolyte route as
-NaCl-H2O only (issue #137 comment on core PR #394), so **HCl-water is not supported** by any
+NaCl-H2O only (issue #137 comment), so **HCl-water is not supported** by any
 phase, property or simulation route of this cheme. No property package covers Cl2 or HCl gas
 either (`air-pr-chemsep`, `syngas-pr-vapor`). Both gates are recorded in section 6.
 
@@ -86,7 +86,7 @@ HCl, steam yield per t HCl, absorber recovery and vent HCl concentration.
   183.4 kW outlet sensible heat.
 - **Absorption**: specified-value model (C201: 99.5 % of the HCl absorbed; C202: vent at
   10 mg/Nm3 HCl), not predicted. HCl-water VLE and heats of solution need an electrolyte model
-  (core#364, unsupported for HCl); the 33 wt-% product is far above the 20.2 wt-% azeotrope
+  (unsupported for HCl); the 33 wt-% product is far above the 20.2 wt-% azeotrope
   (SRC-5), so it is made by isothermal (cooled) absorption, as SRC-3 describes, not by
   adiabatic absorption with boil-off.
 
@@ -128,7 +128,7 @@ Decision: `scripts/balance.py` (run `cheme run scripts/balance.py`) gives the fl
 compositions of S1, S2, S4-S9 and the duties Q1-Q4, entered as `assumed` with
 `source: scripts/balance.py`; S3 is calculated by cheme (propagate) and agrees with the script
 (3 388.2 kg/h; HCl 0.9740, H2O 0.0232, H2 0.0028 by mass). Reason: cheme cannot solve the
-absorber or the scrubber (electrolyte, core#364). The script closes mass (10 013.0 kg/h) and Cl, H
+absorber or the scrubber (electrolyte). The script closes mass (10 013.0 kg/h) and Cl, H
 and O; cheme validate confirms every block, step and element balance.
 
 ## D-007 Furnace outlet 523 K, steam 1000 kPa(a), 3 % heat loss (2026-10-28)
@@ -158,7 +158,7 @@ the integral heat of solution to n mol water is -74.84 kJ/mol plus the heat of d
 to infinity, i.e. -26.0 kJ/mol at n = 1 and -69.0 kJ/mol at n = 10; the recalled values for
 n = 4-5 lie between and follow the same curve, but SRC-6 has no point at n = 4.11, so the value
 stays ASSUMED. The heat of solution is 1 544 of the 1 672 kW
-absorber duty (Q3), so a 10 % error moves Q3 by 9 %. Gate: core#364 (no HCl-water enthalpy).
+absorber duty (Q3), so a 10 % error moves Q3 by 9 %. Gate: core's electrolyte support (no HCl-water enthalpy).
 
 ## D-010 Cooling water 25/35 degC (2026-10-28)
 ASSUMED, as chlor-alkali-1. Only C201 is cooled (Q3 = 1 672 kW = 0.507 kWh/kg HCl).
@@ -180,7 +180,7 @@ background is declared `missing:` with the activity it should connect to (chlor-
 dataset for chlorine and hydrogen, demineralised water, grid electricity, cooling water), so
 each is a gap, never 0. Allocation: shares 1/0 between acid and exported steam under cut-off,
 as nitric-acid-1 (its decision 14): energy allocation would put everything on the steam (the acid
-has no energy content) and the acid's exergy cannot be calculated (core#364); substitution by
+has no energy content) and the acid's exergy cannot be calculated; substitution by
 natural-gas boiler steam is kept for comparison (missing). Emissions: the vent (H2, HCl, water)
 to air; the furnace burns no air and no carbon, so no combustion emission exists (declared
 exclusion); start-up and upset venting, tank breathing (outside) and leaks are declared
@@ -212,7 +212,7 @@ to raw water.
 |---|---|---|---|
 | furnace composition | conversion 1.0 = equilibrium limit (section 3) | calculated by cheme | equilibrium reactor does not converge at K 1e19 (core finding, not filed by this run) |
 | furnace duty and steam | cheme reactor duty (ideal gas) less 3 % loss | calculated + ASSUMED loss | none for the gas side |
-| absorber, scrubber | specified values (script) | ASSUMED | core#364: HCl-water VLE, heat of solution, acid enthalpy unsupported |
+| absorber, scrubber | specified values (script) | ASSUMED | core's electrolyte support: HCl-water VLE, heat of solution, acid enthalpy unsupported |
 | stream properties, energy balances | not filled | not evaluable | no package for Cl2/HCl gas or HCl-water (`cheme process props --coverage`) |
 | simulation | none | not run | DWSIM route refuses electrolytes (issue #137 comment) |
 | LCI | foreground from the flowsheet | written | backgrounds missing; registry entries missing (section 7) |
@@ -229,5 +229,5 @@ to raw water.
   mass of wet gas, a demineralised-water entry (#45), a biosphere identity for hydrogen chloride
   to air, and (for the crosswalk of core) H2 and HCl to air.
 - Next stage: basic engineering after review of this concept: source the burner and absorber
-  data, replace D-009 when core#364 supports HCl-water, then the P&IDs (pid-draft) and the LCI
+  data, replace D-009 when core supports HCl-water, then the P&IDs (pid-draft) and the LCI
   backgrounds (link chlor-alkali-1's dataset).
