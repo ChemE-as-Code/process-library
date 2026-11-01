@@ -233,3 +233,240 @@ deaerator / condensate stripper vent and its steam (review #6, D-010).
 `chemicals/chemicals.yaml` has no entries for natural gas, carbon monoxide, ethane, propane
 or demineralised water (argon exists); process.yaml therefore lists the natural gas under methane.
 To be added in the consolidated registry PR (not in this folder).
+
+## D-015 DWSIM simulation inputs prepared, not run (2026-10-30)
+Decision: `process/simulation.yaml` now holds the full input of the first DWSIM simulation
+(`cheme process simulate`, DWSIM 9.0.5 through core), modelled on ammonia-1's simulation
+decisions. It was **not run**: the machine that wrote it has neither Docker nor a DWSIM
+install. What was checked offline: the file loads against `cheme/simulation/v1`, `cheme
+validate` reports no error, and the translation into the simulator model succeeds with
+cheme 1.1.0, 1.2.0 and 1.2.1 (the version library CI now pins): `cheme process simulate --check` stops
+only at `sim-unavailable`, after the translation. `cheme maturity` now passes
+`predictive.simulation-spec` and `predictive.property-package` (both failed or were missing
+before). The `property-package` pass is **not earned yet**: it rests on the PR substitution
+below, which nobody has accepted; core reads `method_selection.substitution` as an accepted
+substitution. It counts only once the owner or a reviewer accepts it and the acceptance is
+recorded here and in the substitution text. It fails `predictive.coverage` (three parts left out, below) and
+`predictive.model-basis`, because U-301 is a specified split (D-008), which caps the level at
+balanced. No stream value was written.
+Scope (17 units, 25 material streams of which 5 are feeds S1, S6, S20, S22, S25, and 9 energy
+streams in the translated model, read with core's `translate.translation()` under cheme 1.1.0 and again under 1.2.1):
+- simulated: FPT (M101, E101, R101 as a heater with zero duty, D-005), REF (M102, E102, R102
+  equilibrium reactor with its approach of -10 K, E104), SFT (R201, E201, E202, V201 flash), PSA
+  (U301 component separator, SPL301, K101), and of FUR the fuel mixer M301 and the fans K301,
+  K302. The hydrogenator recycle is torn at S2; its flowsheet values are the first guess.
+- left out (`exclude`): **H301** (radiant section): its radiant heat Q4 is R-102's duty, core
+  refuses an energy stream shared by two units, and the trim fuel that closes the radiant
+  balance (D-009) would need an adjust core does not offer. **E305** (convection section): one
+  cooler with four energy streams to the coils E101, E102, E402 and D401, where a DWSIM cooler
+  takes one. **STM** (steam system): a pure-water package balance whose steam flow follows from
+  the boiler duties (an adjust); the process steam S6 enters as a feed with its flowsheet
+  values, the process condensate S15 leaves as a product.
+Specs: every outlet temperature, duty, pressure drop and efficiency repeats D-005, D-007,
+D-008, D-010 or D-012 (source given per spec, all ASSUMED). DWSIM mixers take no pressure
+drop, so the 50 kPa the flowsheet gives M-102 is put on E-102 (350 kPa). E-201 is set by its
+duty, the 36 573.5 kW that heats the boiler feed water from 345 to 503 K (Q8 of
+scripts/h2_balance.py, IAPWS-IF97, D-010), so the gas outlet temperature (428.33 K in the
+concept balance) becomes the check. U-301 is a specified split (D-008): H2 0.88 and N2
+0.176966 to the product (the N2 fraction gives 99.9 mol% H2 on the concept balance's PSA feed),
+everything else to the tail gas; `basis_source` and `operating_basis` name D-008.
+Property package: Peng-Robinson (DWSIM's PR with its own kij), recorded as a substitution.
+Selection facts: 43 bar(a) (process steam S6, the highest pressure simulated), polar (water),
+no electrolytes, no pseudocomponents, no liquid-liquid split, no association, and no
+interaction parameters (`cheme process phase` finds ChemSep PR kij for water/CO2 only, none
+for water with H2, CH4, CO or N2; DWSIM's own set was not inspected, so the conservative
+answer). The tree then recommends PSRK or PR/RKS with modified Huron-Vidal mixing rules; the
+DWSIM route runs none of them and methods.yml names PR as the executable substitute of PR-MHV2
+(it loses the excess-Gibbs-energy mixing rule), as ammonia-1 does for the same gas. PR rather than
+SRK (RKS, the substitute methods.yml names for PSRK): core's SRK claim holds no mixture,
+because DWSIM 9.0.5's SRK database has no kij even for the nitrogen, oxygen and argon pairs,
+while PR carries DWSIM's database kij and its claim covers those mixtures (methods.yml PR and
+SRK notes); whether DWSIM's PR set holds kij for the water pairs here was not inspected. Core
+claims PR only for N2, O2 and Ar (methods.yml; the core issue on property qualification is open), so the results for this
+mixture are not qualified. The substitution is the agent's proposal and needs the owner's or a
+reviewer's acceptance (not given as of 2026-11-01; the acceptance, with who gave it, goes into
+this decision and the substitution text).
+HT shift R-201 (core #58): DWSIM 9.0.5's equilibrium reactor in adiabatic mode fails its flash
+(reproduced through core v1.0.0 on ammonia-1's HT shift bed; the issue is open, and core 1.1.0,
+1.2.0 and 1.2.1 contain no fix). R-201 is therefore run with `mode: outlet_temperature` at the
+concept balance's adiabatic outlet, 691.77 K (S11, scripts/h2_balance.py), and its simulated
+duty is the check of the adiabatic assumption: it should be near zero (ammonia-1's beds gave
+0.4 to 2.6 % of their reaction heat). Criterion, fixed before the run (ASSUMED, from that
+ammonia-1 range): the check passes if |Q_R201| is at most 3 % of the WGS reaction heat of the
+simulated S10 to S11 extent (extent times |dH_WGS| at the bed temperature, from the run's
+streams). If it is exceeded, the run's R-201 outlet is not used: the outlet temperature spec
+is re-solved until the simulated duty is zero (within the 3 %), the new temperature and the
+deviation from 691.77 K are recorded in a new decision, and only then are stream values
+filled. The equilibrium itself stays DWSIM's (WGS, approach
++10 K, ln K from DWSIM's Gibbs energies of formation: reactions.yaml gives no
+`equilibrium_constant`). Rejected: a conversion reactor at the concept conversion, run
+adiabatic (conversion reactors run adiabatic in ammonia-1). It would need `reactor:
+conversion` and a conversion on the flowsheet step, replacing a predictive equilibrium by a
+specified conversion (ADR 0030 then checks only that conversion). Also rejected: waiting for
+the core fix.
+Side effect of the workaround: R201 is no longer declared `mode: adiabatic`, so the LCA
+boundary check (`cheme assess lca`) reports `boundary-utility-unassigned` for R201, though
+R-201 is adiabatic and has no utility. lca/ was regenerated with cheme 1.1.0 (`cheme assess
+lca --write`, commit d0c03dc), as ammonia-1 did under D-024, and its run manifest again with
+cheme 1.2.1 (386c7f0; `cheme assess lca --check` passes on 1.2.1): `lca/results.md` now headlines an incomplete
+boundary with R201 as its only gap, and the run manifest fingerprints the new
+simulation.yaml, so the catalog does not withhold the LCA as `stale-run-manifest`. The
+impacts (results.csv) are unchanged. To settle (owner): accept the flag as ammonia-1 did, or
+ask core for a way to declare a reactor adiabatic while it is simulated at a fixed outlet
+temperature.
+What the first run should show (pre-run expectations, not results):
+- pressure deviations by construction: S7 3850 vs 3800 kPa(a) (mixer); a component separator
+  leaves both outlets at its inlet pressure, so S16, S17, S18 (2850) and S19, S21 (130 kPa(a))
+  come out at 2950 kPa(a). The flowsheet values are the real conditions and stay. A let-down
+  valve on the tail gas and the product would remove the deviation; that is a flowsheet change
+  for later. K-101 then compresses from 2950 kPa(a), and S2's temperature and Q1 fall slightly.
+- V-201: a Peng-Robinson flash of the S13 composition at 313.15 K and 2950 kPa(a) in thermo
+  (`cheme process phase`, ChemSep kij, five water and CO pairs at zero), run as a pre-check and
+  not with DWSIM, gives 0.2613 mol% water in the gas (script 0.2503 mol%, Raoult/IAPWS) and
+  about 100 ppm CO2 in the condensate (D-010 neglects it). Both are inside the 0.001
+  composition tolerance. DWSIM's kij differ, so the run decides.
+- R-102 and R-201 duties against Q4 (102 025 kW) and about 0. S9 and S11 against the ideal-gas
+  equilibria of `cheme process propagate` (PR fugacity at 3.2 MPa and 1143 K; small expected).
+- `--fill` writes no stream value: every simulated stream already holds an assumed
+  (scripts/h2_balance.py) or `cheme process propagate` value, and simulate never overwrites
+  those. The run is recorded in process/simulation-run.json and every disagreement is a
+  `sim-deviation`. Replacing the script values by simulated ones is a later decision, made
+  once the deviations have been reviewed.
+Open: H301, E305 and STM in the simulation (convection coils as two-stream exchangers on the
+flue gas, as ammonia-1 did; an adjust or a fixed fuel for the radiant balance); property
+qualification for water-bearing syngas (open core issue); a sourced PSA recovery (D-008); DWSIM's
+own PR kij for water pairs, to be read from the saved flowsheet (`--save`).
+## D-016 First DWSIM run: converged, simulated values replace the concept balance (2026-11-01)
+Decision: the model of D-015 was run with `cheme process simulate` (cheme-as-code 1.2.1, the
+version library CI pins; DWSIM 9.0.5.0 in the `cheme-dwsim:9.0.5` Docker image; Peng-Robinson).
+It converged on the first attempt: the tear S2 closed in 5 iterations from its flowsheet values,
+and again with S2 emptied (no `guesses:` needed). Run record: process/simulation-run.json; it
+holds only the final run (689.92 K, below), which closed the tear in 2 iterations. The
+simulated values are filled as `calculated` (`origin: simulated`) in 28 streams. Before that,
+the concept-balance values (scripts/h2_balance.py, D-006) and the `cheme process propagate`
+values that the simulation now calculates were removed, so that `--fill` could write them:
+temperatures of S2, S3, S7, S11, S12, S23, S26; flows and compositions of S2 to S5, S7 to S19
+(except the S16 composition, kept below), S21, S23, S26; the duties Q1 to Q5 and Q9 to Q11.
+Kept, because they are design choices that
+the specs reproduce or real conditions the model cannot represent: the design-basis
+temperatures and pressures (S4, S8, S9, S10, S13 to S19), the composition of S16 (99.9 mol%,
+D-002; the U-301 split reproduces it), and Q8 (E-201's duty spec, which feeds the excluded
+E-401). Also kept, although it is a script value and not a design-basis one: the S21
+temperature 310.02 K (scripts/h2_balance.py, adiabatic mixing). The simulated M-301 gives
+309.33 K, within tolerance; the excluded furnace balance (H301, S24, S25, S20) was closed on
+310.02 K, so it stays until H301 is simulated.
+Only change to the specs: **R-201 outlet temperature 691.77 -> 689.92 K.** At the concept
+balance's 691.77 K the bed needed +206.8 kW in DWSIM (WGS extent 595.5 kmol/h in that 691.77 K
+run; the final 689.92 K run has 598.4 kmol/h). The WGS heat at
+690 K is 37.9 MJ/kmol (ideal gas; thermo 0.6.1 formation enthalpies and heat capacities through
+cheme's interpreter), so the reaction heat is 6.27 MW and the duty is 3.3 % of it. That is above
+the 3 % criterion D-015 fixed before the run. As D-015 prescribes, the temperature was re-solved
+to zero duty by secant: 689.00 K gave -103.5 kW, 689.92 K gives -0.45 kW (0.007 %). The
+691.77 K and 689.00 K runs (duties, the 595.5 kmol/h extent) are not in the committed record,
+which keeps only the final run, so those numbers cannot be checked from committed data. The bed is
+therefore simulated as adiabatic at DWSIM's own equilibrium (approach +10 K). The 1.85 K
+difference comes from Peng-Robinson's enthalpies at 3.1 MPa against the script's ideal-gas
+enthalpies. It is recorded here and in the spec's source.
+The run forced these changes on the excluded steam system (STM), so that the balances still
+close. While S15 and S19 kept the script values, `cheme validate` had 4 balance errors (V201,
+U301, SFT, PSA).
+- **Process condensate S15** is simulated: 49,306.7 kg/h with 0.212 mol% CO2 (254.5 kg/h of
+  dissolved gases, 99.4 mol% CO2). D-010 had taken it as pure water. Its template is now
+  `process_gas`.
+- **Deaerator vent S35** (new): M-401 / V-402 gets a `vent` port, block STM a `vent` port, and
+  there is a new product terminal DAV (an emission). The deaerator strips all dissolved gases of
+  S15 to air (ASSUMED, like ammonia-1's condensate stripper in its D-024; water vapour and
+  stripping steam not counted). Its values are computed by hand from the simulated S15 and
+  marked ASSUMED with that source. lca/lca.yaml maps product:DAV as an emission, with the
+  stack's elementary flows.
+- **S28** (boiler feed water) keeps the script's 191,622 kg/h, now ASSUMED, because M-401 is no
+  longer a plain mixer. **S27** (make-up water) is S28 less the water of the simulated S15:
+  142,569.83 kg/h (script 142,669.53).
+- The furnace side was re-propagated: S24 and S25 (H301 and E305 are excluded) follow from the
+  simulated fuel S21, and K-302 is simulated on the new S25.
+
+Simulated values against the concept balance. The reference is scripts/h2_balance.py, except
+for the S9 and S11 compositions, which come from `cheme process propagate` (ideal-gas
+equilibria). Deviation = (sim - script) / script.
+
+| quantity | script / propagate | DWSIM (PR) | deviation | main reason |
+|---|---|---|---|---|
+| H2 product S17, kg/h | 9,109.92 | 9,077.70 | -0.35 % | more CH4 slip in R-102 (next rows); PSA recovery fixed at 0.88 |
+| H2 product S17, Nm3/h (273.15 K) | 100,000 | about 99,640 | -0.36 % | as above |
+| R-102 duty Q4, kW | 102,025.1 | 102,294.7 | +0.26 % | PR enthalpies against ideal gas |
+| S9 CH4, mol fraction | 0.040020 | 0.040676 | +1.6 % | DWSIM's ln K from its own Gibbs energies and PR fugacities at 3.2 MPa, against the ideal-gas equilibrium |
+| S11 CO, mol fraction | 0.023975 | 0.023431 | -2.3 % | R-201 is 1.85 K colder (more shift), and DWSIM's ln K |
+| R-201 outlet S11, K | 691.77 | 689.92 | -0.27 % | re-solved to zero duty (above) |
+| WHB duty Q5 (E-104), kW | 50,537.1 | 50,896.3 | +0.71 % | PR enthalpies of the wet gas |
+| feed preheat Q2 (E-101), kW | 7,792.8 | 8,096.3 | +3.9 % | real-gas heat capacity of the natural gas at 3.9 to 4.0 MPa; inlet S3 0.75 K colder |
+| mixed feed preheat Q3 (E-102), kW | 19,789.8 | 20,957.5 | +5.9 % | the steam's real-gas enthalpy at 3.8 MPa: after M-102, S7 is 656.75 K against 663.03 K, because PR mixes the 4.3 MPa steam colder than the script's ideal-gas mixing |
+| E-202 duty Q9, kW | 30,071.1 | 31,046.3 | +3.2 % | mostly PR's enthalpy of the wet gas at 3 MPa: the extra condensate (about 100 kg/h, about 70 kW latent heat) explains little of the +975 kW; S12 1.5 K colder |
+| S12 (after E-201), K | 428.33 | 426.81 | -0.35 % | the same duty Q8 on PR enthalpies |
+| PSA feed S14, kg/h | 74,072.1 | 73,717.5 | -0.48 % | more water and CO2 to the condensate |
+| S14 water, mol% | 0.2503 | 0.2630 | +5.1 % | PR flash with DWSIM's kij; the thermo pre-check of D-015 gave 0.2613 |
+| condensate S15, kg/h | 48,952.4 | 49,306.7 | +0.72 % | dissolved CO2 (254 kg/h; D-010 neglected it) and more condensed water |
+| tail gas S19, kg/h | 64,858.3 | 64,536.3 | -0.50 % | follows S14 |
+| K-101 power Q1, kW | 18.8 | 17.07 | -9.2 % | K-101 compresses from 2950, not 2850 kPa(a) (component separator outlet pressure, below); S2 354.7 against 359.1 K |
+| K-301 / K-302 power, kW | 448.1 / 669.3 | 444.7 / 664.8 | -0.8 / -0.7 % | PR against the script's ideal-gas fan model |
+| climate change, kg CO2-eq/kg H2 (exergy allocated) | 9.109 | 9.138 | +0.3 % | less product from the same feed; the vent's CO2 was already in the stack total |
+
+Pressure deviations kept on purpose (`sim-deviation` warnings of `--check`, as D-015 expected):
+- S7 is 3850 against 3800 kPa(a), because DWSIM mixers take no pressure drop (the 50 kPa is on
+  E-102).
+- S16, S17, S18 (2850 kPa(a)) and S19, S21 (130 kPa(a)) come out at 2950 kPa(a), because a
+  component separator leaves its outlets at its inlet pressure.
+
+The flowsheet values are the real conditions and stay. Let-down valves on the PSA product and
+tail gas would remove the deviation (open).
+Energy audit (run record): R-102 and R-201 close on the heat-of-formation basis (residuals
+0.0002 and 0 kW). The plant closure is `unsupported` because U-301 is a component separator:
+core has not established the sign of its energy imbalance; DWSIM reports U-301 with a duty of
+251.0 kW, i.e. an energy imbalance of that size. `sim-formation-data` reports the
+project's formation enthalpies within the data tolerance (13.4 kW of 693 kW for R-102, 6.5 of
+68.4 kW for R-201). Utilities of the simulated part: hot 131.3 MW, cold 118.5 MW, power 1.13 MW.
+**Property package: not qualified.** Core benchmarks Peng-Robinson only for N2/O2/Ar mixtures
+(and NRTL only for ethanol-water). Nothing in this flowsheet is inside a qualified range: not the
+water-bearing synthesis gas, not the steam at 4.3 MPa, not the V-201 condensate. The core issue
+on property-package qualification is open, so `cheme maturity` fails
+`predictive.property-regime`. The PR substitution (D-015) is still the agent's proposal and has
+not been accepted by the owner or a reviewer. The dissolved CO2 shows the spread:
+- DWSIM's PR gives 0.212 mol% CO2 in the condensate.
+- The thermo/ChemSep PR pre-check of D-015 gave about 0.01 mol%.
+- A Henry's-law estimate gives about 0.14 mol%, closer to DWSIM. Its constant was not sourced in
+  this run, so the estimate is ASSUMED.
+
+The vent S35 and the condensate are therefore uncertain by more than a factor of 1.5.
+Not re-closed: the excluded parts still rest on the concept balance and are now inconsistent
+with the simulated duties by these amounts:
+- the convection section E-305 gives the coils E-101 and E-102 1.47 MW more than in the script;
+- the WHB raises steam on 0.36 MW more, so Q6, Q7, the steam flow S32 and the export steam S33
+  are not re-derived;
+- the trim fuel S20 closes the radiant balance at Q4 = 102,025 kW (D-009) and is 270 kW short of
+  the simulated Q4;
+- the simulated fuel S21 is 0.46 % lighter.
+
+Re-closing these needs H301, E305 and STM in the simulation. The product is 0.36 % below the
+100,000 Nm3/h of the design basis; the feed was not rescaled.
+Maturity (`cheme maturity`, 1.2.1):
+- pass: `predictive.run-record`, `current`, `converged`, `solver`, `balances`, `exchangers`,
+  `formation-data`;
+- fail: `predictive.coverage` (H301, E305, STM excluded), `model-basis` (U301, H301, D401
+  specified), `property-regime`, and the earlier `sourced.boundary` and `balanced.model-basis`;
+- unsupported: `energy-closure`.
+
+Rejected:
+- rescaling the natural gas feed so the product meets 100,000 Nm3/h: a design-basis choice for
+  the owner, not a simulation fix;
+- editing assumed values to silence the pressure deviations;
+- keeping S15 and S19 at the script values: this breaks the V-201 and U-301 balances;
+- leaving the dissolved CO2 in the boiler water: it would end up in the steam drum, whose
+  outlets are pure water by D-010.
+
+Open:
+- accept or replace the PR substitution (owner);
+- rescale the feed to the design capacity, or accept 99,640 Nm3/h;
+- let-down valves after U-301;
+- simulate H301, E305 and STM (convection coils as two-stream exchangers, as ammonia-1 does) and
+  re-close the furnace and steam balances;
+- a sourced check of the CO2 solubility at V-201;
+- `cheme process props` covers none of the water-bearing streams.
