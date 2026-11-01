@@ -39,20 +39,19 @@ maturity: concept
 validation:
   status: unreviewed
   notes: >-
-    Concept PFD with closed mass, component and element balances on every block and step
-    (cheme validate, cheme process streams). Reactor outlets are calculated by cheme
-    (equilibrium and conversion models from its reaction library); the separators, CO2
-    removal, purge recovery, steam system and all duties are specified values from
-    scripts/plant_balance.py (ideal-gas enthalpies, thermo Peng-Robinson flash with ChemSep
-    kij, IAPWS-IF97 steam) that core cannot qualify for syngas/ammonia/water mixtures.
-    Energy closure is not evaluable in core. The feeds are a representative
-    specification approved by the owner for this paper case study (S5c, I-006, D-040): a
-    published typical pipeline gas (Enbridge), NASA dry air, IAPWS make-up water. Not reviewed. The chemicals
-    registry has no natural-gas, ethane or propane entry yet, so the feed is listed through its
-    nearest registry entries (open library item).
-    `cheme maturity` reaches calculation maturity balanced (S5c, D-040; predictive fails on the
-    excluded steps, specified splits and the property claim); concept is the lowest manifest
-    value (DESIGN.md D-019). The LCA result is gate-to-gate direct fossil CO2
+    Concept PFD with closed mass, component and element balances on every block and step (cheme
+    validate, cheme process streams). Reactor outlets are calculated by cheme (equilibrium and
+    conversion models from its reaction library); the separators, CO2 removal, purge recovery,
+    steam system and all duties are specified values from scripts/plant_balance.py (ideal-gas
+    enthalpies, thermo Peng-Robinson flash with ChemSep kij, IAPWS-IF97 steam) that core cannot
+    qualify for syngas/ammonia/water mixtures. Energy closure is not evaluable in core. The
+    feeds are a representative specification approved by the owner for this paper case study
+    (S5c, I-006, D-040): a published typical pipeline gas (Enbridge), NASA dry air, IAPWS
+    make-up water. Not reviewed. Main products and feeds are listed under chemistry with their
+    chemicals registry entries (issue #251). `cheme maturity` reaches calculation maturity
+    balanced (S5c, D-040; predictive fails on the excluded steps, specified splits and the
+    property claim); concept is the lowest manifest value (DESIGN.md D-019). The LCA result is
+    gate-to-gate direct fossil CO2
     only, not a carbon footprint: every background is still a gap (D-020).
 chemistry:
   inputs:
@@ -60,7 +59,7 @@ chemistry:
     - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Process air (nitrogen source, secondary reformer) and combustion air"}
     - {chemical: water, role: feedstock, inventory_key: "feed:DMW", note: "Demineralised water make-up to the steam system and the CO2 removal"}
   outputs:
-    - {chemical: ammonia, role: main-product, note: "Liquid ammonia, refrigerated, to the battery limit (product:NH3)"}
+    - {chemical: ammonia, role: main-product, inventory_key: "product:NH3", note: "Liquid ammonia, refrigerated, to the battery limit"}
     - {chemical: carbon-dioxide, role: emission, inventory_key: "product:CO2V", note: "Process CO2 from the aMDEA regenerator, vented (no CCS, no urea)"}
     - {chemical: carbon-dioxide, role: emission, inventory_key: "product:STACK", note: "Combustion CO2 in the reformer furnace flue gas"}
     - {chemical: steam, role: co-product, inventory_key: "product:STEAM", note: "MP steam export 4600 kPa(a), 673 K"}
