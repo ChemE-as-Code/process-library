@@ -60,6 +60,25 @@ def show(name, st, T=None, P=None):
     print(f"   mass: {w}")
 
 
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
+
+
 # ---------------------------------------------------------------- basis (design basis, D-002)
 PRODUCT = 6250.0                      # kg/h solid NaCN product, ASSUMED (50 kt/a at 8000 h)
 W_NACN, W_NAOH, W_H2O = 0.980, 0.010, 0.010   # product spec, ASSUMED (D-002)
@@ -298,3 +317,36 @@ W_misc = 400.0   # pumps, vacuum pumps, centrifuge, dryer drive, briquetting, B-
 print(f"power: K-101 {W_blower:.1f} kW + lump {W_misc} kW")
 cw_total = Q_C101_cw + Q_C201_cw + Q_C202_cw + Q_R401 + Q_E401
 print(f"cooling water total {cw_total:.1f} kW (C-101 {Q_C101_cw:.1f}, C-201 {Q_C201_cw:.1f}, C-202 {Q_C202_cw:.1f}, R-401 {Q_R401:.1f}, E-401 {Q_E401:.1f})")
+
+# ---------------------------------------------------------------- balance output
+# the values process/flowsheet.yaml cites from this script (balance-output contract): mass flow,
+# mole fractions (S22 mass fractions), temperatures in K, duties in kW
+
+
+def _fc(st, comp=True):
+    out = {"flow": mass(st)}
+    if comp:
+        n = sum(st.values())
+        out["composition"] = {c: v / n for c, v in st.items() if v > 0}
+    return out
+
+
+_cake = crystals + liq
+_bal = {
+    "S1": _fc({"CH4": ch4_in}, False), "S2": _fc({"NH3": nh3_fresh}, False),
+    "S3": _fc({"O2": o2_in, "N2": n2_in}, False), "S4": {"temperature": T_AIR},
+    "S5": {"temperature": T5}, "S6": {"temperature": T6}, "S8": _fc(s8),
+    "S9": _fc(s9, False), "S10": _fc(s10), "S11": _fc(s11), "S12": _fc(s12), "S13": _fc(s13),
+    "S14": _fc(s14), "S20": _fc(s20, False),
+    "S22": {"flow": _cake, "composition": {"NACN_S": crystals / _cake,
+                                           "NACN": SOL * w_l / _cake,
+                                           "NAOH": naoh_kg / _cake, "H2O": w_l / _cake}},
+    "S23": {"flow": evap}, "S24": {"flow": dry_evap}, "S26": {"flow": evap + dry_evap},
+    "S30": _fc(s30, False),
+}
+_duties = {"Q1": W_blower, "Q3": Q_E001, "Q4": Q_C101_steam, "Q5": Q_C202_reb, "Q6": Q_CR401,
+           "Q7": Q_D401, "Q8": Q_E101 - steam_use, "Q9": Q_B301, "Q10": Q_C101_cw,
+           "Q11": Q_C201_cw, "Q12": Q_C202_cw, "Q13": Q_R401, "Q14": Q_E401, "Q15": Q_C201_chw,
+           "Q16": Q_E202_chw}
+_bal.update({sid: {"duty": q} for sid, q in _duties.items()})
+write_balance_output({"design": _bal})

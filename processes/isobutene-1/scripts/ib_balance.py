@@ -208,6 +208,7 @@ def main():
     print(f"H-101 superheat {Qh101:.1f}; R-101 reaction duty at {T_RX} K {Qrx:.1f}; "
           f"fired absorbed {Qh101 + Qrx:.1f}")
     TF201 = 313.15
+    cols = {}  # name -> (T top, T bottom, condenser, reboiler), for the balance output
     Qe102 = H_ig(r, T_eff) - H_ig(r, TF201) + sum(r.values()) * lam(r, TF201) / 3600 \
         + h_liq(r, TF201) - 0.0
     print(f"E-102 effluent condenser {Qe102:.1f} ({T_eff:.1f} -> {TF201} K liquid)")
@@ -217,6 +218,7 @@ def main():
         if TF is None:
             TF = bubble(F, P["C201"])
         Tt, Tb, Qc, Qr = column(name, F, D, B, TF)
+        cols[name] = (Tt, Tb, Qc, Qr)
         print(f"{name} Ttop {Tt:.1f} Tbot {Tb:.1f} feed {TF:.1f} cond {Qc:.1f} reb {Qr:.1f}")
     # C-403: partial condenser, vapour distillate small, reflux on (vapour + water) distillate
     raf, v403, w403, b403 = s["raf"], s["v403"], s["w403"], s["b403"]
@@ -227,11 +229,15 @@ def main():
     Qr = Qc + h_liq(b403, Tb) + h_liq(w403, Tt) + h_liq(v403, Tt) + \
         sum(v403.values()) * lam(v403, Tt) / 3600 - h_liq(raf, 313.15)
     print(f"C403 Ttop {Tt:.1f} Tbot {Tb:.1f} cond {Qc:.1f} reb {Qr:.1f}")
-    print(f"E-403 product cooler {h_liq(b403, Tb) - h_liq(b403, 313.15):.1f} ({Tb:.1f}->313.15)")
+    cols["C403"] = (Tt, Tb, Qc, Qr)
+    Qe403 = h_liq(b403, Tb) - h_liq(b403, 313.15)
+    print(f"E-403 product cooler {Qe403:.1f} ({Tb:.1f}->313.15)")
     b301 = s["b301"]; Tb301 = bubble(b301, P["C301"])
-    print(f"E-301 methanol cooler {h_liq(b301, Tb301) - h_liq(b301, 313.15):.1f}")
+    Qe301 = h_liq(b301, Tb301) - h_liq(b301, 313.15)
+    print(f"E-301 methanol cooler {Qe301:.1f}")
     recw = s["recw"]; Tb402 = bubble(s["b402"], P["C402"])
-    print(f"E-401 wash-water cooler {h_liq(recw, Tb402) - h_liq(recw, 313.15):.1f} "
+    Qe401 = h_liq(recw, Tb402) - h_liq(recw, 313.15)
+    print(f"E-401 wash-water cooler {Qe401:.1f} "
           f"({Tb402:.1f}->313.15)")
     # pumps: V * dP / eta, eta 0.6 (ASSUMED)
     def vm(c, T):  # m3/kmol; 700 kg/m3 when thermo has no liquid volume (ASSUMED)
@@ -256,6 +262,31 @@ def main():
         print(f"  {n}: {kw / 0.6:.2f} kW")
         tot += kw / 0.6
     print(f"pumps total {tot:.1f} kW")
+
+    # the values process/flowsheet.yaml cites from this script (balance-output contract): mass
+    # flow, mole fractions, column temperatures at the bubble points, duties in kW
+    def flow_comp(st):
+        nt = sum(st.values())
+        return {"flow": mass(st), "composition": {c: st[c] / nt for c in C if st[c] > 0}}
+
+    streams = {"S1": "fresh", "S4": "d101", "S5": "b101", "S6": "d101", "S9": "r",
+               "S11": "d201", "S12": "b201", "S13": "d301", "S14": "b301", "S15": "raf",
+               "S16": "ext", "S17": "d402", "S18": "v402", "S19": "b402", "S24": "w403",
+               "S26": "v403", "S27": "b403"}
+    bal = {sid: flow_comp(s[n]) for sid, n in streams.items()}
+    bal["S23"] = {"flow": s["makeup"] * MW["H2O"]}
+    temps = {"S4": Ttop, "S5": Tbot, "S9": T_eff, "S12": cols["C201"][1],
+             "S13": cols["C301"][0], "S14": cols["C301"][1], "S17": cols["C402"][0],
+             "S19": cols["C402"][1], "S26": cols["C403"][0], "S27": cols["C403"][1]}
+    for sid, T in temps.items():
+        bal[sid]["temperature"] = T
+    duties = {"Q1": tot, "Q2": Qr101, "Q3": Qc101, "Q4": Qh101, "Q5": Qrx, "Q6": Qe102,
+              "Q7": cols["C201"][3], "Q8": cols["C201"][2], "Q9": cols["C403"][3],
+              "Q10": cols["C403"][2], "Q11": Qe403, "Q12": cols["C301"][3],
+              "Q13": cols["C301"][2], "Q14": cols["C402"][3], "Q15": cols["C402"][2],
+              "Q16": Qe401, "Q17": Qe301}
+    bal.update({sid: {"duty": q} for sid, q in duties.items()})
+    write_balance_output({"design": bal})
     # ---- first-pass line sizes (D-010): vapour 20 m/s, liquid 1.5 m/s, inside diameter = DN
     DN = [25, 32, 40, 50, 65, 80, 100, 125, 150, 200, 250, 300, 350, 400, 450, 500, 600]
     mw = lambda st: mass(st) / sum(st.values())
@@ -284,6 +315,24 @@ def main():
         dn = next(x for x in DN if x >= d)
         print(f"  {sid}: {q * 3600:.1f} m3/h, d {d:.0f} mm -> DN{dn}")
 
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
 
 if __name__ == "__main__":
     main()

@@ -235,6 +235,22 @@ def main():
     for k, v in r["power"].items():
         print(f"power {k}: {v:.2f} kW")
     print(f"R-201 circulation through E-201: {r['circ_r201']:.0f} kg/h")
+    # the values process/flowsheet.yaml cites from this script (balance-output contract), by the
+    # stream ids of `ids` above (S13 for the product); compositions as mole fractions
+    flowsheet = {}
+    for sid, label in ids.items():
+        n = {k: v for k, v in r[sid].items() if v > 0}
+        flowsheet[label.split()[0].split("/")[0]] = {
+            "flow": {"value": sum(kg(n).values()), "basis": "mass"},
+            "composition": {"values": {k: v / sum(n.values()) for k, v in n.items()},
+                            "basis": "mole_fraction"}}
+    q, w = r["q"], r["power"]
+    flowsheet.update({qid: {"duty": v} for qid, v in {
+        "Q1": q["Q_R101"], "Q2": q["Q_V101"], "Q3": q["Q_R201"], "Q4": q["Q_V201"],
+        "Q5": q["Q_C301_REB"], "Q6": q["Q_C301_COND"], "Q7": q["Q_C302_REB"],
+        "Q8": q["Q_C302_COND"], "Q9": q["Q_E303"], "Q10": w["R101"], "Q11": w["R201"],
+        "Q12": w["C301"] + w["C302"], "Q13": w["T401"]}.items()})
+    write_balance_output({"design": flowsheet})
     print(f"mass in {m_in:.3f}, out {m_out:.3f}, difference {m_in - m_out:.4f} kg/h")
     p_in = 4 * r["s1"]["P4"]
     p_out = r["s9"].get("PCL3", 0) + r["s9"]["POCL3"] + r["s12"]["POCL3"] + r["s21"].get("PCL3", 0) + r["s21"].get("POCL3", 0) + r["s22"]["NA2HPO3"] + r["s22"]["NA3PO4"]
@@ -244,6 +260,25 @@ def main():
         print(f"Hvap POCl3 at {t:.1f} K: {hvap('POCl3', t):.0f} kJ/kmol (thermo correlation "
               f"{Chemical('POCl3', T=t).Hvap * MW['POCL3'] / 1000.0:.0f}); "
               f"PCl3 {hvap('PCl3', t):.0f} (Clausius-Clapeyron {hvap_cc('PCl3', t):.0f})")
+
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
 
 
 if __name__ == "__main__":

@@ -159,3 +159,36 @@ q_reb2 = (1 + R2) * m_prod * lam2 - m_bot1 * CP_LIQ * (426.0 - 390.0)
 q_con2 = (1 + R2) * m_prod * lam2 + m_prod * CP_LIQ * (379.0 - 313.15)
 print(f"C-202 reboiler {kw(q_reb2):.0f} kW (LP steam), condenser + product cooler {kw(q_con2):.0f} kW")
 print("ASSUMED power: R-101 loop pump 30 kW, C-201 pumps 5 kW, C-202 vacuum system and pumps 20 kW")
+
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
+
+
+# the values process/flowsheet.yaml cites from this script (balance-output contract): the stream
+# table S (mass flow, mole fractions over COMP) and the duties printed above
+FLOWSHEET = {}
+for name, n in S.items():
+    ntot = sum(n.get(k, 0.0) for k in COMP)
+    FLOWSHEET[name.split()[0]] = {
+        "flow": {"value": sum(mass(n).values()), "basis": "mass"},
+        "composition": {"values": {k: n.get(k, 0.0) / ntot for k in COMP}, "basis": "mole_fraction"}}
+FLOWSHEET.update({qid: {"duty": kw(q)} for qid, q in {
+    "Q1": q_k, "Q2": q_k, "Q3": q_p, "Q5": q_r, "Q6": q_reb1, "Q7": q_con1, "Q9": q_reb2,
+    "Q10": q_con2}.items()})
+write_balance_output({"design": FLOWSHEET})
