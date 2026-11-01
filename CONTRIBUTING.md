@@ -147,8 +147,9 @@ The Atlas has two builds:
 What the public build contains:
 
 - **Only public processes.** Only processes with `publication.status: public` in `process.yaml`
-  are in it; `internal` (the default) and `candidate` are left out entirely. Setting `public` is
-  the maintainers' decision, made in its own change.
+  are in it; `internal` (the default) and `candidate` are left out entirely. Every process of
+  the library is public today; a new one stays out until `public` is set, which is the
+  maintainers' decision, made in its own change.
 - **A stated licence.** `publication.license` names the licence it is published under (an SPDX
   id, e.g. `CC-BY-4.0`). There is no default: state it when you set `public`.
 - **The repository** is shown only when its `access` is `public`.
