@@ -1,9 +1,8 @@
 # The DWSIM model of hydrogen-1 (`cheme process simulate`; schema `cheme schema process-simulation`).
-# Decision D-015 in DESIGN.md (scope, property package, the adiabatic shift bed, what the first
-# run is expected to show). Prepared 2026-10-30 and NOT RUN: no DWSIM on the machine that wrote
-# it; it translates (`cheme process simulate --check` stops at sim-unavailable after the
-# translation). Every spec repeats a design choice of DESIGN.md (source given) or a value of
-# the concept balance scripts/h2_balance.py (D-006), ASSUMED with its source.
+# Decisions D-015 (scope, property package, the adiabatic shift bed) and D-016 (first run,
+# 2026-11-01: converged, results filled; run record process/simulation-run.json) in DESIGN.md.
+# Every spec repeats a design choice of DESIGN.md (source given) or a value of the concept
+# balance scripts/h2_balance.py (D-006), ASSUMED with its source.
 schema: cheme/simulation/v1
 kind: simulation
 simulator: dwsim
@@ -72,11 +71,13 @@ specs:
   # ---- SFT (D-007, D-010)
   R201:
     # Adiabatic as designed (D-003, D-007), but DWSIM 9.0.5's equilibrium reactor in adiabatic
-    # mode fails its flash (core #58, reproduced on ammonia-1's HT shift bed). Run at the
-    # adiabatic outlet temperature of the concept balance; the simulated duty (about 0) is the
-    # check of the adiabatic assumption (D-015), as ammonia-1 does for its adiabatic beds
+    # mode fails its flash (core #58, reproduced on ammonia-1's HT shift bed). Run at a fixed
+    # outlet temperature; the simulated duty is the check of the adiabatic assumption (D-015).
+    # The concept balance's 691.77 K gave +206.8 kW in DWSIM (3.3 % of the WGS reaction heat,
+    # above the 3 % criterion of D-015), so the temperature was re-solved to zero duty (D-016):
+    # 689.00 K gave -103.5 kW, 689.92 K gives -0.4 kW
     mode: outlet_temperature
-    outlet_temperature: {value: 691.77, provenance: assumed, source: "D-006, D-007: adiabatic equilibrium outlet of scripts/h2_balance.py (S11); cheme process reactors 0.03 kW at it"}
+    outlet_temperature: {value: 689.92, provenance: assumed, source: "D-016: re-solved in DWSIM (PR) to zero R-201 duty (-0.4 kW), the adiabatic outlet of D-007; concept balance scripts/h2_balance.py gave 691.77 K"}
     pressure_drop: {value: 100, unit: kPa, provenance: assumed, source: "D-007: 3150 -> 3050 kPa(a)"}
   E201:
     # the heat the boiler feed water needs from 345 to 503 K (D-010); the gas outlet
