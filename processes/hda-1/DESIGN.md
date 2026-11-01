@@ -78,14 +78,14 @@ below the hydrocracking limit.
 Results: FEHE minimum internal approach 53 K (20-point profile, scripts/hda_balance.py), duty
 24.5 MW; combined feed vapour fraction 0.92 at 321 K.
 
-### D-005 Reaction model: specified conversion, sourced selectivity (2026-10-27)
+### D-005 Reaction model: specified conversion, selectivity from a recalled correlation (2026-10-27)
 Decision: conversion reactor (cheme `reactor: conversion` with `selectivity:`): toluene
 conversion X = 0.75 per pass (ASSUMED design variable); benzene formed per toluene converted
-S = 1 - 0.0036/(1 - X)^1.544 = 0.96939 (Douglas 1988 HDA selectivity correlation); the rest of
+S = 1 - 0.0036/(1 - X)^1.544 = 0.96939 (Douglas 1988 HDA selectivity correlation, recalled and not read in this run, not verified: I-06); the rest of
 the benzene goes to biphenyl (0.0153 kmol per kmol toluene converted). No kinetics: the
 reactor volume is not sized. No other side reactions (hydrocracking to light paraffins,
 methylbiphenyls, coke) until sourced selectivities exist.
-Reason: a published, widely used selectivity correlation for this route at the concept stage;
+Reason: a selectivity correlation for this route from the literature, used from memory at the concept stage;
 no rate law is invented. The conversion of 0.75 is a typical design choice; it trades reactor
 size against biphenyl make and recycle.
 Results: extents HDA 167.865 kmol/h, BIPH 2.569 kmol/h, calculated identically by cheme and by
