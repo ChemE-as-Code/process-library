@@ -48,21 +48,25 @@ validation:
     Concept PFD (5 blocks, 15 steps) with closed mass, component and element balances (cheme
     validate, cheme process streams: every block and step within 1 kg/h); the oxidiser,
     cleavage, neutraliser and hydrogenation outlets are calculated by cheme from conversion and
-    selectivity specifications, every separator is specified (scripts/balance.py). Fresh
-    cumene 1.330 t/t phenol and tar 47 kg/t phenol fall inside the LVOC BREF ranges
-    (1.31-1.38 t/t; 20-200 kg/t); steam and power are that document's plant data (Table 8.5),
-    not a calculation. No energy balance: no property package covers the polar mixture.
-    cheme maturity reaches no level. The LCI is foreground only, every background a
-    gap (13 gaps): no impact result (lca.source none). Not reviewed. The chemicals registry
-    has no cumene, acetone, phenol, sulfuric acid or sodium hydroxide entry yet, so those
-    flows are not listed under chemistry (open library item, DESIGN.md I-09).
+    selectivity specifications, every separator is specified (scripts/balance.py). Fresh cumene
+    1.330 t/t phenol and tar 47 kg/t phenol fall inside the LVOC BREF ranges (1.31-1.38 t/t;
+    20-200 kg/t); steam and power are that document's plant data (Table 8.5), not a calculation.
+    No energy balance: no property package covers the polar mixture. cheme maturity reaches no
+    level. The LCI is foreground only, every background a gap (13 gaps): no impact result
+    (lca.source none). Not reviewed. Main products and feeds are listed under chemistry with
+    their chemicals registry entries (issue #251).
 chemistry:
   inputs:
-    - {chemical: air, role: reactant, inventory_key: "feed:AIR", note: "Oxidation air, 1.92 kg per kg phenol. The main feedstock, cumene (feed:CUM, 1.33 t per t phenol), has no registry entry yet"}
+    - {chemical: cumene, role: feedstock, note: "feed:CUM: fresh cumene, 2.11 kg/kg acetone (1.33 t per t phenol) from a cumene unit"}
+    - {chemical: sulfuric-acid, role: feedstock, note: "feed:ACID: sulfuric acid 98 wt% (cleavage catalyst), counted by mass of the acid"}
+    - {chemical: sodium-hydroxide, role: feedstock, note: "feed:NAOH50: caustic soda 50 wt% (e.g. chlor-alkali-1), counted by mass of the solution"}
+    - {chemical: air, role: reactant, inventory_key: "feed:AIR", note: "Oxidation air, 1.92 kg per kg phenol"}
     - {chemical: hydrogen, role: reactant, inventory_key: "feed:H2F", note: "AMS hydrogenation to cumene; from hydrogen-1 or a site header"}
-    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Wash water to the neutraliser (ASSUMED). Sulfuric acid (feed:ACID) and caustic soda (feed:NAOH50) have no registry entry yet"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Wash water to the neutraliser (ASSUMED)"}
   outputs:
-    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Neutralisation brine and acetone column bottoms. The products acetone (product:ACETONE, main) and phenol (product:PHENOL, co-product) have no registry entry yet"}
+    - {chemical: acetone, role: main-product, inventory_key: "product:ACETONE", note: "Acetone product (the functional unit's product)"}
+    - {chemical: phenol, role: co-product, inventory_key: "product:PHENOL", note: "Phenol product, 1.59 kg/kg acetone"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Neutralisation brine and acetone column bottoms"}
     - {chemical: air, role: emission, inventory_key: "product:VENT", note: "Spent air (5 mol% O2) after condensers and carbon adsorbers"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "190 kWh/t phenol (LVOC BREF Table 8.5); air compressor about 57 %"}

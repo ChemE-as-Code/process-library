@@ -52,13 +52,16 @@ validation:
     recorded for the cut-off check and would roughly triple the direct GHG; D-017). The
     electricity (3.99 MW) is probably under-estimated: an order-of-magnitude cold-box check
     (D-016) leaves a refrigeration deficit that a propane chiller of up to about 1.5 MW electric
-    (up to +40 %) would cover; no chiller is in the balance. Not reviewed. The chemicals registry has no natural gas, NGL, ethane, propane,
-    MDEA or TEG entry yet, so the products are not listed under chemistry (open library item).
+    (up to +40 %) would cover; no chiller is in the balance. Not reviewed. Main products and
+    feeds are listed under chemistry with their chemicals registry entries (issue #251).
 chemistry:
   inputs:
-    - {chemical: water, role: feedstock, note: "Demineralised make-up water of the amine loop (feed:DMW), 0.64 g per kg sales gas (allocated). The raw natural gas feed (feed:RAWGAS) has no registry entry yet"}
+    - {chemical: raw-natural-gas, role: feedstock, note: "feed:RAWGAS: raw natural gas from field gathering, water-saturated, 1.42 kg/kg sales gas (unallocated)"}
+    - {chemical: water, role: feedstock, note: "Demineralised make-up water of the amine loop (feed:DMW), 0.64 g per kg sales gas (allocated)"}
   outputs:
-    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "Reservoir CO2 vented with the amine acid gas (627 kg/h) and combustion CO2 of the fired heaters (278 kg/h); 9.5 g per kg sales gas (allocated). Main product sales gas (product:SALESGAS) and co-product NGL (product:NGL) have no registry entries yet"}
+    - {chemical: methane, role: main-product, note: "product:SALESGAS, sales gas to the transmission pipeline (7000 kPa(a)), taken as methane like the library's natural-gas consumers; no inventory_key, since the study's energy property is not pure methane's"}
+    - {chemical: natural-gas-liquids, role: co-product, inventory_key: "product:NGL", note: "C2+ natural gas liquids (ethane-propane mix) to the NGL pipeline"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "Reservoir CO2 vented with the amine acid gas (627 kg/h) and combustion CO2 of the fired heaters (278 kg/h); 9.5 g per kg sales gas (allocated)"}
     - {chemical: methane, role: emission, inventory_key: "emission:CH4", note: "Methane slip of the amine regenerator and TEG still and unburnt methane of the heaters, 3.05 kg/h; fugitive and non-routine methane not yet estimated"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "3.99 MW, of which the residue compressor K-501 3.67 MW (ideal-gas estimate); a possible propane chiller (up to about 1.5 MW, D-016) is not included"}

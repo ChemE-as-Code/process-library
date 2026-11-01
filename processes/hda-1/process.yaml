@@ -38,24 +38,26 @@ validation:
   status: unreviewed
   notes: >-
     Concept PFD with closed mass, component and element balances (cheme validate, cheme process
-    streams) and an independent overall energy closure of 0.25 % (scripts/hda_balance.py).
-    cheme maturity reaches no level: the feeds and the capacity are assumed (no sourced or
-    owner-given feed), and the separator and the three columns are specified values from an
-    independent Peng-Robinson script that core cannot qualify for aromatics with hydrogen.
-    The reactor outlet is calculated by cheme (conversion reactor with the
-    selectivity correlation recalled, not verified, and an assumed conversion) and reproduces the script's
-    extents; cheme's ideal-gas reactor duty (-45 kW) confirms the script's adiabatic outlet
-    temperature. The LCI is a cradle-to-gate study with the foreground inventory only, every
-    background open (10 gaps): no impact result, and no LCA result passed to the catalog
-    (lca.source none). Not reviewed. The chemicals registry has no toluene, benzene,
-    biphenyl, natural gas or fuel gas entry yet, so those flows are not listed under chemistry
-    (open library item).
+    streams) and an independent overall energy closure of 0.25 % (scripts/hda_balance.py). cheme
+    maturity reaches no level: the feeds and the capacity are assumed (no sourced or owner-given
+    feed), and the separator and the three columns are specified values from an independent
+    Peng-Robinson script that core cannot qualify for aromatics with hydrogen. The reactor
+    outlet is calculated by cheme (conversion reactor with the selectivity correlation recalled,
+    not verified, and an assumed conversion) and reproduces the script's extents; cheme's
+    ideal-gas reactor duty (-45 kW) confirms the script's adiabatic outlet temperature. The LCI
+    is a cradle-to-gate study with the foreground inventory only, every background open (10
+    gaps): no impact result, and no LCA result passed to the catalog (lca.source none). Not
+    reviewed. Main products and feeds are listed under chemistry with their chemicals registry
+    entries (issue #251).
 chemistry:
   inputs:
-    - {chemical: hydrogen, role: feedstock, inventory_key: "feed:H2MU", note: "Make-up hydrogen 95 mol% with 5 mol% methane (ASSUMED). The main feedstock, toluene (feed:TOLF, 1.24 kg per kg benzene), has no registry entry yet"}
+    - {chemical: toluene, role: feedstock, note: "feed:TOLF: fresh toluene, 1.24 kg/kg benzene"}
+    - {chemical: hydrogen, role: feedstock, inventory_key: "feed:H2MU", note: "Make-up hydrogen 95 mol% with 5 mol% methane (ASSUMED)"}
     - {chemical: methane, role: feedstock, inventory_key: "feed:H2MU", note: "5 mol% methane in the make-up hydrogen (ASSUMED), leaves with the purge"}
   outputs:
-    - {chemical: hydrogen, role: co-product, inventory_key: "product:FUELGAS", note: "Purge gas and stabiliser off-gas (40 mol% H2, 59 % CH4) to the fuel gas header. The main product, benzene (product:BENZENE), and the biphenyl by-product (product:DIPHENYL) have no registry entry yet"}
+    - {chemical: benzene, role: main-product, inventory_key: "product:BENZENE", note: "Benzene to storage"}
+    - {chemical: biphenyl, role: co-product, inventory_key: "product:DIPHENYL", note: "Biphenyl (diphenyl) by-product"}
+    - {chemical: hydrogen, role: co-product, inventory_key: "product:FUELGAS", note: "Purge gas and stabiliser off-gas (40 mol% H2, 59 % CH4) to the fuel gas header"}
     - {chemical: methane, role: co-product, inventory_key: "product:FUELGAS", note: "Methane formed by the reaction and with the make-up, in the fuel gas"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Recycle compressor and toluene pump (ASSUMED electric drives)"}

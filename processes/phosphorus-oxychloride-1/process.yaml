@@ -39,27 +39,28 @@ maturity: concept
 validation:
   status: unreviewed
   notes: >-
-    Concept PFD with closed mass, component and element balances (cheme validate 0 errors;
-    cheme process streams: every block and step balanced, reaction extents consistent). The
-    reactors R101 and R201 and the mixers are calculated by cheme (conversion model); core's
-    ideal-gas duty of R201 (-1861.6 kW) is 2.7 % below the liquid-phase value of the
-    independent balance (1912.3 kW), the difference being the heats of vaporisation. The vent
-    condensers, the columns (specified splits) and the caustic scrubber are specified values from
+    Concept PFD with closed mass, component and element balances (cheme validate 0 errors; cheme
+    process streams: every block and step balanced, reaction extents consistent). The reactors
+    R101 and R201 and the mixers are calculated by cheme (conversion model); core's ideal-gas
+    duty of R201 (-1861.6 kW) is 2.7 % below the liquid-phase value of the independent balance
+    (1912.3 kW), the difference being the heats of vaporisation. The vent condensers, the
+    columns (specified splits) and the caustic scrubber are specified values from
     scripts/balance.py: no property package of core covers PCl3, POCl3, white phosphorus or the
     caustic liquor, so the energy balance is not evaluable in core. Capacity,
     conversions, splits and efficiencies are assumed. Preliminary gate-to-gate LCI with every
-    background unmapped (gaps). cheme maturity reaches no level (assumed feeds and
-    conversions, specified separators, DESIGN.md). Not reviewed.
-    The chemicals registry has no white phosphorus, chlorine, sodium hydroxide or phosphorus
-    oxychloride entry yet, so the main product and those feeds are not listed under chemistry
-    (open library item, DESIGN.md D-013).
+    background unmapped (gaps). cheme maturity reaches no level (assumed feeds and conversions,
+    specified separators, DESIGN.md). Not reviewed. Main products and feeds are listed under
+    chemistry with their chemicals registry entries (issue #251).
 chemistry:
-  # white phosphorus, chlorine, caustic soda and POCl3 have no registry entry yet (D-013)
   inputs:
-    - {chemical: oxygen, role: feedstock, inventory_key: "feed:O2", note: "Gaseous oxygen 99.7 mol% from asu-1, 0.105 kg/kg POCl3. White phosphorus (feed:P4, 0.203 kg/kg), chlorine of chlor-alkali-1 (feed:CL2, 0.704 kg/kg) and caustic soda 50 wt% (feed:NAOH, 3.9 g/kg) have no registry entry yet"}
+    - {chemical: phosphorus, role: feedstock, note: "feed:P4: molten white phosphorus (P4) from a thermal phosphorus furnace outside the boundary, 0.203 kg/kg"}
+    - {chemical: chlorine, role: feedstock, note: "feed:CL2: dry chlorine gas (chlor-alkali-1), 0.704 kg/kg"}
+    - {chemical: sodium-hydroxide, role: feedstock, note: "feed:NAOH: caustic soda 50 wt% (chlor-alkali-1), counted by mass of the solution"}
+    - {chemical: oxygen, role: feedstock, inventory_key: "feed:O2", note: "Gaseous oxygen 99.7 mol% from asu-1, 0.105 kg/kg POCl3"}
     - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Dilution water of the scrubber caustic, 6.9 g/kg POCl3"}
   outputs:
-    - {chemical: wastewater, role: waste, inventory_key: "product:EFF", note: "Spent scrubber liquor, 11.5 g/kg POCl3: NaCl, Na3PO4, Na2HPO3, NaOCl and excess NaOH in water. The main product, distilled POCl3 (product:POCL3), and the distillation residue to incineration (product:RES, 5.0 g/kg) have no registry entry yet"}
+    - {chemical: phosphorus-oxychloride, role: main-product, inventory_key: "product:POCL3", note: "Distilled phosphorus oxychloride to storage"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:EFF", note: "Spent scrubber liquor, 11.5 g/kg POCl3: NaCl, Na3PO4, Na2HPO3, NaOCl and excess NaOH in water"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "12.9 Wh/kg POCl3: R-201 loop circulation pump, R-101 agitator, transfer and scrubber pumps (ASSUMED)"}
     - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.110 kWh/kg POCl3 LP steam 400 kPa(a) to the column reboilers (ASSUMED reflux ratios)"}

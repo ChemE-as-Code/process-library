@@ -37,27 +37,30 @@ maturity: concept
 validation:
   status: unreviewed
   notes: >-
-    Concept PFD with closed mass, component and element balances on every block and step
-    (cheme validate, cheme process streams, reaction extents). The stream values come from the
+    Concept PFD with closed mass, component and element balances on every block and step (cheme
+    validate, cheme process streams, reaction extents). The stream values come from the
     independent script scripts/balance.py and are given to cheme as assumed values. Checks
     against the sources: chlorine 0.571 kg/kg Br2 (US 4 719 096: 0.55-0.60), tail brine bromide
-    189 mg/kg (50-200 ppm), recovery 1.73 lb Br2 per barrel (AGS: 1.5-1.8); the live steam
-    from the script's tower energy balance, 5.82 kg/kg Br2, is 2 % above the 5.2-5.7 lb/lb that
-    US 4 719 096 reports for conventional towers. cheme maturity: calculation maturity none
-    (every stream value assumed from scripts/balance.py, reactors and separators specified); the
+    189 mg/kg (50-200 ppm), recovery 1.73 lb Br2 per barrel (AGS: 1.5-1.8); the live steam from
+    the script's tower energy balance, 5.82 kg/kg Br2, is 2 % above the 5.2-5.7 lb/lb that US 4
+    719 096 reports for conventional towers. cheme maturity: calculation maturity none (every
+    stream value assumed from scripts/balance.py, reactors and separators specified); the
     concept claim, the lowest level the manifest offers, exceeds this evidence
-    (cheme.maturity-claim-exceeds). Energy closure is not evaluable in core (no
-    property package for the brine). The preliminary gate-to-gate LCI closes in mass
-    and elements; every background is a gap. Not reviewed. The chemicals registry has no
-    bromine, chlorine, brine, sulfuric acid or hydrated lime entry yet, so the main product and
-    those feeds are not listed under chemistry (open library item).
+    (cheme.maturity-claim-exceeds). Energy closure is not evaluable in core (no property package
+    for the brine). The preliminary gate-to-gate LCI closes in mass and elements; every
+    background is a gap. Not reviewed. Main products and feeds are listed under chemistry with
+    their chemicals registry entries (issue #251).
 chemistry:
   inputs:
+    - {chemical: chlorine, role: feedstock, note: "feed:CL2: vaporised liquid chlorine (e.g. chlor-alkali-1), 0.571 kg/kg Br2"}
+    - {chemical: sulfuric-acid, role: feedstock, note: "feed:H2SO4: sulfuric acid 98 wt-% for bromine drying"}
+    - {chemical: calcium-hydroxide, role: feedstock, note: "feed:LIME: hydrated lime for the tail brine neutralisation"}
     # placeholder identity: the bromide brine (feed:BRINE) has no registry entry; no
     # inventory_key, since feed:BRINE is brine (69 wt-% water), not water
-    - {chemical: water, role: feedstock, note: "Stands for the aqueous bromide brine (feed:BRINE, 243 kg brine per kg Br2, 4 300 mg/kg bromide, 31 wt-% NaCl/CaCl2), which has no registry entry yet; nor have the chlorine (feed:CL2, 0.571 kg/kg, from chlor-alkali-1), sulfuric acid 98 % (feed:H2SO4, 2.1 g/kg) and hydrated lime (feed:LIME, 0.132 kg/kg)"}
+    - {chemical: water, role: feedstock, note: "Stands for the aqueous bromide brine (feed:BRINE, 243 kg brine per kg Br2, 4 300 mg/kg bromide, 31 wt-% NaCl/CaCl2), which has no registry entry yet"}
   outputs:
-    - {chemical: wastewater, role: waste, inventory_key: "product:TAILB", note: "Neutralised tail brine, 249 kg/kg Br2, reinjected into the brine formation (not a surface discharge). The main product bromine (product:BR2, 99.96 wt-%) has no registry entry yet; spent sulfuric acid 80 % (product:SPACID, 2.6 g/kg) goes to treatment"}
+    - {chemical: bromine, role: main-product, inventory_key: "product:BR2", note: "Dry bromine, 99.96 wt-% Br2, to storage"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:TAILB", note: "Neutralised tail brine, 249 kg/kg Br2, reinjected into the brine formation (not a surface discharge). Spent sulfuric acid 80 % (product:SPACID, 2.6 g/kg) goes to treatment"}
   utilities:
     - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "Live LP steam 350 kPa(a), 5.82 kg/kg Br2, injected into the steaming-out tower (condensate leaves with the tail brine); the C-104 reboiler takes 0.016 kWh/kg more (feed:LPH)"}
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.032 kWh/kg Br2: brine feed pump and small drives (ASSUMED)"}

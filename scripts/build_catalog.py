@@ -231,6 +231,28 @@ def _sheets(plant: dict) -> list[dict]:
 DATA_SOURCE_FIELDS = ("id", "title", "provider", "version", "url", "licence", "publication", "attribution")
 
 
+def _display_name(name: str) -> str:
+    """A registry name inside a phrase: ``"Acetaldehyde"`` -> ``"acetaldehyde"``; a name whose
+    second letter is not lower case (``"N,N-Dimethylformamide"``, ``"MTBE"``) is kept."""
+    return name[0].lower() + name[1:] if len(name) > 1 and name[0].isupper() and name[1].islower() else name
+
+
+def _name_functional_unit(functional_unit: dict, flows: dict[str, list[dict]], products: reg.Registry) -> None:
+    """Label the functional unit with its product's name (issue #249): the chemistry output whose
+    ``inventory_key`` is ``product:<functional unit product>`` gives the registry chemical, its
+    grade's name when the flow has a grade, else the chemical's name. Without such a flow the
+    label keeps the component id. Adds ``chemical``, ``grade`` and ``product_name``."""
+    key = f"product:{functional_unit.get('product')}"
+    flow = next((f for f in flows.get("outputs", []) if f.get("inventory_key") == key), None)
+    chemical = products.chemicals.get(flow["chemical"]) if flow else None
+    functional_unit.update(chemical=flow["chemical"] if chemical else None, grade=flow.get("grade") if chemical else None, product_name=None)
+    if not chemical:
+        return
+    name = (products.grade(flow["chemical"], flow.get("grade")) or {}).get("name") or chemical["name"]
+    functional_unit["product_name"] = name
+    functional_unit["label"] = f"{functional_unit.get('amount', '')} {functional_unit.get('unit', '')} {_display_name(name)}".strip()
+
+
 def _lci_gaps(library: Path, public: bool, report: Report) -> dict[str, list[dict]] | None:
     """Each process's LCI mapping gaps, as ``build_lci.py`` reports them (a process with any is
     preliminary, ADR 0026), from a throwaway LCI build. None when that build fails: an error in a
@@ -339,7 +361,10 @@ def _lca(folder: Path, where: str, report: Report, capacity: str | None = None) 
             "product": fu.get("product"),
             "amount": fu.get("amount"),
             "unit": fu.get("unit"),
+            # the product's name replaces the id in the label once the process names its chemical
+            # (_name_functional_unit); the id stays in "product" for tools
             "label": f"{fu.get('amount', '')} {fu.get('unit', '')} {fu.get('product', '')}".strip(),
+            "product_title": next((r.get("title", "") for r in inventory if r.get("key") == f"product:{fu.get('product')}"), None),
         },
         "boundary": study.get("boundary", ""),
         "allocation": allocation.get("method"),
@@ -761,6 +786,9 @@ def build(
             report.error(where, f"id {pid!r} differs from folder name {folder.name!r}")
             continue
         flows = {k: manifest["chemistry"].get(k, []) for k in ("inputs", "outputs", "utilities")}
+        if not any(f.get("role") == "main-product" for f in flows["outputs"]):
+            # issue #251: a process whose main product is not listed is missing from the graph
+            report.warn(where, "chemistry.outputs: no main-product (add it, with its chemicals/chemicals.yaml entry)")
         facets = _facets(manifest)
         for group, items in flows.items():
             for number, item in enumerate(items):
@@ -783,6 +811,7 @@ def build(
         capacity = (manifest.get("basis") or {}).get("capacity")
         lca = _lca(folder, where, report, capacity) if manifest.get("lca", {}).get("source", "auto") == "auto" and plant else None
         if lca:
+            _name_functional_unit(lca["functional_unit"], flows, products)
             keys = {row["key"] for row in lca["inventory"]}
             for group, items in flows.items():
                 for item in items:
