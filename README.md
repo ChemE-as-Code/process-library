@@ -22,6 +22,11 @@
 > procurement or safety decisions and come with [no warranty](LICENSE-DATA). Check the design
 > maturity and review status in each process's `process.yaml` before relying on any number.
 
+<p align="center">
+  <img src=".github/readme/demo.gif" alt="Screen recording: the brief an AI agent got, the ammonia design from the library and the footprint from ASU-1" width="720"><br>
+  <em>Ammonia design from the library, footprint from ASU-1. AI-generated research output, concept stage.</em>
+</p>
+
 50 processes, 182 recorded agent runs in 43 of them, about US$650 of recorded agent cost; 49 at
 concept stage and 1 at screening, none independently reviewed. The figure counts recorded runs only
 (`processes/*/runs/*/run.yaml`), with costs as the runs reported them: one run records no cost, and
