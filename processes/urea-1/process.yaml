@@ -45,20 +45,21 @@ validation:
     qualified for aqueous NH3-CO2-urea-carbamate). Energy closure not
     evaluable in core. Utilities against the BREF benchmarks: steam 0.8 t/t (taken from BREF
     Table 8.5), electricity 96 kWh/t (BREF 110), cooling water 45 m3/t (BREF 60): the estimate
-    is incomplete for minor drives and coolers. Preliminary gate-to-gate LCI with every
-    background unmapped (lca/inventory.csv); lca/dataset.yaml stays out of the Atlas build
-    until lci/mappings.yaml maps its exchanges (DESIGN.md D-013). cheme maturity reaches no
+    is incomplete for minor drives and coolers. Preliminary gate-to-gate LCI (lca/inventory.csv);
+    lca/dataset.yaml is in the Atlas build, marked preliminary, with feed:CO2 and emission:UREA
+    listed as gaps (DESIGN.md D-014). cheme maturity reaches no
     level (assumed feeds, unsourced specified separations), so `concept` here is the
     schema's lowest value, not an evidenced level. Agent-reviewed only
-    (reviews/2026-10-27-pfd-lci-review.md); no human review. The chemicals registry has no urea, ammonia or
-    biuret entry yet: the main product and the ammonia feed are not listed under chemistry
-    (open library item).
+    (reviews/2026-10-27-pfd-lci-review.md); no human review. The chemicals registry has no
+    biuret entry (open library item; no emission stream carries biuret).
 chemistry:
   inputs:
-    - {chemical: carbon-dioxide, role: feedstock, inventory_key: "feed:CO2", note: "CO2 from the ammonia plant's CO2 removal (98.5 mol%, ASSUMED); the main feedstock ammonia (feed:NH3) has no registry entry yet"}
+    - {chemical: ammonia, role: feedstock, note: "feed:NH3: liquid ammonia from the ammonia plant; no inventory_key, its background link is the override in lca/mappings.yaml"}
+    - {chemical: carbon-dioxide, role: feedstock, inventory_key: "feed:CO2", note: "CO2 from the ammonia plant's CO2 removal (98.5 mol%, ASSUMED)"}
     - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Ambient prilling air (cooling medium); passivation air feed:PAIR"}
   outputs:
-    - {chemical: water, role: by-product, inventory_key: "product:WATER", note: "Treated process condensate, 1 ppm(wt) NH3 and urea, re-used as boiler feed water. The main product, prilled urea (product:UREA), has no registry entry yet"}
+    - {chemical: urea, role: main-product, inventory_key: "product:UREA", note: "Prilled urea to storage"}
+    - {chemical: water, role: by-product, inventory_key: "product:WATER", note: "Treated process condensate, 1 ppm(wt) NH3 and urea, re-used as boiler feed water"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "CO2 compressor (electric drive ASSUMED), HP pumps, prilling fan"}
     - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "MP steam 2400 kPa(a): HP stripper, 2nd evaporator, hydrolyser (0.8 t/t urea, BREF Table 8.5)"}

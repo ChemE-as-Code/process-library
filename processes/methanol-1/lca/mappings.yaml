@@ -1,0 +1,9 @@
+# methanol-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. DESIGN.md D-015.
+# feed:SYNGAS stays a listed gap: no entry of lci/mappings.yaml is this gas, and the components
+# process.yaml lists (hydrogen, carbon monoxide, carbon dioxide, methane) carry no inventory_key,
+# so that none of their slugs can link it.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a) to the reboilers, counted as heat delivered (kWh); the shared entry converts it to the background's heat from steam, which does not distinguish pressure levels"}
+  "product:WW": {use: wastewater, source: "Refining column bottoms water (S19) to treatment, per kg; without this the chemistry slug `water` would link it to a water supply, the wrong direction of service"}
