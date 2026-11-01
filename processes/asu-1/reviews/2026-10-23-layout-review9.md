@@ -17,7 +17,7 @@ This is an independent layout review of branch `issue8` at ba79cf7. It follows
 reviews/2026-10-23-layout-review8.md (e2c43ea) and covers:
 - D-055 (1) .. (10), the fixes of review8 (15fd70f .. c1890ce, merged to main in a661950);
 - D-060 (1) .. (7) on this branch (b75043f .. ba79cf7):
-  - the core#66 rebuild;
+  - the rebuild on the core fix;
   - the pinned support proposals;
   - the pump heads;
   - the datasheet markers;
@@ -64,7 +64,7 @@ scans confirm each fix. New findings: one medium, four low.
 ## Previous findings
 | id | finding | severity | status | evidence |
 |---|---|---|---|---|
-| 2026-10-23-layout-review8#1 | PSV-4128 outlet at chest height beside VP-9 | medium | closed 15fd70f | GAN-4003 S6 open end [181.57, 87.64, 13.8]: 5.21 m above the VP-9 grating (8.6 m), 0.46 m off its edge in plan (computed). Source of Z-N2-VENTS (zones.yaml). The zone sphere's underside (10.8 m) is at the walkway headroom (8.6 + 2.2 m). vent-outlet, egress-zone and separation: 0 (validate). The core#66 side-of-floor check (`vent_side_clearance_m` 1.5) finds nothing. Section build/layout-section-x181_crop-75-0-100-16.png, plan build/layout-plan_crop-170-78-192-96.png. |
+| 2026-10-23-layout-review8#1 | PSV-4128 outlet at chest height beside VP-9 | medium | closed 15fd70f | GAN-4003 S6 open end [181.57, 87.64, 13.8]: 5.21 m above the VP-9 grating (8.6 m), 0.46 m off its edge in plan (computed). Source of Z-N2-VENTS (zones.yaml). The zone sphere's underside (10.8 m) is at the walkway headroom (8.6 + 2.2 m). vent-outlet, egress-zone and separation: 0 (validate). The core side-of-floor check (`vent_side_clearance_m` 1.5) finds nothing. Section build/layout-section-x181_crop-75-0-100-16.png, plan build/layout-plan_crop-170-78-192-96.png. |
 | 2026-10-23-layout-review8#2 | nozzle locations missing on 12 datasheets | medium | closed e4240c5 | validate compares "datasheet nozzle locations vs layout model" and reports no `datasheet-nozzle-layout` finding. Core f052dd8 also reports missing locations. |
 | 2026-10-23-layout-review8#3 | E-4101 sized as four coolers, laid out as one shell | medium | closed 409310e | List / datasheet / model 6 x 2.8 x 3.2 m, 24 t (ASSUMED). Box 3.1 m from FW-4101 and clear of Z-PAD-A4C (y 42) (`show E-4101 --layout`). Lifting study E-4101 24 t from Z-PAD-A4C at 7.91 m, 36.96 t needed, lane clear. No equipment box overlaps (computed). Side effect: #3 (no bundle-pull envelope). |
 | 2026-10-23-layout-review8#4 | LOX / LIN pump suctions above the tank outlets | medium | closed 8624d29 | T-4101 / T-4102 on a 0.5 m plinth. LOX-4001 S1 level at 1.0 m from N4; S2 / S3 level to the pump, then down to 0.65 m and level into N1. LIN-4001 the same. No point rises towards a pump (model points). NPSHa +0.34 / +0.31 m on the datasheets. I-01 / I-02 in cause-effect.yaml. Section build/layout-section-y103_crop-115-0-160-14.png. |

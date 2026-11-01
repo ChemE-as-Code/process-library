@@ -27,7 +27,7 @@ DEFAULT_EXCLUDE = (
     "**/.gitattributes",
 )
 #: The Atlas manifest, in the process folder beside the engineering files: also excluded from
-#: every published snapshot, as it names the repository (maybe private) and the excludes; the
+#: every published snapshot, as it names the repository and the excludes; the
 #: catalog publishes what of it may be public.
 MANIFEST = "process.yaml"
 #: core's LCA result files (``cheme assess lca --write``, and the per-scenario records of

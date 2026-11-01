@@ -6,7 +6,7 @@ basis, balanced BFD/PFD and a preliminary gate-to-gate LCI. Out of scope here: P
 HAZOP, TEA, datasheets.
 
 Starting point (2026-10-28): library `main` at cc5624f, cheme-as-code 0.8.0 (pyDEXPI 2.1.0).
-Core issues #315 (property/phase and reaction-energy qualification) and #364 (electrolytes)
+The core issues on property/phase and reaction-energy qualification and on electrolytes
 could not be opened from this session (`gh` cannot resolve them in ChemE-as-Code/core); their
 state is taken from what cheme 0.8.0 does: `cheme process props --coverage` has no package for
 any stream holding PCl3, POCl3, P4, Cl2 or the caustic liquor, so the gate is real for this case
@@ -114,7 +114,7 @@ Raoult's law with thermo vapour pressures for the vents, specified splits for th
 specified destruction for the scrubber; the PCl3 recycle is converged in the script.
 Reason: no property package of core 0.8.0 covers PCl3, POCl3, white phosphorus, chlorine with
 them, or the caustic liquor (`cheme process props --coverage`: every stream unsupported), and
-DWSIM simulation needs a qualified package (core #315; the liquor needs #364). The energy
+DWSIM simulation needs a qualified package (the liquor needs electrolyte support). The energy
 balance is therefore not evaluable in core (`cheme process energy`: not-evaluable for every
 block); duties come from the script.
 Result: the script's overall balance closes to 0.0065 kg/h on 4088 kg/h (molar-mass rounding);
@@ -210,10 +210,10 @@ assumed rather than given with a source, the condensers, columns and scrubber ar
 values, and no simulation is possible (D-006).
 
 ## Open inputs and gated steps
-- Gated (core #315): property package for PCl3/POCl3/P4/Cl2 (VLE, liquid enthalpies) to
+- Gated: property package for PCl3/POCl3/P4/Cl2 (VLE, liquid enthalpies) to
   simulate the vent condensers and columns, close the energy balance in core and size the
   columns; until then scripts/balance.py.
-- Gated (core #364): caustic liquor (NaCl, Na3PO4, Na2HPO3, NaOCl, NaOH) for the scrubber.
+- Gated: caustic liquor (NaCl, Na3PO4, Na2HPO3, NaOCl, NaOH) for the scrubber.
 - Open inputs: phosphorus impurity and water content (D-003); commercial POCl3 specification
   (D-002); residue amount and composition (D-008); R-201 kinetics and mass transfer (D-005);
   heat recovery from R-101 as steam (D-004); LCI backgrounds (D-012).

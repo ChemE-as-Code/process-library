@@ -1,7 +1,7 @@
 """Concept heat and material balance of thionyl-chloride-1 (DESIGN.md D-006).
 
 Independent of cheme-as-code's property packages, none of which is qualified for the sulfur
-chlorides, thionyl chloride or the alkaline scrubber liquor (core #315, #364; DESIGN.md D-006).
+chlorides, thionyl chloride or the alkaline scrubber liquor (DESIGN.md D-006).
 
 Model (every choice is a decision in DESIGN.md):
 - ideal gas with the Cp/R polynomials and formation enthalpies of process/materials.yaml;

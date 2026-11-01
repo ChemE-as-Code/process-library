@@ -3,7 +3,7 @@
 # (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
 # exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
 #
-# None yet: the process is internal (process.yaml publication.status) and its preliminary
+# None yet: the process's preliminary
 # gate-to-gate inventory leaves every background UNMAPPED on purpose (DESIGN.md D-013). Each
 # exchange is a reported gap (lci/gaps.json), never linked to a guess and never 0. The
 # background each should connect to is described in lca/lca.yaml (`missing:` of each flow).
@@ -13,4 +13,16 @@
 # the three waste treatments and the co-products need new shared entries (DESIGN.md, registry
 # list).
 schema: cheme-as-code/lci-process-mappings/v1
-exchanges: {}
+exchanges:
+  # Mapping step of 2026-11-01 (ADR 0026): each entry below uses a reference the library already
+  # holds. Notes above that call these exchanges unmapped describe the state before it. What is
+  # still unmapped is a gap (lci/gaps.json), and this process is marked preliminary.
+  "feed:HCLA": {use: hydrochloric-acid-32, source: "hydrochloric acid 32 wt% by mass of solution"}
+  "feed:HPS": {use: steam-heat, source: "HP steam 3000 kPa(a), counted as heat delivered (kWh); the shared entry converts it to the background's heat from steam, which does not distinguish pressure levels"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a), counted as heat delivered (kWh); the shared entry converts it to the background's heat from steam, which does not distinguish pressure levels"}
+  "feed:MPS": {use: steam-heat, source: "MP steam 1000 kPa(a), counted as heat delivered (kWh); the shared entry converts it to the background's heat from steam, which does not distinguish pressure levels"}
+  "feed:LSTM": {use: steam, source: "LP steam 450 kPa(a), live steam counted by mass; the shared entry is steam at 11 bar(a) and its enthalpy is not corrected to this pressure (screening); no Atlas producer of this grade", atlas: false}
+  "feed:MSTM": {use: steam, source: "MP steam 1000 kPa(a), motive steam, live steam counted by mass; the shared entry is steam at 11 bar(a) and its enthalpy is not corrected to this pressure (screening); no Atlas producer of this grade", atlas: false}
+  "feed:NAOHS": {dataset: {path: processes/chlor-alkali-1/lca/dataset.yaml, product: "product:NAOH"}, source: "the Atlas producer chlor-alkali-1, caustic soda 50 wt-%, per kg of solution as this exchange counts it"}
+  "feed:POWER": {use: electricity, source: "the library default: the design states no supply voltage"}
+  "product:CW": {chemical: cooling-water, source: "heat rejected to cooling water (kWh)"}

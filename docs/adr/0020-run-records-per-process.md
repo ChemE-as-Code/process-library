@@ -1,8 +1,8 @@
 # 0020. Record each design run with its process, organised by run, kept out of publication
 
 - **Status:** Proposed, 2026-10-27
-- **Amended 2026-10-28:** core now owns the record format and its writer (core ADR 0029,
-  core#403: schema `process-run/v1`, `cheme runs start | record | list`); this ADR keeps the
+- **Amended 2026-10-28:** core now owns the record format and its writer (core ADR 0029:
+  schema `process-run/v1`, `cheme runs start | record | list`); this ADR keeps the
   library's part: the folder in each process, the publication exclusion and the paper tags.
 - **Deciders:** the owner
 - **Scope:** library structure (a `runs/` folder in each process) and publication (`runs/**` excluded)
@@ -68,4 +68,4 @@ definition in the library would drift from it.
 (`tests/fixtures/snapshots/fixture-electrolysis/manifest.json`) and the `runs` case of
 `test_snapshot_not_exported_for_publication_is_an_error` in `tests/test_build_catalog.py`;
 the hooks in `processes/*/.claude/settings.json`; conventions in `docs/run-records.md`; first
-records in `processes/methanol-1/runs/` (#187). Format and writer: core ADR 0029, core#403.
+records in `processes/methanol-1/runs/` (#187). Format and writer: core ADR 0029.

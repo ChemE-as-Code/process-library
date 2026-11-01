@@ -1,5 +1,11 @@
 # Thionyl chloride
 
+> **AI-generated research output, not engineering advice.** This design was produced by AI coding
+> agents (Claude Code) under human direction and is checked by automated tools; it has had
+> no independent human review. It is not approved for construction, operation, procurement or
+> safety decisions and comes with no warranty. Check the design maturity and review status in
+> `process.yaml` before relying on any number.
+
 A plant design kept as plain files in git: DEXPI 2.0.1 P&IDs in `pid/`, engineering lists as
 YAML, decisions and progress as Markdown. Edited by people and by coding agents (Claude Code),
 checked by [`cheme-as-code`](https://github.com/ChemE-as-Code/core).
@@ -19,7 +25,7 @@ checked by [`cheme-as-code`](https://github.com/ChemE-as-Code/core).
 | `runs/` | one record per design session, written by `cheme runs record` (`runs/README.md`); never edited |
 | `DESIGN.md`, `PROGRESS.md`, `STAGES.md` | decisions, change log, stage definitions |
 | `scripts/` | generator scripts: the source of generated sheets (`generator:` in `plant.yaml`), provenance for the others |
-| `.claude/skills/` | how an agent works here |
+| `.claude/skills/` | how an agent works here (not in git: run `cheme skills update` once after cloning) |
 
 ## How this repository works
 
@@ -28,20 +34,21 @@ checked by [`cheme-as-code`](https://github.com/ChemE-as-Code/core).
   your computer (`uv tool install git+https://github.com/ChemE-as-Code/core.git`). Every check,
   drawing and generated file is made by the `cheme` command, so you need it to work here. The CI
   in `.github/workflows/` installs it too.
-- **Licences.** The ChemE-as-Code tools are licensed under AGPL-3.0-or-later; the content of this
-  repository (your plant data and models) is yours and can be licensed however you choose.
-- **The skills in `.claude/skills/` are copies** of the ones in cheme-as-code, so that Claude Code
-  finds them here. After upgrading (`uv tool upgrade cheme-as-code`), run `cheme skills update` to
-  refresh them; `cheme skills status` shows which are out of date. A skill you changed here is
-  kept.
-- **While cheme-as-code is private**, you need read access to it, and the CI needs the secrets
-  named in `.github/workflows/validate.yml`.
+- **Licences.** This folder is part of the ChemE-as-Code process library. Its data and designs are
+  under CC BY 4.0 (`LICENSE-DATA`, unless `process.yaml` states otherwise); its skills and scripts
+  are under AGPL-3.0-or-later (`LICENSE`), like the ChemE-as-Code tools.
+- **The skills in `.claude/skills/` are not in git.** They come with cheme-as-code: run
+  `cheme skills update` once in this folder after cloning, so that Claude Code finds them here. Run
+  it again after upgrading (`uv tool upgrade cheme-as-code`); `cheme skills status` shows which are
+  out of date. A skill you changed here is kept, but only on your machine.
+- The CI needs the secrets named in `.github/workflows/validate.yml`.
 
 ## Working here
 
 ```sh
-uv tool install cheme-as-code           # once (see the cheme-as-code README while it is private)
+uv tool install 'cheme-as-code[serve] @ git+https://github.com/ChemE-as-Code/core.git'   # once (see the cheme-as-code README)
 cheme git-setup                 # once per clone: readable P&ID diffs + pre-commit hook
+cheme skills update             # once per clone: installs the agent skills in .claude/skills/
 cheme status                    # where the plant stands: sheets, findings, gates, sign-offs
 cheme validate                  # after every change
 cheme fmt                       # canonical XML, stable ids

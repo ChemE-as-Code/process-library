@@ -8,9 +8,9 @@ agent-drafted 2026-10-28, not reviewed. Numbers live in `process/*.yaml`, `lca/l
 ## Run record (2026-10-28)
 
 - Library: branch `case/iodine-1` from main `cc5624f`; cheme 0.8.0 (pyDEXPI 2.1.0); core
-  checkout at `47c8fa39`. The core issues named in #145 (#364 electrolytes, #365 solids, #369
-  extraction) are not reachable as `ChemE-as-Code/core#...` with `gh` (pre-release tracker);
-  their state was checked only through what this core supports today: `cheme process
+  checkout at `47c8fa39`. The core capabilities named in #145 (electrolytes, solids,
+  extraction) were checked only
+  through what this core supports today: `cheme process
   electrolyte` covers aqueous NaCl only (no iodide, iodine, HI or acid liquors), `cheme process
   props --coverage` has no package for these streams, `cheme process simulate` was not used
   (D-007).
@@ -60,12 +60,12 @@ The held-out benchmark of the issue was not searched for.
 | calculation | method used | qualified by cheme? | gate |
 |---|---|---|---|
 | R-101, T-202, R-301, R-401 outlets | conversion model (specified conversions, process/reactions.yaml), element balances checked by cheme | yes (balance and extents); conversions specified, not predicted | none for a concept balance |
-| T-201 blowing-out split, F-301, M-301 (step M301 included: specified, script values for S19/S20, although `cheme maturity` infers "equilibrium-stage, predictive, sourced" from its DEXPI class SeparatingByPhaseSeparation; a core inference to report) | specified splits (scripts/iodine_balance.py) | no (specified stream values) | an I2/Cl2/CO2 vapour-liquid model in acid chloride brine needs electrolyte support (core #364) |
+| T-201 blowing-out split, F-301, M-301 (step M301 included: specified, script values for S19/S20, although `cheme maturity` infers "equilibrium-stage, predictive, sourced" from its DEXPI class SeparatingByPhaseSeparation; a core inference to report) | specified splits (scripts/iodine_balance.py) | no (specified stream values) | an I2/Cl2/CO2 vapour-liquid model in acid chloride brine needs electrolyte support |
 | recycles (air loop, filtrate, spent acid) | successive substitution in scripts/iodine_balance.py; splitter and pass-throughs by `cheme process propagate --fill` | balances yes | - |
-| solids (I2 crystals, cake, melt) | I2 carried as one component; state in the stream title | no | solids support (core #365) |
-| stream enthalpies, energy closure | duties from hand enthalpy estimates (D-008); `cheme process energy`: not evaluable | no | no property package for these liquors (core #364); reactors declared adiabatic |
+| solids (I2 crystals, cake, melt) | I2 carried as one component; state in the stream title | no | solids support |
+| stream enthalpies, energy closure | duties from hand enthalpy estimates (D-008); `cheme process energy`: not evaluable | no | no property package for these liquors; reactors declared adiabatic |
 | LCI | `cheme assess lca` (gate-to-gate, backgrounds unmapped) | yes; mass and element balance closed | backgrounds to link (D-011) |
-| solvent extraction / ion exchange alternatives | not used | - | core #369 only matters if extraction is chosen (D-001) |
+| solvent extraction / ion exchange alternatives | not used | - | core's extraction support only matters if extraction is chosen (D-001) |
 
 ## D-001 Route and boundary (2026-10-28)
 Decision: iodine from a natural iodide brine (formation water of a deep brine field, Oklahoma
@@ -84,7 +84,7 @@ comproportionation; heap leach and solution compositions not found in open prima
 this run, and the solids/heap system is further from what core models. (2) Ion-exchange or
 activated-carbon recovery of brine iodine (SRC-5 uses charcoal): suited to dilute brines; the
 Oklahoma brines at about 300 mg/kg are the reference case for blowing-out (SRC-3). (3) Solvent
-extraction (core #369): not needed for this route.
+extraction: not needed for this route.
 Assumptions: the brine is degassed and de-oiled at the wellhead; H2S removal (SRC-3 names it)
 is outside the boundary or unnecessary for a sweet brine (open input).
 
@@ -189,12 +189,12 @@ conversions (a conversion model with sourced ranges where sources exist); no kin
 reaction from NBS formation enthalpies of the ions (SRC-8, recalled, ASSUMED until checked).
 No property package; energy closure not evaluated in core.
 Reason: core supports no electrolyte system beyond aqueous NaCl (`cheme process electrolyte`)
-and no solids (core #364, #365, as of core `47c8fa39`); I-/I2/I3-, Cl2/HOCl and HSO4-
+and no solids (as of core `47c8fa39`); I-/I2/I3-, Cl2/HOCl and HSO4-
 equilibria would be needed for a predictive model.
 Rejected: forcing an equation-of-state package on these streams (outside any validated range).
 Gated step: a predictive T-201/T-202 model (stripping fraction and air ratio, with the I3- and
-I2Cl- complexes, D-005) and the energy balance wait for electrolyte support (core #364) and
-solids (core #365); until then the specified values stand, labelled.
+I2Cl- complexes, D-005) and the energy balance wait for electrolyte support and
+solids; until then the specified values stand, labelled.
 
 ## D-008 Conditions, duties and utilities (2026-10-28)
 Decision: the brine section runs at 313 K (brine temperature); towers near atmospheric

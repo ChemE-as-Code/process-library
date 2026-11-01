@@ -42,5 +42,5 @@ unallocated multi-output activity.
 - `986803b` (builder moved in), [#15](https://github.com/ChemE-as-Code/process-library/pull/15).
 - `2f6c009`, `d39f60a` allocation by the hierarchy with findings,
   [#68](https://github.com/ChemE-as-Code/process-library/pull/68).
-- `0733ec0` core's dataset contract v2 adapter, [#75](https://github.com/ChemE-as-Code/process-library/pull/75) (core#294).
+- `0733ec0` core's dataset contract v2 adapter, [#75](https://github.com/ChemE-as-Code/process-library/pull/75).
 - lci/README.md ("Source", "Co-products"), [system-model.md](../system-model.md) section 2.

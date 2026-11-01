@@ -8,12 +8,12 @@ ChemE-as-Code/process-library#168.
 Run record of this stage (2026-10-28): library branch `case/sodium-nitrite-1` from `9493d54`
 (main at `11d50ef`); cheme-as-code 0.8.0 (pyDEXPI 2.1.0), Python 3.15.0; DWSIM not used. Core
 state as installed: `cheme process methods` lists ENRTL-PR and PITZER-RKS as unsupported and
-the electrolyte route as NaCl-H2O only (issue #168 comment on core PR #394), so the
+the electrolyte route as NaCl-H2O only (issue #168 comment), so the
 nitrite/nitrate/carbonate liquors, nitric acid and the salts are **not covered** by any phase,
 property or simulation route (`cheme process props --coverage`: every stream outside the
-supported mixtures). The bounded crystalliser of core PR #395 (`crystallizer:`) is predictive
+supported mixtures). Core's bounded crystalliser (`crystallizer:`) is predictive
 only for a single salt from water; this mother liquor holds three salts, so it would stay at
-an imposed yield and is not used (D-008). The core issues themselves (#364, #365) could not be
+an imposed yield and is not used (D-008). The core issues themselves on electrolytes and solids could not be
 opened from this run (not visible to `gh`); their state is taken from the issue #168 comments.
 
 ## 1. Route and boundary memo
@@ -83,7 +83,7 @@ solubility table with its source, product prices, a BREF chapter on sodium nitri
 |---|---|---|---|---|
 | R101 burner | NH3_OX, NH3_N2O, NH3_N2 | conversion (specified selectivities 0.97 / 0.014 / 0.016, complete NH3 conversion); outlet and duty calculated by cheme | SRC-3 (conditions, calculated 92 % at six gauzes), SRC-5 (N2O by analogy) | selectivity ASSUMED; no gauze kinetics; Pt loss not modelled |
 | C201 absorbers | NO_OX, NITRITE_ABS, NITRATE_ABS | specified outlet streams (stream values), element balance checked by cheme | SRC-2 (ratio 40:1, liquor), SRC-3 (liquor 38-40 %) | no rate-based NOx absorption model (NO oxidation kinetics, N2O3/N2O4 equilibria, mass transfer) - an executable reactive-absorption model is not in core; nitrate ratio ASSUMED 20:1 |
-| E301, CR301, D301 | none | specified splits (stream values) | SRC-2 (concentrate, crystalliser temperatures, mother liquor) | no solubility model for the ternary salt system (core#364/#365) |
+| E301, CR301, D301 | none | specified splits (stream values) | SRC-2 (concentrate, crystalliser temperatures, mother liquor) | no solubility model for the ternary salt system |
 | R401 inversion | INVERSION, CARB_NEU | conversion 1 (specified), stream values | SRC-4 | acid excess, NO stripping air and NO oxidation not modelled |
 
 The burner reactions are far from equilibrium in the reverse direction (`cheme process
@@ -134,10 +134,10 @@ analysis) is a P&ID-stage item.
 | element/mass balance | cheme validate, process streams | supported | closed |
 | burner outlet and duty | conversion reactor, ideal-gas data | supported | calculated; agrees with the script (1 964.2 kW) |
 | NOx absorption with chemistry | specified outlets | no reactive-absorption model | specified (balanced target) |
-| electrolyte enthalpies (liquors) | NBS formation enthalpies, constant cp 2.8 kJ/kg K | unsupported (core#364: NaCl only) | duties C201, E301, CR301 are estimates; energy closure not evaluable in core |
-| NaNO2 crystallisation | specified splits | `crystallizer:` (core PR #395) predictive only for one salt; multi-solute -> imposed yield | not used: would add no predictive content |
-| property filling | none | `props --coverage`: no package | gated (core#364) |
-| simulation | none | DWSIM refuses electrolytes with water | gated (core#364) |
+| electrolyte enthalpies (liquors) | NBS formation enthalpies, constant cp 2.8 kJ/kg K | unsupported (NaCl only) | duties C201, E301, CR301 are estimates; energy closure not evaluable in core |
+| NaNO2 crystallisation | specified splits | `crystallizer:` predictive only for one salt; multi-solute -> imposed yield | not used: would add no predictive content |
+| property filling | none | `props --coverage`: no package | gated |
+| simulation | none | DWSIM refuses electrolytes with water | gated |
 
 ## D-001 Route and boundary (2026-10-28)
 Decision: ammonia oxidation, soda absorption, evaporative/cooling crystallisation, inversion of
@@ -276,7 +276,7 @@ cp 3.6 kJ/kg K), S8 at 71.5 degC, cooled to 40 degC in C201 (review #6).
 Result: E-301 heat 3 330 kW (1 928 kW WHB, 1 402 kW LP steam), CW of its condenser 2 692 kW;
 LP steam 1 994 kW (0.798 kWh/kg NaNO2 before allocation), internal WHB steam 1 928 kW, CW
 5 564 kW (2.23 kWh/kg before allocation).
-Gated: energy closure of the liquor steps by cheme needs electrolyte enthalpies (core#364).
+Gated: energy closure of the liquor steps by cheme needs electrolyte enthalpies.
 
 ## D-011 Machines and electricity (2026-10-28)
 Decision: air blower 101.3 to 131.3 kPa(a) from 15 degC at isentropic efficiency 0.75 (83.1 kW,
@@ -321,10 +321,10 @@ mass and element balances closed (cheme); checked by hand against the flowsheet:
 kg = outputs 1 + 3.2351 + 0.0228 + 0.2667 kg (allocated), i.e. 13 118.55 kg/h at the plant.
 
 ## 6. Core findings and gated steps
-- Electrolyte thermodynamics (core#364): the duties of C201, E301, CR301, CR401 and the dryers
+- Electrolyte thermodynamics: the duties of C201, E301, CR301, CR401 and the dryers
   are estimates; `cheme process props` and `simulate` refuse these streams; energy closure of
   those steps is not evaluable by cheme. Only the gas-phase burner duty is calculated.
-- Crystallisation (core#365, PR #395): supported for a single salt; this ternary system stays at
+- Crystallisation: supported for a single salt; this ternary system stays at
   specified splits.
 - `cheme maturity`: calculation maturity none - feed flows are design choices (not given with
   a source), absorber and crystalliser are specified stream values; this is the honest level

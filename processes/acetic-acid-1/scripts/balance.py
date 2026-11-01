@@ -8,7 +8,7 @@ the pumps and the reactor (`cheme process propagate --fill`) and checks every ba
 
 Run: cheme run scripts/balance.py            (prints the streams, conversions and duties)
      cheme run scripts/balance.py --yaml     (the streams as YAML for flowsheet.yaml)
-No property package covers this polar, associating mixture (core #315): the duties use rounded
+No property package covers this polar, associating mixture: the duties use rounded
 normal-boiling-point heats of vaporisation and constant liquid heat capacities (D-008).
 """
 import sys

@@ -1,7 +1,7 @@
 """Concept heat and material balance of acetic-anhydride-1 (ketene route), DESIGN.md D-006.
 
 An independent balance: core cannot qualify flashes, enthalpies or distillation of acetic
-acid / ketene / acetic anhydride / water (no property package; core #315), so the values the
+acid / ketene / acetic anhydride / water (no property package), so the values the
 flowsheet cannot calculate itself (separator and column outlets, recycle streams, utility
 duties, the natural gas and air of the firebox) come from here and are entered in
 process/flowsheet.yaml as ASSUMED with this script as their source. The reactor outlets,

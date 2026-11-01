@@ -117,7 +117,7 @@ read, not the whole sheet in tiles):
   In `provenance`, besides the changed source and output hashes, `generator_sha256` moved from
   d1f862cf... to edb4fded..., and the BFD/PFD header from ac1b86de... to 1e5e0c8a.... So the
   installed core has moved since review21. Because content is identical apart from the renames,
-  this is fingerprint-only (cf. core#132), and `layout build --check` passes under the installed
+  this is fingerprint-only, and `layout build --check` passes under the installed
   core.
 - **Leftover old tags:** no file in this scope (layout/, piping/, electrical/, equipment/,
   checks/, P-01..P-03, the C&E) names FI-4148, FIC-4105 or FV-4105. The instrument list keeps

@@ -112,9 +112,20 @@
       "type": "object",
       "additionalProperties": false,
       "minProperties": 1,
+      "not": {"required": ["use", "dataset"]},
       "properties": {
         "use": {"$ref": "#/$defs/id"},
         "chemical": {"$ref": "#/$defs/id"},
+        "dataset": {
+          "description": "Link this exchange to this Atlas dataset's product, chosen by a curator, as a dataset's own link.dataset does. An input with no background entry can link an Atlas producer this way. Not together with `use`.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "product"],
+          "properties": {
+            "path": {"type": "string", "pattern": "^processes/[a-z0-9-]+/lca/.+[.]yaml$"},
+            "product": {"type": "string", "pattern": "^product:[A-Za-z0-9_.\\-]+$"}
+          }
+        },
         "atlas": {"type": "boolean", "description": "false: the exchange is never linked inside the Atlas (prefer_atlas), only to its background mapping, e.g. while the process has not decided which Atlas utility serves it."},
         "properties_reason": {"type": "string", "minLength": 10, "description": "Why a product's allocation property (exergy, energy) may differ from the chemicals registry's (build_lci.py property_checks)."},
         "source": {"type": "string"}
