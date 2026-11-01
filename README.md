@@ -16,6 +16,12 @@
   <img src="https://img.shields.io/badge/status-research_preview-orange" alt="Status: research preview">
 </p>
 
+> **AI-generated research output, not engineering advice.** These designs were produced by AI
+> coding agents (Claude Code) under human direction and are checked by automated tools; most of
+> them have had no independent human review. They are not approved for construction, operation,
+> procurement or safety decisions and come with [no warranty](LICENSE-DATA). Check the design
+> maturity and review status in each process's `process.yaml` before relying on any number.
+
 ## Overview
 
 The process library is a collection of 50 chemical processes kept as code, from air separation,
@@ -32,7 +38,7 @@ processes appear there as they pass review), which links the processes through t
 they make and use. From the same files it builds open life cycle inventory (LCI) datasets for
 [Brightway](https://docs.brightway.dev) and openLCA. All of it is plain text in git, so every
 change is reviewed and versioned. This is research software
-in active development: research output, not engineering advice.
+in active development.
 
 <p align="center">
   <img src=".github/readme/atlas.png" alt="A process page of the Process Atlas" width="820">

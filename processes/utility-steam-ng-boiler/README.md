@@ -1,5 +1,11 @@
 # Steam generation, natural-gas boiler, saturated 11 bar(a)
 
+> **AI-generated research output, not engineering advice.** This design was produced by AI coding
+> agents (Claude Code) under human direction and is checked by automated tools; most of it has had
+> no independent human review. It is not approved for construction, operation, procurement or
+> safety decisions and comes with no warranty. Check the design maturity and review status in
+> `process.yaml` before relying on any number.
+
 Library utility (process-library#45), manifest only. Saturated steam at 11 bar(a) (184 degC) from a natural-gas fired boiler, per tonne of steam. Make-up water at 15 degC, no condensate return; continuous blowdown to wastewater treatment.
 
 ## How it is built

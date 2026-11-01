@@ -1,5 +1,11 @@
 # Chilled water at 6 degC from an electric chiller
 
+> **AI-generated research output, not engineering advice.** This design was produced by AI coding
+> agents (Claude Code) under human direction and is checked by automated tools; most of it has had
+> no independent human review. It is not approved for construction, operation, procurement or
+> safety decisions and comes with no warranty. Check the design maturity and review status in
+> `process.yaml` before relying on any number.
+
 Library utility (process-library#45), manifest only. Cold delivered as chilled water at 6 degC by an electric vapour-compression chiller, per MWh of cold. COP = 0.5 x the Carnot COP between 2 degC evaporating and 40 degC condensing (all ASSUMED), about 3.6. Its condenser heat (cold plus compressor work) goes to the cooling tower.
 
 ## How it is built

@@ -1,5 +1,11 @@
 # Wastewater treatment, activated sludge
 
+> **AI-generated research output, not engineering advice.** This design was produced by AI coding
+> agents (Claude Code) under human direction and is checked by automated tools; most of it has had
+> no independent human review. It is not approved for construction, operation, procurement or
+> safety decisions and comes with no warranty. Check the design maturity and review status in
+> `process.yaml` before relying on any number.
+
 Library utility (process-library#45), manifest only. Biological treatment of 1 m3 (1000 kg) of industrial wastewater at an ASSUMED design COD of 1 kg/m3. The organics are a CH2O model substrate, the biomass C5H7NO2: the oxygen demand is the COD removed minus the COD of the biomass grown, the CO2 that of the carbon oxidised (fossil, ASSUMED). Excess sludge goes to incineration with energy recovery (ASSUMED route), which the cut-off model leaves burden-free.
 
 ## How it is built

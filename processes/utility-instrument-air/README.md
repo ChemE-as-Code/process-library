@@ -1,5 +1,11 @@
 # Instrument air, dried, 8 bar(a)
 
+> **AI-generated research output, not engineering advice.** This design was produced by AI coding
+> agents (Claude Code) under human direction and is checked by automated tools; most of it has had
+> no independent human review. It is not approved for construction, operation, procurement or
+> safety decisions and comes with no warranty. Check the design maturity and review status in
+> `process.yaml` before relying on any number.
+
 Library utility (process-library#45), manifest only. Dry instrument air at 8 bar(a) and a -40 degC pressure dew point, per kg. Compressor electricity is the isothermal work of the humid intake over an ASSUMED isothermal efficiency of 0.6; a heatless dryer purges 15 % (ASSUMED). The compressor heat goes to cooling water, the aftercooler condensate to wastewater treatment.
 
 ## How it is built

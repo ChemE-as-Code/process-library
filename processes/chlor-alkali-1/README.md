@@ -1,5 +1,11 @@
 # Chlor-alkali (membrane cell)
 
+> **AI-generated research output, not engineering advice.** This design was produced by AI coding
+> agents (Claude Code) under human direction and is checked by automated tools; most of it has had
+> no independent human review. It is not approved for construction, operation, procurement or
+> safety decisions and comes with no warranty. Check the design maturity and review status in
+> `process.yaml` before relying on any number.
+
 A plant design kept as plain files in git: DEXPI 2.0.1 P&IDs in `pid/`, engineering lists as
 YAML, decisions and progress as Markdown. Edited by people and by coding agents (Claude Code),
 checked by [`cheme-as-code`](https://github.com/ChemE-as-Code/core).

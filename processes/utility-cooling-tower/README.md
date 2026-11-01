@@ -1,5 +1,11 @@
 # Cooling water, evaporative cooling tower, 25/35 degC
 
+> **AI-generated research output, not engineering advice.** This design was produced by AI coding
+> agents (Claude Code) under human direction and is checked by automated tools; most of it has had
+> no independent human review. It is not approved for construction, operation, procurement or
+> safety decisions and comes with no warranty. Check the design maturity and review status in
+> `process.yaml` before relying on any number.
+
 Library utility (process-library#45), manifest only. Heat rejection from cooling water supplied at 25 degC and returned at 35 degC in a mechanical-draught wet tower, per MWh rejected. The dry air flow follows from the air-side energy balance (ambient 20 degC, 60 % RH; air leaving saturated at 30 degC, both ASSUMED); evaporation is that air flow times its humidity pick-up, about 1.18 kg per kWh rejected. Make-up (about 1.57 kg/kWh) is a water resource withdrawn from nature; blowdown goes to wastewater treatment.
 
 ## How it is built

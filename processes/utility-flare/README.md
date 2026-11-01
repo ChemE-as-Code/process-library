@@ -1,5 +1,11 @@
 # Flaring of methane-rich waste gas
 
+> **AI-generated research output, not engineering advice.** This design was produced by AI coding
+> agents (Claude Code) under human direction and is checked by automated tools; most of it has had
+> no independent human review. It is not approved for construction, operation, procurement or
+> safety decisions and comes with no warranty. Check the design maturity and review status in
+> `process.yaml` before relying on any number.
+
 Library utility (process-library#45), manifest only. Combustion of 1 kg of waste gas, taken as methane, in an elevated flare at an ASSUMED combustion efficiency of 98 %: CO2 and water of the burnt fraction, the unburnt methane to air.
 
 ## How it is built
