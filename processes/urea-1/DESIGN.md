@@ -259,6 +259,19 @@ would hide the gaps the LCI declares.
 To undo: add the mappings in a library PR (ammonia and CO2 feed gas with O-1 and O-6, MP steam
 per kWh or the steam in kg, the urea dust flow, biuret dropped or curated), remove the
 `.gitignore` line and commit the dataset.
+Superseded by D-014.
+
+## D-014 LCI dataset committed, its gaps listed (2026-11-01; supersedes D-013)
+Decision: `lca/dataset.yaml` is committed and in the Atlas LCI build; the `.gitignore` line is
+removed.
+Reason: D-013's reason no longer applies. Under ADR 0022 and ADR 0026 an unmapped exchange is a
+listed gap, exported unlinked and marked preliminary, in a public process too, and does not fail
+`--strict`. Of D-013's five exchanges, three are closed by earlier library work: feed:NH3 and
+feed:MPS have overrides in `lca/mappings.yaml`, and emission:BIURET is a curated declared zero in
+`lci/mappings.yaml` `pass_through`. Two stay gaps (`lci/gaps.json`), not guessed links:
+feed:CO2 (no `carbon-dioxide` technosphere entry; the supply is the ammonia plant's CO2 removal,
+O-1) and emission:UREA (no biosphere identity for urea dust; its size split is unknown).
+Consequence: the process is marked preliminary, as `process.yaml` `validation.notes` now says.
 
 ## Open inputs
 - O-1 Ammonia plant interface (issue #304): NH3 and CO2 conditions, CO2 impurities (H2, see

@@ -35,28 +35,33 @@ maturity: concept
 validation:
   status: unreviewed
   notes: >-
-    Concept PFD with closed mass, component and element balances (cheme validate: 0 errors,
-    0 warnings). Furnace, hydrogenation reactors and firebox outlets are calculated by cheme
+    Concept PFD with closed mass, component and element balances (cheme validate: 0 errors, 0
+    warnings). Furnace, hydrogenation reactors and firebox outlets are calculated by cheme
     (conversion reactors; furnace conversions derived from the BREF LVOC 2017 Table 3.3 yields).
     Capacity, feed composition, splits, purities, efficiencies and utility levels are ASSUMED;
-    separations and duties come from scripts/balance.py on ideal-gas enthalpies (no
-    qualified property package for the C2+ hydrocarbons), so the energy balance is not
-    evaluable in core beyond the reactor duties, which cheme process reactors reproduces. The
-    preliminary gate-to-gate LCI closes in mass, elements and carbon by origin, with every
-    background unmapped (gaps). Not reviewed. The chemicals registry has no ethylene,
-    propylene, ethane, natural-gas or sodium-hydroxide entry yet, so the main product and most
-    flows are not listed under chemistry (open library item). cheme maturity: calculation
-    maturity none (sourced boundary fails: capacity and feed are ASSUMED; balanced model basis
-    fails: the splits and conversions of H102, T201, D210, T310, D320, V402, R501 and R601 are
-    unsourced). concept is claimed as the lowest level of the manifest; the warning
-    cheme.maturity-claim-exceeds is acknowledged. The refrigeration power is a conservative
-    upper estimate (D-014).
+    separations and duties come from scripts/balance.py on ideal-gas enthalpies (no qualified
+    property package for the C2+ hydrocarbons), so the energy balance is not evaluable in core
+    beyond the reactor duties, which cheme process reactors reproduces. The preliminary
+    gate-to-gate LCI closes in mass, elements and carbon by origin, with every background
+    unmapped (gaps). Not reviewed. Main products and feeds are listed under chemistry with their
+    chemicals registry entries (issue #251). cheme maturity: calculation maturity none (sourced
+    boundary fails: capacity and feed are ASSUMED; balanced model basis fails: the splits and
+    conversions of H102, T201, D210, T310, D320, V402, R501 and R601 are unsourced). concept is
+    claimed as the lowest level of the manifest; the warning cheme.maturity-claim-exceeds is
+    acknowledged. The refrigeration power is a conservative upper estimate (D-014).
 chemistry:
   inputs:
+    - {chemical: ethane, role: feedstock, note: "feed:ETHANE: purity ethane by pipeline, 1.27 kg/kg ethylene (unallocated)"}
+    - {chemical: methane, role: feedstock, note: "feed:NATGAS: natural gas make-up to the fuel header, taken as methane"}
+    - {chemical: sodium-hydroxide, role: feedstock, note: "feed:CAUSTIC: fresh caustic soda solution 10 wt%, counted by mass of the solution"}
     - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Combustion air of the cracking furnaces"}
-    - {chemical: water, role: feedstock, inventory_key: "feed:BFW", note: "Boiler feed water make-up to the dilution steam system. The main feed, purity ethane (feed:ETHANE), the natural gas make-up (feed:NATGAS) and the caustic soda (feed:CAUSTIC, from chlor-alkali-1) have no registry entries yet"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:BFW", note: "Boiler feed water make-up to the dilution steam system"}
   outputs:
-    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "Fossil CO2 of the furnace flue gas: 0.472 kg/kg ethylene unallocated (59.1 t/h over 125 t/h ethylene), 0.433 kg/kg ethylene with mass allocation (ethylene share 91.6 %). Both are gross: they include the fuel that preheats and superheats the exported SHP steam (product:HPS, about a third of the fired duty), which carries no burden (D-015, D-016). The main product, ethylene (product:ETHYLENE), and the co-products propylene, crude C4 and pyrolysis gasoline have no registry entries yet"}
+    - {chemical: ethylene, role: main-product, inventory_key: "product:ETHYLENE", note: "Polymer-grade ethylene"}
+    - {chemical: propylene, role: co-product, inventory_key: "product:PROPYLENE", note: "Polymer-grade propylene"}
+    - {chemical: crude-c4, role: co-product, inventory_key: "product:CRUDEC4", note: "Crude C4 cut"}
+    - {chemical: pyrolysis-gasoline, role: co-product, inventory_key: "product:PYGAS", note: "Pyrolysis gasoline (C5/C6 cut)"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "Fossil CO2 of the furnace flue gas: 0.472 kg/kg ethylene unallocated (59.1 t/h over 125 t/h ethylene), 0.433 kg/kg ethylene with mass allocation (ethylene share 91.6 %). Both are gross: they include the fuel that preheats and superheats the exported SHP steam (product:HPS, about a third of the fired duty), which carries no burden (D-015, D-016)"}
     - {chemical: wastewater, role: waste, inventory_key: "product:BLOWDOWN", note: "Process water blowdown; the spent caustic (product:SPENTCAUSTIC) is a second wastewater"}
     - {chemical: steam, role: co-product, inventory_key: "product:HPS", note: "SHP steam 11500 kPa(a), 520 C, raised in the TLEs and convection sections (ASSUMED export, D-015); outside the mass allocation and without a burden, so the fuel and CO2 that raise it stay with the hydrocarbon products"}
   utilities:

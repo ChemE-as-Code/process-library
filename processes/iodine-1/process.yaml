@@ -40,22 +40,25 @@ validation:
   notes: >-
     Concept PFD with closed mass, component and element balances (cheme validate, cheme process
     streams, cheme assess lca --balance: every element within 0.01 %). Only the brine iodine
-    content (300 mg/kg, Oklahoma Geological Survey; US Bureau of Mines, Minerals Yearbook 1987) is sourced; the
-    route steps follow patent backgrounds (US 2013/0243684 A1, US 4,282,324, US 1,897,031, US
-    9,994,448 B2); every flow, conversion and duty is ASSUMED or comes from
+    content (300 mg/kg, Oklahoma Geological Survey; US Bureau of Mines, Minerals Yearbook 1987)
+    is sourced; the route steps follow patent backgrounds (US 2013/0243684 A1, US 4,282,324, US
+    1,897,031, US 9,994,448 B2); every flow, conversion and duty is ASSUMED or comes from
     scripts/iodine_balance.py. The yields were chosen within sourced ranges so that the overall
     recovery equals the 90 % that US 2013/0243684 A1 states (about 30 mg/kg iodine left then
     follows by arithmetic): the recovery is calibrated to the patent, not an independent check
-    of the model.
-    Energy closure is not evaluable in core (no electrolyte enthalpies). Not
-    reviewed. The chemicals registry has no iodine, chlorine, sodium hydroxide, sulfuric acid or
-    sulfur dioxide entry yet, so the main product and most feedstocks are not listed under
-    chemistry (open library item).
+    of the model. Energy closure is not evaluable in core (no electrolyte enthalpies). Not
+    reviewed. Main products and feeds are listed under chemistry with their chemicals registry
+    entries (issue #251).
 chemistry:
   inputs:
-    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Absorber make-up water, 8.9 kg/kg iodine. The iodide brine (feed:BRINE, 3.7 t/kg), chlorine (feed:CL2, from chlor-alkali-1), SO2 (feed:SO2), sulfuric acid (feed:H2SO4, from sulfuric-acid-1) and caustic soda (feed:NAOH, from chlor-alkali-1) have no registry entry yet"}
+    - {chemical: chlorine, role: feedstock, note: "feed:CL2: chlorine gas 400 kPa(a) (e.g. chlor-alkali-1)"}
+    - {chemical: sulfur-dioxide, role: feedstock, note: "feed:SO2: liquid sulfur dioxide, vaporised at the absorber"}
+    - {chemical: sulfuric-acid, role: feedstock, note: "feed:H2SO4: sulfuric acid 98.5 wt% (e.g. sulfuric-acid-1)"}
+    - {chemical: sodium-hydroxide, role: feedstock, note: "feed:NAOH: caustic soda 50 wt% (e.g. chlor-alkali-1), counted by mass of the solution"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Absorber make-up water, 8.9 kg/kg iodine"}
   outputs:
-    - {chemical: wastewater, role: waste, inventory_key: "product:SPENT", note: "Neutralised spent brine, 3.7 t/kg iodine, reinjected into the producing formation (about 30 mg/kg iodine left). The main product iodine (product:IODINE) has no registry entry yet"}
+    - {chemical: iodine, role: main-product, inventory_key: "product:IODINE", note: "Iodine flakes, 99.8 wt% I2, to packing"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:SPENT", note: "Neutralised spent brine, 3.7 t/kg iodine, reinjected into the producing formation (about 30 mg/kg iodine left)"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Air circulation fan, reinjection pump (dominant, ASSUMED 3000 kPa), absorbent pump and recovery drives: 4.8 kWh/kg"}
     - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 450 kPa(a) to the iodine melter (ASSUMED)"}

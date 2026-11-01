@@ -82,7 +82,7 @@ def test_two_routes_to_one_product_per_the_same_functional_unit(tmp_path: Path) 
     assert (smr["tier"], smr["tier_method"], smr["geography"], smr["year"], smr["maturity"]) == (1, "sourced conceptual (fixture)", "GLO", 2025, "screening")
     assert pem["review"] == smr["review"] == ["none"]
     # the footprint where the catalog has one, with its interval; the manifest-only route has none
-    assert pem["footprint"]["value"] == 11.0 and pem["footprint"]["functional_unit"] == "1 kg H2"
+    assert pem["footprint"]["value"] == 11.0 and pem["footprint"]["functional_unit"] == "1 kg hydrogen, gaseous, 30 bar"
     assert pem["footprint"]["interval"] == {"low": 8.2, "median": 11.1, "high": 15.9, "level": 0.95, "iterations": 500, "source": "lca/uncertainty.csv"}
     assert smr["footprint"] is None
     assert pem["data_quality"]["dqr"] == 2.3333 and smr["data_quality"] is None
@@ -147,7 +147,7 @@ def test_another_functional_unit_is_flagged_and_the_inventory_converted(routes_c
     assert routes["route-electrolysis"]["inventory"]["functional_unit"] == "1 kg"
     assert routes["route-electrolysis"]["inventory"]["energy"][0]["amount"] == 55.0
     # its footprint stays per its own functional unit (never converted)
-    assert routes["route-electrolysis"]["footprint"]["functional_unit"] == "1 t H2"
+    assert routes["route-electrolysis"]["footprint"]["functional_unit"] == "1 t hydrogen, gaseous, 30 bar"
 
 
 def test_another_grade_is_a_product_mismatch(routes_copy: Path, tmp_path: Path) -> None:
