@@ -9,8 +9,9 @@ Dead state 298.15 K, 101.325 kPa.
   the ideal-gas formation data of process/materials.yaml and Szargut's element exergies (C 410.26,
   H2 236.09, O2 3.97 kJ/mol; element entropies C 5.74, H2 130.68, O2 205.15 J/(mol K)), less the
   Gibbs energy of condensation RT ln(P0/Psat) at 298.15 K for the liquid (thermo vapour pressure).
-- MEOH (S18): liquid methanol and water with the ideal mixing term; physical exergy at 313 K /
-  300 kPa neglected (below 0.01 %).
+- MEOH (S18): liquid methanol and water with the ideal mixing term; the dissolved gases of the
+  simulated S18 (traces below 2e-6) with their gas values; physical exergy at 313 K / 300 kPa
+  neglected (below 0.01 %).
 - PURGE (S11; not a co-product, its exergy is only for the alternative shown) and FUELGAS (S14 + S16,
   by flow): ideal-gas mixtures: chemical exergy with the
   mixing term plus the pressure exergy RT0 ln(P/P0); the thermal part at 313-315 K is neglected
@@ -64,6 +65,10 @@ def specific(sid, phase):
             e = EX_MEOH_LIQ if phase == "liquid" else EX_MEOH_GAS
         else:
             e = exergy.standard(CAS[k], phase)
+            if e is None:
+                # dissolved gas in the liquid product (simulated traces, H2 .. N2 below 2e-6 in
+                # S18): the table has no liquid value, so its gas value is used
+                e = exergy.standard(CAS[k], "gas")
         total += x * e
     total += R * T0 * sum(x * math.log(x) for x in xs.values())
     if phase == "gas":
