@@ -99,7 +99,8 @@ explanation may live in DESIGN.md or a dataset note, but the link to it is alway
 with `no_open_reference` has no range, so an `out_of_range_reason` on it is a registry error.
 
 **Coverage.** In a library with a `benchmarks/` folder, every public process with an LCI dataset
-needs at least two KPIs, each with a source or a recorded `no_open_reference`. Otherwise both
+should have at least two KPIs, each with a source or a recorded `no_open_reference`. A process with
+fewer gets a warning that does not fail `--strict` (ADR 0026). Otherwise both
 builds warn. A binding that names no dataset of the library (for example after a rename) is a
 warning too, and so is a binding under a family that the process's `process.yaml` does not list
 in `families`.

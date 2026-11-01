@@ -25,7 +25,7 @@ Files (``<out>/lci/``):
   it; allocating it with the build's method gives the workbook's activities, with their codes.
   The markets and proxies are single-output processes under their activity codes.
 
-A mapping gap of an unpublished process (``atlas gap``, ADR 0022) is carried unlinked and flagged
+A mapping gap (``atlas gap``, ADR 0022, ADR 0026) is carried unlinked and flagged
 in both formats, never linked to a guess: in JSON-LD a flow of its own in the category
 ``ChemE-as-Code Atlas/unlinked (mapping gaps)`` (``atlas_uuid("flow", "gap", <type>, <name>,
 <unit>)``) without a default provider, and the process description's ``UNLINKED`` note; in the
@@ -179,7 +179,7 @@ class _Olca:
     def exchange_flow(self, entry: dict, where: str) -> tuple[o.Ref, o.Ref | None, str]:
         """The flow of a non-product exchange, its default provider (an Atlas process) and a note."""
         if entry.get("atlas gap"):
-            # a mapping gap of an unpublished process (ADR 0022): no provider, no elementary flow
+            # a mapping gap (ADR 0022, ADR 0026): no provider, no elementary flow
             # identity; an Atlas flow in its own category, flagged, never mapped to a guess
             kind = o.FlowType.ELEMENTARY_FLOW if entry["type"] == "biosphere" else o.FlowType.PRODUCT_FLOW
             fid = atlas_uuid("flow", "gap", entry["type"], entry["name"], entry["unit"])

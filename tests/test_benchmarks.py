@@ -237,14 +237,27 @@ def test_without_core_a_conversion_is_unchecked_and_fails_strict(tmp_path: Path,
 def test_a_public_process_needs_two_kpis_and_bindings_need_a_dataset(tmp_path: Path) -> None:
     library = _library(tmp_path)
     _edit_benchmarks(library, lambda d: [d["datasets"][0]["kpis"].pop(k) for k in ("cooling-duty-gox", "o2-recovery")])
-    (warning,) = build_lci.build(library, tmp_path / "out", "0.1.0", commit="fixture").warnings
+    report = build_lci.build(library, tmp_path / "out", "0.1.0", commit="fixture")
+    (warning,) = report.warnings
     assert warning.startswith("asu-1: 1 benchmarked KPI(s); a public process needs at least 2")
+    # a warning, printed, that does not fail --strict (ADR 0026)
+    assert report.advisories == [warning] and report.strict_failures == []
 
     library = _library(tmp_path / "renamed")
     _edit_benchmarks(library, lambda d: d["datasets"][0].update(dataset="asu-1-old"))
     warnings = build_lci.build(library, tmp_path / "out2", "0.1.0", commit="fixture").warnings
     assert "benchmarks: datasets asu-1/asu-1-old: no such LCI dataset in the library (renamed?)" in warnings
     assert any(w.startswith("asu-1: 0 benchmarked KPI(s)") for w in warnings)
+
+
+@needs_core
+def test_a_benchmark_gap_stays_a_warning_under_strict(tmp_path: Path, capsys) -> None:
+    library = _library(tmp_path)
+    _edit_benchmarks(library, lambda d: [d["datasets"][0]["kpis"].pop(k) for k in ("cooling-duty-gox", "o2-recovery")])
+    assert build_lci.main(["--library", str(library), "--out", str(tmp_path / "lci"), "--strict"]) == 0
+    assert "warning: asu-1: 1 benchmarked KPI(s)" in capsys.readouterr().err
+    assert build_catalog.main(["--library", str(library), "--out", str(tmp_path / "cat"), "--strict"]) == 0
+    assert "asu-1: 1 benchmarked KPI(s)" in capsys.readouterr().err
 
 
 @needs_core

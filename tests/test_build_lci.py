@@ -247,14 +247,15 @@ def test_substitution_cannot_be_exported_per_co_product(library: Path, tmp_path:
     assert any("allocation 'substitution' cannot be exported" in e for e in report.errors)
 
 
-def test_unmapped_exchange_and_uncurated_free_emission_fail(library: Path, tmp_path: Path) -> None:
+def test_unmapped_exchange_is_a_gap_and_uncurated_free_emission_fails(library: Path, tmp_path: Path) -> None:
     def change(d):
         d["exchanges"].append({"key": "feed:CATALYST", "type": "input", "amount": 1.0, "unit": "kg"})
         d["exchanges"].append({"key": "emission:AR", "type": "emission", "amount": 1.0, "unit": "kg", "free": True})
 
     _edit_dataset(library, change)
     report = _build(library, tmp_path / "out")
-    assert any("feed:CATALYST: no mapping" in e for e in report.errors)
+    assert any(g["key"] == "feed:CATALYST" and g["reason"].startswith("no mapping") for g in report.gaps)
+    assert not any("feed:CATALYST" in e for e in report.errors)
     assert any("free emission of AR is not in lci/mappings.yaml pass_through" in e for e in report.errors)
 
 
@@ -442,7 +443,7 @@ def test_an_internal_process_builds_strictly_with_its_gaps_unlinked(library: Pat
     printed = capsys.readouterr()
     assert f"gap: fixture-ammonia: {AMMONIA} feed:CATALYST: no mapping" in printed.err
     assert f"gap: fixture-ammonia: {AMMONIA} emission:XE: emission of XE (fossil) has no biosphere3 flow identity" in printed.err
-    assert "2 mapping gap(s) in 1 unpublished process(es)" in printed.out
+    assert "2 mapping gap(s) in 1 preliminary process(es)" in printed.out
 
     report = build_lci.build(library, tmp_path / "again", "0.1.0", commit="fixture")
     assert report.errors == [] and report.warnings == []
@@ -490,19 +491,111 @@ def test_an_internal_process_builds_strictly_with_its_gaps_unlinked(library: Pat
     assert not any({"database", "atlas code", "atlas activity code"} & set(e) for e in marked)
 
 
-def test_the_same_gaps_fail_a_public_process(library: Path, tmp_path: Path) -> None:
-    _unmapped_feed_and_emission(library)
-    manifest = library / "processes" / "fixture-ammonia" / "process.yaml"
+def _make_public(library: Path, pid: str = "fixture-ammonia") -> None:
+    manifest = library / "processes" / pid / "process.yaml"
     data = yaml.safe_load(manifest.read_text())
     data["publication"] = {"status": "public", "license": "CC-BY-4.0"}
     manifest.write_text(yaml.safe_dump(data, sort_keys=False))
-    assert build_lci.main(["--library", str(library), "--out", str(tmp_path / "out"), "--strict"]) == 1
+
+
+@pytest.mark.parametrize("public", [False, True])
+def test_a_public_process_builds_with_its_gaps_unlinked_and_preliminary(library: Path, tmp_path: Path, capsys, public: bool) -> None:
+    _unmapped_feed_and_emission(library)
+    _make_public(library)
+    out = tmp_path / "out"
+    flags = ["--public"] if public else []
+    assert build_lci.main(["--library", str(library), "--out", str(out), "--version", "0.1.0", "--strict", *flags]) == 0
+    printed = capsys.readouterr()
+    assert f"gap: fixture-ammonia: {AMMONIA} feed:CATALYST: no mapping" in printed.err.replace(chr(92), "/")
+    assert "2 mapping gap(s) in 1 preliminary process(es)" in printed.out
+
+    # unlinked in the workbook, as for an unpublished process; no impact value anywhere
+    activity = _activities(out / "lci" / f"{DB}.xlsx")[NH3]
+    for key in ("feed:CATALYST", "emission:XE"):
+        entry = _exchange(activity, key)
+        assert entry["atlas gap"].startswith("unlinked, no ")
+        assert not {"database", "categories", "reference product", "location"} & set(entry)
+    assert activity["meta"]["atlas gaps"] == 2 and activity["meta"]["atlas preliminary"] is True
+    assert "PRELIMINARY: 2 exchange(s)" in activity["meta"]["comment"] and "UNLINKED (mapping gaps" in activity["meta"]["comment"]
+    assert "not published" not in activity["meta"]["comment"]
+
+    # stated plainly and machine-readably, and separately from publication
+    package = _json(out / "lci" / "datapackage.json")
+    entry = next(p for p in package["processes"] if p["id"] == "fixture-ammonia")
+    assert entry["preliminary"] is True and entry["gap_count"] == 2 and [g["key"] for g in entry["gaps"]] == ["feed:CATALYST", "emission:XE"]
+    page = next(a for a in package["activities"] if a["code"] == NH3)
+    assert (page["publication"], page["preliminary"], page["gaps"]) == ("public", True, 2)
+    assert {e["key"] for e in page["exchanges"] if "gap" in e} == {"feed:CATALYST", "emission:XE"}
+    assert not any("flow" in e or "link" in e or "atlas" in e for e in page["exchanges"] if "gap" in e)
+    assert any(c.startswith("PRELIMINARY: 2 exchange(s) of 1 process(es)") and "fixture-ammonia" in c for c in package["caveats"])
+    index = _json(out / "lci" / "index.json")
+    assert index["preliminary"] == ["fixture-ammonia"] and index["gaps"] == {"fixture-ammonia": 2}
+    assert all(a["preliminary"] is True for a in index["processes"]["fixture-ammonia"])
+    assert any(c.startswith("PRELIMINARY") for c in index["caveats"])
+    gaps = _json(out / "lci" / "gaps.json")
+    assert gaps["count"] == 2 and gaps["preliminary"] == ["fixture-ammonia"]
+
+    # a process without gaps is not marked
+    assert not next(p for p in package["processes"] if p["id"] == "fixture-electrolysis")["preliminary"]
+    assert next(a for a in package["activities"] if a["code"] == H2)["preliminary"] is False
+    assert not any("preliminary" in a for a in index["processes"]["fixture-electrolysis"])
+
+
+def test_a_build_without_gaps_is_not_preliminary(library: Path, tmp_path: Path) -> None:
+    report = _build(library, tmp_path / "out")
+    assert report.errors == [] and report.gaps == []
+    index = _json(tmp_path / "out" / "lci" / "index.json")
+    assert index["preliminary"] == [] and not any("PRELIMINARY" in c for c in index["caveats"])
+    package = _json(tmp_path / "out" / "lci" / "datapackage.json")
+    assert not any(a["preliminary"] for a in package["activities"]) and not any(p["preliminary"] for p in package["processes"])
+
+
+@pytest.mark.parametrize(
+    "override, message",
+    [
+        ({"use": "no-such-entry", "source": "test"}, "override uses unknown technosphere entry"),
+        ({"dataset": {"path": "processes/no-such/lca/dataset.yaml", "product": "product:H2"}, "source": "test"}, "is not an exported Atlas dataset"),
+    ],
+)
+def test_real_errors_still_fail_a_public_process(library: Path, tmp_path: Path, override: dict, message: str) -> None:
+    _unmapped_feed_and_emission(library)
+    _make_public(library)
+    _overrides(library, {"feed:CATALYST": override})
     for public in (False, True):
         report = build_lci.build(library, tmp_path / f"out-{public}", "0.1.0", commit="fixture", public=public)
-        assert report.gaps == []
-        assert any(f"{AMMONIA} feed:CATALYST: no mapping" in e for e in report.errors)
-        assert any(f"{AMMONIA} emission:XE: emission of XE (fossil) has no biosphere3 flow identity" in e for e in report.errors)
+        assert any(message in e for e in report.errors), report.errors
         assert not (tmp_path / f"out-{public}" / "lci").exists()
+
+
+def test_an_override_can_name_an_atlas_producer(library: Path, tmp_path: Path) -> None:
+    _unmapped_feed_and_emission(library)
+    path = next(p for p in (library / "processes" / "fixture-electrolysis" / "lca").glob("dataset.yaml"))
+    product = next(e["key"] for e in yaml.safe_load(path.read_text())["exchanges"] if e["type"] == "product" and e["unit"] == "kg")
+    _overrides(library, {"feed:CATALYST": {"dataset": {"path": "processes/fixture-electrolysis/lca/dataset.yaml", "product": product}, "source": "test: the chosen producer"}})
+    report = _build(library, tmp_path / "out")
+    assert report.errors == [] and [g["key"] for g in report.gaps] == ["emission:XE"]
+    linked = _exchange(_activities(tmp_path / "out" / "lci" / f"{DB}.xlsx")[NH3], "feed:CATALYST")
+    assert linked["database"] == DB and "atlas gap" not in linked
+
+
+def test_an_override_naming_an_atlas_producer_in_another_unit_fails(library: Path, tmp_path: Path) -> None:
+    _unmapped_feed_and_emission(library)
+    path = library / AMMONIA
+    data = yaml.safe_load(path.read_text())
+    next(e for e in data["exchanges"] if e["key"] == "feed:CATALYST")["unit"] = "m3"
+    path.write_text(yaml.safe_dump(data, sort_keys=False))
+    target = library / "processes" / "fixture-electrolysis" / "lca" / "dataset.yaml"
+    product = next(e["key"] for e in yaml.safe_load(target.read_text())["exchanges"] if e["type"] == "product" and e["unit"] == "kg")
+    _overrides(library, {"feed:CATALYST": {"dataset": {"path": "processes/fixture-electrolysis/lca/dataset.yaml", "product": product}, "source": "test"}})
+    report = _build(library, tmp_path / "out")
+    assert any("feed:CATALYST" in e and "but the exchange is in" in e for e in report.errors), report.errors
+
+
+@pytest.mark.parametrize("override", [{"use": "water", "dataset": {"path": "processes/x/lca/dataset.yaml", "product": "product:H2"}}, {"dataset": {"path": "processes/x/lca/dataset.yaml"}}])
+def test_an_invalid_atlas_producer_override_is_a_schema_error(library: Path, tmp_path: Path, override: dict) -> None:
+    _overrides(library, {"feed:nitrogen": override})
+    report = _build(library, tmp_path / "out")
+    assert any("processes/fixture-ammonia/lca/mappings.yaml" in e.replace(chr(92), "/") for e in report.errors), report.errors
 
 
 def test_a_process_override_is_applied(library: Path, tmp_path: Path) -> None:

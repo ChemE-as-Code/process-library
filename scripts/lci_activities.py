@@ -32,7 +32,10 @@ single-output activity per 1 unit of its reference product. It carries
   multifunctional JSON) and how to find it there: the code, the JSON-LD process id and member,
   or the dataset code of the unallocated form;
 - ``publication``: ``public`` or ``preview`` (``publication.py``). A ``--public`` build holds
-  public processes only, so every entry of it is ``public``.
+  public processes only, so every entry of it is ``public``;
+- ``preliminary`` and ``gaps``: whether the activity has unlinked exchanges, and how many (ADR
+  0026). Publication and completeness are separate facts: a public activity can be preliminary. A
+  market is preliminary when a supplier is (``gaps`` then 0: it has none of its own).
 
 Dataset-level facts the page also shows (review, data quality, data status, benchmarks,
 property checks, cut-off exclusions) stay where they are, in ``processes[].datasets[]``; an entry
@@ -245,6 +248,7 @@ def entries(
     codes = {_identity(a.exchanges[0]): a.row["code"] for a in [*activities, *proxies, *markets]}
     datasets = {(p.pid, d.data["id"]): (p, d) for p in processes for d in p.datasets}
     out: list[dict] = []
+    gaps_of: dict[str, int] = {a.row["code"]: a.metadata.get("atlas gaps", 0) for a in activities}
     for activity in activities:
         meta, row = activity.metadata, activity.row
         process, dataset = datasets[(meta["atlas process"], meta["atlas dataset"])]
@@ -308,6 +312,8 @@ def entries(
                 },
                 "downloads": _downloads(resources, row["code"], dataset_code=f"{process.pid}:{doc['id']}", dataset_uuid=doc.get("uuid"), products=dataset_products, model=model, default=default),
                 "publication": "public" if is_public(process.manifest) else "preview",
+                "preliminary": gaps_of[row["code"]] > 0,
+                "gaps": gaps_of[row["code"]],
             }
         )
     for proxy in proxies:
@@ -329,6 +335,8 @@ def entries(
                 "citation": {"text": f"{row['name']}, ChemE-as-Code Process Atlas LCI database {version}, activity {row['code']}.", "authors": [], "doi": None},
                 "downloads": _downloads(resources, row["code"], model=model, default=default),
                 "publication": "public",
+                "preliminary": False,
+                "gaps": 0,
             }
         )
     by_market = {m["code"]: m for m in market_entries or []}
@@ -369,6 +377,8 @@ def entries(
                 "downloads": _downloads(resources, row["code"], model=model, default=default),
                 # set below: public when every supplier is
                 "publication": None,
+                "preliminary": any(gaps_of.get(s.get("code"), 0) > 0 for s in info.get("suppliers") or []),
+                "gaps": 0,
             }
         )
     # a market is public when every supplier is (a public build exports no other: build_markets)

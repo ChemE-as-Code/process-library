@@ -33,7 +33,7 @@ Output (``--out``; ``<out>/lci/`` is replaced):
   link targets, header metadata, allocation, closure, citation, downloads; ``lci_activities.py``).
 - ``lci/benchmarks.json``: every KPI result of the build with its allocated value and the counts
   by status (``benchmarks.report``, docs/benchmarks.md), the stored report of the comparison
-- ``lci/gaps.json``: the mapping gaps of unpublished processes per process (below), always
+- ``lci/gaps.json``: the mapping gaps per process (below), always
   written (``count`` 0 without gaps);
 - ``lci/index.json``: the summary the Atlas reads (files with size, sha256, format and format
   version, activities per process, caveats).
@@ -97,11 +97,11 @@ Errors (exit 1): ``chemicals/chemicals.yaml`` failing its schema or ``registry.c
 first, before any process is read), a benchmark file failing its schema or ``benchmarks.load``,
 a market file failing its schema or ``markets.load``, a market whose supplier makes no activity of
 its product, an unknown grade, a dataset that fails validation, an
-allocation that cannot be exported, an exchange of a public process (or in a ``--public`` build)
-without a mapping. Warnings fail ``--strict``.
+allocation that cannot be exported. Warnings fail ``--strict``, except a public process with too
+few benchmarked KPIs (``Report.advisories``, ADR 0026), which stays a warning.
 
-Gaps (ADR 0022): an exchange of a process that is not public with no technosphere mapping or no
-biosphere identity is neither an error nor a warning: it is reported (``Report.gaps``, ``gap:``
+Gaps (ADR 0022, ADR 0026): an exchange of any process, public or not, in any build, with no
+technosphere mapping or no biosphere identity is neither an error nor a warning: it is reported (``Report.gaps``, ``gap:``
 lines, ``lci/gaps.json``, ``datapackage.json`` ``processes[].gaps``, ``index.json`` ``gaps``) and
 exported unlinked with its amount: no database, categories or Atlas alternative, column
 ``atlas gap``, the activity's ``atlas gaps`` and an ``UNLINKED`` comment line; never linked to a
@@ -132,7 +132,7 @@ import sys
 import zipfile
 from dataclasses import dataclass, field
 from datetime import datetime
-from pathlib import Path
+from pathlib import Path, PurePath
 from types import SimpleNamespace
 from typing import Any
 
@@ -296,10 +296,9 @@ class BuildError(Exception):
 
 
 class GapError(BuildError):
-    """An exchange without a technosphere mapping or a biosphere identity. In a process that is
-    not public it is a gap of its preliminary LCI (reported, the exchange exported unlinked); in a
-    public process or a ``--public`` build an error (ADR 0022). *link* is the link it lacks:
-    ``technosphere`` or ``biosphere``."""
+    """An exchange without a technosphere mapping or a biosphere identity: a gap, which makes the
+    process's LCI preliminary (reported, the exchange exported unlinked), in every process and
+    build (ADR 0022, ADR 0026). *link* is the link it lacks: ``technosphere`` or ``biosphere``."""
 
     def __init__(self, message: str, link: str) -> None:
         super().__init__(message)
@@ -310,15 +309,25 @@ class GapError(BuildError):
 class Report:
     errors: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
-    #: mapping gaps of processes that are not public (ADR 0022): neither errors nor warnings, so
-    #: ``--strict`` does not fail on them; one entry per dataset exchange (``lci/gaps.json``)
+    #: mapping gaps (ADR 0022, ADR 0026): neither errors nor warnings, so ``--strict`` does not
+    #: fail on them; one entry per dataset exchange (``lci/gaps.json``)
     gaps: list[dict] = field(default_factory=list)
+    #: the warnings that do not fail ``--strict``: a public process's benchmark gap (ADR 0026)
+    advisories: list[str] = field(default_factory=list)
 
     def error(self, where: str, message: str) -> None:
         self.errors.append(f"{where}: {message}")
 
     def warn(self, where: str, message: str) -> None:
         self.warnings.append(f"{where}: {message}")
+
+    def advise(self, where: str, message: str) -> None:
+        self.warn(where, message)
+        self.advisories.append(self.warnings[-1])
+
+    @property
+    def strict_failures(self) -> list[str]:
+        return [w for w in self.warnings if w not in self.advisories]
 
     def gap(self, process: str, dataset: Dataset, exchange: dict, link: str, reason: str) -> None:
         entry = {"process": process, "dataset": dataset.data["id"], "path": dataset.path, "key": exchange["key"], "type": exchange["type"], "link": link, "reason": reason}
@@ -970,6 +979,8 @@ class Linker:
             if not self.known(override["use"]):
                 raise BuildError(f"{where}: override uses unknown technosphere entry {override['use']!r}")
             return self.link(override["use"], unit, where, exchange["key"])
+        if override.get("dataset"):  # the mappings' form of link.dataset: a chosen Atlas producer
+            link = {"dataset": override["dataset"]}
 
         if exchange["type"] in ("emission", "resource"):
             return "biosphere", self.elementary(exchange, where)
@@ -990,9 +1001,11 @@ class Linker:
         if link.get("dataset"):
             ref = link["dataset"]
             product = ref["product"] if ":" in ref["product"] else f"product:{ref['product']}"
-            row = self.by_dataset.get((ref["path"], product))
+            row = self.by_dataset.get((str(PurePath(ref["path"])), product))
             if row is None:
                 raise BuildError(f"{where}: link.dataset {ref['path']}#{product} is not an exported Atlas dataset of this library")
+            if row["unit"] != unit:
+                raise BuildError(f"{where}: link.dataset {ref['path']}#{product} is in {row['unit']}, but the exchange is in {unit}")
             refusal = carrier_refusal(exchange.get("carrier"), row.get("carrier"))
             if refusal:
                 raise BuildError(f"{where}: link.dataset {ref['path']}#{product} is outside its operating range: {refusal}")
@@ -1341,7 +1354,7 @@ def property_checks(process: Process, dataset: Dataset, products: reg.Registry, 
 def benchmark_results(processes: list[Process], benchmarks: bm.Registry | None, public: bool, report: Report) -> dict[str, list[dict]]:
     """Each dataset's KPIs (``benchmarks.evaluate``, with its allocation shares), by dataset path.
     In a library with a benchmark registry, these are warnings: a public process with fewer than
-    ``benchmarks.MIN_KPIS`` KPIs, a process bound under a family its process.yaml does not list,
+    ``benchmarks.MIN_KPIS`` KPIs (one that does not fail ``--strict``, ADR 0026), a process bound under a family its process.yaml does not list,
     and, outside ``--public``, a binding that names no dataset of the library."""
     if benchmarks is None:
         return {}
@@ -1355,7 +1368,7 @@ def benchmark_results(processes: list[Process], benchmarks: bm.Registry | None, 
             report.warn(process.pid, text)
         count = bm.kpi_count(benchmarks, process.pid, ids)
         if is_public(process.manifest) and count < bm.MIN_KPIS:
-            report.warn(
+            report.advise(  # a warning that does not fail --strict (ADR 0026)
                 process.pid,
                 f"{count} benchmarked KPI(s); a public process needs at least {bm.MIN_KPIS}, each with a source or a "
                 "recorded no_open_reference (benchmarks/<family>.yaml, docs/benchmarks.md)",
@@ -1487,9 +1500,10 @@ def _comment(process: Process, dataset: Dataset, row: dict, skipped: list[str], 
     if excluded:
         lines.append("Excluded by the cut-off system model (no credit): " + "; ".join(excluded) + ".")
     if unlinked:
+        lines.insert(1, f"PRELIMINARY: {len(unlinked)} exchange(s) of this dataset have no mapping yet, so its LCI is incomplete; do not read a result from it as complete.")
         lines.append(
-            "UNLINKED (mapping gaps of a preliminary LCI; the process is not published): " + "; ".join(unlinked)
-            + ". These exchanges have no background link; install() refuses the database until they are mapped."
+            "UNLINKED (mapping gaps of a preliminary LCI): " + "; ".join(unlinked)
+            + ". These exchanges have no background link and count no burden; install() refuses the database until they are mapped."
         )
     if dataset.allocation.get("source"):
         lines.append(f"Allocation source: {' '.join(str(dataset.allocation['source']).split())}")
@@ -1578,10 +1592,7 @@ def build_activities(processes: list[Process], mappings: dict, products: reg.Reg
                 try:
                     kind, target = linker.resolve(process, dataset, exchange)
                 except GapError as failure:
-                    if public or is_public(process.manifest):
-                        report.errors.append(str(failure))
-                        continue
-                    # a gap of a preliminary LCI: exported unlinked (no database, no guess), never dropped
+                    # a gap of a preliminary LCI, public or not (ADR 0026): exported unlinked (no database, no guess), never dropped
                     reason = str(failure).removeprefix(f"{dataset.path} {exchange['key']}: ")
                     report.gap(process.pid, dataset, exchange, failure.link, reason)
                     unlinked.append(f"{exchange['key']} ({reason})")
@@ -1661,6 +1672,7 @@ def build_activities(processes: list[Process], mappings: dict, products: reg.Reg
                 metadata["atlas superseded by"] = _successor_text(dataset.successor, row["key"])
             if unlinked:
                 metadata["atlas gaps"] = len(unlinked)
+                metadata["atlas preliminary"] = True
             activities.append(Activity(row, comment, metadata, exchanges))
 
     proxies: list[Activity] = []
@@ -2409,6 +2421,11 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
         shutil.rmtree(lci)
     lci.mkdir(parents=True)
     xlsx_name = f"{db_name}.xlsx"
+    preliminary_note = (
+        f"PRELIMINARY: {len(report.gaps)} exchange(s) of {len({g['process'] for g in report.gaps})} process(es) have no mapping yet: "
+        "exported unlinked, without a background link (column atlas gap, lci/gaps.json); those activities are marked atlas preliminary. "
+        "install() refuses the database until they are mapped."
+    )
     about = [
         f"ChemE-as-Code Process Atlas: LCI foreground database {db_name}.",
         "Brightway 2.5 (bw2io ExcelImporter) format. This sheet is skipped by the importer (A1 = skip).",
@@ -2416,6 +2433,7 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
         f"Library commit: {commit or 'unknown'}. Mappings: lci/mappings.yaml. Details per process: datapackage.json.",
         f"System model: {SYSTEM_MODELS[model]} ({METHODOLOGY_DOCUMENT}, methodology {METHODOLOGY_VERSION}).",
         *CAVEATS,
+        *([preliminary_note] if report.gaps else []),
     ]
     database_meta = {
         "format": "ChemE-as-Code Process Atlas LCI (bw2io Excel)",
@@ -2473,10 +2491,14 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
         gaps_by_process.setdefault(gap["process"], []).append({k: v for k, v in gap.items() if k != "process"})
     for entry in process_entries:
         entry["gaps"] = gaps_by_process.get(entry["id"], [])
+        entry["gap_count"] = len(entry["gaps"])
+        entry["preliminary"] = bool(entry["gaps"])
+    preliminary = sorted(gaps_by_process)
     if report.gaps:
         variant_caveats.append(
-            f"{len(report.gaps)} exchange(s) of {len(gaps_by_process)} unpublished process(es) are mapping gaps of a preliminary LCI "
-            "(lci/gaps.json): exported unlinked, without a background link (column atlas gap); install() refuses the database until they are mapped."
+            f"PRELIMINARY: {len(report.gaps)} exchange(s) of {len(gaps_by_process)} process(es) are mapping gaps "
+            f"(lci/gaps.json): exported unlinked, without a background link (column atlas gap), so they count no burden and these processes' inventories "
+            f"are incomplete: {', '.join(preliminary)}. An activity that links one of them inherits that. install() refuses the database until they are mapped."
         )
     findings = [f"{d.path}: {d.finding}" for p in processes for d in p.datasets if d.finding]
     datapackage = {
@@ -2512,8 +2534,8 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
     # the stored report of the benchmark comparison (docs/benchmarks.md), allocated values included
     rows = [{"process": e["id"], "dataset": d["id"], **k} for e in process_entries for d in e["datasets"] for k in d["benchmarks"]]
     _write_json(lci / "benchmarks.json", bm.report(rows, "public" if public else "preview", {"commit": commit, "dirty": dirty}))
-    # the mapping gaps of unpublished processes (ADR 0022): what to map before publishing
-    _write_json(lci / "gaps.json", {"schema": GAPS_SCHEMA, "version": version, "database": db_name, "library_commit": commit, "count": len(report.gaps), "processes": gaps_by_process})
+    # the mapping gaps (ADR 0022, ADR 0026): what to map before a process stops being preliminary
+    _write_json(lci / "gaps.json", {"schema": GAPS_SCHEMA, "version": version, "database": db_name, "library_commit": commit, "count": len(report.gaps), "preliminary": preliminary, "processes": gaps_by_process})
 
     reports = []
     if previous is not None:
@@ -2549,9 +2571,10 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
         ],
         "system_model": model,
         "methodology_version": METHODOLOGY_VERSION,
-        "processes": {e["id"]: [{"code": a["code"], "name": a["name"], "reference_product": a["reference_product"], "unit": a["unit"]} for a in e["activities"]] for e in process_entries},
+        "processes": {e["id"]: [{"code": a["code"], "name": a["name"], "reference_product": a["reference_product"], "unit": a["unit"], **({"preliminary": True} if e["preliminary"] else {})} for a in e["activities"]] for e in process_entries},
         "markets": [{"code": m.row["code"], "name": m.row["name"], "reference_product": m.row["reference product"], "unit": m.row["unit"], "location": m.row["location"]} for m in built.markets],
         "gaps": {pid: len(found) for pid, found in gaps_by_process.items()},
+        "preliminary": preliminary,
         "caveats": caveats,
     }
     _write_json(lci / "index.json", index)
@@ -2581,14 +2604,14 @@ def main(argv: list[str] | None = None) -> int:
         print(f"warning: {message}", file=sys.stderr)
     for message in report.errors:
         print(f"error: {message}", file=sys.stderr)
-    failed = bool(report.errors or (args.strict and report.warnings))
+    failed = bool(report.errors or (args.strict and report.strict_failures))
     if not failed:
         index = json.loads((args.out / "lci" / "index.json").read_text(encoding="utf-8"))
         count = sum(len(v) for v in index["processes"].values())
         markets = len(index.get("markets", []))
         print(f"lci: {count} activit{'y' if count == 1 else 'ies'} from {len(index['processes'])} process(es), {markets} market(s) -> {args.out / 'lci'}")
         if report.gaps:
-            print(f"lci: {len(report.gaps)} mapping gap(s) in {len(index['gaps'])} unpublished process(es), exported unlinked -> {args.out / 'lci' / 'gaps.json'}")
+            print(f"lci: {len(report.gaps)} mapping gap(s) in {len(index['gaps'])} preliminary process(es), exported unlinked -> {args.out / 'lci' / 'gaps.json'}")
     return 1 if failed else 0
 
 

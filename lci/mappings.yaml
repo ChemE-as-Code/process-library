@@ -20,7 +20,7 @@
 # Lookup order for one exchange of a dataset (build_lci.py):
 #   1. a curated override: the process's lca/mappings.yaml `exchanges:` ("<key>"), else
 #      `exchanges:` here ("<process-id>/<key>" or "<key>"; none today). One exchange in both
-#      files is an error;
+#      files is an error. It `use`s an entry or names an Atlas `dataset` (path, product);
 #   2. the exchange's own `link` when it names a Brightway activity, a biosphere flow or another
 #      Atlas dataset (core's lca_dataset `link.activity` / `link.biosphere` / `link.dataset`);
 #   3. the chemical slug of the exchange (process.yaml `inventory_key`, or the key's id when it
@@ -31,9 +31,9 @@
 # elementary-flow crosswalk; an entry of `biosphere:` keyed by that UUID may correct the name and
 # categories), `link.biosphere`, the component in `biosphere:` (<component>/<origin>, else
 # <component>). The installer links by UUID first and falls back to name, categories and unit.
-# Free emissions must be listed in `pass_through:` with the decision. Anything not found fails the
-# build for a public process; for a process that is not public it is a gap, exported unlinked and
-# listed in lci/gaps.json (ADR 0022). An id
+# Free emissions must be listed in `pass_through:` with the decision. An exchange with no mapping
+# or biosphere identity is a gap, in a public process too: exported unlinked, listed in
+# lci/gaps.json, and its process is marked preliminary (ADR 0022, ADR 0026). An id
 # found in `cutoff_exclusions:` instead of `technosphere:` is left out of a cut-off build with its
 # decision (docs/system-model.md).
 schema: cheme-as-code/lci-mappings/v1

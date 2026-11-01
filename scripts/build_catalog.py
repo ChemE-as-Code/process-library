@@ -136,12 +136,22 @@ def _schema_dir() -> Path:
 class Report:
     errors: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
+    #: the warnings that do not fail ``--strict``: a public process's benchmark gap (ADR 0026)
+    advisories: list[str] = field(default_factory=list)
 
     def error(self, where: str, message: str) -> None:
         self.errors.append(f"{where}: {message}")
 
     def warn(self, where: str, message: str) -> None:
         self.warnings.append(f"{where}: {message}")
+
+    def advise(self, where: str, message: str) -> None:
+        self.warn(where, message)
+        self.advisories.append(self.warnings[-1])
+
+    @property
+    def strict_failures(self) -> list[str]:
+        return [w for w in self.warnings if w not in self.advisories]
 
 
 def _yaml(path: Path) -> Any:
@@ -508,7 +518,7 @@ def _benchmarks(folder: Path, pid: str, manifest: dict, benchmarks: bm.Registry 
         report.warn(pid, text)
     count = bm.kpi_count(benchmarks, pid, ids)
     if ids and is_public(manifest) and count < bm.MIN_KPIS:
-        report.warn(pid, f"{count} benchmarked KPI(s); a public process needs at least {bm.MIN_KPIS}, each with a source or a recorded no_open_reference (benchmarks/<family>.yaml, docs/benchmarks.md)")
+        report.advise(pid, f"{count} benchmarked KPI(s); a public process needs at least {bm.MIN_KPIS}, each with a source or a recorded no_open_reference (benchmarks/<family>.yaml, docs/benchmarks.md)")
     return results
 
 
@@ -1129,7 +1139,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"warning: {message}", file=sys.stderr)
     for message in report.errors:
         print(f"error: {message}", file=sys.stderr)
-    failed = bool(report.errors or (args.strict and report.warnings))
+    failed = bool(report.errors or (args.strict and report.strict_failures))
     if not failed:
         count = len(json.loads((args.out / "catalog.json").read_text())["processes"])
         print(f"catalog: {count} process(es) -> {args.out}{' (public)' if args.public else ''}")

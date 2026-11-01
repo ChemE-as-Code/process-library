@@ -77,14 +77,14 @@ catalog derives its sheets, gates, design basis and LCA results.
 - The dataset is `lca/dataset.yaml`, written by `cheme assess lca --write`, or hand-written
   `lca/datasets/*.yaml`.
 - **Overrides for this process's exchanges** go in its own `lca/mappings.yaml`, not in the shared
-  file: `use` an existing technosphere entry, a `chemical` slug, `atlas: false`, a
-  `properties_reason`.
+  file: `use` an existing technosphere entry, a `chemical` slug, a `dataset` (an Atlas producer),
+  `atlas: false`, a `properties_reason`.
 - **Shared vocabulary** gets its own PR in `lci/mappings.yaml`: a new technosphere entry,
   biosphere identity, proxy or pass-through decision.
-- **Gaps.** While the process is not public, an exchange without a mapping is a gap: the strict
-  build passes, lists it (`gap:` lines, `lci/gaps.json`) and exports it unlinked. Map every gap
-  before the process goes public: then a missing mapping fails the build
-  ([ADR 0022](docs/adr/0022-lci-gaps-for-unpublished-processes-and-per-process-mappings.md),
+- **Gaps.** An exchange without a mapping is a gap, in a public process too: the strict build
+  passes, lists it (`gap:` lines, `lci/gaps.json`), exports it unlinked and marks the process
+  preliminary. Never map to a guess to close a gap: a correct gap is better than a doubtful link
+  ([ADR 0026](docs/adr/0026-public-processes-may-be-preliminary.md),
   [lci/README.md](lci/README.md) "Linking").
 - **Several outputs.** A multi-output process needs an allocation that follows the hierarchy of
   [docs/system-model.md](docs/system-model.md), often a curated `allocation:` entry in the
