@@ -33,13 +33,18 @@ Options considered:
   `atlas preliminary` and `atlas gaps` on the activity, comment lines, the workbook's `about`
   sheet, `datapackage.json` (`processes[].preliminary`, `gap_count`, `gaps`;
   `activities[].preliminary`, `gaps`), `index.json` (`preliminary`, `gaps`, each activity's
-  `preliminary`), `lci/gaps.json` and a caveat. `publication` stays separate: public does not mean
-  complete. A market is preliminary when a supplier is.
+  `preliminary`), `lci/gaps.json`, a caveat, and the catalog: `catalog.json` (`preliminary`,
+  `gap_count`, and `preliminary` on the LCA headline) and `processes/<id>.json` (`preliminary`,
+  `gap_count`, `lci_gaps`). `publication` stays separate: public does not mean complete. A market
+  is preliminary when a supplier is.
+- **A 0 where nothing was characterised is not published as a footprint:** the catalog's headline
+  `value` is null with `not_computed: true`, for any process. Any other value of a preliminary
+  process stays, with its marking.
 - **Benchmark gaps stay warnings, also under `--strict`:** a public process with fewer than two
   KPIs is printed as a warning and does not fail the build. A KPI outside its range still fails
   `--strict`.
-- **Real errors still fail:** a schema error, an override naming an unknown entry or dataset, a
-  unit mismatch, an uncurated free emission, a negative technosphere amount in a cut-off build.
+- **Real errors still fail:** a schema error, an override naming an unknown entry, dataset or
+  `chemical`, an override key matching no exchange of a loaded process, a unit mismatch, an uncurated free emission, a negative technosphere amount in a cut-off build.
 - **An override may name an Atlas producer** (`dataset: {path, product}`), the mappings' form of a
   dataset's `link.dataset`, so an input with no verified background name can link a library plant
   without one being invented. Its unit must match.
@@ -61,5 +66,8 @@ Options considered:
 
 - Tests in `tests/test_build_lci.py` and `tests/test_benchmarks.py`: the same unmapped feed and
   emission build strictly and publicly, unlinked and marked preliminary in every output; a process
-  without gaps is not marked; an override with an unknown entry or dataset, or a wrong unit, still
-  fails; the benchmark gap is a warning under `--strict`, and a KPI outside its range still fails.
+  without gaps is not marked; an override with an unknown entry, dataset, chemical or exchange
+  key, or a wrong unit, fails; the benchmark gap is a warning under `--strict`, and a KPI outside
+  its range still fails.
+- Tests in `tests/test_build_catalog.py`: the catalog marks a process with a gap and its LCA
+  headline, a process without gaps is not marked, and a 0 with nothing characterised is null.

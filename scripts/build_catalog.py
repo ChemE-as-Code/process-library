@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.12"
-# dependencies = ["pyyaml>=6", "jsonschema>=4.23"]
+# dependencies = ["pyyaml>=6", "jsonschema>=4.23", "openpyxl>=3.1", "olca-schema==2.6.2"]
 # ///
 """Build the Process Atlas catalog from a process library.
 
@@ -15,7 +15,9 @@ rendered beforehand by ``render_previews.py`` into an artifacts directory, which
 Output (``--out``), all JSON with sorted keys, no timestamps, so two runs on the same commit are
 byte-identical:
 
-- ``catalog.json``: the list of processes (summaries), families (with their taxonomy title,
+- ``catalog.json``: the list of processes (summaries, each with ``preliminary`` and ``gap_count``
+  from the LCI mapping gaps, ADR 0026; an LCA headline's ``value`` is null and ``not_computed``
+  true where nothing was characterised, never 0), families (with their taxonomy title,
   group and ISIC Rev.4 / NACE Rev. 2 classes, ``taxonomy/families.yaml``), library commit
 - ``processes/<id>.json``: one process in full; each flow names its chemical by slug and its
   ``grade`` (null when none: registry.py ``flow_grade``)
@@ -227,6 +229,34 @@ def _sheets(plant: dict) -> list[dict]:
 
 #: What the catalog gives of each LCA data source (core's run manifest background.sources).
 DATA_SOURCE_FIELDS = ("id", "title", "provider", "version", "url", "licence", "publication", "attribution")
+
+
+def _lci_gaps(library: Path, public: bool, report: Report) -> dict[str, list[dict]] | None:
+    """Each process's LCI mapping gaps, as ``build_lci.py`` reports them (a process with any is
+    preliminary, ADR 0026), from a throwaway LCI build. None when that build fails: an error in a
+    public build, which must not publish a value unmarked, otherwise a warning."""
+    import tempfile
+
+    import build_lci
+
+    with tempfile.TemporaryDirectory() as scratch:
+        lci = build_lci.build(library, Path(scratch), "catalog", commit="catalog", public=public)
+    if lci.errors:
+        message = f"the LCI build failed, so preliminary processes cannot be marked: {lci.errors[0]}"
+        (report.error if public else report.warn)("lci", message)
+        return None
+    gaps: dict[str, list[dict]] = defaultdict(list)
+    for gap in lci.gaps:
+        gaps[gap["process"]].append({key: gap[key] for key in ("dataset", "key", "type", "link")})
+    return gaps
+
+
+def _not_computed(lca: dict) -> list[str]:
+    """Categories whose baseline total is exactly 0 with no flow contributing: nothing in the
+    boundary was characterised, so there is no footprint, not a zero one (website#96)."""
+    baseline = (lca.get("totals") or {}).get("baseline") or {}
+    contributing = {c["category"] for c in lca.get("contributions") or [] if c["impact"] != 0}
+    return sorted(cat for cat, value in baseline.items() if value == 0 and cat not in contributing)
 
 
 def _lca(folder: Path, where: str, report: Report, capacity: str | None = None) -> dict | None:
@@ -715,6 +745,7 @@ def build(
     (out / "processes").mkdir(parents=True)
 
     summaries, details = [], []
+    lci_gaps = _lci_gaps(library, public, report)
     flow_keys: set[str] = set()
     for manifest_path in sorted((library / "processes").glob("*/process.yaml")):
         folder = manifest_path.parent
@@ -764,6 +795,7 @@ def build(
         render = _render_info(artifacts, pid)
         stale = bool(render) and _behind(library, render.get("source_commit"), source_commit)
         withhold = bool(lca) and not lca["publishable"]
+        gaps = (lci_gaps or {}).get(pid, [])
         publish = {"manifest": manifest, "withhold": withhold} if public else None
         viewer = _viewer(snapshots, pid, out, where, report, publish) if plant else None
         if viewer:
@@ -801,6 +833,9 @@ def build(
             "design_basis": _design_basis(folder) if plant else None,
             "gates": _gates(folder) if plant else None,
             "lca": lca,
+            "preliminary": bool(gaps),
+            "gap_count": len(gaps),
+            "lci_gaps": gaps,
             "issues": _issues(issues_data, pid, forms),
             "benchmarks": kpis,
             "provenance": {
@@ -812,6 +847,9 @@ def build(
         }
         if public:
             _publish(detail)
+        not_computed = _not_computed(lca) if lca else []
+        if lca:
+            lca["not_computed"] = not_computed
         for scenario in (lca or {}).get("scenarios", []):
             _copy_record(folder, scenario, out, public)
         details.append(detail)
@@ -822,7 +860,10 @@ def build(
             headline = {
                 "category": first["id"],
                 "title": first["title"],
-                "value": baseline.get(first["id"]),
+                # never a 0 where nothing was characterised, and never a value without its marking
+                "value": None if first["id"] in not_computed else baseline.get(first["id"]),
+                "not_computed": first["id"] in not_computed,
+                "preliminary": bool(gaps),
                 "unit": first["unit"],
                 "functional_unit": lca["functional_unit"]["label"],
                 "factors_status": lca["factors_status"],
@@ -846,6 +887,8 @@ def build(
                 "engineering_project": plant is not None,
                 "interactive": viewer is not None,
                 "lca": headline,
+                "preliminary": bool(gaps),
+                "gap_count": len(gaps),
                 "open_issues": None if issues_data is None else sum(
                     1 for i in issues_data["issues"] if pid in i.get("processes", []) and i["state"] == "open"
                 ),

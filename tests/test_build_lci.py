@@ -567,6 +567,28 @@ def test_real_errors_still_fail_a_public_process(library: Path, tmp_path: Path, 
         assert not (tmp_path / f"out-{public}" / "lci").exists()
 
 
+@pytest.mark.parametrize(
+    "exchanges, message",
+    [
+        ({"feed:CATALYSTT": {"use": "water", "source": "test: a mistyped key"}}, "datasets have no exchange 'feed:CATALYSTT'"),
+        ({"feed:CATALYST": {"chemical": "no-such-chemical", "source": "test"}}, "chemical 'no-such-chemical' is not in the registry"),
+    ],
+)
+def test_an_override_that_cannot_apply_fails(library: Path, tmp_path: Path, exchanges: dict, message: str) -> None:
+    _unmapped_feed_and_emission(library)
+    _make_public(library)
+    _overrides(library, exchanges)
+    for public in (False, True):
+        report = build_lci.build(library, tmp_path / f"out-{public}", "0.1.0", commit="fixture", public=public)
+        assert any(message in e for e in report.errors), report.errors
+
+
+def test_the_override_of_an_unpublished_process_is_not_checked_in_a_public_build(library: Path, tmp_path: Path) -> None:
+    _overrides(library, {"feed:NOT-THERE": {"use": "water", "source": "test"}})  # fixture-ammonia is internal
+    assert not build_lci.build(library, tmp_path / "public", "0.1.0", commit="fixture", public=True).errors
+    assert any("feed:NOT-THERE" in e for e in build_lci.build(library, tmp_path / "all", "0.1.0", commit="fixture").errors)
+
+
 def test_an_override_can_name_an_atlas_producer(library: Path, tmp_path: Path) -> None:
     _unmapped_feed_and_emission(library)
     path = next(p for p in (library / "processes" / "fixture-electrolysis" / "lca").glob("dataset.yaml"))

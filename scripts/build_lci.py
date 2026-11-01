@@ -884,6 +884,33 @@ def _discover(library: Path, report: Report, mappings: dict, public: bool = Fals
     return processes
 
 
+def check_overrides(library: Path, processes: list[Process], mappings: dict, registry: set[str], report: Report, public: bool, foreign: frozenset[str] = frozenset()) -> None:
+    """An override that cannot apply is an error, not a quiet gap (ADR 0026): a key matching no
+    exchange, or a ``chemical`` no registry or mappings entry knows. A public build does not load
+    the unpublished processes, so it checks only the keys of those it holds. *foreign* are the
+    overrides of mappings written for another library (the fallback to the process library's own):
+    they need not fit this one."""
+    keys = {p.pid: {e["key"] for d in p.datasets for e in d.data["exchanges"]} for p in processes}
+    every = set().union(*keys.values()) if keys else set()
+    for key, entry in mappings["exchanges"].items():
+        if key in foreign:
+            continue
+        chemical = entry.get("chemical")
+        if chemical and chemical not in registry and chemical not in mappings["technosphere"] and chemical not in mappings["cutoff_exclusions"]:
+            report.error("lci mappings", f"exchanges.{key}: chemical {chemical!r} is not in the registry or the mappings")
+        if key in every:
+            continue
+        pid, slash, exchange = key.partition("/")
+        if not slash:
+            if not public:
+                report.error("lci mappings", f"exchanges.{key}: no dataset has this exchange")
+        elif pid in keys:
+            if exchange not in keys[pid]:
+                report.error("lci mappings", f"exchanges.{key}: {pid}'s datasets have no exchange {exchange!r}")
+        elif not (library / "processes" / pid / "process.yaml").is_file():
+            report.error("lci mappings", f"exchanges.{key}: no process {pid!r} in this library")
+
+
 # --- linking ---------------------------------------------------------------------------------
 
 
@@ -2360,6 +2387,7 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
     except BuildError as failure:
         report.errors.append(str(failure))
         return report
+    foreign = frozenset() if mappings_path.resolve().parent == (library / "lci").resolve() else frozenset(mappings["exchanges"])
     merge_process_mappings(library, mappings, report)
     if report.errors:
         return report
@@ -2401,6 +2429,7 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
     dirty = bool(_git(library, "status", "--porcelain")) if own_repo else None
 
     processes = _discover(library, report, mappings, public, products)
+    check_overrides(library, processes, mappings, set(products.chemicals), report, public, foreign)
     check_system_models(processes, model, report)
     resolve_successors(processes, report)
     # the default model's database carries the plain name; a variant is labelled in its name

@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 
 import pytest
+import yaml
 
 yaml = pytest.importorskip("yaml")
 pytest.importorskip("openpyxl")
@@ -55,6 +56,12 @@ def _library(tmp_path: Path, dataset: Path = KIT / "processes" / "asu-1" / "lca"
     for other in (library / "benchmarks").glob("*.yaml"):  # other families bind datasets this library lacks
         if other.name != "air-separation.yaml":
             other.unlink()
+    # overrides for what this library lacks would fail the build (build_lci.check_overrides)
+    keys = {e["key"] for e in yaml.safe_load(dataset.read_text(encoding="utf-8"))["exchanges"]}
+    for path, prefix in ((library / "lci" / "mappings.yaml", "asu-1/"), (library / "processes" / "asu-1" / "lca" / "mappings.yaml", "")):
+        data = yaml.safe_load(path.read_text(encoding="utf-8"))
+        data["exchanges"] = {k: v for k, v in (data.get("exchanges") or {}).items() if k.removeprefix(prefix) in keys}
+        path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
     return library
 
 

@@ -210,12 +210,17 @@ How it is marked: the activity's `atlas gaps` count and `atlas preliminary`, `PR
 `UNLINKED` comment lines, a line on the workbook's `about` sheet, `datapackage.json`
 `processes[].preliminary`, `gap_count` and `gaps`, and `activities[].preliminary` and `gaps` (a
 market is preliminary when a supplier is), `index.json` `preliminary`, `gaps` and each activity's
-`preliminary`, `lci/gaps.json`, a caveat, and the build report (`gap:` lines). `publication`
+`preliminary`, `lci/gaps.json`, a caveat, the build report (`gap:` lines), and the catalog
+(`catalog.json` `preliminary`, `gap_count` and the LCA headline's `preliminary`;
+`processes/<id>.json` `preliminary`, `gap_count` and `lci_gaps`). The catalog's headline `value` is
+null with `not_computed: true` where nothing was characterised, never 0. `publication`
 stays a separate field: a public activity can be preliminary. `install()` reports a gap as
 unlinked and writes nothing.
 
 Everything else stays an error or warning for every process: a unit mismatch with a mapping, an
-override naming an unknown entry or dataset, an uncurated free emission, a schema error.
+override naming an unknown entry, dataset or `chemical`, an override key matching no exchange of a
+loaded process, an uncurated free emission, a schema error. Without that key check, a mistyped
+override would only show as a gap.
 
 Emissions and resources (the `resource` exchange type of the v2 contract: water, CO2 in air,
 land) are biosphere exchanges, identified by the **biosphere3 UUID** of the dataset exchange's
