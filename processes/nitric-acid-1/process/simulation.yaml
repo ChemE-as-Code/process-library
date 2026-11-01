@@ -17,7 +17,7 @@ method_selection:
     has_pseudocomponents: false       # eight pure compounds with CAS numbers (materials.yaml, D-006)
     interaction_parameters_available: false  # no sourced PR kij for the NOx / water / ammonia pairs was looked up; the conservative answer
     liquid_liquid_expected: false     # the only liquids are pure NH3 (E-101, E-108 inlets) and water condensing in E-107
-    vapor_association_expected: false # NO2 dimerises to N2O4, which D-006 lumps into NO2; no N2O4 component, so not modelled
+    vapor_association_expected: true  # NO2 dimerises to N2O4 strongly at 1150 kPa, 313-430 K (physically expected); D-006 lumps N2O4 into NO2, so it is not modelled. At this pressure the method recommendation is unchanged
   # No `substitution:` recorded on purpose: the selection recommends PSRK or PR / RKS with
   # modified Huron-Vidal mixing rules for a polar mixture without kij, the route runs none of
   # them, and methods.yml names Peng-Robinson as their substitute. Accepting that substitution is
@@ -62,18 +62,18 @@ specs:
   # ---- OX (D-003, D-005, D-011)
   R101:
     mode: adiabatic
-    pressure_drop: {value: 30, unit: kPa, provenance: assumed, source: "D-003: 520 -> 490 kPa(a), the 10 kPa of M-101 and 20 kPa over the gauze"}
+    pressure_drop: {value: 30, unit: kPa, provenance: assumed, source: "D-003: 520 -> 490 kPa(a) over M-101 + R-101; split per scripts/hno3_balance.py P_K101 520 -> P_MIX 510 -> P_R101 490"}
   E102:
     outlet_temperature: {value: 793.15, provenance: assumed, source: "scripts/hno3_balance.py T_E102 (D-010 balance): boiler outlet set for the tail-gas heater approach"}
-    pressure_drop: {value: 5, unit: kPa, provenance: assumed, source: "D-003: 490 -> 485 kPa(a)"}
+    pressure_drop: {value: 5, unit: kPa, provenance: assumed, source: "scripts/hno3_balance.py: P_R101 490 -> P_E102 485 kPa(a) (D-003: 5-20 kPa per exchanger)"}
   E103:
     # the tail gas is heated to the tertiary reactor inlet; the process-gas outlet follows
     cold_outlet_temperature: {value: 703.15, provenance: assumed, source: "D-009: tertiary reactor inlet"}
-    hot_pressure_drop: {value: 5, unit: kPa, provenance: assumed, source: "D-003: 485 -> 480 kPa(a)"}
-    cold_pressure_drop: {value: 20, unit: kPa, provenance: assumed, source: "D-003: 1090 -> 1070 kPa(a)"}
+    hot_pressure_drop: {value: 5, unit: kPa, provenance: assumed, source: "scripts/hno3_balance.py: P_E102 485 -> P_E103 480 kPa(a) (D-003: 5-20 kPa per exchanger)"}
+    cold_pressure_drop: {value: 20, unit: kPa, provenance: assumed, source: "scripts/hno3_balance.py: P_E106C 1090 -> P_E103C 1070 kPa(a) (D-003: 5-20 kPa per exchanger)"}
   E104:
     outlet_temperature: {value: 453.15, provenance: assumed, source: "scripts/hno3_balance.py T_E104 (D-010 balance): economiser outlet"}
-    pressure_drop: {value: 5, unit: kPa, provenance: assumed, source: "D-003: 480 -> 475 kPa(a)"}
+    pressure_drop: {value: 5, unit: kPa, provenance: assumed, source: "scripts/hno3_balance.py: P_E103 480 -> P_E104 475 kPa(a) (D-003: 5-20 kPa per exchanger)"}
   # ---- ABS, the gas side only (D-003, D-011); M102 mixes at the lowest inlet pressure
   K102:
     outlet_pressure: {value: 1150, provenance: assumed, source: D-003}
@@ -82,16 +82,16 @@ specs:
     # the tail gas is heated to 30 K below the NOx compressor discharge of the concept balance
     # (427.96 K); the NOx gas outlet follows
     cold_outlet_temperature: {value: 397.96, provenance: assumed, source: "scripts/hno3_balance.py E106 (D-010 balance): 30 K approach to the NOx compressor discharge"}
-    hot_pressure_drop: {value: 10, unit: kPa, provenance: assumed, source: "D-003: 1150 -> 1140 kPa(a)"}
-    cold_pressure_drop: {value: 10, unit: kPa, provenance: assumed, source: "D-003: 1100 -> 1090 kPa(a)"}
+    hot_pressure_drop: {value: 10, unit: kPa, provenance: assumed, source: "scripts/hno3_balance.py: P_K102 1150 -> P_E106 1140 kPa(a) (D-003: 5-20 kPa per exchanger)"}
+    cold_pressure_drop: {value: 10, unit: kPa, provenance: assumed, source: "scripts/hno3_balance.py: P_TAIL 1100 -> P_E106C 1090 kPa(a) (D-003: 5-20 kPa per exchanger)"}
   E107:
     # water condenses here in the model (about 0.9 mol% at 1130 kPa(a), 313 K); the outlet is
     # one stream, the condensate stays in it (D-015)
     outlet_temperature: {value: 313.15, provenance: assumed, source: "scripts/hno3_balance.py T_E107 (D-010 balance): absorber gas inlet"}
-    pressure_drop: {value: 10, unit: kPa, provenance: assumed, source: "D-003: 1140 -> 1130 kPa(a)"}
+    pressure_drop: {value: 10, unit: kPa, provenance: assumed, source: "scripts/hno3_balance.py: P_E106 1140 -> P_C101 1130 kPa(a) (D-003: 5-20 kPa per exchanger)"}
   # ---- TGT (D-003, D-009, D-011)
   R102: {mode: adiabatic}   # excluded; kept for the boundary check (no heat exchanged with a utility, D-009)
   X101:
     unit: expander     # DrivingByTurbine maps to no unit by its class
     efficiency: {value: 0.85, provenance: assumed, source: "D-011: isentropic efficiency of X-101"}
-    pressure_drop: {value: 935, unit: kPa, provenance: assumed, source: "D-003: 1040 -> 105 kPa(a)"}
+    pressure_drop: {value: 935, unit: kPa, provenance: assumed, source: "scripts/hno3_balance.py: X-101 inlet P_R102 - 10 = 1040 -> P_STACK 105 kPa(a)"}   # the script takes 20 kPa over R-102 (1070 -> 1050), D-003 says 30 kPa; open, see D-015

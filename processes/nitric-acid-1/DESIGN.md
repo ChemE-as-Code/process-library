@@ -309,6 +309,13 @@ Consequence for `cheme maturity`: `predictive.simulation-spec` now passes; `pred
 fails (eight steps excluded) and stays failing until F-1 to F-3. V-101 is no longer reported as
 "equilibrium-stage, predictive, sourced" (the overstatement of D-012): excluded, it shows as
 stream values, specified.
+Spec provenance: D-003 states only the pressure levels (520/490, 1150/1130/1100, 105 kPa(a)) and
+ranges (5-20 kPa per exchanger, 30 kPa over R-102); the intermediate pressures and per-item drops
+in simulation.yaml are the constants of scripts/hno3_balance.py and are cited as such. The script
+takes 20 kPa over R-102 (P_E103C 1070 -> P_R102 1050), not D-003's 30 kPa; the X-101 inlet (1040)
+follows the script. Left open for review (no change to the balance numbers here).
+`vapor_association_expected` is recorded true (NO2/N2O4 is physically expected) although the
+association is not modelled; at 1150 kPa the method recommendation does not change.
 Rejected: changing the flowsheet (valves, an injection mixer, decoupled machine energy streams)
 in this change: it would alter the BFD/PFD and the utility accounting the LCI uses, and is a
 design decision for review, not a simulation input.
