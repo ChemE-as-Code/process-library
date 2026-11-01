@@ -1,0 +1,437 @@
+# Tier 1 form, process-library#313 pilot without a flowsheet. Every amount is the formula of its parameters;
+# core's validator re-checks each. Written from the LVOC BREF (facts in our own form).
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: ethylbenzene-zeolite-liquid-phase
+title: Ethylbenzene by liquid-phase zeolite alkylation of benzene with ethylene
+description: Per 1 t of ethylbenzene, gate-to-gate, EU plants of the LVOC BREF data collection. High-purity
+  feeds. Feeds from stoichiometry with the sourced tar; utilities as midpoints of sourced ranges.
+basis: 1000 kg of ethylbenzene
+boundary: 'gate-to-gate: feed pretreatment, alkylation, transalkylation, fractionation; steam and power
+  from outside'
+technology: liquid-phase alkylation and transalkylation on fixed-bed zeolite, with distillation; the AlCl3
+  route is not modelled
+geography:
+  description: EU plants of the BREF data collection; no single site.
+classification:
+  isic: '2011'
+system_boundary:
+  included:
+  - feeds, tar, off-gas of the model tar reaction
+  - electricity and gross steam
+  - fugitive VOC
+  - effluent
+  - zeolite catalyst
+  excluded:
+  - 'TODO heat recovered as steam (700 to 2600 kWh/t in the source): no credit in the cut-off model, so
+    the gross steam is an upper view of an integrated plant'
+  - 'TODO combustion of off-gases at the shared abatement unit: not quantified in the source for a stand-alone
+    EB plant'
+  - TODO benzene and other organics in the effluent; guard-bed adsorbents
+  - storage emissions
+  - feed impurities (the source reports feeds above 99.5 % purity)
+  - infrastructure
+  cutoff: none applied; the excluded flows are not quantified
+  infrastructure: excluded
+  catalysts: included
+  non_routine: excluded
+location: RER
+year: 2012
+valid_until: 2017
+time:
+  start: 2007
+  description: 'BREF data collection: Table 5.9 gives 2007-2011 averages, 2011 and 2012 for the EB plants.
+    valid_until is the reference year + 5 (system-model section 6), so it has already lapsed.'
+modelling:
+  principle: attributional
+  multifunctionality: 'single output: no allocation'
+uuid: 0b04067f-2d7e-5418-a945-9b665d6e8ee0
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+technology_level: current
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: eb
+  value: 1000.0
+  unit: kg
+  description: Ethylbenzene delivered (the basis).
+  source: basis
+- name: M_B
+  value: 78.114
+  unit: g/mol
+  description: Molar mass of benzene.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_E
+  value: 28.054
+  unit: g/mol
+  description: Molar mass of ethylene.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_EB
+  value: 106.168
+  unit: g/mol
+  description: Molar mass of ethylbenzene.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_DPE
+  value: 182.266
+  unit: g/mol
+  description: Molar mass of 1,1-diphenylethane (C14H14).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_H2
+  value: 2.016
+  unit: g/mol
+  description: Molar mass of hydrogen.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: tar
+  value: 4.3
+  unit: kg
+  description: 'Heavy residue per t EB, zeolite process: midpoint of 3 to 5.6 kg/t.'
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, section 5.3.6.1.2, p. 284 (range);
+    the midpoint is our choice
+- name: voc
+  value: 0.04
+  unit: kg
+  description: 'Fugitive VOC other than benzene per t EB: the upper bound of 50 g/t total VOC (methane
+    included) less the benzene bound.'
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, section 5.3.1.6, p. 273 (upper bounds,
+    storage excluded); using the bound and counting the rest as ethylbenzene in the balance are ASSUMED.
+    TODO a measured fugitive figure
+- name: fug_b
+  value: 0.01
+  unit: kg
+  description: 'Fugitive benzene per t EB: upper bound.'
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, section 5.3.1.6, p. 273 (up to 10
+    g/t, storage excluded)
+- name: ww
+  value: 117.0
+  unit: kg
+  description: 'Net effluent per t EB, zeolite process: 0.117 m3/t taken at 1000 kg/m3.'
+  source: 'EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, section 5.3.3.1, p. 276, and Table
+    5.5, p. 275 (Plant #4, 2011); the density and that make-up water equals it are ASSUMED. TODO source
+    the water input'
+- name: elec
+  value: 28.5
+  unit: kWh
+  description: 'Electricity per t EB: midpoint of 25 to 32 kWh/t.'
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, section 5.3.5, p. 282 (range); the
+    midpoint is our choice
+- name: steam
+  value: 1350.0
+  unit: kWh
+  description: 'Steam used per t EB: midpoint of the very wide 100 to 2600 kWh/t. Gross: the heat recovery
+    of 700 to 2600 kWh/t in the same source is not credited.'
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, section 5.3.5, p. 282 (range); the
+    midpoint and not crediting recovery are our choices (cut-off model). TODO a plant-specific net figure
+- name: cat
+  value: 0.0075
+  unit: kg
+  description: 'Zeolite catalyst spent per t EB: midpoint of 0.003 to 0.012 kg/t.'
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, sections 5.3.4.2, p. 281, and 5.3.6.1.1,
+    p. 284 (range); the midpoint is our choice
+exchanges:
+- key: product:ethylbenzene
+  title: Ethylbenzene
+  type: product
+  amount: 1000.0
+  unit: kg
+  formula: eb
+  provenance: given
+  source: the reference flow
+- key: feed:benzene
+  title: Benzene
+  type: input
+  amount: 739.4835652389205
+  unit: kg
+  formula: (eb + voc) * M_B / M_EB + tar * 2 * M_B / M_DPE + fug_b
+  provenance: calculated
+  source: stoichiometry C6H6 + C2H4 -> C8H10 plus the model tar and fugitive losses; compare 0.735 to
+    0.746 t/t (LVOC BREF 5.3.4.1, benchmarks/styrenics.yaml)
+  pedigree:
+    scores: &id001
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+- key: feed:ethylene
+  title: Ethylene
+  type: input
+  amount: 264.9139960177044
+  unit: kg
+  formula: (eb + voc) * M_E / M_EB + tar * M_E / M_DPE
+  provenance: calculated
+  source: stoichiometry C6H6 + C2H4 -> C8H10 plus the model tar and fugitive losses; compare 0.254 to
+    0.265 t/t (LVOC BREF 5.3.4.1, benchmarks/styrenics.yaml)
+  pedigree:
+    scores: *id001
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+- key: feed:water
+  title: Water to the process
+  type: input
+  amount: 117.0
+  unit: kg
+  formula: ww
+  provenance: assumed
+  origin: estimate
+  link:
+    factor: water
+    source: process and vacuum-system water, by mass
+  source: ASSUMED equal to the net effluent, so that the water balance closes
+  pedigree:
+    scores: *id001
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.109
+    source: 'water, taken as the effluent: range 0.117 to 0.144 read as a 95 % interval, gsd2 = sqrt(high
+      / low) (our convention; the amount stays the arithmetic midpoint or the stated value)'
+- key: feed:electricity
+  title: Electricity
+  type: input
+  amount: 28.5
+  unit: kWh
+  formula: elec
+  provenance: given
+  origin: literature
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, 5.3.5, p. 282
+  pedigree:
+    scores: &id002
+    - 3
+    - 4
+    - 4
+    - 3
+    - 3
+    reason: 'from a value of the LVOC BREF data collection (EU plants, 2007-2012): reliability 3, completeness
+      4, temporal 4 (about 15 years old), geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.131
+    source: 'electricity: range 25 to 32 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: feed:steam
+  title: Steam, as heat delivered
+  type: input
+  amount: 1350.0
+  unit: kWh
+  formula: steam
+  provenance: given
+  origin: literature
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, 5.3.5, p. 282; gross, heat recovery
+    not credited
+  pedigree:
+    scores:
+    - 4
+    - 5
+    - 4
+    - 3
+    - 4
+    reason: 'midpoint of a 26-fold range across plants of different integration: reliability 4, completeness
+      5 (recovery left out), temporal 4, geographical 3, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 5.099
+    source: 'steam: range 100 to 2600 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: input:catalyst
+  title: Zeolite catalyst
+  type: input
+  amount: 0.0075
+  unit: kg
+  formula: cat
+  provenance: given
+  origin: literature
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, 5.3.4.2, p. 281 (spent per t, taken
+    as the make-up); mass outside the element balance
+  pedigree:
+    scores: *id002
+    reason: 'from a value of the LVOC BREF data collection (EU plants, 2007-2012): reliability 3, completeness
+      4, temporal 4 (about 15 years old), geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'catalyst: range 0.003 to 0.012 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention;
+      the amount stays the arithmetic midpoint or the stated value)'
+- key: output:spent-catalyst
+  title: Spent zeolite catalyst
+  type: output
+  amount: 0.0075
+  unit: kg
+  formula: cat
+  provenance: given
+  origin: literature
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, 5.3.6.1.1, p. 284; mass outside the
+    element balance
+  pedigree:
+    scores: *id002
+    reason: 'from a value of the LVOC BREF data collection (EU plants, 2007-2012): reliability 3, completeness
+      4, temporal 4 (about 15 years old), geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'spent catalyst: range 0.003 to 0.012 read as a 95 % interval, gsd2 = sqrt(high / low) (our
+      convention; the amount stays the arithmetic midpoint or the stated value)'
+- key: output:tar
+  title: Heavy residue (flux oil or fuel)
+  type: output
+  amount: 4.3
+  unit: kg
+  formula: tar
+  provenance: given
+  origin: literature
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, 5.3.6.1.2, p. 284; modelled as 1,1-diphenylethane
+    (ASSUMED; the source says mono- or polycyclic hydrocarbons of 10 carbons or more)
+  pedigree:
+    scores: *id001
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.366
+    source: 'tar: range 3 to 5.6 read as a 95 % interval, gsd2 = sqrt(high / low) (our convention; the
+      amount stays the arithmetic midpoint or the stated value)'
+- key: output:offgas
+  title: Hydrogen of the model tar reaction, to the shared off-gas treatment
+  type: output
+  amount: 0.04756125662493279
+  unit: kg
+  formula: tar * M_H2 / M_DPE
+  provenance: assumed
+  origin: estimate
+  source: ASSUMED model reaction 2 C6H6 + C2H4 -> C14H14 + H2; closes the balance
+  pedigree:
+    scores: *id001
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: follows a model reaction, not a measurement'
+- key: output:wastewater
+  title: Effluent to wastewater treatment
+  type: output
+  amount: 117.0
+  unit: kg
+  formula: ww
+  provenance: given
+  origin: literature
+  link:
+    factor: wastewater
+    source: site wastewater treatment
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, 5.3.3.1, p. 276
+  pedigree:
+    scores: *id002
+    reason: 'from a value of the LVOC BREF data collection (EU plants, 2007-2012): reliability 3, completeness
+      4, temporal 4 (about 15 years old), geographical 3, technological 3; the Tier 1 floor otherwise'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 1.109
+    source: 'Plant #4 effluent, 2011 and 5-year average: range 0.117 to 0.144 read as a 95 % interval,
+      gsd2 = sqrt(high / low) (our convention; the amount stays the arithmetic midpoint or the stated
+      value)'
+- key: emission:C6H6
+  title: Benzene, fugitive
+  type: emission
+  amount: 0.01
+  unit: kg
+  formula: fug_b
+  provenance: given
+  origin: literature
+  cas: 71-43-2
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, 5.3.1.6, p. 273 (upper bound)
+  pedigree:
+    scores: *id001
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: an upper bound, the true value is lower by an unknown factor'
+- key: emission:NMVOC
+  title: VOC other than benzene, fugitive
+  type: emission
+  amount: 0.04
+  unit: kg
+  formula: voc
+  provenance: given
+  origin: literature
+  source: EU JRC (2017) LVOC BREF, EUR 28882 EN, doi:10.2760/77304, 5.3.1.6, p. 273 (upper bound; the
+    source's figure includes methane)
+  pedigree:
+    scores: *id001
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: an upper bound, the true value is lower by an unknown factor'
+provenance:
+  generator: hand-written model; amounts are the formulas of the parameters
+  notes: No value from a licensed database and none from a DWSIM file (process-library#313).
+generation:
+  tier: 1
+  method: 'sourced conceptual inventory: LVOC BREF chapter 5 ranges with stoichiometry, every choice listed
+    in parameters'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 3
+  - 4
+  - 3
+  - 3
+  - 3
+  dqr_floor: 3.0
+  components:
+    product:ethylbenzene: C8H10
+    feed:benzene: C6H6
+    feed:ethylene: C2H4
+    feed:water: H2O
+    output:tar: C14H14
+    output:offgas: H2
+    output:wastewater: H2O
+    emission:C6H6: C6H6
+    emission:NMVOC: C8H10
+  formulas:
+    product:ethylbenzene: C8H10
+    feed:benzene: C6H6
+    feed:ethylene: C2H4
+    feed:water: H2O
+    output:tar: C14H14
+    output:offgas: H2
+    output:wastewater: H2O
+    emission:C6H6: C6H6
+    emission:NMVOC: C8H10
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      C:
+      - 909.068636639
+      - 909.068636639
+      H:
+      - 108.42201371
+      - 108.42201371
+      O:
+      - 103.906910908
+      - 103.906910908
+    outside:
+    - feed:electricity
+    - feed:steam
+    - input:catalyst
+    - output:spent-catalyst

@@ -1,0 +1,35 @@
+# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
+# dataset is lca/datasets/*.yaml, Tier 1 form, so maturity stays at concept
+# (core's cheme.lci-tier-maturity). See README.md.
+schema: cheme-as-code/process/v1
+id: styrene-1
+title: Styrene by adiabatic catalytic dehydrogenation of ethylbenzene
+summary: >-
+  Sourced conceptual inventory per tonne of styrene monomer, with toluene and benzene as co-products:
+  midpoints of EU LVOC BREF ranges and a closing balance. No flowsheet; not reviewed.
+families: [styrenics]
+keywords: [styrene, styrene monomer, ethylbenzene, dehydrogenation, steam superheater, toluene]
+facets: {feedstock_basis: [fossil], product_classes: [chemicals], unit_operations: [reaction, distillation, combustion], region: EU}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: ethylbenzene, role: feedstock, inventory_key: "feed:ethylbenzene", note: "linked to ethylbenzene-1 (lca/mappings.yaml)"}
+    - {chemical: methane, role: feedstock, inventory_key: "feed:natural-gas", note: "natural gas, taken as pure methane (ASSUMED)"}
+    - {chemical: air, role: feedstock, note: "combustion air, free; its O2 is feed:O2"}
+    - {chemical: water, role: feedstock, note: "Condensed dilution steam, free in the dataset (feed:water): it belongs to the steam exchange and only closes the element balance"}
+  outputs:
+    - {chemical: styrene, role: main-product, inventory_key: "product:styrene"}
+    - {chemical: toluene, role: co-product, inventory_key: "product:toluene"}
+    - {chemical: benzene, role: co-product, inventory_key: "product:benzene"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2"}
+    - {chemical: water, role: emission, inventory_key: "emission:H2O", note: "combustion water vapour"}
+    - {chemical: wastewater, role: waste, inventory_key: "output:wastewater"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity"}
+    - {chemical: steam, role: utility, inventory_key: "feed:steam", note: "counted as heat delivered, gross of heat recovery"}
+basis: {capacity: "per tonne of styrene (the dataset's basis); no plant size"}
+publication: {status: public, license: CC-BY-4.0}
+references:
+  - {title: "Falcke, H. et al. (2017) Best Available Techniques (BAT) Reference Document for the Production of Large Volume Organic Chemicals. JRC Science for Policy Report EUR 28882 EN (JRC109279), chapter 5", doi: 10.2760/77304}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/styrene-1, access: public}
