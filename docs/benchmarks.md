@@ -146,6 +146,22 @@ dataset's recovery needs its own explanation until a source states a range. ASU-
 well below it: the simulated double column without an argon column needs more air for 99.5 %
 GOX (DESIGN.md D-066, which revised the concept's 94 % of D-018).
 
+**Decision (2026-10-30): the zero-width O2 recovery reference stays until a range can be read
+in its source.** A second search for an open source that states a recovery range for
+cryogenic double columns found two leads, but neither text could be read and checked here.
+Luberti, Capocelli and Santori (2026, Chem. Eng. Sci. 320, 122660, open access) gives 83 to
+99 % at 95 to 99.6 % purity in a search-engine summary, but the full text could not be retrieved.
+Singla and Chowdhury (2021, Chem. Eng. Process. 162, 108354) gives 90 to 95 % at above
+99.5 % O2 without argon extraction in a search-engine summary, but it is not open access and the figure is cited from an
+earlier source. A range seen only in a search-engine summary is not recorded (never invent a range),
+and Pfaff and Kather's single value is not widened by a margin. So the reference, the
+`explained` status and its D-066 reason stay unchanged. The next step is to read Luberti et
+al. and, if it states the range with its conditions, add it as a second reference with its
+locator and bind ASU-1 to it. The leads are recorded in the KPI's note in
+`benchmarks/air-separation.yaml`. The alternative was to replace the single value with
+`no_open_reference`; it was not taken, because the single value is a real, cited figure and
+the reader still sees how far ASU-1 sits from it.
+
 `tests/fixtures/benchmarks/asu-1-mis-scaled.yaml` is a deliberately wrong copy of the dataset,
 with the power in Wh labelled kWh. Its 501,700 kWh/t falls outside the range, so the strict LCI
 build and the strict catalog build fail on it (`tests/test_benchmarks.py`).

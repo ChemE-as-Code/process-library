@@ -1,10 +1,11 @@
 {
   "schema": "cheme/maturity-report/v1",
   "kind": "maturity-report",
-  "core_version": "0.8.0",
-  "checked_at": "2026-10-25T07:39:19Z",
+  "core_version": "1.2.1",
+  "checked_at": "2026-11-01T05:34:24Z",
   "level": "balanced",
   "level_index": 2,
+  "evaluated_through": "engineering",
   "library_maturity": "screening",
   "levels": [
     {
@@ -736,6 +737,7 @@
                   "residual_kW": -76.698772,
                   "tolerance_kW": null,
                   "missing": [
+                    "the duty of step K3101 (no energy stream; not evaluable, missing S4C enthalpy)",
                     "the duty of step E3105 (no energy stream; implied -63.2544 kW)",
                     "the duty of step KT3101 (no energy stream; implied -198.406 kW)",
                     "the duty of step C3101 (no energy stream; implied -4173.31 kW)",
@@ -1277,16 +1279,65 @@
         {
           "id": "predictive.property-regime",
           "title": "the property methods are used inside their declared regimes",
-          "status": "unsupported",
+          "status": "fail",
           "required": true,
           "rule": "cheme.maturity-predictive-property-regime",
           "file": "process/simulation.yaml",
           "line": null,
-          "detail": "the DWSIM route claims no application range for 'Peng-Robinson (PR)' (thermodynamics/methods.yml: no range claimed by cheme-as-code), so no stream can be shown inside one",
-          "hint": "satisfied once methods.yml declares a range for this package that a test benchmarks against reference data, and every simulated stream lies inside it",
+          "detail": "simulation.yaml sets interaction parameters (AR-O2); the claim holds for DWSIM's own, case design, feed S1: component 124-38-9 is not in the claim, case design, feed S1: component 7732-18-5 is not in the claim and 23 more",
+          "hint": "keep every feed and stream inside the claimed boxes of the package (thermodynamics/methods.yml, benchmarked by tests/test_process_simulate_property_package.py), or extend the benchmark",
           "evidence": {
             "property_package": "Peng-Robinson (PR)",
-            "route_application_range": "no range claimed by cheme-as-code"
+            "claim": {
+              "simulator_version": "9.0.5",
+              "components": {
+                "7727-37-9": "nitrogen",
+                "7782-44-7": "oxygen",
+                "7440-37-1": "argon"
+              },
+              "properties": [
+                "bubble and dew temperatures (and at vapour fraction 0.5) at a given pressure and composition",
+                "equilibrium phase compositions (vapour fraction 0.5)",
+                "enthalpy differences, every phase and saturation state, from the gas at 300 K and 100 kPa(a)",
+                "liquid density of the pure fluids where the fluid is a subcritical liquid (below its saturation temperature up to 2000 kPa(a), and at or below 100 K up to 6000 kPa(a)); not in the 170-320 K gas box, where DWSIM labels supercritical oxygen and argon liquid"
+              ],
+              "not_claimed": [
+                "liquid density of mixtures: DWSIM's Rackett mixture density misses the reference by up to 8 % below 110 K (nitrogen-argon 50/50: -7.8 %) and up to 13 % nearer the critical point (120 K, 2000 kPa(a))",
+                "gas density: within 2.2 % of the reference up to 2000 kPa(a) except at isolated states where DWSIM 9.0.5 returns a wrong vapour density while its enthalpy agrees (air at 260 K, 200 kPa(a): -3.6 %; nitrogen-oxygen 50/50 at 250 K, 700 kPa(a): -32 %; crude oxygen at 190 K, 300 kPa(a): -20 %); up to 5 % at 170 K and 6000 kPa(a); at 170 K and 10000 kPa(a) DWSIM labels supercritical oxygen and argon liquid and its Rackett density is wrong by orders of magnitude",
+                "transport properties, solids (argon freezes at 83.8 K), other components"
+              ],
+              "tolerances": {
+                "saturation_temperature_abs_K": 0.3,
+                "equilibrium_mole_fraction_abs": 0.005,
+                "enthalpy_difference_abs_kJ_per_kmol": 200.0,
+                "liquid_density_rel_pure": 0.02
+              },
+              "benchmark": "tests/test_process_simulate_property_package.py"
+            },
+            "states_checked": 39,
+            "feeds_checked": 1,
+            "outside": [
+              "simulation.yaml sets interaction parameters (AR-O2); the claim holds for DWSIM's own",
+              "case design, feed S1: component 124-38-9 is not in the claim",
+              "case design, feed S1: component 7732-18-5 is not in the claim",
+              "case design, stream S2: component 124-38-9 is not in the claim",
+              "case design, stream S2: component 7732-18-5 is not in the claim",
+              "case design, stream S3L: component 124-38-9 is not in the claim",
+              "case design, stream S3L: component 7732-18-5 is not in the claim",
+              "case design, stream S3: component 124-38-9 is not in the claim",
+              "case design, stream S3: component 7732-18-5 is not in the claim",
+              "case design, stream S1C: component 124-38-9 is not in the claim",
+              "case design, stream S1C: component 7732-18-5 is not in the claim",
+              "case design, stream S3C: component 124-38-9 is not in the claim",
+              "case design, stream S3C: component 7732-18-5 is not in the claim",
+              "case design, stream S3CU: component 124-38-9 is not in the claim",
+              "case design, stream S3CU: component 7732-18-5 is not in the claim",
+              "case design, stream S4C: 333.083 K, 845 kPa(a) is outside the boxes of argon (85-320 K at 100-2000 kPa(a); 90-100 K at 100-6000 kPa(a); 170-320 K at 100-10000 kPa(a))",
+              "case design, stream S4C: 333.083 K, 845 kPa(a) is outside the boxes of nitrogen (65-320 K at 100-2000 kPa(a); 65-100 K at 100-6000 kPa(a); 170-320 K at 100-10000 kPa(a))",
+              "case design, stream S4C: 333.083 K, 845 kPa(a) is outside the boxes of oxygen (65-320 K at 100-2000 kPa(a); 65-100 K at 100-6000 kPa(a); 170-320 K at 100-10000 kPa(a))",
+              "case design, stream S16: 80.861 K, 130 kPa(a) is outside the boxes of argon (85-320 K at 100-2000 kPa(a); 90-100 K at 100-6000 kPa(a); 170-320 K at 100-10000 kPa(a))",
+              "case design, stream S12H: 473.15 K, 115 kPa(a) is outside the boxes of argon (85-320 K at 100-2000 kPa(a); 90-100 K at 100-6000 kPa(a); 170-320 K at 100-10000 kPa(a))"
+            ]
           }
         },
         {
@@ -1609,8 +1660,8 @@
           "rule": "cheme.maturity-predictive-energy-closure",
           "file": "process/simulation-run.json",
           "line": null,
-          "detail": "the plant closure is not evaluated (case design: unsupported: V2101: the sign of the component separator's energy imbalance is not established; C3102: the sign of the column top's residual duty is not established): the simulator's enthalpies are not on a heat-of-formation basis a reacting unit needs, or a unit's duty sign is not established, so energy conservation cannot be shown",
-          "hint": "satisfied once every unit's closure is evaluable: no reactor or component separator in the simulated plant until core audits them",
+          "detail": "the plant closure is not evaluated (case design: unsupported: V2101: the sign of the component separator's energy imbalance is not established; C3102: the sign of the column top's residual duty is not established): a reacting unit without a heat-of-formation basis (its property package's enthalpy reference is not verified, or the run did not report DWSIM's formation enthalpies), or a unit whose duty sign is not established, so energy conservation cannot be shown",
+          "hint": "satisfied once every unit's closure is evaluable: reactors on a verified package (simulation/energy.py FORMATION_PACKAGES) in a current run; no component separator or column top without condenser",
           "evidence": {
             "design": {
               "feeds": [
@@ -1683,6 +1734,20 @@
               "utility_levels": []
             }
           }
+        },
+        {
+          "id": "predictive.formation-data",
+          "title": "the simulated reaction heat agrees with the formation enthalpies declared in process/materials.yaml",
+          "status": "pass",
+          "required": true,
+          "rule": "cheme.maturity-predictive-formation-data",
+          "file": "process/simulation-run.json",
+          "line": null,
+          "detail": "no reacting unit in the simulated plant",
+          "hint": "",
+          "evidence": {
+            "design": {}
+          }
         }
       ]
     },
@@ -1733,7 +1798,8 @@
               "pid/P-02.xml",
               "pid/P-03.xml",
               "pid/P-04.xml"
-            ]
+            ],
+            "not_drawn": []
           }
         },
         {
@@ -1780,7 +1846,8 @@
       "assumptions": [],
       "limitations": [
         "specified split: the separation is not predicted"
-      ]
+      ],
+      "evidence": []
     },
     {
       "id": "C3101",
@@ -1798,7 +1865,8 @@
       "assumptions": [
         "equilibrium stages (no efficiency or rate-based model)"
       ],
-      "limitations": []
+      "limitations": [],
+      "evidence": []
     },
     {
       "id": "C3102",
@@ -1816,7 +1884,8 @@
       "assumptions": [
         "equilibrium stages (no efficiency or rate-based model)"
       ],
-      "limitations": []
+      "limitations": [],
+      "evidence": []
     }
   ],
   "cases": [
@@ -1863,6 +1932,12 @@
       "status": "fail",
       "file": "process/simulation.yaml",
       "detail": "specified: V2101 (component-split)"
+    },
+    {
+      "requirement": "predictive.property-regime",
+      "status": "fail",
+      "file": "process/simulation.yaml",
+      "detail": "simulation.yaml sets interaction parameters (AR-O2); the claim holds for DWSIM's own, case design, feed S1: component 124-38-9 is not in the claim, case design, feed S1: component 7732-18-5 is not in the claim and 23 more"
     }
   ],
   "limitations": [
@@ -1873,16 +1948,10 @@
       "limitation": "specified split: the separation is not predicted"
     },
     {
-      "subject": "predictive.property-regime",
-      "file": "process/simulation.yaml",
-      "line": null,
-      "limitation": "the DWSIM route claims no application range for 'Peng-Robinson (PR)' (thermodynamics/methods.yml: no range claimed by cheme-as-code), so no stream can be shown inside one"
-    },
-    {
       "subject": "predictive.energy-closure",
       "file": "process/simulation-run.json",
       "line": null,
-      "limitation": "the plant closure is not evaluated (case design: unsupported: V2101: the sign of the component separator's energy imbalance is not established; C3102: the sign of the column top's residual duty is not established): the simulator's enthalpies are not on a heat-of-formation basis a reacting unit needs, or a unit's duty sign is not established, so energy conservation cannot be shown"
+      "limitation": "the plant closure is not evaluated (case design: unsupported: V2101: the sign of the component separator's energy imbalance is not established; C3102: the sign of the column top's residual duty is not established): a reacting unit without a heat-of-formation basis (its property package's enthalpy reference is not verified, or the run did not report DWSIM's formation enthalpies), or a unit whose duty sign is not established, so energy conservation cannot be shown"
     },
     {
       "subject": "engineering.consistency",
@@ -2046,7 +2115,7 @@
         "file": "pid/P-02.xml",
         "exists": true,
         "generated": false,
-        "fingerprint": "sha256:f6b4904d694ef94994fa3c5af7e903503134e9b9415e93794cdb4fe44e33ade6"
+        "fingerprint": "sha256:0dceb586f3c906470008f82a57ebfc8c1cbe20d3dba8e467a611460acbb69d84"
       },
       {
         "id": "P-03",
@@ -2054,7 +2123,7 @@
         "file": "pid/P-03.xml",
         "exists": true,
         "generated": false,
-        "fingerprint": "sha256:e633f6e71bb6a9926e184eeab53287e44529b4cd209fb0a87cfbbe5a7db09974"
+        "fingerprint": "sha256:18660f1a09049fdbb41d074a72b7ae3f3f8aaffae6ad4bf27703ef363bc7544a"
       },
       {
         "id": "P-04",
@@ -2062,7 +2131,7 @@
         "file": "pid/P-04.xml",
         "exists": true,
         "generated": false,
-        "fingerprint": "sha256:cc86ce6eb26c5538d2b8ab45b112487b67da31ba3be554395b075fe3a1541374"
+        "fingerprint": "sha256:d7e998e9232b7ca5620915a63f15b90f4210d8349d0e6dd04b637a4f4bea1d8a"
       },
       {
         "id": "BFD",
@@ -2070,7 +2139,7 @@
         "file": "process/BFD.xml",
         "exists": true,
         "generated": true,
-        "fingerprint": "sha256:63efdfdc9a64ae50334e8f8db88677ca6b0bb64049bdf9746f37858f2685c1aa"
+        "fingerprint": "sha256:46eea8e7d9aa5ac1981747660d1c1e07b58c99235dda71260e959977a5e4ffc9"
       },
       {
         "id": "PFD",
@@ -2078,7 +2147,7 @@
         "file": "process/PFD.xml",
         "exists": true,
         "generated": true,
-        "fingerprint": "sha256:e8108f11c762cf965eb12bde820198dd275f1a52a2d16d7a0cd06aa73e597645"
+        "fingerprint": "sha256:c086b654823903a6578537532f8e588febfadce0298f3115a359a51921b86ced"
       }
     ],
     "files": {
@@ -2156,6 +2225,7 @@
         "lca/gaps.csv",
         "lca/inventory.csv",
         "lca/lca.yaml",
+        "lca/mappings.yaml",
         "lca/results.csv",
         "lca/uncertainty.csv"
       ],
@@ -2266,7 +2336,7 @@
           "level": "warning",
           "rule": "cheme.boundary-utility-unassigned",
           "message": "step C1101U (Cooling) exchanges heat or work but no energy stream connects it to a utility: its steam, cooling, refrigeration or power is in no inventory",
-          "hint": "give the step an energy port and a stream to a utility terminal (category: utility), or state in DESIGN.md why it is adiabatic"
+          "hint": "give the step an energy port and a stream to a utility terminal (category: utility), or declare it adiabatic: mode: adiabatic in process/simulation.yaml (a reactor) or heat: adiabatic on its bed, tank or batch"
         },
         {
           "file": "process/flowsheet.yaml",
@@ -2274,7 +2344,7 @@
           "level": "warning",
           "rule": "cheme.boundary-utility-unassigned",
           "message": "step C1102 (Cooling) exchanges heat or work but no energy stream connects it to a utility: its steam, cooling, refrigeration or power is in no inventory",
-          "hint": "give the step an energy port and a stream to a utility terminal (category: utility), or state in DESIGN.md why it is adiabatic"
+          "hint": "give the step an energy port and a stream to a utility terminal (category: utility), or declare it adiabatic: mode: adiabatic in process/simulation.yaml (a reactor) or heat: adiabatic on its bed, tank or batch"
         },
         {
           "file": "process/flowsheet.yaml",
@@ -2282,7 +2352,7 @@
           "level": "warning",
           "rule": "cheme.boundary-utility-unassigned",
           "message": "step K3101 (Compressing) exchanges heat or work but no energy stream connects it to a utility: its steam, cooling, refrigeration or power is in no inventory",
-          "hint": "give the step an energy port and a stream to a utility terminal (category: utility), or state in DESIGN.md why it is adiabatic"
+          "hint": "give the step an energy port and a stream to a utility terminal (category: utility), or declare it adiabatic: mode: adiabatic in process/simulation.yaml (a reactor) or heat: adiabatic on its bed, tank or batch"
         },
         {
           "file": "process/flowsheet.yaml",
@@ -2290,7 +2360,7 @@
           "level": "warning",
           "rule": "cheme.boundary-utility-unassigned",
           "message": "step E3105 (Cooling) exchanges heat or work but no energy stream connects it to a utility: its steam, cooling, refrigeration or power is in no inventory",
-          "hint": "give the step an energy port and a stream to a utility terminal (category: utility), or state in DESIGN.md why it is adiabatic"
+          "hint": "give the step an energy port and a stream to a utility terminal (category: utility), or declare it adiabatic: mode: adiabatic in process/simulation.yaml (a reactor) or heat: adiabatic on its bed, tank or batch"
         },
         {
           "file": "process/flowsheet.yaml",
@@ -2298,7 +2368,7 @@
           "level": "warning",
           "rule": "cheme.boundary-utility-unassigned",
           "message": "step C3101 (Distilling) exchanges heat or work but no energy stream connects it to a utility: its steam, cooling, refrigeration or power is in no inventory",
-          "hint": "give the step an energy port and a stream to a utility terminal (category: utility), or state in DESIGN.md why it is adiabatic"
+          "hint": "give the step an energy port and a stream to a utility terminal (category: utility), or declare it adiabatic: mode: adiabatic in process/simulation.yaml (a reactor) or heat: adiabatic on its bed, tank or batch"
         },
         {
           "file": "process/flowsheet.yaml",
@@ -2306,7 +2376,7 @@
           "level": "warning",
           "rule": "cheme.boundary-utility-unassigned",
           "message": "step HL3101 (ExchangingThermalEnergy) exchanges heat or work but no energy stream connects it to a utility: its steam, cooling, refrigeration or power is in no inventory",
-          "hint": "give the step an energy port and a stream to a utility terminal (category: utility), or state in DESIGN.md why it is adiabatic"
+          "hint": "give the step an energy port and a stream to a utility terminal (category: utility), or declare it adiabatic: mode: adiabatic in process/simulation.yaml (a reactor) or heat: adiabatic on its bed, tank or batch"
         },
         {
           "file": "process/flowsheet.yaml",
@@ -2314,7 +2384,7 @@
           "level": "warning",
           "rule": "cheme.boundary-utility-unassigned",
           "message": "step C3102 (Distilling) exchanges heat or work but no energy stream connects it to a utility: its steam, cooling, refrigeration or power is in no inventory",
-          "hint": "give the step an energy port and a stream to a utility terminal (category: utility), or state in DESIGN.md why it is adiabatic"
+          "hint": "give the step an energy port and a stream to a utility terminal (category: utility), or declare it adiabatic: mode: adiabatic in process/simulation.yaml (a reactor) or heat: adiabatic on its bed, tank or batch"
         }
       ]
     }
@@ -2609,6 +2679,76 @@
         "reviewer_kind": "agent",
         "reviewed_commit": "debdc572d3d3ef993c2c3d431dde071e665f91e7",
         "approved_by": null
+      },
+      {
+        "path": "reviews/2026-10-25-maturity-review3.md",
+        "topic": "maturity",
+        "reviewer_kind": "agent",
+        "reviewed_commit": "41904e7ae9b79d425d3d629a2ee20a819c728aed",
+        "approved_by": null
+      },
+      {
+        "path": "reviews/2026-10-25-pid-review1.md",
+        "topic": "pid",
+        "reviewer_kind": "agent",
+        "reviewed_commit": "41904e7ae9b79d425d3d629a2ee20a819c728aed",
+        "approved_by": null
+      },
+      {
+        "path": "reviews/2026-10-25-hazop-review5.md",
+        "topic": "hazop",
+        "reviewer_kind": "agent",
+        "reviewed_commit": "41904e7ae9b79d425d3d629a2ee20a819c728aed",
+        "approved_by": null
+      },
+      {
+        "path": "reviews/2026-10-25-layout-review27.md",
+        "topic": "layout",
+        "reviewer_kind": "agent",
+        "reviewed_commit": "a6130d6612f3d455244743eaa18bddd8c63c598e",
+        "approved_by": null
+      },
+      {
+        "path": "reviews/2026-10-26-hazop-review6.md",
+        "topic": "hazop",
+        "reviewer_kind": "agent",
+        "reviewed_commit": "8ccc3234de6b689b057ce5164e4ad940c7718d29",
+        "approved_by": null
+      },
+      {
+        "path": "reviews/2026-10-26-control-review6.md",
+        "topic": "control",
+        "reviewer_kind": "agent",
+        "reviewed_commit": "8ccc3234de6b689b057ce5164e4ad940c7718d29",
+        "approved_by": null
+      },
+      {
+        "path": "reviews/2026-10-26-layout-review28.md",
+        "topic": "layout",
+        "reviewer_kind": "agent",
+        "reviewed_commit": "8ccc3234de6b689b057ce5164e4ad940c7718d29",
+        "approved_by": null
+      },
+      {
+        "path": "reviews/2026-10-26-control-review7.md",
+        "topic": "control",
+        "reviewer_kind": "agent",
+        "reviewed_commit": "a793d37d4b397f229afa41db8163fac005b93d9e",
+        "approved_by": null
+      },
+      {
+        "path": "reviews/2026-10-26-hazop-review7.md",
+        "topic": "hazop",
+        "reviewer_kind": "agent",
+        "reviewed_commit": "a793d37d4b397f229afa41db8163fac005b93d9e",
+        "approved_by": null
+      },
+      {
+        "path": "reviews/2026-10-26-layout-review29.md",
+        "topic": "layout",
+        "reviewer_kind": "agent",
+        "reviewed_commit": "a793d37d4b397f229afa41db8163fac005b93d9e",
+        "approved_by": null
       }
     ]
   },
@@ -2620,14 +2760,14 @@
     "claim_exceeds_evidence": false
   },
   "source": {
-    "commit": "3c55549aba8b13bb2029f86ab8f9e2df90dddcc0",
+    "commit": "fa2c2d39f480608b1f3fb5b3574be0b5e5498a08",
     "dirty": [],
     "fingerprints": {
       "equipment/equipment-list.yaml": "sha256:7dd6ae258db62812479ac0e0e7c520b82a46de4f02ee2020db2f5d4013870490",
-      "plant.yaml": "sha256:a89f220de3bb71fc17d916b013ba380d0444218f4bd076ed37ed503e67132d35",
-      "process.yaml": "sha256:078285b0b044fce392e9bfc0f5378a12fc67b16448faa503bf7c13232a515200",
+      "plant.yaml": "sha256:29c11e86f63f787667f3f4fc3482aea28c430c883f3977b9bccbed9c5cc272ed",
+      "process.yaml": "sha256:c26c7e2d4a7b18fbfea03226f9670c0a1e6cf4e90e0343aedf825a41e0ad0f53",
       "process/design-basis.yaml": "sha256:0498974de4c64d23299e4a93fc56382beeae4c20493d14612a3c0912288757e0",
-      "process/flowsheet.yaml": "sha256:a4255acac7b000f5d3cafacbb23b24de1eef9435a2a05fcc47314b5a22f286eb",
+      "process/flowsheet.yaml": "sha256:55cd2ae5678e325e705eedf0b15cce079e9c606f611e4c853f84fd12fe6d439b",
       "process/materials.yaml": "sha256:e1aa43b3af061ae5c0e3982cba36fd9956884476745037db75c8ca937e2fbbcd",
       "process/simulation-run.json": "sha256:3e227e41149c4c416902257a4fa8b031a5b4183b00dd6f0489171aa42121349a",
       "process/simulation.yaml": "sha256:74863bd0654b70834c5844af0a51f7b1e7bbdff580ccd506f5dd7897600b5760"
@@ -2663,16 +2803,16 @@
       "line": null,
       "level": "error",
       "rule": "cheme.maturity-predictive-property-regime",
-      "message": "unsupported: the property methods are used inside their declared regimes (the DWSIM route claims no application range for 'Peng-Robinson (PR)' (thermodynamics/methods.yml: no range claimed by cheme-as-code), so no stream can be shown inside one)",
-      "hint": "satisfied once methods.yml declares a range for this package that a test benchmarks against reference data, and every simulated stream lies inside it"
+      "message": "fail: the property methods are used inside their declared regimes (simulation.yaml sets interaction parameters (AR-O2); the claim holds for DWSIM's own, case design, feed S1: component 124-38-9 is not in the claim, case design, feed S1: component 7732-18-5 is not in the claim and 23 more)",
+      "hint": "keep every feed and stream inside the claimed boxes of the package (thermodynamics/methods.yml, benchmarked by tests/test_process_simulate_property_package.py), or extend the benchmark"
     },
     {
       "file": "process/simulation-run.json",
       "line": null,
       "level": "error",
       "rule": "cheme.maturity-predictive-energy-closure",
-      "message": "unsupported: the simulated plant's enthalpy flows close with its heat and work within tolerance (the plant closure is not evaluated (case design: unsupported: V2101: the sign of the component separator's energy imbalance is not established; C3102: the sign of the column top's residual duty is not established): the simulator's enthalpies are not on a heat-of-formation basis a reacting unit needs, or a unit's duty sign is not established, so energy conservation cannot be shown)",
-      "hint": "satisfied once every unit's closure is evaluable: no reactor or component separator in the simulated plant until core audits them"
+      "message": "unsupported: the simulated plant's enthalpy flows close with its heat and work within tolerance (the plant closure is not evaluated (case design: unsupported: V2101: the sign of the component separator's energy imbalance is not established; C3102: the sign of the column top's residual duty is not established): a reacting unit without a heat-of-formation basis (its property package's enthalpy reference is not verified, or the run did not report DWSIM's formation enthalpies), or a unit whose duty sign is not established, so energy conservation cannot be shown)",
+      "hint": "satisfied once every unit's closure is evaluable: reactors on a verified package (simulation/energy.py FORMATION_PACKAGES) in a current run; no component separator or column top without condenser"
     },
     {
       "file": "equipment/datasheets/",

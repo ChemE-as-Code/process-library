@@ -5973,3 +5973,24 @@ inputs (`lca/lca.yaml`, `lca/factors.yaml`) are unchanged, and the flowsheet and
 untouched.
 
 Reason: say plainly which numbers can be set side by side and which cannot.
+
+## D-117 Maturity regenerated with cheme 1.2.1: the property regime fails, the level stays balanced (2026-11-01)
+`checks/maturity.json` was rewritten with cheme 1.2.1 (the core version library CI pins) after
+the rebase onto main. Two results differ from the earlier statements in D-097 and the later
+maturity notes in this file, which said the property regime is unsupported:
+
+- `predictive.property-regime` now **fails** instead of being unsupported. Core 1.2.1 claims a
+  regime for the DWSIM Peng-Robinson package (N2/O2/Ar only, benchmarked in core), and ASU-1
+  lies outside it: `simulation.yaml` sets the Ar/O2 interaction parameter (the claim holds for
+  DWSIM's own), and the feed S1 and other streams carry CO2, water and further components that
+  the claim does not cover.
+- `predictive.formation-data` is a new requirement and passes.
+
+The level is unchanged (balanced, which supports `maturity: screening`). The property-regime
+failure is left open on purpose: removing CO2 and water from the simulated streams or dropping
+the Ar/O2 kij would change the design basis and the separation results, and extending core's
+benchmark is core work. Predictive stays blocked anyway by coverage (C1102), the TSA model
+basis (V2101) and the plant energy closure (D-097). The `process.yaml` maturity comment and
+validation notes cite this decision. No engineering number changes.
+
+Reason: keep DESIGN.md and `process.yaml` saying the same thing about the evidence.
