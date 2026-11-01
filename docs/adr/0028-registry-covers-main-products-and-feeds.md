@@ -1,6 +1,6 @@
 # 0028. Register every process's main product and feeds with verified identities; label functional units by product name
 
-- **Status:** Proposed, 2026-10-31
+- **Status:** Accepted, 2026-10-31
 - **Deciders:** the owner (proposed by an agent session)
 - **Scope:** the chemicals registry (`chemicals/chemicals.yaml`), the processes' `chemistry`
   blocks, and the catalog build (`scripts/build_catalog.py`)

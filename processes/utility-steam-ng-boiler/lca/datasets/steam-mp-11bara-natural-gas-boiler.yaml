@@ -1,18 +1,23 @@
 # Utility dataset of the process library (process-library#45), Tier 1 form.
 # Every amount is the `formula` of its `parameters`; core's lci_dataset validator re-checks each.
-# Physical properties and stoichiometry have their source; design parameters are ASSUMED with a
-# TODO to source them. Property parameters were evaluated with CoolProp 8.0.0. Change a
-# parameter and the amounts of its formulas together (core and tests/test_utilities.py check them).
+# Physical properties, stoichiometry and the combustion emission factors (EPA AP-42 Section 1.4)
+# have their source; the boiler class, efficiency, blowdown and other design parameters are ASSUMED
+# with a TODO to source them (efficiency and blowdown guided by U.S. DOE steam tip sheets). Property parameters were evaluated with
+# CoolProp 8.0.0. Change a parameter and the amounts of its formulas together (core and
+# tests/test_utilities.py check them).
 schema: cheme/lci_dataset/v2
 kind: lci_dataset
 id: steam-mp-11bara-natural-gas-boiler
 title: Steam, saturated, 11 bar(a), from a natural-gas boiler
 description: 'Per 1 t of saturated steam at 11 bar(a) from a natural-gas fired boiler, make-up water at
-  15 degC (no condensate return). Gate-to-gate: boiler, deaerator and feed pump.'
+  15 degC (no condensate return). Gate-to-gate: boiler, deaerator and feed pump. Combustion emissions
+  (NOx, CO, CH4, N2O, PM) are EPA AP-42 Section 1.4 factors for a small uncontrolled boiler, on an energy
+  basis.'
 basis: 1000 kg of saturated steam at 11 bar(a)
 boundary: 'gate-to-gate: boiler, burner and fan, deaerator, feed pump; feedwater from outside, blowdown
   to wastewater treatment'
-technology: natural-gas fired steam boiler, no economiser credit, no condensate return
+technology: natural-gas fired packaged steam boiler below 100 MMBtu/h heat input (ASSUMED class; about 30.7
+  t/h of steam at 3.2551 MMBtu HHV per t), no NOx control, no economiser credit, no condensate return
 geography:
   description: 'Generic: no site data. Electricity, natural gas and water link to the site''s background
     (install location).'
@@ -21,11 +26,12 @@ classification:
 system_boundary:
   included:
   - fuel and its combustion CO2 and water
+  - NOx, CO, CH4 slip, N2O and particulates of combustion (EPA AP-42 Section 1.4)
   - feedwater (make-up) and blowdown
   - feed pump and combustion air fan electricity
   excluded:
-  - 'TODO NOx, CO, CH4 slip, N2O and particulates of combustion: no open emission factor read yet;
-    the dataset is complete for fossil CO2 only'
+  - 'TODO SO2, non-methane organics and metals of combustion: AP-42 Section 1.4 lists factors, not taken
+    up here (SO2 depends on the site''s fuel sulfur and odorant)'
   - 'TODO boiler water chemicals (oxygen scavenger, phosphate or polymer, amines): dosing not sourced'
   - deaerator vent steam and heat losses beyond the boiler efficiency
   - 'condensate return: every kg of steam is made from make-up water (a site that returns condensate needs
@@ -36,7 +42,7 @@ system_boundary:
   catalysts: excluded
   non_routine: excluded
 uuid: 32a4d48f-f0ee-5f32-890c-0046c2026a41
-version: 0.1.0
+version: 0.2.0
 methodology_version: 1.0.0
 system_model: cutoff
 location: GLO
@@ -44,7 +50,8 @@ year: 2026
 valid_until: 2031
 time:
   start: 2026
-  description: Design parameters of 2026 (ASSUMED); physical properties do not age.
+  description: Design parameters of 2026; physical properties do not age. The AP-42 emission factors rest
+    on source tests compiled in 1998 (unchanged in the April 2026 edition); the DOE tip sheets are of 2012.
 technology_level: current
 modelling:
   principle: attributional
@@ -89,18 +96,24 @@ parameters:
   source: IAPWS-95 (Wagner and Pruss 2002, J. Phys. Chem. Ref. Data 31:387), evaluated with CoolProp 8.0.0
     (Bell et al. 2014, Ind. Eng. Chem. Res. 53:2498); 15 degC is ASSUMED
 - name: blowdown
-  value: 0.03
+  value: 0.04
   unit: kg/kg feedwater
   description: Continuous blowdown as a fraction of feedwater.
-  source: 'ASSUMED: set by feedwater quality and the boiler''s water limits; 3 % is a placeholder within
-    the range boiler practice works in. TODO: source from an open boiler-practice reference or BREF LCP,
-    or derive from feedwater TDS and the boiler limit.'
+  source: 'ASSUMED: 4 %, inside the typical ranges of U.S. DOE AMO Steam Tip Sheets #9 (DOE/GO-102012-3406,
+    4 to 8 % of feedwater) and #23 (DOE/GO-102012-3402, 1 to 8 %), at the low end because the make-up is
+    demineralised. The 4 % in Sheet #26A (DOE/GO-102012-3393, note to Table 2) is an example of another
+    boiler (about 116 MMBtu/h, feedwater economiser, 83 % efficient, 260 degF feedwater), and #23 says a
+    low condensate return means more blowdown; this dataset returns none, so 4 % may be low. TODO: derive
+    from feedwater TDS and a boiler water limit.'
 - name: eta
-  value: 0.9
+  value: 0.88766
   unit: '1'
   description: Boiler efficiency, heat to steam and blowdown per fuel LHV.
-  source: 'ASSUMED: a modern natural-gas fired shell or water-tube boiler without condensing economiser.
-    TODO: source (BREF LCP or a published boiler test).'
+  source: 'ASSUMED: 80 % read as an HHV efficiency, which the sheets do not state for this value. 80 % is
+    the natural-gas boiler example of U.S. DOE AMO Steam Tip Sheets #3 (DOE/GO-102012-3412), #9 and #23,
+    within the 78 to 83 % that Sheet #26A Table 1 gives for a boiler without economiser (there as combustion
+    efficiency at 4 % excess O2); only the worked firing rate of #26A shows an HHV basis. To LHV: 0.80 x hhv
+    / lhv = 0.80 x 55.49 / 50.01 = 0.88766. TODO: replace with a boiler test or a source stating the basis.'
 - name: lhv
   value: 50010.0
   unit: kJ/kg
@@ -174,6 +187,90 @@ parameters:
   unit: '1'
   description: Fan and motor efficiency.
   source: 'ASSUMED: centrifugal fan. TODO: source.'
+- name: hhv
+  value: 55490.0
+  unit: kJ/kg
+  description: Higher heating value of the fuel, natural gas taken as pure methane. Brings the AP-42
+    factors (per volume at a stated higher heating value) to this fuel, by energy.
+  source: chemicals/chemicals.yaml methane hhv 55.49 MJ/kg (derived from NIST-JANAF and CODATA 1989 enthalpies
+    of formation)
+- name: hv_ap42
+  value: 1020.0
+  unit: Btu/scf
+  description: Higher heating value the AP-42 Section 1.4 factors are stated at.
+  source: EPA AP-42 Section 1.4 Natural Gas Combustion (April 2026), Table 1.4-1 footnote a, which states it as
+    the average higher heating value
+- name: btu_kj
+  value: 1.05505585
+  unit: kJ/Btu
+  description: International Table British thermal unit; AP-42 does not say which Btu it means, the thermochemical
+    one differs by 0.07 %.
+  source: definition, 1 Btu(IT) = 1055.05585262 J
+- name: lb_kg
+  value: 0.45359237
+  unit: kg/lb
+  description: Pound to kilogram.
+  source: definition, international pound
+- name: ef_nox
+  value: 100.0
+  unit: lb/10^6 scf
+  description: NOx, expressed as NO2, small boiler below 100 MMBtu/h heat input, uncontrolled.
+  source: 'ASSUMED class: small and uncontrolled, as the dataset is a packaged boiler without NOx control. Value
+    from EPA AP-42 Section 1.4 (April 2026), Table 1.4-1, rating B; same value and rating in the July 1998
+    and October 2026 editions. Above about 30.7 t/h of steam the same table gives 170 (tangential-fired) to
+    280 (large wall-fired, pre-NSPS) uncontrolled, so NOx may be understated by 1.7 to 2.8 times; low-NOx
+    burners on a small boiler give 50. TODO: state the boiler size and NOx control of a real site.'
+- name: ef_co
+  value: 84.0
+  unit: lb/10^6 scf
+  description: CO, small boiler below 100 MMBtu/h heat input, uncontrolled.
+  source: 'ASSUMED class: small and uncontrolled, as ef_nox. Value from EPA AP-42 Section 1.4 (April 2026), Table
+    1.4-1, rating B; same value and rating in the July 1998 and October 2026 editions. TODO: state the boiler
+    size and NOx control of a real site.'
+- name: ef_ch4
+  value: 2.3
+  unit: lb/10^6 scf
+  description: Methane, all natural-gas combustion sources.
+  source: EPA AP-42 Section 1.4 (April 2026), Table 1.4-2, rating B; same value and rating in the July 1998 and
+    October 2026 editions
+- name: ef_n2o
+  value: 2.2
+  unit: lb/10^6 scf
+  description: N2O, uncontrolled, the same control class as ef_nox.
+  source: 'ASSUMED class: uncontrolled, as ef_nox. Value from EPA AP-42 Section 1.4 (April 2026), Table 1.4-2,
+    rating E; same value and rating in the July 1998 and October 2026 editions. TODO: state the NOx control
+    of a real site.'
+- name: ef_pm
+  value: 7.6
+  unit: lb/10^6 scf
+  description: PM, total (filterable and condensable), all below 1 micrometre by AP-42's assumption.
+  source: EPA AP-42 Section 1.4 (April 2026), Table 1.4-2 and its footnote c, rating D; same value and rating
+    in the July 1998 and October 2026 editions
+- name: M_CO
+  value: 28.01
+  unit: g/mol
+  description: Molar mass of carbon monoxide.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573)
+- name: M_NO2
+  value: 46.005
+  unit: g/mol
+  description: Molar mass of nitrogen dioxide (AP-42 expresses NOx as NO2).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573)
+- name: M_N2O
+  value: 44.013
+  unit: g/mol
+  description: Molar mass of nitrous oxide.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573)
+- name: M_N2
+  value: 28.014
+  unit: g/mol
+  description: Molar mass of nitrogen.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573)
+- name: M_C
+  value: 12.011
+  unit: g/mol
+  description: Atomic mass of carbon (particulates are counted as carbon in the element balance).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573)
 exchanges:
 - key: product:steam
   title: Steam, saturated, 11 bar(a)
@@ -198,7 +295,7 @@ exchanges:
 - key: feed:feedwater
   title: Boiler feedwater (demineralised make-up, no condensate return)
   type: input
-  amount: 1030.9278350515465
+  amount: 1041.6666666666667
   unit: kg
   formula: steam / (1 - blowdown)
   provenance: assumed
@@ -221,7 +318,7 @@ exchanges:
 - key: feed:natural-gas
   title: Natural gas (as methane) to the burner
   type: input
-  amount: 60.87172943418189
+  amount: 61.89163052863595
   unit: kg
   formula: (steam * (h_g - h_mu) + (steam / (1 - blowdown)) * blowdown * (h_f - h_mu)) / (eta * lhv)
   provenance: assumed
@@ -239,19 +336,32 @@ exchanges:
 - key: feed:O2
   title: Combustion oxygen, from ambient air
   type: input
-  amount: 242.8191234102041
+  amount: 246.87733588802215
   unit: kg
   formula: (steam * (h_g - h_mu) + (steam / (1 - blowdown)) * blowdown * (h_f - h_mu)) / (eta * lhv) *
-    2 * M_O2 / M_CH4
+    (2 / M_CH4 + hhv * lb_kg / (hv_ap42 * 1000000 * btu_kj) * (ef_nox / M_NO2 + ef_n2o / (2 * M_N2O) - ef_co
+    / (2 * M_CO) - 2 * ef_ch4 / M_CH4 - ef_pm / M_C)) * M_O2
   provenance: assumed
   origin: estimate
   free: true
-  source: CH4 + 2 O2 -> CO2 + 2 H2O; ambient air is free and not inventoried (its N2 and excess O2 pass
-    through)
+  source: oxygen that closes the balance over CO2, H2O, CO, NO2 and N2O; ambient air is free and not inventoried
+    (its other N2 and excess O2 pass through)
+- key: feed:N2
+  title: Nitrogen fixed as NOx and N2O, from ambient air
+  type: input
+  amount: 0.04610043042749602
+  unit: kg
+  formula: (steam * (h_g - h_mu) + (steam / (1 - blowdown)) * blowdown * (h_f - h_mu)) / (eta * lhv) * hhv
+    * lb_kg / (hv_ap42 * 1000000 * btu_kj) * (ef_nox / (2 * M_NO2) + ef_n2o / M_N2O) * M_N2
+  provenance: assumed
+  origin: estimate
+  free: true
+  source: 'nitrogen of NOx and N2O, all taken as from combustion air, free and not inventoried; pure methane
+    has no fuel nitrogen'
 - key: feed:electricity
   title: Feed pump and forced-draught fan
   type: input
-  amount: 1.577887927051801
+  amount: 1.6009946770343757
   unit: kWh
   formula: ((steam / (1 - blowdown)) * v_mu * dp_pump * 100000 / eta_pump + (steam * (h_g - h_mu) + (steam
     / (1 - blowdown)) * blowdown * (h_f - h_mu)) / (eta * lhv) * 2 * M_O2 / M_CH4 * air_per_o2 * (1 +
@@ -270,10 +380,11 @@ exchanges:
 - key: emission:CO2
   title: CO2 from combustion
   type: emission
-  amount: 166.98273020438265
+  amount: 169.54002087092093
   unit: kg
   formula: (steam * (h_g - h_mu) + (steam / (1 - blowdown)) * blowdown * (h_f - h_mu)) / (eta * lhv) *
-    M_CO2 / M_CH4
+    (1 / M_CH4 - hhv * lb_kg / (hv_ap42 * 1000000 * btu_kj) * (ef_co / M_CO + ef_ch4 / M_CH4 + ef_pm / M_C))
+    * M_CO2
   provenance: assumed
   origin: estimate
   cas: 124-38-9
@@ -286,18 +397,18 @@ exchanges:
     categories:
     - air
     unit: kg
-  source: 'complete combustion of methane, CH4 + 2 O2 -> CO2 + 2 H2O (ASSUMED complete); biosphere3 UUID,
-    name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent
+  source: 'fuel carbon less the carbon of CO, CH4 and particulates, so about 99.9 % goes to CO2, as AP-42
+    Section 1.4.3 says of a tuned boiler; biosphere3 UUID, name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent
     elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
   pedigree: *id001
   basic_uncertainty: 1.05
 - key: emission:H2O
   title: Water vapour from combustion
   type: emission
-  amount: 136.70812264000335
+  amount: 138.99117933325968
   unit: kg
   formula: (steam * (h_g - h_mu) + (steam / (1 - blowdown)) * blowdown * (h_f - h_mu)) / (eta * lhv) *
-    2 * M_H2O / M_CH4
+    (1 / M_CH4 - hhv * lb_kg / (hv_ap42 * 1000000 * btu_kj) * ef_ch4 / M_CH4) * 2 * M_H2O
   provenance: assumed
   origin: estimate
   cas: 7732-18-5
@@ -311,15 +422,150 @@ exchanges:
     - air
     unit: m3
     per_unit: 0.001
-  source: 'combustion water, CH4 + 2 O2 -> CO2 + 2 H2O; biosphere3 UUID, name and categories from core''s
-    elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent elementary exchanges 3.9 via bw2io
-    0.9.17, BSD-3-Clause)'
+  source: 'combustion water, hydrogen of the fuel less that of the CH4 slip; biosphere3 UUID, name and categories
+    from core''s elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent elementary exchanges 3.9
+    via bw2io 0.9.17, BSD-3-Clause)'
   pedigree: *id001
   basic_uncertainty: 1.5
+- key: emission:NOx
+  title: NOx from combustion, as NO2
+  type: emission
+  amount: 0.14475606471441785
+  unit: kg
+  formula: (steam * (h_g - h_mu) + (steam / (1 - blowdown)) * blowdown * (h_f - h_mu)) / (eta * lhv) * hhv
+    * lb_kg / (hv_ap42 * 1000000 * btu_kj) * ef_nox
+  provenance: estimated
+  cas: 10102-44-0
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: c1b91234-6f24-417b-8309-46111d09c457
+    name: Nitrogen oxides
+    categories:
+    - air
+    unit: kg
+  source: 'EPA AP-42 Section 1.4 Table 1.4-1, small boiler, uncontrolled, 100 lb/10^6 scf as NO2 (rating B), at
+    1020 Btu/scf HHV: fuel energy (HHV) / (1020 Btu/scf) gives the equivalent 10^6 scf; biosphere3 UUID,
+    name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml: ecoinvent elementary
+    exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree: &id002
+    scores:
+    - 3
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'AP-42 factor rated B, from US source tests compiled in 1998: reliability 3, completeness 4, temporal
+      5 (over 15 years old), geographical 4 (US data for a generic site), technological 4 (average of a boiler
+      class)'
+  basic_uncertainty: 1.5
+- key: emission:CO
+  title: CO from combustion
+  type: emission
+  amount: 0.12159509436011098
+  unit: kg
+  formula: (steam * (h_g - h_mu) + (steam / (1 - blowdown)) * blowdown * (h_f - h_mu)) / (eta * lhv) * hhv
+    * lb_kg / (hv_ap42 * 1000000 * btu_kj) * ef_co
+  provenance: estimated
+  cas: 630-08-0
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: ba2f3f82-c93a-47a5-822a-37ec97495275
+    name: Carbon monoxide, fossil
+    categories:
+    - air
+    unit: kg
+  source: 'EPA AP-42 Section 1.4 Table 1.4-1, small boiler, uncontrolled, 84 lb/10^6 scf (rating B), at 1020 Btu/scf
+    HHV, by fuel energy as emission:NOx; biosphere3 UUID, name and categories from core''s elementary-flow
+    crosswalk (data/elementary-flows.yaml: ecoinvent elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree: *id002
+  basic_uncertainty: 5.0
+- key: emission:CH4
+  title: Methane slip from combustion
+  type: emission
+  amount: 0.00332938948843161
+  unit: kg
+  formula: (steam * (h_g - h_mu) + (steam / (1 - blowdown)) * blowdown * (h_f - h_mu)) / (eta * lhv) * hhv
+    * lb_kg / (hv_ap42 * 1000000 * btu_kj) * ef_ch4
+  provenance: estimated
+  cas: 74-82-8
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 0795345f-c7ae-410c-ad25-1845784c75f5
+    name: Methane, fossil
+    categories:
+    - air
+    unit: kg
+  source: 'EPA AP-42 Section 1.4 Table 1.4-2, 2.3 lb/10^6 scf (rating B), at 1020 Btu/scf HHV, by fuel energy
+    as emission:NOx; biosphere3 UUID, name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml:
+    ecoinvent elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree: *id002
+  basic_uncertainty: 1.5
+- key: emission:N2O
+  title: N2O from combustion
+  type: emission
+  amount: 0.0031846334237171925
+  unit: kg
+  formula: (steam * (h_g - h_mu) + (steam / (1 - blowdown)) * blowdown * (h_f - h_mu)) / (eta * lhv) * hhv
+    * lb_kg / (hv_ap42 * 1000000 * btu_kj) * ef_n2o
+  provenance: estimated
+  cas: 10024-97-2
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 20185046-64bb-4c09-a8e7-e8a9e144ca98
+    name: Dinitrogen monoxide
+    categories:
+    - air
+    unit: kg
+  source: 'EPA AP-42 Section 1.4 Table 1.4-2, uncontrolled, 2.2 lb/10^6 scf (rating E), at 1020 Btu/scf HHV, by
+    fuel energy as emission:NOx; biosphere3 UUID, name and categories from core''s elementary-flow crosswalk
+    (data/elementary-flows.yaml: ecoinvent elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree: &id003
+    scores:
+    - 4
+    - 4
+    - 5
+    - 4
+    - 4
+    reason: 'AP-42 factor rated D or E, from few US source tests compiled in 1998: reliability 4, completeness 4,
+      temporal 5 (over 15 years old), geographical 4 (US data for a generic site), technological 4 (average
+      of all natural-gas sources)'
+  basic_uncertainty: 1.5
+- key: emission:PM
+  title: Particulates from combustion, below 2.5 um
+  type: emission
+  amount: 0.011001460918295755
+  unit: kg
+  formula: (steam * (h_g - h_mu) + (steam / (1 - blowdown)) * blowdown * (h_f - h_mu)) / (eta * lhv) * hhv
+    * lb_kg / (hv_ap42 * 1000000 * btu_kj) * ef_pm
+  provenance: estimated
+  flow:
+  - list: ef-3.1
+    uuid: null
+  - list: biosphere3
+    uuid: 21e46cb8-6233-4c99-bac3-c41d2ab99498
+    name: Particulate Matter, < 2.5 um
+    categories:
+    - air
+    unit: kg
+  source: 'EPA AP-42 Section 1.4 Table 1.4-2, total PM, 7.6 lb/10^6 scf (rating D), at 1020 Btu/scf HHV, by fuel
+    energy as emission:NOx; footnote c takes all of it below 1 um, so it may count as PM2.5. Counted as carbon
+    in the element balance (ASSUMED: AP-42 describes it as unburnt heavier hydrocarbons, no composition given);
+    biosphere3 UUID, name and categories from core''s elementary-flow crosswalk (data/elementary-flows.yaml:
+    ecoinvent elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
+  pedigree: *id003
+  basic_uncertainty: 3.0
 - key: output:blowdown
   title: Boiler blowdown to wastewater treatment
   type: output
-  amount: 30.927835051546392
+  amount: 41.66666666666667
   unit: kg
   formula: (steam / (1 - blowdown)) * blowdown
   provenance: assumed
@@ -332,11 +578,16 @@ exchanges:
   basic_uncertainty: 1.05
 provenance:
   generator: hand-written utility model (process-library#45); amounts are the formulas of the parameters
-  notes: Every parameter states its source or ASSUMED with a TODO; no value from a licensed database.
+  notes: Every parameter states its source or ASSUMED with a TODO; no value from a licensed database. The AP-42
+    tables were read in the April 2026 PDF (gaftp.epa.gov/ap42/ch01/s04/final/c1s4_2026.pdf) and compared with
+    the July 1998 and October 2026 (c1s4_10_2026.pdf) PDFs; the five factors and ratings are the same in all
+    three. basic_uncertainty follows core's table by substance (quality.py, working defaults not yet checked
+    against the guideline), not the AP-42 rating, which enters through the pedigree reliability.
 generation:
   tier: 1
   method: 'utility model: mass and energy balance of the unit from physical properties and stoichiometry,
-    with ASSUMED design parameters (each listed in parameters)'
+    with ASSUMED design parameters (each listed in parameters) and combustion emissions from EPA AP-42
+    Section 1.4'
   maturity_cap: sourced
   pedigree_floor:
   - 3
@@ -349,16 +600,28 @@ generation:
     feed:feedwater: H2O
     feed:natural-gas: CH4
     feed:O2: O2
+    feed:N2: N2
     emission:CO2: CO2
     emission:H2O: H2O
+    emission:NOx: NO2
+    emission:CO: CO
+    emission:CH4: CH4
+    emission:N2O: N2O
+    emission:PM: C
     output:blowdown: H2O
     product:steam: H2O
   formulas:
     feed:feedwater: H2O
     feed:natural-gas: CH4
     feed:O2: O2
+    feed:N2: N2
     emission:CO2: CO2
     emission:H2O: H2O
+    emission:NOx: NO2
+    emission:CO: CO
+    emission:CH4: CH4
+    emission:N2O: N2O
+    emission:PM: C
     output:blowdown: H2O
     product:steam: H2O
   balance:
@@ -366,13 +629,16 @@ generation:
     tolerance: 1.0e-06
     elements:
       C:
-      - 45.573168499
-      - 45.573168499
+      - 46.336743395
+      - 46.336743395
       H:
-      - 130.666338646
-      - 130.666338646
+      - 132.12441253
+      - 132.12441253
+      N:
+      - 0.04610043
+      - 0.04610043
       O:
-      - 1158.379180751
-      - 1158.379180751
+      - 1171.974477159
+      - 1171.974477159
     outside:
     - feed:electricity
