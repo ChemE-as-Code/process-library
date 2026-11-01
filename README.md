@@ -22,6 +22,11 @@
 > procurement or safety decisions and come with [no warranty](LICENSE-DATA). Check the design
 > maturity and review status in each process's `process.yaml` before relying on any number.
 
+50 processes, 182 recorded agent runs in 43 of them, about US$650 of recorded agent cost; 49 at
+concept stage and 1 at screening, none independently reviewed. The figure counts recorded runs only
+(`processes/*/runs/*/run.yaml`), with costs as the runs reported them: one run records no cost, and
+agent work outside a recorded run is not included.
+
 ## Overview
 
 The process library is a collection of 50 chemical processes kept as code, from air separation,
