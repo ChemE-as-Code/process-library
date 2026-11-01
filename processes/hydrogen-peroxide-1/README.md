@@ -1,7 +1,7 @@
 # Hydrogen peroxide (anthraquinone process)
 
 > **AI-generated research output, not engineering advice.** This design was produced by AI coding
-> agents (Claude Code) under human direction and is checked by automated tools; most of it has had
+> agents (Claude Code) under human direction and is checked by automated tools; it has had
 > no independent human review. It is not approved for construction, operation, procurement or
 > safety decisions and comes with no warranty. Check the design maturity and review status in
 > `process.yaml` before relying on any number.
@@ -46,7 +46,7 @@ checked by [`cheme-as-code`](https://github.com/ChemE-as-Code/core).
 ## Working here
 
 ```sh
-uv tool install cheme-as-code           # once (see the cheme-as-code README)
+uv tool install 'cheme-as-code[serve] @ git+https://github.com/ChemE-as-Code/core.git'   # once (see the cheme-as-code README)
 cheme git-setup                 # once per clone: readable P&ID diffs + pre-commit hook
 cheme skills update             # once per clone: installs the agent skills in .claude/skills/
 cheme status                    # where the plant stands: sheets, findings, gates, sign-offs

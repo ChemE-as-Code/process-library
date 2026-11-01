@@ -31,8 +31,9 @@ gates that are progress, not errors.
 - LCI warnings (allocation findings, benchmark values outside their range) fail CI through the
   strict LCI build; the catalog build in CI is not strict (its preview warnings are expected
   there), so `--strict` on the catalog is a contributor's check (CONTRIBUTING.md step 5).
-- CI reads core through a fine-grained token and pyDEXPI through a deploy key; a fork cannot
-  run it.
+- CI reads core through a fine-grained token and pyDEXPI through a deploy key. GitHub gives a pull
+  request from a fork no secrets, so its `validate` and `library` jobs fail at the deploy-key step;
+  the docs build still runs. These steps can go once core and pyDEXPI are public.
 - Gate failures are visible but not blocking; sign-off relies on the process's own review.
 
 ## Evidence

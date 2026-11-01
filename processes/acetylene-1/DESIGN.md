@@ -33,8 +33,8 @@ air separation unit such as processes/asu-1 makes it), NMP make-up, combustion a
 steam, cooling water in; acetylene (1.2 bar(a)), synthesis gas (11 bar(a)), soot sludge,
 quench-water purge, solvent residue, flue gas out.
 Reason: The route the issue names; it is the dominant hydrocarbon route, and every step of it
-can be balanced with an explicit sourced composition model, without the carbide furnace (core
-core refuses the carbothermal step) or solids handling.
+can be balanced with an explicit sourced composition model, without the carbide furnace
+(core refuses the carbothermal step) or solids handling.
 Rejected: calcium carbide hydrolysis (a different boundary: lime kiln, carbide furnace, carbide
 lime residue); electric-arc pyrolysis (Hüls) and thermal cracking (Wulff); ethylene co-product
 recovery from steam crackers; the oil-quench variant with heat recovery (the issue fixes a water

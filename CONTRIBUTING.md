@@ -112,6 +112,10 @@ uv run scripts/build_lci.py ... --strict   # with an LCI dataset
 
 CI runs the same, and the public build (`--public`, see [Publishing a process](#publishing-a-process)).
 
+CI needs secrets to read core and pyDEXPI, and GitHub gives a pull request from a fork no secrets. Its
+`validate` and `library` jobs therefore fail at the deploy-key step, whatever you changed, and only
+the docs build tells you anything. Run the commands above yourself and say so in the pull request.
+
 ---
 
 ## Sources, licences and what may not be copied

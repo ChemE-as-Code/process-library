@@ -17,8 +17,8 @@
 </p>
 
 > **AI-generated research output, not engineering advice.** These designs were produced by AI
-> coding agents (Claude Code) under human direction and are checked by automated tools; most of
-> them have had no independent human review. They are not approved for construction, operation,
+> coding agents (Claude Code) under human direction and are checked by automated tools; they
+> have had no independent human review. They are not approved for construction, operation,
 > procurement or safety decisions and come with [no warranty](LICENSE-DATA). Check the design
 > maturity and review status in each process's `process.yaml` before relying on any number.
 
@@ -44,7 +44,7 @@ P&IDs and a 3D layout. The [home page](https://cheme-as-code.org) explains what 
 engineering as code" means.
 
 The library is the source of the [Process Atlas](https://atlas.cheme-as-code.org) (a preview;
-processes appear there as they pass review), which links the processes through the chemicals
+it shows the processes marked public in their `process.yaml`, reviewed or not), which links the processes through the chemicals
 they make and use. From the same files it builds open life cycle inventory (LCI) datasets for
 [Brightway](https://docs.brightway.dev) and openLCA. All of it is plain text in git, so every
 change is reviewed and versioned. This is research software
@@ -77,7 +77,9 @@ in active development.
 
 The [Process Atlas](https://atlas.cheme-as-code.org) shows the published processes. To open
 every plant of the library in the ChemE-as-Code Viewer on your own machine (`cheme serve` in
-library mode, core 1.1.0 or later), you need [uv](https://docs.astral.sh/uv/) and Node.js:
+library mode, core 1.1.0 or later), you need [uv](https://docs.astral.sh/uv/) and Node.js.
+core installs pyDEXPI 2.x from `process-intelligence-research/pyDEXPI-dev`, which is still a
+private repository: until it opens, the install below needs read access to it.
 
 ```sh
 git clone https://github.com/ChemE-as-Code/core.git && uv tool install './core[serve]'
@@ -135,7 +137,7 @@ please cite the Process Atlas paper, and ChemE-as-Code for the toolkit. See also
 | <img src=".github/readme/weber.jpg" alt="Jana M. Weber" width="50"> | Jana M. Weber | Process Atlas; Delft Bioinformatics Lab, Department of Computer Science, Delft University of Technology |
 | <img src=".github/readme/alimin.png" alt="Achmad A. Alimin (Angga)" width="50"> | Achmad A. Alimin (Angga) | Safety and HAZOP; layout STL export; Process Intelligence Research, Department of Chemical Engineering, Delft University of Technology |
 | <img src=".github/readme/rupprecht.jpg" alt="Sophia Rupprecht" width="50"> | Sophia Rupprecht | Inherited thermodynamic model selection, phase calculations, units and skills; design case study; Process Intelligence Research, Department of Chemical Engineering, Delft University of Technology |
-| <img src=".github/readme/evanvoorbergen.png" alt="Placeholder image for Elise" width="50"> | Elise | Inherited reaction identification, kinetics retrieval, filtering and unit conversion |
+| <img src=".github/readme/elise.png" alt="Abstract image for Elise" width="50"> | Elise | Inherited reaction identification, kinetics retrieval, filtering and unit conversion |
 
 Everyone who contributes is credited in the git history: see the
 [contributors of this repository](https://github.com/ChemE-as-Code/process-library/graphs/contributors).

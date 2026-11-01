@@ -46,7 +46,7 @@ absent from checked v1, remains an identity/transcription cross-check. No invent
 ## GitHub Project setup
 
 The organization project [Process Library Development Project](https://github.com/orgs/ChemE-as-Code/projects/1)
-is configured through signed-in Chrome, with process-library as its default repository.
+is not public yet: the link opens only for people with access to the project. It is configured through signed-in Chrome, with process-library as its default repository.
 It contains 57 canonical process tickets (the next-10 batch plus the 47 new hub candidates).
 The Development pathway, Activity and Evidence maturity boards separate next milestones,
 current work and calculation evidence; Planning is the editable process table.

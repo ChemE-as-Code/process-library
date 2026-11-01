@@ -1,7 +1,7 @@
 # Cooling water, evaporative cooling tower, 25/35 degC
 
 > **AI-generated research output, not engineering advice.** This design was produced by AI coding
-> agents (Claude Code) under human direction and is checked by automated tools; most of it has had
+> agents (Claude Code) under human direction and is checked by automated tools; it has had
 > no independent human review. It is not approved for construction, operation, procurement or
 > safety decisions and comes with no warranty. Check the design maturity and review status in
 > `process.yaml` before relying on any number.
