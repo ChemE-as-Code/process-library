@@ -259,7 +259,37 @@ def main():
     print(f"indirect steam heat {heat:.1f} kWh/t product; live steam {st['S14']['H2O']:.1f} kg/h; "
           f"motive steam {st['S22']['H2O']:.1f} kg/h")
     print(f"S3 {T['S3']:.2f} K, S7 {T['S7']:.2f} K")
+    # the values process/flowsheet.yaml cites from this script (balance-output contract): the
+    # streams and duties of build/glycerol_balance.yaml, the S3 and S7 temperatures
+    flowsheet = {sid: {"flow": {"value": total(s), "basis": "mass"},
+                       "composition": {"values": {k: v / total(s) for k, v in s.items()},
+                                       "basis": "mass_fraction"}}
+                 for sid, s in st.items()}
+    flowsheet["S3"]["temperature"], flowsheet["S7"]["temperature"] = T["S3"], T["S7"]
+    flowsheet.update({qid: {"duty": q[k]} for qid, k in {
+        "Q1": "Q_C201_REB", "Q2": "Q_C201_CND", "Q3": "Q_E301", "Q4": "Q_E302",
+        "Q5": "Q_C401_REB", "Q6": "Q_E402", "Q7": "Q_E403", "Q8": "Q_E501"}.items()})
+    write_balance_output({"design": flowsheet})
     print("\n".join(lines))
+
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
 
 
 if __name__ == "__main__":

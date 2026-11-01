@@ -550,7 +550,30 @@ def main():
     for kk, vv in res["flows"].items():
         fr = frac(vv) if tot(vv) > 0 else {}
         print(f"{kk:10s} {mass(vv):12.2f} kg/h {tot(vv):10.3f} kmol/h  " + ", ".join(f"{c}: {x:.6g}" for c, x in fr.items()))
+    # the values process/flowsheet.yaml still cites from this script (balance-output contract);
+    # the rest of the flowsheet is simulated (D-026)
+    write_balance_output({"design": {"S6": {"flow": water["m_proc"]},
+                                     "Q17": {"duty": duties["W_c301"]},
+                                     "Q18": {"duty": duties["Q_c301_cw"]}}})
 
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
 
 if __name__ == "__main__":
     main()

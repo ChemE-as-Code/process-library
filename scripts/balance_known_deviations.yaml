@@ -1,0 +1,37 @@
+# Known, accepted-pending deviations for scripts/check_balance_scripts.py (ADR 0027).
+#
+# Each entry names one checker finding that the process owner has not decided yet. A finding
+# that matches an entry is reported as `known` (in the console, the markdown table and the
+# JSON report) and does not fail the job, but only while the observed values still equal the
+# recorded ones (flowsheet exactly; script within abs 0.01 + rel 1e-4). Any further change in
+# either value makes the finding fail again. An entry that no longer matches any finding is
+# reported as `stale` and fails the job, so the list cannot outlive its deviations.
+#
+# Do not add an entry to silence a new drift: fix the flowsheet or the script, or record the
+# open decision with a reference to the issue or pull request where the owner decides it.
+known:
+  - process: chloromethane-1
+    script: scripts/balance.py
+    case: design
+    stream: Q01
+    quantity: duty
+    status: drift
+    flowsheet: 2353.4
+    script_value: 2329.82
+    reason: >-
+      Pending owner decision, process-library#292. Not a stale paste: the flowsheet's Q01 is the
+      script's gross E101 duty (2899.8 kW) less core's Q03 (546.4 kW, cheme process reactors),
+      while the script subtracts its own hand estimate Q03 = 570.0 kW. The choice is which Q03
+      basis Q01 follows.
+  - process: thf-1
+    script: scripts/thf_balance.py
+    case: design
+    stream: S9
+    quantity: temperature
+    status: missing
+    flowsheet: 339.6
+    reason: >-
+      Pending owner decision, process-library#292. The script computes no S9 temperature;
+      339.6 K equals the THF/water azeotrope temperature it prints at 110 kPa, so the value looks
+      like an attribution error. Either the script computes and emits the q = 0.942 feed
+      temperature, or the value is re-sourced.

@@ -563,7 +563,33 @@ def main():
             print(f"{sid}: {t:.1f} {comp}")
         for k, v in E.items():
             print(f"{k}: {v:.1f}")
+    # the values process/flowsheet.yaml cites from this script (balance-output contract): every
+    # stream by its flowsheet id as mass flow and mass fractions; Q9 is the condenser duty, Q10
+    # the power export (generation less mill use, -GRID), kW
+    out = {sid: {"flow": tot(d), "composition": {k: v / tot(d) for k, v in d.items() if v}}
+           for sid, d in S.items() if sid != "COND" and tot(d)}
+    out["Q9"] = {"duty": E["CW_U1001"]}
+    out["Q10"] = {"duty": -E["GRID"]}
+    write_balance_output({"design": out})
 
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
 
 if __name__ == "__main__":
     main()
