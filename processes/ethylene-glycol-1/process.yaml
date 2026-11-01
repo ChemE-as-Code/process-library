@@ -39,30 +39,32 @@ validation:
     Concept PFD with closed mass, component and element balances (cheme validate, cheme process
     streams: every block and step within tolerance; reactors checked by elements and extents).
     The flows are from an independent sequential balance (scripts/eg_balance.py) on ASSUMED
-    parameters set inside the ranges of the BREF LVOC 2017 chapter 7 (per-pass conversion,
-    EO selectivity, purge share, MEG share of the crude glycols); the glycol split rests on a
+    parameters set inside the ranges of the BREF LVOC 2017 chapter 7 (per-pass conversion, EO
+    selectivity, purge share, MEG share of the crude glycols); the glycol split rests on a
     consecutive-reaction model with an ASSUMED relative rate, not on sourced kinetics. Duties
     are a lumped estimate (latent heats, reflux ratios, evaporator economy, carbonate
-    regeneration heat all ASSUMED); energy closure is not evaluable in core (no property
-    package covers EO-water-glycol or the loop gas). Preliminary gate-to-gate LCI
-    with every background unmapped (gaps). cheme maturity reaches no calculation level (feeds
-    assumed, not sourced; reactors and separators specified, not predicted), as methanol-1;
-    concept is the lowest level the manifest can state; the resulting warning
-    cheme.maturity-claim-exceeds is accepted with this reason (DESIGN.md D-012). An agent review
+    regeneration heat all ASSUMED); energy closure is not evaluable in core (no property package
+    covers EO-water-glycol or the loop gas). Preliminary gate-to-gate LCI with every background
+    unmapped (gaps). cheme maturity reaches no calculation level (feeds assumed, not sourced;
+    reactors and separators specified, not predicted), as methanol-1; concept is the lowest
+    level the manifest can state; the resulting warning cheme.maturity-claim-exceeds is accepted
+    with this reason (DESIGN.md D-012). An agent review
     (reviews/2026-10-28-pfd-lci-review.md) found the energy estimate understated: the E-101
     feed/effluent exchanger and the glycol feed heater are now modelled, and the MP steam import
     is 3.95 GJ/t MEG (was 1.62, D-008); the consumables are declared in the LCA (D-010). No
-    human review yet. The chemicals registry has no
-    ethylene, ethylene oxide, ethylene glycol, diethylene glycol or triethylene glycol entry
-    yet, so the main feed and the products are not listed under chemistry (open library item,
-    DESIGN.md D-011).
+    human review yet. Main products and feeds are listed under chemistry with their chemicals
+    registry entries (issue #251).
 chemistry:
   inputs:
-    - {chemical: oxygen, role: feedstock, inventory_key: "feed:OXY", note: "Pipeline GOX 99.5 mol% O2 from the library's asu-1 (product GOXP). The main feedstock, polymer-grade ethylene (feed:ETH), has no registry entry yet"}
+    - {chemical: ethylene, role: feedstock, note: "feed:ETH: pipeline polymer-grade ethylene, 0.596 kg/kg MEG (unallocated)"}
+    - {chemical: oxygen, role: feedstock, inventory_key: "feed:OXY", note: "Pipeline GOX 99.5 mol% O2 from the library's asu-1 (product GOXP)"}
     - {chemical: methane, role: feedstock, inventory_key: "feed:MET", note: "Methane ballast make-up of the EO recycle loop (ASSUMED pure CH4); lost with the purge and the CO2 vent"}
     - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Demineralised make-up water for the hydration and the bleed"}
   outputs:
-    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:CO2V", note: "CO2 of the ethylene burnt in the EO reactor, vented from the carbonate regenerator. The products MEG (product:MEG, main), DEG and TEG have no registry entry yet"}
+    - {chemical: ethylene-glycol, role: main-product, inventory_key: "product:MEG", note: "Monoethylene glycol to storage"}
+    - {chemical: diethylene-glycol, role: co-product, inventory_key: "product:DEG", note: "Diethylene glycol to storage"}
+    - {chemical: triethylene-glycol, role: co-product, inventory_key: "product:TEG", note: "Triethylene glycol to storage"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:CO2V", note: "CO2 of the ethylene burnt in the EO reactor, vented from the carbonate regenerator"}
     - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "0.5 % bleed of the recycle water (0.1 wt% MEG) to biological treatment"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Recycle gas compressor, pumps, auxiliaries (ASSUMED electric drives)"}

@@ -37,16 +37,17 @@ validation:
     MW). The absorber outlets, the recycle split and every duty come from
     scripts/formox_balance.py with ideal-gas enthalpies and assumed liquid-side heats (heat of
     solution of formaldehyde ASSUMED); core cannot evaluate the energy balance (no property
-    package covers the O2/H2O/organics gas or aqueous formaldehyde). Capacity, air
-    humidity, reactor inlet methanol, temperatures and pressures are assumed. Not reviewed.
-    The chemicals registry has no formaldehyde, methanol, carbon-monoxide or dimethyl-ether
-    entry yet: the main product and the feed are not listed under chemistry (open library item).
+    package covers the O2/H2O/organics gas or aqueous formaldehyde). Capacity, air humidity,
+    reactor inlet methanol, temperatures and pressures are assumed. Not reviewed. Main products
+    and feeds are listed under chemistry with their chemicals registry entries (issue #251).
 chemistry:
   inputs:
-    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Ambient air, 1.0 mol% water ASSUMED; the oxidant. The methanol feed (feed:MEOH, 11.47 t/h) has no registry entry yet"}
+    - {chemical: methanol, role: feedstock, note: "feed:MEOH: methanol from storage (e.g. methanol-1), 0.574 kg/kg formalin"}
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Ambient air, 1.0 mol% water ASSUMED; the oxidant"}
     - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Demineralised process water to the absorber, sets the formalin strength"}
   outputs:
-    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:STACK", note: "Fossil CO2 from the catalytic oxidation of CO, DME, methanol and formaldehyde in the ECS. The main product, formalin 50 wt% (product:FORMALIN), has no registry entry yet"}
+    - {chemical: formaldehyde, role: main-product, inventory_key: "product:FORMALIN", note: "Formalin 50 wt% to storage, counted by mass of the solution"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:STACK", note: "Fossil CO2 from the catalytic oxidation of CO, DME, methanol and formaldehyde in the ECS"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Process gas blower and pumps (ASSUMED electric drives)"}
     - {chemical: steam, role: co-product, inventory_key: "product:STEAM", note: "MP steam 1500 kPa(a) exported (ASSUMED level)"}
