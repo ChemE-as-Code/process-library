@@ -39,22 +39,24 @@ validation:
   notes: >-
     Concept PFD with closed mass and component balances in every block and step and
     element-balanced reactions (cheme validate, cheme process streams). cheme maturity reaches
-    no level: the capacity and feed flows are assumed (no published plant basis), the
-    catalyst deactivation conversion is assumed, and the separator, filter and column splits
-    are specified values from scripts/dmf_balance.py. Energy closure is evaluable for the CO
+    no level: the capacity and feed flows are assumed (no published plant basis), the catalyst
+    deactivation conversion is assumed, and the separator, filter and column splits are
+    specified values from scripts/dmf_balance.py. Energy closure is evaluable for the CO
     compressor only (closed); the liquid units are gated on a qualified polar property package.
-    Not reviewed. The chemicals registry has no entries yet for DMF,
-    dimethylamine, carbon monoxide, methanol, sodium methoxide, sodium formate or dimethyl
-    ether, so the main product and the main feeds are not listed under chemistry (open library
-    item, listed in DESIGN.md).
+    Not reviewed. Main products and feeds are listed under chemistry with their chemicals
+    registry entries (issue #251).
 chemistry:
   inputs:
+    - {chemical: dimethylamine, role: feedstock, note: "feed:DMA: anhydrous dimethylamine (e.g. methylamines-1), 0.624 kg/kg DMF"}
+    - {chemical: carbon-monoxide, role: feedstock, note: "feed:CO: carbon monoxide 99.5 mol% from a syngas CO separation unit, 0.407 kg/kg"}
+    - {chemical: sodium-methoxide, role: feedstock, note: "feed:CAT: catalyst: sodium methoxide 30 wt% in methanol, counted by mass of the solution"}
     # No inventory_key: these are impurities of feed:CO (carbon monoxide 99.5 mol%), not the
     # exchange; keyed, the Atlas build would link the whole CO feed to hydrogen (D-012).
-    - {chemical: nitrogen, role: feedstock, note: "N2 impurity of the CO feed (0.3 mol%, ASSUMED); the feed itself is carbon monoxide 99.5 mol% and the main raw material is dimethylamine (feed:DMA), neither in the registry yet"}
+    - {chemical: nitrogen, role: feedstock, note: "N2 impurity of the CO feed (0.3 mol%, ASSUMED); the feed itself is carbon monoxide 99.5 mol% and the main raw material is dimethylamine (feed:DMA), both listed above"}
     - {chemical: hydrogen, role: feedstock, note: "H2 impurity of the CO feed (0.2 mol%, ASSUMED)"}
   outputs:
-    - {chemical: nitrogen, role: emission, note: "Inerts of the CO feed in the reactor vent (product:VENT, to a thermal oxidiser, a waste exchange). The main product DMF (product:DMFP) has no registry entry yet"}
+    - {chemical: dimethylformamide, role: main-product, inventory_key: "product:DMFP", note: "DMF product to storage"}
+    - {chemical: nitrogen, role: emission, note: "Inerts of the CO feed in the reactor vent (product:VENT, to a thermal oxidiser, a waste exchange)"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "CO compressor, pumps, vacuum system (ASSUMED electric drives)"}
     - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "MP steam 1100 kPa(a), methanol/DMA recovery column reboiler"}

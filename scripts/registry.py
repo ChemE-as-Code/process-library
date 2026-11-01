@@ -32,7 +32,7 @@ import yaml
 ATOMIC_WEIGHTS = {
     "H": 1.0080, "C": 12.011, "N": 14.007, "O": 15.999, "F": 18.998, "Na": 22.990, "Mg": 24.305,
     "Al": 26.982, "Si": 28.085, "P": 30.974, "S": 32.06, "Cl": 35.45, "Ar": 39.95, "K": 39.098,
-    "Ca": 40.078, "Ti": 47.867, "Fe": 55.845,
+    "Ca": 40.078, "Ti": 47.867, "Mn": 54.938, "Fe": 55.845, "Br": 79.904, "I": 126.90,
 }
 #: Relative tolerance of a molar mass against its formula; absolute of a mass fraction.
 MOLAR_MASS_TOLERANCE = 1e-3

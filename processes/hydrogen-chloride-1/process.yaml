@@ -41,21 +41,21 @@ validation:
     conversion justified by K = 2.6e19 at 523 K) and cheme's reactor duty (2 268 kW released)
     equals the independent script's; the steam export follows from it with an assumed 3 % heat
     loss. cheme maturity reaches no level yet: the feeds are chlor-alkali-1's assumed product
-    states, the absorber and scrubber are specified values, and energy closure is not
-    evaluable in core (no property package covers Cl2/HCl gas or HCl-water). The
-    preliminary gate-to-gate LCI closes in mass and elements; every background is a gap. Not
-    reviewed. The chemicals registry has no hydrogen-chloride / hydrochloric-acid or chlorine
-    entry yet, so the main product and the chlorine feed are not listed under chemistry (open
-    library item).
+    states, the absorber and scrubber are specified values, and energy closure is not evaluable
+    in core (no property package covers Cl2/HCl gas or HCl-water). The preliminary gate-to-gate
+    LCI closes in mass and elements; every background is a gap. Not reviewed. Main products and
+    feeds are listed under chemistry with their chemicals registry entries (issue #251).
 chemistry:
   inputs:
+    - {chemical: chlorine, role: feedstock, note: "feed:CL2, dry chlorine gas from chlor-alkali-1, 0.980 kg per kg HCl"}
     # no inventory_key on the two feeds: the Atlas build would link them by their registry slug,
     # and feed:H2 is wet gas (0.679 kg H2 per kg) and feed:DMW demineralised, not raw, water;
     # both stay gaps until the shared vocabulary has fitting entries (lca/mappings.yaml, D-013)
-    - {chemical: hydrogen, role: feedstock, note: "Wet hydrogen from chlor-alkali-1 (feed:H2: 0.0464 kg wet gas = 0.0315 kg H2 per kg HCl), 10 mol-% excess. The chlorine feed (feed:CL2, from chlor-alkali-1) has no registry entry yet"}
+    - {chemical: hydrogen, role: feedstock, note: "Wet hydrogen from chlor-alkali-1 (feed:H2: 0.0464 kg wet gas = 0.0315 kg H2 per kg HCl), 10 mol-% excess"}
     - {chemical: water, role: feedstock, note: "Demineralised water for the absorption (feed:DMW), 2.0 kg per kg HCl"}
   outputs:
-    - {chemical: steam, role: co-product, inventory_key: "product:STEAM", note: "Steam 1000 kPa(a) raised in the synthesis furnace, about 1.0 t per t HCl (0.665 kWh/kg HCl); allocation share 0 (D-013). The main product, hydrochloric acid 33 wt-% (product:HCLACID), has no registry entry yet"}
+    - {chemical: hydrogen-chloride, role: main-product, inventory_key: "product:HCLACID", note: "Hydrochloric acid 33 wt-% to storage, counted by mass of the acid (3.03 kg per kg HCl)"}
+    - {chemical: steam, role: co-product, inventory_key: "product:STEAM", note: "Steam 1000 kPa(a) raised in the synthesis furnace, about 1.0 t per t HCl (0.665 kWh/kg HCl); allocation share 0 (D-013)"}
     - {chemical: hydrogen, role: emission, inventory_key: "emission:H2", note: "Excess hydrogen vented after the tail gas scrubber, 2.9 g per kg HCl"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Pumps, instruments and analysers (ASSUMED)"}
