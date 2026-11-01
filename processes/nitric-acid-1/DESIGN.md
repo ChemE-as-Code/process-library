@@ -380,7 +380,10 @@ Reasons for the deviations:
   the heat capacity at 1.1 MPa(a) on the tail-gas side. E-106 also evaporates the trace of liquid
   water DWSIM finds in the absorber tail gas S25 (D-015: S25 is slightly above its dew point;
   `sim-exchanger-zones` reports the phase change). Not separated further in this run.
-- (c) water condenses in E-107 in the simulation and not in the script. Rough estimate, ASSUMED
+- (c) water would condense in E-107 at these conditions, and the script does not condense it.
+  The run record does not report the vapour fraction of S23, so this is inferred from S22's
+  composition, not read from DWSIM: y_H2O 0.00916 x 1130 kPa(a) = 10.4 kPa against about 7.4 kPa
+  saturation at 313 K. Rough estimate, ASSUMED
   (round numbers, not a DWSIM output): S22 carries about 6750 kmol/h with 0.92 mol% water; at
   1130 kPa(a) and 313 K the saturated gas holds about 0.65 mol% (7.4 kPa, D-015), so about
   18 kmol/h condense, about 0.21 MW at about 43 kJ/mol, most of the 0.27 MW difference; the rest
@@ -418,7 +421,12 @@ Findings left open (no change in this run):
 - no `min_approach` declared for E-103 (least approach 90 K) and E-106 (30 K) (info).
 - the shaft balance: Q01 (K-101) is now simulated (12056.6 kW) while Q02 and Q03 stay the
   script's values computed with 12055.9 kW; 0.7 kW, below the balance tolerance.
-- the absorber cooling duty Q09 and the CW total stay the script's; the LCI cooling-water output
+- the absorber cooling duty Q09 and the CW total stay the script's. Q09 is coupled to Q11, not
+  only to E-107: the script sets Q09 = absorber heat 14627.2 kW less its E-101 duty 4003.3 kW
+  (10623.9 kW). With the simulated Q11 (4113.0 kW) the C-101 duties now add up to 14736.9 kW,
+  about 110 kW (0.75 %) above the stated absorber heat, so CW is about 110 kWh/h high. This is
+  within the balance tolerance and is left until the absorber is re-balanced (C-101 is in the
+  excluded part). The LCI cooling-water output
   moves from 46741 to 47009 kWh/h (+0.6 %) through E-107 only; HP steam export from 29514 to
   29480 kWh/h (-0.1 %).
 
@@ -428,7 +436,13 @@ deviation), `cheme process propagate --check`, `cheme validate` 0 errors / 0 war
 Reason: D-015 prepared the inputs on a machine without DWSIM; this is the run it left open.
 Rejected: tuning specs, or treating the simulated values as better than the script's where the
 simulation is the weaker model (ammonia enthalpies, the undrained E-107 outlet); the script stays
-the balance of the excluded acid section.
+the balance of the excluded acid section. By convention the flowsheet (and through it the LCI:
+feed:LPS from Q12, CW from Q08) carries the run's outputs for every simulated step, including
+Q08, Q11 and Q12; the script figures stay in the table above as the reference, and for the
+ammonia duties they are the better values.
+Note: the header comment of `process/simulation.yaml` was edited after the run (no spec changed),
+so its file hash differs from the input fingerprint in `process/simulation-run.json`; the
+semantic model fingerprint is unchanged (`cheme validate` reports no stale run).
 Follow-ups: the open items above, and F-1 to F-3 of D-015 for the excluded part.
 
 ## Open inputs
