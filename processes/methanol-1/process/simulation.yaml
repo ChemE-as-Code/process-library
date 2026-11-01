@@ -1,9 +1,8 @@
 # The DWSIM model of methanol-1 (`cheme process simulate`; schema `cheme schema process-simulation`).
-# Decision D-013 in DESIGN.md (simulation scope, specs and property package). NOT RUN YET:
-# written and validated offline (cheme validate, cheme maturity); no DWSIM was available, so
-# no stream value of the flowsheet comes from this file and process/simulation-run.json does
-# not exist. Every spec repeats a design choice of DESIGN.md (D-003 to D-010) or the value of
-# the independent balance scripts/loop_balance.py (D-006), ASSUMED, with its source.
+# Decision D-013 in DESIGN.md (simulation scope, specs and property package); first run D-014
+# (process/simulation-run.json). Every spec repeats a design choice of DESIGN.md (D-003 to
+# D-010) or the value of the independent balance scripts/loop_balance.py (D-006), ASSUMED,
+# with its source.
 schema: cheme/simulation/v1
 kind: simulation
 simulator: dwsim
@@ -97,14 +96,17 @@ specs:
     # methanol. The balance sends every dissolved gas overhead (D-008); the shortcut needs a
     # nonzero light key in the bottoms, 1e-6 stands for that (ASSUMED, D-013). The methanol in
     # the off-gas is the script's S16 (methanol at its vapour pressure at 313.15 K and 150
-    # kPa(a)). Reflux: D-008's 0.3 kmol per kmol feed is L = 1219.8 kmol/h on S15
-    # (4065.9 kmol/h) against D = 33.80 kmol/h of S16, so L/D = 36.09 (ASSUMED, D-008).
-    # The partial condenser's temperature is a result: the 313.15 K of S16 is the check.
+    # kPa(a)). Reflux: D-008 fixes L = 0.3 kmol per kmol feed; the shortcut takes L/D. D-013
+    # took D from the script (33.80 kmol/h, L/D 36.09); the first run (D-014) gives
+    # F = 4065.2 kmol/h (S15) and D = 58.75 kmol/h (S16: DWSIM's PR dissolves about twice the
+    # script's CO2 in the crude), so D-008's L = 1219.6 kmol/h is L/D = 20.76 (ASSUMED, D-008,
+    # re-translated in D-014). The shortcut's partial-condenser temperature is not physical
+    # (69 K, D-014): S16 keeps D-008's 313.15 K.
     light_key: CO2
     heavy_key: CH3OH
     light_key_in_bottoms: 1.0e-6         # ASSUMED (D-013): "no dissolved gas in the bottoms" of D-008
     heavy_key_in_distillate: 0.22571202  # scripts/loop_balance.py, S16 methanol mole fraction (D-008)
-    reflux_ratio: 36.09                  # ASSUMED, D-008: 0.3 kmol reflux per kmol feed, as L/D
+    reflux_ratio: 20.76                  # ASSUMED, D-008: 0.3 kmol reflux per kmol feed, as L/D on the D-014 run (D-014)
     condenser: partial
     condenser_pressure: {value: 150, provenance: assumed, source: D-008}
     reboiler_pressure: {value: 200, provenance: assumed, source: D-008}
