@@ -14,6 +14,10 @@ The terms (design maturity, calculation maturity, review status, …) follow cor
 
 ---
 
+## Contribution terms
+
+By submitting a contribution to this repository, you agree to make it available under the public license applicable to that part of the repository. You also grant a non-exclusive, worldwide, perpetual, irrevocable, royalty-free license to use, reproduce, modify, distribute, and sublicense your contribution under other terms. You retain ownership of your contribution.
+
 ## Adding a process
 
 ### 1. Create the folder
