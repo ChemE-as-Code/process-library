@@ -322,7 +322,7 @@ def test_a_second_atlas_producer_is_reported_not_chosen_silently(library: Path, 
     assert "fixture-ammonia" in warning and "fixture-electrolysis-b:" in warning
 
 
-# --- cut-off criteria (docs/system-model.md section 4, core#180) -------------------------------
+# --- cut-off criteria (docs/system-model.md section 4) -------------------------------
 # The fixture electrolysis has 750.6 kg of operation inputs in kg (feed and resource water) per
 # its basis, so 1 % is about 7.5 kg. The cut flows below are test data, not real inventories.
 

@@ -151,8 +151,8 @@ script.
 Gated step: an energy-closed, simulated absorber and gas loop needs a qualified model for
 aqueous formaldehyde (chemical theory of methylene glycol and poly(oxymethylene) glycols, or a
 qualified NRTL/UNIFAC with formaldehyde) and an ideal-gas or EOS package for the
-N2/O2/H2O/CH3OH/HCHO/CO/DME gas: core #315 (polar / activity-coefficient benchmark and
-whole-flowsheet energy basis); core #364 (electrolytes/speciation) does not apply, formalin is
+N2/O2/H2O/CH3OH/HCHO/CO/DME gas: core's polar / activity-coefficient benchmark and
+whole-flowsheet energy basis; core's electrolyte speciation does not apply, formalin is
 not an electrolyte.
 
 ## D-010 Preliminary gate-to-gate LCI (2026-10-28)
@@ -203,7 +203,7 @@ direct fossil CO2 of the stack: no footprint is claimed. The library LCI build
 
 ## Open inputs and gated steps
 
-- **Energy closure in core** (gated, core #315): no property package for the O2-containing
+- **Energy closure in core** (gated): no property package for the O2-containing
   gas with water and organics or for aqueous formaldehyde (D-009); the duties rest on the
   script's ideal-gas enthalpies and the ASSUMED heat of solution.
 - **Heat of solution of formaldehyde in water** (open input, D-006): source it (largest term of

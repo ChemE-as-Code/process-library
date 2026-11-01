@@ -11,7 +11,7 @@ Library utility (process-library#45), manifest only. Saturated steam at 11 bar(a
 ## How it is built
 
 `lca/datasets/steam-mp-11bara-natural-gas-boiler.yaml` is a hand-written LCI dataset (`cheme/lci_dataset/v2`) in core's Tier 1
-form (core#182): every amount is the `formula` of the dataset's `parameters`, which core's
+form: every amount is the `formula` of the dataset's `parameters`, which core's
 validator re-checks, and `generation.balance` records the element balance (closed).
 Physical properties and stoichiometry have their sources (IAPWS-95 and humid-air properties
 evaluated with CoolProp 8.0.0, IUPAC 2021 atomic weights, the chemicals registry). **Every
@@ -34,7 +34,7 @@ a carrier cannot be checked and is linked.
 
 ## Not counted yet (TODO)
 
-- NOx, CO, CH4 slip, N2O and particulates of combustion (core#176): the dataset is complete for fossil CO2 only.
+- NOx, CO, CH4 slip, N2O and particulates of combustion: the dataset is complete for fossil CO2 only.
 - Boiler water chemicals.
 - Condensate return (a variant), economiser and deaerator losses.
 - Other pressure levels (LP, HP), biomass and electric boilers, CHP with its multi-output handling.

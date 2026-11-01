@@ -2,7 +2,7 @@
 
 Provenance of the ASSUMED stream and duty values in process/flowsheet.yaml: core cannot yet
 qualify a polar activity-coefficient mixture (THF / water / BDO) or a liquid-phase reactor's
-energy balance (core #315), so the values are calculated here and entered as ASSUMED.
+energy balance, so the values are calculated here and entered as ASSUMED.
 
 Method (all concept-level, stated in DESIGN.md):
 - VLE: thermo, NRTL liquid with the ChemSep THF/water parameters packaged in thermo, ideal gas,

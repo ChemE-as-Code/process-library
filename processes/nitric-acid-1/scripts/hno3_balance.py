@@ -1,7 +1,7 @@
 """Independent heat and material balance of the dual-pressure nitric acid plant (DESIGN.md D-010).
 
 This is NOT a cheme-as-code calculation. Core has no qualified property package for nitrous
-gas with water or for aqueous nitric acid, and no reactive-absorption model (core #315, #364).
+gas with water or for aqueous nitric acid, and no reactive-absorption model.
 The results go into process/flowsheet.yaml as `assumed` values with this script as their
 source; cheme then checks mass, component and element balances and the reaction extents, and
 computes the burner, cooler-condenser and tertiary-reactor outlets itself (conversion reactors

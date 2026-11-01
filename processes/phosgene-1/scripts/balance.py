@@ -1,7 +1,7 @@
 """Concept heat and material balance of phosgene-1 (DESIGN.md D-006).
 
 Independent of cheme-as-code's property packages, which cover neither phosgene nor the caustic
-scrubber liquor (core #315, #364). Ideal gas with the Cp/R polynomials of process/materials.yaml;
+scrubber liquor. Ideal gas with the Cp/R polynomials of process/materials.yaml;
 condensation by Raoult's law with the phosgene and chlorine vapour pressures of the `thermo`
 package (cheme chemistry props, Thermo), the non-condensables (CO, N2, O2) insoluble (ASSUMED).
 Liquid enthalpy = ideal-gas enthalpy minus the heat of vaporization (Watson from 253.15 K).

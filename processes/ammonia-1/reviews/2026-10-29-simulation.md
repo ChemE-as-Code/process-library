@@ -59,11 +59,11 @@ are present. The equipment, line and instrument lists are unchanged.
   CW approaches are 15 K.
 - `cheme maturity`: calculation maturity none. FAIL `sourced.boundary`,
   `balanced.model-basis`, `balanced.energy-closure` (not required, K601), `predictive.coverage`,
-  `predictive.model-basis` and `predictive.property-regime` (266 cases, the core#315 cap).
+  `predictive.model-basis` and `predictive.property-regime` (266 cases, core's benchmarked cap).
   `predictive.energy-closure` is n/s (core#60). This matches DESIGN.md D-026, except for
   `balanced.energy-closure` (finding #2).
 - `cheme assess lca --check` and `cheme assess tea --check`: outputs current.
-  `cheme process props --check`: no stale values; H2O streams are outside the package (core#315).
+  `cheme process props --check`: no stale values; H2O streams are outside the package.
 - `cheme impact`: the two earlier records are stale, as expected for a new section.
 - `cheme run scripts/packages_on_simulated_duties.py` reproduces the values in the flowsheet:
   Q27 10075.8 kW, Q28 34958.0 kW, Q29 386.8 kW, Q31 341.4 kW, S68 60.1 t/h, S70 105.1 t/h.
@@ -139,7 +139,7 @@ The S2 target is met as `runs/plan.md` states it:
 - `process-balances` is ok on the simulated values;
 - the per-unit energy audit closes, and the plant closure is unsupported by core#60;
 - `maturity-balanced` is enabled and evaluated;
-- `cheme maturity` is reported, with the core#315 requirement (`predictive.property-regime`)
+- `cheme maturity` is reported, with core's property requirement (`predictive.property-regime`)
   named.
 
 No critical or high finding is open. **Approve**; merge to `main`. Finding #1 must be closed

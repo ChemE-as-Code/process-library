@@ -11,7 +11,7 @@ Library utility (process-library#45), manifest only. Cold delivered as chilled w
 ## How it is built
 
 `lca/datasets/chiller-chilled-water-6c.yaml` is a hand-written LCI dataset (`cheme/lci_dataset/v2`) in core's Tier 1
-form (core#182) as far as it goes: every amount is the `formula` of the dataset's `parameters`,
+form as far as it goes: every amount is the `formula` of the dataset's `parameters`,
 which core's validator re-checks. It has no `generation` block, because it has no material
 flow and core's Tier 1 form requires a closed element balance.
 Physical properties and stoichiometry have their sources (IAPWS-95 and humid-air properties

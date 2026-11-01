@@ -94,7 +94,7 @@ are not legible at that scale and no tile was read.
 - Sources and licences: values are restated with locators (BREF section/table, IPCC table); no
   table, figure or passage is copied; BREF Table 3.3 yields are used as input numbers with their
   locator, which the library rules allow. ASSUMED marked throughout design-basis.yaml and
-  DESIGN.md; the energy gating on core #315 is stated precisely (D-012).
+  DESIGN.md; the energy gating on core's property-package qualification is stated precisely (D-012).
 - Nothing outside `processes/ethylene-1/` changed; publication.status internal, validation
   unreviewed.
 
@@ -103,7 +103,7 @@ are not legible at that scale and no tile was read.
   re-read against the document (no fetch in this review); only plausibility against general
   engineering knowledge was checked. Ullmann's was not read by the author either.
 - Column designs, relative volatilities, stage counts and the separation train's energy balance:
-  gated on a qualified light-hydrocarbon property package (core #315); not evaluable.
+  gated on a qualified light-hydrocarbon property package; not evaluable.
 - `scripts/balance.py` was read only in the duty section (lines 370-420); the recycle and
   firebox convergence code was not audited line by line, its results were cross-checked by hand
   (above).

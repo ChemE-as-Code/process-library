@@ -6,8 +6,8 @@ The numbers live in `process/*.yaml`; the stream table is generated: `cheme proc
 
 Run record of this stage (2026-10-28): library branch `case/glycerol-1` from `11d50ef`;
 cheme-as-code 0.8.0 (pyDEXPI 2.1.0), Python 3.15.0; DWSIM not used. Core dependencies from the
-issue comments (core #315, #364, #365, #369/#384) were not re-audited against core main in this
-run; this design does not use extraction, so #369/#384 does not apply (D-001).
+issue comments were not re-audited against core main in this
+run; this design does not use extraction, so core's extraction support does not apply (D-001).
 
 ## 1. Route and boundary memo
 
@@ -48,7 +48,7 @@ runs the same front end: acidulation to about pH 3, three-phase separation of fa
 glycerol and salt, neutralisation, methanol distillation, dewatering.
 Rejected: H2SO4 or H3PO4 acidulation (gives Na2SO4 / phosphate salts, used with KOH
 catalysts when the salt is sold as fertiliser, Attarbachi et al. 2024 section 2); extraction
-(no extraction step: core #369 not needed); ion exchange and membrane routes (section 1).
+(no extraction step: core's extraction support not needed); ion exchange and membrane routes (section 1).
 Assumptions: the feed reaches the refinery unstripped (methanol still in it).
 
 ## D-002 Capacity and operating hours (2026-10-28)
@@ -162,8 +162,8 @@ of it as cake holding 0.25 kg mother liquor per kg crystals; the rest (glycerol 
 outside the boundary. ASSUMED. Salt cake to landfill (no buyer assumed).
 Reason: the NaCl content of the dewatered glycerol (about 5 wt%) is near its solubility in
 glycerol, so it does not settle before the still; it accumulates as the glycerol evaporates.
-Solubility not calculated (core #365 single-solute crystallisers do not cover NaCl in
-glycerol; electrolyte route core #364 covers aqueous NaCl only).
+Solubility not calculated (core's single-solute crystallisers do not cover NaCl in
+glycerol; electrolyte route covers aqueous NaCl only).
 
 ## D-011 Bleaching (2026-10-28)
 Decision: activated carbon bed V-501 at 363 K, 2 kg carbon per t distilled glycerol, 1 kg
@@ -197,8 +197,8 @@ steam).
 Gated step: energy closure in core. `cheme process energy` reports every block not evaluable
 (no stream enthalpies) and `cheme process props --coverage` finds no package for glycerol,
 methanol, water, NaCl or the lumps. Needed: a qualified polar / activity-coefficient package
-for glycerol-methanol-water with liquid-phase enthalpies (core #315), NaCl in glycerol-water
-(core #364 covers aqueous NaCl only) and salt crystallisation in the still (core #365).
+for glycerol-methanol-water with liquid-phase enthalpies, NaCl in glycerol-water
+(core's electrolyte support covers aqueous NaCl only) and salt crystallisation in the still.
 
 ## D-013 Preliminary gate-to-gate LCI (2026-10-28)
 Decision: functional unit 1 kg refined glycerol (GLYC) at the gate; every foreground exchange
@@ -238,11 +238,11 @@ climate category only.
 | step | model here | what would make it predictive | core item |
 |---|---|---|---|
 | R-101, R-102 | full-conversion acid-base reactions (balanced by cheme) | adequate as is | - |
-| V-102 decanter | specified split | LLE of glycerol-methanol-fatty matter, salt effects | #315 (polar), #369 not needed |
-| C-201 | specified recovery | VLE glycerol-methanol-water(-NaCl) | #315, #364 |
-| E-301 | specified water content | VLE and enthalpy of glycerol-water-NaCl | #315, #364 |
-| C-401, S-402 | specified recoveries, salt split | VLE at vacuum, NaCl solubility in glycerol, crystallisation | #315, #364, #365 |
-| duties | lumped latent + sensible script | liquid enthalpies of the mixtures | #315 |
+| V-102 decanter | specified split | LLE of glycerol-methanol-fatty matter, salt effects | core: polar qualification; extraction not needed |
+| C-201 | specified recovery | VLE glycerol-methanol-water(-NaCl) | core: property qualification, electrolytes |
+| E-301 | specified water content | VLE and enthalpy of glycerol-water-NaCl | core: property qualification, electrolytes |
+| C-401, S-402 | specified recoveries, salt split | VLE at vacuum, NaCl solubility in glycerol, crystallisation | core: property qualification, electrolytes, solids |
+| duties | lumped latent + sensible script | liquid enthalpies of the mixtures | core: property qualification |
 
 ## 4. Sources (register)
 
@@ -289,7 +289,7 @@ climate category only.
 - Still vacuum: ejector motive-steam ratio (D-009, ASSUMED 1.5 kg/kg) from a vendor or sourced
   curve; comparison with a chilled condenser or dry vacuum pumps.
 - Glycerol-water boiling points for S9 and S11 (D-007, D-008) from sourced data or a qualified
-  VLE (core #315).
+  VLE.
 - Library/core findings of this run: the LCI dataset written by `cheme assess lca` omits
   `allocation.method` when it is mass, so `scripts/build_lci.py` warns "differs from the
   dataset's default None"; the maturity rule `sourced.boundary` asks for `given` flows of

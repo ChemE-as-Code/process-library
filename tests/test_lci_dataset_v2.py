@@ -1,4 +1,4 @@
-"""The LCI export reads core's dataset contract v2 (core#294): schema id, units, resources and
+"""The LCI export reads core's dataset contract v2: schema id, units, resources and
 elementary flows by biosphere3 UUID, pedigree and its lognormal, carriers and product state,
 the dataset's own version, review, system model, deviation and successor, and the data quality
 rating of lca/manifest.json. The v1 files are still read (tests/fixtures/asu-lca)."""

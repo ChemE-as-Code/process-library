@@ -10,7 +10,7 @@ Paper and Board (Suhr et al. 2015, EUR 27235 EN, doi 10.2791/370629), chapter 3 
 Run record of this stage (2026-10-28): library branch `case/kraft-pulp-1` from `bb3178a`;
 cheme-as-code 0.8.0 (pyDEXPI 2.1.0), Python 3.15.0, CoolProp (in cheme's interpreter) for
 the steam properties; DWSIM and Cantera not used. Core dependency issues named in #180
-(core #364 electrolytes, #365 solids, #370 furnace energy) were not re-audited in that run.
+(electrolytes, solids, furnace energy) were not re-audited in that run.
 
 Core audit (revision after review 2026-10-28-pfd-lci-review#2, 2026-10-28): core main at
 `7bed468` (ChemE-as-Code/core, 2026-10-28T14:52Z). Three capabilities were
@@ -137,7 +137,7 @@ evaporated, steam economy 6.0 (ASSUMED, seven effects); the condensate is reused
 causticizing (dissolving tank 3.6 t, mud washing 0.6 t/ADt) and post-O2 washing (4.9 t/ADt).
 No property package covers wood, black liquor, smelt or lime slurries: `property_method`
 stays a placeholder and no stream enthalpy is calculated (no electrolyte route beyond aqueous
-NaCl, core #364; no nonconventional solids). Foul condensate stripping (methanol, TRS) is not
+NaCl; no nonconventional solids). Foul condensate stripping (methanol, TRS) is not
 modelled.
 
 ## D-008 Bleaching outline (2026-10-28)
@@ -312,7 +312,7 @@ Missing in shared files (for the consolidated PR; not edited here):
 
 Gated or open steps:
 - **Energy closure**: no property package covers wood, black liquor, smelt or lime slurries
-  (core #364 closed with NaCl-H2O only; nonconventional components). Duties are specific
+  (the core electrolyte issue closed with NaCl-H2O only; nonconventional components). Duties are specific
   consumptions. The LCI "energy closure" of 20.7 % does not apply (D-014).
 - **Black liquor representation**: lumped components (D-003); a qualified nonconventional
   representation (elemental analysis, HHV) is a core/method question of #180.

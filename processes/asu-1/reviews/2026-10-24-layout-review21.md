@@ -22,7 +22,7 @@ origin/main 43f8cf5. Core's layout and flowsheet generator code moved. On main, 
 `layout-model-version` and `generated-version` fail the gates layout-3d, lifting-study,
 layout-detail, electrical, hvac, process-balances and process-basic. The branch rebuilds the
 BFD, the PFD and the layout model under core main. This is the fingerprint-only regeneration
-that core issue ChemE-as-Code/core#132 describes: only the generator fingerprint changes, and
+that a core issue describes: only the generator fingerprint changes, and
 the content is the same. review20 is stale only because `layout/plant-model.yaml` is in its
 scope (and review19's).
 

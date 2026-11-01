@@ -11,7 +11,7 @@ Library utility (process-library#45), manifest only. Dry instrument air at 8 bar
 ## How it is built
 
 `lca/datasets/instrument-air-8bara-dried.yaml` is a hand-written LCI dataset (`cheme/lci_dataset/v2`) in core's Tier 1
-form (core#182): every amount is the `formula` of the dataset's `parameters`, which core's
+form: every amount is the `formula` of the dataset's `parameters`, which core's
 validator re-checks, and `generation.balance` records the element balance (closed).
 Physical properties and stoichiometry have their sources (IAPWS-95 and humid-air properties
 evaluated with CoolProp 8.0.0, IUPAC 2021 atomic weights, the chemicals registry). **Every

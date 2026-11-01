@@ -45,9 +45,9 @@ figures, text); the flowsheet and its drawings are our own.
 |---|---|---|---|
 | burner R101 | conversion reactor (cheme propagate), conversions D-005 | conversion reactor: supported | done; a specification, not predictive |
 | cooler-condenser E105 | conversion reactor, conversions from the script (D-007) | supported (conversion) | done |
-| weak-acid separator V101, absorber C101, bleacher C102 | outlets specified from the script (D-007, D-008); reactions named, cheme checks extents | no aqueous HNO3 VLE/electrolyte package, no reactive-absorption model | gated: core #315 (open), core #364 (closed 2026-10-27 for NaCl-H2O only: "no acids"; not in the installed 0.8.0 either) |
+| weak-acid separator V101, absorber C101, bleacher C102 | outlets specified from the script (D-007, D-008); reactions named, cheme checks extents | no aqueous HNO3 VLE/electrolyte package, no reactive-absorption model | gated: core's property-package qualification (open), core's electrolyte support (closed 2026-10-27 for NaCl-H2O only: "no acids"; not in the installed 0.8.0 either) |
 | tertiary reactor R102 | conversion reactor (D-009) | supported | done |
-| exchangers, machines | pass-through propagate; duties from the script | stream enthalpies: no package covers H2O/NO/NO2/HNO3 (`props --coverage`) | energy balance gated (core #315); script closes it (D-010) |
+| exchangers, machines | pass-through propagate; duties from the script | stream enthalpies: no package covers H2O/NO/NO2/HNO3 (`props --coverage`) | energy balance gated; script closes it (D-010) |
 | BFD/PFD | `cheme process build` | supported; Pumping step crashes the build (D-012) | done with a workaround |
 | LCI | `cheme assess lca --inventory --write` | supported | done, backgrounds unmapped (D-014) |
 
@@ -125,7 +125,7 @@ secondary air (15.3 % of the air) is set by the 3 % O2 and strips all dissolved 
 the bleacher gas returns to the NOx compressor. Process water follows from the water balance.
 The overall reactions NO_ABS and NO2_ABS explain the extents (cheme checks them).
 Reason: a conversion-only absorber does not establish predictive acid absorption (issue note);
-core has no reactive-absorption or aqueous HNO3 model (core #315; #364 closed for NaCl only).
+core has no reactive-absorption or aqueous HNO3 model (the electrolyte issue closed for NaCl only).
 This is the "sourced conceptual absorber" level the issue allows; the specifications are
 ASSUMED, not sourced. No tray count, height or residence time is claimed.
 
@@ -172,8 +172,8 @@ of the grid).
 
 ## D-012 Core findings and workarounds (2026-10-27)
 - Energy and phase properties: no property package covers the streams (`cheme process props
-  --coverage`); the energy balance of every block is not evaluable in core (core #315, open).
-- Aqueous nitric acid and reactive absorption: not supported; core #364 was closed on 2026-10-27
+  --coverage`); the energy balance of every block is not evaluable in core (open).
+- Aqueous nitric acid and reactive absorption: not supported; the core electrolyte issue was closed on 2026-10-27
   with NaCl-H2O Pitzer only ("no acids") and is not in the installed cheme 0.8.0.
 - `cheme process build` (0.8.0, Python 3.15) crashes on a `Pumping` step: pyDEXPI's `method`
   annotation of Pumping is a union (`PumpingMethod | Undefined | None`) and `step_method` iterates

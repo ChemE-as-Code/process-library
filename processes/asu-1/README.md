@@ -42,7 +42,7 @@ UK (DESNZ) factors in all three.
 
 The NL and DE values are screening sensitivities of the grid, not like-for-like country
 footprints, and nothing here has independent industrial validation (DESIGN.md D-107, D-110).
-The verdicts follow core's comparison basis (core#318); the generated records carry them once
+The verdicts follow core's comparison basis; the generated records carry them once
 regenerated after it is merged.
 
 ## Working here

@@ -54,7 +54,7 @@ Modelling rules (``docs/system-model.md``; also written into every activity's ``
   dataset's method when it fits the WBCSD price-ratio rule or states its ``allocation.deviation``;
   otherwise a finding (``--strict`` fails). The unallocated multi-output form is in the
   JSON-LD and multifunctional files (``export_formats.py``), not in the workbook;
-- the v2 contract (core#294): a ``resource`` exchange and an emission are biosphere exchanges
+- the v2 contract: a ``resource`` exchange and an emission are biosphere exchanges
   identified by the biosphere3 UUID of their ``flow:`` identity (``atlas flow uuid``), name and
   categories as fallback; units are brought to one per kind (g, t to kg ...) or refused when
   Brightway has none (ea*h, ea*a); the pedigree is exported (``atlas pedigree``) with
@@ -88,7 +88,7 @@ Modelling rules (``docs/system-model.md``; also written into every activity's ``
   needs core's ``foundation.units``) and, in a library with a ``benchmarks/`` folder, a public
   process with fewer than two KPIs are warnings.
 - the cut-off criteria (docs/system-model.md section 4) of a dataset that records its cut flows
-  (``cutoff:``, core#180) are checked with core's ``lca.cutoff`` and recorded per dataset in
+  (``cutoff:``) are checked with core's ``lca.cutoff`` and recorded per dataset in
   ``datapackage.json`` (``cutoff``): a cut flow at or above 1 % of the input mass, the cut flows
   together at or above 1 %, a never-cut flow (precious or critical metal, high characterisation
   factor, heavy metal) and, without core installed, criteria not checked are warnings;
@@ -156,7 +156,7 @@ PROCESS_MAPPINGS = Path("lca") / "mappings.yaml"
 DATAPACKAGE_SCHEMA = "cheme-as-code/lci-datapackage/v1"
 GAPS_SCHEMA = "cheme-as-code/lci-gaps/v1"
 INDEX_SCHEMA = "cheme-as-code/lci-index/v1"
-#: Schema strings of core's LCI dataset: v2 (core#294) and the v1 files it still reads, which
+#: Schema strings of core's LCI dataset: v2 and the v1 files it still reads, which
 #: declared the LCA files' id (``cheme/lca/v1``, and ``plantcode/lca/v1`` before the rename).
 DATASET_SCHEMAS = ("cheme/lci_dataset/v2", "cheme/lca/v1", "plantcode/lca/v1")
 #: Inventory units of core's datasets (``foundation.units.LCI_UNITS``) -> (the unit the export
@@ -773,7 +773,7 @@ class Process:
 def _data_quality(path: Path, report: Report, where: str) -> dict | None:
     """The data quality rating core writes into ``lca/manifest.json`` (``data_quality``: TfS DQR
     with TeR, GeR and TiR, the PEF-style P, C and DQR, the primary data share, the weighting
-    basis), or None when the manifest has none (written before core#178, or no manifest)."""
+    basis), or None when the manifest has none (written before core recorded it, or no manifest)."""
     if not path.is_file():
         return None
     try:
@@ -810,7 +810,7 @@ def resolve_successors(processes: list[Process], report: Report) -> None:
 
 
 def check_system_models(processes: list[Process], model: str, report: Report) -> None:
-    """A dataset that states its system model (core#179) must fit the build: the cut-off build
+    """A dataset that states its system model must fit the build: the cut-off build
     takes cut-off datasets; the substitution variant is made from cut-off or substitution ones.
     One database never mixes system models (docs/system-model.md)."""
     allowed = {"cutoff": ("cutoff",), "substitution": ("cutoff", "substitution")}[model]
@@ -1009,7 +1009,7 @@ class Linker:
 
     def elementary(self, exchange: dict, where: str) -> dict:
         """The biosphere flow of an emission or a resource, by the first of: its biosphere3
-        identity (``flow:``, core#175; a curated ``biosphere:`` entry keyed by that UUID may
+        identity (``flow:``; a curated ``biosphere:`` entry keyed by that UUID may
         correct the name and categories), ``link.biosphere``, the curated ``biosphere:`` entry
         of its component (``<component>/<origin>``, else ``<component>``). The result carries
         ``amount factor`` (the list's unit per unit of the exchange; the caller removes it)."""
@@ -1100,7 +1100,7 @@ class Linker:
         return AtlasChoice(row or plant, plant if row else None, others, refused, [m.code for m in unchosen] if market is None else [])
 
     def check(self, chemical: str | None, wanted: str | None, provider: dict, kind: str, need: dict | None = None) -> dict:
-        """Compatibility of an Atlas-to-Atlas link (core#168): the provider's reference product
+        """Compatibility of an Atlas-to-Atlas link: the provider's reference product
         grade and state, unit, system model, allocation and boundary. *kind* is ``market``,
         ``plant`` (no market of the grade), ``pinned`` (link.dataset), ``supply`` (a market's
         producer) or ``import`` (a consumption mix's other market). *need* is the consumer's
@@ -1174,7 +1174,7 @@ def pedigree_gsd2(scores: list[int], basic: float) -> float:
 def _uncertainty(exchange: dict, amount: float) -> dict:
     """A lognormal gsd2 as Brightway's lognormal (type 2): loc ln(amount), scale ln(gsd2)/2.
     The exchange's own lognormal (a gsd2, or pedigree scores on a basic uncertainty) comes first,
-    then the gsd2 of its pedigree (core#178: no exchange of a v2 dataset goes without one); the
+    then the gsd2 of its pedigree (no exchange of a v2 dataset goes without one); the
     study's default distributions (lca.yaml) are not known to the dataset. Another distribution
     kind of the exchange (normal, triangular, uniform) is not exported; ``build`` warns."""
     given = exchange.get("uncertainty") or {}
@@ -1375,7 +1375,7 @@ CUTOFF_RULES = ("cheme.lca-cutoff-share", "cheme.lca-cutoff-sum", "cheme.lca-cut
 
 def cutoff_results(processes: list[Process], report: Report) -> dict[str, dict]:
     """The cut-off criteria (docs/system-model.md section 4) of each dataset that records cut
-    flows (``cutoff:``, core#180), checked with core's ``lca.cutoff`` so that the build and
+    flows (``cutoff:``), checked with core's ``lca.cutoff`` so that the build and
     ``cheme assess lca`` apply the same rule: each cut flow and all of them together below 1 % of
     the input mass, no never-cut flow. By dataset path, for ``datapackage.json``. A cut flow that
     fails core's schema is an error; a broken criterion is a warning (``--strict`` fails); a cut
@@ -2258,7 +2258,7 @@ def changes_markdown(changes: dict) -> str:
 # --- build -----------------------------------------------------------------------------------
 
 
-#: Dataset fields (core#179) recorded as they are in ``datapackage.json``, beside the ones the
+#: Dataset fields recorded as they are in ``datapackage.json``, beside the ones the
 #: builder reads: identity, geography, technology, classification.
 DOCUMENTATION = ("uuid", "geography", "time", "technology", "technology_level", "classification", "production_volume", "data_generator")
 #: Review types, weakest first (core ``ReviewType``).
@@ -2321,7 +2321,7 @@ def _sha256(path: Path) -> str:
 
 def _dataset_version(dataset: Dataset) -> tuple[str, str]:
     """A dataset's semantic version and where it comes from: its own ``version`` (read once
-    core#179 adds the field; core's schema refuses it today), else the initial 0.1.0
+    core adds the field; core's schema refuses it today), else the initial 0.1.0
     (docs/governance.md)."""
     if dataset.data.get("version"):
         return str(dataset.data["version"]), "dataset"

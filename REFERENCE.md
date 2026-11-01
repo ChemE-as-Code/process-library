@@ -38,7 +38,7 @@ says how to add a process.
 | [`utility-chiller`](processes/utility-chiller/) | Chilled water at 6 degC, electric chiller (library utility; refrigerant losses not yet counted) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
 | [`utility-instrument-air`](processes/utility-instrument-air/) | Instrument air, dried, 8 bar(a) (library utility) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
 
-Three separate axes, named as in core's [glossary](https://github.com/ChemE-as-Code/core/blob/main/docs/concepts/glossary.md) (ChemE-as-Code/core#323):
+Three separate axes, named as in core's [glossary](https://github.com/ChemE-as-Code/core/blob/main/docs/concepts/glossary.md):
 
 - **design maturity** is `process.yaml` `maturity` (`concept` to `operating-reference`): how far
   the design is claimed to be taken. The claim is capped by evidence: in an engineering project
@@ -116,7 +116,7 @@ catalog gives each process `lca.design_cases` and `lca.scenarios` and copies the
 `scenarios/<id>/<scenario>.json`. A scenario whose values may not be published, or whose record
 is stale, keeps its geography, states and gaps but loses its totals. Each scenario also carries
 core's comparability verdict against the baseline (`comparability`: `like-for-like`, `proxy`,
-`not comparable`; core#306, ADR 0016), the study `boundary`, and each link's factor `scope`.
+`not comparable`, ADR 0016), the study `boundary`, and each link's factor `scope`.
 ASU-1 has `nl-grid` and `de-grid` on core's packaged EEA 2024 grid factors (D-107). They are
 **not comparable** with the UK baseline (D-110): EEA counts direct emissions at generation,
 while the baseline factor is at the consumer with T&D and well-to-tank, a difference in basis

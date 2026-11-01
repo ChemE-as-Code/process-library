@@ -617,7 +617,7 @@ def test_data_sources_carry_the_attribution(library: Path, tmp_path: Path) -> No
     assert "checksum" not in source and lca["totals"]
 
 
-# -- design cases and regional scenarios (core#172) -----------------------------------------
+# -- design cases and regional scenarios -----------------------------------------
 
 
 def _scenarios(out: Path) -> dict:
@@ -653,7 +653,7 @@ def test_scenarios_reuse_one_design_and_keep_their_states(tmp_path: Path, librar
         "impacts": "characterized-impact",
     }
     assert de["allocation"]["method"] == "mass" and de["functional_unit"]["product"] == "H2"
-    # the study boundary beside every scenario; core's comparability verdict (core#306) and each
+    # the study boundary beside every scenario; core's comparability verdict and each
     # link's scope pass through; a record without a verdict gives null (de-grid: still not
     # comparable through its gaps, `comparable` false)
     assert de["boundary"] == lca["boundary"]
