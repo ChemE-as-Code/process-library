@@ -1,0 +1,30 @@
+# Process Atlas manifest. Schema: schemas/process.schema.json. A manifest-only process: its LCI
+# dataset is lca/datasets/*.yaml, Tier 0 form, so maturity stays at concept
+# (core's cheme.lci-tier-maturity). See README.md.
+schema: cheme-as-code/process/v1
+id: cumene-1
+title: Cumene by zeolite alkylation of benzene with propylene
+summary: >-
+  Tier 0 screening per tonne of cumene: stoichiometry with a licensor's benzene figure and net steam,
+  US EPA facility air emissions, electricity from core's default. No flowsheet; not reviewed.
+families: [aromatics]
+keywords: [cumene, isopropylbenzene, alkylation, transalkylation, zeolite, benzene, propylene]
+facets: {feedstock_basis: [fossil], product_classes: [chemicals], unit_operations: [reaction, distillation], region: generic}
+maturity: concept
+validation: {status: unreviewed}
+chemistry:
+  inputs:
+    - {chemical: benzene, role: feedstock, inventory_key: "feed:benzene"}
+    - {chemical: propylene, role: feedstock, inventory_key: "feed:propylene"}
+  outputs:
+    - {chemical: cumene, role: main-product, inventory_key: "product:cumene"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:electricity", note: "core's Tier 0 default (ASSUMED, dated)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:steam", note: "net of LP export, so it embeds a credit for exported steam (deviation in the dataset); pressure not stated by the source"}
+basis: {capacity: "per tonne of cumene (the dataset's basis); no plant size"}
+publication: {status: public, license: CC-BY-4.0}
+references:
+  - {title: "Versalis (2018) Cumene: proprietary process technology, licensing brochure 11-2018 (manufacturer literature)", url: "https://versalis.eni.com/assets/documents/versalis/it/documentazione/licensing/2022/Cumene.pdf"}
+  - {title: "Meyer, D.E., Cashman, S., Gaglione, A. (US EPA) Data mining applied to life cycle inventory modeling for cumene and sodium hydroxide manufacturing, dataset (public domain)", doi: 10.23719/1503030}
+  - {title: "Falcke, H. et al. (2017) Best Available Techniques (BAT) Reference Document for the Production of Large Volume Organic Chemicals. JRC Science for Policy Report EUR 28882 EN (JRC109279), section 2.1.1.5", doi: 10.2760/77304}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/cumene-1, access: public}
