@@ -27,12 +27,16 @@ single-output activity per 1 unit of its reference product. It carries
 - ``closure``: ``status: assessed`` with the dataset's mass, element and energy balance as
   ``lca/manifest.json`` records it (``balance``), or ``status: not-assessed`` with the
   reason;
-- ``citation`` (DOI null until a release is deposited, docs/governance.md) and ``downloads``:
+- ``citation`` (the Process Atlas paper, in preparation, and the database version; DOI null: there
+  is none yet) and ``downloads``:
   each database file of this build that holds the activity (workbook, openLCA JSON-LD,
   multifunctional JSON) and how to find it there: the code, the JSON-LD process id and member,
   or the dataset code of the unallocated form;
 - ``publication``: ``public`` or ``preview`` (``publication.py``). A ``--public`` build holds
-  public processes only, so every entry of it is ``public``.
+  public processes only, so every entry of it is ``public``;
+- ``preliminary`` and ``gaps``: whether the activity has unlinked exchanges, and how many (ADR
+  0026). Publication and completeness are separate facts: a public activity can be preliminary. A
+  market is preliminary when a supplier is (``gaps`` then 0: it has none of its own).
 
 Dataset-level facts the page also shows (review, data quality, data status, benchmarks,
 property checks, cut-off exclusions) stay where they are, in ``processes[].datasets[]``; an entry
@@ -61,6 +65,13 @@ FORMATS = {
     "-multifunctional.json": "Brightway multifunctional (unallocated)",
 }
 CLOSURE_SOURCE = "lca/manifest.json balance"
+#: The paper the database is cited by, its authors as CITATION.cff lists them (tests check that).
+CITATION_AUTHORS = ("Artur M. Schweidtmann", "Jana M. Weber")
+
+
+def database_citation(version: str) -> str:
+    """How to cite this database: ``datapackage.json`` ``citation``, and in each activity's."""
+    return f"Cite the Process Atlas paper (in preparation, 2026), by {' and '.join(CITATION_AUTHORS)}, and the ChemE-as-Code Process Atlas LCI database version {version}."
 
 
 def _format(path: str, mediatype: str | None) -> str:
@@ -245,6 +256,7 @@ def entries(
     codes = {_identity(a.exchanges[0]): a.row["code"] for a in [*activities, *proxies, *markets]}
     datasets = {(p.pid, d.data["id"]): (p, d) for p in processes for d in p.datasets}
     out: list[dict] = []
+    gaps_of: dict[str, int] = {a.row["code"]: a.metadata.get("atlas gaps", 0) for a in activities}
     for activity in activities:
         meta, row = activity.metadata, activity.row
         process, dataset = datasets[(meta["atlas process"], meta["atlas dataset"])]
@@ -302,12 +314,14 @@ def entries(
                 "closure": _closure(library, process, dataset),
                 "superseded_by": row.get("superseded_by"),
                 "citation": {
-                    "text": f"{', '.join(authors) + ': ' if authors else ''}{row['reference product']}, from {process.manifest.get('title', process.pid)} (dataset {doc['id']} {version_text}), ChemE-as-Code Process Atlas LCI database {version}, activity {row['code']}.",
+                    "text": f"{', '.join(authors) + ': ' if authors else ''}{row['reference product']}, from {process.manifest.get('title', process.pid)} (dataset {doc['id']} {version_text}), ChemE-as-Code Process Atlas LCI database {version}, activity {row['code']}. {database_citation(version)}",
                     "authors": authors,
                     "doi": None,
                 },
                 "downloads": _downloads(resources, row["code"], dataset_code=f"{process.pid}:{doc['id']}", dataset_uuid=doc.get("uuid"), products=dataset_products, model=model, default=default),
                 "publication": "public" if is_public(process.manifest) else "preview",
+                "preliminary": gaps_of[row["code"]] > 0,
+                "gaps": gaps_of[row["code"]],
             }
         )
     for proxy in proxies:
@@ -326,9 +340,11 @@ def entries(
                 "reference_exchange": {"key": None, "amount": 1, "unit": row["unit"]},
                 "exchanges": [_exchange(e, {"title": e.get("atlas key", ""), "provenance": "assumed", "source": e.get("comment", "")}, db_name, codes) for e in proxy.exchanges[1:]],
                 "closure": {"status": "not-assessed", "reason": "a screening proxy of lci/mappings.yaml, not a dataset"},
-                "citation": {"text": f"{row['name']}, ChemE-as-Code Process Atlas LCI database {version}, activity {row['code']}.", "authors": [], "doi": None},
+                "citation": {"text": f"{row['name']}, ChemE-as-Code Process Atlas LCI database {version}, activity {row['code']}. {database_citation(version)}", "authors": [], "doi": None},
                 "downloads": _downloads(resources, row["code"], model=model, default=default),
                 "publication": "public",
+                "preliminary": False,
+                "gaps": 0,
             }
         )
     by_market = {m["code"]: m for m in market_entries or []}
@@ -365,10 +381,12 @@ def entries(
                     if k in info
                 },
                 "closure": {"status": "not-assessed", "reason": "a market (markets/): its losses are stated as fractions, not balanced"},
-                "citation": {"text": f"{row['name']}, {row['location']}, ChemE-as-Code Process Atlas LCI database {version}, activity {row['code']}.", "authors": [], "doi": None},
+                "citation": {"text": f"{row['name']}, {row['location']}, ChemE-as-Code Process Atlas LCI database {version}, activity {row['code']}. {database_citation(version)}", "authors": [], "doi": None},
                 "downloads": _downloads(resources, row["code"], model=model, default=default),
                 # set below: public when every supplier is
                 "publication": None,
+                "preliminary": any(gaps_of.get(s.get("code"), 0) > 0 for s in info.get("suppliers") or []),
+                "gaps": 0,
             }
         )
     # a market is public when every supplier is (a public build exports no other: build_markets)

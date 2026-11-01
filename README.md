@@ -44,7 +44,7 @@ P&IDs and a 3D layout. The [home page](https://cheme-as-code.org) explains what 
 engineering as code" means.
 
 The library is the source of the [Process Atlas](https://atlas.cheme-as-code.org) (a preview;
-it shows the processes marked public in their `process.yaml`, reviewed or not), which links the processes through the chemicals
+it shows the processes marked public, which is all 50, as unreviewed research output), which links the processes through the chemicals
 they make and use. From the same files it builds open life cycle inventory (LCI) datasets for
 [Brightway](https://docs.brightway.dev) and openLCA. All of it is plain text in git, so every
 change is reviewed and versioned. This is research software
@@ -107,8 +107,10 @@ them there. To add a process, copy
 
 ## Citation
 
-Both papers are in preparation and their titles are working titles. If you use the library,
-please cite the Process Atlas paper, and ChemE-as-Code for the toolkit. See also
+Both papers are in preparation and their titles are working titles; neither has a DOI yet. If you
+use the library, please cite the Process Atlas paper, and ChemE-as-Code for the toolkit. If you use
+the LCI database, cite the Process Atlas paper (in preparation, 2026), by Artur M. Schweidtmann and
+Jana M. Weber, and the database version. See also
 [cheme-as-code.org/about/cite](https://cheme-as-code.org/about/cite/).
 
 ```bibtex
@@ -137,7 +139,7 @@ please cite the Process Atlas paper, and ChemE-as-Code for the toolkit. See also
 | <img src=".github/readme/weber.jpg" alt="Jana M. Weber" width="50"> | Jana M. Weber | Process Atlas; Delft Bioinformatics Lab, Department of Computer Science, Delft University of Technology |
 | <img src=".github/readme/alimin.png" alt="Achmad A. Alimin (Angga)" width="50"> | Achmad A. Alimin (Angga) | Safety and HAZOP; layout STL export; Process Intelligence Research, Department of Chemical Engineering, Delft University of Technology |
 | <img src=".github/readme/rupprecht.jpg" alt="Sophia Rupprecht" width="50"> | Sophia Rupprecht | Inherited thermodynamic model selection, phase calculations, units and skills; design case study; Process Intelligence Research, Department of Chemical Engineering, Delft University of Technology |
-| <img src=".github/readme/elise.png" alt="Abstract image for Elise" width="50"> | Elise | Inherited reaction identification, kinetics retrieval, filtering and unit conversion |
+| <img src=".github/readme/elise.jpg" alt="Elise van Voorbergen" width="50"> | [Elise van Voorbergen](https://www.pi-research.org/people/elise-van-voorbergen/) | Inherited reaction identification, kinetics retrieval, filtering and unit conversion |
 
 Everyone who contributes is credited in the git history: see the
 [contributors of this repository](https://github.com/ChemE-as-Code/process-library/graphs/contributors).

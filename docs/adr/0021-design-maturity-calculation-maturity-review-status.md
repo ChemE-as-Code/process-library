@@ -40,7 +40,7 @@ of the docs site (`docs/hooks/library.py`) use the terms. The project is called 
 
 - No migration: manifests, the catalog and the LCI database are unchanged.
 - The field name `maturity` remains bare in files and in the catalog's JSON; consumers (the
-  Atlas, the viewer) label it "design maturity" themselves (ChemE-as-Code/website#71).
+  Atlas, the viewer) label it "design maturity" themselves (ChemE-as-Code/website#150).
 - The glossary link points at core's `docs/concepts/glossary.md`.
 - Generated texts of the build scripts (e.g. the LCI comments "Maturity: ...") are not relabelled
   here: changing them changes build outputs and is left to a follow-up.
@@ -49,7 +49,7 @@ of the docs site (`docs/hooks/library.py`) use the terms. The project is called 
 
 ## Evidence
 
-- Core's glossary, #87 (this change); ADR 0004 and ADR 0019.
+- Core's glossary, #305 (this change); ADR 0004 and ADR 0019.
 - `schemas/process.schema.json` (`maturity`, `validation` descriptions), README.md (process table
   and the axes), CONTRIBUTING.md, `templates/process/`.
 - core's `src/chemeascode/project/maturity.py` (`LEVELS`, `LIBRARY_MATURITY`,

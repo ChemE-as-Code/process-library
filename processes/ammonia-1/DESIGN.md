@@ -3,7 +3,7 @@
 One entry per decision: what was decided, why, what was rejected, and what it assumes.
 The numbers live in `process/*.yaml` and `lca/lca.yaml`; the stream table is generated:
 `cheme process streams --md` (provenance letter per value). Issue:
-ChemE-as-Code/process-library#86.
+ChemE-as-Code/process-library#304.
 
 Run record of this stage (2026-10-27): library branch `case/ammonia-1` from `79a7cd4`;
 cheme-as-code 0.8.0 (pyDEXPI 2.1.0), Python 3.15.0; chemicals, thermo and scipy in cheme's
@@ -14,7 +14,7 @@ here (D-006).
 
 ## 1. Route and boundary memo
 
-- **Route** (issue #86 brief): natural gas -> hydrodesulfurisation -> adiabatic prereformer ->
+- **Route** (issue #304 brief): natural gas -> hydrodesulfurisation -> adiabatic prereformer ->
   fired primary reformer -> air-blown secondary reformer (process air brings the nitrogen) ->
   HT and LT shift -> CO2 removal (activated MDEA, CO2 vented) -> methanation -> drying ->
   synthesis gas compression -> Haber-Bosch loop (three-bed converter, waste heat boiler,
@@ -46,7 +46,7 @@ here (D-006).
 
 ## D-001 Scope and boundary (2026-10-27)
 Decision: full conventional natural-gas plant as in section 1; process CO2 vented.
-Reason: the #86 brief (Rotterdam-area, 1500 t/d, SMR + air-fed secondary reformer, no CCS,
+Reason: the #304 brief (Rotterdam-area, 1500 t/d, SMR + air-fed secondary reformer, no CCS,
 urea, storage or loading) and the run scope (design basis to a balanced PFD and a gate-to-gate
 LCI). Rejected: loop-only scope (section 1); a nitrogen ASU (the air-fed reformer makes it
 unnecessary). Assumptions: storage and loading excluded, product refrigeration included.
@@ -218,6 +218,7 @@ Decision: `process.yaml` keeps `maturity: concept`, `validation: unreviewed`,
 `publication.status: internal`. `cheme maturity` reaches no level (feed not sourced; separators
 specified by an unqualified script): concept is the manifest's lowest value and the
 `maturity-claim-exceeds` warning is accepted and explained here, as in methanol-1.
+Note 2026-11-01: the owner has since marked all 50 processes public, so this one is no longer internal.
 
 ## D-020 Preliminary gate-to-gate LCI (2026-10-27)
 Decision: `lca/lca.yaml`, functional unit 1 kg NH3 at the gate, boundary gate-to-gate, case
@@ -322,7 +323,7 @@ over x0.6-1.6; the decision turns only at 1.66 EUR/GJ), then the ammonia price a
 output, capital and the carbon price.
 Consequence: on these premises a new conventional plant in the Netherlands does not compete
 with imported ammonia; that is the owner's investment question (I-02), not a design defect. The
-issue #86 brief commissions this plant as a design case, so the design continues to basic
+issue #304 brief commissions this plant as a design case, so the design continues to basic
 engineering; the verdict and the premises go with the concept sign-off for the owner. Next:
 price the three missing utilities, a Rotterdam delivered import price with freight, and the
 steam-turbine alternative (I-09), which trades the 57 EUR/t of electricity against the
@@ -1969,7 +1970,7 @@ convection coils therefore use `ExchangingThermalEnergy` and the steam system `P
 
 | source | locator | read in this run | use |
 |---|---|---|---|
-| Issue #86 and comments (2026-10-27) | proposed brief, handoff | yes | capacity, product, site, route, boundary |
+| Issue #304 and comments (2026-10-27) | proposed brief, handoff | yes | capacity, product, site, route, boundary |
 | cheme reaction library (Ullmann's; Twigg, Catalyst Handbook 2nd ed.) | `cheme chemistry library ammonia, steam_reforming, ht_shift, lt_shift, methanation` | yes (library entries) | stoichiometry, catalyst types |
 | chemicals / thermo (ATcT, CRC, HEOS, TRCIG) | `cheme chemistry thermo ... --fit 298.15,1500` | yes | formation data, heat capacities, critical constants |
 | thermo IPDB "ChemSep PR" kij | scripts/plant_balance.py | yes | loop flash |
@@ -2032,7 +2033,7 @@ Each open input is either resolved or kept ASSUMED, with the reason and where it
 | input | status at concept sign-off | reason | taken up in |
 |---|---|---|---|
 | I-01 natural gas | **kept ASSUMED** (benchmark lean gas, 4500 kPa(a), 288.15 K) | no open, citable composition exists for an H-gas connection in the Rotterdam area: GTS supplies composition data per connection as a customer information service, and its public network description says only that the HTL main network carries H-gas and the RTL almost only G-gas, with no composition or pressure figures (gasunietransportservices.nl, "The transmission network" and "Gas quality and metering"/FAQ pages, read 2026-10-29). A different gas would need a rerun of scripts/plant_balance.py and a regenerated LCI (R-03 below) | S2 (the flowsheet is re-solved by simulation; owner's gas quality or a measured GTS composition) |
-| I-02 brief | kept: the #86 proposed brief is the basis | only the owner can freeze it; no change proposed | owner, before basic sign-off |
+| I-02 brief | kept: the #304 proposed brief is the basis | only the owner can freeze it; no change proposed | owner, before basic sign-off |
 | I-03 ambient, cooling water | **kept ASSUMED** (ISO ambient, CW 298/308 K) | site data change the balance; the plot plan (D-022) also needs the wind rose | S2 (simulation cases) and S5 (layout) |
 | I-04 approaches, kinetics | **kept ASSUMED** | reaction evidence not gathered; it is also what `cheme maturity` (`balanced.model-basis`) asks for | S2 |
 | I-05 HDS recycle, dryer regeneration, condensate stripper | kept: not modelled | small flows; they come with the simulation and the P&IDs | S2, S3 |

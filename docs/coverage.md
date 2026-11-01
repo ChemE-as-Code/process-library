@@ -95,7 +95,7 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
    allocation hierarchy, and it has a hydrogen co-product (energy allocation).
 7. **steam generation**, 8. **cooling water** and 9. **wastewater treatment**: the utility
    datasets every process links to (#45). Cooling water replaces today's screening proxy.
-10. **toluene HDA**: a case study with an open reference flowsheet (#42).
+10. **toluene HDA**: a case study with an open reference flowsheet (#302).
 
 ## The ranked list
 

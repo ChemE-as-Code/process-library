@@ -222,6 +222,7 @@ as open gaps (not as negligible).
 Reason: the library rule for exported steam (energy or exergy, never a credit); hydrogen-1 is
 the worked example of an unmapped preliminary LCI (ADR 0022: an unmapped exchange of an
 internal process is a reported gap).
+Note 2026-11-01: the owner has since marked all 50 processes public, so this one is no longer internal.
 Results (unallocated per kg aniline): nitrobenzene 1.329 kg, hydrogen 0.0674 kg, electricity
 0.265 kWh, heat to cooling water 1.377 kWh, MP steam export 0.532 kWh, process water 0.388 kg
 (50 ppm aniline, about 0.12 wt% NH3), residue and low boilers 5.2 g, purge 2.8 g, catalyst

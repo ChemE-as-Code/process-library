@@ -176,10 +176,12 @@ def test_an_emission_by_component_carries_the_uuid_of_the_curated_entry(library:
     assert _exchange(_activities(tmp_path)[H2], "emission:H2")["atlas flow uuid"] == "0795345f-c7ae-410c-ad25-1845784c75f5"
 
 
-def test_a_resource_with_no_identity_and_no_mapping_is_an_error_naming_both(library: Path, tmp_path: Path) -> None:
+def test_a_resource_with_no_identity_and_no_mapping_is_a_gap_naming_both(library: Path, tmp_path: Path) -> None:
     _edit(library, lambda d: next(e for e in d["exchanges"] if e["key"] == "resource:WATER").pop("flow"))
-    errors = _build(library, tmp_path).errors
-    assert any("resource:WATER" in e and "no biosphere3 flow identity" in e and "biosphere" in e for e in errors), errors
+    report = _build(library, tmp_path)
+    assert report.errors == []
+    (gap,) = [g for g in report.gaps if g["key"] == "resource:WATER"]
+    assert gap["link"] == "biosphere" and "no biosphere3 flow identity" in gap["reason"] and "lci/mappings.yaml biosphere" in gap["reason"]
 
 
 def test_a_malformed_identity_or_pedigree_is_refused(library: Path, tmp_path: Path) -> None:

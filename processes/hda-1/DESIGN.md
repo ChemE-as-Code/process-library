@@ -1,7 +1,7 @@
 # Design decisions
 
 One entry per decision: what was decided, why, what was rejected, and what it assumes.
-Issue: ChemE-as-Code/process-library#42. Run of 2026-10-27 (concept: design basis to balanced
+Issue: ChemE-as-Code/process-library#302. Run of 2026-10-27 (concept: design basis to balanced
 PFD and preliminary LCI: a cradle-to-gate study, foreground inventory only). Starting library commit 79a7cd4, cheme-as-code 0.8.0
 (pyDEXPI 2.1.0, Python 3.15), thermo/chemicals as bundled with cheme.
 
@@ -33,7 +33,7 @@ cross the boundary as energy streams (power, fired heat, three steam levels, coo
           └──────────────── toluene recycle <────────────────┘
 ```
 
-**Reference model (not used as data).** The IDAES HDA examples (issue #42) model this route
+**Reference model (not used as data).** The IDAES HDA examples (issue #302) model this route
 with a specified reaction, flash separation and recycle/purge. Their flowsheet values are not
 used: feeds, scale, conversion, specifications and topology here are this study's own
 choices (D-001). Not a reference reconstruction: a comparison with IDAES is a separate job
@@ -211,6 +211,7 @@ Publication: `publication: public` in `lca/manifest.json` and `results.md` is ch
 the licences of the sources the results rest on (no restricted source), i.e. that they *may* be
 published; whether the process *is* published is process.yaml `publication.status`, which is
 `internal` and governs (review 2026-10-27-pfd-lci-review#10).
+Note 2026-11-01: the owner has since marked all 50 processes public, so this one is no longer internal.
 Results: see the LCI summary below.
 
 ## LCI summary (lca/inventory.csv, per kg benzene)
@@ -250,7 +251,7 @@ primary data share 0 %. No impact result is claimed.
 | Selectivity correlation | S = 1 - 0.0036/(1 - X)^1.544 | Douglas 1988 | recalled; validity range to verify |
 | Conversion per pass | 0.75 | design choice | ASSUMED |
 | Kinetics | none | - | not used; reactor volume not sized |
-| IDAES HDA examples | none used | issue #42 links | read only as context; no data taken |
+| IDAES HDA examples | none used | issue #302 links | read only as context; no data taken |
 
 ## Source register
 
@@ -260,7 +261,7 @@ primary data share 0 %. No impact result is claimed.
 | Speight (2011) Handbook of Industrial Hydrocarbon Processes, Elsevier | Ch. 11 | via the library skill tech-petchem-aromatics | facts cited only | HDA temperature/pressure range |
 | `chemicals`/`thermo` Python packages (bundled with cheme) | ATcT, CRC, Yaws, HEOS, IUPAC, TRC ideal-gas, ChemSep PR kij | used | MIT; underlying data facts | formation data, critical constants, PR flash |
 | Cox, Wagman, Medvedev (1989) CODATA Key Values | CO2(g), H2O(g) formation enthalpies | recalled values | facts | LHV for allocation |
-| IDAES examples-pse v2.0.0 HDA documentation | URLs in issue #42 | not opened in this run | BSD-style licence of IDAES (to record before any reuse) | context only |
+| IDAES examples-pse v2.0.0 HDA documentation | URLs in issue #302 | not opened in this run | BSD-style licence of IDAES (to record before any reuse) | context only |
 
 ## Method and dependency table
 

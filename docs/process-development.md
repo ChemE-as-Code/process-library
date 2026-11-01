@@ -1,13 +1,13 @@
 # Tracking process development
 
-The [execution tracker #114](https://github.com/ChemE-as-Code/process-library/issues/114)
+The [execution tracker #306](https://github.com/ChemE-as-Code/process-library/issues/306)
 coordinates individual process issues. [coverage.md](coverage.md) and coverage.yaml remain
 the accepted coverage/ranking plan (#47); issues track execution, sources and review.
 
 ## Issue structure
 
 Use the **Process development** form and label `type:process` for one canonical issue per
-chemical/process initially. Reuse ammonia #86 and toluene HDA #42. Split route issues when
+chemical/process initially. Reuse ammonia #304 and toluene HDA #302. Split route issues when
 they have distinct owners, models/boundaries or evidence targets; link the parent.
 Electricity mixes and regional sensitivities usually remain scenarios of the same route.
 Create issues for selected work rather than inventing a full literature list.
@@ -17,8 +17,8 @@ Literature discovery uses `scope:library`, `type:research`. Keep existing engine
 hold, query, change, gate and waiting labels unchanged. Do not put a guessed process folder
 in the engineering forms: their existing label workflow verifies folders on main.
 
-Initial batch: ammonia #86; hydrogen #117; methanol #118; nitric acid #119; urea #120;
-chlor-alkali #121; steam #122; cooling water #123; wastewater #124; toluene HDA #42.
+Initial batch: ammonia #304; hydrogen #117; methanol #118; nitric acid #119; urea #120;
+chlor-alkali #121; steam #122; cooling water #123; wastewater #124; toluene HDA #302.
 The utility tickets assess/improve existing datasets. This is a working batch, not a
 claim of readiness. Add the remaining coverage candidates as they are selected.
 
@@ -96,14 +96,14 @@ Consider limiting active development to 2–3 processes and unblocking shared ut
 
 On 27 October 2026, all 57 cards received planning values and matching priority labels:
 
-- **P1 (10):** #42, #86, #117–#124: the established core/utility batch.
+- **P1 (10):** #302, #304, #117–#124: the established core/utility batch.
 - **P2 (15):** #126–#129, #131–#132, #137, #148, #164–#166, #169–#172: broader expansion candidates.
 - **P3 (32):** remaining hub candidates: research backlog.
 
 These are editable planning choices, not a replacement for the committed coverage ranking.
 The seven non-utility P1 entries target a **Balanced PFD**; steam, cooling water and wastewater
 target a **Sourced inventory** audit. The 47 new candidates initially target a **Defined brief**.
-Five cards (#42, #86, #122–#124) start at defining their brief/audit scope; the other 52 start
+Five cards (#302, #304, #122–#124) start at defining their brief/audit scope; the other 52 start
 at collecting references. Existing citations/datasets do not establish calculation maturity.
 
 Ready means the next scoped work has inputs and no blocking dependency. In review means evidence
@@ -123,9 +123,26 @@ Record independent review and publication decisions separately.
 
 ## Maintaining the tracker
 
-Link new process issues from #114 and their route parents. Add PRs and sources to individual
+Link new process issues from #306 and their route parents. Add PRs and sources to individual
 issues as work progresses. Update coverage.yaml and its generated table only through reviewed
 repository changes. Close scoped issues after verification; open a linked follow-up when pursuing
 a higher tier or calculation maturity or a materially different route. The Project is a planning
 view, not a replacement for committed manifests, balance results, calculation maturity evidence or
 review records.
+
+## Old issue numbers
+
+Nine issues were recreated on 2026-11-01. Run records (`processes/*/runs/`) and review records
+(`processes/*/reviews/`) stay as written and still use the old numbers, as do commit messages:
+
+| Old | New | Issue |
+| --- | --- | --- |
+| #42 | #302 | toluene HDA case study |
+| #85 | #303 | LCI database rigour |
+| #86 | #304 | ammonia-1 case study |
+| #87 | #305 | maturity terminology |
+| #114 | #306 | process development tracker |
+| #275 | #307 | ammonia-1 control-complete rerun |
+| #278 | #308 | LCI datasets for methanol-1 and urea-1 |
+| #279 | #309 | LCI gaps before public release |
+| #280 | #310 | LCI quality gaps |

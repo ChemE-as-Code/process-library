@@ -181,6 +181,7 @@ Decision: lca/lca.yaml quantifies every foreground exchange of the balanced flow
 the anhydrous ethanol product (S23) and leaves every background unmapped (`missing:` with the
 background activity it should connect to): cradle-to-gate scope with all backgrounds open, as
 nitric-acid-1 (ADR 0022: an unmapped exchange of an internal process is a reported gap).
+Note 2026-11-01: the owner has since marked all 50 processes public, so this one is no longer internal.
 Allocation none: ethanol is the only product; the purge and light-ends off-gas are a waste
 burned with energy recovery in the site fuel-gas system (cut-off, no credit), the blowdown a
 wastewater to biological treatment. No direct emission inside the boundary (no combustion, no

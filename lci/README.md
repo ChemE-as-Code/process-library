@@ -9,6 +9,12 @@ into your own project and link to the background databases you are licensed for,
 > product, unit and location; no ecoinvent data is shipped or needed to build it. You need your
 > own licensed background database in the project you install into.
 
+## Citing
+
+Cite the Process Atlas paper (in preparation, 2026), by Artur M. Schweidtmann and Jana M. Weber,
+and the database version. It has no DOI yet. `datapackage.json` `citation` and each activity's
+`citation` say the same.
+
 ## Import
 
 ```python
@@ -53,8 +59,9 @@ prefer_atlas=True, overwrite=False, expect=None, pin=())`:
   successors (`report.superseded`);
 - writes the database **only if every exchange is linked**; otherwise nothing is written and
   `report.unlinked` lists each exchange that found no partner (fix the name in your background
-  or in `lci/mappings.yaml`; an `atlas gap` exchange of an unpublished process has no mapping
-  yet and is never linked). Nothing is dropped silently;
+  or in `lci/mappings.yaml`; an `atlas gap` exchange has no mapping yet and is never linked). So
+  a database with gaps, the current public one included, does not install this way until they are
+  mapped; `lci/gaps.json` lists them. Nothing is dropped silently;
 - refuses to replace an existing database of the same name unless `overwrite=True`.
 
 Without the helper, plain bw2io works too (`bi.ExcelImporter(path)`, `apply_strategies()`,
@@ -67,12 +74,12 @@ to handle.
 |---|---|
 | `lci/cheme-as-code-atlas-<version>.xlsx` | the database `cheme-as-code-atlas-<version>`: an `about` sheet (skipped by the importer), a `database` sheet, one sheet per process, a `markets` sheet, a `proxies` sheet. Exchange columns beyond bw2io's: `atlas key`, `atlas flow uuid`, `atlas pedigree`, `atlas carrier` and the linking fields |
 | `lci/datapackage.json` | version, library commit, per process: title, design maturity, review status, data status (exchanges by provenance), factor status of the study, allocation and shares, functional unit, activities (each with its `chemical` slug and registry `grade`, null when none), and per dataset its `property_checks` and `benchmarks` (below) |
-| | `activities`: one entry per exported activity (datasets, markets and proxies) with what its Atlas page `/lci/<code>/` shows: exchanges per unit of the reference product with unit, provenance, source, pedigree and lognormal, background link target by name or Atlas activity by code, elementary flows with biosphere3 UUID and compartment, the flowsheet `streams` an exchange derives from, `used_by`, header (geography, time, technology, classification with ISIC from the families and CPC/HS and CAS from the registry), allocation share, `closure` (or `not-assessed` with the reason), citation (DOI null until deposited), each database file that holds it with how to find it there (workbook and multifunctional JSON by code, or the dataset code of the unallocated form; openLCA JSON-LD by process id and member), a market's suppliers, shares, transport and losses with status and source (`market`, from `markets`), and `publication` (a market is public when all its suppliers are). No impact values (ADR 0015, `scripts/lci_activities.py`) |
+| | `activities`: one entry per exported activity (datasets, markets and proxies) with what its Atlas page `/lci/<code>/` shows: exchanges per unit of the reference product with unit, provenance, source, pedigree and lognormal, background link target by name or Atlas activity by code, elementary flows with biosphere3 UUID and compartment, the flowsheet `streams` an exchange derives from, `used_by`, header (geography, time, technology, classification with ISIC from the families and CPC/HS and CAS from the registry), allocation share, `closure` (or `not-assessed` with the reason), citation (the Process Atlas paper and the database version; DOI null), each database file that holds it with how to find it there (workbook and multifunctional JSON by code, or the dataset code of the unallocated form; openLCA JSON-LD by process id and member), a market's suppliers, shares, transport and losses with status and source (`market`, from `markets`), and `publication` (a market is public when all its suppliers are). No impact values (ADR 0015, `scripts/lci_activities.py`) |
 | `lci/benchmarks.json` | the stored benchmark report of the build: every KPI result (process, dataset, value, allocated value, status, reference, reason) and the counts by status, in total and per process ([benchmarks](../docs/benchmarks.md)) |
 | `lci/cheme-as-code-atlas-<version>-olca-jsonld.zip` | the same database for **openLCA** (JSON-LD, olca-schema 2): one unallocated multi-output process per dataset with allocation factors (below); markets and proxies as single-output processes, the default provider of every exchange linked to them |
 | `lci/cheme-as-code-atlas-<version>-multifunctional.json` | the **unallocated multi-output** datasets for Brightway's `multifunctional` package, with allocation properties (below); `install_multifunctional()` |
-| `lci/gaps.json` | the mapping gaps of unpublished processes (`cheme-as-code/lci-gaps/v1`): per process, each unlinked exchange with dataset, path, key, type, the link it lacks (`technosphere` or `biosphere`) and the reason; `count` 0 without gaps (Linking, below) |
-| `lci/index.json` | what the Atlas site reads: file names, sizes, sha256, `format` and `format_version` of every file, activities per process, exported markets, caveats, system model |
+| `lci/gaps.json` | the mapping gaps (`cheme-as-code/lci-gaps/v1`): `preliminary`, the processes that have any, and per process each unlinked exchange with dataset, path, key, type, the link it lacks (`technosphere` or `biosphere`) and the reason; `count` 0 without gaps (Linking, below) |
+| `lci/index.json` | what the Atlas site reads: file names, sizes, sha256, `format` and `format_version` of every file, activities per process, exported markets, caveats, system model, `gaps` per process and `preliminary` |
 | `lci/changes.json`, `lci/CHANGES.md` | with `--previous`: the change report against the earlier build (below) |
 
 `datapackage.json` also records the **system model** (`system_model`: id, label, methodology
@@ -173,8 +180,9 @@ build); governance (versions, change reports, releases, review) is
 - **Benchmarks.** Each dataset's KPIs of the benchmark registry (`benchmarks/<family>.yaml`,
   e.g. ASU-1's specific power per t GOX) are recorded in `datapackage.json` with their value,
   allocated value, status (`inside`, `outside`, `explained`, `no-reference`, `unchecked`) and
-  reference. A value outside its range without an `out_of_range_reason`, and a public process
-  with fewer than two KPIs, are warnings, so they fail `--strict` ([benchmarks](https://github.com/ChemE-as-Code/process-library/blob/main/docs/benchmarks.md)).
+  reference. A value outside its range without an `out_of_range_reason` is a warning, so it fails
+  `--strict`. A public process with fewer than two KPIs is a warning that does not fail it
+  (ADR 0026) ([benchmarks](https://github.com/ChemE-as-Code/process-library/blob/main/docs/benchmarks.md)).
 
 ## Linking (`lci/mappings.yaml`)
 
@@ -184,21 +192,35 @@ pass-through decisions, cut-off exclusions, the substitution variant, allocation
 own overrides live with it in `processes/<id>/lca/mappings.yaml` (schema
 `schemas/lci-process-mappings.schema.json`): `exchanges:` keyed by the dataset's exchange key
 (`<kind>:<id>`), each entry `use`s a technosphere entry, gives the exchange's `chemical` slug,
-`atlas: false` or a `properties_reason`. The build merges them; the same exchange overridden in
+a `dataset` (an Atlas producer, `{path, product}`, for an input the background vocabulary does not
+hold), `atlas: false` or a `properties_reason`. The build merges them; the same exchange overridden in
 `lci/mappings.yaml` (`"<id>/<key>"`) too is an error (ADR 0022). Per exchange: an override, else
 the dataset exchange's own `link` (a Brightway activity, biosphere flow or another Atlas
 dataset), else its chemical slug, else its `link.factor` id, in `technosphere:`.
 
 A missing mapping (no technosphere mapping, or an emission or resource without a biosphere
-identity) fails the build for a **public** process and in a `--public` build. For a process
-that is not public (`publication.status` internal, candidate or none) it is a **gap**: its
-preliminary LCI is still built, the exchange exported **unlinked** (amount and unit kept, no
-`database`, categories or Atlas alternative, column `atlas gap` with the reason; the activity's
-`atlas gaps` count and an `UNLINKED` comment line), never linked to a guess, dropped or
-zero-filled. Gaps are listed in the build report (`gap:` lines), `lci/gaps.json`,
-`datapackage.json` `processes[].gaps` and `index.json` `gaps`, and do not fail `--strict`.
-`install()` reports a gap as unlinked and writes nothing, so map every gap before a process is
-published: setting it public turns each gap into an error.
+identity) is a **gap**, for every process and in every build, `--public` and `--strict` included
+(ADR 0022, ADR 0026). The process's LCI is still built and marked **preliminary**: the exchange
+is exported **unlinked** (amount and unit kept, no `database`, categories or Atlas alternative,
+column `atlas gap` with the reason), never linked to a guess, dropped or zero-filled. An unlinked
+exchange counts no burden, so a preliminary inventory is incomplete and any result from it is too
+low by an unknown amount.
+
+How it is marked: the activity's `atlas gaps` count and `atlas preliminary`, `PRELIMINARY` and
+`UNLINKED` comment lines, a line on the workbook's `about` sheet, `datapackage.json`
+`processes[].preliminary`, `gap_count` and `gaps`, and `activities[].preliminary` and `gaps` (a
+market is preliminary when a supplier is), `index.json` `preliminary`, `gaps` and each activity's
+`preliminary`, `lci/gaps.json`, a caveat, the build report (`gap:` lines), and the catalog
+(`catalog.json` `preliminary`, `gap_count` and the LCA headline's `preliminary`;
+`processes/<id>.json` `preliminary`, `gap_count` and `lci_gaps`). The catalog's headline `value` is
+null with `not_computed: true` where nothing was characterised, never 0. `publication`
+stays a separate field: a public activity can be preliminary. `install()` reports a gap as
+unlinked and writes nothing.
+
+Everything else stays an error or warning for every process: a unit mismatch with a mapping, an
+override naming an unknown entry, dataset or `chemical`, an override key matching no exchange of a
+loaded process, an uncurated free emission, a schema error. Without that key check, a mistyped
+override would only show as a gap.
 
 Emissions and resources (the `resource` exchange type of the v2 contract: water, CO2 in air,
 land) are biosphere exchanges, identified by the **biosphere3 UUID** of the dataset exchange's
@@ -440,8 +462,8 @@ uv run scripts/build_lci.py --library <process-library> --out <dir> --version 0.
 
 `<dir>/lci/` is replaced; nothing else in `<dir>` is touched. Mappings come from
 `<library>/lci/mappings.yaml`, else the process library's own, plus each
-`<library>/processes/<id>/lca/mappings.yaml`. `--strict` fails on warnings too, not on the gaps
-of unpublished processes. Two runs on the same input are
+`<library>/processes/<id>/lca/mappings.yaml`. `--strict` fails on warnings too, except a public process's
+benchmark gap, and not on mapping gaps (ADR 0026). Two runs on the same input are
 byte-identical (the workbook's document dates and zip entry dates are fixed; the JSON-LD zip has
 sorted entries, fixed dates and no `lastChange` stamps).
 
