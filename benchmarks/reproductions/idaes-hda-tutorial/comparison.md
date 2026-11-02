@@ -17,8 +17,9 @@
   release with the IDAES backend; idaes-pse 2.13.0, IPOPT 3.13.2) from empty streams: the
   committed `flowsheet.yaml` with every `origin: simulated` value removed, in a scratch copy.
   Same model fingerprint (`59bf0c23c6278299`), converged in 66 iterations, and every stream and
-  unit value in the run record identical (largest relative difference 0). The committed record
-  above is therefore kept; the result below holds for the released backend.
+  unit value in the run record identical (largest relative difference 0). That run's record is
+  `reruns/2026-11-02-core-v1.4.0-simulation-run.json`. The committed record above is therefore
+  kept; the result below holds for the released backend.
 
 ## Result: FAIL under the frozen rule (3 of 5 checks pass; 1 of 3 against reference results)
 

@@ -31,8 +31,9 @@ Options considered: (a) extend `schemas/benchmarks.schema.json` with a reproduct
 - **Order is part of the evidence.** `tolerances.yaml` is committed in its own commit before
   any comparison run, and is not edited afterwards; a later change is a new file with a reason.
   `git log -- benchmarks/reproductions/<id>/` shows the order of the commits, and
-  `git log --follow -- benchmarks/reproductions/<id>/tolerances.yaml` shows that the file has
-  not changed since it was added.
+  `git diff <freezing commit> HEAD -- benchmarks/reproductions/<id>/tolerances.yaml` is empty
+  when the file has not changed since it was frozen. (`git log --follow` alone does not show an
+  edit made in a merge commit.)
 - A reproduction is numerical agreement with a model, not validation against plant or
   experiment, and its result is never used as design data in a process folder.
 
