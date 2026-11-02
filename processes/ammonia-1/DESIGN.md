@@ -3,18 +3,18 @@
 One entry per decision: what was decided, why, what was rejected, and what it assumes.
 The numbers live in `process/*.yaml` and `lca/lca.yaml`; the stream table is generated:
 `cheme process streams --md` (provenance letter per value). Issue:
-ChemE-as-Code/process-library#86.
+ChemE-as-Code/process-library#304.
 
 Run record of this stage (2026-10-27): library branch `case/ammonia-1` from `79a7cd4`;
 cheme-as-code 0.8.0 (pyDEXPI 2.1.0), Python 3.15.0; chemicals, thermo and scipy in cheme's
-interpreter; DWSIM not used. Core #315 (process-library readiness follow-ups) is open
+interpreter; DWSIM not used. The core issue on process-library readiness follow-ups is open
 (checked 2026-10-27): no property package covers hot syngas with CO above 500 K or CH4 above
 625 K, NH3 in a mixture, liquid NH3 or water, so separators and duties stay specified values
 here (D-006).
 
 ## 1. Route and boundary memo
 
-- **Route** (issue #86 brief): natural gas -> hydrodesulfurisation -> adiabatic prereformer ->
+- **Route** (issue #304 brief): natural gas -> hydrodesulfurisation -> adiabatic prereformer ->
   fired primary reformer -> air-blown secondary reformer (process air brings the nitrogen) ->
   HT and LT shift -> CO2 removal (activated MDEA, CO2 vented) -> methanation -> drying ->
   synthesis gas compression -> Haber-Bosch loop (three-bed converter, waste heat boiler,
@@ -46,7 +46,7 @@ here (D-006).
 
 ## D-001 Scope and boundary (2026-10-27)
 Decision: full conventional natural-gas plant as in section 1; process CO2 vented.
-Reason: the #86 brief (Rotterdam-area, 1500 t/d, SMR + air-fed secondary reformer, no CCS,
+Reason: the #304 brief (Rotterdam-area, 1500 t/d, SMR + air-fed secondary reformer, no CCS,
 urea, storage or loading) and the run scope (design basis to a balanced PFD and a gate-to-gate
 LCI). Rejected: loop-only scope (section 1); a nitrogen ASU (the air-fed reformer makes it
 unnecessary). Assumptions: storage and loading excluded, product refrigeration included.
@@ -102,7 +102,7 @@ the converter inlet (process air) and the inert level (purge fraction). In the f
 reactor outlets, mixers, splitters and pass-through steps are `calculated` by cheme; separator,
 CO2 removal, HRU, steam system and two-stream exchanger outlets and every duty are ASSUMED with
 the script as source.
-Reason: core #315: no property package covers these streams, so cheme cannot calculate
+Reason: no property package covers these streams, so cheme cannot calculate
 flashes or duties here. The methods in the script are not qualified by ChemE-as-Code (PR for
 NH3-H2-N2-CH4-Ar at 263 K / 147 bar is a screening method).
 Checks: every block and step balance closes (mass, components, elements); `cheme process
@@ -218,6 +218,7 @@ Decision: `process.yaml` keeps `maturity: concept`, `validation: unreviewed`,
 `publication.status: internal`. `cheme maturity` reaches no level (feed not sourced; separators
 specified by an unqualified script): concept is the manifest's lowest value and the
 `maturity-claim-exceeds` warning is accepted and explained here, as in methanol-1.
+Note 2026-11-01: the owner has since marked all 50 processes public, so this one is no longer internal.
 
 ## D-020 Preliminary gate-to-gate LCI (2026-10-27)
 Decision: `lca/lca.yaml`, functional unit 1 kg NH3 at the gate, boundary gate-to-gate, case
@@ -322,7 +323,7 @@ over x0.6-1.6; the decision turns only at 1.66 EUR/GJ), then the ammonia price a
 output, capital and the carbon price.
 Consequence: on these premises a new conventional plant in the Netherlands does not compete
 with imported ammonia; that is the owner's investment question (I-02), not a design defect. The
-issue #86 brief commissions this plant as a design case, so the design continues to basic
+issue #304 brief commissions this plant as a design case, so the design continues to basic
 engineering; the verdict and the premises go with the concept sign-off for the owner. Next:
 price the three missing utilities, a Rotterdam delivered import price with freight, and the
 steam-turbine alternative (I-09), which trades the 57 EUR/t of electricity against the
@@ -413,7 +414,7 @@ regenerator duty), cold 165.6 MW, power 9.2 MW, recovered between process stream
 plant closure is not evaluated by core while component separators (C301, X401) are in the
 flowsheet ("sign of the component separator's energy imbalance not established"), and block
 energy balances need stream enthalpies that `cheme process props` cannot give: no property
-package covers H2O, O2 or C2H6 (core #315).
+package covers H2O, O2 or C2H6.
 Reason: build the simulation the brief asks for as far as core runs it, and keep every
 limitation visible. Rejected: tuning tolerances, tears or values to make the loop "converge",
 a relaxed recycle test, or writing the unconverged loop values by hand.
@@ -520,14 +521,14 @@ cross (least approaches E-505 10 K, E-501 31 K); utility levels ok. The plant cl
 unsupported by core while component separators are in the flowsheet (C301, X401, X601, X602:
 "the sign of the component separator's energy imbalance is not established", core#60); block
 energy balances need stream enthalpies that `cheme process props` gives for 6 of 121 streams
-(core#315: no package covers H2O, O2, C2H6, or NH3 liquid and the loop above 5-15 MPa).
+(no package covers H2O, O2, C2H6, or NH3 liquid and the loop above 5-15 MPa).
 Maturity (`cheme maturity`, 2026-10-29, after this run): calculation maturity none. Requirements
 that fail, exactly: `sourced.boundary` (feed flows and compositions not given with a source:
 S1 natural gas, R-03/I-01, the process and combustion air S12, S61 and the demineralised
 water S26, S70, all ASSUMED; flows and compositions of each); `balanced.model-basis` (the complete conversions of R100, R102A, R401
 and H101 are assumed, unsourced); `predictive.coverage` (H101, K701, U801 excluded);
 `predictive.model-basis` (specified conversions and splits: R100, R102A, H101, R401, C301,
-X401, X601, X602); `predictive.property-regime` (core#315: core's benchmarked claim for DWSIM 9.0.5
+X401, X601, X602); `predictive.property-regime` (core's benchmarked claim for DWSIM 9.0.5
 Peng-Robinson covers nitrogen, oxygen and argon only, so every feed and stream with CH4, C2H6,
 C3H8, CO, CO2, H2, H2O or NH3 is outside it: 266 cases); `predictive.energy-closure` unsupported (core#60, component
 separators). What passes: process rules, balances evaluable and closed, simulation spec, run
@@ -879,7 +880,7 @@ unit, decision or table; assumed values are marked.
   the materials and corrosion review is open (V-701's -50 degC MDMT is below the usual LTCS
   range).
 - **Sizes from the simulation**: exchanger duties from process/simulation-run.json (fill's
-  enthalpies are refused for water, C2H6 and the loop states, core#315); areas with the middle
+  enthalpies are refused for water, C2H6 and the loop states); areas with the middle
   of the Sinnott Table 12.1 row of the core table (rows per item in the script), counter-current,
   no margin, cooling water 298/308 K, MP steam boiling at 531.93 K, refrigerant at 258.15 K;
   compressor and fan fluid powers = the simulated Q streams (K-701: Q27 package estimate + Q32
@@ -960,7 +961,7 @@ the governing case. Loads from `scripts/relief_loads.py` (`cheme run`, prints on
   every tag would have to be on every listed sheet). It passes.
 - **Not done, and why**: orifice, inlet-loss and tail-pipe sizing, back pressure and the flare
   network (core v1.0.0 has no relief sizing; this is the relief study proper); the supercritical
-  fire case (no method in core, properties near the critical point not qualified, core#315); the
+  fire case (no method in core, properties near the critical point not qualified); the
   blow-by rates (LV-1405, LV-1903 not sized); compressor cases on the vendors' curves; two-phase
   relief. The HAZOP actions A11, A17, A18, A26, A28, A30, A36, A42, A45 are answered in the
   study as proposals; none is closed (the team closes them), and H-01 is not re-stamped: its
@@ -1388,7 +1389,7 @@ nitrogen leaving as N2. S5b's analogies stay as supporting evidence.
 `cheme maturity`: calculation maturity **balanced** (before: none). The design maturity the
 evidence supports is screening. maturity-balanced passes. Predictive still fails, for the
 reasons D-026 records: H101, K701 and U801 not simulated, specified splits and conversions, and
-the property claim (core#315).
+the property claim.
 Rejected: the EBTF gas again (C4/C5 components would need new reactions and components, and the
 owner allows a lean gas close to the current one); keeping the D-004 placeholder (not
 published).
@@ -1940,11 +1941,11 @@ Concept stage (D-006), superseded for the simulated part by S2 (D-024, D-026; ta
 |---|---|---|
 | reformers, shifts, converter | equilibrium (cheme), approaches ASSUMED | calculated by cheme |
 | prereformer, burner zone, methanator, furnace | complete conversion (cheme) | calculated by cheme |
-| flashes (loop separator, let-down) | thermo PR + ChemSep kij in the script | ASSUMED, unqualified (core #315) |
+| flashes (loop separator, let-down) | thermo PR + ChemSep kij in the script | ASSUMED, unqualified |
 | water knock-outs, CO2 removal, dryer, HRU, vent | specified splits in the script | ASSUMED |
 | duties, compressors, steam, refrigeration | script: cheme ideal-gas enthalpies, PR, IAPWS-IF97 | ASSUMED; energy closure not evaluable in core |
-| stream properties (`props --fill`) | no package covers the mixtures (water, NH3 mixtures, hot CO/CH4) | gated: core #315 |
-| rigorous simulation (`process simulate`) | not attempted: needs a method accepted for syngas/NH3/water | gated: core #315 |
+| stream properties (`props --fill`) | no package covers the mixtures (water, NH3 mixtures, hot CO/CH4) | gated: core's property-package qualification |
+| rigorous simulation (`process simulate`) | not attempted: needs a method accepted for syngas/NH3/water | gated: core's property-package qualification |
 
 Basic stage, S2 (core v1.0.1, DWSIM 9.0.5, Peng-Robinson):
 
@@ -1957,7 +1958,7 @@ Basic stage, S2 (core v1.0.1, DWSIM 9.0.5, Peng-Robinson):
 | CO2 removal, dryer, NH3 wash, cold box | specified splits (component separators) | ASSUMED recoveries (D-009, D-010, D-013) |
 | furnace radiant section H101 | complete combustion, `propagate` from the simulated S64 | calculated by cheme; fuel from the concept |
 | steam system U801, chiller refrigeration K701 | scripts/packages_on_simulated_duties.py on simulated duties | ASSUMED |
-| stream properties (`props --fill`) | syngas-pr-vapor for 6 of 121 streams | calculated where covered; rest gated: core #315 |
+| stream properties (`props --fill`) | syngas-pr-vapor for 6 of 121 streams | calculated where covered; rest gated: core's property-package qualification |
 | plant energy closure | not evaluated with component separators | unsupported: core #60 |
 
 Core findings for the core repository (not fixed here): `cheme process build` crashes
@@ -1969,7 +1970,7 @@ convection coils therefore use `ExchangingThermalEnergy` and the steam system `P
 
 | source | locator | read in this run | use |
 |---|---|---|---|
-| Issue #86 and comments (2026-10-27) | proposed brief, handoff | yes | capacity, product, site, route, boundary |
+| Issue #304 and comments (2026-10-27) | proposed brief, handoff | yes | capacity, product, site, route, boundary |
 | cheme reaction library (Ullmann's; Twigg, Catalyst Handbook 2nd ed.) | `cheme chemistry library ammonia, steam_reforming, ht_shift, lt_shift, methanation` | yes (library entries) | stoichiometry, catalyst types |
 | chemicals / thermo (ATcT, CRC, HEOS, TRCIG) | `cheme chemistry thermo ... --fit 298.15,1500` | yes | formation data, heat capacities, critical constants |
 | thermo IPDB "ChemSep PR" kij | scripts/plant_balance.py | yes | loop flash |
@@ -2022,7 +2023,7 @@ convection coils therefore use `ExchangingThermalEnergy` and the steam system `P
 - I-09 Drive alternative: steam turbines vs electric motors (changes electricity and steam
   export together).
 - I-10 Background datasets for the LCI (section D-020), with licences recorded.
-- Gated: stream properties and energy closure in core, rigorous simulation (core #315);
+- Gated: stream properties and energy closure in core, rigorous simulation;
   `cheme process build` class bug (section 4).
 
 ### Concept close-out (S1, 2026-10-29)
@@ -2032,7 +2033,7 @@ Each open input is either resolved or kept ASSUMED, with the reason and where it
 | input | status at concept sign-off | reason | taken up in |
 |---|---|---|---|
 | I-01 natural gas | **kept ASSUMED** (benchmark lean gas, 4500 kPa(a), 288.15 K) | no open, citable composition exists for an H-gas connection in the Rotterdam area: GTS supplies composition data per connection as a customer information service, and its public network description says only that the HTL main network carries H-gas and the RTL almost only G-gas, with no composition or pressure figures (gasunietransportservices.nl, "The transmission network" and "Gas quality and metering"/FAQ pages, read 2026-10-29). A different gas would need a rerun of scripts/plant_balance.py and a regenerated LCI (R-03 below) | S2 (the flowsheet is re-solved by simulation; owner's gas quality or a measured GTS composition) |
-| I-02 brief | kept: the #86 proposed brief is the basis | only the owner can freeze it; no change proposed | owner, before basic sign-off |
+| I-02 brief | kept: the #304 proposed brief is the basis | only the owner can freeze it; no change proposed | owner, before basic sign-off |
 | I-03 ambient, cooling water | **kept ASSUMED** (ISO ambient, CW 298/308 K) | site data change the balance; the plot plan (D-022) also needs the wind rose | S2 (simulation cases) and S5 (layout) |
 | I-04 approaches, kinetics | **kept ASSUMED** | reaction evidence not gathered; it is also what `cheme maturity` (`balanced.model-basis`) asks for | S2 |
 | I-05 HDS recycle, dryer regeneration, condensate stripper | kept: not modelled | small flows; they come with the simulation and the P&IDs | S2, S3 |

@@ -1,7 +1,7 @@
 """Independent heat and material balance of the HDA plant (DESIGN.md D-006).
 
 This is NOT a cheme-as-code calculation. Core has no qualified property package for aromatics
-with hydrogen and methane (the packaged ones cover air and syngas, core #315), so flashes,
+with hydrogen and methane (the packaged ones cover air and syngas), so flashes,
 column splits and duties are computed here and enter process/flowsheet.yaml as `assumed`
 values with this script as their source. cheme then checks them: mass, component and element
 balances, the reactor extents (cheme computes the reactor outlet itself from the same
@@ -454,6 +454,42 @@ def main():
     print(json.dumps(out, indent=1, default=float))
     (ROOT / "build").mkdir(exist_ok=True)
     (ROOT / "build/hda_balance.json").write_text(json.dumps(out, indent=1, default=float))
+
+    # the values process/flowsheet.yaml cites from this script (balance-output contract)
+    fs = {}
+    for sid, (title, key, t, p) in names.items():
+        n = S_[sid]
+        fs[sid] = {"flow": mass(n), "temperature": temps.get(sid, t), "pressure": p,
+                   "composition": {c: n[c] / tot(n) for c in C if n[c] > 1e-12}}
+    fs["S2"] = {"temperature": t_tolmix}
+    fs["S3"] = {"temperature": t_pump}
+    fs["S5"] = {"temperature": t_mix}
+    fs["S6"] = {"flow": mass(mixed), "composition": {c: mixed[c] / tot(mixed) for c in C}}
+    fs["S10"] = {"flow": mass(qm), "temperature": t_hot_out,
+                 "composition": {c: qm[c] / tot(qm) for c in C}}
+    fs["S15"] = {"temperature": t_k}
+    duties = {"Q1": "P101", "Q2": "K101", "Q3": "H101", "Q4": "E102", "Q5": "C201_reb",
+              "Q6": "C201_cond", "Q7": "C202_reb", "Q8": "C202_cond", "Q9": "C203_reb",
+              "Q10": "C203_cond"}
+    fs.update({sid: {"duty": q[k]} for sid, k in duties.items()})
+    write_balance_output({"design": fs})
+
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import os
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.12"
-# dependencies = ["pyyaml>=6", "jsonschema>=4.23"]
+# dependencies = ["pyyaml>=6", "jsonschema>=4.23", "openpyxl>=3.1", "olca-schema==2.6.2"]
 # ///
 """Build the Process Atlas catalog from a process library.
 
@@ -15,7 +15,9 @@ rendered beforehand by ``render_previews.py`` into an artifacts directory, which
 Output (``--out``), all JSON with sorted keys, no timestamps, so two runs on the same commit are
 byte-identical:
 
-- ``catalog.json``: the list of processes (summaries), families (with their taxonomy title,
+- ``catalog.json``: the list of processes (summaries, each with ``preliminary`` and ``gap_count``
+  from the LCI mapping gaps, ADR 0026; an LCA headline's ``value`` is null and ``not_computed``
+  true where nothing was characterised, never 0), families (with their taxonomy title,
   group and ISIC Rev.4 / NACE Rev. 2 classes, ``taxonomy/families.yaml``), library commit
 - ``processes/<id>.json``: one process in full; each flow names its chemical by slug and its
   ``grade`` (null when none: registry.py ``flow_grade``)
@@ -136,12 +138,22 @@ def _schema_dir() -> Path:
 class Report:
     errors: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
+    #: the warnings that do not fail ``--strict``: a public process's benchmark gap (ADR 0026)
+    advisories: list[str] = field(default_factory=list)
 
     def error(self, where: str, message: str) -> None:
         self.errors.append(f"{where}: {message}")
 
     def warn(self, where: str, message: str) -> None:
         self.warnings.append(f"{where}: {message}")
+
+    def advise(self, where: str, message: str) -> None:
+        self.warn(where, message)
+        self.advisories.append(self.warnings[-1])
+
+    @property
+    def strict_failures(self) -> list[str]:
+        return [w for w in self.warnings if w not in self.advisories]
 
 
 def _yaml(path: Path) -> Any:
@@ -219,6 +231,56 @@ def _sheets(plant: dict) -> list[dict]:
 DATA_SOURCE_FIELDS = ("id", "title", "provider", "version", "url", "licence", "publication", "attribution")
 
 
+def _display_name(name: str) -> str:
+    """A registry name inside a phrase: ``"Acetaldehyde"`` -> ``"acetaldehyde"``; a name whose
+    second letter is not lower case (``"N,N-Dimethylformamide"``, ``"MTBE"``) is kept."""
+    return name[0].lower() + name[1:] if len(name) > 1 and name[0].isupper() and name[1].islower() else name
+
+
+def _name_functional_unit(functional_unit: dict, flows: dict[str, list[dict]], products: reg.Registry) -> None:
+    """Label the functional unit with its product's name (issue #249): the chemistry output whose
+    ``inventory_key`` is ``product:<functional unit product>`` gives the registry chemical, its
+    grade's name when the flow has a grade, else the chemical's name. Without such a flow the
+    label keeps the component id. Adds ``chemical``, ``grade`` and ``product_name``."""
+    key = f"product:{functional_unit.get('product')}"
+    flow = next((f for f in flows.get("outputs", []) if f.get("inventory_key") == key), None)
+    chemical = products.chemicals.get(flow["chemical"]) if flow else None
+    functional_unit.update(chemical=flow["chemical"] if chemical else None, grade=flow.get("grade") if chemical else None, product_name=None)
+    if not chemical:
+        return
+    name = (products.grade(flow["chemical"], flow.get("grade")) or {}).get("name") or chemical["name"]
+    functional_unit["product_name"] = name
+    functional_unit["label"] = f"{functional_unit.get('amount', '')} {functional_unit.get('unit', '')} {_display_name(name)}".strip()
+
+
+def _lci_gaps(library: Path, public: bool, report: Report) -> dict[str, list[dict]] | None:
+    """Each process's LCI mapping gaps, as ``build_lci.py`` reports them (a process with any is
+    preliminary, ADR 0026), from a throwaway LCI build. None when that build fails: an error in a
+    public build, which must not publish a value unmarked, otherwise a warning."""
+    import tempfile
+
+    import build_lci
+
+    with tempfile.TemporaryDirectory() as scratch:
+        lci = build_lci.build(library, Path(scratch), "catalog", commit="catalog", public=public)
+    if lci.errors:
+        message = f"the LCI build failed, so preliminary processes cannot be marked: {lci.errors[0]}"
+        (report.error if public else report.warn)("lci", message)
+        return None
+    gaps: dict[str, list[dict]] = defaultdict(list)
+    for gap in lci.gaps:
+        gaps[gap["process"]].append({key: gap[key] for key in ("dataset", "key", "type", "link")})
+    return gaps
+
+
+def _not_computed(lca: dict) -> list[str]:
+    """Categories whose baseline total is exactly 0 with no flow contributing: nothing in the
+    boundary was characterised, so there is no footprint, not a zero one (website#96)."""
+    baseline = (lca.get("totals") or {}).get("baseline") or {}
+    contributing = {c["category"] for c in lca.get("contributions") or [] if c["impact"] != 0}
+    return sorted(cat for cat, value in baseline.items() if value == 0 and cat not in contributing)
+
+
 def _lca(folder: Path, where: str, report: Report, capacity: str | None = None) -> dict | None:
     """Functional unit, totals per scenario and category, contributions and inventory."""
     lca_dir = folder / "lca"
@@ -287,7 +349,7 @@ def _lca(folder: Path, where: str, report: Report, capacity: str | None = None) 
     # has is missing there (or all of whose contributions are gaps) has no total, never the
     # lower sum results.csv gives
     for scenario in scenario_part.get("scenarios", []):
-        # the study's system boundary beside every scenario's numbers (core#306)
+        # the study's system boundary beside every scenario's numbers
         scenario["boundary"] = study.get("boundary", "")
         if scenario["id"] in totals:
             totals[scenario["id"]] = {
@@ -299,7 +361,10 @@ def _lca(folder: Path, where: str, report: Report, capacity: str | None = None) 
             "product": fu.get("product"),
             "amount": fu.get("amount"),
             "unit": fu.get("unit"),
+            # the product's name replaces the id in the label once the process names its chemical
+            # (_name_functional_unit); the id stays in "product" for tools
             "label": f"{fu.get('amount', '')} {fu.get('unit', '')} {fu.get('product', '')}".strip(),
+            "product_title": next((r.get("title", "") for r in inventory if r.get("key") == f"product:{fu.get('product')}"), None),
         },
         "boundary": study.get("boundary", ""),
         "allocation": allocation.get("method"),
@@ -457,9 +522,9 @@ def _scenarios(folder: Path, where: str, report: Report, lca_withheld_reason: st
                 "partial_categories": impacts.get("partial_categories", []),
                 "comparable": impacts.get("comparable", True),
                 "dropped": impacts.get("dropped", []),
-                # core's verdict against the baseline (core#306: like-for-like, proxy, not
+                # core's verdict against the baseline (like-for-like, proxy, not
                 # comparable; baseline for the baseline), read from the factors' structured scope.
-                # `comparable` above covers gaps only. A record from before core#306 has none:
+                # `comparable` above covers gaps only. A record from before core wrote verdicts has none:
                 # null, which a consumer shows as "not comparable" when `comparable` is false and
                 # as "not assessed" otherwise, never as like-for-like (ADR 0016).
                 "comparability": data.get("comparability"),
@@ -508,7 +573,7 @@ def _benchmarks(folder: Path, pid: str, manifest: dict, benchmarks: bm.Registry 
         report.warn(pid, text)
     count = bm.kpi_count(benchmarks, pid, ids)
     if ids and is_public(manifest) and count < bm.MIN_KPIS:
-        report.warn(pid, f"{count} benchmarked KPI(s); a public process needs at least {bm.MIN_KPIS}, each with a source or a recorded no_open_reference (benchmarks/<family>.yaml, docs/benchmarks.md)")
+        report.advise(pid, f"{count} benchmarked KPI(s); a public process needs at least {bm.MIN_KPIS}, each with a source or a recorded no_open_reference (benchmarks/<family>.yaml, docs/benchmarks.md)")
     return results
 
 
@@ -705,6 +770,7 @@ def build(
     (out / "processes").mkdir(parents=True)
 
     summaries, details = [], []
+    lci_gaps = _lci_gaps(library, public, report)
     flow_keys: set[str] = set()
     for manifest_path in sorted((library / "processes").glob("*/process.yaml")):
         folder = manifest_path.parent
@@ -720,6 +786,9 @@ def build(
             report.error(where, f"id {pid!r} differs from folder name {folder.name!r}")
             continue
         flows = {k: manifest["chemistry"].get(k, []) for k in ("inputs", "outputs", "utilities")}
+        if not any(f.get("role") == "main-product" for f in flows["outputs"]):
+            # issue #251: a process whose main product is not listed is missing from the graph
+            report.warn(where, "chemistry.outputs: no main-product (add it, with its chemicals/chemicals.yaml entry)")
         facets = _facets(manifest)
         for group, items in flows.items():
             for number, item in enumerate(items):
@@ -742,6 +811,7 @@ def build(
         capacity = (manifest.get("basis") or {}).get("capacity")
         lca = _lca(folder, where, report, capacity) if manifest.get("lca", {}).get("source", "auto") == "auto" and plant else None
         if lca:
+            _name_functional_unit(lca["functional_unit"], flows, products)
             keys = {row["key"] for row in lca["inventory"]}
             for group, items in flows.items():
                 for item in items:
@@ -754,6 +824,7 @@ def build(
         render = _render_info(artifacts, pid)
         stale = bool(render) and _behind(library, render.get("source_commit"), source_commit)
         withhold = bool(lca) and not lca["publishable"]
+        gaps = (lci_gaps or {}).get(pid, [])
         publish = {"manifest": manifest, "withhold": withhold} if public else None
         viewer = _viewer(snapshots, pid, out, where, report, publish) if plant else None
         if viewer:
@@ -791,6 +862,9 @@ def build(
             "design_basis": _design_basis(folder) if plant else None,
             "gates": _gates(folder) if plant else None,
             "lca": lca,
+            "preliminary": bool(gaps),
+            "gap_count": len(gaps),
+            "lci_gaps": gaps,
             "issues": _issues(issues_data, pid, forms),
             "benchmarks": kpis,
             "provenance": {
@@ -802,6 +876,9 @@ def build(
         }
         if public:
             _publish(detail)
+        not_computed = _not_computed(lca) if lca else []
+        if lca:
+            lca["not_computed"] = not_computed
         for scenario in (lca or {}).get("scenarios", []):
             _copy_record(folder, scenario, out, public)
         details.append(detail)
@@ -812,7 +889,10 @@ def build(
             headline = {
                 "category": first["id"],
                 "title": first["title"],
-                "value": baseline.get(first["id"]),
+                # never a 0 where nothing was characterised, and never a value without its marking
+                "value": None if first["id"] in not_computed else baseline.get(first["id"]),
+                "not_computed": first["id"] in not_computed,
+                "preliminary": bool(gaps),
                 "unit": first["unit"],
                 "functional_unit": lca["functional_unit"]["label"],
                 "factors_status": lca["factors_status"],
@@ -836,6 +916,8 @@ def build(
                 "engineering_project": plant is not None,
                 "interactive": viewer is not None,
                 "lca": headline,
+                "preliminary": bool(gaps),
+                "gap_count": len(gaps),
                 "open_issues": None if issues_data is None else sum(
                     1 for i in issues_data["issues"] if pid in i.get("processes", []) and i["state"] == "open"
                 ),
@@ -1129,7 +1211,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"warning: {message}", file=sys.stderr)
     for message in report.errors:
         print(f"error: {message}", file=sys.stderr)
-    failed = bool(report.errors or (args.strict and report.warnings))
+    failed = bool(report.errors or (args.strict and report.strict_failures))
     if not failed:
         count = len(json.loads((args.out / "catalog.json").read_text())["processes"])
         print(f"catalog: {count} process(es) -> {args.out}{' (public)' if args.public else ''}")

@@ -37,17 +37,22 @@ validation:
     process streams: 6 blocks, 12 steps, reactive balances by extents). All flows and
     compositions are specified values of an independent balance (scripts/solvay_balance.py) on
     assumed design parameters; no electrolyte speciation or reciprocal-salt equilibrium is
-    calculated (core #364), and no property package covers the liquors and solids, so energy
+    calculated, and no property package covers the liquors and solids, so energy
     closure is not evaluable in core: the duties are a lumped script estimate. The kiln uses
     the specific-energy fallback of cheme process furnace (Cantera not available in this
     installation). The gate-to-gate LCI is preliminary, with every background unmapped.
     Not reviewed.
 chemistry:
   inputs:
+    - {chemical: limestone, role: feedstock, note: "feed:LST: crushed and screened limestone, 1.08 kg/kg soda ash"}
+    - {chemical: metallurgical-coke, role: feedstock, note: "feed:COKE: coke, kiln fuel"}
+    - {chemical: sodium-chloride, role: feedstock, note: "feed:BRINE: purified saturated brine (26 wt-% NaCl) at battery limits, counted by mass of the brine"}
+    - {chemical: ammonia, role: feedstock, note: "feed:NH3: liquid ammonia make-up"}
     - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Process water for slaking and cake washing (the brine water enters with feed:BRINE)"}
     - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Kiln combustion air"}
   outputs:
-    - {chemical: wastewater, role: waste, inventory_key: "product:DSW", note: "Distiller waste: CaCl2 and NaCl liquor with suspended CaCO3, Ca(OH)2 and insolubles, ~11 t/t soda ash. The main product (soda ash) and the raw materials (brine, limestone, coke, ammonia) have no registry entries yet"}
+    - {chemical: sodium-carbonate, role: main-product, inventory_key: "product:SODA", note: "Light soda ash to storage"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:DSW", note: "Distiller waste: CaCl2 and NaCl liquor with suspended CaCO3, Ca(OH)2 and insolubles, ~11 t/t soda ash"}
     - {chemical: carbon-dioxide, role: emission, inventory_key: "product:VENT", note: "Unabsorbed kiln CO2 (calcination and coke) in the vent gas, ~0.31 t/t soda ash"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER"}
@@ -70,7 +75,7 @@ maintainers:
 repository:
   url: https://github.com/ChemE-as-Code/process-library
   path: processes/soda-ash-1
-  access: private
+  access: public
 publication:
-  status: internal
+  status: public
   license: CC-BY-4.0

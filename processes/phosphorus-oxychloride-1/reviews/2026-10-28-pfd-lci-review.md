@@ -47,7 +47,7 @@ No P&ID exists (out of scope; the template's reference sheet was removed, `pid/`
 - CN115259114B and US5183649 locators were not re-read; only US4183905 was spot-checked.
 - The chlor-alkali-1 S42 and asu-1 S7/S8 compositions were not compared against those folders.
 - Equipment list entries were not reviewed item by item against the PFD (beyond the passing `process-links` gate).
-- No VLE check of the columns or vent condensers was possible: there is no qualified property package (core #315/#364), as D-006 states. Column stage counts, sizes, R-201 kinetics and mass transfer do not exist and so were not reviewed.
+- No VLE check of the columns or vent condensers was possible: there is no qualified property package, as D-006 states. Column stage counts, sizes, R-201 kinetics and mass transfer do not exist and so were not reviewed.
 - Safety (D-011) was read only as a carried-forward list; no hazard study is in scope.
 
 Merge pending: the branch is not merged. No critical or high finding is open.

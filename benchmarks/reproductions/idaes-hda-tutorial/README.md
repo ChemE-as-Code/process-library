@@ -1,7 +1,7 @@
 # IDAES HDA tutorial: reference reproduction
 
 Numerical reproduction of the baseline IDAES HDA tutorial (examples-pse, pinned commit in
-`source.yaml`) by the cheme IDAES backend (core#104), for issue #42. Protocol: ADR 0024.
+`source.yaml`) by the cheme IDAES backend (core#104), for issue #302. Protocol: ADR 0030.
 
 This is **not** the hda-1 design: `processes/hda-1/` is an independent concept design
 (DESIGN.md D-001) and uses nothing from here. Agreement here is agreement between two models

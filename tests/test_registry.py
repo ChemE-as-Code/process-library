@@ -90,7 +90,58 @@ def test_every_substance_property_has_a_unit_and_a_source() -> None:
             for name, prop in properties.items():
                 assert prop["unit"] and len(prop["source"]) > 3, (slug, name)
         if chem["kind"] == "substance":
-            assert {"molar_mass", "elemental_composition", "carbon_content", "standard_chemical_exergy"} <= set(chem["properties"]), slug
+            assert {"molar_mass", "elemental_composition", "carbon_content"} <= set(chem["properties"]), slug
+    # the standard chemical exergy (exergy allocation) is not yet given for the substances added
+    # for issue #251; the v1 substances keep theirs
+    chemicals = reg.load(_yaml(REGISTRY)).chemicals
+    for entry in V1:
+        if entry["kind"] == "substance":
+            assert "standard_chemical_exergy" in chemicals[entry["slug"]]["properties"], entry["slug"]
+
+
+def test_registry_identifiers_are_unique() -> None:
+    """A CAS RN, InChIKey, ChEBI id or PubChem CID names one registry entry."""
+    for field in ("cas", "inchikey", "chebi", "pubchem_cid"):
+        owners: dict[str, list[str]] = {}
+        for slug, chem in reg.load(_yaml(REGISTRY)).chemicals.items():
+            if chem.get(field) is not None:
+                owners.setdefault(str(chem[field]), []).append(slug)
+        assert {k: v for k, v in owners.items() if len(v) > 1} == {}, field
+
+
+def test_every_identified_substance_has_a_formula_and_cas() -> None:
+    for slug, chem in reg.load(_yaml(REGISTRY)).chemicals.items():
+        if chem.get("inchikey") or chem.get("chebi") or chem.get("pubchem_cid"):
+            assert chem["kind"] == "substance" and chem.get("formula") and chem.get("cas"), slug
+
+
+#: Entries where the chemicals package (1.5.2) is known to disagree with the registry, each
+#: checked against PubChem when added (issue #251): the package lists CAS 10039-54-0 with the
+#: 1:1 salt H5NO5S, while the CAS names bis(hydroxylammonium) sulfate H8N2O6S (PubChem CID 24846).
+CHEMICALS_PACKAGE_EXCEPTIONS = {"hydroxylammonium-sulfate"}
+
+
+def test_registry_identities_agree_with_the_chemicals_package() -> None:
+    """CAS <-> InChIKey and formula against the offline database of the `chemicals` package
+    (Caleb Bell; a dev dependency of core, skipped where it is not installed)."""
+    identifiers = pytest.importorskip("chemicals.identifiers")
+    elements = pytest.importorskip("chemicals.elements")
+    problems = []
+    for slug, chem in reg.load(_yaml(REGISTRY)).chemicals.items():
+        if chem["kind"] != "substance" or not chem.get("cas") or slug in CHEMICALS_PACKAGE_EXCEPTIONS:
+            continue
+        try:
+            found = identifiers.search_chemical(chem["cas"])
+        except Exception as failure:  # noqa: BLE001 - the package raises a bare Exception
+            problems.append(f"{slug}: CAS {chem['cas']} not found ({failure})")
+            continue
+        if chem.get("inchikey") and found.InChI_key != chem["inchikey"]:
+            problems.append(f"{slug}: CAS {chem['cas']} is {found.InChI_key} in the package, not {chem['inchikey']}")
+        if chem.get("inchikey") and identifiers.search_chemical(f"InChIKey={chem['inchikey']}").CASs != chem["cas"]:
+            problems.append(f"{slug}: InChIKey {chem['inchikey']} is not CAS {chem['cas']} in the package")
+        if chem.get("formula") and elements.simple_formula_parser(found.formula) != elements.simple_formula_parser(chem["formula"]):
+            problems.append(f"{slug}: formula {chem['formula']} differs from the package's {found.formula}")
+    assert problems == []
 
 
 def test_no_price_without_an_open_source() -> None:

@@ -1,0 +1,130 @@
+# Goal and scope of the methanol-1 LCA. Schema: `cheme schema lca`. Outputs: `cheme assess lca
+# --write` (lca/inventory.csv, results.*, gaps.csv, dataset.yaml, manifest.json); never edit
+# those by hand. DESIGN.md D-015.
+#
+# PRELIMINARY GATE-TO-GATE LCI. Every foreground exchange comes from the balanced flowsheet
+# (process/flowsheet.yaml, case design). The background datasets are deliberately left
+# UNMAPPED: each technosphere flow carries `missing:` with the background activity it should
+# connect to later. No factor, no value from a licensed database, and no zero stands in for
+# them; the result is therefore a gap list, not a footprint.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of Grade AA methanol from the synthesis loop and
+  purification (make-up synthesis gas at the battery limit, reforming outside), at concept stage:
+  the foreground exchanges per kg of methanol, ready to be linked to background datasets in the
+  next stage (DESIGN.md D-015). Flows are concept estimates; backgrounds are unmapped gaps.
+functional_unit: {product: MEOH, amount: 1, unit: kg}
+boundary: gate-to-gate
+case: design
+location: GLO
+year: 2026
+technology: "low-pressure methanol synthesis on Cu/ZnO/Al2O3 in a boiling-water converter, recycle loop with purge, LP flash, topping and refining columns; electric compressor drives; 2500 t/d"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+allocation:
+  method: exergy
+  coproducts: [MEOH, MPS, FUELGAS]
+  properties:
+    MEOH:
+      exergy: 22396.1
+      source: >-
+        scripts/allocation_exergy.py: S18, liquid methanol with 0.05 wt% water, chemical exergy
+        at the dead state 298.15 K, 101.325 kPa; methanol(l) 718.0 kJ/mol derived from the
+        formation data of process/materials.yaml and the element exergies of Szargut, Morris and
+        Steward (1988); physical exergy at 313 K / 300 kPa neglected
+    MPS:
+      exergy: 1394.0
+      source: >-
+        scripts/allocation_exergy.py: exergy added per kWh of heat raised in R-101 (kJ per kWh,
+        the exchange's unit), saturated vapour at 2800 kPa(a) from boiler feed water at 378.15 K
+        (ASSUMED), IAPWS-95 (CoolProp). Used for the allocation instead of the Carnot value
+        (1467.8 kJ/kWh, isothermal heat at the saturation temperature) that the generated dataset
+        records on the product:MPS exchange: this one counts the feed water heating in the duty
+    FUELGAS:
+      exergy: 9067.7
+      source: >-
+        scripts/allocation_exergy.py: S14 and S16 by flow, as ideal-gas mixtures at 600 and 150
+        kPa(a): chemical exergy (Szargut et al. 1988, model II, core's table), mixing term and
+        pressure exergy
+  compare: [none]
+  source: >-
+    D-015: the MP steam raised in the converter and the fuel gas are exported steam and fuel, so
+    co-products of the methanol, never credited in the cut-off build (docs/system-model.md section
+    2). The burdens are shared by exergy: methanol 94.9 %, MP steam 3.7 %, fuel gas 1.3 %. The
+    purge is not a co-product: it returns to the plant's own reformer fuel and leaves for no third
+    party (owner's decision, I-09). Alternatives: unallocated (none, computed in the comparison)
+    and exergy with the purge as a co-product (methanol 81.5 %, purge 14.2 %, MP steam 3.2 %, fuel
+    gas 1.1 %; printed by scripts/allocation_exergy.py, because core's comparison can only
+    compute the listed co-products).
+  deviation: >-
+    Neither curated physical rule fits: the products do not come from one separation, and LHV
+    cannot apply because the steam has no heating value. The WBCSD price ratio does not apply
+    either: the steam is counted in kWh, and no sourced prices exist at concept. Exergy is chosen
+    because the library allocates exported steam and fuels by energy or exergy, and exergy is the
+    one basis common to the three products (DESIGN.md D-015).
+flows:
+  # ---- inputs
+  - key: feed:SYNGAS
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Make-up synthesis gas (S1; H2, CO, CO2, CH4, N2; ASSUMED composition, D-004) at the battery
+      limit, 2600 kPa(a): connect to the plant's reformer section (natural gas, oxygen or steam,
+      fired duty, gas cooling), which is outside this boundary (D-001). No background of this
+      composition is known to the library, and registry hydrogen or methane is not this gas. The
+      purge (product:PURGE) fuels that reformer: its fuel credit belongs in this future link, as
+      less fired fuel in the reformer section, not in an allocation here (D-015).
+  - key: feed:POWER
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Electricity for the make-up compressor K-101 and the circulator K-102 (Q1, Q3; electric
+      drives ASSUMED, D-010): connect to a market for electricity, medium voltage, of the site's
+      country.
+  - key: feed:LPS
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      LP steam 450 kPa(a) to the column reboilers (Q6, Q8; D-009), per kWh of heat delivered:
+      connect to heat from steam in the chemical industry, or the reformer's waste heat system
+      once the front end is designed.
+  # ---- outputs
+  - key: product:PURGE
+    free: true
+    source: >-
+      Loop purge (S11) returned to the plant's own reformer fuel, outside this boundary (D-001): not
+      a co-product and not a waste (owner's decision, D-015). It stays in the dataset with its
+      amount and leaves with no burden and no credit; its fuel credit belongs in the future
+      feed:SYNGAS link.
+  - key: product:CW
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Heat rejected to the site cooling water system (Q2, Q5, Q7, Q9, 298/308 K, D-009): connect
+      to cooling water supply / heat rejection in an evaporative cooling tower, per kWh of heat
+      removed. Q9 is the C-202 condenser only: the product cooler (about 2 MW by a hand estimate,
+      D-014) is not modelled, so this exchange is low by that amount.
+  - key: product:WW
+    treatment:
+      kind: waste
+      route: wastewater treatment
+    missing: "background not mapped yet (preliminary LCI)"
+    source: >-
+      Refining column bottoms water (S19, 100 ppm(wt) methanol, ASSUMED, D-008): connect to
+      treatment of wastewater, per kg or m3, at the site's effluent treatment.
+# Nothing is released to air or water inside the boundary: the off-gases leave to fuel, the water
+# to treatment. Their later combustion and treatment are outside it.
+emission_exclusions:
+  - {id: combustion, method: combustion, reason: "No fired equipment inside the boundary: the purge and fuel gas burn in the reformer and fuel system outside it (D-001), and their carbon leaves with these outputs", source: "D-001"}
+  - {id: fugitive, method: equipment-leaks, reason: "Not estimated at concept stage: no P&ID take-off for a leak count. CO, CH4 and methanol in hydrogen service: to be estimated at basic engineering", source: "D-015"}
+  - {id: storage, method: storage-tank, reason: "No tanks inside the boundary: methanol storage is outside it (D-001)", source: "D-001"}
+  - {id: wastewater, method: effluent, exchange: product:WW, reason: "The bottoms water goes to treatment (product:WW), not to the environment; the treatment is outside the boundary", source: "D-001"}
+operation:
+  hours_per_year: 8400
+  life_years: 25
+  source: "design basis operating_hours_per_year 8400 (D-002); 25 a service life ASSUMED; construction not inventoried at this stage"
+dataset:
+  version: 0.1.0
+  geography: {description: "One generic concept design; no site chosen, no country-specific data"}
+  system_model: cutoff
+  technology_level: current
+  classification: {isic: "2011"}
+  modelling: {principle: attributional}
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library, methanol-1 concept design (agent-drafted, not reviewed)"

@@ -4,7 +4,7 @@
 # exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
 #
 # The preliminary LCI leaves the backgrounds unmapped (lca/lca.yaml `missing:`), and an unmapped
-# exchange of this internal process is a reported gap (ADR 0022). One override is set: the LP
+# exchange of this process is a reported gap (ADR 0022). One override is set: the LP
 # steam is counted as heat delivered (kWh), while the registry slug `steam` (process.yaml
 # chemistry.utilities) maps by mass (kg); without the override the Atlas build refuses the unit.
 # Overrides likely needed when the other backgrounds are connected (DESIGN.md D-011):
@@ -21,3 +21,9 @@
 schema: cheme-as-code/lci-process-mappings/v1
 exchanges:
   "feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a) to the iodine melter M-301, counted as heat delivered (kWh, Q5), D-011"}
+  # Mapping step of 2026-11-01 (ADR 0026): each entry below uses a reference the library already
+  # holds. Notes above that call these exchanges unmapped describe the state before it. What is
+  # still unmapped is a gap (lci/gaps.json), and this process is marked preliminary.
+  "feed:CL2": {dataset: {path: processes/chlor-alkali-1/lca/dataset.yaml, product: "product:CL2"}, source: "the Atlas producer chlor-alkali-1, dry chlorine gas 400 kPa(a), which this feed names"}
+  "feed:H2SO4": {dataset: {path: processes/sulfuric-acid-1/lca/dataset.yaml, product: "product:ACID"}, source: "the Atlas producer sulfuric-acid-1, sulfuric acid 98.5 wt%, which this feed names"}
+  "feed:NAOH": {dataset: {path: processes/chlor-alkali-1/lca/dataset.yaml, product: "product:NAOH"}, source: "the Atlas producer chlor-alkali-1, caustic soda 50 wt-%, per kg of solution as this exchange counts it, which this feed names"}

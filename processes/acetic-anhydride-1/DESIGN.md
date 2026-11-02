@@ -136,7 +136,7 @@ about 25 kW together) are not in the flowsheet's power feed: an LCI cutoff.
   the unburnt fuel components at 0).
 - The block balance of CRK reports extents fitted over all seven reactions of its steps (a
   non-unique fit, e.g. DECARB 0); the step extents are the meaningful ones.
-- No property package covers acetic acid, ketene, anhydride or water (core #315), so
+- No property package covers acetic acid, ketene, anhydride or water, so
   `cheme process energy` finds no balance evaluable and `props --fill`/`simulate` cannot run;
   energy closure is in the script only (gated step).
 - `cheme assess lca --write` writes a total of the characterised foreground only (the direct

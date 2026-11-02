@@ -1,0 +1,98 @@
+# Benchmarks of ethylbenzene and styrene. Schema: schemas/benchmarks.schema.json; rules:
+# docs/benchmarks.md. Ranges are facts from the cited source, in our own form.
+#
+# None of these is an independent check: the datasets take their numbers from the same document.
+# - The ethylbenzene feeds are about 99.5 % stoichiometry, so they would sit near these ranges
+#   whatever the plant data said.
+# - The styrene dataset's ethylbenzene is the midpoint of the same range: transcription only.
+# - Toluene is a residual of that ethylbenzene figure: at EB 1040 kg/t it is -2.4 kg/t, and it
+#   falls below the range's 16 kg/t under EB about 1061 kg/t, so "inside" depends on the midpoint.
+# - The EB energy total shares its source with the dataset's electricity and steam.
+# A styrene energy KPI (the source's total 3200 to 4700 kWh/t, section 5.3.5, p. 283) is not bound:
+# the fuel is in kg, and an expression cannot add kg to kWh (docs/benchmarks.md). By hand, electricity,
+# steam and fuel of the dataset's parameters give 4485 kWh/t gross, also not independent.
+schema: cheme-as-code/benchmarks/v1
+family: styrenics
+
+kpis:
+  eb-specific-benzene:
+    title: Benzene consumption per t of ethylbenzene
+    unit: t/t
+    references:
+      - id: bref-lvoc-eb-benzene
+        range: [0.735, 0.746]
+        basis: unallocated
+        conditions: {technology: "benzene alkylation with ethylene; source plants of Table 5.9: 2007-2011 averages, 2011, 2012", region: EU, year: 2012}
+        source: &bref-eb
+          citation: "Falcke, H. et al. (2017) Best Available Techniques (BAT) Reference Document for the Production of Large Volume Organic Chemicals. JRC Science for Policy Report EUR 28882 EN, doi:10.2760/77304"
+          url: https://bureau-industrial-transformation.jrc.ec.europa.eu/sites/default/files/2019-11/JRC109279_LVOC_Bref.pdf
+          locator: Section 5.3.4.1, p. 280
+          kind: bref
+          accessed: "2026-11-01"
+  eb-specific-ethylene:
+    title: Ethylene consumption per t of ethylbenzene
+    unit: t/t
+    references:
+      - id: bref-lvoc-eb-ethylene
+        range: [0.254, 0.265]
+        basis: unallocated
+        conditions: {technology: "benzene alkylation with ethylene; source plants of Table 5.9: 2007-2011 averages, 2011, 2012", region: EU, year: 2012}
+        source: *bref-eb
+  eb-total-energy:
+    title: Electricity and steam per t of ethylbenzene
+    unit: kWh/t
+    references:
+      - id: bref-lvoc-eb-total-energy
+        range: [760, 2600]
+        basis: unallocated
+        note: The source's total. It does not state exactly how it nets recovery; low-pressure steam production is not in its recovery figure. Not independent of the dataset, whose electricity and steam come from the same list.
+        conditions: {technology: benzene alkylation with ethylene, region: EU}
+        source:
+          citation: "Falcke, H. et al. (2017) Best Available Techniques (BAT) Reference Document for the Production of Large Volume Organic Chemicals. JRC Science for Policy Report EUR 28882 EN, doi:10.2760/77304"
+          url: https://bureau-industrial-transformation.jrc.ec.europa.eu/sites/default/files/2019-11/JRC109279_LVOC_Bref.pdf
+          locator: Section 5.3.5, p. 282
+          kind: bref
+          accessed: "2026-11-01"
+  sm-specific-ethylbenzene:
+    title: Ethylbenzene consumption per t of styrene
+    unit: kg/t
+    references:
+      - id: bref-lvoc-sm-eb
+        range: [1040, 1100]
+        basis: unallocated
+        conditions: {technology: "ethylbenzene dehydrogenation; source plants of Table 5.9: 2011 and a 2007-2011 average", region: EU, year: 2011}
+        source:
+          citation: "Falcke, H. et al. (2017) Best Available Techniques (BAT) Reference Document for the Production of Large Volume Organic Chemicals. JRC Science for Policy Report EUR 28882 EN, doi:10.2760/77304"
+          url: https://bureau-industrial-transformation.jrc.ec.europa.eu/sites/default/files/2019-11/JRC109279_LVOC_Bref.pdf
+          locator: Section 5.3.4.1, p. 281
+          kind: bref
+          accessed: "2026-11-01"
+  sm-specific-toluene:
+    title: Toluene by-product per t of styrene
+    unit: kg/t
+    references:
+      - id: bref-lvoc-sm-toluene
+        range: [16, 94]
+        basis: unallocated
+        conditions: {technology: ethylbenzene dehydrogenation, region: EU}
+        source:
+          citation: "Falcke, H. et al. (2017) Best Available Techniques (BAT) Reference Document for the Production of Large Volume Organic Chemicals. JRC Science for Policy Report EUR 28882 EN, doi:10.2760/77304"
+          url: https://bureau-industrial-transformation.jrc.ec.europa.eu/sites/default/files/2019-11/JRC109279_LVOC_Bref.pdf
+          locator: Section 5.3.6.2, p. 285
+          kind: bref
+          accessed: "2026-11-01"
+
+datasets:
+  - process: ethylbenzene-1
+    dataset: ethylbenzene-zeolite-liquid-phase
+    conditions: {technology: liquid-phase zeolite, feed: pure components, basis: conceptual inventory}
+    kpis:
+      eb-specific-benzene: {expression: feed:benzene / product:ethylbenzene, per: product:ethylbenzene, reference: bref-lvoc-eb-benzene}
+      eb-specific-ethylene: {expression: feed:ethylene / product:ethylbenzene, per: product:ethylbenzene, reference: bref-lvoc-eb-ethylene}
+      eb-total-energy: {expression: (feed:electricity + feed:steam) / product:ethylbenzene, per: product:ethylbenzene, reference: bref-lvoc-eb-total-energy}
+  - process: styrene-1
+    dataset: styrene-eb-dehydrogenation
+    conditions: {technology: adiabatic dehydrogenation, basis: conceptual inventory}
+    kpis:
+      sm-specific-ethylbenzene: {expression: feed:ethylbenzene / product:styrene, per: product:styrene, reference: bref-lvoc-sm-eb}
+      sm-specific-toluene: {expression: product:toluene / product:styrene, per: product:styrene, reference: bref-lvoc-sm-toluene}

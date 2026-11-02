@@ -1,11 +1,12 @@
-Engineering work happens in a process folder: start Claude Code in `processes/<id>/` (e.g. `processes/asu-1/`), where that project's `CLAUDE.md`, `AGENTS.md` and `.claude/` skills apply. At this root: the library tooling (`scripts/`, `schemas/`, `chemicals/`, `lci/`, `tests/`); see README.md, REFERENCE.md and CONTRIBUTING.md.
+Engineering work happens in a process folder: start Claude Code in `processes/<id>/` (e.g. `processes/asu-1/`), where that project's `CLAUDE.md`, `AGENTS.md` and `.claude/` skills apply (the skills are not in git: a person runs `cheme skills update` once in the folder after cloning). At this root: the library tooling (`scripts/`, `schemas/`, `chemicals/`, `lci/`, `tests/`); see README.md, REFERENCE.md and CONTRIBUTING.md.
 
 A change to the library structure, a schema, the LCI pipeline or the publication rules comes with an Architecture Decision Record (`docs/adr/`, see its README) in the same PR; a process's engineering decisions stay in its `DESIGN.md`.
 
 ## Sources and licences (applies to every process folder)
 
-Everything in this library is published: data and designs under CC BY 4.0, code under MIT. Only
-put in what we may publish under those licences.
+Everything in this library is published: data and designs under CC BY 4.0, code, skills and
+scripts under AGPL-3.0-or-later, the LCI data installer (`python/`) under MIT. Only put in what
+we may publish under those licences.
 
 - **Never copy third-party content into the library**: no tables, figures, drawings, diagrams,
   P&IDs, datasheet or manual text, screenshots, or passages of papers, books, standards, vendor
@@ -20,5 +21,5 @@ put in what we may publish under those licences.
   own files by `cheme`, never traced or copied from a publication.
 - **Openly licensed material** (e.g. the DEXPI reference P&ID, CC BY 4.0) may be used only with
   its licence and attribution recorded next to it (a `NOTICE.md`), and only if the licence
-  allows publication under CC BY 4.0 / MIT.
+  allows publication under the licence of the place it goes.
 - When unsure whether something may be published, leave it out and ask.

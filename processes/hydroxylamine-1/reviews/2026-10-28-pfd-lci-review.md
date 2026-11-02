@@ -120,7 +120,7 @@ Independent hand checks against the stoichiometry (reviewer's own arithmetic):
 - The cited patents and the IPCC chapter were not re-read by the reviewer. The values were
   checked for internal consistency and plausibility only, not against the documents.
 - Energy closure in core (not evaluable: no property package for nitrous gas with steam or the
-  aqueous salt solution; core #315, #364). The reviewer's balance is a hand estimate.
+  aqueous salt solution). The reviewer's balance is a hand estimate.
 - The flammability and explosion limits of the burner feed and the cascade loop gas (O-7): these
   need a process-safety specialist with sourced limit data.
 - `cheme diff main --list`: not applicable (no plant items on P&IDs).

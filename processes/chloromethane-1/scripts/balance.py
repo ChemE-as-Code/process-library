@@ -261,6 +261,38 @@ def report():
     print(f"\nreaction heat {q_rxn*kw:.1f} kW; reactor sensible {q_sens*kw:.1f} kW")
     for name, q in duties.items():
         print(f"{name:30s} {q*kw:10.1f} kW  {q*kw/prod_kg:.5f} kWh/kg")
+    # the values process/flowsheet.yaml cites from this script (balance-output contract), by the
+    # flowsheet's stream ids (its S03 is the anhydrous HCl printed as "S02" above)
+    ids = {"S01": "meoh_feed", "S03": "hcl_feed", "S07": "gas", "S08": "aq", "S09": "ovh",
+           "S10": "bot", "S11": "acid", "S12": "spent", "S13": "drygas", "S16": "top",
+           "S17": "prod", "S18": "purge", "S19": "rec_col"}
+    flowsheet = {}
+    for sid, key in ids.items():
+        m = mass(r[key])
+        flowsheet[sid] = {"flow": {"value": total(m), "basis": "mass"},
+                          "composition": {"values": {c: m[c] / total(m) for c in COMP},
+                                          "basis": "mass_fraction"}}
+    flowsheet.update({name.split()[0]: {"duty": q * kw} for name, q in duties.items()})
+    write_balance_output({"design": flowsheet})
+
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
 
 
 if __name__ == "__main__":

@@ -111,9 +111,45 @@ def test_lca_uses_the_stated_total_and_flags_placeholder_factors(tmp_path: Path)
     lca = _json(tmp_path / "out" / "processes" / "fixture-electrolysis.json")["lca"]
     assert lca["totals"] == {"baseline": {"climate-change": 24.0}}
     assert lca["factors_status"] == "placeholder"
-    assert lca["functional_unit"]["label"] == "1 kg H2"
+    assert lca["functional_unit"]["label"] == "1 kg hydrogen"
     assert [c["key"] for c in lca["contributions"]] == ["feed:POWER", "construction:steel"]
     assert {r["key"] for r in lca["inventory"]} == {"feed:WATER", "feed:POWER", "product:H2", "product:O2"}
+
+
+def test_functional_unit_is_labelled_with_the_product_name_and_keeps_the_id(tmp_path: Path) -> None:
+    """Issue #249: the label names the product (registry name), the id stays for tools."""
+    _build(LIBRARY, tmp_path / "out")
+    fu = _json(tmp_path / "out" / "processes" / "fixture-electrolysis.json")["lca"]["functional_unit"]
+    assert fu["product"] == "H2" and fu["chemical"] == "hydrogen" and fu["grade"] is None
+    assert fu["product_name"] == "Hydrogen" and fu["product_title"] == "Hydrogen"
+    summary = next(p for p in _json(tmp_path / "out" / "catalog.json")["processes"] if p["id"] == "fixture-electrolysis")
+    assert summary["lca"]["functional_unit"] == "1 kg hydrogen"
+
+
+def test_a_process_without_a_main_product_is_reported(library: Path, tmp_path: Path) -> None:
+    """Issue #251: the build names processes whose main product the graph would miss."""
+    manifest = library / "processes" / "fixture-ammonia" / "process.yaml"
+    manifest.write_text(manifest.read_text().replace("role: main-product", "role: co-product"))
+    report = _build(library, tmp_path / "out")
+    assert report.errors == []
+    assert any("fixture-ammonia" in w and "no main-product" in w for w in report.warnings)
+    assert not any("fixture-electrolysis" in w and "no main-product" in w for w in report.warnings)
+
+
+def test_functional_unit_label_uses_the_grade_name(library: Path, tmp_path: Path) -> None:
+    manifest = library / "processes" / "fixture-electrolysis" / "process.yaml"
+    manifest.write_text(manifest.read_text().replace("chemical: hydrogen,", "chemical: hydrogen/gaseous-30bar,"))
+    assert _build(library, tmp_path / "out").errors == []
+    fu = _json(tmp_path / "out" / "processes" / "fixture-electrolysis.json")["lca"]["functional_unit"]
+    assert fu["grade"] == "gaseous-30bar" and fu["label"] == "1 kg hydrogen, gaseous, 30 bar"
+
+
+def test_functional_unit_without_a_chemistry_flow_keeps_the_id(library: Path, tmp_path: Path) -> None:
+    manifest = library / "processes" / "fixture-electrolysis" / "process.yaml"
+    manifest.write_text(manifest.read_text().replace(', inventory_key: "product:H2"', ""))
+    assert _build(library, tmp_path / "out").errors == []
+    fu = _json(tmp_path / "out" / "processes" / "fixture-electrolysis.json")["lca"]["functional_unit"]
+    assert fu["label"] == "1 kg H2" and fu["chemical"] is None and fu["product_name"] is None
 
 
 def test_lca_without_a_total_row_sums_the_contributions(library: Path, tmp_path: Path) -> None:
@@ -617,7 +653,7 @@ def test_data_sources_carry_the_attribution(library: Path, tmp_path: Path) -> No
     assert "checksum" not in source and lca["totals"]
 
 
-# -- design cases and regional scenarios (core#172) -----------------------------------------
+# -- design cases and regional scenarios -----------------------------------------
 
 
 def _scenarios(out: Path) -> dict:
@@ -653,7 +689,7 @@ def test_scenarios_reuse_one_design_and_keep_their_states(tmp_path: Path, librar
         "impacts": "characterized-impact",
     }
     assert de["allocation"]["method"] == "mass" and de["functional_unit"]["product"] == "H2"
-    # the study boundary beside every scenario; core's comparability verdict (core#306) and each
+    # the study boundary beside every scenario; core's comparability verdict and each
     # link's scope pass through; a record without a verdict gives null (de-grid: still not
     # comparable through its gaps, `comparable` false)
     assert de["boundary"] == lca["boundary"]
@@ -870,3 +906,60 @@ def test_issue_forms_are_read_as_yaml(tmp_path: Path):
     (forms / "b.yml").write_text('name: B\nlabels: "type:hold"\nbody: []\n')
     (forms / "config.yml").write_text("blank_issues_enabled: true\n")
     assert build_catalog._issue_forms(tmp_path) == {"action": "a.yml", "hold": "b.yml"}
+
+
+ELECTROLYSIS_LCA = Path("processes") / "fixture-electrolysis" / "lca"
+
+
+def _add_unmapped_feed(library: Path) -> None:
+    path = library / ELECTROLYSIS_LCA / "dataset.yaml"
+    data = yaml.safe_load(path.read_text())
+    data["exchanges"].append({"key": "feed:CATALYST", "title": "Iron catalyst", "type": "input", "amount": 0.2, "unit": "kg"})
+    path.write_text(yaml.safe_dump(data, sort_keys=False))
+
+
+def test_a_process_with_an_lci_gap_is_marked_preliminary(library: Path, tmp_path: Path) -> None:
+    _add_unmapped_feed(library)
+    out = tmp_path / "out"
+    assert not _build(library, out).errors
+    entries = {p["id"]: p for p in _json(out / "catalog.json")["processes"]}
+    marked = entries["fixture-electrolysis"]
+    assert (marked["preliminary"], marked["gap_count"], marked["lca"]["preliminary"]) == (True, 1, True)
+    detail = _json(out / "processes" / "fixture-electrolysis.json")
+    assert detail["preliminary"] is True and [g["key"] for g in detail["lci_gaps"]] == ["feed:CATALYST"]
+    assert (entries["fixture-ammonia"]["preliminary"], entries["fixture-ammonia"]["gap_count"]) == (False, 0)
+
+
+def test_a_process_without_gaps_is_not_marked(tmp_path: Path) -> None:
+    out = tmp_path / "out"
+    assert not _build(LIBRARY, out).errors
+    for entry in _json(out / "catalog.json")["processes"]:
+        assert entry["preliminary"] is False and entry["gap_count"] == 0
+
+
+def test_a_public_catalog_fails_when_the_gaps_cannot_be_read(library: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    import build_lci
+
+    def failed(*args, **kwargs):
+        report = build_lci.Report()
+        report.errors.append("broken")
+        return report
+
+    monkeypatch.setattr(build_lci, "build", failed)
+    report = build_catalog.build(library, tmp_path / "out", None, commit="fixture", public=True)
+    assert any("preliminary processes cannot be marked" in e for e in report.errors)
+
+
+def test_a_zero_with_nothing_characterised_is_not_a_footprint(library: Path, tmp_path: Path) -> None:
+    results = library / ELECTROLYSIS_LCA / "results.csv"
+    rows = results.read_text(encoding="utf-8").splitlines()
+    head = rows[0].split(",")
+    row = dict.fromkeys(head, "")
+    first = dict(zip(head, rows[1].split(",")))
+    row.update(scenario="baseline", category=first["category"], category_unit=first["category_unit"], key="total", impact="0")
+    results.write_text("\n".join([rows[0], ",".join(row[h] for h in head)]) + "\n", encoding="utf-8")
+    out = tmp_path / "out"
+    assert not _build(library, out).errors
+    entry = next(p for p in _json(out / "catalog.json")["processes"] if p["id"] == "fixture-electrolysis")
+    assert entry["lca"]["value"] is None and entry["lca"]["not_computed"] is True
+    assert _json(out / "processes" / "fixture-electrolysis.json")["lca"]["not_computed"] == [first["category"]]

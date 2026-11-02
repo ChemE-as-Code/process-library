@@ -5,7 +5,7 @@ interpreter). Reads process/materials.yaml; prints the furnace reaction conversi
 converged recycle balance, the duties and the energy indicators, and writes the stream values to
 build/balance.json (scratch). The values are typed into process/flowsheet.yaml as ASSUMED with
 this script as their source (DESIGN.md D-006): separators, columns and the recycle loop are
-specified splits, not a rigorous simulation (core #315: no qualified property package for the
+specified splits, not a rigorous simulation (no qualified property package for the
 C2+ hydrocarbons).
 
 Every design parameter below names its decision in DESIGN.md; sourced numbers name the source.
@@ -515,10 +515,36 @@ def main():
         lines.append("  composition: {basis: mole_fraction, values: {" + ", ".join(f"{k}: {v:g}" for k, v in ys.items())
                      + "}, provenance: assumed, source: 'scripts/balance.py, D-006'}")
     Path(ROOT / "build").mkdir(exist_ok=True)
+    # the values process/flowsheet.yaml cites from this script (balance-output contract)
+    flowsheet = {sid: {"flow": {"value": o["kg_h"], "basis": "mass"},
+                       "composition": {"values": o["y"], "basis": "mole_fraction"}}
+                 for sid, o in out.items()}
+    for k, v in q.items():
+        flowsheet.setdefault(k, {})["duty"] = v
+    write_balance_output({"design": flowsheet})
     (ROOT / "build" / "states.yaml").write_text("\n".join(lines) + "\n")
     (ROOT / "build" / "balance.json").write_text(json.dumps({"streams": out, "duties_kW": q,
                                                              "conversions": X_FURNACE,
                                                              "fired_kW": fb["fired"] / 3600}, indent=1))
+
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
 
 
 if __name__ == "__main__":

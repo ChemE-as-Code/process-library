@@ -1,7 +1,7 @@
 # Governance of the Atlas LCI database
 
 > **Status: draft for the owner's review** (process-library#50). Section 6, the data contribution
-> policy, is a **DRAFT for TU Delft legal** (website#6) and has no force until legal and the
+> policy, is a **DRAFT for TU Delft legal** (website#144) and has no force until legal and the
 > owner have approved it.
 
 How the Atlas LCI database is versioned, released, reviewed and fed with contributed data. The
@@ -15,7 +15,7 @@ Three things carry a semantic version, `MAJOR.MINOR.PATCH`:
 | what | where it is recorded |
 |---|---|
 | the **database release** | `--version` of `build_lci.py`: the database name `cheme-as-code-atlas-<version>`, `datapackage.json` `version`, `index.json` |
-| each **dataset** | the dataset's own `version` field (core#179); `datapackage.json` `processes[].datasets[].version` and `version_source` |
+| each **dataset** | the dataset's own `version` field; `datapackage.json` `processes[].datasets[].version` and `version_source` |
 | the **methodology** | the header of [system-model.md](system-model.md) and `METHODOLOGY_VERSION` in `build_lci.py` (a test keeps them equal); `datapackage.json` `system_model.methodology.version` and each dataset's `methodology_version` |
 
 What raises which part:
@@ -35,7 +35,7 @@ dataset change is a MAJOR release. Versions below 1.0.0 are screening releases: 
 change in any release, and they are not for decision support.
 
 A dataset that records no version is reported as `0.1.0` with `version_source: initial`. Core's
-dataset contract v2 (`schema: cheme/lci_dataset/v2`, core#179) has the dataset's `uuid`,
+dataset contract v2 (`schema: cheme/lci_dataset/v2`) has the dataset's `uuid`,
 `version`, `methodology_version`, `review`, `valid_until`, `superseded_by` and `system_model`;
 the build reads them and records them per dataset in `datapackage.json`. A dataset that states no
 `methodology_version` is reported under the build's (`methodology_version_source: build`).
@@ -79,8 +79,7 @@ token) drafts a release:
 4. drafts the archive metadata (`scripts/release_metadata.py`): `.zenodo.json` and
    `CITATION.cff` with the version and date, in `release/archive/`;
 5. uploads everything as a workflow artifact (30 days). Its visibility follows the
-   repository's: only repository members can download it while the repository is private, but
-   any signed-in GitHub user can once it is public. The artifact holds the `--public` build
+   repository's: any signed-in GitHub user can download it. The artifact holds the `--public` build
    only.
 
 It does not tag, create a GitHub release, deposit on Zenodo, mint a DOI or deploy, and it never
@@ -95,7 +94,7 @@ When the owner decides to release:
       deposits on a published GitHub release and reads `.zenodo.json`; enabling it is itself a
       release decision). Once the integration is on, the root `.zenodo.json` applies to
       **every** GitHub release of the repository, which would then be deposited as the LCI
-      database under CC BY 4.0, although the repository also holds MIT code: tag LCI releases
+      database under CC BY 4.0, although the repository also holds AGPL and MIT code: tag LCI releases
       only, or deposit by hand;
 - [ ] add the DOI to `CITATION.cff` and the database's README in a follow-up commit.
 
@@ -126,7 +125,7 @@ and the records:
 **Independence:** a reviewer did not contribute to the dataset, its design or its funding, and
 has no commercial interest in its results. The record states the reviewer's affiliation.
 
-**Review record** (in the dataset, core#179): type, reviewer (name, affiliation), date, scope
+**Review record** (in the dataset): type, reviewer (name, affiliation), date, scope
 (the checklist items covered) and the report (a file in `processes/<id>/reviews/` or a link). The
 dataset version reviewed and open findings go in the report. A new MAJOR or MINOR dataset
 version resets the status to `unreviewed` unless the reviewer confirms the change.
@@ -173,7 +172,7 @@ report does not yet list a superseded dataset with its successor (follow-up).
 
 ## 6. Data contribution policy (DRAFT for TU Delft legal)
 
-> **DRAFT.** Not approved. Written for review by TU Delft legal (website#6) and the owner. It is
+> **DRAFT.** Not approved. Written for review by TU Delft legal (website#144) and the owner. It is
 > not legal advice and grants no rights. Numbers marked PROPOSED are open for decision.
 
 **Scope.** Measured or industrial data (operating data, bills of material, emission measurements)

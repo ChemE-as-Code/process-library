@@ -96,8 +96,16 @@ def test_steam_boiler_energy_water_and_carbon_balances() -> None:
     assert a["output:blowdown"] / a["feed:feedwater"] == pytest.approx(p["blowdown"])
     heat = a["product:steam"] * (p["h_g"] - p["h_mu"]) + a["output:blowdown"] * (p["h_f"] - p["h_mu"])
     assert a["feed:natural-gas"] * p["lhv"] * p["eta"] == pytest.approx(heat)
-    assert a["emission:CO2"] / a["feed:natural-gas"] == pytest.approx(44.009 / 16.043)  # CH4 + 2 O2 -> CO2 + 2 H2O
-    assert a["emission:H2O"] / a["feed:natural-gas"] == pytest.approx(2 * 18.015 / 16.043)
+    fuel = a["feed:natural-gas"] / 16.043  # kmol CH4; fuel carbon and hydrogen less what CO, CH4 and PM (as C) carry
+    carbon = a["emission:CO2"] / 44.009 + a["emission:CO"] / 28.01 + a["emission:CH4"] / 16.043 + a["emission:PM"] / 12.011
+    assert carbon == pytest.approx(fuel)
+    assert a["emission:H2O"] / 18.015 / 2 + a["emission:CH4"] / 16.043 == pytest.approx(fuel)
+    assert 0.998 < a["emission:CO2"] / 44.009 / fuel < 1  # AP-42 1.4.3: nearly all (99.9 %) of the fuel carbon to CO2
+    # AP-42 Section 1.4 factors by fuel energy: lb per 10^6 scf at 1020 Btu/scf HHV, per kg of fuel
+    assert (p["hhv"], p["btu_kj"], p["lb_kg"], p["hv_ap42"], p["eta"]) == (55490.0, 1.05505585, 0.45359237, 1020.0, 0.88766)
+    per_ef = 55490.0 * 0.45359237 / (1020 * 1e6 * 1.05505585)
+    for key, factor in (("NOx", 100), ("CO", 84), ("CH4", 2.3), ("N2O", 2.2), ("PM", 7.6)):
+        assert a[f"emission:{key}"] / a["feed:natural-gas"] == pytest.approx(per_ef * factor), key
     assert 2.6 < heat / 1000 / a["product:steam"] < 2.8  # MJ/kg: saturated steam at 11 bar(a) from 15 degC water
     product = next(e for e in data["exchanges"] if e["key"] == "product:steam")
     assert product["carrier"]["kind"] == "steam" and product["carrier"]["pressure"] == 11.0
@@ -212,9 +220,9 @@ def _exchange(activity: dict, key: str) -> dict:
 
 def test_the_library_builds_strict_with_the_utilities(tmp_path: Path) -> None:
     report = build_lci.build(KIT, tmp_path / "out", "0.1.0", commit="test")
-    assert (report.errors, report.warnings) == ([], [])
+    assert (report.errors, report.strict_failures) == ([], [])
     variant = build_lci.build(KIT, tmp_path / "substitution", "0.1.0", commit="test", system_model="substitution")
-    assert (variant.errors, variant.warnings) == ([], [])
+    assert (variant.errors, variant.strict_failures) == ([], [])
     package = json.loads((tmp_path / "out" / "lci" / "datapackage.json").read_text())
     built = {p["id"] for p in package["processes"]}
     assert set(UTILITIES) <= built

@@ -123,7 +123,7 @@ sheet but is readable. Not read in tiles (generated sheet, no drawing findings t
 ## Not checked
 - The patent US 4 725 425, the AGS page and the Wikipedia pages were not re-read by the reviewer
   (only US 4 719 096 was).
-- Halite saturation, brine cp and water activity: no property route, core#364. Bromine/chlorine
+- Halite saturation, brine cp and water activity: no property route. Bromine/chlorine
   speciation and stripping performance: no model.
 - A full brine analysis (O-1). The real chlorine sinks (O-3). Free halogen in the tail brine and
   the vent (O-4).

@@ -22,7 +22,7 @@ description: |
 
   All values are concept estimates. Flashes, enthalpies and duties come from an independent
   balance script (ideal-gas enthalpies plus IAPWS-IF97 water and steam) that core cannot yet
-  qualify for these mixtures (core #315); the reactor outlets and the reactor and furnace
+  qualify for these mixtures; the reactor outlets and the reactor and furnace
   duties are recalculated by cheme and agree. See DESIGN.md of the engineering files.
 families: [hydrogen]
 keywords: [hydrogen, steam methane reforming, SMR, natural gas, water-gas shift, high-temperature shift, pressure swing adsorption, PSA, tail gas, steam export, synthesis gas]
@@ -42,10 +42,11 @@ validation:
     (equilibrium reactors) and reproduce the independent balance script
     (scripts/h2_balance.py); cheme process reactors gives a reformer duty of 102.0 MW and a
     furnace radiant duty of -102.0 MW on the same ideal-gas basis, and an adiabatic shift
-    (0.03 kW). Stream enthalpies and the block energy balances are not evaluable in core (no
-    property package covers water-bearing synthesis gas, steam and flue gas, core #315); the
-    separator, PSA and steam drum outlets and the exchanger duties are specified values from
-    the script. The natural gas composition, capacity, PSA recovery and all conditions are
+    (0.03 kW). Since 2026-11-01 (DESIGN.md D-016) the process side is simulated in DWSIM
+    (cheme process simulate, Peng-Robinson, converged; process/simulation-run.json) and its
+    stream values and duties are the simulated ones; Peng-Robinson is not qualified for this
+    water-bearing mixture and its use is a substitution not yet accepted. The furnace and steam
+    system are excluded from the simulation and keep the concept balance's values. The natural gas composition, capacity, PSA recovery and all conditions are
     ASSUMED, not sourced, so cheme maturity reaches no level yet (sourced boundary and
     sourced model basis fail; the concept claim is the manifest's lowest level). Not reviewed. A preliminary gate-to-gate LCI (lca/) is written with
     its backgrounds unmapped (gaps). The chemicals registry entries used here are listed in
@@ -77,7 +78,7 @@ maintainers:
 repository:
   url: https://github.com/ChemE-as-Code/process-library
   path: processes/hydrogen-1
-  access: private
+  access: public
 publication:
-  status: internal
+  status: public
   license: CC-BY-4.0

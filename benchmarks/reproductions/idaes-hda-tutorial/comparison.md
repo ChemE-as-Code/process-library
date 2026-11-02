@@ -4,10 +4,21 @@
 - **Tolerances:** `tolerances.yaml`, frozen in commit 1979740 before this run.
 - **Run:** `case/`, `cheme process simulate --fill`, cheme-as-code 1.3.0 from core#104 worktree
   commit 00f519a, idaes-pse 2.13.0, IPOPT 3.13.2, property package `IDAES ideal VLE`, 2026-11-01;
-  converged in 66 IPOPT iterations (`case/process/simulation-run.json`; its `dirty` list is
-  because the run preceded the case commit, the inputs are unchanged since).
+  converged in 66 IPOPT iterations (`case/process/simulation-run.json`). Its `dirty` list is
+  there because the run preceded the case commit. The specification inputs are unchanged since
+  then, but the recorded `flowsheet.yaml` fingerprint is the pre-fill one: `--fill` rewrote that
+  file with the solved stream values afterwards, so the committed `flowsheet.yaml` no longer
+  matches it.
+- **Order:** the repository holds one run record, `case/process/simulation-run.json`. It is pinned
+  to commit 1979740 (`inputs.commit`), and its `run_at` (2026-11-01T10:31:38Z) is 70 s after
+  that commit (10:30:28Z). No earlier run is recorded in the repository. The record cannot show
+  that no uncommitted run happened before the freeze; the claim rests on this order.
 
-## Result: FAIL under the frozen rule (3 of 5 checks pass)
+## Result: FAIL under the frozen rule (3 of 5 checks pass; 1 of 3 against reference results)
+
+Of the five checks, two are not comparisons with reference results: the F102 vapour pressure is
+a specification that both models fix, and the overall mass closure is an internal check of the
+cheme run. Against reference results (purity, F102 duty, operating cost), 1 of 3 passes.
 
 | Check | Reference | cheme (IDAES backend) | Deviation | Tolerance | Status |
 | --- | --- | --- | --- | --- | --- |
@@ -57,6 +68,13 @@ cheme values with no reported counterpart (not compared): R1 outlet 671.06 K, re
   no optimisation.
 - Pinned library CI (core v1.2.1) rejects `simulator: idaes` (`cheme.process-sim-schema`), but
   CI validates only `processes/*/plant.yaml`, so this folder does not break CI.
+
+## Other simulators
+
+A DWSIM run of the hda-1 design now exists (library PR #312). It is not comparable with this
+case: it differs in scale, pressures, property basis and separation train, so it cannot serve
+as a third leg here. The real third leg would be a DWSIM run of the tutorial case itself, with
+the specification in `source.yaml`.
 
 Tolerances were not changed after the run. A follow-up that adds dissolved light gases to the
 backend should re-run against the same `tolerances.yaml`.
