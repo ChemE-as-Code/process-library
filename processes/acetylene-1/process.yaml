@@ -44,24 +44,27 @@ validation:
     by cheme (conversion model); the burner's conversions are fixed by a published cracked-gas
     composition and soot ratio, and the resulting O2/natural-gas ratio (0.602) and adiabatic
     flame temperature (1970 K, from scripts/balance.py) agree with US5824834A (0.58-0.75) and
-    US8975460B2 (about 1700 C). The quench-water purge (2.72 kg/kg acetylene) matches the process
-    water of US5824834A comparative example 2 (2.67 m3/t). Core cannot evaluate the burner energy
-    balance (no data for soot; C4H2/C6H6 fitted to 1000 K only) nor the quench, the circuit water
-    or the NMP section (core #315); their values are specified from scripts/balance.py. Core's
-    fired-heater duty (25.8 MW to a 433 K stack) is consistent with the 23.0 MW used plus 10 %
-    casing loss. Capacity, natural-gas and oxygen purity, NMP splits and loss, compression
+    US8975460B2 (about 1700 C). The quench-water purge (2.72 kg/kg acetylene) matches the
+    process water of US5824834A comparative example 2 (2.67 m3/t). Core cannot evaluate the
+    burner energy balance (no data for soot; C4H2/C6H6 fitted to 1000 K only) nor the quench,
+    the circuit water or the NMP section; their values are specified from scripts/balance.py.
+    Core's fired-heater duty (25.8 MW to a 433 K stack) is consistent with the 23.0 MW used plus
+    10 % casing loss. Capacity, natural-gas and oxygen purity, NMP splits and loss, compression
     pressure and utility allowances are assumed. Preliminary gate-to-gate LCI with every
-    background unmapped (gaps). Not reviewed.
-    The chemicals registry has no acetylene, natural-gas, synthesis-gas, carbon-monoxide,
-    N-methyl-2-pyrrolidone or carbon-black entry yet, so the main product, the co-product and
-    those feeds are not listed under chemistry (open library item, DESIGN.md D-014).
+    background unmapped (gaps). Not reviewed. Main products and feeds are listed under chemistry
+    with their chemicals registry entries (issue #251).
 chemistry:
-  # acetylene, natural gas, synthesis gas, NMP and soot have no registry entry yet (D-014)
+  # natural gas is taken as methane; soot (carbon black) has no registry entry yet (D-014)
   inputs:
-    - {chemical: oxygen, role: feedstock, inventory_key: "feed:OXY", note: "99.5 mol% O2 by pipeline from an air separation unit (e.g. asu-1), 5.58 kg/kg acetylene (unallocated). The main feedstock natural gas (feed:NG, 4.73 kg/kg) and the support fuel (feed:FUELNG, 32 g/kg) and NMP make-up (feed:NMP, 2.0 g/kg) have no registry entry yet"}
+    - {chemical: methane, role: feedstock, note: "feed:NG: pipeline natural gas to the partial oxidation, taken as methane, 4.73 kg/kg acetylene (unallocated)"}
+    - {chemical: methane, role: feedstock, note: "feed:FUELNG: natural-gas support fuel of the fired preheater, taken as methane"}
+    - {chemical: n-methyl-2-pyrrolidone, role: feedstock, note: "feed:NMP: NMP solvent make-up, 2.0 g/kg"}
+    - {chemical: oxygen, role: feedstock, inventory_key: "feed:OXY", note: "99.5 mol% O2 by pipeline from an air separation unit (e.g. asu-1), 5.58 kg/kg acetylene (unallocated)"}
     - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Combustion air of the fired preheater, 5.32 kg/kg acetylene"}
   outputs:
-    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "1.19 kg/kg acetylene (unallocated), fossil, from burning the plant's off-gas and support fuel in the fired preheater. The main product acetylene (product:ACETYLENE) and the co-product synthesis gas (product:SYNGAS, 5.76 kg/kg) have no registry entry yet"}
+    - {chemical: acetylene, role: main-product, inventory_key: "product:ACETYLENE", note: "Acetylene gas (99.55 mol%, 1.2 bar(a)) to the consumers"}
+    - {chemical: synthesis-gas, role: co-product, inventory_key: "product:SYNGAS", note: "Synthesis gas (H2/CO) to the consumers, 5.76 kg/kg acetylene"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "1.19 kg/kg acetylene (unallocated), fossil, from burning the plant's off-gas and support fuel in the fired preheater"}
     - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Quench-water purge, 2.70 kg/kg acetylene, after vacuum degassing; the soot sludge (product:SLUDGE, 0.46 kg/kg, 10 wt% carbon) and the NMP residue (product:RESIDUE) go to incineration"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "1.52 kWh/kg acetylene (unallocated): cracked-gas compressor 8.8 MW, pumps, ESP, vacuum pump, air fan"}
@@ -84,7 +87,7 @@ maintainers:
 repository:
   url: https://github.com/ChemE-as-Code/process-library
   path: processes/acetylene-1
-  access: private
+  access: public
 publication:
-  status: internal
+  status: public
   license: CC-BY-4.0

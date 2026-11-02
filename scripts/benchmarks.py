@@ -336,7 +336,7 @@ def unused_bindings(registry: Registry, datasets: set[tuple[str, str]]) -> list[
 
 
 def report(rows: list[dict], mode: str, library: dict) -> dict:
-    """``benchmarks.json``, the stored report of one build's benchmark comparison (#85; both
+    """``benchmarks.json``, the stored report of one build's benchmark comparison (#303; both
     builders write it): every KPI result as a row with its ``process`` and ``dataset`` (sorted),
     and ``summary``, the counts by status in total and per process. The rows are what the build
     publishes: a public build's report holds the public processes only."""

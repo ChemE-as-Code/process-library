@@ -46,24 +46,22 @@ validation:
     overall energy closure of 0.01 % (scripts/thf_balance.py). cheme maturity reaches no level:
     the feeds and the capacity are assumed (no sourced or owner-given feed), the reactor is a
     conversion model with an assumed selectivity, and the three columns are specified values
-    from an independent NRTL script that core cannot qualify for THF/water (core #315: polar
+    from an independent NRTL script that core cannot qualify for THF/water (polar
     activity-coefficient benchmark, liquid-phase reactor energy). The LCI is a gate-to-gate
     foreground inventory with every background open (8 gaps): no impact result, and no LCA
-    result passed to the catalog (lca.source none). Not reviewed. The chemicals registry has no
-    1,4-butanediol, tetrahydrofuran or p-toluenesulfonic acid entry yet, so the feed and the
-    product are not listed under chemistry; the consumed steam stands in as the one input the
-    schema requires (open library item, DESIGN.md).
-# The utilities are listed without inventory_key on purpose: their backgrounds stay unmapped
-# gaps at this stage (DESIGN.md D-011); the main feed (BDO, feed:BDOF, 1.267 kg per kg THF), the
-# catalyst (feed:PTSAF) and the product (product:THFP) have no registry slug yet. The schema
-# needs at least one input, so the consumed steam (a registry slug, role utility) is listed
-# under inputs instead of utilities until the BDO entry exists (DESIGN.md, missing registry entries).
+    result passed to the catalog (lca.source none). Not reviewed. Main products and feeds are
+    listed under chemistry with their chemicals registry entries (issue #251).
+# The utilities and feeds are listed without inventory_key on purpose: their backgrounds stay
+# unmapped gaps at this stage (DESIGN.md D-011).
 chemistry:
   inputs:
-    - {chemical: steam, role: utility, note: "MP steam 1000 kPa(a), R-101 and HP column reboiler (feed:MPS); LP steam 450 kPa(a), LP column trim reboiler (feed:LPS). Listed here because the main feed, 1,4-butanediol (feed:BDOF, 1.267 kg per kg THF), and the catalyst p-toluenesulfonic acid (feed:PTSAF) have no registry entry yet"}
+    - {chemical: butane-1-4-diol, role: feedstock, note: "feed:BDOF, 1,4-butanediol (boundary feed, D-003), 1.267 kg/kg THF"}
+    - {chemical: p-toluenesulfonic-acid, role: feedstock, note: "feed:PTSAF, p-toluenesulfonic acid catalyst make-up"}
   outputs:
-    - {chemical: wastewater, role: waste, note: "Process water with about 80 ppm(wt) THF to treatment (product:WW, 0.249 kg per kg THF). The main product THF (product:THFP) has no registry entry yet"}
+    - {chemical: tetrahydrofuran, role: main-product, inventory_key: "product:THFP", note: "THF to storage"}
+    - {chemical: wastewater, role: waste, note: "Process water with about 80 ppm(wt) THF to treatment (product:WW, 0.249 kg per kg THF)"}
   utilities:
+    - {chemical: steam, role: utility, note: "MP steam 1000 kPa(a), R-101 and HP column reboiler (feed:MPS); LP steam 450 kPa(a), LP column trim reboiler (feed:LPS)"}
     - {chemical: electricity, role: utility, note: "Pumps P-101 and P-201 (feed:POWER)"}
     - {chemical: cooling-water, role: utility, note: "25/35 C (ASSUMED), product:CW"}
 basis:
@@ -84,7 +82,7 @@ maintainers:
 repository:
   url: https://github.com/ChemE-as-Code/process-library
   path: processes/thf-1
-  access: private
+  access: public
 publication:
-  status: internal
+  status: public
   license: CC-BY-4.0

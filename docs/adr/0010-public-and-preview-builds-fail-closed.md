@@ -43,5 +43,5 @@ omission.
 - `28bb7b9` "Public build mode: published processes only, placeholder footprints withheld",
   [#20](https://github.com/ChemE-as-Code/process-library/pull/20).
 - `5f96993` "publish LCA values by core's policy, not the example flag" and `99224ec` (stale run
-  manifests withheld), [#35](https://github.com/ChemE-as-Code/process-library/pull/35) (core#138).
+  manifests withheld), [#35](https://github.com/ChemE-as-Code/process-library/pull/35).
 - CONTRIBUTING.md "Publishing a process", `scripts/publication.py`.

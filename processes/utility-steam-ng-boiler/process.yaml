@@ -1,12 +1,12 @@
 # Process Atlas manifest of a library utility (process-library#45). Schema:
 # schemas/process.schema.json. A manifest-only process: its LCI dataset is lca/datasets/*.yaml,
-# written from parameters with sources or ASSUMED (see README.md). Tier 1 form (core#182), so
+# written from parameters with sources or ASSUMED (see README.md). Tier 1 form, so
 # maturity stays at concept (core's cheme.lci-tier-maturity).
 schema: cheme-as-code/process/v1
 id: utility-steam-ng-boiler
 title: "Steam generation, natural-gas boiler, saturated 11 bar(a)"
 summary: >-
-  Utility dataset: saturated steam at 11 bar(a) from a natural-gas fired boiler, per tonne of steam, from the boiler's energy balance and the combustion stoichiometry of methane; design parameters ASSUMED.
+  Utility dataset: saturated steam at 11 bar(a) from a natural-gas fired boiler, per tonne of steam, from the boiler's energy balance and the combustion stoichiometry of methane, with combustion emissions from EPA AP-42 Section 1.4 for a small uncontrolled boiler; boiler class and design parameters ASSUMED.
 families: [steam-and-heat]
 keywords: [utility, steam, MP steam, boiler, natural gas, combustion]
 facets: {feedstock_basis: [fossil, water], unit_operations: [combustion, heat-exchange], region: generic}
@@ -16,7 +16,9 @@ chemistry:
   inputs:
     - {chemical: water, role: feedstock, inventory_key: "feed:feedwater", note: "demineralised make-up; no condensate return"}
     - {chemical: methane, role: feedstock, inventory_key: "feed:natural-gas", note: "natural gas, taken as pure methane (ASSUMED)"}
-    - {chemical: air, role: feedstock, note: "combustion air, free; its O2 is feed:O2"}
+    - {chemical: air, role: feedstock, note: "combustion air, free; its O2 is feed:O2, the N2 fixed as NOx and N2O is feed:N2"}
+  # emission:NOx, CO, N2O and PM are not listed: the registry has no slug for them. emission:CH4 stays
+  # with them until they can be listed together. See the dataset's exchanges.
   outputs:
     - {chemical: steam/mp-11bara, role: main-product, inventory_key: "product:steam"}
     - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2"}
@@ -24,9 +26,17 @@ chemistry:
     - {chemical: wastewater, role: waste, inventory_key: "output:blowdown"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:electricity"}
-basis: {capacity: "per unit of the utility delivered (the dataset's basis); no plant size"}
+basis: {capacity: "per unit of the utility delivered (the dataset's basis); no plant size, but its emission factors are of a boiler below 100 MMBtu/h heat input, about 30.7 t/h of steam"}
+publication: {status: public, license: CC-BY-4.0}
 references:
   - {title: "Wagner, W. and Pruss, A. (2002) The IAPWS formulation 1995 for the thermodynamic properties of ordinary water substance for general and scientific use, J. Phys. Chem. Ref. Data 31:387"}
   - {title: "Bell, I. H., Wronski, J., Quoilin, S. and Lemort, V. (2014) Pure and pseudo-pure fluid thermophysical property evaluation and the open-source thermophysical property library CoolProp, Ind. Eng. Chem. Res. 53:2498"}
   - {title: "Prohaska, T. et al. (2022) Standard atomic weights of the elements 2021 (IUPAC Technical Report), Pure Appl. Chem. 94:573"}
-repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/utility-steam-ng-boiler, access: private}
+  - {title: "U.S. EPA (2026) AP-42, Compilation of Air Emissions Factors, Section 1.4 Natural Gas Combustion, April 2026, Tables 1.4-1 and 1.4-2", url: "https://gaftp.epa.gov/ap42/ch01/s04/final/c1s4_2026.pdf"}
+  - {title: "U.S. EPA (2026) AP-42, Section 1.4 Natural Gas Combustion, October 2026 (later edition; the factors used here are unchanged)", url: "https://gaftp.epa.gov/ap42/ch01/s04/final/c1s4_10_2026.pdf"}
+  - {title: "U.S. EPA (1998) AP-42, Fifth Edition, Section 1.4 Natural Gas Combustion, July 1998 (the factors used here are the same)", url: "https://gaftp.epa.gov/ap42/ch01/s04/final/c01s04_jul1998.pdf"}
+  - {title: "U.S. DOE Advanced Manufacturing Office (2012) Steam Tip Sheet #3, Use Feedwater Economizers for Waste Heat Recovery, DOE/GO-102012-3412", url: "https://www.energy.gov/sites/prod/files/2014/05/f16/steam3_recovery.pdf"}
+  - {title: "U.S. DOE Advanced Manufacturing Office (2012) Steam Tip Sheet #9, Minimize Boiler Blowdown, DOE/GO-102012-3406", url: "https://www.energy.gov/sites/prod/files/2014/05/f16/steam9_blowdown.pdf"}
+  - {title: "U.S. DOE Advanced Manufacturing Office (2012) Steam Tip Sheet #23, Install an Automatic Blowdown-Control System, DOE/GO-102012-3402", url: "https://www.energy.gov/sites/prod/files/2014/05/f16/steam23_control_system.pdf"}
+  - {title: "U.S. DOE Advanced Manufacturing Office (2012) Steam Tip Sheet #26A, Consider Installing a Condensing Economizer, DOE/GO-102012-3393", url: "https://www.energy.gov/sites/prod/files/2014/05/f16/steam26a_condensing.pdf"}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/utility-steam-ng-boiler, access: public}

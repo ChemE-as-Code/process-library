@@ -81,7 +81,7 @@ Numbering R-01 … R-08 follows the order below (the id column uses the library 
 Not raised as findings (known and recorded by the author): the S11 composition rounding
 warning and the `Pumping` step workaround (O-7, core); the template's D-023 reference in
 `checks/checks.yaml:76` (info, not from this run); the missing registry entries for urea and
-ammonia (O-6); the gated predictive HP loop and energy closure (D-008, core #315/#364).
+ammonia (O-6); the gated predictive HP loop and energy closure (D-008).
 
 ## Previous findings
 

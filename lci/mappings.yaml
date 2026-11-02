@@ -20,7 +20,7 @@
 # Lookup order for one exchange of a dataset (build_lci.py):
 #   1. a curated override: the process's lca/mappings.yaml `exchanges:` ("<key>"), else
 #      `exchanges:` here ("<process-id>/<key>" or "<key>"; none today). One exchange in both
-#      files is an error;
+#      files is an error. It `use`s an entry or names an Atlas `dataset` (path, product);
 #   2. the exchange's own `link` when it names a Brightway activity, a biosphere flow or another
 #      Atlas dataset (core's lca_dataset `link.activity` / `link.biosphere` / `link.dataset`);
 #   3. the chemical slug of the exchange (process.yaml `inventory_key`, or the key's id when it
@@ -31,9 +31,9 @@
 # elementary-flow crosswalk; an entry of `biosphere:` keyed by that UUID may correct the name and
 # categories), `link.biosphere`, the component in `biosphere:` (<component>/<origin>, else
 # <component>). The installer links by UUID first and falls back to name, categories and unit.
-# Free emissions must be listed in `pass_through:` with the decision. Anything not found fails the
-# build for a public process; for a process that is not public it is a gap, exported unlinked and
-# listed in lci/gaps.json (ADR 0022). An id
+# Free emissions must be listed in `pass_through:` with the decision. An exchange with no mapping
+# or biosphere identity is a gap, in a public process too: exported unlinked, listed in
+# lci/gaps.json, and its process is marked preliminary (ADR 0022, ADR 0026). An id
 # found in `cutoff_exclusions:` instead of `technosphere:` is left out of a cut-off build with its
 # decision (docs/system-model.md).
 schema: cheme-as-code/lci-mappings/v1
@@ -76,9 +76,9 @@ technosphere:
   # consumer's input of it, or its output of a utility service (heat to cooling water,
   # wastewater, gas to flare), links to the Atlas utility by default (prefer_atlas) and to the
   # entry here when the installer is told prefer_atlas=False. Provider profiles that select a
-  # background per study (core#168) do not exist yet; until then this is the only alternative.
+  # background per study do not exist yet; until then this is the only alternative.
   # Utilities without an entry here (instrument-air, chilled-water, flare-gas) have no curated
-  # background name yet: a consumer of one fails the build until it is added (TODO).
+  # background name yet: a consumer of one is a gap until it is added (TODO).
   steam:
     proxy: steam-mp
     source: >-
@@ -171,6 +171,9 @@ technosphere:
     source: >-
       Hydrochloric acid counted as HCl without water, the background's basis; used by the
       hydrochloric-acid-32 proxy (a dataset counting the solution) and by a dataset counting HCl.
+  hydrochloric-acid-30:
+    proxy: hydrochloric-acid-30
+    source: Hydrochloric acid 30 wt-% counted by mass of the solution (acetaldehyde-1 feed:HCLA).
   hydrochloric-acid-32:
     proxy: hydrochloric-acid-32
     source: Hydrochloric acid 32 wt-% counted by mass of the solution (chlor-alkali-1 feed:HCL).
@@ -380,6 +383,16 @@ proxies:
     source: >-
       Converts the solution's mass to the background's HCl without water; the dilution water is
       not counted (screening).
+  hydrochloric-acid-30:
+    name: "hydrochloric acid, 30 wt-% in water, per kg of solution (Atlas unit proxy)"
+    reference_product: "hydrochloric acid, 30 wt-%"
+    unit: kilogram
+    location: GLO
+    inputs:
+      - {use: hydrochloric-acid, amount: 0.30, source: "HCl mass fraction of the solution (the 30 wt% acetaldehyde-1 feed:HCLA states)"}
+    source: >-
+      Converts the solution's mass to the background's HCl without water; the dilution water is
+      not counted (screening).
   pt-rh-gauze:
     name: "platinum-rhodium gauze 90/10, per kg (Atlas screening proxy)"
     reference_product: "platinum-rhodium gauze"
@@ -548,6 +561,66 @@ biosphere:
       Sodium sulfate dissolved in an effluent to fresh surface water (chlor-alkali-1 product:WW),
       as NaCl: 1:1 by mass as dissolved solids, the ions (Sodium I, Sulfate) not split.
 
+  # Mapping step of 2026-11-01 (ADR 0026): emissions with an exact substance in the shipped list, by
+  # the component ids the datasets use. No compartment is finer than air, unspecified.
+  Br2:
+    flow: {name: Bromine, categories: [air], uuid: c24f5894-f95e-4661-ba76-130397348894}
+    source: Bromine slip to air (name and UUID from biosphere3 as shipped with bw2io 0.9.17, ecoinvent elementary flows 3.9, air, unspecified).
+  C2H2:
+    flow: {name: Ethyne, categories: [air], uuid: 42a2f3e7-5393-4a69-9b0b-f70a9139ee24}
+    source: Unburnt acetylene (name and UUID from biosphere3 as shipped with bw2io 0.9.17, ecoinvent elementary flows 3.9, air, unspecified).
+  C2H4:
+    flow: {name: Ethylene, categories: [air], uuid: 90f722bf-cb9b-571a-88fc-34286632bdc4}
+    source: Ethylene slip or unburnt ethylene (name and UUID from biosphere3 as shipped with bw2io 0.9.17, ecoinvent elementary flows 3.9, air, unspecified).
+  C6H6:
+    flow: {name: Benzene, categories: [air], uuid: 28999907-a8a7-45b3-857e-836495ca2aa0}
+    source: Benzene, or unburnt aromatics a dataset counts as benzene (name and UUID from biosphere3 as shipped with bw2io 0.9.17, ecoinvent elementary flows 3.9, air, unspecified).
+  CH3OH:
+    flow: {name: Methanol, categories: [air], uuid: 0ebdb68a-f50d-4b0c-ad4b-3a1104d8b454}
+    source: Methanol slip (name and UUID from biosphere3 as shipped with bw2io 0.9.17, ecoinvent elementary flows 3.9, air, unspecified).
+  MEOH:
+    flow: {name: Methanol, categories: [air], uuid: 0ebdb68a-f50d-4b0c-ad4b-3a1104d8b454}
+    source: Methanol slip (name and UUID from biosphere3 as shipped with bw2io 0.9.17, ecoinvent elementary flows 3.9, air, unspecified).
+  CL2:
+    flow: {name: Chlorine, categories: [air], uuid: 39d1390a-ded6-41cb-a536-d47510bf2fbc}
+    source: Chlorine slip of a scrubber (name and UUID from biosphere3 as shipped with bw2io 0.9.17, ecoinvent elementary flows 3.9, air, unspecified).
+  COCL2:
+    flow: {name: Phosgene, categories: [air], uuid: 53b9f77b-7336-5c15-9e01-62a25d3e3d75}
+    source: Phosgene slip (name and UUID from biosphere3 as shipped with bw2io 0.9.17, ecoinvent elementary flows 3.9, air, unspecified).
+  CUM:
+    flow: {name: Cumene, categories: [air], uuid: a192f5ac-fb5d-4e14-ac11-3c38283da9d0}
+    source: Cumene, or residual VOC a dataset counts as cumene (name and UUID from biosphere3 as shipped with bw2io 0.9.17, ecoinvent elementary flows 3.9, air, unspecified).
+  DME:
+    flow: {name: Dimethyl ether, categories: [air], uuid: acfeda73-2eee-4ca2-ad41-e8c564e75cec}
+    source: Dimethyl ether slip (name and UUID from biosphere3 as shipped with bw2io 0.9.17, ecoinvent elementary flows 3.9, air, unspecified).
+  HCHO:
+    flow: {name: Formaldehyde, categories: [air], uuid: a861cfae-a310-4e9d-b9eb-5d555c9a684c}
+    source: Formaldehyde slip (name and UUID from biosphere3 as shipped with bw2io 0.9.17, ecoinvent elementary flows 3.9, air, unspecified).
+  HCL:
+    flow: {name: Hydrochloric acid, categories: [air], uuid: c9a8073a-8a19-5b9b-a120-7d549563b67b}
+    source: Hydrogen chloride to air (CAS 7647-01-0) (name and UUID from biosphere3 as shipped with bw2io 0.9.17, ecoinvent elementary flows 3.9, air, unspecified).
+  HCl:
+    flow: {name: Hydrochloric acid, categories: [air], uuid: c9a8073a-8a19-5b9b-a120-7d549563b67b}
+    source: Hydrogen chloride to air (CAS 7647-01-0); a free, declared zero HCl stays in pass_through (name and UUID from biosphere3 as shipped with bw2io 0.9.17, ecoinvent elementary flows 3.9, air, unspecified).
+  I2:
+    flow: {name: Iodine, categories: [air], uuid: 446d8fe4-fde6-4640-bc23-f04a663bbc04}
+    source: Iodine vapour (name and UUID from biosphere3 as shipped with bw2io 0.9.17, ecoinvent elementary flows 3.9, air, unspecified).
+  MEK:
+    flow: {name: Methyl ethyl ketone, categories: [air], uuid: d3709c7e-7c61-45a4-92e4-f7cf95ebe3a2}
+    source: MEK in an off-gas (name and UUID from biosphere3 as shipped with bw2io 0.9.17, ecoinvent elementary flows 3.9, air, unspecified).
+  MF:
+    flow: {name: Methyl formate, categories: [air], uuid: 4877b7b5-0ac1-47f7-96bd-677179544c9f}
+    source: Methyl formate slip (name and UUID from biosphere3 as shipped with bw2io 0.9.17, ecoinvent elementary flows 3.9, air, unspecified).
+  NMP:
+    flow: {name: N-methyl-2-pyrrolidone, categories: [air], uuid: bc97db5d-196f-4413-8d9b-ed5c8a0e0ce9}
+    source: Unburnt NMP (name and UUID from biosphere3 as shipped with bw2io 0.9.17, ecoinvent elementary flows 3.9, air, unspecified).
+  NMVOC:
+    flow: {name: "NMVOC, non-methane volatile organic compounds", categories: [air], uuid: d3260d0e-8203-4cbb-a45a-6a13131a5108}
+    source: NMVOC as estimated, no single substance (name and UUID from biosphere3 as shipped with bw2io 0.9.17, ecoinvent elementary flows 3.9, air, unspecified).
+  PCL3:
+    flow: {name: Phosphorus trichloride, categories: [air], uuid: dcedc211-8daa-49ac-82a9-ce60a22d9b43}
+    source: PCl3 slip of a scrubber (name and UUID from biosphere3 as shipped with bw2io 0.9.17, ecoinvent elementary flows 3.9, air, unspecified).
+
 # Free emissions that are atmospheric pass-through: components taken in with the ambient air and
 # returned to the atmosphere unchanged. DECISION: they are NOT exported as biosphere exchanges,
 # and the air intake (feed:AIR, free) is not exported as a resource either. Exporting one side
@@ -608,3 +681,5 @@ pass_through:
     decision: "Declared zero (chlor-alkali-1: solids leave with the filter cake S10, a waste to landfill); not exported."
   S:
     decision: "Declared zero (sulfuric-acid-1: the sulfur burns completely; the gas template lists S in the tail gas at 0); not exported. A release is an emission with its flow, not free."
+  BIURET:
+    decision: "Declared zero (urea-1: no emission stream carries biuret, the prilling dust is modelled as urea); not exported. A release is an emission with its flow, not free."

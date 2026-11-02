@@ -69,7 +69,7 @@ YAML. `cheme validate` printed no `drawing <sheet>:` count line for them and rep
   - E-101 (41 MW): latent heat of about 35 t/h of water plus the gas sensible heat. S4 leaves 2 K below its water dew point (about 478.6 K at 1.75 MPa water partial pressure), so E-102 finishes the evaporation, consistent with D-008.
   - K-101 (0.40 MW): ideal-gas compression at ratio 1.07 and η 0.75 (conservative, since Z ≈ 0.6 is ignored).
   - E-103 (8.8 MW) and V-301 condenser (5.0 MW): consistent with the condensing loads.
-  - Overall energy, roughly: steam + power 23.2 MW plus about 3.4 MW of reaction heat, against 27.6 MW to cooling water plus stream sensible heat. It closes to within about 5 %, acceptable for a concept estimate that D-006 labels unqualified (core #315).
+  - Overall energy, roughly: steam + power 23.2 MW plus about 3.4 MW of reaction heat, against 27.6 MW to cooling water plus stream sensible heat. It closes to within about 5 %, acceptable for a concept estimate that D-006 labels unqualified.
 - **Design conditions**: 80 barg = 72.5 barg operating + 10 % (D-009). The line-list DNs follow the stated velocity rule (not recomputed for every line).
 - **Provenance**:
   - Every key value is either sourced with a locator (SRC-1/SRC-2 sections) or marked ASSUMED: capacity, ethylene grade and pressure, selectivities, every split, purge, blowdown, reflux, consumable rates.
@@ -89,7 +89,7 @@ YAML. `cheme validate` printed no `drawing <sheet>:` count line for them and rep
 - The BFD/PFD drawings were not rendered or read; they are generated and validate clean.
 - The library build with `--strict`/`--public` was not run. The build was run without them, so the strict warnings about the cut-off criteria (chemeascode `lca.cutoff` not installed) were not followed up.
 - scripts/balance.py was not rerun or audited line by line. The reviewer checked its outputs for order-of-magnitude consistency only (above).
-- No property-based check of any separator split (no package covers ethylene/water/ethanol at 7 MPa, core #315). Phase behaviour (findings #4, #5) was judged from vapour pressures only.
+- No property-based check of any separator split (no package covers ethylene/water/ethanol at 7 MPa). Phase behaviour (findings #4, #5) was judged from vapour pressures only.
 - SRC-1/SRC-2 were not re-opened by the reviewer. Their quoted facts were checked for plausibility, not against the text.
 - Line-list DNs were not recomputed line by line.
 - Product quality beyond water (methanol, higher alcohols, acetaldehyde, the 170 ppm ether) is outside the concept scope and is noted as open in D-002.

@@ -86,7 +86,7 @@ tile. `cheme validate` printed no `drawing` count line for them, and `drawing-cl
 - **Third-party content.** No tables, figures or passages copied: ranges and facts are restated
   in the case's own words and cited.
 - **Honesty of the record.** process.yaml (`validation.status: unreviewed`, notes on the
-  maturity gap) and the run report disclose the open gated steps (core #315, kinetics, energy
+  maturity gap) and the run report disclose the open gated steps (kinetics, energy
   closure) and the core `_reactor_rules` bug and its workaround.
 
 ## Not checked
@@ -95,7 +95,7 @@ tile. `cheme validate` printed no `drawing` count line for them, and `drawing-cl
   re-run (`eg_balance.py build`). The stream table was checked through `cheme process streams`
   and the hand balances above.
 - Thermodynamic consistency of the assumed temperatures and pressures (no property package
-  covers these streams, core #315). Absorber and stripper duties beyond order of magnitude.
+  covers these streams). Absorber and stripper duties beyond order of magnitude.
 - The BREF figures themselves were not re-read against the PDF in this review; the cited ranges
   were taken as stated and only checked for internal consistency.
 - Atlas build (`scripts/build_lci.py --strict`) was not re-run.

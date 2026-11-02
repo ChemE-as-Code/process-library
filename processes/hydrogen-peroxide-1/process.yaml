@@ -41,21 +41,23 @@ validation:
     block and step (cheme validate, cheme process streams). The reactors are conversion models
     calculated by cheme; the separator outlets and all duties are specified values from an
     independent script (scripts/hp_balance.py) whose specifications sit inside the EU LVOC BREF
-    2017 ranges (H2 63.5 kg/t, air 4215 Nm3/t, demineralised water 1.19 t/t, total energy
-    about 3.6 GJ/t). Energy closure is not evaluable in core (core #315), the extraction is a
-    specified split (core #369). cheme maturity: calculation maturity none (feed flows and
+    2017 ranges (H2 63.5 kg/t, air 4215 Nm3/t, demineralised water 1.19 t/t, total energy about
+    3.6 GJ/t). Energy closure is not evaluable in core, the extraction is a specified split.
+    cheme maturity: calculation maturity none (feed flows and
     separator specifications assumed, not sourced). The preliminary gate-to-gate LCI in lca/
-    leaves every background unmapped (gaps); its mass and element balances close. Not
-    reviewed. The chemicals registry has no hydrogen-peroxide,
-    working-compound or solvent entries yet, so the main product and the make-ups are not
-    listed under chemistry (open library item).
+    leaves every background unmapped (gaps); its mass and element balances close. Not reviewed.
+    Main products and feeds are listed under chemistry with their chemicals registry entries
+    (issue #251).
 chemistry:
   inputs:
+    - {chemical: 2-ethylanthraquinone, role: feedstock, note: "feed:MKQ: 2-Ethylanthraquinone make-up of the working solution"}
+    - {chemical: aluminium-oxide, role: feedstock, note: "feed:ALU: activated alumina (reversion agent)"}
     - {chemical: hydrogen, role: feedstock, inventory_key: "feed:H2", note: "Pure H2 at 500 kPa(a), 63.5 kg/t H2O2 (ASSUMED boundary feed; e.g. from processes/hydrogen-1)"}
     - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Dry air for the oxidation, 30 % O2 excess (ASSUMED)"}
-    - {chemical: water, role: feedstock, inventory_key: "feed:DEMIN", note: "Demineralised water to the extraction, 1.19 t/t H2O2. The working-solution make-ups (2-ethylanthraquinone, C9 aromatic, diisobutylcarbinol) and the activated alumina have no registry entry yet"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:DEMIN", note: "Demineralised water to the extraction, 1.19 t/t H2O2. The working-solution solvent make-up (feed:MKS, C9 aromatic and diisobutylcarbinol) has no registry entry yet"}
   outputs:
-    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Dryer water, ejector and adsorber condensate with dissolved organics and H2O2, to biological treatment. The main product, 50 wt% hydrogen peroxide (product:PROD), has no registry entry yet"}
+    - {chemical: hydrogen-peroxide, role: main-product, inventory_key: "product:PROD", note: "Hydrogen peroxide 50 wt% to storage, counted by mass of the solution"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Dryer water, ejector and adsorber condensate with dissolved organics and H2O2, to biological treatment"}
     - {chemical: nitrogen, role: emission, inventory_key: "product:OFFGAS", note: "Oxidiser off-gas after activated carbon: N2, O2, Ar, water and residual VOC to atmosphere"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Air compressor, working-solution and auxiliary pumps, vacuum pump (ASSUMED electric drives)"}
@@ -78,7 +80,7 @@ maintainers:
 repository:
   url: https://github.com/ChemE-as-Code/process-library
   path: processes/hydrogen-peroxide-1
-  access: private
+  access: public
 publication:
-  status: internal
+  status: public
   license: CC-BY-4.0

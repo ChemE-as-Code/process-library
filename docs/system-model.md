@@ -130,7 +130,7 @@ ISO 14044 (4.2.3.3) lets a study leave out flows of little significance, provide
   characterisation factors (N2O, SF6, HFCs, heavy metals), whatever their mass;
 - every cut flow is named in the dataset with the reason.
 
-A dataset records its cut flows in `cutoff:` (core#180: key, direction, amount and unit in the
+A dataset records its cut flows in `cutoff:` (key, direction, amount and unit in the
 dataset's basis, reason, and `cas`, `catalyst`, `contains` for the never-cut rule). `cheme assess
 lca` checks them where the dataset is made, and the build (`scripts/build_lci.py`) checks them
 again with the same core code (`lca.cutoff`) and records the result per dataset in
@@ -158,7 +158,7 @@ the review checklist ([governance.md](governance.md)).
   to the high-voltage market instead, through an `exchanges` override in the process's `lca/mappings.yaml`
   (ASU-1: 33 kV, D-036; ADR 0022).
 - **Data freshness:** primary data at most 5 years old and secondary data at most 10 years old
-  at the reference year. A dataset records a `valid_until` year (core#179, reference year + 5 by
+  at the reference year. A dataset records a `valid_until` year (reference year + 5 by
   default); `datapackage.json` carries it (null for a dataset that states none).
 - **Formats:** every build writes the allocated activities (bw2io workbook) and the unallocated
   multi-output datasets (openLCA JSON-LD with allocation factors, Brightway `multifunctional`
@@ -174,11 +174,11 @@ the review checklist ([governance.md](governance.md)).
   records its compatibility (grade, unit, system model, allocation, boundary).
   [markets.md](markets.md) has the layers, the rules and the first markets.
 - **Data quality and nomenclature:** the export carries each exchange's pedigree and its
-  lognormal (ecoinvent pedigree matrix, factors of Ciroth et al. 2016; core#178), each dataset's
+  lognormal (ecoinvent pedigree matrix, factors of Ciroth et al. 2016), each dataset's
   data quality rating from `lca/manifest.json` (TfS DQR, PEF-style indicators, primary data share),
-  and elementary flows by their biosphere3 UUID (core#175). Units follow core's table; gas
-  volumes at a reference state keep `Nm3` or `Sm3` (bw2io's normal and standard cubic meter, core#177). EF 3.1 UUIDs
-  are not recorded by core yet. The biogenic carbon rules (core#181) are part of this
+  and elementary flows by their biosphere3 UUID. Units follow core's table; gas
+  volumes at a reference state keep `Nm3` or `Sm3` (bw2io's normal and standard cubic meter). EF 3.1 UUIDs
+  are not recorded by core yet. The biogenic carbon rules are part of this
   methodology once core implements them; they will raise the methodology version.
 
 ## 7. How other chemical LCI databases document their methodology
@@ -213,10 +213,10 @@ Two published chemical LCI databases show what users expect from the documentati
 | change report per release | `build_lci.py --previous`: exchanges, and a GWP100 delta on the Atlas foreground without background (`lci/README.md`, Change reports; [governance.md](governance.md)) |
 | external critical review of the methodology | planned: the review procedure in [governance.md](governance.md) |
 | mass and elemental balances per technology dataset | from the flowsheet for engineered processes; to be checked by the build (follow-up) |
-| layered model: plant, site, production and consumption mixes, simplified extension layer | markets (technology, production mix, consumption mix) in [markets.md](markets.md); the site layer is documented there and built with a second process; tiered generation planned (core#182, #47) |
-| biogenic carbon content always reported | planned (core#181) |
-| several data-quality schemes and a primary data share | pedigree per exchange in the export; TfS DQR, PEF-style indicators and PDS per dataset in `datapackage.json` (core#178) |
-| per-dataset documentation of included and excluded stages | activity comments, `datapackage.json` and the openLCA process descriptions today; ILCD export planned (#51; needs EF 3.1 UUIDs, core#313) |
+| layered model: plant, site, production and consumption mixes, simplified extension layer | markets (technology, production mix, consumption mix) in [markets.md](markets.md); the site layer is documented there and built with a second process; tiered generation planned |
+| biogenic carbon content always reported | planned |
+| several data-quality schemes and a primary data share | pedigree per exchange in the export; TfS DQR, PEF-style indicators and PDS per dataset in `datapackage.json` |
+| per-dataset documentation of included and excluded stages | activity comments, `datapackage.json` and the openLCA process descriptions today; ILCD export planned (#51; needs EF 3.1 UUIDs) |
 
 ## References
 

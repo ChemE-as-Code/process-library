@@ -119,8 +119,8 @@ both recycle loops (sulfur chlorides through T-301/R-101, gas through K-201) clo
 successive substitution (853 iterations, residual below 1e-9 kmol/h). The values enter
 flowsheet.yaml as `assumed` with this source.
 Reason: no property package of core is qualified for SOCl2, SCl2, S2Cl2 or the caustic liquor
-(`cheme process props --coverage`: only the air package is benchmarked; core issues 315
-property/phase and reaction-energy qualification, 364 electrolytes, not resolvable from this
+(`cheme process props --coverage`: only the air package is benchmarked; core issues on
+property/phase and reaction-energy qualification and on electrolytes, not resolvable from this
 session's GitHub access). DWSIM's database coverage of SCl2 and S2Cl2 was not established, so
 `cheme process simulate` was not attempted.
 Checks: cheme closes mass, component and element balances on every block and step (tolerance

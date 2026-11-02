@@ -21,7 +21,7 @@ description: |
 
   All values are concept estimates. The reactor conditions and selectivity follow open Bayer
   (now Covestro) patents; the separator, decanter and columns come from an independent script
-  whose activity approximation is not qualified by ChemE-as-Code (core #315); see DESIGN.md of
+  whose activity approximation is not qualified by ChemE-as-Code; see DESIGN.md of
   the engineering files for every assumption and gated step.
 families: [nitrogen-organics]
 keywords: [aniline, nitrobenzene, hydrogenation, gas phase, adiabatic reactor, palladium catalyst, hydrogen recycle, heteroazeotrope, decanter, distillation, MDI precursor]
@@ -38,18 +38,19 @@ validation:
   notes: >-
     Concept PFD with closed mass, component and element balances (cheme validate, cheme process
     streams). The reactor outlet is calculated by cheme from a sourced selectivity (US
-    2008/0234518 A1, example 3) and its adiabatic duty checks to within 1 kW; the capacity,
-    feed state, by-product split, separator, decanter and column values are ASSUMED or come
-    from scripts/aniline_balance.py, whose vapour-liquid-liquid model of aniline and water is
-    not qualified (core #315). Energy closure of the separations is not evaluable in core. Not
-    reviewed. The chemicals registry has no aniline, nitrobenzene, benzene, diphenylamine or
-    ammonia entry yet, so the main product and the feedstock are not listed under chemistry
-    (open library item).
+    2008/0234518 A1, example 3) and its adiabatic duty checks to within 1 kW; the capacity, feed
+    state, by-product split, separator, decanter and column values are ASSUMED or come from
+    scripts/aniline_balance.py, whose vapour-liquid-liquid model of aniline and water is not
+    qualified. Energy closure of the separations is not evaluable in core. Not reviewed. Main
+    products and feeds are listed under chemistry with their chemicals registry entries (issue
+    #251).
 chemistry:
   inputs:
-    - {chemical: hydrogen, role: feedstock, inventory_key: "feed:H2F", note: "Make-up hydrogen from hydrogen-1 (99.9 mol%, 2850 kPa(a)). The other feedstock, nitrobenzene (feed:NBF), has no registry entry yet"}
+    - {chemical: nitrobenzene, role: feedstock, note: "feed:NBF: nitrobenzene from the nitration plant, 1.33 kg/kg aniline"}
+    - {chemical: hydrogen, role: feedstock, inventory_key: "feed:H2F", note: "Make-up hydrogen from hydrogen-1 (99.9 mol%, 2850 kPa(a))"}
   outputs:
-    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Stripped process water, 50 ppm(wt) aniline and about 0.1 wt% ammonia (ASSUMED). The main product, aniline (product:ANILINE), has no registry entry yet"}
+    - {chemical: aniline, role: main-product, inventory_key: "product:ANILINE", note: "Aniline to storage"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Stripped process water, 50 ppm(wt) aniline and about 0.1 wt% ammonia (ASSUMED)"}
     # No inventory_key: the export (product:MPSX, 1500 kPa(a) saturated) is not offered as an
     # Atlas steam producer; with the slug it ranked first among steam producers and was refused
     # for other processes' HP steam, displacing their link (DESIGN.md D-013).
@@ -72,7 +73,7 @@ maintainers:
 repository:
   url: https://github.com/ChemE-as-Code/process-library
   path: processes/aniline-1
-  access: private
+  access: public
 publication:
-  status: internal
+  status: public
   license: CC-BY-4.0

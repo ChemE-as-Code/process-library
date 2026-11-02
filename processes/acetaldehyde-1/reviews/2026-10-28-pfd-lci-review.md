@@ -157,7 +157,7 @@ README.md.
 - I did not check for copied text by comparing against the sources, only by reading our files.
 - The R-01 bubble-point estimate is mine: an activity coefficient of about 3.5 from Henry's law,
   and Clausius-Clapeyron with ΔHvap 25.8 kJ/mol. It has no rigorous flash behind it, because no
-  property package covers the system (core #315).
+  property package covers the system.
 - Not re-run: `scripts/acet_balance.py` (`cheme run`) and the library catalog/LCI build.
 - The line list and instrument list beyond what `cheme validate` checks.
 - The BFD rendering; tiles of the PFD.

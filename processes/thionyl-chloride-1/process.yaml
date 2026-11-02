@@ -24,7 +24,7 @@ description: |
 
   Every stream value and duty comes from an independent script (Raoult's law, ideal gas,
   conversion reactors; scripts/balance.py) because no property package of core is qualified for
-  the sulfur chlorides, thionyl chloride or the caustic liquor (core #315, #364). cheme closes
+  the sulfur chlorides, thionyl chloride or the caustic liquor. cheme closes
   the mass, component and element balances and reproduces the reactor duty. See DESIGN.md for
   every assumption and gated step.
 families: [sulfuric-acid, inorganic-chemicals]
@@ -42,25 +42,28 @@ validation:
   notes: >-
     Concept PFD with closed mass, component and element balances (cheme validate, cheme process
     streams: all 5 blocks and 20 steps within tolerance; cheme process propagate --check
-    agrees). The reactor R201 is a conversion model; core reproduces its duty from the
-    ideal-gas data (-386.6 kW). The condensers, degasser, column and scrubber are specified
-    values from scripts/balance.py: no property package of core covers the sulfur chlorides,
-    thionyl chloride or the caustic liquor (core #315, #364), so their energy balance is not
-    evaluable in core. The ideal-gas equilibrium of SCl2 + SO2 + Cl2 lies far beyond the
-    published 50-80 % per-pass conversion (ln(Q/K) = -8.6): the conversion is taken from the
-    patent, not predicted. Preliminary gate-to-gate LCI with every background unmapped (gaps).
-    cheme maturity reaches no level (assumed feeds, conversions and separations, DESIGN.md);
-    the claim `maturity: concept` is the lowest value of the schema, not an evidenced level,
-    and cheme maturity reports it as cheme.maturity-claim-exceeds (accepted, review R-04).
-    Not reviewed. The chemicals registry has no thionyl-chloride, sulfur, sulfur-dioxide,
-    chlorine or sodium-hydroxide entry yet, so the main product and those feeds are not listed
-    under chemistry (open library item, DESIGN.md D-013).
+    agrees). The reactor R201 is a conversion model; core reproduces its duty from the ideal-gas
+    data (-386.6 kW). The condensers, degasser, column and scrubber are specified values from
+    scripts/balance.py: no property package of core covers the sulfur chlorides, thionyl
+    chloride or the caustic liquor, so their energy balance is not evaluable in core. The
+    ideal-gas equilibrium of SCl2 + SO2 + Cl2 lies far beyond the published 50-80 % per-pass
+    conversion (ln(Q/K) = -8.6): the conversion is taken from the patent, not predicted.
+    Preliminary gate-to-gate LCI with every background unmapped (gaps). cheme maturity reaches
+    no level (assumed feeds, conversions and separations, DESIGN.md); the claim `maturity:
+    concept` is the lowest value of the schema, not an evidenced level, and cheme maturity
+    reports it as cheme.maturity-claim-exceeds (accepted, review R-04). Not reviewed. Main
+    products and feeds are listed under chemistry with their chemicals registry entries (issue
+    #251).
 chemistry:
-  # thionyl chloride, sulfur, SO2, chlorine and caustic soda have no registry entry yet (D-013)
   inputs:
-    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Dilution water of the scrubber caustic, 84 g/kg SOCl2. The reactants sulfur (feed:SULFUR, 0.136 kg/kg), chlorine (feed:CL2, 0.598 kg/kg) and sulfur dioxide (feed:SO2, 0.274 kg/kg) and the caustic soda 50 wt% (feed:NAOH, 21 g/kg) have no registry entry yet"}
+    - {chemical: sulfur, role: feedstock, note: "feed:SULFUR: molten merchant sulfur (refinery or gas-plant sulfur recovery), 0.136 kg/kg"}
+    - {chemical: chlorine, role: feedstock, note: "feed:CL2: chlorine gas (chlor-alkali-1), 0.598 kg/kg"}
+    - {chemical: sulfur-dioxide, role: feedstock, note: "feed:SO2: liquid sulfur dioxide (merchant; sulfur burning), 0.274 kg/kg"}
+    - {chemical: sodium-hydroxide, role: feedstock, note: "feed:NAOH: caustic soda 50 wt% (chlor-alkali-1), counted by mass of the solution"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Dilution water of the scrubber caustic, 84 g/kg SOCl2"}
   outputs:
-    - {chemical: wastewater, role: waste, inventory_key: "product:EFF", note: "Spent scrubber liquor, 113 g/kg SOCl2: Na2SO3, Na2SO4, NaCl and excess NaOH in water, to treatment. The main product, thionyl chloride (product:SOCL2), has no registry entry yet"}
+    - {chemical: thionyl-chloride, role: main-product, inventory_key: "product:SOCL2", note: "Liquid thionyl chloride (99.7 wt%) to storage"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:EFF", note: "Spent scrubber liquor, 113 g/kg SOCl2: Na2SO3, Na2SO4, NaCl and excess NaOH in water, to treatment"}
     - {chemical: oxygen, role: emission, inventory_key: "emission:O2", note: "0.27 g/kg SOCl2: the O2 impurity of the chlorine, vented after the scrubber with traces of SO2 (5.3 mg/kg) and Cl2 (1.7 mg/kg)"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "4.7 Wh/kg SOCl2: recycle gas compressor and pumps (ASSUMED efficiencies); the brine refrigeration's power is in its own exchange"}
@@ -83,7 +86,7 @@ maintainers:
 repository:
   url: https://github.com/ChemE-as-Code/process-library
   path: processes/thionyl-chloride-1
-  access: private
+  access: public
 publication:
-  status: internal
+  status: public
   license: CC-BY-4.0

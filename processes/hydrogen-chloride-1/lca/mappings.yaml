@@ -4,7 +4,7 @@
 # exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
 #
 # None yet (DESIGN.md D-013): the preliminary inventory leaves every background unlinked, so the
-# Atlas build reports the exchanges of this internal process as gaps (ADR 0022). What each
+# Atlas build reports the exchanges of this process as gaps (ADR 0022). What each
 # should connect to is in lca/lca.yaml (`missing:`). Candidates once the shared vocabulary has
 # them (not active, listed for the consolidated mapping PR):
 #   feed:CL2   -> a `chlorine` entry (none in lci/mappings.yaml or chemicals/chemicals.yaml yet);
@@ -15,4 +15,10 @@
 #   feed:POWER -> the library default (electricity, medium voltage)
 #   product:CW -> cooling-water; product:STEAM -> steam-heat (co-product, share 0, D-013)
 schema: cheme-as-code/lci-process-mappings/v1
-exchanges: {}
+exchanges:
+  # Mapping step of 2026-11-01 (ADR 0026): each entry below uses a reference the library already
+  # holds. Notes above that call these exchanges unmapped describe the state before it. What is
+  # still unmapped is a gap (lci/gaps.json), and this process is marked preliminary.
+  "feed:CL2": {dataset: {path: processes/chlor-alkali-1/lca/dataset.yaml, product: "product:CL2"}, source: "the Atlas producer chlor-alkali-1, dry chlorine gas 400 kPa(a), which this feed names"}
+  "feed:DMW": {use: water, source: "demineralised water by mass: the shared entry is water, deionised"}
+  "feed:H2": {dataset: {path: processes/chlor-alkali-1/lca/dataset.yaml, product: "product:H2"}, source: "the Atlas producer chlor-alkali-1, wet hydrogen by mass of wet gas, which this feed names"}

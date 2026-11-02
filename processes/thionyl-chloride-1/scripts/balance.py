@@ -1,7 +1,7 @@
 """Concept heat and material balance of thionyl-chloride-1 (DESIGN.md D-006).
 
 Independent of cheme-as-code's property packages, none of which is qualified for the sulfur
-chlorides, thionyl chloride or the alkaline scrubber liquor (core #315, #364; DESIGN.md D-006).
+chlorides, thionyl chloride or the alkaline scrubber liquor (DESIGN.md D-006).
 
 Model (every choice is a decision in DESIGN.md):
 - ideal gas with the Cp/R polynomials and formation enthalpies of process/materials.yaml;
@@ -18,6 +18,7 @@ Run: cheme run scripts/balance.py [--yaml build/streams.yaml]
 (prints the stream table and duties; with --yaml also writes the flowsheet streams to build/)
 """
 
+import os
 import sys
 
 from thermo import Chemical
@@ -416,11 +417,30 @@ def main():
     return st, duty, r
 
 
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
+
+
 if __name__ == "__main__":
     st, duty, r = main()
-    if "--yaml" in sys.argv:
+    if "--yaml" in sys.argv or os.environ.get("BALANCE_OUTPUT"):
         # the streams: section of process/flowsheet.yaml, to be pasted by hand (build/ only)
-        path = sys.argv[sys.argv.index("--yaml") + 1]
+        path = sys.argv[sys.argv.index("--yaml") + 1] if "--yaml" in sys.argv else os.devnull
         st["S26"] = (st["S24"][0], T_SEP, "g")
         BAL = "scripts/balance.py"
         META = [  # id, title, from, to, template, pressure kPa(a), pressure/temperature source, flow source
@@ -473,3 +493,15 @@ if __name__ == "__main__":
                         f"        composition: {{basis: mole_fraction, values: {{{comp}}}, provenance: assumed, source: \"{BAL}\"}}\n")
             for k, q in duty.items():
                 f.write(f"Q_{k}: {abs(q):.2f}\n")
+        # the values process/flowsheet.yaml cites from this script (balance-output contract);
+        # the duties Q1..Q17 in the order of `duty`, as magnitudes
+        flowsheet = {}
+        for sid, title, fr, to, tpl, p, psrc, fsrc in META:
+            s, T, ph = st[sid]
+            flowsheet[sid] = {"temperature": T, "phase": PH[ph],
+                              "flow": {"value": mass(s), "basis": "mass"},
+                              "composition": {"values": {c: v / tot(s) for c, v in s.items()},
+                                              "basis": "mole_fraction"}}
+        for i, q in enumerate(duty.values(), start=1):
+            flowsheet[f"Q{i}"] = {"duty": abs(q)}
+        write_balance_output({"design": flowsheet})

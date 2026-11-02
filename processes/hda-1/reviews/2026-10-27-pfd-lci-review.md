@@ -91,7 +91,7 @@ rendered.
 
 ## Not checked
 - The BFD rendering, and the generated PFD XML beyond its rendering.
-- The Peng-Robinson flash and column results themselves (no qualified package in core, #315): only
+- The Peng-Robinson flash and column results themselves (no qualified package in core): only
   their internal consistency and plausibility were checked; stage numbers, column diameters and
   reactor volume are not calculated by the design, so they were not reviewed.
 - Douglas (1988) and Speight (2011) at their locators (R-04): the reviewer did not read them.

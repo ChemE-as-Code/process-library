@@ -24,28 +24,26 @@ maturity: concept
 validation:
   status: unreviewed
   notes: >-
-    The chemicals registry has no methanol, ammonia, methylamine, dimethylamine or
-    trimethylamine entry yet (DESIGN.md D-013). Until the registry PR adds them, the feedstocks
-    (methanol feed:MEOH from methanol-1, anhydrous ammonia feed:NH3F from ammonia-1) and the
-    products (DMA product:DMAP 4.4 t/h main product; MMA product:MMAP 2.0 t/h and TMA
-    product:TMAP 1.6 t/h co-products) are left out of `chemistry` and named here, as in
-    ammonia-1; only registered flows are listed there. The steam is listed under inputs
-    because no registered feedstock exists.
-# REGISTRY: the five unregistered chemicals are named in validation.notes (D-013); add them to
-# `chemistry` when chemicals/chemicals.yaml has them.
+    Main products and feeds are listed under chemistry with their chemicals registry entries
+    (issue #251).
 chemistry:
   inputs:
-    - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "MP steam 1500 kPa(a): feed vaporiser, C-101 and C-103 reboilers. The feedstocks methanol (feed:MEOH) and ammonia (feed:NH3F) have no registry entry yet"}
-    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 450 kPa(a): C-102, C-104, C-105 reboilers"}
+    - {chemical: methanol, role: feedstock, note: "feed:MEOH: methanol (e.g. methanol-1), 2.48 kg/kg DMA (unallocated; MMA and TMA are co-products)"}
+    - {chemical: ammonia, role: feedstock, note: "feed:NH3F: liquid ammonia (e.g. ammonia-1), 0.732 kg/kg DMA (unallocated)"}
   outputs:
-    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Reaction water to biological treatment, 100 ppm(wt) methanol (ASSUMED). The products DMA (product:DMAP), MMA (product:MMAP) and TMA (product:TMAP) have no registry entry yet"}
+    - {chemical: dimethylamine, role: main-product, inventory_key: "product:DMAP", note: "Anhydrous dimethylamine to storage, 4.4 t/h"}
+    - {chemical: methylamine, role: co-product, inventory_key: "product:MMAP", note: "Anhydrous monomethylamine to storage, 2.0 t/h"}
+    - {chemical: trimethylamine, role: co-product, inventory_key: "product:TMAP", note: "Anhydrous trimethylamine to storage, 1.6 t/h"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Reaction water to biological treatment, 100 ppm(wt) methanol (ASSUMED)"}
   utilities:
+    - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "MP steam 1500 kPa(a): feed vaporiser, C-101 and C-103 reboilers"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 450 kPa(a): C-102, C-104, C-105 reboilers"}
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Feed and recycle pumps (ASSUMED electric drives)"}
     - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED)"}
 basis: {capacity: "8 t/h anhydrous methylamines (2.0 MMA + 4.4 DMA + 1.6 TMA), ASSUMED", operating_hours_per_year: 8000}
 lca: {source: auto}
 publication:
-  status: internal
+  status: public
   license: CC-BY-4.0
 references:
   - {title: "Corbin, Schwarz, Sonnichsen (1997) Methylamines synthesis: a review. Catalysis Today 37, 71-102", doi: 10.1016/S0920-5861(97)00003-5}
@@ -55,4 +53,4 @@ references:
   - {title: "US 7,435,855 B2 (2008) Process for the continuous synthesis of methylamines (conditions, conversion, coke regeneration)", url: "https://patents.google.com/patent/US7435855"}
   - {title: "US 7,309,403 B2 (2007) Method for avoiding corrosion (ammonia column, TMA extractive distillation with water, MMA/DMA columns)", url: "https://patents.justia.com/patent/7309403"}
   - {title: "US 2,206,584 A (1940) ammonia-trimethylamine constant-boiling mixture and its recycle", url: "https://patents.google.com/patent/US2206584A/en"}
-repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/methylamines-1, access: private}
+repository: {url: "https://github.com/ChemE-as-Code/process-library", path: processes/methylamines-1, access: public}

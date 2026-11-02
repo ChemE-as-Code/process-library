@@ -39,22 +39,24 @@ validation:
   status: unreviewed
   notes: >-
     Concept PFD with closed mass, component and element balances (cheme validate: 0 errors;
-    cheme process streams: every block and step balanced). The converter outlet is calculated
-    by cheme from conversions that reproduce a sourced HCN yield and a sourced converter-gas
+    cheme process streams: every block and step balanced). The converter outlet is calculated by
+    cheme from conversions that reproduce a sourced HCN yield and a sourced converter-gas
     composition, and its adiabatic energy balance closes (duty 0.06 kW at 1429 K). Capacity,
     feed states, recoveries, the crystalliser and every duty are ASSUMED or come from
     scripts/nacn_balance.py; no property package covers HCN at converter temperature, aqueous
     HCN/NH3 or the NaCN/NaOH electrolyte, and cheme's crystallizer refuses the free NaOH, so
     energy closure of the separations is not evaluable in core. cheme maturity: calculation
-    maturity none. Not reviewed. The chemicals registry has no sodium-cyanide, hydrogen-cyanide,
-    ammonia or sodium-hydroxide entry yet, so the main product, ammonia and caustic are not
-    listed under chemistry (open library item).
+    maturity none. Not reviewed. Main products and feeds are listed under chemistry with their
+    chemicals registry entries (issue #251).
 chemistry:
   inputs:
-    - {chemical: methane, role: feedstock, inventory_key: "feed:NG", note: "Natural gas modelled as methane (ASSUMED). The other feedstocks, ammonia from ammonia-1 (feed:NH3F) and 50 wt% caustic soda from chlor-alkali-1 (feed:NAOHF), have no registry entry yet"}
+    - {chemical: ammonia, role: feedstock, note: "feed:NH3F: liquid ammonia from the ammonia plant (ammonia-1), 0.437 kg/kg NaCN"}
+    - {chemical: sodium-hydroxide, role: feedstock, note: "feed:NAOHF: caustic soda 50 wt% from the chlor-alkali plant (chlor-alkali-1), counted by mass of the solution"}
+    - {chemical: methane, role: feedstock, inventory_key: "feed:NG", note: "Natural gas modelled as methane (ASSUMED)"}
     - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Process air of the converter (oxygen source); combustion air of the tail gas boiler is feed:BAIR"}
   outputs:
-    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:STACK", note: "Fossil CO2 of the tail gas boiler flue gas, 0.49 kg per kg product. The main product, solid sodium cyanide (product:NACN), has no registry entry yet"}
+    - {chemical: sodium-cyanide, role: main-product, inventory_key: "product:NACN", note: "Solid sodium cyanide (98 wt%) to packing"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:STACK", note: "Fossil CO2 of the tail gas boiler flue gas, 0.49 kg per kg product"}
     - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Process water with traces of HCN and ammonia to cyanide destruction and wastewater treatment"}
     # No inventory_key: the export (product:MPSX, 1500 kPa(a) saturated) is not offered as an
     # Atlas steam producer (the same choice as aniline-1 made for its steam export).
@@ -78,7 +80,7 @@ maintainers:
 repository:
   url: https://github.com/ChemE-as-Code/process-library
   path: processes/sodium-cyanide-1
-  access: private
+  access: public
 publication:
-  status: internal
+  status: public
   license: CC-BY-4.0
