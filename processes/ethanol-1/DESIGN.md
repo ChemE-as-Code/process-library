@@ -33,11 +33,11 @@ Reason: issue #129 names this route; it is the petrochemical route with the open
 of SRC-1/SRC-2.
 Rejected / not designed: fermentation of sugars or starch, the dominant route for ethanol by
 volume worldwide (fuel ethanol), is noted only: it needs solids, biological inventory and
-beer-column modelling (core #365) and is a separate case. The older indirect (sulfuric acid,
+beer-column modelling and is a separate case. The older indirect (sulfuric acid,
 ethyl sulfate) process is obsolete (corrosion, acid reconcentration) and not considered.
 Azeotropic distillation with an entrainer (cyclohexane, formerly benzene) for dehydration is
 rejected in favour of molecular sieves (D-005): no entrainer inventory, lower steam; it would
-avoid the adsorption gate (core #368) but brings a third component the balance would need.
+avoid the adsorption gate but brings a third component the balance would need.
 Assumptions: product anhydrous ethanol (hydrous 93-95 wt% would remove V-301; D-002).
 
 ## D-002 Capacity, feed and product (2026-10-28)
@@ -109,7 +109,7 @@ Decision: every separator is a specified component split (scripts/balance.py), A
 - water loop: 10 % of the C-202 bottoms to wastewater (blowdown of sodium phosphate and
   heavies), the rest with make-up water back to the scrubber and the reactor.
 Reason: core cannot yet qualify flashes of ethylene / water / ethanol at 7 MPa or the
-non-ideal distillation (core #315; its NRTL benchmark covers ethanol-water only, see D-012).
+non-ideal distillation (its NRTL benchmark covers ethanol-water only, see D-012).
 Rejected: hand-tuned "simulated" values presented as calculated.
 Assumptions: all of the above; they set the losses and the recycle flows.
 
@@ -126,7 +126,7 @@ as ASSUMED; mixers, splitters, pass-through steps and the reactor are calculated
 Results (design case): E-101 41.1 MW recovered; E-102 4.6 MW HP steam; E-103 8.8 MW,
 C-201 1.2/1.3 MW, C-202 16.6/12.4 MW, V-301 5.0 MW condensers; power 0.69 MW.
 Reason: the energy closure of the separators, columns and exchangers cannot be evaluated by
-core for this mixture (no property package: `cheme process props --coverage`, core #315).
+core for this mixture (no property package: `cheme process props --coverage`).
 Assumptions: concept accuracy, not stated; the C-202 reboiler (reflux ratio, feed at 12.5 mol%
 ethanol) dominates the steam and is the first number to check by simulation.
 
@@ -170,10 +170,10 @@ Decision: first-pass DN from velocity (gas 15 m/s above 1000 kPa(a), 20 m/s belo
 |---|---|---|
 | mass, component, element balances | cheme validate / process streams | closed for every block and step |
 | reactor outlet and energy | cheme conversion reactor; `process reactors` ideal-gas duty | calculated; adiabatic outlet closes (-0.3 kW) |
-| separators, columns, exchangers, utilities | scripts/balance.py specified splits and estimates | ASSUMED; energy closure not evaluable in core: no property package for ethylene/water/ethanol at loop pressure (core #315, polar/activity-coefficient benchmark open) |
+| separators, columns, exchangers, utilities | scripts/balance.py specified splits and estimates | ASSUMED; energy closure not evaluable in core: no property package for ethylene/water/ethanol at loop pressure (polar/activity-coefficient benchmark open) |
 | ethanol-water distillation and sieve return | could be simulated with NRTL in DWSIM, which core benchmarks for ethanol-water (`cheme process methods`) | next stage: simulate C-202 alone with its ether-free feed |
-| molecular sieve | specified split | core #368 (adsorption PSA/TSA) not available |
-| fermentation variant | not designed | core #365 (solids) would gate it |
+| molecular sieve | specified split | core's adsorption (PSA/TSA) not available |
+| fermentation variant | not designed | core's solids support would gate it |
 | consumables in the LCI element balance | not assessable | `cheme assess lca --balance` asks for a composition of each consumable, but the lca schema of cheme-as-code 0.8.0 has no `composition` field on consumables (refused as an extra input): core finding |
 
 ## D-013 Preliminary gate-to-gate LCI (2026-10-28)
@@ -181,6 +181,7 @@ Decision: lca/lca.yaml quantifies every foreground exchange of the balanced flow
 the anhydrous ethanol product (S23) and leaves every background unmapped (`missing:` with the
 background activity it should connect to): cradle-to-gate scope with all backgrounds open, as
 nitric-acid-1 (ADR 0022: an unmapped exchange of an internal process is a reported gap).
+Note 2026-11-01: the owner has since marked all 50 processes public, so this one is no longer internal.
 Allocation none: ethanol is the only product; the purge and light-ends off-gas are a waste
 burned with energy recovery in the site fuel-gas system (cut-off, no credit), the blowdown a
 wastewater to biological treatment. No direct emission inside the boundary (no combustion, no

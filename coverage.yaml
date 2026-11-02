@@ -6,7 +6,7 @@
 # Rules: production volumes are orders of magnitude only (Mt/a bands), each with its source;
 # "n/a" means not yet sourced, never "small". Relevance is a qualitative judgement from the
 # sources named. Open sources are citations only: nothing is copied from them. `tier` is the
-# planned entry tier (core#182): 0 stoichiometric, 1 sourced conceptual data, 2 flowsheet.
+# planned entry tier: 0 stoichiometric, 1 sourced conceptual data, 2 flowsheet.
 # `next: true` marks the next batch: the working plan accepted on 2026-10-25 (process-library#47).
 # It is a plan, not a commitment; a change to it is a change to this file.
 schema: cheme-as-code/coverage/v1
@@ -61,8 +61,9 @@ entries:
     feeds: [nitric-acid, urea, ammonium-nitrate, ammonium-sulfate, npk-fertilizers, acrylonitrile, caprolactam]
     open_sources: [bref-lvic-aaf, iea-ammonia-2021, ipcc-2006-v3]
     tier: 2
+    covered_by: [{process: ammonia-1, tier: 2, note: "smr variant: steam reforming with air-fed secondary reformer, 1500 t/d; concept, unreviewed"}]
     next: true
-    note: "First reactive process: exercises element balances (core#174), combustion and flue gas outside the stream table (core#176) and steam and cooling water as library utilities (#45)."
+    note: "First reactive process: exercises element balances, combustion and flue gas outside the stream table and steam and cooling water as library utilities (#45)."
   - rank: 2
     id: hydrogen
     title: Hydrogen
@@ -82,6 +83,7 @@ entries:
     feeds: [ammonia, methanol, hydrotreating, hydrocracking, e-fuels, iron-steel, toluene-hda]
     open_sources: [iea-ghr-2023, bref-lvic-aaf]
     tier: 2
+    covered_by: [{process: hydrogen-1, tier: 2, note: "smr variant with PSA, 100 000 Nm3/h, steam export; concept, unreviewed"}]
     next: true
   - rank: 3
     id: air-separation
@@ -114,6 +116,7 @@ entries:
     feeds: [ethylene-oxide, polyethylene, vcm, styrene, propylene-oxide, polypropylene, butadiene, btx]
     open_sources: [bref-lvoc, plasticseurope-eco]
     tier: 1
+    covered_by: [{process: ethylene-1, tier: 2, note: "ethane variant, 1000 kt/a ethylene; concept, unreviewed"}]
   - rank: 5
     id: methanol
     title: Methanol
@@ -129,6 +132,7 @@ entries:
     feeds: [formaldehyde, acetic-acid, mto-olefins, e-fuels]
     open_sources: [bref-lvoc, iea-petchem-2018]
     tier: 2
+    covered_by: [{process: methanol-1, tier: 2, note: "natural-gas variant: synthesis loop and purification only, make-up syngas ASSUMED (no reformer); preliminary LCI dataset; concept, unreviewed"}]
     next: true
   - rank: 6
     id: nitric-acid
@@ -144,6 +148,7 @@ entries:
     feeds: [ammonium-nitrate, npk-fertilizers, adipic-acid]
     open_sources: [bref-lvic-aaf, ipcc-2006-v3]
     tier: 2
+    covered_by: [{process: nitric-acid-1, tier: 2, note: "dual-pressure variant, 1000 t/d HNO3; concept, unreviewed"}]
     next: true
   - rank: 7
     id: urea
@@ -158,6 +163,7 @@ entries:
     feeds: []
     open_sources: [bref-lvic-aaf]
     tier: 1
+    covered_by: [{process: urea-1, tier: 2, note: "co2-stripping variant, 2000 t/d; preliminary LCI dataset; concept, unreviewed"}]
     next: true
   - rank: 8
     id: chlor-alkali
@@ -173,6 +179,7 @@ entries:
     feeds: [vcm, propylene-oxide, mdi-tdi, hydrogen]
     open_sources: [bref-cak, euro-chlor]
     tier: 2
+    covered_by: [{process: chlor-alkali-1, tier: 2, note: "membrane variant, 100 kt/a Cl2; concept, unreviewed"}]
     next: true
     note: "Euro Chlor's sector rule overrides the allocation hierarchy (decision 5)."
   - rank: 9
@@ -188,6 +195,7 @@ entries:
     feeds: [phosphoric-acid, ammonium-sulfate, titanium-dioxide, caprolactam]
     open_sources: [bref-lvic-aaf]
     tier: 1
+    covered_by: [{process: sulfuric-acid-1, tier: 2, note: "sulfur-burning variant, double contact, 1000 t/d; concept, unreviewed"}]
   - rank: 10
     id: cement-clinker
     title: Cement clinker
@@ -241,7 +249,7 @@ entries:
     feeds: [ammonia, methanol, ethylene-oxide, styrene, bioethanol]
     open_sources: [bref-lcp]
     tier: 2
-    covered_by: [{process: utility-steam-ng-boiler, tier: 1, note: "gas-boiler variant, saturated 11 bar(a); design parameters ASSUMED"}]
+    covered_by: [{process: utility-steam-ng-boiler, tier: 1, note: "gas-boiler variant, saturated 11 bar(a); design parameters ASSUMED, combustion emissions from EPA AP-42"}]
     next: true
     note: "Utility dataset (#45)."
   - rank: 14
@@ -258,6 +266,7 @@ entries:
     feeds: [pet]
     open_sources: [bref-lvoc]
     tier: 1
+    covered_by: [{process: ethylene-glycol-1, tier: 2, note: "oxygen-based, glycols-only EO/EG plant (EO hydrated on site, not exported), 1200 t/d MEG; concept, unreviewed"}]
   - rank: 15
     id: polyethylene
     title: Polyethylene (HDPE, LLDPE, LDPE)
@@ -324,6 +333,7 @@ entries:
     feeds: []
     open_sources: [bref-lvic-s]
     tier: 1
+    covered_by: [{process: soda-ash-1, tier: 2, note: "solvay variant, 1000 t/d light ash; concept, unreviewed"}]
   - rank: 20
     id: terephthalic-acid
     title: Purified terephthalic acid
@@ -415,6 +425,7 @@ entries:
     feeds: [polystyrene]
     open_sources: [bref-lvoc]
     tier: 1
+    covered_by: [{process: styrene-1, tier: 1, note: "ethylbenzene dehydrogenation variant, LVOC BREF chapter 5 ranges, consumes ethylbenzene-1 (no entry of its own); PO/SM not covered; concept, unreviewed"}]
   - rank: 28
     id: pet
     title: Polyethylene terephthalate
@@ -488,6 +499,7 @@ entries:
     feeds: []
     open_sources: [bref-lvoc]
     tier: 1
+    covered_by: [{process: acetic-acid-1, tier: 2, note: "low-water iridium methanol carbonylation; concept, unreviewed"}]
   - rank: 35
     id: formaldehyde
     title: Formaldehyde
@@ -499,6 +511,7 @@ entries:
     feeds: [mdi-tdi]
     open_sources: [bref-lvoc]
     tier: 1
+    covered_by: [{process: formaldehyde-1, tier: 2, note: "metal-oxide variant (iron molybdate); concept, unreviewed"}]
   - rank: 36
     id: propylene-oxide
     title: Propylene oxide
@@ -533,6 +546,7 @@ entries:
     feeds: []
     open_sources: [bref-lvoc]
     tier: 0
+    covered_by: [{process: acetone-1, tier: 2, note: "cumene hydroperoxide route, phenol and acetone; cumene bought in (no benzene alkylation step); concept, unreviewed; cumene itself is in cumene-1 (Tier 0), which makes no phenol so does not cover this entry"}]
   - rank: 39
     id: carbon-capture
     title: CO2 capture and conditioning
@@ -594,10 +608,11 @@ entries:
     chemical: benzene
     family: aromatics
     volume: {band: "n/a"}
-    relevance: {ghg: low, note: "a case study with an open reference flowsheet (#42)"}
+    relevance: {ghg: low, note: "a case study with an open reference flowsheet (#302)"}
     feeds: []
     open_sources: [idaes-hda]
     tier: 2
+    covered_by: [{process: hda-1, tier: 2, note: "thermal HDA, 100 kt/a benzene; concept, unreviewed"}]
     next: true
   - rank: 45
     id: e-fuels
@@ -717,6 +732,7 @@ entries:
     feeds: [propylene-oxide]
     open_sources: [bref-lvic-s]
     tier: 0
+    covered_by: [{process: hydrogen-peroxide-1, tier: 2, note: "anthraquinone autoxidation, 50 kt/a; concept, unreviewed"}]
   - rank: 57
     id: titanium-dioxide
     title: Titanium dioxide
@@ -770,3 +786,292 @@ entries:
     feeds: [polyethylene, polypropylene]
     open_sources: []
     tier: 0
+  # --- appended with their covering folders (2026-10-30) -------------------------------------
+  # Products that a library folder makes but the ranked list did not name. Their rank is
+  # provisional (appended after the ranked list, alphabetical), not yet a judgement on the four
+  # criteria; volume and GHG relevance are n/a until sourced. Re-rank them in a reviewed change.
+  - rank: 62
+    id: acetaldehyde
+    title: Acetaldehyde (Wacker oxidation of ethylene)
+    chemical: acetaldehyde
+    family: oxygenates
+    volume: {band: "n/a"}
+    relevance: {ghg: n/a}
+    tier: 2
+    covered_by: [{process: acetaldehyde-1, tier: 2, note: "one-stage Wacker oxidation, 100 kt/a; concept, unreviewed"}]
+    note: "Rank provisional: appended with its covering folder, not yet ranked on the criteria."
+  - rank: 63
+    id: acetic-anhydride
+    title: Acetic anhydride
+    chemical: acetic-anhydride
+    family: oxygenates
+    volume: {band: "n/a"}
+    relevance: {ghg: n/a}
+    tier: 2
+    covered_by: [{process: acetic-anhydride-1, tier: 2, note: "ketene route (acetic acid cracking), 50 kt/a; concept, unreviewed"}]
+    note: "Rank provisional: appended with its covering folder, not yet ranked on the criteria."
+  - rank: 64
+    id: acetylene
+    title: Acetylene
+    chemical: acetylene
+    family: olefins
+    volume: {band: "n/a"}
+    relevance: {ghg: n/a}
+    tier: 2
+    covered_by: [{process: acetylene-1, tier: 2, note: "partial oxidation of natural gas with NMP recovery, synthesis-gas co-product; concept, unreviewed"}]
+    note: "Rank provisional: appended with its covering folder, not yet ranked on the criteria."
+  - rank: 65
+    id: alumina
+    title: Alumina (Bayer process)
+    family: aluminium
+    volume: {band: "n/a"}
+    relevance: {ghg: n/a}
+    tier: 2
+    covered_by: [{process: alumina-1, tier: 2, note: "Bayer process, 3000 t/d smelter-grade alumina; concept, unreviewed"}]
+    note: "Rank provisional: appended with its covering folder, not yet ranked on the criteria."
+  - rank: 66
+    id: aniline
+    title: Aniline (nitrobenzene hydrogenation)
+    chemical: aniline
+    family: nitrogen-organics
+    volume: {band: "n/a"}
+    relevance: {ghg: n/a}
+    tier: 2
+    covered_by: [{process: aniline-1, tier: 2, note: "adiabatic gas-phase hydrogenation of nitrobenzene, 25 t/h; concept, unreviewed"}]
+    note: "Rank provisional: appended with its covering folder, not yet ranked on the criteria."
+  - rank: 67
+    id: bromine
+    title: Bromine from brine
+    chemical: bromine
+    family: inorganic-chemicals
+    volume: {band: "n/a"}
+    relevance: {ghg: n/a}
+    tier: 2
+    covered_by: [{process: bromine-1, tier: 2, note: "chlorine oxidation and steaming-out of bromide brine; concept, unreviewed"}]
+    note: "Rank provisional: appended with its covering folder, not yet ranked on the criteria."
+  - rank: 68
+    id: chloromethane
+    title: Chloromethane (methanol hydrochlorination)
+    chemical: chloromethane
+    family: chlorinated-organics
+    volume: {band: "n/a"}
+    relevance: {ghg: n/a}
+    tier: 2
+    covered_by: [{process: chloromethane-1, tier: 2, note: "gas-phase hydrochlorination of methanol, 100 kt/a; concept, unreviewed"}]
+    note: "Rank provisional: appended with its covering folder, not yet ranked on the criteria."
+  - rank: 69
+    id: dimethylformamide
+    title: N,N-Dimethylformamide
+    chemical: dimethylformamide
+    family: nitrogen-organics
+    volume: {band: "n/a"}
+    relevance: {ghg: n/a}
+    tier: 2
+    covered_by: [{process: dmf-1, tier: 2, note: "carbonylation of dimethylamine, 50 kt/a; concept, unreviewed"}]
+    note: "Rank provisional: appended with its covering folder, not yet ranked on the criteria."
+  - rank: 70
+    id: ethanol-synthetic
+    title: Ethanol by direct hydration of ethylene
+    chemical: ethanol
+    family: oxygenates
+    volume: {band: "n/a"}
+    relevance: {ghg: n/a}
+    tier: 2
+    covered_by: [{process: ethanol-1, tier: 2, note: "phosphoric acid catalyst, 100 000 t/a anhydrous; fossil route, not the bioethanol entry; concept, unreviewed"}]
+    note: "Rank provisional: appended with its covering folder, not yet ranked on the criteria."
+  - rank: 71
+    id: flaring
+    title: Flaring of waste gas
+    chemical: flare-gas
+    family: waste-treatment
+    volume: {band: "n/a"}
+    relevance: {ghg: n/a}
+    tier: 1
+    covered_by: [{process: utility-flare, tier: 1, note: "methane-rich waste gas; Tier 1 dataset, design parameters ASSUMED"}]
+    note: "Rank provisional: appended with its covering folder, not yet ranked on the criteria."
+  - rank: 72
+    id: formic-acid
+    title: Formic acid (methyl formate hydrolysis)
+    chemical: formic-acid
+    family: oxygenates
+    volume: {band: "n/a"}
+    relevance: {ghg: n/a}
+    tier: 2
+    covered_by: [{process: formic-acid-1, tier: 2, note: "methanol carbonylation and methyl formate hydrolysis, 85 wt%, 50 kt/a; concept, unreviewed"}]
+    note: "Rank provisional: appended with its covering folder, not yet ranked on the criteria."
+  - rank: 73
+    id: glycerol-refining
+    title: Glycerol refining (from biodiesel crude glycerol)
+    chemical: glycerol
+    family: bio-based-chemicals
+    volume: {band: "n/a"}
+    relevance: {ghg: n/a}
+    tier: 2
+    covered_by: [{process: glycerol-1, tier: 2, note: "refined USP glycerol, 10 000 t/a; concept, unreviewed"}]
+    note: "Rank provisional: appended with its covering folder, not yet ranked on the criteria."
+  - rank: 74
+    id: hydrazine
+    title: Hydrazine hydrate
+    chemical: hydrazine
+    family: inorganic-chemicals
+    volume: {band: "n/a"}
+    relevance: {ghg: n/a}
+    tier: 2
+    covered_by: [{process: hydrazine-1, tier: 2, note: "peroxide (ketazine) process, 16 kt/a; concept, unreviewed"}]
+    note: "Rank provisional: appended with its covering folder, not yet ranked on the criteria."
+  - rank: 75
+    id: hydrogen-bromide
+    title: Hydrogen bromide and hydrobromic acid
+    chemical: hydrogen-bromide
+    family: inorganic-chemicals
+    volume: {band: "n/a"}
+    relevance: {ghg: n/a}
+    tier: 2
+    covered_by: [{process: hydrogen-bromide-1, tier: 2, note: "synthesis burner with catalytic finishing and absorption, 48 wt-% acid; concept, unreviewed"}]
+    note: "Rank provisional: appended with its covering folder, not yet ranked on the criteria."
+  - rank: 76
+    id: hydrogen-chloride
+    title: Hydrogen chloride and hydrochloric acid (synthesis)
+    chemical: hydrogen-chloride
+    family: chlor-alkali
+    volume: {band: "n/a"}
+    relevance: {ghg: n/a}
+    tier: 2
+    covered_by: [{process: hydrogen-chloride-1, tier: 2, note: "synthesis burner and absorption, 33 wt-% acid; concept, unreviewed"}]
+    note: "Rank provisional: appended with its covering folder, not yet ranked on the criteria."
+  - rank: 77
+    id: hydroxylamine
+    title: Hydroxylamine (as hydroxylammonium sulfate)
+    family: inorganic-chemicals
+    volume: {band: "n/a"}
+    relevance: {ghg: n/a}
+    tier: 2
+    covered_by: [{process: hydroxylamine-1, tier: 2, note: "catalytic NO hydrogenation, 30 kt/a NH2OH; concept, unreviewed"}]
+    note: "Rank provisional: appended with its covering folder, not yet ranked on the criteria."
+  - rank: 78
+    id: iodine
+    title: Iodine from brine
+    chemical: iodine
+    family: inorganic-chemicals
+    volume: {band: "n/a"}
+    relevance: {ghg: n/a}
+    tier: 2
+    covered_by: [{process: iodine-1, tier: 2, note: "chlorine oxidation, air blowing-out and SO2 absorption, 1000 t/a; concept, unreviewed"}]
+    note: "Rank provisional: appended with its covering folder, not yet ranked on the criteria."
+  - rank: 79
+    id: isobutene
+    title: Isobutene (MTBE cracking)
+    chemical: isobutene
+    family: olefins
+    volume: {band: "n/a"}
+    relevance: {ghg: n/a}
+    tier: 2
+    covered_by: [{process: isobutene-1, tier: 2, note: "gas-phase MTBE cleavage, 50 kt/a; concept, unreviewed"}]
+    note: "Rank provisional: appended with its covering folder, not yet ranked on the criteria."
+  - rank: 80
+    id: kraft-pulp
+    title: Bleached kraft pulp with chemical recovery
+    family: bio-based-chemicals
+    volume: {band: "n/a"}
+    relevance: {ghg: n/a}
+    tier: 2
+    covered_by: [{process: kraft-pulp-1, tier: 2, note: "softwood, 1000 ADt/d market pulp; concept, unreviewed"}]
+    note: "Rank provisional: appended with its covering folder, not yet ranked on the criteria."
+  - rank: 81
+    id: methylamines
+    title: Methylamines (MMA, DMA, TMA)
+    family: nitrogen-organics
+    volume: {band: "n/a"}
+    relevance: {ghg: n/a}
+    tier: 2
+    covered_by: [{process: methylamines-1, tier: 2, note: "methanol and ammonia; calculation maturity balanced (checks/maturity.json written by core 0.8.0; re-checked balanced with pinned core v1.2.1 on 2026-11-01); concept, unreviewed"}]
+    note: "Rank provisional: appended with its covering folder, not yet ranked on the criteria."
+  - rank: 82
+    id: natural-gas-processing
+    title: Natural gas processing (acid gas removal, dehydration, NGL recovery)
+    family: fuels
+    volume: {band: "n/a"}
+    relevance: {ghg: n/a}
+    tier: 2
+    covered_by: [{process: natural-gas-processing-1, tier: 2, note: "amine CO2 removal, TEG dehydration, turbo-expander NGL recovery; concept, unreviewed"}]
+    note: "Rank provisional: appended with its covering folder, not yet ranked on the criteria."
+  - rank: 83
+    id: phosgene
+    title: Phosgene
+    chemical: phosgene
+    family: chlorinated-organics
+    volume: {band: "n/a"}
+    relevance: {ghg: n/a}
+    tier: 2
+    covered_by: [{process: phosgene-1, tier: 2, note: "CO and chlorine over activated carbon, captive; concept, unreviewed"}]
+    note: "Rank provisional: appended with its covering folder, not yet ranked on the criteria."
+  - rank: 84
+    id: phosphorus-oxychloride
+    title: Phosphorus oxychloride
+    chemical: phosphorus-oxychloride
+    family: inorganic-chemicals
+    volume: {band: "n/a"}
+    relevance: {ghg: n/a}
+    tier: 2
+    covered_by: [{process: phosphorus-oxychloride-1, tier: 2, note: "white phosphorus, chlorine and oxygen via PCl3; concept, unreviewed"}]
+    note: "Rank provisional: appended with its covering folder, not yet ranked on the criteria."
+  - rank: 85
+    id: potassium-permanganate
+    title: Potassium permanganate
+    chemical: potassium-permanganate
+    family: inorganic-chemicals
+    volume: {band: "n/a"}
+    relevance: {ghg: n/a}
+    tier: 2
+    covered_by: [{process: potassium-permanganate-1, tier: 2, note: "MnO2 ore, KOH roasting and electrolysis; concept, unreviewed"}]
+    note: "Rank provisional: appended with its covering folder, not yet ranked on the criteria."
+  - rank: 86
+    id: silicon-carbide
+    title: Silicon carbide (Acheson process)
+    chemical: silicon-carbide
+    family: inorganic-chemicals
+    volume: {band: "n/a"}
+    relevance: {ghg: n/a}
+    tier: 2
+    covered_by: [{process: silicon-carbide-1, tier: 2, note: "Acheson furnace, 5000 kg/h crude SiC; concept, unreviewed"}]
+    note: "Rank provisional: appended with its covering folder, not yet ranked on the criteria."
+  - rank: 87
+    id: sodium-cyanide
+    title: Sodium cyanide
+    chemical: sodium-cyanide
+    family: inorganic-chemicals
+    volume: {band: "n/a"}
+    relevance: {ghg: n/a}
+    tier: 2
+    covered_by: [{process: sodium-cyanide-1, tier: 2, note: "solid NaCN from Andrussow HCN, 50 kt/a; concept, unreviewed"}]
+    note: "Rank provisional: appended with its covering folder, not yet ranked on the criteria."
+  - rank: 88
+    id: sodium-nitrite
+    title: Sodium nitrite
+    chemical: sodium-nitrite
+    family: inorganic-chemicals
+    volume: {band: "n/a"}
+    relevance: {ghg: n/a}
+    tier: 2
+    covered_by: [{process: sodium-nitrite-1, tier: 2, note: "ammonia oxidation and soda absorption, sodium nitrate by inversion; concept, unreviewed"}]
+    note: "Rank provisional: appended with its covering folder, not yet ranked on the criteria."
+  - rank: 89
+    id: tetrahydrofuran
+    title: Tetrahydrofuran (from 1,4-butanediol)
+    chemical: tetrahydrofuran
+    family: oxygenates
+    volume: {band: "n/a"}
+    relevance: {ghg: n/a}
+    tier: 2
+    covered_by: [{process: thf-1, tier: 2, note: "cyclodehydration and pressure-swing distillation, 50 kt/a; concept, unreviewed"}]
+    note: "Rank provisional: appended with its covering folder, not yet ranked on the criteria."
+  - rank: 90
+    id: thionyl-chloride
+    title: Thionyl chloride
+    chemical: thionyl-chloride
+    family: inorganic-chemicals
+    volume: {band: "n/a"}
+    relevance: {ghg: n/a}
+    tier: 2
+    covered_by: [{process: thionyl-chloride-1, tier: 2, note: "sulfur, chlorine and SO2 over activated carbon; concept, unreviewed"}]
+    note: "Rank provisional: appended with its covering folder, not yet ranked on the criteria."

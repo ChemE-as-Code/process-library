@@ -97,7 +97,7 @@ lines (S14, S16, S19, S22, Q1-Q5) cross the sheet, as is usual for the generated
 
 ## Not checked
 - Thermodynamic correctness of the stripping and absorption splits, speciation (I-/I3-/I2Cl-,
-  HOCl, HSO4-) and the energy balance: gated in core (electrolytes #364, solids #365). No
+  HOCl, HSO4-) and the energy balance: gated in core (electrolytes, solids). No
   qualified model exists in this core.
 - The SRC-1, SRC-2, SRC-4, SRC-6 and SRC-11 pages were not re-read; only SRC-3 and SRC-5 were
   spot-checked.

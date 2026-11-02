@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Check the background names of lci/mappings.yaml against a licensed background database and
-record the check (process-library#85, ADR 0017).
+record the check (process-library#303, ADR 0017).
 
 ``lci/mappings.yaml`` links exchanges to the background by name only: an activity by name,
 reference product, unit and location, an elementary flow by biosphere3 UUID or by name and

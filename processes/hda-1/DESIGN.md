@@ -1,7 +1,7 @@
 # Design decisions
 
 One entry per decision: what was decided, why, what was rejected, and what it assumes.
-Issue: ChemE-as-Code/process-library#42. Run of 2026-10-27 (concept: design basis to balanced
+Issue: ChemE-as-Code/process-library#302. Run of 2026-10-27 (concept: design basis to balanced
 PFD and preliminary LCI: a cradle-to-gate study, foreground inventory only). Starting library commit 79a7cd4, cheme-as-code 0.8.0
 (pyDEXPI 2.1.0, Python 3.15), thermo/chemicals as bundled with cheme.
 
@@ -33,7 +33,7 @@ cross the boundary as energy streams (power, fired heat, three steam levels, coo
           └──────────────── toluene recycle <────────────────┘
 ```
 
-**Reference model (not used as data).** The IDAES HDA examples (issue #42) model this route
+**Reference model (not used as data).** The IDAES HDA examples (issue #302) model this route
 with a specified reaction, flash separation and recycle/purge. Their flowsheet values are not
 used: feeds, scale, conversion, specifications and topology here are this study's own
 choices (D-001). Not a reference reconstruction: a comparison with IDAES is a separate job
@@ -78,14 +78,14 @@ below the hydrocracking limit.
 Results: FEHE minimum internal approach 53 K (20-point profile, scripts/hda_balance.py), duty
 24.5 MW; combined feed vapour fraction 0.92 at 321 K.
 
-### D-005 Reaction model: specified conversion, sourced selectivity (2026-10-27)
+### D-005 Reaction model: specified conversion, selectivity from a recalled correlation (2026-10-27)
 Decision: conversion reactor (cheme `reactor: conversion` with `selectivity:`): toluene
 conversion X = 0.75 per pass (ASSUMED design variable); benzene formed per toluene converted
-S = 1 - 0.0036/(1 - X)^1.544 = 0.96939 (Douglas 1988 HDA selectivity correlation); the rest of
+S = 1 - 0.0036/(1 - X)^1.544 = 0.96939 (Douglas 1988 HDA selectivity correlation, recalled and not read in this run, not verified: I-06); the rest of
 the benzene goes to biphenyl (0.0153 kmol per kmol toluene converted). No kinetics: the
 reactor volume is not sized. No other side reactions (hydrocracking to light paraffins,
 methylbiphenyls, coke) until sourced selectivities exist.
-Reason: a published, widely used selectivity correlation for this route at the concept stage;
+Reason: a selectivity correlation for this route from the literature, used from memory at the concept stage;
 no rate law is invented. The conversion of 0.75 is a typical design choice; it trades reactor
 size against biphenyl make and recycle.
 Results: extents HDA 167.865 kmol/h, BIPH 2.569 kmol/h, calculated identically by cheme and by
@@ -99,13 +99,15 @@ slightly beyond equilibrium. Within the accuracy of a correlation used at the co
 but flagged: an equilibrium-limited biphenyl model would give a little less biphenyl.
 
 ### D-006 Independent balance script; property method not qualified (2026-10-27)
+(Superseded in part by D-014: separator, column and duty values are now simulated; the
+script is the comparison basis.)
 Decision: separator, column, exchanger-side and duty values come from scripts/hda_balance.py
 (thermo 0.6 Peng-Robinson with the ChemSep kij set, ideal-gas heat capacities of thermo,
 formation enthalpies of process/materials.yaml), given in the flowsheet as `assumed` with the
 script as source. cheme calculates mixers, splitters, pass-throughs and the reactor and checks
 every balance.
 Reason: core has no qualified package for aromatics with H2/CH4 (packaged ones: air,
-syngas; core #315), so `props --fill` and `process simulate` cannot be used; the methanol-1
+syngas), so `props --fill` and `process simulate` cannot be used; the methanol-1
 pattern.
 Results: loop residual 3.5e-10; overall mass 16334.02 in / 16334.04 kg/h out; overall energy
 closure 7978.3 kW in / 7958.4 kW out (19.9 kW, 0.25 %; the neglected pump temperature rise is
@@ -132,7 +134,8 @@ pressures), at least 0.5 (C-203's Underwood minimum is 0.02). Benzene product su
 313 K in the condenser train. Duties from column energy balances with the arriving feed
 enthalpy. Stage numbers not calculated.
 Reason: the issue's unit list; vacuum avoids a fired or hot-oil reboiler on C-203.
-Results: C-201 reboiler 1.43 MW (MP steam), C-202 R 1.28, reboiler 2.30 MW (LP steam),
+Results (C-202 values superseded by D-014: R 2.18, reboiler 3.48 MW, condenser 4.20 MW
+without subcooling): C-201 reboiler 1.43 MW (MP steam), C-202 R 1.28, reboiler 2.30 MW (LP steam),
 condenser 3.34 MW, C-203 reboiler 0.65 MW (HP steam). The vacuum system is taken as a dry
 vacuum pump (ASSUMED, about 15 kW, not sized; I-08): no motive steam and no ejector
 condensate, hence no process wastewater. Reflux and distillate pumps other than P-101 not
@@ -156,8 +159,9 @@ the C-203 distillate pump); fired-heat supply temperature 1200 K and minimum app
 S17 leaves the splitter SPL2 at 3450 kPa(a) (implicit quench pump P-102, under 1 kW) and S23
 leaves C-203 at 150 kPa(a) (implicit distillate pump); counting P-101 from 30 kPa(a) for its
 whole flow over-states its power by under 1 kW and stands in for the distillate pump.
-Results: power 266 kW, fired heat 2957 kW, steam 4381 kW (MP 1431, LP 2300, HP 650), cooling
-water 9207 kW.
+Results (superseded by D-014: fired heat 2915 kW, LP steam 3482 kW, HP 649 kW, cooling water
+about 10.0 MW; MP steam stays 1431 kW from the script): power 266 kW, fired heat 2957 kW, steam
+4381 kW (MP 1431, LP 2300, HP 650), cooling water 9207 kW.
 
 ### D-011 Core findings met in this run (2026-10-27)
 - `cheme process build` (0.8.0) fails with `TypeError: 'typing.Union' object is not iterable`
@@ -166,7 +170,7 @@ water 9207 kW.
   `GeneratingFlow`, H101 `ExchangingThermalEnergy` (both comments in flowsheet.yaml). To report
   to core; revert once fixed.
 - `cheme process propagate` treats `Heating` as unknown; `HeatingInFurnace` is a pass-through.
-- No property package for aromatics + H2 (core #315, as for methanol-1): energy closure,
+- No property package for aromatics + H2 (as for methanol-1): energy closure,
   simulation and column design stay in the script.
 - `cheme assess lca --write` writes a `total` row of 0 into `lca/results.csv` (and 0 in the
   allocation table of `results.md`) although every contribution is a gap, and the library's
@@ -211,64 +215,166 @@ Publication: `publication: public` in `lca/manifest.json` and `results.md` is ch
 the licences of the sources the results rest on (no restricted source), i.e. that they *may* be
 published; whether the process *is* published is process.yaml `publication.status`, which is
 `internal` and governs (review 2026-10-27-pfd-lci-review#10).
+Note 2026-11-01: the owner has since marked all 50 processes public, so this one is no longer internal.
 Results: see the LCI summary below.
 
-### D-014 IDAES backend run: the toluene feed section converges, the rest is out of the backend's reach (2026-11-02)
-Decision: `process/simulation.yaml` selects `simulator: idaes` (core ADR 0039, core#104;
-idaes-pse 2.13.0, IPOPT 3.13.2) with every unit spec taken from this file's design values
-(D-004, D-007, D-010), so the specs also serve `simulator: dwsim`. The simulated part is the
-toluene feed section M100 + P101 (feeds S1 and S23 as given); everything else is in `exclude`.
-The stream values stay those of `scripts/hda_balance.py` (D-006): `--fill` writes only values
-a stream lacks and S2, S3 and Q1 have all of theirs, so it wrote none; the deviations are below
-and in `process/simulation-run.json`.
-Reason, the boundary (each refusal reproduced with `cheme process simulate --check`, also with
-M101 alone and H101 alone in the boundary):
+### D-014 First DWSIM simulation of the whole plant (2026-11-01)
+Decision: run `cheme process simulate` on the whole flowsheet with nothing excluded (core
+v1.2.1, DWSIM 9.0.5 in the `cheme-dwsim:9.0.5` container, Peng-Robinson). The script's
+`assumed` stream values and duties are replaced by the simulated ones (`calculated`), except
+the stabiliser duties Q5 and Q6. The specs are in `process/simulation.yaml`; each repeats a
+D-004, D-007, D-008 or D-010 choice or is marked ASSUMED. The run converged in 11 iterations.
+cheme tore three loops (S9, S15, S23) and needed no guesses. The plant enthalpy closure is
+-0.3 kW (tolerance 19 kW); the R-101 closure on the formation basis is -0.001 kW. The run
+record is `process/simulation-run.json`.
+Changes the run needed (none moves a design target):
+- R-101: DWSIM takes one conversion per reaction, not a selectivity. The D-005 model is written
+  as two toluene-keyed reactions in `reactions.yaml`: HDA at X * S = 0.7270415, and the lumped
+  HDABP (TOL + 0.5 H2 -> 0.5 BIPH + CH4, i.e. HDA twice plus BIPH) at X * (1 - S) = 0.0229585.
+  The extents are those of the selectivity (HDA 162.73 kmol/h, HDABP 5.139 kmol/h, i.e.
+  2.570 kmol/h biphenyl) and do not depend on the inlet benzene. BIPH stays declared.
+- C-202 reflux: the D-008 rule R = 1.3 Rmin is kept, but applied to DWSIM's Underwood minimum
+  of 1.674 (R = 2.18) instead of the script's 0.985 (R = 1.28). The script takes the feed as
+  saturated liquid (q = 1), a simplification it states itself. In fact the stabiliser bottoms
+  arrive at 800 kPa(a) and 448 K and partly flash at 150 kPa(a). R = 1.28 is below DWSIM's
+  minimum, and the run did not converge with it.
+- C-201 and C-202 are DWSIM shortcut (Fenske-Underwood-Gilliland) columns with the D-002/D-008
+  key specs. Where the script puts none of a key in a product, a small value is ASSUMED (C-201:
+  1e-5 CH4 in the bottoms).
+- C-203 is a rigorous column, because its shortcut result gave bottoms fractions that add up
+  to 1.004. Specs: 10 stages and feed stage 5 (ASSUMED, from the shortcut's 5.97 stages at
+  R 0.5), R 0.5, bottoms 401.05 kg/h. The bottoms flow is D-008's 2 mol% toluene applied to
+  the simulated biphenyl make; a mole-fraction spec did not converge. Result: 2.06 mol% toluene
+  in the bottoms.
+- P-101 needs `unit: pump` (it is drawn as GeneratingFlow, D-011).
+Kept with the deviation visible (the `sim-deviation` warnings are not silenced):
+- Pressures behind the implicit pumps (D-010). DWSIM's mixers take the lowest inlet pressure,
+  so S2 and S23 are at 30 kPa(a) (the C-203 top), not 150 kPa(a). S9 to S11 are 130 kPa below
+  the D-004 values, because Q-101 takes S17's 3250 kPa(a) instead of the 3450 kPa(a) pump
+  discharge. The V-101 flash pressure (3250 kPa(a)) is a spec, so the loop pressure does not
+  change. The fix is the pumping steps of review #6, once core's Pumping bug (D-011) is fixed.
+- S21 is specified at 313.15 K (D-008: subcooled product) but simulated at 366.2 K. The
+  flowsheet has no product cooler step, so Q8 is the condenser duty alone. The subcooling duty
+  is not counted: about 0.3 MW (ASSUMED estimate: 12.5 t/h of liquid benzene cooled from 366 K
+  to 313 K at about 1.8 kJ/(kg K)). Open (I-12).
+- C-201: the off-gas S19 stays at 313.15 K, and the duties Q5 and Q6 stay from the script.
+  DWSIM's shortcut column with a partial condenser put the off-gas at anywhere from 58 to 201 K
+  in repeated runs, while the dew point of that composition is 313.4 K (thermo PR). Its
+  condenser duty (24-102 kW) and reboiler duty (1284-1325 kW) are therefore not used. C-201's
+  split (from the key specs) is used. A review rerun reproduced the split, S20's temperature
+  and every downstream C-202/C-203 value identically while the C-201 duties and the S19
+  temperature varied (30/1286 kW, 173.7 K), so the split is repeatable. S19's composition
+  and flow come from that shortcut: its toluene (0.00113) is less than half the script's
+  equilibrium value (0.00295), about 1 kg/h of fuel gas. S19 and S22 fractions sum to
+  1.00002 and 1.00017 (shortcut residue).
+- S17 is simulated at 3250 kPa(a), not the assumed 3450 kPa(a) quench-pump discharge
+  (D-010, implicit P-102); same cause as S9 to S11.
+Values that are set by a spec, not predicted, although flowsheet.yaml records them as
+simulated: S19 benzene fraction 0.0269 (C-201 heavy key in distillate, from the script's S19),
+the C-202 benzene in bottoms 0.0142627 (the script's 99.5 % recovery) and the S24 flow
+401.05 kg/h (C-203 bottoms spec).
+Simulation compared with the old balance (scripts/hda_balance.py, the values on main before
+this run):
+
+| quantity | script | DWSIM | deviation |
+|---|---|---|---|
+| R-101 outlet T (S8) | 936.82 K | 937.92 K | +1.1 K |
+| E-101 hot outlet T (S10) | 394.53 K | 393.48 K | -1.0 K |
+| E-101 duty | 24.5 MW | 24.39 MW | -0.5 % |
+| H-101 duty (Q3) | 2956.5 kW | 2914.6 kW | -1.4 % |
+| E-102 duty (Q4) | 4926.0 kW | 4891.2 kW | -0.7 % |
+| K-101 power (Q2) | 229.7 kW | 229.5 kW | -0.1 % |
+| P-101 power (Q1) | 36.5 kW | 36.7 kW | +0.6 % |
+| separator gas S12 | 29278.8 kg/h, 40.00 mol% H2 | 29287.7 kg/h, 40.00 mol% H2 | +0.03 % |
+| separator liquid S16 | 23504.2 kg/h | 23502.6 kg/h | -0.01 % |
+| purge S13 | 3260.5 kg/h | 3261.5 kg/h | +0.03 % |
+| H2/aromatics at R-101 inlet | 5.00 | 5.00 (4.997) | -0.06 % |
+| stabiliser off-gas S19 | 172.5 kg/h | 171.2 kg/h | -0.8 % |
+| benzene product S21 | 12500 kg/h, 99.9 mol% | 12498.5 kg/h, 99.89 mol% | -0.01 % |
+| toluene recycle S23 | 4935.9 kg/h | 4935.8 kg/h | 0.00 % |
+| biphenyl S24 | 401.03 kg/h, 478.6 K | 401.05 kg/h (spec), 473.1 K | -5.5 K |
+| C-202 Underwood Rmin / R | 0.985 / 1.28 | 1.674 / 2.18 | +70 % |
+| C-202 reboiler (Q7) | 2300.3 kW | 3481.8 kW | +51 % |
+| C-202 condenser (Q8) | 3336.4 kW (incl. subcooling) | 4202.7 kW (condenser only) | +26 % |
+| C-203 reboiler (Q9) | 649.5 kW | 649.2 kW | -0.05 % |
+| C-203 condenser (Q10) | 788.0 kW | 790.5 kW | +0.3 % |
+
+The reactor loop, the flash and C-203 agree within about 1.5 % (1 K for temperatures). Both
+sides are implementations of Peng-Robinson, with different kij sets and ideal-gas data, so the
+agreement checks the arithmetic, not the property model. The one large difference is C-202's
+energy (+1.2 MW LP steam, +0.9 MW cooling water), which comes from the feed condition the
+script simplified. The utility totals move with it (LP steam 3.48 MW, cooling water about
+10.0 MW).
+IDAES tutorial reference (PR #296, IDAES/examples-pse at commit b9606ee, base case): not
+numerically comparable. The tutorial shares two specs with this design: the per-pass toluene
+conversion of 0.75 and the adiabatic stoichiometric reactor. It differs in scale (0.3 mol/s
+toluene), pressure (350 kPa), reactor inlet temperature (600 K), property basis (ideal VLE,
+four components, no biphenyl) and separation (two flashes, no columns). The quantities it
+reports have no counterpart here: the benzene purity of the second flash's vapour, that
+flash's duty, and an operating cost on its own price factors. A three-way check needs the
+reference case itself run through DWSIM (open decision). The IDAES adapter run of this design
+(PR #297) has not converged, so there is no second simulator result yet.
+Property package: not qualified. core's `methods.yml` benchmarks Peng-Robinson only for
+N2/O2/Ar and NRTL only for ethanol-water. Aromatics with H2 and CH4 at 30-37 bar(a) and up to
+938 K lie outside every benchmarked claim (core#315). `cheme maturity` therefore fails
+`predictive.property-regime`, and the run is a cross-check, not validated data. DWSIM's ChemSep
+formation enthalpies differ from materials.yaml by -14 to +300 kJ/kmol (biphenyl -688). That
+is 1.2 kW on the reaction heat, within the data tolerance.
+What it supersedes for the simulated values: D-006's statement that `process simulate` cannot
+be used (it runs; the qualification gap stays), the C-202 results of D-008, the utility
+results of D-010, and the notes of equipment-list.yaml C-202/E-203/E-204 (updated). The file
+fingerprints in simulation-run.json differ from the committed files only through later
+comment and `propagate --fill`/`fmt` edits; the model fingerprint is current. The LCI outputs in `lca/` were regenerated
+from the simulated duties. The LCI summary table below predates this run;
+`lca/inventory.csv` is current.
+
+### D-015 IDAES cross-check of the toluene feed section (2026-11-02)
+Decision: the plant's simulation stays the DWSIM model of D-014 (`process/simulation.yaml`,
+`process/simulation-run.json`). The IDAES backend (core ADR 0039, core#104, released in core
+v1.4.0) was run as a second, independent implementation on the part of the flowsheet it can
+represent; its spec and run record are in git at commit 118c0de7 (`process/simulation.yaml`
+with `simulator: idaes`, `process/simulation-run.json`), on the flowsheet as it was before
+D-014's values were merged (script values, D-006). They are not kept as files: a plant has one
+`process/simulation.yaml`, and on the current flowsheet IDAES refuses every boundary (below).
+Boundary: M100 + P101 (feeds S1, S23), the rest excluded:
 - biphenyl (BIPH, CAS 92-52-4) is not a compound of either IDAES package (benzene, toluene,
-  hydrogen, methane only), and every stream from M101 onwards carries it, the recycle gas S15
-  (1.5e-7 mol/mol) and so S5-S7 included; so M101, H101, R101, Q101, E102, V101, SPL1, K101
-  and SPL2 cannot be simulated without dropping a design component;
-- E101 (two-sided feed / effluent exchanger) and the three columns (SEP) are unit kinds the
-  backend does not build;
-- R101 gives a per-pass conversion with a benzene selectivity (D-005); the translator needs a
-  conversion per reaction with a key component in `reactions.yaml`. Not changed here: an
-  equivalent per-reaction form would still be refused for BIPH.
-The reactor, flash and recycle loop therefore stay outside; extending the boundary needs core
-changes, not design changes: biphenyl in an IDAES package (IDAES ships no data for it), a
-two-sided exchanger and a column in the backend.
-Convergence: the first run (2026-11-01) stopped at IPOPT's iteration limit on M100 alone. Root
-cause, found by running the worker directly (core#124): (1) IDAES's smooth VLE places the
-equilibrium temperature between the bubble and the dew point with a 5e-4 K smoothing; for S1,
-pure toluene with the worker's 1e-8 benzene trace, the two points are about 3e-7 K apart, so a
-subcooled S1 had no solution (or, smoothed tighter, a free vapour fraction); (2) IDAES's
-`BT_ideal` liquid heat-capacity coefficients are read a thousand times too small (labelled
-J/kmol/K, numerically kJ/kmol/K), so the mixer's energy balance had no physical answer. The
-benzene trace was not the cause and S1 stays pure toluene. With core#124 the run converges
-(IPOPT optimal, 3 iterations; energy closure of M100 and P101 within 1e-10 kW).
-Property package: `IDAES ideal VLE` (Raoult's law, ideal gas, IDAES's example component data).
-It is not benchmarked by cheme-as-code (core reports `process-sim-method-unbenchmarked`), so
-the simulated values are a consistency check, not predictive. `IDAES Peng-Robinson` (IDAES's
-smooth VLE kept) still does not converge on the pure-toluene S1. The script's Peng-Robinson
-(thermo, ChemSep kij) is not qualified either (core#315). Simulation vs script (D-006):
+  hydrogen, methane only); on the script's flowsheet every stream from M101 on carries it (the
+  recycle gas S15 1.5e-7 mol/mol, so S5-S7 too), so M101, H101, R101, Q101, E102, V101, SPL1,
+  K101 and SPL2 were refused (reproduced with M101 alone and H101 alone in the boundary);
+- E101 (two-sided exchanger) and the columns are unit kinds the backend does not build.
+- Since D-014, S23 is DWSIM's result and carries 4.7e-9 biphenyl, so M100 and P101 are refused
+  too: on the current flowsheet IDAES can simulate no part of hda-1 without changing a design
+  value. Extending it needs core changes (biphenyl in an IDAES package, a two-sided exchanger, a
+  column), not design changes.
+Convergence: the first IDAES run (2026-11-01) stopped at IPOPT's iteration limit on M100 alone.
+Root cause, found by running core's worker directly, fixed in core#124: (1) IDAES's smooth VLE
+puts the equilibrium temperature between the bubble and dew points with a 5e-4 K smoothing;
+for S1, pure toluene with the worker's 1e-8 benzene trace, the two points are about 3e-7 K
+apart, so a subcooled S1 had no solution (or, smoothed tighter, a free vapour fraction); (2)
+IDAES's `BT_ideal` liquid heat-capacity coefficients were read a thousand times too small
+(labelled J/kmol/K, numerically kJ/kmol/K), so the mixer's energy balance had no physical
+answer. Not the benzene trace itself: S1 stays pure toluene. With core#124 the run converged
+(IPOPT optimal, 3 iterations; M100 and P101 enthalpy closures within 1e-10 kW). core v1.4.0
+does not contain core#124 (expected in 1.4.1).
+Property packages: `IDAES ideal VLE` (Raoult's law, ideal gas, IDAES's example component data)
+is not benchmarked by cheme-as-code (`process-sim-method-unbenchmarked`); `IDAES
+Peng-Robinson` still does not converge on the pure-toluene S1; the script's Peng-Robinson
+(thermo, ChemSep kij) and DWSIM's are not qualified for this mixture either (core#315). The
+comparison is a consistency check between implementations, not a validation.
 
-| Quantity | scripts/hda_balance.py | IDAES ideal VLE | Deviation | Why |
-| --- | --- | --- | --- | --- |
-| S2 temperature (mixed toluene) | 313.70 K | 313.62 K | -0.08 K | ideal vs PR liquid enthalpies |
-| S2/S3 flow, composition | 20454.2 kg/h; TOL 0.996384, BZ 0.003616 | same | 0 | same mass balance |
-| S3 temperature (P101 outlet) | 313.70 K | 314.87 K | +1.17 K | the script neglects the pump's temperature rise (D-010) |
-| Q1 P-101 power | 36.5 kW | 35.51 kW | -2.7 % | the script's 36.5 kW is from 30 kPa(a) (C-203 distillate pump included, D-010); the simulation's is 150 to 3600 kPa(a), scaled to that pressure rise by hand the script's is 36.5 x 3450/3570 = 35.27 kW (+0.7 %: liquid density) |
-| S8 reactor outlet temperature | 936.82 K | out of scope (BIPH) | n/a | |
-| S12/S16 separator split | PR flash | out of scope (BIPH) | n/a | |
-| Q2 K-101 power, Q3-Q4 duties | 229.7, 2956.5, 4926.0 kW | out of scope (BIPH, E101) | n/a | |
+| Quantity | scripts/hda_balance.py | IDAES ideal VLE (118c0de7) | DWSIM PR (D-014) | IDAES - script | Why |
+| --- | --- | --- | --- | --- | --- |
+| S2 temperature | 313.70 K | 313.62 K | 313.75 K | -0.08 K | ideal vs PR liquid enthalpies |
+| S2/S3 flow | 20454.2 kg/h | 20454.2 kg/h | 20454.1 kg/h | 0 | same mass balance |
+| S3 temperature (P-101 outlet) | 313.70 K | 314.87 K | 315.85 K | +1.17 K | the script neglects the pump's temperature rise (D-010) |
+| Q1 P-101 power | 36.5 kW | 35.51 kW | 36.7 kW | -2.7 % | IDAES pumps from 150 kPa(a); the script and DWSIM from 30 kPa(a) (C-203 distillate pump included, D-010, D-014). Scaled by hand to 150-3600 kPa(a) the script's is 36.5 x 3450/3570 = 35.27 kW (IDAES +0.7 %, liquid density) |
+| R-101, V-101, K-101, columns | D-006 | out of scope (BIPH, E101) | D-014 | n/a | |
 
-`cheme process simulate --check` therefore warns `process-sim-deviation` on S3 (temperature)
-and Q1 (duty): kept, because the script's values are the design basis (D-006, D-010) and both
-deviations are explained above.
-Rejected: lumping biphenyl into toluene or deleting it from the template to fit the backend
-(it changes the design's balance and by-product, D-005, D-008); simulating the IDAES tutorial
-case instead (D-001); raising S1's benzene to make the smooth VLE solvable (a design change to
-work around a solver formulation). `scripts/hda_balance.py` stays the source of the stream
-values and the independent cross-check for a later run (with DWSIM, or with IDAES once it
-holds biphenyl and a two-sided exchanger).
+Rejected: replacing D-014's whole-plant DWSIM model by the IDAES feed-section model (it would
+drop a converged, reviewed simulation of the whole plant); lumping biphenyl into toluene or
+dropping its traces to fit the backend (changes the design's balance, D-005, D-008); raising
+S1's benzene to make the smooth VLE solvable (a design change to work around a solver
+formulation).
 
 ## LCI summary (lca/inventory.csv, per kg benzene)
 
@@ -307,7 +413,7 @@ primary data share 0 %. No impact result is claimed.
 | Selectivity correlation | S = 1 - 0.0036/(1 - X)^1.544 | Douglas 1988 | recalled; validity range to verify |
 | Conversion per pass | 0.75 | design choice | ASSUMED |
 | Kinetics | none | - | not used; reactor volume not sized |
-| IDAES HDA examples | none used | issue #42 links | read only as context; no data taken |
+| IDAES HDA examples | none used | issue #302 links | read only as context; no data taken |
 
 ## Source register
 
@@ -317,7 +423,7 @@ primary data share 0 %. No impact result is claimed.
 | Speight (2011) Handbook of Industrial Hydrocarbon Processes, Elsevier | Ch. 11 | via the library skill tech-petchem-aromatics | facts cited only | HDA temperature/pressure range |
 | `chemicals`/`thermo` Python packages (bundled with cheme) | ATcT, CRC, Yaws, HEOS, IUPAC, TRC ideal-gas, ChemSep PR kij | used | MIT; underlying data facts | formation data, critical constants, PR flash |
 | Cox, Wagman, Medvedev (1989) CODATA Key Values | CO2(g), H2O(g) formation enthalpies | recalled values | facts | LHV for allocation |
-| IDAES examples-pse v2.0.0 HDA documentation | URLs in issue #42 | not opened in this run | BSD-style licence of IDAES (to record before any reuse) | context only |
+| IDAES examples-pse v2.0.0 HDA documentation | URLs in issue #302 | not opened in this run | BSD-style licence of IDAES (to record before any reuse) | context only |
 
 ## Method and dependency table
 
@@ -326,9 +432,9 @@ primary data share 0 %. No impact result is claimed.
 | Mass, component, element balances | cheme validate / process streams | closed |
 | Reactor outlet | cheme conversion reactor with selectivity | calculated by cheme |
 | Mixers, splitters, pass-throughs | cheme process propagate | calculated by cheme |
-| Flashes, column splits, duties | scripts/hda_balance.py, PR (thermo) | ASSUMED values; gated by core #315 for qualification |
-| Energy closure in core | `cheme process props --fill` | gated: no package for aromatics + H2 (core #315) |
-| Simulation | `cheme process simulate` (DWSIM) | not run: property regime not qualified (core #315) |
+| Flashes, column splits, duties | `cheme process simulate` (DWSIM 9.0.5, PR), D-014; C-201 duties from scripts/hda_balance.py | calculated; property package not qualified (core#315) |
+| Energy closure in core | `cheme process props --fill` | gated: no package for aromatics + H2 |
+| Simulation | `cheme process simulate` (DWSIM) | converged, whole plant (D-014); property regime not qualified |
 | BFD/PFD build | `cheme process build` | works with class workarounds (D-011) |
 | LCI | `cheme assess lca --inventory/--coverage/--balance` | written; backgrounds open |
 
@@ -346,6 +452,8 @@ primary data share 0 %. No impact result is claimed.
 - I-09 Materials for hot hydrogen service (E-101, H-101, R-101) and reactor lining.
 - I-10 Fugitive emission estimate (needs P&ID component counts) and non-routine emissions.
 - I-11 Background datasets for every LCI exchange (all gaps) and the allocation decision.
+- I-12 A benzene product cooler step (S21 to 313 K) and a stabiliser model whose partial
+  condenser DWSIM solves (a rigorous column with a vapour product), D-014.
 
 ## Missing library registry entries (chemicals/chemicals.yaml, for the consolidated PR)
 

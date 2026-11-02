@@ -1,0 +1,367 @@
+# Tier 0 form, process-library#313 pilot without a flowsheet. Every amount is the formula of its parameters;
+# core's validator re-checks each. The main numbers are a licensor's, marked as such.
+schema: cheme/lci_dataset/v2
+kind: lci_dataset
+id: cumene-zeolite-alkylation
+title: Cumene by zeolite alkylation of benzene with propylene
+description: Tier 0 screening estimate per 1 t of cumene, gate-to-gate, with transalkylation of the polyisopropylbenzenes.
+  Stoichiometry with a licensor's benzene figure and net steam, air emissions from US EPA facility data,
+  electricity from core's Tier 0 default.
+basis: 1000 kg of cumene
+boundary: 'gate-to-gate: alkylation, transalkylation, benzene, cumene and PIPB columns; steam and power
+  from outside'
+technology: zeolite-catalysed alkylation and transalkylation with distillation; SPA and AlCl3 routes are
+  not modelled
+geography:
+  description: 'Mixed: a licensor''s design figures and US facility emissions (2011); no single site.'
+classification:
+  isic: '2011'
+system_boundary:
+  included:
+  - benzene and propylene
+  - net steam and electricity
+  - heavy ends
+  - benzene, propylene and cumene to air
+  excluded:
+  - TODO oily water and vacuum vents (named by the brochure, PDF p. 3, not quantified)
+  - 'TODO other facility air releases in the EPA sheet: not attributable to this process'
+  - 'TODO catalyst: run length up to 8 years, the brochure gives no charge'
+  - 'propane in the propylene feed: polymer-grade feed taken'
+  - 'fuel beyond the steam: the EPA fuel total is facility-wide, see README'
+  - infrastructure
+  cutoff: none applied; the excluded flows are not quantified
+  infrastructure: excluded
+  catalysts: excluded
+  non_routine: excluded
+location: GLO
+year: 2018
+valid_until: 2023
+time:
+  start: 2011
+  description: US emissions of 2011; licensor's figures of a brochure dated 11-2018. valid_until is the
+    reference year + 5 (system-model section 6), so it has already lapsed.
+modelling:
+  principle: attributional
+  multifunctionality: 'single output: no allocation (heavy ends are a residue). DEVIATION from system-model
+    section 2: feed:steam is the licensor''s net figure (HP import less LP export), so it embeds a credit
+    for exported steam, which the cut-off model does not give. Gross import and export are not stated,
+    so it cannot be corrected here and is a lower view of the steam burden.'
+uuid: 68e26c10-57f7-5500-b106-93861112fbc1
+version: 0.1.0
+methodology_version: 1.0.0
+system_model: cutoff
+technology_level: current
+review: unreviewed
+rights: CC-BY-4.0
+data_generator: ChemE-as-Code process library
+parameters:
+- name: cum
+  value: 1000.0
+  unit: kg
+  description: Cumene delivered (the basis).
+  source: basis
+- name: M_CUM
+  value: 120.195
+  unit: g/mol
+  description: Molar mass of cumene.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_B
+  value: 78.114
+  unit: g/mol
+  description: Molar mass of benzene.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_P
+  value: 42.081
+  unit: g/mol
+  description: Molar mass of propylene.
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: M_H
+  value: 204.357
+  unit: g/mol
+  description: Molar mass of triisopropylbenzene (C15H24).
+  source: IUPAC 2021 abridged standard atomic weights (Prohaska et al. 2022, Pure Appl. Chem. 94:573),
+    applied to the formula
+- name: bz
+  value: 651.0
+  unit: kg
+  description: Benzene per t cumene.
+  source: 'Versalis (2018) Cumene: proprietary process technology, licensing brochure 11-2018 (manufacturer),
+    PDF p. 3, main process parameters. A licensor''s figure, not verified plant data'
+- name: steam
+  value: 200.0
+  unit: kg
+  description: 'Net steam per t cumene: HP import less LP export; the pressures are not stated. It embeds
+    a credit for the exported steam, see modelling.multifunctionality.'
+  source: 'Versalis (2018) Cumene: proprietary process technology, licensing brochure 11-2018 (manufacturer),
+    PDF p. 3, utilities consumption and its note (1). A licensor''s figure; the note says the export is
+    used by a downstream phenol plant, so it holds for an integrated site'
+- name: elec
+  value: 333.3
+  unit: kWh
+  description: 'Electricity per t cumene: core''s Tier 0 default, 0.3333 kWh/kg.'
+  source: 'ASSUMED: cheme tier-defaults 1.0.0: electricity [ASSUMED]: 1.2 MJ (0.333 kWh) per kg of product,
+    attributed to the Gendorf (2000) site average that the ecoinvent v2-era chemicals proxies used. ASSUMED,
+    not read in either source: Hischier et al. 2005 (p. 61) names the Gendorf (2000) average as the default
+    but prints no value, and the number could not be confirmed in an open copy of Althaus et al. 2007
+    (ecoinvent report No. 8). Dated: newer ecoinvent proxies rest on later Gendorf reports, so this value
+    may be low for a present-day process. No open cumene figure was read; dated and not specific to this
+    process. TODO source'
+- name: e_b
+  value: 0.0059
+  unit: kg
+  description: Benzene to air per t cumene.
+  source: 'Meyer, Cashman and Gaglione (US EPA), dataset doi:10.23719/1503030, sheet ''Cumene - Allocated''
+    (US 2011 weighted average; 8 facilities report production, and this flow has its own facility count,
+    8 for benzene, 7 for propylene and cumene; public domain; the file says demonstrative, not fully vetted
+    to LCA standards): 5.9e-06 kg/kg. Facility-level reporting, not this process alone'
+- name: e_p
+  value: 0.0078
+  unit: kg
+  description: Propylene to air per t cumene.
+  source: 'Meyer, Cashman and Gaglione (US EPA), dataset doi:10.23719/1503030, sheet ''Cumene - Allocated''
+    (US 2011 weighted average; 8 facilities report production, and this flow has its own facility count,
+    8 for benzene, 7 for propylene and cumene; public domain; the file says demonstrative, not fully vetted
+    to LCA standards): 7.8e-06 kg/kg. Facility-level reporting, not this process alone'
+- name: e_c
+  value: 0.019
+  unit: kg
+  description: Cumene to air per t cumene.
+  source: 'Meyer, Cashman and Gaglione (US EPA), dataset doi:10.23719/1503030, sheet ''Cumene - Allocated''
+    (US 2011 weighted average; 8 facilities report production, and this flow has its own facility count,
+    8 for benzene, 7 for propylene and cumene; public domain; the file says demonstrative, not fully vetted
+    to LCA standards): 1.9e-05 kg/kg. Facility-level reporting, not this process alone'
+exchanges:
+- key: product:cumene
+  title: Cumene, 99.95 wt%
+  type: product
+  amount: 1000.0
+  unit: kg
+  formula: cum
+  provenance: given
+  source: the reference flow; purity from the Versalis brochure, PDF p. 3
+- key: feed:benzene
+  title: Benzene
+  type: input
+  amount: 651.0
+  unit: kg
+  formula: bz
+  provenance: given
+  origin: literature
+  source: 'Versalis (2018) Cumene: proprietary process technology, licensing brochure 11-2018 (manufacturer),
+    PDF p. 3'
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 3
+    - 3
+    - 4
+    reason: 'a licensor''s brochure figure of 2018: reliability 4 (not verified), completeness 4, temporal
+      3, geographical 3, technological 4'
+  basic_uncertainty: 1.05
+- key: feed:propylene
+  title: Propylene
+  type: input
+  amount: 351.87861240502076
+  unit: kg
+  formula: (cum + e_c) * M_P / M_CUM + e_p + (bz - e_b - (cum + e_c) * M_B / M_CUM) * 3 * M_P / M_B
+  provenance: calculated
+  source: 'stoichiometry with the sourced benzene and the model heavy ends; compare 0.352 t/t (Versalis
+    brochure, PDF p. 3): a cross-check'
+  pedigree:
+    scores: &id001
+    - 4
+    - 4
+    - 4
+    - 4
+    - 4
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+- key: feed:electricity
+  title: Electricity
+  type: input
+  amount: 333.3
+  unit: kWh
+  formula: elec
+  provenance: assumed
+  origin: design-rule
+  link:
+    factor: electricity
+    source: grid electricity, medium voltage
+  carrier:
+    kind: electricity
+  source: 'cheme tier-defaults 1.0.0: electricity [ASSUMED]: 1.2 MJ (0.333 kWh) per kg of product, attributed
+    to the Gendorf (2000) site average that the ecoinvent v2-era chemicals proxies used. ASSUMED, not
+    read in either source: Hischier et al. 2005 (p. 61) names the Gendorf (2000) average as the default
+    but prints no value, and the number could not be confirmed in an open copy of Althaus et al. 2007
+    (ecoinvent report No. 8). Dated: newer ecoinvent proxies rest on later Gendorf reports, so this value
+    may be low for a present-day process'
+  pedigree:
+    scores:
+    - 4
+    - 5
+    - 5
+    - 4
+    - 5
+    rule: 'cheme tier-defaults 1.0.0: electricity'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: a dated site-average default, not specific to this process'
+- key: feed:steam
+  title: 'Steam, net of LP export (not a cut-off value: see modelling)'
+  type: input
+  amount: 200.0
+  unit: kg
+  formula: steam
+  provenance: given
+  origin: literature
+  source: 'Versalis (2018) Cumene: proprietary process technology, licensing brochure 11-2018 (manufacturer),
+    PDF p. 3; pressure not stated; a net figure that embeds a credit for exported steam (deviation, see
+    modelling.multifunctionality)'
+  pedigree:
+    scores:
+    - 4
+    - 4
+    - 3
+    - 3
+    - 4
+    reason: 'a licensor''s brochure figure of 2018: reliability 4, completeness 4, temporal 3, geographical
+      3, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: one licensor''s net figure; gross import and export are not stated'
+- key: output:heavy-ends
+  title: Heavy ends (high boilers, usable as fuel)
+  type: output
+  amount: 2.84591240502057
+  unit: kg
+  formula: (bz - e_b - (cum + e_c) * M_B / M_CUM) * M_H / M_B
+  provenance: calculated
+  source: closes the balance; modelled as triisopropylbenzene (ASSUMED; the brochure, PDF p. 4, and LVOC
+    BREF 2.1.1.5, p. 10, only name heavy by-products)
+  pedigree:
+    scores: *id001
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 2.0
+    source: 'ASSUMED: a residual: rounding of the benzene figure alone (0.651 +/- 0.0005 t/t) moves it
+      by about +/- 1.3 kg/t'
+- key: emission:C6H6
+  title: Benzene to air
+  type: emission
+  amount: 0.0059
+  unit: kg
+  formula: e_b
+  provenance: given
+  origin: literature
+  cas: 71-43-2
+  source: Meyer, Cashman and Gaglione (US EPA), dataset doi:10.23719/1503030, sheet 'Cumene - Allocated'
+    (US 2011 weighted average; 8 facilities report production, and this flow has its own facility count,
+    8 for benzene, 7 for propylene and cumene; public domain; the file says demonstrative, not fully vetted
+    to LCA standards)
+  pedigree:
+    scores: *id001
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: a facility-level average; the facility minimum is 0'
+- key: emission:C3H6
+  title: Propylene to air
+  type: emission
+  amount: 0.0078
+  unit: kg
+  formula: e_p
+  provenance: given
+  origin: literature
+  cas: 115-07-1
+  source: Meyer, Cashman and Gaglione (US EPA), dataset doi:10.23719/1503030, sheet 'Cumene - Allocated'
+    (US 2011 weighted average; 8 facilities report production, and this flow has its own facility count,
+    8 for benzene, 7 for propylene and cumene; public domain; the file says demonstrative, not fully vetted
+    to LCA standards)
+  pedigree:
+    scores: *id001
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: a facility-level average; the facility minimum is 0'
+- key: emission:CUM
+  title: Cumene to air
+  type: emission
+  amount: 0.019
+  unit: kg
+  formula: e_c
+  provenance: given
+  origin: literature
+  cas: 98-82-8
+  source: Meyer, Cashman and Gaglione (US EPA), dataset doi:10.23719/1503030, sheet 'Cumene - Allocated'
+    (US 2011 weighted average; 8 facilities report production, and this flow has its own facility count,
+    8 for benzene, 7 for propylene and cumene; public domain; the file says demonstrative, not fully vetted
+    to LCA standards)
+  pedigree:
+    scores: *id001
+    reason: 'ASSUMED part in the amount (see parameters): reliability 4, completeness 4, temporal 4, geographical
+      4, technological 4'
+  basic_uncertainty: 1.05
+  uncertainty:
+    gsd2: 3.0
+    source: 'ASSUMED: a facility-level average; the facility minimum is 0'
+provenance:
+  generator: hand-written model; amounts are the formulas of the parameters
+  notes: No value from a licensed database and none from a DWSIM file (process-library#313).
+generation:
+  tier: 0
+  method: 'Tier 0 stoichiometric screening: stoichiometry with a licensor''s benzene figure; electricity
+    from core''s default; net steam and EPA air emissions as given (no Tier 1: electricity is not sourced
+    and the heat is one licensor''s net figure)'
+  maturity_cap: sourced
+  pedigree_floor:
+  - 4
+  - 4
+  - 3
+  - 3
+  - 4
+  dqr_floor: 3.3333
+  components:
+    product:cumene: C9H12
+    feed:benzene: C6H6
+    feed:propylene: C3H6
+    output:heavy-ends: C15H24
+    emission:C6H6: C6H6
+    emission:C3H6: C3H6
+    emission:CUM: C9H12
+  formulas:
+    product:cumene: C9H12
+    feed:benzene: C6H6
+    feed:propylene: C3H6
+    output:heavy-ends: C15H24
+    emission:C6H6: C6H6
+    emission:C3H6: C3H6
+    emission:CUM: C9H12
+  balance:
+    closed: true
+    tolerance: 1.0e-06
+    elements:
+      C:
+      - 901.901754571
+      - 901.901754571
+      H:
+      - 100.976857834
+      - 100.976857834
+    outside:
+    - feed:electricity
+    - feed:steam
+  defaults: cheme tier-defaults 1.0.0
+  defaults_used:
+  - electricity

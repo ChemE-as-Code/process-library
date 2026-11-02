@@ -8,9 +8,9 @@ the scripts; this file keeps the decisions and where each fact comes from.
 ## Run record (2026-10-28)
 
 - Library: branch `case/aniline-1` from main `11d50ef`; cheme 0.8.0 (pyDEXPI 2.1.0), thermo
-  0.6.1, chemicals 1.5.2; core main at `7bed468` (GitHub API, read only). The core issue
-  "#315" named in the issue is not reachable as `ChemE-as-Code/core#315` with `gh` (pre-release
-  tracker); its status was not checked beyond what `cheme process props --coverage` and
+  0.6.1, chemicals 1.5.2; core main at `7bed468` (GitHub API, read only). Core's property
+  coverage was not checked beyond what
+  `cheme process props --coverage` and
   `cheme maturity` report today (D-012).
 - Scope: design basis, balanced BFD/PFD, preliminary gate-to-gate LCI. Out of scope: P&IDs,
   layout, HAZOP, TEA, datasheets.
@@ -54,7 +54,7 @@ The held-out benchmark of the issue was not searched for.
 | reactor outlet | cheme selectivity reactor (conversion model), element balance | yes (balance); model basis specified, not predictive | none for a concept balance |
 | reactor energy | ideal-gas formation data, `cheme process reactors` (duty -0.8 kW: adiabatic) | yes, ideal gas | - |
 | mixers, splitter, pass-throughs | `cheme process propagate --fill` | yes | - |
-| V-101 vapour-liquid-liquid split | scripts/aniline_balance.py: vapour pressures (thermo) x activities from mutual solubilities | no | polar/activity-coefficient benchmark (core "#315"); `props --coverage`: no package covers aniline |
+| V-101 vapour-liquid-liquid split | scripts/aniline_balance.py: vapour pressures (thermo) x activities from mutual solubilities | no | polar/activity-coefficient benchmark; `props --coverage`: no package covers aniline |
 | decanter, columns | specified splits and duties from enthalpy balances (scripts/aniline_balance.py) | no | same; `cheme process simulate` also refuses P101 (TransportingFluids) |
 | stream enthalpies, energy closure in core | not evaluable (no package) | no | same |
 | LCI | `cheme assess lca` (gate-to-gate, backgrounds unmapped) | yes | backgrounds to link (D-013) |
@@ -137,7 +137,7 @@ cheme calculates the reactor outlet (selectivity reactor), the mixers, the split
 pass-through streams (`cheme process propagate --fill`) and checks every balance.
 Reason: core has no qualified property package for aniline, nitrobenzene and water (polar,
 liquid-liquid; `cheme process props --coverage`), so it cannot flash or simulate these units
-(the issue's core "#315" gate). The script uses the same formation and heat-capacity data as
+(the issue's gate in core). The script uses the same formation and heat-capacity data as
 materials.yaml, so its reactor outlet temperature reproduces cheme's adiabatic duty (-0.8 kW).
 Results: mass in 34 908.5, out 34 908.1 kg/h (molar masses of thermo vs elements); C, H, N, O
 close to 1e-5 kmol/h; plant energy closes to 99.7 % (residual 152 kW = the pump work, not
@@ -222,6 +222,7 @@ as open gaps (not as negligible).
 Reason: the library rule for exported steam (energy or exergy, never a credit); hydrogen-1 is
 the worked example of an unmapped preliminary LCI (ADR 0022: an unmapped exchange of an
 internal process is a reported gap).
+Note 2026-11-01: the owner has since marked all 50 processes public, so this one is no longer internal.
 Results (unallocated per kg aniline): nitrobenzene 1.329 kg, hydrogen 0.0674 kg, electricity
 0.265 kWh, heat to cooling water 1.377 kWh, MP steam export 0.532 kWh, process water 0.388 kg
 (50 ppm aniline, about 0.12 wt% NH3), residue and low boilers 5.2 g, purge 2.8 g, catalyst

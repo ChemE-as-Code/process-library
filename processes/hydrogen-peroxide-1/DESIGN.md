@@ -96,10 +96,10 @@ ASSUMED; cheme calculates the reactor outlets, mixers and pass-through steps (`c
 propagate --fill`) and checks the mass, component and element balances of every block and step.
 Gated steps (core): (1) energy balances: `cheme process energy` reports every block
 not-evaluable, since no benchmarked property package covers the WS, aqueous H2O2 or the
-quinones (only the air streams S08-S10 are inside air-pr-chemsep) - core #315; (2) the
+quinones (only the air streams S08-S10 are inside air-pr-chemsep); (2) the
 extraction C-301 is a specified split: `cheme process extract` is qualified only for the
 water/1-propanol/n-butyl acetate system, and EAQ/TMB/DIBC/H2O2/water has no sourced NRTL set
-here - core #369 (an unqualified calculation would also need parameters we do not have);
+here (an unqualified calculation would also need parameters we do not have);
 (3) `cheme process build` of cheme 0.8.0 fails with a TypeError in `step_method` for a step of
 class `Pumping` (its `method` field is an optional enum); P-101 uses `TransportingFluids`
 instead - to report to core.
@@ -127,7 +127,7 @@ Reason: BREF 12.2.2.4 (crude 20-50 wt%, solvent washing, coalescers, WS drying) 
 Unextracted H2O2 returns to the hydrogenator and is destroyed there (D-005). Result:
 demineralised water 1.19 t/t, inside the BREF 1-2 m3/t (Table 12.4, 12.3.5).
 Open: the extraction recovery and the crude's organics need an equilibrium-stage calculation
-with sourced parameters (core #369).
+with sourced parameters.
 
 ## D-009 Off-gas and vent treatment (2026-10-28)
 Decision: off-gas condenser to 308 K and knock-out (condensate back to the WS tank), then

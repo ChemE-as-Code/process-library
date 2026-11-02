@@ -3,7 +3,7 @@
 # (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
 # exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
 #
-# Every other exchange of this internal process stays unmapped (a reported gap, ADR 0022): NH3,
+# Every other exchange of this process stays unmapped (a reported gap, ADR 0022): NH3,
 # GOX, sulfuric acid, demineralised water, cooling water and the three catalysts. The background
 # each should connect to is described in lca/lca.yaml (`missing:`), DESIGN.md D-011.
 schema: cheme-as-code/lci-process-mappings/v1
@@ -21,3 +21,11 @@ exchanges:
   "feed:STEAMD":
     atlas: false
     source: "direct LP steam supplier undecided (site boiler, processes/utility-steam-ng-boiler, or a site network) (D-003, D-008)"
+  # Mapping step of 2026-11-01 (ADR 0026): each entry below uses a reference the library already
+  # holds. Notes above that call these exchanges unmapped describe the state before it. What is
+  # still unmapped is a gap (lci/gaps.json), and this process is marked preliminary.
+  "feed:ACID": {dataset: {path: processes/sulfuric-acid-1/lca/dataset.yaml, product: "product:ACID"}, source: "the Atlas producer sulfuric-acid-1, sulfuric acid 98.5 wt%, the grade and route this feed names"}
+  "feed:GOX": {dataset: {path: processes/asu-1/lca/dataset.yaml, product: "product:GOXP"}, source: "the Atlas producer asu-1, GOX (99.7 mol% O2); its 31 bar(a) is not reduced to this feed's pressure; the feed is 99.5 mol%"}
+  "feed:NH3": {use: ammonia, source: "anhydrous liquid ammonia, the shared background entry; the design names no plant, so no Atlas producer is chosen"}
+  "consumable:pt-catalyst-loss": {use: platinum, source: "platinum lost, counted as the metal"}
+  "consumable:pt-rh-gauze-loss": {use: pt-rh-gauze, source: "Pt/Rh gauze metal lost, as nitric-acid-1 counts it"}

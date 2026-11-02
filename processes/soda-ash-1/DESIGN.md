@@ -8,11 +8,11 @@ Run record of this stage (2026-10-27): library branch `case/soda-ash-1` from `79
 cheme-as-code 0.8.0 (pyDEXPI 2.1.0), Python 3.15.0; DWSIM not used; Cantera not available
 (no build for Python 3.15: `uv pip install cantera` failed in CMake), so `cheme process
 furnace` runs its specific-energy fallback. Core dependencies as stated in #177 (not
-re-audited against core main in this run): core #364 adds an electrolyte route for aqueous
+re-audited against core main in this run): core adds an electrolyte route for aqueous
 NaCl only, so NH3-CO2-NaCl-NH4Cl-CaCl2 liquors stay unsupported (phase and DWSIM routes refuse
-them); core #365 supports one-solute crystallizers and solid separations (not used:
+them); core supports one-solute crystallizers and solid separations (not used:
 the towers precipitate NaHCO3 from a reciprocal four-salt system, which stays at
-imposed yield); core #370 (solid-reaction furnace energy) is gated here by Cantera.
+imposed yield); core's solid-reaction furnace energy is gated here by Cantera.
 
 ## 1. Route and boundary memo
 
@@ -67,7 +67,7 @@ Reason: mixed-feed shaft kilns give the CO2-rich kiln gas (here about 37 mol%) t
 need; the heat use is mid-range of the lime BREF's typical range for this kiln type (3.4-4.7
 GJ/t, JRC 2013 Table 2.23, via cheme's packaged table). Combustion is complete (C + O2), as
 the furnace module assumes. All ASSUMED.
-Gated: the furnace energy closure (core #370 route) waits for Cantera; then switch to
+Gated: the furnace energy closure (core's furnace route) waits for Cantera; then switch to
 `method: energy-balance` with the same fuel, air and losses, and compare.
 
 ## D-005 Limestone and coke (2026-10-27)
@@ -99,7 +99,7 @@ Result per t soda ash: brine 5.78 t (NaCl 1.50 t), limestone 1.08 t, coke 87.6 k
 2.0 kg, process water 3.48 t, LP steam 1.88 t; distiller waste 11.19 t (CaCl2 1.04 t, NaCl
 0.40 t), vent 1.11 t with 306 kg CO2. Plant element balances close to rounding (worst unit
 7e-12 kmol/h; mass to the molar-mass rounding, < 1 kg/h).
-Rejected: a crystallizer (core #365) for the towers; it treats one solute in one solvent, and
+Rejected: a crystallizer for the towers; it treats one solute in one solvent, and
 NaHCO3 here precipitates from a four-salt system whose yield is the sodium utilisation.
 Sanity checks against independent figures (cross-checks only, not inputs): vented CO2 200-300
 kg/t (EMEP/EEA air pollutant emission inventory guidebook, chapter 2.B.7 soda ash): ours, 306
@@ -117,7 +117,7 @@ heats of reaction from standard formation enthalpies (NBS tables, Wagman et al. 
 aqueous species at infinite dilution, recalled for this concept stage and marked ASSUMED
 until checked against the table.
 Reason: the liquors are concentrated electrolytes (NaCl, NH4Cl, NH4HCO3, CaCl2 with NH3 and
-CO2): neither the phase routes nor DWSIM may compute them (core #364 covers aqueous NaCl
+CO2): neither the phase routes nor DWSIM may compute them (core's electrolyte support covers aqueous NaCl
 only); solids have no package. `cheme process props --coverage` covers no stream.
 Evidence to gather next (`process/reaction-evidence.yaml`, skill reaction-evidence-search):
 NaCl-NH4Cl-NaHCO3-NH4HCO3 solubility data (sodium utilisation vs temperature and NH3/CO2
@@ -135,7 +135,7 @@ the distiller heat balance: 78.5 t/h); HP steam 3000 kPa(a) to the calciner (28.
 returned); electric drives. Kiln, slaker and distiller exchange no heat with a utility
 (`process/simulation.yaml` declares them adiabatic for the boundary check). All ASSUMED.
 Gated: `cheme process energy` evaluates no energy balance (no stream enthalpies: no property
-package for electrolytes and solids, core #364/#365); the duties stay a script estimate.
+package for electrolytes and solids); the duties stay a script estimate.
 
 ## D-009 Lists (2026-10-27)
 Decision: one equipment item per PFD step, one line per material stream; no trains, spares,
@@ -174,7 +174,7 @@ electricity, steam, cooling-water).
   losses, excess lime) with exact locators; the Ullmann chapter and the LVIC-S BREF are leads
   not read in this run.
 - Kiln energy balance: needs Cantera in cheme's interpreter (D-004).
-- Electrolyte thermodynamics (core #364) for the absorber, towers and distiller; the
+- Electrolyte thermodynamics for the absorber, towers and distiller; the
   reciprocal-salt equilibrium for a predicted sodium utilisation.
 - Energy closure in core (stream enthalpies of liquors and solids).
 - Site, steam and power supply (decides the backgrounds), coke sulfur and kiln emissions.

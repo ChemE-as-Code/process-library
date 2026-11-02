@@ -1,7 +1,7 @@
 """Independent heat and material balance of the methanol loop and purification (DESIGN.md D-006).
 
 This is NOT a cheme-as-code calculation. Core cannot yet qualify the property regime of this
-plant (core #315: no benchmarked package for syngas with methanol and water, hot converter gas
+plant (no benchmarked package for syngas with methanol and water, hot converter gas
 with CO above 500 K, or liquid methanol-water; DWSIM PR/NRTL are benchmarked only for N2/O2/Ar
 and ethanol-water). Its results go into process/flowsheet.yaml as `assumed` values with this
 script as their source, and cheme checks them: mass and element balances, the reaction
@@ -320,3 +320,33 @@ for k, (n, t, p) in S.items():
 for k, (n, t, p) in S.items():
     rho, vf, v, d_mm, dn = line_size(n, t, p)
     print(f"# line {k}: rho {rho:.2f} kg/m3, vapour fraction {vf:.3f}, {v} m/s -> d {d_mm:.0f} mm, DN{dn}")
+
+# ---- the values process/flowsheet.yaml cites from this script (balance-output contract). The
+# script's duty keys predate the flowsheet's tags: its E104 (make-up aftercooler) is the
+# flowsheet's E-101, its E101/E102 (feed/effluent exchanger, trim cooler) are E-102/E-103.
+FLOWSHEET = {k: {"flow": mass(n), "temperature": t, "pressure": p,
+                 "composition": {c: n[c] / tot(n) for c in C}} for k, (n, t, p) in S.items()}
+for sid, key in {"Q1": "K101", "Q2": "E104", "Q3": "K102", "Q4": "R101", "Q5": "E102",
+                 "Q6": "T101R", "Q7": "T101C", "Q8": "T102R", "Q9": "T102C"}.items():
+    FLOWSHEET[sid] = {"duty": D[key]}
+
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
+
+
+write_balance_output({"design": FLOWSHEET})

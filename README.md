@@ -9,12 +9,28 @@
   <a href="https://atlas.cheme-as-code.org"><img src="https://img.shields.io/badge/Process_Atlas-atlas.cheme--as--code.org-0b7285" alt="Process Atlas"></a>
   <a href="https://docs.cheme-as-code.org"><img src="https://img.shields.io/badge/Docs-docs.cheme--as--code.org-6f42c1" alt="Docs"></a>
   <a href="LICENSE-DATA"><img src="https://img.shields.io/badge/Data-CC_BY_4.0-lightgrey" alt="Data licence: CC BY 4.0"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/Code-MIT-green" alt="Code licence: MIT"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/Code-AGPL--3.0--or--later-blue" alt="Code licence: AGPL-3.0-or-later"></a>
   <img src="https://img.shields.io/badge/Python-3.12%20%7C%203.13%20%7C%203.14-3776ab" alt="Python 3.12, 3.13, 3.14">
   <a href="https://github.com/ChemE-as-Code/process-library/actions/workflows/validate.yml"><img src="https://github.com/ChemE-as-Code/process-library/actions/workflows/validate.yml/badge.svg" alt="Validate"></a>
   <a href="https://github.com/ChemE-as-Code/process-library/actions/workflows/docs.yml"><img src="https://github.com/ChemE-as-Code/process-library/actions/workflows/docs.yml/badge.svg?event=pull_request" alt="Docs build"></a>
   <img src="https://img.shields.io/badge/status-research_preview-orange" alt="Status: research preview">
 </p>
+
+> **AI-generated research output, not engineering advice.** These designs were produced by AI
+> coding agents (Claude Code) under human direction and are checked by automated tools; they
+> have had no independent human review. They are not approved for construction, operation,
+> procurement or safety decisions and come with [no warranty](LICENSE-DATA). Check the design
+> maturity and review status in each process's `process.yaml` before relying on any number.
+
+<p align="center">
+  <img src=".github/readme/demo.gif" alt="Screen recording: the brief an AI agent got, the ammonia design from the library and the footprint from ASU-1" width="720"><br>
+  <em>Ammonia design from the library, footprint from ASU-1. AI-generated research output, concept stage.</em>
+</p>
+
+50 processes, 182 recorded agent runs in 43 of them, about US$650 of recorded agent cost; 49 at
+concept stage and 1 at screening, none independently reviewed. The figure counts recorded runs only
+(`processes/*/runs/*/run.yaml`), with costs as the runs reported them: one run records no cost, and
+agent work outside a recorded run is not included.
 
 ## Overview
 
@@ -28,11 +44,11 @@ P&IDs and a 3D layout. The [home page](https://cheme-as-code.org) explains what 
 engineering as code" means.
 
 The library is the source of the [Process Atlas](https://atlas.cheme-as-code.org) (a preview;
-processes appear there as they pass review), which links the processes through the chemicals
+it shows the processes marked public, which is all 50, as unreviewed research output), which links the processes through the chemicals
 they make and use. From the same files it builds open life cycle inventory (LCI) datasets for
 [Brightway](https://docs.brightway.dev) and openLCA. All of it is plain text in git, so every
 change is reviewed and versioned. This is research software
-in active development: research output, not engineering advice.
+in active development.
 
 <p align="center">
   <img src=".github/readme/atlas.png" alt="A process page of the Process Atlas" width="820">
@@ -61,8 +77,9 @@ in active development: research output, not engineering advice.
 
 The [Process Atlas](https://atlas.cheme-as-code.org) shows the published processes. To open
 every plant of the library in the ChemE-as-Code Viewer on your own machine (`cheme serve` in
-library mode, core 1.1.0 or later), you need [uv](https://docs.astral.sh/uv/), Node.js and access
-to the private ChemE-as-Code repositories:
+library mode, core 1.1.0 or later), you need [uv](https://docs.astral.sh/uv/) and Node.js.
+core is still a private repository: until it opens, the install below needs read access to it.
+core installs pyDEXPI from PyPI.
 
 ```sh
 git clone https://github.com/ChemE-as-Code/core.git && uv tool install './core[serve]'
@@ -71,7 +88,9 @@ git clone https://github.com/ChemE-as-Code/process-library.git && cd process-lib
 cheme serve --repo . --ui ../core/viewer/dist   # http://127.0.0.1:8765, each plant under /p/<id>/
 ```
 
-To work on one process, run `cheme` in its folder (`cd processes/asu-1`). To add a process, copy
+To work on one process, run `cheme` in its folder (`cd processes/asu-1`). The agent skills are not
+in git: run `cheme skills update` once in a process folder after cloning, so that Claude Code finds
+them there. To add a process, copy
 `templates/process/` and follow [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Documentation
@@ -88,8 +107,10 @@ To work on one process, run `cheme` in its folder (`cd processes/asu-1`). To add
 
 ## Citation
 
-Both papers are in preparation and their titles are working titles. If you use the library,
-please cite the Process Atlas paper, and ChemE-as-Code for the toolkit. See also
+Both papers are in preparation and their titles are working titles; neither has a DOI yet. If you
+use the library, please cite the Process Atlas paper, and ChemE-as-Code for the toolkit. If you use
+the LCI database, cite the Process Atlas paper (in preparation, 2026), by Artur M. Schweidtmann and
+Jana M. Weber, and the database version. See also
 [cheme-as-code.org/about/cite](https://cheme-as-code.org/about/cite/).
 
 ```bibtex
@@ -116,6 +137,9 @@ please cite the Process Atlas paper, and ChemE-as-Code for the toolkit. See also
 |---|---|---|
 | <img src=".github/readme/schweidtmann.jpg" alt="Artur M. Schweidtmann" width="50"> | [Artur M. Schweidtmann](https://www.pi-research.org/author/artur-schweidtmann/) ([LinkedIn](https://www.linkedin.com/in/schweidtmann/)) | ChemE-as-Code and Process Atlas (principal investigator); Process Intelligence Research, Department of Chemical Engineering, Delft University of Technology |
 | <img src=".github/readme/weber.jpg" alt="Jana M. Weber" width="50"> | Jana M. Weber | Process Atlas; Delft Bioinformatics Lab, Department of Computer Science, Delft University of Technology |
+| <img src=".github/readme/alimin.png" alt="Achmad A. Alimin (Angga)" width="50"> | Achmad A. Alimin (Angga) | Safety and HAZOP; layout STL export; Process Intelligence Research, Department of Chemical Engineering, Delft University of Technology |
+| <img src=".github/readme/rupprecht.jpg" alt="Sophia Rupprecht" width="50"> | Sophia Rupprecht | Inherited thermodynamic model selection, phase calculations, units and skills; design case study; Process Intelligence Research, Department of Chemical Engineering, Delft University of Technology |
+| <img src=".github/readme/elise.jpg" alt="Elise van Voorbergen" width="50"> | [Elise van Voorbergen](https://www.pi-research.org/people/elise-van-voorbergen/) | Inherited reaction identification, kinetics retrieval, filtering and unit conversion |
 
 Everyone who contributes is credited in the git history: see the
 [contributors of this repository](https://github.com/ChemE-as-Code/process-library/graphs/contributors).
@@ -123,8 +147,10 @@ Everyone who contributes is credited in the git history: see the
 ## License
 
 The process data and designs are licensed under [CC BY 4.0](LICENSE-DATA), unless a process
-states otherwise in its `process.yaml`; third-party data keep their own terms. The code
-(scripts, schemas, the Python package and the tests) is licensed under the [MIT License](LICENSE).
+states otherwise in its `process.yaml`; third-party data keep their own terms. The code (scripts,
+schemas and tests) and the skills and scripts inside process folders are licensed under
+[AGPL-3.0-or-later](LICENSE). The one exception is the small LCI data installer in `python/`, which
+is under the [MIT License](python/LICENSE) so that you can use it in any workflow.
 Copyright (C) 2026 Artur Schweidtmann; TU Delft disclaims copyright interest (see [NOTICE](NOTICE)).
 
 ## Contact

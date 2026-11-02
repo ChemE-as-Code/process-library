@@ -34,8 +34,12 @@ facets:
   product_classes: [chemicals]
   unit_operations: [reaction, decantation, distillation, reactive-distillation, evaporation]
   region: generic
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/hydrazine-1
+  access: public
 publication:
-  status: internal
+  status: public
   license: CC-BY-4.0
 # Honest claim: concept is the lowest level of the manifest; cheme maturity reaches no level
 # (feed flows derive from an assumed capacity, the reactor and separator specifications are
@@ -44,28 +48,32 @@ maturity: concept
 validation:
   status: unreviewed
   notes: >-
-    Concept PFD (4 blocks, 11 steps, 3 recycle loops: MEK, working solution, ammonia; water
-    loop in hydrolysis) with closed mass, component and element balances (cheme validate, cheme
+    Concept PFD (4 blocks, 11 steps, 3 recycle loops: MEK, working solution, ammonia; water loop
+    in hydrolysis) with closed mass, component and element balances (cheme validate, cheme
     process streams: every block and step ok); reactor outlets calculated by cheme from
     selectivity/conversion specifications, every separator specified (scripts/balance.py).
-    Consumptions per kg N2H4: H2O2 (100 %) 1.25 kg (85 % azine yield on H2O2, patent range 81
-    to about 90 %; 1.32 kg at 81 %, 1.12 kg at 95 %), NH3 1.13 kg, MEK make-up 0.12 kg. The
-    reactor and decanter headspaces are inerted with 0.32 kg N2 per kg hydrate (O2 at most 8
-    mol% in the vent, ASSUMED). Steam 8.2 kWh per kg hydrate, of which the working-solution
-    regeneration (a single patent example, scaled) is 55 %; the hydrolysis column steam is a
-    lower bound (hydrolysis heat not counted), a high variant adds up to 1.1 kWh of MP steam
-    per kg hydrate (+18 % MP steam). No energy
-    balance: no property package covers the aqueous hydrazine/MEK/amide mixture (cheme process
-    props --coverage). cheme maturity reaches no level. The LCI is foreground only, every
-    background a gap (15 gaps plus 2 uncharacterised emissions): no impact result (lca.source
-    none). Not reviewed. The chemicals registry has no hydrazine, hydrogen peroxide, ammonia,
-    MEK, acetic acid, 2-butanol or sodium phosphate entry yet, so those flows are not listed
-    under chemistry (DESIGN.md I-09).
+    Consumptions per kg N2H4: H2O2 (100 %) 1.25 kg (85 % azine yield on H2O2, patent range 81 to
+    about 90 %; 1.32 kg at 81 %, 1.12 kg at 95 %), NH3 1.13 kg, MEK make-up 0.12 kg. The reactor
+    and decanter headspaces are inerted with 0.32 kg N2 per kg hydrate (O2 at most 8 mol% in the
+    vent, ASSUMED). Steam 8.2 kWh per kg hydrate, of which the working-solution regeneration (a
+    single patent example, scaled) is 55 %; the hydrolysis column steam is a lower bound
+    (hydrolysis heat not counted), a high variant adds up to 1.1 kWh of MP steam per kg hydrate
+    (+18 % MP steam). No energy balance: no property package covers the aqueous
+    hydrazine/MEK/amide mixture (cheme process props --coverage). cheme maturity reaches no
+    level. The LCI is foreground only, every background a gap (15 gaps plus 2 uncharacterised
+    emissions): no impact result (lca.source none). Not reviewed. Main products and feeds are
+    listed under chemistry with their chemicals registry entries (issue #251).
 chemistry:
   inputs:
-    - {chemical: water, role: feedstock, inventory_key: "feed:DW", note: "Demineralised make-up water to the azine hydrolysis, 1.45 kg per kg hydrate. The reactants hydrogen peroxide (feed:H2O2, from hydrogen-peroxide-1), ammonia (feed:NH3F, from ammonia-1) and MEK (feed:MEKF) and the make-up acetic acid and disodium phosphate have no registry entry yet"}
+    - {chemical: hydrogen-peroxide, role: feedstock, note: "feed:H2O2: hydrogen peroxide 70 wt% (e.g. hydrogen-peroxide-1), counted by mass of the solution"}
+    - {chemical: ammonia, role: feedstock, note: "feed:NH3F: liquid ammonia (e.g. ammonia-1), 0.724 kg/kg hydrate"}
+    - {chemical: butanone, role: feedstock, note: "feed:MEKF: MEK make-up"}
+    - {chemical: acetic-acid, role: feedstock, note: "feed:ACOHF: acetic acid make-up"}
+    - {chemical: disodium-hydrogen-phosphate, role: feedstock, note: "feed:PHOSF: disodium phosphate make-up"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:DW", note: "Demineralised make-up water to the azine hydrolysis, 1.45 kg per kg hydrate"}
   outputs:
-    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Reaction and peroxide water after ammonia recovery, 2.2 kg per kg hydrate. The product hydrazine hydrate (product:HH, main) has no registry entry yet"}
+    - {chemical: hydrazine, role: main-product, inventory_key: "product:HH", note: "Hydrazine hydrate, 64 wt% N2H4, counted by mass of the hydrate"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Reaction and peroxide water after ammonia recovery, 2.2 kg per kg hydrate"}
     - {chemical: oxygen, role: emission, inventory_key: "product:VENT", note: "Reactor off-gas: O2 from peroxide decomposition and N2 from the 2-butanol side reaction, with traces of NH3 and MEK"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.05 kWh per kg hydrate, ASSUMED hand estimate (pumps, agitators)"}

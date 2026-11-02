@@ -4,6 +4,7 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-11-01 | .gitignore, lca/dataset.yaml, lca/lca.yaml, DESIGN.md D-014 | LCI dataset committed and in the Atlas build, feed:CO2 and emission:UREA listed as gaps; supersedes D-013 | #308: an unmapped exchange is now a listed gap, not an error (ADR 0022, ADR 0026) |
 | 2026-10-27 | DESIGN.md, lca/, process.yaml, design-basis.yaml, reactions.yaml | responses to review 2026-10-27-pfd-lci-review (below) | independent review, medium and low findings |
 | 2026-10-27 | .gitignore, lca/dataset.yaml (untracked), DESIGN.md D-013 | LCI dataset no longer committed until lci/mappings.yaml maps its exchanges | PR #193 CI: `build_lci.py --strict` and two library tests refused 5 unmapped exchanges (8d94172) |
 | 2026-10-27 | DESIGN.md, process.yaml, design-basis.yaml, equipment list | route/boundary memo, source register, basis table, decisions D-001..D-012, manifest (internal, concept, unreviewed), 18 PFD items | issue #120 concept scope |

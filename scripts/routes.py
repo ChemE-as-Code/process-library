@@ -7,7 +7,7 @@ dataset whose reference product is that substance. Everything is read from what 
 already has; nothing is estimated here:
 
 - the route: the process's ``maturity`` and ``validation``, the dataset's ``technology``, tier
-  (core#182 ``generation.tier`` and ``method``; none for a dataset derived from a flowsheet or
+  (``generation.tier`` and ``method``; none for a dataset derived from a flowsheet or
   written by hand), review records, geography (``location``, else the manifest's
   ``facets.region``), year, system model, boundary and allocation;
 - the reference product: its registry grade (``registry.flow_grade``) and the state the dataset
@@ -175,8 +175,14 @@ def _footprint(detail: dict, folder: Path, study_applies: bool) -> dict | None:
     if "values_withheld" in lca:
         out["values_withheld"] = lca["values_withheld"]
         return out
-    value = (lca.get("totals") or {}).get("baseline", {}).get(first["id"])
+    # the catalog's rule for the headline (ADR 0026, ADR 0029): no footprint is never a 0
+    not_computed = first["id"] in (lca.get("not_computed") or [])
+    value = None if not_computed else (lca.get("totals") or {}).get("baseline", {}).get(first["id"])
     out["value"] = value
+    out["not_computed"] = not_computed
+    if not_computed:
+        missing = (lca.get("no_total") or {}).get("baseline", {}).get(first["id"])
+        out["not_computed_reason"] = missing["reason"] if missing else "nothing-characterised"
     out["interval"] = _uncertainty(folder, first["id"]) if value is not None else None
     return out
 

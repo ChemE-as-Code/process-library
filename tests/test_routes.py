@@ -50,7 +50,9 @@ def _edit(path: Path, change) -> None:
 
 def test_two_routes_to_one_product_per_the_same_functional_unit(tmp_path: Path) -> None:
     report = build_catalog.build(ROUTES, tmp_path / "out", None, commit="fixture")
-    assert report.errors == [] and report.warnings == []
+    # route-smr's deliberate apos fails the cut-off LCI build, so preliminary cannot be marked
+    (warning,) = report.warnings
+    assert report.errors == [] and "preliminary processes cannot be marked" in warning and "system_model 'apos'" in warning
     data = json.loads((tmp_path / "out" / "routes.json").read_text())
     assert data["schema"] == "cheme-as-code/catalog/v1" and data["mode"] == "preview"
     assert "critical review" in data["critical_review"] and set(data["criteria"]) == {
@@ -80,7 +82,7 @@ def test_two_routes_to_one_product_per_the_same_functional_unit(tmp_path: Path) 
     assert (smr["tier"], smr["tier_method"], smr["geography"], smr["year"], smr["maturity"]) == (1, "sourced conceptual (fixture)", "GLO", 2025, "screening")
     assert pem["review"] == smr["review"] == ["none"]
     # the footprint where the catalog has one, with its interval; the manifest-only route has none
-    assert pem["footprint"]["value"] == 11.0 and pem["footprint"]["functional_unit"] == "1 kg H2"
+    assert pem["footprint"]["value"] == 11.0 and pem["footprint"]["functional_unit"] == "1 kg hydrogen, gaseous, 30 bar"
     assert pem["footprint"]["interval"] == {"low": 8.2, "median": 11.1, "high": 15.9, "level": 0.95, "iterations": 500, "source": "lca/uncertainty.csv"}
     assert smr["footprint"] is None
     assert pem["data_quality"]["dqr"] == 2.3333 and smr["data_quality"] is None
@@ -145,7 +147,7 @@ def test_another_functional_unit_is_flagged_and_the_inventory_converted(routes_c
     assert routes["route-electrolysis"]["inventory"]["functional_unit"] == "1 kg"
     assert routes["route-electrolysis"]["inventory"]["energy"][0]["amount"] == 55.0
     # its footprint stays per its own functional unit (never converted)
-    assert routes["route-electrolysis"]["footprint"]["functional_unit"] == "1 t H2"
+    assert routes["route-electrolysis"]["footprint"]["functional_unit"] == "1 t hydrogen, gaseous, 30 bar"
 
 
 def test_another_grade_is_a_product_mismatch(routes_copy: Path, tmp_path: Path) -> None:
@@ -165,8 +167,10 @@ def test_a_route_without_a_dataset_is_listed_without_numbers(routes_copy: Path, 
     assert {(f["criterion"], f["status"]) for f in smr["flags"]} >= {("functional_unit", "unknown"), ("system_model", "unknown")}
 
 
-def test_public_build_keeps_a_publishable_footprint_with_its_interval(tmp_path: Path) -> None:
-    data = _routes(ROUTES, tmp_path / "pub", public=True)
+def test_public_build_keeps_a_publishable_footprint_with_its_interval(routes_copy: Path, tmp_path: Path) -> None:
+    # a public catalog needs the LCI build to mark preliminary processes; apos fails it
+    _edit(routes_copy / "processes/route-smr/lca/datasets/smr.yaml", lambda d: d.update(system_model="cutoff"))
+    data = _routes(routes_copy, tmp_path / "pub", public=True)
     assert data["mode"] == "public"
     pem = _by_process(_group(data, "hydrogen"))["route-electrolysis"]
     assert pem["footprint"]["value"] == 11.0 and pem["footprint"]["interval"]["high"] == 15.9
@@ -195,3 +199,22 @@ def test_a_co_product_of_a_multi_output_dataset_gets_no_unallocated_inventory(tm
     hydrogen = _by_process(_group(data, "hydrogen"))["fixture-electrolysis"]
     assert hydrogen["inventory"]["basis"].endswith("the other products (product:O2) carry none")
     assert _group(data, "hydrogen")["comparable"] is None  # one route: nothing to compare
+
+
+def test_a_gap_only_footprint_is_null_with_its_reason(routes_copy: Path, tmp_path: Path) -> None:
+    # issue #250 (ADR 0029): core's total of 0 for a category whose every contribution is a gap
+    # is no footprint
+    lca = routes_copy / "processes" / "route-electrolysis" / "lca"
+    (lca / "results.csv").write_text(
+        "scenario,category,category_unit,key,basis,quantity,unit,factor,impact,share,phase,status,source,year\n"
+        "baseline,climate-change,kg CO2-eq,total,,,,,0,,,,,\n"
+    )
+    (lca / "gaps.csv").write_text(
+        "scenario,category,key,reason,quantity,unit,phase,detail\n"
+        "baseline,climate-change,feed:POWER,missing,55,kWh,operation,background to link\n"
+    )
+    pem = _by_process(_group(_routes(routes_copy, tmp_path / "out"), "hydrogen"))["route-electrolysis"]
+    assert pem["footprint"]["value"] is None and pem["footprint"]["interval"] is None
+    assert pem["footprint"]["not_computed"] is True
+    assert pem["footprint"]["not_computed_reason"] == "every-contribution-a-gap"
+    assert pem["footprint"]["factors_status"] == "none"

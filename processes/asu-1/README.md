@@ -1,5 +1,11 @@
 # ASU-1 (500 t/d GOX)
 
+> **AI-generated research output, not engineering advice.** This design was produced by AI coding
+> agents (Claude Code) under human direction and is checked by automated tools; it has had
+> no independent human review. It is not approved for construction, operation, procurement or
+> safety decisions and comes with no warranty. Check the design maturity and review status in
+> `process.yaml` before relying on any number.
+
 A plant design kept as plain files in git: DEXPI 2.0.1 P&IDs in `pid/`, engineering lists as
 YAML, decisions and progress as Markdown. Edited by people and by coding agents (Claude Code),
 checked by [`cheme-as-code`](https://github.com/ChemE-as-Code/core).
@@ -17,7 +23,7 @@ checked by [`cheme-as-code`](https://github.com/ChemE-as-Code/core).
 | `reviews/` | review records |
 | `DESIGN.md`, `PROGRESS.md`, `STAGES.md` | decisions, change log, stage definitions |
 | `scripts/` | generator scripts: the source of generated sheets (`generator:` in `plant.yaml`), provenance for the others |
-| `.claude/skills/` | how an agent works here |
+| `.claude/skills/` | how an agent works here (not in git: run `cheme skills update` once after cloning) |
 
 ## LCA results and what they compare
 
@@ -36,14 +42,15 @@ UK (DESNZ) factors in all three.
 
 The NL and DE values are screening sensitivities of the grid, not like-for-like country
 footprints, and nothing here has independent industrial validation (DESIGN.md D-107, D-110).
-The verdicts follow core's comparison basis (core#318); the generated records carry them once
+The verdicts follow core's comparison basis; the generated records carry them once
 regenerated after it is merged.
 
 ## Working here
 
 ```sh
-uv tool install cheme-as-code           # once (see the cheme-as-code README while it is private)
+uv tool install 'cheme-as-code[serve] @ git+https://github.com/ChemE-as-Code/core.git'   # once (see the cheme-as-code README)
 cheme git-setup                 # once per clone: readable P&ID diffs + pre-commit hook
+cheme skills update             # once per clone: installs the agent skills in .claude/skills/
 cheme status                    # where the plant stands: sheets, findings, gates, sign-offs
 cheme validate                  # after every change
 cheme fmt                       # canonical XML, stable ids

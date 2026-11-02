@@ -22,7 +22,7 @@ description: |
   All values are concept estimates. The reactor outlets and the burner duty are calculated by
   cheme (a sourced conversion for the burner, ideal-gas equilibrium for the finishing bed); the absorber and scrubber are specified values from an
   independent balance script, and the acid's enthalpy rests on an assumed heat of solution
-  because no ChemE-as-Code property method covers HBr-water yet (core #364). See DESIGN.md of
+  because no ChemE-as-Code property method covers HBr-water yet. See DESIGN.md of
   the engineering files for every assumption and gated step.
 families: [inorganic-chemicals]
 keywords: [hydrogen bromide, hydrobromic acid, HBr synthesis, bromine, burner, activated carbon, graphite absorber, falling-film absorption, tail gas scrubber, hydrogen]
@@ -38,25 +38,26 @@ validation:
   status: unreviewed
   notes: >-
     Concept PFD with closed mass, component and element balances (cheme validate, cheme process
-    streams). The burner and finishing-bed outlets are calculated by cheme (99.97 %
-    Br2 conversion in the flame from US 3 988 427 A; the carbon bed as an ideal-gas equilibrium
+    streams). The burner and finishing-bed outlets are calculated by cheme (99.97 % Br2
+    conversion in the flame from US 3 988 427 A; the carbon bed as an ideal-gas equilibrium
     reactor, K = 1.1e13 at 448 K, leaving a Br2 mole fraction of 4e-12); cheme maturity reaches
-    no level (assumed feed flows, specified absorber and scrubber splits); cheme's burner duty (166.4 kW) equals
-    the independent script's. The absorber, the scrubber and the acid's heat of solution are
-    specified or ASSUMED values: no property package covers Br2/HBr gas or HBr-water
-    (core #364), so energy closure is not evaluable in core. The preliminary gate-to-gate LCI
-    closes in mass and in Br and H; every background is a gap. Not reviewed. The chemicals
-    registry has no hydrogen-bromide / hydrobromic-acid or bromine entry yet, so the main
-    product and the bromine feed are not listed under chemistry (open library item).
+    no level (assumed feed flows, specified absorber and scrubber splits); cheme's burner duty
+    (166.4 kW) equals the independent script's. The absorber, the scrubber and the acid's heat
+    of solution are specified or ASSUMED values: no property package covers Br2/HBr gas or
+    HBr-water, so energy closure is not evaluable in core. The preliminary gate-to-gate LCI
+    closes in mass and in Br and H; every background is a gap. Not reviewed. Main products and
+    feeds are listed under chemistry with their chemicals registry entries (issue #251).
 chemistry:
   inputs:
+    - {chemical: bromine, role: feedstock, note: "feed:BR2, liquid bromine (e.g. bromine-1), 0.988 kg per kg HBr"}
     # no inventory_key on the feeds: the Atlas build would link them by their registry slug;
     # every background stays a gap until the shared vocabulary has fitting entries
     # (lca/mappings.yaml, DESIGN.md D-012)
-    - {chemical: hydrogen, role: feedstock, note: "Hydrogen 99.9 mol-% from hydrogen-1 (feed:H2: 0.0133 kg per kg HBr), 5 mol-% excess. The bromine feed (feed:BR2, 0.988 kg per kg HBr, from the planned bromine-1) has no registry entry yet"}
+    - {chemical: hydrogen, role: feedstock, note: "Hydrogen 99.9 mol-% from hydrogen-1 (feed:H2: 0.0133 kg per kg HBr), 5 mol-% excess"}
     - {chemical: water, role: feedstock, note: "Demineralised water for the absorption (feed:DMW), 1.08 kg per kg HBr"}
   outputs:
-    - {chemical: hydrogen, role: emission, inventory_key: "emission:H2", note: "Excess hydrogen vented after the tail gas scrubber, 0.62 g per kg HBr. The main product, hydrobromic acid 48 wt-% (product:HBRACID), has no registry entry yet"}
+    - {chemical: hydrogen-bromide, role: main-product, inventory_key: "product:HBRACID", note: "Hydrobromic acid 48 wt-% to storage, counted by mass of the acid (2.083 kg per kg HBr)"}
+    - {chemical: hydrogen, role: emission, inventory_key: "emission:H2", note: "Excess hydrogen vented after the tail gas scrubber, 0.62 g per kg HBr"}
   utilities:
     - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 450 kPa(a) for the bromine vaporiser, 0.058 kWh (0.098 kg) per kg HBr"}
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Pump, burner management, instruments and analysers (ASSUMED)"}
@@ -79,7 +80,7 @@ maintainers:
 repository:
   url: https://github.com/ChemE-as-Code/process-library
   path: processes/hydrogen-bromide-1
-  access: private
+  access: public
 publication:
-  status: internal
+  status: public
   license: CC-BY-4.0

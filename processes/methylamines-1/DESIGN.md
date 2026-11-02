@@ -7,8 +7,8 @@ The numbers live in `process/*.yaml`; the stream table is generated: `cheme proc
 
 Run record of this stage (2026-10-28): library branch `case/methylamines-1` from `11d50ef`;
 cheme-as-code 0.8.0 (pyDEXPI 2.1.0), Python 3.15.0; thermo 0.6.1, chemicals 1.5.2 and scipy in
-cheme's interpreter; DWSIM not used. The core issues named in #171 (core #315 property/phase and
-reaction-energy qualification, core #364 electrolytes) could not be read from this session
+cheme's interpreter; DWSIM not used. The core issues named in #171 (property/phase and
+reaction-energy qualification, electrolytes) could not be read from this session
 (`gh` cannot resolve them): their state is not checked here, and the gated steps below are
 stated against what cheme 0.8.0 reports (`cheme maturity`, `cheme process methods`).
 
@@ -268,10 +268,10 @@ puts in the total row of lca/results.csv and in the allocation table of lca/resu
 |---|---|---|
 | element and mass balances of every block and step | supported | closed (cheme validate, process streams) |
 | ideal-gas equilibrium reactor | supported (`reactor: equilibrium`) | R-101, agrees with the script |
-| vapour-liquid equilibrium / columns of NH3-amines-methanol-water | no benchmarked package (core #315 item: polar / activity-coefficient benchmark) | sharp splits, ASSUMED |
+| vapour-liquid equilibrium / columns of NH3-amines-methanol-water | no benchmarked package (polar / activity-coefficient benchmark) | sharp splits, ASSUMED |
 | stream enthalpies, energy closure of blocks | not qualified for this system | script estimate (D-006); `balanced.energy-closure` MISS |
 | DWSIM predictive simulation | needs a supported package (e.g. NRTL with sourced pairs) | not run; `predictive` level fails |
-| aqueous speciation (amines are weak bases) | electrolyte support limited to NaCl (core #364) | not needed at this stage (no pH-dependent step modelled) |
+| aqueous speciation (amines are weak bases) | electrolyte support limited to NaCl | not needed at this stage (no pH-dependent step modelled) |
 
 ## 6. Recommended next stage
 

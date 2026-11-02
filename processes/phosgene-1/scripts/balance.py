@@ -1,7 +1,7 @@
 """Concept heat and material balance of phosgene-1 (DESIGN.md D-006).
 
 Independent of cheme-as-code's property packages, which cover neither phosgene nor the caustic
-scrubber liquor (core #315, #364). Ideal gas with the Cp/R polynomials of process/materials.yaml;
+scrubber liquor. Ideal gas with the Cp/R polynomials of process/materials.yaml;
 condensation by Raoult's law with the phosgene and chlorine vapour pressures of the `thermo`
 package (cheme chemistry props, Thermo), the non-condensables (CO, N2, O2) insoluble (ASSUMED).
 Liquid enthalpy = ideal-gas enthalpy minus the heat of vaporization (Watson from 253.15 K).
@@ -261,3 +261,36 @@ out["checks"] = {
 }
 json.dump(out, sys.stdout, indent=1)
 print()
+
+
+def write_balance_output(cases):
+    """With BALANCE_OUTPUT set, write the values the flowsheet cites from this script as JSON.
+
+    The process library's balance-output contract (docs/adr/0027 of the library): case ->
+    stream id -> quantity, in the flowsheet's units and basis. The library's
+    scripts/check_balance_scripts.py re-runs this script and compares them with
+    process/flowsheet.yaml.
+    """
+    import json
+    import os
+    from pathlib import Path
+
+    target = os.environ.get("BALANCE_OUTPUT")
+    if target:
+        doc = {"contract": "balance-output/1", "script": f"scripts/{Path(__file__).name}",
+               "cases": cases}
+        Path(target).write_text(json.dumps(doc, indent=1, default=float), encoding="utf-8")
+
+
+# the values process/flowsheet.yaml cites from this script (balance-output contract): the stream
+# table and duties printed above, compositions as mole fractions
+FLOWSHEET = {}
+for k, s in out["streams"].items():
+    FLOWSHEET[k] = {"temperature": s["T"], "pressure": s["P"], "phase": s["phase"],
+                    "flow": {"value": s["kg_h"], "basis": "mass"},
+                    "composition": {"values": s["x"], "basis": "mole_fraction"}}
+# the flowsheet numbers the energy streams differently from the labels above: its Q4 is the
+# vacuum pump, Q5 the scrubber pump, Q6 the fan
+FLOWSHEET.update({"Q1": {"duty": -Q_R}, "Q2": {"duty": -Q_E102}, "Q3": {"duty": -Q_E103},
+                  "Q4": {"duty": W_R101}, "Q5": {"duty": W_P201}, "Q6": {"duty": W_K301}})
+write_balance_output({"design": FLOWSHEET})

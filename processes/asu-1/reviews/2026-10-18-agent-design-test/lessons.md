@@ -14,31 +14,31 @@
 
 ## Issues filed (ChemE-as-Code/core)
 
-- [#6](https://github.com/ChemE-as-Code/core/issues/6) plantcode run: run generator scripts in plantcode's interpreter so pyDEXPI imports work
-- [#7](https://github.com/ChemE-as-Code/core/issues/7) fragment: add equipment, nozzle, instrument, signal (actuating system), off-page and note kinds
-- [#8](https://github.com/ChemE-as-Code/core/issues/8) copy: retag sensor letters, rename inner tags and fluid code, and report duplicate tags
-- [#9](https://github.com/ChemE-as-Code/core/issues/9) fmt: keep the Model name and uri instead of resetting them to 'example'
-- [#10](https://github.com/ChemE-as-Code/core/issues/10) sheet new / sheet meta: create sheets with a real title block; remove pyDEXPI sample data from the template sheet
-- [#11](https://github.com/ChemE-as-Code/core/issues/11) validate: drawing-geometry lint for P&IDs (lines through labels, crossings, overlapping and misplaced labels) with crop boxes
-- [#12](https://github.com/ChemE-as-Code/core/issues/12) check --write: record stage sign-off provenance and refuse on dirty tree, failing gates or a self-signed review
-- [#13](https://github.com/ChemE-as-Code/core/issues/13) authoring: expose the fragment/copy builders as a documented Python API for generator scripts
-- [#14](https://github.com/ChemE-as-Code/core/issues/14) Edit commands for existing objects: plantcode move, rename and set
-- [#15](https://github.com/ChemE-as-Code/core/issues/15) Shape catalogue: add compressor, expander, column, filter, silencer, cooler, vaporizer and flat-bottom tank symbols
-- [#16](https://github.com/ChemE-as-Code/core/issues/16) Generator scripts: declare generated vs hand-maintained sheets, add plantcode regen and a drift check
-- [#17](https://github.com/ChemE-as-Code/core/issues/17) Planned sheets and sheet-scoped not-on-pid: no empty frames or warning flood at concept stage
-- [#18](https://github.com/ChemE-as-Code/core/issues/18) review skill and gates: back drawing claims with lint counts, and let validate gates require zero unaccepted drawing warnings
-- [#19](https://github.com/ChemE-as-Code/core/issues/19) validate: warn on template placeholder metadata and on approval fields without a sign-off
-- [#20](https://github.com/ChemE-as-Code/core/issues/20) Lists: add tagged piping components (silencers, safety valves) with P&ID cross-check and layout placement
-- [#21](https://github.com/ChemE-as-Code/core/issues/21) layout validate: check that lines between placed items have a rack route, using the line list
-- [#22](https://github.com/ChemE-as-Code/core/issues/22) layout validate: declared minimum separations and keep-clear radii
-- [#23](https://github.com/ChemE-as-Code/core/issues/23) Interlocks: structured cause-and-effect list cross-checked by validate, instead of literal trip text
-- [#24](https://github.com/ChemE-as-Code/core/issues/24) check: add an on-sheet gate kind that queries tags and classes in the model instead of grep
-- [#25](https://github.com/ChemE-as-Code/core/issues/25) check: add a review gate kind that checks reviewed commit, reviewer kind and staleness
-- [#26](https://github.com/ChemE-as-Code/core/issues/26) review skill: stable finding ids, a status column and a Previous findings section for carry-over
-- [#27](https://github.com/ChemE-as-Code/core/issues/27) docs: package a repeatable staged agent design run (runner, stage and reviewer prompts, budgets)
-- [#28](https://github.com/ChemE-as-Code/core/issues/28) Headless agent runs: document workspace trust and steer agents away from sed -i, heredocs and compound commands
-- [#29](https://github.com/ChemE-as-Code/core/issues/29) validate: check tags named in literal labels and off-page connector texts
-- [#30](https://github.com/ChemE-as-Code/core/issues/30) render --tiles: overlapping crop sweep so visual review covers the whole sheet
-- [#31](https://github.com/ChemE-as-Code/core/issues/31) plantcode status [--json]: one summary of sheets, findings by sheet, gates and sign-off
-- [#32](https://github.com/ChemE-as-Code/core/issues/32) Template: define branch and merge policy for stage work and sign-off
-- [#33](https://github.com/ChemE-as-Code/core/issues/33) Template: datasheet format and generic concept and detail gates
+- plantcode run: run generator scripts in plantcode's interpreter so pyDEXPI imports work
+- fragment: add equipment, nozzle, instrument, signal (actuating system), off-page and note kinds
+- copy: retag sensor letters, rename inner tags and fluid code, and report duplicate tags
+- fmt: keep the Model name and uri instead of resetting them to 'example'
+- sheet new / sheet meta: create sheets with a real title block; remove pyDEXPI sample data from the template sheet
+- validate: drawing-geometry lint for P&IDs (lines through labels, crossings, overlapping and misplaced labels) with crop boxes
+- check --write: record stage sign-off provenance and refuse on dirty tree, failing gates or a self-signed review
+- authoring: expose the fragment/copy builders as a documented Python API for generator scripts
+- Edit commands for existing objects: plantcode move, rename and set
+- Shape catalogue: add compressor, expander, column, filter, silencer, cooler, vaporizer and flat-bottom tank symbols
+- Generator scripts: declare generated vs hand-maintained sheets, add plantcode regen and a drift check
+- Planned sheets and sheet-scoped not-on-pid: no empty frames or warning flood at concept stage
+- review skill and gates: back drawing claims with lint counts, and let validate gates require zero unaccepted drawing warnings
+- validate: warn on template placeholder metadata and on approval fields without a sign-off
+- Lists: add tagged piping components (silencers, safety valves) with P&ID cross-check and layout placement
+- layout validate: check that lines between placed items have a rack route, using the line list
+- layout validate: declared minimum separations and keep-clear radii
+- Interlocks: structured cause-and-effect list cross-checked by validate, instead of literal trip text
+- check: add an on-sheet gate kind that queries tags and classes in the model instead of grep
+- check: add a review gate kind that checks reviewed commit, reviewer kind and staleness
+- review skill: stable finding ids, a status column and a Previous findings section for carry-over
+- docs: package a repeatable staged agent design run (runner, stage and reviewer prompts, budgets)
+- Headless agent runs: document workspace trust and steer agents away from sed -i, heredocs and compound commands
+- validate: check tags named in literal labels and off-page connector texts
+- render --tiles: overlapping crop sweep so visual review covers the whole sheet
+- plantcode status [--json]: one summary of sheets, findings by sheet, gates and sign-off
+- Template: define branch and merge policy for stage work and sign-off
+- Template: datasheet format and generic concept and detail gates

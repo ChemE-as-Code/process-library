@@ -83,7 +83,7 @@ the mixer, compressor, reactor, filter and splitter. The mass balance closes in 
 and step (`cheme process streams`).
 Reason: no benchmarked property package covers DMF, methanol, DMA and sodium salts
 (`cheme process props --coverage`: only the CO feed gas, `syngas-pr-vapor`). Polar VLE and
-liquid-reactor energy are the open items of core #315 (issue #127 dependency note). The CO
+liquid-reactor energy are the open items of core (issue #127 dependency note). The CO
 compressor's enthalpies are calculated (S2, S4) and its energy balance closes (residual 3.6 kW
 of 207 kW, within tolerance). Every other energy balance is not evaluable: this is the gated
 step, not a design error.
@@ -199,7 +199,7 @@ code of DMF for `lca.yaml` `dataset.classification.cpc` (not checked, left out).
 | mass and component balances | closed by cheme (all blocks and steps) | - |
 | element balances of the reactions | checked by cheme validate (DMF_SYN, CAT_DEACT) | - |
 | CO compressor energy | closed (syngas-pr-vapor) | - |
-| reactor, flash, column, filter energy | not evaluable | core #315: polar/activity-coefficient package for DMF-methanol-DMA (+ salts), liquid-reactor energy verification |
+| reactor, flash, column, filter energy | not evaluable | core: polar/activity-coefficient package for DMF-methanol-DMA (+ salts), liquid-reactor energy verification |
 | predictive simulation (DWSIM) | not attempted | a qualified method selection for the polar system (NRTL/UNIQUAC with sourced BIPs for DMF-methanol, DMF-DMA, methanol-DMA), process/simulation.yaml |
 | reactor kinetics | not available | sourced gas-liquid rate data; SRC-1 productivity (kg/h per L) only |
 | route comparison (methyl formate route) | open | sourced yields of both steps |

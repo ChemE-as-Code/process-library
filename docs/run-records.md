@@ -8,7 +8,7 @@ published in the Atlas or the viewer.
 
 ## Format and writer: core
 
-ChemE-as-Code core defines the record and writes it (core ADR 0029, core#403):
+ChemE-as-Code core defines the record and writes it (core ADR 0029):
 
 - the folder layout and `run.yaml`: schema `process-run/v1`, printed by
   `cheme schema process-run`; each process's `runs/README.md` (from core's project template)

@@ -38,7 +38,7 @@ validation:
     process streams: 4 blocks, 7 steps, reactive balances by extents). All flows and
     compositions are specified values of an independent balance (scripts/sic_balance.py) on
     assumed yields, grades and splits; no furnace heat transfer, kinetics or SiO/CO gas-solid
-    model is calculated. cheme process furnace supports limestone calcination only (core #387)
+    model is calculated. cheme process furnace supports limestone calcination only
     and refuses carbothermal SiC, so the furnace electricity is a labelled specific-energy
     basis; no property package covers the solids or the hot furnace gas, so energy closure is
     a lumped script estimate. cheme maturity supports no calculation maturity level until the
@@ -50,9 +50,13 @@ validation:
     characterised (about 0.64 kg CO2-eq/kg more if counted as oxidised to CO2). Not reviewed.
 chemistry:
   inputs:
-    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Air drawn over the furnace for the gas burn-off. Silica sand and petroleum coke have no registry entries yet"}
+    - {chemical: silicon-dioxide, role: feedstock, note: "feed:SAND: silica sand, 1.95 kg/kg crude SiC (unallocated)"}
+    - {chemical: petroleum-coke, role: feedstock, note: "feed:COKE: green petroleum coke, 1.36 kg/kg crude SiC (unallocated)"}
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Air drawn over the furnace for the gas burn-off"}
   outputs:
-    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:VENT", note: "Burnt furnace gas (fossil carbon of the coke), about 2.1 kg/kg crude SiC unallocated; with CO, CH4, SO2 and silica fume. The main product (silicon carbide) has no registry entry yet"}
+    - {chemical: silicon-carbide, role: main-product, inventory_key: "product:SIC", note: "Crushed crude crystalline SiC, 98 wt%"}
+    - {chemical: silicon-carbide, role: co-product, inventory_key: "product:MET", note: "Metallurgical-grade SiC, 88 wt%"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:VENT", note: "Burnt furnace gas (fossil carbon of the coke), about 2.1 kg/kg crude SiC unallocated; with CO, CH4, SO2 and silica fume"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Furnace transformers 7.5 kWh/kg crude SiC plus auxiliaries and crushing"}
     - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "Transformer and bus-bar cooling, 25/35 C (ASSUMED)"}
@@ -73,7 +77,7 @@ maintainers:
 repository:
   url: https://github.com/ChemE-as-Code/process-library
   path: processes/silicon-carbide-1
-  access: private
+  access: public
 publication:
-  status: internal
+  status: public
   license: CC-BY-4.0
