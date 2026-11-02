@@ -1,0 +1,22 @@
+# Specifications of the reference case (../source.yaml case.units), restated for the cheme
+# IDAES backend (core#104, ADR 0039 there).
+schema: cheme/simulation/v1
+kind: simulation
+simulator: idaes
+property_package: IDAES ideal VLE
+specs:
+  H1:
+    outlet_temperature: {value: 600, provenance: given, source: "IDAES examples-pse b9606ee, H101 outlet temperature"}
+    pressure_drop: {value: 0, unit: kPa, provenance: given, source: "IDAES examples-pse b9606ee, H101 without pressure change"}
+  R1:
+    mode: adiabatic
+    pressure_drop: {value: 0, unit: kPa, provenance: given, source: "IDAES examples-pse b9606ee, R101 heat duty 0, no pressure change"}
+  E1:
+    outlet_temperature: {value: 325, provenance: given, source: "IDAES examples-pse b9606ee, F101 vapour outlet temperature (cooling part of F101)"}
+    pressure_drop: {value: 0, unit: kPa, provenance: given, source: "IDAES examples-pse b9606ee, F101 deltaP 0"}
+  F1:
+    temperature: {value: 325, provenance: given, source: "IDAES examples-pse b9606ee, F101 vapour outlet temperature"}
+  F2:
+    temperature: {value: 375, provenance: given, source: "IDAES examples-pse b9606ee, F102 vapour outlet temperature"}
+    pressure: {value: 150, provenance: calculated, source: "350 kPa less F102 deltaP 200 kPa (IDAES examples-pse b9606ee)"}
+  # X1 splits by its `split:` on the step (purge 0.2, IDAES examples-pse b9606ee S101).

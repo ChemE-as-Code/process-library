@@ -68,3 +68,4 @@ with an ADR in the same pull request.
 | [0027](0027-balance-scripts-reproduce-the-flowsheet.md) | Balance scripts write the values the flowsheet cites; CI re-runs them and compares | **Proposed**, 2026-10-31 |
 | [0028](0028-registry-covers-main-products-and-feeds.md) | Register every process's main product and feeds with verified identities; label functional units by product name | **Accepted**, 2026-10-31 |
 | [0029](0029-no-total-when-every-contribution-is-a-gap.md) | Give no total, with the reason, when every contribution to a category is a gap | **Proposed**, 2026-10-30 |
+| [0030](0030-reference-reproduction-benchmarks.md) | Keep reference reproductions in benchmarks/reproductions/, tolerances committed before the run | **Proposed**, 2026-11-01 |

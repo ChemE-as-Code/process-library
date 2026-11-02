@@ -1,0 +1,68 @@
+# Reference record for the IDAES HDA tutorial reproduction (#302, ADR 0030).
+# Facts (specifications, numbers) taken from the pinned source, restated in our own form with
+# locators. No code, notebook text or figures of the source are copied here.
+reference:
+  id: idaes-examples-pse-hda-tutorial
+  title: IDAES examples-pse, Tutorials/Basics, HDA flowsheet (baseline, two flashes, no column)
+  repository: https://github.com/IDAES/examples-pse
+  commit: b9606eeddf24ddcb24b27eabe84a911d148abc93   # head of main; repository archived, last push 2023-04-06
+  files:
+    - path: src/Tutorials/Basics/HDA_flowsheet_solution_testing.ipynb
+      use: case specification (fixed variables) and reported results (test assertions)
+    - path: pkg/idaes_examples/common/hda/hda_reaction.py
+      use: reaction basis (single vapour-phase reaction, stoichiometric reactor)
+    - path: pkg/idaes_examples/common/hda/hda_ideal_VLE.py
+      use: property basis (ideal VLE, four components); not read for numbers here
+  docs: https://idaes.github.io/examples-pse/latest/Tutorials/Basics/HDA_flowsheet_solution_doc.html
+  licence:
+    name: IDAES PSE Framework licence (3-clause BSD style), LICENSE.md at the pinned commit
+    note: >-
+      Applies to the source code; we redistribute none of it. Only facts (operating conditions,
+      feed amounts, reported numbers) are restated, with attribution, which the licence does not
+      restrict. GitHub reports the SPDX id as NOASSERTION.
+  accessed: "2026-11-01"
+  kind: model reference (numerical reproduction target, not plant or experimental data)
+
+# The reference case: units and topology as the source states them, restated.
+case:
+  components: [benzene, toluene, hydrogen, methane]
+  # all four components in vapour-liquid equilibrium: hda_ideal_VLE.py at b9606ee, phase_comp
+  # (Liq and Vap for every component) and the component list (hydrogen and methane with Vap and Liq)
+  property_basis: ideal VLE (Raoult's law, ideal gas); all four components, hydrogen and methane included, in vapour-liquid equilibrium
+  reaction: {equation: "toluene + hydrogen -> benzene + methane", phase: vapour, model: stoichiometric (specified conversion)}
+  units:
+    M101: {kind: mixer, inlets: [toluene feed, hydrogen feed, vapour recycle]}
+    H101: {kind: heater, outlet_temperature: 600 K, pressure_change: none}
+    R101: {kind: stoichiometric reactor, toluene_conversion: 0.75, conversion_basis: vapour toluene at reactor inlet, heat_duty: 0 W (adiabatic), pressure_change: none}
+    F101: {kind: flash with heat transfer, vapour_outlet_temperature: 325.0 K, pressure_change: 0 Pa}
+    S101: {kind: splitter, purge_fraction: 0.2, outlets: [purge, recycle]}
+    C101: {kind: compressor, assumption: isothermal, outlet_pressure: 350000 Pa}
+    F102: {kind: flash with heat transfer, inlet: F101 liquid, vapour_outlet_temperature: 375 K, pressure_change: -200000 Pa}
+  feeds:
+    toluene_feed: {temperature: 303.2 K, pressure: 350000 Pa, liquid_toluene: 0.30 mol/s, every_other_phase_component: 1.0e-5 mol/s}
+    hydrogen_feed: {temperature: 303.2 K, pressure: 350000 Pa, vapour_hydrogen: 0.30 mol/s, vapour_methane: 0.02 mol/s, every_other_phase_component: 1.0e-5 mol/s}
+  derived_quantities:
+    purity: benzene / (benzene + toluene) in the F102 vapour outlet, molar
+    operating_cost: >-
+      annual (3600*24*365 s) sum of cooling cost 0.212e-7 $/J times (-F101 duty - R101 duty) and
+      heating cost 2.2e-7 $/J times H101 duty plus 1.9e-7 $/J times F102 duty
+  locator: notebook cells "Fixing feed conditions", unit specification cells, purity and costing Expression cells
+
+# Reported results of the base (square, unoptimised) case: the notebook's test assertions.
+reported_results:
+  base_case:
+    purity: {value: 0.82429, assertion_abs: 1.0e-3}
+    F102_heat_duty: {value: 7352.4828, unit: W, assertion_abs: 1.0e-3}
+    F102_vapour_pressure: {value: 150000, unit: Pa}
+    operating_cost: {value: 419122.3387, unit: $/a, assertion_abs: 1.0e-3}
+    locator: notebook, assertions after the first full solve
+  optimised_case:
+    note: out of scope for this reproduction (cheme has no optimisation); recorded for completeness.
+    operating_cost: {value: 312786.338, unit: $/a}
+    purity: {value: 0.818827}
+    H101_outlet_temperature: {value: 500, unit: K}
+    R101_outlet_temperature: {value: 696.112, unit: K}
+    F101_vapour_temperature: {value: 301.878, unit: K}
+    F102_vapour_temperature: {value: 362.935, unit: K}
+    F102_vapour_pressure: {value: 105000, unit: Pa}
+    locator: notebook, assertions after the optimisation solve

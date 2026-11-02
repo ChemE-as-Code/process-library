@@ -1,0 +1,28 @@
+# Acceptance tolerances for the IDAES HDA tutorial reproduction (ADR 0024).
+# FROZEN 2026-11-01, committed before any comparison run of case/. Do not edit: a revision is a
+# new file with its reason, and the comparison names which file it used.
+#
+# Basis: the reference and the cheme case both run IDAES ideal VLE with the same reaction and
+# specifications, but cheme's backend builds its package from IDAES's generic component data
+# (BT_ideal, HC_PR), not the tutorial's own hda_ideal_VLE module, so pure-component parameters
+# may differ slightly. The reference's own assertions use abs 1e-3; that is a regression check of
+# one code, not a cross-implementation tolerance.
+frozen: "2026-11-01"
+reference: source.yaml reported_results.base_case
+checks:
+  purity:
+    abs: 0.005
+    reason: ideal-VLE vapour pressure data may differ between the two packages; 0.5 mol% on the F102 vapour
+  F102_heat_duty:
+    rel: 0.05
+    reason: small duty (7.4 kW) sensitive to the F102 inlet flow and to enthalpy data
+  F102_vapour_pressure:
+    abs: 100     # Pa
+    reason: a specification (350 kPa less 200 kPa); must reproduce exactly
+  operating_cost:
+    rel: 0.05
+    reason: dominated by H101 and F101 duties; same enthalpy-data argument as F102_heat_duty
+  material_balance:
+    rel: 1.0e-4
+    reason: overall mass closure of the converged loop (feeds = liquid product + purge + F102 vapour)
+pass_rule: every check within tolerance; a check that cannot be evaluated is reported as a gap, not a pass
