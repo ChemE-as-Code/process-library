@@ -78,8 +78,8 @@ in active development.
 The [Process Atlas](https://atlas.cheme-as-code.org) shows the published processes. To open
 every plant of the library in the ChemE-as-Code Viewer on your own machine (`cheme serve` in
 library mode, core 1.1.0 or later), you need [uv](https://docs.astral.sh/uv/) and Node.js.
-core installs pyDEXPI 2.x from `process-intelligence-research/pyDEXPI-dev`, which is still a
-private repository: until it opens, the install below needs read access to it.
+core is still a private repository: until it opens, the install below needs read access to it.
+core installs pyDEXPI from PyPI.
 
 ```sh
 git clone https://github.com/ChemE-as-Code/core.git && uv tool install './core[serve]'
