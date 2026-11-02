@@ -354,8 +354,12 @@ apart, so a subcooled S1 had no solution (or, smoothed tighter, a free vapour fr
 IDAES's `BT_ideal` liquid heat-capacity coefficients were read a thousand times too small
 (labelled J/kmol/K, numerically kJ/kmol/K), so the mixer's energy balance had no physical
 answer. Not the benzene trace itself: S1 stays pure toluene. With core#124 the run converged
-(IPOPT optimal, 3 iterations; M100 and P101 enthalpy closures within 1e-10 kW). core v1.4.0
-does not contain core#124 (expected in 1.4.1).
+(IPOPT optimal, 3 iterations; M100 and P101 enthalpy closures within 1e-10 kW). The run record
+at 118c0de7 was written by the core#124 branch before its release (it reports cheme-as-code
+1.3.0); core#124 is released in core v1.4.1, and `cheme process simulate --check` of the
+118c0de7 files with v1.4.1 (2026-11-02) gives the same values (P101 35.5147 kW, S3 314.87 K,
+plant closure within 2e-11 kW). The run record's enthalpy-reference label names DWSIM's basis;
+that is a core labelling fault for IDAES runs (core#125), not a property of this run.
 Property packages: `IDAES ideal VLE` (Raoult's law, ideal gas, IDAES's example component data)
 is not benchmarked by cheme-as-code (`process-sim-method-unbenchmarked`); `IDAES
 Peng-Robinson` still does not converge on the pure-toluene S1; the script's Peng-Robinson
