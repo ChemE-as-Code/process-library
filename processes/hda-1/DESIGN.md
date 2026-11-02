@@ -328,6 +328,58 @@ comment and `propagate --fill`/`fmt` edits; the model fingerprint is current. Th
 from the simulated duties. The LCI summary table below predates this run;
 `lca/inventory.csv` is current.
 
+### D-015 IDAES cross-check of the toluene feed section (2026-11-02)
+Decision: the plant's simulation stays the DWSIM model of D-014 (`process/simulation.yaml`,
+`process/simulation-run.json`). The IDAES backend (core ADR 0039, core#104, released in core
+v1.4.0) was run as a second, independent implementation on the part of the flowsheet it can
+represent; its spec and run record are in git at commit 118c0de7 (`process/simulation.yaml`
+with `simulator: idaes`, `process/simulation-run.json`), on the flowsheet as it was before
+D-014's values were merged (script values, D-006). They are not kept as files: a plant has one
+`process/simulation.yaml`, and on the current flowsheet IDAES refuses every boundary (below).
+Boundary: M100 + P101 (feeds S1, S23), the rest excluded:
+- biphenyl (BIPH, CAS 92-52-4) is not a compound of either IDAES package (benzene, toluene,
+  hydrogen, methane only); on the script's flowsheet every stream from M101 on carries it (the
+  recycle gas S15 1.5e-7 mol/mol, so S5-S7 too), so M101, H101, R101, Q101, E102, V101, SPL1,
+  K101 and SPL2 were refused (reproduced with M101 alone and H101 alone in the boundary);
+- E101 (two-sided exchanger) and the columns are unit kinds the backend does not build.
+- Since D-014, S23 is DWSIM's result and carries 4.7e-9 biphenyl, so M100 and P101 are refused
+  too: on the current flowsheet IDAES can simulate no part of hda-1 without changing a design
+  value. Extending it needs core changes (biphenyl in an IDAES package, a two-sided exchanger, a
+  column), not design changes.
+Convergence: the first IDAES run (2026-11-01) stopped at IPOPT's iteration limit on M100 alone.
+Root cause, found by running core's worker directly, fixed in core#124: (1) IDAES's smooth VLE
+puts the equilibrium temperature between the bubble and dew points with a 5e-4 K smoothing;
+for S1, pure toluene with the worker's 1e-8 benzene trace, the two points are about 3e-7 K
+apart, so a subcooled S1 had no solution (or, smoothed tighter, a free vapour fraction); (2)
+IDAES's `BT_ideal` liquid heat-capacity coefficients were read a thousand times too small
+(labelled J/kmol/K, numerically kJ/kmol/K), so the mixer's energy balance had no physical
+answer. Not the benzene trace itself: S1 stays pure toluene. With core#124 the run converged
+(IPOPT optimal, 3 iterations; M100 and P101 enthalpy closures within 1e-10 kW). The run record
+at 118c0de7 was written by the core#124 branch before its release (it reports cheme-as-code
+1.3.0); core#124 is released in core v1.4.1, and `cheme process simulate --check` of the
+118c0de7 files with v1.4.1 (2026-11-02) gives the same values (P101 35.5147 kW, S3 314.87 K,
+plant closure within 2e-11 kW). The run record's enthalpy-reference label names DWSIM's basis;
+that is a core labelling fault for IDAES runs (core#125), not a property of this run.
+Property packages: `IDAES ideal VLE` (Raoult's law, ideal gas, IDAES's example component data)
+is not benchmarked by cheme-as-code (`process-sim-method-unbenchmarked`); `IDAES
+Peng-Robinson` still does not converge on the pure-toluene S1; the script's Peng-Robinson
+(thermo, ChemSep kij) and DWSIM's are not qualified for this mixture either (core#315). The
+comparison is a consistency check between implementations, not a validation.
+
+| Quantity | scripts/hda_balance.py | IDAES ideal VLE (118c0de7) | DWSIM PR (D-014) | IDAES - script | Why |
+| --- | --- | --- | --- | --- | --- |
+| S2 temperature | 313.70 K | 313.62 K | 313.75 K | -0.08 K | ideal vs PR liquid enthalpies |
+| S2/S3 flow | 20454.2 kg/h | 20454.2 kg/h | 20454.1 kg/h | 0 | same mass balance |
+| S3 temperature (P-101 outlet) | 313.70 K | 314.87 K | 315.85 K | +1.17 K | the script neglects the pump's temperature rise (D-010) |
+| Q1 P-101 power | 36.5 kW | 35.51 kW | 36.7 kW | -2.7 % | IDAES pumps from 150 kPa(a); the script and DWSIM from 30 kPa(a) (C-203 distillate pump included, D-010, D-014). Scaled by hand to 150-3600 kPa(a) the script's is 36.5 x 3450/3570 = 35.27 kW (IDAES +0.7 %, liquid density) |
+| R-101, V-101, K-101, columns | D-006 | out of scope (BIPH, E101) | D-014 | n/a | |
+
+Rejected: replacing D-014's whole-plant DWSIM model by the IDAES feed-section model (it would
+drop a converged, reviewed simulation of the whole plant); lumping biphenyl into toluene or
+dropping its traces to fit the backend (changes the design's balance, D-005, D-008); raising
+S1's benzene to make the smooth VLE solvable (a design change to work around a solver
+formulation).
+
 ## LCI summary (lca/inventory.csv, per kg benzene)
 
 | exchange | amount | unit | provenance (flowsheet) | background to link later |
