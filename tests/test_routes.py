@@ -199,3 +199,22 @@ def test_a_co_product_of_a_multi_output_dataset_gets_no_unallocated_inventory(tm
     hydrogen = _by_process(_group(data, "hydrogen"))["fixture-electrolysis"]
     assert hydrogen["inventory"]["basis"].endswith("the other products (product:O2) carry none")
     assert _group(data, "hydrogen")["comparable"] is None  # one route: nothing to compare
+
+
+def test_a_gap_only_footprint_is_null_with_its_reason(routes_copy: Path, tmp_path: Path) -> None:
+    # issue #250 (ADR 0029): core's total of 0 for a category whose every contribution is a gap
+    # is no footprint
+    lca = routes_copy / "processes" / "route-electrolysis" / "lca"
+    (lca / "results.csv").write_text(
+        "scenario,category,category_unit,key,basis,quantity,unit,factor,impact,share,phase,status,source,year\n"
+        "baseline,climate-change,kg CO2-eq,total,,,,,0,,,,,\n"
+    )
+    (lca / "gaps.csv").write_text(
+        "scenario,category,key,reason,quantity,unit,phase,detail\n"
+        "baseline,climate-change,feed:POWER,missing,55,kWh,operation,background to link\n"
+    )
+    pem = _by_process(_group(_routes(routes_copy, tmp_path / "out"), "hydrogen"))["route-electrolysis"]
+    assert pem["footprint"]["value"] is None and pem["footprint"]["interval"] is None
+    assert pem["footprint"]["not_computed"] is True
+    assert pem["footprint"]["not_computed_reason"] == "every-contribution-a-gap"
+    assert pem["footprint"]["factors_status"] == "none"

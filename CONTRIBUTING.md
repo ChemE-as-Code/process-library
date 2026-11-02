@@ -106,6 +106,14 @@ fails the `balance-scripts` job.
   preliminary. Never map to a guess to close a gap: a correct gap is better than a doubtful link
   ([ADR 0026](docs/adr/0026-public-processes-may-be-preliminary.md),
   [lci/README.md](lci/README.md) "Linking").
+- **No total from gaps alone.** A category whose every contribution in `lca/gaps.csv` is a gap
+  (a background not linked yet; flows outside the method do not count) has no footprint: the
+  catalog leaves it out of `lca.totals`, lists it in `lca.no_total` and gives the headline and
+  route footprint `value: null`, `not_computed: true` and
+  `not_computed_reason: every-contribution-a-gap`, never 0. A category without such gaps keeps
+  its total, also 0, but a baseline 0 with nothing contributing is still no footprint
+  ([ADR 0029](docs/adr/0029-no-total-when-every-contribution-is-a-gap.md), on
+  [ADR 0026](docs/adr/0026-public-processes-may-be-preliminary.md)).
 - **Several outputs.** A multi-output process needs an allocation that follows the hierarchy of
   [docs/system-model.md](docs/system-model.md), often a curated `allocation:` entry in the
   mappings. Recycling or energy-recovery outputs need a `cutoff_exclusions:` decision.
@@ -177,7 +185,7 @@ What the public build contains:
   committed run manifest (`lca/manifest.json`) says the result is publishable under its sources'
   terms and is current (`scripts/publication.py` `lca_withheld`). Placeholder factors, a missing
   or stale manifest and restricted or local sources withhold them. The values are the totals,
-  contributions and headline value, the viewer's LCA answer, and `lca/results.*`,
+  contributions, PCF breakdown and headline value, the viewer's LCA answer, and `lca/results.*`,
   `lca/gaps.csv`, `lca/uncertainty.csv` and `lca/scenarios/*.json`. Its goal, functional unit,
   boundary, inventory, class and data sources (with their attribution) stay.
 - **The viewer snapshot leaves out internal files.** These paths are always excluded in public
