@@ -213,41 +213,62 @@ published; whether the process *is* published is process.yaml `publication.statu
 `internal` and governs (review 2026-10-27-pfd-lci-review#10).
 Results: see the LCI summary below.
 
-### D-014 IDAES backend run: only the toluene feed section is in scope, and it did not converge (2026-11-01)
-Decision: `process/simulation.yaml` selects `simulator: idaes` (draft core PR #104, ADR 0039;
+### D-014 IDAES backend run: the toluene feed section converges, the rest is out of the backend's reach (2026-11-02)
+Decision: `process/simulation.yaml` selects `simulator: idaes` (core ADR 0039, core#104;
 idaes-pse 2.13.0, IPOPT 3.13.2) with every unit spec taken from this file's design values
 (D-004, D-007, D-010), so the specs also serve `simulator: dwsim`. The simulated part is the
-toluene feed section M100 + P101 (feeds S1, S23); everything else is in `exclude`. The stream
-values stay those of `scripts/hda_balance.py` (D-006): the run converged nowhere, so `--fill`
-wrote no stream value and none of the script values was removed.
-Reason, the boundary (each refusal reproduced with `cheme process simulate --check`):
+toluene feed section M100 + P101 (feeds S1 and S23 as given); everything else is in `exclude`.
+The stream values stay those of `scripts/hda_balance.py` (D-006): `--fill` writes only values
+a stream lacks and S2, S3 and Q1 have all of theirs, so it wrote none; the deviations are below
+and in `process/simulation-run.json`.
+Reason, the boundary (each refusal reproduced with `cheme process simulate --check`, also with
+M101 alone and H101 alone in the boundary):
 - biphenyl (BIPH, CAS 92-52-4) is not a compound of either IDAES package (benzene, toluene,
-  hydrogen, methane only), and every stream from the reactor onwards, the recycle gas S15
-  included (1.5e-7 mol/mol), carries it; so R101, Q101, E102, V101, SPL1, K101, SPL2 and M101
-  cannot be simulated without dropping a design component;
+  hydrogen, methane only), and every stream from M101 onwards carries it, the recycle gas S15
+  (1.5e-7 mol/mol) and so S5-S7 included; so M101, H101, R101, Q101, E102, V101, SPL1, K101
+  and SPL2 cannot be simulated without dropping a design component;
 - E101 (two-sided feed / effluent exchanger) and the three columns (SEP) are unit kinds the
   backend does not build;
 - R101 gives a per-pass conversion with a benzene selectivity (D-005); the translator needs a
   conversion per reaction with a key component in `reactions.yaml`. Not changed here: an
   equivalent per-reaction form would still be refused for BIPH.
-Result: with `IDAES Peng-Robinson` and with `IDAES ideal VLE` alike, IPOPT stops at its
-iteration limit (200) on M100 + P101, and also on M100 alone. A likely cause is the zero
-benzene fraction of the pure-toluene feed S1 (not verified); this is a core finding for
-core#104, not a design change. `process/simulation-run.json` records the non-converged run.
-Simulation vs script (D-006), for the record:
+The reactor, flash and recycle loop therefore stay outside; extending the boundary needs core
+changes, not design changes: biphenyl in an IDAES package (IDAES ships no data for it), a
+two-sided exchanger and a column in the backend.
+Convergence: the first run (2026-11-01) stopped at IPOPT's iteration limit on M100 alone. Root
+cause, found by running the worker directly (core#124): (1) IDAES's smooth VLE places the
+equilibrium temperature between the bubble and the dew point with a 5e-4 K smoothing; for S1,
+pure toluene with the worker's 1e-8 benzene trace, the two points are about 3e-7 K apart, so a
+subcooled S1 had no solution (or, smoothed tighter, a free vapour fraction); (2) IDAES's
+`BT_ideal` liquid heat-capacity coefficients are read a thousand times too small (labelled
+J/kmol/K, numerically kJ/kmol/K), so the mixer's energy balance had no physical answer. The
+benzene trace was not the cause and S1 stays pure toluene. With core#124 the run converges
+(IPOPT optimal, 3 iterations; energy closure of M100 and P101 within 1e-10 kW).
+Property package: `IDAES ideal VLE` (Raoult's law, ideal gas, IDAES's example component data).
+It is not benchmarked by cheme-as-code (core reports `process-sim-method-unbenchmarked`), so
+the simulated values are a consistency check, not predictive. `IDAES Peng-Robinson` (IDAES's
+smooth VLE kept) still does not converge on the pure-toluene S1. The script's Peng-Robinson
+(thermo, ChemSep kij) is not qualified either (core#315). Simulation vs script (D-006):
 
-| Quantity | scripts/hda_balance.py | IDAES backend | Deviation |
-| --- | --- | --- | --- |
-| S2/S3 temperature, flow (feed section) | 313.70 K, 20454.2 kg/h | not converged | n/a |
-| S8 reactor outlet temperature | 936.82 K | out of scope (BIPH) | n/a |
-| S12/S16 separator split | PR flash | out of scope (BIPH) | n/a |
-| Q2 K-101 power, Q3-Q4 duties | 229.7, 2956.5, 4926.0 kW | out of scope (BIPH, E101) | n/a |
+| Quantity | scripts/hda_balance.py | IDAES ideal VLE | Deviation | Why |
+| --- | --- | --- | --- | --- |
+| S2 temperature (mixed toluene) | 313.70 K | 313.62 K | -0.08 K | ideal vs PR liquid enthalpies |
+| S2/S3 flow, composition | 20454.2 kg/h; TOL 0.996384, BZ 0.003616 | same | 0 | same mass balance |
+| S3 temperature (P101 outlet) | 313.70 K | 314.87 K | +1.17 K | the script neglects the pump's temperature rise (D-010) |
+| Q1 P-101 power | 36.5 kW | 35.51 kW | -2.7 % | the script's 36.5 kW is from 30 kPa(a) (C-203 distillate pump included, D-010); the simulation's is 150 to 3600 kPa(a), scaled to that pressure rise by hand the script's is 36.5 x 3450/3570 = 35.27 kW (+0.7 %: liquid density) |
+| S8 reactor outlet temperature | 936.82 K | out of scope (BIPH) | n/a | |
+| S12/S16 separator split | PR flash | out of scope (BIPH) | n/a | |
+| Q2 K-101 power, Q3-Q4 duties | 229.7, 2956.5, 4926.0 kW | out of scope (BIPH, E101) | n/a | |
 
+`cheme process simulate --check` therefore warns `process-sim-deviation` on S3 (temperature)
+and Q1 (duty): kept, because the script's values are the design basis (D-006, D-010) and both
+deviations are explained above.
 Rejected: lumping biphenyl into toluene or deleting it from the template to fit the backend
 (it changes the design's balance and by-product, D-005, D-008); simulating the IDAES tutorial
-case instead (D-001). `scripts/hda_balance.py` stays the source of the stream values and the
-independent cross-check for a later run (with DWSIM, or with IDAES once it holds biphenyl and a
-two-sided exchanger).
+case instead (D-001); raising S1's benzene to make the smooth VLE solvable (a design change to
+work around a solver formulation). `scripts/hda_balance.py` stays the source of the stream
+values and the independent cross-check for a later run (with DWSIM, or with IDAES once it
+holds biphenyl and a two-sided exchanger).
 
 ## LCI summary (lca/inventory.csv, per kg benzene)
 

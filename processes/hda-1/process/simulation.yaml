@@ -1,14 +1,15 @@
 # Simulation specs. Schema: `cheme schema process-simulation`.
-# simulator: idaes runs the flowsheet in IDAES (core ADR 0039, draft core PR #104; boundary and outcome: DESIGN.md D-014); it needs
-# CHEME_IDAES_PYTHON, a Python with idaes-pse and its solvers. Every spec below is a design
-# value of DESIGN.md (D-004, D-007, D-010), so the same specs serve simulator: dwsim.
-# Only the toluene feed section M100 + P101 is simulated: biphenyl, E101 and the columns are
-# outside the backend (D-014).
+# simulator: idaes runs the flowsheet in IDAES (core ADR 0039, core#104; boundary, outcome and the
+# comparison with scripts/hda_balance.py: DESIGN.md D-014); it needs CHEME_IDAES_PYTHON, a Python
+# with idaes-pse and its solvers. Every spec below is a design value of DESIGN.md (D-004, D-007,
+# D-010), so the same specs serve simulator: dwsim.
+# Only the toluene feed section M100 + P101 is simulated: biphenyl (from M101 on), E101 and the
+# columns are outside the backend (D-014).
 schema: cheme/simulation/v1
 kind: simulation
 simulator: idaes
-# Ideal VLE: the feed section has no compressor; Peng-Robinson did not converge either (D-014).
-# Not benchmarked by cheme-as-code: not predictive (D-006, D-014).
+# Ideal VLE: converges on the feed section with core#124; Peng-Robinson does not converge on
+# the pure-toluene feed S1 (D-014). Not benchmarked by cheme-as-code: not predictive (D-006).
 property_package: IDAES ideal VLE
 exclude: [SEP, M101, E101, H101, R101, Q101, E102, V101, SPL1, K101, SPL2]
 specs:
