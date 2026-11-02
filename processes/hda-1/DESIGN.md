@@ -99,6 +99,8 @@ slightly beyond equilibrium. Within the accuracy of a correlation used at the co
 but flagged: an equilibrium-limited biphenyl model would give a little less biphenyl.
 
 ### D-006 Independent balance script; property method not qualified (2026-10-27)
+(Superseded in part by D-014: separator, column and duty values are now simulated; the
+script is the comparison basis.)
 Decision: separator, column, exchanger-side and duty values come from scripts/hda_balance.py
 (thermo 0.6 Peng-Robinson with the ChemSep kij set, ideal-gas heat capacities of thermo,
 formation enthalpies of process/materials.yaml), given in the flowsheet as `assumed` with the
@@ -132,7 +134,8 @@ pressures), at least 0.5 (C-203's Underwood minimum is 0.02). Benzene product su
 313 K in the condenser train. Duties from column energy balances with the arriving feed
 enthalpy. Stage numbers not calculated.
 Reason: the issue's unit list; vacuum avoids a fired or hot-oil reboiler on C-203.
-Results: C-201 reboiler 1.43 MW (MP steam), C-202 R 1.28, reboiler 2.30 MW (LP steam),
+Results (C-202 values superseded by D-014: R 2.18, reboiler 3.48 MW, condenser 4.20 MW
+without subcooling): C-201 reboiler 1.43 MW (MP steam), C-202 R 1.28, reboiler 2.30 MW (LP steam),
 condenser 3.34 MW, C-203 reboiler 0.65 MW (HP steam). The vacuum system is taken as a dry
 vacuum pump (ASSUMED, about 15 kW, not sized; I-08): no motive steam and no ejector
 condensate, hence no process wastewater. Reflux and distillate pumps other than P-101 not
@@ -156,8 +159,9 @@ the C-203 distillate pump); fired-heat supply temperature 1200 K and minimum app
 S17 leaves the splitter SPL2 at 3450 kPa(a) (implicit quench pump P-102, under 1 kW) and S23
 leaves C-203 at 150 kPa(a) (implicit distillate pump); counting P-101 from 30 kPa(a) for its
 whole flow over-states its power by under 1 kW and stands in for the distillate pump.
-Results: power 266 kW, fired heat 2957 kW, steam 4381 kW (MP 1431, LP 2300, HP 650), cooling
-water 9207 kW.
+Results (superseded by D-014: fired heat 2915 kW, LP steam 3482 kW, HP 649 kW, cooling water
+about 10.0 MW; MP steam stays 1431 kW from the script): power 266 kW, fired heat 2957 kW, steam
+4381 kW (MP 1431, LP 2300, HP 650), cooling water 9207 kW.
 
 ### D-011 Core findings met in this run (2026-10-27)
 - `cheme process build` (0.8.0) fails with `TypeError: 'typing.Union' object is not iterable`
@@ -257,7 +261,18 @@ Kept with the deviation visible (the `sim-deviation` warnings are not silenced):
   DWSIM's shortcut column with a partial condenser put the off-gas at anywhere from 58 to 201 K
   in repeated runs, while the dew point of that composition is 313.4 K (thermo PR). Its
   condenser duty (24-102 kW) and reboiler duty (1284-1325 kW) are therefore not used. C-201's
-  split (from the key specs) is used.
+  split (from the key specs) is used. A review rerun reproduced the split, S20's temperature
+  and every downstream C-202/C-203 value identically while the C-201 duties and the S19
+  temperature varied (30/1286 kW, 173.7 K), so the split is repeatable. S19's composition
+  and flow come from that shortcut: its toluene (0.00113) is less than half the script's
+  equilibrium value (0.00295), about 1 kg/h of fuel gas. S19 and S22 fractions sum to
+  1.00002 and 1.00017 (shortcut residue).
+- S17 is simulated at 3250 kPa(a), not the assumed 3450 kPa(a) quench-pump discharge
+  (D-010, implicit P-102); same cause as S9 to S11.
+Values that are set by a spec, not predicted, although flowsheet.yaml records them as
+simulated: S19 benzene fraction 0.0269 (C-201 heavy key in distillate, from the script's S19),
+the C-202 benzene in bottoms 0.0142627 (the script's 99.5 % recovery) and the S24 flow
+401.05 kg/h (C-203 bottoms spec).
 Simulation compared with the old balance (scripts/hda_balance.py, the values on main before
 this run):
 
@@ -273,7 +288,7 @@ this run):
 | separator gas S12 | 29278.8 kg/h, 40.00 mol% H2 | 29287.7 kg/h, 40.00 mol% H2 | +0.03 % |
 | separator liquid S16 | 23504.2 kg/h | 23502.6 kg/h | -0.01 % |
 | purge S13 | 3260.5 kg/h | 3261.5 kg/h | +0.03 % |
-| H2/aromatics at R-101 inlet | 5.00 | 4.99 | -0.2 % |
+| H2/aromatics at R-101 inlet | 5.00 | 5.00 (4.997) | -0.06 % |
 | stabiliser off-gas S19 | 172.5 kg/h | 171.2 kg/h | -0.8 % |
 | benzene product S21 | 12500 kg/h, 99.9 mol% | 12498.5 kg/h, 99.89 mol% | -0.01 % |
 | toluene recycle S23 | 4935.9 kg/h | 4935.8 kg/h | 0.00 % |
@@ -306,7 +321,10 @@ N2/O2/Ar and NRTL only for ethanol-water. Aromatics with H2 and CH4 at 30-37 bar
 formation enthalpies differ from materials.yaml by -14 to +300 kJ/kmol (biphenyl -688). That
 is 1.2 kW on the reaction heat, within the data tolerance.
 What it supersedes for the simulated values: D-006's statement that `process simulate` cannot
-be used (it runs; the qualification gap stays). The LCI outputs in `lca/` were regenerated
+be used (it runs; the qualification gap stays), the C-202 results of D-008, the utility
+results of D-010, and the notes of equipment-list.yaml C-202/E-203/E-204 (updated). The file
+fingerprints in simulation-run.json differ from the committed files only through later
+comment and `propagate --fill`/`fmt` edits; the model fingerprint is current. The LCI outputs in `lca/` were regenerated
 from the simulated duties. The LCI summary table below predates this run;
 `lca/inventory.csv` is current.
 
