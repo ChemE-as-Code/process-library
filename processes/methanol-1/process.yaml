@@ -17,10 +17,10 @@ description: |
   a purge removes the inerts, and the crude is flashed, stabilised in a topping column and
   refined to Grade AA in a refining column.
 
-  All values are concept estimates. The separator, column and duty values come from an
-  independent script whose property method (Peng-Robinson) is not qualified for this mixture
-  by ChemE-as-Code yet; see DESIGN.md of the engineering files for every assumption and gated
-  step.
+  All values are concept estimates. The stream values and duties downstream of the make-up gas
+  come from a converged DWSIM simulation (Peng-Robinson), cross-checked against an independent
+  balance script; the property method is not qualified for this mixture by ChemE-as-Code yet.
+  See DESIGN.md of the engineering files (D-014) for every assumption and gated step.
 families: [methanol]
 keywords: [methanol, synthesis gas, syngas, Cu/ZnO, synthesis loop, boiling-water converter, purge, crude methanol, distillation, Grade AA]
 facets:
@@ -29,19 +29,23 @@ facets:
   unit_operations: [compression, reaction, heat-exchange, flash, distillation]
   region: generic
 # Honest claim: concept is the lowest level of the manifest; cheme maturity reports level none
-# (the make-up gas composition is assumed, not sourced, and the separators and columns are
-# specified values), see validation.notes and DESIGN.md D-006.
+# (the make-up gas composition is assumed, not sourced; the DWSIM run is not qualified),
+# see validation.notes and DESIGN.md D-014.
 maturity: concept
 validation:
   status: unreviewed
   notes: >-
     Concept PFD with closed mass, component and element balances (cheme validate, cheme process
     streams). cheme maturity reaches no level yet: the make-up gas composition and the capacity
-    are assumed (no sourced or owner-given feed), and the HP/LP separators and both columns are
-    specified values from an independent Peng-Robinson script (scripts/loop_balance.py) that
-    core cannot qualify for methanol-water-syngas. The converter outlet is
-    calculated by cheme (equilibrium reactor) and reproduces the script's extents. Energy
-    closure is not evaluable in core (no property package covers the streams). Not reviewed.
+    are assumed (no sourced or owner-given feed). The flowsheet is simulated in DWSIM
+    (cheme process simulate, Peng-Robinson; converged, run record process/simulation-run.json,
+    D-014): equilibrium converter, flashes and shortcut columns; the loop agrees with the
+    independent script (scripts/loop_balance.py) within 2.5 %, CO2 solubility in the crude and
+    the column duties differ more. The make-up gas sized by the script for 2500 t/d gives
+    2490 t/d of product in the simulation (S18 flow is the simulated one, D-014). The property
+    package is not qualified for methanol-water-syngas (predictive.property-regime fails), and
+    the converter's MP steam level fails the utility check against its feed temperature (D-014).
+    Not reviewed.
     Preliminary gate-to-gate LCI in lca/, marked preliminary with its gap in the Atlas build
     (DESIGN.md D-015). Main products and feeds are listed under chemistry with
     their chemicals registry entries (issue #251).
@@ -54,7 +58,7 @@ chemistry:
     - {chemical: carbon-dioxide, role: feedstock, note: "CO2 of the make-up synthesis gas feed:SYNGAS (7.5 mol%, ASSUMED)"}
     - {chemical: methane, role: feedstock, note: "Unconverted methane of the make-up gas feed:SYNGAS (2.5 mol%, ASSUMED), an inert of the loop, leaves with the purge"}
   outputs:
-    - {chemical: methanol, role: main-product, inventory_key: "product:MEOH", note: "Grade AA methanol to storage, 2500 t/d"}
+    - {chemical: methanol, role: main-product, inventory_key: "product:MEOH", note: "Grade AA methanol to storage, 2500 t/d design basis (2490 t/d in the DWSIM run, D-014)"}
     - {chemical: water, role: waste, inventory_key: "product:WW", note: "Refining column bottoms water, 100 ppm(wt) methanol (ASSUMED)"}
     # No inventory_key: product:FUELGAS is a fuel co-product (DESIGN.md D-015), not a carbon dioxide
     # supply; with the slug the build would name it and offer it as one.
