@@ -20,6 +20,14 @@
   unit value in the run record identical (largest relative difference 0). That run's record is
   `reruns/2026-11-02-core-v1.4.0-simulation-run.json`. The committed record above is therefore
   kept; the result below holds for the released backend.
+- **core v1.4.1 (2026-11-02):** core#124 fixed two faults of the backend's ideal package (phase
+  equilibrium of near-pure liquids; `BT_ideal` liquid heat capacities a thousandth of their
+  value). Run again from empty streams with v1.4.1: converged, same model fingerprint, 66
+  iterations (`reruns/2026-11-02-core-v1.4.1-simulation-run.json`). Purity is unchanged
+  (0.81722, -0.00707: fail); the F102 duty is 7.753 kW, +5.45 % (fail; +6.40 % with v1.4.0); the
+  operating cost is 408,510 $/a, -2.53 % (pass; -1.87 % with v1.4.0); pressure and mass closure
+  pass. The verdict under the frozen rule is unchanged: FAIL, 3 of 5 checks pass. The result
+  section below reports the v1.4.0 run.
 
 ## Result: FAIL under the frozen rule (3 of 5 checks pass; 1 of 3 against reference results)
 

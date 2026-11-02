@@ -44,8 +44,8 @@ jobs:
         env:
           PLANTCODE_READ_TOKEN: ${{ secrets.PLANTCODE_READ_TOKEN }}
       - uses: astral-sh/setup-uv@v6
-      # core v1.4.0 (the tag's commit; pinned by commit, tests/test_workflows.py)
-      - run: uv tool install "git+https://github.com/ChemE-as-Code/core.git@704d1c43623e0b17c885dd41c8bd201bdea6a4c8"
+      # core v1.4.1 (the tag's commit; pinned by commit, tests/test_workflows.py)
+      - run: uv tool install "git+https://github.com/ChemE-as-Code/core.git@278a8682f02fc98db664c7c3236aa7ee2ea88e17"
       - run: cheme fmt --check
       - run: cheme validate
       # core's per-scenario LCA records (lca/scenarios/<id>.json) must be current
@@ -62,8 +62,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      # core v1.4.0
-      CORE: "cheme-as-code[units] @ git+https://github.com/ChemE-as-Code/core.git@704d1c43623e0b17c885dd41c8bd201bdea6a4c8"
+      # core v1.4.1
+      CORE: "cheme-as-code[units] @ git+https://github.com/ChemE-as-Code/core.git@278a8682f02fc98db664c7c3236aa7ee2ea88e17"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         # Full history here only: the catalog records each process folder's last commit
@@ -117,9 +117,9 @@ jobs:
         env:
           PLANTCODE_READ_TOKEN: ${{ secrets.PLANTCODE_READ_TOKEN }}
       - uses: astral-sh/setup-uv@v6
-      # core v1.4.0 with the property extras the balance scripts import (thermo, CoolProp,
+      # core v1.4.1 with the property extras the balance scripts import (thermo, CoolProp,
       # scipy through thermo, Cantera); the same commit as the validate job
-      - run: uv tool install --python 3.12 "cheme-as-code[props,units,cantera] @ git+https://github.com/ChemE-as-Code/core.git@704d1c43623e0b17c885dd41c8bd201bdea6a4c8"
+      - run: uv tool install --python 3.12 "cheme-as-code[props,units,cantera] @ git+https://github.com/ChemE-as-Code/core.git@278a8682f02fc98db664c7c3236aa7ee2ea88e17"
       - name: balance scripts reproduce the flowsheet
         run: |
           uv run --python 3.12 scripts/check_balance_scripts.py --library . --strict --jobs 4 \

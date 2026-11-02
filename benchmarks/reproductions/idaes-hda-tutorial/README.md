@@ -11,7 +11,7 @@ built on the same property and reaction assumptions, not validation.
 | --- | --- |
 | `source.yaml` | pinned revision, licence, case specification and reported results (facts, own form) |
 | `tolerances.yaml` | acceptance tolerances, committed before the comparison run (frozen in 1979740; its header names this ADR by its number then, 0024, now 0030) |
-| `reruns/` | later runs of `case/` kept as evidence, e.g. with released core v1.4.0 (comparison.md) |
+| `reruns/` | later runs of `case/` kept as evidence, with released core v1.4.0 and v1.4.1 (comparison.md) |
 | `case/` | the minimal cheme project that restates the case (`simulator: idaes`) |
 | `comparison.md` | reference vs cheme, deviations and explanations |
 
