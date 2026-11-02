@@ -34,17 +34,13 @@ jobs:
       PREVIOUS_REF: ${{ inputs.previous_ref }}
       PREVIOUS_VERSION: ${{ inputs.previous_version }}
       # benchmarks convert units through core's foundation.units (validate.yml, docs/benchmarks.md)
-      # core v1.2.1, pinned with validate.yml (same commit; tests/test_workflows.py)
-      CORE: "cheme-as-code[units] @ git+https://github.com/ChemE-as-Code/core.git@8042b716d21dd9234eee8c6f2a16cf5120c2636b"
+      # core v1.4.0, pinned with validate.yml (same commit; tests/test_workflows.py)
+      CORE: "cheme-as-code[units] @ git+https://github.com/ChemE-as-Code/core.git@704d1c43623e0b17c885dd41c8bd201bdea6a4c8"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           fetch-depth: 0  # the previous release is built from its own commit
-      - uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555  # v0.10.0
-        with:
-          ssh-private-key: ${{ secrets.DEPLOY_KEY_PYDEXPI }}
       - run: |
-          git config --global url."git@github.com:process-intelligence-research/".insteadOf "https://github.com/process-intelligence-research/"
           git config --global url."https://x-access-token:${PLANTCODE_READ_TOKEN}@github.com/ChemE-as-Code/core".insteadOf "https://github.com/ChemE-as-Code/core"
         env:
           PLANTCODE_READ_TOKEN: ${{ secrets.PLANTCODE_READ_TOKEN }}
