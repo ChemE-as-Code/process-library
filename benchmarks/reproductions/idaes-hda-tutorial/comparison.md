@@ -13,6 +13,12 @@
   to commit 1979740 (`inputs.commit`), and its `run_at` (2026-11-01T10:31:38Z) is 70 s after
   that commit (10:30:28Z). No earlier run is recorded in the repository. The record cannot show
   that no uncommitted run happened before the freeze; the claim rests on this order.
+- **Released core (2026-11-02):** the case was run again with core **v1.4.0** (704d1c4, the
+  release with the IDAES backend; idaes-pse 2.13.0, IPOPT 3.13.2) from empty streams: the
+  committed `flowsheet.yaml` with every `origin: simulated` value removed, in a scratch copy.
+  Same model fingerprint (`59bf0c23c6278299`), converged in 66 iterations, and every stream and
+  unit value in the run record identical (largest relative difference 0). The committed record
+  above is therefore kept; the result below holds for the released backend.
 
 ## Result: FAIL under the frozen rule (3 of 5 checks pass; 1 of 3 against reference results)
 
@@ -61,13 +67,13 @@ cheme values with no reported counterpart (not compared): R1 outlet 671.06 K, re
   an exact reproduction of the tutorial is not possible with the backend as it is.
 - core#104: no isothermal compressor and no compressor with ideal VLE (not needed here, ratio 1).
 - core#104: **re-running `cheme process simulate --fill` (and `--check`) on the filled case did
-  not converge** ("IPOPT did not converge: other"), while the first run from empty streams
+  not converge** (still so with core v1.4.0) ("IPOPT did not converge: other"), while the first run from empty streams
   converged. The filled values are used as the tear-stream first guess, so a warm start from
   the converged solution fails. Reproducible with `case/` as committed.
 - The optimised case of the tutorial (`source.yaml` optimised_case) is out of scope: cheme has
   no optimisation.
-- Pinned library CI (core v1.2.1) rejects `simulator: idaes` (`cheme.process-sim-schema`), but
-  CI validates only `processes/*/plant.yaml`, so this folder does not break CI.
+- Library CI validates only `processes/*/plant.yaml`, so this folder is not validated by CI.
+  With core v1.4.0, which knows `simulator: idaes`, `cheme validate` in `case/` passes.
 
 ## Other simulators
 
