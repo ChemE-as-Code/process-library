@@ -908,6 +908,148 @@ def test_issue_forms_are_read_as_yaml(tmp_path: Path):
     assert build_catalog._issue_forms(tmp_path) == {"action": "a.yml", "hold": "b.yml"}
 
 
+# --- issue #250: a category whose every contribution is a gap has no total, never 0 (ADR 0029) ---
+
+#: core's lca/results.csv of a study whose every exchange is a gap: a total row of 0 and nothing else
+GAP_ONLY_RESULTS = (
+    "scenario,category,category_unit,key,basis,quantity,unit,factor,impact,share,phase,status,source,year\n"
+    "baseline,climate-change,kg CO2-eq,total,,,,,0,,,,,\n"
+)
+GAPS_HEADER = "scenario,category,key,reason,quantity,unit,phase,detail\n"
+
+
+def _results(folder: Path, results: str, gaps: str | None) -> None:
+    (folder / "lca" / "results.csv").write_text(results)
+    if gaps is not None:
+        (folder / "lca" / "gaps.csv").write_text(GAPS_HEADER + gaps)
+
+
+def test_a_category_whose_every_contribution_is_a_gap_has_no_total(library: Path, tmp_path: Path) -> None:
+    folder = library / "processes" / "fixture-electrolysis"
+    shutil.rmtree(folder / "lca" / "scenarios")
+    (folder / "lca" / "factors.yaml").write_text(
+        "kind: lca_factors\ncategories:\n  - {id: climate-change, title: Climate change, unit: kg CO2-eq, method: GWP100}\n"
+    )
+    _results(
+        folder,
+        GAP_ONLY_RESULTS,
+        "baseline,climate-change,feed:POWER,missing,55,kWh,operation,background to link\n"
+        "baseline,climate-change,emission:N2,elementary-uncharacterised,0.1,kg,operation,\n",
+    )
+    assert _build(library, tmp_path / "out").errors == []
+    lca = _json(tmp_path / "out" / "processes" / "fixture-electrolysis.json")["lca"]
+    assert lca["totals"] == {"baseline": {}}
+    # the unknown burden is counted once per exchange; a flow outside the method is no gap here
+    assert lca["no_total"] == {"baseline": {"climate-change": {"reason": "every-contribution-a-gap", "gaps": 1}}}
+    # ADR 0026's list of the baseline categories without a footprint has it too
+    assert lca["not_computed"] == ["climate-change"]
+    assert lca["contributions"] == [] and lca["factors_status"] == "none"
+    headline = next(p for p in _json(tmp_path / "out" / "catalog.json")["processes"] if p["id"] == "fixture-electrolysis")["lca"]
+    assert headline["value"] is None and headline["not_computed"] is True
+    assert headline["not_computed_reason"] == "every-contribution-a-gap"
+
+
+def test_a_zero_without_gaps_keeps_its_total_but_is_no_footprint(library: Path) -> None:
+    # no gap that leaves a burden unknown (e.g. only flows outside the method): not gap-only, so
+    # the total row stays; but nothing contributes, so ADR 0026 gives no footprint either
+    folder = library / "processes" / "fixture-electrolysis"
+    for gaps in (None, "baseline,climate-change,emission:N2,elementary-uncharacterised,0.1,kg,operation,\n"):
+        _results(folder, GAP_ONLY_RESULTS, gaps)
+        lca = build_catalog._lca(folder, "fixture", build_catalog.Report())
+        assert lca["totals"]["baseline"] == {"climate-change": 0.0}
+        assert lca["no_total"] == {}
+        assert build_catalog._not_computed(lca) == ["climate-change"]
+        assert build_catalog._not_computed_reason(lca, "climate-change") == "nothing-characterised"
+
+
+def test_a_category_with_contributions_keeps_its_total_beside_its_gaps(library: Path) -> None:
+    folder = library / "processes" / "fixture-electrolysis"
+    (folder / "lca" / "gaps.csv").write_text(GAPS_HEADER + "baseline,climate-change,feed:WATER,missing,9,kg,operation,\n")
+    lca = build_catalog._lca(folder, "fixture", build_catalog.Report())
+    assert lca["totals"]["baseline"] == {"climate-change": 24.0}
+    assert lca["no_total"] == {} and build_catalog._not_computed(lca) == []
+
+
+def test_the_pcf_breakdown_is_not_an_impact_category(library: Path) -> None:
+    # core writes the PCF breakdown as rows of category pcf in mixed units (kg CO2-eq, kg C,
+    # kg CO2): they are lines of their own, never summed into a total or listed as contributions
+    folder = library / "processes" / "fixture-electrolysis"
+    results = folder / "lca" / "results.csv"
+    results.write_text(
+        results.read_text()
+        + "baseline,pcf,kg CO2-eq,fossil,climate-change,,,,24,,,,,\n"
+        + "baseline,pcf,kg C,product_carbon,climate-change,,,,0.4,,,,,\n"
+    )
+    lca = build_catalog._lca(folder, "fixture", build_catalog.Report())
+    assert [c["id"] for c in lca["categories"]] == ["climate-change"]
+    assert lca["totals"]["baseline"] == {"climate-change": 24.0}
+    assert {c["category"] for c in lca["contributions"]} == {"climate-change"}
+    assert lca["pcf"] == [
+        {"key": "fossil", "basis": "climate-change", "value": 24.0, "unit": "kg CO2-eq"},
+        {"key": "product_carbon", "basis": "climate-change", "value": 0.4, "unit": "kg C"},
+    ]
+    # a withheld LCA loses its PCF numbers with its totals
+    detail = {"repository": None, "publication": None, "lca": {**lca, "publishable": False, "withheld_reason": "placeholder-factors"}}
+    build_catalog._publish(detail)
+    assert "pcf" not in detail["lca"] and "totals" not in detail["lca"]
+    assert "no_total" not in detail["lca"]  # its gap counts come from lca/gaps.csv
+
+
+def test_the_pcf_impact_lines_of_a_gap_only_category_are_unknown(library: Path) -> None:
+    # glycerol-1 (#250): fossil 0 and "including" -1.08 (biogenic withdrawal only) beside a
+    # climate total that does not exist; the carbon content of the product stays a fact
+    folder = library / "processes" / "fixture-electrolysis"
+    _results(
+        folder,
+        GAP_ONLY_RESULTS
+        + "baseline,pcf,kg CO2-eq,fossil,climate-change,,,,0,,,,,\n"
+        + "baseline,pcf,kg CO2-eq,including,climate-change,,,,-1.07551,,,,,\n"
+        + "baseline,pcf,kg C,product_carbon,climate-change,,,,0.39,,,,,\n",
+        "baseline,climate-change,feed:POWER,missing,55,kWh,operation,background to link\n",
+    )
+    lca = build_catalog._lca(folder, "fixture", build_catalog.Report())
+    reason = "every-contribution-a-gap"
+    assert lca["pcf"] == [
+        {"key": "fossil", "basis": "climate-change", "value": None, "unit": "kg CO2-eq", "not_computed": reason},
+        {"key": "including", "basis": "climate-change", "value": None, "unit": "kg CO2-eq", "not_computed": reason},
+        {"key": "product_carbon", "basis": "climate-change", "value": 0.39, "unit": "kg C"},
+    ]
+
+
+def test_the_shipped_library_reports_no_gap_only_total_as_zero(tmp_path: Path) -> None:
+    # read from the raw files, independently of _gap_only: every shipped baseline category
+    # with a gap that leaves a burden unknown and no contribution row has no total (#250)
+    gap_only = []
+    for folder in sorted((KIT / "processes").glob("*/lca/results.csv")):
+        process = folder.parents[1]
+        lca = build_catalog._lca(process, process.name, build_catalog.Report())
+        gaps_csv = folder.parent / "gaps.csv"
+        gapped = set()
+        if gaps_csv.is_file():
+            gapped = {
+                g["category"]
+                for g in build_catalog._csv(gaps_csv)
+                if g.get("scenario") == "baseline" and g.get("reason") not in build_catalog.OUTSIDE_METHOD
+            }
+        contributed = {
+            r["category"]
+            for r in build_catalog._csv(folder)
+            if r.get("scenario") == "baseline" and r["key"] != "total" and r["category"] != "pcf"
+        }
+        for category in gapped - contributed:
+            assert category not in lca["totals"].get("baseline", {}), (process.name, category)
+            assert category in lca["no_total"]["baseline"], (process.name, category)
+            assert category in build_catalog._not_computed(lca), (process.name, category)
+            gap_only.append(process.name)
+        for line in lca["pcf"]:
+            if line["basis"] in lca["no_total"].get("baseline", {}) and line["unit"].endswith("CO2-eq"):
+                assert line["value"] is None, (process.name, line)
+        assert "pcf" not in {c["id"] for c in lca["categories"]}, process.name
+    # 21 shipped processes had a gap-only headline at core 1.2.1 (ADR 0029); not pinned, so that
+    # linking a background is no test change, but the rule must reach the shipped studies
+    assert gap_only
+
+
 ELECTROLYSIS_LCA = Path("processes") / "fixture-electrolysis" / "lca"
 
 
