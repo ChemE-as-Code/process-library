@@ -14,7 +14,13 @@ decision:
   confidence: 0.5
   # Threshold: the benzene price proxy of product:BENZENE below (2025 unit value of Dutch
   # benzene exports). The plant is worth taking further only if it makes benzene for no more
-  # than benzene sells for.
+  # than benzene sells for. The threshold is a fixed number: the Monte Carlo samples the toluene
+  # price (and every other price) independently and never moves the benzene price with it, so
+  # P(meets) is the chance that toluene falls while benzene stays put, not the probability of a
+  # benzene-toluene spread. It is not the decision result. The core (v1.4.1) cannot correlate two
+  # price inputs, nor tie an lcop threshold to a price key. The evidence for the decision is the
+  # spread series of the prices-20xx scenarios below (NPV against the same year's benzene price),
+  # set against the break-even spread (D-019).
 basis:
   product: BENZENE
   unit: t
@@ -32,8 +38,8 @@ capex:
     exchange_rate: {value: 0.92481, source: "Eurostat ert_bil_eur_a, euro/ecu exchange rates, annual average 2023: 1.0813 USD per EUR, read 2026-11-03; 1 / 1.0813 EUR per USD", year: 2023}
     escalation: {value: 1.0520, source: "Eurostat sts_inppd_a, domestic producer prices, NL, NACE C28 (machinery and equipment), index 2021 = 100: 121.4 (2025) / 115.4 (2023), read 2026-11-03; a proxy for plant cost escalation from the CEPCI year 2023 to 2025, ASSUMED (the same proxy as processes/ammonia-1/estimate/tea.yaml)"}
     location_factor: {value: 1.0, status: ASSUMED, source: "no open location factor from the US Gulf Coast basis of the correlations to the Netherlands was found; 1.0 kept and the class 5 range applied (D-019)"}
-    purchased_installation: {value: 2.5, status: ASSUMED, source: "installed cost of H-101 over its purchased cost: the package's fired-heater correlation has no bare module factor; a screening factor chosen in this design (D-019)"}
-    uncovered_allowance: {value: 0.15, status: ASSUMED, source: "items the correlations leave out: column trays and internals of C-201/C-202/C-203 (82 trays at the D-017 sizes), the R-101 refractory lining, the C-203 vacuum pump, reflux and distillate pumps, spares, the benzene product cooler (I-12); a screening fraction chosen in this design (D-019)"}
+    purchased_installation: {value: 2.5, status: ASSUMED, source: "installed cost of H-101 over its purchased cost: the package's fired-heater correlation has no bare module, pressure or material factor (a core limit, D-019), and the printed Turton et al. Appendix A tables that hold them could not be read here; a screening factor chosen in this design, likely low for alloy tubes at 42 barg in hot hydrogen (D-019)"}
+    uncovered_allowance: {value: 0.15, status: ASSUMED, source: "items the correlations leave out: column trays and internals of C-201/C-202/C-203 (82 trays at the D-017 sizes), the R-101 refractory lining, the C-203 vacuum pump, reflux and distillate pumps, spares, the benzene product cooler (I-12), and the K-101 electric drive (an explosion-proof motor of about 300 kW, ASSUMED: the 229.5 kW shaft power with a margin, and its starter: the package's compressor correlation excludes the driver and holds no electric-drive correlation); a screening fraction chosen in this design (D-019)"}
   osbl: {value: 0.30, status: ASSUMED, source: "offsites and utility connections (rack to the site headers, tie-ins to the site's storage, fuel gas, flare and cooling water) as a fraction of ISBL, a screening value chosen in this design for a unit on an existing chemical site (D-019)"}
   owners_cost: {value: 0.07, status: ASSUMED, source: "IEAGHG Technical Report 2017-03, section 2.8.1: owner's cost 7 % of the total plant cost (an ammonia study, used here as an analogue, as in processes/ammonia-1/estimate/tea.yaml)"}
   contingency: {value: 0.20, status: ASSUMED, source: "IEAGHG Technical Report 2017-03, section 2.8.1: 20 % contingency (used here as an analogue); the class 5 range of the estimate is applied in the uncertainty"}
@@ -62,21 +68,21 @@ prices:
     component: CH4
     value: 11.397
     unit: GJ
-    conversion: {value: 0.055516, source: "gross calorific value of methane, own calculation: standard heat of combustion 890.63 kJ/mol (NIST Chemistry WebBook) / 16.0425 g/mol = 55.516 MJ/kg"}
+    conversion: {value: 0.055521, source: "gross calorific value of methane, own calculation: standard heat of combustion of the gas 890.7 kJ/mol (NIST Chemistry WebBook, methane, ID C74828, gas phase thermochemistry, dcH gas -890.7 +/- 0.4 kJ/mol, Pittam and Pilcher 1972, read 2026-11-03) / 16.0425 g/mol = 55.521 MJ/kg"}
     status: ASSUMED
     source: "the methane in the make-up gas valued at the natural-gas price of feed:FUEL (Eurostat nrg_pc_203, NL, band I6, excluding VAT and recoverable taxes, mean of 2025-S1 12.4122 and 2025-S2 10.3818 EUR/GJ GCV, read 2026-11-03), ASSUMED (D-019)"
     year: 2025
   - key: feed:POWER
     value: 100.65
     unit: MWh
-    status: QUOTED
-    source: "Eurostat nrg_pc_205, non-household electricity prices, NL, band IG (150,000 MWh or over), excluding VAT and recoverable taxes: mean of 2025-S1 0.1062 and 2025-S2 0.0951 EUR/kWh, read 2026-11-03"
+    status: ASSUMED
+    source: "Eurostat nrg_pc_205, non-household electricity prices, NL, band IG (150,000 MWh or over), excluding VAT and recoverable taxes: mean of 2025-S1 0.1062 and 2025-S2 0.0951 EUR/kWh, read 2026-11-03; the unit alone uses about 2.1 GWh/a, so the band is the one of the existing chemical site's total consumption, through which the unit buys its power: a premise of this design, ASSUMED (D-019)"
     year: 2025
   - key: feed:FUEL
     value: 53.56
     unit: MWh
     status: ASSUMED
-    source: "natural gas per MWh absorbed in H-101: 11.397 EUR/GJ GCV (Eurostat nrg_pc_203, NL, band I6, excluding VAT and recoverable taxes, mean of 2025-S1 12.4122 and 2025-S2 10.3818 EUR/GJ, both flagged estimated, read 2026-11-03) x 3.6 GJ/MWh / 0.766 (fired efficiency 0.85 on LHV, ASSUMED, x LHV/GCV of methane 802.6/890.63, own calculation from the NIST heat of combustion and 44.0 kJ/mol latent heat of water at 298 K) (D-019)"
+    source: "natural gas per MWh absorbed in H-101: 11.397 EUR/GJ GCV (Eurostat nrg_pc_203, NL, band I6, excluding VAT and recoverable taxes, mean of 2025-S1 12.4122 and 2025-S2 10.3818 EUR/GJ, both flagged estimated, read 2026-11-03) x 3.6 GJ/MWh / 0.766 (fired efficiency 0.85 on LHV, ASSUMED, x LHV/GCV of methane 802.7/890.7, own calculation from the NIST heat of combustion of feed:H2MU@CH4 and 2 x 44.0 kJ/mol latent heat of water at 298 K); band I6 (4 000 000 GJ or over) is the existing site's total gas use, through which the unit buys its gas, not the unit's own use of about 0.3 PJ/a GCV (band I4): a premise of this design, ASSUMED; the swing 0.6 to 1.6 covers the band difference (D-019)"
     year: 2025
     swing: {low: 0.6, high: 1.6}
   - key: feed:MPS
@@ -132,9 +138,15 @@ emissions:
       key: feed:FUEL
       factor: {value: 0.2376, source: "natural gas burned in H-101 per MWh absorbed: 3.6 GJ / 0.85 (fired efficiency on LHV, ASSUMED) x 56.1 t CO2/TJ (2006 IPCC Guidelines, Vol. 2, Ch. 1, Table 1.4, natural gas default 56 100 kg/TJ on the net calorific value)"}
       unit: MWh
-  # The CO2 of the exported fuel gas and of the steam boilers is emitted outside the boundary
-  # (site fuel system, utility plant) and is not charged here (D-019). No free allocation,
-  # ASSUMED; scenario no-carbon-price shows the other end.
+    - id: steam-boiler
+      key: feed:MPS
+      factor: {value: 0.2022, source: "natural gas burned in the site boiler per MWh of steam heat: 3.6 GJ / 0.90 (boiler efficiency on GCV, ASSUMED, as feed:MPS) x 802.7/890.7 (LHV/GCV of methane, feed:FUEL) x 56.1 t CO2/TJ (2006 IPCC Guidelines, Vol. 2, Ch. 1, Table 1.4, natural gas default on the net calorific value); the site boiler is under the EU ETS like H-101, so the steam carries its CO2 as make-up hydrogen does (D-019)"}
+      unit: MWh
+    - {id: steam-boiler-lp, key: feed:LPS, factor: {value: 0.2022, source: "as steam-boiler (D-019)"}, unit: MWh}
+    - {id: steam-boiler-hp, key: feed:HPS, factor: {value: 0.2022, source: "as steam-boiler (D-019)"}, unit: MWh}
+  # The CO2 of the exported fuel gas and biphenyl is emitted where they are burned (site fuel
+  # system) and is charged to the user, not here (D-019). No free allocation, ASSUMED; scenario
+  # no-carbon-price shows the other end.
 fixed_opex:
   maintenance: {value: 0.03, status: ASSUMED, source: "screening value chosen in this design, fraction of fixed capital per year (as processes/ammonia-1/estimate/tea.yaml)"}
   labour: {operators: {value: 25, status: ASSUMED, source: "screening value: five positions in five shifts (D-019)"}, cost_per_operator: {value: 80000, status: ASSUMED, source: "screening value, EUR per operator-year including overheads, NL (as processes/ammonia-1/estimate/tea.yaml)"}}
@@ -146,6 +158,21 @@ finance:
 uncertainty: {iterations: 2000, seed: 1, defaults: {ASSUMED: {gsd2: 1.4}, QUOTED: {gsd2: 1.1}}}
 sensitivity: {swing: {low: 0.8, high: 1.2}}
 scenarios:
-  - {id: prices-2024, prices: {product:BENZENE: 978.7, feed:TOLF: 818.5}, source: "Eurostat Comext DS-045409, 2024 unit values: NL benzene exports 1 060 526 806 EUR / 1 083 653 t = 978.7 EUR/t, NL toluene imports 112 341 889 EUR / 137 246 t = 818.5 EUR/t, read 2026-11-03"}
+  # The benzene-toluene spread over seven years, from the same Comext flows as the baseline
+  # (DS-045409, NL, partner WORLD, CN 2902 20 00 benzene exports and CN 2902 30 00 toluene
+  # imports, annual, VALUE_IN_EUROS / QUANTITY_IN_100KG, read 2026-11-03, dataset updated
+  # 2026-10-16). Only the two prices change; hydrogen, gas and power stay at their 2025 values.
+  # The column to read is NPV (against that year's benzene price); 'meets' compares LCOP with
+  # the fixed 2025 threshold and does not apply to other years. A unit-value difference between
+  # an import and an export flow is not a traded spread (different delivery terms, grades and
+  # partners); it is a proxy, ASSUMED (D-019).
+  - {id: prices-2019, prices: {product:BENZENE: 624.8, feed:TOLF: 615.1}, source: "Comext DS-045409, 2019: NL benzene exports 300 433 803 EUR / 480 836 t = 624.8 EUR/t, NL toluene imports 119 321 457 EUR / 193 997 t = 615.1 EUR/t (spread 9.7 EUR/t)"}
+  - {id: prices-2020, prices: {product:BENZENE: 522.3, feed:TOLF: 418.5}, source: "Comext DS-045409, 2020: NL benzene exports 266 914 645 EUR / 511 024 t = 522.3 EUR/t, NL toluene imports 95 704 450 EUR / 228 695 t = 418.5 EUR/t (spread 103.8 EUR/t)"}
+  - {id: prices-2021, prices: {product:BENZENE: 897.7, feed:TOLF: 549.0}, source: "Comext DS-045409, 2021: NL benzene exports 472 718 192 EUR / 526 566 t = 897.7 EUR/t, NL toluene imports 76 789 234 EUR / 139 878 t = 549.0 EUR/t (spread 348.7 EUR/t)"}
+  - {id: prices-2022, prices: {product:BENZENE: 1028.6, feed:TOLF: 942.5}, source: "Comext DS-045409, 2022: NL benzene exports 753 233 256 EUR / 732 308 t = 1028.6 EUR/t, NL toluene imports 169 211 730 EUR / 179 538 t = 942.5 EUR/t (spread 86.1 EUR/t)"}
+  - {id: prices-2023, prices: {product:BENZENE: 865.0, feed:TOLF: 897.6}, source: "Comext DS-045409, 2023: NL benzene exports 780 608 793 EUR / 902 389 t = 865.0 EUR/t, NL toluene imports 84 626 411 EUR / 94 280 t = 897.6 EUR/t (spread -32.6 EUR/t)"}
+  - {id: prices-2024, prices: {product:BENZENE: 978.7, feed:TOLF: 818.5}, source: "Eurostat Comext DS-045409, 2024 unit values: NL benzene exports 1 060 526 806 EUR / 1 083 654 t = 978.7 EUR/t, NL toluene imports 112 341 889 EUR / 137 247 t = 818.5 EUR/t, read 2026-11-03 (spread 160.2 EUR/t)"}
+  - {id: prices-2025-imports, prices: {product:BENZENE: 706.7}, source: "Comext DS-045409, 2025, both prices from import flows: NL benzene imports 176 964 321 EUR / 250 423 t = 706.7 EUR/t, against the baseline toluene imports 668.1 EUR/t (spread 38.6 EUR/t)"}
+  - {id: prices-2025-exports, prices: {feed:TOLF: 808.3}, source: "Comext DS-045409, 2025, both prices from export flows: NL toluene exports 47 756 669 EUR / 59 084 t = 808.3 EUR/t, against the baseline benzene exports 673.6 EUR/t (spread -134.7 EUR/t)"}
   - {id: no-carbon-price, prices: {carbon: 0}, source: "full free allocation or no carbon price: the lower bound of the carbon cost"}
   - {id: capex-class5-high, scale: {capex:isbl: 2.0}, source: "AACE 18R-97 class 5 upper bound +100 % on the ISBL"}
