@@ -8,7 +8,7 @@
 # - the feed flows S1 and S4 follow from the design capacity through the independent balance
 #   scripts/hda_balance.py (D-006, D-020), given with that source;
 # - the other stream values and the duties are calculated: by `cheme process propagate --fill`
-#   (mixers, splitters, pass-throughs, the conversion reactor with the D-005 selectivity) and by
+#   (mixers, splitters, pass-throughs, the conversion reactor R101 at the D-021 conversion) and by
 #   `cheme process simulate --fill` (DWSIM, Peng-Robinson, D-014). Peng-Robinson is not
 #   qualified by core for aromatics with hydrogen (core#315): the simulated values are a second
 #   implementation's check of the script, not validated data;
@@ -24,7 +24,7 @@ units:
   enthalpy: kJ/kmol
   enthalpy_reference: {state: ideal_gas, temperature: 298.15}
 cases:
-  - {id: design, description: "Design case: 12.5 t/h benzene, toluene conversion 0.75 per pass, H2/aromatics 5, purge 40 mol% H2 (D-002, D-005, D-007)", default: true}
+  - {id: design, description: "Design case: 12.5 t/h benzene, toluene conversion 0.75 per pass, H2/aromatics 5, purge 40 mol% H2 (D-002, D-021, D-007)", default: true}
 tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
 
 feeds:
@@ -323,7 +323,7 @@ streams:
       design:
         pressure: {value: 300, provenance: assumed, source: "design basis, D-003: battery limit from the tank farm; no published value (D-020)"}
         temperature: {value: 303.15, provenance: assumed, source: "design basis, D-003: battery limit; no published value (D-020)"}
-        flow: {value: 15432.33, basis: mass, provenance: given, source: "scripts/hda_balance.py: the fresh toluene that gives the design capacity of process/design-basis.yaml (100 kt/a benzene product, 12.5 t/h at 8000 h/a, D-002) with the D-020 feeds and the D-021 reactor model (D-006, D-020)"}
+        flow: {value: 15432.33, basis: mass, provenance: given, source: "scripts/hda_balance.py: the fresh toluene that gives the design capacity of process/design-basis.yaml (100 kt/a benzene product, 12.5 t/h at 8000 h/a, D-002) with the D-020 feeds and the D-021 reactor model (D-006, D-020). The capacity and the operating hours are ASSUMED (open input I-04, D-002), and so are the loop specifications the script holds (H2/aromatics 5, purge 40 mol% H2, D-007): the flow is given only as far as these premises are"}
         composition: {basis: mole_fraction, values: {TOL: 0.99941027, BZ: 0.00058973}, provenance: given, source: "Bharat Petroleum Corporation Ltd, toluene data sheet (BPCL: TOLUENE, conforming to IS 537:2011), https://bharatpetroleum.in/images/files/Data-Sheet-Toluene.pdf, read 2026-11-03, table rows 1, 7, 8, 10, 13: toluene at least 99.8 % by mass, benzene at most 500 mg/kg, non-aromatics at most 0.1 % by mass, C8+ aromatics at most 1000 ppm, water at most 500 ppm. Modelled: benzene at its limit (0.05 % by mass = 0.000590 mol/mol); the other impurities (at most 0.2 % by mass together) are not components of the model and are counted as toluene, ASSUMED (D-020)"}
   - id: S2
     title: Toluene to feed pump
@@ -356,7 +356,7 @@ streams:
       design:
         pressure: {value: 3700, provenance: assumed, source: "design basis, D-003: available above loop pressure, no make-up compressor; no published value (D-020)"}
         temperature: {value: 313.15, provenance: assumed, source: "design basis, D-003: battery limit; no published value (D-020)"}
-        flow: {value: 556.58, basis: mass, provenance: given, source: "scripts/hda_balance.py: the make-up that holds H2/aromatics 5 at 40 mol% H2 in the purge (D-007) at the design capacity of process/design-basis.yaml (12.5 t/h benzene, D-002), D-020 feeds, D-021 reactor model"}
+        flow: {value: 556.58, basis: mass, provenance: given, source: "scripts/hda_balance.py: the make-up that holds H2/aromatics 5 at 40 mol% H2 in the purge (D-007) at the design capacity of process/design-basis.yaml (12.5 t/h benzene, D-002), D-020 feeds, D-021 reactor model. The capacity and the operating hours are ASSUMED (open input I-04, D-002), and so are the loop specifications (D-007): the flow is given only as far as these premises are"}
         composition: {basis: mole_fraction, values: {H2: 0.999, CH4: 0.001}, provenance: given, source: "PSA hydrogen purity 99.9 %: Matijasevic, L., Petric, M. (2016), Integration of hydrogen systems in petroleum refinery, Chem. Biochem. Eng. Q. 30(3) 291-304, doi:10.15255/CABEQ.2015.2337, read in the authors' manuscript (https://www.hatz.hr/wp-content/uploads/2018/05/Matija%C5%A1evi%C4%87Petri%C4%87-Integration-of-Hydrogen-Systems-in-Petroleum-Refinery.pdf, 2026-11-03), Table 1 (p. 3, after Patel et al. 2006: PSA product purity 99.9 %) and Fig. 3 (p. 8: the refinery's PSA product at 99.9 % v/v). The 0.1 % remainder is taken as methane, ASSUMED (the PSA's slip is not stated by the source) (D-020)"}
   - id: S5
     title: Combined reactor feed
@@ -579,7 +579,7 @@ streams:
         pressure: {value: 150, provenance: assumed, source: "design basis, D-008"}
         temperature: {value: 313.15, provenance: assumed, source: "design basis, D-008"}
         flow: {value: 12500.0, basis: mass, provenance: assumed, source: "design basis 100 kt/a, D-002"}
-        composition: {basis: mole_fraction, values: {TOL: 0.001, BZ: 0.999}, provenance: assumed, source: "design target 99.9 mol% (D-002, D-008)"}
+        composition: {basis: mole_fraction, values: {TOL: 0.001, BZ: 0.999}, provenance: assumed, source: "design target 99.9 mol% (D-002, D-008); the simulated distillate S26 misses it narrowly (BZ 0.998925 with TOL at its 0.001 spec and H2/CH4 traces, 99.899 mol% normalised), a deviation recorded in D-022"}
   - id: S22
     title: Benzene column bottoms
     from: C202.bot

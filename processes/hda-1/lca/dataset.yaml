@@ -24,13 +24,14 @@ cutoff:
     sized; D-008, I-08); not in the flowsheet's power feed
   source: D-008
 - key: cutoff:small-pumps-power
-  title: P-102, reflux and distillate pumps power
+  title: reflux and distillate pumps power
   amount: 15.0
   unit: kWh
-  reason: quench pump P-102 (below 1 kW) and the reflux and distillate pumps of C-201, C-202 and C-203,
-    each below about 5 kW, together about 15 kW x 8000 h/a (ASSUMED upper estimate; D-008, D-010); not
-    in the flowsheet's power feed
-  source: D-008, D-010
+  reason: 'the reflux and distillate pumps of C-201, C-202 and C-203, each below about 5 kW, together
+    about 15 kW x 8000 h/a (ASSUMED upper estimate; D-008, D-010); not in the flowsheet''s power feed.
+    The quench pump P-102 is no longer in this cut-off: since S2 it is a flowsheet step with its power
+    Q12 in feed:POWER (D-022)'
+  source: D-008, D-010, D-022
 - key: emission-excluded:heater-combustion
   title: combustion emissions of H-101
   direction: output
@@ -94,12 +95,12 @@ exchanges:
   unit: kg
   provenance: given
   link:
-    source: fresh toluene S1 (design basis D-003)
+    source: fresh toluene S1 (design basis D-003; composition from the BPCL toluene data sheet, D-020)
     missing: 'no background chosen yet: toluene, liquid, market for (aromatics extraction from catalytic
       reformate or pyrolysis gasoline at a refinery or steam cracker), delivered to the plant'
   streams:
   - S1
-  source: fresh toluene S1 (design basis D-003)
+  source: fresh toluene S1 (design basis D-003; composition from the BPCL toluene data sheet, D-020)
   pedigree:
     scores: [3, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (given, design maturity concept)
@@ -146,14 +147,14 @@ exchanges:
   provenance: calculated
   origin: simulated
   link:
-    source: recycle compressor K-101 and toluene pump P-101 (Q1, Q2; D-010)
+    source: recycle compressor K-101, toluene pump P-101 and quench pump P-102 (Q1, Q2; D-010; Q12, D-022)
     missing: 'no background chosen yet: electricity, medium voltage, market for the site''s grid (site
       not chosen)'
   streams:
   - Q1
   - Q2
   - Q12
-  source: recycle compressor K-101 and toluene pump P-101 (Q1, Q2; D-010)
+  source: recycle compressor K-101, toluene pump P-101 and quench pump P-102 (Q1, Q2; D-010; Q12, D-022)
   pedigree:
     scores: [3, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (simulated, design maturity concept)
@@ -347,7 +348,7 @@ exchanges:
   amount: 10360.445
   unit: kWh
   link:
-    source: heat to cooling water Q4, Q6, Q8, Q10 (D-010)
+    source: heat to cooling water Q4, Q6, Q8, Q10 (D-010) and the product cooler E-207, Q11 (D-022)
     missing: 'no background chosen yet: cooling water circulation per MJ rejected (pump and fan electricity,
       make-up water withdrawal and evaporation, blowdown, treatment chemicals)'
   streams:
@@ -356,7 +357,7 @@ exchanges:
   - Q8
   - Q10
   - Q11
-  source: heat to cooling water Q4, Q6, Q8, Q10 (D-010)
+  source: heat to cooling water Q4, Q6, Q8, Q10 (D-010) and the product cooler E-207, Q11 (D-022)
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -410,7 +411,7 @@ provenance:
   case: design
   files:
     equipment/equipment-list.yaml: sha256:720b90ddea164273279e4aa3d1a309216e84edace052d3fa32b5969b951c0060
-    lca/lca.yaml: sha256:33f2518f022f5fbfb3e2d3ad69c4c52d8c2ddd72c292ffab7e2bd5fe228ee380
+    lca/lca.yaml: sha256:76c97714eb197893db2b6f222e2012be8972b5989fae5606b380e0c7347fc665
     process.yaml: sha256:f95f50b42c8b2a6107020aabe8816645014c651bea7d3a63a25ffb2c9a827e24
     process/flowsheet.yaml: sha256:9e807b1d80b50ca2bd5aa8306ac1c78e8552bd0fac101eaab338ceb68f9a4f53
     process/materials.yaml: sha256:ec966479da5a421c8457b263acbffb87125349725c69d2073a1f027849a27a43

@@ -31,28 +31,36 @@ facets:
   product_classes: [chemicals]
   unit_operations: [reaction, heat-exchange, compression, flash, distillation]
   region: generic
-# Honest claim: concept is the lowest level of the manifest; cheme maturity reports level none
-# (the feeds and the capacity are assumed, not sourced, and the separators and columns are
-# specified values), see validation.notes and DESIGN.md D-006.
+# Honest claim: concept is the lowest level of the manifest. cheme maturity reports calculation
+# maturity balanced since S2 (gate maturity-balanced passes); predictive is not reached, see
+# validation.notes and DESIGN.md D-021, D-022.
 maturity: concept
 validation:
   status: unreviewed
   notes: >-
     Concept PFD with closed mass, component and element balances (cheme validate, cheme process
-    streams) and an independent overall energy closure of 0.25 % (scripts/hda_balance.py).
-    cheme maturity reaches no level: the feeds and the capacity are assumed (no sourced or
-    owner-given feed). The separator and the three columns are simulated in DWSIM
-    (Peng-Robinson, converged, D-014), but core has not qualified that package for aromatics
-    with hydrogen (predictive.property-regime fails). The reactor loop and C-203 agree with the
-    independent script within about 1.5 %; C-202's reboiler duty is about 51 % and its condenser
-    duty about 26 % higher (the script's saturated-liquid feed simplification).
-    The reactor outlet is calculated by cheme (conversion reactor with the
-    selectivity correlation recalled, not verified, and an assumed conversion) and reproduces the script's
-    extents; cheme's ideal-gas reactor duty (-45 kW) confirms the script's adiabatic outlet
-    temperature. The LCI is a cradle-to-gate study with the foreground inventory only, every
-    background open (10 gaps): no impact result, and no LCA result passed to the catalog
-    (lca.source none). Not reviewed. Main products and feeds are listed under chemistry with
-    their chemicals registry entries (issue #251).
+    streams), simulated as a whole plant in DWSIM (Peng-Robinson, converged in 3 recycle
+    iterations, D-022). The simulated plant's energy audit closes (residual 0.833 kW against a
+    tolerance of 22.24 kW), but that closure includes 17.4 kW of heat to the isothermal
+    biphenyl step that has no energy stream (a model artefact, D-021). cheme maturity reports
+    calculation maturity balanced. The feeds are given from published specifications (D-020: a
+    commercial toluene data sheet, BPCL/IS 537:2011, and a PSA hydrogen purity of 99.9 mol%,
+    Matijasevic and Petric 2016). Their flows follow from the design capacity, which is itself
+    ASSUMED (I-04). The reactor R-101 is modelled as a conversion step at the 75 % per-pass
+    toluene conversion of a published thermal HDA reactor (US 3,291,849, adopted as the design
+    value), followed by the biphenyl reaction at chemical equilibrium on the declared formation
+    data (D-021). That equilibrium bounds the biphenyl make only, so the modelled benzene
+    selectivity of 0.973 is optimistic: a published patent example reports 94.5 % at a higher
+    conversion, and the TEA carries it as a scenario. Predictive fails on three requirements: model-basis (R101 is a
+    specified conversion; no readable thermal HDA kinetics with units and range, and no
+    homogeneous kinetic reactor in core), property-regime (core has not benchmarked
+    Peng-Robinson for aromatics with hydrogen and methane) and formation-data (DWSIM's own
+    formation data in the biphenyl equilibrium step). The stabiliser and the benzene column are
+    DWSIM shortcut columns; their product fractions miss 1 by up to 1.7e-4 (core#130). The LCI
+    is a cradle-to-gate study with the foreground inventory only, every background open
+    (8 gaps): no impact result, and no LCA result passed to the catalog (lca.source none). Not
+    reviewed. Main products and feeds are listed under chemistry with their chemicals registry
+    entries (issue #251).
 chemistry:
   inputs:
     - {chemical: toluene, role: feedstock, note: "feed:TOLF: fresh toluene, 1.23 kg/kg benzene"}
@@ -74,8 +82,8 @@ basis:
   operating_hours_per_year: 8000
   location: generic (not chosen)
 references:
-  - {title: "Douglas, J.M. (1988) Conceptual Design of Chemical Processes. McGraw-Hill (HDA case study: reactor conditions; recalled, not read: no value of the model rests on it since D-021)"}
   - {title: "King, C.C., Campagnolo, J.F., Lehman, L.M. (1966) Hydrodealkylation. US Patent 3,291,849 (Hydrocarbon Research, Inc.): per-pass toluene conversion of a thermal HDA reactor", url: "https://patents.google.com/patent/US3291849"}
+  - {title: "Gulf Research & Development Co. (1971) Thermal hydrodealkylation process. US Patent 3,607,960: diphenyl in thermal HDA, primary-reactor benzene selectivity of Example 1", url: "https://patents.google.com/patent/US3607960A/en"}
   - {title: "Bharat Petroleum Corporation Ltd, toluene data sheet (IS 537:2011): fresh toluene specification", url: "https://bharatpetroleum.in/images/files/Data-Sheet-Toluene.pdf"}
   - {title: "Matijasevic, L., Petric, M. (2016) Integration of hydrogen systems in petroleum refinery. Chem. Biochem. Eng. Q. 30(3) 291-304, doi:10.15255/CABEQ.2015.2337 (PSA hydrogen purity)"}
   - {title: "Speight, J.G. (2011) Handbook of Industrial Hydrocarbon Processes. Elsevier, Ch. 11 (hydrodealkylation conditions)"}
