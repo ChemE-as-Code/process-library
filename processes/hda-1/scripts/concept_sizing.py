@@ -44,7 +44,9 @@ U = {  # W/(m2 K), overall, clean
     "E-205": 600,  # toluene condenser under vacuum
     "E-206": 700,  # HP-steam reboiler, biphenyl
     "E-207": 500,  # benzene liquid product cooled against cooling water (D-022)
+    "E-103": 100,  # tail-gas aftercooler: methane-rich gas at 0.47 MPa against cooling water (D-024)
 }
+CP_TAIL = 38.0       # kJ/(kmol K), tail gas (84 mol% CH4, 14 mol% H2) between 313 and 440 K (D-024)
 F_FACTOR = 2.0       # Pa^0.5, sieve trays at the design vapour load
 ACTIVE = 0.85        # active-area fraction of the column cross-section
 TRAY_EFF = 0.7       # overall tray efficiency
@@ -95,6 +97,8 @@ def main() -> None:
         return RHO_LIQ
 
     out = [("latent heats", out_latent)]
+    n_tail = streams["S34"]["flow"]["value"] / molar_mass("S34")
+    t_k102 = t("S34") + units["K102"]["cooling_kW"] * 3600.0 / (n_tail * CP_TAIL)
     # ---- exchangers
     ex = {
         "E-101": (units["E101"]["duty_kW"], lmtd(t("S9") - t("S6"), t("S10") - t("S5")),
@@ -111,6 +115,10 @@ def main() -> None:
         "E-206": (duty["Q9"], STEAM_T["HPS"] - t("S24"), "HP steam against S24"),
         "E-207": (abs(units["E207"]["duty_kW"]), lmtd(t("S26") - CW_OUT, 313.15 - CW_IN),
                   "S26 -> 313.15 K against CW (D-022)"),
+        # D-024: the K-102 discharge temperature is not in the run record (the aftercooler is
+        # inside the compressor unit), so it follows from the aftercooler duty at CP_TAIL
+        "E-103": (units["K102"]["cooling_kW"], lmtd(t_k102 - CW_OUT, t("S34") - CW_IN),
+                  f"K-102 discharge {t_k102:.1f} K -> S34 {t('S34'):.2f} K against CW (D-024)"),
     }
     for tag, (q, dt, basis) in ex.items():
         area = q * 1000 / (U[tag] * dt)
@@ -173,6 +181,12 @@ def main() -> None:
     out.append(("P-101", f"{units['P101']['duty_kW']:.1f} kW (DWSIM, D-014)"))
     out.append(("K-101", f"{units['K101']['duty_kW']:.1f} kW (DWSIM, D-014)"))
     out.append(("H-101", f"{units['H101']['duty_kW']:.1f} kW absorbed (DWSIM, D-014)"))
+    out.append(("K-102", f"{units['K102']['duty_kW']:.1f} kW shaft, {n_tail:.1f} kmol/h tail gas, "
+                         f"discharge about {t_k102:.0f} K (DWSIM, D-024)"))
+    s13 = streams["S13"]
+    q13 = s13["flow"]["value"] / molar_mass("S13") / 3600.0 * R * t("S13") / s13["pressure"]["value"]
+    out.append(("PK-101", f"PSA feed {s13['flow']['value']:.0f} kg/h, {q13 * 3600:.0f} m3/h actual at "
+                          f"{s13['pressure']['value']:.0f} kPa(a) (ideal gas, S13); package plot ASSUMED (D-024)"))
 
     for tag, text in out:
         print(f"{tag}: {text}")
