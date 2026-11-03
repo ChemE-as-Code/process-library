@@ -43,6 +43,7 @@ U = {  # W/(m2 K), overall, clean
     "E-204": 800,  # LP-steam reboiler, aromatics
     "E-205": 600,  # toluene condenser under vacuum
     "E-206": 700,  # HP-steam reboiler, biphenyl
+    "E-207": 500,  # benzene liquid product cooled against cooling water (D-022)
 }
 F_FACTOR = 2.0       # Pa^0.5, sieve trays at the design vapour load
 ACTIVE = 0.85        # active-area fraction of the column cross-section
@@ -80,7 +81,7 @@ def main() -> None:
 
     # latent heats from the simulation: condenser duty over the condensed vapour V = D (R + 1)
     latent = {
-        "BZ": units["C202"]["condenser_kW"] * 3600.0 / (streams["S21"]["flow"]["value"] * 3.18),
+        "BZ": units["C202"]["condenser_kW"] * 3600.0 / (streams["S26"]["flow"]["value"] * 3.18),
         "TOL": units["C203"]["condenser_kW"] * 3600.0 / (streams["S23"]["flow"]["value"] * 1.5),
     }
     # biphenyl bottoms of C-203: the toluene value, ASSUMED (no simulated biphenyl latent heat)
@@ -104,10 +105,12 @@ def main() -> None:
         # condensing range is ASSUMED 350 -> 313.15 K (the D-008 condenser outlet)
         "E-201": (duty["Q6"], lmtd(350.0 - CW_OUT, 313.15 - CW_IN), "ASSUMED 350 -> 313.15 K against CW"),
         "E-202": (duty["Q5"], STEAM_T["MPS"] - t("S20"), "MP steam against S20 bubble point"),
-        "E-203": (duty["Q8"], lmtd(t("S21") - CW_IN, t("S21") - CW_OUT), "condensing at the S21 temperature"),
+        "E-203": (duty["Q8"], lmtd(t("S26") - CW_IN, t("S26") - CW_OUT), "condensing at the S26 temperature"),
         "E-204": (duty["Q7"], STEAM_T["LPS"] - t("S22"), "LP steam against S22"),
         "E-205": (duty["Q10"], lmtd(t("S23") - CW_IN, t("S23") - CW_OUT), "condensing at the S23 temperature"),
         "E-206": (duty["Q9"], STEAM_T["HPS"] - t("S24"), "HP steam against S24"),
+        "E-207": (abs(units["E207"]["duty_kW"]), lmtd(t("S26") - CW_OUT, 313.15 - CW_IN),
+                  "S26 -> 313.15 K against CW (D-022)"),
     }
     for tag, (q, dt, basis) in ex.items():
         area = q * 1000 / (U[tag] * dt)
@@ -135,10 +138,10 @@ def main() -> None:
         out.append((tag, f"{text}; {stages:.1f} theoretical stages / {TRAY_EFF} = {trays} trays x "
                          f"{TRAY_SPACING} m + {COLUMN_EXTRA} m -> H {height:.1f} m"))
 
-    s19, s21, s23 = streams["S19"], streams["S21"], streams["S23"]
+    s19, s26, s23 = streams["S19"], streams["S26"], streams["S23"]
     column("C-201", s19["flow"]["value"] * (1.0 + 1.0), molar_mass("S19"), 313.15, 800.0,
            duty["Q5"], "BZ", t("S20"), 800.0, molar_mass("S20"), max(units["C201"]["stages"], 8.0))
-    column("C-202", s21["flow"]["value"] * (1.0 + 2.18), molar_mass("S21"), t("S21"), 150.0,
+    column("C-202", s26["flow"]["value"] * (1.0 + 2.18), molar_mass("S26"), t("S26"), 150.0,
            duty["Q7"], "TOL", t("S22"), 170.0, molar_mass("S22"), units["C202"]["stages"])
     column("C-203", s23["flow"]["value"] * (1.0 + 0.5), molar_mass("S23"), t("S23"), 30.0,
            duty["Q9"], "BIPH", t("S24"), 45.0, molar_mass("S24"), 10.0)
@@ -166,8 +169,7 @@ def main() -> None:
     out.append(("R-101", f"inlet gas {q7:.3f} m3/s (ideal gas, S7); volume not from a model (D-005)"))
 
     # ---- machines and fired heater: simulated duties
-    q = 5494.29 / 3600.0 / rho_liq("BZ", t("S17"), 3250.0)
-    out.append(("P-102", f"{q * 1000:.2f} L/s x 200 kPa / 0.65 = {q * 200 / 0.65:.2f} kW shaft (D-010)"))
+    out.append(("P-102", f"{units['P102']['duty_kW']:.2f} kW (DWSIM, D-022)"))
     out.append(("P-101", f"{units['P101']['duty_kW']:.1f} kW (DWSIM, D-014)"))
     out.append(("K-101", f"{units['K101']['duty_kW']:.1f} kW (DWSIM, D-014)"))
     out.append(("H-101", f"{units['H101']['duty_kW']:.1f} kW absorbed (DWSIM, D-014)"))

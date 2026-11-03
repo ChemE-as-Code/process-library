@@ -8,9 +8,17 @@ balances, the reactor extents (cheme computes the reactor outlet itself from the
 conversion and selectivity), mixers and splitters (cheme propagate).
 
 Model (every choice is a DESIGN.md decision, ASSUMED where marked there):
-- reactor R-101: adiabatic, toluene conversion per pass X (D-005, ASSUMED), benzene selectivity
-  S = 1 - 0.0036 / (1 - X)**1.544 (Douglas 1988 HDA correlation, D-005), the rest of the
-  benzene converted to biphenyl; outlet temperature from the energy balance;
+- feeds (D-020): fresh toluene at the benzene limit of a published commercial toluene
+  specification (500 mg/kg benzene, the rest toluene), make-up hydrogen of PSA purity
+  (99.9 mol% H2, the rest taken as methane);
+- reactor R-101 (D-021): adiabatic; toluene conversion per pass X = 0.75 (the per-pass
+  conversion of a published thermal HDA process, US 3,291,849); the biphenyl reaction
+  2 BZ <=> BIPH + H2 at chemical equilibrium at the adiabatic outlet (ideal gas, formation data
+  of process/materials.yaml), the upper bound of the biphenyl formed from the benzene (not of
+  the selectivity loss: heavier polyaromatics and hydrocracking are not modelled, D-021);
+  outlet temperature from the energy balance. The DWSIM model differs here: its R101B is
+  isothermal at the R101 outlet temperature (its adiabatic equilibrium reactor fails, D-021). Superseded (D-005): the Douglas (1988)
+  selectivity correlation, which could not be read at its source (I-06);
 - quench: part of the separator liquid mixed into the effluent to QUENCH_T (D-004);
 - flashes, enthalpies, compressor and pump: thermo Peng-Robinson with the ChemSep kij set,
   ideal-gas heat capacities of thermo; formation enthalpies of process/materials.yaml added for
@@ -49,9 +57,9 @@ PRODUCT_KG_H = 100e6 / 8000          # D-002: 100 kt/a benzene product stream, 8
 X_D_BZ = 0.999                       # D-002/D-008: benzene product, mol fraction
 REC_BZ = 0.995                       # D-008: benzene column recovery of benzene to the top
 X_B_TOL_C203 = 0.02                  # D-008: toluene in the biphenyl bottoms, mol fraction
-MAKEUP = {"H2": 0.95, "CH4": 0.05, "TOL": 0.0, "BZ": 0.0, "BIPH": 0.0}  # D-003
-X = 0.75                             # D-005: toluene conversion per pass
-S = 1 - 0.0036 / (1 - X) ** 1.544    # D-005: benzene formed per toluene converted
+MAKEUP = {"H2": 0.999, "CH4": 0.001, "TOL": 0.0, "BZ": 0.0, "BIPH": 0.0}  # D-020: PSA purity
+W_BZ_FEED = 500e-6                   # D-020: benzene in the fresh toluene, mass fraction (spec max)
+X = 0.75                             # D-021: toluene conversion per pass (US 3,291,849)
 RATIO = 5.0                          # D-007: H2 / aromatics at the reactor inlet, molar
 Y_PURGE_H2 = 0.40                    # D-007: H2 mole fraction of the purge gas
 T_RIN, P_RIN = 895.15, 3450.0        # D-004: reactor inlet
@@ -122,9 +130,28 @@ def mass(n):
     return sum(n[c] * MW[c] for c in C)
 
 
-def react(n_in):
+R_GAS = 8.314462618                 # kJ/(kmol K)
+
+
+def _g_ideal(c, t):
+    """Ideal-gas Gibbs energy of formation basis (kJ/kmol) at t, 1 bar: dHf_298 + int cp dT
+    - t (S_298 + int cp/T dT), cp/R polynomial of process/materials.yaml."""
+    ig = MAT[c]["ideal_gas"]
+    a = ig["cp_R"]
+    t0 = 298.15
+    dh = R_GAS * sum(a[i] / (i + 1) * (t ** (i + 1) - t0 ** (i + 1)) for i in range(len(a)))
+    ds = R_GAS * (a[0] * math.log(t / t0) + sum(a[i] / i * (t ** i - t0 ** i) for i in range(1, len(a))))
+    return ig["dHf_298"] + dh - t * (ig["S_298"] + ds)
+
+
+def ln_k_biph(t):
+    """ln K of 2 BZ <=> BIPH + H2 (ideal gas; no mole change, so no pressure effect)."""
+    dg = _g_ideal("BIPH", t) + _g_ideal("H2", t) - 2 * _g_ideal("BZ", t)
+    return -dg / (R_GAS * t)
+
+
+def react(n_in, xi2):
     xi1 = X * n_in["TOL"]
-    xi2 = xi1 * (1 - S) / 2
     out = dict(n_in)
     out["TOL"] -= xi1
     out["H2"] += -xi1 + xi2
@@ -138,6 +165,21 @@ def t_adiabatic(n, h, p, lo=600.0, hi=1200.0):
     return brentq(lambda t: h_gas(n, t, p) - h, lo, hi)
 
 
+def reactor(n_in, h_in, p):
+    """HDA at X, then BIPH at equilibrium at the adiabatic outlet: (outlet, xi1, xi2, T)."""
+
+    def gap(xi2):
+        out, _, _ = react(n_in, xi2)
+        t = t_adiabatic(out, h_in, p)
+        q = out["BIPH"] * out["H2"] / out["BZ"] ** 2
+        return math.log(q) - ln_k_biph(t)
+
+    bz_max = (n_in["BZ"] + X * n_in["TOL"]) / 2
+    xi2 = brentq(gap, -n_in["BIPH"] + 1e-12 if n_in["BIPH"] > 0 else 1e-12, bz_max * 0.5)
+    out, xi1, xi2 = react(n_in, xi2)
+    return out, xi1, xi2, t_adiabatic(out, h_in, p)
+
+
 def loop(v):
     """One pass of the reactor loop for the fresh toluene of 100 kmol/h.
 
@@ -146,12 +188,12 @@ def loop(v):
     g = dict(zip(C, v[0:5]))
     trec = dict(zip(C, v[5:10]))
     fh2, beta, phi = v[10], v[11], v[12]
-    ftol = {"H2": 0, "CH4": 0, "TOL": 100.0, "BZ": 0, "BIPH": 0}
+    ftol = {"H2": 0, "CH4": 0, "TOL": 100.0, "BIPH": 0,
+            "BZ": 100.0 * MW["TOL"] / MW["BZ"] * W_BZ_FEED / (1 - W_BZ_FEED)}
     mu = scale(MAKEUP, fh2)
     rin = add(ftol, trec, mu, g)
-    rout, xi1, xi2 = react(rin)
     h_rin = h_gas(rin, T_RIN, P_RIN)
-    t_rout = t_adiabatic(rout, h_rin, P_ROUT)
+    rout, xi1, xi2, t_rout = reactor(rin, h_rin, P_ROUT)
     return dict(g=g, trec=trec, fh2=fh2, beta=beta, phi=phi, ftol=ftol, mu=mu, rin=rin, rout=rout,
                 xi1=xi1, xi2=xi2, t_rout=t_rout, h_rout=h_rin)
 
@@ -403,7 +445,9 @@ def main():
     arom_in = sum(S_["S7"][c] for c in AROM)
     out["checks"] = {
         "loop_residual_max": worst,
-        "selectivity_S": S,
+        "selectivity_S": 1 - 2 * st["xi2"] / st["xi1"],
+        "ln_Q_over_K_BIPH": math.log(st["rout"]["BIPH"] * st["rout"]["H2"] / st["rout"]["BZ"] ** 2)
+        - ln_k_biph(st["t_rout"]),
         "extent_HDA_kmol_h": xi1, "extent_BIPH_kmol_h": xi2,
         "fresh_toluene_kg_h": mass(S_["S1"]), "makeup_H2_kg_h": mass(S_["S4"]),
         "purge_fraction": st["beta"], "quench_fraction": st["phi"],

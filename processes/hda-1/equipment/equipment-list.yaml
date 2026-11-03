@@ -28,7 +28,7 @@ equipment:
   - {tag: R-101, type: Vessel, service: "HDA reactor (adiabatic, thermal, empty vessel)",
      design_pressure_barg: 42, design_temperature_degc: 690, material: "refractory-lined carbon steel or alloy (hot hydrogen, open input)",
      dimensions: {diameter: 2.5, height: 9.0},
-     notes: "Inlet 895 K / 3450 kPa(a), outlet 937 K; conversion reactor model, no rate law: volume not sized (D-005). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
+     notes: "Inlet 895 K / 3450 kPa(a), outlet 938 K; toluene conversion 0.75 per pass (US 3,291,849) and biphenyl at equilibrium (D-021), no rate law: volume not sized. ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
   - {tag: E-102, type: TubularHeatExchanger, service: Effluent trim cooler,
      design_pressure_barg: 42, design_temperature_degc: 150, material: CS,
      dimensions: {diameter: 1.1, length: 7.0},
@@ -44,7 +44,7 @@ equipment:
   - {tag: P-102, type: CentrifugalPump, service: Quench liquid pump,
      design_pressure_barg: 42, design_temperature_degc: 65, material: CS,
      dimensions: {length: 1.2, width: 0.5, height: 0.7},
-     notes: "3250 -> 3450 kPa(a), 5.5 t/h; power not counted (below 5 kW, D-010). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
+     notes: "3250 -> 3450 kPa(a), 5.5 t/h; 0.52 kW (simulated pumping step P102, D-022). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
   # ---- stabilisation and distillation (block SEP)
   - {tag: C-201, type: ProcessColumn, service: Stabiliser,
      design_pressure_barg: 9, design_temperature_degc: 200, material: CS,
@@ -62,10 +62,10 @@ equipment:
      design_pressure_barg: 3.5, design_temperature_degc: 160, material: CS,
      dimensions: {diameter: 2.2, height: 38.0},
      notes: "Top 150, bottom 170 kPa(a); R 2.18 = 1.3 x DWSIM Underwood minimum 1.674 (D-008 rule, D-014; the script value R 1.28 is below the DWSIM minimum); 38 theoretical stages (DWSIM shortcut, D-014). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
-  - {tag: E-203, type: TubularHeatExchanger, service: Benzene column condenser and product cooler,
+  - {tag: E-203, type: TubularHeatExchanger, service: Benzene column condenser,
      design_pressure_barg: 3.5, design_temperature_degc: 120, material: CS,
      dimensions: {diameter: 0.9, length: 6.0},
-     notes: "~4.20 MW to cooling water, condenser only (simulated, D-014); product subcooling to 313 K (D-008) not counted, about 0.3 MW more (I-12). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
+     notes: "~4.20 MW to cooling water, condenser only (simulated, D-014); the product subcooling to 313 K is the product cooler E-207 (D-022). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
   - {tag: E-204, type: TubularHeatExchanger, service: Benzene column reboiler,
      design_pressure_barg: 3.5, design_temperature_degc: 175, material: CS,
      dimensions: {diameter: 1.2, length: 7.0},
@@ -81,4 +81,8 @@ equipment:
   - {tag: E-206, type: TubularHeatExchanger, service: Toluene column reboiler,
      design_pressure_barg: 3.5, design_temperature_degc: 280, material: CS,
      dimensions: {diameter: 0.6, length: 4.0},
-     notes: "~0.65 MW from HP steam 4200 kPa(a) (shell side design 45 barg); biphenyl bottoms 479 K (D-008, D-010). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
+     notes: "~0.64 MW from HP steam 4200 kPa(a) (shell side design 45 barg); biphenyl bottoms 457 K at about 5 mol% toluene (simulated, D-022; the D-008 target was 2 mol% at 479 K) (D-008, D-010). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
+  - {tag: E-207, type: TubularHeatExchanger, service: Benzene product cooler,
+     design_pressure_barg: 3.5, design_temperature_degc: 120, material: CS,
+     dimensions: {diameter: 0.4, length: 4.0},
+     notes: "~0.31 MW to cooling water: benzene distillate 366 -> 313 K (simulated, D-022, I-12); about 20 m2 at U 500 W/(m2 K). ASSUMED. Dimensions ASSUMED (D-022, scripts/concept_sizing.py)."}

@@ -25,7 +25,7 @@ basis:
   product: BENZENE
   unit: t
   specification: "benzene 99.9 mol% (99.88 wt%), toluene the only modelled impurity, liquid at the battery limit (D-002)"
-  boundary: "fresh toluene, make-up hydrogen (95 mol% H2), electricity, fired heat, LP/MP/HP steam in; benzene, biphenyl, fuel gas (purge and stabiliser off-gas) and heat to cooling water out (route and boundary memo); storage, the site fuel gas system, utility generation and flare outside"
+  boundary: "fresh toluene, make-up hydrogen (PSA grade, 99.9 mol% H2, D-020), electricity, fired heat, LP/MP/HP steam in; benzene, biphenyl, fuel gas (purge and stabiliser off-gas) and heat to cooling water out (route and boundary memo); storage, the site fuel gas system, utility generation and flare outside"
   scale: 100 kt/a (12.5 t/h at 8000 h/a)
   location: NL (Rotterdam area, notional, D-016 I-05)
 case: design
@@ -39,7 +39,7 @@ capex:
     escalation: {value: 1.0520, source: "Eurostat sts_inppd_a, domestic producer prices, NL, NACE C28 (machinery and equipment), index 2021 = 100: 121.4 (2025) / 115.4 (2023), read 2026-11-03; a proxy for plant cost escalation from the CEPCI year 2023 to 2025, ASSUMED (the same proxy as processes/ammonia-1/estimate/tea.yaml)"}
     location_factor: {value: 1.0, status: ASSUMED, source: "no open location factor from the US Gulf Coast basis of the correlations to the Netherlands was found; 1.0 kept and the class 5 range applied (D-019)"}
     purchased_installation: {value: 2.5, status: ASSUMED, source: "installed cost of H-101 over its purchased cost: the package's fired-heater correlation has no bare module, pressure or material factor (a core limit, D-019), and the printed Turton et al. Appendix A tables that hold them could not be read here; a screening factor chosen in this design, likely low for alloy tubes at 42 barg in hot hydrogen (D-019)"}
-    uncovered_allowance: {value: 0.15, status: ASSUMED, source: "items the correlations leave out: column trays and internals of C-201/C-202/C-203 (82 trays at the D-017 sizes), the R-101 refractory lining, the C-203 vacuum pump, reflux and distillate pumps, spares, the benzene product cooler (I-12), and the K-101 electric drive (an explosion-proof motor of about 300 kW, ASSUMED: the 229.5 kW shaft power with a margin, and its starter: the package's compressor correlation excludes the driver and holds no electric-drive correlation); a screening fraction chosen in this design (D-019)"}
+    uncovered_allowance: {value: 0.15, status: ASSUMED, source: "items the correlations leave out: column trays and internals of C-201/C-202/C-203 (82 trays at the D-017 sizes), the R-101 refractory lining, the C-203 vacuum pump, reflux and distillate pumps, spares, and the K-101 electric drive (an explosion-proof motor of about 300 kW, ASSUMED: the 231 kW shaft power with a margin, and its starter: the package's compressor correlation excludes the driver and holds no electric-drive correlation); a screening fraction chosen in this design (D-019); the benzene product cooler, in this list until S2, is now priced as E-207 and the fraction is kept (D-022)"}
   osbl: {value: 0.30, status: ASSUMED, source: "offsites and utility connections (rack to the site headers, tie-ins to the site's storage, fuel gas, flare and cooling water) as a fraction of ISBL, a screening value chosen in this design for a unit on an existing chemical site (D-019)"}
   owners_cost: {value: 0.07, status: ASSUMED, source: "IEAGHG Technical Report 2017-03, section 2.8.1: owner's cost 7 % of the total plant cost (an ammonia study, used here as an analogue, as in processes/ammonia-1/estimate/tea.yaml)"}
   contingency: {value: 0.20, status: ASSUMED, source: "IEAGHG Technical Report 2017-03, section 2.8.1: 20 % contingency (used here as an analogue); the class 5 range of the estimate is applied in the uncertainty"}
@@ -120,14 +120,14 @@ prices:
   - key: product:FUELGAS
     value: 11.397
     unit: GJ
-    conversion: {value: 0.05425, source: "LHV of the exported fuel gas, 54.25 MJ/kg (D-013, from the formation enthalpies of materials.yaml)"}
+    conversion: {value: 0.05423, source: "LHV of the exported fuel gas, 54.23 MJ/kg (D-013, from the formation enthalpies of materials.yaml; streams of D-022)"}
     status: ASSUMED
     source: "fuel gas credited at the natural-gas price it displaces in the site fuel system (feed:FUEL source, 11.397 EUR/GJ GCV) per GJ of its LHV: under-values it by the GCV/LHV ratio, conservative, ASSUMED (D-009, D-019)"
     year: 2025
   - key: product:DIPHENYL
     value: 11.397
     unit: GJ
-    conversion: {value: 0.03965, source: "LHV of the biphenyl product, 39.65 MJ/kg (D-013)"}
+    conversion: {value: 0.03968, source: "LHV of the biphenyl product, 39.68 MJ/kg (D-013; 4.9 mol% toluene, D-022)"}
     status: ASSUMED
     source: "biphenyl credited as fuel at the natural-gas price per GJ LHV (no open biphenyl price found; Comext CN 2902 90 30 gave no Dutch trade for 2024-2025), ASSUMED (D-009, D-019)"
     year: 2025
@@ -176,3 +176,14 @@ scenarios:
   - {id: prices-2025-exports, prices: {feed:TOLF: 808.3}, source: "Comext DS-045409, 2025, both prices from export flows: NL toluene exports 47 756 669 EUR / 59 084 t = 808.3 EUR/t, against the baseline benzene exports 673.6 EUR/t (spread -134.7 EUR/t)"}
   - {id: no-carbon-price, prices: {carbon: 0}, source: "full free allocation or no carbon price: the lower bound of the carbon cost"}
   - {id: capex-class5-high, scale: {capex:isbl: 2.0}, source: "AACE 18R-97 class 5 upper bound +100 % on the ISBL"}
+  # Benzene selectivity (D-021, review of PR #326): the model's 0.9734 bounds only the biphenyl
+  # make; heavier polyaromatics and hydrocracking are excluded, so it is optimistic. US 3,607,960
+  # Example 1 reports 94.5 % for its primary reactors at 85 % conversion per pass
+  # (process/reaction-evidence.yaml O2), a higher conversion than R-101's 75 %. Own calculation
+  # on the DWSIM extents (HDA 166.83, BIPH 2.215 kmol/h): net benzene formed 162.40 kmol/h; at
+  # 0.945 the toluene converted is 162.40 / 0.945 = 171.85 kmol/h, 5.02 kmol/h (462.6 kg/h) more,
+  # so fresh toluene x (15432.3 + 462.6) / 15432.3 = 1.030, and its dealkylation takes 5.02 kmol/h
+  # (10.1 kg/h) more hydrogen, x 1.018. Second-order effects (purge, recycle, duties) are not
+  # rerun. ASSUMED screening scale factors, not a simulation.
+  - {id: selectivity-0945, scale: {rate:feed:TOLF: 1.030, rate:feed:H2MU@H2: 1.018}, source: "benzene selectivity 0.945 (US 3,607,960 Example 1, primary reactors, 85 % conversion; reaction-evidence O2) instead of 0.9734: toluene and make-up hydrogen scaled by the own calculation above; the lost aromatics are not credited (upper bound of the cost), ASSUMED (D-021)"}
+  - {id: selectivity-0945-credited, scale: {rate:feed:TOLF: 1.030, rate:feed:H2MU@H2: 1.018, rate:product:DIPHENYL: 2.112, rate:product:FUELGAS: 1.026}, source: "as selectivity-0945, with the loss credited as fuel: the 5.02 kmol/h of extra toluene leave as heavy aromatics (5.02 x 78.11 = 392 kg/h, credited at the biphenyl LHV: 352 -> 744 kg/h, x 2.112) and methane (80.5 kg/h into the fuel gas, x 1.026); the heavy ends' real composition and LHV are not known (reaction-evidence O2 gaps), ASSUMED (D-021)"}
