@@ -1,0 +1,133 @@
+# The DWSIM model of cumene-1 (`cheme process simulate`; schema `cheme schema process-simulation`).
+# Decision D-011 in DESIGN.md. Every spec repeats a design choice of DESIGN.md (source given)
+# or is ASSUMED with its reason. The property package is not qualified by core for aromatics
+# with light hydrocarbons (core's predictive.property-regime covers N2/O2/Ar and ethanol-water
+# only): the results are a cross-check of scripts/cumene_balance.py on a second implementation
+# of Peng-Robinson, not a validated model.
+schema: cheme/simulation/v1
+kind: simulation
+simulator: dwsim
+property_package: Peng-Robinson (PR)
+method_selection:
+  facts:
+    pressure_value: 42                # the highest pressure of the flowsheet: pump discharges S5, S7, S14, 4200 kPa(a) (D-004)
+    pressure_unit: bar(a)
+    is_polar: false                   # propane, propylene, benzene and alkylbenzenes: nonpolar hydrocarbons
+    is_electrolyte: false             # no ions
+    has_pseudocomponents: false       # six pure compounds with CAS numbers (materials.yaml); DIPB and TIPB stand for isomer mixtures
+    interaction_parameters_available: false  # not checked which pairs DWSIM's PR set covers (propane/propylene with the alkylbenzenes); uncertain, so the conservative answer
+    liquid_liquid_expected: false     # no water; the hydrocarbons are miscible
+    vapor_association_expected: false # no carboxylic acids or HF
+# DWSIM has no 1,3,5-triisopropylbenzene (TIPB): it stands in with 1-tetradecene, the DWSIM
+# compound closest to TIPB in volatility (normal boiling point 524 K against 522 K) and molar
+# mass (196.4 against 204.4). A property surrogate for the heavy ends only, about 0.3 % of the
+# product mass; its errors are stated in D-011.
+components:
+  TIPB: "1-tetradecene"
+# The benzene loop is closed at the drum M101, outside DWSIM: the benzene is in excess and its
+# consumption does not depend on the recycle, so with a fixed fresh benzene the loop's size is
+# set only by trace losses (a trial run grew the recycle to 414 t/h, benzene/propylene about
+# 13). The plant sets it by the drum level and the fresh benzene; here the drum outflow S3 is
+# the script's (assumed) and DWSIM computes the benzene recycle S2, which the M101 balance
+# checks against S3 - S1 (D-011).
+exclude: [M101]
+# Recycles: the DIPB recycle S13 and the feed/effluent exchanger loop, torn at its cold outlet
+# S9 so that E-101 always sees a solved hot side; first guesses from scripts/cumene_balance.py
+# (guesses, never stream values).
+tear_streams: [S13, S9]
+guesses:
+  S13:
+    temperature: {value: 430.3, provenance: assumed, source: scripts/cumene_balance.py}
+    pressure: {value: 30, provenance: assumed, source: D-008}
+    flow: {value: 6703.4, provenance: assumed, source: scripts/cumene_balance.py}
+    composition: {basis: mole_fraction, values: {CUM: 0.010121, DIPB: 0.984879, TIPB: 0.005}, provenance: assumed, source: scripts/cumene_balance.py}
+  S9:
+    temperature: {value: 413.15, provenance: assumed, source: D-004}
+    pressure: {value: 4100, provenance: assumed, source: D-004}
+    flow: {value: 103720.6, provenance: assumed, source: scripts/cumene_balance.py}
+    composition: {basis: mole_fraction, values: {C3H8: 0.043567, C3H6: 0.19122, BZ: 0.764878, CUM: 0.000335}, provenance: assumed, source: scripts/cumene_balance.py}
+specs:
+  # ---- RXN (D-004, D-005, D-010)
+  P101:
+    unit: pump
+    outlet_pressure: {value: 4200, provenance: assumed, source: D-004}
+    efficiency: {value: 0.65, provenance: assumed, source: "D-010: pump efficiency"}
+  P102:
+    unit: pump
+    outlet_pressure: {value: 4200, provenance: assumed, source: D-004}
+    efficiency: {value: 0.65, provenance: assumed, source: "D-010: pump efficiency"}
+  P103:
+    unit: pump
+    outlet_pressure: {value: 4200, provenance: assumed, source: D-004}
+    efficiency: {value: 0.65, provenance: assumed, source: "D-010: pump efficiency"}
+  E101:
+    cold_outlet_temperature: {value: 413.15, provenance: assumed, source: "D-004: alkylator inlet"}
+    cold_pressure_drop: {value: 100, unit: kPa, provenance: assumed, source: "D-004: 100 kPa per exchanger side"}
+    hot_pressure_drop: {value: 100, unit: kPa, provenance: assumed, source: "D-004: 100 kPa per exchanger side"}
+    min_approach: {value: 10, unit: K, provenance: assumed, source: "D-010: least approach of a process/process exchanger"}
+  R101:
+    mode: outlet_temperature
+    outlet_temperature: {value: 436.15, provenance: assumed, source: "D-004: alkylator outlet; the heat removed raises LP steam (D-009)"}
+    pressure_drop: {value: 100, unit: kPa, provenance: assumed, source: "D-004: inlet 4100, outlet 4000 kPa(a)"}
+    outlets: {vap: vapor, out: liquid}
+  E102:
+    unit: heater
+    outlet_temperature: {value: 433.15, provenance: assumed, source: "D-005: transalkylator inlet"}
+    pressure_drop: {value: 100, unit: kPa, provenance: assumed, source: "D-004: 100 kPa per exchanger side"}
+  R102:
+    mode: adiabatic
+    pressure_drop: {value: 100, unit: kPa, provenance: assumed, source: "D-004: inlet 4100, outlet 4000 kPa(a)"}
+    outlets: {vap: vapor, out: liquid}
+  # ---- SEP (D-008): Fenske-Underwood-Gilliland shortcut columns; the key specs are those of
+  # scripts/cumene_balance.py (D-008), the reflux ratios 1.3 x the Underwood minimum, at least 0.5.
+  C201:
+    unit: shortcut_column
+    light_key: C3H8
+    heavy_key: BZ
+    light_key_in_bottoms: 0.0005      # D-008
+    heavy_key_in_distillate: 0.02     # D-008: LPG with 2 mol% benzene
+    reflux_ratio: 1.94                # D-008 rule 1.3 x Underwood minimum, on the minimum DWSIM finds (1.488; the script's Raoult estimate is 0.06, D-011)
+    condenser: total
+    condenser_pressure: {value: 1500, provenance: assumed, source: D-008}
+    reboiler_pressure: {value: 1520, provenance: assumed, source: D-008}
+    outlets: {top: distillate, bot: bottoms}
+  C202:
+    unit: shortcut_column
+    light_key: BZ
+    heavy_key: CUM
+    light_key_in_bottoms: 0.0002      # D-008
+    heavy_key_in_distillate: 0.0005   # D-008
+    reflux_ratio: 0.5                 # D-008: floor (Underwood minimum about 0.17 in the script)
+    condenser: total
+    condenser_pressure: {value: 150, provenance: assumed, source: D-008}
+    reboiler_pressure: {value: 180, provenance: assumed, source: D-008}
+    outlets: {top: distillate, bot: bottoms}
+  C203:
+    unit: shortcut_column
+    light_key: CUM
+    heavy_key: DIPB
+    light_key_in_bottoms: 0.01        # D-008
+    heavy_key_in_distillate: 0.0001   # D-008: cumene product purity
+    reflux_ratio: 0.65                # D-008: 1.3 x Underwood minimum (0.50 in the script)
+    condenser: total
+    condenser_pressure: {value: 120, provenance: assumed, source: D-008}
+    reboiler_pressure: {value: 150, provenance: assumed, source: D-008}
+    outlets: {top: distillate, bot: bottoms}
+  E103:
+    outlet_temperature: {value: 313.15, provenance: assumed, source: "design basis: cumene to storage"}
+    pressure_drop: {value: 0, unit: kPa, provenance: assumed, source: "D-008: neglected"}
+  # C204 rigorous (D-011): DWSIM's shortcut gave heavy ends whose mole fractions add up to
+  # 1.006 (the light-key spec set directly, the rest by balance, as hda-1's C-203), so the
+  # column is solved stage by stage. Stage count ASSUMED from DWSIM's own shortcut estimate
+  # (20.7 theoretical stages at R 0.5, Underwood minimum 0.28) with margin.
+  C204:
+    stages: 24                        # ASSUMED: condenser and reboiler included
+    feed_stage: 12                    # ASSUMED: mid-column
+    condenser: total
+    condenser_spec: {reflux_ratio: 0.5}   # D-008: the floor
+    # D-008's 5 mol% DIPB in the heavy ends as a flow: the script's TIPB make 0.473889 kmol/h
+    # / 0.95 = 0.498831 kmol/h (a molar flow: DWSIM's TIPB surrogate has another molar mass)
+    reboiler_spec: {flow: {value: 0.498831, unit: kmol/h, provenance: assumed, source: "D-008, D-011: 5 mol% DIPB in the heavy ends at the script's TIPB make"}}
+    condenser_pressure: {value: 30, provenance: assumed, source: D-008}
+    reboiler_pressure: {value: 45, provenance: assumed, source: D-008}
+    outlets: {top: distillate, bot: bottoms}
