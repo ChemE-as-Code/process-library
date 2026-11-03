@@ -1,12 +1,12 @@
-# Reactions of thermal toluene hydrodealkylation (DESIGN.md D-005). Schema cheme/reactions/v1.
+# Reactions of thermal toluene hydrodealkylation (DESIGN.md D-005, D-021). Schema cheme/reactions/v1.
 # Heats of reaction from the ideal-gas formation enthalpies of process/materials.yaml (298.15 K).
-# No rate law: the reactor R-101 is a conversion reactor with a per-pass toluene conversion
-# (ASSUMED design choice) and a benzene selectivity from a correlation recalled, not verified (D-005).
-# D-014: R-101 runs HDA and HDABP, both keyed on toluene, so that the DWSIM conversion reactor
-# (one conversion per reaction) reproduces the D-005 selectivity exactly: HDA converts
-# X * S = 0.75 * 0.9693886 and HDABP X * (1 - S) of the inlet toluene. HDABP is HDA twice plus
-# BIPH (2 TOL + H2 -> BIPH + 2 CH4), written per kmol toluene. BIPH stays declared as the
-# reversible step behind it (its equilibrium is the D-005 check).
+# D-021 (S2): the reactor R-101 is modelled in two steps of the same vessel: R101, a conversion
+# reactor running HDA at the per-pass toluene conversion of a published thermal HDA process
+# (US 3,291,849), and R101B, an equilibrium reactor running BIPH at the adiabatic outlet (ideal-gas
+# formation data of process/materials.yaml, given with their sources). The equilibrium is the most
+# biphenyl the benzene can form at the outlet. No rate law: the reactor volume is not predicted.
+# Superseded: D-005's Douglas (1988) selectivity correlation (recalled, never read at its source,
+# I-06) and D-014's lumped HDABP reaction that carried it into DWSIM.
 schema: cheme/reactions/v1
 kind: reactions
 reactions:
@@ -14,13 +14,13 @@ reactions:
     equation: C7H8 + H2 -> C6H6 + CH4
     stoichiometry: {TOL: -1.0, H2: -1.0, BZ: 1.0, CH4: 1.0}
     reversible: false
-    conversion: {key: TOL, value: 0.7270415, provenance: assumed, source: "D-005, D-014: X * S with X = 0.75 per pass (ASSUMED) and S = 1 - 0.0036/(1 - X)^1.544 = 0.9693886 (Douglas 1988 correlation, recalled, I-06)"}
+    conversion: {key: TOL, value: 0.75, provenance: given, source: "US 3,291,849 A (C. C. King, J. F. Campagnolo, L. M. Lehman; Hydrocarbon Research, Inc.), Hydrodealkylation, granted 1966-12-13, detailed description, the paragraph beginning 'The reactor 44 is an internally insulated open chamber': a non-catalytic toluene reactor at about 600 psig, 20-40 s residence and at most 1350 F, controlled so that about 75 % of the toluene in its total feed is converted; read in full text at https://patents.google.com/patent/US3291849 on 2026-11-03 (D-021). Conditions of R-101 (895-937 K, 3450-3380 kPa(a), D-004) lie inside the patent's 1100-1500 F, slightly below its 500-800 psig"}
     heat_of_reaction:
       value: -41764.0
       provenance: calculated
       source: "ideal-gas formation enthalpies of process/materials.yaml at 298.15 K (83180 - 74534 - 50410 kJ/kmol)"
     catalyst: none (thermal, homogeneous gas phase)
-    sources: ["Douglas, J.M. (1988) Conceptual Design of Chemical Processes, McGraw-Hill (HDA case study)"]
+    sources: ["US 3,291,849 A (Hydrocarbon Research, Inc., 1966): thermal (non-catalytic) toluene hydrodealkylation"]
   - id: BIPH
     equation: 2 C6H6 <=> C12H10 + H2
     stoichiometry: {BZ: -2.0, BIPH: 1.0, H2: 1.0}
@@ -30,15 +30,4 @@ reactions:
       provenance: calculated
       source: "ideal-gas formation enthalpies of process/materials.yaml at 298.15 K (181400 - 2 x 83180 kJ/kmol)"
     catalyst: none (thermal)
-    sources: ["Douglas, J.M. (1988) Conceptual Design of Chemical Processes, McGraw-Hill (HDA case study)"]
-  - id: HDABP
-    equation: C7H8 + 0.5 H2 -> 0.5 C12H10 + CH4
-    stoichiometry: {TOL: -1.0, H2: -0.5, BIPH: 0.5, CH4: 1.0}
-    reversible: false
-    conversion: {key: TOL, value: 0.0229585, provenance: assumed, source: "D-005, D-014: X * (1 - S) with X = 0.75 per pass (ASSUMED) and S = 0.9693886 (Douglas 1988 correlation, recalled, I-06)"}
-    heat_of_reaction:
-      value: -34244.0
-      provenance: calculated
-      source: "ideal-gas formation enthalpies of process/materials.yaml at 298.15 K (0.5 x 181400 - 74534 - 50410 kJ/kmol); equals (2 HDA + BIPH) / 2"
-    catalyst: none (thermal)
-    sources: ["Douglas, J.M. (1988) Conceptual Design of Chemical Processes, McGraw-Hill (HDA case study): the overall toluene-to-biphenyl route of HDA followed by BIPH"]
+    sources: ["US 3,607,960 A (Gulf Research & Development Co., 1971), background: diphenyl formed in thermal hydrodealkylation and present in its feed raises the benzene yield, i.e. the diphenyl reaction runs both ways (D-021)"]
