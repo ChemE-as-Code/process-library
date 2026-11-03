@@ -4,6 +4,7 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-11-03 | equipment/equipment-list.yaml, estimate/tea.yaml, estimate/cost-basis.yaml, estimate/tea.md, tea-*.csv, layout/site-plan.yaml, layout/plant-model.yaml, DESIGN.md D-017 to D-019 | fixes from the review of PR #320 (round 1): C-201 note 8 stages ASSUMED; E-101 two stacked shells; steam boiler CO2 charged; power ASSUMED with the band premise; NIST methane value 890.7 kJ/mol; K-101 drive in the allowance; spread scenarios 2019-2025 and like-for-like 2025 flows; P(meets) no longer the decision result; H-101 to E-101 separation 15 m; wind point and SVG viewed (D-018). LCOP 874.3 to 880.9 EUR/t; turns at toluene 501.1 EUR/t | review of PR #320 |
 | 2026-11-03 | estimate/cost-basis.yaml, estimate/equipment-cost.*, estimate/tea.yaml, estimate/tea.md, tea-*.csv, DESIGN.md D-019 | AACE class 5 equipment-factored estimate (fixed capital 17.7 MEUR) and screening TEA: LCOP 874.3 EUR/t against benzene 673.6 EUR/t, not met; toluene price dominates, turns at 506.5 EUR/t | concept economics (S1) |
 | 2026-11-03 | layout/site-plan.yaml, layout/equipment-placement.yaml, layout/plant-model.yaml, DESIGN.md D-018 | concept plot plan: notional 180 x 125 m Rotterdam-area plot, 5 areas, 5 roads, rack PR-1, 15 separations, all 18 items placed; no clash, no separation finding | gate layout-plot-plan; review #12 |
 | 2026-11-03 | scripts/concept_sizing.py, equipment/equipment-list.yaml, DESIGN.md D-017 | ASSUMED overall dimensions for every item from the simulated duties (exchanger areas, column diameters and heights, separator and drum) | plot plan and estimate need sizes |
@@ -20,6 +21,27 @@ Newest first. One line per change: date, sheet or file, what, why.
 | 2026-10-27 | (all) | scaffold from cheme init and the process.yaml template | start of hda-1 |
 
 ## Responses to reviews
+
+### Review of PR #320, round 1 (2026-11-03)
+
+| finding | response | commit |
+|---|---|---|
+| (medium) C-201 note copied from C-202 (38 stages) | equipment list: "8 theoretical stages ASSUMED (the DWSIM shortcut gives 3.0, too few for a stabiliser, D-017)". The other notes were checked; no other copied note found. Closed. | S1 branch |
+| (medium) P(meets) is not a spread probability | tea.yaml decision comment and D-019: P(meets) samples toluene independently against a fixed benzene threshold, so it is not quoted as the decision result. The core limit (no price correlation, no threshold tied to a price key) is filed as core#129. The evidence is now in spread form: scenarios prices-2019 to prices-2025 from the same DS-045409 flows, tabulated in D-019 (the break-even was reached in 2021 only). Closed. | S1 branch |
+| (low) import/export unit values are not a traded spread | D-019 says so (delivery terms, grades, partners; one year is weak evidence), adds the multi-year series and words the conclusion as conditional on the proxy. Closed. | S1 branch |
+| (low) carbon boundary inconsistent (steam without CO2) | emission sources steam-boiler (MPS, LPS, HPS) at 0.2022 t/MWh (3.6/0.90 GCV x 802.7/890.7 x 56.1 t/TJ). Emissions 14.5 kt/a, 10.8 EUR/t. Closed. | S1 branch |
+| (low) H-101 factor 2.5 without basis | carried: the printed Turton Appendix A tables could not be read here, and no open source with a locator was found. 2.5 kept ASSUMED, stated as likely low for alloy tubes at 42 barg (tea.yaml, D-019). Core issue core#129 asks for the package factors. The `estimate-equipment-partial` warning stays open. | S1 branch |
+| (low) K-101 drive missing, "fluid power" | uncovered allowance names the explosion-proof motor of about 300 kW and its starter (core#129 for a drive correlation); cost-basis.yaml K-101 says "shaft power (DWSIM duty)". Closed. | S1 branch |
+| (low) H-101 downwind of V-100/P-101; no H-101/E-101 separation; no cited spacing practice | separation H-101 to E-101 15 m added (measured 26.8 m, passes); D-018 records the S-SW wind point for the layout review (I-05). No openly readable spacing guideline with a locator was found, so the values stay ASSUMED and D-018 says so. Closed (wind rose carried with I-05). | S1 branch |
+| (low) methane 890.63 kJ/mol misattributed to NIST | hda-1 now cites the WebBook value -890.7 +/- 0.4 kJ/mol (Pittam and Pilcher 1972); conversion 0.055521 and LHV/GCV 802.7/890.7 (fired-heat price unchanged at 53.56). The ammonia-1 citation is carried as process-library#321: fixing it regenerates ammonia-1's TEA, which is outside this PR. | S1 branch |
+| (low) consumption bands not justified, power QUOTED | feed:POWER and feed:FUEL sources and D-019 state the site-total band premise; feed:POWER is ASSUMED. Closed. | S1 branch |
+| (low) 5.5 EUR/t spread reads too precise | D-019 gives the like-for-like 2025 alternatives (+38.6 both imports, -134.7 both exports), also run as scenarios. Closed. | S1 branch |
+| (low) H2 source missing from the tea.md row | D-019 names the H2 source next to the row; the renderer limit is reported as core#129. Closed here (core part open). | S1 branch |
+| (low) class 4 contingency used at class 5 | D-019 says so; the class 5 range covers the difference. Closed. | S1 branch |
+| (low) C-201 note (integrity lens) | as the first finding. Closed. | S1 branch |
+| (low) E-101 second shell missing from the layout | D-017 and the equipment list: the two shells are stacked (ASSUMED), so the footprint covers both; the stacked height comes at layout-3d. The estimate and the layout are consistent. Closed. | S1 branch |
+| (low) plot plan never viewed | rendered SVG viewed in a browser (whole-sheet screenshot), with the observations recorded in D-018; no problem found. Closed. | S1 branch |
+| (low) EUA price from a secondary report | carried: the ESMA report was not located with a page locator in this round. The value stays labelled secondary and ASSUMED, cross-checked against Instrat (D-019). It does not move the decision. | - |
 
 ### Review 2026-10-27-pfd-lci-review (reviewed commit 9af76cf)
 

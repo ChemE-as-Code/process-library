@@ -448,7 +448,9 @@ rounded up into the equipment list. Every coefficient is a concept choice of thi
   with phase change) and E-201, 400 for E-102, 600 for E-205, 700 for E-203 and E-206, and 800
   for the reboilers E-202 and E-204. Areas: E-101 1309 m2 (two shells in series), E-102 302,
   E-201 20, E-202 76, E-203 96, E-204 265, E-205 32, E-206 17 m2. The C-201 condensing range
-  (350 to 313 K) is ASSUMED.
+  (350 to 313 K) is ASSUMED. The two E-101 shells (about 654 m2 each, as priced in D-019) are
+  stacked (ASSUMED), so the list's D 1.6 m x 9 m is the footprint of both; the stacked height
+  comes with the 3D layout at basic engineering.
 - Columns: diameter from the larger of the top and bottom vapour loads at an F-factor of
   2.0 Pa^0.5 and 85 % active area. Height from the theoretical stages at a tray efficiency of
   0.7, 0.6 m spacing and 5 m for sump, top and skirt. Latent heats are the simulated condenser
@@ -484,12 +486,15 @@ get their elevations at basic engineering (gate `layout-3d`).
 Spacing criteria (separations): all are ASSUMED screening values chosen in this design, not
 taken from a standard. The owner's spacing standard and a QRA replace them at basic.
 - H-101: 30 m from the site boundary, K-101, the A-200 area and the A-900 plot; 15 m from
-  V-101, V-100 and P-101.
+  V-101, V-100, P-101 and E-101 (flanged, 42 barg hot hydrogen; added after the review of
+  PR #320, measured 26.8 m).
+- No openly readable spacing guideline with a citable locator was found for these values
+  (the usual industry tables are paywalled), so they stay ASSUMED, as in ammonia-1 D-022.
 - Toppling (one height): C-201, C-202, C-203, R-101 and H-101 from PR-1.
 - A-900: 45 m from K-101 and C-202, and 30 m from V-101.
 Measured (`cheme show <tag> --layout`, 2026-11-03):
 - H-101: 31.0 m to the site boundary, 35.5 m to K-101, 26.3 m to V-100, 27.6 m to P-101,
-  58.0 m to A-200, 50.0 m to A-900, 36.0 m to PR-1.
+  26.8 m to E-101, 58.0 m to A-200, 50.0 m to A-900, 36.0 m to PR-1.
 - C-202: 44.9 m to PR-1 (height 38 m); C-201 25.5 m (12.5 m); C-203 25.3 m (14 m); R-101
   36.8 m (9 m).
 - A-900: 60.4 m to K-101, 91.1 m to C-202, 43.2 m to V-101.
@@ -498,12 +503,23 @@ Measured (`cheme show <tag> --layout`, 2026-11-03):
 stand clear of R-5), no blocked maintenance envelope. `cheme validate` reports no
 `layout-separation` or `layout-line-route` finding. A first arrangement with the columns
 further north left the toluene recycle TO-123 out of the rack's 30 m reach, and a rack
-spanning to x = 165 m put a bent in R-5. Both were moved, not accepted. The plan was not
-rendered as a picture: PNG output needs the `resvg` extra, which is not installed with core
-v1.4.1 here, and the SVG (`cheme layout render --plan`) was not viewed. The layout review at
-basic engineering looks at it.
+spanning to x = 165 m put a bent in R-5. Both were moved, not accepted. Viewed 2026-11-03:
+the SVG of `cheme layout render --plan` (build/layout-plan.svg), opened in a browser and
+looked at as a whole-sheet screenshot. It shows the 18 items inside A-100 and A-200, the rack
+PR-1 south of both areas with its bents, the four perimeter roads and R-5 between the areas,
+and the three reserved plots south of the rack. No item lies on a road or the rack, and no
+footprint overlaps another. At the A1 sheet scale the tags are small but readable when zoomed
+in. Nothing was changed as a result. The drawing shows no separation circles; the distances
+above come from `cheme show`. (PNG output needs the `resvg` extra, which is not installed.)
+Wind: H-101 (40, 92) lies about 20 degrees east of north of the toluene feed drum V-100 (30, 64)
+and the feed pump P-101 (40, 62). In S to SW winds, which are common on the Dutch coast, the
+heater is therefore downwind of their possible leaks. The arrangement is kept for the concept,
+because the distances meet the criteria, but it is a point for the layout review once the
+real wind rose is known (I-05). If the prevailing wind is SW, move V-100/P-101 east or
+north-east of H-101, or upwind of it.
 Reason: concept gate `layout-plot-plan`. An area layout in process order along one rack is the
-usual arrangement, and it keeps the flame of H-101 away from the hydrogen and benzene.
+usual arrangement. It keeps the flame of H-101 at the separation distances from the hydrogen
+and benzene inventories. Its position relative to the wind is still open (above).
 Open: the real plot, wind rose and neighbours (I-05), nozzles and line routes (with the
 P&IDs), hazardous-area zones, and the tank farm, flare and utilities outside the boundary.
 
@@ -519,51 +535,106 @@ Capital (AACE class 5, `estimate/cost-basis.yaml`, `estimate/equipment-cost.md`)
   range), 1.64 MUSD, in stainless steel. K-101 is priced at the correlation's minimum of 450 kW
   and P-102 at 1 kW, both upper estimates below the range. V-100 is priced with the vertical
   vessel correlation, the only vessel correlation with a bare module factor.
-- H-101 has a purchased cost only, 1.11 MUSD, installed x 2.5 (ASSUMED).
+- H-101 has a purchased cost only, 1.11 MUSD, installed x 2.5 (ASSUMED). The package holds no
+  fired-heater bare module, pressure or material factor (a core limit, core#129). Turton et
+  al., Appendix A, gives them, but the printed tables could not be read here. The 2.5 is
+  likely low for alloy tubes at 42 barg in hot hydrogen, and the class 5 range covers it.
+  The `estimate-equipment-partial` warning stays open until the factors come from the book.
 - USD to EUR at 1/1.0813 (Eurostat 2023). Escalation 2023 to 2025 x 1.052 (Eurostat NL NACE
   C28 producer prices, the ammonia-1 proxy). Location factor 1.0 (ASSUMED, no open factor
   found). Uncovered allowance 15 % (ASSUMED: trays and internals, the R-101 lining, the vacuum
-  pump, small pumps, spares, the product cooler).
+  pump, small pumps, spares, the product cooler, and the K-101 electric drive of about 300 kW,
+  an explosion-proof motor with its starter, which the compressor correlation excludes and no
+  package correlation covers, core#129).
 - ISBL 10.6 MEUR. OSBL 0.30 (ASSUMED, a unit on an existing site); owner's cost 0.07 and
-  contingency 0.20 (IEAGHG 2017-03 values used as an analogue, ASSUMED). Fixed capital
-  17.7 MEUR; class 5 range 8.9 to 35.4 MEUR.
+  contingency 0.20 (IEAGHG 2017-03 values used as an analogue, ASSUMED). The 20 % is a class 4
+  contingency, low for class 5; the class 5 range applied in the uncertainty and in scenario
+  capex-class5-high covers the difference. Fixed capital 17.7 MEUR; class 5 range 8.9 to
+  35.4 MEUR.
 Prices (2025 EUR):
 - Toluene 668.1 EUR/t and benzene 673.6 EUR/t: Eurostat Comext 2025 unit values of Dutch
-  toluene imports and benzene exports, trade statistics used as price proxies, ASSUMED.
+  toluene imports and benzene exports, trade statistics used as price proxies, ASSUMED. The
+  difference between an import and an export unit value is not a traded spread. The flows
+  have different delivery terms (CIF-like against FOB-like), grades and partners, and one
+  year's value is weak evidence. The 2025 spread depends on the choice of flow: 5.5 EUR/t
+  (benzene exports minus toluene imports, the baseline), 38.6 EUR/t (both imports: benzene
+  706.7) or -134.7 EUR/t (both exports: toluene 808.3). It is not a market spread.
 - Make-up hydrogen 2.78 EUR/kg H2: European Hydrogen Observatory, Netherlands SMR levelised
   cost 2024, incl. CO2 cost, the latest published year. Its methane is priced at the gas price.
+  The generated `estimate/tea.md` row of feed:H2MU shows only the CH4 (Eurostat gas) source:
+  `cheme assess tea --write` prints the last component's source only (core#129). The H2 part,
+  about 12.8 MEUR/a, is sourced to the European Hydrogen Observatory ('Hydrogen production
+  costs 2024.xlsx', Netherlands, SMR) in `estimate/tea.yaml`.
 - Natural gas 11.397 EUR/GJ GCV and power 100.65 EUR/MWh (Eurostat NL bands I6 and IG, 2025,
-  excluding VAT). Fired heat 53.56 EUR/MWh absorbed (efficiency 0.85 LHV, ASSUMED). Steam
+  excluding VAT). Both are the bands of the existing site's total use, through which the unit
+  buys its gas and power. The unit alone (about 2.1 GWh/a of power, about 0.3 PJ/a of gas)
+  would fall in smaller, dearer bands. This is a premise of this design, ASSUMED; power is
+  therefore ASSUMED, not QUOTED. Utilities are about 37 EUR/t, and the FUEL swing of 0.6 to 1.6
+  covers the band difference. Fired heat 53.56 EUR/MWh absorbed (efficiency 0.85 LHV, ASSUMED;
+  methane GCV from the NIST WebBook value 890.7 kJ/mol, Pittam and Pilcher 1972). Steam
   45.59 EUR/MWh (boiler 0.90 on GCV, ASSUMED, all levels alike). Cooling water 2.85 EUR/MWh
   (the calculation of ammonia-1's product:CW price, same 10 K rise).
 - Fuel gas and biphenyl credited as fuel at the gas price per GJ LHV (ASSUMED, conservative).
   No open biphenyl price was found.
-- CO2 of H-101 at 0.2376 t/MWh absorbed (IPCC 2006 default 56.1 t/TJ) at 74 EUR/t (EUA 2025),
-  no free allocation (ASSUMED). The fuel gas and steam CO2 is emitted outside the boundary and
-  not charged.
+- CO2 of H-101 at 0.2376 t/MWh absorbed (IPCC 2006 default 56.1 t/TJ) and of the site boiler
+  raising the steam at 0.2022 t/MWh of steam heat (0.90 on GCV), at 74 EUR/t (EUA 2025), with no
+  free allocation (ASSUMED). The steam carries its CO2 as the make-up hydrogen does, so the
+  carbon boundary is the same for all bought energy: 14.5 kt/a in total. The CO2 of the
+  exported fuel gas and biphenyl is charged where they are burned, not here.
 - Fixed cost: 25 operators at 80 kEUR, maintenance 3 % and insurance 1 % of fixed capital.
   Real discount rate 8 %, tax 25.8 %, 25 years, 8000 h/a (all as ammonia-1, ASSUMED).
 Results (`cheme assess tea --write`, `estimate/tea.md`):
-- LCOP 874.3 EUR/t against 673.6 EUR/t: not met. Cash cost 853.6 EUR/t, NPV -147 MEUR, no IRR.
-  P(meets) 5.9 % (Monte Carlo P10/P50/P90 LCOP 707/876/1084 EUR/t).
-- Cost of production per t benzene: feeds 969.5, utilities 37.2, CO2 4.1, co-product credits
+- LCOP 880.9 EUR/t against 673.6 EUR/t: not met. Cash cost 860.3 EUR/t, NPV -152 MEUR, no IRR.
+  (Monte Carlo P10/P50/P90 LCOP 708/883/1088 EUR/t.)
+- Cost of production per t benzene: feeds 969.5, utilities 37.2, CO2 10.8, co-product credits
   -184.3, fixed 27.1, capital and tax 20.6 EUR/t.
-- The toluene price dominates (Spearman +0.94). The decision turns at toluene 506.5 EUR/t
-  (-24 %), i.e. a benzene-toluene spread of at least about 167 EUR/t against 5.5 EUR/t in the
-  2025 trade values. Capital never turns it within the tested range (class 5 high x 2:
-  902 EUR/t).
-- Scenario prices-2024 (benzene 978.7, toluene 818.5 EUR/t, spread 160 EUR/t): LCOP 1061 EUR/t
-  against benzene at 978.7 EUR/t, still short.
-What it means for the next stage: at 2025 and 2024 price levels a stand-alone thermal HDA unit
-buying toluene does not pay. Its economics are a benzene-toluene spread and a hydrogen
-question (I-07), not a capital question. The engineering of the case study goes on as a design
+- The toluene price dominates (Spearman +0.93). With all else at 2025 values, the decision
+  turns at toluene 501.1 EUR/t (-25 %), i.e. a benzene-toluene spread of at least about
+  172 EUR/t at the 2025 benzene price. Because 1.18 t of toluene goes into each t of benzene,
+  the break-even spread grows slowly with the price level. Capital never turns it within the
+  tested range (class 5 high x 2: 909 EUR/t).
+- The reported P(meets) of 5.3 % is not the decision result. The Monte Carlo samples the
+  toluene price independently, while the threshold (the benzene price) stays fixed, so
+  P(meets) is the chance that toluene falls while benzene does not. It is not a spread
+  probability. Core v1.4.1 cannot correlate two price inputs, nor tie an `lcop` threshold to a
+  price key (core#129).
+- Spread evidence instead: scenarios prices-2019 to prices-2025 apply each year's Comext
+  unit values from the same two flows (benzene exports, toluene imports). The NPV is computed
+  against that year's benzene price; the LCOP column's 'meets' uses the fixed 2025 threshold
+  and does not apply to other years.
+
+  | year | benzene | toluene | spread | NPV, MEUR |
+  |---|---|---|---|---|
+  | 2019 | 624.8 | 615.1 | 9.7 | -140 |
+  | 2020 | 522.3 | 418.5 | 103.8 | -36 |
+  | 2021 | 897.7 | 549.0 | 348.7 | +121 (IRR 63 %) |
+  | 2022 | 1028.6 | 942.5 | 86.1 | -142 |
+  | 2023 | 865.0 | 897.6 | -32.6 | -221 |
+  | 2024 | 978.7 | 818.5 | 160.2 | -65 |
+  | 2025 | 673.6 | 668.1 | 5.5 | -152 |
+
+  The proxy spread reached the break-even in one year of seven (2021). Its mean, about
+  97 EUR/t, is well below it. The like-for-like 2025 flows give -128 MEUR (both imports) and
+  -280 MEUR (both exports). Hydrogen, gas and power are held at 2025 values in every
+  scenario.
+What it means for the next stage: on the Comext trade-value proxy (not a traded spread), a
+stand-alone thermal HDA unit buying toluene would have paid in one year of 2019 to 2025. This
+conclusion is conditional on the proxy. Its economics are a benzene-toluene spread and a
+hydrogen question (I-07), not a capital question. The engineering of the case study goes on as a design
 exercise (issue #302). An investment case would need a contract spread or an integrated site
 with cheap hydrogen and its own toluene. That is the owner's decision, not this file's.
 Rejected: a scaled reference plant cost (no open, citable HDA plant cost was found); the
 WBCSD-style co-product price split (the LCA keeps energy allocation, D-013).
 Not covered: working capital, the product subcooling duty (I-12), storage and loading.
 `cheme assess tea` reports two infos: the hydrogen price is of 2024, and P(meets) is below the
-decision's confidence.
+decision's confidence (read as above, not as the decision's probability).
+EUA price: the 74 EUR/t 2025 average is cited from a secondary report of ESMA's figure,
+cross-checked against Instrat's 73.43 EUR/t auction average, and labelled secondary and
+ASSUMED. The ESMA report was not located with a page locator in this round.
+Revised 2026-11-03 after the review of PR #320: steam CO2 added, power ASSUMED with the band
+premise, NIST methane value corrected (890.7 kJ/mol; conversion 0.055516 to 0.055521), K-101
+drive named in the allowance, spread scenarios added, P(meets) no longer quoted as the result.
+LCOP 874.3 to 880.9 EUR/t.
 
 ## LCI summary (lca/inventory.csv, per kg benzene)
 
