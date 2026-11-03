@@ -8,7 +8,7 @@
 # counted in kWh (the default `steam` entry is per kg, a unit error otherwise) and the hydrogen,
 # which must not be linked to an Atlas producer chosen by the build. Proposed later, once the
 # shared vocabulary has the entries (DESIGN.md I-09):
-#   feed:CUM     -> a `cumene` technosphere entry (new) or a library cumene process
+#   feed:CUM     -> linked since 2026-11-03 (below): cumene-1 became a plant with a flowsheet-derived dataset
 #   feed:ACID    -> sulfuric-acid (exists), or sulfuric-acid-1 when published
 #   feed:NAOH50  -> a `sodium-hydroxide-50` entry (new), or chlor-alkali-1 when published
 #   product:TAR  -> a heavy-residue thermal treatment entry (new)
@@ -27,3 +27,8 @@ exchanges:
   # still unmapped is a gap (lci/gaps.json), and this process is marked preliminary.
   "feed:ACID": {use: sulfuric-acid, source: "sulfuric acid 98 wt%, the shared entry, counted as the solution"}
   "feed:NAOH50": {dataset: {path: processes/chlor-alkali-1/lca/dataset.yaml, product: "product:NAOH"}, source: "the Atlas producer chlor-alkali-1, caustic soda 50 wt-%, per kg of solution as this exchange counts it"}
+  # 2026-11-03 (process-library#313): cumene-1 is now a plant whose dataset is derived from its
+  # flowsheet; its product:CUMENE (99.97 wt% cumene, kg) is the registry slug `cumene` that this
+  # exchange names (process.yaml chemistry, inventory_key feed:CUM), the only Atlas producer of it.
+  # Pinned explicitly so that a later second producer never replaces it silently.
+  "feed:CUM": {dataset: {path: processes/cumene-1/lca/dataset.yaml, product: "product:CUMENE"}, source: "the Atlas producer cumene-1, cumene 99.97 wt% per kg (exergy-allocated); S01 is taken as pure cumene (D-001), the 0.03 wt% benzene and DIPB are not counted"}

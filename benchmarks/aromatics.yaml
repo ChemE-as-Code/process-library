@@ -26,15 +26,20 @@ kpis:
       No open source with a cumene electricity figure found (2026-11-01). Read: LVOC BREF section
       2.1.1.5 (no utility data), the Versalis brochure (net steam only), the US EPA dataset
       doi:10.23719/1503030 (fuel, no electricity). Not readable: Luyben 2010, doi:10.1021/ie9011535
-      (HTTP 403). The dataset's value is core's Tier 0 default, ASSUMED.
+      (HTTP 403). cumene-1's value is the pump power of its simulated flowsheet (reflux and
+      vacuum pumps cut off), not a measured figure.
 
 datasets:
+  # The flowsheet-derived dataset since 2026-11-03 (processes/cumene-1 DESIGN.md D-013); it
+  # replaces the pilot's Tier 0 dataset cumene-zeolite-alkylation.
   - process: cumene-1
-    dataset: cumene-zeolite-alkylation
-    conditions: {technology: zeolite with transalkylation, basis: conceptual inventory}
+    dataset: cumene-by-zeolite-alkylation-of-benzene-with-propylene-272-kt-a
+    conditions: {technology: zeolite with transalkylation, basis: conceptual design (simulated flowsheet)}
     kpis:
       cumene-overall-yield:
-        expression: product:cumene / (feed:benzene + feed:propylene)
+        # feed:PRF is chemical-grade propylene with 5 mol% propane: 0.94773 of its mass is propylene
+        # (0.95 x 42.080 / (0.95 x 42.080 + 0.05 x 44.096)), so the yield is on benzene + propylene
+        expression: product:CUMENE / (feed:BZF + feed:PRF * 0.94773)
         reference: bref-lvoc-cumene-zeolite-yield
-        out_of_range_reason: "The dataset's feeds are a licensor's figures (Versalis brochure 2018, which states 99.7 wt% or higher), newer and more optimistic than the BREF's general value."
-      cumene-specific-electricity: {expression: feed:electricity / product:cumene, per: product:cumene}
+        out_of_range_reason: "The design's selectivity split is ASSUMED (cumene-1 D-005) and gives 0.996, between the BREF's general 99 % and the licensor's 99.7 wt% or higher (Versalis brochure 2018); its benzene and propylene per t of cumene match the licensor's within 0.1 % (D-012)."
+      cumene-specific-electricity: {expression: feed:POWER / product:CUMENE, per: product:CUMENE}

@@ -4,6 +4,7 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-11-03 | process.yaml chemistry, lca/mappings.yaml | feed:CUM gets its registry slug (`inventory_key: feed:CUM`, chemical cumene) and is pinned to cumene-1's product:CUMENE (dataset link); the Atlas build no longer reports it as a gap. lca/lca.yaml's `missing:` is left for core's own study (no background there) | cumene-1 became a plant with a flowsheet-derived dataset (process-library#313, cumene-1 D-013) |
 | 2026-10-28 | lca/dataset.yaml, lca/manifest.json (regenerated) | CI fix (PR #210, `tests/test_utilities.py` strict library build): `allocation.method` left unset in lca/lca.yaml (mass is the default), so build_lci no longer warns "study allocation 'mass' differs from the dataset's default None"; commit 022313c | CI failure; library-side fix still due (I-10) |
 | 2026-10-28 | DESIGN.md D-016, I-11; lca/lca.yaml product:WW | Response to 2026-10-28-pfd-lci-review#1: effluent stated as a lower bound against S1 8.3.5, missing streams named, no unsourced allowance added; commit bed39df | review |
 | 2026-10-28 | process/flowsheet.yaml Q10, process/reactions.yaml, DESIGN.md D-011, BFD, PFD, lca/ | Response to 2026-10-28-pfd-lci-review#3: Q10 re-estimated 330 -> 1 260 kW; gas-basis bias and omitted side-reaction heats stated; heats marked CALCULATED in `source` (schema allows given/assumed only); "independent closure" now a consistency check; commit bed39df | review |
