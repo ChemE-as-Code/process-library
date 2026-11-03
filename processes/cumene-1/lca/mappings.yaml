@@ -1,15 +1,15 @@
 # cumene-1's own exchange overrides for the Atlas LCI build (ADR 0022).
-# Schema: schemas/lci-process-mappings.schema.json. Benzene and propylene stay reported gaps: the
-# shared vocabulary has no entry, and the Atlas producers of the slugs are not chosen here.
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the exchange keys of the
+# flowsheet-derived dataset lca/dataset.yaml (DESIGN.md D-013); the Tier 0 dataset's keys
+# (feed:benzene, feed:propylene, feed:steam) went with it. Benzene and propylene stay reported
+# gaps: their Atlas suppliers are not chosen here.
 schema: cheme-as-code/lci-process-mappings/v1
 exchanges:
-  "feed:steam":
-    use: steam
-    atlas: false
-    source: "Net steam by mass, pressure not stated by the source: the shared background entry, not one Atlas producer's pressure level."
-  "feed:benzene":
+  "feed:BZF":
     atlas: false
     source: "The supplier is not decided: hda-1 is one route and styrene-1's by-product benzene another. Link one explicitly once chosen."
-  "feed:propylene":
+  "feed:PRF":
     atlas: false
-    source: "The supplier is not decided; ethylene-1's propylene is a candidate. Link it explicitly once chosen."
+    source: "Chemical-grade propylene with 5 mol% propane; the supplier is not decided (ethylene-1's propylene is a candidate, at another grade). Link it explicitly once chosen."
+  "feed:MPS": {use: steam-heat, source: "MP steam 1500 kPa(a), counted as heat delivered (kWh), D-010"}
+  "feed:HPS": {use: steam-heat, source: "HP steam 4200 kPa(a), counted as heat delivered (kWh), D-010"}
