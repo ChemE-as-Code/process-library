@@ -1,18 +1,67 @@
 # Components and templates of the process. Schema cheme/process/v1 (`cheme schema
 # process-materials`). Every component has a stable id; molar_mass in kg/kmol,
 # normal_boiling_point in K at 101.325 kPa.
+# Ideal-gas and critical data: `cheme chemistry thermo ethylene benzene ethylbenzene
+# 1,4-diethylbenzene 605-01-6 --fit 298.15,700` (the `chemicals` package bundled with cheme;
+# the sources of each value are named in `source`). Molar masses and normal boiling points:
+# `chemicals` (thermo ChemicalConstantsPackage), cross-checked against the NIST WebBook for
+# ethylene, benzene and ethylbenzene.
+#
+# Model compounds (DESIGN.md D-005): DEB (1,4-diethylbenzene) stands for all polyethylbenzenes
+# that are transalkylated (the three DEB isomers and the triethylbenzenes); PETB
+# (1,2,3,4,5-pentaethylbenzene) stands for the flux oil (tar), the C10+ heavy residue of the
+# PEB column. Both are ASSUMED representatives, chosen because DWSIM's databases have them
+# (ChemSep p-diethylbenzene, ChEDL pentaethylbenzene) and because PETB forms from benzene and
+# ethylene without hydrogen, so the element balance closes without an invented off-gas.
 schema: cheme/process/v1
 kind: materials
-components: []
-#  - {id: N2, name: Nitrogen, formula: N2, cas: 7727-37-9, molar_mass: 28.014, normal_boiling_point: 77.36}
-templates: []
-#  - {id: air, title: Air, components: [N2, O2, AR]}
-# property_method is a placeholder until `cheme process props --fill` records the method: its
-# benchmarked property package, package versions and application range. Packages:
-# air-pr-chemsep (N2/O2/Ar, 77-315 K, vapour 100-3200 kPa(a), liquid and two-phase 100-600
-# kPa(a)) and syngas-pr-vapor (H2/N2/Ar/CH4/CO/CO2 mixtures, NH3 pure or dilute with H2/N2/Ar/
-# CH4, vapour only, in benchmarked temperature-pressure boxes). `cheme process props --coverage` shows which applies
-# to each stream; `package: <id>` here chooses one.
+components:
+  - id: ETY
+    name: Ethylene (ethene)
+    formula: C2H4
+    cas: 74-85-1
+    molar_mass: 28.053
+    normal_boiling_point: 169.38
+    critical: {Tc: 282.35, Pc: 5041.8, omega: 0.0866, provenance: given, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 52560.0, S_298: 219.3, cp_R: [5.3793, -0.0230835, 0.000115874, -1.60663e-07, 7.68632e-11], temperature_range: [298.15, 700], provenance: given, source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 298.15-700 K (max deviation 0.21%)"}
+  - id: BZ
+    name: Benzene
+    formula: C6H6
+    cas: 71-43-2
+    molar_mass: 78.112
+    normal_boiling_point: 353.22
+    critical: {Tc: 562.02, Pc: 4907.28, omega: 0.211, provenance: given, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 83180.0, S_298: 269.2, cp_R: [-1.33748, 0.0239977, 8.84974e-05, -1.74545e-07, 9.28851e-11], temperature_range: [298.15, 700], provenance: given, source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo HEOS_FIT 298.15-700 K (max deviation 0.16%)"}
+  - id: EB
+    name: Ethylbenzene
+    formula: C8H10
+    cas: 100-41-4
+    molar_mass: 106.165
+    normal_boiling_point: 409.31
+    critical: {Tc: 617.12, Pc: 3622.4, omega: 0.305, provenance: given, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 29900.0, S_298: 360.6, cp_R: [3.84052, 0.00657176, 0.000182516, -2.96666e-07, 1.46964e-10], temperature_range: [298.15, 700], provenance: given, source: "chemicals: dHf_298 CRC, S_298 WEBBOOK, cp_R fitted to thermo HEOS_FIT 298.15-700 K (max deviation 0.10%)"}
+  - id: DEB
+    name: 1,4-Diethylbenzene (model of the polyethylbenzenes, PEB)
+    formula: C10H14
+    cas: 105-05-5
+    molar_mass: 134.218
+    normal_boiling_point: 457.15
+    critical: {Tc: 657.9, Pc: 2803.0, omega: 0.409, provenance: given, source: "chemicals: Tc IUPAC, Pc IUPAC, omega PSRK"}
+    ideal_gas: {dHf_298: -20370.0, S_298: 433.94, cp_R: [4.74001, 0.0308321, 0.000144203, -2.4489e-07, 1.19008e-10], temperature_range: [298.15, 700], provenance: given, source: "chemicals: dHf_298 API_TDB_G, S_298 YAWS, cp_R fitted to thermo TRCIG 298.15-700 K (max deviation 0.04%)"}
+  - id: PETB
+    name: 1,2,3,4,5-Pentaethylbenzene (model of the flux oil)
+    formula: C16H26
+    cas: 605-01-6
+    molar_mass: 218.378
+    normal_boiling_point: 550.15
+    critical: {Tc: 731.0, Pc: 1890.0, omega: 0.67, provenance: given, source: "chemicals: Tc PINAMARTINES, Pc PINAMARTINES, omega YAWS"}
+    ideal_gas: {dHf_298: -175200.0, S_298: 649.78, cp_R: [7.32443, 0.101314, 7.55322e-05, -2.05789e-07, 1.09712e-10], temperature_range: [298.15, 700], provenance: given, source: "chemicals: dHf_298 TRC, S_298 YAWS, cp_R fitted to thermo TRCIG 298.15-700 K (max deviation 0.04%)"}
+templates:
+  - {id: mixture, title: Ethylbenzene process mixture, components: [ETY, BZ, EB, DEB, PETB]}
+# property_method is a placeholder: no property package qualified by core covers aromatics
+# (core's packages: air-pr-chemsep, syngas-pr-vapor). The stream values are simulated by DWSIM
+# with Peng-Robinson (D-014), an unqualified cross-check of scripts/eb_balance.py, not
+# validated data.
 property_method:
   adapter: thermo
   status: placeholder

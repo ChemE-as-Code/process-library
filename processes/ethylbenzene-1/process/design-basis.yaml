@@ -1,8 +1,50 @@
 # What the plant must do. Schema: `cheme schema design_basis`.
+# Liquid-phase zeolite alkylation of benzene with ethylene, with transalkylation of the
+# polyethylbenzenes, issue ChemE-as-Code/process-library#313. An independent concept design:
+# the plant data of the EU LVOC BREF (2017, chapter 5) are the cross-check, not an input,
+# except the tar rate (D-005). Values marked ASSUMED are engineering choices of this concept
+# study, not client or licensor data; every decision is in DESIGN.md.
 schema: cheme/design_basis/v1
-capacity: {}
-feeds: []
-products: []
-utilities: []
-site: {}
-assumptions: []
+capacity:
+  basis: Ethylbenzene product stream to storage (incl. its benzene and DEB traces)
+  product_t_per_a: 400000             # ASSUMED (D-002): a single train of the size that feeds a world-scale styrene unit, not a client figure
+  product_kg_per_h: 50000.0           # = 400 kt/a / 8000 h
+  operating_hours_per_year: 8000      # ASSUMED (D-002)
+  turndown_percent: 60                # ASSUMED, not checked
+feeds:
+  - name: Benzene (high purity, from an aromatics complex or a hydrodealkylation unit, outside the boundary)
+    source_of_values: ASSUMED (D-003)
+    composition_mol_percent: {BZ: 100.0}   # ASSUMED: pure and dry; the BREF's plants use feeds above 99.5 wt% (Table 5.9); water, sulphur and nitrogen compounds and non-aromatics are not modelled (no drying column, no guard beds)
+    conditions: {pressure_kPa_a: 500, temperature_K: 303.15}   # ASSUMED battery limit
+    flow: set by the product rate through the balance (D-006); stream S1 of process/flowsheet.yaml
+  - name: Ethylene (polymer grade, pipeline, outside the boundary)
+    source_of_values: ASSUMED (D-003)
+    composition_mol_percent: {ETY: 100.0}  # ASSUMED: pure; the BREF's plants use 99.8 to 99.95 vol% (Table 5.9); ethane and methane would leave in a vent, not modelled
+    conditions: {pressure_kPa_a: 4000, temperature_K: 298.15}  # ASSUMED: delivered above the alkylator pressure, no ethylene compressor
+    flow: set by the product rate through the balance (D-006); stream S6
+products:
+  - name: Ethylbenzene
+    purity: "99.9 mol% ethylbenzene or better, benzene and DEB traces (ASSUMED design target, D-002, D-008: DEB 20 ppm mol in the product, benzene from the C-201 bottoms spec); a styrene-feed specification is not checked beyond these"
+    delivery: {pressure_kPa_a: 150, temperature_K: 313.15, battery_limit: product tanks or the styrene unit (outside the boundary)}
+  - name: Flux oil (tar, the PEB column bottoms)
+    purity: "heavy residue, modelled as pentaethylbenzene with 2 mol% DEB (ASSUMED, D-005, D-008)"
+    use: flux oil in a styrene plant or fuel (outside the boundary, D-009)
+  - name: Low-pressure steam raised from the reaction heat and two column condensers
+    use: exported to the site steam network or the styrene unit (outside the boundary, D-009)
+utilities:
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: ASSUMED (D-010)}
+  - {name: HP steam, pressure_kPa_a: 4200, saturation_K: 526.4, use: "reboilers of C-201, C-202, C-203 and the transalkylator feed heater E-102", note: ASSUMED level (D-010)}
+  - {name: Steam raised, pressure_kPa_a: 200, saturation_K: 393.4, use: "interbed steam generators of R-101, condensers of C-201 and C-202 (2 bar steam, as the BREF describes for the benzene column condenser)", note: ASSUMED level (D-009, D-010)}
+  - {name: Electric power, use: "alkylator and transalkylator feed pumps", note: ASSUMED electric drives (D-010)}
+site:
+  location: ASSUMED generic EU site, not chosen
+  design_ambient_K: 303.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325   # ASSUMED
+assumptions:
+  - "ASSUMED liquid-phase alkylation on a zeolite (MCM-22 or beta type) in a multi-bed reactor with interbed steam generators, modelled as one conversion reactor held at 513.15 K outlet and 3700 kPa(a); benzene/ethylene 4.0 mol/mol at its inlet (D-004)."
+  - "ASSUMED complete ethylene conversion; ethylene shares to EB, polyethylbenzenes and flux oil from a patent example and the BREF tar rate (D-005)."
+  - "ASSUMED transalkylation at 503.15 K inlet, adiabatic, benzene/DEB 3 mol/mol, DEB conversion 0.65 per pass (D-005)."
+  - "ASSUMED columns: benzene column 450/480 kPa(a), EB column 150/170 kPa(a), PEB column 20/30 kPa(a) (vacuum); specs in D-008; reflux 1.3 x Underwood minimum."
+  - "ASSUMED pump efficiency 0.65; pressure drops 50 to 150 kPa per unit (D-004, D-010)."
+  - "ASSUMED no feed pretreatment (dry, pure feeds), no vent, no process effluent (D-003, D-013)."
+  - "All flows, temperatures and duties are concept estimates from an unqualified property method (Peng-Robinson, D-006, D-014); accuracy not stated."
