@@ -1,18 +1,70 @@
 # Components and templates of the process. Schema cheme/process/v1 (`cheme schema
 # process-materials`). Every component has a stable id; molar_mass in kg/kmol,
 # normal_boiling_point in K at 101.325 kPa.
+# Ideal-gas and critical data: `cheme chemistry thermo propylene propane benzene cumene
+# 1,4-diisopropylbenzene --fit 298.15,800` (the `chemicals` package: ATcT/CRC/Yaws formation
+# enthalpies, CRC/Yaws/WebBook entropies, heat capacities fitted to thermo's TRC ideal-gas
+# correlations, Joback for DIPB; HEOS/IUPAC/PSRK critical constants). Normal boiling points:
+# `chemicals` (Tb). 1,3,5-Triisopropylbenzene has no measured formation enthalpy or entropy in
+# `chemicals`: its values are estimates (DESIGN.md D-005, ASSUMED). The DIPB and TIPB isomers are
+# surrogates of the isomer mixtures (D-005).
 schema: cheme/process/v1
 kind: materials
-components: []
-#  - {id: N2, name: Nitrogen, formula: N2, cas: 7727-37-9, molar_mass: 28.014, normal_boiling_point: 77.36}
-templates: []
-#  - {id: air, title: Air, components: [N2, O2, AR]}
-# property_method is a placeholder until `cheme process props --fill` records the method: its
-# benchmarked property package, package versions and application range. Packages:
-# air-pr-chemsep (N2/O2/Ar, 77-315 K, vapour 100-3200 kPa(a), liquid and two-phase 100-600
-# kPa(a)) and syngas-pr-vapor (H2/N2/Ar/CH4/CO/CO2 mixtures, NH3 pure or dilute with H2/N2/Ar/
-# CH4, vapour only, in benchmarked temperature-pressure boxes). `cheme process props --coverage` shows which applies
-# to each stream; `package: <id>` here chooses one.
+components:
+  - id: C3H8
+    name: Propane
+    formula: C3H8
+    cas: 74-98-6
+    molar_mass: 44.096
+    normal_boiling_point: 231.04
+    critical: {Tc: 369.89, Pc: 4251.2, omega: 0.1521, provenance: given, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -104390.0, S_298: 270.3, cp_R: [2.68944, 0.0120088, 4.80279e-05, -7.35892e-08, 3.2411e-11], temperature_range: [298.15, 800], provenance: given, source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 298.15-800 K (max deviation 0.11%)"}
+  - id: C3H6
+    name: Propylene (propene)
+    formula: C3H6
+    cas: 115-07-1
+    molar_mass: 42.08
+    normal_boiling_point: 225.53
+    critical: {Tc: 364.211, Pc: 4555.0, omega: 0.146, provenance: given, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 20370.0, S_298: 266.71, cp_R: [2.47396, 0.0127331, 2.85387e-05, -4.66282e-08, 2.0608e-11], temperature_range: [298.15, 800], provenance: given, source: "chemicals: dHf_298 ATCT_G, S_298 YAWS, cp_R fitted to thermo TRCIG 298.15-800 K (max deviation 0.08%)"}
+  - id: BZ
+    name: Benzene
+    formula: C6H6
+    cas: 71-43-2
+    molar_mass: 78.112
+    normal_boiling_point: 353.22
+    critical: {Tc: 562.02, Pc: 4907.28, omega: 0.211, provenance: given, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 83180.0, S_298: 269.2, cp_R: [-4.15483, 0.0532689, -1.37596e-05, -2.7343e-08, 1.77774e-11], temperature_range: [298.15, 800], provenance: given, source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 298.15-800 K (max deviation 0.07%)"}
+  - id: CUM
+    name: Cumene (isopropylbenzene)
+    formula: C9H12
+    cas: 98-82-8
+    molar_mass: 120.19
+    normal_boiling_point: 425.55
+    critical: {Tc: 631.0, Pc: 3209.0, omega: 0.3261, provenance: given, source: "chemicals: Tc IUPAC, Pc IUPAC, omega PSRK"}
+    ideal_gas: {dHf_298: 4000.0, S_298: 386.53, cp_R: [-5.33096, 0.0978398, -4.73766e-05, -2.32544e-08, 2.32496e-11], temperature_range: [298.15, 800], provenance: given, source: "chemicals: dHf_298 CRC, S_298 WEBBOOK, cp_R fitted to thermo TRCIG 298.15-800 K (max deviation 0.09%)"}
+  - id: DIPB
+    name: 1,4-Diisopropylbenzene (surrogate of the DIPB isomers)
+    formula: C12H18
+    cas: 100-18-5
+    molar_mass: 162.27
+    normal_boiling_point: 483.45
+    critical: {Tc: 675.0, Pc: 2300.0, omega: 0.4818, provenance: given, source: "chemicals: Tc CRC, Pc CRC, omega PSRK"}
+    ideal_gas: {dHf_298: -77600.0, S_298: 489.0, cp_R: [-3.72724, 0.122351, -7.21105e-05, 1.57797e-08], temperature_range: [298.15, 800], provenance: given, source: "chemicals: dHf_298 YAWS, S_298 YAWS, cp_R fitted to thermo JOBACK 298.15-800 K (max deviation 0.00%)"}
+  - id: TIPB
+    name: 1,3,5-Triisopropylbenzene (surrogate of the heavy ends)
+    formula: C15H24
+    cas: 717-74-8
+    molar_mass: 204.351
+    normal_boiling_point: 522.15
+    critical: {Tc: 696.6, Pc: 1950.0, omega: 0.638, provenance: given, source: "chemicals: Tc PINAMARTINES, Pc PINAMARTINES, omega YAWS"}
+    ideal_gas: {dHf_298: -155180.0, S_298: 613.4, cp_R: [-2.53775, 0.150186, -8.40608e-05, 1.70185e-08], temperature_range: [298.15, 800], provenance: assumed, source: "ASSUMED estimates (D-005): dHf_298 Joback group contribution (chemicals JOBACK); S_298 = S(DIPB) + [S(DIPB) - S(cumene)] (one more isopropyl group, symmetry not corrected); cp_R fitted to thermo JOBACK 298.15-800 K"}
+templates:
+  - {id: mixture, title: Cumene process mixture, components: [C3H8, C3H6, BZ, CUM, DIPB, TIPB]}
+# property_method is a placeholder: no property package qualified by core covers aromatics with
+# light hydrocarbons (core's packages: air, syngas; core#315). The stream values are simulated by
+# DWSIM with Peng-Robinson (D-011), an unqualified cross-check of scripts/cumene_balance.py, not
+# validated data.
 property_method:
   adapter: thermo
   status: placeholder

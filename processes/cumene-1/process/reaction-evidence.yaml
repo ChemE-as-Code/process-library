@@ -1,0 +1,145 @@
+# Reaction evidence for cumene (skill reaction-evidence-search). Schema cheme/reaction-evidence/v1.
+# Citations and facts extracted from them only; no source text, table or figure is copied.
+# Unit conversions of reported values (F to C, psig to MPa(a)) are marked derived.
+schema: cheme/reaction-evidence/v1
+kind: reaction-evidence
+product: CUM
+question: >-
+  Liquid-phase alkylation of benzene with chemical-grade propylene (propane inert) to cumene on a
+  zeolite catalyst, with transalkylation of the diisopropylbenzenes, at a scale of about 270 kt/a:
+  which temperature, pressure, benzene/propylene ratio, propylene conversion and cumene/DIPB
+  selectivity are reported, and which DIPB conversion in transalkylation?
+searches:
+  - {query: "patent cumene liquid phase alkylation benzene propylene beta zeolite example temperature pressure benzene/propylene molar ratio transalkylation diisopropylbenzene", tool: web search, date: 2026-11-03, found: [S1, S2]}
+  - {query: "Versalis cumene licensing brochure (the pilot's reference, re-read)", tool: web fetch, date: 2026-11-03, found: [S3]}
+sources:
+  - id: S1
+    kind: patent
+    title: Liquid phase alkylation or transalkylation process using zeolite beta
+    authors: Innes, R.A.; Zones, S.I.; Nacamuli, G.J. (Chevron Research)
+    year: 1990
+    patent: US4891458A
+    url: https://patents.google.com/patent/US4891458A/en
+    accessed: 2026-11-03
+    access: full-text
+    reuse: "patent text: citation and extracted facts only"
+    notes: "Read on Google Patents (the description up to about character 100000, which holds Examples 4 to 8)."
+  - id: S2
+    kind: patent
+    title: Process for producing cumene
+    authors: Dandekar, A.B.; Hryniszak, M.; Stern, D.L. (ExxonMobil Chemical Patents)
+    year: 2005
+    patent: US6888037B2
+    url: https://patents.google.com/patent/US6888037B2/en
+    accessed: 2026-11-03
+    access: full-text
+    reuse: "patent text: citation and extracted facts only"
+    notes: "MCM-49 catalyst. Gives ranges of suitable alkylation and transalkylation conditions in the description; its two examples are batch autoclave tests without a reported conversion, not used."
+  - id: S3
+    kind: report
+    title: "Cumene: proprietary process technology (licensing brochure 11-2018)"
+    authors: Versalis (Eni)
+    year: 2018
+    url: https://versalis.eni.com/assets/documents/versalis/it/documentazione/licensing/2022/Cumene.pdf
+    accessed: 2026-11-03
+    access: full-text
+    reuse: "manufacturer literature, copyrighted: citation and extracted facts only"
+    notes: "PDF p. 3: product yield 99.7 wt% or higher, cumene purity 99.95 wt% typical, benzene 0.651 and propylene 0.352 t/t, net steam 0.2 t/t (HP import less LP export). PDF p. 4: benzene, cumene and PIPB columns, propylene injected before each bed, PIPB transalkylated, propane recovered as propane product or fuel. A licensor's figures, no conditions of the reactors."
+routes:
+  - id: ZEO
+    title: Liquid-phase alkylation on zeolite (beta or MWW type) with DIPB transalkylation
+    equations: ["C6H6 + C3H6 -> C9H12", "C9H12 + C3H6 -> C12H18", "C12H18 + C6H6 -> 2 C9H12"]
+    reactants: [BZ, C3H6]
+    products: [CUM, DIPB, TIPB]
+    reactions: [ALK, ALK2, ALK3, TRANS]
+    status: selected
+    rationale: >-
+      The route of the issue (#313) and of the current licensed processes (S3); complete
+      propylene conversion and DIPB transalkylation are reported on zeolite beta (S1), the
+      catalyst is non-corrosive and leaves no acid waste (S3). DESIGN.md D-005.
+    gaps:
+      - "No open operating example at the design benzene/propylene ratio of 4 mol/mol: S1 Example 4 runs at about 7.4 (derived); the cumene/DIPB split at 4 is ASSUMED."
+      - "No heavy-ends (TIPB, diphenylpropanes) selectivity reported in the sources read."
+      - "No transalkylation equilibrium data read; the 40 % per pass is not checked against equilibrium (I-05)."
+      - "n-Propylbenzene and propylene oligomers not reported numerically in the sources read."
+  - id: SPA
+    title: Vapour-phase alkylation on solid phosphoric acid
+    reactants: [BZ, C3H6]
+    products: [CUM, DIPB]
+    status: rejected
+    rationale: "Older route without transalkylation of the DIPB; S3 offers revamps of SPA units to zeolite. Not the route of the issue."
+  - id: ALCL3
+    title: Liquid-phase alkylation with aluminium chloride
+    reactants: [BZ, C3H6]
+    products: [CUM, DIPB]
+    status: rejected
+    rationale: "Corrosive homogeneous catalyst with an acid/aqueous waste stream; not the route of the issue."
+observations:
+  - id: O1
+    source: S1
+    route: ZEO
+    location: "Example 4, Table 2 (zeolite beta, unexchanged powder, 13-17 h on stream)"
+    kind: operating-example
+    scale: patent-example
+    conditions:
+      temperature: {value: 162.8, unit: °C, status: derived, derived_from: "325 °F reported"}
+      pressure: {value: 4.238, unit: MPa(a), status: derived, derived_from: "600 psig reported, plus 101.3 kPa"}
+      phase: liquid
+      catalyst_formulation: "zeolite beta, unexchanged powder (upflow liquid-phase reactor)"
+      feed:
+        BZ: {value: 12, unit: ml/h, note: "benzene feed rate"}
+        C3H6: {value: 1.5, unit: ml/h, note: "liquid propylene injected into the benzene"}
+      space_velocity: {value: 5.7, unit: 1/h, note: "WHSV on benzene + propylene"}
+      notes: "Benzene/propylene about 7.4 mol/mol (derived from the volume rates with liquid densities 0.877 and 0.51 g/ml, ASSUMED)."
+    conversion:
+      - {component: C3H6, value: {value: 100.0, unit: "%"}, basis: per-pass}
+    selectivity:
+      - {product: CUM, value: {value: 91.5, unit: "%", status: derived, derived_from: "93.9 wt% cumene and 5.9 wt% DIPB of the benzene-free product: 0.7813 mol cumene and 0.0364 mol DIPB per 100 g, i.e. 0.854 mol propylene"}, relative_to: C3H6, basis: molar}
+      - {product: DIPB, value: {value: 4.26, unit: "%", status: derived, derived_from: "mol DIPB per mol propylene converted, from the same composition"}, relative_to: C3H6, basis: molar}
+    outlet:
+      CUM: {value: 93.9, unit: wt%, note: "benzene-free product"}
+      DIPB: {value: 5.9, unit: wt%, note: "1,3-DIPB 3.7 + 1,4-DIPB 2.2, benzene-free"}
+    byproducts: ["1,3-diisopropylbenzene", "1,4-diisopropylbenzene"]
+    missing: [n-propylbenzene, heavy ends above DIPB, catalyst life at industrial ratios]
+    notes: "Later rows of the table (to 653 h, extrudate) stay at 100 % propylene conversion and 93.1-94.1 wt% cumene."
+  - id: O2
+    source: S1
+    route: ZEO
+    location: "Example 8 (transalkylation of DIPB, zeolite beta)"
+    kind: operating-example
+    scale: patent-example
+    conditions:
+      temperature: {value: 137.8, unit: °C, status: derived, derived_from: "initial reactor temperature 280 °F reported; raised during the run to hold the conversion"}
+      pressure: {value: 3.549, unit: MPa(a), status: derived, derived_from: "500 psig reported, plus 101.3 kPa"}
+      phase: liquid
+      catalyst_formulation: "zeolite beta"
+      space_velocity: {value: 1, unit: 1/h, note: LHSV}
+    conversion:
+      - {component: DIPB, value: {range: [35, 40], unit: "%"}, basis: per-pass}
+    missing: [cumene selectivity, benzene/DIPB ratio of the feed, equilibrium conversion]
+  - id: O3
+    source: S2
+    route: ZEO
+    location: "Description, transalkylation conditions paragraph"
+    kind: review-summary
+    scale: null
+    conditions:
+      temperature: {range: [100, 200], unit: °C}
+      pressure: {range: [2.0, 3.0], unit: MPa(g)}
+      catalyst_formulation: "MCM-49 or other zeolite (the patent's transalkylation catalyst)"
+      space_velocity: {range: [1, 10], unit: 1/h, note: "WHSV on total feed"}
+      notes: "Benzene/PIPB weight ratio 1:1 to 6:1. Alkylation: up to about 250 °C, about 1 to 30 atm preferred, benzene/propylene about 1 to 10."
+    missing: [conversion, selectivity]
+model_basis:
+  route: ZEO
+  reactions: [ALK, ALK2, ALK3, TRANS]
+  evidence: [O1, O2]
+  assumptions:
+    - "Propylene converted completely in R-101 (O1 at 436 K and 4.24 MPa(a), the design outlet temperature; at a lower benzene ratio than O1)."
+    - "Propylene split 0.88/0.115/0.005 to cumene/DIPB/TIPB at benzene/propylene 4 mol/mol, ASSUMED: O1 gives 0.915/0.085 at about 7.4; a lower ratio forms more DIPB. Check: open data at ratio 3-5 or a licensor's figure."
+    - "TRANS 0.40 per pass at 433 K, ASSUMED at the upper end of O2 (35-40 % at 411 K initial); equilibrium not checked (I-05)."
+    - "TIPB (heavy ends) 0.005 of the propylene, ASSUMED; no source read reports it. The overall yield it gives is compared with S3 (99.7 wt%) and the LVOC BREF (99 %) in DESIGN.md D-012."
+  validation: "Compare the overall benzene and propylene consumption with the licensor's figures (S3) and the BREF yield at every revision (D-012); replace the selectivity split with sourced data before basic engineering."
+  decision: D-005
+  decided_by: agent proposal (Claude Code), unreviewed
+  date: 2026-11-03
