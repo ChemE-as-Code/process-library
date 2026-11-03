@@ -63,6 +63,14 @@ concept sign-off itself is for a person, not for this review.
 ## Previous findings
 | id | finding | severity | status | evidence |
 |---|---|---|---|---|
+| 2026-10-27-pfd-lci-review#1 | all-gap LCA total of 0 would reach the catalog | high | closed d4740fd | process.yaml `lca: {source: none}` until a background is linked (PROGRESS.md responses) |
+| 2026-10-27-pfd-lci-review#2 | LCA boundary labelled two ways | medium | closed d4740fd | cradle-to-gate, foreground only, in every file (D-013) |
+| 2026-10-27-pfd-lci-review#3 | known omissions not declared in the LCA files | medium | closed d4740fd | emission_exclusions and cutoff in lca.yaml |
+| 2026-10-27-pfd-lci-review#5 | reaction heat unit slip | low | closed d4740fd | D-005: about 1.95 MW (7.0 GJ/h) |
+| 2026-10-27-pfd-lci-review#6 | implicit pumps | low | closed 462bacc | noted on S17 and S23 and in D-010; P101 is a Pumping step again (D-016) |
+| 2026-10-27-pfd-lci-review#8 | gas-basis LHV for allocation | low | closed d4740fd | kept with its reason in lca.yaml and D-013 |
+| 2026-10-27-pfd-lci-review#10 | LCA publication field against the manifest | low | closed d4740fd | explained in D-013 |
+| 2026-10-27-pfd-lci-review#11 | outdated docstring in hda_balance.py | low | closed 462bacc | docstring corrected |
 | 2026-10-27-pfd-lci-review#4 | Douglas reactor-basis values recalled, not read from the book | medium | open | carried (D-016 I-06): no open copy or openly licensed source with a locator was found; `cheme maturity` fails maturity-balanced-model-basis for R101; for S2 |
 | 2026-10-27-pfd-lci-review#7 | PFD symbols: H101 and P101 drawn as the wrong class (core build bug) | low | closed d5267c55 | P101 `Pumping`, H101 `HeatingInFurnace` with core v1.4.1; BFD/PFD rebuilt; validate has no generated-version finding |
 | 2026-10-27-pfd-lci-review#9 | fuel-gas credit methods side by side | low | open | carried (D-016 I-11): needs linked LCA backgrounds, the LCA practitioner's decision |
