@@ -171,6 +171,38 @@ values: the highest operating value + 10 % (at least + 2 bar) and + 25 K, one de
 instrument lists stay empty until the P&IDs. The concept gate `layout-plot-plan` fails: no plot
 plan in scope (open input I-08).
 
+### D-013 LCI from the flowsheet replaces the Tier 1 dataset (2026-11-03)
+Decision: `lca/lca.yaml` with functional unit 1 kg ethylbenzene at the gate (product
+`ethylbenzene`), design case, cradle-to-gate study with the foreground inventory only: every
+exchange from the simulated flowsheet, every background `missing:` with the activity it should
+connect to. Co-products flux oil and exported steam by `shares` 1/0/0 (all burdens to EB, no
+credit), `dataset.system_model: cutoff`; substitution listed for comparison with its backgrounds
+open. `cheme assess lca --write` writes `lca/dataset.yaml`, which becomes the process's LCI.
+The hand-written Tier 1 dataset `lca/datasets/ethylbenzene-zeolite-liquid-phase.yaml` is
+**removed**.
+Reason for removing it: every plant folder of the library carries one flowsheet-derived
+`lca/dataset.yaml` and no `lca/datasets/` (only manifest-only processes have those);
+`scripts/build_lci.py` reads both, so keeping it would export two activities of
+`ethylbenzene` from one process; it was never in a release (no release exists), so the
+governance rule that keeps released datasets with `superseded_by` (docs/governance.md 5) does
+not apply. Its sourced facts are kept as the cross-check (D-015) and in
+`benchmarks/styrenics.yaml`; its inventory keys are kept (`feed:benzene`, `feed:ethylene`,
+`feed:electricity`, `feed:steam`, `product:ethylbenzene`: the flowsheet's terminal ids are lower
+case on purpose), so styrene-1's link changes only its path and the benchmark bindings keep their
+expressions. The steam stays `feed:steam` with the shared `steam-heat` mapping (heat delivered,
+kWh), as before.
+Shares 1/0/0: the Tier 1 dataset credited no heat recovery either; nitric-acid-1 and
+sulfuric-acid-1 treat exported steam the same way. The `allocation.deviation` states why energy
+or exergy allocation is not used. Omissions declared: fugitive leaks (the BREF's upper bounds
+10 g benzene and 50 g VOC per t are quoted, not counted), storage, no process effluent (drying
+column outside the boundary; the BREF's 0.117 to 0.144 m3/t is quoted), no combustion, catalyst
+regeneration; cut-offs: implicit column pumps (about 0.8 kWh/t) and the vacuum system (about
+0.4 kWh/t), and the zeolite (7.5 g/t, the BREF midpoint, with no background yet).
+Results: see the LCI summary below. `cheme assess lca --balance`: mass, C and H closed; the
+energy closure reads 123.6 % because the reaction heat (and the feeds' and products' heating
+values) are not in its basis: the exported steam exceeds the steam bought by the alkylation heat.
+The catalog gets no LCA result while every background is a gap (process.yaml `lca.source: none`).
+
 ### D-014 DWSIM simulation of the whole plant, an unqualified cross-check (2026-11-03)
 Decision: `cheme process simulate` runs the whole flowsheet with nothing excluded (core v1.4.1,
 DWSIM 9.0.5, Peng-Robinson); every stream value and duty downstream of the feeds is DWSIM's
@@ -233,8 +265,45 @@ utility check treats the reactor as a stream heated from 453 to 513 K while it i
 steam).
 
 ### D-015 Utilities and yields against the EU LVOC BREF (2026-11-03)
-See the table under "Comparison with the BREF" below; the reasons for every value outside a
-range are stated there and in `benchmarks/styrenics.yaml` as `out_of_range_reason`.
+Decision: the BREF's ranges (chapter 5, the facts the Tier 1 pilot carried) are the cross-check of
+the flowsheet-derived LCI; each is a KPI in `benchmarks/styrenics.yaml`, with an
+`out_of_range_reason` where the design falls outside. Per t EB (from the DWSIM-filled flowsheet,
+`lca/inventory.csv`; the script's figures in brackets):
+
+| KPI | design | BREF range (locator) | status | why |
+|---|---|---|---|---|
+| benzene | 0.7374 t/t (0.7374) | 0.735 to 0.746 (5.3.4.1) | inside | near stoichiometry (0.7358) plus the flux oil's benzene; not independent |
+| ethylene | 0.2669 t/t (0.2669) | 0.254 to 0.265 (5.3.4.1) | 0.7 % above | the flux oil is modelled as pentaethylbenzene (5 ethylenes per benzene); the Tier 1 model's diphenylethane gave 0.2649 |
+| flux oil (tar) | 4.30 kg/t | 3 to 5.6 (5.3.6.1.2) | midpoint by design | an input (D-005) |
+| electricity | 6.4 kWh/t (6.0) | 25 to 32 (5.3.5) | far below | only the three feed pumps are steps; reflux and vacuum pumps are cut-offs (about 1.2 kWh/t), cooling-water and drying-column duties and feed compression are outside the model (ethylene arrives at pressure, D-003) |
+| steam used | 521 kWh/t (492 at the script's own C-202 reflux, 519 at DWSIM's) | 100 to 2600 (5.3.5) | inside, low third | three columns at 1.3 x minimum reflux, the hot alkylator effluent preheats the C-201 feed |
+| heat recovered (steam raised) | 742 kWh/t (717; 744 at DWSIM's C-202 reflux) | 700 to 2600 (5.3.5) | inside, low end | reaction heat 174 kWh/t, C-201 condenser 388 kWh/t, C-202 condenser 180 kWh/t, all at 200 kPa(a) |
+| electricity + steam | 527 kWh/t | total 760 to 2600 (5.3.5) | below | follows from the two rows above; how the BREF nets recovery in its total is not stated |
+| zeolite spent | 7.5 g/t (cut-off) | 3 to 12 (5.3.4.2) | midpoint by choice | not a design result |
+| wastewater | none in the model | 0.117 to 0.144 m3/t (5.3.3.1) | excluded | drying column outside the boundary (D-013) |
+
+Reading: the design is a well heat-integrated plant: it exports more steam (742 kWh/t, at low
+pressure) than it buys (521 kWh/t, HP), which is what the BREF's recovery range says integrated
+plants do. Its gross steam is a third of the Tier 1 midpoint (1350 kWh/t), which had no design
+behind it. The electricity is not comparable until the pumps and the vacuum system are sized
+and the cooling-water circulation is counted. The yields are close to stoichiometry in both
+the BREF and the design, so they check the balance, not the chemistry.
+
+## LCI summary (lca/inventory.csv, per kg ethylbenzene)
+
+| exchange | amount | unit | provenance (flowsheet) | background to link later |
+|---|---|---|---|---|
+| feed:benzene | 0.737412 | kg | S1 (assumed, script) | benzene, aromatics complex or hda-1 |
+| feed:ethylene | 0.266888 | kg | S6 (assumed, script) | ethylene, steam cracker (ethylene-1) |
+| feed:electricity | 0.006373 | kWh | Q1 to Q3 (DWSIM) | electricity, medium voltage |
+| feed:steam | 0.520573 | kWh | Q5, Q6, Q8, Q10 (DWSIM) | HP steam, site boiler |
+| product:ethylbenzene | 1 | kg | S22 (design basis) | functional unit |
+| product:flux_oil | 0.004300 | kg | S25 (DWSIM) | co-product, share 0 |
+| product:steam_export | 0.742063 | kWh | Q4, Q7, Q9 (DWSIM) | co-product, share 0 (substitution: LP steam) |
+| product:cw | 0.073243 | kWh | Q11, Q12 (DWSIM) | cooling water circulation |
+
+Checks: `cheme assess lca --balance` mass 50215 kg/h in and out, C 45442.4 and H 4772.6 kg/h
+closed. `--coverage`: partial screening carbon footprint, 5 gaps, no total; DQR 2.33.
 
 ## Reaction and model evidence
 
