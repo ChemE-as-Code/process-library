@@ -1,0 +1,166 @@
+# The DWSIM model of styrene-1 (`cheme process simulate`; schema `cheme schema process-simulation`).
+# Decision D-012 in DESIGN.md. Every spec repeats a design choice of DESIGN.md (source given)
+# or is ASSUMED with its reason. No property package is qualified by core for aromatics with
+# water, hydrogen and flue gas (core methods.yml benchmarks only N2/O2/Ar and ethanol-water;
+# core#315): the results are a cross-check of scripts/sm_balance.py on a second implementation,
+# not a validated model.
+schema: cheme/simulation/v1
+kind: simulation
+simulator: dwsim
+property_package: Peng-Robinson (PR)
+method_selection:
+  facts:
+    pressure_value: 11                # the highest pressure of the flowsheet: dilution steam S3, 1100 kPa(a) (D-003)
+    pressure_unit: bar(a)
+    is_polar: true                    # water
+    is_electrolyte: false             # no ions
+    has_pseudocomponents: false       # twelve pure compounds with CAS numbers (materials.yaml)
+    interaction_parameters_available: false  # DWSIM's NRTL/UNIQUAC sets hold no water-EB or water-styrene pair (checked in its database, D-012); conservative
+    liquid_liquid_expected: true      # water and the aromatics are nearly immiscible (V-101, X-101)
+    vapor_association_expected: false # no carboxylic acids or HF
+  substitution: >-
+    The selection recommends PSRK or Peng-Robinson/RKS with Huron-Vidal or Wong-Sandler mixing
+    rules, none of which the DWSIM route runs; core's contract names Peng-Robinson as their
+    substitute (loses the polar mixing rule). At the separator's own pressure (45 kPa(a)) the
+    tree recommends UNIFAC-LL, which the DWSIM route does not run at all. Peng-Robinson is used
+    as a recorded substitution for an unqualified cross-check only (D-012): the water/aromatics
+    split is not taken from it but specified at the decanter X-101 from aqueous solubilities
+    (D-008). Not approved by an engineer; the run is not evidence for the property model.
+min_approach: {value: 20, provenance: assumed, source: "D-010: least approach of the process exchangers and superheater coils"}
+# D-012: the off-gas compression is not simulated. Peng-Robinson has one liquid phase here: the
+# water-saturated off-gas S19 condenses partly in DWSIM's flash (water and aromatics as one
+# liquid) and K-101's flash does not converge. S21, S22, Q3 and Q5 are the script's.
+exclude: [K101, E104, V102]
+# First guesses of the tear streams, from scripts/sm_balance.py (never stream values).
+tear_streams: [S10, S12, S16, S32]
+guesses:
+  S10:
+    temperature: {value: 1073.15, provenance: assumed, source: scripts/sm_balance.py}
+    pressure: {value: 135, provenance: assumed, source: scripts/sm_balance.py}
+    flow: {value: 73743.4, provenance: assumed, source: scripts/sm_balance.py}
+    composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: scripts/sm_balance.py}
+  S12:
+    temperature: {value: 1008.3, provenance: assumed, source: scripts/sm_balance.py}
+    pressure: {value: 105, provenance: assumed, source: scripts/sm_balance.py}
+    flow: {value: 73743.4, provenance: assumed, source: scripts/sm_balance.py}
+    composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: scripts/sm_balance.py}
+  S16:
+    temperature: {value: 845.8, provenance: assumed, source: scripts/sm_balance.py}
+    pressure: {value: 65, provenance: assumed, source: scripts/sm_balance.py}
+    flow: {value: 145578.6, provenance: assumed, source: scripts/sm_balance.py}
+    composition: {basis: mole_fraction, values: {H2: 0.0639085, CH4: 0.0019283, C2H4: 0.0013773, H2O: 0.8243539, BZ: 0.0008264, TOL: 0.0022436, EB: 0.0387376, SM: 0.066349, BIPH: 0.0002755}, provenance: assumed, source: scripts/sm_balance.py}
+  S32:
+    temperature: {value: 340.1, provenance: assumed, source: scripts/sm_balance.py}
+    pressure: {value: 300, provenance: assumed, source: scripts/sm_balance.py}
+    flow: {value: 23035.6, provenance: assumed, source: scripts/sm_balance.py}
+    composition: {basis: mole_fraction, values: {TOL: 0.008005, EB: 0.971995, SM: 0.02}, provenance: assumed, source: scripts/sm_balance.py}
+specs:
+  # ---- RXN (D-004, D-009)
+  VL101:
+    unit: valve
+    outlet_pressure: {value: 95, provenance: assumed, source: "D-004: EB feed let-down"}
+  VL102:
+    unit: valve
+    outlet_pressure: {value: 150, provenance: assumed, source: "D-004: main steam let-down to the superheater"}
+  E101:
+    cold_outlet_temperature: {value: 793.15, provenance: assumed, source: "D-004: 520 C (LVOC BREF 5.2.3.1.1, p. 255)"}
+    cold_pressure_drop: {value: 10, unit: kPa, provenance: assumed, source: D-004}
+    hot_pressure_drop: {value: 8, unit: kPa, provenance: assumed, source: D-004}
+  H101A:
+    cold_outlet_temperature: {value: 1073.15, provenance: assumed, source: "D-004: coil 1 outlet"}
+    cold_pressure_drop: {value: 15, unit: kPa, provenance: assumed, source: D-004}
+  E102:
+    cold_outlet_temperature: {value: 893.15, provenance: assumed, source: "D-004: bed 2 inlet"}
+    hot_pressure_drop: {value: 15, unit: kPa, provenance: assumed, source: D-004}
+    cold_pressure_drop: {value: 5, unit: kPa, provenance: assumed, source: D-004}
+  H101B:
+    cold_outlet_temperature: {value: 1008.31, provenance: assumed, source: "scripts/sm_balance.py: the coil 2 outlet that gives 893.15 K at the bed 1 inlet (D-004, D-006)"}
+    cold_pressure_drop: {value: 15, unit: kPa, provenance: assumed, source: D-004}
+  R101:
+    mode: adiabatic
+    pressure_drop: {value: 10, unit: kPa, provenance: assumed, source: "D-004: radial bed"}
+  R102:
+    mode: adiabatic
+    pressure_drop: {value: 10, unit: kPa, provenance: assumed, source: "D-004: radial bed"}
+  B101:
+    mode: adiabatic
+  # ---- REC (D-007, D-008)
+  E103:
+    outlet_temperature: {value: 313.15, provenance: assumed, source: "D-007: condenser outlet"}
+    pressure_drop: {value: 7, unit: kPa, provenance: assumed, source: D-007}
+  # D-008, D-012: V-101 and V-102 are specified vapour/liquid splits, not DWSIM flashes. A first
+  # run flashed V-101 with Peng-Robinson's two-phase (VLE) flash: it returned pure water as the
+  # liquid and left all the aromatics in the "vapour" (no second liquid phase), and the
+  # compressor downstream then failed. The splits are the vapour recoveries of the script's
+  # immiscible-liquid flash (313.15 K; 45 and 300 kPa(a)), design case.
+  V101:
+    unit: component_separator
+    recovery_outlet: vap
+    recoveries: {H2: 1.0, CH4: 1.0, C2H4: 1.0, N2: 1.0, O2: 1.0, CO2: 1.0, H2O: 0.0171377, BZ: 0.310323, TOL: 0.127104, EB: 0.0503661, SM: 0.0339356, BIPH: 0.00026776}
+    basis_source: "DESIGN.md D-008: scripts/sm_balance.py, flash with water and the aromatics as immiscible liquids (Raoult's law in the organic phase, thermo vapour pressures), the light gases all in the vapour"
+    operating_basis: "313.15 K, 45 kPa(a), the design-case effluent of scripts/sm_balance.py"
+  # K101, E104, V102: excluded (see exclude above); their values are the script's.
+  # D-008: decanter as a specified split. Water, the light gases and the air components go to the
+  # condensate; of each aromatic the dissolved share from its aqueous solubility (PubChem/HSDB,
+  # 25 C: benzene 1790, toluene 526, EB 169, styrene 300 mg/L) times its mole fraction in the
+  # organic phase, as scripts/sm_balance.py computes it for the design case.
+  X101:
+    unit: component_separator
+    recovery_outlet: water
+    recoveries: {H2O: 1.0, H2: 1.0, CH4: 1.0, C2H4: 1.0, N2: 1.0, O2: 1.0, CO2: 1.0, BZ: 0.0031537, TOL: 0.0007856, EB: 0.0002191, SM: 0.0003964, BIPH: 0.0}
+    basis_source: "DESIGN.md D-008: ideal immiscible liquids, aqueous solubilities of PubChem (HSDB) at 25 C times the organic mole fractions (scripts/sm_balance.py); water in the organic phase and light gases in it are not modelled"
+    operating_basis: "313.15 K, 45 kPa(a), the design-case organic composition of scripts/sm_balance.py"
+  # ---- FRAC (D-008): Fenske-Underwood-Gilliland shortcut columns, total condensers. Reflux
+  # 1.3 x the script's Underwood minimum (saturated-liquid feed).
+  P201:
+    outlet_pressure: {value: 150, provenance: assumed, source: "D-010: P-201 discharge"}
+    efficiency: {value: 0.65, provenance: assumed, source: "D-010: pump efficiency"}
+  C301:
+    unit: shortcut_column
+    light_key: TOL
+    heavy_key: EB
+    light_key_in_bottoms: 0.003
+    heavy_key_in_distillate: 0.02
+    reflux_ratio: 29.86
+    condenser: total
+    condenser_pressure: {value: 50, provenance: assumed, source: D-008}
+    reboiler_pressure: {value: 65, provenance: assumed, source: D-008}
+    outlets: {top: distillate, bot: bottoms}
+  C304:
+    unit: shortcut_column
+    light_key: BZ
+    heavy_key: TOL
+    light_key_in_bottoms: 0.01
+    heavy_key_in_distillate: 0.005
+    reflux_ratio: 2.91
+    condenser: total
+    condenser_pressure: {value: 45, provenance: assumed, source: D-008}
+    reboiler_pressure: {value: 60, provenance: assumed, source: D-008}
+    outlets: {top: distillate, bot: bottoms}
+  C302:
+    unit: shortcut_column
+    light_key: EB
+    heavy_key: SM
+    light_key_in_bottoms: 0.0015
+    heavy_key_in_distillate: 0.02
+    reflux_ratio: 11.55               # D-008 rule 1.3 x Rmin on DWSIM's Underwood minimum (8.884); the script's minimum is 6.75 (D-012)
+    condenser: total
+    condenser_pressure: {value: 10, provenance: assumed, source: D-008}
+    reboiler_pressure: {value: 25, provenance: assumed, source: D-008}
+    outlets: {top: distillate, bot: bottoms}
+  P302:
+    outlet_pressure: {value: 300, provenance: assumed, source: "D-010: P-302 discharge"}
+    efficiency: {value: 0.65, provenance: assumed, source: "D-010: pump efficiency"}
+  # C303 rigorous (D-012): DWSIM's shortcut gave tar mole fractions that add up to 1.014 (the
+  # light-key spec set directly, the rest by balance), as hda-1's C-203. Stages ASSUMED from the
+  # shortcut's 6.2 theoretical stages at R 0.5 with margin; the bottoms flow is the script's tar
+  # (30 wt% styrene, D-008); the styrene content of the simulated tar is the check.
+  C303:
+    stages: 10                        # ASSUMED: condenser and reboiler included
+    feed_stage: 5                     # ASSUMED: mid-column
+    condenser: total
+    condenser_pressure: {value: 8, provenance: assumed, source: D-008}
+    reboiler_pressure: {value: 12, provenance: assumed, source: D-008}
+    condenser_spec: {reflux_ratio: 0.5}   # D-008 floor (Underwood minimum about 0.04)
+    reboiler_spec: {flow: {value: 334.1, unit: kg/h, provenance: assumed, source: "scripts/sm_balance.py: tar 8.91 kg/t at 37.5 t/h (D-008, D-012)"}}
+    outlets: {top: distillate, bot: bottoms}
