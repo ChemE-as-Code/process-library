@@ -1,0 +1,29 @@
+# Equipment cost basis of the class 5 estimate (D-019). Schema: `cheme schema cost_basis`.
+# `cheme assess equipment` prices each listed item with the Turton et al. (CAPCOST) correlations
+# of the package (base CEPCI 397, 2001) and escalates them with the index below. Sizes are the
+# concept sizes of scripts/concept_sizing.py (D-017), all ASSUMED; the datasheets replace them
+# at basic engineering.
+schema: cheme/cost_basis/v1
+# AACE 18R-97 class 5: concept sizes (no datasheets), correlation costs; the estimate's range is
+# the class 5 range (-20 % to -50 % low, +30 % to +100 % high).
+estimate_class: 5
+cost_index:
+  value: 797.9
+  year: 2023
+  month: annual
+  source: "Chemical Engineering, Economic Indicators, Sept. 2024 issue, p. 45 (CEPCI table, 'Annual Index: ... 2023 = 797.9'), https://www.chemengonline.com/wp-content/uploads/2024/08/19_CHE_0924_EconInd_p45.pdf; the latest annual average found in an openly readable source (the same index as ammonia-1's cost basis)"
+notes: "Escalation 2001 -> 2023 by CEPCI 797.9 / 397. Currency USD (the correlations' currency); the conversion to EUR and the escalation to 2025 are in estimate/tea.yaml. Sizes ASSUMED (D-017)."
+items:
+  - {tag: E-101, cost: 1639210, currency: USD, year: 2023, status: ASSUMED, source: "2 identical shells of 654.35 m2 in series (the item's area 1308.7 m2 from scripts/concept_sizing.py: Q 24388 kW (DWSIM, D-014), LMTD 62.1 K, U 300 W/(m2 K) ASSUMED; over the correlation's maximum 1000 m2), each 819605 USD bare module (Shell and tube exchanger, fixed tube sheet, Turton et al. CAPCOST correlation of the package, Fm 2.73 stainless steel of the package for the hot-hydrogen service (material open, I-09), Fp 1.179 at 42 barg, FBM 6.972, CEPCI 797.9 / 397, run of cheme assess equipment at 654.35 m2); an upper estimate: two small shells cost more than one large one (D-019)"}
+  - {tag: E-102, size: 302.3, size_source: "scripts/concept_sizing.py: Q 4891 kW, LMTD 40.5 K against cooling water 298/308 K, U 400 W/(m2 K) ASSUMED (D-017)"}
+  - {tag: E-201, size: 20.0, size_source: "scripts/concept_sizing.py: Q 156.8 kW (Q6, script), condensing 350 -> 313 K ASSUMED, LMTD 26.2 K, U 300 W/(m2 K) ASSUMED (D-017)"}
+  - {tag: E-202, size: 76.2, size_source: "scripts/concept_sizing.py: Q 1431 kW (Q5, script), MP steam 471.4 K against S20 447.9 K, U 800 W/(m2 K) ASSUMED (D-017)"}
+  - {tag: E-203, size: 95.5, size_source: "scripts/concept_sizing.py: Q 4203 kW (DWSIM), condensing at 366.2 K, LMTD 62.9 K, U 700 W/(m2 K) ASSUMED; the product subcooling (I-12) not included (D-017)"}
+  - {tag: E-204, size: 265.3, size_source: "scripts/concept_sizing.py: Q 3482 kW (DWSIM), LP steam 420.8 K against S22 404.4 K, U 800 W/(m2 K) ASSUMED (D-017)"}
+  - {tag: E-205, size: 31.7, size_source: "scripts/concept_sizing.py: Q 790.5 kW (DWSIM), condensing at 344.9 K, LMTD 41.5 K, U 600 W/(m2 K) ASSUMED (D-017)"}
+  - {tag: E-206, size: 17.4, size_source: "scripts/concept_sizing.py: Q 649.2 kW (DWSIM), HP steam 526.4 K against S24 473.1 K, U 700 W/(m2 K) ASSUMED (D-017)"}
+  - {tag: P-101, size: 36.7, size_source: "process/simulation-run.json, case design, step P101 duty_kW (DWSIM pump power, D-014)"}
+  - {tag: P-102, size: 1.0, size_source: "the correlation's minimum 1 kW, an upper estimate: the item's shaft power is 0.55 kW (scripts/concept_sizing.py: 5494 kg/h at 850 kg/m3 ASSUMED x 200 kPa / efficiency 0.65, D-010), below the correlation's range 1 to 300 kW (D-019)"}
+  - {tag: K-101, size: 450, size_source: "the correlation's minimum 450 kW, an upper estimate: the item's shaft power is 229.5 kW (DWSIM duty: process/simulation-run.json, case design, step K101 duty_kW, D-014; the motor is outside the correlation, see the uncovered allowance in estimate/tea.yaml), below the correlation's range 450 to 3000 kW, which is not extrapolated (D-019)"}
+  - {tag: H-101, size: 2914.6, size_source: "process/simulation-run.json, case design, step H101 duty_kW (absorbed duty, DWSIM, D-014)"}
+  - {tag: V-100, correlation: vessel_vertical, size_source: "list dimensions; the horizontal drum priced with the vertical vessel correlation, whose bare module factor the package holds (the horizontal one has none), ASSUMED (D-019)"}

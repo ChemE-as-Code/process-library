@@ -1,0 +1,46 @@
+# Site plan of the concept plot plan (D-018). Schema: `cheme schema site_plan`.
+# x east, y north, metres from the south-west corner. A notional plot in the Rotterdam area
+# (I-05, D-016): plot size, area split, roads, rack and every separation below are ASSUMED
+# screening choices of this design (D-018), to be replaced by the site's own plot, the owner's
+# spacing standard and a QRA at basic engineering.
+schema: cheme/site_plan/v1
+site: {name: "hda-1 notional plot (Rotterdam area, ASSUMED)", width: 180, depth: 125}
+areas:
+  - {id: A-100, title: "Reaction and gas recycle: feed drum, pumps, FEHE, fired heater, reactor, trim cooler, HP separator, recycle compressor", box: [20, 56, 90, 112], kind: process}
+  - {id: A-200, title: "Stabilisation and distillation: stabiliser, benzene and toluene columns with their condensers and reboilers", box: [100, 56, 165, 112], kind: process}
+  - {id: A-800, title: "Utility interface (steam letdown, cooling water headers; reserved)", box: [70, 15, 90, 40], kind: reserved}
+  - {id: A-900, title: "Control room and substation (reserved)", box: [20, 15, 60, 40], kind: reserved}
+  - {id: A-300, title: "Feed and product tank interface outside the boundary (reserved)", box: [100, 15, 165, 40], kind: reserved}
+roads:
+  - {id: R-1, title: South perimeter road, points: [[0, 8], [180, 8]], width: 6}
+  - {id: R-2, title: North perimeter road, points: [[0, 118], [180, 118]], width: 6}
+  - {id: R-3, title: West perimeter road, points: [[8, 0], [8, 125]], width: 6}
+  - {id: R-4, title: East perimeter road, points: [[172, 0], [172, 125]], width: 6}
+  - {id: R-5, title: "Access road between A-100 and A-200", points: [[95, 0], [95, 125]], width: 6}
+racks:
+  - {id: PR-1, title: Main pipe rack (east-west), points: [[20, 50], [160, 50]], width: 8, levels: [6, 8], bent_spacing_m: 10}
+separations:
+  # fired heater H-101 (open flame) against the hydrogen and aromatic inventories
+  - {from: H-101, to: site-boundary, min_m: 30, reason: "fired heater kept off the plot boundary", basis: D-018}
+  - {from: H-101, to: K-101, min_m: 30, reason: "open flame to the hydrogen-rich recycle gas compressor (seal leaks)", basis: D-018}
+  - {from: H-101, to: V-101, min_m: 15, reason: "open flame to the high-pressure separator (hydrogen, benzene)", basis: D-018}
+  - {from: H-101, to: V-100, min_m: 15, reason: "open flame to the toluene feed drum", basis: D-018}
+  - {from: H-101, to: P-101, min_m: 15, reason: "open flame to the toluene feed pump (seal leak)", basis: D-018}
+  - {from: H-101, to: E-101, min_m: 15, reason: "open flame to the feed/effluent exchanger (flanged, 42 barg hot hydrogen)", basis: D-018}
+  - {from: H-101, to: A-200, min_m: 30, reason: "open flame to the distillation area (benzene inventories)", basis: D-018}
+  - {from: H-101, to: A-900, min_m: 30, reason: "fired heater to the control room and substation plot", basis: D-018}
+  # toppling of tall items onto the rack
+  - {from: C-202, to: PR-1, min_factor_of_height: 1, reason: toppling, basis: D-018}
+  - {from: C-203, to: PR-1, min_factor_of_height: 1, reason: toppling, basis: D-018}
+  - {from: C-201, to: PR-1, min_factor_of_height: 1, reason: toppling, basis: D-018}
+  - {from: R-101, to: PR-1, min_factor_of_height: 1, reason: toppling, basis: D-018}
+  - {from: H-101, to: PR-1, min_factor_of_height: 1, reason: "toppling of the heater and its stack", basis: D-018}
+  # occupied building plot against the hydrogen compressor and the benzene column
+  - {from: A-900, to: K-101, min_m: 45, reason: "control room plot to the high-pressure hydrogen compressor", basis: D-018}
+  - {from: A-900, to: C-202, min_m: 45, reason: "control room plot to the largest benzene inventory", basis: D-018}
+  - {from: A-900, to: V-101, min_m: 30, reason: "control room plot to the high-pressure separator", basis: D-018}
+notes: >-
+  ASSUMED: notional plot, roads, rack and spacing criteria (D-018); no site survey, no wind
+  rose, no QRA, no owner's spacing standard yet. Roads on all four sides and a north-south
+  access road between the two process areas give each process area fire-fighting access from
+  at least two sides; the rack bents (every 10 m from x = 20 to 160) stand clear of road R-5.

@@ -4,61 +4,81 @@
 # value of the balance (scripts/hda_balance.py) + 10 % (at least + 2 bar) and + 25 K; one
 # design pressure for the whole reactor loop (42 barg). Sizes, dimensions and weights come at
 # basic engineering (datasheets). Materials in hot hydrogen service are an open input (D-012).
+# dimensions: overall concept sizes for the plot plan and the class 5 estimate, ASSUMED, from
+# scripts/concept_sizing.py rounded up (D-017); the datasheets replace them.
 schema: cheme/equipment/v1
 equipment:
   # ---- reaction, quench, separation and gas recycle (block RXN)
   - {tag: V-100, type: Vessel, service: Toluene feed drum (fresh + recycle toluene),
      design_pressure_barg: 3.5, design_temperature_degc: 100, material: CS,
-     notes: "150 kPa(a), 314 K, 20.5 t/h (S2). ASSUMED."}
+     dimensions: {diameter: 1.8, length: 3.6},
+     notes: "150 kPa(a), 314 K, 20.5 t/h (S2). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
   - {tag: P-101, type: CentrifugalPump, service: Toluene feed pump,
      design_pressure_barg: 42, design_temperature_degc: 100, material: CS,
-     notes: "150 -> 3600 kPa(a), 20.5 t/h; ~37 kW at efficiency 0.65 counted from 30 kPa(a), i.e. incl. the C-203 distillate pump (D-010). A spare (P-101B) at basic engineering. ASSUMED."}
+     dimensions: {length: 2.2, width: 0.8, height: 1.0},
+     notes: "150 -> 3600 kPa(a), 20.5 t/h; ~37 kW at efficiency 0.65 counted from 30 kPa(a), i.e. incl. the C-203 distillate pump (D-010). A spare (P-101B) at basic engineering. ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
   - {tag: E-101, type: TubularHeatExchanger, service: Feed / effluent exchanger,
      design_pressure_barg: 42, design_temperature_degc: 645, material: "alloy / stainless in hot hydrogen (open input, D-012)",
-     notes: "Feed 321 -> 840 K (vaporises the toluene), effluent 893 -> 395 K, ~24.5 MW; minimum internal approach 53 K (scripts/hda_balance.py, D-004). ASSUMED."}
+     dimensions: {diameter: 1.6, length: 9.0},
+     notes: "Feed 321 -> 840 K (vaporises the toluene), effluent 893 -> 395 K, ~24.5 MW; minimum internal approach 53 K (scripts/hda_balance.py, D-004). ASSUMED. Two shells in series of about 654 m2 each (1309 m2, D-017), stacked, so the footprint is one shell's; the stacked height is set at basic (layout-3d, D-018). Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
   - {tag: H-101, type: Furnace, service: Reactor feed heater (fired),
      design_pressure_barg: 42, design_temperature_degc: 650, material: "alloy tubes (hot hydrogen, open input)",
-     notes: "840 -> 895 K, absorbed ~3.0 MW; fired with natural gas (D-009). Burning the purge gas instead is the usual alternative. ASSUMED."}
+     dimensions: {diameter: 4.0, height: 14.0},
+     notes: "840 -> 895 K, absorbed ~3.0 MW; fired with natural gas (D-009). Burning the purge gas instead is the usual alternative. ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
   - {tag: R-101, type: Vessel, service: "HDA reactor (adiabatic, thermal, empty vessel)",
      design_pressure_barg: 42, design_temperature_degc: 690, material: "refractory-lined carbon steel or alloy (hot hydrogen, open input)",
-     notes: "Inlet 895 K / 3450 kPa(a), outlet 937 K; conversion reactor model, no rate law: volume not sized (D-005). ASSUMED."}
+     dimensions: {diameter: 2.5, height: 9.0},
+     notes: "Inlet 895 K / 3450 kPa(a), outlet 937 K; conversion reactor model, no rate law: volume not sized (D-005). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
   - {tag: E-102, type: TubularHeatExchanger, service: Effluent trim cooler,
      design_pressure_barg: 42, design_temperature_degc: 150, material: CS,
-     notes: "395 -> 313 K, ~4.9 MW to cooling water; an air cooler plus trim cooler is the usual alternative (D-010). ASSUMED."}
+     dimensions: {diameter: 1.1, length: 7.0},
+     notes: "395 -> 313 K, ~4.9 MW to cooling water; an air cooler plus trim cooler is the usual alternative (D-010). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
   - {tag: V-101, type: Vessel, service: High-pressure separator,
      design_pressure_barg: 42, design_temperature_degc: 65, material: CS,
-     notes: "313 K, 3250 kPa(a); gas 29.3 t/h, liquid 23.5 t/h (D-004). ASSUMED."}
+     dimensions: {diameter: 1.4, height: 5.0},
+     notes: "313 K, 3250 kPa(a); gas 29.3 t/h, liquid 23.5 t/h (D-004). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
   - {tag: K-101, type: CentrifugalCompressor, service: Recycle gas compressor,
      design_pressure_barg: 42, design_temperature_degc: 75, material: CS,
-     notes: "3250 -> 3600 kPa(a), 26.0 t/h (2353 kmol/h); ~230 kW shaft at isentropic efficiency 0.75 (D-010). Electric drive ASSUMED."}
+     dimensions: {length: 6.0, width: 4.0, height: 3.0},
+     notes: "3250 -> 3600 kPa(a), 26.0 t/h (2353 kmol/h); ~230 kW shaft at isentropic efficiency 0.75 (D-010). Electric drive ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
   - {tag: P-102, type: CentrifugalPump, service: Quench liquid pump,
      design_pressure_barg: 42, design_temperature_degc: 65, material: CS,
-     notes: "3250 -> 3450 kPa(a), 5.5 t/h; power not counted (below 5 kW, D-010). ASSUMED."}
+     dimensions: {length: 1.2, width: 0.5, height: 0.7},
+     notes: "3250 -> 3450 kPa(a), 5.5 t/h; power not counted (below 5 kW, D-010). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
   # ---- stabilisation and distillation (block SEP)
   - {tag: C-201, type: ProcessColumn, service: Stabiliser,
      design_pressure_barg: 9, design_temperature_degc: 200, material: CS,
-     notes: "800 kPa(a); partial condenser at 313 K, L/D 1 (D-008); stages not calculated. ASSUMED."}
+     dimensions: {diameter: 1.0, height: 12.5},
+     notes: "800 kPa(a); partial condenser at 313 K, L/D 1 (D-008); 8 theoretical stages ASSUMED (the DWSIM shortcut gives 3.0, too few for a stabiliser, D-017). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
   - {tag: E-201, type: TubularHeatExchanger, service: Stabiliser partial condenser,
      design_pressure_barg: 9, design_temperature_degc: 200, material: CS,
-     notes: "~0.16 MW to cooling water (D-008). ASSUMED."}
+     dimensions: {diameter: 0.5, length: 4.0},
+     notes: "~0.16 MW to cooling water (D-008). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
   - {tag: E-202, type: TubularHeatExchanger, service: Stabiliser reboiler,
      design_pressure_barg: 14, design_temperature_degc: 225, material: CS,
-     notes: "~1.43 MW from MP steam 1500 kPa(a); bottoms 448 K (D-008, D-010). ASSUMED."}
+     dimensions: {diameter: 0.9, length: 5.0},
+     notes: "~1.43 MW from MP steam 1500 kPa(a); bottoms 448 K (D-008, D-010). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
   - {tag: C-202, type: ProcessColumn, service: Benzene column,
      design_pressure_barg: 3.5, design_temperature_degc: 160, material: CS,
-     notes: "Top 150, bottom 170 kPa(a); R 2.18 = 1.3 x DWSIM Underwood minimum 1.674 (D-008 rule, D-014; the script value R 1.28 is below the DWSIM minimum); stages not calculated. ASSUMED."}
+     dimensions: {diameter: 2.2, height: 38.0},
+     notes: "Top 150, bottom 170 kPa(a); R 2.18 = 1.3 x DWSIM Underwood minimum 1.674 (D-008 rule, D-014; the script value R 1.28 is below the DWSIM minimum); 38 theoretical stages (DWSIM shortcut, D-014). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
   - {tag: E-203, type: TubularHeatExchanger, service: Benzene column condenser and product cooler,
      design_pressure_barg: 3.5, design_temperature_degc: 120, material: CS,
-     notes: "~4.20 MW to cooling water, condenser only (simulated, D-014); product subcooling to 313 K (D-008) not counted, about 0.3 MW more (I-12). ASSUMED."}
+     dimensions: {diameter: 0.9, length: 6.0},
+     notes: "~4.20 MW to cooling water, condenser only (simulated, D-014); product subcooling to 313 K (D-008) not counted, about 0.3 MW more (I-12). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
   - {tag: E-204, type: TubularHeatExchanger, service: Benzene column reboiler,
      design_pressure_barg: 3.5, design_temperature_degc: 175, material: CS,
-     notes: "~3.48 MW from LP steam 450 kPa(a) (simulated, D-014); bottoms 404 K (D-008, D-010). ASSUMED."}
+     dimensions: {diameter: 1.2, length: 7.0},
+     notes: "~3.48 MW from LP steam 450 kPa(a) (simulated, D-014); bottoms 404 K (D-008, D-010). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
   - {tag: C-203, type: ProcessColumn, service: Toluene column (vacuum),
      design_pressure_barg: 3.5, design_temperature_degc: 230, material: CS,
-     notes: "Top 30, bottom 45 kPa(a), full vacuum design; R 0.5 (floor, Underwood minimum 0.02, D-008); vacuum system not sized (D-008). ASSUMED."}
+     dimensions: {diameter: 1.4, height: 14.0},
+     notes: "Top 30, bottom 45 kPa(a), full vacuum design; R 0.5 (floor, Underwood minimum 0.02, D-008); vacuum system not sized (D-008). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
   - {tag: E-205, type: TubularHeatExchanger, service: Toluene column condenser,
      design_pressure_barg: 3.5, design_temperature_degc: 110, material: CS,
-     notes: "~0.79 MW to cooling water; toluene at 345 K (D-008). ASSUMED."}
+     dimensions: {diameter: 0.6, length: 4.5},
+     notes: "~0.79 MW to cooling water; toluene at 345 K (D-008). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
   - {tag: E-206, type: TubularHeatExchanger, service: Toluene column reboiler,
      design_pressure_barg: 3.5, design_temperature_degc: 280, material: CS,
-     notes: "~0.65 MW from HP steam 4200 kPa(a) (shell side design 45 barg); biphenyl bottoms 479 K (D-008, D-010). ASSUMED."}
+     dimensions: {diameter: 0.6, length: 4.0},
+     notes: "~0.65 MW from HP steam 4200 kPa(a) (shell side design 45 barg); biphenyl bottoms 479 K (D-008, D-010). ASSUMED. Dimensions ASSUMED (D-017, scripts/concept_sizing.py)."}
