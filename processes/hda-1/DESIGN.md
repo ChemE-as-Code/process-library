@@ -635,6 +635,204 @@ Revised 2026-11-03 after the review of PR #320: steam CO2 added, power ASSUMED w
 premise, NIST methane value corrected (890.7 kJ/mol; conversion 0.055516 to 0.055521), K-101
 drive named in the allowance, spread scenarios added, P(meets) no longer quoted as the result.
 LCOP 874.3 to 880.9 EUR/t.
+Revised 2026-11-03 in S2 (D-020 to D-023): the TEA was rerun on the new feeds, reactor model,
+product cooler and quench pump. LCOP 875.9 EUR/t, NPV -148.4 MEUR, fixed capital 17.87 MEUR
+(ISBL 10.71 MEUR); the decision turns at toluene 504.2 EUR/t (-25 %). The values above are those
+of S1.
+
+### D-020 Feed specifications from published sources (2026-11-03, S2)
+Decision: give both feeds a composition from a published source, with provenance `given`
+(section S2 of `runs/plan.md`, item 1; supersedes the compositions of D-003):
+- Fresh toluene S1: the commercial toluene data sheet of Bharat Petroleum Corporation Ltd
+  (BPCL: TOLUENE, conforming to IS 537:2011, https://bharatpetroleum.in/images/files/Data-Sheet-Toluene.pdf,
+  read 2026-11-03). Its table sets toluene at no less than 99.8 % by mass (row 1), benzene at
+  no more than 500 mg/kg (row 8), non-aromatics at no more than 0.1 % by mass (row 7), C8+
+  aromatics at no more than 1000 ppm (row 10) and water at no more than 500 ppm (row 13).
+  Modelled: benzene at its limit, 0.05 % by mass, which is 0.000590 mol/mol. The other
+  impurities (together at most 0.2 % by mass) are not components of the model. They are
+  counted as toluene, ASSUMED. Their fate (C8 aromatics dealkylate too, non-aromatics
+  hydrocrack to light ends, water goes to the separator) is not modelled.
+- Make-up hydrogen S4: PSA purity, 99.9 mol% H2. Source: Matijasevic and Petric (2016),
+  Integration of hydrogen systems in petroleum refinery, Chem. Biochem. Eng. Q. 30(3) 291-304,
+  doi:10.15255/CABEQ.2015.2337. It was read in the authors' manuscript (hatz.hr copy, read
+  2026-11-03). Table 1 (p. 3, after Patel et al. 2006) gives a PSA product purity of 99.9 %,
+  and Fig. 3 (p. 8) shows a refinery PSA delivering 99.9 % v/v. The remaining 0.1 % is taken
+  as methane, ASSUMED: the source does not name the PSA's impurity.
+- Flows: S1 and S4 follow from the design capacity of `process/design-basis.yaml` (100 kt/a,
+  12.5 t/h of benzene at 8000 h/a, D-002). `scripts/hda_balance.py` computes them with the loop
+  specifications of D-007 and the reactor of D-021: S1 15432.33 kg/h (was 15518.29) and S4
+  556.58 kg/h (was 815.73). They are given with that source, and the source text says so.
+- Conditions (S1 300 kPa(a) and 303.15 K, S4 3700 kPa(a) and 313.15 K) stay ASSUMED battery
+  limits. No published source gives the battery-limit conditions of a notional site.
+Reason: `maturity-sourced-boundary` asks for sourced feed compositions and flows. A PSA grade
+also matches the hydrogen price of D-019 (the European Hydrogen Observatory's SMR cost is for
+SMR hydrogen, which modern plants purify by PSA), and the 5 % methane of D-003 had no source.
+Rejected: ASTM D841 nitration-grade toluene (the standard is not openly readable); the 95/5
+reformer gas of D-003 (no readable source found; the Politecnico di Milano course exercise of
+D. Manca uses the same 5 % methane, but it is a teaching assumption, not a published
+specification).
+Effect: less methane enters with the make-up, so the purge needed to hold 40 mol% H2 falls from
+0.1114 to 0.1017 of the separator gas. The purge falls from 3261 to 2967 kg/h, and the make-up
+from 815.7 to 556.6 kg/h. The make-up as H2 is 552.2 kg/h, against 574.9 kg/h before.
+I-01 and I-02 are answered for the composition; the supply conditions stay open.
+
+### D-021 R-101 model basis: published per-pass conversion and biphenyl equilibrium (2026-11-03, S2)
+Decision: model the adiabatic thermal reactor R-101 in two steps of the one vessel (`reactions.yaml`,
+`flowsheet.yaml` R101 and R101B):
+- R101 (conversion reactor): HDA at a toluene conversion per pass of 0.75, `provenance: given`.
+  Source: US 3,291,849 A (C. C. King, J. F. Campagnolo, L. M. Lehman; Hydrocarbon Research,
+  Inc., granted 1966-12-13), read in full text at https://patents.google.com/patent/US3291849.
+  In the detailed description, the paragraph beginning "The reactor 44 is an internally
+  insulated open chamber" describes a non-catalytic toluene reactor at about 600 psig with a
+  residence time of 20 to 40 s. Its temperature stays at or below 1350 F at every point, and it
+  is controlled so that about 75 % of the toluene in its total feed is converted. The patent's
+  reactor temperatures run from 1100 to 1500 F (866 to 1089 K), its pressures from 500 to
+  800 psig, and its hydrogen from at least 2 mol per mol of liquid aromatic feed.
+- R101B (equilibrium reactor): the biphenyl reaction 2 BZ <=> BIPH + H2 at chemical
+  equilibrium at the reactor outlet. The data are the ideal-gas formation data of
+  `process/materials.yaml` (given, with their `chemicals` sources), so `cheme maturity` counts
+  the basis as sourced. Its pressure drop is taken in R101.
+- Reason for the equilibrium: the biphenyl reaction runs both ways in thermal HDA. US 3,607,960 A
+  (Gulf Research & Development Co., 1971, background, read in full text at
+  https://patents.google.com/patent/US3607960A/en) states that diphenyl present in the feed
+  raises the benzene yield. Starting from almost no biphenyl, the forward reaction can at most
+  reach equilibrium, so the model gives the most biphenyl the benzene can form at the outlet
+  (an upper bound; kinetics would give the same or less). The recalled Douglas correlation of
+  D-005 gave 0.9694, and D-005 had already found its biphenyl slightly beyond equilibrium
+  (ln(Q/K) = +0.14).
+- Results (DWSIM): HDA extent 166.83 kmol/h, BIPH extent 2.215 kmol/h. The benzene
+  selectivity is therefore 1 - 2 x 2.215 / 166.83 = 0.9734 (the script gives 0.9731,
+  ln(Q/K) = 2e-13). The reactor outlet is 938.2 K. Biphenyl make: 2.215 kmol/h (341.6 kg/h),
+  against 2.570 kmol/h with D-005.
+- Operating window, checked against readable sources instead of the recalled Douglas values:
+  inlet 895 K (1151 F) and outlet 938 K (1229 F) lie inside US 3,291,849's 1100 to 1500 F and
+  under its 1350 F maximum. The pressure, 3450 kPa(a) (485 psig), lies inside US 3,607,960's
+  preferred 400 to 600 psig of its primary thermal zone (claim 4), but slightly below
+  US 3,291,849's 500 to 800 psig. H2/aromatics 5 lies inside US 3,607,960's preferred 3 to 10
+  and above US 3,291,849's minimum of 2. The 5 itself stays the design choice of D-007,
+  ASSUMED. Speight's 500 to 600 C (from the library skill; the book was not read here) lies
+  below both patents' thermal ranges. It is probably a catalytic range, but that is not
+  verified, so the conflict is recorded, not resolved by Speight.
+Rejected: kinetics. The open thermal HDA rate laws found (e.g. Hutabarat et al. 2026,
+J. Chem. Eng. Res. Prog. 3(1) 88-93, doi:10.9767/jcerp.20563, eqs. 4 and 6, CC BY-SA) give
+pre-exponential factors without units or a validity range and cite a secondary source. Core's
+kinetic reactor (`reactor: pfr`) is a fixed catalyst bed and has no empty-vessel homogeneous
+model. No `process/reaction-evidence.yaml` was written in this section. The one sourced value is the
+conversion, given with its source on the reaction itself. The two patents read in full report no benzene selectivity at R-101's
+conditions: US 3,291,849 gives none, and US 3,607,960 gives selectivities with diphenyl in the
+feed and at 85 to 95 % conversion per pass. US 3,340,318 and US 3,390,200 were seen only as
+search snippets, at 89 to 94 % conversion, and give no numbers here. Recording them is left to a later evidence search (skill
+`reaction-evidence-search`).
+Simulation note: DWSIM 9.0.5's equilibrium reactor in adiabatic mode stops with "TP Flash: One
+or more flash specification values are invalid", both from the old tear values and from the
+converged ones. R101B is therefore isothermal at the R101 outlet. Its 17.4 kW (endothermic
+BIPH plus DWSIM's own formation data) has no energy stream. Adiabatic, it would cool the
+47.1 t/h of gas by about 0.4 K. `cheme assess lca` warns (`boundary-utility-unassigned`,
+R101B), and the warning stays visible. DWSIM takes K from its own (ChemSep) formation data:
+benzene differs by +300 kJ/kmol and biphenyl by -688 kJ/kmol. The reaction heat therefore
+differs by 0.79 kW from materials.yaml (`predictive.formation-data` fails, against a 0.1 kW
+tolerance). That is a predictive-level requirement and not a balanced one.
+Superseded: the selectivity of D-005 and the lumped HDABP reaction of D-014. Review finding
+2026-10-27-pfd-lci-review#4 and I-06 are answered here: no model value rests on Douglas (1988)
+any more. What remains unsourced: the Douglas book itself was never read, and Speight's range
+is unverified.
+Maturity: `balanced` reached (R101 conversion specified and sourced, R101B equilibrium
+predictive and sourced). Predictive stays out of reach for three reasons:
+`predictive.model-basis` (R101 is a specified conversion; no readable thermal HDA kinetics with
+units and range, and no homogeneous kinetic reactor in core), `predictive.property-regime`
+(core#315: Peng-Robinson is not benchmarked for aromatics with H2/CH4) and
+`predictive.formation-data` (DWSIM's formation data in R101B).
+
+### D-022 Simulation close-out: product cooler, quench pump, stabiliser and column specs (2026-11-03, S2)
+Decision, against each D-014 deviation (I-12, the review findings and the S2 plan row):
+- Product cooler (I-12): a new step E207 (Cooling) and equipment item E-207 cool the C-202
+  distillate S26 from 366.2 K to 313.15 K (S21). Duty 314.5 kW to cooling water, Q11. The area
+  is 19.8 m2 at U 500 W/(m2 K), ASSUMED (`scripts/concept_sizing.py`). It is placed in the
+  condenser row (layout/equipment-placement.yaml, x 140 m) and priced in the class 5 estimate.
+  Its pressure drop is 0, ASSUMED, because the implicit distillate pump (D-010) makes it up.
+  The D-014 deviation on S21 (366 K against 313 K) is gone, and so is the subcooling item in
+  the uncovered allowance.
+- Quench pump (review #6, D-010): a new Pumping step P102 (linked to the existing P-102)
+  takes the quench liquid from 3250 to 3450 kPa(a), at 0.52 kW. The deviations on S9, S10, S11
+  and S17 are gone.
+- Implicit distillate pump of C-203 (S23 and S2 at 30 kPa(a) instead of 150): kept. There is
+  no item for it in the equipment list. The reflux and distillate pumps of the three columns are
+  drawn and listed with the P&IDs (S3) and sized in S7 (I-08). M100 shows an energy imbalance of
+  1.26 kW (`sim-energy-unbalanced`, tolerance 0.31 kW), the mixer at 30 kPa(a) mixing the two
+  liquids. The warning stays visible.
+- Stabiliser C-201 (I-12): kept as the DWSIM shortcut, with the script's duties Q5 1423.2 kW and
+  Q6 155.2 kW. The partial condenser again puts the off-gas at 191 to 205 K in DWSIM (the
+  repeated runs of this section; the dew point is about 313 K), with condenser 22.8 to 25.7 kW
+  and reboiler 1273 to 1277 kW. The rigorous alternative does not fit the design: core's
+  rigorous column with `condenser: partial` always draws a liquid distillate beside the vapour
+  (`vapor_flow`), and the stabiliser's distillate is all reflux. A reboiled stripper
+  (`condenser: none`) would remove E-201 and change D-008. That is a design change for the
+  basic-engineering stage, not made here.
+- C-202 rigorous trial: 40 stages, feed on stage 20, R 2.18 and a bottoms flow of 5252.7 kg/h.
+  It over-purified the distillate (13 ppm toluene) and stopped on DWSIM's mass-balance
+  tolerance for the hydrogen traces (relative error 0.0029, against 0.001). The shortcut stays.
+- C-203 bottoms: D-008's 2 mol% toluene would need about 345 kg/h at the simulated biphenyl
+  make. DWSIM's rigorous column does not converge below about 350 kg/h here. The trials were
+  341.9 and 345.4 kg/h with 10 and 14 stages, 346 kg/h at R 0.5 and 1.0, 349 kg/h, and a
+  reboiler temperature of 473.4 K. The lowest flow that converges, 352 kg/h, is used. The
+  biphenyl then carries 4.91 mol% toluene (about 6 kg/h more toluene than the 2 mol% target)
+  at 456.5 K. This is a deviation from D-008, kept visible and not tuned away.
+- Composition sums (closure finding 2026-11-03-concept-closeout#17): S19, S20, S22 and now S26
+  miss 1 by up to 1.7e-4 (`pydexpi_composition_fractions`). All four streams leave the DWSIM
+  shortcut columns C-201 and C-202, and the fractions are written by `simulate --fill` as
+  calculated values. Normalising them by hand would put values in the file that no
+  calculation produced. The fix is a rigorous model of C-201 and C-202, which the two bullets
+  above could not give. The warnings stay.
+Run (core v1.4.1, DWSIM 9.0.5, Peng-Robinson, `process/simulation-run.json`): converged in 3
+iterations of the recycles (tears S9, S15, S23). The energy audit closes: plant -0.83 kW
+against 22.24 kW, R101 -0.0009 kW against 3.04 kW, R101B 0 kW. The run's utilities are hot
+8320 kW, cold 10230 kW and power 268.0 kW, with 24.28 MW recovered between process streams.
+The E-101 least approach is 53.8 K. The remaining `sim-deviation` warnings are S2 and S23
+(implicit pump), S19 temperature and Q5/Q6 (stabiliser), each kept above.
+Simulation compared with the script (`scripts/hda_balance.py` on the same basis; its Python is
+the core 1.2.1 environment with thermo 0.6.1, which reproduces the S1 values of main exactly):
+
+| quantity | script | DWSIM | deviation |
+|---|---|---|---|
+| R-101 outlet T (S8) | 936.79 K | 938.21 K | +1.4 K |
+| benzene selectivity | 0.9731 | 0.9734 | +0.03 % |
+| biphenyl extent | 2.2415 kmol/h | 2.215 kmol/h | -1.2 % |
+| H-101 duty (Q3) | 2944.2 kW | 2901.8 kW | -1.4 % |
+| E-101 duty | 24345 kW | 24275 kW | -0.3 % |
+| E-102 duty (Q4) | 4908.2 kW | 4903.6 kW | -0.1 % |
+| K-101 power (Q2) | 231.2 kW | 231.0 kW | -0.1 % |
+| purge S13 | 2967.1 kg/h, 40.00 mol% H2 | 2967.0 kg/h, 40.02 mol% H2 | 0.0 % |
+| benzene distillate | 12500 kg/h (spec) | 12497.5 kg/h | -0.02 % |
+| toluene recycle S23 | 4908.3 kg/h | 4900.0 kg/h | -0.2 % |
+| C-202 reboiler (Q7) | 2299.3 kW (q = 1 feed) | 3484.2 kW | +52 % (as D-014) |
+| C-203 reboiler (Q9) | 644.6 kW (2 mol%) | 640.4 kW (4.9 mol%) | -0.7 % |
+
+Effects carried: stream table and PFD/BFD rebuilt (`cheme process build`: 18 steps, 39 streams).
+Equipment list: E-207 added, notes of R-101, P-102, E-203 and E-206 updated. Cost basis sizes
+from the new run (`scripts/concept_sizing.py`); E-101 is repriced at 2 x 646.2 m2
+(1.627 MUSD). Estimate and TEA rerun (D-019 revision line). LCA inventory rewritten: LHVs of
+the fuel gas 54.23 MJ/kg and biphenyl 39.68 MJ/kg, recomputed from the simulated streams.
+The shared LCI proxy `hydrogen-methane-makeup` (lci/mappings.yaml, used by hda-1 only) now
+splits a 99.9/0.1 mol% gas. Layout model rebuilt.
+
+### D-023 Purge hydrogen recovery: not included (I-07) (2026-11-03, S2)
+Decision: no hydrogen recovery from the purge in this design. The purge keeps going to the
+fuel gas header (D-007, D-009).
+Number (TEA basis of D-019 and the S2 run): the purge S13 carries 216.5 kg/h of H2 (2967 kg/h
+at 40.02 mol%). A PSA recovers 75 to 92 % of the hydrogen in its feed (Matijasevic and Petric
+2016, Table 1). At 85 %, ASSUMED as the middle of that range, it would return 184 kg/h, or
+1472 t/a. Each recovered kg saves the make-up price, 2.781 EUR/kg (EHO SMR 2024), and loses
+its fuel credit, 11.397 EUR/GJ x 0.120 GJ/kg LHV = 1.368 EUR/kg. The net is 1.413 EUR/kg:
+about 2.08 MEUR/a, or 20.8 EUR/t of benzene, before the PSA's capital, its power, and the
+recompression of the product hydrogen and the tail gas.
+Reason: the LCOP is 875.9 EUR/t against the benzene price of 673.6 EUR/t, a gap of
+202 EUR/t. Recovery is worth at most a tenth of it, before its own cost, so it does not change
+the decision of D-019. The economics turn on the toluene-benzene spread (break-even at toluene
+504.2 EUR/t). A vent absorber that keeps benzene out of the fuel header (about 237 kg/h of
+aromatics in S13 and S19) is also not included. It is a basic-engineering option if the site
+asks for it.
+Rejected: membrane recovery (85 to 95 % recovery at 90 to 98 % purity, same source). It falls
+in the same order of value and needs the same recompression.
 
 ## LCI summary (lca/inventory.csv, per kg benzene)
 
@@ -666,20 +864,25 @@ primary data share 0 %. No impact result is claimed.
 |---|---|---|---|
 | Stoichiometry HDA, BIPH | as reactions.yaml | route chemistry | sourced (textbook chemistry) |
 | Heats of reaction | -41.76, +15.04 MJ/kmol | formation enthalpies (chemicals: ATcT, CRC) | calculated |
-| Reactor T range | inlet >= ~895 K, outlet <= ~980 K | Douglas 1988, HDA case study | recalled, not read in this run; locator to verify |
-| Reactor T range (conflict) | 500-600 C, up to ~69 bar | Speight 2011 Ch. 11, via skill tech-petchem-aromatics | cited in library skill; disagrees with Douglas (may refer to catalytic processes); to resolve |
-| Pressure | 3.45 MPa | Douglas 1988 | recalled; within Speight's limit |
-| H2/aromatics >= 5 | 5 | Douglas 1988 | recalled |
-| Selectivity correlation | S = 1 - 0.0036/(1 - X)^1.544 | Douglas 1988 | recalled; validity range to verify |
-| Conversion per pass | 0.75 | design choice | ASSUMED |
-| Kinetics | none | - | not used; reactor volume not sized |
+| Reactor T range | inlet 895 K, outlet 938 K | US 3,291,849 (detailed description, reactor 44: 1100-1500 F, at most 1350 F); US 3,607,960 claim 4 (1050-1400 F) | sourced, read in full text (D-021); the recalled Douglas window is no longer used |
+| Reactor T range (conflict) | 500-600 C, up to ~69 bar | Speight 2011 Ch. 11, via skill tech-petchem-aromatics | below both patents' thermal ranges; probably catalytic, not verified (book not read) |
+| Pressure | 3.45 MPa (485 psig) | US 3,607,960 claim 4 (400-600 psig); US 3,291,849 (500-800 psig, about 600 psig) | inside the first, slightly below the second (D-021) |
+| H2/aromatics | 5 (design choice, D-007) | US 3,607,960 claim 4 (3-10); US 3,291,849 (at least 2 per mol of liquid aromatic feed) | inside both; the value itself ASSUMED |
+| Selectivity | 0.9734 (simulated) | biphenyl at equilibrium, formation data of materials.yaml (D-021) | calculated; upper bound of the biphenyl make |
+| Conversion per pass | 0.75 | US 3,291,849, detailed description (reactor 44: about 75 % of the toluene in its total feed) | given (D-021) |
+| Kinetics | none | - | not used: no readable thermal rate law with units and range; core has no homogeneous kinetic reactor (D-021) |
 | IDAES HDA examples | none used | issue #302 links | read only as context; no data taken |
 
 ## Source register
 
 | source | locator | access in this run | terms | use |
 |---|---|---|---|---|
-| Douglas (1988) Conceptual Design of Chemical Processes, McGraw-Hill | HDA case study (chapter and equation to verify) | not read (recalled) | book, facts cited only | reactor window, H2 ratio, selectivity correlation |
+| Douglas (1988) Conceptual Design of Chemical Processes, McGraw-Hill | HDA case study (chapter and equation to verify) | not read (recalled) | book, facts cited only | none since D-021 (was: reactor window, H2 ratio, selectivity correlation) |
+| US 3,291,849 A (Hydrocarbon Research, 1966), Hydrodealkylation | detailed description, paragraph "The reactor 44 is an internally insulated open chamber"; operating-conditions paragraph | full text, Google Patents, 2026-11-03 | patent, facts cited only | per-pass conversion 0.75, reactor window (D-021) |
+| US 3,607,960 A (Gulf R&D, 1971), Thermal hydrodealkylation process | background (diphenyl in the feed); claims 3 and 4 | full text, Google Patents, 2026-11-03 | patent, facts cited only | biphenyl reversibility, window (D-021) |
+| BPCL toluene data sheet (IS 537:2011) | table rows 1, 7, 8, 10, 13 | full text (PDF), 2026-11-03 | supplier data sheet, facts cited only | S1 composition (D-020) |
+| Matijasevic and Petric (2016), Chem. Biochem. Eng. Q. 30(3) 291-304, doi:10.15255/CABEQ.2015.2337 | Table 1 (p. 3), Fig. 3 (p. 8) of the authors' manuscript | full text (manuscript PDF at hatz.hr), 2026-11-03 | journal article, facts cited only | S4 purity, PSA recovery (D-020, D-023) |
+| Hutabarat et al. (2026), J. Chem. Eng. Res. Prog. 3(1) 88-93, doi:10.9767/jcerp.20563 | eqs. 4 and 6 | full text, 2026-11-03 | CC BY-SA 4.0 | none (kinetics rejected, D-021) |
 | Speight (2011) Handbook of Industrial Hydrocarbon Processes, Elsevier | Ch. 11 | via the library skill tech-petchem-aromatics | facts cited only | HDA temperature/pressure range |
 | `chemicals`/`thermo` Python packages (bundled with cheme) | ATcT, CRC, Yaws, HEOS, IUPAC, TRC ideal-gas, ChemSep PR kij | used | MIT; underlying data facts | formation data, critical constants, PR flash |
 | Cox, Wagman, Medvedev (1989) CODATA Key Values | CO2(g), H2O(g) formation enthalpies | recalled values | facts | LHV for allocation |
@@ -690,11 +893,11 @@ primary data share 0 %. No impact result is claimed.
 | step | method | status |
 |---|---|---|
 | Mass, component, element balances | cheme validate / process streams | closed |
-| Reactor outlet | cheme conversion reactor with selectivity | calculated by cheme |
+| Reactor outlet | DWSIM conversion reactor (HDA, X 0.75 given) and equilibrium reactor (BIPH), D-021 | simulated; R101B isothermal (D-021) |
 | Mixers, splitters, pass-throughs | cheme process propagate | calculated by cheme |
-| Flashes, column splits, duties | `cheme process simulate` (DWSIM 9.0.5, PR), D-014; C-201 duties from scripts/hda_balance.py | calculated; property package not qualified (core#315) |
+| Flashes, column splits, duties | `cheme process simulate` (DWSIM 9.0.5, PR), D-014, D-022; C-201 duties from scripts/hda_balance.py | calculated; property package not qualified (core#315) |
 | Energy closure in core | `cheme process props --fill` | gated: no package for aromatics + H2 |
-| Simulation | `cheme process simulate` (DWSIM) | converged, whole plant (D-014); property regime not qualified |
+| Simulation | `cheme process simulate` (DWSIM) | converged, whole plant, 3 iterations (D-022); energy audit closed (plant -0.83 kW); property regime not qualified |
 | BFD/PFD build | `cheme process build` | works; P101 `Pumping`, H101 `HeatingInFurnace` since core v1.4.1 (D-016) |
 | LCI | `cheme assess lca --inventory/--coverage/--balance` | written; backgrounds open |
 
@@ -702,6 +905,13 @@ primary data share 0 %. No impact result is claimed.
 
 Status 2026-11-03 (D-016): I-05 resolved (notional Rotterdam-area site); I-01 to I-04 kept
 ASSUMED; I-06 to I-12 carried, each with its reason and section in D-016.
+Status 2026-11-03 after S2: I-01 and I-02 answered for the composition by published sources
+(D-020); their supply conditions stay ASSUMED. I-06 answered (D-021): no model value rests on
+the recalled Douglas values; the conversion and the window come from two patents read in full,
+the biphenyl from equilibrium. Not covered by any readable source: the Douglas book itself, and
+whether Speight's 500-600 C is catalytic. I-07 decided (D-023: no recovery, worth at most about
+20.8 EUR/t). I-12: product cooler E-207 added (D-022); the stabiliser stays a shortcut column
+with the script's duties (D-022: core's rigorous partial condenser needs a liquid distillate).
 
 - I-01 Fresh toluene specification (purity, C8 aromatics, non-aromatics, sulfur, water).
 - I-02 Make-up hydrogen purity and supply pressure (source of hydrogen).
