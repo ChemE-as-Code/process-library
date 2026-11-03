@@ -1,0 +1,64 @@
+# Equipment list. Schema: `cheme schema equipment`.
+# Concept stage: the items the PFD (process/flowsheet.yaml) needs, no P&ID yet (no sheet).
+# Design pressure and temperature are ASSUMED concept values (D-012): the highest operating
+# value of the simulation + 10 % (at least + 2 bar) and + 25 K; one design pressure for the
+# reactor section (43 barg). Duties and temperatures from the DWSIM run (D-014). Sizes,
+# dimensions and weights come at basic engineering (datasheets); no plot plan at this stage.
+schema: cheme/equipment/v1
+equipment:
+  # ---- alkylation and transalkylation (block RXN)
+  - {tag: V-101, type: Vessel, service: Benzene feed drum (fresh + recycle benzene),
+     design_pressure_barg: 6, design_temperature_degc: 155, material: CS,
+     notes: "450 kPa(a), 403 K, 148.8 t/h (S3). ASSUMED."}
+  - {tag: P-101, type: CentrifugalPump, service: Alkylator feed pump,
+     design_pressure_barg: 43, design_temperature_degc: 160, material: CS,
+     notes: "450 -> 3900 kPa(a), 148.8 t/h, ~290 kW at efficiency 0.65 (D-010). A spare at basic engineering. ASSUMED."}
+  - {tag: E-101, type: TubularHeatExchanger, service: Alkylator feed / effluent exchanger,
+     design_pressure_barg: 43, design_temperature_degc: 265, material: CS,
+     notes: "Feed 406 -> 473 K, effluent 513 -> 459 K, ~6.1 MW (D-004, D-014). ASSUMED."}
+  - {tag: R-101, type: Vessel, service: "Alkylator: fixed zeolite beds, ethylene injected between beds, interbed steam generators",
+     design_pressure_barg: 43, design_temperature_degc: 265, material: CS,
+     notes: "Inlet 453 K / 3850 kPa(a), outlet 513 K / 3750 kPa(a); ~8.7 MW raised as 200 kPa(a) steam; conversion reactor model, catalyst volume and bed count not sized (D-004, D-005). Carbon steel per BREF 5.2.2.1.2. ASSUMED."}
+  - {tag: P-102, type: CentrifugalPump, service: Transalkylator feed pump,
+     design_pressure_barg: 43, design_temperature_degc: 175, material: CS,
+     notes: "450 -> 3900 kPa(a), 13.9 t/h, ~28 kW (D-010). ASSUMED."}
+  - {tag: E-102, type: TubularHeatExchanger, service: Transalkylator feed heater (HP steam),
+     design_pressure_barg: 43, design_temperature_degc: 280, material: CS,
+     notes: "-> 503 K, ~0.7 MW of HP steam 4200 kPa(a) (D-004, D-010). ASSUMED."}
+  - {tag: R-102, type: Vessel, service: "Transalkylator: fixed zeolite bed, adiabatic",
+     design_pressure_barg: 43, design_temperature_degc: 260, material: CS,
+     notes: "503 -> 504 K, 3850/3750 kPa(a); DEB conversion 0.65 per pass (D-005); catalyst volume not sized. ASSUMED."}
+  # ---- columns (block SEP)
+  - {tag: C-201, type: ProcessColumn, service: Benzene column,
+     design_pressure_barg: 6, design_temperature_degc: 235, material: CS,
+     notes: "450/480 kPa(a), top 411 K, bottom 482 K; reflux 0.66; stage count open (I-06; the BREF names about 60 trays). ASSUMED."}
+  - {tag: E-201, type: TubularHeatExchanger, service: "C-201 condenser, raises 200 kPa(a) steam",
+     design_pressure_barg: 6, design_temperature_degc: 165, material: CS,
+     notes: "~19.4 MW at 411 K condensing against 393 K steam (D-008, D-009). ASSUMED."}
+  - {tag: E-202, type: TubularHeatExchanger, service: C-201 reboiler (HP steam),
+     design_pressure_barg: 43, design_temperature_degc: 280, material: CS,
+     notes: "~17.7 MW at 482 K from HP steam 526 K (D-008). ASSUMED."}
+  - {tag: C-202, type: ProcessColumn, service: Ethylbenzene column,
+     design_pressure_barg: 2.5, design_temperature_degc: 235, material: CS,
+     notes: "150/170 kPa(a), top 425 K, bottom 480 K; reflux 0.97; DWSIM shortcut 39 theoretical stages (D-014). ASSUMED."}
+  - {tag: E-203, type: TubularHeatExchanger, service: "C-202 condenser, raises 200 kPa(a) steam",
+     design_pressure_barg: 3, design_temperature_degc: 180, material: CS,
+     notes: "~9.0 MW at 425 K against 393 K steam (D-008, D-009). ASSUMED."}
+  - {tag: E-204, type: TubularHeatExchanger, service: C-202 reboiler (HP steam),
+     design_pressure_barg: 43, design_temperature_degc: 280, material: CS,
+     notes: "~7.2 MW at 480 K (D-008). ASSUMED."}
+  - {tag: E-207, type: TubularHeatExchanger, service: Ethylbenzene product cooler,
+     design_pressure_barg: 3, design_temperature_degc: 180, material: CS,
+     notes: "425 -> 313 K, ~3.1 MW to cooling water (D-008). ASSUMED."}
+  - {tag: C-203, type: ProcessColumn, service: Polyethylbenzene column (vacuum),
+     design_pressure_barg: 3.5, design_temperature_degc: 250, material: CS,
+     notes: "20/30 kPa(a) (full vacuum design at basic), top 401 K, bottom 495 K (below 300 C, BREF 5.2.2.1.4); reflux 0.3; DWSIM shortcut 13 theoretical stages. The vacuum system is not listed yet (a cut-off in the LCI, D-013). ASSUMED."}
+  - {tag: E-205, type: TubularHeatExchanger, service: C-203 condenser (cooling water),
+     design_pressure_barg: 3.5, design_temperature_degc: 155, material: CS,
+     notes: "~0.6 MW (D-008). ASSUMED."}
+  - {tag: E-206, type: TubularHeatExchanger, service: C-203 reboiler (HP steam),
+     design_pressure_barg: 43, design_temperature_degc: 280, material: CS,
+     notes: "~0.35 MW at 495 K (D-008). ASSUMED."}
+  - {tag: P-103, type: CentrifugalPump, service: PEB recycle pump,
+     design_pressure_barg: 6, design_temperature_degc: 155, material: CS,
+     notes: "20 -> 450 kPa(a), 5.1 t/h, ~1.2 kW (D-010). ASSUMED."}

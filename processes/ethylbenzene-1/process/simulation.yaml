@@ -1,0 +1,112 @@
+# The DWSIM model of ethylbenzene-1 (`cheme process simulate`; schema `cheme schema
+# process-simulation`). Decision D-014 in DESIGN.md. Every spec repeats a design choice of
+# DESIGN.md (source given) or is ASSUMED with its reason. The property package is not qualified
+# by core for aromatics (core's packages cover air and syngas; `cheme maturity`
+# predictive.property-regime fails): the results are a cross-check of scripts/eb_balance.py on a
+# second implementation of Peng-Robinson, not a validated model.
+schema: cheme/simulation/v1
+kind: simulation
+simulator: dwsim
+property_package: Peng-Robinson (PR)
+method_selection:
+  facts:
+    pressure_value: 40                # the highest pressure of the flowsheet: ethylene feed S6, 4000 kPa(a) (D-003)
+    pressure_unit: bar(a)
+    is_polar: false                   # ethylene, benzene and alkylbenzenes: nonpolar hydrocarbons
+    is_electrolyte: false             # no ions
+    has_pseudocomponents: false       # five pure compounds with CAS numbers (materials.yaml); the flux oil is a model compound, not an assay fraction
+    interaction_parameters_available: false  # DWSIM's PR set was not checked for the alkylbenzene pairs (thermo's ChemSep set has ethylene-benzene only); uncertain, so the conservative answer
+    liquid_liquid_expected: false     # no water; the aromatics are fully miscible
+    vapor_association_expected: false # no carboxylic acids or HF
+# Tears and first guesses (D-014): the alkylator effluent (feed / effluent loop), the recycle
+# benzene and the PEB recycle; the guesses are scripts/eb_balance.py's values, never stream values.
+tear_streams: [S8, S19, S12]
+guesses:
+  S8:
+    temperature: {value: 513.15, provenance: assumed, source: "first guess: scripts/eb_balance.py"}
+    pressure: {value: 3750, provenance: assumed, source: "first guess: D-004"}
+    flow: {value: 162123.5, basis: mass, provenance: assumed, source: "first guess: scripts/eb_balance.py"}
+    composition: {basis: mole_fraction, values: {BZ: 0.764342, EB: 0.222283, DEB: 0.012864, PETB: 0.000511}, provenance: assumed, source: "first guess: scripts/eb_balance.py"}
+  S19:
+    temperature: {value: 411.2, provenance: assumed, source: "first guess: scripts/eb_balance.py"}
+    pressure: {value: 450, provenance: assumed, source: "first guess: D-008"}
+    flow: {value: 120740.7, basis: mass, provenance: assumed, source: "first guess: scripts/eb_balance.py"}
+    composition: {basis: mole_fraction, values: {BZ: 0.999, EB: 0.001}, provenance: assumed, source: "first guess: scripts/eb_balance.py"}
+  S12:
+    temperature: {value: 400.6, provenance: assumed, source: "first guess: scripts/eb_balance.py"}
+    pressure: {value: 450, provenance: assumed, source: "first guess: D-004"}
+    flow: {value: 5080.8, basis: mass, provenance: assumed, source: "first guess: scripts/eb_balance.py"}
+    composition: {basis: mole_fraction, values: {EB: 0.005131, DEB: 0.993869, PETB: 0.001}, provenance: assumed, source: "first guess: scripts/eb_balance.py"}
+specs:
+  # ---- RXN (D-004, D-010)
+  P101:
+    outlet_pressure: {value: 3900, provenance: assumed, source: D-004}
+    efficiency: {value: 0.65, provenance: assumed, source: "D-010: pump efficiency"}
+  E101:
+    cold_outlet_temperature: {value: 473.15, provenance: assumed, source: "D-004: alkylator feed preheat"}
+    cold_pressure_drop: {value: 50, unit: kPa, provenance: assumed, source: "D-004: S4 3900 to S5 3850 kPa(a)"}
+    hot_pressure_drop: {value: 50, unit: kPa, provenance: assumed, source: "D-004: S8 3750 to S10 3700 kPa(a)"}
+  R101:
+    mode: outlet_temperature
+    outlet_temperature: {value: 513.15, provenance: assumed, source: "D-004: alkylator outlet, held by the interbed steam generators"}
+    pressure_drop: {value: 100, unit: kPa, provenance: assumed, source: "D-004: S7 3850 to S8 3750 kPa(a)"}
+    outlets: {vap: vapor, liq: liquid}
+  P102:
+    outlet_pressure: {value: 3900, provenance: assumed, source: D-004}
+    efficiency: {value: 0.65, provenance: assumed, source: "D-010: pump efficiency"}
+  E102:
+    outlet_temperature: {value: 503.15, provenance: assumed, source: "D-004: transalkylator inlet"}
+    pressure_drop: {value: 50, unit: kPa, provenance: assumed, source: "D-004: S14 3900 to S15 3850 kPa(a)"}
+  R102:
+    mode: adiabatic
+    pressure_drop: {value: 100, unit: kPa, provenance: assumed, source: "D-004: S15 3850 to S16 3750 kPa(a)"}
+    outlets: {vap: vapor, liq: liquid}
+  # ---- SEP (D-008): Fenske-Underwood-Gilliland shortcut columns. Key specs are the D-008
+  # targets; reflux ratios 1.3 x the Underwood minimum of scripts/eb_balance.py (at least 0.3).
+  # C201 (D-014): DWSIM's shortcut reports a meaningless Underwood minimum (-154) and stage count
+  # (418) for the hot feed that partly flashes on letdown from 3700 kPa(a); its duties follow
+  # from the given reflux and agree with the script. A rigorous column at 40 stages failed in
+  # DWSIM's PR flash (feed at 3700 kPa(a) on the feed stage); open input I-09.
+  C201:
+    unit: shortcut_column
+    light_key: BZ
+    heavy_key: EB
+    light_key_in_bottoms: 0.0005      # D-008: benzene in the C-201 bottoms (ends in the EB product)
+    heavy_key_in_distillate: 0.001    # D-008: EB in the recycle benzene
+    reflux_ratio: 0.66                # D-008: 1.3 x Rmin 0.507 (scripts/eb_balance.py)
+    condenser: total
+    condenser_pressure: {value: 450, provenance: assumed, source: "D-008: condensing at about 411 K raises 200 kPa(a) steam"}
+    reboiler_pressure: {value: 480, provenance: assumed, source: D-008}
+    outlets: {top: distillate, bot: bottoms}
+  C202:
+    unit: shortcut_column
+    light_key: EB
+    heavy_key: DEB
+    light_key_in_bottoms: 0.005       # D-008: EB in the C-202 bottoms (recycled through C-203)
+    heavy_key_in_distillate: 0.00002  # D-008: DEB in the EB product, 20 ppm mol
+    reflux_ratio: 0.97                # D-008 rule 1.3 x Underwood minimum, on the minimum DWSIM finds at the arriving (partly flashed) feed, 0.742 (D-014); the script's minimum is 0.519
+    condenser: total
+    condenser_pressure: {value: 150, provenance: assumed, source: "D-008: inside the BREF's 110 to 170 kPa for the EB column"}
+    reboiler_pressure: {value: 170, provenance: assumed, source: D-008}
+    outlets: {top: distillate, bot: bottoms}
+  E207:
+    outlet_temperature: {value: 313.15, provenance: assumed, source: "design basis: EB product to storage"}
+    pressure_drop: {value: 0, unit: kPa, provenance: assumed, source: "D-008: neglected (the distillate pump is implicit)"}
+  # C203 rigorous (D-014): DWSIM's shortcut gave flux-oil mole fractions that add up to 0.9986
+  # (the light-key spec set directly, the rest by balance), so the column is solved stage by
+  # stage. Stage count ASSUMED from DWSIM's own shortcut estimate (10.4 theoretical stages at
+  # R 0.3, Underwood minimum 0.086) with margin. The bottoms flow is the D-005 flux oil.
+  C203:
+    unit: shortcut_column
+    light_key: DEB
+    heavy_key: PETB
+    light_key_in_bottoms: 0.02        # D-008: DEB left in the flux oil
+    heavy_key_in_distillate: 0.0001   # D-008: heavies in the PEB recycle
+    reflux_ratio: 0.3                 # D-008: the floor 0.3 (1.3 x Rmin is lower)
+    condenser: total
+    condenser_pressure: {value: 20, provenance: assumed, source: "D-008: vacuum, so that the bottoms stay below 300 C (BREF 5.2.2.1.4)"}
+    reboiler_pressure: {value: 30, provenance: assumed, source: D-008}
+    outlets: {top: distillate, bot: bottoms}
+  P103:
+    outlet_pressure: {value: 450, provenance: assumed, source: D-004}
+    efficiency: {value: 0.65, provenance: assumed, source: "D-010: pump efficiency"}

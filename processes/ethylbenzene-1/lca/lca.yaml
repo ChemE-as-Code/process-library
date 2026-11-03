@@ -1,0 +1,78 @@
+# Goal and scope of the ethylbenzene-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme assess
+# lca --write` (lca/inventory.csv, results.csv, results.md, gaps.csv, dataset.yaml,
+# manifest.json); never edit those by hand.
+#
+# A cradle-to-gate study with the foreground inventory only (DESIGN.md D-013): every exchange
+# comes from the balanced, simulated flowsheet (process/flowsheet.yaml, design case). No
+# background is linked yet: every feed and utility is `missing:` with the activity it should
+# connect to later, so the inventory carries them as gaps (never 0) and no impact result is
+# claimed (process.yaml lca.source none keeps the all-gap total out of the catalog). Omissions
+# are declared below (emission_exclusions, cutoff). No values from licensed databases are used.
+# This dataset replaces the hand-written Tier 1 dataset of the manifest-only pilot (D-013); the
+# EU LVOC BREF ranges that dataset carried are the cross-check in DESIGN.md D-015.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary cradle-to-gate life cycle inventory of ethylbenzene from liquid-phase zeolite
+  alkylation of benzene with ethylene and transalkylation at the concept stage (issue #313),
+  foreground inventory only: the foreground exchanges per kg of ethylbenzene at the plant gate,
+  with their provenance; every background is a gap until background datasets are chosen. Not an
+  impact assessment (D-013).
+functional_unit: {product: ethylbenzene, amount: 1, unit: kg}
+boundary: cradle-to-gate
+case: design
+location: GLO
+year: 2026
+technology: "liquid-phase alkylation of benzene with ethylene on a fixed-bed zeolite (benzene/ethylene 4), transalkylation of the polyethylbenzenes, benzene, EB and vacuum PEB columns, reaction and overhead heat raised as 200 kPa(a) steam; 400 kt/a EB, concept design"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+system_model: cutoff   # D-013: the exported steam and the flux oil are allocated (shares), never credited
+allocation:
+  method: shares
+  coproducts: [ethylbenzene, flux_oil, steam_export]
+  shares: {ethylbenzene: 1.0, flux_oil: 0.0, steam_export: 0.0}
+  source: >-
+    D-013 (agent proposal, for the LCA practitioner to confirm): all burdens to the ethylbenzene;
+    the flux oil (4.3 kg/t, 0.4 % of the product mass) and the exported 200 kPa(a) steam leave
+    without a burden and without a credit. The same choice as the Tier 1 dataset of the pilot,
+    which credited no heat recovery, and as nitric-acid-1 and sulfuric-acid-1 for exported steam.
+  deviation: >-
+    The library hierarchy allocates exported steam by energy or exergy (docs/system-model.md).
+    Energy allocation would give the steam a share against the LHV of the EB although low-pressure
+    steam is worth far less than its enthalpy says, and the exergy of the flux oil cannot be
+    calculated with a qualified property package (D-006). Shares 1/0/0 are the conservative
+    choice for the ethylbenzene; the credit the exported steam would earn by substitution is
+    shown for comparison once its background is chosen (D-013).
+  substitution:
+    steam_export: {missing: "no background chosen yet: heat from low-pressure steam (200 kPa(a)) of the site steam system it displaces, e.g. a natural-gas boiler, per kWh of heat", source: "steam raised in R-101 and the C-201 and C-202 condensers, Q4, Q7, Q9 (D-009)"}
+    flux_oil: {missing: "no background chosen yet: heavy fuel oil burned instead, per MJ LHV, or the flux oil it replaces in a styrene plant", source: "PEB column bottoms S25 (D-009)"}
+flows:
+  - {key: feed:benzene, missing: "no background chosen yet: benzene, high purity, from an aromatics complex (reformate or pyrolysis gasoline extraction) or toluene hydrodealkylation (hda-1), delivered to the plant", source: "fresh benzene S1 (design basis D-003)"}
+  - {key: feed:ethylene, missing: "no background chosen yet: ethylene, polymer grade, from a steam cracker (ethylene-1 is a candidate), by pipeline", source: "fresh ethylene S6 (design basis D-003)"}
+  - {key: feed:electricity, missing: "no background chosen yet: electricity, medium voltage, market for the site's grid (site not chosen)", source: "pumps P-101, P-102, P-103 (Q1 to Q3, D-010)"}
+  - {key: feed:steam, missing: "no background chosen yet: steam, in chemical industry, 4200 kPa(a) (site boiler on natural gas), per kWh of condensing heat", source: "reboilers of C-201, C-202, C-203 and the transalkylator feed heater E-102 (Q5, Q6, Q8, Q10; D-010)"}
+  - {key: product:cw, missing: "no background chosen yet: cooling water circulation per kWh rejected (pump and fan electricity, make-up water, evaporation, blowdown, treatment chemicals)", source: "heat to cooling water Q11, Q12 (D-010)"}
+emission_exclusions:
+  - {id: fugitive-leaks, method: equipment-leaks, reason: "fugitive benzene, ethylbenzene and ethylene from flanges, seals and valves are not estimated, not claimed negligible: an equipment-leak estimate needs the P&ID component counts. The LVOC BREF bounds them at up to 10 g benzene and 50 g VOC per t EB, storage excluded (5.3.1.6, p. 273); to become an emission_estimates entry with the P&IDs (D-013)", source: "D-013"}
+  - {id: storage-tanks, method: storage-tank, reason: "benzene, ethylbenzene and flux oil tanks are outside the battery limit (design basis): their breathing losses belong to the storage (D-013)", source: "design basis"}
+  - {id: no-process-effluent, method: effluent, reason: "no process wastewater in the model: the feeds are taken as dry (D-003) and the benzene drying column, which makes the plant's effluent, is outside the boundary; the BREF reports 0.117 to 0.144 m3/t EB for a zeolite plant (5.3.3.1, Table 5.5). The C-203 vacuum is taken as a dry vacuum pump (ASSUMED); steam ejectors would add an aromatic condensate (D-013)", source: "D-003, D-013"}
+  - {id: no-combustion, method: combustion, reason: "no fired equipment inside the boundary: every heat duty is HP steam whose boiler emissions belong to the feed:steam background", source: "D-010"}
+  - {id: catalyst-regeneration, method: non-routine, reason: "in-situ regeneration of the zeolite beds every 18 to 24 months (BREF 5.3.4.2) burns coke to CO2 in a nitrogen/air stream: not quantified, no coke amount sourced (D-013)", source: "D-013"}
+cutoff:
+  - {id: column-pumps-power, title: "Reflux and distillate pumps of C-201, C-202, C-203", unit: kWh, per_year: 320000, reason: "implicit pumps (not PFD steps): about 40 kW in all for some 300 t/h of reflux and distillate over 200 to 400 kPa (ASSUMED order of magnitude, D-008, D-010); not in the flowsheet's power feed", source: "D-008, D-010"}
+  - {id: c203-vacuum-power, title: "C-203 vacuum system power", unit: kWh, per_year: 160000, reason: "dry vacuum pump on the C-203 overhead, about 20 kW x 8000 h/a (ASSUMED order of magnitude, not sized; D-008, D-013)", source: "D-008"}
+  # The zeolite is a cut-off with its sourced amount (7.5 g/t EB, far below the 1 % mass rule),
+  # not a consumable: a consumable without a composition leaves the element balance unassessable.
+  - {id: zeolite-catalyst, title: "Zeolite catalyst of R-101 and R-102, make-up and spent", unit: kg, per_year: 3000, catalyst: true, contains: [Si, Al, O], reason: "LVOC BREF 5.3.4.2 and 5.3.6.1.1: 0.003 to 0.012 kg spent per t EB; midpoint 0.0075 kg/t x 400 000 t/a (the midpoint is our choice, as in the Tier 1 dataset). Should connect to zeolite (MCM-22 or beta) catalyst manufacture and the treatment of the spent catalyst once a background exists (D-013)", source: "LVOC BREF 5.3.4.2, 5.3.6.1.1"}
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 25 a service life ASSUMED; no construction inventory at this stage (D-013)"
+dataset:
+  version: 0.1.0
+  geography: {description: "One concept design for a generic EU site, not chosen; no regional background"}
+  system_model: cutoff
+  technology_level: current
+  classification: {isic: "2011", cpc: "34110"}
+  modelling: {principle: attributional}
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library, ethylbenzene-1 concept run (agent-generated, unreviewed)"
