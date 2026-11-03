@@ -59,7 +59,7 @@ B_DEB = 3.0                          # D-004: benzene/DEB at the transalkylator 
 # D-008 column specs (mole fractions)
 X_EB_D201, X_BZ_B201 = 0.001, 0.0005     # C-201: EB in recycle benzene, benzene in bottoms
 X_DEB_D202, X_EB_B202 = 0.00002, 0.005   # C-202: DEB in EB product, EB in bottoms
-X_PETB_D203, X_DEB_B203 = 0.001, 0.02    # C-203: heavies in PEB recycle, DEB in flux oil
+X_PETB_D203, X_DEB_B203 = 0.0001, 0.02   # C-203: heavies in PEB recycle, DEB in flux oil
 R_FACTOR, R_FLOOR = 1.3, 0.3         # D-008
 R_C202_SIM = 0.97                    # D-014: the C-202 reflux of process/simulation.yaml (comparison only)
 # pressures kPa(a) and temperatures K (D-003, D-004, D-008)

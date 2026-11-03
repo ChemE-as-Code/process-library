@@ -119,7 +119,7 @@ syngas): `cheme process props --fill` refuses every stream and `cheme maturity` 
 predictive.property-regime. As in hda-1, the DWSIM run (D-014) is a second implementation of
 Peng-Robinson checked against this script, not validated data.
 Results: loop residual below 1e-13 (27 iterations); mass 50215.0 kg/h in and out; overall energy
-closure 38267.3 kW in and out (formation enthalpies included, the pump temperature rise counted).
+closure 38264.4 kW in and out (formation enthalpies included, the pump temperature rise counted).
 
 ### D-007 Recycles (2026-11-03)
 Decision: the benzene column distillate (99.9 mol% benzene, 0.1 % EB) is split: 92.68 % to the
@@ -154,6 +154,71 @@ reaction heat could raise a higher level than 200 kPa(a) (open input I-05).
 Decision: HP steam 4200 kPa(a) (526.4 K) for all reboilers and E-102; steam raised at 200 kPa(a)
 (393.4 K); cooling water 298/308 K; electric pumps with efficiency 0.65; minimum approaches 10 K
 (steam) and 5 K (cooling water). All ASSUMED.
+
+### D-014 DWSIM simulation of the whole plant, an unqualified cross-check (2026-11-03)
+Decision: `cheme process simulate` runs the whole flowsheet with nothing excluded (core v1.4.1,
+DWSIM 9.0.5, Peng-Robinson); every stream value and duty downstream of the feeds is DWSIM's
+(`calculated`), the specs are in `process/simulation.yaml`, each repeating a D-004, D-008 or
+D-010 choice. Tears S8 (feed/effluent loop), S19 (recycle benzene) and S12 (PEB recycle) with the
+script's values as first guesses. The run converged; enthalpy closures: plant -0.10 kW
+(tolerance 152 kW), R-101 and R-102 on the formation basis below 0.001 kW. Run record
+`process/simulation-run.json`.
+Status: Peng-Robinson is **not qualified by core for these aromatics** (`cheme maturity`
+predictive.property-regime fails; `interaction_parameters_available: false`). The simulation is a
+second implementation's check of scripts/eb_balance.py, not validated data.
+Changes the run needed (none moves a design target):
+- R-101 and R-102 have a liquid and a vapour outlet (S9, S17): DWSIM's conversion reactor with one
+  outlet is taken as all vapour. Both vapour outlets carry no flow. DWSIM writes an all-zero
+  composition for an empty outlet, which `cheme validate` refuses (composition sum 0), so S9 and
+  S17 carry an ASSUMED placeholder composition (pure benzene) with the reason; a core finding.
+- C-202 reflux: the D-008 rule 1.3 x Rmin is kept but applied to DWSIM's Underwood minimum, 0.742,
+  so R = 0.97 instead of the script's 0.67 (Rmin 0.519): the C-201 bottoms arrive at 480 kPa(a)
+  and 482 K and partly flash in the 150 kPa(a) column; the script's constant-volatility Underwood
+  gives a lower minimum. R = 0.67 does not converge in DWSIM. The script reports C-202 at R = 0.97
+  as well for the comparison.
+- C-201: DWSIM's shortcut reports a meaningless minimum reflux (-154) and stage count (418) for
+  the hot feed letting down from 3700 kPa(a); its duties follow from the given reflux and agree
+  with the script. A rigorous column (40 stages) failed in DWSIM's PR flash. Stage count open
+  (I-06; the BREF names about 60 trays).
+- C-203: the shortcut with 0.1 mol% heavies in the distillate gave flux-oil fractions summing to
+  0.9986 (an error); with 0.01 mol% (D-008 as now written) the sum is 0.9993, accepted as a
+  `pydexpi_composition_fractions` warning like hda-1's. A rigorous C-203 did not converge
+  (10 and 14 stages, reflux 0.3 and 0.5). DWSIM estimates 13.2 theoretical stages at R 0.3.
+- Pressures of S7, S8, S9, S10, S18 follow DWSIM's mixer convention (the lowest inlet pressure).
+Comparison with the independent script (same specs; C-202 at R 0.97):
+
+| quantity | DWSIM | script | deviation |
+|---|---|---|---|
+| R-101 heat to steam (Q4) | 8706 kW | 8767 kW | -0.7 % |
+| C-201 condenser / reboiler (Q7 / Q6) | 19417 / 17711 kW | 19453 / 17618 kW | -0.2 / +0.5 % |
+| C-202 condenser / reboiler (Q9 / Q8) | 8980 / 7234 kW | 8986 / 7157 kW | -0.1 / +1.1 % |
+| C-203 condenser / reboiler (Q11 / Q10) | 604 / 352 kW | 607 / 353 kW | -0.5 / -0.2 % |
+| E-207 product cooler (Q12) | 3058 kW | 2965 kW | +3.1 % |
+| E-101 feed/effluent (internal) | 6093 kW | 7463 kW | -18.4 % |
+| E-102 transalkylator heater (Q5) | 732 kW | 841 kW | -12.9 % |
+| pumps P-101 / P-102 / P-103 (Q1-Q3) | 289.8 / 27.7 / 1.2 kW | 270.8 / 26.9 / 1.3 kW | +7.0 / +2.9 % |
+| C-201 bottoms S20, C-202 bottoms S23 | 55296 / 5296 kg/h | 55288 / 5288 kg/h | +0.01 / +0.14 % |
+| recycle benzene S19, flux oil S25 | 120741 / 215.0 kg/h | 120741 / 215.0 kg/h | 0.0 % |
+| EB product purity S22 | 99.944 mol% | 99.944 mol% | 0.0 |
+| column tops C-201 / C-202, bottom C-203 | 411.1 / 424.7 / 494.5 K | 411.2 / 424.6 / 494.6 K | < 0.1 K |
+| mixers M101 / M103 outlet | 403.3 / 419.0 K | 387.3 / 406.3 K | +16 / +13 K |
+
+The reactor heat, every column and the material balance agree within about 1 %. The two
+mixers do not: DWSIM's adiabatic mixer M103 returns 419.0 K from inlets at 411.1 and 400.5 K,
+above both, which is not possible for nearly ideal liquid aromatics, and M101 is 16 K hotter
+than a heat-capacity-weighted mix (about 384 K). The E-101 and E-102 duties, and the pump power,
+follow from these inlet temperatures. Not resolved in this run (I-07): the LCI takes DWSIM's
+values (E-102 is the only one that reaches a utility; its 109 kW difference is 2.2 kWh/t of HP
+steam). Other findings of the run: `sim-formation-data` for R-102 (DWSIM's ChemSep DEB -22300
+against the declared -20370 kJ/kmol, API TDB; the transalkylation heat is only -3 MJ/kmol, so the
+1 % tolerance is 0.1 kW; the declared value is kept); `sim-utility-level` for R-101 (the
+utility check treats the reactor as a stream heated from 453 to 513 K while it is cooled, so the
+200 kPa(a) steam cannot "cool" it on paper; the real interbed coolers see 513 K against 393 K
+steam).
+
+### D-015 Utilities and yields against the EU LVOC BREF (2026-11-03)
+See the table under "Comparison with the BREF" below; the reasons for every value outside a
+range are stated there and in `benchmarks/styrenics.yaml` as `out_of_range_reason`.
 
 ## Reaction and model evidence
 
@@ -193,3 +258,7 @@ No DWSIM or FOSSEE flowsheet file and no licensed database value is used.
 - I-03 Flux oil composition and its model compound.
 - I-04 Capacity and operating hours from an owner (400 kt/a, 8000 h/a are assumed).
 - I-05 Steam levels: the reaction heat could raise MP steam; where the exported steam is used.
+- I-06 Stage counts and a rigorous model of C-201 and C-203 (DWSIM's shortcut is unusable for
+  C-201's stage count; rigorous runs failed, D-014).
+- I-07 The DWSIM mixer temperatures M101 and M103 (16 and 13 K above the script, M103 above both
+  inlets): find whether DWSIM's PR liquid enthalpy or the mixer is at fault (D-014).
