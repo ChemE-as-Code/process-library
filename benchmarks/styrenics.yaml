@@ -4,13 +4,13 @@
 # None of these is an independent check: the datasets take their numbers from the same document.
 # - The ethylbenzene feeds are about 99.5 % stoichiometry, so they would sit near these ranges
 #   whatever the plant data said.
-# - The styrene dataset's ethylbenzene is the midpoint of the same range: transcription only.
-# - Toluene is a residual of that ethylbenzene figure: at EB 1040 kg/t it is -2.4 kg/t, and it
-#   falls below the range's 16 kg/t under EB about 1061 kg/t, so "inside" depends on the midpoint.
+# - The styrene dataset (styrene-1's flowsheet, since 2026-11-03) takes its ethylbenzene and
+#   toluene from reaction selectivities that were ASSUMED with these ranges in view (styrene-1
+#   DESIGN.md D-005): inside the ranges by construction, not an independent check.
 # - The EB energy total shares its source with the dataset's electricity and steam.
 # A styrene energy KPI (the source's total 3200 to 4700 kWh/t, section 5.3.5, p. 283) is not bound:
-# the fuel is in kg, and an expression cannot add kg to kWh (docs/benchmarks.md). By hand, electricity,
-# steam and fuel of the dataset's parameters give 4485 kWh/t gross, also not independent.
+# the dilution steam is in kg, and an expression cannot add kg to kWh (docs/benchmarks.md).
+# styrene-1 DESIGN.md D-014 compares its steam, fuel and power with the source by hand.
 schema: cheme-as-code/benchmarks/v1
 family: styrenics
 
@@ -91,8 +91,8 @@ datasets:
       eb-specific-ethylene: {expression: feed:ethylene / product:ethylbenzene, per: product:ethylbenzene, reference: bref-lvoc-eb-ethylene}
       eb-total-energy: {expression: (feed:electricity + feed:steam) / product:ethylbenzene, per: product:ethylbenzene, reference: bref-lvoc-eb-total-energy}
   - process: styrene-1
-    dataset: styrene-eb-dehydrogenation
-    conditions: {technology: adiabatic dehydrogenation, basis: conceptual inventory}
+    dataset: styrene-by-adiabatic-ethylbenzene-dehydrogenation-300-kt-a-concept
+    conditions: {technology: adiabatic dehydrogenation in two beds, basis: concept flowsheet (balance script and DWSIM)}
     kpis:
-      sm-specific-ethylbenzene: {expression: feed:ethylbenzene / product:styrene, per: product:styrene, reference: bref-lvoc-sm-eb}
-      sm-specific-toluene: {expression: product:toluene / product:styrene, per: product:styrene, reference: bref-lvoc-sm-toluene}
+      sm-specific-ethylbenzene: {expression: feed:EB / product:STYRENE, per: product:STYRENE, reference: bref-lvoc-sm-eb}
+      sm-specific-toluene: {expression: product:TOLUENE / product:STYRENE, per: product:STYRENE, reference: bref-lvoc-sm-toluene}
