@@ -155,6 +155,22 @@ Decision: HP steam 4200 kPa(a) (526.4 K) for all reboilers and E-102; steam rais
 (393.4 K); cooling water 298/308 K; electric pumps with efficiency 0.65; minimum approaches 10 K
 (steam) and 5 K (cooling water). All ASSUMED.
 
+### D-011 Core findings met in this run (2026-11-03)
+For core: (1) DWSIM's conversion reactor needs a vapour outlet even for a liquid-phase reactor,
+and the empty outlet gets an all-zero composition that `cheme validate` then refuses
+(placeholder used, D-014); (2) the `sim-utility-level` check reads a cooled exothermic reactor as
+a stream heated from inlet to outlet and reports that the cooling utility "cannot cool it";
+(3) the DWSIM mixer temperatures of D-014 (I-07); (4) DWSIM's shortcut column gives an Underwood
+minimum of -154 for a hot, partly flashing feed. None is filed yet: to report with the PR.
+
+### D-012 Lists (2026-11-03)
+Decision: the equipment list holds the 18 items the PFD links (no P&ID, no sizes, no plot plan
+at this stage, as the issue's scope says). Design pressures and temperatures are ASSUMED concept
+values: the highest operating value + 10 % (at least + 2 bar) and + 25 K, one design pressure
+(43 barg) for the reactor section; carbon steel throughout (BREF 5.2.2.1.2). The line and
+instrument lists stay empty until the P&IDs. The concept gate `layout-plot-plan` fails: no plot
+plan in scope (open input I-08).
+
 ### D-014 DWSIM simulation of the whole plant, an unqualified cross-check (2026-11-03)
 Decision: `cheme process simulate` runs the whole flowsheet with nothing excluded (core v1.4.1,
 DWSIM 9.0.5, Peng-Robinson); every stream value and duty downstream of the feeds is DWSIM's
@@ -262,3 +278,5 @@ No DWSIM or FOSSEE flowsheet file and no licensed database value is used.
   C-201's stage count; rigorous runs failed, D-014).
 - I-07 The DWSIM mixer temperatures M101 and M103 (16 and 13 K above the script, M103 above both
   inlets): find whether DWSIM's PR liquid enthalpy or the mixer is at fault (D-014).
+- I-08 Concept economics and plot plan (gate `layout-plot-plan`, class 5 estimate, screening TEA):
+  not in this run's scope.
